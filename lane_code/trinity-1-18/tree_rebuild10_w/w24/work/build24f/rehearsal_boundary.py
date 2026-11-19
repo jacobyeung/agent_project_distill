@@ -9,10 +9,11 @@ from student_pilot.p3_provenance import load
 import joblib as J
 N.torch.set_num_threads(2)
 import tempfile
-tempfile.tempdir=str(D/'rehearsal2/tmp')
+tempfile.tempdir=str(D/'rehearsal4/tmp')
 sys.path.insert(0,str(D))
-from rehearsal_model import install
+from rehearsal_model import install, install_preparation
 install(N.C)
+install_preparation()
 synthetic=load(O/'TWIN_BOUNDARY.json')['pins']
 Twins.ROWS=synthetic['rows']['sha256'];Twins.BINDING=synthetic['binding']['sha256'];Twins.ALIASES=synthetic['aliases']['sha256'];Rooms.STORE=synthetic['source_database']['sha256']
 N.C.processor_for=N.processor
@@ -72,7 +73,7 @@ if helper.endswith('/u.py'):
         marker=Path(directory)/('complete.json' if kind=='checkpoint' else 'artifact.json')
         if rank==0:
             value=J.load(marker);states.append(dict(kind=kind,step=value['step'],path=str(marker),sha256=J.sha(marker),passed=True))
-            J.write(D/'rehearsal2'/('states_'+phase+'.json'),states)
+            J.write(D/'rehearsal4'/('states_'+phase+'.json'),states)
     def run_steps(model,wrapped,optimizer,rows,counts,output,cfg,bound,device,rank=0,start_step=0,*a,**kw):
         # Change only loop scheduling. Config admission and export identity use
         # the authenticated fixture config with the production recipe.
@@ -80,7 +81,7 @@ if helper.endswith('/u.py'):
         effective.update(resume_every_seconds=1,milestones=[2],steps={'fresh':3,'budget':1000,'resume':5}[phase])
         N.C.recipe_for=lambda c:effective
         record=dict(phase=phase,rank=rank,start_step=start_step,optimizer_state_entries_at_start=len(optimizer.state),TK_JOB_START=os.environ['TK_JOB_START'],events=events,effective_recipe=effective)
-        target=D/'rehearsal2'/(phase+'_rank'+str(rank)+'.json');J.write(target,record)
+        target=D/'rehearsal4'/(phase+'_rank'+str(rank)+'.json');J.write(target,record)
         try:result=original(model,wrapped,optimizer,rows,counts,output,cfg,bound,device,rank,start_step,*a,**kw)
         finally:N.C.recipe_for=native_recipe
         record.update(last_step=result['last_step'],status=result['status'],stop_reason=result['stop_reason'],elapsed_seconds=result['elapsed_seconds'],events=events)

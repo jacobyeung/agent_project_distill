@@ -1,0 +1,44 @@
+    def test_existing_symlink_target_cannot_escape_private_root(self):
+        root=directory();alias=root/'private_rt/sj/test/external';alias.parent.mkdir(parents=True)
+        alias.symlink_to('/tmp')
+        g,m=archive(root,[('sj/test/new','file',b'new'),('sj/test/link','link','external/file')])
+        with self.assertRaises(C.Refusal):extract_all([g],m)
+        self.assertFalse((alias.parent/'new').exists())
+        self.assertEqual(os.readlink(str(alias)),'/tmp')
+
+    def test_symlink_cycle_refuses_before_writing(self):
+        root=directory();g,m=archive(root,[('sj/test/new','file',b'new'),
+            ('sj/test/a','link','b'),('sj/test/b','link','a')])
+        with self.assertRaises(C.Refusal):extract_all([g],m)
+        self.assertFalse((root/'private_rt').exists())
+
+    def test_staging_helpers_extract_as_records_without_execution(self):
+        plan=C.read(TARGET/'STAGE_PLAN.json')
+        self.assertIn('x/pull.py',plan.get('runtime_registry',{}))
+        root=directory();body=b'raise RuntimeError("must never execute")\n'
+        g,m=archive(root,[('x/pull.py','file',body),('x/need_frames.txt','file',b'frames\n')])
+        g['namespace_map']={n:str(root/'private_rt'/n) for n in plan['runtime_registry']}
+        proof=extract_all([g],m)
+        self.assertEqual((root/'private_rt/x/pull.py').read_bytes(),body)
+        self.assertIn(str(root/'private_rt/x/need_frames.txt'),proof['files'])
+
+    def test_stage_entry_refuses_late_unknown_before_runtime_writes(self):
+        self.assertTrue(callable(getattr(R,'extract_runtimes',None)))
+        import runtime_registry228 as G
+        root=directory();groups=[];mapping={}
+        for ident,rows in [('r0',[('sj/test/new','file',b'new')]),('r2',[('unknown/file','file',b'bad')])]:
+            g,m=archive(root,rows,ident)
+            for part in g['parts']:part['target']=str(m[part['path']])
+            groups.append(g);mapping.update(m)
+        plan=dict(runtime_archives=groups,input_archives=[],private_runtime=str(root/'private_rt'),
+                  budget=dict(runtime_expanded_allowance_bytes=1000,free_floor_bytes=0))
+        original=S.read
+        def read(path):return plan if Path(path).name=='STAGE_PLAN.json' else original(path)
+        with patch.object(S,'read',side_effect=read),patch.object(S,'target_host'),\
+             patch.object(S,'deployment',return_value=(root,{},None,None)),patch.object(S,'verify_runtime_pins'),\
+             patch.object(S,'STAGE',root),patch.object(G,'validate_registry',return_value={'passed':True}):
+            with self.assertRaisesRegex(C.Refusal,'Unregistered runtime namespace'):S.main(['fixture','--extract-runtime'])
+        self.assertFalse((root/'private_rt').exists())
+        receipt=C.read(root/'STAGE_CHECK.json');self.assertFalse(receipt['passed'])
+        self.assertEqual(receipt['phase'],'runtime_extraction')
+

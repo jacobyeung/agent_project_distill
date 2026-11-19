@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "command": "env PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/evidence.py",
+  "applied_command": "patch -p1 -d work/new < /scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_fhalias/out/ALIAS.patch",
+  "inputs_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/inputs/FHALIAS2_REPORT.md": "16fc79d14a2c52a5954f6cf3dba6b4f688eac48965790dd9cb08b1d317120df0",
+    "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_fhalias/out/ALIAS.patch": "474192f39ad1198ac7da1ab84247f1c0a652cace3384cbda10227f0bcc34d7f2",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/evidence.py": "e21185b4290461a6fd5f4407a537f778d4cf1e0b6948827848cf238fedd2f659",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/launch_r2/distributed.py": "9fec5743ecf8b69c74a7c9debc0fa610ccda182397959eed21d87a05642cc01d",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/launch_r2/distributed.py": "fa4221a306269a38e04d1b844ec78d60cc11778d85f4177d58d6e8471ca17d91",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/launch_r2/host.py": "3ca2cdff76593a50b3d78ce4ccfbbaa09ea6349f4320fea9be5a8dd297a8a843",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/launch_r2/host.py": "3587742802c7cb14f39aa0c4feb94cbd6cadaba6fc9e5c5f43655215d5185bed",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/launch_r2/runtime.py": "e23656c8f3016a32bae1d0322f43fad67f6207a62c554af94a92f979091d76f1",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/launch_r2/runtime.py": "5be49d551a9bf94887fb9b7c20a3b338fe76658b377ad30321e6407e8fadf7b7",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/student_pilot/job_env.py": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/job_env.py": "217ff0c7b8a6ea721ae1e833e21421e98b581e0c8e56708f64e4f78ae6459a88",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/student_pilot/r2_intake.py": "fc968e85827dc56686c6b11814a02b3274f52fb3ca6281758111e1612a3e1c48",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r2_intake.py": "2e96e97d9306f3d08c56cc3e189a8b0fcc5a9462bee68a168f451df52448bbb1",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/student_pilot/r2_materialize.py": "47a362bb95cfafcd0b007fd955eb5990d7755ebabd2615d91a9fafe5c47bf0a3",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r2_materialize.py": "0c2a7bc1b140571dfb6ed9a27a909f00c09c852413ec3c09d6c5cfa5cc499f98"
+  },
+  "files": [
+    {
+      "path": "launch_r2/distributed.py",
+      "reviewed_base_sha256": "9fec5743ecf8b69c74a7c9debc0fa610ccda182397959eed21d87a05642cc01d",
+      "reviewed_new_sha256": "fa4221a306269a38e04d1b844ec78d60cc11778d85f4177d58d6e8471ca17d91",
+      "actual_base_sha256": "9fec5743ecf8b69c74a7c9debc0fa610ccda182397959eed21d87a05642cc01d",
+      "actual_new_sha256": "fa4221a306269a38e04d1b844ec78d60cc11778d85f4177d58d6e8471ca17d91"
+    },
+    {
+      "path": "launch_r2/host.py",
+      "reviewed_base_sha256": "3ca2cdff76593a50b3d78ce4ccfbbaa09ea6349f4320fea9be5a8dd297a8a843",
+      "reviewed_new_sha256": "3587742802c7cb14f39aa0c4feb94cbd6cadaba6fc9e5c5f43655215d5185bed",
+      "actual_base_sha256": "3ca2cdff76593a50b3d78ce4ccfbbaa09ea6349f4320fea9be5a8dd297a8a843",
+      "actual_new_sha256": "3587742802c7cb14f39aa0c4feb94cbd6cadaba6fc9e5c5f43655215d5185bed"
+    },
+    {
+      "path": "launch_r2/runtime.py",
+      "reviewed_base_sha256": "e23656c8f3016a32bae1d0322f43fad67f6207a62c554af94a92f979091d76f1",
+      "reviewed_new_sha256": "5be49d551a9bf94887fb9b7c20a3b338fe76658b377ad30321e6407e8fadf7b7",
+      "actual_base_sha256": "e23656c8f3016a32bae1d0322f43fad67f6207a62c554af94a92f979091d76f1",
+      "actual_new_sha256": "5be49d551a9bf94887fb9b7c20a3b338fe76658b377ad30321e6407e8fadf7b7"
+    },
+    {
+      "path": "student_pilot/job_env.py",
+      "reviewed_base_sha256": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+      "reviewed_new_sha256": "217ff0c7b8a6ea721ae1e833e21421e98b581e0c8e56708f64e4f78ae6459a88",
+      "actual_base_sha256": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+      "actual_new_sha256": "217ff0c7b8a6ea721ae1e833e21421e98b581e0c8e56708f64e4f78ae6459a88"
+    },
+    {
+      "path": "student_pilot/r2_intake.py",
+      "reviewed_base_sha256": "fc968e85827dc56686c6b11814a02b3274f52fb3ca6281758111e1612a3e1c48",
+      "reviewed_new_sha256": "2e96e97d9306f3d08c56cc3e189a8b0fcc5a9462bee68a168f451df52448bbb1",
+      "actual_base_sha256": "fc968e85827dc56686c6b11814a02b3274f52fb3ca6281758111e1612a3e1c48",
+      "actual_new_sha256": "2e96e97d9306f3d08c56cc3e189a8b0fcc5a9462bee68a168f451df52448bbb1"
+    },
+    {
+      "path": "student_pilot/r2_materialize.py",
+      "reviewed_base_sha256": "47a362bb95cfafcd0b007fd955eb5990d7755ebabd2615d91a9fafe5c47bf0a3",
+      "reviewed_new_sha256": "0c2a7bc1b140571dfb6ed9a27a909f00c09c852413ec3c09d6c5cfa5cc499f98",
+      "actual_base_sha256": "47a362bb95cfafcd0b007fd955eb5990d7755ebabd2615d91a9fafe5c47bf0a3",
+      "actual_new_sha256": "0c2a7bc1b140571dfb6ed9a27a909f00c09c852413ec3c09d6c5cfa5cc499f98"
+    }
+  ],
+  "missing_requested_patch": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/swarm_build/ops_mirror/reports_1410Z/ALIAS2.patch",
+  "fallback": "Local ALIAS.patch produces exactly the six reviewed file hashes."
+}

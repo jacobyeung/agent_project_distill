@@ -1,0 +1,1232 @@
+{
+  "b/f.sh": {
+    "bindings": [
+      {
+        "expression": "export CUDA_VISIBLE_DEVICES=\"\" PYTHONDONTWRITEBYTECODE=1",
+        "line": 4,
+        "names": [
+          "CUDA_VISIBLE_DEVICES",
+          "PYTHONDONTWRITEBYTECODE"
+        ]
+      },
+      {
+        "expression": "ROOT=\"$(dirname \"$(dirname \"$(readlink -f \"${BASH_SOURCE[0]}\")\")\")\"",
+        "line": 5,
+        "names": [
+          "ROOT"
+        ]
+      },
+      {
+        "expression": "P=\"$(readlink -m -- \"$1\")\"",
+        "line": 7,
+        "names": [
+          "P"
+        ]
+      },
+      {
+        "expression": "N=\"$P.h\"",
+        "line": 9,
+        "names": [
+          "N"
+        ]
+      },
+      {
+        "expression": "export TMPDIR=\"$N/tmp\" XDG_CACHE_HOME=\"$N/cache\"",
+        "line": 11,
+        "names": [
+          "TMPDIR",
+          "XDG_CACHE_HOME"
+        ]
+      },
+      {
+        "expression": "export HF_HOME=\"$N/cache/hf\" TORCH_HOME=\"$N/cache/torch\" TRITON_CACHE_DIR=\"$N/cache/triton\"",
+        "line": 12,
+        "names": [
+          "HF_HOME",
+          "TORCH_HOME",
+          "TRITON_CACHE_DIR"
+        ]
+      },
+      {
+        "expression": "export CUDA_CACHE_PATH=\"$N/cache/cu\" MPLCONFIGDIR=\"$N/cache/plot\"",
+        "line": 13,
+        "names": [
+          "CUDA_CACHE_PATH",
+          "MPLCONFIGDIR"
+        ]
+      }
+    ],
+    "reason": "Reviewed fixed literal assignments; launch resource, clock and copier assignments reviewed. Any source edit invalidates this certificate.",
+    "runtime_literal_names": [
+      "CUDA_CACHE_PATH",
+      "CUDA_VISIBLE_DEVICES",
+      "HF_HOME",
+      "MPLCONFIGDIR",
+      "N",
+      "P",
+      "PYTHONDONTWRITEBYTECODE",
+      "ROOT",
+      "TMPDIR",
+      "TORCH_HOME",
+      "TRITON_CACHE_DIR",
+      "XDG_CACHE_HOME"
+    ],
+    "sha256": "b34eeb2bd0c5db05d2ed2056369f2838211d8a7b5134e59fb7b8d9080d5e2341"
+  },
+  "b/q.sh": {
+    "bindings": [
+      {
+        "expression": "export PYTHONDONTWRITEBYTECODE=1",
+        "line": 2,
+        "names": [
+          "PYTHONDONTWRITEBYTECODE"
+        ]
+      },
+      {
+        "expression": "ROOT=\"$(dirname \"$(dirname \"$(readlink -f \"${BASH_SOURCE[0]}\")\")\")\"",
+        "line": 4,
+        "names": [
+          "ROOT"
+        ]
+      }
+    ],
+    "reason": "Reviewed fixed literal assignments; launch resource, clock and copier assignments reviewed. Any source edit invalidates this certificate.",
+    "runtime_literal_names": [
+      "PYTHONDONTWRITEBYTECODE",
+      "ROOT"
+    ],
+    "sha256": "985c3c63e512771656ebd9829d961376afe6ee505f29d8c0780b3dee19593551"
+  },
+  "b/q1.sh": {
+    "bindings": [
+      {
+        "expression": "export PYTHONDONTWRITEBYTECODE=1",
+        "line": 2,
+        "names": [
+          "PYTHONDONTWRITEBYTECODE"
+        ]
+      },
+      {
+        "expression": "ROOT=\"$(dirname \"$(dirname \"$(readlink -f \"${BASH_SOURCE[0]}\")\")\")\"",
+        "line": 4,
+        "names": [
+          "ROOT"
+        ]
+      }
+    ],
+    "reason": "Reviewed fixed literal assignments; launch resource, clock and copier assignments reviewed. Any source edit invalidates this certificate.",
+    "runtime_literal_names": [
+      "PYTHONDONTWRITEBYTECODE",
+      "ROOT"
+    ],
+    "sha256": "985c3c63e512771656ebd9829d961376afe6ee505f29d8c0780b3dee19593551"
+  },
+  "job.sh": {
+    "bindings": [
+      {
+        "expression": "#SBATCH --partition=general",
+        "line": 2,
+        "names": [
+          "partition"
+        ]
+      },
+      {
+        "expression": "#SBATCH --nodes=1",
+        "line": 3,
+        "names": [
+          "nodes"
+        ]
+      },
+      {
+        "expression": "#SBATCH --ntasks=1",
+        "line": 4,
+        "names": [
+          "ntasks"
+        ]
+      },
+      {
+        "expression": "#SBATCH --cpus-per-task=8",
+        "line": 5,
+        "names": [
+          "task"
+        ]
+      },
+      {
+        "expression": "#SBATCH --mem=192G",
+        "line": 6,
+        "names": [
+          "mem"
+        ]
+      },
+      {
+        "expression": "#SBATCH --time=12:00:00",
+        "line": 7,
+        "names": [
+          "time"
+        ]
+      },
+      {
+        "expression": "#SBATCH --gres=gpu:1",
+        "line": 8,
+        "names": [
+          "gres"
+        ]
+      },
+      {
+        "expression": "#SBATCH --output=/tmp/q_%j.log",
+        "line": 10,
+        "names": [
+          "output"
+        ]
+      },
+      {
+        "expression": "#SBATCH --error=/tmp/q_%j.err",
+        "line": 11,
+        "names": [
+          "error"
+        ]
+      },
+      {
+        "expression": "export PYTHONDONTWRITEBYTECODE=1",
+        "line": 12,
+        "names": [
+          "PYTHONDONTWRITEBYTECODE"
+        ]
+      },
+      {
+        "expression": "R=\"$(readlink -f -- \"${1:?E87}\")\" || { echo E87 >&2; exit 1; }",
+        "line": 15,
+        "names": [
+          "R"
+        ]
+      },
+      {
+        "expression": "ROOT=\"$(dirname \"$(readlink -f \"${BASH_SOURCE[0]}\")\")\"",
+        "line": 17,
+        "names": [
+          "ROOT"
+        ]
+      },
+      {
+        "expression": "N=\"${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID:?}\"",
+        "line": 18,
+        "names": [
+          "N"
+        ]
+      },
+      {
+        "expression": "export TMPDIR=\"$N/tmp\" XDG_CACHE_HOME=\"$N/cache\"",
+        "line": 19,
+        "names": [
+          "TMPDIR",
+          "XDG_CACHE_HOME"
+        ]
+      },
+      {
+        "expression": "export HF_HOME=\"$N/cache/hf\" TORCH_HOME=\"$N/cache/torch\" TRITON_CACHE_DIR=\"$N/cache/triton\"",
+        "line": 20,
+        "names": [
+          "HF_HOME",
+          "TORCH_HOME",
+          "TRITON_CACHE_DIR"
+        ]
+      },
+      {
+        "expression": "export CUDA_CACHE_PATH=\"$N/cache/cu\" MPLCONFIGDIR=\"$N/cache/plot\"",
+        "line": 21,
+        "names": [
+          "CUDA_CACHE_PATH",
+          "MPLCONFIGDIR"
+        ]
+      },
+      {
+        "expression": "export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1",
+        "line": 24,
+        "names": [
+          "MKL_NUM_THREADS",
+          "OMP_NUM_THREADS",
+          "PYTHONDONTWRITEBYTECODE"
+        ]
+      }
+    ],
+    "reason": "Reviewed fixed literal assignments; launch resource, clock and copier assignments reviewed. Any source edit invalidates this certificate.",
+    "runtime_literal_names": [
+      "CUDA_CACHE_PATH",
+      "HF_HOME",
+      "MKL_NUM_THREADS",
+      "MPLCONFIGDIR",
+      "N",
+      "OMP_NUM_THREADS",
+      "PYTHONDONTWRITEBYTECODE",
+      "R",
+      "ROOT",
+      "TMPDIR",
+      "TORCH_HOME",
+      "TRITON_CACHE_DIR",
+      "XDG_CACHE_HOME",
+      "error",
+      "gres",
+      "mem",
+      "nodes",
+      "ntasks",
+      "output",
+      "partition",
+      "task",
+      "time"
+    ],
+    "sha256": "80040cb7ab58e3d8a9229972d73ab31db2e2bae7fd674634c7af6414742ffb30"
+  },
+  "k/j.json": {
+    "bindings": [
+      {
+        "expression": "export PYTHONDONTWRITEBYTECODE=1",
+        "line": 1,
+        "names": [
+          "PYTHONDONTWRITEBYTECODE"
+        ]
+      },
+      {
+        "expression": "export TMPDIR=\"$Q_ROOT/tmp\" XDG_CACHE_HOME=\"$Q_ROOT/cache\"",
+        "line": 3,
+        "names": [
+          "TMPDIR",
+          "XDG_CACHE_HOME"
+        ]
+      },
+      {
+        "expression": "export HF_HOME=\"$Q_ROOT/cache/hf\" TORCH_HOME=\"$Q_ROOT/cache/torch\" TRITON_CACHE_DIR=\"$Q_ROOT/cache/triton\"",
+        "line": 4,
+        "names": [
+          "HF_HOME",
+          "TORCH_HOME",
+          "TRITON_CACHE_DIR"
+        ]
+      },
+      {
+        "expression": "export CUDA_CACHE_PATH=\"$Q_ROOT/cache/cu\" MPLCONFIGDIR=\"$Q_ROOT/cache/plot\"",
+        "line": 5,
+        "names": [
+          "CUDA_CACHE_PATH",
+          "MPLCONFIGDIR"
+        ]
+      },
+      {
+        "expression": "export PATH=/usr/local/bin:/usr/bin:/bin",
+        "line": 8,
+        "names": [
+          "PATH"
+        ]
+      },
+      {
+        "expression": "AS=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+        "line": 9,
+        "names": [
+          "AS"
+        ]
+      },
+      {
+        "expression": "AL=/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+        "line": 10,
+        "names": [
+          "AL"
+        ]
+      },
+      {
+        "expression": "K=8865619b",
+        "line": 11,
+        "names": [
+          "K"
+        ]
+      },
+      {
+        "expression": "X=$AS/ap/$K",
+        "line": 12,
+        "names": [
+          "X"
+        ]
+      },
+      {
+        "expression": "R=/project/community/jjyeung/okh7/l_94a76bda",
+        "line": 13,
+        "names": [
+          "R"
+        ]
+      },
+      {
+        "expression": "HX=\"${TK_KIT_HOME:?}\"",
+        "line": 14,
+        "names": [
+          "HX"
+        ]
+      },
+      {
+        "expression": "IN=$R/in",
+        "line": 15,
+        "names": [
+          "IN"
+        ]
+      },
+      {
+        "expression": "REV=c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "line": 16,
+        "names": [
+          "REV"
+        ]
+      },
+      {
+        "expression": "P=/project/community/jjyeung/c7d31ddd",
+        "line": 17,
+        "names": [
+          "P"
+        ]
+      },
+      {
+        "expression": "RR=runs/aws128p_20261025",
+        "line": 18,
+        "names": [
+          "RR"
+        ]
+      },
+      {
+        "expression": "EPOCHS=/home/jjyeung/6d00e578",
+        "line": 19,
+        "names": [
+          "EPOCHS"
+        ]
+      },
+      {
+        "expression": "S=\"$Q_ROOT/s\"",
+        "line": 20,
+        "names": [
+          "S"
+        ]
+      },
+      {
+        "expression": "U=$S/aws/u",
+        "line": 21,
+        "names": [
+          "U"
+        ]
+      },
+      {
+        "expression": "HM=$HX",
+        "line": 22,
+        "names": [
+          "HM"
+        ]
+      },
+      {
+        "expression": "NX=\"$Q_ROOT/x\"",
+        "line": 23,
+        "names": [
+          "NX"
+        ]
+      },
+      {
+        "expression": "NR=\"$Q_ROOT/rp\"",
+        "line": 24,
+        "names": [
+          "NR"
+        ]
+      },
+      {
+        "expression": "CUR=$HX/k/0.json",
+        "line": 25,
+        "names": [
+          "CUR"
+        ]
+      },
+      {
+        "expression": "COMMIT=$(/usr/bin/python3 -B -I -c 'import json, sys; print(json.load(open(sys.argv[1]))[\"commit\"])' \"$CUR\")",
+        "line": 26,
+        "names": [
+          "COMMIT"
+        ]
+      },
+      {
+        "expression": "    local line",
+        "line": 28,
+        "names": [
+          "line"
+        ]
+      },
+      {
+        "expression": "    line=\"$(date -u +%FT%TZ) | $*\"",
+        "line": 29,
+        "names": [
+          "line"
+        ]
+      },
+      {
+        "expression": "CLOSURE_DIR=\"_jobs/cp4tk_$(tk_current closure | cut -d' ' -f2 | cut -c1-12)\"",
+        "line": 43,
+        "names": [
+          "CLOSURE_DIR"
+        ]
+      },
+      {
+        "expression": "    local key=\"$1\" dest=\"$2\" file sha",
+        "line": 45,
+        "names": [
+          "dest",
+          "key"
+        ]
+      },
+      {
+        "expression": "    read -r file sha < <(tk_current \"$key\")",
+        "line": 46,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    file=$(hp \"$file\")",
+        "line": 47,
+        "names": [
+          "file"
+        ]
+      },
+      {
+        "expression": "    local v=\"$S/c7d31ddd/venvs/rwtrain_torch211_cu129\" stamp",
+        "line": 57,
+        "names": [
+          "v"
+        ]
+      },
+      {
+        "expression": "    stamp=\"$S/.stamp/shebang.$(tk_current venv | cut -d' ' -f2)\"",
+        "line": 58,
+        "names": [
+          "stamp"
+        ]
+      },
+      {
+        "expression": "for name in sorted(os.listdir(bindir)):",
+        "line": 65,
+        "names": [
+          "name"
+        ]
+      },
+      {
+        "expression": "print('venv console scripts repointed:', changed, flush=True)",
+        "line": 79,
+        "names": [
+          "flush"
+        ]
+      },
+      {
+        "expression": "    local dest=\"$1\" sha=\"$2\"; shift 2",
+        "line": 85,
+        "names": [
+          "dest",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    local snap=\"$S/c7d31ddd/$RR/models/a32330d0/snapshots/$REV\" file sha",
+        "line": 101,
+        "names": [
+          "snap"
+        ]
+      },
+      {
+        "expression": "    read -r file sha < <(tk_current model)",
+        "line": 102,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    local sha stamp",
+        "line": 111,
+        "names": [
+          "sha",
+          "stamp"
+        ]
+      },
+      {
+        "expression": "    read -r _ sha < <(tk_current small)",
+        "line": 112,
+        "names": [
+          "_",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    stamp=\"$S/.stamp/small.$sha.$( { if [[ -d \"$HX/in_small\" ]]; then (cd \"$HX\" && find in_small -type f -printf '%P %s %T@\\n'); fi; } 2>/dev/null | sort | sha256sum | cut -c1-16)\"",
+        "line": 113,
+        "names": [
+          "stamp"
+        ]
+      },
+      {
+        "expression": "    local dest sha parts",
+        "line": 128,
+        "names": [
+          "dest",
+          "parts",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    while IFS=$'\\t' read -r dest sha parts; do",
+        "line": 129,
+        "names": [
+          "IFS",
+          "dest",
+          "parts",
+          "sha"
+        ]
+      },
+      {
+        "expression": "d=json.load(open(sys.argv[1]))",
+        "line": 133,
+        "names": [
+          "d"
+        ]
+      },
+      {
+        "expression": "for e in d.get(\"extra\", []) + [d[\"a1rows\"]]: print(e[\"dest\"], e[\"sha256\"], \" \".join(e[\"parts\"]), sep=\"\\t\")' \"$CUR\")",
+        "line": 134,
+        "names": [
+          "e",
+          "sep"
+        ]
+      },
+      {
+        "expression": "    local i n",
+        "line": 138,
+        "names": [
+          "i",
+          "n"
+        ]
+      },
+      {
+        "expression": "    n=$(/usr/bin/python3 -B -I -c 'import json,sys; print(len(json.load(open(sys.argv[1])).get(\"tars\", [])))' \"$CUR\")",
+        "line": 139,
+        "names": [
+          "n"
+        ]
+      },
+      {
+        "expression": "        local id parts",
+        "line": 141,
+        "names": [
+          "id",
+          "parts"
+        ]
+      },
+      {
+        "expression": "        id=$(/usr/bin/python3 -B -I -c 'import json,sys,hashlib; e=json.load(open(sys.argv[1]))[\"tars\"][int(sys.argv[2])]; print(hashlib.sha256(json.dumps(e,sort_keys=True).encode()).hexdigest()[:16])' \"$CUR\" \"$i\")",
+        "line": 142,
+        "names": [
+          "e",
+          "id",
+          "sort_keys"
+        ]
+      },
+      {
+        "expression": "        parts=$(/usr/bin/python3 -B -I -c 'import json,sys; print(\" \".join(json.load(open(sys.argv[1]))[\"tars\"][int(sys.argv[2])][\"parts\"]))' \"$CUR\" \"$i\")",
+        "line": 144,
+        "names": [
+          "parts"
+        ]
+      },
+      {
+        "expression": "        for block in iter(lambda: stream.read(8 << 20), b''):",
+        "line": 154,
+        "names": [
+          "block"
+        ]
+      },
+      {
+        "expression": "print('archive members verified:', len(entry['files']), flush=True)",
+        "line": 158,
+        "names": [
+          "flush"
+        ]
+      },
+      {
+        "expression": "    local file sha",
+        "line": 167,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    read -r file sha < <(tk_current fla)",
+        "line": 170,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    local key=\"$1\" file sha manifest manifest_sha stamp dest=\"$S/c7d31ddd/data2root\" store parts got",
+        "line": 178,
+        "names": [
+          "dest",
+          "key"
+        ]
+      },
+      {
+        "expression": "    read -r file sha < <(tk_current \"$key\")",
+        "line": 180,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    read -r manifest manifest_sha < <(tk_current \"${key}_manifest\")",
+        "line": 181,
+        "names": [
+          "manifest",
+          "manifest_sha"
+        ]
+      },
+      {
+        "expression": "    manifest=$(hp \"$manifest\")",
+        "line": 182,
+        "names": [
+          "manifest"
+        ]
+      },
+      {
+        "expression": "    if /usr/bin/python3 -B -I -c 'import json,sys; p=json.load(open(sys.argv[1])).get(\"staged_inputs\", {}); sys.exit(0 if sys.argv[2] in p.get(\"covered_bundles\", []) else 1)' \"$CUR\" \"$key\"; then",
+        "line": 184,
+        "names": [
+          "p"
+        ]
+      },
+      {
+        "expression": "        store=$(/usr/bin/python3 -B -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[\"stores\"].get(sys.argv[2], \"\"))' \"$CUR\" \"$key\")",
+        "line": 185,
+        "names": [
+          "store"
+        ]
+      },
+      {
+        "expression": "    stamp=\"$S/.stamp/$key.$sha.$manifest_sha\"",
+        "line": 190,
+        "names": [
+          "stamp"
+        ]
+      },
+      {
+        "expression": "        parts=$(/usr/bin/python3 -B -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(\" \".join(d.get(\"bundle_parts\", {}).get(sys.argv[2], d.get(\"f3_parts\") if sys.argv[2] == \"f3\" else [])))' \"$CUR\" \"$key\")",
+        "line": 193,
+        "names": [
+          "d",
+          "parts"
+        ]
+      },
+      {
+        "expression": "        [[ -n \"$parts\" ]] || parts=$(hp \"$file\")",
+        "line": 194,
+        "names": [
+          "parts"
+        ]
+      },
+      {
+        "expression": "            | tar --extract --directory=\"$dest\" --skip-old-files --no-same-owner --no-same-permissions",
+        "line": 197,
+        "names": [
+          "directory"
+        ]
+      },
+      {
+        "expression": "        for _ in $(seq 300); do [[ -s \"$S/.$key.sha\" ]] && break; sleep 1; done",
+        "line": 198,
+        "names": [
+          "_"
+        ]
+      },
+      {
+        "expression": "        got=$(cat \"$S/.$key.sha\")",
+        "line": 199,
+        "names": [
+          "got"
+        ]
+      },
+      {
+        "expression": "        store=$(/usr/bin/python3 -B -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[\"stores\"].get(sys.argv[2], \"\"))' \"$CUR\" \"$key\")",
+        "line": 201,
+        "names": [
+          "store"
+        ]
+      },
+      {
+        "expression": "    local file sha dest",
+        "line": 209,
+        "names": [
+          "dest",
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    read -r file sha < <(tk_current init)",
+        "line": 211,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    dest=\"$S/c7d31ddd/init/${sha:0:16}\"",
+        "line": 212,
+        "names": [
+          "dest"
+        ]
+      },
+      {
+        "expression": "        for block in iter(lambda: stream.read(8 << 20), b''):",
+        "line": 225,
+        "names": [
+          "block"
+        ]
+      },
+      {
+        "expression": "    for prefix in (aws, awl):",
+        "line": 229,
+        "names": [
+          "prefix"
+        ]
+      },
+      {
+        "expression": "pins = {spec['index']['name']: spec['index']['sha256'], **{f['name']: f['sha256'] for f in spec['files']}}",
+        "line": 244,
+        "names": [
+          "f"
+        ]
+      },
+      {
+        "expression": "    local mode=\"$1\"",
+        "line": 256,
+        "names": [
+          "mode"
+        ]
+      },
+      {
+        "expression": "    local sa_stamp",
+        "line": 267,
+        "names": [
+          "sa_stamp"
+        ]
+      },
+      {
+        "expression": "    sa_stamp=\"$S/.stamp/sitealias.${CLOSURE_DIR##*/}.$(cat \"$HX/b/sa/sitecustomize.py\" \"$HX/b/sa/prestage_hooks.py\" | sha256sum | cut -c1-16)\"",
+        "line": 268,
+        "names": [
+          "sa_stamp"
+        ]
+      },
+      {
+        "expression": "        local old_commit",
+        "line": 280,
+        "names": [
+          "old_commit"
+        ]
+      },
+      {
+        "expression": "        old_commit=$(/usr/bin/python3 -B -I -c 'import json, sys; print(json.load(open(sys.argv[1]))[\"trainer_old_commit\"])' \"$CUR\")",
+        "line": 281,
+        "names": [
+          "old_commit"
+        ]
+      },
+      {
+        "expression": "    local rfile rsha",
+        "line": 287,
+        "names": [
+          "rfile",
+          "rsha"
+        ]
+      },
+      {
+        "expression": "    read -r rfile rsha < <(tk_current record)",
+        "line": 288,
+        "names": [
+          "rfile",
+          "rsha"
+        ]
+      },
+      {
+        "expression": "    R1_RUNTIME_RECORD=\"$P/anyhost/$rsha.json\"",
+        "line": 291,
+        "names": [
+          "R1_RUNTIME_RECORD"
+        ]
+      },
+      {
+        "expression": "    local import_mode=metadata",
+        "line": 310,
+        "names": [
+          "import_mode"
+        ]
+      },
+      {
+        "expression": "    if [[ \"$mode\" != reuse && -z \"${TK_LIGHT:-}\" ]]; then import_mode=full; fi",
+        "line": 311,
+        "names": [
+          "import_mode"
+        ]
+      },
+      {
+        "expression": "        local key",
+        "line": 314,
+        "names": [
+          "key"
+        ]
+      },
+      {
+        "expression": "        for key in f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14; do tk_stage_bundle \"$key\"; done",
+        "line": 315,
+        "names": [
+          "key"
+        ]
+      },
+      {
+        "expression": "    local bw sha",
+        "line": 325,
+        "names": [
+          "bw",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    read -r bw sha < <(tk_current bwrap)",
+        "line": 326,
+        "names": [
+          "bw",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    BW=(\"$bw\")",
+        "line": 328,
+        "names": [
+          "BW"
+        ]
+      },
+      {
+        "expression": "    local entry",
+        "line": 329,
+        "names": [
+          "entry"
+        ]
+      },
+      {
+        "expression": "    for entry in /* /.[!.]* /..?*; do",
+        "line": 330,
+        "names": [
+          "entry"
+        ]
+      },
+      {
+        "expression": "    export R1_OPAQUE_LOGS=1",
+        "line": 352,
+        "names": [
+          "R1_OPAQUE_LOGS"
+        ]
+      },
+      {
+        "expression": "    export Q_E5=6d38613965 R1_MODEL_DIR=a32330d0",
+        "line": 353,
+        "names": [
+          "Q_E5",
+          "R1_MODEL_DIR"
+        ]
+      },
+      {
+        "expression": "    export R1_MOUNT=\"$X\" R1_TRAINER=\"$EPOCHS/$COMMIT\" TRAINER=\"$EPOCHS/$COMMIT\" ANYHOST_JOBS=\"$P/$CLOSURE_DIR\"",
+        "line": 354,
+        "names": [
+          "ANYHOST_JOBS",
+          "R1_MOUNT",
+          "R1_TRAINER",
+          "TRAINER"
+        ]
+      },
+      {
+        "expression": "    export R1_RUNTIME_RECORD ANYHOST_NEUTRAL_RUNTIME=\"$R1_RUNTIME_RECORD\"",
+        "line": 355,
+        "names": [
+          "ANYHOST_NEUTRAL_RUNTIME",
+          "R1_RUNTIME_RECORD"
+        ]
+      },
+      {
+        "expression": "    export PILOT_VENV=\"$P/venvs/rwtrain_torch211_cu129\"",
+        "line": 356,
+        "names": [
+          "PILOT_VENV"
+        ]
+      },
+      {
+        "expression": "    export PATH=\"$ANYHOST_JOBS/provenance_bin:$PILOT_VENV/bin:/usr/local/bin:/usr/bin:/bin\"",
+        "line": 357,
+        "names": [
+          "PATH"
+        ]
+      },
+      {
+        "expression": "    export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH=\"$ANYHOST_JOBS/site_alias\"",
+        "line": 358,
+        "names": [
+          "PYTHONDONTWRITEBYTECODE",
+          "PYTHONNOUSERSITE",
+          "PYTHONPATH"
+        ]
+      },
+      {
+        "expression": "    export Q_E1=1 Q_E2=orchard A_SITE_PROFILE=\"$X/b/profile.json\"",
+        "line": 359,
+        "names": [
+          "A_SITE_PROFILE",
+          "Q_E1",
+          "Q_E2"
+        ]
+      },
+      {
+        "expression": "    export Q_E3=\"$X/models\"",
+        "line": 360,
+        "names": [
+          "Q_E3"
+        ]
+      },
+      {
+        "expression": "    export Q_E4=\"{\\\"/data2\\\": \\\"$X/data2root\\\"}\"",
+        "line": 361,
+        "names": [
+          "Q_E4"
+        ]
+      },
+      {
+        "expression": "    export C1_INIT_LOCAL=\"$P/init\"",
+        "line": 362,
+        "names": [
+          "C1_INIT_LOCAL"
+        ]
+      },
+      {
+        "expression": "    export HF_HOME=\"$TK_JOBDIR/cache/hf\" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1",
+        "line": 363,
+        "names": [
+          "HF_HOME",
+          "HF_HUB_DISABLE_TELEMETRY",
+          "HF_HUB_OFFLINE",
+          "TRANSFORMERS_OFFLINE"
+        ]
+      },
+      {
+        "expression": "    export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 TOKENIZERS_PARALLELISM=false WANDB_DISABLED=true",
+        "line": 364,
+        "names": [
+          "MKL_NUM_THREADS",
+          "OMP_NUM_THREADS",
+          "OPENBLAS_NUM_THREADS",
+          "TOKENIZERS_PARALLELISM",
+          "WANDB_DISABLED"
+        ]
+      },
+      {
+        "expression": "    export Q_E6=1",
+        "line": 365,
+        "names": [
+          "Q_E6"
+        ]
+      },
+      {
+        "expression": "    export TMPDIR=\"$TK_JOBDIR/tmp\"",
+        "line": 366,
+        "names": [
+          "TMPDIR"
+        ]
+      },
+      {
+        "expression": "    export XDG_CACHE_HOME=\"$TK_JOBDIR/cache\" TORCH_HOME=\"$TK_JOBDIR/cache/torch\" TRITON_CACHE_DIR=\"$TK_JOBDIR/cache/triton\"",
+        "line": 367,
+        "names": [
+          "TORCH_HOME",
+          "TRITON_CACHE_DIR",
+          "XDG_CACHE_HOME"
+        ]
+      },
+      {
+        "expression": "    local mode=\"${1:?}\" fla_file fla_sha",
+        "line": 372,
+        "names": [
+          "mode"
+        ]
+      },
+      {
+        "expression": "    export PYTHONPATH=\"$X/b:$ANYHOST_JOBS:$ANYHOST_JOBS/site_alias\"",
+        "line": 373,
+        "names": [
+          "PYTHONPATH"
+        ]
+      },
+      {
+        "expression": "    if tk_has np; then export PYTHONPATH=\"$S/np226:$PYTHONPATH\"; tk_step \"numpy 2.2.6 overlay on\"; fi",
+        "line": 374,
+        "names": [
+          "PYTHONPATH"
+        ]
+      },
+      {
+        "expression": "    if [[ \"$mode\" =~ ^[ctu]$ ]] && read -r fla_file fla_sha < <(tk_current fla 2>/dev/null); then",
+        "line": 375,
+        "names": [
+          "fla_file",
+          "fla_sha"
+        ]
+      },
+      {
+        "expression": "        export PYTHONPATH=\"$(dirname \"$fla_file\")/p:$PYTHONPATH\" C1_EXPECT_FLA=1",
+        "line": 377,
+        "names": [
+          "C1_EXPECT_FLA",
+          "PYTHONPATH"
+        ]
+      },
+      {
+        "expression": "    rsync -rt --chmod=D700 \"$HX/b\" \"$HX/k\" \"$HX/ANON_OK.json\" \"$HX/SHA256SUMS.txt\" \"$NX/\"",
+        "line": 384,
+        "names": [
+          "chmod"
+        ]
+      },
+      {
+        "expression": "if [[ \"${Q_MODE:-q}\" == r ]]; then export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8; fi",
+        "line": 390,
+        "names": [
+          "MKL_NUM_THREADS",
+          "OMP_NUM_THREADS",
+          "OPENBLAS_NUM_THREADS"
+        ]
+      },
+      {
+        "expression": "rc=${PIPESTATUS[0]}",
+        "line": 403,
+        "names": [
+          "rc"
+        ]
+      },
+      {
+        "expression": "rr=${PIPESTATUS[0]}",
+        "line": 406,
+        "names": [
+          "rr"
+        ]
+      }
+    ],
+    "reason": "Reviewed fixed literal assignments; launch resource, clock and copier assignments reviewed. Any source edit invalidates this certificate.",
+    "runtime_literal_names": [
+      "AL",
+      "ANYHOST_JOBS",
+      "ANYHOST_NEUTRAL_RUNTIME",
+      "AS",
+      "A_SITE_PROFILE",
+      "BW",
+      "C1_EXPECT_FLA",
+      "C1_INIT_LOCAL",
+      "CLOSURE_DIR",
+      "COMMIT",
+      "CUDA_CACHE_PATH",
+      "CUR",
+      "EPOCHS",
+      "HF_HOME",
+      "HF_HUB_DISABLE_TELEMETRY",
+      "HF_HUB_OFFLINE",
+      "HM",
+      "HX",
+      "IFS",
+      "IN",
+      "K",
+      "MKL_NUM_THREADS",
+      "MPLCONFIGDIR",
+      "NR",
+      "NX",
+      "OMP_NUM_THREADS",
+      "OPENBLAS_NUM_THREADS",
+      "P",
+      "PATH",
+      "PILOT_VENV",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONNOUSERSITE",
+      "PYTHONPATH",
+      "Q_E1",
+      "Q_E2",
+      "Q_E3",
+      "Q_E4",
+      "Q_E5",
+      "Q_E6",
+      "R",
+      "R1_MODEL_DIR",
+      "R1_MOUNT",
+      "R1_OPAQUE_LOGS",
+      "R1_RUNTIME_RECORD",
+      "R1_TRAINER",
+      "REV",
+      "RR",
+      "S",
+      "TMPDIR",
+      "TOKENIZERS_PARALLELISM",
+      "TORCH_HOME",
+      "TRAINER",
+      "TRANSFORMERS_OFFLINE",
+      "TRITON_CACHE_DIR",
+      "U",
+      "WANDB_DISABLED",
+      "X",
+      "XDG_CACHE_HOME",
+      "_",
+      "block",
+      "bw",
+      "chmod",
+      "d",
+      "dest",
+      "directory",
+      "e",
+      "entry",
+      "f",
+      "file",
+      "fla_file",
+      "fla_sha",
+      "flush",
+      "got",
+      "i",
+      "id",
+      "import_mode",
+      "key",
+      "line",
+      "manifest",
+      "manifest_sha",
+      "mode",
+      "n",
+      "name",
+      "old_commit",
+      "p",
+      "parts",
+      "prefix",
+      "rc",
+      "rfile",
+      "rr",
+      "rsha",
+      "sa_stamp",
+      "sep",
+      "sha",
+      "snap",
+      "sort_keys",
+      "stamp",
+      "store",
+      "v"
+    ],
+    "sha256": "c0a072e7d3114e0761b8f45e015400133e947f8c74367c0a653efdff8bb10957"
+  }
+}

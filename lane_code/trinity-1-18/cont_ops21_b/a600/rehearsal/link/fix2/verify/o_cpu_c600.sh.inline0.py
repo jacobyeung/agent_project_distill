@@ -1,0 +1,1 @@
+import json;b=json.load(open('$S/BUILD.json'));assert set(b)=={'A'};print(b['A']['package'],b['A']['token'])

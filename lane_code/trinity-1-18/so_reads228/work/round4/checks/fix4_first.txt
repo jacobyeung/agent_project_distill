@@ -1,0 +1,43 @@
+test_absolute_and_parent_paths_refuse_before_writing (__main__.TargetRefusalTests.test_absolute_and_parent_paths_refuse_before_writing) ... ok
+test_bootstrap_harness_selects_actual_python368 (__main__.TargetRefusalTests.test_bootstrap_harness_selects_actual_python368) ... ok
+test_conflict_in_last_archive_preserves_existing_and_writes_nothing (__main__.TargetRefusalTests.test_conflict_in_last_archive_preserves_existing_and_writes_nothing) ... ok
+test_coordinator_fresh_kit2_stage_then_single_gate (__main__.TargetRefusalTests.test_coordinator_fresh_kit2_stage_then_single_gate) ... ok
+test_escaping_links_refuse_before_writing (__main__.TargetRefusalTests.test_escaping_links_refuse_before_writing) ... ok
+test_footprint_counts_private_root_without_following_shared_links (__main__.TargetRefusalTests.test_footprint_counts_private_root_without_following_shared_links) ... FAIL
+test_helper_records_are_not_runtime_binds (__main__.TargetRefusalTests.test_helper_records_are_not_runtime_binds) ... ok
+test_host_translation_private_sj_and_absolute_link (__main__.TargetRefusalTests.test_host_translation_private_sj_and_absolute_link) ... ok
+test_identical_rerun_preserves_inode_mode_mtime (__main__.TargetRefusalTests.test_identical_rerun_preserves_inode_mode_mtime) ... ok
+test_late_pin_failure_writes_nothing (__main__.TargetRefusalTests.test_late_pin_failure_writes_nothing) ... ok
+test_operator_installs_guard_before_policy_or_spawn (__main__.TargetRefusalTests.test_operator_installs_guard_before_policy_or_spawn) ... ERROR
+test_parent_symlink_in_later_group_refuses_before_writing (__main__.TargetRefusalTests.test_parent_symlink_in_later_group_refuses_before_writing) ... ok
+test_private_runtime_plan_and_native_control (__main__.TargetRefusalTests.test_private_runtime_plan_and_native_control) ... ok
+test_real_lists_zero_body_preflight_and_unknown_namespace (__main__.TargetRefusalTests.test_real_lists_zero_body_preflight_and_unknown_namespace) ... ok
+test_real_namespace_private_runtime_logical_control_and_x_isolation (__main__.TargetRefusalTests.test_real_namespace_private_runtime_logical_control_and_x_isolation) ... ok
+test_unknown_namespace_in_last_archive_writes_nothing (__main__.TargetRefusalTests.test_unknown_namespace_in_last_archive_writes_nothing) ... ok
+test_unsafe_member_types_refuse_before_writing (__main__.TargetRefusalTests.test_unsafe_member_types_refuse_before_writing) ... ok
+
+======================================================================
+ERROR: test_operator_installs_guard_before_policy_or_spawn (__main__.TargetRefusalTests.test_operator_installs_guard_before_policy_or_spawn)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 229, in test_operator_installs_guard_before_policy_or_spawn
+    with self.assertRaises(Stop):operator.execute(dict(out=str(out),config=dict(package=str(TARGET/'A10b/src')),
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/operator228.py", line 33, in execute
+    operator=load_module(dispatch['operator'],'read228_sealed_operator')
+                         ~~~~~~~~^^^^^^^^^^^^
+KeyError: 'operator'
+
+======================================================================
+FAIL: test_footprint_counts_private_root_without_following_shared_links (__main__.TargetRefusalTests.test_footprint_counts_private_root_without_following_shared_links)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 203, in test_footprint_counts_private_root_without_following_shared_links
+    got=S.local_bytes([private]);self.assertEqual(got['bytes'],23+len('/scratch/jjyeung/envs/p1cpu'))
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 23 != 50
+
+----------------------------------------------------------------------
+Ran 17 tests in 268.170s
+
+FAILED (failures=1, errors=1)

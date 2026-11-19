@@ -1,0 +1,1 @@
+Stage 6: Camera packet passes CPU validation: 5,143 native admissions, 836 eval-room-only refusals, zero grammar/GT/held-out/room-audit failures. All 120 cell counts, 40 trace pairs, exact input hashes and reproducible commands are recorded. Production source resealing belongs to the tree owner; the supplementary gate document byte hash is MISSING.

@@ -1,6 +1,8 @@
 {
   "cuda_visible_devices": "",
-  "max_child_rss_bytes": 399388672,
+  "full_suite_resource_note": "All 147 tests and 14 expected-failure controls passed. The driver then failed its final storage assertion before writing aggregate RSS; that aggregate is unavailable. Byte-verified immutable sharing restored the cap. Fresh-application RSS is measured separately.",
+  "max_child_rss_bytes": null,
+  "observed_interim_workspace_bytes": 3041057187,
   "results": [
     {
       "command": [
@@ -204,6 +206,19 @@
         "-s",
         "-B",
         "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
+        "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py"
+      ],
+      "name": "round10",
+      "output": "round10.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
         "/scratch/jjyeung/orch_n30/so_read/out/kit_parity50/test_compare.py"
       ],
       "name": "kit",
@@ -227,5 +242,6 @@
   "torch": "2.11.0+cpu",
   "torch_threads": 8,
   "transformers": "5.12.1",
-  "workspace_bytes": 2974892106
+  "workspace_bytes": 2871926607,
+  "workspace_tests": 147
 }

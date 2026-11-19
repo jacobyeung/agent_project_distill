@@ -1,0 +1,3 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls | grep tr14; free -g | sed -n 2p
+d=$(ls -dt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*tree_rebuild24fr2 | head -1); ls $d | tr '\n' ' '; test -f $d/final_message.md && head -c 1500 $d/final_message.md; echo
+if ! tmux has-session -t tr14_b24fr2 2>/dev/null && ! tmux has-session -t tr14_reh3 2>/dev/null; then tmux new -d -s tr14_reh3 "cd $W/w24 && nice -n 10 bash work/build24f/go_rehearsal.sh > $W/w24/work/build24f/rehearsal_run3.log 2>&1; echo RC=\$? >> $W/w24/work/build24f/rehearsal_run3.log"; echo STARTED_REH3; fi

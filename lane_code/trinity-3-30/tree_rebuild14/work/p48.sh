@@ -1,0 +1,20 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; free -g | sed -n 2p
+cat > $W/prompts/build24fr2.md <<'EOPX'
+# Codex build 24fr2 of lane tree_rebuild: second fixture fix for the four-rank CPU rehearsal (fixture-only), after 24fr
+
+You run once, on trinity-1-18; nobody answers questions. Writable: under `L=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f`, only files whose names start with `rehearsal`, `make_rehearsal`, `check_rehearsal`, `go_rehearsal`, `REHEARSAL` or `FIXTURE`, plus the dirs `L/rehearsal2` and a new `L/rehearsal3`. Build 24i and a read-only investigation run in the same workspace on other files: touch nothing else, and never the kits, packages, tree or `out/`. Binding prompts: `/scratch/jjyeung/orch_n30/tree_rebuild10_w/prompts/build24fr.md` and those it names (rules hold); read `L/REHEARSAL_FIX_REPORT.md` first. Time limit: 40 minutes.
+
+## Finding
+The lane ran `go_rehearsal.sh` with 24fr's untied fixture at 19:30Z (log `L/rehearsal_run2.log`, `L/rehearsal2/train_fresh.log`). The FSDP reproductions pass for both tied and untied. Then all four ranks refuse in train() before the first step: `student_pilot/r1_handover.py:304 verify_trainable_groups` raises `P_EXPORT_TRAINABLE_GROUP_MISMATCH` (carrier_c1_run.py:2924). The likely cause is that 24fr untied lm_head after the warm-start, while the fixture's step-400 export and its receipt record the trainable groups of the tied fixture model.
+
+## Do
+1. Show the cause from the code and the fixture artifacts (which group tables differ, and how). State whether production can refuse the same way: compare the production export's recorded trainable groups (P's step-400 export 5083243c and its receipt b467c32b, whose metadata the kits pin; read only the staged metadata files) with what N's model builds under the production config. A production mismatch is a launch BLOCKER: stop and say so first.
+2. If it is fixture-only, make the fixture consistent end to end: the fixture donor export, its receipt and the group tables come from an untied fixture model (or another construction with the same property as production), so that verify_trainable_groups passes for the reason it passes in production. Change nothing native, regenerate in `L/rehearsal3`, and list every changed fixture field in `FIXTURE_DIFF.json` (append a section `build24fr2`).
+3. Point `go_rehearsal.sh` at the new inputs and give a single-process or two-rank check you could run in the sandbox that gets past verify_trainable_groups (say whether you ran it). Write `REHEARSAL_FIX2_REPORT.md` (under 20 lines): the cause, the evidence, the production verdict, and the exact command the lane runs. Do not run the four-rank rehearsal.
+
+## Rules (restating build 21's)
+No ssh, network, Orchard, GPU, Git, tmux, scheduler or other agents. Never list, search or grep on /home or /data*: read only named files there. No deletion. Every CPU process runs under `nice -n 10` with at most 8 threads, under 20 GB RAM. Do not change the tree, kits, config, admission or legality.
+EOPX
+sha256sum $W/prompts/build24fr2.md | cut -c1-16
+tmux new -d -s tr14_b24fr2 "cd /home/jjyeung/agent_project_distill && nice -n 10 agent/scripts/codex_dispatch.sh implement $W/w24 $W/prompts/build24fr2.md --model gpt-6-astra --effort high --label tree_rebuild24fr2 --skip-git-check > $W/work/build24fr2_dispatch.log 2>&1"
+sleep 5; tmux ls | grep tr14

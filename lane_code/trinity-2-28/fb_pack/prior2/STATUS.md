@@ -1,0 +1,1 @@
+The authenticated direction replay passes: toward-hard slots are balanced, every other diagnostic draw stays identical, and the four-draw cap and tamper refusal pass. The diagnostic uses N’s exact card but synthetic support offsets for unavailable cells; it does not satisfy the production all-cell gate. Full CPU base/new comparison and packaging remain in progress.

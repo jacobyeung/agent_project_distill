@@ -51,14 +51,22 @@ def runtime_requirements(plan,files,inputs):
     from namespace228 import host_path
     base=Path(plan['environment']['local_base_env'])
     py=Path(plan['environment']['local_base_python'])
-    required=[str(py),str(base/'bin/python'),str(base/'pyvenv.cfg'),inputs['python'],
-              str(Path(inputs['python']).parent/'boot.py'),str(py.parents[1]/'lib/python3.12/encodings/__init__.py')]
+    # Inventory names are physical; execution/settings retain the sealed logical paths.
+    # Do not resolve bin/python's preserved symlink when checking its archive membership.
+    from common228 import beneath
+    def member(path):
+        path=Path(path)
+        if plan.get('private_logical') and beneath(path,plan['logical']):
+            path=Path(plan['private_logical'])/path.relative_to(plan['logical'])
+        return str(path)
+    required=[str(py),str(base/'bin/python'),str(base/'pyvenv.cfg'),member(inputs['python']),
+              member(Path(inputs['python']).parent/'boot.py'),str(py.parents[1]/'lib/python3.12/encodings/__init__.py')]
     missing=[name for name in required if name not in files]
     # Every framework required by sealed prepare must come from the authenticated
     # base environment or the authenticated a4 overlay. Runtime import verifies ABI.
     prefixes=[base/'lib/python3.12/site-packages']+[Path(p) for p in inputs['env_roots']]
     for module in plan['environment']['versions']:
-        choices=[str(prefix/module/'__init__.py') for prefix in prefixes]
+        choices=[member(prefix/module/'__init__.py') for prefix in prefixes]
         if not any(name in files for name in choices):missing.append(module+': '+str(choices))
     if missing:raise Refusal('Runtime member inventory cannot supply sealed prepare: '+str(missing))
     return dict(required_paths=required,required_modules=sorted(plan['environment']['versions']),passed=True)

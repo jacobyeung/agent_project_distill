@@ -7,11 +7,12 @@ import py_compile
 import re
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 
 H = Path(__file__).resolve().parent
 W = H/'rehearsal/link'
-RUN = W/('run_%d' % os.getpid())
+RUN = W/('run_'+uuid.uuid4().hex)
 RUN.mkdir()
 os.sched_setaffinity(0, {min(os.sched_getaffinity(0))})
 for key in ('OPENBLAS_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'NUMEXPR_NUM_THREADS'):
@@ -38,6 +39,27 @@ for name in NAMES:
                                      'before/'+name, 'after/'+name))
     subprocess.run(['bash', '-n', str(H/name)], check=True)
 (W/'DIFF.txt').write_text(''.join(diff))
+
+# The current reviewed scripts constrain this fix to the embedded reuse helper.
+fix_before = W/'fix2/before'
+fix_diff = []
+for name in NAMES:
+    old, new = (fix_before/name).read_text(), (H/name).read_text()
+    if name == NAME:
+        prefix, rest = old.split("<<'REUSE_PY'\n", 1)
+        suffix = rest.split('\nREUSE_PY', 1)[1]
+        assert new.split("<<'REUSE_PY'\n", 1)[0] == prefix
+        assert new.split('\nREUSE_PY', 1)[1] == suffix
+    else:
+        assert old == new, name
+    fix_diff.extend(difflib.unified_diff(old.splitlines(True), new.splitlines(True),
+                                       'before/'+name, 'after/'+name))
+(W/'fix2/DIFF.txt').write_text(''.join(fix_diff))
+generated = RUN/'generated'
+subprocess.run([sys.executable, '-B', str(H/'gen600c.py'), str(generated)],
+               stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+for name in NAMES:
+    assert (generated/name).read_bytes() == (H/name).read_bytes(), name
 
 # Render the actual unquoted outer heredoc, without placement or nohup execution.
 embedded = after.split('<<SHELLCODE\n', 1)[1].split('\nSHELLCODE', 1)[0]
@@ -103,7 +125,7 @@ def fixture(label):
     return root
 
 
-def source(root, name='a15_cot_ap100', defect=None):
+def source(root, name='a15_cot_ap100', defect=None, independent=False):
     src = root/name/'a/e'; src.mkdir(parents=True)
     (src/'5').write_text('wrong marker\n' if defect == 'marker' else marker)
     for i in range(4):
@@ -119,12 +141,15 @@ def source(root, name='a15_cot_ap100', defect=None):
                 stream.write(b'bad')
                 stream.seek(SIZE if defect == 'size' else SIZE-1)
                 stream.write(b'!')
+        elif independent:
+            dest.write_bytes((seed/str(i)).read_bytes())
         else:
             os.link(str(seed/str(i)), str(dest))
     return src
 
 
-def execute(root, reuse=None, search=False, failed_link=False, fail_pull=None):
+def execute(root, reuse=None, search=False, failed_link=False, fail_pull=None,
+            mutation=None):
     dest = root/'a15_cot_ap000_destination/a/e'; dest.mkdir(parents=True)
     # Placement has already copied this marker; discovery must skip this package.
     (dest/'5').write_text(marker)
@@ -139,6 +164,43 @@ def fail_third(src, dst, **kwargs):
     return real_link(src, dst, **kwargs)
 os.link = fail_third
 '''
+        code = code.replace('dest = Path(sys.argv[1])', inject+'\ndest = Path(sys.argv[1])')
+    if mutation:
+        inject = '''
+mutation = %r
+real_link = os.link
+real_read = os.read
+def change(part):
+    part = Path(part)
+    if mutation[0] == 'replace':
+        part.rename(str(part)+'.original')
+        # Identical content still must not pass an inode-identity check.
+        part.write_bytes(Path(str(part)+'.original').read_bytes())
+    elif mutation[0] == 'symlink':
+        part.rename(str(part)+'.original')
+        part.symlink_to(str(part)+'.original')
+    else:
+        saved = part.stat()
+        with part.open('r+b') as stream:
+            stream.write(b'CHANGED')
+        if mutation[0] == 'rewrite_restore_mtime':
+            os.utime(str(part), ns=(saved.st_atime_ns, saved.st_mtime_ns))
+def racing_link(src, dst, **kwargs):
+    if mutation[1] == 'before_link' and Path(dst).name == '0':
+        change(src)
+    result = real_link(src, dst, **kwargs)
+    if mutation[1] == 'after_link' and Path(dst).name == '3':
+        change(Path(src).parent/'0')
+    return result
+os.link = racing_link
+def racing_read(fd, size):
+    if mutation[1] == 'during_hash' and os.fstat(fd).st_ino == (dest/'1').stat().st_ino:
+        # Part 0 has already been hashed; final verification must still catch this.
+        os.read = real_read
+        change(dest/'0')
+    return real_read(fd, size)
+os.read = racing_read
+''' % (mutation,)
         code = code.replace('dest = Path(sys.argv[1])', inject+'\ndest = Path(sys.argv[1])')
     script = root.parent/'acquire.sh'
     script.write_text('set -euo pipefail\n'+code+'\necho ACQUISITION_COMPLETE\n')
@@ -168,12 +230,37 @@ def rejected(label, defect=None, empty=False, failed_link=False, search=False):
     assert outcome.returncode != 0, label
     assert b'ACQUISITION_COMPLETE' not in outcome.stdout
     assert not calls, (label, calls)
-    expected = 2 if failed_link else 0
+    expected = 2 if failed_link else (4 if defect == 'sha' else 0)
     assert sum(os.path.lexists(str(dest/str(i))) for i in range(4)) == expected
     for i in range(expected):
         assert os.path.samefile(str(src/str(i)), str(dest/str(i)))
     assert not list(dest.glob('*.partial'))
     record(label+' (no pull/copy fallback)')
+
+
+def mutation_rejected(kind, when):
+    label = kind+'_'+when
+    root = fixture(label)
+    src = source(root, independent=True)
+    outcome, dest, calls = execute(root, src, mutation=(kind, when))
+    assert outcome.returncode != 0, (label, outcome.stdout, outcome.stderr)
+    assert b'ACQUISITION_COMPLETE' not in outcome.stdout, label
+    assert b'linked from' not in outcome.stdout, label
+    assert outcome.stderr, label
+    assert not calls, (label, calls)
+    assert not list(dest.glob('*.partial')), label
+    for i in range(4):
+        part = dest/str(i)
+        if os.path.lexists(str(part)):
+            original = src/(str(i)+'.original')
+            identities = [os.lstat(str(src/str(i))).st_ino]
+            if original.exists():
+                identities.append(original.stat().st_ino)
+            if when != 'during_hash' or kind not in ('replace', 'symlink') or i != 0:
+                assert os.lstat(str(part)).st_ino in identities, label
+            else:
+                assert os.path.samefile(str(src/str(i)), str(dest/(str(i)+'.original'))), label
+    record(label+' (refused; links retained; no fill/pull/copy fallback)')
 
 
 def linked(label, search=False):
@@ -223,6 +310,7 @@ def pulled(label, search=False, nested=False, fail=False, ignore_match=False):
 
 
 record('only fill acquisition changed; four other generated scripts byte-identical')
+record('current-script diff changes only reuse helper; all five scripts match generator')
 record('Python 3.6.8 py_compile and five scripts plus rendered fill bash -n')
 linked('explicit_reuse')
 for label, defect in [('wrong_size', 'size'), ('symlink_part', 'symlink'), ('wrong_marker', 'marker'),
@@ -230,6 +318,9 @@ for label, defect in [('wrong_size', 'size'), ('symlink_part', 'symlink'), ('wro
     rejected(label, defect)
 rejected('empty_explicit_reuse', empty=True)
 rejected('link_failure_after_two_links', failed_link=True)
+for when in ('before_link', 'after_link', 'during_hash'):
+    for kind in ('replace', 'rewrite', 'rewrite_restore_mtime', 'symlink'):
+        mutation_rejected(kind, when)
 linked('search_first_matching_marker', search=True)
 rejected('search_match_invalid_parts', defect='size', search=True)
 root = fixture('explicit_precedence')

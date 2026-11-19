@@ -6,7 +6,7 @@ import subprocess
 import sys
 import time
 
-L=Path(__file__).resolve().parents[2];D=L/'work/build24f';root=D/'rehearsal2';ns='/tmp/q_22c714e1'
+L=Path(__file__).resolve().parents[2];D=L/'work/build24f';root=D/'rehearsal4';ns='/tmp/q_22c714e1'
 sys.path[:0]=[str(L/'work/build24'),str(L/'work/tree_r1'),str(D)]
 import joblib as J
 from student_pilot.source_seal import create,inventory
@@ -59,7 +59,8 @@ def main():
         return
     if prepared.exists():
         v=J.load(prepared)
-        assert v['tree']==J.load(L/'out/TREE_SEAL.json')['tree_sha256']
+        cfg=J.load(root/'v.json')
+        assert v['tree']==J.load(cfg['code']['path'])['tree_sha256']
         args=J.load(root/'VIEW.json');kit=L/'out/kit_n_go';py=sys.executable
         assert not (root/'fresh_rank0.json').exists(), 'Rehearsal already ran; preserve its output before a repeat'
         records.extend(J.load(root/'STAGES.json'))
@@ -67,7 +68,7 @@ def main():
         return training(args,kit,py)
     if (root/'STAGES.json').exists():raise RuntimeError('Incomplete rehearsal output exists; preserve the evidence before another run')
     root.mkdir(parents=True,exist_ok=True)
-    cfg=J.load(L/'work/build24d/go/input2.json')
+    cfg=J.load(root/'seed.json')
     cfg['output']=ns+'/train';cfg['r1_training']['stop_after_step']=6
     from student_pilot.checkpoint_space import plan
     cfg['checkpoint_disk_guard']=plan(cfg['recipe'],reserve_bytes=0,retained_archive_copies=1)

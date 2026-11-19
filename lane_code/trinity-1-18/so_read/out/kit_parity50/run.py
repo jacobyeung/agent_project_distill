@@ -126,7 +126,18 @@ def validate_device(cfg, torch):
 def kit_hashes():
     return {name:hashlib.sha256(path.read_bytes()).hexdigest() for name,path in
             (('run.py',Path(__file__)),('compare.py',COMPARE),('sample50.json',SAMPLE),
-             ('host.py',HERE/('u2.py' if (HERE/'u2.py').is_file() else 'host.py')))}
+             ('host.py',HERE/('u2.py' if (HERE/'u2.py').is_file() else 'host.py')),
+             ('u5.py',HERE/'u5.py'))}
+
+
+def validate_existing_paths(value):
+    """Refuse missing sealed paths before any guard probe or reader work."""
+    if isinstance(value,dict):
+        for item in value.values():validate_existing_paths(item)
+    elif isinstance(value,list):
+        for item in value:validate_existing_paths(item)
+    elif isinstance(value,str) and value.startswith('/') and not Path(value).exists():
+        raise ValueError('Sealed settings path is missing')
 
 
 def validate_kit(cfg):
@@ -145,7 +156,7 @@ def host_module():
 def worker_command(args):
     host=host_module();root=Path(os.environ['U0_ROOT'])
     inputs,S,J=host.runtime_context(root)
-    return host.namespace_command(root,inputs,J,args)
+    return [inputs['python'],'-B','-I']+list(args)
 
 
 def worker_environment():
@@ -307,8 +318,10 @@ def main():
     install_wire_decoder();install_log_boundary()
     cfg=json.loads(Path(a.config).read_text())
     from a9 import validate_paths
-    validate_paths(cfg);validate_paths(json.loads(Path(cfg['settings']).read_bytes()))
-    validate_profile(cfg,json.loads(Path(cfg['settings']).read_bytes()))
+    settings=json.loads(Path(cfg['settings']).read_bytes())
+    validate_paths(cfg);validate_paths(settings)
+    validate_existing_paths(settings)
+    validate_profile(cfg,settings)
     validate_assets(cfg)
     validate_environment(cfg)
     validate_kit(cfg)

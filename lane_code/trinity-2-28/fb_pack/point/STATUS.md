@@ -1,0 +1,1 @@
+Stage 1: The source store SHA-256 matches c09bb5ca44158df467449f3c5fed865d81eb5520fb704785b19e73abc5536938. The process runs on trinity-2-28. Inspection of the local read-only trainer tree is underway; no source files have changed.

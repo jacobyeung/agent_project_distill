@@ -1,1 +1,1 @@
-Stage 4: All 5979 rows retain questions, calls, responses, answers and GT. Printed-response GT mismatches: 0; held-out wording hits: 0 actual items and 0 instantiated templates. All 120 cell counts and 40 complete trace pairs are written.
+Stage 7: Camera packet is packaged and byte-verified: 73 archive members, 156272640 archive bytes, and less than 300 MB in this workspace. Native intake admits 5,143 rows and refuses only 836 eval-room overlaps. The report, checks and 40 trace pairs are complete; the supplementary gate document byte hash is MISSING.

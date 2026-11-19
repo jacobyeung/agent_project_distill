@@ -7,7 +7,7 @@
     "step": 400
   },
   "budget": {
-    "basis": "Pinned archive sizes; estimated 40 GB runtime expansion and 5 GB code/cache/return allowance; includes existing SAM3. No archive deletion.",
+    "basis": "Pinned archive sizes; estimated 40 GB runtime expansion and 5 GB code/cache/return allowance. Private SAM3 is already included in input expansion; the existing shared SAM3 is counted conservatively but never read. No archive deletion.",
     "code_returns_cache_allowance_bytes": 5000000000,
     "estimated_peak_bytes": 124166664744,
     "existing_sam3_bytes": 3450062241,
@@ -20,7 +20,7 @@
   },
   "code": {
     "archive": "/scratch/jjyeung/orch_n30/reads228/kit/A10b/package/0.tgz",
-    "destination": "/scratch/jjyeung/b01ec87a6f29b/p",
+    "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/p",
     "expanded_bytes": 24684350,
     "files": 927,
     "sha256": "de1c28cac23a1d0c4af8b76687c460f6e8963f513cfaad52c8bc191d80f670d6"
@@ -43,7 +43,7 @@
     "audit": "Reader trusts interpreter sysconfig roots plus the pinned v/site env_roots. Probe verifies every framework module against these roots before prepare and before the idle gate.",
     "bootstrap_python": "/usr/bin/python3",
     "bootstrap_version": "3.6.8 per sys_python.txt; stdlib extraction only",
-    "control_note": "Use the staged native CPython 3.12 outside bwrap for stdlib control; run d/v/py unchanged inside the package namespace for the version probe, prepare and worker.",
+    "control_note": "Native CPython performs stdlib stage/gate/compare only. Operator probe, sealed preparation and operator execute d/v/py inside the package namespace; the worker inherits that namespace and runs under d/q/vnice.sh.",
     "control_python": "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
     "env_roots": [
       "/scratch/jjyeung/b01ec87a6f29b/d/v/site"
@@ -54,6 +54,10 @@
       "executable": "/usr/bin/bwrap",
       "expected_version": "bubblewrap 0.4.0",
       "function": "orchard_h10.vendor.orchard_job.namespace",
+      "logical_bind": {
+        "destination": "/scratch/jjyeung/b01ec87a6f29b",
+        "source": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b"
+      },
       "pinned_bytes_edited": false
     },
     "python": "/scratch/jjyeung/b01ec87a6f29b/d/v/py",
@@ -73,7 +77,7 @@
         "transformers": "5.19.0"
       }
     },
-    "unresolved": "Runtime parts are staged by coordinator ruling. Target extraction lists every member; required paths/modules and exact versions must pass before prepare. The kit never fetches.",
+    "unresolved": "All 21 staged input/runtime archive parts match coordinator pins (18:37Z). Target extraction and imports remain deployment checks; the kit verifies bytes itself.",
     "versions": {
       "scipy": "1.14.1",
       "torch": "2.13.0+cu130",
@@ -88,6 +92,7 @@
       ],
       "bytes": 11474,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/m400/artifact.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/m400/artifact.json",
       "role": "artifact",
       "sha256": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd"
     },
@@ -97,6 +102,7 @@
       ],
       "bytes": 3126,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/b/config.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/b/config.json",
       "role": "base_config",
       "sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"
     },
@@ -106,6 +112,7 @@
       ],
       "bytes": 359,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/env.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/q/env.json",
       "role": "env",
       "sha256": "e46a9a59e1de189ae736a5d4e94c7827eabfcfa695057fda9640e8120a54a81a"
     },
@@ -115,6 +122,7 @@
       ],
       "bytes": 1794,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/m400/full_weights/full_weights.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/m400/full_weights/full_weights.json",
       "role": "full_weights",
       "sha256": "1de983c9839c1ed25a9113bb5d3b473eaa8be6ae914d9227b143fdc6dd80334c"
     },
@@ -124,6 +132,7 @@
       ],
       "bytes": 149,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/config.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/g/config.json",
       "role": "g3t_config",
       "sha256": "5aeb2acd008d41a1cac52e10216fbf35e8dfeb2ce26b89bb24e7ccc4ee0817d7"
     },
@@ -133,6 +142,7 @@
       ],
       "bytes": 5627166200,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/model.safetensors",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/g/model.safetensors",
       "role": "g3t_weights",
       "sha256": "d460957bb1c8a8c228d83ab10bad8a6dbcf80b03f29d7fbebf9c0f2c1c25f702"
     },
@@ -142,6 +152,7 @@
       ],
       "bytes": 2763214343,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/m400/heads.pt",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/m400/heads.pt",
       "role": "heads",
       "sha256": "e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7"
     },
@@ -151,6 +162,7 @@
       ],
       "bytes": 10240,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/o/model_8005668fc14ce5ee.tar",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/o/model_8005668fc14ce5ee.tar",
       "role": "original_model",
       "sha256": "8005668fc14ce5ee088d0d631d581f62ca73e6cb8130fde4a2deb73de74f635b"
     },
@@ -160,26 +172,27 @@
       ],
       "bytes": 321,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/policy.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/q/policy.json",
       "role": "policy",
       "sha256": "a95a881cdfdeb86ae15a2ec3b3b484416f296f4bcd0d19c6a28667ea21835e2e"
     },
     {
       "archive_members": [
-        "a2.tar",
-        "existing target d/k; revalidate file pin"
+        "a2.tar"
       ],
       "bytes": 3450062241,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/k/sam3.pt",
       "role": "sam_checkpoint",
       "sha256": "9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e"
     },
     {
       "archive_members": [
-        "a2.tar",
-        "existing target d/k; revalidate file pin"
+        "a2.tar"
       ],
       "bytes": 1123,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/SAM3_RECEIPT.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/k/SAM3_RECEIPT.json",
       "role": "sam_receipt",
       "sha256": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75"
     },
@@ -189,6 +202,7 @@
       ],
       "bytes": 6541,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/h/selector_head.json",
       "role": "selector_config",
       "sha256": "63aa0a6995890c1d555062f1187a900809e998b8da021bbe2b6a3777b41fea5e"
     },
@@ -198,13 +212,14 @@
       ],
       "bytes": 207328,
       "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.safetensors",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/h/selector_head.safetensors",
       "role": "selector_weights",
       "sha256": "6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1"
     }
   ],
   "input_archives": [
     {
-      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
       "expanded_bytes": 21583016318,
       "id": "a0",
       "package_destination": "sj/b01ec87a6f29b/d",
@@ -249,7 +264,7 @@
       "sha256": "dcd49569e1555e18c403207f429de7b352f806bb11827fb57aa9973f4ceec7b5"
     },
     {
-      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
       "expanded_bytes": 5627166349,
       "id": "a1",
       "package_destination": "sj/b01ec87a6f29b/d",
@@ -267,7 +282,7 @@
       "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf"
     },
     {
-      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
       "expanded_bytes": 5251971237,
       "id": "a2",
       "package_destination": "sj/b01ec87a6f29b/d",
@@ -285,7 +300,7 @@
       "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9"
     },
     {
-      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
       "expanded_bytes": 143782645,
       "id": "a3",
       "package_destination": "sj/b01ec87a6f29b/d",
@@ -303,7 +318,7 @@
       "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
     },
     {
-      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
       "expanded_bytes": 3131,
       "id": "a4",
       "package_destination": "sj/b01ec87a6f29b/d",
@@ -321,7 +336,7 @@
       "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
     },
     {
-      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
       "expanded_bytes": 180903,
       "id": "a5",
       "package_destination": "sj/b01ec87a6f29b/d",
@@ -340,6 +355,7 @@
     }
   ],
   "logical": "/scratch/jjyeung/b01ec87a6f29b",
+  "private_logical": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b",
   "runtime_archives": [
     {
       "destination": "/scratch/jjyeung/orch_n30/reads228/runtime",
@@ -348,7 +364,8 @@
       "namespace_map": {
         "fsw": "/scratch/jjyeung/orch_n30/reads228/runtime/fsw",
         "m/ap": "/scratch/jjyeung/orch_n30/reads228/runtime/m/ap",
-        "sj": "/scratch/jjyeung"
+        "sj": "/scratch/jjyeung",
+        "sj/b01ec87a6f29b": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b"
       },
       "parts": [
         {
@@ -380,7 +397,8 @@
       "namespace_map": {
         "fsw": "/scratch/jjyeung/orch_n30/reads228/runtime/fsw",
         "m/ap": "/scratch/jjyeung/orch_n30/reads228/runtime/m/ap",
-        "sj": "/scratch/jjyeung"
+        "sj": "/scratch/jjyeung",
+        "sj/b01ec87a6f29b": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b"
       },
       "parts": [
         {
@@ -484,7 +502,8 @@
       "namespace_map": {
         "fsw": "/scratch/jjyeung/orch_n30/reads228/runtime/fsw",
         "m/ap": "/scratch/jjyeung/orch_n30/reads228/runtime/m/ap",
-        "sj": "/scratch/jjyeung"
+        "sj": "/scratch/jjyeung",
+        "sj/b01ec87a6f29b": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b"
       },
       "parts": [
         {

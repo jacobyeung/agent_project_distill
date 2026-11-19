@@ -1,1 +1,1 @@
-Base verification: PASS. Both local copies were checked with the kit inventory and digest functions. 0 files differ from the supplied seal list. Details and all input hashes are in out/BASE_VERIFICATION.json.
+The unsealed overlay and evidence package are complete. No new full-suite failures were observed. Real composition and fixture-dependent alias validation remain MISSING; out/REPORT.md and out/MISSING_INPUTS.json identify the required inputs. The camera stand-in still needs the final owner-supplied SHA before resealing.

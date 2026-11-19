@@ -1,0 +1,749 @@
+{
+  "active_export": {
+    "artifact_sha256": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd",
+    "member_directory": "m400",
+    "reference_job": "173060",
+    "run": "6ed2c7aa",
+    "step": 400
+  },
+  "budget": {
+    "basis": "Input/runtime part pins and expanded runtime sizes read from coordinator tar lists; 5 GB code/cache/return allowance is estimated. Includes the shared SAM3 conservatively; it is never read. Runtime refusal cap remains 40 GB; actual footprint counts private_rt.",
+    "code_returns_cache_allowance_bytes": 5000000000,
+    "estimated_peak_bytes": 94537720332,
+    "existing_sam3_bytes": 3450062241,
+    "free_floor_bytes": 214748364800,
+    "input_archives_bytes": 32613048320,
+    "input_expanded_bytes": 32606120583,
+    "limit_bytes": 150000000000,
+    "runtime_archives_bytes": 10497433600,
+    "runtime_expanded_allowance_bytes": 40000000000,
+    "runtime_expanded_bytes": 10371055588
+  },
+  "code": {
+    "archive": "/scratch/jjyeung/orch_n30/reads228/kit2/A10b/package/0.tgz",
+    "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/p",
+    "expanded_bytes": 24684350,
+    "files": 927,
+    "sha256": "de1c28cac23a1d0c4af8b76687c460f6e8963f513cfaad52c8bc191d80f670d6"
+  },
+  "environment": {
+    "archive_map": {
+      "a3.tar": [
+        "q/env.json",
+        "q/policy.json",
+        "q/vnice.sh",
+        "q/terminator.sh"
+      ],
+      "a4.tar": [
+        "v/py",
+        "v/boot.py",
+        "v/site"
+      ],
+      "r0-r2": "Base runtime; all package-pinned parts listed in MISSING.json; member mapping checked at extraction."
+    },
+    "audit": "Reader trusts interpreter sysconfig roots plus the pinned v/site env_roots. Probe verifies every framework module against these roots before prepare and before the idle gate.",
+    "bootstrap_python": "/usr/bin/python3",
+    "bootstrap_version": "3.6.8 per sys_python.txt; stdlib extraction only",
+    "control_note": "Native CPython performs stdlib stage/gate/compare only. Operator probe, sealed preparation and operator execute d/v/py inside the package namespace; the worker inherits that namespace and runs under d/q/vnice.sh.",
+    "control_python": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+    "env_roots": [
+      "/scratch/jjyeung/b01ec87a6f29b/d/v/site"
+    ],
+    "local_base_env": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/19252904/e",
+    "local_base_python": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+    "namespace": {
+      "executable": "/usr/bin/bwrap",
+      "expected_version": "bubblewrap 0.4.0",
+      "function": "orchard_h10.vendor.orchard_job.namespace",
+      "logical_bind": {
+        "destination": "/scratch/jjyeung/b01ec87a6f29b",
+        "source": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b"
+      },
+      "pinned_bytes_edited": false,
+      "runtime_root": "/scratch/jjyeung/orch_n30/reads228/private_rt"
+    },
+    "python": "/scratch/jjyeung/b01ec87a6f29b/d/v/py",
+    "receipt": {
+      "bytes": 359,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/env.json",
+      "sha256": "e46a9a59e1de189ae736a5d4e94c7827eabfcfa695057fda9640e8120a54a81a"
+    },
+    "receipt_content": {
+      "overlay": "/scratch/jjyeung/b01ec87a6f29b/d/v/site",
+      "proof": "import-only in the job namespace on orchard-login-001, 2026-11-17T02:15Z",
+      "python": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904/e/bin/python",
+      "versions": {
+        "scipy": "1.14.1",
+        "torch": "2.13.0+cu130",
+        "torchvision": "0.28.0+cu130",
+        "transformers": "5.19.0"
+      }
+    },
+    "unresolved": "All 21 staged input/runtime archive parts match coordinator pins (18:37Z). Target extraction and imports remain deployment checks; the kit verifies bytes itself.",
+    "versions": {
+      "scipy": "1.14.1",
+      "torch": "2.13.0+cu130",
+      "torchvision": "0.28.0+cu130",
+      "transformers": "5.19.0"
+    }
+  },
+  "expanded_files": [
+    {
+      "archive_members": [
+        "s4e0..s4e3"
+      ],
+      "bytes": 11474,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m400/artifact.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/m400/artifact.json",
+      "role": "artifact",
+      "sha256": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd"
+    },
+    {
+      "archive_members": [
+        "a2.tar"
+      ],
+      "bytes": 3126,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/b/config.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/b/config.json",
+      "role": "base_config",
+      "sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"
+    },
+    {
+      "archive_members": [
+        "a3.tar"
+      ],
+      "bytes": 359,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/env.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/q/env.json",
+      "role": "env",
+      "sha256": "e46a9a59e1de189ae736a5d4e94c7827eabfcfa695057fda9640e8120a54a81a"
+    },
+    {
+      "archive_members": [
+        "s4e0..s4e3"
+      ],
+      "bytes": 1794,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m400/full_weights/full_weights.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/m400/full_weights/full_weights.json",
+      "role": "full_weights",
+      "sha256": "1de983c9839c1ed25a9113bb5d3b473eaa8be6ae914d9227b143fdc6dd80334c"
+    },
+    {
+      "archive_members": [
+        "g0"
+      ],
+      "bytes": 149,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/config.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/g/config.json",
+      "role": "g3t_config",
+      "sha256": "5aeb2acd008d41a1cac52e10216fbf35e8dfeb2ce26b89bb24e7ccc4ee0817d7"
+    },
+    {
+      "archive_members": [
+        "g0"
+      ],
+      "bytes": 5627166200,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/model.safetensors",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/g/model.safetensors",
+      "role": "g3t_weights",
+      "sha256": "d460957bb1c8a8c228d83ab10bad8a6dbcf80b03f29d7fbebf9c0f2c1c25f702"
+    },
+    {
+      "archive_members": [
+        "s4e0..s4e3"
+      ],
+      "bytes": 2763214343,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m400/heads.pt",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/m400/heads.pt",
+      "role": "heads",
+      "sha256": "e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7"
+    },
+    {
+      "archive_members": [
+        "a2.tar"
+      ],
+      "bytes": 10240,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/o/model_8005668fc14ce5ee.tar",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/o/model_8005668fc14ce5ee.tar",
+      "role": "original_model",
+      "sha256": "8005668fc14ce5ee088d0d631d581f62ca73e6cb8130fde4a2deb73de74f635b"
+    },
+    {
+      "archive_members": [
+        "a3.tar"
+      ],
+      "bytes": 321,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/policy.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/q/policy.json",
+      "role": "policy",
+      "sha256": "a95a881cdfdeb86ae15a2ec3b3b484416f296f4bcd0d19c6a28667ea21835e2e"
+    },
+    {
+      "archive_members": [
+        "a2.tar"
+      ],
+      "bytes": 3450062241,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/k/sam3.pt",
+      "role": "sam_checkpoint",
+      "sha256": "9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e"
+    },
+    {
+      "archive_members": [
+        "a2.tar"
+      ],
+      "bytes": 1123,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/SAM3_RECEIPT.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/k/SAM3_RECEIPT.json",
+      "role": "sam_receipt",
+      "sha256": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75"
+    },
+    {
+      "archive_members": [
+        "a2.tar"
+      ],
+      "bytes": 6541,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.json",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/h/selector_head.json",
+      "role": "selector_config",
+      "sha256": "63aa0a6995890c1d555062f1187a900809e998b8da021bbe2b6a3777b41fea5e"
+    },
+    {
+      "archive_members": [
+        "a2.tar"
+      ],
+      "bytes": 207328,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.safetensors",
+      "physical_path": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d/h/selector_head.safetensors",
+      "role": "selector_weights",
+      "sha256": "6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1"
+    }
+  ],
+  "input_archives": [
+    {
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
+      "expanded_bytes": 21583016318,
+      "id": "a0",
+      "package_destination": "sj/b01ec87a6f29b/d",
+      "parts": [
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apdc76460c3a164/a/e/0",
+          "sha256": "cbbe6aa0d0e04dc3828ce9b9e784285a272fd3c5bee232e3b56ef1b974c8f469",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/s4e0.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/s4e0"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apdc76460c3a164/a/e/1",
+          "sha256": "fa217f69b72ceefd5d426efb981ac00507223d295269f5e28e6675e36739d82e",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/s4e1.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/s4e1"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apdc76460c3a164/a/e/2",
+          "sha256": "2f7f00221a5bef88da47687fc420db2e1f3836946e0f8e8f16ce81158df4c238",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/s4e2.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/s4e2"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apdc76460c3a164/a/e/3",
+          "sha256": "99c787cc3fcca78db590a0b740d531b068455064294ccf29615bda32434c9988",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/s4e3.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/s4e3"
+        }
+      ],
+      "sha256": "dcd49569e1555e18c403207f429de7b352f806bb11827fb57aa9973f4ceec7b5"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
+      "expanded_bytes": 5627166349,
+      "id": "a1",
+      "package_destination": "sj/b01ec87a6f29b/d",
+      "parts": [
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 5627176960,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/g/0",
+          "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/g0.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/g0"
+        }
+      ],
+      "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
+      "expanded_bytes": 5251971237,
+      "id": "a2",
+      "package_destination": "sj/b01ec87a6f29b/d",
+      "parts": [
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 5257369600,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/a2.tar",
+          "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/a2.tar.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/a2.tar"
+        }
+      ],
+      "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
+      "expanded_bytes": 143782645,
+      "id": "a3",
+      "package_destination": "sj/b01ec87a6f29b/d",
+      "parts": [
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 145274880,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/a4.tar",
+          "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/a4.tar.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/a4.tar"
+        }
+      ],
+      "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
+      "expanded_bytes": 3131,
+      "id": "a4",
+      "package_destination": "sj/b01ec87a6f29b/d",
+      "parts": [
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 10240,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/a3.tar",
+          "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/a3.tar.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/a3.tar"
+        }
+      ],
+      "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/d",
+      "expanded_bytes": 180903,
+      "id": "a5",
+      "package_destination": "sj/b01ec87a6f29b/d",
+      "parts": [
+        {
+          "availability": "delivered_with_package",
+          "bytes": 184320,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apdc76460c3a164/a/6",
+          "sha256": "0f464c64f3c39c6e46cef7c4e00bb728b4117cd5978d2fcae2591b16b326c376",
+          "sha_marker": null,
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/kit2/A10b/package/a/6"
+        }
+      ],
+      "sha256": "0f464c64f3c39c6e46cef7c4e00bb728b4117cd5978d2fcae2591b16b326c376"
+    }
+  ],
+  "logical": "/scratch/jjyeung/b01ec87a6f29b",
+  "private_logical": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b",
+  "private_runtime": "/scratch/jjyeung/orch_n30/reads228/private_rt",
+  "runtime_archives": [
+    {
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private_rt",
+      "expanded_bytes": 1579308957,
+      "expanded_bytes_limit": 40000000000,
+      "id": "r0",
+      "member_headers_sha256": "9a8105dcd58057d63a48a9ddf4672c21db8175c9aeb404cfcb1a16a8fd907372",
+      "member_list": {
+        "bytes": 5765861,
+        "path": "evidence/runtime/r0.list",
+        "sha256": "5c2359699c2a0b355979cd46c3d28f9f2eb7af9b80d89d307ef5b34739643663"
+      },
+      "namespace_map": {
+        "fsw": "/scratch/jjyeung/orch_n30/reads228/private_rt/fsw",
+        "m/ap/19252904": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/19252904",
+        "m/ap/90da7ac2": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/90da7ac2",
+        "sj/envs/p1cpu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/envs/p1cpu",
+        "sj/orch_cd/devs1_direct": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/devs1_direct",
+        "sj/orch_cd/legs1_reads": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/legs1_reads",
+        "sj/orch_cd/rv_merge_fix": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/rv_merge_fix",
+        "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+        "x/need_frames.txt": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/need_frames.txt",
+        "x/pull.py": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/pull.py"
+      },
+      "parts": [
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/4fe70504.00",
+          "sha256": "273174ae1d1bc812a8843b3e2eec77e77b66b4a10d60c8871ea47529c395e2d7",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r0_0.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r0_0"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 721422080,
+          "path": "/home/jjyeung/okit/p/d59945c1/4fe70504.01",
+          "sha256": "c733222251bfa18ca823a719e025e3924fda21cffffc6f50cd19bb8ece4860a3",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r0_1.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r0_1"
+        }
+      ],
+      "pin_basis": "Every ordered part is SHA256-pinned; package provides no concatenation hash.",
+      "sha256": null
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private_rt",
+      "expanded_bytes": 8386282204,
+      "expanded_bytes_limit": 40000000000,
+      "id": "r1",
+      "member_headers_sha256": "e3bb3b21eed27114db6c4cdcae20093288efe4aad4d21c446e70b3b6ff6243aa",
+      "member_list": {
+        "bytes": 10435705,
+        "path": "evidence/runtime/r1.list",
+        "sha256": "7976a70401d5ecc36eae0bc7e9608424f186984600d1480239b011df3cba2888"
+      },
+      "namespace_map": {
+        "fsw": "/scratch/jjyeung/orch_n30/reads228/private_rt/fsw",
+        "m/ap/19252904": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/19252904",
+        "m/ap/90da7ac2": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/90da7ac2",
+        "sj/envs/p1cpu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/envs/p1cpu",
+        "sj/orch_cd/devs1_direct": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/devs1_direct",
+        "sj/orch_cd/legs1_reads": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/legs1_reads",
+        "sj/orch_cd/rv_merge_fix": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/rv_merge_fix",
+        "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+        "x/need_frames.txt": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/need_frames.txt",
+        "x/pull.py": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/pull.py"
+      },
+      "parts": [
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/50011a59.00",
+          "sha256": "a4ca7e645d1c4384bdb9506ef3e823e3964e18948f48cc627709f843744ea976",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r1_0.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r1_0"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/50011a59.01",
+          "sha256": "beca0e524255eb310d978ec092bfab080f45e36e05ae99bfc2c3e6aeb0882e9a",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r1_1.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r1_1"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/50011a59.02",
+          "sha256": "508e09bcce4652471a5f3115344c2ab2e2fde61cc3db17d872d45c37861087c1",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r1_2.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r1_2"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/50011a59.03",
+          "sha256": "6f25823a68896cbf0dc87ae26a9e4d2fa25d57b1d52739c22ccad5c5d49214ef",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r1_3.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r1_3"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/50011a59.04",
+          "sha256": "139fcc93fb1b36552564fceacf201127586c237d03f43b8e3c8e45d116f1be97",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r1_4.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r1_4"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 900000000,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.05",
+          "sha256": "1cd72e6e222dbe15efab47d01adeca45aaecf3f62fcd52a6e72dd7786b307489",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r1_5.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r1_5"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 900000000,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.06",
+          "sha256": "010b1302ce0ec32d1db758a4bf503e9cca4583e898ec868be4dc613694f50ed6",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r1_6.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r1_6"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 900000000,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.07",
+          "sha256": "32687478f272e14632411099b316fdbb6b2d1587708ccd1893c4819a2511ba19",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r1_7.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r1_7"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 900000000,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.08",
+          "sha256": "d571f17a5ed9e03514ec4553919cdebacb33fe037cad39d8f0aadb1cfafcb4fc",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r1_8.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r1_8"
+        },
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 366728960,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.09",
+          "sha256": "128dfaca7b744e0cf884b7caf1bc15080fab549b8e26107adb5a9b8d2b5a51a5",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r1_9.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r1_9"
+        }
+      ],
+      "pin_basis": "Every ordered part is SHA256-pinned; package provides no concatenation hash.",
+      "sha256": null
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private_rt",
+      "expanded_bytes": 405464427,
+      "expanded_bytes_limit": 40000000000,
+      "id": "r2",
+      "member_headers_sha256": "d1b811267f6a41d7d49ba1b6db50d5b0309f7013d96bf3bef9c2023a8443592b",
+      "member_list": {
+        "bytes": 617183,
+        "path": "evidence/runtime/r2.list",
+        "sha256": "e59ec13a0b2dbe238d92bb7d81fd1dbbca841a278f53b558900b522de8a7aad2"
+      },
+      "namespace_map": {
+        "fsw": "/scratch/jjyeung/orch_n30/reads228/private_rt/fsw",
+        "m/ap/19252904": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/19252904",
+        "m/ap/90da7ac2": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/90da7ac2",
+        "sj/envs/p1cpu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/envs/p1cpu",
+        "sj/orch_cd/devs1_direct": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/devs1_direct",
+        "sj/orch_cd/legs1_reads": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/legs1_reads",
+        "sj/orch_cd/rv_merge_fix": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/rv_merge_fix",
+        "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+        "x/need_frames.txt": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/need_frames.txt",
+        "x/pull.py": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/pull.py"
+      },
+      "parts": [
+        {
+          "availability": "staged_by_coordinator",
+          "bytes": 409282560,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/371be2e2.00",
+          "sha256": "4b11b4df5ebf8a20e5c73e5ae09f4f4695f79b44e0223254a8bbaad84127b6b3",
+          "sha_marker": "/scratch/jjyeung/orch_n30/reads228/dl/r2_0.sha_ok",
+          "source_host": "trinity-2-28",
+          "target": "/scratch/jjyeung/orch_n30/reads228/dl/r2_0"
+        }
+      ],
+      "pin_basis": "Every ordered part is SHA256-pinned; package provides no concatenation hash.",
+      "sha256": null
+    }
+  ],
+  "runtime_registry": {
+    "fsw": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/fsw",
+      "kind": "runtime",
+      "members": 0,
+      "namespace_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        }
+      ]
+    },
+    "m/ap/19252904": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/19252904",
+      "kind": "runtime",
+      "members": 69177,
+      "namespace_path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 359,
+          "path": "evidence/q/env.json",
+          "sha256": "e46a9a59e1de189ae736a5d4e94c7827eabfcfa695057fda9640e8120a54a81a"
+        },
+        {
+          "bytes": 13095,
+          "path": "A10b/src/orchard_h10/vendor/orchard_stage.py",
+          "sha256": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2"
+        }
+      ]
+    },
+    "m/ap/90da7ac2": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/90da7ac2",
+      "kind": "runtime",
+      "members": 3,
+      "namespace_path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/90da7ac2",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 3419,
+          "path": "A10b/src/orchard_h10/vendor/ORCHARD_ASSETS.json",
+          "sha256": "a62285317a774cee040ceb5817e7ad7a7e08e12ea412b8f416cfb97b5a1c12ee"
+        }
+      ]
+    },
+    "sj/envs/p1cpu": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/envs/p1cpu",
+      "kind": "runtime",
+      "members": 36055,
+      "namespace_path": "/scratch/jjyeung/envs/p1cpu",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 13095,
+          "path": "A10b/src/orchard_h10/vendor/orchard_stage.py",
+          "sha256": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2"
+        }
+      ]
+    },
+    "sj/orch_cd/devs1_direct": {
+      "basis": "Coordinator runtime list supplies this subtree; package SJ bind supplies its in-namespace path. No narrower package receipt was found.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/devs1_direct",
+      "kind": "runtime",
+      "members": 216,
+      "namespace_path": "/scratch/jjyeung/orch_cd/devs1_direct",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        }
+      ]
+    },
+    "sj/orch_cd/legs1_reads": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/legs1_reads",
+      "kind": "runtime",
+      "members": 4579,
+      "namespace_path": "/scratch/jjyeung/orch_cd/legs1_reads",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 4427,
+          "path": "A10b/src/orchard_h10/vendor/trace_runtime.py",
+          "sha256": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+        },
+        {
+          "bytes": 11935,
+          "path": "A10b/src/orchard_h10/vendor/export_stage.py",
+          "sha256": "ecb27d13947ebb7c415e6fc6f0f986b46cdf0a85ddfe3c50004044bba08432d8"
+        }
+      ]
+    },
+    "sj/orch_cd/rv_merge_fix": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/rv_merge_fix",
+      "kind": "runtime",
+      "members": 773,
+      "namespace_path": "/scratch/jjyeung/orch_cd/rv_merge_fix",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 4427,
+          "path": "A10b/src/orchard_h10/vendor/trace_runtime.py",
+          "sha256": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+        }
+      ]
+    },
+    "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu": {
+      "additional_namespace_path": "/home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu",
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+      "kind": "runtime",
+      "members": 5032,
+      "namespace_path": "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 13095,
+          "path": "A10b/src/orchard_h10/vendor/orchard_stage.py",
+          "sha256": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2"
+        }
+      ]
+    },
+    "x/need_frames.txt": {
+      "basis": "Coordinator runtime lists and fix4 ruling; no package receipt for this staging helper.",
+      "bind_evidence": null,
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/need_frames.txt",
+      "kind": "record_only",
+      "members": 1,
+      "namespace_path": null,
+      "receipts": []
+    },
+    "x/pull.py": {
+      "basis": "Coordinator runtime lists and fix4 ruling; no package receipt for this staging helper.",
+      "bind_evidence": null,
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/pull.py",
+      "kind": "record_only",
+      "members": 1,
+      "namespace_path": null,
+      "receipts": []
+    }
+  },
+  "schema": "read228-stage-v2",
+  "stage_root": "/scratch/jjyeung/orch_n30/reads228",
+  "target_host": "trinity-2-28"
+}

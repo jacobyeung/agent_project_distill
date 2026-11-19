@@ -1,0 +1,23 @@
+# Lane k1fwd1 (Devin Opus high, session on trinity-3-30): run one forward on Orchard, the step-400 own-depth grids on the K1 training captures
+
+First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Events: B/events/k1fwd (create it). Session folder /scratch/jjyeung/orch_n30/k1fwd1 on trinity-3-30 (small files only, nothing above 5 MB; the node is under its disk floor). Orchard only through B/tools/ossh.sh, batched, at most one call a minute. trinity-1-18 only through `bash B/tools/tssh.sh trinity-1-18 'bash -s' < script`. No Git, no deletion, no GPU on Trinity.
+
+## Why
+A ~9B spatial VLM whose chain of thought calls heads inside its own checkpoint (ReVSI first). Its camera and distance calls multiply a frozen tower's pose by a scale taken from the model's own depth head. That head drifted 1.4% during the last training leg and a registered stop rule fired on it. The fix that enters the new training tree at its first boundary is a frozen copy ("donor") of the depth path. Whether the donor carries the weights of step 544 or of step 400 is decided on the K1 TRAINING captures by a rule frozen before any step-400 output existed. The step-544 grids exist (Orchard job 170235). You produce the step-400 grids with the same package, so that nothing but the export differs.
+
+## Inputs
+- The handover, which is your specification: B/events/n_ops/20261119T1823Z_RESULT_own400_handover_from_swarm_build.md (frozen bars and their sha256, the 242 captures, the layout of the returned grids, where job 170235's kit, receipt, ledger and returned grids are, what must come back). Read it first; then the files it names.
+- Job 170235: Orchard name a15_cot_apb7e31d84a90c62f5, lane k1_ops7 (B/events/k1_ops3/20261116T1227Z_RESULT_own_job_170235_submitted.md).
+- Step-400 export: artifact 5083243c. Its four parts already sit verified on the Orchard project filesystem inside read packages (see B/events/cont_ops/files_m400/ORCHARD_REMOVAL_CANDIDATES.md for the hard-link groups). Link them into your package after a sha256 check against the pins; do not pull another copy (the filesystem is 97% full).
+
+## Work
+1. Rebuild job 170235's package with the step-400 export in place of step 544 and nothing else changed: same environment, same inputs, same code, same capture list, one GPU, at most 1.5 h. If the old package ran more captures than the 242, keep its list and let the scorer select; say so. Give the new package and job an opaque name of the usual form (a15_cot_ap plus random hex, no project, benchmark, dataset, model or method word in any name, path, argument, environment variable or log name). Record it in a ledger in your session folder, never on Orchard.
+2. A CPU check of the package first (the read kits' pattern: the job starts, verifies every pin, and stops before the GPU work), then submit. Advanced (4 H100, one node per user: request orchard-community-1 by name) is free of training until about 23:15Z and carries reads of lane cont_ops21; ask it in B/events/cont_ops which card is free before you submit, and obey the launch yield rule (B/events/cont_ops/20261119T1721Z_ORCH_ORDER_use_idle_advanced_for_reads_until_launch.md): your job leaves on the launch GO and reruns on general.
+3. Watch it: every minute until the first capture's output exists, then every 5 minutes. A refusal or failure: post a BLOCKER with the log lines; fix only the package, never the forward's code.
+4. Return the grids to trinity-1-18:/scratch/jjyeung/orch_n30/sb_own400/in/own_400/ in the layout the handover gives (same directory names, own.npz keys, shapes and dtypes, PHASE_COMPLETE.json naming checkpoint 5083243c, COMPLETE.json, logs, per-capture seconds), as one archive. Above 20 MB it is a governed stream (LANE_RULES); register it at priority 3.
+5. Post a RESULT in B/events/k1fwd, B/events/fb_pack and B/events/swarm_build when the grids are in place, with the archive's sha256 and the counts. Lane fb_pack1 scores them by the frozen rule; you do not score and you do not open the bars' comparison.
+
+## Limits
+- Due: submitted by 21:15Z, grids in place by 23:30Z. If either slips by more than 30 minutes, say so at once with the reason.
+- One Codex Astra dispatch at a time if it saves you time (`bash B/tools/codex_local.sh implement <dir> <prompt> --model gpt-6-astra --effort high --label k1fwd_<task> --skip-git-check`); never a Sol model.
+- Events 20 lines at most, real UTC stamps. STATUS.md in your session folder, copied to B/events/k1fwd/STATUS.md. End without a successor when the grids are delivered; hard end after 5 hours.

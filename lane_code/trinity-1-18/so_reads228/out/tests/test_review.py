@@ -26,6 +26,7 @@ import runner228 as runner
 import stage228 as stage
 WORK=Path(os.environ.get('READ228_TEST_WORK','/scratch/jjyeung/orch_n30/so_reads228/work/review_tests'))
 WORK.mkdir(parents=True,exist_ok=True)
+C.install_imports(TARGET/"A10b/src")
 REFERENCE=FIXTURE/'reference'
 FIXED=C.read(FIXTURE/'FIRST50.json')
 
@@ -154,36 +155,11 @@ class Findings(unittest.TestCase):
 class RunnerFindings(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        root=FIXTURE/'A10b';cfg={**C.read(root/'src/9.json'),**C.read(root/'package/0.json')}
-        inputs=C.read(root/'package/a/1.json');export=C.read(root/'package/a/export.json')
-        work=directory();logical=work/'logical';(logical/'d').mkdir(parents=True)
-        (logical/'p').symlink_to(root/'src',target_is_directory=True);cfg['logical']=str(logical)
-        settings={k:cfg[k] for k in ('stage1_select_rule','perception_memo','perception_memo_modules','perception_memo_verify_ids','save_own_depth')}
-        C.write(logical/'d/settings.json',settings)
-        cls.out=work/'run';cls.options=[]
-        gpu=dict(uuid='GPU-0123456789abcdef',name='NVIDIA RTX 6000 Ada Generation',memory_used_mib=0,memory_total_mib=49140,processes=[])
-        class Sampler:
-            def __init__(self,*args):self.process=types.SimpleNamespace(poll=lambda:None)
-            def __enter__(self):return self
-            def __exit__(self,*args):pass
-        class Worker:
-            returncode=0
-            def __init__(self,argv,**kwargs):
-                cls.options.append(kwargs)
-                dispatch=C.read(argv[-2])['worker'];journal=Path(dispatch['config']['output'])/'metadata/journals/3/0'
-                journal.mkdir(parents=True,exist_ok=True)
-                for name in ('items.jsonl','environment.json'):shutil.copyfile(REFERENCE/'metadata/reads/0/metadata/journals/3/0'/name,journal/name)
-            def poll(self):return self.returncode
-            def wait(self):return self.returncode
-        C.install_imports(root/'src')
-        with ExitStack() as stack:
-            for name,value in [('target_host',lambda:'trinity-2-28'),('deployment',lambda _: (root,cfg,inputs,export)),
-                ('stage_check',lambda *a,**k:dict(environment={},namespace=dict(bwrap={'fixture':True}))),('snapshot',lambda _:gpu),('idle_gate',lambda *a,**k:gpu),
-                ('namespace_command',lambda *a: ['/usr/bin/bwrap','--fixture']),('Sampler',Sampler),('STAGE',work/'stage'),('utc',lambda:'CPU_TEST')]:
-                stack.enter_context(patch.object(runner,name,value))
-            stack.enter_context(patch.dict(os.environ,{'PATH':'/usr/local/bin:/usr/bin:/bin'}))
-            stack.enter_context(patch.object(runner.subprocess,'Popen',Worker))
-            cls.rc=runner.run_one(types.SimpleNamespace(package=str(root),card='0',out=str(cls.out),items=50,on=False))
+        sys.path.insert(0,str(FIXTURE/'tests'))
+        from test_review3 import full_adapter
+        cls.out=full_adapter(unittest.TestCase(),FIXTURE,directory())
+        cls.rc=C.read(cls.out/'RESULT.json')['returncode']
+        cls.options=[C.read(cls.out/'metadata/COMMAND.json')]
 
     def test_medium5_orchard_metadata_members_are_present(self):
         self.assertEqual(self.rc,0)

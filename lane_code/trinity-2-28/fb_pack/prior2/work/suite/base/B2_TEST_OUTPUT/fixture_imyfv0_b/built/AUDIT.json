@@ -1,0 +1,231 @@
+{
+  "N_histogram": {
+    "64": 4
+  },
+  "authorities": {
+    "admission_policy": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/policy.json",
+      "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+    },
+    "division": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/division.json",
+      "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+    },
+    "extra_benchmarks": [],
+    "gate": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/gate.json",
+      "sha256": "fe13939f44ce3329eac12f19a8974c1266670e580f842ed53f66cf00d7dcb8a9"
+    },
+    "vsi288": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/scenes.tsv",
+      "sha256": "c28ed09f905bb62898d38c86c82c6da4741673d720dc318c883aecfa2e8cda1c"
+    },
+    "vsti": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/vsti.json",
+      "sha256": "a30aa828455b4844823e25d3b37619f64f916871e93a8cea134745ce10d10b49"
+    }
+  },
+  "conditioning": "raw-frame windows; fps/30-scaled stride; random starts conditioned on the staged dense pool",
+  "datasets": {
+    "d1": {
+      "modes": {},
+      "rows": 0,
+      "scenes": 0
+    },
+    "d2": {
+      "modes": {},
+      "rows": 0,
+      "scenes": 0
+    },
+    "d3": {
+      "modes": {
+        "jitter": 4
+      },
+      "rows": 4,
+      "scenes": 1
+    }
+  },
+  "deferred": [
+    {
+      "dataset": "d1",
+      "pose_count": 127,
+      "reason": "sparse_pose_count",
+      "scene": "scene0300_00",
+      "total_num_frames": 1000
+    }
+  ],
+  "deferred_counts": {
+    "sparse_pose_count": 1
+  },
+  "deferred_scenes": 1,
+  "depth_labels_built": false,
+  "excluded": [
+    {
+      "dataset": "d1",
+      "reasons": [
+        "vsti"
+      ],
+      "scene": "scene0200_00",
+      "sources": {
+        "vsti": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/vsti.json",
+            "sha256": "a30aa828455b4844823e25d3b37619f64f916871e93a8cea134745ce10d10b49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d3",
+      "reasons": [
+        "vsi288",
+        "outside_frozen_training_division"
+      ],
+      "scene": "2000",
+      "sources": {
+        "outside_frozen_training_division": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          },
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ],
+        "vsi288": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/scenes.tsv",
+            "sha256": "c28ed09f905bb62898d38c86c82c6da4741673d720dc318c883aecfa2e8cda1c"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d3",
+      "reasons": [
+        "outside_frozen_training_division"
+      ],
+      "scene": "outsider",
+      "sources": {
+        "outside_frozen_training_division": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          },
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d2",
+      "reasons": [
+        "admission_policy"
+      ],
+      "scene": "example",
+      "sources": {
+        "admission_policy": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d1",
+      "reasons": [
+        "division_heldout"
+      ],
+      "scene": "scene0400_00",
+      "sources": {
+        "division_heldout": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          }
+        ]
+      }
+    }
+  ],
+  "excluded_scenes": 5,
+  "exclusion_counts": {
+    "admission_policy": 1,
+    "division_heldout": 1,
+    "outside_frozen_training_division": 2,
+    "vsi288": 1,
+    "vsti": 1
+  },
+  "exclusion_counts_by_dataset": {
+    "d1": {
+      "division_heldout": 1,
+      "vsti": 1
+    },
+    "d2": {
+      "admission_policy": 1
+    },
+    "d3": {
+      "outside_frozen_training_division": 2,
+      "vsi288": 1
+    }
+  },
+  "interval_histograms": {
+    "jitter": {
+      "2": 79,
+      "3": 101,
+      "4": 72
+    }
+  },
+  "plan": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/plan.json",
+    "sha256": "9946d583ab9a5ee754f88d3c377ef413cf54e855a03ed92ed1a38c7f90fb5289"
+  },
+  "pool_coverage": [
+    {
+      "dataset": "d3",
+      "max_frame_number": 756,
+      "min_frame_number": 373,
+      "occupied_sixteenths": 8,
+      "pool_fraction": 0.384,
+      "pool_frames": 384,
+      "recording_frames": 1000,
+      "sample_sizes": [
+        64
+      ],
+      "scene": "v058188da3fc3",
+      "span_fraction": 0.384,
+      "used_frames": 191,
+      "used_pool_fraction": 0.4973958333333333
+    }
+  ],
+  "pose_rows": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/built/pose_rows.jsonl",
+    "sha256": "c8269e1d3503feee7c1f923c4a71b0df7aeda8588c9a5149eb16597ff4e4164c"
+  },
+  "probabilities": {},
+  "rows": 4,
+  "rows_per_scene": 4,
+  "sampling": {
+    "epoch": 0,
+    "pool_size": 384,
+    "variant": "window64_jitter"
+  },
+  "scenes": 1,
+  "schema": "recording-pose-audit-v1",
+  "seed": 17,
+  "staging": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/fixture_imyfv0_b/staged.json",
+      "sha256": "83418e8dd7ae9eff2fcb38a38212a63c179e7444212889a6b88c52ef4f7aac00"
+    }
+  ],
+  "target_sanity": {
+    "finite_translation": true,
+    "max_abs_translation": 0.3083692675715961,
+    "max_gravity_norm_error": 0.0,
+    "max_quaternion_norm_error": 1.1102230246251565e-16
+  }
+}

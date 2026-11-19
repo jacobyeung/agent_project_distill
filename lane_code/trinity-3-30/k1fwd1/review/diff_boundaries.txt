@@ -1,0 +1,20 @@
+--- old_boundaries.py	2026-11-19 15:30:17.000000000 -0500
++++ new_boundaries.py	2026-11-19 15:30:17.000000000 -0500
+@@ -43,7 +43,7 @@
+   if torch.cuda.get_device_properties(0).total_memory<40*1024**3:raise ValueError('Require at least 40 GiB VRAM')
+   if phase in ('all','own'):
+    artifact=B.load(B.checked(settings['artifact']))
+-   if artifact['step']!=544:raise ValueError('Require step-544 export')
++   if artifact['step']!=settings.get('export_step',544):raise ValueError('Require the pinned export step')
+   self.checkpoint=settings['artifact']
+  def tower(self,c,images):
+   from student_pilot.tower_read import FrozenG3TTower,WEIGHTS_SHA256,CONFIG_SHA256
+@@ -63,7 +63,7 @@
+   from student_pilot.ground_context import closed_adapters
+   s=self.settings;cfg=B.load(B.checked(s['config']))
+   if self.model is None:
+-   selected=dict(root=str(B.TREE),sources={n.removeprefix('student_pilot/'):h for n,h in routed.source_pins().items() if n.startswith('student_pilot/')})
++   selected=None if s.get('trainer_selection')=='export_seal' else dict(root=str(B.TREE),sources={n.removeprefix('student_pilot/'):h for n,h in routed.source_pins().items() if n.startswith('student_pilot/')})
+    self.model,self.processor,self.info=read_runtime.load_model(s['config'],s['artifact'],s['data_receipt'],device=self.device,selected_trainer=selected)
+   else:self.model.to(self.device)
+   # Normalized trainer input is a pinned RGB-only row, never a GT answer or response prefix.

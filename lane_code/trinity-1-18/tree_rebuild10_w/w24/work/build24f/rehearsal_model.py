@@ -37,11 +37,29 @@ def untie(model):
 def install(trainer):
     native = trainer.load_model
     def load_model(*args, **kwargs):
-        # Native authentication and exact donor inventory loading finish first.
-        model = untie(native(*args, **kwargs))
+        # Both the base manifest and donor export already describe untied weights.
+        model = native(*args, **kwargs)
+        assert not model.config.tie_word_embeddings
+        assert not model.config.text_config.tie_word_embeddings
+        assert model.lm_head.weight is not model.get_input_embeddings().weight
         import os
         print(json.dumps(dict(event='fixture_embedding_ownership',rank=os.environ.get('RANK'),
             tied=False,shape=list(model.lm_head.weight.shape),
             parameters=model.full_ft_report['base_parameters'])),flush=True)
         return model
     trainer.load_model = load_model
+
+
+def install_preparation():
+    """Supply the untied tiny base at the existing synthetic model boundary."""
+    from student_pilot import c1_pose_mix
+    from student_pilot.p3_provenance import file_pin, load, pinned
+    from student_pilot.rehearsal import fixture_manifest
+    native = c1_pose_mix.prepare
+    def prepare(*args, **kwargs):
+        rows, settings = native(*args, **kwargs)
+        pin = file_pin(D/'rehearsal3/model.json')
+        assert fixture_manifest(load(pinned(pin)))
+        # Keep native row metadata and settings; only the synthetic base changes.
+        return rows, dict(settings, model=pin)
+    c1_pose_mix.prepare = prepare

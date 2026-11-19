@@ -1,0 +1,1 @@
+D=/scratch/jjyeung/orch_n30/codex_local/agent/scratch/codex_runs/20261119T193354Z_fbp_donor; ls -la $D; tail -c 1500 $D/final_message.md 2>/dev/null; for f in $D/*.log $D/*.txt; do echo "== $f"; tail -c 600 $f; done 2>/dev/null | tail -40; ps -ef | grep -c "fb_pack/donor"; tail -3 /scratch/jjyeung/orch_n30/codex_local/agent/scratch/codex_runs/CODEX_SPEND.log

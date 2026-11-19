@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack; date -u +%TZ; tmux ls 2>&1 | grep fbp | cut -c1-20 | tr '\n' ' '; echo; for t in patchA donor prior2; do echo "== $t $(du -sh $F/$t | cut -f1) $(ls $F/$t/out | grep -c tar)"; tail -c 350 $F/$t/STATUS.md; echo; done

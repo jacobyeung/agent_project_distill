@@ -38,8 +38,8 @@ Not tested: live GCS/download hashes, real large archives, the two policy bodies
 ## Link-first fill
 
 Set `REUSE_PARTS_FROM=<package>/a/e` in the placement process environment, or set `REUSE_SEARCH=1` for sorted, immediate-package marker discovery; discovery skips the destination package.
-Reuse validates marker fields, four regular non-symlink files of 5,395,758,080 bytes each, and the streamed concatenated SHA256 before linking; any validation or link failure stops without copying or pulling.
-Without explicit reuse or a discovery match, the original zero-retry pull loop runs; both modes report the source mode and part 0 link count.
-All five scripts are regenerated; [DIFF](rehearsal/link/DIFF.txt) changes only fill acquisition. Receipt, preparation, binding, dry, `3.py check` and A-only checks remain byte-identical.
-`/usr/bin/python3 -B test_link_c600.py`: 18 cases pass with sparse 256-KiB parts and a test-only binding, including partial-link failure and unchanged pull arguments; Python 3.6.8 compilation and all six shell syntax checks pass.
-[Test output](rehearsal/link/TEST_OUTPUT.txt) and [results](rehearsal/link/RESULT.json) record local evidence; production archive reads and Orchard execution were not run.
+Reuse validates the marker and opens four regular, non-symlink files of 5,395,758,080 bytes each; it retains each source's pre-link `fstat` device, inode, size and `mtime_ns`, and records each link's `ctime_ns` immediately after `os.link`.
+Verification requires those records to match before and after streaming the linked files' concatenated SHA256 against the pin, then checks all files again; any mismatch or link failure stops the fill, retaining existing links without pulling or copying.
+Without explicit reuse or a discovery match, the unchanged zero-retry pull loop runs; successful acquisition reports the source mode and part 0 link count.
+All five scripts are regenerated; the [diff](rehearsal/link/fix2b/DIFF.txt) changes only the embedded helper, and the other four scripts and all surrounding fill checks remain byte-identical.
+[Link tests](rehearsal/link/TEST_OUTPUT.txt) pass 31 checks, including 12 races before linking, after linking and during hashing; Python 3.6.8 compilation and shell syntax pass. Production archive reads and Orchard execution were not run.

@@ -1,41 +1,68 @@
-VERDICT: DONE The round-9 fixes pass CPU verification; deployment still requires the pinned runtime files and a passing step-400 H100 byte-parity gate.
+VERDICT: DONE The four round-10 fixes pass CPU verification; adoption still requires the pinned runtime and a zero-difference step-400 H100 gate.
 
 | Quantity | Value | Evidence type |
 |---|---:|---|
-| Workspace tests | 140 passed | Measured; RESULTS.json and exact outputs below |
-| Fresh-application tests | 59 passed | Measured; MANIFEST applied_cpu_suites |
-| Round-9 regressions | 11 fail before; 11 pass after | Measured; round9_before.txt and round9.txt |
-| Retained fail-before controls | 13 rerun | Measured; exact outputs below |
-| Original base | 927 files unchanged | Measured; full inventory/hash comparison |
-| Additive reader files | 40 | Measured; patches 01–03 |
-| Runtime archive parts | 13; 10,497,433,600 bytes | Read from A4's own receipt; bytes not supplied |
-| bwrap | 72,160 bytes | Read from A4's own receipt; binary not supplied |
-| Prepared asset archive | About 33 GB | Estimate from 32,606,120,583 declared expanded input bytes plus tar headers |
-| Largest suite child RSS | 399,388,672 bytes | Measured CPU process resource counter |
-| Guard benchmark peak RSS | 1,322,348,544 bytes | Measured CPU process resource counter |
-| Workspace at report generation | 2,941,806,587 unique-inode bytes | Measured; below 3,000,000,000 |
+| Workspace tests | 147 passed | Measured; RESULTS.json and exact outputs below |
+| Fresh-application tests | 66 passed | Measured; MANIFEST applied_cpu_suites |
+| Round-10 regressions | 7 fail before; 7 pass after | Measured; round10_before.txt and round10.txt |
+| Retained fail-before controls | 14 rerun | Measured; transcripts below |
+| Original A4 reader base | 927 files unchanged | Measured; full inventory/hash comparison |
+| Additive reader files | 42 | Measured; patches 01–03 |
+| Prepared-path aliases | 7 | Read from the shared host table |
+| Fixture sealed paths | 12 resolved | Measured; ten prepared-settings paths plus two gate receipt paths |
+| Extraction fixture | 10,240 bytes; one open, one full read | Measured; no production archive throughput claim |
+| Runtime archive parts | 13; 10,497,433,600 bytes | Read from A4 receipt; bytes not supplied |
+| bwrap | 72,160 bytes | Read from A4 receipt; binary not supplied |
+| Prepared asset archive | About 33 GB | Estimate from declared expanded inputs and tar headers |
+| Largest suite child RSS | Unavailable | Full-suite runner stopped at final size assertion before recording RSS |
+| Largest fresh-application child RSS | 298,569,728 bytes | Measured process resource counter |
+| Guard benchmark peak RSS | 1,326,764,032 bytes | Measured process resource counter |
+| Workspace at report generation | 2,915,860,288 unique-inode bytes | Measured; below 3,000,000,000 |
 
-OFF reader source and output bytes remain unchanged. ON CPU fixtures preserve exact answers and traces. GPU equality, throughput and memory remain unmeasured. Zero answer/trace byte differences remain mandatory; aggregate score equality cannot authorize adoption.
+OFF reader source and output bytes remain unchanged. ON CPU fixtures preserve exact answers and traces. H100 equality, throughput and memory remain unmeasured. Zero answer/trace byte differences remain mandatory; score equality cannot authorize adoption.
 
-Work started at **18:38:16 UTC on 2026-11-19**; the deadline is **19:38:16 UTC**. This report was generated at Thu Nov 19 19:15:25 UTC 2026. [out_round9](../out_round9/) preserves the reviewed delivery. All local computation used nice 10, hidden CUDA and at most eight torch/OMP/MKL/OpenBLAS threads. No Git, SSH, SCP, Slurm operation, GPU, paid API, input-tree edit or deletion command ran. Network reads were limited to library documentation.
+The task started at **19:47:20 UTC on 2026-11-19** and is due at **20:47:20 UTC**. This report was generated at Thu Nov 19 20:07:51 UTC 2026. [out_round10](../out_round10/) preserves the reviewed delivery. Computation used nice 10, hidden CUDA and at most eight torch/OMP/MKL/OpenBLAS threads. No Git, SSH, SCP, Slurm operation, GPU, paid API, input-tree edit or file-deletion command ran. Network reads were limited to official library documentation.
 
-## Review round 9: finding -> fix -> test
+Storage limitation: one sample during verification measured **3,041,057,187 bytes**, above the requested 3 GB cap. Completed immutable fixture files were shared only after byte-for-byte comparison; no paths were removed. [STORAGE10_FIXTURES.json](checks/STORAGE10_FIXTURES.json) and [STORAGE10_EXTRA.json](checks/STORAGE10_EXTRA.json) record the bounded sharing passes. All tests passed before the runner failed its final size assertion; finish_checks10.py verifies their outputs and the restored storage cap. Aggregate RSS for that runner is unavailable; fresh-application RSS is recorded separately. The final size is reported above. The fixture harness also shares known archive members after their real writes close.
+
+## Review round 10: finding -> fix -> test
 
 | Finding | Fix | Regression |
 |---|---|---|
-| MEDIUM 1: the wrapper needs A4's namespace | The host helper authenticates the package and staging modules, executes A4's unchanged runtime-group/bwrap staging block, and extracts the CPU-bound archive to root/sj/<logical>/d. Preflight, parent and every worker use J.namespace(root), inputs['python'] and A4's -B -I convention. J.environment supplies HOME, TMPDIR and OPENBLAS_NUM_THREADS=1. | Four round-9 tests cover real namespace argv, actual parent launch, authenticated bootstrap/data extraction, the unchanged staging block and part hashes. The round-8 host-executable wrapper double is removed. |
-| LOW 2: framework version gap | FRAMEWORK_EVIDENCE states CPU torch 2.11.0+cpu / transformers 5.12.1 versus production torch 2.13.0+cu130 / transformers 5.19.0. Before readers, the production interpreter must detect add_, copy_ and load_state_dict on fresh frozen scratch modules. ue.json records each result; submit requires all three. | Four tests exercise the actual guard, each injected miss, receipt refusal, actual main's failed receipt with zero worker launches, setup exceptions, and submit rejection. |
-| LOW 3: idle H100 allocation and incomplete staging commands | The private configuration gate, seal, stage-kit and archive transfer precede salloc. README gives exact kit and original/patched source extraction commands. | The ordering regression also executes README's extraction block on small authenticated archives. Fresh application separately authenticates both complete 927-file roots. |
-| INFO: token, environment, log labels and limits | A fresh opaque token determines the kit root; A4 owns HOME/TMPDIR/OPENBLAS. Eight carried applied logs live under checks/round7/. Frozen ownership and raw-write limits remain explicit. | Two regressions check fresh-token/version/guard documentation and all eight moved logs; namespace tests check the actual environment. |
+| MEDIUM 1: boot.py refuses -c | Ship `u0/u5.py`, pin it in MANIFEST/validate_kit and the built package's gate hashes, and invoke `[inputs['python'], '-B', '-I', kit+'/u0/u5.py', config]` inside A4's namespace. | The exact 443-byte boot rejects -c and runs the shipped preflight plus parent. Only the wrapper double changes its interpreter and physical boot pathname; boot.py stays byte-identical. CPU doubles supply version/CUDA imports. Public stage-kit preserves preflight bytes; mutation refuses. |
+| MEDIUM 2: sealed paths have no aliases | One `host.ALIASES` table defines seven relative symlinks under logical/d. README generates PRIVATE_ALIASES from it, and host.stage creates them. The gate recursively checks every absolute sealed-settings path exists before the self-test. | A fixture executes authenticated host staging, seals settings, and resolves 12 absolute paths, including the ten prepared-settings paths and two gate receipt paths. Missing nested paths refuse before the self-test. |
+| LOW 3: nested bwrap | When running under U0_ROOT, workers call the input wrapper directly, retaining J.environment. | Direct argv, HOME and OPENBLAS=1 assertions pass. Parent and preflight still enter J.namespace. |
+| INFO: 4.tar read three times | Hash/count the one stream sent to tar; check its exit code and expected size/hash before aliases or successful staging records are published. README performs only metadata checks before extraction. | A 10,240-byte tar fixture is opened once and read once. A wrong hash refuses. README has no asset hash preread. |
 
+
+## Wrapper bytes and pin comparison
+
+| Supplied A4 member | Measured bytes | Measured SHA256 |
+|---|---:|---|
+| `v/boot.py` | 443 | `bce29ff7a0fe85d34d31a419d6ad1d0f9f333ef97b7a7fc2ce5ddcfb7da4536f` |
+| `v/py` | 160 | `6fcf54ddf27fe5e2f755b8c3bacef8322486b5b292625847baa77d4fcc632416` |
+
+Both hashes match the coordinator's supplied prefixes, and both sizes match the A4 archive listing. The preserved MANIFEST's `a4_member_pins` covers six package/operator files; it contains no v/py or v/boot.py SHA256. Therefore an independent full-hash match against prior wrapper-member pins cannot be claimed. [A4_WRAPPER_PINS10.json](checks/A4_WRAPPER_PINS10.json) records that distinction, the exact supplied bytes' hashes and the pinned a4.tar receipt. The regenerated MANIFEST carries this evidence under `a4_wrapper_member_pins`; the regression's embedded exact bytes match both supplied files. The production archive itself was not fetched or rehashed here.
+
+The wrapper double preserves the `-I -B` interpreter flags and all boot.py bytes. It replaces the production interpreter with the required CPU interpreter and maps the boot pathname into the local fixture. The real boot still calls site.addsitedir with its production path. No production site overlay is claimed to have run: tiny CPU modules supply the preflight's CUDA/version imports. The test proves the script-path calling convention and confirms -c refusal.
+
+## Staging and adoption contract
+
+Follow [README](kit_parity50/README.md): apply patches 01–03 to the pinned full A4 source and 04–05 to its operator; build with `u0/a19.py --enable-extensions --manifest ... --extension-pins ...`; place, fill and obtain CPU proof. Run the private gate, seal, stage-kit and transfer before salloc. The host then stages runtime and data, runs the gate, and returns its receipt before submit/unpack.
+
+The candidate binds **step 400 only**, read A/job **173060**, package **a15_cot_apdc76460c3a164**, artifact SHA256 **5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd**. It uses A4's 636-item schedule, one card, caches only, general/no-requeue. All-cache allowance is 12 GiB; processor-only is 4 GiB and needs its matching gate. The required device is exactly NVIDIA H100 80GB HBM3, 132 SMs, capability 9.0 and 79–86 billion bytes of memory.
+
+`host.ALIASES` owns the names and targets. Under logical/d it creates `7.json -> binding.json`, `9.json -> ENVIRONMENT.json`, `a0 -> ../p/tree`, `a1.json -> p0/config.json`, `a2.pt -> k/sam3.pt`, `a3.json -> k/SAM3_RECEIPT.json`, and `a4 -> v/site`. README generates PRIVATE_ALIASES by importing that table. The a18/settings and pinned step-400 input audit found export, frames, selector-directory and SAM source-root paths already opaque at d/e, d/f, d/h and d/s. The decision input has no optional item-set path. Relative symlinks preserve resolved-path loader admission. Missing absolute sealed-settings paths fail before the guard self-test.
+
+The host restores the authenticated package at logical/p and extracts 4.tar into root/sj/<logical>/d. It reads 4.tar once, hashing/counting the bounded stream sent to tar. A wrong hash, wrong byte count or tar failure prevents aliases and the successful staging record; the incomplete tree remains unusable. No wall-time or bandwidth saving was measured for the production archive.
+
+The host starts the preflight and parent with `J.namespace(root) + [inputs['python'], '-B', '-I', script, config]`. The preflight is the pinned `u0/u5.py`. Workers under U0_ROOT invoke `[inputs['python'], '-B', '-I'] + args` directly. J.environment supplies HOME, TMPDIR and OPENBLAS=1; XDG/HF/Triton caches remain under the fresh opaque kit root. All workers authenticate assets, environment and kit bytes. Preflight hashes flow through stage-kit, package construction, gate validation, ue.json and submit admission.
 
 ## Runtime prerequisites and exact pins
 
-The following files must be reachable at their **exact Orchard paths** before the H100 gate can stage. None exists at its corresponding path in the supplied so_in mirror. This is a prerequisite, not a claim that the files are absent on Orchard: this task had no host access. No alternative source or substitute interpreter is assumed.
+All files below must be reachable at their exact Orchard paths. Their bytes are absent from the supplied mirror; this does not establish present-day Orchard reachability. [RUNTIME_PINS.json](kit_parity50/RUNTIME_PINS.json) copies A4's own runtime receipt. Its source SHA256 is `a62285317a774cee040ceb5817e7ad7a7e08e12ea412b8f416cfb97b5a1c12ee`. No alternate runtime is assumed.
 
-The authoritative receipt is A4/src/orchard_h10/vendor/ORCHARD_ASSETS.json, SHA256 `a62285317a774cee040ceb5817e7ad7a7e08e12ea412b8f416cfb97b5a1c12ee`, observed on **orchard-login-001**. [RUNTIME_PINS.json](kit_parity50/RUNTIME_PINS.json) copies its three groups and bwrap pin. [RUNTIME_PREREQUISITES9.json](checks/RUNTIME_PREREQUISITES9.json) records each exact supplied-mirror path checked. Group numbers retain the package's grouping; archive member lists were not supplied, so this report does not guess which part contains each library.
-
-| Group | Exact Orchard source | Bytes, from receipt | SHA256, from receipt |
+| Group | Exact Orchard path | Bytes from receipt | SHA256 from receipt |
 |---|---|---:|---|
 | 0 | `/home/jjyeung/okit/p/d59945c1/4fe70504.00` | 900000000 | `273174ae1d1bc812a8843b3e2eec77e77b66b4a10d60c8871ea47529c395e2d7` |
 | 0 | `/home/jjyeung/okit/p/d59945c1/4fe70504.01` | 721422080 | `c733222251bfa18ca823a719e025e3924fda21cffffc6f50cd19bb8ece4860a3` |
@@ -52,33 +79,17 @@ The authoritative receipt is A4/src/orchard_h10/vendor/ORCHARD_ASSETS.json, SHA2
 | 2 | `/project/community/jjyeung/bd8ae51c/p/d59945c1/371be2e2.00` | 409282560 | `4b11b4df5ebf8a20e5c73e5ae09f4f4695f79b44e0223254a8bbaad84127b6b3` |
 | bwrap | `/project/community/jjyeung/cp4tk_rt/kit/bwrap` | 72160 | `e318903862396f96de3df57264e0158682b952fd3fb53ac23d876413e7b30f71` |
 
-The helper executes the runtime-group and bwrap block copied unchanged from `job.stage:110–117`; a regression compares that block with the real package source. Its S.copy_parts checks every part's bytes and SHA256 before S.unpack; S.room retains A4's 200 GiB free-space floor. Only the tiny fixture archives were staged here. The real runtime expansion and host disk usage are not measured.
+The helper reuses the unchanged runtime-group/bwrap block from A4 job.stage. S.copy_parts verifies parts before unpacking; S.room retains the 200 GiB free-space floor. Runtime expansion, H100 namespace execution and host disk peaks are unmeasured. Reserve about 33 GB for 4.tar as an estimate, plus extraction/runtime/source space. Only tiny archive fixtures were extracted here.
 
-The runtime binds supply `/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904/e` and `/home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu`, following `vendor/orchard_job.py:129–131`. The wrapper is inputs['python'], `/scratch/jjyeung/b01ec87a6f29b/d/v/py`, from the CPU-authenticated a/1.json. The wrapper and its site overlay remain intact. The host helper, not the wrapper, runs under `/usr/bin/python3`; the helper passes actual Python 3.6 syntax/import checks.
+## Framework evidence and guard limits
 
-## Staging and adoption contract
+CPU tests use **torch 2.11.0+cpu / transformers 5.12.1**. The pinned production receipt specifies **torch 2.13.0+cu130 / transformers 5.19.0**. [FRAMEWORK_EVIDENCE](FRAMEWORK_EVIDENCE.md) gives installed file:line citations and official documentation links for every framework behavior used. CUDA availability, version counters and default load_state_dict copying were rechecked against installed source and the official 2.11 pages in this round. Torch 2.13 can differ in counters, loading, inference tensors, dispatch and CUDA kernels; transformers 5.19 can differ in processor/model dispatch and returned containers.
 
-Follow [README](kit_parity50/README.md): apply patches 01–03 to the pinned full A4 source and 04–05 to its operator; build with `u0/a19.py --enable-extensions --manifest ... --extension-pins ...`; place, fill and obtain the CPU proof. Then run the private configuration gate, seal, stage-kit and archive transfer before salloc. The fresh token determines kit and source paths. Exact commands extract the public kit and both full source roots on the allocated host.
+Before readers, the production interpreter must detect add_, copy_ and load_state_dict mutations with the actual WeightGuard. Any miss or setup failure records failed ue.json and starts no workers; submit requires all three passing checks. This behavior passes on local torch 2.11 only. No production torch 2.13 result is claimed.
 
-The H100 host uses a fresh job-private `/tmp/<token>` root. Its namespace maps root/sj to /scratch/jjyeung and binds the runtime roots; no bare-host /scratch path is needed. The helper authenticates the package payload and staging members, CPU proof and exact a/1.json, restores the pinned full payload at logical/p for the code paths authenticated by d/manifest.json, then verifies the prepared archive's bytes/hash and extracts it through bwrap into root/sj/<logical>/d. Absolute in-tree links retain their logical targets. The neutral binding/environment aliases are symlinks. Runtime/data staging must finish before the preflight or reader starts.
+Weights must remain frozen. Calls check identities, pointers, versions, shapes/dtypes/devices and requires_grad; installation and type boundaries hash content. Persistent raw writes fail at a boundary. **Raw writes restored between boundaries remain undetected**; private tensor attributes and arbitrary non-tensor state also remain outside coverage. A hard kill can leave an unchecked journal. Cache budgets cover retained storage and transient cache copies, not model/caller memory.
 
-Preflight, parent and every worker run as `J.namespace(root) + [inputs['python'], '-B', '-I', ...]`. Every process uses J.environment(root), including HOME, TMPDIR and OPENBLAS_NUM_THREADS=1, with explicit XDG/HF/Triton caches under the opaque kit root. The parent and all workers authenticate environment, assets and kit bytes. The host helper is included in the package's kit hashes and checked at submit.
-
-The gate binds **step 400 only**, read A/job **173060**, source package **a15_cot_apdc76460c3a164**, artifact SHA256 **5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd**. Other exports cannot authorize adoption. The candidate is A4's **636-item** schedule, one card, caches only, general/no-requeue. All-cache allowance is 12 GiB; processor-only is 4 GiB and requires its own matching gate. The gate requires exactly NVIDIA H100 80GB HBM3, 132 SMs, capability 9.0 and 79–86 billion bytes of memory.
-
-The CPU proof preserves in-tree symlinks, rejects escaping/broken/cyclic links, records archive hash/bytes before CPU.json and retains tar stderr in results/4.err. Reserve about 33 GB for that archive **as an estimate**, plus data extraction and runtime space. Missing pins, failed staging, failed self-tests or byte differences stop the attempt; no automatic retry or substitute runtime is provided.
-
-## Framework gap, equality and guard limits
-
-CPU verification uses **torch 2.11.0+cpu / transformers 5.12.1**. The production receipt requires **torch 2.13.0+cu130 / transformers 5.19.0**. [PRODUCTION_ENVIRONMENT9.json](checks/PRODUCTION_ENVIRONMENT9.json) is authenticated against the 359-byte a/1.json files.env pin; it was copied into this delivery, so no reference-workspace file is needed to run the kit. [FRAMEWORK_EVIDENCE](FRAMEWORK_EVIDENCE.md) distinguishes local source evidence from production requirements and cites installed source lines plus official documentation. Torch counter/loading behavior and transformers processor/model/kernel dispatch may differ across these versions.
-
-The production interpreter runs the actual WeightGuard self-test before reader workers. Each fresh frozen scratch module undergoes one of add_, copy_ or load_state_dict, followed by check(); all three must raise ModelMutationError. A missed detection or setup error writes a failed ue.json and starts no workers. The receipt and submit checker require complete passing guard evidence. Local tests measured this on torch 2.11 only; no torch 2.13 outcome is claimed.
-
-Models must remain frozen. Calls check identities, pointers, tensor versions, shapes/dtypes/devices and requires_grad; installation and type boundaries hash content. Persistent raw writes fail at a boundary. **Raw writes restored between boundaries remain undetected**; private tensor attributes and arbitrary non-tensor state also remain outside coverage. A hard kill can leave an unchecked journal requiring fresh output. The cache cap covers retained storage and transient copies, not model/caller memory.
-
-The gate requires all 50 expected IDs, full production output schemas, useful hits for every enabled cache, unchanged ORIGINAL/OFF source hashes and zero semantic byte differences across the arms. Only clocks and explicit audit/cache/memo telemetry are excluded; audit violations fail. Sequential scene shards test equality, not parallel speed. Batching and numerical tolerances are not offered. A multi-card A4 operator is not delivered; the array prototype remains approved=false.
-
-A refused unpack leaves its extracted tree behind. Scorers require **success output after exit status 0**, and complete=false remains partial. Submit retains cont_ops' complete CPU assertions, cache memory, dry proofs, queue/pool checks and matching plan/profile/assets/device/environment/kit/self-test evidence.
+The 50-item gate requires complete output schemas, every expected ID, useful hits for each enabled cache, unchanged ORIGINAL/OFF source hashes and zero semantic byte differences. Only clocks and declared audit/cache/memo telemetry are excluded; audit violations fail. Sequential shards establish equality, not parallel speed. No batching tolerance or multi-card A4 operator is offered; the array prototype remains approved=false. Scorers require successful unpack output after exit status 0; partial returns remain partial.
 
 ## Measured profile and forecast
 
@@ -110,47 +121,52 @@ A4 already records 461 G3T memo hits and 77 misses, retaining 128,553,354 payloa
 
 
 
+
+
 ## Measured CPU guard overhead
 
-These rerun CPU stubs use bf16 2048×1024 parameter tensors and 1024-element buffers. Their forward returns a 32-element tensor without model-sized matrix work. Seven warm cache hits and three boundary hashes are timed per case. The numbers do not predict H100 speedup; raw samples are in [CACHE_COST3.json](checks/CACHE_COST3.json).
+These rerun CPU stubs contain bf16 2048×1024 parameters and 1024-element buffers. Their forward returns 32 elements without model-sized matrix work. Seven warm hits and three boundaries are timed per case. These measurements do not predict H100 speedup; [CACHE_COST3.json](checks/CACHE_COST3.json) holds raw samples.
 
-| Parameters | Parameter/buffer tensors | Weight+buffer bytes | Full hashing ms/call | Live guard ms/call | Install s | Boundary s |
+| Parameters | Parameter/buffer tensors | Weight+buffer bytes | Full hash ms/call | Live guard ms/call | Install s | Boundary s |
 |---:|---:|---:|---:|---:|---:|---:|
-| 268435456 | 128/128 | 537133056 | 372.883 | 28.331 | 0.385 | 0.383 |
-| 536870912 | 256/256 | 1074266112 | 793.565 | 56.689 | 0.750 | 0.743 |
+| 268435456 | 128/128 | 537133056 | 347.067 | 26.141 | 0.341 | 0.342 |
+| 536870912 | 256/256 | 1074266112 | 706.850 | 53.070 | 0.681 | 0.696 |
 
 ## Patches and authentication
 
-Base SHA256: `813fe4c57b2deed4bd731dd1e3493b6b0bed8d31e7bff92ff112cf5c9df823c3` across 927 files. Reader patches add 40 files and change no original reader bytes. Operator changes remain behind read_extensions, default OFF. Five patches apply with zero fuzz to fresh copies; full original/patched base inventories and extension hashes pass. MANIFEST pins copied A4 members, payload, batch/bootstrap, operators, kit, operation files and export provenance.
+Base SHA256: `813fe4c57b2deed4bd731dd1e3493b6b0bed8d31e7bff92ff112cf5c9df823c3` across 927 files. Reader patches add 42 files without changing original reader bytes. Operator changes remain behind read_extensions, default OFF. All five patches apply with zero fuzz; base inventories and added hashes authenticate. MANIFEST pins payload, copied A4 files, bootstrap, operators, kit, operation files and wrapper evidence.
 
 | Patch | Bytes | SHA256 |
 |---|---:|---|
 | [01_bounded_read_caches.diff](patches/01_bounded_read_caches.diff) | 90430 | `369af9663fbc1008f9ecf5a32c5067ba4a5f4cd31412f07db8263b13b23fd4c3` |
-| [02_atomic_scene_shards.diff](patches/02_atomic_scene_shards.diff) | 218861 | `451fa5b97a8df76ec5985d0b4c8ce0c7d9ca2723c3865feeaa5148ecd04b1b0c` |
-| [03_production_integration.diff](patches/03_production_integration.diff) | 256154 | `d603113a6325a8e285a8b142c4fd49249d29cc7bf350e584fb745417eaeb70be` |
+| [02_atomic_scene_shards.diff](patches/02_atomic_scene_shards.diff) | 218879 | `77b024654841f4537787e48c8b7a1087a8f84636ec0332a7dcbf2a11c2af3336` |
+| [03_production_integration.diff](patches/03_production_integration.diff) | 271088 | `8ca34d1fb539dfc6294ce46dd888f0773e570a5792e83b5b4dfdd27b8e0f4830` |
 | [04_operator_cache_bound.diff](patches/04_operator_cache_bound.diff) | 2723 | `0d3bdc2d943554cd525627466d2d71f30881884e76df95204ede6c1accdb9061` |
 | [05_operator_return_and_proof.diff](patches/05_operator_return_and_proof.diff) | 6754 | `5369d7a7b2442a00a63bf318904a5e60ba972f6a6512500241c64019c77778cd` |
-
-Eight carried round-7 applied logs were moved into **checks/round7/** without changing their bytes. Current applied logs are listed by MANIFEST. Identical completed fixture files share storage after byte-for-byte checks; paths and contents remain intact. [STORAGE9.json](checks/STORAGE9.json) records bounded local sharing passes.
 
 ## What could go wrong and how we would notice
 
 | Risk | Detection and response |
 |---|---|
-| Missing runtime part, bwrap, insufficient local space or failed extraction | Exact part hash/size checks, S.room and staging errors refuse before the preflight. Supply the named prerequisite; do not substitute an environment. |
-| Namespace or wrapper cannot start on H100 | Preflight is wrapped in real J.namespace and uses the authenticated wrapper; failure stops the attempt. Actual bwrap execution is untested here. |
-| Torch 2.13 changes guarded mutation behavior | In-gate self-test writes failed per-operation evidence and starts no readers; submit rejects it. |
-| Different versions, export, source, operator or kit | CPU, gate, worker and submit pins refuse. |
-| GPU kernels or eager SAM loading change bytes | Zero-difference acceptance refuses; score agreement is insufficient. |
-| Cache overhead or caller/model memory dominates | Measure whole-worker time and host/GPU peaks before crediting savings. |
-| Raw write restored between boundaries | Frozen ownership remains required; the guard cannot detect that sequence. |
-| Partial or refused output reaches a scorer | Require successful unpack output and complete status. |
+| Missing runtime, disk space, alias target or failed extraction | Part pins, space checks, tar status/stream hash and sealed-path existence checks refuse before reader work. |
+| Actual H100 namespace/wrapper/overlay differs from the CPU fixture | Script preflight and environment pins refuse; only the real host gate establishes compatibility. |
+| Torch 2.13 changes mutation behavior | Production self-test writes failed evidence and starts no readers. |
+| Export, source, operator, preflight or environment differs | CPU, gate, worker and submit authentication refuses. |
+| CUDA kernels or eager SAM loading change outputs | The zero-byte-difference gate refuses; matching aggregate scores do not suffice. |
+| A worker fails before a final receipt | Nonzero exit stops the run; no ue.json means no return archive and submit cannot pass. The worker log remains only until allocation cleanup. |
+| Hash mismatch during extraction | No successful stage record is published; extracted bytes remain untrusted and must not be executed. |
+| Cache overhead dominates | Measure full-worker elapsed time and memory before crediting any speedup. |
+| A raw write is restored between boundaries | Frozen ownership is required; the guard cannot detect that sequence. |
 
 ## Not done
 
-The 13 runtime parts and bwrap were not fetched. No real H100 namespace, production wrapper/overlay, torch 2.13 self-test, GPU byte parity, throughput, memory peak, large archive, transfer, submit, return publication or persistent-storage requeue was run. The source/bootstrap/extraction tests use tiny files; namespace execution and missing-runtime I/O are explicit doubles. CPU checks need no local OS sockets. No runtime dependency on so_reads228 remains.
+No real H100 bwrap namespace, production interpreter/site overlay, torch 2.13 guard, GPU byte parity, throughput, GPU memory, large 4.tar extraction, transfer, submit or persistent requeue ran. Runtime files remain exact-path prerequisites. Tests use explicit namespace/runtime doubles and tiny assets. The boot bytes themselves did execute. Independent prior wrapper-member SHA256 pins were unavailable. CPU checks require no local OS sockets. Host argv screening and a receipt for arbitrary worker failure remain outside this fix set; current failures refuse adoption.
 
-The requested review sections below are retained as test traceability. They state current contracts; the required round labels are the only historical framing retained under the no-archaeology writing rule.
+The review labels below remain because the dispatch explicitly requires finding/fix/test traceability. Other documentation states the current behavior.
+
+## Review round 9: finding -> fix -> test
+
+Authenticated A4 runtime staging, production guard self-tests, pre-allocation kit preparation, fresh tokens, J.environment and labelled logs pass. Preflight and parent enter the namespace; workers call its wrapper directly. All eleven preserved controls fail before and pass after.
 
 ## Review round 8: finding -> fix -> test
 
@@ -184,13 +200,14 @@ Entry isolation, path policy, bounded arrays, overlay pins, SAM capacity, deadli
 
 Cache keys, strict parity schema/hits, unchanged OFF bytes, weight identity, writer-lock recovery, opacity and hard retained-memory accounting pass. The preserved control reproduces eight assertion failures.
 
+
 ## Exact commands and outputs
 
-Commands run from the workspace use work/cpu.sh, which sets the required environment and execs nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B. Fixture commands additionally use work/run_fixture5.py to share immutable fixture bytes; this does not replace production logic. Before-control failures below are expected. Development failures remain in separately labelled logs.
+All commands run from this workspace through `bash work/cpu.sh`, which exports hidden CUDA, thread/cache limits and PYTHONDONTWRITEBYTECODE, then execs `nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B`. Fixture commands use work/run_fixture5.py to share identical local bytes after real writes. No production logic is replaced by that storage harness. Expected before-control failures are labelled; the development-only README assertion failure is retained in run_checks10_development.txt.
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_read_cache.py`
 
-Output ([checks/cache.txt](checks/cache.txt)):
+Exact output ([checks/cache.txt](checks/cache.txt)):
 
 ```text
 test_budget_eviction_oversize_and_process_reset (__main__.ReadCacheTests.test_budget_eviction_oversize_and_process_reset) ... ok
@@ -210,14 +227,14 @@ test_vision_execution_settings_and_live_options_invalidate (__main__.ReadCacheTe
 test_vision_returns_same_type_and_keeps_outer_hooks (__main__.ReadCacheTests.test_vision_returns_same_type_and_keeps_outer_hooks) ... ok
 
 ----------------------------------------------------------------------
-Ran 15 tests in 2.632s
+Ran 15 tests in 2.420s
 
 OK
 ```
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_read_journal.py`
 
-Output ([checks/journal.txt](checks/journal.txt)):
+Exact output ([checks/journal.txt](checks/journal.txt)):
 
 ```text
 test_duplicate_corruption_and_unowned_jsonl_fail (__main__.JournalTests.test_duplicate_corruption_and_unowned_jsonl_fail) ... ok
@@ -235,27 +252,27 @@ test_shards_merge_byte_identical_to_single_and_reject_missing_duplicate (__main_
 test_type_journals_support_empty_scene_shards (__main__.RunnerTests.test_type_journals_support_empty_scene_shards) ... ok
 
 ----------------------------------------------------------------------
-Ran 13 tests in 0.161s
+Ran 13 tests in 0.151s
 
 OK
 ```
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_off.py`
 
-Output ([checks/off.txt](checks/off.txt)):
+Exact output ([checks/off.txt](checks/off.txt)):
 
 ```text
 test_every_output_byte_and_source_hash_matches_original (__main__.OffContractTests.test_every_output_byte_and_source_hash_matches_original) ... ok
 
 ----------------------------------------------------------------------
-Ran 1 test in 5.375s
+Ran 1 test in 4.674s
 
 OK
 ```
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_public.py`
 
-Output ([checks/public.txt](checks/public.txt)):
+Exact output ([checks/public.txt](checks/public.txt)):
 
 ```text
 test_legacy_worker_log_context_manager_never_writes_raw_library_output (__main__.PublicTests.test_legacy_worker_log_context_manager_never_writes_raw_library_output) ... ok
@@ -267,14 +284,14 @@ test_settings_tokens_hide_every_name_and_reject_descriptive_paths (__main__.Publ
 test_unstructured_library_logs_and_partial_lines_only_publish_tokens (__main__.PublicTests.test_unstructured_library_logs_and_partial_lines_only_publish_tokens) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.004s
+Ran 7 tests in 0.003s
 
 OK
 ```
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round1.py`
 
-Output ([checks/round1.txt](checks/round1.txt)):
+Exact output ([checks/round1.txt](checks/round1.txt)):
 
 ```text
 test_f1_nested_mapping_boundaries_and_stale_processor (__main__.ReviewRegressions.test_f1_nested_mapping_boundaries_and_stale_processor) ... ok
@@ -296,14 +313,14 @@ test_unstructured_library_logs_and_partial_lines_only_publish_tokens (round1_pub
 test_every_output_byte_and_source_hash_matches_original (round1_off_tests.OffContractTests.test_every_output_byte_and_source_hash_matches_original) ... ok
 
 ----------------------------------------------------------------------
-Ran 17 tests in 3.595s
+Ran 17 tests in 3.634s
 
 OK
 ```
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py`
 
-Output ([checks/round2.txt](checks/round2.txt)):
+Exact output ([checks/round2.txt](checks/round2.txt)):
 
 ```text
 test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs (__main__.Round2Tests.test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs) ... ok
@@ -321,14 +338,14 @@ test_f8_processor_bypass_is_counted (__main__.Round2Tests.test_f8_processor_bypa
 test_f9_roots_and_manifest_checked_before_any_arm (__main__.Round2Tests.test_f9_roots_and_manifest_checked_before_any_arm) ... ok
 
 ----------------------------------------------------------------------
-Ran 13 tests in 3.602s
+Ran 13 tests in 3.605s
 
 OK
 ```
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round3.py`
 
-Output ([checks/round3.txt](checks/round3.txt)):
+Exact output ([checks/round3.txt](checks/round3.txt)):
 
 ```text
 test_f1_calls_never_hash_parameters_or_buffers (__main__.Round3Tests.test_f1_calls_never_hash_parameters_or_buffers) ... ok
@@ -342,28 +359,28 @@ test_f4_worker_uses_settings_argv_without_environment_side_effect (__main__.Roun
 test_f7_off_import_guard_covers_all_overlay_modules (__main__.Round3Tests.test_f7_off_import_guard_covers_all_overlay_modules) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 1.625s
+Ran 9 tests in 1.605s
 
 OK
 ```
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py`
 
-Output ([checks/operator3.txt](checks/operator3.txt)):
+Exact output ([checks/operator3.txt](checks/operator3.txt)):
 
 ```text
 test_f2_a12_payload_through_a4_actions_and_nested_return (__main__.OperatorTests.test_f2_a12_payload_through_a4_actions_and_nested_return) ... ok
 test_f2_operator_memory_bound_includes_cache_only_when_enabled (__main__.OperatorTests.test_f2_operator_memory_bound_includes_cache_only_when_enabled) ... ok
 
 ----------------------------------------------------------------------
-Ran 2 tests in 9.087s
+Ran 2 tests in 9.070s
 
 OK
 ```
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_lock_round3.py`
 
-Output ([checks/lock3.txt](checks/lock3.txt)):
+Exact output ([checks/lock3.txt](checks/lock3.txt)):
 
 ```text
 test_deadline_recovery_keeps_writer_lock (lock_behavior.RunnerTests.test_deadline_recovery_keeps_writer_lock) ... ok
@@ -377,7 +394,7 @@ OK
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py`
 
-Output ([checks/round4.txt](checks/round4.txt)):
+Exact output ([checks/round4.txt](checks/round4.txt)):
 
 ```text
 test_f1_bound_package_preserves_a4_contract_and_binding (__main__.Round4Tests.test_f1_bound_package_preserves_a4_contract_and_binding) ... ok
@@ -386,16 +403,16 @@ test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test
 test_f9_off_builder_guard_and_processor_only (__main__.Round4Tests.test_f9_off_builder_guard_and_processor_only) ... ok
 
 ----------------------------------------------------------------------
-Ran 4 tests in 25.686s
+Ran 4 tests in 21.333s
 
 OK
-{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/eeb25e05635b485aa859d3490dc9bffa/verified-return", "complete": false, "status": "FAILED", "sha256": "efc5ca5588514cfa95c513572d7184ea1a322e216dd8ac3ca93875ac34f645d0"}
-CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/eeb25e05635b485aa859d3490dc9bffa
+{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/863e85df932841fdbf29df3113c5e263/verified-return", "complete": false, "status": "FAILED", "sha256": "f03449b9b94056d3c1918adf0aec15b62d0ffdcc077b3dcc91e35dd6a3a4b479"}
+CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/863e85df932841fdbf29df3113c5e263
 ```
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py`
 
-Output ([checks/round5.txt](checks/round5.txt)):
+Exact output ([checks/round5.txt](checks/round5.txt)):
 
 ```text
 test_f1_batch_wrapper_and_real_bundle_guard (__main__.Round5Tests.test_f1_batch_wrapper_and_real_bundle_guard) ... ok
@@ -407,7 +424,7 @@ test_f5_forecast_identifies_both_reads (__main__.Round5Tests.test_f5_forecast_id
 test_f7_refused_unpack_not_scoreable (__main__.Round5Tests.test_f7_refused_unpack_not_scoreable) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 10.926s
+Ran 7 tests in 8.985s
 
 OK
 All CPU receipt checks passed
@@ -417,7 +434,7 @@ All CPU receipt checks passed
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py`
 
-Output ([checks/round6.txt](checks/round6.txt)):
+Exact output ([checks/round6.txt](checks/round6.txt)):
 
 ```text
 test_f1_readme_unpack_subprocess (__main__.Round6Tests.test_f1_readme_unpack_subprocess) ... ok
@@ -431,7 +448,7 @@ test_info_done_whitespace (__main__.Round6Tests.test_info_done_whitespace) ... o
 test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 35.846s
+Ran 9 tests in 25.434s
 
 OK
 README unpack command: exit 0; authenticated partial return accepted.
@@ -440,7 +457,7 @@ Detached fill: success=0, failure=17, duplicate launch refused.
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py`
 
-Output ([checks/round7.txt](checks/round7.txt)):
+Exact output ([checks/round7.txt](checks/round7.txt)):
 
 ```text
 test_f1_archive_runs_inside_live_namespace_and_survives_it (__main__.Round7Tests.test_f1_archive_runs_inside_live_namespace_and_survives_it) ... ok
@@ -453,7 +470,7 @@ test_info_unpack_ignores_python_environment_and_keeps_sibling_import (__main__.R
 test_rebind_step400_only (__main__.Round7Tests.test_rebind_step400_only) ... ok
 
 ----------------------------------------------------------------------
-Ran 8 tests in 5.964s
+Ran 8 tests in 5.556s
 
 OK
 Live namespace tar: regular file and symlink preserved; archive survives namespace loss; duplicate and OFF guarded.
@@ -463,7 +480,7 @@ Only reviewed step-400 export passes; changed artifact and selectable-export API
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py`
 
-Output ([checks/round8.txt](checks/round8.txt)):
+Exact output ([checks/round8.txt](checks/round8.txt)):
 
 ```text
 test_f1_external_symlinks_refuse_before_archive (__main__.Round8Tests.test_f1_external_symlinks_refuse_before_archive) ... ok
@@ -478,17 +495,17 @@ test_info_gpu_commands_and_aliases (__main__.Round8Tests.test_info_gpu_commands_
 test_info_tar_stderr_is_retained (__main__.Round8Tests.test_info_tar_stderr_is_retained) ... ok
 
 ----------------------------------------------------------------------
-Ran 10 tests in 7.381s
+Ran 10 tests in 6.627s
 
 OK
 Absolute e/heads.pt symlink survives tar/extract; real Artifact.verify and load_native admission pass before model loading.
-Preflight and every worker launch require real A4 namespace argv and the authenticated wrapper path; no host d/v/py test double.
+Preflight requires real A4 namespace argv; workers use the authenticated wrapper inside that namespace.
 Runtime torch/transformers/CUDA and environment SHA256 are exact; changed versions, bytes and CPU build refuse.
 ```
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py`
 
-Output ([checks/round9.txt](checks/round9.txt)):
+Exact output ([checks/round9.txt](checks/round9.txt)):
 
 ```text
 test_f1_actual_launch_calls_namespace_twice (__main__.Round9Tests.test_f1_actual_launch_calls_namespace_twice) ... ok
@@ -504,11 +521,11 @@ test_info_round7_logs_are_labelled (__main__.Round9Tests.test_info_round7_logs_a
 test_info_token_and_framework_gap_and_guard_limits (__main__.Round9Tests.test_info_token_and_framework_gap_and_guard_limits) ... ok
 
 ----------------------------------------------------------------------
-Ran 11 tests in 4.575s
+Ran 11 tests in 4.464s
 
 OK
 Actual host launch calls preflight then parent with real namespace prefixes and the input wrapper.
-Real J.namespace prefix and inputs[python] wrap preflight, parent and all three worker launch sites; J.environment retains HOME/TMPDIR/OPENBLAS=1.
+Real J.namespace prefix and inputs[python] wrap preflight/parent; all three worker launch sites use the authenticated wrapper; J.environment retains HOME/TMPDIR/OPENBLAS=1.
 Authenticated real A4 bootstrap stages fixture 4.tar to root/sj/<logical>/d with preserved wrapper/links and the complete pinned logical/p code tree; changed input proof refuses. Runtime I/O and bwrap execution are explicit doubles.
 Package staging block extracts pinned fixture runtime; changed part hash refuses; 13 part pins plus bwrap match A4 receipts.
 A missed mutation persists in failed ue.json; missing or failed guard evidence cannot produce passed=true.
@@ -520,9 +537,35 @@ Eight carried round-7 applied logs live only under checks/round7.
 Fresh token derives kit paths; framework version gap and carried guard limits are explicit.
 ```
 
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py`
+
+Exact output ([checks/round10.txt](checks/round10.txt)):
+
+```text
+test_f1_public_script_is_pinned_and_tampering_refuses (__main__.Round10Tests.test_f1_public_script_is_pinned_and_tampering_refuses) ... ok
+test_f1_real_boot_refuses_c_and_runs_actual_preflight_script (__main__.Round10Tests.test_f1_real_boot_refuses_c_and_runs_actual_preflight_script) ... ok
+test_f2_missing_nested_path_refuses_before_self_test (__main__.Round10Tests.test_f2_missing_nested_path_refuses_before_self_test) ... ok
+test_f2_stage_resolves_every_sealed_path_with_one_alias_table (__main__.Round10Tests.test_f2_stage_resolves_every_sealed_path_with_one_alias_table) ... ok
+test_f3_workers_are_direct_inside_namespace (__main__.Round10Tests.test_f3_workers_are_direct_inside_namespace) ... ok
+test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin (__main__.Round10Tests.test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin) ... ok
+test_f4_readme_has_no_asset_preread_and_generates_aliases (__main__.Round10Tests.test_f4_readme_has_no_asset_preread_and_generates_aliases) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.089s
+
+OK
+Public u0/u5.py preserves shipped bytes; validate_kit rejects its mutation.
+Exact 443-byte boot refuses -c; host launches the shipped preflight and parent through the wrapper double. CUDA/version imports are explicit CPU stubs.
+Nested missing absolute settings path refuses before the guard self-test; existing paths pass.
+host.stage creates every shared alias; all 12 absolute settings paths seal and resolve, including code and site roots. Runtime and namespace execution are explicit doubles.
+U0_ROOT workers call inputs[python] directly and retain J.environment; no nested bwrap.
+Extraction reads all 10,240 archive bytes once, hashes the same stream, and refuses a changed hash before publishing staging success.
+README generates PRIVATE_ALIASES from the host table and does not reread 4.tar before extraction.
+```
+
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/out/kit_parity50/test_compare.py`
 
-Output ([checks/kit.txt](checks/kit.txt)):
+Exact output ([checks/kit.txt](checks/kit.txt)):
 
 ```text
 test_changed_answer_detected_even_when_score_unchanged (__main__.CompareTests.test_changed_answer_detected_even_when_score_unchanged) ... ok
@@ -536,14 +579,14 @@ test_telemetry_different_exact_trace_passes (__main__.CompareTests.test_telemetr
 test_tokens_calls_heads_and_finish_each_detected (__main__.CompareTests.test_tokens_calls_heads_and_finish_each_detected) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 0.302s
+Ran 9 tests in 0.282s
 
 OK
 ```
 
 Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/out/kit_parity50/test_run.py`
 
-Output ([checks/kit_launch.txt](checks/kit_launch.txt)):
+Exact output ([checks/kit_launch.txt](checks/kit_launch.txt)):
 
 ```text
 test_durable_scene_comparison_requires_explicit_on_arm (__main__.LaunchTests.test_durable_scene_comparison_requires_explicit_on_arm) ... ok
@@ -551,27 +594,27 @@ test_original_and_off_do_not_opt_in_to_journaling_or_sharding (__main__.LaunchTe
 test_stage_kit_uses_opaque_names_token_metadata_and_authenticated_sample_bytes (__main__.LaunchTests.test_stage_kit_uses_opaque_names_token_metadata_and_authenticated_sample_bytes) ... ok
 
 ----------------------------------------------------------------------
-Ran 3 tests in 0.060s
+Ran 3 tests in 0.052s
 
 OK
 ```
 
-Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_off.py`
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_off.py`
 
-Output ([checks/applied_off.txt](checks/applied_off.txt)):
+Exact output ([checks/applied_off.txt](checks/applied_off.txt)):
 
 ```text
 test_every_output_byte_and_source_hash_matches_original (__main__.OffContractTests.test_every_output_byte_and_source_hash_matches_original) ... ok
 
 ----------------------------------------------------------------------
-Ran 1 test in 7.412s
+Ran 1 test in 4.640s
 
 OK
 ```
 
-Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round4.py`
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round4.py`
 
-Output ([checks/applied_round4.txt](checks/applied_round4.txt)):
+Exact output ([checks/applied_round4.txt](checks/applied_round4.txt)):
 
 ```text
 test_f1_bound_package_preserves_a4_contract_and_binding (__main__.Round4Tests.test_f1_bound_package_preserves_a4_contract_and_binding) ... ok
@@ -580,16 +623,16 @@ test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test
 test_f9_off_builder_guard_and_processor_only (__main__.Round4Tests.test_f9_off_builder_guard_and_processor_only) ... ok
 
 ----------------------------------------------------------------------
-Ran 4 tests in 27.582s
+Ran 4 tests in 20.145s
 
 OK
-{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/2d7b98be07f340cb8336a265dbc681e6/verified-return", "complete": false, "status": "FAILED", "sha256": "3fdc107628ecc7ae1fc9d40b858a048e27dca8b8aec7393c3a0df9dc75955be3"}
-CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/2d7b98be07f340cb8336a265dbc681e6
+{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/6e2134867b494bf29b789c266fbdfd2c/verified-return", "complete": false, "status": "FAILED", "sha256": "52e3867735496853227bc85531f9715ce83f18cdd95de67f01e54cb6cd6e65e2"}
+CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/6e2134867b494bf29b789c266fbdfd2c
 ```
 
-Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round5.py`
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round5.py`
 
-Output ([checks/applied_round5.txt](checks/applied_round5.txt)):
+Exact output ([checks/applied_round5.txt](checks/applied_round5.txt)):
 
 ```text
 test_f1_batch_wrapper_and_real_bundle_guard (__main__.Round5Tests.test_f1_batch_wrapper_and_real_bundle_guard) ... ok
@@ -601,7 +644,7 @@ test_f5_forecast_identifies_both_reads (__main__.Round5Tests.test_f5_forecast_id
 test_f7_refused_unpack_not_scoreable (__main__.Round5Tests.test_f7_refused_unpack_not_scoreable) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 9.971s
+Ran 7 tests in 9.097s
 
 OK
 All CPU receipt checks passed
@@ -609,9 +652,9 @@ All CPU receipt checks passed
 All CPU receipt checks passed
 ```
 
-Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round6.py`
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round6.py`
 
-Output ([checks/applied_round6.txt](checks/applied_round6.txt)):
+Exact output ([checks/applied_round6.txt](checks/applied_round6.txt)):
 
 ```text
 test_f1_readme_unpack_subprocess (__main__.Round6Tests.test_f1_readme_unpack_subprocess) ... ok
@@ -625,16 +668,16 @@ test_info_done_whitespace (__main__.Round6Tests.test_info_done_whitespace) ... o
 test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 29.337s
+Ran 9 tests in 26.397s
 
 OK
 README unpack command: exit 0; authenticated partial return accepted.
 Detached fill: success=0, failure=17, duplicate launch refused.
 ```
 
-Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round7.py`
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round7.py`
 
-Output ([checks/applied_round7.txt](checks/applied_round7.txt)):
+Exact output ([checks/applied_round7.txt](checks/applied_round7.txt)):
 
 ```text
 test_f1_archive_runs_inside_live_namespace_and_survives_it (__main__.Round7Tests.test_f1_archive_runs_inside_live_namespace_and_survives_it) ... ok
@@ -647,7 +690,7 @@ test_info_unpack_ignores_python_environment_and_keeps_sibling_import (__main__.R
 test_rebind_step400_only (__main__.Round7Tests.test_rebind_step400_only) ... ok
 
 ----------------------------------------------------------------------
-Ran 8 tests in 5.724s
+Ran 8 tests in 5.601s
 
 OK
 Live namespace tar: regular file and symlink preserved; archive survives namespace loss; duplicate and OFF guarded.
@@ -655,9 +698,9 @@ Fill wait: missing token, dead worker, deadline and exit 17 refuse; exit 0 passe
 Only reviewed step-400 export passes; changed artifact and selectable-export API refuse.
 ```
 
-Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round8.py`
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round8.py`
 
-Output ([checks/applied_round8.txt](checks/applied_round8.txt)):
+Exact output ([checks/applied_round8.txt](checks/applied_round8.txt)):
 
 ```text
 test_f1_external_symlinks_refuse_before_archive (__main__.Round8Tests.test_f1_external_symlinks_refuse_before_archive) ... ok
@@ -672,17 +715,17 @@ test_info_gpu_commands_and_aliases (__main__.Round8Tests.test_info_gpu_commands_
 test_info_tar_stderr_is_retained (__main__.Round8Tests.test_info_tar_stderr_is_retained) ... ok
 
 ----------------------------------------------------------------------
-Ran 10 tests in 7.431s
+Ran 10 tests in 6.701s
 
 OK
 Absolute e/heads.pt symlink survives tar/extract; real Artifact.verify and load_native admission pass before model loading.
-Preflight and every worker launch require real A4 namespace argv and the authenticated wrapper path; no host d/v/py test double.
+Preflight requires real A4 namespace argv; workers use the authenticated wrapper inside that namespace.
 Runtime torch/transformers/CUDA and environment SHA256 are exact; changed versions, bytes and CPU build refuse.
 ```
 
-Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round9.py`
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round9.py`
 
-Output ([checks/applied_round9.txt](checks/applied_round9.txt)):
+Exact output ([checks/applied_round9.txt](checks/applied_round9.txt)):
 
 ```text
 test_f1_actual_launch_calls_namespace_twice (__main__.Round9Tests.test_f1_actual_launch_calls_namespace_twice) ... ok
@@ -698,11 +741,11 @@ test_info_round7_logs_are_labelled (__main__.Round9Tests.test_info_round7_logs_a
 test_info_token_and_framework_gap_and_guard_limits (__main__.Round9Tests.test_info_token_and_framework_gap_and_guard_limits) ... ok
 
 ----------------------------------------------------------------------
-Ran 11 tests in 4.623s
+Ran 11 tests in 4.560s
 
 OK
 Actual host launch calls preflight then parent with real namespace prefixes and the input wrapper.
-Real J.namespace prefix and inputs[python] wrap preflight, parent and all three worker launch sites; J.environment retains HOME/TMPDIR/OPENBLAS=1.
+Real J.namespace prefix and inputs[python] wrap preflight/parent; all three worker launch sites use the authenticated wrapper; J.environment retains HOME/TMPDIR/OPENBLAS=1.
 Authenticated real A4 bootstrap stages fixture 4.tar to root/sj/<logical>/d with preserved wrapper/links and the complete pinned logical/p code tree; changed input proof refuses. Runtime I/O and bwrap execution are explicit doubles.
 Package staging block extracts pinned fixture runtime; changed part hash refuses; 13 part pins plus bwrap match A4 receipts.
 A missed mutation persists in failed ue.json; missing or failed guard evidence cannot produce passed=true.
@@ -714,9 +757,35 @@ Eight carried round-7 applied logs live only under checks/round7.
 Fresh token derives kit paths; framework version gap and carried guard limits are explicit.
 ```
 
-Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_compare.py`
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round10.py`
 
-Output ([checks/applied_compare.txt](checks/applied_compare.txt)):
+Exact output ([checks/applied_round10.txt](checks/applied_round10.txt)):
+
+```text
+test_f1_public_script_is_pinned_and_tampering_refuses (__main__.Round10Tests.test_f1_public_script_is_pinned_and_tampering_refuses) ... ok
+test_f1_real_boot_refuses_c_and_runs_actual_preflight_script (__main__.Round10Tests.test_f1_real_boot_refuses_c_and_runs_actual_preflight_script) ... ok
+test_f2_missing_nested_path_refuses_before_self_test (__main__.Round10Tests.test_f2_missing_nested_path_refuses_before_self_test) ... ok
+test_f2_stage_resolves_every_sealed_path_with_one_alias_table (__main__.Round10Tests.test_f2_stage_resolves_every_sealed_path_with_one_alias_table) ... ok
+test_f3_workers_are_direct_inside_namespace (__main__.Round10Tests.test_f3_workers_are_direct_inside_namespace) ... ok
+test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin (__main__.Round10Tests.test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin) ... ok
+test_f4_readme_has_no_asset_preread_and_generates_aliases (__main__.Round10Tests.test_f4_readme_has_no_asset_preread_and_generates_aliases) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.113s
+
+OK
+Public u0/u5.py preserves shipped bytes; validate_kit rejects its mutation.
+Exact 443-byte boot refuses -c; host launches the shipped preflight and parent through the wrapper double. CUDA/version imports are explicit CPU stubs.
+Nested missing absolute settings path refuses before the guard self-test; existing paths pass.
+host.stage creates every shared alias; all 12 absolute settings paths seal and resolve, including code and site roots. Runtime and namespace execution are explicit doubles.
+U0_ROOT workers call inputs[python] directly and retain J.environment; no nested bwrap.
+Extraction reads all 10,240 archive bytes once, hashes the same stream, and refuses a changed hash before publishing staging success.
+README generates PRIVATE_ALIASES from the host table and does not reread 4.tar before extraction.
+```
+
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_compare.py`
+
+Exact output ([checks/applied_compare.txt](checks/applied_compare.txt)):
 
 ```text
 test_changed_answer_detected_even_when_score_unchanged (__main__.CompareTests.test_changed_answer_detected_even_when_score_unchanged) ... ok
@@ -730,14 +799,14 @@ test_telemetry_different_exact_trace_passes (__main__.CompareTests.test_telemetr
 test_tokens_calls_heads_and_finish_each_detected (__main__.CompareTests.test_tokens_calls_heads_and_finish_each_detected) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 0.303s
+Ran 9 tests in 0.276s
 
 OK
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # round1_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # round1_before; exact environment/argv in runner`
 
-Output ([checks/round1_before.txt](checks/round1_before.txt)):
+Exact output ([checks/round1_before.txt](checks/round1_before.txt)):
 
 ```text
 test_f1_nested_mapping_boundaries_and_stale_processor (__main__.ReviewRegressions.test_f1_nested_mapping_boundaries_and_stale_processor) ... FAIL
@@ -826,14 +895,14 @@ Traceback (most recent call last):
 AssertionError: 1 != 0
 
 ----------------------------------------------------------------------
-Ran 8 tests in 0.018s
+Ran 8 tests in 0.028s
 
 FAILED (failures=8)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # round2_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # round2_before; exact environment/argv in runner`
 
-Output ([checks/round2_before.txt](checks/round2_before.txt)):
+Exact output ([checks/round2_before.txt](checks/round2_before.txt)):
 
 ```text
 test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs (__main__.Round2Tests.test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs) ... FAIL
@@ -892,13 +961,13 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 67, in test_f1_actual_isolated_script_plain_and_opaque
     self.assertEqual(result.returncode,0,result.stdout+result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/b5439edb53c146e6bff93fa646ce4145/u0/a8.py", line 65, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/859bc6c610894c079777e7446436cdfc/u0/a8.py", line 65, in <module>
     raise SystemExit(main())
                      ^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/b5439edb53c146e6bff93fa646ce4145/u0/a8.py", line 61, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/859bc6c610894c079777e7446436cdfc/u0/a8.py", line 61, in main
     return launch(rest)
            ^^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/b5439edb53c146e6bff93fa646ce4145/u0/a4.py", line 2, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/859bc6c610894c079777e7446436cdfc/u0/a4.py", line 2, in main
     from a8 import source_hash
 ModuleNotFoundError: No module named 'a8'
 
@@ -910,10 +979,10 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 67, in test_f1_actual_isolated_script_plain_and_opaque
     self.assertEqual(result.returncode,0,result.stdout+result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/79e6c1a9df804dd1a485e3b267966c52/u0/a8.py", line 65, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/ca03b38d111749c0ba2a5d02410d0725/u0/a8.py", line 65, in <module>
     raise SystemExit(main())
                      ^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/79e6c1a9df804dd1a485e3b267966c52/u0/a8.py", line 56, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/ca03b38d111749c0ba2a5d02410d0725/u0/a8.py", line 56, in main
     from a9 import install_wire_decoder,PublicLog
 ModuleNotFoundError: No module named 'a9'
 
@@ -1014,14 +1083,14 @@ Traceback (most recent call last):
 AssertionError: False is not true : Missing independent root validation
 
 ----------------------------------------------------------------------
-Ran 13 tests in 0.183s
+Ran 13 tests in 0.164s
 
 FAILED (failures=13, errors=1)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # round3_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # round3_before; exact environment/argv in runner`
 
-Output ([checks/round3_before.txt](checks/round3_before.txt)):
+Exact output ([checks/round3_before.txt](checks/round3_before.txt)):
 
 ```text
 test_f1_calls_never_hash_parameters_or_buffers (__main__.Round3Tests.test_f1_calls_never_hash_parameters_or_buffers) ... FAIL
@@ -1076,7 +1145,7 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round3.py", line 46, in visit
     if isinstance(v,torch.Tensor):self.assertNotIn(id(v),weights,'Per-call weight hashing')
                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: 140618051519984 unexpectedly found in {140618051519984, 140618855836768} : Per-call weight hashing
+AssertionError: 140553963702464 unexpectedly found in {140553963702464, 140553963702784} : Per-call weight hashing
 
 ======================================================================
 FAIL: test_f1_parameter_and_buffer_changes_are_fatal_and_latched (__main__.Round3Tests.test_f1_parameter_and_buffer_changes_are_fatal_and_latched)
@@ -1218,14 +1287,14 @@ Traceback (most recent call last):
 AssertionError: AssertionError not raised
 
 ----------------------------------------------------------------------
-Ran 9 tests in 0.849s
+Ran 9 tests in 0.732s
 
 FAILED (failures=15)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # operator3_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # operator3_before; exact environment/argv in runner`
 
-Output ([checks/operator3_before.txt](checks/operator3_before.txt)):
+Exact output ([checks/operator3_before.txt](checks/operator3_before.txt)):
 
 ```text
 test_f2_a12_payload_through_a4_actions_and_nested_return (__main__.OperatorTests.test_f2_a12_payload_through_a4_actions_and_nested_return) ... FAIL
@@ -1244,7 +1313,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 138, in child
     boot.main();main_job.assert_called_once_with(root)
     ^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/45efd3cdc1eb44fb914ddeb009f9bf2a/0.py", line 44, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/8ff6b15ac5a0457f86dd93df5638cceb/0.py", line 44, in main
     job.main(root)
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
     return self._mock_call(*args, **kwargs)
@@ -1257,7 +1326,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
              ^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 122, in run_job
     job.checked_run([sys.executable,'-I','-s','-B',str(root/'a/5.py'),str(cfgpath)])
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/45efd3cdc1eb44fb914ddeb009f9bf2a/0.py", line 18, in dispatch
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/8ff6b15ac5a0457f86dd93df5638cceb/0.py", line 18, in dispatch
     return original(argv,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
@@ -1272,7 +1341,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 114, in dispatch
     try:operator.main()
         ^^^^^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/45efd3cdc1eb44fb914ddeb009f9bf2a/7.py", line 139, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/8ff6b15ac5a0457f86dd93df5638cceb/7.py", line 139, in main
     result=run(cfg['config'],cfg['end'],os.environ['CUDA_VISIBLE_DEVICES'].split(','))
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
@@ -1287,7 +1356,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 113, in <lambda>
     with patch.object(sys,'argv',argv[-2:]),patch.object(operator,'run',side_effect=lambda config,end,cards:actual_operator(config,end,['cpu-fixture'])):
                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/45efd3cdc1eb44fb914ddeb009f9bf2a/7.py", line 87, in run
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/8ff6b15ac5a0457f86dd93df5638cceb/7.py", line 87, in run
     result=(runner or execute)(cfg,cards,end,prefix=cfg['prefix'])
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
@@ -1314,14 +1383,14 @@ Traceback (most recent call last):
 AssertionError: 'read_extensions' not found in mappingproxy(OrderedDict({'captures': <Parameter "captures=(84,)">, 'allocation_bytes': <Parameter "allocation_bytes=214748364800">})) : Operator omits read cache memory
 
 ----------------------------------------------------------------------
-Ran 2 tests in 9.016s
+Ran 2 tests in 8.005s
 
 FAILED (failures=2)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # lock3_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # lock3_before; exact environment/argv in runner`
 
-Output ([checks/lock3_before.txt](checks/lock3_before.txt)):
+Exact output ([checks/lock3_before.txt](checks/lock3_before.txt)):
 
 ```text
 test_deadline_recovery_keeps_writer_lock (lock_behavior.RunnerTests.test_deadline_recovery_keeps_writer_lock) ... FAIL
@@ -1373,14 +1442,14 @@ Traceback (most recent call last):
 AssertionError: BlockingIOError not raised
 
 ----------------------------------------------------------------------
-Ran 2 tests in 0.015s
+Ran 2 tests in 0.012s
 
 FAILED (failures=2)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # round4_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # round4_before; exact environment/argv in runner`
 
-Output ([checks/round4_before.txt](checks/round4_before.txt)):
+Exact output ([checks/round4_before.txt](checks/round4_before.txt)):
 
 ```text
 test_f1_bound_package_preserves_a4_contract_and_binding (__main__.Round4Tests.test_f1_bound_package_preserves_a4_contract_and_binding) ... FAIL
@@ -1407,14 +1476,14 @@ FAIL: test_f2_bound_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 343, in test_f2_bound_real_job_and_rehearsal_memory
     self.assertEqual(result.returncode,0,str(root)+'\n'+result.stdout+result.stderr+logs+'\n'+'\n'.join(p.read_text() for p in (root/'job/sandbox/r').glob('FAILED.json')))
-AssertionError: 1 != 0 : /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/70ec06bd2d1744cba2253c4d77f56c70
+AssertionError: 1 != 0 : /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/e444dd03f48c46edb6c7d0f886e0b15b
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 436, in <module>
     elif len(sys.argv)>1 and sys.argv[1]=='--control':control_child(Path(sys.argv[2]),Path(sys.argv[3]),sys.argv[4])
                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 284, in control_child
     node.main()
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/70ec06bd2d1744cba2253c4d77f56c70/built/package/a/5.py", line 147, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/e444dd03f48c46edb6c7d0f886e0b15b/built/package/a/5.py", line 147, in main
     raise ValueError('Prepared default settings differ')
 ValueError: Prepared default settings differ
 PASS action 0 rehearsal False
@@ -1467,14 +1536,14 @@ Traceback (most recent call last):
 AssertionError: ValueError not raised
 
 ----------------------------------------------------------------------
-Ran 4 tests in 9.774s
+Ran 4 tests in 8.876s
 
 FAILED (failures=7, skipped=1)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # node4_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # node4_before; exact environment/argv in runner`
 
-Output ([checks/node4_before.txt](checks/node4_before.txt)):
+Exact output ([checks/node4_before.txt](checks/node4_before.txt)):
 
 ```text
 test_f2_bound_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_bound_real_job_and_rehearsal_memory) ... FAIL
@@ -1488,14 +1557,14 @@ Traceback (most recent call last):
 AssertionError: None != 12884901888
 
 ----------------------------------------------------------------------
-Ran 1 test in 8.898s
+Ran 1 test in 8.762s
 
 FAILED (failures=1)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # round5_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # round5_before; exact environment/argv in runner`
 
-Output ([checks/round5_before.txt](checks/round5_before.txt)):
+Exact output ([checks/round5_before.txt](checks/round5_before.txt)):
 
 ```text
 test_f1_batch_wrapper_and_real_bundle_guard (__main__.Round5Tests.test_f1_batch_wrapper_and_real_bundle_guard) ... FAIL
@@ -1517,7 +1586,7 @@ FAIL: test_f1_batch_wrapper_and_real_bundle_guard (__main__.Round5Tests.test_f1_
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 66, in test_f1_batch_wrapper_and_real_bundle_guard
     self.assertIn('#SBATCH --exclude=orchard-community-2\n',batch)
-AssertionError: '#SBATCH --exclude=orchard-community-2\n' not found in "#!/bin/bash\nset -euo pipefail\nexec /usr/bin/python3 -I -s -B - <<'A'\nimport hashlib,io,json,os,sys,tarfile\nfrom pathlib import Path,PurePosixPath\nj=os.environ.get('SLURM_JOB_ID','')\nif not j.isdigit():raise ValueError('Allocation required')\nb=bytes.fromhex('1f8b08000000000002ffed5ae96fdbc815cf67fd155cf70349794253b72d2f0ba489b74db13910270b14824050e450624c912c87f2d120ff7bdf7b333c44c98e8ba25b14e5c09644cecc9b37effccd615b5f459abcf88f161bcad4b6e9db3efcb647e359f55bbe9fce66a3179afde277283b5178390cf9e2ffb37ceb69da49e63dc4a917b8ab87828b93b936199ddbe793016bd6898d379c4ca1f2847bb370bc1a0df9c4e7337fc20783e9d41e8fcf6761380926a39977c187a3e9c8b67deef1d16076711eda337f7631f2cebdd128189f48bab1973488dab330585d5ccc56de787531190fc3c9853fb918db7c321907e7a3119f8e433fbc383f9f0eedd0f787c3d560ea8d03b0abd5683c0a07926891def004c9792b7b301c8d27d3d9f9c549ef7bef45571ef14d2b7bf88f8ff1b4ff8fc78369dbffc793ceff7f97727272f231e782e7b75ccbf234d8f94594269a176c2321e017d3403eeb285933cd8be3d4f7a87a95ee9240c0ab24d0a0f72e2ee0abd8e58905f47ad1364bf342db786213472b8609868190c328e64c3c885e98a75b2df30aacd554e38ff0d8ebf5021e6a5bef86bb4124a085bf31f2342d9896e61130e1c5f02be3b957a4b98a1de6bca711bd34f7375e1eb89b816df9e9760b5c2ad2d0b0a721e18aa697af6f591f3e05ebf76feef007d2d1fea07d48e207980a04279f6bc506fed3ec65cc6f79dc9c7e4988e79720349e79b97c8fe2b84bf31b9e0b14db83964549c2030b4847a116f3844636ffe80ca9293e2c5e0ee74bc7598822a7a99ee9ded9047c523759f3d580d2b46e2e914dcd0fd70e3e5b18998571d0caca3944ec82df17866962074f80860becb7d03dd2b00e830e14ad85eea74918adf5e5426f89179ab5de609fc301eff2a8e07244622cd86d3361006d393ecc1e7aab6e339ade4f6dc234332df722c1b5dfbc78c7aff23ccd0dfd4f606a310f2ac56ba0e7640d2fbcb0e039ca392f76992ee7091275167d12ecfce570d990e1ec09a1425769be959d1d35915ed9aad47f65b05162a0012161072dd90033b7888bc1d2bccc76ab38f28f68cc3eae2f9047ce0349483f03affccafde20c8d7a9744c5c3d9d7af0f7c97accfd29bcd4c37cf0cdd1b4c5c3f2d5c2fd34fe5600b9d52a1be04724af9ca1d2d296dc390a32013c5fa1f250f840080096bc3ef8368cd0570e43825cd7d2ca083dceea262a329dfb64043499b2c8c8ef5a8dc1074b7d5a2a47c46ab48d242db5a89b7e51629522041436f38f3996ecec13c8b28d9f1bd4e91c0410d1374a6e996a523651299a4675a19d29b1f1ad497447821d7fc34e0d26a3247aa23d3cf64dfcb0c3bf3a4b0b63741941bf241389ff31d67fc3e12859bded0132857d9be941cccc10235e6e064c4dd56ca55aa156c02a39e1525a810c36e1823d8af7918c8ca08f6355d3d2fcab55cca693b5d0f637c1aee9962a930efcc3f7bfdf1cb7193545237a83b1a02d854a02fb5486828060a675467ad7961e82bf25977bd435e5563f3b1c620dafcc115fcef3b9ef8fc89e6950162f07adc26cbd2ec076073af530d3e61128d865192ed0a814d5174b568ca507194fa61cc3c16345bdde4dcb77c9be60f3afbf6dd5492f3442460f28ea3e96174cf03773d2a904ac6857e7474456229fbc3b83ecf30c2bb58e16e21a5c75c515ce840ec1111ed9311de16fa7b6297f32de8c7cd413b515eaae5172f16fc1954c2a810b522cd23bef8cb2e8e35b03a08eadcbf81c01a86903c51ce60f316bd0411e4bbc439820a5a4d581b1a4822149db1bd09e11aecd875d1c55dd77174d7c54ad7d5e73284ff1f2e1366ff75fc3f988da7a303fc3fb33bfcff3be1ff0f25b02abd8b3275719782e3a6b15770c4f8902a28d943924d13de00c34dc44f481fd21c2ba22d670a703c01f73f7df9f5eada31741f224814c048c205d0b4f5ee7566f65e7ff8f2fe33d40e26366bfe8fc0b1af5fffe5ea0d74760cc8a22393c1a74d9f03fa1cd2e7181217e1b3800b3f8f3298a28054eedf786b4e684d82b94510f905e0bdad0398e98ee73a8398c985b3d01398a98e18123a0c2041c500c320d0c4dc39c6b1f06eb99bde256e00f177e3508c647590a4d28ace8e0e39853d12b21d15ad0fea6f791e850f6e144093657b84e221c3ae2306b26043365e025ec9806fc0935390dc524a44700f20b54bc8c540d5b05b0ccacf584c5117c2030465080c0160a41cd0401554d984103f3934c29114f0095a6951005906b06d33031c702779970b2e6ec835cb3358fef0e9cdd527061a4b93c8f7e29e0639964b742d694006df1590f7012d5f0a5e00d45c8b2644da6b5a3680c68718493692c92f259579b16e1ec5a0a55ab4b29d46d8432f61201f7217e9f3dc6a194085f8142708b1c930ca17bdfd47a3fcc1ca2c2ea12b715cd6c1c40ecc1ca011823e707972d423d3d82537099afc91be08786186c2697a5f2944e58528f052f30eb9210233a76ad544694c42b3aa523ed6d5e8076df85ba9b70dd0c01a72709f01a3c0e610a34c009640cf73cae80253f883f6d7eb0fef61610780b6805968ebe89683c471d9b98ab91683f9e37e016ea12485dc05c0e8899b225b2e518d80f57f35cb86593516ca65b58906d8704db4d43300558507b1c63b7bfbe6eafde7b79fff26c128ab7af594e109e7dbf71e8d1f319c13aa8e27c008cc9e1b344bdae7a0756a8b3649423fc325498430d7dfa43025e75bbf5f99cf31139923d5e3c603edf742a23e3f8889fdfeb71b49e166497cdf20cb07285667fae341f04865057abf83382850a9155e355bb5f2be3c0c8472de2881bdba56ff4f57afdeb82d759001f7fba556c8b61c5084125f6594652032d450b445a214b888962872f9c4cab8342f178a26abe30fbd4496cd52a29095c0e05c6c286ba58ae96da9599369a0ac34737179da6c554dedfaf3878f7a4d53c060b09493db5afa9c96c03a644b6060a11226689a5226be513953a73c042f28f82e0aa95d8a25d26064fd72598ff3afd956dd0de6b2851c1c25fa7c706edb4c9779bd7e398497fdfe7e4854a2ffdeab60805280cc3139df702f17a8a3c7b30c2c39129e97d118f728f234665250880ac4f33253edbcadcc7629775621c9973eed876b94a06a6f815d6e056d3c698543b4ac2809f8bd417b7a4ac20b7ba9ec0bd9a32db91e6d9409a7c1aa41c62b093bd086616fa76044cfb1ab7849e2f60af81546492436eeeac1199201ab5d2624b6c00fc58afef225198b793a8065b13298279b4b5352edc99c9e6c2ea7a99a33ddfa9ac24aae2980a799c309bd245f9024d0218e43830317a9e9b6b1c2b1714ab7c561f691c3710b771c4aba1010ea60fcef8d53f32bc92d0ec22c8a1022d90f1b36a32ff4793ac3c30c9e2640bbaf68e99697653c09a42daae829f16c539f8c6c9776662bb026f9dc87ba94bdafee6160442d1c82a026058ceb1910b1566c20adaf37b4cd0fa3c51a19a72652ff861772675314bb9576c7a3f5a6c02c4eee8c7bb080fb0b6b0b0d4b4f96dbc1b201f159565cc377ccdf7b5b0e6b2b1f91b37c5f605438807a15b42383c00c124bdf27862b200612db42738a0c74b201be5818e9ea2b0b7801336410bd02b6e629586c0e8988962cc92e8ecbc50ac50c0d3a5854871f97f884fd1cfca0a720f2d6492a8ac84760718943962a826ab4276adf9aa2819273713427f6b6abc0d3fade9ca66b153c11001b17038b0d2d36b06d6b496649b226115a40182660480158d7f8f521818ce3ba3847d705d403df26db6b8d7262fa6754df9f479f75a63200ad1a9cf71042547b436fa0ea523c5698e37e900f10af68751d0da5a0e4138e820e15bbb5351b481da47e1bf9b82acc763f5ece096f3b72c9d41cc5bec9a4610240ad14706cd5891f66c58f250d55724093acfd165505815f6a97fa1dd649cad2d9ee1da9a07ff03c15c6904dce4d86bb648e0eb662d249914a93d2535596dc25cadf19d884cc114c6645923af36360d1c1cd000b3f9e9145e1099733fc9efb3b5c673e7b358a876bc400ac34077824802b177a01733dbaeaa4a5108ce4f945fc2037358488d6098407eca79b3f4accb8fcbe0cbd28dee5d2ca549a26086b33321d5c13a2100cf38f0ec8e8252214e4eeb939a65a60cf576079373d79f65783c52a763a8612241057d233310d2aada07e601661742f63a9fc2d93a39acd33a36fbf2fdb93e346a1eabdd0952060cda8845f5680c6203c145043be540aeca0dfa59aa15c92d5a0272179824031a833b57eb98316b98c8c58ada640fc2c74a4807949a64e357ce0c08accc86b7ef0f8a2260014a52c60f06392a8c954bfea749354d575ade32474e8b3db021055abdb67f2823c987bc9acbdcb530de7c57193ce1132a5bcd5b75af1d227849df5960eb694fcaa4d97c7acf3facbbb77af3e950b1e35b7fa5c54bd50a7a27414e0d25501a3cfc0a9326804e6649c8f99d9bc4e20cfce1cc0e9fd813d1cf7fb2346dcbb805b2063400ba1b6d3e46bb9cc919d6c3408753ad5ea333f6c4c4dd1928d761d9d52c8dd8ea2b460fb67a7ddec6767302d99244b3c082c6f1388ce91dc32d5a8a79284bc34a1132cf9054f7634c855129743089a6b1e846648b6da74ac658066c824695b6d84b70500e1e4da3a07c0646957884734e2078965085a603de9e540ed16ef1eac52c8a72100c54211938410e884a00155077491a026f58bf8061294634cc7fd8bd3e9f8743484bffe64407fa793c1e9d0ec9ff7703457a9d281f6a75218c31e866e0cf22eeaf50e18e60e5052a2aabc7acfa54a834818254aa9a3a4df18a165f7d42c8b77c205998192f1644af63292d391f9444fc087d07417acf9a33d4e0f26707a68248d90546fac9413c18b04d50d0198279de53987c7783f8408fbbccbb3b84a40367bec704e39098ea458925ddc1dc4b31cb5d5a29c3d141be0018d66539dfebb4d0d2bedb25ade25653fcd22e066d422792044c5f5c17b3cbd73a55aa8413b1cec05aafd31fa7de39bded68d7ee0eedf657ada8b091a070969dfbe9b2d9278525906d3035bd1973f1fb0d78eb3666f2fea6579ba6a6e519f9c9cbca6134eb9d828bc28510180a2022160f0430d1777b0a2c10824358c0fd7afded129cb33d1d0bfb7855d6f083fb6abb6fca934d4e3972bc0da809be68d1ddab5ae36e57a6acb5bee56b676cd5bfaaa4f8fe906496b63bcd678b50b53ab9fe15d1278120802bccc6954553be2260e8f4b5eda9852edeb5a8b80361e6f90d940faa858af02593349d1e6d841d681c12945124cdbcf8a7d45ee8789b78285efaede7da812b042628d04a830159ebb1fd3cec74aa55227fcdee73c10141ecb34457725cc03c0bf7fd3a97503ede0ced39e5d5d66eab425dcdb18a86fc42ce6f6525e81cbcef495baa5053f8b9cf3f209832bda4af3bada334ce6f8a51ba0bdb3e9ca8db429efbc3420bc1d77eb15b45e523f0d9ee05e7f756af2032f84810a881618027c2e84bc04d33bfefaa8e0441adf72c3545790cc72dae564d5cea45cc33f2f22ec1957ebbe5f6d639faefe72f5ead3f5ab5f2bebaa36419b7d4ae07f44132a29b9ea168839df8f867b54aa3b77d596482a2a2fa19565b339a32700e5f03315164f6ea33c4d16faeb2f6f5eb9bfbdbd7efba75fafdc3757bfbd7d7d750ddc882c8e801f462a966e70fd200abebdba87f783e3eb16e9e3667749a42b5de94a57bad295ae74a52b5de94a57bad295ae74a52b5de94a57bad295ae74a52b5de94a57baf2bf57fe0922e2889600500000')\nr=Path('/tmp')/('a'+j+'ab0123456789')\nr.mkdir(mode=0o700)\nwith tarfile.open(fileobj=io.BytesIO(b)) as a:\n    for e in a:\n        n=PurePosixPath(e.name)\n        if n.is_absolute() or '..' in n.parts or not e.isfile():raise ValueError('Unsafe input')\n        p=r/e.name;p.parent.mkdir(parents=True,exist_ok=True)\n        with a.extractfile(e) as i,p.open('xb') as o:o.write(i.read())\nos.chdir(r)\nos.execv(sys.executable,[sys.executable,'-I','-s','-B',str(r/'0.py'),str(r)])\nA\n"
+AssertionError: '#SBATCH --exclude=orchard-community-2\n' not found in "#!/bin/bash\nset -euo pipefail\nexec /usr/bin/python3 -I -s -B - <<'A'\nimport hashlib,io,json,os,sys,tarfile\nfrom pathlib import Path,PurePosixPath\nj=os.environ.get('SLURM_JOB_ID','')\nif not j.isdigit():raise ValueError('Allocation required')\nb=bytes.fromhex('1f8b08000000000002ffed5aeb6fe3b811dfcffe2b74e907490e5791df89732ab0ddcdb55bdc3eb0d93da0300c4196685b1b5952453a8f2ef67fefcc907a5876b2298a5e51d444625b22391cce0c677e43d275be8a2c7df11f2d2e94b1ebd2b7bbffed0e8693eab77a3f9e4c062f0cf7c5ef50b64206050cf9e2ffb37ceb18c6491e3c245910f98b07c9c5c9d4180dce4793d19035ebc43ae88fc6507912b8ee7018f1f3413fb8702f78ff7c11f6cf8761df0d974b3e588c7bfde16419f607e7e7c3853be95d2cdc68723e192e06e3c1240cc7bd13453709d206d1913b5c5e2c7978310ec73c08076134ec0fc3e562391c0c07e7cbd1a2d75f8edcf1c578142d06e164783119bad1853b9ab88be1797f3150446576c353e271e1f6fa83e1683c39bf38e97cefbc389647d6a6933ffcc7c7787afd0f87bd717bfd0f47c7f5ffbb949393938f0517bcb8e5465e64d1369471961a41b48985805fcc00f9ace274c58c2049b230a0ea45b64d2301afd2c880dedb44c297dc16a903f43af126cf0a69ac03b14ee205c300c340c8cb38e14c3c88ceb2c836461e48ac3574e38ff0d8e97422be3436c10df7a358408b706d15592699911531301124f02be74520b342fb0e7bda31885e5684eba088fc75cf75c26cb3012e356968d831907045332856b7ac0b9f8275bb3777f803e9187f303ea4c9034c059c53c80db986ff2c7f99f05b9e34a75f12e2c525088de741a1dea338eeb2e2861702c5f660e4719af2c801d2f1d248784a23db7ff4fad4141f662ffbd3b9e7cd842c68aa67667036823569daacf9aa4761dab4e7c8a6112e571e3e3be89985b5d7ca2938786cc9efa565dbd82110a06189fd6666401a3661d09ea63533c32c5dc62b733e335be28566ad37d8677fc0bb22965c8d488c45db4d2e2ca0adc687d9436fdd6d42d3fba94d98666614412cb8f15b906cf95551648565fe094c2de151a57803f49caee045b094bc403917729b9b6a9e20516fd625c14e5ff6e70d194e9e102a7455e65bd9d94113e994ad4afd57061ba7161a1012f6d0922d307387b8e8cdedcb7cbb48e2f080c6dcc3fa0279143c5284cc3358955f7928cfd0a8b7692c1fcebe7e7de0db747596ddac27a67d6699416fe48799f483dc3c5583cd4c0a85e61cc869e5ebe5e828695b961a059990ab7f943c100200269c35bf8fe21517c091e7953477b1800972bb8be5dad06bdb010da56db2303ad6a37297a0bb8d11a7e5335a459a4963e3a4c1863ba44881042db3b198cf4c7b0ae629e374cb773ac50207b56cd099613a8e899449648a9eede4486fba6f505f52112cb91166115756937b4a1db979a6fa5ee6d899a7d2d9dc447161a907e17d2eb69cf1fb58483fbba12750aeb67d25399883036a2c609111771b2557a556b009f47a4e9ca2422cb7618c60bff6be232b3dd8d76cf13c2fd75a525e7bd175d0c767cb1d532c15169c8567af3f7e396c925aea16754743009b8accb9110b03c540ee8cea9c159796b9a035ebafb6c8ab6e6c3fd618445b3cf882ff7dcbd3903fd1bc3240745e8fdb64599afd006cee74aac1274ca2d1304ef3ad14d81445578ba6741507a9effbcc434eb3d54dcd7dc33759f160b26fdf6d2db940c40226ef7986b98cef79e4af0612a9e45c980747d724e6aa3f8c1bf21c3dbc8f15fe06427ac235c59909c41e11d12e19116ca07f20b605df807efc02b41317a55a7e0912c19f4165194b512bd23eb0167fd926890156074e9d8737e05821852804ca196cdea1972082629b7a075041ab096b43034584bc33b6b7c15d831dfb3e2e71dff73cd3f7b1d2f7cda972e1ff8769c2e4bf8eff7b93e178b087ff27ee11ffff4ef8ff4309accad545915ade65b070b324901c313e840a0af61064b39437c07013f113d28730c764bce14c038e27e0fea72fbf5e5d7b9619820789231849f8009a36c1bdc9ecceeb0f5fde7f86dadec865cdff012cecebd77fb97a039d3d0ba2e8c066f0e9d2678f3efbf43984c045f82ce2222ce21ca62820948737c18a135a53606e16c5a104bcb7f10033ddf1c264e033b9f066660a3335114342871e04a8046018389a847b873816c12df7b3bbd48fc0ffae3df291ac7692545aded93321a6b0475cb6a7bdf55efd2d2fe2e5831f47d064de1e413ee4d875c04016accf8673c02b39f00d78720c929b2b89081e00a4f609b958a81a768b4ef919c91475213c405086c01000468a010d5441954d08f19347231c08019fa0951147106500db3623c01e778a779570714be52ccf60f9c3a737579f18682c4be330483a06c458aed0b5a201117c2b21ee035abe145c02d45c892644da695a3680c6fb18493552c12f23950589691fc4a0a55a8cb29d41d8c32c6120ef731fe9f3c269194085f8342708b1c930ca179ddd47abfcc1ca28aea02b715cd6c1c4f6cc1ca011823e58f2b4500f4c639bdea468f207fa22e085190aafb9fa4a21ea5588022f35efd1324460e655ad9a288d29685655aac7ba1ad7411bfe56ea6d0334b08602964f8f9163f3885126004be0caf34aef0253f883f1d7eb0fef21b103402b6116c62abee520714c3b17093712307fdc2fc02d9454aa5d00f49eb829b2e10ad508c8ffab5936ccaa912897d5361a606369a2a59e01a89201f89ae0eced9babf79fdf7efe9b02a3acead5d18627bc6fdf3b347ecc704ea83a9e0223307b6ed12c699f83f2d4166d9284798629498c30375c673025ef5bb75b99cf21139922d5c3c603ed775ca239ddf389ddeeb71b45e1664e7cdf20cb7b28d664e6e34ef04065057abf8338c851e90caf9aadcebc2ff71da19a374a60a7aed5ffd3d5ab377e4b1d64c0dd6ea915b22d0f14a1c5571965e9882c3d146d916805cee2398a5c3db1d22f4dcb44d166b5ffa197c8b25d4a14a212189c8f0d55ad5231bd2d356b33039495e53ea6a7cd56d5d4ae3f7ff868d634050c06a99cdad632a794029b102d8181990e98a0690a99f846c74c93e210bc20e73b934abbe44b94c1a8faf9bc1ee75fb3adba1bcc650331384ecd69efdc7599a9e27afdb20f2fbbdd5d97a845ffbd53c100ad0015630abee6412150478f47194839525e94de18f7288a2c614a50880ac4f32253bd785b91ed52edac42902fd774b85ca104757b07ec722368e3c9901ed172e234e2f716ede96909cfdcb9b62f648fb6e43ab45126bc06ab1619af22ec411b86bd3dc9889ee756fe92c41d48f8b58cd358acfdc583d72703d6bb4c486c861f9a15f3e54b3216fbb40769b13698279b2b53d2edc99c9e6caea6a99b33d3f99a4126d714c0d3cce1845ed25a502470411c86067b4ba4a6dbc60a87c629972d0eb38b1c0e5bb8e751d00587503be37f6f9c9a5f456eb6e7665184e0c97ed8b0e97da1cfd3111e66f03401da7d454b77823ce769a46c517b4f85679bfa6464bbb4335b8135c5e72ed4a5e87d750f03236ae1e0040d2560cc6740c4865c43585fad699b1f464b0c324e4364e10d976a6753c8edc2b8e3f16a2d318ad372c63d58c0fdd2d940c37225abed60d580f82c2baee13be1ef830d87dc2a44e4acde4bf40a7b50af82766410184112b5f689e10a8881c436d09c3c039d6cc05a9456b6f8ca222e61860cbc57c4563c038b2d201051ca926e93a44c56c86718d0c1a13afcb8c427ece7e1073d4571b04a3321e31081c5250e59aa08aad19ea87d6b8a164acec7d1bc24d82ca2c0e806539aae23792a0036ce7a0eeb3bace7bace9ccc92644d227480304cc0520270aef1eb430a11c7f7718ebe0fa807be6db6d31ae5c4cccfa8be3f0f3e9b4c4700ca1abcf7e042747bcb6ca0ea523cceb2c0fda010209e6c751df495a0d4138e820b2af16b6bb6903a48fd360e312bccb73f4ee744b019f8646a9e66df66ca3001a0560a389475e2875df1e32843551cd024eb758baa02c7afb44bfdf6eb1465b5d8ee3da5a07ff02213569f8dce6d86bb649e09b662d349910e936aa5ea28b94df57a6760132a4630151549ea2c4c80450f37031cfc78461485274c67f83d0fb798673e3b1bc5c335620032cd1e1e0960e6422f60ae07b34e4a8560a42094c983dad410225ea5e01eb09f69ff283063fa7db90ce2645b282bd3619a20accbc8743027442158f61f3d90d14b4428c8dd73634c95604f176079371d75f65783c5ca777a96162410d7d2b3310c6aada07e6016cbf85ef952f55b05473d9b677adf6e57b5a7851b2f75ef99a9050139a3167e59011a03f720a186d65229b0bd7e977a862a25ab414f4af20481a253673a7fb9831685f28c58ada740fccc4ca4807149854e3d7ce441466615353f787c5113008a4a1630f82149d464aa5f75b849abeabad6f3523af4d96e0088eaecf699bc200ff64e306beff254c30549d2a473804c296ffdad335efa04b7b3dad0c196965fb5e9f298755e7f79f7eed5a732e1d173abcf45f50b7d2a4a47013e5d15b0ba0c16550e8dc09cacf321b39bd709d4d9990738bddb73fbc36e77c0887b1f700b440c6821f4769a7aadd21cd5c94583d0a753ad3ed3fdc6d4142dd96ad7d12985daed90a505bb3f7bed663f7bbd71c92459e29e63799b82778ed596a9413db524d4a5099360c92f78b26340ac52b81c5cd0d408c03543b035c643230734432649db6a03bc2d0008a73056050026c7b8423c62103f482c47d002f9645000b55bbc7bb0c8209e2e01284a4d4c1142a0b3040de83aa08b040da55fc43710a03c6b3cec5e9c8e87a7833efc75473dfa3b1df54efb76f7bc83a3f95a951eb43f55c2e877d075a393f751af77c030f780921655b5aa779654691029a340a97494761b23b4ec9e9ae5c956f8203350329e4ca95e567a3ab09fe809f8109a6ea3157fb4c7e9de044ef78da4e192ea8d9572227891a0ba2100f3a4b33c6fff18ef871061977775165709c8658f1dcee9458223699654177f0bfeac406db528e70f720d3ca0d1acabd37fbfa961ad5d56cbbba41c66790cdc0c5a24f784a8b9de7b8fa777be520b3568bb831d47b53b46b76b7d33dbba31f796fb77159e767c82c14142c6b7ef768b249e5496ce74cf56ccf9cf7becb5fdacddd9f17a79912d9a5bd4272727afe98453251b328853ed00c82b1002867568607207190d7a20a5617cb87ef58e4e599e8986febd2dec7a43f8b15db5f94fa5a11ebe5c01d606dc346fecd0ae75b529d7d15bde6ab7b2b56bded2577d7a4c37485a1be3b5c6ab5d985afd0cef92c093401010e45ea3aada11b771784c7969634ab7af6b1d02da78bc416603e1a362bd7264cd20459b637b510706a71049306d372a7635b91f06de0a16bebb7af7a10ac01a893502a0c65478ee7e483b1f2b952a9df0fb90f348907b2cc314dd95b0f700ffee4da7d60db4bd3b4f3b767599ebd396e5cec6407d23663675e7ea0a5c7e662ef42d2df8290bcecb2774ae682bcdeb6acf3099c3976e80f6d6a52b37caa682f3d280f076dc6d20295fd23f2d9ee25e7f756af28355080349f016e802422e84ba04d339fcfaa0e04496dc72cbd65790ec72dae564f5cea4cae19fe711768cab75dfafb6b14f577fb97af5e9fad5af9575559ba0cd3e25f03fa0091d947c7d0bc49eee7ac31d2ad59dbb6a4b2413d52aa1ccb2d99cd1138072f8990987a7b77191a533f3f59737affcdfde5ebffdd3af57fe9babdfdebebeba066e449ec4c00f2315ab6570fd2024df5cddc3fbdee1bc45ad71fb7849e4588ee5588ee5588ee5588ee5588ee5588ee5588ee5588ee5588ee5588ee5588ee5588ee5588ee5588ee558fef7ca3f017de49de300500000')\nr=Path('/tmp')/('a'+j+'ab0123456789')\nr.mkdir(mode=0o700)\nwith tarfile.open(fileobj=io.BytesIO(b)) as a:\n    for e in a:\n        n=PurePosixPath(e.name)\n        if n.is_absolute() or '..' in n.parts or not e.isfile():raise ValueError('Unsafe input')\n        p=r/e.name;p.parent.mkdir(parents=True,exist_ok=True)\n        with a.extractfile(e) as i,p.open('xb') as o:o.write(i.read())\nos.chdir(r)\nos.execv(sys.executable,[sys.executable,'-I','-s','-B',str(r/'0.py'),str(r)])\nA\n"
 
 ======================================================================
 FAIL: test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (operator='tower_sequence.py')
@@ -1632,14 +1701,14 @@ Traceback (most recent call last):
 AssertionError: 'refused unpack leaves' not found in 'verdict: done the round-4 fixes pass cpu verification; adopt only after the gpu byte gate.\n\nmeasured: **95 workspace tests and 14 fresh-application tests pass**. five patches apply exactly; original reader files and complete off output bytes remain unchanged. the backup is out_round4/. the cpu fixture completes 636 synthetic reads with five verified ordinary journals through real a4 preparation, rehearsal, bootstrap and job.main.\n\nmeasured existing distance time is **23.60 s/item**. estimated 580-item elapsed time, crediting no cache saving, is **3 h 50 min** on one card. ideal two/four-shard estimates are **1 h 56 min / 59 min**, excluding staging, queues, preemption and scene imbalance; they require an undelivered multi-card operator. measured cpu guard/cache overhead on a 268m-parameter bf16 stub is **25.9 ms/call**. this is not a gpu saving.\n\n## review round 4: finding -> fix -> test\n\n| finding | fix and test |\n|---|---|\n| 1. incomplete step-600 package | a19 uses a4 build_r1-style post-processing, preserving 8.py, run keys and admission. it requires the reviewed target export/whole-archive binding and seals the fill helper. wrong binding/receipt checks fail; the documented old build fails before. |\n| 2. adoption profile not exercised | real job.main constructs actions 0/1 from packaged 9.json. real 7.py rehearsal produces memory.json with 12 gib cache allowance. stub workers produce five verified ordinary journals. the old cpu-proof helper fails the allowance test. |\n| 3. unchecked cache-only return | on unpack rejects non-true weights receipts. invalid-value regressions fail before/pass after; real authenticated partial-return unpack rejects an unchecked journal. |\n| 9. readme nits | commands use explicit delivery/source roots; kit pin is a4-only; readme states what bootstrap admission actually checks. |\n\n**step 600: one card, caches only, general/no-requeue.** apply 01–03 to a full a4/src copy and 04–05 to an a4 operator copy. define the local roots using [readme](kit_parity50/readme.md), then build:\n\n```bash\ncuda_visible_devices= nice -n 10 "$read_python" -i -s -b "$ext_source/u0/a19.py" \\\n  --enable-extensions --base-operator "$local/a4" --source-root "$ext_source" \\\n  --export-binding "$step600_binding" --token "$package_token" --out "$local/step600"\n```\n\nthe required binding includes target run/step/object/preparation identities and archive_bytes/archive_sha256. the cpu task has no real step-600 export; its test binding is synthetic. the generic a12 operator build is refused. add --processor-only for the 4 gib processor cache; otherwise the cache allowance is 12 gib. both disable atomic journals and sharding. a4\'s fixed schedule remains 636 items; changing it requires a separately reviewed operator/proof.\n\nuse the generated fill helper, regenerate cpu proof through package/a/5.py, and retain the generated tower_sequence.py beside unpack_return.py. exact fill/proof commands are in readme. require read_cache_bytes in memory/cpu.json, along with payload/plan/inputs/operator binding and fits=true. the unchanged 0.py admission does not independently require that field. cache-only returns retain ordinary journals; on unpack refuses unchecked weights even on partial returns.\n\nbefore adoption, require **zero answer/trace byte differences**, useful cache hits, net worker_wall_seconds savings, and full-process host/gpu/envelope headroom. on\'s eager sam construction and boundary hashing need the gpu gate. the sample overstates reuse. keep models frozen; persistent raw writes fail at boundaries, while restored-between-boundary writes are unsupported. hard kills can require fresh journals. validate persistent-storage requeue before any preempt/sharded use. stage source trees as archives and run the kit with --public. no launch ran; preserve step-400 deliveries.\n\nexact commands, outputs, citations and limits: [report](report.md). patch/base pins: [manifest](patches/manifest.json).\n'
 
 ----------------------------------------------------------------------
-Ran 7 tests in 5.148s
+Ran 7 tests in 4.635s
 
 FAILED (failures=11)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # round6_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # round6_before; exact environment/argv in runner`
 
-Output ([checks/round6_before.txt](checks/round6_before.txt)):
+Exact output ([checks/round6_before.txt](checks/round6_before.txt)):
 
 ```text
 test_f1_readme_unpack_subprocess (__main__.Round6Tests.test_f1_readme_unpack_subprocess) ... FAIL
@@ -1685,7 +1754,7 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 127, in test_f1_readme_unpack_subprocess
     self.assertEqual(result.returncode,0,result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/76d9ebfff52b4508ae13638e3706e565/step600/unpack_return.py", line 3, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/91efe6b635734728826dccdd488ba246/step600/unpack_return.py", line 3, in <module>
     from fetch_return import digest as file_digest, validate_exit
 ModuleNotFoundError: No module named 'fetch_return'
 
@@ -1946,14 +2015,14 @@ Traceback (most recent call last):
 AssertionError: 0 == 0
 
 ----------------------------------------------------------------------
-Ran 9 tests in 38.749s
+Ran 9 tests in 35.729s
 
 FAILED (failures=31)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # round7_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # round7_before; exact environment/argv in runner`
 
-Output ([checks/round7_before.txt](checks/round7_before.txt)):
+Exact output ([checks/round7_before.txt](checks/round7_before.txt)):
 
 ```text
 test_f1_archive_runs_inside_live_namespace_and_survives_it (__main__.Round7Tests.test_f1_archive_runs_inside_live_namespace_and_survives_it) ... FAIL
@@ -2053,14 +2122,14 @@ Traceback (most recent call last):
 AssertionError: 'bound_export' not found in mappingproxy(OrderedDict({'operator': <Parameter "operator">, 'prepared': <Parameter "prepared">, 'proof': <Parameter "proof">, 'config_template': <Parameter "config_template">, 'settings_out': <Parameter "settings_out">, 'config_out': <Parameter "config_out">, 'asset_receipts': <Parameter "asset_receipts=None">})) : Gate lacks reviewed export binding
 
 ----------------------------------------------------------------------
-Ran 8 tests in 2.802s
+Ran 8 tests in 2.520s
 
 FAILED (failures=10)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # round8_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # round8_before; exact environment/argv in runner`
 
-Output ([checks/round8_before.txt](checks/round8_before.txt)):
+Exact output ([checks/round8_before.txt](checks/round8_before.txt)):
 
 ```text
 test_f1_external_symlinks_refuse_before_archive (__main__.Round8Tests.test_f1_external_symlinks_refuse_before_archive) ... 
@@ -2157,7 +2226,7 @@ Traceback (most recent call last):
                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/src/b/e2e_reader/parity.py", line 131, in load_native
     raise ValueError('restore input missing from artifact: ' + str(p))
-ValueError: restore input missing from artifact: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d74149c8d5a14010a4abe510951db406/logical/d/e/heads.pt
+ValueError: restore input missing from artifact: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/2d729d1684444e008487ceb4c5e46dab/logical/d/e/heads.pt
 
 During handling of the above exception, another exception occurred:
 
@@ -2165,7 +2234,7 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 69, in test_f1_preserved_absolute_link_passes_real_artifact_and_load_native
     except ValueError as error:self.fail('Real load_native rejected extracted link: '+str(error))
                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: Real load_native rejected extracted link: restore input missing from artifact: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d74149c8d5a14010a4abe510951db406/logical/d/e/heads.pt
+AssertionError: Real load_native rejected extracted link: restore input missing from artifact: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/2d729d1684444e008487ceb4c5e46dab/logical/d/e/heads.pt
 
 ======================================================================
 FAIL: test_f2_gate_authenticates_environment_before_gpu (__main__.Round8Tests.test_f2_gate_authenticates_environment_before_gpu)
@@ -2240,12 +2309,12 @@ Traceback (most recent call last):
     with self.open(mode='rb') as f:
          ^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py", line 26, in open_path
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/b21be7ef0dd146e9a110aa8fe1450026/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/db739ea6dfc44361b4dcf89e9d7dbecc/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
@@ -2268,12 +2337,12 @@ Traceback (most recent call last):
     with self.open(mode='rb') as f:
          ^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py", line 26, in open_path
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d8c4a349a72c4871b9beaede88913264/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/92058b94d42e47c99b37b2c66f27004a/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
@@ -2296,12 +2365,12 @@ Traceback (most recent call last):
     with self.open(mode='rb') as f:
          ^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py", line 26, in open_path
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/2504e95887e54faeb9bcc1f91ef3fcd4/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d42e4a933b3f4cbca822f7ed394e54c4/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
@@ -2324,12 +2393,12 @@ Traceback (most recent call last):
     with self.open(mode='rb') as f:
          ^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py", line 26, in open_path
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/c7b0533bb290437cabd9c7b40d7511a0/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/04c33c8087c0403e86284acbaf5370fe/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
@@ -2352,12 +2421,12 @@ Traceback (most recent call last):
     with self.open(mode='rb') as f:
          ^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py", line 26, in open_path
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/af711806e6ed402b8c21b2c6ba693149/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/7d9e166d3b794dae874190d04d6c880f/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
@@ -2380,12 +2449,12 @@ Traceback (most recent call last):
     with self.open(mode='rb') as f:
          ^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py", line 26, in open_path
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/7fadfb2bb5534304bb60213d924ca8cf/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/7904254e26f040f08af168aecf269967/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
@@ -2408,12 +2477,12 @@ Traceback (most recent call last):
     with self.open(mode='rb') as f:
          ^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py", line 26, in open_path
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/472e0bd6e94340aca79a949a729ece18/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/0c238a8df42142878b69571ff687638b/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
@@ -2436,12 +2505,12 @@ Traceback (most recent call last):
     with self.open(mode='rb') as f:
          ^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py", line 26, in open_path
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/aaa76f38221043ec8e65448c198daabe/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/9241fc5ab3f74ee091f1450706dae9a8/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
@@ -2464,12 +2533,12 @@ Traceback (most recent call last):
     with self.open(mode='rb') as f:
          ^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py", line 26, in open_path
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/510c524120644459848e583242188fe4/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/e6bd03ec2e0a4278b970350cd0d4ccb2/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
@@ -2492,12 +2561,12 @@ Traceback (most recent call last):
     with self.open(mode='rb') as f:
          ^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py", line 26, in open_path
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d95196b8dc164a8f919c000c5278f8e7/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/fd36bc83a56e45eeb12d9dba4758940f/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
@@ -2520,12 +2589,12 @@ Traceback (most recent call last):
     with self.open(mode='rb') as f:
          ^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py", line 26, in open_path
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/847a311dc2304761bcc1000a89b55af9/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/f2b3d0572eb44459addf0a0f5a246504/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
@@ -2572,14 +2641,14 @@ Traceback (most recent call last):
 AssertionError: False is not true : Tar stderr was discarded
 
 ----------------------------------------------------------------------
-Ran 10 tests in 4.323s
+Ran 10 tests in 3.997s
 
 FAILED (failures=29)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # round9_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # round9_before; exact environment/argv in runner`
 
-Output ([checks/round9_before.txt](checks/round9_before.txt)):
+Exact output ([checks/round9_before.txt](checks/round9_before.txt)):
 
 ```text
 test_f1_actual_launch_calls_namespace_twice (__main__.Round9Tests.test_f1_actual_launch_calls_namespace_twice) ... FAIL
@@ -2695,14 +2764,99 @@ Traceback (most recent call last):
 AssertionError: 'GPU_KIT="/scratch/jjyeung/${GATE_TOKEN}"' not found in 'The GPU kit is unrun. It requires zero answer/trace byte differences. Its 50 items cover ten items per type and twelve captures; this reuse-heavy sample does not predict full-read throughput.\n\nUse the full **A4/src** base pinned by `BASE_PIN.json`. The reader patches also apply to the inspected B5 source subset, but this kit does not authenticate a B5 base. Apply patches 01–03 to a separate source copy. They add `u0/`; all original reader files remain byte-identical. Apply 04–05 to a separate A4 operator copy, outside `src`.\n\nThe ordinary entrypoint stays OFF and imports no extension. `u0/a8.py --enable-extensions` explicitly selects the extensions; individual cache settings then default OFF. The ON environment records an extension source hash. Rebuild payload and artifact pins before deployment.\n\n## Local preparation\n\nThese commands use paths supplied by the operator; they do not depend on the author\'s `work/` directory. Set `DELIVERY` to the delivered `out/`, `A4_BASE` to the full supplied A4 directory on local scratch, `LOCAL` to a fresh local scratch directory, and `READ_PYTHON` to the approved Python executable. Both source roots and all outputs must stay on local scratch. The package contains code, not model/data archives.\n\n```bash\nset -euo pipefail\n: "${DELIVERY:?Absolute path to delivered out directory}"\n: "${A4_BASE:?Absolute path to the full pinned A4 directory on local scratch}"\n: "${LOCAL:?Fresh local scratch directory}"\n: "${READ_PYTHON:?Approved Python executable}"\nexport PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8\nexport XDG_CACHE_HOME="$LOCAL/cache" HF_HOME="$LOCAL/cache/hf" TRITON_CACHE_DIR="$LOCAL/cache/triton"\nmkdir -p "$LOCAL/source" "$LOCAL/a4"\nnice -n 10 tar -cf - -C "$A4_BASE/src" . | nice -n 10 tar -xf - -C "$LOCAL/source"\nnice -n 10 tar -cf - -C "$A4_BASE" package tower_sequence.py fetch_return.py unpack_return.py |\n  nice -n 10 tar -xf - -C "$LOCAL/a4"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/01_bounded_read_caches.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/02_atomic_scene_shards.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/03_production_integration.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/04_operator_cache_bound.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/05_operator_return_and_proof.diff"\nEXT_SOURCE="$LOCAL/source"\n```\n\nKeep the private kit, original manifests and reverse maps on Trinity. Stage each source tree as one archive and extract it only on node-local scratch. Both parity source roots must remain pristine: no build outputs, extra files or symlinks. Public paths, submission names, configuration and logs must use opaque tokens. Never transfer private reverse maps to Orchard.\n\n## Bound export, build and operations\n\nThe candidate uses **A4\'s 636-item schedule, one card, caches only, general/no-requeue**. A4\'s export admission, submit helper and run settings remain intact. `a19` requires the reviewed payload hash `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d`, the patched operator hashes, all copied A4 members, the base BATCH.sh and decoded bootstrap pins from MANIFEST, the exact extension inventory and the four original alias bases. It authenticates them before copying. Its batch uses cont_ops\' exact `build_r10.wrap_batch`: excluded node, EXIT log return and USR1 forwarding.\n\nThe kit binds **step 400 only**, read A of job **173060**, source package **a15_cot_apdc76460c3a164**. Its artifact SHA256 is **5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd**. `operations/BOUND_EXPORT.json` preserves the supplied export pin. `operations/binding.default.json` combines that identity, the four archive-part sizes in the supplied `a/1.json`, and the reviewed `bind400_partial.json` operation paths. `DEFAULT_EXPORT_PROVENANCE.json` records all source hashes. These are authenticated metadata; production weights were not restored here.\n\n`a19 build` checks the reviewed step-400 identity and preparation hashes before reading or copying the base. No other export can authorize adoption. A fresh package token identifies the ON build; it does not reuse the source package\'s token.\n\n```bash\nset -euo pipefail\nEXPORT_BINDING="$DELIVERY/operations/binding.default.json"\n: "${PACKAGE_TOKEN:?Fresh 11-16 hex characters starting with a-f}"\nPROFILE_ARGS=()  # All three caches, 12 GiB. For processor-only: PROFILE_ARGS=(--processor-only)\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a19.py" \\\n  --enable-extensions --base-operator "$LOCAL/a4" --source-root "$EXT_SOURCE" \\\n  --manifest "$DELIVERY/patches/MANIFEST.json" --extension-pins "$DELIVERY/kit_parity50/EXTENSION_PINS.json" \\\n  --export-binding "$EXPORT_BINDING" --token "$PACKAGE_TOKEN" --out "$LOCAL/adopted" "${PROFILE_ARGS[@]}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions operations \\\n  --operator "$LOCAL/adopted" --binding "$EXPORT_BINDING" --dry-root "$DELIVERY/operations" --out "$LOCAL/ops"\nnice -n 10 tar -czf "$LOCAL/0.tgz" -C "$LOCAL/ops" .\nnice -n 10 sha256sum "$LOCAL/0.tgz"\n```\n\n`adopted` retains the exact local source/operator/unpacker. `ops/1.tgz` is the package delivery, with `ops/SHA256`; the outer archive carries it and five inert scripts. The commands below are **owner operations on Orchard, unrun here**. Transfer the single outer archive through the owner\'s existing authorized transport. Set `OPS_ARCHIVE` to its received opaque path, `OPS_SHA256` to the printed local hash, and `D` to a fresh opaque operation directory. These are transport endpoints, not generated receipt values.\n\n```bash\nset -euo pipefail\n: "${OPS_ARCHIVE:?Received outer archive on Orchard}"\n: "${OPS_SHA256:?Printed local SHA256 of that archive}"\n: "${D:?Fresh opaque operation directory on Orchard}"\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nprintf \'%s  %s\\n\' "$OPS_SHA256" "$OPS_ARCHIVE" | sha256sum -c -\ntest ! -e "$D"\nmkdir -m 700 "$D"\ntar -xzf "$OPS_ARCHIVE" -C "$D"\nbash "$D/o_place.sh"\nbash "$D/o_pull_fill.sh"\n# BEGIN FILL_WAIT\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nFILL_MAX_SECONDS=${FILL_MAX_SECONDS:-14400}\n[[ "$FILL_MAX_SECONDS" =~ ^[0-9]+$ ]] && (( FILL_MAX_SECONDS >= 1 && FILL_MAX_SECONDS <= 14400 )) || exit 1\nFILL_DEADLINE=$((SECONDS + FILL_MAX_SECONDS))\nwhile test ! -f "$P/a/1.txt"; do\n  FILL_PID=$(cat "$P/a/0.txt") || exit 1\n  [[ "$FILL_PID" =~ ^[1-9][0-9]*$ ]] || exit 1\n  if ! kill -0 "$FILL_PID" 2>/dev/null && test ! -f "$P/a/1.txt"; then\n    echo \'Fill worker is gone without an exit receipt\' >&2; exit 1\n  fi\n  if (( SECONDS >= FILL_DEADLINE )); then\n    echo \'Fill wait exceeded its maximum\' >&2; exit 1\n  fi\n  FILL_REMAIN=$((FILL_DEADLINE - SECONDS))\n  sleep "$(( FILL_REMAIN < 60 ? FILL_REMAIN : 60 ))"\ndone\ntest "$(cat "$P/a/1.txt")" = 0\n# END FILL_WAIT\nbash "$D/o_cpu.sh"\n```\n\n`o_place.sh` verifies the inner archive and places it at `$P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}`. `o_pull_fill.sh` acquires the permanent attempt lock `$P/a/0.lock`, launches one detached nohup worker, and returns its PID in `$P/a/0.txt`. The worker logs to `$P/a/0.log` and writes its exit status to `$P/a/1.txt` on success or failure. Run the wait on the same host that launched the detached worker. It checks at most once per minute, refuses a vanished PID without `1.txt`, and stops after at most 14,400 seconds (four hours). A duplicate launch refuses; a failed or interrupted attempt requires a fresh package/token, never an automatic retry. The worker copies the reviewed `done` and `prep_paths` files to `$P/a/e/{5,7,8,9}`, authenticates their pins (the `.done` receipt uses whitespace-separated fields), fetches export parts `0..3` once with retries disabled, fills through `a/4.py`, and runs cont_ops\' verbatim `dryres2.py` and `dry2.py`. A failed transfer stops; the scripts do not retry it.\n\n`o_cpu.sh` requests the A4 CPU allocation explicitly: preempt, eight CPUs, 200G, four hours, no GPU, no requeue, and the excluded nodes. The **CPU allocation** is separate from the intended **general GPU read**. Wait for the CPU job to finish successfully. Preserve `$P/a/c/CPU.json`, `MEMORY.json` and the exact `SETTINGS.json` emitted by A4 prepare. Bring these small files back as one archive through the authorized transport to `$LOCAL/adopted/proof/` before the parity preparation below. Before writing CPU.json, the ON proof streams `logical/d` through its live `J.namespace(root)` to the named shared staging path `$P/a/4.tar`, outside the capped return pool. It refuses any symlink whose resolved target leaves `logical/d` (including directory links, chains, dangling links and cycles), preserves admitted links with `tar -cf - -C <logical>/d .`, and records `gate_assets.path`, `logical`, `sha256` and `bytes` in CPU.json. The output file is opened outside bwrap and tar writes to that descriptor. This uses the same preparation/READY as the proof, without a second staging job. Validation and tar run in the same live namespace. Tar stderr goes to `results/4.err`. A tar failure leaves no successful CPU.json and is not retried. The proof also emits exact `a/1.json`, restore, artifact-binding, manifest, export-pin and ENVIRONMENT.json receipts. ON prepare adds the compiled CUDA version to ENVIRONMENT.json and its SHA256 to READY. These small files authenticate staging; they do not contain model weights. The proof binds payload/plan/inputs/operator, must pass bundle/entry checks and contain `memory.read_cache_bytes=12884901888` (4294967296 for processor-only), `basis=fixed_g3t_shapes`, and `fits=true`.\n\nArchive the CPU evidence on Orchard after its successful completion, using the package token printed by the build:\n\n```bash\nset -euo pipefail\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/2.tgz" -C "$P/a/c" CPU.json MEMORY.json SETTINGS.json RESTORE.json binding.json manifest.json EXPORT_PIN.json 1.json ENVIRONMENT.json\nsha256sum "$D/2.tgz"\n```\n\nAfter authorized transport, authenticate and extract that archive on local scratch:\n\n```bash\nset -euo pipefail\n: "${PROOF_ARCHIVE:?Received CPU-evidence archive on local scratch}"\n: "${PROOF_SHA256:?Printed Orchard SHA256 of the CPU-evidence archive}"\nprintf \'%s  %s\\n\' "$PROOF_SHA256" "$PROOF_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/proof"\nnice -n 10 tar -xzf "$PROOF_ARCHIVE" -C "$LOCAL/adopted/proof"\n```\n\nAfter the zero-difference GPU parity gate passes, transfer its token-only `ue.json` through the authorized transport as one archive, preserving the SHA256 printed on the GPU host. The authorized owner authenticates that archive and installs the receipt before submission:\n\n```bash\nset -euo pipefail\n: "${GATE_ARCHIVE:?Received archive containing ue.json}"\n: "${GATE_SHA256:?SHA256 printed on the GPU host}"\nprintf \'%s  %s\\n\' "$GATE_SHA256" "$GATE_ARCHIVE" | sha256sum -c -\nmkdir "$D/g"\ntar -xf "$GATE_ARCHIVE" -C "$D/g"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntest ! -e "$P/a/g.json"\ncp "$D/g/ue.json" "$P/a/g.json"\n```\n\nThen run:\n\n```bash\nset -euo pipefail\nbash "$D/o_sub.sh"\n# After the GPU job finishes:\nbash "$D/o_fetch.sh"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/3.tgz" -C "$P/a/f" 0.tgz EXIT.json\nsha256sum "$D/3.tgz"\n```\n\n`o_sub.sh` embeds cont_ops’ A4 CPU-receipt assertions verbatim, including batch/dispatch/guard pins and MEMORY.json equality, then checks cache memory and the successful GPU receipt at `$P/a/g.json`, requires both dry checks to pass, requires an empty general queue, and refuses a return pool over **75,000,000 bytes** (including errors/symlinks). It then runs `3.py check` and one `3.py submit --gpus 1 --time 04:30:00`, saving the job ID. The GPU receipt must match the CPU restore/binding pins, filled export pin, adopted plan/profile and H100 80 GB requirement. The unchanged bootstrap itself does not require the cache-memory field; this submit preflight does. `o_fetch.sh` derives the authenticated return token and fetches `$P/a/f/{0.tgz,EXIT.json}`.\n\nTransfer `$D/3.tgz` through the authorized transport, preserving the local operator directory. Authenticate, extract and unpack it locally:\n\n```bash\nset -euo pipefail\n: "${RETURN_ARCHIVE:?Received fetched-return archive on local scratch}"\n: "${RETURN_SHA256:?Printed Orchard SHA256 of the fetched-return archive}"\nprintf \'%s  %s\\n\' "$RETURN_SHA256" "$RETURN_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/f"\nnice -n 10 tar -xzf "$RETURN_ARCHIVE" -C "$LOCAL/adopted/f"\n(cd "$LOCAL/adopted" && CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -s -E -B ./unpack_return.py \\\n  --archive "$LOCAL/adopted/f/0.tgz" --exit "$LOCAL/adopted/f/EXIT.json" \\\n  --out "$LOCAL/adopted/ret" > "$LOCAL/adopted/unpack-success.json" && \\\n  test -s "$LOCAL/adopted/unpack-success.json")\n```\n\nA refused unpack leaves its extracted tree behind. Scorers must consume only unpack\'s **success output after exit status 0**, never a directory merely because it exists; the command\'s `&&` chain enforces that handoff. A successful partial return still has `complete=false` and must not be scored as complete. The ON unpacker refuses any existing weight receipt whose verified value is not JSON true. Processor-only journals need no weight receipt. OFF behavior remains unchanged. Whole-archive identity follows A4\'s design: fill checks the sealed whole-tar constants; job/unpack admission compare against inputs.archives[0].\n\n**Forecasts:** Package D is the 580-item distance read (B5 fork, 03:30 walltime); it has **no ON route** in a19. Its one-card **estimate** is 13,813.069 s (3 h 50 min), using the measured 23.600 s/item and crediting no cache saving. The **636-item** A4 read that a19 actually builds has an **estimate** of **7,351.824 s (2 h 02 min 32 s; 11.559 s/item)**, obtained by carrying forward the supplied A4 total, with zero assumed saving. Target weights, cache costs and staging/queue delays can change it; neither forecast measures the selected export.\n\n## GPU parity staging and acceptance\n\nThe gate must seal **A4 prepare\'s actual output plus the operator\'s per-read overrides** for the package being adopted. Do not supply an unrelated PRIVATE_SETTINGS.json. `a20 gate` checks the prepared bytes and exact RESTORE.json/artifact-binding bytes against CPU.json’s READY pins, checks export identity against the adopted step binding, checks the export-pin hash and byte count against the exact `a/1.json` bytes authenticated by CPU.json, and checks payload, plan and operator bindings. The complete export must equal the supplied step-400 pin. The gate also authenticates ENVIRONMENT.json against CPU READY; submit compares its hash and torch/transformers/CUDA versions with ue.json. Every GPU worker rechecks those asset bytes and the artifact manifest before reading; changing paths cannot substitute another checkpoint. It applies the authenticated operator descriptor and derives `enable_caches`, `read_cache_bytes` and the full adoption profile: candidates_argmax, memo on, g3t, empty verify IDs, save_own_depth=false, and the exact cache switches. Both the parent driver and every worker refuse a different profile. Processor-only adoption is explicitly gated with slots `[0]` and 4 GiB; all-cache adoption uses `[0,1,2]` and 12 GiB.\n\nThe **owner-only commands below are unrun here**. The shared asset archive already exists when CPU.json appears; never try to reopen the CPU job\'s private `/tmp`. Reserve storage for the archive before running `o_cpu.sh`: **about 33 GB, estimated**, from about 32.6 GB of expanded inputs plus tar headers. Preserving symlinks avoids duplicated shards and heads. Reserve separate space for extraction, sources and runtime outputs. The job records actual bytes; no production archive size was measured here.\n\nAllocate the gate on Orchard, then enter its compute task. This is one non-requeued H100 job, eight CPUs, 200G and a five-hour maximum. Preserve its actual `CUDA_VISIBLE_DEVICES`; the Python guard requires exactly `NVIDIA H100 80GB HBM3`, 132 SMs, capability 9.0 and the 80 GB memory class.\n\n```bash\nset -euo pipefail\nGATE_TOKEN=$(/usr/bin/python3 -I -s -B -c \'import secrets;print(secrets.token_hex(6))\')\nsalloc --account=mt01 --partition=general --nodes=1 --ntasks=1 --cpus-per-task=8 \\\n  --mem=200G --gres=gpu:1 --time=05:00:00 --no-requeue \\\n  --exclude=orchard-community-2 --job-name="a15_cot_ap${GATE_TOKEN}" \\\n  srun --ntasks=1 --pty bash --noprofile --norc\n```\n\nOn that H100 host, `/scratch/jjyeung` must **physically exist and be writable** outside bwrap. A4 creates `/scratch` only inside its namespace; it does not satisfy this host requirement. The operator must provision the host path before the gate. The exact logical root (currently `/scratch/jjyeung/b01ec87a6f29b`) must be absent so extraction cannot overlay another run. Preserve it so manifests and restore paths remain valid. Provision the separate opaque kit/source directories there too. Stage the source trees and public kit as single authenticated archives; keep private inputs and reverse maps on Trinity.\n\nThe shared path `$P/a/4.tar` is visible directly on Orchard. If approved transport copies it, set `ASSET_ARCHIVE` to that received path; CPU.json still supplies the expected hash and bytes. Run inside the allocation:\n\n```bash\nset -euo pipefail\n: "${PACKAGE_TOKEN:?Fresh package token from the build}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nASSET_ARCHIVE=${ASSET_ARCHIVE:-"$P/a/4.tar"}\nGPU_LOGICAL=$(/usr/bin/python3 -I -s -B - "$P" "$ASSET_ARCHIVE" <<\'PYASSET\'\nimport hashlib,json,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);archive=Path(sys.argv[2]);proof=json.loads((p/\'a/c/CPU.json\').read_text())\nassert proof[\'passed\'] is True\nwith tarfile.open(p/\'0.tgz\') as t:cfg=json.load(t.extractfile(\'9.json\'))\nasset=proof[\'gate_assets\'];assert asset[\'logical\']==cfg[\'logical\']\nassert Path(asset[\'path\']).resolve()==(p/\'a/4.tar\').resolve() and archive.stat().st_size==asset[\'bytes\']\nh=hashlib.sha256()\nwith archive.open(\'rb\') as stream:\n    for chunk in iter(lambda:stream.read(1024**2),b\'\'):h.update(chunk)\nassert h.hexdigest()==asset[\'sha256\']\nprint(cfg[\'logical\'])\nPYASSET\n)\ntest -d /scratch/jjyeung && test -w /scratch/jjyeung\ntest ! -e "$GPU_LOGICAL"\nmkdir -p "$GPU_LOGICAL/d" "$GPU_LOGICAL/p"\ntar -xf "$ASSET_ARCHIVE" -C "$GPU_LOGICAL/d"\ntar -xzf "$P/0.tgz" -C "$GPU_LOGICAL/p"\ntest ! -e "$GPU_LOGICAL/d/7.json"\nln -s binding.json "$GPU_LOGICAL/d/7.json"\ntest ! -e "$GPU_LOGICAL/d/9.json"\nln -s ENVIRONMENT.json "$GPU_LOGICAL/d/9.json"\n```\n\nCreate a private neutral configuration from `config.example.json` with separate authenticated A4 original/patched source roots. Set `export=$GPU_LOGICAL/d/e`, `export_pin=$GPU_LOGICAL/d/6.json`, and `artifact_manifest=$GPU_LOGICAL/d/7.json`. Set `environment_receipt=$GPU_LOGICAL/d/9.json`. The neutral binding and environment aliases must be symlinks, as created above. Include that exact `binding.json` to `7.json` mapping in `PRIVATE_ALIASES.json`; map the other private prepared asset paths to staged opaque aliases of those same files. These aliases must be symlinks so `resolve()` reaches the manifest allow-list target; copies are rejected. Keep private settings and reverse maps on Trinity. The following commands use files under `$LOCAL`:\n\n```bash\nset -euo pipefail\n: "${PRIVATE_CONFIG_TEMPLATE:?Private neutral GPU configuration with staged asset paths}"\n: "${PRIVATE_ALIASES:?Private JSON mapping preparation paths to staged opaque paths}"\nPRIVATE_SETTINGS="$LOCAL/PRIVATE_SETTINGS.json"\nPRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \\\n  --operator "$LOCAL/adopted" --prepared "$LOCAL/adopted/proof/SETTINGS.json" \\\n  --proof "$LOCAL/adopted/proof/CPU.json" --config "$PRIVATE_CONFIG_TEMPLATE" \\\n  --asset-receipts "$LOCAL/adopted/proof" \\\n  --settings-out "$PRIVATE_SETTINGS" --config-out "$PRIVATE_CONFIG"\n```\n\n```bash\nset -euo pipefail\nmkdir -p "$LOCAL/public"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" seal \\\n  --source-root "$EXT_SOURCE" --input "$PRIVATE_SETTINGS" --aliases "$PRIVATE_ALIASES" \\\n  --out "$LOCAL/public/u3"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" stage-kit \\\n  --source-root "$EXT_SOURCE" --input "$DELIVERY/kit_parity50" \\\n  --config "$PRIVATE_CONFIG" --out "$LOCAL/public/u0"\n```\n\nThe package embeds the driver/comparator SHA256 and the deterministically sealed sample SHA256 from MANIFEST `kit_files`. The driver and every worker authenticate those executing bytes, and `ue.json` carries them to SUBMIT_CHECK. The staged `u3.json` pins every extension; `u4.json` authenticates both full 927-file base inventories. The driver rejects changed bases, equal original/patched roots, and an original root containing extensions. It authenticates the sealed sample bytes and the logical sample pin. Transfer only the staged directory through the approved transport under an opaque root.\n\nOn an assigned **H100 80 GB** GPU, run the acceptance command below; it is **unrun here**. Preserve that allocation\'s actual `CUDA_VISIBLE_DEVICES`.\n\n```bash\nset -euo pipefail\n# BEGIN GPU_ENVIRONMENT\n: "${GPU_LOGICAL:?Exact logical root extracted above}"\nGPU_KIT=/scratch/jjyeung/ab0123456789\nREAD_PYTHON="$GPU_LOGICAL/d/v/py"\nexport XDG_CACHE_HOME="$GPU_KIT/u6" HF_HOME="$GPU_KIT/u6/u0" TRITON_CACHE_DIR="$GPU_KIT/u6/u1"\nexport HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1\nexport PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8\nmkdir -p "$XDG_CACHE_HOME" "$HF_HOME" "$TRITON_CACHE_DIR"\nnice -n 10 "$READ_PYTHON" -I -s -B - "$GPU_LOGICAL/d/ENVIRONMENT.json" <<\'PYENV\'\nimport json,sys,torch,transformers\nfrom pathlib import Path\ntorch.set_num_threads(8)\nenvironment=json.loads(Path(sys.argv[1]).read_text())\nactual=dict(torch=torch.__version__,transformers=transformers.__version__,cuda=torch.version.cuda)\nexpected=dict(torch=environment[\'versions\'][\'torch\'],transformers=environment[\'versions\'][\'transformers\'],cuda=environment[\'cuda\'])\nif actual!=expected or not actual[\'cuda\'] or not torch.cuda.is_available():\n    raise ValueError(\'GPU interpreter/environment preflight failed\')\nprint(\'Environment preflight passed\')\nPYENV\n# END GPU_ENVIRONMENT\nnice -n 10 "$READ_PYTHON" -I -s -B /scratch/jjyeung/ab0123456789/u0/u0.py \\\n  /scratch/jjyeung/ab0123456789/u0/u2.json --out /scratch/jjyeung/ab0123456789/u9 \\\n  --enable-gpu --public --repeat-baseline --shards 4\n```\n\nThe preflight runs the archived production interpreter outside bwrap and fails before the gate if it cannot start, lacks dependencies/CUDA, or differs from ENVIRONMENT.json. No substitute interpreter is accepted. The gate parent, every worker and receipt writer independently compare the recorded versions and SHA256. Cache roots are explicit under the opaque kit root, matching A4\'s XDG/HF pattern with an explicit Triton root.\n\nEvery arm starts a fresh process. ORIGINAL/OFF/OFF_REPEAT use ordinary journals and modulo shards. ON tests caches; ON_JOURNAL and sequential whole-scene shards test separate journal/shard features. Sequential shards establish equality, not parallel speed. Public logs tokenize item/native/room identities and arbitrary stdout/stderr. No reverse map is written on Orchard.\n\nAcceptance requires all 50 expected IDs, complete production output schemas, nonempty text/tokens/heads, scale even when null, every served response and forced-token count, matching call counters, and **zero semantic byte differences**. ORIGINAL/OFF must also retain every production source hash. Each enabled cache must report its memory bound and useful hits; SAM needs both feature and detection hits. Empty or all-miss runs fail. Only clocks and explicit audit/cache/memo telemetry are excluded from semantic comparison; audit violations fail. There is no answer/trace tolerance.\n\nEach RUN.json and ue.json record the checked torch/transformers/CUDA versions and ENVIRONMENT.json SHA256. Each RUN.json also records the adopted package plan, read profile, asset pins, required device type, actual device, cache slots and budget. The worker checks CUDA device properties before model loading and refuses a different exact name, SM count, compute capability or memory class. `ue.json` is written only after all comparisons finish and records whether they all passed; failed or missing receipts cannot authorize submit. On the H100 host, archive it with `tar -cf /scratch/jjyeung/ab0123456789/5.tar -C /scratch/jjyeung/ab0123456789/u9 ue.json` and print `sha256sum /scratch/jjyeung/ab0123456789/5.tar` for authenticated return transport. Judge net time from `RUN.json`\'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).\n\nThe cache cap covers retained cache storage and transient copies, not model/caller working memory. Measure full-process host/GPU peaks. Models must remain frozen: calls check parameter/buffer identities, pointers and counters; install/type boundaries hash content. Persistent raw writes fail at a boundary. Raw writes restored between boundaries, private tensor attributes and arbitrary non-tensor state are outside this guard\'s coverage. Graceful stops verify journals; a hard kill can leave an unchecked journal that requires fresh output.\n\nOutput directories u0–u5 represent ORIGINAL/OFF/OFF_REPEAT/ON/ON_JOURNAL/SHARDED. Reports u6–ua compare arms; ub.json checks merge equality; uc/ud contain canonical single/sharded returns. Restore on Trinity with the private inputs:\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" restore \\\n  --source-root "$EXT_SOURCE" --input PRIVATE_RETURN --out "$LOCAL/restored" \\\n  --private-source "$DELIVERY/kit_parity50/sample50.json" \\\n  --private-source "$PRIVATE_CONFIG" --private-source "$PRIVATE_SETTINGS"\n```\n\nRestoration authenticates committed rows before rebuilding private IDs/checksums. Merge with the original manifest through the explicit extension entrypoint. The canonical answer/trace archive must match exactly; transport-envelope clocks remain variable.\n\n## Array validation\n\nNo multi-card A4 operator is delivered. The array helper is a separate inert prototype. Its example has `approved=false`: two one-hour shards, at most two attempts, four GPU-hours total. Approval must bind the exact partition, shards, time and attempts, with no more than five allocated GPU-hours over all attempts. Before any sharded/preempt adoption, validate real persistent-storage preemption/requeue.\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a15.py" PRIVATE_ARRAY_CONFIG.json \\\n  --enable-array --token ab0123456789 --out "$LOCAL/array-plan" \\\n  --python /scratch/jjyeung/ab0123456789/u1 --source /scratch/jjyeung/ab0123456789/u2 \\\n  --staged-config /project/community/jjyeung/okh7/a15_cot_apab0123456789/u3.json\n```\n\nThis writes commands without running them. Exit 75 requests bounded requeue; other errors remain failures. Lock waits stop after 60 seconds, and the attempt limit forbids more work. Public paths must use approved roots and pass the forbidden-word screen; name checks do not establish storage permissions or capacity.\n\nNo delivered CPU suite or single-GPU kit requires a local OS socket. StageOneSocket is a Python callback. Real restore, bwrap isolation, remote transport, GPU parity/performance/memory and persistent requeue remain unrun.\n\n## Review round 7: finding -> fix -> test\n\n| Finding | Fix | Regression |\n|---|---|---|\n| 1. Private root disappears | Archive inside CPU proof to `$P/a/4.tar` before CPU.json; record hash/bytes. | Real fixture tar runs through a namespace wrapper, survives loss of the root, and the CPU operator fixture executes staging. |\n| 2. Fill wait hangs | Guard PACKAGE_TOKEN, check PID and cap wait at four hours. | Missing token, dead PID, timeout and failed exit refuse; success passes. |\n| 3. PCIe accepted | Require exact HBM3 name and 132 SMs. | SXM stub passes; PCIe and wrong-SM stubs refuse. |\n| 4. Evidence/host nits | Bind executing kit/comparator/sample; include a/1.json; unpack with -s -E -B; use an H100-local archive path. | Mutated pins refuse, environment-polluted unpack succeeds, allocation/evidence blocks are checked. |\n| 5. Decision export | Bind only the supplied step-400 export at build and gate. | Other identities refuse before the builder reads the base; wrong artifact refuses at the gate. |\n\nFrozen weights remain required. Persistent raw writes are boundary-checked; writes restored between boundaries remain outside the guard. GPU byte equality and performance remain unrun.\n\n## Review round 8: finding -> fix -> test\n\n| Finding | Fix | Regression |\n|---|---|---|\n| 1. Archive breaks loader admission | Preserve in-tree symlinks; refuse escaping targets before tar; estimated archive is about 33 GB. | Extract an absolute heads link and run real Artifact.verify/load_native admission; reject external, chained, directory, dangling and cyclic links. |\n| 2. Environment unspecified | Use archived d/v/py; preflight versions/CUDA; pin ENVIRONMENT.json through READY, gate and submit; set opaque cache roots. | Changed versions/hash and CPU build refuse; synthetic matching versions pass; submit rejects each changed field. |\n| 3. Other export checked late | Builder admits only reviewed step-400 identity/preparation. | Eleven identity/preparation mutations refuse before reading the base. |\n| 4. Unresolved package path | Resolve both archive-path operands. | README validation executes through a symlinked package parent. |\n| 5. Handoff details | Aliases are symlinks; retain tar stderr; generate a fresh a15_cot_ap job token. | Error text survives; commands and alias instructions are checked. |\n'
 
 ----------------------------------------------------------------------
-Ran 11 tests in 0.018s
+Ran 11 tests in 0.016s
 
 FAILED (failures=11)
 ```
 
-Command: `bash work/cpu.sh work/run_checks.py  # f16_behavior_before control, exact invocation in the runner`
+Command: `bash work/cpu.sh work/run_checks.py  # round10_before; exact environment/argv in runner`
 
-Output ([checks/f16_behavior_before.txt](checks/f16_behavior_before.txt)):
+Exact output ([checks/round10_before.txt](checks/round10_before.txt)):
+
+```text
+test_f1_public_script_is_pinned_and_tampering_refuses (__main__.Round10Tests.test_f1_public_script_is_pinned_and_tampering_refuses) ... FAIL
+test_f1_real_boot_refuses_c_and_runs_actual_preflight_script (__main__.Round10Tests.test_f1_real_boot_refuses_c_and_runs_actual_preflight_script) ... FAIL
+test_f2_missing_nested_path_refuses_before_self_test (__main__.Round10Tests.test_f2_missing_nested_path_refuses_before_self_test) ... FAIL
+test_f2_stage_resolves_every_sealed_path_with_one_alias_table (__main__.Round10Tests.test_f2_stage_resolves_every_sealed_path_with_one_alias_table) ... FAIL
+test_f3_workers_are_direct_inside_namespace (__main__.Round10Tests.test_f3_workers_are_direct_inside_namespace) ... FAIL
+test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin (__main__.Round10Tests.test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin) ... FAIL
+test_f4_readme_has_no_asset_preread_and_generates_aliases (__main__.Round10Tests.test_f4_readme_has_no_asset_preread_and_generates_aliases) ... FAIL
+
+======================================================================
+FAIL: test_f1_public_script_is_pinned_and_tampering_refuses (__main__.Round10Tests.test_f1_public_script_is_pinned_and_tampering_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 80, in test_f1_public_script_is_pinned_and_tampering_refuses
+    self.assertIn('u5.py',self.kit.kit_hashes(),'Missing executable preflight hash')
+AssertionError: 'u5.py' not found in {'run.py': '2cb5917beef275402eceb92cc45efe4cc1625d6124b35196f02461057453bbf1', 'compare.py': '73858354fe8d366880873246e6256393ea2b27d5979af4e128e93c569a92f50e', 'sample50.json': '6a7885b6ea579d5e4a647ac408e79bec500e18cce574409b0a30c921a41e8707', 'host.py': 'afbcd84afd2ca8fe7278080f3d76d8f671b421a5f42df6278399730e1099155c'} : Missing executable preflight hash
+
+======================================================================
+FAIL: test_f1_real_boot_refuses_c_and_runs_actual_preflight_script (__main__.Round10Tests.test_f1_real_boot_refuses_c_and_runs_actual_preflight_script)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 48, in test_f1_real_boot_refuses_c_and_runs_actual_preflight_script
+    self.assertTrue((OUT/'kit_parity50/u5.py').is_file(),'Preflight must be a shipped script')
+AssertionError: False is not true : Preflight must be a shipped script
+
+======================================================================
+FAIL: test_f2_missing_nested_path_refuses_before_self_test (__main__.Round10Tests.test_f2_missing_nested_path_refuses_before_self_test)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 142, in test_f2_missing_nested_path_refuses_before_self_test
+    self.assertTrue(hasattr(self.kit,'validate_existing_paths'),'Missing pre-self-test path admission')
+AssertionError: False is not true : Missing pre-self-test path admission
+
+======================================================================
+FAIL: test_f2_stage_resolves_every_sealed_path_with_one_alias_table (__main__.Round10Tests.test_f2_stage_resolves_every_sealed_path_with_one_alias_table)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 111, in test_f2_stage_resolves_every_sealed_path_with_one_alias_table
+    self.assertTrue(hasattr(self.host,'ALIASES'),'Missing shared prepared-path aliases')
+AssertionError: False is not true : Missing shared prepared-path aliases
+
+======================================================================
+FAIL: test_f3_workers_are_direct_inside_namespace (__main__.Round10Tests.test_f3_workers_are_direct_inside_namespace)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 157, in test_f3_workers_are_direct_inside_namespace
+    self.assertEqual(self.kit.worker_command(['u0.py','u2.json']),[inputs['python'],'-B','-I','u0.py','u2.json'])
+AssertionError: Lists differ: ['/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/eb69[1339 chars]son'] != ['/scratch/jjyeung/b01ec87a6f29b/d/v/py', '-B', '-I', 'u0.py', 'u2.json']
+
+First differing element 0:
+'/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/eb69[30 chars]wrap'
+'/scratch/jjyeung/b01ec87a6f29b/d/v/py'
+
+First list contains 57 additional elements.
+First extra element 5:
+'usr/bin'
+
+Diff is 1666 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin (__main__.Round10Tests.test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 162, in test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin
+    self.assertTrue(hasattr(self.host,'extract_assets'),'Missing one-pass extraction/hash')
+AssertionError: False is not true : Missing one-pass extraction/hash
+
+======================================================================
+FAIL: test_f4_readme_has_no_asset_preread_and_generates_aliases (__main__.Round10Tests.test_f4_readme_has_no_asset_preread_and_generates_aliases)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 189, in test_f4_readme_has_no_asset_preread_and_generates_aliases
+    self.assertNotIn("archive.open('rb')",block,'README rehashes the archive before staging')
+AssertionError: "archive.open('rb')" unexpectedly found in "\nimport hashlib,json,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);archive=Path(sys.argv[2]);proof=json.loads((p/'a/c/CPU.json').read_text())\nassert proof['passed'] is True\nwith tarfile.open(p/'0.tgz') as t:cfg=json.load(t.extractfile('9.json'))\nasset=proof['gate_assets'];assert asset['logical']==cfg['logical']\nassert Path(asset['path']).resolve()==(p/'a/4.tar').resolve() and archive.stat().st_size==asset['bytes']\nh=hashlib.sha256()\nwith archive.open('rb') as stream:\n    for chunk in iter(lambda:stream.read(1024**2),b''):h.update(chunk)\nassert h.hexdigest()==asset['sha256']\nprint(cfg['logical'])" : README rehashes the archive before staging
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.056s
+
+FAILED (failures=7)
+```
+
+Command: `bash work/cpu.sh work/run_checks.py  # f16_behavior_before; exact environment/argv in runner`
+
+Exact output ([checks/f16_behavior_before.txt](checks/f16_behavior_before.txt)):
 
 ```text
 test_f4_worker_uses_settings_argv_without_environment_side_effect (__main__.Round3Tests.test_f4_worker_uses_settings_argv_without_environment_side_effect) ... FAIL
@@ -2713,17 +2867,17 @@ FAIL: test_f4_worker_uses_settings_argv_without_environment_side_effect (__main_
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round3.py", line 189, in test_f4_worker_uses_settings_argv_without_environment_side_effect
     self.assertNotIn('H10_SETTINGS',kit.os.environ)
-AssertionError: 'H10_SETTINGS' unexpectedly found in {'CUDA_VISIBLE_DEVICES': 'fixture', 'H10_SETTINGS': '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/45d99519ef034578a51535360d414e2a/u0.json'}
+AssertionError: 'H10_SETTINGS' unexpectedly found in {'CUDA_VISIBLE_DEVICES': 'fixture', 'H10_SETTINGS': '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/572dfae5ed094fb5a1ae6797d90e270e/u0.json'}
 
 ----------------------------------------------------------------------
-Ran 1 test in 0.810s
+Ran 1 test in 0.724s
 
 FAILED (failures=1)
 ```
 
 Command: `bash work/cpu.sh work/run_checks.py`
 
-Output ([checks/run_checks9.txt](checks/run_checks9.txt)):
+Exact output ([checks/run_checks10.txt](checks/run_checks10.txt)):
 
 ```text
 cache: OK
@@ -2735,12 +2889,13 @@ round2: OK
 round3: OK
 operator3: OK
 lock3: OK
-round4: CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/eeb25e05635b485aa859d3490dc9bffa
+round4: CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/863e85df932841fdbf29df3113c5e263
 round5: All CPU receipt checks passed
 round6: Detached fill: success=0, failure=17, duplicate launch refused.
 round7: Only reviewed step-400 export passes; changed artifact and selectable-export API refuse.
 round8: Runtime torch/transformers/CUDA and environment SHA256 are exact; changed versions, bytes and CPU build refuse.
 round9: Fresh token derives kit paths; framework version gap and carried guard limits are explicit.
+round10: README generates PRIVATE_ALIASES from the host table and does not reread 4.tar before extraction.
 kit: OK
 kit_launch: OK
 PASS: all 8 round-1 regressions fail against the round-1 reviewed implementation.
@@ -2751,28 +2906,43 @@ PASS: lock3_before reproduces FAILED (failures=2).
 PASS: round5_before reproduces FAILED (failures=11).
 PASS: round6_before reproduces FAILED (failures=31).
 PASS: round7_before reproduces FAILED (failures=10).
+PASS: round10_before reproduces FAILED (failures=7).
 PASS: round9_before reproduces FAILED (failures=11).
 PASS: round8_before reproduces FAILED (failures=29).
 PASS: round4_before reproduces FAILED (failures=7, skipped=1).
 PASS: node4_before reproduces FAILED (failures=1).
 PASS: f16_behavior_before reproduces FAILED (failures=1).
 PASS: Python syntax, shell syntax, and default-off execution guards.
-{"cuda_visible_devices": "", "max_child_rss_bytes": 399388672, "torch": "2.11.0+cpu", "torch_threads": 8, "transformers": "5.12.1", "workspace_bytes": 2974892106}
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/run_checks.py", line 106, in <module>
+    assert report['workspace_bytes']<3_000_000_000
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
 ```
 
-Command: `bash work/cpu.sh work/build_patches.py`
+Command: `bash work/cpu.sh work/run_fixture5.py work/build_patches.py`
 
-Output ([checks/build_patches9.txt](checks/build_patches9.txt)):
+Exact output ([checks/build_patches10.txt](checks/build_patches10.txt)):
 
 ```text
-PASS: 3 additive reader diffs (40 files) plus 2 default-OFF A4 operator diffs; zero-fuzz application; unchanged original reader hash trees.
-PASS: OFF, round-4/5/6/7/8 integration and comparator suites pass from the fresh applied A4 tree; both complete 927-file base inventories authenticate.
-Applied verification root: /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40
+PASS: 3 additive reader diffs (42 files) plus 2 default-OFF A4 operator diffs; zero-fuzz application; unchanged original reader hash trees.
+PASS: OFF, round-4/5/6/7/8/9/10 integration and comparator suites pass from the fresh applied A4 tree; both complete 927-file base inventories authenticate.
+Applied verification root: /scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd
 ```
 
-Command: `bash work/cpu.sh work/gate_integration9.py`
+Command: `bash work/cpu.sh work/finish_checks10.py`
 
-Output ([checks/gate_integration9.txt](checks/gate_integration9.txt)):
+Exact output ([checks/finish_checks10.txt](checks/finish_checks10.txt)):
+
+```text
+PASS: 147 tests in 18 workspace suites; all 14 fail-before controls reproduced; syntax and default-OFF checks passed.
+PASS: workspace 2871926607 bytes < 3,000,000,000 after sharing identical completed fixtures; all paths/bytes retained.
+LIMITATION: the driver exited 1 at its final storage assertion; its aggregate child RSS was not recorded.
+```
+
+Command: `bash work/cpu.sh work/gate_integration10.py`
+
+Exact output ([checks/gate_integration10.txt](checks/gate_integration10.txt)):
 
 ```text
 PASS: actual CPU fixture environment refuses before synthetic GPU receipt serialization.
@@ -2780,15 +2950,15 @@ All CPU receipt checks passed
 {"passed": true, "pool_bytes": 0}
 PASS: CPU helper produced the archive before CPU.json; its recorded hash/bytes and exact a/1.json match.
 PASS: archive reconstructs READY-identical assets after the fixture private data path becomes unavailable.
-PASS: public stage-kit bytes match MANIFEST-derived pins; changed driver, comparator, host helper and sealed sample each refuse.
+PASS: public stage-kit bytes match MANIFEST-derived pins; changed driver, comparator, host helper, preflight and sealed sample each refuse.
 PASS: exact CPU evidence feeds gate and full submit assertions; only reviewed step400 passes; synthetic environment evidence binds submit.
 PASS: failed synthetic GPU receipt refuses; no GPU evidence was measured or submitted.
-{"archive_bytes": 20480, "archive_sha256": "6449721a0ed8a0c2cfa899bb7bf9ef51293db2b7944380cef0e2e6638af495a4", "assets": {"binding": "a3b2c81273d34ca963e19e4f52a6d305240dfaf918ca87ae49c7010a1202c159", "export_pin": "3ecf348301576174e3322b7105b6c3cab87606ef906226dab7cdb6073d651a5e", "restore": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"}, "environment": {"cuda": "12.9", "sha256": "437dd3df35eac78affdb22dacee5045ea803d23f451d95fa4590fb321782af6d", "torch": "2.11.0+cpu", "transformers": "5.12.1"}, "kit": {"compare.py": "73858354fe8d366880873246e6256393ea2b27d5979af4e128e93c569a92f50e", "host.py": "afbcd84afd2ca8fe7278080f3d76d8f671b421a5f42df6278399730e1099155c", "run.py": "2cb5917beef275402eceb92cc45efe4cc1625d6124b35196f02461057453bbf1", "sample50.json": "1fdb65050f933d8578c849fbaa1010515ed07ad959234afd2d90cefdd946531b"}, "plan": "60bfac0dd47d400e93062cc82ae6306f077ccc265c45e5f3125ee28c1254fe05", "required_device_type": "H100_80GB"}
+{"archive_bytes": 20480, "archive_sha256": "27e8ecf815e4f101bd03e9abdc5ce30b68648a9dad41eef7592aa7587e64c539", "assets": {"binding": "0a7c30028271d544e1bfdc2e51cf98ec39ba888c3b9d1d78b93269f43d34351d", "export_pin": "3ecf348301576174e3322b7105b6c3cab87606ef906226dab7cdb6073d651a5e", "restore": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"}, "environment": {"cuda": "12.9", "sha256": "437dd3df35eac78affdb22dacee5045ea803d23f451d95fa4590fb321782af6d", "torch": "2.11.0+cpu", "transformers": "5.12.1"}, "kit": {"compare.py": "73858354fe8d366880873246e6256393ea2b27d5979af4e128e93c569a92f50e", "host.py": "d9bf99ecb646222b5f8767810937bf639a3b61bebd92455fcf0466d461af1712", "run.py": "e5640351a50e476f2b849a2af515b5ac12d8d759bfc376035c93d4b1075a31e4", "sample50.json": "1fdb65050f933d8578c849fbaa1010515ed07ad959234afd2d90cefdd946531b", "u5.py": "f44916b089adc4ce8a045aa752676ee404868292282fa0eb3ae3e02689d63501"}, "plan": "6913bbc74315d6b20305f99a793cadfd40cca772bc6f23f61f47b23ac74b4f6c", "required_device_type": "H100_80GB"}
 ```
 
-Command: `bash work/cpu.sh work/docs_check9.py`
+Command: `bash work/cpu.sh work/docs_check10.py`
 
-Output ([checks/docs9.txt](checks/docs9.txt)):
+Exact output ([checks/docs10.txt](checks/docs10.txt)):
 
 ```text
 PASS: 13 README shell blocks parse; archive-validation heredoc parses as Python 3.6; host paths and allocation documented.
@@ -2798,11 +2968,13 @@ PASS: step-400-only handoff, symlink archive, version preflight, retained stderr
 PASS: namespace host bootstrap parses and runs --help under actual /usr/bin/python3 3.6.8; no runtime staging or GPU executed.
 PASS: private gate, seal, stage-kit and archive transfer precede allocation; exact host extraction and namespaced wrapper commands are present.
 PASS: exact receipt-handoff shell preserves failed ue.json outside private /tmp and still exits nonzero; only the GPU launch is replaced by false.
+PASS: PRIVATE_ALIASES uses the staging table; pinned script preflight and one-pass archive extraction are documented.
+PASS: exact README PYALIASES example executes and emits all seven mappings from the host table.
 ```
 
 Command: `bash work/cpu.sh work/verify_archive_command8.py`
 
-Output ([checks/archive_command9.txt](checks/archive_command9.txt)):
+Exact output ([checks/archive_command10.txt](checks/archive_command10.txt)):
 
 ```text
 PASS: link-validation/tar argv passes the real production opaque-command guard; namespace script parses as Python 3.6.
@@ -2810,7 +2982,7 @@ PASS: link-validation/tar argv passes the real production opaque-command guard; 
 
 Command: `bash work/cpu.sh work/profile.py`
 
-Output ([checks/profile_rerun.txt](checks/profile_rerun.txt)):
+Exact output ([checks/profile_rerun.txt](checks/profile_rerun.txt)):
 
 ```text
 package,type,items,seconds_mean,seconds_median,seconds_p90,tokens_mean,chosen_tokens_mean,calls_mean,g3t_seconds_mean,prefill_seconds_mean,factory_load_seconds,memo_hits,memo_misses
@@ -2833,20 +3005,20 @@ room_size_estimation timings {'prefill_s': 0.777, 'total_s': 3.2551} families {}
 
 Command: `bash work/cpu.sh work/torch_versions3.py`
 
-Output ([checks/torch_versions3.txt](checks/torch_versions3.txt)):
+Exact output ([checks/torch_versions3.txt](checks/torch_versions3.txt)):
 
 ```text
 {
   "events": [
     {
       "after": {
-        "data_ptr": 132838976,
-        "object_id": 140624249234256,
+        "data_ptr": 118613056,
+        "object_id": 140714125370192,
         "version": 1
       },
       "before": {
-        "data_ptr": 132838976,
-        "object_id": 140624249234256,
+        "data_ptr": 118613056,
+        "object_id": 140714125370192,
         "version": 0
       },
       "object_changed": false,
@@ -2856,13 +3028,13 @@ Output ([checks/torch_versions3.txt](checks/torch_versions3.txt)):
     },
     {
       "after": {
-        "data_ptr": 132849472,
-        "object_id": 140624249234576,
+        "data_ptr": 118623552,
+        "object_id": 140714125370512,
         "version": 1
       },
       "before": {
-        "data_ptr": 132849472,
-        "object_id": 140624249234576,
+        "data_ptr": 118623552,
+        "object_id": 140714125370512,
         "version": 0
       },
       "object_changed": false,
@@ -2872,13 +3044,13 @@ Output ([checks/torch_versions3.txt](checks/torch_versions3.txt)):
     },
     {
       "after": {
-        "data_ptr": 132850176,
-        "object_id": 140624249234256,
+        "data_ptr": 118624192,
+        "object_id": 140714125370192,
         "version": 0
       },
       "before": {
-        "data_ptr": 132850176,
-        "object_id": 140624249234256,
+        "data_ptr": 118624192,
+        "object_id": 140714125370192,
         "version": 0
       },
       "object_changed": false,
@@ -2888,13 +3060,13 @@ Output ([checks/torch_versions3.txt](checks/torch_versions3.txt)):
     },
     {
       "after": {
-        "data_ptr": 132852800,
-        "object_id": 140624249234576,
+        "data_ptr": 118626816,
+        "object_id": 140714125370512,
         "version": 0
       },
       "before": {
-        "data_ptr": 132850560,
-        "object_id": 140624249234576,
+        "data_ptr": 118624576,
+        "object_id": 140714125370512,
         "version": 0
       },
       "object_changed": false,
@@ -2904,13 +3076,13 @@ Output ([checks/torch_versions3.txt](checks/torch_versions3.txt)):
     },
     {
       "after": {
-        "data_ptr": 132853056,
-        "object_id": 140624249234256,
+        "data_ptr": 118627136,
+        "object_id": 140714125370192,
         "version": 0
       },
       "before": {
-        "data_ptr": 132853056,
-        "object_id": 140624249234256,
+        "data_ptr": 118627136,
+        "object_id": 140714125370192,
         "version": 0
       },
       "object_changed": false,
@@ -2920,13 +3092,13 @@ Output ([checks/torch_versions3.txt](checks/torch_versions3.txt)):
     },
     {
       "after": {
-        "data_ptr": 132853248,
-        "object_id": 140624249234576,
+        "data_ptr": 118627328,
+        "object_id": 140714125370512,
         "version": 0
       },
       "before": {
-        "data_ptr": 132853248,
-        "object_id": 140624249234576,
+        "data_ptr": 118627328,
+        "object_id": 140714125370512,
         "version": 0
       },
       "object_changed": false,
@@ -2936,13 +3108,13 @@ Output ([checks/torch_versions3.txt](checks/torch_versions3.txt)):
     },
     {
       "after": {
-        "data_ptr": 132853376,
-        "object_id": 140624249234256,
+        "data_ptr": 118627392,
+        "object_id": 140714125370192,
         "version": 1
       },
       "before": {
-        "data_ptr": 132853376,
-        "object_id": 140624249234256,
+        "data_ptr": 118627392,
+        "object_id": 140714125370192,
         "version": 0
       },
       "object_changed": false,
@@ -2968,51 +3140,51 @@ Output ([checks/torch_versions3.txt](checks/torch_versions3.txt)):
 
 Command: `bash work/cpu.sh work/benchmark_round3.py`
 
-Output ([checks/cache_cost3.txt](checks/cache_cost3.txt)):
+Exact output ([checks/cache_cost3.txt](checks/cache_cost3.txt)):
 
 ```text
 {
   "cases": [
     {
-      "after_install_seconds": 0.38480953220278025,
+      "after_install_seconds": 0.34134596725925803,
       "after_per_call": {
-        "max_seconds": 0.03036930225789547,
-        "median_seconds": 0.0283307540230453,
-        "min_seconds": 0.027562140952795744,
+        "max_seconds": 0.0279176221229136,
+        "median_seconds": 0.026140545960515738,
+        "min_seconds": 0.025956018827855587,
         "seconds": [
-          0.028940679039806128,
-          0.02791395829990506,
-          0.02902387361973524,
-          0.03036930225789547,
-          0.028006567619740963,
-          0.027562140952795744,
-          0.0283307540230453
+          0.02613494824618101,
+          0.025956018827855587,
+          0.02612791722640395,
+          0.026140545960515738,
+          0.02781710121780634,
+          0.027858904097229242,
+          0.0279176221229136
         ]
       },
-      "before_install_seconds": 3.424100577831268e-05,
+      "before_install_seconds": 3.742612898349762e-05,
       "before_per_call": {
-        "max_seconds": 0.4689995110966265,
-        "median_seconds": 0.37288348004221916,
-        "min_seconds": 0.349032677244395,
+        "max_seconds": 0.45441452227532864,
+        "median_seconds": 0.34706722013652325,
+        "min_seconds": 0.33688052790239453,
         "seconds": [
-          0.41764826886355877,
-          0.357668693177402,
-          0.349032677244395,
-          0.3879786869511008,
-          0.4689995110966265,
-          0.36966161616146564,
-          0.37288348004221916
+          0.4315689289942384,
+          0.35284700989723206,
+          0.34706722013652325,
+          0.33984962198883295,
+          0.45441452227532864,
+          0.33688052790239453,
+          0.33892159909009933
         ]
       },
       "blocks": 128,
       "boundary": {
-        "max_seconds": 0.38921072520315647,
-        "median_seconds": 0.3834858969785273,
-        "min_seconds": 0.37796131800860167,
+        "max_seconds": 0.34542193077504635,
+        "median_seconds": 0.34177112486213446,
+        "min_seconds": 0.33813909627497196,
         "seconds": [
-          0.38921072520315647,
-          0.37796131800860167,
-          0.3834858969785273
+          0.34542193077504635,
+          0.33813909627497196,
+          0.34177112486213446
         ]
       },
       "buffer_shape": [
@@ -3020,7 +3192,7 @@ Output ([checks/cache_cost3.txt](checks/cache_cost3.txt)):
       ],
       "buffer_tensors": 128,
       "dtype": "bfloat16",
-      "median_speed_ratio": 13.161791590117993,
+      "median_speed_ratio": 13.276969067928214,
       "parameter_count": 268435456,
       "parameter_shape": [
         2048,
@@ -3030,45 +3202,45 @@ Output ([checks/cache_cost3.txt](checks/cache_cost3.txt)):
       "weight_and_buffer_bytes": 537133056
     },
     {
-      "after_install_seconds": 0.7500350028276443,
+      "after_install_seconds": 0.6812121528200805,
       "after_per_call": {
-        "max_seconds": 0.06101168366149068,
-        "median_seconds": 0.05668903002515435,
-        "min_seconds": 0.056436529848724604,
+        "max_seconds": 0.058478849940001965,
+        "median_seconds": 0.05306965531781316,
+        "min_seconds": 0.052297207061201334,
         "seconds": [
-          0.058170842938125134,
-          0.056769439950585365,
-          0.05649229418486357,
-          0.056436529848724604,
-          0.05644609499722719,
-          0.05668903002515435,
-          0.06101168366149068
+          0.05306965531781316,
+          0.05288917385041714,
+          0.053603915963321924,
+          0.058478849940001965,
+          0.057326571084558964,
+          0.052297207061201334,
+          0.052625448908656836
         ]
       },
-      "before_install_seconds": 4.062103107571602e-05,
+      "before_install_seconds": 3.863777965307236e-05,
       "before_per_call": {
-        "max_seconds": 0.8785760509781539,
-        "median_seconds": 0.7935647601261735,
-        "min_seconds": 0.7555420049466193,
+        "max_seconds": 0.8509081923402846,
+        "median_seconds": 0.706850215792656,
+        "min_seconds": 0.6787665546871722,
         "seconds": [
-          0.7825775858946145,
-          0.8070048238150775,
-          0.837296640034765,
-          0.8785760509781539,
-          0.7935647601261735,
-          0.7555420049466193,
-          0.7577684251591563
+          0.8509081923402846,
+          0.7424496323801577,
+          0.6801157887093723,
+          0.7036504759453237,
+          0.706850215792656,
+          0.6787665546871722,
+          0.7180621158331633
         ]
       },
       "blocks": 256,
       "boundary": {
-        "max_seconds": 0.7544169081375003,
-        "median_seconds": 0.7431809697300196,
-        "min_seconds": 0.7277138847857714,
+        "max_seconds": 0.7659496073611081,
+        "median_seconds": 0.6957047251053154,
+        "min_seconds": 0.6868291697464883,
         "seconds": [
-          0.7544169081375003,
-          0.7277138847857714,
-          0.7431809697300196
+          0.6957047251053154,
+          0.6868291697464883,
+          0.7659496073611081
         ]
       },
       "buffer_shape": [
@@ -3076,7 +3248,7 @@ Output ([checks/cache_cost3.txt](checks/cache_cost3.txt)):
       ],
       "buffer_tensors": 256,
       "dtype": "bfloat16",
-      "median_speed_ratio": 13.998559505675944,
+      "median_speed_ratio": 13.31929162832526,
       "parameter_count": 536870912,
       "parameter_shape": [
         2048,
@@ -3088,7 +3260,7 @@ Output ([checks/cache_cost3.txt](checks/cache_cost3.txt)):
   ],
   "cuda_visible_devices": "",
   "kind": "measured CPU stub cache-hit overhead, not GPU speedup",
-  "max_rss_bytes": 1322348544,
+  "max_rss_bytes": 1326764032,
   "nice": 19,
   "threads": 8,
   "torch": "2.11.0+cpu"

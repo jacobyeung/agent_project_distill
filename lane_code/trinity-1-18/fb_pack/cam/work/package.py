@@ -5,7 +5,6 @@ checks=load(ROOT/'out/CHECKS.json')
 assert checks['status']=='PASS_WITH_EVAL_EXCLUSIONS'
 # Hash the finalized deliverables, then include dependencies at their content-addressed u/ paths.
 files=sorted(p for directory in ['work','out'] for p in (ROOT/directory).rglob('*') if p.is_file() and not p.is_symlink() and p.name not in ['fbp_cam.tar','fbp_cam.tar.sha256','PACKAGE.json'] and p.suffix!='.log')
-files.append(ROOT/'STATUS.md')
 inputs={str(p.relative_to(ROOT)):pin(p) for p in files}
 u={p.name:p.resolve() for p in (ROOT/'u').iterdir() if p.is_file()}
 for h,p in u.items():pin(p,h)
@@ -36,4 +35,5 @@ with tarfile.open(out,'r') as tar:
 actual=sum(p.stat().st_size for p in ROOT.rglob('*') if p.is_file() and not p.is_symlink())
 assert actual<300_000_000,actual
 write('out/PACKAGE.json',dict(status='PASS',archive=archive_pin,archive_bytes=out.stat().st_size,workspace_bytes_before_package_receipt=actual,verified_members=verified,files=inputs,content_addressed_dependencies={h:dict(source=str(p),sha256=h) for h,p in sorted(u.items())},scope='Rows, gzip shards, complete reports, code, and all active envelope metadata bytes are included. u/ entries for bundled outputs are tar hardlinks; external metadata are regular files. No RGB or raster bytes are included. Checksum sidecar and this receipt are outside the archive to avoid self-reference.'))
+status(7,f'Camera packet is packaged and byte-verified: {verified} archive members, {out.stat().st_size} archive bytes, and less than 300 MB in this workspace. Native intake admits 5,143 rows and refuses only 836 eval-room overlaps. The report, checks and 40 trace pairs are complete; the supplementary gate document byte hash is MISSING.')
 print(json.dumps(dict(archive=archive_pin,archive_bytes=out.stat().st_size,workspace_bytes=actual,verified_members=verified)),flush=True)

@@ -1,0 +1,48 @@
+{
+  "adapter_dtype": "float32",
+  "attention_implementation": "sdpa",
+  "base_restart": "original_checkpoint_only",
+  "betas": [
+    0.9,
+    0.999
+  ],
+  "clip_norm": 1.0,
+  "effective_batch_size": 32,
+  "epochs": 1,
+  "gradient_checkpointing": "non_reentrant_text_and_vision",
+  "group_parameters": {
+    "mergers": 35840,
+    "text": 5409792,
+    "vision": 962496
+  },
+  "init_adapter": {
+    "parent_run": "r1813_synthetic",
+    "published_sha256": "44b88bd7f0b205e2d9eb7d91e246bf24e3785012d5589ea36322f2760280a4da",
+    "weights_sha256": "70d3c13a3467fd56dd17dc60fc7a767101603c04caa5ff8b51fd95306ba1d698"
+  },
+  "learning_rate": 5e-05,
+  "lora_alpha": 4,
+  "lora_dropout": 0.0,
+  "lora_rank": 2,
+  "loss_reduction": "mean_assistant_tokens_per_row_then_global_row_mean",
+  "max_microbatch_size": 8,
+  "max_sequence_tokens": 16384,
+  "max_steps": null,
+  "max_target_tokens_including_eos": 8192,
+  "memory_fit_safety_factor": 1.15,
+  "memory_fraction": 0.9,
+  "microbatch_size": "auto",
+  "optimizer": "AdamW",
+  "padding": "repeat_epoch_prefix_then_zero_weight_rank_slots",
+  "precision": "bfloat16",
+  "schedule": "cosine",
+  "seed": 17,
+  "shuffle": "python_random_seed17_plus_epoch",
+  "target_truncation": false,
+  "targets": "exact_text_attention_mlp_vision_attention_mlp_mergers",
+  "trainable_parameters": 6408128,
+  "version": "vlm-lora-ddp-v2",
+  "warmup_ratio": 0.03,
+  "weight_decay": 0.0,
+  "world_size": 8
+}

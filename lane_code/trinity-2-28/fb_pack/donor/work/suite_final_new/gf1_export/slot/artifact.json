@@ -1,0 +1,1902 @@
+{
+  "anchors": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32
+  ],
+  "b7_inputs": {
+    "frame_count": 32,
+    "frame_layout": "duplicate",
+    "frame_markers": true,
+    "init": {
+      "artifact_id": "4af43b40",
+      "location": "/project/inputs/a",
+      "selected_by": "NEXT_LEG_INIT_RULE_20261116",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "max_pixels": 147456,
+    "min_pixels": 16384,
+    "minority_count": 2,
+    "routing_training_counts": {
+      "recovery": 1,
+      "scope": "synthetic CPU fixture counts",
+      "units": {
+        "cm": 1,
+        "ft": 1,
+        "in": 1
+      }
+    },
+    "row_stores": {
+      "routing": [
+        {
+          "artifact_id": "4af43b40",
+          "family": "d0_v5",
+          "location": "/project/inputs/a",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "artifact_id": "new",
+          "family": "a0",
+          "location": "/project/inputs/a",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "vqa": [
+        {
+          "artifact_id": "4af43b40",
+          "family": "d0_v5",
+          "location": "/project/inputs/a",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "artifact_id": "new",
+          "family": "a0",
+          "location": "/project/inputs/a",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    "schema": "kit-inputs-v7",
+    "training_objective": "sft",
+    "weight_scale": 1.0
+  },
+  "base_identity": "tiny-fixture",
+  "carrier_position_policy": "native_v1",
+  "component_evidence": {},
+  "config_sha256": "9091dbdd8f451d2e74d801d3d605eda6fef418c60148604b1962823ad96afc91",
+  "depth_backing": null,
+  "frame_count": 32,
+  "frame_layout": "duplicate",
+  "frame_markers": true,
+  "full_weights": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/donor/work/suite_final_new/gf1_export/slot/full_weights/full_weights.json",
+    "sha256": "72ef85ae7dd91f24de54e1d242ce4f24c1e5a6b6483add4093b710b6316e7e19"
+  },
+  "geometry_online": {
+    "connector": {
+      "out_init": "zero",
+      "rms_cam": "warm_start_carrier_median_rms_v1",
+      "rms_scale": 1.0
+    },
+    "encoder": {
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/donor/work/suite_final_new/gf1_export/tiny_config.json",
+        "sha256": "7b4375a3194c479194179dadc28b00e5d8492b522ddc3dddd8e8c7218d0e40dd"
+      },
+      "repository": "thatbrguy/g3t",
+      "revision": "c55e91a04f1cbbad67359072536351201fd19e8b",
+      "source_sha256": "df1ea59a73b0ad08b51670bfa37da84eace99b9d0c45c8d270f7052b42e98701",
+      "weights": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/donor/work/suite_final_new/gf1_export/tiny_tower.pt",
+        "sha256": "83a60676d21150ba7de21b79e6fbb22bf1d2f3dd5b7c44f1b893fd3a14522b30"
+      }
+    },
+    "feature": "cam_l23_2048_pose9_disagreement1_v1",
+    "finetune": null,
+    "gf1": {
+      "checkpointing": true,
+      "dense_frames": 64,
+      "gf1_init": "warm",
+      "hidden": 16,
+      "injection": "pre_lm",
+      "layers": [
+        0,
+        1,
+        2
+      ],
+      "learning_rate": 0.0001,
+      "stage": 1,
+      "top_k": 0
+    },
+    "input": "vision_patch_unpatchify_first_of_group_square_pad_bilinear_518_v1",
+    "mode": "frozen",
+    "schema": "gx-carrier-v1"
+  },
+  "gx": {
+    "mode": "frozen"
+  },
+  "heads": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/donor/work/suite_final_new/gf1_export/slot/heads.pt",
+    "sha256": "e7acc5511c79a6f88ba54644073d9d4476b3a27bc789a8621d68c35a46187ccb"
+  },
+  "max_pixels": 147456,
+  "min_pixels": 16384,
+  "placement": "append_after_temporal_group_video_tokens_v1",
+  "pose_backing": "lm_final_norm",
+  "readout_config": {
+    "decimal_precision": 1024,
+    "frame_count": 32,
+    "max_call_tokens": 96,
+    "max_calls": 200,
+    "token_grid_size": 1000
+  },
+  "schema": "carrier-c1-artifact-v1",
+  "step": 1,
+  "trace_program_version": "3.14",
+  "trace_version_binding": 1,
+  "trainable_modules": {
+    "base_vit": [
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.patch_embed.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.patch_embed.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.pos_embed.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.mlp.linear_fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.mlp.linear_fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.mlp.linear_fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.0.mlp.linear_fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.mlp.linear_fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.mlp.linear_fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.mlp.linear_fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.1.mlp.linear_fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.mlp.linear_fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.mlp.linear_fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.mlp.linear_fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.blocks.2.mlp.linear_fc2.bias",
+        "trainable": false
+      }
+    ],
+    "depth_head": [],
+    "lm": [
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.embed_tokens.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.linear_attn.dt_bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.linear_attn.A_log",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.linear_attn.conv1d.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.linear_attn.norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.linear_attn.out_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.linear_attn.in_proj_qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.linear_attn.in_proj_z.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.linear_attn.in_proj_b.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.linear_attn.in_proj_a.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.mlp.gate_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.mlp.up_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.mlp.down_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.input_layernorm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.0.post_attention_layernorm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.1.self_attn.q_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.1.self_attn.k_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.1.self_attn.v_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.1.self_attn.o_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.1.self_attn.q_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.1.self_attn.k_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.1.mlp.gate_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.1.mlp.up_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.1.mlp.down_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.1.input_layernorm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.1.post_attention_layernorm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.2.self_attn.q_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.2.self_attn.k_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.2.self_attn.v_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.2.self_attn.o_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.2.self_attn.q_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.2.self_attn.k_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.2.mlp.gate_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.2.mlp.up_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.2.mlp.down_proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.2.input_layernorm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.layers.2.post_attention_layernorm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.language_model.norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "lm_head.weight",
+        "trainable": false
+      }
+    ],
+    "merger": [
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.merger.norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.merger.norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.merger.linear_fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.merger.linear_fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.merger.linear_fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "model.visual.merger.linear_fc2.bias",
+        "trainable": false
+      }
+    ],
+    "other": [
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.camera_token",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.register_token",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.patch_embed.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.patch_embed.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.attn.q_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.attn.q_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.attn.k_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.attn.k_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.ls1.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.0.ls2.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.attn.q_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.attn.q_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.attn.k_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.attn.k_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.ls1.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.1.ls2.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.attn.q_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.attn.q_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.attn.k_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.attn.k_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.ls1.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.frame_blocks.2.ls2.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.attn.q_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.attn.q_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.attn.k_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.attn.k_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.ls1.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.0.ls2.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.attn.q_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.attn.q_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.attn.k_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.attn.k_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.ls1.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.1.ls2.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.attn.q_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.attn.q_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.attn.k_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.attn.k_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.ls1.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.aggregator.global_blocks.2.ls2.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.empty_pose_tokens",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.ls1.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk.0.ls2.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.token_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.token_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.trunk_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.embed_pose.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.embed_pose.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.poseLN_modulation.1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.poseLN_modulation.1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.pose_branch.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.pose_branch.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.pose_branch.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.local_camera_head.pose_branch.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.empty_pose_tokens",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.ls1.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk.0.ls2.gamma",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.token_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.token_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.trunk_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.embed_pose.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.embed_pose.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.poseLN_modulation.1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.poseLN_modulation.1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.pose_branch.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.pose_branch.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.pose_branch.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.geometry_encoder.global_camera_head.pose_branch.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.norms.0.weight",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.norms.0.bias",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.norms.1.weight",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.norms.1.bias",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.norms.2.weight",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.norms.2.bias",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.projections.0.weight",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.projections.0.bias",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.projections.1.weight",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.projections.1.bias",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.projections.2.weight",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.projections.2.bias",
+        "trainable": true
+      },
+      {
+        "learning_rate": 0.0001,
+        "name": "auxiliary_heads.gf1.outputs.0.weight",
+        "trainable": true
+      }
+    ],
+    "pose_head": [
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.tokens",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.projector.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.projector.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.empty_pose_tokens",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.scale_token",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.token_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.token_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk_norm.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk_norm.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.ls1",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.ls2",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.0.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.ls1",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.ls2",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.1.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.ls1",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.ls2",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.2.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.ls1",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.ls2",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.norm1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.norm1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.attn.qkv.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.attn.qkv.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.attn.proj.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.attn.proj.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.norm2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.norm2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.mlp.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.mlp.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.mlp.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.trunk.3.mlp.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.embed_pose.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.embed_pose.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.pose_modulation.1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.pose_modulation.1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.pose_branch.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.pose_branch.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.pose_branch.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.pose_branch.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.gravity_branch.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.gravity_branch.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.gravity_branch.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.gravity_branch.fc2.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.scale_branch.fc1.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.scale_branch.fc1.bias",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.scale_branch.fc2.weight",
+        "trainable": false
+      },
+      {
+        "learning_rate": 0.0,
+        "name": "auxiliary_heads.pose.head.scale_branch.fc2.bias",
+        "trainable": false
+      }
+    ],
+    "private_vit": []
+  },
+  "training_mode": "final",
+  "weight_scale": 1.0
+}

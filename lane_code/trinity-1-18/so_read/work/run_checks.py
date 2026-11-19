@@ -35,6 +35,7 @@ for name,path in [('cache','work/src/u0/tests/test_read_cache.py'),
                   ('round7','work/src/u0/tests/test_round7.py'),
                   ('round8','work/src/u0/tests/test_round8.py'),
                   ('round9','work/src/u0/tests/test_round9.py'),
+                  ('round10','work/src/u0/tests/test_round10.py'),
                   ('kit','out/kit_parity50/test_compare.py'),
                   ('kit_launch','out/kit_parity50/test_run.py')]:
     command=[sys.executable,'-I','-s','-B',str(L/'work/run_fixture5.py'),str(L/path)]
@@ -64,6 +65,7 @@ for name,script,variable,summary,args in (
     ('round5_before','test_round5.py','READ_ROUND5_BEFORE','FAILED (failures=11)',[]),
     ('round6_before','test_round6.py','READ_ROUND6_BEFORE','FAILED (failures=31)',[]),
     ('round7_before','test_round7.py','READ_ROUND7_BEFORE','FAILED (failures=10)',[]),
+    ('round10_before','test_round10.py','READ_ROUND10_BEFORE','FAILED (failures=7)',[]),
     ('round9_before','test_round9.py','READ_ROUND9_BEFORE','FAILED (failures=11)',[]),
     ('round8_before','test_round8.py','READ_ROUND8_BEFORE','FAILED (failures=29)',[]),
     ('round4_before','test_round4.py','READ_ROUND4_BEFORE','FAILED (failures=7, skipped=1)',[]),
@@ -101,9 +103,9 @@ report=dict(results=results,torch=torch.__version__,transformers=transformers.__
             cuda_visible_devices=os.environ.get('CUDA_VISIBLE_DEVICES'),torch_threads=torch.get_num_threads(),
             max_child_rss_bytes=resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss*1024,
             workspace_bytes=int(subprocess.check_output(['du','-sb',str(L)],text=True).split()[0]))
-assert report['workspace_bytes']<3_000_000_000
-assert report['max_child_rss_bytes']<30*1024**3
 (out/'RESULTS.json').write_text(json.dumps(report,indent=2,sort_keys=True)+'\n')
+assert report['workspace_bytes']<3_000_000_000,report['workspace_bytes']
+assert report['max_child_rss_bytes']<30*1024**3
 print(json.dumps({k:v for k,v in report.items() if k!='results'},sort_keys=True))
 
 with (L/'work/STATUS.md').open('a') as f:

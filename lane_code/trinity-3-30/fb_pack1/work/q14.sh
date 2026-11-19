@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack; ls -la $F/relrev; tail -c 1500 $F/relrev/cursor.log; head -c 3000 $F/relrev/REVIEW_VERDICT.md 2>/dev/null; wc -c $F/route/out/CONFIG_HANDOFF.json $F/route/out/ROUTE_MANIFEST.json

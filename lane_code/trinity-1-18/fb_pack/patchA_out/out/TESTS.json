@@ -1,0 +1,148 @@
+{
+  "status": "MISSING_INPUTS",
+  "inputs_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/subset_final_base.json": "47d00f8f8a60bb5a0a6d207e0e92cd58a19578de46d6b8ada4a3506b160f46c5",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/subset_final_new.json": "7a39ad809ab679258d211932b08d791058c42145f5ca222176474bf6db6a5b2d",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/camera_pin_final_base.json": "8bcd4e7156b8e16e6840c74c977ef69bf1fa697c6663c745eec2f45dfb6d2f4a",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/camera_pin_final_new.json": "9517b7172c903d9823b1891d0cda537de44708c492922c1da3ef7d451d45c1f9",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/real_route_final_base.json": "6e7f57ff33d8f5b686d267fe7435c39bf6b3f48a2f59771e4291db16fbf1d918",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/real_route_final_new.json": "88ddf0d2500fdbf9fd836a7f9cb67b9d7ce4b88374cff88fad25df0572ccf117",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/alias_focused_final_base.json": "0d5875940f9fa688accdc92c623a3bdcb231307ae1161f79a3f3a4892fd3cbf7",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/alias_focused_final_new.json": "8ff762a0bb08d64d9531aa1ab2b4e20c4db0a3420277d9830b8c805aa43c30f2",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/alias_integration_final_base.json": "24aa9a17591db43f21cf854d9fe1fa1c916c045450f6fdbc231cf6de5634d147",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/alias_integration_final_new.json": "079f3915f4a3da65a2c564960b492b8b3901bd7991e0e9eb436832283c43c8ce",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/full_safe_base.json": "02aa8ed2e726abe65b5d5177b60903bcdc839edab59f1b7bf46a4360297edea0",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/full_final_new.json": "36bb5bbcf26026b044dc76032bce824aabf5846b34ca5622a655733a8f49bc05",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/finalize.py": "2a44bb95acc3834c7d7a4dc4d41fb95e8260690c34d7568268070aa8210ead0d",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/BASE_VERIFICATION.json": "eb0fdbc80d108859a9ae8760ef658fa1d39190575add9513e18ee696cbc8bfb9",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/PATCH_VALIDATION.json": "cd88f451f12c7afaf6559a74a0177cc5b4256f4d18c3779b1056c58ffcfee6af"
+  },
+  "runs": {
+    "subset_final_base": {
+      "tests": 11,
+      "failures": 43,
+      "errors": 39,
+      "skipped": 0,
+      "status": "FAIL",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base subset_final_base test_r1_subset",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/subset_final_base.json",
+      "report_sha256": "47d00f8f8a60bb5a0a6d207e0e92cd58a19578de46d6b8ada4a3506b160f46c5"
+    },
+    "subset_final_new": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new subset_final_new test_r1_subset",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/subset_final_new.json",
+      "report_sha256": "7a39ad809ab679258d211932b08d791058c42145f5ca222176474bf6db6a5b2d"
+    },
+    "camera_pin_final_base": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "status": "FAIL",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base camera_pin_final_base real_route_tests.RealRoute.test_camera_standin_passes_source_pin_but_requires_wording_exclusions",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/camera_pin_final_base.json",
+      "report_sha256": "8bcd4e7156b8e16e6840c74c977ef69bf1fa697c6663c745eec2f45dfb6d2f4a"
+    },
+    "camera_pin_final_new": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new camera_pin_final_new real_route_tests.RealRoute.test_camera_standin_passes_source_pin_but_requires_wording_exclusions",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/camera_pin_final_new.json",
+      "report_sha256": "9517b7172c903d9823b1891d0cda537de44708c492922c1da3ef7d451d45c1f9"
+    },
+    "real_route_final_base": {
+      "tests": 9,
+      "failures": 8,
+      "errors": 0,
+      "skipped": 0,
+      "status": "MISSING",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base real_route_final_base real_route_tests",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/real_route_final_base.json",
+      "report_sha256": "6e7f57ff33d8f5b686d267fe7435c39bf6b3f48a2f59771e4291db16fbf1d918"
+    },
+    "real_route_final_new": {
+      "tests": 9,
+      "failures": 6,
+      "errors": 0,
+      "skipped": 0,
+      "status": "MISSING",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new real_route_final_new real_route_tests",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/real_route_final_new.json",
+      "report_sha256": "88ddf0d2500fdbf9fd836a7f9cb67b9d7ce4b88374cff88fad25df0572ccf117"
+    },
+    "alias_focused_final_base": {
+      "tests": 115,
+      "failures": 0,
+      "errors": 101,
+      "skipped": 0,
+      "status": "MISSING",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base alias_focused_final_base alias-focused",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/alias_focused_final_base.json",
+      "report_sha256": "0d5875940f9fa688accdc92c623a3bdcb231307ae1161f79a3f3a4892fd3cbf7"
+    },
+    "alias_focused_final_new": {
+      "tests": 115,
+      "failures": 0,
+      "errors": 101,
+      "skipped": 0,
+      "status": "MISSING",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new alias_focused_final_new alias-focused",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/alias_focused_final_new.json",
+      "report_sha256": "8ff762a0bb08d64d9531aa1ab2b4e20c4db0a3420277d9830b8c805aa43c30f2"
+    },
+    "alias_integration_final_base": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 3,
+      "skipped": 0,
+      "status": "MISSING",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base alias_integration_final_base alias-integration",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/alias_integration_final_base.json",
+      "report_sha256": "24aa9a17591db43f21cf854d9fe1fa1c916c045450f6fdbc231cf6de5634d147"
+    },
+    "alias_integration_final_new": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 3,
+      "skipped": 0,
+      "status": "MISSING",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new alias_integration_final_new alias-integration",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/alias_integration_final_new.json",
+      "report_sha256": "079f3915f4a3da65a2c564960b492b8b3901bd7991e0e9eb436832283c43c8ce"
+    },
+    "full_safe_base": {
+      "tests": 1930,
+      "failures": 18,
+      "errors": 473,
+      "skipped": 145,
+      "status": "MISSING",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base full_safe_base full",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/full_safe_base.json",
+      "report_sha256": "02aa8ed2e726abe65b5d5177b60903bcdc839edab59f1b7bf46a4360297edea0"
+    },
+    "full_final_new": {
+      "tests": 1941,
+      "failures": 18,
+      "errors": 473,
+      "skipped": 145,
+      "status": "MISSING",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new full_final_new full",
+      "report": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/full_final_new.json",
+      "report_sha256": "36bb5bbcf26026b044dc76032bce824aabf5846b34ca5622a655733a8f49bc05"
+    }
+  },
+  "full_suite_new_failures": [],
+  "changed_failure_categories": [],
+  "no_new_full_suite_failure": true,
+  "comparison": "Test/subtest status multiplicities and failure categories; absolute temporary-path parameter values are normalized.",
+  "scope": "All discovered test modules attempted on CPU; worker processes, network, NFS reads, outside writes and deletion denied. Missing inputs and all base tracebacks are retained.",
+  "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/finalize.py"
+}

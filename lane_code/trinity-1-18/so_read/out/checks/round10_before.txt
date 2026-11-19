@@ -1,0 +1,78 @@
+test_f1_public_script_is_pinned_and_tampering_refuses (__main__.Round10Tests.test_f1_public_script_is_pinned_and_tampering_refuses) ... FAIL
+test_f1_real_boot_refuses_c_and_runs_actual_preflight_script (__main__.Round10Tests.test_f1_real_boot_refuses_c_and_runs_actual_preflight_script) ... FAIL
+test_f2_missing_nested_path_refuses_before_self_test (__main__.Round10Tests.test_f2_missing_nested_path_refuses_before_self_test) ... FAIL
+test_f2_stage_resolves_every_sealed_path_with_one_alias_table (__main__.Round10Tests.test_f2_stage_resolves_every_sealed_path_with_one_alias_table) ... FAIL
+test_f3_workers_are_direct_inside_namespace (__main__.Round10Tests.test_f3_workers_are_direct_inside_namespace) ... FAIL
+test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin (__main__.Round10Tests.test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin) ... FAIL
+test_f4_readme_has_no_asset_preread_and_generates_aliases (__main__.Round10Tests.test_f4_readme_has_no_asset_preread_and_generates_aliases) ... FAIL
+
+======================================================================
+FAIL: test_f1_public_script_is_pinned_and_tampering_refuses (__main__.Round10Tests.test_f1_public_script_is_pinned_and_tampering_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 80, in test_f1_public_script_is_pinned_and_tampering_refuses
+    self.assertIn('u5.py',self.kit.kit_hashes(),'Missing executable preflight hash')
+AssertionError: 'u5.py' not found in {'run.py': '2cb5917beef275402eceb92cc45efe4cc1625d6124b35196f02461057453bbf1', 'compare.py': '73858354fe8d366880873246e6256393ea2b27d5979af4e128e93c569a92f50e', 'sample50.json': '6a7885b6ea579d5e4a647ac408e79bec500e18cce574409b0a30c921a41e8707', 'host.py': 'afbcd84afd2ca8fe7278080f3d76d8f671b421a5f42df6278399730e1099155c'} : Missing executable preflight hash
+
+======================================================================
+FAIL: test_f1_real_boot_refuses_c_and_runs_actual_preflight_script (__main__.Round10Tests.test_f1_real_boot_refuses_c_and_runs_actual_preflight_script)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 48, in test_f1_real_boot_refuses_c_and_runs_actual_preflight_script
+    self.assertTrue((OUT/'kit_parity50/u5.py').is_file(),'Preflight must be a shipped script')
+AssertionError: False is not true : Preflight must be a shipped script
+
+======================================================================
+FAIL: test_f2_missing_nested_path_refuses_before_self_test (__main__.Round10Tests.test_f2_missing_nested_path_refuses_before_self_test)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 142, in test_f2_missing_nested_path_refuses_before_self_test
+    self.assertTrue(hasattr(self.kit,'validate_existing_paths'),'Missing pre-self-test path admission')
+AssertionError: False is not true : Missing pre-self-test path admission
+
+======================================================================
+FAIL: test_f2_stage_resolves_every_sealed_path_with_one_alias_table (__main__.Round10Tests.test_f2_stage_resolves_every_sealed_path_with_one_alias_table)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 111, in test_f2_stage_resolves_every_sealed_path_with_one_alias_table
+    self.assertTrue(hasattr(self.host,'ALIASES'),'Missing shared prepared-path aliases')
+AssertionError: False is not true : Missing shared prepared-path aliases
+
+======================================================================
+FAIL: test_f3_workers_are_direct_inside_namespace (__main__.Round10Tests.test_f3_workers_are_direct_inside_namespace)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 157, in test_f3_workers_are_direct_inside_namespace
+    self.assertEqual(self.kit.worker_command(['u0.py','u2.json']),[inputs['python'],'-B','-I','u0.py','u2.json'])
+AssertionError: Lists differ: ['/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/eb69[1339 chars]son'] != ['/scratch/jjyeung/b01ec87a6f29b/d/v/py', '-B', '-I', 'u0.py', 'u2.json']
+
+First differing element 0:
+'/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/eb69[30 chars]wrap'
+'/scratch/jjyeung/b01ec87a6f29b/d/v/py'
+
+First list contains 57 additional elements.
+First extra element 5:
+'usr/bin'
+
+Diff is 1666 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin (__main__.Round10Tests.test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 162, in test_f4_one_archive_read_hashes_extracted_bytes_and_refuses_bad_pin
+    self.assertTrue(hasattr(self.host,'extract_assets'),'Missing one-pass extraction/hash')
+AssertionError: False is not true : Missing one-pass extraction/hash
+
+======================================================================
+FAIL: test_f4_readme_has_no_asset_preread_and_generates_aliases (__main__.Round10Tests.test_f4_readme_has_no_asset_preread_and_generates_aliases)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round10.py", line 189, in test_f4_readme_has_no_asset_preread_and_generates_aliases
+    self.assertNotIn("archive.open('rb')",block,'README rehashes the archive before staging')
+AssertionError: "archive.open('rb')" unexpectedly found in "\nimport hashlib,json,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);archive=Path(sys.argv[2]);proof=json.loads((p/'a/c/CPU.json').read_text())\nassert proof['passed'] is True\nwith tarfile.open(p/'0.tgz') as t:cfg=json.load(t.extractfile('9.json'))\nasset=proof['gate_assets'];assert asset['logical']==cfg['logical']\nassert Path(asset['path']).resolve()==(p/'a/4.tar').resolve() and archive.stat().st_size==asset['bytes']\nh=hashlib.sha256()\nwith archive.open('rb') as stream:\n    for chunk in iter(lambda:stream.read(1024**2),b''):h.update(chunk)\nassert h.hexdigest()==asset['sha256']\nprint(cfg['logical'])" : README rehashes the archive before staging
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.056s
+
+FAILED (failures=7)

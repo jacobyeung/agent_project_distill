@@ -1,0 +1,43 @@
+{
+  "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 STUDENT_IO_THREADS=1 CUDA_VISIBLE_DEVICES=\"\" nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B out/ROUTING_REGENERATE_24J.py --tree work/tree_r1 --n-config <authenticated-N-config.json> --paths <authenticated-local-pin-map.json> --output <fresh-exact-reviewed-output-path>",
+  "conditional_recipe": "out/ROUTING_REGENERATE_24J.py",
+  "inventory_entries": [
+    {
+      "action": "reuse",
+      "bytes": 49058,
+      "exists": false,
+      "inventory": "UPLOADS_MINIMAL.json",
+      "local_path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json",
+      "name": "u/ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+      "needed_minimal": true,
+      "sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984"
+    },
+    {
+      "action": "reuse",
+      "bytes": 49058,
+      "exists": false,
+      "inventory": "UPLOADS_MINIMAL.json",
+      "local_path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json",
+      "name": "u/ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+      "needed_minimal": true,
+      "sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984"
+    }
+  ],
+  "limitation": "No P rows or routing receipt were available for this build. The recipe may refuse unavailable inputs or producer drift. Its P-row comparison and the exact N-runtime routing digest require independent review; neither is asserted here.",
+  "needed_file": {
+    "bytes": 49058,
+    "local_path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json",
+    "sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+    "upload_name": "u/ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984"
+  },
+  "on_receipt_available": "Authenticate the complete SHA256, then read regenerated_sha256 if present. Do not use the receipt file hash as that field.",
+  "reason": "The authenticated ca0616db receipt is absent; whether it contains regenerated_sha256 is unknown.",
+  "recipe_evidence": "Authenticates P config and ca0616db; reads the full database hash from that receipt and checks its 4e8e6c04 prefix; rebuilds from pinned materialization inputs and requires identical ordered (i,row,target) values before emitting a digest.",
+  "recipe_executed": false,
+  "regenerated_sha256": null,
+  "routing_base_sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+  "schema": "host24j-routing-selection-v1",
+  "source_inventory": "out/UPLOADS_MINIMAL.json",
+  "status": "BLOCKED_MISSING_SOURCE",
+  "trained_database_sha256_prefix": "4e8e6c04"
+}

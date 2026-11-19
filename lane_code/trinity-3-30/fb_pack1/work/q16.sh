@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack; tail -c 1500 $F/donor/dispatch.log; echo; ls $F/donor/out | tr '\n' ' '; echo; head -c 6000 $F/donor/out/REPORT.md 2>/dev/null; ls /scratch/jjyeung/orch_n30/codex_local/agent/scratch/codex_runs | grep fbp

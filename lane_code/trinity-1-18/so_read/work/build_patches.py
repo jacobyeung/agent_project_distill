@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import resource
 import sys
 import tarfile
 import uuid
@@ -20,8 +21,8 @@ groups={
  '02_atomic_scene_shards.diff':[f'u0/a{i}.py' for i in range(4,12)]+[
     'u0/tests/test_read_journal.py','u0/tests/test_public.py','u0/tests/test_round1.py',
     'u0/tests/test_compare.py','u0/tests/u0.json','u0/tests/u1.json'],
- '03_production_integration.diff':[f'u0/a{i}.py' for i in range(12,22)]+['u0/tests/test_round2.py','u0/tests/test_round3.py',
-     'u0/tests/test_operator_round3.py','u0/tests/test_lock_round3.py','u0/tests/test_round4.py','u0/tests/test_round5.py','u0/tests/test_round6.py','u0/tests/test_round7.py','u0/tests/test_round8.py','u0/tests/test_round9.py']}
+ '03_production_integration.diff':[f'u0/a{i}.py' for i in range(12,23)]+['u0/tests/test_round2.py','u0/tests/test_round3.py',
+     'u0/tests/test_operator_round3.py','u0/tests/test_lock_round3.py','u0/tests/test_round4.py','u0/tests/test_round5.py','u0/tests/test_round6.py','u0/tests/test_round7.py','u0/tests/test_round8.py','u0/tests/test_round9.py','u0/tests/test_round10.py']}
 
 def sha(value):return hashlib.sha256(value).hexdigest()
 def files(root):
@@ -60,7 +61,7 @@ for name,paths in groups.items():
  raw=''.join(parts).encode();(L/'out/patches'/name).write_bytes(raw)
  manifest['patches'][name]=dict(sha256=sha(raw),bytes=len(raw),files=pins)
 
-run=L/'work/apply-round9'/uuid.uuid4().hex
+run=L/'work/apply-round10'/uuid.uuid4().hex
 verify=run/'src';verify.mkdir(parents=True)
 copy_values(full_base,verify)
 
@@ -141,6 +142,7 @@ manifest['application_checks']['A4_operator']='zero fuzz; explicit read_extensio
 suite=[]
 env=dict(os.environ,READ_INPUT_SRC=str(A),READ_TEST_TMP=str(L/'work/test-artifacts'),
          READ_OPERATOR_SOURCE=str(operator_root/'tower_sequence.py'),READ_OPERATOR4_SOURCE=str(operator_root))
+manifest['a4_wrapper_member_pins']=json.loads((L/'out/checks/A4_WRAPPER_PINS10.json').read_text())
 manifest['a4_payload_pin']=dict(sha256=sha((BASE/'A4/package/0.tgz').read_bytes()),bytes=(BASE/'A4/package/0.tgz').stat().st_size)
 manifest['a4_member_pins']={n:dict(sha256=sha((BASE/'A4'/n).read_bytes()),bytes=(BASE/'A4'/n).stat().st_size)
     for n in ('package/0.json','package/3.py','package/a/0.json','package/a/4.py','package/a/7.py','fetch_return.py')}
@@ -151,7 +153,7 @@ manifest['kit_files']={p.name:dict(sha256=sha(p.read_bytes()),bytes=p.stat().st_
 manifest['kit_files']['sample50.json']['public_sha256']=sha((json.dumps({'u0':pack(json.loads((L/'out/kit_parity50/sample50.json').read_bytes()))},sort_keys=True)+'\n').encode())
 manifest['default_bound_export']=json.loads((L/'out/operations/DEFAULT_EXPORT_PROVENANCE.json').read_text())
 (L/'out/patches/MANIFEST.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
-for name in ('off','round4','round5','round6','round7','round8','round9','compare'):
+for name in ('off','round4','round5','round6','round7','round8','round9','round10','compare'):
  command=[sys.executable,'-I','-s','-B',str(L/'work/run_fixture5.py'),str(verify/'u0/tests'/('test_'+name+'.py'))]
  result=subprocess.run(command,cwd=L,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
  output='applied_'+name+'.txt';(L/'out/checks'/output).write_text(result.stdout)
@@ -173,10 +175,12 @@ pins={rel:sha((W/rel).read_bytes()) for rel in sorted(all_files)}
 assert pins==json.loads((L/'out/kit_parity50/EXTENSION_PINS.json').read_bytes())
 manifest['b5_base_archive_sha256']=sha((BASE/'B5/package/0.tgz').read_bytes())
 manifest['operations_files']={str(p.relative_to(L/'out/operations')):dict(sha256=sha(p.read_bytes()),bytes=p.stat().st_size) for p in (L/'out/operations').iterdir() if p.is_file()}
+manifest['applied_max_child_rss_bytes']=resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss*1024
+assert manifest['applied_max_child_rss_bytes']<30*1024**3
 manifest['generated_utc']=datetime.now(timezone.utc).isoformat()
 (L/'out/patches/MANIFEST.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
 print('PASS: 3 additive reader diffs ('+str(len(all_files))+' files) plus 2 default-OFF A4 operator diffs; zero-fuzz application; unchanged original reader hash trees.')
-print('PASS: OFF, round-4/5/6/7/8 integration and comparator suites pass from the fresh applied A4 tree; both complete 927-file base inventories authenticate.')
+print('PASS: OFF, round-4/5/6/7/8/9/10 integration and comparator suites pass from the fresh applied A4 tree; both complete 927-file base inventories authenticate.')
 print('Applied verification root: '+str(run))
 
 with (L/'work/STATUS.md').open('a') as f:

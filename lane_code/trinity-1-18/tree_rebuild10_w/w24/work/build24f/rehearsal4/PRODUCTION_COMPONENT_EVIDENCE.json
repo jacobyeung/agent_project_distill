@@ -1,0 +1,208 @@
+{
+  "artifact": {
+    "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/artifact.json",
+    "sha256": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd"
+  },
+  "basis": "Source invariant plus authenticated production pins; not a production preparation or export execution",
+  "expected_slots": {
+    "data_rows_r2": {
+      "receipt_sha256": "b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf",
+      "status": "DEFERRED"
+    },
+    "depth_init_vc": {
+      "receipt_sha256": "b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf",
+      "status": "DEFERRED"
+    },
+    "geometry_tower": {
+      "receipt_sha256": "b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf",
+      "status": "DEFERRED"
+    },
+    "heads_depth": {
+      "receipt_sha256": "b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf",
+      "status": "DEFERRED"
+    },
+    "heads_frame_embeddings": {
+      "basis": "Native configuration, module and pinned heads inventory proof",
+      "status": "NOT_PRESENT"
+    },
+    "heads_gf1_connector": {
+      "basis": "Native configuration, module and pinned heads inventory proof",
+      "status": "NOT_PRESENT"
+    },
+    "heads_pose": {
+      "receipt_sha256": "b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf",
+      "status": "DEFERRED"
+    },
+    "init_m544": {
+      "receipt_sha256": "b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf",
+      "status": "DEFERRED"
+    },
+    "segmenter": {
+      "receipt_sha256": "b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf",
+      "status": "DEFERRED"
+    }
+  },
+  "functions": {
+    "out/kit_n_go/b/rv.py": {
+      "functions": {
+        "sync_preparation": {
+          "end_line": 230,
+          "line": 226,
+          "source": "def sync_preparation(cfg, root, name):\n    from student_pilot.p3_provenance import pinned\n    receipt = load(pinned(cfg[\"preparation\"]))\n    receipt[\"r1_training\"] = cfg[\"r1_training\"]\n    cfg[\"preparation\"] = write(root / name, receipt)"
+        }
+      },
+      "sha256": "92e12efb6172841ab6c413da0785a42ac4950f701f49c4f317c9a676e9e9dbc9"
+    },
+    "work/tree_r1/launch_r1/production_proof.py": {
+      "functions": {
+        "_run": {
+          "end_line": 185,
+          "line": 64,
+          "source": "def _run(request, output, *, stage=None):\n    \"\"\"Native admission performs build, composition and prepare in that order.\"\"\"\n    root = Path(output).resolve()\n    result = dict(status='REFUSE',GO=False,steps=[],forward='not requested')\n    environment = ExitStack()\n    try:\n        result['staged'] = verify_staging(request)\n        cfg = load(pinned(request['config']))\n        from student_pilot.r1_coverage import deferred\n        deferred(cfg, request, read_pins=True)\n        card = load(pinned(cfg['r1_training']['mix']))\n        if card.get('counting_admission') != 'procedure_only_v1':\n            raise ValueError('R1_PROOF_COUNTING_ADMISSION_REQUIRED')\n        from student_pilot.r1_coverage import routing_request, validate_binding\n        minimal = routing_request(cfg, request)\n        if not cfg.get('s1_routing') or not minimal and not cfg['r1_training'].get('routing_inputs'):\n            raise ValueError('R1_PROOF_NATIVE_ROUTING_REQUIRED')\n        if minimal:\n            validate_binding(cfg)\n        from student_pilot.r1_rooms import verify_audit\n        room = verify_audit(cfg,request['room_audit'])\n        result['room_certification'] = dict(scope=room['certifies'],store=room['store'])\n        import os\n        if os.uname().nodename.startswith('trinity'):\n            raise ValueError('R1_PROOF_FRAME_HOST_REQUIRED')\n        from .entry import (begin_host, host_environment, check_host_runtime, stage_host,\n                            check_host_scene, check_host_selection, finish_host)\n        root, job_tmp, host = begin_host(cfg, root, request)\n        environment.enter_context(host_environment(job_tmp))\n        check_host_runtime(cfg, request, host)\n        cfg = stage_host(cfg, root, request, job_tmp, stage=stage)\n        check_host_scene(cfg, host)\n        check_host_selection(cfg, root, request, host)\n        if cfg['r1_training'].get('direction_twins'):\n            from student_pilot.r1_direction_twins import augment\n            from student_pilot.r1_rooms import census\n            cfg=augment(cfg,root/'twins')\n            audit,_=census(cfg)\n            write(root/'twins/room_audit.json',audit)\n            cfg['r1_training']['room_audit']=file_pin(root/'twins/room_audit.json')\n            verify_audit(cfg,cfg['r1_training']['room_audit'])\n            result['augmented_room_audit']=cfg['r1_training']['room_audit']\n            result['steps'].append('direction_twins')\n        from student_pilot.r1_persisted import verify, scope, init_policy\n        value=cfg['r1_training']\n        closure=verify(value.get('handover_receipt'),value.get('p_run',{}),\n                       cfg['init_artifact']['artifact'],value.get('persisted_files',{}),\n                       weights=bool(request.get('weights')),proof_mode=value.get('proof_mode'),init_policy=init_policy(value))\n        step = closure['receipt']['step']\n        if step not in (400,600) or request.get('milestone',step)!=step:\n            raise ValueError('R1_PROOF_EXPORT_STEP_REQUIRED')\n        memory = request.get('memory_gib',192)\n        if type(memory) is not int or not 8<=memory<=512:\n            raise ValueError('R1_PROOF_MEMORY_REQUEST_INVALID')\n        device = request.get('device','cpu')\n        if device not in ('cpu','cuda:0'):\n            raise ValueError('R1_PROOF_DEVICE_INVALID')\n        # Refuse missing component evidence before writing capacity-sized stores.\n        from student_pilot.r1_training import training_components\n        with scope(closure['paths']):\n            training_components(cfg['r1_training']['registry'], cfg)\n        result['steps'].append('training_components')\n        # Produce and bind the witness before native prepare validates the init boundary.\n        from .p_opener_witness import produce as opener\n        with scope(closure['paths']):\n            cfg['routing_vocabulary'] = opener(cfg,root/'v.json')\n            from student_pilot.r1_handover import bind_target\n            cfg = bind_target(cfg,root/'m.json')\n        write(root/'c.json',cfg)\n        config_pin = file_pin(root/'c.json')\n        result['steps'].append('p_opener_witness')\n        from student_pilot.s1_admission import admit\n        directory=root/'p';directory.mkdir(exist_ok=True)\n        with scope(closure['paths']):\n            visible = os.environ.get('CUDA_VISIBLE_DEVICES')\n            os.environ['CUDA_VISIBLE_DEVICES'] = ''\n            try:\n                prepared = admit(config_pin,directory,request['frame_roots'],threads=8,\n                                 memory_gib=memory,prepare_only=True)\n            finally:\n                if visible is None:\n                    os.environ.pop('CUDA_VISIBLE_DEVICES',None)\n                else:\n                    os.environ['CUDA_VISIBLE_DEVICES'] = visible\n        result['steps'].extend(['s1_routing.build',\n            *([] if minimal else ['r1_routing.compose_native']), 's1_admission.prepare'])\n        from student_pilot.r1_population import bind_prepared\n        with scope(closure['paths']):\n            produced = bind_prepared(load(pinned(prepared['config'])),root/'b')\n        cfg = load(pinned(produced));result['config']=produced\n        result['steps'].append('r1_population.bind_prepared')\n        from student_pilot.r1_persisted import admission, scope\n        with scope(closure['paths']):\n            result['config'] = bind_handover(cfg,root/'h')\n            cfg = load(pinned(result['config']))\n            handover=admission(cfg,weights=bool(request.get('weights')))\n        result['handover']={k:v for k,v in handover.items() if k!='paths'}\n        result['absolute_resume_step']=handover['absolute_resume_step']\n        result['init_milestone'] = handover['init_milestone']\n        expected_start = 0 if init_policy(cfg['r1_training']) is not None else step\n        if result['init_milestone'] not in (400,600) or result['absolute_resume_step'] != expected_start:\n            raise ValueError('R1_PROOF_EXPORT_STEP_REQUIRED')\n        result['steps'].append('persisted_handover')\n        # The receipt and audit must name the config published by the final bind.\n        from student_pilot.r1_loader import production_audit\n        with scope(closure['paths']):\n            result['audit']=production_audit(cfg,root/'a')\n        result['steps'].append('r1_loader.production_audit')\n        if request.get('weights'):\n            with scope(handover['paths']):\n                result['forward']=forward(cfg,root,result['absolute_resume_step'],device)\n            result['steps'].append('all_rank_full_forward')\n        finish_host(cfg, root, host, result['audit'], named_refusals=True)\n        write(root/'host.json', host)\n        result['host_receipt'] = file_pin(root/'host.json')\n        result['status']='ADMIT'\n    except (ValueError,KeyError,TypeError,OSError,RuntimeError,ImportError) as error:\n        result['refusal']=type(error).__name__+':'+str(error)\n    finally:\n        environment.close()\n    write(root/'RESULT.json',result)\n    return result"
+        },
+        "bind_handover": {
+          "end_line": 61,
+          "line": 32,
+          "source": "def bind_handover(cfg, root):\n    \"\"\"Bind continuation to the final prepared stores and produced row plan.\"\"\"\n    from copy import deepcopy\n    from student_pilot import r1_training as training, r1_handover as handover\n    from student_pilot.carrier_c1_run import identity\n    from student_pilot.source_seal import binding\n    from student_pilot.p3_provenance import digest\n    cfg = deepcopy(cfg)\n    root = Path(root); root.mkdir(parents=True, exist_ok=True)\n    value = cfg['r1_training']\n    artifact = load(pinned(cfg['init_artifact']['artifact']))\n    source, _, actual, _ = handover.donor(cfg, artifact)\n    handover.compare_configs(source, cfg)\n    target = training.target_identity(cfg)\n    value.update(store_hashes=target['stores'], row_plan_sha256=digest(cfg['r2_sampling']))\n    value['continuation_identity'] = training.target_identity(cfg)['config_identity']\n    expected = training.boundary(cfg, artifact['step'])\n    write(root/'mapping.json', dict(schema='r1-handover-map-v1',\n        artifact_sha256=cfg['init_artifact']['artifact']['sha256'], step=artifact['step'],\n        source=actual, target={key:expected[key] for key in actual}))\n    value['handover_mapping'] = file_pin(root/'mapping.json')\n    receipt = load(pinned(cfg['preparation']))\n    receipt.update(r1_training=deepcopy(value), config_sha256=identity(cfg))\n    sealed = binding(load(pinned(cfg['code'])), receipt['config_sha256'])\n    if sealed is not None:\n        receipt['source_seal'] = sealed\n    write(root/'receipt.json', receipt)\n    cfg['preparation'] = file_pin(root/'receipt.json')\n    write(root/'config.json', cfg)\n    return file_pin(root/'config.json')"
+        }
+      },
+      "sha256": "c31b0460a16338987fa0dcb585444c8a5f330aab30d5b503304b96a2e5e98b3e"
+    },
+    "work/tree_r1/student_pilot/r1_absence.py": {
+      "functions": {
+        "configuration": {
+          "end_line": 18,
+          "line": 9,
+          "source": "def configuration(cfg,slot):\n    from .carrier_c1_data import C1_A\n    if slot not in PREFIXES:raise ValueError('NOT_PRESENT_SLOT_FORBIDDEN:'+slot)\n    projection={k:cfg.get(k) for k in ('geometry_connector','geometry_online','carrier_placement','frame_embeddings')}\n    if slot=='heads_gf1_connector':\n        absent=projection['geometry_connector']=='none' and not projection['geometry_online']\n    else:\n        absent=projection['carrier_placement']==C1_A and not projection['frame_embeddings']\n    if not absent:raise ValueError('NOT_PRESENT_CONFIG_NAMES_COMPONENT:'+slot)\n    return projection"
+        },
+        "evidence": {
+          "end_line": 82,
+          "line": 69,
+          "source": "def evidence(cfg,artifact):\n    \"\"\"The persisted export pins the actual head payload; absence is never asserted from a list alone.\"\"\"\n    import torch\n    codes=cfg.get('r1_training',{}).get('not_present_slots',[])\n    if not codes:return {}\n    if not isinstance(codes,list) or set(codes)!=set(SLOT_CODES) or len(codes)!=2:raise ValueError('NOT_PRESENT_SLOT_FORBIDDEN')\n    slots=[SLOT_CODES[code] for code in codes]\n    for slot in slots:configuration(cfg,slot)\n    pin=artifact.get('heads')\n    if not pin:raise ValueError('NOT_PRESENT_STATE_INVENTORY_REQUIRED')\n    state=torch.load(pinned(pin),map_location='meta',weights_only=True)\n    if not isinstance(state,dict):raise ValueError('NOT_PRESENT_STATE_INVENTORY_INVALID')\n    model=build(cfg)\n    return {slot:prove(cfg,model,state,slot,pin) for slot in slots}"
+        },
+        "prove": {
+          "end_line": 43,
+          "line": 27,
+          "source": "def prove(cfg,model,state,slot,inventory_pin):\n    \"\"\"Require a native-built module inventory and an authenticated state inventory.\"\"\"\n    from .carrier_c1 import CarrierC1\n    import torch\n    projection=configuration(cfg,slot)\n    if not isinstance(model,CarrierC1):raise ValueError('NOT_PRESENT_NATIVE_BUILDER_REQUIRED')\n    if (model.carrier_placement!=cfg['carrier_placement'] or model.geometry_online!=cfg.get('geometry_online')):\n        raise ValueError('NOT_PRESENT_BUILDER_CONFIG_DIFFERS')\n    modules=sorted(name for name,_ in model.named_modules())\n    if any(matches(name,slot) for name in modules):raise ValueError('NOT_PRESENT_BUILT_MODULE:'+slot)\n    tensors=sorted(name for name,value in state.items() if isinstance(value,torch.Tensor))\n    if any(matches(name,slot) for name in tensors):raise ValueError('NOT_PRESENT_STATE_TENSOR:'+slot)\n    import inspect\n    builder=file_pin(inspect.getsourcefile(CarrierC1))\n    return dict(status='NOT_PRESENT',record=dict(schema='r1-component-absence-v1',slot=slot,\n        configuration=projection,builder=builder,entry='CarrierC1.__init__',modules=modules,\n        inventory=inventory_pin,tensors=tensors,prefixes=list(PREFIXES[slot]),matching_tensors=0))"
+        }
+      },
+      "sha256": "565018ff96406e260ecf90bad3347cd86f97db7e09f2e35f6e463444e41cd225"
+    },
+    "work/tree_r1/student_pilot/r1_components.py": {
+      "functions": {
+        "artifact_binding": {
+          "end_line": 120,
+          "line": 108,
+          "source": "def artifact_binding(cfg, status):\n    \"\"\"Carry the pinned preparation that actually recorded these statuses.\"\"\"\n    if not status:\n        return {}\n    if 'r1_training' in cfg:\n        pin = cfg.get('preparation')\n    else:\n        from .r1_handover import metadata_load\n        parent = metadata_load(cfg['init_artifact']['artifact'], {})\n        pin = parent.get('component_preparation')\n    if not pin or normalize(load(pinned(pin)).get('component_evidence', {})) != status:\n        raise ValueError('COMPONENT_EVIDENCE_PREPARATION_MISMATCH:export')\n    return dict(component_preparation=pin, component_evidence_sha256=digest(status))"
+        },
+        "artifact_status": {
+          "end_line": 137,
+          "line": 123,
+          "source": "def artifact_status(cfg):\n    \"\"\"Publish status on every N export and preserve inherited deferred slots.\"\"\"\n    from .r1_handover import metadata_load\n    spec = (cfg.get('init_artifact') or {}).get('artifact')\n    inherited = metadata_load(spec, (cfg.get('r1_training') or {}).get('persisted_files', {})).get('component_evidence', {}) if spec else {}\n    if 'r1_training' in cfg:\n        from .r1_training import training_components\n        records = training_components(cfg['r1_training']['registry'], cfg)\n        inherited = {**normalize(records), **inherited}\n        inherited.update({k:v for k,v in records.items() if v.get('status')=='NOT_PRESENT'})\n    if cfg.get('r2_evaluation'):\n        guard(dict(component_evidence=inherited, component_preparation=cfg.get('preparation'),\n                   component_evidence_sha256=digest(inherited)),\n              ['VSI-Bench', 'VSTI', 'ReVSI'], 'official-export')\n    return inherited"
+        },
+        "deferred": {
+          "end_line": 52,
+          "line": 10,
+          "source": "def deferred(cfg, phase='training', root=None):\n    \"\"\"Only a persisted P export and the pinned N card authorize deferral.\"\"\"\n    from .r1_training import PARENT\n    from .r1_persisted import verify, scope, init_policy\n    from .r2_policy import LINEAGE, EXTERNAL, NEW\n    from .r2_portable import bound\n    value = cfg.get('r1_training') or {}\n    if phase != 'training' or not value.get('mix') or value.get('proof_mode') not in (None, 'train', 'q'):\n        return None\n    card = load(bound(value['mix'], root))\n    if card.get('vehicle') != 'N' or not (card.get('leg') == 'R1' or card.get('successor_of') == 'R1'):\n        return None\n    spec = (cfg.get('init_artifact') or {}).get('artifact') or {}\n    if spec.get('sha256') == PARENT or not value.get('handover_receipt'):\n        return None\n    closure = verify(value['handover_receipt'], value.get('p_run', {}), spec,\n                     value.get('persisted_files', {}), proof_mode=value.get('proof_mode'),init_policy=init_policy(value))\n    with scope(closure['paths']):\n        donor = load(pinned(value['p_run']['config']))\n        artifact = load(pinned(spec))\n    parent = (donor.get('init_artifact') or {}).get('artifact', {})\n    if (Path(donor.get('output', '')).name != RUN or parent.get('sha256') != PARENT):\n        return None\n    # The authenticated donor config binds the exact step-544 artifact even when\n    # P's sealed exporter predates the r2_identity field on export metadata.\n    pin = value.get('component_rows')\n    if not pin:\n        raise ValueError('DEFERRED_COMPONENT_ROWS_RECORD_REQUIRED:data_rows_r2')\n    rows = load(bound(pin, root))\n    if (rows.get('schema') != 'r1-component-rows-v1' or rows.get('status') != 'DEFERRED'\n            or not rows.get('proven') or not rows.get('unproven') or not rows.get('inputs')):\n        raise ValueError('DEFERRED_COMPONENT_ROWS_RECORD_INVALID:data_rows_r2')\n    for evidence in rows['inputs']:\n        bound(evidence, root)\n    result = {name:dict(status='DEFERRED', reason=NOTICE,\n                       receipt_sha256=value['handover_receipt']['sha256']) for name in (*LINEAGE, *EXTERNAL, *NEW)}\n    result['data_rows_r2'].update(reason='Alias-map rebuild pending; unresolved overlap is not clean evidence.', record=rows)\n    result['heads_gf1_connector']['reason'] = 'N disables the fusion connector; its lost record is still owed before an official read.'\n    if value.get('not_present_slots'):\n        from .r1_absence import evidence\n        with scope(closure['paths']):\n            result.update(evidence(cfg,artifact))\n    return result"
+        },
+        "normalize": {
+          "end_line": 105,
+          "line": 103,
+          "source": "def normalize(records):\n    return {k: v if v.get('status') in ('DEFERRED', 'VERIFIED','NOT_PRESENT') else dict(status='VERIFIED', record=v)\n            for k, v in records.items()}"
+        }
+      },
+      "sha256": "65ce139959174602aa8e07be7215e44d01e11b29003d3f11e6e871c50c61e682"
+    },
+    "work/tree_r1/student_pilot/r1_handover.py": {
+      "functions": {
+        "bind_target": {
+          "end_line": 49,
+          "line": 30,
+          "source": "def bind_target(cfg, output):\n    \"\"\"Rebind authenticated continuation when native preparation changes target stores.\"\"\"\n    from copy import deepcopy\n    from pathlib import Path\n    from . import r1_training as training\n    from .p3_provenance import write, file_pin\n    cfg = deepcopy(cfg)\n    value = cfg['r1_training']\n    artifact = load(pinned(cfg['init_artifact']['artifact']))\n    source, _, actual, _ = donor(cfg, artifact)\n    compare_configs(source, cfg)\n    target = training.target_identity(cfg)\n    value.update(store_hashes=target['stores'],row_plan_sha256=digest(cfg.get('r2_sampling')))\n    value['continuation_identity'] = training.target_identity(cfg)['config_identity']\n    expected = training.boundary(cfg,artifact['step'])\n    path = Path(output)\n    write(path,dict(schema='r1-handover-map-v1',artifact_sha256=cfg['init_artifact']['artifact']['sha256'],\n                    step=artifact['step'],source=actual,target={key:expected[key] for key in actual}))\n    value['handover_mapping'] = file_pin(path)\n    return cfg"
+        }
+      },
+      "sha256": "968569126aa74f974fbf74ac51d765deb0dad43aeaa69f419f71614104cbc273"
+    },
+    "work/tree_r1/student_pilot/r1_population.py": {
+      "functions": {
+        "bind_prepared": {
+          "end_line": 221,
+          "line": 159,
+          "source": "def bind_prepared(cfg, output):\n    \"\"\"Publish a new preparation and config after native reader filtering and production.\"\"\"\n    from .carrier_c1_run import Rows, prepared, identity\n    from .source_seal import binding as seal_binding\n    from .r1_coverage import deferred\n    deferred(cfg, read_pins=True)\n    receipt, _ = prepared(cfg)\n    output = Path(output)\n    output.mkdir(parents=True, exist_ok=True)\n    from .r1_coverage import deferred\n    routing = load(pinned(cfg['streams']['routing']))\n    if deferred(cfg):\n        if routing.get('source_membership'):\n            raise ValueError('R1_DEFERRED_MEMBERSHIP_NONEMPTY')\n        write(output/'base_membership.json', dict(schema='r1-source-membership-v1', sources={},\n              base=cfg['streams']['routing'], routing_slices='deferred_first_boundary'))\n        membership_pin = file_pin(output/'base_membership.json')\n    else:\n        membership_pin = routing['source_membership']\n    current = deepcopy(receipt)\n    refusals = {}\n    reader = Rows(receipt, None)\n    try:\n        for stream in STREAMS:\n            selected, refused = [], Counter()\n            key = 'order' if stream in reader.mixes else 'indices'\n            original = reader.mixes[stream].order if stream in reader.mixes else reader.indices.get(stream, range(reader.count(stream)))\n            for i in range(reader.count(stream)):\n                try:\n                    reader.row(stream, i)\n                except (ValueError, KeyError, TypeError) as error:\n                    refused[type(error).__name__+':'+str(error)] += 1\n                else:\n                    selected.append(original[i])\n            write(output/(stream+'_'+key+'.json'), selected)\n            current['streams'][stream].update(reader_source=deepcopy(receipt['streams'][stream]),\n                count=len(selected), **{key:file_pin(output/(stream+'_'+key+'.json'))})\n            refusals[stream] = dict(refused)\n    finally:\n        reader.close()\n    write(output/'reader_filters.json', dict(parent=cfg['preparation'], refusals=refusals))\n    reader = Rows(current, None)\n    try:\n        result = produce(reader, cfg['r1_training']['mix'],\n            membership_pin,\n            [cfg['preparation'], file_pin(output/'reader_filters.json'),\n             *[v['receipt'] for v in current['streams'].values()]], output, cfg=cfg)\n    finally:\n        reader.close()\n    cfg = deepcopy(cfg)\n    cfg['r2_sampling'] = result\n    cfg['r1_training']['row_plan_sha256'] = digest(result)\n    if cfg['r1_training'].get('handover_receipt'):\n        from .r1_handover import bind_target\n        cfg = bind_target(cfg,output/'handover.json')\n    current.update(r2_sampling=result, r1_training=cfg['r1_training'], config_sha256=identity(cfg))\n    sealed = seal_binding(load(pinned(cfg['code'])), current['config_sha256'])\n    if sealed is not None:\n        current['source_seal'] = sealed\n    write(output/'receipt.json', current)\n    cfg['preparation'] = file_pin(output/'receipt.json')\n    write(output/'config.json', cfg)\n    return file_pin(output/'config.json')"
+        }
+      },
+      "sha256": "063ed256bc4b6d797bd99c99bdaf4f11c8fe045a2606645a1dfbcef548c6c76a"
+    },
+    "work/tree_r1/student_pilot/r1_training.py": {
+      "functions": {
+        "training_components": {
+          "end_line": 63,
+          "line": 40,
+          "source": "def training_components(registry_pin, cfg, root=None):\n    \"\"\"Keep the complete registry; only an absent fusion connector is out of scope.\"\"\"\n    from .r2_policy import slots, record, CHOICES\n    from .r2_portable import bound\n    registry = load(bound(registry_pin, root))\n    expected = slots()\n    if set(registry) != set(expected):\n        raise ValueError('Component registry differs')\n    if cfg.get('geometry_connector') != 'none' or cfg.get('geometry_online'):\n        raise ValueError('R1_FUSION_REFUSED')\n    from .r1_components import deferred\n    pending = deferred(cfg, root=root)\n    result = {}\n    for name, spec in expected.items():\n        entry = registry[name]\n        if any(entry.get(k) != spec[k] for k in ('component', 'component_class', 'phase', 'expected_schema')):\n            raise ValueError('Component slot was reclassified')\n        if pending is not None and name in pending:\n            result[name] = pending[name]\n            continue\n        if name in CHOICES or name == 'heads_gf1_connector':\n            continue\n        result[name] = record(entry, root)\n    return result"
+        }
+      },
+      "sha256": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019"
+    }
+  },
+  "invariant": [
+    "a.py q invokes production_proof; s1_admission.prepare_only calls carrier_c1_run.prepare after staging and binding the donor.",
+    "carrier_c1_run.prepare records artifact_status(cfg) directly at lines 638-640.",
+    "s1_admission copies the native receipt, r1_population deep-copies it, and bind_handover changes only sampler/handover/config/source bindings.",
+    "h.py attaches host_receipt; rv.py attaches review; sync_preparation replaces only r1_training and re-pins the full receipt.",
+    "Neither gate pin is an input to deferred, training_components or absence evidence; the donor artifact and handover receipt do not change after native preparation.",
+    "The two absence records recompute from the same configuration, builder and pinned donor heads, independent of training updates.",
+    "With successful native preparation, normalized recorded evidence equals export artifact_status at step 100 and later exports."
+  ],
+  "kit_fix_required": false,
+  "limitations": "Production heads payload is not among the staged small metadata; no real 9B model, full production preparation or production step-100 export was executed. Fixture execution verifies native export and both kit re-pinning calls separately.",
+  "production_inherited_component_evidence": {},
+  "production_r1_status_inputs": {
+    "component_rows": {
+      "path": "u/aa77ee191e5126c72f4d0c82a24d33b3234a5c1601f4ef07f0071661fd5f2221",
+      "sha256": "aa77ee191e5126c72f4d0c82a24d33b3234a5c1601f4ef07f0071661fd5f2221"
+    },
+    "handover_receipt": {
+      "path": "/tmp/q_22c714e1/e.json",
+      "sha256": "b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf"
+    },
+    "mix": {
+      "path": "u/c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8",
+      "sha256": "c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8"
+    },
+    "not_present_slots": [
+      "0",
+      "1"
+    ],
+    "p_run": {
+      "binding": {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/binding.json",
+        "sha256": "f6b636243f779d7eb58170491866aff3367306c130e791e365d2feeb0e42de40"
+      },
+      "config": {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json",
+        "sha256": "b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad"
+      },
+      "preparation": {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/s1_receipt.json",
+        "sha256": "a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda"
+      }
+    },
+    "proof_mode": "train",
+    "registry": {
+      "path": "u/169b2c23f23d6607564481edf45096343637fa794c97b6d9287673d1c08252f0",
+      "sha256": "169b2c23f23d6607564481edf45096343637fa794c97b6d9287673d1c08252f0"
+    }
+  },
+  "production_status_inputs": {
+    "carrier_placement": "append_after_temporal_group_video_tokens_v1",
+    "frame_embeddings": null,
+    "geometry_connector": "none",
+    "geometry_online": null
+  },
+  "receipt": {
+    "path": "/tmp/q_22c714e1/e.json",
+    "sha256": "b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf"
+  },
+  "tree_change_required": false,
+  "verdict": "No production launch blocker from this mismatch; fixture-only donor replacement after preparation"
+}

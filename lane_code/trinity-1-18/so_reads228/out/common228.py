@@ -12,7 +12,7 @@ import time
 HERE = Path(__file__).resolve().parent
 LOGICAL = Path('/scratch/jjyeung/b01ec87a6f29b')
 STAGE = Path('/scratch/jjyeung/orch_n30/reads228')
-VNICE = Path('/data3/shared/scripts/vnice/vnice.sh')
+VNICE = LOGICAL/'d/q/vnice.sh'
 TERMINATOR = VNICE.with_name('terminator.sh')
 ORDER = ('camera_displacement','camera_rotation','camera_movement_direction','object_abs_distance','room_size_estimation')
 SCHEDULE = (3,0,1,2,4)
@@ -116,14 +116,17 @@ def source_check(root, pins):
             and '__pycache__' not in p.parts and p.suffix!='.pyc'}
     if actual!=set(pins):raise Refusal('Unexpected/missing source files: '+str(sorted(actual^set(pins))[:10]))
 
-def policy_check(pins=None):
+def policy_check(pins=None, paths=None):
     pins=pins or read(HERE/'A10b_PINS.json')
-    for name,path in (('vnice',VNICE),('terminator',TERMINATOR)):
+    paths=paths or dict(vnice=VNICE,terminator=TERMINATOR)
+    for name,path in paths.items():
         checked(path,pins['policy'][name])
 
 def deployment(package):
     root=package_root(package);pins=read(HERE/'A10b_PINS.json')
-    policy_check(pins)
+    # Bootstrap authenticates the delivered copies before d/q has been extracted.
+    # Stage checks authenticate the private d/q files that the namespace executes.
+    policy_check(pins,dict(vnice=HERE/'evidence/q/vnice.sh',terminator=HERE/'evidence/q/terminator.sh'))
     for name,spec in pins['package'].items():checked(root/'package'/name,spec)
     checked(root/'tower_sequence.py',dict(bytes=(HERE/'A10b/tower_sequence.py').stat().st_size,sha256=pins['operator_sha256']))
     from tarfile import open as taropen

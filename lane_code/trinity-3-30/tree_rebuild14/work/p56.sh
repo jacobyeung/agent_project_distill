@@ -1,0 +1,1 @@
+X=/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/x24j_back; date -u +%TZ; wc -c $X/out/KIT_WIRING_24J.md; cat $X/out/KIT_WIRING_24J.md | head -60; tmux ls | grep tr14; tail -c 400 /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal_run3.log

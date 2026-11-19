@@ -13,33 +13,21 @@ sys.path.insert(0,str(r/'s'))
 from student_pilot.carrier_c1_run import identity
 from launch_r1.entry import ASSERTIONS
 value=identity(cfg)
-source=r/'host.json'
+hp=q.get('host_receipt')
+if not isinstance(hp,dict) or set(hp)!={'path','sha256'}:raise ValueError('R1_HOST_RECEIPT_MISSING')
+source=r/'q/host.json'
+if hp['path']!=str(source.resolve()):raise ValueError('R1_HOST_RECEIPT_PATH_DIFFERS')
 if not source.is_file() or source.is_symlink():raise ValueError('R1_HOST_RECEIPT_MISSING')
-try:host=load(source)
+try:host=load(checked(str(source),hp['sha256']))
 except (ValueError,OSError):raise ValueError('R1_HOST_RECEIPT_INVALID') from None
 if not isinstance(host,dict):raise ValueError('R1_HOST_RECEIPT_INVALID')
 if host.get('status')!='PASS':raise ValueError('R1_HOST_RECEIPT_NOT_PASS')
 if host.get('config_identity')!=value:raise ValueError('R1_HOST_IDENTITY_DIFFERS')
 if not isinstance(host.get('assertions'),dict) or set(host['assertions'])!=set(ASSERTIONS) or not all(v is True for v in host['assertions'].values()):raise ValueError('R1_HOST_ASSERTIONS_INCOMPLETE')
 if not isinstance(host.get('loader_audit'),dict) or host['loader_audit'].get('complete') is not True:raise ValueError('R1_HOST_LOADER_AUDIT_INCOMPLETE')
-control=load(k/'k/a.json');pin=control.get('review')
-if not isinstance(pin,dict) or set(pin)!={'path','sha256'}:raise ValueError('R1_REVIEW_RECEIPT_MISSING')
-h=pin['sha256']
-if not isinstance(h,str) or len(h)!=64 or any(c not in '0123456789abcdef' for c in h) or pin['path']!='u/'+h:raise ValueError('R1_REVIEW_PIN_INVALID')
-source=r.parent/pin['path']
-if not source.is_file() or source.is_symlink():raise ValueError('R1_REVIEW_RECEIPT_MISSING')
-raw=source.read_bytes()
-if hashlib.sha256(raw).hexdigest()!=h:raise ValueError('R1_REVIEW_RECEIPT_CHANGED')
-try:
- import json
- review=json.loads(raw)
-except (ValueError,UnicodeError):raise ValueError('R1_REVIEW_RECEIPT_INVALID') from None
-if not isinstance(review,dict) or review.get('verdict')!='PASS':raise ValueError('R1_REVIEW_RECEIPT_NOT_PASS')
-if review.get('config_identity')!=value:raise ValueError('R1_REVIEW_IDENTITY_DIFFERS')
-# Pins refer to job-private snapshots. Re-read the staged bytes only once.
-host_pin=write(r/'hr.json',host)
-review_path=r/'rv.json';review_path.write_bytes(raw)
-cfg['r1_training']['host_receipt']=host_pin
-cfg['r1_training']['review']={'path':str(review_path),'sha256':h}
-if identity(cfg)!=value:raise ValueError('R1_REVIEW_IDENTITY_DIFFERS')
+# Host evidence is pinned before the prepared config is published.
+cfg['r1_training']['host_receipt']=write(r/'hr.json',host)
+from rv import sync_preparation
+sync_preparation(cfg,r,'ph.json')
+if identity(cfg)!=value:raise ValueError('R1_HOST_IDENTITY_DIFFERS')
 write(sys.argv[2],cfg)

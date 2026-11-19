@@ -1,5 +1,5 @@
 # fb_pack STATUS (successor resumes from this file alone)
-Updated 2026-11-19T19:40Z by fb_pack1 (Devin Opus high, session trinity-3-30 /scratch/jjyeung/orch_n30/fb_pack1, started 18:38Z, rotate by 00:08Z). Brief: B/briefs/fb_pack1.md.
+Updated 2026-11-19T20:40Z by fb_pack1 (Devin Opus high, session trinity-3-30 /scratch/jjyeung/orch_n30/fb_pack1, started 18:38Z, rotate by 00:08Z). Brief: B/briefs/fb_pack1.md.
 F = trinity-1-18:/scratch/jjyeung/orch_n30/fb_pack (cap 30 GB; 1-18 had 136 GB free at 18:40Z, BELOW the 150 GB floor: keep F under 2 GB). ssh only `bash B/tools/tssh.sh trinity-1-18 'bash -s' < script`. Inside such a script, any ssh/ossh call needs `< /dev/null` (it eats the script's stdin otherwise); tmux new-session from a tssh script keeps the ssh open: add `</dev/null >/dev/null 2>&1` to the tmux command.
 Scripts on 3-30: fb_pack1/work/p*.sh (probes), l1.sh (launch), prompts/ (Codex prompts, COMMON.md from swarm_build).
 
@@ -17,12 +17,13 @@ Scripts on 3-30: fb_pack1/work/p*.sh (probes), l1.sh (launch), prompts/ (Codex p
 ## ORCH RULING 1923Z (binding): order = 4 distance slices; scale donor; recovery 760; camera if re-rendered rows pass intake + held-out check by 00:30Z; prior (b) only as patch leaving other cells' draws bit-identical, review GO by 04:00Z; relcnt next boundary (finish review). I build tree changes as overlay patches vs seal 57a1f14d (fail-before/pass-after tests, one other-family review each, files list); tree_rebuild14 merges/seals after 21:00Z. Donor + prior builds on trinity-2-28 CPU (work 2-28:/scratch/jjyeung/orch_n30/fb_pack <=30 GB, <=48 cores total, nice 10, no GPU). Step-100 binding if everything is done before N's step-100 export; say in each RESULT which export I can make (now: step 200).
 - 2-28: R/O copy of inputs at 2-28:/scratch/jjyeung/orch_n30/fb_pack/ro/{orch_n30,n30_mirror}/... (same relative paths as 1-18), env /scratch/jjyeung/envs/p1cpu copied (19:32Z). Prompts for 2-28 use prompts/COMMON228.md (path map).
 ## Running (1-18 tmux)
-- fbp_cam (Codex Astra high, F/cam, 19:23Z, due ~22:00Z): minimal grammar rewrite of camera prose lines, re-intake, gate held-out check, READ40.
+- fbp_cam DONE 19:44Z: F/cam/out (tar e3a78ae7): 5,979 rows pass grammar; intake admits 5,143 (disp 1,717 / rot 1,722 / dir 1,704), 836 eval_rooms refused; 40 wordings/type, cells 38-49; held-out 0 hits; RESULT 1948Z. ORCH NOTE 1939Z: camera is 3rd in binding order (after donor), deadline 03:00Z.
+- fbp_camrev (Cursor Opus xhigh, F/camrev, 19:48Z, timeout 5400 s): review of cam packet.
 - fbp_relrev (Cursor Opus xhigh, F/relrev, 19:23Z, timeout 5400 s): cross-family review of relcnt -> REVIEW_VERDICT.md (cursor.log fills at end).
 ## Running (2-28 tmux, workspaces 2-28:/scratch/jjyeung/orch_n30/fb_pack/<t>)
 - fbp_patchA (Codex Astra high, 19:33Z, due ~22:00Z): subset composition (r1_routing:171 KeyError), camera pin one-line swap, alias rebase (ALIAS2.patch), full suite base/new.
 - fbp_donor (Codex Astra high, 19:34Z, due ~23:10Z): scale donor patch (pinned donor ckpt 400/544 + FoV V1/V2 config fields), fixture 2 CPU steps on 2 K1 captures, READER_REQUEST.md.
-- NEXT when a Codex slot frees: fbp_prior2 on 2-28 (per-cell draw schedule patch in r1_mix leaving other cells bit-identical on the production cell table; loader audit fixes r1_loader.py:55-70,101-105, r1_direction_twins.py:136-143); then Cursor reviews of patchA, donor, prior2, cam.
+- fbp_prior2 (Codex Astra high, 2-28, 19:46Z, due ~22:45Z): prior patch (per-cell draw schedule patch in r1_mix leaving other cells bit-identical on the production cell table; loader audit fixes r1_loader.py:55-70,101-105, r1_direction_twins.py:136-143); then Cursor reviews of patchA, donor, prior2, cam.
 ## Next
 1. When each lands: read its report; read 40 rows myself (relcnt, prior census) against the trace ruling; Cursor Opus cross-family review per row set (pattern: swarm_build STATUS "Cursor").
 2. (done) kr9c check.
@@ -31,4 +32,13 @@ Scripts on 3-30: fb_pack1/work/p*.sh (probes), l1.sh (launch), prompts/ (Codex p
 ## Orders in force
 - ORCH ANSWER 1902Z: ranking accepted (distance+radiator, prior, camera, relcnt; the two unproven builder rules stay out); real receipts, no prefiltered/empty; radiator: if extent c072905b hashes call text, POST the choice (re-derive extent with audit, or leave 2,368 rows unchanged) and take the on-time one; F under 2 GB, nothing new >200 MB on 1-18 without asking; tree_rebuild14 gets nothing needing an answer before ~21:00Z except blockers.
 - ORCH 1902Z item 5 (extra): when n_ops1 posts the step-400 own-depth grids in 1-18 R/sb_own400/in/own_400/, run swarm_build STATUS's command (`cd /scratch/jjyeung/orch_n30/sb_own400 && env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B kit/score_400.py --own-root in/own_400/<tree root> --out out/real400_score`), RESULT in events/swarm_build AND events/tree_rebuild: donor 544 or 400 by the frozen rule only (544 only if B-A upper bound < 0 in both folds and combined; margin 0 hair-trigger: say so). Watch events/n_ops each poll.
-## Open questions: none posted.
+- ORCH ANSWER 1950Z (relcnt, next boundary): cap LOO name-prior accuracy <=0.65 (0.60 if >=3,000 rows survive; report rows at each cap), sample direction-matched pairs first; fix ties (reverse order in half per template); add the same name prior's accuracy on dev-S1 relative-count items (diagnostic only); one confirm review; park. Camera: manifest must state rows of each prose form N sees per step (P base old form vs new); camrev says grammar vs style; if only style, bind as is.
+- ORCH NOTE 1959Z (n_ops copy): N launch QUESTION forecast ~23:15Z (boundary at step 200 ~10:45Z 11-20; step 100 ~05:00Z). The step-400 K1 forward moved to lane k1fwd1 (watch events/k1fwd1 + events/n_ops for grids landing in 1-18 R/sb_own400/in/own_400/; scoring is still mine, ORCH 1902Z item 5).
+- relrev (Cursor) DONE: GO AFTER FIXES (MUST ties alphabetical; MUST name prior 84.7%): F/relrev/REVIEW_VERDICT.md. QUESTION 1949Z answered 1950Z. Fix build fbp_relcnt2 waits for a Codex slot.
+- ORCH RULING COPY 2001Z item 3: pointing rows (store c09bb5ca, 25,020 rows, 32/step, empty think) get one Locate line (no coordinates) at first boundary, after camera; grammar + store intake; tell tree_rebuild14 the pin change; say by 23:00Z whether it makes step 200.
+- Pointing store pulled 20:12-20:13Z (governed stream fb_pack1_point, tier 3 prio 10, Orchard -> 3-30 ratelimit -> 2-28.ib, script work/gov_pull_point.py; record renamed .done.1795119264): 2-28:/scratch/jjyeung/orch_n30/fb_pack/in/pointing/rows_c09bb5ca.sqlite sha c09bb5ca OK, 218,099,712 B.
+- QUESTION 2012Z: 2-28 at 34.5 GB > 30 GB cap (default: let builds finish, nothing new on 2-28 until they end, REMOVAL_CANDIDATES.md, next builds <=5 GB); pointing plan.
+- Queued Codex (cap 3): fbp_point (2-28, prompt prompts/fbp_point_full.md), fbp_relcnt2 (1-18, prompts/fbp_relcnt2_full.md).
+- ORCH ANSWER 2012Z: 2-28 cap 80 GB (node >2 TB free); pointing default ok (null answers: Locate line saying not visible); data path preferred; boundary step 200 ~11:00Z 11-20.
+- camrev GO (F/camrev/REVIEW_VERDICT.md, 4 SHOULD). patchA DONE (2-28 F/patchA/out, tar 8c741519, PATCH_A.patch b95c1c61; copy on 1-18 F/patchA_out); review fbp_patchArev (Cursor, 1-18, 20:38Z). fbp_point (Codex, 2-28, 20:37Z). RESULT 2038Z.
+## Open questions: none.

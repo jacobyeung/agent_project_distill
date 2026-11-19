@@ -1,0 +1,263 @@
+{
+  "authorities": {
+    "admission_policy": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/policy.json",
+      "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+    },
+    "b1": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/scenes.tsv",
+      "sha256": "c28ed09f905bb62898d38c86c82c6da4741673d720dc318c883aecfa2e8cda1c"
+    },
+    "b2": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/vsti.json",
+      "sha256": "a30aa828455b4844823e25d3b37619f64f916871e93a8cea134745ce10d10b49"
+    },
+    "division": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/division.json",
+      "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+    },
+    "extra_benchmarks": [],
+    "gate": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/gate.json",
+      "sha256": "fe13939f44ce3329eac12f19a8974c1266670e580f842ed53f66cf00d7dcb8a9"
+    }
+  },
+  "conditioning": "fresh sorted uniform 32 posed frames per row, conditioned on the staged pool; all 32 targets",
+  "deferred": [
+    {
+      "dataset": "d1",
+      "pose_count": 127,
+      "reason": "sparse_pose_count",
+      "scene": "scene0300_00",
+      "total_num_frames": 1000
+    }
+  ],
+  "excluded": [
+    {
+      "dataset": "d1",
+      "reasons": [
+        "b2"
+      ],
+      "scene": "scene0200_00",
+      "sources": {
+        "b2": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/vsti.json",
+            "sha256": "a30aa828455b4844823e25d3b37619f64f916871e93a8cea134745ce10d10b49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d3",
+      "reasons": [
+        "b1",
+        "outside_frozen_training_division"
+      ],
+      "scene": "2000",
+      "sources": {
+        "b1": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/scenes.tsv",
+            "sha256": "c28ed09f905bb62898d38c86c82c6da4741673d720dc318c883aecfa2e8cda1c"
+          }
+        ],
+        "outside_frozen_training_division": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          },
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d3",
+      "reasons": [
+        "outside_frozen_training_division"
+      ],
+      "scene": "outsider",
+      "sources": {
+        "outside_frozen_training_division": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          },
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d2",
+      "reasons": [
+        "admission_policy"
+      ],
+      "scene": "example",
+      "sources": {
+        "admission_policy": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d1",
+      "reasons": [
+        "division_heldout"
+      ],
+      "scene": "scene0400_00",
+      "sources": {
+        "division_heldout": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          }
+        ]
+      }
+    }
+  ],
+  "probabilities": {},
+  "recordings": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/index.json",
+    "sha256": "66a6e44343126ff6aa4538bea139e591bc92d8e20b71f99cee42b2ec823f54bd"
+  },
+  "rows_per_scene": 80,
+  "sample_sizes": [
+    32
+  ],
+  "sampling": {
+    "epoch": 0,
+    "pool_size": 96,
+    "variant": "all_frames32"
+  },
+  "scenes": [
+    {
+      "coordinate_frame": "source_world_meters_opencv_camera_to_world",
+      "dataset": "d3",
+      "fps": 30.0,
+      "native_scene": "100",
+      "pool": [
+        3,
+        36,
+        43,
+        63,
+        65,
+        70,
+        73,
+        80,
+        99,
+        104,
+        109,
+        122,
+        123,
+        124,
+        146,
+        172,
+        180,
+        192,
+        199,
+        207,
+        210,
+        224,
+        259,
+        277,
+        286,
+        306,
+        313,
+        324,
+        327,
+        329,
+        331,
+        341,
+        345,
+        358,
+        366,
+        371,
+        373,
+        381,
+        399,
+        403,
+        404,
+        408,
+        413,
+        416,
+        450,
+        453,
+        482,
+        483,
+        489,
+        493,
+        508,
+        528,
+        532,
+        538,
+        545,
+        551,
+        559,
+        574,
+        583,
+        615,
+        618,
+        625,
+        632,
+        641,
+        646,
+        651,
+        654,
+        655,
+        659,
+        661,
+        664,
+        665,
+        675,
+        678,
+        748,
+        752,
+        754,
+        765,
+        783,
+        807,
+        818,
+        835,
+        842,
+        844,
+        849,
+        854,
+        865,
+        869,
+        876,
+        915,
+        922,
+        936,
+        940,
+        974,
+        979,
+        983
+      ],
+      "pose_count": 1000,
+      "poses": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/source.npz",
+        "sha256": "1e2ed7f7d26330b5b4cd4bfbe6a52c1d6fb47bd753c78b91992adbd642872b1b"
+      },
+      "sample_sizes": [
+        32
+      ],
+      "scene": "v058188da3fc3",
+      "total_num_frames": 1000,
+      "video": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/suite/base/B2_TEST_OUTPUT/decoder_bgdq0lt1/017af04b.mp4",
+        "sha256": "dd41e820982fb0ca6edd1773126262456e66e950f87683e272b4d307bf8c42ec"
+      }
+    }
+  ],
+  "schema": "recording-pose-plan-v1",
+  "seed": 17
+}

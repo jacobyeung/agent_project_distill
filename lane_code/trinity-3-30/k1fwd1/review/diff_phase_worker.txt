@@ -1,0 +1,60 @@
+--- old_phase_worker.py	2026-11-19 15:30:17.000000000 -0500
++++ new_phase_worker.py	2026-11-19 15:30:17.000000000 -0500
+@@ -49,18 +49,32 @@
+         builtins.open, io.open, Path.stat = old_open, old_io, old_stat
+         tarfile.open = old_tar_open
+ 
+-def prepared(manifest, mapping=None):
++def prepared(manifest, mapping=None, identity=IDENTITY):
+     sys.path.insert(0, str(NATIVE))
+     import read_runtime
+     with metadata_mapping(mapping or {}):
+         cfg, receipt, model = read_runtime.prepared(
+             manifest['gpu']['config'], manifest['gpu']['artifact'], manifest['gpu']['data_receipt'])
+         from student_pilot import carrier_c1_run as trainer
+-        assert trainer.identity(cfg) == IDENTITY
+-        assert read_runtime.metadata(manifest['gpu']['artifact'])['config_sha256'] == IDENTITY
+-    return dict(passed=True, config_identity=IDENTITY, artifact=manifest['gpu']['artifact'],
++        assert trainer.identity(cfg) == identity
++        assert read_runtime.metadata(manifest['gpu']['artifact'])['config_sha256'] == identity
++    return dict(passed=True, config_identity=identity, artifact=manifest['gpu']['artifact'],
+                 model_manifest=receipt['model'], fresh_preparation=False)
+ 
++def same_kit(reference, identity, config):
++    """Tower-phase kit identity, except the declared export-parameterisation edits and tree root."""
++    changes, moved = config.get('binding_changes', {}), config.get('binding_tree')
++    sources = {}
++    for path, value in identity['sources'].items():
++        if moved and path.startswith(moved['to'] + '/'):
++            path = moved['from'] + path[len(moved['to']):]
++        if path in changes:
++            if value != changes[path]:
++                return False
++            value = reference['sources'].get(path)
++        sources[path] = value
++    return sources == reference['sources'] and identity['producer_sha256'] == reference['producer_sha256']
++
+ def run(config, fixture=None):
+     sys.path[:0] = [str(KIT / 'work'), str(KIT / 'native_kit')]
+     import verify_sources
+@@ -74,15 +88,18 @@
+     manifest = B.load(config['manifest'])
+     assert H.sha(config['manifest']) == config['manifest_sha256']
+     evidence = dict(verified_sources=verify_sources.verify())
+-    evidence['prepared'] = prepared(manifest, config.get('metadata_mapping'))
++    evidence['prepared'] = prepared(manifest, config.get('metadata_mapping'), config.get('config_identity', IDENTITY))
+     with metadata_mapping(config.get('metadata_mapping', {})):
+         P.check_manifest(manifest, 'own')
+     reference = B.load(config['tower_binding'])
+     identity = dict(sources=B.source_identity(), producer_sha256=B.sha(F.__file__))
+-    assert all(reference[k] == v for k, v in identity.items())
++    assert same_kit(reference, identity, config)
+     evidence['binding'] = dict(**identity, manifest_sha256=B.digest(manifest),
+                                tower_manifest_sha256=reference['manifest_sha256'],
+                                amendment=2, captures_unchanged=config['captures_unchanged'])
++    if config.get('stop_before_gpu'):
++        H.dump(source / 'metadata/CPU_CHECK.json', dict(evidence, passed=True, plan=B.digest(manifest)))
++        return dict(code=0, cpu_check=True, admission=evidence)
+     # For the CPU fixture, check all 300 captures before using a six-capture run.
+     if fixture is not None:
+         manifest = fixture['manifest']

@@ -26,11 +26,10 @@ import observe228
 import compare228
 import return228
 import common228
-common228.VNICE=HERE/'evidence/q/vnice.sh'
-common228.TERMINATOR=HERE/'evidence/q/terminator.sh'
 
 WORK=Path(os.environ.get('READ228_TEST_WORK','/scratch/jjyeung/orch_n30/so_reads228/work/tests_round1'))
 WORK.mkdir(parents=True,exist_ok=True)
+stage228.STAGE=WORK/"stage"
 
 def directory():
     path=WORK/('a'+uuid.uuid4().hex);path.mkdir();return path
@@ -386,50 +385,9 @@ print('sealed resolver and maker binding unchanged')
         self.assertIn('unchanged',result.stdout)
 
     def test_full_adapter_orchestration_with_cpu_worker_double(self):
-        import runner228
-        from contextlib import ExitStack
-        root,cfg,inputs,export=deployment(HERE/'A10b');cfg=deepcopy(cfg)
-        work=directory();logical=work/'logical';(logical/'d').mkdir(parents=True)
-        (logical/'p').symlink_to(HERE/'A10b/src',target_is_directory=True)
-        cfg['logical']=str(logical)
-        settings={k:cfg[k] for k in ('stage1_select_rule','perception_memo','perception_memo_modules','perception_memo_verify_ids','save_own_depth')}
-        write(logical/'d/settings.json',settings)
-        out=work/'run';commands=[]
-        gpu=dict(uuid='GPU-0123456789abcdef',name='NVIDIA RTX 6000 Ada Generation',memory_used_mib=0,memory_total_mib=49140,processes=[])
-        class Sampler:
-            def __init__(self,*a):self.process=types.SimpleNamespace(poll=lambda:None)
-            def __enter__(self):return self
-            def __exit__(self,*a):pass
-        class Worker:
-            returncode=0
-            def __init__(self,command,**kwargs):
-                commands.append(command)
-                config=read(command[-2]);self.config=config
-                self.worker=config['worker']
-                journal=Path(self.worker['config']['output'])/'metadata/journals/3/0'
-                journal.mkdir(parents=True,exist_ok=True)
-                for name in ('items.jsonl','environment.json'):
-                    shutil.copyfile(HERE/'reference/metadata/reads/0/metadata/journals/3/0'/name,journal/name)
-            def poll(self):return 0
-        # Patch only host/occupancy/process boundaries; execute the original operator and worker_args/summarize.
-        with ExitStack() as stack:
-            for name,value in [('target_host',lambda:'trinity-2-28'),('deployment',lambda _: (root,cfg,inputs,export)),
-                ('stage_check',lambda *a,**k:dict(environment={},namespace=dict(bwrap={'fixture':True}))),('snapshot',lambda _:gpu),('idle_gate',lambda *a,**k:gpu),
-                ('namespace_command',lambda *a: ['/usr/bin/bwrap','--fixture']),('Sampler',Sampler),('STAGE',work/'stage')]:stack.enter_context(patch.object(runner228,name,value))
-            stack.enter_context(patch.object(runner228.subprocess,'Popen',Worker))
-            # utc uses subprocess too, so supply deterministic text only within this CPU test.
-            stack.enter_context(patch.object(runner228,'utc',lambda:'CPU_TEST'))
-            rc=runner228.run_one(types.SimpleNamespace(package=str(root),card='0',out=str(out),items=50,on=False))
-        self.assertEqual(rc,0);self.assertEqual(len(commands),1)
-        self.assertEqual(commands[0][:5],['nice','-n','10','bash',str(runner228.VNICE)])
-        self.assertTrue((out/'ret/metadata/reads/0/metadata/IDENTITY.json').is_file())
-        self.assertTrue((out/'ret/metadata/reads/0/metadata/projection.json').is_file())
-        summary=read(out/'ret/SUMMARY.json');self.assertEqual(summary['completed'],50)
-        self.assertEqual(summary['expected'],636);self.assertFalse(summary['complete'])
-        args=read(out/'metadata/WORKER_ARGS.json')
-        self.assertEqual(args[args.index('--types')+1],','.join(compare228.ORDER[i] for i in compare228.SCHEDULE))
-        self.assertIn('--type-journals',args);self.assertEqual(args[args.index('--shard')+1],'0/1')
-        self.assertEqual(read(out/'ret/metadata/LOCAL_RUN.json')['mode'],'OFF')
+        sys.path.insert(0,str(HERE/'tests'))
+        from test_review3 import full_adapter
+        full_adapter(self,HERE,directory())
 
     def test_on_refuses_unverified_overlay_delivery(self):
         import runner228

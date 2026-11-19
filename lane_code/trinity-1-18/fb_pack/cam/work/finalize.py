@@ -81,6 +81,7 @@ report=[
 'Gate document file-byte SHA256 is MISSING: '+gate_path+'. Its text was read once; the initial read did not capture a hash. The three local held-out/wording files match its registered pins.',
 'No-archaeology review: no borderline historical wording is retained. Before/after trace pairs and refusal counts are the requested controlled comparison.'
 ]
+report=[part for i,line in enumerate(report) for part in ([line,''] if i in {0,2,4,6,8,10,11,57,59,61,63} else [line])]
 assert len(report)<=80,len(report)
 (ROOT/'out/REPORT.md').write_text('\n'.join(report)+'\n')
 status(6,'Camera packet passes CPU validation: 5,143 native admissions, 836 eval-room-only refusals, zero grammar/GT/held-out/room-audit failures. All 120 cell counts, 40 trace pairs, exact input hashes and reproducible commands are recorded. Production source resealing belongs to the tree owner; the supplementary gate document byte hash is MISSING.')

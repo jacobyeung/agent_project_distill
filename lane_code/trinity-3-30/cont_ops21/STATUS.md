@@ -29,3 +29,23 @@ Base: /scratch/jjyeung/orch_n30/cont_ops20/STATUS.md (17:45Z ROTATE section). To
 ## 19:15Z
 - ANSWER 1853Z: no file replacement; packages link existing export parts instead of pulling (fill change + one Astra review before next staging); 600 dose point unstaged until N launched and n_ops1 reports >300 GiB free. Done: RESULT 1902Z (bytes 129.78 GB, 6 export copies), events/cont_ops/files_m400/ORCHARD_REMOVAL_CANDIDATES.md, E line in distill_design/R1_DISTANCE_NO_CALL_DIAGNOSIS_20261119.md.
 - 600 kit: scorer fix done (score_c600.py wrapper, 10 rejection tests). Link-first fill round Codex c21_linka600 running on trinity-1-18 (LINK_A600C_BRIEF.md). Then ONE Astra review covering scorer fix + link fill.
+## 19:40Z
+- H@400 173234 COMPLETED 19:27Z (2:55:47, 900/900). work/H400 (ret1 verified, scores_H400b.json). RESULT events/cont_ops/20261119T1932Z_RESULT_H400_heldout_camera_entry_baseline.md; corpus 6ed2c7aa_s400_heldoutcam_H900_173234.
+- H@200 173259 RUNNING on general since ~19:23Z (monitor c21_monG259). Then D@400 remainder (after D@400 partial; kit on Orchard 813f42db/c20d400rcode/dresume).
+- 600 kit: link-first round done (18 tests). Review 2 (Astra) c21_rev2a600 running on trinity-1-18. Staging waits for N launched + n_ops1 >300 GiB free (ANSWER 1853Z item 3).
+## 19:58Z
+- c20_monA2 exited falsely at 19:53Z (ssh kex failure read as ALL_LEFT; jobs still RUNNING). Replaced: tmux c21_monA5 (work/monA5.sh: sacct-confirmed exit, no yield on a failed poll) for 173241 173243 173258; c21_monA3 killed. Only c21_monA5 yields advanced now.
+## 20:13Z
+- ORDER 1959Z: own-arm 173333 submitted, moved to advanced + NodeList=orchard-community-1; PENDING Resources (community-1 full; victorkw preempt job took E's card). Yield monitor c21_monA6 (173333). RESULT 20261119T2011Z.
+- k1fwd1 lane will ask in events/cont_ops for a free card: give it the next card after own-arm; job ids to avoid 173241 173243 173258 173259 173333.
+- 600 kit: review 2 GO AFTER FIXES (TOCTOU in link helper); fix round c21_fix2a600 running on trinity-1-18.
+## 20:25Z
+- Own-arm 173333 RUNNING since ~20:11Z on community-1 (advanced). 4 advanced cards ours: 173241 D@400, 173243 D@200, 173258 H@544, 173333 own-arm; general 173259 H@200.
+- k1fwd1 QUESTION 2010Z answered (RESULT 2021Z): next card that frees is theirs (H@544 ~21:15Z), then D@400/D@200 by 21:38Z.
+- Plan when D@400 / D@200 partials publish (~21:38Z): fetch each; build remainder (REPORT_DREM400.md sequence; KIT=/project/community/jjyeung/okh7/813f42db/c20d400rcode/dresume; D@200 the same with bind_D200.json, parent a15_cot_apd296bd1ef61cd, its own stage name); CPU check; submit on advanced cards that free (yield rule) or general after H@200.
+- 600 kit fix 2b (Codex c21_fix2b on trinity-1-18): ctime rule for link verification.
+## 20:40Z
+- D@400 173241 COMPLETED 20:28:55Z, 580/580: no remainder. RESULT events/cont_ops/20261119T2034Z_RESULT_D400_reworded_distance_entry_baseline.md; corpus 6ed2c7aa_s400_R0dev_D580_173241; files work/D400 (ret, scores_D400.json; scorer copy score_d400.py = dresume score_base.py).
+- Its card went to a preempt job (bkalita 173336). Told k1fwd1 to queue pending early (RESULT 2037Z).
+- Running: advanced 173243 D@200, 173258 H@544, 173333 own-arm; general 173259 H@200. Yield monitors c21_monA5 (173241 left, 173243, 173258), c21_monA6 (173333).
+- D@200 remainder script ready: work/o_drem200.sh (via ossh; stage 813f42db/c21d200r, bind_D200, REUSE_PARTS_FROM parent a/e, ends with CPU-check submission). Run it BEFORE work/o_fetch_D200.sh (the fetch moves the pool return to ae71c903_fetched; the script falls back to that path).

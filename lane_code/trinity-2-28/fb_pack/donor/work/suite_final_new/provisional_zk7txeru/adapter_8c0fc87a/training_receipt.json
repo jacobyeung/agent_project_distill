@@ -1,0 +1,39 @@
+{
+  "adapter": {
+    "config_sha256": "a9d4f6436c94e5d11405c3186ee82c435e7a19df8056f1cebd9713d9e27c5cd5",
+    "weights_sha256": "728159e8cb9b06f7a49f0f61ae01a3104aee60dc0d2ddcc8c9c7c5858c70acc9"
+  },
+  "base": {
+    "repo_id": "OneThink/OneThinker-8B",
+    "revision": "2b7032f4179d8c032d2eac67b3692263f85be0fc"
+  },
+  "base_restart": "original_checkpoint",
+  "benchmark_trained_diagnostic": false,
+  "dataset": "VSI-590K",
+  "enable_thinking": null,
+  "preprocessing": {
+    "do_sample_frames": false,
+    "frame_count": 32,
+    "max_input_tokens": 16384,
+    "prompt": "native_user_video_then_verbatim_question_options",
+    "selector": "floor(k*(N-1)/31)",
+    "size": {
+      "longest_edge": 4718592,
+      "shortest_edge": 524288
+    },
+    "timing": "original_ordinals_and_fps_with_separate_actual_pts",
+    "version": "original-rgb32-v1"
+  },
+  "scene_division_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "schema": "clean-student-training-v1",
+  "selection_frozen_before_benchmark": true,
+  "smoke": false,
+  "status": "TRAINED",
+  "synthetic": true,
+  "trained_module_families": [
+    "vision",
+    "merger",
+    "language"
+  ],
+  "training_data_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

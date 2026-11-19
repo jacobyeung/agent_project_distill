@@ -142,6 +142,7 @@ class LaunchFindings(unittest.TestCase):
         text=(TARGET/'coordinator228.sh').read_text()
         self.assertNotIn('--relocate-runtime',text)
         self.assertIn('--check-namespace',text)
-        self.assertIn('namespace_command',(TARGET/'runner228.py').read_text())
+        self.assertIn('operator_command',(TARGET/'runner228.py').read_text())
+        self.assertIn('namespace_command(plan)+',(TARGET/'namespace228.py').read_text())
 
 if __name__=='__main__':unittest.main(verbosity=2)

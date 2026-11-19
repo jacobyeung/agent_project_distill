@@ -1,26 +1,21 @@
-`launch_r1.entry.admit()` reads exactly two review fields:
+The independent reviewer writes `<n_root>/n_r/review.json` after reading the job’s `live/v.json`, `identity.txt`, and `e0.json` through `e5.json`. The job polls every 30 seconds for at most 7,200 seconds from `WAITING_REVIEW.json`.
 
-- `verdict`: the string `PASS`.
-- `config_identity`: the exact value of `student_pilot.carrier_c1_run.identity(cfg)` for the final training configuration.
+The `n_r` directory must belong to the job user and have mode 0700. The receipt must be a regular, non-symlink file owned by the job user with mode 0600. The job opens both without following symlinks. A missing directory or file remains pending; an unusable existing directory or file refuses.
 
-The review must be a JSON object. The independent lane `n_review1` writes it after its checklist passes. The builder supplies no production review. The orchestrator's launch GO is a separate decision.
+The receipt has exactly these top-level fields:
 
-The additional field `evidence` contains `checks` (named checklist results), `hashes` (SHA-256 pins for the checked artifacts), and `reviewer_session` (the independent reviewer session). `admit()` ignores this entire field; it does not authenticate a reviewer's identity. The reviewer and orchestrator must enforce independent authorship.
+- `verdict`: `PASS`.
+- `config_identity`: `student_pilot.carrier_c1_run.identity(v.json)`, computed in the job view.
+- `evidence`: an optional object containing every additional check, evidence hash, and reviewer-session identifier.
 
 ```json
-{
-  "verdict": "PASS",
-  "config_identity": "<64 lowercase hexadecimal characters>",
-  "evidence": {
-    "checks": {"<check name>": "PASS"},
-    "hashes": {"<artifact name>": "<sha256>"},
-    "reviewer_session": "n_review1/<session identifier>"
-  }
-}
+{"verdict":"PASS","config_identity":"<prepared identity>","evidence":{"reviewer_session":"n_review1/<session>","checks":{},"hashes":{}}}
 ```
 
-The kit stores the review pin in decoded `k/a.json` as `review = {path: "u/<sha256>", sha256: "<sha256>"}`. The resolver authenticates its bytes, stages it under the job namespace, and adds it to the staged-pin set. `h.py` verifies its digest, verdict and final config identity before writing `v.json`. It attaches a job-private snapshot through `r1_training.review`; the host result is attached through `r1_training.host_receipt`. Both pins are excluded from the identity function.
+`launch_r1.entry.admit()` reads verdict and config_identity. It ignores evidence. Independent authorship remains the reviewer’s and orchestrator’s responsibility; no production review is supplied by this builder.
 
-Run `out/identity.py`, then run `out/arm_go.py <review.json>` after the independent review exists. Arming writes a separate kit and a four-file upload delta: `n/k/a.json`, `n/SHA256SUMS.txt`, `n/BUILD.json`, and `u/<review sha256>`. It performs no upload or launch. An existing arming output refuses instead of overwriting it.
+The job copies accepted bytes to `Q_NS/p/rv.json`, attaches their sha256 as `r1_training.review`, synchronizes the preparation receipt’s receipt pins, and writes `REVIEW_ACCEPTED.json` before calling t.py. Host and review pins do not change identity. The live v.json remains the exact snapshot the reviewer saw; the private v.json gains the accepted pin.
 
-Production admission is BLOCKED. `N_IDENTITY.txt` identifies the decoded, localised input config, not an authenticated final production canary config. The hidden-view canary refuses at the production-store boundary before producing `RESULT.json.config`. Native preparation creates identity-bearing fields, so equality cannot be asserted safely. `PRODUCTION_BLOCKERS.md` and `work/build24h/IDENTITY_COMPARISON.json` state the exact evidence. A PASS review of only this input identity cannot replace review of the final identity that `h.py` checks.
+`out/arm_go.py` takes no review argument. It copies the GO template to a separate armed directory, verifies/scans it, and emits a three-file GO delta. The review is never staged in k/a.json or the upload set. Arming performs no upload or launch. GO=false jobs publish and wait too; t.py retains its GO check.
+
+`N_IDENTITY.txt` describes the localised input, not the prepared production identity. Use only the identity published by the launch job for the receipt. A valid host receipt is still required before publication; see PRODUCTION_BLOCKERS.md.

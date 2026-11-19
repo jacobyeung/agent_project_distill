@@ -1,0 +1,38 @@
+{
+  "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new membership_guard_before test_r1_subset_guard.Subsets.test_membership_declaration_must_be_configured",
+  "inputs_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/p3_provenance.py": "afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r1_coverage.py": "aca68904351907af1ce046a79123725851969f08744eea629167ffdbc18eeb84",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r1_persisted.py": "33d1615f17c2928009e7b32bce2fc2ef180f880e449c220b7613e0e332b53287",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r1_population.py": "4862c1bfcfd634405d27cae81c1860201726bd3693dcd246245a4f439682e2b4",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r1_routing.py": "7975ea825a4dc7f7a4471e950a9ba87c1d68365e9cbb34f044e9652ab6252f18",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r1_training.py": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/run_tests.py": "4f51b91ff6cf169986c26a9de3a9fca74c9442abf7b955906064dc5a437a24de",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/support/test_r1_subset_guard.py": "bc0f2525fde7926ee0452a90a4535cf8f17ea32aee108d064b0a8209de55406e"
+  },
+  "tests": 1,
+  "failures": 1,
+  "errors": 0,
+  "skipped": 0,
+  "successful": false,
+  "outcomes": [
+    {
+      "test": "test_r1_subset_guard.Subsets.test_membership_declaration_must_be_configured",
+      "status": "FAIL",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/patchA/work/support/test_r1_subset_guard.py\", line 139, in test_membership_declaration_must_be_configured\n    with self.assertRaisesRegex(ValueError, 'R1_ROUTING_MEMBERSHIP_DECLARATION_DIFFERS'):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised\n"
+    }
+  ],
+  "blocked": [],
+  "names": [
+    "test_r1_subset_guard.Subsets.test_membership_declaration_must_be_configured"
+  ],
+  "scope": "CPU; network, subprocesses, NFS reads, outside writes and deletion denied; temporary fixtures retained",
+  "hostname": "trinity-2-28",
+  "frame_host_environment": {
+    "STUDENT_R2_FRAME_HOST": null,
+    "STUDENT_R2_LOCAL_NODE": null,
+    "Q_E7": null,
+    "Q_E8": null
+  }
+}

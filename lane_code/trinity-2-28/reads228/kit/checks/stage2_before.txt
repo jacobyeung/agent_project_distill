@@ -1,0 +1,94 @@
+test_high1_runtime_inventory_records_all_names (__main__.StageFindings.test_high1_runtime_inventory_records_all_names) ... FAIL
+test_high1_runtime_members_must_supply_prepare (__main__.StageFindings.test_high1_runtime_members_must_supply_prepare) ... FAIL
+test_info10_ingest_uses_summary_despite_failed_exit_status (__main__.StageFindings.test_info10_ingest_uses_summary_despite_failed_exit_status) ... FAIL
+test_medium3_conflicts_list_all_and_preserve_other_lane (__main__.StageFindings.test_medium3_conflicts_list_all_and_preserve_other_lane) ... FAIL
+test_medium3_matching_member_is_skipped_without_metadata_change (__main__.StageFindings.test_medium3_matching_member_is_skipped_without_metadata_change) ... FAIL
+test_medium3_unexplained_files_refuse_with_list (__main__.StageFindings.test_medium3_unexplained_files_refuse_with_list) ... FAIL
+test_medium4_calls_sealed_namespace_and_records_both_bwrap_identities (__main__.StageFindings.test_medium4_calls_sealed_namespace_and_records_both_bwrap_identities) ... FAIL
+test_medium4_no_relocation_of_authenticated_bytes (__main__.StageFindings.test_medium4_no_relocation_of_authenticated_bytes) ... FAIL
+test_medium4_runtime_absolute_link_bytes_preserved (__main__.StageFindings.test_medium4_runtime_absolute_link_bytes_preserved) ... FAIL
+
+======================================================================
+FAIL: test_high1_runtime_inventory_records_all_names (__main__.StageFindings.test_high1_runtime_inventory_records_all_names)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_stage2.py", line 74, in test_high1_runtime_inventory_records_all_names
+    self.assertIn('members',got);self.assertEqual([r['name'] for r in got['members']],['sj/runtime/one'])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'members' not found in {'files': {'/scratch/jjyeung/orch_n30/so_reads228/work/round2/stage_fixtures/s2_lzgaypvn/scratch/runtime/one': {'bytes': 1, 'sha256': '2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881'}}, 'expanded_bytes': 1, 'archive_sha256': '6a0efcebee6124652cb0c9cfbb9b6acbbe4786f15f45f22fa63b50a8ed42617c'}
+
+======================================================================
+FAIL: test_high1_runtime_members_must_supply_prepare (__main__.StageFindings.test_high1_runtime_members_must_supply_prepare)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_stage2.py", line 77, in test_high1_runtime_members_must_supply_prepare
+    self.assertTrue(callable(getattr(S,'runtime_requirements',None)),'stage lacks runtime member requirements')
+AssertionError: False is not true : stage lacks runtime member requirements
+
+======================================================================
+FAIL: test_info10_ingest_uses_summary_despite_failed_exit_status (__main__.StageFindings.test_info10_ingest_uses_summary_despite_failed_exit_status)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_stage2.py", line 123, in test_info10_ingest_uses_summary_despite_failed_exit_status
+    self.assertTrue((TARGET/'ingest228.py').is_file(),'ingest adapter missing')
+AssertionError: False is not true : ingest adapter missing
+
+======================================================================
+FAIL: test_medium3_conflicts_list_all_and_preserve_other_lane (__main__.StageFindings.test_medium3_conflicts_list_all_and_preserve_other_lane)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_stage2.py", line 45, in test_medium3_conflicts_list_all_and_preserve_other_lane
+    for p in paths:self.assertIn(str(p),str(caught.exception))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '/scratch/jjyeung/orch_n30/so_reads228/work/round2/stage_fixtures/s2_br4d_dul/d/s/b.py' not found in 'Existing member differs; preserve and ask coordinator: /scratch/jjyeung/orch_n30/so_reads228/work/round2/stage_fixtures/s2_br4d_dul/d/s/a.py'
+
+======================================================================
+FAIL: test_medium3_matching_member_is_skipped_without_metadata_change (__main__.StageFindings.test_medium3_matching_member_is_skipped_without_metadata_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_stage2.py", line 57, in test_medium3_matching_member_is_skipped_without_metadata_change
+    self.assertEqual(len(got),2);self.assertTrue(any('--skip-old-files' in c for c in commands))
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_medium3_unexplained_files_refuse_with_list (__main__.StageFindings.test_medium3_unexplained_files_refuse_with_list)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_stage2.py", line 60, in test_medium3_unexplained_files_refuse_with_list
+    self.assertTrue(callable(getattr(S,'reconcile',None)),'stage lacks destination reconciliation')
+AssertionError: False is not true : stage lacks destination reconciliation
+
+======================================================================
+FAIL: test_medium4_calls_sealed_namespace_and_records_both_bwrap_identities (__main__.StageFindings.test_medium4_calls_sealed_namespace_and_records_both_bwrap_identities)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_stage2.py", line 107, in test_medium4_calls_sealed_namespace_and_records_both_bwrap_identities
+    self.assertTrue((TARGET/'namespace228.py').is_file(),'namespace adapter missing')
+AssertionError: False is not true : namespace adapter missing
+
+======================================================================
+FAIL: test_medium4_no_relocation_of_authenticated_bytes (__main__.StageFindings.test_medium4_no_relocation_of_authenticated_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_stage2.py", line 103, in test_medium4_no_relocation_of_authenticated_bytes
+    with self.assertRaises(C.Refusal):R.relocate_runtime(plan,enabled=True)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_medium4_runtime_absolute_link_bytes_preserved (__main__.StageFindings.test_medium4_runtime_absolute_link_bytes_preserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_stage2.py", line 91, in test_medium4_runtime_absolute_link_bytes_preserved
+    self.assertEqual(os.readlink(str(p)),raw);self.assertEqual(got['files'][str(p)]['link'],raw)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '../../../../../../scratch/uv-python/cpyth[38 chars]3.12' != '/home/jyeung/.local/share/uv/python/cpyth[35 chars]3.12'
+- ../../../../../../scratch/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12
++ /home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12
+
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.013s
+
+FAILED (failures=9)

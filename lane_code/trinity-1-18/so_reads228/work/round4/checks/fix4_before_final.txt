@@ -1,0 +1,232 @@
+test_absolute_and_parent_paths_refuse_before_writing (__main__.TargetRefusalTests.test_absolute_and_parent_paths_refuse_before_writing) ... FAIL
+test_bootstrap_harness_selects_actual_python368 (__main__.TargetRefusalTests.test_bootstrap_harness_selects_actual_python368) ... FAIL
+test_conflict_in_last_archive_preserves_existing_and_writes_nothing (__main__.TargetRefusalTests.test_conflict_in_last_archive_preserves_existing_and_writes_nothing) ... FAIL
+test_coordinator_fresh_kit2_stage_then_single_gate (__main__.TargetRefusalTests.test_coordinator_fresh_kit2_stage_then_single_gate) ... FAIL
+test_escaping_links_refuse_before_writing (__main__.TargetRefusalTests.test_escaping_links_refuse_before_writing) ... FAIL
+test_existing_symlink_target_cannot_escape_private_root (__main__.TargetRefusalTests.test_existing_symlink_target_cannot_escape_private_root) ... FAIL
+test_footprint_counts_private_root_without_following_shared_links (__main__.TargetRefusalTests.test_footprint_counts_private_root_without_following_shared_links) ... FAIL
+test_helper_records_are_not_runtime_binds (__main__.TargetRefusalTests.test_helper_records_are_not_runtime_binds) ... FAIL
+test_host_translation_private_sj_and_absolute_link (__main__.TargetRefusalTests.test_host_translation_private_sj_and_absolute_link) ... FAIL
+test_identical_rerun_preserves_inode_mode_mtime (__main__.TargetRefusalTests.test_identical_rerun_preserves_inode_mode_mtime) ... FAIL
+test_late_pin_failure_writes_nothing (__main__.TargetRefusalTests.test_late_pin_failure_writes_nothing) ... FAIL
+test_operator_installs_guard_before_policy_or_spawn (__main__.TargetRefusalTests.test_operator_installs_guard_before_policy_or_spawn) ... ERROR
+test_parent_symlink_in_later_group_refuses_before_writing (__main__.TargetRefusalTests.test_parent_symlink_in_later_group_refuses_before_writing) ... FAIL
+test_private_runtime_plan_and_native_control (__main__.TargetRefusalTests.test_private_runtime_plan_and_native_control) ... FAIL
+test_real_lists_zero_body_preflight_and_unknown_namespace (__main__.TargetRefusalTests.test_real_lists_zero_body_preflight_and_unknown_namespace) ... FAIL
+test_real_namespace_private_runtime_logical_control_and_x_isolation (__main__.TargetRefusalTests.test_real_namespace_private_runtime_logical_control_and_x_isolation) ... FAIL
+test_stage_entry_refuses_late_unknown_before_runtime_writes (__main__.TargetRefusalTests.test_stage_entry_refuses_late_unknown_before_runtime_writes) ... FAIL
+test_staging_helpers_extract_as_records_without_execution (__main__.TargetRefusalTests.test_staging_helpers_extract_as_records_without_execution) ... FAIL
+test_symlink_cycle_refuses_before_writing (__main__.TargetRefusalTests.test_symlink_cycle_refuses_before_writing) ... FAIL
+test_unknown_namespace_in_last_archive_writes_nothing (__main__.TargetRefusalTests.test_unknown_namespace_in_last_archive_writes_nothing) ... FAIL
+test_unsafe_member_types_refuse_before_writing (__main__.TargetRefusalTests.test_unsafe_member_types_refuse_before_writing) ... 
+  test_unsafe_member_types_refuse_before_writing (__main__.TargetRefusalTests.test_unsafe_member_types_refuse_before_writing) (kind='fifo') ... FAIL
+  test_unsafe_member_types_refuse_before_writing (__main__.TargetRefusalTests.test_unsafe_member_types_refuse_before_writing) (kind='char') ... FAIL
+  test_unsafe_member_types_refuse_before_writing (__main__.TargetRefusalTests.test_unsafe_member_types_refuse_before_writing) (kind='hardlink') ... FAIL
+
+======================================================================
+ERROR: test_operator_installs_guard_before_policy_or_spawn (__main__.TargetRefusalTests.test_operator_installs_guard_before_policy_or_spawn)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 233, in test_operator_installs_guard_before_policy_or_spawn
+    with self.assertRaises(Stop):operator.execute(dict(out=str(out),config=dict(package=str(TARGET/'A10b/src')),
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_reads228/out_round3/operator228.py", line 36, in execute
+    policy_check(paths=dict(vnice=cfg['prefix'][1],terminator=str(Path(cfg['prefix'][1]).with_name('terminator.sh'))))
+                                  ~~~^^^^^^^^^^
+KeyError: 'prefix'
+
+======================================================================
+FAIL: test_absolute_and_parent_paths_refuse_before_writing (__main__.TargetRefusalTests.test_absolute_and_parent_paths_refuse_before_writing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 97, in test_absolute_and_parent_paths_refuse_before_writing
+    self.assertFalse((root/'private_rt').exists())
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_bootstrap_harness_selects_actual_python368 (__main__.TargetRefusalTests.test_bootstrap_harness_selects_actual_python368)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 216, in test_bootstrap_harness_selects_actual_python368
+    self.assertIn('bootstrap_python=/usr/bin/python3',text)
+AssertionError: 'bootstrap_python=/usr/bin/python3' not found in '#!/usr/bin/env bash\nset -euo pipefail\ndate -u\ntest_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"\nexport CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false\nexport READ228_TEST_WORK="${READ228_TEST_WORK:-/scratch/jjyeung/orch_n30/so_reads228/work/round3/test_runs}"\nexport READ228_CONTROL_ROOT="$READ228_TEST_WORK/control"\nsource "$test_dir/../control_environment228.sh"\nnice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_kit.py"\ndate -u\nnice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_review.py"\ndate -u\nnice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_prepare.py"\ndate -u\nnice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_bootstrap36.py"\n\ndate -u\nnice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_review2.py"\ndate -u\nnice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_stage2.py"\n\ndate -u\n# Bare control path: do not let p1cpu site-packages hide missing operator imports.\nnice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -S -B "$test_dir/test_review3.py"\n'
+
+======================================================================
+FAIL: test_conflict_in_last_archive_preserves_existing_and_writes_nothing (__main__.TargetRefusalTests.test_conflict_in_last_archive_preserves_existing_and_writes_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 84, in test_conflict_in_last_archive_preserves_existing_and_writes_nothing
+    self.assertFalse((old.parent/'new').exists())
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_coordinator_fresh_kit2_stage_then_single_gate (__main__.TargetRefusalTests.test_coordinator_fresh_kit2_stage_then_single_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 209, in test_coordinator_fresh_kit2_stage_then_single_gate
+    self.assertIn('/reads228/kit2',text);self.assertNotIn('/reads228/kit\"',text)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '/reads228/kit2' not found in '#!/usr/bin/env bash\n# Run once in an existing target-node session after the governed staging streams finish.\nset -euo pipefail\nmode=all\nif [[ "${1:-}" == --stage-only ]]; then mode=stage; shift; fi\nif [[ "${1:-}" == --run-only ]]; then mode=run; shift; fi\nif [[ ( "$mode" == stage && $# -ne 0 ) || ( "$mode" != stage && $# -ne 2 ) ]]; then\n  echo \'Usage: coordinator228.sh --stage-only | [--run-only] <card-index-or-UUID> <fresh-local-run-directory>\' >&2\n  exit 2\nfi\nif [[ "$mode" != stage ]]; then\n  run_name="$(basename -- "$2")"\n  if [[ ! "$run_name" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]]; then\n    echo \'REFUSED: unsafe ingest directory name\' >&2; exit 2\n  fi\nfi\ndate -u\nif [[ "$(hostname -s)" != trinity-2-28 ]]; then\n  echo \'REFUSED: coordinator228.sh is restricted to trinity-2-28\' >&2\n  exit 2\nfi\nkit_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"\nif [[ "$kit_dir" != /scratch/jjyeung/orch_n30/reads228/kit ]]; then\n  echo \'REFUSED: kit must be /scratch/jjyeung/orch_n30/reads228/kit because a/6 is pinned there\' >&2\n  exit 2\nfi\nsource "$kit_dir/control_environment228.sh"\npackage="$kit_dir/A10b"\nstage=/scratch/jjyeung/orch_n30/reads228\nif [[ "$mode" != run ]]; then\n# Check all MISSING.json hashes ourselves; marker files alone are insufficient.\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --verify-runtime-pins\ndate -u\n# Extraction never overwrites existing members. Input tar uses --skip-old-files.\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --extract-runtime\ndate -u\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --extract-inputs\ndate -u\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --install-code\ndate -u\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --check-namespace\ndate -u\nexport READ228_CONTROL_PYTHON=/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12\n# Native CPython does stdlib control; d/v/py runs prepare and the operator in bwrap.\nnice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --prepare --out "$stage/STAGE_CHECK.json"\ndate -u\nnice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --out "$stage/STAGE_CHECK.json"\ndate -u\nnice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --probe-operator\ndate -u\nfi\nif [[ "$mode" == stage ]]; then exit 0; fi\nexport READ228_CONTROL_PYTHON=/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12\n# Stage verification, both >=300-second idle readings and the run share one launcher.\n# A busy card exits immediately. Nothing here retries a killed or failed command.\nbash "$kit_dir/run228.sh" "$package" "$1" "$2" --items 50\ndate -u\ncompare_rc=0\nbash "$kit_dir/compare228.sh" "$2/ret" --orchard "$kit_dir/reference" --out "$2/COMPARE.json" || compare_rc=$?\nif [[ "$compare_rc" -gt 1 ]]; then exit "$compare_rc"; fi\ndate -u\n# The unchanged unpacker requires --out inside the kit (the A10b parent directory).\naccepted="$kit_dir/ingest/$run_name"\nnice -n 10 "$READ228_CONTROL_PYTHON" -I -s -B "$kit_dir/unpack228.py" --operator "$package" \\\n  --archive "$2/return/result.tar.gz" --exit "$2/return/EXIT.json" --out "$accepted"\ndate -u\n# A clean 50/636 envelope has EXIT.status=FAILED. Ingest uses SUMMARY instead.\nnice -n 10 "$READ228_CONTROL_PYTHON" -I -s -B "$kit_dir/ingest228.py" --return "$accepted" \\\n  --comparison "$2/COMPARE.json" --out "$2/CORPUS_INGEST.json"\ndate -u\n'
+
+======================================================================
+FAIL: test_escaping_links_refuse_before_writing (__main__.TargetRefusalTests.test_escaping_links_refuse_before_writing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 103, in test_escaping_links_refuse_before_writing
+    self.assertFalse((root/'private_rt').exists())
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_existing_symlink_target_cannot_escape_private_root (__main__.TargetRefusalTests.test_existing_symlink_target_cannot_escape_private_root)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 242, in test_existing_symlink_target_cannot_escape_private_root
+    self.assertFalse((alias.parent/'new').exists())
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_footprint_counts_private_root_without_following_shared_links (__main__.TargetRefusalTests.test_footprint_counts_private_root_without_following_shared_links)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 200, in test_footprint_counts_private_root_without_following_shared_links
+    self.assertIn('runtime_expanded_bytes',plan['budget'])
+AssertionError: 'runtime_expanded_bytes' not found in {'basis': 'Pinned archive sizes; estimated 40 GB runtime expansion and 5 GB code/cache/return allowance. Private SAM3 is already included in input expansion; the existing shared SAM3 is counted conservatively but never read. No archive deletion.', 'code_returns_cache_allowance_bytes': 5000000000, 'estimated_peak_bytes': 124166664744, 'existing_sam3_bytes': 3450062241, 'free_floor_bytes': 214748364800, 'input_archives_bytes': 32613048320, 'input_expanded_bytes': 32606120583, 'limit_bytes': 150000000000, 'runtime_archives_bytes': 10497433600, 'runtime_expanded_allowance_bytes': 40000000000}
+
+======================================================================
+FAIL: test_helper_records_are_not_runtime_binds (__main__.TargetRefusalTests.test_helper_records_are_not_runtime_binds)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 162, in test_helper_records_are_not_runtime_binds
+    self.assertIn('x/pull.py',registry);self.assertIn('x/need_frames.txt',registry)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'x/pull.py' not found in {}
+
+======================================================================
+FAIL: test_host_translation_private_sj_and_absolute_link (__main__.TargetRefusalTests.test_host_translation_private_sj_and_absolute_link)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 195, in test_host_translation_private_sj_and_absolute_link
+    self.assertEqual(N.host_path('/scratch/jjyeung/envs/p1cpu/bin/python3.12',plan),python)
+AssertionError: Posix[18 chars]eung/uv-python/cpython-3.12.13-linux-x86_64-gn[13 chars].12') != Posix[18 chars]eung/orch_n30/so_reads228/work/round4/before_f[92 chars].12')
+
+======================================================================
+FAIL: test_identical_rerun_preserves_inode_mode_mtime (__main__.TargetRefusalTests.test_identical_rerun_preserves_inode_mode_mtime)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 119, in test_identical_rerun_preserves_inode_mode_mtime
+    self.assertTrue(callable(getattr(R,'extract_runtimes',None)))
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_late_pin_failure_writes_nothing (__main__.TargetRefusalTests.test_late_pin_failure_writes_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 116, in test_late_pin_failure_writes_nothing
+    self.assertFalse((root/'private_rt').exists())
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_parent_symlink_in_later_group_refuses_before_writing (__main__.TargetRefusalTests.test_parent_symlink_in_later_group_refuses_before_writing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 109, in test_parent_symlink_in_later_group_refuses_before_writing
+    self.assertFalse((root/'private_rt').exists())
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_private_runtime_plan_and_native_control (__main__.TargetRefusalTests.test_private_runtime_plan_and_native_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 59, in test_private_runtime_plan_and_native_control
+    self.assertEqual(root,Path(plan['stage_root'])/'private_rt')
+AssertionError: PosixPath('/missing') != PosixPath('/scratch/jjyeung/orch_n30/reads228/private_rt')
+
+======================================================================
+FAIL: test_real_lists_zero_body_preflight_and_unknown_namespace (__main__.TargetRefusalTests.test_real_lists_zero_body_preflight_and_unknown_namespace)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 128, in test_real_lists_zero_body_preflight_and_unknown_namespace
+    self.assertTrue(callable(getattr(R,'preflight_runtime',None)),'missing all-archive pass 1')
+AssertionError: False is not true : missing all-archive pass 1
+
+======================================================================
+FAIL: test_real_namespace_private_runtime_logical_control_and_x_isolation (__main__.TargetRefusalTests.test_real_namespace_private_runtime_logical_control_and_x_isolation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 173, in test_real_namespace_private_runtime_logical_control_and_x_isolation
+    try:argv=N.namespace_command(plan)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_reads228/out_round3/namespace228.py", line 35, in namespace_command
+    raise Refusal('Run --check-namespace to establish the package sj bind')
+common228.Refusal: Run --check-namespace to establish the package sj bind
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 174, in test_real_namespace_private_runtime_logical_control_and_x_isolation
+    except C.Refusal as error:self.fail(str(error))
+                              ^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Run --check-namespace to establish the package sj bind
+
+======================================================================
+FAIL: test_stage_entry_refuses_late_unknown_before_runtime_writes (__main__.TargetRefusalTests.test_stage_entry_refuses_late_unknown_before_runtime_writes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 262, in test_stage_entry_refuses_late_unknown_before_runtime_writes
+    self.assertTrue(callable(getattr(R,'extract_runtimes',None)))
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_staging_helpers_extract_as_records_without_execution (__main__.TargetRefusalTests.test_staging_helpers_extract_as_records_without_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 253, in test_staging_helpers_extract_as_records_without_execution
+    self.assertIn('x/pull.py',plan.get('runtime_registry',{}))
+AssertionError: 'x/pull.py' not found in {}
+
+======================================================================
+FAIL: test_symlink_cycle_refuses_before_writing (__main__.TargetRefusalTests.test_symlink_cycle_refuses_before_writing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 248, in test_symlink_cycle_refuses_before_writing
+    with self.assertRaises(C.Refusal):extract_all([g],m)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_unknown_namespace_in_last_archive_writes_nothing (__main__.TargetRefusalTests.test_unknown_namespace_in_last_archive_writes_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 75, in test_unknown_namespace_in_last_archive_writes_nothing
+    self.assertFalse((root/'private_rt').exists(),'preflight refusal created runtime files')
+AssertionError: True is not false : preflight refusal created runtime files
+
+======================================================================
+FAIL: test_unsafe_member_types_refuse_before_writing (__main__.TargetRefusalTests.test_unsafe_member_types_refuse_before_writing) (kind='fifo')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 91, in test_unsafe_member_types_refuse_before_writing
+    self.assertFalse((root/'private_rt').exists())
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_unsafe_member_types_refuse_before_writing (__main__.TargetRefusalTests.test_unsafe_member_types_refuse_before_writing) (kind='char')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 91, in test_unsafe_member_types_refuse_before_writing
+    self.assertFalse((root/'private_rt').exists())
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_unsafe_member_types_refuse_before_writing (__main__.TargetRefusalTests.test_unsafe_member_types_refuse_before_writing) (kind='hardlink')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py", line 90, in test_unsafe_member_types_refuse_before_writing
+    with self.assertRaises(C.Refusal):extract_all([group],m)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+----------------------------------------------------------------------
+Ran 21 tests in 0.028s
+
+FAILED (failures=22, errors=1)

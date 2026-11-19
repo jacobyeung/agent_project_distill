@@ -1,6 +1,6 @@
 from pathlib import Path
 import hashlib,json,math,sys
-D=Path(__file__).resolve().parent;R=D/'rehearsal2'
+D=Path(__file__).resolve().parent;R=D/'rehearsal4'
 def read(p,default=None):
     return json.loads(p.read_text()) if p.exists() else default
 stages=read(R/'STAGES.json',[])

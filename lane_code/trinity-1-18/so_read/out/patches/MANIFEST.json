@@ -29,6 +29,44 @@
     "bytes": 5252958,
     "sha256": "4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d"
   },
+  "a4_wrapper_member_pins": {
+    "archive_pin": {
+      "destination": "sj/b01ec87a6f29b/d",
+      "expanded_bytes": 143782645,
+      "parts": [
+        {
+          "bytes": 145274880,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/a4.tar",
+          "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
+        }
+      ],
+      "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
+    },
+    "conclusion": "Both supplied hashes match coordinator prefixes and archive-list byte sizes. Prior MANIFEST pins six package/operator members, not these two wrapper members; independent full member-SHA comparison is unavailable. Exact supplied hashes are now recorded and checked by the regression.",
+    "members": {
+      "v/boot.py": {
+        "bytes": 443,
+        "dispatch_prefix_match": true,
+        "sha256": "bce29ff7a0fe85d34d31a419d6ad1d0f9f333ef97b7a7fc2ce5ddcfb7da4536f",
+        "source": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/prompts/a4_vpy/v/boot.py"
+      },
+      "v/py": {
+        "bytes": 160,
+        "dispatch_prefix_match": true,
+        "sha256": "6fcf54ddf27fe5e2f755b8c3bacef8322486b5b292625847baa77d4fcc632416",
+        "source": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/prompts/a4_vpy/v/py"
+      }
+    },
+    "prior_a4_member_pin_names": [
+      "fetch_return.py",
+      "package/0.json",
+      "package/3.py",
+      "package/a/0.json",
+      "package/a/4.py",
+      "package/a/7.py"
+    ],
+    "prior_independent_wrapper_sha256_pins": false
+  },
   "activation": "u0/a8.py --enable-extensions; u0/a19.py --enable-extensions builds the bound A4 cache-only package; a12 is the generic integration builder (apply reader patches 01-03 and A4 operator patches 04-05)",
   "application_checks": {
     "A4": "zero fuzz; all original files unchanged; added bytes exact",
@@ -43,7 +81,7 @@
         "-s",
         "-B",
         "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_off.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_off.py"
       ],
       "name": "off",
       "output": "applied_off.txt",
@@ -56,7 +94,7 @@
         "-s",
         "-B",
         "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round4.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round4.py"
       ],
       "name": "round4",
       "output": "applied_round4.txt",
@@ -69,7 +107,7 @@
         "-s",
         "-B",
         "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round5.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round5.py"
       ],
       "name": "round5",
       "output": "applied_round5.txt",
@@ -82,7 +120,7 @@
         "-s",
         "-B",
         "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round6.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round6.py"
       ],
       "name": "round6",
       "output": "applied_round6.txt",
@@ -95,7 +133,7 @@
         "-s",
         "-B",
         "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round7.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round7.py"
       ],
       "name": "round7",
       "output": "applied_round7.txt",
@@ -108,7 +146,7 @@
         "-s",
         "-B",
         "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round8.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round8.py"
       ],
       "name": "round8",
       "output": "applied_round8.txt",
@@ -121,7 +159,7 @@
         "-s",
         "-B",
         "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round9.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round9.py"
       ],
       "name": "round9",
       "output": "applied_round9.txt",
@@ -134,18 +172,32 @@
         "-s",
         "-B",
         "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_compare.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_round10.py"
+      ],
+      "name": "round10",
+      "output": "applied_round10.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src/u0/tests/test_compare.py"
       ],
       "name": "compare",
       "output": "applied_compare.txt",
       "returncode": 0
     }
   ],
+  "applied_max_child_rss_bytes": 298569728,
   "apply_from": "fresh full staged src tree",
   "authenticated_roots": {
     "files_per_root": 927,
     "original": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src",
-    "patched": "/scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src"
+    "patched": "/scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd/src"
   },
   "b5_base_archive_sha256": "ac2e259025d6a821aa5eb13e236f0635bd970313859086fc2f3ce3276647f2f0",
   "base": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src",
@@ -1113,19 +1165,19 @@
     }
   },
   "default_off": "all original reader files unchanged; no extension import/settings parse; operator additions conditional on read_extensions",
-  "generated_utc": "2026-11-19T19:09:23.763742+00:00",
+  "generated_utc": "2026-11-19T20:05:21.824150+00:00",
   "kit_files": {
     "BASE_PIN.json": {
       "bytes": 102760,
       "sha256": "316e61597d3990161deec11b4795db8d074956f55aedd686be4939b9356c17ef"
     },
     "EXTENSION_PINS.json": {
-      "bytes": 3573,
-      "sha256": "34d0121ed212b3c8dd3b933a5173b7d437928ca705464692d03ae921b296c10f"
+      "bytes": 3754,
+      "sha256": "99769dcad95d22db1d55f7fb175356197ba98ae6e1904ed18db8a6c06a2d042c"
     },
     "README.md": {
-      "bytes": 33720,
-      "sha256": "fa4554801ed9ad3ed6ab0d8690d05ead01af91c4178c260efc1ccd2769b4f2de"
+      "bytes": 35696,
+      "sha256": "a561ab8f6ed34e9329b49c3b18b50f586a76bbd9c5f59eb14594046379c7bf3f"
     },
     "RUNTIME_PINS.json": {
       "bytes": 2554,
@@ -1156,12 +1208,12 @@
       "sha256": "17d9f5f226a2c71d739f8b657e524fd104354b4024e5699b920e2b03cca74f55"
     },
     "host.py": {
-      "bytes": 8362,
-      "sha256": "afbcd84afd2ca8fe7278080f3d76d8f671b421a5f42df6278399730e1099155c"
+      "bytes": 9150,
+      "sha256": "d9bf99ecb646222b5f8767810937bf639a3b61bebd92455fcf0466d461af1712"
     },
     "run.py": {
-      "bytes": 21372,
-      "sha256": "2cb5917beef275402eceb92cc45efe4cc1625d6124b35196f02461057453bbf1"
+      "bytes": 21875,
+      "sha256": "e5640351a50e476f2b849a2af515b5ac12d8d759bfc376035c93d4b1075a31e4"
     },
     "sample50.json": {
       "bytes": 108569,
@@ -1173,8 +1225,12 @@
       "sha256": "4889a599c344b478dc5e3818dfe9392710311c3358fe89bff0267dc1dba03c58"
     },
     "test_run.py": {
-      "bytes": 2997,
-      "sha256": "460f3f46327af143189697acdab56b861e0c7b17cb068a6b75b33197d4a675e0"
+      "bytes": 3005,
+      "sha256": "e2addcd306a8a94ace2ad07e968dd5a46b871a34b46d568b77ffd7602a04260a"
+    },
+    "u5.py": {
+      "bytes": 572,
+      "sha256": "f44916b089adc4ce8a045aa752676ee404868292282fa0eb3ae3e02689d63501"
     }
   },
   "operations_files": {
@@ -1262,7 +1318,7 @@
       "sha256": "369af9663fbc1008f9ecf5a32c5067ba4a5f4cd31412f07db8263b13b23fd4c3"
     },
     "02_atomic_scene_shards.diff": {
-      "bytes": 218861,
+      "bytes": 218879,
       "files": {
         "u0/a10.py": {
           "after_sha256": "73858354fe8d366880873246e6256393ea2b27d5979af4e128e93c569a92f50e",
@@ -1270,9 +1326,9 @@
           "bytes": 11317
         },
         "u0/a11.py": {
-          "after_sha256": "90b7600037c9d7b089caf322de7b52535f523e5c053f659388a67b555439e1dc",
+          "after_sha256": "3cedda801793fd433f25508c09c133096f813064c69035800fb72c94ff653100",
           "before_sha256": null,
-          "bytes": 3136
+          "bytes": 3154
         },
         "u0/a4.py": {
           "after_sha256": "9be6036f4ae7b89a3002167b255a81cd05a0a829f25d1773ca4fbdf822ace9fb",
@@ -1335,10 +1391,10 @@
           "bytes": 621
         }
       },
-      "sha256": "451fa5b97a8df76ec5985d0b4c8ce0c7d9ca2723c3865feeaa5148ecd04b1b0c"
+      "sha256": "77b024654841f4537787e48c8b7a1087a8f84636ec0332a7dcbf2a11c2af3336"
     },
     "03_production_integration.diff": {
-      "bytes": 256154,
+      "bytes": 271088,
       "files": {
         "u0/a12.py": {
           "after_sha256": "7c3e43eae90f52681c0ac8168f2180ebd1feef28f819c7fdb6d4b45dbfe61d9c",
@@ -1376,9 +1432,9 @@
           "bytes": 5329
         },
         "u0/a19.py": {
-          "after_sha256": "cc2ff00d7789b3f326b06ad2012c57d156470d3e5f231d4c61c8af11edf87f38",
+          "after_sha256": "4bbf136e4c60f9e98a7d352ed2c94a1f47c9102fe3eb5e4ca408e601644d4864",
           "before_sha256": null,
-          "bytes": 16771
+          "bytes": 16779
         },
         "u0/a20.py": {
           "after_sha256": "863b0d2edc96a7efaae31c266393a7e43f03ed281b652c114a68fd0759dc0dec",
@@ -1386,9 +1442,14 @@
           "bytes": 19397
         },
         "u0/a21.py": {
-          "after_sha256": "afbcd84afd2ca8fe7278080f3d76d8f671b421a5f42df6278399730e1099155c",
+          "after_sha256": "d9bf99ecb646222b5f8767810937bf639a3b61bebd92455fcf0466d461af1712",
           "before_sha256": null,
-          "bytes": 8362
+          "bytes": 9150
+        },
+        "u0/a22.py": {
+          "after_sha256": "f44916b089adc4ce8a045aa752676ee404868292282fa0eb3ae3e02689d63501",
+          "before_sha256": null,
+          "bytes": 572
         },
         "u0/tests/test_lock_round3.py": {
           "after_sha256": "373f9b897206caa0c324926299db6c35de6596293dd48fae568b63adeb91eacc",
@@ -1399,6 +1460,11 @@
           "after_sha256": "ad1af7780e685243eed32964224bbadc62379946d6fdf7f45c76024aa5aa9a7f",
           "before_sha256": null,
           "bytes": 15233
+        },
+        "u0/tests/test_round10.py": {
+          "after_sha256": "15d992c7fc7c6aefcb1f7f2caa94eb14953a2d52828366167be9ba79ce2be54d",
+          "before_sha256": null,
+          "bytes": 13173
         },
         "u0/tests/test_round2.py": {
           "after_sha256": "b70d3a5a88ac2f0ab81ac64c6891c3c9abaf85d92f0ea179cf44afca7c7ab876",
@@ -1426,22 +1492,22 @@
           "bytes": 17529
         },
         "u0/tests/test_round7.py": {
-          "after_sha256": "3f380f7be2f3d824658f5cd45b50a9fe00183af501c358c1e23e7440d8d0e73f",
+          "after_sha256": "f9b9fbd8cfb9f7341f2ac4e5c812146e729503b920d091b967c7bdba0534e7f3",
           "before_sha256": null,
-          "bytes": 11543
+          "bytes": 11581
         },
         "u0/tests/test_round8.py": {
-          "after_sha256": "a9f1428ab7f6d8008fe548830fe0dbe9c2ecf2e1234d72eab720a3fe0dc0385c",
+          "after_sha256": "1a0da8044ac22b45037e863100a7563539e7c8a5447b89790b1c43ea7c2c8fe1",
           "before_sha256": null,
-          "bytes": 13887
+          "bytes": 13883
         },
         "u0/tests/test_round9.py": {
-          "after_sha256": "b477784b57b7ba59d941482943bd0658de6c29d8e592f5b412a8fc7a1b3780d6",
+          "after_sha256": "082eb2cd90008fe59aefb5f6bee56f1d80139a5d181b687bdccce2961366c7b3",
           "before_sha256": null,
-          "bytes": 19279
+          "bytes": 19305
         }
       },
-      "sha256": "d603113a6325a8e285a8b142c4fd49249d29cc7bf350e584fb745417eaeb70be"
+      "sha256": "8ca34d1fb539dfc6294ce46dd888f0773e570a5792e83b5b4dfdd27b8e0f4830"
     },
     "04_operator_cache_bound.diff": {
       "apply_from": "fresh A4 operator directory, outside src",
@@ -1496,5 +1562,5 @@
       "files": 22
     }
   },
-  "verification_root": "/scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40"
+  "verification_root": "/scratch/jjyeung/orch_n30/so_read/work/apply-round10/51ac61e502af4c98b8f65204e06cf2dd"
 }

@@ -1356,7 +1356,7 @@
 +        import hashlib
 +        from a9 import pack
 +        incoming=Path(args.input);out=Path(args.out);out.mkdir(parents=True,exist_ok=False)
-+        for old,new in (('run.py','u0.py'),('compare.py','u1.py'),('host.py','u2.py')):
++        for old,new in (('run.py','u0.py'),('compare.py','u1.py'),('host.py','u2.py'),('u5.py','u5.py')):
 +            (out/new).write_bytes((incoming/old).read_bytes())
 +        (out/'a9.py').write_bytes((source/'u0/a9.py').read_bytes())
 +        sample=json.loads((incoming/'sample50.json').read_bytes())

@@ -1,0 +1,5 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls | grep tr14; free -g | sed -n 2p
+f=$W/w24/work/build22/upload/u/ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984; sha256sum $f | cut -c1-16
+cat $f | timeout 120 ssh -o ConnectTimeout=20 -o BatchMode=yes trinity-2-28.ib 'cat > /scratch/jjyeung/orch_n30/tree_rebuild14_w24j/staged/ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984 && sha256sum /scratch/jjyeung/orch_n30/tree_rebuild14_w24j/staged/ca06* | cut -c1-16; tmux ls | grep tr14'
+for l in tree_rebuild24i tree_rebuild24fr2; do d=$(ls -dt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*$l | head -1); echo "== $l"; ls $d | tr '\n' ' '; grep -c "at capacity" $d/transcript.log; test -f $d/final_message.md && head -c 2000 $d/final_message.md || tail -c 1000 $d/transcript.log | tr -cd "[:print:]\n" | grep -v "^[ +@-]" | tail -2 | cut -c1-300; echo; done
+test -f $W/w24/work/build24f/REHEARSAL_FIX2_REPORT.md && cat $W/w24/work/build24f/REHEARSAL_FIX2_REPORT.md

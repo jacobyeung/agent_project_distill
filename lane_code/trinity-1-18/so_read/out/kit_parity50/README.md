@@ -184,7 +184,15 @@ value=Path(sys.argv[1]).read_text()
 for key in ('GPU_KIT','GPU_LOGICAL'):value=value.replace('@'+key+'@',os.environ[key])
 Path(sys.argv[2]).write_text(value)
 PYCONFIG
-: "${PRIVATE_ALIASES:?Private JSON mapping preparation paths to staged opaque symlink aliases}"
+PRIVATE_ALIASES="$LOCAL/PRIVATE_ALIASES.json"
+# The same pinned host table creates these symlinks during stage.
+nice -n 10 "$READ_PYTHON" -I -s -B - "$DELIVERY/kit_parity50/host.py" "$GPU_LOGICAL" "$PRIVATE_ALIASES" <<'PYALIASES'
+import importlib.util,json,sys
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('host',sys.argv[1])
+host=importlib.util.module_from_spec(spec);spec.loader.exec_module(host)
+Path(sys.argv[3]).write_text(json.dumps(host.private_aliases(sys.argv[2]),sort_keys=True)+'\n')
+PYALIASES
 PRIVATE_SETTINGS="$LOCAL/PRIVATE_SETTINGS.json"
 PRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"
 CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \
@@ -210,7 +218,7 @@ nice -n 10 rsync --bwlimit=8000 --partial "$LOCAL/4.tgz" "$LOCAL/4.sha256" "$ORC
 
 The two source archives contain the complete 927-file A4 base: `1.tar` also contains the added extensions; `2.tar` contains no extensions. No build outputs or extra files may enter these roots. The kit authenticates both complete inventories and all extension bytes. The transfer sends archives, public configuration and code only; private settings and reverse maps stay on Trinity. The command above is an owner-run transfer instruction, not a transfer performed here. Keep its trusted SHA256 for the host check.
 
-`export`, `export_pin`, `artifact_manifest` and `environment_receipt` resolve to `$GPU_LOGICAL/d/{e,6.json,7.json,9.json}`. The neutral binding and environment aliases must be symlinks; the host helper creates `7.json -> binding.json` and `9.json -> ENVIRONMENT.json`. Include those exact mappings in PRIVATE_ALIASES and map other prepared asset paths to existing opaque symlinks. Copies can fail the loader's resolved-path allow-list.
+`export`, `export_pin`, `artifact_manifest` and `environment_receipt` resolve to `$GPU_LOGICAL/d/{e,6.json,7.json,9.json}`. The PRIVATE_ALIASES example above imports `host.ALIASES` through `host.private_aliases`; `host.stage` uses that same table to create relative symlinks. It defines `7.json -> binding.json`, `9.json -> ENVIRONMENT.json`, `a0 -> ../p/tree`, `a1.json -> p0/config.json`, `a2.pt -> k/sam3.pt`, `a3.json -> k/SAM3_RECEIPT.json`, and `a4 -> v/site`, all under `logical/d`. The audit of `a18.run` and the pinned step-400 inputs found no other non-opaque settings paths: export, frames, selector directory, and SAM source are already `d/e`, `d/f`, `d/h`, and `d/s`. Aliases must be symlinks to preserve the loader's resolved-path allow-list. The gate refuses any missing absolute sealed-settings path before its guard self-test.
 
 Before allocation, require all **13 runtime parts plus bwrap** listed with exact Orchard paths, byte counts and SHA256 in [RUNTIME_PINS.json](RUNTIME_PINS.json). The pins come from A4's `orchard_h10/vendor/ORCHARD_ASSETS.json`, observed on `orchard-login-001`; they do not establish present-day host reachability. Their bytes are absent from this delivery. Missing parts are deployment prerequisites; do not substitute an environment or guess an alternate source. The host helper copies and verifies them serially using A4's `job.stage` runtime-group/bwrap block and its own `S.copy_parts`, `S.room`, and `S.unpack`. It retains A4's 200 GiB free-space floor. The prepared `4.tar` supplies `d/` without refetching the six input archives. The helper also extracts the authenticated full package at `logical/p`, because d/manifest.json authenticates those code paths. The two parity source roots remain separate.
 
@@ -238,17 +246,14 @@ set -euo pipefail
 P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}
 ASSET_ARCHIVE=${ASSET_ARCHIVE:-"$P/a/4.tar"}
 GPU_LOGICAL=$(nice -n 10 /usr/bin/python3 -I -s -B - "$P" "$ASSET_ARCHIVE" <<'PYASSET'
-import hashlib,json,sys,tarfile
+import json,sys,tarfile
 from pathlib import Path
 p=Path(sys.argv[1]);archive=Path(sys.argv[2]);proof=json.loads((p/'a/c/CPU.json').read_text())
 assert proof['passed'] is True
 with tarfile.open(p/'0.tgz') as t:cfg=json.load(t.extractfile('9.json'))
 asset=proof['gate_assets'];assert asset['logical']==cfg['logical']
 assert Path(asset['path']).resolve()==(p/'a/4.tar').resolve() and archive.stat().st_size==asset['bytes']
-h=hashlib.sha256()
-with archive.open('rb') as stream:
-    for chunk in iter(lambda:stream.read(1024**2),b''):h.update(chunk)
-assert h.hexdigest()==asset['sha256']
+# host.stage hashes the archive once, in the stream sent to tar.
 print(cfg['logical'])
 PYASSET
 )
@@ -283,7 +288,7 @@ test "$gate_rc" -eq 0
 # END GPU_ENVIRONMENT
 ```
 
-The host helper authenticates the package, CPU-bound inputs and asset archive, stages A4's runtime and the pinned full payload at `logical/p`, then extracts `4.tar` through the live namespace into `root/sj/<logical>/d`. `/usr/bin/python3` handles only stdlib staging and launch. The preflight, `u0.py`, and every worker use A4’s `-B -I` wrapper calling convention and run through `inputs['python']`, the production `d/v/py` wrapper, in `J.namespace(root)`. Workers retain its site overlay. `J.environment(root)` supplies HOME, TMPDIR and OPENBLAS_NUM_THREADS=1; explicit XDG/HF/Triton cache paths stay under the opaque kit root. Missing runtime, failed extraction or version/CUDA mismatch stops the attempt without retry.
+The host helper authenticates the package, CPU-bound inputs and asset archive, stages A4's runtime and the pinned full payload at `logical/p`, then extracts `4.tar` through the live namespace into `root/sj/<logical>/d`. `/usr/bin/python3` handles only stdlib staging and launch. The host starts the pinned `u0/u5.py` preflight and `u0.py` through `J.namespace(root) + [inputs['python'], '-B', '-I', script, config]`. The wrapper accepts script paths and refuses `-c`. Workers already inside that namespace call `[inputs['python'], '-B', '-I'] + args` directly, retaining the site overlay without nesting bwrap. `4.tar` is read once during extraction: the host hashes and counts the exact stream sent to tar, checks the tar exit status and archive receipt, then creates aliases and the staging record. A failed hash leaves an unusable staging tree and no successful record. `J.environment(root)` supplies HOME, TMPDIR and OPENBLAS_NUM_THREADS=1; explicit XDG/HF/Triton cache paths stay under the opaque kit root. Missing runtime, failed extraction or version/CUDA mismatch stops the attempt without retry.
 
 The production interpreter first tests the frozen-weight guard on a scratch module: `add_`, `copy_`, and `load_state_dict` must each make `check()` raise ModelMutationError. Any missed mutation or unexpected exception writes `ue.json` with `passed=false` and per-operation evidence, then exits before spawning readers. A passing receipt requires all three checks, and SUBMIT_CHECK enforces that evidence. This self-test supplements the byte-parity comparisons; it does not establish coverage for arbitrary raw writes.
 
@@ -353,3 +358,12 @@ Frozen weights remain required. Persistent raw writes are boundary-checked; writ
 | 2. Framework version gap | State CPU/production versions and run the real guard self-test before readers; require its evidence at submit. | add_, copy_ and load_state_dict detection passes; injected misses/setup failure persist failed ue.json and start no workers. |
 | 3. Idle allocation | Gate, seal, stage-kit and transfer precede salloc; give exact host extraction commands. | Ordering assertion and executable archive-extraction block pass. |
 | 4. Token/environment/logs/limits | Fresh kit token, A4 HOME/TMPDIR/OPENBLAS=1, labelled round-7 logs and explicit raw-write limits. | Token, environment, moved-log and documentation regressions pass. |
+
+## Review round 10: finding -> fix -> test
+
+| Finding | Fix | Regression |
+|---|---|---|
+| 1. Wrapper rejects -c | Ship and pin `u0/u5.py`; launch a script path. | Exact boot bytes reject -c and run the shipped script through a wrapper double; changed preflight bytes refuse. |
+| 2. Missing prepared-path aliases | Generate PRIVATE_ALIASES and host symlinks from one table; admit all sealed paths before self-test. | Stage a fixture and resolve all 12 sealed absolute settings paths; reject a nested missing path. |
+| 3. Nested bwrap | Workers call the wrapper directly inside U0_ROOT with J.environment. | Assert direct argv and HOME/OPENBLAS settings. |
+| 4. Repeated archive reads | Hash/count the stream sent to tar; publish staging only after verification. | Count one open and one full read; reject a changed archive hash. README has no hash preread. |

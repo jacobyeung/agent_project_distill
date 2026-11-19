@@ -1,0 +1,118 @@
+{
+  "actual_gpu_runs": 0,
+  "base_original_files_unchanged": 944,
+  "git_calls": 0,
+  "patch_apply": {
+    "added_files": 59,
+    "argv": [
+      "nice",
+      "-n",
+      "10",
+      "patch",
+      "--batch",
+      "--fuzz=0",
+      "-p1",
+      "-d",
+      "/scratch/jjyeung/orch_n30/so_reads228/work/round1/patch_apply_proof",
+      "-i",
+      "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/patches/01_trinity_adapter.diff"
+    ],
+    "returncode": 0,
+    "zero_fuzz": true
+  },
+  "patch_files_match_tested_copy": true,
+  "python_syntax_files": [
+    "unpack228.py",
+    "gpu228.py",
+    "bootstrap228.py",
+    "compare228.py",
+    "observe228.py",
+    "stage228.py",
+    "runner228.py",
+    "read228.py",
+    "runtime228.py",
+    "install_extensions228.py",
+    "common228.py",
+    "worker228.py",
+    "return228.py",
+    "tests/test_kit.py",
+    "tests/test_review.py",
+    "tests/test_prepare.py",
+    "tests/test_bootstrap36.py"
+  ],
+  "round0_preserved_files": 999,
+  "shell_syntax": [
+    {
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "bash",
+        "-n",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/compare228.sh"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "bash",
+        "-n",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/coordinator228.sh"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "bash",
+        "-n",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/read228.sh"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "bash",
+        "-n",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/run228.sh"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "bash",
+        "-n",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/run_tests.sh"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    }
+  ],
+  "ssh_calls": 0,
+  "utc": "Thu Nov 19 17:25:46 UTC 2026",
+  "workspace_measured": {
+    "basis": "sum of lstat sizes of regular files under L; excludes symlinks; no recursive traversal outside L",
+    "regular_file_bytes": 402889724,
+    "regular_files": 8061
+  }
+}

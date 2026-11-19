@@ -23,7 +23,30 @@ def detach(path):
 
 def open_path(path,mode='r',*args,**kwargs):
     if any(v in mode for v in ('w','a','+')):detach(path)
-    return original_open(path,mode,*args,**kwargs)
+    stream=original_open(path,mode,*args,**kwargs)
+    if mode=='xb' and L/'work' in path.absolute().parents:
+        return ShareOnClose(path,stream)
+    return stream
+
+class ShareOnClose:
+    """Share known immutable archive members after the real write has closed."""
+    def __init__(self,path,stream):self.path=path;self.stream=stream
+    def __getattr__(self,name):return getattr(self.stream,name)
+    def __enter__(self):return self
+    def __exit__(self,*args):
+        self.stream.close()
+        if args[0] is not None:return
+        path=self.path
+        if path.is_symlink() or path.stat().st_nlink>1 or path.stat().st_size<1024:return
+        with original_open(path,'rb') as f:raw=f.read()
+        pin=hashlib.sha256(raw).hexdigest();name=assets.get(pin)
+        if not name:return
+        source=Path(name)
+        if source==path or not source.is_file():return
+        with original_open(source,'rb') as f:other=f.read()
+        if raw!=other:return
+        tmp=path.with_name(path.name+'.share10'+uuid.uuid4().hex)
+        os.link(source,tmp);os.replace(tmp,path)
 
 def write_bytes(path,raw):
     pin=hashlib.sha256(raw).hexdigest()

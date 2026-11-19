@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
 # Run once in an existing target-node session after the governed staging streams finish.
 set -euo pipefail
-if [[ $# -ne 2 ]]; then
-  echo 'Usage: bash coordinator228.sh <card-index-or-UUID> <fresh-local-run-directory>' >&2
+mode=all
+if [[ "${1:-}" == --stage-only ]]; then mode=stage; shift; fi
+if [[ "${1:-}" == --run-only ]]; then mode=run; shift; fi
+if [[ ( "$mode" == stage && $# -ne 0 ) || ( "$mode" != stage && $# -ne 2 ) ]]; then
+  echo 'Usage: coordinator228.sh --stage-only | [--run-only] <card-index-or-UUID> <fresh-local-run-directory>' >&2
   exit 2
+fi
+if [[ "$mode" != stage ]]; then
+  run_name="$(basename -- "$2")"
+  if [[ ! "$run_name" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]]; then
+    echo 'REFUSED: unsafe ingest directory name' >&2; exit 2
+  fi
 fi
 date -u
 if [[ "$(hostname -s)" != trinity-2-28 ]]; then
@@ -18,6 +27,7 @@ fi
 source "$kit_dir/control_environment228.sh"
 package="$kit_dir/A10b"
 stage=/scratch/jjyeung/orch_n30/reads228
+if [[ "$mode" != run ]]; then
 # Check all MISSING.json hashes ourselves; marker files alone are insufficient.
 nice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --verify-runtime-pins
 date -u
@@ -31,11 +41,16 @@ date -u
 nice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --check-namespace
 date -u
 export READ228_CONTROL_PYTHON=/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12
-# Native CPython controls the job; unchanged d/v/py runs prepare and the worker in bwrap.
+# Native CPython does stdlib control; d/v/py runs prepare and the operator in bwrap.
 nice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --prepare --out "$stage/STAGE_CHECK.json"
 date -u
 nice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --out "$stage/STAGE_CHECK.json"
 date -u
+nice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --probe-operator
+date -u
+fi
+if [[ "$mode" == stage ]]; then exit 0; fi
+export READ228_CONTROL_PYTHON=/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12
 # Stage verification, both >=300-second idle readings and the run share one launcher.
 # A busy card exits immediately. Nothing here retries a killed or failed command.
 bash "$kit_dir/run228.sh" "$package" "$1" "$2" --items 50
@@ -44,10 +59,6 @@ compare_rc=0
 bash "$kit_dir/compare228.sh" "$2/ret" --orchard "$kit_dir/reference" --out "$2/COMPARE.json" || compare_rc=$?
 if [[ "$compare_rc" -gt 1 ]]; then exit "$compare_rc"; fi
 date -u
-run_name="$(basename -- "$2")"
-if [[ ! "$run_name" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]]; then
-  echo 'REFUSED: unsafe ingest directory name' >&2; exit 2
-fi
 # The unchanged unpacker requires --out inside the kit (the A10b parent directory).
 accepted="$kit_dir/ingest/$run_name"
 nice -n 10 "$READ228_CONTROL_PYTHON" -I -s -B "$kit_dir/unpack228.py" --operator "$package" \

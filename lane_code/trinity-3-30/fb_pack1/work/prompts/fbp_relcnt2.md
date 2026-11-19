@@ -1,0 +1,11 @@
+# Task fbp_relcnt2: remove the two shortcuts from the relative-count rows (CPU only; next boundary)
+Workspace: /scratch/jjyeung/orch_n30/fb_pack/relcnt2 on trinity-1-18 (write ONLY here; at most 150 MB in all; do not copy the store). Final: out/REPORT.md (at most 80 lines), out/relative_count.jsonl + sha256, out/CHECKS.json, out/READ40.md, out/fbp_relcnt2.tar + sha256. Due: 2 hours.
+
+## Start from
+Packet /scratch/jjyeung/orch_n30/fb_pack/relcnt (read-only; copy its code/ into your workspace): 4,000 procedure rows, think = two counting-procedure lines + one comparison line without numbers + option letter. Cross-family review /scratch/jjyeung/orch_n30/fb_pack/relrev/REVIEW_VERDICT.md (read once): GO AFTER FIXES with two MUST items. Original source build /scratch/jjyeung/orch_n30/sb_rowC (sources b12 v4 totals in/b12/out/PACKET_b12_v4/count_total.jsonl, CENSUS.json, MISSING_RASTERS.json).
+
+## Orchestrator answer (binding)
+1. Ties: reverse the category order in half the ties of every template (today all 400 ties name the categories alphabetically, so order rules out "equal" on 46% of rows); re-render question, target, qid, candidate_id.
+2. Name prior: the leave-one-out name-prior accuracy (the reviewer's predictor from each category's mean count in the other rows, and its pair-majority variant) must be at most 0.65, by sampling direction-matched pairs first and capping each category's larger:smaller ratio; go to 0.60 if at least 3,000 rows survive. Report how many rows survive at each cap (0.65, 0.60) and the per-template balance. You may recover sources from the rows sb_rowC excluded for missing rasters only if their rasters now exist locally and match their pins; never invent a count.
+3. Diagnostic, no model output: the same name prior's accuracy on dev-S1's 139 relative-count items (find them through the packet's wording-check inputs); dev-S1 selects nothing.
+4. Keep every other property: 20 wordings, think form, no numbers in think, letters balanced, validators (N tree /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1: trace_grammar.validate_trace, validate_row, r1_counting.admit, r1_training.row_check, ground_rows pack/validate), wording distance >= 0.4, room audit zero hits (command in fb_pack/relcnt/out/REPORT.md), 40 rows read.

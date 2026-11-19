@@ -1,0 +1,15 @@
+{
+  "modules": [
+    "tests.test_host24j"
+  ],
+  "ran": 15,
+  "import_errors": [],
+  "errors": [
+    {
+      "test": "test_native_export_bind_audit_and_admit (tests.test_host24j.NativeAdmission.test_native_export_bind_audit_and_admit)",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild14_w24j/work/tree_r1/tests/test_host24j.py\", line 297, in test_native_export_bind_audit_and_admit\n    carrier.export(root/'producer/m400', model, model, cfg, 400)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild14_w24j/work/tree_r1/student_pilot/carrier_c1_run.py\", line 2084, in export\n    check_space(Path(directory).parent, full_ft.named_trainable(wrapped), optimizer, full_ft.named_buffers(wrapped),\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild14_w24j/work/tree_r1/student_pilot/checkpoint_space.py\", line 111, in check\n    raise ValueError(f\"Cannot verify {kind} disk space: \"+\"; \".join(errors))\nValueError: Cannot verify export disk space: ValueError: Whole-leg disk admission needs optimizer-state measurement\n"
+    }
+  ],
+  "failures": [],
+  "skipped": []
+}

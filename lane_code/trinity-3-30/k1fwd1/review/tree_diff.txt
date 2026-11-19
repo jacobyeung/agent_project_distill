@@ -1,0 +1,284 @@
+##### student_pilot/carrier_c1.py 10
+--- 168872/student_pilot/carrier_c1.py
++++ b83a8a35/student_pilot/carrier_c1.py
+@@ -506,2 +506,7 @@
+         elif stream == 'routing':
++            if targets is not None and targets.get('h1_pose'):
++                pose = self.auxiliary_heads.pose
++                components['pose'] = pose.loss(hidden.float(),
++                    {**targets, 'aux_camera_positions': batch['aux_camera_positions']}).mean()
++                metrics['pose_parts'] = {k: float(v.float().mean()) for k, v in pose.last_components.items()}
+             labels = batch['labels'][:, 1:]
+##### student_pilot/carrier_c1_data.py 15
+--- 168872/student_pilot/carrier_c1_data.py
++++ b83a8a35/student_pilot/carrier_c1_data.py
+@@ -448,3 +448,3 @@
+ 
+-def mixed_indices(counts, steps, seed=17, start_step=0, training_mode='mixed', mix=None, world=8):
++def mixed_indices(counts, steps, seed=17, start_step=0, training_mode='mixed', mix=None, world=8, type_mix=None):
+     """All ranks use the same stream per microstep (FSDP collective order).
+@@ -456,2 +456,7 @@
+     """
++    if type_mix is not None:
++        from .type_mix import plans
++        base = mixed_indices(counts, steps, seed, 0, training_mode, mix, world)
++        yield from plans(base, type_mix, seed, start_step)
++        return
+     if training_mode not in ('mixed', 'pose_only', 'final'):
+##### student_pilot/carrier_c1_routing.py 19
+--- 168872/student_pilot/carrier_c1_routing.py
++++ b83a8a35/student_pilot/carrier_c1_routing.py
+@@ -441,4 +441,4 @@
+ 
+-def finish(batch, ids, train, row, target, spans, mode, offsets=None, segments=None):
+-    if mode != 'gt' and spans and offsets is not None:
++def finish(batch, ids, train, row, target, spans, mode, offsets=None, segments=None, faithful=False):
++    if not faithful and mode != 'gt' and spans and offsets is not None:
+         # Own values with GT-authored prose: never train text after the first own-value response
+@@ -476,3 +476,3 @@
+ 
+-def encode_own(processor, row, gt_batch, target, spans, segments=None, mode='own'):
++def encode_own(processor, row, gt_batch, target, spans, segments=None, mode='own', faithful=False):
+     """Own-valued routing row: splice the re-rendered suffix after the unchanged prompt."""
+@@ -480,3 +480,3 @@
+     batch = splice(gt_batch, ids, processor.tokenizer.pad_token_id)
+-    return finish(batch, ids, train, row, target, spans, mode, offsets, segments)
++    return finish(batch, ids, train, row, target, spans, mode, offsets, segments, faithful=faithful)
+ 
+##### student_pilot/carrier_c1_run.py 236
+--- 168872/student_pilot/carrier_c1_run.py
++++ b83a8a35/student_pilot/carrier_c1_run.py
+@@ -62,2 +62,8 @@
+ def validate(cfg):
++    if 'type_mix' in cfg:
++        from .type_mix import validate as validate_type_mix
++        validate_type_mix(cfg['type_mix'], cfg['recipe'])
++    if 'h1' in cfg:
++        from .h1 import validate as validate_h1
++        validate_h1(cfg)
+     if cfg.get('trace_program_version', '3.13') not in ('3.13', '3.14'):
+@@ -157,2 +163,6 @@
+ 
++    if cfg.get('h1', {}).get('faithful_own_camera_rows') is not None:
++        from .h1_faithful import validate as validate_faithful
++        validate_faithful(cfg)
++
+ 
+@@ -449,2 +459,6 @@
+     removals = Removals(cfg.get('remove_files', ()))
++    r0_filter = None
++    if cfg.get('h1', {}).get('r0_rooms') is not None:
++        from .h1_r0 import Reserve
++        r0_filter = Reserve(cfg['h1']['r0_rooms'])
+     scene_filter = None
+@@ -455,2 +469,4 @@
+     def prepare_exclusions(row, benchmark, reported, name='pose'):
++        if r0_filter is not None and r0_filter.excluded(row):
++            return False, 0  # The reserve selection pass drops and counts this row.
+         hit, overlap = excluded_row(row, benchmark, reported, name)
+@@ -477,3 +493,4 @@
+                                         pose_benchmark, reported, prepare_exclusions,
+-                                        check=lambda row, target: pose_row_check(cfg, row, target))
++                                        check=lambda row, target: None if r0_filter is not None and r0_filter.excluded(row)
++                                        else pose_row_check(cfg, row, target))
+     prefix = paired_prefix(cfg, pose) if mix is None else None
+@@ -529,2 +546,4 @@
+                     row = json.loads(row)
++                    if r0_filter is not None and r0_filter.excluded(row):
++                        continue
+                     if not data.single_image_row(row, name, training_mode=cfg.get('training_mode', 'mixed'),
+@@ -540,2 +559,5 @@
+                     row = json.loads(row)
++                    if r0_filter is not None and r0_filter.excluded(row):
++                        selected.append(index)
++                        continue
+                     removals.assert_clean(row)
+@@ -607,3 +629,3 @@
+                                        'depth_fov_source', 'depth_init', 'exclusions', 'report_exclusions',
+-                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy') if k in cfg})
++                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'h1') if k in cfg})
+     if 'mdg' in cfg:
+@@ -625,2 +647,5 @@
+         verify(result, cfg)
++    if cfg.get('h1', {}).get('faithful_own_camera_rows'):
++        from .h1_faithful import prepare_identity
++        result = prepare_identity(result, cfg)
+     from .source_seal import binding
+@@ -629,2 +654,8 @@
+         result['source_seal'] = sealed
++    if cfg.get('h1', {}).get('r0_rooms') is not None:
++        from .h1_r0 import prepare as reserve_prepare
++        result = reserve_prepare(result, cfg)
++    if 'type_mix' in cfg:
++        from .type_mix import prepare as prepare_type_mix
++        result = prepare_type_mix(result, cfg)
+     write(Path(cfg['preparation_output'])/'receipt.json', result)
+@@ -637,2 +668,5 @@
+     receipt = load(pinned(cfg['preparation']))
++    if cfg.get('h1', {}).get('r0_rooms') is not None or 'h1_r0' in receipt:
++        from .h1_r0 import before_admission
++        receipt = before_admission(receipt, cfg)
+     from .s1_route_policy import validate as validate_s1_route_policy
+@@ -661,2 +695,5 @@
+     resolve(receipt, cfg)
++    if cfg.get('h1', {}).get('faithful_own_camera_rows'):
++        from .h1_faithful import require_identity
++        require_identity(receipt, cfg)
+     if receipt.get('tool_mode_flag') != cfg.get('tool_mode_flag'):
+@@ -670,2 +707,4 @@
+                    'camera': {**receipt['camera'], **cfg.get('camera_overrides', {})}}
++    if 'h1' in cfg:
++        receipt = {**receipt, 'h1': cfg['h1']}
+     if cfg.get('geometry_online'):
+@@ -745,2 +784,8 @@
+             warn(cfg, 'Parent must bind independent C1 admission')
++    if cfg.get('h1', {}).get('r0_rooms') is not None:
++        from .h1_r0 import prepare as reserve_prepare
++        receipt = reserve_prepare(receipt, cfg, phase='admission')
++    if 'type_mix' in cfg or 'type_mix' in receipt:
++        from .type_mix import bound as bound_type_mix
++        bound_type_mix(receipt, cfg)
+     return receipt, model
+@@ -986,2 +1031,5 @@
+         self.processor = processor
++        from .type_mix import bound as bound_type_mix
++        self.type_mix = bound_type_mix(receipt, receipt)
++        self.h1 = receipt.get('h1', {})
+         self.placement = receipt.get('carrier_placement', data.C1_A)
+@@ -1045,2 +1093,8 @@
+                                            geometry_online=self.geometry_online)
++            if self.h1.get('routing_pose_targets'):
++                from .h1 import pose_targets
++                targets, counts = pose_targets(row, batch, self.h1)
++                audit = {**audit, 'h1_pose': counts, 'h1': dict(
++                    type=row['routing']['question_type'], values='gt', refused=None, answer_differs=False)}
++                return batch, targets, audit
+             return batch, None, audit
+@@ -1159,2 +1213,5 @@
+     """
++    if getattr(rows, 'h1', {}).get('faithful_own_camera_rows'):
++        from .h1_faithful import own_values as faithful_own_values
++        return faithful_own_values(model, rows, batch, audit, index, decision, device)
+     if not any(decision):
+@@ -1496,3 +1553,3 @@
+                               if isinstance(audit, dict) else {}),
+-                           **({k: audit[k] for k in ('qid', 'values', 'own_refusal', 'own_skip', 'trained_tokens')
++                           **({k: audit[k] for k in ('qid', 'values', 'own_refusal', 'own_skip', 'trained_tokens', 'h1', 'h1_pose')
+                                if k in audit} if stream == 'routing' else {}),
+@@ -1583,3 +1640,10 @@
+         torch.cuda.synchronize(device)
+-    return dict(step=step, **({'gf1_harm_screen': screen_metrics} if gf1_enabled else {}), wall_seconds=time.perf_counter()-started, data_seconds=waiting,
++    h1_metrics = {}
++    if any(s.get('h1') for s in shapes):
++        from .h1 import summarize
++        h1_metrics = {'h1': summarize(shapes)}
++    if getattr(rows, 'h1', {}).get('faithful_own_camera_rows'):
++        from .h1 import global_answer_counts
++        h1_metrics['h1_answer_counts'] = global_answer_counts(shapes, device, distributed)
++    return dict(step=step, **h1_metrics, **({'gf1_harm_screen': screen_metrics} if gf1_enabled else {}), wall_seconds=time.perf_counter()-started, data_seconds=waiting,
+                 skipped_microsteps=skipped, skip_totals=dict(SKIPPED),
+@@ -1609,3 +1673,3 @@
+     plan = next(data.mixed_indices(counts,offset+1,start_step=offset,training_mode=cfg.get('training_mode', 'mixed'),
+-                                   mix=recipe['mix'],world=recipe['world_size']))
++                                   mix=recipe['mix'],world=recipe['world_size'],type_mix=getattr(rows, 'type_mix', None)))
+     rank_shapes = []
+@@ -2201,3 +2265,3 @@
+     output=Path(output);attempt=rehearsal.attempt_id() if rehearsal.enabled() else os.environ.get('SLURM_JOB_ID','cpu')
+-    measured=[]; step=start_step; gate_stop=False; gx_stop=False
++    measured=[]; step=start_step; gate_stop=False; gx_stop=False; h1_stop=False
+     gx_history = []
+@@ -2217,2 +2281,42 @@
+             export(output/'m0', wrapped, model, cfg, 0, optimizer=optimizer, disk_guard=disk_budget)
++    h1_reason='h1_stop_after_step'
++    h1_state=None;answer_stop=None
++    if cfg.get('h1', {}).get('faithful_own_camera_rows'):
++        from .h1 import AnswerStop, STOP_RULE
++        answer_stop=AnswerStop()
++        states=[None]
++        if rank==0:
++            try:
++                h1_state=answer_stop.replay(output,start_step)
++                states[0]=dict(state=h1_state,differs=answer_stop.differs,own=answer_stop.own)
++            except (ValueError,KeyError) as exc:states[0]=dict(error=str(exc))
++        if distributed:dist.broadcast_object_list(states,src=0)
++        if 'error' in states[0]:raise ValueError(states[0]['error'])
++        h1_state=states[0]['state'];answer_stop.differs=states[0]['differs']
++        answer_stop.own=states[0]['own'];answer_stop.last_step=start_step
++    h1_limit = cfg.get('h1', {}).get('stop_after_step')
++    if h1_state and h1_state['triggered']:
++        h1_limit=min(h1_limit or 100,100);h1_reason=STOP_RULE
++    if not smoke_steps and h1_limit is not None and start_step >= h1_limit:
++        if start_step != h1_limit:
++            raise ValueError('H1 checkpoint is past stop_after_step')
++        reused = [existing_export(output/f'm{start_step}', cfg, start_step) if rank == 0 else None]
++        if distributed:
++            dist.broadcast_object_list(reused, src=0)
++        if not reused[0]:
++            export(output/f'm{start_step}', wrapped, model, cfg, start_step,
++                   optimizer=optimizer, disk_guard=disk_budget)
++        report = dict(schema='c1-run-v1', status='H1_STOP', first_step=None, last_step=start_step,
++                      steps=[], elapsed_seconds=time.monotonic()-started, stopped_for_resume=False,
++                      world_size=world, gpu_fit_measured=False, stop_reason=h1_reason)
++        if rank == 0:
++            record=dict(schema='h1-stop-v1', step=start_step, lr_horizon=recipe['steps'],
++                        milestone=str(output/f'm{start_step}'), reason=h1_reason, stop_state=h1_state)
++            path=output/f'h1_stop_{start_step:06d}.json'
++            if path.exists():
++                if load(path)!=record:raise ValueError('Existing H1 stop record differs')
++            else:write(path,record)
++            path=output/f'run_{attempt}_h1_stopped_resume.json'
++            if not path.exists():write(path,report)
++        return report
+     gates=None
+@@ -2225,3 +2329,3 @@
+     last_save=time.monotonic()
+-    request=torch.tensor([int(stop[0] or steps==start_step)],device=device)
++    request=torch.tensor([int(stop[0] or (output/('stop.'+os.environ.get('SLURM_JOB_ID','local')+'.request')).exists() or steps==start_step)],device=device)
+     if distributed:
+@@ -2244,4 +2348,9 @@
+                               training_mode=cfg.get('training_mode', 'mixed'),
+-                              mix=recipe['mix'],world=recipe['world_size']),start_step+1):
++                              mix=recipe['mix'],world=recipe['world_size'],type_mix=getattr(rows, 'type_mix', None)),start_step+1):
+         info,_=optimize_step(wrapped,optimizer,rows,plan,rank,device,step,distributed,gates)
++        if answer_stop is not None:
++            h1_state=answer_stop.update(step,info['h1_answer_counts'])
++            info['h1_answer_stop']=h1_state
++            if h1_state['triggered']:
++                h1_limit=min(h1_limit or 100,100);h1_reason=STOP_RULE
+         gathered = [None]*world
+@@ -2292,3 +2401,3 @@
+         next_cost += timing.get('export_seconds',0.) if (step+1 in recipe['milestones'] or recipe.get('export_at_stop')) else 0.
+-        request=torch.tensor([int(stop[0] or time.monotonic()-started+pending+next_cost >=
++        request=torch.tensor([int(stop[0] or (output/('stop.'+os.environ.get('SLURM_JOB_ID','local')+'.request')).exists() or time.monotonic()-started+pending+next_cost >=
+             recipe['wall_seconds']-recipe['stop_before_seconds'])],device=device)
+@@ -2297,3 +2406,4 @@
+         gate_stop=not smoke_steps and step==400 and start_step<400 and step400_gate_enabled(cfg)
+-        stopping=bool(request.item()) or step==steps or gate_stop or gx_stop
++        h1_stop = bool(not smoke_steps and h1_limit is not None and step >= h1_limit)
++        stopping=bool(request.item()) or step==steps or gate_stop or gx_stop or h1_stop
+         info['checkpoint_seconds']=info['export_seconds']=0.
+@@ -2304,3 +2414,3 @@
+             last_save=time.monotonic()
+-        if not smoke_steps and (step in recipe['milestones'] or (stopping and recipe.get('export_at_stop'))):
++        if not smoke_steps and (step in recipe['milestones'] or h1_stop or (stopping and recipe.get('export_at_stop'))):
+             tick=time.perf_counter()
+@@ -2326,2 +2436,5 @@
+                 handle.write(json.dumps(dict(step=step,ranks=gathered))+'\n')
++        if h1_stop and rank == 0:
++            write(output/f'h1_stop_{step:06d}.json', dict(schema='h1-stop-v1', step=step,
++                  lr_horizon=recipe['steps'], milestone=str(output/f'm{step}'), reason=h1_reason, stop_state=h1_state))
+         if stopping:
+@@ -2330,5 +2443,6 @@
+         first_step=start_step+1,last_step=step,steps=measured,elapsed_seconds=time.monotonic()-started,
+-        stopped_for_resume=not bool(smoke_steps) and step<recipe['steps'],world_size=world,
++        stopped_for_resume=not h1_stop and not bool(smoke_steps) and step<recipe['steps'],world_size=world,
+         gpu_fit_measured=device.type=='cuda' and distributed)
+-    report['stop_reason']='gx_fail_fast' if gx_stop else 'm400_gate' if gate_stop else 'budget_or_signal' if bool(request.item()) or budget_stop else 'schedule'
++    if h1_stop:report['status']='H1_STOP'
++    report['stop_reason']=h1_reason if h1_stop else 'gx_fail_fast' if gx_stop else 'm400_gate' if gate_stop else 'budget_or_signal' if bool(request.item()) or budget_stop else 'schedule'
+     if cfg.get('geometry_online'):
+@@ -2925,3 +3039,3 @@
+     plans = list(data.mixed_indices(counts, steps, training_mode=cfg.get('training_mode', 'mixed'),
+-                                    mix=recipe['mix'], world=recipe['world_size']))
++                                    mix=recipe['mix'], world=recipe['world_size'],type_mix=getattr(rows, 'type_mix', None)))
+     device = torch.device(device)

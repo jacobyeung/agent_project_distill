@@ -13,18 +13,37 @@ import subprocess
 import sys
 import tarfile
 
-PREFLIGHT = """import importlib.util,json,sys
-from pathlib import Path
-p=Path(sys.argv[1]);sys.path.insert(0,str(p.parent))
-from a9 import read_wire
-spec=importlib.util.spec_from_file_location('u0_probe',p.parent/'u0.py')
-kit=importlib.util.module_from_spec(spec);spec.loader.exec_module(kit)
-kit.validate_environment(read_wire(json.loads(p.read_bytes())))
-import torch
-torch.set_num_threads(8)
-if not torch.cuda.is_available():raise ValueError('GPU interpreter/environment preflight failed')
-print('Environment preflight passed')
-"""
+# One table owns the public aliases and their prepared logical targets.
+# Targets are relative to logical; alias names are relative to logical/d.
+ALIASES = (('7.json','d/binding.json'), ('9.json','d/ENVIRONMENT.json'),
+           ('a0','p/tree'), ('a1.json','d/p0/config.json'),
+           ('a2.pt','d/k/sam3.pt'), ('a3.json','d/k/SAM3_RECEIPT.json'),
+           ('a4','d/v/site'))
+
+
+def private_aliases(logical):
+    return {logical+'/'+target:logical+'/d/'+alias for alias,target in ALIASES}
+
+
+def extract_assets(archive, asset, command, env):
+    """Hash exactly the stream sent to tar; publish nothing before both pass."""
+    digest=hashlib.sha256();size=0
+    with Path(archive).open('rb') as stream:
+        with subprocess.Popen(command,stdin=subprocess.PIPE,env=env) as process:
+            pipe_open=True
+            try:
+                for chunk in iter(lambda:stream.read(1024**2),b''):
+                    digest.update(chunk);size+=len(chunk)
+                    if pipe_open:
+                        try:process.stdin.write(chunk)
+                        except BrokenPipeError:pipe_open=False
+            finally:
+                try:process.stdin.close()
+                except BrokenPipeError:pass
+            code=process.wait()
+    if code:raise subprocess.CalledProcessError(code,command)
+    if size!=asset['bytes'] or digest.hexdigest()!=asset['sha256']:
+        raise ValueError('Prepared asset archive differs')
 
 
 def sha(path):
@@ -93,7 +112,7 @@ def stage(package, root, kit, archive):
     package=Path(package);root=Path(root);archive=Path(archive)
     cfg,proof=authenticate(package)
     asset=proof['gate_assets']
-    if archive.stat().st_size!=asset['bytes'] or sha(archive)!=asset['sha256']:
+    if archive.stat().st_size!=asset['bytes']:
         raise ValueError('Prepared asset archive differs')
     # Extract only pinned staging code; never import the host's unverified source.
     with tarfile.open(str(package/'0.tgz')) as source:
@@ -124,13 +143,11 @@ def stage(package, root, kit, archive):
     for name in ('sj','fsw','m/ap'):(root/name).mkdir(parents=True,exist_ok=True)
     data=J.physical(root,cfg['logical']+'/d');data.mkdir(parents=True,exist_ok=False)
     S.room(root,asset['bytes'])
-    # Tar reads the authenticated archive through stdin; /project stays outside bwrap.
+    # Authenticate the extraction stream once; /project stays outside bwrap.
     env=gate_environment(root,kit,J)
-    with archive.open('rb') as stream:
-        subprocess.run(J.namespace(root)+['/bin/tar','-xf','-','-C',cfg['logical']+'/d'],
-                       stdin=stream,env=env,check=True)
-    for name,target in (('7.json','binding.json'),('9.json','ENVIRONMENT.json')):
-        (data/name).symlink_to(target)
+    extract_assets(archive,asset,J.namespace(root)+['/bin/tar','-xf','-','-C',cfg['logical']+'/d'],env)
+    for name,target in ALIASES:
+        (data/name).symlink_to(os.path.relpath(J.physical(root,cfg['logical']+'/'+target),data))
     for path in (kit+'/u6',kit+'/u6/u0',kit+'/u6/u1'):
         J.physical(root,path).mkdir(parents=True,exist_ok=True)
     # The input wrapper path comes from the same a/1.json authenticated by CPU.json.
@@ -145,7 +162,7 @@ def launch(root, kit):
     inputs,S,J=runtime_context(root)
     env=gate_environment(root,kit,J)
     config=kit+'/u0/u2.json'
-    subprocess.run(namespace_command(root,inputs,J,['-c',PREFLIGHT,config]),env=env,check=True)
+    subprocess.run(namespace_command(root,inputs,J,[kit+'/u0/u5.py',config]),env=env,check=True)
     return subprocess.run(namespace_command(root,inputs,J,[kit+'/u0/u0.py',config,
         '--out',kit+'/u9','--enable-gpu','--public','--repeat-baseline','--shards','4']),env=env).returncode
 

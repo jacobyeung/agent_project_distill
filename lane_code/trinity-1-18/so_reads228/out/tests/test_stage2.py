@@ -20,6 +20,7 @@ import stage228 as S
 import runtime228 as R
 WORK=Path(os.environ.get('READ228_TEST_WORK','/scratch/jjyeung/orch_n30/so_reads228/work/round2/stage_fixtures'))
 WORK.mkdir(parents=True,exist_ok=True)
+S.STAGE=WORK/"stage"
 def directory():return Path(tempfile.mkdtemp(prefix='s2_',dir=str(WORK)))
 def archive(root,entries):
     stream=io.BytesIO()

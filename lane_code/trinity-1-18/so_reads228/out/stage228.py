@@ -96,7 +96,7 @@ def extract_group(group, mapping, destination):
     command=['tar','--extract','--skip-old-files','--no-same-owner',
              '--no-same-permissions','--file','-','--directory',str(destination)]
     stream=PartStream(group['parts'],mapping)
-    log_root=local(destination.parent/'read228_extraction_logs');log_root.mkdir(parents=True,exist_ok=True)
+    log_root=local(STAGE/'extraction_logs');log_root.mkdir(parents=True,exist_ok=True)
     log=log_root/(uuid.uuid4().hex+'.log')
     try:
         with log.open('xb') as errors, subprocess.Popen(command,stdin=subprocess.PIPE,
@@ -113,7 +113,7 @@ def extract_group(group, mapping, destination):
     return inventory
 
 def code_install(root, cfg):
-    dest=local(Path(cfg['logical'])/'p')
+    dest=host_path(Path(cfg['logical'])/'p',read(HERE/'STAGE_PLAN.json'))
     pins=read(HERE/'A10b_PINS.json')['source']
     if dest.exists():source_check(dest,pins);return
     dest.mkdir(parents=True,exist_ok=False)
@@ -208,7 +208,8 @@ def reconcile(plan,extraction,data):
             parts=Path(name['name']).parts
             if not parts:continue
             if parts[0]=='sj' and len(parts)>=3:
-                roots.add(str(Path('/scratch/jjyeung').joinpath(*parts[1:3])))
+                from runtime228 import runtime_path
+                roots.add(str(runtime_path(str(Path(*parts[:3])),group['namespace_map'])))
             elif parts[0]=='fsw':roots.add(str(STAGE/'runtime/fsw'))
             elif parts[:2]==('m','ap'):roots.add(str(STAGE/'runtime/m/ap'))
     products=prepare_products(data) if (data/'READY.json').exists() else set()
@@ -245,37 +246,39 @@ def stage_check(root, cfg, inputs, export, *, prepare=False, check_env=True):
     return result
 
 def _stage_check(root, cfg, inputs, export, *, prepare=False, check_env=True):
-    plan=read(HERE/'STAGE_PLAN.json');data=Path(cfg['logical'])/'d';p=Path(cfg['logical'])/'p'
+    plan=read(HERE/'STAGE_PLAN.json')
+    logical=Path(cfg['logical']);data=host_path(logical/'d',plan);p=host_path(logical/'p',plan)
     extraction=staging_receipts(plan)
     inventory_check=reconcile(plan,extraction,data)
     required=runtime_requirements(plan,extraction['files'],inputs)
     source_check(p,read(HERE/'A10b_PINS.json')['source'])
-    for spec in inputs['files'].values():checked(local(spec['path']),spec)
+    for spec in inputs['files'].values():checked(host_path(spec['path'],plan),spec)
     for spec in export['preparation'].values():checked(data/spec['path'],spec)
     # Full export shard pins are reached only through the authenticated manifest.
-    weights=read(inputs['files']['full_weights']['path'])
+    weights_path=host_path(inputs['files']['full_weights']['path'],plan)
+    weights=read(weights_path)
     for spec in weights['files']+[weights['index']]:
-        path=Path(inputs['files']['full_weights']['path']).parent/spec['name']
+        path=weights_path.parent/spec['name']
         if Path(spec['name']).name!=spec['name']:raise Refusal('Unsafe shard name')
         if 'bytes' in spec:checked(path,spec)
         elif not path.is_file() or sha(path)!=spec['sha256']:raise Refusal('Wrong shard/index sha256')
     for name in ('frames_root','sam_source'):
-        if not local(inputs[name]).is_dir():raise Refusal('Missing directory: '+inputs[name])
-    python=local(inputs['python'])
-    if not python.is_file() or not os.access(python,os.X_OK):raise Refusal('Missing executable '+str(python))
-    policy_check()
+        if not host_path(inputs[name],plan).is_dir():raise Refusal('Missing directory: '+inputs[name])
+    python=Path(inputs['python']);physical_python=host_path(python,plan)
+    if not physical_python.is_file() or not os.access(physical_python,os.X_OK):raise Refusal('Missing executable '+str(physical_python))
+    policy_check(paths={name:host_path(path,plan) for name,path in inputs['policy'].items()})
     env_info=None
     env=clean_environment(STAGE/'prepare')
     if check_env:
-        env_info=versions(python,read(inputs['files']['env']['path']),env,inputs['env_roots'],namespace_command(plan),plan)
+        env_info=versions(python,read(host_path(inputs['files']['env']['path'],plan)),env,inputs['env_roots'],namespace_command(plan),plan)
     if prepare and not (data/'READY.json').exists():
         # The sealed preparation function creates the restore and verifies its tensor mapping.
         # No source patch or unchecked model/config rewrite is involved.
         dispatch=STAGE/'prepare/0.json'
-        write(dispatch,dict(action=0,package=str(p),config=cfg,inputs={**inputs,'_export':export}))
+        write(dispatch,dict(action=0,package=str(logical/'p'),config=cfg,inputs={**inputs,'_export':export}))
         if (data/'e').exists():raise Refusal('Restore already exists; check it instead of rerunning preparation')
         with (STAGE/'prepare/prepare.log').open('xb') as log:
-            rc=subprocess.run(['nice','-n','10']+namespace_command(plan)+[str(python),'-B','-I',str(p/'orchard_h10/entry.py'),str(dispatch)],
+            rc=subprocess.run(['nice','-n','10']+namespace_command(plan)+[str(python),'-B','-I',str(logical/'p/orchard_h10/entry.py'),str(dispatch)],
                               env=env,stdout=log,stderr=subprocess.STDOUT).returncode
         if rc:raise Refusal('Sealed preparation failed; no retry. See '+str(STAGE/'prepare/prepare.log'))
         record_prepare_products(plan,extraction,data)
@@ -292,7 +295,7 @@ def _stage_check(root, cfg, inputs, export, *, prepare=False, check_env=True):
         if settings[key]!=cfg[key]:raise Refusal('Prepared settings differ: '+key)
     if any(k.startswith('read_') for k in settings):raise Refusal('OFF settings contain extension switches')
     if shutil.disk_usage(data).free<plan['budget']['free_floor_bytes']:raise Refusal('Less than 200 GiB free on scratch')
-    roots=[Path(cfg['logical']),STAGE,root,HERE]
+    roots=[host_path(logical,plan),STAGE,root,HERE]
     roots.extend(inventory_check.get('checked_roots',[]))
     if env_info:
         roots.extend(env_info.get('physical_runtime_roots',[env_info['prefix'],env_info['base_prefix']]))
@@ -310,12 +313,16 @@ def main(argv=None):
     mode.add_argument('--extract-inputs',action='store_true');mode.add_argument('--prepare',action='store_true')
     mode.add_argument('--extract-runtime',action='store_true');mode.add_argument('--verify-runtime-pins',action='store_true')
     mode.add_argument('--check-namespace',action='store_true')
+    mode.add_argument('--probe-operator',action='store_true')
     ap.add_argument('--out');a=ap.parse_args(argv)
     print(utc(),file=sys.stderr)
     target_host()
     root,cfg,inputs,export=deployment(a.package)
     if a.verify_runtime_pins:
         result=verify_runtime_pins(read(HERE/'STAGE_PLAN.json'))
+    elif a.probe_operator:
+        from runner228 import probe_operator
+        result=probe_operator(root,cfg,inputs)
     elif a.check_namespace:
         from namespace228 import check_namespace
         result=check_namespace(read(HERE/'STAGE_PLAN.json'),clean_environment(STAGE/'namespace_probe'))

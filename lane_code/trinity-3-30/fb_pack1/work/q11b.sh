@@ -1,0 +1,2 @@
+set -- patchA donor
+F=/scratch/jjyeung/orch_n30/fb_pack; date -u +%TZ; tmux ls 2>&1 | grep fbp; for t in "$@"; do echo "== $t $(du -sh $F/$t 2>/dev/null | cut -f1)"; tail -c 200 $F/$t/dispatch.log 2>/dev/null; echo; tail -c 500 $F/$t/STATUS.md 2>/dev/null; ls $F/$t/out 2>/dev/null | tr '\n' ' '; echo; done; df -h /scratch | tail -1

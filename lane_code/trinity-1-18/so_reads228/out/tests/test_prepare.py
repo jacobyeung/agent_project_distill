@@ -34,7 +34,7 @@ class PrepareTests(unittest.TestCase):
         weights=pinned(data/'weights/full_weights.json',dict(files=[],index=spec))
         env=pinned(data/'q/env.json',dict(versions={'torch':'fixture'}))
         inputs=dict(files=dict(full_weights=weights,env=env),frames_root=str(data/'frames'),sam_source=str(data/'source'),
-                    python=sys.executable,env_roots=[str(data/'v/site')])
+                    python=sys.executable,env_roots=[str(data/'v/site')],policy={})
         prep=pinned(data/'prep.json',dict(a=1));prep['path']='prep.json'
         export=dict(step=400,preparation=dict(config=prep))
         launches=[]
@@ -50,7 +50,7 @@ class PrepareTests(unittest.TestCase):
             C.write(data/'READY.json',dict(settings=C.sha(data/'settings.json'),binding=C.sha(data/'binding.json'),restore=C.sha(data/'e/RESTORE.json')))
             return types.SimpleNamespace(returncode=0)
         with ExitStack() as stack:
-            for name,value in [('STAGE',stage),('source_check',lambda *a:None),('policy_check',lambda:None),('staging_receipts',lambda *a:dict(fixture=True,files={},runtime_members={},namespace={'fixture':True})),
+            for name,value in [('STAGE',stage),('source_check',lambda *a:None),('policy_check',lambda **kw:None),('staging_receipts',lambda *a:dict(fixture=True,files={},runtime_members={},namespace={'fixture':True})),
                                ('reconcile',lambda *a:dict(passed=True)),('runtime_requirements',lambda *a:dict(passed=True)),
                                ('record_prepare_products',lambda *a:None),('namespace_command',lambda *a:['/usr/bin/bwrap','--fixture']),
                                ('versions',lambda *a:dict(prefix=str(root),base_prefix=str(root),audit_coverage_verified=True)),
@@ -83,7 +83,7 @@ class PrepareTests(unittest.TestCase):
             C.policy_check()
             for name in ('vnice','terminator'):
                 p=root/(name+'.sh');original=p.read_bytes();p.write_bytes(original[:-1]+b'x')
-                with self.assertRaisesRegex(C.Refusal,'Wrong sha256'):C.deployment(HERE/'A10b')
+                with self.assertRaisesRegex(C.Refusal,'Wrong sha256'):C.policy_check()
                 p.write_bytes(original)
 
     def test_read_handoff_defaults_to50_and_forwards_items(self):

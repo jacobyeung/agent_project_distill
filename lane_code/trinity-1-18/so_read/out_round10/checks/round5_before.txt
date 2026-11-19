@@ -1,0 +1,137 @@
+test_f1_batch_wrapper_and_real_bundle_guard (__main__.Round5Tests.test_f1_batch_wrapper_and_real_bundle_guard) ... FAIL
+test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) ... 
+  test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (operator='tower_sequence.py') ... FAIL
+  test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (operator='unpack_return.py') ... FAIL
+  test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (operator='package/a/5.py') ... FAIL
+  test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (base='self-consistent') ... FAIL
+  test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (extension='changed') ... FAIL
+test_f3_binding_derivation_and_operations (__main__.Round5Tests.test_f3_binding_derivation_and_operations) ... FAIL
+test_f3_submit_pool_and_proof_refusals (__main__.Round5Tests.test_f3_submit_pool_and_proof_refusals) ... FAIL
+test_f4_gate_pins_adopted_settings_and_profile (__main__.Round5Tests.test_f4_gate_pins_adopted_settings_and_profile) ... FAIL
+test_f5_forecast_identifies_both_reads (__main__.Round5Tests.test_f5_forecast_identifies_both_reads) ... FAIL
+test_f7_refused_unpack_not_scoreable (__main__.Round5Tests.test_f7_refused_unpack_not_scoreable) ... FAIL
+
+======================================================================
+FAIL: test_f1_batch_wrapper_and_real_bundle_guard (__main__.Round5Tests.test_f1_batch_wrapper_and_real_bundle_guard)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 66, in test_f1_batch_wrapper_and_real_bundle_guard
+    self.assertIn('#SBATCH --exclude=orchard-community-2\n',batch)
+AssertionError: '#SBATCH --exclude=orchard-community-2\n' not found in "#!/bin/bash\nset -euo pipefail\nexec /usr/bin/python3 -I -s -B - <<'A'\nimport hashlib,io,json,os,sys,tarfile\nfrom pathlib import Path,PurePosixPath\nj=os.environ.get('SLURM_JOB_ID','')\nif not j.isdigit():raise ValueError('Allocation required')\nb=bytes.fromhex('1f8b08000000000002ffed5ae96fdbc815cf67fd155cf70349794253b72d2f0ba489b74db13910270b14824050e450624c912c87f2d120ff7bdf7b333c44c98e8ba25b14e5c09644cecc9b37effccd615b5f459abcf88f161bcad4b6e9db3efcb647e359f55bbe9fce66a3179afde277283b5178390cf9e2ffb37ceb69da49e63dc4a917b8ab87828b93b936199ddbe793016bd6898d379c4ca1f2847bb370bc1a0df9c4e7337fc20783e9d41e8fcf6761380926a39977c187a3e9c8b67deef1d16076711eda337f7631f2cebdd128189f48bab1973488dab330585d5ccc56de787531190fc3c9853fb918db7c321907e7a3119f8e433fbc383f9f0eedd0f787c3d560ea8d03b0abd5683c0a07926891def004c9792b7b301c8d27d3d9f9c549ef7bef45571ef14d2b7bf88f8ff1b4ff8fc78369dbffc793ceff7f97727272f231e782e7b75ccbf234d8f94594269a176c2321e017d3403eeb285933cd8be3d4f7a87a95ee9240c0ab24d0a0f72e2ee0abd8e58905f47ad1364bf342db786213472b8609868190c328e64c3c885e98a75b2df30aacd554e38ff0d8ebf5021e6a5bef86bb4124a085bf31f2342d9896e61130e1c5f02be3b957a4b98a1de6bca711bd34f7375e1eb89b816df9e9760b5c2ad2d0b0a721e18aa697af6f591f3e05ebf76feef007d2d1fea07d48e207980a04279f6bc506fed3ec65cc6f79dc9c7e4988e79720349e79b97c8fe2b84bf31b9e0b14db83964549c2030b4847a116f3844636ffe80ca9293e2c5e0ee74bc7598822a7a99ee9ded9047c523759f3d580d2b46e2e914dcd0fd70e3e5b18998571d0caca3944ec82df17866962074f80860becb7d03dd2b00e830e14ad85eea74918adf5e5426f89179ab5de609fc301eff2a8e07244622cd86d3361006d393ecc1e7aab6e339ade4f6dc234332df722c1b5dfbc78c7aff23ccd0dfd4f606a310f2ac56ba0e7640d2fbcb0e039ca392f76992ee7091275167d12ecfce570d990e1ec09a1425769be959d1d35915ed9aad47f65b05162a0012161072dd90033b7888bc1d2bccc76ab38f28f68cc3eae2f9047ce0349483f03affccafde20c8d7a9744c5c3d9d7af0f7c97accfd29bcd4c37cf0cdd1b4c5c3f2d5c2fd34fe5600b9d52a1be04724af9ca1d2d296dc390a32013c5fa1f250f840080096bc3ef8368cd0570e43825cd7d2ca083dceea262a329dfb64043499b2c8c8ef5a8dc1074b7d5a2a47c46ab48d242db5a89b7e51629522041436f38f3996ecec13c8b28d9f1bd4e91c0410d1374a6e996a523651299a4675a19d29b1f1ad497447821d7fc34e0d26a3247aa23d3cf64dfcb0c3bf3a4b0b63741941bf241389ff31d67fc3e12859bded0132857d9be941cccc10235e6e064c4dd56ca55aa156c02a39e1525a810c36e1823d8af7918c8ca08f6355d3d2fcab55cca693b5d0f637c1aee9962a930efcc3f7bfdf1cb7193545237a83b1a02d854a02fb5486828060a675467ad7961e82bf25977bd435e5563f3b1c620dafcc115fcef3b9ef8fc89e6950162f07adc26cbd2ec076073af530d3e61128d865192ed0a814d5174b568ca507194fa61cc3c16345bdde4dcb77c9be60f3afbf6dd5492f3442460f28ea3e96174cf03773d2a904ac6857e7474456229fbc3b83ecf30c2bb58e16e21a5c75c515ce840ec1111ed9311de16fa7b6297f32de8c7cd413b515eaae5172f16fc1954c2a810b522cd23bef8cb2e8e35b03a08eadcbf81c01a86903c51ce60f316bd0411e4bbc439820a5a4d581b1a4822149db1bd09e11aecd875d1c55dd77174d7c54ad7d5e73284ff1f2e1366ff75fc3f988da7a303fc3fb33bfcff3be1ff0f25b02abd8b3275719782e3a6b15770c4f8902a28d943924d13de00c34dc44f481fd21c2ba22d670a703c01f73f7df9f5eada31741f224814c048c205d0b4f5ee7566f65e7ff8f2fe33d40e26366bfe8fc0b1af5fffe5ea0d74760cc8a22393c1a74d9f03fa1cd2e7181217e1b3800b3f8f3298a28054eedf786b4e684d82b94510f905e0bdad0398e98ee73a8398c985b3d01398a98e18123a0c2041c500c320d0c4dc39c6b1f06eb99bde256e00f177e3508c647590a4d28ace8e0e39853d12b21d15ad0fea6f791e850f6e144093657b84e221c3ae2306b26043365e025ec9806fc0935390dc524a44700f20b54bc8c540d5b05b0ccacf584c5117c2030465080c0160a41cd0401554d984103f3934c29114f0095a6951005906b06d33031c702779970b2e6ec835cb3358fef0e9cdd527061a4b93c8f7e29e0639964b742d694006df1590f7012d5f0a5e00d45c8b2644da6b5a3680c68718493692c92f259579b16e1ec5a0a55ab4b29d46d8432f61201f7217e9f3dc6a194085f8142708b1c930ca17bdfd47a3fcc1ca2c2ea12b715cd6c1c40ecc1ca011823e707972d423d3d82537099afc91be08786186c2697a5f2944e58528f052f30eb9210233a76ad544694c42b3aa523ed6d5e8076df85ba9b70dd0c01a72709f01a3c0e610a34c009640cf73cae80253f883f6d7eb0fef61610780b6805968ebe89683c471d9b98ab91683f9e37e016ea12485dc05c0e8899b225b2e518d80f57f35cb86593516ca65b58906d8704db4d43300558507b1c63b7bfbe6eafde7b79fff26c128ab7af594e109e7dbf71e8d1f319c13aa8e27c008cc9e1b344bdae7a0756a8b3649423fc325498430d7dfa43025e75bbf5f99cf31139923d5e3c603edf742a23e3f8889fdfeb71b49e166497cdf20cb07285667fae341f04865057abf83382850a9155e355bb5f2be3c0c8472de2881bdba56ff4f57afdeb82d759001f7fba556c8b61c5084125f6594652032d450b445a214b888962872f9c4cab8342f178a26abe30fbd4496cd52a29095c0e05c6c286ba58ae96da9599369a0ac34737179da6c554dedfaf3878f7a4d53c060b09493db5afa9c96c03a644b6060a11226689a5226be513953a73c042f28f82e0aa95d8a25d26064fd72598ff3afd956dd0de6b2851c1c25fa7c706edb4c9779bd7e398497fdfe7e4854a2ffdeab60805280cc3139df702f17a8a3c7b30c2c39129e97d118f728f234665250880ac4f33253edbcadcc7629775621c9973eed876b94a06a6f815d6e056d3c698543b4ac2809f8bd417b7a4ac20b7ba9ec0bd9a32db91e6d9409a7c1aa41c62b093bd086616fa76044cfb1ab7849e2f60af81546492436eeeac1199201ab5d2624b6c00fc58afef225198b793a8065b13298279b4b5352edc99c9e6c2ea7a99a33ddfa9ac24aae2980a799c309bd245f9024d0218e43830317a9e9b6b1c2b1714ab7c561f691c3710b771c4aba1010ea60fcef8d53f32bc92d0ec22c8a1022d90f1b36a32ff4793ac3c30c9e2640bbaf68e99697653c09a42daae829f16c539f8c6c9776662bb026f9dc87ba94bdafee6160442d1c82a026058ceb1910b1566c20adaf37b4cd0fa3c51a19a72652ff861772675314bb9576c7a3f5a6c02c4eee8c7bb080fb0b6b0b0d4b4f96dbc1b201f159565cc377ccdf7b5b0e6b2b1f91b37c5f605438807a15b42383c00c124bdf27862b200612db42738a0c74b201be5818e9ea2b0b7801336410bd02b6e629586c0e8988962cc92e8ecbc50ac50c0d3a5854871f97f884fd1cfca0a720f2d6492a8ac84760718943962a826ab4276adf9aa2819273713427f6b6abc0d3fade9ca66b153c11001b17038b0d2d36b06d6b496649b226115a40182660480158d7f8f521818ce3ba3847d705d403df26db6b8d7262fa6754df9f479f75a63200ad1a9cf71042547b436fa0ea523c5698e37e900f10af68751d0da5a0e4138e820e15bbb5351b481da47e1bf9b82acc763f5ece096f3b72c9d41cc5bec9a4610240ad14706cd5891f66c58f250d55724093acfd165505815f6a97fa1dd649cad2d9ee1da9a07ff03c15c6904dce4d86bb648e0eb662d249914a93d2535596dc25cadf19d884cc114c6645923af36360d1c1cd000b3f9e9145e1099733fc9efb3b5c673e7b358a876bc400ac34077824802b177a01733dbaeaa4a5108ce4f945fc2037358488d6098407eca79b3f4accb8fcbe0cbd28dee5d2ca549a26086b33321d5c13a2100cf38f0ec8e8252214e4eeb939a65a60cf576079373d79f65783c52a763a8612241057d233310d2aada07e601661742f63a9fc2d93a39acd33a36fbf2fdb93e346a1eabdd0952060cda8845f5680c6203c145043be540aeca0dfa59aa15c92d5a0272179824031a833b57eb98316b98c8c58ada640fc2c74a4807949a64e357ce0c08accc86b7ef0f8a2260014a52c60f06392a8c954bfea749354d575ade32474e8b3db021055abdb67f2823c987bc9acbdcb530de7c57193ce1132a5bcd5b75af1d227849df5960eb694fcaa4d97c7acf3facbbb77af3e950b1e35b7fa5c54bd50a7a27414e0d25501a3cfc0a9326804e6649c8f99d9bc4e20cfce1cc0e9fd813d1cf7fb2346dcbb805b2063400ba1b6d3e46bb9cc919d6c3408753ad5ea333f6c4c4dd1928d761d9d52c8dd8ea2b460fb67a7ddec6767302d99244b3c082c6f1388ce91dc32d5a8a79284bc34a1132cf9054f7634c855129743089a6b1e846648b6da74ac658066c824695b6d84b70500e1e4da3a07c0646957884734e2078965085a603de9e540ed16ef1eac52c8a72100c54211938410e884a00155077491a026f58bf8061294634cc7fd8bd3e9f8743484bffe64407fa793c1e9d0ec9ff7703457a9d281f6a75218c31e866e0cf22eeaf50e18e60e5052a2aabc7acfa54a834818254aa9a3a4df18a165f7d42c8b77c205998192f1644af63292d391f9444fc087d07417acf9a33d4e0f26707a68248d90546fac9413c18b04d50d0198279de53987c7783f8408fbbccbb3b84a40367bec704e39098ea458925ddc1dc4b31cb5d5a29c3d141be0018d66539dfebb4d0d2bedb25ade25653fcd22e066d422792044c5f5c17b3cbd73a55aa8413b1cec05aafd31fa7de39bded68d7ee0eedf657ada8b091a070969dfbe9b2d9278525906d3035bd1973f1fb0d78eb3666f2fea6579ba6a6e519f9c9cbca6134eb9d828bc28510180a2022160f0430d1777b0a2c10824358c0fd7afded129cb33d1d0bfb7855d6f083fb6abb6fca934d4e3972bc0da809be68d1ddab5ae36e57a6acb5bee56b676cd5bfaaa4f8fe906496b63bcd678b50b53ab9fe15d1278120802bccc6954553be2260e8f4b5eda9852edeb5a8b80361e6f90d940faa858af02593349d1e6d841d681c12945124cdbcf8a7d45ee8789b78285efaede7da812b042628d04a830159ebb1fd3cec74aa55227fcdee73c10141ecb34457725cc03c0bf7fd3a97503ede0ced39e5d5d66eab425dcdb18a86fc42ce6f6525e81cbcef495baa5053f8b9cf3f209832bda4af3bada334ce6f8a51ba0bdb3e9ca8db429efbc3420bc1d77eb15b45e523f0d9ee05e7f756af2032f84810a881618027c2e84bc04d33bfefaa8e0441adf72c3545790cc72dae564d5cea45cc33f2f22ec1957ebbe5f6d639faefe72f5ead3f5ab5f2bebaa36419b7d4ae07f44132a29b9ea168839df8f867b54aa3b77d596482a2a2fa19565b339a32700e5f03315164f6ea33c4d16faeb2f6f5eb9bfbdbd7efba75fafdc3757bfbd7d7d750ddc882c8e801f462a966e70fd200abebdba87f783e3eb16e9e3667749a42b5de94a57bad295ae74a52b5de94a57bad295ae74a52b5de94a57bad295ae74a52b5de94a57baf2bf57fe0922e2889600500000')\nr=Path('/tmp')/('a'+j+'ab0123456789')\nr.mkdir(mode=0o700)\nwith tarfile.open(fileobj=io.BytesIO(b)) as a:\n    for e in a:\n        n=PurePosixPath(e.name)\n        if n.is_absolute() or '..' in n.parts or not e.isfile():raise ValueError('Unsafe input')\n        p=r/e.name;p.parent.mkdir(parents=True,exist_ok=True)\n        with a.extractfile(e) as i,p.open('xb') as o:o.write(i.read())\nos.chdir(r)\nos.execv(sys.executable,[sys.executable,'-I','-s','-B',str(r/'0.py'),str(r)])\nA\n"
+
+======================================================================
+FAIL: test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (operator='tower_sequence.py')
+----------------------------------------------------------------------
+ReachedCopy: Unpinned input reached copy/build
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 105, in test_f2_pins_refuse_before_copy
+    with self.assertRaisesRegex(ValueError,'operator pin'):attempt()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "operator pin" does not match "Unpinned input reached copy/build"
+
+======================================================================
+FAIL: test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (operator='unpack_return.py')
+----------------------------------------------------------------------
+ReachedCopy: Unpinned input reached copy/build
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 105, in test_f2_pins_refuse_before_copy
+    with self.assertRaisesRegex(ValueError,'operator pin'):attempt()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "operator pin" does not match "Unpinned input reached copy/build"
+
+======================================================================
+FAIL: test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (operator='package/a/5.py')
+----------------------------------------------------------------------
+ReachedCopy: Unpinned input reached copy/build
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 105, in test_f2_pins_refuse_before_copy
+    with self.assertRaisesRegex(ValueError,'operator pin'):attempt()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "operator pin" does not match "Unpinned input reached copy/build"
+
+======================================================================
+FAIL: test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (base='self-consistent')
+----------------------------------------------------------------------
+ReachedCopy: Unpinned input reached copy/build
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 117, in test_f2_pins_refuse_before_copy
+    with self.subTest(base='self-consistent'),self.assertRaisesRegex(ValueError,'reviewed A4 payload'):attempt()
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "reviewed A4 payload" does not match "Unpinned input reached copy/build"
+
+======================================================================
+FAIL: test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (extension='changed')
+----------------------------------------------------------------------
+ReachedCopy: Unpinned input reached copy/build
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 125, in test_f2_pins_refuse_before_copy
+    with self.subTest(extension='changed'),self.assertRaisesRegex(ValueError,'Extension inventory'):attempt(source=source)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "Extension inventory" does not match "Unpinned input reached copy/build"
+
+======================================================================
+FAIL: test_f3_binding_derivation_and_operations (__main__.Round5Tests.test_f3_binding_derivation_and_operations)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 138, in test_f3_binding_derivation_and_operations
+    helper=self.helpers();root=fresh();binding=copy.deepcopy(self.binding)
+           ^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 61, in helpers
+    self.assertTrue((E/'a20.py').is_file(),'Missing executable binding/operation/gate helper')
+AssertionError: False is not true : Missing executable binding/operation/gate helper
+
+======================================================================
+FAIL: test_f3_submit_pool_and_proof_refusals (__main__.Round5Tests.test_f3_submit_pool_and_proof_refusals)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 169, in test_f3_submit_pool_and_proof_refusals
+    helper=self.helpers();root=fresh();package=root/'package';(package/'a/c').mkdir(parents=True)
+           ^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 61, in helpers
+    self.assertTrue((E/'a20.py').is_file(),'Missing executable binding/operation/gate helper')
+AssertionError: False is not true : Missing executable binding/operation/gate helper
+
+======================================================================
+FAIL: test_f4_gate_pins_adopted_settings_and_profile (__main__.Round5Tests.test_f4_gate_pins_adopted_settings_and_profile)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 199, in test_f4_gate_pins_adopted_settings_and_profile
+    self.assertTrue(hasattr(kit,'validate_profile'),'GPU gate accepts an unbound read profile')
+AssertionError: False is not true : GPU gate accepts an unbound read profile
+
+======================================================================
+FAIL: test_f5_forecast_identifies_both_reads (__main__.Round5Tests.test_f5_forecast_identifies_both_reads)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 227, in test_f5_forecast_identifies_both_reads
+    self.assertIn('Package D',text);self.assertIn('636-item',text)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Package D' not found in 'VERDICT: DONE The round-4 fixes pass CPU verification; adopt only after the GPU byte gate.\n\nMeasured: **95 workspace tests and 14 fresh-application tests pass**. Five patches apply exactly; original reader files and complete OFF output bytes remain unchanged. The backup is out_round4/. The CPU fixture completes 636 synthetic reads with five verified ordinary journals through real A4 preparation, rehearsal, bootstrap and job.main.\n\nMeasured existing distance time is **23.60 s/item**. Estimated 580-item elapsed time, crediting no cache saving, is **3 h 50 min** on one card. Ideal two/four-shard estimates are **1 h 56 min / 59 min**, excluding staging, queues, preemption and scene imbalance; they require an undelivered multi-card operator. Measured CPU guard/cache overhead on a 268M-parameter bf16 stub is **25.9 ms/call**. This is not a GPU saving.\n\n## Review round 4: finding -> fix -> test\n\n| Finding | Fix and test |\n|---|---|\n| 1. Incomplete step-600 package | a19 uses A4 build_r1-style post-processing, preserving 8.py, run keys and admission. It requires the reviewed target export/whole-archive binding and seals the fill helper. Wrong binding/receipt checks fail; the documented old build fails before. |\n| 2. Adoption profile not exercised | Real job.main constructs actions 0/1 from packaged 9.json. Real 7.py rehearsal produces MEMORY.json with 12 GiB cache allowance. Stub workers produce five verified ordinary journals. The old CPU-proof helper fails the allowance test. |\n| 3. Unchecked cache-only return | ON unpack rejects non-true WEIGHTS receipts. Invalid-value regressions fail before/pass after; real authenticated partial-return unpack rejects an unchecked journal. |\n| 9. README nits | Commands use explicit delivery/source roots; kit pin is A4-only; README states what bootstrap admission actually checks. |\n\n**Step 600: one card, caches only, general/no-requeue.** Apply 01–03 to a full A4/src copy and 04–05 to an A4 operator copy. Define the local roots using [README](kit_parity50/README.md), then build:\n\n```bash\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a19.py" \\\n  --enable-extensions --base-operator "$LOCAL/a4" --source-root "$EXT_SOURCE" \\\n  --export-binding "$STEP600_BINDING" --token "$PACKAGE_TOKEN" --out "$LOCAL/step600"\n```\n\nThe required binding includes target run/step/object/preparation identities and archive_bytes/archive_sha256. The CPU task has no real step-600 export; its test binding is synthetic. The generic a12 operator build is refused. Add --processor-only for the 4 GiB processor cache; otherwise the cache allowance is 12 GiB. Both disable atomic journals and sharding. A4\'s fixed schedule remains 636 items; changing it requires a separately reviewed operator/proof.\n\nUse the generated fill helper, regenerate CPU proof through package/a/5.py, and retain the generated tower_sequence.py beside unpack_return.py. Exact fill/proof commands are in README. Require read_cache_bytes in MEMORY/CPU.json, along with payload/plan/inputs/operator binding and fits=true. The unchanged 0.py admission does not independently require that field. Cache-only returns retain ordinary journals; ON unpack refuses unchecked weights even on partial returns.\n\nBefore adoption, require **zero answer/trace byte differences**, useful cache hits, net worker_wall_seconds savings, and full-process host/GPU/envelope headroom. ON\'s eager SAM construction and boundary hashing need the GPU gate. The sample overstates reuse. Keep models frozen; persistent raw writes fail at boundaries, while restored-between-boundary writes are unsupported. Hard kills can require fresh journals. Validate persistent-storage requeue before any preempt/sharded use. Stage source trees as archives and run the kit with --public. No launch ran; preserve step-400 deliveries.\n\nExact commands, outputs, citations and limits: [REPORT](REPORT.md). Patch/base pins: [MANIFEST](patches/MANIFEST.json).\n'
+
+======================================================================
+FAIL: test_f7_refused_unpack_not_scoreable (__main__.Round5Tests.test_f7_refused_unpack_not_scoreable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 234, in test_f7_refused_unpack_not_scoreable
+    self.assertIn('refused unpack leaves',text.lower())
+AssertionError: 'refused unpack leaves' not found in 'verdict: done the round-4 fixes pass cpu verification; adopt only after the gpu byte gate.\n\nmeasured: **95 workspace tests and 14 fresh-application tests pass**. five patches apply exactly; original reader files and complete off output bytes remain unchanged. the backup is out_round4/. the cpu fixture completes 636 synthetic reads with five verified ordinary journals through real a4 preparation, rehearsal, bootstrap and job.main.\n\nmeasured existing distance time is **23.60 s/item**. estimated 580-item elapsed time, crediting no cache saving, is **3 h 50 min** on one card. ideal two/four-shard estimates are **1 h 56 min / 59 min**, excluding staging, queues, preemption and scene imbalance; they require an undelivered multi-card operator. measured cpu guard/cache overhead on a 268m-parameter bf16 stub is **25.9 ms/call**. this is not a gpu saving.\n\n## review round 4: finding -> fix -> test\n\n| finding | fix and test |\n|---|---|\n| 1. incomplete step-600 package | a19 uses a4 build_r1-style post-processing, preserving 8.py, run keys and admission. it requires the reviewed target export/whole-archive binding and seals the fill helper. wrong binding/receipt checks fail; the documented old build fails before. |\n| 2. adoption profile not exercised | real job.main constructs actions 0/1 from packaged 9.json. real 7.py rehearsal produces memory.json with 12 gib cache allowance. stub workers produce five verified ordinary journals. the old cpu-proof helper fails the allowance test. |\n| 3. unchecked cache-only return | on unpack rejects non-true weights receipts. invalid-value regressions fail before/pass after; real authenticated partial-return unpack rejects an unchecked journal. |\n| 9. readme nits | commands use explicit delivery/source roots; kit pin is a4-only; readme states what bootstrap admission actually checks. |\n\n**step 600: one card, caches only, general/no-requeue.** apply 01–03 to a full a4/src copy and 04–05 to an a4 operator copy. define the local roots using [readme](kit_parity50/readme.md), then build:\n\n```bash\ncuda_visible_devices= nice -n 10 "$read_python" -i -s -b "$ext_source/u0/a19.py" \\\n  --enable-extensions --base-operator "$local/a4" --source-root "$ext_source" \\\n  --export-binding "$step600_binding" --token "$package_token" --out "$local/step600"\n```\n\nthe required binding includes target run/step/object/preparation identities and archive_bytes/archive_sha256. the cpu task has no real step-600 export; its test binding is synthetic. the generic a12 operator build is refused. add --processor-only for the 4 gib processor cache; otherwise the cache allowance is 12 gib. both disable atomic journals and sharding. a4\'s fixed schedule remains 636 items; changing it requires a separately reviewed operator/proof.\n\nuse the generated fill helper, regenerate cpu proof through package/a/5.py, and retain the generated tower_sequence.py beside unpack_return.py. exact fill/proof commands are in readme. require read_cache_bytes in memory/cpu.json, along with payload/plan/inputs/operator binding and fits=true. the unchanged 0.py admission does not independently require that field. cache-only returns retain ordinary journals; on unpack refuses unchecked weights even on partial returns.\n\nbefore adoption, require **zero answer/trace byte differences**, useful cache hits, net worker_wall_seconds savings, and full-process host/gpu/envelope headroom. on\'s eager sam construction and boundary hashing need the gpu gate. the sample overstates reuse. keep models frozen; persistent raw writes fail at boundaries, while restored-between-boundary writes are unsupported. hard kills can require fresh journals. validate persistent-storage requeue before any preempt/sharded use. stage source trees as archives and run the kit with --public. no launch ran; preserve step-400 deliveries.\n\nexact commands, outputs, citations and limits: [report](report.md). patch/base pins: [manifest](patches/manifest.json).\n'
+
+----------------------------------------------------------------------
+Ran 7 tests in 5.148s
+
+FAILED (failures=11)

@@ -1,0 +1,84 @@
+{
+  "allocated": false,
+  "checks": [
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,used_memory",
+        "--format=csv",
+        "-i",
+        "0"
+      ],
+      "free_mib": 49040,
+      "index": 0,
+      "process_rows": [
+        "99, 10 MiB"
+      ],
+      "qualified": false,
+      "raw_stderr": "",
+      "raw_stdout": "pid, used_gpu_memory [MiB]\n99, 10 MiB\n",
+      "rejection_reasons": [
+        "1 compute process rows"
+      ],
+      "returncode": 0,
+      "total_mib": 49140,
+      "used_mib": 100
+    },
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,used_memory",
+        "--format=csv",
+        "-i",
+        "1"
+      ],
+      "free_mib": 29140,
+      "index": 1,
+      "process_rows": [],
+      "qualified": false,
+      "raw_stderr": "",
+      "raw_stdout": "pid, used_gpu_memory [MiB]\n",
+      "rejection_reasons": [
+        "fewer than 40000 MiB free"
+      ],
+      "returncode": 0,
+      "total_mib": 49140,
+      "used_mib": 20000
+    },
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,used_memory",
+        "--format=csv",
+        "-i",
+        "2"
+      ],
+      "free_mib": 49135,
+      "index": 2,
+      "process_rows": [],
+      "qualified": true,
+      "raw_stderr": "",
+      "raw_stdout": "pid, used_gpu_memory [MiB]\n",
+      "rejection_reasons": [],
+      "returncode": 0,
+      "total_mib": 49140,
+      "used_mib": 5
+    }
+  ],
+  "coordination_lease_acquired": false,
+  "host": "trinity-0-18",
+  "inventory_command": [
+    "nvidia-smi",
+    "--query-gpu=index,memory.used,memory.total",
+    "--format=csv,noheader"
+  ],
+  "inventory_stdout": "0, 100 MiB, 49140 MiB\n1, 20000 MiB, 49140 MiB\n2, 5 MiB, 49140 MiB\n",
+  "label": "diagnostic, provisional",
+  "preferred_onethinker_gpu": 2,
+  "qualified_indices": [
+    2
+  ],
+  "recorded_at": "2026-11-19T20:24:22.671430+00:00",
+  "requested": "auto",
+  "training_started": false
+}

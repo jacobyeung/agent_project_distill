@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/orch_n30/n_review/tree && sha256sum student_pilot/carrier_c1_data.py student_pilot/carrier_c1.py student_pilot/carrier_c1_run.py launch_r1/entry.py student_pilot/r1_components.py student_pilot/r1_rooms.py student_pilot/r1_coverage.py

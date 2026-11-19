@@ -1,0 +1,58 @@
+{
+  "camera": {
+    "carrier_token": "<|fim_middle|>",
+    "component_reduction": "mean",
+    "embed_dim": 16,
+    "feature_layer_convention": "hidden_states_index_k_after_k_layers_last_is_final_norm_v1",
+    "feature_layers": null,
+    "frame_addressing": "group16",
+    "gate": null,
+    "head_only_steps": 0,
+    "lm_gate": null,
+    "loss_clamp": 100.0,
+    "min_trajectory_scale_m": 0.05,
+    "num_heads": 2,
+    "placement": "append_after_temporal_group_video_tokens_v1",
+    "point_depth": {
+      "context_depth": 1,
+      "d_proj": 16,
+      "max_depth_m": 25.0,
+      "min_depth_m": 0.05,
+      "mlp_hidden": 16,
+      "num_heads": 2,
+      "num_points_per_frame": 2,
+      "silog_lambda": 0.5,
+      "smooth_l1_beta": 0.1,
+      "vit_layers": [
+        1,
+        2,
+        3
+      ],
+      "weight": 0.5,
+      "weight_grad": 0.5,
+      "weight_metric": 0.5,
+      "weight_silog": 1.0
+    },
+    "pose_encoding": "opencv_cam_from_frame0_anchor_second_of_pair_T3_quatxyzw4_fovhw2_v2",
+    "pose_origin": "first_sampled_frame_v1",
+    "refine_iterations": 2,
+    "representative_frame": "second_of_temporal_pair_v1",
+    "stage_gamma": 0.6,
+    "supervision": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/test_runs/full_safe_new/heads_only_z_y_l3y6/bank.json",
+      "sha256": "efa82530f0281abdf7bff98dbf617ee4427f964100fa5fe3f2e8673792b268cf"
+    },
+    "token_scheme": "first_and_rest_learned_v1",
+    "trajectory_balance": true,
+    "trunk_depth": 2,
+    "warmup_ratio": 0.0,
+    "weight": 1.0,
+    "weight_focal": 0.5,
+    "weight_gravity": 0.0,
+    "weight_rot": 1.0,
+    "weight_scale": 0.0,
+    "weight_trans": 1.0
+  },
+  "parallel": "fsdp",
+  "world_size": 8
+}

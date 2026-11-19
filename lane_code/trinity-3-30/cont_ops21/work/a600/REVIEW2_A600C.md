@@ -1,0 +1,12 @@
+GO AFTER FIXES — protect reuse sources against changes during verification/linking, and add a mutation regression test.
+
+- **Finding:** The helper hashes source paths, then links those paths without preserving their verified identity ([o_place_pull_fill_c600.sh:60](/scratch/jjyeung/orch_n30/cont_ops21_b/a600/o_place_pull_fill_c600.sh:60), [line 74](/scratch/jjyeung/orch_n30/cont_ops21_b/a600/o_place_pull_fill_c600.sh:74)). A replacement or rewrite between these operations can link unverified bytes. A read-only simulation of replacement at the first link returned success with a different concatenated hash. Require immutable sources or a lock honored by writers, and preserve the verified inode identity through linking.
+- **Review-1 finding is closed:** The wrapper checks all five export fields and package/return identity against the supplied plan before invoking the unchanged scorer ([score_c600.py:22](/scratch/jjyeung/orch_n30/cont_ops21_b/a600/score_c600.py:22), [line 60](/scratch/jjyeung/orch_n30/cont_ops21_b/a600/score_c600.py:60)).
+- **Diffs passed:** Four scripts match `rehearsal/link/before/` byte-for-byte. Only fill acquisition changed; its surrounding checks and original pull loop remain byte-identical. All five scripts also match regenerated output captured in memory.
+- **Other acquisition checks passed:** Discovery scans immediate package entries only ([line 37](/scratch/jjyeung/orch_n30/cont_ops21_b/a600/o_place_pull_fill_c600.sh:37)). Validation failures and failure after two links stop without pulling. Pull arguments and zero-retry behavior remain unchanged.
+- **Tests:** Replayed `test_score_c600.py` with writes captured in memory: ten wrapper rejections, three existing identity rejections, and camera equivalence at 99.82% passed. Replayed all 16 acquisition scenarios using existing fixtures and mocked writes/transfers; all passed.
+- **Compatibility:** Python 3.6.8 compiled 32 sources in memory. Added Orchard code imports only stdlib modules. Seven `bash -n` checks passed.
+
+Commands ran: `hostname -s`; `diff -u rehearsal/link/before/o_${n}_c600.sh o_${n}_c600.sh` for all five scripts; `bash -n`; `/usr/bin/python3 -B -c` verification/replay harnesses; p1cpu `python -B -c` scorer replay.
+
+Execution used one CPU and BLAS threads set to 1. No workspace writes or real links, transfers, GPU work, or submissions ran.

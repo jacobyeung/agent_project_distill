@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/build_patch.py",
+  "patch_command": [
+    "patch",
+    "--batch",
+    "--fuzz=0",
+    "-p1",
+    "-d",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/apply_check_8jjuwfk5"
+  ],
+  "inputs_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/PATCH_A.patch": "b95c1c618659a17b123b0d4d079fdf9ad53667f715e7362f43df0078bf6de477",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/FILES_TOUCHED.json": "2f0292b02bc684e996599b16a02c9a7a38c5e3718e85c170168869829c4a358b",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/BASE_VERIFICATION.json": "eb0fdbc80d108859a9ae8760ef658fa1d39190575add9513e18ee696cbc8bfb9",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/build_patch.py": "1d297710ecc1afb913d5a98a574db5efec4531ec10d2a79ca1332ac32abad287",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/launch_r2/distributed.py": "9fec5743ecf8b69c74a7c9debc0fa610ccda182397959eed21d87a05642cc01d",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/launch_r2/distributed.py": "fa4221a306269a38e04d1b844ec78d60cc11778d85f4177d58d6e8471ca17d91",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/launch_r2/host.py": "3ca2cdff76593a50b3d78ce4ccfbbaa09ea6349f4320fea9be5a8dd297a8a843",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/launch_r2/host.py": "3587742802c7cb14f39aa0c4feb94cbd6cadaba6fc9e5c5f43655215d5185bed",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/launch_r2/runtime.py": "e23656c8f3016a32bae1d0322f43fad67f6207a62c554af94a92f979091d76f1",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/launch_r2/runtime.py": "5be49d551a9bf94887fb9b7c20a3b338fe76658b377ad30321e6407e8fadf7b7",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/student_pilot/job_env.py": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/job_env.py": "217ff0c7b8a6ea721ae1e833e21421e98b581e0c8e56708f64e4f78ae6459a88",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/student_pilot/r1_coverage.py": "63eb1982e6696d740c0818ad20dbc35924f9ab009cfe732f0c36ed67ce2217c3",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r1_coverage.py": "aca68904351907af1ce046a79123725851969f08744eea629167ffdbc18eeb84",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/student_pilot/r1_population.py": "063ed256bc4b6d797bd99c99bdaf4f11c8fe045a2606645a1dfbcef548c6c76a",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r1_population.py": "bb9ccc296837690b48046481ac082fddbcbfe7889062335b0104e4dc9dd21460",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/student_pilot/r1_routing.py": "07c8751ffd2c0c3fbca6a251a5a6fad8d60c259592e2a6cf0621ee5f3a2bd538",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r1_routing.py": "7975ea825a4dc7f7a4471e950a9ba87c1d68365e9cbb34f044e9652ab6252f18",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/student_pilot/r2_intake.py": "fc968e85827dc56686c6b11814a02b3274f52fb3ca6281758111e1612a3e1c48",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r2_intake.py": "2e96e97d9306f3d08c56cc3e189a8b0fcc5a9462bee68a168f451df52448bbb1",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/base/student_pilot/r2_materialize.py": "47a362bb95cfafcd0b007fd955eb5990d7755ebabd2615d91a9fafe5c47bf0a3",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/student_pilot/r2_materialize.py": "0c2a7bc1b140571dfb6ed9a27a909f00c09c852413ec3c09d6c5cfa5cc499f98",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/new/tests/test_r1_subset.py": "bc0f2525fde7926ee0452a90a4535cf8f17ea32aee108d064b0a8209de55406e"
+  },
+  "checked_files": 940,
+  "changed_files": 10,
+  "exact_application": true
+}

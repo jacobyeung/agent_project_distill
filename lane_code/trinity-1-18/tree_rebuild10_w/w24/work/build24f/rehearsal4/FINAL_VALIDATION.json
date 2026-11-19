@@ -1,0 +1,74 @@
+{
+  "all_changed_fields": 12,
+  "copied_metadata_files": 12,
+  "distributed_training_executed": false,
+  "lane_launcher": "go_rehearsal.sh",
+  "lane_root": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal4",
+  "semantic_input_fields": 10,
+  "source_snapshot": {
+    "differences": [],
+    "files": 939,
+    "mounted_as": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1",
+    "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal3/p2/s",
+    "status": "PASS",
+    "tree_sha256": "57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7"
+  },
+  "status": "PASS",
+  "validation": {
+    "boundaries": "Existing tiny model, synthetic stores/processor/frame host; local collectives and state publication for unwrapped export",
+    "component_evidence_sha256": "52aa68bd0fef0275094b3cb79596b744d7fbe6b19af68090d9301592a20507e2",
+    "component_status": {
+      "data_rows_r2": "DEFERRED",
+      "depth_init_vc": "DEFERRED",
+      "geometry_tower": "DEFERRED",
+      "heads_depth": "DEFERRED",
+      "heads_frame_embeddings": "NOT_PRESENT",
+      "heads_gf1_connector": "NOT_PRESENT",
+      "heads_pose": "DEFERRED",
+      "init_m544": "DEFERRED",
+      "segmenter": "DEFERRED"
+    },
+    "distributed_training_executed": false,
+    "native_artifact_binding": {
+      "component_evidence_sha256": "52aa68bd0fef0275094b3cb79596b744d7fbe6b19af68090d9301592a20507e2",
+      "component_preparation": {
+        "path": "/tmp/q_22c714e1/prepared.json",
+        "sha256": "173e6f3d3db961849c042706d03adb4631eb142fc2f6f3b20fb56c0c984d66ce"
+      }
+    },
+    "native_entry_admit": true,
+    "native_export": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal4/export_probe/artifact.json",
+      "sha256": "437689b85d7e1457d1b7e7a53409e75d6bf7351066693207a6223856cd9078f5"
+    },
+    "native_group_check": true,
+    "native_prepared": true,
+    "preparation": {
+      "path": "/tmp/q_22c714e1/prepared.json",
+      "sha256": "173e6f3d3db961849c042706d03adb4631eb142fc2f6f3b20fb56c0c984d66ce"
+    },
+    "records": [
+      {
+        "stage": "host_receipt_sync",
+        "status": "PASS",
+        "unchanged_component_sha256": "52aa68bd0fef0275094b3cb79596b744d7fbe6b19af68090d9301592a20507e2"
+      },
+      {
+        "stage": "review_sync",
+        "status": "PASS",
+        "unchanged_component_sha256": "52aa68bd0fef0275094b3cb79596b744d7fbe6b19af68090d9301592a20507e2"
+      },
+      {
+        "mutation": "stale preparation",
+        "refusal": "COMPONENT_EVIDENCE_PREPARATION_MISMATCH:export"
+      },
+      {
+        "mutation": "official read",
+        "refusal": "COMPONENT_EVIDENCE_DEFERRED:data_rows_r2:fixture-official-check"
+      }
+    ],
+    "single_process": true,
+    "status": "PASS",
+    "training_steps": 0
+  }
+}

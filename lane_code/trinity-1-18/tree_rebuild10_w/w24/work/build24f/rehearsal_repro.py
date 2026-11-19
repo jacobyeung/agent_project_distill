@@ -2,8 +2,8 @@
 from pathlib import Path
 import argparse, json, os, sys, subprocess, time, signal
 
-L=Path(__file__).resolve().parents[2]; D=L/'work/build24f'; R=D/'rehearsal2'
-sys.path[:0]=[str(D),str(L/'work/tree_r1')]
+L=Path(__file__).resolve().parents[2]; D=L/'work/build24f'; R=D/'rehearsal4'
+sys.path[:0]=[str(D),str(D/'rehearsal3/p2/s')]
 
 def write(name, value):
     (R/name).write_text(json.dumps(value,indent=2,sort_keys=True)+'\n')

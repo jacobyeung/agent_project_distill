@@ -1,5 +1,13 @@
 {
   "backend": "gloo",
+  "component_preparation": {
+    "changed_slots": "Seven DEFERRED receipt_sha256 fields",
+    "physical_output_root": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal4",
+    "producer": "student_pilot.r1_components.artifact_status",
+    "shared_assets": "Read-only existing model, donor and prepared stores",
+    "source_snapshot": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal3/p2/s",
+    "when": "After the final fixture donor export and receipt are bound"
+  },
   "config_fields": {
     "checkpoint_disk_guard.reserve_bytes": 0,
     "code": "new tree seal",
@@ -10,7 +18,7 @@
   "copier": {
     "m2_object": "same fixed object as production m100; stub only",
     "sessions": "local empty fixture map",
-    "target": "rehearsal2/target",
+    "target": "rehearsal4/target",
     "writer": "local byte-part stub"
   },
   "environment": {
@@ -50,14 +58,11 @@
     }
   },
   "model_boundary": {
-    "apply": "After native authenticated warm-start load, before optimizer/FSDP",
-    "lm_head_weight": "Independent FP32 Parameter cloned from the loaded tied weight; equal values",
-    "production": {
-      "path": "/scratch/jjyeung/devs1c_models/cp1/base/config.json",
-      "sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"
-    },
-    "source": "work/build24/proofs/capacity/model/config.json",
-    "text_config.tie_word_embeddings": false,
+    "base_manifest": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal3/model.json",
+    "construction": "Untied base and donor before native export; native receipt and exact inventory load",
+    "post_load_topology_change": false,
+    "preparation": "Synthetic pose settings supply the untied base manifest before native preparation validates it",
+    "text_config_tie_word_embeddings": false,
     "tie_word_embeddings": false
   },
   "production_config_edited": false,

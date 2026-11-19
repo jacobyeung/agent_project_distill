@@ -1,0 +1,527 @@
+--- /dev/null
++++ b/student_pilot/r1_direction_prior.py
+@@ -0,0 +1,122 @@
++"""Pinned toward-hard balance; preserve every other native draw and its position."""
++from collections import Counter
++from fractions import Fraction
++import random
++from .p3_provenance import digest, file_pin, load, pinned, write
++
++CELLS = ('direction', 'facing_pairs')
++WEIGHTS = {'direction': {'back': '10251/3676', 'front': '10251/16826'},
++           'facing_pairs': {'back': '2180/651', 'front': '2180/3709'}}
++
++
++class Prior:
++    """Bind source row identities to offsets only after native reader filtering."""
++    def __init__(self, pin):
++        self.pin = pin
++        value = load(pinned(pin))
++        if (value.get('schema') != 'r1-direction-prior-v1'
++                or value.get('policy') != 'toward_hard_equal_mass_v1'
++                or set(value.get('cells', {})) != set(CELLS)
++                or not value.get('inputs')):
++            raise ValueError('R1_DIRECTION_PRIOR_INVALID')
++        self.rows = {}
++        self.cells = {k: {'front': [], 'back': []} for k in CELLS}
++        self.seen = set()
++        for kind in CELLS:
++            cell = value['cells'][kind]
++            if cell.get('weights') != WEIGHTS[kind]:
++                raise ValueError('R1_DIRECTION_PRIOR_WEIGHTS')
++            counts = Counter()
++            for row in cell['rows']:
++                qid, sha, side = row['qid'], row['row_sha256'], row['side']
++                if (not isinstance(qid, str) or not qid or qid in self.rows
++                        or side not in ('front', 'back') or not isinstance(sha, str)
++                        or len(sha) != 64 or any(c not in '0123456789abcdef' for c in sha)):
++                    raise ValueError('R1_DIRECTION_PRIOR_ROW')
++                self.rows[qid] = (kind, sha, side)
++                counts[side] += 1
++            mass = sum(counts.values())
++            if any(counts[side]*Fraction(WEIGHTS[kind][side]) != Fraction(mass, 2)
++                   for side in ('front', 'back')) or not mass:
++                raise ValueError('R1_DIRECTION_PRIOR_MASS')
++
++    def observe(self, row, stream, kind, offset):
++        from .r1_direction_twins import direction_details
++        if stream != 'vqa':
++            return
++        entry = self.rows.get(row.get('qid'))
++        if kind not in CELLS:
++            if entry is not None:
++                raise ValueError('R1_DIRECTION_PRIOR_CELL')
++            return
++        clause, difficulty, side, relation = direction_details(row)
++        target = (clause, difficulty) == ('toward', 'hard')
++        if not target:
++            if entry is not None:
++                raise ValueError('R1_DIRECTION_PRIOR_CLAUSE')
++            return
++        if (entry != (kind, digest(row), side) or side not in ('front', 'back')
++                or relation != {'front': 'front', 'back': 'behind'}[side]):
++            raise ValueError('R1_DIRECTION_PRIOR_IDENTITY')
++        if row['qid'] in self.seen:
++            raise ValueError('R1_DIRECTION_PRIOR_DUPLICATE')
++        self.seen.add(row['qid'])
++        self.cells[kind][side].append(offset)
++
++    def bind(self, binding, output):
++        if self.seen != set(self.rows):
++            raise ValueError('R1_DIRECTION_PRIOR_POPULATION_DIFFERS')
++        inputs = [self.pin, binding['card'], binding['population'], binding['indices']]
++        write(output, dict(schema='r1-direction-prior-offsets-v1', policy=self.pin,
++                          card_sha256=binding['card']['sha256'],
++                          population_sha256=binding['population']['sha256'],
++                          indices_sha256=binding['indices']['sha256'],
++                          cells=self.cells, inputs=inputs))
++        return file_pin(output)
++
++
++def schedules(binding, card, indices, proof, pools):
++    """Alternate the two equal weighted masses inside the existing toward-hard slots."""
++    value = load(pinned(binding['direction_prior']))
++    if (value.get('schema') != 'r1-direction-prior-offsets-v1'
++            or any(value.get(k+'_sha256') != binding[k]['sha256']
++                   for k in ('card', 'population', 'indices'))
++            or set(value.get('cells', {})) != set(CELLS)):
++        raise ValueError('R1_DIRECTION_PRIOR_BINDING')
++    policy = Prior(value['policy'])  # Re-authenticate the source weight file on every plan.
++    result = {}
++    for kind in CELLS:
++        cell = value['cells'][kind]
++        if set(cell) != {'front', 'back'}:
++            raise ValueError('R1_DIRECTION_PRIOR_OFFSETS')
++        all_values = [i for side in ('front', 'back') for i in cell[side]]
++        expected = Counter(side for k, sha, side in policy.rows.values() if k == kind)
++        if (any(type(i) is not int for i in all_values)
++                or len(set(all_values)) != len(all_values)
++                or not set(all_values) <= set(indices['cells'].get(kind, []))
++                or any(len(cell[side]) != expected[side] for side in ('front', 'back'))
++                or next(c['stream'] for c in card['cells'] if c['type'] == kind) != 'vqa'):
++            raise ValueError('R1_DIRECTION_PRIOR_OFFSETS')
++        pool = pools[kind]
++        original = [pool[i % len(pool)] for i in range(proof['draws'][kind])]
++        targets = set(all_values)
++        slots = [i for i, offset in enumerate(original) if offset in targets]
++        # Independent RNGs cannot perturb a cell's native shuffle or another cell.
++        sides = ['front', 'back']
++        random.Random(digest([card['seed'], kind, 'phase'])).shuffle(sides)
++        selected = {}
++        for side in sides:
++            selected[side] = list(cell[side])
++            random.Random(digest([card['seed'], kind, side])).shuffle(selected[side])
++        used = Counter()
++        for j, slot in enumerate(slots):
++            side = sides[j % 2]
++            candidates = selected[side]
++            if not candidates or used[side] >= 4*len(candidates):
++                raise ValueError('R1_DIRECTION_PRIOR_CAPACITY')
++            original[slot] = candidates[used[side] % len(candidates)]
++            used[side] += 1
++        if max(Counter(original).values(), default=0) > 4:
++            raise ValueError('R1_REPEAT_LIMIT_EXCEEDED')
++        result[kind] = original
++    return result
+--- a/student_pilot/r1_direction_twins.py
++++ b/student_pilot/r1_direction_twins.py
+@@ -133,22 +133,44 @@
+     verify_augmented(cfg,database)
+     return cfg
+ 
++def direction_details(row):
++    """Read the observer clause, answer side and explicit forward trace relation."""
++    import re
++    question = row.get('student_input', {}).get('question', row.get('question', ''))
++    head = question.casefold().split('?', 1)[0].split(', is ', 1)[0]
++    away = (r'\b(?:fac(?:e|ing)|look(?:ing)?|turn(?:ed|ing)?)\s+away\b'
++            r'|\b(?:with\s+)?my\s+back\s+(?:to|toward|towards)\b'
++            r'|\bfacing in the opposite direction\b')
++    toward = (r'\b(?:fac(?:e|ing)|look(?:ing)?|viewing|gazing at)\b'
++              r'|\b(?:oriented|directed|aiming|turned) toward(?:s)?\b'
++              r'|\bmy gaze fixed on\b|\bdirecting my view towards\b'
++              r'|\bnext to me and the .+ ahead\b|\bahead of (?:me|you)\b')
++    clause = 'away' if re.search(away, head) else 'toward' if re.search(toward, head) else 'MISSING'
++    difficulty = str(row.get('question_type', row.get('category', 'unknown'))).rsplit('_', 1)[-1]
++    answer = str(row.get('answer', ''))
++    options = row.get('student_input', {}).get('options', [])
++    if isinstance(options, dict):
++        label = options.get(answer, 'MISSING')
++    else:
++        matches = [re.sub(r'^[A-Z][.)]\s*', '', v).strip() for v in options
++                   if isinstance(v, str) and re.match(r'^'+re.escape(answer)+r'[.)]\s*', v)]
++        label = matches[0] if len(matches) == 1 else 'MISSING'
++    label = str(label).casefold().strip()
++    side = ('back' if re.search(r'\b(?:back|behind)\b', label) else
++            'front' if re.search(r'\bfront\b', label) else
++            'MISSING' if label == 'missing' else 'other')
++    lines = [s for s in row.get('target', row.get('suffix', '')).splitlines()
++             if s.startswith(('Step 2:', 'Standing at ', 'If I stood at '))]
++    relation = 'MISSING'
++    if len(lines) == 1:
++        front = bool(re.search(r'\bin front of me\b|\bahead of me\b', lines[0], re.I))
++        back = bool(re.search(r'\bbehind me\b|\bin back of me\b', lines[0], re.I))
++        relation = ('front' if front and not back else 'behind' if back and not front else
++                    'lateral' if not front and not back and re.search(
++                        r'\b(?:to|on|out to) my (?:left|right)\b', lines[0], re.I) else 'MISSING')
++    return clause, difficulty, side, relation
++
++
+ def dimensions(row):
+-    """Report answer shares; these labels never control training selection."""
+-    import re
+-    p=row.get('provenance',{}).get('sb_rowD7',{})
+-    question=row.get('student_input',{}).get('question',row.get('question',''))
+-    wording=p.get('clause_edit',{}).get('new_clause',question)
+-    verb=r'\b(?:fac(?:e|ing)|look(?:ing)?)\b'
+-    clause='away' if re.search(verb+r'\s+away\b',wording,re.I) else 'toward' if re.search(verb,wording,re.I) else 'unspecified'
+-    difficulty=str(row.get('question_type',row.get('category','unknown'))).rsplit('_',1)[-1]
+-    label=p.get('mapped_label')
+-    if label is None:
+-        answer=str(row.get('answer',''));options=row.get('student_input',{}).get('options',[])
+-        if isinstance(options,dict):label=options.get(answer,'')
+-        elif isinstance(options,list):
+-            label=next((x for x in options if isinstance(x,str) and x.startswith(answer+'.')),answer)
+-        else:label=answer
+-    label=str(label).casefold()
+-    side='front' if 'front' in label else 'back' if 'back' in label or 'behind' in label else 'other'
+-    return clause,difficulty,side
++    """Report clause/difficulty answer shares from the question and selected option."""
++    return direction_details(row)[:3]
+--- a/student_pilot/r1_loader.py
++++ b/student_pilot/r1_loader.py
+@@ -54,22 +54,19 @@
+     repeats = Counter(); draws = Counter(); examples = {}
+     unique = set(); training_counts = {'recovery':0, 'units':{u:0 for u in ('cm','ft','in')}}
+     unit_draws = Counter(); status_draws = Counter()
+-    direction_draws = Counter(); direction_answers = Counter()
++    direction = DirectionAudit()
+     try:
+-        for index in indices['cells'].get('direction', []):
++        for index in [i for k in ('direction', 'facing_pairs') for i in indices['cells'].get(k, [])]:
+             row, _ = reader.row('vqa', index)
+-            direction_draws[row['qid']] = 0
++            direction.eligible(row)
+         for plan in plans(binding, counts, 1000):
+             for stream, offsets in plan:
+                 for index in offsets:
+                     row, _ = reader.row(stream, index)
+                     row_check(row, stream)
+                     kind = ownership[(stream, index)]
+-                    if kind == 'direction':
+-                        from .r1_direction_twins import dimensions
+-                        clause,difficulty,side=dimensions(row)
+-                        direction_draws[row['qid']]+=1
+-                        direction_answers[(clause,difficulty,side)]+=1
++                    if kind in ('direction', 'facing_pairs'):
++                        direction.observe(row)
+                     if card.get('counting_admission') == 'procedure_only_v1':
+                         from .r1_counting import admit
+                         admit(row, kind)
+@@ -98,15 +95,42 @@
+                       expected_repeats=allocation['repeats'], largest_repeat=max(repeats.values(), default=0),
+                       examples={k:list(v.values()) for k,v in examples.items()},
+                       card_sha256=binding['card']['sha256'], row_plan_sha256=digest(binding))
+-        groups={(c,d) for c,d,s in direction_answers}
+-        result['direction']=dict(draws_per_row=dict(direction_draws),answer_shares=[
+-            dict(clause=c,difficulty=d,draws=sum(direction_answers[c,d,s] for s in ('front','back','other')),
+-                 **{s:dict(draws=direction_answers[c,d,s],share=direction_answers[c,d,s]/max(1,sum(direction_answers[c,d,t] for t in ('front','back','other')))) for s in ('front','back','other')})
+-            for c,d in sorted(groups)])
++        result['direction'] = direction.result()
++        result['inputs'] = [v for v in binding.values()
++                            if isinstance(v, dict) and set(v) == {'path', 'sha256'}]
++        result['inputs'].extend(cfg[k] for k in ('preparation', 'code') if k in cfg)
+         write(output/'RESULT.json', result)
+         return result
+     finally:
+         reader.close()
++
++
++class DirectionAudit:
++    """Count clause/difficulty answer shares from rows actually drawn by the loader."""
++    def __init__(self):
++        self.draws = Counter()
++        self.answers = Counter()
++
++    def eligible(self, row):
++        self.draws.setdefault(row['qid'], 0)
++
++    def observe(self, row):
++        from .r1_direction_twins import dimensions
++        self.draws[row['qid']] += 1
++        self.answers[dimensions(row)] += 1
++
++    def result(self):
++        sides = ('front', 'back', 'other', 'MISSING')
++        groups = sorted({(c, d) for c, d, side in self.answers})
++        shares = []
++        for clause, difficulty in groups:
++            total = sum(self.answers[clause, difficulty, side] for side in sides)
++            shares.append(dict(clause=clause, difficulty=difficulty, draws=total,
++                **{side: dict(draws=self.answers[clause, difficulty, side],
++                              share=self.answers[clause, difficulty, side]/max(1, total))
++                   for side in sides}))
++        return dict(cells=['direction', 'facing_pairs'], draws_per_row=dict(self.draws),
++                    answer_shares=shares)
+ 
+ 
+ def row_dimensions(row):
+--- a/student_pilot/r1_mix.py
++++ b/student_pilot/r1_mix.py
+@@ -82,6 +82,10 @@
+         random.Random(card['seed']).shuffle(pools[kind])
+     if any(len(used[s]) != counts[s] for s in STREAMS):
+         raise ValueError('R1_INDEX_COVERAGE')
++    schedules = {}
++    if 'direction_prior' in binding:
++        from .r1_direction_prior import schedules as prior_schedules
++        schedules = prior_schedules(binding, card, indices, proof, pools)
+     consumed = Counter()
+     totals = proof['draws']
+     for step in range(steps):
+@@ -93,7 +97,8 @@
+                 available = [k for k in names if consumed[k] < totals[k]]
+                 kind = max(available, key=lambda k: (totals[k]*(step+1)-consumed[k]*1000, k))
+                 pool = pools[kind]
+-                selected.append(pool[consumed[kind] % len(pool)])
++                selected.append(schedules[kind][consumed[kind]] if kind in schedules
++                                else pool[consumed[kind] % len(pool)])
+                 consumed[kind] += 1
+             plan.extend((stream, selected[i:i+world]) for i in range(0, quota, world))
+         if step >= start_step:
+--- a/student_pilot/r1_population.py
++++ b/student_pilot/r1_population.py
+@@ -109,6 +109,9 @@
+     membership = Membership(membership_pin, minimal=minimal)
+     groups = {c['type']:[] for c in card['cells']}
+     streams = {c['type']:c['stream'] for c in card['cells']}
++    from .r1_direction_prior import Prior
++    prior_config = (cfg or {}).get('r1_training', {})
++    prior = Prior(prior_config['direction_prior']) if 'direction_prior' in prior_config else None
+     unknown, pairs = Counter(), defaultdict(Counter)
+     units, overrides = Counter(), Counter()
+     examples = defaultdict(list)
+@@ -123,6 +126,8 @@
+                 unknown[kind] += 1
+                 continue
+             groups[kind].append(offset)
++            if prior is not None:
++                prior.observe(row, stream, kind, offset)
+             if stream == 'routing' and row.get('r1_source') and family(row, stream) != kind:
+                 overrides[kind] += 1
+             if kind == 'units':
+@@ -150,6 +155,8 @@
+     write(output/'indices.json', dict(population_sha256=pop_pin['sha256'], cells=groups))
+     binding = dict(schema='r1-sampling-v1', card=card_pin, population=pop_pin,
+                    indices=file_pin(output/'indices.json'))
++    if prior is not None:
++        binding['direction_prior'] = prior.bind(binding, output/'direction_prior.json')
+     from .r1_mix import plans
+     next(plans(binding, {s:reader.count(s) for s in STREAMS}, 1))
+     write(output/'binding.json', binding)
+--- /dev/null
++++ b/tests/test_r1_direction_prior.py
+@@ -0,0 +1,203 @@
++"""Portable synthetic regressions for the opt-in prior and loader clause parser."""
++from collections import Counter
++from copy import deepcopy
++from pathlib import Path
++import json, os, random, unittest, uuid
++from student_pilot import r1_mix as M
++from student_pilot.p3_provenance import digest, file_pin, load
++from student_pilot.r1_training import STREAMS
++
++
++class DirectionPrior(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.root = Path(os.environ['R2_PROOFS'])/('direction_prior_'+uuid.uuid4().hex)
++        cls.root.mkdir(parents=True)
++        cls.card = dict(schema='r1-card-v1', steps=1000, seed=17, quotas=STREAMS,
++            cells=[dict(type=k, stream=s, rows_per_step=n) for k,s,n in
++                   [('direction','vqa',36.866),('facing_pairs','vqa',18.170),('relative_distance','vqa',72.964),
++                    ('pose','pose',64),('camera_displacement','routing',64),('pointing','pointing',32)]])
++        cls.counts = dict(direction=55808, facing_pairs=42507, relative_distance=20000,
++                          pose=16000, camera_displacement=16000, pointing=8000)
++        from student_pilot.r1_direction_prior import WEIGHTS
++        cls.weight_cells = {k:dict(weights=WEIGHTS[k], rows=[]) for k in WEIGHTS}
++        cls.offset_cells = {k:dict(front=[], back=[]) for k in WEIGHTS}
++        cls.groups = {};pos=Counter()
++        for cell in cls.card['cells']:
++            k,s=cell['type'],cell['stream'];cls.groups[k]=list(range(pos[s],pos[s]+cls.counts[k]));pos[s]+=cls.counts[k]
++        for k,backs,fronts in [('direction',3676,16826),('facing_pairs',651,3709)]:
++            j=0
++            for side,n in [('back',backs),('front',fronts)]:
++                for i in range(n):
++                    row=cls.row(k,side,i)
++                    cls.weight_cells[k]['rows'].append(dict(qid=row['qid'],row_sha256=digest(row),side=side))
++                    cls.offset_cells[k][side].append(cls.groups[k][j]);j+=1
++        cls.stream_counts=dict(pos)
++        cls.binding = cls.make_binding()
++        cls.base = list(M.plans(cls.binding,cls.stream_counts,1000))
++
++    @staticmethod
++    def row(k, side, i):
++        relation='behind' if side=='back' else 'in front of'
++        return dict(**({'facing':'toward'} if k=='facing_pairs' else {}),
++                    qid=k+'_'+side+'_'+str(i), question_type='object_rel_direction_hard',
++                    student_input=dict(question='Facing the chair, is the table ahead?', options=['A. '+side,'B. left']),
++                    answer='A',target='Step 2: The table is '+relation+' me.')
++
++    @classmethod
++    def put(cls, name, value):
++        p=cls.root/name;p.write_text(json.dumps(value,sort_keys=True)+'\n');return file_pin(p)
++
++    @classmethod
++    def make_binding(cls):
++        card=cls.put('card.json',cls.card)
++        evidence=cls.put('fixture.json',dict(scope='SYNTHETIC_UNIT_TEST_NOT_PRODUCTION',inputs=[]))
++        pop=cls.put('population.json',dict(schema='r1-population-v1',complete=True,after_all_filters=True,
++                counts=cls.counts,card_sha256=card['sha256'],evidence=[evidence]))
++        idx=cls.put('indices.json',dict(population_sha256=pop['sha256'],cells=cls.groups))
++        return dict(card=card,population=pop,indices=idx)
++
++    def policy(self,name):
++        return self.put(name,dict(schema='r1-direction-prior-v1',policy='toward_hard_equal_mass_v1',
++                                 cells=self.weight_cells,inputs=[self.binding['card']]))
++
++    def enabled(self,name):
++        pin=self.policy(name+'_weights.json')
++        value=dict(schema='r1-direction-prior-offsets-v1',policy=pin,cells=self.offset_cells,
++                   **{k+'_sha256':self.binding[k]['sha256'] for k in ('card','population','indices')})
++        return dict(self.binding,direction_prior=self.put(name+'_bound.json',value))
++
++    def test_slots_counts_cap_and_resume(self):
++        b=self.enabled('slots');after=list(M.plans(b,self.stream_counts,1000))
++        targets={i for cell in self.offset_cells.values() for values in cell.values() for i in values}
++        backs={i for cell in self.offset_cells.values() for i in cell['back']}
++        changed=0;draws=Counter();sides=Counter()
++        for old,new in zip(self.base,after):
++            for (s,oi),(t,ni) in zip(old,new):
++                self.assertEqual(s,t)
++                for a,c in zip(oi,ni):
++                    draws[s,c]+=1
++                    if s=='vqa' and a in targets:
++                        self.assertIn(c,targets);sides[c in backs]+=1;changed+=a!=c
++                    else:self.assertEqual(a,c)
++        self.assertGreater(changed,0);self.assertLessEqual(max(draws.values()),4)
++        self.assertLessEqual(abs(sides[True]-sides[False]),2)
++        self.assertEqual(after[777:],list(M.plans(b,self.stream_counts,1000,start_step=777)))
++        self.assertEqual(after,list(M.plans(b,self.stream_counts,1000)))
++
++    def test_tampered_weight_refuses(self):
++        b=self.enabled('tamper');bound=load(b['direction_prior']['path'])
++        with Path(bound['policy']['path']).open('a') as f:f.write(' ')
++        with self.assertRaisesRegex(ValueError,'Missing or changed pinned input'):
++            next(M.plans(b,self.stream_counts,1))
++
++    def test_bad_bound_pin_and_offsets_refuse(self):
++        b=self.enabled('bound');b['direction_prior']['sha256']='0'*64
++        with self.assertRaises(ValueError):next(M.plans(b,self.stream_counts,1))
++        for key in ('population_sha256','indices_sha256','card_sha256','cells'):
++            b=self.enabled('bad_'+key);v=load(b['direction_prior']['path'])
++            if key=='cells':v['cells']['direction']['front'][0]=-1
++            else:v[key]='0'*64
++            b['direction_prior']=self.put('altered_'+key+'.json',v)
++            with self.assertRaises(ValueError):next(M.plans(b,self.stream_counts,1))
++
++    def test_prepare_identity_and_completeness(self):
++        from student_pilot.r1_direction_prior import Prior
++        prior=Prior(self.policy('prepare_weights.json'))
++        for k in self.weight_cells:
++            for side in ('back','front'):
++                for i,offset in enumerate(self.offset_cells[k][side]):
++                    prior.observe(self.row(k,side,i),'vqa',k,offset)
++        bound=prior.bind(self.binding,self.root/'prepared.json')
++        b=dict(self.binding,direction_prior=bound)
++        self.assertEqual(list(M.plans(b,self.stream_counts,1000)),list(M.plans(self.enabled('prepared_compare'),self.stream_counts,1000)))
++        with self.assertRaisesRegex(ValueError,'DUPLICATE'):prior.observe(self.row('direction','back',0),'vqa','direction',0)
++        prior=Prior(self.policy('incomplete_weights.json'))
++        with self.assertRaisesRegex(ValueError,'POPULATION_DIFFERS'):prior.bind(self.binding,self.root/'missing.json')
++        row=self.row('direction','back',0);row['target']+=' changed'
++        with self.assertRaisesRegex(ValueError,'IDENTITY'):prior.observe(row,'vqa','direction',0)
++
++    def test_produce_binds_optional_field(self):
++        from student_pilot.r1_population import produce
++        targets = {}
++        for k in self.weight_cells:
++            for side in ('back', 'front'):
++                for i, offset in enumerate(self.offset_cells[k][side]):
++                    targets[offset] = self.row(k, side, i)
++        ownership = {(c['stream'], i): c['type'] for c in self.card['cells']
++                     for i in self.groups[c['type']]}
++        stream_counts = self.stream_counts
++        class Reader:
++            def count(self, stream): return stream_counts[stream]
++            def row(self, stream, i):
++                kind = ownership[stream, i]
++                if stream == 'vqa' and i in targets: return targets[i], {}
++                typ = ('object_rel_direction_easy' if kind in ('direction', 'facing_pairs') else
++                       'object_rel_distance' if kind == 'relative_distance' else kind)
++                row = dict(qid=stream+'_filler_'+str(i), question_type=typ,
++                           student_input={'question': 'Facing the chair, where is the table?'})
++                if kind == 'facing_pairs': row['facing'] = 'toward'
++                return row, {}
++        member = self.put('produce_member.json', dict(schema='r1-source-membership-v1', sources={}))
++        evidence = self.put('produce_evidence.json', dict(scope='SYNTHETIC_TEST', inputs=[]))
++        weights = self.policy('produce_weights.json')
++        absent = produce(Reader(), self.binding['card'], member, [evidence], self.root/'produce_absent')
++        enabled = produce(Reader(), self.binding['card'], member, [evidence], self.root/'produce_enabled',
++                          cfg={'r1_training': {'direction_prior': weights}})
++        self.assertNotIn('direction_prior', absent)
++        self.assertEqual(load(enabled['direction_prior']['path'])['policy'], weights)
++        self.assertEqual(absent['population']['sha256'], enabled['population']['sha256'])
++        self.assertEqual(absent['indices']['sha256'], enabled['indices']['sha256'])
++        self.assertNotEqual(list(M.plans(absent, stream_counts, 1000)),
++                            list(M.plans(enabled, stream_counts, 1000)))
++
++    def test_other_stream_qid_is_outside_prior_scope(self):
++        from student_pilot.r1_direction_prior import Prior
++        prior = Prior(self.policy('cross_stream_weights.json'))
++        row = self.row('direction', 'back', 0)
++        for stream in ('pose', 'pointing', 'routing'):
++            prior.observe(row, stream, stream, 0)
++        self.assertEqual(prior.seen, set())
++        self.assertTrue(all(not offsets for cell in prior.cells.values() for offsets in cell.values()))
++
++    def test_capacity_refusal(self):
++        from student_pilot.r1_direction_prior import schedules
++        b=self.enabled('capacity');card,idx,proof=M.validate_binding(b)
++        pools={k:list(v) for k,v in self.groups.items()}
++        # A concentrated prefix exceeds the back-row capacity although the cell's total cap fits.
++        proof['draws']['direction']=4*self.counts['direction']
++        with self.assertRaisesRegex(ValueError,'CAPACITY'):schedules(b,card,idx,proof,pools)
++
++    def test_production_audit_includes_facing_pairs(self):
++        from unittest.mock import patch
++        from student_pilot import carrier_c1_run as C, r1_loader as L
++        selected = [self.offset_cells['direction']['back'][0],
++                    self.offset_cells['facing_pairs']['front'][0]]
++        stream_counts = self.stream_counts
++        rows = {selected[0]: self.row('direction', 'back', 0),
++                selected[1]: self.row('facing_pairs', 'front', 0)}
++        class Reader:
++            def count(self, stream): return stream_counts[stream]
++            def row(self, stream, i): return rows.get(i, dict(qid='eligible_'+str(i))), {}
++            def close(self): pass
++        cfg = dict(r2_sampling=self.binding, r1_training=dict(row_plan_sha256=digest(self.binding)))
++        with patch('os.uname', return_value=type('Host', (), dict(nodename='fixture-host'))()), \
++             patch.object(C, 'prepared', return_value=({}, None)), \
++             patch.object(C, 'Rows', return_value=Reader()), \
++             patch.object(M, 'plans', return_value=[[('vqa', selected)]]), \
++             patch.object(L, 'row_check'):
++            audit = L.production_audit(cfg, self.root/'audit_fixture')
++        self.assertEqual(audit['draws'], {'direction': 1, 'facing_pairs': 1})
++        share = audit['direction']['answer_shares'][0]
++        self.assertEqual((share['draws'], share['back']['draws'], share['front']['draws']), (2, 1, 1))
++
++    def test_clause_parser(self):
++        from student_pilot.r1_direction_twins import dimensions
++        for q,clause in [('With my back to the chair, is the table ahead?','away'),
++                         ('Facing in the opposite direction, where is the chair?','away'),
++                         ('My gaze fixed on the chair, where is the table?','toward'),
++                         ('With the chair ahead of me, where is the table?','toward')]:
++            row=self.row('direction','back',0);row['student_input']['question']=q
++            self.assertEqual(dimensions(row),(clause,'hard','back'))
++
++if __name__=='__main__':unittest.main()

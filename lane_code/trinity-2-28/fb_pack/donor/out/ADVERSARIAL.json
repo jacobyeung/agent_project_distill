@@ -1,0 +1,38 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/donor/work/adversarial_w6nusxt3/export/artifact.json": "70709f4a6ede48c9e30e1a55f1ddeaeeb4aa9723ef137e0e1e3e5047aa3147b6",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor/work/adversarial_w6nusxt3/source/artifact.json": "7c2cd3961e8aa4007d67414a0b72174014b8988096e35dc92dde27125cb3308b",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor/code/adversarial_checks.py": "07c3589fa0e23049427ced1bec3d96d614910fe82225d8630451180f691d2a9f",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor/work/new/student_pilot/scale_donor.py": "1aa7bf9de38e16da3206a64557bc07753230d8591a76fe39a31b32af51b5ff2d",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor/work/new/student_pilot/carrier_c1_run.py": "89adbb79bb1b7ca7c2d05cdfe4ad8e2e1b7394784c10ba5fe1133f8688b85736"
+  },
+  "status": "PASS",
+  "checks": [
+    {
+      "tensor": "scale_donor.point_depth.group_embed",
+      "refused": true,
+      "error": "Scale donor tensor changed since initialization"
+    },
+    {
+      "tensor": "scale_donor.fov.weight",
+      "refused": true,
+      "error": "Scale donor tensor changed since initialization"
+    },
+    {
+      "tensor": "scale_donor.frame_queries",
+      "refused": true,
+      "error": "Scale donor tensor changed since initialization"
+    },
+    {
+      "tensor": "depth.model.visual.patch_embed.proj.weight",
+      "refused": true,
+      "error": "Scale donor shared visual changed since initialization"
+    },
+    {
+      "case": "forged_internal_tensor_hashes",
+      "refused": true,
+      "error": "Scale donor tensor changed since initialization"
+    }
+  ],
+  "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/adversarial_checks.py"
+}

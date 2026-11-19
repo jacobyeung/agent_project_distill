@@ -1,4 +1,5 @@
 PASS: only fill acquisition changed; four other generated scripts byte-identical
+PASS: current-script diff changes only reuse helper; all five scripts match generator
 PASS: Python 3.6.8 py_compile and five scripts plus rendered fill bash -n
 PASS: explicit_reuse (four shared inodes; reported link count verified)
 PASS: wrong_size (no pull/copy fallback)
@@ -9,6 +10,18 @@ PASS: missing_part (no pull/copy fallback)
 PASS: directory_part (no pull/copy fallback)
 PASS: empty_explicit_reuse (no pull/copy fallback)
 PASS: link_failure_after_two_links (no pull/copy fallback)
+PASS: replace_before_link (refused; links retained; no fill/pull/copy fallback)
+PASS: rewrite_before_link (refused; links retained; no fill/pull/copy fallback)
+PASS: rewrite_restore_mtime_before_link (refused; links retained; no fill/pull/copy fallback)
+PASS: symlink_before_link (refused; links retained; no fill/pull/copy fallback)
+PASS: replace_after_link (refused; links retained; no fill/pull/copy fallback)
+PASS: rewrite_after_link (refused; links retained; no fill/pull/copy fallback)
+PASS: rewrite_restore_mtime_after_link (refused; links retained; no fill/pull/copy fallback)
+PASS: symlink_after_link (refused; links retained; no fill/pull/copy fallback)
+PASS: replace_during_hash (refused; links retained; no fill/pull/copy fallback)
+PASS: rewrite_during_hash (refused; links retained; no fill/pull/copy fallback)
+PASS: rewrite_restore_mtime_during_hash (refused; links retained; no fill/pull/copy fallback)
+PASS: symlink_during_hash (refused; links retained; no fill/pull/copy fallback)
 PASS: search_first_matching_marker (four shared inodes; reported link count verified)
 PASS: search_match_invalid_parts (no pull/copy fallback)
 PASS: explicit source overrides search; invalid explicit source stops
@@ -16,4 +29,4 @@ PASS: pull_unset (original pull arguments; zero retries)
 PASS: pull_search_no_match (original pull arguments; zero retries)
 PASS: pull_search_disabled (original pull arguments; zero retries)
 PASS: pull_failure_no_retry (original pull arguments; zero retries)
-PASS: 18 cases; no SSH, network, Git, GPU, deletion or submission.
+PASS: 31 cases; no SSH, network, Git, GPU, deletion or submission.

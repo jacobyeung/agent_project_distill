@@ -1,0 +1,57 @@
+{
+  "answer_format_instruction": "Think it through, then finish with the final answer alone on the last line: the option letter for a multiple-choice question, or the number for a numeric question.",
+  "decoding": {
+    "do_sample": false,
+    "max_new_tokens": 4096,
+    "num_beams": 1,
+    "num_return_sequences": 1,
+    "output_logits": false,
+    "output_scores": false,
+    "return_dict_in_generate": true,
+    "seed": 17,
+    "temperature": null,
+    "top_k": null,
+    "top_p": null,
+    "use_cache": true
+  },
+  "execution": {
+    "attempts_per_question": 1,
+    "attention_implementation": "sdpa",
+    "batch_size": 1,
+    "dtype": "bfloat16",
+    "inference_mode": true,
+    "quantization": null
+  },
+  "models": {
+    "onethinker": {
+      "architecture": "Qwen3VLForConditionalGeneration",
+      "config_sha256": "cc76a13b9e08a9548e177717d4e0b929142edcaf674d26dff5b2c586a8e28a35",
+      "enable_thinking": null,
+      "repo_id": "OneThink/OneThinker-8B",
+      "revision": "2b7032f4179d8c032d2eac67b3692263f85be0fc",
+      "template_sha256": "3636d0f0bd6bef02654cdffdc447b79cb2cef8ab02cc75267345946291a489e4"
+    },
+    "qwen35": {
+      "architecture": "Qwen3_5ForConditionalGeneration",
+      "config_sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05",
+      "enable_thinking": true,
+      "repo_id": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715"
+    }
+  },
+  "rgb": {
+    "do_sample_frames": false,
+    "frame_count": 32,
+    "max_input_tokens": 16384,
+    "prompt": "native_user_video_then_verbatim_question_options",
+    "selector": "floor(k*(N-1)/31)",
+    "size": {
+      "longest_edge": 4718592,
+      "shortest_edge": 524288
+    },
+    "timing": "original_ordinals_and_fps_with_separate_actual_pts",
+    "version": "original-rgb32-v1"
+  },
+  "schema": "student-benchmark-eval-v1"
+}

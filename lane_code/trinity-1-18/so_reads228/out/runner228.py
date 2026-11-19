@@ -10,10 +10,10 @@ import time
 import traceback
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from common228 import *
-from gpu228 import card_name,idle_gate,require_idle,snapshot,Sampler
+from gpu228 import card_name,idle_gate,require_idle,snapshot
 from stage228 import stage_check
 from return228 import package_return,new_return_identity
-from namespace228 import namespace_command
+from namespace228 import operator_command
 
 def extensions():
     source=HERE/'extensions'
@@ -25,15 +25,32 @@ def extensions():
         if p.is_symlink() or sha(p)!=expected[name]:raise Refusal('so_read overlay pin differs: '+name)
     return source
 
+def probe_operator(root,cfg,inputs):
+    command=operator_command(inputs,'--probe',str(Path(cfg['logical'])/'p'))
+    env=clean_environment(STAGE/'operator_probe')
+    try:
+        result=subprocess.run(command,env=env,text=True,capture_output=True,timeout=120)
+        proof=dict(passed=result.returncode==0,returncode=result.returncode,argv=command,
+                   stdout=result.stdout,stderr=result.stderr,utc=utc())
+    except (OSError,subprocess.TimeoutExpired) as error:
+        proof=dict(passed=False,returncode=None,argv=command,error=str(error),utc=utc())
+    write(STAGE/'OPERATOR_PROBE.json',proof)
+    if not proof['passed']:
+        raise Refusal('Operator import probe failed before card access: '+str(proof.get('error') or proof['stderr'][-4000:]))
+    return proof
+
 def run_one(a):
     target_host();card_name(a.card)
     if a.items is not None and not 1<=a.items<=636:raise Refusal('--items must be in 1..636')
     root,cfg,inputs,export=deployment(a.package)
     out=local(a.out)
+    from orchard_h10.common import opaque
+    opaque([str(out)])
     if out.exists():raise Refusal('Output exists; use a fresh directory, never rerun a killed job')
     ext=extensions() if a.on else None
     # Refuse missing or wrong weights before creating GPU contexts or waiting for a card.
     proof=stage_check(root,cfg,inputs,export,prepare=True)
+    probe=probe_operator(root,cfg,inputs)
     out.mkdir(parents=True,exist_ok=False);(out/'telemetry').mkdir();(out/'metadata').mkdir()
     write(out/'metadata/STAGE_CHECK.json',proof)
     lockroot=STAGE/'locks';lockroot.mkdir(parents=True,exist_ok=True)
@@ -61,61 +78,32 @@ def run_one(a):
             source_payload_sha256=cfg['payload_sha256'],adapter_sha256=sha(__file__),
             actual_python=inputs['python'],runtime_environment=proof['environment'],
             namespace=proof['namespace'],bwrap=proof['namespace']['bwrap'],
+            operator_probe=probe,operator_execution='package_namespace',policy=inputs['policy'],
             archive_path_map=str(HERE/'STAGE_PLAN.json'),utc=utc(),same_instrument=False))
         p=Path(cfg['logical'])/'p';data=Path(cfg['logical'])/'d'
-        install_imports(p)
-        operator=load_module(root/'tower_sequence.py','read228_sealed_operator')
-        from orchard_h10 import runner
         run_cfg=dict(export_pin=str(data/'6.json'),export_cache=str(out/'metadata/export_cache.json'),
             allocation=identity['job'],package=str(p),output=str(ret),python=inputs['python'],
             export=str(data/'e'),binding=str(data/'binding.json'),settings=str(data/'settings.json'),
             plan_sha256=cfg['plan_sha256'],inputs_sha256=canonical({k:v for k,v in inputs.items() if k!='resume'}),
             types=inputs['types'],stop_margin=cfg['stop_margin'],return_margin=cfg['return_margin'],
-            prefix=['bash',str(VNICE)],operator_sha256=sha(root/'tower_sequence.py'))
-        if a.on:
-            chosen=read(run_cfg['settings'])
-            chosen.update(read_processor_only='off',read_processor_cache='on',read_vision_cache='on',
-                          read_sam_cache='on',read_cache_bytes=12*1024**3)
-            path=out/'metadata/settings_on.json';write(path,chosen);run_cfg['settings']=str(path)
+            prefix=['bash',inputs['policy']['vnice']],operator_sha256=sha(root/'tower_sequence.py'))
         stop=ret/'metadata/STOP';end=time.time()+cfg['budget_gpu_seconds']
+        dispatch=out/'metadata/operator.json'
+        write(dispatch,dict(out=str(out),config=run_cfg,card=card,end=end,on=a.on,items=a.items,
+                            extensions=str(ext) if ext else None,operator=str(root/'tower_sequence.py')))
+        command=operator_command(inputs,'--execute',str(dispatch))
+        write(out/'metadata/OPERATOR_COMMAND.json',dict(argv=command,namespace=proof['namespace']))
         def stop_requested(number,frame):stop.write_text('Signal '+str(number)+'; finish current item\n')
         old={n:signal.signal(n,stop_requested) for n in (signal.SIGINT,signal.SIGTERM,signal.SIGUSR1)}
-        failure=None;summary=None;worker_rc=None
-        def execute(chosen,cards,deadline,*,prefix):
-            def launch(argv,**kwargs):
-                config=read(Path(kwargs['cwd'])/argv[-1])
-                # The sealed runner wrote a/30.json and supplies the dispatch; keep it unchanged.
-                write(out/'metadata/WORKER_ARGS.json',runner.worker_args(config))
-                worker_file=out/'metadata/worker.json'
-                write(worker_file,dict(worker=config,adapter=dict(out=str(out),on=a.on,
-                    items=a.items,extensions=str(ext) if ext else None)))
-                worker_env=clean_environment(out,card)
-                command=['nice','-n','10','bash',str(VNICE)]+namespace_command()+[
-                         inputs['python'],'-B','-I',str(HERE/'worker228.py'),str(worker_file),'--observe']
-                write(out/'metadata/COMMAND.json',dict(argv=command,env=worker_env,start_new_session=True))
-                process=subprocess.Popen(command,env=worker_env,stdout=kwargs['stdout'],
-                    stderr=kwargs['stderr'],cwd=out,start_new_session=True)
-                class ObservedProcess:
-                    def wait(self):
-                        nonlocal worker_rc
-                        while process.poll() is None:
-                            if sampler.process.poll() is not None:
-                                stop.write_text('nvidia-smi telemetry stopped; no retry\n')
-                            time.sleep(1)
-                        worker_rc=process.returncode
-                        return worker_rc
-                return ObservedProcess()
-            with control_environment():
-                result=runner.run(chosen,cards,deadline,prefix=prefix,launcher=launch)
-            if sampler.process.poll() is not None:
-                result['failure']='nvidia-smi telemetry failed; run is diagnostic-only'
-                write(Path(chosen['output'])/'SUMMARY.json',result)
-            return result
+        failure=None;summary=None
         try:
-            with Sampler(card,out/'telemetry/nvidia-smi.csv') as sampler:
-                summary=operator.run(run_cfg,end,[card],runner=execute)
-            failure=summary.get('failure')
-            if (out/'telemetry/OOM.json').exists():failure='First CUDA OOM; stopped without retry'
+            with (ret/'logs/1.log').open('ab') as log:
+                process=subprocess.run(command,env=clean_environment(out,card),stdout=log,stderr=subprocess.STDOUT)
+            result_path=out/'metadata/OPERATOR_RESULT.json'
+            if result_path.is_file():
+                got=read(result_path);summary=got['summary'];failure=got['failure']
+            if process.returncode and not failure:failure='Package operator exited '+str(process.returncode)
+            if summary is None and not failure:failure='Package operator did not return a summary'
         except BaseException as error:
             failure=str(error);traceback.print_exc()
         finally:
