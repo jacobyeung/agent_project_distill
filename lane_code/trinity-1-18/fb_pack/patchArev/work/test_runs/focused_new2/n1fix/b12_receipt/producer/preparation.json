@@ -1,0 +1,227 @@
+{
+  "camera": {
+    "carrier_token": "<|fim_middle|>",
+    "component_reduction": "mean",
+    "embed_dim": 64,
+    "feature_layer_convention": "hidden_states_index_k_after_k_layers_last_is_final_norm_v1",
+    "feature_layers": null,
+    "fov_activation": "bounded_sigmoid_v1",
+    "frame_addressing": "group16",
+    "gate": null,
+    "head_only_steps": 0,
+    "lm_gate": null,
+    "loss_clamp": 100.0,
+    "max_groups": 32,
+    "min_trajectory_scale_m": 0.05,
+    "num_heads": 4,
+    "placement": "append_after_temporal_group_video_tokens_v1",
+    "point_depth": null,
+    "pose_encoding": "opencv_cam_from_frame0_anchor_second_of_pair_T3_quatxyzw4_fovhw2_v2",
+    "pose_origin": "first_sampled_frame_v1",
+    "refine_iterations": 4,
+    "representative_frame": "second_of_temporal_pair_v1",
+    "stage_gamma": 0.6,
+    "supervision": {
+      "path": "/fixture",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "token_scheme": "first_and_rest_learned_v1",
+    "trajectory_balance": true,
+    "trunk_depth": 4,
+    "warmup_ratio": 0.0,
+    "weight": 1.0,
+    "weight_focal": 0.5,
+    "weight_gravity": 1.0,
+    "weight_rot": 1.0,
+    "weight_scale": 0.02,
+    "weight_trans": 1.0
+  },
+  "config_sha256": "3a15f5dea1dcabe408d024fcbe3b3766460d03134b393e93a7811318ba5fffc5",
+  "depth": {
+    "context_depth": 1,
+    "d_proj": 16,
+    "mlp_hidden": 16,
+    "num_heads": 4,
+    "vit_layers": [
+      1,
+      2,
+      3
+    ],
+    "weight": 0.05
+  },
+  "model": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/patchArev/work/test_runs/focused_new2/n1fix/b12_receipt/producer/model.json",
+    "sha256": "5d9d10611b7aade1cd05796fa260162e31547da28cc77fd390f1100be0c5d732"
+  },
+  "recipe": {
+    "clip_norm": 1.0,
+    "encoder_learning_rate": 1e-05,
+    "export_at_stop": true,
+    "global_batch": 288,
+    "learning_rate": 0.0001,
+    "lm_learning_rate": 1e-05,
+    "milestones": [
+      100,
+      200,
+      400,
+      600,
+      800,
+      1000
+    ],
+    "mix": [
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing"
+    ],
+    "reference_world_size": 32,
+    "resume_every_seconds": 7200,
+    "scheduled_sampling": {
+      "depth_open_absrel": 0.25,
+      "ema_steps": 100,
+      "exposure_from_step": null,
+      "exposure_probability": 0.0,
+      "force_from_step": null,
+      "fov_open_deg": 2.0,
+      "max_own_probability": 0.0,
+      "pose_full_deg": 10.0,
+      "pose_open_deg": 20.0,
+      "seed": 17
+    },
+    "seed": 17,
+    "steps": 1000,
+    "stop_before_seconds": 3600,
+    "wall_seconds": 86400,
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.01,
+    "weights": {
+      "depth": 0.25,
+      "depth_fov": 0.05,
+      "pointing": 1.0,
+      "pose": 1.5,
+      "routing": 1.0,
+      "vqa": 1.0
+    },
+    "world_size": 4
+  },
+  "schema": "c1-preparation-v1",
+  "streams": {
+    "pointing": {
+      "count": 32,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/patchArev/work/test_runs/focused_new2/n1fix/b12_receipt/producer/pointing.db",
+        "sha256": "8c3b5cdff0d760cb11e12ae85517624d6a51b9bf580f34034371c3e9d01cdb81"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/patchArev/work/test_runs/focused_new2/n1fix/b12_receipt/producer/pointing.json",
+        "sha256": "4eabbe71e5c499714bdb1ddb65c1f654d12564f756a9c9f3a62eb68004eae03c"
+      },
+      "source_count": 32
+    },
+    "pose": {
+      "count": 64,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/patchArev/work/test_runs/focused_new2/n1fix/b12_receipt/producer/pose.db",
+        "sha256": "a6193406f4a80496aa1500ba83e40ab54b3b2af17abb45418cdc238353907440"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/patchArev/work/test_runs/focused_new2/n1fix/b12_receipt/producer/pose.json",
+        "sha256": "e695aca928e0310283769efc196e19d80517bb30d43dcb51b47e4c8a3099f660"
+      },
+      "source_count": 64
+    },
+    "routing": {
+      "count": 64,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/patchArev/work/test_runs/focused_new2/n1fix/b12_receipt/producer/routing.db",
+        "sha256": "03be40e9ee0f61af536771520187496555e205856ac022ab80d7a11dea79f4f9"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/patchArev/work/test_runs/focused_new2/n1fix/b12_receipt/producer/routing.json",
+        "sha256": "a1d2f4b125305b4ec6b8aa4804fec2c5bc0a280ecd874387fac7abcd2aefdb91"
+      },
+      "source_count": 64
+    },
+    "vqa": {
+      "count": 128,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/patchArev/work/test_runs/focused_new2/n1fix/b12_receipt/producer/vqa.db",
+        "sha256": "6b7c7218a97f69459cfc899fcf8dc136b0e25f166456007a8079a54e07cee0ad"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/patchArev/work/test_runs/focused_new2/n1fix/b12_receipt/producer/vqa.json",
+        "sha256": "39fd7bd49398118bc04495f033975c3906c4e5daf02846f5ab70d748e6165983"
+      },
+      "source_count": 128
+    }
+  },
+  "training_mode": "final"
+}

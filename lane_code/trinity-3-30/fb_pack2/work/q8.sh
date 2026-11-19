@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack; date -u +%TZ; df -h /scratch|tail -1; du -sh $F/* 2>/dev/null | sort -h | tail -25; tmux ls 2>&1 | grep fbp | cut -c1-24; cat $F/../fb_pack1/REMOVAL_CANDIDATES.md 2>/dev/null | head -5

@@ -1,0 +1,123 @@
+{
+  "files": {
+    "artifact.json": {
+      "role": "config",
+      "sha256": "d4b0616b37a044f1f3e36c4c06ce94978518b55af0244c521463ca245dce83d5"
+    },
+    "full_weights/full_weights.json": {
+      "role": "lm",
+      "sha256": "a5d9208cdd6f286322cb1a5573bfcb987f4b12d3880a1195a62fd71ad731db4e"
+    },
+    "full_weights/model-00001-of-00001.safetensors": {
+      "role": "lm",
+      "sha256": "6451076b128bf4f980543061294e1ac83d083b721d1847327332ef8dad2bab19"
+    },
+    "full_weights/model.safetensors.index.json": {
+      "role": "lm",
+      "sha256": "672dd8cc2b56886cb1af42e237b4000fd334c0bfeebcf227390bbea7a916d5d2"
+    },
+    "heads.pt": {
+      "role": "head",
+      "sha256": "d9970780252094c8360dcc324c3e841e579b06b3bf59f232fbc2bf48c1abf94b"
+    },
+    "readout_config.json": {
+      "role": "config",
+      "sha256": "0c3060bd19e89f2208e31deeb0a2d7244b08afb454c547fbe1a1dd1888a0c466"
+    }
+  },
+  "modules": {
+    "auxiliary_heads.depth": {
+      "name": "depth_head",
+      "role": "head"
+    },
+    "auxiliary_heads.depth_readout": {
+      "buffers": {
+        "camera_precision": {
+          "file": "heads.pt",
+          "key": "depth_readout.camera_precision"
+        },
+        "clip_ratio": {
+          "file": "heads.pt",
+          "key": "depth_readout.clip_ratio"
+        },
+        "half_grid": {
+          "file": "heads.pt",
+          "key": "depth_readout.half_grid"
+        },
+        "percentiles": {
+          "file": "heads.pt",
+          "key": "depth_readout.percentiles"
+        },
+        "spread_floor_ratio": {
+          "file": "heads.pt",
+          "key": "depth_readout.spread_floor_ratio"
+        },
+        "stencil": {
+          "file": "heads.pt",
+          "key": "depth_readout.stencil"
+        }
+      },
+      "inputs": [
+        "depth_map",
+        "fov_hw",
+        "uv",
+        "frame",
+        "depth_head"
+      ],
+      "name": "depth_readout",
+      "outputs": [
+        "depth_p30",
+        "spread",
+        "camera_point",
+        "stencil_depth"
+      ],
+      "role": "fixed_math"
+    },
+    "auxiliary_heads.heading": {
+      "buffers": {
+        "full_circle": {
+          "file": "heads.pt",
+          "key": "heading.full_circle"
+        },
+        "half_circle": {
+          "file": "heads.pt",
+          "key": "heading.half_circle"
+        },
+        "pi_ratio": {
+          "file": "heads.pt",
+          "key": "heading.pi_ratio"
+        },
+        "threshold_ratio": {
+          "file": "heads.pt",
+          "key": "heading.threshold_ratio"
+        }
+      },
+      "inputs": [
+        "operation",
+        "first_rotation",
+        "second_rotation",
+        "threshold"
+      ],
+      "name": "heading",
+      "outputs": [
+        "degrees",
+        "heading_available"
+      ],
+      "role": "fixed_math"
+    },
+    "auxiliary_heads.pose": {
+      "name": "pose_head",
+      "role": "head"
+    },
+    "model.language_model": {
+      "name": "lm",
+      "role": "lm"
+    },
+    "model.visual": {
+      "name": "base_vit",
+      "role": "vit"
+    }
+  },
+  "root": ".",
+  "schema": "eat1-artifact-v1"
+}

@@ -122,8 +122,11 @@ class StageFindings(unittest.TestCase):
     def test_medium4_calls_sealed_namespace_and_records_both_bwrap_identities(self):
         self.assertTrue((TARGET/'namespace228.py').is_file(),'namespace adapter missing')
         import namespace228 as N
-        root=directory();runtime=root/'runtime';runtime.mkdir();(runtime/'sj').symlink_to('/scratch/jjyeung',target_is_directory=True)
+        root=directory();runtime=root/'private_rt';(runtime/'sj').mkdir(parents=True)
         plan=dict(stage_root=str(root));expected=N.package_namespace().namespace(runtime);expected[0]='/usr/bin/bwrap'
+        for path in [N.HERE]+[root/n for n in ('prepare','operator_probe','namespace_probe')]:
+            expected+=['--bind',str(path),str(path)]
+        expected+=['--chdir',str(N.HERE)]
         self.assertEqual(N.namespace_command(plan),expected)
         fake=root/'bwrap';fake.write_bytes(b'root binary fixture')
         identity=types.SimpleNamespace(st_mode=0o100755,st_uid=0,st_size=fake.stat().st_size)
@@ -150,7 +153,7 @@ class StageFindings(unittest.TestCase):
         self.assertTrue((TARGET/'namespace228.py').is_file())
         import namespace228 as N
         root=directory();python=root/'uv/bin/python3.12';python.parent.mkdir(parents=True);python.write_bytes(b'python')
-        link=root/'runtime/m/ap/19252904/e/bin/python';link.parent.mkdir(parents=True);link.symlink_to(N.UV+'/bin/python3.12')
+        link=root/'private_rt/m/ap/19252904/e/bin/python';link.parent.mkdir(parents=True);link.symlink_to(N.UV+'/bin/python3.12')
         plan=dict(stage_root=str(root),environment=dict(local_base_python=str(python)))
         self.assertEqual(N.host_path(N.AP+'/19252904/e/bin/python',plan),python)
         self.assertEqual(os.readlink(str(link)),N.UV+'/bin/python3.12')

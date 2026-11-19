@@ -143,6 +143,10 @@ class LaunchFindings(unittest.TestCase):
         self.assertNotIn('--relocate-runtime',text)
         self.assertIn('--check-namespace',text)
         self.assertIn('operator_command',(TARGET/'runner228.py').read_text())
-        self.assertIn('namespace_command(plan)+',(TARGET/'namespace228.py').read_text())
+        import namespace228 as N
+        with patch.object(N,'namespace_command',return_value=['bwrap','fixture']) as command:
+            argv=N.operator_command({'python':'/logical/d/v/py'},'--probe','/logical/p',plan={'fixture':True})
+        command.assert_called_once_with({'fixture':True})
+        self.assertEqual(argv[:5],['bwrap','fixture','/logical/d/v/py','-B','-I'])
 
 if __name__=='__main__':unittest.main(verbosity=2)

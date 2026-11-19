@@ -106,8 +106,11 @@ class Review3Tests(unittest.TestCase):
         inputs=C.read(TARGET/'A10b/package/a/1.json')
         with patch.object(N,'namespace_command',return_value=['/usr/bin/bwrap','--fixture']):
             a=N.operator_command(inputs,'--probe','/logical/p')
-            b=N.operator_command(inputs,'--execute','/run/dispatch.json')
-        self.assertEqual(a[:-2],b[:-2])
+            out=directory();(out/'metadata').mkdir()
+            b=N.operator_command(inputs,'--execute',str(out/'metadata/dispatch.json'))
+        self.assertEqual(a[:2],b[:2])
+        self.assertEqual(b[2:5],['--bind',str(out),str(out)])
+        self.assertEqual(a[2:-2],b[5:-2])
         self.assertEqual(a[:5],['/usr/bin/bwrap','--fixture',inputs['python'],'-B','-I'])
         self.assertEqual(a[-3],str(TARGET/'operator228.py'))
 
@@ -166,7 +169,8 @@ class Review3Tests(unittest.TestCase):
         for g in plan['input_archives']:self.assertEqual(Path(g['destination']),private/'d')
         self.assertEqual(Path(plan['code']['destination']),private/'p')
         for g in plan['runtime_archives']:
-            self.assertEqual(Path(g['namespace_map']['sj/'+logical.name]),private)
+            self.assertNotIn('sj/'+logical.name,g['namespace_map'])
+            self.assertEqual(Path(g['destination']),Path(plan['private_runtime']))
 
     def test_info4_host_translation_never_reads_other_lane(self):
         root=directory();logical=root/'shared';private=root/'private'
@@ -179,7 +183,7 @@ class Review3Tests(unittest.TestCase):
         self.assertEqual((logical/'d/s/item').read_text(),'other lane')
 
     def test_info4_namespace_overlays_private_root_after_sj_bind(self):
-        root=directory();runtime=root/'runtime';runtime.mkdir();(runtime/'sj').symlink_to('/scratch/jjyeung')
+        root=directory();runtime=root/'private_rt';(runtime/'sj').mkdir(parents=True)
         private=root/'private';private.mkdir()
         plan=dict(stage_root=str(root),logical='/scratch/jjyeung/b01ec87a6f29b',private_logical=str(private))
         argv=N.namespace_command(plan)
@@ -188,8 +192,8 @@ class Review3Tests(unittest.TestCase):
         self.assertLess(argv.index(str(runtime/'sj')),len(argv)-3)
 
     def test_info4_real_namespace_reads_private_bytes_and_preserves_shared_bytes(self):
-        root=directory();runtime=root/'runtime';runtime.mkdir()
-        (runtime/'sj').symlink_to('/scratch/jjyeung',target_is_directory=True)
+        root=directory();runtime=root/'private_rt';(runtime/'sj/uv-python/cpython-3.12.13-linux-x86_64-gnu').mkdir(parents=True)
+        for n in ('prepare','operator_probe','namespace_probe'):(root/n).mkdir()
         (runtime/'fsw').mkdir();(runtime/'m/ap').mkdir(parents=True)
         logical=root/'shared';private=root/'private'
         for path,value in ((logical,'other lane'),(private,'pinned archive')):

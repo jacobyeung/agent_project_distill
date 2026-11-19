@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack/point/out; wc -c $F/READ40.md; grep -o "Point to the [^.]*\. \|Locate the [^\\\"]*\|point_2d[^}]*}\|null" $F/READ40.md | head -150 | paste -sd'\n' | uniq | head -130

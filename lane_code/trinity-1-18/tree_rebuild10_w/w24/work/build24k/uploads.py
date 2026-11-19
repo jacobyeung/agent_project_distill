@@ -4,7 +4,7 @@ L=Path(__file__).resolve().parents[2];D=L/'work/build24k'
 sys.path.insert(0,str(L/'work/build24'));import joblib as J
 base=J.load(L/'out/UPLOADS_MINIMAL.json')
 baseline={v['name']:v for doc in base['kits'].values() for v in doc['files']}
-for filename in ('UPLOADS_24B.json','UPLOADS_24C.json','UPLOADS_24D.json','UPLOADS_24E.json','UPLOADS_24F.json','UPLOADS_24G.json','UPLOADS_24H.json'):
+for filename in ('UPLOADS_24B.json','UPLOADS_24C.json','UPLOADS_24D.json','UPLOADS_24E.json','UPLOADS_24F.json','UPLOADS_24G.json','UPLOADS_24H.json','UPLOADS_24I.json'):
  for v in J.load(L/'out'/filename)['files']:baseline[v['name']]=v
 needed={};current={};kits={}
 for name in ('q','n'):
@@ -22,7 +22,7 @@ for name,v in needed.items():
  p=root/name;p.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(v['local_path'],p);v['local_path']=str(p)
 assert not set(baseline)-set(current)
 merged={**baseline,**needed};assert all(merged[n]['sha256']==v['sha256'] and merged[n]['bytes']==v['bytes'] for n,v in current.items())
-value=dict(schema='build24k-upload-diff-v1',GO=False,baseline=[dict(path=str(L/'out'/n),sha256=J.sha(L/'out'/n)) for n in ('UPLOADS_MINIMAL.json','UPLOADS_24B.json','UPLOADS_24C.json','UPLOADS_24D.json','UPLOADS_24E.json','UPLOADS_24F.json','UPLOADS_24G.json','UPLOADS_24H.json')],files=[needed[n] for n in sorted(needed)],total_files=len(needed),total_bytes=sum(v['bytes'] for v in needed.values()),stream_root=str(root),kits=kits,overlay_reconstructs_exact_final_upload_set=True)
+value=dict(schema='build24k-upload-diff-v1',GO=False,baseline=[dict(path=str(L/'out'/n),sha256=J.sha(L/'out'/n)) for n in ('UPLOADS_MINIMAL.json','UPLOADS_24B.json','UPLOADS_24C.json','UPLOADS_24D.json','UPLOADS_24E.json','UPLOADS_24F.json','UPLOADS_24G.json','UPLOADS_24H.json','UPLOADS_24I.json')],files=[needed[n] for n in sorted(needed)],total_files=len(needed),total_bytes=sum(v['bytes'] for v in needed.values()),stream_root=str(root),kits=kits,overlay_reconstructs_exact_final_upload_set=True)
 J.write(L/'out/UPLOADS_24K.json',value);(L/'out/UPLOADS_24K.list').write_text(''.join(n+'\n' for n in sorted(needed)));J.write(D/'KIT.json',kits)
 go=L/'out/kit_n_go';k=L/'work/build24/kits/n';diff=[]
 for p in sorted(go.rglob('*')):

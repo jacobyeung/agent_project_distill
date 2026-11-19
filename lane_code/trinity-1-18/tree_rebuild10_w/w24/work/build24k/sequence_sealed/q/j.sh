@@ -1,0 +1,412 @@
+export PYTHONDONTWRITEBYTECODE=1
+set -euo pipefail
+export TMPDIR="$Q_ROOT/tmp" XDG_CACHE_HOME="$Q_ROOT/cache"
+export HF_HOME="$Q_ROOT/cache/hf" TORCH_HOME="$Q_ROOT/cache/torch" TRITON_CACHE_DIR="$Q_ROOT/cache/triton"
+export CUDA_CACHE_PATH="$Q_ROOT/cache/cu" MPLCONFIGDIR="$Q_ROOT/cache/plot"
+mkdir -p "$TMPDIR" "$XDG_CACHE_HOME"
+cd "$Q_ROOT"
+export PATH=/usr/local/bin:/usr/bin:/bin
+AS=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung
+AL=/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung
+K=8865619b
+X=$AS/ap/$K
+R=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/sequence_sealed/q/pool
+HX="${TK_KIT_HOME:?}"
+IN=$R/in
+REV=c202236235762e1c871ad0ccb60c8ee5ba337b9a
+P=/project/community/jjyeung/c7d31ddd
+RR=runs/aws128p_20261025
+EPOCHS=/home/jjyeung/6d00e578
+S="$Q_ROOT/s"
+U=$S/aws/u
+HM=$HX
+NX="$Q_ROOT/x"
+NR="$Q_ROOT/rp"
+CUR=$HX/k/0.json
+COMMIT=$(/scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["commit"])' "$CUR")
+tk_step() {
+    local line
+    line="$(date -u +%FT%TZ) | $*"
+    printf '%s\n' "$line"
+    if [[ -n "${SLURM_JOB_ID:-}" && -d "$HM/o" ]]; then printf '%s\n' "$line" >> "$HM/o/$SLURM_JOB_ID.steps" 2>/dev/null || true; fi
+}
+hp() {
+    case "$1" in
+        "$X"/*) printf '%s\n' "$NX/${1#"$X"/}" ;;
+        "$AS"/*) printf '%s\n' "$U/${1#"$AS"/}" ;;
+        "$AL"/*) printf '%s\n' "$U/${1#"$AL"/}" ;;
+        *) printf '%s\n' "$1" ;;
+    esac
+}
+tk_current() { /scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json, sys; e = json.load(open(sys.argv[1]))[sys.argv[2]]; print(e["file"], e["sha256"])' "$CUR" "$1"; }
+tk_has() { /scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json,sys; sys.exit(0 if sys.argv[2] in json.load(open(sys.argv[1])) else 1)' "$CUR" "$1"; }
+CLOSURE_DIR="_jobs/cp4tk_$(tk_current closure | cut -d' ' -f2 | cut -c1-12)"
+tk_kitx() {
+    local key="$1" dest="$2" file sha
+    read -r file sha < <(tk_current "$key")
+    file=$(hp "$file")
+    if [[ -f "$S/.stamp/$key.$sha" && -d "$dest" ]]; then return 0; fi
+    if [[ -e "$dest" ]]; then mv "$dest" "$dest.old.$(date +%s)"; fi
+    mkdir -p "$(dirname "$dest")" "$S/.stamp"
+    /scratch/jjyeung/envs/p1cpu/bin/python -B -I "$HX/b/kitx.py" "$file" "$sha" "$dest"
+    touch "$S/.stamp/$key.$sha"
+}
+sha_is() { [[ "$(sha256sum < "$1" | cut -d' ' -f1)" == "$2" ]] || { tk_step "sha differs: $1"; return 3; }; }
+
+tk_venv_shebangs() {
+    local v="$S/c7d31ddd/venvs/rwtrain_torch211_cu129" stamp
+    stamp="$S/.stamp/shebang.$(tk_current venv | cut -d' ' -f2)"
+    [[ ! -f "$stamp" ]] || return 0
+    /scratch/jjyeung/envs/p1cpu/bin/python -B -I - "$v/bin" "$P/venvs/rwtrain_torch211_cu129/bin/python" <<'PYSHEBANG'
+import os, re, sys
+bindir, target = sys.argv[1], sys.argv[2].encode()
+pattern = re.compile(rb'#!/project/community/jjyeung/[^/\s]+/venvs/rwtrain_torch211_cu129/bin/python[0-9.]*')
+changed = 0
+for name in sorted(os.listdir(bindir)):
+    path = os.path.join(bindir, name)
+    if os.path.islink(path) or not os.path.isfile(path):
+        continue
+    with open(path, 'rb') as stream:
+        data = stream.read()
+    first, sep, rest = data.partition(b'\n')
+    if pattern.fullmatch(first.rstrip()) and first != b'#!' + target:
+        with open(path + '.part', 'wb') as stream:
+            stream.write(b'#!' + target + sep + rest)
+        os.chmod(path + '.part', os.stat(path).st_mode)
+        os.replace(path + '.part', path)
+        changed += 1
+assert os.path.isfile(os.path.join(bindir, 'torchrun'))
+print('venv console scripts repointed:', changed, flush=True)
+PYSHEBANG
+    touch "$stamp"
+}
+
+tk_join() {
+    local dest="$1" sha="$2"; shift 2
+    [[ ! -f "$S/.stamp/join.$sha" || ! -f "$dest" ]] || return 0
+    mkdir -p "$(dirname "$dest")" "$S/.stamp"
+    cat "$@" > "$dest.part"
+    sha_is "$dest.part" "$sha"
+    mv "$dest.part" "$dest"; chmod a-w "$dest"
+    touch "$S/.stamp/join.$sha"
+    tk_step "joined $(basename "$dest") $(stat -c %s "$dest") B"
+}
+
+tk_readonly_files() {
+    find "$1" -type f -exec chmod a-w {} +
+    find "$1" -type d -exec chmod 700 {} +
+}
+
+tk_stage_model() {
+    local snap="$S/c7d31ddd/$RR/models/a32330d0/snapshots/$REV" file sha
+    read -r file sha < <(tk_current model)
+    [[ ! -f "$S/.stamp/model.$sha" || ! -d "$snap" ]] || return 0
+    /scratch/jjyeung/envs/p1cpu/bin/python -B -I "$Q_KIT/b/m.py" "$file" "$sha" "$snap" "$REV"
+    tk_readonly_files "$snap"
+    touch "$S/.stamp/model.$sha"
+    tk_step "model staged: $(du -sk "$snap" | cut -f1) KiB"
+}
+
+tk_stage_small() {
+    local sha stamp
+    read -r _ sha < <(tk_current small)
+    stamp="$S/.stamp/small.$sha.$( { if [[ -d "$HX/in_small" ]]; then (cd "$HX" && find in_small -type f -printf '%P %s %T@\n'); fi; } 2>/dev/null | sort | sha256sum | cut -c1-16)"
+    [[ ! -f "$stamp" ]] || return 0
+    sha_is "$IN/e00" "$sha"
+    mkdir -p "$U" "$S/aws/raw.$sha"
+    [[ -f "$S/.stamp/e00.$sha" ]] || { tar -x -f "$IN/e00" -C "$S/aws/raw.$sha" --no-same-owner; touch "$S/.stamp/e00.$sha"; }
+    cp -a "$S/aws/raw.$sha/${AS#/}/." "$U/"
+    cp -a "$S/aws/raw.$sha/${AL#/}/." "$U/"
+    mkdir -p "$U/ap/f1a2c7e9/k"
+    cp "$U/ap/244cdf20/k/932c0c4e.json" "$U/ap/244cdf20/k/99e6eed6.json" "$U/ap/f1a2c7e9/k/"
+    if [[ -d "$HX/in_small" ]]; then rsync -rt "$HX/in_small/" "$U/"; fi
+    touch "$stamp"
+    tk_step "small inputs staged"
+}
+
+tk_stage_extra() {
+    local dest sha parts
+    while IFS=$'\t' read -r dest sha parts; do
+        [[ -n "$dest" ]] || continue
+        tk_join "$(hp "$dest")" "$sha" $parts
+    done < <(/scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json,sys
+d=json.load(open(sys.argv[1]))
+for e in d.get("extra", []) + [d["a1rows"]]: print(e["dest"], e["sha256"], " ".join(e["parts"]), sep="\t")' "$CUR")
+}
+
+tk_stage_tars() {
+    local i n
+    n=$(/scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json,sys; print(len(json.load(open(sys.argv[1])).get("tars", [])))' "$CUR")
+    for ((i = 0; i < n; i++)); do
+        local id parts
+        id=$(/scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json,sys,hashlib; e=json.load(open(sys.argv[1]))["tars"][int(sys.argv[2])]; print(hashlib.sha256(json.dumps(e,sort_keys=True).encode()).hexdigest()[:16])' "$CUR" "$i")
+        [[ ! -f "$S/.stamp/tar.$id" ]] || continue
+        parts=$(/scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["tars"][int(sys.argv[2])]["parts"]))' "$CUR" "$i")
+        mkdir -p "$U"
+        cat $parts | tar -x -C "$U" --no-same-owner --no-same-permissions
+        /scratch/jjyeung/envs/p1cpu/bin/python -B -I - "$CUR" "$i" "$U" <<'PYTARS'
+import hashlib, json, sys
+from pathlib import Path
+entry = json.load(open(sys.argv[1]))['tars'][int(sys.argv[2])]; root = Path(sys.argv[3])
+for rel, want in sorted(entry['files'].items()):
+    h = hashlib.sha256()
+    with open(root / rel, 'rb') as stream:
+        for block in iter(lambda: stream.read(8 << 20), b''):
+            h.update(block)
+    if h.hexdigest() != want:
+        raise SystemExit('archive member differs: ' + rel)
+print('archive members verified:', len(entry['files']), flush=True)
+PYTARS
+        touch "$S/.stamp/tar.$id"
+        tk_step "archive $id staged"
+    done
+}
+
+tk_stage_fla() {
+    [[ ! -f "$S/.stamp/fla.d00" ]] || return 0
+    local file sha
+    mkdir -p "$U/ap/7b30c1e4/u"
+    tar -x -f "$IN/d00" -C "$U/ap/7b30c1e4/u" --no-same-owner
+    read -r file sha < <(tk_current fla)
+    sha_is "$(hp "$file")" "$sha"
+    (cd "$U/ap/7b30c1e4/u/ebe69df8/p" && sha256sum -c --quiet ../m.sha)
+    touch "$S/.stamp/fla.d00"
+    tk_step "fla overlay staged"
+}
+
+tk_stage_bundle() {
+    local key="$1" file sha manifest manifest_sha stamp dest="$S/c7d31ddd/data2root" store parts got
+    tk_has "$key" || return 0
+    read -r file sha < <(tk_current "$key")
+    read -r manifest manifest_sha < <(tk_current "${key}_manifest")
+    manifest=$(hp "$manifest")
+    sha_is "$manifest" "$manifest_sha"
+    if /scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json,sys; p=json.load(open(sys.argv[1])).get("staged_inputs", {}); sys.exit(0 if sys.argv[2] in p.get("covered_bundles", []) else 1)' "$CUR" "$key"; then
+        store=$(/scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["stores"].get(sys.argv[2], ""))' "$CUR" "$key")
+        /scratch/jjyeung/envs/p1cpu/bin/python -B -I "$HX/b/f2.py" "$manifest" "$dest" "$manifest_sha" "$store"
+        tk_step "frames $key verified through pinned shards"
+        return 0
+    fi
+    stamp="$S/.stamp/$key.$sha.$manifest_sha"
+    mkdir -p "$dest"
+    if [[ ! -f "$stamp" ]]; then
+        parts=$(/scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(" ".join(d.get("bundle_parts", {}).get(sys.argv[2], d.get("f3_parts") if sys.argv[2] == "f3" else [])))' "$CUR" "$key")
+        [[ -n "$parts" ]] || parts=$(hp "$file")
+        : > "$S/.$key.sha"
+        cat $parts | tee >(sha256sum | cut -d' ' -f1 > "$S/.$key.sha.part" && mv "$S/.$key.sha.part" "$S/.$key.sha") \
+            | tar --extract --directory="$dest" --skip-old-files --no-same-owner --no-same-permissions
+        for _ in $(seq 300); do [[ -s "$S/.$key.sha" ]] && break; sleep 1; done
+        got=$(cat "$S/.$key.sha")
+        [[ "$got" == "$sha" ]] || { tk_step "frame tar $key sha differs: $got"; return 3; }
+        store=$(/scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["stores"].get(sys.argv[2], ""))' "$CUR" "$key")
+        /scratch/jjyeung/envs/p1cpu/bin/python -B -I "$HX/b/f2.py" "$manifest" "$dest" "$manifest_sha" $store
+        touch "$stamp"
+    fi
+    tk_step "frames $key verified: ${manifest_sha:0:12}"
+}
+
+tk_stage_init() {
+    local file sha dest
+    tk_has init || return 0
+    read -r file sha < <(tk_current init)
+    dest="$S/c7d31ddd/init/${sha:0:16}"
+    if [[ -f "$dest/.verified" ]]; then tk_step "init mirror present: ${sha:0:16}"; return 0; fi
+    [[ ! -e "$dest" ]] || mv "$dest" "$dest.old.$(date +%s)"
+    [[ ! -e "$dest.part" ]] || mv "$dest.part" "$dest.part.prev.$(date +%s).$$"
+    mkdir -p "$dest.part/full_weights"
+    cp "$(hp "$file")" "$dest.part/artifact.json"
+    /scratch/jjyeung/envs/p1cpu/bin/python -B -I - "$dest.part" "$sha" "$U" "$AS" "$AL" <<'PYINIT'
+import hashlib, json, os, sys
+from pathlib import Path
+dest, sha, union, aws, awl = Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
+def digest(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as stream:
+        for block in iter(lambda: stream.read(8 << 20), b''):
+            h.update(block)
+    return h.hexdigest()
+def host(p):
+    for prefix in (aws, awl):
+        if p.startswith(prefix + '/'):
+            return Path(union + p[len(prefix):])
+    raise SystemExit('init path outside the code-aws prefixes: ' + p)
+if digest(dest/'artifact.json') != sha:
+    raise SystemExit('init artifact differs from its pin')
+artifact = json.loads((dest/'artifact.json').read_text())
+heads, manifest = host(artifact['heads']['path']), host(artifact['full_weights']['path'])
+os.link(heads, dest/'heads.pt')
+if digest(dest/'heads.pt') != artifact['heads']['sha256']:
+    raise SystemExit('init heads differ')
+os.link(manifest, dest/'full_weights'/manifest.name)
+if digest(dest/'full_weights'/manifest.name) != artifact['full_weights']['sha256']:
+    raise SystemExit('init manifest differs')
+spec = json.loads(manifest.read_text())
+pins = {spec['index']['name']: spec['index']['sha256'], **{f['name']: f['sha256'] for f in spec['files']}}
+for name, expected in pins.items():
+    os.link(manifest.parent/name, dest/'full_weights'/name)
+    if digest(dest/'full_weights'/name) != expected:
+        raise SystemExit('init weights differ: ' + name)
+PYINIT
+    touch "$dest.part/.verified"
+    mv "$dest.part" "$dest"
+    tk_step "init mirror verified: ${sha:0:16}"
+}
+
+tk_stage() {
+    local mode="$1"
+    mkdir -p /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/sequence_sealed/q/home && chmod 700 /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/sequence_sealed/q/home
+    mkdir -p "$S" "$TK_JOBDIR"
+    tk_nx
+    exec 8>"$S/../stage.lock"
+    flock 8
+    tk_step "stage $mode on $(hostname): /tmp free $(df -Pk /tmp | awk 'NR==2 {print int($4 / 1048576)}') GiB; mem $(free -g | awk 'NR==2 {print $2}') GiB"
+    mkdir -p "$S/c7d31ddd/$RR" "$S/epochs" "$S/c7d31ddd/anyhost" "$S/c7d31ddd/coord" "$S/c7d31ddd/stop" "$S/c7d31ddd/data2root"
+    tk_kitx venv "$S/c7d31ddd/venvs"
+    tk_venv_shebangs
+    tk_kitx closure "$S/c7d31ddd/$CLOSURE_DIR"
+    local sa_stamp
+    sa_stamp="$S/.stamp/sitealias.${CLOSURE_DIR##*/}.$(cat "$HX/b/sa/sitecustomize.py" "$HX/b/sa/prestage_hooks.py" | sha256sum | cut -c1-16)"
+    if [[ ! -f "$sa_stamp" ]]; then
+        [[ ! -d "$S/c7d31ddd/$CLOSURE_DIR/site_alias" ]] || mv "$S/c7d31ddd/$CLOSURE_DIR/site_alias" "$S/c7d31ddd/$CLOSURE_DIR/site_alias.closure.$(date +%s)"
+        mkdir -p "$S/c7d31ddd/$CLOSURE_DIR/site_alias"
+        cp "$HX/b/sa/prestage_hooks.py" "$HX/b/sa/sitecustomize.py" "$S/c7d31ddd/$CLOSURE_DIR/site_alias/"
+        touch "$sa_stamp"
+    fi
+    if [[ ! -d "$S/epochs/$COMMIT" ]]; then
+        tk_kitx trainer "$S/epochs/$COMMIT"
+        tk_readonly_files "$S/epochs/$COMMIT"
+    fi
+    if [[ "$mode" != preflight ]] && tk_has trainer_old; then
+        local old_commit
+        old_commit=$(/scratch/jjyeung/envs/p1cpu/bin/python -B -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["trainer_old_commit"])' "$CUR")
+        if [[ ! -d "$S/epochs/$old_commit" ]]; then
+            tk_kitx trainer_old "$S/epochs/$old_commit"
+            tk_readonly_files "$S/epochs/$old_commit"
+        fi
+    fi
+    local rfile rsha
+    read -r rfile rsha < <(tk_current record)
+    cp "$(hp "$rfile")" "$S/c7d31ddd/anyhost/$rsha.json.part" && mv "$S/c7d31ddd/anyhost/$rsha.json.part" "$S/c7d31ddd/anyhost/$rsha.json"
+    sha_is "$S/c7d31ddd/anyhost/$rsha.json" "$rsha"
+    R1_RUNTIME_RECORD="$P/anyhost/$rsha.json"
+    if [[ "$mode" == preflight ]]; then
+        tk_stage_fla
+        if tk_has np; then tk_kitx np "$S/np226"; fi
+        mkdir -p "$U/ap/$K/u" "$NX/u" "$S/c7d31ddd/$RR/models"
+        flock -u 8
+        tk_step "stage preflight done"
+        return
+    fi
+    tk_stage_model
+    tk_kitx art "$S/c7d31ddd/art"
+    mkdir -p "$S/c7d31ddd/lb"
+    cp -f "$S/c7d31ddd/art/lb/51f013139e77.npz" "$S/c7d31ddd/lb/51f013139e77.npz"
+    mkdir -p "$S/c7d31ddd/$RR/frozen" "$S/c7d31ddd/$RR/prestage" "$S/c7d31ddd/$RR/incoming_r1" "$S/c7d31ddd/data2root/t6tk"
+    tk_stage_small
+    tk_stage_extra
+    tk_stage_tars
+    tk_stage_fla
+    if tk_has np; then tk_kitx np "$S/np226"; fi
+    local import_mode=metadata
+    if [[ "$mode" != reuse && -z "${TK_LIGHT:-}" ]]; then import_mode=full; fi
+    /scratch/jjyeung/envs/p1cpu/bin/python -B -I "$Q_KIT/b/s.py" "$Q_KIT" "$CUR" "$HX" "$S" "$import_mode"
+    if [[ "$mode" != reuse && -z "${TK_LIGHT:-}" ]]; then
+        local key
+        for key in f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14; do tk_stage_bundle "$key"; done
+        tk_stage_init
+    fi
+    mkdir -p "$U/ap/$K"
+    mkdir -p "$U/ap/$K/u" "$NX/u"
+    flock -u 8
+    tk_step "stage $mode done"
+}
+
+tk_bwrap() {
+    local bw sha
+    read -r bw sha < <(tk_current bwrap)
+    [[ -x "$bw" ]] && sha_is "$bw" "$sha"
+    BW=("$bw")
+    local entry
+    for entry in /* /.[!.]* /..?*; do
+        case "$entry" in /home|/dev|/proc) continue ;; esac
+        [[ -e "$entry" || -L "$entry" ]] || continue
+        if [[ -L "$entry" ]]; then BW+=(--symlink "$(readlink "$entry")" "$entry"); else BW+=(--ro-bind "$entry" "$entry"); fi
+    done
+    BW+=(--tmpfs /tmp --bind "$Q_ROOT" "$Q_ROOT" --dev-bind /dev /dev --proc /proc
+        --tmpfs /home --dir /home/jjyeung
+        --ro-bind "$U" "$AS"
+        --ro-bind "$U" "$AL"
+        --bind "$NX" "$X"
+        --bind "$NR" "$X/runs"
+        --ro-bind "$U/ap/$K/u" "$X/u"
+        --ro-bind "$S/c7d31ddd/data2root" "$X/data2root"
+        --ro-bind "$S/c7d31ddd/$RR/models" "$X/models"
+        --ro-bind "$S/c7d31ddd" "$P"
+        --ro-bind "$S/epochs" "$EPOCHS"
+        --bind "$TK_JOBDIR" "$TK_JOBDIR"
+        --remount-ro /home
+        --unshare-user --uid "$(id -u)" --gid "$(id -g)")
+}
+
+tk_env() {
+    export R1_OPAQUE_LOGS=1
+    export Q_E5=6d38613965 R1_MODEL_DIR=a32330d0
+    export R1_MOUNT="$X" R1_TRAINER="$EPOCHS/$COMMIT" TRAINER="$EPOCHS/$COMMIT" ANYHOST_JOBS="$P/$CLOSURE_DIR"
+    export R1_RUNTIME_RECORD ANYHOST_NEUTRAL_RUNTIME="$R1_RUNTIME_RECORD"
+    export PILOT_VENV="$P/venvs/rwtrain_torch211_cu129"
+    export PATH="$ANYHOST_JOBS/provenance_bin:$PILOT_VENV/bin:/usr/local/bin:/usr/bin:/bin"
+    export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH="$ANYHOST_JOBS/site_alias"
+    export Q_E1=1 Q_E2=orchard A_SITE_PROFILE="$X/b/profile.json"
+    export Q_E3="$X/models"
+    export Q_E4="{\"/data2\": \"$X/data2root\"}"
+    export C1_INIT_LOCAL="$P/init"
+    export HF_HOME="$TK_JOBDIR/cache/hf" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1
+    export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 TOKENIZERS_PARALLELISM=false WANDB_DISABLED=true
+    export Q_E6=1
+    export TMPDIR="$TK_JOBDIR/tmp"
+    export XDG_CACHE_HOME="$TK_JOBDIR/cache" TORCH_HOME="$TK_JOBDIR/cache/torch" TRITON_CACHE_DIR="$TK_JOBDIR/cache/triton"
+    mkdir -p "$TMPDIR"
+}
+
+tk_pythonpath() {
+    local mode="${1:?}" fla_file fla_sha
+    export PYTHONPATH="$X/b:$ANYHOST_JOBS:$ANYHOST_JOBS/site_alias"
+    if tk_has np; then export PYTHONPATH="$S/np226:$PYTHONPATH"; tk_step "numpy 2.2.6 overlay on"; fi
+    if [[ "$mode" =~ ^[ctu]$ ]] && read -r fla_file fla_sha < <(tk_current fla 2>/dev/null); then
+        sha_is "$(hp "$fla_file")" "$fla_sha"
+        export PYTHONPATH="$(dirname "$fla_file")/p:$PYTHONPATH" C1_EXPECT_FLA=1
+        tk_step "fla overlay on: ${fla_sha:0:12}"
+    fi
+}
+
+tk_nx() {
+    mkdir -p "$NR" "$NX/o" "$NX/runs" "$NX/arm" "$NX/ck" "$NX/data2root" "$NX/models" "$HM/o" "$HM/arm" "$HM/runs"
+    rsync -rt --chmod=D700 "$HX/b" "$HX/k" "$HX/ANON_OK.json" "$HX/SHA256SUMS.txt" "$NX/"
+    rsync -rt "$HM/arm/" "$NX/arm/"
+}
+
+tk_stage full
+tk_env
+if [[ "${Q_MODE:-q}" == r ]]; then export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8; fi
+tk_pythonpath c
+tk_bwrap
+BW+=(--bind "$Q_ROOT" "$Q_NS")
+/scratch/jjyeung/envs/p1cpu/bin/python -B /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/sequence_sealed/q/boundary.py "$Q_ROOT" /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/sequence_sealed/q
+BW=(/usr/bin/bwrap --ro-bind /usr /usr --symlink usr/bin /bin --symlink usr/lib /lib --symlink usr/lib64 /lib64 --ro-bind /etc /etc --proc /proc --dev /dev --tmpfs /tmp --ro-bind /scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu /opt/py --ro-bind /scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages /opt/site --setenv PYTHONPATH /opt/site --bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/sequence_sealed/q/q_22c714e1_20 /tmp/q_22c714e1 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/sequence_sealed/q/kit /tmp/kit --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/sequence_sealed/q /tmp/fixture --chdir /tmp/q_22c714e1 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/sequence_sealed/q /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/sequence_sealed/q --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/c3cfe01f5dec390c401c834c15f229a8ad7509df803a4bd5e281bb9be548b453 /tmp/up/c3cfe01f5dec390c401c834c15f229a8ad7509df803a4bd5e281bb9be548b453 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970 /tmp/up/3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/c82c2da1a0933207fbf60ba82f6c5172509c96d715620efe7495d0014c9aeaf9 /tmp/up/c82c2da1a0933207fbf60ba82f6c5172509c96d715620efe7495d0014c9aeaf9 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/fd60ac2f525727836258ae7ea0705ff3a49163ae74320f7bf8a17b66cd69f0c7 /tmp/up/fd60ac2f525727836258ae7ea0705ff3a49163ae74320f7bf8a17b66cd69f0c7 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5 /tmp/up/a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/66c427e2262331be2e0c598f2ecc39087f3a722a5155caaf1ab84a89c8cd0f6f /tmp/up/66c427e2262331be2e0c598f2ecc39087f3a722a5155caaf1ab84a89c8cd0f6f --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/dafa4a9c8ffd1e063e0a98c5ae6087d911b74f864932e530f24d45b816cca6fb /tmp/up/dafa4a9c8ffd1e063e0a98c5ae6087d911b74f864932e530f24d45b816cca6fb --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/c072905be4405a92d7bb906112209f2d27a8c9b58d291b64373c5551c3e96495 /tmp/up/c072905be4405a92d7bb906112209f2d27a8c9b58d291b64373c5551c3e96495 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/ef7303ba61d9c0f240324853b9dd602426447f471f64486c1444b10c6607fcb2 /tmp/up/ef7303ba61d9c0f240324853b9dd602426447f471f64486c1444b10c6607fcb2 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/2c622905208b1837ef8b3e3912ec1bd8a9f227b2c68501da81b5cddb4f6a1b06 /tmp/up/2c622905208b1837ef8b3e3912ec1bd8a9f227b2c68501da81b5cddb4f6a1b06 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022 /tmp/up/15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82 /tmp/up/8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef /tmp/up/1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302 /tmp/up/211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0b9c264667c8a50283feffb73508c82b6e10b82e852ea4c98bf8adae78903b70 /tmp/up/0b9c264667c8a50283feffb73508c82b6e10b82e852ea4c98bf8adae78903b70 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/600ef69de0674fb15c8972f3b64f0bd19e682a5a1ca19ab01e8d41279d064295 /tmp/up/600ef69de0674fb15c8972f3b64f0bd19e682a5a1ca19ab01e8d41279d064295 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0b6f8eb3fe99a1ccb011195778e0ecec89dce90ff13f0b6d90321c85955d6b86 /tmp/up/0b6f8eb3fe99a1ccb011195778e0ecec89dce90ff13f0b6d90321c85955d6b86 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/b4e278f242e143d8ee66fa527449c7e02fad753bbbb528bd0c31fb9e47aea181 /tmp/up/b4e278f242e143d8ee66fa527449c7e02fad753bbbb528bd0c31fb9e47aea181 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/607ba5798f06b77e713069bc57a9ed3b0e80db78ef81faa945487fadddc5e9c7 /tmp/up/607ba5798f06b77e713069bc57a9ed3b0e80db78ef81faa945487fadddc5e9c7 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/405936e6958da1eade762019f6f921047edd80202572a91ef976d8f255241231 /tmp/up/405936e6958da1eade762019f6f921047edd80202572a91ef976d8f255241231 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e /tmp/up/a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/f59090ffc8fd0f4d80a2b049e2624660c0f46dbc1d26016145f4747850a432ac /tmp/up/f59090ffc8fd0f4d80a2b049e2624660c0f46dbc1d26016145f4747850a432ac --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/e3e2d870ed9e3852f20aacae03cf14d723f3b77d34da544c20908d1669476d49 /tmp/up/e3e2d870ed9e3852f20aacae03cf14d723f3b77d34da544c20908d1669476d49 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/1f58a1f2e03f39ffd4c74b079766ee93ee7633ef73ec4fb4c344655964ef1d35 /tmp/up/1f58a1f2e03f39ffd4c74b079766ee93ee7633ef73ec4fb4c344655964ef1d35 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/51190cc4ef08e4419f50cfa9090a73e990cddee1219c4d75bad6e5ba5144d23a /tmp/up/51190cc4ef08e4419f50cfa9090a73e990cddee1219c4d75bad6e5ba5144d23a --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/4c65676c6d2d9b41a1f4ab6493331532fdf278a68716954496cd0e08c66e75b9 /tmp/up/4c65676c6d2d9b41a1f4ab6493331532fdf278a68716954496cd0e08c66e75b9 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/acd715ac6ff56c4c14b0ced6eb5474f4e88b1ae19036e0578591c7283234d269 /tmp/up/acd715ac6ff56c4c14b0ced6eb5474f4e88b1ae19036e0578591c7283234d269 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/524b14f9f180ba7d2c1c860cab294145b7370f3f1282960a55bbcbc6c5657634 /tmp/up/524b14f9f180ba7d2c1c860cab294145b7370f3f1282960a55bbcbc6c5657634 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/4c6c0a4a201022de74d682a83d7934759408f1d24a81bfb7fb3a8b2afcb296bc /tmp/up/4c6c0a4a201022de74d682a83d7934759408f1d24a81bfb7fb3a8b2afcb296bc --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/93b21a3aeeda01efab90d9f818eff78a6ca182c18c964534279008e4af91733a /tmp/up/93b21a3aeeda01efab90d9f818eff78a6ca182c18c964534279008e4af91733a --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/f41d15aadd7e0bde758a14806073424af2c3c70997efb8a0ce88226ace151ea5 /tmp/up/f41d15aadd7e0bde758a14806073424af2c3c70997efb8a0ce88226ace151ea5 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/b94d6d13296e9a472a03f15c5dfea23ff848f15428de096d4f98f18f8ad7b219 /tmp/up/b94d6d13296e9a472a03f15c5dfea23ff848f15428de096d4f98f18f8ad7b219 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/4932ab5b4c6f0a70e224a69b0ecaa79cbd0b61d6fdceb817f3afe6c6a3ad6c49 /tmp/up/4932ab5b4c6f0a70e224a69b0ecaa79cbd0b61d6fdceb817f3afe6c6a3ad6c49 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/3ba24ab10c054b921b8cf51e93a9353412d5d758cc8efa0bd086fba551efef6b /tmp/up/3ba24ab10c054b921b8cf51e93a9353412d5d758cc8efa0bd086fba551efef6b --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/c35eae0db07c3aea1ca67e18f4c94a3db7de5db51a3c21be3d81861b71b0cfee /tmp/up/c35eae0db07c3aea1ca67e18f4c94a3db7de5db51a3c21be3d81861b71b0cfee --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/dfad4700551418c864983b55dc862dfd52738f73166931bb8bd80fb7cc578a3b /tmp/up/dfad4700551418c864983b55dc862dfd52738f73166931bb8bd80fb7cc578a3b --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/a1579c94956fc78d05b22bb6eddb64225b72f73d69e3045d9d2b3916a77f419c /tmp/up/a1579c94956fc78d05b22bb6eddb64225b72f73d69e3045d9d2b3916a77f419c --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/d6d6a53add2ea60facaec4b67fd1d8becfcd4dc3183139eb1509b222e3d27491 /tmp/up/d6d6a53add2ea60facaec4b67fd1d8becfcd4dc3183139eb1509b222e3d27491 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/99e6eed6186602832a1ca15176c4d21ab67ba24e87a15dd0cad02cac6ee13688 /tmp/up/99e6eed6186602832a1ca15176c4d21ab67ba24e87a15dd0cad02cac6ee13688 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0d7ebb3e654a7a81ef462a6bf6c9c66c2db0670cd3fef90490685efdfe73a781 /tmp/up/0d7ebb3e654a7a81ef462a6bf6c9c66c2db0670cd3fef90490685efdfe73a781 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/9fd7514311e46cdf2931a762fedaba0dfe1e2a8d4b3418750420016a88b38568 /tmp/up/9fd7514311e46cdf2931a762fedaba0dfe1e2a8d4b3418750420016a88b38568 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/08aefbce19c685dcafcf5dafca6cb2d8ab5e702d517b9777cf8d6630b774f5c2 /tmp/up/08aefbce19c685dcafcf5dafca6cb2d8ab5e702d517b9777cf8d6630b774f5c2 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f /tmp/up/8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/30612832cc84ad83f9500ecbeac57704767568ff24482475feb42a92c7f166b8 /tmp/up/30612832cc84ad83f9500ecbeac57704767568ff24482475feb42a92c7f166b8 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/1e7b491b810bd45b47a6d0e02be2f123e0ba8f8851f3e48fc1164f15611c9201 /tmp/up/1e7b491b810bd45b47a6d0e02be2f123e0ba8f8851f3e48fc1164f15611c9201 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/4835444b37a33d1b138ed95f320ecc1cf53b3cb387dcca3770b0340b925a8f1e /tmp/up/4835444b37a33d1b138ed95f320ecc1cf53b3cb387dcca3770b0340b925a8f1e --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0f6c22d9a678ee7ad81b47c6c77a8667580aaae9c91aa7786d6b9a81dd412661 /tmp/up/0f6c22d9a678ee7ad81b47c6c77a8667580aaae9c91aa7786d6b9a81dd412661 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/50f9011e5e87cddc4a73e9404f06928542e9509e28c3e02edd1fd21ae2380e0b /tmp/up/50f9011e5e87cddc4a73e9404f06928542e9509e28c3e02edd1fd21ae2380e0b --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/33cb308f9c890ffbd6191a1d07aae20454281e8f4d36671d8cba77a62f5f0ddf /tmp/up/33cb308f9c890ffbd6191a1d07aae20454281e8f4d36671d8cba77a62f5f0ddf --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/78794dbf2f724550459a6f689b3e6ddd253bda5b31509ed7ef65983ab5d3bb9b /tmp/up/78794dbf2f724550459a6f689b3e6ddd253bda5b31509ed7ef65983ab5d3bb9b --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/7903d574367a5899dd68eff7edec6f79fab0531c65b3b34b8972b854a270eca1 /tmp/up/7903d574367a5899dd68eff7edec6f79fab0531c65b3b34b8972b854a270eca1 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/460231adeda2b7ce4b8065f22df1556e0a00b31ca3e489d571a2d4c8b9b49d4e /tmp/up/460231adeda2b7ce4b8065f22df1556e0a00b31ca3e489d571a2d4c8b9b49d4e --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/634820b44927b1a50c18db9b90246b4b99f8954b0d7f5f2893e547f1c92879ed /tmp/up/634820b44927b1a50c18db9b90246b4b99f8954b0d7f5f2893e547f1c92879ed --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/f7c458176426e22a13e47908b03abd2c6f5939d3e48eb7c24e7eba45b75ad479 /tmp/up/f7c458176426e22a13e47908b03abd2c6f5939d3e48eb7c24e7eba45b75ad479 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/e78463c537c6172720c818c162c35d3a956143850db19fb251b66dd3004207b4 /tmp/up/e78463c537c6172720c818c162c35d3a956143850db19fb251b66dd3004207b4 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/a77ae8092da38746c66b7d1231992e01d15ccd938da38e67f72782a855950b03 /tmp/up/a77ae8092da38746c66b7d1231992e01d15ccd938da38e67f72782a855950b03 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/7a7c6180d7e22418bc3cee786aeb6467c8e1c8e5de83f5e5b3b509d737933c6f /tmp/up/7a7c6180d7e22418bc3cee786aeb6467c8e1c8e5de83f5e5b3b509d737933c6f --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/5e2e24ac50c77dd2cd432a2b1680c32841affbbd2a42fcf0298a1cbbfffb8433 /tmp/up/5e2e24ac50c77dd2cd432a2b1680c32841affbbd2a42fcf0298a1cbbfffb8433 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/deaeb67f1ff94946927bd2a4c1bc46fda3c5e376e51ec77632d6150e746a564c /tmp/up/deaeb67f1ff94946927bd2a4c1bc46fda3c5e376e51ec77632d6150e746a564c --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/c52aba27b43d8eba72262358bb3f14ba1be953c477d1da35d6aad9a20640d42d /tmp/up/c52aba27b43d8eba72262358bb3f14ba1be953c477d1da35d6aad9a20640d42d --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/a0f9c6c36df29da99ec40543354cc47880f4949eed7991c042b623af8cfb3fda /tmp/up/a0f9c6c36df29da99ec40543354cc47880f4949eed7991c042b623af8cfb3fda --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/6705c0d88fa1b801375b0b2c4ff1500a3cd9c677527bd127c9e5e0afb9e04a05 /tmp/up/6705c0d88fa1b801375b0b2c4ff1500a3cd9c677527bd127c9e5e0afb9e04a05 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/77be1097e786625e0b312689ec5862fa424db2a71f3ea7b550c9e0b00e2ebd4b /tmp/up/77be1097e786625e0b312689ec5862fa424db2a71f3ea7b550c9e0b00e2ebd4b --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/b294758ac0552b161dcd0a9c66ff423636c33fabdec4d3116414a401fc78e36a /tmp/up/b294758ac0552b161dcd0a9c66ff423636c33fabdec4d3116414a401fc78e36a --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/d06395bcadffaba47d97bdb8d62ea22c13c42d9d06a784b37ec2e1528f51d2a3 /tmp/up/d06395bcadffaba47d97bdb8d62ea22c13c42d9d06a784b37ec2e1528f51d2a3 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/64e42433bc6948b125351421ebffff5bc5839e9bca1d7eeb1ecad36125a0739c /tmp/up/64e42433bc6948b125351421ebffff5bc5839e9bca1d7eeb1ecad36125a0739c --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/aa77ee191e5126c72f4d0c82a24d33b3234a5c1601f4ef07f0071661fd5f2221 /tmp/up/aa77ee191e5126c72f4d0c82a24d33b3234a5c1601f4ef07f0071661fd5f2221 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/5189aece71ceb897307f9cfb23064b479432d65d22be933f8488070d0930bb36 /tmp/up/5189aece71ceb897307f9cfb23064b479432d65d22be933f8488070d0930bb36 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b /tmp/up/c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1 /tmp/up/0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986 /tmp/up/969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390 /tmp/up/27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca /tmp/up/657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3 /tmp/up/62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c /tmp/up/4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc /tmp/up/6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2 /tmp/up/8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 /tmp/up/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/6add0ad53515e14e6adb1e192ed002ec0ddd22b6c6bd112ccb756d1f8be48d8c /tmp/up/6add0ad53515e14e6adb1e192ed002ec0ddd22b6c6bd112ccb756d1f8be48d8c --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6 /tmp/up/43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411 /tmp/up/02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad /tmp/up/caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/1a76e96ad887f264cec0cca0925425b6e350dc05cf7ad1228cd711c3865031fd /tmp/up/1a76e96ad887f264cec0cca0925425b6e350dc05cf7ad1228cd711c3865031fd --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/58389a67f9a5b51abbc06e5953937b35541ef5effc4e70e6a35092d14f288473 /tmp/up/58389a67f9a5b51abbc06e5953937b35541ef5effc4e70e6a35092d14f288473 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/866274d45d435bba7e1a34cbb30a855a58b3ced563bd3c4d2bf36c4af3462830 /tmp/up/866274d45d435bba7e1a34cbb30a855a58b3ced563bd3c4d2bf36c4af3462830 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/e1429ccd67d72e195b9e8b55c7fd5a393ff8585e0a7c1b8ff849db379738b708 /tmp/up/e1429ccd67d72e195b9e8b55c7fd5a393ff8585e0a7c1b8ff849db379738b708 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/df1825d4c35b2f27a6ed2ca90030ac5686eab93ee933f5bdb68b91d7bdb8eb64 /tmp/up/df1825d4c35b2f27a6ed2ca90030ac5686eab93ee933f5bdb68b91d7bdb8eb64 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/84a3fab0968f2feb3524d7a14f325cb43ec2fc6c15e7af223f91234566b8f127 /tmp/up/84a3fab0968f2feb3524d7a14f325cb43ec2fc6c15e7af223f91234566b8f127 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/31582e359aa30bf6c08d92773b69702642a51e3ddf3e2a7a6f64c657aaec1bb6 /tmp/up/31582e359aa30bf6c08d92773b69702642a51e3ddf3e2a7a6f64c657aaec1bb6 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/267efeb1ecf1c1c8329cb4b1809ed05069d9f8d0178a35caba25a9e430a4fd33 /tmp/up/267efeb1ecf1c1c8329cb4b1809ed05069d9f8d0178a35caba25a9e430a4fd33 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/67afe28c7fcdd49fea56239fac4974d7396e6155263ad824c1942eb9fe7f1888 /tmp/up/67afe28c7fcdd49fea56239fac4974d7396e6155263ad824c1942eb9fe7f1888 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0664bb17418da379d2a8590a022d37bee0ab2e73a47bd0572b83a2c06a551615 /tmp/up/0664bb17418da379d2a8590a022d37bee0ab2e73a47bd0572b83a2c06a551615 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/62c54ed48c7e5782aed296549f9a750d5d76fd6589cbdeba2ed92acdf5282a35 /tmp/up/62c54ed48c7e5782aed296549f9a750d5d76fd6589cbdeba2ed92acdf5282a35 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/06cdfa5e8b217246b72805d982247ad986c6d986a5a2846b3024969a0777723f /tmp/up/06cdfa5e8b217246b72805d982247ad986c6d986a5a2846b3024969a0777723f --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/58bedd9799e4da7ddf445899b84e9ab1218540f5536d76cc179ea7d2f44b62e4 /tmp/up/58bedd9799e4da7ddf445899b84e9ab1218540f5536d76cc179ea7d2f44b62e4 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/fc26a02b8b383f909c880feaab6d40b9cecdfdbce548980c10fec30ec4dea086 /tmp/up/fc26a02b8b383f909c880feaab6d40b9cecdfdbce548980c10fec30ec4dea086 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/eb2957fcaecaf1380aa9b56208902479a21eafcbe1696cc7cd8a41d95a29e352 /tmp/up/eb2957fcaecaf1380aa9b56208902479a21eafcbe1696cc7cd8a41d95a29e352 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/61dbe64275d654b880d58f3a34df4d5cb3e3dfe49bde82d7a0995dfac69716de /tmp/up/61dbe64275d654b880d58f3a34df4d5cb3e3dfe49bde82d7a0995dfac69716de --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd /tmp/up/a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/569da570556ab2b9aa3bbf9c112eb7758fda1b25d4cc4670bb764211e41ade4e /tmp/up/569da570556ab2b9aa3bbf9c112eb7758fda1b25d4cc4670bb764211e41ade4e --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/846987fbc9a43c097693a80ef9ada8875ff79c27537556be06dc81b47af042a4 /tmp/up/846987fbc9a43c097693a80ef9ada8875ff79c27537556be06dc81b47af042a4 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/8607dfa3522db91885b1382f3cb1ae8447e3542db0e103d8b442ca3406550de2 /tmp/up/8607dfa3522db91885b1382f3cb1ae8447e3542db0e103d8b442ca3406550de2 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/14fdfe17bfae194af4d5e46cff6b4fe708678681f1d2faac25b38455869270f2 /tmp/up/14fdfe17bfae194af4d5e46cff6b4fe708678681f1d2faac25b38455869270f2 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/cbef7600f0a248792556669f5b03937de41e8da683b0d602a1ce0eca74799f94 /tmp/up/cbef7600f0a248792556669f5b03937de41e8da683b0d602a1ce0eca74799f94 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/ebcca9404f88634c71af0c612ff81e412eed8f26d5160e0c819da7d2c07cfce5 /tmp/up/ebcca9404f88634c71af0c612ff81e412eed8f26d5160e0c819da7d2c07cfce5 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c /tmp/up/db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/5db7885d00058c8342024b88bb9151d76ff373c98dbf2391fb1b8bf666447af2 /tmp/up/5db7885d00058c8342024b88bb9151d76ff373c98dbf2391fb1b8bf666447af2 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/bffdff4d022af167d035be0bc421217194356df65f8b55b2136ab423e2295fa2 /tmp/up/bffdff4d022af167d035be0bc421217194356df65f8b55b2136ab423e2295fa2 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/efb18189cd4b6a017b701fa7af1dc3b3a827f3f79338b18c355646d9f9bf3ce5 /tmp/up/efb18189cd4b6a017b701fa7af1dc3b3a827f3f79338b18c355646d9f9bf3ce5 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/93c4fed5a42a5638778ec244a6c7f29941456192163dc9d9f8ef3090ab47675f /tmp/up/93c4fed5a42a5638778ec244a6c7f29941456192163dc9d9f8ef3090ab47675f --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/e59329ae2ed6405433129c05b71c0b13f4311d0311906704cd300b3ee5862faa /tmp/up/e59329ae2ed6405433129c05b71c0b13f4311d0311906704cd300b3ee5862faa --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/3cb1ccf5af6e75eb1b5a28bd7bfacbaf0ab9f8485a0fb55866dcd86271d1352a /tmp/up/3cb1ccf5af6e75eb1b5a28bd7bfacbaf0ab9f8485a0fb55866dcd86271d1352a --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/d8d33340aabfe1e58d4bc81cd3b2c4919510c38c419ea9d81abe520844f6a1a9 /tmp/up/d8d33340aabfe1e58d4bc81cd3b2c4919510c38c419ea9d81abe520844f6a1a9 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/263eac88889cf1b312b3c15859a4625c543ca78d0d7af4df15623145cab137c4 /tmp/up/263eac88889cf1b312b3c15859a4625c543ca78d0d7af4df15623145cab137c4 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/8601a962aa97105fa5caee712836c8cb3294051c3a6c821f08bd9bf1de898ed2 /tmp/up/8601a962aa97105fa5caee712836c8cb3294051c3a6c821f08bd9bf1de898ed2 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422 /tmp/up/36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/d1e6715a19b5d9a15f647e3495815c63329afbc9b69cd81bbef8fcd086025c64 /tmp/up/d1e6715a19b5d9a15f647e3495815c63329afbc9b69cd81bbef8fcd086025c64 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/66caacf5c919145743b1f3de3c6e1107e6434bc5a743b32bb44bd421271b64c6 /tmp/up/66caacf5c919145743b1f3de3c6e1107e6434bc5a743b32bb44bd421271b64c6 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851 /tmp/up/9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/747a80a546d6ca5ceabb466d2ecfb707ddf897e0d7f799b30cddc053b976ded9 /tmp/up/747a80a546d6ca5ceabb466d2ecfb707ddf897e0d7f799b30cddc053b976ded9 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/fb54c3606bffa29d197deba21c6717028926bb7b73a0a5e4d4d6467d07b96ade /tmp/up/fb54c3606bffa29d197deba21c6717028926bb7b73a0a5e4d4d6467d07b96ade --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915 /tmp/up/4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/119c9e14dd76bce941da42cfd8133e1eb65e31ff61febb29552955dde3619804 /tmp/up/119c9e14dd76bce941da42cfd8133e1eb65e31ff61febb29552955dde3619804 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/510aaf7efd2a2b59d2105aa0e7ed5aba37f42f0582f468d15ca04f118d4411ae /tmp/up/510aaf7efd2a2b59d2105aa0e7ed5aba37f42f0582f468d15ca04f118d4411ae --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/3eaab53adf5e09dd13ba426e7456fa1ac9f9e96ecdbf24a477ade91bde2c6ddc /tmp/up/3eaab53adf5e09dd13ba426e7456fa1ac9f9e96ecdbf24a477ade91bde2c6ddc --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/35f4a364304f24ed3683413952b3591d7427e787ad5cba056e4acc62d513263b /tmp/up/35f4a364304f24ed3683413952b3591d7427e787ad5cba056e4acc62d513263b --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af /tmp/up/5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0d83e1372e7f4e7b499c424e868248990faf1b6ea8cccb6b7207f560554856dc /tmp/up/0d83e1372e7f4e7b499c424e868248990faf1b6ea8cccb6b7207f560554856dc --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/5e4ae8a89de8efcad68346e09ae1a42d4828163dc7e498e113df78bebdd4b6be /tmp/up/5e4ae8a89de8efcad68346e09ae1a42d4828163dc7e498e113df78bebdd4b6be --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/96969b1c3957a8f8ac55ba4f145fe041851a12a6f4f39cdda93ec777013dfd6a /tmp/up/96969b1c3957a8f8ac55ba4f145fe041851a12a6f4f39cdda93ec777013dfd6a --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/aaecc9c42cd549ebdf4da6483ffa6de6f580dc1039a2b53457e975cfe5082ebb /tmp/up/aaecc9c42cd549ebdf4da6483ffa6de6f580dc1039a2b53457e975cfe5082ebb --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd /tmp/up/8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/49caeb70cac719262513501394f5135c50db9cdc2cd2da38e8d03b63e63f9038 /tmp/up/49caeb70cac719262513501394f5135c50db9cdc2cd2da38e8d03b63e63f9038 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda /tmp/up/a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/4e16dba953500c7e2c13021a893ef76cb00225b8ca4570ac1263143de9424582 /tmp/up/4e16dba953500c7e2c13021a893ef76cb00225b8ca4570ac1263143de9424582 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json /tmp/up/ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/fb1ec831b09685e0893eaf7d5c09861616c62fd10dc89aebbb1f5db988e512a7 /tmp/up/fb1ec831b09685e0893eaf7d5c09861616c62fd10dc89aebbb1f5db988e512a7 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/ddff748d80cdde317e0ac2a1b071b9e09518492daa6eecceba53a7ba81a09693 /tmp/up/ddff748d80cdde317e0ac2a1b071b9e09518492daa6eecceba53a7ba81a09693 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/888da8e20ed21b02c6f4a17a46288f74d0d12c1a060e2076dea98dc0a066f9b4 /tmp/up/888da8e20ed21b02c6f4a17a46288f74d0d12c1a060e2076dea98dc0a066f9b4 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/736344f34c734593f6b925427ef35bf6adbf281a08d41368a23c52df10ab9d41 /tmp/up/736344f34c734593f6b925427ef35bf6adbf281a08d41368a23c52df10ab9d41 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/aaf0d29326f6200d651428b802627ac610b7ab658eb010227720048449507f7c /tmp/up/aaf0d29326f6200d651428b802627ac610b7ab658eb010227720048449507f7c --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/974d32a9a3c99fdfe3f74ab3a79d2d62c13623bfca9e190f8f47a54ca2e16c31 /tmp/up/974d32a9a3c99fdfe3f74ab3a79d2d62c13623bfca9e190f8f47a54ca2e16c31 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/b5f60065fcd7c23cf0a0cfa8451b3a09870dc8aec552606b5007e8b5793238ec /tmp/up/b5f60065fcd7c23cf0a0cfa8451b3a09870dc8aec552606b5007e8b5793238ec --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/7ac1e28857c6471a8a42643feaaf8273bd1f97cb07db211d0352f4d7a1645d67 /tmp/up/7ac1e28857c6471a8a42643feaaf8273bd1f97cb07db211d0352f4d7a1645d67 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/9ad354d548a80473de4399407f27054101c8e4707657ee7c349181f7e638d3e2 /tmp/up/9ad354d548a80473de4399407f27054101c8e4707657ee7c349181f7e638d3e2 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/4b1ae65eb5c12090ac730209212c8aaee739ae624ec00b85ac2cbf14e75a701f /tmp/up/4b1ae65eb5c12090ac730209212c8aaee739ae624ec00b85ac2cbf14e75a701f --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/bd64b6a1560500af3892c8cd154df4f2d3992a0299171b09531195e57459a173 /tmp/up/bd64b6a1560500af3892c8cd154df4f2d3992a0299171b09531195e57459a173 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590 /tmp/up/afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/4c22cae7f0e6ad0512e224636c2dcc693d35481ad2b0fd1b078cc61187d99812 /tmp/up/4c22cae7f0e6ad0512e224636c2dcc693d35481ad2b0fd1b078cc61187d99812 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/4ca7e887680e54f3c9d95e64ac07de0da6bf4a47ca9e65c2f697fefbad7f9a06 /tmp/up/4ca7e887680e54f3c9d95e64ac07de0da6bf4a47ca9e65c2f697fefbad7f9a06 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/30a6cf96446cfe36fbd1aaf82616c33fa910a9bf85176bc75b97809faf2f7d4f /tmp/up/30a6cf96446cfe36fbd1aaf82616c33fa910a9bf85176bc75b97809faf2f7d4f --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83 /tmp/up/1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/6895955c7444edef4def063f289376ba370c921c10cf83545a66bb84b28c4438 /tmp/up/6895955c7444edef4def063f289376ba370c921c10cf83545a66bb84b28c4438 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/026adbaf97d6fe4290e76b784bb7257d5e309cf9bbedfa487e15334b4c75a2d2 /tmp/up/026adbaf97d6fe4290e76b784bb7257d5e309cf9bbedfa487e15334b4c75a2d2 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1 /tmp/up/fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/34d30e3fccd6444b804d82132e8c4b38d336fdaaa75682b678d9b4b3348ff3ea /tmp/up/34d30e3fccd6444b804d82132e8c4b38d336fdaaa75682b678d9b4b3348ff3ea --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0afb28899fd81155cb4c3a4b0839a19c1cf74bb13952801660c4993fb4a353bd /tmp/up/0afb28899fd81155cb4c3a4b0839a19c1cf74bb13952801660c4993fb4a353bd --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/5257a29705d1eb6a8c6cb2604eb7c6a3af74483438964921f084dcdc3864699d /tmp/up/5257a29705d1eb6a8c6cb2604eb7c6a3af74483438964921f084dcdc3864699d --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/f7eaf7a7d8e4bd15ef8eae5a3c8478901ed7eb6a92e85723d201aaf5728ab22b /tmp/up/f7eaf7a7d8e4bd15ef8eae5a3c8478901ed7eb6a92e85723d201aaf5728ab22b --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/e21b2ec919a2933ffee3930ac79583505615a27bec79007f2d4a5f94b399ceb3 /tmp/up/e21b2ec919a2933ffee3930ac79583505615a27bec79007f2d4a5f94b399ceb3 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/2abd37190168acaf686d0f49f43336a710a5df8f4a82b528cc2a63d3c09b2df1 /tmp/up/2abd37190168acaf686d0f49f43336a710a5df8f4a82b528cc2a63d3c09b2df1 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/169b2c23f23d6607564481edf45096343637fa794c97b6d9287673d1c08252f0 /tmp/up/169b2c23f23d6607564481edf45096343637fa794c97b6d9287673d1c08252f0 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/dd60517b4f5c2fc16e91d10a4569389a7ba9e4f137b78996548a19dd2b76a326 /tmp/up/dd60517b4f5c2fc16e91d10a4569389a7ba9e4f137b78996548a19dd2b76a326 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/1f3b115ed8e18f6d18b01fa4d0041405ac9e1815f169a657831e6587d369bc4e /tmp/up/1f3b115ed8e18f6d18b01fa4d0041405ac9e1815f169a657831e6587d369bc4e --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/e3ee51daa46af30fa8e84a05c12448d7fc3dc9cade05284707f9df322bbe44d0 /tmp/up/e3ee51daa46af30fa8e84a05c12448d7fc3dc9cade05284707f9df322bbe44d0 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/3a3eb8ff64f6d78f471b1b3cf360f70df65ee68d2db8877d3fa70ad219570724 /tmp/up/3a3eb8ff64f6d78f471b1b3cf360f70df65ee68d2db8877d3fa70ad219570724 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/8063ef04f6b6e2efaad933388efe1961e0b903d7449ac75f8fc761eb9a117011 /tmp/up/8063ef04f6b6e2efaad933388efe1961e0b903d7449ac75f8fc761eb9a117011 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/9738fa6ca088330fe6e1af5a2b1107b38d23494af27c8a7376bdba92af23ad23 /tmp/up/9738fa6ca088330fe6e1af5a2b1107b38d23494af27c8a7376bdba92af23ad23 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/f08fd9930e01e49bc7790a1ef98bd34d6187ccb5a9c84109b1730be1a635fe40 /tmp/up/f08fd9930e01e49bc7790a1ef98bd34d6187ccb5a9c84109b1730be1a635fe40 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/58fde9dd8c07ad95d275fd7a10e425506a5a1d56dfec3bca22f2a938889df7f3 /tmp/up/58fde9dd8c07ad95d275fd7a10e425506a5a1d56dfec3bca22f2a938889df7f3 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/dc03d271ecb9a4979f0023ffbe27e71cd7ce826385f35befcaa4ba37e1ef5d24 /tmp/up/dc03d271ecb9a4979f0023ffbe27e71cd7ce826385f35befcaa4ba37e1ef5d24 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/ebc15ab4a6ea8bd7e0777c55fd97c58a8334998e9d0294b1cdb27710132f3e1d /tmp/up/ebc15ab4a6ea8bd7e0777c55fd97c58a8334998e9d0294b1cdb27710132f3e1d --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/5885ebffbc910997819984831cf1f06870816c30b6d8a718dcd97cf291d262ad /tmp/up/5885ebffbc910997819984831cf1f06870816c30b6d8a718dcd97cf291d262ad --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/8721bab410a4081fab83793635e8b0506c36ffa89b42695bff4ba37ed5e6704b /tmp/up/8721bab410a4081fab83793635e8b0506c36ffa89b42695bff4ba37ed5e6704b --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/78341acb36ffd03b9cec6de65effc9fafcbe8bccdc1dfb43e9da7bd88af47560 /tmp/up/78341acb36ffd03b9cec6de65effc9fafcbe8bccdc1dfb43e9da7bd88af47560 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/34cf26a691728802db8d47766c42bd4045c5481fe1f27c09a486abafaec1a3d6 /tmp/up/34cf26a691728802db8d47766c42bd4045c5481fe1f27c09a486abafaec1a3d6 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/13494fecaaa3c6dabb1ba4fb30ae30e8a36101310a9896d4cfb0db2489f6e8fe /tmp/up/13494fecaaa3c6dabb1ba4fb30ae30e8a36101310a9896d4cfb0db2489f6e8fe --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/15184880a4888d163ddbcaf520b35ef492b23778e228d151e88ef43b0334bf54 /tmp/up/15184880a4888d163ddbcaf520b35ef492b23778e228d151e88ef43b0334bf54 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/10cf89422e7a282a7652e771dc66c255ac24a52d77165f1adbd085dd49a4a0c1 /tmp/up/10cf89422e7a282a7652e771dc66c255ac24a52d77165f1adbd085dd49a4a0c1 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/eb41ead0a71f556a66d23cb3ea8b01c49b55b7abcf975b96d099fecc44ff3013 /tmp/up/eb41ead0a71f556a66d23cb3ea8b01c49b55b7abcf975b96d099fecc44ff3013 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/7f50287bae46792d1de25b33344d62d6a6484688887c5294bdd1d1f67f76623b /tmp/up/7f50287bae46792d1de25b33344d62d6a6484688887c5294bdd1d1f67f76623b --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/593f9ead4ddfda5fc31ef7b37d3158be09f420cfae75c1b05cfe3a9fd92d5bd7 /tmp/up/593f9ead4ddfda5fc31ef7b37d3158be09f420cfae75c1b05cfe3a9fd92d5bd7 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/3b3cc53285d5a92449e6b133c2f47dd4ea6b9df1eb83dd8ac60353f859f079fb /tmp/up/3b3cc53285d5a92449e6b133c2f47dd4ea6b9df1eb83dd8ac60353f859f079fb --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0bc9414250b2ce082a5a1a74fb9421da991f0b794b6ed6c362ab96e92c11dea6 /tmp/up/0bc9414250b2ce082a5a1a74fb9421da991f0b794b6ed6c362ab96e92c11dea6 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/aa7eb225074ac55bd0f0f2df80a21bb4ccd9e9622aa04fe5903995bbf64498d6 /tmp/up/aa7eb225074ac55bd0f0f2df80a21bb4ccd9e9622aa04fe5903995bbf64498d6 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0ce90a2ceb2dc21b496920f91836000f298635fc9e421db6103bfc9b3f7c7769 /tmp/up/0ce90a2ceb2dc21b496920f91836000f298635fc9e421db6103bfc9b3f7c7769 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/ba98a52dfa0d25bfe6b2063b034e9008b70c143bb2c0ae6603e1bbf0303a73f9 /tmp/up/ba98a52dfa0d25bfe6b2063b034e9008b70c143bb2c0ae6603e1bbf0303a73f9 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/c68f306cbeaa669f3b91c1fd6480a81ae7d8883723f4f5460d5d2e9fccd9a0d1 /tmp/up/c68f306cbeaa669f3b91c1fd6480a81ae7d8883723f4f5460d5d2e9fccd9a0d1 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/2e0d8cf210cce685fe7edc2f3761b26dcdb6952da7de3db01d8da59ff2e6cbe7 /tmp/up/2e0d8cf210cce685fe7edc2f3761b26dcdb6952da7de3db01d8da59ff2e6cbe7 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0ce1c65f27394293e4fd7d3ac8983cf4806c2c9f2554c572809cc39753b67ade /tmp/up/0ce1c65f27394293e4fd7d3ac8983cf4806c2c9f2554c572809cc39753b67ade --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/0e60665af10d4966365d82adac3421da1bc58451874f7c2c82ed3571b914cd71 /tmp/up/0e60665af10d4966365d82adac3421da1bc58451874f7c2c82ed3571b914cd71 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/d8c3837019d29e9c8b7916a7e8b3c3d595890b6cad32c7dc72ba5f871a0a5108 /tmp/up/d8c3837019d29e9c8b7916a7e8b3c3d595890b6cad32c7dc72ba5f871a0a5108 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/7b3d696d580386f9e8af3240fa142e2ad50eebb277a8718c97e2db497dcc925e /tmp/up/7b3d696d580386f9e8af3240fa142e2ad50eebb277a8718c97e2db497dcc925e --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/5b584f1d863ae9c679624f8ee596a9e9ea7e94603200dc81903ae4d205dea17f /tmp/up/5b584f1d863ae9c679624f8ee596a9e9ea7e94603200dc81903ae4d205dea17f --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/mix.json /tmp/up/c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/room_audit.json /tmp/up/ae633f72a045c8aaa2b521239ff181fa621aea33461b0814884df903ae25850e --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2 /tmp/up/1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/d1454a4461e96fda9e0db27eb75fe0080a555d77a4d05f8e036d49530626db29 /tmp/up/d1454a4461e96fda9e0db27eb75fe0080a555d77a4d05f8e036d49530626db29 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/row_sources.json /tmp/up/e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/d2fd6208d7df49ab872b9536a1748d80c392f91a59135b099bc0bc38fff13a8f /tmp/up/d2fd6208d7df49ab872b9536a1748d80c392f91a59135b099bc0bc38fff13a8f --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/2463193d00fabda5c62d07027527f57a5943dd52ee2b346a215576e55d1abf19 /tmp/up/2463193d00fabda5c62d07027527f57a5943dd52ee2b346a215576e55d1abf19 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/population.json /tmp/up/a1a79d795739361b5d3bbedbddc5317687fdccc7fc92643f92c22ef5eef1bc2d --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/indices.json /tmp/up/b6fdc34ecc3008fef7d906a14631d8687382e2c77eede6bf6a1e864f846d201d --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/ed52edff77f848a4cc448cf233e4fddafd4b71dd56a3228db80b75121c1bcdb6 /tmp/up/ed52edff77f848a4cc448cf233e4fddafd4b71dd56a3228db80b75121c1bcdb6 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/ba9954ae93aecf2d1c13fa527c5fc940cfac738cf5b5f62941dac3929aea8d72 /tmp/up/ba9954ae93aecf2d1c13fa527c5fc940cfac738cf5b5f62941dac3929aea8d72 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/d059c45341e143e300b142c257edc940a847ec667efa543ed13f3cbf7c83156f /tmp/up/d059c45341e143e300b142c257edc940a847ec667efa543ed13f3cbf7c83156f --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/adcc97ba22415eab5a27fca920927b4a37730453ef54aff644eab4344a6c7420 /tmp/up/adcc97ba22415eab5a27fca920927b4a37730453ef54aff644eab4344a6c7420 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/8dff0e2b489d934390b04edc3f12dfbfb7c273ba29e18795712d3fd3fd685eab /tmp/up/8dff0e2b489d934390b04edc3f12dfbfb7c273ba29e18795712d3fd3fd685eab --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/c95023e46d9171071c7cb738367dae115bebaf4a6519931ec514d20e68ffa5d8 /tmp/up/c95023e46d9171071c7cb738367dae115bebaf4a6519931ec514d20e68ffa5d8 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build22/upload/u/47c9206e3eceeb4bf8646e0528c3cf82f066b1a85760a63783b99186fc711f48 /tmp/up/47c9206e3eceeb4bf8646e0528c3cf82f066b1a85760a63783b99186fc711f48 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24e/pins/0d28fdd432b02ae96b6ce2aaa840b744005291a540920ce48409f0e8c90276ad /tmp/up/0d28fdd432b02ae96b6ce2aaa840b744005291a540920ce48409f0e8c90276ad --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24e/pins/34916a84e82e61e9c8cf9bafa6a7f78e0ab18b4f4986ee07e76df930aee6276a /tmp/up/34916a84e82e61e9c8cf9bafa6a7f78e0ab18b4f4986ee07e76df930aee6276a --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24e/pins/773ba292e5ed0d8c5720a6bed8261a3f8b21230598897d9e0f02fda01784e679 /tmp/up/773ba292e5ed0d8c5720a6bed8261a3f8b21230598897d9e0f02fda01784e679 --ro-bind /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24e/pins/bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3 /tmp/up/bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3)
+PILOT_VENV=/opt/py
+
+if [[ "${Q_CAPTURE:-0}" == 1 ]]; then
+    /scratch/jjyeung/envs/p1cpu/bin/python -B "$Q_KIT/b/w.py" "$Q_ROOT/args.json" "${BW[@]}"
+    exit 0
+fi
+if [[ "${Q_MODE:-q}" != r ]]; then
+"${BW[@]}" "$PILOT_VENV/bin/python" -B -s /tmp/fixture/guard.py /tmp/kit/b/g.py
+fi
+set +e
+"${BW[@]}" "$PILOT_VENV/bin/python" -B -s /tmp/kit/b/a.py "${Q_MODE:-q}" "$Q_NS/p" "$Q_NS/r.json" 2>&1 | /scratch/jjyeung/envs/p1cpu/bin/python -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/q.log"
+rc=${PIPESTATUS[0]}
+if [[ "${Q_MODE:-q}" == r ]]; then exit "$rc"; fi
+"${BW[@]}" "$PILOT_VENV/bin/python" -B -s /tmp/kit/b/d.py "$Q_NS/p/s" "$Q_NS/r.json" "$Q_NS/n.json" "$Q_NS/rooms.json" 2>&1 | /scratch/jjyeung/envs/p1cpu/bin/python -B "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rooms.log"
+rr=${PIPESTATUS[0]}
+/scratch/jjyeung/envs/p1cpu/bin/python -B "$Q_KIT/b/o.py" "$Q_ROOT" "$rc" "$rr"
+exit "$rc"

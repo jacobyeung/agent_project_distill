@@ -32,19 +32,19 @@ def arm(go,normal,output,upload_root,scan):
    n='n/'+str(p.relative_to(output));dest=upload_root/n;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,dest)
    rows.append(dict(name=n,sha256=sha(dest),bytes=dest.stat().st_size,local_path=str(dest)))
  if [r['name'] for r in rows]!=['n/BUILD.json','n/SHA256SUMS.txt','n/k/a.json']:raise ValueError('R1_ARM_UNEXPECTED_DELTA')
- return dict(schema='build24i-armed-diff-v1',kit_seal=sha(output/'SHA256SUMS.txt'),review_path='<n_root>/n_r/review.json',files=rows,total_files=len(rows),total_bytes=sum(r['bytes'] for r in rows),stream_root=str(upload_root),decoded_scan='PASS',upload_authorized=False,launch_authorized=False)
+ return dict(schema='build24k-armed-diff-v1',kit_seal=sha(output/'SHA256SUMS.txt'),review_path='<n_root>/n_r/review.json',files=rows,total_files=len(rows),total_bytes=sum(r['bytes'] for r in rows),stream_root=str(upload_root),decoded_scan='PASS',upload_authorized=False,launch_authorized=False)
 
 
 def scanner(base):
  sys.path[:0]=[str(base/'work/build21'),str(base/'work/tree_r1')]
  from unittest.mock import patch
  import environment21f as E
- spec=importlib.util.spec_from_file_location('armed_scan',base/'work/build24i/naming24i_n_go.py')
+ spec=importlib.util.spec_from_file_location('armed_scan',base/'work/build24k/naming24k_n_go.py')
  module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
  def check(k):
   from launch_r1.build import verify
   verify(k)
-  with patch.object(E,'__file__',str(base/'work/build24i/scanners/n_go/environment21f.py')):return module.scan_decoded(k)
+  with patch.object(E,'__file__',str(base/'work/build24k/scanners/n_go/environment21f.py')):return module.scan_decoded(k)
  return check
 
 

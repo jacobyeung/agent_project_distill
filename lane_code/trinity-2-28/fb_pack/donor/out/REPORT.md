@@ -18,7 +18,7 @@ CPU evidence:
 - The tiny fixture has 63 point-depth tensors, all of which change. Its donor has 66 tensors for V1 and 64 for V2. These are fixture counts; the record's production requirements are 91 point-depth and 333 shared-visual tensors.
 - With the donor field absent, own/tower outputs, optimizer groups and all 275 fixture state tensors match base byte-for-byte.
 - Five corruption checks refuse changed point-depth, FoV, private-query or shared-visual tensors, including forged internal hashes. The export checker passes on both fixture variants.
-- Full-suite comparison: PENDING. `TESTS.json` and `PREEXISTING_FAILURES.md` will contain the completed comparison and every pre-existing failure with its cause.
+- The guarded full CPU suite ran 1,921 tests on base and 1,928 on new. Both have the same 18 failures, 485 errors and 145 skips; no new failure or changed cause appears after normalizing temporary paths. `TESTS.json` preserves the comparison and tracebacks; `PREEXISTING_FAILURES.md` lists all 503 base failures/errors and their causes. Missing dependencies/fixtures and forbidden integration operations prevent a fully passing suite.
 
 The K1 proof uses native tiny weights, explicit 4×4 RGB fixtures, the duplicate/32-frame layout, and synthetic fixed G3T depth/confidence/translations. V2 FoV values come from the authenticated pricing-kit input. This proves invariance, not K1 scale accuracy. The retained GO rehearsal reports zero optimizer steps because loopback sockets were denied; this delivery uses the native optimizer locally and mocks only export transport. The GO fixture model manifest is MISSING at the mapped `tree_rebuild10_w/w24/work/build24/proofs/capacity/model.json`; the sealed tree's `tests.test_carrier_c1_final.final_fixture` supplies the tiny native model.
 
@@ -40,4 +40,4 @@ Commands producing the evidence (run from this workspace; each JSON also retains
 
 Each Python command above uses `nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B`.
 
-The package is `fbp_donor.tar`; its checksum is `fbp_donor.tar.sha256`. `PACKAGE_CONTENTS.json` lists every member hash. `RUN_SUITE_EXECUTED.py` retains the exact execution runner; `TESTS.json` independently rechecks the recorded tree-input hashes after testing.
+The package is `fbp_donor.tar`; its checksum is `fbp_donor.tar.sha256`. `PACKAGE_CONTENTS.json` lists every member hash. The archive also retains the tiny fixture initialization and step-2 heads used by the export checker. `RUN_SUITE_EXECUTED.py` retains the exact execution runner; its raw source flag includes an extra runner hash, so `TESTS.json` independently rechecks the recorded tree-input hashes after testing.

@@ -1,0 +1,153 @@
+{
+  "comparison": "Decoded k/c.json after resolver/entry localisation, immediately before a.py q; compare the same job view.",
+  "fields": {
+    "preparation.path": {
+      "reason": "Native preparation, population and handover each write a receipt. h.py/rv.py copy it to bind the host/review pins without changing identity.",
+      "source": "student_pilot/s1_admission.py:prepare_phase; student_pilot/r1_population.py:bind_prepared; launch_r1/production_proof.py:bind_handover; b/rv.py:sync_preparation"
+    },
+    "preparation.sha256": {
+      "reason": "Native preparation, population and handover each write a receipt. h.py/rv.py copy it to bind the host/review pins without changing identity.",
+      "source": "student_pilot/s1_admission.py:prepare_phase; student_pilot/r1_population.py:bind_prepared; launch_r1/production_proof.py:bind_handover; b/rv.py:sync_preparation"
+    },
+    "preparation_output": {
+      "reason": "Native preparation assigns its attempt directory.",
+      "source": "student_pilot/s1_admission.py:prepare_phase"
+    },
+    "r1_training.continuation_identity": {
+      "reason": "Bind the prepared target configuration.",
+      "source": "student_pilot/r1_handover.py:bind_target; launch_r1/production_proof.py:bind_handover"
+    },
+    "r1_training.direction_augmented.path": {
+      "reason": "Bind the generated direction-twin augmentation.",
+      "source": "student_pilot/r1_direction_twins.py:augment"
+    },
+    "r1_training.direction_augmented.sha256": {
+      "reason": "Bind the generated direction-twin augmentation.",
+      "source": "student_pilot/r1_direction_twins.py:augment"
+    },
+    "r1_training.handover_mapping.path": {
+      "reason": "Write the authenticated donor-to-prepared-target mapping.",
+      "source": "student_pilot/r1_handover.py:bind_target; launch_r1/production_proof.py:bind_handover"
+    },
+    "r1_training.handover_mapping.sha256": {
+      "reason": "Write the authenticated donor-to-prepared-target mapping.",
+      "source": "student_pilot/r1_handover.py:bind_target; launch_r1/production_proof.py:bind_handover"
+    },
+    "r1_training.host_receipt.path": {
+      "reason": "Pin a job-private snapshot for the exact prepared identity. identity() excludes this pin.",
+      "source": "launch_r1/entry.py:frame_host,admit; b/h.py; b/rv.py:run"
+    },
+    "r1_training.host_receipt.sha256": {
+      "reason": "Pin a job-private snapshot for the exact prepared identity. identity() excludes this pin.",
+      "source": "launch_r1/entry.py:frame_host,admit; b/h.py; b/rv.py:run"
+    },
+    "r1_training.review.path": {
+      "reason": "Pin a job-private snapshot for the exact prepared identity. identity() excludes this pin.",
+      "source": "launch_r1/entry.py:frame_host,admit; b/h.py; b/rv.py:run"
+    },
+    "r1_training.review.sha256": {
+      "reason": "Pin a job-private snapshot for the exact prepared identity. identity() excludes this pin.",
+      "source": "launch_r1/entry.py:frame_host,admit; b/h.py; b/rv.py:run"
+    },
+    "r1_training.room_audit.path": {
+      "reason": "Census and bind the augmented VQA room audit.",
+      "source": "launch_r1/production_proof.py:_run"
+    },
+    "r1_training.room_audit.sha256": {
+      "reason": "Census and bind the augmented VQA room audit.",
+      "source": "launch_r1/production_proof.py:_run"
+    },
+    "r1_training.row_plan_sha256": {
+      "reason": "Hash the final native population sampler binding.",
+      "source": "student_pilot/r1_population.py:bind_prepared; launch_r1/production_proof.py:bind_handover"
+    },
+    "r1_training.store_hashes.pointing": {
+      "reason": "Derive the actual prepared stream identity; pose is the ordered composite-store identity.",
+      "source": "student_pilot/r1_handover.py:bind_target; launch_r1/production_proof.py:bind_handover; student_pilot/r1_training.py:target_identity"
+    },
+    "r1_training.store_hashes.pose": {
+      "reason": "Derive the actual prepared stream identity; pose is the ordered composite-store identity.",
+      "source": "student_pilot/r1_handover.py:bind_target; launch_r1/production_proof.py:bind_handover; student_pilot/r1_training.py:target_identity"
+    },
+    "r1_training.store_hashes.routing": {
+      "reason": "Derive the actual prepared stream identity; pose is the ordered composite-store identity.",
+      "source": "student_pilot/r1_handover.py:bind_target; launch_r1/production_proof.py:bind_handover; student_pilot/r1_training.py:target_identity"
+    },
+    "r1_training.store_hashes.vqa": {
+      "reason": "Derive the actual prepared stream identity; pose is the ordered composite-store identity.",
+      "source": "student_pilot/r1_handover.py:bind_target; launch_r1/production_proof.py:bind_handover; student_pilot/r1_training.py:target_identity"
+    },
+    "r2_sampling.indices.path": {
+      "reason": "Bind final admitted native reader offsets and cell counts.",
+      "source": "student_pilot/r1_population.py:produce,bind_prepared"
+    },
+    "r2_sampling.indices.sha256": {
+      "reason": "Bind final admitted native reader offsets and cell counts.",
+      "source": "student_pilot/r1_population.py:produce,bind_prepared"
+    },
+    "r2_sampling.population.path": {
+      "reason": "Bind final admitted native reader offsets and cell counts.",
+      "source": "student_pilot/r1_population.py:produce,bind_prepared"
+    },
+    "r2_sampling.population.sha256": {
+      "reason": "Bind final admitted native reader offsets and cell counts.",
+      "source": "student_pilot/r1_population.py:produce,bind_prepared"
+    },
+    "routing_vocabulary.path": {
+      "reason": "Produce the opener witness for the authenticated donor.",
+      "source": "launch_r1/production_proof.py:_run; launch_r1/p_opener_witness.py:produce"
+    },
+    "routing_vocabulary.sha256": {
+      "reason": "Produce the opener witness for the authenticated donor.",
+      "source": "launch_r1/production_proof.py:_run; launch_r1/p_opener_witness.py:produce"
+    },
+    "s1_routing.selection.path": {
+      "reason": "Refresh the identical selection with the current producer. Row selection must remain identical.",
+      "source": "b/a.py:q -> b/i.py:refresh"
+    },
+    "s1_routing.selection.sha256": {
+      "reason": "Refresh the identical selection with the current producer. Row selection must remain identical.",
+      "source": "b/a.py:q -> b/i.py:refresh"
+    },
+    "streams.pointing.path": {
+      "reason": "Native preparation rebuilds and filters the stream receipt.",
+      "source": "student_pilot/s1_admission.py:prepare_phase"
+    },
+    "streams.pointing.sha256": {
+      "reason": "Native preparation rebuilds and filters the stream receipt.",
+      "source": "student_pilot/s1_admission.py:prepare_phase"
+    },
+    "streams.routing.path": {
+      "reason": "Native preparation rebuilds and filters the stream receipt.",
+      "source": "student_pilot/s1_admission.py:prepare_phase"
+    },
+    "streams.routing.sha256": {
+      "reason": "Native preparation rebuilds and filters the stream receipt.",
+      "source": "student_pilot/s1_admission.py:prepare_phase"
+    },
+    "streams.vqa.path": {
+      "reason": "Native preparation rebuilds and filters the stream receipt.",
+      "source": "student_pilot/s1_admission.py:prepare_phase"
+    },
+    "streams.vqa.sha256": {
+      "reason": "Native preparation rebuilds and filters the stream receipt.",
+      "source": "student_pilot/s1_admission.py:prepare_phase"
+    }
+  },
+  "schema": "build24i-prep-fields-v1",
+  "scope": "Exact leaf paths, no wildcard or subtree permission. This checker checks locations, not semantic correctness or admission.",
+  "unchanged": [
+    "streams.pose",
+    "r2_sampling.card",
+    "r2_sampling.schema",
+    "recipe",
+    "admission",
+    "authorization",
+    "code",
+    "output",
+    "world_size",
+    "init_artifact",
+    "remove_files",
+    "r2_identity"
+  ]
+}

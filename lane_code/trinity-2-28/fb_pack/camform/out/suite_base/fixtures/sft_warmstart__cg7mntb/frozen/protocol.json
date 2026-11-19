@@ -1,0 +1,648 @@
+{
+  "PROVISIONAL_DIVISION_SHA": "3fda0ded7eed9bb31d8c6bb4f1782b9995357120aa63c4d17a27f068993fbacd",
+  "answer_format_instruction": "Think it through, then finish with the final answer alone on the last line: the option letter for a multiple-choice question, or the number for a numeric question.",
+  "base": {
+    "files": [
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/sft_warmstart__cg7mntb/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/chat_template.jinja",
+        "sha256": "e2a8ba8928104883526e8bf333b072ca691029a44be7eeaa457f1bbfae89347c"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/sft_warmstart__cg7mntb/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/config.json",
+        "sha256": "20f7ef898c4fbdcb771a2d46dfac3b8516b7d2aa7c7d24c9bd841bd59b8bb5c8"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/sft_warmstart__cg7mntb/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/model.safetensors.index.json",
+        "sha256": "9374066cc793df572cddd284606a44cdf520ae786c0eefa479425a68841bdd78"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/sft_warmstart__cg7mntb/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/preprocessor_config.json",
+        "sha256": "602be2aa81e4e6bb86e6166243a74fa90db5ea57e9c404bb515e3a8e5c5568c6"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/sft_warmstart__cg7mntb/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/processor_config.json",
+        "sha256": "2b0a2dc3cf051f6af5df0ba7d479f778791e41c7633241bf2c196a990bd09989"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/sft_warmstart__cg7mntb/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/tokenizer.json",
+        "sha256": "5039be3c580d5e9c0d5fc6b6e4b93211f34072c5fce3f94f23ec591b57def326"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/sft_warmstart__cg7mntb/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/tokenizer_config.json",
+        "sha256": "5de15032abcc46ef83673b67d9377faf19c9286037c89c614d085113880ed6ab"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/sft_warmstart__cg7mntb/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/video_preprocessor_config.json",
+        "sha256": "04acf19b7d506c03200f9446ebb99a8384dfee0f85480d42d1a10e173a8bf1c4"
+      }
+    ],
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "weight_shards": [
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/sft_warmstart__cg7mntb/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/model-00001-of-00001.safetensors",
+        "sha256": "fcbc7675f8391c04fe710026662940467ddb679645f614b21324a0e974cdb000"
+      }
+    ]
+  },
+  "base_sha256": "03f277ef82f5df28bf3d3881820f8fe7045f0349e02e9c8f962f541d32b1dee7",
+  "benchmark_improvement_claim": false,
+  "benchmark_trained_diagnostic": true,
+  "candidate_census": [
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "2a3f24267224bb1e94f18567971dba07fbf050634448aa0bf4b0c9420bb79afa",
+      "qid": "candidate_0000",
+      "row_sha256": "ee25c9165ae6c6e204910521d569a695408eb805ced0d302f0662289e4b1d119",
+      "scene": "scene0000_00"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "20cbd2bdf55723ef0a558d70070b0ac7273d58ae964923d7b353d095af1770e0",
+      "qid": "candidate_0001",
+      "row_sha256": "2d62cb5bbb763b8ab2866738c5c17dc80dc1158a0d5f5964814b77db9dfdf9e4",
+      "scene": "scene0000_01"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "629d81ad51400c17fe472e5e982e9c884e1ecaf2434fc8fb9d8a1939a1ad7e7e",
+      "qid": "candidate_0002",
+      "row_sha256": "5e66534c49541ac53cfa871eb11dcc5f7a7d22ac1cb5997e5ae243022507ae66",
+      "scene": "scene0001_00"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "c3f4af901bde60a9bdd038c78b1bc0b01bc788a386c0f90c534c2fb62982c2b5",
+      "qid": "candidate_0003",
+      "row_sha256": "be5e122aa1284da8b7abff01c593090af8fb88a47f2efb8bb9306c5012c5555d",
+      "scene": "scene0001_01"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "424496dd89031367d5586e449dc42992e5fa10fb5be0f0187c48f01db935ede5",
+      "qid": "candidate_0004",
+      "row_sha256": "cbc970f964e81b890f8f3dc2177eff94dc0585d8907306f4851c548ef53457b4",
+      "scene": "scene0002_00"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "9abdf35d1469c697e64e74c662286aa130f684aea42e9ba8f656d828dcfba5cc",
+      "qid": "candidate_0005",
+      "row_sha256": "538c26b5aefe834c918b4dd006a180f2d00fc489cd179d43691c8e791d89cbc6",
+      "scene": "scene0002_01"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "44c6830a3c944fdbf18593904607fe40a551ac2398b532a9e594695ef841b3d1",
+      "qid": "candidate_0006",
+      "row_sha256": "a00908eeacb5e4bd5d6fea3614737c28e060fec9342a5c7ae12196ca6982aa78",
+      "scene": "scene0003_00"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "e20545b78a43271f7d853e769fecf7522d2e0385a084b55d272dfc2842bdb55d",
+      "qid": "candidate_0007",
+      "row_sha256": "942fca651f0e2445c46136d7ec48ff376df69718e578abd0bac5e9f073d2a108",
+      "scene": "scene0003_01"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "21214d0d4e143c01f8d41b17516e6509cb63b98cd1819c1379b5236f5ec6ec4e",
+      "qid": "candidate_0008",
+      "row_sha256": "75b9dc7c95d88ef7f638ca534ea42865cd47e2edf879f50f15a6d142bbd68c2f",
+      "scene": "scene0004_00"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "b64c56bab21cad495e1426e329a406021a9a67936af01f26f0b4bd21d57e377a",
+      "qid": "candidate_0009",
+      "row_sha256": "8fc6fcceac176b57c0d68117f3ffdab8722139741b604a802dd53c6d24787132",
+      "scene": "scene0004_01"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "02d9a266ceb55a8bd3bae2ea7eef09e815dbd905cc490b1724c931b3946a4d17",
+      "qid": "candidate_0010",
+      "row_sha256": "d7b4476713256503478c4dabb72e1e5b66fa25191ca500dafab5957225254f5e",
+      "scene": "scene0005_00"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "9386959828f49d533d6299b133c4945bdc523f425095032e3edcc2dec0a43868",
+      "qid": "candidate_0011",
+      "row_sha256": "1cd2702b4cb93da61cdbe53cdb19f1d488404653124d05f408bec13f364a2971",
+      "scene": "scene0005_01"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "d82031e327ef350d1e2fd7efa94ab49ca6754a23a22e297705d7be13a1840eaa",
+      "qid": "candidate_0012",
+      "row_sha256": "f8c2960d875d302e7e3d342d5c3f6e64c78922be18770bd607fe8529d5c5c43f",
+      "scene": "scene0006_00"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "301e5b999e83c16176c22ccc9dd2706095f487b6a1fe25ebf77e5da27de830da",
+      "qid": "candidate_0013",
+      "row_sha256": "f5606f9ac01c35fcb75e5f8f426902421e92fee8d4e8de9a27ddb1cece789f67",
+      "scene": "scene0006_01"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "1a1311700beb9bd70149b6bb5571e182e48b87ddef0b2117ab95797a4da44fa5",
+      "qid": "candidate_0014",
+      "row_sha256": "50c891edcaa885194c09f90eeee1ad06f657bae721df18aa206c898a2257c697",
+      "scene": "scene0007_00"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "8c56add944da25d2257b1ff4b958f14221b9facf2b96e2e4afb11c601ecb2899",
+      "qid": "candidate_0015",
+      "row_sha256": "669661e2dcff53d79079e76b57f4d745ccff6f2737016774b9fa77f96292973b",
+      "scene": "scene0007_01"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "6750fe7b8838465e5e83212d48aa9ffb8e7e8d863a723093aeff0da3be00b859",
+      "qid": "candidate_0016",
+      "row_sha256": "1e7fe9d45ee149ff55f8c47166dfad4f9d844b852399ec15c1f5f9bd2dd8443c",
+      "scene": "scene0008_00"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "f03f2baa1721a93c132f13881be6632883404a561ab0da0ff3c21a5e84f2dade",
+      "qid": "candidate_0017",
+      "row_sha256": "a4481dbcc7dcc58bbdbc5325a192efacd8121bbf9c4a445f213946aded8907f6",
+      "scene": "scene0008_01"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "e2fb20e56909c0135068379ce0e37f3fd6d69247855545e5af6e0a9199310ec2",
+      "qid": "candidate_0018",
+      "row_sha256": "80eb0a36a3ddd4deef8d003ce66db2ddac0af28ec57fe4170ab5c4fe9e572ff9",
+      "scene": "scene0009_00"
+    },
+    {
+      "category": "object_counting",
+      "dataset": "scannet",
+      "input_sha256": "9b01a889b74b011e41e05065fe056e1c16c4bf96eb0ef00469d18a4a0beeb318",
+      "qid": "candidate_0019",
+      "row_sha256": "157bd83950fce247ad65fff6354991bb6e8d1470daee55a4468450627beb7e32",
+      "scene": "scene0009_01"
+    }
+  ],
+  "candidate_source": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/sft_warmstart__cg7mntb/candidate_index.jsonl",
+    "sha256": "775871ee2e1ab855f97f02dec2b7390645290465c0e3e4671564bbe134a8ef13"
+  },
+  "division": {
+    "benchmark_improvement_claim": false,
+    "benchmark_trained_diagnostic": true,
+    "donor_group_count": 10,
+    "donor_scene_count": 20,
+    "group_policy": "ScanNet sceneNNNN scan suffixes share a group; other datasets use the supplied scene identity because no repeat-scan mapping is supplied. Heldout includes the canonical closure of selected physical groups.",
+    "heldout_fraction_of_groups": 0.1,
+    "heldout_group_ids": [
+      "scannet/scene0007"
+    ],
+    "heldout_qids": [
+      "candidate_0014",
+      "candidate_0015"
+    ],
+    "heldout_scenes": [
+      "scannet/scene0007_00",
+      "scannet/scene0007_01"
+    ],
+    "infrastructure_only": false,
+    "provisional_diagnostic": "ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW",
+    "result_status": "diagnostic, provisional",
+    "schema": "provisional-whole-scene-division-v1",
+    "score_nomination_allowed": false,
+    "seed": 17,
+    "selection_uses_correctness": false,
+    "train_candidate_qids": [
+      "candidate_0000",
+      "candidate_0001",
+      "candidate_0002",
+      "candidate_0003",
+      "candidate_0004",
+      "candidate_0005",
+      "candidate_0006",
+      "candidate_0007",
+      "candidate_0008",
+      "candidate_0009",
+      "candidate_0010",
+      "candidate_0011",
+      "candidate_0012",
+      "candidate_0013",
+      "candidate_0016",
+      "candidate_0017",
+      "candidate_0018",
+      "candidate_0019"
+    ],
+    "train_group_ids": [
+      "scannet/scene0000",
+      "scannet/scene0001",
+      "scannet/scene0002",
+      "scannet/scene0003",
+      "scannet/scene0004",
+      "scannet/scene0005",
+      "scannet/scene0006",
+      "scannet/scene0008",
+      "scannet/scene0009"
+    ],
+    "train_scenes": [
+      "scannet/scene0000_00",
+      "scannet/scene0000_01",
+      "scannet/scene0001_00",
+      "scannet/scene0001_01",
+      "scannet/scene0002_00",
+      "scannet/scene0002_01",
+      "scannet/scene0003_00",
+      "scannet/scene0003_01",
+      "scannet/scene0004_00",
+      "scannet/scene0004_01",
+      "scannet/scene0005_00",
+      "scannet/scene0005_01",
+      "scannet/scene0006_00",
+      "scannet/scene0006_01",
+      "scannet/scene0008_00",
+      "scannet/scene0008_01",
+      "scannet/scene0009_00",
+      "scannet/scene0009_01"
+    ]
+  },
+  "generation": {
+    "do_sample": false,
+    "initial_max_new_tokens": 16384,
+    "num_beams": 1,
+    "num_return_sequences": 1,
+    "retry_max_new_tokens": 32768,
+    "retry_policy": "one_fresh_32768_attempt_only_if_recorded_16384_cap_and_not_pinned_full_credit",
+    "seed": 17,
+    "use_cache": true
+  },
+  "infrastructure_only": false,
+  "init_adapter_identity": {
+    "base": {
+      "repo_id": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+    },
+    "base_content_sha256": "c1099ea9aed8e3659c0f979795368a4955fb1ade568a1c619d06fd3ee52e07ba",
+    "config": {
+      "sha256": "bb87a9c63be231fb0f0a2c005cb52853dcf874d67c106b0311fe16d7c0575656"
+    },
+    "lora": {
+      "alpha": 4,
+      "dropout": 0.0,
+      "rank": 2,
+      "target_modules_sha256": "9afdee307fd2a86a86505fe53b4a8a6d31adcb524b2db006d89d67befa47c10e"
+    },
+    "parent_protocol_sha256": "0ddbb2746a1b2ef494009856d4879d0a0c7e7bcf2b86bae093408024c674a205",
+    "parent_run": "r1813_synthetic",
+    "schema": "sft-init-adapter-v1",
+    "sha256": "f8defd9af3049f8ae26129bc5d677a10ddea85ff7679de25657512faa24b4dc8",
+    "training_receipt": {
+      "sha256": "c35715630c707555db767b83baad267bf5e0bed63ca7268165bdb53fe9ac1ff4"
+    },
+    "weights": {
+      "sha256": "70d3c13a3467fd56dd17dc60fc7a767101603c04caa5ff8b51fd95306ba1d698"
+    }
+  },
+  "init_adapter_sha256": "8cecdaf14e51bef398f83b6b0a4028282ecc8462c74f52b5d8a95d8b35b5dd8d",
+  "prompt_sha256": "7b2d06517b30f7c5c2ab5ba7c08212952cdec946aab0300c244159b61742dde5",
+  "protocol_version": "vlm-lora-ddp-v2",
+  "provenance": {
+    "commit": "f5d970cfa2ff7de241f7f527356895242bd7888c",
+    "config_sha256": "a22310141d82a594b76af34b62763994dd6cfaba50558b3a67f2070e5232e4ba",
+    "dirty": false,
+    "recorded_at": "synthetic CPU fixture"
+  },
+  "provisional_diagnostic": "ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW",
+  "result_status": "diagnostic, provisional",
+  "rgb": {
+    "do_sample_frames": false,
+    "frame_count": 32,
+    "question_options": "verbatim; null options mean no options",
+    "size": {
+      "longest_edge": 4718592,
+      "shortest_edge": 524288
+    },
+    "timing": "original_source_indices_and_fps_native_processor"
+  },
+  "run_control": {
+    "checkpoint_every_steps": 25
+  },
+  "run_control_sha256": "652db88a9be2021da8a856dfc51ccdd5789efcf00efd1d879f8a8fa3c3213d36",
+  "runtime": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/cli.py",
+      "sha256": "57237d2bb03c99334c611242dc37f1097e03c8096000743c2979e6720ff5e7ed"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/diagnostic.py",
+      "sha256": "cf58e0f58277bed8de089cde57f59960627a1eb61fbed6ba239c68b10123beef"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/diagnostic_data.py",
+      "sha256": "ed7d001319969252f48631397bf9d93e7b35b29d890bfd23fcbd0e1ea89b3b82"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/trace_contract.py",
+      "sha256": "168ab315af0d8974def3f17f4c00f95d7bb68eb3579d2571767122f10c457c33"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/conversion.py",
+      "sha256": "b161828df210771a755833f94ac39008491df88e69797e03f7779ecdfae4d506"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/admission.py",
+      "sha256": "8c73e5aaee8eff3c39eb58c5929eebefdc0447fa9d0a8c2db928187abb627f9d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/common.py",
+      "sha256": "dc087343291b18607235a85d1bdcdfe2b66b1b8f02d3963bb96a5530607621d2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/division.py",
+      "sha256": "205b265c8a6055253afdd909bbb357927125d9338224def546b552e8342749b8"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/lease.py",
+      "sha256": "de4fee21600cbac19f1ee5625211c943338472ba2241155c751c8a25f6593d96"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/adapters.py",
+      "sha256": "bc4f8aa5d104e3d8e95a22a5fafae861fe54f99c88afad534172e00df3af11d9"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/batches.py",
+      "sha256": "fde1ef381084d6f865cf89b57973c9058aa2a5c413be28021bb5835291775291"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/runner.py",
+      "sha256": "8e33773ec00f1e6e7ebb188fdca716f02ee147d977aacbc0a50fb220160a1868"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/students.py",
+      "sha256": "d8c38ec234b41fe2c34bbe7d54265dc97aba8438f02bdcef0f7eae526b36ad09"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/storage.py",
+      "sha256": "881b64889fab8f2fabeaa85dfa5510798ad55555f5a270127077742a2d527936"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/infrastructure_smoke.py",
+      "sha256": "bbb7239aec8b8cf91017a5cbd8cc2129b08937cdf892fb9da9ff3f2b621fcee4"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/requirements.txt",
+      "sha256": "cccf7e672262e90c6b224d0553d122e73ffa28a5d293c94fe8da3079229aed0c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/scripts/diagnostic_gpu_batch.sh",
+      "sha256": "15d18df0b7cf499486e7e6fe31aa847ecbf9688c1f72bc0e4dd0b54e4441e367"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/provisional.py",
+      "sha256": "4404fdc5e93e1d4a0e2867bcdc33b2a98ba9a588f4d107a88835b228b117cda0"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/provisional_data.py",
+      "sha256": "789a1d1963bca20168b8fc4e3122a75d9d9beff83719967d0e88098b10c5585c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/provisional_cli.py",
+      "sha256": "c9d53899cc64591c83b428dfa88ba6711e2d7159f8ce43cb16f6da8ee876af16"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/provisional_eval.py",
+      "sha256": "02e5a83be4574bbbe5945760d00d1ab9adf6fbe629e37b6f134496841a026200"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/finetune_lane.py",
+      "sha256": "fc4e30713ecc057ed70d9c2af3aef55285aab9d82a62798cc9c6449200a5d6ca"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/benchmark_eval/contracts.py",
+      "sha256": "0d2378b2ebd56c88bfabfcc7949ec7b8794f1e568393d79fd12197f2d68c28ab"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/benchmark_eval/answers.py",
+      "sha256": "65df49a70f0ca5c160926ea9b65df7a134758e768f509374fbea6eaf6e8fb146"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/trace_contract.py",
+      "sha256": "168ab315af0d8974def3f17f4c00f95d7bb68eb3579d2571767122f10c457c33"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/ddp_config.py",
+      "sha256": "44e33e68383c54b2e4fd359bbc7f4ceb7081a58f767dfd834c9c796b658445b7"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/ddp_core.py",
+      "sha256": "bd4fa800121836c93dabf6ca2dc3988ad1af5053d8780ab9379a4d1f5bff6742"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/ddp_admission.py",
+      "sha256": "bcd718947c3c2623287bff32236b1ba63b2ed45a25b6bc2a323c3b0de58271d5"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/ddp_training.py",
+      "sha256": "25e46ca7520cab909210daf725a5d87b5955fe484bda37f8e172418bb19bdc2d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/fsdp_training.py",
+      "sha256": "c984a58839f20bd0840d629922642294fe60c1ee200ee5b0b4e1fee5d2228cb2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/ddp_checkpoints.py",
+      "sha256": "09fdaf11da1253c8d974bb19bf3654aecffa69685275aa08591a7c50174b6d93"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/probe_cache.py",
+      "sha256": "2737a5d9059f10c0c5bcf44500025e70053faddf9ee4dea1ae80032e8f4c1063"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/startup_receipt.py",
+      "sha256": "fc545ba9cfa50333907a447ffd3ec4612e8003a884875be7ce3661e8a81083da"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/auxiliary_config.py",
+      "sha256": "70a8bca46ad72d48885b3df23f35199e87b00b8e96d8d8b8de8eac04a9191dde"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/auxiliary_targets.py",
+      "sha256": "120cb74bde126991eb51ac126b5fc5fd00f3a4c0da3ef197ff1aac888bb58b2b"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/auxiliary_reason.py",
+      "sha256": "7b16e6e1c8f458722e2927c2db5424aeb92bab65142ebcfc0f50d171d9444753"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/auxiliary_losses.py",
+      "sha256": "d3889816c067d88887bc412576064686302385e39c14b5ff685b365c46e7c0aa"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/camera_config.py",
+      "sha256": "c143d4514363d3f27d2a081147266f020114372183a4256a6c8bb56c767f3019"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/camera_targets.py",
+      "sha256": "59a9475e87c6eb49fc103e8077ec224746f06fcdbde9b0a1a38088cb1aed18a4"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/camera_head.py",
+      "sha256": "f345803093d762ace1ffcef763aca8e66c806b209e0a68cb5dade43fb897a3fc"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/camera_gate.py",
+      "sha256": "65947efe096503f909c2316d654c1a6ffcb53b659407b83440aaa12783849a72"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/point_depth_head.py",
+      "sha256": "960a4334fb50f39d394fafe59bda71a80abf6dc5fd42dc4ea1b17c2e16e5eb69"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/compact_label_bank.py",
+      "sha256": "bfb1ba1082e55d644971fa9b2f89761fba9328a103bbafbc9fee1b618dfa76a5"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/adapters.py",
+      "sha256": "bc4f8aa5d104e3d8e95a22a5fafae861fe54f99c88afad534172e00df3af11d9"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/geometry_input.py",
+      "sha256": "f0faffeed8d100dfb63d98872808aaf98945bba754078ea3d927b3a187259631"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/full_ft.py",
+      "sha256": "cd6f494b19bd8de38d09fb04b8b9a51d343373fe1dddfe3b1c1931cd7b292279"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/pose_samples.py",
+      "sha256": "e51ed30d47602518f22637133ccac0f7cf7fb72e795706e7db72c4152ca29433"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/headcall/__init__.py",
+      "sha256": "28e9f3532a7bd18eb346e43e8ea227cd2525e11cf1117a5f41d3d422e1dc90c1"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/headcall/rows.py",
+      "sha256": "953f769482243aba5f760ca9fb5420fee71ef9e4616a6ee5e84312b5750a580c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/headcall/training.py",
+      "sha256": "f5f92e84c6a2179857e6d1a3887af91ab14e9a51e2188c73f591b2c93c5a5904"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/headcall/protocol.py",
+      "sha256": "9a7d956f6788d4b2831d93e3f222649abf3d2ca0653aa2d54e2982d711047489"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/headcall/derive.py",
+      "sha256": "d887b9febbb631ebd4d30482cbf5256372051c365a2104d0bcbed97162d6c5ec"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/headcall/geometry.py",
+      "sha256": "466bf7156a3f1a4d1709076b3213f47db7ca57673a63a844774c5129ccd79812"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/headcall/heads.py",
+      "sha256": "79ee82260dd98c57e8ece955731f7fda3cb7883dd934faa90ddaa00a9b256a6a"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/headcall/phase1.py",
+      "sha256": "41a69a8dba07d1bf4deef8b3c0b6e114a46e824c26bd8ef6ea3c1c8d3c0b54db"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/scripts/diagnostic_ddp_gpu_batch.sh",
+      "sha256": "004943478a230db8c1ad10b7cdcdb4e021804d70bf813d19cf4806c164ebc33c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/warmstart.py",
+      "sha256": "b097a0d19155895eccf621dfcb525c6797a83875844178ad4ee6267d877f7756"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/orchard_eval/contracts.py",
+      "sha256": "b891ec043d164e5a637b1369e060d65f08d03cdd470509a7126b8d0dd6653ca0"
+    }
+  ],
+  "schema": "provisional-student-diagnostic-protocol-v1",
+  "score_nomination_allowed": false,
+  "selection_frozen_before_evaluation": true,
+  "student": "qwen35",
+  "training": {
+    "adapter_dtype": "float32",
+    "attention_implementation": "sdpa",
+    "base_restart": "original_checkpoint_only",
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "clip_norm": 1.0,
+    "effective_batch_size": 32,
+    "epochs": 1,
+    "gradient_checkpointing": "non_reentrant_text_and_vision",
+    "group_parameters": {
+      "mergers": 35840,
+      "text": 5409792,
+      "vision": 962496
+    },
+    "learning_rate": 5e-05,
+    "lora_alpha": 4,
+    "lora_dropout": 0.0,
+    "lora_rank": 2,
+    "loss_reduction": "mean_assistant_tokens_per_row_then_global_row_mean",
+    "max_microbatch_size": 8,
+    "max_sequence_tokens": 16384,
+    "max_steps": null,
+    "max_target_tokens_including_eos": 8192,
+    "memory_fit_safety_factor": 1.15,
+    "memory_fraction": 0.9,
+    "microbatch_size": "auto",
+    "optimizer": "AdamW",
+    "padding": "repeat_epoch_prefix_then_zero_weight_rank_slots",
+    "precision": "bfloat16",
+    "schedule": "cosine",
+    "seed": 17,
+    "shuffle": "python_random_seed17_plus_epoch",
+    "target_truncation": false,
+    "targets": "exact_text_attention_mlp_vision_attention_mlp_mergers",
+    "trainable_parameters": 6408128,
+    "version": "vlm-lora-ddp-v2",
+    "warmup_ratio": 0.03,
+    "weight_decay": 0.0,
+    "world_size": 8
+  },
+  "training_config_source": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/sft_warmstart__cg7mntb/frozen/config.json",
+    "sha256": "e403a97ffb3483866ada0f5687841b04b168a12e09fa9cf2847d69e56aa70a87"
+  },
+  "training_sha256": "3ffb6f29ccfe997b9f3ac9270ad0ddcc068e3f58e28e48ec88b0320a8920d689",
+  "versions": {
+    "synthetic_cpu_fixture": true
+  }
+}

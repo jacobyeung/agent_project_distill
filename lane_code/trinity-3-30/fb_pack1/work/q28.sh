@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack; date -u +%TZ; tmux ls 2>&1 | grep fbp | cut -c1-22 | tr '\n' ' '; echo; for t in donorrev pointrev; do echo "== $t"; head -c 1800 $F/$t/REVIEW_VERDICT.md 2>/dev/null; echo; done; for t in prior2 camform; do echo "== $t $(du -sh $F/$t|cut -f1)"; tail -c 300 $F/$t/STATUS.md; echo; done

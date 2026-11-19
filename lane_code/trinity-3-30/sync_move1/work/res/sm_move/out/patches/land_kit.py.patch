@@ -1,0 +1,44 @@
+--- a/tools/land_kit.py
++++ b/tools/land_kit.py
+@@ -11,7 +11,6 @@
+ from pathlib import Path, PurePosixPath
+ import re
+ import shutil
+-import socket
+ import subprocess
+ import sys
+ import tarfile
+@@ -381,6 +380,17 @@
+     print(landed)
+ 
+ 
++def sync_host():
++    host = os.environ.get('LCS_HOST') or 'trinity-3-30'
++    forbidden = ('trinity', 'trinity-2-18', 'trinity-0-8', 'trinity-0-18',
++                 'trinity-0-23', 'trinity-3-23')
++    require(bool(re.fullmatch(r'trinity-[0-9]+-[0-9]+', host)) and host not in forbidden,
++            'invalid or forbidden LCS_HOST: ' + host)
++    actual = subprocess.check_output(['hostname', '-s']).decode('utf-8').strip()
++    require(actual == host, 'owner runs only on ' + host)
++    return host
++
++
+ def main(argv=None):
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('archive', type=Path)
+@@ -394,6 +404,7 @@
+     parser.add_argument('--bind-sha', help='owner confirms this SHA256 after reading the verdict')
+     parser.add_argument('--allow-skips', action='store_true')
+     args = parser.parse_args(argv)
++    sync_host()
+     require(os.environ.get('LCS_ENABLE_KIT_LANDING') == '1', 'disabled; owner must set LCS_ENABLE_KIT_LANDING=1')
+     require(bool(re.fullmatch('[a-z0-9_]+', args.name)), 'invalid kit name; use [a-z0-9_]+')
+     safe_text(args.seal, 'seal')
+@@ -417,7 +428,6 @@
+     else:
+         require(not any(k in os.environ for k in ('LCS_FILTER', 'LCS_SCAN', 'LCS_B', 'LCS_EV')),
+                 'production tool/event overrides require LCS_TEST_ROOT')
+-        require(socket.gethostname().split('.')[0] == 'trinity-3-30', 'owner runs only on trinity-3-30')
+         require(state == Path('/scratch/jjyeung/distill_sync') and repo == state / 'repo',
+                 'production must use the hourly owner state, clone, and lock; overrides require LCS_TEST_ROOT')
+     tools = Path(os.environ.get('LCS_B', '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30')) / 'tools'

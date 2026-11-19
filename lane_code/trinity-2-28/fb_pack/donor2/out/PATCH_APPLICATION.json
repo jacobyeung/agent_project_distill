@@ -1,0 +1,45 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/out/FILES_TOUCHED.json": "fd64ea53b7be743e74bd597fb90c5177b51bb3ed78321a48840c47dde541d389",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/code/verify_patches.py": "ad2890522aaf7e1eb7e149eb73be70c35948afa2f83175b6d81ed430a29bf6df",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/out/PATCH_DONOR2.patch": "70a3e7dc4cfcfa97afdf8e63f83f4ba2849d060e42bea87c820bc56e14f658e1",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor/out/PATCH_DONOR.patch": "fff484d7c59e992f227ed53fd12c07b565f42ab9eaf629e44c4523621bc983be",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/out/PATCH_DONOR2_DELTA.patch": "179b80d4fa0c1949ca6ec2abba975d9acb25a426cffc8c8f7ee7b3a62ca9f3f8",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/out/STAGING.json": "5b248c418b75124fa4350dd02b350bb403a5681cb24a4433e0619bd98878a885",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/out/LIVE_VERIFY.json": "bc04e096624c49f56c85d469b9e93bc8131f9f0de8d535c19cec0cb339fd9532"
+  },
+  "status": "PASS",
+  "applications": [
+    {
+      "source": "base",
+      "prerequisite_command": null,
+      "command": "patch --fuzz=0 --batch -p1 -d /scratch/jjyeung/orch_n30/fb_pack/donor2/work/base_apply_qtbtvp76 -i /scratch/jjyeung/orch_n30/fb_pack/donor2/out/PATCH_DONOR2.patch",
+      "files_verified": 942,
+      "zero_fuzz": true,
+      "zero_offset": true,
+      "unchanged_files_verified": 934,
+      "log_sha256": "63bb7945baea47818438530f8b8cfd984754b58a726d79ade81863a7eebfb454"
+    },
+    {
+      "source": "donor_orig",
+      "prerequisite_command": "patch --fuzz=0 --batch -p1 -d /scratch/jjyeung/orch_n30/fb_pack/donor2/work/delta_apply_9jae4qxe -i /scratch/jjyeung/orch_n30/fb_pack/donor/out/PATCH_DONOR.patch",
+      "command": "patch --fuzz=0 --batch -p1 -d /scratch/jjyeung/orch_n30/fb_pack/donor2/work/delta_apply_9jae4qxe -i /scratch/jjyeung/orch_n30/fb_pack/donor2/out/PATCH_DONOR2_DELTA.patch",
+      "files_verified": 942,
+      "zero_fuzz": true,
+      "zero_offset": true,
+      "unchanged_files_verified": 934,
+      "log_sha256": "ca06ecd470a47e57e5f4020e8d56c2d1aeba199a63635d0dc81c36cb4c8ecd2a"
+    },
+    {
+      "source": "live_base",
+      "prerequisite_command": null,
+      "command": "patch --fuzz=0 --batch -p1 -d /scratch/jjyeung/orch_n30/fb_pack/donor2/work/live_apply_amaeqpq9 -i /scratch/jjyeung/orch_n30/fb_pack/donor2/out/PATCH_DONOR2.patch",
+      "files_verified": 943,
+      "zero_fuzz": true,
+      "zero_offset": true,
+      "unchanged_files_verified": 935,
+      "log_sha256": "63bb7945baea47818438530f8b8cfd984754b58a726d79ade81863a7eebfb454"
+    }
+  ],
+  "command": "python code/verify_patches.py"
+}

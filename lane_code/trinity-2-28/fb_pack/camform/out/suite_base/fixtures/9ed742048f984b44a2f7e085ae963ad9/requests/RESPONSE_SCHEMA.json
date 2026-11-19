@@ -1,0 +1,91 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "answer": {
+      "description": "Bare native answer BODY only, byte-exact; no answer tags. Empty only for insufficient_evidence.",
+      "type": "string"
+    },
+    "explanation": {
+      "description": "Ordered paragraphs: setup, observations, derivation, relevant qualifications, conclusion. At least four paragraphs when converted; [] only for insufficient_evidence. Separate claim per distinct supporting observation used.",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "claims": {
+            "items": {
+              "additionalProperties": false,
+              "description": "One complete, separately supported observation or reasoning claim. Code assigns its ID.",
+              "properties": {
+                "citations": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "evidence_id": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "occurrence": {
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      "quote": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "evidence_id",
+                      "quote"
+                    ],
+                    "type": "object"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "text": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text",
+                "citations"
+              ],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "purpose": {
+            "enum": [
+              "setup",
+              "observations",
+              "derivation",
+              "qualifications",
+              "conclusion"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "purpose",
+          "claims"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "status": {
+      "enum": [
+        "converted",
+        "insufficient_evidence"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "status",
+    "explanation",
+    "answer"
+  ],
+  "type": "object"
+}

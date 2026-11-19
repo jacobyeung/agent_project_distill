@@ -1,0 +1,336 @@
+{
+  "added_tests": [
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_bad_bound_pin_and_offsets_refuse",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_capacity_refusal",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_clause_parser",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_other_stream_qid_is_outside_prior_scope",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_prepare_identity_and_completeness",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_produce_binds_optional_field",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_production_audit_includes_facing_pairs",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_slots_counts_cap_and_resume",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_tampered_weight_refuses",
+      "status": "PASS"
+    }
+  ],
+  "all_tests_pass": false,
+  "commands": {
+    "identity_gate": "OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python out/prove_on_prepared.py --base-tree work/sealed_base --patched-tree work/sealed_new --weights out/TOWARD_HARD_WEIGHTS.json --fixture work/mix_fixture/FIXTURE.json --output-dir work/final_gate",
+    "live_patch_tests": "OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python scripts/test_live.py live_new tests.test_r1_direction_prior",
+    "negative_checker_tests": "OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python scripts/test_checker.py",
+    "sealed_base_tests": "OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python scripts/test_live.py sealed_base",
+    "sealed_patched_tests": "OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python scripts/test_live.py sealed_new"
+  },
+  "existing_missing_fixture_errors": [
+    {
+      "error": "[Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/prior2b/fixtures/work/build6/INIT_INPUT.json'",
+      "id": "tests.test_r1_build13.PopulationTests.test_native_composition_envelopes",
+      "status": "ERROR"
+    },
+    {
+      "error": "[Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/prior2b/fixtures/work/build6/INIT_INPUT.json'",
+      "id": "unittest.loader._FailedTest.tests.test_r1_build14",
+      "status": "ERROR"
+    },
+    {
+      "error": "[Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/prior2b/fixtures/work/build6/INIT_INPUT.json'",
+      "id": "unittest.loader._FailedTest.tests.test_r1_build16",
+      "status": "ERROR"
+    }
+  ],
+  "fail_closed_checker": {
+    "inputs": [
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/scripts/test_checker.py",
+        "sha256": "63548758f4eb7d04d7ec6fa37a420c317aef3c46df4fec181f0e7bc2860868df"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/prove_on_prepared.py",
+        "sha256": "fc89919d26a4d846469b10b2053e02dfe4ffcac6f2dd7bc099b2c01bba4b9dd4"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/FIXTURE.json",
+        "sha256": "c53f129ac43b5e93820b394ab60ed69fcb147c20dd9e7e50a517430fa6a60c6b"
+      }
+    ],
+    "records": [
+      {
+        "actual_error": "ValueError:DUPLICATE_SOURCE_OFFSET:pointing",
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/prove_on_prepared.py",
+          "--base-tree",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base",
+          "--patched-tree",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new",
+          "--weights",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/TOWARD_HARD_WEIGHTS.json",
+          "--fixture",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/duplicate/FIXTURE.json",
+          "--output-dir",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/duplicate/result"
+        ],
+        "expected_error": "DUPLICATE_SOURCE_OFFSET",
+        "name": "duplicate",
+        "result": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/duplicate/result/RESULT.json",
+          "sha256": "440dd34bde0e5d32773c509d3cd78a4937d576cff75562b0def20d42eea53190"
+        },
+        "returncode": 1,
+        "status": "PASS"
+      },
+      {
+        "actual_error": "FileNotFoundError:[Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/missing/MISSING_routing_indices.json'",
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/prove_on_prepared.py",
+          "--base-tree",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base",
+          "--patched-tree",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new",
+          "--weights",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/TOWARD_HARD_WEIGHTS.json",
+          "--fixture",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/missing/FIXTURE.json",
+          "--output-dir",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/missing/result"
+        ],
+        "expected_error": "MISSING_routing_indices.json",
+        "name": "missing",
+        "result": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/missing/result/RESULT.json",
+          "sha256": "ba4594e557181b62f55e0c2028b6098640fdd92b9a35112665769adc968685f1"
+        },
+        "returncode": 1,
+        "status": "PASS"
+      },
+      {
+        "actual_error": "ValueError:HASH_MISMATCH:/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/hash/changed_indices.json",
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/prove_on_prepared.py",
+          "--base-tree",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base",
+          "--patched-tree",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new",
+          "--weights",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/TOWARD_HARD_WEIGHTS.json",
+          "--fixture",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/hash/FIXTURE.json",
+          "--output-dir",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/hash/result"
+        ],
+        "expected_error": "HASH_MISMATCH",
+        "name": "hash",
+        "result": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/hash/result/RESULT.json",
+          "sha256": "0eb7537b0a59b91d430668fe9631b9a244cdc646c0d6ca8fd23ba294bec0fdc4"
+        },
+        "returncode": 1,
+        "status": "PASS"
+      },
+      {
+        "actual_error": "ValueError:R1_COMPLETE_FILTERED_POPULATION_REQUIRED",
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/prove_on_prepared.py",
+          "--base-tree",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base",
+          "--patched-tree",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new",
+          "--weights",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/TOWARD_HARD_WEIGHTS.json",
+          "--fixture",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/incomplete/FIXTURE.json",
+          "--output-dir",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/incomplete/result"
+        ],
+        "expected_error": "R1_COMPLETE_FILTERED_POPULATION_REQUIRED",
+        "name": "incomplete",
+        "result": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/incomplete/result/RESULT.json",
+          "sha256": "64d6cb755cb2ac65a599fee2e1c1210973c4ee7d33eeec5f0be46d1d8ec9357b"
+        },
+        "returncode": 1,
+        "status": "PASS"
+      },
+      {
+        "actual_error": "ValueError:FIXTURE_CANNOT_BE_USED_AS_REAL_PREPARATION",
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/prove_on_prepared.py",
+          "--base-tree",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base",
+          "--patched-tree",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new",
+          "--weights",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/TOWARD_HARD_WEIGHTS.json",
+          "--config",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/config.json",
+          "--prepared-receipt",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/receipt.json",
+          "--output-dir",
+          "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/fixture_as_real"
+        ],
+        "name": "fixture_as_real",
+        "result": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/fixture_as_real/RESULT.json",
+          "sha256": "a8a3d648e84bd4c31b703568a8ebcb79dc96321e5583fb389b699a5856c57253"
+        },
+        "returncode": 1,
+        "status": "PASS"
+      }
+    ],
+    "status": "PASS"
+  },
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/scripts/finalize.py",
+      "sha256": "a2b59da88b2ee869279d3bd78705d1895b28e6e75f4eef2067b490f9859a40ba"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/SOURCE_RECONSTRUCTION.json",
+      "sha256": "8e0b92b2d2af0782d2165ffd95dd517f002a320635cd700e0814bde54be5d789"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/INPUT_AUDIT_FINAL.json",
+      "sha256": "6892bc18d5295ccdaa5789890183fed2fd85311f299cdf0e893e7e75d6381572"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/STORE_AUDIT.json",
+      "sha256": "1e40f066328f73b5c6db94950465a31e9d0aaf491ba8cd625892ca679eba98bc"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/COUNT_CROSSCHECK.json",
+      "sha256": "e5acbd015cd397390c4aa10890e7a1c001a15c81c5ae0dae75fec63a32c91e66"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/SEALED_PATCH.json",
+      "sha256": "0e8f11d45e254ef4211986664bbe93f032413ed10437257a751fa7818349469f"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/LIVE_PATCH.json",
+      "sha256": "b96a57be94eadf4c46852dcef85b29bb77752578c7d48a8ff28c6f431ad0bbea"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/final_gate/RESULT.json",
+      "sha256": "50df0e50e3ea03366264399db5bf1e94d0c6261fee4a28019ce6eeabbd49b95f"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/CHECKER_NEGATIVE_TESTS.json",
+      "sha256": "a82bb1d41d43a7420eaf4424b5a28e6cfd3cc33652d249ae63b07a5648a91f0d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/INTEGRATION_sealed_new.json",
+      "sha256": "fbcca4b5d0f4255359ae4b412b6973a6ab48f8d2168053ded7126123c45d03ed"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/INTEGRATION_sealed_base.json",
+      "sha256": "17baf84340b4d24e1e178a01132ece62a5643a54d50b1e2196c5571e917a4824"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/INTEGRATION_live_new.json",
+      "sha256": "366e08ecd16c8cb6203a42c714f5b6912b5201d3f1a9b3181946bee174809471"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/prove_on_prepared.py",
+      "sha256": "fc89919d26a4d846469b10b2053e02dfe4ffcac6f2dd7bc099b2c01bba4b9dd4"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/PATCH_PRIOR.patch",
+      "sha256": "b5cece7d3dc0103043e9174887b6096497eafec9e9017b3767387fa420fc0210"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/TOWARD_HARD_WEIGHTS.json",
+      "sha256": "9baef120ad2a0b5435a7bd6a60b75314809dbf517abe863fd03d79738c758d05"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/fixture/card.json",
+      "sha256": "c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/PROOF.json",
+      "sha256": "77409cc71b0a904a6300ad3a06c468d530790ad83b4910259f88b29b8c38e92b"
+    }
+  ],
+  "live_tree_prior_tests": {
+    "errors": 0,
+    "failures": 0,
+    "skips": 0,
+    "status": "PASS",
+    "tests": 9
+  },
+  "native_receipt_fixture": {
+    "cells": 31,
+    "scope": "FIXTURE_ONLY_NOT_PRODUCTION",
+    "status": "PASS"
+  },
+  "patch_application": {
+    "files_verified": 940,
+    "host_patch_output": "patching file launch_r1/entry.py\npatching file launch_r1/production_proof.py\npatching file tests/test_host24j.py\n",
+    "inputs": [
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/scripts/sealed_tree.py",
+        "sha256": "9c42768372ffad7c4c99fa91f4120b668f9b1cde6a307ee84d1b3505fd3dbdcf"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/out/TREE_FILES.sha256",
+        "sha256": "c527ad4b49b01fd1f1a1a907fa891de7955daeedcf55b56ced0e8bc6cfd717fe"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/out24j/TREE24J_SEAL.json",
+        "sha256": "5976f7ddb2fd28512fc93f85504938500bfe7da7ea5182d712f2567a1181ae3d"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/out24j/HOST24J.patch",
+        "sha256": "da9aeef2367f06a4749021cf23e51184f0718fab6d317b2566c3613a8fb7f3b5"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/PATCH_PRIOR.patch",
+        "sha256": "b5cece7d3dc0103043e9174887b6096497eafec9e9017b3767387fa420fc0210"
+      }
+    ],
+    "prior_patch_output": "patching file student_pilot/r1_direction_prior.py\npatching file student_pilot/r1_direction_twins.py\npatching file student_pilot/r1_loader.py\npatching file student_pilot/r1_mix.py\npatching file student_pilot/r1_population.py\npatching file tests/test_r1_direction_prior.py\n",
+    "reconstruction": "Authenticated base 57a1f14d plus supplied HOST24J.patch, every resulting byte checked against 189df6ac inventory.",
+    "status": "PASS",
+    "tree_sha256": "189df6ac590caf7622354c3bd1f991e599776494ced635a23f0c93eb1b567710"
+  },
+  "sealed_base": {
+    "errors": 3,
+    "failures": 0,
+    "skips": 0,
+    "tests": 31
+  },
+  "sealed_patched": {
+    "errors": 3,
+    "failures": 0,
+    "skips": 0,
+    "tests": 40
+  },
+  "status": "NO_NEW_FAILURE_WITH_EXISTING_MISSING_FIXTURES",
+  "worsened_existing_tests": []
+}

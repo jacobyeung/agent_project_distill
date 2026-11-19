@@ -1,0 +1,76 @@
+{
+  "PROVISIONAL_DIVISION_SHA": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "benchmark_improvement_claim": false,
+  "benchmark_trained_diagnostic": true,
+  "infrastructure_only": false,
+  "lease": {
+    "ranks": [
+      {
+        "rank": 0,
+        "synthetic": true
+      },
+      {
+        "rank": 1,
+        "synthetic": true
+      }
+    ]
+  },
+  "parallel": "ddp",
+  "protocol": {
+    "path": "synthetic",
+    "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "provenance": {
+    "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "config_sha256": "2d8fe6c93f266d1fae9fe5fe7aae99f903ccca52de32e8ce6ff778fe965cdc60",
+    "dirty": false,
+    "recorded_at": "synthetic CPU fixture"
+  },
+  "provisional_diagnostic": "ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW",
+  "result_status": "diagnostic, provisional",
+  "score_nomination_allowed": false,
+  "settings": {
+    "adapter_dtype": "float32",
+    "attention_implementation": "sdpa",
+    "base_restart": "original_checkpoint_only",
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "clip_norm": 1.0,
+    "effective_batch_size": 32,
+    "epochs": 3,
+    "gradient_checkpointing": "non_reentrant_text_and_vision",
+    "group_parameters": {
+      "mergers": 2293760,
+      "text": 87293952,
+      "vision": 15399936
+    },
+    "learning_rate": 0.0001,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "lora_rank": 32,
+    "loss_reduction": "mean_assistant_tokens_per_row_then_global_row_mean",
+    "max_microbatch_size": 8,
+    "max_sequence_tokens": 16384,
+    "max_steps": null,
+    "max_target_tokens_including_eos": 8192,
+    "memory_fit_safety_factor": 1.15,
+    "memory_fraction": 0.9,
+    "microbatch_size": "auto",
+    "optimizer": "AdamW",
+    "padding": "repeat_epoch_prefix_then_zero_weight_rank_slots",
+    "precision": "bfloat16",
+    "schedule": "cosine",
+    "seed": 17,
+    "shuffle": "python_random_seed17_plus_epoch",
+    "target_truncation": false,
+    "targets": "exact_text_attention_mlp_vision_attention_mlp_mergers",
+    "trainable_parameters": 104987648,
+    "version": "vlm-lora-ddp-v2",
+    "warmup_ratio": 0.03,
+    "weight_decay": 0.0,
+    "world_size": 2
+  },
+  "world_size": 2
+}

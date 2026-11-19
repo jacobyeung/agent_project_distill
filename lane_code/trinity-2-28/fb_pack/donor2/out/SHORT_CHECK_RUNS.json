@@ -1,0 +1,42 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/code/environment.py": "515e2816cc9f4433c581f11e1d90f585f0be1223db1cd8fd2d5cc6937b7871d2",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/code/run_focused.py": "911cc3f66baea653a32f7fed25f6a9814e836b4abbfb515cd294338a41306b80",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/code/base_negative.py": "aff4cc7010465bfbe53b8171bc6af80e6a01eccfc4efb7514f95784d57a4c8e1",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/code/run_short_checks.py": "84e0958730dc1e68579bb9eead6bc16e433d5800ff0a27405d3fc74d5ba63486",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/code/finalize_receipts.py": "fda9211f96ce438059fbbad3cac11e1ad2b8552a32f91536e55eacb49eb45dbc"
+  },
+  "runs": [
+    {
+      "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/environment.py",
+      "returncode": 0,
+      "seconds": 3.111945152282715
+    },
+    {
+      "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/base_negative.py",
+      "returncode": 0,
+      "seconds": 1.486307144165039
+    },
+    {
+      "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_focused.py base",
+      "returncode": 0,
+      "seconds": 72.2774338722229
+    },
+    {
+      "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_focused.py new",
+      "returncode": 0,
+      "seconds": 82.50809049606323
+    },
+    {
+      "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_focused.py live_base",
+      "returncode": 0,
+      "seconds": 105.48627638816833
+    },
+    {
+      "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_focused.py live",
+      "returncode": 0,
+      "seconds": 103.26977920532227
+    }
+  ],
+  "receipt_command": "python code/finalize_receipts.py"
+}

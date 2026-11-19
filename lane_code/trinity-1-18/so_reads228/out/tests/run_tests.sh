@@ -4,7 +4,7 @@ date -u
 test_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
 export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
-export READ228_TEST_WORK="${READ228_TEST_WORK:-/scratch/jjyeung/orch_n30/so_reads228/work/round3/test_runs}"
+export READ228_TEST_WORK="${READ228_TEST_WORK:-/scratch/jjyeung/orch_n30/so_reads228/work/round4/test_runs}"
 export READ228_CONTROL_ROOT="$READ228_TEST_WORK/control"
 source "$test_dir/../control_environment228.sh"
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_kit.py"
@@ -13,7 +13,12 @@ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_revie
 date -u
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_prepare.py"
 date -u
-nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_bootstrap36.py"
+bootstrap_python=/scratch/jjyeung/envs/p1cpu/bin/python
+if [[ -x /usr/bin/python3 ]] && nice -n 10 /usr/bin/python3 -I -s -B -c 'import sys; sys.exit(sys.version_info[:3] != (3,6,8))'; then
+  bootstrap_python=/usr/bin/python3
+fi
+nice -n 10 "$bootstrap_python" -I -s -B -c 'import sys; print("bootstrap interpreter: " + sys.version)'
+nice -n 10 "$bootstrap_python" -I -s -B "$test_dir/test_bootstrap36.py"
 
 date -u
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_review2.py"
@@ -23,3 +28,6 @@ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_stage
 date -u
 # Bare control path: do not let p1cpu site-packages hide missing operator imports.
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -S -B "$test_dir/test_review3.py"
+
+date -u
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -S -B "$test_dir/test_target_refusal.py"

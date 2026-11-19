@@ -1,0 +1,2 @@
+F=/scratch/jjyeung/orch_n30/fb_pack; date -u +%TZ; hostname -s; df -h /scratch|tail -1; tmux ls 2>&1 | grep fbp | cut -c1-30 | tr '\n' ' '; echo
+for t in patchArev donorrev relcnt2 camform pointD prior2; do [ -d $F/$t ] || continue; echo "== $t $(du -sh $F/$t 2>/dev/null|cut -f1)"; ls $F/$t | tr '\n' ' '; echo; [ -f $F/$t/REVIEW_VERDICT.md ] && head -c 1500 $F/$t/REVIEW_VERDICT.md; [ -f $F/$t/STATUS.md ] && tail -c 400 $F/$t/STATUS.md; echo; done

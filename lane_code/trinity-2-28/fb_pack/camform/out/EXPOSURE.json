@@ -1,0 +1,101 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/code/exposure.py": "32eb317749071f0eafe9c3e342fd169c20ef7cd3a8605b578191e6274c5efc30",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/out/SOURCE_TESTS.json": "f0d060d2b95be08598867c3c65dc9f3f81909327ec05c6b8ca9b10352fb58869",
+    "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24f/launch_tests/config.json": "259efa78ccaff0eeb9991df42fa5dfc78c62fffaba796236abdea1e5a4531a17",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/work/new/student_pilot/r1_training.py": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/work/new/student_pilot/r1_coverage.py": "aca68904351907af1ce046a79123725851969f08744eea629167ffdbc18eeb84",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/work/new/student_pilot/r1_mix.py": "76e9963e443307e064ef653f0b7b9e62450ce80cfc27558c0840141e80fe9fb1",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/work/new/student_pilot/r2_mix.py": "3a10572f464fc7e65bd81ed5787fc40c6defef972eec8131484deec1f872e065"
+  },
+  "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/exposure.py",
+  "routing_rows_per_step": 64,
+  "source_camera_rows": 6000,
+  "observed_rewrites": 3996,
+  "conditional_expected_rewritten_camera_rows": "C * (2000/6000 + 1996/6000) = 0.666*C",
+  "conditional_expected_by_type": "B_rotation + 0.998*B_direction",
+  "C": "Number of eligible base camera rows; MISSING full routing base census",
+  "N_actual_per_step": "MISSING",
+  "N_base_form_draws": {
+    "rotation_numeric_without_field": "r_rotation",
+    "rotation_numeric_with_field": "0",
+    "rotation_words_without_field": "0",
+    "rotation_words_with_field": "r_rotation",
+    "direction_numeric_without_field": "0.998*r_direction",
+    "direction_numeric_with_field": "0",
+    "direction_symbolic_without_field": "0",
+    "direction_symbolic_with_field": "0.998*r_direction",
+    "direction_no_negation_both": "0.002*r_direction"
+  },
+  "N_formula_scope": "r_rotation/r_direction are admitted base-row draws per step, excluding already rewritten camera_wording slices. The full card, filtered cell counts and source shares are required to assign numbers; this extract is camera-only.",
+  "missing": [
+    {
+      "name": "N pinned mix/card and filtered base camera census",
+      "expected_location": "cfg['r1_training']['mix'], cfg['r2_sampling']['population'], cfg['streams']['routing'] and its database",
+      "status": "MISSING"
+    },
+    {
+      "name": "Card referenced by available launch-test config (not proof of production N binding)",
+      "expected_location": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24f/launch_tests/u/c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8",
+      "original_relative_path": "u/c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8",
+      "expected_sha256": "c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8",
+      "status": "MISSING"
+    },
+    {
+      "name": "Filtered population referenced by available launch-test config",
+      "expected_location": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24f/launch_tests/u/a1a79d795739361b5d3bbedbddc5317687fdccc7fc92643f92c22ef5eef1bc2d",
+      "original_relative_path": "u/a1a79d795739361b5d3bbedbddc5317687fdccc7fc92643f92c22ef5eef1bc2d",
+      "expected_sha256": "a1a79d795739361b5d3bbedbddc5317687fdccc7fc92643f92c22ef5eef1bc2d",
+      "status": "MISSING"
+    },
+    {
+      "name": "Routing receipt referenced by available launch-test config",
+      "expected_location": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24f/launch_tests/u/ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+      "original_relative_path": "u/ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+      "expected_sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+      "status": "MISSING"
+    }
+  ],
+  "tree_nominal_r2_table_conditional": {
+    "scope": "r2_mix.table() plan only, not an authenticated N card. Assumes no allocation caps, all rotation/direction draws come from base, and extract match rates transfer. Do not report as actual N exposure.",
+    "camera_rotation_rows_per_step": "1216/107",
+    "camera_direction_rows_per_step": "8128/535",
+    "forms": [
+      {
+        "form": "rotation_numeric_convention",
+        "field_absent": "1216/107",
+        "field_enabled": "0",
+        "field_absent_decimal": 11.36448598130841,
+        "field_enabled_decimal": 0.0
+      },
+      {
+        "form": "rotation_word_convention",
+        "field_absent": "0",
+        "field_enabled": "1216/107",
+        "field_absent_decimal": 0.0,
+        "field_enabled_decimal": 11.36448598130841
+      },
+      {
+        "form": "direction_numeric_negation",
+        "field_absent": "1013968/66875",
+        "field_enabled": "0",
+        "field_absent_decimal": 15.162138317757009,
+        "field_enabled_decimal": 0.0
+      },
+      {
+        "form": "direction_symbolic_negation",
+        "field_absent": "0",
+        "field_enabled": "1013968/66875",
+        "field_absent_decimal": 0.0,
+        "field_enabled_decimal": 15.162138317757009
+      },
+      {
+        "form": "direction_no_negative_option",
+        "field_absent": "2032/66875",
+        "field_enabled": "2032/66875",
+        "field_absent_decimal": 0.03038504672897196,
+        "field_enabled_decimal": 0.03038504672897196
+      }
+    ]
+  }
+}

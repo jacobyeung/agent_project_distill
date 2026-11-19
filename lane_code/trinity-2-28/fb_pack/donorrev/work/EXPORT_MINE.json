@@ -1,0 +1,155 @@
+{
+ "status": "PASS",
+ "results": [
+  {
+   "case": "V1 clean export",
+   "expected_refusal": false,
+   "ok": true,
+   "error": null
+  },
+  {
+   "case": "V1 no attach",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor export pins differ or donor binding is absent"
+  },
+  {
+   "case": "V1 other FoV variant",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V1 changed scale_donor.point_depth.",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V1 changed scale_donor.frame_queries",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V1 changed scale_donor.fov.",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V1 changed depth.model.visual.",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor shared visual changed since initialization"
+  },
+  {
+   "case": "V1 missing donor tensor",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V1 bf16-rounded donor tensor",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V1 forged heads+artifact metadata",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V1 artifact metadata dropped",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor artifact and heads pins differ"
+  },
+  {
+   "case": "V1 donor stripped from export",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V1 stripped export, reader without attach",
+   "expected_refusal": false,
+   "ok": true,
+   "error": null
+  },
+  {
+   "case": "V2 clean export",
+   "expected_refusal": false,
+   "ok": true,
+   "error": null
+  },
+  {
+   "case": "V2 no attach",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor export pins differ or donor binding is absent"
+  },
+  {
+   "case": "V2 other FoV variant",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V2 changed scale_donor.point_depth.",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V2 changed scale_donor.frame_queries",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V2 changed depth.model.visual.",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor shared visual changed since initialization"
+  },
+  {
+   "case": "V2 missing donor tensor",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V2 bf16-rounded donor tensor",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V2 forged heads+artifact metadata",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V2 artifact metadata dropped",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor artifact and heads pins differ"
+  },
+  {
+   "case": "V2 donor stripped from export",
+   "expected_refusal": true,
+   "ok": true,
+   "error": "ValueError: Scale donor tensor changed since initialization"
+  },
+  {
+   "case": "V2 stripped export, reader without attach",
+   "expected_refusal": false,
+   "ok": true,
+   "error": null
+  }
+ ]
+}

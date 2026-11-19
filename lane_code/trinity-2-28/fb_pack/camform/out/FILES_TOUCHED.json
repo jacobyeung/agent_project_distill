@@ -1,0 +1,63 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/out/SETUP.json": "f100891fbf2363e1b6ecdf4d1cdbb924f98892a75a959e020a12232172216cea",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/code/build_patch.py": "56b6cd6d88e1e96f3d83c2b07429422537878bcf44d05b0efd08b55ebccbab1a",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor/out/FILES_TOUCHED.json": "6533c0e26e37e2ea7d63cb4b4686e4c99dff0416e227ed5f62217cc58ad769e4",
+    "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/FILES_TOUCHED.json": "21178de93262333b536a6817f47374079c18ec772d1a8851129194c1fbda931a",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/work/new/configs/r1_camera_trace_form_v1.json": "169c439a1ac1bf11d66ee7b725277ef8ee07a706807324bed2696b9d99efaace",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/work/new/student_pilot/r1_camera_trace_form.py": "8dff77338984cd45976053b98865b11f7137edefab381dfe624748bd81a1ca90",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/work/new/student_pilot/r1_routing.py": "835815f7a9c8650d1a34d1e5bbfcdd3a32086b934ef33227c940e5e066b834c8",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/work/base/student_pilot/r1_routing.py": "7975ea825a4dc7f7a4471e950a9ba87c1d68365e9cbb34f044e9652ab6252f18",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/work/new/tests/test_r1_camera_trace_form.py": "c62554c67cb2ce4c6de668c447cbdf3621bee61e963349cd5e13dc48bb05b0c2"
+  },
+  "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/build_patch.py",
+  "base_tree_sha256": "57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7",
+  "base_plus_patchA_tree_sha256": "290e2119232da4eb3d55df805e069b4a2d9f5e167368db30d2ef2e013ee6e0f9",
+  "patchA_sha256": "b95c1c618659a17b123b0d4d079fdf9ad53667f715e7362f43df0078bf6de477",
+  "files": [
+    {
+      "path": "configs/r1_camera_trace_form_v1.json",
+      "base_sha256": null,
+      "new_sha256": "169c439a1ac1bf11d66ee7b725277ef8ee07a706807324bed2696b9d99efaace",
+      "bytes": 330
+    },
+    {
+      "path": "student_pilot/r1_camera_trace_form.py",
+      "base_sha256": null,
+      "new_sha256": "8dff77338984cd45976053b98865b11f7137edefab381dfe624748bd81a1ca90",
+      "bytes": 4325
+    },
+    {
+      "path": "student_pilot/r1_routing.py",
+      "base_sha256": "7975ea825a4dc7f7a4471e950a9ba87c1d68365e9cbb34f044e9652ab6252f18",
+      "new_sha256": "835815f7a9c8650d1a34d1e5bbfcdd3a32086b934ef33227c940e5e066b834c8",
+      "bytes": 11521
+    },
+    {
+      "path": "tests/test_r1_camera_trace_form.py",
+      "base_sha256": null,
+      "new_sha256": "c62554c67cb2ce4c6de668c447cbdf3621bee61e963349cd5e13dc48bb05b0c2",
+      "bytes": 8484
+    }
+  ],
+  "protected_paths": [
+    "student_pilot/carrier_c1.py",
+    "student_pilot/carrier_c1_decode.py",
+    "student_pilot/carrier_c1_run.py",
+    "student_pilot/r1_direction_prior.py",
+    "student_pilot/r1_direction_twins.py",
+    "student_pilot/r1_handover.py",
+    "student_pilot/r1_loader.py",
+    "student_pilot/r1_mix.py",
+    "student_pilot/r1_population.py",
+    "student_pilot/scale_donor.py",
+    "student_pilot/scale_donor_check.py",
+    "student_pilot/tower_read.py",
+    "tests/test_r1_direction_prior.py",
+    "tests/test_scale_donor.py"
+  ],
+  "overlap_with_donor_or_prior2": [],
+  "patch_sha256": "2167d5d9116e8088bd15c4207ab9fcfd4d562115f79a1c180d0f6a658f898e3b",
+  "apply_verified": true,
+  "verified_files": 943
+}

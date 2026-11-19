@@ -1,0 +1,495 @@
+--- a/launch_r2/distributed.py
++++ b/launch_r2/distributed.py
+@@ -74,6 +74,7 @@
+     root = Path(root).resolve()
+     if arm != '0':
+         raise ValueError('Unknown worker arm')
++    os.environ.pop('Q_E7', None)
+     for native, opaque in (('STUDENT_FRAME_ROOT_MAP','K4'),('C1_INIT_LOCAL','K5'),('STUDENT_R2_FRAME_HOST','K6')):
+         if opaque in os.environ:
+             os.environ[native]=os.environ[opaque]
+--- a/launch_r2/host.py
++++ b/launch_r2/host.py
+@@ -250,6 +250,7 @@
+ 
+ def execute_packet(root, packet, guard, *, full):
+     from .runtime import bounded_writes, obligations, statement_hits, checked_hits, init_layout
++    os.environ.pop('Q_E7', None)
+     checklist = begin_checks(root, packet) if full else None
+     paths = input_paths(packet, root)
+     guard.tick()
+--- a/launch_r2/runtime.py
++++ b/launch_r2/runtime.py
+@@ -58,8 +58,12 @@
+ 
+ 
+ def obligations():
+-    from student_pilot import r2_materialize as materializer, carrier_c1_run as run
+-    specs = [(materializer.materialize, "if os.environ.get('STUDENT_R2_FRAME_HOST')", 'frame-host'),
++    from student_pilot import r2_materialize as materializer, r2_intake as intake, carrier_c1_run as run
++    lines, _ = inspect.getsourcelines(intake.intake)
++    needle = "remote_full = (limit is None and os.environ.get(env_key('STUDENT_R2_FRAME_HOST')) == '1'"
++    if sum(needle in line for line in lines) != 1:
++        raise ValueError('Statement obligation is ambiguous or absent')
++    specs = [(materializer.materialize, "if os.environ.get(env_key('STUDENT_R2_FRAME_HOST'))", 'frame-host'),
+              (materializer.materialize, "raise ValueError('Full materialization requires an explicit frame-host admission')", 'frame-host'),
+              (materializer.materialize, 'limit = None', 'frame-host'),
+              (run.dryrun, 'plan = next(data.mixed_indices(', 'model-loader'),
+--- a/student_pilot/job_env.py
++++ b/student_pilot/job_env.py
+@@ -1,6 +1,6 @@
+ """Opaque deployment names preserve the legacy environment contract."""
+ import os
+-ALIASES = {'STUDENT_ORCHARD': 'Q_E1', 'STUDENT_SLURM_SITE': 'Q_E2', 'STUDENT_MODEL_ROOT': 'Q_E3', 'STUDENT_FRAME_ROOT_MAP': 'Q_E4', 'R1_STUDENT_HEX': 'Q_E5'}
++ALIASES = {'STUDENT_ORCHARD': 'Q_E1', 'STUDENT_SLURM_SITE': 'Q_E2', 'STUDENT_MODEL_ROOT': 'Q_E3', 'STUDENT_FRAME_ROOT_MAP': 'Q_E4', 'R1_STUDENT_HEX': 'Q_E5', 'STUDENT_R2_FRAME_HOST': 'Q_E7'}
+ def key(name):
+     alias=ALIASES.get(name)
+     return alias if alias is not None and alias in os.environ else name
+--- a/student_pilot/r1_coverage.py
++++ b/student_pilot/r1_coverage.py
+@@ -5,8 +5,48 @@
+ SPLIT = '2463193d00fabda5c62d07027527f57a5943dd52ee2b346a215576e55d1abf19'
+ PINS = {'coverage_units':'8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82',
+         'coverage_distance':'15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022'}
+-EXTRA_PINS = {'camera_wording':'e3c72962e3fd774c7e15fa1e4aeae1b6642264bf4f3cf54b9e350b8d7bfb9707'}
++CAMERA_SOURCE_SHA256 = 'e8cbda99f794540c9c0f716d1ae8ce451fd84e473598795c67237fe051acd2d0'
++EXTRA_PINS = {'camera_wording': CAMERA_SOURCE_SHA256}
+ CAMERA_WORDINGS = '0b6f8eb3fe99a1ccb011195778e0ecec89dce90ff13f0b6d90321c85955d6b86'
++ROUTING_FAMILIES = ('absolute_distance', 'units', 'coverage_distance', 'coverage_units',
++                    'recovery', 'camera_wording')
++
++def routing_declaration(cfg):
++    """Authenticate an exhaustive bound/deferred partition of the routing families."""
++    value = (cfg or {}).get('r1_training') or {}
++    if 'routing_slice_declaration' not in value:
++        return None
++    if 'routing_slices' in value:
++        raise ValueError('R1_ROUTING_DECLARATION_WITH_DEFERRED')
++    declaration = load(pinned(value['routing_slice_declaration']))
++    if (not isinstance(declaration, dict) or set(declaration) != {'schema', 'bound', 'deferred'}
++            or declaration['schema'] != 'r1-routing-slices-v1'
++            or not isinstance(declaration['bound'], list)
++            or not all(isinstance(k, str) for k in declaration['bound'])
++            or len(set(declaration['bound'])) != len(declaration['bound'])
++            or not isinstance(declaration['deferred'], dict)):
++        raise ValueError('R1_ROUTING_DECLARATION_INVALID')
++    bound, omitted = set(declaration['bound']), set(declaration['deferred'])
++    for name in sorted((bound | omitted) - set(ROUTING_FAMILIES)):
++        raise ValueError('R1_ROUTING_FAMILY_UNDECLARED:'+name)
++    for name in ROUTING_FAMILIES:
++        if name in bound and name in omitted or name not in bound | omitted:
++            raise ValueError('R1_ROUTING_DECLARATION_PARTITION:'+name)
++        if name in omitted and (not isinstance(declaration['deferred'][name], str)
++                                or not declaration['deferred'][name].strip()):
++            raise ValueError('R1_ROUTING_DEFERRED_REASON_REQUIRED:'+name)
++    return declaration
++
++def declared_names(raw, declaration, field):
++    if not isinstance(raw, dict):
++        raise ValueError('R1_ROUTING_BINDING_INVALID:'+field)
++    bound = set(declaration['bound'])
++    for name in sorted(set(raw) - bound):
++        raise ValueError('R1_ROUTING_FAMILY_UNDECLARED:'+name+':'+field)
++    for name in ROUTING_FAMILIES:
++        if name in bound and name not in raw:
++            raise ValueError('R1_ROUTING_'+field.upper()+'_MISSING:'+name)
++    return tuple(name for name in ROUTING_FAMILIES if name in bound)
+ 
+ # These two catalog entries describe audit provenance, never routing composition.
+ AUDIT_SOURCE_NAMES = frozenset(('room', 'room_programs_excluded'))
+@@ -26,6 +66,7 @@
+     value = (cfg or {}).get('r1_training') or {}
+     if 'routing_slices' not in value:
+         return False
++    routing_declaration(cfg)
+     if value['routing_slices'] != 'deferred_first_boundary':
+         raise ValueError('R1_ROUTING_SLICES_INVALID')
+     def catalog(raw, field):
+@@ -135,6 +176,10 @@
+ def source_names(sources, cfg=None):
+     if deferred(cfg, sources=sources, read_pins=True):
+         return ()
++    declaration = routing_declaration(cfg)
++    if declaration is not None:
++        return declared_names({k:v for k,v in sources.items() if k not in AUDIT_SOURCE_NAMES},
++                              declaration, 'source')
+     from .r1_population import SLICE_CELLS
+     extra=set(sources)&set(PINS)
+     if extra and extra!=set(PINS):raise ValueError('R1_COVERAGE_SOURCES_INCOMPLETE')
+@@ -178,11 +223,14 @@
+     value=cfg.get('r1_training') or {};pin=value.get('wording_exclusion')
+     deferred(cfg, read_pins=True)
+     sources=load(pinned(value['row_sources'])) if value.get('row_sources') else {}
++    if value.get('row_sources') and routing_declaration(cfg) is not None:
++        source_names(sources, cfg)
+     extra=set(PINS)&set(sources)
+     if extra:
+-        source_names(sources)
++        source_names(sources, cfg)
+         if pin is None:raise ValueError('R1_WORDING_EXCLUSION_REQUIRED')
+         for name,h in PINS.items():
++            if name not in extra:continue
+             if sources[name]['source']['sha256']!=h:raise ValueError('R1_COVERAGE_SOURCE_PIN:'+name)
+             pinned(sources[name]['source'])
+     camera=value.get('camera_wording_exclusion')
+--- a/student_pilot/r1_population.py
++++ b/student_pilot/r1_population.py
+@@ -54,7 +54,7 @@
+ 
+ class Membership:
+     """Authenticate composed slice QIDs and source hashes; never infer them from prose."""
+-    def __init__(self, pin, *, minimal=False):
++    def __init__(self, pin, *, minimal=False, cfg=None):
+         self.pin = pin
+         self.minimal = minimal
+         value = load(pinned(pin))
+@@ -66,7 +66,17 @@
+             from .r1_coverage import deferred
+             deferred({'r1_training': {'routing_slices': 'deferred_first_boundary'}}, membership=value)
+         from .r1_coverage import PINS, EXTRA_PINS, source_names
+-        source_names(self.sources)
++        declaration = value.get('routing_slice_declaration')
++        configured = (cfg or {}).get('r1_training', {}).get('routing_slice_declaration')
++        if cfg is not None and (configured is not None or declaration is not None) and (not isinstance(declaration, dict)
++                or not isinstance(configured, dict) or declaration.get('sha256') != configured.get('sha256')):
++            raise ValueError('R1_ROUTING_MEMBERSHIP_DECLARATION_DIFFERS')
++        membership_cfg = {'r1_training': {'routing_slice_declaration': configured or declaration}} if declaration else cfg
++        source_names(self.sources, membership_cfg)
++        if declaration:
++            from .r1_coverage import routing_declaration
++            if value.get('deferred') != routing_declaration(membership_cfg)['deferred']:
++                raise ValueError('R1_ROUTING_MEMBERSHIP_DEFERRED_DIFFERS')
+         for kind, source in self.sources.items():
+             if kind not in (*SLICE_CELLS,*PINS,*EXTRA_PINS):
+                 raise ValueError('R1_SLICE_CELL_INVALID:'+kind)
+@@ -106,7 +116,7 @@
+     deferred(cfg, card=card)
+     if minimal:
+         deferred_card(card)
+-    membership = Membership(membership_pin, minimal=minimal)
++    membership = Membership(membership_pin, minimal=minimal, cfg=cfg)
+     groups = {c['type']:[] for c in card['cells']}
+     streams = {c['type']:c['stream'] for c in card['cells']}
+     unknown, pairs = Counter(), defaultdict(Counter)
+--- a/student_pilot/r1_routing.py
++++ b/student_pilot/r1_routing.py
+@@ -67,8 +67,12 @@
+     output.mkdir(parents=True, exist_ok=True)
+     members = dict(schema='r1-source-membership-v1', sources={
+         k:dict(source=v, rows={}) for k,v in sources.items()})
+-    from .r1_coverage import source_names
+-    if set(sources) != set(source_names(sources)):
++    from .r1_coverage import source_names, routing_declaration
++    declaration = routing_declaration(cfg)
++    if declaration is not None:
++        members['routing_slice_declaration'] = cfg['r1_training']['routing_slice_declaration']
++        members['deferred'] = declaration['deferred']
++    if set(sources) != set(source_names(sources, cfg)):
+         raise ValueError('R1_ROUTING_SLICES_REQUIRED')
+     for pin in sources.values():
+         pinned(pin)
+@@ -144,7 +148,7 @@
+             row = dict(row, routing={k:v for k,v in row['routing'].items() if k != 'ground_record'})
+         final.execute('INSERT INTO payloads VALUES(?,?,?)',(i,json.dumps(row),target))
+     write(output/'membership.json', members)
+-    membership = Membership(file_pin(output/'membership.json'))
++    membership = Membership(file_pin(output/'membership.json'), cfg=cfg)
+     for (raw,) in final.execute('SELECT row FROM rows ORDER BY i'):
+         membership.cell(json.loads(raw), 'routing')
+     final.commit()
+@@ -157,6 +161,9 @@
+         database=file_pin(output/'rows.sqlite'), division=base['division'], heldout_overlap=0, scene_role='train',
+         source_membership=file_pin(output/'membership.json'), base=base_pin,
+         per_source=dict(counts), refused=dict(refused), intake_evidence=evidence)
++    if declaration is not None:
++        result.update(routing_slice_declaration=members['routing_slice_declaration'],
++                      deferred=declaration['deferred'])
+     write(output/'receipt.json', result)
+     return result
+ 
+@@ -165,16 +172,31 @@
+     """Host envelopes must bind the exact source slices and independent scene coverage."""
+     from .r2_intake import intake
+     specs = load(pinned(cfg['r1_training']['row_sources']))
+-    from .r1_coverage import source_names, validate_binding
++    from .r1_coverage import source_names, validate_binding, routing_declaration, declared_names, deferred
+     validate_binding(cfg)
+-    names = source_names(specs)
++    declaration = routing_declaration(cfg)
++    names = source_names(specs, cfg) if declaration is not None else source_names(specs)
+     sources = {k:specs[k]['source'] for k in names}
++    if deferred(cfg):
++        raise ValueError('R1_DEFERRED_ROUTING_COMPOSITION')
+     staged = cfg['r1_training'].get('row_slice_inputs', sources)
++    if declaration is not None:
++        declared_names(staged, declaration, 'staged_source')
+     if set(staged) != set(sources) or any(staged[k]['sha256'] != v['sha256'] for k,v in sources.items()):
+         raise ValueError('R1_SLICE_SOURCE_DIFFERS:staging')
+     sources = staged
+-    manifests = cfg['r1_training']['routing_inputs']
++    manifests = (cfg['r1_training'].get('routing_inputs', {}) if declaration is not None
++                 else cfg['r1_training']['routing_inputs'])
++    if declaration is not None:
++        declared_names(manifests, declaration, 'envelope')
++        for kind in names:
++            try:
++                pinned(manifests[kind])
++            except (OSError, ValueError, TypeError, KeyError) as error:
++                raise ValueError('R1_ROUTING_ENVELOPE_MISSING_OR_CHANGED:'+kind) from error
+     catalog = load(pinned(cfg['r1_training']['source_membership']))
++    if declaration is not None and catalog.get('schema') == 'r1-source-catalog-v1':
++        declared_names(catalog.get('sources'), declaration, 'catalog')
+     if catalog.get('schema') != 'r1-source-catalog-v1' or set(catalog.get('sources', {})) != set(sources):
+         raise ValueError('R1_SOURCE_CATALOG_INVALID')
+     for kind, pin in sources.items():
+--- a/student_pilot/r2_intake.py
++++ b/student_pilot/r2_intake.py
+@@ -7,6 +7,7 @@
+ import gzip
+ import json
+ import os
++from .job_env import key as env_key
+ from pathlib import Path
+ import sys
+ from .p3_provenance import digest, load, pinned, write
+@@ -35,7 +36,7 @@
+         raise ValueError('Old-format or unnamed family manifest')
+     if manifest.get('trace_contract') != CONTRACT or manifest.get('validator_sha256') != SHARED_SHA256:
+         raise ValueError('Manifest contract or validator pin differs')
+-    remote_full = (limit is None and os.environ.get('STUDENT_R2_FRAME_HOST') == '1'
++    remote_full = (limit is None and os.environ.get(env_key('STUDENT_R2_FRAME_HOST')) == '1'
+                    and os.environ.get('STUDENT_R2_LOCAL_NODE') != '1'
+                    and not os.uname().nodename.startswith('trinity'))
+     if not remote_full and (type(limit) is not int or not 1 <= limit <= 2000):
+--- a/student_pilot/r2_materialize.py
++++ b/student_pilot/r2_materialize.py
+@@ -2,6 +2,7 @@
+ import argparse
+ import json
+ import os
++from .job_env import key as env_key
+ from pathlib import Path
+ import sqlite3
+ from .p3_provenance import digest, file_pin, write, load, pinned
+@@ -22,7 +23,7 @@
+                  or os.uname().nodename.startswith('trinity')):
+         raise ValueError('Full store forbidden on a local node; use slices of at most 2000 rows per family')
+     if full:
+-        if os.environ.get('STUDENT_R2_FRAME_HOST') != '1':
++        if os.environ.get(env_key('STUDENT_R2_FRAME_HOST')) != '1':
+             raise ValueError('Full materialization requires an explicit frame-host admission')
+         limit = None
+     output = Path(output)
+--- /dev/null
++++ b/tests/test_r1_patch_a2.py
+@@ -0,0 +1,52 @@
++"""Legacy native composition must refuse before opening the catalog or output."""
++import json
++import os
++from pathlib import Path
++import tempfile
++import unittest
++from unittest.mock import patch
++from student_pilot import r1_coverage as C, r1_routing as R
++from student_pilot.p3_provenance import file_pin
++
++
++class LegacyNative(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='patch_a2_', dir=os.environ.get('TMPDIR')))
++        self.serial = 0
++
++    def pin(self, obj):
++        self.serial += 1
++        p = self.root/(str(self.serial)+'.json')
++        p.write_text(json.dumps(obj))
++        return file_pin(p)
++
++    def refuse(self, cfg, key):
++        output = self.root/'output'
++        with patch.object(R, 'load', wraps=R.load) as loads, patch.object(R, 'compose', wraps=R.compose) as compose:
++            with self.assertRaises(KeyError) as raised:
++                R.compose_native(cfg, {}, output)
++            self.assertEqual(raised.exception.args, (key,))
++            self.assertEqual(str(raised.exception), repr(key))
++            self.assertEqual(loads.call_count, 1)
++            self.assertFalse(compose.called)
++        self.assertFalse(output.exists())
++
++    def test_deferred_refuses_recovery_before_catalog_or_output(self):
++        cfg = dict(r1_training=dict(routing_slices='deferred_first_boundary',
++            row_sources=self.pin({}), source_membership=self.pin(dict(sources={}))))
++        self.refuse(cfg, 'recovery')
++
++    def test_legacy_missing_routing_inputs_refuses_before_catalog_or_output(self):
++        source = self.pin({})
++        cfg = dict(r1_training=dict(row_sources=self.pin({k:dict(source=source)
++            for k in ('recovery', 'absolute_distance', 'units')})))
++        self.refuse(cfg, 'routing_inputs')
++
++    def test_final_camera_pin_is_fixed(self):
++        expected = 'e8cbda99f794540c9c0f716d1ae8ce451fd84e473598795c67237fe051acd2d0'
++        self.assertEqual(C.EXTRA_PINS['camera_wording'], expected)
++        self.assertEqual(C.CAMERA_SOURCE_SHA256, expected)
++
++
++if __name__ == '__main__':
++    unittest.main()
+--- /dev/null
++++ b/tests/test_r1_subset.py
+@@ -0,0 +1,155 @@
++"""Pinned routing subsets; tiny fixtures do not establish production admission."""
++from copy import deepcopy
++import itertools
++import json
++import os
++from pathlib import Path
++import sqlite3
++import tempfile
++import unittest
++from unittest.mock import patch
++from student_pilot import r1_coverage as C, r1_routing as R
++from student_pilot.p3_provenance import file_pin, load
++from student_pilot.r1_population import Membership
++
++FAMILIES = ('absolute_distance', 'units', 'coverage_distance', 'coverage_units', 'recovery', 'camera_wording')
++
++class Subsets(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='r1_subset_', dir=os.environ['TMPDIR']))
++        self.serial = 0
++
++    def write(self, value):
++        self.serial += 1
++        path = self.root / (str(self.serial)+'.json')
++        path.write_text(json.dumps(value))
++        return file_pin(path)
++
++    def config(self, names):
++        declaration = dict(schema='r1-routing-slices-v1', bound=list(names),
++            deferred={k:'Awaiting independently validated rows' for k in FAMILIES if k not in names})
++        return dict(r1_training=dict(routing_slice_declaration=self.write(declaration)))
++
++    def test_every_subset(self):
++        for n in range(7):
++            for names in itertools.combinations(FAMILIES, n):
++                with self.subTest(names=names):
++                    self.assertEqual(C.source_names(dict.fromkeys(names), self.config(names)), names)
++
++    def test_undeclared_source_refuses_by_name(self):
++        for name in ('recovery', 'foreign'):
++            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'R1_ROUTING_FAMILY_UNDECLARED:'+name):
++                C.source_names({**dict.fromkeys(FAMILIES[:4]), name:{}}, self.config(FAMILIES[:4]))
++
++    def test_missing_source_refuses_by_name(self):
++        with self.assertRaisesRegex(ValueError, 'R1_ROUTING_SOURCE_MISSING:recovery'):
++            C.source_names(dict.fromkeys(FAMILIES[:4]), self.config(FAMILIES[:5]))
++
++    def test_declaration_requires_all_reasons_and_valid_pin(self):
++        cfg = self.config(FAMILIES[:4])
++        pin = cfg['r1_training']['routing_slice_declaration']
++        value = load(pin['path'])
++        for change in ('missing', 'empty', 'overlap', 'duplicate', 'unknown', 'changed_pin'):
++            bad = deepcopy(value)
++            if change == 'missing': bad['deferred'].pop('recovery')
++            elif change == 'empty': bad['deferred']['recovery'] = ' '
++            elif change == 'overlap': bad['bound'].append('recovery')
++            elif change == 'duplicate': bad['bound'].append('units')
++            elif change == 'unknown': bad['bound'].append('foreign')
++            new = self.write(bad)
++            if change == 'changed_pin': new['sha256'] = '0'*64
++            with self.subTest(change=change), self.assertRaises(ValueError):
++                C.source_names(dict.fromkeys(FAMILIES[:4]), dict(r1_training=dict(routing_slice_declaration=new)))
++
++    def test_legacy_deferred_unchanged(self):
++        cfg = dict(r1_training=dict(routing_slices='deferred_first_boundary'))
++        self.assertEqual(C.source_names({}, cfg), ())
++        self.assertTrue(C.deferred(cfg))
++        for name in FAMILIES:
++            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'R1_MINIMAL_SLICE_BOUND:.*'+name):
++                C.source_names({name:{}}, cfg)
++
++    def test_deferred_and_subset_declarations_cannot_mix(self):
++        cfg = dict(r1_training=dict(routing_slices='deferred_first_boundary'))
++        cfg['r1_training']['routing_slice_declaration'] = self.config(())['r1_training']['routing_slice_declaration']
++        with self.assertRaisesRegex(ValueError, 'R1_ROUTING_DECLARATION_WITH_DEFERRED'):
++            C.source_names({}, cfg)
++
++    def tiny_base(self, cfg):
++        from student_pilot.carrier_c1_routing import ROUTING_SCHEMA
++        db = sqlite3.connect(':memory:')
++        db.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
++        db.commit()
++        (self.root/'base.sqlite').write_bytes(db.serialize()); db.close()
++        division = self.write(dict(train_scenes=['d1/fixture_clean'], heldout_scenes=['d1/held']))
++        cfg.update(dev_scene_exclusions=self.write(dict(schema='dev_s1_withhold_v1',
++            natives=['d1/dev'], rooms=['d1/dev'], physical_groups=['scannet/dev'],
++            canonical={'d1/dev':['scannet/dev']}, aliases={'d1/dev':['d1/vdev']})),
++            benchmark_scene_exclusions=self.write(dict(schema='benchmark_scene_exclusions_v1', scenes=['d1/benchmark'])))
++        return self.write(dict(schema=ROUTING_SCHEMA, stream='routing', database=file_pin(self.root/'base.sqlite'),
++            count=0, division=division, scene_role='train', heldout_overlap=0))
++
++    def test_composition_records_deferred_reasons_and_membership(self):
++        for names in (FAMILIES[:4], FAMILIES[:5], ('coverage_units',), ()):
++            with self.subTest(names=names):
++                cfg = self.config(names); base = self.tiny_base(cfg)
++                source = self.write({})
++                sources = dict.fromkeys(names, source)
++                row = dict(dataset='d1', scene='fixture_clean', question_type='camera_displacement',
++                    target='<think>The camera moves right between the shown frames.</think><answer>right</answer>')
++                batches = [(k, source, [dict(row=dict(row, qid='fixture_'+k))], source) for k in names]
++                result = R.compose(base, sources, batches, cfg, self.root/('compose_'+str(self.serial)))
++                self.assertEqual(result['count'], len(names))
++                self.assertEqual(result['per_source'], dict.fromkeys(names, 1))
++                declared = cfg['r1_training']['routing_slice_declaration']
++                self.assertEqual(result['routing_slice_declaration'], declared)
++                self.assertEqual(result['deferred'], load(declared['path'])['deferred'])
++                member = Membership(result['source_membership'], cfg=cfg)
++                self.assertEqual(set(member.sources), set(names))
++                self.assertEqual(set(Membership(result['source_membership']).sources), set(names))
++                relocated = deepcopy(cfg)
++                relocated['r1_training']['routing_slice_declaration'] = self.write(load(declared['path']))
++                self.assertEqual(set(Membership(result['source_membership'], cfg=relocated).sources), set(names))
++                bad = load(result['source_membership']['path']); bad['deferred'] = {}
++                if names != FAMILIES:
++                    with self.assertRaisesRegex(ValueError, 'MEMBERSHIP_DEFERRED_DIFFERS'):
++                        Membership(self.write(bad), cfg=cfg)
++
++    def test_native_missing_and_undeclared_envelopes(self):
++        # All source bytes are tiny test fixtures; no intake admission is claimed.
++        names = ('absolute_distance', 'units')
++        cfg = self.config(names); source = self.write({})
++        cfg['r1_training']['row_sources'] = self.write({k:dict(source=source) for k in names})
++        cfg['r1_training']['routing_inputs'] = {'absolute_distance':source}
++        with self.assertRaisesRegex(ValueError, 'R1_ROUTING_ENVELOPE_MISSING:units'):
++            R.compose_native(cfg, {}, self.root/'missing')
++        cfg['r1_training']['routing_inputs']['units'] = dict(path=str(self.root/'MISSING.json'), sha256='0'*64)
++        with self.assertRaisesRegex(ValueError, 'R1_ROUTING_ENVELOPE_MISSING_OR_CHANGED:units'):
++            R.compose_native(cfg, {}, self.root/'absent')
++        cfg['r1_training']['routing_inputs'] = {**dict.fromkeys(names, source), 'recovery':source}
++        with self.assertRaisesRegex(ValueError, 'R1_ROUTING_FAMILY_UNDECLARED:recovery:envelope'):
++            R.compose_native(cfg, {}, self.root/'undeclared')
++
++    def test_membership_declaration_must_be_configured(self):
++        cfg = self.config(FAMILIES[:4]); source = self.write({})
++        declaration = cfg['r1_training']['routing_slice_declaration']
++        member = self.write(dict(schema='r1-source-membership-v1',
++            sources={k:dict(source=source, rows={}) for k in FAMILIES[:4]},
++            routing_slice_declaration=declaration, deferred=load(declaration['path'])['deferred']))
++        with self.assertRaisesRegex(ValueError, 'R1_ROUTING_MEMBERSHIP_DECLARATION_DIFFERS'):
++            Membership(member, cfg=dict(r1_training={}))
++
++    def test_alias_registered_and_guard_obligations(self):
++        from student_pilot.job_env import ALIASES
++        from launch_r2 import runtime
++        self.assertEqual(ALIASES.get('STUDENT_R2_FRAME_HOST'), 'Q_E7')
++        with patch.object(runtime.inspect, 'getsourcelines', return_value=(['def intake(): pass\n'], 1)):
++            with self.assertRaisesRegex(ValueError, 'ambiguous or absent'):
++                runtime.obligations()
++
++    def test_camera_pin_is_tree_constant(self):
++        self.assertEqual(C.EXTRA_PINS['camera_wording'], C.CAMERA_SOURCE_SHA256)
++        source = Path(C.__file__).read_text()
++        self.assertNotIn('environ', source)
++
++if __name__ == '__main__': unittest.main()

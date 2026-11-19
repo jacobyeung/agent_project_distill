@@ -1,0 +1,68 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/code/s1_boundary.py": "ff133a7775e20aa16949c8c484d7a8c7b71a1644439099853cd4ce816d66a834",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/out/unit_final.log": "32573545986f0a988f9cf40d0e35a7f0e0451f43fdbf1aa09cb08dd95d6028b4",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/new/student_pilot/carrier_c1_run.py": "2f390baf6a01de99c86ccc01d6358af3705e5108af602a1b5945e0de0f427e2c",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/base/student_pilot/carrier_c1_run.py": "7de02b4630d59d05c7d57a6f4d51677727f05139a1a75b4a9c6943984ed7aee2",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/donor_orig/student_pilot/carrier_c1_run.py": "89adbb79bb1b7ca7c2d05cdfe4ad8e2e1b7394784c10ba5fe1133f8688b85736",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/new/launch_r1/entry.py": "14f5730f8c95c0b13f779f1d9a477693aafe464d3e87db3bf4766a68654d8ffb",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/base/launch_r1/entry.py": "14f5730f8c95c0b13f779f1d9a477693aafe464d3e87db3bf4766a68654d8ffb",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/donor_orig/launch_r1/entry.py": "14f5730f8c95c0b13f779f1d9a477693aafe464d3e87db3bf4766a68654d8ffb"
+  },
+  "status": "DOCUMENTED_NOT_IMPLEMENTED",
+  "reason": "Adding scale_donor changes the admitted config identity and native checkpoint binding. prepare/prepared alone cannot authorize the requested native resume. Extending restore/gx_rule_rebind changes resume legality; no such change is made.",
+  "preparation_requirement": "Fresh preparation with donor bound; current prepared() rejects a missing donor in the old receipt.",
+  "native_checkpoint_test": "Changed binding refuses; unchanged binding restores with donor attached and unchanged donor tensor pins.",
+  "functions": {
+    "student_pilot/carrier_c1_run.py:identity": {
+      "base_sha256": "f6524d7c720ddd8fed8bad3539803a6273e7f18b03bcbc92d7f2d73ab406ae32",
+      "donor_sha256": "f6524d7c720ddd8fed8bad3539803a6273e7f18b03bcbc92d7f2d73ab406ae32",
+      "patched_sha256": "f6524d7c720ddd8fed8bad3539803a6273e7f18b03bcbc92d7f2d73ab406ae32",
+      "unchanged_from_donor": true,
+      "unchanged_from_base": true
+    },
+    "student_pilot/carrier_c1_run.py:restore": {
+      "base_sha256": "05ab3f524df707f6522c161395c58f2ffd00abf7c4627c622c6f01cbfcfc31d2",
+      "donor_sha256": "05ab3f524df707f6522c161395c58f2ffd00abf7c4627c622c6f01cbfcfc31d2",
+      "patched_sha256": "05ab3f524df707f6522c161395c58f2ffd00abf7c4627c622c6f01cbfcfc31d2",
+      "unchanged_from_donor": true,
+      "unchanged_from_base": true
+    },
+    "student_pilot/carrier_c1_run.py:gx_rule_rebind": {
+      "base_sha256": "317f3d5b2da6c268302db6bb906677a1839fef3b40d25cf4a1d48f602d0ee303",
+      "donor_sha256": "317f3d5b2da6c268302db6bb906677a1839fef3b40d25cf4a1d48f602d0ee303",
+      "patched_sha256": "317f3d5b2da6c268302db6bb906677a1839fef3b40d25cf4a1d48f602d0ee303",
+      "unchanged_from_donor": true,
+      "unchanged_from_base": true
+    },
+    "student_pilot/carrier_c1_run.py:bind_output": {
+      "base_sha256": "4b30e4fedb64e7e11502c484ed12b31d35b77aa6cc06f096054b94972396a3e4",
+      "donor_sha256": "4b30e4fedb64e7e11502c484ed12b31d35b77aa6cc06f096054b94972396a3e4",
+      "patched_sha256": "4b30e4fedb64e7e11502c484ed12b31d35b77aa6cc06f096054b94972396a3e4",
+      "unchanged_from_donor": true,
+      "unchanged_from_base": true
+    },
+    "student_pilot/carrier_c1_run.py:prepare": {
+      "base_sha256": "1f8aff68a8ed86519ea1781b31027078e221d5a61eea24445b2b83c216323067",
+      "donor_sha256": "a16bc6e8158e920bf5e21d011f5850c89cacf6454a5962333425356dfd077385",
+      "patched_sha256": "a16bc6e8158e920bf5e21d011f5850c89cacf6454a5962333425356dfd077385",
+      "unchanged_from_donor": true,
+      "unchanged_from_base": false
+    },
+    "student_pilot/carrier_c1_run.py:prepared": {
+      "base_sha256": "6db4d9a9ffcb2ec45aa876fe819832b1e44c39bd9d50c106ce71e4540c987d9c",
+      "donor_sha256": "d3f92b0ea2b3925ef76b964591414ecd900d347d5b305352ddbe6a79ecf6e1e2",
+      "patched_sha256": "d3f92b0ea2b3925ef76b964591414ecd900d347d5b305352ddbe6a79ecf6e1e2",
+      "unchanged_from_donor": true,
+      "unchanged_from_base": false
+    },
+    "launch_r1/entry.py:admit": {
+      "base_sha256": "c0d4f34375980f5c492fc174a804404db284db77499acd09e38040620c0f7926",
+      "donor_sha256": "c0d4f34375980f5c492fc174a804404db284db77499acd09e38040620c0f7926",
+      "patched_sha256": "c0d4f34375980f5c492fc174a804404db284db77499acd09e38040620c0f7926",
+      "unchanged_from_donor": true,
+      "unchanged_from_base": true
+    }
+  },
+  "command": "python code/s1_boundary.py; native evidence: nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_unit.py"
+}

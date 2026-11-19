@@ -1,0 +1,93 @@
+--- a/student_pilot/r1_coverage.py
++++ b/student_pilot/r1_coverage.py
+@@ -5,7 +5,7 @@
+ SPLIT = '2463193d00fabda5c62d07027527f57a5943dd52ee2b346a215576e55d1abf19'
+ PINS = {'coverage_units':'8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82',
+         'coverage_distance':'15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022'}
+-CAMERA_SOURCE_SHA256 = '31914ba5470c1b5b7fac4ba52a13482cb6ce2965a732b69f6f57a55ed1fbe814'  # Tree owner replaces this pin after camera re-rendering.
++CAMERA_SOURCE_SHA256 = 'e8cbda99f794540c9c0f716d1ae8ce451fd84e473598795c67237fe051acd2d0'
+ EXTRA_PINS = {'camera_wording': CAMERA_SOURCE_SHA256}
+ CAMERA_WORDINGS = '0b6f8eb3fe99a1ccb011195778e0ecec89dce90ff13f0b6d90321c85955d6b86'
+ ROUTING_FAMILIES = ('absolute_distance', 'units', 'coverage_distance', 'coverage_units',
+--- a/student_pilot/r1_routing.py
++++ b/student_pilot/r1_routing.py
+@@ -172,18 +172,21 @@
+     """Host envelopes must bind the exact source slices and independent scene coverage."""
+     from .r2_intake import intake
+     specs = load(pinned(cfg['r1_training']['row_sources']))
+-    from .r1_coverage import source_names, validate_binding, routing_declaration, declared_names
++    from .r1_coverage import source_names, validate_binding, routing_declaration, declared_names, deferred
+     validate_binding(cfg)
+-    names = source_names(specs, cfg)
+     declaration = routing_declaration(cfg)
++    names = source_names(specs, cfg) if declaration is not None else source_names(specs)
+     sources = {k:specs[k]['source'] for k in names}
++    if deferred(cfg):
++        raise ValueError('R1_DEFERRED_ROUTING_COMPOSITION')
+     staged = cfg['r1_training'].get('row_slice_inputs', sources)
+     if declaration is not None:
+         declared_names(staged, declaration, 'staged_source')
+     if set(staged) != set(sources) or any(staged[k]['sha256'] != v['sha256'] for k,v in sources.items()):
+         raise ValueError('R1_SLICE_SOURCE_DIFFERS:staging')
+     sources = staged
+-    manifests = cfg['r1_training'].get('routing_inputs', {})
++    manifests = (cfg['r1_training'].get('routing_inputs', {}) if declaration is not None
++                 else cfg['r1_training']['routing_inputs'])
+     if declaration is not None:
+         declared_names(manifests, declaration, 'envelope')
+         for kind in names:
+--- /dev/null
++++ b/tests/test_r1_patch_a2.py
+@@ -0,0 +1,52 @@
++"""Legacy native composition must refuse before opening the catalog or output."""
++import json
++import os
++from pathlib import Path
++import tempfile
++import unittest
++from unittest.mock import patch
++from student_pilot import r1_coverage as C, r1_routing as R
++from student_pilot.p3_provenance import file_pin
++
++
++class LegacyNative(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='patch_a2_', dir=os.environ.get('TMPDIR')))
++        self.serial = 0
++
++    def pin(self, obj):
++        self.serial += 1
++        p = self.root/(str(self.serial)+'.json')
++        p.write_text(json.dumps(obj))
++        return file_pin(p)
++
++    def refuse(self, cfg, key):
++        output = self.root/'output'
++        with patch.object(R, 'load', wraps=R.load) as loads, patch.object(R, 'compose', wraps=R.compose) as compose:
++            with self.assertRaises(KeyError) as raised:
++                R.compose_native(cfg, {}, output)
++            self.assertEqual(raised.exception.args, (key,))
++            self.assertEqual(str(raised.exception), repr(key))
++            self.assertEqual(loads.call_count, 1)
++            self.assertFalse(compose.called)
++        self.assertFalse(output.exists())
++
++    def test_deferred_refuses_recovery_before_catalog_or_output(self):
++        cfg = dict(r1_training=dict(routing_slices='deferred_first_boundary',
++            row_sources=self.pin({}), source_membership=self.pin(dict(sources={}))))
++        self.refuse(cfg, 'recovery')
++
++    def test_legacy_missing_routing_inputs_refuses_before_catalog_or_output(self):
++        source = self.pin({})
++        cfg = dict(r1_training=dict(row_sources=self.pin({k:dict(source=source)
++            for k in ('recovery', 'absolute_distance', 'units')})))
++        self.refuse(cfg, 'routing_inputs')
++
++    def test_final_camera_pin_is_fixed(self):
++        expected = 'e8cbda99f794540c9c0f716d1ae8ce451fd84e473598795c67237fe051acd2d0'
++        self.assertEqual(C.EXTRA_PINS['camera_wording'], expected)
++        self.assertEqual(C.CAMERA_SOURCE_SHA256, expected)
++
++
++if __name__ == '__main__':
++    unittest.main()

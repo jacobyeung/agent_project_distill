@@ -1,0 +1,117 @@
+{
+  "checkpoints": [
+    200,
+    400,
+    800,
+    1600
+  ],
+  "configs": {
+    "A0_RUN1": {
+      "path": "A0_RUN1.json",
+      "rows": {
+        "count": 1280,
+        "name": "POSE32_V2",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/a0.json",
+          "sha256": "2e5a33e89b38815f07498867c2e263ac3435e1875c7f4d362f406700710c197a"
+        }
+      },
+      "sha256": "26a8eedf2303e23d15469fc9724108512948d8fc54d5d55d716cef579f1cc231"
+    },
+    "A0_RUN2": {
+      "path": "A0_RUN2.json",
+      "rows": {
+        "count": 1280,
+        "name": "POSE32_V2",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/a0.json",
+          "sha256": "2e5a33e89b38815f07498867c2e263ac3435e1875c7f4d362f406700710c197a"
+        }
+      },
+      "sha256": "cd07d2572448600d9648fb138bc3e9a2fe5af943e2974e7b966711166f78f149"
+    },
+    "A1_RUN1": {
+      "path": "A1_RUN1.json",
+      "rows": {
+        "count": 2560,
+        "name": "SECOND_SOURCE",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/a1.json",
+          "sha256": "6938bcd9077ef15e21450cf6c3b7d8e1c17d2216bbfe3f90d1de258c1f94c311"
+        }
+      },
+      "sha256": "83ed34935c278935d8cbfdacb87fda1bc709c826a20af9c8e672c7847b202188"
+    },
+    "A1_RUN2": {
+      "path": "A1_RUN2.json",
+      "rows": {
+        "count": 2560,
+        "name": "SECOND_SOURCE",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/a1.json",
+          "sha256": "6938bcd9077ef15e21450cf6c3b7d8e1c17d2216bbfe3f90d1de258c1f94c311"
+        }
+      },
+      "sha256": "a5826eac6234e8633a3e2c85dd38ffa168020e73851c2efb8b790e7a9759b9e2"
+    }
+  },
+  "inputs": {
+    "cpdm_config": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/cpdm.json",
+      "sha256": "1ee6f4ef4b2b24c504d6952a3dc705d6aa34f64cf469b5d0325bcb745641670f"
+    },
+    "f17": {
+      "full_weights": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/full_weights/full_weights.json",
+        "sha256": "ffdb224f2a0280fc47d9d655dc34ef59e4355e879b0757c44334818efb246611"
+      },
+      "heads": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/auxiliary_heads.pt",
+        "sha256": "23a994757d492ce932a4c961d9d6ee2379da97f6a5568f33b3597e9d1dadbe17"
+      }
+    },
+    "freeze_modules": [
+      "point_depth"
+    ],
+    "rows": {
+      "A0": {
+        "count": 1280,
+        "name": "POSE32_V2",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/a0.json",
+          "sha256": "2e5a33e89b38815f07498867c2e263ac3435e1875c7f4d362f406700710c197a"
+        }
+      },
+      "A1": {
+        "count": 2560,
+        "name": "SECOND_SOURCE",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/a1.json",
+          "sha256": "6938bcd9077ef15e21450cf6c3b7d8e1c17d2216bbfe3f90d1de258c1f94c311"
+        }
+      }
+    },
+    "run2": {
+      "geometry_config": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/geometry.json",
+        "sha256": "ba5f7d1155b3cdb2d83a1fb59f0786feec9cfa62cb88e8bef0c67297b6378f9e"
+      },
+      "geometry_weights": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/projector.safetensors",
+        "sha256": "3e301c6cc33e166c9e6ea96510e1ccce9212b80be194c1eed8d126dbf730848b"
+      },
+      "heads": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/prior_heads.pt",
+        "sha256": "803bdd481bc49f44857b3b934945e32b5b1703d2554e9fde45025c650c57458b"
+      }
+    },
+    "schema": "heads-only-build-v1"
+  },
+  "note": "Build only; native preparation and launch controls still apply.",
+  "request": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/heads_only_yohifwzt/request.json",
+    "sha256": "02c779d1c7af32c476d5e745df2b634b0fe9ed3c48ffc17aa003a2c00978523d"
+  },
+  "scheduler": "warmup_0.03_cosine_to_max_steps",
+  "schema": "heads-only-configs-v1"
+}

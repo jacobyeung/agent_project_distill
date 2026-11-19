@@ -1,0 +1,22 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; free -g | sed -n 2p; df -BG --output=avail /scratch | tail -1; tmux ls | grep -E "tr1[45]"
+cat > $W/prompts/build24kr2.md <<'EOPX'
+# Codex build 24kr2 of lane tree_rebuild: one native-path rehearsal that proves every path on the final kit, ready before the tree fix lands
+
+You run once, on trinity-1-18; nobody answers questions. Writable: under `K=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k`, only files whose names start with `rehearsal`, `make_rehearsal`, `check_rehearsal`, `go_rehearsal`, `REHEARSAL` or `FIXTURE`, plus new dirs `K/rehearsal_k2` and `K/rehearsal_k2_probe`. Read only: `K/rehearsal_k` (evidence), `w24/work/build24f/` (rehearsal2..5, rehearsal_copier5.py, rehearsal_runner5.py, REHEARSAL_FIX*_REPORT.md), kits in `w24/out/`, the tree `w24/work/tree_r1`. Never edit kits, packages, tree or `out/`. Binding prompts: `/scratch/jjyeung/orch_n30/tree_rebuild10_w/prompts/build24kr.md` and those it names (rules hold); read `K/REHEARSAL_K_FIX_REPORT.md` first. Time limit: 50 minutes.
+
+## Situation
+- Production blocker found by 24kr (P_EXPORT_RUN_BINDING_MISMATCH at r1_handover.py:348-352 on localised p_run pins) is being fixed in the tree by another build on another node (compare the preparation pin by sha256, schema and identity). Its tree arrives later with a kit reseal (24m) into `w24/out/kit_n_go`. The rehearsal must then run ONCE, unchanged, on that kit.
+- `build24f/go_rehearsal5.sh` on the 24k kit (CPU stand-in host): clock, fresh optimizer, step-1 and timed checkpoints, milestone export and the kit's own copier (gcs_m2.done) PASS; then `train_budget` refused on all ranks: `Missing or changed pinned input: /tmp/q_22c714e1/v.json` (`build24f/rehearsal5/train_budget.log`). Rehearsal run 4 (24i kit, `build24f/rehearsal4`) passed the budget self-stop and the resume, so compare how rehearsal4 and rehearsal5 authorise the budget phase and re-pin v.json.
+
+## Do
+1. Write `K/go_rehearsal_k.sh [kit_dir]` (keep the existing one as `K/go_rehearsal_k1.sh`; default kit `w24/out/kit_n_go`) that in one pass, into a fresh `K/rehearsal_k2`: runs the native q canary (`<kit>/b/a.py q`, host receipt from native q; only the review file is a fixture attachment), rooms (d.py), v.json (h.py, rv.py as the job does), then fresh, budget and resume training with the kit's OWN copier (as rehearsal_copier5.py: sessions dir 0700, sess.json 0600 with stand-in sessions, local target), with the budget/resume authorisation that works (fix the rehearsal5 v.json re-pin defect; say what it was and confirm it is fixture-only by reading how the production job re-enters for a resume). `K/check_rehearsal.py` prints one row per path: native host receipt, FSDP repro, clock, fresh optimizer/counter 0, finite losses 4 ranks, step-1 checkpoint, timed checkpoint, handover passes with localised pins, milestone export + local receipt + kit copier (gcs_m2.done hashes), TK_JOB_START self-stop, resume_pin latest + one step.
+2. Probe without the tree fix: in `K/rehearsal_k2_probe`, run the setup and the canary on the current kit; it must stop exactly at P_EXPORT_RUN_BINDING_MISMATCH (proves the harness reaches the handover). If localhost TCP or bwrap is refused in the sandbox, say so and stop there.
+3. Write `K/REHEARSAL_K2_REPORT.md` (under 15 lines): fixes, the probe's furthest point, the lane's command for the final kit.
+
+## Rules (restating build 21's)
+No ssh, network, Orchard, GPU, Git, tmux, scheduler or other agents. Never list, search or grep on /home or /data*: read only named files there. No deletion. Every CPU process runs under `nice -n 10` with at most 8 threads, under 20 GB RAM; each rehearsal dir under 1.5 GB (reuse read-only inputs by path). Do not change the tree, kits, config, admission or legality. Do not run the four-rank training.
+EOPX
+sha256sum $W/prompts/build24kr2.md | cut -c1-16
+tmux new -d -s tr15_b24kr2 "cd /home/jjyeung/agent_project_distill && nice -n 10 agent/scripts/codex_dispatch.sh implement $W/w24 $W/prompts/build24kr2.md --model gpt-6-astra --effort high --label tree_rebuild24kr2 --skip-git-check > $W/work/build24kr2_dispatch.log 2>&1"
+M=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/tree_rebuild/ops_mirror; ls $M | tail -5; test -e $M/tr15_b24k_2ace1de4.tar || cp $W/w24/out/tree_rebuild_b24k_2ace1de4.tar $M/tr15_b24k_2ace1de4.tar; sha256sum $M/tr15_b24k_2ace1de4.tar | cut -c1-16
+sleep 10; tmux ls | grep tr15

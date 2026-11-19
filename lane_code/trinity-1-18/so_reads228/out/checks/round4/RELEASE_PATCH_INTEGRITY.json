@@ -1,0 +1,102 @@
+{
+  "base_original_files_unchanged": 944,
+  "commands": [
+    {
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/bootstrap228.py",
+        "--input-A10b",
+        "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops/work/r1route/out3/A10b",
+        "--out",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round4/applied_release"
+      ],
+      "output": "release_patch_command_0.txt",
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "patch",
+        "--batch",
+        "--fuzz=0",
+        "-p1",
+        "-d",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round4/applied_release",
+        "-i",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/patches/01_trinity_adapter.diff"
+      ],
+      "output": "release_patch_command_1.txt",
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "nice",
+        "-n",
+        "10",
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round4/applied_release/read228/bootstrap228.py",
+        "--input-A10b",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round4/applied_release",
+        "--out",
+        "/scratch/jjyeung/orch_n30/so_reads228/work/round4/applied_release/read228/A10b"
+      ],
+      "output": "release_patch_command_2.txt",
+      "returncode": 0
+    }
+  ],
+  "git_calls": 0,
+  "gpu_runs": 0,
+  "patch_files": 75,
+  "patch_files_match": true,
+  "patch_sha256": "261e5437a55e79ada2a9fba875d75fd2661fd65a97f9371a57ec812de35d6347",
+  "python36_grammar_files": [
+    "common228.py",
+    "stage228.py",
+    "namespace228.py",
+    "inventory228.py",
+    "runtime228.py",
+    "runtime_registry228.py"
+  ],
+  "python_syntax_files": [
+    "operator228.py",
+    "unpack228.py",
+    "gpu228.py",
+    "bootstrap228.py",
+    "namespace228.py",
+    "runtime_registry228.py",
+    "compare228.py",
+    "observe228.py",
+    "stage228.py",
+    "ingest228.py",
+    "runner228.py",
+    "read228.py",
+    "inventory228.py",
+    "runtime228.py",
+    "install_extensions228.py",
+    "common228.py",
+    "worker228.py",
+    "return228.py",
+    "tests/test_review3.py",
+    "tests/test_kit.py",
+    "tests/operator_cpu_fixture.py",
+    "tests/test_stage2.py",
+    "tests/test_review2.py",
+    "tests/test_review.py",
+    "tests/test_prepare.py",
+    "tests/test_bootstrap36.py",
+    "tests/test_target_refusal.py"
+  ],
+  "round3_preserved_files": 1161,
+  "ssh_calls": 0
+}

@@ -1,22 +1,30 @@
-import json,hashlib
+import json,hashlib,re
 from pathlib import Path
 W=Path(__file__).resolve().parents[1];O=W/'out'
 def load(n):return json.loads((O/n).read_text())
 def pin(p):return dict(path=str(p),sha256=hashlib.sha256(p.read_bytes()).hexdigest())
 base=load('CPU_FINAL_base.json');new=load('CPU_FINAL_new.json');census=load('CENSUS_LOADER.json')
 rank={'PASS':0,'SKIP':1,'FAIL':2,'ERROR':3}
+def canonical(test_id):
+ if test_id.startswith('tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories '):
+  return re.sub(r"cwd='[^']*/production_import_[^/']+/(empty|kit)'",r"cwd='<temporary_fixture>/\1'",test_id)
+ return test_id
 def states(result):
  out={}
- for r in result['records']:
+ for raw in result['records']:
+  r=dict(raw,id=canonical(raw['id']))
   if r['id'] not in out or rank[r['status']]>rank[out[r['id']]['status']]:out[r['id']]=r
  return out
 bs,ns=states(base),states(new)
 regressions=[dict(test=k,base=bs[k],new=ns.get(k,'MISSING')) for k in bs if k not in ns or rank[ns[k]['status']]>rank[bs[k]['status']]]
 newtests=[v for k,v in ns.items() if k not in bs];bad_new=[v for v in newtests if v['status']!='PASS']
-old_failures={(r['id'],r['status']) for r in base['failed_cases']}
-new_failures=[r for r in new['failed_cases'] if (r['id'],r['status']) not in old_failures]
+assert all(bs[k].get('error')==ns[k].get('error') for k in bs if '<temporary_fixture>' in k)
+old_failures={(canonical(r['id']),r['status']) for r in base['failed_cases']}
+new_failures=[r for r in new['failed_cases'] if (canonical(r['id']),r['status']) not in old_failures]
 record={'status':'NO_NEW_FAILURE' if not regressions and not bad_new and not new_failures else 'REGRESSIONS_REQUIRE_REVIEW',
  'production_gate':'MISSING',
+ 'test_id_normalization':'Only randomized production_import temporary cwd prefixes are normalized; empty and kit remain distinct. Raw IDs and tracebacks are retained in CPU_FINAL JSONs.',
+ 'normalized_cases':[{"id":k,"base":bs[k],"new":ns.get(k)} for k in bs if '<temporary_fixture>' in k],
  'full_cpu':{label:{k:r[k] for k in ('modules_attempted','tests_run','failures','errors','skips','seconds','restrictions')} for label,r in [('base',base),('new',new)]},
  'regressions':regressions,'new_tests':newtests,'new_failed_cases_including_subtests':new_failures,
  'checks':{'base_seal':'PASS','patch_applies_to_sealed_base':'PASS','optional_absent_all_cells_in_diagnostic_harness':'PASS',

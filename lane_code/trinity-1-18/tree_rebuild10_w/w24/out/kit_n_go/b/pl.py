@@ -89,12 +89,30 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
                     if head in (b'{',b'['):
                         try:child=load(p)
                         except (ValueError,UnicodeError):return
-                        closure(child)
+                        # Follow the native stream-reader closure, not historical
+                        # provenance that the readers deliberately leave unopened.
+                        if isinstance(child,dict):
+                            for field in ('database','model','division','dense_indices'):
+                                if field in child:closure(child[field])
+                            for source in child.get('sources',[]):
+                                for field in ('receipt','model','dense_plan','teacher','clips_plan'):
+                                    if field in source:closure(source[field])
                 return
             for v in value.values():closure(v)
         elif isinstance(value,list):
             for v in value:closure(v)
     closure(cfg.get('streams',{}))
+    # P's regeneration recipe additionally consumes its materialization receipt.
+    # Authenticate that recipe and its inputs before the native hook copies bytes.
+    if regeneration and cfg.get('streams',{}).get('routing',{}).get('sha256')=='ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984':
+        with scope(sources):
+            p_config=load(pinned(cfg['r1_training']['p_run']['config']))
+            p_receipt=load(pinned(p_config['streams']['routing']))
+            closure(p_receipt['materialization'])
+            recipe=load(sources[p_receipt['materialization']['sha256']])
+        for field in ('inputs','legacy','division','base_model'):closure(recipe[field])
+        for h,p in recipe['inputs'].get('catalog',{}).items():
+            if h not in sources:remember(p,h)
     # Catalog keys authenticate the producer's row, removal and tokenizer inputs.
     for h,p in cfg.get('s1_routing',{}).get('catalog',{}).items():
         if h not in sources: remember(p,h)
@@ -142,6 +160,8 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
                 extras[dest]=p
                 return str(q/dest)
         return value
+    # Output locations are future destinations, never inputs to be copied.
+    cfg['output']=str(q/'r'); cfg['preparation_output']=str(q/'p0')
     cfg=localize(cfg)
     cfg['code']=dict(path=str(q/'source_code.json'),sha256=spec['code_sha256'])
     cfg['output']=str(q/'r'); cfg['preparation_output']=str(q/'p0')

@@ -49,3 +49,18 @@ Base: /scratch/jjyeung/orch_n30/cont_ops20/STATUS.md (17:45Z ROTATE section). To
 - Its card went to a preempt job (bkalita 173336). Told k1fwd1 to queue pending early (RESULT 2037Z).
 - Running: advanced 173243 D@200, 173258 H@544, 173333 own-arm; general 173259 H@200. Yield monitors c21_monA5 (173241 left, 173243, 173258), c21_monA6 (173333).
 - D@200 remainder script ready: work/o_drem200.sh (via ossh; stage 813f42db/c21d200r, bind_D200, REUSE_PARTS_FROM parent a/e, ends with CPU-check submission). Run it BEFORE work/o_fetch_D200.sh (the fetch moves the pool return to ae71c903_fetched; the script falls back to that path).
+## 20:52Z
+- D@200 173243 COMPLETED 20:45:54Z 580/580: no remainder. RESULT 2048Z; corpus 673bc60f_s200_R0dev_D580_173243; work/D200 (scores_D200.json, scores_D200_vs_D400.json). o_drem200.sh not needed.
+- 600 kit: fix 2b done (ctime rule; 31 link checks, 12 race refusals). Kit ready on trinity-1-18 cont_ops21_b/a600; stays unstaged (ANSWER 1853Z item 3).
+- advanced: 173258 H@544, 173333 own-arm, k1fwd1 173343. One card free; queue empty (RESULT 20261119T2051Z).
+- Remaining owed reads: H@544 (running), H@200 (running general), own-arm (running), 600 dose point (blocked).
+## 20:57Z
+- 600 kit mirror: trinity-3-30 work/a600_code_2055Z.tar (235 KB, sha 87e4a54b..., code only, no in/ or rehearsal/); master trinity-1-18 /scratch/jjyeung/orch_n30/cont_ops21_b/a600.
+- MISTAKE: aborted tar work/a600_kit_2052Z.tar (11.7 GB) on 3-30; QUESTION 2054Z + REMOVAL_CANDIDATES. /scratch free 86 GB.
+## 21:13Z
+- ORDER 2055Z: no file >5 MB on 3-30, mirrors on 1-18/2-28 (dry size listing first). 600 dose point GO on next advanced card (link-first, stop <300 GiB).
+- 600: built (stage 813f42db/c21a600, package a15_cot_apfdc9b2f878b7e, token fdc9b2f878b7e); fill pulled m600 (none on project; 360->340 GiB), "A filled, dry pass" 21:10Z; CPU check 173347 (preempt) pending. Then submit work/k600/o_adv_c600.sh (advanced, node community-1). Scoring: k600/score_c600.py wrapper over score_r5_look.py --step 600 (copy dir with READ_PLAN bound to 600; needs out4s-style dir: see REPORT_A600C.md).
+- k1fwd1 P400 173346 pending advanced; P544 173343 running.
+## 21:27Z
+- 600 GPU 173348 PENDING on advanced (community-1, Resources), yield monitor c21_monA7. k1fwd1 P400 173346 running.
+- ORDER 2122Z: trinity-1-18 at 101 GB; nothing >200 MB there; new builds go to trinity-2-28. My 1-18 removal candidates listed (a600 in/ 296 MB, rehearsal 89 MB).

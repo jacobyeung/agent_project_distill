@@ -160,7 +160,7 @@ def local_bytes(roots):
     seen=set();total=0;files=0
     for root in selected:
         for base,dirs,names in os.walk(root,followlinks=False):
-            for name in names:
+            for name in names+[d for d in dirs if (Path(base)/d).is_symlink()]:
                 p=Path(base)/name
                 stat=p.lstat();key=(stat.st_dev,stat.st_ino)
                 if key not in seen:seen.add(key);total+=stat.st_size;files+=1
@@ -202,16 +202,7 @@ def staging_receipts(plan):
 
 def reconcile(plan,extraction,data):
     files=extraction['files'];roots={g['destination'] for g in plan['input_archives']}
-    # Scan only the runtime trees named by archives, never all of /scratch/jjyeung.
-    for group in plan['runtime_archives']:
-        for name in extraction['runtime_members'][group['id']]['members']:
-            parts=Path(name['name']).parts
-            if not parts:continue
-            if parts[0]=='sj' and len(parts)>=3:
-                from runtime228 import runtime_path
-                roots.add(str(runtime_path(str(Path(*parts[:3])),group['namespace_map'])))
-            elif parts[0]=='fsw':roots.add(str(STAGE/'runtime/fsw'))
-            elif parts[:2]==('m','ap'):roots.add(str(STAGE/'runtime/m/ap'))
+    if plan.get('private_runtime'):roots.add(plan['private_runtime'])
     products=prepare_products(data) if (data/'READY.json').exists() else set()
     receipt=STAGE/'PREPARE_PRODUCTS.json'
     if receipt.is_file():
@@ -296,6 +287,7 @@ def _stage_check(root, cfg, inputs, export, *, prepare=False, check_env=True):
     if any(k.startswith('read_') for k in settings):raise Refusal('OFF settings contain extension switches')
     if shutil.disk_usage(data).free<plan['budget']['free_floor_bytes']:raise Refusal('Less than 200 GiB free on scratch')
     roots=[host_path(logical,plan),STAGE,root,HERE]
+    if plan.get('private_runtime'):roots.append(plan['private_runtime'])
     roots.extend(inventory_check.get('checked_roots',[]))
     if env_info:
         roots.extend(env_info.get('physical_runtime_roots',[env_info['prefix'],env_info['base_prefix']]))
@@ -305,7 +297,8 @@ def _stage_check(root, cfg, inputs, export, *, prepare=False, check_env=True):
     return dict(passed=True,utc=utc(),mode='OFF',plan_sha256=cfg['plan_sha256'],step=export['step'],
                 environment=env_info,ready=ready,source_files=927,footprint=footprint,extraction=extraction,
                 namespace=extraction['namespace'],inventory_check=inventory_check,runtime_requirements=required,
-                runtime_members=extraction['runtime_members'])
+                runtime_members=extraction['runtime_members'],
+                non_runtime_namespaces=[dict(namespace=n,**row) for n,row in plan.get('runtime_registry',{}).items() if row['kind']=='record_only'])
 
 def main(argv=None):
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('package')
@@ -344,7 +337,8 @@ def main(argv=None):
         result=dict(utc=utc(),passed=True,plan_sha256=sha(HERE/'STAGE_PLAN.json'),files=inventory)
         write(STAGE/'INPUT_EXTRACTION.json',result)
     elif a.extract_runtime:
-        from runtime228 import extract_runtime
+        from runtime228 import extract_runtimes
+        from runtime_registry228 import validate_registry
         plan=read(HERE/'STAGE_PLAN.json');mapping=archive_map(plan)
         for group in plan['runtime_archives']:
             for part in group['parts']:
@@ -354,14 +348,15 @@ def main(argv=None):
         limit=plan['budget']['runtime_expanded_allowance_bytes']
         if shutil.disk_usage(STAGE).free<limit+plan['budget']['free_floor_bytes']:raise Refusal('Insufficient runtime staging space')
         verify_runtime_pins(plan)
-        result=dict(files={},groups={});total=0
-        for group in plan['runtime_archives']:
-            print(utc()+' extracting '+group['id'],file=sys.stderr)
-            got=extract_runtime(group,mapping,limit=limit-total);total+=got['expanded_bytes']
-            overlap=set(result['files'])&set(got['files'])
-            if any(result['files'][p]!=got['files'][p] for p in overlap):raise Refusal('Runtime groups disagree on a member')
-            result['files'].update(got['files']);result['groups'][group['id']]=dict(archive_sha256=got['archive_sha256'],members=got['members'])
-        result.update(expanded_bytes=total,passed=True,plan_sha256=sha(HERE/'STAGE_PLAN.json'))
+        registry=validate_registry(plan)
+        print(utc()+' preflight all runtime archives (no extraction writes)',file=sys.stderr)
+        try:
+            result=extract_runtimes(plan['runtime_archives'],mapping,limit=limit)
+        except (Refusal,OSError,ValueError) as error:
+            write(STAGE/'STAGE_CHECK.json',dict(passed=False,phase='runtime_extraction',error=str(error),
+                private_runtime=plan['private_runtime'],registry=registry,utc=utc()))
+            raise
+        result.update(plan_sha256=sha(HERE/'STAGE_PLAN.json'),registry=registry,utc=utc())
         write(STAGE/'RUNTIME_EXTRACTION.json',result)
     else:
         target_host();result=stage_check(root,cfg,inputs,export,prepare=a.prepare)

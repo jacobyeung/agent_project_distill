@@ -8,12 +8,12 @@ from launch_r1.build import verify
 def files(k):return {str(p.relative_to(k)):J.sha(p) for p in k.rglob('*') if p.is_file()}
 records={}
 for name in ('q','n'):
- root=D/'sequence_native'/name;root.mkdir(parents=True,exist_ok=True);(root/'operator').mkdir(exist_ok=True)
+ root=D/'sequence_delivery'/name;root.mkdir(parents=True,exist_ok=True);(root/'operator').mkdir(exist_ok=True)
  source=(L/'work/build21/jobtest.py').read_text()
  source=source.replace('L=Path(__file__).resolve().parents[2]', 'L=Path('+repr(str(L))+')')
  source=source.replace("L/'work/build21/proofs/job'",'Path('+repr(str(root))+')')
  source=source.replace("B/'kits/q'",f"L/'work/build24/kits/{name}'")
- source=source.replace("B/'proofs/operator/",f"L/'work/build24k/sequence_native/{name}/operator/")
+ source=source.replace("B/'proofs/operator/",f"L/'work/build24k/sequence_delivery/{name}/operator/")
  source=source.replace("cls.spec['uploads']=[];", "cls.spec.pop('m4',None);cls.spec['host_paths']={};cls.spec['uploads']=[];")
  source=source.replace("source=dict(streams={},s1_routing={},preparation_output='/opaque/p')", "fixture_cfg=J.load(cls.kit/'k/n.json');fixture_cfg['r1_training'].pop('init_policy',None);(cls.kit/'k/n.json').write_bytes(capsule_json(fixture_cfg))\n        source=dict(streams={'routing':J.load(cls.kit/'k/n.json')['streams']['routing']},s1_routing=J.load(cls.kit/'k/n.json')['s1_routing'],preparation_output='/opaque/p')")
  source=source.replace("dict(model=model,streams={},config_sha256=", "dict(model=model,streams={key:dict(receipt=value) for key,value in source['streams'].items()},config_sha256=")
@@ -64,7 +64,7 @@ runpy.run_path(sys.argv[1],run_name='__main__')
  assert setup in source;source=source.replace(setup,setup+inject)
 
  source=source.replace("'Q_CAPTURE':'1'","'Q_CAPTURE':'0'")
- source=source.replace("        with (L/'work/build24k/sequence_native/","        self.before_job={str(p.relative_to(self.kit)):J.sha(p) for p in self.kit.rglob('*') if p.is_file()}\n        with (L/'work/build24k/sequence_native/")
+ source=source.replace("        with (L/'work/build24k/sequence_delivery/","        self.before_job={str(p.relative_to(self.kit)):J.sha(p) for p in self.kit.rglob('*') if p.is_file()}\n        with (L/'work/build24k/sequence_delivery/")
  a=source.index("        self.assertEqual(r.returncode,0,'See proofs/operator/shell.log')")
  b=source.index('\n    def test_room_report',a)
  source=source[:a]+"        self.last_returncode=r.returncode\n        self.after_job={str(p.relative_to(self.kit)):J.sha(p) for p in self.kit.rglob('*') if p.is_file()}\n        assert self.before_job==self.after_job\n"+source[b:]

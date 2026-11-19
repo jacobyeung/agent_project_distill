@@ -1,0 +1,29 @@
+INTERPRETER: 3.6.8
+FIXTURES: /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_g0rs7adj
+test_01_default_programs_and_commands_identical (__main__.SyncMove) ... ok
+test_02_moved_full_push_heartbeat_and_health (__main__.SyncMove) ... ok
+test_03_failure_heartbeat_and_retention (__main__.SyncMove) ... ok
+test_04_wrong_and_forbidden_hosts_all_entrypoints (__main__.SyncMove) ... ok
+test_05_legacy_moved_refused_and_early_heartbeat (__main__.SyncMove) ... ok
+test_06_remote_skip_scope_and_override (__main__.SyncMove) ... ok
+test_07_heartbeat_failure_does_not_change_run_status (__main__.SyncMove) ... ok
+test_08_loop_signal_exit_and_hourly_sleep (__main__.SyncMove) ... ok
+test_09_install_rollback_and_lock (__main__.SyncMove) ... ok
+test_10_input_integrity_and_syntax (__main__.SyncMove) ... ok
+test_11_legacy_default_generator_and_command_text_unchanged (__main__.SyncMove) ... ok
+test_12_heartbeat_for_lock_and_stage_only (__main__.SyncMove) ... ok
+test_13_installer_preimage_checksum_and_syntax_refusals (__main__.SyncMove) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 25.623s
+
+OK
+MEASURED default: 5 program.sh files; command counts {'git': 19, 'ssh': 4, 'bash': 2}; byte-identical
+HEALTH fresh: HEALTH last_verified=2026-11-19T21:00:00Z active=none
+HEALTH at 90m: HEALTH last_verified=2026-11-19T21:00:00Z active=none
+HEALTH at 90m+1s: EVENT /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_g0rs7adj/moved/events/20261119T223001Z_BLOCKER_code_sync_stale.md
+HEALTH last_verified=2026-11-19T21:00:00Z active=stale
+MEASURED heartbeat retention: 300 old + 4 current = 304 lines
+MEASURED host refusals: 40 checks
+LEGACY: generator/staging block and every driver Git/SSH/tssh source line byte-identical
+SECOND_INTERPRETER: python3.12 and python3.11 are unavailable on PATH

@@ -30,12 +30,17 @@ def bwrap_identity():
         selection='Execute /usr/bin/bwrap by coordinator ruling; package bwrap pin is recorded, not executed.')
 
 def namespace_command(plan=None):
-    plan=plan or read(HERE/'STAGE_PLAN.json');root=local(Path(plan['stage_root'])/'runtime')
-    if not (root/'sj').is_symlink() or (root/'sj').resolve()!=Path('/scratch/jjyeung'):
-        raise Refusal('Run --check-namespace to establish the package sj bind')
+    plan=plan or read(HERE/'STAGE_PLAN.json');root=local(plan.get('private_runtime',Path(plan['stage_root'])/'private_rt'))
+    if (root/'sj').is_symlink() or not (root/'sj').is_dir():
+        raise Refusal('Private runtime sj must be a real directory')
     argv=package_namespace().namespace(root)
-    # Keep the package binds; overlay only its logical root with this kit's private copy.
+    # Keep package runtime binds. Expose only named control paths, never private_rt/x.
     argv[0]=str(BWRAP)
+    for path in [HERE]+[Path(plan['stage_root'])/n for n in ('prepare','operator_probe','namespace_probe')]:
+        path=local(path)
+        if path.is_symlink():raise Refusal('Control bind is a symlink')
+        argv+=['--bind',str(path),str(path)]
+    argv+=['--chdir',str(HERE)]
     if plan.get('private_logical'):
         private=local(plan['private_logical'])
         if private.is_symlink() or not private.is_dir():raise Refusal('Private logical root must be a real directory')
@@ -49,17 +54,22 @@ def namespace_command(plan=None):
 
 def operator_command(inputs,*args,plan=None):
     """Probe and operator use the same namespace, wrapper, flags and entry file."""
-    return namespace_command(plan)+[inputs['python'],'-B','-I',str(HERE/'operator228.py')]+list(args)
+    argv=namespace_command(plan)
+    if args and args[0]=='--execute':
+        out=local(Path(args[1]).parent.parent)
+        if not out.is_dir() or out.is_symlink():raise Refusal('Operator output must be a real directory')
+        argv+=['--bind',str(out),str(out)]
+    return argv+[inputs['python'],'-B','-I',str(HERE/'operator228.py')]+list(args)
 
 def check_namespace(plan,env):
-    root=local(Path(plan['stage_root'])/'runtime');root.mkdir(parents=True,exist_ok=True)
-    sj=root/'sj'
-    if not sj.exists() and not sj.is_symlink():sj.symlink_to('/scratch/jjyeung',target_is_directory=True)
-    if not sj.is_symlink() or sj.resolve()!=Path('/scratch/jjyeung'):
-        raise Refusal('Existing runtime/sj is not the required bind alias; preserved')
-    for name in ('fsw','m/ap'):
+    root=local(plan.get('private_runtime',Path(plan['stage_root'])/'private_rt'));root.mkdir(parents=True,exist_ok=True)
+    for name in ('sj','fsw','m/ap'):
         path=root/name
-        if path.is_symlink():raise Refusal('Namespace source directory is a symlink')
+        if path.is_symlink():raise Refusal('Private runtime namespace source is a symlink')
+        path.mkdir(parents=True,exist_ok=True)
+    for name in ('prepare','operator_probe','namespace_probe'):
+        path=local(Path(plan['stage_root'])/name)
+        if path.is_symlink():raise Refusal('Control source is a symlink')
         path.mkdir(parents=True,exist_ok=True)
     if plan.get('private_logical'):
         private=local(plan['private_logical'])
@@ -84,9 +94,17 @@ def host_path(path,plan,_depth=0):
     mappings=[]
     if plan.get('private_logical'):mappings.append((plan['logical'],Path(plan['private_logical'])))
     if plan.get('environment',{}).get('local_base_python'):
-        mappings.append((UV,Path(plan['environment']['local_base_python']).parents[1]))
+        base=Path(plan['environment']['local_base_python']).parents[1]
+        mappings.extend(((UV,base),(str(base),base)))
+    if plan.get('private_logical'):
+        mappings.append((plan['private_logical'],Path(plan['private_logical'])))
     if plan.get('stage_root'):
-        mappings.extend(((AP,Path(plan['stage_root'])/'runtime/m/ap'),(FSW,Path(plan['stage_root'])/'runtime/fsw')))
+        runtime=Path(plan.get('private_runtime',Path(plan['stage_root'])/'private_rt'))
+        mappings.extend(((str(plan['stage_root']),Path(plan['stage_root'])),
+                         (AP,runtime/'m/ap'),(FSW,runtime/'fsw')))
+        prefixes=[n for n in plan.get('runtime_registry',{}) if n.startswith('sj/')]
+        if not prefixes:prefixes=['sj/orch_cd','sj/envs','sj/uv-python']
+        mappings.extend(('/scratch/jjyeung/'+n[3:],runtime/n) for n in prefixes)
     for prefix,target in mappings:
         try:relative=path.relative_to(prefix)
         except ValueError:continue

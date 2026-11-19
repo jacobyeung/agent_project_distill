@@ -16,3 +16,9 @@ Brief: B/briefs/k1fwd1.md. Events B/events/k1fwd. Session /scratch/jjyeung/orch_
 - CPU checks: 173339 (P544), 173340 (P400, after). Review: tmux k1fwd_rev (codex_local review, review/ dir; verdict review/REVIEW.md).
 - Submit GPU (advanced, community-1): sbatch --account=mt01 --partition=advanced --qos=adv_4gpu_qos --nodelist=orchard-community-1 --gres=gpu:1 --cpus-per-task=16 --mem=200G --no-requeue --output=/dev/null --error=/dev/null --chdir=/tmp --job-name=a15_cot_ap<token> <token>.sh
 - Parity: compare P544 return own.npz vs trinity-1-18 /scratch/jjyeung/k1/own_170235/native/probe/<dir>/own.npz (<=1e-4 rel else stop).
+## 21:22Z
+- Review GO (codex receipt 20261119T203139Z_k1fwd_rev; copy review/REVIEW.md). CPU checks 173339/173340 PASS.
+- P544 173343 COMPLETED 21:11Z: 64 captures bit-identical to 170235 (PARITY_544.json in package dir; return a4676ff78ac1941b6 bd10367b).
+- P400 173346 RUNNING since ~21:11Z on community-1; model loaded, captures committing (21:20Z). Expected end ~22:36Z. Final return will be okh7/a15_cot_ap90eaf12c47ba5/f67f0b1118da0677/173346/a<token>/result.tar.gz.
+- Return plan: kb/pull_launch.py ORCHARD_FILE BYTES /scratch/jjyeung/orch_n30/sb_own400/in/own_400/own_400_<job>.result.tar.gz 3 (runs on 3-30, streams Orchard -> ratelimit -> ssh trinity-1-18.ib; nothing stored on 3-30; registered tier 3 priority 3, io-weight 1). Then on 1-18: verify sha, rename .partial, extract in own_400/ (layout = native/probe/<dir>/own.npz + PHASE_COMPLETE.json, COMPLETE.json, logs, metadata).
+- Yield: on launch GO scancel 173346 and rerun on general.

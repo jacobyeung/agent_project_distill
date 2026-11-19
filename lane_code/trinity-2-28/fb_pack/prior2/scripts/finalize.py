@@ -10,6 +10,8 @@ def sha(p):
  return h.hexdigest()
 def pin(p):return dict(path=str(p),sha256=sha(p))
 tests=load('TESTS.json');census=load('CENSUS_LOADER.json');files=load('FILES_TOUCHED.json');build=load('WEIGHT_BUILD.json')
+assert tests['status']=='NO_NEW_FAILURE'
+assert load('EVIDENCE_CHECK.json')['status']=='PASS'
 rows=[]
 b={ (r['clause'],r['difficulty']):r for r in census['first_1000_steps']['base']['answer_shares']}
 a={ (r['clause'],r['difficulty']):r for r in census['first_1000_steps']['enabled']['answer_shares']}
@@ -44,6 +46,7 @@ The guarded CPU runner attempts every existing module and records prohibited ope
 Comparison: `{tests['status']}`; {len(tests['regressions'])} worsened existing outcomes. `TESTS.json` includes subtest comparisons and new tests. Existing missing fixtures and restricted operations prevent an all-pass claim.
 
 Missing filter inputs, at their original 1-18 paths (apply the prompt’s mirror map):
+
 - `/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/build17/inputs/s.json`
 - `/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json`
 - `/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json`
@@ -61,6 +64,7 @@ export OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTW
 PY=/scratch/jjyeung/envs/p1cpu/bin/python
 nice -n 10 "$PY" scripts/setup.py                 # seal and 939 files
 patch --batch -p1 -d work/new -i "$PWD/out/PATCH_PRIOR.patch"
+mkdir -p work/recovered
 nice -n 10 "$PY" scripts/locate.py                # input availability
 nice -n 10 "$PY" scripts/recover_capsules.py      # exact card bytes
 nice -n 10 "$PY" scripts/missing_inputs.py        # missing pins and kit comparison

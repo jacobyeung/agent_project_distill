@@ -1,0 +1,542 @@
+# Pre-existing failures and errors
+
+Each entry retains the full traceback in TESTS.json. The commands are recorded in each suite JSON.
+
+## full
+
+- `unittest.loader._FailedTest.test_derive` (errors): ModuleNotFoundError: No module named 'common'
+- `unittest.loader._FailedTest.test_eval_hook` (errors): ModuleNotFoundError: No module named 'common'
+- `unittest.loader._FailedTest.test_gate` (errors): ModuleNotFoundError: No module named 'common'
+- `unittest.loader._FailedTest.test_gate_fullft` (errors): ModuleNotFoundError: No module named 'common'
+- `unittest.loader._FailedTest.test_geometry_headcall` (errors): ModuleNotFoundError: No module named 'common'
+- `unittest.loader._FailedTest.test_loop` (errors): ModuleNotFoundError: No module named 'common'
+- `unittest.loader._FailedTest.test_phase1_interface` (errors): ModuleNotFoundError: No module named 'common'
+- `unittest.loader._FailedTest.test_prefill` (errors): ModuleNotFoundError: No module named 'common'
+- `unittest.loader._FailedTest.test_protocol` (errors): ModuleNotFoundError: No module named 'common'
+- `unittest.loader._FailedTest.test_qwen` (errors): ModuleNotFoundError: No module named 'common'
+- `unittest.loader._FailedTest.test_training` (errors): ModuleNotFoundError: No module named 'common'
+- `tests.test_a1_decoder.DecoderTests.test_frames_allocation_workers_and_failed_scene_publish_no_receipt` (errors): PermissionError: Task guard refuses child process launch
+- `tests.test_a1_decoder.DecoderTests.test_parallel_stage_matches_serial_receipt_and_png_bytes` (errors): PermissionError: Task guard refuses child process launch
+- `tests.test_a1_pipeline.PipelineTests.test_aliases_hide_paths_and_reject_source_changes` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/work/h2/b10/rscan.py'
+- `tests.test_a1_pipeline.PipelineTests.test_jsonl_ranges_equal_single` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/work/h2/b10/rscan.py'
+- `tests.test_a1_pipeline.PipelineTests.test_masked_bank_readout_counts` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/work/h3/b14c/heldout32.npz'
+- `tests.test_a1_pipeline.PipelineTests.test_real_pinned_bank_and_census` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/work/h3/b14c/bank_validation.json'
+- `tests.test_a1_pipeline.PipelineTests.test_shards_equal_single_and_refuse_gaps_duplicates_and_changed_pins` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/work/h2/b10/rscan.py'
+- `tests.test_acceptance_cpu_e2e_r13.VideoAddressCap.test_video_address_reaches_native_prefill_and_eos_with_legal_cap` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/inputs/gv_fix/live_parity_adapter.py'
+- `setUpClass (tests.test_all_frames.AllFrameTests)` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `setUpClass (tests.test_benchmark_eval.HarnessTests)` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/benchmark_eval/prepare.py:prepare
+- `tests.test_c1_blockers.BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule` (errors): TypeError: BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule.<locals>.publish() got an unexpected keyword argument 'optimizer'
+- `tests.test_c1_blockers.BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows` (errors): TypeError: BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'
+- `tests.test_c1_masked_uv.MaskedOffFrameUv.test_a_rank_that_raises_mid_step_exits_without_teardown` (errors): PermissionError: Task guard refuses child process launch
+- `tests.test_c1_masked_uv.MaskedOffFrameUv.test_two_ranks_train_two_steps_on_a1_only_and_a3_batches` (errors): PermissionError: Task guard refuses child process launch
+- `tests.test_c1_pose_warm.Offset.test_steps_read_the_donor_order_after_its_last_step_and_resume_exactly` (errors): TypeError: Offset.test_steps_read_the_donor_order_after_its_last_step_and_resume_exactly.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'
+- `tests.test_c1_pose_warm.WarmStart.test_pose_only_receiver_equals_the_exported_donor` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_c1_provenance.ProvenanceTests.test_actual_runtime_imports_and_lazy_readout_sources_are_sealed` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_c1_validation_slice.ValidationPreparation.test_prepare_keeps_validation_out_of_training_counts` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_c1_validation_slice.ValidationPreparation.test_prepared_refuses_changed_pins_and_authenticates_validation_files` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_c1_validation_slice.ValidationRead.test_native_loop_reads_after_export_and_smoke_never_reads` (errors): TypeError: ValidationRead.test_native_loop_reads_after_export_and_smoke_never_reads.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'
+- `tests.test_carrier_c1_cp2.TraceRevisionCalculator.test_revision_3_11_rows_rerender_closest_as_one_min_line` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/derivgen/review_pool/POOL.jsonl'
+- `tests.test_carrier_c1_memory.MemoryTests.test_cpu_accumulation_and_checkpoint_resume_without_sockets` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_carrier_c1_prefix.PrefixTests.test_06_full_scale_virtual_store_native_prepare` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_carrier_c1_single_image.SingleImageTests.test_prepare_skips_paired_layout_only_for_single_images` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_carrier_c1_t0.PoseExclusions.test_pose_mix_receives_the_union_and_other_streams_do_not` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_carrier_c1_t0.T0Guards.test_fetch_substitutes_then_skips_and_checks_rows` (errors): ValueError: Final-mode row failure: stream=routing, index=0, local_errors=['ValueError: Complete routing row exceeds 16384 tokens']; no substitution
+- `tests.test_clean_offline_runner.DependencyGateTests.test_all_fifteen_integration_tests_have_explicit_real_dependencies` (errors): ModuleNotFoundError: No module named 'test_conversion'
+- `unittest.loader._FailedTest.test_clean_r1313` (errors): ModuleNotFoundError: No module named 'clean_r1313_fixture'
+- `unittest.loader._FailedTest.test_clean_source_review` (errors): ModuleNotFoundError: No module named 'clean_r1313_fixture'
+- `setUpClass (tests.test_conversion.ConversionTests)` (errors): FileNotFoundError: [Errno 2] No such file or directory: '<tree>/artifacts/data/detailed_audit_v1/audit_report.json'
+- `tests.test_conversion_regressions.RedecisionTests.test_real_3919_envelope_passes_but_unchanged_claim_identity_gate_rejects` (errors): KeyError: 'STUDENT_PILOT_ARCHIVED_RUN'
+- `tests.test_conversion_regressions.RequestBoundaryTests.test_request_projection_cannot_reach_labels_scoring_or_correctness` (errors): ModuleNotFoundError: No module named 'student_pilot.detailed_audit'
+- `unittest.loader._FailedTest.test_conversion_v2_integration` (errors): ModuleNotFoundError: No module named 'test_conversion_v2'
+- `tests.test_ddp.BatchTests.test_two_process_gloo_matches_single_process_loss_and_adapter_updates` (errors): PermissionError: [Errno 1] Operation not permitted
+- `tests.test_ddp_admission.RankAdmissionTests.test_actual_cuda_uuid_and_live_probe_are_recorded_per_rank` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_changed_protocol_and_mixed_labels_refuse` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_cuda_management_enumeration_mismatch_refuses` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_current_process_is_the_only_permitted_compute_pid` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_duplicate_gpu_and_cross_rank_work_identity_refuse` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_effective_allocator_setting_is_persisted_in_run_json_per_rank` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_expired_lease_refuses` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_foreign_compute_pid_refuses` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_fresh_entry_remains_strict_but_post_staging_probe_can_be_late` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_heartbeat_and_owner_are_rechecked_after_the_live_probe` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_missing_or_malformed_cuda_uuid_refuses_without_index_fallback` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_probe_failures_and_malformed_pid_output_fail_closed` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_stale_or_future_coordination_heartbeat_refuses` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_supplied_or_prior_successful_probe_cannot_bypass_new_occupancy` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_torch_cuda_uuid_objects_are_normalized` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_admission.RankAdmissionTests.test_torchrun_selects_the_rank_uuid_before_cuda_initialization` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_launch.DDPLauncherTests.test_supervisor_script_defaults_allocator_and_preserves_explicit_settings (configured=None)` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_launch.DDPLauncherTests.test_supervisor_script_defaults_allocator_and_preserves_explicit_settings (configured='')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_launch.DDPLauncherTests.test_supervisor_script_defaults_allocator_and_preserves_explicit_settings (configured='expandable_segments:False')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_launch.DDPLauncherTests.test_supervisor_script_defaults_allocator_and_preserves_explicit_settings (configured='max_split_size_mb:128')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_launch.DDPLauncherTests.test_supervisor_script_defaults_allocator_and_preserves_explicit_settings (configured='backend:native,expandable_segments:True')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_launch.DDPLauncherTests.test_supervisor_script_passes_optional_resume_directory_as_one_argument` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_launch.DDPLauncherTests.test_supervisor_script_preserves_uuid_order_and_uses_frozen_ddp_arguments` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_launch.DDPLauncherTests.test_supervisor_script_refuses_unsupported_rank_counts_before_launch` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_launch.DDPLauncherTests.test_supervisor_script_selects_explicit_fsdp_and_defaults_to_ddp` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_pipeline.DDPArchitectureTests.test_both_students_attach_exact_rank32_text_vision_and_merger_targets (student='onethinker')` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--OneThink--OneThinker-8B/blobs/763ecfdd3d193fde7dadc31b895c646d197472f3
+- `tests.test_ddp_pipeline.DDPArchitectureTests.test_both_students_attach_exact_rank32_text_vision_and_merger_targets (student='qwen35')` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--Qwen--Qwen3.5-9B/blobs/273ce437e01baf96a07cd9eb3d5f48bac8d7c657
+- `tests.test_ddp_pipeline.DDPProtocolTests.test_all_accepted_labels_propagate_without_clean_admission (label='ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW')` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_ddp_pipeline.DDPProtocolTests.test_all_accepted_labels_propagate_without_clean_admission (label='ZERO_CALL_V4_DIAGNOSTIC_PENDING_REVIEW')` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_ddp_pipeline.DDPProtocolTests.test_all_accepted_labels_propagate_without_clean_admission (label='FREEFORM_CN_DIAGNOSTIC_PENDING_REVIEW')` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_ddp_pipeline.DDPProtocolTests.test_all_rank_receipts_are_written_after_staging_before_model_loading` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_ddp_pipeline.DDPProtocolTests.test_clean_and_wrong_label_publication_remain_refused` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_ddp_pipeline.DDPProtocolTests.test_ddp_adapter_admission_does_not_open_target_rows` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_ddp_pipeline.DDPProtocolTests.test_finalize_retains_v2_schema_and_evaluation_accepts_ddp_receipt` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_ddp_pipeline.DDPProtocolTests.test_protocol_normalizes_and_hashes_v2_settings_and_full_runtime` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_ddp_pipeline.DDPProtocolTests.test_publication_records_checkpoint_resume_without_changing_schema` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_ddp_pipeline.DDPProtocolTests.test_smoke_partial_training_or_missing_rank_proof_cannot_publish` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_adapter_binding_returns_identical_bytes` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_admission_preprocessing_settings_and_single_gpu_launcher_are_byte_identical (path='student_pilot/lease.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_admission_preprocessing_settings_and_single_gpu_launcher_are_byte_identical (path='student_pilot/admission.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_admission_preprocessing_settings_and_single_gpu_launcher_are_byte_identical (path='student_pilot/diagnostic_data.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_admission_preprocessing_settings_and_single_gpu_launcher_are_byte_identical (path='student_pilot/batches.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_admission_preprocessing_settings_and_single_gpu_launcher_are_byte_identical (path='student_pilot/students.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_admission_preprocessing_settings_and_single_gpu_launcher_are_byte_identical (path='student_pilot/division.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_admission_preprocessing_settings_and_single_gpu_launcher_are_byte_identical (path='student_pilot/common.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_admission_preprocessing_settings_and_single_gpu_launcher_are_byte_identical (path='student_pilot/conversion.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_admission_preprocessing_settings_and_single_gpu_launcher_are_byte_identical (path='requirements.txt')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_admission_preprocessing_settings_and_single_gpu_launcher_are_byte_identical (path='scripts/diagnostic_gpu_batch.sh')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_clean_admission_preprocessing_settings_and_single_gpu_launcher_are_byte_identical` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_existing_training_evaluation_device_and_adapter_functions_are_byte_identical` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_preservation.DDPIsolationTests.test_single_gpu_admission_retains_reviewed_three_way_uuid_check` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_ddp_revision.DistributedAdmissionTests.test_delayed_rank_zero_write_precedes_every_model_boundary` (errors): PermissionError: [Errno 1] Operation not permitted
+- `tests.test_ddp_revision.DistributedAdmissionTests.test_one_failed_probe_exits_whole_job_nonzero` (errors): PermissionError: [Errno 1] Operation not permitted
+- `tests.test_ddp_revision.DistributedAdmissionTests.test_write_failure_refuses_every_rank_before_model_work` (errors): PermissionError: [Errno 1] Operation not permitted
+- `tests.test_ddp_revision.ReceiptBoundaryTests.test_nonzero_rank_waits_for_persisted_receipt_and_barrier` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_ddp_revision.UUIDRegressionTests.test_matching_malformed_uuid_must_refuse` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_ddp_revision.UUIDRegressionTests.test_three_way_probe_mismatch_and_malformed_values_refuse` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_decode_parity_r9.Diagnostics.test_real_stage_saves_failure_and_runs_b1_twice` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/scripts/gpu_routed_batch.py'
+- `tests.test_decoupled_pose_fix.PoseFixTests.test_fixed_native_v_and_vc_training_export_readout` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `setUpClass (tests.test_decoupled_prefetch.PrefetchTests)` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `tests.test_decoupled_resume.GlooResumeTests.test_two_ranks_resume_matches_uninterrupted` (errors): PermissionError: Task guard refuses child process launch
+- `setUpClass (tests.test_decoupled_startup.StartupTests)` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `setUpClass (tests.test_decoupled_v.DecoupledTests)` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `setUpClass (tests.test_decoupled_vc.PrivateEncoderTests)` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `setUpClass (tests.test_diagnostic.DiagnosticTests)` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--OneThink--OneThinker-8B/blobs/763ecfdd3d193fde7dadc31b895c646d197472f3
+- `tests.test_division_inheritance_protocol.InheritedProtocolTests.test_cli_freezes_and_reloads_inheritance_with_new_groups` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_division_inheritance_protocol.InheritedProtocolTests.test_reloading_rejects_missing_pins_edited_sides_and_changed_source_bytes` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_e2e_ground_tokens.GroundTokens.test_public_decode_attach_binds_and_loads_trained_opener_rows` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_e2e_ground_tokens.GroundTokens.test_reserved_rows_initialize_once_and_export_weights_restore_exactly` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_e2e_ground_tokens.GroundTokens.test_standalone_bundle_restores_the_two_learned_rows_without_training_inputs` (errors): ValueError: Default process group has not been initialized, please make sure to call init_process_group.
+- `tests.test_e2e_ground_tokens.GroundTokens.test_training_and_native_decode_gate_the_same_atomic_call_positions` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_e2e_ground_tokens.GroundTokens.test_two_opener_rows_train_with_a_frozen_lm_and_reload` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_e2e_merge.Integrated.test_mdg_limit_counts_the_longest_grounding_suffix` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_e2e_merge.Integrated.test_native_optimizer_runs_all_five_streams_with_half_reference_groups` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_e2e_shared_rows.SharedRows.test_export_artifact_warm_start_preserves_the_shared_rows` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_e2e_shared_rows.SharedRows.test_frozen_lm_routing_ce_trains_both_shared_input_and_output_rows` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_e2e_shared_rows.SharedRows.test_main_and_query_share_rows_and_only_two_embedding_rows_change` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_e2e_shared_rows.SharedRows.test_main_full_routing_suffix_logits_equal_without_adapters` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_e2e_shared_rows.SharedRows.test_warm_full_export_retains_learned_rows` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_full_ft_eval.CarrierTests.test_option_is_explicit_and_needs_a_camera_head` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_full_ft_eval.CarrierTests.test_prefill_embeddings_and_logits_equal_the_training_forward` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_full_ft_eval.CarrierTests.test_tampered_heads_refuse` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_full_ft_eval.EndToEndTests.test_cli_forwards_the_store_and_carriers` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/orchard_eval/contracts.py:load_generation
+- `tests.test_full_ft_eval.EndToEndTests.test_frozen_vlm_arm_with_geometry_store` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/orchard_eval/contracts.py:load_generation
+- `tests.test_full_ft_eval.EndToEndTests.test_full_weights_arm_with_camera_carriers` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/orchard_eval/contracts.py:load_generation
+- `tests.test_full_ft_eval.EndToEndTests.test_head_arm_scores_with_carriers` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/orchard_eval/contracts.py:load_generation
+- `tests.test_full_ft_eval.FullWeightsTests.test_frozen_vlm_publication_pins_base_and_attached_modules` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_full_ft_eval.FullWeightsTests.test_mixtures_and_receipt_mismatches_refuse` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_full_ft_eval.FullWeightsTests.test_pin_covers_the_export_and_the_load_is_exact_without_peft` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_full_ft_eval.FullWeightsTests.test_tampered_shard_index_or_manifest_refuses` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_full_ft_eval.GeometryTests.test_features_are_consumed_by_exactly_one_vision_forward` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_full_ft_eval.GeometryTests.test_store_is_required_pinned_and_checked` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_full_ft_eval.UnpairedAdapterTests.test_the_flag_maps_to_the_closure_semantics` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_g3t_patch_grid_store.PoolingTests.test_cells_sit_on_the_student_patch_grid_inside_the_valid_region` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_g3t_patch_grid_store.PoolingTests.test_grids_must_be_32_frame_and_mergeable (grid=(15, 8, 10))` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_g3t_patch_grid_store.PoolingTests.test_grids_must_be_32_frame_and_mergeable (grid=(16, 7, 10))` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_g3t_patch_grid_store.PoolingTests.test_grids_must_be_32_frame_and_mergeable (grid=(16, 8, 9))` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_g3t_patch_grid_store.PoolingTests.test_grids_must_be_32_frame_and_mergeable` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_gf1_review.ReviewRegression.test_nonzero_camera_base_tree_step_zero_logits` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/integ_v3/work/tree/student_pilot/__init__.py'
+- `tests.test_gf1_review.ReviewRegression.test_unpatched_dense64_non_square_impulse_to_input_id` (errors): NameError: name 'tvF' is not defined
+- `tests.test_ground_backend.DecodeTests.test_capture_and_stream_match_mdg_eval_features` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `collection:tests.test_ground_r2.py` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import
+- `collection:tests.test_ground_r3.py` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import
+- `tests.test_grounding_eval.GroundingEval.test_actual_scorer_accepts_record_schema_and_parses` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/aws_vg/evaluator/evalpath/__init__.py'
+- `tests.test_grounding_eval.GroundingEval.test_failed_items_resume_and_changed_binding_refuses` (errors): ModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'
+- `tests.test_grounding_eval.GroundingEval.test_group_one_prefill_and_resume` (errors): ModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'
+- `tests.test_grounding_eval.GroundingEval.test_group_sharding_and_missing_merge` (errors): ModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'
+- `tests.test_grounding_eval.GroundingEval.test_runtime_uses_routed_loaders_and_binds_gh_to_t0` (errors): ModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'
+- `tests.test_grounding_eval.GroundingEval.test_selection_and_metadata_guards` (errors): ModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'
+- `tests.test_grounding_eval.GroundingEval.test_to_ground_harness_format` (errors): ModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'
+- `tests.test_grounding_targets.GroundingTargets.test_audit_cli_reports_counts_entropy_and_size_bins` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_grounding_targets.GroundingTargets.test_grid_for_matches_native_video_processor` (errors): OSError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/scratch/jjyeung/orch_cd/p3_build/fixtures/qwen35_processor'. Use `repo_type` argument if needed.
+- `tests.test_grounding_train.Trainer.test_routed_loading_refuses_identity_drift` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_gx_carrier.GXTests.test_native_layout_matches_vendor_on_augmented_viewpoints (layout='duplicate')` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_gx_carrier.GXTests.test_native_layout_matches_vendor_on_augmented_viewpoints (layout='paired')` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_gx_carrier.GXTests.test_production_meta_header_and_strict_safetensors` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/gx_build/work/aws_probe/g3t_header.json'
+- `tests.test_gx_carrier.GXTests.test_student_frames_real_processor_and_square_padding` (errors): TypeError: 'NoneType' object is not subscriptable
+- `tests.test_gx_carrier.GXTests.test_vendor_bytes_digest_and_import_origin` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/c1r/work/D/g3t_src/vggt/__init__.py'
+- `tests.test_gxp_mix.MemoryFallback.test_bf16_exports_checkpoints_record_dtype_and_reject_mismatch` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_gxp_mix.NativeForward.test_cp1_m800_pose_and_depth_warm_start_keeps_step_zero_exact` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_gxp_mix.NativeForward.test_export_has_only_encoder_pins_and_reloads_strictly` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_gxp_mix.NativeForward.test_frozen_checkpoint_contains_no_encoder_tensors_or_optimizer_state` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `setUpClass (tests.test_gxp_mix.R6Regressions)` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_headcall_eval.HeadcallPinTests.test_heads_load_exactly_and_tokens_must_match` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_headcall_eval.HeadcallPinTests.test_pin_identity_and_refusals` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_headcall_eval.HeadcallRunTests.test_cli_and_wrapper_forward_the_option` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_headcall_eval.HeadcallRunTests.test_sidecars_scoring_and_summary` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `setUpClass (tests.test_headcall_fullft.EndToEndTests)` (errors): PermissionError: Task write boundary: /tmp/headcall_test_cache/hcfull_frames_<temporary>
+- `tests.test_headcall_fullft.FullExportTests.test_milestone_export_warm_starts_weights_and_heads_exactly` (errors): PermissionError: [Errno 1] Operation not permitted
+- `tests.test_headcall_fullft.IndexTests.test_rewritten_index_admits_and_joins` (errors): PermissionError: Task write boundary: /tmp/headcall_test_cache/hcfull_frames_<temporary>
+- `setUpClass (tests.test_headcall_fullft.RowTests)` (errors): OSError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/scratch/jjyeung/phase2_opus/in33/scratch/jjyeung/cursor_lanes/distill_pd_phase2_opus/assets/tiny_qwen35'. Use `repo_type` argument if needed.
+- `setUpClass (tests.test_headcall_fullft.SamplingTests)` (errors): OSError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/scratch/jjyeung/phase2_opus/in33/scratch/jjyeung/cursor_lanes/distill_pd_phase2_opus/assets/tiny_qwen35'. Use `repo_type` argument if needed.
+- `unittest.loader._FailedTest.test_integ_v314` (errors): ModuleNotFoundError: No module named 'prog_v2'
+- `unittest.loader._FailedTest.test_integ_v314_r2` (errors): ModuleNotFoundError: No module named 'prog_v2'
+- `tests.test_integrated_startup.IntegratedStartupTests.test_reviewed_batch_plan_block_is_exact_and_broadcast_from_rank_zero` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_integrated_startup.IntegratedStartupTests.test_reviewed_seed_validation_hunks_are_exact` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_integrated_startup.IntegratedStartupTests.test_source_receipt_and_warmstart_binding_keep_baseline_bytes (path='student_pilot/provisional_data.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_integrated_startup.IntegratedStartupTests.test_source_receipt_and_warmstart_binding_keep_baseline_bytes (path='student_pilot/provisional_cli.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_integrated_startup.IntegratedStartupTests.test_source_receipt_and_warmstart_binding_keep_baseline_bytes (path='student_pilot/warmstart.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_integrated_startup.IntegratedStartupTests.test_source_receipt_and_warmstart_binding_keep_baseline_bytes (path='student_pilot/ddp_admission.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_integrated_startup.IntegratedStartupTests.test_source_receipt_and_warmstart_binding_keep_baseline_bytes (path='student_pilot/ddp_checkpoints.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_integrated_startup.IntegratedStartupTests.test_source_receipt_and_warmstart_binding_keep_baseline_bytes (path='student_pilot/fsdp_training.py')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `collection:tests.test_integration_r2.py` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import
+- `tests.test_landing.LandingTests.test_clean_request_rejects_aliases_in_each_source_text_channel` (errors): ModuleNotFoundError: No module named 'student_pilot.detailed_audit'
+- `tests.test_landing.LandingTests.test_parallel_source_recheck_propagates_hash_drift` (errors): ModuleNotFoundError: No module named 'student_pilot.detailed_audit'
+- `tests.test_landing.LandingTests.test_perception_confidence_is_distinct_from_offline_task_score` (errors): ModuleNotFoundError: No module named 'student_pilot.detailed_audit'
+- `tests.test_landing.LandingTests.test_tool_observation_keeps_return_and_call_binding` (errors): ModuleNotFoundError: No module named 'student_pilot.detailed_audit'
+- `tests.test_landing.LandingTests.test_topup_uses_collector_selection_schema_and_initial_hash` (errors): ModuleNotFoundError: No module named 'clean_r1313_fixture'
+- `collection:tests.test_live_adapter_r3.py` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_artifact_round_trip_immutable_and_strict_without_stem_source` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_batch_attention_memory_is_shared_and_rows_are_safe` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_configuration_and_input_guards` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_default_parameter_count_by_module` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_labels_and_padding_do_not_interact` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_loss_formula_validity_deep_weights_and_iou_probability` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_point_sampling_determinism_normalization_and_nearest_targets` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_second_grid_and_stem_normalization` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_shapes_backward_and_detached_inputs (frames=1)` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_shapes_backward_and_detached_inputs (frames=2)` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_shapes_backward_and_detached_inputs (frames=32)` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mask_grounding_head.MaskGroundingHeadTests.test_zero_geometry_is_bit_identical_and_receives_gradients` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_mdg_eval.MDGEval.test_pointing_phase_writes_records_ground_and_report` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/ttower/work/sam3_a1/common.py'
+- `tests.test_mdg_eval.MDGEval.test_record_schema_threshold_and_reference_parser` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export
+- `tests.test_mdg_eval.MDGEval.test_runner_rejects_reference_output_and_changed_interfaces` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/work/w10_mdg/run.py'
+- `tests.test_mdg_eval.MDGEval.test_score_eroded_masks_area_bins_absence_and_paired_ci` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/ttower/work/sam3_a1/common.py'
+- `tests.test_mdg_eval.MDGEval.test_w10_top1_lifting_rle_and_native_resize` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export
+- `tests.test_mdg_eval.MDGEval.test_z_runner_native_context_uses_only_mdg_source` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export
+- `tests.test_mdg_eval.MDGEval.test_zz_runner_uses_native_tuning_grid_and_separate_ablation` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export
+- `tests.test_mdg_features.MDGFeatures.test_processor_unpatchify_round_trip_after_resize_rescale` (errors): NameError: name 'tvF' is not defined
+- `tests.test_mdg_rasters.MDGRasters.test_go_boundary_and_null_denominators (positives=25, recalled=23)` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_rasters.MDGRasters.test_go_boundary_and_null_denominators (positives=25, recalled=22)` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_rasters.MDGRasters.test_go_boundary_and_null_denominators (positives=0, recalled=0)` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_rasters.MDGRasters.test_native_export_journal_and_cli` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_rasters.MDGRasters.test_packed_export_union_counts_bins_and_metrics` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_rasters.MDGRasters.test_real_label_matching_and_non32_rejection` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_rasters.MDGRasters.test_rejects_anchor_mismatch` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_rasters.MDGRasters.test_rejects_tau_artifact_missing_and_duplicate_exports (field='tau')` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_rasters.MDGRasters.test_rejects_tau_artifact_missing_and_duplicate_exports (field='artifact')` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_rasters.MDGRasters.test_rejects_tau_artifact_missing_and_duplicate_exports (field='missing')` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_rasters.MDGRasters.test_rejects_tau_artifact_missing_and_duplicate_exports (field='duplicate')` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_rasters.MDGRasters.test_zero_instance_id_and_nonempty_union_below_individual_thresholds` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'
+- `tests.test_mdg_runtime.HostLauncher.test_dirty_checkout_rejects_without_launch` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_mdg_runtime.HostLauncher.test_failed_checkout_probe_rejects_without_launch` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_mdg_runtime.HostLauncher.test_launch_resume_and_changed_config_preserve_receipts_and_log` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_mdg_runtime.HostLauncher.test_sourced_environment_keeps_cuda_and_orders_native_packages_first` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `setUpClass (tests.test_mdg_runtime.Runtime)` (errors): ValueError: Default process group has not been initialized, please make sure to call init_process_group.
+- `tests.test_mdg_targets.MDGTargets.test_audit_cli_emits_each_negative_kind_with_four_used_rgb_frames` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_mdg_targets.MDGTargets.test_hf_tokenizer_directory_and_confusers_cli` (errors): OSError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/scratch/jjyeung/orch_cd/p3_build/fixtures/qwen35_processor'. Use `repo_type` argument if needed.
+- `tests.test_mdg_train.Trainer.test_real_head_targets_training_and_artifact_contract` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_merge11.MergeReview.test_real_9fix_export_has_bound_constants` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/work/merge11/legacy9fix_source.py'
+- `tests.test_multinode.MultinodeConfigTests.test_single_node_settings_and_hashes_match_base` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_multinode.MultinodeRankTests.test_each_node_binds_locally_and_merge_pins_every_partial` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_multinode_launch.CoordinatorProcessTests.test_already_trained_decision_skips_all_launchers` (errors): PermissionError: Task guard refuses child process launch
+- `tests.test_multinode_launch.CoordinatorProcessTests.test_node_zero_prepares_merges_locks_and_publishes_once` (errors): PermissionError: Task guard refuses child process launch
+- `tests.test_multinode_launch.CoordinatorProcessTests.test_resume_selection_is_shared_not_recomputed_on_peers` (errors): PermissionError: Task guard refuses child process launch
+- `tests.test_multinode_launch.CoordinatorProcessTests.test_smoke_reload_uses_a_separate_shared_phase` (errors): PermissionError: Task guard refuses child process launch
+- `tests.test_multinode_launch.MultinodeLauncherTests.test_invalid_multinode_launches_refuse` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_multinode_launch.MultinodeLauncherTests.test_single_node_output_is_identical_when_nn_nodes_is_unset_or_one` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_multinode_launch.MultinodeLauncherTests.test_static_rendezvous_and_local_rank_counts` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `collection:tests.test_native_selector84.py` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import
+- `collection:tests.test_native_selector_profile.py` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import
+- `tests.test_orchard.OrchardTests.test_27b_registry_shards_and_direct_cuda_load` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--Qwen--Qwen3.6-27B/blobs/ea32be691d17374c05b277246085e81b70e6ec0f
+- `tests.test_orchard.OrchardTests.test_bind_leases_and_require_rank_lease_accept_single_index_visibility` (errors): ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root
+- `tests.test_orchard.OrchardTests.test_unset_stage_frames_matches_9706ed7` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_orchard_eval_qwen36_27b.CheckpointTests.test_checkpoint_preserves_thinking_token_subset_and_manifest_sharding_controls` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/orchard_eval/contracts.py:load_generation
+- `tests.test_orchard_eval_qwen36_27b.CheckpointTests.test_generate_forwards_checkpoint_and_reauthenticates_all_sharded_call_sites` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/orchard_eval/contracts.py:load_generation
+- `tests.test_orchard_eval_qwen36_27b.CheckpointTests.test_three_row_checkpoint_preflight_generation_and_resume` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/orchard_eval/contracts.py:load_generation
+- `tests.test_orchard_eval_wrapper.OrchardEvalThinkingPassThroughTests.test_invalid_value_is_refused` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_orchard_eval_wrapper.OrchardEvalThinkingPassThroughTests.test_off_is_appended_for_a_qwen_base_cell (model='qwen35')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_orchard_eval_wrapper.OrchardEvalThinkingPassThroughTests.test_off_is_appended_for_a_qwen_base_cell (model='qwen36_27b')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_orchard_eval_wrapper.OrchardEvalThinkingPassThroughTests.test_off_is_refused_for_a_distilled_qwen_cell` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_orchard_eval_wrapper.OrchardEvalThinkingPassThroughTests.test_off_is_refused_for_a_onethinker_cell` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_orchard_eval_wrapper.OrchardEvalThinkingPassThroughTests.test_pinned_is_appended_for_any_cell` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_orchard_eval_wrapper.OrchardEvalThinkingPassThroughTests.test_printed_cli_invokes_the_orchard_eval_module` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_orchard_eval_wrapper.OrchardEvalThinkingPassThroughTests.test_unset_adds_no_thinking_flag` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_pd_build2.DepthInputTests.test_training_capture_feeds_full_grids` (errors): TypeError: DepthInputTests.test_training_capture_feeds_full_grids.<locals>.spy() got an unexpected keyword argument 'fov_override'
+- `tests.test_pd_build2.DepthInputTests.test_vit_order_matches_the_qwen_video_processor` (errors): NameError: name 'tvF' is not defined
+- `tests.test_pd_build2.HeadApiTests.test_session_matches_the_training_path (feature_layers=None)` (errors): TypeError: HeadApiTests.training_inputs.<locals>.spy_depth() got an unexpected keyword argument 'fov_override'
+- `tests.test_pd_build2.HeadApiTests.test_session_matches_the_training_path (feature_layers=[1, 2])` (errors): TypeError: HeadApiTests.training_inputs.<locals>.spy_depth() got an unexpected keyword argument 'fov_override'
+- `setUpClass (tests.test_phase3_terminator.Phase3TerminatorTests)` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--Qwen--Qwen3.5-9B/blobs/273ce437e01baf96a07cd9eb3d5f48bac8d7c657
+- `tests.test_precision_parity_r12.FeatureGate.test_real_native_fp32_and_saved_failure` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/work/tree/scripts/benchmark_own_vit_reread.py'
+- `tests.test_precision_parity_r12.ProbabilityGate.test_real_hfbackend_and_routed_native_fp32_same_crops` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/out/acceptance_inputs/REAL_T0_R6_2/bound/PARITY_CROPS_20.json'
+- `tests.test_probe_cache.ProbeCacheTests.test_corruption_and_symlink_receipts_never_skip_the_probe` (errors): ValueError: Probe cache requires an owned absolute path without symlinks
+- `tests.test_probe_cache.ProbeCacheTests.test_environment_receipt_is_mandatory_and_byte_pinned` (errors): ValueError: Probe cache requires an owned absolute path without symlinks
+- `tests.test_probe_cache.ProbeCacheTests.test_input_configuration_and_runtime_changes_force_fresh_probe` (errors): ValueError: Probe cache requires an owned absolute path without symlinks
+- `tests.test_probe_cache.ProbeCacheTests.test_miss_then_hash_pinned_reuse_of_identical_calibration` (errors): ValueError: Probe cache requires an owned absolute path without symlinks
+- `tests.test_probe_cache.ProbeCacheTests.test_reuse_ignores_only_run_local_frame_locations` (errors): ValueError: Probe cache requires an owned absolute path without symlinks
+- `tests.test_provisional.ProvisionalTests.test_clean_manifest_and_fixed_lease_are_byte_identical` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_provisional_pipeline.ProvisionalPipelineTests.test_benchmark_publication_validation_never_reads_training_rows` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_provisional_pipeline.ProvisionalPipelineTests.test_clean_adapter_validation_is_byte_identical` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_provisional_pipeline.ProvisionalPipelineTests.test_default_runtime_never_imports_provisional_implementation` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_provisional_pipeline.ProvisionalPipelineTests.test_generation_scores_and_tables_are_labeled_and_wrong_mode_refuses` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_provisional_pipeline.ProvisionalPipelineTests.test_heldout_adapter_admission_does_not_open_training_rows` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_provisional_pipeline.ProvisionalPipelineTests.test_heldout_scores_use_provisional_denominator_and_tag_every_row` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_provisional_pipeline.ProvisionalPipelineTests.test_paper_attempt_authority_survives_artifact_root_change` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_provisional_pipeline.ProvisionalPipelineTests.test_provisional_manifests_bind_requested_division_and_keep_holdout_answer_free` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_provisional_pipeline.ProvisionalPipelineTests.test_publication_carries_label_and_both_clean_receipt_directions_refuse` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_provisional_pipeline.ProvisionalPipelineTests.test_qwen35_publication_uses_the_matching_base_and_all_labels_are_explicit` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_qwen36_27b.LaunchArtifactTests.test_memory_summary_uses_each_rank_and_refuses_incomplete_smokes` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/out/smoke_qwen36_27b.sh'
+- `tests.test_qwen36_27b.LaunchArtifactTests.test_shell_and_embedded_python_syntax_without_launching (script='run_qwen36_27b.sh')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_qwen36_27b.LaunchArtifactTests.test_shell_and_embedded_python_syntax_without_launching (script='smoke_qwen36_27b.sh')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_qwen36_27b.LaunchArtifactTests.test_shell_and_embedded_python_syntax_without_launching` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/out/run_qwen36_27b.sh'
+- `setUpClass (tests.test_qwen36_27b.Qwen36Tests)` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--Qwen--Qwen3.6-27B/blobs/9f3dd1b1c6d0b43f4b33819dbdd1b60369f9006e
+- `tests.test_r1_build13.PopulationTests.test_absent_card_cell` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_base_cells_refused` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_binding_changed` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_composition_refusals` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_composition_replaces_base` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_membership_refusals` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_native_composition_envelopes` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_native_mixture_and_bound_producer` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_overlap` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_scene_subset` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_slice_identity` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_trinity_full_audit_refusal` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_type_table_and_single_facing` (errors): KeyError: 'R2_PROOFS'
+- `tests.test_r1_build13.PopulationTests.test_unassigned_type` (errors): KeyError: 'R2_PROOFS'
+- `collection:tests.test_r1_build14.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build15.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build16.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build17.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build18.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build19.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build20.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_export17.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build12.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build3.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build3_edges.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build3_gaps.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build3b.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build4.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build5.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build5_coverage.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build5_edges.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build5_faults.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build5_grammar.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build5_host_order.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build5_persistence.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build6.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build8.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build8_cache.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build8_direct.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build8_frames.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build9_cpu.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build9_identity.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build9_recovery.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `tests.test_r2_build9_requirements.RequiredTrainingRows.test_native_kit_records_named_refusals` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `tests.test_r2_build9fix.Fixes.test_native_stream_and_bound_scene_gate` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_build_n1.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_data_path.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_dense_decode.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_edges.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_families.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_final_guards.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_final_kits.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_host_runtime.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_launch_dispatch.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_models.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_n1fix.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_n1fix2.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_n1fix3.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_native_config.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_policy.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_portable.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_preparation.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_refusals.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_sampling.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r2_shared_grammar.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `setUpClass (tests.test_readout_geometry.ReadoutGeometryTests)` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `collection:tests.test_rescue_claims_r2.py` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import
+- `collection:tests.test_review_r2_integration.py` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import
+- `tests.test_rg2p_policy.PolicyUnitTests.test_stop_request_records_the_first_signal_and_restores_handlers` (errors): PermissionError: Task forbids os.kill
+- `unittest.loader._FailedTest.test_room_v314` (errors): ModuleNotFoundError: No module named 'derivgen'
+- `tests.test_run_control_republish.RunControlPublicationTests.test_arm_c_dry_run_yields_the_hash_the_eval_harness_requires` (errors): PermissionError: Task forbids NFS reads: /data3/jjyeung/ddp_onethinker_c_onethinker_20260919T2100Z_active6/PUBLISHED.json
+- `tests.test_run_control_republish.RunControlPublicationTests.test_fresh_publish_keeps_the_cadence_in_run_control_and_58794b8_accepts_the_training_hash` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_run_control_republish.RunControlPublicationTests.test_recorded_run_control_must_be_normalized_and_hashed` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_run_control_republish.RunControlPublicationTests.test_republish_refuses_a_single_flipped_adapter_byte` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_run_control_republish.RunControlPublicationTests.test_republish_reproduces_the_adapter_and_the_run_control_hashes` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_s1_call_interception.InterceptionTests.test_long_native_tokenized_angle_is_intercepted` (errors): ValueError: Couldn't instantiate the backend tokenizer from one of:  (1) a `tokenizers` library serialization file,  (2) a slow tokenizer instance to convert or  (3) an equivalent slow tokenizer class to instantiate and convert.  You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.
+- `setUpClass (tests.test_s1_checkpoint_buffers.CheckpointBufferTests)` (errors): PermissionError: [Errno 1] Operation not permitted
+- `tests.test_s1_grounding_runtime.GroundingRuntimeTests.test_default_policy_and_frame_identity_are_bound` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/work/tmp/tests/runtime_backend'
+- `tests.test_s1_in_job_gate.InJobGateTests.test_reviewed_derivation_loads_from_a_restaged_host_directory` (errors): ValueError: MDG stream and configuration presence differ
+- `tests.test_s1_launch_kit.LaunchKitTests.test_guard_preserves_success_and_checks_progress_files` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_guard_requests_checkpoint_then_stops_only_its_child` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_job_entry_preserves_wrapper_allocation_clock (script='job.sh', inherited=None)` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_job_entry_preserves_wrapper_allocation_clock (script='job.sh', inherited='')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_job_entry_preserves_wrapper_allocation_clock (script='job.sh', inherited='1700000000')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_job_entry_preserves_wrapper_allocation_clock (script='b/r.sh', inherited=None)` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_job_entry_preserves_wrapper_allocation_clock (script='b/r.sh', inherited='')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_job_entry_preserves_wrapper_allocation_clock (script='b/r.sh', inherited='1700000000')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_native_attempt_marker_activates_the_steady_state_limit` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_new_run_chooses_training` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_ordinary_startup_files_do_not_activate_the_short_idle_limit` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_parseable_but_incomplete_checkpoint_never_restarts_cold` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_resume_requires_matching_binding_and_complete_payload_inventory` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_launch_kit.LaunchKitTests.test_slot_script_is_self_contained_and_syntax_valid` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_changed_binding_mirror_refuses` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_corrupt_restored_payload_refuses` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_first_job_claims_marker_and_may_start` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_foreign_run_marker_refuses` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_missing_slurm_identity_refuses_persistent_mode` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_new_job_with_prior_marker_refuses_cold_start` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_restored_native_state_and_verified_slot_resume` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_stale_local_checkpoint_refuses` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_unmarked_persistent_binding_refuses_a_new_first_leg` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_unverified_slot_does_not_admit_a_later_job` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_valid_but_foreign_binding_mirror_refuses` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_persistent_resume.PersistentResumeTests.test_verified_slot_without_restored_state_refuses` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_authorize_all_production_modes_without_importing_the_trainer (mode='p', overlays=False)` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_authorize_all_production_modes_without_importing_the_trainer (mode='p', overlays=True)` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_authorize_all_production_modes_without_importing_the_trainer (mode='t', overlays=False)` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_authorize_all_production_modes_without_importing_the_trainer (mode='t', overlays=True)` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_authorize_all_production_modes_without_importing_the_trainer (mode='u', overlays=False)` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_authorize_all_production_modes_without_importing_the_trainer (mode='u', overlays=True)` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_invalid_switch_refuses_without_importing_the_trainer` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_metadata_preflight_refuses_a_source_directory_that_hides_import_errors` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_metadata_preflight_refuses_rehearsal_without_bulk_staging` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_metadata_preflight_runs_native_authorization_without_persistent_state` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_preflight_cannot_be_selected_through_a_worker_cli_argument` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_preflight_precedes_persistent_state_and_bulk_payloads` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_production_gate_refuses_the_rehearsal_switch_without_a_trainer` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_supervisor_reaches_worker_tree_boundary_without_rehearsal_import` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_supervisor_refuses_non_numeric_allocation_without_a_trainer` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='<fixture>/empty')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='<fixture>/kit')` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `setUpClass (tests.test_s1_routing.NativeMaterializationTests)` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/leg_s1_tree/inputs/pool_s1_samples.json'
+- `tests.test_s1_routing.RoutingMaterializationTests.test_unflagged_vqa_keeps_every_direct_default_and_drops_every_routed_type` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/leg_s1_tree/out/ROUTING_POLICY_FROZEN_NO_FLAG.json'
+- `tests.test_s1_trained_groups.TrainedGroupTests.test_native_fsdp_restore_updates_the_published_module` (errors): torch.distributed.DistNetworkError: The server socket has failed to bind. port: 0, useIpv6: 0, code: -1, name: EPERM, message: operation not permitted
+- `tests.test_sam3_reference_r10.ReferenceParity.test_exact_fp32_reference_and_tower_real_processor` (errors): ModuleNotFoundError: No module named 'iopath'
+- `tests.test_sam3_reference_r10.ReferenceParity.test_launcher_stops_after_stage3_failure_and_continues_after_pass` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/scripts/run_gpu_acceptance.sh'
+- `tests.test_sam3_tower.TowerTests.test_normalization_matches_reference` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/ttower/work/sam3/common.py'
+- `tests.test_seed_config.SeedBatchTests.test_saved_batch_plan_hashes_configured_seed_and_preserves_default_bytes` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_seed_config.SeedConfigTests.test_default_seed_bytes_match_warmstart_baseline` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_sft_warmstart.WarmstartProductionLayoutTests.test_meta_qwen_world8_and_world16_accept_peft_compressed_target_selectors (student='qwen35', world=8)` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--Qwen--Qwen3.5-9B/blobs/273ce437e01baf96a07cd9eb3d5f48bac8d7c657
+- `tests.test_sft_warmstart.WarmstartProductionLayoutTests.test_meta_qwen_world8_and_world16_accept_peft_compressed_target_selectors (student='qwen36_27b', world=16)` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--Qwen--Qwen3.6-27B/blobs/9f3dd1b1c6d0b43f4b33819dbdd1b60369f9006e
+- `tests.test_sft_warmstart.WarmstartTests.test_config_option_is_content_only_and_default_normalization_matches_base` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_sft_warmstart.WarmstartTests.test_default_prepare_protocol_bytes_equal_f5d970c` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_sft_warmstart.WarmstartTests.test_publication_identity_reuses_rl_hash_scheme` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_source_receipt.SourceReceiptTests.test_any_manifest_byte_change_invalidates_the_receipt` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_changed_candidate_source_after_sealing_is_refused` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_forged_receipt_cannot_admit_a_changed_row` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_forged_receipt_cannot_admit_a_fitting_row_as_a_token_limit_drop` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_forged_receipt_cannot_admit_a_missing_or_foreign_row` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_receipt_admits_the_same_manifest_without_rereading_payloads` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_receipt_from_other_code_or_label_is_refused` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_receipt_rechecks_genuine_drops_from_their_own_payloads_only` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_receipt_refuses_undeclared_drops` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_seal_binds_exactly_the_bytes_it_validated` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_seal_only_writes_the_fixed_receipt_once` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_seal_refuses_a_manifest_that_fails_full_admission` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_source_receipt.SourceReceiptTests.test_without_receipt_or_when_disabled_the_full_admission_runs` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_spatial_pose.SpatialTests.test_all_frame_real_row_runner_caches_fused_grids` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `tests.test_spatial_pose.SpatialTests.test_all_frame_spatial_dispatch_gradients_reload_and_short_rows` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `tests.test_spatial_pose.SpatialTests.test_native_vc_gradient_export_readout_short_and_geometry` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `tests.test_spatial_pose.SpatialTests.test_real_row_runner_caches_once_and_reports_both_variants` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `tests.test_spatial_pose.SpatialTests.test_real_row_runner_skips_short_rows` (errors): ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'
+- `tests.test_stageb_mdg.StageB.test_absent_preparation_receipt_bytes_and_streams` (errors): trace_format.program_errors.ProgramRefusal: trace_program_version_missing
+- `tests.test_stageb_mdg.StageB.test_attach_init_artifact_and_export_identity` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_first_batch_ranks` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_fsdp_lifecycle_with_fake_group_is_not_gloo_proof` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_lora_artifact_pins_and_rank_mismatch` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_lora_fsdp_mixed_precision_keeps_fp32_adapters` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_lora_gate_skips_prefix_and_padding_and_restores_after_error` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_lora_gradients_cache_and_optimizer_isolation` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_lora_prefix_init_and_non_mdg_streams_are_bitwise_equal` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_lora_serial_resume_export_and_predict` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_native_forward_backward_modes_and_base_isolation` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_no_init_calibrates_only_the_reserved_training_slice` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_rank_zero_prefix_and_other_stream_bitwise_equal` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_serial_native_optimizer_checkpoint_resume_and_milestone` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `tests.test_stageb_mdg.StageB.test_standalone_stageb_bundle_loads_without_training_inputs` (errors): ValueError: Default process group has not been initialized, please make sure to call init_process_group.
+- `tests.test_stageb_mdg.StageB.test_suffix_call_count_is_equal_across_label_counts` (errors): ModuleNotFoundError: No module named 'torchvision'
+- `setUpClass (tests.test_stagefast.StagefastTests)` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_startup_receipt_native.NativeStartupReceiptTests.test_changed_base_weight_is_still_refused_on_gpu_startup_path` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_startup_receipt_native.NativeStartupReceiptTests.test_changed_dropped_target_is_refused_by_a_fresh_byte_hash` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_startup_receipt_native.NativeStartupReceiptTests.test_changed_kept_row_and_inventory_cannot_inherit_cpu_admission` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_startup_receipt_native.NativeStartupReceiptTests.test_native_seal_and_dropped_row_admission_match_cached_inputs` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_startup_receipt_native.NativeStartupReceiptTests.test_shared_inventory_preserves_all_original_rgb_pins` (errors): importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision
+- `tests.test_startup_training.StartupTrainingTests.test_disabled_cache_uses_original_probe_without_device_fingerprinting` (errors): ValueError: Probe cache requires an owned absolute path without symlinks
+- `tests.test_startup_training.StartupTrainingTests.test_first_step_memory_guard_refuses_before_optimizer_update` (errors): ValueError: Probe cache requires an owned absolute path without symlinks
+- `tests.test_startup_training.StartupTrainingTests.test_matching_calibration_skips_all_probe_forward_backward_work` (errors): ValueError: Probe cache requires an owned absolute path without symlinks
+- `tests.test_startup_training.StartupTrainingTests.test_mismatched_rank_cache_configuration_fails_collectively` (errors): ValueError: Probe cache requires an owned absolute path without symlinks
+- `tests.test_startup_training.StartupTrainingTests.test_new_configuration_and_resume_always_probe` (errors): ValueError: Probe cache requires an owned absolute path without symlinks
+- `tests.test_startup_training.StartupTrainingTests.test_one_rank_capacity_miss_makes_every_rank_probe` (errors): ValueError: Probe cache requires an owned absolute path without symlinks
+- `tests.test_storage.StorageTests.test_launcher_honors_explicit_venv_and_visible_device` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_storage.StorageTests.test_launcher_reports_an_unusable_explicit_venv` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_supervised_logits.MemoryLimitTests.test_probe_records_student_and_effective_limit` (errors): ValueError: Unsupported student architecture: qwen3_5
+- `collection:tests.test_svp_stages_r2.py` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import
+- `unittest.loader._FailedTest.test_trace_format313_decode` (errors): ModuleNotFoundError: No module named 'test_v312_ground'
+- `setUpClass (tests.test_tracecold.PromptParityTests)` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--Qwen--Qwen3.5-9B/blobs/273ce437e01baf96a07cd9eb3d5f48bac8d7c657
+- `tests.test_tracecold_operator.DiagnosticTransportTests.test_native_cohort_guard_reads_the_bound_json_admission_projection` (errors): ModuleNotFoundError: No module named 'tracecold_reference_eval.orchard_eval'
+- `tests.test_training.AdapterTests.test_exact_architecture_targets_on_meta (student='onethinker')` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--OneThink--OneThinker-8B/blobs/763ecfdd3d193fde7dadc31b895c646d197472f3
+- `tests.test_training.AdapterTests.test_exact_architecture_targets_on_meta (student='qwen35')` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--Qwen--Qwen3.5-9B/blobs/273ce437e01baf96a07cd9eb3d5f48bac8d7c657
+- `tests.test_training.AdapterTests.test_exact_architecture_targets_on_meta (condition='missing_projection')` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--Qwen--Qwen3.5-9B/blobs/273ce437e01baf96a07cd9eb3d5f48bac8d7c657
+- `collection:tests.test_verify_r2.py` (errors): ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import
+- `tests.test_vision_frozen_targets.FrozenTargetsAdapterTests.test_meta_students_freeze_vision_lora_and_the_optimizer_excludes_it (student='onethinker')` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--OneThink--OneThinker-8B/blobs/763ecfdd3d193fde7dadc31b895c646d197472f3
+- `tests.test_vision_frozen_targets.FrozenTargetsAdapterTests.test_meta_students_freeze_vision_lora_and_the_optimizer_excludes_it (student='qwen35')` (errors): PermissionError: Task forbids NFS reads: /data2/jjyeung/huggingface/hub/models--Qwen--Qwen3.5-9B/blobs/273ce437e01baf96a07cd9eb3d5f48bac8d7c657
+- `tests.test_vision_frozen_targets.FrozenTargetsCheckpointTests.test_checkpoint_records_the_option_and_resume_refuses_a_change` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_vision_frozen_targets.FrozenTargetsConfigTests.test_default_settings_bytes_and_digests_match_the_baseline_commit` (errors): PermissionError: CPU suite process isolation: child launch refused by task guard
+- `tests.test_c1_blockers.BlockerTests.test_exhausted_resume_saves_the_same_step_under_each_attempt` (failures): AssertionError: False is not true
+- `tests.test_carrier_c1_overfit.NativeCarrierOverfitTests.test_32_rows_200_steps_rotation_below_30_degrees (placement='append_after_temporal_group_video_tokens_bidirectional_v1')` (failures): AssertionError: 37.84130096435547 not less than 30.0
+- `tests.test_carrier_c1_t0.ExportLeg.test_export_leg_needs_a_resume_pin_and_no_smoke` (failures): AssertionError: "export leg" does not match "trace_program_version_missing"
+- `tests.test_carrier_c1_t0.ExportLeg.test_export_resume_state_reuses_an_existing_export` (failures): AssertionError: expected call not found. Expected: export(PosixPath('<fixture>/m1234'), 'wrapped', 'model', {'c': 1}, 1234)   Actual: export(PosixPath('<fixture>/m1234'), 'wrapped', 'model', {'c': 1}, 1234, optimizer=None, disk_guard=None)
+- `tests.test_carrier_c1_t0.FirstBatchCheck.test_records_finite_rows_substitutions_and_failures` (failures): AssertionError: False is not true
+- `tests.test_carrier_c1_t0.T0Teacher.test_head_graft_loads_pose_only_and_refuses_key_or_placement_drift` (failures): AssertionError: Tuples differ: (['depth', 'depth_readout', 'heading'], ['embed_po[41 chars]s1']) != (['depth'], ['embed_pose.bias', 'token_norm.weight[13 chars]s1'])  First differing element 0: ['depth', 'depth_readout', 'heading'] ['depth']  - (['depth', 'depth_readout', 'heading'], -  ['embed_pose.bias', 'token_norm.weight', 'trunk.0.ls1']) + (['depth'], ['embed_pose.bias', 'token_norm.weight', 'trunk.0.ls1']) ? +++++++++++
+- `tests.test_geometry_training.GeometryConfigTests.test_module_is_the_shared_byte_identical_copy` (failures): AssertionError: 'f0faffeed8d100dfb63d98872808aaf98945bba754078ea3d927b3a187259631' != 'e3fbcaacd836fe1491b197cf7d91b8bf7af68bfb18b1e7897fb9414b4e06e2c7' - f0faffeed8d100dfb63d98872808aaf98945bba754078ea3d927b3a187259631 + e3fbcaacd836fe1491b197cf7d91b8bf7af68bfb18b1e7897fb9414b4e06e2c7
+- `tests.test_gf1_cache.CachedBank.test_parity_cached_vs_online` (failures): AssertionError: Lists differ: [('bf16_tower_bf16_base_bf16_cache_pre_lm'[206 chars]se})] != []  First list contains 1 additional elements. First extra element 0: ('bf16_tower_bf16_base_bf16_cache_pre_lm', 'grad.norms.2.weight', {'max_abs': 1.5396857634186745e-05, 'max_rel': 0.017092852841054485, 'ref_max': 0.0009007775224745274, 'tolerance_rel': 0.015625, 'bf16_floor_rel': 0.016455502265547733, 'pass': False})  + [] - [('bf16_tower_bf16_base_bf16_cache_pre_lm', -   'grad.norms.2.weight', -   {'bf16_floor_rel': 0.016455502265547733, -    'max_abs': 1.5396857634186745e-05, -    'max_rel': 0.017092852841054485, -    'pass': False, -    'ref_max': 0.0009007775224745274, -    'tolerance_rel': 0.015625})]
+- `tests.test_gxp_mix.MemoryFallback.test_absent_keys_preserve_normalized_identity_and_fp32_output_bytes` (failures): AssertionError: Lists differ: ['a0091842f66e3306d0caf1c2acf0e495d82cf0212[156 chars]73b'] != ['657308f57b5a02d3a14add15e07a6e41c37419830[156 chars]30f']  First differing element 0: 'a0091842f66e3306d0caf1c2acf0e495d82cf0212d2c6eb4c1b00ea681eb4b9e' '657308f57b5a02d3a14add15e07a6e41c374198304a37d016df1ab34ac27ac69'  - ['a0091842f66e3306d0caf1c2acf0e495d82cf0212d2c6eb4c1b00ea681eb4b9e', -  'd3c11a82d17e8d00e29aba137a71a7215653f34217d4cb7b3c89fcaf04bd9f32', -  '1c00a7df7d61fef2482af1b02705e0e9048f91326a294a965ce6f93f41ca273b'] + ['657308f57b5a02d3a14add15e07a6e41c374198304a37d016df1ab34ac27ac69', +  '82668c672c6df471df1f81390b9c025961842e5a7f0d83e46c46d38b72131cbc', +  'd5213e36cf4ca7c2b4e0a4df2361e2a02e13490817a4b6a517a851034386530f']
+- `tests.test_probe_cache.ProbeCacheTests.test_private_cache_and_immutable_first_writer` (failures): AssertionError: "private" does not match "Probe cache requires an owned absolute path without symlinks"
+- `tests.test_provisional.ProvisionalTests.test_provisional_lease_records_real_host_uuid_and_rechecks_both` (failures): AssertionError: Tuples differ: ('trinity-0-18', 'GPU-00000000-0000-0000-0000-000000000003') != ('trinity-0-18', 'GPU-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')  First differing element 1: 'GPU-00000000-0000-0000-0000-000000000003' 'GPU-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'  - ('trinity-0-18', 'GPU-00000000-0000-0000-0000-000000000003') + ('trinity-0-18', 'GPU-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+- `tests.test_recording_pose_sparse.SparseTests.test_full_pose_rows_remain_byte_identical` (failures): AssertionError: '0b696d93dd9bb10e9dc39c95870c1a99372e9e641bd04c62d792f7ca66e7e605' != 'a16c0e5ce95c0ecd94880d27a7cb70122a8593f949fb391537fb7ff3cfe8daf6' - 0b696d93dd9bb10e9dc39c95870c1a99372e9e641bd04c62d792f7ca66e7e605 + a16c0e5ce95c0ecd94880d27a7cb70122a8593f949fb391537fb7ff3cfe8daf6
+- `tests.test_s1_in_job_gate.InJobGateTests.test_changed_proof_payload_and_foreign_parent_are_rejected` (failures): AssertionError: "bytes changed" does not match "MDG stream and configuration presence differ"
+- `tests.test_s1_in_job_gate.InJobGateTests.test_fixture_evidence_does_not_authorize_real_training` (failures): AssertionError: "rehearsal" does not match "MDG stream and configuration presence differ"
+- `tests.test_s1_in_job_gate.InJobGateTests.test_scene_coverage_cannot_be_omitted_or_rebound` (failures): AssertionError: "scene exclusion coverage" does not match "MDG stream and configuration presence differ"
+- `tests.test_s1_in_job_gate.InJobGateTests.test_self_consistent_unreviewed_configuration_change_is_rejected` (failures): AssertionError: "unreviewed training setting" does not match "MDG stream and configuration presence differ"
+- `tests.test_storage.StorageTests.test_code_provenance_records_commit_and_configuration_hash` (failures): AssertionError: 'cccccccccccccccccccccccccccccccccccccccc' != 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' - cccccccccccccccccccccccccccccccccccccccc + bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+- `tests.test_storage.StorageTests.test_code_provenance_refuses_a_dirty_tree` (failures): AssertionError: ValueError not raised
+
+## focused
+
+- `tests.test_c1_blockers.BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule` (errors): TypeError: BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule.<locals>.publish() got an unexpected keyword argument 'optimizer'
+- `tests.test_c1_blockers.BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows` (errors): TypeError: BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'
+- `tests.test_decode_parity_r9.Diagnostics.test_real_stage_saves_failure_and_runs_b1_twice` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/scripts/gpu_routed_batch.py'
+- `tests.test_decoupled_resume.GlooResumeTests.test_two_ranks_resume_matches_uninterrupted` (errors): PermissionError: Task guard refuses child process launch
+- `collection:tests.test_r1_build14.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build15.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build16.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build17.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build19.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build20.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_export17.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `tests.test_s1_trained_groups.TrainedGroupTests.test_native_fsdp_restore_updates_the_published_module` (errors): torch.distributed.DistNetworkError: The server socket has failed to bind. port: 0, useIpv6: 0, code: -1, name: EPERM, message: operation not permitted
+- `tests.test_c1_blockers.BlockerTests.test_exhausted_resume_saves_the_same_step_under_each_attempt` (failures): AssertionError: False is not true
+
+## live_focused
+
+- `tests.test_c1_blockers.BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule` (errors): TypeError: BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule.<locals>.publish() got an unexpected keyword argument 'optimizer'
+- `tests.test_c1_blockers.BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows` (errors): TypeError: BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'
+- `tests.test_decode_parity_r9.Diagnostics.test_real_stage_saves_failure_and_runs_b1_twice` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/scripts/gpu_routed_batch.py'
+- `tests.test_decoupled_resume.GlooResumeTests.test_two_ranks_resume_matches_uninterrupted` (errors): PermissionError: Task guard refuses child process launch
+- `collection:tests.test_r1_build14.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build15.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build16.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build17.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build19.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_build20.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `collection:tests.test_r1_export17.py` (errors): FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor2/fixtures/work/build6/INIT_INPUT.json'
+- `tests.test_s1_trained_groups.TrainedGroupTests.test_native_fsdp_restore_updates_the_published_module` (errors): torch.distributed.DistNetworkError: The server socket has failed to bind. port: 0, useIpv6: 0, code: -1, name: EPERM, message: operation not permitted
+- `tests.test_c1_blockers.BlockerTests.test_exhausted_resume_saves_the_same_step_under_each_attempt` (failures): AssertionError: False is not true
+

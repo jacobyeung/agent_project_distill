@@ -10,10 +10,10 @@ from launch_r1.entry import ASSERTIONS
 base=J.load(D/'review_tests/no_pass/node/q_22c714e1_91/prepared.json')
 cases=[('pass',None),('missing','R1_HOST_RECEIPT_MISSING'),('path','R1_HOST_RECEIPT_PATH_DIFFERS'),
     ('sha','R1_HOST_RECEIPT_INVALID'),('status','R1_HOST_RECEIPT_NOT_PASS'),('identity','R1_HOST_IDENTITY_DIFFERS'),
-    ('assertions','R1_HOST_ASSERTIONS_INCOMPLETE'),('audit','R1_HOST_LOADER_AUDIT_INCOMPLETE'),('symlink','R1_HOST_RECEIPT_MISSING')]
+    ('assertions','R1_HOST_ASSERTIONS_INCOMPLETE'),('audit','R1_HOST_LOADER_AUDIT_INCOMPLETE'),('symlink','R1_HOST_RECEIPT_PATH_DIFFERS')]
 records=[]
 for name,expected in cases:
- r=D/'host_pin_tests'/name;(r/'q').mkdir(parents=True);(r/'s').symlink_to(L/'work/tree_r1',target_is_directory=True)
+ r=D/'host_pin_tests_final'/name;(r/'q').mkdir(parents=True);(r/'s').symlink_to(L/'work/tree_r1',target_is_directory=True)
  cfg=deepcopy(base);host=dict(status='PASS',config_identity=identity(cfg),assertions=dict.fromkeys(ASSERTIONS,True),loader_audit={'complete':True})
  if name=='status':host['status']='FAIL'
  if name=='identity':host['config_identity']='0'*64

@@ -1,0 +1,86 @@
+{
+  "admission": "Deterministic validation creates only a candidate. Independent claim-by-claim review is mandatory before training or rollout.",
+  "answer": "Bare native answer body only, without <ANSWER> or <answer> tags; preserve every body byte, including whitespace, case, and numeric precision.",
+  "citation_normalization": "Collapse Unicode whitespace runs; the NFC fallback also collapses whitespace. Never use fuzzy, case-insensitive, or compatibility matching.",
+  "citation_occurrence": "Optional one-based index among overlapping matches in source order at the first matching search tier; required for ambiguity.",
+  "citation_offsets": "Code assigns start-inclusive/end-exclusive Unicode-character offsets in the ORIGINAL evidence text, never normalized-text offsets.",
+  "citation_search_order": [
+    "exact",
+    "whitespace_normalized",
+    "unicode_nfc"
+  ],
+  "claim_ids": "Code assigns c1, c2, ... in paragraph/claim reading order; do not submit IDs or offsets.",
+  "detailed_explanation": {
+    "coverage": "At least one separate claim for EACH distinct supporting observation used, plus each relationship, measurement, calculation, consequential correction, qualification, and conclusion. No uncited paragraph text or answer-only compression.",
+    "minimum_claims": 4,
+    "minimum_paragraphs": 4,
+    "required_purposes": [
+      "setup",
+      "observations",
+      "derivation",
+      "conclusion"
+    ]
+  },
+  "evidence_roles": {
+    "archived_tool_result": "tool_observation",
+    "assistant_tool_argument": "planner_statement",
+    "original_frame_metadata": "student_input_metadata",
+    "provider_thought_summary": "thinking",
+    "source_option": "student_input",
+    "source_question": "student_input",
+    "tool_observation": "tool_observation"
+  },
+  "numeric_support": "Every numeric literal in a claim must occur numerically in its resolved source quotes; sentence-final punctuation is not part of a number. This checks literal support, not calculation validity.",
+  "qualification_check": "For EVERY cited evidence entry, each detected family requires a sentence in a claim with a marker from that family AND a citation to a span in the SAME entry containing that family. Matching is case-insensitive with word boundaries; spaces and hyphens are equivalent. Uncited neighboring evidence still requires independent semantic review.",
+  "qualification_lexicon": {
+    "approximation": [
+      "around",
+      "approximately"
+    ],
+    "assumption": [
+      "assumption",
+      "assumptions",
+      "assume",
+      "assumed",
+      "assuming"
+    ],
+    "conflict": [
+      "discrepancy",
+      "discrepancies",
+      "conflict",
+      "conflicts",
+      "conflicting"
+    ],
+    "correction": [
+      "false positive",
+      "false positives",
+      "clearly wrong",
+      "correction",
+      "corrected"
+    ],
+    "uncertainty": [
+      "might"
+    ]
+  },
+  "tool_reference_check": "Reject lexicon words and snake_case identifiers in target prose, including tool identifiers found in the evidence. Private citation quotes are not target prose.",
+  "tool_reference_lexicon": [
+    "tool",
+    "tools",
+    "planner",
+    "code",
+    "python",
+    "function",
+    "functions",
+    "api",
+    "sam3",
+    "find_frames_with_object",
+    "predict_2d_segmentation_masks_video",
+    "predict_2d_segmentation_masks",
+    "predict_2d_points",
+    "predict_2d_bounding_box",
+    "execute_python_code",
+    "verify_plan_pre_execution",
+    "verify_plan_post_execution"
+  ],
+  "version": "v2"
+}

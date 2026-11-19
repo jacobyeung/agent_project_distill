@@ -1,0 +1,69 @@
+--- a/tools/lane_code_stage.sh
++++ b/tools/lane_code_stage.sh
+@@ -1,6 +1,16 @@
+ #!/bin/bash
+ # Sourced only in robust mode (environment switch or $S/LCS_ROBUST_SYNC file).
+ # Each source reuses incoming/accepted tar slots; only complete archives reach SCAN.
++LCS_HOST=${LCS_HOST:-trinity-3-30}
++if ! [[ "$LCS_HOST" =~ ^trinity-[0-9]+-[0-9]+$ ]] ||
++   [[ "$LCS_HOST" =~ ^(trinity|trinity-2-18|trinity-0-8|trinity-0-18|trinity-0-23|trinity-3-23)$ ]]; then
++  echo "REFUSED: invalid or forbidden LCS_HOST: $LCS_HOST" >&2
++  return 2 2>/dev/null || exit 2
++fi
++if [ "$(hostname -s)" != "$LCS_HOST" ]; then
++  echo "REFUSED: staging runs only on $LCS_HOST" >&2
++  return 2 2>/dev/null || exit 2
++fi
+ robust_config() {
+   export LCS_ROBUST_SYNC=1
+   # A regular configuration file lets the owner calibrate the existing tmux loop.
+@@ -93,8 +103,8 @@
+     printf -v receiver 'flock -n %q timeout --kill-after=%q %q bash -c %q' \
+       "$slot/incoming.lock" "$LCS_KILL_SECONDS" "$LCS_LEG_SECONDS" "$writer"
+     if [ "$remote" = 1 ]; then
+-      printf 'timeout --kill-after=%q %q ssh -o ConnectTimeout=20 -o ConnectionAttempts=1 -o BatchMode=yes trinity-3-30.ib %q\n' \
+-        "$LCS_KILL_SECONDS" "$LCS_LEG_SECONDS" "$receiver"
++      printf 'timeout --kill-after=%q %q ssh -o ConnectTimeout=20 -o ConnectionAttempts=1 -o BatchMode=yes %s.ib %q\n' \
++        "$LCS_KILL_SECONDS" "$LCS_LEG_SECONDS" "$LCS_HOST" "$receiver"
+     else
+       printf '%s\n' "$receiver"
+     fi
+@@ -109,11 +119,11 @@
+   [ "$DRY" = 1 ] && expected='PIPE 0'
+   snapshot=$(robust_snapshot "$slot")
+   printf '%s\n' "$snapshot" | sed "s|^|  [$label] |"
+-  if [ "$remote" = 1 ] && { [ "$label" = trinity-1-18 ] || [ "$label" = trinity-2-28 ]; } &&
++  if [ "$remote" = 1 ] &&
+       [ "$rc" = 66 ] && grep -Fxq "SKIP $label no orch_n30/source" <<< "$snapshot"; then
+     log "SKIP $label (no source root)"; return 0
+   fi
+-  if [ "$label" = trinity-2-28 ] && { [ "$rc" = 255 ] || [ "$rc" = 124 ] || [ "$rc" = 137 ]; } &&
++  if [ "$remote" = 1 ] && [ "$label" = trinity-2-28 ] && { [ "$rc" = 255 ] || [ "$rc" = 124 ] || [ "$rc" = 137 ]; } &&
+       ! grep -Eq '^(STATS|PIPE) ' <<< "$snapshot"; then
+     log "SKIP $label (unreachable or silent; rc=$rc)"; return 0
+   fi
+@@ -149,7 +159,11 @@
+ robust_stages() {
+   robust_config || return $?
+   local node rc command source label manifest slot
+-  REMOTE_NODES=${LCS_REMOTE_NODES:-"trinity-1-18 trinity-2-28"}
++  REMOTE_NODES=''
++  for node in trinity-1-18 trinity-2-28 trinity-3-30; do
++    [ "$node" = "$LCS_HOST" ] || REMOTE_NODES="${REMOTE_NODES:+$REMOTE_NODES }$node"
++  done
++  REMOTE_NODES=${LCS_REMOTE_NODES:-$REMOTE_NODES}
+   for node in $REMOTE_NODES; do
+     case "$node" in trinity-[0-9]-[0-9]|trinity-[0-9]-[0-9][0-9]) ;;
+       *) fail "invalid remote node $node"; continue ;; esac
+@@ -167,9 +181,9 @@
+     rc=$?
+     robust_finish "$node" "$rc" 1
+   done
+-  for label in trinity-3-30 orch_n30/tools orch_n30/briefs; do
++  for label in "$LCS_HOST" orch_n30/tools orch_n30/briefs; do
+     case "$label" in
+-      trinity-3-30) source=$LANES_ROOT; manifest=code_sync/meta ;;
++      "$LCS_HOST") source=$LANES_ROOT; manifest=code_sync/meta ;;
+       orch_n30/tools) source=$B/tools; manifest='' ;;
+       orch_n30/briefs) source=$B/briefs; manifest='' ;;
+     esac

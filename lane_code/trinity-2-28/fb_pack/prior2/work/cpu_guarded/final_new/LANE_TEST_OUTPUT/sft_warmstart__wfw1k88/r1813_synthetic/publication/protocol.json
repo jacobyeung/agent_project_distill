@@ -1,0 +1,99 @@
+{
+  "base": {
+    "files": [
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/cpu_guarded/final_new/LANE_TEST_OUTPUT/sft_warmstart__wfw1k88/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/chat_template.jinja",
+        "sha256": "e2a8ba8928104883526e8bf333b072ca691029a44be7eeaa457f1bbfae89347c"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/cpu_guarded/final_new/LANE_TEST_OUTPUT/sft_warmstart__wfw1k88/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/config.json",
+        "sha256": "20f7ef898c4fbdcb771a2d46dfac3b8516b7d2aa7c7d24c9bd841bd59b8bb5c8"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/cpu_guarded/final_new/LANE_TEST_OUTPUT/sft_warmstart__wfw1k88/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/model.safetensors.index.json",
+        "sha256": "9374066cc793df572cddd284606a44cdf520ae786c0eefa479425a68841bdd78"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/cpu_guarded/final_new/LANE_TEST_OUTPUT/sft_warmstart__wfw1k88/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/preprocessor_config.json",
+        "sha256": "602be2aa81e4e6bb86e6166243a74fa90db5ea57e9c404bb515e3a8e5c5568c6"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/cpu_guarded/final_new/LANE_TEST_OUTPUT/sft_warmstart__wfw1k88/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/processor_config.json",
+        "sha256": "2b0a2dc3cf051f6af5df0ba7d479f778791e41c7633241bf2c196a990bd09989"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/cpu_guarded/final_new/LANE_TEST_OUTPUT/sft_warmstart__wfw1k88/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/tokenizer.json",
+        "sha256": "5039be3c580d5e9c0d5fc6b6e4b93211f34072c5fce3f94f23ec591b57def326"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/cpu_guarded/final_new/LANE_TEST_OUTPUT/sft_warmstart__wfw1k88/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/tokenizer_config.json",
+        "sha256": "5de15032abcc46ef83673b67d9377faf19c9286037c89c614d085113880ed6ab"
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/cpu_guarded/final_new/LANE_TEST_OUTPUT/sft_warmstart__wfw1k88/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/video_preprocessor_config.json",
+        "sha256": "04acf19b7d506c03200f9446ebb99a8384dfee0f85480d42d1a10e173a8bf1c4"
+      }
+    ],
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "weight_shards": [
+      {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/cpu_guarded/final_new/LANE_TEST_OUTPUT/sft_warmstart__wfw1k88/base/c202236235762e1c871ad0ccb60c8ee5ba337b9a/model-00001-of-00001.safetensors",
+        "sha256": "fcbc7675f8391c04fe710026662940467ddb679645f614b21324a0e974cdb000"
+      }
+    ]
+  },
+  "base_sha256": "8e3fb3cbf78a88affdde5f847faf585fe09b1e8fe5a9c5dccf71478216605be5",
+  "benchmark_improvement_claim": false,
+  "benchmark_trained_diagnostic": true,
+  "infrastructure_only": false,
+  "protocol_version": "vlm-lora-ddp-v2",
+  "provisional_diagnostic": "ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW",
+  "result_status": "diagnostic, provisional",
+  "schema": "provisional-student-diagnostic-protocol-v1",
+  "score_nomination_allowed": false,
+  "selection_frozen_before_evaluation": true,
+  "student": "qwen35",
+  "training": {
+    "adapter_dtype": "float32",
+    "attention_implementation": "sdpa",
+    "base_restart": "original_checkpoint_only",
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "clip_norm": 1.0,
+    "effective_batch_size": 32,
+    "epochs": 1,
+    "gradient_checkpointing": "non_reentrant_text_and_vision",
+    "group_parameters": {
+      "mergers": 35840,
+      "text": 5409792,
+      "vision": 962496
+    },
+    "learning_rate": 5e-05,
+    "lora_alpha": 4,
+    "lora_dropout": 0.0,
+    "lora_rank": 2,
+    "loss_reduction": "mean_assistant_tokens_per_row_then_global_row_mean",
+    "max_microbatch_size": 8,
+    "max_sequence_tokens": 16384,
+    "max_steps": null,
+    "max_target_tokens_including_eos": 8192,
+    "memory_fit_safety_factor": 1.15,
+    "memory_fraction": 0.9,
+    "microbatch_size": "auto",
+    "optimizer": "AdamW",
+    "padding": "repeat_epoch_prefix_then_zero_weight_rank_slots",
+    "precision": "bfloat16",
+    "schedule": "cosine",
+    "seed": 17,
+    "shuffle": "python_random_seed17_plus_epoch",
+    "target_truncation": false,
+    "targets": "exact_text_attention_mlp_vision_attention_mlp_mergers",
+    "trainable_parameters": 6408128,
+    "version": "vlm-lora-ddp-v2",
+    "warmup_ratio": 0.03,
+    "weight_decay": 0.0,
+    "world_size": 8
+  }
+}

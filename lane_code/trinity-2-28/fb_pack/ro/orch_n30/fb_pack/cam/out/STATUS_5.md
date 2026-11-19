@@ -1,0 +1,1 @@
+Stage 5: All 6000 saved routing source rows match admission and lineage hashes. Both offending line forms occur in these P-source extracts. The complete P routing base is not local; its global counts are not claimed.

@@ -29,6 +29,8 @@ def execute(dispatch):
     target_host()
     out=local(dispatch['out']);cfg=dispatch['config'];card=dispatch['card'];end=dispatch['end']
     install_imports(cfg['package'])
+    from orchard_h10.common import install_process_guard
+    install_process_guard(out)
     sys.argv=[str(Path(cfg['package'])/'orchard_h10/entry.py'),'1.json']
     operator=load_module(dispatch['operator'],'read228_sealed_operator')
     from orchard_h10 import runner

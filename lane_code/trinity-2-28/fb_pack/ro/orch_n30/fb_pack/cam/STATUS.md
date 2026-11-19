@@ -1,0 +1,1 @@
+Stage 7: Camera packet is packaged and byte-verified: 73 archive members, 156272640 archive bytes, and less than 300 MB in this workspace. Native intake admits 5,143 rows and refuses only 836 eval-room overlaps. The report, checks and 40 trace pairs are complete; the supplementary gate document byte hash is MISSING.

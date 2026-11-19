@@ -79,7 +79,7 @@ class PackageTests(unittest.TestCase):
     def test_stage_budget_under_150gb(self):
         budget=read(HERE/'STAGE_PLAN.json')['budget']
         self.assertLess(budget['estimated_peak_bytes'],150_000_000_000)
-        self.assertEqual(budget['estimated_peak_bytes'],124166664744)
+        self.assertEqual(budget['estimated_peak_bytes'],94537720332)
 
     def test_path_map_preserves_pins_and_never_uses_project(self):
         plan=read(HERE/'STAGE_PLAN.json');mapping=stage228.archive_map(plan)

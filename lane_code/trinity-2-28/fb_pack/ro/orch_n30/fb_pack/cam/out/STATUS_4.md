@@ -1,0 +1,1 @@
+Stage 4: All 5979 rows retain questions, calls, responses, answers and GT. Printed-response GT mismatches: 0; held-out wording hits: 0 actual items and 0 instantiated templates. All 120 cell counts and 40 complete trace pairs are written.

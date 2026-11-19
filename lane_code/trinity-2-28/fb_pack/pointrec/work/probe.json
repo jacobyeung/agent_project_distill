@@ -1,0 +1,1106 @@
+{
+ "inputs": {
+  "/scratch/jjyeung/orch_n30/fb_pack/in/pointing/rows_c09bb5ca.sqlite": "c09bb5ca44158df467449f3c5fed865d81eb5520fb704785b19e73abc5536938",
+  "/scratch/jjyeung/orch_n30/fb_pack/point/out/rows_pointing_locate.sqlite": "d5362229ca7f6d6be7cb051c89bd096b5c7973658da4399b63c3ba6e88c042e0",
+  "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/tree_r1/configs/E2E-1C.json": "a1579c94956fc78d05b22bb6eddb64225b72f73d69e3045d9d2b3916a77f419c",
+  "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/tree_r1/configs/E2E-1G.json": "7903d574367a5899dd68eff7edec6f79fab0531c65b3b34b8972b854a270eca1",
+  "/scratch/jjyeung/orch_n30/fb_pack/pointrec/work/probe.py": "8edc285f6aba20dfde874db083bd203c2184f897386d4d0046de95002f9c6255",
+  "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/batches.py": "fde1ef381084d6f865cf89b57973c9058aa2a5c413be28021bb5835291775291",
+  "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/carrier_c1_data.py": "9ccee823404c8dc225c6f7d73a9f1c31d5b18cc40cd77a79c331c9021174b701"
+ },
+ "tokenizer": "MISSING real Qwen3.5 files on local /scratch; proxy = Qwen2-family pre-token regex, specials atomic",
+ "pointing_weights": {
+  "decision": 5.0,
+  "row_mean": 2.0
+ },
+ "examples": {
+  "0:null": {
+   "base": {
+    "prompt_tail": "tart|>assistant\n<think>\n",
+    "suffix": "\n</think>\n\n{\"point_2d\": null}<|im_end|><|endoftext|>",
+    "merged_boundary": true,
+    "n_supervised": 13,
+    "n_think": 3,
+    "think_weight_share": 0.1764706173633601,
+    "think_weight_sum_over_n": 0.35294118294349086,
+    "row_coefficient": 1.9999997065617487,
+    "decision_piece": " null",
+    "decision_weight": 7.647058963775635,
+    "json_token_weight": 1.529411792755127,
+    "tokens": [
+     {
+      "piece": "\n",
+      "weight": 1.5294,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "</think>",
+      "weight": 1.5294,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\n\n",
+      "weight": 1.5294,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "{\"",
+      "weight": 1.5294,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "point",
+      "weight": 1.5294,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "_",
+      "weight": 1.5294,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "2",
+      "weight": 1.5294,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "d",
+      "weight": 1.5294,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\":",
+      "weight": 1.5294,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " null",
+      "weight": 7.6471,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "}",
+      "weight": 1.5294,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|im_end|>",
+      "weight": 1.5294,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|endoftext|>",
+      "weight": 1.5294,
+      "tag": "pointing_format"
+     }
+    ]
+   },
+   "uniform": {
+    "prompt_tail": "tart|>assistant\n<think>\n",
+    "suffix": "\n</think>\n\n{\"point_2d\": null}<|im_end|><|endoftext|>",
+    "merged_boundary": true,
+    "n_supervised": 13,
+    "n_think": 3,
+    "think_weight_share": 0.23076923076923078,
+    "think_weight_sum_over_n": 0.23076923076923078,
+    "row_coefficient": 1.0,
+    "decision_piece": "\n",
+    "decision_weight": 1.0,
+    "json_token_weight": 1.0,
+    "tokens": [
+     {
+      "piece": "\n",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "</think>",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\n\n",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "{\"",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "point",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "_",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "2",
+      "weight": 1.0,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "d",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\":",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " null",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "}",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|im_end|>",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|endoftext|>",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     }
+    ]
+   },
+   "zero_think": {
+    "prompt_tail": "tart|>assistant\n<think>\n",
+    "suffix": "\n</think>\n\n{\"point_2d\": null}<|im_end|><|endoftext|>",
+    "merged_boundary": true,
+    "n_supervised": 13,
+    "n_think": 3,
+    "think_weight_share": 0.0,
+    "think_weight_sum_over_n": 0.0,
+    "row_coefficient": 2.0000004401573768,
+    "decision_piece": " null",
+    "decision_weight": 9.285715103149414,
+    "json_token_weight": 1.8571430444717407,
+    "tokens": [
+     {
+      "piece": "\n",
+      "weight": 0.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "</think>",
+      "weight": 0.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\n\n",
+      "weight": 0.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "{\"",
+      "weight": 1.8571,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "point",
+      "weight": 1.8571,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "_",
+      "weight": 1.8571,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "2",
+      "weight": 1.8571,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "d",
+      "weight": 1.8571,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\":",
+      "weight": 1.8571,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " null",
+      "weight": 9.2857,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "}",
+      "weight": 1.8571,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|im_end|>",
+      "weight": 1.8571,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|endoftext|>",
+      "weight": 1.8571,
+      "tag": "pointing_format"
+     }
+    ]
+   },
+   "locate": {
+    "prompt_tail": "tart|>assistant\n<think>\n",
+    "suffix": "Locate the lamp in frame 18: it is not visible in that frame.\n</think>\n\n{\"point_2d\": null}<|im_end|><|endoftext|>",
+    "merged_boundary": false,
+    "n_supervised": 29,
+    "n_think": 19,
+    "think_weight_share": 0.5757575478548808,
+    "think_weight_sum_over_n": 1.1515151714456493,
+    "row_coefficient": 2.000000131541285,
+    "decision_piece": " null",
+    "decision_weight": 8.78787899017334,
+    "json_token_weight": 1.7575757503509521,
+    "tokens": [
+     {
+      "piece": "Locate",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " the",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " lamp",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " in",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " frame",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " ",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "1",
+      "weight": 1.7576,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "8",
+      "weight": 1.7576,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": ":",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " it",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " is",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " not",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " visible",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " in",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " that",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " frame",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": ".\n",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "</think>",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\n\n",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "{\"",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "point",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "_",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "2",
+      "weight": 1.7576,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "d",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\":",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " null",
+      "weight": 8.7879,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "}",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|im_end|>",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|endoftext|>",
+      "weight": 1.7576,
+      "tag": "pointing_format"
+     }
+    ]
+   }
+  },
+  "3:visible": {
+   "base": {
+    "prompt_tail": "tart|>assistant\n<think>\n",
+    "suffix": "\n</think>\n\n{\"point_2d\": [778, 480]}<|im_end|><|endoftext|>",
+    "merged_boundary": true,
+    "n_supervised": 21,
+    "n_think": 3,
+    "think_weight_share": 0.11999998819260477,
+    "think_weight_sum_over_n": 0.2399999981834775,
+    "row_coefficient": 2.0000001816522506,
+    "decision_piece": " [",
+    "decision_weight": 8.399999618530273,
+    "json_token_weight": 1.6799999475479126,
+    "tokens": [
+     {
+      "piece": "\n",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "</think>",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\n\n",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "{\"",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "point",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "_",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "2",
+      "weight": 1.68,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "d",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\":",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " [",
+      "weight": 8.4,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "7",
+      "weight": 1.68,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "7",
+      "weight": 1.68,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "8",
+      "weight": 1.68,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": ",",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " ",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "4",
+      "weight": 1.68,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "8",
+      "weight": 1.68,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "0",
+      "weight": 1.68,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "]}",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|im_end|>",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|endoftext|>",
+      "weight": 1.68,
+      "tag": "pointing_format"
+     }
+    ]
+   },
+   "uniform": {
+    "prompt_tail": "tart|>assistant\n<think>\n",
+    "suffix": "\n</think>\n\n{\"point_2d\": [778, 480]}<|im_end|><|endoftext|>",
+    "merged_boundary": true,
+    "n_supervised": 21,
+    "n_think": 3,
+    "think_weight_share": 0.14285714285714285,
+    "think_weight_sum_over_n": 0.14285714285714285,
+    "row_coefficient": 1.0,
+    "decision_piece": "\n",
+    "decision_weight": 1.0,
+    "json_token_weight": 1.0,
+    "tokens": [
+     {
+      "piece": "\n",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "</think>",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\n\n",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "{\"",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "point",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "_",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "2",
+      "weight": 1.0,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "d",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\":",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " [",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "7",
+      "weight": 1.0,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "7",
+      "weight": 1.0,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "8",
+      "weight": 1.0,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": ",",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " ",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "4",
+      "weight": 1.0,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "8",
+      "weight": 1.0,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "0",
+      "weight": 1.0,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "]}",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|im_end|>",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|endoftext|>",
+      "weight": 1.0,
+      "tag": "pointing_format"
+     }
+    ]
+   },
+   "zero_think": {
+    "prompt_tail": "tart|>assistant\n<think>\n",
+    "suffix": "\n</think>\n\n{\"point_2d\": [778, 480]}<|im_end|><|endoftext|>",
+    "merged_boundary": true,
+    "n_supervised": 21,
+    "n_think": 3,
+    "think_weight_share": 0.0,
+    "think_weight_sum_over_n": 0.0,
+    "row_coefficient": 1.9999996366954984,
+    "decision_piece": " [",
+    "decision_weight": 9.545453071594238,
+    "json_token_weight": 1.9090906381607056,
+    "tokens": [
+     {
+      "piece": "\n",
+      "weight": 0.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "</think>",
+      "weight": 0.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\n\n",
+      "weight": 0.0,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "{\"",
+      "weight": 1.9091,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "point",
+      "weight": 1.9091,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "_",
+      "weight": 1.9091,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "2",
+      "weight": 1.9091,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "d",
+      "weight": 1.9091,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\":",
+      "weight": 1.9091,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " [",
+      "weight": 9.5455,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "7",
+      "weight": 1.9091,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "7",
+      "weight": 1.9091,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "8",
+      "weight": 1.9091,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": ",",
+      "weight": 1.9091,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " ",
+      "weight": 1.9091,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "4",
+      "weight": 1.9091,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "8",
+      "weight": 1.9091,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "0",
+      "weight": 1.9091,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "]}",
+      "weight": 1.9091,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|im_end|>",
+      "weight": 1.9091,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|endoftext|>",
+      "weight": 1.9091,
+      "tag": "pointing_format"
+     }
+    ]
+   },
+   "locate": {
+    "prompt_tail": "tart|>assistant\n<think>\n",
+    "suffix": "Locate the book in frame 8.\n</think>\n\n{\"point_2d\": [778, 480]}<|im_end|><|endoftext|>",
+    "merged_boundary": false,
+    "n_supervised": 28,
+    "n_think": 10,
+    "think_weight_share": 0.3125,
+    "think_weight_sum_over_n": 0.625,
+    "row_coefficient": 2.0,
+    "decision_piece": " [",
+    "decision_weight": 8.75,
+    "json_token_weight": 1.75,
+    "tokens": [
+     {
+      "piece": "Locate",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " the",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " book",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " in",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " frame",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " ",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "8",
+      "weight": 1.75,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": ".\n",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "</think>",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\n\n",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "{\"",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "point",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "_",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "2",
+      "weight": 1.75,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "d",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "\":",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " [",
+      "weight": 8.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "7",
+      "weight": 1.75,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "7",
+      "weight": 1.75,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "8",
+      "weight": 1.75,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": ",",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": " ",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "4",
+      "weight": 1.75,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "8",
+      "weight": 1.75,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "0",
+      "weight": 1.75,
+      "tag": "pointing_coord"
+     },
+     {
+      "piece": "]}",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|im_end|>",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     },
+     {
+      "piece": "<|endoftext|>",
+      "weight": 1.75,
+      "tag": "pointing_format"
+     }
+    ]
+   }
+  }
+ },
+ "merged_boundary_counts": {
+  "base:True": 25020,
+  "locate:False": 25020
+ },
+ "prompt_tail_counts": {
+  "\n<think>\n": 25020
+ },
+ "supervised_think_text_counts": {
+  "'\\n</think>\\n\\n'": 25020
+ },
+ "stats": {
+  "base_think_share": {
+   "visible": {
+    "n": 16262,
+    "mean": 0.12101415173204975,
+    "min": 0.11999998819260477,
+    "max": 0.13636362432229526,
+    "median": 0.11999998819260477
+   },
+   "null": {
+    "n": 8758,
+    "mean": 0.1764706173633601,
+    "min": 0.1764706173633601,
+    "max": 0.1764706173633601,
+    "median": 0.1764706173633601
+   }
+  },
+  "base_think_share_uniform": {
+   "visible": {
+    "n": 16262,
+    "mean": 0.1443076545132355,
+    "min": 0.14285714285714285,
+    "max": 0.16666666666666666,
+    "median": 0.14285714285714285
+   },
+   "null": {
+    "n": 8758,
+    "mean": 0.23076923076923078,
+    "min": 0.23076923076923078,
+    "max": 0.23076923076923078,
+    "median": 0.23076923076923078
+   }
+  },
+  "base_n": {
+   "visible": {
+    "n": 16262,
+    "mean": 20.79830279178453,
+    "min": 18,
+    "max": 21,
+    "median": 21
+   },
+   "null": {
+    "n": 8758,
+    "mean": 13.0,
+    "min": 13,
+    "max": 13,
+    "median": 13
+   }
+  },
+  "base_think_over_n": {
+   "visible": {
+    "n": 16262,
+    "mean": 0.2420283211507647,
+    "min": 0.2399999981834775,
+    "max": 0.27272727754380965,
+    "median": 0.2399999981834775
+   },
+   "null": {
+    "n": 8758,
+    "mean": 0.35294118294349086,
+    "min": 0.35294118294349086,
+    "max": 0.35294118294349086,
+    "median": 0.35294118294349086
+   }
+  },
+  "locate_think_share": {
+   "visible": {
+    "n": 16262,
+    "mean": 0.3342020744658355,
+    "min": 0.3125,
+    "max": 0.39393941287336676,
+    "median": 0.3333333223715603
+   },
+   "null": {
+    "n": 8758,
+    "mean": 0.5757808242377463,
+    "min": 0.5625,
+    "max": 0.6111111640930176,
+    "median": 0.5757575478548808
+   }
+  },
+  "locate_n": {
+   "visible": {
+    "n": 16262,
+    "mean": 28.749354322961505,
+    "min": 26,
+    "max": 32,
+    "median": 29
+   },
+   "null": {
+    "n": 8758,
+    "mean": 29.014843571591687,
+    "min": 28,
+    "max": 32,
+    "median": 29
+   }
+  },
+  "locate_decision_weight": {
+   "visible": {
+    "n": 16262,
+    "mean": 8.777916272969986,
+    "min": 8.666666984558105,
+    "max": 8.88888931274414,
+    "median": 8.78787899017334
+   },
+   "null": {
+    "n": 8758,
+    "mean": 8.787945338051241,
+    "min": 8.75,
+    "max": 8.88888931274414,
+    "median": 8.78787899017334
+   }
+  },
+  "c_json_weight_ratio": {
+   "visible": {
+    "n": 16262,
+    "mean": 1.13768174077192,
+    "min": 1.1363635105746093,
+    "max": 1.157894625649814,
+    "median": 1.1363635105746093
+   },
+   "null": {
+    "n": 8758,
+    "mean": 1.2142858145001152,
+    "min": 1.2142858145001152,
+    "max": 1.2142858145001152,
+    "median": 1.2142858145001152
+   }
+  }
+ },
+ "longest_locate_supervised": {
+  "tokens": 32,
+  "row": 3315
+ },
+ "eval_vs_train_context": {
+  "eval": [
+   "<|im_start|>",
+   "assistant",
+   "\n",
+   "<think>",
+   "\n\n",
+   "</think>",
+   "\n\n"
+  ],
+  "train": [
+   "<|im_start|>",
+   "assistant",
+   "\n",
+   "<think>",
+   "\n",
+   "\n",
+   "</think>",
+   "\n\n"
+  ]
+ },
+ "row_counts": {
+  "visible": 16262,
+  "null": 8758
+ }
+}

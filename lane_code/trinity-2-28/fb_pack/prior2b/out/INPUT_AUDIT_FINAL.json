@@ -1,0 +1,934 @@
+{
+  "indices_cell_counts": {
+    "absolute_distance": 0,
+    "appearance_order": 0,
+    "box_3d": 0,
+    "camera_displacement": 0,
+    "camera_movement_direction": 0,
+    "camera_object_abs_distance": 0,
+    "camera_object_rel_distance_v1": 0,
+    "camera_object_rel_distance_v2": 0,
+    "camera_object_rel_distance_v3": 0,
+    "camera_rotation": 0,
+    "camera_wording": 0,
+    "counting": 0,
+    "coverage": 0,
+    "coverage_distance": 0,
+    "coverage_units": 0,
+    "direction": 0,
+    "facing_pairs": 0,
+    "first_seen_frame": 0,
+    "object_object_left_right": 0,
+    "object_object_near_far": 0,
+    "object_object_up_down": 0,
+    "object_size": 0,
+    "pointing": 0,
+    "pose": 0,
+    "recovery": 0,
+    "relative_distance": 0,
+    "room_size": 0,
+    "route_planning": 0,
+    "routing_base": 0,
+    "totals": 0,
+    "units": 0
+  },
+  "inputs": [
+    {
+      "bytes": 4196,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/INPUT_LOCATIONS.json",
+      "sha256": "5319f86920384bff9448a9451021ac2f11920db205121538f8a1871476b9ad4e"
+    },
+    {
+      "bytes": 908,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/CAPSULE_RECOVERY.json",
+      "sha256": "5c6d13ae4191d233a16a9d8340485175cb92ec6abf26fdcdee1e96bde8799b54"
+    },
+    {
+      "bytes": 3717,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/RECOVERED_METADATA.json",
+      "sha256": "a877eab7d9c8a33809e9b3050ded557345f9562dac3a2c8c3cb0df42ee81d14f"
+    },
+    {
+      "bytes": 1563,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/scripts/supplement_inputs.py",
+      "sha256": "a0d329aa57c2e36614eb43bc1aad5cc528280cee801182cf6e16dba27da33194"
+    },
+    {
+      "bytes": 54906,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/INPUT_AUDIT.json",
+      "sha256": "c81fc35c4bf7caa205449df7bf3537db41472a646f223e3fc700044015052fab"
+    },
+    {
+      "bytes": 78317,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+      "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+    },
+    {
+      "bytes": 33176,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/out/N_LAUNCH_CONFIG.json",
+      "sha256": "0e78d7f86f85cf6090db94bb4916fbd1c57b9fa2aff04dd0a8428a414a4a5f5f"
+    },
+    {
+      "bytes": 163577,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/4c230a7e.json",
+      "sha256": "0d28fdd432b02ae96b6ce2aaa840b744005291a540920ce48409f0e8c90276ad"
+    },
+    {
+      "bytes": 1794,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json",
+      "sha256": "1de983c9839c1ed25a9113bb5d3b473eaa8be6ae914d9227b143fdc6dd80334c"
+    },
+    {
+      "bytes": 9905,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/pointing/receipt.json",
+      "sha256": "4e16dba953500c7e2c13021a893ef76cb00225b8ca4570ac1263143de9424582"
+    },
+    {
+      "bytes": 11474,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/artifact.json",
+      "sha256": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd"
+    },
+    {
+      "bytes": 276280,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/routing_scene_indices.json",
+      "sha256": "510aaf7efd2a2b59d2105aa0e7ed5aba37f42f0582f468d15ca04f118d4411ae"
+    },
+    {
+      "bytes": 805,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json",
+      "sha256": "8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f"
+    },
+    {
+      "bytes": 110326,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/pointing_scene_indices.json",
+      "sha256": "93c4fed5a42a5638778ec244a6c7f29941456192163dc9d9f8ef3090ab47675f"
+    },
+    {
+      "bytes": 86401,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/s1_receipt.json",
+      "sha256": "a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda"
+    },
+    {
+      "bytes": 20569,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json",
+      "sha256": "b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad"
+    },
+    {
+      "bytes": 49058,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json",
+      "sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984"
+    },
+    {
+      "bytes": 5177,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/vqa/receipt.json",
+      "sha256": "ddff748d80cdde317e0ac2a1b071b9e09518492daa6eecceba53a7ba81a09693"
+    },
+    {
+      "bytes": 458,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/binding.json",
+      "sha256": "f6b636243f779d7eb58170491866aff3367306c130e791e365d2feeb0e42de40"
+    },
+    {
+      "bytes": 1190423,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/vqa_scene_indices.json",
+      "sha256": "fb1ec831b09685e0893eaf7d5c09861616c62fd10dc89aebbb1f5db988e512a7"
+    },
+    {
+      "bytes": 0,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new/student_pilot/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 4347,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new/student_pilot/p3_provenance.py",
+      "sha256": "afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590"
+    },
+    {
+      "bytes": 3067,
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/scripts/common.py",
+      "sha256": "228db8d92ec31f756e7a3c1f5e05aac3b59ee6dab24c59ecf3d9ac005d0e45ff"
+    }
+  ],
+  "launch_kit_differing_fields_ignoring_paths": [],
+  "pins": [
+    {
+      "error": "HASH_MISMATCH:/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/review.json:30cf2da5a40d25da869fddf39cc4aa703f53fc75d0904bd97fa4594a15fb8fdf!=c3cfe01f5dec390c401c834c15f229a8ad7509df803a4bd5e281bb9be548b453",
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/review.json",
+      "field": "launch.admission",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/review.json",
+      "sha256": "c3cfe01f5dec390c401c834c15f229a8ad7509df803a4bd5e281bb9be548b453",
+      "status": "MISMATCH"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/benchmark_scene_exclusions.json",
+      "field": "launch.benchmark_scene_exclusions",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/benchmark_scene_exclusions.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/benchmark_scene_exclusions.json",
+      "sha256": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/7.json; expected_mirror_path=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/7.json; sha256=c82c2da1a0933207fbf60ba82f6c5172509c96d715620efe7495d0014c9aeaf9",
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/7.json",
+      "field": "launch.code",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/7.json",
+      "sha256": "c82c2da1a0933207fbf60ba82f6c5172509c96d715620efe7495d0014c9aeaf9",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/97a6a3eb/runs/b19c1200/train/step_400/heads.json",
+      "field": "launch.depth_init",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/97a6a3eb/runs/b19c1200/train/step_400/heads.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/97a6a3eb/runs/b19c1200/train/step_400/heads.json",
+      "sha256": "fd60ac2f525727836258ae7ea0705ff3a49163ae74320f7bf8a17b66cd69f0c7",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w17b/work/tree_r1/student_pilot/r2_dev_merged.json",
+      "field": "launch.dev_scene_exclusions",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/tree_r1/student_pilot/r2_dev_merged.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24d/sequence/n/q_22c714e1_20/p/s/student_pilot/r2_dev_merged.json",
+      "sha256": "a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/66c427e2.json",
+      "field": "launch.exclude_qids",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/66c427e2.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/66c427e2.json",
+      "sha256": "66c427e2262331be2e0c598f2ecc39087f3a722a5155caaf1ab84a89c8cd0f6f",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/dafa4a9c.json",
+      "field": "launch.exclusions",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/dafa4a9c.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/dafa4a9c.json",
+      "sha256": "dafa4a9c8ffd1e063e0a98c5ae6087d911b74f864932e530f24d45b816cca6fb",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/extent.json; expected_mirror_path=/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/extent.json; sha256=c072905be4405a92d7bb906112209f2d27a8c9b58d291b64373c5551c3e96495",
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/extent.json",
+      "field": "launch.extent_receipt",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/extent.json",
+      "sha256": "c072905be4405a92d7bb906112209f2d27a8c9b58d291b64373c5551c3e96495",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/artifact.json",
+      "field": "launch.init_artifact.artifact",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/artifact.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/artifact.json",
+      "sha256": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/600ef69d.json",
+      "field": "launch.pose_exclusions",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/600ef69d.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/600ef69d.json",
+      "sha256": "600ef69de0674fb15c8972f3b64f0bd19e682a5a1ca19ab01e8d41279d064295",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_rowA/out/WORDINGS.json",
+      "field": "launch.r1_training.camera_wording_exclusion",
+      "path": "/scratch/jjyeung/orch_n30/sb_rowA/out/WORDINGS.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_rowA/out/WORDINGS.json",
+      "sha256": "0b6f8eb3fe99a1ccb011195778e0ecec89dce90ff13f0b6d90321c85955d6b86",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w22/work/build22/inputs/component_rows.json; expected_mirror_path=/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w22/work/build22/inputs/component_rows.json; sha256=aa77ee191e5126c72f4d0c82a24d33b3234a5c1601f4ef07f0071661fd5f2221",
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w22/work/build22/inputs/component_rows.json",
+      "field": "launch.r1_training.component_rows",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w22/work/build22/inputs/component_rows.json",
+      "sha256": "aa77ee191e5126c72f4d0c82a24d33b3234a5c1601f4ef07f0071661fd5f2221",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_rowD2/alias_inputs/out/TIERED_ALIAS_MAP.json",
+      "field": "launch.r1_training.direction_twins.aliases",
+      "path": "/scratch/jjyeung/orch_n30/sb_rowD2/alias_inputs/out/TIERED_ALIAS_MAP.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_rowD2/alias_inputs/out/TIERED_ALIAS_MAP.json",
+      "sha256": "7f50287bae46792d1de25b33344d62d6a6484688887c5294bdd1d1f67f76623b",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_d7bind/BINDING.jsonl",
+      "field": "launch.r1_training.direction_twins.binding",
+      "path": "/scratch/jjyeung/orch_n30/sb_d7bind/BINDING.jsonl",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_d7bind/BINDING.jsonl",
+      "sha256": "d8c3837019d29e9c8b7916a7e8b3c3d595890b6cad32c7dc72ba5f871a0a5108",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_rowD7f/out/NEW_ROWS.jsonl",
+      "field": "launch.r1_training.direction_twins.rows",
+      "path": "/scratch/jjyeung/orch_n30/sb_rowD7f/out/NEW_ROWS.jsonl",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_rowD7f/out/NEW_ROWS.jsonl",
+      "sha256": "7b3d696d580386f9e8af3240fa142e2ad50eebb277a8718c97e2db497dcc925e",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/n30_mirror/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite",
+      "field": "launch.r1_training.direction_twins.source_database",
+      "path": "/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/n30_mirror/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite",
+      "sha256": "210b25349b23af5b38a5b5d90caa97be2bb296dbabd8773d54e658e0aad22443",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_rowD7f/out/SOURCE_MAP.jsonl",
+      "field": "launch.r1_training.direction_twins.source_map",
+      "path": "/scratch/jjyeung/orch_n30/sb_rowD7f/out/SOURCE_MAP.jsonl",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_rowD7f/out/SOURCE_MAP.jsonl",
+      "sha256": "5b584f1d863ae9c679624f8ee596a9e9ea7e94603200dc81903ae4d205dea17f",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/e.json",
+      "field": "launch.r1_training.handover_receipt",
+      "path": "/tmp/q_22c714e1/e.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24d/proofs/resolver23/f/proofs/real/pool/h_6ed2c7aa/m400/e.json",
+      "sha256": "b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/mix.json",
+      "field": "launch.r1_training.mix",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/mix.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/recovered/c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8",
+      "sha256": "c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/binding.json",
+      "field": "launch.r1_training.p_run.binding",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/binding.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/binding.json",
+      "sha256": "f6b636243f779d7eb58170491866aff3367306c130e791e365d2feeb0e42de40",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json",
+      "field": "launch.r1_training.p_run.config",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json",
+      "sha256": "b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/s1_receipt.json",
+      "field": "launch.r1_training.p_run.preparation",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/s1_receipt.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/s1_receipt.json",
+      "sha256": "a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/registry.json; expected_mirror_path=/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/registry.json; sha256=169b2c23f23d6607564481edf45096343637fa794c97b6d9287673d1c08252f0",
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/registry.json",
+      "field": "launch.r1_training.registry",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/registry.json",
+      "sha256": "169b2c23f23d6607564481edf45096343637fa794c97b6d9287673d1c08252f0",
+      "status": "MISSING"
+    },
+    {
+      "error": "MISSING:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/room_audit.json; expected_mirror_path=/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/room_audit.json; sha256=ae633f72a045c8aaa2b521239ff181fa621aea33461b0814884df903ae25850e",
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/room_audit.json",
+      "field": "launch.r1_training.room_audit",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/room_audit.json",
+      "sha256": "ae633f72a045c8aaa2b521239ff181fa621aea33461b0814884df903ae25850e",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b.json",
+      "field": "launch.r1_training.room_authority.aliases",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/b12/work/d3_token_map.json",
+      "sha256": "c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1.json",
+      "field": "launch.r1_training.room_authority.build",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1.json",
+      "sha256": "0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3.json",
+      "field": "launch.r1_training.room_authority.reserve",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/r1_ops/work/snap_6a5c7d00/work/tree/auth/R0_ROOMS.txt",
+      "sha256": "bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390.json",
+      "field": "launch.r1_training.room_authority.split",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/b12/work/auth/K1SPLIT_R0.json",
+      "sha256": "27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca.json",
+      "field": "launch.r1_training.room_authority.visits",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/b12/work/auth/arkit_3dod_metadata.csv",
+      "sha256": "657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/row_sources.json; expected_mirror_path=/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/row_sources.json; sha256=e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6",
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/row_sources.json",
+      "field": "launch.r1_training.row_sources",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/row_sources.json",
+      "sha256": "e84f4dc9adf35f76dd89b631350cac0b92771537eafa94bed2b25154b5c0b9e6",
+      "status": "MISSING"
+    },
+    {
+      "error": "MISSING:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/v7_receipt.json; expected_mirror_path=/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/v7_receipt.json; sha256=e3ee51daa46af30fa8e84a05c12448d7fc3dc9cade05284707f9df322bbe44d0",
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/v7_receipt.json",
+      "field": "launch.r1_training.store_parameter",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/v7_receipt.json",
+      "sha256": "e3ee51daa46af30fa8e84a05c12448d7fc3dc9cade05284707f9df322bbe44d0",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "field": "launch.r1_training.v7_k1_removal",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "sha256": "1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json",
+      "field": "launch.r1_training.v7_k1_union.base",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json",
+      "sha256": "43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/scratch/jjyeung/orch_n30/sb_k1list/out/u2.json; expected_mirror_path=/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_k1list/out/u2.json; sha256=d2fd6208d7df49ab872b9536a1748d80c392f91a59135b099bc0bc38fff13a8f",
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/sb_k1list/out/u2.json",
+      "field": "launch.r1_training.v7_k1_union.extra",
+      "path": "/scratch/jjyeung/orch_n30/sb_k1list/out/u2.json",
+      "sha256": "d2fd6208d7df49ab872b9536a1748d80c392f91a59135b099bc0bc38fff13a8f",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "field": "launch.r1_training.v7_k1_union.union",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "sha256": "1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/v2h/SPLIT_V2.json",
+      "field": "launch.r1_training.wording_exclusion",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/v2h/SPLIT_V2.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/v2h/SPLIT_V2.json",
+      "sha256": "2463193d00fabda5c62d07027527f57a5943dd52ee2b346a215576e55d1abf19",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/mix.json",
+      "field": "launch.r2_sampling.card",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/mix.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/prior2/work/recovered/c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8",
+      "sha256": "c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/indices.json",
+      "field": "launch.r2_sampling.indices",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/indices.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/indices.json",
+      "sha256": "b6fdc34ecc3008fef7d906a14631d8687382e2c77eede6bf6a1e864f846d201d",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/population.json",
+      "field": "launch.r2_sampling.population",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/population.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/population.json",
+      "sha256": "a1a79d795739361b5d3bbedbddc5317687fdccc7fc92643f92c22ef5eef1bc2d",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/986ba20f.npz; expected_mirror_path=/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/986ba20f.npz; sha256=0471677f8c4346fc856ff39ad45c2cf824a6b5040b214ee3468e72af1dac3015",
+      "expected_mirror_path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/986ba20f.npz",
+      "field": "launch.readout.bank",
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/986ba20f.npz",
+      "sha256": "0471677f8c4346fc856ff39ad45c2cf824a6b5040b214ee3468e72af1dac3015",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/544dcf9b/in/30c516bf.json",
+      "field": "launch.readout.rows_inventory",
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/544dcf9b/in/30c516bf.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/544dcf9b/in/30c516bf.json",
+      "sha256": "d6d6a53add2ea60facaec4b67fd1d8becfcd4dc3183139eb1509b222e3d27491",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/eb035f92.json",
+      "field": "launch.readout.training_scenes",
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/eb035f92.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/eb035f92.json",
+      "sha256": "edaecb6c742495041784ea7cefe027bdbce08efc76cf427a7bc1f7ad5da9f6e4",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_0.jsonl",
+      "field": "launch.remove_files.0",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_0.jsonl",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_0.jsonl",
+      "sha256": "62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_1.jsonl",
+      "field": "launch.remove_files.1",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_1.jsonl",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_1.jsonl",
+      "sha256": "4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_2.jsonl",
+      "field": "launch.remove_files.2",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_2.jsonl",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_2.jsonl",
+      "sha256": "6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc",
+      "status": "PASS"
+    },
+    {
+      "defects": [
+        "identity",
+        "absent",
+        "merged"
+      ],
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_3.jsonl",
+      "field": "launch.remove_files.3",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_3.jsonl",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_3.jsonl",
+      "sha256": "8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_4.jsonl",
+      "field": "launch.remove_files.4",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_4.jsonl",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_4.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_5.jsonl",
+      "field": "launch.remove_files.5",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_5.jsonl",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/remove_5.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w17b/work/build17/inputs/s.json",
+      "field": "launch.remove_files.6",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/build17/inputs/s.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w17b/work/build17/inputs/s.json",
+      "sha256": "6add0ad53515e14e6adb1e192ed002ec0ddd22b6c6bd112ccb756d1f8be48d8c",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json",
+      "field": "launch.remove_files.7",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json",
+      "sha256": "43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "field": "launch.remove_files.8",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "sha256": "1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/inputs/records/n.json",
+      "field": "launch.remove_files.9",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/n.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/inputs/records/n.json",
+      "sha256": "02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/inputs/records/z.json",
+      "field": "launch.remove_files.10",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/z.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/inputs/records/z.json",
+      "sha256": "caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w22/work/build22/inputs/naming_remove.json",
+      "field": "launch.remove_files.11",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w22/work/build22/inputs/naming_remove.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w22/work/build22/inputs/naming_remove.json",
+      "sha256": "d1454a4461e96fda9e0db27eb75fe0080a555d77a4d05f8e036d49530626db29",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/99e6eed6.json",
+      "field": "launch.report_exclusions",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/99e6eed6.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/pk/99e6eed6.json",
+      "sha256": "99e6eed6186602832a1ca15176c4d21ab67ba24e87a15dd0cad02cac6ee13688",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/route_table.json; expected_mirror_path=/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/route_table.json; sha256=3a3eb8ff64f6d78f471b1b3cf360f70df65ee68d2db8877d3fa70ad219570724",
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/route_table.json",
+      "field": "launch.s1_route_policy.table",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/route_table.json",
+      "sha256": "3a3eb8ff64f6d78f471b1b3cf360f70df65ee68d2db8877d3fa70ad219570724",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_rates.json",
+      "field": "launch.s1_routing.fps_authority",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_rates.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_rates.json",
+      "sha256": "36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_map.jsonl.gz; expected_mirror_path=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_map.jsonl.gz; sha256=17aa3e9eb8f5757b6121b60e753e42b0b80e73b18c03ca678859349e25d51ec3",
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_map.jsonl.gz",
+      "field": "launch.s1_routing.frame_map",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_map.jsonl.gz",
+      "sha256": "17aa3e9eb8f5757b6121b60e753e42b0b80e73b18c03ca678859349e25d51ec3",
+      "status": "MISSING"
+    },
+    {
+      "error": "MISSING:/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_plan.json.gz; expected_mirror_path=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_plan.json.gz; sha256=7cc01f3655130e9d7ef2c1fd597c5cd7c1ddbcb49314a4dce7aecc040ec88cba",
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_plan.json.gz",
+      "field": "launch.s1_routing.frame_plan",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_plan.json.gz",
+      "sha256": "7cc01f3655130e9d7ef2c1fd597c5cd7c1ddbcb49314a4dce7aecc040ec88cba",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/69d2930d/s.json",
+      "field": "launch.s1_routing.selection",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/69d2930d/s.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/69d2930d/s.json",
+      "sha256": "5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/0d28fdd432b0.json",
+      "field": "launch.scene_division",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/0d28fdd432b0.json",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/4c230a7e.json",
+      "sha256": "0d28fdd432b02ae96b6ce2aaa840b744005291a540920ce48409f0e8c90276ad",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/receipt.json",
+      "field": "launch.streams.pointing",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/receipt.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/receipt.json",
+      "sha256": "93b21a3aeeda01efab90d9f818eff78a6ca182c18c964534279008e4af91733a",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json",
+      "field": "launch.streams.pose",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json",
+      "sha256": "8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json",
+      "field": "launch.streams.routing",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json",
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json",
+      "sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/v7_receipt.json; expected_mirror_path=/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/v7_receipt.json; sha256=e3ee51daa46af30fa8e84a05c12448d7fc3dc9cade05284707f9df322bbe44d0",
+      "expected_mirror_path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/v7_receipt.json",
+      "field": "launch.streams.vqa",
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/v7_receipt.json",
+      "sha256": "e3ee51daa46af30fa8e84a05c12448d7fc3dc9cade05284707f9df322bbe44d0",
+      "status": "MISSING"
+    },
+    {
+      "error": "MISSING:/tmp/q_22c714e1/u/0b9c264667c8a50283feffb73508c82b6e10b82e852ea4c98bf8adae78903b70; expected_mirror_path=/tmp/q_22c714e1/u/0b9c264667c8a50283feffb73508c82b6e10b82e852ea4c98bf8adae78903b70; sha256=0b9c264667c8a50283feffb73508c82b6e10b82e852ea4c98bf8adae78903b70",
+      "expected_mirror_path": "/tmp/q_22c714e1/u/0b9c264667c8a50283feffb73508c82b6e10b82e852ea4c98bf8adae78903b70",
+      "field": "launch.r1_training.persisted_files.0b9c264667c8a50283feffb73508c82b6e10b82e852ea4c98bf8adae78903b70",
+      "path": "/tmp/q_22c714e1/u/0b9c264667c8a50283feffb73508c82b6e10b82e852ea4c98bf8adae78903b70",
+      "sha256": "0b9c264667c8a50283feffb73508c82b6e10b82e852ea4c98bf8adae78903b70",
+      "status": "MISSING"
+    },
+    {
+      "error": "MISSING:/tmp/q_22c714e1/u/163aefecc165cd53dbb244cc1226394b603e28bf6e20b317fc11aaf8d9dc1bea; expected_mirror_path=/tmp/q_22c714e1/u/163aefecc165cd53dbb244cc1226394b603e28bf6e20b317fc11aaf8d9dc1bea; sha256=163aefecc165cd53dbb244cc1226394b603e28bf6e20b317fc11aaf8d9dc1bea",
+      "expected_mirror_path": "/tmp/q_22c714e1/u/163aefecc165cd53dbb244cc1226394b603e28bf6e20b317fc11aaf8d9dc1bea",
+      "field": "launch.r1_training.persisted_files.163aefecc165cd53dbb244cc1226394b603e28bf6e20b317fc11aaf8d9dc1bea",
+      "path": "/tmp/q_22c714e1/u/163aefecc165cd53dbb244cc1226394b603e28bf6e20b317fc11aaf8d9dc1bea",
+      "sha256": "163aefecc165cd53dbb244cc1226394b603e28bf6e20b317fc11aaf8d9dc1bea",
+      "status": "MISSING"
+    },
+    {
+      "error": "MISSING:/tmp/q_22c714e1/u/1691718cfbbc95fad5f1e4feaac234fdc0cc2974333729e972f2e7cd02bcafd9; expected_mirror_path=/tmp/q_22c714e1/u/1691718cfbbc95fad5f1e4feaac234fdc0cc2974333729e972f2e7cd02bcafd9; sha256=1691718cfbbc95fad5f1e4feaac234fdc0cc2974333729e972f2e7cd02bcafd9",
+      "expected_mirror_path": "/tmp/q_22c714e1/u/1691718cfbbc95fad5f1e4feaac234fdc0cc2974333729e972f2e7cd02bcafd9",
+      "field": "launch.r1_training.persisted_files.1691718cfbbc95fad5f1e4feaac234fdc0cc2974333729e972f2e7cd02bcafd9",
+      "path": "/tmp/q_22c714e1/u/1691718cfbbc95fad5f1e4feaac234fdc0cc2974333729e972f2e7cd02bcafd9",
+      "sha256": "1691718cfbbc95fad5f1e4feaac234fdc0cc2974333729e972f2e7cd02bcafd9",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/1de983c9839c1ed25a9113bb5d3b473eaa8be6ae914d9227b143fdc6dd80334c",
+      "field": "launch.r1_training.persisted_files.1de983c9839c1ed25a9113bb5d3b473eaa8be6ae914d9227b143fdc6dd80334c",
+      "path": "/tmp/q_22c714e1/u/1de983c9839c1ed25a9113bb5d3b473eaa8be6ae914d9227b143fdc6dd80334c",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/full_weights.json",
+      "sha256": "1de983c9839c1ed25a9113bb5d3b473eaa8be6ae914d9227b143fdc6dd80334c",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/tmp/q_22c714e1/u/287a55dcf29718bff07260fb7a563460350cb4b8b76fc04d860e2757689e0804; expected_mirror_path=/tmp/q_22c714e1/u/287a55dcf29718bff07260fb7a563460350cb4b8b76fc04d860e2757689e0804; sha256=287a55dcf29718bff07260fb7a563460350cb4b8b76fc04d860e2757689e0804",
+      "expected_mirror_path": "/tmp/q_22c714e1/u/287a55dcf29718bff07260fb7a563460350cb4b8b76fc04d860e2757689e0804",
+      "field": "launch.r1_training.persisted_files.287a55dcf29718bff07260fb7a563460350cb4b8b76fc04d860e2757689e0804",
+      "path": "/tmp/q_22c714e1/u/287a55dcf29718bff07260fb7a563460350cb4b8b76fc04d860e2757689e0804",
+      "sha256": "287a55dcf29718bff07260fb7a563460350cb4b8b76fc04d860e2757689e0804",
+      "status": "MISSING"
+    },
+    {
+      "error": "MISSING:/tmp/q_22c714e1/u/373f58c715b4187f631fdf7a0423d2917215a7b8be73f87f40983f3c82ee6afd; expected_mirror_path=/tmp/q_22c714e1/u/373f58c715b4187f631fdf7a0423d2917215a7b8be73f87f40983f3c82ee6afd; sha256=373f58c715b4187f631fdf7a0423d2917215a7b8be73f87f40983f3c82ee6afd",
+      "expected_mirror_path": "/tmp/q_22c714e1/u/373f58c715b4187f631fdf7a0423d2917215a7b8be73f87f40983f3c82ee6afd",
+      "field": "launch.r1_training.persisted_files.373f58c715b4187f631fdf7a0423d2917215a7b8be73f87f40983f3c82ee6afd",
+      "path": "/tmp/q_22c714e1/u/373f58c715b4187f631fdf7a0423d2917215a7b8be73f87f40983f3c82ee6afd",
+      "sha256": "373f58c715b4187f631fdf7a0423d2917215a7b8be73f87f40983f3c82ee6afd",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/4e16dba953500c7e2c13021a893ef76cb00225b8ca4570ac1263143de9424582",
+      "field": "launch.r1_training.persisted_files.4e16dba953500c7e2c13021a893ef76cb00225b8ca4570ac1263143de9424582",
+      "path": "/tmp/q_22c714e1/u/4e16dba953500c7e2c13021a893ef76cb00225b8ca4570ac1263143de9424582",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/pointing/receipt.json",
+      "sha256": "4e16dba953500c7e2c13021a893ef76cb00225b8ca4570ac1263143de9424582",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd",
+      "field": "launch.r1_training.persisted_files.5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd",
+      "path": "/tmp/q_22c714e1/u/5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/artifact.json",
+      "sha256": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/510aaf7efd2a2b59d2105aa0e7ed5aba37f42f0582f468d15ca04f118d4411ae",
+      "field": "launch.r1_training.persisted_files.510aaf7efd2a2b59d2105aa0e7ed5aba37f42f0582f468d15ca04f118d4411ae",
+      "path": "/tmp/q_22c714e1/u/510aaf7efd2a2b59d2105aa0e7ed5aba37f42f0582f468d15ca04f118d4411ae",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/routing_scene_indices.json",
+      "sha256": "510aaf7efd2a2b59d2105aa0e7ed5aba37f42f0582f468d15ca04f118d4411ae",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f",
+      "field": "launch.r1_training.persisted_files.8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f",
+      "path": "/tmp/q_22c714e1/u/8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json",
+      "sha256": "8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/93c4fed5a42a5638778ec244a6c7f29941456192163dc9d9f8ef3090ab47675f",
+      "field": "launch.r1_training.persisted_files.93c4fed5a42a5638778ec244a6c7f29941456192163dc9d9f8ef3090ab47675f",
+      "path": "/tmp/q_22c714e1/u/93c4fed5a42a5638778ec244a6c7f29941456192163dc9d9f8ef3090ab47675f",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/pointing_scene_indices.json",
+      "sha256": "93c4fed5a42a5638778ec244a6c7f29941456192163dc9d9f8ef3090ab47675f",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/tmp/q_22c714e1/u/9b1ab2d224663ee76c20cdf1ce4470943be2d10db3ab16b15d83a78953b5044f; expected_mirror_path=/tmp/q_22c714e1/u/9b1ab2d224663ee76c20cdf1ce4470943be2d10db3ab16b15d83a78953b5044f; sha256=9b1ab2d224663ee76c20cdf1ce4470943be2d10db3ab16b15d83a78953b5044f",
+      "expected_mirror_path": "/tmp/q_22c714e1/u/9b1ab2d224663ee76c20cdf1ce4470943be2d10db3ab16b15d83a78953b5044f",
+      "field": "launch.r1_training.persisted_files.9b1ab2d224663ee76c20cdf1ce4470943be2d10db3ab16b15d83a78953b5044f",
+      "path": "/tmp/q_22c714e1/u/9b1ab2d224663ee76c20cdf1ce4470943be2d10db3ab16b15d83a78953b5044f",
+      "sha256": "9b1ab2d224663ee76c20cdf1ce4470943be2d10db3ab16b15d83a78953b5044f",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda",
+      "field": "launch.r1_training.persisted_files.a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda",
+      "path": "/tmp/q_22c714e1/u/a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/s1_receipt.json",
+      "sha256": "a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad",
+      "field": "launch.r1_training.persisted_files.b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad",
+      "path": "/tmp/q_22c714e1/u/b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json",
+      "sha256": "b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+      "field": "launch.r1_training.persisted_files.ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+      "path": "/tmp/q_22c714e1/u/ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json",
+      "sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/ddff748d80cdde317e0ac2a1b071b9e09518492daa6eecceba53a7ba81a09693",
+      "field": "launch.r1_training.persisted_files.ddff748d80cdde317e0ac2a1b071b9e09518492daa6eecceba53a7ba81a09693",
+      "path": "/tmp/q_22c714e1/u/ddff748d80cdde317e0ac2a1b071b9e09518492daa6eecceba53a7ba81a09693",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/vqa/receipt.json",
+      "sha256": "ddff748d80cdde317e0ac2a1b071b9e09518492daa6eecceba53a7ba81a09693",
+      "status": "PASS"
+    },
+    {
+      "error": "MISSING:/tmp/q_22c714e1/u/e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7; expected_mirror_path=/tmp/q_22c714e1/u/e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7; sha256=e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7",
+      "expected_mirror_path": "/tmp/q_22c714e1/u/e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7",
+      "field": "launch.r1_training.persisted_files.e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7",
+      "path": "/tmp/q_22c714e1/u/e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7",
+      "sha256": "e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7",
+      "status": "MISSING"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/f6b636243f779d7eb58170491866aff3367306c130e791e365d2feeb0e42de40",
+      "field": "launch.r1_training.persisted_files.f6b636243f779d7eb58170491866aff3367306c130e791e365d2feeb0e42de40",
+      "path": "/tmp/q_22c714e1/u/f6b636243f779d7eb58170491866aff3367306c130e791e365d2feeb0e42de40",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/binding.json",
+      "sha256": "f6b636243f779d7eb58170491866aff3367306c130e791e365d2feeb0e42de40",
+      "status": "PASS"
+    },
+    {
+      "expected_mirror_path": "/tmp/q_22c714e1/u/fb1ec831b09685e0893eaf7d5c09861616c62fd10dc89aebbb1f5db988e512a7",
+      "field": "launch.r1_training.persisted_files.fb1ec831b09685e0893eaf7d5c09861616c62fd10dc89aebbb1f5db988e512a7",
+      "path": "/tmp/q_22c714e1/u/fb1ec831b09685e0893eaf7d5c09861616c62fd10dc89aebbb1f5db988e512a7",
+      "recovered_from_manifest": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/MANIFEST.json",
+        "sha256": "87b6830330af32defdaa2f6e814460568e5ba4dbb28581351a04655ba8cc40fb"
+      },
+      "resolved": "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/vqa_scene_indices.json",
+      "sha256": "fb1ec831b09685e0893eaf7d5c09861616c62fd10dc89aebbb1f5db988e512a7",
+      "status": "PASS"
+    }
+  ],
+  "population": {
+    "after_all_filters": false,
+    "card_sha256": "c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8",
+    "complete": false,
+    "counts": {
+      "absolute_distance": 0,
+      "appearance_order": 0,
+      "box_3d": 0,
+      "camera_displacement": 0,
+      "camera_movement_direction": 0,
+      "camera_object_abs_distance": 0,
+      "camera_object_rel_distance_v1": 0,
+      "camera_object_rel_distance_v2": 0,
+      "camera_object_rel_distance_v3": 0,
+      "camera_rotation": 0,
+      "camera_wording": 0,
+      "counting": 0,
+      "coverage": 0,
+      "coverage_distance": 0,
+      "coverage_units": 0,
+      "direction": 0,
+      "facing_pairs": 0,
+      "first_seen_frame": 0,
+      "object_object_left_right": 0,
+      "object_object_near_far": 0,
+      "object_object_up_down": 0,
+      "object_size": 0,
+      "pointing": 0,
+      "pose": 0,
+      "recovery": 0,
+      "relative_distance": 0,
+      "room_size": 0,
+      "route_planning": 0,
+      "routing_base": 0,
+      "totals": 0,
+      "units": 0
+    },
+    "evidence": [
+      {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/mix.json",
+        "sha256": "c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8"
+      },
+      {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json",
+        "sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984"
+      }
+    ],
+    "schema": "r1-population-v1"
+  },
+  "production_population_status": "MISSING"
+}

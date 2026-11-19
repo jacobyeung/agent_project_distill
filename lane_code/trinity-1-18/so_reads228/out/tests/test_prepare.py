@@ -50,7 +50,7 @@ class PrepareTests(unittest.TestCase):
             C.write(data/'READY.json',dict(settings=C.sha(data/'settings.json'),binding=C.sha(data/'binding.json'),restore=C.sha(data/'e/RESTORE.json')))
             return types.SimpleNamespace(returncode=0)
         with ExitStack() as stack:
-            for name,value in [('STAGE',stage),('source_check',lambda *a:None),('policy_check',lambda **kw:None),('staging_receipts',lambda *a:dict(fixture=True,files={},runtime_members={},namespace={'fixture':True})),
+            for name,value in [('host_path',lambda path,plan:C.local(path)),('STAGE',stage),('source_check',lambda *a:None),('policy_check',lambda **kw:None),('staging_receipts',lambda *a:dict(fixture=True,files={},runtime_members={},namespace={'fixture':True})),
                                ('reconcile',lambda *a:dict(passed=True)),('runtime_requirements',lambda *a:dict(passed=True)),
                                ('record_prepare_products',lambda *a:None),('namespace_command',lambda *a:['/usr/bin/bwrap','--fixture']),
                                ('versions',lambda *a:dict(prefix=str(root),base_prefix=str(root),audit_coverage_verified=True)),

@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "phase": "budget",
+      "stale_pin_refuses": true,
+      "new_pin_matches_bytes": true,
+      "unrelated_pins_preserved": true
+    },
+    {
+      "phase": "resume",
+      "stale_pin_refuses": true,
+      "new_pin_matches_bytes": true,
+      "unrelated_pins_preserved": true
+    }
+  ],
+  "rehearsal4_config_pin": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal3/input.json",
+    "sha256": "6f22e4100b1a4517d3da3609627790c3007e82d2c46a10aa8618170100fb44ac"
+  },
+  "rehearsal5_config_pin": {
+    "path": "/tmp/q_22c714e1/v.json",
+    "sha256": "5793308fadd295e29b0b70fa55d1e7f7ab96037bdf22cd59b7c72269b09aacd1"
+  },
+  "rehearsal5_v_sha256_now": "f13c10c2cf73bb6a7e253ce30dcf3ef278a51ee53b78f88f6225f5cd8913f4a6",
+  "production": "pl.py pins staged inputs; a.py publishes r.json; h.py and rv.py subsequently produce v.json. u.py calls train(cfg); latest resume is a fixture boundary.",
+  "native_training_executed": false,
+  "scope": "Pure repin function regression only; no native admission claim"
+}

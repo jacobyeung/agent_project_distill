@@ -1,0 +1,342 @@
+{
+  "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_matrix.py",
+  "inputs_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/run_matrix.py": "276585e806aaa7d55ef69c848cbe5c4fe8844799a582026c99a09088beca39da",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/run_tests.py": "2642e22a5c5d4e6a16eaacadc290bc473f2e80ccaaaa5243a855e4222c3371c2",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/PATCH_VALIDATION.json": "63f0a87b23db82d46d1865081b55a4a459d32ab52078ec6e19bbb083c3d2e18b"
+  },
+  "runs": [
+    {
+      "tree": "base",
+      "label": "must_base",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base must_base test_r1_patch_a2 patch_a2_checks",
+      "returncode": 1,
+      "seconds": 2.3737298350024503,
+      "tests": 9,
+      "failures": 6,
+      "errors": 0,
+      "skipped": 0,
+      "report_sha256": "acabf1c85df03d0ccf02a4374129a3a97c9eb486bbab7fb3e4e7dc34f9364800"
+    },
+    {
+      "tree": "patch_a",
+      "label": "must_patch_a",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py patch_a must_patch_a test_r1_patch_a2 patch_a2_checks",
+      "returncode": 1,
+      "seconds": 2.8276889379994827,
+      "tests": 9,
+      "failures": 12,
+      "errors": 1,
+      "skipped": 0,
+      "report_sha256": "c1d6d0bbc010cb007d92285ef846942aa24dd74aa114297b9fc013ddea030f12"
+    },
+    {
+      "tree": "live",
+      "label": "must_live",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py live must_live test_r1_patch_a2 patch_a2_checks",
+      "returncode": 0,
+      "seconds": 2.8728160270002263,
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report_sha256": "09de06cb3e7b66e71c3741a12eccafa84f947cff24517f59413ed68d7176f816"
+    },
+    {
+      "tree": "base",
+      "label": "subset_base",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base subset_base test_r1_subset",
+      "returncode": 1,
+      "seconds": 2.265101965997019,
+      "tests": 11,
+      "failures": 43,
+      "errors": 39,
+      "skipped": 0,
+      "report_sha256": "861b1f3e12245777a6432e5c9b753bff0a69e1093948b8ba3f95581be02665ad"
+    },
+    {
+      "tree": "base",
+      "label": "focused_base",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base focused_base alias-focused",
+      "returncode": 1,
+      "seconds": 32.83088137899904,
+      "tests": 115,
+      "failures": 0,
+      "errors": 101,
+      "skipped": 0,
+      "report_sha256": "1812c795c962661b0d0399e8de9875a1ad60041867d140589c44cd36f5cc76d9"
+    },
+    {
+      "tree": "base",
+      "label": "integration_base",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base integration_base alias-integration",
+      "returncode": 1,
+      "seconds": 2.2381279460023507,
+      "tests": 11,
+      "failures": 0,
+      "errors": 3,
+      "skipped": 0,
+      "report_sha256": "fbf3ff07e9f18a8089bbf8dd3f092cf88002a031b832c455e57432b87094c493"
+    },
+    {
+      "tree": "new",
+      "label": "subset_new",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new subset_new test_r1_subset",
+      "returncode": 0,
+      "seconds": 2.067846781999833,
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report_sha256": "6ed7e26317e3cecc2d90c90b061947dc9c8856d639e5281e95205910575f31c1"
+    },
+    {
+      "tree": "new",
+      "label": "focused_new",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new focused_new alias-focused",
+      "returncode": 1,
+      "seconds": 33.22963472099946,
+      "tests": 115,
+      "failures": 0,
+      "errors": 101,
+      "skipped": 0,
+      "report_sha256": "bb995d15dd86b2ba20d83e6f5f658b10572eaaa59a4e6aa9dc0cec0b6c05f081"
+    },
+    {
+      "tree": "new",
+      "label": "integration_new",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new integration_new alias-integration",
+      "returncode": 1,
+      "seconds": 2.078937954000139,
+      "tests": 11,
+      "failures": 0,
+      "errors": 3,
+      "skipped": 0,
+      "report_sha256": "84d8fd7bdf61e81e207b83d2b3027a73f0bccddbb75e0fabd04d4c3ad26c6ea8"
+    },
+    {
+      "tree": "live",
+      "label": "subset_live",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py live subset_live test_r1_subset",
+      "returncode": 0,
+      "seconds": 1.826411451002059,
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report_sha256": "a6f03e8677665ccc502c21e5e7f3d3f5aba1230eb52ca7ab8d4dcda382c13091"
+    },
+    {
+      "tree": "live",
+      "label": "focused_live",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py live focused_live alias-focused",
+      "returncode": 1,
+      "seconds": 32.67350533600256,
+      "tests": 115,
+      "failures": 0,
+      "errors": 101,
+      "skipped": 0,
+      "report_sha256": "e89c4ed442a86b22c2aa68839a084e4dae5aa45123c5fd0c8712b117a4ffae9f"
+    },
+    {
+      "tree": "live",
+      "label": "integration_live",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py live integration_live alias-integration",
+      "returncode": 1,
+      "seconds": 2.1056624359989655,
+      "tests": 11,
+      "failures": 0,
+      "errors": 3,
+      "skipped": 0,
+      "report_sha256": "5e505423e49e6ab809ed4e54ce8b474da20cb664ea1d6c82ca2ca01f46d907f7"
+    },
+    {
+      "tree": "live_base",
+      "label": "host_live_base",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py live_base host_live_base tests.test_host24j",
+      "returncode": 0,
+      "seconds": 32.93953635700018,
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "report_sha256": "d1242034ade114caacac0d5903e5a66e0c4744c6937e45ec68aa069201dcb815"
+    },
+    {
+      "tree": "live",
+      "label": "host_live",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py live host_live tests.test_host24j",
+      "returncode": 0,
+      "seconds": 32.47623649000161,
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "report_sha256": "bcc3b4d0d3160718ede2e5665bbbb0045b8b2a0d4ea8f2f892084d1f31d2e32a"
+    },
+    {
+      "tree": "new_camform",
+      "label": "camform_regression",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new_camform camform_regression tests.test_r1_camera_trace_form tests.test_r1_subset tests.test_r1_patch_a2",
+      "returncode": 0,
+      "seconds": 1.8491856950022338,
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report_sha256": "260328b25123f23830cc22ea774f8aa0fb6b9c402bc26d0407a674ad6967b36f"
+    },
+    {
+      "tree": "base",
+      "label": "full_base",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base full_base full",
+      "returncode": 1,
+      "seconds": 1051.6830053049998,
+      "tests": 1930,
+      "failures": 18,
+      "errors": 473,
+      "skipped": 145,
+      "report_sha256": "2d0fbd38873505993db1af58c58bb9aa81c98221ded5c5afec8780a814003a1f"
+    }
+  ],
+  "planned": [
+    [
+      "base",
+      "must_base",
+      [
+        "test_r1_patch_a2",
+        "patch_a2_checks"
+      ]
+    ],
+    [
+      "patch_a",
+      "must_patch_a",
+      [
+        "test_r1_patch_a2",
+        "patch_a2_checks"
+      ]
+    ],
+    [
+      "live",
+      "must_live",
+      [
+        "test_r1_patch_a2",
+        "patch_a2_checks"
+      ]
+    ],
+    [
+      "base",
+      "subset_base",
+      [
+        "test_r1_subset"
+      ]
+    ],
+    [
+      "base",
+      "focused_base",
+      [
+        "alias-focused"
+      ]
+    ],
+    [
+      "base",
+      "integration_base",
+      [
+        "alias-integration"
+      ]
+    ],
+    [
+      "new",
+      "subset_new",
+      [
+        "test_r1_subset"
+      ]
+    ],
+    [
+      "new",
+      "focused_new",
+      [
+        "alias-focused"
+      ]
+    ],
+    [
+      "new",
+      "integration_new",
+      [
+        "alias-integration"
+      ]
+    ],
+    [
+      "live",
+      "subset_live",
+      [
+        "test_r1_subset"
+      ]
+    ],
+    [
+      "live",
+      "focused_live",
+      [
+        "alias-focused"
+      ]
+    ],
+    [
+      "live",
+      "integration_live",
+      [
+        "alias-integration"
+      ]
+    ],
+    [
+      "live_base",
+      "host_live_base",
+      [
+        "tests.test_host24j"
+      ]
+    ],
+    [
+      "live",
+      "host_live",
+      [
+        "tests.test_host24j"
+      ]
+    ],
+    [
+      "new_camform",
+      "camform_regression",
+      [
+        "tests.test_r1_camera_trace_form",
+        "tests.test_r1_subset",
+        "tests.test_r1_patch_a2"
+      ]
+    ],
+    [
+      "base",
+      "full_base",
+      [
+        "full"
+      ]
+    ],
+    [
+      "new",
+      "full_new",
+      [
+        "full"
+      ]
+    ],
+    [
+      "live_base",
+      "full_live_base",
+      [
+        "full"
+      ]
+    ],
+    [
+      "live",
+      "full_live",
+      [
+        "full"
+      ]
+    ]
+  ]
+}

@@ -10,6 +10,13 @@ for n in names:items['out/'+n]=O/n
 for p in sorted((W/'code').glob('*.py')):
  if p.name not in ('run_suite.py','edit_tree.py'):items['code/'+p.name]=p
 for p in sorted((O/'inputs').iterdir()):items['out/inputs/'+p.name]=p
+# Retain the actual tiny init/export weights used by the checker, with original bytes.
+for report in ('K1_INVARIANCE.json','EXPORT_CHECK_V1.json','EXPORT_CHECK_V2.json'):
+ for path, expected in json.loads((O/report).read_text())['input_sha256'].items():
+  p=Path(path)
+  if p.is_relative_to(W/'work') and not p.is_relative_to(W/'work/new') and not p.is_relative_to(W/'work/base'):
+   assert sha(p)==expected
+   items['fixture_inputs/'+str(p.relative_to(W/'work'))]=p
 manifest=dict(input_sha256={str(p):sha(p) for p in items.values()},members={name:sha(p) for name,p in items.items()},base_tree_sha256='57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7',command='nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/package.py')
 (O/'PACKAGE_CONTENTS.json').write_text(json.dumps(manifest,indent=2)+'\n');items['out/PACKAGE_CONTENTS.json']=O/'PACKAGE_CONTENTS.json'
 with tarfile.open(O/'fbp_donor.tar','w') as archive:

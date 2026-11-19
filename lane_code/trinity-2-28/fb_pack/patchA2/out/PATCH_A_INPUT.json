@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "patch_sha256": "b95c1c618659a17b123b0d4d079fdf9ad53667f715e7362f43df0078bf6de477",
+  "inputs_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/PATCH_A.patch": "b95c1c618659a17b123b0d4d079fdf9ad53667f715e7362f43df0078bf6de477",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/FILES_TOUCHED.json": "2f0292b02bc684e996599b16a02c9a7a38c5e3718e85c170168869829c4a358b",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/REPORT.md": "bd265c5fa87b98c8b1b7db7ae30dd1d2fa48621e0c0734216230887ab3c1c5b3",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/TESTS.json": "bf704d3857c6bd90b0f6d8d7a4daab48e301d6ae817a01e67000032269b7ec96",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/run_tests.py": "4f51b91ff6cf169986c26a9de3a9fca74c9442abf7b955906064dc5a437a24de",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/work/verify_base.py": "989aa5b38ed58e228cc1f96245648037f09c09b57797916ecdc15d6cbe660eed",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/setup.py": "5a3d29f1d18fb29034e447696b585bad845b42d5c7950428a3859ea229b1dab8"
+  },
+  "files": [
+    {
+      "path": "launch_r2/distributed.py",
+      "base_sha256": "9fec5743ecf8b69c74a7c9debc0fa610ccda182397959eed21d87a05642cc01d",
+      "new_sha256": "fa4221a306269a38e04d1b844ec78d60cc11778d85f4177d58d6e8471ca17d91"
+    },
+    {
+      "path": "launch_r2/host.py",
+      "base_sha256": "3ca2cdff76593a50b3d78ce4ccfbbaa09ea6349f4320fea9be5a8dd297a8a843",
+      "new_sha256": "3587742802c7cb14f39aa0c4feb94cbd6cadaba6fc9e5c5f43655215d5185bed"
+    },
+    {
+      "path": "launch_r2/runtime.py",
+      "base_sha256": "e23656c8f3016a32bae1d0322f43fad67f6207a62c554af94a92f979091d76f1",
+      "new_sha256": "5be49d551a9bf94887fb9b7c20a3b338fe76658b377ad30321e6407e8fadf7b7"
+    },
+    {
+      "path": "student_pilot/job_env.py",
+      "base_sha256": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+      "new_sha256": "217ff0c7b8a6ea721ae1e833e21421e98b581e0c8e56708f64e4f78ae6459a88"
+    },
+    {
+      "path": "student_pilot/r1_coverage.py",
+      "base_sha256": "63eb1982e6696d740c0818ad20dbc35924f9ab009cfe732f0c36ed67ce2217c3",
+      "new_sha256": "aca68904351907af1ce046a79123725851969f08744eea629167ffdbc18eeb84"
+    },
+    {
+      "path": "student_pilot/r1_population.py",
+      "base_sha256": "063ed256bc4b6d797bd99c99bdaf4f11c8fe045a2606645a1dfbcef548c6c76a",
+      "new_sha256": "bb9ccc296837690b48046481ac082fddbcbfe7889062335b0104e4dc9dd21460"
+    },
+    {
+      "path": "student_pilot/r1_routing.py",
+      "base_sha256": "07c8751ffd2c0c3fbca6a251a5a6fad8d60c259592e2a6cf0621ee5f3a2bd538",
+      "new_sha256": "7975ea825a4dc7f7a4471e950a9ba87c1d68365e9cbb34f044e9652ab6252f18"
+    },
+    {
+      "path": "student_pilot/r2_intake.py",
+      "base_sha256": "fc968e85827dc56686c6b11814a02b3274f52fb3ca6281758111e1612a3e1c48",
+      "new_sha256": "2e96e97d9306f3d08c56cc3e189a8b0fcc5a9462bee68a168f451df52448bbb1"
+    },
+    {
+      "path": "student_pilot/r2_materialize.py",
+      "base_sha256": "47a362bb95cfafcd0b007fd955eb5990d7755ebabd2615d91a9fafe5c47bf0a3",
+      "new_sha256": "0c2a7bc1b140571dfb6ed9a27a909f00c09c852413ec3c09d6c5cfa5cc499f98"
+    },
+    {
+      "path": "tests/test_r1_subset.py",
+      "base_sha256": null,
+      "new_sha256": "bc0f2525fde7926ee0452a90a4535cf8f17ea32aee108d064b0a8209de55406e"
+    }
+  ],
+  "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/setup.py"
+}

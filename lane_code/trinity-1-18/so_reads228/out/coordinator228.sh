@@ -20,8 +20,8 @@ if [[ "$(hostname -s)" != trinity-2-28 ]]; then
   exit 2
 fi
 kit_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-if [[ "$kit_dir" != /scratch/jjyeung/orch_n30/reads228/kit ]]; then
-  echo 'REFUSED: kit must be /scratch/jjyeung/orch_n30/reads228/kit because a/6 is pinned there' >&2
+if [[ "$kit_dir" != /scratch/jjyeung/orch_n30/reads228/kit2 ]]; then
+  echo 'REFUSED: kit must be /scratch/jjyeung/orch_n30/reads228/kit2 because a/6 is pinned there' >&2
   exit 2
 fi
 source "$kit_dir/control_environment228.sh"
@@ -40,7 +40,7 @@ nice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --install
 date -u
 nice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --check-namespace
 date -u
-export READ228_CONTROL_PYTHON=/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12
+export READ228_CONTROL_PYTHON=/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12
 # Native CPython does stdlib control; d/v/py runs prepare and the operator in bwrap.
 nice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --prepare --out "$stage/STAGE_CHECK.json"
 date -u
@@ -50,7 +50,7 @@ nice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --p
 date -u
 fi
 if [[ "$mode" == stage ]]; then exit 0; fi
-export READ228_CONTROL_PYTHON=/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12
+export READ228_CONTROL_PYTHON=/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12
 # Stage verification, both >=300-second idle readings and the run share one launcher.
 # A busy card exits immediately. Nothing here retries a killed or failed command.
 bash "$kit_dir/run228.sh" "$package" "$1" "$2" --items 50

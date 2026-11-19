@@ -1,0 +1,4 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; K=$W/w24/work/build24k; date -u +%TZ; ls -la $K/REHEARSAL_K_BINDING_EVIDENCE.json $K/check_rehearsal_binding.py; du -sh $W/w24/out/kit_n_go | cut -f1
+mkdir -p /tmp/tr15_in24kr && cp -p $K/REHEARSAL_K_FIX_REPORT.md $K/REHEARSAL_K_BINDING_FIELDS.md $K/REHEARSAL_K_BINDING_EVIDENCE.json $K/check_rehearsal_binding.py /tmp/tr15_in24kr/ && cp -a $W/w24/out/kit_n_go /tmp/tr15_in24kr/kit_n_go
+cd /tmp && tar cf - tr15_in24kr | timeout 120 ssh -o ConnectTimeout=20 -o BatchMode=yes trinity-2-28.ib 'cd /scratch/jjyeung/orch_n30/tree_rebuild15_w24l && mkdir -p in24kr && tar xf - -C in24kr --strip-components=1 && du -sh in24kr | cut -f1 && ls in24kr'
+d=$(ls -dt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*_tree_rebuild24l | head -1); echo "24l: $d"; test -f $d/final_message.md && head -c 2500 $d/final_message.md || tail -c 800 $d/transcript.log | tr -cd "[:print:]\n" | tail -3 | cut -c1-250

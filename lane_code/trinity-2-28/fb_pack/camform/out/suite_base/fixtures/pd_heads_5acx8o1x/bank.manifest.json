@@ -1,0 +1,92 @@
+{
+ "schema": "student_pilot/compact_label_bank/v2",
+ "trinity_only": true,
+ "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/pd_heads_5acx8o1x/bank.npz",
+ "sha256": "0b6821f1499909d2f7d1a33881e3ac19d07a80955e36bff20e612111df462ead",
+ "bytes": 5750,
+ "num_scenes": 2,
+ "num_points_per_frame": 8,
+ "seed": 17,
+ "rebased_from_v1": null,
+ "pose_encoding": "opencv_cam_from_frame0_anchor_second_of_pair_T3_quatxyzw4_fovhw2_v2",
+ "origin_frame": 0,
+ "anchor_frames": [
+  1,
+  3,
+  5,
+  7,
+  9,
+  11,
+  13,
+  15,
+  17,
+  19,
+  21,
+  23,
+  25,
+  27,
+  29,
+  31
+ ],
+ "dataset_tokens": {
+  "scannet": "d1",
+  "scannetppv2": "d2"
+ },
+ "depth_source_counts": {
+  "first_hits": 1,
+  "none": 1
+ },
+ "scenes": [
+  {
+   "scene": "scannet/scene0001_00",
+   "dataset_token": "d1",
+   "scene_token": "v93d298da16d0",
+   "depth_source": "first_hits",
+   "depth": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/pd_heads_5acx8o1x/scannet__scene0001_00/FIRST_HITS.npz",
+    "sha256": "d3ca3c5b2b194827072e51b316745599277f7ef39740a7d92dce9b1d31190f2f"
+   },
+   "calibration": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/pd_heads_5acx8o1x/scannet__scene0001_00/official_cameras.npz",
+    "sha256": "f1a6e907815cb46f3814e8336f078203c462a72aa8caf63cf54d3fced2ccabff"
+   },
+   "receipt": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/pd_heads_5acx8o1x/scannet__scene0001_00/scene_receipt.json",
+    "sha256": "f011c8c32ec65b5c3dc89534dbf7cbab84dad7891776ed24afb3972d667b3b83"
+   },
+   "pose_groups": 16,
+   "depth_points": 128
+  },
+  {
+   "scene": "scannetppv2/abcdef0123",
+   "dataset_token": "d2",
+   "scene_token": "v0b8008cc8b36",
+   "depth_source": "none",
+   "depth": null,
+   "calibration": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/pd_heads_5acx8o1x/scannetppv2__abcdef0123/official_cameras.npz",
+    "sha256": "64157ad8a4c75c0ddd342f3933fa590372323e1210efbe1b9b8212c150260c49"
+   },
+   "receipt": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/suite_base/fixtures/pd_heads_5acx8o1x/scannetppv2__abcdef0123/scene_receipt.json",
+    "sha256": "37627564676211b82fe16721b5ab69c5fc0ff97997bc8ace26e8c43f87c70ab9"
+   },
+   "pose_groups": 16,
+   "depth_points": 0
+  }
+ ],
+ "deferred": [
+  {
+   "scene": "scannet/scene0002_00",
+   "reason": "receipt names another scene"
+  },
+  {
+   "scene": "scannet/scene0003_00",
+   "reason": "calibration missing"
+  },
+  {
+   "scene": "scannet/scene0004_00",
+   "reason": "receipt gravity_up missing"
+  }
+ ]
+}

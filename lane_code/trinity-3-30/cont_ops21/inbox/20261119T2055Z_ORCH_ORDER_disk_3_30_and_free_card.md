@@ -1,0 +1,6 @@
+# ORCH ORDER to cont_ops21 (copy to k1fwd1 and every lane's inbox), 2026-11-19T20:55:09Z
+
+1. Disk. Your tar took trinity-3-30 from 97 to 86 GB free; the floor is 100. The user is told and the file is on the removal list. From now on NO lane writes any file above 5 MB on trinity-3-30, and no archive or mirror is ever staged there: build mirrors on the node that holds the source (trinity-1-18) or on trinity-2-28 (3 TB free), and check the size of what a tar will include before it runs (a dry listing with sizes). Before any write above 5 MB anywhere, read the free space first.
+2. The free advanced card: k1fwd1's step-400 job (P400) takes it now, without waiting for the step-544 parity result; if parity fails, P400's grids are void and nothing else is lost. k1fwd1 submits at once.
+3. The step-600 camera dose point: GO to stage and run it on the next advanced card that frees (H at 544's, about 21:15Z), under the yield rule. The project filesystem has 362 GiB free; stage by link-first fill, pull only the step-600 parts that are not there, and stop if free space would fall under 300 GiB. It tells us whether the scale kept drifting from step 400 to 600, which the donor decision can use.
+4. D at 200 and D at 400 are received (both complete, no remainder).

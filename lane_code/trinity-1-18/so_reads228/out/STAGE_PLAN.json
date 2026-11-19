@@ -7,19 +7,20 @@
     "step": 400
   },
   "budget": {
-    "basis": "Pinned archive sizes; estimated 40 GB runtime expansion and 5 GB code/cache/return allowance. Private SAM3 is already included in input expansion; the existing shared SAM3 is counted conservatively but never read. No archive deletion.",
+    "basis": "Input/runtime part pins and expanded runtime sizes read from coordinator tar lists; 5 GB code/cache/return allowance is estimated. Includes the shared SAM3 conservatively; it is never read. Runtime refusal cap remains 40 GB; actual footprint counts private_rt.",
     "code_returns_cache_allowance_bytes": 5000000000,
-    "estimated_peak_bytes": 124166664744,
+    "estimated_peak_bytes": 94537720332,
     "existing_sam3_bytes": 3450062241,
     "free_floor_bytes": 214748364800,
     "input_archives_bytes": 32613048320,
     "input_expanded_bytes": 32606120583,
     "limit_bytes": 150000000000,
     "runtime_archives_bytes": 10497433600,
-    "runtime_expanded_allowance_bytes": 40000000000
+    "runtime_expanded_allowance_bytes": 40000000000,
+    "runtime_expanded_bytes": 10371055588
   },
   "code": {
-    "archive": "/scratch/jjyeung/orch_n30/reads228/kit/A10b/package/0.tgz",
+    "archive": "/scratch/jjyeung/orch_n30/reads228/kit2/A10b/package/0.tgz",
     "destination": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b/p",
     "expanded_bytes": 24684350,
     "files": 927,
@@ -44,12 +45,12 @@
     "bootstrap_python": "/usr/bin/python3",
     "bootstrap_version": "3.6.8 per sys_python.txt; stdlib extraction only",
     "control_note": "Native CPython performs stdlib stage/gate/compare only. Operator probe, sealed preparation and operator execute d/v/py inside the package namespace; the worker inherits that namespace and runs under d/q/vnice.sh.",
-    "control_python": "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+    "control_python": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
     "env_roots": [
       "/scratch/jjyeung/b01ec87a6f29b/d/v/site"
     ],
-    "local_base_env": "/scratch/jjyeung/orch_n30/reads228/runtime/m/ap/19252904/e",
-    "local_base_python": "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
+    "local_base_env": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/19252904/e",
+    "local_base_python": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12",
     "namespace": {
       "executable": "/usr/bin/bwrap",
       "expected_version": "bubblewrap 0.4.0",
@@ -58,7 +59,8 @@
         "destination": "/scratch/jjyeung/b01ec87a6f29b",
         "source": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b"
       },
-      "pinned_bytes_edited": false
+      "pinned_bytes_edited": false,
+      "runtime_root": "/scratch/jjyeung/orch_n30/reads228/private_rt"
     },
     "python": "/scratch/jjyeung/b01ec87a6f29b/d/v/py",
     "receipt": {
@@ -348,7 +350,7 @@
           "sha256": "0f464c64f3c39c6e46cef7c4e00bb728b4117cd5978d2fcae2591b16b326c376",
           "sha_marker": null,
           "source_host": "trinity-2-28",
-          "target": "/scratch/jjyeung/orch_n30/reads228/kit/A10b/package/a/6"
+          "target": "/scratch/jjyeung/orch_n30/reads228/kit2/A10b/package/a/6"
         }
       ],
       "sha256": "0f464c64f3c39c6e46cef7c4e00bb728b4117cd5978d2fcae2591b16b326c376"
@@ -356,16 +358,30 @@
   ],
   "logical": "/scratch/jjyeung/b01ec87a6f29b",
   "private_logical": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b",
+  "private_runtime": "/scratch/jjyeung/orch_n30/reads228/private_rt",
   "runtime_archives": [
     {
-      "destination": "/scratch/jjyeung/orch_n30/reads228/runtime",
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private_rt",
+      "expanded_bytes": 1579308957,
       "expanded_bytes_limit": 40000000000,
       "id": "r0",
+      "member_headers_sha256": "9a8105dcd58057d63a48a9ddf4672c21db8175c9aeb404cfcb1a16a8fd907372",
+      "member_list": {
+        "bytes": 5765861,
+        "path": "evidence/runtime/r0.list",
+        "sha256": "5c2359699c2a0b355979cd46c3d28f9f2eb7af9b80d89d307ef5b34739643663"
+      },
       "namespace_map": {
-        "fsw": "/scratch/jjyeung/orch_n30/reads228/runtime/fsw",
-        "m/ap": "/scratch/jjyeung/orch_n30/reads228/runtime/m/ap",
-        "sj": "/scratch/jjyeung",
-        "sj/b01ec87a6f29b": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b"
+        "fsw": "/scratch/jjyeung/orch_n30/reads228/private_rt/fsw",
+        "m/ap/19252904": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/19252904",
+        "m/ap/90da7ac2": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/90da7ac2",
+        "sj/envs/p1cpu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/envs/p1cpu",
+        "sj/orch_cd/devs1_direct": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/devs1_direct",
+        "sj/orch_cd/legs1_reads": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/legs1_reads",
+        "sj/orch_cd/rv_merge_fix": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/rv_merge_fix",
+        "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+        "x/need_frames.txt": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/need_frames.txt",
+        "x/pull.py": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/pull.py"
       },
       "parts": [
         {
@@ -391,14 +407,27 @@
       "sha256": null
     },
     {
-      "destination": "/scratch/jjyeung/orch_n30/reads228/runtime",
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private_rt",
+      "expanded_bytes": 8386282204,
       "expanded_bytes_limit": 40000000000,
       "id": "r1",
+      "member_headers_sha256": "e3bb3b21eed27114db6c4cdcae20093288efe4aad4d21c446e70b3b6ff6243aa",
+      "member_list": {
+        "bytes": 10435705,
+        "path": "evidence/runtime/r1.list",
+        "sha256": "7976a70401d5ecc36eae0bc7e9608424f186984600d1480239b011df3cba2888"
+      },
       "namespace_map": {
-        "fsw": "/scratch/jjyeung/orch_n30/reads228/runtime/fsw",
-        "m/ap": "/scratch/jjyeung/orch_n30/reads228/runtime/m/ap",
-        "sj": "/scratch/jjyeung",
-        "sj/b01ec87a6f29b": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b"
+        "fsw": "/scratch/jjyeung/orch_n30/reads228/private_rt/fsw",
+        "m/ap/19252904": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/19252904",
+        "m/ap/90da7ac2": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/90da7ac2",
+        "sj/envs/p1cpu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/envs/p1cpu",
+        "sj/orch_cd/devs1_direct": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/devs1_direct",
+        "sj/orch_cd/legs1_reads": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/legs1_reads",
+        "sj/orch_cd/rv_merge_fix": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/rv_merge_fix",
+        "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+        "x/need_frames.txt": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/need_frames.txt",
+        "x/pull.py": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/pull.py"
       },
       "parts": [
         {
@@ -496,14 +525,27 @@
       "sha256": null
     },
     {
-      "destination": "/scratch/jjyeung/orch_n30/reads228/runtime",
+      "destination": "/scratch/jjyeung/orch_n30/reads228/private_rt",
+      "expanded_bytes": 405464427,
       "expanded_bytes_limit": 40000000000,
       "id": "r2",
+      "member_headers_sha256": "d1b811267f6a41d7d49ba1b6db50d5b0309f7013d96bf3bef9c2023a8443592b",
+      "member_list": {
+        "bytes": 617183,
+        "path": "evidence/runtime/r2.list",
+        "sha256": "e59ec13a0b2dbe238d92bb7d81fd1dbbca841a278f53b558900b522de8a7aad2"
+      },
       "namespace_map": {
-        "fsw": "/scratch/jjyeung/orch_n30/reads228/runtime/fsw",
-        "m/ap": "/scratch/jjyeung/orch_n30/reads228/runtime/m/ap",
-        "sj": "/scratch/jjyeung",
-        "sj/b01ec87a6f29b": "/scratch/jjyeung/orch_n30/reads228/private/b01ec87a6f29b"
+        "fsw": "/scratch/jjyeung/orch_n30/reads228/private_rt/fsw",
+        "m/ap/19252904": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/19252904",
+        "m/ap/90da7ac2": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/90da7ac2",
+        "sj/envs/p1cpu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/envs/p1cpu",
+        "sj/orch_cd/devs1_direct": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/devs1_direct",
+        "sj/orch_cd/legs1_reads": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/legs1_reads",
+        "sj/orch_cd/rv_merge_fix": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/rv_merge_fix",
+        "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+        "x/need_frames.txt": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/need_frames.txt",
+        "x/pull.py": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/pull.py"
       },
       "parts": [
         {
@@ -520,6 +562,187 @@
       "sha256": null
     }
   ],
+  "runtime_registry": {
+    "fsw": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/fsw",
+      "kind": "runtime",
+      "members": 0,
+      "namespace_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        }
+      ]
+    },
+    "m/ap/19252904": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/19252904",
+      "kind": "runtime",
+      "members": 69177,
+      "namespace_path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 359,
+          "path": "evidence/q/env.json",
+          "sha256": "e46a9a59e1de189ae736a5d4e94c7827eabfcfa695057fda9640e8120a54a81a"
+        },
+        {
+          "bytes": 13095,
+          "path": "A10b/src/orchard_h10/vendor/orchard_stage.py",
+          "sha256": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2"
+        }
+      ]
+    },
+    "m/ap/90da7ac2": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/m/ap/90da7ac2",
+      "kind": "runtime",
+      "members": 3,
+      "namespace_path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/90da7ac2",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 3419,
+          "path": "A10b/src/orchard_h10/vendor/ORCHARD_ASSETS.json",
+          "sha256": "a62285317a774cee040ceb5817e7ad7a7e08e12ea412b8f416cfb97b5a1c12ee"
+        }
+      ]
+    },
+    "sj/envs/p1cpu": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/envs/p1cpu",
+      "kind": "runtime",
+      "members": 36055,
+      "namespace_path": "/scratch/jjyeung/envs/p1cpu",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 13095,
+          "path": "A10b/src/orchard_h10/vendor/orchard_stage.py",
+          "sha256": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2"
+        }
+      ]
+    },
+    "sj/orch_cd/devs1_direct": {
+      "basis": "Coordinator runtime list supplies this subtree; package SJ bind supplies its in-namespace path. No narrower package receipt was found.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/devs1_direct",
+      "kind": "runtime",
+      "members": 216,
+      "namespace_path": "/scratch/jjyeung/orch_cd/devs1_direct",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        }
+      ]
+    },
+    "sj/orch_cd/legs1_reads": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/legs1_reads",
+      "kind": "runtime",
+      "members": 4579,
+      "namespace_path": "/scratch/jjyeung/orch_cd/legs1_reads",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 4427,
+          "path": "A10b/src/orchard_h10/vendor/trace_runtime.py",
+          "sha256": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+        },
+        {
+          "bytes": 11935,
+          "path": "A10b/src/orchard_h10/vendor/export_stage.py",
+          "sha256": "ecb27d13947ebb7c415e6fc6f0f986b46cdf0a85ddfe3c50004044bba08432d8"
+        }
+      ]
+    },
+    "sj/orch_cd/rv_merge_fix": {
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/orch_cd/rv_merge_fix",
+      "kind": "runtime",
+      "members": 773,
+      "namespace_path": "/scratch/jjyeung/orch_cd/rv_merge_fix",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 4427,
+          "path": "A10b/src/orchard_h10/vendor/trace_runtime.py",
+          "sha256": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+        }
+      ]
+    },
+    "sj/uv-python/cpython-3.12.13-linux-x86_64-gnu": {
+      "additional_namespace_path": "/home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu",
+      "basis": "Package namespace and cited receipts; membership cross-checked against coordinator lists.",
+      "bind_evidence": "A10b/src/orchard_h10/vendor/orchard_job.py:128-131",
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/sj/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+      "kind": "runtime",
+      "members": 5032,
+      "namespace_path": "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu",
+      "receipts": [
+        {
+          "bytes": 13960,
+          "path": "A10b/src/orchard_h10/vendor/orchard_job.py",
+          "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+        },
+        {
+          "bytes": 13095,
+          "path": "A10b/src/orchard_h10/vendor/orchard_stage.py",
+          "sha256": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2"
+        }
+      ]
+    },
+    "x/need_frames.txt": {
+      "basis": "Coordinator runtime lists and fix4 ruling; no package receipt for this staging helper.",
+      "bind_evidence": null,
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/need_frames.txt",
+      "kind": "record_only",
+      "members": 1,
+      "namespace_path": null,
+      "receipts": []
+    },
+    "x/pull.py": {
+      "basis": "Coordinator runtime lists and fix4 ruling; no package receipt for this staging helper.",
+      "bind_evidence": null,
+      "host_path": "/scratch/jjyeung/orch_n30/reads228/private_rt/x/pull.py",
+      "kind": "record_only",
+      "members": 1,
+      "namespace_path": null,
+      "receipts": []
+    }
+  },
   "schema": "read228-stage-v2",
   "stage_root": "/scratch/jjyeung/orch_n30/reads228",
   "target_host": "trinity-2-28"

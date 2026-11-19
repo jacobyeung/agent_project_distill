@@ -1,133 +1,248 @@
-VERDICT: DONE The third-review fixes, regression tests and delivery patch are complete; the target read waits for a free card on trinity-2-28.
+VERDICT: DONE All six target-refusal fixes are delivered for kit2; 140 CPU tests pass directly and from the applied patch, while target staging and the GPU read remain coordinator work.
 
-The kit runs A10b read A, Orchard job **173060**, step **400**, run `6ed2c7aa`, artifact SHA256 `5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd`. The sealed source, settings, input pins and item order remain unchanged. The coordinator verified all 21 staged archive parts at 18:37Z; the kit authenticates them again before use. All eight target cards are busy. No target or GPU command ran during this build.
+Completed on trinity-1-18: Thu Nov 19 20:41:26 UTC 2026. The shipped delivery is preserved in `../out_round3/`. This kit stages every runtime group under `/scratch/jjyeung/orch_n30/reads228/private_rt/`, uses an all-archive preflight before extraction, and executes the package through its own private namespace. The default reader remains OFF and all authenticated A10b bytes remain unchanged.
 
-## Numbers: measured, pinned and estimated
+## Numbers and evidence
 
 | Quantity | Value | Basis |
 |---|---:|---|
-| Direct CPU tests | **119 passed** | Measured: 39 base, 18 review1, 7 preparation, 7 bootstrap, 17 review2, 12 stage2, 19 review3. |
-| Fresh applied-patch tests | **119 passed** | Measured on a newly bootstrapped input copy after zero-fuzz patch application. |
-| New regressions against preserved kit | **19 fail** | Measured: 18 failed assertions and one missing-private-path refusal; all 19 pass after the fixes. |
-| Round-three reviewer fixtures | **18 outcomes preserved** | Measured: 6 SAME_INSTRUMENT, 8 DIAGNOSTIC_ONLY, 4 refusals. Positive and diagnostic cases retain the fixed ruling. |
-| Round-two reviewer fixtures | **7/7 DIAGNOSTIC_ONLY** | Measured replay of every supplied comparison. |
-| Maximum individual test-process RSS | **237248 kB** | Measured with `/usr/bin/time -v`; checks ran serially, with CUDA hidden and at most eight threads. |
-| Preserved delivery snapshot | **1086 files** | Measured hashes in `checks/round3/ROUND2_SNAPSHOT.json`; `out_round2/` remains unchanged. |
-| Authenticated input files unchanged | **944 files** | Measured against the input mirror, including all 927 sealed source files. |
-| Workspace at patch verification | **1682875138 bytes** | Measured regular-file sizes under L at Thu Nov 19 19:34:17 UTC 2026; final publication measurement is in `checks/round3/DELIVERY_INTEGRITY.json`. |
-| Runtime parts | **13; 10,497,433,600 bytes** | Pinned by MISSING.json; staged according to the coordinator's check. |
-| Input archives | **32,613,048,320 packed bytes; 32,606,120,583 expanded bytes** | Package pins; the kit also carries the small pinned a/6 preparation archive. |
-| Target peak disk footprint | **124,166,664,744 bytes** | **Estimate**: retained archives, input expansion, 40 GB runtime expansion allowance and 5 GB operating allowance. Includes a conservative 3,450,062,241-byte shared-SAM allowance; shared SAM is never read. Private SAM is already included in a2 expansion. |
-| Target limits | **145 GB staged; 150 GB total; 200 GiB free floor** | Configured limits; target expansion remains unmeasured by this build. |
-| Target namespace/import/prepare/GPU runs | **0 / 0 / 0 / 0** | This build ran only local CPU fixtures, including a real bwrap private-bind check. |
+| Runtime archive parts | 13; 10,497,433,600 bytes | Read from package ORCHARD_ASSETS and MISSING pins; target bodies were not available here. |
+| Runtime headers | 115,837: r0 41,535; r1 69,177; r2 5,125 | Counted from the three supplied lists; hashes and groups are in RUNTIME_LISTS.json. |
+| Expanded runtime file contents | 10,371,055,588 bytes | Sum of regular-file sizes in the supplied lists; excludes directory allocation and symlink metadata. This is not a measured target disk footprint. |
+| r0 / r1 / r2 expanded file bytes | 1,579,308,957 / 8,386,282,204 / 405,464,427 | Read from the lists. |
+| Planned retained footprint | 94,537,720,332 bytes | Estimate: pinned input/runtime parts, input expansion, listed runtime expansion, conservative 3,450,062,241 shared-SAM allowance, and estimated 5 GB operating allowance. Shared SAM is never used. |
+| Enforcement | 40 GB runtime expansion cap; 145 GB staged-footprint check; 150 GB total limit; 200 GiB free floor | Configured limits. The footprint counts private_rt, including symlink metadata, without following directory links into shared environments. |
+| Direct / applied-patch tests | 140 / 140 passed | Measured; all eight suites, exact logs below. |
+| Before-fix regressions | 21 cases fail; 23 assertion failures including subtests | Measured against out_round3; no test errors. |
+| Preserved A10b files | 944 | SHA256-verified against the input mirror, delivery and applied patch. |
+| Preserved shipped-delivery files | 1,161 | Verified against out_round3/DELIVERY_MANIFEST.json. |
+| Patch | 20,207,395 bytes; 75 additive files | Measured; no existing input file changes. |
+| Highest direct / applied-test MaxRSS | 426,660 / 427,532 KiB | `/usr/bin/time -v` measurements; below 30 GB. Tests use at most six CPUs; concurrent header checks kept the total below eight. |
+| Target / GPU runs by this agent | 0 / 0 | No SSH, GPU, network download, deletion, Git or paid API call. |
 
-The package receipt pins torch 2.13.0+cu130, torchvision 0.28.0+cu130, transformers 5.19.0 and scipy 1.14.1. These are pinned versions, not measurements from this build. [FRAMEWORK_EVIDENCE.md](FRAMEWORK_EVIDENCE.md) cites the installed torch 2.11 CPU source and official references for the observer APIs. The fixes add no new torch API behavior.
+Workspace size and final delivery inventory are measured in [DELIVERY_INTEGRITY.json](checks/round4/DELIVERY_INTEGRITY.json). The publisher refuses a workspace at or above 3 GB.
 
-## Review round 3: finding -> fix -> test
+## Target refusal: finding -> fix -> test
 
-| Finding | Fix and reason | Regression evidence |
+| Finding / decision | Delivered fix | Regression evidence |
 |---|---|---|
-| HIGH 1: bare control interpreter cannot run the operator | **Approach (b).** Native CPython performs stdlib staging, gating and comparison. `namespace228.operator_command` runs the probe and operator through the package namespace plus unchanged `d/v/py -B -I`. `operator228.py` calls the sealed tower operator and runner with the observation launcher. This retains the interpreter boundary in `A10b/src/orchard_h10/job.py:206–207`. The worker inherits that namespace and uses the package policy prefix from `job.py:194`; no nested bwrap. No `site.addsitedir` fallback or runtime-byte deviation is used. | Seven `test_high1_*` regressions cover the shared command, CLI refusal code 2, pre-gate ordering, dependency-free native controller, worker prefix and test harness. A controller started with `-I -S -B` completes a synthetic 50-item run through a separate CPU operator process using real sealed operator/summary code. |
-| HIGH 1: refuse missing imports before consuming a card window | The exact operator command imports `e2e_reader.perception_memo`, `h1eval.h10.launch`, `h1eval.items`, `h1eval.modes`, `h1eval.cli`. Failure writes STAGE/OPERATOR_PROBE.json and exits 2 before snapshot, idle gate, UUID lock or run directory. | `test_high1_no_numpy_probe_refuses_before_any_card_or_run_directory` runs the probe under `-S`, observes missing numpy and exit 2, and asserts that card functions, lock directory and run directory were untouched. The entire 19-test suite runs without parent site-packages. |
-| LOW 2: invalid names fail after gating | `run_one` applies the sealed `opaque([str(out)])` before stage_check. The coordinator checks its run-name regex before environment setup or staging. | `test_low2_banned_name_refuses_before_stage`; `test_low2_coordinator_validates_name_before_work`. |
-| LOW 3: shipping direction and SSH options | The coordinator pushes from trinity-1-18 through its rate limiter with `timeout 600 ssh -o ConnectTimeout=20`, using the existing master. A separate target-session step verifies the delivery manifest. The absent-kit refusal remains. | `test_low3_report_pushes_with_timeout_and_reuses_master` checks the report; the standalone patch carries the identical recipe in COORDINATOR.md. |
-| INFO 4: shared d/s has unexplained files | Inputs and source stage under `reads228/private/b01ec87a6f29b`. The namespace binds that private directory at the pinned logical path. Native checks translate logical paths only for host reads; settings, runtime links and pinned bytes retain their original values. Shared d/s and d/k are never read or used. Private unexplained files still refuse. | Six `test_info4_*` tests check the plan, code install, host translation, bind order, real bwrap behavior, and full stage verification with a guard against opening shared files. Existing mismatch/unexplained-file refusals still pass. |
-| INFO 5: extraction logs touch the shared logical root | Extraction logs go under STAGE/extraction_logs. | `test_info5_extraction_logs_stay_under_stage`. |
-| INFO 6: policy reads come from /data3 | Bootstrap authenticates the delivered policy copies; stage checks authenticate private d/q; the operator verifies and executes logical d/q inside the namespace. Both hashes retain their package pins. | `test_info6_policy_has_no_data3_dependency`, the private-stage test, and worker-command coverage. |
-| INFO 8: failed names cannot be reused | README states: “Any refusal after the run directory exists needs a fresh run name.” | `test_info8_readme_requires_fresh_name_after_directory_exists`. |
+| 1. Shared runtime extraction and shared native CPython | Every registry destination is `private_rt/<archive-relative path>`. The package namespace receives private_rt. Native stdlib control uses private_rt/sj/uv-python/.../bin/python3.12. Narrow control/output binds preserve kit visibility; the private logical-root bind remains after the SJ bind. | `test_private_runtime_plan_and_native_control`, `test_host_translation_private_sj_and_absolute_link`, and the real-bwrap private runtime/logical/control/x isolation test. |
+| 2. Partial writes before a later refusal | `runtime228.preflight_runtime` reads every header and file body in all groups, verifies part/whole hashes and exact header inventories, compares existing files, and checks paths, links, types and cross-group topology. `extract_runtimes` reaches pass 2 only after all groups pass. It preserves matching members and their metadata. | Late unknown namespace, conflict and pin failure all leave no new runtime members. Absolute/parent paths, special files, hardlinks, escaping/cyclic links and symlink parents refuse before writes. The CLI-entry test also verifies STAGE_CHECK records the refusal. |
+| 3. x helpers were unregistered | Register the two exact x members as `record_only`, extract their bytes under private_rt/x, and include them in STAGE_CHECK `non_runtime_namespaces`. Neither x nor private_rt is bound wholesale or executed. | Helper extraction checks exact bytes; the real namespace cannot see private_rt/x/pull.py or /x/pull.py. |
+| 4. Registry lacked actual membership | Registry destinations are cross-checked against sealed `orchard_job` constants, absolute-link rules, ORCHARD_ASSETS and q/env.json. Subtree receipts are cited below; devs1_direct and helper membership explicitly comes from the coordinator lists. All three list hashes, semantic header digests and expanded sizes are checked. | Zero-body tar fixtures preserve all 115,837 real paths/types/link targets and pass preflight. Adding an unknown namespace refuses without creating private_rt. The fixture also covers both regular-file tar codes for names where the format supports them. |
+| 5. Private footprint and authorized stage rerun | The footprint explicitly includes private_rt. The native controller never uses shared uv-python. The authorized kit2 stage begins from the absent private root left by this refusal; matching successful stages are verified and reused. | Listed sizes agree with the plan; symlink-directory metadata is counted. Identical runtime reruns preserve inode/mode/mtime. The existing preparation test proves READY reuse without relaunch. |
+| 6a. Bootstrap harness did not use Python 3.6 | `tests/run_tests.sh` selects `/usr/bin/python3` when its version is 3.6.8. The validation driver actually used that interpreter for all seven bootstrap tests. | Harness regression and [interpreter output](checks/round4/bootstrap_version.txt); direct/applied bootstrap suites both pass. |
+| 6b. Operator omitted process guard | `operator228.execute` calls sealed `install_process_guard(out)` immediately after installing package imports, before loading the sealed operator or spawning children. | Guard-order regression plus the real sealed-operator CPU fixture, which completes a synthetic 50-item return with the guard installed. |
 
-The private bind works in the local CPU namespace fixture; the target's full pinned runtime remains a deployment check. This provides no reason to take fallback (a). LOCAL_RUN records the operator probe, interpreter, package policy paths, logical bind and both bwrap identities.
+All 21 target-regression cases fail on the shipped kit: [exact before output](checks/round4/fix4_before_actual.txt). Every case passes in the direct and applied-patch suites. The member fixture contains headers and zero-byte file bodies; it does not substitute for target pin verification or target runtime imports.
 
-## Review round 2: finding -> fix -> test
+## Namespace bindings and private logical root
 
-The 17 comparison/launch regressions and 12 staging regressions pass. They cover whole binding/settings equality, SUMMARY failure and completion, FAILED.json, pinned reference metadata, preserved runtime links, archive member inventories, exact conflicts, unexplained files, import argv, local cache environments, broad OOM recognition and unchanged unpack/ingest behavior. The original seven reviewer comparisons all remain DIAGNOSTIC_ONLY; [exact replay](checks/round3/cr2_replay.txt) and [results](checks/round3/cr2_replay/PROBES.json) are included.
+The physical runtime root is `/scratch/jjyeung/orch_n30/reads228/private_rt`. The package receives that root directly; `sj` is a real private directory.
 
-## Review round 1: finding -> fix -> test
+| Archive group | Host path below private_rt | In-namespace path | Package evidence |
+|---|---|---|---|
+| devs1_direct, rv_merge_fix, legs1_reads | `sj/orch_cd/<group>` | `/scratch/jjyeung/orch_cd/<group>` | `orchard_job.py:128–129`; `trace_runtime.py:22–25`, `export_stage.py:19` identify the latter two. devs1_direct membership comes from the coordinator list. |
+| p1cpu | `sj/envs/p1cpu` | `/scratch/jjyeung/envs/p1cpu` | `orchard_job.py:128`; `orchard_stage.py:19–24` pins its absolute Python link. |
+| Native CPython | `sj/uv-python/cpython-3.12.13-linux-x86_64-gnu` | Same suffix below `/scratch/jjyeung`, and `/home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu` | `orchard_job.py:128,131`; `orchard_stage.py:19–24`. |
+| Base manifest | `m/ap/90da7ac2` | `/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/90da7ac2` | `orchard_job.py:130`; `ORCHARD_ASSETS.json:7–10`. |
+| Base environment | `m/ap/19252904` | `/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904` | `orchard_job.py:130`; `q/env.json:1`, `orchard_stage.py:22–23`. |
+| Empty package fsw bind | `fsw` | `/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung` | `orchard_job.py:129`; zero archive members. |
+| Staging records | `x/pull.py`, `x/need_frames.txt` | None; never bound or executed | Coordinator r0 list; fix4 decision. |
+| Private logical root | Outside private_rt: `reads228/private/b01ec87a6f29b` | `/scratch/jjyeung/b01ec87a6f29b` | `namespace228.namespace_command` appends this bind after the package SJ bind. |
 
-The 18 first-review regressions, 39 base tests and seven preparation tests pass. They cover version/audit checks before the gate, call placement semantics, mandatory local provenance, original return metadata and unpack acceptance, OFF defaults, policy hashes, local write roots, OOM stopping and the worker's separate process group. The updated integration tests cross the operator process boundary while retaining their original metadata assertions.
+Package evidence above is under `A10b/src/orchard_h10/vendor/`; the delivered q receipt is `evidence/q/env.json`. STAGE_PLAN contains receipt sizes/hashes, header digests, member counts and all physical/namespace destinations. RUNTIME_LISTS.json contains source-list hashes and measured listing totals.
 
-## Exact commands and outputs
+The adapter adds narrow binds for the kit, `prepare`, `operator_probe` and `namespace_probe`; an executing operator also gets its own output directory. It changes the namespace working directory to the kit. Neither the stage root nor private_rt is bound wholesale, so the record-only x helpers remain invisible. This allows the private runtime, private logical root and operator control paths to work together while shared environments and orch_cd stay hidden.
 
-The validation driver records exact argv, environment overrides, UTC starts, exit codes and output paths in [final_RUNS.json](checks/round3/final_RUNS.json) and [patch_RUNS.json](checks/round3/patch_RUNS.json). Every complete stdout/stderr stream is linked below; RSS values are measured kB.
 
-| Run | Exact unittest footer | Exit | MaxRSS | Exact output |
-|---|---|---:|---:|---|
-| Direct review3_before | `Ran 19 tests in 0.479s; FAILED (failures=18, errors=1)` | 1 | 33052 | [full output](checks/round3/final_review3_before.txt) |
-| Direct base | `Ran 39 tests in 7.567s; OK` | 0 | 236164 | [full output](checks/round3/final_base.txt) |
-| Direct review1 | `Ran 18 tests in 5.079s; OK` | 0 | 237184 | [full output](checks/round3/final_review1.txt) |
-| Direct prepare | `Ran 7 tests in 0.131s; OK` | 0 | 225704 | [full output](checks/round3/final_prepare.txt) |
-| Direct bootstrap | `Ran 7 tests in 0.012s; OK` | 0 | 25884 | [full output](checks/round3/final_bootstrap.txt) |
-| Direct review2 | `Ran 17 tests in 2.687s; OK` | 0 | 35068 | [full output](checks/round3/final_review2.txt) |
-| Direct stage2 | `Ran 12 tests in 0.035s; OK` | 0 | 27192 | [full output](checks/round3/final_stage2.txt) |
-| Direct review3 | `Ran 19 tests in 4.446s; OK` | 0 | 233456 | [full output](checks/round3/final_review3.txt) |
-| Applied patch base | `Ran 39 tests in 7.409s; OK` | 0 | 236744 | [full output](checks/round3/patch_base.txt) |
-| Applied patch review1 | `Ran 18 tests in 5.317s; OK` | 0 | 237248 | [full output](checks/round3/patch_review1.txt) |
-| Applied patch prepare | `Ran 7 tests in 0.112s; OK` | 0 | 225328 | [full output](checks/round3/patch_prepare.txt) |
-| Applied patch bootstrap | `Ran 7 tests in 0.013s; OK` | 0 | 25748 | [full output](checks/round3/patch_bootstrap.txt) |
-| Applied patch review2 | `Ran 17 tests in 2.766s; OK` | 0 | 34836 | [full output](checks/round3/patch_review2.txt) |
-| Applied patch stage2 | `Ran 12 tests in 0.041s; OK` | 0 | 27264 | [full output](checks/round3/patch_stage2.txt) |
-| Applied patch review3 | `Ran 19 tests in 4.544s; OK` | 0 | 233432 | [full output](checks/round3/patch_review3.txt) |
+`namespace228.py:32–47` preserves the package binds and appends the control and private logical-root binds. `namespace228.py:55–62` adds only the executing operator's output directory. The real-bwrap fixture reads private runtime, m/ap and logical-root sentinel bytes, preserves a shared sentinel, sees the kit operator file, and cannot see the x helper. No authenticated symlink, pyvenv.cfg, settings file or reader source is rewritten.
 
-The measured validation commands were:
+## Patch and exact validation
 
-```bash
-export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1
-export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
-date -u
-nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_reads228/work/round3/validate.py
-date -u
-nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_reads228/work/round3/validate.py /scratch/jjyeung/orch_n30/so_reads228/work/round3/applied_verified/read228 patch
-```
+[01_trinity_adapter.diff](patches/01_trinity_adapter.diff) is additive against the authenticated A10b input tree. SHA256: `261e5437a55e79ada2a9fba875d75fd2661fd65a97f9371a57ec812de35d6347`. It changes no existing file. Activation requires explicit adapter entry-point invocation; observation requires `--observe`; optional cache extensions require `--on` and default OFF.
 
-Each suite command is `nice -n 10 /usr/bin/time -v /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B <test-file>`, except `test_review3.py`, which uses `-I -S -B`. `bash tests/run_tests.sh` runs all seven suites with that distinction and local caches. The positive integration uses a separate CPU interpreter; its worker and card observations are doubles. Real CUDA kernels, target runtime imports and device parity are not tested here.
+[Patch integrity](checks/round4/RELEASE_PATCH_INTEGRITY.json) records the exact bootstrap, `patch --batch --fuzz=0 -p1`, and asset-install commands. The patch applies without offsets or fuzz. All 75 delivered adapter files match the applied patch, all 944 authenticated input files retain their hashes, Python 3.6 grammar checks pass for the bootstrap modules, and shell syntax checks pass. Full patch command outputs are [bootstrap](checks/round4/release_patch_command_0.txt), [apply](checks/round4/release_patch_command_1.txt), and [asset install](checks/round4/release_patch_command_2.txt).
 
-The 19 negative regressions use the same test file with READ228_REVIEW3_KIT=/scratch/jjyeung/orch_n30/so_reads228/out_round2. The missing-private-path case raises Refusal on preserved code; it is reported as a unittest error and passes on the fixed code. The other 18 cases fail assertions. None is a target run or a killed job.
+The validation driver sets CUDA_VISIBLE_DEVICES empty, PYTHONDONTWRITEBYTECODE=1, OMP/MKL/OPENBLAS thread limits to eight, TOKENIZERS_PARALLELISM=false, and local caches under work/round4. Torch tests call `torch.set_num_threads(8)` before tensor work. Both controller suites use `-S`; only the separate CPU operator fixture has site-packages. The bootstrap suite uses actual system Python 3.6.8.
 
-## Reviewer fixture replay
+| Suite | Tests | Direct / patch exit code | Exact complete outputs |
+|---|---:|---|---|
+| `test_kit.py` | 39 | 0 / 0 | [release_kit.txt](checks/round4/release_kit.txt), [patch_kit.txt](checks/round4/patch_kit.txt) |
+| `test_review.py` | 18 | 0 / 0 | [release_review.txt](checks/round4/release_review.txt), [patch_review.txt](checks/round4/patch_review.txt) |
+| `test_prepare.py` | 7 | 0 / 0 | [release_prepare.txt](checks/round4/release_prepare.txt), [patch_prepare.txt](checks/round4/patch_prepare.txt) |
+| `test_bootstrap36.py` | 7 | 0 / 0 | [release_bootstrap36.txt](checks/round4/release_bootstrap36.txt), [patch_bootstrap36.txt](checks/round4/patch_bootstrap36.txt) |
+| `test_review2.py` | 17 | 0 / 0 | [release_review2.txt](checks/round4/release_review2.txt), [patch_review2.txt](checks/round4/patch_review2.txt) |
+| `test_stage2.py` | 12 | 0 / 0 | [release_stage2.txt](checks/round4/release_stage2.txt), [patch_stage2.txt](checks/round4/patch_stage2.txt) |
+| `test_review3.py` | 19 | 0 / 0 | [release_review3.txt](checks/round4/release_review3.txt), [patch_review3.txt](checks/round4/patch_review3.txt) |
+| `test_target_refusal.py` | 21 | 0 / 0 | [release_target_refusal.txt](checks/round4/release_target_refusal.txt), [patch_target_refusal.txt](checks/round4/patch_target_refusal.txt) |
 
-Both replays ran `nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -S -B /scratch/jjyeung/orch_n30/so_reads228/work/round3/replay_review3.py --kit <kit> --out <output>`, once with `out_round2` and once with `work/round3/kit`. [Before output](checks/round3/cr3_before.txt), [after output](checks/round3/cr3_after.txt) and [full comparison records](checks/round3/cr3_after/PROBES.json) retain exact outcomes and reasons. The summaries match for all 18 fixtures.
-
-| Reviewer fixture | Verdict | Identical answers | Identical placements |
-|---|---|---:|---:|
-| `r2_5f0o1qpa` | REFUSED | — | — |
-| `r2_8efe82tv` | SAME_INSTRUMENT | 49 | 50 |
-| `r2_8u1v8u0a` | DIAGNOSTIC_ONLY | 49 | 49 |
-| `r2__qa3gdtw` | SAME_INSTRUMENT | 50 | 50 |
-| `r2_aq7uixrb` | REFUSED | — | — |
-| `r2_btgyu_e5` | SAME_INSTRUMENT | 50 | 50 |
-| `r2_c67p0oj0` | SAME_INSTRUMENT | 50 | 50 |
-| `r2_emi63otj` | REFUSED | — | — |
-| `r2_j9gy_v5p` | DIAGNOSTIC_ONLY | 50 | 49 |
-| `r2_k0eidtwf` | DIAGNOSTIC_ONLY | 50 | 49 |
-| `r2_kgo0g8ul` | DIAGNOSTIC_ONLY | 50 | 49 |
-| `r2_mb5uq4mr` | DIAGNOSTIC_ONLY | 48 | 50 |
-| `r2_myq850aj` | SAME_INSTRUMENT | 50 | 50 |
-| `r2_pdfpl_j2` | REFUSED | — | — |
-| `r2_syho8c7k` | DIAGNOSTIC_ONLY | 50 | 49 |
-| `r2_x6y6wucf` | SAME_INSTRUMENT | 50 | 50 |
-| `r2_xibrlh1d` | DIAGNOSTIC_ONLY | 50 | 50 |
-| `r2_zmay2_sr` | DIAGNOSTIC_ONLY | 50 | 50 |
-
-The fixed ruling remains at least 49/50 identical answers and 50/50 identical call placements, subject to all eligibility checks. Traces are diagnostics. Provenance establishes consistency, not hardware attestation.
-
-## Additive patch and integrity
-
-[01_trinity_adapter.diff](patches/01_trinity_adapter.diff) adds **69 files**, **3225135 bytes**, under `read228/` against the supplied input tree. Its SHA256 is `ce421876285305c790d0ec6a459b1c1f7d5db7c9a4dcebeeebcefa100899895b`. [patches/MANIFEST.json](patches/MANIFEST.json) pins every patch file. DELIVERY_MANIFEST.json pins the whole delivery except itself.
-
-The adapter requires explicit entry-point invocation; operator execution requires `--execute`, worker observation requires `--observe`, and optional caches default OFF. No existing production file changes. The patch includes tests and the coordinator recipe. Generated REPORT/check logs accompany the delivery rather than entering the patch. [PATCH_INTEGRITY.json](checks/round3/PATCH_INTEGRITY.json) records syntax checks, Python 3.6 bootstrap grammar, shell checks, input hashes and zero-fuzz application.
+The exact direct test commands are:
 
 ```bash
-date -u
-nice -n 10 patch --batch --fuzz=0 -p1 \
-  -d /scratch/jjyeung/orch_n30/so_reads228/work/round3/applied_verified \
-  -i /scratch/jjyeung/orch_n30/so_reads228/work/round3/kit/patches/01_trinity_adapter.diff
+nice -n 10 /usr/bin/time -v /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_kit.py
+```
+```bash
+nice -n 10 /usr/bin/time -v /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_review.py
+```
+```bash
+nice -n 10 /usr/bin/time -v /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_prepare.py
+```
+```bash
+nice -n 10 /usr/bin/time -v /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_bootstrap36.py
+```
+```bash
+nice -n 10 /usr/bin/time -v /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_review2.py
+```
+```bash
+nice -n 10 /usr/bin/time -v /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_stage2.py
+```
+```bash
+nice -n 10 /usr/bin/time -v /scratch/jjyeung/envs/p1cpu/bin/python -I -S -B /scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_review3.py
+```
+```bash
+nice -n 10 /usr/bin/time -v /scratch/jjyeung/envs/p1cpu/bin/python -I -S -B /scratch/jjyeung/orch_n30/so_reads228/work/round4/kit/tests/test_target_refusal.py
 ```
 
-That command returned 0; [exact output](checks/round3/patch_command_1.txt) is retained. Bootstrap before and after application also returned 0 ([input](checks/round3/patch_command_0.txt), [adapter assets](checks/round3/patch_command_2.txt)). All 119 tests passed on the applied patch.
+The applied-patch commands use `work/round4/applied_release/read228/tests/` in place of `work/round4/kit/tests/`; every complete argv and return code is in [release_RUNS.json](checks/round4/release_RUNS.json) and [patch_RUNS.json](checks/round4/patch_RUNS.json). These are the unedited unittest summary outputs:
 
-## Exact coordinator sequence
+`test_kit.py` (direct):
 
-These commands belong to the coordinator. The build agent has not executed SSH or any target-node command. All 21 archive parts are staged and match their pins according to the coordinator's 18:37Z check. All eight cards are busy; staging can finish while the read waits for a free card.
+```text
+Ran 39 tests in 7.076s
+
+OK
+```
+
+`test_review.py` (direct):
+
+```text
+Ran 18 tests in 4.876s
+
+OK
+```
+
+`test_prepare.py` (direct):
+
+```text
+Ran 7 tests in 0.122s
+
+OK
+```
+
+`test_bootstrap36.py` (direct):
+
+```text
+Ran 7 tests in 0.016s
+
+OK
+```
+
+`test_review2.py` (direct):
+
+```text
+Ran 17 tests in 2.729s
+
+OK
+```
+
+`test_stage2.py` (direct):
+
+```text
+Ran 12 tests in 0.037s
+
+OK
+```
+
+`test_review3.py` (direct):
+
+```text
+Ran 19 tests in 4.334s
+
+OK
+```
+
+`test_target_refusal.py` (direct):
+
+```text
+Ran 21 tests in 74.154s
+
+OK
+```
+
+`test_kit.py` (applied patch):
+
+```text
+Ran 39 tests in 6.716s
+
+OK
+```
+
+`test_review.py` (applied patch):
+
+```text
+Ran 18 tests in 4.784s
+
+OK
+```
+
+`test_prepare.py` (applied patch):
+
+```text
+Ran 7 tests in 0.106s
+
+OK
+```
+
+`test_bootstrap36.py` (applied patch):
+
+```text
+Ran 7 tests in 0.012s
+
+OK
+```
+
+`test_review2.py` (applied patch):
+
+```text
+Ran 17 tests in 2.693s
+
+OK
+```
+
+`test_stage2.py` (applied patch):
+
+```text
+Ran 12 tests in 0.039s
+
+OK
+```
+
+`test_review3.py` (applied patch):
+
+```text
+Ran 19 tests in 4.214s
+
+OK
+```
+
+`test_target_refusal.py` (applied patch):
+
+```text
+Ran 21 tests in 73.820s
+
+OK
+```
+
+
+The seven supplied review-2 comparisons remain DIAGNOSTIC_ONLY. All 18 review-3 outcomes remain unchanged: four refusals, six SAME_INSTRUMENT controls and eight diagnostics. [Review-2 exact output](checks/round4/cr2_replay.txt); [review-3 exact output](checks/round4/cr3_replay.txt). No comparison or reader decoding code changed in this round.
+
+The existing [framework evidence](FRAMEWORK_EVIDENCE.md) cites installed torch 2.11 source file:line for every framework API used by the adapter, with official documentation links retained from the authenticated delivery. No framework behavior was added here. The package q/env.json separately pins reader torch 2.13.0+cu130, torchvision 0.28.0+cu130, transformers 5.19.0 and scipy 1.14.1; those versions still require the target's exact import probe.
+
+## Exact coordinator sequence: stage first, then one card-gated run
+
+
+These commands belong to the coordinator. The build agent has not executed SSH or any target-node command. All 21 archive parts are staged. The kit checks their pins itself. All eight cards are busy; staging can finish while the read waits for a free card.
 
 In the existing **trinity-2-28** session, refuse an existing kit path before shipping. If this check fails, stop and resolve the existing delivery; do not merge deliveries or retry the transfer.
 
@@ -135,7 +250,7 @@ In the existing **trinity-2-28** session, refuse an existing kit path before shi
 set -euo pipefail
 date -u
 test "$(hostname -s)" = trinity-2-28
-kit_dir=/scratch/jjyeung/orch_n30/reads228/kit
+kit_dir=/scratch/jjyeung/orch_n30/reads228/kit2
 if ! test ! -e "$kit_dir"; then
   echo 'REFUSED: kit path must be absent before shipping' >&2
   exit 2
@@ -148,7 +263,7 @@ On **trinity-1-18**, submit this push through the coordinator's rate limiter, re
 set -euo pipefail
 date -u
 test "$(hostname -s)" = trinity-1-18
-tar -C /scratch/jjyeung/orch_n30/so_reads228/out -cf - . | timeout 600 ssh -o ConnectTimeout=20 trinity-2-28.ib 'mkdir -p /scratch/jjyeung/orch_n30/reads228/kit && tar -C /scratch/jjyeung/orch_n30/reads228/kit --skip-old-files -xf -'
+tar -C /scratch/jjyeung/orch_n30/so_reads228/out -cf - . | timeout 600 ssh -o ConnectTimeout=20 trinity-2-28.ib 'mkdir -p /scratch/jjyeung/orch_n30/reads228/kit2 && tar -C /scratch/jjyeung/orch_n30/reads228/kit2 --skip-old-files -xf -'
 date -u
 ```
 
@@ -158,7 +273,7 @@ As a **separate step on trinity-2-28**, verify the delivery manifest before exec
 set -euo pipefail
 date -u
 test "$(hostname -s)" = trinity-2-28
-kit_dir=/scratch/jjyeung/orch_n30/reads228/kit
+kit_dir=/scratch/jjyeung/orch_n30/reads228/kit2
 export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1
 export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
 nice -n 10 /usr/bin/python3 -I -s -B - "$kit_dir" <<'PY'
@@ -184,7 +299,7 @@ bash "$kit_dir/coordinator228.sh" --stage-only
 date -u
 ```
 
-The stage-only sequence never queries a card or creates a run directory. Extraction logs go under `reads228/extraction_logs`; inputs and source go under `reads228/private/b01ec87a6f29b`. The package sees the pinned logical path through its namespace bind. The shared logical root is not a staging source.
+The stage-only sequence never queries a card or creates a run directory. It reads all three runtime archives before creating any runtime member, then extracts every registered group under `reads228/private_rt/`. The `x/` helpers stay there as records and have no namespace bind or execution path. Extraction logs go under `reads228/extraction_logs`; inputs and source go under `reads228/private/b01ec87a6f29b`. The package sees the pinned logical path through its namespace bind. The shared logical root is not a staging source.
 
 Once a card is free, set `CARD` to that single index or UUID and run the following **once on trinity-2-28**. Do not issue a separate manual idle gate: this invocation owns the UUID lock, takes both readings at least 300 seconds apart, and starts the worker. A busy-card refusal after the run directory exists consumes that name; any later authorized attempt needs a fresh name.
 
@@ -192,31 +307,31 @@ Once a card is free, set `CARD` to that single index or UUID and run the followi
 set -euo pipefail
 date -u
 test "$(hostname -s)" = trinity-2-28
-kit_dir=/scratch/jjyeung/orch_n30/reads228/kit
+kit_dir=/scratch/jjyeung/orch_n30/reads228/kit2
 stage=/scratch/jjyeung/orch_n30/reads228
 test -n "${CARD:?Set CARD to the chosen free index or UUID}"
 bash "$kit_dir/coordinator228.sh" --run-only "$CARD" "$stage/runs/a400check1"
 date -u
 ```
 
-`--run-only` rechecks staging and operator imports before the card gate, invokes `run228.sh` exactly once with `--items 50`, compares against `kit/reference`, unpacks with the unchanged unpacker into `kit/ingest/a400check1`, and writes `CORPUS_INGEST.json`. A clean 50/636 return has `EXIT.status=FAILED`; ingestion uses `SUMMARY.failure=null`, completion and the comparison result. A diagnostic comparison cannot publish READY_FOR_CORPUS. A failed run stops this sequence and is not retried.
+`--run-only` rehashes staged data and checks operator imports before the card gate; allow minutes of local scratch IO before the first idle reading. It invokes `run228.sh` exactly once with `--items 50`, compares against `kit2/reference`, unpacks with the unchanged unpacker into `kit2/ingest/a400check1`, and writes `CORPUS_INGEST.json`. A clean 50/636 return has `EXIT.status=FAILED`; ingestion uses `SUMMARY.failure=null`, completion and the comparison result. A diagnostic comparison cannot publish READY_FOR_CORPUS. A failed run stops this sequence and is not retried.
+
+The coordinator-authorized second `--stage-only`, from `kit2` after the reported refusal, starts with an absent `private_rt/`. It verifies the same 13 runtime part pins, completes pass 1 across r0/r1/r2, creates the private runtime in pass 2, extracts inputs into the private logical root, installs sealed code, probes the namespace, prepares once, verifies staging and probes operator imports. It never reads or removes the 443 entries left in shared `orch_cd/` by the refused delivery. The old `kit/` stays in place.
+
+A subsequent authorized stage check on a successfully staged kit compares every existing runtime file and symlink in pass 1, preserves matching files and their metadata in pass 2, skips matching input members, verifies installed code, and reuses READY.json instead of launching preparation again. A conflict refuses before runtime writes. There is no retry loop; an interrupted extraction or failed preparation requires coordinator review before another invocation.
 
 
-## What could go wrong and how we would notice
+## What could go wrong and how to notice
 
-| Risk | Detection and response |
-|---|---|
-| Missing, changed or unexplained staged bytes | Archive hashes, member inventories, source checks and private-root reconciliation refuse with paths. STAGE_CHECK retains failure evidence. No shared-file repair or automatic retry occurs. |
-| Namespace or runtime incompatibility on 2-28 | NAMESPACE.json records system bwrap identity and probe output. Version and operator probes refuse before card access. No native-site fallback is silently selected. |
-| A card is occupied or another process allocates after the gate | The two idle readings refuse known occupancy. The UUID lock coordinates this kit only; nvidia-smi and per-item peaks expose subsequent pressure. |
-| Worker OOM or telemetry failure | OOM.json/STOP and exit 42 stop without retry; sampler failure marks the return diagnostic. A killed operator with no result becomes a failed return when the native controller survives. |
-| Controller kill or run-directory refusal | A controller kill can prevent packaging. Any refusal after creation requires a fresh run name, and killed work requires the coordinator's decision before another attempt. |
-| Instrument or numerical drift | Full binding/settings and provenance checks precede the fixed answer/placement ruling. CPU fixtures cannot establish H100/Ada equality. |
+- Pass 1 refuses unknown/changed headers, unsafe names/links/types, part/hash mismatches, existing conflicts or a changed registry. STAGE_CHECK records the refusal; no runtime member is written. Stage receipts and control logs can be written outside private_rt.
+- A pass-2 IO error, source mutation or concurrent writer can leave partial files. Pass 2 checks headers, file digests and the full stream again and refuses on disagreement. Do not run concurrent stage writers or retry a failed/killed stage automatically; the coordinator must inspect its receipt.
+- The target may reject bwrap, the pinned runtime ABI or package imports. NAMESPACE.json, STAGE_CHECK and OPERATOR_PROBE.json expose those failures before card access. There is no automatic runtime relocation or native-site fallback.
+- The run-only path rehashes staged local data before the first idle reading; allow minutes of scratch IO (timing is an estimate). The two readings cannot reserve a card against another user. The one-second sampler exposes a late arrival; OOM writes OOM.json/STOP and exits 42 without retry.
+- A clean 50/636 return has EXIT.status=FAILED. Ingest uses SUMMARY and the comparison. DIAGNOSTIC_ONLY exits 1 after writing CORPUS_INGEST; it does not authorize corpus readiness.
+- A standalone stack-dump diagnostic exited with SIGSEGV while its timed faulthandler printed a traceback. It was not retried; no cluster-limit kill was observed. [Exact diagnostic output](checks/round4/headers_debug.txt) is retained. The normal full-list fixture and both final complete suites pass without that diagnostic.
 
-The package namespace retains its read-write /tmp bind. The mandated terminator writes /tmp/terminator; HOME, TMPDIR and framework caches point to scratch. The kit does not claim stronger filesystem isolation than the sealed namespace supplies.
+## Not done
 
-## What is not done
+No command ran on trinity-2-28. Full runtime extraction, native private CPython startup, pinned framework imports, preparation, the card gate and the GPU read remain target checks. No Ada/H100 equivalence claim is made until the 50-item comparison passes. The old kit and the 443 shared orch_cd entries remain untouched; their removal candidates stay with the coordinator. No deletion was performed or queued by this agent.
 
-The target's extraction/member census, namespace identity/probe, pinned framework imports, preparation, actual disk footprint, card gate, 50-item Ada read, CUDA peaks and device SAME_INSTRUMENT result remain for the coordinator sequence. The coordinator's completed archive staging and hash check are accepted facts. External corpus ingestion is not performed here. Optional ON overlays retain their documented consistency prerequisite.
-
-Build timestamp: Thu Nov 19 19:37:43 UTC 2026. No Git, SSH, scheduler, GPU, network download, paid API, deletion or stopping of another agent's work was used. The review mapping and explicit before/after evidence remain because the dispatch requires regression evidence; other prose describes the delivered behavior.
+The refusal account, explicit second-stage behavior and before/after evidence are retained because the dispatch requires them. Active deployment paths select kit2; sealed source and exact historical test evidence retain their original bytes.

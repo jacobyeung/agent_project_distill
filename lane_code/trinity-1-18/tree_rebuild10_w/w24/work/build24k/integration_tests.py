@@ -11,7 +11,7 @@ from student_pilot.p3_provenance import pinned
 from launch_r1 import entry
 from tests.test_host24j import config
 
-F=D/'integration_final';F.mkdir();kit=F/'kit';shutil.copytree(L/'work/build24/kits/n',kit)
+F=D/'integration_delivery';F.mkdir();kit=F/'kit';shutil.copytree(L/'work/build24/kits/n',kit)
 spec=J.load(kit/'k/p.json');spec.update(step=600,uploads=[],host_paths={},n_root=str(F/'target'))
 def cap(path,value):
  doc=json.loads(path.read_text());raw=(json.dumps(value,sort_keys=True,indent=2)+'\n').encode()

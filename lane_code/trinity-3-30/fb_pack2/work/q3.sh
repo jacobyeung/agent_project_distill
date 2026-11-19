@@ -1,0 +1,2 @@
+F=/scratch/jjyeung/orch_n30/fb_pack; cat $F/prior2/out/MISSING_INPUTS.json | head -c 4000; echo; echo ==A; ls -la $F/patchA/out | head -30; echo ==J; ls /scratch/jjyeung/orch_n30/tree_rebuild15_w24l 2>&1 | head; ls /scratch/jjyeung/orch_n30/tree_rebuild15_w24l/* -d 2>/dev/null | head
+echo ==pointD; P=$(tmux list-panes -t fbp_pointD -F '#{pane_pid}'); echo pane $P; ps -o pid,stat,etime,cmd --ppid $P | cut -c1-150; pstree -p $P | head -5

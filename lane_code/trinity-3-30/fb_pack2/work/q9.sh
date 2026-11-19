@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack; ls -la $F/relrev2; tail -c 1500 $F/relrev2/cursor.log; echo; head -c 3000 $F/relrev2/REVIEW_VERDICT.md 2>/dev/null; echo; du -sh $F/route/out/shards $F/cam/out/shards $F/patchArev/work/test_runs $F/route/* 2>/dev/null | sort -h | tail -8

@@ -1,0 +1,117 @@
+{
+  "checkpoints": [
+    200,
+    400,
+    800,
+    1600
+  ],
+  "configs": {
+    "A0_RUN1": {
+      "path": "A0_RUN1.json",
+      "rows": {
+        "count": 1280,
+        "name": "POSE32_V2",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/a0.json",
+          "sha256": "2e5a33e89b38815f07498867c2e263ac3435e1875c7f4d362f406700710c197a"
+        }
+      },
+      "sha256": "00a2fafba7494325f4416bd0a1aabca4681bb36009d823278e11f21ca7b3abd2"
+    },
+    "A0_RUN2": {
+      "path": "A0_RUN2.json",
+      "rows": {
+        "count": 1280,
+        "name": "POSE32_V2",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/a0.json",
+          "sha256": "2e5a33e89b38815f07498867c2e263ac3435e1875c7f4d362f406700710c197a"
+        }
+      },
+      "sha256": "e2be11c3d30faeeaa9a272df358d33adb387d9b926b0801ab778aebfc2433719"
+    },
+    "A1_RUN1": {
+      "path": "A1_RUN1.json",
+      "rows": {
+        "count": 2560,
+        "name": "SECOND_SOURCE",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/a1.json",
+          "sha256": "6938bcd9077ef15e21450cf6c3b7d8e1c17d2216bbfe3f90d1de258c1f94c311"
+        }
+      },
+      "sha256": "b454732f2b083a768d5e140e3c217f7b9f8a437668ba3bde44cd4e2ede359174"
+    },
+    "A1_RUN2": {
+      "path": "A1_RUN2.json",
+      "rows": {
+        "count": 2560,
+        "name": "SECOND_SOURCE",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/a1.json",
+          "sha256": "6938bcd9077ef15e21450cf6c3b7d8e1c17d2216bbfe3f90d1de258c1f94c311"
+        }
+      },
+      "sha256": "400c6262bf1ab685b4ed57c6f55151c5de8885c80e348a4a4b9198c7145ced24"
+    }
+  },
+  "inputs": {
+    "cpdm_config": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/cpdm.json",
+      "sha256": "e81d045f4efb7a26f6918039d39e08fa2c09e72a24881350140b4bb36a1d2e90"
+    },
+    "f17": {
+      "full_weights": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/full_weights/full_weights.json",
+        "sha256": "ffdb224f2a0280fc47d9d655dc34ef59e4355e879b0757c44334818efb246611"
+      },
+      "heads": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/auxiliary_heads.pt",
+        "sha256": "23a994757d492ce932a4c961d9d6ee2379da97f6a5568f33b3597e9d1dadbe17"
+      }
+    },
+    "freeze_modules": [
+      "point_depth"
+    ],
+    "rows": {
+      "A0": {
+        "count": 1280,
+        "name": "POSE32_V2",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/a0.json",
+          "sha256": "2e5a33e89b38815f07498867c2e263ac3435e1875c7f4d362f406700710c197a"
+        }
+      },
+      "A1": {
+        "count": 2560,
+        "name": "SECOND_SOURCE",
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/a1.json",
+          "sha256": "6938bcd9077ef15e21450cf6c3b7d8e1c17d2216bbfe3f90d1de258c1f94c311"
+        }
+      }
+    },
+    "run2": {
+      "geometry_config": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/geometry.json",
+        "sha256": "39eda774e1859f220d55a1466aead42bf1b25ac6be1533895074861c49f9490b"
+      },
+      "geometry_weights": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/projector.safetensors",
+        "sha256": "3e301c6cc33e166c9e6ea96510e1ccce9212b80be194c1eed8d126dbf730848b"
+      },
+      "heads": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/prior_heads.pt",
+        "sha256": "803bdd481bc49f44857b3b934945e32b5b1703d2554e9fde45025c650c57458b"
+      }
+    },
+    "schema": "heads-only-build-v1"
+  },
+  "note": "Build only; native preparation and launch controls still apply.",
+  "request": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2/work/suite_final_base/heads_only_lsn5ouu8/request.json",
+    "sha256": "aa36ccef1138644163430f175f9dfc6927261567423303f51b23a14a76f39f20"
+  },
+  "scheduler": "warmup_0.03_cosine_to_max_steps",
+  "schema": "heads-only-configs-v1"
+}

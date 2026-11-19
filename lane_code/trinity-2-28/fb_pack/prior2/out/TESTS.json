@@ -1,0 +1,152 @@
+{
+  "status": "NO_NEW_FAILURE",
+  "production_gate": "MISSING",
+  "test_id_normalization": "Only randomized production_import temporary cwd prefixes are normalized; empty and kit remain distinct. Raw IDs and tracebacks are retained in CPU_FINAL JSONs.",
+  "normalized_cases": [
+    {
+      "id": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='<temporary_fixture>/empty')",
+      "base": {
+        "id": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='<temporary_fixture>/empty')",
+        "status": "ERROR",
+        "error": "TASK_RESTRICTION:subprocess.Popen"
+      },
+      "new": {
+        "id": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='<temporary_fixture>/empty')",
+        "status": "ERROR",
+        "error": "TASK_RESTRICTION:subprocess.Popen"
+      }
+    },
+    {
+      "id": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='<temporary_fixture>/kit')",
+      "base": {
+        "id": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='<temporary_fixture>/kit')",
+        "status": "ERROR",
+        "error": "TASK_RESTRICTION:subprocess.Popen"
+      },
+      "new": {
+        "id": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='<temporary_fixture>/kit')",
+        "status": "ERROR",
+        "error": "TASK_RESTRICTION:subprocess.Popen"
+      }
+    }
+  ],
+  "full_cpu": {
+    "base": {
+      "modules_attempted": 284,
+      "tests_run": 1913,
+      "failures": 16,
+      "errors": 475,
+      "skips": 145,
+      "seconds": 1033.9875791550003,
+      "restrictions": "No subprocesses, multiprocessing starts, sockets, NFS access, deletion or external writes; refusals remain errors."
+    },
+    "new": {
+      "modules_attempted": 285,
+      "tests_run": 1922,
+      "failures": 16,
+      "errors": 475,
+      "skips": 145,
+      "seconds": 997.7475715930013,
+      "restrictions": "No subprocesses, multiprocessing starts, sockets, NFS access, deletion or external writes; refusals remain errors."
+    }
+  },
+  "regressions": [],
+  "new_tests": [
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_bad_bound_pin_and_offsets_refuse",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_capacity_refusal",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_clause_parser",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_other_stream_qid_is_outside_prior_scope",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_prepare_identity_and_completeness",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_produce_binds_optional_field",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_production_audit_includes_facing_pairs",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_slots_counts_cap_and_resume",
+      "status": "PASS"
+    },
+    {
+      "id": "tests.test_r1_direction_prior.DirectionPrior.test_tampered_weight_refuses",
+      "status": "PASS"
+    }
+  ],
+  "new_failed_cases_including_subtests": [],
+  "checks": {
+    "base_seal": "PASS",
+    "patch_applies_to_sealed_base": "PASS",
+    "optional_absent_all_cells_in_diagnostic_harness": "PASS",
+    "optional_absent_all_cells_production": "MISSING",
+    "optional_present_production_non_direction_identity": "MISSING",
+    "optional_present_diagnostic_non_direction_identity": "PASS",
+    "toward_hard_count_and_other_positions": "PASS_DIAGNOSTIC",
+    "away_and_other_clause_shares": "PASS_DIAGNOSTIC",
+    "max_four_draws": "PASS_DIAGNOSTIC",
+    "tampered_weight_refuses": "PASS",
+    "resume_deterministic": "PASS",
+    "production_loader_facing_pair_inclusion": "PASS_UNIT_TEST",
+    "production_full_population": "MISSING"
+  },
+  "base_negative_controls": {
+    "facing_pairs": "FAIL: base audit reports only one of the two actual drawn source rows",
+    "balance": "FAIL: optional field ignored",
+    "tamper": "FAIL: altered weight file ignored",
+    "parser": "FAIL: 23121 clause mismatches"
+  },
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/CPU_FINAL_base.json",
+      "sha256": "300c586be9bb84bdf2205db8aa2d632aa0e064fa74dc636261451e0e50f8ae9c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/CPU_FINAL_new.json",
+      "sha256": "b7f77880e3d1dbd22e892c6893b4450479ab519f0a81dff31700b6c763cc9889"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/CPU_FINAL_base.log",
+      "sha256": "1e424847b59d5af41b5f1f6537cc02f826c1efeae82a1f5a06263e6c4cff2ca5"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/CPU_FINAL_new.log",
+      "sha256": "0ec50363348914037a7c126aa94e4a13bb18da140eaa2abbb8e41871d65a0b1c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/CENSUS_LOADER.json",
+      "sha256": "535509ed0b7f24f0bd48a3974ac88e1f857cba54d5fd3b55d67dff20757b21e6"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/FILES_TOUCHED.json",
+      "sha256": "21178de93262333b536a6817f47374079c18ec772d1a8851129194c1fbda931a"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/MISSING_INPUTS.json",
+      "sha256": "8a6d1f2d88bed682a7c89258112fe7212c8cf498c01a91346f58823d1a215c2f"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/scripts/compare_tests.py",
+      "sha256": "9b78f3a007a7865a06e5d2c49a76c9c8df652f45b478e1842f60efcedfd98af8"
+    }
+  ],
+  "commands": [
+    "OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python scripts/cpu_run.py base",
+    "OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python scripts/cpu_run.py new"
+  ]
+}

@@ -58,7 +58,7 @@ for path in sorted((tree/'tests').rglob('test*.py')):
   suite.addTest(unittest.FunctionTestCase(failed,description=name))
 result=unittest.TextTestRunner(verbosity=2,resultclass=Results).run(suite)
 files={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in source_paths}
-r={'input_sha256':source_pins,'command':'nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_suite_final.py '+sys.argv[1], 'tests_run':result.testsRun,'errors':[(t.id(),s) for t,s in result.errors],'failures':[(t.id(),s) for t,s in result.failures],'skipped':[(t.id(),s) for t,s in result.skipped],'seconds':time.time()-start,'guard':'NFS reads/scans, external writes, process starts, signals and socket binds/connects are refused. Unavailable integration tests are errors/skips, never claimed passes.'}
+r={'input_sha256':dict(source_pins),'command':'nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_suite_final.py '+sys.argv[1], 'tests_run':result.testsRun,'errors':[(t.id(),s) for t,s in result.errors],'failures':[(t.id(),s) for t,s in result.failures],'skipped':[(t.id(),s) for t,s in result.skipped],'seconds':time.time()-start,'guard':'NFS reads/scans, external writes, process starts, signals and socket binds/connects are refused. Unavailable integration tests are errors/skips, never claimed passes.'}
 r['input_sha256'][str(Path(__file__).resolve())]=runner_sha
 r['source_unchanged_during_run']=source_pins==files
 r['input_sha256'][str(manifest_path)]=hashlib.sha256(manifest_path.read_bytes()).hexdigest()

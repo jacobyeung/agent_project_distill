@@ -1,0 +1,2 @@
+J=173346; T=f67f0b1118da0677
+timeout 120 srun --overlap --jobid=$J --ntasks=1 --cpus-per-task=1 bash -c "R=/tmp/a_${J}_$T; ls \$R | head -40; cat \$R/STAGING.json 2>/dev/null | tail -c 800; echo; L=\$(ls -d \$R/sj/a7e31d84/r/a 2>/dev/null); ls \$L \$L/native/probe 2>/dev/null | head; tail -c 800 \$L/logs/a.log 2>/dev/null; echo; tail -n 3 \$L/native/probe/PROGRESS.jsonl 2>/dev/null; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader 2>/dev/null"

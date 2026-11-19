@@ -1,0 +1,520 @@
+{
+  "cap_trials": {
+    "60": {
+      "category_cap": 0.6,
+      "dual_bound": -3602.0362084273693,
+      "gate": "PASS",
+      "measured_priors": {
+        "categories": {
+          "bed": {
+            "larger": 106,
+            "larger_fraction": 0.4690265486725664,
+            "larger_to_smaller": 0.8833333333333333,
+            "majority_fraction": 0.5309734513274337,
+            "smaller": 120
+          },
+          "board": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "bookshelf": {
+            "larger": 8,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 8
+          },
+          "cabinet": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "chair": {
+            "larger": 879,
+            "larger_fraction": 0.5991820040899796,
+            "larger_to_smaller": 1.4948979591836735,
+            "majority_fraction": 0.5991820040899796,
+            "smaller": 588
+          },
+          "clothing": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "couch": {
+            "larger": 12,
+            "larger_fraction": 0.46153846153846156,
+            "larger_to_smaller": 0.8571428571428571,
+            "majority_fraction": 0.5384615384615384,
+            "smaller": 14
+          },
+          "curtain": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "desk": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "door": {
+            "larger": 58,
+            "larger_fraction": 0.48739495798319327,
+            "larger_to_smaller": 0.9508196721311475,
+            "majority_fraction": 0.5126050420168067,
+            "smaller": 61
+          },
+          "lamp": {
+            "larger": 6,
+            "larger_fraction": 0.6,
+            "larger_to_smaller": 1.5,
+            "majority_fraction": 0.6,
+            "smaller": 4
+          },
+          "monitor": {
+            "larger": 12,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 12
+          },
+          "office chair": {
+            "larger": 8,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 8
+          },
+          "pillow": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "radiator": {
+            "larger": 6,
+            "larger_fraction": 0.6,
+            "larger_to_smaller": 1.5,
+            "majority_fraction": 0.6,
+            "smaller": 4
+          },
+          "sofa": {
+            "larger": 630,
+            "larger_fraction": 0.44935805991440797,
+            "larger_to_smaller": 0.8160621761658031,
+            "majority_fraction": 0.550641940085592,
+            "smaller": 772
+          },
+          "stool": {
+            "larger": 229,
+            "larger_fraction": 0.42173112338858193,
+            "larger_to_smaller": 0.7292993630573248,
+            "majority_fraction": 0.578268876611418,
+            "smaller": 314
+          },
+          "table": {
+            "larger": 956,
+            "larger_fraction": 0.5063559322033898,
+            "larger_to_smaller": 1.0257510729613735,
+            "majority_fraction": 0.5063559322033898,
+            "smaller": 932
+          },
+          "toilet paper": {
+            "larger": 8,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 8
+          },
+          "towel": {
+            "larger": 6,
+            "larger_fraction": 0.6,
+            "larger_to_smaller": 1.5,
+            "majority_fraction": 0.6,
+            "smaller": 4
+          },
+          "trash can": {
+            "larger": 28,
+            "larger_fraction": 0.4375,
+            "larger_to_smaller": 0.7777777777777778,
+            "majority_fraction": 0.5625,
+            "smaller": 36
+          },
+          "tv": {
+            "larger": 109,
+            "larger_fraction": 0.4007352941176471,
+            "larger_to_smaller": 0.6687116564417178,
+            "majority_fraction": 0.5992647058823529,
+            "smaller": 163
+          },
+          "washer": {
+            "larger": 84,
+            "larger_fraction": 0.44680851063829785,
+            "larger_to_smaller": 0.8076923076923077,
+            "majority_fraction": 0.5531914893617021,
+            "smaller": 104
+          },
+          "window": {
+            "larger": 31,
+            "larger_fraction": 0.5636363636363636,
+            "larger_to_smaller": 1.2916666666666667,
+            "majority_fraction": 0.5636363636363636,
+            "smaller": 24
+          }
+        },
+        "definitions": {
+          "mean_unequal": "Remove the evaluated row from both category count sums and occurrence counts; compare the remaining category means. Score only unequal GT rows with both categories represented elsewhere and unequal remaining means. Report abstentions separately.",
+          "pair_majority": "Remove the evaluated row from the unordered category-pair winner/tie counts; choose the most common label. Break vote ties lexicographically, and also report the conservative upper accuracy that credits every tied true label.",
+          "weighting": "Each delivered row contributes one observation, including repeats under different wordings. No model is run."
+        },
+        "mean_three_way": {
+          "accuracy": 0.5122222222222222,
+          "correct": 1844,
+          "coverage": 1.0,
+          "eligible_items": 3600,
+          "evaluated": 3600
+        },
+        "mean_unequal": {
+          "accuracy": 0.57625,
+          "correct": 1844,
+          "coverage": 1.0,
+          "eligible_items": 3200,
+          "evaluated": 3200
+        },
+        "pair_majority": {
+          "accuracy": 0.49666666666666665,
+          "accuracy_tie_upper": 0.5030555555555556,
+          "correct": 1788,
+          "coverage": 1.0,
+          "eligible_items": 3600,
+          "evaluated": 3600,
+          "majority_ties": 52,
+          "tie_correct_upper": 1811
+        }
+      },
+      "mip_gap": 0.0005555554274050651,
+      "pair_direction_cap": 0.6,
+      "per_bucket": {
+        "10": 80,
+        "2": 1120,
+        "3": 720,
+        "4": 480,
+        "5": 280,
+        "6": 240,
+        "7": 120,
+        "8": 120,
+        "9": 40,
+        "tie": 400
+      },
+      "per_template_bucket_quota": {
+        "10": 2,
+        "2": 28,
+        "3": 18,
+        "4": 12,
+        "5": 7,
+        "6": 6,
+        "7": 3,
+        "8": 3,
+        "9": 1
+      },
+      "rows": 3600,
+      "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "status": "FEASIBLE",
+      "surviving_rows": 3600
+    },
+    "65": {
+      "category_cap": 0.65,
+      "dual_bound": -3883.7147198770904,
+      "gate": "PASS",
+      "measured_priors": {
+        "categories": {
+          "bed": {
+            "larger": 111,
+            "larger_fraction": 0.4567901234567901,
+            "larger_to_smaller": 0.8409090909090909,
+            "majority_fraction": 0.5432098765432098,
+            "smaller": 132
+          },
+          "board": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "bookshelf": {
+            "larger": 8,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 8
+          },
+          "cabinet": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "chair": {
+            "larger": 1096,
+            "larger_fraction": 0.6485207100591716,
+            "larger_to_smaller": 1.8451178451178452,
+            "majority_fraction": 0.6485207100591716,
+            "smaller": 594
+          },
+          "clothing": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "couch": {
+            "larger": 12,
+            "larger_fraction": 0.4444444444444444,
+            "larger_to_smaller": 0.8,
+            "majority_fraction": 0.5555555555555556,
+            "smaller": 15
+          },
+          "curtain": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "desk": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "door": {
+            "larger": 60,
+            "larger_fraction": 0.4878048780487805,
+            "larger_to_smaller": 0.9523809523809523,
+            "majority_fraction": 0.5121951219512195,
+            "smaller": 63
+          },
+          "lamp": {
+            "larger": 7,
+            "larger_fraction": 0.6363636363636364,
+            "larger_to_smaller": 1.75,
+            "majority_fraction": 0.6363636363636364,
+            "smaller": 4
+          },
+          "monitor": {
+            "larger": 12,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 12
+          },
+          "office chair": {
+            "larger": 6,
+            "larger_fraction": 0.42857142857142855,
+            "larger_to_smaller": 0.75,
+            "majority_fraction": 0.5714285714285714,
+            "smaller": 8
+          },
+          "pillow": {
+            "larger": 4,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 4
+          },
+          "radiator": {
+            "larger": 7,
+            "larger_fraction": 0.6363636363636364,
+            "larger_to_smaller": 1.75,
+            "majority_fraction": 0.6363636363636364,
+            "smaller": 4
+          },
+          "sofa": {
+            "larger": 656,
+            "larger_fraction": 0.4393837910247823,
+            "larger_to_smaller": 0.7837514934289128,
+            "majority_fraction": 0.5606162089752177,
+            "smaller": 837
+          },
+          "stool": {
+            "larger": 229,
+            "larger_fraction": 0.38166666666666665,
+            "larger_to_smaller": 0.6172506738544474,
+            "majority_fraction": 0.6183333333333333,
+            "smaller": 371
+          },
+          "table": {
+            "larger": 986,
+            "larger_fraction": 0.48908730158730157,
+            "larger_to_smaller": 0.9572815533980582,
+            "majority_fraction": 0.5109126984126984,
+            "smaller": 1030
+          },
+          "toilet paper": {
+            "larger": 8,
+            "larger_fraction": 0.5,
+            "larger_to_smaller": 1.0,
+            "majority_fraction": 0.5,
+            "smaller": 8
+          },
+          "towel": {
+            "larger": 7,
+            "larger_fraction": 0.6363636363636364,
+            "larger_to_smaller": 1.75,
+            "majority_fraction": 0.6363636363636364,
+            "smaller": 4
+          },
+          "trash can": {
+            "larger": 28,
+            "larger_fraction": 0.417910447761194,
+            "larger_to_smaller": 0.717948717948718,
+            "majority_fraction": 0.582089552238806,
+            "smaller": 39
+          },
+          "tv": {
+            "larger": 105,
+            "larger_fraction": 0.35353535353535354,
+            "larger_to_smaller": 0.546875,
+            "majority_fraction": 0.6464646464646465,
+            "smaller": 192
+          },
+          "washer": {
+            "larger": 84,
+            "larger_fraction": 0.4307692307692308,
+            "larger_to_smaller": 0.7567567567567568,
+            "majority_fraction": 0.5692307692307692,
+            "smaller": 111
+          },
+          "window": {
+            "larger": 34,
+            "larger_fraction": 0.5862068965517241,
+            "larger_to_smaller": 1.4166666666666667,
+            "majority_fraction": 0.5862068965517241,
+            "smaller": 24
+          }
+        },
+        "definitions": {
+          "mean_unequal": "Remove the evaluated row from both category count sums and occurrence counts; compare the remaining category means. Score only unequal GT rows with both categories represented elsewhere and unequal remaining means. Report abstentions separately.",
+          "pair_majority": "Remove the evaluated row from the unordered category-pair winner/tie counts; choose the most common label. Break vote ties lexicographically, and also report the conservative upper accuracy that credits every tied true label.",
+          "weighting": "Each delivered row contributes one observation, including repeats under different wordings. No model is run."
+        },
+        "mean_three_way": {
+          "accuracy": 0.5466494845360824,
+          "correct": 2121,
+          "coverage": 1.0,
+          "eligible_items": 3880,
+          "evaluated": 3880
+        },
+        "mean_unequal": {
+          "accuracy": 0.6094827586206897,
+          "correct": 2121,
+          "coverage": 1.0,
+          "eligible_items": 3480,
+          "evaluated": 3480
+        },
+        "pair_majority": {
+          "accuracy": 0.5489690721649485,
+          "accuracy_tie_upper": 0.5489690721649485,
+          "correct": 2130,
+          "coverage": 1.0,
+          "eligible_items": 3880,
+          "evaluated": 3880,
+          "majority_ties": 24,
+          "tie_correct_upper": 2130
+        }
+      },
+      "mip_gap": 0.000947339752792121,
+      "pair_direction_cap": 0.65,
+      "per_bucket": {
+        "10": 80,
+        "2": 1120,
+        "3": 680,
+        "4": 480,
+        "5": 400,
+        "6": 320,
+        "7": 160,
+        "8": 160,
+        "9": 80,
+        "tie": 400
+      },
+      "per_template_bucket_quota": {
+        "10": 2,
+        "2": 28,
+        "3": 17,
+        "4": 12,
+        "5": 10,
+        "6": 8,
+        "7": 4,
+        "8": 4,
+        "9": 2
+      },
+      "rows": 3880,
+      "solver_message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "status": "FEASIBLE",
+      "surviving_rows": 3880
+    }
+  },
+  "chosen_cap": 0.6,
+  "command": "bash code/run.sh code/build.py",
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/BUILD.json": "99a541db261e9f284383bd2594ad14583c252a84a2aff27f0add4dc11295f450",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/relative_count.jsonl": "1ad9e3a572bd4393afc1ce8a2363ed7974ccac471f28c63a28e38497d3b76c78",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt2/code/build.py": "f5b2245ab4335d72e0423530424d1360323cc1317eaf411aad234098a213cb47",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt2/code/common.py": "1cb2eae9bc71e6cea2aed4e34f4c5c1171a849e39177b0c7468a15eaa52067f0",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt2/code/priors.py": "f498f4a07180c2da6a69d630f2cc1360eabb3692295632cd7d7287e952cbba77",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt2/code/run.sh": "ffe74bc631b5763df02415677f2e20ff51f1ca5baa324379728181fd84222c80",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt2/code/solve.py": "94e91b5165f69d1aa1d1f830aa22f5ad2db4e500419f7d530dc6d2b3c6adaa41",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt2/code/wordings.py": "5b56669d7173ffad8dde44a04968bac7f7916ff150b3bb066283715e951a7281",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt2/out/SELECTION_60.json": "a61fba7d55c3ea496c17e4ad6f60e631b0c07eada6e926e19af9d27d0cd22583",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt2/out/SELECTION_65.json": "4ebd88d13a27836e78c370c582248f13e4af66c9f878fa92ac06266b2a916954",
+    "/scratch/jjyeung/orch_n30/sb_rowC/in/CENSUS.json": "2e937bace57b8552c8de6ea49ed9a0b5faa83e75fb3bda1bafd309c5c99e5212",
+    "/scratch/jjyeung/orch_n30/sb_rowC/in/b12/out/PACKET_b12_v4/count_total.jsonl": "0ec47aa286991fcc36b254d30258c1044bd434b707c6a20a542f0a4e13d911a1",
+    "/scratch/jjyeung/orch_n30/sb_rowC/in/procedure_source.json": "3c8529fe9686b3c574f84e6a41326e7b14d407e5b9c6fa3d3da899f87ecee2f2",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/TREE_SEAL.json": "a060860c7d0eabe68c809b1ad450a62b6c385f7c381e9e4344f8b822a9088545",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/__init__.py": "72a82429fbe02185a5cbb5d8719ede6921ae543fbf15c163946f71b4815c468d",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/ground_v312_quality.py": "a74c799c83fcfb7153da18d37667a62556a65c382b0e4553bd3e0e038d6a0078"
+  },
+  "output": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/relcnt2/out/relative_count.jsonl",
+    "sha256": "69e85b7c12851122e0a4496852c54c831d4b1d1961dbc4ca8ec513a89494c7b7"
+  },
+  "per_template_bucket_quota": {
+    "10": 2,
+    "2": 28,
+    "3": 18,
+    "4": 12,
+    "5": 7,
+    "6": 6,
+    "7": 3,
+    "8": 3,
+    "9": 1
+  },
+  "per_template_rows": 180,
+  "procedure_authentication": "Exact equality to pinned procedure_source.json and the prior authenticated packet BUILD.json; the large production store is not re-read.",
+  "procedure_body": "locate the distinct instances of {category}; count each once across the frames.",
+  "procedure_store_qid": "qd88b08be8cf5e2cc852360e3",
+  "recovery": "No excluded source is used; selection uses only the eligible census.",
+  "rows": 3600,
+  "status": "BUILT",
+  "tree_seal": {
+    "files": 940,
+    "tree_sha256": "189df6ac590caf7622354c3bd1f991e599776494ced635a23f0c93eb1b567710"
+  }
+}

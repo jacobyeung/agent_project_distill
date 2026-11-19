@@ -1,0 +1,88 @@
+{
+  "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_supplement.py",
+  "inputs_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/run_supplement.py": "b1e61ff6395eb1e6933d25ccea1789b59fb2fdded29891eab4982a29d1a0de20",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/run_tests.py": "f415c90cb60061a804b918f41a1812e22bf7230b65fa7f85a05dfaec3dfaef4b",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/support/patch_a2_checks.py": "528042b0dd79d524afb84c0108ec2d72f6c368c76f45cbf4856fae43eb6bbacc",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/support/real_route_tests.py": "393cd555f549b8984757ff773590bdfc889f47771e6a7500453330b86dae8cb3",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/must_final_base.json": "c979d23f0817c59837d44cde6d0c9e8e86cdc90d8e7cff4430abce332c8a5aaa",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/must_final_patch_a.json": "22b2d65930e251264f330d69290977046e85984a9ca2a830526acb73e3ff2fbe",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/must_final_new.json": "8a74bfd99b22770d9f68552d54b1426fa5b4cb03730ecad65582001879bcc00e",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/must_final_live.json": "023383f62e88863ff7a1ebf6a40f7d30192cfb77542860a5498116067f7a4a67",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/real_declared_base.json": "57f70a2989e303668c5145bbeff510ae1d3dc8caae8d800780aec2645bdc7551",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/real_declared_new.json": "1898b1a60aeed605e4f96592fb539093b255ac4e2ea3ea2cfe8e248bcc99ac22",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/real_declared_live.json": "54e771dd7bd238ea28fe56a5c4195077f94ce20976115740f3b63c40d903140e"
+  },
+  "runs": [
+    {
+      "tree": "base",
+      "label": "must_final_base",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base must_final_base test_r1_patch_a2 patch_a2_checks",
+      "returncode": 1,
+      "tests": 11,
+      "failures": 7,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "tree": "patch_a",
+      "label": "must_final_patch_a",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py patch_a must_final_patch_a test_r1_patch_a2 patch_a2_checks",
+      "returncode": 1,
+      "tests": 11,
+      "failures": 13,
+      "errors": 1,
+      "skipped": 0
+    },
+    {
+      "tree": "new",
+      "label": "must_final_new",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new must_final_new test_r1_patch_a2 patch_a2_checks",
+      "returncode": 0,
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "tree": "live",
+      "label": "must_final_live",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py live must_final_live test_r1_patch_a2 patch_a2_checks",
+      "returncode": 0,
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "tree": "base",
+      "label": "real_declared_base",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py base real_declared_base real_route_tests.RealRoute.test_four_real_envelopes_reach_genuine_host_veto real_route_tests.RealRoute.test_four_plus_recovery_reach_genuine_host_veto real_route_tests.RealRoute.test_each_selected_real_envelope_preserves_host_veto real_route_tests.RealRoute.test_declared_missing_envelope_names_recovery real_route_tests.RealRoute.test_undeclared_envelope_names_recovery real_route_tests.RealRoute.test_bound_source_and_manifest_refusals_remain real_route_tests.RealRoute.test_deferred_build23_declaration_unchanged",
+      "returncode": 1,
+      "tests": 7,
+      "failures": 6,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "tree": "new",
+      "label": "real_declared_new",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py new real_declared_new real_route_tests.RealRoute.test_four_real_envelopes_reach_genuine_host_veto real_route_tests.RealRoute.test_four_plus_recovery_reach_genuine_host_veto real_route_tests.RealRoute.test_each_selected_real_envelope_preserves_host_veto real_route_tests.RealRoute.test_declared_missing_envelope_names_recovery real_route_tests.RealRoute.test_undeclared_envelope_names_recovery real_route_tests.RealRoute.test_bound_source_and_manifest_refusals_remain real_route_tests.RealRoute.test_deferred_build23_declaration_unchanged",
+      "returncode": 1,
+      "tests": 7,
+      "failures": 5,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "tree": "live",
+      "label": "real_declared_live",
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/run_tests.py live real_declared_live real_route_tests.RealRoute.test_four_real_envelopes_reach_genuine_host_veto real_route_tests.RealRoute.test_four_plus_recovery_reach_genuine_host_veto real_route_tests.RealRoute.test_each_selected_real_envelope_preserves_host_veto real_route_tests.RealRoute.test_declared_missing_envelope_names_recovery real_route_tests.RealRoute.test_undeclared_envelope_names_recovery real_route_tests.RealRoute.test_bound_source_and_manifest_refusals_remain real_route_tests.RealRoute.test_deferred_build23_declaration_unchanged",
+      "returncode": 1,
+      "tests": 7,
+      "failures": 5,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}

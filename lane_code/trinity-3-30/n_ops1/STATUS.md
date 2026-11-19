@@ -1,5 +1,5 @@
 # n_ops1 STATUS (successor resumes from this file alone)
-Updated: 2026-11-19T17:40:07Z by n_ops1 (Devin Opus high, trinity-3-30; started 17:30Z; rotate by 23:00Z or 60% context).
+Updated: 2026-11-19T20:42:53Z by n_ops1 at rotation (successor n_ops2, brief B/briefs/n_ops2.md). Launch not yet submitted; tree_rebuild15 owns the launch QUESTION (forecast 23:30Z-00:00Z).
 Brief: B/briefs/(n_ops1 brief in session). B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Events: B/events/n_ops.
 ## Watcher
 - tmux nops_mon on 3-30 runs work/monloop.sh: one batched ossh call per mon/sleep s (120 pre-launch, 60 from submission, 300 after first steps + first checkpoint). mon/job = job id (0 = auto-detect: newest x_22c714e1/j/<id>.out above 173236 that is on advanced). Summary mon/last.line, history mon/hist.txt, alarms mon/ALERTS.txt (raw copies mon/raw/), steps mon/steps.jsonl, one-shot extra commands: write mon/extra.sh (output mon/extra.out.<t>). Early check: touch mon/now. Stop: touch mon/stop.
@@ -23,5 +23,7 @@ Brief: B/briefs/(n_ops1 brief in session). B=/data2/jjyeung/agent_project_data/d
 - Job publishes v.json + WAITING_REVIEW marker to x_22c714e1/o/<job>/live/ and waits up to 120 min for x_22c714e1/n_r/review.json (0700/0600).
 - Me: event in events/n_review the minute WAITING_REVIEW appears (watcher: WARN WAITING_REVIEW, info waiting_review_min); forecast event at prep ~75% (watcher info prep_min / prep_pct_vs141) and then start n_review2: `bash B/tools/devin_bg.sh n_review2 B/briefs/n_review2.md claude-opus-5-5-high 10800` + line in B/tools/LANES.txt (brief written by n_review1); BLOCKER if no review.json 30 min after the marker (watcher FLAG NO_REVIEW_30MIN); install the reviewer's review.json byte-exact at n_r (pattern work/gcs/private/install_24f.sh), sha256 check. I do not review.
 ## Next
-- 18:00Z read B/events/tree_rebuild/N_OPERATOR_POINTERS.md; adapt inner.sh paths; at 18:05Z if missing, one QUESTION to tree_rebuild13.
 - At submission: ledger line work/ORCHARD_LEDGER.jsonl; RESULT job start; then ADMIT, first step, step 20, checkpoints/exports.
+
+- /project/community free 362 GiB at 20:41Z (406 until 18:17Z; cont_ops21 own-arm fill took 21.6 GB, RESULT 1847Z).
+- Kit check of the uploaded launch kit (ORCH 1734Z items 1-3, copier done markers) still owed when 24k is uploaded: work/kitcheck_tpl.sh.
