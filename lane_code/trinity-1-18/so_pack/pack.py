@@ -16,6 +16,7 @@ import os
 from pathlib import Path, PurePosixPath
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -45,7 +46,7 @@ def require(ok, message):
 
 
 def utc():
-    return datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
 def limit_resources():
@@ -278,7 +279,9 @@ def probe(python, mode, package, workspace, spec=None):
             str(package),str(workspace)]
     if spec:
         path = workspace/'spec.json'; write(path,spec); args.append(str(path))
-    return run(args,workspace,workspace/'probe.log',timeout=180)
+    timeout=(spec or {}).get('fill_timeout_seconds',180) if mode=='fill' else 180
+    require(type(timeout) is int and 1<=timeout<=7200,'Invalid fill timeout')
+    return run(args,workspace,workspace/'probe.log',timeout=timeout)
 
 
 def validate_mirrors(spec, max_read_bytes):
@@ -336,6 +339,7 @@ def local_check(config, package, workspace, audit=False):
     else:
         gate('isolated_real_fill',lambda: require(False,'No authenticated fill inputs/mirrors configured'))
     report = dict(schema='so_pack-local-v1',passed=not errors,checks=stages,errors=errors,
+                  checker_sha256=checker_fingerprint(),
                   utc=utc(),token=public['token'],package_fingerprint=fingerprint(package),
                   config_sha256=canonical(config),scope='local packaging; no allocated CPU proof')
     write(workspace/'CHECK.json', report)
@@ -345,6 +349,11 @@ def local_check(config, package, workspace, audit=False):
 
 def fingerprint(package):
     return canonical({n:sha(d) for n,d in package_files(package).items()})
+
+
+def checker_fingerprint():
+    here=Path(__file__).resolve().parent
+    return {n:file_sha(here/n) for n in ('pack.py','pack_probes.py')}
 
 
 def enabled(args):
@@ -357,7 +366,7 @@ def state(config):
     return root
 
 
-def build(config):
+def build(config, explicit_token=None):
     root = state(config); root.mkdir(parents=True,exist_ok=True)
     require(not (root/'BUILD_STATE.json').exists(),'Build state already exists; choose a fresh workspace')
     b = config['builder']; path = Path(b['path']).resolve()
@@ -371,12 +380,20 @@ def build(config):
     Path(b['args'][0]).mkdir(parents=True,exist_ok=True)
     env = clean_env(root); env.update(b.get('env',{}))
     require(inside(env.get('KROOT',''),root),'Set builder KROOT inside workspace')
+    if explicit_token is not None:
+        token(explicit_token)
+        require(b.get('explicit_token_switch') is True
+                and b'SO_PACK_EXPLICIT_TOKEN' in path.read_bytes(),
+                'Fresh explicit-token builds require the optional builder patch and explicit_token_switch=true')
+        env.update(SO_PACK_EXPLICIT_TOKEN='1',SO_PACK_TOKEN=explicit_token)
     code = ('import runpy,sys; from pathlib import Path; '
             'p=Path(sys.argv[1]); sys.path.insert(0,str(p.parent)); '
             'sys.argv=sys.argv[1:]; runpy.run_path(str(p),run_name="__main__")')
     run([config.get('python',sys.executable),'-I','-s','-B','-c',code,str(path)]+b['args'],
         root,root/'builder.log',env=env)
     report = read(b['report'])[b['key']]
+    if explicit_token is not None:
+        require(report['token']==explicit_token,'Builder ignored explicit token; nothing may leave Trinity')
     delivery = Path(report['delivery_dir'])/'1.tgz'
     require(inside(delivery,root),'Builder delivery escaped workspace')
     require(file_sha(delivery) == report['delivery_sha256'],'Builder delivery differs')
@@ -399,6 +416,8 @@ def checked(config):
     c = read(root/'checks/CHECK.json')
     require(c.get('schema') == 'so_pack-local-v1' and c.get('passed') is True,
             'No passing local packaging receipt')
+    require(c.get('checker_sha256')==checker_fingerprint(),
+            'Checker source changed; run the local check with the current tool')
     require(c['package_fingerprint'] == fingerprint(b['package']), 'Package changed after check')
     require(c['config_sha256'] == canonical(config),'Config changed after check')
     require(file_sha(b['delivery']) == b['report']['delivery_sha256'],'Delivery changed after check')
@@ -488,18 +507,35 @@ if filled['archives'][-1]['sha256']!=hashlib.sha256((p/'a/6').read_bytes()).hexd
             +' check --gpus 1 --time '+shlex.quote(wall)+'\n'+shell_python(code))
 
 
-def sealed_script(config, key):
+def sealed_script(config, key, package=None, walltime=None):
     pin = config['remote'][key]
     raw = Path(pin['path']).read_bytes()
     require(sha(raw) == pin['sha256'],'Remote script source hash differs: '+key)
-    return raw.decode()
+    text=raw.decode()
+    # Explicit opt-in adapter for reviewed fixed-token A/B operational scripts.
+    # The default returns the exact input bytes. Native gate bodies stay intact.
+    if pin.get('parameterize',False):
+        require(pin['parameterize'] is True and package and walltime,
+                'Invalid parameterized script request')
+        matches=list(re.finditer(r'^P=('+re.escape(REMOTE_ROOT)+'/'+PREFIX+'('+TOKEN+r'))$',text,re.M))
+        require(len(matches)==1,'Expected one fixed package assignment in '+key)
+        old=matches[0].group(1)
+        text=text.replace(old,package)
+        text=text.replace('P='+package+'\n',
+            'test "${P:?}" = '+shlex.quote(package)+'\n'
+            +'test "${T:?}" = '+shlex.quote(walltime)+'\n',1)
+        text,n=re.subn(r'--time [0-9]{2}:[0-5][0-9]:[0-5][0-9]',
+                       '--time "$T"',text)
+        require(n>=1,'No public walltime argument to parameterize in '+key)
+    return text
 
 
 def remote_submit(config,b):
     r,p,tok,wall = remote_settings(config,b)
     # Keep all native receipt, pool and queue guards. The CPU script may end in
     # diagnostic commands, so it is run as a separate shell with its own failure.
-    cpu = sealed_script(config,'cpu_script'); sub = sealed_script(config,'submit_script')
+    cpu = sealed_script(config,'cpu_script',p,wall)
+    sub = sealed_script(config,'submit_script',p,wall)
     require(not re.search(r'^P=',cpu,re.M) and not re.search(r'^P=',sub,re.M),
             'Use parameterized D-style CPU/submit scripts; fixed-token scripts are refused')
     require('CPU.json' in sub and 'squeue' in sub and '3.py submit' in sub,
@@ -513,18 +549,43 @@ def remote_submit(config,b):
             'J=$(cat "$P/a/4.txt"); [[ "$J" =~ ^[0-9]+$ ]]\n'
             'start=$SECONDS\nwhile true; do\n'
             '  S=$(sacct -n -X -j "$J" --format=State | awk \'NF{print $1;exit}\')\n'
-            '  case "$S" in COMPLETED) break;; FAILED*|CANCELLED*|TIMEOUT*|OUT_OF_MEMORY*|NODE_FAIL*|PREEMPTED*) cat "$P/a/4.err" >&2; exit 1;; esac\n'
-            '  test $((SECONDS-start)) -lt '+str(r.get('cpu_wait_seconds',14400))+'\n'
+            '  case "$S" in COMPLETED) break;; FAILED*|CANCELLED*|TIMEOUT*|OUT_OF_*|NODE_FAIL*|PREEMPTED*) echo "CPU job $J state $S" >&2; tail -n 60 "$P/a/4.err" >&2 || true; exit 1;; esac\n'
+            '  if [ $((SECONDS-start)) -ge '+str(r.get('cpu_wait_seconds',14400))+' ]; then echo "CPU job $J wait expired; last state $S" >&2; tail -n 60 "$P/a/4.err" >&2 || true; exit 1; fi\n'
             '  sleep 60\ndone\n'
             'test -s '+shlex.quote(receipt)+'\n'
             "bash -s <<'SUB_CODE'\n"+sub+"\nSUB_CODE\n")
 
 
-def stage_remote(action,config,args):
+def run_remote(action,config,args,script,expected_sha):
+    """Execute exactly one fully planned phase; never regenerate it after placement."""
+    b=checked(config);r,p,tok,wall=remote_settings(config,b)
+    require(args.yes and args.token==tok,
+            'Remote execution requires --yes and the exact explicit --token')
+    require(file_sha(script)==expected_sha,'Planned remote script changed')
+    require(shutil.which('pv') is not None,'pv is required for the 8 MiB/s transport limit')
+    root=state(config);marker=root/(action+'_ATTEMPT.json')
+    require(not marker.exists(),'Remote action already attempted; inspect its log; no retry')
+    write(marker,dict(utc=utc(),token=tok,script_sha256=expected_sha))
+    command=['bash',r['ossh'],'bash -s']
+    with (root/(action+'_remote.log')).open('wb') as out:
+        pump=subprocess.Popen(['pv','-q','-L','8m',str(script)],stdout=subprocess.PIPE,stderr=out)
+        try:
+            remote=subprocess.Popen(command,stdin=pump.stdout,stdout=out,stderr=subprocess.STDOUT)
+        except BaseException:
+            pump.stdout.close();pump.wait();raise
+        pump.stdout.close()
+        rc=remote.wait();transfer_rc=pump.wait()
+    require(rc==0 and transfer_rc==0,
+            'Remote '+action+' failed (transport %d, stream %d); stop, inspect log, do not retry'%(rc,transfer_rc))
+
+
+def stage_remote(action,config,args,plan_only=False):
     b = checked(config); r,p,tok,wall = remote_settings(config,b)
     if action == 'submit' or args.execute_remote:
         require(args.yes and args.token == tok,
                 'submit/remote execution requires --yes and the exact explicit --token')
+    if args.execute_remote:
+        require(shutil.which('pv') is not None,'pv is required for the 8 MiB/s transport limit')
     fn = {'place':remote_place,'fill':remote_fill,'submit':remote_submit}[action]
     text = fn(config,b)
     # Native operational scripts are outbound bytes too. Their comments and
@@ -535,15 +596,11 @@ def stage_remote(action,config,args):
     # ossh accepts one remote shell command and forwards stdin, as used by lane.
     transport = r['ossh']
     command = ['bash',transport,'bash -s']
-    print(' '.join(map(shlex.quote,command))+' < '+shlex.quote(str(script)))
+    stream=['pv','-q','-L','8m',str(script)]
+    print('set -o pipefail; '+' '.join(map(shlex.quote,stream))+' | '+' '.join(map(shlex.quote,command)))
     run(['bash','-n',str(script)],root,root/(action+'_syntax.log'))
-    if args.execute_remote:
-        marker = root/(action+'_ATTEMPT.json')
-        require(not marker.exists(),'Remote action already attempted; inspect its log; no retry')
-        write(marker,dict(utc=utc(),token=tok,script_sha256=sha(text.encode())))
-        with script.open('rb') as inp, (root/(action+'_remote.log')).open('wb') as out:
-            result = subprocess.run(command,stdin=inp,stdout=out,stderr=subprocess.STDOUT)
-        require(result.returncode == 0,'Remote '+action+' failed; stop, inspect log, do not retry')
+    if args.execute_remote and not plan_only:
+        run_remote(action,config,args,script,sha(text.encode()))
     return script
 
 
@@ -565,19 +622,33 @@ def main(argv=None):
     if a.action in ('build','all'):
         if a.reuse_build:
             b = built(c)
+            if a.token is not None:
+                require(a.token==b['report']['token'],'Explicit token differs from existing build')
             require(file_sha(b['delivery']) == b['report']['delivery_sha256'],'Existing delivery differs')
             require(unpack(Path(b['delivery']).read_bytes()) == package_files(b['package']),
                     'Existing build differs from delivery')
             structure(b['package'])
         else:
-            build(c)
+            if a.token is None:
+                build(c)
+            else:
+                build(c,explicit_token=a.token)
     if a.action in ('check','all'):
         b = built(c)
         local_check(c,b['package'],state(c)/'checks',audit=a.audit)
         print('LOCAL_PACKAGING_PASS (allocated CPU proof still required)')
-    for action in ('place','fill','submit'):
-        if a.action in (action,'all'):
-            stage_remote(action,c,a)
+    if a.action=='all':
+        plans=[]
+        for action in ('place','fill','submit'):
+            script=stage_remote(action,c,a,plan_only=True)
+            plans.append((action,script,file_sha(script)))
+        # Every package and operational-script check has passed before any
+        # remote process starts. Execution uses the exact planned bytes.
+        if a.execute_remote:
+            for action,script,digest in plans:
+                run_remote(action,c,a,script,digest)
+    elif a.action in ('place','fill','submit'):
+        stage_remote(a.action,c,a)
 
 
 if __name__ == '__main__':

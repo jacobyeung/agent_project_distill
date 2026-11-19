@@ -1,0 +1,48 @@
+{
+ "schema": "f64-read-config-v1",
+ "base_read_plan": {
+  "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A/READ_PLAN.json",
+  "sha256": "a3e64cba2cb298791dfee3a51d28ee7c42e4cb6da3e1b8fe2a84fbe636ef5062",
+  "plan_sha256": "f759dae2934b231f3f7728354940e6ca16a27cca27f049b5bf415416a8e1f590"
+ },
+ "training_config": {
+  "path": "configs/r1_config_f64.json",
+  "sha256": "cc811f9ad166cba19f8a3540ef9577a7379c8fc7c7cd972735a152434d884072",
+  "frame_layout": "duplicate",
+  "frame_count": 32,
+  "frame_input": {"viewpoints": 64, "anchors": 32, "rule": "nested_bisection_v1"},
+  "frame_markers": true,
+  "min_pixels": 16384,
+  "max_pixels": 147456
+ },
+ "settings_add": {
+  "frames": {"layout": "duplicate", "count": 64, "anchors": 32, "rule": "nested_bisection_v1"},
+  "student_manifest": "<filled copy of read/STUDENT_FRAMES_PLAN.json: one {path, sha256} pin per decode ordinal under captures.<native>.pins>"
+ },
+ "settings_change": {
+  "tree": "the sealed tree_f64 checkout that trained the export (frame_input support); the 32-frame plan's tree lacks it"
+ },
+ "code": {
+  "patch": {"path": "read/reader_f64.patch", "sha256": "4d5ca871116d3fac0c1406808473581fdf35536d369002087531dcd528978430",
+            "applies_to": {
+             "src/b/e2e_reader/parity.py": "d948af4264381ca523dfe1c311e537f9bdd2aebc27c43d2412dbfe3755161dd1",
+             "src/h1eval/h10/parity_adapter.py": "be9488d9a4188e95875a1fcc00c36af69fc0dbe2fbc6127d1febe621d6241c72",
+             "src/orchard_h10/prepare.py": "e93c09972b5d686b6396d9d6f702dd806bc38294c5b7d90960a77a630bee9ae6"}},
+  "module": {"path": "read/f64_read.py", "sha256": "93d24c1bb0fa8e5fe6e6b780d51a32356214610ebcc6e92f891d4ef1c5fab4a8", "install_as": "src/b/f64_read.py",
+             "import": "absolute: the patched src/b/e2e_reader/parity.py runs `from f64_read import ...` with src/b on sys.path, so the module sits beside the e2e_reader package, not inside it"}
+ },
+ "student_frames_plan": {
+  "path": "read/STUDENT_FRAMES_PLAN.json",
+  "sha256": "86d13710519d487a3492146267689dd0245c1bc4c77383cac56e01c83a04e6ee",
+  "frames_json_sha256": "c5e0dad804a59bb6f4932137d129e3a7dc1cf675e6342ff94e36979b7ca29439",
+  "captures": 152,
+  "frames_to_decode": 4864,
+  "already_decoded_in_tower_dense_manifest": 1131
+ },
+ "unchanged": [
+  "FRAMES.json anchors (the student's 32 anchors and the question text that names them)",
+  "dense_manifest and require_dense64 (the frozen G3T tower's own input)",
+  "item set dev-S1 (636 items), sequence, rules, perception memo modules (g3t only)",
+  "processor pixel budget, frame markers and carrier placement (read from the export receipt)"
+ ]
+}

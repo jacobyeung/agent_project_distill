@@ -19,6 +19,9 @@ def setup():
     labels={r['id']:r for r in labels['rows']}
     rowids=set(read(R.ROWSETS/'K1_TRAIN_1037.txt').decode().splitlines())
     tableids=set(read(R.ROWSETS/'K1_TRAIN_TABLES_883.txt').decode().splitlines())
+    assert PINS[str(R.ROWSETS/'K1_TRAIN_1037.txt')]=='e7646798c8a1e12ca6291723c5f686473b9954a78d068dcfa65c314be35a98ac'
+    assert PINS[str(R.ROWSETS/'K1_TRAIN_TABLES_883.txt')]=='778354e77f117e1d44033e5630c4cd55ba6788e6c4f4a25133a224d34f467191'
+    assert all(r['convention'] in ('full','half') for rid,r in labels.items() if rid in rowids)
     caps=[c for c in manifest['captures'] if any(r['id'] in rowids for r in c['rows'])]
     assert len(caps)==209 and all(c['k1_split']=='train' for c in caps)
     folds=M.folds(c['room'] for c in caps);assert len(folds)==192
@@ -38,6 +41,10 @@ def setup():
                 key=(c['canonical'],row['gt_instances'][n]);assert key not in truth or truth[key]==full
                 truth[key]=float(full)
     headpath=R.SEL/'work/run_iso'
+    fits=json.loads(read('/scratch/jjyeung/orch_n30/k1_ops3/work/e3gd/out/FITS.json'))
+    scales=json.loads(read(R.SEL/'sl118/SCALES_S4.json'))
+    assert fits['S4_coefficients']==scales['coefficients']
+    assert PINS['/scratch/jjyeung/orch_n30/k1_ops3/work/e3gd/out/FITS.json']=='592c20480643fc8b3d45ba1a8e71cbee2998e7e02b63296f23c82c8393da9834'
     for ext in ['json','safetensors']:read(headpath/f'selector_head.{ext}')
     head,meta=R.load_head(headpath);R.code_pins()
     return caps,labels,rowids,tableids,folds,truth,head
@@ -118,7 +125,14 @@ class Objects:
 def evaluate(c,rows,geo,objects,arm,rule,labels,folds,truth,gt,diags=None,geometry_meta=None):
     out=[]
     for row in rows:
-        try:pred,refusal,_,printed=pricing.session_distance(row,geo,objects,G,rule)
+        try:
+            cache=gt.setdefault('_distance_cache',{})
+            refs=[geo]+[objects[n] for n in row['operands']]
+            key=(row['id'],rule,tuple(id(v) for v in refs))
+            if key not in cache:
+                # Keep references alive so object IDs cannot be reused within this capture.
+                cache[key]=(refs,pricing.session_distance(row,geo,objects,G,rule))
+            pred,refusal,_,printed=cache[key][1]
         except (ValueError,KeyError,IndexError) as exc:pred=None;refusal=type(exc).__name__+':'+str(exc);printed={}
         diagnostics={}
         for name in row['operands']:
@@ -218,7 +232,7 @@ def one(c,labels,rowids,tableids,folds,truth,head,phase,decision=None,choices=No
     else:
         arm='A9_s4_today' if phase in ('base','dry') else 'A9_s4_obj'
         rr=evaluate(c,rows,geo,{n:empty(n) for n in names},arm,'best1',labels,folds,truth,gt)
-        for r in rr:r['refusal_code']='MISSING: S4 for '+c['canonical']
+        for r in rr:r['refusal_code']='REFUSED: stored S4/G1 scale; '+str(scales['captures'][c['canonical']]['refused'])
         results+=rr
     return dict(capture=c['canonical'],phase=phase,items=results,checks=checks,geometry=meta,seconds=time.monotonic()-start,
         peak_rss_mib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024)

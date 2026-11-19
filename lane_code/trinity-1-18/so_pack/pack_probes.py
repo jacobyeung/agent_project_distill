@@ -45,8 +45,23 @@ def metadata(package, work, config):
         # Python 3.12 parser can check 3.6 grammar; this does not attest APIs.
         if sys.version_info >= (3,8):
             ast.parse(f[n].decode(),filename=n,feature_version=(3,6))
+    public_guards=[]
+    if 'items/dist580.json' in pay:
+        cases=[(['--gpus','2','--time',wall],b'D requires --gpus 1'),
+               (['--gpus','1','--time','99:00:00'],b'D requires --time ')]
+        for i,(flags,expected) in enumerate(cases):
+            # check never submits. If a guard is absent, the native login
+            # checker also rejects this local placement before any job call.
+            r=subprocess.run(['nice','-n','10',sys.executable,'-I','-s','-B',
+                str(package/'3.py'),'check']+flags,cwd=str(work),env=P.clean_env(work),
+                stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=30)
+            (work/('public_guard%d.log'%i)).write_bytes(r.stdout+r.stderr)
+            P.require(r.returncode!=0 and expected in r.stderr,
+                      'D public resource guard did not reject before placement')
+            public_guards.append(dict(flags=flags,rejected=True))
     P.write(work/'result.json',dict(passed=True,native_load_helpers=True,
-        native_verify_config=True,submit_argv=argv,grammar_only_python36=True))
+        native_verify_config=True,submit_argv=argv,grammar_only_python36=True,
+        public_resource_guards=public_guards))
 
 
 def guard(package,work,config):
@@ -161,16 +176,24 @@ def logic(package,work,config):
               for i,r in enumerate(rehearsal)),'Operator rehearsal differs')
     P.require(op['memory_bound'](allocation_bytes=1)['fits'] is False,
               'Memory bound accepted an insufficient allocation')
-    from h1eval.items import load_manifest
+    from h1eval.items import load_manifest,read_contract
     manifests=[]
     for n,d in pay.items():
         if n.startswith('items/') and n.endswith('.json'):
             value=json.loads(d)
             if isinstance(value,dict) and value.get('schema')=='h1-items-v1':
                 load_manifest(src/n);manifests.append(n)
+    contracts=[]
+    for r in rehearsal:
+        args=r['args'];path=Path(args[args.index('--items')+1])
+        manifest=load_manifest(path)
+        arms=args[args.index('--arms')+1].split(',')
+        modes=args[args.index('--modes')+1].split(',')
+        read_contract(manifest,arms,[{'name':name} for name in modes],','.join(r['types']))
+        contracts.append(dict(manifest=manifest['name'],arms=arms,modes=modes,types=r['types']))
     P.write(work/'result.json',dict(passed=True,rows_checked=count,
         isolated_entries=sorted(entries),memory=memory,descriptors=desc,
-        manifests=manifests,rehearsal=rehearsal,
+        manifests=manifests,rehearsal=rehearsal,read_contracts=contracts,
         scope='imports/layout/native stub rehearsal/planning; no full staged reader or restore'))
 
 
@@ -388,6 +411,9 @@ def real_fill(package,work,config):
         check_inputs(filled,cfg,package=Path(remote))
     sys.argv=saved
     resolved=resolve_archives(base,filled,config['mirrors'],remote,local)
+    # Filled metadata and preparation bytes are outbound package surfaces too.
+    P.privacy(P.package_files(local),pay,pub,config.get('old_identities',[]),
+              config.get('forbidden_extra',[]))
     P.write(work/'result.json',dict(passed=True,inputs=P.file_sha(local/'a/1.json'),
         prep=P.file_sha(local/'a/6'),resolved=resolved,
         scope='exact fill and login checks through authenticated path mirrors'))

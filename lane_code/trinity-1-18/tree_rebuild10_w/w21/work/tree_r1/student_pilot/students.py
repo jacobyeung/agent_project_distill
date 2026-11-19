@@ -1,3 +1,4 @@
+from .job_env import key as env_key
 import os
 from pathlib import Path
 
@@ -51,7 +52,7 @@ def same_student(left, right):
 
 
 def runtime_student():
-    value = os.environ.get(("Q_E5" if "Q_E5" in os.environ else "R1_STUDENT_HEX"))
+    value = os.environ.get((env_key('R1_STUDENT_HEX')))
     student = bytes.fromhex(value).decode() if value else "qwen35"
     if student not in STUDENTS:
         raise ValueError("Unknown runtime student")

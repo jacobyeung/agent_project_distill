@@ -1,0 +1,1 @@
+The leak test passes: the reviewer’s best classifier on full clause-masked wording, opening and exact name set scores 50% across 16,000 source-plus-twin rows. Every pair has identical masked wording. Room-path verification and final semantic review are recorded separately.

@@ -113,11 +113,13 @@
  def checksum(path):
 --- /dev/null
 +++ b/tests/test_checkpoint_verify_memo.py
-@@ -0,0 +1,107 @@
+@@ -0,0 +1,150 @@
 +import importlib.util
 +import json
 +import os
 +from pathlib import Path
++import subprocess
++import sys
 +import tempfile
 +import unittest
 +from unittest.mock import patch
@@ -158,6 +160,47 @@
 +        rows = [json.loads(line) for line in (self.root / '.checkpoint-verification/172660.events.jsonl').read_text().splitlines()]
 +        self.assertEqual([row['hit'] for row in rows], [False, True, True])
 +        self.assertTrue(all(row['valid'] and row['bytes'] > 0 for row in rows))
++
++    def test_four_resume_verifications_through_real_guard_and_chooser_processes(self):
++        tree = Path(__file__).resolve().parents[1]
++        self.binding['world_size'] = 4
++        for rank in (2, 3):
++            for name in (f'rng{rank:03d}.pt', f'shards/rank{rank:03d}.pt'):
++                path = self.directory / name
++                path.write_bytes(('fixture:' + name).encode())
++                self.files[name] = dict(bytes=path.stat().st_size, sha256=r8.checksum(path))
++        self.marker.write_text(json.dumps(dict(schema='c1-checkpoint-v1', binding=self.binding,
++                                               step=200, files=self.files)))
++        (self.root / 'binding.json').write_text(json.dumps(self.binding))
++        persistent = self.root.with_name(self.root.name + '-persistent')
++        persistent.mkdir()
++        (persistent / 'RUN.json').write_text(json.dumps(dict(run=self.root.name,
++            first_job='172660', started_utc='2026-11-19T00:00:00Z')))
++        kit = self.root / 'kit'
++        (kit / 'k').mkdir(parents=True)
++        launch = dict(run_directory=str(self.root), persistent_run_root=str(persistent))
++        (kit / 'k/launch.json').write_text(json.dumps(launch))
++        guard = ('import json,os,sys; sys.path.insert(0,sys.argv[1]); '
++                 'from g import persistent_launch; '
++                 'persistent_launch(json.loads(sys.argv[2]), {"world_size":4}, os.environ, sys.argv[3])')
++        python = [sys.executable, '-I', '-s', '-B']
++        guard_p = python + ['-c', guard, str(tree / 'launch_s1/b'), json.dumps(launch), 'p']
++        guard_u = [*guard_p[:-1], 'u']
++        choose = python + [str(tree / 'launch_s1/b/r8.py'), str(self.root), '--kit', str(kit)]
++        # job.sh's guard and chooser, recursive r.sh p guard, parent r.sh u guard.
++        for command in (guard_p, choose, guard_p, guard_u):
++            result = subprocess.run(command, capture_output=True, text=True, timeout=10)
++            self.assertEqual(result.returncode, 0, result.stderr)
++            self.assertEqual(result.stdout, 'u\n' if command == choose else '')
++        events = self.root / '.checkpoint-verification/172660.events.jsonl'
++        rows = [json.loads(line) for line in events.read_text().splitlines()]
++        self.assertEqual([row['hit'] for row in rows], [False, True, True, True])
++        self.assertTrue(all(row['valid'] for row in rows))
++        # The same real guard must refuse a changed payload, even after a hit.
++        (self.directory / 'replicated.pt').write_bytes(b'corrupt')
++        result = subprocess.run(guard_u, capture_output=True, text=True, timeout=10)
++        self.assertNotEqual(result.returncode, 0)
++        self.assertIn('No structurally complete matching checkpoint', result.stderr)
 +
 +    def test_default_off_rehashes_and_writes_no_memo(self):
 +        with patch.dict(os.environ, {'TK_CHECKPOINT_VERIFY_MEMO': '0'}), patch.object(r8, 'complete_uncached', wraps=r8.complete_uncached) as full:

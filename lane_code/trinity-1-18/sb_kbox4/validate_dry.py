@@ -1,5 +1,5 @@
 """Stored-label and corrected-label parities; no GT-geometry execution."""
-import gzip,json,re,time
+import gzip,json,re,resource,time
 import numpy as np
 import torch
 import serving_reference as R
@@ -8,6 +8,7 @@ from serving_reference import read,write,PINS,ROOT,OUT,G
 import math_v2 as M
 
 def main():
+    started=time.monotonic()
     caps,labels,rowids,tableids,folds,truth,head=T.setup()
     checks=[];parity=[]
     for c in caps:
@@ -59,8 +60,9 @@ def main():
     R.code_pins()
     write(ROOT/'out/DRYRUN.json',dict(status='PASS' if passed else 'BLOCKED',passed=passed,stage1_replay=gate['summary'],
         A0_candidates_argmax_replay=a0summary,tests=checks,stored_label_parity=parity,corrected_label_parity=correction,scorer_boundary_differences=diff,
-        A6_status='DEFERRED by orchestrator order 0654Z; GT stored predictions are scored only for parity',heldout_evaluated=False,full_train_started=False))
+        A6_status='DEFERRED by orchestrator order 0654Z; GT stored predictions are scored only for parity',heldout_evaluated=False,full_train_started=False,
+        seconds=time.monotonic()-started,peak_rss_mib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024))
     (ROOT/'STATUS.md').write_text(f'CPU dry-run gate {"PASS" if passed else "FAIL"}. Serving replay, copied-reader A0 reproduction, stored S4/G1 parity, corrected-label scorer parity, one-frame fusion and no-merge checks are recorded in out/DRYRUN.json. Held-out and A6 remain deferred.\n')
-    print(json.dumps(dict(passed=passed,correction=correction,failed=[c for c in checks+parity if not c['passed']]),indent=2))
+    print(json.dumps(R.clean(dict(passed=passed,correction=correction,failed=[c for c in checks+parity if not c['passed']])),indent=2))
 
 if __name__=='__main__':main()

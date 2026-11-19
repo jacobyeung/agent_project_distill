@@ -7,6 +7,10 @@ sys.path[:0]=[str(L/'work/tree_r1'),str(L/'work/n1fix2')]
 from monitor9 import Monitor
 m=Monitor(L/'work/tree_r1')
 from student_pilot.p3_provenance import file_pin,pinned,load,write,sha256
+def write(path,value):
+    path=Path(path)
+    assert path.is_relative_to(O)
+    path.write_text(json.dumps(value,sort_keys=True,indent=2,allow_nan=False)+'\n')
 from student_pilot import ground_rows
 spec=importlib.util.spec_from_file_location('student_pilot.r1_coverage',B/'candidate/r1_coverage.py');C=importlib.util.module_from_spec(spec);spec.loader.exec_module(C)
 split=file_pin(L.parent/'ext/v2h/SPLIT_V2.json');guard=C.WordingExclusion(split)

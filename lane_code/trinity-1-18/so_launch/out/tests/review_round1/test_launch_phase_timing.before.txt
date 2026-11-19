@@ -1,0 +1,63 @@
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_launch_phase_timing.py -v
+test_default_path_runs_same_commands_and_produces_no_timing (__main__.LaunchTimingTests.test_default_path_runs_same_commands_and_produces_no_timing) ... ok
+test_enabled_logs_boundaries_without_polluting_mode_stdout (__main__.LaunchTimingTests.test_enabled_logs_boundaries_without_polluting_mode_stdout) ... ok
+test_failed_guard_preserves_exit_status_and_stops_dispatch (__main__.LaunchTimingTests.test_failed_guard_preserves_exit_status_and_stops_dispatch) ... ok
+test_missing_output_directory_does_not_abort_or_create_logs (__main__.LaunchTimingTests.test_missing_output_directory_does_not_abort_or_create_logs) ... FAIL
+test_recursive_and_parent_guards_have_timing_and_preserve_failure (__main__.LaunchTimingTests.test_recursive_and_parent_guards_have_timing_and_preserve_failure) ... 
+  test_recursive_and_parent_guards_have_timing_and_preserve_failure (__main__.LaunchTimingTests.test_recursive_and_parent_guards_have_timing_and_preserve_failure) (fail=False) ... ERROR
+  test_recursive_and_parent_guards_have_timing_and_preserve_failure (__main__.LaunchTimingTests.test_recursive_and_parent_guards_have_timing_and_preserve_failure) (fail=True) ... ERROR
+test_unwritable_steps_destination_does_not_abort (__main__.LaunchTimingTests.test_unwritable_steps_destination_does_not_abort) ... FAIL
+
+======================================================================
+ERROR: test_recursive_and_parent_guards_have_timing_and_preserve_failure (__main__.LaunchTimingTests.test_recursive_and_parent_guards_have_timing_and_preserve_failure) (fail=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_launch_phase_timing.py", line 110, in test_recursive_and_parent_guards_have_timing_and_preserve_failure
+    events = (root / 'o' / (job + '.steps')).read_text().splitlines()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch-timing-h1e2pwmn/o/23461.steps'
+
+======================================================================
+ERROR: test_recursive_and_parent_guards_have_timing_and_preserve_failure (__main__.LaunchTimingTests.test_recursive_and_parent_guards_have_timing_and_preserve_failure) (fail=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_launch_phase_timing.py", line 110, in test_recursive_and_parent_guards_have_timing_and_preserve_failure
+    events = (root / 'o' / (job + '.steps')).read_text().splitlines()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch-timing-h1e2pwmn/o/23462.steps'
+
+======================================================================
+FAIL: test_missing_output_directory_does_not_abort_or_create_logs (__main__.LaunchTimingTests.test_missing_output_directory_does_not_abort_or_create_logs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_launch_phase_timing.py", line 65, in test_missing_output_directory_does_not_abort_or_create_logs
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : /scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch-timing-mrz09tzz/job.sh: line 16: /scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch-timing-mrz09tzz/o/12345.steps: No such file or directory
+
+
+======================================================================
+FAIL: test_unwritable_steps_destination_does_not_abort (__main__.LaunchTimingTests.test_unwritable_steps_destination_does_not_abort)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_launch_phase_timing.py", line 73, in test_unwritable_steps_destination_does_not_abort
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : /scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch-timing-7yvbu2p7/job.sh: line 16: /scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch-timing-7yvbu2p7/o/12345.steps: Is a directory
+
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.737s
+
+FAILED (failures=2, errors=2)
+EXIT: 1

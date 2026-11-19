@@ -1,0 +1,1530 @@
+--- /dev/null
++++ b/tools/land_kit.sh
+@@ -0,0 +1,6 @@
++#!/bin/bash
++# Owner only. LCS_ENABLE_KIT_LANDING=1 enables this command; default OFF.
++set -euo pipefail
++export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
++export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
++exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B "$(dirname -- "$0")/land_kit.py" "$@"
+--- /dev/null
++++ b/tools/land_kit.py
+@@ -0,0 +1,326 @@
++"""Validate a reviewed archive and land it through the single sync owner."""
++import argparse
++from contextlib import contextmanager
++from datetime import datetime, timezone
++import fcntl
++import gzip
++import hashlib
++import json
++import os
++from pathlib import Path, PurePosixPath
++import re
++import shutil
++import socket
++import subprocess
++import sys
++import tarfile
++import tempfile
++import time
++
++
++class Refusal(Exception):
++    pass
++
++
++def require(ok, message):
++    if not ok:
++        raise Refusal(message)
++
++
++def digest(path):
++    h = hashlib.sha256()
++    with path.open('rb') as f:
++        for chunk in iter(lambda: f.read(1024 * 1024), b''):
++            h.update(chunk)
++    return h.hexdigest()
++
++
++def safe_text(value, field):
++    require(bool(value) and len(value) <= 512 and
++            not any(ord(c) < 32 or ord(c) == 127 for c in value),
++            f'{field} must be nonempty text without control characters (max 512)')
++    return value
++
++
++def review(raw, seal, sha):
++    text = raw.decode('utf-8', errors='strict')
++    fields = {}
++    verdicts = []
++    fenced = False
++    known = {'GO', 'ACCEPT', 'GO AFTER FIXES', 'NO-GO', 'NO GO', 'REJECT', 'HOLD'}
++    for line in text.splitlines():
++        line = line.strip()
++        if line.startswith(('```', '~~~')):
++            fenced = not fenced
++            continue
++        if fenced or line.startswith('>'):
++            continue
++        line = re.sub(r'^#{1,6}\s+', '', line).replace('**', '').strip()
++        m = re.fullmatch(r'(Builder|Reviewer|Seal|SHA256)\s*:\s*(.+)', line, re.I)
++        if m:
++            key = m[1].lower()
++            require(key not in fields or fields[key] == m[2].strip(), f'ambiguous {key} metadata')
++            fields[key] = m[2].strip()
++        m = re.fullmatch(r'VERDICT\s*:\s*(.*)', line, re.I)
++        if m:
++            verdicts.append(m[1].strip().upper())
++        elif line.upper() in known:
++            verdicts.append(line.upper())
++    require(bool(verdicts), 'review has no explicit verdict')
++    require(verdicts[-1] in ('GO', 'ACCEPT'), f'latest verdict is not accepting: {verdicts[-1]}')
++    if 'GO AFTER FIXES' in verdicts:
++        last_conditional = max(i for i, v in enumerate(verdicts) if v == 'GO AFTER FIXES')
++        require('GO' in verdicts[last_conditional + 1:], 'GO AFTER FIXES requires a later unconditional GO')
++    for field in ('builder', 'reviewer'):
++        require(field in fields, f'review must record {field.title()}: <identity>')
++        safe_text(fields[field], field)
++    require(fields.get('seal', seal) == seal, 'review seal differs from supplied seal')
++    require(fields.get('sha256', sha).lower() == sha, 'review SHA256 differs from supplied SHA256')
++    return fields['builder'], fields['reviewer'], verdicts[-1]
++
++
++@contextmanager
++def owner_lock(path, seconds):
++    require(0 <= seconds <= 3600, 'lock timeout must be between 0 and 3600 seconds')
++    with path.open('a') as f:
++        end = time.monotonic() + seconds
++        while True:
++            try:
++                fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
++                break
++            except BlockingIOError:
++                require(time.monotonic() < end, f'timed out waiting for sync owner lock {path}; no Git ran')
++                time.sleep(min(0.1, max(0, end - time.monotonic())))
++        try:
++            yield
++        finally:
++            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
++
++
++def run(args, *, cwd=None, timeout=300):
++    env = None
++    if args[0] == 'git':
++        selectors = ('GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR',
++                     'GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES')
++        require(not any(k in os.environ for k in selectors),
++                'inherited Git repository/index selector refused; use a clean owner environment')
++    try:
++        result = subprocess.run(args, cwd=cwd, capture_output=True, timeout=timeout, env=env)
++    except subprocess.TimeoutExpired:
++        raise Refusal(f'command timed out; stopped without retry: {args[0]}') from None
++    require(result.returncode == 0,
++            f'command failed ({result.returncode}): {args[0]} {args[1:]}\n' +
++            result.stderr.decode(errors='replace')[-2000:])
++    return result.stdout
++
++
++def unpack(archive, dest):
++    """Extract regular files manually; never follow archive links or tar extraction paths."""
++    seen = set()
++    total = 0
++    count = 0
++    with tarfile.open(archive, 'r:*') as tf:
++        for member in tf:
++            count += 1
++            require(count <= 10000, 'archive has more than 10000 members')
++            name = member.name
++            require(not any(ord(c) < 32 or ord(c) == 127 for c in name), 'control character in archive name')
++            require('\\' not in name and not name.startswith('/'), 'unsafe archive path')
++            parts = name.split('/')
++            require('..' not in parts, 'parent traversal in archive path')
++            rel = str(PurePosixPath(name))
++            if rel == '.' and member.isdir():
++                continue
++            require(rel not in ('', '.') and rel not in seen, f'duplicate or empty archive member: {rel}')
++            require(member.isdir() or member.isfile(), f'archive links/devices refused: {rel}')
++            require(rel != 'KIT.json', 'root KIT.json is reserved for landing metadata')
++            seen.add(rel)
++            target = dest / rel
++            if member.isdir():
++                target.mkdir(parents=True, exist_ok=True)
++                continue
++            total += member.size
++            require(total <= 64 * 1024 * 1024, 'archive expands beyond 64 MiB')
++            target.parent.mkdir(parents=True, exist_ok=True)
++            source = tf.extractfile(member)
++            require(source is not None, f'cannot read archive member {rel}')
++            with source, target.open('xb') as out:
++                shutil.copyfileobj(source, out, 64 * 1024)
++            require(target.stat().st_size == member.size, f'truncated archive member {rel}')
++            target.chmod(0o755 if member.mode & 0o111 else 0o644)
++
++
++def inventory(root):
++    found = {}
++    for p in sorted(root.rglob('*')):
++        require(not p.is_symlink(), f'symlink refused: {p}')
++        if p.is_file():
++            found[p.relative_to(root).as_posix()] = {
++                'sha256': digest(p), 'bytes': p.stat().st_size,
++                'executable': bool(p.stat().st_mode & 0o111)}
++        else:
++            require(p.is_dir(), f'nonregular file refused: {p}')
++    return found
++
++
++def secret_scan(script, source, dest, flag):
++    run([sys.executable, '-I', '-s', '-B', str(script), str(source), str(dest), str(flag)])
++    require(flag.is_file() and flag.stat().st_size == 0, f'secret scan flagged files; see {flag}')
++    # The supplied scanner skips unreadable files; verify that every byte survived.
++    before, after = inventory(source), inventory(dest)
++    require({k: (v['sha256'], v['bytes']) for k, v in before.items()} ==
++            {k: (v['sha256'], v['bytes']) for k, v in after.items()}, 'scanner omitted or changed a file')
++
++
++def prepare(args, root, filter_script, scan_script):
++    raw = root / 'raw'
++    raw.mkdir()
++    # Copy once, then hash and extract that snapshot to prevent archive replacement races.
++    archive = root / 'kit.tar'
++    require(args.archive.is_file() and args.archive.stat().st_size <= 64 * 1024 * 1024,
++            'archive must be a regular file no larger than 64 MiB')
++    total = 0
++    with args.archive.open('rb') as source, archive.open('xb') as snapshot:
++        while chunk := source.read(1024 * 1024):
++            total += len(chunk)
++            require(total <= 64 * 1024 * 1024, 'archive grew beyond 64 MiB while snapshotting')
++            snapshot.write(chunk)
++    require(digest(archive) == args.sha256, 'archive SHA256 mismatch')
++    verdict_path = args.verdict.resolve(strict=True)
++    require(verdict_path.is_file() and verdict_path.stat().st_size <= 512 * 1024,
++            'review must be a regular file no larger than 512 KiB')
++    verdict_bytes = verdict_path.read_bytes()
++    builder, reviewer, verdict = review(verdict_bytes, args.seal, args.sha256)
++    unpack(archive, raw)
++    scanned = root / 'scanned'
++    scanned.mkdir()
++    secret_scan(scan_script, raw, scanned, root / 'raw_flags.txt')
++    meta = root / 'filter_meta'
++    selected = run([sys.executable, '-I', '-s', '-B', str(filter_script), 'kit', str(meta)], cwd=raw)
++    paths = set(os.fsdecode(p) for p in selected.split(b'\0') if p)
++    manifest = meta / 'DEDUP_kit.tsv.gz'
++    paths.discard(os.path.relpath(manifest, raw))
++    with gzip.open(manifest, 'rt', encoding='utf-8', errors='surrogateescape') as f:
++        for line in f:
++            duplicate, kept = line.rstrip('\n').split('\t')
++            require(kept in paths, 'invalid dedup manifest')
++            paths.add(duplicate)
++    require(bool(paths), 'filter admitted no files')
++    payload = root / 'payload'
++    payload.mkdir()
++    for rel in sorted(paths):
++        require(not Path(rel).is_absolute() and '..' not in Path(rel).parts, 'filter emitted unsafe path')
++        source = raw / rel
++        require(source.is_file() and not source.is_symlink(), 'filter emitted a missing file or symlink')
++        dest = payload / rel
++        dest.parent.mkdir(parents=True, exist_ok=True)
++        shutil.copyfile(source, dest)
++        dest.chmod(0o755 if source.stat().st_mode & 0o111 else 0o644)
++    files = inventory(payload)
++    metadata = dict(seal=args.seal, sha256=args.sha256, builder=builder, reviewer=reviewer,
++                    verdict_path=str(verdict_path), verdict_sha256=hashlib.sha256(verdict_bytes).hexdigest(),
++                    verdict=verdict, date=datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
++                    file_count=len(files), files=files)
++    (payload / 'KIT.json').write_text(json.dumps(metadata, sort_keys=True, indent=2) + '\n')
++    final_scan = root / 'final_scan'
++    final_scan.mkdir()
++    secret_scan(scan_script, payload, final_scan, root / 'metadata_flags.txt')
++    for rel, info in files.items():
++        print(f"FILE {json.dumps(rel)} bytes={info['bytes']} sha256={info['sha256']}")
++    print(f"COUNT files={len(files)} bytes={sum(v['bytes'] for v in files.values())} metadata_files=1")
++    return payload, metadata
++
++
++def check_target(args, repo, metadata):
++    target = repo / 'kits' / args.name
++    require(not (repo / 'kits').is_symlink() and not target.is_symlink(), 'kits destination is a symlink')
++    if target.exists():
++        require(target.is_dir() and (target / 'KIT.json').is_file(), 'existing name has no valid KIT.json')
++        actual = inventory(target)
++        old = json.loads((target / 'KIT.json').read_text())
++        require({k: v for k, v in old.items() if k != 'date'} ==
++                {k: v for k, v in metadata.items() if k != 'date'}, 'kit name already exists with different content or provenance')
++        actual.pop('KIT.json', None)
++        require(actual == metadata['files'], 'existing kit bytes or modes differ')
++        return True
++    return False
++
++
++def land(args, state, repo, payload, metadata):
++    def git(*argv):
++        return run(['git', '-C', str(repo), *argv]).decode().strip()
++    require(git('symbolic-ref', '--quiet', '--short', 'HEAD') == 'lane-code', 'owner clone must already be on lane-code')
++    git('diff', '--quiet')
++    git('diff', '--cached', '--quiet')
++    target = repo / 'kits' / args.name
++    if check_target(args, repo, metadata):
++        tracked = {p for p in git('ls-files', '-z', '--', f'kits/{args.name}').split('\0') if p}
++        expected = {f'kits/{args.name}/{p}' for p in metadata['files']} | {f'kits/{args.name}/KIT.json'}
++        require(tracked == expected, 'existing kit is not fully tracked; inspect interrupted landing')
++        print('IDENTICAL already landed; verifying and publishing current lane-code head')
++    else:
++        target.parent.mkdir(parents=True, exist_ok=True)
++        shutil.copytree(payload, target)
++        git('add', '-f', '--', f'kits/{args.name}')
++        message = (f"Land kit {args.name}\n\nSeal: {metadata['seal']}\nSHA256: {metadata['sha256']}\n"
++                   f"Builder: {metadata['builder']}\nReviewer: {metadata['reviewer']}\nDate: {metadata['date']}")
++        git('commit', '-q', '-m', message)
++    head = git('rev-parse', 'HEAD')
++    require(bool(re.fullmatch('[0-9a-f]{40}|[0-9a-f]{64}', head)), 'invalid HEAD returned by Git')
++    for remote, label in (('origin', 'GitHub'), ('home', 'home')):
++        git('push', '-q', remote, 'HEAD:refs/heads/lane-code')
++        lines = git('ls-remote', remote, 'refs/heads/lane-code').splitlines()
++        require(lines == [f'{head}\trefs/heads/lane-code'], f'{remote} lane-code verification failed')
++        print(f"{metadata['date']} verified {label} lane-code = {head}")
++    print(f'LANDED kits/{args.name} commit={head}')
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('archive', type=Path)
++    parser.add_argument('seal')
++    parser.add_argument('sha256')
++    parser.add_argument('verdict', type=Path)
++    parser.add_argument('name')
++    parser.add_argument('--dry', action='store_true')
++    args = parser.parse_args(argv)
++    require(os.environ.get('LCS_ENABLE_KIT_LANDING') == '1', 'disabled; owner must set LCS_ENABLE_KIT_LANDING=1')
++    require(bool(re.fullmatch('[a-z0-9_]+', args.name)), 'invalid kit name; use [a-z0-9_]+')
++    safe_text(args.seal, 'seal')
++    require(bool(re.fullmatch('[0-9a-fA-F]{64}', args.sha256)), 'SHA256 must be 64 hex digits')
++    args.sha256 = args.sha256.lower()
++    state = Path(os.environ.get('LCS_S', '/scratch/jjyeung/distill_sync')).resolve()
++    repo = Path(os.environ.get('LCS_R', str(state / 'repo'))).resolve()
++    tools = Path(os.environ.get('LCS_B', '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30')) / 'tools'
++    filter_script = Path(os.environ.get('LCS_FILTER', str(tools / 'lane_code_filter.py'))).resolve(strict=True)
++    scan_script = Path(os.environ.get('LCS_SCAN', str(tools / 'lane_code_scan.py'))).resolve(strict=True)
++    test_root = os.environ.get('LCS_TEST_ROOT')
++    if test_root:
++        boundary = Path(test_root).resolve(strict=True)
++        require(boundary != Path('/') and str(boundary).startswith('/scratch/'), 'test root must be on /scratch')
++        require(state.is_relative_to(boundary) and repo.is_relative_to(boundary), 'test writes must stay within test root')
++    else:
++        require(socket.gethostname().split('.')[0] == 'trinity-3-30', 'owner runs only on trinity-3-30')
++        require(state == Path('/scratch/jjyeung/distill_sync') and repo == state / 'repo',
++                'production must use the hourly owner state, clone, and lock; overrides require LCS_TEST_ROOT')
++    require(state.is_dir(), f'owner state does not exist: {state}')
++    require(not (state / '.sync.lock').is_symlink(), 'owner lock must not be a symlink')
++    with owner_lock(state / '.sync.lock', float(os.environ.get('LCS_LOCK_TIMEOUT', '120'))):
++        root = Path(tempfile.mkdtemp(prefix='land_kit_', dir=state))
++        print(f'AUDIT {root}')
++        payload, metadata = prepare(args, root, filter_script, scan_script)
++        check_target(args, repo, metadata)
++        if args.dry:
++            print('DRY validated; stopped before Git or clone writes')
++            return 0
++        require(repo.is_dir(), f'owner clone does not exist: {repo}')
++        land(args, state, repo, payload, metadata)
++    return 0
++
++
++if __name__ == '__main__':
++    try:
++        sys.exit(main())
++    except (Refusal, OSError, ValueError, tarfile.TarError, UnicodeError) as exc:
++        print(f'REFUSED: {exc}', file=sys.stderr)
++        sys.exit(2)
+--- /dev/null
++++ b/tools/sync_health.sh
+@@ -0,0 +1,6 @@
++#!/bin/bash
++# Local owner monitor. LCS_ENABLE_SYNC_HEALTH=1 enables it; default OFF.
++set -euo pipefail
++export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
++export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
++exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B "$(dirname -- "$0")/sync_health.py" "$@"
+--- /dev/null
++++ b/tools/sync_health.py
+@@ -0,0 +1,180 @@
++"""Read only local sync evidence; emit one event per incident and recovery."""
++from datetime import datetime, timedelta, timezone
++import fcntl
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import socket
++import sys
++
++UTC = timezone.utc
++
++
++def iso(value):
++    return value.strftime('%Y-%m-%dT%H:%M:%SZ')
++
++
++def parse(value):
++    return datetime.strptime(value, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=UTC)
++
++
++def stamp(value):
++    return value.strftime('%Y%m%dT%H%M%SZ')
++
++
++def read_log(path):
++    if not path.exists():
++        return []
++    # Bound reads of long-running logs; a truncated history is conservatively stale.
++    with path.open('rb') as f:
++        size = f.seek(0, 2)
++        f.seek(max(0, size - 8 * 1024 * 1024))
++        raw = f.read()
++        if size > len(raw):
++            raw = raw.partition(b'\n')[2]
++    result = []
++    for line in raw.decode('utf-8', errors='replace').splitlines():
++        when, _, text = line.partition(' ')
++        try:
++            result.append((parse(when), text))
++        except ValueError:
++            continue
++    return result
++
++
++def evidence(lines):
++    verified = None
++    current = None
++    completed = None
++    for when, text in lines:
++        if re.fullmatch(r'verified GitHub lane-code = (?:[0-9a-f]{40}|[0-9a-f]{64})', text):
++            if verified is None or when >= verified:
++                verified = when
++            if current is not None:
++                current['verified'] = when
++        if text.startswith('START '):
++            current = {'start': when, 'verified': None}
++        if text.startswith(('END ', 'QUEUE-ONLY END ')):
++            current = current or {'start': when, 'verified': None}
++            current['end'] = when
++            current['failed'] = 'with failures' in text
++            current['ok'] = text == 'END ok'
++            completed = current
++            current = None
++    return verified, completed
++
++
++def own_blocker(events, run):
++    # The sync's STAMP filename has minute precision; its first line has the true end time.
++    for p in events.glob('*_BLOCKER_sync_failed.md'):
++        if p.is_symlink() or not p.is_file():
++            continue
++        with p.open('r', errors='replace') as f:
++            first = f.readline(4096)
++        when, _, text = first.partition(' ')
++        try:
++            when = parse(when)
++        except ValueError:
++            continue
++        if run['start'] <= when <= run['end'] + timedelta(seconds=2) and text.startswith('code_sync run failed'):
++            return True
++    return False
++
++
++def save(path, data):
++    tmp = path.with_name(f'state.{os.getpid()}.new')
++    with tmp.open('w') as f:
++        json.dump(data, f, sort_keys=True, indent=2)
++        f.write('\n')
++        f.flush()
++        os.fsync(f.fileno())
++    tmp.replace(path)
++
++
++def check(state_root, events, log, now):
++    health = state_root / 'health'
++    health.mkdir(parents=True, exist_ok=True)
++    events.mkdir(parents=True, exist_ok=True)
++    with (health / '.lock').open('a') as lock:
++        fcntl.flock(lock, fcntl.LOCK_EX)
++        path = health / 'state.json'
++        data = json.loads(path.read_text()) if path.exists() else {'active': {}, 'events': {}, 'first_seen': iso(now)}
++        previous = parse(data.get('checked', data['first_seen']))
++        if now < previous:
++            raise ValueError('clock moved backwards; state unchanged')
++        verified, completed = evidence(read_log(log))
++        active = data['active']
++        recovered = []
++        for kind, incident in list(active.items()):
++            after = parse(incident['observed'])
++            good = verified is not None and verified > after and verified <= now
++            if kind == 'failed':
++                good = (good and completed is not None and completed['ok'] and
++                        completed['verified'] is not None and completed['verified'] > after)
++            if good:
++                recovered.append(kind)
++                active.pop(kind)
++        if recovered:
++            # Stable name makes event replay safe after process interruption.
++            event = f'{stamp(verified)}_RESULT_code_sync_recovered.md'
++            data['events'].setdefault(event, f'{iso(now)} code_sync recovered: {", ".join(recovered)}; verified GitHub push {iso(verified)}\n')
++        stale = verified is None or now - verified > timedelta(minutes=90)
++        if stale and 'stale' not in active:
++            event = f'{stamp(now)}_BLOCKER_code_sync_stale.md'
++            active['stale'] = {'observed': iso(now), 'event': event}
++            last = iso(verified) if verified else 'no verified GitHub lane-code line in available log'
++            data['events'][event] = f'{iso(now)} code_sync stale: last success {last}; limit 90 minutes; log {log}\n'
++        if completed and completed['failed'] and 'failed' not in active and not own_blocker(events, completed):
++            # Deduplicate a completed failure even after its incident has recovered.
++            key = iso(completed['end'])
++            if data.get('last_failed_run') != key:
++                event = f'{stamp(now)}_BLOCKER_code_sync_failed.md'
++                active['failed'] = {'observed': iso(now), 'event': event, 'run': key}
++                data['events'][event] = f'{iso(now)} code_sync failed: run ended {key} without its own BLOCKER; log {log}\n'
++                data['last_failed_run'] = key
++        data['checked'] = iso(now)
++        # Persist the event journal first; a later invocation replays any missing event.
++        save(path, data)
++        for name, content in data['events'].items():
++            dest = events / name
++            if dest.exists():
++                if dest.is_symlink() or dest.read_text() != content:
++                    raise ValueError(f'event collision: {dest}')
++                continue
++            with dest.open('x') as f:
++                f.write(content)
++            print(f'EVENT {dest}')
++        print(f'HEALTH last_verified={iso(verified) if verified else "none"} active={",".join(sorted(active)) or "none"}')
++
++
++def main():
++    if os.environ.get('LCS_ENABLE_SYNC_HEALTH') != '1':
++        raise ValueError('disabled; owner must set LCS_ENABLE_SYNC_HEALTH=1')
++    state = Path(os.environ.get('LCS_S', '/scratch/jjyeung/distill_sync')).resolve()
++    base = Path(os.environ.get('LCS_B', '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30'))
++    events = Path(os.environ.get('LCS_EV', str(base / 'events' / 'code_sync'))).resolve()
++    log = Path(os.environ.get('LCS_LOG', str(state / 'sync.log'))).resolve()
++    now = datetime.now(UTC).replace(microsecond=0)
++    if os.environ.get('LCS_TEST_ROOT'):
++        boundary = Path(os.environ['LCS_TEST_ROOT']).resolve(strict=True)
++        if not str(boundary).startswith('/scratch/') or not all(p.is_relative_to(boundary) for p in (state, events)):
++            raise ValueError('test writes must stay within /scratch test root')
++        if os.environ.get('LCS_HEALTH_NOW'):
++            now = parse(os.environ['LCS_HEALTH_NOW'])
++    else:
++        if socket.gethostname().split('.')[0] != 'trinity-3-30':
++            raise ValueError('owner monitor runs only on trinity-3-30')
++        if 'LCS_HEALTH_NOW' in os.environ:
++            raise ValueError('fake clock requires LCS_TEST_ROOT')
++    check(state, events, log, now)
++    return 0
++
++
++if __name__ == '__main__':
++    try:
++        sys.exit(main())
++    except (OSError, ValueError, KeyError, TypeError) as exc:
++        print(f'REFUSED: {exc}', file=sys.stderr)
++        sys.exit(2)
+--- /dev/null
++++ b/tools/sync_health_loop.sh
+@@ -0,0 +1,10 @@
++#!/bin/bash
++# Start only on trinity-3-30, in tmux, with LCS_ENABLE_SYNC_HEALTH=1.
++# A failed/killed monitor stops this loop; the owner investigates before restarting.
++set -euo pipefail
++[ "${LCS_ENABLE_SYNC_HEALTH:-0}" = 1 ] || { echo 'REFUSED: set LCS_ENABLE_SYNC_HEALTH=1' >&2; exit 2; }
++[ "$(hostname -s)" = trinity-3-30 ] || { echo 'REFUSED: health loop runs only on trinity-3-30' >&2; exit 2; }
++while true; do
++    bash "$(dirname -- "$0")/sync_health.sh" >> "${LCS_S:-/scratch/jjyeung/distill_sync}/health.log" 2>&1
++    sleep 600
++done
+--- /dev/null
++++ b/tools/dry_count.sh
+@@ -0,0 +1,6 @@
++#!/bin/bash
++# Read-only counts. LCS_ENABLE_DRY_COUNT=1 enables this command; default OFF.
++set -euo pipefail
++export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
++export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
++exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B "$(dirname -- "$0")/dry_count.py" "$@"
+--- /dev/null
++++ b/tools/dry_count.py
+@@ -0,0 +1,66 @@
++"""Run the unmodified filter on explicit folders, without copying or writing manifests."""
++import argparse
++import ast
++import json
++import os
++from pathlib import Path
++import re
++import subprocess
++import sys
++
++
++def root_gate(script, folder):
++    # Read constants without importing the filter, whose top level walks the current tree.
++    constants = {}
++    for node in ast.parse(script.read_text()).body:
++        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
++            name = node.targets[0].id
++            if name in ('MAXDIR', 'SUBSTR'):
++                constants[name] = ast.literal_eval(node.value)
++            elif name == 'DIRRE':
++                constants[name] = re.compile(ast.literal_eval(node.value.args[0]))
++    name = folder.name
++    if name == '.git' or 'frames' in name or constants['DIRRE'].match(name):
++        return 'directory name excluded at hourly tree root'
++    if any(s in '/' + name + '/' for s in constants['SUBSTR']):
++        return 'path substring excluded at hourly tree root'
++    if len(os.listdir(folder)) > constants['MAXDIR']:
++        return f"directory exceeds MAXDIR={constants['MAXDIR']} at hourly tree root"
++    return None
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('folders', nargs='+', type=Path)
++    args = parser.parse_args()
++    if os.environ.get('LCS_ENABLE_DRY_COUNT') != '1':
++        parser.error('disabled; set LCS_ENABLE_DRY_COUNT=1')
++    base = Path(os.environ.get('LCS_B', '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30'))
++    script = Path(os.environ.get('LCS_FILTER', str(base / 'tools' / 'lane_code_filter.py'))).resolve(strict=True)
++    failures = 0
++    for folder in args.folders:
++        try:
++            folder = folder.resolve(strict=True)
++            # No manifest argument: the filter makes no output files.
++            result = subprocess.run([sys.executable, '-I', '-s', '-B', str(script), folder.name],
++                                    cwd=folder, capture_output=True, timeout=120)
++            if result.returncode:
++                raise ValueError(f'filter exit {result.returncode}: {result.stderr.decode(errors="replace")}')
++            paths = [os.fsdecode(x) for x in result.stdout.split(b'\0') if x]
++            stats = result.stderr.decode(errors='replace').strip()
++            nbytes = sum((folder / p).stat().st_size for p in paths)
++            match = re.search(r'files=(\d+) bytes=(\d+)', stats)
++            if not match or (int(match[1]), int(match[2])) != (len(paths), nbytes):
++                raise ValueError('filter stats disagree with selected files; tree may be changing')
++            gate = root_gate(script, folder)
++            print(json.dumps(dict(folder=str(folder), files=len(paths), bytes=nbytes, filter_stats=stats,
++                                  hourly_root_gate_reason=gate, hourly_files=0 if gate else len(paths),
++                                  hourly_bytes=0 if gate else nbytes), sort_keys=True))
++        except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
++            print(f'REFUSED {folder}: {exc}', file=sys.stderr)
++            failures += 1
++    return 1 if failures else 0
++
++
++if __name__ == '__main__':
++    sys.exit(main())
+--- /dev/null
++++ b/tests/__init__.py
+@@ -0,0 +1 @@
++"""CPU-only owner-tool tests; real Git tests require a separate opt-in."""
+--- /dev/null
++++ b/tests/test_owner_tools.py
+@@ -0,0 +1,489 @@
++from contextlib import redirect_stdout
++from datetime import datetime, timedelta, timezone
++import fcntl
++import hashlib
++import importlib.util
++import io
++import json
++import os
++from pathlib import Path
++import subprocess
++import sys
++import tarfile
++import tempfile
++import unittest
++from unittest.mock import patch
++
++BASE = Path(__file__).resolve().parents[1]
++TOOLS = BASE / 'tools'
++FIXTURES = Path(os.environ.get('LCS_TEST_WORK', str(BASE / 'work' / 'test_runs')))
++FIXTURES.mkdir(parents=True, exist_ok=True)
++
++
++def load(name):
++    spec = importlib.util.spec_from_file_location(name, TOOLS / (name + '.py'))
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++kit = load('land_kit')
++health = load('sync_health')
++
++
++class Fixture(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix=self.__class__.__name__ + '_', dir=FIXTURES))
++        self.state = self.root / 'state'
++        self.state.mkdir()
++        self.repo = self.state / 'repo'
++        self.repo.mkdir()
++        self.events = self.root / 'events'
++        self.events.mkdir()
++        self.log = self.state / 'sync.log'
++        self.review = self.root / 'review.md'
++        self.review.write_text('Builder: lane_builder\nReviewer: lane_reviewer\nVERDICT: GO\n')
++        self.env = dict(LCS_ENABLE_KIT_LANDING='1', LCS_ENABLE_SYNC_HEALTH='1',
++                        LCS_ENABLE_DRY_COUNT='1', LCS_S=str(self.state), LCS_R=str(self.repo),
++                        LCS_EV=str(self.events), LCS_FILTER=str(TOOLS / 'lane_code_filter.py'),
++                        LCS_SCAN=str(TOOLS / 'lane_code_scan.py'), LCS_TEST_ROOT=str(self.root),
++                        LCS_LOCK_TIMEOUT='0.05')
++        self.archive({'module.py': b'VALUE = 1\n', 'in/helper.py': b'VALUE = 2\n'})
++
++    def archive(self, files=None, members=None):
++        p = self.root / f'kit_{len(list(self.root.glob("kit_*.tar")))}.tar'
++        with tarfile.open(p, 'w') as tf:
++            for name, data in (files or {}).items():
++                member = tarfile.TarInfo(name)
++                member.size = len(data)
++                member.mode = 0o755 if name.endswith('.sh') else 0o644
++                tf.addfile(member, io.BytesIO(data))
++            for member in members or []:
++                tf.addfile(member)
++        self.tar = p
++        self.sha = hashlib.sha256(p.read_bytes()).hexdigest()
++        return p
++
++    def invoke(self, dry=True, sha=None, name='_probe'):
++        argv = [str(self.tar), 'seal-test', sha or self.sha, str(self.review), name]
++        if dry:
++            argv.append('--dry')
++        with patch.dict(os.environ, self.env), redirect_stdout(io.StringIO()) as out:
++            code = kit.main(argv)
++        return code, out.getvalue()
++
++    def check(self, now):
++        with redirect_stdout(io.StringIO()):
++            health.check(self.state, self.events, self.log, now)
++
++
++class ReviewTests(unittest.TestCase):
++    def review(self, text):
++        return kit.review(('Builder: b\nReviewer: r\n' + text).encode(), 's', 'a' * 64)
++
++    def test_supported_forms(self):
++        for text in ('GO', 'ACCEPT', 'VERDICT: GO', '**VERDICT: ACCEPT**', '# VERDICT: GO'):
++            with self.subTest(text=text):
++                self.assertIn(self.review(text)[2], ('GO', 'ACCEPT'))
++
++    def test_conditional_even_with_fixes_is_refused(self):
++        for text in ('GO AFTER FIXES\nFixes recorded: all done', 'GO AFTER FIXES\nACCEPT'):
++            with self.subTest(text=text), self.assertRaises(kit.Refusal):
++                self.review(text)
++
++    def test_later_go_resolves_conditional(self):
++        self.assertEqual(self.review('GO AFTER FIXES\nFixes: done\nVERDICT: GO')[2], 'GO')
++
++    def test_later_negative_or_unknown_wins(self):
++        for tail in ('NO-GO', 'VERDICT: WAIT', 'GO AFTER FIXES'):
++            with self.subTest(tail=tail), self.assertRaises(kit.Refusal):
++                self.review('VERDICT: GO\n' + tail)
++
++    def test_prose_quotes_and_code_are_not_verdicts(self):
++        for text in ('We should GO', '> GO', '```\nVERDICT: GO\n```'):
++            with self.subTest(text=text), self.assertRaises(kit.Refusal):
++                self.review(text)
++
++    def test_metadata_required_and_bound_if_present(self):
++        for raw in (b'GO', b'Builder: b\nGO', b'Builder: b\nReviewer: r\nSeal: wrong\nGO',
++                    b'Builder: b\nReviewer: r\nSHA256: 123\nGO'):
++            with self.subTest(raw=raw), self.assertRaises(kit.Refusal):
++                kit.review(raw, 's', 'a' * 64)
++
++
++class KitValidationTests(Fixture):
++    def test_dry_uses_filter_and_scan_without_git(self):
++        with patch.object(kit, 'land', side_effect=AssertionError('Git reached')):
++            code, out = self.invoke()
++        self.assertEqual(code, 0)
++        self.assertIn('COUNT files=2', out)
++        self.assertIn('DRY validated', out)
++        self.assertEqual(list(self.repo.iterdir()), [])
++
++    def test_disabled_has_no_writes(self):
++        self.env['LCS_ENABLE_KIT_LANDING'] = '0'
++        with self.assertRaisesRegex(kit.Refusal, 'disabled'):
++            self.invoke()
++        self.assertFalse((self.state / '.sync.lock').exists())
++
++    def test_bad_hash_and_missing_review(self):
++        with self.assertRaisesRegex(kit.Refusal, 'SHA256 mismatch'):
++            self.invoke(sha='0' * 64)
++        self.review = self.root / 'missing.md'
++        with self.assertRaises(FileNotFoundError):
++            self.invoke()
++
++    def test_bad_names(self):
++        for name in ('../escape', 'UPPER', 'a-b', '', '-x'):
++            # Leading option/empty name parsing is covered by the CLI parser itself.
++            if name.startswith('-'):
++                continue
++            with self.subTest(name=name), self.assertRaises(kit.Refusal):
++                self.invoke(name=name)
++
++    def test_traversal_absolute_links_and_duplicates_refused(self):
++        for name, type_ in (('../escape.py', tarfile.REGTYPE), ('/escape.py', tarfile.REGTYPE),
++                            ('x', tarfile.SYMTYPE), ('x', tarfile.LNKTYPE), ('x', tarfile.FIFOTYPE)):
++            member = tarfile.TarInfo(name)
++            member.type = type_
++            member.linkname = 'target'
++            self.archive(members=[member])
++            with self.subTest(name=name, type=type_), self.assertRaises(kit.Refusal):
++                self.invoke()
++        self.archive(members=[tarfile.TarInfo('x.py'), tarfile.TarInfo('./x.py')])
++        with self.assertRaisesRegex(kit.Refusal, 'duplicate'):
++            self.invoke()
++        self.assertFalse((self.state / 'escape.py').exists())
++
++    def test_reserved_metadata_and_empty_filter(self):
++        self.archive({'KIT.json': b'{}'})
++        with self.assertRaisesRegex(kit.Refusal, 'reserved'):
++            self.invoke()
++        self.archive({'image.bin': b'not source'})
++        with self.assertRaisesRegex(kit.Refusal, 'no files'):
++            self.invoke()
++
++    def test_size_and_name_filter_and_duplicate_paths(self):
++        self.archive({'small.py': b'x=1\n', 'same.py': b'x=1\n', 'runs/skip.py': b'run=1\n',
++                      'big.py': b'#' * (512 * 1024 + 1), 'big.json': b' ' * (256 * 1024 + 1),
++                      'kit/ok.py': b'k=1\n', 'work/tree/ok.sh': b'echo ok\n'})
++        _, out = self.invoke()
++        self.assertIn('COUNT files=4', out)
++        self.assertIn('"same.py"', out)
++        self.assertNotIn('"runs/skip.py"', out)
++        self.assertNotIn('"big.py"', out)
++
++    def test_exact_size_caps_are_inclusive(self):
++        self.archive({'at_limit.py': b'#' * (512 * 1024), 'at_limit.json': b' ' * (256 * 1024),
++                      'over.py': b'#' * (512 * 1024 + 1), 'over.jsonl': b' ' * (256 * 1024 + 1)})
++        _, out = self.invoke()
++        self.assertIn('COUNT files=2 bytes=786432', out)
++        self.assertNotIn('"over.py"', out)
++        self.assertNotIn('"over.jsonl"', out)
++
++    def test_shell_wrapper_dry_path(self):
++        result = subprocess.run(['bash', str(TOOLS / 'land_kit.sh'), str(self.tar), 'seal-test', self.sha,
++                                 str(self.review), '_probe', '--dry'],
++                                env=dict(os.environ, **self.env, LCS_PYTHON=sys.executable),
++                                capture_output=True, text=True, timeout=10)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertIn('DRY validated', result.stdout)
++        self.assertEqual(list(self.repo.iterdir()), [])
++
++    def test_inherited_git_selector_refused_before_spawn(self):
++        with patch.dict(os.environ, GIT_DIR='/not/a/repository'), \
++             patch.object(subprocess, 'run', side_effect=AssertionError('must not spawn')), \
++             self.assertRaisesRegex(kit.Refusal, 'selector refused'):
++            kit.run(['git', '-C', str(self.repo), 'symbolic-ref', '--quiet', '--short', 'HEAD'])
++
++    def test_any_secret_including_filtered_out_file_refuses(self):
++        for path in ('secret.py', 'runs/secret.bin'):
++            self.archive({path: ('hf_' + 'X' * 35).encode(), 'ok.py': b'x=1'})
++            with self.subTest(path=path), self.assertRaisesRegex(kit.Refusal, 'secret scan flagged'):
++                self.invoke()
++
++    def test_scanner_error_and_scanner_omission_refuse(self):
++        bad = self.root / 'bad_scan.py'
++        bad.write_text('raise SystemExit(7)\n')
++        self.env['LCS_SCAN'] = str(bad)
++        with self.assertRaisesRegex(kit.Refusal, 'command failed'):
++            self.invoke()
++        bad.write_text('import pathlib,sys\np=pathlib.Path(sys.argv[3]);p.parent.mkdir(parents=True,exist_ok=True);p.write_text("")\n')
++        with self.assertRaisesRegex(kit.Refusal, 'scanner omitted'):
++            self.invoke()
++
++    def test_shared_flock_timeout(self):
++        with (self.state / '.sync.lock').open('a') as f:
++            fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
++            with self.assertRaisesRegex(kit.Refusal, 'timed out waiting'):
++                self.invoke()
++
++    def test_shared_flock_wait_then_acquire(self):
++        # A separate process holds a real flock; no Git executable is used.
++        ready = self.root / 'locked'
++        code = ('import fcntl,pathlib,sys,time\n'
++                'with open(sys.argv[1],"a") as f:\n'
++                ' fcntl.flock(f,fcntl.LOCK_EX);pathlib.Path(sys.argv[2]).write_text("ready");time.sleep(0.3)\n')
++        child = subprocess.Popen([sys.executable, '-I', '-s', '-B', '-c', code, str(self.state / '.sync.lock'), str(ready)])
++        import time
++        deadline = time.monotonic() + 5
++        while not ready.exists() and time.monotonic() < deadline:
++            time.sleep(0.01)
++        self.assertTrue(ready.exists())
++        self.env['LCS_LOCK_TIMEOUT'] = '2'
++        try:
++            self.assertEqual(self.invoke()[0], 0)
++        finally:
++            self.assertEqual(child.wait(timeout=5), 0)
++
++
++class FakeGit:
++    """Command double only: this is not a Git implementation or Git proof."""
++    def __init__(self):
++        self.calls = []
++        self.head = 'a' * 40
++        self.branch = b'lane-code\n'
++        self.fail = None
++        self.bad_remote = None
++        self.original = kit.run
++
++    def __call__(self, argv, **kw):
++        if argv[0] != 'git':
++            return self.original(argv, **kw)
++        args = argv[3:]
++        self.calls.append(args)
++        if self.fail and args[:len(self.fail)] == self.fail:
++            raise kit.Refusal('simulated command failure')
++        if args[0] == 'symbolic-ref':
++            return self.branch
++        if args[:2] == ['rev-parse', 'HEAD']:
++            return (self.head + '\n').encode()
++        if args[0] == 'ls-remote':
++            head = 'b' * 40 if args[1] == self.bad_remote else self.head
++            return (head + '\trefs/heads/lane-code\n').encode()
++        if args[0] == 'ls-files':
++            repo = Path(argv[2])
++            return b''.join(str(p.relative_to(repo)).encode() + b'\0' for p in sorted((repo / args[-1]).rglob('*')) if p.is_file())
++        return b''
++
++
++class KitCommandTests(Fixture):
++    def test_landing_and_idempotence_command_contract(self):
++        fake = FakeGit()
++        with patch.object(kit, 'run', side_effect=fake):
++            self.assertEqual(self.invoke(dry=False)[0], 0)
++            self.assertEqual(self.invoke(dry=False)[0], 0)
++        path = self.repo / 'kits' / '_probe'
++        metadata = json.loads((path / 'KIT.json').read_text())
++        self.assertEqual(metadata['file_count'], 2)
++        self.assertEqual(metadata['seal'], 'seal-test')
++        self.assertEqual(metadata['verdict_sha256'], hashlib.sha256(self.review.read_bytes()).hexdigest())
++        self.assertEqual(sum(call[0] == 'commit' for call in fake.calls), 1)
++        self.assertEqual(sum(call[0] == 'push' for call in fake.calls), 4)
++        for call in fake.calls:
++            self.assertNotIn('checkout', call)
++            self.assertNotIn('--force', call)
++            self.assertNotIn('main', call)
++        self.assertIn(['push', '-q', 'origin', 'HEAD:refs/heads/lane-code'], fake.calls)
++        self.assertIn(['push', '-q', 'home', 'HEAD:refs/heads/lane-code'], fake.calls)
++
++    def test_conflicting_name_refuses_without_add(self):
++        with patch.object(kit, 'run', side_effect=FakeGit()):
++            self.invoke(dry=False)
++        self.archive({'different.py': b'y=2\n'})
++        fake = FakeGit()
++        with patch.object(kit, 'run', side_effect=fake), self.assertRaisesRegex(kit.Refusal, 'different content'):
++            self.invoke(dry=False)
++        self.assertFalse(any(call[0] in ('add', 'commit', 'push') for call in fake.calls))
++
++    def test_wrong_branch_and_dirty_index_refuse(self):
++        fake = FakeGit()
++        fake.branch = b'main\n'
++        with patch.object(kit, 'run', side_effect=fake), self.assertRaisesRegex(kit.Refusal, 'already be on lane-code'):
++            self.invoke(dry=False)
++        fake = FakeGit()
++        fake.fail = ['diff', '--cached']
++        with patch.object(kit, 'run', side_effect=fake), self.assertRaises(kit.Refusal):
++            self.invoke(dry=False)
++        self.assertFalse(any(call[0] == 'add' for call in fake.calls))
++
++    def test_each_remote_must_verify(self):
++        for remote in ('origin', 'home'):
++            fake = FakeGit()
++            fake.bad_remote = remote
++            with patch.object(kit, 'run', side_effect=fake), self.subTest(remote=remote), self.assertRaisesRegex(kit.Refusal, 'verification failed'):
++                self.invoke(dry=False)
++
++    def test_failed_push_stops_without_retry(self):
++        fake = FakeGit()
++        fake.fail = ['push', '-q', 'origin']
++        with patch.object(kit, 'run', side_effect=fake), self.assertRaises(kit.Refusal):
++            self.invoke(dry=False)
++        self.assertEqual(sum(call[0] == 'push' for call in fake.calls), 1)
++
++
++class HealthTests(Fixture):
++    T = datetime(2026, 11, 19, 1, 0, tzinfo=timezone.utc)
++
++    def write_log(self, good=None, failed=False, end_ok=True):
++        good = good or self.T
++        lines = [f'{health.iso(good - timedelta(minutes=1))} START dry=0 queue_only=0',
++                 f'{health.iso(good)} verified GitHub lane-code = {"a" * 40}']
++        if failed:
++            lines.append(f'{health.iso(good + timedelta(seconds=1))} END with failures')
++        elif end_ok:
++            lines.append(f'{health.iso(good + timedelta(seconds=1))} END ok')
++        self.log.write_text('\n'.join(lines) + '\n')
++
++    def files(self, pattern):
++        return list(self.events.glob(pattern))
++
++    def test_exact_stale_boundary_once_and_recovery(self):
++        self.write_log()
++        self.check(self.T + timedelta(minutes=90))
++        self.assertEqual(self.files('*BLOCKER*'), [])
++        self.check(self.T + timedelta(minutes=90, seconds=1))
++        self.check(self.T + timedelta(minutes=100))
++        self.assertEqual(len(self.files('*BLOCKER_code_sync_stale.md')), 1)
++        self.write_log(self.T + timedelta(minutes=101))
++        self.check(self.T + timedelta(minutes=102))
++        self.check(self.T + timedelta(minutes=103))
++        result = self.files('*RESULT*')
++        self.assertEqual(len(result), 1)
++        self.assertIn('recovered', result[0].read_text())
++
++    def test_failed_without_own_blocker_once_and_recovery(self):
++        self.write_log(failed=True)
++        self.check(self.T + timedelta(minutes=1))
++        self.check(self.T + timedelta(minutes=2))
++        self.assertEqual(len(self.files('*BLOCKER_code_sync_failed.md')), 1)
++        self.write_log(self.T + timedelta(minutes=3))
++        self.check(self.T + timedelta(minutes=4))
++        self.assertEqual(len(self.files('*RESULT*')), 1)
++
++    def test_failed_with_own_blocker_is_suppressed(self):
++        self.write_log(failed=True)
++        (self.events / '20261119T0100Z_BLOCKER_sync_failed.md').write_text(
++            f'{health.iso(self.T + timedelta(seconds=1))} code_sync run failed; scan error\n')
++        self.check(self.T + timedelta(minutes=1))
++        self.assertEqual(self.files('*BLOCKER_code_sync_failed.md'), [])
++
++    def test_unrelated_own_blocker_does_not_suppress(self):
++        self.write_log(failed=True)
++        (self.events / 'old_BLOCKER_sync_failed.md').write_text('2026-11-18T01:00:01Z code_sync run failed\n')
++        self.check(self.T + timedelta(minutes=1))
++        self.assertEqual(len(self.files('*BLOCKER_code_sync_failed.md')), 1)
++
++    def test_new_good_push_with_failing_end_does_not_recover_failure(self):
++        self.write_log(failed=True)
++        self.check(self.T + timedelta(minutes=1))
++        self.write_log(self.T + timedelta(minutes=2), failed=True)
++        self.check(self.T + timedelta(minutes=3))
++        self.assertEqual(len(self.files('*BLOCKER_code_sync_failed.md')), 1)
++        self.assertEqual(self.files('*RESULT*'), [])
++
++    def test_missing_log_stale_once(self):
++        self.check(self.T)
++        self.check(self.T + timedelta(minutes=1))
++        self.assertEqual(len(self.files('*BLOCKER_code_sync_stale.md')), 1)
++
++    def test_queue_only_failure_and_hung_run(self):
++        self.log.write_text('2026-11-19T01:00:00Z START dry=0 queue_only=1\n2026-11-19T01:00:01Z QUEUE-ONLY END with failures; fetch\n')
++        self.check(self.T + timedelta(minutes=1))
++        self.assertEqual(len(self.files('*BLOCKER_code_sync_failed.md')), 1)
++
++    def test_incomplete_new_run_does_not_make_failure(self):
++        self.write_log()
++        with self.log.open('a') as f:
++            f.write('2026-11-19T01:02:00Z START dry=0 queue_only=0\n2026-11-19T01:02:01Z FAIL stage\n')
++        self.check(self.T + timedelta(minutes=3))
++        self.assertEqual(self.files('*BLOCKER*'), [])
++
++    def test_restart_replays_missing_event(self):
++        self.check(self.T)
++        event = self.files('*BLOCKER*')[0]
++        event.rename(self.root / 'held_event.md')
++        self.check(self.T + timedelta(minutes=1))
++        self.assertTrue(event.exists())
++        self.assertEqual(event.read_text(), (self.root / 'held_event.md').read_text())
++
++    def test_second_stale_incident_gets_new_event(self):
++        self.write_log()
++        self.check(self.T + timedelta(minutes=91))
++        self.write_log(self.T + timedelta(minutes=92))
++        self.check(self.T + timedelta(minutes=93))
++        self.check(self.T + timedelta(minutes=183))
++        self.assertEqual(len(self.files('*BLOCKER_code_sync_stale.md')), 2)
++
++    def test_fake_clock_cli_local_only(self):
++        self.write_log()
++        env = dict(os.environ, **self.env, LCS_HEALTH_NOW='2026-11-19T03:00:00Z')
++        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(TOOLS / 'sync_health.py')],
++                                env=env, capture_output=True, text=True, timeout=10)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertIn('active=stale', result.stdout)
++
++
++class CoverageTests(Fixture):
++    def test_directory_rules_include_and_exclude_named_examples(self):
++        for name in ('in', 'out', 'work/tree', 'kit', 'unit_proof', 'proofs', 'runs', 'evidence'):
++            p = self.root / 'lane' / name
++            p.mkdir(parents=True, exist_ok=True)
++            (p / 'source.py').write_text(repr(name))
++        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(TOOLS / 'lane_code_filter.py'), 'test'],
++                                cwd=self.root / 'lane', capture_output=True, timeout=10)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertEqual({x.decode() for x in result.stdout.split(b'\0') if x},
++                         {'in/source.py', 'out/source.py', 'work/tree/source.py', 'kit/source.py'})
++
++    def test_maxdir_prunes_code_and_root_gate_is_reported(self):
++        lane = self.root / 'so_proof'
++        lane.mkdir()
++        (lane / 'source.py').write_text('x=1\n')
++        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(TOOLS / 'dry_count.py'), str(lane)],
++                                env=dict(os.environ, **self.env), capture_output=True, text=True, timeout=10)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        report = json.loads(result.stdout)
++        self.assertEqual(report['files'], 1)
++        self.assertEqual(report['hourly_files'], 0)
++        self.assertIn('directory name', report['hourly_root_gate_reason'])
++        # Exercise the filter's exact MAXDIR=2000 threshold on local scratch only.
++        big = self.root / 'big'
++        big.mkdir()
++        for i in range(2000):
++            (big / f'{i}.bin').touch()
++        (big / 'source.py').write_text('code=1\n')
++        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(TOOLS / 'lane_code_filter.py'), 'test'],
++                                cwd=self.root, capture_output=True, timeout=10)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertNotIn(b'big/source.py', result.stdout)
++        self.assertIn(b'skipped_bigdirs=1', result.stderr)
++
++    def test_dry_count_has_no_copy_and_reports_dedup(self):
++        lane = self.root / 'sb_example'
++        lane.mkdir()
++        (lane / 'a.py').write_text('a=1\n')
++        (lane / 'b.py').write_text('a=1\n')
++        (lane / 'runs').mkdir()
++        (lane / 'runs' / 'skip.py').write_text('skip=1\n')
++        before = kit.inventory(lane)
++        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(TOOLS / 'dry_count.py'), str(lane)],
++                                env=dict(os.environ, **self.env), capture_output=True, text=True, timeout=10)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        report = json.loads(result.stdout)
++        self.assertEqual((report['files'], report['bytes']), (1, 4))
++        self.assertEqual(before, kit.inventory(lane))
++
++    def test_current_hourly_add_is_scoped_away_from_kits(self):
++        source = Path(__file__).resolve().parent / 'fixtures' / 'lane_code_sync.sh'
++        lines = source.read_text().splitlines()
++        adds = [line for line in lines if line.startswith('git -C "$R" add ')]
++        self.assertEqual(len(adds), 1)
++        self.assertEqual(adds[0].split(' || ')[0],
++                         'git -C "$R" add -f -A lane_code tools/lane_code_sync.sh tools/lane_code_filter.py tools/lane_code_scan.py')
++        # This assertion checks command scope only. A separate real-Git test proves tree preservation.
++        self.assertNotIn('kits', adds[0])
++
++
++if __name__ == '__main__':
++    unittest.main()
+--- /dev/null
++++ b/tests/test_real_git_owner.py
+@@ -0,0 +1,109 @@
++"""Owner-run real Git proof. Disabled locally by the dispatch's explicit no-git rule."""
++import hashlib
++import io
++import json
++import os
++from pathlib import Path
++import shlex
++import subprocess
++import sys
++import tarfile
++import tempfile
++import unittest
++
++BASE = Path(__file__).resolve().parents[1]
++
++
++@unittest.skipUnless(os.environ.get('LCS_RUN_REAL_GIT_TESTS') == '1',
++                     'owner must explicitly enable real Git; dispatch forbids it on this lane')
++class RealGitOwnerTests(unittest.TestCase):
++    def test_land_probe_and_hourly_pathspec_preserves_kits(self):
++        parent = Path(os.environ['LCS_REAL_GIT_WORK']).resolve(strict=True)
++        self.assertTrue(str(parent).startswith('/scratch/'))
++        root = Path(tempfile.mkdtemp(prefix='real_git_', dir=parent))
++        state = root / 'state'
++        state.mkdir()
++        origin, home, seed, repo = (root / 'origin.git', root / 'home.git', root / 'seed', state / 'repo')
++        env = dict(os.environ, GIT_CONFIG_GLOBAL='/dev/null', GIT_CONFIG_NOSYSTEM='1',
++                   GIT_TERMINAL_PROMPT='0', GIT_AUTHOR_NAME='Owner tool test', GIT_AUTHOR_EMAIL='owner-test@invalid',
++                   GIT_COMMITTER_NAME='Owner tool test', GIT_COMMITTER_EMAIL='owner-test@invalid')
++        # Ignore inherited repository/worktree selectors, so no command can target a production repo.
++        for key in ('GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR', 'GIT_OBJECT_DIRECTORY',
++                    'GIT_ALTERNATE_OBJECT_DIRECTORIES', 'GIT_CONFIG', 'GIT_CONFIG_COUNT'):
++            env.pop(key, None)
++
++        def run(*args, cwd=None, extra=None):
++            result = subprocess.run(args, cwd=cwd, env=dict(env, **(extra or {})),
++                                    capture_output=True, text=True, timeout=30)
++            self.assertEqual(result.returncode, 0, f'{args}: {result.stdout}\n{result.stderr}')
++            return result.stdout.strip()
++
++        def git(*args):
++            return run('git', '-C', str(repo), *args)
++
++        run('git', 'init', '--bare', str(origin))
++        run('git', 'init', '--bare', str(home))
++        run('git', 'init', '-b', 'lane-code', str(seed))
++        (seed / 'lane_code' / 'fake_node').mkdir(parents=True)
++        (seed / 'lane_code' / 'fake_node' / 'module.py').write_text('old = 1\n')
++        (seed / 'lane_code' / 'fake_node' / 'move_me.py').write_text('move = 1\n')
++        (seed / 'tools').mkdir()
++        for name in ('lane_code_sync.sh', 'lane_code_filter.py', 'lane_code_scan.py'):
++            (seed / 'tools' / name).write_text('# staged fixture\n')
++        run('git', '-C', str(seed), 'add', '--', 'lane_code', 'tools')
++        run('git', '-C', str(seed), 'commit', '-q', '-m', 'Seed local owner fixture')
++        run('git', '-C', str(seed), 'push', '-q', str(origin), 'lane-code:refs/heads/lane-code')
++        run('git', 'clone', '-q', '--branch', 'lane-code', str(origin), str(repo))
++        git('remote', 'add', 'home', str(home))
++        kitfile = root / 'kit.tar'
++        with tarfile.open(kitfile, 'w') as tf:
++            data = b'PROBE = True\n'
++            info = tarfile.TarInfo('probe.py')
++            info.size = len(data)
++            tf.addfile(info, io.BytesIO(data))
++        sha = hashlib.sha256(kitfile.read_bytes()).hexdigest()
++        review = root / 'review.md'
++        review.write_text(f'Builder: test_builder\nReviewer: test_reviewer\nSeal: probe-seal\nSHA256: {sha}\nVERDICT: GO\n')
++        extra = dict(LCS_ENABLE_KIT_LANDING='1', LCS_TEST_ROOT=str(root), LCS_S=str(state), LCS_R=str(repo),
++                     LCS_FILTER=str(BASE / 'tools' / 'lane_code_filter.py'),
++                     LCS_SCAN=str(BASE / 'tools' / 'lane_code_scan.py'), LCS_PYTHON=sys.executable)
++        output = run('bash', str(BASE / 'tools' / 'land_kit.sh'), str(kitfile), 'probe-seal', sha, str(review), '_probe', extra=extra)
++        print('\nREAL_GIT_ROOT', root)
++        print(output)
++        head = git('rev-parse', 'HEAD')
++        print('COMMIT\n' + git('show', '--no-patch', '--format=fuller', head))
++        print('TREE\n' + git('ls-tree', '-r', '--name-only', head))
++        for remote in ('origin', 'home'):
++            observed = git('ls-remote', remote, 'refs/heads/lane-code')
++            print(f'LS_REMOTE {remote}\n{observed}')
++            self.assertEqual(observed, head + '\trefs/heads/lane-code')
++        before = git('rev-parse', 'HEAD:kits')
++        (repo / 'lane_code' / 'fake_node' / 'module.py').write_text('new = 2\n')
++        # Move out a tracked lane file to exercise the -A removal case without a deletion command.
++        (repo / 'lane_code' / 'fake_node' / 'move_me.py').rename(root / 'saved_move_me.py')
++        source = Path(__file__).parent / 'fixtures' / 'lane_code_sync.sh'
++        line, = [line for line in source.read_text().splitlines() if line.startswith('git -C "$R" add ')]
++        command = shlex.split(line.split(' || ')[0])
++        self.assertEqual(command[:4], ['git', '-C', '$R', 'add'])
++        command[2] = str(repo)
++        run(*command)
++        staged = git('diff', '--cached', '--name-only').splitlines()
++        self.assertTrue(staged)
++        self.assertFalse(any(p.startswith('kits/') for p in staged))
++        git('commit', '-q', '-m', 'Exercise unchanged hourly add pathspec')
++        after = git('rev-parse', 'HEAD:kits')
++        self.assertEqual(before, after)
++        print(f'HOURLY_KITS_TREE before={before} after={after} unchanged=true')
++        # Publish the fixture's simulated hourly commit, using the same two isolated bare remotes.
++        for remote in ('origin', 'home'):
++            git('push', '-q', remote, 'HEAD:refs/heads/lane-code')
++            self.assertEqual(git('ls-remote', remote, 'refs/heads/lane-code').split()[0], git('rev-parse', 'HEAD'))
++        for remote in (origin, home):
++            self.assertEqual(run('git', '--git-dir=' + str(remote), 'for-each-ref', '--format=%(refname)', 'refs/heads'),
++                             'refs/heads/lane-code')
++        metadata = json.loads((repo / 'kits' / '_probe' / 'KIT.json').read_text())
++        self.assertEqual(metadata['file_count'], 1)
++
++
++if __name__ == '__main__':
++    unittest.main()
+--- /dev/null
++++ b/tests/run_real_git_owner.sh
+@@ -0,0 +1,9 @@
++#!/bin/bash
++# Owner runs this only when real local Git is authorized; no production repo/network is used.
++set -euo pipefail
++[ "${LCS_RUN_REAL_GIT_TESTS:-0}" = 1 ] || { echo 'REFUSED: set LCS_RUN_REAL_GIT_TESTS=1' >&2; exit 2; }
++: "${LCS_REAL_GIT_WORK:?Set LCS_REAL_GIT_WORK to an existing throwaway /scratch directory}"
++export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
++export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
++cd "$(dirname -- "$0")/.."
++exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B -m unittest discover -s tests -p test_real_git_owner.py -v
+--- /dev/null
++++ b/tests/fixtures/lane_code_sync.sh
+@@ -0,0 +1,170 @@
++#!/bin/bash
++# lane_code_sync.sh [--dry]: hourly sync of agent-written lane code to GitHub branch lane-code.
++# Stages whitelisted source/records from /scratch/jjyeung/orch_n30/*/ on each lane node (InfiniBand tar
++# stream into $S/stage/<node>/ on trinity-3-30), plus orch_n30 tools/ and briefs/, secret-scans them,
++# copies clean files into $S/repo/lane_code/<node>/..., commits on lane-code, pushes to origin and to the
++# /home repo as branch lane-code. Runs on trinity-3-30 only. --dry prints per-node counts and stops;
++# --stage-only stages, scans and copies into the clone, then stops before git.
++# A failed run writes one line to the log and one BLOCKER event; the next attempt is the next hourly run.
++set -u
++# --queue-only runs only the push-queue step (publish queued eff/* branches; see push_queue below).
++# The LCS_* variables exist for tests only; production runs set none of them.
++B=${LCS_B:-/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30}
++S=${LCS_S:-/scratch/jjyeung/distill_sync}
++R=${LCS_R:-$S/repo}
++EV=${LCS_EV:-$B/events/code_sync}
++FILTER=$B/tools/lane_code_filter.py
++SCAN=${LCS_SCAN:-$B/tools/lane_code_scan.py}
++LANES_ROOT=${LCS_LANES_ROOT:-/scratch/jjyeung/orch_n30}
++REMOTE_NODES="trinity-1-18"  # trinity-1-3 fenced 2026-11-18 (unreachable since 11:29Z); add it back when it answers
++DRY=0; [ "${1:-}" = "--dry" ] && DRY=1
++STAGE_ONLY=0; [ "${1:-}" = "--stage-only" ] && STAGE_ONLY=1
++QUEUE_ONLY=0; [ "${1:-}" = "--queue-only" ] && QUEUE_ONLY=1
++FAILS=""
++ts() { date -u +%FT%TZ; }
++log() { echo "$(ts) $*"; }
++fail() { FAILS="$FAILS; $*"; log "FAIL $*"; }
++[ "$(hostname -s)" = trinity-3-30 ] || { log "FAIL not on trinity-3-30"; exit 2; }
++exec 8>"$S/.sync.lock"; flock -n 8 || { log "FAIL previous run still holds the lock"; exit 3; }
++log "START dry=$DRY queue_only=$QUEUE_ONLY"
++
++# Push-queue step: publish each builder branch queued in <lane>/PUSH_QUEUE.txt to origin.
++# A queue line is "<UTC> <branch> <sha> [<clone path>]". Accepted only: branch ^eff/[a-z0-9-]+$, a lane folder
++# $LANES_ROOT/(e|eff)_<name>, a clone at <lane>/clone or <lane>/repo (a link between those two is fine), the fetched branch head equal to or
++# descending from <sha>, and no secret-scan flag on the files the branch changes against main. The push is
++# "origin <sha>:refs/heads/<branch>" without force, verified with ls-remote. Done lines go to $S/PUSH_DONE.txt,
++# permanent refusals (logged once) to $S/PUSH_REFUSED.txt; a transient fetch or push failure retries next hour.
++# The step never checks out a branch, never writes main and never touches /home.
++QBLOCK=""
++qlog() { log "QUEUE $*"; }
++qrefuse() { echo "$(ts) $1 $2 $3 REFUSED $4" >> "$S/PUSH_REFUSED.txt"; qlog "REFUSED $2 $3 ($1): $4"; }
++qblock() { qrefuse "$@"; QBLOCK="$QBLOCK
++- $2 $3 from $1: $4"; }
++qseen() { awk -v l="$1" -v b="$2" -v s="$3" '$2==l && $3==b && $4==s {f=1} END {exit !f}' \
++            "$S/PUSH_DONE.txt" "$S/PUSH_REFUSED.txt"; }
++push_queue() {
++  local q lane name utc br sha cpath extra clone head mainref base dir flag rem out rc n=0 qstamp
++  qstamp=$(date -u +%Y%m%dT%H%M%SZ)
++  touch "$S/PUSH_DONE.txt" "$S/PUSH_REFUSED.txt"
++  if git -C "$R" rev-parse -q --verify refs/remotes/origin/main >/dev/null; then mainref=refs/remotes/origin/main
++  else mainref=refs/heads/main; fi
++  for q in "$LANES_ROOT"/e_*/PUSH_QUEUE.txt "$LANES_ROOT"/eff_*/PUSH_QUEUE.txt; do
++    [ -f "$q" ] || continue
++    lane=${q%/PUSH_QUEUE.txt}; name=${lane##*/}
++    while read -r utc br sha cpath extra <&3; do
++      [ -n "${utc:-}" ] || continue
++      case "$utc" in \#*) continue ;; esac
++      qseen "$lane" "${br:-}" "${sha:-}" && continue
++      n=$((n+1))
++      if ! [[ "${br:-}" =~ ^eff/[a-z0-9-]+$ ]]; then qrefuse "$lane" "${br:-?}" "${sha:-?}" "branch is not eff/<slug>"; continue; fi
++      if ! [[ "${sha:-}" =~ ^[0-9a-f]{40}$ ]]; then qrefuse "$lane" "$br" "${sha:-?}" "sha is not 40 hex"; continue; fi
++      if ! [[ "$name" =~ ^(e|eff)_[a-z0-9_-]+$ ]] || [ -n "${extra:-}" ]; then qrefuse "$lane" "$br" "$sha" "lane folder or line outside the pattern"; continue; fi
++      [ -n "${cpath:-}" ] || { cpath=$lane/clone; [ -d "$cpath" ] || cpath=$lane/repo; }
++      clone=$(realpath -e "$cpath" 2>/dev/null)
++      if { [ "$cpath" != "$lane/clone" ] && [ "$cpath" != "$lane/repo" ]; } \
++         || { [ "$clone" != "$lane/clone" ] && [ "$clone" != "$lane/repo" ]; } \
++         || [ "$(realpath -e "$lane" 2>/dev/null)" != "$lane" ] || [ ! -d "$clone/.git" ]; then
++        qrefuse "$lane" "$br" "$sha" "clone path $cpath is not <lane>/clone or <lane>/repo"; continue; fi
++      if ! timeout 300 git -C "$R" fetch -q --no-tags "$clone" "refs/heads/$br" 2>&1; then
++        fail "queue fetch $br from $clone"; continue; fi
++      head=$(git -C "$R" rev-parse FETCH_HEAD)
++      if [ "$head" != "$sha" ] && ! git -C "$R" merge-base --is-ancestor "$sha" "$head" 2>/dev/null; then
++        qblock "$lane" "$br" "$sha" "branch head $head neither equals nor descends from the queued sha"; continue; fi
++      base=$(git -C "$R" merge-base "$sha" "$mainref" 2>/dev/null) || base=$(git -C "$R" hash-object -t tree /dev/null)
++      dir=$S/qscan/${qstamp}_$n; flag=$S/flagged/queue_${qstamp}_$n.txt
++      mkdir -p "$dir" "$S/flagged"
++      out=$(git -C "$R" diff --name-only -z --no-renames --diff-filter=d "$base" "$sha" | while IFS= read -r -d '' p; do
++              mkdir -p "$dir/$(dirname "$p")" && git -C "$R" cat-file blob "$sha:$p" > "$dir/$p" || echo "unreadable $p"; done)
++      if [ -n "$out" ]; then qblock "$lane" "$br" "$sha" "scan could not read: $(echo "$out" | head -3 | tr '\n' ' ')"; continue; fi
++      python3 "$SCAN" "$dir" "$dir" "$flag" | sed 's/^/  [queue] /'
++      if [ ! -f "$flag" ] || [ -s "$flag" ]; then
++        qblock "$lane" "$br" "$sha" "secret scan flagged: $(cut -f1 "$flag" 2>/dev/null | head -5 | tr '\n' ' ')(list $flag)"; continue; fi
++      out=$(timeout 300 git -C "$R" push -q origin "$sha:refs/heads/$br" 2>&1 < /dev/null); rc=$?
++      rem=$(timeout 60 git -C "$R" ls-remote origin "refs/heads/$br" 2>/dev/null | cut -f1)
++      if [ $rc = 0 ] && [ "$rem" = "$sha" ]; then
++        echo "$(ts) $lane $br $sha pushed" >> "$S/PUSH_DONE.txt"; qlog "pushed $br $sha from $name"
++      elif [ -n "$rem" ] && [ "$rem" != "$sha" ] && git -C "$R" merge-base --is-ancestor "$sha" "$rem" 2>/dev/null; then
++        echo "$(ts) $lane $br $sha superseded_by $rem" >> "$S/PUSH_DONE.txt"; qlog "superseded $br $sha (origin has $rem)"
++      elif [ -n "$rem" ] && [ "$rem" != "$sha" ] && ! git -C "$R" merge-base --is-ancestor "$rem" "$sha" 2>/dev/null; then
++        qblock "$lane" "$br" "$sha" "non-fast-forward: origin has $rem; not forced"
++      else
++        fail "queue push $br $sha rc=$rc remote=${rem:-none}: $(echo "$out" | tail -1 | cut -c1-150)"
++      fi
++    done 3< "$q"
++  done
++  qlog "done: $n new lines"
++  if [ -n "$QBLOCK" ]; then
++    { echo "$(ts) code_sync push queue blocked these lines (log $S/sync.log; refusals in $S/PUSH_REFUSED.txt):"
++      echo "$QBLOCK"; echo "Fix the branch, commit, and queue the new head; a blocked line is never retried."; } \
++      > "$EV/${qstamp}_BLOCKER_push_queue.md"
++  fi
++}
++if [ $QUEUE_ONLY = 1 ]; then
++  push_queue
++  [ -n "$FAILS" ] && { log "QUEUE-ONLY END with failures${FAILS}"; exit 1; }
++  log "QUEUE-ONLY END ok"; exit 0
++fi
++
++# Remote script: filter on the lane node, then tar stream over InfiniBand into stage on trinity-3-30.
++gen_remote() {
++  local node=$1
++  echo 'set -u'
++  echo "cd /scratch/jjyeung/orch_n30 2>/dev/null || { echo 'STATS $node files=0 bytes=0 (no orch_n30)'; exit 0; }"
++  if [ $DRY = 1 ]; then
++    echo "python3 - $node code_sync/meta > /dev/null <<'PYEOF'"
++  else
++    echo "python3 - $node code_sync/meta <<'PYEOF' | tar --null -cf - -T - | timeout 900 ssh -o ConnectTimeout=20 -o BatchMode=yes trinity-3-30.ib 'mkdir -p $S/stage/$node && tar xf - -C $S/stage/$node'"
++  fi
++  cat "$FILTER"
++  echo 'PYEOF'
++  echo 'rc=("${PIPESTATUS[@]}"); echo "PIPE ${rc[*]}"; for r in "${rc[@]}"; do [ "$r" = 0 ] || exit 4; done'
++}
++
++for node in $REMOTE_NODES; do
++  out=$(gen_remote "$node" | bash "$B/tools/tssh.sh" "$node" 'bash -s' 2>&1); rc=$?
++  echo "$out" | sed "s/^/  [$node] /"
++  [ $rc = 0 ] || fail "$node stage rc=$rc: $(echo "$out" | tail -1 | cut -c1-150)"
++done
++
++# Local node and orchestrator tools/briefs.
++stage_local() {  # <src dir> <stage subdir> <label> [manifest dir]
++  local src=$1 dst=$S/stage/$2 m=${4:-}
++  ( cd "$src" || exit 5
++    if [ $DRY = 1 ]; then python3 "$FILTER" "$3" $m > /dev/null; exit $?; fi
++    mkdir -p "$dst" && python3 "$FILTER" "$3" $m | tar --null -cf - -T - | tar xf - -C "$dst"
++    rc=("${PIPESTATUS[@]}"); for r in "${rc[@]}"; do [ "$r" = 0 ] || exit 4; done ) 2>&1
++}
++stage_local /scratch/jjyeung/orch_n30 trinity-3-30 trinity-3-30 code_sync/meta || fail "trinity-3-30 local stage"
++stage_local "$B/tools" orch_n30/tools orch_n30/tools || fail "orch_n30 tools stage"
++stage_local "$B/briefs" orch_n30/briefs orch_n30/briefs || fail "orch_n30 briefs stage"
++[ $DRY = 1 ] && { log "DRY done${FAILS}"; exit 0; }
++
++# Secret scan + copy clean files into the clone.
++STAMP=$(date -u +%Y%m%dT%H%MZ)
++python3 "$SCAN" "$S/stage" "$R/lane_code" "$S/flagged/flagged_$STAMP.txt" || fail "scan/copy rc=$?"
++mkdir -p "$R/tools"
++cp "$B/tools/lane_code_sync.sh" "$FILTER" "$SCAN" "$R/tools/" || fail "copy tools into clone"
++[ $STAGE_ONLY = 1 ] && { log "STAGE-ONLY done${FAILS}"; exit 0; }
++
++git -C "$R" add -f -A lane_code tools/lane_code_sync.sh tools/lane_code_filter.py tools/lane_code_scan.py || fail "git add"
++if git -C "$R" diff --cached --quiet; then
++  log "no changes"
++else
++  N=$(git -C "$R" diff --cached --name-only | wc -l)
++  M=$(git -C "$R" diff --cached --name-only | awk -F/ '$1=="lane_code"{print $2"/"$3}' | sort -u | wc -l)
++  git -C "$R" commit -q -m "lane-code sync $(date -u +%FT%H:%MZ): $N files, $M lanes changed" || fail "git commit"
++  log "committed $N files, $M lanes: $(git -C "$R" rev-parse --short HEAD)"
++fi
++timeout 300 git -C "$R" push -q origin lane-code 2>&1 || fail "push origin lane-code"
++timeout 300 git -C "$R" push -q home lane-code:lane-code 2>&1 || fail "push home lane-code"
++H=$(git -C "$R" rev-parse HEAD)
++G=$(timeout 60 git -C "$R" ls-remote origin refs/heads/lane-code 2>/dev/null | cut -f1)
++[ "$H" = "$G" ] && log "verified GitHub lane-code = $H" || fail "GitHub lane-code $G != local $H"
++
++push_queue
++
++if [ -n "$FAILS" ]; then
++  echo "$(ts) code_sync run failed${FAILS} (log $S/sync.log; next attempt next hour)" > "$EV/${STAMP}_BLOCKER_sync_failed.md"
++  log "END with failures"; exit 1
++fi
++log "END ok"
+--- /dev/null
++++ b/docs/GIT_OWNER.md
+@@ -0,0 +1,54 @@
++# Getting lane code into Git
++
++The owner on **trinity-3-30** runs all Git commands in `/scratch/jjyeung/distill_sync/repo`.
++Lanes run no Git. The hourly sync and kit command share `/scratch/jjyeung/distill_sync/.sync.lock`.
++Nobody checks out another branch, rewrites history, forces a push, or pushes to main.
++
++| Route | Lane supplies | Owner runs | Landing evidence |
++|---|---|---|---|
++| Reviewed kit | Archive, seal, archive SHA256, review path, unused name | Command below | `kits/<name>/KIT.json`, printed commit, matching origin and home heads |
++| Hourly lane snapshot | Source under `/scratch/jjyeung/orch_n30/<lane>/` | Existing `lane_code_sync.sh` loop | `lane_code/<node>/<lane>/…`, `verified GitHub lane-code` in `sync.log` |
++| Existing `eff/*` branch | Queue row in `e_*/PUSH_QUEUE.txt` or `eff_*/PUSH_QUEUE.txt` | Existing owner's push-queue step | `$S/PUSH_DONE.txt`; refusal reasons in `$S/PUSH_REFUSED.txt` |
++
++Set `T` to the installed `orch_n30/tools` directory. The owner lands a kit with one command:
++
++```bash
++LCS_ENABLE_KIT_LANDING=1 bash "$T/land_kit.sh" kit.tar seal sha256 review.md name
++```
++
++Add `--dry` to validate, print the eligible file list and counts, and stop before Git or clone writes.
++The review records `Builder: <identity>` and `Reviewer: <identity>`. Accepted verdict lines are
++`GO`, `ACCEPT`, `VERDICT: GO`, and `VERDICT: ACCEPT`; Markdown headings/bold are accepted.
++The last explicit verdict wins. `GO AFTER FIXES`, even with recorded fixes, requires a later
++unconditional `GO`. Unknown explicit verdicts, missing reviews, wrong hashes, secrets in any
++archive member, links, unsafe paths, an empty filtered kit, a dirty index/worktree, another branch,
++or a conflicting name cause refusal. Optional review `Seal:` and `SHA256:` fields must match.
++Identical content and provenance reuse the name and reverify/publish the current head.
++
++The kit command applies the current filter caps and exclusions. It restores eligible duplicate
++paths from the filter's manifest to preserve imports. `KIT.json` counts payload files separately
++from itself. It records the review digest and a per-file SHA256/size/mode manifest. Both remote
++heads must match the printed commit. The lock waits up to 120 seconds; `LCS_LOCK_TIMEOUT` can
++set a timeout up to 3600 seconds. Audit directories stay under `$S/land_kit_*`; investigate a
++failed/killed command before any restart. No automatic reset, cleanup, rollback, or retry runs.
++
++The hourly route excludes `*_proof`, `runs`, `evidence`, caches, oversized files, and directories
++with more than 2000 entries. `in`, `out`, `work/tree`, and `kit` are eligible unless an ancestor
++is excluded. The owner checks explicit folders before expanding coverage:
++
++```bash
++LCS_ENABLE_DRY_COUNT=1 bash "$T/dry_count.sh" /scratch/jjyeung/orch_n30/swarm_opt
++```
++
++Counts deduplicate within each folder; hourly deduplication spans its whole node tree. Root gates
++appear separately as `hourly_*` fields. See `COVERAGE.md` for the optional shell-copy extension.
++
++A push-queue row is `<UTC> eff/<slug> <40-hex-sha> [<lane>/clone|<lane>/repo]`.
++Only `e_`/`eff_` lane directories qualify. The owner fetches an already committed branch,
++checks ancestry and changed-file secrets, then pushes the named commit to origin without force.
++This route does not grant lanes permission to create commits; use a kit for uncommitted code.
++
++The owner starts `LCS_ENABLE_SYNC_HEALTH=1 bash "$T/sync_health_loop.sh"` in tmux for a local
++check every ten minutes. It writes one stale/failure event per incident and a recovery RESULT;
++state lives under `$S/health/`. It makes no SSH or Git calls. A failed monitor stops the loop.
++These tools are delivered for owner installation; no production loop was started by this lane.
+--- /dev/null
++++ b/docs/COVERAGE.md
+@@ -0,0 +1,56 @@
++# Filter coverage
++
++The supplied filter admits ordinary `sb_*`, `so_*`, and `swarm_*` lane directories.
++The prefix alone does not guarantee admission: every ancestor must pass the name, substring,
++and entry-count checks. No new lane-prefix rule is needed.
++
++| Path/name | Current rule | Consequence |
++|---|---|---|
++| `in/`, `out/`, `work/tree/`, `kit/` | Eligible directory names | Whitelisted source below these paths is considered. |
++| `*_proof/`, names ending in `proof` or `proofs` | `DIRRE` | Entire subtree is skipped, including source. |
++| `runs/`, `evidence/` | `DIRRE` | Entire subtree is skipped, including scripts and tests. |
++| `clone/`, `tmp*`, `retained_*`, `rows_*`, `results/`, `artifacts/`, mutation/env/cache names | `DIRRE` | Entire subtree is skipped. The exact expression remains in the supplied filter. |
++| Any directory containing `frames` | Explicit name test | Entire subtree is skipped. |
++| `out/devin_traces`, `/dl/`, `/root/`, `/envs/`, `site-packages`, `__pycache__`, `.cache`, `node_modules` | `SUBSTR` | Matching directory or file paths are skipped. |
++| Directory with more than 2000 direct entries | `MAXDIR` | Entire subtree is skipped, including a lane root. The filter does not apply this check to its own working directory. |
++| `.py`, `.sh`, `.md`, `.json`, `.jsonl`, `.yaml`, `.yml`, `.toml`, `.cfg`, `.txt`, `.patch`, `.diff`, `.tpl`, `.ini`, `.tsv` | `EXT` | Eligible; other extensions are skipped. |
++| Any eligible file above 524288 bytes | `MAXB` | Skipped. Exactly 524288 bytes remains eligible. |
++| `.json`/`.jsonl` above 262144 bytes | `DATA_MAXB` | Skipped. Exactly 262144 bytes remains eligible. |
++| Symlinked file | Explicit link test | Skipped; directory links are not followed. |
++| Identical content | SHA1 deduplication | Hourly snapshots keep one path and a dedup manifest. Kit landing restores all eligible paths. |
++
++These rules come from `in/lane_code_filter.py:6–14`, directory traversal at lines 18–31,
++and file selection at lines 32–49. Synthetic tests exercise the requested directory names,
++size caps, duplicate paths, and the MAXDIR gate. Names such as `so_proof`, `sb_cache`, and
++`swarm_frames` are excluded despite their lane prefixes.
++
++The available mirror is
++`/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt`.
++A frozen copy under `work/coverage_snapshot_h5ylt7x9/swarm_opt` records the mirror at
++2026-11-19T07:46:29Z. Measured: it holds 44 files; the current filter selects 39 files totaling 105362 bytes.
++No mirrored `.py` or `.sh` file is excluded by a directory rule or size cap. Three log/output
++files are excluded by extension. Two files contain shell source but use an excluded extension:
++
++| File | Measured bytes | Reason |
++|---|---:|---|
++| `work/prompts/tick.sh.copy` | 5757 | `.sh.copy` is absent from `EXT`. |
++| `work/prompts/tick2.sh.copy` | 9812 | `.sh.copy` is absent from `EXT`. |
++
++The smallest filter change is to add only `.sh.copy` to `EXT`. Patch
++`03_shell_copy_coverage_optional.diff` does this behind `LCS_INCLUDE_SHELL_COPIES=1`, default OFF.
++Measured on this mirror: enabled selection is 41 files / 120931 bytes, adding exactly those two
++files. With the switch unset, stdout and stderr match the original filter byte for byte.
++No broad directory exception or cap increase is proposed. Publishing an approved snapshot with
++a normal `.sh` suffix also needs no filter change.
++
++The owner sets the optional switch in the hourly process environment for local trinity-3-30
++selection. The current remote script does not forward that environment variable over SSH;
++remote opt-in would need an explicit owner change and has not been implemented. Kit filtering
++and dry counting inherit the command's local environment.
++
++The mirror contains no `sb_*` or `so_*` lane folders. Their actual inventories, ancestor entry
++counts, and skipped source cannot be measured from the allowed inputs. The owner must run
++`dry_count.sh` on explicit authorized folders on the node that holds them before new coverage
++is pushed. Running it on an empty or incomplete mirror cannot establish remote coverage.
++Per-folder counts are upper bounds on additive hourly totals because hourly content deduplication
++spans all lanes. Counts do not scan secrets or prove review acceptance; the landing path does.

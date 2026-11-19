@@ -1,12 +1,13 @@
 --- a/launch_s1/job.sh
 +++ b/launch_s1/job.sh
-@@ -11,9 +11,22 @@
+@@ -11,9 +11,23 @@
  export PATH=/usr/local/bin:/usr/bin:/bin
  export TK_JOB_START="${TK_JOB_START:-$(date +%s)}"
  ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 +tk_job_timing() {
 +    [[ "${TK_LAUNCH_TIMING:-0}" == 1 ]] || return 0
-+    printf '%s | job phase %s\n' "$(date -u +%FT%TZ)" "$1" >> "$ROOT/o/${SLURM_JOB_ID:-local}.steps"
++    [[ -d "$ROOT/o" ]] || return 0
++    { printf '%s | job phase %s\n' "$(date -u +%FT%TZ)" "$1" >> "$ROOT/o/${SLURM_JOB_ID:-local}.steps"; } 2>/dev/null || true
 +}
 +tk_job_timing capsule_start
  /usr/bin/python3 -B "$ROOT/b/a.py" "$ROOT"
@@ -41,18 +42,37 @@
      tk_step "stage $mode on $(hostname): /tmp free $(df -Pk /tmp | awk 'NR==2 {print int($4 / 1048576)}') GiB; mem $(free -g | awk 'NR==2 {print $2}') GiB"
      mkdir -p "$S/c7d31ddd/$RR" "$S/epochs" "$S/c7d31ddd/anyhost" "$S/c7d31ddd/coord" "$S/c7d31ddd/stop" "$S/c7d31ddd/data2root"
      tk_kitx venv "$S/c7d31ddd/venvs"
+--- a/launch_s1/b/r.sh
++++ b/launch_s1/b/r.sh
+@@ -37,7 +37,14 @@
+     [[ "$admission_rc" -eq 0 ]] || exit "$admission_rc"
+ fi
+ [[ ! -e "$stop_file" ]] || exit 75
++tk_run_timing() {
++    [[ "${TK_LAUNCH_TIMING:-0}" == 1 ]] || return 0
++    [[ -d "$HX/o" ]] || return 0
++    { printf '%s | job phase run_%s_launch_guard_%s\n' "$(date -u +%FT%TZ)" "$1" "$2" >> "$HX/o/${SLURM_JOB_ID:-local}.steps"; } 2>/dev/null || true
++}
++tk_run_timing "${1:?}" start
+ /usr/bin/python3 -I "$HX/b/g.py" "$HX" "${1:?}"
++tk_run_timing "${1:?}" done
+ export TK_RUNS_DIR="$(/usr/bin/python3 -I -c 'import json,pathlib,sys; print(pathlib.Path(json.load(open(sys.argv[1]))["run_directory"]).parent)' "$HX/k/launch.json")"
+ source "$HX/b/c.sh"
+ export TK_JOBDIR=/tmp/jjyeung/okit_$K/jobs/${SLURM_JOB_ID:?}.${1:-x}
 --- /dev/null
 +++ b/tests/test_launch_phase_timing.py
-@@ -0,0 +1,62 @@
+@@ -0,0 +1,118 @@
 +import os
 +from pathlib import Path
 +import shutil
 +import subprocess
++import sys
 +import tempfile
 +import unittest
 +
 +import torch
 +torch.set_num_threads(8)
++sys.path.insert(0, str(Path(__file__).resolve().parent))
 +
 +
 +class LaunchTimingTests(unittest.TestCase):
@@ -78,7 +98,7 @@
 +        if fail:
 +            env['FAIL_G'] = '1'
 +        result = subprocess.run(['bash', str(self.root / 'job.sh')], env=env, capture_output=True, text=True, timeout=15)
-+        return result, trace.read_text()
++        return result, trace.read_text() if trace.exists() else ''
 +
 +    def test_default_path_runs_same_commands_and_produces_no_timing(self):
 +        result, trace = self.launch(False)
@@ -102,6 +122,60 @@
 +        self.assertEqual(result.returncode, 7)
 +        self.assertEqual(trace, 'a\np0\ng\n')
 +        self.assertTrue((self.root / 'o/12345.steps').read_text().rstrip().endswith('launch_guard_start'))
++
++    def test_missing_output_directory_does_not_abort_or_create_logs(self):
++        (self.root / 'o').rename(self.root / 'unused-output')
++        result, trace = self.launch(True)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertEqual(result.stdout, 'baseline-output\n')
++        self.assertEqual(trace, 'a\np0\ng\nr8\nr t 0\n')
++        self.assertFalse((self.root / 'o').exists())
++
++    def test_unwritable_steps_destination_does_not_abort(self):
++        (self.root / 'o/12345.steps').mkdir()
++        result, trace = self.launch(True)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertEqual(trace, 'a\np0\ng\nr8\nr t 0\n')
++
++    def test_recursive_and_parent_guards_have_timing_and_preserve_failure(self):
++        # Standalone patch 04 has no dependency on patch 01's test fixture.
++        root = self.root
++        source = Path(__file__).resolve().parents[1] / 'launch_s1/b/r.sh'
++        (root / 'b/r.sh').write_text(source.read_text().replace('/tmp/jjyeung', str(root / 'tmp')))
++        (root / 'runtime/bin').mkdir(parents=True)
++        (root / 'runtime/bin/python').symlink_to(sys.executable)
++        (root / 'b/c.sh').write_text('''K=fixture
++HM="$HX"; NX="$HX"; X="$HX"; S="$HX/node"
++tk_stage() { :; }
++tk_bwrap() { BW=(); }
++tk_env() { PILOT_VENV="$HX/runtime"; }
++tk_pythonpath() { :; }
++tk_step() { :; }
++tk_persist_small() { :; }
++tk_persist_exports() { :; }
++sleep() { return 1; }
++''')
++        (root / 'b/i.py').write_text('pass\n')
++        (root / 'b/g.py').write_text('import os,sys\nsys.exit(7 if os.environ.get("FAIL_G") else 0)\n')
++        import json
++        (root / 'k/launch.json').write_text(json.dumps(dict(
++            run_directory=str(root / 'runs/run'), in_job_admission={'schema':'fixture'})))
++        for fail in (False, True):
++            with self.subTest(fail=fail):
++                job = '23462' if fail else '23461'
++                env = {**os.environ, 'TK_LAUNCH_TIMING':'1', 'TK_PREPARED_INPUT_CACHE':'0',
++                       'SLURM_JOB_ID':job, 'TRACE':str(root / ('run-' + job))}
++                env.pop('FAIL_G', None)
++                if fail:
++                    env['FAIL_G'] = '1'
++                result = subprocess.run(['bash', str(root / 'b/r.sh'), 'u', '0'], env=env,
++                                        capture_output=True, text=True, timeout=10)
++                self.assertEqual(result.returncode, 7 if fail else 0, result.stderr)
++                events = (root / 'o' / (job + '.steps')).read_text().splitlines()
++                self.assertEqual([line.split()[-1] for line in events],
++                    ['run_p_launch_guard_start'] if fail else [
++                    'run_p_launch_guard_start', 'run_p_launch_guard_done',
++                    'run_u_launch_guard_start', 'run_u_launch_guard_done'])
 +
 +
 +if __name__ == '__main__':

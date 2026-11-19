@@ -1,0 +1,81 @@
+{
+  "01_prepared_input_cache.diff": {
+    "bytes": 71778,
+    "sha256": "655234ca4a01ffb2aba1911b6abad2e2b6a1f1068b6bd8d10abf2a10bc70b093",
+    "files": [
+      "launch_s1/b/c.sh",
+      "launch_s1/b/r.sh",
+      "launch_s1/b/pc.py",
+      "tests/test_prepared_input_cache.py",
+      "tests/test_prepared_cache_wrapper.py"
+    ],
+    "apply_method": "patch --batch --fuzz=0 -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "deployment": "OFF: no useful production hit",
+    "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
+    "base_sha256": {
+      "launch_s1/b/c.sh": "33bca2644d25c649b66f64e78bd0079292791b9aceb75f998cb0df98f0508ce6",
+      "launch_s1/b/r.sh": "080b41bef2ff357248c6c0f6041b4dd63fc7264b5795758d1bc0c89e6fe9bf16",
+      "launch_s1/b/pc.py": null,
+      "tests/test_prepared_input_cache.py": null,
+      "tests/test_prepared_cache_wrapper.py": null
+    }
+  },
+  "02_parallel_frame_sha.diff": {
+    "bytes": 6324,
+    "sha256": "9f20e45be76d5ad356df185f6604c6e6ea822d6378286e1f8f3ed7df81158ea9",
+    "files": [
+      "launch_s1/b/f2.py",
+      "tests/test_parallel_frame_sha.py"
+    ],
+    "apply_method": "patch --batch --fuzz=0 -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "deployment": "default OFF; enable in order 03, 04, 02",
+    "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
+    "base_sha256": {
+      "launch_s1/b/f2.py": "515c61e19baf0b189866a5145c19bfc96a671af0b24be49398034d40aaca7b67",
+      "tests/test_parallel_frame_sha.py": null
+    }
+  },
+  "03_checkpoint_verify_memo.diff": {
+    "bytes": 13638,
+    "sha256": "bf0ea4745a3e059fd0d0cdffc5fa7cd99ad646b7d70c7957df95f87b4f6c4e54",
+    "files": [
+      "launch_s1/b/r8.py",
+      "tests/test_checkpoint_verify_memo.py"
+    ],
+    "apply_method": "patch --batch --fuzz=0 -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "deployment": "default OFF; enable in order 03, 04, 02",
+    "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
+    "base_sha256": {
+      "launch_s1/b/r8.py": "d4046786d037168c6a2ee8f2266c9cf2c0049591e6f8d9a182f208a70bd06ef0",
+      "tests/test_checkpoint_verify_memo.py": null
+    }
+  },
+  "04_launch_phase_timing.diff": {
+    "bytes": 8822,
+    "sha256": "e33d420cdbbc95b47bb6f350e6e338ceed22e8b5c0c8b07019c408330e0ed4f7",
+    "files": [
+      "launch_s1/job.sh",
+      "launch_s1/b/c.sh",
+      "launch_s1/b/r.sh",
+      "tests/test_launch_phase_timing.py"
+    ],
+    "apply_method": "patch --batch --fuzz=0 -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "deployment": "default OFF; enable in order 03, 04, 02",
+    "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
+    "base_sha256": {
+      "launch_s1/job.sh": "737849b3c940b4b871e87c7db969e45c4afe1309f996f18c12550189b229e268",
+      "launch_s1/b/c.sh": "33bca2644d25c649b66f64e78bd0079292791b9aceb75f998cb0df98f0508ce6",
+      "launch_s1/b/r.sh": "080b41bef2ff357248c6c0f6041b4dd63fc7264b5795758d1bc0c89e6fe9bf16",
+      "tests/test_launch_phase_timing.py": null
+    }
+  }
+}
+PASS: only the 11 declared production/test paths differ from the input tree

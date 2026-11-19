@@ -1,0 +1,46 @@
+The selector refit DOES NOT WIN the frozen training decision.
+refit wins if its mean paired gain in gap score on K1 train exceeds the cross-validation spread (2 x SD across folds)
+Mean paired gap-MRA gain: -0.004657; fold SD: 0.046112; 2 x SD: 0.092225.
+
+Serving tables: 239 registered training captures, 219 physical rooms, 7733 candidates, 760 object groups; all three datasets.
+Label cells changed: 136/6249 common IDs; 123 added and 76 removed IDs across 215 comparable captures.
+Among common IDs, 1322 have changed member annotations; 0 label flips have identical annotations.
+These are table-cell differences: candidate IDs do not establish the same candidate across geometries. All serving labels were freshly computed from GT.
+The S4/G1 table is MISSING for 24 captures; exact paths appear in SELREFIT.json. Three unregistered-GT captures remain excluded by the official rowsets.
+Null targets change for 7/648 common objects. Fixed-old choice IDs change for 62/648; this differs from the 17/149 replay statistic.
+The serving rebuild replays 149/149 sampled choices and includes both convert-guard-refused captures.
+
+Recipe: unchanged 58-feature DeepSets, hidden=32, name_mode=none; candidate/null BCE; AdamW lr=.003, weight_decay=.001; 15 epochs; object batch size 16.
+Five physical-room folds use seed 20261116. Each refit uses the other four folds; final coefficients use all training captures. No hyperparameter search ran.
+The serving socket uses null-argmax, own-depth median-ratio scale with float32 exp rounding, and serving gravity.
+Gap MRA scores the actual two-decimal printed distance against corrected labels; strict relative-error thresholds .50 through .05; refusals score zero.
+Choice accuracy includes the null slot on annotated groups with candidates. Fold means weight folds equally; pooled results weight rows/objects equally.
+
+| Fold | Distance rows | Old choice | Refit choice | Old gap MRA | Refit gap MRA | Paired gain |
+|---|---:|---:|---:|---:|---:|---:|
+| 0 | 212 | 0.8054 | 0.6644 | 0.4755 | 0.4646 | -0.0108 |
+| 1 | 218 | 0.8523 | 0.7248 | 0.4826 | 0.4798 | -0.0028 |
+| 2 | 170 | 0.7591 | 0.6934 | 0.4400 | 0.5094 | +0.0694 |
+| 3 | 216 | 0.7750 | 0.6500 | 0.4542 | 0.3981 | -0.0560 |
+| 4 | 221 | 0.7576 | 0.7212 | 0.3226 | 0.2995 | -0.0231 |
+
+Fold SD, old/refit: gap MRA 0.065041/0.083694; choice accuracy 0.039853/0.033354.
+Held-out, report-only after CV freeze: 57 captures; 216 distance rows; 180 object groups.
+Held-out old/refit: gap MRA 0.431944/0.505093; choice accuracy 0.611111/0.633333; refusals 74/48.
+The fixed old model saw training captures; its fold scores are descriptive, not an out-of-fold estimate of its training procedure. The refit also uses 24 additional registered captures.
+Cached-output serving replay does not measure a new language-model routed read.
+No routed-read request is warranted by the frozen rule; READ_REQUEST.md was not created.
+
+Commands producing the numbers above:
+`bash run.sh serving_reference.py` in sb_kbox4: the supplied 149/149 reference replay and registered-table coverage.
+`bash run.sh selrefit.py prepare`: table coverage, label changes, feature and room counts.
+`bash run.sh selrefit.py train`: five fold fits and final coefficients using the recorded recipe.
+`bash run.sh selrefit.py score`: serving parity, fold choice accuracy, printed-distance MRA, spread and frozen decision.
+`bash run.sh heldout.py`: the single held-out report-only pass.
+`bash run.sh finalize.py`: pooled summaries, recipe hash checks, report, JSON and archive.
+`bash run.sh verify.py`: paired row coverage, physical-room isolation, frozen coefficients, input consistency and archive integrity.
+Old weights SHA256: `6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1`.
+Refit weights SHA256: `a78430d5c822edae43666aca7442d7ffdcc5a389326e5dd55eb617db046ad6b4`.
+SELREFIT.json includes the complete fold table, label-change list, coefficients, limitations, and input SHA256 values.
+Archive: out/sb_selrefit.tar; checksum: out/sb_selrefit.tar.sha256.
+The S4/G1 and serving comparison is retained as a requested experiment, not revision history.

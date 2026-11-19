@@ -29,7 +29,7 @@
      mkdir -p "$U/ap/$K"
 --- a/launch_s1/b/r.sh
 +++ b/launch_s1/b/r.sh
-@@ -25,6 +25,17 @@
+@@ -25,6 +25,18 @@
  trap on_stop USR1
  /usr/bin/python3 -B "$HX/b/a.py" "$HX"
  [[ ! -e "$stop_file" ]] || exit 75
@@ -39,15 +39,16 @@
 +    mkdir -p "$(dirname "$pc_lock")"
 +    # Hold this through training as well as preparation. The recursive p leg
 +    # inherits the same open file description, so it must not reopen the lock.
-+    if [[ "$(readlink /proc/$$/fd/7 2>/dev/null || true)" != "$pc_lock" ]]; then
++    if [[ "${TK_PC_LOCK_HELD:-0}" != 1 ]]; then
 +        exec 7>"$pc_lock"
++        flock -w 600 7 || exit 75
++        export TK_PC_LOCK_HELD=1
 +    fi
-+    flock 7
 +fi
  if [[ "${1:-}" == t || "${1:-}" == u ]] && /usr/bin/python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("in_job_admission") else 1)' "$HX/k/launch.json"; then
      /bin/bash "$HX/b/r.sh" p "${2:?}" &
      admission_child=$!
-@@ -47,11 +58,21 @@
+@@ -47,11 +59,21 @@
  else
      unset TK_LIGHT
  fi
@@ -69,7 +70,7 @@
  tk_bwrap
  tk_env
  # Use a path visible through the shared kit bind, not the host-only kit path.
-@@ -86,6 +107,13 @@
+@@ -86,6 +108,13 @@
      break
  done
  kill "$persister" 2>/dev/null || true
@@ -85,11 +86,12 @@
  exit "$rc"
 --- /dev/null
 +++ b/launch_s1/b/pc.py
-@@ -0,0 +1,470 @@
+@@ -0,0 +1,487 @@
 +"""Opt-in, byte-preserving admission cache. No training or authorization shortcuts.
 +
 +The complete configuration (including logical paths) is deliberately in the key.
-+Only the physical pool may move. Never rewrite a preparation or checkpoint seal.
++Production maps each logical run to one node-local path, so this cannot avoid a
++native rebuild there. Keep the switch OFF. Never rewrite a native run seal.
 +"""
 +import argparse
 +from contextlib import contextmanager
@@ -101,6 +103,7 @@
 +import re
 +import sqlite3
 +import stat
++import sys
 +import time
 +import uuid
 +
@@ -109,9 +112,7 @@
 +AS = "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung"
 +AL = "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung"
 +X = AS + "/ap/8865619b"
-+ENVIRONMENT = ("S1_CPU_REHEARSAL", "STUDENT_R2_FRAME_HOST", "STUDENT_R2_LOCAL_NODE",
-+               "SLURM_CPUS_PER_TASK", "QWEN36_27B_SNAPSHOT",
-+               "PYTHONHASHSEED")
++ENVIRONMENT = ("S1_CPU_REHEARSAL", "SLURM_CPUS_PER_TASK", "PYTHONHASHSEED")
 +# tk_env overwrites R1_MOUNT, R1_STUDENT_HEX, frame mappings and CPU settings.
 +# Their effective values belong to the hashed wrapper implementation. Ambient
 +# values before tk_env must not distinguish restore from publication after it.
@@ -495,24 +496,35 @@
 +            if not target_verified:
 +                temporary = ctx.destination.with_name("inputs.cache-copy." + uuid.uuid4().hex)
 +                copy_verified(source, temporary, receipt["files"])
-+                quarantine(ctx.destination)
-+                temporary.rename(ctx.destination)
-+            ctx.result("HIT", source_job=receipt["source_job"], source_inputs=str(source),
-+                       source_frames=receipt["source_frames"], receipt=dict(path=str(receipt_path), sha256=index["sha256"]),
-+                       verified_files=len(receipt["files"]), verified_frames=len(receipt["frames"]),
-+                       seconds=time.monotonic() - started)
-+            return True
++                # Only a fully verified HIT may replace a destination. A failed
++                # install must restore the native journal before reporting MISS.
++                previous = quarantine(ctx.destination)
++                try:
++                    temporary.rename(ctx.destination)
++                except OSError:
++                    if previous is not None:
++                        try:
++                            Path(previous).rename(ctx.destination)
++                        except OSError as error:
++                            raise RuntimeError("cache install rollback failed; native journal retained at " + previous) from error
++                    raise
 +    except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
 +        try:
 +            admission_files(ctx, ctx.destination)
 +            native = True
 +        except (OSError, ValueError, KeyError, TypeError, AttributeError):
 +            native = False
-+        refused = None if native else quarantine(ctx.destination)
++        # Native admission owns partial and foreign-config journals as well as
++        # complete ones. A MISS must leave that decision, and the bytes, intact.
 +        ctx.result("NATIVE_JOURNAL" if native else "MISS", reason=type(error).__name__ + ": " + str(error),
-+                   refused_inputs=refused,
 +                   seconds=time.monotonic() - started)
 +        return False
++    # A report write error after installation is fatal, not a cache MISS.
++    ctx.result("HIT", source_job=receipt["source_job"], source_inputs=str(source),
++               source_frames=receipt["source_frames"], receipt=dict(path=str(receipt_path), sha256=index["sha256"]),
++               verified_files=len(receipt["files"]), verified_frames=len(receipt["frames"]),
++               seconds=time.monotonic() - started)
++    return True
 +
 +
 +def seal(ctx):
@@ -550,7 +562,13 @@
 +        return 1
 +    ctx = Context(args.kit, args.node, args.cache, args.job)
 +    if args.operation == "restore":
-+        return 0 if restore(ctx) else 1
++        try:
++            return 0 if restore(ctx) else 1
++        except (OSError, ValueError, KeyError, TypeError, AttributeError, RuntimeError) as error:
++            # The wrapper reserves exit 1 for a safe MISS. Do not run native
++            # preparation after a failed HIT report or an uncertain install.
++            print("prepared input cache restore error: " + str(error), file=sys.stderr)
++            return 2
 +    return 0 if seal(ctx) else 1
 +
 +
@@ -558,7 +576,7 @@
 +    raise SystemExit(main())
 --- /dev/null
 +++ b/tests/test_prepared_input_cache.py
-@@ -0,0 +1,477 @@
+@@ -0,0 +1,599 @@
 +"""CPU fixtures; set TEST_TMP_ROOT to keep all retained test files in scratch."""
 +import copy
 +from concurrent.futures import ThreadPoolExecutor
@@ -566,6 +584,7 @@
 +import json
 +import os
 +from pathlib import Path
++import re
 +import sqlite3
 +import subprocess
 +import sys
@@ -584,10 +603,14 @@
 +
 +
 +class Fixture:
-+    def __init__(self):
++    def __init__(self, same_path=False):
 +        self.root = Path(tempfile.mkdtemp(prefix="pc-test-", dir=os.environ["TEST_TMP_ROOT"]))
 +        self.kit, self.node, self.cache = (self.root / name for name in ("kit", "node", "cache"))
 +        self.source, self.target = self.root / "old-run/inputs", self.root / "new-run/inputs"
++        # Production uses the same physical path for one logical run. The
++        # default synthetic relocation fixture only exercises defensive copying.
++        if same_path:
++            self.target = self.source
 +        self.logical = self.target
 +        for directory in (self.kit / "k", self.kit / "b", self.source, self.node):
 +            directory.mkdir(parents=True)
@@ -911,16 +934,133 @@
 +        self.assertFalse((f.target / f.prep / "additional.json").exists())
 +        self.assertFalse(pc.seal(consumer))
 +
-+    def test_corrupt_prepared_file_misses_and_quarantines_target(self):
++    def test_corrupt_prepared_file_misses_and_preserves_target(self):
 +        f = self.f
 +        f.publish()
 +        (f.source / f.prep / "pointing/rows.sqlite").write_bytes(b"corrupt")
 +        f.target.mkdir(parents=True)
-+        (f.target / "partial").write_text("must not resume")
++        (f.target / "partial").write_text("native journal owns this")
++        before = (f.target / "partial").stat()
 +        ctx = f.consumer()
 +        self.assertFalse(pc.restore(ctx))
-+        self.assertFalse(f.target.exists())
-+        self.assertEqual(len(list(f.target.parent.glob("inputs.cache-refused.*"))), 1)
++        self.assertEqual((f.target / "partial").read_text(), "native journal owns this")
++        self.assertEqual((f.target / "partial").stat(), before)
++        self.assertEqual(list(f.target.parent.glob("inputs.cache-refused.*")), [])
++
++    def test_partial_native_journal_survives_same_path_miss_and_reuses_prepare(self):
++        f = Fixture(same_path=True)
++        f.publish()
++        for name in ("phase_frames.complete.json", "data_receipt.json"):
++            (f.source / name).rename(f.root / name)
++        before = {str(p.relative_to(f.source)): (p.read_bytes(), p.stat())
++                  for p in f.source.rglob('*') if p.is_file()}
++        ctx = f.context('partial')
++        self.assertFalse(pc.restore(ctx))
++        self.assertEqual(before, {str(p.relative_to(f.source)): (p.read_bytes(), p.stat())
++                                for p in f.source.rglob('*') if p.is_file()})
++        self.assertEqual(list(f.source.parent.glob('inputs.cache-refused.*')), [])
++        from student_pilot.first_batch_progress import PhaseJournal
++        journal = PhaseJournal(f.source, pc.read(f.source / 'request.json'))
++        _, reused = journal.run('prepare', lambda _: self.fail('native prepare must remain reusable'))
++        self.assertTrue(reused)
++
++    def test_foreign_config_native_journal_survives_same_path_miss_and_refuses(self):
++        f = Fixture(same_path=True)
++        f.publish()
++        before = {str(p.relative_to(f.source)): (p.read_bytes(), p.stat())
++                  for p in f.source.rglob('*') if p.is_file()}
++        f.cfg['training_mode'] = 'another-mode'
++        pc.atomic(f.kit / 'k/config.json', f.cfg)
++        f.launch['config']['sha256'] = pc.sha(f.kit / 'k/config.json')
++        pc.atomic(f.kit / 'k/launch.json', f.launch)
++        self.assertFalse(pc.restore(f.context('foreign')))
++        self.assertEqual(before, {str(p.relative_to(f.source)): (p.read_bytes(), p.stat())
++                                for p in f.source.rglob('*') if p.is_file()})
++        self.assertEqual(list(f.source.parent.glob('inputs.cache-refused.*')), [])
++        from student_pilot.first_batch_progress import PhaseJournal
++        request = pc.read(f.source / 'request.json')
++        request['config']['sha256'] = f.launch['config']['sha256']
++        with self.assertRaisesRegex(ValueError, 'phase binding differs'):
++            PhaseJournal(f.source, request).run('prepare', lambda _: self.fail('must refuse'))
++
++    def test_same_path_hit_only_verifies_native_reuse_and_a_purge_misses(self):
++        f = Fixture(same_path=True)
++        ctx = f.publish()
++        self.assertEqual(ctx.destination, f.source)
++        with patch.object(pc, 'copy_verified', side_effect=AssertionError('no production copy')):
++            self.assertTrue(pc.restore(ctx))
++        from student_pilot.first_batch_progress import PhaseJournal
++        journal = PhaseJournal(f.source, pc.read(f.source / 'request.json'))
++        for name in ('prepare', 'frames'):
++            _, reused = journal.run(name, lambda _: self.fail('native reuse already works'))
++            self.assertTrue(reused)
++        f.source.rename(f.root / 'purged-node-local-inputs')
++        self.assertFalse(pc.restore(f.context('cold-node')))
++        self.assertFalse(f.source.exists())
++
++    def test_copy_failure_never_touches_destination(self):
++        f = self.f
++        f.publish()
++        f.target.mkdir(parents=True)
++        path = f.target / 'native-progress'
++        path.write_text('preserve')
++        before = path.stat()
++        with patch.object(pc, 'copy_verified', side_effect=OSError('injected copy failure')):
++            self.assertFalse(pc.restore(f.consumer()))
++        self.assertEqual(path.read_text(), 'preserve')
++        self.assertEqual(path.stat(), before)
++        self.assertEqual(list(f.target.parent.glob('inputs.cache-refused.*')), [])
++
++    def test_failed_verified_install_restores_the_native_destination(self):
++        f = self.f
++        f.publish()
++        f.target.mkdir(parents=True)
++        path = f.target / 'native-progress'
++        path.write_text('preserve')
++        before = path.stat()
++        rename = Path.rename
++        def injected(source, target):
++            if source.name.startswith('inputs.cache-copy.'):
++                raise OSError('injected rename failure')
++            return rename(source, target)
++        with patch.object(Path, 'rename', injected):
++            self.assertFalse(pc.restore(f.consumer()))
++        self.assertEqual(path.read_text(), 'preserve')
++        self.assertEqual(path.stat(), before)
++
++    def test_hit_report_write_error_is_not_a_cli_miss(self):
++        f = self.f
++        f.publish()
++        ctx = f.consumer()
++        with patch.dict(os.environ, {'TK_PREPARED_INPUT_CACHE':'1'}), patch.object(pc, 'Context', return_value=ctx), \
++                patch.object(ctx, 'result', side_effect=OSError('injected report write failure')), \
++                patch.object(sys, 'argv', ['pc.py', 'restore', str(f.kit), str(f.node), str(f.cache), 'new']):
++            self.assertEqual(pc.main(), 2)
++        self.assertTrue((f.target / 'data_receipt.json').is_file())
++
++    def test_irrelevant_environment_is_absent_from_key_and_written_json_names(self):
++        f = self.f
++        irrelevant = {'QWEN36_27B_SNAPSHOT':'fixture', 'STUDENT_R2_FRAME_HOST':'fixture',
++                      'STUDENT_R2_LOCAL_NODE':'fixture'}
++        before = f.context().key
++        with patch.dict(os.environ, irrelevant):
++            self.assertEqual(f.context().key, before)
++            f.publish()
++            self.assertTrue(pc.restore(f.consumer()))
++        forbidden = re.compile(r'qwen|(?:^|_)r2(?:_|$)|canary[-_]?delta|cp1[-_]?rv', re.I)
++        def check_fields(value):
++            if isinstance(value, dict):
++                for name, child in value.items():
++                    self.assertIsNone(forbidden.search(name), name)
++                    check_fields(child)
++            elif isinstance(value, list):
++                for child in value:
++                    check_fields(child)
++        written = [*f.cache.glob('*.json'), *(f.kit / 'o').glob('*.json')]
++        self.assertGreaterEqual(len(written), 4)
++        for path in written:
++            self.assertIsNone(forbidden.search(path.name), path.name)
++            check_fields(pc.read(path))
 +
 +    def test_purged_pool_source_misses(self):
 +        f = self.f
@@ -1038,9 +1178,10 @@
 +    unittest.main(verbosity=2)
 --- /dev/null
 +++ b/tests/test_prepared_cache_wrapper.py
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,227 @@
 +"""Exercise r.sh's real control flow with CPU stubs; no cluster or GPU commands."""
 +import json
++import fcntl
 +import os
 +from pathlib import Path
 +import subprocess
@@ -1091,7 +1232,7 @@
 +        env = {**os.environ, 'CUDA_VISIBLE_DEVICES':'', 'SLURM_JOB_ID':'23456', 'TRACE':str(trace),
 +               'TK_PREPARED_INPUT_CACHE':str(int(enabled)), 'TK_PREPARED_CACHE_ROOT':str(self.root / 'cache'),
 +               'TEST_HIT':str(int(hit)), 'CHILD_RC':str(child_rc)}
-+        result = subprocess.run(['bash', str(self.root / 'b/r.sh'), mode, '0'], env=env,
++        result = subprocess.run(['timeout', '--kill-after=1', '3', 'bash', str(self.root / 'b/r.sh'), mode, '0'], env=env,
 +                                capture_output=True, text=True, timeout=20)
 +        return result, trace.read_text()
 +
@@ -1129,6 +1270,41 @@
 +        self.assertIn('CPU admission phases reused', trace)
 +        self.assertIn('launch u 0', trace)
 +
++    def test_recursive_resume_with_symlinked_parent_inherits_lock(self):
++        real = self.root / 'physical-runs'
++        real.mkdir()
++        (self.root / 'runs').symlink_to(real, target_is_directory=True)
++        result, trace = self.run_wrapper(True, True, mode='u')
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertIn('CPU admission phases reused', trace)
++        self.assertEqual(sum(line.startswith('i ') for line in trace.splitlines()), 1)
++
++    def test_duplicate_training_or_resume_job_times_out_with_75(self):
++        locks = self.root / 'runs/.prepare-locks'
++        locks.mkdir(parents=True)
++        # Scale only the waiting time. The real flock still contends on the
++        # descriptor held here; assert the production request remains 600 s.
++        hook = self.root / 'flock-test.sh'
++        hook.write_text('''flock() {
++    printf 'flock %s\\n' "$*" >> "$TRACE"
++    if [[ "$1" == -w ]]; then shift 2; fi
++    /usr/bin/flock -w 0.1 "$@"
++}
++''')
++        with (locks / 'run.lock').open('a+b') as held:
++            fcntl.flock(held, fcntl.LOCK_EX)
++            for mode in ('t', 'u'):
++                with self.subTest(mode=mode):
++                    trace = self.root / ('duplicate-' + mode)
++                    env = {**os.environ, 'SLURM_JOB_ID':'23459', 'TRACE':str(trace),
++                           'TK_PREPARED_INPUT_CACHE':'1', 'BASH_ENV':str(hook)}
++                    env.pop('TK_PC_LOCK_HELD', None)
++                    result = subprocess.run(['bash', str(self.root / 'b/r.sh'), mode, '0'],
++                                            env=env, capture_output=True, text=True, timeout=5)
++                    self.assertEqual(result.returncode, 75, result.stderr)
++                    self.assertIn('flock -w 600 7', trace.read_text())
++                    self.assertNotIn('stage prep', trace.read_text())
++
 +    def test_two_jobs_for_one_run_serialize_native_preparation(self):
 +        (self.root / 'b/i.py').write_text(
 +            'import os,time\n'
@@ -1151,6 +1327,81 @@
 +        self.assertEqual(events[0][1], events[1][1])
 +        self.assertEqual(events[2][1], events[3][1])
 +        self.assertNotEqual(events[0][1], events[2][1])
++
++
++class RealStageTests(unittest.TestCase):
++    def test_real_c_stage_hit_miss_error_and_missing_root(self):
++        root = Path(tempfile.mkdtemp(prefix='real-stage-', dir=os.environ['TEST_TMP_ROOT']))
++        tree = Path(__file__).resolve().parents[1]
++        kit = root / 'kit'
++        for directory in ('b/sa', 'k', 'o'):
++            (kit / directory).mkdir(parents=True)
++        # Source the entire real c.sh. Only host scratch constants and staging
++        # dependencies change; tk_stage itself executes without substitution.
++        (kit / 'b/c.sh').write_text((tree / 'launch_s1/b/c.sh').read_text().replace('/tmp/jjyeung', str(root / 'tmp')))
++        for name in ('sitecustomize.py', 'prestage_hooks.py'):
++            (kit / 'b/sa' / name).write_text('# fixture\n')
++        record = root / 'record.json'
++        record.write_text('{}')
++        (kit / 'k/0.json').write_text(json.dumps(dict(commit='fixture',
++            closure=dict(file='closure.tar', sha256='a'*64), record=dict(file=str(record), sha256='b'*64))))
++        for name in ('pc', 's'):
++            (kit / 'b' / (name + '.py')).write_text(
++                'import os,sys\nfrom pathlib import Path\n'
++                'name=Path(__file__).stem\n'
++                'with open(os.environ["TRACE"], "a") as f: f.write(name+" "+" ".join(sys.argv[1:])+"\\n")\n'
++                'sys.exit(int(os.environ["CACHE_RC"]) if name == "pc" else 0)\n')
++        shell = '''source "$TK_KIT_HOME/b/c.sh"
++tk_nx() { :; }
++tk_kitx() {
++    mkdir -p "$2" "$S/.stamp"
++    if [[ "$1" == art ]]; then mkdir -p "$2/lb"; touch "$2/lb/51f013139e77.npz"; fi
++}
++tk_venv_shebangs() { :; }
++tk_has() { return 1; }
++sha_is() { :; }
++tk_stage_model() { :; }
++tk_stage_small() { :; }
++tk_stage_extra() { :; }
++tk_stage_tars() { :; }
++tk_stage_fla() { :; }
++tk_stage_bundle() { printf 'bundle %s\\n' "$1" >> "$TRACE"; }
++tk_stage_init() { printf 'init\\n' >> "$TRACE"; }
++tk_stage prep
++printf 'hit %s\\n' "$TK_PC_HIT" >> "$TRACE"
++'''
++        for label, enabled, rc, has_root, expected in (
++                ('hit', '1', '0', True, 0), ('miss', '1', '1', True, 0),
++                ('error', '1', '7', True, 7), ('missing-root', '1', '0', False, 1),
++                ('off', '0', '7', False, 0)):
++            with self.subTest(case=label):
++                trace = root / (label + '.trace')
++                trace.touch()
++                env = {**os.environ, 'TK_KIT_HOME':str(kit), 'TK_JOBDIR':str(root / 'job'),
++                       'SLURM_JOB_ID':'23460', 'TRACE':str(trace), 'TK_PC_PREPARE':'1',
++                       'TK_PREPARED_INPUT_CACHE':enabled, 'CACHE_RC':rc}
++                env.pop('TK_LIGHT', None)
++                env.pop('TK_PREPARED_CACHE_ROOT', None)
++                if has_root:
++                    env['TK_PREPARED_CACHE_ROOT'] = str(root / 'cache')
++                result = subprocess.run(['bash', '-euo', 'pipefail', '-c', shell], env=env,
++                                        capture_output=True, text=True, timeout=10)
++                self.assertEqual(result.returncode, expected, result.stderr)
++                lines = trace.read_text().splitlines()
++                if label == 'hit':
++                    self.assertIn('hit 1', lines)
++                    self.assertFalse(any(line.startswith('bundle ') for line in lines))
++                    self.assertIn('init', lines)
++                if label in ('miss', 'off'):
++                    self.assertIn('hit 0', lines)
++                    self.assertEqual(sum(line.startswith('bundle ') for line in lines), 12)
++                if label == 'error':
++                    self.assertFalse(any(line.startswith(('bundle ', 's ', 'hit ')) for line in lines))
++                if label == 'missing-root':
++                    self.assertIn('TK_PREPARED_CACHE_ROOT', result.stderr)
++                    self.assertEqual(lines, [])
++                if label == 'off':
++                    self.assertFalse(any(line.startswith('pc ') for line in lines))
 +
 +
 +if __name__ == '__main__':

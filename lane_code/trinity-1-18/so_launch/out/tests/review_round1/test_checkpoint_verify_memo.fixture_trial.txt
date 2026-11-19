@@ -1,0 +1,35 @@
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_checkpoint_verify_memo.py -v
+test_another_job_or_allocation_clock_rehashes (__main__.CheckpointMemoTests.test_another_job_or_allocation_clock_rehashes) ... ok
+test_corrupt_memo_falls_back_to_full_hash (__main__.CheckpointMemoTests.test_corrupt_memo_falls_back_to_full_hash) ... ok
+test_default_off_rehashes_and_writes_no_memo (__main__.CheckpointMemoTests.test_default_off_rehashes_and_writes_no_memo) ... ok
+test_four_resume_verifications_through_real_guard_and_chooser_processes (__main__.CheckpointMemoTests.test_four_resume_verifications_through_real_guard_and_chooser_processes) ... FAIL
+test_inode_replacement_even_with_same_size_and_mtime_refuses (__main__.CheckpointMemoTests.test_inode_replacement_even_with_same_size_and_mtime_refuses) ... ok
+test_marker_or_binding_change_cannot_hit (__main__.CheckpointMemoTests.test_marker_or_binding_change_cannot_hit) ... ok
+test_missing_allocation_identity_disables_memo (__main__.CheckpointMemoTests.test_missing_allocation_identity_disables_memo) ... ok
+test_only_first_same_job_check_reads_payloads (__main__.CheckpointMemoTests.test_only_first_same_job_check_reads_payloads) ... ok
+test_purged_payload_refuses_resume (__main__.CheckpointMemoTests.test_purged_payload_refuses_resume) ... ok
+test_same_size_corruption_with_restored_mtime_refuses (__main__.CheckpointMemoTests.test_same_size_corruption_with_restored_mtime_refuses) ... ok
+
+======================================================================
+FAIL: test_four_resume_verifications_through_real_guard_and_chooser_processes (__main__.CheckpointMemoTests.test_four_resume_verifications_through_real_guard_and_chooser_processes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_checkpoint_verify_memo.py", line 77, in test_four_resume_verifications_through_real_guard_and_chooser_processes
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch_s1/b/g.py", line 37, in persistent_launch
+    selected = choose(launch["run_directory"], persistent, environment.get("SLURM_JOB_ID"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch_s1/b/r8.py", line 244, in main
+    persistent_check(root, persistent, job, mode, binding, step)
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch_s1/b/r8.py", line 167, in persistent_check
+    raise ValueError("Persistent location or Slurm job identity is invalid")
+ValueError: Persistent location or Slurm job identity is invalid
+
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.087s
+
+FAILED (failures=1)
+EXIT: 1

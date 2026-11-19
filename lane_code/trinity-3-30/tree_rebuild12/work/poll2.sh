@@ -1,0 +1,2 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls | grep -E 'tr11|tr12'; ls $W/w21/out 2>/dev/null | grep -E 'b21|BUILD21'; grep -o 'Item [0-9]: [^.]*' $W/w21/work/build21/STATUS.md | cut -c1-120
+d=$(ls -dt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*tree_rebuild21b | head -1); stat -c '%s %y' $d/transcript.log; grep -c "at capacity" $d/transcript.log; ls $d; tail -c 600 $d/transcript.log | tr -cd '[:print:]\n' | grep -v '^ ' | tail -4; tail -2 $W/work/build21b_dispatch.log

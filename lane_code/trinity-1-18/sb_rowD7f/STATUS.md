@@ -1,0 +1,1 @@
+Final (sb_rowD7f): delivery PASS with 7,971 filtered twins; both review blockers fixed; R1 0, R2 0, R3 29 pairs dropped; every check in out/CHECKS.json passes; report out/FILTER_REPORT.md; archive out/sb_rowD7f.tar with out/sb_rowD7f.tar.sha256. N binding still needs the room certification named in review finding 3.

@@ -31,17 +31,17 @@ def main():
     if not torch.cuda.is_available() or torch.cuda.device_count()!=1:
         raise ValueError('Expose exactly one assigned GPU for the replay')
     from e2e_reader.parity import load_native,bind_item
-    from h1eval.h10.parity_adapter import map_items
     from rl_on_n.adapters import install
     from rl_on_n.rollout import sample,native_kwargs
     # Load A4 with its sealed restore implementation; never import the staged /p reader.
     replay_settings=dict(settings,tree=str(PAYLOAD/'tree'),config=a.config,export_dir=a.export_dir)
     with reader_runtime():
+        from h1eval.h10.parity_adapter import map_items
+        mapped,_=map_items([s['item'] for s in selected],settings)
         model,processor,info=load_native(a.export_dir,device='cuda:0',settings=replay_settings)
     torch.manual_seed(17);installed=install(model,16,32)
     # Zero-initialized adapters must leave the m200 greedy policy unchanged.
     reader=build_reader(model,processor,binding,'cuda:0')
-    mapped,_=map_items([s['item'] for s in selected],settings)
     from evalpath.runtime import prompt_batch
     results=[];mismatches=[];counts={t:0 for t in TYPES}
     for chosen in selected:

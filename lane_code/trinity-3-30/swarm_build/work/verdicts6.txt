@@ -1,0 +1,89 @@
+== harev3 /scratch/jjyeung/orch_n30/codex_local/agent/scratch/codex_runs/20261119T074022Z_sb_harev3 cap=0
+final_message.md
+meta.json
+prompt.md
+transcript.log
+b_harev3/out/REVIEW_VERDICT.md): **ACCEPT WITH FINDINGS**.
+
+All ten requested findings are CLOSED. Three new findings require adjudication:
+
+- Separate selector-refit kit.
+- Missing tables erasing valid baseline scores.
+- Size-treatment screen differing from the selected construction.
+
+All five hashes match. The 29-line verdict includes costs and evidence. No GPU work or evaluation look occurred.
+=================== sb_rkrev2/REVIEW_VERDICT.md
+can't find session: sb_harev3
+# GO AFTER FIXES
+
+The fixed kit closes nine of my ten findings, and none of my bypass attempts got past the one-look latch. One blocker remains in the resume path. OPERATOR.md has each fresh GO note overwrite `configs/GO.json`, but the S1c receipts and SELECTION.json bind that file's hash, so any second GPU run strands the experiment for good (edit 1). Separately, the GPU launch still waits on two MISSING provenance records, and no edit here supplies them. The reviewed tar has sha256 `4e76be6d…f196e6`, and all 276 ledger members match my extracted copy and the working tree. The GO template's code digest `cf69f0e0…` matches the delivered code. I used CPU only and wrote only in this workspace.
+
+## My ten findings
+1. **CLOSED.** price.py prices only the selected arm under R0. My stub run's table holds one R0-dev arm (`da3_u94+R0`) and no dev-S1 arm, and `SETTINGS.secondary` is None. KIT_SPEC §2, §8 and §10 and OPERATOR forbid T10, an extra u94 pass and Part B on R0-dev.
+2. **CLOSED** (hardening: edit 4). `training_set()` returns 110 distinct captures, all `k1_split=train`, each with 32 anchors and 64 dense frames. I drove `gpu_run.py --stage s1c` with the kit's stubs: S1C_REGISTRATION.json exists before the first forward, and the runner makes 110 forwards of 32 frames, prices 220 predictions under R0 and writes the rule's choice. `--stage r0dev` refuses without SELECTION.json before touching CUDA. On real data, `selection.select` prices the two stored 32-anchor CPU forwards at 14.98 and 39.28 m², against dense-64 areas of 14.73 and 39.35 that equal the stored R0 values exactly. Both the planner Python and the kit's GPU runtime give these results.
+3. **CLOSED** (edit 3). Every bypass I tried fails: a second price.py, `gpu_run.py` with `r0dev` or `all` after registration, the scorer with `--pred` or without `--self-test`, a second `select`, and a simulated relocated copy, whose path-keyed code digest raises "stale selection code". The registration exists at every R0-dev pricing call. Only calling library functions by hand or renaming the registration remain, and the rules forbid both.
+4. **CLOSED.** With a bare-hex `props.uuid`, the stub launch authorizes the card and records `card_verified: true`; the kit's end-to-end test uses the same fixture.
+5. **OPEN** (blocker: edit 1; minor: edit 2). Valid receipts now resume across run, card and host: on host 2, the probe skips the four captures run 1 finished on host 1. A STARTED-only folder recomputes only after a COST.json closure that names its run. But when a fresh GO note is written over `configs/GO.json`, as OPERATOR prescribes, `select()` or `load_selection()` fails with "stale input …/GO.json". This happens after `--stage s1c` followed by r0dev, and after an interrupted `--stage all`, which first recomputes 106 captures. Later GO files at new paths fail the same way, and SELECTION.json cannot be rewritten, so the experiment is stranded. With one file per GO note, the same sequences complete.
+6. **CLOSED.** KIT_SPEC §2, OPERATOR and the PRICING_TABLE interpretation line all call the audit "proposed, unbuilt".
+7. **CLOSED except one gap.** Of the 38 tests, 37 pass in my extracted copy. `test_s0_binds_own_script` errors only because S0.json keys its paths under sb_rkfix, and the hash it records (`d0d20d…`) matches. The new stub tests run `gpu_run.py` (r0dev) and price.py end to end for both choices. Gap: no test launches `--stage s1c` or `all`, and each fixture run gets its own GO file, which hides the finding 5 blocker.
+8. **CLOSED.** No secondary probe or pass remains. An OOM writes ARM_DROPPED.json and blocks both pricing and relaunch (kit test).
+9. **CLOSED.** preauthorize runs before hashing (behavioural test), and the deduplicated gate hashes 19,161 local files (24.8 GiB) in 21 s with a warm cache. `authorize()` rechecks GO freshness after CUDA starts, which is harmless at that speed.
+10. **CLOSED.** env.sh restores the caller's shell options (test), and S0.json binds `s0.py`.
+
+## Edits
+1. **BLOCKER.** In `gpu_run.run`, refuse to start unless `Path(a.go_file).resolve()==W/'configs'/f'GO_{a.run_id}.json'`. In OPERATOR.md, GPU_NEED.json and ROOMKIT_REPORT.md, change the command to `--go-file configs/GO_<run_id>.json` and add: "Never edit a GO note, KERNEL_PROVENANCE.json or READER_RECEIPT.json after its first run; S1c receipts and SELECTION.json bind their hashes." Add two stub tests: `--stage s1c` under run 1, then r0dev under run 2; and `--stage all` interrupted during S1c, closed by hand, then resumed.
+2. minor. `Budget.start()` and `finish()` overwrite the manual closure: `authorized_by`, `accounted_run_ids` and the evidence hashes are gone after the resumed run (probe). The recompute also overwrites the interrupted STARTED.json, which OPERATOR says to preserve. Carry `history` (the previous COST records) in both writes, and put `previous_started` in the new STARTED.json. Save predictions as `pred.npz.part` and `os.replace` them into place, so a kill inside `savez` counts as interrupted; STARTED plus a partial pred.npz is now a permanent stop.
+3. minor. price.py creates the registration before it checks that the predictions exist, so a premature run burns the look with nothing read (probe). Move its completeness loop (lines 23–29, which read only receipts and hashes) above line 21.
+4. minor. `load_selection` accepts a hand-written SELECTION.json for which no S1c prediction exists (probe). Require `input_sha256` to list S1C_REGISTRATION.json and each row's f32 and dense prediction and DONE files, and recompute the deltas and the `boot` interval from the rows.
+After these edits, rerun reproduce.py, summarize_s1.py, the tests, make_go_template.py and package.py, because code hashes feed DRYRUN, K1_REPRODUCTION, TESTS and the GO digest that `prerequisites()` checks.
+
+## GPU need and gates
+The estimate checks out. Scaling the K1 timing gives 9.13 s × (32/64)^1.563 = 3.09 s per f32 capture, so S1c costs 0.094 GPU-h on 110 captures and f32 R0-dev costs 0.084 GPU-h on 98. If K1 selects u94, its R0-dev pass costs 16.7 s per capture, or 0.45 GPU-h. Model loads and the 21 s hash add little, and every case fits the 1.5 GPU-h cap on one 48 GB card. trinity-1-18, the template's host, has eight 48 GB RTX 6000 Ada cards. Three files are still MISSING before any launch:
+- `/scratch/jjyeung/orch_n30/sb_rkfix/configs/KERNEL_PROVENANCE.json` (status MISSING) needs VERIFIED, `benchmark_selected: false`, `selection_scope: K1 train only`, `relation_to_benchmark_rule`, `authorized_by` and evidence hashes. The design record says the room rule was chosen on official items. If the kernel constants came from there, this record cannot honestly be VERIFIED, and the run must not happen.
+- `/scratch/jjyeung/orch_n30/sb_rkfix/configs/READER_RECEIPT.json` (status MISSING) needs VERIFIED, the checkpoint SHA256 and `frame_indices_by_item` for the 98 rooms. Its sources are on trinity-3-30 under `/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/`: `B/src/items/room134.json`, `B5/ret/metadata/reads/0/metadata/journals/4/0/items.jsonl` and `A/src/tree`.
+- `configs/GO_<run_id>.json`, written by the orchestrator. SELECTION.json is not a launch input, because `--stage all` writes it inside the GO run.
+Minor, no edit required: the CPU fallback would compare fp32 CPU f32 predictions with bf16 GPU dense-64 ones, and cpu.sh's planner Python loads its stdlib from `/data2/jjyeung/envs/planner`.
+Commands (`nice -n 10`, at most 8 threads, outputs in `out/`): `bash kit/scripts/cpu.sh tests/test_roomkit.py` (kit_tests.log); `bash kit/scripts/cpu.sh $PWD/rk_probe2.py` (RK_PROBE2.json); `rk_check.py` (RK_CHECK.json: S1b 134/134 and 24/24, S1 areas 14.69 and 39.79 m², S0 98 items, 9,212 PNGs, direct MRA 62.755 and 68.889); `rk_s1c_real.py` (RK_S1C_REAL.json); `rk_hashtime.py` (RK_HASHTIME.json).
+=================== sb_f64rev/out/REVIEW_VERDICT.md
+# NO-GO
+
+The nested-frame design works on CPU fixtures, but this kit does not establish a safe training or reading launch.
+Paths below are relative to `sb_f64/out/kit` unless stated otherwise. Review evidence is in this directory.
+
+1. **BLOCKER — store conversion changes admission.** `scripts/nest_store.py:apply` catches missing-frame errors, omits those rows, and renumbers survivors. The independent missing-pins case drops all four source rows. Keeping them in a report denominator does not preserve the training population.
+   `frame_input.nest_row` also sorts anchors: an adversarial reversal of the synthetic fixture changes anchor 1 from native frame 367 to 0 while retaining its pose record. This demonstrates a missing precondition, not a known reversed row in the absent population.
+   Fix: preflight every source row; refuse publication when any pin or frame is MISSING; preserve source indices, targets, row count, and anchor order. Require increasing source anchors or an explicitly reviewed order-preserving implementation. Any intentional deferral needs a separately reviewed population and sampler.
+
+2. **BLOCKER — token audit can falsely authorize launch.** `scripts/token_audit.py:summarize` reports `launch_ready=true` for an empty shard, a single pose row, and duplicated partial shards.
+   Fix: bind config, preparation, sampler, stores, horizon, and shard identities by SHA256; require complete, unique coverage of the expected planned rows and every required field before returning readiness. Reject missing, duplicate, mixed-run, or incomplete shards.
+
+3. **BLOCKER — planned first batches are MISSING.** `configs/r1_config_f64.json` lacks `r2_sampling`; its preparation is MISSING at `/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/469ddece/receipt.json`. Code, admission, and depth-init pins are also MISSING; exact paths appear in `resume_review.json:missing_inputs`.
+   Submitted full-depth evidence covers synthetic pose batches on ranks 0–3 and other streams only on rank 0; it uses substitute sampling and omits extent/membership/init bindings. The headline claim of full forwards for every rank of every stream overstates those files.
+   Independent full-depth CPU check: all four synthetic ranks passed with finite losses, 9,127 tokens each and peak RSS 23.89 GiB (`forward_review.json`). Synthetic evidence cannot satisfy the planned-run gate. Bind genuine inputs, reseal the changed tree, then pass each rank's actual first batch through the complete CPU forward before any GPU use.
+
+4. **BLOCKER — memory and step time remain estimates.** Meta construction confirms the real Qwen3.5 base: 9,409,813,744 parameters, 32 language layers and 27 vision blocks. Full forwards use random initialization; `mem_n32_8.json` and `mem_f64_8.json` use only eight language layers.
+   Their batch size is one, and non-reentrant language checkpointing matches N, but gradients are BF16; they omit FP32 masters, FSDP, Adam states/updates, and the full accumulation cycle. The planned run uses four ranks, global batch 288, and 72 microsteps per rank.
+   Eight-layer pose RSS increments are 10.601 versus 14.613 GiB; these are CPU allocator measurements, not GPU training peaks. The kit's 43.57-GiB static budget is analytic, and its head trainable count is inferred from rounded gradient bytes rather than counted exactly.
+   Fixture lengths are 9,127–10,215 tokens, not a real-row maximum. The hard-coded GPU line gives 69.49–72.43 GiB there and 89.09 GiB at the 16,384-token ceiling. Its cited H100 calibration logs are absent from this kit.
+   Thus 48-GB cards are unsupported for the current non-offloaded training configuration; 80-GB cards are plausible for short rows but unproven for the population. GPU reading/generation memory is unmeasured. The 1.91× FLOP estimate and 263/627-second step estimates are conditional; the independently recomputed CPU-forward ratio is 2.30×.
+
+5. **minor — the export-layout helper checks less than documented.** `read/f64_read.py:training_layout` accepts a missing artifact `frame_input` when the config supplies it. The full reader separately authenticates the config hash, so this helper-level counterexample alone does not establish an end-to-end binding bypass.
+   Require explicit matching declarations and validate the spec, or document the authenticated-config fallback; add absent/null/mismatch tests. Reading remains blocked by MISSING filled frame pins: `READ_CONFIG_F64.json:settings_add.student_manifest` is a placeholder.
+
+6. **minor — anchor preservation is supported.** `PATCH_LINES.md` lists every removed/added line in both patches; `resume_review.json` retains their exact text. The sealed baseline matches archive SHA256 `caa09d0c6aa79f55ee7ddf0dbe4580145a1e483a164226678539f554e8af6a36`.
+   The nine changed tree files contain no scoring or room-rule edits. Frame-spec gates, pointing provenance, anchor-only depth/markers, and pixel-default normalization have documented reasons; the 12 layout tests pass. Markers remain `Frame 1..32` on the original anchors for the tested increasing-anchor inputs; finding 1 limits the general claim.
+   Clarify installation as `src/b/f64_read.py` for the patch's absolute imports, or use relative imports when installing inside `e2e_reader`; the current “install_beside” wording is ambiguous.
+
+7. **minor — the baseline error is pre-existing, not proved harmless.** Both independent suites run 109 tests with zero assertion failures and the same one error: MISSING `/scratch/jjyeung/orch_cd/derivgen/review_pool/POOL.jsonl`.
+   The unexecuted test checks trace-revision rerendering of `<closest>`; its code is unchanged. Supply the authentic pool and rerun that test before claiming a completely passing baseline. Do not fabricate a replacement pool.
+
+8. **BLOCKER — evidence required to change the decision.** Correct the store and audit gates, resolve the export-check contract, bind the real preparation, sampler, and reader manifest, and pass actual all-rank CPU first batches and the complete token audit.
+   Only then use a four-rank 80-GB GPU pilot with the intended kernels, FSDP, FP32 masters, checkpointing, and initialized Adam state. Measure allocated/reserved peaks through optimizer updates, longest planned rows, and steady full mixed steps. CPU offload needs separate measurement; world eight changes N's fixed recipe and row plan.
+   No GPU is needed to fix the code or supply the missing CPU evidence. This review used no GPU, network, Git, or writes to the builder's workspace.
+
+Commands and provenance: run from `/scratch/jjyeung/orch_n30/sb_f64rev`.
+
+- `python review_static.py` produced the sealed-tree comparison; `bash run_cpu.sh regression_check.py baseline` and `bash run_cpu.sh regression_check.py patched` produced the two regression counts.
+- `bash run_cpu.sh behavior_check.py` produced layout tests, architecture counts, and store/export counterexamples; `bash run_cpu.sh resume_audit.py` revalidated saved hashes, enumerated patch lines, reproduced audit counterexamples, and recomputed token/memory/time figures from submitted evidence.
+- `bash run_cpu.sh forward_check.py` produces the independent CPU-forward records. Review JSON files record input SHA256 values; the builder's evidence JSON files do not bind their generating inputs.
+- `bash run_cpu.sh anchor_order_check.py` produced the explicitly adversarial anchor-order counterexample; it does not represent a real planned training row.

@@ -1,5 +1,8 @@
 #!/bin/bash
-# TEMPLATE ONLY: no submission was run by so_read.
+# TEMPLATE ONLY: no submission action.
+#SBATCH --job-name=u0
+#SBATCH --output=/project/u0/u1/%A_%a.u0
+#SBATCH --error=/project/u0/u1/%A_%a.u1
 #SBATCH --partition=preempt
 #SBATCH --time=2-00:00:00
 #SBATCH --array=0-3%4
@@ -20,8 +23,16 @@ exec nice -n 10 "$READ_PYTHON" -I -s -B - "$READ_SOURCE_ROOT" "$READ_ARRAY_CONFI
 import sys
 from pathlib import Path
 root=Path(sys.argv[1]);config=sys.argv[2]
-sys.path[:0]=[str(root),str(root/'tree'),str(root/'b')]
+sys.path[:0]=[str(root/'u0'),str(root),str(root/'tree'),str(root/'b')]
+from a8 import activate
+activate(enabled=True)
 sys.argv=['array_worker',config,'--enable-array']
 from h1eval.h10.array_worker import main
-raise SystemExit(main())
+from a9 import PublicLog
+sys.stdout=PublicLog(sys.stdout);sys.stderr=PublicLog(sys.stderr)
+try:
+    raise SystemExit(main())
+except Exception as error:
+    print(type(error).__name__)
+    raise SystemExit(2)
 PY

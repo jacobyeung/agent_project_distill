@@ -248,6 +248,12 @@ class PackTests(unittest.TestCase):
             with self.assertRaisesRegex(P.GateError,'planted'):
                 P.main(['all','--enable','--config',str(cfg)])
             transport.assert_not_called()
+        with patch.object(P,'run',return_value={}) as local:
+            P.probe(CPU,'fill',Path('a'),self.w/'timer',{'fill_timeout_seconds':3600})
+            self.assertEqual(local.call_args.kwargs['timeout'],3600)
+        for value in (0,-1,7201,True):
+            with self.assertRaises(P.GateError):
+                P.probe(CPU,'fill',Path('a'),self.w/'timer',{'fill_timeout_seconds':value})
 
     def test_submission_authorization_and_remote_script_syntax(self):
         # Planning cannot accidentally call ossh. Operational scripts retain
@@ -282,6 +288,75 @@ class PackTests(unittest.TestCase):
         self.assertIn('sacct',scripts['submit']);self.assertIn('CPU.json',scripts['submit'])
         self.assertIn('squeue',scripts['submit']);self.assertIn('sleep 60',scripts['submit'])
 
+    def test_all_plans_every_phase_before_any_remote_execution(self):
+        cfg=self.w/'c.json';P.write(cfg,{'workspace':str(self.w)})
+        events=[]
+        def plan(action,c,args,plan_only=False):
+            self.assertTrue(plan_only);events.append('plan '+action)
+            p=self.w/(action+'.sh');p.write_text('true\n');return p
+        def execute(action,*args):events.append('execute '+action)
+        args=['all','--enable','--yes','--execute-remote','--token','a0123456789ab','--config',str(cfg)]
+        with patch.object(P,'build',return_value={}),patch.object(P,'built',return_value={'package':'x'}), \
+             patch.object(P,'local_check',return_value={}),patch.object(P,'stage_remote',side_effect=plan), \
+             patch.object(P,'run_remote',side_effect=execute):P.main(args)
+        self.assertEqual(events,['plan place','plan fill','plan submit',
+                                 'execute place','execute fill','execute submit'])
+        events.clear()
+        def bad_plan(action,c,args,plan_only=False):
+            if action=='submit':raise P.GateError('planted operational privacy failure')
+            return plan(action,c,args,plan_only)
+        with patch.object(P,'build',return_value={}),patch.object(P,'built',return_value={'package':'x'}), \
+             patch.object(P,'local_check',return_value={}),patch.object(P,'stage_remote',side_effect=bad_plan), \
+             patch.object(P,'run_remote') as remote:
+            with self.assertRaisesRegex(P.GateError,'operational privacy'):
+                P.main(args)
+            remote.assert_not_called()
+
+    def test_transport_stream_with_local_copy_stub_and_no_retry(self):
+        # This stub only copies stdin into this test folder. It never calls SSH.
+        tok='a0123456789ab';received=self.w/'0.received';stub=self.w/'0.sh'
+        stub.write_text('set -euo pipefail\ncat > '+P.shlex.quote(str(received))+"\necho LOCAL_STUB_OK\n")
+        script=self.w/'1.sh';script.write_text('true\n')
+        c={'workspace':str(self.w),'remote':{'root':P.REMOTE_ROOT,'walltime':'04:00:00','ossh':str(stub)}}
+        from types import SimpleNamespace
+        args=SimpleNamespace(yes=True,token=tok,execute_remote=True)
+        from contextlib import redirect_stdout
+        capture=io.StringIO()
+        dry=SimpleNamespace(yes=True,token=tok,execute_remote=False)
+        with patch.object(P,'checked',return_value={'report':{'token':tok}}), \
+             patch.object(P,'remote_place',return_value='true\n'),redirect_stdout(capture):
+            P.stage_remote('place',c,dry)
+        self.assertIn('set -o pipefail; pv -q -L 8m ',capture.getvalue())
+        with patch.object(P,'checked',return_value={'report':{'token':tok}}):
+            with self.assertRaisesRegex(P.GateError,'Planned remote script changed'):
+                P.run_remote('place',c,args,script,'0'*64)
+            self.assertFalse(received.exists())
+            P.run_remote('place',c,args,script,P.file_sha(script))
+            self.assertEqual(received.read_bytes(),script.read_bytes())
+            self.assertIn('LOCAL_STUB_OK',(self.w/'place_remote.log').read_text())
+            with self.assertRaisesRegex(P.GateError,'already attempted'):
+                P.run_remote('place',c,args,script,P.file_sha(script))
+
+    def test_fixed_token_operational_adapter_is_explicit(self):
+        root=MIRROR/'cont_ops17/work';pub=P.read(ROUTE/'A4/package/0.json')
+        b={'report':{'token':pub['token']}}
+        cfg={'remote':{'walltime':'05:00:00','root':P.REMOTE_ROOT}}
+        for key,name in (('cpu_script','o_cpu_B4.sh'),('submit_script','o_sub_A4.sh')):
+            path=root/name
+            cfg['remote'][key]={'path':str(path),'sha256':P.file_sha(path)}
+            self.assertEqual(P.sealed_script(cfg,key),path.read_text())
+        with self.assertRaisesRegex(P.GateError,'parameterized'):
+            P.remote_submit(cfg,b)
+        for key in ('cpu_script','submit_script'):cfg['remote'][key]['parameterize']=True
+        text=P.remote_submit(cfg,b)
+        self.assertIn('test "${P:?}" = '+P.REMOTE_ROOT+'/'+P.PREFIX+pub['token'],text)
+        self.assertIn('--time "$T"',text)
+        self.assertIn('--time=04:00:00',text)
+        self.assertIn('All CPU receipt checks passed',text)
+        path=self.w/'a.sh';path.write_text(text)
+        r=subprocess.run(['nice','-n','10','bash','-n',str(path)],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        self.assertEqual(r.returncode,0,r.stderr.decode())
+
     def test_real_native_metadata_guard_and_logic(self):
         for mode in ('metadata','guard','logic'):
             P.probe(CPU,mode,ROUTE/'B5/package',self.w/mode,{'python':CPU})
@@ -292,6 +367,10 @@ class PackTests(unittest.TestCase):
             with self.assertRaises(P.GateError):P.privacy(f,p,pub)
 
     def test_python36_grammar(self):
+        import warnings,re
+        with warnings.catch_warnings():
+            warnings.simplefilter('error')
+            self.assertRegex(P.utc(),r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
         for n in ('pack.py','pack_probes.py'):
             ast.parse((HERE/n).read_text(),filename=n,feature_version=(3,6))
 
@@ -304,6 +383,13 @@ class PackTests(unittest.TestCase):
             with self.assertRaises(P.GateError):Path('/project/0').write_bytes(b'no')
         mirrors['/project/0']['sha256']='0'*64
         with self.assertRaises(P.GateError):P.validate_mirrors(mirrors,100)
+
+    def test_local_receipt_rejects_a_changed_checker(self):
+        P.write(self.w/'checks/CHECK.json',{'schema':'so_pack-local-v1','passed':True,
+                                         'checker_sha256':{'pack.py':'0'*64}})
+        with patch.object(P,'built',return_value={'package':'not-needed'}):
+            with self.assertRaisesRegex(P.GateError,'Checker source changed'):
+                P.checked({'workspace':str(self.w)})
 
     def test_existing_D_builder_is_called_and_preserved(self):
         sys.path.insert(0,str(DB));from build_support import write_tar
@@ -322,6 +408,9 @@ class PackTests(unittest.TestCase):
         b=P.build(cfg);P.structure(b['package'])
         self.assertEqual(before,{n:P.file_sha(DB/n) for n in before})
         self.assertEqual(b['report']['export_binding']['step'],200)
+        checkcfg=dict(cfg,remote={'walltime':'04:00:00'})
+        P.probe(CPU,'metadata',b['package'],self.w/'d_metadata',checkcfg)
+        P.probe(CPU,'logic',b['package'],self.w/'d_logic',checkcfg)
         P.write(ROOT/'D_BUILD_CONFIG.json',cfg);P.write(ROOT/'D_BUILD_STATE.json',b)
 
 

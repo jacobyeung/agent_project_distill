@@ -1,14 +1,24 @@
 {
   "01_prepared_input_cache.diff": {
-    "bytes": 45642,
-    "sha256": "7cd7cd27d2895539547f8573479db69d9be396b8bc00031b410bb2d203a193c6",
+    "bytes": 58222,
+    "sha256": "4553ea44340eda239e1ea14f8f934ed373b37780c2ba80430d1adf0030ac9b45",
     "files": [
       "launch_s1/b/c.sh",
       "launch_s1/b/r.sh",
       "launch_s1/b/pc.py",
       "tests/test_prepared_input_cache.py",
       "tests/test_prepared_cache_wrapper.py"
-    ]
+    ],
+    "apply_method": "patch --batch --fuzz=0 -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "base_sha256": {
+      "launch_s1/b/c.sh": "33bca2644d25c649b66f64e78bd0079292791b9aceb75f998cb0df98f0508ce6",
+      "launch_s1/b/r.sh": "080b41bef2ff357248c6c0f6041b4dd63fc7264b5795758d1bc0c89e6fe9bf16",
+      "launch_s1/b/pc.py": null,
+      "tests/test_prepared_input_cache.py": null,
+      "tests/test_prepared_cache_wrapper.py": null
+    }
   },
   "02_parallel_frame_sha.diff": {
     "bytes": 6324,
@@ -16,7 +26,14 @@
     "files": [
       "launch_s1/b/f2.py",
       "tests/test_parallel_frame_sha.py"
-    ]
+    ],
+    "apply_method": "patch --batch --fuzz=0 -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "base_sha256": {
+      "launch_s1/b/f2.py": "515c61e19baf0b189866a5145c19bfc96a671af0b24be49398034d40aaca7b67",
+      "tests/test_parallel_frame_sha.py": null
+    }
   },
   "03_checkpoint_verify_memo.diff": {
     "bytes": 10812,
@@ -24,7 +41,14 @@
     "files": [
       "launch_s1/b/r8.py",
       "tests/test_checkpoint_verify_memo.py"
-    ]
+    ],
+    "apply_method": "patch --batch --fuzz=0 -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "base_sha256": {
+      "launch_s1/b/r8.py": "d4046786d037168c6a2ee8f2266c9cf2c0049591e6f8d9a182f208a70bd06ef0",
+      "tests/test_checkpoint_verify_memo.py": null
+    }
   },
   "04_launch_phase_timing.diff": {
     "bytes": 5015,
@@ -33,6 +57,14 @@
       "launch_s1/job.sh",
       "launch_s1/b/c.sh",
       "tests/test_launch_phase_timing.py"
-    ]
+    ],
+    "apply_method": "patch --batch --fuzz=0 -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "base_sha256": {
+      "launch_s1/job.sh": "737849b3c940b4b871e87c7db969e45c4afe1309f996f18c12550189b229e268",
+      "launch_s1/b/c.sh": "33bca2644d25c649b66f64e78bd0079292791b9aceb75f998cb0df98f0508ce6",
+      "tests/test_launch_phase_timing.py": null
+    }
   }
 }

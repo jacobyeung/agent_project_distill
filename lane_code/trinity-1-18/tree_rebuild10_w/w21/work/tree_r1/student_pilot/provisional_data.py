@@ -1,3 +1,4 @@
+from .job_env import key as env_key
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -73,7 +74,7 @@ def prepare_protocol(index_path, output, label, student="onethinker", heldout_fr
     from .orchard_paths import enabled
     if enabled():
         import os
-        protocol["orchard_path_map"] = os.environ.get(("Q_E4" if "Q_E4" in os.environ else "STUDENT_FRAME_ROOT_MAP"))
+        protocol["orchard_path_map"] = os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))
     write_artifact(output, protocol, label, scratch_root)
     return tag({"status": "PROVISIONAL_PROTOCOL_FROZEN_NO_GPU", "protocol": binding(output),
                 "PROVISIONAL_DIVISION_SHA": protocol["PROVISIONAL_DIVISION_SHA"],
@@ -119,7 +120,7 @@ def load_protocol(path, label, weights=False, student=None):
     from .orchard_paths import enabled
     if enabled():
         import os
-        if protocol.get("orchard_path_map") != os.environ.get(("Q_E4" if "Q_E4" in os.environ else "STUDENT_FRAME_ROOT_MAP")):
+        if protocol.get("orchard_path_map") != os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP'))):
             raise ValueError("Orchard input mapping changed after preparation")
     return protocol
 
@@ -131,7 +132,7 @@ def load_single_training_protocol(path, label, weights=False, student=None):
     from .orchard_paths import enabled
     if enabled():
         import os
-        if protocol.get("orchard_path_map") != os.environ.get(("Q_E4" if "Q_E4" in os.environ else "STUDENT_FRAME_ROOT_MAP")):
+        if protocol.get("orchard_path_map") != os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP'))):
             raise ValueError("Orchard input mapping changed after preparation")
     return protocol
 

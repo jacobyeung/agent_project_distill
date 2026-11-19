@@ -1,0 +1,42 @@
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_cache_wrapper.py -v
+test_default_off_uses_native_path_and_writes_no_cache (__main__.PreparedWrapperTests.test_default_off_uses_native_path_and_writes_no_cache) ... ok
+test_duplicate_training_or_resume_job_times_out_with_75 (__main__.PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75) ... 
+  test_duplicate_training_or_resume_job_times_out_with_75 (__main__.PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75) (mode='t') ... FAIL
+  test_duplicate_training_or_resume_job_times_out_with_75 (__main__.PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75) (mode='u') ... FAIL
+test_failed_native_preparation_is_not_published (__main__.PreparedWrapperTests.test_failed_native_preparation_is_not_published) ... ok
+test_hit_reuses_verified_phases_without_launching_native_builder (__main__.PreparedWrapperTests.test_hit_reuses_verified_phases_without_launching_native_builder) ... ok
+test_miss_runs_native_builder_then_publishes (__main__.PreparedWrapperTests.test_miss_runs_native_builder_then_publishes) ... ok
+test_recursive_resume_inherits_lock_and_still_launches_training (__main__.PreparedWrapperTests.test_recursive_resume_inherits_lock_and_still_launches_training) ... ok
+test_recursive_resume_with_symlinked_parent_inherits_lock (__main__.PreparedWrapperTests.test_recursive_resume_with_symlinked_parent_inherits_lock) ... FAIL
+test_two_jobs_for_one_run_serialize_native_preparation (__main__.PreparedWrapperTests.test_two_jobs_for_one_run_serialize_native_preparation) ... ok
+test_real_c_stage_hit_miss_error_and_missing_root (__main__.RealStageTests.test_real_c_stage_hit_miss_error_and_missing_root) ... ok
+
+======================================================================
+FAIL: test_duplicate_training_or_resume_job_times_out_with_75 (__main__.PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75) (mode='t')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_cache_wrapper.py", line 123, in test_duplicate_training_or_resume_job_times_out_with_75
+    self.assertEqual(result.returncode, 75, result.stderr)
+AssertionError: 1 != 75 : 
+
+======================================================================
+FAIL: test_duplicate_training_or_resume_job_times_out_with_75 (__main__.PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75) (mode='u')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_cache_wrapper.py", line 123, in test_duplicate_training_or_resume_job_times_out_with_75
+    self.assertEqual(result.returncode, 75, result.stderr)
+AssertionError: 1 != 75 : 
+
+======================================================================
+FAIL: test_recursive_resume_with_symlinked_parent_inherits_lock (__main__.PreparedWrapperTests.test_recursive_resume_with_symlinked_parent_inherits_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_cache_wrapper.py", line 97, in test_recursive_resume_with_symlinked_parent_inherits_lock
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 124 != 0 : 
+
+----------------------------------------------------------------------
+Ran 9 tests in 5.604s
+
+FAILED (failures=3)
+EXIT: 1

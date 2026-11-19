@@ -1,0 +1,1 @@
+The generator produced exactly 8,000 easy/hard twins with fixed answer-label quotas, balanced hard quadrants, and no source reuse. N’s direct pack and validators, full scene division, room gates, removal inheritance, field preservation and independent signed-axis truth checks pass. The 60 complete rows and independent verification remain for review before packaging.

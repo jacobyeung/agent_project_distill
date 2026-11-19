@@ -1,0 +1,3 @@
+- 2026-11-19 swarm_an5: empty folder /scratch/jjyeung/orch_n30/swarm_an/work/pilot/k1/in/sheets (left by the sheet pull).
+- 2026-11-19 swarm_an5: scratch files under /tmp on trinity-3-30: v7_k1train_rows.jsonl, v7_k1train_full.jsonl, v7_k1train_full.prev.jsonl (5 MB each), jobs_audit.bak.json, key_audit.bak.json, audit_rows.bak.json, audit_raster_out.txt, k1_tokens_out.txt, dd_recount*.py, dc_recount.py, v7_scan.py.
+- 2026-11-19 swarm_an5: on trinity-1-18, /scratch/jjyeung/orch_n30/swarm_an_pilot (sheets for devs1 and k1, 36 MB, plus small scripts and JSON); keep until the Trinity-scale audit is decided, it is the second copy of the sheets.

@@ -12,3 +12,51 @@ test_same_encoded_rows_hits_invalidation_and_mutation_isolation (tests.test_so_c
 test_python_float_accumulation_order_and_mixed_dtypes (tests.test_so_metrics.MetricsTests.test_python_float_accumulation_order_and_mixed_dtypes) ... ok
 test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives (tests.test_so_joint.JointTests.test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives) ... [transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
 [transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+W1119 02:32:32.931000 2962261 torch/multiprocessing/spawn.py:165] Terminating process 2962808 via signal SIGTERM
+ERROR
+
+======================================================================
+ERROR: test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives (tests.test_so_joint.JointTests.test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_step/work/tree/tests/test_so_joint.py", line 135, in test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives
+    mp.spawn(worker,args=(str(directory),),nprocs=2,join=True)
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 340, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 296, in start_processes
+    while not context.join():
+              ^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 211, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 0 terminated with the following error:
+Traceback (most recent call last):
+  File "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 87, in _wrap
+    fn(i, *args)
+  File "/scratch/jjyeung/orch_n30/so_step/work/tree/tests/test_so_joint.py", line 96, in worker
+    info,_ = run.optimize_step(wrapped,optimizer,rows,plan(2),rank,torch.device('cpu'),1,True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_step/work/tree/student_pilot/carrier_c1_run.py", line 1686, in optimize_step
+    full_ft.clip_sharded(base,RECIPE['clip_norm'],dist.group.WORLD)
+  File "/scratch/jjyeung/orch_n30/so_step/work/tree/tests/test_so_joint.py", line 77, in capture
+    return clip(*a,**kw)
+           ^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_step/work/tree/student_pilot/full_ft.py", line 405, in clip_sharded
+    norm = global_norm(parameters, process_group)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_step/work/tree/student_pilot/full_ft.py", line 397, in global_norm
+    dist.all_reduce(wire, group=process_group)
+  File "/scratch/jjyeung/orch_n30/so_step/work/tree/tests/test_so_joint.py", line 83, in call
+    digest = hashlib.sha256(source.detach().contiguous().view(torch.uint8).numpy().tobytes()).hexdigest()
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: self.dim() cannot be 0 to view Double as Byte (different element sizes)
+
+
+----------------------------------------------------------------------
+Ran 10 tests in 136.921s
+
+FAILED (errors=1)
+EXIT=1
+Thu Nov 19 07:32:33 UTC 2026

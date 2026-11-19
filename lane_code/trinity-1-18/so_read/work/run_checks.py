@@ -10,11 +10,16 @@ import sys
 L=Path('/scratch/jjyeung/orch_n30/so_read')
 A=Path('/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src')
 out=L/'out/checks';out.mkdir(parents=True,exist_ok=True)
-env=dict(os.environ,READ_INPUT_SRC=str(A),READ_TEST_TMP=str(L/'work/test-artifacts'))
+env=dict(os.environ,READ_INPUT_SRC=str(A),READ_TEST_TMP=str(L/'work/test-artifacts'),
+         READ_MEMORY_RECEIPT=str(out/'MEMORY.json'),READ_OFF_RECEIPT=str(out/'OFF_BYTES.json'))
 results=[]
-for name,path in [('cache','work/src/b/tests/test_read_cache.py'),
-                  ('journal','work/src/h1eval/tests/test_read_journal.py'),
-                  ('kit','out/kit_parity50/test_compare.py')]:
+for name,path in [('cache','work/src/u0/tests/test_read_cache.py'),
+                  ('journal','work/src/u0/tests/test_read_journal.py'),
+                  ('off','work/src/u0/tests/test_off.py'),
+                  ('public','work/src/u0/tests/test_public.py'),
+                  ('round1','work/src/u0/tests/test_round1.py'),
+                  ('kit','out/kit_parity50/test_compare.py'),
+                  ('kit_launch','out/kit_parity50/test_run.py')]:
     command=[sys.executable,'-I','-s','-B',str(L/path)]
     result=subprocess.run(command,env=env,cwd=L,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
     (out/(name+'.txt')).write_text(result.stdout)
@@ -22,12 +27,24 @@ for name,path in [('cache','work/src/b/tests/test_read_cache.py'),
     assert result.returncode==0,result.stdout
     print(name+': '+result.stdout.strip().splitlines()[-1])
 
+command=[sys.executable,'-I','-s','-B',str(L/'work/src/u0/tests/test_round1.py')]
+result=subprocess.run(command,env=dict(env,READ_REVIEW_BEFORE='1'),cwd=L,
+                      stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+(out/'round1_before.txt').write_text(result.stdout)
+assert result.returncode==1 and 'FAILED (failures=8)' in result.stdout,result.stdout
+print('PASS: all 8 targeted regression checks fail against the reviewed implementation.')
+assert (L/'work/src/u0/a9.py').read_bytes()==(L/'out/kit_parity50/a9.py').read_bytes()
+assert (L/'work/src/u0/a10.py').read_bytes()==(L/'out/kit_parity50/compare.py').read_bytes()
+assert (L/'work/src/u0/tests/test_compare.py').read_bytes()==(L/'out/kit_parity50/test_compare.py').read_bytes()
+assert (L/'work/src/u0/tests/u0.json').read_bytes()==(L/'out/kit_parity50/sample50.json').read_bytes()
+assert (L/'work/src/u0/tests/u1.json').read_bytes()==(L/'out/kit_parity50/array_config.example.json').read_bytes()
+
 for p in (L/'work/src').rglob('*.py'):ast.parse(p.read_text(),filename=str(p))
 for p in (L/'out/kit_parity50').glob('*.py'):ast.parse(p.read_text(),filename=str(p))
 subprocess.run(['bash','-n',str(L/'out/kit_parity50/array_preempt.template.sh')],check=True)
 for command in ([sys.executable,'-I','-s','-B',str(L/'out/kit_parity50/run.py'),
                  str(L/'out/kit_parity50/config.example.json'),'--out',str(L/'work/not-run')],
-                [sys.executable,'-I','-s','-B',str(L/'work/src/h1eval/h10/array_worker.py'),
+                [sys.executable,'-I','-s','-B',str(L/'work/src/u0/a7.py'),
                  str(L/'out/kit_parity50/array_config.example.json')]):
     result=subprocess.run(command,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
     assert result.returncode==2 and ('OFF' in result.stdout or 'requires --enable-gpu' in result.stdout),result.stdout

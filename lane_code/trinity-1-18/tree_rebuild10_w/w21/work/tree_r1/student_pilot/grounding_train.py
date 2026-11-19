@@ -1,4 +1,5 @@
 """Frozen-C1 grounding training, training-scene calibration and retained checkpoints."""
+from .job_env import key as env_key
 import argparse
 from dataclasses import asdict
 import json
@@ -24,7 +25,7 @@ def bind_frames(cfg):
     from . import orchard_paths
     if cfg.get('frame_root'):
         root = Path(cfg['frame_root'])
-        existing = os.environ.get(('Q_E4' if 'Q_E4' in os.environ else 'STUDENT_FRAME_ROOT_MAP'))
+        existing = os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))
         pairs = json.loads(existing) if existing and existing.startswith('{') else {}
         if existing and not existing.startswith('{'):
             source, destination = existing.split('=', 1)
@@ -32,7 +33,7 @@ def bind_frames(cfg):
         if '/data2' in pairs and Path(pairs['/data2']) != root:
             raise ValueError('Configured frame root differs from the active data2root binding')
         pairs['/data2'] = str(root)
-        os.environ['Q_E4' if 'Q_E4' in os.environ else 'STUDENT_FRAME_ROOT_MAP'] = json.dumps(pairs)
+        os.environ[env_key('STUDENT_FRAME_ROOT_MAP')] = json.dumps(pairs)
         orchard_paths.resolve_read('/data2/k8pd')
 
 

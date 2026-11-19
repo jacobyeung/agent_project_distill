@@ -1,0 +1,88 @@
+{
+ "A1_done_receipt_under_new_run_card_host": "returned 'valid'",
+ "A1_legacy_binding_with_host_card_run_changed": "returned 'valid'",
+ "A2_started_only_without_closure": "RuntimeError: interrupted capture requires manual COST.json closure: W/tmp/tmpq9rvdza4/started",
+ "A2_started_only_closure_names_run": "returned 'interrupted'",
+ "A2_started_only_closure_names_other_run": "RuntimeError: interrupted capture requires manual COST.json closure: W/tmp/tmpq9rvdza4/started",
+ "A3_started_plus_partial_npz_with_closure": "RuntimeError: corrupt/stale receipt: incomplete W/tmp/tmpq9rvdza4/killed_in_savez",
+ "C0_training_rows": {
+  "rows": 110,
+  "captures": 110,
+  "all_k1_train": true,
+  "anchors_32": true,
+  "dense_64": true
+ },
+ "C1_missing_selection": "FileNotFoundError: MISSING W/tmp/tmp_s2g0ve4/SELECTION.json",
+ "C2_forged_selection_without_any_S1c_prediction": "returned 'da3_u94'",
+ "C3_relocated_kit_code_identity": "ValueError: stale selection code",
+ "D1_s1c_run": "returned None",
+ "D1_s1c_facts": {
+  "predict_calls": 110,
+  "frames_per_call": [
+   32
+  ],
+  "registration_before_first_predict": true,
+  "selection_rows": 110,
+  "arm": "da3_u94",
+  "interval": [
+   6.545,
+   1.455,
+   11.636
+  ],
+  "priced": 220,
+  "card_verified": true,
+  "selection_binds_go_file": true
+ },
+ "D2_r0dev_fresh_GO_same_path": "ValueError: stale input W/tmp/tmpyih4w954/configs/GO.json",
+ "D2_then_fresh_GO_new_path": "ValueError: stale input W/tmp/tmpyih4w954/configs/GO.json",
+ "D2b_s1c_run": "returned None",
+ "D2b_r0dev_fresh_GO_new_path": "returned None",
+ "D2b_r0dev_calls": 98,
+ "D3_price_first_look": "returned None",
+ "D3_table": {
+  "r0dev_arms": [
+   "da3_u94+R0"
+  ],
+  "dev_s1_arms": [],
+  "verdict": "FAIL",
+  "bar": 67.75510204081633,
+  "r0dev_priced": 98,
+  "registration_fields": [
+   "arm",
+   "bar",
+   "code_sha256",
+   "decision",
+   "rule",
+   "selection_sha256"
+  ]
+ },
+ "D4_latch_price_again": "RuntimeError: one R0-dev look already registered or consumed: ROOM_PRED.jsonl",
+ "D4_latch_gpu_run_r0dev_again": "RuntimeError: R0-dev look already registered or consumed",
+ "D4_latch_gpu_run_all_again": "RuntimeError: R0-dev look already registered or consumed",
+ "D4_latch_scorer_cli_pred": "PermissionError: R0-dev scoring is available only through price.py and its one-look latch",
+ "D4_latch_scorer_cli_no_selftest": "PermissionError: use price.py; only --self-test is public",
+ "D4_select_again": "RuntimeError: SELECTION.json already exists; selection is frozen",
+ "D5_same_path_run1": "RuntimeError: probe interruption",
+ "D5_same_path_run2": "ValueError: stale input W/tmp/tmpo9ca8771/configs/GO.json",
+ "D5_same_path_after": {
+  "selection": false,
+  "predict_calls": 111,
+  "cost_keeps_closure": false,
+  "cost_state": "FAILED",
+  "interrupted_STARTED_run_id": "run-2"
+ },
+ "D5_new_path_run1": "RuntimeError: probe interruption",
+ "D5_new_path_run2": "returned None",
+ "D5_new_path_after": {
+  "selection": true,
+  "predict_calls": 209,
+  "cost_keeps_closure": false,
+  "cost_state": "COMPLETE",
+  "interrupted_STARTED_run_id": "run-2"
+ },
+ "D6_price_before_captures": "FileNotFoundError: MISSING W/tmp/tmpspmz8tok/out/room_pricing/pred/da3_f32/0/pred.npz",
+ "D6_registration_consumed": true,
+ "D6_price_after_captures": "RuntimeError: R0-dev look already registered or consumed",
+ "E_preauthorize_at_590s": "returned None",
+ "E_authorize_15s_later": "PermissionError: need two fresh allocation readings 5 minutes apart"
+}

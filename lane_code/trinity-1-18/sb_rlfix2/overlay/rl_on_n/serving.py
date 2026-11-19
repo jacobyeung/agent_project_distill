@@ -34,7 +34,8 @@ def reader_runtime():
         try:yield
         finally:_RUNTIME_DEPTH -= 1
         return
-    def native(name):return name.split('.')[0] in ('student_pilot','evalpath')
+    namespaces={p.name for p in (PAYLOAD/'tree').iterdir() if p.is_dir()}
+    def native(name):return name.split('.')[0] in namespaces
     saved={n:m for n,m in sys.modules.items() if native(n)}
     paths=list(sys.path)
     for name in saved:del sys.modules[name]

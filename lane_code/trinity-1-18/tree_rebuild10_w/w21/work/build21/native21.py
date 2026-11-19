@@ -24,6 +24,8 @@ from student_pilot import r1_handover as H, r1_persisted as P, s1_pool
 from student_pilot.carrier_c1 import CarrierC1
 from launch_r1 import production_proof as Q, p_export_receipt as E, p_handover_receipt as HR
 import torch
+torch.set_num_threads(8)
+torch.set_num_interop_threads(1)
 import numpy as np
 from PIL import Image,ImageDraw
 

@@ -1,1 +1,1 @@
-Stage 2: Pinned 1037 training distance rows in 192 physical rooms to PRIMARY_296, with 883 rows covered by raw-name selector tables. Corrected labels and training-only box audit entries are separate from stored-label parity. The CPU StageOne replay check is running; no held-out evaluation has run.
+Five non-null selector fits and OOF choices are complete on rebuilt serving labels. No fold trained on a test room. No deployed export was created. Dependent training arms remain; held-out and A6 stay deferred.

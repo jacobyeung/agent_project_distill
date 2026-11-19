@@ -1,0 +1,11 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; free -g | sed -n 2p; df -BG --output=avail /scratch | tail -1; du -sh $W; tmux ls | grep tr11
+cat > $W/prompts/build21b.md <<'EOP'
+# Codex build 21b of lane tree_rebuild: finish build 21 in place (the previous session ended at 07:01Z on a model-capacity error)
+
+You run once, on trinity-1-18, and nobody answers questions while you run. Your whole writable workspace is `L=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21`, the workspace of build 21, whose prompt `/scratch/jjyeung/orch_n30/tree_rebuild10_w/prompts/build21.md` binds you completely (facts, items, rules); read it first. The previous session finished items 1 and 2 and most of item 3; its notes are `$L/work/build21/STATUS.md` and `$L/work/build21/ITEMS.json`. Last recorded state: "Item 3: capacity-sized native preparation and handover pass at the first milestone. The opener defect is isolated; a corrected preview forwards every rank with finite losses. The initial second milestone is running before the final corrected rerun." Any process it left running has ended.
+
+Do, in order: verify from the files that items 1 and 2 are complete as recorded (rerun their tests, do not redo the work); finish item 3 (the corrected fixture at 400 and 600 to ADMIT with every rank's first-batch loss, plus the twins; the opener fix with its failing-before test and mutation); then items 4 and 5 exactly as the build-21 prompt states. Time: run `date -u` at each item; the lane needs the package by 09:00Z 2026-11-19; if time runs short, finish in order, package what is done and say what is not. Every CPU process runs under `nice -n 10` with at most 8 threads (OMP_NUM_THREADS, MKL_NUM_THREADS, torch threads).
+EOP
+sha256sum $W/prompts/build21b.md; tail -c 600 $W/w21/work/build21/ITEMS.json
+tmux new -d -s tr11_b21b "cd /home/jjyeung/agent_project_distill && nice -n 10 agent/scripts/codex_dispatch.sh implement $W/w21 $W/prompts/build21b.md --model gpt-6-astra --effort high --label tree_rebuild21b --skip-git-check > $W/work/build21b_dispatch.log 2>&1"
+sleep 60; tmux ls | grep tr11; tail -5 $W/work/build21b_dispatch.log; d=$(ls -dt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*tree_rebuild21b | head -1); tail -c 600 $d/transcript.log | tr -cd '[:print:]\n' | tail -5

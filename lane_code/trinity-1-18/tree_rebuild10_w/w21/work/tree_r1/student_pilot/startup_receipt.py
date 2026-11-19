@@ -1,3 +1,4 @@
+from .job_env import key as env_key
 import hashlib
 import json
 import os
@@ -108,7 +109,7 @@ def prepare(frozen, student, world_size, label):
     inventory = {'schema': 'student-shared-frame-inventory-v1', 'manifest': pins['training.json'],
                  'files': files, 'references_sha256': digest_json(references),
                  'unique_paths': len(files), 'total_bytes': sum(item['size_bytes'] for item in files),
-                 'frame_mode': 'shared_verified_on_read', 'path_map': os.environ.get(('Q_E4' if 'Q_E4' in os.environ else 'STUDENT_FRAME_ROOT_MAP'))}
+                 'frame_mode': 'shared_verified_on_read', 'path_map': os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))}
     value = tag({'schema': SCHEMA, 'status': 'CPU_VALIDATED_NO_GPU_ADMISSION', 'student': student,
                  'world_size': world_size, 'inputs': pins, 'dropped_dependencies': dependencies,
                  'frame_mode': inventory['frame_mode'], 'path_map': inventory['path_map'],
@@ -139,7 +140,7 @@ def load_prepared(manifest_path, protocol_path, label, student, weights=False):
     require_mode(receipt, label)
     if (receipt.get('schema') != SCHEMA or receipt.get('status') != 'CPU_VALIDATED_NO_GPU_ADMISSION'
             or receipt.get('student') != student or receipt.get('frame_mode') != 'shared_verified_on_read'
-            or receipt.get('path_map') != os.environ.get(('Q_E4' if 'Q_E4' in os.environ else 'STUDENT_FRAME_ROOT_MAP'))
+            or receipt.get('path_map') != os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))
             or set(receipt.get('inputs', {})) != set(FROZEN_FILES)):
         raise ValueError('Startup receipt changed its validated identity or shared frame mapping')
     value = {key: item for key, item in receipt.items() if key != 'provenance'}

@@ -1,4 +1,5 @@
 """Slurm-owned admission, used only by explicitly enabled Orchard launchers."""
+from .job_env import key as env_key
 import json
 import os
 import re
@@ -94,7 +95,7 @@ def multinode_allocation(raw, fields, profile, job, host):
 def allocation():
     if not enabled():
         raise ValueError('Orchard admission is opt-in')
-    site = os.environ.get(('Q_E2' if 'Q_E2' in os.environ else 'STUDENT_SLURM_SITE'), 'orchard')
+    site = os.environ.get((env_key('STUDENT_SLURM_SITE')), 'orchard')
     if site not in SLURM_SITES:
         raise ValueError(f'Unknown Slurm site: {site}')
     profile = SLURM_SITES[site]

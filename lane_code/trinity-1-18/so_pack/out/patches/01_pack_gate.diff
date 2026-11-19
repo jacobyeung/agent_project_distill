@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/pack.py
-@@ -0,0 +1,588 @@
+@@ -0,0 +1,620 @@
 +#!/usr/bin/env python3
 +"""Opt-in read-package release gate. Python 3.6 standard library on login.
 +
@@ -48,7 +48,7 @@
 +
 +
 +def utc():
-+    return datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
++    return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 +
 +
 +def limit_resources():
@@ -281,7 +281,9 @@
 +            str(package),str(workspace)]
 +    if spec:
 +        path = workspace/'spec.json'; write(path,spec); args.append(str(path))
-+    return run(args,workspace,workspace/'probe.log',timeout=180)
++    timeout=(spec or {}).get('fill_timeout_seconds',180) if mode=='fill' else 180
++    require(type(timeout) is int and 1<=timeout<=7200,'Invalid fill timeout')
++    return run(args,workspace,workspace/'probe.log',timeout=timeout)
 +
 +
 +def validate_mirrors(spec, max_read_bytes):
@@ -360,7 +362,7 @@
 +    return root
 +
 +
-+def build(config):
++def build(config, explicit_token=None):
 +    root = state(config); root.mkdir(parents=True,exist_ok=True)
 +    require(not (root/'BUILD_STATE.json').exists(),'Build state already exists; choose a fresh workspace')
 +    b = config['builder']; path = Path(b['path']).resolve()
@@ -374,12 +376,20 @@
 +    Path(b['args'][0]).mkdir(parents=True,exist_ok=True)
 +    env = clean_env(root); env.update(b.get('env',{}))
 +    require(inside(env.get('KROOT',''),root),'Set builder KROOT inside workspace')
++    if explicit_token is not None:
++        token(explicit_token)
++        require(b.get('explicit_token_switch') is True
++                and b'SO_PACK_EXPLICIT_TOKEN' in path.read_bytes(),
++                'Fresh explicit-token builds require the optional builder patch and explicit_token_switch=true')
++        env.update(SO_PACK_EXPLICIT_TOKEN='1',SO_PACK_TOKEN=explicit_token)
 +    code = ('import runpy,sys; from pathlib import Path; '
 +            'p=Path(sys.argv[1]); sys.path.insert(0,str(p.parent)); '
 +            'sys.argv=sys.argv[1:]; runpy.run_path(str(p),run_name="__main__")')
 +    run([config.get('python',sys.executable),'-I','-s','-B','-c',code,str(path)]+b['args'],
 +        root,root/'builder.log',env=env)
 +    report = read(b['report'])[b['key']]
++    if explicit_token is not None:
++        require(report['token']==explicit_token,'Builder ignored explicit token; nothing may leave Trinity')
 +    delivery = Path(report['delivery_dir'])/'1.tgz'
 +    require(inside(delivery,root),'Builder delivery escaped workspace')
 +    require(file_sha(delivery) == report['delivery_sha256'],'Builder delivery differs')
@@ -491,18 +501,35 @@
 +            +' check --gpus 1 --time '+shlex.quote(wall)+'\n'+shell_python(code))
 +
 +
-+def sealed_script(config, key):
++def sealed_script(config, key, package=None, walltime=None):
 +    pin = config['remote'][key]
 +    raw = Path(pin['path']).read_bytes()
 +    require(sha(raw) == pin['sha256'],'Remote script source hash differs: '+key)
-+    return raw.decode()
++    text=raw.decode()
++    # Explicit opt-in adapter for reviewed fixed-token A/B operational scripts.
++    # The default returns the exact input bytes. Native gate bodies stay intact.
++    if pin.get('parameterize',False):
++        require(pin['parameterize'] is True and package and walltime,
++                'Invalid parameterized script request')
++        matches=list(re.finditer(r'^P=('+re.escape(REMOTE_ROOT)+'/'+PREFIX+'('+TOKEN+r'))$',text,re.M))
++        require(len(matches)==1,'Expected one fixed package assignment in '+key)
++        old=matches[0].group(1)
++        text=text.replace(old,package)
++        text=text.replace('P='+package+'\n',
++            'test "${P:?}" = '+shlex.quote(package)+'\n'
++            +'test "${T:?}" = '+shlex.quote(walltime)+'\n',1)
++        text,n=re.subn(r'--time [0-9]{2}:[0-5][0-9]:[0-5][0-9]',
++                       '--time "$T"',text)
++        require(n>=1,'No public walltime argument to parameterize in '+key)
++    return text
 +
 +
 +def remote_submit(config,b):
 +    r,p,tok,wall = remote_settings(config,b)
 +    # Keep all native receipt, pool and queue guards. The CPU script may end in
 +    # diagnostic commands, so it is run as a separate shell with its own failure.
-+    cpu = sealed_script(config,'cpu_script'); sub = sealed_script(config,'submit_script')
++    cpu = sealed_script(config,'cpu_script',p,wall)
++    sub = sealed_script(config,'submit_script',p,wall)
 +    require(not re.search(r'^P=',cpu,re.M) and not re.search(r'^P=',sub,re.M),
 +            'Use parameterized D-style CPU/submit scripts; fixed-token scripts are refused')
 +    require('CPU.json' in sub and 'squeue' in sub and '3.py submit' in sub,
@@ -516,8 +543,8 @@
 +            'J=$(cat "$P/a/4.txt"); [[ "$J" =~ ^[0-9]+$ ]]\n'
 +            'start=$SECONDS\nwhile true; do\n'
 +            '  S=$(sacct -n -X -j "$J" --format=State | awk \'NF{print $1;exit}\')\n'
-+            '  case "$S" in COMPLETED) break;; FAILED*|CANCELLED*|TIMEOUT*|OUT_OF_MEMORY*|NODE_FAIL*|PREEMPTED*) cat "$P/a/4.err" >&2; exit 1;; esac\n'
-+            '  test $((SECONDS-start)) -lt '+str(r.get('cpu_wait_seconds',14400))+'\n'
++            '  case "$S" in COMPLETED) break;; FAILED*|CANCELLED*|TIMEOUT*|OUT_OF_*|NODE_FAIL*|PREEMPTED*) echo "CPU job $J state $S" >&2; tail -n 60 "$P/a/4.err" >&2 || true; exit 1;; esac\n'
++            '  if [ $((SECONDS-start)) -ge '+str(r.get('cpu_wait_seconds',14400))+' ]; then echo "CPU job $J wait expired; last state $S" >&2; tail -n 60 "$P/a/4.err" >&2 || true; exit 1; fi\n'
 +            '  sleep 60\ndone\n'
 +            'test -s '+shlex.quote(receipt)+'\n'
 +            "bash -s <<'SUB_CODE'\n"+sub+"\nSUB_CODE\n")
@@ -568,12 +595,17 @@
 +    if a.action in ('build','all'):
 +        if a.reuse_build:
 +            b = built(c)
++            if a.token is not None:
++                require(a.token==b['report']['token'],'Explicit token differs from existing build')
 +            require(file_sha(b['delivery']) == b['report']['delivery_sha256'],'Existing delivery differs')
 +            require(unpack(Path(b['delivery']).read_bytes()) == package_files(b['package']),
 +                    'Existing build differs from delivery')
 +            structure(b['package'])
 +        else:
-+            build(c)
++            if a.token is None:
++                build(c)
++            else:
++                build(c,explicit_token=a.token)
 +    if a.action in ('check','all'):
 +        b = built(c)
 +        local_check(c,b['package'],state(c)/'checks',audit=a.audit)
@@ -1077,7 +1109,7 @@
 +    main()
 --- /dev/null
 +++ b/test_pack.py
-@@ -0,0 +1,346 @@
+@@ -0,0 +1,376 @@
 +"""Mutation tests using supplied package helpers. Outputs stay under --work."""
 +import argparse
 +import ast
@@ -1328,6 +1360,12 @@
 +            with self.assertRaisesRegex(P.GateError,'planted'):
 +                P.main(['all','--enable','--config',str(cfg)])
 +            transport.assert_not_called()
++        with patch.object(P,'run',return_value={}) as local:
++            P.probe(CPU,'fill',Path('a'),self.w/'timer',{'fill_timeout_seconds':3600})
++            self.assertEqual(local.call_args.kwargs['timeout'],3600)
++        for value in (0,-1,7201,True):
++            with self.assertRaises(P.GateError):
++                P.probe(CPU,'fill',Path('a'),self.w/'timer',{'fill_timeout_seconds':value})
 +
 +    def test_submission_authorization_and_remote_script_syntax(self):
 +        # Planning cannot accidentally call ossh. Operational scripts retain
@@ -1362,6 +1400,26 @@
 +        self.assertIn('sacct',scripts['submit']);self.assertIn('CPU.json',scripts['submit'])
 +        self.assertIn('squeue',scripts['submit']);self.assertIn('sleep 60',scripts['submit'])
 +
++    def test_fixed_token_operational_adapter_is_explicit(self):
++        root=MIRROR/'cont_ops17/work';pub=P.read(ROUTE/'A4/package/0.json')
++        b={'report':{'token':pub['token']}}
++        cfg={'remote':{'walltime':'05:00:00','root':P.REMOTE_ROOT}}
++        for key,name in (('cpu_script','o_cpu_B4.sh'),('submit_script','o_sub_A4.sh')):
++            path=root/name
++            cfg['remote'][key]={'path':str(path),'sha256':P.file_sha(path)}
++            self.assertEqual(P.sealed_script(cfg,key),path.read_text())
++        with self.assertRaisesRegex(P.GateError,'parameterized'):
++            P.remote_submit(cfg,b)
++        for key in ('cpu_script','submit_script'):cfg['remote'][key]['parameterize']=True
++        text=P.remote_submit(cfg,b)
++        self.assertIn('test "${P:?}" = '+P.REMOTE_ROOT+'/'+P.PREFIX+pub['token'],text)
++        self.assertIn('--time "$T"',text)
++        self.assertIn('--time=04:00:00',text)
++        self.assertIn('All CPU receipt checks passed',text)
++        path=self.w/'a.sh';path.write_text(text)
++        r=subprocess.run(['nice','-n','10','bash','-n',str(path)],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
++        self.assertEqual(r.returncode,0,r.stderr.decode())
++
 +    def test_real_native_metadata_guard_and_logic(self):
 +        for mode in ('metadata','guard','logic'):
 +            P.probe(CPU,mode,ROUTE/'B5/package',self.w/mode,{'python':CPU})
@@ -1372,6 +1430,10 @@
 +            with self.assertRaises(P.GateError):P.privacy(f,p,pub)
 +
 +    def test_python36_grammar(self):
++        import warnings,re
++        with warnings.catch_warnings():
++            warnings.simplefilter('error')
++            self.assertRegex(P.utc(),r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
 +        for n in ('pack.py','pack_probes.py'):
 +            ast.parse((HERE/n).read_text(),filename=n,feature_version=(3,6))
 +

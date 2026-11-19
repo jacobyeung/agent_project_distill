@@ -31,6 +31,7 @@ def main():
         got=sum(M.mra(r['prediction'],r['label']) for r in rows.values())/len(rows)*100
         assert abs(got-summary['arms'][arm]['mra'])<1e-9
     assert len(marked)==12 and {c for c,_ in marked}=={'scannetpp/0f69aefe3d','scannetpp/2c7c10379b'}
+    restored=json.loads(R.read(out/'RESTORED_CAPTURE_PARITY.json'));assert restored['status']=='PASS' and restored['matched']==12
     ref_sources={str(root/'serving_reference.py'),str(root/'dryrun.py'),str(root/'predicted.py'),str(root/'adapters.py')}
     for rec in reference['captures']:
         assert sha(rec['path'])==rec['sha256']
@@ -44,6 +45,10 @@ def main():
                 assert rec['input_sha256'][str(root/dep)]==sha(root/dep),(p,dep)
     nonull=json.loads(R.read(out/'nonull/TRAIN_OOF.json'))
     assert nonull['seed']==20261116 and len(nonull['records'])==5 and not nonull['deployed_export_created']
+    fold_manifest=json.loads(R.read(root/'train_manifest.json'))
+    expected_folds=M.folds(c['room'] for c in fold_manifest['captures'] if any(r['id'] in train for r in c['rows']))
+    assert nonull['folds']==expected_folds
+    assert all(r['fold']==expected_folds[r['room']] for rows in by.values() for r in rows.values())
     srcaudit=json.loads(R.read(out/'SOURCE_AUDIT.json'))
     assert all(r['status']=='MATCH' for r in srcaudit['rows'] if r['role']!='inherited_vendor')
     provenance=json.loads(R.read(out/'SOURCE_PROVENANCE.json'));assert all(r['equal'] for r in provenance['reader_comparisons'])
@@ -68,10 +73,7 @@ def main():
         all_primary_rows_present=True,all_mra_means_recomputed=True,no_heldout=True,no_A6=True,
         commands=['bash run.sh -m unittest -v test_v2','bash run.sh finalize_v2.py'])
     R.write(out/'FINAL_VERIFICATION.json',verification)
-    # Preserve each calculation's own dependency map while recording final task scope.
-    dry['full_train_started']=True;dry['full_train_complete']=True
-    dry['input_sha256'].update({str(out/'FINAL_VERIFICATION.json'):sha(out/'FINAL_VERIFICATION.json')})
-    (root/'out/DRYRUN.json').write_text(json.dumps(dry,indent=2)+'\n')
+    # DRYRUN.json is the immutable pre-pricing gate consumed by the training jobs.
     a=reference['summary']['all'];contrasts=summary['contrasts'];variant=frozen['frozen_variant']
     def delta(key):
         s=contrasts[key];return f'{s["estimate"]:+.2f} [{s["ci95"][0]:+.2f}, {s["ci95"][1]:+.2f}]'
@@ -79,7 +81,7 @@ def main():
         f'K1 training pricing is complete. Serving-reference replay passes {a["matched"]}/{a["total"]} choices across {a["captures"]} captures ({a["rate"]*100:.2f}%; bar 95%).',
         f'The reference rebuild covers {len(reference["captures"])} training captures; three manifest GT rasters are MISSING and already excluded from the registered pricing set.',
         'A0 uses R1 own-depth median_ratio scale, float32 exp(log(scale)), and checkpoint gravity under the serving guard.',
-        'Both convert-refused captures are accepted and marked: scannetpp/0f69aefe3d and scannetpp/2c7c10379b (12 registered rows).',
+        f'Both convert-refused captures are accepted and marked: scannetpp/0f69aefe3d and scannetpp/2c7c10379b; direct R1 socket parity is 12/12, with {restored["answered"]} answers.',
         'The replay uses stored step-544 own tensors; it does not rerun a model prefill or claim step-200 numeric equivalence.',
         'All labels were rebuilt from GT rasters with the table producer; isolated features use its unchanged runtime producers. No S4/G1 candidate label was transferred.',
         '',
@@ -98,10 +100,15 @@ def main():
     for key in ['object_cf_minus_A0','fused_cf_minus_A2','A1_minus_A0_tables','A2_minus_A0','A8_nonull_minus_A0_tables','size_obj_cf_minus_A0','A9_today_minus_A0','A9_obj_minus_frozen_A4']:
         if key in contrasts:lines.append(f'| {key} | {delta(key)} |')
     lines+=['','| Bar | Verdict |','|---|---|']+[f'| {k} | {v["verdict"]} |' for k,v in decision['bars'].items()]
+    lines+=['','| All-train merge eligibility | Precision | Added members |','|---|---:|---:|']
+    for tau in M.TAUS:
+        p=summary['arms'][f'A4_obj_{tau:.2f}_best1']['precision']
+        value='NA' if p['precision'] is None else f'{100*p["precision"]:.2f}%'
+        lines.append(f'| tau={tau:.2f} (requires 90%) | {value} | {p["added"]} |')
     lines += [
         '',f'Frozen object variant: {variant["arm"] if variant else "NONE; dependent object arms skipped"}. The replace_box verdict covers part 1 only; tower_frames part 2 remains required.',
         'Object/fusion gains and merge precision use room-cross-fitted predictions. Non-null selection uses five room-held-out fits with the fixed run_iso config and seed 20261116.',
-        'Appearance-order screening also reports an OOF threshold choice; the specified all-train frozen-threshold diagnostic is retained. No source reaches deployment here.',
+        'The appearance bar uses OOF threshold choices to satisfy the task’s cross-fit requirement; the spec’s all-train frozen-threshold rate remains diagnostic. No source is deployed here.',
         'Dry checks reproduce the copied-reader A0 socket, stored-label S4 predictions, corrected-label scorer targets, one-frame fusion, and tau=1.01 identity. Six math tests pass.',
         'Dry pricing covers A0–A4 and A9; trained/dependent A5, A7 and A8 are checked by the completed train pass. A6 and held-out remain deferred by order 0654Z.',
         'LADDER_TRAIN.txt prints all 33 object variants, ten GT fusion variants, paired contrasts, and both-answered diagnostics. SUMMARY_TRAIN.json includes truth/dataset/frame bands.',
@@ -112,8 +119,9 @@ def main():
         'Commands producing the numbers (logs are in out/):',
         '`bash run.sh prepare.py`; `bash run.sh prepare_pinned.py` — pinned train labels and rowsets.',
         '`bash run.sh serving_reference.py` — rebuilt labels, geometry receipts, and replay.',
-        '`bash run.sh run_training_stages.py dry` — dry pricing and parity checks.',
+        '`bash run.sh run_training_stages.py dry`; `bash run.sh confirm_dry.py` — dry pricing, parity checks and saved-gate verification.',
         '`bash run.sh run_training_stages.py base` — four train shards and cross-fitted FREEZE.json.',
+        '`bash run.sh verify_restored.py` — direct R1 socket parity on both convert-refused captures.',
         '`bash run.sh run_training_stages.py extras` — five selector fits, dependent arms, tables and DECISION.json.',
         '`bash run.sh audit_sources.py`; `bash run.sh provenance_v2.py`; `bash run.sh finalize_v2.py` — source audit, provenance, verification and archive.',
         'All Python jobs use p1cpu, nice priority, at most eight cores per job, and a virtual-memory limit below 40 GB; the four pricing shards share eight CPU cores.',

@@ -1,4 +1,5 @@
 """Explicit Orchard read relocation; file bindings retain their original path strings."""
+from .job_env import key as env_key
 import json
 import os
 from pathlib import Path
@@ -8,7 +9,7 @@ SCRATCH = Path('/tmp/jjyeung')
 
 
 def enabled():
-    return os.environ.get(('Q_E1' if 'Q_E1' in os.environ else 'STUDENT_ORCHARD')) == '1'
+    return os.environ.get((env_key('STUDENT_ORCHARD'))) == '1'
 
 
 def owned(path, *, resolve=None):
@@ -19,7 +20,7 @@ def owned(path, *, resolve=None):
 def resolve_read(path, *, resolve=None):
     path = Path(path)
     resolve = resolve or Path.resolve
-    mapping = os.environ.get(('Q_E4' if 'Q_E4' in os.environ else 'STUDENT_FRAME_ROOT_MAP'))
+    mapping = os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))
     if not mapping:
         return path
     if not enabled():
@@ -54,7 +55,7 @@ def coord_root():
 
 
 def snapshot(spec):
-    root = Path(os.environ['Q_E3' if 'Q_E3' in os.environ else 'STUDENT_MODEL_ROOT']).resolve()
+    root = Path(os.environ[env_key('STUDENT_MODEL_ROOT')]).resolve()
     if not owned(root):
         raise ValueError('Orchard model root must be owned project or node-local storage')
     original = spec['snapshot']

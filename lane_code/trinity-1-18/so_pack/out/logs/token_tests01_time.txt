@@ -1,0 +1,38 @@
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_pack/work/test_builder_tokens.py", line 95, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_pack/work/test_builder_tokens.py", line 52, in main
+    new,rn=default_delivery(configured(base,root/'a1',patched))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_pack/work/test_builder_tokens.py", line 36, in default_delivery
+    P.run([c['python'],'-I','-s','-B','-c',code,str(path)]+args,
+  File "/scratch/jjyeung/orch_n30/so_pack/work/pack.py", line 270, in run
+    require(result.returncode == 0, 'Command failed (%d); see %s' % (result.returncode,log))
+  File "/scratch/jjyeung/orch_n30/so_pack/work/pack.py", line 44, in require
+    raise GateError(message)
+pack.GateError: Command failed (1); see /scratch/jjyeung/orch_n30/so_pack/work/token_tests01/a1/build.log
+Command exited with non-zero status 1
+	Command being timed: "env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/test_builder_tokens.py --work /scratch/jjyeung/orch_n30/so_pack/work/token_tests01 --baseline-config work/tests05/D_BUILD_CONFIG.json --patched-d work/builders/d/build_d.py --original-r10 /scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/build_r10.py --patched-r10 work/builders/routed/build_r10.py"
+	User time (seconds): 2.34
+	System time (seconds): 0.05
+	Percent of CPU this job got: 53%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:04.50
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 79476
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 22979
+	Voluntary context switches: 97
+	Involuntary context switches: 125
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 10408
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1

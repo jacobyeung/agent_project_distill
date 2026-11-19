@@ -106,13 +106,16 @@ def freeze(arms):
         return max(eligible,key=lambda x:x[0])[1] if eligible else None
     ftau=first_choice();first_rows=[];first_folds={}
     for k in range(5):
-        tau=(folds[str(k)]['tau'] if replace and folds[str(k)] else first_choice(k))
+        tau=(folds[str(k)]['tau'] if folds[str(k)] else None) if replace else first_choice(k)
         arm=f'A4_obj_{tau:.2f}_best1' if tau is not None else 'A0_deployed';first_folds[str(k)]=tau
         first_rows += [dict(r,arm='first_object_cf',chosen_arm=arm) for r in arms[arm] if r['fold']==k]
+    first_linker=appearance(arms['A0_deployed']);first_object=appearance(first_rows)
+    eligible_sources=[(name,v['rate']) for name,v in [('linker',first_linker),('object',first_object)] if (v['rate'] or 0)>=.9]
+    source=max(eligible_sources,key=lambda x:x[1])[0] if eligible_sources else None
     result=dict(frozen_variant=obj,fused_frozen=fusion,object_folds=folds,fused_folds=gfolds,
         object_gain=gain,fused_gain=fgain,merge_safe=pr,replace_box_part1=replace,
-        appearance_tau=ftau,appearance_folds=first_folds,first_object_cf=appearance(first_rows),
-        first_linker=appearance(arms['A0_deployed']),first_object_frozen=appearance(arms[f'A4_obj_{ftau:.2f}_best1']) if ftau else None,
+        appearance_tau=ftau,appearance_folds=first_folds,appearance_source=source,first_object_cf=first_object,
+        first_linker=first_linker,first_object_frozen=appearance(arms[f'A4_obj_{ftau:.2f}_best1']) if ftau else None,
         heldout_evaluated=False,A6_status='DEFERRED')
     return result,cf+gcf+first_rows
 
@@ -156,6 +159,8 @@ def main():
         first_seen_screen=dict(verdict='PASS' if max(frozen['first_linker']['rate'] or 0,frozen['first_object_cf']['rate'] or 0)>=.9 else 'FAIL',linker=frozen['first_linker'],object_oof=frozen['first_object_cf'],object_frozen=frozen['first_object_frozen']),
         tower_challenger=dict(verdict='REPORT_ONLY',evidence={k:v for k,v in contrasts.items() if k.startswith('A7')}))
     if frozen['fused_gain']['estimate']<1:decisions['fused_path']['interpretation']='the single view is not the limit under this tower'
+    if not frozen['frozen_variant']:
+        decisions['tower_challenger']=dict(verdict='SKIPPED',reason='No eligible frozen object variant; best1 tower rows remain diagnostic')
     summary={a:dict(rows=len(rs),rooms=len({r['room'] for r in rs}),mra=mean(rs),refusals=sum(r['prediction'] is None for r in rs),size_mra=mean(sizes(rs)),objects=len(objects(rs)),precision=precision(rs),first_seen=appearance(rs),
         ci95=contrast(rs,[dict(r,prediction=None) for r in rs])['ci95'],
         selection='cross-fitted' if a in ('obj_cf','fused_cf','first_object_cf') else 'OOF selector' if a.startswith('A8') else 'in-sample') for a,rs in arms.items()}

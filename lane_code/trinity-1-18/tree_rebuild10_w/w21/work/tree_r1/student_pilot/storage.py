@@ -1,3 +1,4 @@
+from .job_env import key as env_key
 from .orchard_paths import resolve_read, enabled as orchard_enabled, owned as orchard_owned
 import copy
 import os
@@ -180,7 +181,7 @@ def stage_frames(rows, output, scratch_root):
     return staged, {"schema": "student-frame-staging-v1", "files": files, "source_references": list(sources.values()),
                     "unique_frames": len(files), "staged_bytes": sum(item["bytes"] for item in files),
                     "scratch_root": str(scratch_directory(scratch_root)), "rows": len(rows),
-                    **({"orchard_path_map": os.environ.get(("Q_E4" if "Q_E4" in os.environ else "STUDENT_FRAME_ROOT_MAP"))} if orchard_enabled() else {})}
+                    **({"orchard_path_map": os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))} if orchard_enabled() else {})}
 
 
 def _stage_frames_parallel(rows, output, scratch_root, workers):
@@ -241,7 +242,7 @@ def _stage_frames_parallel(rows, output, scratch_root, workers):
     return staged, {"schema": "student-frame-staging-v1", "files": files, "source_references": list(sources.values()),
                     "unique_frames": len(files), "staged_bytes": sum(item["bytes"] for item in files),
                     "scratch_root": str(scratch_directory(scratch_root)), "rows": len(rows),
-                    **({"orchard_path_map": os.environ.get(("Q_E4" if "Q_E4" in os.environ else "STUDENT_FRAME_ROOT_MAP"))} if orchard_enabled() else {})}
+                    **({"orchard_path_map": os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))} if orchard_enabled() else {})}
 
 
 def localize_frames(rows, store, manifest_path, scratch_root=None, stage=False):

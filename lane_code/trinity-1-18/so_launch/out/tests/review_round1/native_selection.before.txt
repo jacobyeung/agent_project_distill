@@ -1,0 +1,17 @@
+Thu Nov 19 08:21:18 UTC 2026
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/test_review_round1_delivery.py ReviewDeliveryTests.test_finding_7_native_gate_selects_all_relevant_modules -v
+test_finding_7_native_gate_selects_all_relevant_modules (__main__.ReviewDeliveryTests.test_finding_7_native_gate_selects_all_relevant_modules) ... FAIL
+
+======================================================================
+FAIL: test_finding_7_native_gate_selects_all_relevant_modules (__main__.ReviewDeliveryTests.test_finding_7_native_gate_selects_all_relevant_modules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/test_review_round1_delivery.py", line 56, in test_finding_7_native_gate_selects_all_relevant_modules
+    self.assertIn(required, names)
+AssertionError: 'tests.test_s1_launch_kit' not found in ['tests.test_s1_admission', 'tests.test_s1_first_batch_progress', 'tests.test_s1_staging', 'tests.test_s1_source_seal', 'tests.test_s1_mdg_inputs', 'tests.test_s1_first_step', 'tests.test_s1_persistent_resume', 'tests.test_s1_launch_kit.LaunchKitTests.test_new_run_chooses_training', 'tests.test_s1_launch_kit.LaunchKitTests.test_job_entry_preserves_wrapper_allocation_clock', 'tests.test_s1_launch_kit.LaunchKitTests.test_parseable_but_incomplete_checkpoint_never_restarts_cold', 'tests.test_s1_launch_kit.LaunchKitTests.test_resume_requires_matching_binding_and_complete_payload_inventory']
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+EXIT: 1

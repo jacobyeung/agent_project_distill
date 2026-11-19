@@ -1,0 +1,68 @@
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/test_review_round1_delivery.py -v
+test_finding_1_production_claim_and_cross_run_design (__main__.ReviewDeliveryTests.test_finding_1_production_claim_and_cross_run_design) ... FAIL
+test_finding_3_resume_estimate_and_four_call_sites (__main__.ReviewDeliveryTests.test_finding_3_resume_estimate_and_four_call_sites) ... FAIL
+test_finding_8_cache_environment_and_json_names_are_generic (__main__.ReviewDeliveryTests.test_finding_8_cache_environment_and_json_names_are_generic) ... FAIL
+test_finding_8_patches_and_manifest_include_review_regressions (__main__.ReviewDeliveryTests.test_finding_8_patches_and_manifest_include_review_regressions) ... FAIL
+test_findings_5_and_7_real_stage_and_native_gate_are_in_delivery (__main__.ReviewDeliveryTests.test_findings_5_and_7_real_stage_and_native_gate_are_in_delivery) ... FAIL
+
+======================================================================
+FAIL: test_finding_1_production_claim_and_cross_run_design (__main__.ReviewDeliveryTests.test_finding_1_production_claim_and_cross_run_design)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/test_review_round1_delivery.py", line 19, in test_finding_1_production_claim_and_cross_run_design
+    self.assertFalse(re.search(r'\b120\b', text), name + ': unsupported preparation saving')
+AssertionError: <re.Match object; span=(17455, 17458), match='120'> is not false : REPORT.md: unsupported preparation saving
+
+======================================================================
+FAIL: test_finding_3_resume_estimate_and_four_call_sites (__main__.ReviewDeliveryTests.test_finding_3_resume_estimate_and_four_call_sites)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/test_review_round1_delivery.py", line 33, in test_finding_3_resume_estimate_and_four_call_sites
+    self.assertTrue(re.search(r'(?i)estimate[^\n]*4[–-]10 min', text), name + ': resume saving estimate missing')
+AssertionError: None is not true : REPORT.md: resume saving estimate missing
+
+======================================================================
+FAIL: test_finding_8_cache_environment_and_json_names_are_generic (__main__.ReviewDeliveryTests.test_finding_8_cache_environment_and_json_names_are_generic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/test_review_round1_delivery.py", line 61, in test_finding_8_cache_environment_and_json_names_are_generic
+    self.assertEqual(names, ('S1_CPU_REHEARSAL', 'SLURM_CPUS_PER_TASK', 'PYTHONHASHSEED'))
+AssertionError: Tuples differ: ('S1_[13 chars]', 'STUDENT_R2_FRAME_HOST', 'STUDENT_R2_LOCAL_[65 chars]EED') != ('S1_[13 chars]', 'SLURM_CPUS_PER_TASK', 'PYTHONHASHSEED')
+
+First differing element 1:
+'STUDENT_R2_FRAME_HOST'
+'SLURM_CPUS_PER_TASK'
+
+First tuple contains 3 additional elements.
+First extra element 3:
+'SLURM_CPUS_PER_TASK'
+
++ ('S1_CPU_REHEARSAL', 'SLURM_CPUS_PER_TASK', 'PYTHONHASHSEED')
+- ('S1_CPU_REHEARSAL',
+-  'STUDENT_R2_FRAME_HOST',
+-  'STUDENT_R2_LOCAL_NODE',
+-  'SLURM_CPUS_PER_TASK',
+-  'QWEN36_27B_SNAPSHOT',
+-  'PYTHONHASHSEED')
+
+======================================================================
+FAIL: test_finding_8_patches_and_manifest_include_review_regressions (__main__.ReviewDeliveryTests.test_finding_8_patches_and_manifest_include_review_regressions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/test_review_round1_delivery.py", line 80, in test_finding_8_patches_and_manifest_include_review_regressions
+    self.assertTrue(needle in data.decode(), name + ': missing ' + needle)
+AssertionError: False is not true : 01_prepared_input_cache.diff: missing test_partial_native_journal_survives_same_path_miss
+
+======================================================================
+FAIL: test_findings_5_and_7_real_stage_and_native_gate_are_in_delivery (__main__.ReviewDeliveryTests.test_findings_5_and_7_real_stage_and_native_gate_are_in_delivery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/test_review_round1_delivery.py", line 43, in test_findings_5_and_7_real_stage_and_native_gate_are_in_delivery
+    self.assertTrue('class RealStageTests' in wrapper, 'real tk_stage integration test is missing')
+AssertionError: False is not true : real tk_stage integration test is missing
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.007s
+
+FAILED (failures=5)
+EXIT: 1

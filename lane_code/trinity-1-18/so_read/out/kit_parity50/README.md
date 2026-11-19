@@ -1,32 +1,45 @@
-This kit has **not run on a GPU**. It compares the same pinned 50 items with every new cache OFF and with selected caches ON. The existing G3T memo setting stays as supplied. The sample contains ten items per type and twelve native captures; it stresses reuse and is not a representative speed sample.
+The GPU kit is unrun. The fixed sample contains 50 items: ten per type and twelve native captures. It stresses reuse and does not estimate representative throughput.
 
-Apply both diffs from `out/patches/` to a fresh copy of the staged payload's `src` directory with `patch --batch --fuzz=0 -p1`. Rebuild and authenticate the payload before production use. The patches change source hashes even when their switches are OFF. The rebinding-only `build_r10.py` does not automatically incorporate source patches.
+Apply both diffs to a fresh full copy of A4/src or B5/src. Every original file stays unchanged; the additions live in src/u0, outside the reader/evaluator hash trees. The ordinary reader entrypoint is the default OFF path. Cache settings alone do not activate extensions. Explicit activation uses `src/u0/a8.py --enable-extensions`; cache switches then default to off. The ON environment records a separate extension source hash. Rebuild and authenticate payload/artifact pins, including the extension code root, before deployment.
 
-Copy `config.example.json` to a new configuration and fill its paths to the approved staged checkpoint, export pin, artifact binding, reader source, settings, native task manifests, and frames. Use the production torch 2.11/CUDA 12.9 environment on an assigned Orchard GPU. Keep the checkpoint, source, precision, attention backends, and hardware fixed across passes. Do not run this kit on the shared Trinity GPUs.
+Keep this private kit, its original manifests, reports, and alias/reverse maps on Trinity. Public submission names, staged paths, configuration, and logs must use opaque tokens. The public array example uses numeric type slots and neutral paths. Its template supplies an opaque job name and explicit log destinations. Keep journals on persistent storage and keep shard membership/count fixed across attempts.
 
-The acceptance command, **not executed here**, is:
-
-```bash
-nice -n 10 "$READ_PYTHON" -I -s -B /path/to/kit_parity50/run.py /path/to/config.json \
-  --out /scratch/NEW_PARITY_OUTPUT --enable-gpu --repeat-baseline --shards 4
-```
-
-`CUDA_VISIBLE_DEVICES` must already identify the assigned GPU. Each pass starts a fresh process. `OFF_REPEAT` checks the baseline's repeatability. The four optional shards run sequentially on that GPU to check shard equivalence; this does not measure parallel speed. Change `enable_caches` to a subset of `processor`, `vision`, and `sam` to isolate a failing or slow cache. Never overwrite a completed parity output.
-
-The kit writes complete reader journals, per-type seconds/item, cache counters, model-load timings, host/GPU memory peaks, and kernel/version receipts. The comparison requires exactly the expected 50 IDs. It checks the full generated text, token IDs, calls, responses, heads, scale, finish, scores, decode budget, and all remaining semantic fields without numeric tolerance. It detects a changed answer even if the official score is unchanged. All enabled caches should show useful hits before adoption; an all-miss run establishes no speed benefit.
-
-The comparator excludes only `seconds`, `timings`, `audit`, `perception_memo`, `read_cache`, and `read_profile` from the output payload; audit violations still fail. JSON object order is canonicalized. Runtime paths, timings, and cache counters cannot be identical between passes. The original journals retain that evidence. `MERGE_PARITY.json` additionally requires identical bytes in the canonical single-shard and multi-shard answer/trace tarballs.
-
-For a preempt array, fill `array_config.example.json` and adapt `array_preempt.template.sh`. The worker is OFF unless `--enable-array` is supplied. The template has no submission action. The orchestrator must stage the approved inputs, provide the actual policy wrapper and memory allocation, preserve the same logical input paths, and choose a journal directory that survives node loss. Do not use allocation-local `/tmp` or `/scratch` as the only journal copy. Keep shard count, manifest, source, checkpoint, and settings fixed across requeues.
-
-Each shard owns whole physical rooms and preserves manifest order within its assigned set. Every item becomes durable in `committed/` before entering `items.jsonl`. A requeue preserves a torn JSONL file, rebuilds it from complete commits, and reruns only uncommitted items. It can repeat an interrupted computation but cannot duplicate its committed answer. The store requires Linux/POSIX rename, file/directory fsync, and advisory-lock support; the actual persistent filesystem has not been tested here.
-
-After all tasks finish, invoke `h1eval.h10.merge_read` with the full manifest and the explicit journal directories (`journal_root/<type>/<shard>`). The module rejects missing, duplicate, foreign, or differently bound records and writes `answer_trace_return.tgz` plus separate `PROVENANCE.json`. It does not publish an Orchard return token. A normal deadline exit with incomplete work returns status 75; only scheduler preemption with the configured REQUEUE policy supplies automatic requeue. There is no retry loop.
-
-The CPU comparator test is:
+Prepare approved original and extended source roots, checkpoint/export/artifact inputs, and settings under neutral staged paths. Build a private alias JSON mapping original asset paths to those staged paths. On Trinity, seal settings and any JSON configuration metadata with the helper; its wire decoder preserves their runtime field names in memory. Seal settings only after flattening the intended item-set settings and binding every required asset. The helper rejects descriptive absolute asset paths; it never copies datasets or weights.
 
 ```bash
-READ_TEST_TMP=/scratch/jjyeung/orch_n30/so_read/work/test-artifacts \
-  bash /scratch/jjyeung/orch_n30/so_read/work/cpu.sh \
-  /scratch/jjyeung/orch_n30/so_read/out/kit_parity50/test_compare.py
+mkdir -p work/public
+bash work/cpu.sh work/src/u0/a11.py seal --source-root work/src \
+  --input PRIVATE_SETTINGS.json --aliases PRIVATE_ALIASES.json --out work/public/u3
+bash work/cpu.sh work/src/u0/a11.py stage-kit --source-root work/src \
+  --input out/kit_parity50 --config PRIVATE_NEUTRAL_CONFIG.json --out work/public/u0
 ```
+
+The private configuration follows config.example.json. `source_root` selects the extended source; `original_source_root` selects the untouched source. Both use the same approved native tree, model, artifacts, precision, hardware, and settings. `enable_caches` uses slots 0=processor, 1=vision, 2=SAM. The staged kit has only u0.py, u1.py, a9.py, u0.json, u1.json, and u2.json. It authenticates the sealed sample bytes and retains the original logical sample pin. Transfer this staged directory through the approved transport under an opaque root; never publish the private kit directory or maps.
+
+On an assigned GPU, the acceptance command is **not executed here**:
+
+```bash
+nice -n 10 "$READ_PYTHON" -I -s -B /scratch/u0/u0/u0.py /scratch/u0/u0/u2.json \
+  --out /scratch/u0/u9 --enable-gpu --public --repeat-baseline --shards 4
+```
+
+The kit requires token-only staged metadata, opaque paths, and explicit GPU/public flags. Every pass starts a fresh process. ORIGINAL, OFF, and OFF_REPEAT use the original journal and modulo-shard defaults. ON first tests only caches. The optional ON_JOURNAL and four sequential whole-scene shards separately test durable journaling and sharding. Sequential shards establish equality, not parallel speed.
+
+The same explicit transport wrapper protects every arm. It emits token-only JSON, hashes item/native/room identities, and hashes arbitrary worker stdout/stderr into event tokens. It never writes an ID reverse map on Orchard. Its source hash is separate from the original reader hashes. This wrapper belongs to the explicit public parity experiment; the ordinary OFF reader imports none of these extensions. CPU tests compare all OFF output files, including source hashes and timing fields, against the original under a controlled clock, with no field exclusions.
+
+Acceptance requires exactly the expected 50 IDs, complete production output schemas, nonempty text/tokens/heads, scale even when null, every served response and forced-token count, matching call counters, and zero semantic byte differences. ORIGINAL/OFF also requires all production source-hash fields to match. Every enabled cache must declare itself, report a valid memory bound, and show positive hits; SAM requires both feature and detection hits. Empty/all-miss runs fail. The comparator excludes measured clock fields, audit paths/counters, old memo telemetry, and new cache telemetry from GPU semantic equality; audit violations fail. No answer/trace numeric tolerance is allowed. Equal scores cannot conceal changed text or tokens.
+
+Output directories u0/u1/u2/u3/u4/u5 mean ORIGINAL/OFF/OFF_REPEAT/ON/ON_JOURNAL/SHARDED. Reports u6 through ua hold pairwise comparisons; ub.json holds merge equality; uc/ud hold the canonical public single/sharded returns. All JSON strings in public output are wire tokens. The raw clocks and source receipts remain present. Restore on Trinity with the private original manifest/settings/config, never on Orchard:
+
+```bash
+bash work/cpu.sh work/src/u0/a11.py restore --source-root work/src \
+  --input PRIVATE_RETURN --out work/RESTORED_NEW \
+  --private-source out/kit_parity50/sample50.json --private-source PRIVATE_NEUTRAL_CONFIG.json \
+  --private-source PRIVATE_SETTINGS.json
+```
+
+Restoration authenticates committed rows before rebuilding private-ID checksums and filenames. Merge restored journals with the original manifest using the explicit extension entrypoint/module. CPU fixtures require private and restored-public answer/trace archives to match byte for byte. The existing transport envelope still contains clocks; the canonical answer/trace archive is a separate deterministic artifact.
+
+Before adoption at step 600 or later, pass the original/OFF/OFF-repeat/ON/journal/sharded GPU gates, useful-hit checks, net seconds/item checks including hashing/copying, and real persistent-storage preemption/requeue. Live weight-content hashes protect replacements and raw-storage edits, but may outweigh cache savings. The 4 GiB default bounds cache-owned live storage and transient copies, including keys/containers; it does not cap model working memory or caller-owned outputs. Unsupported values bypass caching. Preserve adequate whole-process host/GPU headroom.
+
+No delivered CPU test or single-GPU parity pass requires a local OS socket. StageOneSocket is a Python callback. Socket-backed transport/distributed integration is outside this kit and remains unrun. No job, scheduler command, upload, or return publication ran here.

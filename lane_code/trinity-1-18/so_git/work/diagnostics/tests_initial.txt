@@ -1,0 +1,63 @@
+test_current_hourly_add_is_scoped_away_from_kits (test_owner_tools.CoverageTests.test_current_hourly_add_is_scoped_away_from_kits) ... ERROR
+test_dry_count_has_no_copy_and_reports_dedup (test_owner_tools.CoverageTests.test_dry_count_has_no_copy_and_reports_dedup) ... ok
+test_exact_stale_boundary_once_and_recovery (test_owner_tools.HealthTests.test_exact_stale_boundary_once_and_recovery) ... ok
+test_failed_with_own_blocker_is_suppressed (test_owner_tools.HealthTests.test_failed_with_own_blocker_is_suppressed) ... ok
+test_failed_without_own_blocker_once_and_recovery (test_owner_tools.HealthTests.test_failed_without_own_blocker_once_and_recovery) ... ok
+test_fake_clock_cli_local_only (test_owner_tools.HealthTests.test_fake_clock_cli_local_only) ... ok
+test_incomplete_new_run_does_not_make_failure (test_owner_tools.HealthTests.test_incomplete_new_run_does_not_make_failure) ... ok
+test_missing_log_stale_once (test_owner_tools.HealthTests.test_missing_log_stale_once) ... ok
+test_new_good_push_with_failing_end_does_not_recover_failure (test_owner_tools.HealthTests.test_new_good_push_with_failing_end_does_not_recover_failure) ... ok
+test_queue_only_failure_and_hung_run (test_owner_tools.HealthTests.test_queue_only_failure_and_hung_run) ... ok
+test_restart_replays_missing_event (test_owner_tools.HealthTests.test_restart_replays_missing_event) ... ok
+test_second_stale_incident_gets_new_event (test_owner_tools.HealthTests.test_second_stale_incident_gets_new_event) ... ok
+test_unrelated_own_blocker_does_not_suppress (test_owner_tools.HealthTests.test_unrelated_own_blocker_does_not_suppress) ... ok
+test_conflicting_name_refuses_without_add (test_owner_tools.KitCommandTests.test_conflicting_name_refuses_without_add) ... ok
+test_each_remote_must_verify (test_owner_tools.KitCommandTests.test_each_remote_must_verify) ... ok
+test_failed_push_stops_without_retry (test_owner_tools.KitCommandTests.test_failed_push_stops_without_retry) ... ok
+test_landing_and_idempotence_command_contract (test_owner_tools.KitCommandTests.test_landing_and_idempotence_command_contract) ... ok
+test_wrong_branch_and_dirty_index_refuse (test_owner_tools.KitCommandTests.test_wrong_branch_and_dirty_index_refuse) ... ok
+test_any_secret_including_filtered_out_file_refuses (test_owner_tools.KitValidationTests.test_any_secret_including_filtered_out_file_refuses) ... ok
+test_bad_hash_and_missing_review (test_owner_tools.KitValidationTests.test_bad_hash_and_missing_review) ... ok
+test_bad_names (test_owner_tools.KitValidationTests.test_bad_names) ... ok
+test_disabled_has_no_writes (test_owner_tools.KitValidationTests.test_disabled_has_no_writes) ... ok
+test_dry_uses_filter_and_scan_without_git (test_owner_tools.KitValidationTests.test_dry_uses_filter_and_scan_without_git) ... ok
+test_reserved_metadata_and_empty_filter (test_owner_tools.KitValidationTests.test_reserved_metadata_and_empty_filter) ... ok
+test_scanner_error_and_scanner_omission_refuse (test_owner_tools.KitValidationTests.test_scanner_error_and_scanner_omission_refuse) ... ok
+test_shared_flock_timeout (test_owner_tools.KitValidationTests.test_shared_flock_timeout) ... ok
+test_shared_flock_wait_then_acquire (test_owner_tools.KitValidationTests.test_shared_flock_wait_then_acquire) ... ok
+test_size_and_name_filter_and_duplicate_paths (test_owner_tools.KitValidationTests.test_size_and_name_filter_and_duplicate_paths) ... ok
+test_traversal_absolute_links_and_duplicates_refused (test_owner_tools.KitValidationTests.test_traversal_absolute_links_and_duplicates_refused) ... ok
+test_conditional_even_with_fixes_is_refused (test_owner_tools.ReviewTests.test_conditional_even_with_fixes_is_refused) ... ok
+test_later_go_resolves_conditional (test_owner_tools.ReviewTests.test_later_go_resolves_conditional) ... ok
+test_later_negative_or_unknown_wins (test_owner_tools.ReviewTests.test_later_negative_or_unknown_wins) ... ok
+test_metadata_required_and_bound_if_present (test_owner_tools.ReviewTests.test_metadata_required_and_bound_if_present) ... ok
+test_prose_quotes_and_code_are_not_verdicts (test_owner_tools.ReviewTests.test_prose_quotes_and_code_are_not_verdicts) ... ok
+test_supported_forms (test_owner_tools.ReviewTests.test_supported_forms) ... ok
+test_absolute_epoch_package (test_recover_boundary_remediation.PackagePathTests.test_absolute_epoch_package) ... ok
+test_collect_must_be_a_file (test_recover_boundary_remediation.PackagePathTests.test_collect_must_be_a_file) ... ok
+test_directory_without_collect_is_refused (test_recover_boundary_remediation.PackagePathTests.test_directory_without_collect_is_refused) ... ok
+test_empty_path_is_refused (test_recover_boundary_remediation.PackagePathTests.test_empty_path_is_refused) ... ok
+test_missing_directory_is_refused (test_recover_boundary_remediation.PackagePathTests.test_missing_directory_is_refused) ... ok
+test_override_reaches_process_matcher (test_recover_boundary_remediation.PackagePathTests.test_override_reaches_process_matcher) ... ok
+test_relative_path_is_refused (test_recover_boundary_remediation.PackagePathTests.test_relative_path_is_refused) ... ok
+test_unset_preserves_current_default (test_recover_boundary_remediation.PackagePathTests.test_unset_preserves_current_default) ... ok
+
+======================================================================
+ERROR: test_current_hourly_add_is_scoped_away_from_kits (test_owner_tools.CoverageTests.test_current_hourly_add_is_scoped_away_from_kits)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_git/work/build/tests/test_owner_tools.py", line 421, in test_current_hourly_add_is_scoped_away_from_kits
+    lines = source.read_text().splitlines()
+            ^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_git/work/build/tests/fixtures/lane_code_sync.sh'
+
+----------------------------------------------------------------------
+Ran 43 tests in 1.598s
+
+FAILED (errors=1)

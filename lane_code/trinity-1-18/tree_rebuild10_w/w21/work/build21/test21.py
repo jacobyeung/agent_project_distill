@@ -16,6 +16,9 @@ class RetainedDirectory:
     def __exit__(self,*args):return False
     def cleanup(self):pass
 tempfile.TemporaryDirectory=RetainedDirectory
+import torch
+torch.set_num_threads(8)
+torch.set_num_interop_threads(1)
 from monitor9 import Monitor
 m=Monitor(Path(os.environ.get('B21_MONITOR_ROOT',T)))
 suite=unittest.defaultTestLoader.loadTestsFromNames(sys.argv[1:] or ['tests.test_r1_build14'])

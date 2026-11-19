@@ -1,15 +1,20 @@
 $ date -u
-Thu Nov 19 07:31:07 UTC 2026
+Thu Nov 19 08:27:26 UTC 2026
 EXIT: 0
-PASS: all four patch hashes/base-file pins and all eleven combined files match the delivered source
-$ bash -n /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T072417Z/combined/launch_s1/job.sh /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T072417Z/combined/launch_s1/b/c.sh /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T072417Z/combined/launch_s1/b/r.sh
+PASS: four patch hashes/base pins and native gate SHA match; all 11 combined files match the delivered source
+PASS: every pre-fix production file matches the exact tree inspected by the independent review
+$ bash -n /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/launch_s1/job.sh /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/launch_s1/b/r.sh /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/launch_s1/b/c.sh
 EXIT: 0
-PASS: changed Python files parse; changed shell files pass bash -n
-PASS: 49 new tests and 51 selected native regressions; standalone and combined zero-fuzz applications passed
-PASS: five stale native fixture failures reproduce on both input and patched trees
-PASS: report verdict, test counts, local links and one-page hand-over note are consistent
-workspace_bytes=2200497724 (limit 3000000000)
-scratch_free_bytes=562321096704 (floor 150 GiB)
+PASS: changed Python files parse and changed shell files pass bash -n
+PASS: 63 patch tests; 86 native tests (75 pass, 11 explicit skips); independent, recommended and all-four applications pass
+PASS: the same five stale admission-fixture failures reproduce on input and patched trees
+PASS: six delivery regression contracts on the freshly patched tree
+PASS: active claims, finding-to-fix mapping, one-page note, two-page design and local links are consistent
+$ du -sb /scratch/jjyeung/orch_n30/so_launch
+491454378	/scratch/jjyeung/orch_n30/so_launch
+EXIT: 0
+workspace_bytes=491454378 (limit 3000000000)
+scratch_free_bytes=532774191104 (floor 150 GiB)
 $ date -u
-Thu Nov 19 07:31:07 UTC 2026
+Thu Nov 19 08:27:27 UTC 2026
 EXIT: 0

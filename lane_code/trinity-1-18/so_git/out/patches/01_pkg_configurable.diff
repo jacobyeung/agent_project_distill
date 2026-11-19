@@ -1,0 +1,121 @@
+--- a/tools/recover_boundary_remediation.py
++++ b/tools/recover_boundary_remediation.py
+@@ -3,7 +3,12 @@
+ from datetime import datetime,timezone
+ R=Path(os.environ['R1315_RUNTIME'])
+ ROOT=Path('/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/collection_gt_r1313')
+-PKG=Path('/home/jjyeung/agent_project_distill/collector')
++DEFAULT_PKG=Path('/home/jjyeung/agent_project_distill/collector')
++PKG=DEFAULT_PKG
++if 'R1315_PKG' in os.environ:
++ PKG=Path(os.environ['R1315_PKG'])
++ if not PKG.is_absolute() or not PKG.is_dir() or not (PKG/'collect.py').is_file():
++  raise ValueError('R1315_PKG must be an absolute existing directory containing collect.py')
+ OUT=R
+ UID=25409
+ def now():return datetime.now(timezone.utc).isoformat()
+@@ -25,7 +30,7 @@
+   p=identity(d.name)
+   if not p or p['uid']!=UID or p['state']=='Z':continue
+   a=p['args']
+-  packages=[PKG,Path('/home/jjyeung/agent_project/agent/rounds/candidates/r1315_vsi_distill_gt_training_tolerant_sparse'),Path('/home/jjyeung/agent_project_r1313_gt_teacher/agent/rounds/candidates/r1313_vsi_distill_gt_training'),Path('/home/jjyeung/agent_project/agent/rounds/candidates/r1314_vsi_distill_gt_training_tolerant_pool')]
++  packages=[PKG,DEFAULT_PKG,Path('/home/jjyeung/agent_project/agent/rounds/candidates/r1315_vsi_distill_gt_training_tolerant_sparse'),Path('/home/jjyeung/agent_project_r1313_gt_teacher/agent/rounds/candidates/r1313_vsi_distill_gt_training'),Path('/home/jjyeung/agent_project/agent/rounds/candidates/r1314_vsi_distill_gt_training_tolerant_pool')]
+   if any(str(pkg/'collect.py') in a for pkg in packages) and any(x in a for x in ('start','worker')):
+    cfg=json.loads(Path(a[a.index('--config')+1]).read_text())
+    if cfg['run_root']==str(ROOT):result.append(p)
+--- /dev/null
++++ b/test_recover_boundary_remediation.py
+@@ -0,0 +1,93 @@
++import os
++from pathlib import Path
++import runpy
++import tempfile
++import unittest
++from unittest.mock import patch
++
++ROOT = Path(__file__).resolve().parent
++if ROOT.name == 'tests':
++    ROOT = ROOT.parent
++SOURCE = ROOT / 'tools' / 'recover_boundary_remediation.py'
++
++
++class PackagePathTests(unittest.TestCase):
++    def setUp(self):
++        root = os.environ.get('REMEDIATION_TEST_ROOT')
++        if root:
++            root = Path(root).resolve()
++            if not str(root).startswith(('/scratch/', '/tmp/')):
++                raise ValueError('REMEDIATION_TEST_ROOT must be under /scratch or /tmp')
++            root.mkdir(parents=True, exist_ok=True)
++        # System temporary storage avoids dirtying either a /home or /scratch checkout.
++        # Retain fixtures: the cluster's no-deletion rule forbids cleanup commands.
++        self.root = Path(tempfile.mkdtemp(prefix='r1315_pkg_', dir=root))
++        self.package = self.root / 'epoch' / 'collector'
++        self.package.mkdir(parents=True)
++        (self.package / 'collect.py').write_text('# inert fixture\n')
++
++    def load(self, override=None, unset=False):
++        env = dict(os.environ, R1315_RUNTIME=str(self.root / 'runtime'))
++        env.pop('R1315_PKG', None)
++        if not unset:
++            env['R1315_PKG'] = override
++        with patch.dict(os.environ, env, clear=True):
++            return runpy.run_path(str(SOURCE))
++
++    def test_unset_preserves_current_default(self):
++        result = self.load(unset=True)
++        self.assertEqual(result['PKG'], Path('/home/jjyeung/agent_project_distill/collector'))
++
++    def test_absolute_epoch_package(self):
++        result = self.load(str(self.package))
++        self.assertEqual(result['PKG'], self.package)
++
++    def test_relative_path_is_refused(self):
++        with self.assertRaisesRegex(ValueError, 'absolute existing directory'):
++            self.load('collector')
++
++    def test_empty_path_is_refused(self):
++        with self.assertRaises(ValueError):
++            self.load('')
++
++    def test_missing_directory_is_refused(self):
++        with self.assertRaises(ValueError):
++            self.load(str(self.root / 'absent'))
++
++    def test_directory_without_collect_is_refused(self):
++        with self.assertRaises(ValueError):
++            self.load(str(self.root))
++
++    def test_collect_must_be_a_file(self):
++        path = self.root / 'not_package'
++        path.mkdir()
++        (path / 'collect.py').mkdir()
++        with self.assertRaises(ValueError):
++            self.load(str(path))
++
++    def check_process_matcher(self, script):
++        module = self.load(str(self.package))
++        proc = dict(pid=99999, uid=module['UID'], start_ticks='1', state='S',
++                    args=['python3', str(script), 'worker', '--config', str(self.root / 'config.json')])
++        (self.root / 'config.json').write_text('{"run_root": ' + __import__('json').dumps(str(module['ROOT'])) + '}')
++        # run_path returns a copy; patch the function's own globals.
++        globals_ = module['processes'].__globals__
++        with patch.object(Path, 'iterdir', return_value=[Path('/proc/99999')]), patch.dict(globals_, identity=lambda _: proc):
++            self.assertEqual(module['processes'](), [proc])
++
++    def test_override_reaches_process_matcher(self):
++        self.check_process_matcher(self.package / 'collect.py')
++
++    def test_override_keeps_default_collectors_visible(self):
++        self.check_process_matcher(Path('/home/jjyeung/agent_project_distill/collector/collect.py'))
++
++    def test_default_temp_root_ignores_checkout(self):
++        with patch.dict(os.environ, {}, clear=True), \
++             patch.object(Path, 'cwd', side_effect=AssertionError('must not use checkout')):
++            fixture = PackagePathTests()
++            fixture.setUp()
++        self.assertEqual(fixture.root.parent, Path(tempfile.gettempdir()))
++
++
++if __name__ == '__main__':
++    unittest.main()

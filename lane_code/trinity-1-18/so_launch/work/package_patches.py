@@ -23,12 +23,21 @@ assert current_c.count(timing) == 1
 assert base_c.count('    flock 8\n') == 1
 cache_c = current_c.replace(timing, '    flock 8\n')
 timing_c = base_c.replace('    flock 8\n', timing)
+current_r = (edited / 'launch_s1/b/r.sh').read_text()
+base_r = (original / 'launch_s1/b/r.sh').read_text()
+guard = '/usr/bin/python3 -I "$HX/b/g.py" "$HX" "${1:?}"\n'
+start = current_r.index('tk_run_timing() {\n')
+end = current_r.index('export TK_RUNS_DIR=', start)
+run_timing = current_r[start:end]
+assert run_timing.count(guard) == 1 and base_r.count(guard) == 1
+cache_r = current_r.replace(run_timing, guard)
+timing_r = base_r.replace(guard, run_timing)
 groups = {
     '01_prepared_input_cache.diff': ['launch_s1/b/c.sh', 'launch_s1/b/r.sh', 'launch_s1/b/pc.py',
                                     'tests/test_prepared_input_cache.py', 'tests/test_prepared_cache_wrapper.py'],
     '02_parallel_frame_sha.diff': ['launch_s1/b/f2.py', 'tests/test_parallel_frame_sha.py'],
     '03_checkpoint_verify_memo.diff': ['launch_s1/b/r8.py', 'tests/test_checkpoint_verify_memo.py'],
-    '04_launch_phase_timing.diff': ['launch_s1/job.sh', 'launch_s1/b/c.sh', 'tests/test_launch_phase_timing.py'],
+    '04_launch_phase_timing.diff': ['launch_s1/job.sh', 'launch_s1/b/c.sh', 'launch_s1/b/r.sh', 'tests/test_launch_phase_timing.py'],
 }
 manifest = {}
 for name, paths in groups.items():
@@ -39,6 +48,8 @@ for name, paths in groups.items():
         after = (edited / relative).read_text()
         if relative == 'launch_s1/b/c.sh':
             after = cache_c if name.startswith('01') else timing_c
+        if relative == 'launch_s1/b/r.sh':
+            after = cache_r if name.startswith('01') else timing_r
         parts.extend(difflib.unified_diff(before.splitlines(True), after.splitlines(True),
                      fromfile='a/' + relative if prior.exists() else '/dev/null', tofile='b/' + relative))
     payload = ''.join(parts).encode()
@@ -46,6 +57,8 @@ for name, paths in groups.items():
     manifest[name] = dict(bytes=len(payload), sha256=hashlib.sha256(payload).hexdigest(), files=paths,
         apply_method='patch --batch --fuzz=0 -p1',
         input_root='in/tree/work/tree_r1', depends_on=[],
+        deployment='OFF: no useful production hit' if name.startswith('01') else 'default OFF; enable in order 03, 04, 02',
+        native_gate_sha256=hashlib.sha256((root / 'work/run_native_regression.py').read_bytes()).hexdigest(),
         base_sha256={relative: hashlib.sha256((original / relative).read_bytes()).hexdigest()
                      if (original / relative).is_file() else None for relative in paths})
 (out / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')

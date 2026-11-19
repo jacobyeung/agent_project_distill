@@ -145,6 +145,11 @@ numeric = dict(cpu_forward_ratio=cpu_ratio,
                conditional_gpu_gib=[57 + 2.7 * (n - 4500) / 1000 for n in (9127, 10215, 16384)],
                conditional_tripwire_tokens=4500 + (76 - 57) * 1000 / 2.7,
                microsteps_per_rank=sum(mix.values()), mix=mix)
+analysis = obj(SRC / 'out/evidence/ANALYSIS.json')
+numeric['kit_analytic_static_gib_sum'] = sum(analysis['static_gib'].values())
+numeric['kit_flop_ratio_unvalidated_gpu_timing'] = analysis['step']['ratio_64_over_32']['flops']
+numeric['conditional_step_seconds'] = [analysis['step'][key] * numeric['kit_flop_ratio_unvalidated_gpu_timing']
+                                       for key in ('step32_seconds', 'step32_seconds_record')]
 value = dict(command='bash run_cpu.sh resume_audit.py', input_sha256=inputs,
     saved_evidence_verification=previous, patch_edited_lines=patches, missing_inputs=missing,
     source_evidence=evidence, token_audit_counterexamples=counterexamples, memory=memory, recomputed_numbers=numeric,

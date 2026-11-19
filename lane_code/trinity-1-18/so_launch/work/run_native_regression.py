@@ -16,12 +16,18 @@ names = [
     'tests.test_s1_mdg_inputs',
     'tests.test_s1_first_step',
     'tests.test_s1_persistent_resume',
-    'tests.test_s1_launch_kit.LaunchKitTests.test_new_run_chooses_training',
-    'tests.test_s1_launch_kit.LaunchKitTests.test_job_entry_preserves_wrapper_allocation_clock',
-    'tests.test_s1_launch_kit.LaunchKitTests.test_parseable_but_incomplete_checkpoint_never_restarts_cold',
-    'tests.test_s1_launch_kit.LaunchKitTests.test_resume_requires_matching_binding_and_complete_payload_inventory',
+    'tests.test_s1_launch_kit',
+    'tests.test_s1_production_imports',
+    'tests.test_s1_checkpoint_buffers',
 ]
 if '--include-known-stale-gate' in sys.argv[2:]:
     names.insert(3, 'tests.test_s1_in_job_gate')
-result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
+suite = unittest.defaultTestLoader.loadTestsFromNames(names)
+if os.environ.get('SO_NO_LOCAL_SOCKETS') == '1':
+    # This class starts a real Gloo process group from setUpClass. Load the
+    # module into the gate, but report each unavailable test as an explicit skip.
+    from tests.test_s1_checkpoint_buffers import CheckpointBufferTests
+    CheckpointBufferTests.__unittest_skip__ = True
+    CheckpointBufferTests.__unittest_skip_why__ = 'Local sockets are unavailable in this sandbox; real Gloo is required'
+result = unittest.TextTestRunner(verbosity=2).run(suite)
 raise SystemExit(not result.wasSuccessful())

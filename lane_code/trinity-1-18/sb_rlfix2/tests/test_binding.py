@@ -77,3 +77,18 @@ class Binding(unittest.TestCase):
                 counts=dict(Counter(r['item']['question_type'] for r in rows)),
                 items=[dict(id=r['item']['id'],journal=r['journal'],journal_sha256=r['journal_sha256']) for r in rows],
                 command='bash scripts/run_tests.sh'))
+    def test_replay_refuses_staged_m544_as_m200(self):
+        from rl_on_n.replay import check_export
+        settings=load_binding()
+        with self.assertRaisesRegex(ValueError,'MISSING A4 m200 export'):
+            check_export(settings['export_dir'],settings['config'])
+    def test_replay_native_mapping_uses_recorded_items(self):
+        from rl_on_n.replay import selection
+        from rl_on_n.serving import reader_runtime
+        selected=selection();items=[r['item'] for r in selected]
+        settings=load_binding()
+        with reader_runtime():
+            from h1eval.h10.parity_adapter import map_items
+            mapped,receipt=map_items(items,settings)
+        self.assertEqual(set(mapped),{r['id'] for r in items})
+        self.assertEqual(len(receipt['items']),20)

@@ -1,4 +1,5 @@
 """Mapped RGB reads and a bounded, identity-invalidated process hash memo."""
+from .job_env import key as env_key
 from collections import OrderedDict
 import hashlib
 import json
@@ -15,7 +16,7 @@ def resolve_frame(path):
     raw = Path(path)
     if not raw.is_absolute() or '..' in raw.parts:
         raise ValueError('Frame path must be absolute without traversal')
-    mapping = json.loads(os.environ.get(('Q_E4' if 'Q_E4' in os.environ else 'STUDENT_FRAME_ROOT_MAP'), '{}'))
+    mapping = json.loads(os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')), '{}'))
     if not isinstance(mapping, dict):
         raise ValueError('STUDENT_FRAME_ROOT_MAP must be a JSON object')
     for old in sorted(mapping, key=len, reverse=True):

@@ -1,0 +1,145 @@
+Thu Nov 19 08:21:15 UTC 2026
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_input_cache.py -v
+test_an_existing_complete_journal_survives_a_cache_miss (__main__.PreparedCacheTests.test_an_existing_complete_journal_survives_a_cache_miss) ... ok
+test_another_complete_generation_does_not_replace_native_journal (__main__.PreparedCacheTests.test_another_complete_generation_does_not_replace_native_journal) ... ok
+test_cold_rebuild_after_miss_can_publish_and_hit (__main__.PreparedCacheTests.test_cold_rebuild_after_miss_can_publish_and_hit) ... ok
+test_concurrent_consumers_keep_complete_target_and_training_evidence (__main__.PreparedCacheTests.test_concurrent_consumers_keep_complete_target_and_training_evidence) ... ok
+test_copy_failure_never_touches_destination (__main__.PreparedCacheTests.test_copy_failure_never_touches_destination) ... ERROR
+test_corrupt_or_missing_frames_force_ordinary_restaging (__main__.PreparedCacheTests.test_corrupt_or_missing_frames_force_ordinary_restaging) ... ok
+test_corrupt_prepared_file_misses_and_preserves_target (__main__.PreparedCacheTests.test_corrupt_prepared_file_misses_and_preserves_target) ... ERROR
+test_default_off_cli_has_no_side_effects (__main__.PreparedCacheTests.test_default_off_cli_has_no_side_effects) ... ok
+test_each_key_component_changed_alone_misses (__main__.PreparedCacheTests.test_each_key_component_changed_alone_misses) ... ok
+test_failed_verified_install_restores_the_native_destination (__main__.PreparedCacheTests.test_failed_verified_install_restores_the_native_destination) ... ERROR
+test_foreign_config_native_journal_survives_same_path_miss_and_refuses (__main__.PreparedCacheTests.test_foreign_config_native_journal_survives_same_path_miss_and_refuses) ... FAIL
+test_hit_report_write_error_is_not_a_cli_miss (__main__.PreparedCacheTests.test_hit_report_write_error_is_not_a_cli_miss) ... ERROR
+test_hit_verifies_and_preserves_native_journal (__main__.PreparedCacheTests.test_hit_verifies_and_preserves_native_journal) ... ok
+test_irrelevant_environment_is_absent_from_key_and_written_json_names (__main__.PreparedCacheTests.test_irrelevant_environment_is_absent_from_key_and_written_json_names) ... FAIL
+test_new_logical_run_cannot_reuse_a_native_configuration_seal (__main__.PreparedCacheTests.test_new_logical_run_cannot_reuse_a_native_configuration_seal) ... ok
+test_partial_index_is_a_miss (__main__.PreparedCacheTests.test_partial_index_is_a_miss) ... ok
+test_partial_native_journal_survives_same_path_miss_and_reuses_prepare (__main__.PreparedCacheTests.test_partial_native_journal_survives_same_path_miss_and_reuses_prepare) ... FAIL
+test_partial_prepared_directory_is_never_published (__main__.PreparedCacheTests.test_partial_prepared_directory_is_never_published) ... ok
+test_partial_published_directory_misses (__main__.PreparedCacheTests.test_partial_published_directory_misses) ... ok
+test_purged_pool_source_misses (__main__.PreparedCacheTests.test_purged_pool_source_misses) ... ok
+test_real_config_init_and_code_changes_miss (__main__.PreparedCacheTests.test_real_config_init_and_code_changes_miss) ... ok
+test_real_wrapper_environment_has_same_restore_and_seal_key (__main__.PreparedCacheTests.test_real_wrapper_environment_has_same_restore_and_seal_key) ... ok
+test_restored_receipts_pass_the_native_training_gate_without_rebinding (__main__.PreparedCacheTests.test_restored_receipts_pass_the_native_training_gate_without_rebinding) ... ok
+test_same_key_different_code_in_receipt_is_refused (__main__.PreparedCacheTests.test_same_key_different_code_in_receipt_is_refused) ... ok
+test_same_parsed_config_with_different_file_pin_misses (__main__.PreparedCacheTests.test_same_parsed_config_with_different_file_pin_misses) ... ok
+test_same_path_hit_only_verifies_native_reuse_and_a_purge_misses (__main__.PreparedCacheTests.test_same_path_hit_only_verifies_native_reuse_and_a_purge_misses) ... ok
+test_symlink_and_path_traversal_refused (__main__.PreparedCacheTests.test_symlink_and_path_traversal_refused) ... ok
+test_two_concurrent_publishers_commit_complete_receipts (__main__.PreparedCacheTests.test_two_concurrent_publishers_commit_complete_receipts) ... ok
+test_uncovered_retained_frame_refuses_publication (__main__.PreparedCacheTests.test_uncovered_retained_frame_refuses_publication) ... ok
+test_unpinned_mdg_paths_cannot_form_a_cache_key (__main__.PreparedCacheTests.test_unpinned_mdg_paths_cannot_form_a_cache_key) ... ok
+test_unpinned_remove_path_cannot_form_a_cache_key (__main__.PreparedCacheTests.test_unpinned_remove_path_cannot_form_a_cache_key) ... ok
+
+======================================================================
+ERROR: test_copy_failure_never_touches_destination (__main__.PreparedCacheTests.test_copy_failure_never_touches_destination)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_input_cache.py", line 431, in test_copy_failure_never_touches_destination
+    self.assertEqual(path.read_text(), 'preserve')
+                     ^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/pc-test-kqcpdysg/new-run/inputs/native-progress'
+
+======================================================================
+ERROR: test_corrupt_prepared_file_misses_and_preserves_target (__main__.PreparedCacheTests.test_corrupt_prepared_file_misses_and_preserves_target)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_input_cache.py", line 367, in test_corrupt_prepared_file_misses_and_preserves_target
+    self.assertEqual((f.target / "partial").read_text(), "native journal owns this")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/pc-test-nf5_ew19/new-run/inputs/partial'
+
+======================================================================
+ERROR: test_failed_verified_install_restores_the_native_destination (__main__.PreparedCacheTests.test_failed_verified_install_restores_the_native_destination)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_input_cache.py", line 449, in test_failed_verified_install_restores_the_native_destination
+    self.assertEqual(path.read_text(), 'preserve')
+                     ^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/pc-test-0rq24r33/new-run/inputs/native-progress'
+
+======================================================================
+ERROR: test_hit_report_write_error_is_not_a_cli_miss (__main__.PreparedCacheTests.test_hit_report_write_error_is_not_a_cli_miss)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_input_cache.py", line 459, in test_hit_report_write_error_is_not_a_cli_miss
+    self.assertEqual(pc.main(), 2)
+                     ^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch_s1/b/pc.py", line 465, in main
+    return 0 if restore(ctx) else 1
+                ^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch_s1/b/pc.py", line 424, in restore
+    ctx.result("NATIVE_JOURNAL" if native else "MISS", reason=type(error).__name__ + ": " + str(error),
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/launch_s1/b/pc.py", line 412, in restore
+    ctx.result("HIT", source_job=receipt["source_job"], source_inputs=str(source),
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+OSError: injected report write failure
+
+======================================================================
+FAIL: test_foreign_config_native_journal_survives_same_path_miss_and_refuses (__main__.PreparedCacheTests.test_foreign_config_native_journal_survives_same_path_miss_and_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_input_cache.py", line 398, in test_foreign_config_native_journal_survives_same_path_miss_and_refuses
+    self.assertEqual(before, {str(p.relative_to(f.source)): (p.read_bytes(), p.stat())
+AssertionError: {'phase_frames.complete.json': (b'{"bindin[88063 chars]77))} != {}
+Diff is 471970 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_irrelevant_environment_is_absent_from_key_and_written_json_names (__main__.PreparedCacheTests.test_irrelevant_environment_is_absent_from_key_and_written_json_names)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_input_cache.py", line 468, in test_irrelevant_environment_is_absent_from_key_and_written_json_names
+    self.assertEqual(f.context().key, before)
+AssertionError: '1c5ddde98f7f003daa2114a0a3d9678d5d499c96341315e72c1364ddde331eee' != '38acb1388501cbef2155040f158af8ede028b64faad0d36341595539097aa5d3'
+- 1c5ddde98f7f003daa2114a0a3d9678d5d499c96341315e72c1364ddde331eee
++ 38acb1388501cbef2155040f158af8ede028b64faad0d36341595539097aa5d3
+
+
+======================================================================
+FAIL: test_partial_native_journal_survives_same_path_miss_and_reuses_prepare (__main__.PreparedCacheTests.test_partial_native_journal_survives_same_path_miss_and_reuses_prepare)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/review_round1_before/tests/test_prepared_input_cache.py", line 380, in test_partial_native_journal_survives_same_path_miss_and_reuses_prepare
+    self.assertEqual(before, {str(p.relative_to(f.source)): (p.read_bytes(), p.stat())
+AssertionError: {'phase_prepare.complete.json': (b'{"bindi[85724 chars]77))} != {}
+Diff is 468338 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 31 tests in 0.984s
+
+FAILED (failures=3, errors=4)
+EXIT: 1

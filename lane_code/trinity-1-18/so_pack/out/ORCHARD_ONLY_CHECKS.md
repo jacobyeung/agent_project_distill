@@ -21,4 +21,8 @@ Local checks verify the exact batch trap/tail with redirected fixture I/O. They 
 
 Export scanning, base/env archive preservation, tar header/file resolution, policy authorization, package/bundle/payload pins, item validation, isolated imports, layout metadata, operator planning/rehearsal, memory bounds, process guard/write proof and dispatch predicates can run on Trinity with authenticated input mirrors. Missing mirrors cause a local failure. This dispatch does not have the large export/dependency archives or the original SHA-pinned r10 source deliveries. The 3 GB workspace cap also prevents staging a complete production export here.
 
+The local dependency resolver currently refuses nonregular archive members, including links that the native staging policy might permit. It therefore fails closed on such archives; support for authenticated native link semantics is not established. Full-size fill/resolution and actual login-runtime compatibility remain unvalidated.
+
 The supplied package names, payload comments and native operational scripts violate the requested strict forbidden-word policy. The wrapper rejects them before transport, including when `--yes` is supplied. There is no policy bypass. Generated remote commands received syntax checks only; no remote placement, fill, CPU job or GPU submission ran during this task.
+
+If the compute node cannot write the package directory, the batch trap cannot retain its tail there. A failed terminal state without `a/x<job>` or CPU logs is therefore a filesystem/bootstrap diagnostic, not a successful empty return. The submit wrapper prints the CPU job ID, terminal state or wait expiry, and any available stderr tail before stopping.

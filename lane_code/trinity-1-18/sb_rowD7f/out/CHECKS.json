@@ -1,0 +1,227 @@
+{
+ "binding_note": "N binding still needs the room certification of review sb_drev7 finding 3 (augmented store hash); not done here",
+ "binding_ready": false,
+ "checks": {
+  "N_pack_and_validators": {
+   "rev_verify7_native_new": 7971,
+   "rev_verify7_native_source": 7971,
+   "rows": 7971,
+   "sources": 7971,
+   "status": "PASS"
+  },
+  "READ30": {
+   "note": "read in full via out/READ30_TEXT.md; all labels, letters and lines correct; inherited source agreement errors kept",
+   "rows": 30,
+   "status": "PASS"
+  },
+  "blocker_B1_step1_and_final_form": {
+   "evidence": "rev_verify7 twin_line1_equals_source_line1, twin_final_line_form_equals_source, final_line; verify_filtered target lines",
+   "final_line_form_predicts_clause": 0.5,
+   "status": "PASS",
+   "step1_line_predicts_clause": {
+    "D7_before": 0.874,
+    "cv_pair": 0.5,
+    "cv_scene": 0.5,
+    "rev_leak7_in_sample": 0.5
+   }
+  },
+  "blocker_B2_no_facing": {
+   "draws_per_row": {
+    "direction": 0.6504,
+    "facing_pairs": 0.4238
+   },
+   "majority_as_sampled": 0.5,
+   "sources_in_N_cell": {
+    "direction": 7971
+   },
+   "status": "PASS",
+   "teaching_expected_draws": {
+    "away": 5184,
+    "toward": 5184
+   },
+   "twins_in_N_cell": {
+    "direction": 7971
+   }
+  },
+  "exact_cell_counts": {
+   "filtered_cells": {
+    "easy/left": 1990,
+    "easy/right": 1995,
+    "hard/back-left": 990,
+    "hard/back-right": 996,
+    "hard/front-left": 1000,
+    "hard/front-right": 1000
+   },
+   "generator_cells_8000": [
+    {
+     "branch": "a",
+     "family": "easy",
+     "label": "left",
+     "rows": 2000
+    },
+    {
+     "branch": "a",
+     "family": "easy",
+     "label": "right",
+     "rows": 2000
+    },
+    {
+     "branch": "a",
+     "family": "hard",
+     "label": "back-left",
+     "rows": 1000
+    },
+    {
+     "branch": "a",
+     "family": "hard",
+     "label": "back-right",
+     "rows": 1000
+    },
+    {
+     "branch": "a",
+     "family": "hard",
+     "label": "front-left",
+     "rows": 1000
+    },
+    {
+     "branch": "a",
+     "family": "hard",
+     "label": "front-right",
+     "rows": 1000
+    }
+   ],
+   "status": "PASS"
+  },
+  "field_diff": {
+   "fields": {
+    "+candidate_id": 7971,
+    "+label_row_keys": 7971,
+    "+provenance.sb_rowD7": 7971,
+    "answer": 7971,
+    "pool": 7971,
+    "qid": 7971,
+    "student_input.question": 7971,
+    "target": 7971
+   },
+   "re_cited_frames": 0,
+   "rows_byte_identical_to_rebuild": 7971,
+   "status": "PASS"
+  },
+  "filter": {
+   "R1": {
+    "source_checked": 8000,
+    "twin_checked": 8000
+   },
+   "R2": {
+    "source_checked": 8000,
+    "twin_checked": 8000
+   },
+   "R3": {
+    "source_checked": 8000,
+    "source_listed_without_raster": 7231,
+    "source_raster_but_unverifiable": 45,
+    "source_removed": 29,
+    "source_removed_sliver_only": 13,
+    "source_removed_zero_pixels": 16,
+    "source_with_raster": 769,
+    "twin_checked": 8000,
+    "twin_listed_without_raster": 7231,
+    "twin_raster_but_unverifiable": 45,
+    "twin_removed": 29,
+    "twin_removed_sliver_only": 13,
+    "twin_removed_zero_pixels": 16,
+    "twin_with_raster": 769
+   },
+   "dropped_pairs": 29,
+   "rows_out": 7971
+  },
+  "ground_truth": {
+   "all_rows": 7971,
+   "status": "PASS",
+   "trace_rule": 7971
+  },
+  "leak_question_features": {
+   "D7_leak_test_best": 0.5,
+   "rev_leak7_worst_logreg": 0.5029,
+   "rev_leak7_worst_majority": 0.5,
+   "status": "PASS"
+  },
+  "leak_sampling_weighted": {
+   "dataset": 0.5,
+   "name_set": 0.5,
+   "status": "PASS",
+   "template": 0.5,
+   "template+name_set": 0.5
+  },
+  "removal_lists": {
+   "new_clean": 7971,
+   "source_clean": 7971,
+   "status": "PASS"
+  },
+  "room_rule": {
+   "status": "PASS",
+   "strict_native_rooms": {
+    "source|Rooms.admit|PASS": 229,
+    "source|Rooms.admit|R1_ROOM_ROW_REFUSED:unresolved": 7742,
+    "source|Rooms.status|ok": 229,
+    "source|Rooms.status|unresolved": 7742,
+    "twin|Rooms.admit|PASS": 229,
+    "twin|Rooms.admit|R1_ROOM_ROW_REFUSED:unresolved": 7742,
+    "twin|Rooms.status|ok": 229,
+    "twin|Rooms.status|unresolved": 7742
+   },
+   "tiered": {
+    "alias_map_sha256": "7f50287bae46792d1de25b33344d62d6a6484688887c5294bdd1d1f67f76623b",
+    "hits": {
+     "BENCH v2": 0,
+     "K1": 0,
+     "R0": 0,
+     "dev-S1": 0,
+     "withheld-80": 0
+    },
+    "list_sha8": {
+     "BENCH v2": "3119aa4a",
+     "R0": "bdb5d402",
+     "dev-S1": "969cdb56",
+     "withheld-80": "634820b4"
+    },
+    "source_map_room_mismatch": 0,
+    "unresolved": 0
+   }
+  },
+  "scene_division_gate": {
+   "detail": "scene_gate_new|{\"read\": 7971, \"filtered\": 0, \"removed\": 0, \"outside\": 0, \"heldout\": 0, \"admitted\": 7971}",
+   "new": 1,
+   "status": "PASS"
+  },
+  "source_reuse": {
+   "max": 1,
+   "sources": 7971,
+   "status": "PASS"
+  },
+  "unique_qids_candidate_ids": {
+   "qids_new_vs_v7": 7971,
+   "recomputed_candidate_ids": 7971,
+   "status": "PASS"
+  },
+  "wording_distance": {
+   "checked": 7971,
+   "removed": 0,
+   "status": "PASS",
+   "threshold": 0.1
+  }
+ },
+ "command": "nice -n 10 python finalize.py",
+ "delivery_ready": true,
+ "input_sha256": {
+  "/scratch/jjyeung/orch_n30/sb_rowD7f/d7/out/CHECKS.json": "fd04ae253050ac7032c741e28907b771de7d756e7c2679773fac1c3398ede13b",
+  "/scratch/jjyeung/orch_n30/sb_rowD7f/out/FILTER.json": "070b2aa886ad8366029a4ac4961755947d06181ba48ec88010939f63024392a8",
+  "/scratch/jjyeung/orch_n30/sb_rowD7f/out/LEAK_TEST.json": "217d18264c08579add9b96b10b1ea6af23a55b542f89738297267c84ebc6cdd7",
+  "/scratch/jjyeung/orch_n30/sb_rowD7f/out/RASTER_INDEX.json": "41b93feba8de5147dd21baf69aa8f88264483394207b60e9425d36b5fa8db78f",
+  "/scratch/jjyeung/orch_n30/sb_rowD7f/out/VERIFY_FILTERED.json": "f6c20924be605ec9f226e41253e8e5044cc7461adecb4627cd0f7918cce41aef",
+  "/scratch/jjyeung/orch_n30/sb_rowD7f/rev/work/LEAK_REVIEW.json": "84c66156e8be1b82850a4aedf4c3a96cf88e280111edc7f7f94f48421eaed300",
+  "/scratch/jjyeung/orch_n30/sb_rowD7f/rev/work/ROOMS_REVIEW.json": "8e089a406bb43be70c9e6723f249641e4fffd5e762e1847f82355c83813b847b",
+  "/scratch/jjyeung/orch_n30/sb_rowD7f/rev/work/VERIFY_REVIEW.json": "500da28adf78e5dc7ed68e43a79f0d3ef56aa771f51ed19c2efcb0e91dbbfb7b"
+ },
+ "status": "PASS"
+}

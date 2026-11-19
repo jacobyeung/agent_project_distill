@@ -1,0 +1,11 @@
+--- a/tests/test_so_joint.py
++++ b/tests/test_so_joint.py
+@@ -80,7 +80,7 @@
+                             assert threading.get_ident() == main_thread, 'collective on CPU worker'
+                             tensors = [x for x in a if isinstance(x,torch.Tensor)]
+                             source = a[1] if name in ('all_gather','all_gather_into_tensor','reduce_scatter_tensor') else a[0]
+-                            digest = hashlib.sha256(source.detach().contiguous().view(torch.uint8).numpy().tobytes()).hexdigest()
++                            digest = hashlib.sha256(source.detach().contiguous().reshape(-1).view(torch.uint8).numpy().tobytes()).hexdigest()
+                             collectives.append((name,[(tuple(t.shape),str(t.dtype)) for t in tensors],
+                                                 str(kw.get('op','default')),digest))
+                             return original(*a,**kw)

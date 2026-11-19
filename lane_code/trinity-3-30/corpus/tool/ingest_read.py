@@ -9,6 +9,7 @@ import io
 import json
 import os
 import re
+import resource
 import sqlite3
 import sys
 import tarfile
@@ -17,7 +18,7 @@ import time
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SCRATCH = os.path.join(ROOT, 't')
-LIMIT = 32 * 1024 * 1024
+LIMIT = 128 * 1024 * 1024
 
 
 def dumps(value):
@@ -58,6 +59,10 @@ def temp_path(suffix, directory=SCRATCH):
     return path
 
 
+class Refusal(ValueError):
+    pass
+
+
 class HashedReader(io.RawIOBase):
     def __init__(self, stream):
         self.stream, self.hash, self.size = stream, hashlib.sha256(), 0
@@ -79,12 +84,12 @@ class JSONStream:
         self.stream, self.buf, self.eof = stream, '', False
         self.decoder = json.JSONDecoder()
 
-    def more(self):
-        chunk = self.stream.read(65536)
+    def more(self, size=65536):
+        chunk = self.stream.read(size)
         self.eof = not chunk
         self.buf += chunk
         if len(self.buf) > LIMIT:
-            raise ValueError('One JSON value exceeds 32 MiB')
+            raise ValueError('One JSON value exceeds 128 MiB; prefix=' + repr(self.buf[:120]))
 
     def peek(self):
         self.buf = self.buf.lstrip()
@@ -112,7 +117,9 @@ class JSONStream:
             except ValueError:
                 if self.eof:
                     raise
-                self.more()
+                # Grow geometrically so large pretty-printed rows are not reparsed
+                # after every 64 KiB chunk. Memory remains bounded per value.
+                self.more(max(65536, min(len(self.buf), 4 * 1024 * 1024)))
 
     def array(self):
         self.eat('[')
@@ -124,7 +131,7 @@ class JSONStream:
                 self.eat(',')
         self.eat(']')
 
-    def document(self, callback):
+    def document(self, callback, nested=False):
         if self.peek() == '[':
             for row in self.array():
                 callback('items', row)
@@ -136,16 +143,18 @@ class JSONStream:
                 while True:
                     key = self.value()
                     self.eat(':')
-                    if key in ('items', 'rows') and self.peek() == '[':
+                    if (key in ('items', 'rows') or nested) and self.peek() == '[':
                         for row in self.array():
                             callback(key, row)
+                    elif key == 'arms' and self.peek() == '{':
+                        result[key] = self.document(lambda field, row: callback('arms.' + field, row), nested=True)
                     else:
                         result[key] = self.value()
                     if self.peek() != ',':
                         break
                     self.eat(',')
             self.eat('}')
-        if self.peek():
+        if not nested and self.peek():
             raise ValueError('Trailing JSON content')
         return result
 
@@ -156,11 +165,13 @@ ROUTE_ROW = re.compile(r'^metadata/reads/([^/]+)/metadata/journals/([^/]+)/([^/]
 
 class Store:
     def __init__(self):
-        self.path = temp_path('.sqlite')
-        self.db = sqlite3.connect(self.path)
+        # Working database in memory only, so no ingest leaves a file behind.
+        self.path = ':memory:'
+        self.db = sqlite3.connect(':memory:')
         self.db.executescript('''PRAGMA journal_mode=OFF; PRAGMA cache_size=-16384;
-        PRAGMA temp_store=FILE;
-        CREATE TABLE records(path TEXT, seq INTEGER, data TEXT, id TEXT);
+        PRAGMA temp_store=MEMORY;
+        CREATE TABLE records(path TEXT, seq INTEGER PRIMARY KEY, data TEXT, id TEXT, field TEXT);
+        CREATE TABLE used(read TEXT, seq INTEGER, PRIMARY KEY(read,seq));
         CREATE INDEX record_path ON records(path);
         CREATE INDEX record_id ON records(id,path);
         CREATE TABLE docs(path TEXT PRIMARY KEY, data TEXT);
@@ -180,12 +191,15 @@ class Store:
         for (data,) in self.db.execute('SELECT data FROM records WHERE path=? ORDER BY seq', (path,)):
             yield json.loads(data)
 
-    def record(self, path, row):
+    def record(self, path, row, field=None):
         item_id = row.get('id', row.get('key')) if isinstance(row, dict) else None
         if item_id is not None:
-            item_id = str(item_id).split(':', 1)[-1]
-        self.db.execute('INSERT INTO records VALUES (?,?,?,?)', (path, self.sequence, dumps(row), item_id))
+            item_id = str(item_id)
+        self.db.execute('INSERT INTO records VALUES (?,?,?,?,?)', (path, self.sequence, dumps(row), item_id, field))
         self.sequence += 1
+        if isinstance(row, dict):
+            if row.get('complete') is False or ('status' in row and str(row['status']).lower() != 'complete'):
+                self.errors.append('Incomplete row in %s: %s' % (path, item_id))
         if isinstance(row, dict) and 'question' in row and 'id' in row:
             self.db.execute('INSERT INTO tasks VALUES (?,?,?,?)',
                             (str(row['id']), digest(row), path, dumps(row)))
@@ -200,7 +214,7 @@ class Store:
                     if not line:
                         break
                     if len(line) > LIMIT:
-                        raise ValueError('JSONL record exceeds 32 MiB')
+                        raise ValueError('JSONL record exceeds 128 MiB')
                     if line.strip():
                         try:
                             self.record(path, json.loads(line))
@@ -209,13 +223,16 @@ class Store:
                             self.errors.append('Malformed JSONL in ' + path)
                             self.record(path + ':unparsed', {'text': line})
             else:
-                value = JSONStream(text).document(lambda key, row: self.record(path, row))
+                value = JSONStream(text).document(lambda key, row: self.record(path, row, key))
                 self.db.execute('INSERT INTO docs VALUES (?,?)', (path, dumps(value)))
         finally:
             text.detach()
 
     def load(self, source, inputs=False):
         source = readable(source)
+        # Submission roots can expose their packaged source through a src symlink.
+        if inputs and os.path.isdir(os.path.join(source, 'src')):
+            source = readable(os.path.join(source, 'src'))
         if os.path.isdir(source) and not inputs:
             if os.path.isfile(os.path.join(source, 'result.tar.gz')):
                 source = os.path.join(source, 'result.tar.gz')
@@ -223,18 +240,23 @@ class Store:
                 source = os.path.join(source, 'x')
         def selected(name):
             if inputs:
-                return name.endswith(('.jsonl', '.jsonl.gz')) or (name.endswith('.json') and
+                return (name.endswith(('.jsonl', '.jsonl.gz')) and not any(x in name.split('/') for x in ('tests', 'ret'))) or (name.endswith('.json') and
                        ('/items/' in '/' + name or re.search(r'(^|/)a/\d+\.json$', name)))
             return bool(KIT_ROW.match(name) or ROUTE_ROW.match(name) or
+                        (name.startswith('a0/results/') and name.endswith(('.jsonl', '.jsonl.gz'))) or
+                        (name.startswith('native/') and name.endswith(('.json', '.jsonl'))) or
                         re.search(r'(^|/)(SPEC|SUMMARY|COMPLETE|ITEMS)\.(json|jsonl)$', name) or
-                        re.search(r'/report/[^/]+\.json$', name) or
+                        re.search(r'(^|/)report/[^/]+\.json$', name) or
                         (name.startswith('metadata/') and name.endswith('.json') and
                          '/frames/' not in name))
         def consume(name, raw):
             logical = ('inputs/' if inputs else '') + name
             hashed = HashedReader(raw)
             buffered = io.BufferedReader(hashed)
-            self.consume(logical, buffered)
+            try:
+                self.consume(logical, buffered)
+            except ValueError as exc:
+                raise ValueError(logical + ': ' + str(exc))
             while buffered.read(1024 * 1024):
                 pass
             self.sources.append(dict(path=source, member=name if not os.path.isdir(source) else None,
@@ -335,7 +357,7 @@ class Adapter:
         self.paths = store.paths()
         if 'COMPLETE.json' not in self.paths:
             self.issues.append('Missing COMPLETE.json')
-        if 'SUMMARY.json' not in self.paths:
+        if self.name not in ('offread', 'native') and 'SUMMARY.json' not in self.paths:
             self.issues.append('Missing SUMMARY.json')
         for path in self.paths:
             if path.endswith(('SUMMARY.json', 'COMPLETE.json')):
@@ -358,7 +380,8 @@ class KitAdapter(Adapter):
 
     @staticmethod
     def detects(paths):
-        return 'SPEC.json' in paths or any(KIT_ROW.match(p) for p in paths)
+        return (('SPEC.json' in paths and not any(p.startswith('a0/results/') for p in paths))
+                or any(KIT_ROW.match(p) for p in paths))
 
     def metadata(self, read):
         spec = self.store.doc('SPEC.json')
@@ -394,6 +417,9 @@ class KitAdapter(Adapter):
                 report_path = family + '/report/' + ('ON16k' if arm == 'full' else arm) + '.json'
                 report_row = self.store.db.execute('SELECT data FROM records WHERE path=? AND id=?',
                                                    (report_path, str(row.get('id')))).fetchone()
+                if not report_row:
+                    report_row = self.store.db.execute('SELECT data FROM records WHERE path=? AND id=?',
+                                                       (report_path, 'devrows:' + str(row.get('id')))).fetchone()
                 if report_row and value['arm']['scores'] is None:
                     value['arm']['scores'] = json.loads(report_row[0]).get('scores')
                 self.put('', family, row.get('id', row.get('example_id', row.get('key'))), arm, value)
@@ -409,18 +435,35 @@ class KitAdapter(Adapter):
                 expected = self.store.doc(marker).get('items')
             # These kit returns declare full generation plus both scored budgets.
             for arm in ('full', 'B2048', 'B4096'):
-                if expected is not None and counts[(family, arm)] < expected:
-                    self.issues.append('%s/%s: %s < expected %s' % (family, arm, counts[(family, arm)], expected))
+                if expected is not None and counts[(family, arm)] != expected:
+                    self.issues.append('%s/%s: %s != expected %s' % (family, arm, counts[(family, arm)], expected))
                 population = self.store.doc(marker).get('population', {})
                 if not population:
                     population = self.store.doc('SPEC.json').get('population', {}).get(family, {})
                 for typ, total in population.get('types', {}).items():
-                    if type_counts[(family, arm, typ)] < total:
+                    if type_counts[(family, arm, typ)] != total:
                         self.issues.append('%s/%s/%s: rows below expected %s' % (family, arm, typ, total))
+        self.validate_arms()
         count = self.store.db.execute('SELECT count(*) FROM (SELECT DISTINCT family,id FROM normalized)').fetchone()[0]
         if count < summary.get('items', 0):
             self.issues.append('Total item count below SUMMARY.items')
         return ['']
+
+    def validate_arms(self):
+        current, identity, arms = None, None, set()
+        for family, item_id, arm, data in self.store.db.execute(
+                'SELECT family,id,arm,data FROM normalized ORDER BY family,id,arm'):
+            value = json.loads(data)
+            key = (family, item_id)
+            if key != current:
+                if current is not None and arms != {'full', 'B2048', 'B4096'}:
+                    self.issues.append('Mismatched arm populations: ' + repr(current))
+                current, identity, arms = key, (value['question'], value['truth']), set()
+            if (value['question'], value['truth']) != identity:
+                self.issues.append('Contradictory question/truth across arms: ' + repr(key))
+            arms.add(arm)
+        if current is not None and arms != {'full', 'B2048', 'B4096'}:
+            self.issues.append('Mismatched arm populations: ' + repr(current))
 
 
 class RoutedAdapter(Adapter):
@@ -435,12 +478,19 @@ class RoutedAdapter(Adapter):
         identity = self.store.doc('metadata/reads/' + read + '/metadata/IDENTITY.json')
         settings = self.store.doc('metadata/reads/' + read + '/metadata/0.json')
         serving = dict(identity=identity, settings=settings, cards=self.store.doc('metadata/CARDS.json'))
-        item_set = self.store.doc('metadata/reads/' + read + '/metadata/a/3.json').get('name')
+        manifests = [(p, self.store.doc(p)) for p in self.paths
+                     if p.startswith('metadata/reads/' + read + '/') and p.endswith('.json')
+                     and self.store.doc(p).get('name') and self.store.db.execute(
+                         'SELECT 1 FROM tasks WHERE path=? LIMIT 1', (p,)).fetchone()]
+        names = set(d['name'] for p, d in manifests)
+        if len(names) > 1:
+            raise Refusal('Contradictory task manifest names: ' + repr(sorted(names)))
+        item_set = next(iter(names)) if names else None
         return dict(set=item_set, export=dict(run=pin.get('run'), step=pin.get('step'), generation=pin.get('member_directory'),
                     artifact_id=pin.get('artifact_id'), artifact_sha256=pin.get('artifact', {}).get('sha256')),
                     serving=serving, reader_build=self.store.doc('metadata/IDENTITY.json').get('operator_sha256'),
                     job_id=self.store.doc('metadata/RETURN_ID.json').get('job')), \
-                    dict(set='metadata/reads/' + read + '/metadata/a/3.json:name',
+                    dict(set=','.join(p + ':name' for p, d in manifests),
                          export='metadata/EXPORT_PIN.json', serving='metadata/reads/' + read + '/metadata',
                          reader_build='metadata/IDENTITY.json:operator_sha256', job_id='metadata/RETURN_ID.json')
 
@@ -451,20 +501,28 @@ class RoutedAdapter(Adapter):
                                        (mapping_path, item_id)).fetchone()
         mapping = json.loads(record[0]) if record else None
         candidates = self.store.db.execute('SELECT hash,path,data FROM tasks WHERE id=? ORDER BY path', (item_id,))
-        exact, fallback = [], []
+        exact, fallback, rules = [], [], {}
         for h, source, data in candidates:
             task = json.loads(data)
             if mapping and h == mapping.get('task_sha256'):
                 exact.append((task, source))
+            elif (mapping and task.get('r0_split') == 'R0-dev' and
+                  task.get('question_type') == 'room_size_estimation' and 'ground_truth' in task and
+                  digest(dict(task, answer=task['ground_truth'])) == mapping.get('task_sha256')):
+                # h1eval/room134.py:bind constructs dict(r, answer=r['ground_truth']).
+                exact.append((task, source))
+                rules[source] = 'room134.bind:answer=ground_truth'
             else:
                 fallback.append((task, source))
+        if mapping and mapping.get('task_sha256') and not exact:
+            raise Refusal('Contradictory task_sha256 for ' + item_id)
         pool = exact or fallback
         if not pool:
             raise ValueError('Missing question/truth for ' + item_id + '; supply --inputs')
         first = base_item(pool[0][0])
         if not exact and any(base_item(x[0]) != first for x in pool[1:]):
             raise ValueError('Ambiguous task ID without matching task_sha256: ' + item_id)
-        return pool[0][0], pool[0][1], mapping, bool(exact)
+        return pool[0][0], pool[0][1], mapping, bool(exact), rules.get(pool[0][1], 'exact' if exact else 'unambiguous_id')
 
     def prepare(self):
         reads, counts = set(), collections.Counter()
@@ -476,7 +534,7 @@ class RoutedAdapter(Adapter):
             reads.add(read)
             for row in self.store.rows(path):
                 self.check_row(row, path)
-                task, task_path, mapping, verified = self.task(row, path)
+                task, task_path, mapping, verified, join_rule = self.task(row, path)
                 value = base_item(task)
                 out = row.get('output') or {}
                 value['question_type'] = out.get('question_type', row.get('question_type', row.get('type', value['question_type'])))
@@ -489,7 +547,7 @@ class RoutedAdapter(Adapter):
                 if mode not in (None, 'none') or name not in (None, 'none'):
                     arm += ':' + dumps(dict(mode=mode, intervention=intervention))
                 value.update(arm=routed_arm(row), raw=row, input=task, mapping=mapping,
-                             task_hash_verified=verified, source_file=path, input_file=task_path)
+                             task_hash_verified=verified, task_join_rule=join_rule, source_file=path, input_file=task_path)
                 self.put(read, task.get('family') or '', row['id'], arm, value)
                 counts[(read, typ, shard)] += 1
             journal_summary = self.store.doc(path.rsplit('/', 1)[0] + '/SUMMARY.json')
@@ -512,7 +570,104 @@ class RoutedAdapter(Adapter):
         return sorted(reads)
 
 
-ADAPTERS = [KitAdapter, RoutedAdapter]
+class OffreadAdapter(KitAdapter):
+    name = 'offread'
+
+    @staticmethod
+    def detects(paths):
+        return any(p.startswith('a0/results/') for p in paths)
+
+    def metadata(self, read):
+        meta, origin = super().metadata(read)
+        first = next(self.store.rows('a0/results/0/items_a0.jsonl'), {})
+        meta.update(set=first.get('benchmark'), official=True)
+        origin.update(set='a0/results/0/items_a0.jsonl:benchmark', official='offread adapter')
+        return meta, origin
+
+    def prepare(self):
+        expected = self.store.doc('COMPLETE.json').get('items')
+        categories = self.store.doc('report/B2048.json').get('groups', {})
+        for arm, filename in [('full', 'items_a0'), ('B2048', 'budget_2048'), ('B4096', 'budget_4096')]:
+            primary = 'a0/results/0/' + filename + '.jsonl'
+            alternate = 'a0/results/' + filename + '/0/items_a0.jsonl'
+            path = primary if primary in self.paths else alternate
+            count = 0
+            for row in self.store.rows(path):
+                value = base_item(row)
+                typ = row.get('question_type') or ''
+                matches = [c for c in categories if typ == c or typ.startswith(c + '_')]
+                category = max(matches, key=len) if matches else row.get('category', row.get('question_type'))
+                value.update(category=category,
+                             arm=kit_arm(row), raw=row, source_file=path, original_arm=filename)
+                self.put('', '', row['id'], arm, value)
+                count += 1
+            if expected is not None and count != expected:
+                self.issues.append('%s: %s != expected %s' % (arm, count, expected))
+        self.validate_arms()
+        return ['']
+
+
+class NativeAdapter(Adapter):
+    name = 'native'
+
+    @staticmethod
+    def detects(paths):
+        return 'native/paired/results/items.jsonl' in paths
+
+    def metadata(self, read):
+        complete = self.store.doc('COMPLETE.json')
+        request = self.store.doc('native/paired/request.json')
+        card = self.store.doc('metadata/ORCHARD_NATIVE.json').get('initial_card', {})
+        return dict(export=dict(step=complete.get('step'), artifact_sha256=complete.get('artifact', {}).get('sha256')),
+                    job_id=card.get('job'), date=card.get('utc'), serving={k: request.get(k) for k in
+                    ('arm', 'decode_budget', 'scope', 'layout', 'artifact', 'mask_source',
+                     'grounding', 'candidate_policy', 'geometry_refusal_policy')}), dict(
+                    export='COMPLETE.json', job_id='metadata/ORCHARD_NATIVE.json',
+                    date='metadata/ORCHARD_NATIVE.json', serving='native/paired/request.json')
+
+    def prepare(self):
+        counts = collections.Counter()
+        for path in ('native/paired/results/items.jsonl', 'native/R1.json'):
+            for row in self.store.rows(path):
+                if not isinstance(row, dict) or 'key' not in row or 'arm' not in row:
+                    continue
+                key, arm = str(row['key']), str(row['arm'])
+                previous = self.store.db.execute('SELECT data FROM normalized WHERE read=? AND family=? AND id=? AND arm=?',
+                                                 ('', '', key, arm)).fetchone()
+                if previous:
+                    if json.loads(previous[0])['raw'] != row:
+                        raise Refusal('Contradictory native journal/report row: ' + key + '/' + arm)
+                    continue
+                # Native benchmark keys explicitly use devrows:<task id>.
+                task_id = key[len('devrows:'):] if key.startswith('devrows:') else key
+                candidates = [(json.loads(data), source) for data, source in self.store.db.execute(
+                    'SELECT data,path FROM tasks WHERE id=? ORDER BY path', (task_id,))]
+                task, task_path = candidates[0] if candidates else ({}, None)
+                if any((t.get('question'), t.get('ground_truth', t.get('answer'))) !=
+                       (task.get('question'), task.get('ground_truth', task.get('answer'))) for t, p in candidates[1:]):
+                    raise Refusal('Ambiguous native task: ' + key)
+                value = base_item(task)
+                value['question_type'] = row.get('question_type', value['question_type'])
+                value['room'] = row.get('room', value['room'])
+                value['truth']['stratum'] = row.get('stratum', value['truth']['stratum'])
+                decode = row.get('decode') or {}
+                out = dict(decode, calls={'records': decode.get('calls')}, scores=row.get('scores'))
+                normalized = routed_arm(dict(row, output=out))
+                normalized.update(hit_cap=row.get('capped'), parse_failed=row.get('no_answer'),
+                                  output_tokens=decode.get('generated_tokens', row.get('total_tokens', normalized['output_tokens'])))
+                value.update(arm=normalized, raw=row, source_file=path, input=task or None, input_file=task_path)
+                self.put('', '', key, arm, value)
+                counts[arm] += 1
+        expected = self.store.doc('native/paired/results/COMPLETE.json').get('items')
+        if 'native/paired/results/COMPLETE.json' not in self.paths:
+            self.issues.append('Missing native/paired/results/COMPLETE.json')
+        for arm, count in counts.items():
+            if expected is not None and count != expected:
+                self.issues.append('%s: %s != expected %s' % (arm, count, expected))
+        return ['']
+
+
+ADAPTERS = [KitAdapter, RoutedAdapter, OffreadAdapter, NativeAdapter]
 
 
 def metadata(args, adapter, read, read_id, supplied):
@@ -586,18 +741,30 @@ def emit(args, store, adapter, read, read_id, supplied):
                 row = {k: meta[k] for k in ('read_id', 'official', 'export', 'vehicle', 'set', 'serving', 'job_id', 'date')}
                 row.update({k: value[k] for k in ('question_type', 'question', 'options', 'room', 'scene', 'truth')})
                 row.update(schema='corpus-v1', partial=partial, family=family or None, item_id=item_id,
-                           arms={}, raw={'input': value.get('input')}, reader=dict(format=adapter.name,
+                           category=value.get('category'), arms={}, raw={'arms': {}, 'input': value.get('input')}, reader=dict(format=adapter.name,
                            build=meta['reader_build'], source_files=[]))
                 row['raw']['source'] = {}
                 row['raw']['records'] = {}
-                for source, record in store.db.execute('SELECT path,data FROM records WHERE id=? ORDER BY path,seq', (item_id,)):
-                    if (source == 'ITEMS.jsonl' or source.startswith(family + '/')) and not KIT_ROW.match(source):
-                        row['raw']['records'].setdefault(source, []).append(json.loads(record))
+                # Attach all matching evidence; exact IDs are never rewritten. A key-only
+                # devrows:<id> record is the reader's documented benchmark key alias.
+                aliases = [item_id, 'devrows:' + item_id]
+                for source, seq, record, field in store.db.execute(
+                        'SELECT path,seq,data,field FROM records WHERE id IN (?,?) ORDER BY path,seq', aliases):
+                    original = json.loads(record)
+                    if source.startswith('metadata/reads/') and not source.startswith('metadata/reads/' + read + '/'):
+                        continue
+                    if adapter.name == 'kit' and source != 'ITEMS.jsonl' and not source.startswith(family + '/'):
+                        continue
+                    if isinstance(original, dict) and 'id' in original and str(original['id']) != item_id:
+                        continue
+                    row['raw']['records'].setdefault(source, []).append(original)
+                    store.db.execute('INSERT OR IGNORE INTO used VALUES (?,?)', (read, seq))
                 if value.get('mapping') is not None:
                     row['raw']['mapping'] = value['mapping']
                     row['reader']['task_hash_verified'] = value['task_hash_verified']
+                    row['reader']['task_join_rule'] = value['task_join_rule']
             row['arms'][arm] = value['arm']
-            row['raw'][arm] = value['raw']
+            row['raw']['arms'][arm] = value['raw']
             row['raw']['source'][arm] = dict(file=value['source_file'], original_arm=value.get('original_arm'))
             row['reader']['source_files'].append(value['source_file'])
             if value.get('input_file'):
@@ -630,6 +797,21 @@ def emit(args, store, adapter, read, read_id, supplied):
                  sources=sorted(store.sources, key=dumps), output=dict(path='reads/' + read_id + '.jsonl.gz',
                  sha256=info['sha256'], bytes=info['bytes']), tool_version=fingerprint(__file__)['sha256'],
                  raw_metadata={p: store.doc(p) for p in store.paths() if p.endswith('.json')})
+    orphan_temp = temp_path('.orphans.jsonl.gz', os.path.join(root, 'index'))
+    orphan_count = 0
+    with open(orphan_temp, 'wb') as raw:
+        with gzip.GzipFile(filename='', mode='wb', fileobj=raw, compresslevel=6, mtime=0) as gz:
+            for path, seq, data, field in store.db.execute(
+                    'SELECT path,seq,data,field FROM records WHERE seq NOT IN '
+                    '(SELECT seq FROM used WHERE read=?) ORDER BY path,seq', (read,)):
+                gz.write((dumps(dict(source=path, field=field, row=json.loads(data))) + '\n').encode('utf-8'))
+                orphan_count += 1
+    orphan_target = os.path.join(root, 'index', read_id + '.orphans.jsonl.gz')
+    _, orphan_info = publish(orphan_temp, orphan_target)
+    index['orphan_count'] = orphan_count
+    index['orphans'] = dict(path='index/' + read_id + '.orphans.jsonl.gz',
+                            bytes=orphan_info['bytes'], sha256=orphan_info['sha256'])
+    index['consumed_row_count'] = store.sequence
     index['unparsed_records'] = {p: list(store.rows(p)) for p in store.paths() if p.endswith(':unparsed')}
     index_path = os.path.join(root, 'index', read_id + '.json')
     if state != 'SAME' or not os.path.exists(index_path):
@@ -728,6 +910,8 @@ def main(argv=None):
                 if args.read_index not in reads:
                     raise ValueError('Unknown read index ' + args.read_index)
                 reads = [args.read_index]
+            if not reads or any(not store.db.execute('SELECT 1 FROM normalized WHERE read=? LIMIT 1', (r,)).fetchone() for r in reads):
+                raise Refusal('Zero generation rows: cannot archive an empty read')
             if adapter.issues and not args.archive_partial:
                 print(dumps(dict(error='partial return', reasons=sorted(set(adapter.issues)))), file=sys.stderr)
                 return 2
@@ -735,10 +919,14 @@ def main(argv=None):
                 ident = read_id + '.r' + read if len(reads) > 1 else read_id
                 result = emit(args, store, adapter, read, ident, supplied)
                 result['seconds'] = round(time.monotonic() - start, 3)
+                result['max_rss_kib'] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
                 print(dumps(result))
             return 0
         finally:
             store.db.close()
+    except Refusal as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
     except FileExistsError as exc:
         print(str(exc), file=sys.stderr)
         return 3

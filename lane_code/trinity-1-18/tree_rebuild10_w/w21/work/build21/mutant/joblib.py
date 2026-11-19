@@ -214,6 +214,20 @@ def stage_payload(kit,resolved,root):
 
 def load_raw(path):return json.loads(Path(path).read_text())
 
+def screen(line,words,hashes):
+    import re
+    def replace(match):
+        token=match.group();lower=token.lower()
+        digest=lambda text:hashlib.sha256(text.encode()).hexdigest()
+        bad=any(word in lower for word in words)
+        for part in re.findall(r'[a-z0-9_]+',lower):
+            bad=bad or digest(part) in hashes['word']
+            for width,values in hashes['substr'].items():
+                n=int(width)
+                bad=bad or any(digest(part[i:i+n]) in values for i in range(len(part)-n+1))
+        return 'x_'+digest(token) if bad else token
+    return re.sub(r'[^\s"\x27<>]+',replace,line)
+
 def bootstrap(kit,resolved_path,node):
     kit=Path(kit).resolve();node=Path(node).resolve();spec=load(kit/'k/p.json');seal(kit)
     resolved=load(resolved_path);node.mkdir(parents=True,exist_ok=True)

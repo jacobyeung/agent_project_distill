@@ -1,0 +1,852 @@
+{
+  "command": "OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 /usr/bin/python3 out/recompute.py",
+  "inputs": {
+    "/scratch/jjyeung/orch_n30/sb_harev/out/recompute.py": {
+      "sha256": "0dc5fff81e7afa3e0639111300b235a19cc52e8890d474ab19782b96088dd8fa",
+      "bytes": 19599
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev2/out/recompute.py": {
+      "sha256": "c59102064255ad7615bf9f272c7b4803d08c30a7125ee6001ac38055aff26094",
+      "bytes": 12131
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev/out/REVIEW_VERDICT.md": {
+      "sha256": "4d7c0586b4fa8a17d8455084558b0940089fa17a5694d268639cfc484816f644",
+      "bytes": 10248
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev2/out/REVIEW_VERDICT.md": {
+      "sha256": "c3243ed01c1d9e1d6b7d32318577cdd89a2b5f1963676bb78540cb42cf965202",
+      "bytes": 10632
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev2/out/SELECTION_INVENTORY.md": {
+      "sha256": "867e40580a5aa2a840b6b4dca0eaf9db4de5d28904fe94f9d3d65e736612b610",
+      "bytes": 10095
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev2/out/RECOMPUTE.json": {
+      "sha256": "ba60687c12e781039aba0be59f0151f38fd11f1cbf8b13bd9f16b42f365d6bfe",
+      "bytes": 263709
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev3/inputs/HEAD_ACCURACY_DESIGN_20261119.md": {
+      "sha256": "abf002c71c27dbfbe1826301a1a5451f72935ba07985ffa4043e5ad707f014e5",
+      "bytes": 25732
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev3/inputs/KIT_SPEC_box_ladder_k1_v2.md": {
+      "sha256": "7ed6c03d5500a54c90cf156cf32d71b32e9fc2329876879c8d7bf9a907f1f3f0",
+      "bytes": 25232
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev3/inputs/KIT_SPEC_tower_frames_v2.md": {
+      "sha256": "133e8cfdbb149401767c76fc5908154b9dd106d2a4b580bcca81d207615169aa",
+      "bytes": 15746
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev3/inputs/KIT_SPEC_object_route_r0dev_v2.md": {
+      "sha256": "640e8deb8fe7d661abbeb3bb0d345aeb2b6eda4f50af346f0f16b0cf4788cce3",
+      "bytes": 20382
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev3/inputs/REVIEW_RESPONSE_harev.md": {
+      "sha256": "7b290d26faf03639bb5a9d4e1c418ace7f79534ae2a52a5f0fa4133fcdb39941",
+      "bytes": 9944
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev3/inputs/BINDING_RULINGS.txt": {
+      "sha256": "8f14f25300afd187fb5b7d1f21037cd83d12d59a2d43e5a6215c3949e42608c6",
+      "bytes": 487
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev3/out/REVIEW_VERDICT.md": {
+      "sha256": "a3a1054ab556f8b1bae9a2af1023824a3d626a640dfdcbfffc93fc71aef33757",
+      "bytes": 6661
+    },
+    "/scratch/jjyeung/orch_n30/sb_harev3/out/recompute.py": {
+      "sha256": "091901611397153f5b40f13aca4f5fc520d9a1a9e3728c6c11f2a7a1fc3a1537",
+      "bytes": 6436
+    }
+  },
+  "results": [
+    {
+      "claim": "full snapshot pins",
+      "status": "VERIFIED",
+      "values": {
+        "HEAD_ACCURACY_DESIGN_20261119.md": {
+          "expected": "abf002c71c27dbfbe1826301a1a5451f72935ba07985ffa4043e5ad707f014e5",
+          "actual": "abf002c71c27dbfbe1826301a1a5451f72935ba07985ffa4043e5ad707f014e5",
+          "matches": true
+        },
+        "KIT_SPEC_box_ladder_k1_v2.md": {
+          "expected": "7ed6c03d5500a54c90cf156cf32d71b32e9fc2329876879c8d7bf9a907f1f3f0",
+          "actual": "7ed6c03d5500a54c90cf156cf32d71b32e9fc2329876879c8d7bf9a907f1f3f0",
+          "matches": true
+        },
+        "KIT_SPEC_tower_frames_v2.md": {
+          "expected": "133e8cfdbb149401767c76fc5908154b9dd106d2a4b580bcca81d207615169aa",
+          "actual": "133e8cfdbb149401767c76fc5908154b9dd106d2a4b580bcca81d207615169aa",
+          "matches": true
+        },
+        "KIT_SPEC_object_route_r0dev_v2.md": {
+          "expected": "640e8deb8fe7d661abbeb3bb0d345aeb2b6eda4f50af346f0f16b0cf4788cce3",
+          "actual": "640e8deb8fe7d661abbeb3bb0d345aeb2b6eda4f50af346f0f16b0cf4788cce3",
+          "matches": true
+        },
+        "REVIEW_RESPONSE_harev.md": {
+          "expected": "7b290d26faf03639bb5a9d4e1c418ace7f79534ae2a52a5f0fa4133fcdb39941",
+          "actual": "7b290d26faf03639bb5a9d4e1c418ace7f79534ae2a52a5f0fa4133fcdb39941",
+          "matches": true
+        }
+      },
+      "evidence": [
+        "HEAD_ACCURACY_DESIGN_20261119.md",
+        "KIT_SPEC_box_ladder_k1_v2.md",
+        "KIT_SPEC_tower_frames_v2.md",
+        "KIT_SPEC_object_route_r0dev_v2.md",
+        "REVIEW_RESPONSE_harev.md"
+      ],
+      "method": "SHA256 of the once-copied local bytes, compared with the full task pins.",
+      "command": "OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 /usr/bin/python3 out/recompute.py",
+      "missing": []
+    },
+    {
+      "claim": "revised GPU ledger arithmetic",
+      "status": "VERIFIED",
+      "values": {
+        "parts": [
+          {
+            "name": "tower_A",
+            "estimate": 0.5,
+            "stop": 0.75
+          },
+          {
+            "name": "tower_B",
+            "estimate": 2.5,
+            "stop": 3
+          },
+          {
+            "name": "K1_track",
+            "estimate": 1.3,
+            "stop": 1.75
+          },
+          {
+            "name": "R0_base",
+            "estimate": 3,
+            "stop": 3.5
+          },
+          {
+            "name": "R0_track",
+            "estimate": 3,
+            "stop": 3.25
+          },
+          {
+            "name": "R0_94",
+            "estimate": 3.5,
+            "stop": 4
+          },
+          {
+            "name": "camera_C",
+            "estimate": 0.6,
+            "stop": 0.75
+          },
+          {
+            "name": "devS1",
+            "estimate": 2,
+            "stop": 2
+          },
+          {
+            "name": "devS1_track",
+            "estimate": 1,
+            "stop": 1
+          }
+        ],
+        "base_expected": 9.9,
+        "all_expected": 17.4,
+        "all_stops": 20.0,
+        "scenarios": {
+          "expected": {
+            "used": 15.4,
+            "admitted": [
+              "tower_A",
+              "tower_B",
+              "K1_track",
+              "R0_base",
+              "R0_track",
+              "R0_94",
+              "camera_C",
+              "devS1_track"
+            ],
+            "skipped": [
+              "devS1"
+            ]
+          },
+          "hard_stops": {
+            "used": 16.0,
+            "admitted": [
+              "tower_A",
+              "tower_B",
+              "K1_track",
+              "R0_base",
+              "R0_track",
+              "camera_C",
+              "devS1",
+              "devS1_track"
+            ],
+            "skipped": [
+              "R0_94"
+            ]
+          }
+        },
+        "scenario_scope": "Capacity arithmetic only, not executable schedules; dependent diagnostics cannot run without prerequisite outputs.",
+        "reader_reads": "OUTSIDE AUTHORIZATION; separate budget required",
+        "gpu_hours_used_by_this_review": 0
+      },
+      "evidence": [
+        "T:54",
+        "O:42"
+      ],
+      "method": "Reuse v2 sequential admission loop with T:54 estimates/stops; one card per simulated part. Concurrent launches must also reserve running stops. Estimates are not measured runtimes.",
+      "command": "OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 /usr/bin/python3 out/recompute.py",
+      "missing": []
+    },
+    {
+      "claim": "new missing-table rule algebra",
+      "status": "DERIVED, CONDITIONAL",
+      "values": {
+        "train_table_rows": 883,
+        "missing_table_rows": "m, not measured",
+        "optimistic_shift_type_points": "100 * sum(A0 scores on missing-table rows) / 883",
+        "upper_bound_type_points": "100 * m / 883"
+      },
+      "evidence": [
+        "B:33",
+        "B:90"
+      ],
+      "method": "On a missing-table row a refusing candidate should score 0 against the available A0 score b; zeroing both changes its paired difference from -b to 0. No missing-table count is assumed.",
+      "command": "OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 /usr/bin/python3 out/recompute.py",
+      "missing": []
+    },
+    {
+      "claim": "decision thresholds and prospective costs",
+      "status": "SPECIFIED, NOT MEASURED",
+      "values": {
+        "box_type_points": 3,
+        "size_type_points": 5,
+        "relative_distance_type_points": 3,
+        "appearance_order_type_points": 5,
+        "size_treatment_lower_bound": -2,
+        "selector_cpu_cost": "minutes per retrain (B:64), unmeasured",
+        "size_gate_replay_extra_gpu_hours": 0,
+        "table_comparator_repair_extra_gpu_hours": 0,
+        "gate_replay_delay": "CPU runtime unmeasured; after selected train construction exists"
+      },
+      "evidence": [
+        "B:64,87,90,91",
+        "O:52,57-59"
+      ],
+      "method": "Transcribe predeclared bars; CPU-only fixes reuse kit outputs. No accuracy gain or wall-clock duration is inferred.",
+      "command": "OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 /usr/bin/python3 out/recompute.py",
+      "missing": []
+    },
+    {
+      "claim": "prior evidence provenance",
+      "status": "INHERITED, NOT RERUN",
+      "values": {
+        "command": "OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 /usr/bin/python3 out/recompute.py",
+        "input_sha256": {
+          "/scratch/jjyeung/orch_n30/sb_harev/out/recompute.py": {
+            "sha256": "0dc5fff81e7afa3e0639111300b235a19cc52e8890d474ab19782b96088dd8fa",
+            "bytes": 19599
+          },
+          "/scratch/jjyeung/orch_n30/sb_harev2/inputs/HEAD_ACCURACY_DESIGN_20261119.md": {
+            "sha256": "21c90ce71f7ef842bc87d364c0dafe9006df2bbc58c187574c2ee378f7c0ec77",
+            "bytes": 18686
+          },
+          "/scratch/jjyeung/orch_n30/sb_harev2/inputs/KIT_SPEC_box_ladder_k1_v2.md": {
+            "sha256": "da984625a1b265071517089da3a94ddae870c84571cfb84b9c1e6634d8bd7b37",
+            "bytes": 19219
+          },
+          "/scratch/jjyeung/orch_n30/sb_harev2/inputs/KIT_SPEC_object_route_r0dev_v2.md": {
+            "sha256": "9b1f53c97344a01e4656f22f16747552e8bd9bac64420cd20e900a8ddf0f673a",
+            "bytes": 18443
+          },
+          "/scratch/jjyeung/orch_n30/sb_harev2/inputs/KIT_SPEC_tower_frames_v2.md": {
+            "sha256": "d6f9cf04c71a02c23a7ad588231be16bf9a37a82939f626c5760df6457992e03",
+            "bytes": 14436
+          },
+          "/scratch/jjyeung/orch_n30/sb_harev2/inputs/REVIEW_RESPONSE_harev.md": {
+            "sha256": "7a0b89ad772679d9f6aa0a75d758c2a92712c965cfb13b4b18e1d5415eff0e13",
+            "bytes": 7815
+          },
+          "/scratch/jjyeung/orch_n30/sb_harev/out/RECOMPUTE.json": {
+            "sha256": "348eee2ee0bb987aad514cfe8b6f132efc15c68765f755a13b922f0762fa6f7f",
+            "bytes": 191033
+          },
+          "/scratch/jjyeung/orch_n30/sb_harev/out/REVIEW_VERDICT.md": {
+            "sha256": "4d7c0586b4fa8a17d8455084558b0940089fa17a5694d268639cfc484816f644",
+            "bytes": 10248
+          },
+          "/scratch/jjyeung/orch_n30/sb_harev/inputs/E2E_READER_B04_20261116.md": {
+            "sha256": "6efaaeab22936f82fc9d3b20b03c884d329a0410c7b2b5aee99182b319648c53",
+            "bytes": 9797
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/MANIFEST.sha256": {
+            "sha256": "9eb81e53d7fedb6c9b3d61e4a0206930da9af0d4939cc3ed89b51a1e3a8f00b1",
+            "bytes": 5549
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/DIRECT_R1_200_R0dev.jsonl.gz": {
+            "sha256": "795c1465585975e244ec42d3ea6d89a13a598d5c6dbd6bb7ce3f5327baa8132a",
+            "bytes": 379195
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/DIRECT_R1_200_devS1.jsonl.gz": {
+            "sha256": "39a4fc67a7734e2879c3ed9c72a02b213259f995b214fca770b78a27bfc730a2",
+            "bytes": 174529
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/ID_MAP_R0dev.json": {
+            "sha256": "aff009a0b4990bd69c81f92a231e3be2a1ff3005c8d87b2be5478f92ef4ced7d",
+            "bytes": 506486
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/R1_A4_SRC_SHA256.txt": {
+            "sha256": "5ec2c2ff905c2bd3e42dbebbcc40aeeae88ddc35c3a5dd91838b83628cc49181",
+            "bytes": 27965
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/ROUTED_200_devS1.jsonl.gz": {
+            "sha256": "6a55c20d7d0c23e392b5111accfcb6057dd17812ac18a9756e90db9558e927e8",
+            "bytes": 69873
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/ROUTED_544_devS1.jsonl.gz": {
+            "sha256": "a2d04d10acbbb9811618fbb316e5643774e0eef39bee067d3173afd1ae0f08b9",
+            "bytes": 70740
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/ROUTED_FULL_200_devS1_camera.jsonl.gz": {
+            "sha256": "6ca65df2b0f6a3bfc996b45d71b57ba569f2f6f7ab085fa54cfd2eca44c22056",
+            "bytes": 1269686
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/ROUTED_FULL_200_devS1_distance.jsonl.gz": {
+            "sha256": "3250d1a6443119e5bdc1da665bf55956f721869ded4f8d653c15afb0939c34f0",
+            "bytes": 602888
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/ROUTED_FULL_544_devS1_camera.jsonl.gz": {
+            "sha256": "8855c81ead7d82226fe194af5fc508de993efb2095b3521eced58366b198ce3a",
+            "bytes": 1267674
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/ROUTED_FULL_544_devS1_distance.jsonl.gz": {
+            "sha256": "d20adcc2aaeb9e81e9b52cab86de9b5391f8065b1e912759874bf7996950d6d8",
+            "bytes": 906468
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/SOURCES_direct.json": {
+            "sha256": "f1a2ab5d8f4474afe0aae11f22cbd7738723054cc7c565f9511dd2f17a0f325a",
+            "bytes": 510
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/SOURCES_routed.json": {
+            "sha256": "09ae791afe89929efb85e1efd35c4ef854ae4fdf5a1052bf5960eb9df755f2c6",
+            "bytes": 1405
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/SIZE_BOXHEAD_JOIN.json": {
+            "sha256": "64b34c1dcfb28eb9eb3f156462ba2479276ad379f76eebbd72e23eb69f393cf3",
+            "bytes": 282
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/camdiag.py": {
+            "sha256": "a8cd4dea581a435e24ebf72c947cbcc7a9cce3b11f8177bd5bb3897dc8f79d1c",
+            "bytes": 2343
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/camdiag2.py": {
+            "sha256": "06cf67a03577c380ae097b97a62c88b7892cc2d7743f2449fd384105eb788b50",
+            "bytes": 1786
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/camdiag_camera_displacement.json": {
+            "sha256": "7a332a0d0a830d685c62e44e0302f5da2cfbacae9e8b1ab7d3bd1801c0bd5309",
+            "bytes": 18351
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/camdiag_camera_rotation.json": {
+            "sha256": "b7fc6a00d16bd436e550d4753c942bb0879b23bf5a29ad0253cea065c3a4027c",
+            "bytes": 11710
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/gapdiag.py": {
+            "sha256": "f873a615d8a6958b3677c62f3744ba7fc6ccf0cc0332f78d06e2073b62da6424",
+            "bytes": 5227
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/gapdiag_200.json": {
+            "sha256": "215e308ba9704b1d380cb1ea7faf888528d07ec12d9e036961be30664892b3f2",
+            "bytes": 44436
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/gapdiag_544.json": {
+            "sha256": "116b2b5895ccba822a2e2a1c80a81603cb83fb517d17e6dfc12231b386deaff0",
+            "bytes": 74429
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/r0_appearance_items.jsonl": {
+            "sha256": "8d8cb16d09a0516b37d73e736beca4b97300370cd1e002e420c966b7692bd834",
+            "bytes": 251416
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/r0app.py": {
+            "sha256": "595f00fd9c6dbf40621283503dec8202d151b5510ccabf4e4f10b0a2d5095733",
+            "bytes": 2602
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/r0rel.py": {
+            "sha256": "a457dbf9b0e86086c1f33eb68291e9065fdf054ff3ed385a4c8325f86b19979d",
+            "bytes": 614
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/designer_evidence/san_kit.py": {
+            "sha256": "118e038f31618989ce4725730a0ab1aa049e37ae7d12ceef382e3fe4844ae900",
+            "bytes": 12065
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/__init__.py": {
+            "sha256": "481d2c8a8b5e38f7a39cc38635a64d97672e8fa1b4520e2c8aa4d13300b9106c",
+            "bytes": 95
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/artifact.py": {
+            "sha256": "2eea58d48df4bec3613daea57328ef1128eeefe4e6ebf086144d677198725544",
+            "bytes": 12679
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/assemble.py": {
+            "sha256": "04f42cd15d519fd096f050c682fbcd3d9af2e46f1580e08233e7e31c0bd77c45",
+            "bytes": 2099
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/callhook.py": {
+            "sha256": "044caa0f15bc58703bb39d8b9c001a24d2b75d7f89fa8e89158e39a803aa11ae",
+            "bytes": 9447
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/core.py": {
+            "sha256": "dbbda5b8c2b8ea6577c1bc8f9a15f38eb6b28dd6b5b2d91c6c76e3bbf7abaca6",
+            "bytes": 2589
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/generate.py": {
+            "sha256": "4101148f4867c0261369e69295790224b67bfc06f6913101b2ccfe68871f9ad4",
+            "bytes": 5220
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/geometry.py": {
+            "sha256": "9303922852ba1e9ffd61e121076fbdc8c61dba06b55caa42f272d8e9f3f52684",
+            "bytes": 5833
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/grounding.py": {
+            "sha256": "d8fe3c617a2cba4f01527947826cceb2a923a4725bc3b9dd8b18a889e9c332c4",
+            "bytes": 8207
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/parity.py": {
+            "sha256": "d948af4264381ca523dfe1c311e537f9bdd2aebc27c43d2412dbfe3755161dd1",
+            "bytes": 13956
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/perception_memo.py": {
+            "sha256": "e1e658879aef3fa4ae2c12cfdad5d186002fbb90f25431dc381f8a44c7bb96cf",
+            "bytes": 10982
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/real.py": {
+            "sha256": "d69be37f4787e268ca11ff22ff334aa3b41752f6bb6f2bf7bf3dc52e1d4e2e6e",
+            "bytes": 7751
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/servers.py": {
+            "sha256": "9e2b9584b466bbfd7e1f7b9ea5a5dde5553eddac1d51ebea6d35c32d679a5097",
+            "bytes": 2725
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/stage1.py": {
+            "sha256": "b1a77424a2a014b12890805d8c72f1a83dd5e378cd54a2ff221887ccde1cafe1",
+            "bytes": 10698
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/common.py": {
+            "sha256": "fce8f769ce096248d1f1126764cf2de032b3396deb5ab8f8f545a91ac4545e73",
+            "bytes": 2589
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/eval_selector.py": {
+            "sha256": "db3f97c790f158091dfa19f10b3f42046115f9434363acd8310cb7029f3bee70",
+            "bytes": 4153
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/isolate_tables.py": {
+            "sha256": "1cc9395840ec5b40331c2bba5a649ccd5c5f9c2e68a6730ad9a57dc0f55ba9f7",
+            "bytes": 3814
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/logistic.py": {
+            "sha256": "cfd3d97ebb41df79a2b5a9b02998c22ebf1f7145615b44e4423c2baacdb7f977",
+            "bytes": 2078
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/logistic_cv.py": {
+            "sha256": "a669b2f666b259758268bab7285bcbc41ea394fcf5f1068c113539cc417be2b2",
+            "bytes": 1054
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/retrain_final.py": {
+            "sha256": "f05a8c316d4a91587d655ecf2cc1bae5f62f8b469798278db0d19694941e33ef",
+            "bytes": 979
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/selector_head.py": {
+            "sha256": "d783e646f2aa5c0bea6f698bf463548cd8c60b3c952840f9c38267d1487f8614",
+            "bytes": 4578
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/selector_inputs.py": {
+            "sha256": "9f7c0bafe0dc1a8dcaf522967085748cbb8db85053668ca2a024d24f3c954813",
+            "bytes": 5461
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/sl118/name_emb.py": {
+            "sha256": "8e4b862b2fd7cde48c4491c36fc593c00137b26cd9ae2a1fecfb540c1a826520",
+            "bytes": 3296
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/sl118/selector_inputs.py": {
+            "sha256": "9f7c0bafe0dc1a8dcaf522967085748cbb8db85053668ca2a024d24f3c954813",
+            "bytes": 5461
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/sl118/sl_tables.py": {
+            "sha256": "770858a1e50484917f592d54477432b6c2219d06fe3efdf3f6af4404fa72910c",
+            "bytes": 10339
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/sl118/sl_tables_v1.py": {
+            "sha256": "1e4c1f59068315000956dd3f7e54d79a4d32706ee871a57cfea676204822aa4e",
+            "bytes": 9042
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/heads/selector/train_selector.py": {
+            "sha256": "96091b9f6bf945cac1249678806d64c1543ed29a9dc9b84ca1462595470765ab",
+            "bytes": 6082
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/tree/student_pilot/ground_lifting.py": {
+            "sha256": "86537b8c4dd177f02a56bae2ce2c01aeb95fc4934768e9d1409831c742c826ac",
+            "bytes": 12463
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/tree/student_pilot/routed_candidates.py": {
+            "sha256": "9a2004108d85f3c2a70ca5e4d66240748807d4f0c3ced8a2e0842fea4d78482f",
+            "bytes": 15292
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/tree/student_pilot/routed_features.py": {
+            "sha256": "736c5a642fe28656c5508022210b050a87e49821381980a9c6f79007ef1fda13",
+            "bytes": 17431
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/tools/make_rowsets.py": {
+            "sha256": "18aa57e794279f8459a54d5e57f6f2f892dad0507195b11aa72e0535a683743d",
+            "bytes": 6202
+          },
+          "/scratch/jjyeung/n30_mirror/gt_audit/gt_audit/work/k1audit/K1_LABELS_CORRECTED.jsonl": {
+            "sha256": "d781ac7bf2313a3942020c17f3c0858eab4fbe4a349627e553d2c328da74f8c4",
+            "bytes": 420253
+          },
+          "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json": {
+            "sha256": "91a2dbf9a0bdad1a45af44a5a3a2607d40f9f7a630f742fc4531544c00cade7c",
+            "bytes": 10776167
+          },
+          "/scratch/jjyeung/orch_n30/k1_ops3/work/gt_sets/GT_SET_PRIMARY_296.json": {
+            "sha256": "2b82af5241db3c8048e9998f766b5dcd24accdaab93bbd8a169aefba39a1f121",
+            "bytes": 62225
+          },
+          "/scratch/jjyeung/orch_n30/b04host3/b04_e2ehook/heads/selector/data/caps_raw/ [directory names only]": {
+            "sha256": "c38dec0d166cac466c546f359d7e16d4238c5238d096f63485b11efae0efbabc",
+            "names": [
+              "arkitscenes__41048124.json.gz",
+              "arkitscenes__41069076.json.gz",
+              "arkitscenes__41069175.json.gz",
+              "arkitscenes__41098061.json.gz",
+              "arkitscenes__41098085.json.gz",
+              "arkitscenes__41098191.json.gz",
+              "arkitscenes__41125564.json.gz",
+              "arkitscenes__41126341.json.gz",
+              "arkitscenes__41126367.json.gz",
+              "arkitscenes__41126453.json.gz",
+              "arkitscenes__41126744.json.gz",
+              "arkitscenes__41127027.json.gz",
+              "arkitscenes__41159381.json.gz",
+              "arkitscenes__41159425.json.gz",
+              "arkitscenes__41159621.json.gz",
+              "arkitscenes__41159653.json.gz",
+              "arkitscenes__41159675.json.gz",
+              "arkitscenes__41159723.json.gz",
+              "arkitscenes__42444748.json.gz",
+              "arkitscenes__42444887.json.gz",
+              "arkitscenes__42444907.json.gz",
+              "arkitscenes__42445056.json.gz",
+              "arkitscenes__42445092.json.gz",
+              "arkitscenes__42445454.json.gz",
+              "arkitscenes__42445474.json.gz",
+              "arkitscenes__42445924.json.gz",
+              "arkitscenes__42445931.json.gz",
+              "arkitscenes__42446074.json.gz",
+              "arkitscenes__42446080.json.gz",
+              "arkitscenes__42897467.json.gz",
+              "arkitscenes__42897512.json.gz",
+              "arkitscenes__42897607.json.gz",
+              "arkitscenes__42897668.json.gz",
+              "arkitscenes__42897783.json.gz",
+              "arkitscenes__42897784.json.gz",
+              "arkitscenes__42897802.json.gz",
+              "arkitscenes__42898089.json.gz",
+              "arkitscenes__42898109.json.gz",
+              "arkitscenes__42898141.json.gz",
+              "arkitscenes__42898163.json.gz",
+              "arkitscenes__42898213.json.gz",
+              "arkitscenes__42898236.json.gz",
+              "arkitscenes__42898405.json.gz",
+              "arkitscenes__42898477.json.gz",
+              "arkitscenes__42898541.json.gz",
+              "arkitscenes__42898587.json.gz",
+              "arkitscenes__42898715.json.gz",
+              "arkitscenes__42898740.json.gz",
+              "arkitscenes__42898786.json.gz",
+              "arkitscenes__42898792.json.gz",
+              "arkitscenes__42898983.json.gz",
+              "arkitscenes__42898990.json.gz",
+              "arkitscenes__42899003.json.gz",
+              "arkitscenes__42899209.json.gz",
+              "arkitscenes__42899247.json.gz",
+              "arkitscenes__42899285.json.gz",
+              "arkitscenes__42899477.json.gz",
+              "arkitscenes__42899483.json.gz",
+              "arkitscenes__42899559.json.gz",
+              "arkitscenes__42899851.json.gz",
+              "arkitscenes__42899906.json.gz",
+              "arkitscenes__43649382.json.gz",
+              "arkitscenes__43649403.json.gz",
+              "arkitscenes__43649426.json.gz",
+              "arkitscenes__43649474.json.gz",
+              "arkitscenes__43649681.json.gz",
+              "arkitscenes__43649714.json.gz",
+              "arkitscenes__43828507.json.gz",
+              "arkitscenes__43828554.json.gz",
+              "arkitscenes__43828583.json.gz",
+              "arkitscenes__43895863.json.gz",
+              "arkitscenes__43896055.json.gz",
+              "arkitscenes__43896365.json.gz",
+              "arkitscenes__43896416.json.gz",
+              "arkitscenes__43896469.json.gz",
+              "arkitscenes__43896478.json.gz",
+              "arkitscenes__44358118.json.gz",
+              "arkitscenes__44358426.json.gz",
+              "arkitscenes__44358557.json.gz",
+              "arkitscenes__44358593.json.gz",
+              "arkitscenes__44796221.json.gz",
+              "arkitscenes__44796254.json.gz",
+              "arkitscenes__44796279.json.gz",
+              "arkitscenes__44796297.json.gz",
+              "arkitscenes__44796304.json.gz",
+              "arkitscenes__44796324.json.gz",
+              "arkitscenes__44796332.json.gz",
+              "arkitscenes__44796349.json.gz",
+              "arkitscenes__44796392.json.gz",
+              "arkitscenes__44796450.json.gz",
+              "arkitscenes__44796473.json.gz",
+              "arkitscenes__45260873.json.gz",
+              "arkitscenes__45261007.json.gz",
+              "arkitscenes__45261289.json.gz",
+              "arkitscenes__45261397.json.gz",
+              "arkitscenes__45662791.json.gz",
+              "arkitscenes__45662816.json.gz",
+              "arkitscenes__45662908.json.gz",
+              "arkitscenes__45662959.json.gz",
+              "arkitscenes__45663064.json.gz",
+              "arkitscenes__45663205.json.gz",
+              "arkitscenes__45663206.json.gz",
+              "arkitscenes__47115174.json.gz",
+              "arkitscenes__47115265.json.gz",
+              "arkitscenes__47115350.json.gz",
+              "arkitscenes__47115412.json.gz",
+              "arkitscenes__47115415.json.gz",
+              "arkitscenes__47204274.json.gz",
+              "arkitscenes__47204392.json.gz",
+              "arkitscenes__47204407.json.gz",
+              "arkitscenes__47204482.json.gz",
+              "arkitscenes__47204517.json.gz",
+              "arkitscenes__47204813.json.gz",
+              "arkitscenes__47204836.json.gz",
+              "arkitscenes__47330995.json.gz",
+              "arkitscenes__47331154.json.gz",
+              "arkitscenes__47331188.json.gz",
+              "arkitscenes__47331189.json.gz",
+              "arkitscenes__47331294.json.gz",
+              "arkitscenes__47331479.json.gz",
+              "arkitscenes__47331495.json.gz",
+              "arkitscenes__47331557.json.gz",
+              "arkitscenes__47331606.json.gz",
+              "arkitscenes__47331711.json.gz",
+              "arkitscenes__47331771.json.gz",
+              "arkitscenes__47331815.json.gz",
+              "arkitscenes__47331878.json.gz",
+              "arkitscenes__47331880.json.gz",
+              "arkitscenes__47331928.json.gz",
+              "arkitscenes__47331946.json.gz",
+              "arkitscenes__47332026.json.gz",
+              "arkitscenes__47332044.json.gz",
+              "arkitscenes__47332125.json.gz",
+              "arkitscenes__47332192.json.gz",
+              "arkitscenes__47332204.json.gz",
+              "arkitscenes__47332383.json.gz",
+              "arkitscenes__47332430.json.gz",
+              "arkitscenes__47332436.json.gz",
+              "arkitscenes__47332581.json.gz",
+              "arkitscenes__47332592.json.gz",
+              "arkitscenes__47332704.json.gz",
+              "scannet__scene0150_01.json.gz",
+              "scannet__scene0150_02.json.gz",
+              "scannet__scene0160_03.json.gz",
+              "scannet__scene0173_01.json.gz",
+              "scannet__scene0192_00.json.gz",
+              "scannet__scene0192_01.json.gz",
+              "scannet__scene0204_00.json.gz",
+              "scannet__scene0232_02.json.gz",
+              "scannet__scene0242_02.json.gz",
+              "scannet__scene0254_00.json.gz",
+              "scannet__scene0255_01.json.gz",
+              "scannet__scene0280_00.json.gz",
+              "scannet__scene0330_00.json.gz",
+              "scannet__scene0344_01.json.gz",
+              "scannet__scene0348_01.json.gz",
+              "scannet__scene0350_00.json.gz",
+              "scannet__scene0361_00.json.gz",
+              "scannet__scene0361_01.json.gz",
+              "scannet__scene0368_00.json.gz",
+              "scannet__scene0370_01.json.gz",
+              "scannet__scene0388_00.json.gz",
+              "scannet__scene0398_00.json.gz",
+              "scannet__scene0408_01.json.gz",
+              "scannet__scene0448_00.json.gz",
+              "scannet__scene0452_02.json.gz",
+              "scannet__scene0478_00.json.gz",
+              "scannet__scene0478_01.json.gz",
+              "scannet__scene0479_01.json.gz",
+              "scannet__scene0479_02.json.gz",
+              "scannet__scene0498_00.json.gz",
+              "scannet__scene0505_01.json.gz",
+              "scannet__scene0505_04.json.gz",
+              "scannet__scene0508_00.json.gz",
+              "scannet__scene0513_00.json.gz",
+              "scannet__scene0526_01.json.gz",
+              "scannet__scene0540_02.json.gz",
+              "scannet__scene0567_00.json.gz",
+              "scannet__scene0567_01.json.gz",
+              "scannet__scene0579_02.json.gz",
+              "scannet__scene0588_03.json.gz",
+              "scannet__scene0614_02.json.gz",
+              "scannet__scene0624_00.json.gz",
+              "scannet__scene0630_06.json.gz",
+              "scannet__scene0638_00.json.gz",
+              "scannet__scene0676_00.json.gz",
+              "scannet__scene0676_01.json.gz",
+              "scannet__scene0692_03.json.gz",
+              "scannet__scene0694_01.json.gz",
+              "scannetpp__00a231a370.json.gz",
+              "scannetpp__036bce3393.json.gz",
+              "scannetpp__067e2e4e61.json.gz",
+              "scannetpp__07b8312ea9.json.gz",
+              "scannetpp__0f69aefe3d.json.gz",
+              "scannetpp__10c8ab99f4.json.gz",
+              "scannetpp__116456116b.json.gz",
+              "scannetpp__124a6e789b.json.gz",
+              "scannetpp__126d03d821.json.gz",
+              "scannetpp__19cfd590f4.json.gz",
+              "scannetpp__1a8e0d78c0.json.gz",
+              "scannetpp__1b75758486.json.gz",
+              "scannetpp__1d003b07bd.json.gz",
+              "scannetpp__206bccc898.json.gz",
+              "scannetpp__2150596d57.json.gz",
+              "scannetpp__260fa55d50.json.gz",
+              "scannetpp__268513240f.json.gz",
+              "scannetpp__2779f8f9e2.json.gz",
+              "scannetpp__2c7c10379b.json.gz",
+              "scannetpp__2ebbca3e57.json.gz",
+              "scannetpp__2f5996ff01.json.gz",
+              "scannetpp__302a7f6b67.json.gz",
+              "scannetpp__35f2120068.json.gz",
+              "scannetpp__3928249b53.json.gz",
+              "scannetpp__3a520af32a.json.gz",
+              "scannetpp__3aa115e55e.json.gz",
+              "scannetpp__3b753d9ae8.json.gz",
+              "scannetpp__3c8d535d49.json.gz",
+              "scannetpp__3caf4324fd.json.gz",
+              "scannetpp__4117a4f02c.json.gz",
+              "scannetpp__469f112e38.json.gz",
+              "scannetpp__4a1a3a7dc5.json.gz",
+              "scannetpp__4e2db5058c.json.gz",
+              "scannetpp__58960ff105.json.gz",
+              "scannetpp__66c98f4a9b.json.gz",
+              "scannetpp__689fec23d7.json.gz",
+              "scannetpp__698c3bf2bb.json.gz",
+              "scannetpp__6ad6cef000.json.gz",
+              "scannetpp__6b40d1a939.json.gz",
+              "scannetpp__6cc2231b9c.json.gz",
+              "scannetpp__709ab5bffe.json.gz",
+              "scannetpp__712dc47104.json.gz",
+              "scannetpp__72f527a47c.json.gz",
+              "scannetpp__7543973e1a.json.gz",
+              "scannetpp__7739004a45.json.gz",
+              "scannetpp__778769dad8.json.gz",
+              "scannetpp__77fe971eba.json.gz",
+              "scannetpp__79eb3fbc63.json.gz",
+              "scannetpp__7b4a316aea.json.gz",
+              "scannetpp__867d97cf3d.json.gz",
+              "scannetpp__872268d1bf.json.gz",
+              "scannetpp__87957b7c0b.json.gz",
+              "scannetpp__98b4ec142f.json.gz",
+              "scannetpp__9c7b4394af.json.gz",
+              "scannetpp__9ee1527aa6.json.gz",
+              "scannetpp__a30646cae6.json.gz",
+              "scannetpp__abb6639ceb.json.gz",
+              "scannetpp__acd69a1746.json.gz",
+              "scannetpp__ad2d07fd11.json.gz",
+              "scannetpp__adf4ab4a53.json.gz",
+              "scannetpp__aee88e3a93.json.gz",
+              "scannetpp__bb87c292ad.json.gz",
+              "scannetpp__c178491bc5.json.gz",
+              "scannetpp__c31ebd4b22.json.gz",
+              "scannetpp__c465f388d1.json.gz",
+              "scannetpp__d7abfc4b17.json.gz",
+              "scannetpp__d82aaa88dc.json.gz",
+              "scannetpp__dc5f00843f.json.gz",
+              "scannetpp__dfa70fb232.json.gz",
+              "scannetpp__e51b753e48.json.gz",
+              "scannetpp__e898c76c1f.json.gz",
+              "scannetpp__e8ea9b4da8.json.gz",
+              "scannetpp__ef9428c5cd.json.gz",
+              "scannetpp__f38b0108a1.json.gz",
+              "scannetpp__f3f016ba3f.json.gz",
+              "scannetpp__f8e13ab4ae.json.gz",
+              "scannetpp__fe1733741f.json.gz"
+            ]
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/K1_CAPTURES_HELDOUT_57.txt": {
+            "sha256": "702b0d9f7bac16095ad24fd3625e6f71289ba78dc2ac402527f46efc431522fb",
+            "bytes": 1196
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/K1_CAPTURES_TRAIN_239.txt": {
+            "sha256": "fdeab287ab352c046bf11bc639841f38f1fbb6f86ba8c408c0a255a7f3d61e73",
+            "bytes": 5018
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/K1_HELDOUT_216.txt": {
+            "sha256": "a50519b3e7814cd671d7482d4fccb0cc7580360fd51260a14dffe93bf1b48f1c",
+            "bytes": 15551
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/K1_HELDOUT_TABLES_194.txt": {
+            "sha256": "a4a462c3029b4251dfdfc12b7da6d4e4c734cc3f16a48f282329325e7a3372fe",
+            "bytes": 13967
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/K1_TRAIN_1037.txt": {
+            "sha256": "e7646798c8a1e12ca6291723c5f686473b9954a78d068dcfa65c314be35a98ac",
+            "bytes": 74663
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/K1_TRAIN_TABLES_883.txt": {
+            "sha256": "778354e77f117e1d44033e5630c4cd55ba6788e6c4f4a25133a224d34f467191",
+            "bytes": 63575
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/K1_EXCLUSIONS.json": {
+            "sha256": "52fdfd0ad21daff49e7750917cf6abd251d8511cb9f476ac624a8c539f6fb5e0",
+            "bytes": 9899
+          },
+          "/scratch/jjyeung/n30_mirror/sb_headacc2/pack/tools/recompute_designer_reads.py": {
+            "sha256": "d8fb2988eba32776ef5ad05396fb7c4b6fd8c207f820ddccaa7f664de90984b1",
+            "bytes": 5775
+          },
+          "/scratch/jjyeung/orch_n30/b10_reserve/out/qsets/R0_QUESTIONS_dev_f32.jsonl": {
+            "sha256": "b4e278f242e143d8ee66fa527449c7e02fad753bbbb528bd0c31fb9e47aea181",
+            "bytes": 1790304
+          }
+        },
+        "prior_review_code": {
+          "path": "out/recompute.py",
+          "sha256": "c59102064255ad7615bf9f272c7b4803d08c30a7125ee6001ac38055aff26094"
+        },
+        "retained_findings": "Only the ten requested open findings were reassessed; no raw metrics are claimed as newly recomputed."
+      },
+      "evidence": [
+        "/scratch/jjyeung/orch_n30/sb_harev2/out/RECOMPUTE.json"
+      ],
+      "method": "Hash and retain the prior evidence manifest and original command; do not reopen raw data or consume evaluation looks.",
+      "command": "OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 /usr/bin/python3 out/recompute.py",
+      "missing": []
+    }
+  ],
+  "report_lines": 29,
+  "requested_findings": [
+    1,
+    6,
+    8,
+    13,
+    14,
+    16,
+    17,
+    15,
+    18,
+    19
+  ],
+  "verdict": "ACCEPT WITH FINDINGS"
+}

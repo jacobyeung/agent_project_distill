@@ -18,6 +18,7 @@ DEST.mkdir()
 ENV = dict(os.environ, CUDA_VISIBLE_DEVICES='', OMP_NUM_THREADS='8', MKL_NUM_THREADS='8',
            OPENBLAS_NUM_THREADS='8', TOKENIZERS_PARALLELISM='false', PYTHONDONTWRITEBYTECODE='1',
            TMPDIR=str(DEST), TEST_TMP_ROOT=str(DEST), LANE_TEST_OUTPUT=str(DEST))
+ENV['SO_NO_LOCAL_SOCKETS'] = '1'
 PYTHON = ['/scratch/jjyeung/envs/p1cpu/bin/python', '-I', '-s', '-B']
 TESTS = {
     '01_prepared_input_cache.diff': ['test_prepared_input_cache.py', 'test_prepared_cache_wrapper.py'],
@@ -38,10 +39,12 @@ def run(command, cwd, stream):
     if result.returncode:
         raise RuntimeError('Command failed; see ' + stream.name)
 
-for name in [*TESTS, 'combined']:
+recommended = ['03_checkpoint_verify_memo.diff', '04_launch_phase_timing.diff', '02_parallel_frame_sha.diff']
+for name in [*TESTS, 'recommended', 'combined']:
     tree = DEST / name.removesuffix('.diff')
     shutil.copytree(SOURCE, tree)
-    patches = list(TESTS) if name == 'combined' else [name]
+    patches = (recommended + ['01_prepared_input_cache.diff']) if name == 'combined' else (
+        recommended if name == 'recommended' else [name])
     with (LOGS / (name + '.txt')).open('w') as log:
         run(['date', '-u'], tree, log)
         for patch in patches:
@@ -52,7 +55,7 @@ for name in [*TESTS, 'combined']:
         for patch in patches:
             for test in TESTS[patch]:
                 run(PYTHON + [str(tree / 'tests' / test), '-v'], tree, log)
-        if name == 'combined':
+        if name in ('combined', 'recommended'):
             run(PYTHON + [str(ROOT / 'work/run_native_regression.py'), str(tree)], tree, log)
         run(['date', '-u'], tree, log)
     summary.append(dict(name=name, tree=str(tree), log=str(LOGS / (name + '.txt')), status='PASS'))

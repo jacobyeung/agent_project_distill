@@ -1,3 +1,4 @@
+from .job_env import key as env_key
 import argparse
 from collections import Counter
 import fcntl
@@ -169,7 +170,7 @@ def admit(config_pin, output, roots, *, threads=16, memory_gib=256, sample_size=
     before = dict(cfg["streams"])
     request = dict(schema="s1-admission-request-v1", config=config_pin, source_revision=revision,
                    frame_roots=[str(Path(root).resolve()) for root in roots], sample_size=sample_size,
-                   cpu_threads=threads, frame_root_map=os.environ.get(("Q_E4" if "Q_E4" in os.environ else "STUDENT_FRAME_ROOT_MAP")),
+                   cpu_threads=threads, frame_root_map=os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP'))),
                    rehearsal=rehearsal.enabled(), **presence)
     if (output / "request.json").exists():
         if load(output / "request.json") != request:

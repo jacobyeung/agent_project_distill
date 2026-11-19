@@ -80,7 +80,7 @@ class CorpusTests(unittest.TestCase):
         self.assertEqual([r['item_id'] for r in rows], ['a', 'z'])
         self.assertEqual(rows[0]['truth']['scored'], 'B')
         self.assertEqual(rows[0]['arms']['full']['answer'], 'A')
-        self.assertEqual(rows[0]['raw']['full']['opaque'], {'keep': [1, 'é']})
+        self.assertEqual(rows[0]['raw']['arms']['full']['opaque'], {'keep': [1, 'é']})
         self.assertEqual(self.run_ingest()[0], 0)
         self.assertIn('SAME', self.run_ingest()[1])
         target = os.path.join(self.out, 'reads', 'test.jsonl.gz')
@@ -143,8 +143,8 @@ class CorpusTests(unittest.TestCase):
     def test_missing_inputs_refused(self):
         self.routed(missing=True)
         code, _, err = self.run_ingest()
-        self.assertEqual(code, 1)
-        self.assertIn('--inputs', err)
+        self.assertEqual(code, 2)
+        self.assertIn('task_sha256', err)
 
     def test_metadata_precedence(self):
         self.kit()

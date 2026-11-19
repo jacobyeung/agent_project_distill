@@ -1,12 +1,6 @@
-# corpus STATUS (Devin Opus high, trinity-3-30; started 06:34Z 11-19)
-Brief: B/briefs/corpus.md. Lane folder /scratch/jjyeung/orch_n30/corpus. Target /data2/jjyeung/agent_project_data/distill_trace_corpus/ (not created yet).
-## Done
-- Read map from cont_ops18: inbox/READ_MAP_cont_ops.md (11 direct kit reads, 4 routed + D@544 running).
-- Inventories: work/local_jsonl.txt, work/local_markers.txt (trinity-3-30), work/inv118.out (trinity-1-18), work/orch_ls1-5.out (Orchard okh7).
-- Ingest plan: work/INGEST_PLAN.json + work/meta/<read_id>.json (14 local reads).
-## Running
-- Codex Astra build of tool: tmux corpus_codex, brief tool/BRIEF_ingest.md, receipt codex_local/.../20261119T063725Z_corpus_ingest. Formats kit + routed.
-- trinity-1-18 tmux corpus_list: tar tvf of old_lanes_3_30_{a,b}.tar and n30_mirror/cont_ops/*.tar -> /scratch/jjyeung/n30_mirror/corpus_work/*.list (DONE file).
-## Next
-- Second Codex job: adapters offread (b07_offread/in/ret_vsi 170008, ret_revsi 170037, official), native (b04_e2ehook/work/n13 170056), older kit layout without top ITEMS.jsonl, FAILED/partial kit (aed15a8b7cb).
-- Training tars per run from Orchard okh7/x_*/{k,o,runs} (sizes first, QUESTION); analysis tars from codex_runs/*san_* + san_dd_* lanes.
+# corpus STATUS (Devin Opus high, trinity-3-30; 06:34-08:30Z 11-19; ENDED per ORCH ORDER 0636Z, no successor)
+Corpus: /data2/jjyeung/agent_project_data/distill_trace_corpus/ (625 MB, all files sha256-verified by copy_archive; receipts pub/receipt_*.json): reads/ 18 files (29,116 items), INDEX.jsonl, SCHEMA.md, HOWTO.md, index/index_20261119T0810Z.tar (index lines + orphan sidecars), tool/tool_20261119T0810Z.tar, raw/orchard_only_cc886a29e4ef.tar (sha 26600811...). DATA_MAP.md section "Student trace corpus" added.
+Tool (Codex Astra builds 20261119T063725Z_corpus_ingest + *corpus_fix1b; reviews corpus_review NO-GO -> fixed, corpus_review2 NO-GO on 3 synthetic cases, real outputs verified lossless and score-exact): tool/ingest_read.py (formats kit, routed, offread, native), corpus_score.py, add_read.sh (one-command ingest + publish for cont_ops18), pub.py, HOWTO.md, SCHEMA.md. Staging: stage2/ (current); stage/ superseded.
+Verified headline scores from corpus lines alone: VERIFY_3READS.md (a8102c3207b 77.34; A4 81.87/76.27/94.67/50.27; VSTI 544 46.11) + reviewer: VSI official 68.77, ReVSI 64.94.
+Inventory: INVENTORY.md; Orchard-only identities: orchard_in/IDENT.txt; ledger work/ORCHARD_LEDGER.jsonl (token cc886a29e4ef).
+Left (for a Codex job): LEFTOVER.md. Removal candidates: REMOVAL_CANDIDATES.md.

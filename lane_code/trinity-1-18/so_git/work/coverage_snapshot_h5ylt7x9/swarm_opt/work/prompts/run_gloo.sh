@@ -1,0 +1,4 @@
+L=/scratch/jjyeung/orch_n30/so_step
+tmux has-session -t "=so_step_gloo" 2>/dev/null || tmux new-session -d -s so_step_gloo "cd $L && export CUDA_VISIBLE_DEVICES= PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false; date -u > work/full_suite_by_swarm_opt.txt; nice -n 10 taskset -c 0-7 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_cpu_tests.py tests.test_so_prefetch tests.test_so_cache tests.test_so_metrics tests.test_so_joint >> work/full_suite_by_swarm_opt.txt 2>&1; echo EXIT=\$? >> work/full_suite_by_swarm_opt.txt; date -u >> work/full_suite_by_swarm_opt.txt"
+sleep 5; tmux ls | grep so_step_gloo; head -3 $L/work/full_suite_by_swarm_opt.txt
+which cursor-agent agent 2>&1 | head -3; ls ~/.local/bin | grep -i -E 'cursor|agent' | head
