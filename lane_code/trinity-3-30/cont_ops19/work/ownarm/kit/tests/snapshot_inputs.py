@@ -1,7 +1,7 @@
 """Materialize local test inputs from the snapshot; never claim an Orchard run.
 
 A4 is accepted only if reconstruction reproduces its reviewed archive hash.
-The A script templates must round-trip to every supplied b200 script exactly.
+The A templates reproduce b200 with the kit's embedded dry checks added.
 The strict scorer fixture combines pinned reference rows with synthetic metadata.
 Usage: python snapshot_inputs.py FRESH_WORK_DIR
 """
@@ -47,7 +47,8 @@ def main(root):
   (a/script.name).write_text(text)
  B.put(a/'READ_PLAN.json',(base/'READ_PLAN.json').read_bytes())
  derived=B.scripts(a,old_token,B.sha((base/'1.tgz').read_bytes()),json.loads(p['9.json'])['export_binding'],None)
- assert all(text==(base/n).read_text() for n,text in derived.items())
+ assert all(text==(B.add_dry_checks((base/n).read_text()) if n.startswith('o_pullfill')
+                   else (base/n).read_text()) for n,text in derived.items())
  # Test data, not a measured or authenticated return.
  ret=root/'proof/ret_strict';plan=json.loads((base/'READ_PLAN.json').read_text())
  binding=plan['export_binding'];pin=dict(binding,preparation={k:{'sha256':v} for k,v in binding['preparation_sha256'].items()})

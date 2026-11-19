@@ -1,0 +1,227 @@
+{
+  "camera": {
+    "carrier_token": "<|fim_middle|>",
+    "component_reduction": "mean",
+    "embed_dim": 64,
+    "feature_layer_convention": "hidden_states_index_k_after_k_layers_last_is_final_norm_v1",
+    "feature_layers": null,
+    "fov_activation": "bounded_sigmoid_v1",
+    "frame_addressing": "group16",
+    "gate": null,
+    "head_only_steps": 0,
+    "lm_gate": null,
+    "loss_clamp": 100.0,
+    "max_groups": 32,
+    "min_trajectory_scale_m": 0.05,
+    "num_heads": 4,
+    "placement": "append_after_temporal_group_video_tokens_v1",
+    "point_depth": null,
+    "pose_encoding": "opencv_cam_from_frame0_anchor_second_of_pair_T3_quatxyzw4_fovhw2_v2",
+    "pose_origin": "first_sampled_frame_v1",
+    "refine_iterations": 4,
+    "representative_frame": "second_of_temporal_pair_v1",
+    "stage_gamma": 0.6,
+    "supervision": {
+      "path": "/fixture",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "token_scheme": "first_and_rest_learned_v1",
+    "trajectory_balance": true,
+    "trunk_depth": 4,
+    "warmup_ratio": 0.0,
+    "weight": 1.0,
+    "weight_focal": 0.5,
+    "weight_gravity": 1.0,
+    "weight_rot": 1.0,
+    "weight_scale": 0.02,
+    "weight_trans": 1.0
+  },
+  "config_sha256": "5d68cb22898a029f9fa727325c81626503c0c4955bb661f7ef6c4dc765e1d725",
+  "depth": {
+    "context_depth": 1,
+    "d_proj": 16,
+    "mlp_hidden": 16,
+    "num_heads": 4,
+    "vit_layers": [
+      1,
+      2,
+      3
+    ],
+    "weight": 0.05
+  },
+  "model": {
+    "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/export17/400/producer/model.json",
+    "sha256": "b1b88954973c3b66336a10f68e9a5de4a47e06d5fee7da1d160252870e54f348"
+  },
+  "recipe": {
+    "clip_norm": 1.0,
+    "encoder_learning_rate": 1e-05,
+    "export_at_stop": true,
+    "global_batch": 288,
+    "learning_rate": 0.0001,
+    "lm_learning_rate": 1e-05,
+    "milestones": [
+      100,
+      200,
+      400,
+      600,
+      800,
+      1000
+    ],
+    "mix": [
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing"
+    ],
+    "reference_world_size": 32,
+    "resume_every_seconds": 7200,
+    "scheduled_sampling": {
+      "depth_open_absrel": 0.25,
+      "ema_steps": 100,
+      "exposure_from_step": null,
+      "exposure_probability": 0.0,
+      "force_from_step": null,
+      "fov_open_deg": 2.0,
+      "max_own_probability": 0.0,
+      "pose_full_deg": 10.0,
+      "pose_open_deg": 20.0,
+      "seed": 17
+    },
+    "seed": 17,
+    "steps": 1000,
+    "stop_before_seconds": 3600,
+    "wall_seconds": 86400,
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.01,
+    "weights": {
+      "depth": 0.25,
+      "depth_fov": 0.05,
+      "pointing": 1.0,
+      "pose": 1.5,
+      "routing": 1.0,
+      "vqa": 1.0
+    },
+    "world_size": 4
+  },
+  "schema": "c1-preparation-v1",
+  "streams": {
+    "pointing": {
+      "count": 32,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/export17/400/producer/pointing.db",
+        "sha256": "8c3b5cdff0d760cb11e12ae85517624d6a51b9bf580f34034371c3e9d01cdb81"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/export17/400/producer/pointing.json",
+        "sha256": "27d66c1e38232a96bc5eb5ce371fec852edd682512320bee0d00e5f1d6c879e9"
+      },
+      "source_count": 32
+    },
+    "pose": {
+      "count": 64,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/export17/400/producer/pose.db",
+        "sha256": "a6193406f4a80496aa1500ba83e40ab54b3b2af17abb45418cdc238353907440"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/export17/400/producer/pose.json",
+        "sha256": "6ce86708b9bae714329416c1214a814c89a819ecb2800e3933e34907f8dd3126"
+      },
+      "source_count": 64
+    },
+    "routing": {
+      "count": 64,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/export17/400/producer/routing.db",
+        "sha256": "03be40e9ee0f61af536771520187496555e205856ac022ab80d7a11dea79f4f9"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/export17/400/producer/routing.json",
+        "sha256": "d1d0a09894fbf95d417ca2c281c7944657f471a62a17bd9bcbdb74b0beb503fc"
+      },
+      "source_count": 64
+    },
+    "vqa": {
+      "count": 128,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/export17/400/producer/vqa.db",
+        "sha256": "6b7c7218a97f69459cfc899fcf8dc136b0e25f166456007a8079a54e07cee0ad"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/export17/400/producer/vqa.json",
+        "sha256": "49076295b63d8ca0e496cca38f11e325a196ea24dfde7760ef30fa49627005dc"
+      },
+      "source_count": 128
+    }
+  },
+  "training_mode": "final"
+}

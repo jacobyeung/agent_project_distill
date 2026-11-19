@@ -56,3 +56,24 @@ Base state: /scratch/jjyeung/orch_n30/cont_ops18/STATUS.md (09:10Z section). Bri
 - A rerun CPU 173058 PASS; submit: o_sub_A10b.sh via ossh (after proof releases general), monitor monR (J, P=/project/community/jjyeung/okh7/a15_cot_apdc76460c3a164, LB=routedA400b); fetch o_fetch_A10b.sh; unpack into out3/A10b like A10; out4s/A links then -> A10b.
 - Own-arm r400 built (token fadf2291c654b, 1.tgz 359151d1; REPORT_OWN400.md has the Orchard sequence; D staging a15_cot_ap7e4d49a0f823). Mirror trinity-1-18 n30_mirror/cont_ops19/own400_kit.tar 16db72f8. Review requested in RESULT; package/src symlinks point at /dev/shm/c19o/w/r400 (temporary).
 - Proof 173057 running on general since ~12:15Z (1.5-3 h).
+## 12:58Z
+- Proof released general 12:48Z (tree_rebuild12 1248Z; they post before needing it again). Routed A rerun 173060 submitted 12:58Z, tmux monR_173060 (yields on a proof post).
+## 13:05Z
+- post_A400.sh ready (cont_ops19/work; J=<job> bash post_A400.sh; defaults NAME=A10b TOK=dc76460c3a164): fetch, pull, unpack out3/A10b, relink out4s/A, score_r5_400 (A+B10, H3), dist_gate p with sets a/c, callrate summary, calling/non-calling MRA, step-200 reference, prints the corpus command. Tested on the A10 partial (SKIPFETCH=1 CRFLAGS="--allow-partial --allow-subset").
+- QUESTION 1300Z: arm step-600 chain (default at 13:30Z: yes). Ready: work/chain600.sh (autosub400.sh with the 600 tokens) -> start with: tmux new -d -s chain600 "bash /scratch/jjyeung/orch_n30/cont_ops19/work/chain600.sh > /scratch/jjyeung/orch_n30/cont_ops19/work/chain600.log 2>&1". work/monR6.sh = monR + graceful yield when m600 .done lands: use it for general jobs submitted BEFORE the m600 export; after it lands use monR.sh (monR6 would stop them at once).
+## 13:12Z
+- ORCH ANSWER 1301Z: chain600 ARMED (tmux chain600, log work/chain600.log; autosub logs <kit>/autosub400_<600 token>.log). 600 direct RESULT in one file: C1 tool verdict at later-look levels (post400.sh with STEP=600 TOK=a136f924ab1; check the script handles 600 and diff any rename), runaways, object size, relative size (third reading), relative count (139 items + count of numeric answers to letter questions), counting split by true count 2/3/4/5+, toward + toward-hard from facing. Corpus ingest before each report. Build routed 600 A/B from gen400b with BIND600.json when the marker lands.
+- General order: A rerun (running 173060), D@544 rem2, D@200, E, H@544, H@200, own-arm; vehicle N proof (tree_rebuild13 posts) takes slot when asked; at 600 the direct goes first.
+- Own-arm review: Codex Astra read-only, tmux c19_revown (brief ownarm/REVIEW_OWN400_BRIEF.md, log ownarm/review_dispatch.log; receipt under /scratch/jjyeung/orch_n30/codex_local or agent_project_distill agent/scratch/codex_runs).
+## 13:33Z
+- Own-arm review (c19_revown, receipt agent_project_distill/agent/scratch/codex_runs/20261119T131058Z_c19_revown): GO AFTER FIXES: (1) fill scripts lack dryres2/dry2 parity, (2) r400 package/src links dangle (/dev/shm in Codex sandbox). Copy ownarm/REVIEW_OWN400.md. Fix round dispatched: tmux c19_own400f (FIX_OWN400_BRIEF.md). After it: confirm fixes (read-only check by me of the two findings is not a self-review of a gate... ask orchestrator to accept in a RESULT), then stage on Orchard per REPORT_OWN400.md, CPU check only.
+- Helper scripts for 600: work/relcount.py (139 dev-S1 relative count + numeric answers; reproduces 38.13/60 at 400, 64.75/0 at 200), work/split5.py (counting split 2/3/4/5+), work/post600_extra.sh.
+## 13:58Z
+- Own-arm fixes done (RESULT *_ownarm400_review_fixes_done.md); token fadf2291c654b, 1.tgz 359151d1 unchanged; Orchard sequence in ownarm/REPORT_OWN400.md. Runs last.
+- Disk 101 GB: write nothing above 5 MB here (return unpacks of A10b ~ few MB OK). Removal candidates in cont_ops19/REMOVAL_CANDIDATES.md.
+- A rerun 173060 running (51 min at 13:50Z; expect end ~15:00-15:15Z); then post_A400.sh.
+## 14:17Z ROTATE to cont_ops20 (brief orch_n30/briefs/cont_ops20_d.md)
+- A rerun 173060 RUNNING since 12:59Z (1:16 at 14:15Z; ~2 h expected -> end ~15:00-15:20Z), monitor tmux monR_173060. Post: J=173060 bash cont_ops19/work/post_A400.sh.
+- chain600 armed (tmux chain600). Rem2 D, D@200, E, H@544, H@200, own-arm queued (brief item 4).
+- Mirror of my tools: trinity-1-18:/scratch/jjyeung/n30_mirror/cont_ops19/c19_tools_1410Z.tar (6ac01064, equal); own-arm kit tar own400_kit.tar (16db72f8; pre-fix; fixed kit in cont_ops19/work/ownarm and in c19_tools_1410Z.tar).
+- ORCH ORDER 1356Z: no build/test trees on trinity-3-30; Codex builds on trinity-1-18 or Orchard.

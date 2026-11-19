@@ -1,0 +1,3 @@
+Delivered [patch](/scratch/jjyeung/orch_n30/sb_fhalias/out/ALIAS.patch), [report](/scratch/jjyeung/orch_n30/sb_fhalias/out/FHALIAS_REPORT.md), and [archive](/scratch/jjyeung/orch_n30/sb_fhalias/out/sb_fhalias.tar) with [SHA-256](/scratch/jjyeung/orch_n30/sb_fhalias/out/sb_fhalias.tar.sha256).
+
+Alias tests pass after; all 127 focused tests pass on both copies. **Integration blocker:** P’s host statement checker rejects the changed lookup. The report documents this separate regression. The patch changes exactly three files; the source lane remains untouched.

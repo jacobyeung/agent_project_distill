@@ -4,7 +4,7 @@ Read `/home/jjyeung/.claude/CLAUDE.md`, section "Key Trinity Cluster Rules", fir
 
 ## Where you are
 - You run on one Trinity compute node; your brief names it. Your working directory is the repository root on /home only because Devin needs a trusted folder: do not search, list or read it. Work in your lane folder `/scratch/jjyeung/orch_n30/<lane>` (node-local) by absolute path, under 2 GB unless the brief says more; check `df -h /scratch` before any write above 1 GB.
-- trinity-2-18 and trinity-2-28 are unreachable. Every path under `/scratch/jjyeung/orch_cd/` or `/scratch/jjyeung/orch_n28/` is on them and cannot be read. Never ssh to them, never wait for them.
+- trinity-2-18 is unreachable: every path under `/scratch/jjyeung/orch_cd/` is on it and cannot be read; never ssh to it, never wait for it. trinity-2-28 was rebooted on 2026-11-19 with an empty `/scratch` (nothing under `/scratch/jjyeung/orch_n28/` exists any more); reach it with `tools/tssh.sh trinity-2-28` only when your brief or an orchestrator note names it.
 
 ## Forbidden
 - No recursive grep/find/du/ls -R or built-in search tool on /home or /data*: read named files, list single directories, read big files in bounded parts.

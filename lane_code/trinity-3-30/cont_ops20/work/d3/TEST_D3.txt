@@ -1,0 +1,10 @@
+Checks run 14:20Z on real segments 0 (parent D@544 partial 172957, 478 rows; pkg /scratch/jjyeung/orch_n30/cont_ops18/d544ret/pkg, return d544ret/f) and 1 (remainder-1 partial 173053, 3 rows; pkg /dev/shm/c19r/pkg2/a15_cot_apd09f959256d87, return a/f), unpacked to /dev/shm/c20t1/s0, s1:
+rem1 == subset(parent, rows0, proof1): True; proof1 completed_ids == rows0: True
+REM544_2.json (99 items, sha 37180266) == subset(parent, rows0|rows1, proof2): True
+proof2.second_partial matches remainder-1 plan/token/items sha/archive sha/return token/completed=3: True; shared provenance fields equal: True
+evaluator_files equal except dist580.py: True
+journal binding equal except evaluator_code_sha256: FALSE -> artifact_manifest_sha256 also differs (4bc47327... vs a2419214...).
+Cause: orchard_h10/prepare.py:46-52 writes d/binding.json = sha of d/manifest.json; b/parity_kit/build_manifest.py:45-52 hashes every *.py under the code roots (evaluator h1eval included), so dist580.py moves it.
+Hence score_d3 excludes artifact_manifest_sha256 and instead requires every *.py in each package 0.tgz except h1eval/dist580.py to be byte-equal (code_py): parent vs remainder-1: 821 files each, equal.
+Remainder-2 return does not exist yet (job not run). Package on Orchard /project/community/jjyeung/okh7/a15_cot_apd5b7ea08426cd.
+Fix after review 1 (REVIEW_D3.md, GO AFTER FIXES: code_py does not replace the artifact binding): staged_inputs() now requires each segment's metadata/INPUTS.json (every staged archive part, file and root with sha256 and bytes: export parts, weights tars, frames, SAM source root, preparation a/6), minus resume and with only the segment's own package path normalized, to be equal across the three segments. Parent vs remainder-1: equal (True).

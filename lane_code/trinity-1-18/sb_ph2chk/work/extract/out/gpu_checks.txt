@@ -1,0 +1,30 @@
+sb_mask_phrase/part2/gate.py:34:            continue
+sb_mask_phrase/part2/gate.py:38:                continue
+sb_mask_phrase/part2/gate.py:41:    for marker in ('STOP.json', 'KILLED', 'KILLED.json'):
+sb_mask_phrase/part2/gate.py:44:            raise SystemExit(f'REFUSED: {path}; stopped or KILLED work is never rerun')
+sb_mask_phrase/part2/launch_part2.sh:11:mkdir -p "$logdir"
+sb_mask_phrase/part2/sam3_pass.py:14:    PART2_GO=1 <vnice> /scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python part2/sam3_pass.py step5 [CAPTURE]
+sb_mask_phrase/part2/sam3_pass.py:15:    PART2_GO=1 <vnice> /scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python part2/sam3_pass.py pass [--all-aliases]
+sb_mask_phrase/part2/sam3_pass.py:18:captures `pass` writes out/TIMING_RECEIPT.json with the projection of the whole pass; above 1.2 GPU-h it drops the new
+sb_mask_phrase/part2/sam3_pass.py:20:elapsed time reaches 1.2 GPU-h, it stops. A stop is reported in out/pool_part2/STOP.json and is not rerun.
+sb_mask_phrase/part2/sam3_pass.py:46:HARD_GPU_H, TIMED = 1.2, 10
+sb_mask_phrase/part2/sam3_pass.py:130:def require_go():
+sb_mask_phrase/part2/sam3_pass.py:136:    require_go()
+sb_mask_phrase/part2/sam3_pass.py:185:    start = time.monotonic()
+sb_mask_phrase/part2/sam3_pass.py:187:    encoded = time.monotonic()
+sb_mask_phrase/part2/sam3_pass.py:197:    done = time.monotonic()
+sb_mask_phrase/part2/sam3_pass.py:243:    OUT.mkdir(parents=True, exist_ok=True)
+sb_mask_phrase/part2/sam3_pass.py:244:    (OUT/'STEP5.json').write_text(json.dumps(dict(status='PASS' if ok else 'FAIL', capture=name, tolerance=dict(score=SCORE_TOL, iou=IOU_MIN),
+sb_mask_phrase/part2/sam3_pass.py:258:                projected_gpu_h_without_new=without, drop_new=full > HARD_GPU_H, stop=without > HARD_GPU_H)
+sb_mask_phrase/part2/sam3_pass.py:262:    (OUT/'STOP.json').write_text(json.dumps(dict(reason=reason, hard_stop_gpu_h=HARD_GPU_H, **kw), indent=1))
+sb_mask_phrase/part2/sam3_pass.py:263:    sys.exit(f'stopped ({reason}); reported in out/pool_part2/STOP.json, not rerun')
+sb_mask_phrase/part2/sam3_pass.py:268:    require_go()
+sb_mask_phrase/part2/sam3_pass.py:272:    started = time.monotonic(); timed = []; drop_new = False
+sb_mask_phrase/part2/sam3_pass.py:276:            continue
+sb_mask_phrase/part2/sam3_pass.py:280:        dest.mkdir(parents=True, exist_ok=True)
+sb_mask_phrase/part2/sam3_pass.py:281:        (dest/'candidates.json').write_text(json.dumps(rec, separators=(',', ':')))
+sb_mask_phrase/part2/sam3_pass.py:282:        (dest/'PART2_RECEIPT.json').write_text(json.dumps(dict(capture=c['canonical'], timing=tm, calls=calls, new_phrases_dropped=drop_new,
+sb_mask_phrase/part2/sam3_pass.py:285:        elapsed = time.monotonic()-started
+sb_mask_phrase/part2/sam3_pass.py:286:        if elapsed/3600 >= HARD_GPU_H:
+sb_mask_phrase/part2/sam3_pass.py:290:            (HERE/'out/TIMING_RECEIPT.json').write_text(json.dumps(dict(p, captures_timed=timed, captures=len(todo), hard_stop_gpu_h=HARD_GPU_H,
+sb_mask_phrase/part2/sam3_pass.py:295:    (OUT/'PASS_COMPLETE.json').write_text(json.dumps(dict(captures=len(todo), seconds=sum(x['seconds'] for x in timed), new_phrases_dropped=drop_new,

@@ -1,0 +1,31 @@
+VERDICT: DONE Fixed review-round-4 findings 1–5 and validated every permitted suite on Python 3.6.8 and 3.12.13.
+21:source, using new local throwaway repositories under `realgit5_by_swarm_opt`:
+22-
+23-```bash
+24-(
+25-set -euo pipefail
+26-L=/scratch/jjyeung/orch_n30/so_git
+27-export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
+28-export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
+29:mkdir -p "$L/work/realgit5_by_swarm_opt/py36" "$L/work/realgit5_by_swarm_opt/py312"
+30-for TAG in py36 py312; do
+31-  case "$TAG" in
+32-    py36) PY=/usr/bin/python3 ;;
+33-    py312) PY=/scratch/jjyeung/envs/p1cpu/bin/python ;;
+34-  esac
+35-  date -u
+36-  nice -n 10 "$PY" -I -s -B -c 'import lzma'
+37-  LCS_RUN_REAL_GIT_TESTS=1 LCS_REVIEW2_FIXES=1 \
+38:    LCS_REAL_GIT_WORK="$L/work/realgit5_by_swarm_opt/$TAG" LCS_PYTHON="$PY" \
+39-    nice -n 10 bash "$L/work/review_round4_source/tests/run_real_git_owner.sh" \
+40:    2>&1 | tee "$L/work/realgit5_by_swarm_opt/run_$TAG.txt"
+41-done
+42-)
+43-```
+44-
+45-Expect 3 tests, 0 skips, `LCS_REVIEW2_FIXES=1`, `FAILED_COMMIT …=true`, and
+46-`ORIGIN_REJECTION …=true` in each log. `pipefail` preserves a failing runner status.
+47-Stop on failure; do not rerun killed work without the user's answer.
+48-
+49-Check the installed `land_kit.py` preimage hash. Stage its replacement as a temporary file
+50-in the same installed directory, verify the delivered hash, then rename it atomically over

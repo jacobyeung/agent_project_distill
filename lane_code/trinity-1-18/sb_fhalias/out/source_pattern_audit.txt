@@ -1,0 +1,509 @@
+work/tree_before/launch_r2/parent.py:27:        raw = (base/'k'/name).read_bytes()
+work/tree_before/launch_r2/parent.py:34:        results.append(dict(file=name, sha256=sha256(target), identical=raw == target.read_bytes()))
+work/tree_before/launch_r2/distributed.py:64:    for native, opaque in (('STUDENT_FRAME_ROOT_MAP','K4'),('C1_INIT_LOCAL','K5'),('STUDENT_R2_FRAME_HOST','K6')):
+work/tree_before/launch_r2/distributed.py:77:    for native, opaque in (('STUDENT_FRAME_ROOT_MAP','K4'),('C1_INIT_LOCAL','K5'),('STUDENT_R2_FRAME_HOST','K6')):
+work/tree_before/launch_r2/closure.py:32:        raw = path.read_bytes()
+work/tree_before/launch_r2/stdlib_probe.py:13:        raw = path.read_bytes()
+work/tree_before/launch_r2/build.py:29:    for token in re.findall(r'[a-z0-9_]+', lowered):
+work/tree_before/launch_r2/build.py:72:                scan_value(json.loads(path.read_text()), hashes)
+work/tree_before/launch_r2/build.py:73:    job = (root/'job.sh').read_text()
+work/tree_before/launch_r2/build.py:74:    for value in re.findall(r'^(?:export\s+\w+=|#SBATCH --(?:job-name|output|error)=)(.*)$', job, re.M):
+work/tree_before/launch_r2/build.py:78:        for line in script.read_text().splitlines():
+work/tree_before/launch_r2/build.py:83:            if script.name == 'f.sh' and re.search(r'--(?:gpus|gres)\b', line):
+work/tree_before/launch_r2/build.py:156:        raw = Path(path).read_bytes()
+work/tree_before/launch_r2/build.py:166:    withheld_raw = Path(records['withheld']).read_bytes()
+work/tree_before/launch_r2/build.py:191:    sources = {str(p.relative_to(TREE)):sha256(p) for p in source_files([TREE/'student_pilot/carrier_c1_run.py'])}
+work/tree_before/launch_r2/build.py:218:            if re.search(r'/a[23]v[23]/(?:rows.sqlite|receipt.json|division.json)$', entry.get('dest',''))]
+work/tree_before/launch_r2/plan.py:42:            entries[name] = dict(payload=base64.b64encode(metadata[expected].read_bytes()).decode(), sha256=expected)
+work/tree_before/launch_r2/bootstrap.py:13:    value = json.loads(Path(path).read_text())
+work/tree_before/launch_r2/bootstrap.py:29:    if hashlib.sha256(source.read_bytes()).hexdigest() != pin['sha256']:
+work/tree_before/launch_r2/bootstrap.py:74:        print(target.read_text())
+work/tree_before/launch_r2/staging.py:27:    value = json.loads(Path(path).read_text())
+work/tree_before/launch_r2/staging.py:118:                for member, expected in source.get('inventory', {}).items():
+work/tree_before/launch_r2/checklist.py:47:        scripts = {p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (self.root/'b').glob('*.py')}
+work/tree_before/launch_r2/checklist.py:113:        records = [json.loads(s) for s in Path(str(sessions)+'.receipts.jsonl').read_text().splitlines()]
+work/tree_before/launch_r2/runtime.py:62:    specs = [(materializer.materialize, "if os.environ.get('STUDENT_R2_FRAME_HOST')", 'frame-host'),
+work/tree_before/launch_r2/runtime.py:70:        matches = [start+i for i,line in enumerate(lines) if needle in line]
+work/tree_before/launch_r2/host.py:321:            os.environ['STUDENT_R2_FRAME_HOST'] = '0'
+work/tree_before/launch_r2/host.py:329:        os.environ['STUDENT_R2_FRAME_HOST'] = '1'
+work/tree_before/launch_r2/persistence.py:80:            values = [json.loads(line) for line in Path(str(sessions)+'.receipts.jsonl').read_text().splitlines()]
+work/tree_before/tests/test_r2_policy.py:55:        (root/'b/wh.json').write_bytes((B.TREE/'launch_s1/b/wh.json').read_bytes())
+work/tree_before/tests/test_r2_policy.py:91:        original=json.loads(Path(self.registry['path']).read_text())
+work/tree_before/tests/test_r2_policy.py:106:        registry=json.loads(Path(self.registry['path']).read_text())
+work/tree_before/tests/test_r2_policy.py:107:        slot=registry['init_m544']; original=json.loads(Path(slot['record']['path']).read_text())
+work/tree_before/tests/test_r2_policy.py:114:            slot=registry[name]; data=json.loads(Path(slot['record']['path']).read_text()); data.update(changes)
+work/tree_before/tests/test_r2_policy.py:135:            data=json.loads(cp.read_text())
+work/tree_before/tests/test_r2_policy.py:139:            if change=='duplicate': path.write_text(json.dumps(json.loads(path.read_text())*2))
+work/tree_before/tests/test_r2_policy.py:152:        path=Path(self.freeze['path']); frozen=json.loads(path.read_text())
+work/tree_before/tests/test_r2_policy.py:159:        room_list=json.loads(source.read_text())
+work/tree_before/tests/test_decode_parity_r9.py:99:        result=json.loads((tmp/'out/COMPARISON.json').read_text())
+work/tree_before/tests/test_gx_carrier.py:181:            self.assertEqual(path.read_bytes(), (source/path.relative_to(gx.VENDOR/'vggt')).read_bytes())
+work/tree_before/tests/test_gx_carrier.py:182:            lines.append(f'{path.relative_to(gx.VENDOR).as_posix()}\0{hashlib.sha256(path.read_bytes()).hexdigest()}\n')
+work/tree_before/tests/test_gx_carrier.py:769:        original_binding = (directory/'binding.json').read_bytes()
+work/tree_before/tests/test_gx_carrier.py:820:            self.assertEqual((directory/'binding.json').read_bytes(), original_binding)
+work/tree_before/tests/test_r1_build19.py:16:    (root/'b/wh.json').write_bytes((B.TREE/'launch_s1/b/wh.json').read_bytes())
+work/tree_before/tests/test_s1_target_filter.py:64:        index = units.labels.index("chair")
+work/tree_before/tests/test_r2_build8_cache.py:56:  before=(cache/(key+'.safetensors')).read_bytes()
+work/tree_before/tests/test_r2_build8_cache.py:60:  self.assertEqual((cache/(key+'.safetensors')).read_bytes(),before)
+work/tree_before/tests/test_seed_config.py:96:        source = (REPO / "student_pilot/ddp_training.py").read_text()
+work/tree_before/tests/test_seed_config.py:131:        tree = ast.parse((REPO / "student_pilot/ddp_training.py").read_text())
+work/tree_before/tests/test_seed_config.py:198:            metrics = [json.loads(line) for line in (root / name / "metrics.jsonl").read_text().__getattribute__("sp" "litlines")()]
+work/tree_before/tests/test_provisional.py:56:        return self.index(entries), entries
+work/tree_before/tests/test_provisional.py:80:                provisional.load_provisional_candidates(self.index(bad, field + ".jsonl"), LABEL)
+work/tree_before/tests/test_provisional.py:87:            provisional.load_provisional_candidates(self.index(bad, "bad.jsonl"), LABEL)
+work/tree_before/tests/test_provisional.py:104:                index = self.index([entry], f"index_{declared}_{requested}.jsonl")
+work/tree_before/tests/test_provisional.py:118:            provisional.load_provisional_candidates(self.index(entries + [entries[0]], "duplicates.jsonl"), LABEL)
+work/tree_before/tests/test_provisional.py:126:                provisional.load_provisional_candidates(self.index(bad, name + ".jsonl"), LABEL)
+work/tree_before/tests/test_startup_receipt.py:87:        Path(pin['path']).write_bytes(Path(pin['path']).read_bytes() + b' ')
+work/tree_before/tests/test_startup_receipt.py:97:            original = path.read_bytes()
+work/tree_before/tests/test_startup_receipt.py:138:        original = Path(pin['path']).read_bytes()
+work/tree_before/tests/test_startup_receipt.py:141:        self.assertEqual(Path(pin['path']).read_bytes(), original)
+work/tree_before/tests/test_s1_persistent_resume.py:53:        digest = hashlib.sha256((self.persistent / "binding.json").read_bytes()).hexdigest()
+work/tree_before/tests/test_s1_persistent_resume.py:71:        marker = json.loads((self.persistent / "RUN.json").read_text())
+work/tree_before/tests/test_s1_persistent_resume.py:114:        digest = hashlib.sha256((self.persistent / "binding.json").read_bytes()).hexdigest()
+work/tree_before/tests/test_c1_pose_mix_division.py:63:        value = dict(schema=mix.SCHEMA, sources=[dict(kind='rows', receipt=r, frame_prefix=None) for r in sources])
+work/tree_before/tests/test_c1_pose_mix_division.py:86:        order = json.loads(Path(entry['order']['path']).read_text())
+work/tree_before/tests/test_c1_pose_mix_division.py:120:        order = json.loads(Path(entry['order']['path']).read_text())
+work/tree_before/tests/test_c1_pose_mix_division.py:152:        receipt = json.loads(Path(self.a1['path']).read_text())
+work/tree_before/tests/test_c1_pose_mix_division.py:160:        child = json.loads(Path(self.child['path']).read_text())
+work/tree_before/tests/test_c1_pose_mix_division.py:169:        child = json.loads(Path(self.child['path']).read_text())
+work/tree_before/tests/test_c1_pose_mix_division.py:184:        spec = json.loads(Path(self.spec([self.a1])['path']).read_text())
+work/tree_before/tests/test_finetune_lane.py:17:        self.frame = {"path": str(frame), "sha256": hashlib.sha256(frame.read_bytes()).hexdigest()}
+work/tree_before/tests/test_finetune_lane.py:33:                "row_sha256": hashlib.sha256(row_path.read_bytes()).hexdigest(), "target_path": str(target),
+work/tree_before/tests/test_finetune_lane.py:34:                "sha256": hashlib.sha256(target.read_bytes()).hexdigest(),
+work/tree_before/tests/test_probe_cache.py:89:            with self.subTest(change=changes.index(change)):
+work/tree_before/tests/test_probe_cache.py:120:        path.write_bytes(path.read_bytes() + b' ')
+work/tree_before/tests/test_probe_cache.py:150:        before = Path(pin['path']).read_bytes()
+work/tree_before/tests/test_probe_cache.py:152:        self.assertEqual(before, Path(pin['path']).read_bytes())
+work/tree_before/tests/test_s1_staging.py:47:        self.assertEqual(self.stage.destination("data2root/k6tk/"+name).read_bytes(), b"fixture-frame")
+work/tree_before/tests/test_s1_staging.py:106:        self.assertEqual(self.stage.destination(record["destination"]).read_bytes(), source.read_bytes())
+work/tree_before/tests/test_s1_staging.py:122:        self.assertEqual(self.stage.destination("u/opaque/opaque.jsonl.gz").read_bytes(), data)
+work/tree_before/tests/test_r2_build5_grammar.py:70:        for text in texts:
+work/tree_before/tests/test_r2_host_runtime.py:54:            self.assertEqual((local/'heads.pt').read_bytes(),b'tiny')
+work/tree_before/tests/test_r2_host_runtime.py:55:            self.assertEqual((local/'full_weights/a').read_bytes(),b'tiny')
+work/tree_before/tests/test_sharded_equivalence_native.py:25:        per_file.write_bytes(FIXTURE.read_bytes())
+work/tree_before/tests/test_sharded_equivalence_native.py:27:        entries = {json.loads(line)["qid"]: json.loads(line) for line in FIXTURE.read_text().splitlines()}
+work/tree_before/tests/test_s1_in_job_gate.py:104:        parent = json.loads((self.inputs / "parent.json").read_text())
+work/tree_before/tests/test_s1_in_job_gate.py:113:        value = json.loads(path.read_text())
+work/tree_before/tests/test_s1_in_job_gate.py:132:        value = json.loads(path.read_text())
+work/tree_before/tests/test_gx_dense_binding.py:15:        expected={name:hashlib.sha256((Path(c1r_dense.__file__).parent/name).read_bytes()).hexdigest()
+work/tree_before/tests/test_r2_launch_dispatch.py:20:        (root/'b/wh.json').write_bytes((Path(D.__file__).parents[1]/'launch_s1/b/wh.json').read_bytes())
+work/tree_before/tests/ground_handcheck.py:123:        allP = np.concatenate(allP); j = list(z['ids']).index(iid)
+work/tree_before/tests/batched_ground_rows.py:27:    for line in Path(rows_path).read_text().splitlines():
+work/tree_before/tests/batched_ground_rows.py:82:                  tokenizer_sha256=hashlib.sha256(Path(tokenizer_path).read_bytes()).hexdigest(),
+work/tree_before/tests/batched_ground_rows.py:83:                  rows_sha256=hashlib.sha256(Path(rows_path).read_bytes()).hexdigest(),
+work/tree_before/tests/version_pin.py:9:PIN = re.search(r'^transformers==(\S+)$', (Path(__file__).resolve().parents[1] / 'requirements.txt').read_text(), re.M).group(1)
+work/tree_before/tests/test_e2e_shared_rows.py:135:        row = next(row for row in map(json.loads, source.read_text().splitlines())
+work/tree_before/tests/test_stageb_mdg.py:410:        self.assertEqual((directory/'prepared/receipt.json').read_bytes(), (encoded(expected)+'\n').encode())
+work/tree_before/tests/test_e2e_open_vocabulary.py:17:    return json.loads((Path(__file__).parent/'fixtures/v3122_open_vocabulary_calls.json').read_text())['calls']
+work/tree_before/tests/test_auxiliary.py:426:            built = json.loads((root / 'built.json').read_text())
+work/tree_before/tests/test_r2_build5_faults.py:103:            (base/'k'/name).write_bytes((source/'k'/name).read_bytes())
+work/tree_before/tests/test_r2_build5_faults.py:122:        cfg,state=fixture();path=state/'w.bin';changed=path.read_bytes().upper()
+work/tree_before/tests/test_r1_build16.py:80:                path.write_bytes(Path(pin['path']).read_bytes())
+work/tree_before/tests/test_r1_build16.py:82:        receipt_path=dest/'h.json';receipt_path.write_bytes(Path(r['handover_receipt']['path']).read_bytes())
+work/tree_before/tests/test_r1_build18.py:32:        rows=[json.loads(line) for line in pinned(pin).read_text().splitlines()]
+work/tree_before/tests/test_r1_build18.py:62:        pin=cfg['r1_training']['v7_k1_removal'];rows=pinned(pin).read_text().splitlines()
+work/tree_before/tests/test_ddp_preservation.py:34:                before, after = base_source(relative), (REPO / relative).read_bytes()
+work/tree_before/tests/test_ddp_preservation.py:42:        after = (REPO / "student_pilot/runner.py").read_text()
+work/tree_before/tests/test_ddp_preservation.py:49:        after = (REPO / "student_pilot/provisional.py").read_text()
+work/tree_before/tests/test_ddp_preservation.py:59:            before, after = base_source(relative).decode(), (REPO / relative).read_text()
+work/tree_before/tests/test_ddp_preservation.py:68:                         function_source((REPO / "student_pilot/diagnostic.py").read_text(), "admitted_device"))
+work/tree_before/tests/test_multinode_launch.py:35:            self.assertEqual(lines[lines.index('--nproc_per_node') + 1], '8')
+work/tree_before/tests/test_multinode_launch.py:36:            self.assertEqual(lines[lines.index('--parallel') + 1], 'fsdp')
+work/tree_before/tests/test_multinode_launch.py:37:            self.assertEqual(lines[lines.index('--resume-from') + 1], env['RESUME_FROM'])
+work/tree_before/tests/test_multinode_launch.py:101:        return str(args[args.index(name) + 1])
+work/tree_before/tests/test_multinode_launch.py:155:            paths = args[args.index('--leases') + 1:args.index('--request')]
+work/tree_before/tests/test_multinode_launch.py:159:            paths = args[args.index('--partials') + 1:args.index('--request')]
+work/tree_before/tests/test_mdg_stream.py:18:        return [self.ids[c] for c in text]
+work/tree_before/tests/test_recording_pose.py:34:    gate = json.loads(Path('configs/gate_heldout_scenes_v1.json').read_bytes())
+work/tree_before/tests/test_recording_pose.py:74:    for n in source['pool']:
+work/tree_before/tests/test_recording_pose.py:149:        rows = [json.loads(line) for line in (root / 'built/pose_rows.jsonl').read_text().splitlines()]
+work/tree_before/tests/test_recording_pose.py:263:        raw = Path(source['poses']['path']).read_bytes()
+work/tree_before/tests/test_e2e_merge.py:17:    return json.loads((Path(__file__).parents[1] / 'configs' / (variant + '.json')).read_text())
+work/tree_before/tests/test_decoupled_schedule.py:103:        records = [json.loads(line) for line in (Path(cfg['output'])/'train/metrics.jsonl').read_text().splitlines()]
+work/tree_before/tests/test_full_ft_eval.py:90:    rows = [json.loads(line) for line in (Path(run) / 'generations.jsonl').read_text().splitlines()]
+work/tree_before/tests/test_full_ft_eval.py:172:            output = Path(args[args.index('--output') + 1])
+work/tree_before/tests/test_full_ft_eval.py:220:                self.assertEqual([call[call.index('-m') + 2] if '-m' in call else 'stage' for call in ours],
+work/tree_before/tests/test_full_ft_eval.py:236:                    position = before.index('--provisional-diagnostic') + 2
+work/tree_before/tests/test_full_ft_eval.py:268:                self.assertEqual((new / f'check_{arm}/input_audits.jsonl').read_bytes(),
+work/tree_before/tests/test_full_ft_eval.py:269:                                 (reference / f'check_{arm}/input_audits.jsonl').read_bytes())
+work/tree_before/tests/test_full_ft_eval.py:280:                    self.assertEqual((new / f'score_{arm}' / name).read_bytes(), (reference / f'score_{arm}' / name).read_bytes())
+work/tree_before/tests/test_full_ft_eval.py:337:        original = shard.read_bytes()
+work/tree_before/tests/test_full_ft_eval.py:346:        saved = index.read_bytes()
+work/tree_before/tests/test_full_ft_eval.py:352:        saved = manifest.read_bytes()
+work/tree_before/tests/test_heads_only.py:85:        manifest = json.loads(Path(export['path']).read_bytes())
+work/tree_before/tests/test_heads_only.py:275:        spec = json.loads((root / 'built/BUILD.json').read_bytes())
+work/tree_before/tests/test_heads_only.py:281:            cfg = json.loads(path.read_bytes())
+work/tree_before/tests/test_grounding_train.py:118:        expected = [load_line for load_line in map(json.loads, (self.root / 'uninterrupted/metrics.jsonl').read_text().splitlines())]
+work/tree_before/tests/test_grounding_train.py:119:        actual = list(map(json.loads, (self.root / 'interrupted/metrics.jsonl').read_text().splitlines()))
+work/tree_before/tests/test_grounding_train.py:173:        records = lambda name: list(map(json.loads, (self.root / name / 'metrics.jsonl').read_text().splitlines()))
+work/tree_before/tests/test_grounding_train.py:181:        self.assertIn('-999.0', tails[0].read_text())
+work/tree_before/tests/test_r2_build5_edges.py:72:        value=json.loads(path.read_text());value['sha256']='0'*64;path.write_text(json.dumps(value))
+work/tree_before/tests/test_r2_build5_edges.py:78:        self.assertEqual(S.assemble(dict(parts=[str(root/'a'),str(root/'b')],sha256=h),root/'joined').read_bytes(),raw)
+work/tree_before/tests/test_r2_build5_edges.py:92:        self.assertEqual((root/'staged/u/a').read_bytes(),raw)
+work/tree_before/tests/test_r2_build5_edges.py:93:        self.assertEqual((root/'staged/u/c/f').read_bytes(),raw)
+work/tree_before/tests/test_gf1_review.py:35:        return [ord(c)+100 for c in text.removesuffix(self.eos_token)] + ([1] if text.endswith(self.eos_token) else [])
+work/tree_before/tests/test_gf1_review.py:208:        stage=json.loads((Path(__file__).resolve().parents[1]/'configs/gf1_stage2.json').read_text())
+work/tree_before/tests/test_gf1_review.py:223:        cold_artifact=root/'cold.json';cold=json.loads((root/'export/artifact.json').read_text());cold['geometry_online'].pop('gf1')
+work/tree_before/tests/test_gf1_review.py:280:            stage=json.loads((Path(__file__).resolve().parents[1]/'configs/gf1_stage1.json').read_text());stage[key]=32
+work/tree_before/tests/test_ddp_checkpoints.py:231:        self.assertEqual(len((resumed.root / "metrics.jsonl").read_text().__getattribute__("sp" "litlines")()), 1)
+work/tree_before/tests/test_ddp_checkpoints.py:247:        self.assertEqual(len((resumed.root / "metrics.jsonl").read_text().__getattribute__("sp" "litlines")()), 1)
+work/tree_before/tests/test_ddp_checkpoints.py:252:        self.assertEqual((resumed.root / "metrics.jsonl").read_bytes(), (directory / "artifacts/metrics.jsonl").read_bytes())
+work/tree_before/tests/test_ddp_checkpoints.py:285:        self.assertEqual(cached.read_bytes(), frame.read_bytes())
+work/tree_before/tests/test_ddp_checkpoints.py:494:            reference = [json.loads(line) for line in (root / "reference/metrics.jsonl").read_text().__getattribute__("sp" "litlines")()]
+work/tree_before/tests/test_ddp_checkpoints.py:496:                actual = [json.loads(line) for line in (root / directory / "metrics.jsonl").read_text().__getattribute__("sp" "litlines")()]
+work/tree_before/tests/test_ddp_checkpoints.py:530:            self.assertIn("synthetic checkpoint write failure", (root / f"rank{rank}.txt").read_text())
+work/tree_before/tests/test_ddp_checkpoints.py:689:        metrics = [[json.loads(line) for line in (self.root / directory / "metrics.jsonl").read_text().__getattribute__("sp" "litlines")()]
+work/tree_before/tests/test_ddp_checkpoints.py:723:        self.assertEqual(len((published / "metrics.jsonl").read_text().__getattribute__("sp" "litlines")()), 4)
+work/tree_before/tests/test_hc_v3.py:18:    config = pdg_v3.stage2_config(json.loads(FIXTURE.read_text()), pin("s1_geometry.safetensors"), pin("s1_heads.pt"))
+work/tree_before/tests/test_hc_v3.py:56:        ungated = json.loads(FIXTURE.read_text())
+work/tree_before/tests/test_sft_warmstart.py:307:        self.assertNotIn(str(self.parent), output.read_text())
+work/tree_before/tests/test_sft_warmstart.py:384:        self.assertEqual(reference.read_bytes(), actual.read_bytes())
+work/tree_before/tests/test_sft_warmstart.py:401:        self.assertEqual(outputs[0].read_bytes(), outputs[1].read_bytes())
+work/tree_before/tests/test_sft_warmstart.py:402:        self.assertNotEqual(outputs[0].read_bytes(), outputs[2].read_bytes())
+work/tree_before/tests/test_sft_warmstart.py:403:        self.assertNotEqual(outputs[0].with_suffix(".init_adapter.json").read_bytes(),
+work/tree_before/tests/test_sft_warmstart.py:404:                            outputs[1].with_suffix(".init_adapter.json").read_bytes())
+work/tree_before/tests/test_g3t_camtoken.py:275:            patch_sha = hashlib.sha256(patch_path.read_bytes()).hexdigest()
+work/tree_before/tests/test_g3t_camtoken.py:288:            manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+work/tree_before/tests/test_g3t_camtoken.py:306:            cam_sha = hashlib.sha256(cam_path.read_bytes()).hexdigest()
+work/tree_before/tests/test_g3t_camtoken.py:459:                ms_files[f"full_weights/{name}"] = {"bytes": p.stat().st_size, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
+work/tree_before/tests/test_g3t_camtoken.py:462:                ms_files[rel] = {"bytes": p.stat().st_size, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
+work/tree_before/tests/test_g3t_camtoken.py:471:            mig_heads_meta = json.loads((dst_ms / "auxiliary_heads.json").read_text())
+work/tree_before/tests/test_g3t_camtoken.py:497:        preds = json.loads(Path(G3T_PREDS).read_text())
+work/tree_before/tests/test_g3t_camtoken.py:500:        training = [tuple(s) for s in json.loads(Path(TRAINING_SCENES).read_text())["scenes"]]
+work/tree_before/tests/test_s1_pool_admission.py:87:                source = next((json.loads(line) for line in stream if "floor height -0.00 m" in line), None)
+work/tree_before/tests/headcall/rows_fixture.py:21:    think = "\n".join(line.format(**dict(exchanges, **marks)) for line in lines)
+work/tree_before/tests/test_mdg_targets.py:55:        chair = units.labels.index('chair')
+work/tree_before/tests/test_mdg_targets.py:61:        self.assertTrue(units.unique[units.labels.index('sidewall')])
+work/tree_before/tests/test_mdg_targets.py:231:        self.assertEqual(json.loads(output.read_text()), {'chair': []})
+work/tree_before/tests/test_mdg_targets.py:252:            raw = original.read_bytes()
+work/tree_before/tests/test_mdg_targets.py:290:        table = json.loads(confusers.read_text())
+work/tree_before/tests/test_mdg_targets.py:293:        row = json.loads(index.read_text())
+work/tree_before/tests/test_g3t_patch_grid_store.py:105:        train = [json.loads(line) for line in (self.root / "lists/train_sets.jsonl").read_text().splitlines()]
+work/tree_before/tests/test_g3t_patch_grid_store.py:107:        evaluation = [json.loads(line) for line in (self.root / "lists/eval_sets.jsonl").read_text().splitlines()]
+work/tree_before/tests/test_g3t_patch_grid_store.py:124:        train = [json.loads(line) for line in (self.root / "lists/train_sets.jsonl").read_text().splitlines()]
+work/tree_before/tests/test_conversion_v2_integration.py:36:        before = self.context_path.read_bytes()
+work/tree_before/tests/test_conversion_v2_integration.py:45:        self.assertEqual(self.context_path.read_bytes(), before)
+work/tree_before/tests/test_conversion_v2_integration.py:50:        self.assertIn(conversion_v2.SYSTEM, Path(record["rendered_prompt"]["path"]).read_text())
+work/tree_before/tests/test_conversion_v2_integration.py:54:        self.context_path.write_bytes(self.context_path.read_bytes() + b" ")
+work/tree_before/tests/test_conversion_v2_integration.py:71:        self.assertEqual(marker.read_text(), "preserve me")
+work/tree_before/tests/test_benchmark_eval.py:272:                for entry in source_manifest['files']:
+work/tree_before/tests/test_benchmark_eval.py:414:                canary.read_bytes()
+work/tree_before/tests/test_s1_routing.py:422:            rows = [(index, json.loads(value)) for index, value in source.execute("SELECT i,row FROM rows ORDER BY i")]
+work/tree_before/tests/test_r2_sampling.py:60:        path=root/'i.json';original=json.loads(path.read_text())
+work/tree_before/tests/test_r2_sampling.py:77:        population=root/'population.json';original=json.loads(population.read_text())
+work/tree_before/tests/test_r2_sampling.py:80:            record=json.loads((root/'c.json').read_text());record['receipts']=[file_pin(population)]
+work/tree_before/tests/test_reason_generate.py:38:        eos = [SPECIALS.index('<|endoftext|>')]
+work/tree_before/tests/test_r2_build3_edges.py:27:        put(seal);self.assertEqual((bootstrap.stage(root,root/'s')/'a.py').read_text(),'x=1\n')
+work/tree_before/tests/test_r2_build3_edges.py:56:        (root/'b/wh.json').write_bytes((B.TREE/'launch_s1/b/wh.json').read_bytes())
+work/tree_before/tests/test_r2_build3_edges.py:66:        (root/'b/wh.json').write_bytes((B.TREE/'launch_s1/b/wh.json').read_bytes())
+work/tree_before/tests/test_r2_build7.py:40:        item=dict(artifact_id='fixture',sha256=hashlib.sha256(p.read_bytes()).hexdigest(),location=str(p))
+work/tree_before/tests/test_r2_build7.py:70:        spec=dict(parts=[str(archive)],sha256=hashlib.sha256(archive.read_bytes()).hexdigest(),inventory={'member':h})
+work/tree_before/tests/test_r2_build7.py:82:        captures=json.loads(Path(__import__('student_pilot.r0_exclusion',fromlist=['x']).__file__).with_name('r0_scenes.json').read_text())['captures']
+work/tree_before/tests/test_r2_build7.py:174:        manifest=json.loads((directory/'eat1-artifact.json').read_text())
+work/tree_before/tests/test_r2_build7.py:178:            self.assertEqual(hashlib.sha256((directory/name).read_bytes()).hexdigest(),entry['sha256'])
+work/tree_before/tests/test_r2_build7.py:214:        manifest=json.loads((directory/'eat1-artifact.json').read_text())
+work/tree_before/tests/test_gf1.py:22:    production = json.loads((Path(__file__).resolve().parents[1]/f'configs/gf1_stage{stage}.json').read_text())
+work/tree_before/tests/test_gf1.py:63:    stage_config=json.loads((Path(__file__).resolve().parents[1]/f'configs/gf1_stage{stage}.json').read_text())
+work/tree_before/tests/test_ground_r3.py:180:                self.assertEqual('frames' in text,rule!='seed_excl_fwd')
+work/tree_before/tests/test_startup_training_gloo.py:132:        metrics = [[json.loads(line) for line in (root / 'reference/metrics.jsonl').read_text().__getattribute__("sp" "litlines")()] for root in (first, second)]
+work/tree_before/tests/headcall/test_training.py:87:        first_open = full_ids.index(r_open)
+work/tree_before/tests/headcall/test_training.py:157:        stated = re.findall(r"point \([^)]*\)", strip_exchanges(new["target"]))
+work/tree_before/tests/test_integ_v314.py:83:        winner=re.findall(r'min "([^"]+)"',got)[0]
+work/tree_before/tests/test_integ_v314.py:198:        code=(base/'student_pilot/live_trace313.py').read_text().replace('from trace_format','from legacy_trace_format')
+work/tree_before/tests/test_r2_build5_persistence.py:25:    raw = path.read_bytes()
+work/tree_before/tests/test_r2_build5_persistence.py:122:            ' raw=Path(args[3]).read_bytes(); width=len(raw)//4\n'
+work/tree_before/tests/test_addressing_r15.py:30:        saved=json.loads((directory/'inputs.json').read_text())
+work/tree_before/tests/test_addressing_r15.py:74:            data=json.loads(files[0].read_text())
+work/tree_before/tests/test_r2_n1fix3.py:47:        node=next(n for n in ast.parse(base.read_text()).body if isinstance(n,ast.FunctionDef) and n.name=='parameter_groups')
+work/tree_before/tests/test_r2_n1fix3.py:112:        source=Path(build.__file__).read_text()
+work/tree_before/tests/pd_toys.py:15:START, END = SPECIALS.index('<|vision_start|>'), SPECIALS.index('<|vision_end|>')
+work/tree_before/tests/test_ddp_launch.py:33:        self.assertEqual(lines[lines.index("--nproc_per_node") + 1], "3")
+work/tree_before/tests/test_ddp_launch.py:34:        self.assertEqual(lines[lines.index("--training-config") + 1], "fixture-training-config")
+work/tree_before/tests/test_ddp_launch.py:35:        self.assertEqual(lines[lines.index("--provisional-diagnostic") + 1], self.environment["PROVISIONAL_DIAGNOSTIC"])
+work/tree_before/tests/test_ddp_launch.py:55:            self.assertEqual(lines[lines.index("--parallel") + 1], parallel)
+work/tree_before/tests/test_ddp_launch.py:80:                self.assertEqual(lines[lines.index("--resume-from") + 1], checkpoint)
+work/tree_before/tests/test_r1_build13.py:147:        batches=[(k,p,[dict(row={**row,'qid':'slice_'+k},target={})],self.source) for k,p in sources.items()]
+work/tree_before/tests/test_r1_build13.py:244:                k:dict(source=v['source'],qids=[]) for k,v in sources.items()})))
+work/tree_before/tests/test_r1_build13.py:246:             patch.dict(os.environ,STUDENT_R2_FRAME_HOST='1',STUDENT_R2_LOCAL_NODE='0'):
+work/tree_before/tests/test_r1_build13.py:259:             patch.dict(os.environ,STUDENT_R2_FRAME_HOST='1',STUDENT_R2_LOCAL_NODE='0'):
+work/tree_before/tests/test_r1_build13.py:268:             patch.dict(os.environ,STUDENT_R2_FRAME_HOST='1',STUDENT_R2_LOCAL_NODE='0'):
+work/tree_before/tests/test_acceptance_parity_rules.py:159:            stack.enter_context(patch.object(validation,'load_cache',side_effect=lambda p:json.loads(Path(p).read_text())))
+work/tree_before/tests/test_acceptance_parity_rules.py:165:        result=json.loads((args.out/'REPORT.json').read_text())
+work/tree_before/tests/test_r2_build9_recovery.py:66:                    for line in lines:
+work/tree_before/tests/test_mdg_eval.py:253:        before=journal.read_bytes()
+work/tree_before/tests/test_mdg_eval.py:256:        self.assertEqual(journal.read_bytes(),before)
+work/tree_before/tests/test_mdg_eval.py:298:        self.assertEqual(len((out/'scene_absent.jsonl').read_text().splitlines()), 1)
+work/tree_before/tests/test_r2_build3b.py:152:        path = manifests[list(S.SOURCES).index(name)]
+work/tree_before/tests/test_r2_build3b.py:278:            path=manifests[list(S.SOURCES).index(name)]
+work/tree_before/tests/test_r2_build3b.py:320:        base_rows = {stream:json.loads((base/stream/'rows.jsonl').read_text()) for stream in ('vqa','routing','pose','pointing')}
+work/tree_before/tests/test_r2_build8_direct.py:58:            receipt=json.loads((p/'store/receipt.json').read_text())
+work/tree_before/tests/test_r2_build4.py:155:        self.assertEqual((root/'u'/h).read_bytes(),raw)
+work/tree_before/tests/test_r2_build4.py:200:            raw=path.read_bytes();width=(len(raw)+3)//4
+work/tree_before/tests/test_r2_build3.py:99:            pose_row = json.loads((root/'pose/rows.jsonl').read_text())
+work/tree_before/tests/test_r2_build3.py:204:        for key,relative in result.items():self.assertEqual((root/'s'/relative).read_bytes(),members[key])
+work/tree_before/tests/test_run_control_republish.py:159:        original = weights.read_bytes()
+work/tree_before/tests/test_native_selector84.py:34:        index=json.loads((E1/'exports/A3_fwd/INDEX.json').read_text())
+work/tree_before/tests/test_native_selector84.py:39:            manifest=json.loads(path.read_text());mapping=FrameMap(tuple(manifest['frame_indices']))
+work/tree_before/tests/test_native_selector84.py:64:        reviewer=json.loads((BASE/'gv_fix_review/out/SEL84.json').read_text())['gains_points']['hrp_native']
+work/tree_before/tests/test_spatial_pose.py:268:        self.assertEqual(report['skipped_rows'],sum(i>=32 for i in order[:order.index(report['indices'][-1])]))
+work/tree_before/tests/test_division_inheritance.py:125:        published = json.loads(self.record(["scene0000_00"], ["scene0002_00"]).read_text())
+work/tree_before/tests/test_division_inheritance.py:140:        published = json.loads(self.record(["scene0000_00"], ["scene0002_00"]).read_text())
+work/tree_before/tests/test_division_inheritance.py:156:        published.write_text(published.read_text() + " ")
+work/tree_before/tests/test_division_inheritance.py:167:            division.published_group_sides(json.loads(path.read_text()))
+work/tree_before/tests/test_head_probe.py:58:                      {'name': 'sofa', 'span': [QUESTION.index('sofa'), QUESTION.index('sofa') + 4]},
+work/tree_before/tests/coverage_b8_preparation.py:54:            sources = {str(p.relative_to(tree)): sha256(p) for p in source_files([Path(trainer.__file__)])}
+work/tree_before/tests/test_decoupled_resume.py:163:            assert (root/'full/train/metrics.jsonl').read_bytes() == (root/'split/train/metrics.jsonl').read_bytes()
+work/tree_before/tests/test_decoupled_resume.py:194:        marker = json.loads((directory/'complete.json').read_bytes())
+work/tree_before/tests/test_decoupled_resume.py:202:            (dest/name).write_bytes((source/name).read_bytes())
+work/tree_before/tests/test_decoupled_resume.py:208:        artifact = json.loads((directory/'heads.json').read_bytes())
+work/tree_before/tests/test_decoupled_resume.py:238:        self.assertEqual((root/'metrics.jsonl').read_bytes(),payload['metrics'])
+work/tree_before/tests/test_decoupled_resume.py:251:        for path in source.iterdir():
+work/tree_before/tests/test_decoupled_resume.py:252:            (root/'step_4'/path.name).write_bytes(path.read_bytes())
+work/tree_before/tests/test_decoupled_resume.py:254:        saved = {p:p.read_bytes() for p in (root/'step_4').iterdir()}
+work/tree_before/tests/test_decoupled_resume.py:258:            self.assertEqual(path.read_bytes(),raw)
+work/tree_before/tests/test_r2_build5.py:57:        root=directory();examples=[json.loads(s) for s in (LANE/'rows/join_examples.jsonl').read_text().splitlines()]
+work/tree_before/tests/test_r2_build5.py:114:        (root/'b/wh.json').write_bytes((Path(__file__).parents[1]/'launch_s1/b/wh.json').read_bytes())
+work/tree_before/tests/test_r2_build5.py:329:        (root/'b/wh.json').write_bytes((Path(__file__).parents[1]/'launch_s1/b/wh.json').read_bytes())
+work/tree_before/tests/test_r2_build5.py:330:        (root/'g.py').write_bytes((Path(__file__).parents[1]/'launch_s1/b/gcsput.py').read_bytes())
+work/tree_before/tests/test_r2_build5.py:359:            values=[json.loads(line) for line in receipt.read_text().splitlines()]
+work/tree_before/tests/test_s1_production_imports.py:98:        report = json.loads((self.root / "o/123456.preflight.metadata.p.json").read_text())
+work/tree_before/tests/test_s1_production_imports.py:130:            script = (self.source / "launch_s1" / name).read_text()
+work/tree_before/tests/test_s1_production_imports.py:131:            self.assertLess(script.index('b/p0.sh'), script.index('b/g.py'))
+work/tree_before/tests/test_s1_production_imports.py:132:            self.assertLess(script.index('b/p0.sh'), script.index('b/r8.py'))
+work/tree_before/tests/test_s1_production_imports.py:133:        stage = (self.source / "launch_s1/b/c.sh").read_text().split("tk_stage() {", 1)[1]
+work/tree_before/tests/test_s1_production_imports.py:134:        self.assertLess(stage.index('"$mode" == preflight'), stage.index("\n    tk_stage_model"))
+work/tree_before/tests/test_s1_production_imports.py:135:        self.assertLess(stage.index('"$mode" == preflight'), stage.index("\n    tk_stage_extra"))
+work/tree_before/tests/test_pd_build2.py:332:        recorded = {s['scene']: s for s in json.loads((root / 'bank.manifest.json').read_text())['scenes']}
+work/tree_before/tests/test_pd_build2.py:335:        self.assertFalse(any(re.search('scan' 'net', str(v)) for v in bank['scene_tokens'].tolist() + bank['dataset_tokens'].tolist()))
+work/tree_before/tests/test_pd_build2.py:375:        digest = hashlib.sha256(SMOKE_BANK.read_bytes()).hexdigest()
+work/tree_before/tests/test_pd_build2.py:814:        text = (ROOT / 'tests/fixtures/g3t_reference/EXCERPT.md').read_text()
+work/tree_before/tests/test_pd_build2.py:816:        rows = {'d1': next(l for l in lines if l.startswith('| **ScanNet** (')),
+work/tree_before/tests/test_pd_build2.py:817:                'd2': next(l for l in lines if l.startswith('| **ScanNet++** ('))}
+work/tree_before/tests/test_pd_build2.py:819:            cells = [c.strip() for c in re.findall(r'[^|]+', line.strip().strip('|'))]
+work/tree_before/tests/test_pd_build2.py:827:                mean, median = re.findall(r'[\d.]+', cell)
+work/tree_before/tests/test_pd_build2.py:829:            self.assertEqual(ref['ate_rms_m_median_after_sim3'], float(re.match(r'[\d.]+', cells[12]).group()))
+work/tree_before/tests/test_pd_build2.py:833:        probe = next(l for l in lines if l.startswith('| g3t |'))
+work/tree_before/tests/test_r2_build6.py:26:            self.assertEqual((mirror/'heads.pt').read_bytes(),b'tiny')
+work/tree_before/tests/test_r2_build6.py:27:            self.assertEqual((mirror/'full_weights/a').read_bytes(),b'tiny')
+work/tree_before/tests/test_rg2p_policy.py:73:    raw = (directory / "checkpoint.json").read_bytes()
+work/tree_before/tests/test_rg2p_policy.py:388:    return [json.loads(line) for line in (Path(directory) / "metrics.jsonl").read_text().__getattribute__("sp" "litlines")()]
+work/tree_before/tests/test_rg2p_policy.py:488:            failed_save = events.index({"event": "save", "step": 6, "kind": "rolling"})
+work/tree_before/tests/test_rg2p_policy.py:530:            pin = events.index({"event": "ledger", "ledger": checkpoints.PINNED_LEDGER, "step": step, "kind": "signal",
+work/tree_before/tests/test_rg2p_policy.py:532:            self.assertLess(pin, events.index({"event": "stop_marker"}), phase)
+work/tree_before/tests/test_decoupled_startup.py:234:            before=path.read_bytes()
+work/tree_before/tests/test_decoupled_startup.py:236:            self.assertEqual(path.read_bytes(),before)
+work/tree_before/tests/test_clean_r1313.py:356:                self.assertEqual(caught.exception.offset, 3 + value.index("correct_answer") if "correct_answer" in value else 3)
+work/tree_before/tests/test_r1_build17.py:64:        self.assertEqual((L/'work/build17/inputs/s.json').read_bytes(),(L/'work/build16/inputs/s.json').read_bytes())
+work/tree_before/tests/test_r1_build17.py:144:        cpu=(root/'j.sh').read_text();gpu=(root/'j1.sh').read_text()
+work/tree_before/tests/test_pose_samples.py:279:            frames.append({"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
+work/tree_before/tests/test_pose_samples.py:295:        base_a = arms.a_from_x(BASE_X.read_bytes())
+work/tree_before/tests/test_carrier_c1_routing.py:295:        self.assertNotIn('scannet', (root / 'bench_alias.json').read_text())
+work/tree_before/tests/test_all_frames.py:136:        rows = [json.loads(line) for line in (root/'built/pose_rows.jsonl').read_text().splitlines()]
+work/tree_before/tests/test_all_frames.py:207:        tree = ast.parse(path.read_text())
+work/tree_before/tests/fullft_eval_toys.py:40:        return [self.ids[text]] if text in self.ids else [ord(char) for char in text]
+work/tree_before/tests/fullft_eval_toys.py:178:        return test_provisional.ProvisionalTests.index(self, entries, name)
+work/tree_before/tests/test_segment_loss.py:33:    if not hashlib.sha256(BASELINE.read_bytes()).hexdigest().startswith(BASELINE_SHA256):
+work/tree_before/tests/test_segment_loss.py:114:        source = Path(ddp_core.__file__).read_text()
+work/tree_before/tests/tower_gt_check.py:71:    keys = json.loads((ROOT / 'ttower/work/geo/heads_g3s64_vcd/CONVERT.json').read_text())['converted']
+work/tree_before/tests/test_sharded_targets.py:78:            return provisional.load_provisional_candidates(self.index(entries, name), LABEL)
+work/tree_before/tests/test_sharded_targets.py:114:                                             sha256=hashlib.sha256(Path(e["target_path"]).read_bytes()[
+work/tree_before/tests/test_sharded_targets.py:128:        index = self.index(entries, "dropped.jsonl")
+work/tree_before/tests/test_conversion_regressions.py:46:        if path.read_bytes() != data:
+work/tree_before/tests/test_conversion_regressions.py:243:        before = {str(path): path.read_bytes() for path in (self.output / "collected").rglob("*.json")}
+work/tree_before/tests/test_conversion_regressions.py:246:        self.assertEqual(before, {str(path): path.read_bytes() for path in (self.output / "collected").rglob("*.json")})
+work/tree_before/tests/test_conversion_regressions.py:337:        originals = {str(path): (path.read_bytes(), path.stat().st_mtime_ns) for path in run.rglob("*.json")}
+work/tree_before/tests/test_conversion_regressions.py:342:            sidecars = {str(path): (path.read_bytes(), path.stat().st_mtime_ns) for path in run.rglob("*.json")}
+work/tree_before/tests/test_conversion_regressions.py:345:        self.assertEqual(sidecars, {str(path): (path.read_bytes(), path.stat().st_mtime_ns) for path in run.rglob("*.json")})
+work/tree_before/tests/test_conversion_regressions.py:347:            self.assertEqual((Path(path).read_bytes(), Path(path).stat().st_mtime_ns), content)
+work/tree_before/tests/test_conversion_regressions.py:368:        before = conflict.read_bytes()
+work/tree_before/tests/test_conversion_regressions.py:371:        self.assertEqual(conflict.read_bytes(), before)
+work/tree_before/tests/test_grounding_targets.py:60:        q = units.labels.index('chair')
+work/tree_before/tests/test_grounding_targets.py:74:        q = units.labels.index('chair')
+work/tree_before/tests/test_grounding_targets.py:83:        pin = dict(path=str(mask_path), sha256=hashlib.sha256(mask_path.read_bytes()).hexdigest())
+work/tree_before/tests/test_grounding_targets.py:105:            q = units.labels.index('chair')
+work/tree_before/tests/test_grounding_targets.py:118:            q = units.labels.index('chair')
+work/tree_before/tests/test_grounding_targets.py:278:        report = json.loads(output.read_text())
+work/tree_before/tests/test_grounding_targets.py:287:        relocated.write_text((root / 'clips.jsonl').read_text())
+work/tree_before/tests/test_carrier_c1_overfit.py:72:        output=path.with_name(path.stem+'_'+chr(ord('a')+PLACEMENTS.index(placement))+path.suffix)
+work/tree_before/tests/test_multinode_gloo.py:186:        metrics = [[json.loads(line) for line in (self.root / folder / 'metrics.jsonl').read_text().__getattribute__("sp" "litlines")()]
+work/tree_before/tests/test_ground_backend.py:154:        return [self.ids[c] for c in text]
+work/tree_before/tests/test_inherited_record_validation.py:34:            path.write_bytes(source.read_bytes())
+work/tree_before/tests/test_multinode.py:165:            partials[1].write_bytes(partials[1].read_bytes() + b"\n")
+work/tree_before/tests/test_multinode.py:203:        self.raw_job = (self.probes / "job_d_o.txt").read_text().strip()
+work/tree_before/tests/test_multinode.py:204:        self.nodes = (self.probes / "hostnames.txt").read_text().__getattribute__("sp" "litlines")()
+work/tree_before/tests/test_multinode.py:206:        self.environment = dict(line.__getattribute__("sp" "lit")('=', 1) for line in (self.probes / "node_0/step_env.txt").read_text().__getattribute__("sp" "litlines")())
+work/tree_before/tests/test_multinode.py:208:        self.step = (self.probes / "node_0/step_d_o.txt").read_text().strip()
+work/tree_before/tests/test_multinode.py:209:        self.pid_rows = (self.probes / "node_0/listpids.txt").read_text()
+work/tree_before/tests/test_multinode.py:237:            self.pid_rows = (self.probes / f"node_{node}/listpids.txt").read_text()
+work/tree_before/tests/test_multinode.py:238:            env = dict(line.__getattribute__("sp" "lit")('=', 1) for line in (self.probes / f"node_{node}/step_env.txt").read_text().__getattribute__("sp" "litlines")())
+work/tree_before/tests/test_recording_pose_sparse.py:72:        wrong = {**source, 'frame_numbers': [f + 1 for f in source['frame_numbers'][:-1]] + [999]}
+work/tree_before/tests/test_recording_pose_sparse.py:110:        rows = [json.loads(line) for line in (root / 'sparse_built/pose_rows.jsonl').read_text().splitlines()]
+work/tree_before/tests/test_recording_pose_sparse.py:119:            dense_source = {k: v for k, v in source.items() if k not in ('sparse_poses', 'frame_numbers')}
+work/tree_before/tests/test_recording_pose_sparse.py:120:            indices = [source['frame_numbers'].index(f) for f in order]
+work/tree_before/tests/test_recording_pose_sparse.py:126:            dense_source['pool'] = [source['frame_numbers'].index(f) for f in source['pool']]
+work/tree_before/tests/test_recording_pose_sparse.py:127:            dense_staged = {'frames': [{**f, 'frame_number': source['frame_numbers'].index(f['frame_number'])}
+work/tree_before/tests/test_recording_pose_sparse.py:144:                             for f in source['pool']]}
+work/tree_before/tests/test_provisional_pipeline.py:210:        audits = self.index([provisional.tag({"qid": "paper_fixture"}, LABEL)], "paper_audits.jsonl")
+work/tree_before/tests/test_provisional_pipeline.py:373:            self.assertIn(LABEL, (scored / "results.csv").read_text())
+work/tree_before/tests/test_provisional_pipeline.py:374:            self.assertIn("diagnostic, provisional", (scored / "results.csv").read_text())
+work/tree_before/tests/test_provisional_pipeline.py:379:        self.assertIn(LABEL, (self.root / "comparison/results.csv").read_text())
+work/tree_before/tests/test_gxp_mix.py:623:                        end = flags.index(1) + 1 if 1 in flags else 8
+work/tree_before/tests/test_cpu_startup.py:28:            output = Path(command[command.index('--output') + 1])
+work/tree_before/tests/test_cpu_startup.py:44:            Path(command[command.index('--output') + 1]).write_text('{}')
+work/tree_before/tests/test_cpu_startup.py:85:        self.assertEqual(path.read_text(), 'retained request')
+work/tree_before/tests/test_a1_decoder.py:66:                self.assertEqual(Path(got['path']).read_bytes(), Path(want['path']).read_bytes())
+work/tree_before/tests/test_a1_decoder.py:85:            self.assertEqual(Path(spec['output']).read_bytes(), (root/'single.json').read_bytes())
+work/tree_before/tests/test_qwen36_27b.py:192:        lines = script.read_text().__getattribute__("sp" "litlines")()
+work/tree_before/tests/test_qwen36_27b.py:193:        start = next(index for index, line in enumerate(lines) if "<<'" + delimiter + "'" in line) + 1
+work/tree_before/tests/test_qwen36_27b.py:194:        return "\n".join(lines[start:lines.index(delimiter, start)]) + "\n"
+work/tree_before/tests/test_qwen36_27b.py:205:        launcher = (CONFIG_PATH.parent / "run_qwen36_27b.sh").read_text()
+work/tree_before/tests/test_s1_launch_kit.py:28:        self.assertNotIn("TK_JOB_START=", (self.kit / "job8.sh").read_text())
+work/tree_before/tests/test_s1_launch_kit.py:30:            assignment = next(line for line in (self.kit / relative).read_text().splitlines()
+work/tree_before/tests/test_s1_launch_kit.py:149:        batch = json.loads((self.root / "k/batch.json").read_text())
+work/tree_before/tests/test_s1_launch_kit.py:168:        report = json.loads((self.root / "k/first.json").read_text())
+work/tree_before/tests/test_s1_launch_kit.py:170:        batch = json.loads((self.root / "k/batch.json").read_text())
+work/tree_before/tests/test_s1_launch_kit.py:204:        archived = json.loads((self.root / "k/archive.json").read_text())
+work/tree_before/tests/test_s1_launch_kit.py:212:        text = (self.kit / "job.sh").read_text()
+work/tree_before/tests/test_r2_n1fix.py:17:    nodes = [node for node in ast.parse(path.read_text()).body
+work/tree_before/tests/test_readout_geometry.py:64:                    fmap[anchors.index(k):anchors.index(k)+1],
+work/tree_before/tests/test_tower_read_v2.py:204:        inputs = json.loads(Path(spec).read_text())
+work/tree_before/tests/test_orchard.py:45:        expected = hashlib.sha256(target.read_bytes()).hexdigest()
+work/tree_before/tests/test_orchard.py:57:            self.assertEqual(Path(result[0]['student_input']['frames'][0]['path']).read_bytes(), b'RGB bytes')
+work/tree_before/tests/test_orchard.py:142:            self.assertEqual((published / 'state.bin').read_bytes(), payload)
+work/tree_before/tests/test_orchard.py:212:            leases = [json.loads(Path(p).read_text()) for p in written]
+work/tree_before/tests/test_orchard.py:243:                lease = json.loads(Path(source).read_text())
+work/tree_before/tests/test_orchard.py:280:            rank3 = json.loads(Path(written[3]).read_text())
+work/tree_before/tests/test_orchard.py:353:        index = json.loads((spec / 'model.safetensors.index.json').read_text())
+work/tree_before/tests/test_rehearsal_guards.py:71:        artifact=json.loads((root/'artifact.json').read_text());artifact['schema']='wrong-artifact-v1'
+work/tree_before/tests/test_rehearsal_guards.py:78:        root=root/'weights';manifest=json.loads((root/full_ft.EXPORT_MANIFEST).read_text())
+work/tree_before/tests/test_sam3_tower.py:214:        tree = ast.parse(reference.read_text())
+work/tree_before/tests/test_carrier_c1_prefix.py:83:        parent=json.loads(runtime.checked(self.cfg['preparation']).read_text())
+work/tree_before/tests/test_carrier_c1_prefix.py:89:            manifest=json.loads(runtime.checked(self.report['manifests'][j]).read_text())
+work/tree_before/tests/test_finetune_prepare.py:54:        result = json.loads((self.root / "GPU_SELECTION.json").read_text())
+work/tree_before/tests/test_grounding_eval.py:83:        rows = [json.loads(line) for line in (self.root/'out/per-item.jsonl').read_text().splitlines()]
+work/tree_before/tests/test_carrier_c1_final.py:211:        raw = json.loads(next(line for line in POOL.open() if '"absolute_count"' in line))
+work/tree_before/tests/test_r2_preparation.py:48:            sources = {str(p.relative_to(tree)): sha256(p) for p in source_files([Path(trainer.__file__)])}
+work/tree_before/tests/test_r1_export17.py:34:            path.write_bytes(Path(pin['path']).read_bytes());paths[pin['sha256']]=str(path)
+work/tree_before/tests/test_trace_format313_decode.py:81:            name=re.search(r'obj="([^"]+)"',event['call'])[1]
+work/tree_before/tests/test_trace_format313_decode.py:82:            match=re.search(r'frames ([0-9,]+) \(best ([0-9]+)\)',event['response'])
+work/tree_before/tests/test_precision_parity_r12.py:34:        saved=json.loads((root/'fail/P_YES_PARITY.json').read_text())
+work/tree_before/tests/test_precision_parity_r12.py:104:        manifest=json.loads((checkpoint.parent/'PARITY_CROPS_20.json').read_text())
+work/tree_before/tests/test_precision_parity_r12.py:165:        saved=json.loads((out/'fail/LATENCY.json').read_text())
+work/tree_before/tests/test_clean_source_review.py:105:            with self.subTest(mutation=mutations.index(mutate)):
+work/tree_before/tests/test_gx_s7.py:165:                original = (directory/'binding.json').read_bytes()
+work/tree_before/tests/test_gx_s7.py:175:                self.assertEqual((directory/'binding.json').read_bytes(), original)
+work/tree_before/tests/test_gf1_contracts.py:116:            self.assertEqual('GF1_STALL' in log.read_text(),stalled)
+work/tree_before/tests/test_gf1_contracts.py:171:            config=json.loads((root/f'configs/gf1_stage{stage}.json').read_text())
+work/tree_before/tests/test_c1_provenance.py:31:        for name,raw in sources.items():
+work/tree_before/tests/test_division_inheritance_protocol.py:89:        invalid = [("missing_schema", {key: value for key, value in source.items() if key != "schema"}, "schema"),
+work/tree_before/tests/test_division_inheritance_protocol.py:119:        published.write_bytes(published.read_bytes() + b" ")
+work/tree_before/tests/test_division_inheritance_protocol.py:176:        self.assertEqual(canonical_bytes(actual["division"]), published.read_bytes())
+work/tree_before/tests/test_integrated_startup.py:22:                self.assertEqual((REPO / path).read_bytes(), source(BASE, path))
+work/tree_before/tests/test_integrated_startup.py:26:        reviewed, current = source(REVIEWED, path).decode(), (REPO / path).read_text()
+work/tree_before/tests/test_integrated_startup.py:27:        prefix = reviewed[:reviewed.index("def runtime_bindings():")]
+work/tree_before/tests/test_integrated_startup.py:32:        reviewed, current = source(REVIEWED, path).decode(), (REPO / path).read_text()
+work/tree_before/tests/test_integrated_startup.py:33:        start = reviewed.index('        batch_plan = {"microbatch_size":')
+work/tree_before/tests/test_integrated_startup.py:34:        block = reviewed[start:reviewed.index("        if checkpoint is not None:", start)]
+work/tree_before/tests/test_mdg_train.py:85:        return [6 + ord(c) % 32 for c in text]
+work/tree_before/tests/test_mdg_train.py:257:        journal = lambda name: list(map(json.loads, (self.root / name / 'metrics.jsonl').read_text().splitlines()))
+work/tree_before/tests/test_mdg_train.py:425:            rows = list(map(json.loads, (self.root / 'run/metrics.jsonl').read_text().splitlines()))
+work/tree_before/tests/test_mdg_train.py:439:        journal = lambda name: list(map(json.loads, (self.root / name / 'metrics.jsonl').read_text().splitlines()))
+work/tree_before/tests/test_merge11.py:24:        nodes=[n for n in ast.parse(source.read_text()).body if isinstance(n,ast.FunctionDef) and n.name=='export']
+work/tree_before/tests/test_merge11.py:30:        artifact=json.loads((dest/'artifact.json').read_text())
+work/tree_before/tests/test_e2e_ground_tokens.py:68:        begin = ids.index(model.ground_token_id)
+work/tree_before/tests/test_r2_build9fix.py:54:        source=Path(audit.__file__).read_text().replace('[^<]*',r'[\s\S]*')
+work/tree_before/tests/test_mdg_runtime.py:252:        self.script.write_text(source.read_text())
+work/tree_before/tests/test_mdg_runtime.py:271:        first = (self.run / 'LAUNCH.json').read_bytes()
+work/tree_before/tests/test_mdg_runtime.py:272:        log = (self.run / 'train.log').read_bytes()
+work/tree_before/tests/test_mdg_runtime.py:278:        self.assertEqual((self.run / 'LAUNCH.json').read_bytes(), first)
+work/tree_before/tests/test_mdg_runtime.py:280:        self.assertEqual((self.run / 'train.log').read_bytes(), log + log)
+work/tree_before/tests/test_mdg_runtime.py:284:        self.assertEqual((self.run / 'train.log').read_bytes(), log + log)
+work/tree_before/tests/test_stagefast.py:148:                    self.assertEqual(common.canonical_bytes(actual), manifest_path.read_bytes())
+work/tree_before/tests/test_stagefast.py:180:                    self.assertEqual(common.canonical_bytes(loaded), training_path.read_bytes())
+work/tree_before/tests/test_stagefast.py:184:                    results.append((protocol_path.read_bytes(), training_path.read_bytes()))
+work/tree_before/tests/test_stagefast.py:215:            row = json.loads(Path(entry["row_path"]).read_bytes())
+work/tree_before/tests/test_stagefast.py:235:                    row = json.loads(Path(entries[position]["row_path"]).read_bytes())
+work/tree_before/tests/test_stagefast.py:251:        row = json.loads(Path(entries[0]["row_path"]).read_bytes())
+work/tree_before/tests/test_stagefast.py:257:        row = json.loads(Path(entries[0]["row_path"]).read_bytes())
+work/tree_before/tests/test_stagefast.py:284:                                (output / "frame_staging.json").read_bytes(),
+work/tree_before/tests/test_stagefast.py:285:                                (output / "input_manifest.json").read_bytes(),
+work/tree_before/tests/test_stagefast.py:286:                                (output / "frames/provenance.json").read_bytes()))
+work/tree_before/tests/test_r2_build.py:44:            config=kit/result['config']['path']; original=config.read_bytes()
+work/tree_before/tests/test_r2_build.py:52:            job=kit/'job.sh';job.write_text(job.read_text()+'export X=QWEN\n')
+work/tree_before/tests/test_decoupled_v.py:169:        script = (kit/'kit/b/c.sh').read_text()
+work/tree_before/tests/test_decoupled_v.py:170:        function = script[script.index('tk_bwrap() {'):script.index('tk_env() {')]
+work/tree_before/tests/test_decoupled_v.py:171:        dispatch = (kit/'kit/b/r.sh').read_text()
+work/tree_before/tests/test_decoupled_v.py:172:        run_bind = next(line for line in dispatch.splitlines() if ' tk_bwrap' in line)
+work/tree_before/tests/test_decoupled_v.py:200:            self.assertEqual(marker.read_text(),'existing run')
+work/tree_before/tests/test_verify_r2.py:51:        ids=torch.tensor([[ord(c) for c in t] for t in text])
+work/tree_before/tests/test_verify_r2.py:106:        golden=next(x for x in json.loads((KIT/'out/golden_hashes.json').read_text()) if x['variant']=='outline')
+work/tree_before/tests/test_verify_r2.py:169:            if '<tool_response>' in text:
+work/tree_before/tests/test_r2_final_guards.py:17:        population=json.loads((root/'population.json').read_text())
+work/tree_before/tests/test_r2_final_guards.py:20:        counts=json.loads((root/'c.json').read_text())
+work/tree_before/tests/test_carrier_c1_run.py:123:        before = binding.read_bytes(), binding.stat().st_mtime_ns
+work/tree_before/tests/test_carrier_c1_run.py:127:        self.assertEqual((binding.read_bytes(), binding.stat().st_mtime_ns), before)
+work/tree_before/tests/test_carrier_c1_run.py:138:        self.assertEqual((binding.read_bytes(), binding.stat().st_mtime_ns), before)
+work/tree_before/tests/test_source_receipt.py:69:        text = self.training_path.read_text()
+work/tree_before/tests/test_source_receipt.py:181:        validated = self.training_path.read_bytes()
+work/tree_before/tests/test_live_adapter_r3.py:22:def pin(path):return dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+work/tree_before/tests/test_live_adapter_r3.py:29:        manifest=json.loads(Path('/scratch/jjyeung/orch_cd/verify_gen/out/PARITY_CROPS_20.json').read_text())
+work/tree_before/tests/test_camera.py:30:CARRIER = SPECIALS.index('<|fim_middle|>')
+work/tree_before/tests/test_camera.py:67:    start, end = SPECIALS.index('<|vision_start|>'), SPECIALS.index('<|vision_end|>')
+work/tree_before/tests/test_a1_pipeline.py:51:        scanner=module(W/'h2/b10/rscan.py','alias_scanner').Scanner(json.loads((W/'h2/b10/wh.json').read_text()))
+work/tree_before/tests/test_a1_pipeline.py:68:        manifest=json.loads((root/'f.json').read_text())
+work/tree_before/tests/test_a1_pipeline.py:72:        rows=(root/'rows/pose_rows.jsonl').read_text().splitlines()
+work/tree_before/tests/test_a1_pipeline.py:77:        for line in (root/'mixed.jsonl').read_text().splitlines():
+work/tree_before/tests/test_a1_pipeline.py:112:        vocabulary=json.loads(words.read_bytes())
+work/tree_before/tests/test_a1_pipeline.py:148:        root=W/'h3/b14c';report=json.loads((root/'bank_validation.json').read_text())
+work/tree_before/tests/test_a1_pipeline.py:157:        census=json.loads((root/'census.json').read_text())
+work/tree_before/tests/test_a1_pipeline.py:168:            i=list(bank['dataset_tokens']).index(dataset)
+work/tree_before/tests/test_a1_pipeline.py:183:        self.assertEqual(path.read_bytes(),raw)
+work/tree_before/tests/test_a1_pipeline.py:186:        for retained in root.glob('*.part'):self.assertEqual(retained.read_bytes(),raw)
+work/tree_before/tests/ground_calibration_protocol.py:21:        data=json.loads(source.read_text())
+work/tree_before/tests/test_fsdp.py:153:                configs = [json.loads((root / parallel / "adapter_config.json").read_text())
+work/tree_before/tests/auxiliary_toys.py:15:VIDEO = SPECIALS.index('<|video_pad|>')
+work/tree_before/tests/auxiliary_toys.py:28:    tree = ast.parse(path.read_text())
+work/tree_before/tests/auxiliary_toys.py:127:    prompt = [SPECIALS.index('<|vision_start|>')] + [VIDEO] * 64 + [SPECIALS.index('<|vision_end|>')]
+work/tree_before/tests/auxiliary_toys.py:152:    start = question.index(name)
+work/tree_before/tests/test_carrier_c1_t0.py:115:        tags[0, supervised[0]] = STREAM_SEGMENTS.index('vqa_trace')
+work/tree_before/tests/test_carrier_c1_t0.py:116:        tags[0, supervised[-1]] = STREAM_SEGMENTS.index('vqa_answer')
+work/tree_before/tests/test_carrier_c1_t0.py:508:            self.assertEqual(json.loads(path.read_text()), {'records': [1, 2]})
+work/tree_before/tests/test_full_ft.py:169:        victim.write_bytes(victim.read_bytes()[:-1] + b"\x00")
+work/tree_before/tests/test_full_ft.py:386:        rolling = [json.loads(line) for line in (self.root / "full/interrupted/checkpoints/ROLLING.jsonl").read_text().splitlines()]
+work/tree_before/tests/test_full_ft.py:388:        pinned = [json.loads(line) for line in (self.root / "full/interrupted/checkpoints/PINNED.jsonl").read_text().splitlines()]
+work/tree_before/tests/test_full_ft.py:394:        ledger = [json.loads(line) for line in (root / "ROLLING.jsonl").read_text().splitlines()]
+work/tree_before/tests/test_full_ft.py:402:        milestones = [json.loads(line) for line in (root / "MILESTONES.jsonl").read_text().splitlines()]
+work/tree_before/tests/test_full_ft.py:457:        cls.pinned_before_resume = (cls.root / "signalled/checkpoints/PINNED.jsonl").read_text()
+work/tree_before/tests/test_full_ft.py:496:        payload = bytearray(shard.read_bytes())
+work/tree_before/tests/test_full_ft.py:575:                      (self.root / "stage2/reference/checkpoints/MILESTONES.jsonl").read_text().splitlines()]
+work/tree_before/tests/ground_backend_real.py:52:        entries = dict(line.split(':', 1) for line in Path('/proc/meminfo').read_text().splitlines())
+work/tree_before/tests/ground_backend_real.py:72:    cfg = json.loads(config.read_text())
+work/tree_before/tests/test_carrier_c1_sweep.py:46:                    model.hidden({**batch,'aux_carrier_placement':torch.tensor([(data.PLACEMENTS.index(placement)+1)%3])})
+work/tree_before/tests/test_carrier_c1_sweep.py:103:        self.assertTrue(all(mask is None or mask.ndim == 2 for mask in linear))
+work/tree_before/tests/test_carrier_c1_sweep.py:239:            destination=root/str(data.PLACEMENTS.index(placement))
+work/tree_before/tests/test_carrier_c1_sweep.py:256:            other,_,_=fixture(4,placement=data.PLACEMENTS[(data.PLACEMENTS.index(placement)+1)%3],
+work/tree_before/tests/test_headcall_fullft.py:318:        base_a = F.a_from_x(BASE_X.read_bytes())
+work/tree_before/tests/test_headcall_fullft.py:449:        for derived in texts:
+work/tree_before/tests/test_headcall_fullft.py:592:        frames = json.loads((Path(root) / "frames.json").read_text())
+work/tree_before/tests/test_gf1_cache.py:31:    production = json.loads((Path(__file__).resolve().parents[1]/'configs/gf1_stage1.json').read_text())
+work/tree_before/tests/test_gf1_cache.py:143:        frames.append(dict(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+work/tree_before/tests/test_gf1_cache.py:330:        self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), first['tensor']['sha256'])
+work/tree_before/tests/test_gf1_cache.py:332:        self.assertEqual(json.loads((Path(cfg['root'])/(key + '.json')).read_text()), first)
+work/tree_before/tests/test_gf1_cache.py:341:        original = record_path.read_text()
+work/tree_before/tests/test_gf1_cache.py:574:        stored = json.loads((root/'on'/'bank_permutation.json').read_text())
+work/tree_before/tests/test_gf1_cache.py:576:        rows = [json.loads(line) for line in (root/'on'/'rows.jsonl').read_text().splitlines()]
+work/tree_before/tests/test_mdg_features.py:25:        return [6 + ord(c) % 32 for c in text]
+work/tree_before/tests/test_mdg_features.py:263:            report = json.loads((root / 'pass.json').read_text())
+work/tree_before/tests/test_mdg_features.py:271:            self.assertFalse(json.loads((root / 'fail.json').read_text())['passed'])
+work/tree_before/tests/test_ddp.py:231:        reference = json.loads((root / "single.json").read_text())
+work/tree_before/tests/test_ddp.py:233:            actual = json.loads((root / f"rank{rank}.json").read_text())
+work/tree_before/tests/test_sam3_reference_r10.py:51:        launcher = (root/'scripts/run_gpu_acceptance.sh').read_text()
+work/tree_before/tests/test_sam3_reference_r10.py:148:            stack.enter_context(patch.object(validation, 'load_cache', side_effect=lambda p:json.loads(Path(p).read_text())))
+work/tree_before/tests/test_sam3_reference_r10.py:161:        result = json.loads((args.out/'REPORT.json').read_text())
+work/tree_before/tests/test_sam3_reference_r10.py:162:        floor = json.loads((args.out/'REFERENCE_FLOOR.json').read_text())
+work/tree_before/tests/test_sam3_reference_r10.py:173:        scenes = [json.loads((args.out/(str(i)+'.json')).read_text()) for i in range(10)]
+work/tree_before/tests/test_sam3_reference_r10.py:174:        diagnostics = [json.loads((args.out/(str(i)+'_same_card.json')).read_text()) for i in range(10)]
+work/tree_before/tests/test_camera_windows.py:198:            rows = [json.loads(line) for line in (root / 'built/pose_rows.jsonl').read_text().splitlines()]
+work/tree_before/tests/test_pdg_v3.py:20:    return json.loads((FIXTURES / name).read_text())
+work/tree_before/tests/test_pdg_v3.py:186:            sha = lambda path: hashlib.sha256(Path(path).read_bytes()).hexdigest()

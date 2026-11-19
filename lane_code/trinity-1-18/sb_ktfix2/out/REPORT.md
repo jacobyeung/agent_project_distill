@@ -16,8 +16,8 @@ Section 8c: PASS; all 450 staged records and calls parse; synthetic formatting u
 Section 8d: PASS; all 296 captures pass numbering and 9472 anchor/model-row hash assertions.
 N=32 lifting matches the original tree on all five train captures; the N=64 fixture visits all 64 slots.
 At N=64 the unchanged selector still divides frame counts by 32/31, so features can exceed 1. Raw depth AbsRel uses unscaled G3T depth.
-The dry run took 71.833 seconds and peaked at 1106536 KiB RSS. The launcher uses nice 10 and eight numerical threads.
-Regression tests: 42 PASS. The validation receipt records Python parsing and shell syntax checks.
+The dry run took 69.870 seconds and peaked at 1107380 KiB RSS. The launcher uses nice 10 and eight numerical threads.
+Regression tests: 68 PASS. The validation receipt records Python parsing and shell syntax checks.
 
 Part C binds all 450 items by exact scene and ordered source-frame indices in existing local A_MANIFEST records, with every PNG byte hash verified.
 The audit verified 3264 unique PNGs (822710679 bytes); 431 items also bind to 64-frame DENSE records whose anchors match those PNG hashes.
@@ -37,5 +37,5 @@ Ruling 0749Z permits this kit's 3.6 expected GPU-h and the room kit's 0.2 to sha
 CPU interpreter: `/scratch/jjyeung/envs/p1cpu/bin/python`; prepared GPU interpreter: `/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python`.
 `out/EDITED_LINES.json` and its patch list every copied-source edit; `out/CODE_SHA256.json` pins the delivered code. All generated JSON receipts record input SHA256 values.
 GPU performance and decision outputs are MISSING/NOT_RUN. No GPU, network, SSH, Git, tmux or process-control action ran; the archive was not mirrored.
-Archive: `out/sb_ktfix2.tar`; verify with `sha256sum -c out/sb_ktfix2.tar.sha256`.
+Archive: `out/sb_ktfix4.tar`; verify with `sha256sum -c out/sb_ktfix4.tar.sha256`.
 Writing skill: no-archaeology. No revision-history sentences were retained.

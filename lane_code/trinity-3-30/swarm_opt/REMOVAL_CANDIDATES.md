@@ -3,3 +3,5 @@
 trinity-1-18:/tmp/so_rv3.tar (my small tar of so_cr_read3 verdict, 12:03Z)
 - trinity-3-30:/scratch/jjyeung/orch_n30/swarm_opt/work/corpus_apply/tool_new/t (7.6 GB stale .corpus-*.sqlite copied by mistake with cp -a, 12:41Z; ORCH 1244Z listed it in REMOVAL_READY_trinity-3-30_20261119.md)
 - trinity-3-30:/scratch/jjyeung/orch_n30/swarm_opt/mind/c2_20261119.tar (0.67 GB; GCS object gs://cmu-gpucloud-jjyeung/dtc19/c2_20261119.tar verified, sha256 9a804903...)
+trinity-3-30:/scratch/jjyeung/orch_n30/swarm_opt/work/sync_fix/t (test fifo p.fifo, symlink, 2-byte file; 14:58Z)
+trinity-3-30:/tmp/so_a.err /tmp/so_b.err (tiny, 14:59Z)

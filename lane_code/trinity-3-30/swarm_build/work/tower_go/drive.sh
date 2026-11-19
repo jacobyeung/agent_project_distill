@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Tower-frames driver on trinity-0-13 (swarm_build3; ORCH GO 1030Z): parts A, B, C in series on one card, with a watchdog.
 set -u
-K=/scratch/jjyeung/orch_n30/sb_ktfix; CARD=${CARD:-6}; LOG=$K/out/tower_frames/DRIVER.log
+K=/scratch/jjyeung/orch_n30/sb_ktfix2; CARD=${CARD:-6}; LOG=$K/out/tower_frames/DRIVER.log
 mkdir -p $K/out/tower_frames; cd $K
 export CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=$CARD OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
 uuid=$(nvidia-smi --query-gpu=index,uuid --format=csv,noheader | awk -F', ' -v c=$CARD '$1==c{print $2}')

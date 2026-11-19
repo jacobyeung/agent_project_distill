@@ -1,0 +1,136 @@
+{
+ "environment": {
+  "OPENSSL_CONF": "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/ssl/openssl.cnf",
+  "PATH": "/usr/bin:/bin",
+  "HOME": "/scratch/jjyeung/orch_n30/sb_ph2chk/work/strace_probe_out/cache/home",
+  "CUDA_VISIBLE_DEVICES": ""
+ },
+ "imports": {
+  "command": [
+   "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/bin/python",
+   "-B",
+   "-c",
+   "import ssl, hashlib, torch; torch.set_num_threads(8); print(ssl.OPENSSL_VERSION, hashlib.sha256(b\"probe\").hexdigest(), torch.__version__)"
+  ],
+  "rc": 0,
+  "seconds": 3.5,
+  "stdout": "OpenSSL 3.6.3 9 Jun 2026 ba9c736f19e7f60b7f6764adb0b7908c0a2b394e09b6c09863528c7f2bc86095 2.10.0+cu128\n",
+  "stderr": "",
+  "log": "/scratch/jjyeung/orch_n30/sb_ph2chk/work/logs/strace_imports.txt",
+  "nfs_touches": 0,
+  "nfs_opens": 0,
+  "nfs_detail": {},
+  "writes_outside": {},
+  "n_writes_outside": 0,
+  "openssl_cnf": [
+   "openat /scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/ssl/openssl.cnf 3</scratch/jjyeung/orch_n30/sb_ph2fix/pa",
+   "openat /scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/ssl/openssl.cnf 3</scratch/jjyeung/orch_n30/sb_ph2fix/pa"
+  ],
+  "payload_execs": [
+   {
+    "pid": "3447871",
+    "file": "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/bin/python",
+    "OPENSSL_CONF": "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/ssl/openssl.cnf",
+    "PATH": "/usr/bin:/bin"
+   }
+  ],
+  "execs": 1
+ },
+ "control_no_openssl_conf": {
+  "command": [
+   "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/bin/python",
+   "-B",
+   "-c",
+   "import ssl, hashlib, torch; torch.set_num_threads(8); print(ssl.OPENSSL_VERSION, hashlib.sha256(b\"probe\").hexdigest(), torch.__version__)"
+  ],
+  "rc": 0,
+  "seconds": 3.5,
+  "stdout": "OpenSSL 3.6.3 9 Jun 2026 ba9c736f19e7f60b7f6764adb0b7908c0a2b394e09b6c09863528c7f2bc86095 2.10.0+cu128\n",
+  "stderr": "",
+  "log": "/scratch/jjyeung/orch_n30/sb_ph2chk/work/logs/strace_control.txt",
+  "nfs_touches": 2,
+  "nfs_opens": 2,
+  "nfs_detail": {
+   "openat /data2/jjyeung/envs/sam3/ssl/openssl.cnf": 2
+  },
+  "writes_outside": {},
+  "n_writes_outside": 0,
+  "openssl_cnf": [
+   "openat /data2/jjyeung/envs/sam3/ssl/openssl.cnf 3</data2/jjyeung/envs/sam3/ssl/openssl.c",
+   "openat /data2/jjyeung/envs/sam3/ssl/openssl.cnf 3</data2/jjyeung/envs/sam3/ssl/openssl.c"
+  ],
+  "payload_execs": [
+   {
+    "pid": "3447908",
+    "file": "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/bin/python",
+    "OPENSSL_CONF": null,
+    "PATH": "/usr/bin:/bin"
+   }
+  ],
+  "execs": 1
+ },
+ "launcher_chain": {
+  "command": [
+   "bash",
+   "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_gpu.sh",
+   "--node-local",
+   "0"
+  ],
+  "rc": 1,
+  "seconds": 332.0,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_gpu.py\", line 199, in <module>\n    raise SystemExit(main())\n                     ^^^^^^\n  File \"/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_gpu.py\", line 195, in main\n    return launch(args.node_local, args.mode, args.all_aliases)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_gpu.py\", line 169, in launch\n    raise RuntimeError(f'pass failed or KILLED: exit {result.returncode}')\nRuntimeError: pass failed or KILLED: exit 1\n",
+  "log": "/scratch/jjyeung/orch_n30/sb_ph2chk/work/logs/strace_launcher.txt",
+  "nfs_touches": 0,
+  "nfs_opens": 0,
+  "nfs_detail": {},
+  "writes_outside": {
+   "fchmodat /tmp/terminator": 1,
+   "mkdir RELATIVE:terminator": 1,
+   "openat /scratch/jjyeung/orch_n30/sb_ph2chk/work/tmp/sh-thd.NDsjzR": 1,
+   "openat /scratch/jjyeung/orch_n30/sb_ph2chk/work/tmp/sh-thd.mtm7pi": 1,
+   "unlink /scratch/jjyeung/orch_n30/sb_ph2chk/work/tmp/sh-thd.NDsjzR": 1,
+   "unlink /scratch/jjyeung/orch_n30/sb_ph2chk/work/tmp/sh-thd.mtm7pi": 1
+  },
+  "n_writes_outside": 6,
+  "openssl_cnf": [
+   "openat /scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/../payload/environment/ssl/openssl.cnf 3</scratch/jjyeung/orch_n30/sb_ph2fix/pa",
+   "openat /scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/ssl/openssl.cnf 3</scratch/jjyeung/orch_n30/sb_ph2fix/pa",
+   "stat /scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/ssl/openssl.cnf 0",
+   "stat /scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/ssl/openssl.cnf 0",
+   "openat /scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/ssl/openssl.cnf 3466602 openat(AT_FDCWD, \"/scratch/jjyeu"
+  ],
+  "payload_execs": [
+   {
+    "pid": "3466602",
+    "file": "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/bin/python",
+    "OPENSSL_CONF": "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/ssl/openssl.cnf",
+    "PATH": "/usr/bin:/bin"
+   }
+  ],
+  "execs": 29
+ },
+ "caller_env_nfs_vars": {
+  "HF_HOME": "/data2/jjyeung/cache/huggingface",
+  "CHISEL_SESSION_DB": "/home/jjyeung/.local/share/devin/cli/sessions.db",
+  "HOME": "/home/jjyeung",
+  "AGENT_TRANSCRIPTS": "/home/jjyeung/.cursor/projects/scratch-jjyeung-orch-n30-sb-ph2chk/agent-transcripts",
+  "HUGGINGFACE_HUB_CACHE": "/data2/jjyeung/cache/huggingface/hub",
+  "PYBIN": "/data2/jjyeung/envs/planner/bin/python",
+  "PIP_CACHE_DIR": "/data2/jjyeung/cache/pip",
+  "CURSOR_RIPGREP_PATH": "/home/jjyeung/.local/share/cursor-agent/versions/2026.11.19-f005e9d/rg",
+  "TORCH_HOME": "/data2/jjyeung/cache/torch",
+  "PATH": "/home/jjyeung/.local/share/cursor-agent/versions/2026.11.19-f005e9d:/home/jjyeung/google-cloud-sdk/bin:/home/jjyeung/.local/bin:/home/jjyeung/bin:/usr/share/Modules/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin"
+ },
+ "pool_after": [
+  "KILLED.json",
+  "LAUNCH_b241001de1bb429894e992bb8ba988b6.json",
+  "RUNNING",
+  "cache",
+  "cache/home",
+  "cache/tmp",
+  "step5.log"
+ ],
+ "step5.log": "Watching file /tmp/terminator/jjyeung-3466602; if deleted, 3466602 will be killed.\n/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/lib/python3.12/site-packages/torch/cuda/__init__.py:184: UserWarning: CUDA initialization: Unexpected error from cudaGetDeviceCount(). Did you run some cuda functions before calling NumCudaDevices() that might have already set an error? Error 304: OS call failed or operation not supported on this OS (Triggered internally at /pytorch/c10/cuda/CUDAFunctions.cpp:119.)\n  return torch._C._cuda_getDeviceCount() > 0\npart 2 needs CUDA; it never runs on CPU\nProcess 3466602 exited on its own. Terminating terminator.\n",
+ "KILLED.json": "\\n</nvidia_smi_log>\\n\",\n   \"eligible\": true\n  }\n ],\n \"spent_before\": 0.0,\n \"mode\": \"both\",\n \"all_aliases\": false,\n \"commands\": [\n  [\n   \"timeout\",\n   \"--signal=KILL\",\n   \"4319.999999s\",\n   \"bash\",\n   \"/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/vendor/vnice.sh\",\n   \"bash\",\n   \"/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/gpu_inner.sh\"\n  ]\n ],\n \"status\": \"KILLED\",\n \"reason\": \"pass failed or KILLED: exit 1\",\n \"spent_seconds\": 3.6770146400667727,\n \"input_sha256\": {\n  \"/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_gpu.py\": \"a07d66f042ac22a011cbec1dad58b83effffb1c2fafc5f6d011d2c90ac198d2e\",\n  \"/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/gate.py\": \"dafdaec3ee2476f0ba85bff062010e7b50e876ab64e3cc97e2117a4abfca90f7\",\n  \"/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/BARS_PART2.json\": \"166be15bcd56f303b9b032bab84712264a687bc073b791251b57b814e515d774\",\n  \"/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/vendor/PINS.json\": \"182af7ae2104cdabaad6cf3c6bd9b6639f521d83663ab9bd2f8c4901ad0c1ac8\",\n  \"/scratch/jjyeung/orch_n30/sb_ph2fix/out/STAGING_PART2.json\": \"4cca5c88c7c3724e822b6c4f4ad1defb5cd03980b928c313ade40af18c86be38\",\n  \"/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/vendor/vnice.sh\": \"3ab2b542726f32dbecdbe30104f903aa2bef3526a9257013fd5f8bcc99461c6b\",\n  \"/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/vendor/terminator.sh\": \"19727987d5517c0e2549e1205e55f4bcc87f34dafe66c96bdf90233305942e5d\"\n }\n}\n"
+}

@@ -1,0 +1,473 @@
+{
+  "command": "work/finalize.py: Removals.match on K1 QIDs from checker rows.sqlite",
+  "inputs": {
+    "/scratch/jjyeung/n30_mirror/b08_headrows/b08_partB_kit.tar": {
+      "bytes": 1546240,
+      "sha256": "a01ab25849585fa8191b8fadd02b4d93ce6db7e94e5e346c09f095ceec5151eb"
+    },
+    "/scratch/jjyeung/n30_mirror/dist_diag/coverage_v2h/COVERAGE_DISTANCE_V2H.jsonl": {
+      "bytes": 10838154,
+      "sha256": "15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022"
+    },
+    "/scratch/jjyeung/n30_mirror/dist_diag/coverage_v2h/COVERAGE_UNITS_V2H.jsonl": {
+      "bytes": 57255154,
+      "sha256": "8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82"
+    },
+    "/scratch/jjyeung/n30_mirror/rows_r1/out/recovery_v3/rows.jsonl": {
+      "bytes": 9854828,
+      "sha256": "58389a67f9a5b51abbc06e5953937b35541ef5effc4e70e6a35092d14f288473"
+    },
+    "/scratch/jjyeung/n30_mirror/rows_r1/out/vehN_units/repaired/rows_slice.jsonl": {
+      "bytes": 108000408,
+      "sha256": "aa1432cde2aa3612e0d0e287c94aaa0aeb37dc175485a3ad044bca71f3e5ce9c"
+    },
+    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/repaired/rows.jsonl": {
+      "bytes": 55968241,
+      "sha256": "aedd3b54b913fd416b8daa53f022c86d1b3d98259f3c5e1a479e8bde528449d9"
+    },
+    "/scratch/jjyeung/orch_n30/sb_auditfix2/inputs/lists/3119aa4a.raw": {
+      "bytes": 427569,
+      "sha256": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970"
+    },
+    "/scratch/jjyeung/orch_n30/sb_auditfix2/inputs/lists/4d4736cf.raw": {
+      "bytes": 2367880,
+      "sha256": "4d4736cf64e496a184d36d74d710e76d1673429e28790613794867ac077048a9"
+    },
+    "/scratch/jjyeung/orch_n30/sb_auditfix2/inputs/lists/634820b4.raw": {
+      "bytes": 20320,
+      "sha256": "634820b44927b1a50c18db9b90246b4b99f8954b0d7f5f2893e547f1c92879ed"
+    },
+    "/scratch/jjyeung/orch_n30/sb_auditfix2/inputs/lists/969cdb56.raw": {
+      "bytes": 37246,
+      "sha256": "969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986"
+    },
+    "/scratch/jjyeung/orch_n30/sb_auditfix2/inputs/lists/TIERED_ALIAS_MAP.raw": {
+      "bytes": 5017721,
+      "sha256": "7f50287bae46792d1de25b33344d62d6a6484688887c5294bdd1d1f67f76623b"
+    },
+    "/scratch/jjyeung/orch_n30/sb_auditfix2/inputs/lists/authority_aliases.raw": {
+      "bytes": 108460,
+      "sha256": "c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b"
+    },
+    "/scratch/jjyeung/orch_n30/sb_auditfix2/inputs/lists/authority_visits.raw": {
+      "bytes": 154354,
+      "sha256": "657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca"
+    },
+    "/scratch/jjyeung/orch_n30/sb_auditfix2/inputs/lists/bdb5d402.raw": {
+      "bytes": 7482,
+      "sha256": "bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3"
+    },
+    "/scratch/jjyeung/orch_n30/sb_auditfix2/inputs/lists/manifest.json": {
+      "bytes": 6794,
+      "sha256": "d5b15874592d79e804c50d83b8f904d7caa816b7005c759723d97e203552987a"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/AUDIT_RUN.json": {
+      "bytes": 3998,
+      "sha256": "68ae36fafe1d9f0381587e65fc24c2b82659902650c5f6d3731c389ee77e06c1"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/CONTRACT.json": {
+      "bytes": 39100,
+      "sha256": "a042944759db89ad4a1e5e9e2fbe3726db444ca6ec7ddf1bb875bca4466e07ab"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/INVENTORY_STAGE.json": {
+      "bytes": 617897,
+      "sha256": "4e4bd0bed35b6a9c9c6ba9ad70e19c50dc7333789f4a6769a2f3ec2f6c925daa"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/archived_alias_map.json": {
+      "bytes": 602,
+      "sha256": "a3566a9fe469f11deaa6880bddd51b667e3790a3785feae10ff38f7ceefe973c"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/archived_alias_map.raw": {
+      "bytes": 169761,
+      "sha256": "488480ab4b7f352eba9c81e99313c8bfcc247e9cc463a11620be087a42f579cf"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/audits_native/absolute_distance/audit.json": {
+      "bytes": 5689,
+      "sha256": "0bc19de0bd09bc05f66f1a0bc268ccd70aabf048f020ddf8b21bca905c1be583"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/audits_native/coverage_distance/audit.json": {
+      "bytes": 5660,
+      "sha256": "783aa58d3cb792ad9679a1a977f9fc54c2a155c85ff53309970b8a7acf43a9dc"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/audits_native/coverage_units/audit.json": {
+      "bytes": 5662,
+      "sha256": "988eb5876e2b8b222a0c0c82294198ea0ba5a30ab68cc665d909174b857cd144"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/audits_native/recovery/audit.json": {
+      "bytes": 5979,
+      "sha256": "a0fa53547e031d83317c610587645796fc082d99f57b60aed16d54edd79ebb40"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/audits_native/units/audit.json": {
+      "bytes": 6031,
+      "sha256": "4ccfd19256f246ec5c6859f331def89fa868859918b388064b37b32f0e337f14"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/bindings/absolute_distance.json": {
+      "bytes": 754528,
+      "sha256": "cb7fd7be526ffa5640378e4f6cf870c1991749d4e1ce29ddef4b1d9b070690d0"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/bindings/coverage_distance.json": {
+      "bytes": 144280,
+      "sha256": "fcca183dbbe9240adc51a59a57e00e668d15b76095e3988d9da253bf09a491f0"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/bindings/coverage_units.json": {
+      "bytes": 471826,
+      "sha256": "f09bff1a50d79b72cb88e3376942099161923f725b0b81e19460fdf61758aec2"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/bindings/recovery.json": {
+      "bytes": 107837,
+      "sha256": "3c5ef77ae25f7bc18aebc19d149b5e2f56a26061eeb3364900fa6798cbedd285"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/bindings/units.json": {
+      "bytes": 855466,
+      "sha256": "5a1e067ff194da4a9a12d91fd49c35bc689e586a1a5c7038ca0562398109e97d"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/coverage/absolute_distance.json": {
+      "bytes": 2840409,
+      "sha256": "c8acb9424f23fd9a465130c7b41b133fad46764281c67d052e32584ede1b4cea"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/coverage/coverage_distance.json": {
+      "bytes": 535066,
+      "sha256": "3daa0b3e7ca374044871e1a562cf638b27168f49e7cea76291da54f5e6b16301"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/coverage/coverage_units.json": {
+      "bytes": 1611265,
+      "sha256": "6b6a2e69e2ed9647ed3d5891df3cb456600ef8ef958abcb3b71a418be2fe632f"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/coverage/recovery.json": {
+      "bytes": 369300,
+      "sha256": "aecd99e3203010976fc96d6146738fdb4635b325dc43fce2bb3f4b223df69ea6"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/coverage/units.json": {
+      "bytes": 3007648,
+      "sha256": "0b512fbef3ceff87ed313690ed6a4f73abb22148f0553df98fea624c16ff520d"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/envelopes/absolute_distance.json": {
+      "bytes": 772982,
+      "sha256": "e82107d4db02cdefd654497646e90e8b6dea16d53a2ac8f36ed34cc2cb429463"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/envelopes/camera_wording.json": {
+      "bytes": 21894,
+      "sha256": "9f3f972ea167e9fc273ff2576a8c32d465e2a4d0c87bfe44ab1c7e79ab07b99a"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/envelopes/coverage_distance.json": {
+      "bytes": 165066,
+      "sha256": "7c23ed19e4e10dab5cb0fdf6282757e291af2a290d5d0e062ce3bebf71b7b9c4"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/envelopes/coverage_units.json": {
+      "bytes": 493784,
+      "sha256": "226725299d052680fb4eb09ce3d26c29c757609f72550a34d9bd9f13d92eff82"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/envelopes/recovery.json": {
+      "bytes": 125097,
+      "sha256": "e9010d0cf090d94b5413992fdce2a98d0028eb289ae4e75d760dc336e44f64d1"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/envelopes/units.json": {
+      "bytes": 875038,
+      "sha256": "b3cdb0233b463c2ef5d1619f374a3ff97d5277b4c24fb97c388b856d1115c06e"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/finalize.py": {
+      "bytes": 28427,
+      "sha256": "bb8365c07bf0e89dd388cacf095ee53b4410a016e40cef1562a747b45877e829"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/frames/absolute_distance.json": {
+      "bytes": 5091168,
+      "sha256": "93d900b6209365df62f107695170ff042a2fe71a8b0d97d84302a21d04d03366"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/frames/coverage_distance.json": {
+      "bytes": 927531,
+      "sha256": "5fee1045b8bd835d600a1dea9e4577ee185f0a31b08a6ebadb37db3c3637af85"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/frames/coverage_units.json": {
+      "bytes": 2820560,
+      "sha256": "1d8dc4509d2e220f41f244b266790ec6050764457827c6a4858d81e99a725302"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/frames/recovery.json": {
+      "bytes": 631326,
+      "sha256": "f46dd3fcf3bcdec07335323fbed7139275b2593e3c88f33449e5b6338da9252d"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/frames/units.json": {
+      "bytes": 5325454,
+      "sha256": "1ed2a6d8a2d3db577870372fa3c1fa37c516824ec5609c882568d5ff2f1f9cd3"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/work/inventory.py": {
+      "bytes": 17554,
+      "sha256": "2a85813fd7c70768bfa5b5ff966d2efed2df8ff20b9d63810d71ea374dadb17d"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a2v3/receipt.json": {
+      "bytes": 8547,
+      "sha256": "30612832cc84ad83f9500ecbeac57704767568ff24482475feb42a92c7f166b8"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a3v2/receipt.json": {
+      "bytes": 2211,
+      "sha256": "1e7b491b810bd45b47a6d0e02be2f123e0ba8f8851f3e48fc1164f15611c9201"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json": {
+      "bytes": 805,
+      "sha256": "8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_rates.json": {
+      "bytes": 47800,
+      "sha256": "36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/scene_reference.json": {
+      "bytes": 61977,
+      "sha256": "06cdfa5e8b217246b72805d982247ad986c6d986a5a2846b3024969a0777723f"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/frames_de9f486e59694c3881e317de37810742/frames.json": {
+      "bytes": 113073,
+      "sha256": "d76695e5584cc8450929b5ab84dbb5ec06fdebe1a12d2f69b14ebd020bd6d68c"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json": {
+      "bytes": 20569,
+      "sha256": "b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json": {
+      "bytes": 49058,
+      "sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/receipt.json": {
+      "bytes": 712,
+      "sha256": "93b21a3aeeda01efab90d9f818eff78a6ca182c18c964534279008e4af91733a"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/r.json": {
+      "bytes": 721,
+      "sha256": "bd41c00d2aaf0697d94eac81f6470b41ee5af6391b4ad366c60354ca7fe8d0d8"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_0.jsonl": {
+      "bytes": 63660,
+      "sha256": "62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_1.jsonl": {
+      "bytes": 66546,
+      "sha256": "4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_2.jsonl": {
+      "bytes": 970029,
+      "sha256": "6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_3.jsonl": {
+      "bytes": 1883190,
+      "sha256": "8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_4.jsonl": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_5.jsonl": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pwrap/b/c.sh": {
+      "bytes": 21243,
+      "sha256": "5636dabea85d152142d73e8c273f1b61f9d144df3c44896c789f6b10e5fdaa21"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pwrap/k/0.json": {
+      "bytes": 1667030,
+      "sha256": "34916a84e82e61e9c8cf9bafa6a7f78e0ab18b4f4986ee07e76df930aee6276a"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_runtime/A_runtime_673bc60f.json": {
+      "bytes": 20192,
+      "sha256": "3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/n.json": {
+      "bytes": 107499,
+      "sha256": "02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/z.json": {
+      "bytes": 2982924,
+      "sha256": "caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/build17/inputs/s.json": {
+      "bytes": 36608,
+      "sha256": "6add0ad53515e14e6adb1e192ed002ec0ddd22b6c6bd112ccb756d1f8be48d8c"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json": {
+      "bytes": 261607,
+      "sha256": "43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/v7_receipt.json": {
+      "bytes": 712,
+      "sha256": "e3ee51daa46af30fa8e84a05c12448d7fc3dc9cade05284707f9df322bbe44d0"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/fixtures/work/kit07ca49df_meta/m/k/frame_rates.json": {
+      "bytes": 47800,
+      "sha256": "36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/fixtures/work/records/devs1_masks/out/MANIFEST.json": {
+      "bytes": 1092999,
+      "sha256": "e6fe4a7e3c5a9f929d1cb9393915b93020233c0f31d46ded4638cdbd17ccbafb"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/fixtures/work/records/dose_pool/out/POOL_S1/EXCLUDE_DEV_S1.tsv": {
+      "bytes": 105025,
+      "sha256": "951902eea28b6a56e49f1e44761802e05fc4ff25e7ebcb84dfa4bc77fea0a824"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/fixtures/work/records/dose_pool/out/POOL_S1/EXCLUDE_EVAL_ROOMS.tsv": {
+      "bytes": 168142,
+      "sha256": "a5d707acfafeed88a9009cd2fb89f3bfdf53d43fea67b183c589765299e27255"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/fixtures/work/records/dose_pool/out/POOL_S1/FRAMES_GATE.json": {
+      "bytes": 1056,
+      "sha256": "eb2957fcaecaf1380aa9b56208902479a21eafcbe1696cc7cd8a41d95a29e352"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/fixtures/work/records/ofs_e1/out/ROOM_SPLIT.json": {
+      "bytes": 4206,
+      "sha256": "246a49f7fefd3c4df4a64eabe4dcce93e0ff8e445644510b510447f0c852fded"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/fixtures/work/records/own_probe/out/EVAL_ROOMS.json": {
+      "bytes": 1503972,
+      "sha256": "267efeb1ecf1c1c8329cb4b1809ed05069d9f8d0178a35caba25a9e430a4fd33"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/fixtures/work/records/revsi_dev/BENCH_SCENE_EXCLUSIONS_v2.json": {
+      "bytes": 427569,
+      "sha256": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/out/BUILD21H_REPORT.md": {
+      "bytes": 7219,
+      "sha256": "1e5710f3df62628875611421873818d913def565553a673ac10848e2ce8aec81"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/bind21.py": {
+      "bytes": 6828,
+      "sha256": "519f28769b41c1dcd54dc3419b061b20f807987b62326dedb011a14042afc27e"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/config.json": {
+      "bytes": 24940,
+      "sha256": "b155adbe7b0e44f7cba706f8cbd1d968814f2ba7f5d375db7f0b343d21723afa"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/extent.json": {
+      "bytes": 12061474,
+      "sha256": "c072905be4405a92d7bb906112209f2d27a8c9b58d291b64373c5551c3e96495"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/row_sources.json": {
+      "bytes": 2721,
+      "sha256": "4369e2bbc89203ec864204290c401df33cac661cfb405917ee0007d91fd81dff"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/source_membership.json": {
+      "bytes": 803265,
+      "sha256": "cb509de71e34280a7982d27ccb0abc5c0290c3436380a05f0ecd5aca033d988e"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json": {
+      "bytes": 493440,
+      "sha256": "1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/proofs/capacity/absolute_distance/MANIFEST.json": {
+      "bytes": 2133,
+      "sha256": "eebf7d097edd2c0c9df381c894867c3815189444717864869d8a769538200000"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/proofs/v2h/DERIVATIONS.json": {
+      "bytes": 2766459,
+      "sha256": "ef7303ba61d9c0f240324853b9dd602426447f471f64486c1444b10c6607fcb2"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21h/HOST_FLAG_BLOCKER.json": {
+      "bytes": 2412,
+      "sha256": "5ff918905c7092177bec937c937ac4b14664cb0ceedff19b8f0aa52b6e4f87c5"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/launch_r1/entry.py": {
+      "bytes": 10266,
+      "sha256": "7e2262557be59803c97ec158658881dc9cd05b86f4034b3bc5565456dd4543ee"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/extent_receipt.py": {
+      "bytes": 2230,
+      "sha256": "dd0e355c89a1a1e8e89d25cb45adb45f7871ef27fa32bb68119c91097cf7641f"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/job_env.py": {
+      "bytes": 355,
+      "sha256": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/p3_provenance.py": {
+      "bytes": 4347,
+      "sha256": "afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r0_exclusion.py": {
+      "bytes": 2817,
+      "sha256": "4c22cae7f0e6ad0512e224636c2dcc693d35481ad2b0fd1b078cc61187d99812"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_coverage.py": {
+      "bytes": 4848,
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_rooms.py": {
+      "bytes": 10507,
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_routing.py": {
+      "bytes": 9703,
+      "sha256": "72a0cea9a4c1d55ec9ba06589e3a2f9c0bf8fd5344e23433242a7bf7445f6f85"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r2_adapters.py": {
+      "bytes": 4657,
+      "sha256": "64520b426a66f11d29d7efd1920e7d03c633461470b3c548570797c87eb9cc3d"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r2_contract.py": {
+      "bytes": 13824,
+      "sha256": "1f77c21801944bf3d040096f7b59f9e52fd9411684985fdbe8062b046faaeb17"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r2_exclusions.py": {
+      "bytes": 4870,
+      "sha256": "ff58f003e9f2002cab4b5e068b401d1dd8bc3cd3af5ed19ee83ed373607103c9"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r2_frames.py": {
+      "bytes": 3278,
+      "sha256": "4bb363d49f730b332ed59aca2f0d721458e0cf10a616a29f7e5076fe5467a053"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r2_grammar.py": {
+      "bytes": 11040,
+      "sha256": "9bddc97d8f47fd64e94b6dd91b990d19f54f921f24b446795cc825cfb5ce8c6b"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r2_intake.py": {
+      "bytes": 7680,
+      "sha256": "fc968e85827dc56686c6b11814a02b3274f52fb3ca6281758111e1612a3e1c48"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r2_scene_bindings.py": {
+      "bytes": 18662,
+      "sha256": "f07b18611fa36d8c507e6c75f8e99544338a79fd4ff7d444a338576fce1d5a24"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r2_withheld.py": {
+      "bytes": 1843,
+      "sha256": "2f4e7b182555b25052ac62abf094264d87c26051e4ad56fe44916b328b7db45b"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/row_removals.py": {
+      "bytes": 4872,
+      "sha256": "45c326e7fa0ec7ea6b832b121f48241545d57200c5fd16bae2fb850112b6aecb"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/s1_admission.py": {
+      "bytes": 24951,
+      "sha256": "fb5faf1e3d5ebaa63c142c9764903de279dedfa9dd14585ce9d579a4cf64004a"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/s1_routing.py": {
+      "bytes": 29073,
+      "sha256": "122353169d335771b97cb08ff31f0b1f12d904e2b42b1afb75c5fc31be35f3e3"
+    }
+  },
+  "slices": {
+    "absolute_distance": {
+      "K1_source_hits": 0,
+      "matched_existing_remove_files": 0,
+      "note": "Native row_keys only; this does not claim full filtering/admission.",
+      "unremoved_K1_qids": []
+    },
+    "coverage_distance": {
+      "K1_source_hits": 0,
+      "matched_existing_remove_files": 0,
+      "note": "Native row_keys only; this does not claim full filtering/admission.",
+      "unremoved_K1_qids": []
+    },
+    "coverage_units": {
+      "K1_source_hits": 0,
+      "matched_existing_remove_files": 0,
+      "note": "Native row_keys only; this does not claim full filtering/admission.",
+      "unremoved_K1_qids": []
+    },
+    "recovery": {
+      "K1_source_hits": 21,
+      "matched_existing_remove_files": 21,
+      "note": "Native row_keys only; this does not claim full filtering/admission.",
+      "unremoved_K1_qids": []
+    },
+    "units": {
+      "K1_source_hits": 262,
+      "matched_existing_remove_files": 262,
+      "note": "Native row_keys only; this does not claim full filtering/admission.",
+      "unremoved_K1_qids": []
+    }
+  }
+}

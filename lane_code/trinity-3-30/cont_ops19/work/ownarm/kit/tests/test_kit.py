@@ -44,7 +44,9 @@ def test_repin_with_a4_values_is_exact(tmp_path):
  out=build(tmp_path,'--token',(BUILD/'TOKEN').read_text().strip(),'--export-pin',str(tmp_path/'pin.json'))
  assert (out/'1.tgz').read_bytes()==(BUILD/'1.tgz').read_bytes()
  for n in ('o_place.sh','o_pullfill.sh','o_pullfill_resume.sh','o_cpucheck.sh','o_sub.sh','o_fetch.sh'):
-  assert (out/n).read_bytes()==(BUILD/n).read_bytes(),n
+  expected=(BUILD/n).read_text()
+  if n.startswith('o_pullfill'):expected=B.add_dry_checks(expected)
+  assert (out/n).read_text()==expected,n
 
 def test_repin_400(tmp_path):
  (tmp_path/'pin.json').write_text(json.dumps(PIN400))

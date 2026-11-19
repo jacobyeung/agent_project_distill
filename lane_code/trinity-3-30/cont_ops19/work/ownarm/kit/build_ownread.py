@@ -151,6 +151,20 @@ def null_fork(a4):
  return dict(delivery_identical=sha(raw)==A4_DELIVERY_SHA256,members_identical=len(same)==len(delivery),
              delivery_sha256=sha(raw),members=len(delivery))
 
+def add_dry_checks(text):
+ """Embed the login-node checks; no extra staging files or sealed changes."""
+ anchor='cd "$P"\nCUDA_VISIBLE_DEVICES= '
+ if text.count(anchor)!=1:raise ValueError('Expected one pre-check directory change')
+ resolution=('PREP=$(sha256sum "$P/a/6" | cut -d\' \' -f1)\n'
+  '/usr/bin/python3 -I -s -B - "$P/a/1.json" "$P/a/0.json" "$PREP" > "$E/dryres.json" 2>&1 <<\'PYCODE\'\n'
+  +(KIT/'dryres2.py').read_text()+'PYCODE\n')
+ text=text.replace(anchor,resolution+anchor)
+ anchor='/usr/bin/python3 -I -s -B - "$P" "$E" <<\'PYCODE\'\n'
+ if text.count(anchor)!=1:raise ValueError('Expected one success receipt writer')
+ package=('/usr/bin/python3 -I -s -B - "$P" "$E/drywork" > "$E/drypackage.json" 2>&1 <<\'PYCODE\'\n'
+  +(KIT/'dry_own.py').read_text()+'PYCODE\n')
+ return text.replace(anchor,package+anchor)
+
 def scripts(a_dir,token,delivery_sha,binding,pin,walltime='05:00:00'):
  """Derive the operator scripts from A's reviewed scripts with checked substitutions."""
  a_dir=Path(a_dir);out={}
@@ -190,6 +204,7 @@ def scripts(a_dir,token,delivery_sha,binding,pin,walltime='05:00:00'):
    if name=='o_pullfill_resume.sh':text=sub(text,'= 5395758080',f'= {part}')
   text=sub(text,old_token,token,text.count(old_token) or 1)
   if '--time 05:00:00' in text:text=text.replace('--time 05:00:00','--time '+walltime)
+  if name.startswith('o_pullfill'):text=add_dry_checks(text)
   out[name]=text
  return out
 

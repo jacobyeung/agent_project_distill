@@ -1,0 +1,22 @@
+PARTIAL: incomplete return coverage; all comparisons use shared completed IDs.
+SETS camera_displacement: planned A=150 B=150; completed A=0 B=150; shared=0; coverage 0/150 / 150/150
+SETS camera_movement_direction: planned A=150 B=150; completed A=0 B=150; shared=0; coverage 0/150 / 150/150
+SETS camera_rotation: planned A=150 B=150; completed A=0 B=150; shared=0; coverage 0/150 / 150/150
+SETS object_abs_distance: planned A=150 B=150; completed A=80 B=150; shared=80; coverage 80/150 / 150/150
+SETS room_size_estimation: planned A=36 B=36; completed A=0 B=36; shared=0; coverage 0/36 / 36/36
+A=400 B=544; rates/scores in %, delta A-B in pp
+type / stratum | n/expected A / B | call A/B | capped A/B | usage A/B | follow_converted A/B | copied_unconverted A/B | other A/B | conversion_failure A/B | answer A/B | not_seen A/B | other_non_numeric A/B | score/MRA A/B | delta call [95% CI] | delta score [95% CI]
+camera_displacement | 0/150 / 0/150 | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING [MISSING] | MISSING [MISSING]
+camera_movement_direction | 0/150 / 0/150 | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING [MISSING] | MISSING [MISSING]
+camera_rotation | 0/150 / 0/150 | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING [MISSING] | MISSING [MISSING]
+object_abs_distance | 80/150 / 80/150 | 71.25/98.75 | 1.25/0.00 | 100.00/100.00 | 81.82/47.30 | 18.18/52.70 | 0.00/0.00 | 28.57/75.00 | 98.75/96.25 | 0.00/3.75 | 0.00/0.00 | 47.87/23.50 | -27.50 [-40.70, -10.17] | 24.38 [15.41, 31.40]
+object_abs_distance unit=cm | 17/28 / 17/28 | 70.59/100.00 | 0.00/0.00 | 100.00/100.00 | 9.09/13.33 | 90.91/86.67 | 0.00/0.00 | 90.91/86.67 | 100.00/88.24 | 0.00/11.76 | 0.00/0.00 | 22.94/3.53 | -29.41 [-40.00, 0.00] | 19.41 [0.00, 26.54]
+object_abs_distance unit=ft | 22/46 / 22/46 | 63.64/100.00 | 4.55/0.00 | 100.00/100.00 | 100.00/15.79 | 0.00/84.21 | 0.00/0.00 | 0.00/84.21 | 95.45/95.45 | 0.00/4.55 | 0.00/0.00 | 54.09/10.00 | -36.36 [-55.56, -13.63] | 44.09 [20.59, 65.59]
+object_abs_distance unit=in | 19/33 / 19/33 | 57.89/94.74 | 0.00/0.00 | 100.00/100.00 | 100.00/44.44 | 0.00/55.56 | 0.00/0.00 | 0.00/55.56 | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 56.32/15.79 | -36.84 [-63.64, -6.25] | 40.53 [13.85, 56.96]
+object_abs_distance unit=m | 22/43 / 22/43 | 90.91/100.00 | 0.00/0.00 | 100.00/100.00 | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | MISSING/MISSING | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 53.64/59.09 | -9.09 [-22.22, 0.00] | -5.45 [-13.85, 0.00]
+room_size_estimation [A=A10/read 0; B=b1/read 0] | 0/36 / 0/36 | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING [MISSING] | MISSING [MISSING]
+room36 secondary [A=A10/read 0; B=b2/read 0] | 0/36 / 0/36 | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING [MISSING] | MISSING [MISSING]
+room population [source read A/B] | n/expected A / B | MRA answer % A/B | delta A-B pp [95% CI]
+all [A=A10/read 0; B=b1/read 0] | 0/36 / 0/36 | MISSING/MISSING | MISSING [MISSING]
+dev-S1 [A=A10/read 0; B=b1/read 0] | 0/36 / 0/36 | MISSING/MISSING | MISSING [MISSING]
+R0-dev [A=A10/read 0; B=b1/read 0] | 0/0 / 0/0 | MISSING/MISSING | MISSING [MISSING]

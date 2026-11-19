@@ -91,3 +91,5 @@ Lane folder /scratch/jjyeung/orch_n30/r1_ops6. Events .../orch_n30/events/r1_ops
 - 11:09Z plan B ARMED: pbjob.sh copied to pool okh7/pbs_3aeb20ae.sh (sha 3aeb20ae); tmux r9pbw = work/r9/pbw.sh 1795106700 (16:45Z): every 60 s runs work/r9/pbw_remote.sh (token a5416871 reserved); when 172660 is sacct-terminal and m600/DONE.json absent it sbatches plan B once, writes ledger line + BLOCKER event; DONE.json present -> exits (pbw.final). Outputs work/r9/pbw.last, pbw.hist, pbw.final, pbw.alarm; stop file work/r9/pbw.stop. Tested once (JOB RUNNING).
 - 12:04Z step 468, 133 s/step, early_cp PASS every tick since 10:37Z; checkpoint_000469 (~12:00Z). Tick: work/r9/tick.sh <since-stamp> (waitev 9 min + c1.sh + ORCH files + watcher states).
 - 12:45Z ORCH ANSWER 1234Z item 3: drafted events/r1_ops/N_LAUNCH_CARD_ops_rows.md (copied to tree_rebuild) + RESULT; fill [m600] rows at the handover.
+- 13:17Z step 500 (13:11Z), 129-134 s/step, early_cp PASS; ETA step 600 ~17:00Z.
+- 14:05Z successor brief drafted: orch_n30/briefs/r1_ops10.md (finalize state lines at rotation ~15:45Z).

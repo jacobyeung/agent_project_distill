@@ -56,6 +56,7 @@ def main(build,work,diff_output):
    if name=='o_pullfill.sh':
     want=re.sub(r'cp "\$I/[^\n]+\ncp "\$I/[^\n]+\ncp "\$I/[^\n]+\n',lambda _:copies,want)
    else:want=want.replace('test -f "$A/0.tgz"\n','test -f "$A/0.tgz"\ncp "$DONE" "$E/5"\n'+copies)
+   want=B.add_dry_checks(want)
   assert want==after,'Unexpected script change: '+name
   scripts[name]=(before,after)
  for prefix,ad,bd in [('package/',old,new),('src/',op,np)]:

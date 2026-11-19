@@ -1,0 +1,72 @@
+--- ex3/code/evaluate_v2.py	1969-12-31 19:00:00.000000000 -0500
++++ fixtry/code/evaluate_v2.py	2026-11-19 08:08:39.705170630 -0500
+@@ -22,10 +22,15 @@
+  if set(result)!=allowed:raise ValueError('MISSING corrected labels: '+str(p)+' '+str(sorted(allowed-set(result))))
+  return result
+ 
+-def update(part,bars,complete):
++def decision(part):
+  path=OUT/'DECISION.json';d=read_json(path) if path.exists() else dict(bars={},complete={})
+  if d.get('status')=='MISSING':d=dict(bars={},complete={})
+- if d.get('train_complete'):raise ValueError('Train decisions already frozen')
++ # A scores into an empty decision and B only after A; any other entry is planted or a repeat.
++ if d.get('train_complete') or not set(d.get('bars',{}))|set(d.get('complete',{}))<={'B':{'A'}}.get(part,set()):raise RuntimeError('REFUSE: DECISION.json already holds '+str(sorted(d.get('bars',{}))))
++ return d
++
++def update(part,bars,complete):
++ path=OUT/'DECISION.json';d=decision(part)
+  d.setdefault('bars',{})[part]=bars;d.setdefault('complete',{})[part]=complete
+  d.update(selection_split='K1_train_outside_withheld',decision_rows=1012,full_report_rows=1037,heldout_role='report-only',devS1_role='diagnostic-only',part_B_independent=True)
+  d['train_complete']=all(d['complete'].get(x,False) for x in ('A','B'))
+@@ -45,6 +50,7 @@
+ 
+ def run_a(split='train'):
+  require_score(OUT,'A' if split=='train' else 'H')
++ if split=='train':decision('A')
+  lab=labels(split);pose=[];depth=[];scales=[];prices=[];miss=[]
+  for c in captures(split):
+   p=capdir(c,OUT/'captures/A')/'tower.npz'
+@@ -111,6 +117,7 @@
+ 
+ def run_b(split='train'):
+  require_score(OUT,'B' if split=='train' else 'H')
++ if split=='train':decision('B')
+  lab=labels(split);prices=[];miss=[];selector=[];alignment=[]
+  for c in captures(split):
+   p=capdir(c,OUT/'captures/B')
+--- ex3/code/process_guard.py	1969-12-31 19:00:00.000000000 -0500
++++ fixtry/code/process_guard.py	2026-11-19 08:08:40.905168353 -0500
+@@ -49,7 +49,7 @@
+  folder=directory(out,part)
+  if (folder/'BARS.json').exists() or (folder/'FREEZE.json').exists():return require_score(out,part)
+  if score_files(out,part):raise RuntimeError('REFUSE: per-item scores exist before freeze')
+- units=('C32','C64') if part=='C' else (part,) if part!='H' else ()
++ units=('C32','C64') if part=='C' else (part,) if part!='H' else ('A','B')
+  for unit in units:
+   if any(p.is_file() for p in (Path(out)/'captures'/unit).rglob('*')):raise RuntimeError('REFUSE: model output exists before bars freeze')
+  # Legacy reports with rows are scored output, even without a PER_ITEM receipt.
+--- ex3/scripts/gpu_environment.sh	1969-12-31 19:00:00.000000000 -0500
++++ fixtry/scripts/gpu_environment.sh	2026-11-19 08:08:42.054166237 -0500
+@@ -45,7 +45,7 @@
+  fi
+  printf 'compute-apps pid\n%s\n' "$apps" >> "$log"
+  # Refuse malformed or multiple-card output as well as more than 1 GiB used.
+- if ! awk -F, 'NF != 2 {exit 1} {gsub(/ /,"",$1); gsub(/ /,"",$2); if ($1 !~ /^[0-9]+([.][0-9]+)?$/ || $2 !~ /^[0-9]+([.][0-9]+)?$/ || $1 > 1024) exit 1} END {if (NR != 1) exit 1}' <<< "$gpu"; then busy=1; fi
++ if ! awk -F, 'NF != 2 {exit 1} {gsub(/ /,"",$1); gsub(/ /,"",$2); if ($1 !~ /^[0-9]+([.][0-9]+)?$/ || $2 !~ /^[0-9]+([.][0-9]+)?$/ || $1+0 > 1024) exit 1} END {if (NR != 1) exit 1}' <<< "$gpu"; then busy=1; fi
+  if [[ -n "${apps//[[:space:]]/}" ]]; then busy=1; fi
+ done
+ if [[ "$busy" == 1 ]]; then echo 'REFUSE: visible card has a compute process, more than 1 GiB used, or invalid readings' >&2; exit 1; fi
+--- ex3/code/test_kit.py	1969-12-31 19:00:00.000000000 -0500
++++ fixtry/code/test_kit.py	2026-11-19 08:08:44.733161541 -0500
+@@ -201,10 +201,9 @@
+  def test_run_b_persists_added_frame_gain(self):
+   import evaluate_v2 as E,uuid
+   from unittest.mock import patch
+-  root=ROOT/'runtime'/('gain_'+uuid.uuid4().hex);root.mkdir(parents=True)
+   from process_guard import freeze
+-  freeze(root,'B')
+   for status,low,want in [('OK',2.,'PASS'),('OK',0.,'FAIL'),('MISSING',None,'MISSING')]:
++   root=ROOT/'runtime'/('gain_'+uuid.uuid4().hex);root.mkdir(parents=True);freeze(root,'B')
+    gain=dict(status=status,low=low)
+    with patch.object(E,'OUT',root),patch.object(E,'labels',return_value={}),patch.object(E,'captures',return_value=[]),patch.object(E,'row_ids',return_value={'absent'}),patch.object(E,'emit'),patch.object(E,'items_file'),patch.object(E,'gains_once',return_value=dict(gains={'added_frame_gain':gain})),patch.object(E,'a_train_rows',return_value=[]):
+     E.run_b()

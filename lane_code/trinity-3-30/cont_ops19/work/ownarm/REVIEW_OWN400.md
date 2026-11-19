@@ -1,0 +1,9 @@
+GO AFTER FIXES (missing reference dry checks; broken local package/source links).
+
+1. **Both fill scripts omit two reference dry checks.** The reference runs `d.py` and `d2.py`/`d2b.py` before declaring success ([ref_o_place_pull_fill10.sh:31](/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/ref_o_place_pull_fill10.sh:31)). The derived scripts run only `3.py check`, then write success receipts ([o_pullfill.sh:40](/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/pkg/r400/o_pullfill.sh:40), [o_pullfill_resume.sh:39](/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/pkg/r400/o_pullfill_resume.sh:39)). They therefore lack the requested dry-check parity.
+
+2. **The local r400 scorer workflow cannot currently read its package.** Both `out/pkg/r400/package` and `src` point into `/dev/shm/c19o/w/r400`, which is absent. The scorer requires those trees ([ownread.py:58](/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/kit/ownread.py:58)); return unpacking also requires `package/0.json` ([unpack_return.py:29](/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/pkg/r400/unpack_return.py:29)). The delivery archive remains readable.
+
+Other checks passed: exact reseal under the recorded build interpreter; 926 unchanged payload members; all six script diffs; 32 shell scripts plus two embedded shells; 39 helpers compiled in memory under Python 3.6.8. In-memory admission tests rejected incorrect receipts, preparation hashes, artifact identities, and run/step values. The scorer accepted a complete step-400 fixture and rejected wrong export pins and partial rows. Orchard path existence remains unverified under the no-network restriction.
+
+I could not write `REVIEW_OWN400.md`: this session’s filesystem permissions prohibit all writes.

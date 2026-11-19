@@ -1,5 +1,6 @@
 #!/bin/bash
 # add_read.sh SRC READ_ID SET VEHICLE JOB PURPOSE REPORTED_BY [extra ingest args...]   (see HOWTO.md)
+# Use new read IDs only; direct ingest retains its default-off compatibility path.
 set -u
 [ $# -ge 7 ] || { echo "usage: add_read.sh SRC READ_ID SET VEHICLE JOB PURPOSE REPORTED_BY [--inputs DIR] [--official] [--archive-partial]"; exit 64; }
 C=/scratch/jjyeung/orch_n30/corpus; cd $C || exit 1
@@ -7,7 +8,7 @@ SRC=$1 RID=$2 SET=$3 VEH=$4 JOB=$5 PURP=$6 REP=$7; shift 7
 [ "$(hostname -s)" = trinity-3-30 ] || { echo "run on trinity-3-30"; exit 1; }
 mkdir -p stage2/meta; M=stage2/meta/$RID.json
 python3 -c 'import json,sys; a=sys.argv[1:]; json.dump(dict(read_id=a[0],set=a[1],vehicle=a[2],job_id=int(a[3]) if a[3].isdigit() else a[3],purpose=a[4],reported_by=a[5],official=False),open(a[6],"w"),indent=1)' "$RID" "$SET" "$VEH" "$JOB" "$PURP" "$REP" $M
-python3 tool/ingest_read.py ingest --source "$SRC" --read-id "$RID" --meta $M --out stage2 "$@" | tee -a stage2/ADD_READ.log
+python3 tool/ingest_read.py ingest --source "$SRC" --read-id "$RID" --meta $M --out stage2 --review2-checks "$@" | tee -a stage2/ADD_READ.log
 rc=${PIPESTATUS[0]}; [ $rc -eq 0 ] || { echo "ingest rc=$rc: nothing published"; exit $rc; }
 for f in stage2/index/$RID*.json; do
   id=$(basename $f .json); case $id in *.orphans) continue;; esac

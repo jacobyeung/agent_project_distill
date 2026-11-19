@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Ledger owner helper (swarm_build3): open or close one reservation in the kit's shared GPU ledger."""
 import json, sys, hashlib, time, os
-ROOT='/scratch/jjyeung/orch_n30/sb_ktfix'; INBOX=ROOT+'/inbox'; LEDGER=INBOX+'/SHARED_GPU_LEDGER.json'
+ROOT='/scratch/jjyeung/orch_n30/sb_ktfix2'; INBOX=ROOT+'/inbox'; LEDGER=INBOX+'/SHARED_GPU_LEDGER.json'
 ORDER=['tower_A','tower_B','route_K1','route_R0dev','route_tracker','route_94','tower_C','devS1','devS1_tracker']
-HARD={'A':2700,'B':10800,'C':2700}; CODE='53ea9d60cfe3302f0100aeec00e51ff04fee9c7417228a20d7af9ff6e7d08988'
+HARD={'A':2700,'B':10800,'C':2700}; CODE='076c5d87ab581e9b49332f9deaea20991cee2b8d989cd2287d1a6160e2b93e9c'
 AUTH='/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/swarm_build/20261119T1030Z_ORCH_GO_tower_frames_trinity_0_13_card6_conditional.md'
 def sha(p): return hashlib.sha256(open(p,'rb').read()).hexdigest()
 def wj(p,d):

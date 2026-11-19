@@ -80,9 +80,10 @@ class HashedReader(io.RawIOBase):
 
 class JSONStream:
     """Incremental JSON decoder; streams top-level items/rows arrays."""
-    def __init__(self, stream):
+    def __init__(self, stream, array_callback=None):
         self.stream, self.buf, self.eof = stream, '', False
         self.decoder = json.JSONDecoder()
+        self.array_callback = array_callback
 
     def more(self, size=65536):
         chunk = self.stream.read(size)
@@ -144,6 +145,8 @@ class JSONStream:
                     key = self.value()
                     self.eat(':')
                     if (key in ('items', 'rows') or nested) and self.peek() == '[':
+                        if self.array_callback:
+                            self.array_callback('arms.' + key if nested else key)
                         for row in self.array():
                             callback(key, row)
                     elif key == 'arms' and self.peek() == '{':
@@ -164,7 +167,10 @@ ROUTE_ROW = re.compile(r'^metadata/reads/([^/]+)/metadata/journals/([^/]+)/([^/]
 
 
 class Store:
-    def __init__(self):
+    def __init__(self, review2_checks=False):
+        self.review2_checks = review2_checks
+        self.inputs_loaded = False
+        self.array_fields = collections.defaultdict(set)
         # Working database in memory only, so no ingest leaves a file behind.
         self.path = ':memory:'
         self.db = sqlite3.connect(':memory:')
@@ -223,13 +229,16 @@ class Store:
                             self.errors.append('Malformed JSONL in ' + path)
                             self.record(path + ':unparsed', {'text': line})
             else:
-                value = JSONStream(text).document(lambda key, row: self.record(path, row, key))
+                array_callback = (lambda key: self.array_fields[path].add(key)) if self.review2_checks else None
+                value = JSONStream(text, array_callback).document(lambda key, row: self.record(path, row, key))
                 self.db.execute('INSERT INTO docs VALUES (?,?)', (path, dumps(value)))
         finally:
             text.detach()
 
     def load(self, source, inputs=False):
         source = readable(source)
+        if self.review2_checks and inputs:
+            self.inputs_loaded = True
         # Submission roots can expose their packaged source through a src symlink.
         if inputs and os.path.isdir(os.path.join(source, 'src')):
             source = readable(os.path.join(source, 'src'))
@@ -354,6 +363,7 @@ class Adapter:
 
     def __init__(self, store):
         self.store, self.issues = store, list(store.errors)
+        self.review2_checks = store.review2_checks
         self.paths = store.paths()
         if 'COMPLETE.json' not in self.paths:
             self.issues.append('Missing COMPLETE.json')
@@ -415,11 +425,18 @@ class KitAdapter(Adapter):
                 value = base_item(row)
                 value.update(arm=kit_arm(row), raw=row, source_file=path, original_arm=directory)
                 report_path = family + '/report/' + ('ON16k' if arm == 'full' else arm) + '.json'
-                report_row = self.store.db.execute('SELECT data FROM records WHERE path=? AND id=?',
-                                                   (report_path, str(row.get('id')))).fetchone()
+                report_rows = self.store.db.execute('SELECT data FROM records WHERE path=? AND id=?',
+                                                    (report_path, str(row.get('id'))))
+                report_row = next(report_rows, None)
                 if not report_row:
-                    report_row = self.store.db.execute('SELECT data FROM records WHERE path=? AND id=?',
-                                                       (report_path, 'devrows:' + str(row.get('id')))).fetchone()
+                    aliases = self.store.db.execute('SELECT data FROM records WHERE path=? AND id=?',
+                                                    (report_path, 'devrows:' + str(row.get('id'))))
+                    report_rows = (r for r in aliases if not self.review2_checks or 'id' not in json.loads(r[0]))
+                    report_row = next(report_rows, None)
+                if self.review2_checks and report_row:
+                    scores = dumps(json.loads(report_row[0]).get('scores'))
+                    if any(dumps(json.loads(r[0]).get('scores')) != scores for r in report_rows):
+                        raise Refusal('Conflicting kit report scores: ' + report_path + '/' + str(row.get('id')))
                 if report_row and value['arm']['scores'] is None:
                     value['arm']['scores'] = json.loads(report_row[0]).get('scores')
                 self.put('', family, row.get('id', row.get('example_id', row.get('key'))), arm, value)
@@ -627,15 +644,25 @@ class NativeAdapter(Adapter):
 
     def prepare(self):
         counts = collections.Counter()
+        has_inputs = self.store.inputs_loaded or any(p.startswith('inputs/') for p in self.paths)
         for path in ('native/paired/results/items.jsonl', 'native/R1.json'):
-            for row in self.store.rows(path):
+            for data, field in self.store.db.execute('SELECT data,field FROM records WHERE path=? ORDER BY seq', (path,)):
+                original = row = json.loads(data)
+                if self.review2_checks and path == 'native/R1.json' and field and field.startswith('arms.'):
+                    if not isinstance(row, dict) or 'key' not in row:
+                        raise Refusal('Invalid native report row: ' + field)
+                    if 'arm' not in row:
+                        row = dict(row, arm=field[len('arms.'):])
                 if not isinstance(row, dict) or 'key' not in row or 'arm' not in row:
                     continue
                 key, arm = str(row['key']), str(row['arm'])
                 previous = self.store.db.execute('SELECT data FROM normalized WHERE read=? AND family=? AND id=? AND arm=?',
                                                  ('', '', key, arm)).fetchone()
                 if previous:
-                    if json.loads(previous[0])['raw'] != row:
+                    previous_row = json.loads(previous[0])['raw']
+                    if self.review2_checks and 'arm' not in previous_row:
+                        previous_row = dict(previous_row, arm=arm)
+                    if previous_row != row:
                         raise Refusal('Contradictory native journal/report row: ' + key + '/' + arm)
                     continue
                 # Native benchmark keys explicitly use devrows:<task id>.
@@ -643,8 +670,34 @@ class NativeAdapter(Adapter):
                 candidates = [(json.loads(data), source) for data, source in self.store.db.execute(
                     'SELECT data,path FROM tasks WHERE id=? ORDER BY path', (task_id,))]
                 task, task_path = candidates[0] if candidates else ({}, None)
-                if any((t.get('question'), t.get('ground_truth', t.get('answer'))) !=
-                       (task.get('question'), task.get('ground_truth', task.get('answer'))) for t, p in candidates[1:]):
+                ambiguous = any((t.get('question'), t.get('ground_truth', t.get('answer'))) !=
+                                (task.get('question'), task.get('ground_truth', task.get('answer')))
+                                for t, p in candidates[1:])
+                if self.review2_checks:
+                    if has_inputs and not candidates:
+                        raise Refusal('Missing native task: ' + key)
+                    # Missing fields add evidence, not contradictions. Compare every
+                    # supplied field across all candidates, including video/room_key
+                    # and nested values; keep the original selected task verbatim.
+                    identity = {}
+                    for candidate, source in candidates:
+                        fields = dict(candidate)
+                        for primary, fallback in (('ground_truth', 'answer'), ('units', 'unit')):
+                            if fallback in fields and primary not in fields:
+                                fields[primary] = fields[fallback]
+                        for field, value in fields.items():
+                            encoded = dumps(value)
+                            if field in identity and identity[field] != encoded:
+                                ambiguous = True
+                            identity[field] = encoded
+                    # Native answer is a prediction; compare only task identity fields.
+                    for field in ('question', 'options', 'room', 'room_key', 'scene', 'video',
+                                  'question_type', 'stratum', 'ground_truth', 'scorer', 'units', 'unit',
+                                  'released_answer', 'released_answer_in_options'):
+                        task_field = 'units' if field == 'unit' else field
+                        if field in row and task_field in identity and dumps(row[field]) != identity[task_field]:
+                            raise Refusal('Native row/task identity conflict: ' + key + '/' + field)
+                if ambiguous:
                     raise Refusal('Ambiguous native task: ' + key)
                 value = base_item(task)
                 value['question_type'] = row.get('question_type', value['question_type'])
@@ -655,9 +708,11 @@ class NativeAdapter(Adapter):
                 normalized = routed_arm(dict(row, output=out))
                 normalized.update(hit_cap=row.get('capped'), parse_failed=row.get('no_answer'),
                                   output_tokens=decode.get('generated_tokens', row.get('total_tokens', normalized['output_tokens'])))
-                value.update(arm=normalized, raw=row, source_file=path, input=task or None, input_file=task_path)
+                value.update(arm=normalized, raw=original, source_file=path, input=task or None, input_file=task_path)
                 self.put('', '', key, arm, value)
                 counts[arm] += 1
+        if self.review2_checks:
+            self.validate_populations()
         expected = self.store.doc('native/paired/results/COMPLETE.json').get('items')
         if 'native/paired/results/COMPLETE.json' not in self.paths:
             self.issues.append('Missing native/paired/results/COMPLETE.json')
@@ -665,6 +720,46 @@ class NativeAdapter(Adapter):
             if expected is not None and count != expected:
                 self.issues.append('%s: %s != expected %s' % (arm, count, expected))
         return ['']
+
+    def validate_populations(self):
+        request = self.store.doc('native/paired/request.json')
+        report = self.store.doc('native/R1.json')
+        report_arms = set(report.get('arms', {})) | {
+            field[len('arms.'):] for field in self.store.array_fields['native/R1.json']
+            if field.startswith('arms.')}
+        for field, data in self.store.db.execute('SELECT field,data FROM records WHERE path=?', ('native/R1.json',)):
+            row = json.loads(data)
+            if field and field.startswith('arms.') and isinstance(row, dict) and 'arm' in row:
+                if str(row['arm']) != field[len('arms.'):]:
+                    raise Refusal('Contradictory native arm in report array: ' + field)
+        requested = request.get('arm')
+        required = ({'scripted', 'unflagged'} if requested == 'paired' else {str(requested)}) if requested else report_arms
+        if not required or report_arms - required:
+            raise Refusal('Contradictory or missing native arm declarations')
+        populations = collections.defaultdict(set)
+        for arm, key in self.store.db.execute('SELECT arm,id FROM normalized'):
+            populations[arm].add(key)
+        if set(populations) - required:
+            raise Refusal('Mismatched native arms: expected %s, observed %s' %
+                          (sorted(required), sorted(populations)))
+        if required - set(populations):
+            self.issues.append('Missing native arms: ' + ', '.join(sorted(required - set(populations))))
+        declarations = []
+        for doc, field in ((request, 'keys'), (report, 'expected_keys')):
+            if field in doc:
+                keys = doc[field]
+                if not isinstance(keys, list) or any(not isinstance(k, str) for k in keys) or len(set(keys)) != len(keys):
+                    raise Refusal('Invalid native keys declaration: ' + field)
+                declarations.append(set(keys))
+        expected = declarations[0] if declarations else set().union(*populations.values())
+        if any(keys != expected for keys in declarations[1:]):
+            raise Refusal('Contradictory native keys declarations')
+        for arm in sorted(required):
+            if populations[arm] - expected:
+                raise Refusal('Mismatched native keys for arm ' + arm)
+            if expected - populations[arm]:
+                self.issues.append('Missing native keys for arm %s: %s != expected %s' %
+                                   (arm, len(populations[arm]), len(expected)))
 
 
 ADAPTERS = [KitAdapter, RoutedAdapter, OffreadAdapter, NativeAdapter]
@@ -833,6 +928,8 @@ def main(argv=None):
     ing.add_argument('--format', choices=['auto'] + [a.name for a in ADAPTERS], default='auto')
     ing.add_argument('--inputs')
     ing.add_argument('--archive-partial', action='store_true')
+    ing.add_argument('--review2-checks', action='store_true',
+                     help='validate kit report aliases/scores and native populations, rows and task joins (default: off)')
     ing.add_argument('--read-index')
     for flag in ('set', 'vehicle', 'purpose', 'reported-by', 'job-id'):
         ing.add_argument('--' + flag)
@@ -892,7 +989,7 @@ def main(argv=None):
                 write_json(path, entry)
             print(dumps(dict(result='INDEX', read_id=read_id, status=entry['status'])))
             return 0
-        store = Store()
+        store = Store(review2_checks=args.review2_checks)
         try:
             store.load(args.source)
             if args.inputs:

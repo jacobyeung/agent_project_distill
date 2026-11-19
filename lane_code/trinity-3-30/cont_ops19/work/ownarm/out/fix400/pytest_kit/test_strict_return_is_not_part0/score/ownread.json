@@ -1,0 +1,495 @@
+{
+  "return_root": "/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/fix400/pytest_kit/test_strict_return_is_not_part0/ret",
+  "package": "/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/pkg/b200",
+  "fixture": false,
+  "partial": false,
+  "step": 200,
+  "token": "ade90fc02479b",
+  "plan": "e89dfe5659fa7555b4b7503332d3d163fbd59869e65c87eb4f7132272bfea351",
+  "shared": {
+    "export_sha256": "f957fe022c10b51f2d1f8da0fdd7bc5e34071cc6f24263a0faa31795a2b33a9c",
+    "settings_sha256": "293aa4e73749f03d59d87908deb018d81cd9363ad8b652c74c162cdef484fe78",
+    "artifact_manifest_sha256": "ce787c71a459ce64c87d5b7c9f1916c5d6df5215cd21fbdce69f7ba00834ac1d"
+  },
+  "bootstrap": {
+    "primary": "score_r5.bootstrap: physical room, random.Random(17), 10000 draws, ratio estimator",
+    "ci95_544rng": "h1eval.statistics.bootstrap: numpy default_rng(20261115), 10000 draws"
+  },
+  "units": "percentage points",
+  "bar": {
+    "points": -5.0,
+    "point": "own minus tower >= -5",
+    "interval": "95% lower bound > -5"
+  },
+  "sources": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/fix400/pytest_kit/test_strict_return_is_not_part0/ret/metadata/reads/0/metadata/journals/0/0/items.jsonl",
+      "sha256": "dece086f0228e2b4a3ff786e8f8cd13f0def4f307dae03f71ae7a5f28ae8499c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/fix400/pytest_kit/test_strict_return_is_not_part0/ret/metadata/reads/0/metadata/journals/1/0/items.jsonl",
+      "sha256": "3188cb919187b08bb8fe3947077418fe43565d21d947727682258ac513bfe621"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/fix400/pytest_kit/test_strict_return_is_not_part0/ret/metadata/reads/0/metadata/journals/2/0/items.jsonl",
+      "sha256": "08f059fb5c768a17214a7cd582ce173ba2597328ecc802098ad4f0a98ddf495d"
+    }
+  ],
+  "references": {
+    "own544": {
+      "job": 170631,
+      "step": 544,
+      "arm": "own",
+      "rule": null,
+      "sha256": "8e150efdbb530118e3317d417baf30c917b2f578881ca0b9895ecd3176ec6589"
+    },
+    "tower200": {
+      "job": 172744,
+      "step": 200,
+      "arm": "tower",
+      "rule": "candidates_argmax",
+      "sha256": "d0d2c6ed7bcd18b43c90e329d983d3e13ba1d84dfc90e99a8de3d9c128caa051"
+    },
+    "tower544": {
+      "job": 171253,
+      "step": 544,
+      "arm": "tower",
+      "rule": "null_argmax",
+      "sha256": "00df5a4da9db65f37a77ee10938cb02d8c5275b71e1d09d650fe639c87656f20"
+    }
+  },
+  "types": {
+    "camera_displacement": {
+      "expected": 150,
+      "own_n": 150,
+      "tower_n": 150,
+      "complete": true,
+      "metric": "MRA",
+      "own": 47.2,
+      "tower": 81.86666666666666,
+      "own_minus_tower": {
+        "value": -34.666666666666664,
+        "ci95": [
+          -42.59266327396099,
+          -26.597106481481482
+        ],
+        "ci9929": [
+          -45.73817394746647,
+          -23.99159154555554
+        ],
+        "upper95": -27.913669064748202,
+        "n": 150,
+        "rooms": 36,
+        "ci95_544rng": [
+          -42.70125901611023,
+          -26.83808686518086
+        ],
+        "paired_items": 150
+      },
+      "within_bar_point": false,
+      "within_bar_interval": false,
+      "vs_544_unpaired_reference": {
+        "registered": {
+          "own": 47.2,
+          "tower": 82.33333333333333,
+          "own_minus_tower": -35.13,
+          "ci95": [
+            -43.16,
+            -27.39
+          ]
+        },
+        "own_change": 0.0,
+        "tower_change": -0.46666666666666856,
+        "gap_change": 0.46333333333333826
+      },
+      "vs_544_rows": {
+        "own_minus_own544": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 150,
+          "rooms": 36,
+          "ci95_544rng": [
+            0.0,
+            0.0
+          ],
+          "paired_items": 150
+        },
+        "tower_minus_tower544": {
+          "value": -0.4666666666666667,
+          "ci95": [
+            -1.006711409395973,
+            -1.3978992268872168e-17
+          ],
+          "ci9929": [
+            -1.245944035947712,
+            0.21582733812949625
+          ],
+          "upper95": -0.06327123636653165,
+          "n": 150,
+          "rooms": 36,
+          "ci95_544rng": [
+            -1.0,
+            0.0543552506533616
+          ],
+          "paired_items": 150
+        },
+        "gap_544": {
+          "value": -35.13333333333333,
+          "ci95": [
+            -43.106194585368165,
+            -27.1679921071514
+          ],
+          "ci9929": [
+            -46.22183314794216,
+            -24.523029947005302
+          ],
+          "upper95": -28.424823083823387,
+          "n": 150,
+          "rooms": 36,
+          "ci95_544rng": [
+            -43.161010475774766,
+            -27.391223231667748
+          ],
+          "paired_items": 150
+        }
+      },
+      "vs_200_tower": {
+        "tower_minus_tower200": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 150,
+          "rooms": 36,
+          "ci95_544rng": [
+            0.0,
+            0.0
+          ],
+          "paired_items": 150
+        },
+        "own_minus_tower200": {
+          "value": -34.666666666666664,
+          "ci95": [
+            -42.59266327396099,
+            -26.597106481481482
+          ],
+          "ci9929": [
+            -45.73817394746647,
+            -23.99159154555554
+          ],
+          "upper95": -27.913669064748202,
+          "n": 150,
+          "rooms": 36,
+          "ci95_544rng": [
+            -42.70125901611023,
+            -26.83808686518086
+          ],
+          "paired_items": 150
+        }
+      }
+    },
+    "camera_movement_direction": {
+      "expected": 150,
+      "own_n": 150,
+      "tower_n": 150,
+      "complete": true,
+      "metric": "accuracy",
+      "own": 75.33333333333333,
+      "tower": 94.66666666666667,
+      "own_minus_tower": {
+        "value": -19.333333333333332,
+        "ci95": [
+          -27.586206896551722,
+          -11.805447722567289
+        ],
+        "ci9929": [
+          -30.69705701912667,
+          -9.245507256587318
+        ],
+        "upper95": -12.92517006802721,
+        "n": 150,
+        "rooms": 36,
+        "ci95_544rng": [
+          -27.48102763269497,
+          -11.888111888111888
+        ],
+        "paired_items": 150
+      },
+      "within_bar_point": false,
+      "within_bar_interval": false,
+      "vs_544_unpaired_reference": {
+        "registered": {
+          "own": 75.33333333333333,
+          "tower": 94.66666666666667,
+          "own_minus_tower": -19.33,
+          "ci95": [
+            -27.48,
+            -11.89
+          ]
+        },
+        "own_change": 0.0,
+        "tower_change": 0.0,
+        "gap_change": -0.0033333333333338544
+      },
+      "vs_544_rows": {
+        "own_minus_own544": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 150,
+          "rooms": 36,
+          "ci95_544rng": [
+            0.0,
+            0.0
+          ],
+          "paired_items": 150
+        },
+        "tower_minus_tower544": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 150,
+          "rooms": 36,
+          "ci95_544rng": [
+            0.0,
+            0.0
+          ],
+          "paired_items": 150
+        },
+        "gap_544": {
+          "value": -19.333333333333332,
+          "ci95": [
+            -27.586206896551722,
+            -11.805447722567289
+          ],
+          "ci9929": [
+            -30.69705701912667,
+            -9.245507256587318
+          ],
+          "upper95": -12.92517006802721,
+          "n": 150,
+          "rooms": 36,
+          "ci95_544rng": [
+            -27.48102763269497,
+            -11.888111888111888
+          ],
+          "paired_items": 150
+        }
+      },
+      "vs_200_tower": {
+        "tower_minus_tower200": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 150,
+          "rooms": 36,
+          "ci95_544rng": [
+            0.0,
+            0.0
+          ],
+          "paired_items": 150
+        },
+        "own_minus_tower200": {
+          "value": -19.333333333333332,
+          "ci95": [
+            -27.586206896551722,
+            -11.805447722567289
+          ],
+          "ci9929": [
+            -30.69705701912667,
+            -9.245507256587318
+          ],
+          "upper95": -12.92517006802721,
+          "n": 150,
+          "rooms": 36,
+          "ci95_544rng": [
+            -27.48102763269497,
+            -11.888111888111888
+          ],
+          "paired_items": 150
+        }
+      }
+    },
+    "camera_rotation": {
+      "expected": 150,
+      "own_n": 150,
+      "tower_n": 150,
+      "complete": true,
+      "metric": "MRA",
+      "own": 42.73333333333333,
+      "tower": 76.26666666666667,
+      "own_minus_tower": {
+        "value": -33.53333333333333,
+        "ci95": [
+          -40.13164517838219,
+          -27.06347818847819
+        ],
+        "ci9929": [
+          -42.390171174338725,
+          -24.35781313131314
+        ],
+        "upper95": -28.120995670995676,
+        "n": 150,
+        "rooms": 34,
+        "ci95_544rng": [
+          -40.15288721989658,
+          -27.105100714749838
+        ],
+        "paired_items": 150
+      },
+      "within_bar_point": false,
+      "within_bar_interval": false,
+      "vs_544_unpaired_reference": {
+        "registered": {
+          "own": 42.73333333333333,
+          "tower": 75.6,
+          "own_minus_tower": -32.87,
+          "ci95": [
+            -39.44,
+            -26.42
+          ]
+        },
+        "own_change": 0.0,
+        "tower_change": 0.6666666666666714,
+        "gap_change": -0.663333333333334
+      },
+      "vs_544_rows": {
+        "own_minus_own544": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 150,
+          "rooms": 34,
+          "ci95_544rng": [
+            0.0,
+            0.0
+          ],
+          "paired_items": 150
+        },
+        "tower_minus_tower544": {
+          "value": 0.6666666666666667,
+          "ci95": [
+            -0.36589849354375903,
+            1.6875202922077919
+          ],
+          "ci9929": [
+            -0.7848408921239268,
+            2.121287573121341
+          ],
+          "upper95": 1.5,
+          "n": 150,
+          "rooms": 34,
+          "ci95_544rng": [
+            -0.3472829254079254,
+            1.696969696969697
+          ],
+          "paired_items": 150
+        },
+        "gap_544": {
+          "value": -32.86666666666667,
+          "ci95": [
+            -39.53656286335372,
+            -26.436690094443225
+          ],
+          "ci9929": [
+            -41.821274877149875,
+            -23.79575755145683
+          ],
+          "upper95": -27.42485995750435,
+          "n": 150,
+          "rooms": 34,
+          "ci95_544rng": [
+            -39.43813968120805,
+            -26.418862612612614
+          ],
+          "paired_items": 150
+        }
+      },
+      "vs_200_tower": {
+        "tower_minus_tower200": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 150,
+          "rooms": 34,
+          "ci95_544rng": [
+            0.0,
+            0.0
+          ],
+          "paired_items": 150
+        },
+        "own_minus_tower200": {
+          "value": -33.53333333333333,
+          "ci95": [
+            -40.13164517838219,
+            -27.06347818847819
+          ],
+          "ci9929": [
+            -42.390171174338725,
+            -24.35781313131314
+          ],
+          "upper95": -28.120995670995676,
+          "n": 150,
+          "rooms": 34,
+          "ci95_544rng": [
+            -40.15288721989658,
+            -27.105100714749838
+          ],
+          "paired_items": 150
+        }
+      }
+    }
+  },
+  "all_complete": true,
+  "all_within_bar_point": false,
+  "all_within_bar_interval": false
+}

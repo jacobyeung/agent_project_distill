@@ -48,3 +48,92 @@ CHECK BUILD
 DIFF AND SYNTAX AUDIT
 {"delivery_sha256": "359151d1aafc9128b42f6e3b3a788cecc5aaf510fe57219f8367290a1afdd61a", "embedded_shells": 2, "helper_names": ["bundle/0.py", "bundle/7.py", "fetch_return.py", "heredoc/BATCH.py", "heredoc/o_fetch.sh/0.py", "heredoc/o_place.sh/0.py", "heredoc/o_pullfill.sh/0.py", "heredoc/o_pullfill.sh/1.py", "heredoc/o_pullfill_resume.sh/0.py", "heredoc/o_pullfill_resume.sh/1.py", "heredoc/o_sub.sh/0.py", "heredoc/o_sub.sh/1.py", "package/3.py", "package/a/4.py", "package/a/5.py", "package/a/6.py", "package/a/7.py", "src/8.py", "src/orchard_h10/__init__.py", "src/orchard_h10/build.py", "src/orchard_h10/common.py", "src/orchard_h10/entry.py", "src/orchard_h10/export_pins.py", "src/orchard_h10/inventory.py", "src/orchard_h10/job.py", "src/orchard_h10/operator.py", "src/orchard_h10/prepare.py", "src/orchard_h10/runner.py", "src/orchard_h10/vendor/chain_save.py", "src/orchard_h10/vendor/export_stage.py", "src/orchard_h10/vendor/orchard_job.py", "src/orchard_h10/vendor/orchard_launcher.py", "src/orchard_h10/vendor/orchard_results.py", "src/orchard_h10/vendor/orchard_stage.py", "src/orchard_h10/vendor/return_io.py", "src/orchard_h10/vendor/stdout_transfer.py", "src/orchard_h10/vendor/trace_runtime.py", "tower_sequence.py", "unpack_return.py"], "passed": true, "plan_changes": ["export_binding", "plan_sha256", "token"], "py_compile_helpers": 39, "python": "3.6.8", "script_names": ["o_cpucheck.sh", "o_fetch.sh", "o_place.sh", "o_pullfill.sh", "o_pullfill_resume.sh", "o_sub.sh", "package/BATCH.sh", "src/h1eval/h10/card_entry.sh", "src/h1eval/h10/gpu_113.sh", "src/h1eval/h10/host_run.sh", "src/h1eval/h10/run_card.sh", "src/tree/generator/ground_rows_out/build_orchard_ground.sh", "src/tree/generator/ground_rows_out/render_full.sh", "src/tree/launch_s1/b/c.sh", "src/tree/launch_s1/b/jc1.sh", "src/tree/launch_s1/b/jp0.sh", "src/tree/launch_s1/b/jt8c.sh", "src/tree/launch_s1/b/p0.sh", "src/tree/launch_s1/b/r.sh", "src/tree/launch_s1/job.sh", "src/tree/launch_s1/job8.sh", "src/tree/launch_s1/rehearse.sh", "src/tree/scripts/diagnostic_ddp_gpu_batch.sh", "src/tree/scripts/diagnostic_gpu_batch.sh", "src/tree/scripts/gpu_batch.sh", "src/tree/scripts/launch_gf1_stage1.sh", "src/tree/scripts/launch_gf1_stage2.sh", "src/tree/scripts/mdg_env.sh", "src/tree/scripts/mdg_host_train.sh", "src/tree/scripts/shakedown_batch.sh", "src/tree/scripts/student_benchmark_gpu.sh", "src/tree/tools/pdg_v3_gate_run.sh"], "scripts": 32}
 
+
+Fix round validation (workspace-local fixtures; no Orchard execution)
+
+snapshot.log
+{"a4_sha256": "dcff106800e96e871a57a58dbb33fe9923beefa575ac668ac1c8e66fd7113459", "script_roundtrip": true, "synthetic_scorer_fixture": "out/fix400/inputs/proof/ret_strict", "root": "out/fix400/inputs"}
+
+kit_tests.log
+.......................................................................  [100%]
+71 passed in 80.96s (0:01:20)
+
+dry_tests_verified.log
+...............                                                          [100%]
+15 passed in 34.83s
+
+check_build.log
+{
+ "passed": true,
+ "build": "out/pkg/r400",
+ "token": "fadf2291c654b",
+ "step": 400,
+ "delivery_sha256": "359151d1aafc9128b42f6e3b3a788cecc5aaf510fe57219f8367290a1afdd61a",
+ "plan_sha256": "0da6ccb50ccaa26a79b5caf7b20039f3589627e4f9a20638bee9f7aadce31f54",
+ "changed_delivery": [
+  "0.json",
+  "0.tgz",
+  "BATCH.sh",
+  "CONFIG.json",
+  "PACKAGE.json",
+  "a/4.py",
+  "a/6.py"
+ ],
+ "changed_payload": [
+  "9.json"
+ ],
+ "binding_changed": [
+  "config_sha256",
+  "member_directory",
+  "object",
+  "preparation_sha256",
+  "run",
+  "step"
+ ],
+ "fill_pins_changed": true,
+ "scripts": [
+  "o_cpucheck.sh",
+  "o_fetch.sh",
+  "o_place.sh",
+  "o_pullfill.sh",
+  "o_pullfill_resume.sh",
+  "o_sub.sh"
+ ],
+ "python36_helpers": 14
+}
+
+audit.log
+{"delivery_sha256": "359151d1aafc9128b42f6e3b3a788cecc5aaf510fe57219f8367290a1afdd61a", "embedded_shells": 2, "helper_names": ["bundle/0.py", "bundle/7.py", "fetch_return.py", "heredoc/BATCH.py", "heredoc/o_fetch.sh/0.py", "heredoc/o_place.sh/0.py", "heredoc/o_pullfill.sh/0.py", "heredoc/o_pullfill.sh/1.py", "heredoc/o_pullfill.sh/2.py", "heredoc/o_pullfill.sh/3.py", "heredoc/o_pullfill_resume.sh/0.py", "heredoc/o_pullfill_resume.sh/1.py", "heredoc/o_pullfill_resume.sh/2.py", "heredoc/o_pullfill_resume.sh/3.py", "heredoc/o_sub.sh/0.py", "heredoc/o_sub.sh/1.py", "package/3.py", "package/a/4.py", "package/a/5.py", "package/a/6.py", "package/a/7.py", "src/8.py", "src/orchard_h10/__init__.py", "src/orchard_h10/build.py", "src/orchard_h10/common.py", "src/orchard_h10/entry.py", "src/orchard_h10/export_pins.py", "src/orchard_h10/inventory.py", "src/orchard_h10/job.py", "src/orchard_h10/operator.py", "src/orchard_h10/prepare.py", "src/orchard_h10/runner.py", "src/orchard_h10/vendor/chain_save.py", "src/orchard_h10/vendor/export_stage.py", "src/orchard_h10/vendor/orchard_job.py", "src/orchard_h10/vendor/orchard_launcher.py", "src/orchard_h10/vendor/orchard_results.py", "src/orchard_h10/vendor/orchard_stage.py", "src/orchard_h10/vendor/return_io.py", "src/orchard_h10/vendor/stdout_transfer.py", "src/orchard_h10/vendor/trace_runtime.py", "tower_sequence.py", "unpack_return.py"], "passed": true, "plan_changes": ["export_binding", "plan_sha256", "token"], "py_compile_helpers": 43, "python": "3.6.8", "script_names": ["o_cpucheck.sh", "o_fetch.sh", "o_place.sh", "o_pullfill.sh", "o_pullfill_resume.sh", "o_sub.sh", "package/BATCH.sh", "src/h1eval/h10/card_entry.sh", "src/h1eval/h10/gpu_113.sh", "src/h1eval/h10/host_run.sh", "src/h1eval/h10/run_card.sh", "src/tree/generator/ground_rows_out/build_orchard_ground.sh", "src/tree/generator/ground_rows_out/render_full.sh", "src/tree/launch_s1/b/c.sh", "src/tree/launch_s1/b/jc1.sh", "src/tree/launch_s1/b/jp0.sh", "src/tree/launch_s1/b/jt8c.sh", "src/tree/launch_s1/b/p0.sh", "src/tree/launch_s1/b/r.sh", "src/tree/launch_s1/job.sh", "src/tree/launch_s1/job8.sh", "src/tree/launch_s1/rehearse.sh", "src/tree/scripts/diagnostic_ddp_gpu_batch.sh", "src/tree/scripts/diagnostic_gpu_batch.sh", "src/tree/scripts/gpu_batch.sh", "src/tree/scripts/launch_gf1_stage1.sh", "src/tree/scripts/launch_gf1_stage2.sh", "src/tree/scripts/mdg_env.sh", "src/tree/scripts/mdg_host_train.sh", "src/tree/scripts/shakedown_batch.sh", "src/tree/scripts/student_benchmark_gpu.sh", "src/tree/tools/pdg_v3_gate_run.sh"], "scripts": 32}
+
+local_return.log
+{"output": "/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/pkg/r400_return_fixture/unpacked", "complete": true, "status": "COMPLETE", "sha256": "f32103dbd05d550eb24c60d98953a6312bfb28a8da7ffbf804f4f798db756b7c"}
+ownread | return /scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/pkg/r400_return_fixture/unpacked | token fadf2291c654b | export step 400
+Paired by item; [..] = 95% room bootstrap (score_r5.bootstrap); 544-RNG = the RNG of the registered step-544 intervals; points are pp.
+
+type | own | tower | own-tower [95%] | 99.29% | 544-RNG 95% | n own/tower | within 5: point / 95% lower
+camera_displacement | 47.20 | 81.87 | -34.67 [-42.59, -26.60] | [-45.74, -23.99] | [-42.70, -26.84] | 150/150 of 150 | False / False
+camera_movement_direction | 75.33 | 94.67 | -19.33 [-27.59, -11.81] | [-30.70, -9.25] | [-27.48, -11.89] | 150/150 of 150 | False / False
+camera_rotation | 42.73 | 76.27 | -33.53 [-40.13, -27.06] | [-42.39, -24.36] | [-40.15, -27.11] | 150/150 of 150 | False / False
+
+vs step 544 (unpaired reference: registered means, own 170631, tower 171253 read 0 null_argmax)
+type | own - own544 | tower - tower544 | gap - gap544 | registered gap [544-RNG 95%]
+camera_displacement | +0.00 | -0.47 | +0.46 | -35.13 [-43.16, -27.39]
+camera_movement_direction | +0.00 | +0.00 | -0.00 | -19.33 [-27.48, -11.89]
+camera_rotation | +0.00 | +0.67 | -0.66 | -32.87 [-39.44, -26.42]
+
+vs step 544 rows (paired by item; same 450 items)
+type | own - own544 | tower - tower544 | 544 gap recomputed
+camera_displacement | +0.00 [+0.00, +0.00] | -0.47 [-1.01, -0.00] | -35.13 [-43.11, -27.17]
+camera_movement_direction | +0.00 [+0.00, +0.00] | +0.00 [+0.00, +0.00] | -19.33 [-27.59, -11.81]
+camera_rotation | +0.00 [+0.00, +0.00] | +0.67 [-0.37, +1.69] | -32.87 [-39.54, -26.44]
+
+vs step-200 tower return (A4, job 172744, candidates_argmax; paired by item)
+type | tower - tower200 | own - tower200
+camera_displacement | +0.00 [+0.00, +0.00] | -34.67 [-42.59, -26.60]
+camera_movement_direction | +0.00 [+0.00, +0.00] | -19.33 [-27.59, -11.81]
+camera_rotation | +0.00 [+0.00, +0.00] | -33.53 [-40.13, -27.06]
+
+All three complete: True; own within 5 pp of tower on all three: point False, 95% lower bound False
+PASS: workspace unpack/scorer workflow with synthetic metadata, not an Orchard measurement.
+
+{"delivery_sha256": "359151d1aafc9128b42f6e3b3a788cecc5aaf510fe57219f8367290a1afdd61a", "dry2_checks_kept": ["5.export_pins_load_validate", "5.package_descriptor", "5.payload_sha", "5.plan_sha", "5.sequence_is_a6", "5.settings_rule", "6.memory_fits", "6.rule_in_RULES", "admit.archive0", "admit.export_binding", "guard.descriptor", "guard.inventory", "guard.operator", "guard.tmp_token", "prepare.no_optional", "prepare.prep_members", "prepare.prep_pins", "prepare.prep_vs_binding", "prepare.types_all_five", "stage.a3_slot_present", "stage.payload_pins", "stage.policy_receipt", "stage.terminator_sha", "stage.vnice_sha", "sub.job_name"], "dry2_checks_replaced": ["6.descriptor", "6.items_636", "6.types_order"], "dry_check_tests": 15, "embedded_shells": 2, "files": {"kit/build_ownread.py": "c707ea0a0adc1c3d4229a91845cc241f63b2fc87f5da10c4e5b2c3f994c0e369", "kit/dry_own.py": "b194895da65ba7560b0032d30e3d00f424881db5929cc574f9924877f581d083", "kit/dryres2.py": "075d544f5100224f23d0c629b7b8d3a55005fd5d8cd8641d129828024d6538de", "kit/tests/check_local_return.py": "91f7d0420c5b99d4c25309f5f9252b16ff56379e13a96f66aa2553e40a2fb0d4", "kit/tests/test_dry_checks.py": "95eb10d11246334f815cc7c966c6f1b4cfab47405af5a32a84873b32993349c9", "out/pkg/r400/o_cpucheck.sh": "d51fbd9c56c88767a72a7778aabac81651a32203eae67e1f74095c91510c571f", "out/pkg/r400/o_fetch.sh": "0dddf516f67d4c78876a0f3703c98901c92ce491f7a0d4c6cb36bbe993e15f36", "out/pkg/r400/o_place.sh": "3b3d1bade06de07c03b9ff2a89e41682cb76590bcfb32be0e6366768cb3e5c1c", "out/pkg/r400/o_pullfill.sh": "2568992a2045b3e3519f773570247a4bfb14c702a6e20e23bb9485af100b39ae", "out/pkg/r400/o_pullfill_resume.sh": "946f3bace086f2f617fabfdcb10a950f31e01b84d5468d494e5f89cd142b9478", "out/pkg/r400/o_sub.sh": "527f0a89409987b7236ad5b927cbede59cd05135bc844d38a34e5cd736cc5e09"}, "input_resolution_reference_identical": true, "kit_tests": 71, "local_return_fixture_passed": true, "local_trees": {"package": "/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/pkg/r400/package", "src": "/scratch/jjyeung/orch_n30/cont_ops19/work/ownarm/out/pkg/r400/src"}, "passed": true, "py_compile_helpers": 43, "python": "3.6.8", "report_lines": 65, "sealed_members_changed": false, "shell_scripts": 32, "token": "fadf2291c654b"}

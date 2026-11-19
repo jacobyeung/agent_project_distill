@@ -62,6 +62,7 @@ def review(raw, seal, sha, bind_sha=None):
             'GO AFTER FIXES needs a separate later GO file')
     verdict = first[1].upper()
     fields = {}
+    archive_hash_table = False
     for line in lines:
         m = re.fullmatch(r'(Seal|SHA256)\s*:\s*(.+)', line, re.I)
         if review2_enabled():
@@ -83,6 +84,19 @@ def review(raw, seal, sha, bind_sha=None):
         if review2_enabled():
             require(not re.match(r'^verdict:.*AFTER FIXES', line, re.I),
                     'conditional verdict requires a fresh review file')
+            require(not re.match(r'^\s*(?:verdict|status)\s*:.*\b'
+                                 r'(?:NO[- ]?GO|REJECT(?:ED|ION)?|HOLD|WAIT)\b', line, re.I)
+                    and not re.match(r'^\s*No[- ](?:Go|go)\b', line),
+                    'negative review requires a fresh accepting verdict file')
+            archive_hash_line = (re.search(r'sha-?256', line, re.I) and
+                                 re.search(r'archive|\.t(ar|gz)\b', line, re.I))
+            archive_hash_table = (line.lstrip().startswith('|') and
+                                  (archive_hash_table or bool(archive_hash_line)))
+            if (archive_hash_line or archive_hash_table or
+                    re.match(r'^\s*sha256sum\s*[:=]', line, re.I)):
+                hashes = re.findall(r'(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])', line, re.I)
+                require(all(value.lower() == sha for value in hashes),
+                        'review SHA256 differs from supplied SHA256')
         m = re.fullmatch(r'VERDICT: *(.*?)\s*', line, 0 if review2_enabled() else re.I)
         if m:
             require(m[1].upper() in accepted, 'conflicting verdict requires a fresh review file')
@@ -299,7 +313,8 @@ def land(args, state, repo, payload, metadata):
                 urls = git('remote', 'get-url', *mode, '--all', remote).splitlines()
                 require(bool(urls), f'test remote {remote} has no URL')
                 for url in urls:
-                    require(':' not in url and within((repo / url).resolve(), boundary),
+                    require(not url.startswith('~') and ':' not in url and
+                            within((repo / url).resolve(), boundary),
                             f'test remote {remote} must resolve to a local path within test root')
     require(git('symbolic-ref', '--quiet', '--short', 'HEAD') == 'lane-code', 'owner clone must already be on lane-code')
     git('diff', '--quiet')

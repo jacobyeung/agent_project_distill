@@ -1,49 +1,65 @@
-The own-arm camera kit is built at `out/pkg/r400` for run `6ed2c7aa`, step 400. Local checks pass; nothing was submitted.
+The own-arm camera kit at `out/pkg/r400` targets run `6ed2c7aa`, step 400. Both review findings are fixed. No Orchard job was submitted.
 
-The builder accepts only the run/receipt-directory pairs `673bc60f/x_69d2930d` and `6ed2c7aa/x_ee227714`, with exact run and step in the receipt name. A changed run requires the complete binding and preparation paths. Both pull scripts copy the three pinned preparation files and verify their SHA-256 hashes before downloading export parts. Unknown runs, inconsistent paths, incomplete preparation pins and malformed hashes fail closed.
+Token: `fadf2291c654b`; its existing `out/pkg/TOKEN_LEDGER.jsonl` entry remains valid.
+Delivery: `out/pkg/r400/1.tgz`; SHA-256: `359151d1aafc9128b42f6e3b3a788cecc5aaf510fe57219f8367290a1afdd61a`.
+The delivery archive is unchanged. No sealed member required a fix or reseal; the operator, tower settings and payload code remain identical to b200. `pin400.json` is `BIND400.json` plus `part_bytes: 5395758080`.
 
-`pin400.json` equals `BIND400.json` plus `part_bytes: 5395758080`. Binding values, archive pins and fill step come from this pin. Step 600 is covered by a synthetic acceptance test; it needs its own real export pin.
+## Fix round
 
-The delivery exactly reproduces a reseal of b200 with only token, export binding and `REVIEWED_*` changes. All 926 payload members other than `9.json`, the operator, tower settings and item order remain identical. `DIFF_R400_VS_B200.txt` includes every script's unified diff; identical scripts have explicitly empty diffs. Build metadata and dependent hashes reflect the rebind.
+Both pull scripts embed `kit/dryres2.py` verbatim and the adapted `kit/dry_own.py`; the builder emits the same checks. No additional files need staging. The order is fill, input-resolution check, `3.py check`, package check, then `a/e/10.json` and `a/1.txt`. Shell `set -euo pipefail` prevents either success receipt after a failed check. Reports are `a/e/dryres.json` and `a/e/drypackage.json`.
 
-Token: `fadf2291c654b`. The matching line remains in `out/pkg/TOKEN_LEDGER.jsonl`.
-Delivery: `out/pkg/r400/1.tgz`.
-Delivery SHA-256: `359151d1aafc9128b42f6e3b3a788cecc5aaf510fe57219f8367290a1afdd61a`.
+The input-resolution check retains all `dryres2.py` semantics: part sizes, tar-header/member resolution, pinned file sizes/types, policy authorization, unchanged base slots and the preparation archive pin.
+The package check keeps these `dry2.py` checks unchanged:
 
-The snapshot lacks the original A4 directory. `snapshot_inputs.py` reconstructs its archive and requires the exact reviewed SHA-256 `dcff106800e96e871a57a58dbb33fe9923beefa575ac668ac1c8e66fd7113459`. Its A templates reproduce all six b200 scripts exactly. Scorer tests use synthetic metadata with pinned reference rows; vendor files match their recorded hashes.
+- `5.payload_sha`, `5.package_descriptor`, `5.sequence_is_a6`, `5.plan_sha`, `stage.payload_pins`, `5.export_pins_load_validate`.
+- `prepare.no_optional`, `prepare.types_all_five`, `prepare.prep_members`, `prepare.prep_pins`, `prepare.prep_vs_binding`, `admit.export_binding`, `admit.archive0`.
+- `stage.a3_slot_present`, `stage.vnice_sha`, `stage.terminator_sha`, `stage.policy_receipt`; it also retains the environment-version diagnostic.
+- `guard.inventory`, `guard.descriptor`, `guard.operator`, `guard.tmp_token`, `5.settings_rule`, `6.rule_in_RULES`, `6.memory_fits`, `sub.job_name`.
 
-These commands passed from the workspace; use fresh work/output paths when reproducing them:
+`6.descriptor` validates the full own-arm descriptor: types `[0,1,2]`, arms `[tower,own]`, mode `none`, 900 reads and the pinned tower/memo settings. `6.items_636` becomes 450 unique camera items (150/type) × two arms = 900 reads. `6.types_order` checks camera displacement, rotation and movement direction in that order. These replace A4's evaluation selection because this operator reads only camera items. The five-type staging inventory check remains applicable and unchanged.
+The added schedule/worker checks execute the real operator `prepare` and runner `worker_args`, requiring one worker per type, separate journals and both arms. They extract the pure `MODES`/`settings` definitions from the sealed memo module with AST; they import no NumPy, Torch or model code. All Orchard checks use Python 3.6 stdlib only.
+
+`out/pkg/r400/package` and `src` are real workspace directories reconstructed from `1.tgz` and its nested `0.tgz`. All 15 package files and 927 payload files match the archives. Local return unpacking and scoring pass with synthetic metadata; this is not an Orchard measurement.
+
+Validation: 71 kit tests and 15 dry-check tests pass. Both pull scripts accept correct fixtures and reject wrong member sizes, export-pin hashes, preparation archive pins and base-slot pins before success. Operator tests reject wrong arms, counts, order and combined workers. `check_build.py` passes. `audit_rebind.py` verifies the exact permitted reseal, all script diffs, `bash -n` on 32 scripts plus two embedded shells, and `py_compile` on 43 helpers/blocks with Python 3.6.8.
+Logs: `out/fix400/{kit_tests,dry_tests_verified,check_build,audit,local_return}.log`. `DIFF_R400_VS_B200.txt` includes every script; `out/pkg/r400/VALIDATION.json` records the syntax inventory. `out/pkg/r400/FIX_VALIDATION.json` records the fixed script/helper hashes.
+
+Reproduce from the workspace with fresh output directories:
 ```bash
 export PY=/scratch/jjyeung/envs/p1cpu/bin/python
-export TMPDIR=/dev/shm/c19o/w/tmp PYTHONDONTWRITEBYTECODE=1
-export A4=/dev/shm/c19o/w/inputs3/A4 A=/dev/shm/c19o/w/inputs3/A
-export PROOF=/dev/shm/c19o/w/inputs3/proof
+export TMPDIR="$PWD/out/fix400/tmp" PYTHONDONTWRITEBYTECODE=1
+export A4="$PWD/out/fix400/inputs/A4" A="$PWD/out/fix400/inputs/A" PROOF="$PWD/out/fix400/inputs/proof"
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES=
-$PY -B kit/tests/snapshot_inputs.py /dev/shm/c19o/w/inputs3
-$PY -B kit/build_ownread.py --a4 "$A4" --a "$A" --export-pin pin400.json --out out/pkg/r400 --work-dir /dev/shm/c19o/w/r400
-$PY -B -m pytest -q -p no:cacheprovider --basetemp=/dev/shm/c19o/w/pytest400 kit/tests/test_kit.py
-$PY -B kit/tests/check_build.py out/pkg/r400
-$PY -B kit/tests/audit_rebind.py out/pkg/r400 /dev/shm/c19o/w/syntax400_complete DIFF_R400_VS_B200.txt
+# The recorded run created inputs with: $PY -B kit/tests/snapshot_inputs.py out/fix400/inputs
+$PY -B -m pytest -q -p no:cacheprovider --basetemp="$PWD/out/fix400/recheck_kit" kit/tests/test_kit.py
+$PY -B -m pytest -q -p no:cacheprovider --basetemp="$PWD/out/fix400/recheck_dry" kit/tests/test_dry_checks.py
+$PY -B kit/tests/check_build.py out/pkg/r400 --a4 "$A4"
+$PY -B kit/tests/audit_rebind.py out/pkg/r400 out/fix400/recheck_syntax DIFF_R400_VS_B200.txt
+$PY -B kit/tests/check_local_return.py out/pkg/r400 "$PROOF" out/pkg/r400_return_recheck
 ```
-Results: 71 tests passed in 73.73 seconds, with no skips. `check_build.py` passed. The audit passed `bash -n` on all 32 scripts and both embedded fill scripts, and `py_compile` on 39 Orchard helpers/embedded Python blocks using actual Python 3.6.8. Preparation-guard tests reject a valid-length wrong hash for each file in both pull scripts. Logs are preserved in `TEST_RESULTS_OWN400.txt`; the helper inventory is in `out/pkg/r400/VALIDATION.json`.
 
-The local `--work-dir` option keeps extracted package/source trees under `/dev/shm/c19o/w`; `out/pkg/r400` links to them. The archive and operational scripts are regular workspace files. Builder temporary imports honor `TMPDIR`.
-
-For Orchard, stage `out/pkg/r400/1.tgz` and its six `o_*.sh` scripts in the fresh directory D below. Run the following sequence on Orchard only after staging and launch authorization:
+Exact Orchard sequence: stage `1.tgz` and all six `o_*.sh` files from `out/pkg/r400` into the fresh D directory, then run on Orchard:
 ```bash
+set -euo pipefail
 export D=/project/community/jjyeung/okh7/a15_cot_ap7e4d49a0f823
 P=/project/community/jjyeung/okh7/a15_cot_apfadf2291c654b
 cd "$D"
 D="$D" bash o_place.sh
 bash o_pullfill.sh
-# Wait for the background fill to finish successfully; do not continue on failure.
+# Wait for the background fill to exit successfully; inspect a/0.log on failure.
 test "$(cat "$P/a/1.txt")" = 0
+/usr/bin/python3 -I -s -B - "$P" <<'PY'
+import json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+for name in ('dryres.json', 'drypackage.json', '10.json'):
+    assert json.loads((p/'a/e'/name).read_text())['passed'] is True
+PY
 bash o_cpucheck.sh
-# Wait for the CPU job in a/4.txt to finish; o_sub checks its complete CPU receipt.
+# Wait for the CPU job in a/4.txt to finish; o_sub requires its complete receipt.
 bash o_sub.sh
 # Wait for the GPU job in a/8.txt to reach a terminal state.
 bash o_fetch.sh
 ```
-`o_pullfill_resume.sh` is only for the existing part-0-only state after the original fill has stopped; it rechecks the receipt and preparation files. Downloads retain zero retries. The regular sequence uses one GPU and a five-hour limit.
-
-Open risks: this package has not run an Orchard CPU check or GPU job. Local checks cannot verify the current remote receipt, preparation files or export parts; Orchard checks enforce those pins. The scorer fixture is not a measurement. Extracted trees in `/dev/shm` are temporary; the self-contained delivery archive persists in the workspace. Use `pin400.json` and this report for this run; the unchanged generic operator note contains step-200 examples.
+`o_pullfill_resume.sh` applies only to an existing part-0-only fill after its process has stopped. It repeats both dry checks and the receipt/preparation guards. Downloads retain zero retries; the regular run uses one GPU for at most five hours.
+Open risks: no Orchard CPU/GPU run or remote-path verification occurred. Synthetic fixtures exercise validation and local return plumbing, not model quality. The unchanged generic operator note contains step-200 examples; use this report and `pin400.json` for r400.

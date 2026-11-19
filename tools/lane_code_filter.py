@@ -2,7 +2,7 @@
 # Prints NUL-separated relative paths of whitelisted agent-written files, one copy per distinct content;
 # later identical copies are listed in <manifest_dir>/DEDUP_<label>.tsv.gz ("dup_path<TAB>kept_path") and
 # that manifest path is printed last. Stats go to stderr.
-import gzip, hashlib, os, re, sys
+import gzip, hashlib, os, re, stat, sys
 EXT = ('.py', '.sh', '.md', '.json', '.jsonl', '.yaml', '.yml', '.toml', '.cfg', '.txt', '.patch', '.diff', '.tpl', '.ini', '.tsv')
 MAXB = 512 * 1024
 DATA_MAXB = 256 * 1024  # .json/.jsonl above this are data rows or result dumps
@@ -33,10 +33,13 @@ for d, dirs, files in os.walk('.', followlinks=False):
         if not f.endswith(EXT) or f.endswith('.sqlite'):
             continue
         fp = os.path.join(d, f)
-        if os.path.islink(fp) or any(s in p + f for s in SUBSTR):
+        if any(s in p + f for s in SUBSTR):
             continue
         try:
-            sz = os.path.getsize(fp)
+            st = os.lstat(fp)
+            if not stat.S_ISREG(st.st_mode):
+                continue
+            sz = st.st_size
             if sz > MAXB or (sz > DATA_MAXB and f.endswith(('.json', '.jsonl'))):
                 big += 1; continue
             h = hashlib.sha1(open(fp, 'rb').read()).hexdigest()
