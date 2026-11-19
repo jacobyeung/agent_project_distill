@@ -1,0 +1,4 @@
+# Fixes for REVIEW_R7 (Codex gpt-6-astra, NO-GO, 2 findings) — assign.py 1523958d..., tests 29 OK (incl. build_rows)
+1. The unrecorded-tag check uses the sealed validator's tag syntax (trace_grammar.py TAG: '<name ...>' with a closing '>'), so the sealed renderer's 'cross < 0 means right' prose passes. Test test_review7.
+2. The replay receipt binds the Session's spec_version: replay_receipt refuses a Session whose spec_version differs from the record's, and events_sha256 hashes {spec_version, events}; changing record.spec_version after replay breaks the receipt ('record_replay_missing'). Tests test_review7, test_replay_receipt_uses_sealed_replay.
+New since R7 (please review too): code/headrows/build_rows.py packs SELECTED head rows with the sealed ground_rows.pack after re-deciding each, adds provenance, re-renders; tests/test_build_rows.py (packed row passes sealed ground_rows.validate).

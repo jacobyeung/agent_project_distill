@@ -1,0 +1,145 @@
+{
+  "runs": 600,
+  "expected_errors": [
+    {
+      "key": [
+        "vsi590k_251965",
+        "tower",
+        "null_argmax"
+      ],
+      "expected": "TypeError(\"'NoneType' object is not subscriptable\")",
+      "actual": "TypeError(\"'NoneType' object is not subscriptable\")"
+    },
+    {
+      "key": [
+        "vsi590k_251965",
+        "tower",
+        "candidates_argmax"
+      ],
+      "expected": "TypeError(\"'NoneType' object is not subscriptable\")",
+      "actual": "TypeError(\"'NoneType' object is not subscriptable\")"
+    },
+    {
+      "key": [
+        "vsi590k_251965",
+        "hybrid",
+        "null_argmax"
+      ],
+      "expected": "TypeError(\"'NoneType' object is not subscriptable\")",
+      "actual": "TypeError(\"'NoneType' object is not subscriptable\")"
+    },
+    {
+      "key": [
+        "vsi590k_251965",
+        "hybrid",
+        "candidates_argmax"
+      ],
+      "expected": "TypeError(\"'NoneType' object is not subscriptable\")",
+      "actual": "TypeError(\"'NoneType' object is not subscriptable\")"
+    },
+    {
+      "key": [
+        "vsi590k_251967",
+        "tower",
+        "null_argmax"
+      ],
+      "expected": "TypeError(\"'NoneType' object is not subscriptable\")",
+      "actual": "TypeError(\"'NoneType' object is not subscriptable\")"
+    },
+    {
+      "key": [
+        "vsi590k_251967",
+        "tower",
+        "candidates_argmax"
+      ],
+      "expected": "TypeError(\"'NoneType' object is not subscriptable\")",
+      "actual": "TypeError(\"'NoneType' object is not subscriptable\")"
+    },
+    {
+      "key": [
+        "vsi590k_251967",
+        "hybrid",
+        "null_argmax"
+      ],
+      "expected": "TypeError(\"'NoneType' object is not subscriptable\")",
+      "actual": "TypeError(\"'NoneType' object is not subscriptable\")"
+    },
+    {
+      "key": [
+        "vsi590k_251967",
+        "hybrid",
+        "candidates_argmax"
+      ],
+      "expected": "TypeError(\"'NoneType' object is not subscriptable\")",
+      "actual": "TypeError(\"'NoneType' object is not subscriptable\")"
+    }
+  ],
+  "mismatches": [],
+  "max_diagnostic_bytes": 32006,
+  "table": [
+    {
+      "geometry": "tower",
+      "rule": "null_argmax",
+      "reads": 148,
+      "pairs": 294,
+      "not_seen_pairs": 54,
+      "not_seen_reads": 53,
+      "empty_candidate_pairs": 7,
+      "expected_not_seen_pairs": 54
+    },
+    {
+      "geometry": "tower",
+      "rule": "candidates_argmax",
+      "reads": 148,
+      "pairs": 294,
+      "not_seen_pairs": 7,
+      "not_seen_reads": 7,
+      "empty_candidate_pairs": 7,
+      "expected_not_seen_pairs": 7,
+      "remaining_classes": {
+        "A_sam3_none": 6,
+        "C_raster_erosion_crop": 1
+      }
+    },
+    {
+      "geometry": "hybrid",
+      "rule": "null_argmax",
+      "reads": 148,
+      "pairs": 294,
+      "not_seen_pairs": 70,
+      "not_seen_reads": 63,
+      "empty_candidate_pairs": 7,
+      "expected_not_seen_pairs": 70
+    },
+    {
+      "geometry": "hybrid",
+      "rule": "candidates_argmax",
+      "reads": 148,
+      "pairs": 294,
+      "not_seen_pairs": 7,
+      "not_seen_reads": 7,
+      "empty_candidate_pairs": 7,
+      "expected_not_seen_pairs": 7,
+      "remaining_classes": {
+        "A_sam3_none": 6,
+        "C_raster_erosion_crop": 1
+      }
+    }
+  ],
+  "tower_accuracy": {
+    "clean_n": 94,
+    "rescued_n": 44,
+    "clean_mra": 0.6478723404255319,
+    "rescued_mra": 0.5340909090909091,
+    "record_clean_mra": 0.646,
+    "record_rescued_mra": 0.534
+  },
+  "hybrid_accuracy": {
+    "clean_n": 84,
+    "rescued_n": 54,
+    "clean_mra": 0.5,
+    "rescued_mra": 0.5,
+    "record_clean_mra": 0.5,
+    "record_rescued_mra": 0.496
+  }
+}

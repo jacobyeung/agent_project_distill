@@ -1,0 +1,18 @@
+# Gate text for registration: distance call rate (dist_diag, 2026-11-19; ORCH ORDER 0351Z item 6, sharpened)
+
+**Text to register.** At every boundary, the routed dev-S1 read of the claimed arm (tower arm, selector candidates_argmax, pinned serving) is paired with step 544's read 171253/1 on the 150 absolute-distance items. An item calls when its trace holds at least one served tower call. Each read prints the calls by asked unit, the room-bootstrap call rate (10,000 draws, seed 17, 46 rooms), the trace forms (call then answer; call, conversion arithmetic, answer; no call with a stated estimate; no call with a qualitative sentence; other), the number of non-calling traces in the relative-distance phrasing, and the calls split into the 15 coverage wordings and the 6 others, all from `dist_gate.py`.
+- Step 544 calls on 149 of 150: m 43/43, ft 46/46, in 32/33, cm 28/28; 0.993 [0.976, 1.000]; coverage wordings 126/127, other wordings 23/23.
+- Step 200 is the first look and decides nothing. It calls on 88 of 150: m 36/43, ft 30/46, in 9/33, cm 13/28; 0.587 [0.471, 0.711]; coverage wordings 65/127, other 23/23; 52 of 62 non-calling traces in the relative-distance phrasing.
+- Vehicle P, steps 400 and 600: printed only (`--rule p`). P cannot take the fix: it has no centimetre rows, its 64 inch rows sit under the family floor, and it has no reworded routed row.
+- Vehicle N, at its entry boundary plus 200 (`--rule n`): the gate passes when at least 143 of the 150 items call (95%) and every asked unit reaches 90%: m at least 39/43, ft 42/46, in 30/33, cm 26/28. When it fails, the coverage family is rebuilt before the next boundary:
+  - if the non-calling items sit on the coverage wordings, raise the coverage cell (its ceiling is 24.0);
+  - if they sit on the other wordings, add those wordings;
+  - if they sit in one unit, raise that unit's coverage rows;
+  - if the non-calling traces copy the recovery ending ("I see the X in frame N" and a bare number), halve the recovery cell.
+  The gate is read again at the next boundary. While it fails, the distance score is reported as unplaced: distance MRA is printed split into calling and non-calling items, and no distance gain enters the claim.
+- The camera items keep H3 (at least 95% of the 450 call; 450/450 at steps 544 and 200). The 134 room items keep their own gate, whose direction is the opposite: the one-sided 95% upper bound of the call rate over 107 rooms stays below 25%. Step 544 calls on 134 of 134 room items, 115 capped; step 200 calls on 0 of the 36 dev-S1 room items; read B gives the other 98.
+- Once N trains the coverage rows, dev-S1's 150 distance items are seen-wording items. Every N report labels them so. Wording transfer is read on ReVSI's distance items, which the claimed reader serves, and is printed beside the gate.
+
+**Calibration** (binomial per item; room clustering widens these figures). For a model that skips the call on a fraction p of items, the N gate passes with probability 0.999 at step 544's rate of 1 in 150, 0.963 at 2%, 0.838 at 3% and 0.348 at 5%. The 143-of-150 clause alone fails with probability 9e-6, 0.011, 0.083 and 0.477 at those rates. A model at step 200's rates passes with probability below 1e-9.
+
+**Tool.** `dist_gate.py --score-dir <cont_ops out3s-style dir> --ret <return root> --package <package dir> --step S --rule p|n --coverage COVERAGE.json --out GATE_S.json`. It loads the read through cont_ops' `score_r5.load`, with the same identity checks. Its self-test prints PASS for step 544 and FAIL for step 200's return A4 (88/150; every unit under its floor), as recorded in `GATE_SELFTEST_m200.json`.

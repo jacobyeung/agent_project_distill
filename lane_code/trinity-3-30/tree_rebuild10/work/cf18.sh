@@ -1,0 +1,6 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; C=$W/work/conf18; P="/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B"; export CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1
+mkdir -p $C/pkg; cd $C; sha256sum $W/w18/out/tree_rebuild_b18_60e6ea72.tar; stat -c %s $W/w18/out/tree_rebuild_b18_60e6ea72.tar
+(cd pkg && tar xf $W/w18/out/tree_rebuild_b18_60e6ea72.tar)
+for d in $W/w18/work/tree_r1 $C/pkg/work/tree_r1; do (cd $d && $P -c "import sys; sys.path.insert(0,'.'); from student_pilot.source_seal import inventory; from student_pilot.p3_provenance import digest; f=inventory('.'); print(len(f), digest(f))"); done
+cd $C/pkg && B18_PROOF=final_focused timeout 1500 bash work/build18/run.sh work/build18/test18.py tests.test_r1_build18 tests.test_r1_build17 tests.test_r1_export17 tests.test_r1_build16 tests.test_r1_build15 > $C/focused.log 2>&1; echo "focused rc=$?"; tail -3 $C/focused.log
+cd $W/w18 && tar czf $W/mirror/tr10_b18_core_60e6ea72.tgz work/tree_r1 out/BUILD18_REPORT.md out/TREE_SEAL.json work/build18/inputs work/build18/KIT_RESULT.json work/build18/DELIVERY.json work/build18/proofs/rooms/RESULT.json work/build18/proofs/native/RESULT.json 2>&1 | tail -2; ls -la $W/mirror/tr10_b18_core_60e6ea72.tgz; sha256sum $W/mirror/tr10_b18_core_60e6ea72.tgz

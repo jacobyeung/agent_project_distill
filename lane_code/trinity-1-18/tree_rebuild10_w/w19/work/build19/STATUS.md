@@ -1,0 +1,1 @@
+Build 19: GO=false. Both milestones pass native preparation with nine recorded DEFERRED slots, then refuse at r1_population.bind_prepared: R1_POST_FILTER_CAPACITY_SHORTFALL:pose. All-rank losses are not executed. Tests, mutations, final suites and packaging are in progress.

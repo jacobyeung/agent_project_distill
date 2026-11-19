@@ -1,0 +1,41 @@
+{
+  "archive_note": "The tar excludes itself and its checksum sidecar. Its report omits only the final archive-checksum footer, which is appended to the external report after tar creation.",
+  "checksum_method": "hashlib.sha256 of exact bytes in 8 MiB blocks; sha256sum FILE independently reproduces each number.",
+  "commands": [
+    "bash work/run_python.sh work/survey.py",
+    "bash work/run_python.sh work/intersections.py",
+    "bash work/run_python.sh work/build_gaps.py",
+    "bash work/run_python.sh work/self_check.py",
+    "bash work/run_python.sh work/package_report.py"
+  ],
+  "data_dependencies": "Absolute source paths are intentional provenance. Reproduction requires those source bytes and the captured work indexes; the archive does not include training databases or model weights.",
+  "environment": "trinity-1-18; CPU only; local p1cpu Python; two BLAS threads; process virtual memory limit below 40 GiB.",
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/survey.py",
+      "sha256": "7c9602e8bed58a605977257d1e2dba9a9ba547f4e178d25104fcce27adaa8bfc"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/intersections.py",
+      "sha256": "c9439089af9b547d411db20447f1c1505237ba6119a908b33a2fa413eba04cef"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/build_gaps.py",
+      "sha256": "4e82870dd381a9367336cdb697b065ce1eaf8932000c54d64c10c5607c4be82d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/self_check.py",
+      "sha256": "99375ff2c4d8e16fddc0f7fd6292b48e80a14e7b315a9b0c1dee0c93f3d6e88c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/package_report.py",
+      "sha256": "34194c3df3c79d2bae6eed0844527e7cc38e904fbd279ca0e483dffa0cd5a3da"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/run_python.sh",
+      "sha256": "d2e65702a509e7d9e40bbfbe35b09a7377083822e5d75b063d959f0f0ea7f911"
+    }
+  ],
+  "registry_note": "The registry retains the exact r2_policy slot schema, so its source hashes are in REGISTRY_PROVENANCE.json instead of adding invalid registry fields.",
+  "schema": "sb-evidence-reproduction-v1"
+}

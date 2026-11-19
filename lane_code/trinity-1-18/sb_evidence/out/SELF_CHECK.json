@@ -1,0 +1,175 @@
+{
+  "component_phases": {
+    "native_evaluation": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: init_m544",
+      "status": "REFUSE"
+    },
+    "training": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: init_m544",
+      "status": "REFUSE"
+    }
+  },
+  "existing_tests": {
+    "command": "bash work/run_python.sh -c \"import sys,unittest;sys.path.insert(0,\"work/policy_tree\");s=unittest.defaultTestLoader.loadTestsFromName(\"tests.test_r2_policy\");r=unittest.TextTestRunner(verbosity=2).run(s);sys.exit(not r.wasSuccessful())\"",
+    "log": {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/policy_tests.log",
+      "sha256": "ae17abdaad096b43697760df45f12f7c1389f042718071150cf03359bbf06396"
+    },
+    "status": "PASS",
+    "tests_run": 5
+  },
+  "individual_slots": {
+    "alias_table": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: alias_table",
+      "status": "REFUSE"
+    },
+    "box_policy": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: box_policy",
+      "status": "REFUSE"
+    },
+    "data_rows_r2": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: data_rows_r2",
+      "status": "REFUSE"
+    },
+    "depth_cut": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: depth_cut",
+      "status": "REFUSE"
+    },
+    "depth_init_vc": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: depth_init_vc",
+      "status": "REFUSE"
+    },
+    "geometry_tower": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: geometry_tower",
+      "status": "REFUSE"
+    },
+    "grounding_selector_deployed": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: grounding_selector_deployed",
+      "status": "REFUSE"
+    },
+    "heads_depth": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: heads_depth",
+      "status": "REFUSE"
+    },
+    "heads_frame_embeddings": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: heads_frame_embeddings",
+      "status": "REFUSE"
+    },
+    "heads_gf1_connector": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: heads_gf1_connector",
+      "status": "REFUSE"
+    },
+    "heads_pose": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: heads_pose",
+      "status": "REFUSE"
+    },
+    "init_m544": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: init_m544",
+      "status": "REFUSE"
+    },
+    "room_policy": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: room_policy",
+      "status": "REFUSE"
+    },
+    "segmenter": {
+      "exception": "ValueError",
+      "reason": "Missing component evidence: segmenter",
+      "status": "REFUSE"
+    }
+  },
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/self_check.py",
+      "sha256": "99375ff2c4d8e16fddc0f7fd6292b48e80a14e7b315a9b0c1dee0c93f3d6e88c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/out/kit/registry.json",
+      "sha256": "169b2c23f23d6607564481edf45096343637fa794c97b6d9287673d1c08252f0"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/policy_tree/student_pilot/r2_policy.py",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/policy_tree/tests/test_r2_policy.py",
+      "sha256": "36b91fa241ecff92fad055f4c885e3ab86a50bfd4d1142b8893994af52eefa5d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/policy_tests.log",
+      "sha256": "ae17abdaad096b43697760df45f12f7c1389f042718071150cf03359bbf06396"
+    }
+  ],
+  "limitation": "No official benchmark items or model weights were read. Synthetic bank fixtures exercise the unchanged official gateway with the real copied null registry. Native evaluation also requires five out-of-task program-choice records.",
+  "official_gateway_synthetic_checks": {
+    "ReVSI": {
+      "inputs": [
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/gateway/ReVSI_synthetic_items.json",
+          "sha256": "46a26d6777b7c59c454bfbeb03341f42cd7c2963fb830ea536aea1b03e97f8cf"
+        },
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/gateway/ReVSI/SHA256SUMS.txt",
+          "sha256": "235917131e037516731698f102f4575d91ba6e5ba6b36cf4cd13c84aa6e4db2f"
+        }
+      ],
+      "result": {
+        "exception": "ValueError",
+        "reason": "Missing component evidence: init_m544",
+        "status": "REFUSE"
+      },
+      "synthetic": true
+    },
+    "VSI-Bench": {
+      "inputs": [
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/gateway/VSI-Bench_synthetic_items.json",
+          "sha256": "46a26d6777b7c59c454bfbeb03341f42cd7c2963fb830ea536aea1b03e97f8cf"
+        },
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/gateway/VSI-Bench/SHA256SUMS.txt",
+          "sha256": "364db1d946f9eac7cd53f4422250ec9a1fdb511d6b951bc6739a4f03b0de5dd6"
+        }
+      ],
+      "result": {
+        "exception": "ValueError",
+        "reason": "Missing component evidence: init_m544",
+        "status": "REFUSE"
+      },
+      "synthetic": true
+    },
+    "VSTI": {
+      "inputs": [
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/gateway/VSTI_synthetic_items.json",
+          "sha256": "46a26d6777b7c59c454bfbeb03341f42cd7c2963fb830ea536aea1b03e97f8cf"
+        },
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/gateway/VSTI/SHA256SUMS.txt",
+          "sha256": "9c2bf05c8809bb40bd0f7741bf4dcb17deb2fbdc6a888b82f6b7ab996f539955"
+        }
+      ],
+      "result": {
+        "exception": "ValueError",
+        "reason": "Missing component evidence: init_m544",
+        "status": "REFUSE"
+      },
+      "synthetic": true
+    }
+  },
+  "schema": "sb-component-self-check-v1"
+}

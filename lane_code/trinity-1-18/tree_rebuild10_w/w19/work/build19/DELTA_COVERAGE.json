@@ -1,0 +1,642 @@
+{
+  "method": "AST statement heads on added/changed lines against the authenticated build-18 source. Only build-19 observations with exact current file SHA-256 and compiled-source fingerprints count; no inherited hits.",
+  "statements": [
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 637,
+      "text": "    if 'r1_training' in cfg:",
+      "sha256": "1f6a9a72910c0b449beee70c358201fb5a579e18a6b98031d9050dbe2046ace0",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 638,
+      "text": "        from .r1_training import training_components",
+      "sha256": "1f6a9a72910c0b449beee70c358201fb5a579e18a6b98031d9050dbe2046ace0",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 639,
+      "text": "        result['component_evidence'] = training_components(cfg['r1_training']['registry'], cfg)",
+      "sha256": "1f6a9a72910c0b449beee70c358201fb5a579e18a6b98031d9050dbe2046ace0",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 2112,
+      "text": "        from .r1_components import artifact_status",
+      "sha256": "1f6a9a72910c0b449beee70c358201fb5a579e18a6b98031d9050dbe2046ace0",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 2,
+      "text": "from .p3_provenance import load, pinned",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 3,
+      "text": "from pathlib import Path",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 5,
+      "text": "RUN = '6ed2c7aa'",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 6,
+      "text": "DEV = {'dev-S1', 'R0-dev', 'VSTI-dev', 'facing-twins'}",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 7,
+      "text": "NOTICE = 'component evidence DEFERRED: nine records lost with trinity-2-18, rebuild in progress; no official read until they pass'",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 10,
+      "text": "def deferred(cfg, phase='training', root=None):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 51,
+      "text": "def guard(artifact, banks, boundary):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 64,
+      "text": "def artifact_status(cfg):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 12,
+      "text": "    from .r1_training import PARENT",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 13,
+      "text": "    from .r1_persisted import verify, scope",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 14,
+      "text": "    from .r2_policy import LINEAGE, EXTERNAL, NEW",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 15,
+      "text": "    from .r2_portable import bound",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 16,
+      "text": "    value = cfg.get('r1_training') or {}",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 17,
+      "text": "    if phase != 'training' or not value.get('mix') or value.get('proof_mode') not in (None, 'train', 'q'):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 19,
+      "text": "    card = load(bound(value['mix'], root))",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 20,
+      "text": "    if card.get('vehicle') != 'N' or not (card.get('leg') == 'R1' or card.get('successor_of') == 'R1'):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 22,
+      "text": "    spec = (cfg.get('init_artifact') or {}).get('artifact') or {}",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 23,
+      "text": "    if spec.get('sha256') == PARENT or not value.get('handover_receipt'):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 25,
+      "text": "    closure = verify(value['handover_receipt'], value.get('p_run', {}), spec,",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 27,
+      "text": "    with scope(closure['paths']):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 30,
+      "text": "    parent = (donor.get('init_artifact') or {}).get('artifact', {})",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 31,
+      "text": "    if (Path(donor.get('output', '')).name != RUN or parent.get('sha256') != PARENT):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 35,
+      "text": "    pin = value.get('component_rows')",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 36,
+      "text": "    if not pin:",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 38,
+      "text": "    rows = load(bound(pin, root))",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 39,
+      "text": "    if (rows.get('schema') != 'r1-component-rows-v1' or rows.get('status') != 'DEFERRED'",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 42,
+      "text": "    for evidence in rows['inputs']:",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 44,
+      "text": "    result = {name:dict(status='DEFERRED', reason=NOTICE,",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 46,
+      "text": "    result['data_rows_r2'].update(reason='Alias-map rebuild pending; unresolved overlap is not clean evidence.', record=rows)",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 47,
+      "text": "    result['heads_gf1_connector']['reason'] = 'N disables the fusion connector; its lost record is still owed before an official read.'",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 48,
+      "text": "    return result",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 53,
+      "text": "    from .r2_policy import SCOPE",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 54,
+      "text": "    if not set(banks) <= DEV | set(SCOPE):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 56,
+      "text": "    if set(banks) & set(SCOPE):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 66,
+      "text": "    from .r1_handover import metadata_load",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 67,
+      "text": "    spec = (cfg.get('init_artifact') or {}).get('artifact')",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 68,
+      "text": "    inherited = metadata_load(spec, (cfg.get('r1_training') or {}).get('persisted_files', {})).get('component_evidence', {}) if spec else {}",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 69,
+      "text": "    if 'r1_training' in cfg:",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 74,
+      "text": "    if cfg.get('r2_evaluation'):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 76,
+      "text": "    return inherited",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 18,
+      "text": "        return None",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 21,
+      "text": "        return None",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 24,
+      "text": "        return None",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 28,
+      "text": "        donor = load(pinned(value['p_run']['config']))",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 29,
+      "text": "        artifact = load(pinned(spec))",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 32,
+      "text": "        return None",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 37,
+      "text": "        raise ValueError('DEFERRED_COMPONENT_ROWS_RECORD_REQUIRED:data_rows_r2')",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 41,
+      "text": "        raise ValueError('DEFERRED_COMPONENT_ROWS_RECORD_INVALID:data_rows_r2')",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 43,
+      "text": "        bound(evidence, root)",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 55,
+      "text": "        raise ValueError('COMPONENT_BANK_SCOPE_UNKNOWN:'+boundary)",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 57,
+      "text": "        if artifact.get('r1_progress') and not artifact.get('component_evidence'):",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 59,
+      "text": "        for name, entry in (artifact.get('component_evidence') or {}).items():",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 70,
+      "text": "        from .r1_training import training_components",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 71,
+      "text": "        records = training_components(cfg['r1_training']['registry'], cfg)",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 72,
+      "text": "        inherited = {**{k:dict(status='VERIFIED', record=v) for k,v in records.items() if v.get('status') != 'DEFERRED'},",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 75,
+      "text": "        guard(dict(component_evidence=inherited), ['VSI-Bench', 'VSTI', 'ReVSI'], 'official-export')",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 58,
+      "text": "            raise ValueError('COMPONENT_EVIDENCE_MISSING:init_m544:'+boundary)",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 60,
+      "text": "            if entry.get('status') == 'DEFERRED':",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_components.py",
+      "line": 61,
+      "text": "                raise ValueError('COMPONENT_EVIDENCE_DEFERRED:'+name+':'+boundary)",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 170,
+      "text": "def admission(cfg, *, weights=False, official=False):",
+      "sha256": "4ca7e887680e54f3c9d95e64ac07de0da6bf4a47ca9e65c2f697fefbad7f9a06",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 176,
+      "text": "        if official or cfg.get('r2_evaluation'):",
+      "sha256": "4ca7e887680e54f3c9d95e64ac07de0da6bf4a47ca9e65c2f697fefbad7f9a06",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 177,
+      "text": "            from .r1_components import guard",
+      "sha256": "4ca7e887680e54f3c9d95e64ac07de0da6bf4a47ca9e65c2f697fefbad7f9a06",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 178,
+      "text": "            guard(load(pinned(cfg['init_artifact']['artifact'])), ['VSI-Bench', 'VSTI', 'ReVSI'], 'official-handover')",
+      "sha256": "4ca7e887680e54f3c9d95e64ac07de0da6bf4a47ca9e65c2f697fefbad7f9a06",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_training.py",
+      "line": 50,
+      "text": "    from .r1_components import deferred",
+      "sha256": "7517d775a7fe64f4a52478de7fe494dbc5334a36b114a2b948af9dc1de6ab1a2",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_training.py",
+      "line": 51,
+      "text": "    pending = deferred(cfg, root=root)",
+      "sha256": "7517d775a7fe64f4a52478de7fe494dbc5334a36b114a2b948af9dc1de6ab1a2",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_training.py",
+      "line": 57,
+      "text": "        if pending is not None and name in pending:",
+      "sha256": "7517d775a7fe64f4a52478de7fe494dbc5334a36b114a2b948af9dc1de6ab1a2",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_training.py",
+      "line": 58,
+      "text": "            result[name] = pending[name]",
+      "sha256": "7517d775a7fe64f4a52478de7fe494dbc5334a36b114a2b948af9dc1de6ab1a2",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_training.py",
+      "line": 59,
+      "text": "            continue",
+      "sha256": "7517d775a7fe64f4a52478de7fe494dbc5334a36b114a2b948af9dc1de6ab1a2",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_contract.py",
+      "line": 22,
+      "text": "def selected_init(pin, *, official=False):",
+      "sha256": "aefb5b1fb8e7b112806d45b10bac66e63d1aefb3913dbe553d1aec5f46e26ab9",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_contract.py",
+      "line": 28,
+      "text": "    if official and not value.get('artifact'):",
+      "sha256": "aefb5b1fb8e7b112806d45b10bac66e63d1aefb3913dbe553d1aec5f46e26ab9",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_contract.py",
+      "line": 30,
+      "text": "    if value.get('artifact'):",
+      "sha256": "aefb5b1fb8e7b112806d45b10bac66e63d1aefb3913dbe553d1aec5f46e26ab9",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_contract.py",
+      "line": 29,
+      "text": "        raise ValueError('COMPONENT_EVIDENCE_ARTIFACT_REQUIRED:init-selection')",
+      "sha256": "aefb5b1fb8e7b112806d45b10bac66e63d1aefb3913dbe553d1aec5f46e26ab9",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_contract.py",
+      "line": 31,
+      "text": "        from .r1_components import guard",
+      "sha256": "aefb5b1fb8e7b112806d45b10bac66e63d1aefb3913dbe553d1aec5f46e26ab9",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_contract.py",
+      "line": 32,
+      "text": "        banks = ['VSI-Bench', 'VSTI', 'ReVSI'] if official else value.get('banks', ['VSI-Bench', 'VSTI', 'ReVSI'])",
+      "sha256": "aefb5b1fb8e7b112806d45b10bac66e63d1aefb3913dbe553d1aec5f46e26ab9",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_contract.py",
+      "line": 33,
+      "text": "        guard(load(pinned(value['artifact'])), banks, 'init-selection')",
+      "sha256": "aefb5b1fb8e7b112806d45b10bac66e63d1aefb3913dbe553d1aec5f46e26ab9",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_policy.py",
+      "line": 113,
+      "text": "    registry_pin = (cfg['r1_training'] if 'r1_training' in cfg else cfg['r2_build2'])['registry']",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_policy.py",
+      "line": 116,
+      "text": "    from .r1_components import guard, DEV",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_policy.py",
+      "line": 117,
+      "text": "    artifact_pin = (cfg.get('init_artifact') or {}).get('artifact')",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_policy.py",
+      "line": 118,
+      "text": "    artifact = load(bound(artifact_pin, root)) if artifact_pin else {}",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_policy.py",
+      "line": 119,
+      "text": "    if artifact:",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_policy.py",
+      "line": 136,
+      "text": "    if not banks <= set(SCOPE) | DEV:",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_policy.py",
+      "line": 142,
+      "text": "    deferred_export = (artifact.get('schema') == 'carrier-c1-artifact-v1' and bool(artifact.get('r1_progress'))",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_policy.py",
+      "line": 144,
+      "text": "    if banks & set(SCOPE) or not deferred_export:",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_policy.py",
+      "line": 120,
+      "text": "        guard(artifact, catalog['files'][bank_pin['sha256']]['banks'], 'official-item-read')",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r2_policy.py",
+      "line": 145,
+      "text": "        components(registry_pin, 'training', root)",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1",
+      "observed": true
+    }
+  ],
+  "total": 89,
+  "observed": 89,
+  "sources": [
+    "work/build19/proofs/edges/hits.json",
+    "work/build19/proofs/policy_scope/hits.json",
+    "work/build19/proofs/final_focused/hits.json",
+    "work/build19/proofs/native/hits.json",
+    "work/build19/proofs/real/hits.json",
+    "work/build19/proofs/kits/hits.json",
+    "work/build19/proofs/producer_edges/hits.json",
+    "work/build19/proofs/native_twins/hits.json",
+    "work/build19/proofs/focused/hits.json",
+    "work/build19/proofs/final/suite_tree/r2/hits.json"
+  ]
+}

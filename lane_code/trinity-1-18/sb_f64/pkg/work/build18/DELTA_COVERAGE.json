@@ -1,0 +1,139 @@
+{
+  "method": "AST statement heads on added/changed lines against the authenticated build-17 source. Only build-18 observations with exact current file SHA-256 and compiled-source fingerprints count; no inherited hits.",
+  "statements": [
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 15,
+      "text": "V7_K1_LIST = '43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6'",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 16,
+      "text": "N_LIST = '02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411'",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 128,
+      "text": "def census(cfg, *, store_hits=None):",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 115,
+      "text": "    if actual['sha256'] == STORE:",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 116,
+      "text": "        pin = value.get('v7_k1_removal') or {}",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 117,
+      "text": "        hashes = [p['sha256'] for p in cfg['remove_files']]",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 118,
+      "text": "        if (pin.get('sha256') != V7_K1_LIST or hashes.count(V7_K1_LIST) != 1",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 122,
+      "text": "        pinned(pin)",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 123,
+      "text": "        if store.get('unremoved_hits') != 0:",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 121,
+      "text": "            raise ValueError('R1_PROOF_V7_K1_REMOVAL_REQUIRED')",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 124,
+      "text": "            raise ValueError('R1_PROOF_V7_K1_UNREMOVED')",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 159,
+      "text": "            if status in ('k1_heldout','r0'):",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 160,
+      "text": "                counts['unremoved_hits'] += int(removals.keep(row))",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 161,
+      "text": "                if store_hits is not None and status == 'k1_heldout':",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 162,
+      "text": "                    store_hits.append(dict(row_key=row['qid'],canonical=canonical,reason='k1_heldout_v7'))",
+      "sha256": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/s1_admission.py",
+      "line": 143,
+      "text": "    if torch.get_num_interop_threads() != 1:",
+      "sha256": "a36174dd4844fb4ca02840dcc86ad524792bb4f42fa8660e4e63d1813359d1ca",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/s1_admission.py",
+      "line": 144,
+      "text": "        torch.set_num_interop_threads(1)",
+      "sha256": "a36174dd4844fb4ca02840dcc86ad524792bb4f42fa8660e4e63d1813359d1ca",
+      "observed": true
+    }
+  ],
+  "total": 17,
+  "observed": 17,
+  "sources": [
+    "work/build18/proofs/edges/hits.json",
+    "work/build18/proofs/rooms/hits.json",
+    "work/build18/proofs/final_focused/hits.json",
+    "work/build18/proofs/native/hits.json",
+    "work/build18/proofs/real/hits.json",
+    "work/build18/proofs/kits/hits.json",
+    "work/build18/proofs/producer_edges/hits.json",
+    "work/build18/proofs/threads/hits.json",
+    "work/build18/proofs/focused/hits.json",
+    "work/build18/proofs/final/packet/coverage/hits.json",
+    "work/build18/proofs/final/suite_tree/r2/hits.json"
+  ]
+}

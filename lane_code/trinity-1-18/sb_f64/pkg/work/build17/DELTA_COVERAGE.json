@@ -1,0 +1,2267 @@
+{
+  "method": "AST statement heads on added/changed lines against the authenticated build-16 source. Only build-17 observations with exact current file SHA-256 and compiled-source fingerprints count; no inherited hits.",
+  "statements": [
+    {
+      "file": "launch_r1/build.py",
+      "line": 143,
+      "text": "    (output/'b/q.sh').write_text('#!/bin/bash\\n#SBATCH --partition=general\\n#SBATCH --nodes=1\\n#SBATCH --ntasks=1\\n#SBATCH --cpus-per-task=8\\n#SBATCH --mem=256G\\n#SBATCH --time=48:00:00\\nset -eu\\numask 077\\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1\\nexport CUDA_VISIBLE_DEVICES=\"\"\\nulimit -v 251658240\\nexec python3 -I -s -B b/a.py q \"$1\" \"$2\"\\n')",
+      "sha256": "cf2489dd73cbc9eaea31bf49b4f5de4e32bd0a2da329ac8c760ca167da264bf2",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/build.py",
+      "line": 144,
+      "text": "    (output/'b/q1.sh').write_text('#!/bin/bash\\n#SBATCH --partition=general\\n#SBATCH --nodes=1\\n#SBATCH --ntasks=1\\n#SBATCH --cpus-per-task=8\\n#SBATCH --mem=192G\\n#SBATCH --time=12:00:00\\n#SBATCH --gres=gpu:1\\nset -eu\\numask 077\\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1\\nulimit -v 188743680\\nexec python3 -I -s -B b/a.py q \"$1\" \"$2\"\\n')",
+      "sha256": "cf2489dd73cbc9eaea31bf49b4f5de4e32bd0a2da329ac8c760ca167da264bf2",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/entry.py",
+      "line": 61,
+      "text": "    value = cfg.get('r1_training', {})",
+      "sha256": "7e2262557be59803c97ec158658881dc9cd05b86f4034b3bc5565456dd4543ee",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/entry.py",
+      "line": 62,
+      "text": "    if value.get('handover_receipt'):",
+      "sha256": "7e2262557be59803c97ec158658881dc9cd05b86f4034b3bc5565456dd4543ee",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/entry.py",
+      "line": 63,
+      "text": "        receipt = load(pinned(value['handover_receipt']))",
+      "sha256": "7e2262557be59803c97ec158658881dc9cd05b86f4034b3bc5565456dd4543ee",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/entry.py",
+      "line": 64,
+      "text": "        if receipt.get('schema') == 'p-export-only-v1':",
+      "sha256": "7e2262557be59803c97ec158658881dc9cd05b86f4034b3bc5565456dd4543ee",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/entry.py",
+      "line": 65,
+      "text": "            raise ValueError('P_EXPORT_ONLY_TRAINING_LAUNCH_REFUSED')",
+      "sha256": "7e2262557be59803c97ec158658881dc9cd05b86f4034b3bc5565456dd4543ee",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 2,
+      "text": "from pathlib import Path",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 3,
+      "text": "import argparse",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 4,
+      "text": "import os",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 5,
+      "text": "from student_pilot.p3_provenance import file_pin, load, pinned, write",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 7,
+      "text": "SCHEMA = 'p-export-only-v1'",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 8,
+      "text": "NO_CHECKPOINT = 'no checkpoint at this milestone'",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 11,
+      "text": "def stop_step(cfg):",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 23,
+      "text": "def collect(p_run, artifact_pin):",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 69,
+      "text": "def produce(p_run, artifact_pin, output, *, job_id, trainer_commit):",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 81,
+      "text": "def main(argv=None):",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 92,
+      "text": "if __name__ == '__main__':",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 12,
+      "text": "    from student_pilot.carrier_c1_sweep import recipe_for",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 13,
+      "text": "    limits = [recipe_for(cfg)['steps']]",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 14,
+      "text": "    for value in (cfg, cfg.get('h1', {}), cfg.get('r1_training', {})):",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 20,
+      "text": "    return min(limits)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 24,
+      "text": "    if set(p_run) != {'config', 'binding', 'preparation'}:",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 26,
+      "text": "    cfg, bound, prep = (load(pinned(p_run[k])) for k in ('config', 'binding', 'preparation'))",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 27,
+      "text": "    artifact = load(pinned(artifact_pin))",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 28,
+      "text": "    from student_pilot.r1_handover import export_identity",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 29,
+      "text": "    from student_pilot.carrier_c1_sweep import recipe_for",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 30,
+      "text": "    identity, step = export_identity(cfg), artifact.get('step')",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 31,
+      "text": "    if type(step) is not int or step not in recipe_for(cfg)['milestones']:",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 33,
+      "text": "    if step >= stop_step(cfg):",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 35,
+      "text": "    if (bound.get('config_sha256') != identity or artifact.get('config_sha256') != identity",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 41,
+      "text": "    closure = {'artifact': artifact_pin, **p_run}",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 42,
+      "text": "    for key in ('heads', 'full_weights'):",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 44,
+      "text": "    weights = load(pinned(artifact['full_weights']))",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 45,
+      "text": "    directory = pinned(artifact['full_weights']).parent",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 46,
+      "text": "    for item in [weights['index'], *weights['files']]:",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 57,
+      "text": "    if not weights['files'] or set(prep['streams']) != set(cfg['streams']):",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 59,
+      "text": "    for name, stream in prep['streams'].items():",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 66,
+      "text": "    return closure, bound['trainer_commit'], step, stop_step(cfg)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 70,
+      "text": "    if not job_id or not trainer_commit:",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 72,
+      "text": "    pins, commit, step, stop = collect(p_run, artifact_pin)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 73,
+      "text": "    if commit != trainer_commit:",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 75,
+      "text": "    write(Path(output), dict(schema=SCHEMA, step=step, stop_step=stop,",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 78,
+      "text": "    return file_pin(output)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 82,
+      "text": "    parser = argparse.ArgumentParser(description=__doc__)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 83,
+      "text": "    parser.add_argument('--run-pins', required=True)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 84,
+      "text": "    parser.add_argument('--artifact', required=True)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 85,
+      "text": "    parser.add_argument('--output', required=True)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 86,
+      "text": "    parser.add_argument('--trainer-commit', required=True)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 87,
+      "text": "    args = parser.parse_args(argv)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 88,
+      "text": "    return produce(load(args.run_pins), file_pin(args.artifact), args.output,",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 93,
+      "text": "    main()",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 15,
+      "text": "        limit = value.get('stop_after_step')",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 16,
+      "text": "        if limit is not None:",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 25,
+      "text": "        raise ValueError('P_EXPORT_ONLY_RUN_KEYS')",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 32,
+      "text": "        raise ValueError('P_EXPORT_ONLY_STEP_NOT_MILESTONE')",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 34,
+      "text": "        raise ValueError('P_EXPORT_ONLY_STOP_REQUIRES_CHECKPOINT')",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 40,
+      "text": "        raise ValueError('P_EXPORT_ONLY_RUN_BINDING_MISMATCH')",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 43,
+      "text": "        pinned(artifact[key]); closure[key] = artifact[key]",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 43,
+      "text": "        pinned(artifact[key]); closure[key] = artifact[key]",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 47,
+      "text": "        name = item['name']",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 48,
+      "text": "        path = (directory / name).resolve()",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 49,
+      "text": "        if Path(name).is_absolute() or '..' in Path(name).parts or not path.is_relative_to(directory.resolve()):",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 51,
+      "text": "        pin = file_pin(path)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 52,
+      "text": "        if pin['sha256'] != item['sha256'] or ('bytes' in item and path.stat().st_size != item['bytes']):",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 54,
+      "text": "        if 'export/'+name in closure:",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 56,
+      "text": "        closure['export/'+name] = pin",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 58,
+      "text": "        raise ValueError('P_EXPORT_ONLY_STREAMS_OR_WEIGHTS_MISSING')",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 60,
+      "text": "        pin = cfg['streams'][name]",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 61,
+      "text": "        if stream['receipt'] != pin:",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 63,
+      "text": "        pinned(pin); closure['stream/'+name] = pin",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 63,
+      "text": "        pinned(pin); closure['stream/'+name] = pin",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 64,
+      "text": "        if stream.get('indices'):",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 71,
+      "text": "        raise ValueError('P_EXPORT_ONLY_JOB_IDENTITY_REQUIRED')",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 74,
+      "text": "        raise ValueError('P_EXPORT_ONLY_TRAINER_COMMIT_MISMATCH')",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 17,
+      "text": "            if type(limit) is not int or limit <= 0:",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 19,
+      "text": "            limits.append(limit)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 50,
+      "text": "            raise ValueError('P_EXPORT_ONLY_PATH_ESCAPE:'+name)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 53,
+      "text": "            raise ValueError('P_EXPORT_ONLY_FILE_MISMATCH:'+name)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 55,
+      "text": "            raise ValueError('P_EXPORT_ONLY_DUPLICATE_FILE:'+name)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 62,
+      "text": "            raise ValueError('P_EXPORT_ONLY_STREAM_RECEIPT_MISMATCH:'+name)",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 65,
+      "text": "            pinned(stream['indices']); closure['indices/'+name] = stream['indices']",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 65,
+      "text": "            pinned(stream['indices']); closure['indices/'+name] = stream['indices']",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_export_receipt.py",
+      "line": 18,
+      "text": "                raise ValueError('P_EXPORT_ONLY_STOP_INVALID')",
+      "sha256": "47723adc7ab1f59a42eb1ebb8949fca877bb72a3e45cde40f6f17983c17f4621",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_opener_witness.py",
+      "line": 17,
+      "text": "    root = pinned(dict(path=str(Path(manifest['root'])/'config.json'),",
+      "sha256": "9a15fbae292bde102e36cb32da601e1b2df18a4d623baed48a44a66853841ca3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/p_opener_witness.py",
+      "line": 26,
+      "text": "    processor = processor_for_receipt(dict(manifest,root=str(root)), receipt)",
+      "sha256": "9a15fbae292bde102e36cb32da601e1b2df18a4d623baed48a44a66853841ca3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 16,
+      "text": "def forward(cfg, root, step, device='cpu'):",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 63,
+      "text": "def _run(request, output):",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 148,
+      "text": "def run(request, output):",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 149,
+      "text": "    from student_pilot.r1_persisted import scope, proof_scope",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 150,
+      "text": "    try:",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 154,
+      "text": "    with proof_scope(), scope({p['sha256']:p['path'] for p in staging}):",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 75,
+      "text": "        from student_pilot.r1_rooms import verify_audit",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 76,
+      "text": "        room = verify_audit(cfg,request['room_audit'])",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 77,
+      "text": "        result['room_certification'] = dict(scope=room['certifies'],store=room['store'])",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 86,
+      "text": "        step = closure['receipt']['step']",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 87,
+      "text": "        if step not in (400,600) or request.get('milestone',step)!=step:",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 89,
+      "text": "        memory = request.get('memory_gib',192)",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 90,
+      "text": "        if type(memory) is not int or not 8<=memory<=512:",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 92,
+      "text": "        device = request.get('device','cpu')",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 93,
+      "text": "        if device not in ('cpu','cuda:0'):",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 96,
+      "text": "        from .p_opener_witness import produce as opener",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 97,
+      "text": "        with scope(closure['paths']):",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 101,
+      "text": "        write(root/'c.json',cfg)",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 102,
+      "text": "        config_pin = file_pin(root/'c.json')",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 103,
+      "text": "        result['steps'].append('p_opener_witness')",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 151,
+      "text": "        staging = verify_staging(request)",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 155,
+      "text": "        return _run(request,output)",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 88,
+      "text": "            raise ValueError('R1_PROOF_EXPORT_STEP_REQUIRED')",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 91,
+      "text": "            raise ValueError('R1_PROOF_MEMORY_REQUEST_INVALID')",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 94,
+      "text": "            raise ValueError('R1_PROOF_DEVICE_INVALID')",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 98,
+      "text": "            cfg['routing_vocabulary'] = opener(cfg,root/'v.json')",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 99,
+      "text": "            from student_pilot.r1_handover import bind_target",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 100,
+      "text": "            cfg = bind_target(cfg,root/'m.json')",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 107,
+      "text": "            visible = os.environ.get('CUDA_VISIBLE_DEVICES')",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 108,
+      "text": "            os.environ['CUDA_VISIBLE_DEVICES'] = ''",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 109,
+      "text": "            try:",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 153,
+      "text": "        return _run(request,output)",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": true
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 110,
+      "text": "                prepared = admit(config_pin,directory,request['frame_roots'],threads=8,",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 113,
+      "text": "                if visible is None:",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 139,
+      "text": "                result['forward']=forward(cfg,root,result['absolute_resume_step'],device)",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 114,
+      "text": "                    os.environ.pop('CUDA_VISIBLE_DEVICES',None)",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "launch_r1/production_proof.py",
+      "line": 116,
+      "text": "                    os.environ['CUDA_VISIBLE_DEVICES'] = visible",
+      "sha256": "e33d32947b8b42ae15605fc8f8f3ab98c0663f7f47e711b916cb1e8d848400c3",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 30,
+      "text": "def bind_target(cfg, output):",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 32,
+      "text": "    from copy import deepcopy",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 33,
+      "text": "    from pathlib import Path",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 34,
+      "text": "    from . import r1_training as training",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 35,
+      "text": "    from .p3_provenance import write, file_pin",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 36,
+      "text": "    cfg = deepcopy(cfg)",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 37,
+      "text": "    value = cfg['r1_training']",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 38,
+      "text": "    artifact = load(pinned(cfg['init_artifact']['artifact']))",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 39,
+      "text": "    source, _, actual, _ = donor(cfg, artifact)",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 40,
+      "text": "    compare_configs(source, cfg)",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 41,
+      "text": "    target = training.target_identity(cfg)",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 42,
+      "text": "    value.update(store_hashes=target['stores'],row_plan_sha256=digest(cfg.get('r2_sampling')))",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 43,
+      "text": "    value['continuation_identity'] = training.target_identity(cfg)['config_identity']",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 44,
+      "text": "    expected = training.boundary(cfg,artifact['step'])",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 45,
+      "text": "    path = Path(output)",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 46,
+      "text": "    write(path,dict(schema='r1-handover-map-v1',artifact_sha256=cfg['init_artifact']['artifact']['sha256'],",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 48,
+      "text": "    value['handover_mapping'] = file_pin(path)",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 49,
+      "text": "    return cfg",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 265,
+      "text": "    from .r1_persisted import export_only",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 266,
+      "text": "    receipt = None",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 267,
+      "text": "    if value.get('handover_receipt'):",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 272,
+      "text": "    only = export_only(receipt, value.get('proof_mode')) if receipt is not None else False",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 285,
+      "text": "    complete = {} if only else load(pinned(pins['checkpoint']))",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 286,
+      "text": "    if not only and (complete.get('schema') != 'c1-checkpoint-v1' or complete.get('step') != artifact.get('step')",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 316,
+      "text": "    if 'persisted_files' in value or only:",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 268,
+      "text": "        try:",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 275,
+      "text": "        if only and key == 'checkpoint':",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 318,
+      "text": "        verify(value.get('handover_receipt'), pins, cfg['init_artifact']['artifact'], value.get('persisted_files', {}),",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 269,
+      "text": "            receipt = load(pinned(value['handover_receipt']))",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 276,
+      "text": "            continue",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_handover.py",
+      "line": 271,
+      "text": "            raise ValueError('P_EXPORT_HANDOVER_RECEIPT_UNVERIFIED') from error",
+      "sha256": "468013f91c042cfb59cded7bcf4fc7ba7950871f9659fdeec134ab9e74477d88",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 9,
+      "text": "_proof = ContextVar('handover_proof_mode', default=False)",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 13,
+      "text": "def proof_scope():",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 21,
+      "text": "def export_only(receipt, mode=None):",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 46,
+      "text": "def verify(receipt_pin, p_run, artifact_pin, paths, *, weights=False, proof_mode=None):",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 14,
+      "text": "    token = _proof.set(True)",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 15,
+      "text": "    try:",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 22,
+      "text": "    if receipt.get('schema') != 'p-export-only-v1':",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 24,
+      "text": "    if mode != 'q' or not _proof.get():",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 26,
+      "text": "    return True",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 39,
+      "text": "    token = _paths.set({**_paths.get(), **paths})",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 54,
+      "text": "    only = export_only(receipt, proof_mode)",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 55,
+      "text": "    if (receipt.get('schema') not in ('p-handover-v1', 'p-export-only-v1') or type(receipt.get('step')) is not int",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 62,
+      "text": "    run_keys = {'config','binding','preparation'} | (set() if only else {'checkpoint'})",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 63,
+      "text": "    if set(p_run) != run_keys:",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 85,
+      "text": "    records = {k:load(read(k)) for k in ('artifact', *sorted(run_keys))}",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 86,
+      "text": "    artifact, cfg, bound, prep = (records[k] for k in ('artifact','config','binding','preparation'))",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 87,
+      "text": "    complete = records.get('checkpoint', {})",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 91,
+      "text": "    if only:",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 97,
+      "text": "    if (receipt['step'] != artifact.get('step')",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 105,
+      "text": "    expected = {'artifact','heads','full_weights'} | run_keys",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 110,
+      "text": "    if not only and (not files or not complete.get('layouts') or not any(k.startswith('rng') for k in files)):",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 16,
+      "text": "        yield",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 18,
+      "text": "        _proof.reset(token)",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 23,
+      "text": "        return False",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 25,
+      "text": "        raise ValueError('P_EXPORT_ONLY_PROOF_MODE_Q_REQUIRED_TRAINING_REFUSED')",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 92,
+      "text": "        from launch_r1.p_export_receipt import stop_step, NO_CHECKPOINT",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 93,
+      "text": "        if receipt['step'] >= stop_step(cfg):",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 95,
+      "text": "        if receipt.get('checkpoint_status') != NO_CHECKPOINT or receipt.get('stop_step') != stop_step(cfg):",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 94,
+      "text": "            raise ValueError('P_EXPORT_ONLY_STOP_REQUIRES_CHECKPOINT')",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_persisted.py",
+      "line": 96,
+      "text": "            raise ValueError('P_EXPORT_ONLY_CHECKPOINT_STATUS_MISMATCH')",
+      "sha256": "d73fe2b6940af6f078c36c162baba10d2f1dc8687a302366faff7f4494872052",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_population.py",
+      "line": 182,
+      "text": "    if cfg['r1_training'].get('handover_receipt'):",
+      "sha256": "30a6cf96446cfe36fbd1aaf82616c33fa910a9bf85176bc75b97809faf2f7d4f",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_population.py",
+      "line": 183,
+      "text": "        from .r1_handover import bind_target",
+      "sha256": "30a6cf96446cfe36fbd1aaf82616c33fa910a9bf85176bc75b97809faf2f7d4f",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/r1_population.py",
+      "line": 184,
+      "text": "        cfg = bind_target(cfg,output/'handover.json')",
+      "sha256": "30a6cf96446cfe36fbd1aaf82616c33fa910a9bf85176bc75b97809faf2f7d4f",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 2,
+      "text": "import csv",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 3,
+      "text": "import re",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 4,
+      "text": "from .p3_provenance import load, pinned",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 6,
+      "text": "AUTHORITY = {",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 13,
+      "text": "TEACHER = '4d4736cf64e496a184d36d74d710e76d1673429e28790613794867ac077048a9'",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 14,
+      "text": "STORE = '210b25349b23af5b38a5b5d90caa97be2bb296dbabd8773d54e658e0aad22443'",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 17,
+      "text": "class Rooms:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 84,
+      "text": "def verify_audit(cfg, pin):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 116,
+      "text": "def census(cfg):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 18,
+      "text": "    def __init__(self, pins):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 35,
+      "text": "    def canonical(self, row):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 55,
+      "text": "    def room(self, canonical):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 68,
+      "text": "    def status(self, row):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 78,
+      "text": "    def admit(self, row):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 86,
+      "text": "    audit = load(pinned(pin))",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 87,
+      "text": "    value = cfg['r1_training']",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 88,
+      "text": "    from .r1_handover import pin_values",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 89,
+      "text": "    if (audit.get('schema')!='r1-room-audit-v1' or audit.get('complete') is not True",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 95,
+      "text": "    rooms = Rooms(audit['authority'])",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 96,
+      "text": "    sources = load(pinned(value['row_sources']))",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 97,
+      "text": "    for kind in ('recovery','units','absolute_distance'):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 103,
+      "text": "    for removal in cfg['remove_files']:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 105,
+      "text": "    store = audit['store']",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 106,
+      "text": "    actual = load(pinned(cfg['streams']['vqa']))['database']",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 107,
+      "text": "    if (pin_values(store['database'])!=pin_values(actual) or pin_values(store['certification'])!=pin_values(audit['authority']['build'])",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 111,
+      "text": "    if actual['sha256'] != STORE and store['unresolved'] != 0:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 113,
+      "text": "    return audit",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 118,
+      "text": "    from collections import Counter",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 119,
+      "text": "    import json",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 120,
+      "text": "    import sqlite3",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 121,
+      "text": "    from .row_removals import Removals",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 122,
+      "text": "    value = cfg['r1_training']",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 123,
+      "text": "    rooms = Rooms(value['room_authority'])",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 124,
+      "text": "    removals = Removals(cfg['remove_files'])",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 125,
+      "text": "    reports, hits = {}, []",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 126,
+      "text": "    sources = load(pinned(value['row_sources']))",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 127,
+      "text": "    for kind in ('recovery','units','absolute_distance'):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 140,
+      "text": "    database = load(pinned(cfg['streams']['vqa']))['database']",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 141,
+      "text": "    counts, hows, examples = Counter(), Counter(), []",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 142,
+      "text": "    connection = sqlite3.connect(pinned(database).as_uri()+'?mode=ro',uri=True)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 143,
+      "text": "    try:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 151,
+      "text": "    unknown = sum(r['unresolved'] for r in reports.values())",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 152,
+      "text": "    audit = dict(schema='r1-room-audit-v1',complete=unknown==0 and all(r['unremoved_hits']==0 for r in reports.values()),",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 161,
+      "text": "    return audit, hits",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 19,
+      "text": "        if set(pins) != set(AUTHORITY) or any(pins[k]['sha256'] != v for k,v in AUTHORITY.items()):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 21,
+      "text": "        paths = {k:pinned(v) for k,v in pins.items()}",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 22,
+      "text": "        split = load(paths['split'])",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 23,
+      "text": "        if split['teacher_k1']['sha256'] != TEACHER:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 25,
+      "text": "        self.k1 = {c['room'] for c in split['teacher_k1']['captures'] if c['k1_split']=='heldout'}",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 26,
+      "text": "        self.reserve = {s.strip() for s in paths['reserve'].read_text().splitlines() if s.strip()}",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 27,
+      "text": "        self.r0 = self.reserve | {c['room'] for c in split['r0_scenes']['captures'].values()}",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 28,
+      "text": "        with paths['visits'].open() as f:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 30,
+      "text": "        self.aliases = load(paths['aliases'])",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 31,
+      "text": "        self.build = load(paths['build'])",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 32,
+      "text": "        if len(self.k1)!=50 or len(self.reserve)!=372:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 37,
+      "text": "        for value in (row, row.get('provenance') or {}, row.get('ground_record') or {}, row.get('gt_authority') or {}):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 40,
+      "text": "        ds, scene = row.get('dataset',''), row.get('scene','')",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 41,
+      "text": "        token = {'scannet':'d1','scannetpp':'d2','scannetppv2':'d2','arkitscenes':'d3'}.get(ds,ds)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 42,
+      "text": "        canonical = self.aliases.get(token+'/'+scene)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 43,
+      "text": "        if canonical:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 45,
+      "text": "        if ds in ('scannet','scannetpp','scannetppv2') and scene:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 47,
+      "text": "        if ds=='d1' and re.fullmatch(r'scene\\d+_\\d+',scene):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 49,
+      "text": "        if ds=='d2' and re.fullmatch(r'[0-9a-f]{10}',scene):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 51,
+      "text": "        if ds in ('arkitscenes','d3') and scene.isdigit():",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 53,
+      "text": "        return None, 'unresolved'",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 56,
+      "text": "        ds, capture = canonical.split('/',1)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 57,
+      "text": "        if ds=='scannet':",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 61,
+      "text": "        if ds in ('scannetpp','scannetppv2') and capture:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 63,
+      "text": "        if ds=='arkitscenes' and capture.isdigit():",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 66,
+      "text": "        raise ValueError('R1_ROOM_CANONICAL_UNRESOLVED')",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 69,
+      "text": "        canonical, how = self.canonical(row)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 70,
+      "text": "        if not canonical:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 72,
+      "text": "        try:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 76,
+      "text": "        return ('r0' if room in self.r0 else 'k1_heldout' if room in self.k1 else 'ok'), canonical, how",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 79,
+      "text": "        status, _, _ = self.status(row)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 80,
+      "text": "        if status != 'ok':",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 94,
+      "text": "        raise ValueError('R1_PROOF_ROOM_AUTHORITY_INCOMPLETE')",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 98,
+      "text": "        report = audit['slices'][kind]",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 99,
+      "text": "        if (pin_values(report['source'])!=pin_values(sources[kind]['source']) or report['unresolved']!=0",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 102,
+      "text": "        pinned(report['source'])",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 104,
+      "text": "        pinned({k:removal[k] for k in ('path','sha256')})",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 109,
+      "text": "        raise ValueError('R1_PROOF_ROOM_STORE_UNCERTIFIED')",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 112,
+      "text": "        raise ValueError('R1_PROOF_ROOM_STORE_PIN_MISMATCH')",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 128,
+      "text": "        counts, hows = Counter(), Counter()",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 129,
+      "text": "        with pinned(sources[kind]['source']).open() as f:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 138,
+      "text": "        reports[kind] = dict(source=sources[kind]['source'],canonical_from=dict(hows),",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 144,
+      "text": "        for (raw,) in connection.execute('SELECT row FROM rows ORDER BY i'):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 150,
+      "text": "        connection.close()",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 20,
+      "text": "            raise ValueError('R1_ROOM_AUTHORITY_PIN_MISMATCH')",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 24,
+      "text": "            raise ValueError('R1_ROOM_TEACHER_MISMATCH')",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 29,
+      "text": "            self.visits = {r['video_id']:r['visit_id'] for r in csv.DictReader(f)}",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 33,
+      "text": "            raise ValueError('R1_ROOM_AUTHORITY_COUNT_MISMATCH')",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 38,
+      "text": "            if value.get('canonical'):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 44,
+      "text": "            return canonical, 'alias'",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 46,
+      "text": "            return ds+'/'+scene, 'dataset_scene'",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 48,
+      "text": "            return 'scannet/'+scene, 'dataset_scene'",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 50,
+      "text": "            return 'scannetpp/'+scene, 'dataset_scene'",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 52,
+      "text": "            return 'arkitscenes/'+scene, 'dataset_scene'",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 58,
+      "text": "            match = re.match(r'(scene\\d+)',capture)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 59,
+      "text": "            if match:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 62,
+      "text": "            return 'scannetpp/'+capture",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 64,
+      "text": "            visit = self.visits.get(capture)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 65,
+      "text": "            return 'arkitscenes/venue'+visit if visit and visit!='NA' else 'arkitscenes/capture'+capture",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 71,
+      "text": "            return 'unresolved', None, how",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 73,
+      "text": "            room = self.room(canonical)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 81,
+      "text": "            raise ValueError('R1_ROOM_ROW_REFUSED:'+status)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 101,
+      "text": "            raise ValueError('R1_PROOF_ROOM_SLICE_UNCERTIFIED:'+kind)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 130,
+      "text": "            for line in f:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 145,
+      "text": "            row = json.loads(raw); status, canonical, how = rooms.status(row)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 145,
+      "text": "            row = json.loads(raw); status, canonical, how = rooms.status(row)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 146,
+      "text": "            counts['rows'] += 1; counts[status] += 1; hows[how] += 1",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 146,
+      "text": "            counts['rows'] += 1; counts[status] += 1; hows[how] += 1",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 146,
+      "text": "            counts['rows'] += 1; counts[status] += 1; hows[how] += 1",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 147,
+      "text": "            if status=='unresolved' and len(examples)<200:",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 39,
+      "text": "                return value['canonical'], 'row_field'",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 60,
+      "text": "                return 'scannet/'+match.group(1)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 75,
+      "text": "            return 'unresolved', canonical, how",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 131,
+      "text": "                row = json.loads(line)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 132,
+      "text": "                status, canonical, how = rooms.status(row)",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 133,
+      "text": "                counts['rows'] += 1; counts[status] += 1; hows[how] += 1",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 133,
+      "text": "                counts['rows'] += 1; counts[status] += 1; hows[how] += 1",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 133,
+      "text": "                counts['rows'] += 1; counts[status] += 1; hows[how] += 1",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 134,
+      "text": "                if status in ('k1_heldout','r0'):",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 148,
+      "text": "                examples.append(dict(row_key=row['qid'],dataset=row.get('dataset'),scene=row.get('scene')))",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 135,
+      "text": "                    hits.append(dict(row_key=row['qid'],reason='k1_heldout_known' if status=='k1_heldout' else status,",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_rooms.py",
+      "line": 137,
+      "text": "                    counts['unremoved_hits'] += int(removals.keep(row))",
+      "sha256": "3dab30833ba3cacb94d7b3f5eeba65c122c560a2985e2475475ff09c5a89d4e6",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_routing.py",
+      "line": 61,
+      "text": "    from .r1_rooms import Rooms",
+      "sha256": "6895955c7444edef4def063f289376ba370c921c10cf83545a66bb84b28c4438",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_routing.py",
+      "line": 62,
+      "text": "    authority = cfg['r1_training'].get('room_authority')",
+      "sha256": "6895955c7444edef4def063f289376ba370c921c10cf83545a66bb84b28c4438",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_routing.py",
+      "line": 63,
+      "text": "    rooms = Rooms(authority) if authority else None",
+      "sha256": "6895955c7444edef4def063f289376ba370c921c10cf83545a66bb84b28c4438",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_routing.py",
+      "line": 89,
+      "text": "        if rooms is not None and origin in sources:",
+      "sha256": "6895955c7444edef4def063f289376ba370c921c10cf83545a66bb84b28c4438",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/r1_routing.py",
+      "line": 90,
+      "text": "            rooms.admit(row)",
+      "sha256": "6895955c7444edef4def063f289376ba370c921c10cf83545a66bb84b28c4438",
+      "observed": true
+    },
+    {
+      "file": "student_pilot/s1_admission.py",
+      "line": 216,
+      "text": "        if selected.get('r1_training',{}).get('handover_receipt'):",
+      "sha256": "8ba96b8e168713ba28ebd5b82a35820b3b7a29a8f58a9621ac8874482f853346",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/s1_admission.py",
+      "line": 217,
+      "text": "            from .r1_handover import bind_target",
+      "sha256": "8ba96b8e168713ba28ebd5b82a35820b3b7a29a8f58a9621ac8874482f853346",
+      "observed": false
+    },
+    {
+      "file": "student_pilot/s1_admission.py",
+      "line": 218,
+      "text": "            selected = bind_target(selected,directory/'handover.json')",
+      "sha256": "8ba96b8e168713ba28ebd5b82a35820b3b7a29a8f58a9621ac8874482f853346",
+      "observed": false
+    }
+  ],
+  "total": 321,
+  "observed": 286,
+  "sources": [
+    "work/build17/proofs/edges/hits.json",
+    "work/build17/proofs/final_focused/hits.json",
+    "work/build17/proofs/native/hits.json",
+    "work/build17/proofs/real/hits.json",
+    "work/build17/proofs/kits/hits.json",
+    "work/build17/proofs/producer_edges/hits.json",
+    "work/build17/proofs/room_fixture/hits.json",
+    "work/build17/proofs/export/hits.json",
+    "work/build17/proofs/focused/hits.json",
+    "work/build17/proofs/final/packet/coverage/hits.json",
+    "work/build17/proofs/final/suite_tree/r2/hits.json"
+  ]
+}

@@ -1,0 +1,1 @@
+cat /project/community/jjyeung/okh7/x_69d2930d/o/gcs_673bc60f_m200.done; echo; sha256sum /project/community/jjyeung/okh7/x_69d2930d/o/gcs_673bc60f_m200.done; tail -3 /project/community/jjyeung/okh7/x_69d2930d/o/gcs.log | sed -E "s#https?://[^ \"]+#[URL]#g" | cut -c1-200

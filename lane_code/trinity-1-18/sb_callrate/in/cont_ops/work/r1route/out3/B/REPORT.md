@@ -1,0 +1,1 @@
+Package B retains its payload and token. Its delivery seals exact export identity and authenticated fetch. See [the R3 report](../REPORT.md), [tests](../GATE_SUMMARY.json), and [operator commands](OPERATIONS_R1ROUTE.md). The accepted bootstrap-source comparison remains blocked.

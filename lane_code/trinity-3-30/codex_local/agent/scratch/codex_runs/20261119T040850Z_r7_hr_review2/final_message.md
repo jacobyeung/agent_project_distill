@@ -1,0 +1,13 @@
+1. **HIGH — The checkpoint guard has a race.** [hr.sh:23–29](/scratch/jjyeung/orch_n30/r1_ops6/work/r7/rv/hr.sh:23) checks once; a checkpoint can start during subsequent receipt or archive hashing. This violates “never hash while a checkpoint is being written.” **Fix:** hold an existing writer-shared exclusion mechanism throughout hashing, or defer hashing until checkpoint writing has permanently stopped. Rechecking alone cannot close the race.
+
+2. **MEDIUM — PID selection does not identify this trainer.** [hr.sh:39–46](/scratch/jjyeung/orch_n30/r1_ops6/work/r7/rv/hr.sh:39) selects the user’s largest-RSS `python` across the node, then enters its namespace and labels the receipt with job ID 172660. Another Python process can therefore cause failure or incorrect allocation evidence. **Fix:** restrict candidates to job 172660 and verify the trainer command and namespace before proceeding.
+
+3. **MEDIUM — Both timeouts exceed the 20-minute limit.** [hr.sh:15](/scratch/jjyeung/orch_n30/r1_ops6/work/r7/rv/hr.sh:15) permits 1,260 seconds inside the step and 1,290 seconds outside. **Fix:** enforce a maximum 1,200-second overall deadline, with the inner timeout and termination grace fitting inside it.
+
+4. **MEDIUM — Receipt traversal bypasses the checkpoint-file exclusions.** [hr.sh:112–125](/scratch/jjyeung/orch_n30/r1_ops6/work/r7/rv/hr.sh:112) excludes shards and `replicated.pt` only when reading `complete.json` directly. Successful `h.json` contains pins for every checkpoint file ([p_handover_receipt.py:38–48](/scratch/jjyeung/orch_n30/r1_ops6/work/r7/rv/p_handover_receipt.py:38)); generic traversal admits any excluded file within the size cap. **Fix:** enforce these exclusions centrally in `add()`, before hashing, for every discovery route.
+
+5. **MEDIUM — Archive failure still publishes completion evidence.** [hr.sh:148–152](/scratch/jjyeung/orch_n30/r1_ops6/work/r7/rv/hr.sh:148) merely prints the archive command’s status, then renames its potentially incomplete output to `s.tar` and writes `DONE.json`. **Fix:** capture and check the archive status immediately; publish `s.tar` and completion evidence only after successful archive creation and required copies.
+
+6. **MEDIUM — The expected successful step-400 path exits unsuccessfully.** [hr.sh:156–158](/scratch/jjyeung/orch_n30/r1_ops6/work/r7/rv/hr.sh:156) ends with the `h.json` existence check. When handover correctly refuses and export-only succeeds, absent `h.json` makes the script exit 1. **Fix:** preserve the `srun` status and explicitly exit according to the required receipt and archive results for the selected milestone.
+
+NOT READY

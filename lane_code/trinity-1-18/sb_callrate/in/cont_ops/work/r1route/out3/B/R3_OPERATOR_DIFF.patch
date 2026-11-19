@@ -1,0 +1,350 @@
+--- out2/B/fill_export.py
++++ out3/B/fill_export.py
+@@ -8,6 +8,10 @@
+ import tarfile
+ 
+ LOGICAL = '/scratch/jjyeung/b01ec87a6f29b'
++REVIEWED_OBJECT = 'q8/8865619b/673bc60f_m200.tar'
++REVIEWED_ARCHIVE_BYTES = 21583032320
++REVIEWED_ARCHIVE_SHA256 = '795ef9ef7e59bf37443c14a4d3a7e734eabcb2fd5fcb289ad3d77ae7096e283b'
++
+ MEMBERS = dict(artifact='artifact.json', heads='heads.pt',
+                full_weights='full_weights/full_weights.json')
+ 
+@@ -135,9 +139,25 @@
+         cfg = json.load(archive.extractfile('9.json'))
+     digest = hashlib.sha256(json.dumps(cfg,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+     if digest != public['plan_sha256']:raise ValueError('Reviewed plan differs')
+-    return cfg['export_binding']
++    binding = dict(cfg['export_binding'])
++    binding.update(archive_bytes=REVIEWED_ARCHIVE_BYTES, archive_sha256=REVIEWED_ARCHIVE_SHA256)
++    return binding
++
++def receipt_review(done):
++    fields = Path(done).read_text().split()
++    if fields != [REVIEWED_OBJECT, str(REVIEWED_ARCHIVE_BYTES), REVIEWED_ARCHIVE_SHA256]:
++        raise ValueError('Reviewed whole-tar receipt differs')
++
+ 
+ def bind_review(a, export, artifact, archive, prep, binding):
++    # These constants are sealed by the delivery manifest, independent of caller input.
++    if (a.object != REVIEWED_OBJECT or archive.get('sha256') != REVIEWED_ARCHIVE_SHA256
++            or sum(p['bytes'] for p in archive.get('parts', [])) != REVIEWED_ARCHIVE_BYTES):
++        raise ValueError('Reviewed whole-tar identity differs')
++    for key, expected in [('archive_bytes', REVIEWED_ARCHIVE_BYTES),
++                          ('archive_sha256', REVIEWED_ARCHIVE_SHA256)]:
++        if key in binding and binding[key] != expected:
++            raise ValueError('Reviewed export binding differs: '+key)
+     for key, actual in [('object',a.object),('step',a.step),('lineage',a.lineage),
+                         ('member_directory',export['member_directory'])]:
+         if actual != binding[key]:raise ValueError('Reviewed export binding differs: '+key)
+@@ -164,6 +184,7 @@
+     p.add_argument('--base-inputs',required=True);p.add_argument('--inputs-out',required=True)
+     a = p.parse_args()
+     binding=reviewed_binding()
++    receipt_review(a.done)
+     if (a.object != binding['object'] or a.step != binding['step'] or a.lineage != binding['lineage']):
+         raise ValueError('Reviewed run/step/object differs')
+     if len(a.parts) != 4:raise ValueError('Require four ordered parts')
+--- out2/B/fetch_return.py
++++ out3/B/fetch_return.py
+@@ -0,0 +1,98 @@
++"""Authenticate return provenance before copying any return; Python 3.6 stdlib."""
++import argparse
++import hashlib
++import json
++from pathlib import Path
++import re
++import shutil
++import tarfile
++
++
++def digest(path):
++    h = hashlib.sha256()
++    with Path(path).open('rb') as f:
++        for chunk in iter(lambda: f.read(1024**2), b''):
++            h.update(chunk)
++    return h.hexdigest()
++
++
++def validate_exit(receipt, archive, plan, token):
++    if receipt.get('plan_sha256') != plan:
++        raise ValueError('Return plan differs')
++    if receipt.get('token') != token:
++        raise ValueError('Return token differs')
++    if receipt.get('synthetic') is not False:
++        raise ValueError('Synthetic return refused')
++    size = receipt.get('archive_bytes')
++    if type(size) is not int or not 0 < size < 90000000 or Path(archive).stat().st_size != size:
++        raise ValueError('Return byte count differs')
++    if receipt.get('archive_sha256') != digest(archive):
++        raise ValueError('Return archive digest differs')
++    if type(receipt.get('complete')) is not bool or receipt.get('status') != ('COMPLETE' if receipt['complete'] else 'FAILED'):
++        raise ValueError('Return completion status differs')
++
++
++def validate_receipt(receipt, exit_value, exit_path, archive, plan, token):
++    if receipt.get('plan_sha256') != plan or receipt.get('token') != token:
++        raise ValueError('Return receipt provenance differs')
++    if receipt.get('job') != exit_value.get('job') or receipt.get('returned') is not True:
++        raise ValueError('Return receipt job/status differs')
++    pool = receipt.get('channels', {}).get('pool', {})
++    if pool.get('verified') is not True:
++        raise ValueError('Return pool is unverified')
++    for name, path in [('EXIT.json', exit_path), ('result.tar.gz', archive)]:
++        pin = pool.get('files', {}).get(name, {})
++        if pin.get('sha256') != digest(path) or pin.get('bytes') != Path(path).stat().st_size:
++            raise ValueError('Return receipt file differs: '+name)
++
++
++def fetch(package, token, destination):
++    package = Path(package).resolve()
++    public = json.loads((package/'0.json').read_text())
++    manifest = json.loads((package/'PACKAGE.json').read_text())
++    for name, expected in manifest['files'].items():
++        if digest(package/name) != expected:
++            raise ValueError('Delivery member differs: '+name)
++    if digest(package/'0.tgz') != public['payload_sha256']:
++        raise ValueError('Payload differs')
++    with tarfile.open(package/'0.tgz') as t:
++        cfg = json.load(t.extractfile('9.json'))
++    plan = hashlib.sha256(json.dumps(cfg,sort_keys=True,separators=(',',':')).encode()).hexdigest()
++    if plan != public['plan_sha256'] or cfg['token'] != public['token']:
++        raise ValueError('Package plan/token differs')
++    if not re.fullmatch(re.escape(cfg['token'])+'[0-9a-f]{8}', token):
++        raise ValueError('Requested return token differs')
++    source = Path(cfg['pool'])/token
++    raw = source/'result.tar.gz'
++    exit_path = source/'EXIT.json'
++    exit_raw = exit_path.read_bytes()
++    exit_value = json.loads(exit_raw.decode())
++    receipt_raw = (source/'RETURN_RECEIPT.json').read_bytes()
++    receipt = json.loads(receipt_raw.decode())
++    validate_exit(exit_value, raw, plan, token)
++    if str(exit_value.get('job')) != str(int(token[-8:],16)):
++        raise ValueError('Return job differs')
++    validate_receipt(receipt, exit_value, exit_path, raw, plan, token)
++    destination = Path(destination).resolve()
++    destination.mkdir(parents=True, exist_ok=False)
++    with raw.open('rb') as src, (destination/'0.tgz').open('xb') as dst:
++        shutil.copyfileobj(src, dst, 1024**2)
++    # Authenticate the copied bytes against the exact receipts already read.
++    validate_exit(exit_value, destination/'0.tgz', plan, token)
++    (destination/'EXIT.json').write_bytes(exit_raw)
++    (destination/'RETURN_RECEIPT.json').write_bytes(receipt_raw)
++    print(json.dumps(dict(destination=str(destination), complete=exit_value['complete'],
++                          sha256=exit_value['archive_sha256'])))
++
++
++def main():
++    p = argparse.ArgumentParser(description=__doc__)
++    p.add_argument('--package', required=True)
++    p.add_argument('--return-token', required=True)
++    p.add_argument('--out', required=True)
++    a = p.parse_args()
++    fetch(a.package, a.return_token, a.out)
++
++
++if __name__ == '__main__':
++    main()
+--- out2/B/unpack_return.py
++++ out3/B/unpack_return.py
+@@ -1,5 +1,6 @@
+ """Authenticate and unpack a fetched return under this workspace; retain partial status."""
+-import argparse,hashlib,json,tarfile
++import argparse,hashlib,json,tarfile,re
++from fetch_return import digest as file_digest, validate_exit
+ from pathlib import Path
+ 
+ def validate_journals(dest):
+@@ -19,14 +20,21 @@
+ 
+ 
+ def main():
+- p=argparse.ArgumentParser();p.add_argument('--archive',required=True);p.add_argument('--exit',required=True);p.add_argument('--out',required=True);a=p.parse_args()
++ p=argparse.ArgumentParser();p.add_argument('--archive',required=True);p.add_argument('--exit',required=True);p.add_argument('--out',required=True);p.add_argument('--baseline',action='store_true');p.add_argument('--package',type=Path);p.add_argument('--return-token');a=p.parse_args()
+  O=Path(__file__).resolve().parent;W=O.parent
++ if a.package and not a.baseline:raise ValueError('--package requires registered --baseline')
++ if a.baseline:O=(a.package or W/'bases'/'b2').resolve()
+  dest=Path(a.out).resolve()
+  if not dest.is_relative_to(W):raise ValueError('Output must stay inside W6')
+  raw=Path(a.archive);receipt=json.loads(Path(a.exit).read_text());public=json.loads((O/'package/0.json').read_text())
+- with raw.open('rb') as f:digest=hashlib.file_digest(f,'sha256').hexdigest()
+- if receipt.get('synthetic') is not False or receipt.get('plan_sha256')!=public['plan_sha256']:raise ValueError('Return provenance differs')
+- if digest!=receipt.get('archive_sha256') or raw.stat().st_size!=receipt.get('archive_bytes'):raise ValueError('Return bytes differ')
++ digest=file_digest(raw)
++ token=receipt.get('token','')
++ if not re.fullmatch(re.escape(public['token'])+'[0-9a-f]{8}',token):raise ValueError('Return token differs')
++ if a.return_token and token!=a.return_token:raise ValueError('Requested return token differs')
++ validate_exit(receipt,raw,public['plan_sha256'],token)
++ if str(receipt.get('job'))!=str(int(token[-8:],16)):raise ValueError('Return job differs')
++ if a.baseline and (token!='f40065df28aa30002a1a8' or digest!='e3f32cb12debd95004e466d6664041a152bb207f5ae8dc98bb72a3f00c60c230'):
++  raise ValueError('Registered baseline differs')
+  dest.mkdir(parents=True,exist_ok=False);seen=set();total=0
+  with tarfile.open(raw) as tar:
+   for m in tar:
+@@ -38,10 +46,10 @@
+  imports.insert(0,str(O/'src'))
+  from orchard_h10.common import canonical,sha
+  identity=json.loads((dest/'metadata/IDENTITY.json').read_text())
+- inputs=json.loads((dest/'metadata/INPUTS.json').read_text())
++ inputs=json.loads(((O/'package/a/1.json') if a.baseline else (dest/'metadata/INPUTS.json')).read_text())
+  from orchard_h10.common import read_config
+  from orchard_h10.export_pins import validate,admit
+- admit(inputs,read_config(O/'package'),validate(json.loads((dest/'metadata/EXPORT_PIN.json').read_text())))
++ admit(inputs,read_config(O/'package'),validate(json.loads(((O/'package/a/export.json') if a.baseline else (dest/'metadata/EXPORT_PIN.json')).read_text())))
+  if (identity['plan']!=public['plan_sha256'] or identity['cards']!=1 or identity['inputs']!=canonical({k:v for k,v in inputs.items() if k!='resume'})
+      or identity['operator_sha256']!=sha(O/'tower_sequence.py')):raise ValueError('Read identity differs')
+  validate_journals(dest)
+--- out2/B/READ_PLAN.json
++++ out3/B/READ_PLAN.json
+@@ -31,6 +31,8 @@
+     134
+   ],
+   "export_binding": {
++    "archive_bytes": 21583032320,
++    "archive_sha256": "795ef9ef7e59bf37443c14a4d3a7e734eabcb2fd5fcb289ad3d77ae7096e283b",
+     "base_identity": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+     "config_sha256": "620d5cf8c573afd72e9dcbcf822fb8c8cbae27dd6c2ca803ec156d7cda41e51a",
+     "frame_layout": "duplicate",
+@@ -45,6 +47,7 @@
+     "run": "673bc60f",
+     "step": 200
+   },
++  "export_identity_seal": "Delivery PACKAGE.json pins a/4.py; payload 9.json remains byte-identical.",
+   "item_file": "items/room134.json",
+   "item_ids_in_execution_order": [
+     "r0_015bd4aaf6870d79bade",
+--- out2/B/PACKAGE.json
++++ out3/B/PACKAGE.json
+@@ -2,13 +2,14 @@
+   "files": {
+     "0.json": "ad17ba82dbe16b1fa9bbdb0fd00a09c8a2dc3f75bb696da897ff2bec0d15c2d0",
+     "0.tgz": "ab26b592277b4c44843b0ce30862d2ab9b8a00d76d7b06027b0414e588cdc05f",
+-    "3.py": "a5c94551f263e30bc05579a40e84f1f146e9a67dc2e21c8834ed62bd680b73e0",
++    "3.py": "7d0a373edbf56725b3d382264a5c2fbc709b253bbcd6966294e182ba7398eb74",
+     "BATCH.sh": "9332fcc87533cbbf9598b5b8d1830b622fe022d94cf5e76af1fe3c6ec227bfbe",
+     "CONFIG.json": "ad17ba82dbe16b1fa9bbdb0fd00a09c8a2dc3f75bb696da897ff2bec0d15c2d0",
+     "a/0.json": "206f81ec51f0ce38113b14289f9cf9896baded0e8a950e88ac6653764b24ac04",
+-    "a/4.py": "6947730c6521ac852a4c261f51a637ff5bb36b06bd2559098fa263bbb4a423dd",
++    "a/4.py": "178a5d4aa398108a6ab11d2f423d83777a8d0b61bdfe232a73053009713f5bb3",
+     "a/5.py": "05392debfae602123a1d8b59d583992e90c8c919000e2338142d6a60af4f4147",
+-    "a/6.py": "247f8cdfd507c2655adb5e68169c1cb198800c7bb24ef3ac4f9d7352404b34af"
++    "a/6.py": "247f8cdfd507c2655adb5e68169c1cb198800c7bb24ef3ac4f9d7352404b34af",
++    "a/7.py": "5c3e3b897be6cb5383dc5a489a8aa1324cf745b9716ecea90f1e951b1c098011"
+   },
+   "token": "b9188e9225a85"
+ }
+--- out2/B/package/3.py
++++ out3/B/package/3.py
+@@ -1,7 +1,15 @@
+-import hashlib,json,tarfile
++import hashlib,json,tarfile,sys
+ from pathlib import Path
+ p=Path(__file__).resolve().parent
+ c=json.loads((p/'0.json').read_text())
+ assert hashlib.sha256((p/'0.tgz').read_bytes()).hexdigest()==c['payload_sha256']
++if len(sys.argv)>1 and sys.argv[1]=='fetch':
++    raw=(p/'a/7.py').read_bytes()
++    manifest=json.loads((p/'PACKAGE.json').read_text())
++    if hashlib.sha256(raw).hexdigest()!=manifest['files']['a/7.py']:
++        raise ValueError('Fetch helper differs')
++    sys.argv[1:]=['--package',str(p)]+sys.argv[2:]
++    exec(compile(raw,str(p/'a/7.py'),'exec'),dict(__name__='__main__',__file__=str(p/'a/7.py')))
++    raise SystemExit(0)
+ with tarfile.open(p/'0.tgz') as t:
+     exec(compile(t.extractfile('8.py').read(),__file__,'exec'))
+--- out2/B/o_place.sh
++++ out3/B/o_place.sh
+@@ -5,7 +5,7 @@
+ # D must identify the existing delivery directory, whose basename is opaque.
+ : "${D:?Set D to the existing opaque delivery directory}"
+ [[ "$D" =~ ^/project/community/jjyeung/okh7/a15_cot_ap[0-9a-f]+$ ]]
+-printf '%s  %s\n' 76cb123cb7126ef1224214c3cffff628166b18ead30a5751e03ba832d57f4010 "$D/1.tgz" | sha256sum -c -
++printf '%s  %s\n' be1f4dec0a2607e0590f0392ef1f7b6c44e3f60c34a06ad6b6a3f3cd551ea3ad "$D/1.tgz" | sha256sum -c -
+ test ! -e "$P"
+ mkdir -m 700 "$P"
+ tar -xzf "$D/1.tgz" -C "$P"
+--- out2/B/o_fetch.sh
++++ out3/B/o_fetch.sh
+@@ -10,4 +10,4 @@
+ print('b9188e9225a85'+format(int(sys.argv[1]),'08x'))
+ PYCODE
+ )
+-/usr/bin/python3 -I -s -B 3.py fetch --return-token "$RET" --out "$P/a/f"
++/usr/bin/python3 -I -s -B "$P/a/7.py" --package "$P" --return-token "$RET" --out "$P/a/f"
+--- out2/B/OPERATIONS_R1ROUTE.md
++++ out3/B/OPERATIONS_R1ROUTE.md
+@@ -15,13 +15,13 @@
+ ```bash
+ # Run from the lane directory containing ossh.sh. Replace the quoted path.
+ D='/project/community/jjyeung/okh7/a15_cot_ap<hex>'
+-{ printf 'D=%q\n' "$D"; cat /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/B/o_place.sh; } | bash ossh.sh 'bash -s'
++{ printf 'D=%q\n' "$D"; cat /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B/o_place.sh; } | bash ossh.sh 'bash -s'
+ ```
+ 
+ Place **both A and B** before filling either. Run A's fill first; B must wait until A finishes successfully. A downloads the four parts sequentially once. B reads the same files under A's `a/e/` directory and checks them again. Retain A's files through both jobs.
+ 
+ ```bash
+-bash ossh.sh 'bash -s' < /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/B/o_pullfill.sh
++bash ossh.sh 'bash -s' < /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B/o_pullfill.sh
+ ```
+ 
+ The fill starts under `nohup`. Check its completion with this read-only command, at most once per minute:
+@@ -30,43 +30,44 @@
+ bash ossh.sh 'test "$(cat /project/community/jjyeung/okh7/a15_cot_apb9188e9225a85/a/1.txt)" = 0'
+ ```
+ 
+-On failure, inspect `/project/community/jjyeung/okh7/a15_cot_apb9188e9225a85/a/0.log`; there is no retry loop. A requires the handoff's `.done` object, 21,583,032,320 bytes, and SHA256 prefix `795ef9ef`. The fill computes and compares the entire SHA256 against `.done`. The full handoff SHA and `.done` bytes were not supplied locally.
++On any transfer failure, stop and inspect `/project/community/jjyeung/okh7/a15_cot_apb9188e9225a85/a/0.log`; there is no retry loop. A and B require object `q8/8865619b/673bc60f_m200.tar`, exactly 21,583,032,320 bytes and SHA256 `795ef9ef7e59bf37443c14a4d3a7e734eabcb2fd5fcb289ad3d77ae7096e283b`. A checks the receipt before pulling; both fill helpers enforce these constants before and after scanning. The delivery manifest seals the fill helper. A's single sequential `gsutil cp` command sets `Boto:num_retries=0`, one metadata attempt, one process/thread, and disables sliced downloads. Do not relaunch a failed transfer.
+ 
+-The fill requires the exact config (`3b0051c4…`), S1 receipt (`4c0dd9d6…`) and data receipt (`7f654d2f…`). The physical receipt is `x_69d2930d/runs/673bc60f/inputs/prepare_9b0c4b095487492a80bd5e9030d5bbc0/prepared/s1_receipt.json` beneath `/project/community/jjyeung/okh7`. Its internal logical path remains unchanged. The exact data receipt is absent from the rebuild workspace; fixture receipts cannot pass the delivered package's fill.
++The fill requires the exact config (`3b0051c4…`), S1 receipt (`4c0dd9d6…`) and data receipt (`7f654d2f…`). The physical receipt is `x_69d2930d/runs/673bc60f/inputs/prepare_9b0c4b095487492a80bd5e9030d5bbc0/prepared/s1_receipt.json` beneath `/project/community/jjyeung/okh7`. Its internal logical path remains unchanged. All three exact preparation files pass the local preparation check. The full export tar is not local; the Orchard fill must authenticate every part and the whole archive.
+ 
+ After fill completes, submit the allocated CPU check:
+ 
+ ```bash
+-bash ossh.sh 'bash -s' < /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/B/o_cpucheck.sh
++bash ossh.sh 'bash -s' < /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B/o_cpucheck.sh
+ ```
+ 
+ Wait for the CPU job to complete successfully. Then submit this package's GPU job:
+ 
+ ```bash
+-bash ossh.sh 'bash -s' < /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/B/o_sub.sh
++bash ossh.sh 'bash -s' < /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B/o_sub.sh
+ ```
+ 
+ The script requires the exact CPU receipt, an empty `jjyeung` general queue, and a return pool of at most 75,000,000 bytes. It requests one GPU for `02:30:00` and records the job ID in `a/8.txt`. Run the A and B GPU jobs sequentially. Fixture receipts do not authorize submission.
+ 
+-After the GPU job finishes:
++After the GPU job finishes, fetch with the sealed helper. It checks the requested token, plan, job, synthetic flag, completion status, archive length and digest, and the pool receipt before creating output. The delivery wrapper also routes `3.py fetch` through this helper:
+ 
+ ```bash
+-bash ossh.sh 'bash -s' < /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/B/o_fetch.sh
++bash ossh.sh 'bash -s' < /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B/o_fetch.sh
+ ```
+ 
+-Transfer `/project/community/jjyeung/okh7/a15_cot_apb9188e9225a85/a/f/0.tgz` and `EXIT.json` into `/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/B/f/` through the lane's authorized transfer procedure. Unpack locally:
++Transfer `/project/community/jjyeung/okh7/a15_cot_apb9188e9225a85/a/f/0.tgz`, `EXIT.json`, `RETURN_RECEIPT.json`, and the recorded job ID `a/8.txt` into `/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B/f/` through the lane's authorized transfer procedure. Unpack locally:
+ 
+ ```bash
+-cd /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/B
+-/scratch/jjyeung/envs/p1cpu/bin/python -B unpack_return.py --archive f/0.tgz --exit f/EXIT.json --out /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/B/ret
++cd /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B
++RET=$(/scratch/jjyeung/envs/p1cpu/bin/python -B -c 'import sys; print(sys.argv[1]+format(int(sys.argv[2]),"08x"))' "$(cat TOKEN)" "$(cat f/8.txt)")
++/scratch/jjyeung/envs/p1cpu/bin/python -B unpack_return.py --archive f/0.tgz --exit f/EXIT.json --return-token "$RET" --out /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B/ret
+ ```
+ 
+-Scoring requires the authentic job-171253 and job-172456 returns, which are missing here. Restore them under `/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/bases/b1/work/ret` and `/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/bases/b2/work/ret`, plus the authentic job-172456 `scores.json` under `/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/bases/b2/work/scores`. The base payloads, plans, and operator bytes are already reconstructed there. Do not use the synthetic fixtures under `gates/` or `test_tmp/` as baseline returns.
++The authenticated job-171253 and job-172456 baseline returns are installed under `/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/bases/b1/work/ret` and `/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/bases/b2/work/ret`. The regenerated room scores at `bases/b2/work/scores/scores.json` match SHA256 `9d3809d30712dc75c17857cb97d77dcd1cfd9fe6912d5676fdc0bc25cee04aa8`. Baseline self-comparison passes. The accepted bootstrap source is absent; the re-review must resolve that reference check. The separately labelled independent reference passes, but does not recover the accepted source.
+ 
+ ```bash
+-cd /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2
++cd /scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3
+ OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 MKL_NUM_THREADS=8 /scratch/jjyeung/envs/p1cpu/bin/python -B score_r1route.py --baseline-root bases --self-test --out baseline_check
+ OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 MKL_NUM_THREADS=8 /scratch/jjyeung/envs/p1cpu/bin/python -B score_r1route.py --baseline-root bases --a A/ret --b B/ret --out scores
+ ```
+ 
+-The scorer uses job 171253 read 0 for camera and dev-S1 room, read 1 for distance, and job 172456 read 0 for both room sets. It preserves the 450-camera and 107-non-metre populations, 10,000 physical-room bootstrap draws, both confidence intervals, and room `mra_answer`. Partial results cannot certify H3. Review `../REPORT.md` and `R2_OPERATOR_DIFF.patch` before remote execution.
++The scorer uses job 171253 read 0 for camera and dev-S1 room, read 1 for distance, and job 172456 read 0 for both room sets. It preserves the 450-camera and 107-non-metre populations, 10,000 physical-room bootstrap draws, both confidence intervals, and room `mra_answer`. Partial results cannot certify H3. Review `../REPORT.md` and `R3_OPERATOR_DIFF.patch` before remote execution.

@@ -1,0 +1,127 @@
+{
+ "B": {
+  "a4_sha256": "671fb919e8bef77fe62060d7ea50753fe265e1c5d544a46750ebd53a52c34134",
+  "changed_members": {
+   "0.json": [
+    "ad17ba82dbe16b1fa9bbdb0fd00a09c8a2dc3f75bb696da897ff2bec0d15c2d0",
+    "9b644dff028b68b369affb43a6376f2b290a44df6386bd409faac3584fe97491"
+   ],
+   "0.tgz": [
+    "ab26b592277b4c44843b0ce30862d2ab9b8a00d76d7b06027b0414e588cdc05f",
+    "8540e7303e34140c900e34420c31bcb40397df89df9fc615695c5f2201c6d4a7"
+   ],
+   "BATCH.sh": [
+    "9332fcc87533cbbf9598b5b8d1830b622fe022d94cf5e76af1fe3c6ec227bfbe",
+    "433ff6ec8383546a7f887506ecaa2e283617a7d5f5623c3925614fbbfa1b01f8"
+   ],
+   "CONFIG.json": [
+    "ad17ba82dbe16b1fa9bbdb0fd00a09c8a2dc3f75bb696da897ff2bec0d15c2d0",
+    "9b644dff028b68b369affb43a6376f2b290a44df6386bd409faac3584fe97491"
+   ],
+   "PACKAGE.json": [
+    "05621f25953877ba6b1da4cfdb436936158f20de8f3793225fe8ea4702e20894",
+    "58fcc04e8f5dbae9220038a6a59d9355a06eeff14654ff9e11fb836fd7216e5a"
+   ],
+   "a/4.py": [
+    "178a5d4aa398108a6ab11d2f423d83777a8d0b61bdfe232a73053009713f5bb3",
+    "671fb919e8bef77fe62060d7ea50753fe265e1c5d544a46750ebd53a52c34134"
+   ]
+  },
+  "delivery_bytes": 5005920,
+  "delivery_dir": "/scratch/jjyeung/orch_n30/cont_ops17/work/t/K/a15_cot_ap35eac809020ac708",
+  "delivery_sha256": "6101a17a6a4bc3cdc2fe1ec6864c4e057a5d19a53cdff4f4480c6176088aaebe",
+  "old_token": "b9188e9225a85",
+  "package": "/scratch/jjyeung/orch_n30/cont_ops17/work/t/K/a15_cot_apa2901e3d9fd05",
+  "payload_bytes": 4989569,
+  "payload_sha256": "8540e7303e34140c900e34420c31bcb40397df89df9fc615695c5f2201c6d4a7",
+  "plan_sha256": "0f08e69ba0b535b6a9086c06c73b3daeece86fae0786ad78cf6ba055257e6cd1",
+  "token": "a2901e3d9fd05"
+ }
+}
+=== B: old token b9188e9225a85 -> new token a2901e3d9fd05
+--- old/0.json
++++ new/0.json
+@@ -2,4 +2,4 @@
+-  "payload_bytes": 4989278,
+-  "payload_sha256": "ab26b592277b4c44843b0ce30862d2ab9b8a00d76d7b06027b0414e588cdc05f",
+-  "plan_sha256": "94e78407a675aec4ee2a1e56ff79607a04eba6b476db441e65232006508aaa5c",
+-  "token": "b9188e9225a85"
++  "payload_bytes": 4989569,
++  "payload_sha256": "8540e7303e34140c900e34420c31bcb40397df89df9fc615695c5f2201c6d4a7",
++  "plan_sha256": "0f08e69ba0b535b6a9086c06c73b3daeece86fae0786ad78cf6ba055257e6cd1",
++  "token": "a2901e3d9fd05"
+--- payload 9.json (single-line JSON; only differing span)
+-'5afb115dd3073fa6ce1934237d"}, "token": "b9188e9225a85"}'
++'5afb115dd3073fa6ce1934237d"}, "token": "a2901e3d9fd05"}'
+payload members changed: ['9.json']
+--- old/BATCH.sh
++++ new/BATCH.sh
+@@ -2,2 +2,9 @@
+-set -euo pipefail
+-exec /usr/bin/python3 -I -s -B - <<'A'
++#SBATCH --exclude=orchard-community-2
++set -uo pipefail
++P=/project/community/jjyeung/okh7/a15_cot_apa2901e3d9fd05
++L=/tmp/a${SLURM_JOB_ID:-0}.l
++R=$P/a/x${SLURM_JOB_ID:-0}
++fin(){ rc=$?; { head -n 1 "$L"; echo "exit $rc"; tail -n 60 "$L"; } > "$R" 2>/dev/null || true; exit $rc; }
++trap fin EXIT
++echo "node $(hostname -s) tmp_free_kb $(df -Pk /tmp | awk 'NR==2{print $4}') gpus $(nvidia-smi -L 2>/dev/null | wc -l) cvd ${CUDA_VISIBLE_DEVICES:-none}" > "$L" 2>/dev/null
++/usr/bin/python3 -I -s -B - >>"$L" 2>&1 <<'A' &
+@@ -8,2 +15,2 @@
+-b=bytes.fromhex('1f8b08000000000002ffed5ce96fdbc8929fcffa2b387e1f48ca6d5a978fc8e10099c493c...-r=Path('/tmp')/('a'+j+'b9188e9225a85')
++b=bytes.fromhex('1f8b08000000000002ffed5c6b6fdb46b3ee67fd0ad6fd40d25ed394e44b2c8701d2c44d7...+r=Path('/tmp')/('a'+j+'a2901e3d9fd05')
+@@ -19,0 +27,4 @@
++PID=$!
++trap 'kill -USR1 $PID 2>/dev/null' USR1
++while true; do wait $PID; rc=$?; kill -0 $PID 2>/dev/null || break; done
++exit $rc
+--- old/BATCH.sh/bundle/0.json
++++ new/BATCH.sh/bundle/0.json
+@@ -2,4 +2,4 @@
+-  "payload_bytes": 4989278,
+-  "payload_sha256": "ab26b592277b4c44843b0ce30862d2ab9b8a00d76d7b06027b0414e588cdc05f",
+-  "plan_sha256": "94e78407a675aec4ee2a1e56ff79607a04eba6b476db441e65232006508aaa5c",
+-  "token": "b9188e9225a85"
++  "payload_bytes": 4989569,
++  "payload_sha256": "8540e7303e34140c900e34420c31bcb40397df89df9fc615695c5f2201c6d4a7",
++  "plan_sha256": "0f08e69ba0b535b6a9086c06c73b3daeece86fae0786ad78cf6ba055257e6cd1",
++  "token": "a2901e3d9fd05"
+bundle members changed: ['0.json']
+--- old/CONFIG.json
++++ new/CONFIG.json
+@@ -2,4 +2,4 @@
+-  "payload_bytes": 4989278,
+-  "payload_sha256": "ab26b592277b4c44843b0ce30862d2ab9b8a00d76d7b06027b0414e588cdc05f",
+-  "plan_sha256": "94e78407a675aec4ee2a1e56ff79607a04eba6b476db441e65232006508aaa5c",
+-  "token": "b9188e9225a85"
++  "payload_bytes": 4989569,
++  "payload_sha256": "8540e7303e34140c900e34420c31bcb40397df89df9fc615695c5f2201c6d4a7",
++  "plan_sha256": "0f08e69ba0b535b6a9086c06c73b3daeece86fae0786ad78cf6ba055257e6cd1",
++  "token": "a2901e3d9fd05"
+--- old/PACKAGE.json
++++ new/PACKAGE.json
+@@ -3,2 +3,2 @@
+-    "0.json": "ad17ba82dbe16b1fa9bbdb0fd00a09c8a2dc3f75bb696da897ff2bec0d15c2d0",
+-    "0.tgz": "ab26b592277b4c44843b0ce30862d2ab9b8a00d76d7b06027b0414e588cdc05f",
++    "0.json": "9b644dff028b68b369affb43a6376f2b290a44df6386bd409faac3584fe97491",
++    "0.tgz": "8540e7303e34140c900e34420c31bcb40397df89df9fc615695c5f2201c6d4a7",
+@@ -6,2 +6,2 @@
+-    "BATCH.sh": "9332fcc87533cbbf9598b5b8d1830b622fe022d94cf5e76af1fe3c6ec227bfbe",
+-    "CONFIG.json": "ad17ba82dbe16b1fa9bbdb0fd00a09c8a2dc3f75bb696da897ff2bec0d15c2d0",
++    "BATCH.sh": "433ff6ec8383546a7f887506ecaa2e283617a7d5f5623c3925614fbbfa1b01f8",
++    "CONFIG.json": "9b644dff028b68b369affb43a6376f2b290a44df6386bd409faac3584fe97491",
+@@ -9 +9 @@
+-    "a/4.py": "178a5d4aa398108a6ab11d2f423d83777a8d0b61bdfe232a73053009713f5bb3",
++    "a/4.py": "671fb919e8bef77fe62060d7ea50753fe265e1c5d544a46750ebd53a52c34134",
+@@ -14 +14 @@
+-  "token": "b9188e9225a85"
++  "token": "a2901e3d9fd05"
+--- old/a/4.py
++++ new/a/4.py
+@@ -209,2 +209,2 @@
+-    inputs['archives'][4]=dict(destination=archive['destination'],parts=[prep_archive],
+-                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values())))
++    inputs['archives'].append(dict(destination=archive['destination'],parts=[prep_archive],
++                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values()))))
+

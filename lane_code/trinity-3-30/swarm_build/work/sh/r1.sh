@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30; cat $R/sb_evidence/out/EVIDENCE_REPORT.md; echo =====; cat $R/sb_alias/out/ALIAS_AUDIT_REPORT.md; echo ====; head -c 1500 $R/sb_alias/out/RECOVERED_ARCHIVED_ALIAS_MAP.json
