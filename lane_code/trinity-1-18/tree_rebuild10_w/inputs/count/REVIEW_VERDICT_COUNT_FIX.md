@@ -1,0 +1,13 @@
+DO NOT USE (17,879 items)
+- Blocking gap: `COUNT_FIX_20261118.tgz` contains six files—mix instructions, four JSONLs, and checksums—but no diagnostic scripts or evaluation evidence (`FIX_SHA256SUMS:1–5`).
+- `COUNT_FIX_REMOVE_B1.jsonl:1–17879`: all lines parse; each has one nonempty `row_key`; all 17,879 qids are unique. Schema and SHA256 match the specification.
+- B1 labels/prefixes match the claimed partition: 6,636 r1g, 2,042 b12 singles, 7,962 b12 totals, 1,239 D0 totals. Every row declares `object_counting`; these declarations cannot establish actual family membership.
+- `COUNT_FIX_MIX_CHANGE.md:9–11,17–18`: B1 minus A equals exactly the 6,552 restoration qids. All restoration target hashes validate. This supports internal consistency, not exact coverage of v7.
+- `20261118T1100Z_RESULT_interim_counting_loss_is_a_looping_first_seen_list.md:2`: 3,295/6,636 = **49.65%** of lists repeat. The claimed **29% of entries** cannot be recomputed without entry counts.
+- Same RESULT, line 3: reported R1 runaway rates are **18.67% / 23.69%**; step 544 rates are **1.33% / 2.79%**. These are calculations from reported counts, not independently verified exports.
+- Same RESULT, line 4: subtracting reported runaway contributions gives **−1.74 / +2.52**, versus claimed −1.73 / +2.52; the 0.01 discrepancy could reflect rounding. Scores and bootstrap intervals cannot be reproduced.
+- `COUNT_FIX_MIX_CHANGE.md:23–25`: the reported comparisons support the proposed mechanism, but do not prove that single-item looping requires this list form or that removal will repair it.
+- `COUNT_FIX_MIX_CHANGE.md:12,17–19`: 9,169 − 6,552 = **2,617**; 4 × 2,617/1,000 = **10.468**. The **10.46** cell respects the ceiling, conditional on the population claim.
+- `COUNT_FIX_MIX_CHANGE.md:13`: continuation draws average **3.1976**, plus **0.1926** earlier draws = **3.3901 per row**. This verifies the average, not a per-row maximum.
+- `COUNT_FIX_MIX_CHANGE.md:12`: counting frees **0.41**, totals frees **3.39**, and direction receives **3.80** slots per step. No other family change is specified; executable mix behavior is unavailable.
+- Could not verify: exact first-seen-list/totals membership and completeness; absence of other families; disjointness from `n.json`; the remaining procedure-form population; training-entry repetition; export runaway classifications; counterfactual losses or intervals; sampler behavior. These require the missing evidence, row store, or configuration.

@@ -1,0 +1,35 @@
+2,3c2,3
+< # post-fetch for an R1 direct read: STEP=<100|200|...> TOK=<token>; manifests, export receipt placement, pooled rule v3, r0cmp vs 544
+< set -euo pipefail; cd /scratch/jjyeung/orch_n30/cont_ops/work/h1read
+---
+> # cont_ops17 copy for run 6ed2c7aa. post-fetch for an R1 direct read: STEP=<100|200|...> TOK=<token>; manifests, export receipt placement, pooled rule v3, r0cmp vs 544
+> set -euo pipefail; cd /scratch/jjyeung/orch_n30/cont_ops/work/h1read7
+9c9
+< test -e "$R1_READ/runs/673bc60f/m$S/artifact.json" || "$PY" -B - "$R1_READ" "$S" <<'PY'
+---
+> test -e "$R1_READ/runs/6ed2c7aa/m$S/artifact.json" || "$PY" -B - "$R1_READ" "$S" <<'PY'
+16c16
+< assert spec['export_binding']['run'] == '673bc60f' and spec['step'] == step
+---
+> assert spec['export_binding']['run'] == '6ed2c7aa' and spec['step'] == step
+19c19
+< out = build/f'runs/673bc60f/m{step}/artifact.json'
+---
+> out = build/f'runs/6ed2c7aa/m{step}/artifact.json'
+24,25c24,28
+< if [ "$S" = 100 ]; then CAL="--calibration --step 200"; else CAL="--step $S"; fi
+< "$PY" -B "$POOLED/pooled_harm_rule_v3.py" $CAL \
+---
+> # Amendment C1 tool (pins run by step: 673bc60f <=200, 6ed2c7aa 400/600/800); decision mode only once the orchestrator's registration exists
+> TOOL=/scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/pooled_harm_rule_v3_c1.py
+> test -s "$POOLED/REGISTERED_POOLED_RULE_R1_AMENDMENT_C1.md" || { echo "REFUSED: amendment C1 not registered; no step-$S output is opened"; exit 7; }
+> CAL="--step $S"
+> "$PY" -B "$TOOL" $CAL \
+29c32
+<   --export-receipt "$R1_READ/runs/673bc60f/m$S/artifact.json" \
+---
+>   --export-receipt "$R1_READ/runs/6ed2c7aa/m$S/artifact.json" \
+32c35
+< "$PY" -B r0cmp.py --b kit/build/adff67f7ae9/fetched/x --a R1m$S="$R1_READ/fetched/x" --output "$R1_READ/R0CMP_m$S.json" 2>&1 | tee "$R1_READ/R0CMP_m$S.txt"
+---
+> "$PY" -B r0cmp.py --b /scratch/jjyeung/orch_n30/cont_ops/work/h1read/kit/build/adff67f7ae9/fetched/x --a R1m$S="$R1_READ/fetched/x" --output "$R1_READ/R0CMP_m$S.json" 2>&1 | tee "$R1_READ/R0CMP_m$S.txt"

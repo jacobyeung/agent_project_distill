@@ -1,3 +1,3 @@
-# Build 13 status
+# Build 15 status
 
-GO=false. Every kit was staged from empty and passed its scanner/hash verifier. R1 carries the three slice requirements and pinned membership catalog; remote delivery and host inputs remain unresolved. Evidence: KIT_RESULT.json. Final suites and coverage remain.
+Build 15 is packaged and stream-verified. A/C/Cprime admit; the native opener witness proof and changed-statement coverage pass. GO=false: missing external inputs and the unchanged packet floating-point comparison failure remain qualified. See out/BUILD15_REPORT.md and work/build15/proofs/integrity/RESULT.json.

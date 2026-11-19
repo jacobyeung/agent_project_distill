@@ -1,0 +1,24 @@
+diff -ru h1read/kit/launcher/binding.py h1read7/kit/launcher/binding.py
+--- h1read/kit/launcher/binding.py	2026-11-17 23:51:28.312650134 -0500
++++ h1read7/kit/launcher/binding.py	2026-11-18 19:47:19.594840143 -0500
+@@ -4,9 +4,9 @@
+ 
+ NAMESPACE='8865619b'
+ RUNS={'359fcc3c':'x_f5c353f7','17c4ffa4':'x_3fdda0fb','469ddece':'x_07ca49df',
+-      '673bc60f':'x_69d2930d','05b8ac69':'x_7f1589c1'}
++      '673bc60f':'x_69d2930d','05b8ac69':'x_7f1589c1','6ed2c7aa':'x_ee227714'}
+ STOPS=('mstop','mstopB','mstopC')
+-R1_RANGES={'673bc60f':(1,200),'05b8ac69':(201,600)}
++R1_RANGES={'673bc60f':(1,200),'05b8ac69':(201,600),'6ed2c7aa':(201,600)}
+ 
+ def r1_step(run, step):
+     return (run in R1_RANGES and type(step) is int
+@@ -17,7 +17,7 @@
+             or (run=='469ddece' and (step!=544 or generation!='mstop'))):
+         raise ValueError('Unregistered export identity')
+     if generation is None:
+-        milestones=(400,600) if run=='05b8ac69' else (100,200)
++        milestones=(400,600) if run in ('05b8ac69','6ed2c7aa') else (100,200)
+         if step not in milestones:raise ValueError('Unregistered milestone')
+         generation='m'+str(step)
+     elif run!='469ddece' and (generation not in STOPS or not

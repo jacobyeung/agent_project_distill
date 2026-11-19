@@ -23,6 +23,7 @@ for group in parent['trained_groups']['groups'].values():
     names.extend(n for n in group['names'] if 'scale_token' in n or 'scale_branch' in n)
 assert names
 P=Path('/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/r1_ops/work/snap_6a5c7d00/out/operator/r.json')
+assert file_pin(P)['sha256']==load(L/'work/build14/proofs/opener/RESULT.json')['route_tables']['P']['sha256']
 N=L/'work/n1fix2/inputs/route_table.json'
 assert load(P)==load(N)
 write(O/'RESULT.json',dict(keep_rows=before,reset_rows=after,equal=False,

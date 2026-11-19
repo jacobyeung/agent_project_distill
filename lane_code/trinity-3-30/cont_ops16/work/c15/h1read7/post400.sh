@@ -1,0 +1,22 @@
+#!/bin/bash
+# cont_ops17 post400 (fix-7 kit, run 6ed2c7aa): TOK=<token> STEP=<400>; fetch, unpack, pool move, registered rule (decision, ledger) via post_r1_c.sh,
+# DERIVED rule (amendment 1108Z), counting split, relative size; log kit/build/<tok>/POST400.log
+set -uo pipefail; cd /scratch/jjyeung/orch_n30/cont_ops/work/h1read7
+export PYTHONDONTWRITEBYTECODE=1 PY=/scratch/jjyeung/envs/p1cpu/bin/python L=$PWD/kit/launcher/orchard_launcher.py
+export A_TRANSPORT=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh
+T=${TOK:?}; S=${STEP:-400}; B=$PWD/kit/build/$T; LOG=$B/POST400.log
+test -s /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/pooled_rule/REGISTERED_POOLED_RULE_R1_AMENDMENT_C1.md || { echo "REFUSED: amendment C1 not registered; no step-$S output is opened"; exit 7; }
+{
+echo "== $(date -u +%TZ) fetch"; test -s $B/fetched/result.tar.gz || "$PY" -B "$L" fetch --destination "$B" || { echo FETCH_FAILED; exit 2; }
+sha256sum $B/fetched/result.tar.gz; cat $B/fetched/EXIT.json; echo
+echo "== unpack"; test -d $B/fetched/x || "$PY" -B tools/unpack_return.py --destination "$B" || { echo UNPACK_FAILED; exit 3; }
+echo "== pool move"; timeout 300 bash $A_TRANSPORT "T=$T bash -s" < o_mvpool112.sh
+echo "== registered rule (decision mode, ledger)"; for f in post_r1_c.sh:a83f8121217db3d9cbbca50ce9987c13c75ae547c73f438173197bce8f61bc86 /scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/pooled_harm_rule_v3_c1.py:45f9999fedf35365d148ba66e5a4a0fd7a57036bd6ca14e7c5153478ed8d40f3 /scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/count_runaways.py:642a5850d55afcd829eea37ee4a8639025f93a2b578047e0d88b58815cf1b615; do test "$(sha256sum ${f%%:*} | cut -d' ' -f1)" = "${f#*:}" || { echo "PIN_DIFFERS ${f%%:*}"; exit 5; }; done
+STEP=$S TOK=$T bash /scratch/jjyeung/orch_n30/cont_ops/work/h1read7/post_r1_c.sh || { echo DECISION_FAILED; exit 4; }
+echo "== runaway repair test (single counts, bounds 2/150 and 8/287)"; "$PY" -B /scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/count_runaways.py --x $B/fetched/x --output $B/RUNAWAYS_m$S.json
+echo "== DERIVED rule (amendment 1108Z)"; "$PY" -B ../cfix/derived_v3.py --step $S --calibration --read $B/fetched/x/ITEMS.jsonl --manifest-s1 $B/dev-S1_MANIFEST.json --manifest-r0 $B/R0-dev_MANIFEST.json --x $B/fetched/x --export-receipt $B/runs/6ed2c7aa/m$S/artifact.json --output $B/R1_${S}_DERIVED.json
+echo "== split"; "$PY" -B ../split/split.py --x $B/fetched/x --label R1m$S --out $B/SPLIT_R1m$S.json
+echo "== relative size"; "$PY" -B ../split/relsize.py --x $B/fetched/x | tee $B/RELSIZE_m$S.json
+echo "== artifact"; sha256sum $B/runs/6ed2c7aa/m$S/artifact.json
+echo "== done $(date -u +%TZ)"
+} 2>&1 | tee -a $LOG

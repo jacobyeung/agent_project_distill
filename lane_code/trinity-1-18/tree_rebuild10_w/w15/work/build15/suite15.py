@@ -12,7 +12,7 @@ assert shutil.disk_usage('/scratch').free>=85*1024**3
 assert sum(p.stat().st_size for p in L.rglob('*') if p.is_file() and not p.is_symlink())+sum((T/n).stat().st_size for n in files)<1_500_000_000
 for name in files:
     q=tree/name;q.parent.mkdir(parents=True,exist_ok=True);q.write_bytes((T/name).read_bytes())
-for rel in ('work/base','work/build15/inputs'):
+for rel in ('work/base','work/build15/inputs','work/build_n1/inputs'):
     q=F/rel;q.parent.mkdir(parents=True,exist_ok=True)
     if not q.exists():q.symlink_to(L/rel,target_is_directory=True)
 assert inventory(tree)==files

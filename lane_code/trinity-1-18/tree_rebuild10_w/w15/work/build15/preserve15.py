@@ -32,9 +32,9 @@ unavailable={
 records={}
 for name,missing in unavailable.items():
     assert not Path(missing).exists(),missing
-    root=old/'proofs'/name
+    root=old/'proofs'/dict(native_builder='builder',recompose='composition').get(name,name)
     driver=old/(name+'14.py')
-    if name=='depth_sweep':root=L/'work/build12/proofs/depth_sweep';driver=L/'work/build12/depth_sweep.py'
+    if name=='depth_sweep':root=L/'work/build12/proofs/depth_sweep';driver=L/'work/build12/sweep.py'
     records[name]={'status':'not rerun: input absent ('+missing+')','build15_pass':False,
         'historical_files':{str(p.relative_to(L)):sha(p) for p in root.glob('*.json')},
         'driver':str(driver.relative_to(L)),'driver_sha256':sha(driver) if driver.exists() else None}
@@ -49,6 +49,9 @@ for name,missing in unavailable.items():
         records[name].update(inherited_result_qualified=False,
             reason='Historical record retained; complete source/runner binding unavailable, so no transferred qualification.')
     records[name]['fixture_binding']='All bound fixtures and local inputs equal build 14; missing external bytes remain unverified and their pins are unchanged.'
+    prior_driver=L.parent/'w14'/driver.relative_to(L)
+    records[name]['runner_unchanged']=driver.exists() and prior_driver.exists() and sha(driver)==sha(prior_driver)
+    records[name]['inherited_result_qualified'] &= records[name]['runner_unchanged']
     destination=B/'proofs'/name;destination.mkdir(parents=True,exist_ok=True)
     (destination/'NOT_RERUN.json').write_text(json.dumps(records[name],indent=2))
 value=dict(base14_seal=base['tree_sha256'],changed_existing=changed,unchanged_source_hashes=stable,

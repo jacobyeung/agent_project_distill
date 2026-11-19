@@ -1,0 +1,9 @@
+58a59,60
+> # Amendment C1: leg R1 continues from step 200 as run 6ed2c7aa (C'); the decision run is keyed by step.
+> R1_RUNS = {100: '673bc60f', 200: '673bc60f', 400: '6ed2c7aa', 600: '6ed2c7aa', 800: '6ed2c7aa'}
+309,310c311,312
+<     if not calibration and (mS['run_id'] != R1_RUN or mS['step'] != step):
+<         refuse('decision read is not of run %s at step %d' % (R1_RUN, step))
+---
+>     if not calibration and (mS['run_id'] != R1_RUNS.get(step) or mS['step'] != step):
+>         refuse('decision read is not of run %s at step %d' % (R1_RUNS.get(step), step))

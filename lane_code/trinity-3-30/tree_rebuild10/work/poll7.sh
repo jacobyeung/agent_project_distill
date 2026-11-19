@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls | grep tr10; tail -c 1500 $W/w16/work/build16/STATUS.md 2>/dev/null; ls $W/w16/out | grep -i 16; free -g | sed -n 2p; df -BG --output=avail /scratch | tail -1; du -sh $W/w16

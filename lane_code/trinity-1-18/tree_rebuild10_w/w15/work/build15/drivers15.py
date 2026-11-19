@@ -8,3 +8,6 @@ s=s.replace('"B=L/\'work/build14\'"','"B=L/\'work/build15\'"')
 s=s.replace("(B/'proofs',L/'work/build13/proofs',L/'work/build12/proofs')","(B/'proofs',L/'work/build14/proofs',L/'work/build13/proofs',L/'work/build12/proofs')")
 s=s.replace("str(B/'coverage14.py')","str(B/'coverage15.py')")
 (B/'coverage15.py').write_text(s)
+for name,source in [('ground_runtime','proof_ground_runtime'),('verify_route','verify_route')]:
+    s=(L/f'work/build12/{source}.py').read_text().replace('work/build12','work/build15')
+    (B/f'{name}15.py').write_text(s)

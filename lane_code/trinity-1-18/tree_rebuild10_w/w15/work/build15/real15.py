@@ -11,7 +11,7 @@ E=Path('/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/r1_ops/work')
 paths={k:E/folder/'out/config.json' for k,folder in [('A','snap_fac07052'),('C','snap_6a5c7d00')]}
 paths['Cprime']=Path('/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_configs/cprime_31abe087.json')
 pins={'A':'9fd188164999788af36d5c6563d47b30351182ce68962b33703995c6ae45b0bb',
-      'C':'2152828974490944a1713f5a539e87211f80179f0b5f9254ea9966fc65788733','Cprime':'31abe0871f35f9ca'}
+      'C':'2152828974490944a1713f5a539e87211f80179f0b5f9254ea9966fc65788733','Cprime':'31abe0871f35f9ca8d4a6445c5ee95ac03ec2324d37273e6b1f508acdbf246a1'}
 prep=E/'adm171377/prepare_9b0c4b095487492a80bd5e9030d5bbc0/prepared/receipt.json'
 old=load(L/'work/build14/proofs/real/RESULT.json')
 assert file_pin(prep)['sha256']==old['preparation']['sha256']
@@ -22,7 +22,7 @@ def compare(a,b):
     except ValueError as e:return str(e)
 out={'N':file_pin(B/'inputs/kit_config.json'),'preparation':file_pin(prep),'parent_replica':file_pin(parent),'real':{},'refuse':{}}
 for name,path in paths.items():
-    assert file_pin(path)['sha256'].startswith(pins[name])
+    assert file_pin(path)['sha256']==pins[name]
     p=load(path);actual=compare(p,cfg);assert actual=='ADMIT',actual
     identity=H.export_identity(p)
     out['real'][name]={'config':file_pin(path),'config_identity':identity,'result':actual,

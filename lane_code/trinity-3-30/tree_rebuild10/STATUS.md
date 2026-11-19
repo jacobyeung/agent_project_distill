@@ -9,10 +9,16 @@ W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (1.6 GB of 14). Syml
 - Rebuilt in W: w9f, w12, w13, w14 = fresh untars of mirror packages; w15 = untar b14; W/work, W/prompts = clone copies (lane scripts); W/clone/{tree_rebuild_w,review_treen1,review_tree11}; W/inputs/{p_configs,records,m100}; W/ext/r1_ops/work/{snap_fac07052,snap_6a5c7d00,adm171377(+prepared/receipt.json 49caeb70 read from Orchard 00:03Z)}.
 - Orchard 00:03Z: 172660 (C') RUNNING since 22:20:33Z; runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820 exists (runtime config not yet read).
 
+## Done
+- Build 15 CONFIRMED 00:33Z (RESULT events/tree_rebuild/20261119T0033Z_RESULT_build15.md): package W/w15/out/tree_rebuild_b15_67f8baf1.tar 96,911,843 B sha256 5a133c2ec16b3b2afb0230fb62e7c11810eedea1a84791e05c1b722a20f15fa2; seal 67f8baf14b966a15b7d7a0efe64fc375632daee45d94f113f7b82f77d8a11480 (922 files) equal on W/w15 and W/work/conf15/pkg. Confirmation W/work/conf15 (cf15.sh, batch.log, *.log, N3_VARIANTS_C3.json): A/C/C' admit, refuse set by name, focused 62/62, n1r/n1c/t4/l2 as before; m1 not rerun (inputs lost). Kits a2 befc7f79 / a0 f69e4c7e / r1 71e989b5 (GO=false).
+- Mirror: events/tree_rebuild/ops_mirror/tr10_b15_core_67f8baf1.tgz (43baa6b0; tree+report+kits/r1+real proof) and tr10_scripts_b15.tar (2660878d; lane scripts, prompts, inputs). Full package only on trinity-1-18 (3-30 at 105 GB; 1-18 governor agent silent).
+- Handover file list RESULT to r1_ops6: events/r1_ops/20261119T0032Z_RESULT_tree_rebuild10_handover_file_list_m400_m600.md (default by 02:00Z: r1_ops6 does items 1-5 at m400 and m600). Watch events/r1_ops for its answer and its export RESULTs (ORDER 0014Z, to events/cont_ops).
+- Design record header Status + INDEX line updated to build 15.
+
 ## Running
-- Codex build 15 (gpt-6-astra high), tmux tr10_b15 on trinity-1-18, dispatched 23:56Z, prompt W/prompts/build15.md (repointed to W/ext; adds C' 31abe087 as third real config), workspace W/w15, log W/work/build15_dispatch.log, receipt codex_runs/*_tree_rebuild15 (newest). Poll every 10 min.
+- Codex build 16 (gpt-6-astra high), tmux tr10_b16 on trinity-1-18, dispatched 00:29Z, prompt W/prompts/build16.md, workspace W/w16 (= b15 package), log W/work/build16_dispatch.log, receipt codex_runs/*_tree_rebuild16, status W/w16/work/build16/STATUS.md, report W/w16/out/BUILD16_REPORT.md. Poll every 10 min. Expected checks on end: census VQA ~185,9xx (203,806 minus z.json overlap), counting 2,617 procedure form, totals 0; slices recovery ~777, distance ~7,805, units ~8,067 minus K1 hits; card counting 10.46 / totals 0 / direction 36.69; 20 traces per family for me to read (proofs/traces/).
 
 ## Next
-2. Build 15 ends: seal recompute, sha, mirror (ops_mirror if <100 MB + n30_mirror), confirm: real15 A/C/C' admit, refuse set by name, conf13/s + t11 refute scripts repointed; RESULT build15.
-3. Bind rows (build 16 prompt to draft while b15 runs): full distance pool aedd3b54 + merged receipt 2c622905, recovery v3 994, units 8,577, remove n.json + z.json, card counting 10.46/totals 0/freed to direction (C' cells), weight_scale 0.04; producer + composition + loader audit on real stores.
-4. Handover file list with r1_ops6 (RESULT in events/r1_ops). 5. Proof QUESTION for GO. 6. One review.
+- Build 16 ends: seal, sha, mirror (core tgz <20 MB to ops_mirror), own rerun of its census/plan/guard/mutations + read 20 traces per family; RESULT build16.
+- Step 5: proof QUESTION with packet (needs C' m400 files from r1_ops6, ~08:30Z). Step 6: one Codex review (gpt-6-astra high, review preset, read-only) on the final kit.
+- Rotate by 05:20Z (brief: 5.5 h after 23:50Z start).

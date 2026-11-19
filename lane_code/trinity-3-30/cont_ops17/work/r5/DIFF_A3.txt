@@ -1,0 +1,57 @@
+=== A: old token d72cdcff1e22a -> new token c0fdd959a6eb5
+--- old/0.json
++++ new/0.json
+@@ -2,4 +2,4 @@
+-  "payload_bytes": 5252975,
+-  "payload_sha256": "a74371ce0554bb0b27c98d2141350bd2a1f1e24dee2879f04b102a6b88e49c37",
+-  "plan_sha256": "f759dae2934b231f3f7728354940e6ca16a27cca27f049b5bf415416a8e1f590",
+-  "token": "d72cdcff1e22a"
++  "payload_bytes": 5252957,
++  "payload_sha256": "13927d6a054e3b526ff3134c658b89620a0300a5c4bc7a24bb3a03a0ffa90fa5",
++  "plan_sha256": "d3a22029d4f66ef1264562cb99bc355995fba5ca2c422061f2f8358c6469713c",
++  "token": "c0fdd959a6eb5"
+--- payload 9.json (single-line JSON; only differing span)
+-'5afb115dd3073fa6ce1934237d"}, "token": "d72cdcff1e22a"}'
++'5afb115dd3073fa6ce1934237d"}, "token": "c0fdd959a6eb5"}'
+payload members changed: ['9.json']
+--- old/BATCH.sh
++++ new/BATCH.sh
+@@ -9 +9 @@
+-r=Path('/tmp')/('a'+j+'d72cdcff1e22a')
++r=Path('/tmp')/('a'+j+'c0fdd959a6eb5')
+--- old/CONFIG.json
++++ new/CONFIG.json
+@@ -2,4 +2,4 @@
+-  "payload_bytes": 5252975,
+-  "payload_sha256": "a74371ce0554bb0b27c98d2141350bd2a1f1e24dee2879f04b102a6b88e49c37",
+-  "plan_sha256": "f759dae2934b231f3f7728354940e6ca16a27cca27f049b5bf415416a8e1f590",
+-  "token": "d72cdcff1e22a"
++  "payload_bytes": 5252957,
++  "payload_sha256": "13927d6a054e3b526ff3134c658b89620a0300a5c4bc7a24bb3a03a0ffa90fa5",
++  "plan_sha256": "d3a22029d4f66ef1264562cb99bc355995fba5ca2c422061f2f8358c6469713c",
++  "token": "c0fdd959a6eb5"
+--- old/PACKAGE.json
++++ new/PACKAGE.json
+@@ -3,2 +3,2 @@
+-    "0.json": "da850f5e1ae4aafd4d70c08349b8776cf27f30327c512686ad199c772f2b4fdd",
+-    "0.tgz": "a74371ce0554bb0b27c98d2141350bd2a1f1e24dee2879f04b102a6b88e49c37",
++    "0.json": "18e87dc88346adf36180dd948908285a191eecff0e0b016828a2a0b342953e4c",
++    "0.tgz": "13927d6a054e3b526ff3134c658b89620a0300a5c4bc7a24bb3a03a0ffa90fa5",
+@@ -6,2 +6,2 @@
+-    "BATCH.sh": "c551e33c26bd35d117f59bdf5cda2e023a414daacea5484f7955dadc52962d76",
+-    "CONFIG.json": "da850f5e1ae4aafd4d70c08349b8776cf27f30327c512686ad199c772f2b4fdd",
++    "BATCH.sh": "bb623d3575d8babadcd774e0d5ff30b1f88bed5f9a48009b2db13db774ac8a40",
++    "CONFIG.json": "18e87dc88346adf36180dd948908285a191eecff0e0b016828a2a0b342953e4c",
+@@ -9 +9 @@
+-    "a/4.py": "178a5d4aa398108a6ab11d2f423d83777a8d0b61bdfe232a73053009713f5bb3",
++    "a/4.py": "671fb919e8bef77fe62060d7ea50753fe265e1c5d544a46750ebd53a52c34134",
+@@ -14 +14 @@
+-  "token": "d72cdcff1e22a"
++  "token": "c0fdd959a6eb5"
+--- old/a/4.py
++++ new/a/4.py
+@@ -209,2 +209,2 @@
+-    inputs['archives'][4]=dict(destination=archive['destination'],parts=[prep_archive],
+-                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values())))
++    inputs['archives'].append(dict(destination=archive['destination'],parts=[prep_archive],
++                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values()))))

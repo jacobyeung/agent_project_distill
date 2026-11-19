@@ -1,0 +1,176 @@
+diff -ru h1read/kit/launcher/binding.py h1read7/kit/launcher/binding.py
+--- h1read/kit/launcher/binding.py	2026-11-17 23:51:28.312650134 -0500
++++ h1read7/kit/launcher/binding.py	2026-11-18 19:55:32.767255467 -0500
+@@ -4,9 +4,9 @@
+ 
+ NAMESPACE='8865619b'
+ RUNS={'359fcc3c':'x_f5c353f7','17c4ffa4':'x_3fdda0fb','469ddece':'x_07ca49df',
+-      '673bc60f':'x_69d2930d','05b8ac69':'x_7f1589c1'}
++      '673bc60f':'x_69d2930d','05b8ac69':'x_7f1589c1','6ed2c7aa':'x_ee227714'}
+ STOPS=('mstop','mstopB','mstopC')
+-R1_RANGES={'673bc60f':(1,200),'05b8ac69':(201,600)}
++R1_RANGES={'673bc60f':(1,200),'05b8ac69':(201,600),'6ed2c7aa':(201,600)}
+ 
+ def r1_step(run, step):
+     return (run in R1_RANGES and type(step) is int
+@@ -16,8 +16,10 @@
+     if (namespace!=NAMESPACE or run not in RUNS or type(step) is not int
+             or (run=='469ddece' and (step!=544 or generation!='mstop'))):
+         raise ValueError('Unregistered export identity')
++    if run=='6ed2c7aa' and generation is not None:
++        raise ValueError('Unregistered stop generation')
+     if generation is None:
+-        milestones=(400,600) if run=='05b8ac69' else (100,200)
++        milestones=(400,600) if run in ('05b8ac69','6ed2c7aa') else (100,200)
+         if step not in milestones:raise ValueError('Unregistered milestone')
+         generation='m'+str(step)
+     elif run!='469ddece' and (generation not in STOPS or not
+--- h1read/tests/test_fix6.py	2026-11-17 23:51:28.351653239 -0500
++++ h1read7/tests/test_fix6.py	2026-11-18 19:56:44.598998585 -0500
+@@ -158,7 +158,7 @@
+             milestones = (100,200) if run == '673bc60f' else (400,600)
+             for step in range(-1,802):
+                 for gen in (None, *B.STOPS, 'mstopD', 'm100', 'm400', ''):
+-                    allowed = step in milestones if gen is None else gen in B.STOPS and low <= step <= high
++                    allowed = step in milestones if gen is None else gen in B.STOPS and low <= step <= high and run != '6ed2c7aa'
+                     if allowed:
+                         bound = B.expected(run, step, gen)
+                         self.assertEqual(B.validate(bound), bound)
+diff -ru h1face/kit/launcher/binding.py h1face7/kit/launcher/binding.py
+--- h1face/kit/launcher/binding.py	2026-11-17 23:51:28.312650134 -0500
++++ h1face7/kit/launcher/binding.py	2026-11-18 19:55:32.768255546 -0500
+@@ -4,9 +4,9 @@
+ 
+ NAMESPACE='8865619b'
+ RUNS={'359fcc3c':'x_f5c353f7','17c4ffa4':'x_3fdda0fb','469ddece':'x_07ca49df',
+-      '673bc60f':'x_69d2930d','05b8ac69':'x_7f1589c1'}
++      '673bc60f':'x_69d2930d','05b8ac69':'x_7f1589c1','6ed2c7aa':'x_ee227714'}
+ STOPS=('mstop','mstopB','mstopC')
+-R1_RANGES={'673bc60f':(1,200),'05b8ac69':(201,600)}
++R1_RANGES={'673bc60f':(1,200),'05b8ac69':(201,600),'6ed2c7aa':(201,600)}
+ 
+ def r1_step(run, step):
+     return (run in R1_RANGES and type(step) is int
+@@ -16,8 +16,10 @@
+     if (namespace!=NAMESPACE or run not in RUNS or type(step) is not int
+             or (run=='469ddece' and (step!=544 or generation!='mstop'))):
+         raise ValueError('Unregistered export identity')
++    if run=='6ed2c7aa' and generation is not None:
++        raise ValueError('Unregistered stop generation')
+     if generation is None:
+-        milestones=(400,600) if run=='05b8ac69' else (100,200)
++        milestones=(400,600) if run in ('05b8ac69','6ed2c7aa') else (100,200)
+         if step not in milestones:raise ValueError('Unregistered milestone')
+         generation='m'+str(step)
+     elif run!='469ddece' and (generation not in STOPS or not
+--- h1face/tests/test_fix6.py	2026-11-18 16:17:15.161860016 -0500
++++ h1face7/tests/test_fix6.py	2026-11-18 19:56:48.069275970 -0500
+@@ -159,7 +159,7 @@
+             milestones = (100,200) if run == '673bc60f' else (400,600)
+             for step in range(-1,802):
+                 for gen in (None, *B.STOPS, 'mstopD', 'm100', 'm400', ''):
+-                    allowed = step in milestones if gen is None else gen in B.STOPS and low <= step <= high
++                    allowed = step in milestones if gen is None else gen in B.STOPS and low <= step <= high and run != '6ed2c7aa'
+                     if allowed:
+                         bound = B.expected(run, step, gen)
+                         self.assertEqual(B.validate(bound), bound)
+diff -ru h1vsti/kit/launcher/binding.py h1vsti7/kit/launcher/binding.py
+--- h1vsti/kit/launcher/binding.py	2026-11-17 23:06:48.000000000 -0500
++++ h1vsti7/kit/launcher/binding.py	2026-11-18 19:55:32.768255546 -0500
+@@ -4,9 +4,9 @@
+ 
+ NAMESPACE='8865619b'
+ RUNS={'359fcc3c':'x_f5c353f7','17c4ffa4':'x_3fdda0fb','469ddece':'x_07ca49df',
+-      '673bc60f':'x_69d2930d','05b8ac69':'x_7f1589c1'}
++      '673bc60f':'x_69d2930d','05b8ac69':'x_7f1589c1','6ed2c7aa':'x_ee227714'}
+ STOPS=('mstop','mstopB','mstopC')
+-R1_RANGES={'673bc60f':(1,200),'05b8ac69':(201,600)}
++R1_RANGES={'673bc60f':(1,200),'05b8ac69':(201,600),'6ed2c7aa':(201,600)}
+ 
+ def r1_step(run, step):
+     return (run in R1_RANGES and type(step) is int
+@@ -16,8 +16,10 @@
+     if (namespace!=NAMESPACE or run not in RUNS or type(step) is not int
+             or (run=='469ddece' and (step!=544 or generation!='mstop'))):
+         raise ValueError('Unregistered export identity')
++    if run=='6ed2c7aa' and generation is not None:
++        raise ValueError('Unregistered stop generation')
+     if generation is None:
+-        milestones=(400,600) if run=='05b8ac69' else (100,200)
++        milestones=(400,600) if run in ('05b8ac69','6ed2c7aa') else (100,200)
+         if step not in milestones:raise ValueError('Unregistered milestone')
+         generation='m'+str(step)
+     elif run!='469ddece' and (generation not in STOPS or not
+diff -ru h1vsti/kit/launcher/orchard_launcher.py h1vsti7/kit/launcher/orchard_launcher.py
+--- h1vsti/kit/launcher/orchard_launcher.py	2026-11-18 04:45:23.000000000 -0500
++++ h1vsti7/kit/launcher/orchard_launcher.py	2026-11-18 19:47:19.594840143 -0500
+@@ -152,7 +152,7 @@
+         raise ValueError('Invalid family selection')
+     if 'r6' in families:
+         if families != ['r6'] or (bound['run'], bound['step'], bound['generation']) not in (
+-                ('469ddece', 544, 'mstop'), ('673bc60f', 200, 'm200')):
++                ('469ddece', 544, 'mstop'), ('673bc60f', 200, 'm200'), ('6ed2c7aa', 400, 'm400'), ('6ed2c7aa', 600, 'm600')):
+             raise ValueError('Unregistered r6 identity; require r6 alone at an admitted boundary')
+     elif bound['run'] == '469ddece' and families != ['a7']:
+         raise ValueError('Step-544 read requires a7 only (or the separate r6 read)')
+--- h1vsti/tests/test_fix6.py	2026-11-18 04:50:07.000000000 -0500
++++ h1vsti7/tests/test_fix6.py	2026-11-18 19:56:59.180164079 -0500
+@@ -161,7 +161,7 @@
+             milestones = (100,200) if run == '673bc60f' else (400,600)
+             for step in range(-1,802):
+                 for gen in (None, *B.STOPS, 'mstopD', 'm100', 'm400', ''):
+-                    allowed = step in milestones if gen is None else gen in B.STOPS and low <= step <= high
++                    allowed = step in milestones if gen is None else gen in B.STOPS and low <= step <= high and run != '6ed2c7aa'
+                     if allowed:
+                         bound = B.expected(run, step, gen)
+                         self.assertEqual(B.validate(bound), bound)
+--- h1vsti/vsti_summary.py	2026-11-18 04:47:37.000000000 -0500
++++ h1vsti7/vsti_summary.py	2026-11-18 19:55:32.768255546 -0500
+@@ -25,7 +25,7 @@
+     binding = spec['export_binding']
+     identity = (binding['run'], spec['step'], binding['generation'])
+     if spec['families'] != ['r6'] or identity not in (
+-            ('469ddece',544,'mstop'), ('673bc60f',200,'m200')):
++            ('469ddece',544,'mstop'), ('673bc60f',200,'m200'), ('6ed2c7aa',400,'m400'), ('6ed2c7aa',600,'m600')):
+         raise ValueError('Unregistered read identity')
+     pin = hashlib.sha256(json.dumps(registration, sort_keys=True).encode()).hexdigest()
+     if spec.get('r6_sha256') != pin or binding['step'] != spec['step']:
+@@ -91,8 +91,9 @@
+         pooled=level(rows), capture_sha256=json.loads((ROOT/'kit/launcher/R6.json').read_text())['capture_sha256'])
+     if base is not None:
+         previous = load_read(base)
+-        if current['identity'] != ('673bc60f',200,'m200') or previous['identity'] != ('469ddece',544,'mstop'):
+-            raise ValueError('Pair requires run 673bc60f m200 minus run 469ddece mstop/544')
++        if (current['identity'] not in (('673bc60f',200,'m200'), ('6ed2c7aa',400,'m400'), ('6ed2c7aa',600,'m600'))
++                or previous['identity'] != ('469ddece',544,'mstop')):
++            raise ValueError('Pair requires an R1 milestone read (673bc60f m200, 6ed2c7aa m400/m600) minus run 469ddece mstop/544')
+         if set(current['rows']) != set(previous['rows']):raise ValueError('Paired item sets differ')
+         base_rows = list(previous['rows'].values())
+         report['base'] = dict(read=previous['path'], items_sha256=previous['items_sha256'], identity=previous['identity'])
+--- h1face/face.py	2026-11-18 17:11:01.897593679 -0500
++++ h1face7/face.py	2026-11-18 19:55:32.768255546 -0500
+@@ -21,7 +21,10 @@
+     m = re.search(r"'%s\. ([^']*)'" % re.escape(str(letter or '')), str(r.get('options')))
+     return m.group(1) if m else None
+ a = argparse.ArgumentParser(); a.add_argument('--x', required=True); a.add_argument('--out'); a = a.parse_args()
+-out = {}; lines = []
++import os
++STEP = json.load(open(os.path.join(a.x, 'SPEC.json')))['step'] if os.path.exists(os.path.join(a.x, 'SPEC.json')) else None
++LABEL = ('m%d' % STEP) if STEP else 'read'
++out = {'export_step': STEP}; lines = []
+ for fam in ('away', 'forward'):
+     b = rows(BASE % (fam, fam)); e = rows('%s/%s/a0/results/budget_2048/0/items_a0.jsonl' % (a.x, fam))
+     assert set(b) == set(e) and len(b) == 150, (fam, len(b), len(e), len(set(b) ^ set(e)))
+@@ -38,9 +41,9 @@
+             r['back_share_544'] = round(100 * sum('back' in (opt_text(b[i], b[i].get('extracted_answer')) or '') for i in ids) / len(ids), 1)
+             r['back_share_truth'] = round(100 * sum('back' in (opt_text(b[i], b[i]['ground_truth']) or '') for i in ids) / len(ids), 1)
+         out['%s/%s' % (fam, band)] = r
+-        lines.append('%-8s %-6s n%4d r%3d  544 %6.2f  m200 %6.2f  d %+6.2f 95%% [%+.2f,%+.2f] H1 [%+.2f,%+.2f]%s' % (
+-            fam, band, r['n'], r['rooms'], r['base'], r['export'], r['delta'], *r['ci95'], *r['ci_h1'],
+-            ('  back: m200 %.1f%% 544 %.1f%% truth %.1f%%' % (r['back_share_export'], r['back_share_544'], r['back_share_truth'])) if fam == 'away' else ''))
++        lines.append('%-8s %-6s n%4d r%3d  544 %6.2f  %s %6.2f  d %+6.2f 95%% [%+.2f,%+.2f] H1 [%+.2f,%+.2f]%s' % (
++            fam, band, r['n'], r['rooms'], r['base'], LABEL, r['export'], r['delta'], *r['ci95'], *r['ci_h1'],
++            ('  back: %s %.1f%% 544 %.1f%% truth %.1f%%' % (LABEL, r['back_share_export'], r['back_share_544'], r['back_share_truth'])) if fam == 'away' else ''))
+ out['facing_gate_passes_95'] = out['away/all']['ci95'][0] > 0
+ out['toward_protected_holds_H1'] = out['forward/all']['ci_h1'][1] < 0
+ print('\n'.join(lines)); print('facing gate (away rises, 95%% interval above zero): %s | toward protected outcome holds (H1 interval wholly below zero): %s' % (out['facing_gate_passes_95'], out['toward_protected_holds_H1']))

@@ -67,8 +67,8 @@ extra=L/'work/build15'
 for p in extra.rglob('*'):
     if not p.is_file() or p.is_symlink():continue
     rel=p.relative_to(extra)
-    if str(rel) in ('DELIVERY.json','proofs/integrity/RESULT.json'):continue
-    if set(rel.parts)&{'mutant','frozen','kits'}:continue
+    if str(rel) in ('DELIVERY.json','FINAL_RUNS.json','proofs/integrity/RESULT.json'):continue
+    if set(rel.parts)&{'mutant','frozen','kits','retained_kits_attempt'}:continue
     if p.suffix in ('.py','.sh','.json','.md') and p.stat().st_size<30_000_000:members.append(p)
 
 members.extend(p for p in (L/'out').glob('*.md'))

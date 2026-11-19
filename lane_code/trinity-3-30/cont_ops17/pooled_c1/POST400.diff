@@ -1,0 +1,24 @@
+2,4c2,4
+< # cont_ops16 rebuild of post200: TOK=<token> STEP=<200>; fetch, unpack, pool move, registered rule (decision, ledger) via post_r1.sh,
+< # DERIVED rule (amendment 1108Z), counting split, relative size; log kit/build/<tok>/POST200.log
+< set -uo pipefail; cd /scratch/jjyeung/orch_n30/cont_ops/work/h1read
+---
+> # cont_ops17 post400 (fix-7 kit, run 6ed2c7aa): TOK=<token> STEP=<400>; fetch, unpack, pool move, registered rule (decision, ledger) via post_r1_c.sh,
+> # DERIVED rule (amendment 1108Z), counting split, relative size; log kit/build/<tok>/POST400.log
+> set -uo pipefail; cd /scratch/jjyeung/orch_n30/cont_ops/work/h1read7
+7c7,8
+< T=${TOK:?}; S=${STEP:-200}; B=$PWD/kit/build/$T; LOG=$B/POST200.log
+---
+> T=${TOK:?}; S=${STEP:-400}; B=$PWD/kit/build/$T; LOG=$B/POST400.log
+> test -s /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/pooled_rule/REGISTERED_POOLED_RULE_R1_AMENDMENT_C1.md || { echo "REFUSED: amendment C1 not registered; no step-$S output is opened"; exit 7; }
+13,14c14,16
+< echo "== registered rule (decision mode, ledger)"; STEP=$S TOK=$T bash post_r1.sh
+< echo "== DERIVED rule (amendment 1108Z)"; "$PY" -B ../cfix/derived_v3.py --step $S --read $B/fetched/x/ITEMS.jsonl --manifest-s1 $B/dev-S1_MANIFEST.json --manifest-r0 $B/R0-dev_MANIFEST.json --x $B/fetched/x --export-receipt $B/runs/673bc60f/m$S/artifact.json --output $B/R1_${S}_DERIVED.json
+---
+> echo "== registered rule (decision mode, ledger)"; STEP=$S TOK=$T bash post_r1_c.sh
+> echo "== runaway repair test (single counts, bounds 2/150 and 8/287)"; "$PY" -B /scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/count_runaways.py --x $B/fetched/x --output $B/RUNAWAYS_m$S.json
+> echo "== DERIVED rule (amendment 1108Z)"; "$PY" -B ../cfix/derived_v3.py --step $S --calibration --read $B/fetched/x/ITEMS.jsonl --manifest-s1 $B/dev-S1_MANIFEST.json --manifest-r0 $B/R0-dev_MANIFEST.json --x $B/fetched/x --export-receipt $B/runs/6ed2c7aa/m$S/artifact.json --output $B/R1_${S}_DERIVED.json
+17c19
+< echo "== artifact"; sha256sum $B/runs/673bc60f/m$S/artifact.json
+---
+> echo "== artifact"; sha256sum $B/runs/6ed2c7aa/m$S/artifact.json
