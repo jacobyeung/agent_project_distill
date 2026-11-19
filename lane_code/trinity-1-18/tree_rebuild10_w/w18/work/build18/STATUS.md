@@ -1,0 +1,1 @@
+Build 18: GO=false. Mode q reaches native preparation but the parent component evidence is missing. The pinned v7 K1 list and room census are complete; see proofs/rooms/RESULT.json. Final checks remain.

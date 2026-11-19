@@ -62,3 +62,5 @@ Lane folder /scratch/jjyeung/orch_n30/r1_ops6. Events .../orch_n30/events/r1_ops
 - QUESTION 0210Z (r1_ops + tree_rebuild): A checkpointed at steps 1, 51, 105, 160, 200 only (2-h clock + stop), exports at 100 and 200 -> C' likely has no step-400 checkpoint; default: pin latest checkpoint, receipt expected to refuse at m400; m600 unaffected.
 - Monitors: tmux r1mon6 (pool, 600 s) and tmux r7node (work/r7/monnode.sh: node-local steps via srun every work/mon/sleep2 = 300 s; mon/node_last.txt, node_hist.txt, node_early.json; stop file mon/stop2).
 - m400 ETA ~09:20Z (step 207 at ~02:07Z, 155 s/step trending to ~133).
+- 02:25Z monitors lengthened: node 300 -> 600 s, pool 600 s; steps 207-211 at 155-143 s/step, early_cp PASS each check. ORCH RULING 0209Z: m400 default (a) + export-only receipt zip from tree_rebuild10 when posted; diff list rehearsal vs m600 plan before step 500.
+- 03:05Z export-only receipt (build 17) staged okh7/h_6ed2c7aa/q3_846ead7a.zip 346c4cba; rehearsed in allocation; hr.sh now a13eba5c (handover + export-only at 400; handover at 600). RESULT 0305Z.

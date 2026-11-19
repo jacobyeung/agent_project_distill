@@ -1,5 +1,5 @@
 from pathlib import Path
-import sys,json,hashlib
+import sys,json,hashlib,os
 L=Path(__file__).resolve().parents[2];B=L/'work/build17';I=B/'inputs';I.mkdir(exist_ok=True)
 sys.path.insert(0,str(L/'work/tree_r1'))
 from student_pilot.p3_provenance import file_pin,load
@@ -26,7 +26,7 @@ for key,name in paths.items():
     raw=(L.parent/name).read_bytes();assert hashlib.sha256(raw).hexdigest()==AUTHORITY[key]
     p=I/(AUTHORITY[key]+'.json');p.write_bytes(raw);pins[key]=file_pin(p)
 cfg['r1_training']['room_authority']=pins
-if (I/'room_audit.json').exists():
+if (I/'room_audit.json').exists() and not os.environ.get('B17_RECOUNT'):
     audit=load(I/'room_audit.json')
     hits=[json.loads(line) for line in (I/'s.json').read_text().splitlines()]
 else:
@@ -39,6 +39,7 @@ cfg['remove_files']=[file_pin(I/'s.json') if p['sha256']==hashlib.sha256(prior).
 audit['remove_files']=cfg['remove_files']
 audit['authority']=pins
 audit['row_sources']=cfg['r1_training']['row_sources']
+audit['store']['certification']=pins['build']
 pin=save(I/'room_audit.json',audit)
 cfg['r1_training']['room_audit']=pin
 verify_audit(cfg,pin)

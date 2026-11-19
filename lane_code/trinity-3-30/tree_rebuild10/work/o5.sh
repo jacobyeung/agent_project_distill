@@ -1,0 +1,1 @@
+P=/project/community/jjyeung/okh7/x_ee227714/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared; cd $P && ls -la; for f in routing_scene_indices.json pose_scene_order.json pointing_scene_indices.json pose_mix_order.json; do echo "== $f"; head -c 600 $f; echo; done

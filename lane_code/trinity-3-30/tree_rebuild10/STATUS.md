@@ -1,5 +1,5 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-19T02:15Z by tree_rebuild10 (Devin Opus high; session trinity-3-30, work trinity-1-18; started 23:50Z 11-18; rotate by 05:20Z). Predecessor tree_rebuild9 lost with trinity-1-3 (11:29Z); its last STATUS = W/work/STATUS_tree_rebuild9.md.
+Updated: 2026-11-19T03:01Z by tree_rebuild10 (Devin Opus high; session trinity-3-30, work trinity-1-18; started 23:50Z 11-18; rotate by 05:20Z). Predecessor tree_rebuild9 lost with trinity-1-3 (11:29Z); its last STATUS = W/work/STATUS_tree_rebuild9.md.
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (1.6 GB of 14). Symlink on trinity-1-18: /scratch/jjyeung/orch_n30/tree_rebuild_w -> W (old absolute paths in build 9-14 evidence resolve). Session folder trinity-3-30:/scratch/jjyeung/orch_n30/tree_rebuild10 (scripts, small bundles; 3-30 /scratch 106 GB free: write nothing big there).
 
 ## Inventory (step 1, 23:52-00:00Z)
@@ -22,8 +22,13 @@ W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (1.6 GB of 14). Syml
 - C' runtime config ADMITs (RESULT 0204Z): W/inputs/p_runtime/ (config b08fe50c identity 9459724f, data_receipt 03daaa0a, prepared receipt 888da8e2, s1_receipt a5bbef1b; A runtime 3b0051c4/620d5cf8 + s1 4c0dd9d6); script W/work/conf16/pkg/work/build16/rt16.py.
 - ORCH RULING 0209Z: step 400 has no checkpoint -> export-only binding (proof mode only, non-stop milestone); answered RESULT 0213Z (in build 17b).
 
+- Build 17b DONE 02:53Z, confirmed in part (RESULT 20261119T0259Z_RESULT_build17.md): W/w17b/out/tree_rebuild_b17_846ead7a.tar 84,316,012 B sha256 440a5f200d23920ab9af540129421d8d7a84d23cba8cbb04273ab32d0043a3df; seal 846ead7a30d461a51075469621a54b1723c450e1f2a51c107cb8e0b26926ed95 (930). Conf W/work/conf17. Mirror ops_mirror/tr10_b17_core_846ead7a.tgz 13e05d68. Export-only receipt usage to r1_ops7: events/r1_ops 20261119T0259Z. Stopped attempt W/w17 (ignore).
+- QUESTION 0258Z: v7 has 2,637 rows in K1 held-out rooms (119,375 unresolved); default N drops the 2,637 (build 18).
+
 ## Running
-- Codex build 17b (gpt-6-astra high), tmux tr10_b17b on trinity-1-18, dispatched 02:13Z, prompt W/prompts/build17.md (v1 stopped copy build17_v1_stopped.md; stopped attempt W/w17), workspace W/w17b (= b16 package), log W/work/build17b_dispatch.log, status W/w17b/work/build17/STATUS.md, report W/w17b/out/BUILD17_REPORT.md + EXPORT_RECEIPT_USAGE.md. Scope: room authority kit inputs; job sizing (CPU + 1 GPU); end-to-end mode-q CPU fixture (stand-in for torchvision-only processor constructors) ADMIT export-only@400 / checkpoint@600 + twins; P-side launch_r1.p_export_receipt; final operator packet.
+- Codex build 18 (gpt-6-astra high), tmux tr10_b18 on trinity-1-18, dispatched 02:58Z, prompt W/prompts/build18.md, workspace W/w18 (= b17 package; b17 full workspace W/w17b), log W/work/build18_dispatch.log, status W/w18/work/build18/STATUS.md, report W/w18/out/BUILD18_REPORT.md. Scope: ONE combined native mode-q CPU fixture ADMIT at 400 (export-only) and 600 (checkpoint) + refusal twins + tree fixes it needs; v7 K1 list (2,637) + census delta.
+- Review prompt ready: trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild10/work/bundle11/prompts/review17.md (retarget w17b -> w18 / BUILD18 before dispatch; preset review, gpt-6-astra high).
+- trinity-1-18 /scratch free 197 GB at 02:58Z and falling (other tenants); stop writing below 85 GiB.
 
 ## Next
 - Build 17b ends: seal, sha, mirror core tgz (+ post tree tgz and export-receipt usage note to events/r1_ops for r1_ops7 before m400 ~09:30Z), own rerun (focused, fixture, mutations, real); RESULT build17. Then step 6 review (Codex gpt-6-astra high review preset, read-only, final kit only) and step 5 QUESTION with packet (GO); upload route: IB tar pipe 1-18 -> 3-30 (<200 MB, df>=105) then governed upload from 3-30.

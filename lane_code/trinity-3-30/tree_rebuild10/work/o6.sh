@@ -1,0 +1,1 @@
+P=/project/community/jjyeung/okh7/x_ee227714/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820; ls -la $P/routing $P/pointing $P/vqa 2>&1 | head -20; ls -la $P/pose* 2>&1 | head; du -sh $P 2>/dev/null

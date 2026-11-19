@@ -1,0 +1,1 @@
+P=/project/community/jjyeung/okh7/x_ee227714/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820; cd $P; echo B64BEGIN; tar czf - routing/receipt.json routing/materialization.json pointing/receipt.json vqa/receipt.json parent_grounding.json | base64 -w0; echo; echo B64END; ls -la routing/pool | head

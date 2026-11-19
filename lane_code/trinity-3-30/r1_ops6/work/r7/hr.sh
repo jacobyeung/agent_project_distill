@@ -8,6 +8,7 @@ STEP=${1:?step}; [[ $STEP =~ ^(400|600)$ ]] || { echo "REFUSED: step $STEP"; exi
 O=/project/community/jjyeung/okh7; KH=$O/x_ee227714; H=$O/h_6ed2c7aa; D=$H/m$STEP; Z=$H/q2_67f8baf1.zip
 date -u +%FT%TZ
 echo "f415c69d7f8adfb6e9483c1bf53deb6f01728689f3c33806c4bda540675c4fdc  $Z" | sha256sum -c --quiet || { echo "REFUSED: zip differs"; exit 3; }
+echo "346c4cba63d5175f389c52f01451d4e5c9d30f1b7b625bd3c29f987bb4c70e9d  $H/q3_846ead7a.zip" | sha256sum -c --quiet || { echo "REFUSED: export-only zip differs"; exit 3; }
 [[ -f $KH/o/gcs_6ed2c7aa_m$STEP.done ]] || { echo "NOT_READY: $KH/o/gcs_6ed2c7aa_m$STEP.done absent (export not uploaded)"; exit 4; }
 [[ ! -e $D ]] || { echo "REFUSED: $D exists"; exit 3; }
 mkdir -m 700 "$D" || exit 3
@@ -18,7 +19,7 @@ R=/tmp/jjyeung/a_6ed2c7aa/runs/6ed2c7aa
 X=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b; XR=$X/runs/6ed2c7aa
 echo "step start $(date -u +%FT%TZ) on $(hostname -s)"
 [[ -f $R/m$STEP/artifact.json ]] || { echo "NO_ARTIFACT $R/m$STEP/artifact.json"; exit 4; }
-[[ ! -e $R/m$STEP/h.json && ! -e $R/m$STEP/RP.json ]] || { echo "REFUSED: receipt files exist"; exit 3; }
+for f in h.json RP.json e.json r.json; do [[ ! -e $R/m$STEP/$f ]] || { echo "REFUSED: $f exists"; exit 3; }; done
 # ORCH 0036Z item 4: never hash while the trainer writes a checkpoint (a checkpoint dir without complete.json).
 busy=1
 for i in $(seq 30); do
@@ -41,7 +42,8 @@ NS="nsenter -t $PID -U -m -r -w --preserve-credentials"
 PY=/project/community/jjyeung/c7d31ddd/venvs/rwtrain_torch211_cu129/bin/python
 mapfile -d '' E < /proc/$PID/environ; F=()
 for v in "${E[@]}"; do case "${v%%=*}" in CUDA_VISIBLE_DEVICES|PYTHONPATH|LOCAL_RANK|RANK|GROUP_RANK|ROLE_RANK|LOCAL_WORLD_SIZE|WORLD_SIZE|MASTER_ADDR|MASTER_PORT|TORCHELASTIC_*|TORCH_NCCL_*|NCCL_*|OMP_NUM_THREADS|MKL_NUM_THREADS|OPENBLAS_NUM_THREADS) ;; *) F+=("$v");; esac; done
-RUNPY() { $NS env -i "${F[@]}" SLURM_JOB_ID=172660 CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$Z" "$PY" -s -B "$@"; }
+ZP=$Z
+RUNPY() { $NS env -i "${F[@]}" SLURM_JOB_ID=172660 CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$ZP" "$PY" -s -B "$@"; }
 rc_receipt=9
 if [[ -n $CKN && -f $CK/complete.json ]]; then
   # RP.json: config, binding, preparation (verbatim config.preparation), checkpoint, as seen in the job.
@@ -63,6 +65,27 @@ PY
   echo "receipt rc=$rc_receipt in $(( $(date +%s) - t0 )) s"
 else
   echo "NO_CHECKPOINT at all; receipt not run (BLOCKER); copying the small files anyway"
+fi
+# ORCH RULING 0209Z item 3: at a non-stop milestone also the export-only receipt (build 17, p_export_receipt; r.json has
+# config, binding, preparation and no checkpoint pin), e.json beside the artifact.
+rc_export=na
+if [[ $STEP == 400 ]]; then
+  ZP=${Z%/*}/q3_846ead7a.zip
+  TC2=$(RUNPY - "$XR" "$STEP" <<'PY'
+import sys
+from student_pilot.p3_provenance import file_pin, load, write
+XR,STEP=sys.argv[1:3]
+cfgp=XR+'/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json'
+cfg=load(cfgp); b=load(XR+'/binding.json')
+write(XR+'/m'+STEP+'/r.json',dict(config=file_pin(cfgp),binding=file_pin(XR+'/binding.json'),preparation=cfg['preparation']))
+print(b['trainer_commit'])
+PY
+)
+  t0=$(date +%s)
+  RUNPY -m launch_r1.p_export_receipt --run-pins "$XR/m$STEP/r.json" --artifact "$XR/m$STEP/artifact.json" --output "$XR/m$STEP/e.json" --trainer-commit "$TC2" 2>&1 | tail -5
+  rc_export=${PIPESTATUS[0]}
+  echo "export-only receipt rc=$rc_export in $(( $(date +%s) - t0 )) s"
+  ZP=$Z
 fi
 # Items 1-3 small files (ORCH 0036Z item 2, tree_rebuild10 0140Z): every existing pinned file up to 64 MB reachable
 # from the artifact, the checkpoint manifest, config, binding, data receipt and the preparation/model receipts; never shards.
@@ -92,7 +115,7 @@ def walk(v,why,level):
   elif isinstance(v,list):
     for x in v: walk(x,why,level)
 M=XR+'/m'+STEP
-for f in ('artifact.json','RP.json','h.json'): add(M+'/'+f,None,'milestone')
+for f in ('artifact.json','RP.json','h.json','r.json','e.json'): add(M+'/'+f,None,'milestone')
 for f in ('binding.json','attempt_172660.json','inputs/data_receipt.json','inputs/first_step_172660.json',
           'inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json'): add(XR+'/'+f,None,'run')
 if CKN:
@@ -124,11 +147,12 @@ print('files',len(items),'bytes',total,'skipped',len(skipped),'mismatch',sum(1 f
 PY
 echo "copy rc=$? $(tail -1 "$D/s.err")"
 mv "$D/s.tar.part" "$D/s.tar" && sha256sum "$D/s.tar"
-for f in h.json RP.json; do [[ -f $R/m$STEP/$f ]] && cat "$R/m$STEP/$f" > "$D/$f" && sha256sum "$R/m$STEP/$f" "$D/$f"; done
-printf '{"step": %s, "checkpoint": "%s", "receipt_rc": %s, "utc": "%s"}\n' "$STEP" "$CKN" "$rc_receipt" "$(date -u +%FT%TZ)" > "$D/DONE.json"
+for f in h.json RP.json e.json r.json; do [[ -f $R/m$STEP/$f ]] && cat "$R/m$STEP/$f" > "$D/$f" && sha256sum "$R/m$STEP/$f" "$D/$f"; done
+printf '{"step": %s, "checkpoint": "%s", "receipt_rc": %s, "export_receipt_rc": "%s", "utc": "%s"}\n' "$STEP" "$CKN" "$rc_receipt" "$rc_export" "$(date -u +%FT%TZ)" > "$D/DONE.json"
 echo "step end $(date -u +%FT%TZ)"
 STEPSCRIPT
 echo "srun rc=$?"
 cut -c1-300 "$D/step.log" | tail -30
-ls -la "$D"; [[ -f $D/h.json ]] && python3 -c "
+ls -la "$D"; [[ -f $D/e.json ]] && python3 -c "
+import json,sys; h=json.load(open(sys.argv[1])); print('e.json schema',h['schema'],'step',h['step'],'stop',h['stop_step'],h['checkpoint_status'],'pins',len(h['pins']))" "$D/e.json"; [[ -f $D/h.json ]] && python3 -c "
 import json,sys; h=json.load(open(sys.argv[1])); print('h.json schema',h['schema'],'step',h['step'],'job',h['job_id'],'pins',len(h['pins']))" "$D/h.json"
