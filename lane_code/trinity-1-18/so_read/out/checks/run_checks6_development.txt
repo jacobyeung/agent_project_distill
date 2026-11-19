@@ -1,0 +1,50 @@
+cache: OK
+journal: OK
+off: OK
+public: OK
+round1: OK
+round2: OK
+round3: OK
+operator3: OK
+lock3: OK
+round4: CPU step-600 fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/a8441bcea0ad451dab12c5a7d7136c4e
+round5: All CPU receipt checks passed
+round6: Detached fill: success=0, failure=17, duplicate launch refused.
+kit: OK
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/run_checks.py", line 41, in <module>
+    assert result.returncode==0,result.stdout
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: test_durable_scene_comparison_requires_explicit_on_arm (__main__.LaunchTests.test_durable_scene_comparison_requires_explicit_on_arm) ... ok
+test_original_and_off_do_not_opt_in_to_journaling_or_sharding (__main__.LaunchTests.test_original_and_off_do_not_opt_in_to_journaling_or_sharding) ... ok
+test_stage_kit_uses_opaque_names_token_metadata_and_authenticated_sample_bytes (__main__.LaunchTests.test_stage_kit_uses_opaque_names_token_metadata_and_authenticated_sample_bytes) ... FAIL
+
+======================================================================
+FAIL: test_stage_kit_uses_opaque_names_token_metadata_and_authenticated_sample_bytes (__main__.LaunchTests.test_stage_kit_uses_opaque_names_token_metadata_and_authenticated_sample_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/out/kit_parity50/test_run.py", line 34, in test_stage_kit_uses_opaque_names_token_metadata_and_authenticated_sample_bytes
+    self.assertEqual(process.returncode,0,process.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/a11.py", line 59, in <module>
+    if __name__=='__main__':raise SystemExit(main())
+                                             ^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/a11.py", line 45, in main
+    seal_settings(config,out/'u2.json')
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/a9.py", line 86, in seal_settings
+    validate_paths(settings)
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/a9.py", line 81, in validate_paths
+    check(settings)
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/a9.py", line 76, in check
+    for item in value.values():check(item)
+                               ^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/a9.py", line 80, in check
+    raise ValueError('Settings contain a non-opaque staged asset path')
+ValueError: Settings contain a non-opaque staged asset path
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.081s
+
+FAILED (failures=1)
+

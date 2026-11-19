@@ -1,0 +1,473 @@
+--- A4/0.json
++++ H/0.json
+@@ -1,6 +1,6 @@
+ {
+-  "payload_bytes": 5252958,
+-  "payload_sha256": "4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d",
+-  "plan_sha256": "a94a7ee61ec86439cbe5b542cbc64263ef78a0938261fab7cab1118e17f123b7",
+-  "token": "d60a20ec01296"
++  "payload_bytes": 5745073,
++  "payload_sha256": "eef27a35cba9779fdc9e78c5b0bc44b0bb3144925316935bf3aec884ce81c21f",
++  "plan_sha256": "9fa19690cb5906d814850f1b6949e827230063fe1f7ce27dcf4162791b5ee556",
++  "token": "d49140ff65d0d"
+ }
+--- A4/3.py
++++ H/3.py
+@@ -12,4 +12,11 @@
+     exec(compile(raw,str(p/'a/7.py'),'exec'),dict(__name__='__main__',__file__=str(p/'a/7.py')))
+     raise SystemExit(0)
++if len(sys.argv)>1 and sys.argv[1] in ('check','submit'):
++    for flag,value in (('--gpus','1'),('--time','04:00:00')):
++        matches=[i for i,x in enumerate(sys.argv) if x==flag or x.startswith(flag+'=')]
++        if not matches:sys.argv.extend([flag,value]);continue
++        if len(matches)!=1:raise ValueError('Duplicate '+flag)
++        i=matches[0];got=sys.argv[i].split('=',1)[1] if '=' in sys.argv[i] else sys.argv[i+1]
++        if got!=value:raise ValueError('H requires '+flag+' '+value)
+ with tarfile.open(p/'0.tgz') as t:
+     exec(compile(t.extractfile('8.py').read(),__file__,'exec'))
+--- A4/BATCH.sh
++++ H/BATCH.sh
+@@ -1,5 +1,12 @@
+ #!/bin/bash
+-set -euo pipefail
+-exec /usr/bin/python3 -I -s -B - <<'A'
++#SBATCH --exclude=orchard-community-2
++set -uo pipefail
++P=/project/community/jjyeung/okh7/a15_cot_apd49140ff65d0d
++L=/tmp/a${SLURM_JOB_ID:-0}.l
++R=$P/a/x${SLURM_JOB_ID:-0}
++fin(){ rc=$?; { head -n 1 "$L"; echo "exit $rc"; tail -n 60 "$L"; } > "$R" 2>/dev/null || true; exit $rc; }
++trap fin EXIT
++echo "node $(hostname -s) tmp_free_kb $(df -Pk /tmp | awk 'NR==2{print $4}') gpus $(nvidia-smi -L 2>/dev/null | wc -l) cvd ${CUDA_VISIBLE_DEVICES:-none}" > "$L" 2>/dev/null
++/usr/bin/python3 -I -s -B - >>"$L" 2>&1 <<'A' &
+ import hashlib,io,json,os,sys,tarfile
+ from pathlib import Path,PurePosixPath
+@@ -7,5 +14,5 @@
+ if not j.isdigit():raise ValueError('Allocation required')
+ b=bytes.fromhex(<bundle>)
+-r=Path('/tmp')/('a'+j+'d60a20ec01296')
++r=Path('/tmp')/('a'+j+'d49140ff65d0d')
+ r.mkdir(mode=0o700)
+ with tarfile.open(fileobj=io.BytesIO(b)) as a:
+@@ -18,2 +25,6 @@
+ os.execv(sys.executable,[sys.executable,'-I','-s','-B',str(r/'0.py'),str(r)])
+ A
++PID=$!
++trap 'kill -USR1 $PID 2>/dev/null' USR1
++while true; do wait $PID; rc=$?; kill -0 $PID 2>/dev/null || break; done
++exit $rc
+--- A4/CONFIG.json
++++ H/CONFIG.json
+@@ -1,6 +1,6 @@
+ {
+-  "payload_bytes": 5252958,
+-  "payload_sha256": "4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d",
+-  "plan_sha256": "a94a7ee61ec86439cbe5b542cbc64263ef78a0938261fab7cab1118e17f123b7",
+-  "token": "d60a20ec01296"
++  "payload_bytes": 5745073,
++  "payload_sha256": "eef27a35cba9779fdc9e78c5b0bc44b0bb3144925316935bf3aec884ce81c21f",
++  "plan_sha256": "9fa19690cb5906d814850f1b6949e827230063fe1f7ce27dcf4162791b5ee556",
++  "token": "d49140ff65d0d"
+ }
+--- A4/PACKAGE.json
++++ H/PACKAGE.json
+@@ -1,15 +1,15 @@
+ {
+   "files": {
+-    "0.json": "d9594d3c7dc05bcbab5b1b36d6d6c0c6502bbb92f3d201ae735e98978cf9f242",
+-    "0.tgz": "4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d",
+-    "3.py": "7d0a373edbf56725b3d382264a5c2fbc709b253bbcd6966294e182ba7398eb74",
+-    "BATCH.sh": "cda29adeea5a245adb7a96c8e21c575953718b3bb1cda213d13cb52c92b6f64f",
+-    "CONFIG.json": "d9594d3c7dc05bcbab5b1b36d6d6c0c6502bbb92f3d201ae735e98978cf9f242",
+-    "a/0.json": "025b4688121ac3df8d5ecf92798b1abadf6f4a8d055eb3980a606915ceea0207",
++    "0.json": "c3eea0230b5efc8593f4ac3890a5e59e24714f11238f57338731b45b1609d5cf",
++    "0.tgz": "eef27a35cba9779fdc9e78c5b0bc44b0bb3144925316935bf3aec884ce81c21f",
++    "3.py": "d941ea3b796a5c5aed5eb38aec14154ecb72ccdf20e725f3a00bd4df62c2ca25",
++    "BATCH.sh": "6317092fe032154b3775e871ff2fdec1fd3aba2cf55c5a0629bcb5786b507024",
++    "CONFIG.json": "c3eea0230b5efc8593f4ac3890a5e59e24714f11238f57338731b45b1609d5cf",
++    "a/0.json": "f9ba4eb57b634c02dff155337622611878d084bdd1d4784a9e2b8c703ce57d48",
+     "a/4.py": "671fb919e8bef77fe62060d7ea50753fe265e1c5d544a46750ebd53a52c34134",
+-    "a/5.py": "e4648e671c719e3b1cb56618a7442ea3ec97e549562add9492603c56ebe0776a",
+-    "a/6.py": "97c8e6dfe33e7fd2988dc44e740f7a3b19627259b8f86827598ed368e1659e22",
++    "a/5.py": "c5f3ef32ec58c9fd0ea28d56567b1652972ecbb243f7196b3554efef6c1b7081",
++    "a/6.py": "5e581c08f57be773fbff5ba25dee5e655f72e667d9a56497a964b1af5cf12d89",
+     "a/7.py": "5c3e3b897be6cb5383dc5a489a8aa1324cf745b9716ecea90f1e951b1c098011"
+   },
+-  "token": "d60a20ec01296"
++  "token": "d49140ff65d0d"
+ }
+--- A4/SUBMIT.cmd
++++ H/SUBMIT.cmd
+@@ -2,3 +2,3 @@
+ set -euo pipefail
+ cd "$(dirname "$0")"
+-exec /usr/bin/python3 -I -s -B 3.py submit --gpus "${A_N:?Set 1 to 4}" --time "${A_T:?Set HH:MM:SS}" "$@"
++exec /usr/bin/python3 -I -s -B 3.py submit --gpus "${A_N:-1}" --time "${A_T:-04:00:00}" "$@"
+--- A4/a/0.json
++++ H/a/0.json
+@@ -166,7 +166,5 @@
+     "camera_displacement",
+     "camera_rotation",
+-    "camera_movement_direction",
+-    "object_abs_distance",
+-    "room_size_estimation"
++    "camera_movement_direction"
+   ]
+ }
+--- A4/a/5.py
++++ H/a/5.py
+@@ -144,5 +144,5 @@
+     settings=json.loads(J.physical(root,cfg['logical']+'/d/settings.json').read_text())
+     if (settings['stage1_select_rule']!='candidates_argmax' or settings['perception_memo']!='on'
+-        or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
++        or inputs.get('types')!=['camera_displacement', 'camera_rotation', 'camera_movement_direction'] or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
+         raise ValueError('Prepared default settings differ')
+     run_cfg=dict(package=cfg['logical']+'/p',output=cfg['logical']+'/r',python=inputs['python'],
+--- A4/a/6.py
++++ H/a/6.py
+@@ -1,14 +1,14 @@
+-"""Operator dispatch for two isolated reads within one allocation."""
++"""Operator dispatch for one camera wording read within one allocation."""
+ import json,sys,time,hashlib
+ from pathlib import Path
+ 
+ RULES=('candidates_argmax',)
+-COUNTS=(150,150,150,150,36)
+-SCHEDULE=((0,3),(0,0),(0,1),(0,2),(0,4))
++COUNTS=(300,300,300,0,0)
++SCHEDULE=((0,0),(0,1),(0,2))
+ 
+ def descriptors(package):
+  return [dict(arm='tower',modes=['none'],stage1_select_rule='candidates_argmax',save_own_depth=False,
+               perception_memo='on',perception_memo_modules=['g3t'],perception_memo_verify_ids=[],
+-              types=[3,0,1,2,4],expected=636)]
++              types=[0,1,2],expected=900)]
+ 
+ def sealed_write(path,value):
+@@ -19,4 +19,5 @@
+ def prepare(config):
+  from orchard_h10.common import ORDER,canonical
++ config['items']=str(Path(config['package'])/'items/HELDOUT_CAMERA_ITEMS.json')
+  base=Path(config['output']);settings=json.loads(Path(config['settings']).read_text())
+  if config.get('optional'):raise ValueError('Unexpected optional input')
+@@ -59,5 +60,5 @@
+   assert chosen['perception_memo']=='on'
+   assert chosen['perception_memo_verify_ids']==descriptors(config['package'])[i]['perception_memo_verify_ids']
+-  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=636))
++  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=900))
+  # Exercise each selected rule through the real tower socket with stub weights.
+  from unittest.mock import patch
+@@ -90,14 +91,14 @@
+    failure=result['failure'];break
+  reads=[]
+- for i,n in ((0,636),):
++ for i,n in ((0,900),):
+   rows=[r for r in results if r['read']==i]
+   completed=sum(r['completed'] for r in rows)
+   reads.append(dict(read=i,completed=completed,expected=n,complete=completed==n))
+- summary=dict(completed=sum(r['completed'] for r in reads),expected=636,
++ summary=dict(completed=sum(r['completed'] for r in reads),expected=900,
+               complete=all(r['complete'] for r in reads),failure=failure,reads=reads,segments=results)
+  write(Path(config['output'])/'SUMMARY.json',summary)
+  return summary
+ 
+-def memory_bound(*, captures=(84,), allocation_bytes=200*1024**3):
++def memory_bound(*, captures=(52,), allocation_bytes=200*1024**3):
+  # Fixed G3T contract: at most 64 pose rows and 32 anchor grids. Eight bytes
+  # per scalar covers both float64 poses and the fresh float32 grid outputs.
+--- A4/payload/9.json
++++ H/payload/9.json
+@@ -1,5 +1,6 @@
+ {
+-  "budget_gpu_seconds": 18000,
++  "budget_gpu_seconds": 11038,
+   "cpu_check_name": "2.json",
++  "evaluator_code_sha256": "b89b2b00908b3a1e0a6670f48d41e96ddf62fda138119ee2c2d640be2d722ad1",
+   "export_binding": {
+     "base_identity": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+@@ -296,6 +297,6 @@
+     },
+     "h1eval/h10/parity_adapter.py": {
+-      "bytes": 13650,
+-      "sha256": "be9488d9a4188e95875a1fcc00c36af69fc0dbe2fbc6127d1febe621d6241c72"
++      "bytes": 13780,
++      "sha256": "e6a56bc97a937600109facc351f0824f2744054ff72595161bd4e1c84fbb692b"
+     },
+     "h1eval/h10/perception_own.py": {
+@@ -311,7 +312,11 @@
+       "sha256": "982b1b5de25984b7085eb84075d11e3b78ea6b4d2f5e6a2587c79e85433a4fb4"
+     },
++    "h1eval/heldout_h.py": {
++      "bytes": 3953,
++      "sha256": "1944963c2bb6990950d0394848d9549221bb7e28874a7881e581dc1595eb464c"
++    },
+     "h1eval/items.py": {
+-      "bytes": 13566,
+-      "sha256": "831ecc9530058dc1d9c3c327da03adce72e962b3e48d2ab823dd764522f84b16"
++      "bytes": 13686,
++      "sha256": "cdf568406b8d12fe55d27188e40fa212813be53c2599be5ea4c79232bc538a14"
+     },
+     "h1eval/modes.py": {
+@@ -392,6 +397,6 @@
+     },
+     "h1eval/scorers.py": {
+-      "bytes": 10225,
+-      "sha256": "2736e479888481cda4c1682f2db3d8b54f0b6d5957d8a4603d86469dc2b493fd"
++      "bytes": 10786,
++      "sha256": "d032f96986ad7ee6fa8ba3de6ec00beb98f4c18336a0648771c487451c283302"
+     },
+     "h1eval/statistics.py": {
+@@ -415,4 +420,16 @@
+       "sha256": "b4e278f242e143d8ee66fa527449c7e02fad753bbbb528bd0c31fb9e47aea181"
+     },
++    "items/HELDOUT_CAMERA_ITEMS.json": {
++      "bytes": 2379076,
++      "sha256": "2b90676111c229965d91132ad65b0f019703556c5934123fa0734bc6bffb3bdf"
++    },
++    "items/HELDOUT_CAMERA_TWINS.json": {
++      "bytes": 249586,
++      "sha256": "5ec7e2a62e54f56a3bdc8f1de51f0a96d98dd14da8dd5326bc92618654f7b104"
++    },
++    "items/HELDOUT_NATIVE_TASKS.jsonl": {
++      "bytes": 1525662,
++      "sha256": "92a441ce08376e33ce1b66875d62fbd84315fc72d3c39c377aa045608a71cf8d"
++    },
+     "items/devs1_routed.json": {
+       "bytes": 1440816,
+@@ -428,6 +445,6 @@
+     },
+     "orchard_h10/build.py": {
+-      "bytes": 10279,
+-      "sha256": "c06c595e2efee72ad424d7f33ca5827a50b523545ecd553e81245a694c435aed"
++      "bytes": 10519,
++      "sha256": "4571adbe2e6f09976855d67738dfe037a0bc0e29fb0693cd593d6dc4e68c58cf"
+     },
+     "orchard_h10/common.py": {
+@@ -456,6 +473,6 @@
+     },
+     "orchard_h10/prepare.py": {
+-      "bytes": 4763,
+-      "sha256": "e93c09972b5d686b6396d9d6f702dd806bc38294c5b7d90960a77a630bee9ae6"
++      "bytes": 5065,
++      "sha256": "90781e0726bd1f011270138914df8ba25786872633f73a445a5bcb6a2fa598f8"
+     },
+     "orchard_h10/runner.py": {
+@@ -3741,4 +3758,11 @@
+   "save_own_depth": false,
+   "schema": "h10-orchard-v1",
++  "serving_pins": {
++    "evaluator_code_sha256": "b89b2b00908b3a1e0a6670f48d41e96ddf62fda138119ee2c2d640be2d722ad1",
++    "expected_calls_sha256": "2ebef5248701dbe9f152f4849e58298af051f095ef3cabe0b3b992359c9b1e07",
++    "maker_sha256": "e6a56bc97a937600109facc351f0824f2744054ff72595161bd4e1c84fbb692b",
++    "parity_code_sha256": "a279de2ca5f54ea5ef13e27db3135b05f9773b63338d3590f224d57c45bb96c5",
++    "reader_sha256": "cd71f2d2a1ff869d0868572bc7219983fcb3ba0eefbb2fbea1efcf66783141fe"
++  },
+   "stage1_select_rule": "candidates_argmax",
+   "stop_margin": 1800,
+@@ -3757,4 +3781,4 @@
+     "trace_runtime.py": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+   },
+-  "token": "d60a20ec01296"
++  "token": "d49140ff65d0d"
+ }
+--- A4/payload/h1eval/h10/parity_adapter.py
++++ H/payload/h1eval/h10/parity_adapter.py
+@@ -98,4 +98,6 @@
+ 
+ def map_items(items, settings, *, name='devs1_routed'):
++    if name=='heldout_camera_wording' and not settings.get('tasks'):
++        raise ValueError('H requires explicit native tasks')
+     if name=='r0dev_f32':
+         from .reserve_frames import bind
+--- A4/payload/h1eval/heldout_h.py
++++ H/payload/h1eval/heldout_h.py
+@@ -0,0 +1,67 @@
++"""Frozen H manifest, native-task and frame admission checks (Python 3.6)."""
++import hashlib
++import json
++import re
++from collections import Counter
++
++TYPES = ['camera_displacement','camera_rotation','camera_movement_direction']
++ITEM_NAMES = ['HELDOUT_CAMERA_ITEMS.json','HELDOUT_CAMERA_TWINS.json','HELDOUT_NATIVE_TASKS.jsonl']
++PINS = dict(zip(ITEM_NAMES, [
++    '2b90676111c229965d91132ad65b0f019703556c5934123fa0734bc6bffb3bdf',
++    '5ec7e2a62e54f56a3bdc8f1de51f0a96d98dd14da8dd5326bc92618654f7b104',
++    '92a441ce08376e33ce1b66875d62fbd84315fc72d3c39c377aa045608a71cf8d']))
++SCORER_OLD = '2736e479888481cda4c1682f2db3d8b54f0b6d5957d8a4603d86469dc2b493fd'
++SCORER_NEW = 'd032f96986ad7ee6fa8ba3de6ec00beb98f4c18336a0648771c487451c283302'
++sha = lambda b: hashlib.sha256(b).hexdigest()
++def digest(v):return sha(json.dumps(v,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode())
++
++def question_pair(item):
++    q=item['question'].lower()
++    # Singular endpoints, plural endpoints and ranges; repeated reference frames are allowed.
++    matches=list(re.finditer(r'\bframes?\s+(\d+)(?:\s*(?:and|[–-])\s*(\d+))?',q))
++    numbers=[]
++    for m in matches:
++        for n in m.groups():
++            if n is not None and int(n) not in numbers:numbers.append(int(n))
++    if numbers != item['display_frame_pair']:
++        raise ValueError('Question/display frame disagreement: '+item['id'])
++    return numbers
++
++def validate_payload(m):
++    assert m['name']=='heldout_camera_wording' and m['count']==900
++    assert m['development_only'] is True and digest(m['items'])==m['item_set_sha256']
++    assert Counter(i['question_type'] for i in m['items'])==dict.fromkeys(TYPES,300)
++    assert len({i['id'] for i in m['items']})==900
++    assert m['r0_check']==dict(checked=900,found=0,pin=dict(path='auth/R0_ROOMS.txt',sha256='bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3'))
++    for i in m['items']:
++        assert all(type(x) is int for x in i['display_frame_pair'])
++        assert 1<=i['display_frame_pair'][0]<i['display_frame_pair'][1]<=32
++        question_pair(i)
++
++def validate(pf):
++    for n,h in PINS.items():assert sha(pf['items/'+n])==h,n
++    m=json.loads(pf['items/'+ITEM_NAMES[0]]);validate_payload(m)
++    twins=json.loads(pf['items/'+ITEM_NAMES[1]])['twins']
++    tasks=[json.loads(x) for x in pf['items/'+ITEM_NAMES[2]].splitlines()]
++    by={i['id']:i for i in m['items']};native={i['id']:i for i in tasks}
++    old={i['id']:i for i in json.loads(pf['items/devs1_routed.json'])['items']}
++    assert len(tasks)==len(native)==900 and set(native)==set(by)
++    assert len(twins)==450 and len({t['original_id'] for t in twins})==450
++    assert {t[k] for t in twins for k in ('original_id','reworded_id')}==set(by)
++    frames=json.loads(pf['b/work/meta/x/sj/orch_cd/legs1_reads/work/vendor/r3/FRAMES.json'])['captures']
++    dense=json.loads(pf['b/work/meta/x/sj/orch_cd/evalx/work/milestone/raw_g3t_20261114/admission/DENSE_MANIFEST.json'])['captures']
++    # Both source frame inventories are immutable A4 payload members.
++    if isinstance(frames,list):frames={c['native']:c for c in frames}
++    if isinstance(dense,list):dense={c['native']:c for c in dense}
++    for t in twins:
++        o,r=by[t['original_id']],by[t['reworded_id']]
++        assert o==old[o['id']]
++        assert digest(o)==t['original_item_sha256'] and digest(r)==t['reworded_item_sha256']
++        assert o['question_type']==r['question_type']==t['type']
++        for key in o:
++            if key not in ('id','question'):assert o[key]==r[key],(key,o['id'])
++        for i in (o,r):
++            assert {k:v for k,v in i.items() if k!='room_key'}==native[i['id']]
++            assert i['native'] in frames and i['native'] in dense, 'Frames absent from A4: '+i['id']
++    return dict(items=900,twins=450,captures=len({i['native'] for i in by.values()}),question_frame_agreements=900,
++                originals_byte_equivalent=True,frame_fields_equal=True,native_tasks_unique=900)
+--- A4/payload/h1eval/items.py
++++ H/payload/h1eval/items.py
+@@ -114,4 +114,7 @@
+         for key in ('item_set_sha256','sources','constants','frames_manifest_sha256','per_type','count','source'):
+             if m[key]!=expected[key]:raise ValueError('R0-dev pinned '+key+' differs')
++    if m['name']=='heldout_camera_wording':
++        from .heldout_h import validate_payload
++        validate_payload(m)
+     return m
+ 
+--- A4/payload/h1eval/scorers.py
++++ H/payload/h1eval/scorers.py
+@@ -27,5 +27,18 @@
+ 
+ def placement(output,item):
+-    meta=metadata(item);expected=expected_calls(meta['question'],meta['question_type']);got=records(output)
++    meta=metadata(item)
++    kind=meta['question_type']
++    if kind in ('camera_displacement','camera_rotation','camera_movement_direction'):
++        pair=meta.get('display_frame_pair')
++        if (not isinstance(pair,(list,tuple)) or len(pair)!=2
++                or any(type(v) is not int for v in pair)):
++            raise ValueError('camera_item_missing_display_frame_pair')
++        i,j=pair
++        if not 1<=i<j<=32:
++            raise ValueError('camera_item_invalid_display_frame_pair')
++        expected=[f'<{"turn" if kind=="camera_rotation" else "move"} from={i} to={j}>']
++    else:
++        expected=expected_calls(meta['question'],kind)
++    got=records(output)
+     calls=[r['call'] for r in got];e=[signature(c) for c in expected];g=[signature(c) for c in calls]
+     exact=g==e
+Added payload/items/HELDOUT_CAMERA_ITEMS.json: sha256 2b90676111c229965d91132ad65b0f019703556c5934123fa0734bc6bffb3bdf
+Added payload/items/HELDOUT_CAMERA_TWINS.json: sha256 5ec7e2a62e54f56a3bdc8f1de51f0a96d98dd14da8dd5326bc92618654f7b104
+Added payload/items/HELDOUT_NATIVE_TASKS.jsonl: sha256 92a441ce08376e33ce1b66875d62fbd84315fc72d3c39c377aa045608a71cf8d
+--- A4/payload/orchard_h10/build.py
++++ H/payload/orchard_h10/build.py
+@@ -36,4 +36,8 @@
+             add(path,str(path.relative_to(K)))
+     add(K/'items/devs1_routed.json','items/devs1_routed.json')
++    add(K/'items/HELDOUT_CAMERA_ITEMS.json','items/HELDOUT_CAMERA_ITEMS.json')
++    add(K/'items/HELDOUT_CAMERA_TWINS.json','items/HELDOUT_CAMERA_TWINS.json')
++    add(K/'items/HELDOUT_NATIVE_TASKS.jsonl','items/HELDOUT_NATIVE_TASKS.jsonl')
++
+     add(K/'items/r0dev.json','items/r0dev.json')
+     from h1eval.items import R0_PINS
+--- A4/payload/orchard_h10/prepare.py
++++ H/payload/orchard_h10/prepare.py
+@@ -72,4 +72,8 @@
+         settings['item_sets']={'r0dev_f32':dict(frames_root=spec['root'])}
+         write(d/'8.json',dict(verified=True,archive_sha256=spec['sha256'],frames_manifest_sha256=load_manifest(p/'items/r0dev.json')['frames_manifest_sha256']))
++    from h1eval.cli import code_hash
++    if code_hash()!=config['evaluator_code_sha256']:raise ValueError('H evaluator differs from build')
++    settings['tasks']=[str(p/'items/HELDOUT_NATIVE_TASKS.jsonl')]
++    settings.setdefault('item_sets',{})['heldout_camera_wording']=dict(tasks=settings['tasks'])
+     write(d/'settings.json',settings)
+     write(d/'READY.json',dict(settings=sha(d/'settings.json'),binding=sha(binding),restore=sha(export/'RESTORE.json')))
+--- A4/BATCH.sh/bundle/0.json
++++ H/BATCH.sh/bundle/0.json
+@@ -1,6 +1,6 @@
+ {
+-  "payload_bytes": 5252958,
+-  "payload_sha256": "4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d",
+-  "plan_sha256": "a94a7ee61ec86439cbe5b542cbc64263ef78a0938261fab7cab1118e17f123b7",
+-  "token": "d60a20ec01296"
++  "payload_bytes": 5745073,
++  "payload_sha256": "eef27a35cba9779fdc9e78c5b0bc44b0bb3144925316935bf3aec884ce81c21f",
++  "plan_sha256": "9fa19690cb5906d814850f1b6949e827230063fe1f7ce27dcf4162791b5ee556",
++  "token": "d49140ff65d0d"
+ }
+--- A4/BATCH.sh/bundle/7.py
++++ H/BATCH.sh/bundle/7.py
+@@ -1,14 +1,14 @@
+-"""Operator dispatch for two isolated reads within one allocation."""
++"""Operator dispatch for one camera wording read within one allocation."""
+ import json,sys,time,hashlib
+ from pathlib import Path
+ 
+ RULES=('candidates_argmax',)
+-COUNTS=(150,150,150,150,36)
+-SCHEDULE=((0,3),(0,0),(0,1),(0,2),(0,4))
++COUNTS=(300,300,300,0,0)
++SCHEDULE=((0,0),(0,1),(0,2))
+ 
+ def descriptors(package):
+  return [dict(arm='tower',modes=['none'],stage1_select_rule='candidates_argmax',save_own_depth=False,
+               perception_memo='on',perception_memo_modules=['g3t'],perception_memo_verify_ids=[],
+-              types=[3,0,1,2,4],expected=636)]
++              types=[0,1,2],expected=900)]
+ 
+ def sealed_write(path,value):
+@@ -19,4 +19,5 @@
+ def prepare(config):
+  from orchard_h10.common import ORDER,canonical
++ config['items']=str(Path(config['package'])/'items/HELDOUT_CAMERA_ITEMS.json')
+  base=Path(config['output']);settings=json.loads(Path(config['settings']).read_text())
+  if config.get('optional'):raise ValueError('Unexpected optional input')
+@@ -59,5 +60,5 @@
+   assert chosen['perception_memo']=='on'
+   assert chosen['perception_memo_verify_ids']==descriptors(config['package'])[i]['perception_memo_verify_ids']
+-  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=636))
++  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=900))
+  # Exercise each selected rule through the real tower socket with stub weights.
+  from unittest.mock import patch
+@@ -90,14 +91,14 @@
+    failure=result['failure'];break
+  reads=[]
+- for i,n in ((0,636),):
++ for i,n in ((0,900),):
+   rows=[r for r in results if r['read']==i]
+   completed=sum(r['completed'] for r in rows)
+   reads.append(dict(read=i,completed=completed,expected=n,complete=completed==n))
+- summary=dict(completed=sum(r['completed'] for r in reads),expected=636,
++ summary=dict(completed=sum(r['completed'] for r in reads),expected=900,
+               complete=all(r['complete'] for r in reads),failure=failure,reads=reads,segments=results)
+  write(Path(config['output'])/'SUMMARY.json',summary)
+  return summary
+ 
+-def memory_bound(*, captures=(84,), allocation_bytes=200*1024**3):
++def memory_bound(*, captures=(52,), allocation_bytes=200*1024**3):
+  # Fixed G3T contract: at most 64 pose rows and 32 anchor grids. Eight bytes
+  # per scalar covers both float64 poses and the fresh float32 grid outputs.

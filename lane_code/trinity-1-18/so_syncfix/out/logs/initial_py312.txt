@@ -1,0 +1,35 @@
+test_all_sources_success_and_new_node (__main__.DriverTests.test_all_sources_success_and_new_node) ... ok
+test_dry_mode_and_stage_only_keep_existing_semantics (__main__.DriverTests.test_dry_mode_and_stage_only_keep_existing_semantics) ... ok
+test_held_stdout_deadline_and_lock_release (__main__.DriverTests.test_held_stdout_deadline_and_lock_release) ... MEASURE held_stdout_driver_elapsed=1.110s node_limit=0.35s kill_after=0.15s holder_alive=1 lock_free=1
+ok
+test_invalid_zero_timeout_refused (__main__.DriverTests.test_invalid_zero_timeout_refused) ... ok
+test_legacy_substitution_reproduces_held_pipe (__main__.DriverTests.test_legacy_substitution_reproduces_held_pipe) ... MEASURE legacy_substitution_elapsed=1.249s timeout=0.2s holder_lifetime=1.2s
+ok
+test_missing_root_skipped_other_sources_publish (__main__.DriverTests.test_missing_root_skipped_other_sources_publish) ... ok
+test_partial_failed_node_cannot_overwrite_or_delete_previous (__main__.DriverTests.test_partial_failed_node_cannot_overwrite_or_delete_previous) ... MEASURE partial_failure_elapsed=0.704s commit=1 pushes=2 preserved=1
+ok
+test_receiver_timeout_does_not_block_local_publish (__main__.DriverTests.test_receiver_timeout_does_not_block_local_publish) ... ok
+test_remote_scanner_timeout_reports_pipestatus (__main__.DriverTests.test_remote_scanner_timeout_reports_pipestatus) ... ok
+test_unreachable_skipped_other_sources_publish (__main__.DriverTests.test_unreachable_skipped_other_sources_publish) ... ok
+test_device_mode_is_rejected_before_open (__main__.FilterTests.test_device_mode_is_rejected_before_open) ... ok
+test_fifo_socket_symlinks_never_opened (__main__.FilterTests.test_fifo_socket_symlinks_never_opened) ... ERROR
+test_manifest_content_matches_and_link_parent_refused (__main__.FilterTests.test_manifest_content_matches_and_link_parent_refused) ... ok
+test_regular_tree_byte_identical_and_default_off (__main__.FilterTests.test_regular_tree_byte_identical_and_default_off) ... MEASURE regular_paths_sha256=f338b0c8a232b99e54dc5afa5d34ea456d60c3ba10a22761c16373a29ec728a3
+ok
+test_replacement_fifo_is_nonblocking_and_fstat_rejected (__main__.FilterTests.test_replacement_fifo_is_nonblocking_and_fstat_rejected) ... ok
+test_replacement_symlink_is_not_followed (__main__.FilterTests.test_replacement_symlink_is_not_followed) ... ok
+test_slow_read_deadline_counts_and_continues (__main__.FilterTests.test_slow_read_deadline_counts_and_continues) ... MEASURE slow_file_elapsed=0.080s deadline=0.05s
+ok
+
+======================================================================
+ERROR: test_fifo_socket_symlinks_never_opened (__main__.FilterTests.test_fifo_socket_symlinks_never_opened)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/tests/test_syncfix.py", line 66, in test_fifo_socket_symlinks_never_opened
+    sock.bind(str(self.root / 'socket.json'))
+PermissionError: [Errno 1] Operation not permitted
+
+----------------------------------------------------------------------
+Ran 17 tests in 9.668s
+
+FAILED (errors=1)

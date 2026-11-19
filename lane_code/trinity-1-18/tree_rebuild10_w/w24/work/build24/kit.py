@@ -10,6 +10,11 @@ from student_pilot.source_seal import inventory,archive,check_archive,create
 from launch_r2.build import capsule_json
 
 def cap(k,name,value):(k/name).write_bytes(capsule_json(value))
+def retire(path,name):
+    target=L/'attic/build24'/name;index=0
+    while target.exists():
+        index+=1;target=L/'attic/build24'/(name+'_'+str(index))
+    path.rename(target)
 def reseal(k):
     files={str(p.relative_to(k)):J.sha(p) for p in k.rglob('*') if p.is_file() and p.name not in ('SHA256SUMS.txt','BUILD.json')}
     (k/'SHA256SUMS.txt').write_text(''.join(f'{h}  {n}\n' for n,h in sorted(files.items())))
@@ -84,9 +89,9 @@ def main():
     for name,step in (('q',400),('n',600)):
         k=D/'kits'/name
         if k.exists():
-            dest=L/'attic/build24'/('kit_'+name+'_'+J.seal(k)[:8]);k.rename(dest)
+            retire(k,'kit_'+name+'_'+J.seal(k)[:8])
         shutil.copytree(B/'kits/q',k)
-        control=J.load(k/'k/a.json');old=k/control['source']['path'];old.rename(L/'attic/build24'/(name+'_'+old.name)) if not (L/'attic/build24'/(name+'_'+old.name)).exists() else old.rename(L/'attic/build24'/(name+'_'+tree[:8]+'_'+old.name))
+        control=J.load(k/'k/a.json');old=k/control['source']['path'];retire(old,name+'_'+old.name)
         target=k/'k'/('t_'+tree[:16]+'.tar');archive(T,target,files,compress=True);check_archive(file_pin(target),files)
         source=dict(path=str(target.relative_to(k)),sha256=J.sha(target),tree_sha256=tree)
         closure={str(p.relative_to(T)):J.sha(p) for p in source_files([T/'student_pilot/carrier_c1_run.py'])}
@@ -99,12 +104,14 @@ def main():
             uploads=[{a:b for a,b in v.items() if a not in ('local_path','needed_minimal')} for v in uploads.values()],
             pin_paths={h:ns+'/u/'+h for h in uploads})
         if step==600:sp.update(milestone='h_6ed2c7aa/m600',handover=None)
-        cap(k,'k/p.json',sp);cap(k,'k/n.json',cfg)
+        launch_cfg={**cfg,'r1_training':{**cfg['r1_training'],'proof_mode':'train'}} if step==600 else cfg
+        cap(k,'k/p.json',sp);cap(k,'k/n.json',launch_cfg)
         portable=J.load(k/'k/c.json')
         # Preserve the established relocation of every non-routing input.
         portable['r1_training'].update(routing_slices='deferred_first_boundary',row_slice_inputs={},
             row_sources=dict(sources,path='u/'+sources['sha256']),mix=dict(mix,path='u/'+mix['sha256']),room_audit=dict(room,path='u/'+room['sha256']))
         portable['r1_training'].pop('routing_inputs',None);portable['r1_training'].pop('source_membership',None)
+        if step==600:portable['r1_training']['proof_mode']='train'
         portable['streams']['routing']=dict(base,path=ns+'/u/'+base['sha256'])
         portable['r2_sampling']={key:dict(v,path=ns+'/u/'+v['sha256']) if isinstance(v,dict) else v for key,v in cfg['r2_sampling'].items()}
         portable['code']=dict(path='k/7.json',sha256=J.sha(k/'k/7.json'));cap(k,'k/c.json',portable)

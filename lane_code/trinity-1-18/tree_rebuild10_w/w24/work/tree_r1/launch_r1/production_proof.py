@@ -67,6 +67,8 @@ def _run(request, output):
     try:
         result['staged'] = verify_staging(request)
         cfg = load(pinned(request['config']))
+        from student_pilot.r1_coverage import deferred
+        deferred(cfg, request, read_pins=True)
         card = load(pinned(cfg['r1_training']['mix']))
         if card.get('counting_admission') != 'procedure_only_v1':
             raise ValueError('R1_PROOF_COUNTING_ADMISSION_REQUIRED')
@@ -92,11 +94,11 @@ def _run(request, output):
             verify_audit(cfg,cfg['r1_training']['room_audit'])
             result['augmented_room_audit']=cfg['r1_training']['room_audit']
             result['steps'].append('direction_twins')
-        from student_pilot.r1_persisted import verify, scope
+        from student_pilot.r1_persisted import verify, scope, init_policy
         value=cfg['r1_training']
         closure=verify(value.get('handover_receipt'),value.get('p_run',{}),
                        cfg['init_artifact']['artifact'],value.get('persisted_files',{}),
-                       weights=bool(request.get('weights')),proof_mode=value.get('proof_mode'))
+                       weights=bool(request.get('weights')),proof_mode=value.get('proof_mode'),init_policy=init_policy(value))
         step = closure['receipt']['step']
         if step not in (400,600) or request.get('milestone',step)!=step:
             raise ValueError('R1_PROOF_EXPORT_STEP_REQUIRED')
@@ -151,7 +153,9 @@ def _run(request, output):
             handover=admission(cfg,weights=bool(request.get('weights')))
         result['handover']={k:v for k,v in handover.items() if k!='paths'}
         result['absolute_resume_step']=handover['absolute_resume_step']
-        if result['absolute_resume_step'] not in (400,600):
+        result['init_milestone'] = handover['init_milestone']
+        expected_start = 0 if init_policy(cfg['r1_training']) is not None else step
+        if result['init_milestone'] not in (400,600) or result['absolute_resume_step'] != expected_start:
             raise ValueError('R1_PROOF_EXPORT_STEP_REQUIRED')
         result['steps'].append('persisted_handover')
         if request.get('weights'):

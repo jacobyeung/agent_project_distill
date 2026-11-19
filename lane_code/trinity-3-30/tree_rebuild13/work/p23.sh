@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/orch_n30/tree_rebuild10_w/w23; wc -l work/build23b/capacity_final.py; grep -n "mkdir\|exist\|prepare(\|CAPACITY\|write(D\|admit\|_run(" work/build23b/capacity_final.py | cut -c1-220 | head -30; ls work/build23b/proofs work/build23b/proofs/400 2>/dev/null | tr '\n' ' '

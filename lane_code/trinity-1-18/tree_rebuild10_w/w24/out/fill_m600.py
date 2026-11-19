@@ -43,7 +43,7 @@ def fill(template,directory,listing,output,plan):
     cfg=deepcopy(J.load(template/'k/n.json'));before=deepcopy(cfg)
     cfg['init_artifact']['artifact']=pins['artifact']
     cfg['r1_training'].update(p_run=run,handover_receipt=dict(path=str(hp),sha256=files['h.json']['sha256']),
-        persisted_files={p['sha256']:p['path'] for p in pins.values()},proof_mode='q',donor_config_sha256=spec['p_runtime_identity'])
+        persisted_files={p['sha256']:p['path'] for p in pins.values()},proof_mode='train',donor_config_sha256=spec['p_runtime_identity'])
     cfg['streams']['routing']=runtime['streams']['routing'];cfg['s1_routing']=runtime['s1_routing']
     # All other settings, including VQA bindings, must remain byte-equivalent as values.
     scrub=lambda c:{k:v for k,v in c.items() if k not in ('init_artifact','r1_training','streams','s1_routing')}

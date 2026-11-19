@@ -96,9 +96,9 @@ The exclusion payload stages as `k/3119aa4a.json`. Its SHA-256 remains
 The authenticated `p_sources` map reads the same bytes from N's `u/<sha256>` upload.
 Configuration pins and hash-keyed catalogs use the pinned opaque map. P's original files remain unchanged.
 
-Upload total: 137155231 bytes in 170 files (source: `UPLOADS.json`).
+Upload total: 137155850 bytes in 170 files (source: `UPLOADS.json`).
 
-The tree seal is `5b349b1819bc7dca1010feb81da2e7b1326f9992aff913416981b932cdd58c6c`. The kit q seal is `67ce92f6f7e96af1bd706fe020cef0c989c947149b7327fdde92138d67268a6c`.
+The tree seal is `5b349b1819bc7dca1010feb81da2e7b1326f9992aff913416981b932cdd58c6c`. The kit q seal is `928c37d5a879b437548758bb9b0d6ffeb6252c3ea44df64f57e23502daaf393f`.
 The inherited r1 kit retains its base seal; this delivery certifies q only.
 `../build23b/kit.py` regenerates MINIMAL q from its retained authenticated base inventory.
 `../build23b/metadata.py` records the exact changed uploads and invariant checks.
@@ -111,3 +111,5 @@ it reconstructs synthetic databases and model payloads, which the package omits.
 existing proof output under attic before a fresh reconstruction. The final-tree replay and
 its exact scope are recorded in `../build23b/capacity_final.py` and `../build23b/FIXTURE.json`.
 See `../../out/BUILD23B_REPORT.md` for validation and the production boundaries that remain.
+
+The in-view GPU guard accepts at least 75 GiB and prints one opaque-key JSON diagnostic before deciding. Any diagnostic-read exception prints the available safe fields and refuses E42. CUDA_VISIBLE_DEVICES contributes only a set flag and comma-entry count; the device name must match the documented 64-character ASCII allowlist. Keys and build-24 application instructions are in `../../out/GUARD_PATCH.md`; upload the three files in `../../out/UPLOADS_NEW_23D.json`. NVIDIA binds are unchanged. Production GO remains false.

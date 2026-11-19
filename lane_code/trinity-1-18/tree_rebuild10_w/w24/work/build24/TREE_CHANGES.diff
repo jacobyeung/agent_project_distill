@@ -1,0 +1,423 @@
+--- build22/launch_r1/build.py
++++ build24/launch_r1/build.py
+@@ -26,6 +26,10 @@
+ 
+ 
+ def build(cfg, inputs, output):
++    cfg_input_root=Path(cfg).resolve().parent
++    cfg=load(cfg)
++    from student_pilot.r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     output=Path(output)
+     if output.exists() and any(output.iterdir()):raise ValueError('R1_KIT_ROOT_NOT_EMPTY')
+     output.mkdir(parents=True,mode=0o700,exist_ok=True)
+@@ -35,13 +39,11 @@
+     archive(TREE,archive_path,files,compress=True)
+     check_archive(dict(path=str(archive_path),sha256=sha256(archive_path)),files)
+     source=dict(path=str(archive_path.relative_to(output)),sha256=sha256(archive_path),tree_sha256=seal)
+-    cfg_input_root=Path(cfg).resolve().parent
+-    cfg=load(cfg)
+     from student_pilot.p3_provenance import pinned
+     from student_pilot.r1_population import SLICE_CELLS
+     row_sources=load(pinned(cfg['r1_training']['row_sources']))
+     from student_pilot.r1_coverage import source_names
+-    cfg['r1_training']['row_slice_inputs']={k:row_sources[k]['source'] for k in source_names(row_sources)}
++    cfg['r1_training']['row_slice_inputs']={k:row_sources[k]['source'] for k in source_names(row_sources,cfg)}
+     # The catalog pins source QID membership; the host composes its own admitted offsets.
+     if cfg['r1_training'].get('source_membership'):
+         pinned(cfg['r1_training']['source_membership'])
+@@ -95,6 +97,10 @@
+         required_assertions=['disk_plan','routing_selection','empty_root','job_tmp','runtime_binaries','directory_modes','scene_division'],
+         missing=['Verified full staging closure and native path namespace','Regenerated routing selection and reviewed pin',
+                  'Complete post-filter sampler indices','Real camera/pose/pointing frame-host preparation'])
++    from student_pilot.r1_coverage import deferred
++    if deferred(cfg):
++        host.pop('routing_inputs')
++        host['steps'].remove('r1_routing.compose_native')
+     for name,value in [('c',cfg),('s',staging),('h',host),('a',dict(GO=False,source=source,config='k/c.json',host='k/h.json'))]:
+         (output/'k'/f'{name}.json').write_bytes(capsule_json(value))
+     (output/'b/wh.json').write_bytes((TREE/'launch_s1/b/wh.json').read_bytes())
+--- build22/launch_r1/entry.py
++++ build24/launch_r1/entry.py
+@@ -58,6 +58,8 @@
+ 
+ 
+ def admit(cfg):
++    from student_pilot.r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     value = cfg.get('r1_training', {})
+     if value.get('handover_receipt'):
+         receipt = load(pinned(value['handover_receipt']))
+@@ -91,7 +93,9 @@
+     card=load(pinned(cfg['r2_sampling']['card']))
+     mix={'cells':[dict(c,numerator=Fraction(str(c['rows_per_step'])).numerator,
+                       denominator=Fraction(str(c['rows_per_step'])).denominator) for c in card['cells']]}
+-    require(mix,host['loader_audit'].get('routing_training_counts'))
++    from student_pilot.r1_coverage import deferred
++    if not deferred(cfg):
++        require(mix,host['loader_audit'].get('routing_training_counts'))
+     if review.get('verdict') != 'PASS' or review.get('config_identity') != identity(cfg):
+         raise ValueError('INDEPENDENT_REVIEW_PENDING')
+     return start(cfg)
+@@ -102,6 +106,8 @@
+     from student_pilot.carrier_c1_run import identity
+     from student_pilot.checkpoint_space import plan
+     from student_pilot.carrier_c1_sweep import recipe_for
++    from student_pilot.r1_coverage import deferred
++    deferred(cfg, request)
+     root = Path(root).resolve()
+     job_tmp = fresh_tmp(root, request, job_tmp_token)
+     if root.exists() and any(root.iterdir()):
+@@ -157,10 +163,13 @@
+                 return str(root/value)
+             return value
+         staged_cfg = localize(cfg)
+-        if not request.get('routing_base') or not request.get('routing_inputs'):
++        from student_pilot.r1_coverage import routing_request
++        minimal = routing_request(staged_cfg, localize(request))
++        if not request.get('routing_base') or not minimal and not request.get('routing_inputs'):
+             raise ValueError('R1_ROUTING_COMPOSITION_INPUTS_MISSING')
+         staged_cfg['streams']['routing'] = localize(request['routing_base'])
+-        staged_cfg['r1_training']['routing_inputs'] = localize(request['routing_inputs'])
++        if not minimal:
++            staged_cfg['r1_training']['routing_inputs'] = localize(request['routing_inputs'])
+         temporary_paths(staged_cfg, job_tmp)
+         from student_pilot.scene_division_gate import check_bound
+         result['scene_division'] = check_bound(staged_cfg)
+--- build22/launch_r1/production_proof.py
++++ build24/launch_r1/production_proof.py
+@@ -67,11 +67,17 @@
+     try:
+         result['staged'] = verify_staging(request)
+         cfg = load(pinned(request['config']))
++        from student_pilot.r1_coverage import deferred
++        deferred(cfg, request, read_pins=True)
+         card = load(pinned(cfg['r1_training']['mix']))
+         if card.get('counting_admission') != 'procedure_only_v1':
+             raise ValueError('R1_PROOF_COUNTING_ADMISSION_REQUIRED')
+-        if not cfg.get('s1_routing') or not cfg['r1_training'].get('routing_inputs'):
++        from student_pilot.r1_coverage import routing_request, validate_binding
++        minimal = routing_request(cfg, request)
++        if not cfg.get('s1_routing') or not minimal and not cfg['r1_training'].get('routing_inputs'):
+             raise ValueError('R1_PROOF_NATIVE_ROUTING_REQUIRED')
++        if minimal:
++            validate_binding(cfg)
+         from student_pilot.r1_rooms import verify_audit
+         room = verify_audit(cfg,request['room_audit'])
+         result['room_certification'] = dict(scope=room['certifies'],store=room['store'])
+@@ -129,7 +135,8 @@
+                     os.environ.pop('CUDA_VISIBLE_DEVICES',None)
+                 else:
+                     os.environ['CUDA_VISIBLE_DEVICES'] = visible
+-        result['steps'].extend(['s1_routing.build','r1_routing.compose_native','s1_admission.prepare'])
++        result['steps'].extend(['s1_routing.build',
++            *([] if minimal else ['r1_routing.compose_native']), 's1_admission.prepare'])
+         from student_pilot.r1_population import bind_prepared
+         with scope(closure['paths']):
+             produced = bind_prepared(load(pinned(prepared['config'])),root/'b')
+--- build22/student_pilot/r1_coverage.py
++++ build24/student_pilot/r1_coverage.py
+@@ -8,7 +8,133 @@
+ EXTRA_PINS = {'camera_wording':'e3c72962e3fd774c7e15fa1e4aeae1b6642264bf4f3cf54b9e350b8d7bfb9707'}
+ CAMERA_WORDINGS = '0b6f8eb3fe99a1ccb011195778e0ecec89dce90ff13f0b6d90321c85955d6b86'
+ 
+-def source_names(sources):
++# These two catalog entries describe audit provenance, never routing composition.
++AUDIT_SOURCE_NAMES = frozenset(('room', 'room_programs_excluded'))
++
++def slice_bound(field, name, legacy=''):
++    raise ValueError('R1_MINIMAL_SLICE_BOUND:'+field+':'+str(name)
++                     + (':'+legacy if legacy else ''))
++
++def deferred(cfg, request=None, *, sources=None, membership=None, card=None,
++             counts=None, indices=None, read_pins=False):
++    """Central MINIMAL gate. Read metadata pins only, never source rows or envelopes.
++
++    Before staging, check inline fields. After localization, read_pins also checks
++    authenticated catalogs and sampler metadata before any training reader runs.
++    FULL returns immediately and retains its existing readers and refusals.
++    """
++    value = (cfg or {}).get('r1_training') or {}
++    if 'routing_slices' not in value:
++        return False
++    if value['routing_slices'] != 'deferred_first_boundary':
++        raise ValueError('R1_ROUTING_SLICES_INVALID')
++    def catalog(raw, field):
++        if not isinstance(raw, dict):
++            slice_bound(field, '<invalid>')
++        for name in sorted(raw):
++            if name not in AUDIT_SOURCE_NAMES or name in deferred_names():
++                slice_bound(field, name)
++    def members(raw, field):
++        if not isinstance(raw, dict) or not isinstance(raw.get('sources'), dict):
++            slice_bound(field, '<invalid>')
++        for name in sorted(raw['sources']):
++            slice_bound(field, name, 'R1_DEFERRED_MEMBERSHIP_NONEMPTY')
++    def document(raw):
++        return load(pinned(raw)) if isinstance(raw, dict) and 'path' in raw and 'sha256' in raw else raw
++    for prefix, obj in (('r1_training', value), ('request', request or {})):
++        for field in ('routing_inputs', 'row_slice_inputs'):
++            if field in obj and (field == 'routing_inputs' or obj[field] != {}):
++                raw = obj[field]
++                name = sorted(raw)[0] if isinstance(raw, dict) and raw else '<present>'
++                slice_bound(prefix+'.'+field, name,
++                            'R1_DEFERRED_ROUTING_INPUTS_PRESENT' if field == 'routing_inputs' else '')
++        if read_pins:
++            if obj.get('row_sources') is not None:
++                catalog(document(obj['row_sources']), prefix+'.row_sources')
++            if obj.get('source_membership') is not None:
++                members(document(obj['source_membership']), prefix+'.source_membership')
++    if sources is not None:
++        catalog(sources, 'r1_training.row_sources')
++    if membership is not None:
++        members(membership, 'source_membership')
++    if read_pins:
++        for field, pin in (('streams.routing', (cfg or {}).get('streams', {}).get('routing')),
++                           ('request.routing_base', (request or {}).get('routing_base'))):
++            if pin is not None:
++                if field == 'request.routing_base':
++                    from .r1_handover import pin_values
++                    if pin_values(pin) != pin_values((cfg or {}).get('streams', {}).get('routing')):
++                        raise ValueError('R1_ROUTING_BASE_DIFFERS')
++                receipt = document(pin)
++                if receipt.get('source_membership'):
++                    slice_bound(field+'.source_membership', '<present>',
++                                'R1_ROUTING_BASE_INVALID:R1_DEFERRED_MEMBERSHIP_NONEMPTY')
++        sampling = (cfg or {}).get('r2_sampling') or {}
++        cards = []
++        for field, pin in (('r1_training.mix', value.get('mix')),
++                           ('r2_sampling.card', sampling.get('card')),
++                           ('request.card', (request or {}).get('card'))):
++            if pin is not None:
++                cards.append((field, document(pin)))
++        population = document(sampling['population']) if sampling.get('population') else {}
++        bound_indices = document(sampling['indices']) if sampling.get('indices') else {}
++        for field, bound_card in cards:
++            deferred_card(bound_card, population.get('counts'), bound_indices.get('cells'), field=field)
++        for field, mapping in (('r2_sampling.population.counts', population.get('counts', {})),
++                               ('r2_sampling.indices.cells', bound_indices.get('cells', {}))):
++            for name, amount in mapping.items():
++                if name in deferred_names() and amount:
++                    slice_bound(field, name, 'R1_DEFERRED_CELL_NONZERO:'+name)
++        if population.get('source_membership'):
++            members(document(population['source_membership']), 'r2_sampling.population.source_membership')
++    if card is not None:
++        deferred_card(card, counts, indices)
++    return True
++
++def deferred_names():
++    from .r1_population import SLICE_CELLS
++    return {*SLICE_CELLS, *PINS, *globals().get('EXTRA_PINS', {}), 'coverage', 'camera_wording'}
++
++def deferred_card(card, counts=None, indices=None, *, field='card'):
++    """The base has its own cell; every other routing cell remains empty."""
++    from fractions import Fraction
++    names = deferred_names()
++    base = [c for c in card['cells'] if c['type'] == 'routing_base']
++    if len(base) != 1 or base[0]['stream'] != 'routing' or Fraction(str(base[0]['rows_per_step'])) != 64:
++        raise ValueError('R1_DEFERRED_BASE_CELL_REQUIRED')
++    for cell in card['cells']:
++        if cell['type'] in names or cell['stream'] == 'routing' and cell['type'] != 'routing_base':
++            name = cell['type']
++            if (Fraction(str(cell['rows_per_step'])) != 0
++                    or Fraction(str(cell.get('ceiling_rows_per_step', 0))) != 0
++                    or counts is not None and counts.get(name, 0) != 0
++                    or indices is not None and indices.get(name, [])):
++                slice_bound(field+'.cells', name, 'R1_DEFERRED_CELL_NONZERO:'+name)
++    for mapping in (counts or {}, indices or {}):
++        for name, amount in mapping.items():
++            if name in names and amount:
++                slice_bound(field+'.cells', name, 'R1_DEFERRED_CELL_NONZERO:'+name)
++
++def routing_request(cfg, request):
++    """A minimal request binds the same authenticated base as its config."""
++    if not deferred(cfg, request, read_pins=True):
++        return False
++    from .r1_handover import pin_values
++    base = request.get('routing_base')
++    if not base or pin_values(base) != pin_values(cfg.get('streams', {}).get('routing')):
++        raise ValueError('R1_ROUTING_BASE_DIFFERS')
++    value = load(pinned(base))
++    from .carrier_c1_routing import ROUTING_SCHEMA
++    if value.get('source_membership'):
++        slice_bound('request.routing_base.source_membership', '<present>', 'R1_ROUTING_BASE_INVALID')
++    if (value.get('schema') != ROUTING_SCHEMA or value.get('scene_role', 'train') != 'train'
++            or value.get('heldout_overlap') != 0):
++        raise ValueError('R1_ROUTING_BASE_INVALID')
++    return True
++
++def source_names(sources, cfg=None):
++    if deferred(cfg, sources=sources, read_pins=True):
++        return ()
+     from .r1_population import SLICE_CELLS
+     extra=set(sources)&set(PINS)
+     if extra and extra!=set(PINS):raise ValueError('R1_COVERAGE_SOURCES_INCOMPLETE')
+@@ -50,6 +176,7 @@
+     from .r1_launch22 import validate_removals
+     validate_removals(cfg)
+     value=cfg.get('r1_training') or {};pin=value.get('wording_exclusion')
++    deferred(cfg, read_pins=True)
+     sources=load(pinned(value['row_sources'])) if value.get('row_sources') else {}
+     extra=set(PINS)&set(sources)
+     if extra:
+--- build22/student_pilot/r1_population.py
++++ build24/student_pilot/r1_population.py
+@@ -54,13 +54,17 @@
+ 
+ class Membership:
+     """Authenticate composed slice QIDs and source hashes; never infer them from prose."""
+-    def __init__(self, pin):
++    def __init__(self, pin, *, minimal=False):
+         self.pin = pin
++        self.minimal = minimal
+         value = load(pinned(pin))
+         if value.get('schema') != 'r1-source-membership-v1':
+             raise ValueError('R1_SOURCE_MEMBERSHIP_INVALID')
+         self.rows = {}
+         self.sources = value['sources']
++        if minimal:
++            from .r1_coverage import deferred
++            deferred({'r1_training': {'routing_slices': 'deferred_first_boundary'}}, membership=value)
+         from .r1_coverage import PINS, EXTRA_PINS, source_names
+         source_names(self.sources)
+         for kind, source in self.sources.items():
+@@ -73,6 +77,10 @@
+                 self.rows[qid] = (kind, source['source']['sha256'], row_hash)
+ 
+     def cell(self, row, stream):
++        if self.minimal and stream == 'routing':
++            if row.get('r1_source'):
++                raise ValueError('R1_DEFERRED_ROW_PRESENT:'+row['qid'])
++            return 'routing_base'
+         entry = self.rows.get(row['qid']) if stream == 'routing' else None
+         marker = row.get('r1_source')
+         if entry is None:
+@@ -88,12 +96,17 @@
+         return 'coverage' if kind in ('coverage_units','coverage_distance') else kind
+ 
+ 
+-def produce(reader, card_pin, membership_pin, evidence, output):
++def produce(reader, card_pin, membership_pin, evidence, output, *, cfg=None):
+     """Walk every prepared offset. Reader failures refuse the population, never disappear."""
++    from .r1_coverage import deferred, deferred_card
++    minimal = deferred(cfg, read_pins=True)
+     output = Path(output)
+     output.mkdir(parents=True, exist_ok=True)
+     card = load(pinned(card_pin))
+-    membership = Membership(membership_pin)
++    deferred(cfg, card=card)
++    if minimal:
++        deferred_card(card)
++    membership = Membership(membership_pin, minimal=minimal)
+     groups = {c['type']:[] for c in card['cells']}
+     streams = {c['type']:c['stream'] for c in card['cells']}
+     unknown, pairs = Counter(), defaultdict(Counter)
+@@ -122,6 +135,8 @@
+     if unknown:
+         raise ValueError('R1_UNASSIGNED_TYPES:'+str(dict(sorted(unknown.items()))))
+     counts = {k:len(v) for k,v in groups.items()}
++    if minimal:
++        deferred_card(card, counts, groups)
+     population = dict(schema='r1-population-v1', complete=True, after_all_filters=True,
+         card_sha256=card_pin['sha256'], counts=counts, evidence=[*evidence, membership_pin],
+         source_membership=membership_pin, examples=dict(examples),
+@@ -145,9 +160,21 @@
+     """Publish a new preparation and config after native reader filtering and production."""
+     from .carrier_c1_run import Rows, prepared, identity
+     from .source_seal import binding as seal_binding
++    from .r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     receipt, _ = prepared(cfg)
+     output = Path(output)
+     output.mkdir(parents=True, exist_ok=True)
++    from .r1_coverage import deferred
++    routing = load(pinned(cfg['streams']['routing']))
++    if deferred(cfg):
++        if routing.get('source_membership'):
++            raise ValueError('R1_DEFERRED_MEMBERSHIP_NONEMPTY')
++        write(output/'base_membership.json', dict(schema='r1-source-membership-v1', sources={},
++              base=cfg['streams']['routing'], routing_slices='deferred_first_boundary'))
++        membership_pin = file_pin(output/'base_membership.json')
++    else:
++        membership_pin = routing['source_membership']
+     current = deepcopy(receipt)
+     refusals = {}
+     reader = Rows(receipt, None)
+@@ -173,9 +200,9 @@
+     reader = Rows(current, None)
+     try:
+         result = produce(reader, cfg['r1_training']['mix'],
+-            load(pinned(cfg['streams']['routing']))['source_membership'],
++            membership_pin,
+             [cfg['preparation'], file_pin(output/'reader_filters.json'),
+-             *[v['receipt'] for v in current['streams'].values()]], output)
++             *[v['receipt'] for v in current['streams'].values()]], output, cfg=cfg)
+     finally:
+         reader.close()
+     cfg = deepcopy(cfg)
+--- build22/student_pilot/r1_rooms.py
++++ build24/student_pilot/r1_rooms.py
+@@ -85,6 +85,8 @@
+ 
+ def verify_audit(cfg, pin):
+     """Certify slice exclusion and bind a separate, explicitly scoped store record."""
++    from .r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     from .r1_launch22 import validate_removals, bound
+     validate_removals(cfg)
+     audit = load(pinned(pin))
+@@ -99,7 +101,7 @@
+     rooms = Rooms(audit['authority'])
+     sources = load(pinned(value['row_sources']))
+     from .r1_coverage import source_names
+-    for kind in source_names(sources):
++    for kind in source_names(sources, cfg):
+         report = audit['slices'][kind]
+         if (pin_values(report['source'])!=pin_values(sources[kind]['source']) or report['unresolved']!=0
+                 or report['unremoved_hits']!=0):
+@@ -142,6 +144,8 @@
+     import json
+     import sqlite3
+     from .row_removals import Removals
++    from .r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     value = cfg['r1_training']
+     rooms = Rooms(value['room_authority'])
+     removals = Removals(cfg['remove_files'])
+@@ -150,7 +154,7 @@
+     reports, hits = {}, []
+     sources = load(pinned(value['row_sources']))
+     from .r1_coverage import source_names
+-    for kind in source_names(sources):
++    for kind in source_names(sources, cfg):
+         counts, hows = Counter(), Counter()
+         with pinned(sources[kind]['source']).open() as f:
+             for line in f:
+--- build22/student_pilot/s1_admission.py
++++ build24/student_pilot/s1_admission.py
+@@ -154,6 +154,8 @@
+     attempt_dir = output / ("attempt_"+attempt)
+     attempt_dir.mkdir()
+     cfg = load(pinned(config_pin))
++    from .r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     world = cfg.get("world_size")
+     if (type(world) is not int or world not in (4, 8) or cfg.get("ground_target_filter") is not True
+             or not cfg.get("dev_scene_exclusions") or not cfg.get("benchmark_scene_exclusions")
+@@ -208,10 +210,12 @@
+             routing_outputs = [selected["streams"]["routing"], routed["database"], routed["materialization"],
+                                *local_pins(load(pinned(routed["materialization"])), directory)]
+             if cfg.get('r1_training'):
+-                from .r1_routing import compose_native
+-                composed = compose_native(cfg, selected['streams']['routing'], directory/'composed')
+-                selected['streams']['routing'] = file_pin(directory/'composed/receipt.json')
+-                routing_outputs.extend([selected['streams']['routing'], composed['database'], composed['source_membership']])
++                from .r1_coverage import deferred
++                if not deferred(cfg):
++                    from .r1_routing import compose_native
++                    composed = compose_native(cfg, selected['streams']['routing'], directory/'composed')
++                    selected['streams']['routing'] = file_pin(directory/'composed/receipt.json')
++                    routing_outputs.extend([selected['streams']['routing'], composed['database'], composed['source_membership']])
+         selected.pop("preparation", None)
+         selected.pop("admission", None)
+         selected["recipe"] = run.recipe_for(selected)

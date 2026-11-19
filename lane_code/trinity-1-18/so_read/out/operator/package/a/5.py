@@ -145,6 +145,9 @@ def main():
     settings=json.loads(settings_path.read_text())
     if cfg.get('read_extensions') is True:
         (results/'SETTINGS.json').write_bytes(settings_path.read_bytes())
+        for source,name in (('e/RESTORE.json','RESTORE.json'),('binding.json','binding.json'),
+                            ('manifest.json','manifest.json'),('6.json','EXPORT_PIN.json')):
+            (results/name).write_bytes(J.physical(root,cfg['logical']+'/d/'+source).read_bytes())
     if (settings['stage1_select_rule']!='candidates_argmax' or settings['perception_memo']!='on'
         or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
         raise ValueError('Prepared default settings differ')

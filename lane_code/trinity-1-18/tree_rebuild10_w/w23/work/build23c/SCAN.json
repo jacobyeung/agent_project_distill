@@ -1,0 +1,69 @@
+{
+  "checked_strings": 76663,
+  "kit_seal": "a258d7e7383411eb010055a172d2fef799bb43ec16eb1da0e2b9a9142709e3d6",
+  "list_counts": {
+    "capsule_hashes_checked": 17,
+    "decoded_maps": 13,
+    "environment_sinks": 175,
+    "environment_value_allowlist": 5,
+    "executables": 17,
+    "names": 76663,
+    "provenance": 1451,
+    "runtime_maps": 1
+  },
+  "provenance_allowlist": {
+    "config_schema": {
+      "fields": [
+        "k/{c,n}.json:benchmark_scene_exclusions",
+        "k/{c,n}.json:geometry_connector",
+        "k/{c,n}.json:trace_program_version",
+        "k/{c,n}.json:r1_training/room_authority/split",
+        "k/{c,n}.json:route_table/{object_size_estimation,room_size_estimation}"
+      ],
+      "reason": "Exact schema key identities are required by frozen content readers. Their values are still scanned.",
+      "use": "Authenticated file content only; never used as a wrapper name, path, argument, environment entry or log line."
+    },
+    "input_identity": {
+      "fields": [
+        "k/n.json:benchmark_scene_exclusions/path",
+        "k/n.json:dev_scene_exclusions/path",
+        "k/n.json:r1_training/wording_exclusion/path",
+        "k/n.json:s1_routing/catalog/3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970"
+      ],
+      "reason": "Original identity text preserves authenticated config content. The consumer uses the separately checked opaque pin_paths value, never this identity as its job path.",
+      "use": "Authenticated file content only; never used as a wrapper name, path, argument, environment entry or log line."
+    },
+    "refusal_vocabulary": {
+      "fields": [
+        "k/g.json:payload"
+      ],
+      "reason": "The exact bound WORDS values are required to recognize and suppress forbidden names, not to emit them.",
+      "use": "Authenticated file content only; never used as a wrapper name, path, argument, environment entry or log line."
+    },
+    "room_rule": {
+      "fields": [
+        "k/s.json:entries/u/a4509d8c159f71f81d0f82adad8e85ef8135d17363084e7281fadddea04c9c5c/@content/room_rule"
+      ],
+      "reason": "The exact human-readable admission annotation preserves the pinned card content; it does not control a job name or output.",
+      "use": "Authenticated file content only; never used as a wrapper name, path, argument, environment entry or log line."
+    },
+    "source_inventory": {
+      "fields": [
+        "k/7.json:{files,sources,operation_sources}",
+        "k/c0.json:{files,sources,operation_sources}"
+      ],
+      "reason": "Source identity keys must match the frozen tree and producer inventory seals; they are integrity declarations inside file content.",
+      "use": "Authenticated file content only; never used as a wrapper name, path, argument, environment entry or log line."
+    },
+    "staging_schema": {
+      "fields": [
+        "k/l.json:staged_inputs/{archives,files,packages,directories}/<index>/destination"
+      ],
+      "reason": "The frozen staging reader requires this exact schema key (which contains sti). Its path value is always scanned.",
+      "use": "Authenticated file content only; never used as a wrapper name, path, argument, environment entry or log line."
+    }
+  },
+  "scope": "All kit paths and every decoded map key/string value, including every nested payload. Only exact, named authenticated content identifiers are allowed; no subtree is skipped. Shell tokens, Python path literals and environment names/values are checked. Unresolved environment writes and maps refuse; only explicitly allowlisted literal keys may have runtime values. Only an unmodified whole-environment spread/copy may inherit names; added keys and values are checked. Complex shell requires an exact reviewed source hash and a per-program literal-name runtime allowlist.",
+  "status": "PASS",
+  "tree_seal": "5b349b1819bc7dca1010feb81da2e7b1326f9992aff913416981b932cdd58c6c"
+}

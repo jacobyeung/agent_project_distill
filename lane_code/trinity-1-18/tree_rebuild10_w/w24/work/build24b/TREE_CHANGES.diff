@@ -1,0 +1,191 @@
+--- build24/student_pilot/r1_persisted.py
++++ build24b/student_pilot/r1_persisted.py
+@@ -18,10 +18,33 @@
+         _proof.reset(token)
+ 
+ 
+-def export_only(receipt, mode=None):
++INIT_POLICY = 'step400_export_weights_fresh_v1'
++
++
++def init_policy(value):
++    """The pinned declaration permits only fresh initialization from step 400."""
++    if 'init_policy' not in value:
++        return None
++    if value['init_policy'] != INIT_POLICY:
++        raise ValueError('P_EXPORT_INIT_POLICY_INVALID')
++    if value.get('proof_mode') != 'train':
++        raise ValueError('P_EXPORT_INIT_TRAIN_MODE_REQUIRED')
++    if not value.get('handover_receipt') or 'persisted_files' not in value:
++        raise ValueError('P_EXPORT_INIT_RECEIPT_REQUIRED')
++    return INIT_POLICY
++
++
++def export_only(receipt, mode=None, *, init_policy=None):
++    if init_policy is not None:
++        if init_policy != INIT_POLICY:
++            raise ValueError('P_EXPORT_INIT_POLICY_INVALID')
++        if mode != 'train':
++            raise ValueError('P_EXPORT_INIT_TRAIN_MODE_REQUIRED')
++        if receipt.get('schema') != 'p-export-only-v1' or type(receipt.get('step')) is not int or receipt['step'] != 400:
++            raise ValueError('P_EXPORT_INIT_STEP400_ONLY')
+     if receipt.get('schema') != 'p-export-only-v1':
+         return False
+-    if mode != 'q' or not _proof.get():
++    if init_policy is None and (mode != 'q' or not _proof.get()):
+         raise ValueError('P_EXPORT_ONLY_PROOF_MODE_Q_REQUIRED_TRAINING_REFUSED')
+     return True
+ 
+@@ -43,7 +66,7 @@
+         _paths.reset(token)
+ 
+ 
+-def verify(receipt_pin, p_run, artifact_pin, paths, *, weights=False, proof_mode=None):
++def verify(receipt_pin, p_run, artifact_pin, paths, *, weights=False, proof_mode=None, init_policy=None):
+     """The caller pins h.json from the trusted ledger, independently of this bundle."""
+     if not receipt_pin:
+         raise ValueError('P_EXPORT_HANDOVER_RECEIPT_REQUIRED')
+@@ -51,7 +74,7 @@
+         receipt = load(pinned(receipt_pin))
+     except (OSError, ValueError) as error:
+         raise ValueError('P_EXPORT_HANDOVER_RECEIPT_UNVERIFIED') from error
+-    only = export_only(receipt, proof_mode)
++    only = export_only(receipt, proof_mode, init_policy=init_policy)
+     if (receipt.get('schema') not in ('p-handover-v1', 'p-export-only-v1') or type(receipt.get('step')) is not int
+             or not receipt.get('job_id') or not receipt.get('trainer_commit')):
+         raise ValueError('P_EXPORT_HANDOVER_RECEIPT_INVALID')
+@@ -170,11 +193,11 @@
+ def admission(cfg, *, weights=False, official=False):
+     value = cfg['r1_training']
+     result = verify(value.get('handover_receipt'),value.get('p_run',{}),cfg['init_artifact']['artifact'],
+-                    value.get('persisted_files',{}),weights=weights,proof_mode=value.get('proof_mode'))
++                    value.get('persisted_files',{}),weights=weights,proof_mode=value.get('proof_mode'),init_policy=init_policy(value))
+     from .r1_training import start
+     with scope(result['paths']):
+         if official or cfg.get('r2_evaluation'):
+             from .r1_components import guard
+             guard(load(pinned(cfg['init_artifact']['artifact'])), ['VSI-Bench', 'VSTI', 'ReVSI'], 'official-handover')
+         step = start(cfg)
+-    return dict(result, status='ADMIT',absolute_resume_step=step)
++    return dict(result, status='ADMIT',absolute_resume_step=step,init_milestone=result['receipt']['step'])
+--- build24/student_pilot/r1_training.py
++++ build24b/student_pilot/r1_training.py
+@@ -65,6 +65,8 @@
+ 
+ def validate(cfg):
+     value = cfg['r1_training']
++    from .r1_persisted import init_policy
++    init_policy(value)
+     from .r1_coverage import validate_binding
+     validate_binding(cfg)
+     if value.get('schema') != 'r1-training-v1' or value.get('s2') is not False:
+@@ -132,10 +134,12 @@
+ 
+ def start(cfg):
+     value = cfg.get('r1_training') or {}
++    from .r1_persisted import init_policy
++    init_policy(value)
+     if 'persisted_files' in value:
+-        from .r1_persisted import verify, scope
++        from .r1_persisted import verify, scope, init_policy
+         result = verify(value.get('handover_receipt'),value.get('p_run',{}),
+-                        cfg['init_artifact']['artifact'],value['persisted_files'],proof_mode=value.get('proof_mode'))
++                        cfg['init_artifact']['artifact'],value['persisted_files'],proof_mode=value.get('proof_mode'),init_policy=init_policy(value))
+         with scope(result['paths']):
+             return _start(cfg)
+     return _start(cfg)
+@@ -152,7 +156,9 @@
+             raise ValueError('R1_PARENT_STEP_DIFFERS')
+         return 0
+     from .r1_handover import progress
+-    return progress(cfg, artifact)['step']
++    step = progress(cfg, artifact)['step']
++    from .r1_persisted import init_policy
++    return 0 if init_policy(cfg['r1_training']) is not None else step
+ 
+ 
+ def scale_init(live, selected, *, enabled=False):
+--- build24/student_pilot/r1_handover.py
++++ build24b/student_pilot/r1_handover.py
+@@ -308,9 +308,9 @@
+ def donor(cfg, artifact):
+     value = cfg['r1_training']
+     if 'persisted_files' in value:
+-        from .r1_persisted import verify, scope
++        from .r1_persisted import verify, scope, init_policy
+         result = verify(value.get('handover_receipt'), value.get('p_run', {}),
+-                        cfg['init_artifact']['artifact'], value['persisted_files'], proof_mode=value.get('proof_mode'))
++                        cfg['init_artifact']['artifact'], value['persisted_files'], proof_mode=value.get('proof_mode'),init_policy=init_policy(value))
+         with scope(result['paths']):
+             if artifact != load(pinned(cfg['init_artifact']['artifact'])):
+                 raise ValueError('P_EXPORT_HANDOVER_ARTIFACT_MISMATCH')
+@@ -322,14 +322,14 @@
+     """Read P's config, binding.json and preparation receipt, never a progress assertion."""
+     value = cfg['r1_training']
+     pins = value.get('p_run', {})
+-    from .r1_persisted import export_only
++    from .r1_persisted import export_only, init_policy
+     receipt = None
+     if value.get('handover_receipt'):
+         try:
+             receipt = load(pinned(value['handover_receipt']))
+         except (OSError, ValueError) as error:
+             raise ValueError('P_EXPORT_HANDOVER_RECEIPT_UNVERIFIED') from error
+-    only = export_only(receipt, value.get('proof_mode')) if receipt is not None else False
++    only = export_only(receipt, value.get('proof_mode'), init_policy=init_policy(value)) if receipt is not None else False
+     for key, filename in (('config', 'config.json'), ('binding', 'binding.json'),
+                           ('preparation', 'preparation/receipt.json'), ('checkpoint', 'complete.json')):
+         if only and key == 'checkpoint':
+@@ -378,7 +378,7 @@
+     if 'persisted_files' in value or only:
+         from .r1_persisted import verify
+         verify(value.get('handover_receipt'), pins, cfg['init_artifact']['artifact'], value.get('persisted_files', {}),
+-               proof_mode=value.get('proof_mode'))
++               proof_mode=value.get('proof_mode'),init_policy=init_policy(value))
+     else:
+         from launch_r1.p_handover_receipt import verify_receipt
+         verify_receipt(value.get('handover_receipt'), pins, cfg['init_artifact']['artifact'])
+--- build24/launch_r1/entry.py
++++ build24b/launch_r1/entry.py
+@@ -61,9 +61,13 @@
+     from student_pilot.r1_coverage import deferred
+     deferred(cfg, read_pins=True)
+     value = cfg.get('r1_training', {})
++    from student_pilot.r1_persisted import init_policy, export_only
++    policy = init_policy(value)
+     if value.get('handover_receipt'):
+         receipt = load(pinned(value['handover_receipt']))
+-        if receipt.get('schema') == 'p-export-only-v1':
++        if policy is not None:
++            export_only(receipt, value.get('proof_mode'), init_policy=policy)
++        elif receipt.get('schema') == 'p-export-only-v1':
+             raise ValueError('P_EXPORT_ONLY_TRAINING_LAUNCH_REFUSED')
+     from student_pilot.r1_training import validate, training_components, start
+     from student_pilot.r1_mix import validate_binding
+--- build24/launch_r1/production_proof.py
++++ build24b/launch_r1/production_proof.py
+@@ -94,11 +94,11 @@
+             verify_audit(cfg,cfg['r1_training']['room_audit'])
+             result['augmented_room_audit']=cfg['r1_training']['room_audit']
+             result['steps'].append('direction_twins')
+-        from student_pilot.r1_persisted import verify, scope
++        from student_pilot.r1_persisted import verify, scope, init_policy
+         value=cfg['r1_training']
+         closure=verify(value.get('handover_receipt'),value.get('p_run',{}),
+                        cfg['init_artifact']['artifact'],value.get('persisted_files',{}),
+-                       weights=bool(request.get('weights')),proof_mode=value.get('proof_mode'))
++                       weights=bool(request.get('weights')),proof_mode=value.get('proof_mode'),init_policy=init_policy(value))
+         step = closure['receipt']['step']
+         if step not in (400,600) or request.get('milestone',step)!=step:
+             raise ValueError('R1_PROOF_EXPORT_STEP_REQUIRED')
+@@ -153,7 +153,9 @@
+             handover=admission(cfg,weights=bool(request.get('weights')))
+         result['handover']={k:v for k,v in handover.items() if k!='paths'}
+         result['absolute_resume_step']=handover['absolute_resume_step']
+-        if result['absolute_resume_step'] not in (400,600):
++        result['init_milestone'] = handover['init_milestone']
++        expected_start = 0 if init_policy(cfg['r1_training']) is not None else step
++        if result['init_milestone'] not in (400,600) or result['absolute_resume_step'] != expected_start:
+             raise ValueError('R1_PROOF_EXPORT_STEP_REQUIRED')
+         result['steps'].append('persisted_handover')
+         if request.get('weights'):

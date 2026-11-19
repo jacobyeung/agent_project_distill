@@ -8,54 +8,132 @@ PINS = {'coverage_units':'8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df5
 EXTRA_PINS = {'camera_wording':'e3c72962e3fd774c7e15fa1e4aeae1b6642264bf4f3cf54b9e350b8d7bfb9707'}
 CAMERA_WORDINGS = '0b6f8eb3fe99a1ccb011195778e0ecec89dce90ff13f0b6d90321c85955d6b86'
 
-def deferred(cfg):
-    """Only the pinned declaration defers new slices until the first boundary."""
+# These two catalog entries describe audit provenance, never routing composition.
+AUDIT_SOURCE_NAMES = frozenset(('room', 'room_programs_excluded'))
+
+def slice_bound(field, name, legacy=''):
+    raise ValueError('R1_MINIMAL_SLICE_BOUND:'+field+':'+str(name)
+                     + (':'+legacy if legacy else ''))
+
+def deferred(cfg, request=None, *, sources=None, membership=None, card=None,
+             counts=None, indices=None, read_pins=False):
+    """Central MINIMAL gate. Read metadata pins only, never source rows or envelopes.
+
+    Before staging, check inline fields. After localization, read_pins also checks
+    authenticated catalogs and sampler metadata before any training reader runs.
+    FULL returns immediately and retains its existing readers and refusals.
+    """
     value = (cfg or {}).get('r1_training') or {}
     if 'routing_slices' not in value:
         return False
     if value['routing_slices'] != 'deferred_first_boundary':
         raise ValueError('R1_ROUTING_SLICES_INVALID')
-    if 'routing_inputs' in value:
-        raise ValueError('R1_DEFERRED_ROUTING_INPUTS_PRESENT')
+    def catalog(raw, field):
+        if not isinstance(raw, dict):
+            slice_bound(field, '<invalid>')
+        for name in sorted(raw):
+            if name not in AUDIT_SOURCE_NAMES or name in deferred_names():
+                slice_bound(field, name)
+    def members(raw, field):
+        if not isinstance(raw, dict) or not isinstance(raw.get('sources'), dict):
+            slice_bound(field, '<invalid>')
+        for name in sorted(raw['sources']):
+            slice_bound(field, name, 'R1_DEFERRED_MEMBERSHIP_NONEMPTY')
+    def document(raw):
+        return load(pinned(raw)) if isinstance(raw, dict) and 'path' in raw and 'sha256' in raw else raw
+    for prefix, obj in (('r1_training', value), ('request', request or {})):
+        for field in ('routing_inputs', 'row_slice_inputs'):
+            if field in obj and (field == 'routing_inputs' or obj[field] != {}):
+                raw = obj[field]
+                name = sorted(raw)[0] if isinstance(raw, dict) and raw else '<present>'
+                slice_bound(prefix+'.'+field, name,
+                            'R1_DEFERRED_ROUTING_INPUTS_PRESENT' if field == 'routing_inputs' else '')
+        if read_pins:
+            if obj.get('row_sources') is not None:
+                catalog(document(obj['row_sources']), prefix+'.row_sources')
+            if obj.get('source_membership') is not None:
+                members(document(obj['source_membership']), prefix+'.source_membership')
+    if sources is not None:
+        catalog(sources, 'r1_training.row_sources')
+    if membership is not None:
+        members(membership, 'source_membership')
+    if read_pins:
+        for field, pin in (('streams.routing', (cfg or {}).get('streams', {}).get('routing')),
+                           ('request.routing_base', (request or {}).get('routing_base'))):
+            if pin is not None:
+                if field == 'request.routing_base':
+                    from .r1_handover import pin_values
+                    if pin_values(pin) != pin_values((cfg or {}).get('streams', {}).get('routing')):
+                        raise ValueError('R1_ROUTING_BASE_DIFFERS')
+                receipt = document(pin)
+                if receipt.get('source_membership'):
+                    slice_bound(field+'.source_membership', '<present>',
+                                'R1_ROUTING_BASE_INVALID:R1_DEFERRED_MEMBERSHIP_NONEMPTY')
+        sampling = (cfg or {}).get('r2_sampling') or {}
+        cards = []
+        for field, pin in (('r1_training.mix', value.get('mix')),
+                           ('r2_sampling.card', sampling.get('card')),
+                           ('request.card', (request or {}).get('card'))):
+            if pin is not None:
+                cards.append((field, document(pin)))
+        population = document(sampling['population']) if sampling.get('population') else {}
+        bound_indices = document(sampling['indices']) if sampling.get('indices') else {}
+        for field, bound_card in cards:
+            deferred_card(bound_card, population.get('counts'), bound_indices.get('cells'), field=field)
+        for field, mapping in (('r2_sampling.population.counts', population.get('counts', {})),
+                               ('r2_sampling.indices.cells', bound_indices.get('cells', {}))):
+            for name, amount in mapping.items():
+                if name in deferred_names() and amount:
+                    slice_bound(field, name, 'R1_DEFERRED_CELL_NONZERO:'+name)
+        if population.get('source_membership'):
+            members(document(population['source_membership']), 'r2_sampling.population.source_membership')
+    if card is not None:
+        deferred_card(card, counts, indices)
     return True
 
-def deferred_card(card, counts=None, indices=None):
+def deferred_names():
+    from .r1_population import SLICE_CELLS
+    return {*SLICE_CELLS, *PINS, *globals().get('EXTRA_PINS', {}), 'coverage', 'camera_wording'}
+
+def deferred_card(card, counts=None, indices=None, *, field='card'):
     """The base has its own cell; every other routing cell remains empty."""
     from fractions import Fraction
-    from .r1_population import SLICE_CELLS
-    deferred_names = {*SLICE_CELLS, *PINS, 'coverage', 'camera_wording'}
+    names = deferred_names()
     base = [c for c in card['cells'] if c['type'] == 'routing_base']
     if len(base) != 1 or base[0]['stream'] != 'routing' or Fraction(str(base[0]['rows_per_step'])) != 64:
         raise ValueError('R1_DEFERRED_BASE_CELL_REQUIRED')
     for cell in card['cells']:
-        if cell['type'] in deferred_names or cell['stream'] == 'routing' and cell['type'] != 'routing_base':
+        if cell['type'] in names or cell['stream'] == 'routing' and cell['type'] != 'routing_base':
             name = cell['type']
             if (Fraction(str(cell['rows_per_step'])) != 0
+                    or Fraction(str(cell.get('ceiling_rows_per_step', 0))) != 0
                     or counts is not None and counts.get(name, 0) != 0
                     or indices is not None and indices.get(name, [])):
-                raise ValueError('R1_DEFERRED_CELL_NONZERO:'+name)
+                slice_bound(field+'.cells', name, 'R1_DEFERRED_CELL_NONZERO:'+name)
+    for mapping in (counts or {}, indices or {}):
+        for name, amount in mapping.items():
+            if name in names and amount:
+                slice_bound(field+'.cells', name, 'R1_DEFERRED_CELL_NONZERO:'+name)
 
 def routing_request(cfg, request):
     """A minimal request binds the same authenticated base as its config."""
-    if not deferred(cfg):
+    if not deferred(cfg, request, read_pins=True):
         return False
-    if 'routing_inputs' in request:
-        raise ValueError('R1_DEFERRED_ROUTING_INPUTS_PRESENT')
     from .r1_handover import pin_values
     base = request.get('routing_base')
     if not base or pin_values(base) != pin_values(cfg.get('streams', {}).get('routing')):
         raise ValueError('R1_ROUTING_BASE_DIFFERS')
     value = load(pinned(base))
     from .carrier_c1_routing import ROUTING_SCHEMA
+    if value.get('source_membership'):
+        slice_bound('request.routing_base.source_membership', '<present>', 'R1_ROUTING_BASE_INVALID')
     if (value.get('schema') != ROUTING_SCHEMA or value.get('scene_role', 'train') != 'train'
-            or value.get('heldout_overlap') != 0 or value.get('source_membership')):
+            or value.get('heldout_overlap') != 0):
         raise ValueError('R1_ROUTING_BASE_INVALID')
-    # Native selection/preparation authenticates the nested database and division.
-    # This entry check authenticates the receipt before the frame-host boundary.
     return True
 
 def source_names(sources, cfg=None):
-    if deferred(cfg):
+    if deferred(cfg, sources=sources, read_pins=True):
         return ()
     from .r1_population import SLICE_CELLS
     extra=set(sources)&set(PINS)
@@ -98,13 +176,7 @@ def validate_binding(cfg):
     from .r1_launch22 import validate_removals
     validate_removals(cfg)
     value=cfg.get('r1_training') or {};pin=value.get('wording_exclusion')
-    if deferred(cfg):
-        card = load(pinned(value['mix']))
-        sampling = cfg.get('r2_sampling')
-        population = load(pinned(sampling['population'])) if sampling else None
-        indices = load(pinned(sampling['indices'])) if sampling else None
-        deferred_card(card, population['counts'] if population else None,
-                      indices['cells'] if indices else None)
+    deferred(cfg, read_pins=True)
     sources=load(pinned(value['row_sources'])) if value.get('row_sources') else {}
     extra=set(PINS)&set(sources)
     if extra:

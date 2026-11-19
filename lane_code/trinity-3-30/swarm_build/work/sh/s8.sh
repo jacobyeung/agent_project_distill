@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30; tail -6 $R/sb_cachk/work/price_s5.log | cut -c1-400; ls $R/sb_cachk/out/v2/price 2>/dev/null; ls $R/sb_scale1 $R/sb_scale1/out 2>/dev/null | head; cat $R/sb_scale1/STATUS.md 2>/dev/null | cut -c1-600

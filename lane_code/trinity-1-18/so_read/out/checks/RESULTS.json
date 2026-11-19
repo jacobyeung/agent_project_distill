@@ -1,8 +1,6 @@
 {
   "cuda_visible_devices": "",
-  "full_suite_resource_note": "All test subprocesses passed; the aggregate driver failed its final size assertion before writing RSS. RSS for that completed driver is unavailable. The size check passes after sharing identical retained fixture files.",
-  "interim_size_sample_bytes": 3004528639,
-  "max_child_rss_bytes": null,
+  "max_child_rss_bytes": 400371712,
   "results": [
     {
       "command": [
@@ -154,6 +152,19 @@
         "-s",
         "-B",
         "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
+        "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py"
+      ],
+      "name": "round6",
+      "output": "round6.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
         "/scratch/jjyeung/orch_n30/so_read/out/kit_parity50/test_compare.py"
       ],
       "name": "kit",
@@ -177,6 +188,5 @@
   "torch": "2.11.0+cpu",
   "torch_threads": 8,
   "transformers": "5.12.1",
-  "workspace_bytes": 2945804279,
-  "workspace_tests": 102
+  "workspace_bytes": 2771577384
 }

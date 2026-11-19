@@ -32,3 +32,4 @@
 - 2026-11-19T12:25:09Z sb_cafix delivery: nine review edits applied; dry run steps 0-3 and 1b pass; step 4 PARTIAL (3 of 4 arms, 2,291 s on 8 threads; projection 2,739 s > 2,700 s); 74 tests pass; reviewer reproduce.sh and contract audits pass; GPU need one card >= 24e9 bytes with bf16; staging 14,924,708,860 bytes. out/v2/KIT_REPORT.md, out/CAFIX_NOTES.md, out/sb_cafix.tar.
 - 2026-11-19T12:36:23Z Population (POPULATION.json, RULING 1056Z): decision 204 captures / 1012 rows; beside 209/1037; id f0ecd8ee39f1.
 - 2026-11-19T12:36:24Z Staging (STAGING.json): 20 items incl. control files and pinned vnice, 14,924,717,613 bytes (13.90 GiB), 13376 frames.
+- 2026-11-19T15:53:58Z Summary (CARRY_REPORT.md, CARRY_DECISION.json): decision arm S_A0/D64 bars {'carry_precision': 'FAIL', 'carry_fusion': 'FAIL', 'size_screen': 'PASS', 'first_seen_screen': 'FAIL'}; joins stack False.

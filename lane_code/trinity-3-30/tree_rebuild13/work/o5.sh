@@ -3,6 +3,7 @@ squeue -u $USER -h -o "%i %P %j %T" | grep cbee11a6 && { echo "MY JOB STILL QUEU
 test ! -e $X/a23 && mkdir -m 700 $X/a23
 cd $N; for f in $(find q -type f); do r=${f#q/}; if [ -e $X/q/$r ]; then mkdir -p $X/a23/$(dirname $r); mv $X/q/$r $X/a23/$r; fi; done
 for f in $(find u -type f); do if [ -e $X/$f ]; then cmp -s $f $X/$f || { echo "DIFFERS $f"; exit 1; }; else cp -p $f $X/$f; fi; done
+mv $X/j.sh $X/a23/j.sh_a35cf12d && cp -p $N/j.sh $X/j.sh
 cd $N/q && for f in $(find . -type f | sed 's#^\./##'); do mkdir -p $X/q/$(dirname $f); cp -p $f $X/q/$f; done
 cd $X/q; for f in $(find . -type f | sed 's#^\./##'); do case $f in BUILD.json|SHA256SUMS.txt) ;; *) grep -q " \*\?\(\./\)\?$f\$" SHA256SUMS.txt || { mkdir -p $X/a23/$(dirname $f); mv $f $X/a23/$f; echo "moved extra $f"; } ;; esac; done
 for d in $(find . -name __pycache__); do mv $d $X/a23/pyc_$(date +%s)_$(basename $(dirname $d)); echo "moved $d"; done

@@ -93,3 +93,14 @@ Lane folder /scratch/jjyeung/orch_n30/r1_ops6. Events .../orch_n30/events/r1_ops
 - 12:45Z ORCH ANSWER 1234Z item 3: drafted events/r1_ops/N_LAUNCH_CARD_ops_rows.md (copied to tree_rebuild) + RESULT; fill [m600] rows at the handover.
 - 13:17Z step 500 (13:11Z), 129-134 s/step, early_cp PASS; ETA step 600 ~17:00Z.
 - 14:05Z successor brief drafted: orch_n30/briefs/r1_ops10.md (finalize state lines at rotation ~15:45Z).
+## NOW (r1_ops9 rotation, ~15:30Z 11-19) for successor r1_ops10 (brief orch_n30/briefs/r1_ops10.md)
+- 172660 RUNNING, step 558 at 15:21Z, ~133 s/step, early_cp PASS at every 10-min tick 10:37-15:25Z; checkpoint_000524 (~14:02Z), next ~16:04Z; ETA step 600 ~17:00Z, marker ~17:10Z, job end ~17:25Z.
+- tmux: r1mon6, r7node, r7m600 (m600 watcher, active from 16:15Z), r9pbw (plan B trigger, active from 16:45Z). Tick: bash work/r9/tick.sh <since-stamp>.
+- Done: ORDER 1010Z items 1/4 (rehearsal 173049 PASS, RESULT 1108Z), item 2 armed; N card ops rows drafted (events/r1_ops/N_LAUNCH_CARD_ops_rows.md).
+- Owed: m600 checks + RESULT (here and tree_rebuild), fill card [m600] rows, plan B if triggered, end slot + job exit RESULT, final STATUS.
+- 15:25:37Z successor r1_ops10 launched once (pid 279970 under timeout 21600; LANES.txt line appended). r1_ops9 stops acting.
+## r1_ops10 (Devin Opus high, trinity-3-30, started 15:25Z 11-19; rotate by 20:50Z)
+- 15:33Z ORCH RULING H3 STOP (events/r1_ops/20261119T1533Z_ORCH_RULING_H3_STOP_leg_R1_ends_at_step_400.md): leg R1 ends at the step-400 export; nothing after 400 is selected; 172660 runs on only until N's launch job is ready — r1_ops10 scancels it the moment ORCH's launch GO says so; plan B and m600 handover disarmed; no 600 receipt owed.
+- 15:36Z disarmed: touched work/r9/pbw.stop and work/r7/m600/stop; pbw.sh and exw6.sh exited. tmux r7m600/r9pbw sessions may remain as empty shells.
+- 15:45Z scale audit RESULT (events/r1_ops/*_RESULT_r1_ops10_scale_audit_and_disarm.md, files_r10/SCALE_AUDIT.md, copied to tree_rebuild): tower scale = OwnDepthScale (median private V-C depth / G3T depth), not pose.head.scale_*; point_depth head lr 1e-4, changed 1.41% (200->400), 0.61% (400->524); no config field freezes it. Astra receipt codex_local/.../20261119T153749Z_r10aud. Scripts work/r10/a*.sh/py (srun --overlap reads of heads files).
+- Still owed: scancel 172660 on the launch GO; job-exit RESULT (sacct state, exit code); final STATUS; stop monitors after the job ends.

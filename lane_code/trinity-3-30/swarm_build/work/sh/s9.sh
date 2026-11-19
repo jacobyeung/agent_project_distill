@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30; V=$R/sb_cachk/out/v2; ls $V; wc -c $V/CARRY_REPORT.md $V/CARRY_DECISION.json; cat $V/CARRY_REPORT.md | head -80; echo =====; wc -c $R/sb_scale1/out/*; cat $R/sb_scale1/out/SCALE_REPORT.md | head -70; echo ====; cat $R/sb_scale1/out/NEEDS.md | head -40

@@ -120,6 +120,33 @@ def identities(spec,run,pins,values,metadata):
     metadata_closure(values,metadata,[pins,source,runtime,prep,artifact])
     return runtime,prep
 
+def bound400(spec,milestone,cfg):
+    pins=spec.get('m4')
+    if cfg.get('r1_training',{}).get('init_policy') is not None and not pins:
+        raise ValueError('E74')
+    if pins is None:return
+    if spec.get('step')!=400:raise ValueError('E75')
+    for key,name in (('d','DONE.json'),('e','e.json'),('r','r.json'),('p','RP.json')):
+        checked(milestone/name,pins[key])
+    with tarfile.open(milestone/'s.tar') as archive:
+        raw=archive.extractfile('MANIFEST.json').read()
+    if hashlib.sha256(raw).hexdigest()!=pins['v']:raise ValueError('E76')
+    receipt=load(milestone/'e.json')
+    if receipt['pins']['artifact']['sha256']!=pins['a']:raise ValueError('E77')
+    if (cfg['init_artifact']['artifact']!=receipt['pins']['artifact']
+            or cfg['r1_training']['p_run']!=load(milestone/'r.json')
+            or cfg['r1_training']['handover_receipt']['sha256']!=pins['e']):raise ValueError('E78')
+
+
+def listing400(spec,pool):
+    if not spec.get('m4'):raise ValueError('E74')
+    parts=[]
+    for i in range(4):
+        path=pool_file(pool,Path(spec['n_root'])/'w'/str(i))
+        parts.append(dict(name=f'q8/8865619b/6ed2c7aa_m400.tar.part{i:02d}-of-04',pool_path=str(path),bytes=path.stat().st_size))
+    return dict(objects=parts,metadata=[])
+
+
 def resolve(kit,pool,listing,output):
     kit=Path(kit);pool=Path(pool).resolve();output=Path(output).resolve();seal(kit)
     selected=load(kit/'k/p.json').get('step',400)
@@ -129,6 +156,7 @@ def resolve(kit,pool,listing,output):
     if output.is_relative_to(root) or output.is_relative_to(milestone):raise ValueError('E19')
     for path in (milestone/'DONE.json',milestone/'e.json',milestone/'r.json',milestone/'s.tar',root/'o/gcs_6ed2c7aa_m400.done'):
         pool_file(pool,path)
+    bound400(spec,milestone,load(kit/'k/n.json'))
     done=load(milestone/'DONE.json')
     if done.get('step')!=400 or done.get('ok')!=1 or done.get('checkpoint_overlap')!='no':raise ValueError('E20')
     receipt=load(milestone/'e.json');run=load(milestone/'r.json')
@@ -142,7 +170,7 @@ def resolve(kit,pool,listing,output):
     if any(pins[k]['sha256'] not in values for k in ('artifact','config','binding','preparation','full_weights')):raise ValueError('E24')
     tokens=(root/'o/gcs_6ed2c7aa_m400.done').read_text().split()
     if len(tokens)!=3 or '6ed2c7aa_m400' not in tokens[0]:raise ValueError('E26')
-    listing_value=load(listing);parts=listing_value['objects'];expected=[f'q8/8865619b/6ed2c7aa_m400.tar.part{i:02d}-of-04' for i in range(4)]
+    listing_value=load(listing) if listing is not None else listing400(spec,pool);parts=listing_value['objects'];expected=[f'q8/8865619b/6ed2c7aa_m400.tar.part{i:02d}-of-04' for i in range(4)]
     if [x['name'] for x in parts]!=expected:raise ValueError('E27')
     combined=hashlib.sha256();total=0;verified=[]
     for entry in parts:
@@ -152,6 +180,7 @@ def resolve(kit,pool,listing,output):
         if n!=entry['bytes'] or entry.get('sha256',h.hexdigest())!=h.hexdigest():raise ValueError('E28')
         total+=n;verified.append(dict(path=str(path),sha256=h.hexdigest(),bytes=n,name=entry['name']))
     if total!=int(tokens[1]) or combined.hexdigest()!=tokens[2]:raise ValueError('E29')
+    if spec.get('m4') and (total!=spec['m4']['b'] or combined.hexdigest()!=spec['m4']['t']):raise ValueError('E79')
     cfg=load(kit/'k/n.json')
     metadata_closure(values,metadata,[cfg])
     ns=spec['namespace'];paths={h:ns+'/u/'+h for h in values}
@@ -165,7 +194,7 @@ def resolve(kit,pool,listing,output):
     cfg['init_artifact']['artifact']=pins['artifact'];cfg['routing_opener_init']='keep'
     cfg['r1_training'].update(p_run=run,handover_receipt=dict(path=ns+'/e.json',sha256=sha(milestone/'e.json')),
         persisted_files={p['sha256']:paths.get(p['sha256'],ns+'/u/'+p['sha256']) for p in pins.values()},
-        proof_mode='q',donor_config_sha256=spec['p_runtime_identity'])
+        proof_mode=cfg['r1_training'].get('proof_mode','q'),donor_config_sha256=spec['p_runtime_identity'])
     cfg.update(output=ns+'/r',preparation_output=ns+'/p0',code=dict(path=ns+'/c.json',sha256=spec['code_sha256']))
     uploads=spec['uploads'];expected_paths={x['sha256']:ns+'/u/'+x['sha256'] for x in uploads}
     if spec['pin_paths']!=expected_paths:raise ValueError('E49')
@@ -190,6 +219,9 @@ def resolve(kit,pool,listing,output):
     model=metadata_at(values,metadata,result['model_manifest'])
     result['model_files']=model['files'];result['model_root']=model['root']
     if 'config.json' not in model['files']:raise ValueError('E31')
+    if listing is None:
+        listing_value['metadata']=[dict(name=name,sha256=h,pool_path=str(pool_file(pool,Path(spec['n_root'])/'u'/h)),bytes=pool_file(pool,Path(spec['n_root'])/'u'/h).stat().st_size)
+            for name,h in model['files'].items() if name.endswith(('.json','.txt','.jinja','.model')) and h not in values]
     supplied={entry['sha256']:entry for entry in listing_value.get('metadata',[])}
     result['external_metadata']=[]
     for name,h in model['files'].items():
@@ -337,7 +369,7 @@ def resolve600(kit,pool,listing,output):
         if label.startswith('checkpoint/') and not label.startswith('checkpoint/rng'):
             persisted[pin['sha256']]=pin['path']
     cfg['r1_training'].update(p_run=run,handover_receipt=dict(path=ns+'/e.json',sha256=sha(hp)),
-        persisted_files=persisted,proof_mode='q',donor_config_sha256=spec['p_runtime_identity'])
+        persisted_files=persisted,proof_mode='train',donor_config_sha256=spec['p_runtime_identity'])
     cfg.update(output=ns+'/r',preparation_output=ns+'/p0',code=dict(path=ns+'/c.json',sha256=spec['code_sha256']))
     request=load(kit/'k/r.json');request.update(config=None,routing_base=cfg['streams']['routing'],
         staged_pins=[dict(path=p,sha256=x) for x,p in paths.items()],room_audit=dict(path=paths[spec['room_sha256']],sha256=spec['room_sha256']),

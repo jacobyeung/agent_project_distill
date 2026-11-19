@@ -2,7 +2,7 @@ from pathlib import Path
 from copy import deepcopy
 from unittest.mock import patch
 import hashlib,importlib.util,io,json,sys,tarfile,unittest
-L=Path(__file__).resolve().parents[2];D=L/'work/build24';O=D/'proofs/resolver'
+L=Path(__file__).resolve().parents[2];D=L/'work/build24';O=L/'work/build24b/proofs/resolver600'
 O.mkdir(parents=True,exist_ok=True)
 sys.path[:0]=[str(D),str(L/'work/build21'),str(L/'work/tree_r1'),str(L/'out')]
 import joblib as J
@@ -46,7 +46,7 @@ def fixture():
     for directory in (a,b):write(directory/'h.json',receipt);write(directory/'RP.json',run)
     write(a/'DONE.json',dict(step=600,ok=1,checkpoint_overlap='yes'))
     write(b/'pb_report.json',dict(step=600,verdict='PASS',run='6ed2c7aa',files={n:J.sha(b/n) for n in ('h.json','RP.json')}))
-    spec=J.load(D/'kits/n/k/p.json');spec.update(step=600,p_kit_identity=identity,p_runtime_identity=identity,p_kit_config=source,p_run=run)
+    spec=J.load(D/'kits/n/k/p.json');spec.pop('m4',None);spec.update(step=600,p_kit_identity=identity,p_runtime_identity=identity,p_kit_config=source,p_run=run)
     metadata_entries=[dict(path=str(p),pool_path=str(p),sha256=J.sha(p),bytes=p.stat().st_size) for p in modelroot.iterdir()]
     lv=dict(metadata=metadata_entries)
     values,metadata=J.local_metadata(spec,receipt,lv)
@@ -69,7 +69,7 @@ def fixture():
     import shutil
     template=root/'n';shutil.copytree(D/'kits/n',template,dirs_exist_ok=True)
     cap(template,'k/p.json',spec)
-    cfg=J.load(template/'k/n.json');cfg['streams']['routing']=routing;cfg['s1_routing']=config['s1_routing'];cap(template,'k/n.json',cfg);reseal(template)
+    cfg=J.load(template/'k/n.json');cfg['r1_training'].pop('init_policy',None);cfg['streams']['routing']=routing;cfg['s1_routing']=config['s1_routing'];cap(template,'k/n.json',cfg);reseal(template)
     return dict(root=root,pool=pool,a=a,b=b,template=template,receipt=receipt,run=run,values=values,metadata=metadata,listing=listing,spec=spec)
 
 class Resolver24(unittest.TestCase):
@@ -81,15 +81,13 @@ class Resolver24(unittest.TestCase):
             self.assertFalse(record['GO']);self.assertEqual(len(record['filled']['checkpoint']),10)
             result=J.load(O/('filled_'+plan+'_resolved.json'))
             self.assertEqual(result['request']['milestone'],600)
+            self.assertEqual(result['config']['r1_training']['proof_mode'],'train')
             self.assertEqual(result['config']['r2_identity']['init']['step'],544)
             self.assertEqual(result['config']['r1_training']['routing_slices'],'deferred_first_boundary')
             self.assertEqual(result['config']['remove_files'],J.load(f['template']/'k/n.json')['remove_files'])
     def test_02_real_200_refuses_by_name(self):
-        path=Path('/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/r1_ops/pb200')
-        h=J.load(path/'h.json');rp=J.load(path/'RP.json');report=J.load(path/'pb_report.json')
-        with self.assertRaisesRegex(ValueError,'^E56:200$'):J.receipt600(h,rp)
-        write(D/'WITNESS200.json',dict(schema=h['schema'],step=h['step'],pin_labels=sorted(h['pins']),run_keys=sorted(rp),
-            files={n:J.sha(path/n) for n in ('h.json','RP.json','pb_report.json')},verdict=report['verdict'],refusal='E56:200'))
+        witness=J.load(D/'WITNESS200.json');h=deepcopy(self.f['receipt']);h.update(schema=witness['schema'],step=witness['step'])
+        with self.assertRaisesRegex(ValueError,'^E56:200$'):J.receipt600(h,self.f['run'])
     def test_03_receipt_mutations(self):
         for field,value,error in (('step',400,'E56'),('step',200,'E56'),('step',600.0,'E56'),('schema','p-export-only-v1','E58'),('job_id','','E58'),('trainer_commit','','E58')):
             h=deepcopy(self.f['receipt']);h[field]=value

@@ -1,0 +1,48 @@
+1c1,2
+< """Pair the R1 step-400 returns with the registered step-544 reads (cont_ops19 copy of out3s/score_r5.py: step 400, B-only allowed)."""
+---
+> """Pair the R1 returns at a look (--step 200/400/600) with the registered step-544 reads (cont_ops20 copy of score_r5_400.py).
+> H1/H3 level follows the look (PRELAUNCH_CARD_R1.md line 19): 99.29% at step 200, 99.82% at every later look."""
+3a5,6
+> def level_for(step):return .9929 if step==200 else .9982
+> LEVEL=level_for(STEP)
+23c26
+<     if not groups:return dict(value=None,ci95=None,ci9929=None,upper95=None,n=0,rooms=0)
+---
+>     if not groups:return dict(value=None,ci95=None,ci9929=None,ci_look=None,level=LEVEL,upper95=None,n=0,rooms=0)
+32c35
+<                 ci9929=np.quantile(samples,[.00355,.99645]).tolist(),upper95=float(np.quantile(samples,.95)),n=int(counts.sum()),rooms=len(groups))
+---
+>                 ci9929=np.quantile(samples,[.00355,.99645]).tolist(),ci_look=np.quantile(samples,[(1-LEVEL)/2,1-(1-LEVEL)/2]).tolist(),level=LEVEL,upper95=float(np.quantile(samples,.95)),n=int(counts.sum()),rooms=len(groups))
+43c46
+<     if step in (200,400):
+---
+>     if step!=544:
+102c105,106
+<                 harm9929=(delta['ci9929'][1]<0) if complete and paired else None)
+---
+>                 harm9929=(delta['ci9929'][1]<0) if complete and paired else None,
+>                 harm_look=(delta['ci_look'][1]<0) if complete and paired else None,level=LEVEL)
+136c140
+<     result=dict(self_test=self_test,bootstrap=dict(draws=10000,seed=17,unit='physical room',intervals=[.95,.9929]),difference_units='percentage points',types={},sources=s0+s1+s2+s3+s4)
+---
+>     result=dict(self_test=self_test,bootstrap=dict(draws=10000,seed=17,unit='physical room',intervals=[.95,.9929,LEVEL],look_level=LEVEL,step=STEP),difference_units='percentage points',types={},sources=s0+s1+s2+s3+s4)
+161c165,166
+<     result['h3_stop']=any(t['harm9929'] is True for k,t in result['types'].items() if k in CAMERA) or result['camera_calls']['below95'] is True
+---
+>     result['h3_level']=LEVEL
+>     result['h3_stop']=any(t['harm_look'] is True for k,t in result['types'].items() if k in CAMERA) or result['camera_calls']['below95'] is True
+166,168c171,173
+<     global BASE
+<     p=argparse.ArgumentParser();p.add_argument('--baseline-root',type=Path,default=BASE,help='Directory containing b1 and b2 metadata, authenticated work/ret returns, and b2/work/scores/scores.json');p.add_argument('--a');p.add_argument('--b');p.add_argument('--self-test',action='store_true');p.add_argument('--out',required=True);args=p.parse_args()
+<     BASE=args.baseline_root.resolve()
+---
+>     global BASE,STEP,LEVEL
+>     p=argparse.ArgumentParser();p.add_argument('--step',type=int,required=True,choices=(200,400,600));p.add_argument('--baseline-root',type=Path,default=BASE,help='Directory containing b1 and b2 metadata, authenticated work/ret returns, and b2/work/scores/scores.json');p.add_argument('--a');p.add_argument('--b');p.add_argument('--self-test',action='store_true');p.add_argument('--out',required=True);args=p.parse_args()
+>     BASE=args.baseline_root.resolve();STEP=args.step;LEVEL=level_for(STEP)
+177,178c182,183
+<         lines.append('{}: baseline {}; {:.6f} vs {:.6f}; delta {} pp; 95% {}; 99.29% {}; complete {}'.format(name,r['baseline_read'],r['current']['score'] or 0,r['baseline']['score'] or 0,r['paired']['value'],r['paired']['ci95'],r['paired']['ci9929'],r['complete']))
+<     lines += ['Camera calls: '+json.dumps(result['camera_calls']),'Non-metre conversions: '+str(result['units']['current']['correct'])+'/107','Distance call caps: '+json.dumps(result['distance_call_cap']),'H3 STOP: '+str(result['h3_stop'])+'; complete: '+str(result['h3_complete'])]
+---
+>         lines.append('{}: baseline {}; {:.6f} vs {:.6f}; delta {} pp; 95% {}; 99.29% {}; look {:.2f}% {}; complete {}'.format(name,r['baseline_read'],r['current']['score'] or 0,r['baseline']['score'] or 0,r['paired']['value'],r['paired']['ci95'],r['paired']['ci9929'],100*LEVEL,r['paired']['ci_look'],r['complete']))
+>     lines += ['Camera calls: '+json.dumps(result['camera_calls']),'Non-metre conversions: '+str(result['units']['current']['correct'])+'/107','Distance call caps: '+json.dumps(result['distance_call_cap']),'H3 STOP (level %.2f%%, step %d): '%(100*LEVEL,STEP)+str(result['h3_stop'])+'; complete: '+str(result['h3_complete'])]

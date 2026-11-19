@@ -1,0 +1,123 @@
+{
+  "GO": false,
+  "fill_script": "out/fill_m600.py",
+  "invariants": [
+    "All identity comparisons remain enforced",
+    "VQA bindings and removal order unchanged",
+    "routing_opener_init=keep",
+    "step544 lineage unchanged",
+    "routing_slices=deferred_first_boundary",
+    "all deferred cells zero",
+    "GO=false"
+  ],
+  "outputs": [
+    "filled kit",
+    "<kit>_resolved.json",
+    "<kit>_fill.json",
+    "<kit>_uploads.json"
+  ],
+  "plans": {
+    "A": {
+      "directory": "/project/community/jjyeung/okh7/h_6ed2c7aa/m600",
+      "files": [
+        "h.json",
+        "RP.json",
+        "s.tar",
+        "DONE.json"
+      ]
+    },
+    "B": {
+      "directory": "/project/community/jjyeung/okh7/pb_a5416871",
+      "files": [
+        "h.json",
+        "RP.json",
+        "pb_report.json"
+      ]
+    }
+  },
+  "required": {
+    "artifact": {
+      "fields": [
+        "exact resolved path",
+        "sha256"
+      ],
+      "from": "h.json pins.artifact"
+    },
+    "checkpoint_000600": {
+      "fields": [
+        "complete.json",
+        "replicated.pt",
+        "rng000.pt",
+        "rng001.pt",
+        "rng002.pt",
+        "rng003.pt",
+        "shards/rank000.pt",
+        "shards/rank001.pt",
+        "shards/rank002.pt",
+        "shards/rank003.pt"
+      ],
+      "from": "RP.json checkpoint and complete.json files",
+      "rule": "Use the exact published checkpoint_000600 or checkpoint_000600_UUID path; no symlink resolution aliases."
+    },
+    "export_tar": {
+      "fields": [
+        "names",
+        "bytes",
+        "sha256",
+        "each part pool_path/bytes/sha256"
+      ],
+      "from": "l.json export and ordered objects"
+    },
+    "handover_receipt": {
+      "fields": [
+        "path",
+        "sha256",
+        "bytes",
+        "schema p-handover-v1",
+        "step 600",
+        "job_id",
+        "trainer_commit"
+      ],
+      "from": "h.json itself and RP.json"
+    },
+    "model_manifest": {
+      "fields": [
+        "path",
+        "sha256",
+        "root",
+        "files"
+      ],
+      "from": "preparation.model"
+    },
+    "model_manifest_files": {
+      "expected_names_from_P400": [
+        "chat_template.jinja",
+        "config.json",
+        "merges.txt",
+        "model.safetensors-00001-of-00004.safetensors",
+        "model.safetensors-00002-of-00004.safetensors",
+        "model.safetensors-00003-of-00004.safetensors",
+        "model.safetensors-00004-of-00004.safetensors",
+        "model.safetensors.index.json",
+        "preprocessor_config.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "video_preprocessor_config.json",
+        "vocab.json"
+      ],
+      "from": "every entry in model manifest files",
+      "rule": "Fill every name/hash from the step600 manifest. Supply exact metadata paths, bytes and hashes in l.json metadata; the full export supplies trained weights."
+    },
+    "persisted_files": {
+      "fields": [
+        "pin label",
+        "exact resolved path",
+        "sha256"
+      ],
+      "from": "every h.json pins entry"
+    }
+  },
+  "schema": "build24-m600-pending-pins-v1",
+  "step": 600,
+  "template": "work/build24/kits/n"
+}

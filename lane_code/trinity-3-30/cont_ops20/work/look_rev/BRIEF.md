@@ -1,0 +1,8 @@
+# Review (read-only): H1/H3 level follows the look in the routed-read scorer
+Files: /scratch/jjyeung/orch_n30/cont_ops/work/r1route/out4s/score_r5_400.py (old), score_r5_look.py (new), test_score_r5_look.py; DIFF.txt here; CARD_lines15_25.txt (registered text: H1 interval "at 99.29% (step 200) or 99.82% (later)"; H3 "a camera type's interval at H1's level lies wholly below zero, or under 95% of the 450 camera items draw a call"). Real-data run of the new scorer at step 400: /scratch/jjyeung/orch_n30/cont_ops20/work/scoresAB_look400/scores.txt. No ssh, network, Git or edits; search only inside these directories and out4s/A, out4s/B, out4s/bases (read-only).
+Check only, with file:line evidence:
+1. The H3 decision uses 99.29% at step 200 and 99.82% at 400 and 600, from the same room bootstrap (seed 17, 10,000 draws, ratio estimator) as before; quantiles are the two-sided ones for that level; nothing else in the scored numbers changes (compare the step-400 output with /scratch/jjyeung/orch_n30/cont_ops19/work/post_A10b/scoresAB/scores.txt).
+2. The test fails on score_r5_400 and passes on score_r5_look (python test_score_r5_look.py <module>, run from out4s with /scratch/jjyeung/envs/p1cpu/bin/python), and it tests the decision path the scorer uses.
+3. The export-pin check now runs for every step except 544 (was 200 and 400 only). At step 600 it compares against package/READ_PLAN.json's export_binding: is any other STEP-dependent path in the file wrong for step 600?
+4. --step is required, so no run can silently default to a level.
+Verdict line first: GO, GO AFTER FIXES (list), or NO-GO (list). You cannot write files; the final message is the review.

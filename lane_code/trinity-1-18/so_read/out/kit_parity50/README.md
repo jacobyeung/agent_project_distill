@@ -32,7 +32,7 @@ Keep the private kit, original manifests and reverse maps on Trinity. Stage each
 
 ## Step-600 binding, build and operations
 
-The candidate uses **A4's 636-item schedule, one card, caches only, general/no-requeue**. A4's export admission, submit helper and run settings remain intact. `a19` requires the reviewed payload hash `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d`, the three patched operator hashes from MANIFEST, the exact extension inventory and the four original alias bases. It authenticates them before copying. Its batch uses cont_ops' exact `build_r10.wrap_batch`: excluded node, EXIT log return and USR1 forwarding.
+The candidate uses **A4's 636-item schedule, one card, caches only, general/no-requeue**. A4's export admission, submit helper and run settings remain intact. `a19` requires the reviewed payload hash `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d`, the patched operator hashes, all copied A4 members, the base BATCH.sh and decoded bootstrap pins from MANIFEST, the exact extension inventory and the four original alias bases. It authenticates them before copying. Its batch uses cont_ops' exact `build_r10.wrap_batch`: excluded node, EXIT log return and USR1 forwarding.
 
 The owner supplies a **reviewed step-600 target template** in cont_ops' `bind400_partial.json` schema: target run, step, member_directory, lineage, object, preparation_sha256, `done` and `prep_paths`. `done` and `prep_paths` are paths on Orchard; preparation_sha256 holds hashes, not paths. Use authenticated local copies of that target's artifact.json, whole-tar `.done` receipt and three preparation files. The helper fills configuration/archive fields from those files and checks target run/member/step and preparation hashes. Do not edit a step-200/400 receipt to manufacture step-600 evidence. No real target receipt was supplied to this CPU task.
 
@@ -72,18 +72,22 @@ mkdir -m 700 "$D"
 tar -xzf "$OPS_ARCHIVE" -C "$D"
 bash "$D/o_place.sh"
 bash "$D/o_pull_fill.sh"
+P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}
+# Detached worker: inspect completion no more than once per minute.
+while test ! -f "$P/a/1.txt"; do sleep 60; done
+test "$(cat "$P/a/1.txt")" = 0
 bash "$D/o_cpu.sh"
 ```
 
-`o_place.sh` verifies the inner archive and places it at `$P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}`. `o_pull_fill.sh` copies the reviewed `done` and `prep_paths` files to `$P/a/e/{5,7,8,9}`, authenticates their pins, fetches export parts `0..3` once with retries disabled, fills through `a/4.py`, and runs cont_ops' verbatim `dryres2.py` and `dry2.py`. A failed transfer stops; the scripts do not retry it.
+`o_place.sh` verifies the inner archive and places it at `$P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}`. `o_pull_fill.sh` acquires the permanent attempt lock `$P/a/0.lock`, launches one detached nohup worker, and returns its PID in `$P/a/0.txt`. The worker logs to `$P/a/0.log` and writes its exit status to `$P/a/1.txt` on success or failure. A duplicate launch refuses; a failed or interrupted attempt requires a fresh package/token, never an automatic retry. The worker copies the reviewed `done` and `prep_paths` files to `$P/a/e/{5,7,8,9}`, authenticates their pins (the `.done` receipt uses whitespace-separated fields), fetches export parts `0..3` once with retries disabled, fills through `a/4.py`, and runs cont_ops' verbatim `dryres2.py` and `dry2.py`. A failed transfer stops; the scripts do not retry it.
 
-`o_cpu.sh` requests the A4 CPU allocation explicitly: preempt, eight CPUs, 200G, four hours, no GPU, no requeue, and the excluded nodes. The **CPU allocation** is separate from the intended **general GPU read**. Wait for the CPU job to finish successfully. Preserve `$P/a/c/CPU.json`, `MEMORY.json` and the exact `SETTINGS.json` emitted by A4 prepare. Bring these small files back as one archive through the authorized transport to `$LOCAL/step600/proof/` before the parity preparation below. The proof binds payload/plan/inputs/operator, must pass bundle/entry checks and contain `memory.read_cache_bytes=12884901888` (4294967296 for processor-only), `basis=fixed_g3t_shapes`, and `fits=true`.
+`o_cpu.sh` requests the A4 CPU allocation explicitly: preempt, eight CPUs, 200G, four hours, no GPU, no requeue, and the excluded nodes. The **CPU allocation** is separate from the intended **general GPU read**. Wait for the CPU job to finish successfully. Preserve `$P/a/c/CPU.json`, `MEMORY.json` and the exact `SETTINGS.json` emitted by A4 prepare. Bring these small files back as one archive through the authorized transport to `$LOCAL/step600/proof/` before the parity preparation below. The proof emits exact restore, artifact-binding, manifest and export-pin receipts. These small files authenticate staging; they do not contain model weights. The proof binds payload/plan/inputs/operator, must pass bundle/entry checks and contain `memory.read_cache_bytes=12884901888` (4294967296 for processor-only), `basis=fixed_g3t_shapes`, and `fits=true`.
 
 Archive the CPU evidence on Orchard after its successful completion, using the package token printed by the build:
 
 ```bash
 P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}
-tar -czf "$D/2.tgz" -C "$P/a/c" CPU.json MEMORY.json SETTINGS.json
+tar -czf "$D/2.tgz" -C "$P/a/c" CPU.json MEMORY.json SETTINGS.json RESTORE.json binding.json manifest.json EXPORT_PIN.json
 sha256sum "$D/2.tgz"
 ```
 
@@ -97,7 +101,20 @@ mkdir "$LOCAL/step600/proof"
 nice -n 10 tar -xzf "$PROOF_ARCHIVE" -C "$LOCAL/step600/proof"
 ```
 
-After the zero-difference GPU parity gate for this exact plan/profile passes, the authorized owner runs:
+After the zero-difference GPU parity gate passes, transfer its token-only `ue.json` through the authorized transport as one archive, preserving the SHA256 printed on the GPU host. The authorized owner authenticates that archive and installs the receipt before submission:
+
+```bash
+: "${GATE_ARCHIVE:?Received archive containing ue.json}"
+: "${GATE_SHA256:?SHA256 printed on the GPU host}"
+printf '%s  %s\n' "$GATE_SHA256" "$GATE_ARCHIVE" | sha256sum -c -
+mkdir "$D/g"
+tar -xf "$GATE_ARCHIVE" -C "$D/g"
+P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}
+test ! -e "$P/a/g.json"
+cp "$D/g/ue.json" "$P/a/g.json"
+```
+
+Then run:
 
 ```bash
 bash "$D/o_sub.sh"
@@ -108,7 +125,7 @@ tar -czf "$D/3.tgz" -C "$P/a/f" 0.tgz EXIT.json
 sha256sum "$D/3.tgz"
 ```
 
-`o_sub.sh` runs the exact CPU receipt/binding/cache-memory checks, requires both dry checks to pass, requires an empty general queue, and refuses a return pool over **75,000,000 bytes** (including errors/symlinks). It then runs `3.py check` and one `3.py submit --gpus 1 --time 04:30:00`, saving the job ID. It does not replace the GPU parity gate with a CPU receipt. The unchanged bootstrap itself does not require the cache-memory field; this submit preflight does. `o_fetch.sh` derives the authenticated return token and fetches `$P/a/f/{0.tgz,EXIT.json}`.
+`o_sub.sh` embeds cont_ops’ A4 CPU-receipt assertions verbatim, including batch/dispatch/guard pins and MEMORY.json equality, then checks cache memory and the successful GPU receipt at `$P/a/g.json`, requires both dry checks to pass, requires an empty general queue, and refuses a return pool over **75,000,000 bytes** (including errors/symlinks). It then runs `3.py check` and one `3.py submit --gpus 1 --time 04:30:00`, saving the job ID. The GPU receipt must match the CPU restore/binding pins, filled export pin, adopted plan/profile and H100 80 GB requirement. The unchanged bootstrap itself does not require the cache-memory field; this submit preflight does. `o_fetch.sh` derives the authenticated return token and fetches `$P/a/f/{0.tgz,EXIT.json}`.
 
 Transfer `$D/3.tgz` through the authorized transport, preserving the local operator directory. Authenticate, extract and unpack it locally:
 
@@ -118,10 +135,10 @@ Transfer `$D/3.tgz` through the authorized transport, preserving the local opera
 printf '%s  %s\n' "$RETURN_SHA256" "$RETURN_ARCHIVE" | nice -n 10 sha256sum -c -
 mkdir "$LOCAL/step600/f"
 nice -n 10 tar -xzf "$RETURN_ARCHIVE" -C "$LOCAL/step600/f"
-CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$LOCAL/step600/unpack_return.py" \
+(cd "$LOCAL/step600" && CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -s -B ./unpack_return.py \
   --archive "$LOCAL/step600/f/0.tgz" --exit "$LOCAL/step600/f/EXIT.json" \
   --out "$LOCAL/step600/ret" > "$LOCAL/step600/unpack-success.json" && \
-  test -s "$LOCAL/step600/unpack-success.json"
+  test -s "$LOCAL/step600/unpack-success.json")
 ```
 
 A refused unpack leaves its extracted tree behind. Scorers must consume only unpack's **success output after exit status 0**, never a directory merely because it exists; the command's `&&` chain enforces that handoff. A successful partial return still has `complete=false` and must not be scored as complete. The ON unpacker refuses any existing weight receipt whose verified value is not JSON true. Processor-only journals need no weight receipt. OFF behavior remains unchanged. Whole-archive identity follows A4's design: fill checks the sealed whole-tar constants; job/unpack admission compare against inputs.archives[0].
@@ -130,9 +147,46 @@ A refused unpack leaves its extracted tree behind. Scorers must consume only unp
 
 ## GPU parity staging and acceptance
 
-The gate must seal **A4 prepare's actual output plus the operator's per-read overrides** for the package being adopted. Do not supply an unrelated PRIVATE_SETTINGS.json. `a20 gate` checks the prepared bytes against CPU.json's READY pin and checks its payload, plan and operator bindings. It applies the authenticated operator descriptor and derives `enable_caches`, `read_cache_bytes` and the full adoption profile: candidates_argmax, memo on, g3t, empty verify IDs, save_own_depth=false, and the exact cache switches. Both the parent driver and every worker refuse a different profile. Processor-only adoption is explicitly gated with slots `[0]` and 4 GiB; all-cache adoption uses `[0,1,2]` and 12 GiB.
+The gate must seal **A4 prepare's actual output plus the operator's per-read overrides** for the package being adopted. Do not supply an unrelated PRIVATE_SETTINGS.json. `a20 gate` checks the prepared bytes and exact RESTORE.json/artifact-binding bytes against CPU.json’s READY pins, checks export identity against the adopted step binding, and checks payload, plan and operator bindings. Every GPU worker rechecks those asset bytes and the artifact manifest before reading; changing paths cannot substitute another checkpoint. It applies the authenticated operator descriptor and derives `enable_caches`, `read_cache_bytes` and the full adoption profile: candidates_argmax, memo on, g3t, empty verify IDs, save_own_depth=false, and the exact cache switches. Both the parent driver and every worker refuse a different profile. Processor-only adoption is explicitly gated with slots `[0]` and 4 GiB; all-cache adoption uses `[0,1,2]` and 12 GiB.
 
-Create a private neutral configuration from `config.example.json` with separate authenticated A4 original/patched source roots and the intended staged asset paths. Use `PRIVATE_ALIASES.json` to map every private prepared asset path to its staged opaque path. Keep all private files and reverse maps on Trinity. The following commands use files under `$LOCAL`:
+Stage the exact retained CPU data on the intended GPU host; preserve the CPU logical directory so pinned manifests and restore paths stay unchanged. Do not rebuild RESTORE.json or the manifest for a different checkpoint. The following **owner-only, unrun staging commands** create one data archive on the CPU proof’s compute node. `CPU.json.root` is node-local, so run there while that directory remains available. The archive can be large; use the owner’s approved storage/transport plan.
+
+```bash
+P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}
+/usr/bin/python3 -I -s -B - "$P" <<'PY'
+import json,subprocess,sys,tarfile
+from pathlib import Path
+p=Path(sys.argv[1]);root=Path(json.loads((p/'a/c/CPU.json').read_text())['root'])
+with tarfile.open(p/'0.tgz') as archive:cfg=json.load(archive.extractfile('9.json'))
+sys.path.insert(0,str(root/'bootstrap'))
+from orchard_h10.common import template
+_,J,_,_,_=template()
+subprocess.run(J.namespace(root)+['/bin/tar','-chf',str(root/'4.tar'),'-C',cfg['logical']+'/d','.'],check=True)
+print(root/'4.tar')
+subprocess.run(['sha256sum',str(root/'4.tar')],check=True)
+PY
+```
+
+Transfer that single archive through approved transport. On the assigned GPU host, extract it under the package’s exact opaque logical root, and stage the package payload there for the manifest’s code roots. `P` refers to the same filled package in the registered Orchard namespace. These commands refuse an existing destination:
+
+```bash
+: "${ASSET_ARCHIVE:?Received CPU data archive}"
+: "${ASSET_SHA256:?Printed CPU archive SHA256}"
+printf '%s  %s\n' "$ASSET_SHA256" "$ASSET_ARCHIVE" | sha256sum -c -
+GPU_LOGICAL=$(/usr/bin/python3 -I -s -B - "$P/0.tgz" <<'PY'
+import json,sys,tarfile
+with tarfile.open(sys.argv[1]) as archive:print(json.load(archive.extractfile('9.json'))['logical'])
+PY
+)
+test ! -e "$GPU_LOGICAL"
+mkdir -p "$GPU_LOGICAL/d" "$GPU_LOGICAL/p"
+tar -xf "$ASSET_ARCHIVE" -C "$GPU_LOGICAL/d"
+tar -xzf "$P/0.tgz" -C "$GPU_LOGICAL/p"
+test ! -e "$GPU_LOGICAL/d/7.json"
+cp "$GPU_LOGICAL/d/binding.json" "$GPU_LOGICAL/d/7.json"
+```
+
+Create a private neutral configuration from `config.example.json` with separate authenticated A4 original/patched source roots. Set `export=$GPU_LOGICAL/d/e`, `export_pin=$GPU_LOGICAL/d/6.json`, and `artifact_manifest=$GPU_LOGICAL/d/7.json`. The last file is a byte-identical neutral alias for the CPU binding. Include that exact `binding.json` to `7.json` mapping in `PRIVATE_ALIASES.json`; map the other private prepared asset paths to staged opaque aliases of those same files. Keep private settings and reverse maps on Trinity. The following commands use files under `$LOCAL`:
 
 ```bash
 : "${PRIVATE_CONFIG_TEMPLATE:?Private neutral GPU configuration with staged asset paths}"
@@ -142,6 +196,7 @@ PRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"
 CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \
   --operator "$LOCAL/step600" --prepared "$LOCAL/step600/proof/SETTINGS.json" \
   --proof "$LOCAL/step600/proof/CPU.json" --config "$PRIVATE_CONFIG_TEMPLATE" \
+  --asset-receipts "$LOCAL/step600/proof" \
   --settings-out "$PRIVATE_SETTINGS" --config-out "$PRIVATE_CONFIG"
 ```
 
@@ -157,7 +212,7 @@ CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py"
 
 The staged `u3.json` pins every extension; `u4.json` authenticates both full 927-file base inventories. The driver rejects changed bases, equal original/patched roots, and an original root containing extensions. It authenticates the sealed sample bytes and the logical sample pin. Transfer only the staged directory through the approved transport under an opaque root.
 
-On an assigned GPU, run the acceptance command below; it is **unrun here**. Preserve that allocation's actual `CUDA_VISIBLE_DEVICES`.
+On an assigned **H100 80 GB** GPU, run the acceptance command below; it is **unrun here**. Preserve that allocation's actual `CUDA_VISIBLE_DEVICES`.
 
 ```bash
 nice -n 10 "$READ_PYTHON" -I -s -B /scratch/jjyeung/ab0123456789/u0/u0.py \
@@ -169,7 +224,7 @@ Every arm starts a fresh process. ORIGINAL/OFF/OFF_REPEAT use ordinary journals 
 
 Acceptance requires all 50 expected IDs, complete production output schemas, nonempty text/tokens/heads, scale even when null, every served response and forced-token count, matching call counters, and **zero semantic byte differences**. ORIGINAL/OFF must also retain every production source hash. Each enabled cache must report its memory bound and useful hits; SAM needs both feature and detection hits. Empty or all-miss runs fail. Only clocks and explicit audit/cache/memo telemetry are excluded from semantic comparison; audit violations fail. There is no answer/trace tolerance.
 
-Each RUN.json records the adopted package plan, read profile, cache slots and budget. Judge net time from `RUN.json`'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).
+Each RUN.json records the adopted package plan, read profile, asset pins, required device type, actual device, cache slots and budget. The worker checks CUDA device properties before model loading and refuses a different GPU family, compute capability or memory class. `ue.json` is written only after all comparisons finish and records whether they all passed; failed or missing receipts cannot authorize submit. Archive it with `tar -cf "$LOCAL/5.tar" -C /scratch/jjyeung/ab0123456789/u9 ue.json` and print `sha256sum "$LOCAL/5.tar"` for the authenticated return transport. Judge net time from `RUN.json`'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).
 
 The cache cap covers retained cache storage and transient copies, not model/caller working memory. Measure full-process host/GPU peaks. Models must remain frozen: calls check parameter/buffer identities, pointers and counters; install/type boundaries hash content. Persistent raw writes fail at a boundary. Raw writes restored between boundaries, private tensor attributes and arbitrary non-tensor state are outside this guard's coverage. Graceful stops verify journals; a hard kill can leave an unchecked journal that requires fresh output.
 
@@ -199,24 +254,16 @@ This writes commands without running them. Exit 75 requests bounded requeue; oth
 
 No delivered CPU suite or single-GPU kit requires a local OS socket. StageOneSocket is a Python callback. Real restore, bwrap isolation, remote transport, GPU parity/performance/memory and persistent requeue remain unrun.
 
-## Review round 4: finding -> fix -> test
-
-| Finding | Fix | Test |
-|---|---|---|
-| 1. Incomplete step-600 build | A4 post-processing preserves run keys, 8.py and admission; requires reviewed export/whole-archive binding and seals the fill helper. | Package pins and target binding match; wrong run/step/object/preparation/archive fails. The documented old build fails the same regression. |
-| 2. Test bypasses real configuration/profile | Real `a/5.py` generates proof memory through 7.py; real 0.py/job.main writes actions 0/1 from untouched package configuration. | Cache-only stub read completes 636 items with five verified ordinary journals. The old CPU-proof helper fails the cache-allowance assertion. |
-| 3. Unverified cache-only return | ON unpack rejects any non-true weight receipt, including partial returns. | False/null/0/1/string receipts fail before/pass after; real authenticated unpack accepts a verified partial return and refuses an unverified one. |
-| 9. README path/base/proof nits | Explicit portable roots; A4-only kit pin; exact distinction between generated proof and bootstrap admission. | All shown Python tools ship in the patched tree; CPU integration verifies generated cache allowance. |
-
-Prior cache, parity-schema, OFF-byte, frozen-weight, lock/recovery, public-boundary and array-policy regressions remain in the suites. REPORT.md contains commands, exact outputs, resource measurements and limitations.
-
-## Review round 5: finding -> fix -> test
+## Review round 6: finding -> fix -> test
 
 | Finding | Fix | Regression |
 |---|---|---|
-| 1. Dropped batch wrapper | Exact cont_ops wrapper retains exclusion, EXIT log and USR1 forwarding. | Built script equals wrap_batch output and passes the real a/5.py bundle guard. |
-| 2. Unpinned build inputs | Reviewed A4 payload, operator MANIFEST pins, extension inventory and alias bases must match before copying. | Changed self-consistent payload, each operator, extensions and alias pins are refused before output. |
-| 3. Incomplete operations | Binding derivation, delivery archive/SHA, place/fetch/fill/dry/allocated-proof/guarded-submit/fetch scripts and gated unpack command. | Generated shell syntax, delivery members and command order pass; actual submit checker refuses missing cache proof and an oversized pool. |
-| 4. Unbound GPU profile | Prepare bytes plus operator overrides bind settings, selectors, budget and package plan. | Both cache profiles pass; changed settings, selectors, cap and plan fail. |
-| 5. Forecast scope | Package D and a19's A4 schedule have separate labelled estimates. | Documentation regression requires both scopes and A4's 7,351.824 s estimate. |
-| 7. Refused unpack tree | Scorers require success output after exit 0; the shell handoff uses &&. | Documentation regression checks the warning and executable success chain. |
+| 1. Unpack import fails | Run `-s -B` from the operator directory. | Execute the README command as a subprocess on an authenticated fixture return. |
+| 2. Foreground pull/fill | Detached nohup worker, permanent attempt lock, PID/log and exit file; no retries. | Success 0 and failure 17 both report completion; duplicate launch refuses. |
+| 3. Weak submit receipt | Embed every cont_ops A4 CPU assertion, then enforce cache and pool checks. | Batch/guard/action/argv/events/memory tampering and a resealed stale batch fail. |
+| 4. Unpinned copied members | Pin all A4 copied members, base batch and decoded bootstrap before output. | Mutations of each additional member and bootstrap pin refuse before writing. |
+| 5. Unbound checkpoint/device | READY restore/binding pins and export identity bind step-600 assets; workers recheck assets and require H100 80 GB. | Changed receipts, wrong step, changed staged files and non-production GPU properties fail. |
+| INFO: receipt whitespace | Compare the three whitespace-separated fields. | Tabs/newlines pass; extra fields fail. |
+| INFO: manual GPU handoff | Submit requires the successful token-only GPU receipt for the same plan/profile/assets/device. | Failed, absent, stale or mismatched evidence refuses. |
+
+The binding retains Orchard `done`/`prep_paths` as authenticated operation metadata; admission still checks its fixed identity keys. Persistent raw writes remain boundary-checked; restored-between-boundary raw writes remain unsupported and require frozen model ownership. These informational limits do not change reader behavior.

@@ -8,3 +8,18 @@ Base state: /scratch/jjyeung/orch_n30/cont_ops19/STATUS.md (14:17Z section). Bri
 - D@544 three-segment scorer: work/score_d3.py (copy d3/; spec keys items,p0,a0,e0,r0,items1,p1,...,r2 + optional compare). Parent (d544ret: pkg, f/) + rem1 partial (/dev/shm/c19r/pkg2/a15_cot_apd09f959256d87 a/f; tar backup cont_ops19/work/drem1/pkg.tar) checks pass (d3/TEST_D3.txt). Items: d3/items/dist580.json (parent ff9795a8), d3/rem1_dist580.json (bbaa5527), d3/REM544_2.json (37180266).
 - Review 1 (codex_runs/20261119T142032Z_c20_revd3; copy d3/REVIEW_D3.md) GO AFTER FIXES -> staged_inputs() added; confirm-review running tmux c20_revd3b.
 - Rem2 GPU scripts: work/o_sub_rem2.sh (squeue + o_sub_D.sh), work/o_fetch_rem2.sh. Monitor monR6.sh (J P LB).
+## 15:15Z
+- ROUTED A 400 DONE: 173060 COMPLETED 636/636; RESULT events/cont_ops/20261119T1512Z_RESULT_r1_m400_routed_A_H3_STOP_camera_displacement.md (H3 STOP: displacement -0.73 [99.29% -1.51,-0.14]; distance calls 113/150; MRA 47.53). Corpus 6ed2c7aa_s400_devS1_routed_A10b. Post output work/post_A400_173060.out.
+- Confirm-review of score_d3: GO (d3/REVIEW_D3_2.md).
+- D@544 rem2 173202 submitted 15:11Z on general, RUNNING; tmux monR_173202 (monR6; log cont_ops19/work/monR_173202.log). T 01:30. After: fetch (work/o_fetch_rem2.sh), pull pkg (no a/e), score_d3 spec.
+- Next on general: D@200 (a15_cot_apd296bd1ef61cd, T 04:00, cont_ops18/dbuild/o_sub_D.sh), E, H@544, H@200, own-arm. Note ORCH 1511Z to swarm_opt3: reads may move to trinity-2-28 cards (they hand me a command).
+## 15:35Z
+- ORCH ORDER 1520Z (H3 level): item 1+3 RESULT posted 1526Z (H3 STOP holds at 99.82%: displacement [-1.68,-0.07]; cause: all 26 differing items have identical calls, tower returns ~1.4% larger scale-head output at 400; files_m400/H3_A400_*).
+- Item 2: out4s/score_r5_look.py (--step required; 99.29% at 200, 99.82% later; export-pin check for every step != 544) + out4s/test_score_r5_look.py (fails on score_r5_400, passes on new). Real 400 run: work/scoresAB_look400. Astra review running tmux c20_revlook (work/look_rev/BRIEF.md).
+- Facing tool: h1face7/face.py used fixed 1-0.05/8 (99.375%) for every look; registered text says H1's level. Copy h1face7/face_look.py (--step required). At 400 with 99.82%: toward -3.33 [-10.78,+2.01]; toward-hard -10.00 [-26.32,+0.00] (no longer wholly below zero; the 1022Z mark was at 99.375%). VSTI tool: 95% only (no H1-level test). Direct: post_r1_c.sh (pooled tool, later-look levels).
+- At 600 use: score_r5_look.py --step 600 (in an out6s copy dir with READ_PLAN export_binding = BIND600), face_look.py --step 600.
+## 15:45Z
+- RULING 1533Z: leg R1 ends at 400; chain600 tmux killed (disarmed); 600 only a camera dose point after N's entry baselines. ANSWER 1535Z: face_look needs one Astra review (low priority); correction filed files_m400/FACE_m400_CORRECTION_level_9982.txt.
+- 173202 monitor now monR.sh (tmux monR_173202).
+- Entry baselines H@400 then D@400: Codex c20_hd400 RUNNING on trinity-1-18 tmux c20_hd400, workspace /scratch/jjyeung/orch_n30/cont_ops20_b/hd400 (BRIEF_HD400.md; in/ has BIND400, A10b INPUTS parts shas, m400.done). 1-18 load was 78 at launch.
+- Then: review, Orchard build (STEP=400), place/fill REUSE_PARTS_FROM A10b a/e, CPU check, GPU.

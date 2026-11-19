@@ -1,0 +1,40 @@
+test_all_sources_success_and_new_node (__main__.DriverTests.test_all_sources_success_and_new_node) ... ok
+test_default_off_driver_matches_input_behavior (__main__.DriverTests.test_default_off_driver_matches_input_behavior) ... ok
+test_dry_mode_and_stage_only_keep_existing_semantics (__main__.DriverTests.test_dry_mode_and_stage_only_keep_existing_semantics) ... ok
+test_held_stdout_deadline_and_lock_release (__main__.DriverTests.test_held_stdout_deadline_and_lock_release) ... FAIL
+test_invalid_zero_timeout_refused (__main__.DriverTests.test_invalid_zero_timeout_refused) ... ok
+test_legacy_substitution_reproduces_held_pipe (__main__.DriverTests.test_legacy_substitution_reproduces_held_pipe) ... MEASURE legacy_substitution_elapsed=1.244s timeout=0.2s holder_lifetime=1.2s
+ok
+test_missing_root_skipped_other_sources_publish (__main__.DriverTests.test_missing_root_skipped_other_sources_publish) ... ok
+test_outer_remote_timeout (__main__.DriverTests.test_outer_remote_timeout) ... ok
+test_partial_failed_node_cannot_overwrite_or_delete_previous (__main__.DriverTests.test_partial_failed_node_cannot_overwrite_or_delete_previous) ... MEASURE partial_failure_elapsed=0.735s commit=1 pushes=2 preserved=1
+ok
+test_receiver_timeout_does_not_block_local_publish (__main__.DriverTests.test_receiver_timeout_does_not_block_local_publish) ... ok
+test_remote_scanner_timeout_reports_pipestatus (__main__.DriverTests.test_remote_scanner_timeout_reports_pipestatus) ... ok
+test_tar_leg_kill_after_and_other_sources_publish (__main__.DriverTests.test_tar_leg_kill_after_and_other_sources_publish) ... ok
+test_tssh_rate_lock_wait_is_also_bounded (__main__.DriverTests.test_tssh_rate_lock_wait_is_also_bounded) ... ok
+test_unreachable_skipped_other_sources_publish (__main__.DriverTests.test_unreachable_skipped_other_sources_publish) ... ok
+test_changed_regular_inode_is_rejected (__main__.FilterTests.test_changed_regular_inode_is_rejected) ... ok
+test_device_mode_is_rejected_before_open (__main__.FilterTests.test_device_mode_is_rejected_before_open) ... ok
+test_fifo_socket_symlinks_never_opened (__main__.FilterTests.test_fifo_socket_symlinks_never_opened) ... ok
+test_growth_is_capped_and_io_errors_counted (__main__.FilterTests.test_growth_is_capped_and_io_errors_counted) ... ok
+test_manifest_content_matches_and_link_parent_refused (__main__.FilterTests.test_manifest_content_matches_and_link_parent_refused) ... ok
+test_regular_tree_byte_identical_and_default_off (__main__.FilterTests.test_regular_tree_byte_identical_and_default_off) ... MEASURE regular_paths_sha256=f338b0c8a232b99e54dc5afa5d34ea456d60c3ba10a22761c16373a29ec728a3
+ok
+test_replacement_fifo_is_nonblocking_and_fstat_rejected (__main__.FilterTests.test_replacement_fifo_is_nonblocking_and_fstat_rejected) ... ok
+test_replacement_symlink_is_not_followed (__main__.FilterTests.test_replacement_symlink_is_not_followed) ... ok
+test_slow_read_deadline_counts_and_continues (__main__.FilterTests.test_slow_read_deadline_counts_and_continues) ... MEASURE slow_file_elapsed=0.093s deadline=0.05s
+ok
+
+======================================================================
+FAIL: test_held_stdout_deadline_and_lock_release (__main__.DriverTests.test_held_stdout_deadline_and_lock_release)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/tests/test_syncfix.py", line 341, in test_held_stdout_deadline_and_lock_release
+    self.assertIn(b'stage rc=137', result.stdout)
+AssertionError: b'stage rc=137' not found in b'2026-11-19T15:07:46Z START dry=0 queue_only=0\n2026-11-19T15:07:46Z ROBUST run=/scratch/jjyeung/orch_n30/so_syncfix/work/fixtures/driver_7icvbg4s/state/stage-runs/run.Oxoaot0r node_seconds=0.35 kill_seconds=0.15\n  [trinity-1-18] held stdout fixture\n2026-11-19T15:07:46Z FAIL trinity-1-18 stage rc=124 (skipped; previous stage and clone preserved; log /scratch/jjyeung/orch_n30/so_syncfix/work/fixtures/driver_7icvbg4s/state/stage-runs/run.Oxoaot0r/trinity-1-18.log)\n  [trinity-2-28] STATS trinity-2-28 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-2-28] PIPE 0 0 0\n2026-11-19T15:07:47Z STAGED trinity-2-28 rc=0\n  [trinity-3-30] STATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-3-30] PIPE 0 0 0\n2026-11-19T15:07:47Z STAGED trinity-3-30 rc=0\n  [orch_n30/tools] STATS orch_n30/tools files=5 bytes=30854 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/tools] PIPE 0 0 0\n2026-11-19T15:07:47Z STAGED orch_n30/tools rc=0\n  [orch_n30/briefs] STATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/briefs] PIPE 0 0 0\n2026-11-19T15:07:47Z STAGED orch_n30/briefs rc=0\nSCAN scanned=10 copied=10 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/fixtures/driver_7icvbg4s/state/flagged/flagged_20261119T1507Z.txt\n2026-11-19T15:07:47Z committed 1 files, 1 lanes: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T15:07:47Z verified GitHub lane-code = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T15:07:47Z QUEUE done: 0 new lines\n2026-11-19T15:07:47Z END with failures\n'
+
+----------------------------------------------------------------------
+Ran 23 tests in 13.705s
+
+FAILED (failures=1)

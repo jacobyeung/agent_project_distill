@@ -24,7 +24,8 @@ def population(path,row,stream,check):
             value=dict(row,qid=stream+str(i));f.write(json.dumps(value,separators=(',',':'))+'\n')
     if stream=='vqa':
         cfg=json.loads((L/'work/build22/inputs/config.json').read_text())
-        rows=json.loads(Path(cfg['remove_files'][-1]['path']).read_text())['rows']
+        from student_pilot.p3_provenance import pinned
+        rows=json.loads(pinned(cfg['remove_files'][-1]).read_text())['rows']
         with path.open('a') as f:
             for item in rows:f.write(json.dumps(dict(row,qid=item['qid']),separators=(',',':'))+'\n')
     print('source',stream,count,path.stat().st_size,flush=True)

@@ -32,7 +32,8 @@ class Kit24(unittest.TestCase):
  def test_launch_and_exact_resource_certificate(self):
   q=D/'kits/q';n=D/'kits/n';qs=(q/'job.sh').read_text();ns=(n/'job.sh').read_text()
   self.assertEqual(ns,qs.replace('--partition=general','--partition=advanced').replace('--gres=gpu:1','--gres=gpu:4'))
-  self.assertEqual(J.load(n/'k/p.json')['step'],600)
+  self.assertEqual(J.load(n/'k/p.json')['step'],400)
+  self.assertEqual(J.load(n/'k/n.json')['r1_training']['proof_mode'],'train')
   def check(value,where):
    if bad_string(value,J.load(n/'b/wh.json')):raise ValueError('NAME:'+where)
   with patch.object(E,'__file__',str(D/'scanners/n/environment21f.py')):
@@ -41,7 +42,7 @@ class Kit24(unittest.TestCase):
     E.scan_shell(ns+'\nexport ${DYNAMIC}=q\n',check,'job.sh')
  def test_unfilled600_refuses(self):
   with self.assertRaisesRegex(ValueError,'^E68$'):
-   J.resolve(D/'kits/n',D/'proofs/resolver/f/pool',D/'proofs/resolver/f/l.json',D/'proofs/unfilled.json')
+   J.resolve(L/'attic/build24b/kit_n',D/'proofs/resolver/f/pool',D/'proofs/resolver/f/l.json',D/'proofs/unfilled.json')
  def test_bootstrap_environment_capability(self):
   source=(D/'joblib.py').read_text()
   self.assertTrue(E.scan_python(ast.parse(source),lambda value,where:None,'b/z.py'))
@@ -49,7 +50,7 @@ class Kit24(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,'ENV_UNRESOLVED'):
    E.scan_python(ast.parse(mutation),lambda value,where:None,'b/z.py')
  def test_source_inventory_mutation(self):
-  k=D/'kits/q';spec=importlib.util.spec_from_file_location('scan24',D/'naming24_q.py');N=importlib.util.module_from_spec(spec);spec.loader.exec_module(N)
+  k=D/'kits/q';spec=importlib.util.spec_from_file_location('scan24',L/'work/build24b/naming24_q.py');N=importlib.util.module_from_spec(spec);spec.loader.exec_module(N)
   p=k/'k/c0.json';v=J.load(p);v['files'][next(iter(v['files']))]='0'*64;raw=capsule_json(v)
   original=Path.read_bytes;original_text=Path.read_text
   with patch.object(Path,'read_bytes',lambda q:raw if q==p else original(q)),patch.object(Path,'read_text',lambda q,*a,**kw:raw.decode() if q==p else original_text(q,*a,**kw)):

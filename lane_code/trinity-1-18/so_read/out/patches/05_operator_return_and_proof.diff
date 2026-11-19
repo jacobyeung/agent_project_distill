@@ -30,7 +30,7 @@
  if __name__=='__main__':main()
 --- a/package/a/5.py
 +++ b/package/a/5.py
-@@ -141,7 +141,10 @@
+@@ -141,7 +141,13 @@
          checked_run(J.namespace(root)+[inputs['python'],'-B','-I',str(dispatch/'5.py'),str(dispatch/'0.json')],
                      env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
      ready=json.loads(J.physical(root,cfg['logical']+'/d/READY.json').read_text())
@@ -39,10 +39,13 @@
 +    settings=json.loads(settings_path.read_text())
 +    if cfg.get('read_extensions') is True:
 +        (results/'SETTINGS.json').write_bytes(settings_path.read_bytes())
++        for source,name in (('e/RESTORE.json','RESTORE.json'),('binding.json','binding.json'),
++                            ('manifest.json','manifest.json'),('6.json','EXPORT_PIN.json')):
++            (results/name).write_bytes(J.physical(root,cfg['logical']+'/d/'+source).read_bytes())
      if (settings['stage1_select_rule']!='candidates_argmax' or settings['perception_memo']!='on'
          or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
          raise ValueError('Prepared default settings differ')
-@@ -150,6 +153,9 @@
+@@ -150,6 +156,9 @@
          export_pin=cfg['logical']+'/d/6.json',settings=cfg['logical']+'/d/settings.json',
          plan_sha256=cfg['plan_sha256'],inputs_sha256=canonical({k:v for k,v in inputs.items() if k!='resume'}),
          operator_sha256=sha(sequence),device='cpu',prefix=[],measure_memory=True)

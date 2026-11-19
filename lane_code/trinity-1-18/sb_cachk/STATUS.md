@@ -1,1 +1,37 @@
-GO for the guarded GPU pass. All nine edits are DONE; archive/manifest, exclusions, 74 original tests, 109 patched tests, fresh scoring and final-summary refusal checks pass. The launcher-equivalent CPU model build attempts no NFS access. The patched kit and GUARD.patch retain the registered bars hash; staging totals 14,924,717,613 bytes. GPU execution requires one native-bf16 card of at least 24 GB and a two-hour cumulative cap; GPU results and measured CUDA memory remain MISSING. Deliverables are out/CACHK_VERDICT.md, out/GUARD.patch, and out/sb_cachk.tar with its SHA256.
+# STATUS (sb_cafix: kit_v2/, out/v2/)
+
+- 2026-11-19T10:34:03Z Stage 0 (BARS_FROZEN.json, sha256 edff8724b273): bars frozen from the v2 spec before any priced number.
+- 2026-11-19T10:34:10Z Stage 1 (frame sets): PASS; 209 captures, 13376 unique PNG frames (3.42 GiB) hashed; frame-order failures 0. out/FRAME_SETS.json.
+- 2026-11-19T10:34:14Z Dry-run step 0 (STEP0_PRECISION.json): predicate equal on 18/18 object-taus; tau 0.25 3/3; reproduced=False.
+- 2026-11-19T10:35:54Z Dry-run step 0 (STEP0_PRECISION.json): predicate equal on 2310/2310 object-taus; tau 0.25 390/538; reproduced=True.
+- 2026-11-19T10:36:07Z Stage 2 (seeds, SEEDS_first5.json): check 1 13/13 objects, 5/5 captures; S_A0 {'ok': 13, 'refused': 0, 'unseen': 0, 'on_target': 10}, S_GT {'ok': 13, 'not_visible': 0}, S_PHR NOT_YET.
+- 2026-11-19T10:37:06Z Guard (GUARD.json): R0/dev-S1/BENCH v2/K1 held-out hits [0, 0, 0, 0]; withheld-80 hits 5 captures, 25 rows (default keep, question raised); k1_split train False; folds disjoint and equal to the ladder True; K1_TRACK reuse MISSING.
+- 2026-11-19T10:37:27Z Guard (GUARD.json): R0/dev-S1/BENCH v2/K1 held-out hits [0, 0, 0, 0]; withheld-80 hits 5 captures, 25 rows (default keep, question raised); k1_split train True; folds disjoint and equal to the ladder True; K1_TRACK reuse MISSING.
+- 2026-11-19T10:39:01Z Stage 2 (seeds, SEEDS.json): check 1 770/770 objects, 209/209 captures; S_A0 {'ok': 760, 'refused': 10, 'unseen': 0, 'on_target': 519}, S_GT {'ok': 770, 'not_visible': 0}, S_PHR NOT_YET.
+- 2026-11-19T10:42:04Z Dry-run step 4a (PREDICTOR_CPU.json): build_sam3_video_predictor FAILED RuntimeError: No CUDA GPUs are available; Sam3VideoPredictor FAILED RuntimeError: No CUDA GPUs are available
+- 2026-11-19T10:42:25Z Dry-run steps 1-2 (STUB_PARITY.json): step1 1037/1037; step2 1037/1037; step2 1037/1037; deployed frame recall 0.5815.
+- 2026-11-19T10:43:20Z Dry-run steps 1-2 (STUB_PARITY.json): step1 1037/1037; step2 1037/1037; step2 1037/1037; deployed frame recall 0.5790 (spec 57.9%).
+- 2026-11-19T10:46:29Z Staging (STAGING.json): 12 items, 13.90 GiB, 13376 frames.
+- 2026-11-19T10:46:49Z Staging (STAGING.json): 12 items, 13.90 GiB, 13376 frames.
+- 2026-11-19T10:47:18Z Dry-run collation (DRYRUN.json): steps 0-3 pass, 4a FAILED_AS_RECORDED, 4b done {'S_A0/D64': 1, 'S_GT/D64': 1, 'S_A0/A32': 1, 'S_GT/A32': 1, 'S_PHR/D64': 0, 'S_PHR/A32': 0}; tests 23 passed in 0.26s; GPU estimate 1.48 h (decision arm 0.80 h), hard stop 2.0 h.
+- 2026-11-19T10:48:22Z Staging (STAGING.json): 12 items, 13.90 GiB, 13376 frames.
+- 2026-11-19T10:48:23Z Dry-run collation (DRYRUN.json): steps 0-3 pass, 4a FAILED_AS_RECORDED, 4b done {'S_A0/D64': 1, 'S_GT/D64': 1, 'S_A0/A32': 1, 'S_GT/A32': 1, 'S_PHR/D64': 0, 'S_PHR/A32': 0}; tests 23 passed in 0.24s; GPU estimate 1.48 h (decision arm 0.80 h), hard stop 2.0 h.
+- 2026-11-19T10:50:09Z KIT_REPORT.md written (out/v2/KIT_REPORT.md, copy out/KIT_REPORT.md); tarball next. Every bar MISSING until the GPU pass; PHRASE_FOLDS NOT_YET; K1_TRACK MISSING; withheld-80 question open (default keep).
+- 2026-11-19T10:50:20Z Tarball out/v2/sb_mask_carry.tar (copy out/sb_mask_carry.tar) sha256 6f6ffd97d381f03d587d36b9dee3614cb76386fce2ba27c47633dbb04ea871e1; kit ready for staging and the GPU pass.
+- 2026-11-19T11:25:23Z Population (POPULATION.json, RULING 1056Z): decision 204 captures / 1012 rows; beside 209/1037; id f0ecd8ee39f1.
+- 2026-11-19T11:28:56Z Stage 2 (seeds, SEEDS.json): check 1 770/770 objects, 209/209 captures; S_A0 {'ok': 760, 'refused': 10, 'unseen': 0, 'on_target': 519}, S_GT {'ok': 770, 'not_visible': 0}, S_PHR PRESENT.
+- 2026-11-19T11:43:56Z BARS_AMENDMENT.json (sha256 58f29c152e61): bars unchanged; empty-mask gate removed and population pinned (204/1012 decision) before any GPU-priced number.
+- 2026-11-19T12:11:20Z Guard (GUARD.json): R0/dev-S1/BENCH v2/K1 held-out hits [0, 0, 0, 0]; withheld-80 hits 5 captures, 25 rows (default keep, question raised); k1_split train True; folds disjoint and equal to the ladder True; K1_TRACK reuse MISSING.
+- 2026-11-19T12:11:20Z Population (POPULATION.json, RULING 1056Z): decision 204 captures / 1012 rows; beside 209/1037; id f0ecd8ee39f1.
+- 2026-11-19T12:11:22Z Stage 1 (frame sets): PASS; 209 captures, 13376 unique PNG frames (3.42 GiB) hashed; frame-order failures 0. out/FRAME_SETS.json.
+- 2026-11-19T12:12:54Z Dry-run step 0 (STEP0_PRECISION.json): predicate equal on 2310/2310 object-taus; tau 0.25 390/538; reproduced=True.
+- 2026-11-19T12:12:59Z Stage 2 (seeds, SEEDS_first5.json): check 1 13/13 objects, 5/5 captures; S_A0 {'ok': 13, 'refused': 0, 'unseen': 0, 'on_target': 10}, S_GT {'ok': 13, 'not_visible': 0}, S_PHR PRESENT.
+- 2026-11-19T12:15:39Z Stage 2 (seeds, SEEDS.json): check 1 770/770 objects, 209/209 captures; S_A0 {'ok': 760, 'refused': 10, 'unseen': 0, 'on_target': 519}, S_GT {'ok': 770, 'not_visible': 0}, S_PHR PRESENT.
+- 2026-11-19T12:17:13Z Dry-run steps 1, 1b, 2 (STUB_PARITY.json): step1_seed_stub_C_best1_vs_A0_deployed True; step1b_empty_stub_C_best1_vs_A0_deployed True; step2_raster_stub_C_best1_vs_A2_gt_masks True; step2_raster_stub_C_fused_vs_fused_cf True; step1_seed_stub_C_best1_vs_A0_deployed_decision True; step1b_empty_stub_C_best1_vs_A0_deployed_decision True; step2_raster_stub_C_best1_vs_A2_gt_masks_decision True; step2_raster_stub_C_fused_vs_fused_cf_decision True; step1b_empty_members_in_denominator True; deployed frame recall 0.5790 (spec 57.9%).
+- 2026-11-19T12:17:19Z Dry-run step 4a (PREDICTOR_CPU.json): build_sam3_video_predictor FAILED RuntimeError: No CUDA GPUs are available; Sam3VideoPredictor FAILED RuntimeError: No CUDA GPUs are available
+- 2026-11-19T12:17:30Z Staging (STAGING.json): 20 items incl. control files and pinned vnice, 14,924,708,860 bytes (13.90 GiB), 13376 frames.
+- 2026-11-19T12:17:32Z Dry-run collation (DRYRUN.json): step 4 PARTIAL in 2291 s; tests 74 passed in 1.33s; GPU estimate 2.45 h with per-arm embedding (decision arm 0.80 h; drops ['S_GT/A32', 'S_PHR/D64', 'S_PHR/A32'] at assumed rates), hard stop 2.0 h; memory 7.4 GB.
+- 2026-11-19T12:25:09Z sb_cafix delivery: nine review edits applied; dry run steps 0-3 and 1b pass; step 4 PARTIAL (3 of 4 arms, 2,291 s on 8 threads; projection 2,739 s > 2,700 s); 74 tests pass; reviewer reproduce.sh and contract audits pass; GPU need one card >= 24e9 bytes with bf16; staging 14,924,708,860 bytes. out/v2/KIT_REPORT.md, out/CAFIX_NOTES.md, out/sb_cafix.tar.
+- 2026-11-19T12:36:23Z Population (POPULATION.json, RULING 1056Z): decision 204 captures / 1012 rows; beside 209/1037; id f0ecd8ee39f1.
+- 2026-11-19T12:36:24Z Staging (STAGING.json): 20 items incl. control files and pinned vnice, 14,924,717,613 bytes (13.90 GiB), 13376 frames.
+- 2026-11-19T15:53:58Z Summary (CARRY_REPORT.md, CARRY_DECISION.json): decision arm S_A0/D64 bars {'carry_precision': 'FAIL', 'carry_fusion': 'FAIL', 'size_screen': 'PASS', 'first_seen_screen': 'FAIL'}; joins stack False.

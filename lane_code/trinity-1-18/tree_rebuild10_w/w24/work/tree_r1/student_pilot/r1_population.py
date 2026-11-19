@@ -62,8 +62,9 @@ class Membership:
             raise ValueError('R1_SOURCE_MEMBERSHIP_INVALID')
         self.rows = {}
         self.sources = value['sources']
-        if minimal and self.sources:
-            raise ValueError('R1_DEFERRED_MEMBERSHIP_NONEMPTY')
+        if minimal:
+            from .r1_coverage import deferred
+            deferred({'r1_training': {'routing_slices': 'deferred_first_boundary'}}, membership=value)
         from .r1_coverage import PINS, EXTRA_PINS, source_names
         source_names(self.sources)
         for kind, source in self.sources.items():
@@ -97,11 +98,12 @@ class Membership:
 
 def produce(reader, card_pin, membership_pin, evidence, output, *, cfg=None):
     """Walk every prepared offset. Reader failures refuse the population, never disappear."""
+    from .r1_coverage import deferred, deferred_card
+    minimal = deferred(cfg, read_pins=True)
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     card = load(pinned(card_pin))
-    from .r1_coverage import deferred, deferred_card
-    minimal = deferred(cfg)
+    deferred(cfg, card=card)
     if minimal:
         deferred_card(card)
     membership = Membership(membership_pin, minimal=minimal)
@@ -158,6 +160,8 @@ def bind_prepared(cfg, output):
     """Publish a new preparation and config after native reader filtering and production."""
     from .carrier_c1_run import Rows, prepared, identity
     from .source_seal import binding as seal_binding
+    from .r1_coverage import deferred
+    deferred(cfg, read_pins=True)
     receipt, _ = prepared(cfg)
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)

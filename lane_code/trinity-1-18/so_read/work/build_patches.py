@@ -21,7 +21,7 @@ groups={
     'u0/tests/test_read_journal.py','u0/tests/test_public.py','u0/tests/test_round1.py',
     'u0/tests/test_compare.py','u0/tests/u0.json','u0/tests/u1.json'],
  '03_production_integration.diff':[f'u0/a{i}.py' for i in range(12,21)]+['u0/tests/test_round2.py','u0/tests/test_round3.py',
-     'u0/tests/test_operator_round3.py','u0/tests/test_lock_round3.py','u0/tests/test_round4.py','u0/tests/test_round5.py']}
+     'u0/tests/test_operator_round3.py','u0/tests/test_lock_round3.py','u0/tests/test_round4.py','u0/tests/test_round5.py','u0/tests/test_round6.py']}
 
 def sha(value):return hashlib.sha256(value).hexdigest()
 def files(root):
@@ -60,7 +60,7 @@ for name,paths in groups.items():
  raw=''.join(parts).encode();(L/'out/patches'/name).write_bytes(raw)
  manifest['patches'][name]=dict(sha256=sha(raw),bytes=len(raw),files=pins)
 
-run=L/'work/apply-round5'/uuid.uuid4().hex
+run=L/'work/apply-round6'/uuid.uuid4().hex
 verify=run/'src';verify.mkdir(parents=True)
 copy_values(full_base,verify)
 
@@ -142,8 +142,10 @@ suite=[]
 env=dict(os.environ,READ_INPUT_SRC=str(A),READ_TEST_TMP=str(L/'work/test-artifacts'),
          READ_OPERATOR_SOURCE=str(operator_root/'tower_sequence.py'),READ_OPERATOR4_SOURCE=str(operator_root))
 manifest['a4_payload_pin']=dict(sha256=sha((BASE/'A4/package/0.tgz').read_bytes()),bytes=(BASE/'A4/package/0.tgz').stat().st_size)
+manifest['a4_member_pins']={n:dict(sha256=sha((BASE/'A4'/n).read_bytes()),bytes=(BASE/'A4'/n).stat().st_size)
+    for n in ('package/0.json','package/3.py','package/a/0.json','package/a/4.py','package/a/7.py','fetch_return.py')}
 (L/'out/patches/MANIFEST.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
-for name in ('off','round4','round5','compare'):
+for name in ('off','round4','round5','round6','compare'):
  command=[sys.executable,'-I','-s','-B',str(L/'work/run_fixture5.py'),str(verify/'u0/tests'/('test_'+name+'.py'))]
  result=subprocess.run(command,cwd=L,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
  output='applied_'+name+'.txt';(L/'out/checks'/output).write_text(result.stdout)

@@ -1,0 +1,18 @@
+BLOCKED: no local D400 or fresh D544 delivery was built.
+The B5 source package is absent at the exact path recorded by dbuild/test_d.py.
+The supplied dbuild/evidence/INDEX.md explicitly excludes full 0.tgz and 1.tgz archives.
+Compared with authenticated A4, D needs these unavailable payload bytes:
+  h1eval/h10/launch.py
+  h1eval/room134.py
+  inputs/room_captures.json
+  items/room134.json
+  orchard_h10/build.py
+  orchard_h10/job.py
+  orchard_h10/prepare.py
+Therefore no claim of D400/D544 byte equivalence is made.
+Required input: B5 1.tgz with SHA256
+c3187ab9f88b3eb5a7ab1e30a8010e4ef86acb49d6c76e98fd97eec393b4e45a,
+or the complete reviewed B5 package directory.
+After both builds, test_hd400.py D STAGE400 STAGE544 verifies exact payload equality
+except 9.json token/export_binding, delivery pin derivation, unchanged operator/settings,
+return authentication, and the 400-versus-544 scoring CLI, then writes this diff.

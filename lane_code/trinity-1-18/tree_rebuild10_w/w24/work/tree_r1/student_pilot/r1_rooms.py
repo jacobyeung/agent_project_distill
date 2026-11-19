@@ -85,6 +85,8 @@ class Rooms:
 
 def verify_audit(cfg, pin):
     """Certify slice exclusion and bind a separate, explicitly scoped store record."""
+    from .r1_coverage import deferred
+    deferred(cfg, read_pins=True)
     from .r1_launch22 import validate_removals, bound
     validate_removals(cfg)
     audit = load(pinned(pin))
@@ -142,6 +144,8 @@ def census(cfg, *, store_hits=None):
     import json
     import sqlite3
     from .row_removals import Removals
+    from .r1_coverage import deferred
+    deferred(cfg, read_pins=True)
     value = cfg['r1_training']
     rooms = Rooms(value['room_authority'])
     removals = Removals(cfg['remove_files'])

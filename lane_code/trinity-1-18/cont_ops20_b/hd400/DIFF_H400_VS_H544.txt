@@ -1,0 +1,40 @@
+PASS: step 400 versus step 544; all package, plan and payload pins verified.
+Payload members: only 9.json differs (token and export_binding); all other bytes identical.
+Delivery changes: 0.json, 0.tgz, BATCH.sh, CONFIG.json, PACKAGE.json, a/4.py
+BATCH.sh: only token and verified embedded public descriptor differ.
+a/4.py: only REVIEWED_OBJECT and REVIEWED_ARCHIVE_SHA256 differ.
+Operator, items, settings, serving code, walltime and CPU/submit helpers unchanged.
+--- 544/payload/9.json
++++ 400/payload/9.json
+@@ -5,16 +5,16 @@
+   "export_binding": {
+     "base_identity": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+-    "config_sha256": "84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb",
++    "config_sha256": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4",
+     "frame_layout": "duplicate",
+     "lineage": "SFT",
+-    "member_directory": "m544",
+-    "object": "q8/8865619b/469ddece_mstop.tar",
++    "member_directory": "m400",
++    "object": "q8/8865619b/6ed2c7aa_m400.tar",
+     "preparation_sha256": {
+-      "config": "78341acb36ffd03b9cec6de65effc9fafcbe8bccdc1dfb43e9da7bd88af47560",
+-      "data_receipt": "ebc2983ef7ba33e2e77f4435fff7a031b633a449ef9311622ecab653ea759f40",
+-      "receipt": "34cf26a691728802db8d47766c42bd4045c5481fe1f27c09a486abafaec1a3d6"
+-    },
+-    "run": "469ddece",
+-    "step": 544
++      "config": "b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad",
++      "data_receipt": "03daaa0a051a72c30e147e20553376e196ad09a183889f243a64a0ab1a212f47",
++      "receipt": "a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda"
++    },
++    "run": "6ed2c7aa",
++    "step": 400
+   },
+   "inputs_name": "1.json",
+@@ -3781,4 +3781,4 @@
+     "trace_runtime.py": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+   },
+-  "token": "d3528fd6602ef"
++  "token": "d029b14725b40"
+ }

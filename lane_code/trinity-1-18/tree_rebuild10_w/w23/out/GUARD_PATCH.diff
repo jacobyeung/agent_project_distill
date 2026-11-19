@@ -1,0 +1,40 @@
+--- a/work/build21/kit.py
++++ b/work/build21/kit.py
+@@ -126,8 +126,26 @@
+ for line in sys.stdin:
+  sys.stdout.write(screen(line,w,h));sys.stdout.flush()
+ ''')
+-(K/'b/g.py').write_text('''import torch
+-if not torch.cuda.is_available() or torch.cuda.get_device_properties(0).total_memory < 80*(1<<30):
++(K/'b/g.py').write_text('''import json,os,re
++v=None;a=False;c=0;e=False;ec=0;n=None;m=None;d0=False;dc=False;x=False;ok=False
++try:
++ import torch
++ v=str(torch.__version__)
++ a=bool(torch.cuda.is_available())
++ c=int(torch.cuda.device_count())
++ s=os.environ.get('CUDA_VISIBLE_DEVICES')
++ e=s is not None;ec=len(s.split(',')) if s else 0
++ d0=bool(os.path.exists('/dev/nvidia0'))
++ dc=bool(os.path.exists('/dev/nvidiactl'))
++ if a and c:
++  p=torch.cuda.get_device_properties(0)
++  s=p.name;n=s if isinstance(s,str) and re.fullmatch(r'[A-Za-z0-9 ._-]{1,64}',s) else '?'
++  m=int(p.total_memory)
++ ok=a and c>=1 and m is not None and m>=75*(1<<30)
++except Exception:
++ x=True
++print(json.dumps(dict(v=v,a=a,c=c,e=e,ec=ec,n=n,m=m,d0=d0,dc=dc,x=x)),flush=True)
++if x or not ok:
+  raise RuntimeError('E42')
+ ''')
+ entry=(K/'b/a.py').read_text()
+@@ -208,7 +226,7 @@
+     (K/'b'/name).write_text('#!/bin/bash\nset -eu\nROOT="$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")"\nexec /bin/bash "$ROOT/job.sh" "$@"\n')
+ manifest={str(p.relative_to(K)):sha256(p) for p in K.rglob('*') if p.is_file() and p.name not in ('SHA256SUMS.txt','BUILD.json')}
+ (K/'SHA256SUMS.txt').write_text(''.join(f'{h}  {n}\n' for n,h in sorted(manifest.items())))
+-result=dict(GO=False,kit_sha256=verify(K),source_seal=code['tree_sha256'],resource_request=dict(partition='general',gpus=1,minimum_gpu_gib=80,cpus=8,memory_gib=192,wall_hours=12),sizing='GUESS; real model fit has not been measured')
++result=dict(GO=False,kit_sha256=verify(K),source_seal=code['tree_sha256'],resource_request=dict(partition='general',gpus=1,minimum_gpu_gib=75,cpus=8,memory_gib=192,wall_hours=12),sizing='GUESS; real model fit has not been measured')
+ cap('BUILD.json',result)
+ all_uploads=list(uploads.values())+[dict(local_path=str(p),opaque_name='q/'+str(p.relative_to(K)),bytes=p.stat().st_size,sha256=sha256(p)) for p in K.rglob('*') if p.is_file()]
+ (B/'UPLOADS.json').write_text(json.dumps(dict(files=all_uploads,total_bytes=sum(x['bytes'] for x in all_uploads)),indent=2))

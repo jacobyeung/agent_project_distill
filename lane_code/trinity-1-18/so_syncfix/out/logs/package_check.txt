@@ -1,0 +1,23 @@
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/patchcheck_6bofmx42 -i /scratch/jjyeung/orch_n30/so_syncfix/out/patches/01_filter.diff
+patching file tools/lane_code_filter.py
+patching file tests/test_filter.py
+patching file inputs/lane_code_filter.py
+patching file inputs/lane_code_filter.py.orig
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/patchcheck_6bofmx42 -i /scratch/jjyeung/orch_n30/so_syncfix/out/patches/02_stage_driver.diff
+patching file tools/lane_code_sync.sh
+patching file tools/lane_code_stage.sh
+patching file tests/support.py
+patching file tests/test_driver.py
+patching file tests/run_tests.py
+patching file inputs/lane_code_sync.sh
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/patchcheck_6bofmx42 -i /scratch/jjyeung/orch_n30/so_syncfix/out/patches/03_tssh.diff
+patching file tools/tssh.sh
+patching file tests/test_wrapper.py
+PASS: all patched tools, tests, and reference inputs match out/ byte-for-byte.
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/installcheck_ii1u9xm_ -i /scratch/jjyeung/orch_n30/so_syncfix/out/INSTALL_TOOLS.diff
+patching file tools/lane_code_filter.py
+patching file tools/lane_code_sync.sh
+patching file tools/lane_code_stage.sh
+patching file tools/tssh.sh
+PASS: install-only patch produces the exact replacement tools.
+PASS: bash -n lane_code_sync.sh lane_code_stage.sh tssh.sh

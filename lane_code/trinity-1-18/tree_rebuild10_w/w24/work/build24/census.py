@@ -1,7 +1,7 @@
 from pathlib import Path
-import json,sys
+import json,sys,os
 L=Path(__file__).resolve().parents[2];D=L/'work/build24';B=L/'work/build22'
-sys.path[:0]=[str(D),str(L/'work/tree_r1'),str(L/'work/build21')]
+sys.path[:0]=[str(D),os.environ.get('R2_TREE',str(L/'work/tree_r1')),str(L/'work/build21')]
 import joblib as J
 from student_pilot.r1_coverage import deferred,validate_binding,source_names
 from student_pilot.r1_persisted import scope
