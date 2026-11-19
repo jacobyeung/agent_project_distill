@@ -1,0 +1,66 @@
+{
+  "GO": false,
+  "fixture": "work/build21/proofs/capacity/400/request_config.json",
+  "intake": [
+    {
+      "alias": "STUDENT_R2_FRAME_HOST",
+      "case": "no_flag",
+      "environment": {},
+      "error": "Local slices must contain at most 2000 rows per family",
+      "status": "REFUSE"
+    },
+    {
+      "alias": "STUDENT_R2_FRAME_HOST",
+      "case": "opaque_flag",
+      "environment": {
+        "K6": "1",
+        "Q_E7": "1"
+      },
+      "error": "Local slices must contain at most 2000 rows per family",
+      "status": "REFUSE"
+    },
+    {
+      "admitted": 0,
+      "alias": "STUDENT_R2_FRAME_HOST",
+      "case": "native_flag",
+      "environment": {
+        "STUDENT_R2_FRAME_HOST": "1"
+      },
+      "status": "PASS"
+    },
+    {
+      "case": "real_compose_native_with_opaque_flag",
+      "error": "Local slices must contain at most 2000 rows per family",
+      "status": "REFUSE"
+    }
+  ],
+  "proposed": "Add STUDENT_R2_FRAME_HOST -> Q_E7 and STUDENT_R2_LOCAL_NODE -> Q_E8 in job_env.ALIASES; use job_env.key for both lookups in r2_intake.intake (and r2_materialize.materialize for the full producer). Keep all host/local/limit predicates identical.",
+  "scanner": [
+    {
+      "case": "native",
+      "error": "INPUT_NAME:b/h.py:2:environment:STUDENT_R2_FRAME_HOST",
+      "source": "import os\nos.environ['STUDENT_R2_FRAME_HOST']='1'\n",
+      "status": "REFUSE"
+    },
+    {
+      "case": "opaque",
+      "source": "import os\nos.environ['Q_E7']='1'\n",
+      "status": "PASS"
+    },
+    {
+      "case": "computed",
+      "error": "INPUT_NAME:b/h.py:3:environment:STUDENT_R2_FRAME_HOST",
+      "source": "import os\nk='STU'+'DENT_R2_FRAME_HOST'\nos.environ[k]='1'\n",
+      "status": "REFUSE"
+    }
+  ],
+  "sealed_sources": {
+    "student_pilot/job_env.py": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+    "student_pilot/r1_routing.py": "72a0cea9a4c1d55ec9ba06589e3a2f9c0bf8fd5344e23433242a7bf7445f6f85",
+    "student_pilot/r2_intake.py": "fc968e85827dc56686c6b11814a02b3274f52fb3ca6281758111e1612a3e1c48",
+    "student_pilot/r2_materialize.py": "47a362bb95cfafcd0b007fd955eb5990d7755ebabd2615d91a9fafe5c47bf0a3"
+  },
+  "stand_in": "Only uname reports a frame host. Empty existing fixture envelopes prevent all row, RGB and store reads. No sealed function is substituted.",
+  "timestamp": "2026-11-19T12:39:30.027788+00:00",
+  "tree_change_required": true
+}

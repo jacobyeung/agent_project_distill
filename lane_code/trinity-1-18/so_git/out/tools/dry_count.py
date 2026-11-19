@@ -84,6 +84,9 @@ def main():
                 substrings = filter_constants(script)['SUBSTR']
                 hourly_paths = [p for p in paths if not any(
                     s in '/' + (relative / p).as_posix() for s in substrings)]
+                duplicates = re.search(r'\bdups=(\d+)', stats)
+                if not gate and len(hourly_paths) != len(paths) and (not duplicates or int(duplicates[1])):
+                    raise ValueError('context exclusions overlap deduplication; count the containing lane root')
             hourly_bytes = sum((folder / p).stat().st_size for p in hourly_paths) if hourly_paths != paths else nbytes
             print(json.dumps(dict(folder=str(folder), files=len(paths), bytes=nbytes, filter_stats=stats,
                                   hourly_root_gate_reason=gate, hourly_files=0 if gate else len(hourly_paths),

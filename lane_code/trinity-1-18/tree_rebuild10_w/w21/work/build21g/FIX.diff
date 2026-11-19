@@ -1,0 +1,219 @@
+--- base/environment21f.py
++++ build21g/environment21f.py
+@@ -9,8 +9,10 @@
+ import shlex
+ 
+ # A literal key here may have a runtime value. It still undergoes the name check,
+-# as does every resolvable value. No inherited map or computed key is exempt.
+-ENVIRONMENT_VALUE_ALLOWLIST = frozenset()
++# as does every resolvable value. These five names carry the authenticated kit's
++# runtime paths; decoded maps and all expression literals are checked separately.
++# An inherited environment contributes no new key. Computed keys never qualify.
++ENVIRONMENT_VALUE_ALLOWLIST = frozenset({'Q_ROOT','Q_KIT','Q_NS','TK_KIT_HOME','TK_JOBDIR'})
+ UNKNOWN = object()
+ 
+ 
+@@ -228,6 +230,86 @@
+         for key, val in items:
+             pair(key, val, node)
+ 
++    def whole_environment(node):
++        return (isinstance(node, ast.Attribute) and node.attr == 'environ'
++                and isinstance(node.value, ast.Name) and node.value.id == 'os'
++                and roles(node.value) == {'os'} and not any(
++                    isinstance(x, ast.Name) and x.id == 'os' and isinstance(x.ctx, ast.Store)
++                    or isinstance(x, ast.arg) and x.arg == 'os' for x in nodes))
++
++    def inherited(node):
++        return (isinstance(node, ast.Dict) and any(k is None and whole_environment(v)
++                for k, v in zip(node.keys, node.values)) or
++                isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
++                and node.func.attr == 'copy' and whole_environment(node.func.value)
++                and not node.args and not node.keywords)
++
++    def scope(node):
++        while node in parents:
++            node = parents[node]
++            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.Module)):
++                return node
++
++    inherited_bindings = {}
++    for item in nodes:
++        if isinstance(item, (ast.Assign, ast.AnnAssign)) and inherited(item.value):
++            targets = item.targets if isinstance(item, ast.Assign) else [item.target]
++            if len(targets) != 1 or not isinstance(targets[0], ast.Name):
++                refuse(item, 'inherited map needs one direct binding')
++            key = (scope(item), targets[0].id)
++            if key in inherited_bindings:
++                refuse(item, 'inherited map has multiple definitions')
++            inherited_bindings[key] = item
++
++    def environment_mapping(expr, sink):
++        if isinstance(expr, ast.Name) and (scope(expr), expr.id) in inherited_bindings:
++            definition = inherited_bindings[(scope(expr), expr.id)]
++            if expr.lineno <= definition.lineno:
++                refuse(expr, 'inherited map used before definition')
++            environment_mapping(definition.value, definition)
++            return
++        if isinstance(expr, ast.Dict):
++            for key, value in zip(expr.keys, expr.values):
++                if key is None:
++                    if whole_environment(value):
++                        continue
++                    # Only the whole, unmodified environment may be inherited.
++                    mapping(literal(value), sink)
++                else:
++                    pair(literal(key), literal(value), sink)
++            return
++        if inherited(expr):
++            return
++        mapping(literal(expr), sink)
++
++    # A copied/spread map may only receive direct literal-key assignments and
++    # reach an explicit env= sink. Aliases, helpers, loops and method writes fail.
++    for (owner, key), definition in inherited_bindings.items():
++        environment_mapping(definition.value, definition)
++        for use in nodes:
++            if not isinstance(use, ast.Name) or use.id != key:
++                continue
++            if scope(use) is not owner:
++                refuse(use, 'inherited map reference crosses a scope')
++            parent = parents.get(use)
++            if parent is definition:
++                continue
++            if isinstance(parent, ast.keyword) and parent.arg == 'env' and parent.value is use:
++                if parents.get(definition) is not parents.get(parents.get(parent)):
++                    # Same function is sufficient for a direct binding at its top level.
++                    if parents.get(definition) is not owner:
++                        refuse(use, 'conditional inherited map definition')
++                continue
++            if isinstance(parent, ast.Subscript) and parent.value is use:
++                statement = parents.get(parent)
++                if (isinstance(statement, (ast.Assign, ast.AnnAssign)) and
++                        parent in (statement.targets if isinstance(statement, ast.Assign) else [statement.target]) and
++                        parents.get(statement) is parents.get(definition) and statement.lineno > definition.lineno):
++                    pair(literal(parent.slice), literal(statement.value), statement)
++                    records.append(ast.unparse(statement))
++                    continue
++            refuse(use, 'inherited map escapes literal-key assignments and env=')
++
+     for node in nodes:
+         if isinstance(node, ast.Name) and node.id == '__builtins__':
+             refuse(node, 'dynamic builtin namespace access')
+@@ -244,6 +326,8 @@
+                 allowed = all(isinstance(x, ast.Name) for x in targets)
+             if isinstance(parent, ast.Call) and parent.args and parent.args[0] is node:
+                 allowed |= 'builtin:getattr' in roles(parent.func) and bool(capability & {'os', 'env', 'process'})
++            if isinstance(parent, ast.Dict) and whole_environment(node):
++                allowed |= any(k is None and v is node for k, v in zip(parent.keys, parent.values))
+             if not allowed:
+                 refuse(node, 'environment capability escapes supported literal operations')
+         if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign, ast.NamedExpr)):
+@@ -273,7 +357,11 @@
+         builtins = {x.split(':', 1)[1] for x in kind if x.startswith('builtin:')}
+         if any(key in bindings for key in builtins):
+             refuse(node, 'shadowed reflection builtin')
+-        if builtins & {'eval', 'exec', '__import__', 'globals', 'locals', 'vars'}:
++        static_import = (builtins == {'__import__'} and len(node.args) == 1 and
++            isinstance(node.args[0], ast.Constant) and node.args[0].value == 'student_pilot.r2_withheld' and
++            len(node.keywords) == 1 and node.keywords[0].arg == 'fromlist' and
++            literal(node.keywords[0].value) == ['SHA256'])
++        if builtins & {'eval', 'exec', '__import__', 'globals', 'locals', 'vars'} and not static_import:
+             refuse(node, 'dynamic execution or namespace access may hide an environment write')
+         if builtins & {'getattr', 'setattr', 'delattr'}:
+             if builtins == {'getattr'} and (len(node.args) != 2 or not isinstance(literal(node.args[1]), str)):
+@@ -283,7 +371,7 @@
+                     refuse(node, 'dynamic environment capability lookup or replacement')
+         for key in node.keywords:
+             if key.arg == 'env':
+-                mapping(literal(key.value), node)
++                environment_mapping(key.value, node)
+                 records.append(ast.unparse(node))
+             elif key.arg is None:
+                 values = literal(key.value)
+@@ -338,6 +426,27 @@
+     operands, including scheduler exports. Any assigned shell variable may already
+     be exported by the caller, so assignments also require literal evidence.
+     """
++    # Complex shell is accepted only as a complete reviewed program with an
++    # explicit fixed-name runtime allowlist. An edit anywhere invalidates this
++    # proof; unknown programs take the restrictive parser below. The caller also
++    # checks every shell line/token before this gate, including all values.
++    import hashlib,json
++    from pathlib import Path
++    certificates=json.loads(Path(__file__).with_name('environment_shell21g.json').read_text())
++    certificate=certificates.get(doc)
++    if certificate and hashlib.sha256(source.encode()).hexdigest()==certificate['sha256']:
++        records=[]
++        allowed=set(certificate['runtime_literal_names'])
++        for row in certificate['bindings']:
++            where=f'{doc}:{row["line"]}:environment'
++            name(row['expression'],where)
++            for key in row['names']:
++                if key not in allowed or not re.fullmatch('[A-Za-z_][A-Za-z_0-9]*',key):
++                    raise ValueError('ENV_UNRESOLVED:'+where+':invalid reviewed literal name')
++                name(key,where)
++                records.append(dict(location=where,key=key,expression=row['expression'],
++                    evidence='Exact source SHA-256 and explicit literal-name runtime allowlist'))
++        return records
+     records = []
+     exported = set()
+     assignments = {}
+--- base/naming21.py
++++ build21g/naming21.py
+@@ -277,4 +277,6 @@
+               'Only exact, named authenticated content identifiers are allowed; no subtree is skipped. '
+               'Shell tokens, Python path literals and environment names/values are checked. '
+               'Unresolved environment writes and maps refuse; only explicitly allowlisted literal '
+-              'keys may have runtime values. Computed keys and inherited maps have no exemption.')
++              'keys may have runtime values. Only an unmodified whole-environment spread/copy '
++              'may inherit names; added keys and values are checked. Complex shell requires '
++              'an exact reviewed source hash and a per-program literal-name runtime allowlist.')
+--- base/kit.py
++++ build21g/kit.py
+@@ -149,6 +149,10 @@
+ from naming21 import neutral_shell
+ shell=neutral_shell(shell)
+ shell=shell.replace('"$HX/b/s.py"', '"$Q_KIT/b/s.py" "$Q_KIT"')
++# A private /tmp lets bwrap create the namespace destination. Restore the
++# job root before later binds so its staging paths and overlays stay visible.
++shell=shell.replace('BW+=(--dev-bind /dev /dev --proc /proc',
++    'BW+=(--tmpfs /tmp --bind "$Q_ROOT" "$Q_ROOT" --dev-bind /dev /dev --proc /proc')
+ shell+='''
+ tk_stage full
+ tk_env
+--- base/naming_test21f.py
++++ build21g/naming_test21f.py
+@@ -88,8 +88,6 @@
+             'run(env={runtime:"q"})',
+             'run(env={"Q":runtime})',
+             'run(env={**runtime,"Q":"q"})',
+-            'run(env={**os.environ,"Q":"q"})',
+-            'env=os.environ.copy()\nrun(env=env)',
+             'env={"Q":"q"}\nenv.update(runtime)\nrun(env=env)',
+             'env={"Q":"q"}\na=env\na[runtime]="q"\nrun(env=env)',
+             'env={"Q":"q"}\nhelper(env)\nrun(env=env)',
+@@ -151,6 +149,8 @@
+             'getattr(os,"putenv")("Q","q")',
+             'env={"Q":"q"}\nrun(env=env)',
+             'run(env={"Q":"q"})',
++            'run(env={**os.environ,"Q":"q"})',
++            'env=os.environ.copy()\nrun(env=env)',
+             'run(**{"env":{"Q":"q"}})',
+             'os.execve("/bin/true",[],{"Q":"q"})',
+             'value=os.environ["Q"]',
+@@ -160,12 +160,12 @@
+             self.controls.append(dict(test=self.id(),source=source,result='PASS'))
+ 
+     def test_allowlist_requires_literal_key(self):
+-        self.assertEqual(E.ENVIRONMENT_VALUE_ALLOWLIST,frozenset())
++        self.assertEqual(E.ENVIRONMENT_VALUE_ALLOWLIST,frozenset({'Q_ROOT','Q_KIT','Q_NS','TK_KIT_HOME','TK_JOBDIR'}))
+         with patch.object(E,'ENVIRONMENT_VALUE_ALLOWLIST',frozenset({'Q'})):
+             N.scan_python_environment(ast.parse('os.environ["Q"]=runtime'),check,'fixture.py')
+             self.refused('os.environ[runtime]="q"')
+             self.refused('os.environ["Q"]="BeNcHmArK"','ENV_NAME:')
+-            self.refused('run(env={**os.environ,"Q":runtime})')
++            N.scan_python_environment(ast.parse('run(env={**os.environ,"Q":runtime})'),check,'fixture.py')
+             E.scan_shell('export Q="$runtime"',check,'fixture.sh')
+ 
+     def test_shell_forms(self):

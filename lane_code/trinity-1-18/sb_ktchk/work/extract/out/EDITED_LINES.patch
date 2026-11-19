@@ -1,0 +1,329 @@
+--- /scratch/jjyeung/orch_n30/b04host3/tree_rebuild/work/base/tree_b01ce449/student_pilot/scene_state.py
++++ code/vendor/student_pilot/scene_state.py
+@@ -24,23 +24,24 @@
+     dense_indices: tuple = ()
+     anchor_slots: tuple = ()
+     rgb_sha256: tuple = ()
++    n_frames: int = 32
+ 
+     def __post_init__(self):
+         for key in ('source_indices', 'dense_indices', 'anchor_slots', 'rgb_sha256'):
+             object.__setattr__(self, key, tuple(getattr(self, key)))
+         x = self.source_indices
+-        if len(x) != 32 or any(type(i) is not int or i < 0 for i in x):
++        if len(x) != self.n_frames or self.n_frames not in (32, 64) or any(type(i) is not int or i < 0 for i in x):
+             raise ValueError('expected_32_source_indices')
+         if any(a >= b for a, b in zip(x, x[1:])):
+             raise ValueError('source_indices_not_strictly_increasing')
+-        if self.rgb_sha256 and (len(self.rgb_sha256) != 32 or any(
++        if self.rgb_sha256 and (len(self.rgb_sha256) != self.n_frames or any(
+                 not re.fullmatch('[0-9a-f]{64}', h) for h in self.rgb_sha256)):
+             raise ValueError('expected_32_rgb_hashes')
+         if bool(self.dense_indices) != bool(self.anchor_slots):
+             raise ValueError('dense_frames_require_anchor_slots')
+         if self.dense_indices:
+             d, a = self.dense_indices, self.anchor_slots
+-            if (len(a) != 32 or a[0] != 0 or any(type(i) is not int for i in d+a)
++            if (len(a) != self.n_frames or a[0] != 0 or any(type(i) is not int for i in d+a)
+                     or any(i < 0 or i >= len(d) for i in a)
+                     or any(i >= j for i, j in zip(d, d[1:]))
+                     or any(i >= j for i, j in zip(a, a[1:]))
+--- /scratch/jjyeung/orch_n30/b04host3/tree_rebuild/work/base/tree_b01ce449/student_pilot/geometry_profiles.py
++++ code/vendor/student_pilot/geometry_profiles.py
+@@ -80,7 +80,7 @@
+         K = np.asarray(self.K, float)
+         A = np.asarray(self.canvas_to_source, float)
+         C = np.asarray(self.camera_to_world, float)
+-        if (K.shape != (32, 3, 3) or A.shape != (32, 3, 3) or C.shape != (32, 4, 4)
++        if (K.shape != (self.frame_map.n_frames, 3, 3) or A.shape != (self.frame_map.n_frames, 3, 3) or C.shape != (self.frame_map.n_frames, 4, 4)
+                 or not all(np.isfinite(v).all() for v in (K, A, C))):
+             raise GeometryError('missing_or_invalid_K_transform')
+         if (np.any(K[:, [0, 1], [0, 1]] <= 0) or not np.allclose(K[:, 2], [0, 0, 1])
+@@ -120,7 +120,7 @@
+         self.frame_map = contract.frame_map
+         self.identity = contract.identity
+         self.depth_grid = np.array(depth_grid, dtype=float, copy=True)
+-        if self.depth_grid.ndim != 3 or self.depth_grid.shape[0] != 32:
++        if self.depth_grid.ndim != 3 or self.depth_grid.shape[0] != self.frame_map.n_frames:
+             raise GeometryError('expected_depth_grid_32_H_W')
+         self.grid_uv = np.asarray(np.linspace(0, 1000, self.depth_grid.shape[1]) if grid_uv is None else grid_uv)
+         if (self.depth_grid.shape[1] != self.depth_grid.shape[2]
+@@ -140,7 +140,7 @@
+             array.setflags(write=False)
+ 
+     def has(self, frame):
+-        return type(frame) is int and 1 <= frame <= 32
++        return type(frame) is int and 1 <= frame <= self.frame_map.n_frames
+ 
+     def cam(self, frame):
+         if not self.has(frame):
+--- /scratch/jjyeung/orch_n30/b04host3/tree_rebuild/work/base/tree_b01ce449/student_pilot/routed_candidates.py
++++ code/vendor/student_pilot/routed_candidates.py
+@@ -66,14 +66,14 @@
+     return frozenset(map(tuple, np.floor(np.asarray(points)/.10).astype(np.int64)))
+ 
+ 
+-def lift_grid(geo):
++def lift_grid(geo, n_frames=32):
+     """Precompute the exact MaskGround lift/eligibility at every mask pixel."""
+     rows, cols = np.indices(SHAPE)
+     uv = np.column_stack(((cols.ravel()+.5)/SHAPE[1]*1000,
+                           (rows.ravel()+.5)/SHAPE[0]*1000))
+     edge = np.minimum(uv, 1000-uv).min(1)
+     grids = {}
+-    for frame in range(1, 33):
++    for frame in range(1, n_frames + 1):
+         if not geo.has(frame):
+             continue
+         P, Pc, spread = geo.lift(frame, uv, mode='center')
+@@ -84,15 +84,15 @@
+     return grids
+ 
+ 
+-def lift(cache, name, geo, floor=.3, prior=None, grids=None, phrase=None):
++def lift(cache, name, geo, floor=.3, prior=None, grids=None, phrase=None, n_frames=32):
+     """Lift every eligible cached proposal, preserving score-sorted local indices."""
+     if phrase is None:
+         raise ValueError('Routed candidates require an explicit cache phrase')
+     if phrase not in cache['phrases']:
+         return [], []
+-    grids = lift_grid(geo) if grids is None else grids
++    grids = lift_grid(geo, n_frames) if grids is None else grids
+     out, rejected = [], []
+-    for frame in range(1, 33):
++    for frame in range(1, n_frames + 1):
+         record = cache['frames'][str(frame-1)]['phrases'][phrase]
+         instances = sorted(record.get('instances') or [], key=lambda p: -float(p['score']))
+         for index, instance in enumerate(instances):
+@@ -188,12 +188,12 @@
+             for i, g in enumerate(result)]
+ 
+ 
+-def visible_voxels(voxels, geo):
++def visible_voxels(voxels, geo, n_frames=32):
+     points = (np.array(sorted(voxels), float)+.5)*.10
+     visible = []
+     if not len(points):
+         return visible
+-    for frame in range(1, 33):
++    for frame in range(1, n_frames + 1):
+         if not geo.has(frame):
+             continue
+         r, t = geo.cam(frame)
+@@ -212,12 +212,12 @@
+     return visible
+ 
+ 
+-def features(candidate, geo=None):
++def features(candidate, geo=None, n_frames=32):
+     p = candidate.proposals
+     joints = sorted([v.joint for v in p], reverse=True)
+     prior_joints = sorted([v.joint*v.prior for v in p], reverse=True)
+     support = len(p)
+-    visible = visible_voxels(candidate.voxels, geo) if geo is not None else [v.frame for v in p]
++    visible = visible_voxels(candidate.voxels, geo, n_frames) if geo is not None else [v.frame for v in p]
+     best = min(p, key=lambda v: (-v.joint, v.frame, v.index))
+     candidate.features.update(peak=float(np.mean(joints[:2])), support=support,
+         consensus=support/max(1, len(visible)), visibility_frames=visible,
+@@ -228,11 +228,11 @@
+     return candidate.features
+ 
+ 
+-def scene_candidates(by_name, geo=None):
++def scene_candidates(by_name, geo=None, n_frames=32):
+     """Attach shared physical-object slots across names for exclusivity."""
+     flat = [c for cs in by_name.values() for c in cs]
+     for c in flat:
+-        features(c, geo)
++        features(c, geo, n_frames)
+     uf = UnionFind(len(flat))
+     voxels = [c.voxels for c in flat]
+     centers = [c.center for c in flat]
+@@ -307,15 +307,15 @@
+     return out
+ 
+ 
+-def empty_values(n):
+-    prob = np.zeros((n, 32), np.float32)
++def empty_values(n, n_frames=32):
++    prob = np.zeros((n, n_frames), np.float32)
+     return dict(prob=prob, frame_prob=prob.copy(), clip_prob=np.ones(n, np.float32),
+-                iou=prob.copy(), uv=np.zeros((n, 32, 2), np.float32),
+-                mask=np.zeros((n, 32)+SHAPE, bool), area=np.zeros((n, 32), np.float64))
+-
+-
+-def values_for(names, selected):
+-    values = empty_values(len(names))
++                iou=prob.copy(), uv=np.zeros((n, n_frames, 2), np.float32),
++                mask=np.zeros((n, n_frames)+SHAPE, bool), area=np.zeros((n, n_frames), np.float64))
++
++
++def values_for(names, selected, n_frames=32):
++    values = empty_values(len(names), n_frames)
+     for q, name in enumerate(names):
+         c = selected.get(name)
+         if c is None:
+@@ -358,7 +358,7 @@
+     metadata = dict(tau=.5, source='ofs', gt_substitution=False,
+                     frame_indices=list(map(int, frame_indices)))
+     metadata.update(audit or {})
+-    values = values_for(names, selected) if values is None else values
++    values = values_for(names, selected, len(frame_indices)) if values is None else values
+     mdg().save_npz(out/(stem+'.npz'), names, values, metadata)
+     sidecar = dict(scene=scene, selected={n: c.id if c else None for n, c in selected.items()},
+                    candidates={n: [candidate_json(c) for c in cs] for n, cs in (by_name or {}).items()},
+--- /scratch/jjyeung/orch_n30/b04host3/tree_rebuild/work/base/tree_b01ce449/student_pilot/routed_features.py
++++ code/vendor/student_pilot/routed_features.py
+@@ -83,9 +83,9 @@
+ 
+ 
+ class Geometry:
+-    def __init__(self, source):
++    def __init__(self, source, n_frames=32):
+         self.source = source
+-        self.frames = tuple(k for k in range(1, 33) if source.has(k))
++        self.frames = tuple(k for k in range(1, n_frames + 1) if source.has(k))
+         self.grids = {}
+ 
+     def depth(self, frame, shape=OUTPUT_SHAPE):
+--- /scratch/jjyeung/orch_n30/b04host3/tree_rebuild/work/base/tree_b01ce449/student_pilot/tower_read.py
++++ code/vendor/student_pilot/tower_read.py
+@@ -66,6 +66,7 @@
+     anchor_slots: np.ndarray
+     points_grid: np.ndarray = None
+     grid_uv: np.ndarray = None
++    depth_slots: np.ndarray = None
+ 
+     @tower_guard
+     def __post_init__(self):
+@@ -81,13 +82,17 @@
+         arrays = dict(raw_pose9=raw, frame_indices=indices, anchor_slots=slots,
+                       depth_grid=np.asarray(self.depth_grid), depth_conf_grid=np.asarray(self.depth_conf_grid),
+                       grid_uv=GRID_UV if self.grid_uv is None else np.asarray(self.grid_uv))
+-        if any(arrays[k].shape != (32, 51, 51) for k in ('depth_grid', 'depth_conf_grid')):
++        depth_slots = slots if self.depth_slots is None else np.asarray(self.depth_slots)
++        if not (np.array_equal(depth_slots, slots) or np.array_equal(depth_slots, np.arange(len(raw)))):
++            raise TowerError("Invalid depth slots")
++        arrays["depth_slots"] = depth_slots
++        if any(arrays[k].shape != (len(depth_slots), 51, 51) for k in ('depth_grid', 'depth_conf_grid')):
+             raise TowerError('Tower depth and confidence require the 32 native 51x51 anchor grids')
+         if not np.array_equal(arrays['grid_uv'], GRID_UV):
+             raise TowerError('Tower grid coordinates differ')
+         if self.points_grid is not None:
+             points = np.asarray(self.points_grid)
+-            if points.shape != (32, 51, 51, 3):
++            if points.shape != (len(depth_slots), 51, 51, 3):
+                 raise TowerError('Tower points require [32,51,51,3] in frame 1')
+             arrays['points_grid'] = points
+         for key, value in arrays.items():
+@@ -101,7 +106,8 @@
+         with np.load(path, allow_pickle=False) as data:
+             state = cls(data['raw_pose'], data['depth_grid'], data['depth_conf_grid'],
+                         data['frame_indices'], data['anchor_slots'],
+-                        data['points_grid'] if 'points_grid' in data else None, data['grid_uv'])
++                        data['points_grid'] if 'points_grid' in data else None, data['grid_uv'],
++                        data['depth_slots'] if 'depth_slots' in data else None)
+             if 'raw_pose32' in data and not np.allclose(
+                     state.raw_pose9[state.anchor_slots], data['raw_pose32'], atol=1e-6, rtol=0):
+                 raise TowerError('Cached dense poses differ from LM anchors')
+@@ -195,7 +201,7 @@
+ 
+     @torch.inference_mode()
+     @tower_guard
+-    def run(self, batch):
++    def run(self, batch, *, all_depth=False):
+         from PIL import Image
+         frames = batch.get('tower_native_frames')
+         if frames is None or len(frames) != self.dense_frames:
+@@ -263,8 +269,9 @@
+                 global_ = encoder._camera(model.global_camera_head, camera).float().cpu().numpy()
+         result = g3t_to_c1_pose9(local, global_, coords)
+         depths, confidences, points = [], [], []
+-        for offset in range(0, 32, self.chunk):
+-            selected = slots[offset:offset + self.chunk]
++        depth_slots = np.arange(len(frames)) if all_depth else slots
++        for offset in range(0, len(depth_slots), self.chunk):
++            selected = depth_slots[offset:offset + self.chunk]
+             small = [b[:, selected].contiguous() if b is not None else None for b in blocks]
+             images, box = inputs[selected][None], coords[selected]
+             with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=autocast):
+@@ -284,7 +291,7 @@
+             transform = result['world_to_frame0']
+             points = (points @ transform[:3, :3].T + transform[:3, 3]).astype(np.float32)
+         state = TowerState(result['raw_pose'], np.concatenate(depths), np.concatenate(confidences),
+-                           indices, slots, points)
++                           indices, slots, points, depth_slots=depth_slots)
+         state.validate_batch(batch)
+         if owner is not None:
+             from .gf1 import bind_head_features
+--- /scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/geometry.py
++++ code/vendor/e2e_reader/geometry.py
+@@ -15,7 +15,7 @@
+ 
+ import numpy as np
+ 
+-SEALED_VALIDATE_SHA256 = '05cc553d9e84d235fcc616563b67b4cc1ce50f4b7c10efcaf8a314a59010521a'
++SEALED_VALIDATE_SHA256 = 'e4b3a708defe05528823f5cbc1d155ebe86f2f79a14154be85aad664aa356c21'
+ TERMINAL = "if -R[0, 2, 1] <= 0:\n    raise GeometryError('reference_camera_up_opposes_gravity')\nreturn self"
+ _contract = {}
+ 
+@@ -45,7 +45,7 @@
+     anchors = [int(a) for a in np.asarray(anchor_frame_indices).tolist()]
+ 
+     def make(GP):
+-        c = reader_contract(GP)('scaled_g3t_depth', FrameMap(tuple(anchors)), anchors[0],
++        c = reader_contract(GP)('scaled_g3t_depth', FrameMap(tuple(anchors), n_frames=len(anchors)), anchors[0],
+                                 np.asarray(K, float), np.asarray(canvas_to_source, float),
+                                 np.asarray(camera_to_world, float), float(scale),
+                                 'g3t', 'unscaled', 'unscaled', 0, 0)
+--- /scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/grounding.py
++++ code/vendor/e2e_reader/grounding.py
+@@ -137,8 +137,10 @@
+     select(inputs) -> int index into candidates, or -1 for "none" (argmax of the head's logits
+     with a null slot)."""
+ 
+-    def __init__(self, propose, select, mask_shape, frames):
++    def __init__(self, propose, select, mask_shape, frames=32):
+         self.propose, self.select, self.mask_shape, self.frames = propose, select, tuple(mask_shape), int(frames)
++        if self.frames not in (32, 64):
++            raise ValueError("tower kit requires N=32 or N=64")
+         self.queries = []
+         self.stage1 = getattr(getattr(propose, '__self__', None), 'diagnostics', {})
+ 
+--- /scratch/jjyeung/n30_mirror/sb_headacc2/pack/r1_src/b/e2e_reader/stage1.py
++++ code/vendor/e2e_reader/stage1.py
+@@ -113,18 +113,19 @@
+     tests). Every name is featurised alone (its own pool), as in the isolated K1 tables (heads/selector/
+     isolate_tables.py)."""
+ 
+-    def __init__(self, detect, head, geometry, rule="null_argmax"):
++    def __init__(self, detect, head, geometry, rule="null_argmax", n_frames=32):
+         if rule not in ("null_argmax", "candidates_argmax"):
+             raise ValueError("unknown_stage1_select_rule")
+         self.rule = rule
++        self.n_frames = n_frames
+         self.diagnostics = {}
+         from student_pilot import routed_features as F
+         if str(HEADS / 'selector/sl118') not in sys.path:
+             sys.path.insert(0, str(HEADS / 'selector/sl118'))
+         import selector_inputs as SI
+         self.F, self.SI, self.detect, self.head = F, SI, detect, head
+-        self.geometry, self.exact = geometry, F.Geometry(geometry)
+-        self.grids = F.candidates.lift_grid(geometry)
++        self.geometry, self.exact = geometry, F.Geometry(geometry, n_frames)
++        self.grids = F.candidates.lift_grid(geometry, n_frames)
+         self.raw = {}
+ 
+     def features(self, name):
+@@ -132,9 +133,9 @@
+         if name not in self.raw:
+             self.raw[name] = self.detect(name)
+         proposals, lift_outcomes = F.candidates.lift(F.cache_for(name, self.raw[name]), name, self.geometry, floor=.3,
+-                                         grids=self.grids, phrase=name)
++                                         grids=self.grids, phrase=name, n_frames=self.n_frames)
+         pools = {name: F.candidates.link(proposals, name)}
+-        F.candidates.scene_candidates(pools, self.geometry)
++        F.candidates.scene_candidates(pools, self.geometry, self.n_frames)
+         accepted = F.accept_features(pools[name], self.raw[name], self.exact)
+         x = self.SI.candidate_vectors(pools[name], self.raw[name], self.exact, accepted) if accepted else []
+         self.diagnostics[name] = proposal_diagnostics(

@@ -1,0 +1,17 @@
+Part 1: GO AFTER the required bars-first guard; all nine review edits are DONE. Code was unchanged throughout this check.
+1. DONE — mc_track_io.py:38 and mc_price.py:33,87. test_object_record_positive_empty_carries and empty-stub reproduction: 760 added, zero correct.
+2. DONE — mc_phrase.py:38,58,91; mc_seeds.py:64. Actual-schema and four fallback tests pass; contract audit finds zero mismatches in 320 producer rows; rebuilt masks match 209/209 archive seeds.
+3. DONE — mc_preflight.py:14; mc_staging.py:27. test_preflight_phrase_hash_against_seed_provenance passes; CPU preflight passes with the current folds and decision/bars pins.
+4. DONE — mc_track_pass.py:59,209,221,294; launch_gpu.sh:60. Contract audit refuses KILLED with and without override; budget-exception, binding and launcher ledger tests pass.
+5. DONE — mc_track_pass.py:83,105,310,356. Arm-major order, repeated-embedding cost, projection/drop and phrase reuse tests pass.
+6. DONE — gpu_inner.sh:9,14; mc_track_pass.py:136; mc_summary.py:339. Cache/timing tests pass; four-column second-reading fixture rejects 1,025 MiB, and launcher tests preserve the remaining timeout.
+7. DONE at the declared absolute paths — mc_staging.py:27,71; launch_gpu.sh:50. All staging tests pass after regenerating the relocated receipt; original sum is 14,924,708,860 bytes; local vnice pins and environment/source symlinks pass.
+8. DONE — mc_population.py:16,40; mc_summary.py:58,121,166. Population and completeness tests pass; fresh guard/population audit confirms 204/1,012 decision and 209/1,037 beside.
+9. DONE — mc_summary.py:121,133,148,214. test_frame_spacing_by_dataset and reproduced summary cover all three datasets and both populations.
+Commands: bash work/review/review_run.sh p1cpu tests_run.py (74 pass after relocated staging); bash work/review/reproduce.sh; bash work/review/complete_checks.sh; bash work/review/review_run.sh p1cpu contract_audit{,_4col}.py.
+The original reviewer script lacks the new empty stub and fails at summary; complete_checks.sh adds that fixture and population generation, with all nine parity checks passing. The audit's summary_required_* fields are legacy literals, not measurements; POPULATION_AUDIT.json verifies the effective counts.
+python -B work/verify_archive.py: all 1,560 packaged files under kit_v2/in/out match the workspace; the archive hash matches its receipt. bash kit_v2/run_cpu.sh sam3 ../work/static_check.py: all 246 manifest entries match.
+Step 0: 390/538 = 72.4907%, 2,310/2,310 predicate cases; seed stub matches A0 on 1,037 rows; raster matches A2 and fused_cf on all 1,037 rows; frame audit checks 13,376 files. Logs and input SHA256 receipts are under work/review and out/check.
+python -B work/check_receipts.py verifies exclusion pins R0 bdb5d402, dev-S1 969cdb56, BENCH v2 3119aa4a, withheld-80 634820b4 and teacher_k1 4d4736cf (the last is the nested authority pin). Only withheld-80 hits: five captures/four rooms/25 rows.
+Memory: static_check.py counts 3,449,659,104 tensor bytes across 1,465 checkpoint keys. Batch one and 64 cached frames give an estimated 7.410 GB including assumed activations/context; 24 GB native-bf16 is plausible, not measured. CPU RSS does not prove CUDA peak.
+GPU estimate: static_check.py reproduces 0.80031 h for S_A0/D64 and 2.45160 h for all arms; cumulative 2 h stop retains the first three at assumed rates (1.98022 h). Ten-capture timing must replace assumptions. No GPU or network was used; full-capture CPU step 4 remains the producer's PARTIAL result.

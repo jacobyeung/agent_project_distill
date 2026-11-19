@@ -1,6 +1,30 @@
-VERDICT: DONE All eight review fixes and the build-21 port are delivered with no new local test failures; lane gloo and production acceptance remain pending.
+VERDICT: DONE All requested round-3 fixes and regressions are delivered against build 21; updated lane gloo and production acceptance remain required.
 
-Both builds pass the dedicated 53-case gate: **52 pass and one socket-dependent test is skipped**. Broader gates reproduce the same six reported baseline failures and two additional baseline export-test failures; their causes appear below. The build-21 base has 936 verified files, and the four delivered patches replay with zero fuzz and zero offsets. No production speedup is claimed.
+The dedicated CPU gates pass, including bitwise synchronous-fallback outputs, real `train()` startup and ON provenance. The broad suites reproduce eight documented baseline failure entries without additional failures. Four ordered patches replay with zero fuzz and zero offsets. No production performance gain is claimed.
+
+## Review round 3: finding -> fix -> test
+
+| Finding | Fix | Test or evidence |
+|---|---|---|
+| 1 MEDIUM | Bounded continuation plan writer, 10×4×2 audit, grid/augmentation coverage, runtime; separate default-OFF synchronous fallback and counter. | `KitRound3` sampler/coverage tests; `Round3.test_budget_fallback_is_bitwise_off_and_logged`; lane asymmetric fallback test. |
+| 2 MEDIUM | Exact one-step replay command; OFF, OFF, ON; bitwise-or-OFF-spread rule; matched continuation checkpoint. | Replay decision and complete gate regressions, including signed zero, NaN, wrong audit plan and silent OFF. |
+| 3 MEDIUM | Conditional `performance` step field; require it for ON. | ON-only logging regression and real `train()` startup smoke. |
+| 4 LOW | Exercise real train startup payload and worker. | `_frozen == ('1','0','1')`, third payload item, `c1-row-cpu_0`, and ON provenance asserted. |
+| 5–7 LOW | 03 gain ≈0; 02 gain ≤0 at low reuse; matched replay or ≥20-update distributions. | Source review and corrected commands/readouts in the acceptance section. No speedup measurement claimed. |
+| 8 INFO | Name allocator fields excluded from numerical equality. | Retained-scalar accounting and numerical parity scope. |
+| 9 INFO | State supplied coordinator/reviewer results and their source scope. | Named logs in REPORT; this changed series has its own lane command. |
+| 10 INFO | Include both GX tests in the lane gate. | Exact Coordinator command; review's two-test pass. |
+| 11 INFO | Record Linux peak RSS per arm/process. | CPU data-audit sidecar regression. |
+| 12 INFO | Explain late clip-mix refusal. | Existing refusal regression; factory callsite. |
+| 13 INFO | Require actual augmented pose execution on the production host. | Coverage observer tested with a controlled augmentation function; real torchvision unavailable locally. |
+| 14 INFO | Carry receipt alignment into the audit descriptor. | Real pose-row validation rejects missing aligned targets. |
+| 15 INFO | Restore `ExportLeg`'s class docstring. | Docstring regression. |
+
+All requested findings 1–12, 14 and 15 are fixed. Finding 13 is covered by the mandatory production-host augmentation gate; its real torchvision operations cannot run in this CPU environment. No requested code fix is deferred for size. The existing unrelated baseline failures and real CUDA measurements remain outside this dispatch.
+
+The [trainer before](evidence/round3_trainer_before.txt) run executes the five new local regressions against the reconstructed round-2 build-21 source: `Ran 5 tests in 11.418s`, `FAILED (failures=1, errors=4)`. The failures are the over-budget row refusal, absent fallback switch, absent performance fields in both direct and real-train paths, and absent class docstring. The [trainer after](evidence/round3_trainer_after.txt) run reports `Ran 5 tests in 10.573s`, `OK`.
+
+The six initial kit cases fail before the changes ([output](evidence/round3_kits_before.txt)); the seven final kit cases pass, including the complete four-rank artifact comparator ([output](evidence/round3_round3_kits.txt)). The plan writer also has a real pinned-checkpoint CLI test: it verifies the continuation step and preserves the existing output-filter contract ([before](evidence/round3_plan_cli_before.txt), [after](evidence/round3_plan_cli_after.txt)). Coverage observation uses a controlled augmentation function locally; this does not claim real torchvision execution.
 
 ## Numbers: what the 133 seconds contains
 
@@ -59,8 +83,8 @@ These are **estimated individual steady-state gains**, not measurements and not 
 | Priority / change | Estimated gain, s/update | Semantics and main risk |
 |---|---:|---|
 | **1. CPU row preparation one group ahead** | **0–28.2 before contention**; optimistic 20–28 if the producer keeps pace; net gain can be negative | Same rows/checks, original main-thread MIN admission; no worker collectives or CUDA. Cold first group and startup cloning remain exposed. |
-| **2. Bounded decoded RGB cache** | **approximately 0 for low reuse**; 3–8 only as a conditional upper-bound scenario with measured reuse | Exact decoded bytes before augmentation; keep pin checks on every hit. CPU RAM and hit rate govern benefit. |
-| **3. Batch detached component reads; remove pre-forward device-wide sync** | **0–3**, likely modest | Same device math and Python float accumulation order. Keep finite-loss checks, final synchronization and collectives. Internal model metrics still synchronize. |
+| **2. Bounded decoded RGB cache** | **≤0 at low reuse**; 3–8 only as a conditional upper-bound scenario with measured reuse | Exact decoded bytes before augmentation; keep pin checks on every hit. CPU RAM and hit rate govern benefit. |
+| **3. Batch detached component reads; remove pre-forward device-wide sync** | **≈0 (≤0.1)** | Same device math and Python float accumulation order. Finite-loss, grid and carrier-count reads still synchronize each microstep; about seven redundant scalar reads are removed. This estimate is below the timing kit’s ≈3-s resolution at three repeats and assumed 1-s repeat SD. |
 | FSDP BACKWARD_PRE | 3–12 | Preserves the mathematical reduction, but intentionally changes collective issue order, so it cannot satisfy the requested identical collective trace. Extra live all-gather unit, roughly 0.5 GB for an illustrative 250M-parameter BF16 block; an embedding/head unit can approach 2 GB. Must measure peak memory. |
 | Frozen-tower feature caches | 5–15 for both towers if hits are frequent | Can be exact only for frozen weights, deterministic preprocessing, identical dtype/backend and complete keys. Multi-TB storage at dataset scale; changes FSDP forward collective participation unless a carefully reviewed wrapper path retains it. |
 | Selective activation checkpointing | 1–5 for a few selected blocks | Same trainables/draws; preserve RNG and saved-tensor semantics. Saving two `[5000,12288]` BF16 MLP projections costs about 246 MB/layer; four layers already approach 1 GB before other activations. Saving all layers is unsafe without measurement. |
@@ -75,11 +99,11 @@ The prefetch ceiling is concrete: nine admission groups expose about `31.7/9 = 3
 
 As an illustrative estimate, at a representative grid `[32,20,26]`, FP32 processed pixels occupy `32*20*26*(3*2*16*16)*4 ≈ 102 MB/row`; one group of eight rows uses about **0.82 GB/rank**. The current group and next group can coexist: **16 rows, about 1.64 GB/rank**, before other allocations.
 
-The implementation releases replay references after admission and each consumed yield, rejects groups larger than eight, and rejects prepared groups exceeding **1 GiB of encoded tensor storage** through the original admission boundary.
+The implementation releases replay references after admission and each consumed yield, rejects groups larger than eight, and rejects prepared groups exceeding **1 GiB of encoded tensor storage** through the original admission boundary unless the separate default-OFF synchronous fallback is enabled.
 
-Thus accepted library-held prepared tensors occupy at most **2 GiB/rank** across both groups; this is not a total-RSS bound. In-progress decoding/encoding temporaries, Python metadata, processor copies, cache payload/copies and caller-retained rows are additional. Shared tensor storage is conservatively counted for each occurrence. A budget error remains a row failure at that group's admission, and all ranks must refuse it.
+Thus accepted library-held prepared tensors occupy at most **2 GiB/rank** across both groups; this is not a total-RSS bound. In-progress decoding/encoding temporaries, Python metadata, processor copies, cache payload/copies and caller-retained rows are additional. Shared tensor storage is conservatively counted for each occurrence. With fallback OFF, a budget error remains a row failure at that group's admission, and all ranks must refuse it. With `C1_CPU_PREFETCH_FALLBACK=1`, the worker releases the prepared group and the main thread performs the original synchronous fetch/admission; the synchronous group is not capped, and total RSS must still be monitored.
 
-This grid does not establish that the largest production group fits. Before any prefetch ON run, `data_only.py --full-plan` must audit a complete epoch plan on every rank, including targets and auxiliary tensors, and record its peak below the unchanged guard. No production peak group size has been measured here.
+This grid does not establish that the largest production group fits. Before production prefetch ON, `write_plan.py` and `data_only.py --steps 10 --require-coverage` audit the first 10 continuation updates on four rank projections and two arms, including augmented pose rows, targets and auxiliary tensors. Every emitted grid must fit `[32,20,26]`, and the group peak must fit the unchanged guard. The estimated audit runtime is 42 minutes from the supplied timer, or roughly 45–60 minutes with startup and hashing. No production peak group size has been measured here.
 
 A decoded cache stores original RGB, before seeded pose augmentation or frame duplication. For an illustrative 32×320×416 RGB clip, that is **12.8 MB**, so the kit's 512-MiB per-rank cache holds about **42 such clips**. It does not cache tokenization or resized model tensors. Four ranks reserve at most 2 GiB of decoded payload, plus copies and queued batches.
 
@@ -89,9 +113,9 @@ Changing reduce dtype to BF16, accumulating under FSDP `no_sync`, dropping super
 
 ## Delivered patch behavior
 
-The build-20 series is in `patches/`; the build-21 series is in `patches_b21/`. Their tested trees are `work/tree/` and `work/b21_final/work/tree_r1/` under this workspace. Inputs remain untouched. Every production change has an explicit OFF default:
+The build-21 series is in `patches_b21/`, with identical copies in `patches/`. Its tested tree is `work/b21_final/work/tree_r1/`. `out_round3/` preserves the complete input delivery; its build-20 series is archival and is not the current deployment target. Inputs remain untouched. Every production change has an explicit OFF default:
 
-1. `C1_CPU_PREFETCH=0` → `1`: one persistent worker per `Rows`, its own deep-copied processor and worker-created SQLite connections. `check_same_thread=True` stays intact. The worker executes only row preparation and CPU validation. Prepared values/exceptions pass through unchanged `fetch`/`fetch_nominal`, including a repeated cheap validation on the main thread. It starts the next group only after the current group is admitted. A failed future group is raised at that group's original microstep boundary, after all current-group slices finish. It never speculates past an unadmitted group. `Rows.close()` drains and closes the worker on its owning thread. The ON path refuses non-final mode, MDG, geometry_online and gf1 because those paths are outside this worker-safety audit. It also refuses admission groups above eight rows and any mix source without a SQLite `conn`, including unaudited C1-r clip readers.
+1. `C1_CPU_PREFETCH=0` → `1`: one persistent worker per `Rows`, its own deep-copied processor and worker-created SQLite connections. `check_same_thread=True` stays intact. The worker executes only row preparation and CPU validation. Prepared values/exceptions pass through unchanged `fetch`/`fetch_nominal`, including a repeated cheap validation on the main thread. It starts the next group only after the current group is admitted. A failed future group is raised at that group's original microstep boundary, after all current-group slices finish. It never speculates past an unadmitted group. `Rows.close()` drains and closes the worker on its owning thread. The ON path refuses non-final mode, MDG, geometry_online and gf1 because those paths are outside this worker-safety audit. Clip-mix refusal occurs at the first group’s factory setup, after model load. It also refuses admission groups above eight rows and any mix source without a SQLite `conn`, including unaudited C1-r clip readers.
 2. `C1_DECODED_CACHE_MIB=0` → an explicit 1–4096 MiB capacity: LRU cache in RAM, shared safely by the process's readers. The original hash/pin verification still executes on every read. Cache identity is the pinned SHA-256. A miss reads the encoded file once, hashes those exact bytes against the pin, and decodes the verified in-memory bytes. A pin/decode rewrite cannot poison a persistent cache entry. Each consumer gets its own array copy. Decoding failures are not cached. The patch covers `pose_samples.load_frames` and `batches.load_rgb`; compressed C1-r cache records are not silently intercepted.
 3. `C1_BATCH_METRICS=0` → `1`: retains detached component scalars until the update tail, transfers them in dtype/device groups, then performs the original Python divisions/additions in original row/key order. It removes only the explicit pre-forward device-wide synchronize. Loss finiteness, model-side metrics, optimizer, clipping, tensor math and final sync remain. It retains only scalar tensors, not autograd graphs.
 
@@ -111,34 +135,106 @@ The production kits inherit thread settings. Torchrun can default OMP to one (`E
 
 ## Cache reuse and observability
 
-A 512-MiB cache holds about 42 illustrative 12.8-MB clips. Under independent uniform sampling from `U` clips, a rough hit fraction is `42/U`; shuffled sampling without replacement may provide still less recent reuse. For an **illustrative, unmeasured** `U=10,000`, that is 0.42%. Even assigning the entire measured 31.7-second data timer to cacheable decoding gives an optimistic 0.133-second saving; actual decoding is only part of that timer. Repeated frames and temporal locality can change the hit rate, so the production expectation remains approximately zero until counters show reuse. A 3–8-second saving is only a conditional upper-bound scenario, not a supported run-A prediction.
+A 512-MiB cache holds about 42 illustrative 12.8-MB clips. Under independent uniform sampling from `U` clips, a rough hit fraction is `42/U`; shuffled sampling without replacement may provide still less recent reuse. For an **illustrative, unmeasured** `U=10,000`, that is 0.42%. Even assigning the entire measured 31.7-second data timer to cacheable decoding gives an optimistic 0.133-second saving; actual decoding is only part of that timer. Repeated frames and temporal locality can change the hit rate, so the production gain is expected to be **≤0 at low reuse**: each miss adds a second encoded-file read and SHA-256 after the caller’s pin check. Counters and whole-step timing must show reuse and benefit. A 3–8-second saving is only a conditional upper-bound scenario, not a supported run-A prediction.
 
 Every cache-enabled step reports cumulative `decoded_cache.hits`, `misses`, `bytes`, and `capacity_bytes`; adjacent-record differences give step reuse. The timing kit retains those records. Cache savings and prefetch overlap and must not be added as independent gains.
 
-## Review round 2: finding -> fix -> test
 
-No HIGH finding was reported. Every MEDIUM and LOW finding is addressed; none is deferred as too large. The failing-before logs are [trainer regressions](evidence/round2_before.txt), [kit regressions](evidence/round2_kits_before.txt), and [row-draw comparison](evidence/round2_draws_before.txt). The corresponding final tests pass on both builds.
+Every non-OFF step includes `performance`, mapping switch names to their frozen string values. All-OFF steps omit it. r1_ops must require `ranks[r].performance.C1_CPU_PREFETCH == "1"` in the ON arm, rather than accepting a silent OFF run. The fallback switch joins the existing startup agreement only when enabled; the ordinary three-value `_frozen` tuple remains unchanged when fallback is OFF. Enabled fallback also writes cumulative `cpu_prefetch.budget_fallback_groups`.
 
-| Finding | Fix | Regression and evidence |
+03 can retain about 0.2 MB of CUDA scalar blocks per rank (estimate). Exclude `memory.microbatches[*].after_forward.allocated_bytes`, `after_backward.allocated_bytes`, and allocator `peak_*` fields, including `peak_allocated_bytes` and `peak_reserved_bytes`, from numerical parity. Monitor them separately for headroom.
+
+## Patch delivery and build-21 pin
+
+The base seal is `b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8`, with **936 verified input files**. READY supplies package SHA-256 `fb9de190d0da8ed0727f2132d4c08ac4737a65a7aed3226d6ab4cbe1f65ebf59`; the untarred input files were verified, while the archive itself was not rehashed.
+
+Apply **01, 02, 03, 04 in order**, using `patch --batch --fuzz=0 -p1 -i <absolute-diff-path>`. Patch 01 carries the worker, startup agreement, fallback and relevant fixture/docstring changes; 02 carries the decoded cache; 03 carries metrics and conditional performance records; 04 carries scalar hashing and round-2/round-3 regressions. Tests run after the complete series. [manifest.json](patches_b21/manifest.json) records input/output SHA-256s, per-patch hashes, defaults and the base pin.
+
+[Exact replay output](evidence/round3_patch_replay.txt): `ROUND3_REPLAY_PASS: 4 patches, 22 touched files, 927 untouched files; zero fuzz and offsets`. Every touched replay file matches the tested tree. Both `patches/` and `patches_b21/` target build 21 and are byte-identical. No input source or fixture was edited.
+
+The candidate source has **949 files**, digest `f79e2cb8cabadccd1bc404a51cbc247aab7e45c181ddb297a45ed2e8a5b81cf5`. This is the candidate identity, not a production admission. READY fixture links remain beside the source, outside its sealed tree. The orchestrator must issue the final seal/admission.
+
+## Kits and continuation acceptance
+
+[NOTE_FOR_TREE_REBUILD.md](NOTE_FOR_TREE_REBUILD.md) contains the exact commands and r1_ops fields. The CPU plan writer starts from the pinned continuation checkpoint; the audit covers the first 10 updates × 4 ranks × 2 arms, with actual augmented pose rows and an emitted-grid cap. It records each process's peak RSS, including the worker's private receipt/processor. Expected runtime is about 42 minutes from the supplied data timer, or 45–60 minutes including startup/hash overhead (**estimates**).
+
+`kit_profile/replay.sh` uses **mode `replay`, one update, no warmup**, in **OFF, OFF, ON** order. Each leg restores the same explicit `RESUME_PIN` and uses the CPU-audited plan. Expected total wall time is **30–60 minutes (estimate)**, with a 3,600-second cap per leg and no retry. The output is disposable. When OFF repeats agree bitwise, ON must match bitwise. Otherwise, CPU hashes/draws must match and each ON scalar's deviation from either OFF scalar must not exceed the OFF-to-OFF spread. NaNs, changed plans/state and missing ON provenance fail acceptance. Historical launch step 1 is not a continuation baseline.
+
+Compare `ranks[r].data_seconds` and `ranks[r].wall_seconds` on matched replay steps. For ordinary continuation monitoring, compare per-rank and slowest-rank medians/IQR over at least 20 updates per arm. Read logged losses from `ranks[r].components[key]` and `ranks[r].stream_means[stream]`; the disposable total losses are `rank<r>/steps.json[0].first_step_micro_losses`. Require `ranks[r].performance.C1_CPU_PREFETCH == "1"` in ON. 02 and fallback remain OFF; hold 03 fixed.
+
+The separate instrumented profile retains its 895-second bound, heartbeat, partial tables and source-only checkpoint bridge. The precision timing kit retains 20 discarded + 20 measured updates per arm and three repeat blocks: **840 updates, about 31 hours at 133 s/update (estimate)**, plus startup. It uses a stricter bitwise timing-parity gate; the short acceptance replay has the OFF-spread policy above.
+
+For approximate 80% power and two-sided alpha 0.05, `MDD = (t(.975,n−1) + t(.80,n−1)) × s_repeat / sqrt(n)`. At three repeats this is **3.0969 × s_repeat**. An assumed 1-s repeat SD gives approximately 3.10-s resolution, which cannot resolve 03's estimated ≤0.1-s gain. These are planning calculations, not measured production variance or speedups.
+
+## Coordinator command
+
+The supplied coordinator log [round2_b21_gloo_by_coordinator.txt](../work/round2_b21_gloo_by_coordinator.txt) reports these exact lines:
+
+```text
+Ran 23 tests in 1016.666s
+OK
+EXIT=0
+```
+
+The independent round-3 review reports `Ran 23 tests in 871.372s OK` and `Ran 2 tests in 12.606s OK` for the two GX cases. Those results cover the source reviewed before these fixes. They establish the 03 numerical condition for the first launch; they do not certify this modified series.
+
+**The lane must run the following 31-test gate on the delivered tree.** It includes the two-rank asymmetric fallback proof and both GX tests. Sockets are unavailable in this sandbox, so this command was not attempted here.
+
+```bash
+cd /scratch/jjyeung/orch_n30/so_step
+date -u
+nice -n 10 taskset -c 0-7 env CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
+  OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false \
+  C1_CPU_PREFETCH=0 C1_DECODED_CACHE_MIB=0 C1_BATCH_METRICS=0 C1_CPU_PREFETCH_FALLBACK=0 \
+  SO_TEST_TREE=/scratch/jjyeung/orch_n30/so_step/work/b21_final/work/tree_r1 \
+  /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_cpu_tests.py \
+  tests.test_so_prefetch tests.test_so_cache tests.test_so_metrics \
+  tests.test_so_joint tests.test_so_review tests.test_so_round2 tests.test_so_round3 \
+  tests.test_gx_carrier.GXPTests.test_two_rank_gxp_first_batch_forward_backward \
+  tests.test_gx_carrier.GXTests.test_two_rank_fsdp_replicas_checkpoint_and_exports \
+  > work/round3_b21_gloo_by_coordinator.txt 2>&1
+result=$?
+printf '\nEXIT=%s\n' "$result" >> work/round3_b21_gloo_by_coordinator.txt
+exit "$result"
+```
+
+Require `SO_GLOO_PROOF`, `SO_ADMISSION_PROOF`, `SO_FALLBACK_PROOF`, `OK` and `EXIT=0`.
+
+## Exact local commands and outputs
+
+All local gates run serially at nice 10 on CPUs 0–7, with `torch.set_num_threads(8)`, the requested thread environment, bytecode disabled and no GPUs. The exact per-suite commands, stdout/stderr and exit statuses appear in the linked logs. The driver command is:
+
+```bash
+cd /scratch/jjyeung/orch_n30/so_step
+date -u
+nice -n 10 taskset -c 0-7 env CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
+  OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false \
+  /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_round3_checks.py \
+  > out/evidence/round3_check_driver.txt 2>&1
+```
+
+Exact driver result: `ROUND3_LOCAL_GATES_PASS_WITH_EIGHT_DECLARED_BASELINE_FAILURES`.
+[Machine-readable results](evidence/round3_checks.json) distinguish passing gates from accepted baseline-only failures.
+
+| Suite | Exact unittest output | Complete command/output |
 |---|---|---|
-| 1 MEDIUM: extra OFF startup collective | Parse locally; carry ON settings in the existing preparation broadcast and propagate mismatches/errors through existing `agree()`. All-OFF preserves the original two-item broadcast payload and collective sequence. | `Round2.test_startup_has_no_collective_and_agrees_with_root`; the existing GX rebind test fails before and passes after. All six requested existing modules are in the gate; their six baseline failures are diagnosed below. |
-| 2 LOW: frozen settings leak between tests | `so_helpers.reset_switches` clears `_frozen` before each relevant case and registers cleanup. All `so_*` classes and existing carrier-train callers use it. | `Round2.test_fixture_resets_frozen_switches_before_and_after_case` fails before and passes after. The combined gate runs the existing train tests before the ON suites without vacuous OFF comparisons. |
-| 3 LOW: ON proofs lack positive controls | Joint and local proofs record row-reader thread names, reset/check cache misses, and count `Components.add` calls. They compare every non-timing/non-allocator logged field, in addition to losses/gradients/updates. Scalar floats also compare bytewise. | `Round2.test_joint_positive_controls_refuse_silent_off`; the local five-arm native proof passes with real ON controls. Updated two-rank controls are packaged but await the lane command. |
-| 4 LOW: unproven 1-GiB group budget | Keep the bounded guard; add `--full-plan`, every-group byte counts, target/audit inclusion, per-step maxima and a peak/coverage sidecar. Require a complete epoch plan on every rank before production ON. | `KitRound2.test_full_plan_memory_includes_every_group_and_targets` fails before and passes after: 101 synthetic plans, 64 bytes per two-row group including targets. This synthetic measurement is not a production sizing result. |
-| 5 LOW: cache key does not bind decoded bytes | Hash one encoded-byte read against the frame pin, decode that buffer, and key the cache by pinned SHA-256. Preserve caller pin checks and copy-on-hit. | `Round2.test_cache_miss_hashes_the_bytes_that_are_decoded` fails before and passes after; `test_pinned_cache_caller_rejects_rewrite_after_verification` plants a rewrite between verification and decode. Existing invalidation, non-RGB and capacity tests pass. |
-| 6 LOW: clip readers are unaudited | `rows_factory` refuses any mix source without `conn`, before copying/starting the private reader. Factory failures still reach the original admission boundary. | `Round2.test_prefetch_refuses_clip_mix_before_starting_worker` fails before and passes after; the SQLite composite-reader and factory-error regressions pass. |
-| 7 LOW: GPU kits lack a co-location/free-memory guard | Each rank probes its target before `train()` and refuses another compute PID or less than the observed production peak, **76,699 MiB**, free. The timing wrapper also probes all visible targets before each arm. Probe failure refuses. | `KitRound2.test_gpu_guard_refuses_busy_low_memory_and_unreadable_probe` fails before and passes after using mocked probes. No GPU was queried here. Allocation/admission remain prerequisites; a point-in-time check cannot prevent a later tenant race. |
-| 8 LOW: MDD and OFF nondeterminism | Use `t(.80,df)` in the power term. Compare OFF brackets first, write `comparison.json` before rejecting loss mismatches, and mark timing gains unresolved when parity is invalid. | `KitRound2.test_t_power_and_off_drift_persist_comparison_before_refusal` fails before and passes after; the existing slowest-rank/statistics regression passes with the corrected coefficient. |
-| 9 INFO: eager reads/imports | Use a lazy `getattr` fallback, hoist loader switch reads/imports outside frame loops, and remove unused `os` imports. | `Round2.test_fetch_uses_captured_switch_without_eager_environment_parse`; combined cache/prefetch suites. Cache capacity validation remains defensive inside `read()`. |
-| 10 INFO: stale distributed status | Cite the supplied 16-test coordinator pass with its actual source scope. | Exact supplied lines below; the modified build-21 suite is separately marked pending. |
-| 11 INFO: model class names in kit source | Retain class names needed for instrumentation; outputs remain scrubbed. They already occur in the input tree. | Existing output-scrubber and opaque-identifier tests pass. No additional source-name rewrite is needed. |
-| 12 INFO: real CUDA attribution unrun | Preserve the explicit limitation. GPU use is prohibited in this dispatch. | Mocked-stream attribution and real CPU profile tests pass; no real CUDA elapsed-time claim is made. |
+| units | `Ran 39 tests in 16.049s; OK (skipped=1); EXIT=0` | [round3_units.txt](evidence/round3_units.txt) |
+| existing | `Ran 91 tests in 84.891s; FAILED (failures=1, errors=5, skipped=2); EXIT=1` | [round3_existing.txt](evidence/round3_existing.txt) |
+| related | `Ran 55 tests in 2.933s; FAILED (failures=2, skipped=7); EXIT=1` | [round3_related.txt](evidence/round3_related.txt) |
+| parity | `Ran 2 tests in 10.127s; OK; EXIT=0` | [round3_parity.txt](evidence/round3_parity.txt) |
+| kits | `Ran 4 tests in 9.628s; OK; EXIT=0` | [round3_kits.txt](evidence/round3_kits.txt) |
+| review_kits | `Ran 7 tests in 0.456s; OK; EXIT=0` | [round3_review_kits.txt](evidence/round3_review_kits.txt) |
+| utilities | `Ran 2 tests in 6.141s; OK; EXIT=0` | [round3_utilities.txt](evidence/round3_utilities.txt) |
+| round2_kits | `Ran 4 tests in 2.385s; OK; EXIT=0` | [round3_round2_kits.txt](evidence/round3_round2_kits.txt) |
+| round3_kits | `Ran 7 tests in 2.656s; OK; EXIT=0` | [round3_round3_kits.txt](evidence/round3_round3_kits.txt) |
 
-The CPU kit also rejects different `row_draws` even if encoded bytes happen to be identical (`KitRound2.test_row_draw_difference_fails_even_when_encoded_bytes_match`). This makes the hand-over's row-draw kill rule checkable before training.
+The additional plan CLI regression runs as `nice -n 10 taskset -c 0-7 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/test_round3_plan_cli.py` under the same environment; [its exact output](evidence/round3_plan_cli_after.txt) records one passing case. The main passing gates total 65 test cases, 64 passes and one skip; the additional CLI case brings that to **65 passes and one skip**. The broader 91- and 55-case suites are baseline comparisons, not clean passes.
+
+Patch generation/replay uses the same interpreter/environment with `work/package_round3.py`; it serializes all four zero-fuzz applications. The installed-source audit is retained in [framework_source_audit.txt](evidence/framework_source_audit.txt), [review1_framework_sources.txt](evidence/review1_framework_sources.txt) and [round2_framework_sources.txt](evidence/round2_framework_sources.txt). [SOURCE_NOTES.md](SOURCE_NOTES.md) cites installed torch 2.11 file:line locations and official library documentation for storage accounting, byte comparisons, thread behavior, object collectives and FSDP stream ordering. `resource.RUSAGE_SELF` records process lifetime RSS; it does not isolate the worker.
 
 ## Existing-suite failures: causes and scope
 
-[Input existing-suite output](evidence/round2_baseline_existing.txt), [patched build-20 output](evidence/round2_patched_existing.txt), and [patched build-21 output](evidence/round2_final_b21_existing.txt) have the same six failure entries. Each runs 91 local cases; two additional two-rank GX cases are excluded for unavailable sockets. The two skipped local cases need a missing review pool.
+[Input existing-suite output](evidence/round2_baseline_existing.txt), [current build-21 output](evidence/round3_existing.txt) have the same six failure entries. Each runs 91 local cases; two additional two-rank GX cases are excluded for unavailable sockets. The two skipped local cases need a missing review pool.
 
 | Existing test failure | Cause; why it is not changed here |
 |---|---|
@@ -149,110 +245,32 @@ The CPU kit also rejects different `row_draws` even if encoded bytes happen to b
 | `GXTests.test_vendor_bytes_digest_and_import_origin` | Hard-coded `/scratch/jjyeung/orch_cd/c1r/work/D/g3t_src/vggt/__init__.py` is absent. |
 | `CachedBank.test_parity_cached_vs_online` | Existing GF1 BF16 feature-cache gradient `norms.2.weight` differs by **1.5396857634186745e-05** absolute, **0.017092852841054485** relative, above its **0.015625** tolerance. The input and patched trees report the same values. This is a different cache from 02; its tolerance was not weakened. |
 
-The expanded caller gate runs another 55 cases. [Input output](evidence/round2_baseline_related.txt) and both patched outputs show two additional pre-existing failures: `ExportLeg.test_export_leg_needs_a_resume_pin_and_no_smoke` supplies an empty config and encounters `trace_program_version_missing` before its expected export-leg refusal; `ExportLeg.test_export_resume_state_reuses_an_existing_export` expects an old call signature without the existing `optimizer=None, disk_guard=None` keywords.
+The expanded caller gate runs another 55 cases. [Input output](evidence/round2_baseline_related.txt) and [current build-21 output](evidence/round3_related.txt) show two additional pre-existing failures: `ExportLeg.test_export_leg_needs_a_resume_pin_and_no_smoke` supplies an empty config and encounters `trace_program_version_missing` before its expected export-leg refusal; `ExportLeg.test_export_resume_state_reuses_an_existing_export` expects an old call signature without the existing `optimizer=None, disk_guard=None` keywords.
 
 Seven other cases skip absent processor/config/bank fixtures. These tests exercise unrelated export/version expectations and remain unchanged apart from switch-state isolation.
 
 The broad suites are **not clean passes**; the gate verifies that the performance patches introduce no additional failures.
 
-## Patch delivery and build-21 pin
+## Review round 2: finding -> fix -> test
 
-[patches/manifest.json](patches/manifest.json) pins build 20 to `780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278` (934 input files). [patches_b21/manifest.json](patches_b21/manifest.json) pins build 21 to `b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8` (936 input files), plus the supplied package SHA-256 `fb9de190d0da8ed0727f2132d4c08ac4737a65a7aed3226d6ab4cbe1f65ebf59` from READY.
+No HIGH finding was reported. Every MEDIUM and LOW finding is addressed; none is deferred as too large. The failing-before logs are [trainer regressions](evidence/round2_before.txt), [kit regressions](evidence/round2_kits_before.txt), and [row-draw comparison](evidence/round2_draws_before.txt). The corresponding regressions are included in the current build-21 gates.
 
-All 936 build-21 file hashes and the canonical source digest were verified locally; the package archive itself was not rehashed because the supplied input is its untarred tree.
-
-Apply **01, 02, 03, then 04** using `patch --batch --fuzz=0 -p1 -i <absolute-diff-path>`. They are an ordered series. 01 includes shared validation and test-state isolation; 02 carries the content-bound RGB cache; 03 carries batching and positive controls; 04 retains the scalar collective-hash repair and round-2 regressions. Each manifest records byte counts, SHA-256s, touched paths and base pins. Tests run after all four patches.
-
-The [build-20 replay](evidence/round2_replay_b20_final.txt) reproduces every touched file. The [build-21 port/replay](evidence/round2_port_b21_final.txt) verifies all **21 touched files**, no fuzz or offsets in the delivered build-21 replay, and unchanged remaining input files. The porting pass from build-20 hunks uses offsets; the delivered build-21 diffs have exact build-21 context.
-
-The tested build-21 candidate has **948 files** and canonical source digest `40644d6bdd68912ac23b36d8cb98b83421b11c2e05a5e5e4ff0dd9eb19dc8a7c`. The orchestrator must seal/admit its final rebuilt tree.
-
-READY's `base/tree_b01ce449`, `build15/inputs` and `build_n1/inputs` are linked from `/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work` beside the tested tree, outside its sealed source. The input trees and fixtures were not edited.
-
-## Kits and acceptance
-
-The profile kit retains its single-step 895-second limit plus five-second termination grace, heartbeat, partial tables, stream-aware CUDA events and read-only source-only resume bridge. Its CPU/stream tests pass; full GPU execution is unrun.
-
-The timing kit uses 20 discarded + 20 measured updates per arm, three OFF/ON/OFF repeat blocks, inherited production thread settings, explicit cache-state records and a three-hour per-arm timeout.
-
-Its 840 updates cost an **estimated 31 hours** at 133 s/update, plus startup. No killed job is automatically retried.
-
-For approximate 80% power and two-sided alpha 0.05, `MDD = (t(.975,n-1) + t(.80,n-1)) * s_repeat / sqrt(n)`. At three repeats this is **3.0969 × s_repeat**: an assumed 1.0-s repeat SD resolves about 3.10 s; an assumed 0.323-s SD resolves about 1 s. These are planning calculations, not measured production variability. `comparison.json` retains OFF reproducibility separately from switch parity and invalidates speedup attribution on a parity failure.
-
-[NOTE_FOR_TREE_REBUILD.md](NOTE_FOR_TREE_REBUILD.md) specifies the orchestrator's acceptance plan: N launches with 01 and 02 OFF; 03 may be ON only after review and build-21 tests prove numerical parity. The first continuation tests 01 ON after the complete epoch-plan CPU check. r1_ops compares matched-plan data wait and first-step loss at identical checkpoint/RNG state; any loss or row-draw difference turns 01 OFF. 02 stays OFF until measured.
-
-Read `ranks[].data_seconds`, `ranks[].components` and `ranks[].stream_means` in `metrics_<attempt>.jsonl`; exact total microstep losses are the disposable kit's `rank*/steps.json[0].first_step_micro_losses`.
-
-The trainer has no invented top-level `loss` metric. The note names the CPU commands and matched-state replay requirement.
-
-## Coordinator command
-
-**Pending lane execution outside the sandbox, on the final build-21 tree.** No socket suite was attempted here. Run:
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_step
-nice -n 10 taskset -c 0-7 env CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
-  OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false \
-  SO_TEST_TREE=/scratch/jjyeung/orch_n30/so_step/work/b21_final/work/tree_r1 \
-  /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_cpu_tests.py \
-  tests.test_so_prefetch tests.test_so_cache tests.test_so_metrics \
-  tests.test_so_joint tests.test_so_review tests.test_so_round2 \
-  > work/round2_b21_gloo_by_coordinator.txt 2>&1
-result=$?
-printf '\nEXIT=%s\n' "$result" >> work/round2_b21_gloo_by_coordinator.txt
-exit "$result"
-```
-
-Require `SO_ADMISSION_PROOF`, `SO_GLOO_PROOF`, `OK` and `EXIT=0`, including positive controls for the ON arms. The admission test covers both ranks at factors 1 and 2 and failures in first/middle/last groups. The joint proof compares every loss/gradient/update, numerical log field, trainable, row draw and collective payload/order.
-
-Supplied evidence for the input reviewed in round 2 is `work/review1_full_suite_by_coordinator.txt`, whose exact lines are:
-
-```text
-SO_ADMISSION_PROOF /scratch/jjyeung/orch_n30/so_step/work/test_runs/so_453pbecg factors=1,2; both ranks raise in first/middle/last groups
-SO_GLOO_PROOF {"directory": "/scratch/jjyeung/orch_n30/so_step/work/test_runs/so_384pmumf", "ranks": 2, "comparisons": 16, "losses_and_every_gradient": "bitwise", "trainables": "identical", "row_draws": "identical", "collectives": "identical; main thread only", "failure_microstep": 2}
-Ran 16 tests in 1027.778s
-OK
-EXIT=0
-```
-
-That supplied pass is not a rerun of the modified build-21 series. The command above is still required.
-
-## Exact local commands and outputs
-
-The serial driver runs on at most eight cores, with torch intra-op threads set to eight in every test entrypoint. It writes complete stdout/stderr and exact per-suite commands to the linked logs, including nonzero exits for declared baseline failures:
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_step
-nice -n 10 env CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
-  OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false \
-  /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_round2_final.py \
-  > out/evidence/round2_final_driver_completed.txt 2>&1
-```
-
-Exact driver result: `ALL_LOCAL_GATES_PASS_WITH_EIGHT_DECLARED_BASELINE_FAILURES`.
-The [machine-readable gate record](evidence/round2_final_checks.json) preserves each exit status. Its exception list is derived from actual input-tree failures, not from blanket skips.
-
-| Build / suite | Exact unittest output | Complete command/output |
+| Finding | Fix | Regression and evidence |
 |---|---|---|
-| b20 / units | `Ran 34 tests in 7.075s; OK (skipped=1); EXIT=0` | [round2_final_b20_units.txt](evidence/round2_final_b20_units.txt) |
-| b20 / related | `Ran 55 tests in 2.452s; FAILED (failures=2, skipped=7); EXIT=1` | [round2_final_b20_related.txt](evidence/round2_final_b20_related.txt) |
-| b20 / parity | `Ran 2 tests in 11.674s; OK; EXIT=0` | [round2_final_b20_parity.txt](evidence/round2_final_b20_parity.txt) |
-| b20 / kits | `Ran 4 tests in 9.324s; OK; EXIT=0` | [round2_final_b20_kits.txt](evidence/round2_final_b20_kits.txt) |
-| b20 / review_kits | `Ran 7 tests in 0.371s; OK; EXIT=0` | [round2_final_b20_review_kits.txt](evidence/round2_final_b20_review_kits.txt) |
-| b20 / utilities | `Ran 2 tests in 5.794s; OK; EXIT=0` | [round2_final_b20_utilities.txt](evidence/round2_final_b20_utilities.txt) |
-| b20 / round2_kits | `Ran 4 tests in 2.247s; OK; EXIT=0` | [round2_final_b20_round2_kits.txt](evidence/round2_final_b20_round2_kits.txt) |
-| b21 / units | `Ran 34 tests in 7.622s; OK (skipped=1); EXIT=0` | [round2_final_b21_units.txt](evidence/round2_final_b21_units.txt) |
-| b21 / existing | `Ran 91 tests in 90.056s; FAILED (failures=1, errors=5, skipped=2); EXIT=1` | [round2_final_b21_existing.txt](evidence/round2_final_b21_existing.txt) |
-| b21 / related | `Ran 55 tests in 3.377s; FAILED (failures=2, skipped=7); EXIT=1` | [round2_final_b21_related.txt](evidence/round2_final_b21_related.txt) |
-| b21 / parity | `Ran 2 tests in 14.705s; OK; EXIT=0` | [round2_final_b21_parity.txt](evidence/round2_final_b21_parity.txt) |
-| b21 / kits | `Ran 4 tests in 9.510s; OK; EXIT=0` | [round2_final_b21_kits.txt](evidence/round2_final_b21_kits.txt) |
-| b21 / review_kits | `Ran 7 tests in 0.387s; OK; EXIT=0` | [round2_final_b21_review_kits.txt](evidence/round2_final_b21_review_kits.txt) |
-| b21 / utilities | `Ran 2 tests in 6.435s; OK; EXIT=0` | [round2_final_b21_utilities.txt](evidence/round2_final_b21_utilities.txt) |
-| b21 / round2_kits | `Ran 4 tests in 2.323s; OK; EXIT=0` | [round2_final_b21_round2_kits.txt](evidence/round2_final_b21_round2_kits.txt) |
+| 1 MEDIUM: extra OFF startup collective | Parse locally; carry ON settings in the existing preparation broadcast and propagate mismatches/errors through existing `agree()`. All-OFF preserves the original two-item broadcast payload and collective sequence. | `Round2.test_startup_has_no_collective_and_agrees_with_root`; the existing GX rebind test fails before and passes after. All six requested existing modules are in the gate; their six baseline failures are diagnosed below. |
+| 2 LOW: frozen settings leak between tests | `so_helpers.reset_switches` clears `_frozen` before each relevant case and registers cleanup. All `so_*` classes and existing carrier-train callers use it. | `Round2.test_fixture_resets_frozen_switches_before_and_after_case` fails before and passes after. The combined gate runs the existing train tests before the ON suites without vacuous OFF comparisons. |
+| 3 LOW: ON proofs lack positive controls | Joint and local proofs record row-reader thread names, reset/check cache misses, and count `Components.add` calls. They compare every non-timing/non-allocator logged field, in addition to losses/gradients/updates. Scalar floats also compare bytewise. | `Round2.test_joint_positive_controls_refuse_silent_off`; the local five-arm native proof passes with real ON controls. The supplied build-21 coordinator and review logs pass these controls; the changed series has a new lane command below. |
+| 4 LOW: unproven 1-GiB group budget | Keep the bounded guard; add `--full-plan`, every-group byte counts, target/audit inclusion, per-step maxima and a peak/coverage sidecar. Require the bounded 10-update continuation audit on every rank and both arms before production ON. | `KitRound2.test_full_plan_memory_includes_every_group_and_targets` fails before and passes after: 101 synthetic plans, 64 bytes per two-row group including targets. This synthetic measurement is not a production sizing result. |
+| 5 LOW: cache key does not bind decoded bytes | Hash one encoded-byte read against the frame pin, decode that buffer, and key the cache by pinned SHA-256. Preserve caller pin checks and copy-on-hit. | `Round2.test_cache_miss_hashes_the_bytes_that_are_decoded` fails before and passes after; `test_pinned_cache_caller_rejects_rewrite_after_verification` plants a rewrite between verification and decode. Existing invalidation, non-RGB and capacity tests pass. |
+| 6 LOW: clip readers are unaudited | `rows_factory` refuses any mix source without `conn`, before copying/starting the private reader. Factory failures still reach the original admission boundary. | `Round2.test_prefetch_refuses_clip_mix_before_starting_worker` fails before and passes after; the SQLite composite-reader and factory-error regressions pass. |
+| 7 LOW: GPU kits lack a co-location/free-memory guard | Each rank probes its target before `train()` and refuses another compute PID or less than the observed production peak, **76,699 MiB**, free. The timing wrapper also probes all visible targets before each arm. Probe failure refuses. | `KitRound2.test_gpu_guard_refuses_busy_low_memory_and_unreadable_probe` fails before and passes after using mocked probes. No GPU was queried here. Allocation/admission remain prerequisites; a point-in-time check cannot prevent a later tenant race. |
+| 8 LOW: MDD and OFF nondeterminism | Use `t(.80,df)` in the power term. Compare OFF brackets first, write `comparison.json` before rejecting loss mismatches, and mark timing gains unresolved when parity is invalid. | `KitRound2.test_t_power_and_off_drift_persist_comparison_before_refusal` fails before and passes after; the existing slowest-rank/statistics regression passes with the corrected coefficient. |
+| 9 INFO: eager reads/imports | Use a lazy `getattr` fallback, hoist loader switch reads/imports outside frame loops, and remove unused `os` imports. | `Round2.test_fetch_uses_captured_switch_without_eager_environment_parse`; combined cache/prefetch suites. Cache capacity validation remains defensive inside `read()`. |
+| 10 INFO: stale distributed status | Cite the supplied build-21 coordinator pass (23 tests) and independent review rerun with their source scope. | Exact supplied lines below; the current series has a distinct lane gate, including GX and asymmetric fallback tests. |
+| 11 INFO: model class names in kit source | Retain class names needed for instrumentation; outputs remain scrubbed. They already occur in the input tree. | Existing output-scrubber and opaque-identifier tests pass. No additional source-name rewrite is needed. |
+| 12 INFO: real CUDA attribution unrun | Preserve the explicit limitation. GPU use is prohibited in this dispatch. | Mocked-stream attribution and real CPU profile tests pass; no real CUDA elapsed-time claim is made. |
 
-Build-20's separate six-module gate reports `Ran 91 tests in 99.350s`, `FAILED (failures=1, errors=5, skipped=2)`; the input gate reports `Ran 91 tests in 107.410s` with the same failure/skip counts. The specifically regressed GX rebind test passes on both patched builds.
-
-Patch replay commands, run with the same `nice`/CPU-only environment and interpreter, are `work/verify_review_patches.py round2_final_patch_check` and `work/port_b21.py`. Their exact output is linked above. `work/recheck_measurements.py` recomputes the retained production-log arithmetic in [round2_measurements.txt](evidence/round2_measurements.txt). Numbered installed-source excerpts for startup broadcast, storage accounting and FSDP ordering are in [round2_framework_sources.txt](evidence/round2_framework_sources.txt), with source hashes and official documentation links in [SOURCE_NOTES.md](SOURCE_NOTES.md).
+The CPU kit also rejects different `row_draws` even if encoded bytes happen to be identical (`KitRound2.test_row_draw_difference_fails_even_when_encoded_bytes_match`). This makes the hand-over's row-draw kill rule checkable before training.
 
 ## Review round 1: finding -> fix -> test
 
@@ -260,12 +278,15 @@ The delivery retains the required round-1 fixes: stream-aware backward/recompute
 
 ## What could go wrong, detection, and work not done
 
-Prefetch can lose time through GIL or OpenMP contention: compare both `data_seconds` and `wall_seconds` on matched plans and inspect per-microstep forward/backward host time. Full-plan tensor accounting can reject a large group before ON admission; RSS still includes processor/decoder temporaries and must be observed on the host. Clip/geometry/gf1/MDG paths remain refused for prefetch. Cache reuse may be negligible; 02 stays OFF until its counters and timing establish benefit. An OFF loss mismatch invalidates switch attribution, and any ON loss/draw mismatch invokes the hand-over's OFF kill rule.
+- The bounded audit can miss a larger future group. The default guard fails through original admission; optional fallback preserves synchronous outputs but adds duplicate CPU work and permits an uncapped synchronous group. Watch group/RSS peaks and fallback counter deltas.
+- A producer can reduce data wait while slowing training through GIL or CPU-thread contention. Check wall time and per-microstep host timing as well as data wait.
+- A missing environment variable can leave prefetch OFF. Require ON `performance` records on every rank; equality alone is insufficient.
+- OFF replays can differ across GPU processes. Use the measured per-scalar OFF spread with exact CPU inputs; do not invent a tolerance or compare different checkpoint/row states.
+- Clip mixes refuse at first-group factory setup after model load; geometry/MDG/gf1 remain refused. The kit fails absent augmented-pose coverage and out-of-cap emitted grids.
+- Peak RSS includes startup and every thread; it is not a 2-GiB total-RAM bound. CUDA allocator diagnostics can change with 03 while losses remain equal.
 
-The eight pre-existing suite failures above are not fixed.
+The eight baseline failure entries are not fixed. The updated 31-test gloo gate, actual production torchvision/processor audit, real CUDA attribution, production numerical acceptance and speed measurements remain host work. No GPU or socket run was attempted here, and no speedup is claimed.
 
-The build-21 gloo run, real production processor/full-epoch byte audit, real CUDA event validation, production numerical acceptance, co-location probe and speed measurements have not run here. They require the lane/production host, not an inferred pass from tiny fixtures.
+No Git, SSH, GPU query/work, deletion, production write, external job launch or paid API was used. The requested review mappings and supplied-run comparisons are retained because they identify evidence scope. `out_round3/` is the preserved input bundle. [ARTIFACTS.json](ARTIFACTS.json) inventories the final delivery.
 
-No Git, SSH, GPU work, deletion, production write, external job launch or paid API was used. The required review mappings and named supplied coordinator logs are retained because they define the evidence scope.
-
-Final [delivery audit](evidence/round2_delivery_audit.txt): `FINAL_DELIVERY_AUDIT_PASS`. All patch hashes and tested/replayed bytes match; source identity, local links and syntax pass. Workspace usage measured 1,225,974,942 bytes (about 1.23 GB) at 11:02 UTC, below the 3-GB limit. [ARTIFACTS.json](ARTIFACTS.json) inventories the delivery files.
+Final [delivery audit](evidence/round3_delivery_audit.txt): `ROUND3_FINAL_DELIVERY_AUDIT_PASS`. Measured workspace usage was **1,723,514,012 bytes (1.72 GB)** at 12:32:46 UTC, below the 3-GB limit. Patch bytes, candidate source identity, Python/shell syntax, local links and required command fields pass.

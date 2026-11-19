@@ -20,23 +20,23 @@
   },
   "02_owner_tools.diff": {
     "base": "supplied owner inputs; all added paths absent",
-    "base_pin_sha256": "aacdb37a0dd75f23354ebd99f4fd33bbbeacd3e204c17ce2855876c8a7fe4b7b",
+    "base_pin_sha256": "802061cb667208916f7340092d7817b3d2c3afc2211f136eae636850eef8bf97",
     "files": {
       "docs/COVERAGE.md": {
-        "after_bytes": 4278,
-        "after_sha256": "d357b4e04d4350218fa9f96cb8b875d9d3816f810f67db1151c8b4e7a9afc6af",
+        "after_bytes": 4564,
+        "after_sha256": "0303858c5e3d2c6be7cb5fb976e6e7d5fee7eba125b7dc42f9d33e86780448bc",
         "before_bytes": 0,
         "before_sha256": null
       },
       "docs/GIT_OWNER.md": {
-        "after_bytes": 6987,
-        "after_sha256": "a708fd5fa7da7f22451346469cd3f820d2261dcca2cd664e5d294759d38ec7a9",
+        "after_bytes": 8453,
+        "after_sha256": "d84e1e4ebbb55cf30287e3e7422add28f38b496f9614cd076cf1d129f48cc8d0",
         "before_bytes": 0,
         "before_sha256": null
       },
       "docs/HANDOVER.md": {
-        "after_bytes": 8131,
-        "after_sha256": "a22232c53d7fcfe5df5c0274664baf5bd61bb1dd570ac34ac164c82e39a9f552",
+        "after_bytes": 4959,
+        "after_sha256": "f1b09cad6865271ad74e3500b129eb5d007831052dbf25302e11c497f8721988",
         "before_bytes": 0,
         "before_sha256": null
       },
@@ -77,14 +77,20 @@
         "before_sha256": null
       },
       "tests/test_review_round3.py": {
-        "after_bytes": 7494,
-        "after_sha256": "5268f23a8046375a43fc7f37936d9f555d311c87a3914b34d8f7ca9f8912e1d9",
+        "after_bytes": 8646,
+        "after_sha256": "a4e92b432943b96851140791382b164eba94d740b8cd8a416015880ea48f587b",
+        "before_bytes": 0,
+        "before_sha256": null
+      },
+      "tests/test_review_round4.py": {
+        "after_bytes": 6900,
+        "after_sha256": "b56fd7905e8ccfde326e9c7132c481cce892ee9c55491f6656b01ad6d7b7610a",
         "before_bytes": 0,
         "before_sha256": null
       },
       "tools/dry_count.py": {
-        "after_bytes": 5106,
-        "after_sha256": "fa7a5772cb88747fc64689993371d249b17cd23c5acfe7316133f0e2013c556f",
+        "after_bytes": 5390,
+        "after_sha256": "14fd0d4492ac8aaafa6ffd6e13aa4d85c5636aa2dd8803e7055e248ed3ce54b0",
         "before_bytes": 0,
         "before_sha256": null
       },
@@ -95,8 +101,8 @@
         "before_sha256": null
       },
       "tools/land_kit.py": {
-        "after_bytes": 21832,
-        "after_sha256": "c7b80359e75be1943b4ecbc52688e8243adabcd7f626d567a2e598468417076c",
+        "after_bytes": 22890,
+        "after_sha256": "29dd347d33b285453cd3bbddc7e630c01af64fa178c007db9edac913ea5f977f",
         "before_bytes": 0,
         "before_sha256": null
       },
@@ -125,7 +131,7 @@
         "before_sha256": null
       }
     },
-    "patch_sha256": "ebd2b5108454b31b3cb2cef8f40e9b9380bfb79ded64f244001dd3600efdb33f"
+    "patch_sha256": "adbd6649eb8a74f0d7d719cd577593ab0f70cde3b79a6664ab48c8a4378f9f06"
   },
   "03_shell_copy_coverage_optional.diff": {
     "base": "supplied filter input; optional test absent",
@@ -147,18 +153,24 @@
     "patch_sha256": "0745706bb680537fcd3cf1543acfe0d7016a11fffb71fb56f19f6ab2d7730350"
   },
   "04_installed_owner_review2.diff": {
-    "base": "pinned installed package and tests/docs; alternative to cumulative 02+03",
-    "base_pin_sha256": "9786e234548a9bd9f87d9acbd38f4bdbd2ce1efc4f0b92ee1dfa6e66d6533c46",
+    "base": "pinned round-1 package; alternative cumulative upgrade",
+    "base_pin_sha256": "704c7ef51425b21023fd7cb3468030a7db0a25b036baf6cb6697d9018751e6ad",
     "files": {
+      "docs/COVERAGE.md": {
+        "after_bytes": 4564,
+        "after_sha256": "0303858c5e3d2c6be7cb5fb976e6e7d5fee7eba125b7dc42f9d33e86780448bc",
+        "before_bytes": 4278,
+        "before_sha256": "d357b4e04d4350218fa9f96cb8b875d9d3816f810f67db1151c8b4e7a9afc6af"
+      },
       "docs/GIT_OWNER.md": {
-        "after_bytes": 6987,
-        "after_sha256": "a708fd5fa7da7f22451346469cd3f820d2261dcca2cd664e5d294759d38ec7a9",
+        "after_bytes": 8453,
+        "after_sha256": "d84e1e4ebbb55cf30287e3e7422add28f38b496f9614cd076cf1d129f48cc8d0",
         "before_bytes": 4330,
         "before_sha256": "1d79d5e2793648c108f6d6956c6b3ed0b461a57c5d97d5f3bf5478b4f8a810db"
       },
       "docs/HANDOVER.md": {
-        "after_bytes": 8131,
-        "after_sha256": "a22232c53d7fcfe5df5c0274664baf5bd61bb1dd570ac34ac164c82e39a9f552",
+        "after_bytes": 4959,
+        "after_sha256": "f1b09cad6865271ad74e3500b129eb5d007831052dbf25302e11c497f8721988",
         "before_bytes": 0,
         "before_sha256": null
       },
@@ -189,24 +201,30 @@
       "tests/test_review_round2.py": {
         "after_bytes": 17073,
         "after_sha256": "877060cf8c86ae57a21fc1db41b1f32a05fd2bbfe3bfe3d193697295abf9663d",
-        "before_bytes": 17052,
-        "before_sha256": "220404eb0f439c48226005f3a81a28f0f2bb80e642c7e7d45a5bb0bbd79229f3"
+        "before_bytes": 0,
+        "before_sha256": null
       },
       "tests/test_review_round3.py": {
-        "after_bytes": 7494,
-        "after_sha256": "5268f23a8046375a43fc7f37936d9f555d311c87a3914b34d8f7ca9f8912e1d9",
+        "after_bytes": 8646,
+        "after_sha256": "a4e92b432943b96851140791382b164eba94d740b8cd8a416015880ea48f587b",
+        "before_bytes": 0,
+        "before_sha256": null
+      },
+      "tests/test_review_round4.py": {
+        "after_bytes": 6900,
+        "after_sha256": "b56fd7905e8ccfde326e9c7132c481cce892ee9c55491f6656b01ad6d7b7610a",
         "before_bytes": 0,
         "before_sha256": null
       },
       "tools/dry_count.py": {
-        "after_bytes": 5106,
-        "after_sha256": "fa7a5772cb88747fc64689993371d249b17cd23c5acfe7316133f0e2013c556f",
+        "after_bytes": 5390,
+        "after_sha256": "14fd0d4492ac8aaafa6ffd6e13aa4d85c5636aa2dd8803e7055e248ed3ce54b0",
         "before_bytes": 4081,
         "before_sha256": "131979ae6bf4640e7700ab9bdf9ebbe4f0a6fbddff17fa079e7bd1c5695df8da"
       },
       "tools/land_kit.py": {
-        "after_bytes": 21832,
-        "after_sha256": "c7b80359e75be1943b4ecbc52688e8243adabcd7f626d567a2e598468417076c",
+        "after_bytes": 22890,
+        "after_sha256": "29dd347d33b285453cd3bbddc7e630c01af64fa178c007db9edac913ea5f977f",
         "before_bytes": 17940,
         "before_sha256": "d2cd585b219626b9caea8871b55e1e1f669f3f3a4a811708970260d7ca04cd8f"
       },
@@ -217,21 +235,27 @@
         "before_sha256": "c0d1489efb735318ac82bd19f22238c997dc4a7678e02216b74091288fcc0099"
       }
     },
-    "patch_sha256": "989946a2f5c9dea677fed5f435f3a97167846e3f88f0c13d862839b36b3d211e"
+    "patch_sha256": "72e93a153f9f808ba2ad9c0823e8f46034c55e7b97c45e191aa433d4d71733ff"
   },
   "05_reviewed_owner_round3.diff": {
-    "base": "pinned reviewed round-2 delivery; alternative incremental upgrade",
-    "base_pin_sha256": "4bf1da4cb1eac46ed0d346d16fd18a4e3f8adc4d01391a6a0485b01128b56b86",
+    "base": "pinned round-2 package; alternative incremental upgrade",
+    "base_pin_sha256": "863c6f9740dd0bbd1a56ecaacb9513b5d6aba78af758c72b225ee02c18622b75",
     "files": {
+      "docs/COVERAGE.md": {
+        "after_bytes": 4564,
+        "after_sha256": "0303858c5e3d2c6be7cb5fb976e6e7d5fee7eba125b7dc42f9d33e86780448bc",
+        "before_bytes": 4278,
+        "before_sha256": "d357b4e04d4350218fa9f96cb8b875d9d3816f810f67db1151c8b4e7a9afc6af"
+      },
       "docs/GIT_OWNER.md": {
-        "after_bytes": 6987,
-        "after_sha256": "a708fd5fa7da7f22451346469cd3f820d2261dcca2cd664e5d294759d38ec7a9",
+        "after_bytes": 8453,
+        "after_sha256": "d84e1e4ebbb55cf30287e3e7422add28f38b496f9614cd076cf1d129f48cc8d0",
         "before_bytes": 6303,
         "before_sha256": "14d88b0e5d7976cdbc064ada9d93e4a94836f9e2969634a085832c0eedbcaac2"
       },
       "docs/HANDOVER.md": {
-        "after_bytes": 8131,
-        "after_sha256": "a22232c53d7fcfe5df5c0274664baf5bd61bb1dd570ac34ac164c82e39a9f552",
+        "after_bytes": 4959,
+        "after_sha256": "f1b09cad6865271ad74e3500b129eb5d007831052dbf25302e11c497f8721988",
         "before_bytes": 7179,
         "before_sha256": "3f8b9d9e2b16439846b62f243123cd0cc370056bccf42c953c539a220ff957d7"
       },
@@ -260,24 +284,67 @@
         "before_sha256": "220404eb0f439c48226005f3a81a28f0f2bb80e642c7e7d45a5bb0bbd79229f3"
       },
       "tests/test_review_round3.py": {
-        "after_bytes": 7494,
-        "after_sha256": "5268f23a8046375a43fc7f37936d9f555d311c87a3914b34d8f7ca9f8912e1d9",
+        "after_bytes": 8646,
+        "after_sha256": "a4e92b432943b96851140791382b164eba94d740b8cd8a416015880ea48f587b",
+        "before_bytes": 0,
+        "before_sha256": null
+      },
+      "tests/test_review_round4.py": {
+        "after_bytes": 6900,
+        "after_sha256": "b56fd7905e8ccfde326e9c7132c481cce892ee9c55491f6656b01ad6d7b7610a",
         "before_bytes": 0,
         "before_sha256": null
       },
       "tools/dry_count.py": {
-        "after_bytes": 5106,
-        "after_sha256": "fa7a5772cb88747fc64689993371d249b17cd23c5acfe7316133f0e2013c556f",
+        "after_bytes": 5390,
+        "after_sha256": "14fd0d4492ac8aaafa6ffd6e13aa4d85c5636aa2dd8803e7055e248ed3ce54b0",
         "before_bytes": 4509,
         "before_sha256": "36a5413f5ef67d82398d5a32d1b830e2578622f23fdebc5bfa6aec2e37535c4f"
       },
       "tools/land_kit.py": {
-        "after_bytes": 21832,
-        "after_sha256": "c7b80359e75be1943b4ecbc52688e8243adabcd7f626d567a2e598468417076c",
+        "after_bytes": 22890,
+        "after_sha256": "29dd347d33b285453cd3bbddc7e630c01af64fa178c007db9edac913ea5f977f",
         "before_bytes": 21013,
         "before_sha256": "1379a0d60704bf36b5bc31176181f5b03b95dab8dd516e9fc7386657de1700d9"
       }
     },
-    "patch_sha256": "98de9d4b51152ef9131b48f2dc9eb5ca9e1b79fa30b520c375f163f6410f47d6"
+    "patch_sha256": "175112efa29445d00e131b359919c228b90857a7fca1c6f87a3f8323a2ae2b4c"
+  },
+  "06_installed_owner_round4.diff": {
+    "base": "installed round-3 package, pinned c7b80359/f4b0cc83/14fd0d44; current upgrade",
+    "base_pin_sha256": "a75e189be0154effca0b06377219e5fc9b4b3184978ebe47bd0a9c816244d8c2",
+    "files": {
+      "docs/GIT_OWNER.md": {
+        "after_bytes": 8453,
+        "after_sha256": "d84e1e4ebbb55cf30287e3e7422add28f38b496f9614cd076cf1d129f48cc8d0",
+        "before_bytes": 7112,
+        "before_sha256": "f4e07a23be49c324d4a7183b045d353ecdbc51d736af059e9a3a7ab1b6273389"
+      },
+      "docs/HANDOVER.md": {
+        "after_bytes": 4959,
+        "after_sha256": "f1b09cad6865271ad74e3500b129eb5d007831052dbf25302e11c497f8721988",
+        "before_bytes": 8238,
+        "before_sha256": "55edb9778571d5f99b995681363d6db697e900844887242a86a57e18daad6376"
+      },
+      "tests/test_review_round3.py": {
+        "after_bytes": 8646,
+        "after_sha256": "a4e92b432943b96851140791382b164eba94d740b8cd8a416015880ea48f587b",
+        "before_bytes": 8290,
+        "before_sha256": "196a48673dd0f27930fc320001fe6aa690e3fc10cad125b177782076e3f7aa6c"
+      },
+      "tests/test_review_round4.py": {
+        "after_bytes": 6900,
+        "after_sha256": "b56fd7905e8ccfde326e9c7132c481cce892ee9c55491f6656b01ad6d7b7610a",
+        "before_bytes": 0,
+        "before_sha256": null
+      },
+      "tools/land_kit.py": {
+        "after_bytes": 22890,
+        "after_sha256": "29dd347d33b285453cd3bbddc7e630c01af64fa178c007db9edac913ea5f977f",
+        "before_bytes": 21832,
+        "before_sha256": "c7b80359e75be1943b4ecbc52688e8243adabcd7f626d567a2e598468417076c"
+      }
+    },
+    "patch_sha256": "d38620f93da84b087d2b6a47eac4dbdc6df761ce06f81bf23320e28b3a18d11d"
   }
 }

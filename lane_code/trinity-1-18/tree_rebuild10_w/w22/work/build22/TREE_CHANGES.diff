@@ -1,0 +1,638 @@
+--- build21/launch_r1/production_proof.py
++++ build22/launch_r1/production_proof.py
+@@ -78,6 +78,16 @@
+         import os
+         if os.uname().nodename.startswith('trinity'):
+             raise ValueError('R1_PROOF_FRAME_HOST_REQUIRED')
++        if cfg['r1_training'].get('direction_twins'):
++            from student_pilot.r1_direction_twins import augment
++            from student_pilot.r1_rooms import census
++            cfg=augment(cfg,root/'twins')
++            audit,_=census(cfg)
++            write(root/'twins/room_audit.json',audit)
++            cfg['r1_training']['room_audit']=file_pin(root/'twins/room_audit.json')
++            verify_audit(cfg,cfg['r1_training']['room_audit'])
++            result['augmented_room_audit']=cfg['r1_training']['room_audit']
++            result['steps'].append('direction_twins')
+         from student_pilot.r1_persisted import verify, scope
+         value=cfg['r1_training']
+         closure=verify(value.get('handover_receipt'),value.get('p_run',{}),
+--- build21/student_pilot/carrier_c1_run.py
++++ build22/student_pilot/carrier_c1_run.py
+@@ -633,7 +633,8 @@
+     result.update({k: cfg[k] for k in ('frame_layout', 'frame_pair_gap_seconds', 'skip_unsupervised_lm',
+                                        'depth_fov_source', 'depth_init', 'exclusions', 'report_exclusions',
+                                        'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'h1', 'b7_inputs', 'r1_training', 'frame_count', 'max_pixels', 'min_pixels', 'frame_markers', 'r2_membership',
+-                                       'routing_opener_init', 'routing_vocabulary', 'r2_identity', 'r2_sampling', 'extent_receipt') if k in cfg})
++                                       'routing_opener_init', 'routing_vocabulary', 'r2_identity', 'r2_sampling', 'extent_receipt',
++                                       'geometry_connector','frame_embeddings') if k in cfg})
+     if 'r1_training' in cfg:
+         from .r1_components import artifact_status
+         result['component_evidence'] = artifact_status(cfg)
+@@ -2117,6 +2118,10 @@
+         from .r1_training import boundary as r1_boundary
+         from .r1_components import artifact_status, artifact_binding
+         component_status = artifact_status(cfg)
++        from .r1_absence import prove as prove_absent
++        for slot,entry in component_status.items():
++            if entry.get('status')=='NOT_PRESENT':
++                prove_absent(cfg,model,heads,slot,{'path':str((directory/'heads.pt').resolve()),'sha256':pin['sha256']})
+         write(directory/'artifact.json',dict(**version_metadata,schema='carrier-c1-artifact-v1',step=step,
+             component_evidence=component_status, **artifact_binding(cfg, component_status),
+             **({'r1_progress':r1_boundary(cfg,step)} if 'r1_training' in cfg else {}),
+--- build21/student_pilot/r1_absence.py
++++ build22/student_pilot/r1_absence.py
+@@ -0,0 +1,91 @@
++"""Mechanical absence proofs for the two configuration-dependent head slots."""
++from .p3_provenance import digest, load, pinned, file_pin
++
++PREFIXES = {'heads_gf1_connector':('gf1.', 'pose.cam_token_connector.'),
++            'heads_frame_embeddings':('frame_embeddings.',)}
++
++def configuration(cfg,slot):
++    from .carrier_c1_data import C1_A
++    if slot not in PREFIXES:raise ValueError('NOT_PRESENT_SLOT_FORBIDDEN:'+slot)
++    projection={k:cfg.get(k) for k in ('geometry_connector','geometry_online','carrier_placement','frame_embeddings')}
++    if slot=='heads_gf1_connector':
++        absent=projection['geometry_connector']=='none' and not projection['geometry_online']
++    else:
++        absent=projection['carrier_placement']==C1_A and not projection['frame_embeddings']
++    if not absent:raise ValueError('NOT_PRESENT_CONFIG_NAMES_COMPONENT:'+slot)
++    return projection
++
++def clean(name):
++    return name.removeprefix('module.').removeprefix('auxiliary_heads.')
++
++def matches(name,slot):
++    name=clean(name)
++    return any(name==p.rstrip('.') or name.startswith(p) for p in PREFIXES[slot])
++
++def prove(cfg,model,state,slot,inventory_pin):
++    """Require a native-built module inventory and an authenticated state inventory."""
++    from .carrier_c1 import CarrierC1
++    import torch
++    projection=configuration(cfg,slot)
++    if not isinstance(model,CarrierC1):raise ValueError('NOT_PRESENT_NATIVE_BUILDER_REQUIRED')
++    if (model.carrier_placement!=cfg['carrier_placement'] or model.geometry_online!=cfg.get('geometry_online')):
++        raise ValueError('NOT_PRESENT_BUILDER_CONFIG_DIFFERS')
++    modules=sorted(name for name,_ in model.named_modules())
++    if any(matches(name,slot) for name in modules):raise ValueError('NOT_PRESENT_BUILT_MODULE:'+slot)
++    tensors=sorted(name for name,value in state.items() if isinstance(value,torch.Tensor))
++    if any(matches(name,slot) for name in tensors):raise ValueError('NOT_PRESENT_STATE_TENSOR:'+slot)
++    import inspect
++    builder=file_pin(inspect.getsourcefile(CarrierC1))
++    return dict(status='NOT_PRESENT',record=dict(schema='r1-component-absence-v1',slot=slot,
++        configuration=projection,builder=builder,entry='CarrierC1.__init__',modules=modules,
++        inventory=inventory_pin,tensors=tensors,prefixes=list(PREFIXES[slot]),matching_tensors=0))
++
++def build(cfg):
++    """Exercise the actual constructor on meta tensors with the bound branch controls."""
++    import torch
++    from transformers import Qwen3_5Config,Qwen3_5ForConditionalGeneration
++    from .carrier_c1 import CarrierC1
++    text=dict(vocab_size=128,hidden_size=4,intermediate_size=8,num_hidden_layers=2,
++        num_attention_heads=2,num_key_value_heads=1,head_dim=2,use_cache=False,
++        layer_types=['linear_attention','full_attention'],linear_key_head_dim=2,
++        linear_value_head_dim=2,linear_num_key_heads=2,linear_num_value_heads=2,
++        rope_parameters=dict(rope_type='default',rope_theta=10000.,mrope_section=[0,0,1],partial_rotary_factor=1.))
++    vision=dict(depth=3,hidden_size=4,intermediate_size=8,num_heads=1,out_hidden_size=4,
++        num_position_embeddings=16,patch_size=2,temporal_patch_size=2,spatial_merge_size=2)
++    config=Qwen3_5Config(text_config=text,vision_config=vision)
++    for x in (config,config.text_config,config.vision_config):x._attn_implementation='sdpa'
++    camera=dict(embed_dim=16,num_heads=2,trunk_depth=1,refine_iterations=1,weight_gravity=.05,weight_scale=.04,weight_focal=2.,
++                supervision=cfg.get('scene_division',cfg.get('division')))
++    depth=dict(weight=.05,d_proj=16,mlp_hidden=16,num_heads=2,context_depth=1,vit_layers=[1,2,3],num_points_per_frame=1)
++    with torch.device('meta'):
++        base=Qwen3_5ForConditionalGeneration(config)
++        return CarrierC1(base,camera,depth,2,cfg['carrier_placement'],cfg.get('training_mode','final'),
++            cfg.get('depth_enabled',True),frame_layout=cfg.get('frame_layout','duplicate'),
++            depth_fov_source=cfg.get('depth_fov_source','pose_head'),frame_count=cfg.get('frame_count',32),
++            geometry_online=cfg.get('geometry_online'))
++
++def evidence(cfg,artifact):
++    """The persisted export pins the actual head payload; absence is never asserted from a list alone."""
++    import torch
++    slots=cfg.get('r1_training',{}).get('not_present_slots',[])
++    if not slots:return {}
++    if set(slots)!=set(PREFIXES) or len(slots)!=2:raise ValueError('NOT_PRESENT_SLOT_FORBIDDEN')
++    for slot in slots:configuration(cfg,slot)
++    pin=artifact.get('heads')
++    if not pin:raise ValueError('NOT_PRESENT_STATE_INVENTORY_REQUIRED')
++    state=torch.load(pinned(pin),map_location='meta',weights_only=True)
++    if not isinstance(state,dict):raise ValueError('NOT_PRESENT_STATE_INVENTORY_INVALID')
++    model=build(cfg)
++    return {slot:prove(cfg,model,state,slot,pin) for slot in slots}
++
++def verify(entry,cfg,slot):
++    record=entry.get('record',{})
++    if record.get('slot')!=slot or record.get('schema')!='r1-component-absence-v1':
++        raise ValueError('NOT_PRESENT_RECORD_INVALID:'+slot)
++    projected={**cfg,**record['configuration']}
++    if any(k in cfg and cfg[k]!=v for k,v in record['configuration'].items()):
++        raise ValueError('NOT_PRESENT_CONFIG_DIFFERS:'+slot)
++    projected['r1_training']={**cfg.get('r1_training',{}),'not_present_slots':list(PREFIXES)}
++    actual=evidence(projected,{'heads':record['inventory']})[slot]
++    if actual!=entry:raise ValueError('NOT_PRESENT_PROOF_DIFFERS:'+slot)
++    return entry
+--- build21/student_pilot/r1_components.py
++++ build22/student_pilot/r1_components.py
+@@ -45,6 +45,10 @@
+                        receipt_sha256=value['handover_receipt']['sha256']) for name in (*LINEAGE, *EXTERNAL, *NEW)}
+     result['data_rows_r2'].update(reason='Alias-map rebuild pending; unresolved overlap is not clean evidence.', record=rows)
+     result['heads_gf1_connector']['reason'] = 'N disables the fusion connector; its lost record is still owed before an official read.'
++    if value.get('not_present_slots'):
++        from .r1_absence import evidence
++        with scope(closure['paths']):
++            result.update(evidence(cfg,artifact))
+     return result
+ 
+ 
+@@ -65,7 +69,7 @@
+             from .r2_policy import LINEAGE, EXTERNAL, NEW, components
+             if set(status) != set((*LINEAGE, *EXTERNAL, *NEW)):
+                 raise ValueError('COMPONENT_EVIDENCE_SLOTS_DIFFER:'+boundary)
+-            if any(v.get('status') != 'VERIFIED' or not v.get('record') for v in status.values()):
++            if any(v.get('status') not in ('VERIFIED','NOT_PRESENT') or not v.get('record') for v in status.values()):
+                 raise ValueError('COMPONENT_EVIDENCE_RECORD_REQUIRED:'+boundary)
+             pin = artifact.get('component_preparation')
+             if not pin:
+@@ -75,13 +79,29 @@
+             if (prep.get('schema') != 'c1-preparation-v1' or recorded != status
+                     or artifact.get('component_evidence_sha256') != digest(recorded)):
+                 raise ValueError('COMPONENT_EVIDENCE_PREPARATION_MISMATCH:'+boundary)
+-            records = components(prep['r1_training']['registry'], 'training')
++            from .r1_absence import verify as verify_absence, evidence as absence_evidence, PREFIXES
++            absent={k:v for k,v in status.items() if v.get('status')=='NOT_PRESENT'}
++            for name,entry in absent.items():verify_absence(entry,prep,name)
++            if absent:
++                current={**prep,**next(iter(absent.values()))['record']['configuration']}
++                current['r1_training']={**prep['r1_training'],'not_present_slots':list(PREFIXES)}
++                absence_evidence(current,artifact)
++                from .r2_policy import record, CHOICES, slots
++                registry=load(pinned(prep['r1_training']['registry']))
++                expected=slots()
++                if set(registry)!=set(expected) or any(
++                        any(registry[name].get(k)!=spec[k] for k in ('component','component_class','phase','expected_schema'))
++                        for name,spec in expected.items()):
++                    raise ValueError('COMPONENT_EVIDENCE_SLOTS_DIFFER:'+boundary)
++                records={name:(absent[name] if name in absent else record(slot))
++                         for name,slot in registry.items() if name not in CHOICES}
++            else:records = components(prep['r1_training']['registry'], 'training')
+             if normalize(records) != status:
+                 raise ValueError('COMPONENT_EVIDENCE_RECORD_MISMATCH:'+boundary)
+ 
+ 
+ def normalize(records):
+-    return {k: v if v.get('status') in ('DEFERRED', 'VERIFIED') else dict(status='VERIFIED', record=v)
++    return {k: v if v.get('status') in ('DEFERRED', 'VERIFIED','NOT_PRESENT') else dict(status='VERIFIED', record=v)
+             for k, v in records.items()}
+ 
+ 
+@@ -108,8 +128,8 @@
+     if 'r1_training' in cfg:
+         from .r1_training import training_components
+         records = training_components(cfg['r1_training']['registry'], cfg)
+-        inherited = {**{k:dict(status='VERIFIED', record=v) for k,v in records.items() if v.get('status') != 'DEFERRED'},
+-                **{k:v for k,v in records.items() if v.get('status') == 'DEFERRED'}, **inherited}
++        inherited = {**normalize(records), **inherited}
++        inherited.update({k:v for k,v in records.items() if v.get('status')=='NOT_PRESENT'})
+     if cfg.get('r2_evaluation'):
+         guard(dict(component_evidence=inherited, component_preparation=cfg.get('preparation'),
+                    component_evidence_sha256=digest(inherited)),
+--- build21/student_pilot/r1_coverage.py
++++ build22/student_pilot/r1_coverage.py
+@@ -5,18 +5,20 @@
+ SPLIT = '2463193d00fabda5c62d07027527f57a5943dd52ee2b346a215576e55d1abf19'
+ PINS = {'coverage_units':'8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82',
+         'coverage_distance':'15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022'}
++EXTRA_PINS = {'camera_wording':'e3c72962e3fd774c7e15fa1e4aeae1b6642264bf4f3cf54b9e350b8d7bfb9707'}
++CAMERA_WORDINGS = '0b6f8eb3fe99a1ccb011195778e0ecec89dce90ff13f0b6d90321c85955d6b86'
+ 
+ def source_names(sources):
+     from .r1_population import SLICE_CELLS
+     extra=set(sources)&set(PINS)
+     if extra and extra!=set(PINS):raise ValueError('R1_COVERAGE_SOURCES_INCOMPLETE')
+-    return (*SLICE_CELLS,*sorted(extra))
++    return (*SLICE_CELLS,*sorted(extra),*sorted(set(sources)&set(EXTRA_PINS)))
+ 
+ def normalize(text):
+     return ' '.join(unicodedata.normalize('NFKC',text).casefold().split())
+ 
+ class WordingExclusion:
+-    def __init__(self,pin):
++    def __init__(self,pin,camera=None):
+         if pin.get('sha256')!=SPLIT:raise ValueError('R1_WORDING_EXCLUSION_PIN')
+         value=load(pinned(pin));self.patterns=[]
+         if len(value.get('held_out',[]))!=8:raise ValueError('R1_WORDING_EXCLUSION_COUNT')
+@@ -24,6 +26,15 @@
+             expression=re.escape(normalize(template))
+             for name in ('a','b','u'):expression=expression.replace(re.escape('{'+name+'}'),'.+?')
+             self.patterns.append((template,re.compile('^'+expression+'$')))
++        if camera is not None:
++            if camera.get('sha256') != CAMERA_WORDINGS:raise ValueError('R1_CAMERA_WORDING_PIN')
++            heldout=load(pinned(camera)).get('heldout',{})
++            templates=[t for group in heldout.values() for t in group]
++            if len(templates)!=24:raise ValueError('R1_CAMERA_WORDING_COUNT')
++            for template in templates:
++                parts=re.split(r'(\{(?:i|j|n|unit|options)\})',normalize(template))
++                expression=''.join('.+?' if p.startswith('{') and p.endswith('}') else re.escape(p) for p in parts)
++                self.patterns.append((template,re.compile('^'+expression+'$')))
+ 
+     def check(self,row):
+         for value in (row,row.get('student_input',{}),row.get('routing',{}),row.get('ground_record',{})):
+@@ -36,6 +47,8 @@
+         return row
+ 
+ def validate_binding(cfg):
++    from .r1_launch22 import validate_removals
++    validate_removals(cfg)
+     value=cfg.get('r1_training') or {};pin=value.get('wording_exclusion')
+     sources=load(pinned(value['row_sources'])) if value.get('row_sources') else {}
+     extra=set(PINS)&set(sources)
+@@ -45,7 +58,12 @@
+         for name,h in PINS.items():
+             if sources[name]['source']['sha256']!=h:raise ValueError('R1_COVERAGE_SOURCE_PIN:'+name)
+             pinned(sources[name]['source'])
+-    return WordingExclusion(pin) if pin else None
++    camera=value.get('camera_wording_exclusion')
++    for name in set(EXTRA_PINS)&set(sources):
++        if sources[name]['source']['sha256']!=EXTRA_PINS[name]:raise ValueError('R1_CAMERA_SOURCE_PIN')
++        pinned(sources[name]['source'])
++        if camera is None or pin is None:raise ValueError('R1_CAMERA_WORDING_REQUIRED')
++    return WordingExclusion(pin,camera) if pin else None
+ 
+ def rewording(child,parent):
+     """Prove that a pinned coverage row changes wording and identifiers only."""
+--- build21/student_pilot/r1_direction_twins.py
++++ build22/student_pilot/r1_direction_twins.py
+@@ -0,0 +1,154 @@
++"""Authenticate direction twins against the pinned v7 population before admission."""
++from collections import Counter
++from copy import deepcopy
++from pathlib import Path
++import json, sqlite3
++from .p3_provenance import load, pinned, digest, file_pin, write
++
++ROWS = '7b3d696d580386f9e8af3240fa142e2ad50eebb277a8718c97e2db497dcc925e'
++BINDING = 'd8c3837019d29e9c8b7916a7e8b3c3d595890b6cad32c7dc72ba5f871a0a5108'
++ALIASES = '7f50287bae46792d1de25b33344d62d6a6484688887c5294bdd1d1f67f76623b'
++COUNT = 7971
++UNION = '1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2'
++
++def connect(pin):
++    return sqlite3.connect(pinned(pin).as_uri()+'?mode=ro&immutable=1',uri=True)
++
++def specifications(cfg):
++    from .r1_rooms import STORE
++    spec=cfg['r1_training']['direction_twins']
++    union=cfg['r1_training'].get('v7_k1_removal',{})
++    if union.get('sha256')!=UNION:raise ValueError('R1_TWIN_K1_UNION_REQUIRED')
++    from .r1_coverage import read_list
++    if len(read_list(union))!=4959:raise ValueError('R1_TWIN_K1_UNION_COUNT')
++    for key,expected in (('rows',ROWS),('binding',BINDING),('aliases',ALIASES),('source_database',STORE)):
++        if spec.get(key,{}).get('sha256')!=expected:raise ValueError('R1_TWIN_PIN:'+key)
++        pinned(spec[key])
++    return spec
++
++class Binding:
++    def __init__(self,cfg):
++        from .r1_rooms import Rooms, STORE
++        self.spec=specifications(cfg);self.strict=Rooms(cfg['r1_training']['room_authority'])
++        aliases=load(pinned(self.spec['aliases']))
++        if not aliases.get('complete') or aliases.get('conflicts') or aliases.get('quarantined_tokens'):
++            raise ValueError('R1_TWIN_ROOM_AUTHORITY')
++        self.tiered=deepcopy(self.strict)
++        self.tiered.aliases={k:v['canonical'] for k,v in aliases['aliases'].items()}
++        self.records={}
++        with pinned(self.spec['binding']).open() as f:
++            for line in f:
++                record=json.loads(line);key=record['twin_key']
++                if key in self.records:raise ValueError('R1_TWIN_DUPLICATE_BINDING')
++                self.records[key]=record
++        if len(self.records)!=COUNT:raise ValueError('R1_TWIN_BINDING_COUNT')
++        wanted={r['source_key'] for r in self.records.values()};self.sources={};self.base_keys=set()
++        db=connect(self.spec['source_database'])
++        try:
++            for raw, in db.execute('SELECT row FROM rows ORDER BY i'):
++                row=json.loads(raw);key=row['qid']
++                if key in self.base_keys:raise ValueError('R1_TWIN_SOURCE_DUPLICATE')
++                self.base_keys.add(key)
++                if key in wanted:
++                    self.sources[key]=dict(room=self.room(row),dataset=row.get('dataset'),scene=row.get('scene'))
++        finally:db.close()
++        if set(self.sources)!=wanted:raise ValueError('R1_TWIN_SOURCE_ABSENT_FROM_V7')
++        if set(self.records)&self.base_keys:raise ValueError('R1_TWIN_KEY_COLLISION')
++
++    def room(self,row):
++        status,canonical,_=self.strict.status(row)
++        if status=='unresolved':canonical,_=self.tiered.canonical(row)
++        if not canonical:raise ValueError('R1_TWIN_ROOM_UNRESOLVED')
++        return self.strict.room(canonical)
++
++    def check(self,row):
++        from .row_removals import row_keys
++        record=self.records.get(row.get('qid'))
++        if not record or digest(row)!=record['twin_sha256']:raise ValueError('R1_TWIN_ROW_DIGEST')
++        if 'facing' in row:raise ValueError('R1_TWIN_FACING_FIELD')
++        source=self.sources[record['source_key']]
++        if (record['source_room']!=source['room'] or self.room(row)!=source['room']
++                or row.get('dataset')!=source['dataset'] or row.get('scene')!=source['scene']):
++            raise ValueError('R1_TWIN_SOURCE_ROOM_DIFFERS')
++        if row_keys(row)!={row['qid'],record['source_key']}:
++            raise ValueError('R1_TWIN_SOURCE_REMOVAL_KEY')
++        return record
++
++    def rows(self):
++        seen=set()
++        with pinned(self.spec['rows']).open() as f:
++            for line in f:
++                row=json.loads(line);self.check(row)
++                if row['qid'] in seen:raise ValueError('R1_TWIN_ROW_DUPLICATE')
++                seen.add(row['qid']);yield row
++        if seen!=set(self.records):raise ValueError('R1_TWIN_ROWS_INCOMPLETE')
++
++def verify_augmented(cfg,actual):
++    """The STORE exception authenticates every original and appended row."""
++    value=cfg['r1_training'];spec=specifications(cfg);augmentation=value.get('direction_augmented')
++    if not augmentation:raise ValueError('R1_TWIN_AUGMENTATION_REQUIRED')
++    proof=load(pinned(augmentation))
++    if (proof.get('schema')!='r1-direction-augmentation-v1'
++            or proof.get('database')!=actual or proof.get('binding')!=spec['binding']
++            or proof.get('source_database')!=spec['source_database'] or proof.get('rows')!=spec['rows']):
++        raise ValueError('R1_TWIN_AUGMENTATION_BINDING')
++    binding=Binding(cfg);base=connect(spec['source_database']);aug=connect(actual)
++    try:
++        cursor=iter(aug.execute('SELECT row,target FROM rows ORDER BY i'))
++        for row in base.execute('SELECT row,target FROM rows ORDER BY i'):
++            if next(cursor,None)!=row:raise ValueError('R1_TWIN_BASE_POPULATION_DIFFERS')
++        for row in binding.rows():
++            current=next(cursor,None)
++            if current is None or json.loads(current[0])!=row or json.loads(current[1])!={}:
++                raise ValueError('R1_TWIN_AUGMENTED_ROW_DIFFERS')
++        if next(cursor,None) is not None:raise ValueError('R1_TWIN_AUGMENTED_EXTRA_ROW')
++    finally:base.close();aug.close()
++    return proof
++
++def augment(cfg,output):
++    """Produce a new store on the frame host; preserve the source database."""
++    from .r1_rooms import STORE
++    spec=specifications(cfg);receipt=load(pinned(cfg['streams']['vqa']))
++    if receipt['database']['sha256']!=STORE:raise ValueError('R1_TWIN_BASE_STORE_REQUIRED')
++    binding=Binding(cfg);output=Path(output);output.mkdir(parents=True,exist_ok=True)
++    path=output/'rows.sqlite'
++    if path.exists():raise ValueError('R1_TWIN_OUTPUT_EXISTS')
++    source=connect(spec['source_database']);target=sqlite3.connect(path)
++    count=0
++    try:
++        target.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT NOT NULL,target TEXT NOT NULL)')
++        for raw,labels in source.execute('SELECT row,target FROM rows ORDER BY i'):
++            target.execute('INSERT INTO rows VALUES(?,?,?)',(count,raw,labels));count+=1
++        for row in binding.rows():
++            target.execute('INSERT INTO rows VALUES(?,?,?)',(count,json.dumps(row,sort_keys=True,separators=(',',':')),'{}'));count+=1
++        target.commit()
++    finally:source.close();target.close()
++    database=file_pin(path)
++    write(output/'augmentation.json',dict(schema='r1-direction-augmentation-v1',database=database,
++        binding=spec['binding'],source_database=spec['source_database'],rows=spec['rows'],count=count))
++    receipt.update(database=database,count=count,source_receipt=cfg['streams']['vqa'])
++    write(output/'receipt.json',receipt)
++    cfg=deepcopy(cfg);cfg['streams']['vqa']=file_pin(output/'receipt.json')
++    cfg['r1_training']['direction_augmented']=file_pin(output/'augmentation.json')
++    verify_augmented(cfg,database)
++    return cfg
++
++def dimensions(row):
++    """Report answer shares; these labels never control training selection."""
++    import re
++    p=row.get('provenance',{}).get('sb_rowD7',{})
++    question=row.get('student_input',{}).get('question',row.get('question',''))
++    wording=p.get('clause_edit',{}).get('new_clause',question)
++    verb=r'\b(?:fac(?:e|ing)|look(?:ing)?)\b'
++    clause='away' if re.search(verb+r'\s+away\b',wording,re.I) else 'toward' if re.search(verb,wording,re.I) else 'unspecified'
++    difficulty=str(row.get('question_type',row.get('category','unknown'))).rsplit('_',1)[-1]
++    label=p.get('mapped_label')
++    if label is None:
++        answer=str(row.get('answer',''));options=row.get('student_input',{}).get('options',[])
++        if isinstance(options,dict):label=options.get(answer,'')
++        elif isinstance(options,list):
++            label=next((x for x in options if isinstance(x,str) and x.startswith(answer+'.')),answer)
++        else:label=answer
++    label=str(label).casefold()
++    side='front' if 'front' in label else 'back' if 'back' in label or 'behind' in label else 'other'
++    return clause,difficulty,side
+--- build21/student_pilot/r1_launch22.py
++++ build22/student_pilot/r1_launch22.py
+@@ -0,0 +1,43 @@
++"""Pinned launch inputs for vehicle N; no inference behavior."""
++NAMING_REMOVE = 'd1454a4461e96fda9e0db27eb75fe0080a555d77a4d05f8e036d49530626db29'
++REMOVAL_ORDER = (
++    '62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3',
++    '4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c',
++    '6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc',
++    '8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2',
++    'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
++    'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
++    '6add0ad53515e14e6adb1e192ed002ec0ddd22b6c6bd112ccb756d1f8be48d8c',
++    '43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6',
++    '1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2',
++    '02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411',
++    'caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad',
++    NAMING_REMOVE)
++
++def bound(cfg):
++    value = cfg.get('r1_training') or {}
++    return bool(value) and ('launch22' in value or 'direction_twins' in value or 'camera_wording_exclusion' in value
++            or any(p.get('sha256') == NAMING_REMOVE for p in cfg.get('remove_files', [])))
++
++def validate_removals(cfg):
++    value = cfg.get('r1_training') or {}
++    spec = value.get('launch22')
++    if not bound(cfg):
++        return
++    if not isinstance(spec, dict):
++        raise ValueError('R1_NAMING_REMOVAL_BINDING_REQUIRED')
++    actual = [p['sha256'] for p in cfg.get('remove_files', [])]
++    if (tuple(actual) != REMOVAL_ORDER or actual != spec.get('removal_order') or not actual or actual[-1] != NAMING_REMOVE
++            or actual.count(NAMING_REMOVE) != 1):
++        raise ValueError('R1_NAMING_REMOVAL_ORDER')
++    from .p3_provenance import pinned
++    pinned(cfg['remove_files'][-1])
++
++def naming_rows(pin):
++    from .p3_provenance import load, pinned
++    value = load(pinned(pin))
++    rows = value.get('rows', [])
++    keys = [r.get('qid') for r in rows]
++    if len(keys) != 109 or len(set(keys)) != 109 or any(not isinstance(k, str) or not k for k in keys):
++        raise ValueError('R1_NAMING_REMOVAL_CONTENT')
++    return [dict(row_key=k) for k in keys]
+--- build21/student_pilot/r1_loader.py
++++ build22/student_pilot/r1_loader.py
+@@ -54,13 +54,22 @@
+     repeats = Counter(); draws = Counter(); examples = {}
+     unique = set(); training_counts = {'recovery':0, 'units':{u:0 for u in ('cm','ft','in')}}
+     unit_draws = Counter(); status_draws = Counter()
++    direction_draws = Counter(); direction_answers = Counter()
+     try:
++        for index in indices['cells'].get('direction', []):
++            row, _ = reader.row('vqa', index)
++            direction_draws[row['qid']] = 0
+         for plan in plans(binding, counts, 1000):
+             for stream, offsets in plan:
+                 for index in offsets:
+                     row, _ = reader.row(stream, index)
+                     row_check(row, stream)
+                     kind = ownership[(stream, index)]
++                    if kind == 'direction':
++                        from .r1_direction_twins import dimensions
++                        clause,difficulty,side=dimensions(row)
++                        direction_draws[row['qid']]+=1
++                        direction_answers[(clause,difficulty,side)]+=1
+                     if card.get('counting_admission') == 'procedure_only_v1':
+                         from .r1_counting import admit
+                         admit(row, kind)
+@@ -89,6 +98,11 @@
+                       expected_repeats=allocation['repeats'], largest_repeat=max(repeats.values(), default=0),
+                       examples={k:list(v.values()) for k,v in examples.items()},
+                       card_sha256=binding['card']['sha256'], row_plan_sha256=digest(binding))
++        groups={(c,d) for c,d,s in direction_answers}
++        result['direction']=dict(draws_per_row=dict(direction_draws),answer_shares=[
++            dict(clause=c,difficulty=d,draws=sum(direction_answers[c,d,s] for s in ('front','back','other')),
++                 **{s:dict(draws=direction_answers[c,d,s],share=direction_answers[c,d,s]/max(1,sum(direction_answers[c,d,t] for t in ('front','back','other')))) for s in ('front','back','other')})
++            for c,d in sorted(groups)])
+         write(output/'RESULT.json', result)
+         return result
+     finally:
+--- build21/student_pilot/r1_population.py
++++ build22/student_pilot/r1_population.py
+@@ -61,10 +61,10 @@
+             raise ValueError('R1_SOURCE_MEMBERSHIP_INVALID')
+         self.rows = {}
+         self.sources = value['sources']
+-        from .r1_coverage import PINS, source_names
++        from .r1_coverage import PINS, EXTRA_PINS, source_names
+         source_names(self.sources)
+         for kind, source in self.sources.items():
+-            if kind not in (*SLICE_CELLS,*PINS):
++            if kind not in (*SLICE_CELLS,*PINS,*EXTRA_PINS):
+                 raise ValueError('R1_SLICE_CELL_INVALID:'+kind)
+             pinned(source['source'])
+             for qid, row_hash in source['rows'].items():
+--- build21/student_pilot/r1_rooms.py
++++ build22/student_pilot/r1_rooms.py
+@@ -36,7 +36,7 @@
+ 
+     def canonical(self, row):
+         # A row's own canonical always wins over an alias lookup.
+-        for value in (row, row.get('provenance') or {}, row.get('ground_record') or {}, row.get('gt_authority') or {}):
++        for value in (row, row.get('provenance') or {}, row.get('ground_record') or {}, row.get('gt_authority') or {}, row.get('routing') or {}):
+             if value.get('canonical'):
+                 return value['canonical'], 'row_field'
+         ds, scene = row.get('dataset',''), row.get('scene','')
+@@ -85,6 +85,8 @@
+ 
+ def verify_audit(cfg, pin):
+     """Certify slice exclusion and bind a separate, explicitly scoped store record."""
++    from .r1_launch22 import validate_removals, bound
++    validate_removals(cfg)
+     audit = load(pinned(pin))
+     value = cfg['r1_training']
+     from .r1_handover import pin_values
+@@ -111,9 +113,15 @@
+             or store['scope']!='resolvable_rows_and_pinned_build_record'):
+         raise ValueError('R1_PROOF_ROOM_STORE_UNCERTIFIED')
+     # The build record certifies its own appended population, not unresolved legacy rows.
+-    if actual['sha256'] != STORE and store['unresolved'] != 0:
++    augmented = actual['sha256'] != STORE and bool(value.get('direction_twins'))
++    if actual['sha256'] != STORE and bound(cfg) and not augmented:
++        raise ValueError('R1_TWIN_BINDING_REQUIRED_FOR_STORE')
++    if augmented:
++        from .r1_direction_twins import verify_augmented
++        verify_augmented(cfg, actual)
++    if actual['sha256'] != STORE and not augmented and store['unresolved'] != 0:
+         raise ValueError('R1_PROOF_ROOM_STORE_PIN_MISMATCH')
+-    if actual['sha256'] == STORE:
++    if actual['sha256'] == STORE or augmented:
+         pin = value.get('v7_k1_removal') or {}
+         hashes = [p['sha256'] for p in cfg['remove_files']]
+         from .r1_coverage import verify_union
+@@ -157,6 +165,10 @@
+         reports[kind] = dict(source=sources[kind]['source'],canonical_from=dict(hows),
+                             **{k:counts[k] for k in ('rows','ok','k1_heldout','r0','unresolved','unremoved_hits')})
+     database = load(pinned(cfg['streams']['vqa']))['database']
++    twin_rooms = None
++    if value.get('direction_twins'):
++        from .r1_direction_twins import Binding
++        twin_rooms = Binding(cfg)
+     counts, hows, examples = Counter(), Counter(), []
+     connection = sqlite3.connect(pinned(database).as_uri()+'?mode=ro',uri=True)
+     try:
+@@ -164,6 +176,10 @@
+             row = json.loads(raw)
+             if wording is not None:wording.check(row)
+             status, canonical, how = rooms.status(row)
++            if twin_rooms is not None:
++                room=twin_rooms.room(row)
++                status='r0' if room in rooms.r0 else 'k1_heldout' if room in rooms.k1 else 'ok'
++                how='pinned_tiered_room' if how=='unresolved' else how
+             counts['rows'] += 1; counts[status] += 1; hows[how] += 1
+             if status in ('k1_heldout','r0'):
+                 counts['unremoved_hits'] += int(removals.keep(row))
+--- build21/student_pilot/r1_routing.py
++++ build22/student_pilot/r1_routing.py
+@@ -17,6 +17,8 @@
+ class Filters:
+     """The native preparation predicates, also used by the local census entry."""
+     def __init__(self, cfg, division_pin):
++        from .r1_launch22 import validate_removals
++        validate_removals(cfg)
+         from .row_removals import Removals
+         from .s1_exclusions import Exclusions
+         from .carrier_c1_routing import load_exclusions
+@@ -72,7 +74,8 @@
+         pinned(pin)
+     db = sqlite3.connect(':memory:')
+     db.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
+-    reader = Rows(dict(streams={}, r1_training=cfg['r1_training'], extent_receipt=cfg.get('extent_receipt')), None)
++    reader = Rows(dict(streams={}, r1_training=cfg['r1_training'], extent_receipt=cfg.get('extent_receipt'),
++                       remove_files=cfg.get('remove_files', [])), None)
+     reader.connections['routing'] = db
+     seen, counts, refused, scenes = set(), Counter(), Counter(), set()
+     n = 0
+--- build21/student_pilot/r2_adapters.py
++++ build22/student_pilot/r2_adapters.py
+@@ -6,6 +6,21 @@
+ 
+ def normalize(raw, frame_map=None):
+     row = deepcopy(raw)
++    native = row.get('routing', {})
++    if (row.get('category') == 'routing_trace' and not row.get('events')
++            and native.get('question_type') in ('camera_displacement','camera_movement_direction','camera_rotation')):
++        # Unpack the native camera layout through its existing byte-equal replay
++        # check before applying the same event intake as other routing slices.
++        from .s1_routing import legacy_replay
++        legacy_replay(row)
++        inputs = row['student_input']
++        row = dict(native, schema='derivgen-row-v2', infrastructure_only=False,
++            qid=row['qid'], dataset=row['dataset'], scene=row['scene'], target=row['target'],
++            student_input=inputs, question=inputs['question'], options=inputs.get('options', []),
++            answer_form='routed', response_heads=['pose'],
++            provenance=dict(canonical=native['canonical'], alias=row['dataset']+'/'+row['scene'],
++                physical_group=native.get('physical_group'), source_row_sha256=native['source_row_sha256'],
++                frame_indices=inputs['frame_indices']))
+     if 'suffix' in row and not row.get('ground_record'):
+         # Raw pool files retain the exact printed calls/responses. Pack those
+         # byte spans; neither replay geometry nor synthesize a tool quantity.
+--- build21/student_pilot/row_removals.py
++++ build22/student_pilot/row_removals.py
+@@ -28,7 +28,9 @@
+             if set(value) - {'path', 'sha256', 'defects'}:
+                 raise ValueError("Unknown REMOVE-list rule")
+             pin = {key: value[key] for key in ('path', 'sha256')}
+-            rows = [json.loads(line) for line in pinned(pin).read_text().splitlines() if line.strip()]
++            from .r1_launch22 import NAMING_REMOVE, naming_rows
++            rows = (naming_rows(pin) if pin['sha256'] == NAMING_REMOVE else
++                    [json.loads(line) for line in pinned(pin).read_text().splitlines() if line.strip()])
+             if any(not isinstance(row.get("row_key"), str) or not row["row_key"] for row in rows):
+                 raise ValueError("REMOVE lists require explicit nonempty row_key strings")
+             self.source_counts.append(len(rows))

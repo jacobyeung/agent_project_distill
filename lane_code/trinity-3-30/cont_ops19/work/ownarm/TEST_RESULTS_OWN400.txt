@@ -1,0 +1,50 @@
+BUILD
+{"out": "out/pkg/r400", "token": "fadf2291c654b", "delivery_sha256": "359151d1aafc9128b42f6e3b3a788cecc5aaf510fe57219f8367290a1afdd61a", "plan_sha256": "0da6ccb50ccaa26a79b5caf7b20039f3589627e4f9a20638bee9f7aadce31f54", "changed_delivery": ["0.json", "0.tgz", "BATCH.sh", "CONFIG.json", "PACKAGE.json", "a/4.py", "a/6.py"], "changed_payload": ["9.json"], "null_fork": {"delivery_identical": true, "members_identical": true, "delivery_sha256": "dcff106800e96e871a57a58dbb33fe9923beefa575ac668ac1c8e66fd7113459", "members": 15}}
+
+KIT TESTS
+.......................................................................  [100%]
+71 passed in 73.73s (0:01:13)
+
+CHECK BUILD
+{
+ "passed": true,
+ "build": "out/pkg/r400",
+ "token": "fadf2291c654b",
+ "step": 400,
+ "delivery_sha256": "359151d1aafc9128b42f6e3b3a788cecc5aaf510fe57219f8367290a1afdd61a",
+ "plan_sha256": "0da6ccb50ccaa26a79b5caf7b20039f3589627e4f9a20638bee9f7aadce31f54",
+ "changed_delivery": [
+  "0.json",
+  "0.tgz",
+  "BATCH.sh",
+  "CONFIG.json",
+  "PACKAGE.json",
+  "a/4.py",
+  "a/6.py"
+ ],
+ "changed_payload": [
+  "9.json"
+ ],
+ "binding_changed": [
+  "config_sha256",
+  "member_directory",
+  "object",
+  "preparation_sha256",
+  "run",
+  "step"
+ ],
+ "fill_pins_changed": true,
+ "scripts": [
+  "o_cpucheck.sh",
+  "o_fetch.sh",
+  "o_place.sh",
+  "o_pullfill.sh",
+  "o_pullfill_resume.sh",
+  "o_sub.sh"
+ ],
+ "python36_helpers": 14
+}
+
+DIFF AND SYNTAX AUDIT
+{"delivery_sha256": "359151d1aafc9128b42f6e3b3a788cecc5aaf510fe57219f8367290a1afdd61a", "embedded_shells": 2, "helper_names": ["bundle/0.py", "bundle/7.py", "fetch_return.py", "heredoc/BATCH.py", "heredoc/o_fetch.sh/0.py", "heredoc/o_place.sh/0.py", "heredoc/o_pullfill.sh/0.py", "heredoc/o_pullfill.sh/1.py", "heredoc/o_pullfill_resume.sh/0.py", "heredoc/o_pullfill_resume.sh/1.py", "heredoc/o_sub.sh/0.py", "heredoc/o_sub.sh/1.py", "package/3.py", "package/a/4.py", "package/a/5.py", "package/a/6.py", "package/a/7.py", "src/8.py", "src/orchard_h10/__init__.py", "src/orchard_h10/build.py", "src/orchard_h10/common.py", "src/orchard_h10/entry.py", "src/orchard_h10/export_pins.py", "src/orchard_h10/inventory.py", "src/orchard_h10/job.py", "src/orchard_h10/operator.py", "src/orchard_h10/prepare.py", "src/orchard_h10/runner.py", "src/orchard_h10/vendor/chain_save.py", "src/orchard_h10/vendor/export_stage.py", "src/orchard_h10/vendor/orchard_job.py", "src/orchard_h10/vendor/orchard_launcher.py", "src/orchard_h10/vendor/orchard_results.py", "src/orchard_h10/vendor/orchard_stage.py", "src/orchard_h10/vendor/return_io.py", "src/orchard_h10/vendor/stdout_transfer.py", "src/orchard_h10/vendor/trace_runtime.py", "tower_sequence.py", "unpack_return.py"], "passed": true, "plan_changes": ["export_binding", "plan_sha256", "token"], "py_compile_helpers": 39, "python": "3.6.8", "script_names": ["o_cpucheck.sh", "o_fetch.sh", "o_place.sh", "o_pullfill.sh", "o_pullfill_resume.sh", "o_sub.sh", "package/BATCH.sh", "src/h1eval/h10/card_entry.sh", "src/h1eval/h10/gpu_113.sh", "src/h1eval/h10/host_run.sh", "src/h1eval/h10/run_card.sh", "src/tree/generator/ground_rows_out/build_orchard_ground.sh", "src/tree/generator/ground_rows_out/render_full.sh", "src/tree/launch_s1/b/c.sh", "src/tree/launch_s1/b/jc1.sh", "src/tree/launch_s1/b/jp0.sh", "src/tree/launch_s1/b/jt8c.sh", "src/tree/launch_s1/b/p0.sh", "src/tree/launch_s1/b/r.sh", "src/tree/launch_s1/job.sh", "src/tree/launch_s1/job8.sh", "src/tree/launch_s1/rehearse.sh", "src/tree/scripts/diagnostic_ddp_gpu_batch.sh", "src/tree/scripts/diagnostic_gpu_batch.sh", "src/tree/scripts/gpu_batch.sh", "src/tree/scripts/launch_gf1_stage1.sh", "src/tree/scripts/launch_gf1_stage2.sh", "src/tree/scripts/mdg_env.sh", "src/tree/scripts/mdg_host_train.sh", "src/tree/scripts/shakedown_batch.sh", "src/tree/scripts/student_benchmark_gpu.sh", "src/tree/tools/pdg_v3_gate_run.sh"], "scripts": 32}
+

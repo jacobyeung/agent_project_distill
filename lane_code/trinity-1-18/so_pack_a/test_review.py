@@ -47,6 +47,7 @@ class Review(unittest.TestCase):
         with self.assertRaises(P.Rejected):P.probe('fill',bad,w,c)
         self.assertIn('Fill must append',(w/'0.log').read_text())
     def test_r4_readonly_preflight_precedes_place(self):
+        Path(self.c['ledger']).write_text(self.b['token']+'\n')
         scripts=P.plan(self.c,self.b);self.assertIn('preflight',scripts)
         code=P.heredocs(Path(scripts['preflight']).read_text())[0]
         import pack_checks as Q
@@ -76,7 +77,11 @@ class Review(unittest.TestCase):
         self.assertEqual(P.privacy(p,{})['names'],15)
         with self.assertRaisesRegex(P.Rejected,'umask'):P.privacy(T.B5,{})
     def test_r6_login_runtime_guard_submit_pool(self):
-        guard=P.probe('guard',self.p,self.fresh('q'),self.c);self.assertTrue(guard['python'].startswith('3.6.8'))
+        runs=[];original=P.run
+        def traced(argv,*args,**kwargs):runs.append(argv);return original(argv,*args,**kwargs)
+        with patch.object(P,'run',side_effect=traced):guard=P.probe('guard',self.p,self.fresh('q'),self.c)
+        self.assertEqual(runs[0][0],'/usr/bin/python3','CPU guard must execute under the login interpreter')
+        self.assertTrue(guard.get('python','').startswith('3.6.8'))
         r=P.probe('fill',self.p,self.fresh('q'),self.c)
         self.assertTrue(r['submit_executed']);self.assertTrue(r['pool']['positive']);self.assertTrue(r['pool']['oversize_rejected'])
     def test_r6_operational_inventory(self):
@@ -110,9 +115,14 @@ class Review(unittest.TestCase):
         for text in ("cat >a/0 <<'A'\nmodel /tmp/0\nA\nbash a/0", "bash <<'A'\nmodel\nA", "cat <<'A' # python3 -\nmodel\nA"):
             with self.assertRaisesRegex(P.Rejected,'Only Python stdin'):P.shell_privacy(text)
     def test_r11_login_exact_delivery(self):
-        c=dict(self.c,work=str(self.fresh('state')));P.write(Path(c['work'])/'BUILD.json',self.b)
+        c=dict(self.c,work=str(self.fresh('state')));d=self.fresh('noncanonical.tgz');raw=Path(self.b['delivery']).read_bytes();d.write_bytes(raw[:4]+b'\x01\x00\x00\x00'+raw[8:])
+        b=dict(self.b,delivery=str(d),sha256=P.file_digest(d));P.write(Path(c['work'])/'BUILD.json',b)
+        w=self.fresh('login');w.mkdir();driver=self.fresh('driver.py')
+        driver.write_text('import sys\nsys.path.insert(0,%r)\nimport pack as P,pack_checks as Q\nfrom pathlib import Path\noriginal=P.place_code\ndef place(b):\n assert b["sha256"]==%r,"Login must place recorded delivery bytes"\n return original(b)\nP.place_code=place\nQ.login(Path(%r),Path(%r),%r)\n'%(str(Path(P.__file__).parent),b['sha256'],str(self.p),str(w),c))
+        result=subprocess.run(['/usr/bin/python3','-I','-s','-B',str(driver)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=P.environment(w))
+        self.assertEqual(result.returncode,0,result.stderr.decode())
         r=P.probe('login',self.p,self.fresh('q'),c)
-        self.assertTrue(r['recorded_delivery']);self.assertEqual(r['delivery_sha256'],self.b['sha256'])
+        self.assertTrue(r.get('recorded_delivery',False));self.assertEqual(r.get('delivery_sha256'),b['sha256'])
     def test_required_inputs_refuse_by_name(self):
         c=dict(required_inputs=[dict(name='step-600 binding',path=str(self.w/'absent'))])
         with self.assertRaisesRegex(P.Rejected,'Required input missing: step-600 binding'):P.required_inputs(c)

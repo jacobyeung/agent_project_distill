@@ -2,6 +2,7 @@
   "activation": "u0/a8.py --enable-extensions; u0/a12.py --enable-extensions builds the production overlays (apply all three patches)",
   "application_checks": {
     "A4": "zero fuzz; all original files unchanged; added bytes exact",
+    "A4_operator": "zero fuzz; explicit read_extensions default OFF; exact delivered bytes",
     "B5": "zero fuzz; every extracted original file unchanged; added bytes exact"
   },
   "applied_cpu_suites": [
@@ -11,7 +12,7 @@
         "-I",
         "-s",
         "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round2/b77ab9305310484aad4708ac37182b9c/src/u0/tests/test_read_cache.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_read_cache.py"
       ],
       "name": "read_cache",
       "output": "applied_read_cache.txt",
@@ -23,7 +24,7 @@
         "-I",
         "-s",
         "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round2/b77ab9305310484aad4708ac37182b9c/src/u0/tests/test_read_journal.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_read_journal.py"
       ],
       "name": "read_journal",
       "output": "applied_read_journal.txt",
@@ -35,7 +36,7 @@
         "-I",
         "-s",
         "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round2/b77ab9305310484aad4708ac37182b9c/src/u0/tests/test_off.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_off.py"
       ],
       "name": "off",
       "output": "applied_off.txt",
@@ -47,7 +48,7 @@
         "-I",
         "-s",
         "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round2/b77ab9305310484aad4708ac37182b9c/src/u0/tests/test_public.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_public.py"
       ],
       "name": "public",
       "output": "applied_public.txt",
@@ -59,7 +60,7 @@
         "-I",
         "-s",
         "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round2/b77ab9305310484aad4708ac37182b9c/src/u0/tests/test_round1.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_round1.py"
       ],
       "name": "round1",
       "output": "applied_round1.txt",
@@ -71,7 +72,7 @@
         "-I",
         "-s",
         "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round2/b77ab9305310484aad4708ac37182b9c/src/u0/tests/test_round2.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_round2.py"
       ],
       "name": "round2",
       "output": "applied_round2.txt",
@@ -83,7 +84,43 @@
         "-I",
         "-s",
         "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round2/b77ab9305310484aad4708ac37182b9c/src/u0/tests/test_compare.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_round3.py"
+      ],
+      "name": "round3",
+      "output": "applied_round3.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_operator_round3.py"
+      ],
+      "name": "operator_round3",
+      "output": "applied_operator_round3.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_lock_round3.py"
+      ],
+      "name": "lock_round3",
+      "output": "applied_lock_round3.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_compare.py"
       ],
       "name": "compare",
       "output": "applied_compare.txt",
@@ -91,6 +128,11 @@
     }
   ],
   "apply_from": "fresh full staged src tree",
+  "authenticated_roots": {
+    "files_per_root": 927,
+    "original": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src",
+    "patched": "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src"
+  },
   "b5_base_archive_sha256": "ac2e259025d6a821aa5eb13e236f0635bd970313859086fc2f3ce3276647f2f0",
   "base": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src",
   "base_pin": {
@@ -1028,15 +1070,19 @@
     "sha256": "813fe4c57b2deed4bd731dd1e3493b6b0bed8d31e7bff92ff112cf5c9df823c3"
   },
   "default_off": "all original files unchanged; no extension import/settings parse",
-  "generated_utc": "2026-11-19T10:15:21.580605+00:00",
+  "generated_utc": "2026-11-19T12:32:38.509667+00:00",
   "kit_files": {
+    "BASE_PIN.json": {
+      "bytes": 102760,
+      "sha256": "316e61597d3990161deec11b4795db8d074956f55aedd686be4939b9356c17ef"
+    },
     "EXTENSION_PINS.json": {
-      "bytes": 2437,
-      "sha256": "96ee0c27b93140af2b52a48676c8f6d21216ee8cc056d7a857aafba6c34afdae"
+      "bytes": 2742,
+      "sha256": "ddb0d27f117c67104243da193bc1bcf265c76260657809e85c539bddd0fe091f"
     },
     "README.md": {
-      "bytes": 10923,
-      "sha256": "eb6275b11af1eec76d526a9fa85b876dac194505c72d887a84614b63f0f6309d"
+      "bytes": 15070,
+      "sha256": "b1468ec5a953bc00d4fbafac8fde635715c3b0439c4ecbbcc2be09149602b07e"
     },
     "SAMPLE_IDENTITY.json": {
       "bytes": 2677,
@@ -1055,16 +1101,16 @@
       "sha256": "06ea036135608b1005c33a03de6053dbccb2927795f223dfb0ff21423a2ab89b"
     },
     "compare.py": {
-      "bytes": 11036,
-      "sha256": "d801122b4a68583abac6010cd2cee6fbe57266a649a13bfb864c42907dd4471e"
+      "bytes": 11317,
+      "sha256": "73858354fe8d366880873246e6256393ea2b27d5979af4e128e93c569a92f50e"
     },
     "config.example.json": {
       "bytes": 408,
       "sha256": "c6c9ecc4bedadd8a4d874db49e202ca7373fd73c9f635b095689e62f66629802"
     },
     "run.py": {
-      "bytes": 12759,
-      "sha256": "bc24cb33ab09d5ec4b64a265b7a26187c63b28acc745409abb199c2f6c18673c"
+      "bytes": 13818,
+      "sha256": "1f74822448752d02d99eadf2f4f620c2f334318989f320238b58bd4ca87e6266"
     },
     "sample50.json": {
       "bytes": 108569,
@@ -1075,23 +1121,40 @@
       "sha256": "4889a599c344b478dc5e3818dfe9392710311c3358fe89bff0267dc1dba03c58"
     },
     "test_run.py": {
-      "bytes": 2979,
-      "sha256": "259920249d375e0119d65ceca0c3bec1e86b3e279d813c1f0af31c0764a57885"
+      "bytes": 2989,
+      "sha256": "8e33d7e068bb3374322f4292fb485d84bae11e9a30245469250f524ea058c9b6"
+    }
+  },
+  "operator_base_pin": {
+    "batch_sha256": "cda29adeea5a245adb7a96c8e21c575953718b3bb1cda213d13cb52c92b6f64f",
+    "bootstrap_source": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/BATCH.sh",
+    "decoded_bootstrap_sha256": "76036ed94db2dcb7b6ffb7997d855ac06f50fa5e59d9acc828c65fac1cbae2b3",
+    "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/tower_sequence.py",
+    "sha256": "97c8e6dfe33e7fd2988dc44e740f7a3b19627259b8f86827598ed368e1659e22"
+  },
+  "operator_files": {
+    "0.py": {
+      "bytes": 2318,
+      "sha256": "76036ed94db2dcb7b6ffb7997d855ac06f50fa5e59d9acc828c65fac1cbae2b3"
+    },
+    "tower_sequence.py": {
+      "bytes": 7987,
+      "sha256": "a16fc51927622ca449acf1b353e22fbc666d7e0188e48bf600b1bd9673746081"
     }
   },
   "patches": {
     "01_bounded_read_caches.diff": {
-      "bytes": 86953,
+      "bytes": 90430,
       "files": {
         "u0/a0.py": {
-          "after_sha256": "f64eb07e096a8ddb02cc0ab6e9c2319e99bf85ddcd024f48243a73cb2c7dcc90",
+          "after_sha256": "c75e28730e10e2b574ecc2640a1900688e9af439cb41f10c3d0447dd68d4220f",
           "before_sha256": null,
-          "bytes": 18378
+          "bytes": 21181
         },
         "u0/a1.py": {
-          "after_sha256": "b56ea2cc0b7b39faa00a05bbaad60154eba65af39e9e8e9b08b23a0b9abe1b09",
+          "after_sha256": "ac6e83104c47e0ce9dd034aa9eb75cb7e3ea9f591e18b5c39ff737fd03211f05",
           "before_sha256": null,
-          "bytes": 15185
+          "bytes": 15302
         },
         "u0/a2.py": {
           "after_sha256": "c0b9b8d51deb37ebfaa2a11c80d6486dc2432a99129e1776b64cbeaec4c75fe8",
@@ -1099,40 +1162,40 @@
           "bytes": 7791
         },
         "u0/a3.py": {
-          "after_sha256": "116f09319072aa946d3a0d776e5285b42b726100b13a872809449e0106656b57",
+          "after_sha256": "8d804877e220cc52b0aef2a2eaf995f10e4addaedca9cc24038cbbe8c384fe4b",
           "before_sha256": null,
-          "bytes": 13829
+          "bytes": 14056
         },
         "u0/tests/test_off.py": {
-          "after_sha256": "93557962932a998e5679960d93a40828717e4305a344c9da32571cd7d24eb6ae",
+          "after_sha256": "70ad5b81be58c65dc1b8f023b0cd0fc1c3bc84362f2ac5f2bd6206c7447c666d",
           "before_sha256": null,
           "bytes": 8660
         },
         "u0/tests/test_read_cache.py": {
-          "after_sha256": "037dd0552f37a63f28fa1bebed6415f28763488d891afce1c304f161acfbe3ae",
+          "after_sha256": "ddb690e12fcf22a9d03766e8a79193911514f61d6a92e82bc4560b9c2652ca61",
           "before_sha256": null,
-          "bytes": 21258
+          "bytes": 21510
         }
       },
-      "sha256": "37e1a820db2d3cdbd4fde02e533cd1003ba530cd759a042b7146cebcdc97278e"
+      "sha256": "0017649c826b8043f77174c26d33cd6d940018be9e03259d24c642f327c64f76"
     },
     "02_atomic_scene_shards.diff": {
-      "bytes": 217135,
+      "bytes": 218841,
       "files": {
         "u0/a10.py": {
-          "after_sha256": "d801122b4a68583abac6010cd2cee6fbe57266a649a13bfb864c42907dd4471e",
+          "after_sha256": "73858354fe8d366880873246e6256393ea2b27d5979af4e128e93c569a92f50e",
           "before_sha256": null,
-          "bytes": 11036
+          "bytes": 11317
         },
         "u0/a11.py": {
-          "after_sha256": "d5aaf58a99c97f82ca45f469d96a4c87dcf2f808ee5a39c23d10157ef8ba48d4",
+          "after_sha256": "512d25140699311ccef5756dce453cb2a9bd94d525faf4660e09ed014516a631",
           "before_sha256": null,
-          "bytes": 2965
+          "bytes": 3116
         },
         "u0/a4.py": {
-          "after_sha256": "36c1c61841d8fd075529673942c0ec23f223201152386d96700320d15d395454",
+          "after_sha256": "9be6036f4ae7b89a3002167b255a81cd05a0a829f25d1773ca4fbdf822ace9fb",
           "before_sha256": null,
-          "bytes": 27848
+          "bytes": 28810
         },
         "u0/a5.py": {
           "after_sha256": "ec6621ccf9bfe6b5bf9c8af88288602b20ce73970169da692e65b680879aed97",
@@ -1140,9 +1203,9 @@
           "bytes": 4419
         },
         "u0/a6.py": {
-          "after_sha256": "720827e1004ab1c7e2ac6b7c3bfb3410113544eb427683bd756ed93544648250",
+          "after_sha256": "0fe7a46983890a2cbdee437cafd4a15b6cb1adeff18778adf53953ec49bbcf10",
           "before_sha256": null,
-          "bytes": 6289
+          "bytes": 6522
         },
         "u0/a7.py": {
           "after_sha256": "8ad01059cabea308817b4cb715631095eb2497c322ca10211ac6c45c6de38840",
@@ -1175,9 +1238,9 @@
           "bytes": 14058
         },
         "u0/tests/test_round1.py": {
-          "after_sha256": "817e465ae830f9195caf981cbd84fb0b9cd7d31d2a59df960cdb44566b67ae50",
+          "after_sha256": "73b231acf6797b75aebc481daf4564f1c20ea05d21db3ef698737787f0aa7d78",
           "before_sha256": null,
-          "bytes": 5727
+          "bytes": 5772
         },
         "u0/tests/u0.json": {
           "after_sha256": "6a7885b6ea579d5e4a647ac408e79bec500e18cce574409b0a30c921a41e8707",
@@ -1190,15 +1253,15 @@
           "bytes": 621
         }
       },
-      "sha256": "f539b7c42d90706f2d34235cefd29a53ddb6db4cc88190014b2c0e8f88093370"
+      "sha256": "5f76cf79e29471138161e476daf3920ec2bcbf751586fc47528fbd7388530cfa"
     },
     "03_production_integration.diff": {
-      "bytes": 69265,
+      "bytes": 101172,
       "files": {
         "u0/a12.py": {
-          "after_sha256": "5be98aa26e599de10dca7e4b40f49fa5a03e71807c62ca110318fff759fbb712",
+          "after_sha256": "6d4c991f6b652e8b9a5751df7a15fdd9030bf169093b9b83903fc24f9534c05e",
           "before_sha256": null,
-          "bytes": 11272
+          "bytes": 12701
         },
         "u0/a13.py": {
           "after_sha256": "623bf20e0e721e34cba27d38b9e2c8d056938a65cad18445121552a1f0643000",
@@ -1226,17 +1289,44 @@
           "bytes": 12633
         },
         "u0/a18.py": {
-          "after_sha256": "d56079f0661d9bf45b873190b71984c26eae87b29f43cbf6db65079fef55ff34",
+          "after_sha256": "b8ef7ab2eff7a9dac94ab794ec241b6ce13d03f49746e5d7fc4ca53ca277e12f",
           "before_sha256": null,
-          "bytes": 5089
+          "bytes": 5111
+        },
+        "u0/tests/test_lock_round3.py": {
+          "after_sha256": "373f9b897206caa0c324926299db6c35de6596293dd48fae568b63adeb91eacc",
+          "before_sha256": null,
+          "bytes": 2161
+        },
+        "u0/tests/test_operator_round3.py": {
+          "after_sha256": "bdcf51e4cd3d8a7cb563c3e009136248ccbc4e0c1cc3df625a627fc6f6633a56",
+          "before_sha256": null,
+          "bytes": 15707
         },
         "u0/tests/test_round2.py": {
-          "after_sha256": "817d71f33e6c19ce3cdb9a37eadd68479c743f21e6353bc963a3b090b831c173",
+          "after_sha256": "b70d3a5a88ac2f0ab81ac64c6891c3c9abaf85d92f0ea179cf44afca7c7ab876",
           "before_sha256": null,
-          "bytes": 18060
+          "bytes": 18450
+        },
+        "u0/tests/test_round3.py": {
+          "after_sha256": "e9240cffead84fdd07bd05d1a5d7612f8cc23d7f746d048c6227a1526ed2a58f",
+          "before_sha256": null,
+          "bytes": 11489
         }
       },
-      "sha256": "c8e4c86f50ec9e26c7a493ce49196ca27d6d604720a9c8772c33942c4789f48f"
+      "sha256": "a2913f484a080e26a65514479754aee514e43d56fb22591addc362bb34cf7963"
+    },
+    "04_operator_cache_bound.diff": {
+      "apply_from": "fresh A4 operator directory, outside src",
+      "bytes": 2723,
+      "files": {
+        "tower_sequence.py": {
+          "after_sha256": "a16fc51927622ca449acf1b353e22fbc666d7e0188e48bf600b1bd9673746081",
+          "before_sha256": "97c8e6dfe33e7fd2988dc44e740f7a3b19627259b8f86827598ed368e1659e22",
+          "bytes": 7987
+        }
+      },
+      "sha256": "0d3bdc2d943554cd525627466d2d71f30881884e76df95204ede6c1accdb9061"
     }
   },
   "strip": 1,
@@ -1262,5 +1352,5 @@
       "files": 22
     }
   },
-  "verification_root": "/scratch/jjyeung/orch_n30/so_read/work/apply-round2/b77ab9305310484aad4708ac37182b9c"
+  "verification_root": "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8"
 }

@@ -73,6 +73,11 @@ def rows(root,codec=None):
     paths+=sorted(Path(root).glob('shard-*/journals/*/*/items.jsonl'))
     paths+=sorted(Path(root).glob('u*/journals/*/*/items.jsonl'))
     for path in paths:
+        receipt=path.parent/'WEIGHTS.json'
+        if receipt.exists():
+            from a9 import read_wire
+            if read_wire(json.loads(receipt.read_bytes())).get('verified') is not True:
+                raise ValueError('Unchecked cache weights; cannot compare journal')
         for line in path.read_bytes().splitlines(keepends=True):
             if not line.endswith(b'\n'):raise ValueError('Torn JSONL: '+str(path))
             row=json.loads(line)

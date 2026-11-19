@@ -1,2 +1,5 @@
 - swarm_opt/mind/c_20261119.tar (15.9 MB partial of the refused 10:31Z stream; not used), mind/t1, mind/t2, mind/t3 (pipeline test fixtures)
 - gs://cmu-gpucloud-jjyeung/dtc19/c_20261119.tar (15,925,248 B truncated object from the stopped 10:31Z upload; not a copy; needs the user to remove)
+trinity-1-18:/tmp/so_rv3.tar (my small tar of so_cr_read3 verdict, 12:03Z)
+- trinity-3-30:/scratch/jjyeung/orch_n30/swarm_opt/work/corpus_apply/tool_new/t (7.6 GB stale .corpus-*.sqlite copied by mistake with cp -a, 12:41Z; ORCH 1244Z listed it in REMOVAL_READY_trinity-3-30_20261119.md)
+- trinity-3-30:/scratch/jjyeung/orch_n30/swarm_opt/mind/c2_20261119.tar (0.67 GB; GCS object gs://cmu-gpucloud-jjyeung/dtc19/c2_20261119.tar verified, sha256 9a804903...)

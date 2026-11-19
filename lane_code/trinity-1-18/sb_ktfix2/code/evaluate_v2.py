@@ -73,15 +73,17 @@ def run_a(split='train'):
   bars['replace_box_reader_context']=metrics.b_bar(decision_rows(paired_scores(rows(32,'today'),rows(32,'obj')))) if rows(32,'obj') and complete else dict(status='NOT_APPLICABLE' if read_json(ROOT/'configs/KBOX_WINNING_BOX_RULE.json')['status']=='NO_OBJECT_VARIANT' else 'MISSING',reason='No object variant frozen' if read_json(ROOT/'configs/KBOX_WINNING_BOX_RULE.json')['status']=='NO_OBJECT_VARIANT' else 'Complete object-arm rows required')
   full_bars=metrics.a_bars(pose,differences) if complete else dict(status='MISSING')
   full_bars['replace_box_reader_context']=metrics.b_bar(paired_scores(rows(32,'today'),rows(32,'obj'))) if rows(32,'obj') and complete else dict(status='NOT_APPLICABLE')
-  require_score(OUT,'A')
+  items_file(prices,'A',split)
   emit('A_POSE.json',pose,status='OK' if complete else 'MISSING',missing=miss)
   emit('A_DEPTH.json',depth,status='OK' if complete else 'MISSING')
   write_json(OUT/'A_SCALE.json',dict(status='OK' if scales else 'MISSING',captures=scales,agreement_fraction=sum(r['relative_error']<=1e-4 for r in checked_scales)/len(checked_scales) if checked_scales else None,rule='e2e_reader.stage1.median_ratio',stored_rule='tower_scale_rule.estimate (0.1 < own_depth < 10)' if checked_scales and all(r['legacy_relative_error']<=1e-4 for r in checked_scales) else 'MISSING'))
   emit('A_DISTANCE.txt',prices,status='OK' if complete else 'MISSING',bars=bars,missing=miss,full_1037_report_only=full_bars,decision_population='K1 train outside withheld rooms (1012 distance rows)')
-  update('A',bars,complete);items_file(prices,'A',split)
+  update('A',bars,complete)
  return dict(rows=prices,pose=pose,depth=depth,scales=scales,missing=miss,complete=complete)
 
 def gains_once(prices):
+ keys=[(r['row_id'],r['arm']) for r in prices]
+ if len(keys)!=len(set(keys)):raise RuntimeError('REFUSE: duplicate (row_id, arm) rows')
  has_obj=read_json(ROOT/'configs/KBOX_WINNING_BOX_RULE.json')['status']=='PASS'
  names=[arm(32,32,'today'),arm(32,32,'obj'),arm(64,64,'obj')] if has_obj else [arm(32,32,'today'),arm(64,64,'today')]
  indexed={name:{r['row_id']:r for r in prices if r['arm']==name} for name in names}
@@ -96,6 +98,16 @@ def gains_once(prices):
   selected=decision_rows(rr);assert len(selected)==1012
   result[key]=metrics.paired(selected,draws=10000)
  return dict(status='OK',rows=1012,gains=result,full_1037_report_only=dict(rows=1037,gains=full),claim='Only joint_gain prices both changes; never add another kit result' if has_obj else 'No object variant frozen: one today frame-gain comparison')
+
+def a_train_rows():
+ path=OUT/'parts/A/PER_ITEM_A_train.jsonl';report=OUT/'A_DISTANCE.txt'
+ if not path.is_file():raise FileNotFoundError('MISSING '+str(path))
+ sha(path)
+ rows=[json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+ # The per-item writer adds provenance to each row; reports carry it at the top level.
+ rows=[{k:v for k,v in row.items() if k!='input_sha256'} for row in rows]
+ if rows!=read_json(report).get('rows',[]):raise RuntimeError('REFUSE: A_DISTANCE.txt rows differ from A per-item rows')
+ return rows
 
 def run_b(split='train'):
  require_score(OUT,'B' if split=='train' else 'H')
@@ -123,13 +135,14 @@ def run_b(split='train'):
  complete={r['row_id'] for r in base}=={r['row_id'] for r in treatment}==row_ids(split) and not miss
  bars=metrics.b_bar(decision_rows(paired_scores(base,treatment))) if split=='train' and complete else dict(status='MISSING',reason='Complete pinned train population is required')
  if split=='train':
-  require_score(OUT,'B')
+  a=a_train_rows()
+  gains=gains_once([r for r in a if r['arm'] in (arm(32,32,'today'),arm(32,32,'obj'))]+prices)
+  items_file(prices,'B',split)
   emit('B_LADDER_TRAIN.txt',prices,status='OK' if complete else 'MISSING',bar=bars,full_1037_report_only=metrics.b_bar(paired_scores(base,treatment)) if complete else dict(status='MISSING'),decision_population='K1 train outside withheld rooms (1012 distance rows)',primary_rule=primary,missing=miss,selector_top1=selector,label_scope='Anchor members only; GT raster has 32 frames',alignment=alignment,diagnostics={name:diagnostics([r for r in prices if r['arm']==name]) for name in sorted({r['arm'] for r in prices})})
-  a_path=OUT/'A_DISTANCE.txt';a=read_json(a_path).get('rows',[]) if a_path.exists() else []
-  gains=gains_once(a+prices);write_json(OUT/'B_GAINS_ONCE.txt',gains)
+  write_json(OUT/'B_GAINS_ONCE.txt',gains)
   afg=gains.get('gains',{}).get('added_frame_gain',dict(status='MISSING'))
   afg=dict(afg,verdict='MISSING' if afg.get('status')!='OK' else 'PASS' if afg['low']>0 else 'FAIL')
-  update('B',dict(views_pay=bars,added_frame_gain=afg,primary_rule=primary,flagged='REPORT_ONLY'),complete);items_file(prices,'B',split)
+  update('B',dict(views_pay=bars,added_frame_gain=afg,primary_rule=primary,flagged='REPORT_ONLY'),complete)
  return dict(rows=prices,missing=miss,complete=complete)
 
 def heldout_once():
@@ -139,9 +152,8 @@ def heldout_once():
  if not p.is_file():raise FileNotFoundError('MISSING '+str(p)+'; held-out look not consumed')
  consume_heldout();_HELDOUT_ACTIVE=True
  results=dict(A=run_a('heldout'),B=run_b('heldout'))
- require_score(OUT,'H')
- write_json(OUT/'HELDOUT_once.txt',dict(status='OK' if all(v['complete'] for v in results.values()) else 'MISSING',role='REPORT_ONLY',results=results))
  items_file([dict(r,source_part=part) for part,v in results.items() for r in v['rows']],'H','heldout')
+ write_json(OUT/'HELDOUT_once.txt',dict(status='OK' if all(v['complete'] for v in results.values()) else 'MISSING',role='REPORT_ONLY',results=results))
  _HELDOUT_ACTIVE=False
  return results
 

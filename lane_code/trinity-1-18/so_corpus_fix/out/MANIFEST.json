@@ -1,55 +1,84 @@
 {
   "commands": [
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/pre_round3 test_review3",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/pre_round3 test_review3",
       "exit_code": 1,
-      "label": "Round-three regressions against the saved pre-fix tool",
-      "output": "out/round3_logs/before.txt"
+      "name": "before_findings",
+      "output": "out/round4_logs/before_findings.txt",
+      "utc": "Thu Nov 19 11:59:00 UTC 2026"
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool /scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/corpusin --case Review2Tests.test_kit_alias_rejects_actual_id --case Review2Tests.test_native_requires_exact_arm_populations --case Review2Tests.test_native_rejects_full_task_identity_conflict test_review2",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/pre_round4 test_new_read_wrapper",
       "exit_code": 1,
-      "label": "Round-two regressions against the immutable input",
-      "output": "out/round3_logs/input_regressions.txt"
+      "name": "before_wrapper",
+      "output": "out/round4_logs/before_wrapper.txt",
+      "utc": "Thu Nov 19 11:59:01 UTC 2026"
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool /scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/corpusin test_synthetic",
-      "exit_code": 0,
-      "label": "Existing synthetic tests against the immutable input",
-      "output": "out/round3_logs/input_existing.txt"
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool /scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/corpusin --case Review2Tests.test_kit_alias_rejects_actual_id --case Review2Tests.test_native_requires_exact_arm_populations --case Review2Tests.test_native_rejects_full_task_identity_conflict test_review2",
+      "exit_code": 1,
+      "name": "input_regressions",
+      "output": "out/round4_logs/input_regressions.txt",
+      "utc": "Thu Nov 19 11:59:03 UTC 2026"
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/package_round3.py",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool /scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/corpusin test_synthetic",
       "exit_code": 0,
-      "label": "Cumulative patch generation and fresh application",
-      "output": "out/round3_logs/package.txt"
+      "name": "input_existing",
+      "output": "out/round4_logs/input_existing.txt",
+      "utc": "Thu Nov 19 11:59:05 UTC 2026"
     },
     {
-      "command": "nice -n 10 /usr/bin/time -f 'MEASURED_MAX_RSS_KIB=%M\\nMEASURED_ELAPSED_SECONDS=%e\\nEXIT_CODE=%x' env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/patchcheck_round3 --tests work/patchcheck_round3/tests test_review2 test_review3 test_synthetic test_no_leftovers",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/package_round4.py",
       "exit_code": 0,
-      "label": "All available tests from the patch-applied tree",
-      "output": "out/round3_logs/patch_applied.txt"
+      "name": "package",
+      "output": "out/round4_logs/package.txt",
+      "utc": "Thu Nov 19 12:02:03 UTC 2026"
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/patchcheck_round3 --tests work/patchcheck_round3/tests --enable-review2 test_synthetic",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/patchcheck_round4_core --tests work/patchcheck_round4_core/tests test_review2 test_review3 test_synthetic test_no_leftovers",
       "exit_code": 0,
-      "label": "Existing synthetic tests with checks enabled on the patch-applied tree",
-      "output": "out/round3_logs/existing_enabled.txt"
+      "name": "core_tests",
+      "output": "out/round4_logs/core_tests.txt",
+      "utc": "Thu Nov 19 12:02:03 UTC 2026"
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/check_default_compat.py",
+      "command": "nice -n 10 /usr/bin/time -f 'MEASURED_MAX_RSS_KIB=%M\nMEASURED_ELAPSED_SECONDS=%e\nEXIT_CODE=%x' /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/patchcheck_round4_full --tests work/patchcheck_round4_full/tests test_review2 test_review3 test_new_read_wrapper test_kit_alias_proof test_synthetic test_no_leftovers",
       "exit_code": 0,
-      "label": "Default compatibility against immutable input, including every changed branch",
-      "output": "out/round3_logs/default_compat.txt"
+      "name": "full_tests",
+      "output": "out/round4_logs/full_tests.txt",
+      "utc": "Thu Nov 19 12:02:05 UTC 2026"
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/audit_round3.py",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/patchcheck_round4_full --tests work/patchcheck_round4_full/tests --enable-review2 test_synthetic",
       "exit_code": 0,
-      "label": "Published index and mirrored input audit",
-      "output": "out/round3_logs/published_audit.txt"
+      "name": "existing_enabled",
+      "output": "out/round4_logs/existing_enabled.txt",
+      "utc": "Thu Nov 19 12:02:07 UTC 2026"
+    },
+    {
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/check_default_compat.py",
+      "exit_code": 0,
+      "name": "default_compat",
+      "output": "out/round4_logs/default_compat.txt",
+      "utc": "Thu Nov 19 12:02:09 UTC 2026"
+    },
+    {
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/audit_round4.py",
+      "exit_code": 0,
+      "name": "published_snapshot_audit",
+      "output": "out/round4_logs/published_snapshot_audit.txt",
+      "utc": "Thu Nov 19 12:02:11 UTC 2026"
+    },
+    {
+      "command": "nice -n 10 bash -n work/patchcheck_round4_full/add_read.sh",
+      "exit_code": 0,
+      "name": "wrapper_syntax",
+      "output": "out/round4_logs/wrapper_syntax.txt",
+      "utc": "Thu Nov 19 12:02:11 UTC 2026"
     }
   ],
-  "completed_utc": "Thu Nov 19 11:05:40 UTC 2026",
+  "completed_utc": "Thu Nov 19 12:04:19 UTC 2026",
   "confirmed_changed_read_payload_ids": [],
   "deferred_required_findings": [],
   "enabled_unverified_ids": [
@@ -63,104 +92,29 @@
   ],
   "files": [
     {
-      "bytes": 44066,
-      "path": "out/patches/01_ingest_review2.diff",
-      "sha256": "338cf9e077e9cc5a63cdbcfa59b8dbdf62bd28c048ad057d6bc9f587a3045145"
-    },
-    {
-      "bytes": 58506,
-      "path": "out/REPORT.md",
-      "sha256": "e21aace25b2125d3995f9e9217abb443ea83717070c85081aac9611c19a76482"
-    },
-    {
-      "bytes": 15112,
+      "bytes": 16601,
       "path": "out/OWNER_REPLAY.md",
-      "sha256": "51a12f9c87f9e188ecde8a3cf3ad0402bfac67c0300e622142fd1e75b63cfcb5"
+      "sha256": "b31c8b6fb9a793a41b1b64c706952ab024bfe6cc8aaa6e8086db500d1a2e3101"
     },
     {
-      "bytes": 1632,
-      "path": "work/run_tests.py",
-      "sha256": "c339f2f20d1487121019f6a8c91724c6d96ce546b1b9fd701d107a732b3fc891"
+      "bytes": 69201,
+      "path": "out/REPORT.md",
+      "sha256": "7dbb474445e738f0d863be888f1aa2263e30cf6b647ee0de9c2a23aebe62080b"
     },
     {
-      "bytes": 5232,
-      "path": "work/check_default_compat.py",
-      "sha256": "dbd43712ddb9ee105d86672018ba05312d559afe87e67fe25541f5396125cd48"
+      "bytes": 46271,
+      "path": "out/patches/01_ingest_review2.diff",
+      "sha256": "5b6afc9ab8d5d709213cd7ce565cab0d51179c3a5c78a799f540fbb0612a66c4"
     },
     {
-      "bytes": 6237,
-      "path": "work/audit_round3.py",
-      "sha256": "50cd08f88daacf84c203f043dc527c8366e6419db1978bfd6aae36eee52fb118"
+      "bytes": 2657,
+      "path": "out/patches/02_add_read_review2.diff",
+      "sha256": "c389e1993303c6d33416a20e7d7ae8f139ccd96aceab77b1df22394ba04da4db"
     },
     {
-      "bytes": 2847,
-      "path": "work/package_round3.py",
-      "sha256": "fa0dc2207c399547aaa80acd654f97d4702c74919cb4f31c636f9241aba02edb"
-    },
-    {
-      "bytes": 22711,
-      "path": "work/finalize_round3.py",
-      "sha256": "dcc3085f3a398a05bbaa734098aa272a4fbc21fef026565e07187763241714a4"
-    },
-    {
-      "bytes": 14323288,
-      "path": "work/evidence/INDEX_round3.jsonl",
-      "sha256": "bdf2d9cef181e5d8ca33775bf2793ef8ced115d97b0dd25fae8495c3bd93944c"
-    },
-    {
-      "bytes": 18585,
-      "path": "work/evidence/published_round3_audit.json",
-      "sha256": "b5b007316c10e4c7121c347cdd078910c8afa340942d44eb890736ecbd24bfcd"
-    },
-    {
-      "bytes": 1909,
-      "path": "work/evidence/package_round3.json",
-      "sha256": "2cb6ba07b2d060beddc5b6391543aa23be17dd2058d3738bab28970a72859f57"
-    },
-    {
-      "bytes": 7364,
-      "path": "out/round3_logs/after.txt",
-      "sha256": "160f0446746210d41d5c4f8ff68cfeda8531ded6187959c7a3295fdcea5a34a2"
-    },
-    {
-      "bytes": 21832,
-      "path": "out/round3_logs/before.txt",
-      "sha256": "18e880bd63e3dd990ecb2ddb133bcc40d8bc4c2fbace7f4ab67661c09de54e4a"
-    },
-    {
-      "bytes": 1290,
-      "path": "out/round3_logs/default_compat.txt",
-      "sha256": "fa87ce201957b560e3e10875b54affc12f494e82c19aec3e42d7655be7432973"
-    },
-    {
-      "bytes": 1905,
-      "path": "out/round3_logs/existing_enabled.txt",
-      "sha256": "bc81e5ab84bfc3a1604703a49235f4ac2065108f7262f7728e8666789afcbe50"
-    },
-    {
-      "bytes": 1905,
-      "path": "out/round3_logs/input_existing.txt",
-      "sha256": "4fcced7fdaac42e32704da4c0bf4b466c99d7ba0b8bcd3ddcc032bc609ce84b3"
-    },
-    {
-      "bytes": 2235,
-      "path": "out/round3_logs/input_regressions.txt",
-      "sha256": "2e63115e7a009c97ad7ce681ae72c501ba64d1993690b89fce47615fbf9b2e97"
-    },
-    {
-      "bytes": 380,
-      "path": "out/round3_logs/package.txt",
-      "sha256": "df142dd0efe7a1c8e9eb0f37b23262b5d10be9f2e8df463c7f29c1c2531d5471"
-    },
-    {
-      "bytes": 7364,
-      "path": "out/round3_logs/patch_applied.txt",
-      "sha256": "dc0f7ecf4f00de0a638ae10015781b7e617c572007a98e5ce5a1ce07f23b77b2"
-    },
-    {
-      "bytes": 3335,
-      "path": "out/round3_logs/published_audit.txt",
-      "sha256": "f192100c1c5aee9bdf65eb7dbecc763132719a9312b0337579675ac1e4f5ea18"
+      "bytes": 9381,
+      "path": "out/patches/03_kit_alias_proof.diff",
+      "sha256": "91182d7c53327c962871b8d8e023b61b20ecfef1ad9697492ceff4cfef2b8a30"
     },
     {
       "bytes": 1394,
@@ -198,76 +152,224 @@
       "sha256": "5dae65c4c9520896a540877cf5513b9b8c0801c8321c849a6fcc2101f9e1c12e"
     },
     {
-      "bytes": 1723,
-      "path": "work/pre_round3/HOWTO.md",
-      "sha256": "e19992a2f45ea8fdbbb73142dc80d9994c3721096a91d4caa2b39e1d28e98b21"
+      "bytes": 13141,
+      "path": "out/round3/MANIFEST.json",
+      "sha256": "76eb45ebae2e8cad02236dc2f08f9e8a1e6235c39b453f74776f76069e77ca60"
     },
     {
-      "bytes": 9965,
-      "path": "work/pre_round3/SCHEMA.md",
-      "sha256": "44fb6ed12085feda5f9ec444cf3949e8f4f6caad91898bab98617ed7e9edce08"
+      "bytes": 15112,
+      "path": "out/round3/OWNER_REPLAY.md",
+      "sha256": "51a12f9c87f9e188ecde8a3cf3ad0402bfac67c0300e622142fd1e75b63cfcb5"
     },
     {
-      "bytes": 1803,
-      "path": "work/pre_round3/add_read.sh",
-      "sha256": "4aba9a26e4538f5494557769341bde99e46316d9ec2da4a15ccf4462c20d7721"
+      "bytes": 58506,
+      "path": "out/round3/REPORT.md",
+      "sha256": "e21aace25b2125d3995f9e9217abb443ea83717070c85081aac9611c19a76482"
     },
     {
-      "bytes": 5426,
-      "path": "work/pre_round3/corpus_score.py",
-      "sha256": "260c6d4b83980dd9a17a198e6501ba347f529987f5e977fc21ec853ccdb5b7ac"
+      "bytes": 44066,
+      "path": "out/round3/patches/01_ingest_review2.diff",
+      "sha256": "338cf9e077e9cc5a63cdbcfa59b8dbdf62bd28c048ad057d6bc9f587a3045145"
     },
     {
-      "bytes": 51906,
-      "path": "work/pre_round3/ingest_read.py",
-      "sha256": "43a8b4727c46d582696c63afda7ff8ff2f3a8150337102f10a1aff172fefa77a"
+      "bytes": 21832,
+      "path": "out/round4_logs/before_findings.txt",
+      "sha256": "0dcff245848a4032ff95e80186ec20739aae4072a5169492a51c63ca612d096e"
+    },
+    {
+      "bytes": 817,
+      "path": "out/round4_logs/before_wrapper.txt",
+      "sha256": "16bf30e686a3af8b848932268a5a2267ffe401135b741288fb5be1d2d4abaa34"
+    },
+    {
+      "bytes": 3713,
+      "path": "out/round4_logs/commands.json",
+      "sha256": "0d137f1bae3c98df7ac24f0700b5390609069e815991040a632036604b05e031"
+    },
+    {
+      "bytes": 7294,
+      "path": "out/round4_logs/core_tests.txt",
+      "sha256": "c7479e9b84360444f3993b58b6f4354ec6f5cc1286a015271da2b25a8773c41f"
+    },
+    {
+      "bytes": 1290,
+      "path": "out/round4_logs/default_compat.txt",
+      "sha256": "fa87ce201957b560e3e10875b54affc12f494e82c19aec3e42d7655be7432973"
+    },
+    {
+      "bytes": 1905,
+      "path": "out/round4_logs/existing_enabled.txt",
+      "sha256": "151eaeeabc88701a09373a8bba624496be7d3df254fc5e0df42b5c5a51b60b87"
+    },
+    {
+      "bytes": 8595,
+      "path": "out/round4_logs/full_tests.txt",
+      "sha256": "39fa442c05ada1db215a5ed48b4f64f639e04172954a9260a5a0171d2fb1189a"
+    },
+    {
+      "bytes": 1905,
+      "path": "out/round4_logs/input_existing.txt",
+      "sha256": "07db31262491792e47ada7bad66cf86552828cf63849af00214715239baa8b02"
+    },
+    {
+      "bytes": 2235,
+      "path": "out/round4_logs/input_regressions.txt",
+      "sha256": "662e1dc06aeb47ee9864b4449fa3842fd5ed2393c20cf9408c616aba7f3a1157"
+    },
+    {
+      "bytes": 824,
+      "path": "out/round4_logs/package.txt",
+      "sha256": "52eeff2d2bc07133929f3cd2449242593c8096754cf655e8c85179bfefac75a5"
+    },
+    {
+      "bytes": 3335,
+      "path": "out/round4_logs/published_snapshot_audit.txt",
+      "sha256": "f192100c1c5aee9bdf65eb7dbecc763132719a9312b0337579675ac1e4f5ea18"
+    },
+    {
+      "bytes": 0,
+      "path": "out/round4_logs/wrapper_syntax.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3989,
+      "path": "out/scripts/prove_kit_alias_ids.py",
+      "sha256": "97fca32090c5069ce1f7b39d46b6c5cf1de9b9cd2f04dd9d3485ec9a81c0fd95"
+    },
+    {
+      "bytes": 391,
+      "path": "work/STATUS.md",
+      "sha256": "1f5d73a441b8377f35f78da1e34f369440c5517c847f8a2c916065610a44f21e"
+    },
+    {
+      "bytes": 6237,
+      "path": "work/audit_round4.py",
+      "sha256": "8c6ad0c303db84d026c7ad6ba4a3ea82b73ee65ea23f23337512ec21aa36ff7a"
+    },
+    {
+      "bytes": 5232,
+      "path": "work/check_default_compat.py",
+      "sha256": "dbd43712ddb9ee105d86672018ba05312d559afe87e67fe25541f5396125cd48"
+    },
+    {
+      "bytes": 14323288,
+      "path": "work/evidence/INDEX_round3.jsonl",
+      "sha256": "bdf2d9cef181e5d8ca33775bf2793ef8ced115d97b0dd25fae8495c3bd93944c"
+    },
+    {
+      "bytes": 5376,
+      "path": "work/evidence/package_round4.json",
+      "sha256": "305380494e55368acb3b4a29e8b1cce28a54f70b68d5634d3a71643003683376"
+    },
+    {
+      "bytes": 18585,
+      "path": "work/evidence/published_round4_audit.json",
+      "sha256": "b5b007316c10e4c7121c347cdd078910c8afa340942d44eb890736ecbd24bfcd"
+    },
+    {
+      "bytes": 18645,
+      "path": "work/finalize_round4.py",
+      "sha256": "beee0463361ff71304b0790321012b737aa8fd6936162eaa8b334cd48ed64ddf"
+    },
+    {
+      "bytes": 3779,
+      "path": "work/package_round4.py",
+      "sha256": "2a27428732820444d90f697c55879e37367488647b31ea1b200007ace801fc0e"
+    },
+    {
+      "bytes": 1632,
+      "path": "work/run_tests.py",
+      "sha256": "c339f2f20d1487121019f6a8c91724c6d96ce546b1b9fd701d107a732b3fc891"
+    },
+    {
+      "bytes": 2575,
+      "path": "work/validate_round4.py",
+      "sha256": "8ffbd538613802554086fca9bf01b77795d5798a28856df0e9f6fe94d56afa49"
     }
   ],
-  "findings_fixed": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-  ],
   "package": {
-    "applied_files_identical": 20,
-    "changed_files": [
+    "core_root": "/scratch/jjyeung/orch_n30/so_corpus_fix/work/patchcheck_round4_core",
+    "delivered_files": 23,
+    "full_root": "/scratch/jjyeung/orch_n30/so_corpus_fix/work/patchcheck_round4_full",
+    "input_files": 18,
+    "input_hashes": {
+      "BRIEF_fix1.md": "39afe310fe4a1dc197bc286dca82f334ad668af9bcbb0efceacdc563c7275dc0",
+      "BRIEF_ingest.md": "afdf46fd8691de835aeb79d5e0a7f5f125d98279271768bab482b07927452b4b",
+      "BRIEF_review.md": "59ff00e449c1b2782165823ada6e13dd632467022aca803fc6902fb6d0ec8c58",
+      "BRIEF_review2.md": "2cc3ca9e6a1b05fcbb60d5fdaf5fd5657274113475875996703fd12fcedcb1ff",
+      "HOWTO.md": "e19992a2f45ea8fdbbb73142dc80d9994c3721096a91d4caa2b39e1d28e98b21",
+      "IDENT.txt": "d521ea461cd7359ee14f48710fbf02e9fede1c647fff1a7a196ca3c6124b8725",
+      "INVENTORY.md": "72c01c34dd7d9b26d5291adf53369cb177c6c2caf485be46949b6ce13fd0af5d",
+      "LEFTOVER.md": "c6f55149421f4ed8164701f8a6a06fa96439a0440080557c54397727e0e8b4ef",
+      "REVIEW2_VERDICT.md": "eaf4665e152393452b947000ddd8775b778ee6fea54c189acdc20f9377f97cb7",
+      "SCHEMA.md": "44fb6ed12085feda5f9ec444cf3949e8f4f6caad91898bab98617ed7e9edce08",
+      "add_read.sh": "4aba9a26e4538f5494557769341bde99e46316d9ec2da4a15ccf4462c20d7721",
+      "corpus_score.py": "260c6d4b83980dd9a17a198e6501ba347f529987f5e977fc21ec853ccdb5b7ac",
+      "ingest_read.py": "97bb63d8a6809977e4aa994f27452a6cf3f667fc12ad7cf5efa16aa5c58f69d0",
+      "pub.py": "026f317668f9be921ccb6761512abbbde445f8b8ebfec29f9bcbdaaf83726181",
+      "tests/__init__.py": "3e83db190a91d8282a4eab71e0e6109bc56906f5b9839cf6620f8c00b3832ffd",
+      "tests/test_no_leftovers.py": "60b65239f77f088e0e95d1bfb86346aab1ae205413efce47514370b2f1ff1b6f",
+      "tests/test_real_returns.py": "614799aee7faa12cb7c60ff19c57fd3d3ffbd01e7fcd33b4b93434a0f9578e8f",
+      "tests/test_synthetic.py": "125778a6efc603606916dbfed546f1e9d5ff4b3c63783635679d6868957021d3"
+    },
+    "input_root": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/corpusin",
+    "output_hashes": {
+      "BRIEF_fix1.md": "39afe310fe4a1dc197bc286dca82f334ad668af9bcbb0efceacdc563c7275dc0",
+      "BRIEF_ingest.md": "afdf46fd8691de835aeb79d5e0a7f5f125d98279271768bab482b07927452b4b",
+      "BRIEF_review.md": "59ff00e449c1b2782165823ada6e13dd632467022aca803fc6902fb6d0ec8c58",
+      "BRIEF_review2.md": "2cc3ca9e6a1b05fcbb60d5fdaf5fd5657274113475875996703fd12fcedcb1ff",
+      "HOWTO.md": "4b14128698f093a8ef8690a5bd2065d0f963985d2e8e4e26f242ad2e1a91ab1a",
+      "IDENT.txt": "d521ea461cd7359ee14f48710fbf02e9fede1c647fff1a7a196ca3c6124b8725",
+      "INVENTORY.md": "72c01c34dd7d9b26d5291adf53369cb177c6c2caf485be46949b6ce13fd0af5d",
+      "LEFTOVER.md": "c6f55149421f4ed8164701f8a6a06fa96439a0440080557c54397727e0e8b4ef",
+      "REVIEW2_VERDICT.md": "eaf4665e152393452b947000ddd8775b778ee6fea54c189acdc20f9377f97cb7",
+      "SCHEMA.md": "4843770c5e5c9d6f2da238022243319b3e509cb62b3f5f762ac3b94cc0daa63e",
+      "add_read.sh": "5a88303201c7b65f24659ab7c4bc12f31045ae35978e80e6f97e2d89b5097fc3",
+      "corpus_score.py": "260c6d4b83980dd9a17a198e6501ba347f529987f5e977fc21ec853ccdb5b7ac",
+      "ingest_read.py": "eb0b207c6e4c9d18b258cf579c83c3427ba85d29ebdc0c1043d3566a67e1e94c",
+      "prove_kit_alias_ids.py": "97fca32090c5069ce1f7b39d46b6c5cf1de9b9cd2f04dd9d3485ec9a81c0fd95",
+      "pub.py": "026f317668f9be921ccb6761512abbbde445f8b8ebfec29f9bcbdaaf83726181",
+      "tests/__init__.py": "3e83db190a91d8282a4eab71e0e6109bc56906f5b9839cf6620f8c00b3832ffd",
+      "tests/test_kit_alias_proof.py": "249f90143ca97b2796be06b95cb99319af0127b0ef4bb555e7144a65a184aad3",
+      "tests/test_new_read_wrapper.py": "040b23feb2171b0436daff206432cc7f1597602b5c0626b9c489517818082c38",
+      "tests/test_no_leftovers.py": "60b65239f77f088e0e95d1bfb86346aab1ae205413efce47514370b2f1ff1b6f",
+      "tests/test_real_returns.py": "614799aee7faa12cb7c60ff19c57fd3d3ffbd01e7fcd33b4b93434a0f9578e8f",
+      "tests/test_review2.py": "2a8a63d9fa9583662ad1b3649b4cb4faa4af8fefd305d0abce6d89b4ac81e065",
+      "tests/test_review3.py": "eb42d17051f8bd82c71e9469c00795810aff360c7b4f16a892996e9e0a53ec28",
+      "tests/test_synthetic.py": "125778a6efc603606916dbfed546f1e9d5ff4b3c63783635679d6868957021d3"
+    },
+    "patches": [
       {
-        "input_sha256": "e19992a2f45ea8fdbbb73142dc80d9994c3721096a91d4caa2b39e1d28e98b21",
-        "output_sha256": "f23a1a26f0850d4276c28d7e7675da0acc15aa13a0ee4f10f7866380e8220925",
-        "path": "HOWTO.md"
+        "bytes": 46271,
+        "files": [
+          "ingest_read.py",
+          "SCHEMA.md",
+          "HOWTO.md",
+          "tests/test_review2.py",
+          "tests/test_review3.py"
+        ],
+        "path": "out/patches/01_ingest_review2.diff",
+        "sha256": "5b6afc9ab8d5d709213cd7ce565cab0d51179c3a5c78a799f540fbb0612a66c4"
       },
       {
-        "input_sha256": "44fb6ed12085feda5f9ec444cf3949e8f4f6caad91898bab98617ed7e9edce08",
-        "output_sha256": "95ea45f885563cbc400a7b246ae07f45ec6058fe4a91e2a0d3a4db1259871c69",
-        "path": "SCHEMA.md"
+        "bytes": 2657,
+        "files": [
+          "add_read.sh",
+          "tests/test_new_read_wrapper.py"
+        ],
+        "path": "out/patches/02_add_read_review2.diff",
+        "sha256": "c389e1993303c6d33416a20e7d7ae8f139ccd96aceab77b1df22394ba04da4db"
       },
       {
-        "input_sha256": "97bb63d8a6809977e4aa994f27452a6cf3f667fc12ad7cf5efa16aa5c58f69d0",
-        "output_sha256": "eb0b207c6e4c9d18b258cf579c83c3427ba85d29ebdc0c1043d3566a67e1e94c",
-        "path": "ingest_read.py"
-      },
-      {
-        "input_sha256": null,
-        "output_sha256": "2a8a63d9fa9583662ad1b3649b4cb4faa4af8fefd305d0abce6d89b4ac81e065",
-        "path": "tests/test_review2.py"
-      },
-      {
-        "input_sha256": null,
-        "output_sha256": "60b5add0cda3c42f9cfb2dad3582c3f0be89a1dce575327670086a0e16d0ae2f",
-        "path": "tests/test_review3.py"
+        "bytes": 9381,
+        "files": [
+          "prove_kit_alias_ids.py",
+          "tests/test_kit_alias_proof.py"
+        ],
+        "path": "out/patches/03_kit_alias_proof.diff",
+        "sha256": "91182d7c53327c962871b8d8e023b61b20ecfef1ad9697492ceff4cfef2b8a30"
       }
     ],
-    "delivered_files": 20,
-    "fixed_root": "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool",
-    "input_root": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/corpusin",
-    "original_files": 18,
-    "patch": "out/patches/01_ingest_review2.diff",
-    "patch_bytes": 44066,
-    "patch_sha256": "338cf9e077e9cc5a63cdbcfa59b8dbdf62bd28c048ad057d6bc9f587a3045145",
-    "patchcheck_root": "/scratch/jjyeung/orch_n30/so_corpus_fix/work/patchcheck_round3",
     "unchanged_files": [
       "BRIEF_fix1.md",
       "BRIEF_ingest.md",
@@ -277,7 +379,6 @@
       "INVENTORY.md",
       "LEFTOVER.md",
       "REVIEW2_VERDICT.md",
-      "add_read.sh",
       "corpus_score.py",
       "pub.py",
       "tests/__init__.py",
@@ -286,8 +387,47 @@
       "tests/test_synthetic.py"
     ]
   },
-  "publication_modified": false,
-  "regenerated_index_tool_version_changed_ids": [
+  "production_proof_owner": "corpus owner on trinity-3-30 after scheduling shared I/O",
+  "production_proof_run": false,
+  "proof_files": [
+    {
+      "bytes": 11361709,
+      "path": "reads/17c4ffa4_s100_devS1R0facing_direct_a24ea1a1936.jsonl.gz",
+      "read_id": "17c4ffa4_s100_devS1R0facing_direct_a24ea1a1936",
+      "sha256": "8b4d78c2370489193683456ee573e0d7026a1cb00f1171f3a906dbef3cd39b89"
+    },
+    {
+      "bytes": 11553289,
+      "path": "reads/359fcc3c_s100_devS1R0facing_direct_af35386aa3e.jsonl.gz",
+      "read_id": "359fcc3c_s100_devS1R0facing_direct_af35386aa3e",
+      "sha256": "0c0ada991f36936e25e4e6d384f5cc3c5991b6a9fd946327191d1f3681f68dba"
+    },
+    {
+      "bytes": 4196183,
+      "path": "reads/359fcc3c_s200_devS1facing_direct_a4cadd8934b.jsonl.gz",
+      "read_id": "359fcc3c_s200_devS1facing_direct_a4cadd8934b",
+      "sha256": "8050162e7dba911346a3438e37bdccb90dba10b8160680f1065c6a26cbc1ca55"
+    },
+    {
+      "bytes": 9160234,
+      "path": "reads/673bc60f_s100_devS1R0_direct_a5d2d909067.jsonl.gz",
+      "read_id": "673bc60f_s100_devS1R0_direct_a5d2d909067",
+      "sha256": "13bdd0fb95b4765262c9113735a8a4ca7695ac434845a1f091eea9a72bc7ec35"
+    },
+    {
+      "bytes": 9089478,
+      "path": "reads/673bc60f_s200_devS1R0_direct_a8102c3207b.jsonl.gz",
+      "read_id": "673bc60f_s200_devS1R0_direct_a8102c3207b",
+      "sha256": "6adf517be14f060f469b2815414373bdde738d3c64714c1371973eeef6710ed7"
+    },
+    {
+      "bytes": 662639,
+      "path": "reads/673bc60f_s200_facing_direct_a2e46c0504e.jsonl.gz",
+      "read_id": "673bc60f_s200_facing_direct_a2e46c0504e",
+      "sha256": "dfb9e3f3aea3739834c4281d619d694e0f40161f608e0d0f386b067c068445a2"
+    }
+  ],
+  "regenerated_index_version_changed_ids": [
     "17c4ffa4_s100_devS1R0facing_direct_a24ea1a1936",
     "359fcc3c_s100_devS1R0facing_direct_af35386aa3e",
     "359fcc3c_s200_R0_direct_ae470417b41",
@@ -307,9 +447,6 @@
     "673bc60f_s200_room134_routed_B5",
     "673bc60f_s200_vsti_direct_a35f73e87f0"
   ],
-  "tests_passed": 60,
-  "tests_run": 61,
-  "tests_skipped": 1,
-  "verdict": "PARTIAL",
-  "workspace_bytes_before_final_report": 30981420
+  "verdict": "DONE",
+  "workspace_bytes_before_finalization": 32399160
 }

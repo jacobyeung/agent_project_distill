@@ -1,7 +1,10 @@
+(
+set -e
 L=/scratch/jjyeung/orch_n30/so_git
 mkdir -p "$L/work/realgit_round3_lane"
 for PY in /usr/bin/python3 /scratch/jjyeung/envs/p1cpu/bin/python; do
   LCS_RUN_REAL_GIT_TESTS=1 LCS_REVIEW2_FIXES=1 \
     LCS_REAL_GIT_WORK="$L/work/realgit_round3_lane" LCS_PYTHON="$PY" \
-    bash "$L/work/review_round3_source/tests/run_real_git_owner.sh" || break
+    bash "$L/work/review_round3_source/tests/run_real_git_owner.sh"
 done
+)

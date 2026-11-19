@@ -33,7 +33,7 @@ class Utilities(unittest.TestCase):
         directory=root()
         recipe=native().recipe
         for filename,value in [('receipt.json',inputs(directory)),('manifest.json',{}),
-                               ('config.json',dict(training_mode='final',r1_training=True)),
+                               ('config.json',dict(training_mode='final',r1_training={'fixture':True})),
                                ('plan.json',dict(world_size=1,plans=[plan()]*10))]:
             (directory/filename).write_text(json.dumps(value))
         replay=module('so_data_only',ROOT/'out/kit_timing/data_only.py')

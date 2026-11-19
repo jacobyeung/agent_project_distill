@@ -1,0 +1,53 @@
+--- a/tower_sequence.py
++++ b/tower_sequence.py
+@@ -98,7 +98,10 @@
+  write(Path(config['output'])/'SUMMARY.json',summary)
+  return summary
+ 
+-def memory_bound(*, captures=(84,), allocation_bytes=200*1024**3):
++def memory_bound(*, captures=(84,), allocation_bytes=200*1024**3, read_extensions=False, read_cache_bytes=0):
++ if not read_extensions:read_cache_bytes=0
++ if type(read_cache_bytes) is not int or not 0<=read_cache_bytes<=16*1024**3:
++  raise ValueError('Invalid read cache memory bound')
+  # Fixed G3T contract: at most 64 pose rows and 32 anchor grids. Eight bytes
+  # per scalar covers both float64 poses and the fresh float32 grid outputs.
+  g3t=(64*9+64+32+32*51*51*5+51+2)*8
+@@ -106,11 +109,12 @@
+  runtime_allowance=64*1024**3
+  reads=[dict(read=i,captures=n,memo_bytes=n*per_capture,
+              memo_plus_transient_bytes=(n+3)*per_capture,
+-             host_budget_bytes=(n+3)*per_capture+runtime_allowance) for i,n in enumerate(captures)]
++             host_budget_bytes=(n+3)*per_capture+runtime_allowance+read_cache_bytes) for i,n in enumerate(captures)]
+  return dict(basis='fixed_g3t_shapes',perception_memo_modules=['g3t'],
+              sam_memo_bytes=0,sam_measurement_required=False,g3t_capture_bytes_upper=g3t,
+              python_overhead_bytes_per_capture=1024**2,transient_capture_copies=3,
+              runtime_allowance_bytes=runtime_allowance,job_host_bytes=allocation_bytes,reads=reads,
++             **({'read_cache_bytes':read_cache_bytes} if read_extensions else {}),
+              fits=all(r['host_budget_bytes']<=allocation_bytes for r in reads))
+ 
+ 
+@@ -119,7 +123,12 @@
+  from orchard_h10.common import write
+  settings=json.loads(Path(config['settings']).read_text())
+  if settings['perception_memo_modules']!=['g3t']:raise ValueError('Unsupported operator memo modules')
+- result=memory_bound()
++ options={}
++ if config.get('read_extensions') is True:
++  from e2e_reader.read_cache import cache_bytes,switches
++  cap=cache_bytes(settings) if 'on' in switches(settings).values() else 0
++  options=dict(read_extensions=True,read_cache_bytes=cap)
++ result=memory_bound(**options)
+  write(Path(config['output'])/'metadata/MEMORY.json',result)
+  if not result['fits']:raise ValueError('Perception memo exceeds host memory plan')
+  return result
+@@ -128,6 +137,10 @@
+ def main():
+  cfg=json.loads(Path(sys.argv[1]).read_text());p=Path(cfg['package'])
+  sys.path[:0]=[str(p/'b'),str(p/'tree'),str(p)]
++ if cfg['config'].get('read_extensions') is True:
++  sys.path.insert(0,str(p/'u0'))
++  from a8 import activate
++  activate(enabled=True)
+  from orchard_h10.common import install_process_guard
+  install_process_guard(Path(sys.argv[1]).resolve().parent)
+  if cfg.get('rehearsal'):

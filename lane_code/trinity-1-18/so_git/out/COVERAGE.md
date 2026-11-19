@@ -52,5 +52,8 @@ The mirror contains no `sb_*` or `so_*` lane folders. Their actual inventories, 
 counts, and skipped source cannot be measured from the allowed inputs. The owner must run
 `dry_count.sh` on explicit authorized folders on the node that holds them before new coverage
 is pushed. Running it on an empty or incomplete mirror cannot establish remote coverage.
-Per-folder counts are upper bounds on additive hourly totals because hourly content deduplication
-spans all lanes. Counts do not scan secrets or prove review acceptance; the landing path does.
+Raw per-folder counts are upper bounds on additive hourly totals because hourly content deduplication
+spans all lanes. With `LCS_REVIEW2_FIXES=1`, `hourly_files` and `hourly_bytes` also apply full-path
+substring exclusions across the requested folder boundary. If an excluded representative may hide
+an allowed duplicate, the command refuses the ambiguous count and asks for the containing lane root.
+Counts do not scan secrets or prove review acceptance; the landing path does.

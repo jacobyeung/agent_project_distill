@@ -8,7 +8,7 @@
  
  
  def identity(cfg):
-@@ -1055,6 +1056,9 @@
+@@ -1057,6 +1058,9 @@
  
  class Rows:
      def __init__(self, receipt, processor):
@@ -18,7 +18,7 @@
          from .r2_contract import Admission
          self.r2_admission = Admission(receipt['r2_membership']) if receipt.get('r2_membership') else None
          self.connections = {k: connect(v['database']) for k, v in receipt['streams'].items() if v.get('kind') not in ('mix', 'mdg')}
-@@ -1164,7 +1168,15 @@
+@@ -1170,7 +1174,15 @@
              batch['aux_token_weights'] = torch.cat((torch.zeros_like(shifted[:, :1]), shifted), dim=1)
          return batch, targets, audit
  
@@ -34,7 +34,7 @@
          if self.validation is not None:
              self.validation.close()
          for conn in self.connections.values():
-@@ -1485,6 +1497,13 @@
+@@ -1491,6 +1503,13 @@
      else:
          factor = nominal_slices(model.recipe, plan) if getattr(model, 'training_mode', None) == 'final' else 1
          groups = [plan[start:start + factor] for start in range(0, len(plan), factor)]
@@ -48,7 +48,7 @@
      for group in groups:
          factor = len(group)
          stream, indices = group[0]
-@@ -2864,6 +2883,8 @@
+@@ -2870,6 +2889,8 @@
      # rank 0 hashes and loads assets, may wait longer (a separate gloo group, 60 min).
      dist.init_process_group('gloo' if cpu else 'nccl', timeout=datetime.timedelta(seconds=30 if cpu else 900))
      startup=dist.new_group(backend='gloo', timeout=datetime.timedelta(seconds=30 if cpu else 3600))
@@ -57,7 +57,7 @@
      started=time.monotonic()
      if os.environ.get('TK_JOB_START','').isdecimal():
          # The leg budget counts from the allocation start (kit staging included), so the trainer
-@@ -2875,12 +2896,16 @@
+@@ -2881,12 +2902,16 @@
      if rank==0:
          try:
              values[0]=prepared(cfg,admission=True)
@@ -75,7 +75,7 @@
      # All ranks authenticate the source, without repeatedly hashing large data.
      commit=authenticate(cfg)
      authorization=load(pinned(cfg['authorization'])) if cfg.get('authorization') else {}
-@@ -2892,13 +2917,13 @@
+@@ -2898,13 +2923,13 @@
      processor=processor_for_receipt(manifest,receipt)
      # Parent stages a single authenticated model on node-local storage. Hash once
      # in rank zero; every rank still loads the same immutable base manifest.
@@ -94,7 +94,7 @@
              model=load_model(manifest,receipt,processor,verify_assets=False)
 --- /dev/null
 +++ b/student_pilot/c1_cpu_prefetch.py
-@@ -0,0 +1,162 @@
+@@ -0,0 +1,174 @@
 +"""One CPU producer; admission and every distributed call stay on the training thread."""
 +from concurrent.futures import ThreadPoolExecutor
 +import copy
@@ -130,6 +130,8 @@
 +
 +class Producer:
 +    def __init__(self, factory):
++        from .c1_switches import get, FALLBACK
++        self.fallback = get(FALLBACK) == '1'
 +        self.factory = factory
 +        self.rows = None
 +        self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='c1-row-cpu')
@@ -152,6 +154,8 @@
 +                check(item[0], item[1], stream, model)
 +                held_bytes += tensor_bytes(item)
 +                if held_bytes > MAX_GROUP_TENSOR_BYTES:
++                    if self.fallback:
++                        return None  # Release this whole group; the main thread fetches it synchronously.
 +                    raise ValueError('C1 prefetch group exceeds 1 GiB encoded tensor budget')
 +                result.append((True, item))
 +            except Exception as exc:
@@ -225,14 +229,22 @@
 +            stream = group[0][0]
 +            indices = [part[rank] for _, part in group]
 +            candidates = [index % rows.count(stream) for index in indices]
-+            replay = Replay(rows, stream, candidates, future.result())
++            prepared = future.result()
++            future = None  # Drop the future's retained result before synchronous fallback.
++            if prepared is None:
++                rows._c1_budget_fallback_groups = getattr(rows, '_c1_budget_fallback_groups', 0) + 1
++                replay = rows
++            else:
++                replay = Replay(rows, stream, candidates, prepared)
++            prepared = None
 +            # Original fetch functions retain the MIN all_reduce, its position,
 +            # error text, and the repeated cheap CPU validation on the main thread.
 +            if len(group) == 1:
 +                admitted = [fetch(replay, stream, indices[0], model, device=device, distributed=distributed)]
 +            else:
 +                admitted = fetch_nominal(replay, stream, indices, model, device=device, distributed=distributed)
-+            replay.values = None
++            if isinstance(replay, Replay):
++                replay.values = None
 +            # Do not speculate past an unadmitted group. A row failure therefore
 +            # makes precisely the same get calls as the synchronous path, even on
 +            # the healthy rank, and raises at the same nominal microstep boundary.
@@ -259,11 +271,12 @@
 +    return lambda: Rows(receipt, processor)
 --- /dev/null
 +++ b/student_pilot/c1_switches.py
-@@ -0,0 +1,53 @@
-+"""Validate and freeze the three optional performance switches before model load."""
+@@ -0,0 +1,69 @@
++"""Validate and freeze the optional performance switches before model load."""
 +import os
 +
 +NAMES = ('C1_CPU_PREFETCH', 'C1_DECODED_CACHE_MIB', 'C1_BATCH_METRICS')
++FALLBACK = 'C1_CPU_PREFETCH_FALLBACK'
 +_frozen = None
 +
 +
@@ -275,11 +288,26 @@
 +                raise ValueError(name + ' must be 0 (OFF) or 1..4096')
 +        elif value not in ('0', '1'):
 +            raise ValueError(name + ' must be 0 or 1')
-+    return tuple(str(int(value)) for value in values)
++    fallback = os.environ.get(FALLBACK, '0')
++    if fallback not in ('0', '1'):
++        raise ValueError(FALLBACK + ' must be 0 or 1')
++    if fallback == '1' and values[0] != '1':
++        raise ValueError(FALLBACK + ' requires C1_CPU_PREFETCH=1')
++    values = tuple(str(int(value)) for value in values)
++    # Preserve the original three-value startup payload unless fallback is ON.
++    return values + ('1',) if fallback == '1' else values
 +
 +
 +def get(name):
-+    return (_frozen if _frozen is not None else parse())[NAMES.index(name)]
++    values = _frozen if _frozen is not None else parse()
++    if name == FALLBACK:
++        return values[3] if len(values) == 4 else '0'
++    return values[NAMES.index(name)]
++
++
++def record():
++    values = _frozen if _frozen is not None else parse()
++    return {'performance': dict(zip(NAMES + (FALLBACK,), values))} if any(v != '0' for v in values) else {}
 +
 +
 +def prefetch_supported(model, streams=()):
@@ -924,14 +952,15 @@
          cfg = paired_cfg(root(), reference)
 --- a/tests/test_carrier_c1_t0.py
 +++ b/tests/test_carrier_c1_t0.py
-@@ -306,6 +306,10 @@
- 
+@@ -307,6 +307,11 @@
  
  class ExportLeg(unittest.TestCase):
+     """The 'x' leg restores a run's newest resume state under that run's binding and exports m<step>."""
++
 +    def setUp(self):
 +        from tests.so_helpers import reset_switches
 +        reset_switches(self)
 +
-     """The 'x' leg restores a run's newest resume state under that run's binding and exports m<step>."""
      BOUND = dict(config_sha256='a'*64, preparation={'path': '/p/receipt.json', 'sha256': 'b'*64},
                   trainer_commit='c'*40, world_size=32)
+ 

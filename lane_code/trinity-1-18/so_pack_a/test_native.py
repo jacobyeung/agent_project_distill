@@ -60,6 +60,11 @@ else:
     # Structural mode changes only a disposable probe copy and authenticates no live archives.
     fixture,small=T.fixture(w/'tiny');check_cfg=dict(small,work=cfg['work'],builder=coherent_cfg['builder'],fill_mode='structural')
     binding=P.structure(built['package'])[3]['export_binding']
+    binding_path=T.D/'bind_D200.json';full_binding=P.read(binding_path)
+    check_cfg['export_binding_pin']=dict(path=str(binding_path),sha256=P.file_digest(binding_path))
+    check_cfg['dependency_reference']=dict(path=str(T.B5/'a/0.json'),sha256=P.file_digest(T.B5/'a/0.json'))
+    check_cfg['remote_input_pins']=dict(small['remote_input_pins'])
+    for path,pin in zip(small['fill']['parts'],full_binding['parts']):check_cfg['remote_input_pins'][path]=dict(bytes=pin['bytes'])
     check_cfg['fill']=dict(small['fill'],**{k:binding[k] for k in ('object','step','lineage')})
     check_cfg['remote']=dict(small['remote'],walltime='04:00:00')
     for key,name in [('cpu','o_cpu_D.sh'),('gpu','o_sub_D.sh')]:

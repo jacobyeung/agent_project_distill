@@ -19,7 +19,7 @@
 +    except (P.Rejected,OSError,KeyError) as e:print('REJECTED: '+str(e),file=sys.stderr);sys.exit(1)
 --- /dev/null
 +++ b/out/CHECK_INVENTORY.md
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,55 @@
 +# CPU and release check inventory
 +
 +The wrapper runs the implemented per-delivery gates below before it prints an executable release plan. The source harness and production-data gaps are listed explicitly; this delivery is not a complete production release certification. A missing local input fails this gate; it never moves that check to after placement. Mirror mode authenticates the same archive bytes; explicit structural mode substitutes tiny pinned stand-ins and defers live identity to native fill and job.stage. Fixture results establish the checker, not the availability of a production export.
@@ -36,8 +36,8 @@
 +| `a/6.py memory_bound`: fixed shapes, capture counts, allocation fit and too-small allocation rejection | Yes | Real resident memory during full staged reader |
 +| `a/5.py validate_full_reader`: CPU read count, set/item/type, 32 frames, completion/EOS and score agreement | Exact validator and malformed synthetic receipt fixtures run locally; actual full-reader execution was not run | Producing the real FULL_READER receipt needs the export/RGBs/job venv, unavailable here; this could run on Trinity if identical inputs and environment were staged |
 +| `o_sub_A4/B5/D.sh`: CPU receipt hashes, bundle/entry event order, 4 MiB evidence hash, memory equality, FULL_READER equality and per-package identities | Receipt predicates, script sealing, native 8.py submit with stub sbatch, and the temporary pool walk run locally under 3.6.8 | Successful actual CPU allocation/receipt, sacct terminal state, general queue empty, actual return pool <=75 MB, duplicate submit marker |
-+| `dry2.py`, `dry2b.py`: payload/member/bundle checks, export pins, prep members/hashes, binding, archive0, policy and environment resolution, settings/operator/types/items/memory, submit job name | Yes; covered by structure, fill, archive resolver, logic and guard gates | Mirror mode needs authenticated mirrors; structural mode proves the predicates on stand-ins |
-+| `dryres.py`, `dryres2.py`, `dryres_d.py`: ordered parts, tar headers, unique regular member resolution, sizes, policy authorization, preserved base slots and appended prep tar | Yes; resolver checks stronger full file hashes as well | No extra dependency |
++| `dry2.py`, `dry2b.py`: payload/member/bundle checks, export pins, prep members/hashes, binding, archive0, policy and environment resolution, settings/operator/types/items/memory, submit job name | Translated predicates run through structure, fill, resolver, logic and guard; unchanged dry2/dry2b need the absent fixed policy archive | Mirror mode needs authenticated mirrors; structural mode proves the predicates on stand-ins |
++| `dryres.py`, `dryres2.py`, `dryres_d.py`: ordered parts, tar headers, unique regular member resolution, sizes, policy authorization, preserved base slots and appended prep tar | Pinned dryres_d.py runs unchanged under 3.6.8 on the filled copy, with path redirection; the independent resolver also checks full file hashes | No extra dependency |
 +| `check_release_d.py`: embedded assets equal source, 200/544 deliveries/pins, metadata, compile, walltime rejection, dry header fixture, wrong reused part rejection | Source/embedded equality is a required per-delivery gate. The complete unchanged checker runs separately with W redirected locally; raw input fails, coherent fixture passes | None |
 +| `run_release_gates.py`: release package, bundle guard, operator sequence, memory, return/stop, CPU helper and room pair/labels | Package helper assertions run separately. Referenced test_sequence, test_operator_memory, test_fixes, test_cpu_helper, test_room_pair and test_room_pair_labels harness files were not supplied at the referenced release paths; their complete assertions are unverified | Full staged reader subset as above |
 +| `BATCH.sh` EXIT capture and USR1 forwarding, `runner.run` stop marker/partial summary | Yes; execute exact wrapper with bounded failing child and exact native runner with a cooperative tiny child | Slurm delivering `--signal=B:USR1@1800`, scheduler teardown and real trainer-rank cooperation |
@@ -72,10 +72,12 @@
 +
 +The D submit receipt predicates (`cont_ops18/dbuild/o_sub_D.sh:16–50`) check: overall/bundle/entry pass flags; payload/plan/operator/input hashes; guard path/target/action; operator and batch hashes; entry events and unchanged operator; pool and token; integer 4 MiB size and 64 hexadecimal SHA; guard-target SHA; equality of guard and entry evidence; requested/dispatched argv; MEMORY file equality, fit, basis, module list and measurement flag; FULL_READER pass, native validator, exact item pairs/types, native memory equality, and FULL_READER file equality. `receipt` executes the selected native submit Python body on synthetic positive and corrupt receipts. That proves predicate wiring, not a real CPU run.
 +
-+The unavailable routed harnesses prevent a claim that *every* original source-harness assertion has been reproduced. All listed dry predicates applicable to the supported full-five, room and D distance families now run on the built bytes. Real full-reader/export/RGB checks also remain unrun because their production inputs are absent.
++The unavailable routed harnesses prevent a claim that *every* original source-harness assertion has been reproduced. Translated dry predicates cover the supported full-five, room and D distance families on the built bytes; unchanged native dryres_d.py adds its own resolution checks. dry2/dry2b have not run unchanged. Real full-reader/export/RGB checks also remain unrun because their production inputs are absent.
++
++The fill gate also checks the complete export binding against sealed fields and REVIEWED constants, every part size and their sum. Structural mode hashes real archives[1:] and all file pins against a pinned Orchard-proven reference before rebinding. Remote preflight checks the .done triple and all three preparation hashes before placement; ledger reservation is enforced before preflight. See NOTE_FOR_CONT_OPS.md and ORCHARD_ONLY_CHECKS.md for the exact visible-surface rule and live limits.
 --- /dev/null
 +++ b/out/DEFECT_MATRIX.md
-@@ -0,0 +1,38 @@
+@@ -0,0 +1,55 @@
 +# Review and defect regression map
 +
 +| Review finding | Regression | Outcome |
@@ -114,6 +116,23 @@
 +| 11: login delivery and ledger gaps | Place the recorded BUILD delivery in the login probe; require an operator ledger reservation before place | test_r11_login_exact_delivery and test_r6_operational_inventory |
 +
 +No HIGH, MEDIUM or LOW finding is deferred. Missing production data and routed harness files are named in REQUIRED_INPUTS.json; check_required_inputs.py refuses absent local groups by name. A structural result does not certify production archive identity or a real full-reader run.
++
++## Review round 2: finding -> fix -> test
++
++| Finding | Fix or remaining limit | Regression |
++|---|---|---|
++| 1 MEDIUM | Check each export part size against the binding and its sum against REVIEWED_ARCHIVE_BYTES. Preflight reads the REVIEWED .done triple and hashes all three preparation files before place.attempt. A missing complete binding requires export_binding_pin. | test_01_wrong_part_pins_at_check; test_01_wrong_part_sum; test_01_missing_binding_parts_names_input; test_01_wrong_done_before_place_attempt; test_01_wrong_preparation_before_place_attempt |
++| 2 LOW | Hash the real dependency archives and dependency file pins against the pinned Orchard-proven B5 reference before substituting tiny archives. | test_02_dropped_real_dependency |
++| 3 LOW | Require the built token in the Trinity ledger before even calling preflight. | test_03_unreserved_token_before_preflight |
++| 4 LOW | Validate every --job-name / -J value; reject every --comment. | test_04_all_job_names_and_no_comments |
++| 5 LOW | State the exact forbidden-word rule in NOTE and REPORT. | test_05_exact_forbidden_rule_documented |
++| 6 LOW | Add check 6(a–e) rows and state that the third consecutive accounting error aborts. | test_06_five_rows_and_error_limit |
++| 7 LOW | Poll tails 8192 bytes per CPU stderr/stdout file for terminal failures; the local exception includes that text. | test_07_failed_cpu_returns_log_text |
++| 8 INFO | Execute the SHA-pinned native dryres_d.py unchanged under 3.6.8 on filled local inputs. dry2/dry2b predicates remain translated: their fixed production policy archive is absent. | test_08_pinned_native_harness_is_executed; positive fill results contain native_dry.result |
++| 9 INFO | Pass the caller's HOME and SSH_AUTH_SOCK to the local transport. Remote HOME=/tmp remains a documented live-environment difference. | test_09_transport_uses_caller_identity |
++| 10 INFO | bash -n validates the detached fill body; receipt reports its actual wrapper interpreter and its 3.6.8 predicate interpreter separately. Round-2 before-fix regressions fail on the defect, with no KeyError. The guard test observes the launched interpreter; the login test observes the SHA of the bytes passed to place. | test_10_fill_body_bash_syntax; test_10_receipt_interpreter_label; test_r6_login_runtime_guard_submit_pool; test_r11_login_exact_delivery; before.log and before_evidence.log |
++
++The login/fill probes still run several native steps inside one isolated 3.6.8 interpreter with the pack path on sys.path. Separating each step while preserving filesystem redirection and the sbatch stub requires more than the requested small INFO fix; live process isolation remains untested. The D scorer mismatch, budget_fits=false, absent full r10 build, B4 root cause, and trainer-rank USR1 remain open.
 --- /dev/null
 +++ b/out/FRAMEWORK_SOURCES.md
 @@ -0,0 +1,11 @@
@@ -130,88 +149,122 @@
 +All relative torch paths above are under `/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/`. These installed lines and the versioned official documentation were checked for this review fix; no package was downloaded or installed.
 --- /dev/null
 +++ b/out/NOTE_FOR_CONT_OPS.md
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,51 @@
 +# Step-600 packaging
 +
-+1. Pin the native builder, source delivery, items, step-600 binding and CPU/GPU scripts. Supply a current Trinity ledger and a coherent D source/embedded release; the supplied scorer mismatch remains blocked. For r10, supply both original deliveries and A's base/filled inputs. `REQUIRED_INPUTS.json` names missing inputs. `check_required_inputs.py --manifest out/REQUIRED_INPUTS.json --group production_build` checks availability; use `r10` or `routed_harness` for those groups. Availability does not certify the missing suites.
-+2. Set `fill_mode: "structural"` to check native fill/resolution with tiny pinned stand-ins. Production identity remains with native fill and `job.stage`. Default mirror mode requires actual bytes: the review's B5 inventory totals **33,410,549,760 bytes**, with about **155 GB of reads estimated by the review**. Its default read budget is 1 GiB; `check_timeout` defaults to 240 seconds per probe (the example explicitly sets 300). Large Trinity IO needs authorization; transfers above 30 GB need an admin plan.
-+3. Run `pack.py build --enable --config CONFIG --token HEX`, then `pack.py check --enable --config CONFIG`, using the specified CPU Python with `-I -s -B`. Token adaptation requires `--enable-token`. BATCH must set `umask 077`; optional `normalize_wrapper: true` adds it and retains head-to-sed normalization. The scanner accepts system `head` without normalization. All switches default OFF. Guard, place, fill, entry check, `8.py submit` with stub sbatch, and pool predicates execute locally under `/usr/bin/python3` 3.6.8.
-+4. Have the Orchard lane independently stage the actual parts `0..3`, `.done` receipt `5`, and preparation `7/8/9`; configure their exact sizes in `remote_input_pins`. Native `place_fill_d.py:66–108` documents `REUSE_PARTS_FROM`, `PREP_FROM`, and verified GCS pull. Its whole driver also places/fills: **do not combine it with pack place for the same token**. Pack does not fetch inputs. Its read-only size preflight runs before placement; when running printed commands manually, run `commands/preflight.sh` first.
-+5. Reserve the built token and delivery SHA in the **Trinity ledger before place**; pack does not append it. `place`/`fill` require `--execute-remote` to execute. Fill detaches, polls at least 60 seconds apart, and writes `a/1.txt` last. Inspect `a/f.log` and `a/f.exit`; call timeout is at most 300 seconds and `fill_wait` defaults to 1800. Never relaunch after an uncertain timeout.
-+6. `submit` requires `--yes --token HEX`; it waits for CPU completion before GPU gates. After a refusal before submission, use `gpu` with the same flags to recheck COMPLETED and CPU.json. Native `a/8.txt` and persistent `a/g.lock` prevent duplicate/uncertain submission. Reconcile an existing lock manually. No remote test ran here. Production archive/RGB/environment checks, missing harnesses, GPU behavior and trainer USR1 remain unverified; see ORCHARD_ONLY_CHECKS.md. D's native fixture estimates 19,595 seconds and reports `budget_fits=false` for four hours.
++1. Pin the builder, source delivery, items, step-600 binding and CPU/GPU scripts. Supply a current Trinity ledger and a coherent D source/embedded release. The supplied scorer mismatch blocks use. REQUIRED_INPUTS.json names unavailable inputs; check_required_inputs.py checks the production_build, r10 and routed_harness groups by name.
++2. Supply export_binding_pin.path and .sha256 for the complete builder binding: the native D delivery omits parts[].bytes from its plan. Check compares that binding with every sealed binding field and the REVIEWED triple. Set remote_input_pins to its part sizes and the exact metadata sizes. Set dependency_reference to the pinned B5 a/0.json (Orchard-proven), and native_dry to pinned dryres_d.py. The example contains the available reference and harness pins; the step-600 binding remains required.
++3. Use explicit fill_mode="structural" for tiny fill/resolver stand-ins. It checks real dependency layout first and reports production_archive_identity=false. Mirror mode defaults to a 1 GiB read budget and needs actual archives. The review reports 33,410,549,760 bytes of B5 inputs and estimates 155 GB of reads. Heavy Trinity IO needs permission; transfers above 30 GB need an admin plan.
++4. Run build, then check, with pack.py --enable --config CONFIG and the explicit --token HEX at build. Use the specified CPU Python with -I -s -B. All production changes are opt-in; token adaptation requires --enable-token. BATCH requires umask 077; normalize_wrapper=true adds it. check_timeout defaults to 240 seconds per probe (300 in the example).
++5. Have the Orchard lane stage parts 0..3, receipt 5 and preparation 7/8/9. Native place_fill_d.py documents REUSE_PARTS_FROM / PREP_FROM or a verified GCS pull; its whole driver owns place/fill too, so do not share that token with pack place. Pack does not fetch inputs. Reserve the built token and delivery SHA in the Trinity ledger before place. Pack enforces token presence but does not append the reservation. Thus all --execute-remote refuses until this separate reservation exists. Prefer separate build/check/place calls.
++6. place --execute-remote runs read-only size, .done and preparation-hash preflight before place.attempt. If using printed scripts manually, run preflight.sh first; manual scripts do not enforce the local ledger check. Fill detaches, polls at 60-second intervals and writes a/1.txt last. Inspect a/f.log and a/f.exit. Calls time out at 300 seconds; fill_wait defaults to 1800 seconds. Never relaunch after an uncertain timeout.
++7. submit and gpu require --yes --token HEX. Native CPU completion and CPU.json gate GPU submission; use gpu after a safe queue refusal without repeating CPU submission. CPU terminal failures include the tails of a/4.err and a/4.log. Reconcile persistent a/g.lock manually. job.stage verifies real archives. Local 3.6.8 tests include 8.py submit with stub sbatch; no live SSH or Slurm test runs here. Remote HOME=/tmp differs from native runs. D estimates 19,595 GPU-seconds and budget_fits=false for four hours.
++
++## Forbidden-word rule
++
++- (a) Job name: every sbatch job name fully matches `^a15_cot_ap[a-f][0-9a-f]{10,15}$`, and no `--comment` is passed.
++- (b) Terms: native `orchard_h10/common.py` FORBIDDEN, plus pack's 9 extras (pack.py:7), plus `forbidden_extra`. Match case-insensitively, as substrings.
++- (c) Apply the terms to:
++  - every sbatch argument and `#SBATCH` value;
++  - the argv, cwd and env name=value of every login-node and job process (pack's phase-script words and fill argv, plus the native runtime guard);
++  - every path component created or referenced on Orchard storage: the package dir, top-level and `a/*` names, fill outputs, staged inputs, pool, return, capture and log names.
++- (d) Exempt:
++  - member names and bytes inside 0.tgz, the dependency and preparation archives, and the BATCH.sh bundle;
++  - file contents;
++  - Python stdin heredoc bodies;
++  - comments;
++  - log contents;
++  - the command word of the listed utilities.
++
++  Protect these by containment instead: 0700 directories, 0600 files, `umask 077` in every phase and in BATCH.sh, and the job temp dir `/tmp/a<job><token>` created 0700.
++- (e) Keep the all-bytes `old_identities` scan. It is a stale-identity gate, not a privacy rule.
++
++The listed utilities are `head tail sed awk cat wc df hostname nvidia-smi sacct squeue sbatch python3 bash env timeout`. The sealed shell may use `--job-name="${P##*/}"`; the planner binds P to the validated package name before execution. Substring matches such as `--noheader` and `unknown` still refuse, as the rule requires.
++
++## Review round 2: finding -> fix -> test
++
++| Finding | Fix or remaining limit | Regression |
++|---|---|---|
++| 1 MEDIUM | Check each export part size against the binding and its sum against REVIEWED_ARCHIVE_BYTES. Preflight reads the REVIEWED .done triple and hashes all three preparation files before place.attempt. A missing complete binding requires export_binding_pin. | test_01_wrong_part_pins_at_check; test_01_wrong_part_sum; test_01_missing_binding_parts_names_input; test_01_wrong_done_before_place_attempt; test_01_wrong_preparation_before_place_attempt |
++| 2 LOW | Hash the real dependency archives and dependency file pins against the pinned Orchard-proven B5 reference before substituting tiny archives. | test_02_dropped_real_dependency |
++| 3 LOW | Require the built token in the Trinity ledger before even calling preflight. | test_03_unreserved_token_before_preflight |
++| 4 LOW | Validate every --job-name / -J value; reject every --comment. | test_04_all_job_names_and_no_comments |
++| 5 LOW | State the exact forbidden-word rule in NOTE and REPORT. | test_05_exact_forbidden_rule_documented |
++| 6 LOW | Add check 6(a–e) rows and state that the third consecutive accounting error aborts. | test_06_five_rows_and_error_limit |
++| 7 LOW | Poll tails 8192 bytes per CPU stderr/stdout file for terminal failures; the local exception includes that text. | test_07_failed_cpu_returns_log_text |
++| 8 INFO | Execute the SHA-pinned native dryres_d.py unchanged under 3.6.8 on filled local inputs. dry2/dry2b predicates remain translated: their fixed production policy archive is absent. | test_08_pinned_native_harness_is_executed; positive fill results contain native_dry.result |
++| 9 INFO | Pass the caller's HOME and SSH_AUTH_SOCK to the local transport. Remote HOME=/tmp remains a documented live-environment difference. | test_09_transport_uses_caller_identity |
++| 10 INFO | bash -n validates the detached fill body; receipt reports its actual wrapper interpreter and its 3.6.8 predicate interpreter separately. Round-2 before-fix regressions fail on the defect, with no KeyError. The guard test observes the launched interpreter; the login test observes the SHA of the bytes passed to place. | test_10_fill_body_bash_syntax; test_10_receipt_interpreter_label; test_r6_login_runtime_guard_submit_pool; test_r11_login_exact_delivery; before.log and before_evidence.log |
++
++The login/fill probes still run several native steps inside one isolated 3.6.8 interpreter with the pack path on sys.path. Separating each step while preserving filesystem redirection and the sbatch stub requires more than the requested small INFO fix; live process isolation remains untested. The D scorer mismatch, budget_fits=false, absent full r10 build, B4 root cause, and trainer-rank USR1 remain open.
 +
 +## Review round 1: finding -> fix -> test
 +
-+| Finding | Fix | Test |
-+|---|---|---|
-+| 1 | Detached fill and polling | test_r1_detached_slow_fill |
-+| 2 | Structural stand-ins | test_r2_structural_without_archive_mirrors |
-+| 3 | Actual D build, seven probes and D scripts | test_native.py; test_r3_actual_D_integration |
-+| 4 | Size preflight before placement | test_r4_readonly_preflight_precedes_place |
-+| 5 | Command-only utility exemption | test_r5_system_command_only |
-+| 6 | Staging/hash documentation and 3.6 execution | test_r6_login_runtime_guard_submit_pool; test_r6_operational_inventory |
-+| 7 | Production module import | test_r7_production_module_import |
-+| 8 | GPU-only guarded retry | test_r8_gpu_only_retry |
-+| 9 | Python-stdin heredocs only | test_r9_only_python_stdin_heredocs |
-+| 10 | Keep native source-drift refusal | test_native.py |
-+| 11 | Exact delivery and ledger prerequisite | test_r11_login_exact_delivery; test_r6_operational_inventory |
++Detached fill, structural stand-ins, actual D checks, staged-input preflight, command-only utility exemptions, 3.6 execution, production module imports, GPU-only retry, Python-stdin heredoc restrictions and exact-delivery checks remain covered by test_review.py. Native scorer drift remains a refusal tested by test_native.py. The test suite also checks the Trinity ledger prerequisite and the operator inventory.
 --- /dev/null
 +++ b/out/ORCHARD_ONLY_CHECKS.md
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,44 @@
 +# Checks requiring Orchard or missing production inputs
 +
-+The local structural check tests packaging logic without authenticating large production archives. CHECK.json records `production_archive_identity: false`. Default mirror mode still requires every pinned local archive. Both modes leave the delivery intact and require all phase scripts to validate before transport.
++Structural mode checks the real dependency metadata against the pinned B5 reference, then substitutes tiny archives. CHECK.json reports production_archive_identity=false; its native dryres_d result covers those stand-ins. This does not authenticate staged production bytes.
 +
-+| Live check | Why it remains live | Failure evidence |
++| Check | Local coverage and remaining live requirement | Failure evidence |
 +|---|---|---|
-+| Stage export parts, `.done`, preparation and dependency archives | The packaging command does not fetch them. The native place_fill_d.py uses REUSE_PARTS_FROM / PREP_FROM or a GCS pull; its whole driver owns placement too and must not share a token with pack place | Read-only remote size preflight refuses a missing or wrong-sized input before place; remote_input_pins must name every fill input |
-+| Fresh token and private modes | The Trinity ledger cannot prove Orchard directory state | Reserve the token in the Trinity ledger before place; atomic package mkdir rejects a used token |
-+| Fill duration and real export identity | Native a/4.py streams and hashes all export bytes; production duration is unmeasured here | Detached fill, a/f.log, a/f.exit, and final a/1.txt; short calls at least 60 seconds apart, 300-second call timeout, explicit 1800-second default fill_wait. Expiration stops without relaunch |
-+| Live dependency-archive hashes | Login 3.py check compares sizes only. Matching stand-ins or mirrors do not prove Orchard copies match | Native job.stage checks part, archive and member hashes in the CPU job before GPU submission; inspect a/4.log, a/4.err and CPU.json |
-+| Allocated node storage, namespace and bwrap support | Mount policy, free disk and real node environment depend on the allocation | Native CPU failure and readable stdout/stderr; no GPU submission without completion and CPU.json |
-+| Real full-reader/export/RGB/environment checks | Identical production bytes and job environment are absent here; these could run on Trinity if supplied and authorized | Native FULL_READER and MEMORY receipts plus journal; synthetic receipt tests prove predicates only |
-+| Real return-pool access and persistence | A local temporary pool cannot prove shared storage permissions or quota | Native guarded write and pool refusal before the GPU lock |
-+| CPU scheduling, sacct and general queue | These are live scheduler state | Short CPU submission/poll/GPU calls. Only explicit sacct-unavailable status 75 is tolerated, at most three consecutive errors; transport errors stop |
-+| GPU submission and retry ambiguity | Another lane may occupy general; transport can fail after sbatch accepts | gpu action rechecks COMPLETED and CPU.json without resubmitting CPU. Native a/8.txt plus a/g.lock block duplicate or uncertain submission |
-+| Slurm USR1 delivery and production ranks | Local shell and read-runner signals do not prove --signal=B:USR1@1800 delivery, teardown or trainer-rank cooperation | BATCH EXIT capture stores node, exit status and last 60 lines in a/x<job>; returned journals show partial work |
-+| Real GPU compute and memory | Tests use CPU only | Production CPU/GPU receipts and measured memory; no timing or GPU-memory claim from stand-ins |
++| 6(a): staged content identity | check binds part sizes to the complete pinned binding and REVIEWED_ARCHIVE_BYTES. Preflight checks all sizes, the .done triple and the three preparation SHA256s. Same-sized wrong export parts require native whole-export hashing; dependencies require job.stage. A valid receipt is not proof of part bytes. | Wrong .done/preparation refuses before place.attempt. Native fill records a/f.log and a/f.exit; CPU stage records a/4.err and a/4.log. A change after preflight remains possible. |
++| 6(b): structural dependency layout | Real archives[1:] and dependency file pins must hash to the pinned Orchard-proven B5 reference before synthetic replacement. B5/D have five real dependency archives; the tiny resolver uses four synthetic groups. Actual archive members remain live-only. | Dropped, reordered or changed dependencies refuse on Trinity. Native job.stage verifies actual member ownership and hashes. |
++| 6(c): ledger reservation | Build requires token absence; place requires presence in the current Trinity ledger before preflight. The operator records token and delivery SHA between these actions. The check enforces token presence only, not ledger locking or SHA format. | Missing reservation refuses without place.attempt. all --execute-remote cannot self-reserve. Atomic Orchard mkdir detects an already-used remote token. |
++| 6(d): CPU failure text | The poll script tails 8192 bytes from each of a/4.err and a/4.log on a terminal non-COMPLETED state; execute includes stderr in its refusal and retains call JSON. | A failed CPU job exposes its state and captured failure text. Missing log files produce tail diagnostics; a total transport outage can prevent retrieval. |
++| 6(e): transport and remote environments | Transport inherits caller HOME and SSH_AUTH_SOCK. The remote env -i shell and HEADER still set HOME=/tmp, with no inherited locale or agent socket. These settings reach --export=ALL jobs and native GPU submission. Live authentication and HOME-dependent behavior remain untested. | First live call is read-only preflight. Transport errors stop; inspect call_*.json. Guard/cache checks pass under the locally reproduced environment only. |
++| Stage export, .done and preparation | Pack does not fetch inputs. place_fill_d.py documents REUSE_PARTS_FROM / PREP_FROM or GCS staging; its complete driver also owns placement and must not share pack's token. | Named remote-input size/content preflight refuses absent or inconsistent metadata. |
++| Private modes and token uniqueness | Local place tests 0700 directories and 0600 files; only Orchard knows current directory state. | Atomic mkdir and the phase EXIT trap refuse or expose failures. |
++| Fill duration | Production whole-export hashing duration is unmeasured. | Detached fill, a/f.log, a/f.exit and final a/1.txt; polls at least 60 seconds apart, call timeout at most 300 seconds, default fill_wait 1800 seconds. Expiration stops without relaunch. |
++| Node storage, namespaces and bwrap | Allocation disk and mount policy require the real node. | Native CPU logs and CPU.json; no GPU submission without completion and receipt. |
++| Real full-reader/export/RGB/environment | Actual bytes and job venv are unavailable; receipts here are synthetic. | Native FULL_READER, MEMORY and journals. Missing local inputs refuse by name. |
++| Return-pool persistence | A temporary local pool cannot establish live permissions or quota. | Native guarded writes and pool refusal before the GPU lock. |
++| CPU scheduling, sacct and queue state | Slurm remains live-only. Only explicit sacct-unavailable exit 75 is tolerated twice; the third consecutive error aborts. Transport errors stop immediately. | Short calls retain stdout, stderr and status; unknown terminal states refuse. |
++| GPU submission ambiguity | Queue state can change; a connection can fail after sbatch accepts. | gpu rechecks COMPLETED and CPU.json; a/8.txt and a/g.lock block duplicate or uncertain submission. |
++| Slurm USR1 and trainer ranks | Local BATCH/read-runner signals do not prove --signal=B:USR1@1800 delivery or trainer-rank cooperation. | BATCH EXIT capture preserves node, exit and the last 60 lines in a/x<job>; returned journals expose partial work. |
++| Real GPU memory and performance | CPU checks cannot measure GPU behavior. | Production receipts and measurements are required. |
 +
-+The following checks run on Trinity under the actual `/usr/bin/python3` **3.6.8**: generated place, native fill, `3.py check`, the native CPU guard/dispatch helper, `8.py submit` with a stub `sbatch`, and the native pool-walk heredoc over a temporary pool. The pool test includes a positive directory and an injected oversized stat result. Submit uses the delivered BATCH bytes and records a synthetic job receipt. None of these tests calls Slurm. The full CPU job's model environment remains untested.
++Under real /usr/bin/python3 3.6.8, local tests execute generated place, preflight, native fill, 3.py check, guard/dispatch, 8.py submit with stub sbatch, pool predicates, native dryres_d.py and the receipt predicate. The receipt constructor and validator run under CPU Python 3.12 and report that interpreter separately. Login/fill still share an interpreter across native steps. No local test invokes Slurm. CPU/BATCH traps preserve failure text; the B4 root cause is unknown.
 +
-+All calls retain stdout, stderr and exit status locally. The remote phase EXIT trap exposes the failing line; BATCH's EXIT trap preserves failure text even before a result archive exists. The B4 three-second cause and trainer-rank USR1 defect have no claimed repair.
++## Review round 2: finding -> fix -> test
++
++| Finding | Fix or remaining limit | Regression |
++|---|---|---|
++| 1 MEDIUM | Check each export part size against the binding and its sum against REVIEWED_ARCHIVE_BYTES. Preflight reads the REVIEWED .done triple and hashes all three preparation files before place.attempt. A missing complete binding requires export_binding_pin. | test_01_wrong_part_pins_at_check; test_01_wrong_part_sum; test_01_missing_binding_parts_names_input; test_01_wrong_done_before_place_attempt; test_01_wrong_preparation_before_place_attempt |
++| 2 LOW | Hash the real dependency archives and dependency file pins against the pinned Orchard-proven B5 reference before substituting tiny archives. | test_02_dropped_real_dependency |
++| 3 LOW | Require the built token in the Trinity ledger before even calling preflight. | test_03_unreserved_token_before_preflight |
++| 4 LOW | Validate every --job-name / -J value; reject every --comment. | test_04_all_job_names_and_no_comments |
++| 5 LOW | State the exact forbidden-word rule in NOTE and REPORT. | test_05_exact_forbidden_rule_documented |
++| 6 LOW | Add check 6(a–e) rows and state that the third consecutive accounting error aborts. | test_06_five_rows_and_error_limit |
++| 7 LOW | Poll tails 8192 bytes per CPU stderr/stdout file for terminal failures; the local exception includes that text. | test_07_failed_cpu_returns_log_text |
++| 8 INFO | Execute the SHA-pinned native dryres_d.py unchanged under 3.6.8 on filled local inputs. dry2/dry2b predicates remain translated: their fixed production policy archive is absent. | test_08_pinned_native_harness_is_executed; positive fill results contain native_dry.result |
++| 9 INFO | Pass the caller's HOME and SSH_AUTH_SOCK to the local transport. Remote HOME=/tmp remains a documented live-environment difference. | test_09_transport_uses_caller_identity |
++| 10 INFO | bash -n validates the detached fill body; receipt reports its actual wrapper interpreter and its 3.6.8 predicate interpreter separately. Round-2 before-fix regressions fail on the defect, with no KeyError. The guard test observes the launched interpreter; the login test observes the SHA of the bytes passed to place. | test_10_fill_body_bash_syntax; test_10_receipt_interpreter_label; test_r6_login_runtime_guard_submit_pool; test_r11_login_exact_delivery; before.log and before_evidence.log |
++
++The login/fill probes still run several native steps inside one isolated 3.6.8 interpreter with the pack path on sys.path. Separating each step while preserving filesystem redirection and the sbatch stub requires more than the requested small INFO fix; live process isolation remains untested. The D scorer mismatch, budget_fits=false, absent full r10 build, B4 root cause, and trainer-rank USR1 remain open.
 +
 +## Review round 1: finding -> fix -> test
 +
-+| Finding | Fix | Regression evidence |
-+|---|---|---|
-+| 1: fill can outlive its foreground call | Detach with setsid/nohup; exclusive launch lock; write a/1.txt last; poll a/f.log and status at 60-second intervals | test_r1_detached_slow_fill |
-+| 2: local archives exceed practical defaults | Explicit structural fill uses tiny pinned stand-ins; live identity remains a native Orchard gate | test_r2_structural_without_archive_mirrors, including a planted dropped environment slot |
-+| 3: D had no complete check | Run every probe on the actual pack-built D delivery and plan its D scripts at 04:00:00 | test_native.py and test_r3_actual_D_integration |
-+| 4: absent staged inputs spend a token | Read-only size preflight runs before place and its attempt marker | test_r4_readonly_preflight_precedes_place |
-+| 5: system head rejected | Exempt listed utilities only in command position; scan arguments and retain umask 077 | test_r5_system_command_only |
-+| 6: operational and Python gaps | Document staging, fill timing and live hashes; execute guard, 8.py submit with stub sbatch, and the pool walk under 3.6.8 | test_r6_login_runtime_guard_submit_pool and test_r6_operational_inventory |
-+| 7: isolated import differs | Import h1eval.h10.launch as a module with production path roots | test_r7_production_module_import uses a relative import |
-+| 8: GPU refusal strands passed CPU work | gpu action rechecks completion and receipts; native a/8.txt and an exclusive pre-submit lock prevent duplicate submission | test_r8_gpu_only_retry |
-+| 9: arbitrary heredoc bypass | Permit only Python stdin heredocs | test_r9_only_python_stdin_heredocs |
-+| 10: native scorer drift | Keep the native source-consistency refusal; require a coherent generated release | test_native.py and test_07b_native_source_drift_blocks_release |
-+| 11: login delivery and ledger gaps | Place the recorded BUILD delivery in the login probe; require an operator ledger reservation before place | test_r11_login_exact_delivery and test_r6_operational_inventory |
-+
-+No HIGH, MEDIUM or LOW finding is deferred. Missing production data and routed harness files are named in REQUIRED_INPUTS.json; check_required_inputs.py refuses absent local groups by name. A structural result does not certify production archive identity or a real full-reader run.
++Detached fill, structural stand-ins, actual D checks, staged-input preflight, command-only utility exemptions, 3.6 execution, production module imports, GPU-only retry, Python-stdin heredoc restrictions and exact-delivery checks remain covered by test_review.py. Native scorer drift remains a refusal tested by test_native.py. The test suite also checks the Trinity ledger prerequisite and the operator inventory.
 --- /dev/null
 +++ b/out/PATCHES.md
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,11 @@
 +# Patch layout and verification
 +
-+Apply `patch -p1` for both patches at a writable root corresponding to the supplied input mirror. Patch 01 adds the packaging command, structural probe generator, regression tests, input refusal tool and handoff documents. Patch 02 adds only pack_token.py and test_pack_token.py beside the native r10 and D builders. Neither patch edits native source or embedded scripts.
++Apply both unified diffs with patch -p1 at a writable root corresponding to the input mirror. Patch 01 adds the packaging command, probes, regression tests and operator documents. Patch 02 adds pack_token.py and test_pack_token.py beside the native r10 and D builders. Neither patch changes a native source file or embedded script.
 +
-+The top-level delivered files are canonical. TOOL_SHA256.json records their hashes. PATCH_VERIFIED.json records a fresh patch application, exact reconstructed-file equality, adapter-copy equality, source-input hashes and test log hashes. REPORT.md contains exact commands and outputs. Test output directories must be fresh; tests do not delete prior evidence.
++TOOL_SHA256.json names the canonical files. PATCH_VERIFIED.json records a fresh application, exact file equality, input-source hashes and test-log hashes. REPORT.md and TEST_RUNS.json contain exact commands, outputs and results. out_round1 preserves the reviewed deliverables. The current tested copy is work/r2/applied; final patch replay uses work/r2/applied_final. Runtime sources in both copies and the top-level delivery must be byte-identical.
 +
-+Run test_native.py first, then pass its RESULT.json as PACK_NATIVE_RESULT to test_review.py. Run test_pack.py under the specified CPU Python and both additive adapter tests under /usr/bin/python3 3.6.8. Set CUDA_VISIBLE_DEVICES empty, OMP_NUM_THREADS=8, MKL_NUM_THREADS=8, OPENBLAS_NUM_THREADS=8, TOKENIZERS_PARALLELISM=false and PYTHONDONTWRITEBYTECODE=1; prefix commands with nice -n 10. The logged commands in REPORT.md include those settings.
++Run test_pack.py, test_native.py, test_review.py and test_review2.py under the specified CPU Python with -I -s -B. Pass the native RESULT.json to test_review.py as PACK_NATIVE_RESULT. The additive adapter tests and login probes use /usr/bin/python3 3.6.8. Tests use fresh output directories, CPU only, nice -n 10, eight thread/core limits and the dispatch environment; REPORT.md records the complete commands. Production paths in tests are redirected or stubbed; no SSH or Slurm call runs.
 +
-+Production actions require --enable. Token override requires --enable-token; wrapper normalization requires normalize_wrapper=true; structural fill requires fill_mode=structural. All default OFF or retain the original mirror path. Native D default-OFF delivery equality is measured. r10 default source equality is measured; its full build refuses missing original inputs. The raw D scorer mismatch remains a release blocker.
++Production actions require --enable. The token adapter requires --enable-token; wrapper normalization requires normalize_wrapper=true; structural fill requires fill_mode=structural. All default OFF or retain the mirror path. Native D delivery equality is measured under fixed entropy; r10 source identity is checked but a full r10 build lacks inputs. The D scorer mismatch remains a source-release refusal.
++
++check requires export_binding_pin for a delivered plan without part pins, dependency_reference in structural mode and native_dry for the unchanged resolver. These are explicit SHA-pinned inputs. place requires a token reservation in the Trinity ledger. INFO limitations and missing inputs remain documented; no production certification is implied by passing fixture tests.
 --- /dev/null
 +++ b/out/REQUIRED_INPUTS.json
-@@ -0,0 +1,135 @@
+@@ -0,0 +1,168 @@
 +{
 +  "inputs": [
 +    {
@@ -341,15 +394,48 @@
 +      "name": "r10 original A filled inputs",
 +      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/r10/a15_cot_apd72cdcff1e22a/a/1.json",
 +      "reason": "Native r10 reads this file after building selected deliveries"
++    },
++    {
++      "config_key": "export_binding_pin.path and export_binding_pin.sha256",
++      "group": "pack_check",
++      "location": "local",
++      "name": "export_binding_pin (step-600 binding with parts[].bytes and archive_bytes)",
++      "path": "/REPLACE/binding600.json",
++      "reason": "Native builder omits part pins from the sealed plan; check authenticates this binding against sealed fields and REVIEWED constants"
++    },
++    {
++      "config_key": "dependency_reference",
++      "group": "pack_check",
++      "location": "local",
++      "name": "dependency_reference (Orchard-proven B5 base inputs)",
++      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/0.json",
++      "reason": "Structural mode compares real dependency metadata to this SHA-pinned reference",
++      "sha256": "206f81ec51f0ce38113b14289f9cf9896baded0e8a950e88ac6653764b24ac04"
++    },
++    {
++      "config_key": "native_dry",
++      "group": "pack_check",
++      "location": "local",
++      "name": "native_dry (unchanged native dryres_d.py)",
++      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/dryres_d.py",
++      "reason": "Execute native resolution predicates unchanged after local fill",
++      "sha256": "e1981c7909b96006a9df9adaf2397c4a70210f7263f58ba484aff81923c225f2"
++    },
++    {
++      "group": "native_dry2",
++      "location": "local",
++      "name": "native a3.tar policy archive for unchanged dry2/dry2b",
++      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/a3.tar",
++      "reason": "dry2/dry2b select its fixed 05dc8f79 SHA prefix; tiny synthetic policy bytes cannot satisfy that check"
 +    }
 +  ],
 +  "local_check": "check_required_inputs.py --manifest out/REQUIRED_INPUTS.json --group production_build|r10|routed_harness",
 +  "production_ready": false,
-+  "remote_check": "pack place executes a read-only preflight before its placement marker; fill and job.stage verify live identity"
++  "remote_check": "place requires ledger reservation, then read-only size/.done/preparation preflight before place.attempt; fill and job.stage authenticate large live archives"
 +}
 --- /dev/null
 +++ b/out/config_step600.example.json
-@@ -0,0 +1,135 @@
+@@ -0,0 +1,147 @@
 +{
 +  "builder": {
 +    "argv": [
@@ -398,6 +484,14 @@
 +    "sha256": "02eb8ca5e98402343fcadea608c4e43f4890322d6c7a117e7d95e9b662637559"
 +  },
 +  "check_timeout": 300,
++  "dependency_reference": {
++    "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/0.json",
++    "sha256": "206f81ec51f0ce38113b14289f9cf9896baded0e8a950e88ac6653764b24ac04"
++  },
++  "export_binding_pin": {
++    "path": "/REPLACE/binding600.json",
++    "sha256": "REPLACE_BINDING_SHA256"
++  },
 +  "fill": {
 +    "config": "/project/community/jjyeung/okh7/eabcdef012345/7",
 +    "data_receipt": "/project/community/jjyeung/okh7/eabcdef012345/9",
@@ -418,6 +512,10 @@
 +  "ledger": "/REPLACE/CURRENT_TRINITY_LEDGER.jsonl",
 +  "max_read_bytes": 1073741824,
 +  "mirrors": {},
++  "native_dry": {
++    "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/dryres_d.py",
++    "sha256": "e1981c7909b96006a9df9adaf2397c4a70210f7263f58ba484aff81923c225f2"
++  },
 +  "normalize_wrapper": true,
 +  "old_identities": [
 +    "REPLACE_SOURCE_TOKEN",
@@ -487,7 +585,7 @@
 +}
 --- /dev/null
 +++ b/pack.py
-@@ -0,0 +1,357 @@
+@@ -0,0 +1,402 @@
 +"""Opt-in read-package preflight and bounded Orchard planner. Python 3.6."""
 +import argparse, ast, base64, gzip, hashlib, io, json, os, re, resource, shlex, subprocess, sys, tarfile, time
 +from pathlib import Path, PurePosixPath
@@ -581,6 +679,16 @@
 +        line=line.replace('#SBATCH','')
 +        try:words=shlex.split(line,comments=True)
 +        except ValueError:words=[line]
++        for i,word in enumerate(words):
++            need('--comment' not in word,'Slurm --comment is forbidden')
++            value=None
++            if word in ('--job-name','-J'):
++                need(i+1<len(words),'Missing job name');value=words[i+1]
++            elif word.startswith('--job-name='):value=word.split('=',1)[1]
++            elif word.startswith('-J'):value=word[2:].lstrip('=')
++            if value is not None:
++                dynamic=value=='${P##*/}' and '"${P##*/}"' in line
++                need(dynamic or re.fullmatch(PREFIX+'[a-f][0-9a-f]{10,15}',value),'Invalid job name '+value)
 +        # Parse shell punctuation so utility exemptions apply only at command position.
 +        lex=shlex.shlex(line,posix=True,punctuation_chars=';&|()');lex.whitespace_split=True;lex.commenters='#'
 +        try:tokens=list(lex)
@@ -614,6 +722,11 @@
 +    out['BATCH.sh']=t.encode();m=json.loads(out['PACKAGE.json']);m['files']['BATCH.sh']=digest(out['BATCH.sh']);out['PACKAGE.json']=(json.dumps(m,sort_keys=True,indent=2)+'\n').encode();return out
 +def environment(root):
 +    return dict(PATH='/usr/local/bin:/usr/bin:/bin',HOME=str(root),USER='jjyeung',CUDA_VISIBLE_DEVICES='',PYTHONDONTWRITEBYTECODE='1',OMP_NUM_THREADS='8',MKL_NUM_THREADS='8',OPENBLAS_NUM_THREADS='8',TOKENIZERS_PARALLELISM='false',TMPDIR=str(root),XDG_CACHE_HOME=str(root/'0'))
++def transport_environment(root):
++    env=environment(root)
++    for key in ('HOME','SSH_AUTH_SOCK'):
++        if key in os.environ:env[key]=os.environ[key]
++    return env
 +def run(argv,cwd,log,env=None,seconds=180):
 +    with Path(log).open('wb') as out:r=subprocess.run(['nice','-n','10']+list(argv),cwd=str(cwd),env=env or environment(Path(cwd)),stdout=out,stderr=subprocess.STDOUT,timeout=seconds)
 +    need(r.returncode==0,'Command failed (%s); see %s'%(r.returncode,log))
@@ -761,8 +874,33 @@
 +        need(pin is not None,'Required remote input pin missing: '+path);add(dict(pin,path=path))
 +    return pins
 +
++def export_identity(c,f,plan):
++    sealed=plan['export_binding'];binding=sealed
++    if 'parts' not in binding:
++        pin=c.get('export_binding_pin')
++        need(pin is not None,'Required input missing: export_binding_pin (binding with parts[].bytes and archive_bytes)')
++        required_inputs(dict(required_inputs=[dict(pin,name='export_binding_pin')]))
++        need('sha256' in pin,'Required input pin missing: export_binding_pin.sha256')
++        binding=read(pin['path'])
++        need(all(binding.get(k)==v for k,v in sealed.items()),'Pinned export binding differs from sealed plan')
++    constants={n.targets[0].id:ast.literal_eval(n.value) for n in ast.parse(f['a/4.py']).body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id.startswith('REVIEWED_')}
++    for key,name in [('object','REVIEWED_OBJECT'),('archive_bytes','REVIEWED_ARCHIVE_BYTES'),('archive_sha256','REVIEWED_ARCHIVE_SHA256')]:
++        need(key in binding,'Required binding input missing: '+key)
++        need(binding[key]==constants.get(name),'Binding differs from '+name)
++    need(all(c['fill'][k]==sealed[k] for k in ('object','step','lineage')),'Configured fill identity differs from sealed binding')
++    parts=binding.get('parts',[]);paths=c['fill']['parts']
++    need(len(parts)==len(paths)==4 and len(set(paths))==4,'Binding requires four distinct export parts')
++    for index,(part,path) in enumerate(zip(parts,paths)):
++        size=part.get('bytes');actual=c.get('remote_input_pins',{}).get(path,{}).get('bytes')
++        need(type(size) is int and size>0 and type(actual) is int and actual==size,'Export part size differs from binding: part %d (%s)'%(index,path))
++    need(sum(part['bytes'] for part in parts)==constants['REVIEWED_ARCHIVE_BYTES'],'Export part sum differs from REVIEWED_ARCHIVE_BYTES')
++    prep=binding.get('preparation_sha256',{})
++    for key in ('config','receipt','data_receipt'):need(isinstance(prep.get(key),str) and re.fullmatch('[0-9a-f]{64}',prep[key]),'Required binding input missing: preparation_sha256.'+key)
++    return dict(done=[binding['object'],str(binding['archive_bytes']),binding['archive_sha256']],preparation={c['fill'][k]:prep[k] for k in ('config','receipt','data_receipt')})
++
 +def remote_preflight(c,b):
-+    return python_block("from pathlib import Path\npins=%r\nfor name,size in pins.items():\n p=Path(name)\n if not p.is_file() or p.stat().st_size!=size:raise ValueError('Required staged input missing or size differs: '+name)\nprint('inputs ready')"%remote_inputs(c,b))
++    f,_,_,plan=structure(b['package']);identity=export_identity(c,f,plan)
++    return python_block("from pathlib import Path\nimport hashlib\npins=%r\nfor name,size in pins.items():\n p=Path(name)\n if not p.is_file() or p.stat().st_size!=size:raise ValueError('Required staged input missing or size differs: '+name)\ndone=Path(%r)\nif done.stat().st_size>4096 or done.read_text().split()!=%r:raise ValueError('Reviewed whole-tar receipt differs: '+str(done))\nfor name,sha in %r.items():\n p=Path(name)\n if p.stat().st_size>1048576:raise ValueError('Preparation input exceeds metadata budget: '+name)\n if hashlib.sha256(p.read_bytes()).hexdigest()!=sha:raise ValueError('Reviewed preparation differs: '+name)\nprint('inputs ready')"%(remote_inputs(c,b),c['fill']['done'],identity['done'],identity['preparation']))
 +
 +def detached_fill(body,p):
 +    # Exclusive launch directory survives transport loss and prevents duplicate hashing.
@@ -776,9 +914,10 @@
 +    scripts=dict(preflight=HEADER+remote_preflight(c,b),place=HEADER+python_block(place_code(b)),fill=detached_fill(fill_body,p),cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
 +    scripts['fill_poll']=HEADER+'cd '+shlex.quote(p)+'\nif test -f a/1.txt; then test "$(cat a/1.txt)" = 0; printf "complete\\n"; elif test -f a/f.exit; then tail -c 8192 a/f.log >&2; exit 1; else printf "wait\\n"; tail -c 8192 a/f.log >&2; fi\n'
 +    job='P='+p+'\nJ=$(cat "$P/a/4.txt")\n[[ "$J" =~ ^[0-9]+$ ]]\n'
-+    scripts['poll']=HEADER+job+'if ! sacct -n -X -j "$J" -o State --parsable2; then printf "accounting unavailable for %s\\n" "$J" >&2; exit 75; fi\n'
++    scripts['poll']=HEADER+job+'if ! S=$(sacct -n -X -j "$J" -o State --parsable2); then printf "accounting unavailable for %s\\n" "$J" >&2; exit 75; fi\nprintf "%s\\n" "$S"\ncase "${S%%|*}" in COMPLETED|PENDING|RUNNING|CONFIGURING|COMPLETING|\'\') ;; *) tail -c 8192 "$P/a/4.err" "$P/a/4.log" >&2 || true ;; esac\n'
 +    scripts['gpu']=HEADER+job+'S=$(sacct -n -X -j "$J" -o State --parsable2)\n[[ "${S%%|*}" = COMPLETED ]]\ntest -s "$P/a/c/CPU.json"\n'+adapted_script(c,'gpu',p,b['package'])
 +    w=state_root(c)/'commands';w.mkdir(exist_ok=True,mode=0o700)
++    body=w/'fill_body.sh';body.write_text(fill_body);body.chmod(0o600);run(['bash','-n',str(body)],w,w/'fill_body.log')
 +    for k,text in scripts.items():
 +        shell_privacy(text,c.get('forbidden_extra',()));f=w/(k+'.sh');f.write_text(text);f.chmod(0o600);run(['bash','-n',str(f)],w,w/(k+'.log'))
 +        for i,body in enumerate(heredocs(text)):
@@ -802,13 +941,15 @@
 +            marker=state_root(c)/(k+'.attempt');need(not marker.exists(),'Already attempted '+k);marker.write_text(str(time.time()))
 +        cmd=command(c,scripts[k]);print(cmd,flush=True)
 +        log=state_root(c)/('call_'+k+'_'+str(time.time_ns() if hasattr(time,'time_ns') else int(time.time()*1000000))+'.json')
-+        try:r=subprocess.run(['nice','-n','10','bash','-o','pipefail','-c',cmd],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=310,env=environment(state_root(c)))
++        try:r=subprocess.run(['nice','-n','10','bash','-o','pipefail','-c',cmd],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=310,env=transport_environment(state_root(c)))
 +        except subprocess.TimeoutExpired as e:
 +            write(log,dict(phase=k,timeout=True,stdout=(e.stdout or b'').decode(errors='replace'),stderr=(e.stderr or b'').decode(errors='replace')));raise
 +        write(log,dict(phase=k,returncode=r.returncode,stdout=r.stdout.decode(errors='replace'),stderr=r.stderr.decode(errors='replace')));return r
 +    invoke=call or actual
 +    for phase in phases:
 +        if phase=='place':
++            ledger=Path(c['ledger']);need(ledger.is_file(),'Trinity token ledger missing before place')
++            need(b['token'] in ledger.read_text(),'Must reserve built token in Trinity ledger before place')
 +            r=invoke('preflight');need(r.returncode==0,'Remote input preflight failed before placement: '+r.stderr.decode(errors='replace'))
 +        if phase=='gpu':
 +            errors=0;deadline=time.monotonic()+int(c['remote'].get('cpu_wait',14400))
@@ -819,7 +960,9 @@
 +                    errors+=1;need(errors<3,'Repeated sacct error: '+r.stderr.decode(errors='replace'))
 +                else:
 +                    errors=0
-+                    if poll_state(r.stdout.decode())=='complete':
++                    try:state=poll_state(r.stdout.decode())
++                    except Rejected as error:raise Rejected(str(error)+'\n'+r.stderr.decode(errors='replace'))
++                    if state=='complete':
 +                        sleeper(60);break
 +                sleeper(60)
 +        r=invoke(phase);need(r.returncode==0,'Remote '+phase+' failed: '+r.stderr.decode(errors='replace'))
@@ -847,7 +990,7 @@
 +    except (Rejected,KeyError,OSError,subprocess.TimeoutExpired) as e:print('REJECTED: '+str(e),file=sys.stderr);sys.exit(1)
 --- /dev/null
 +++ b/pack_checks.py
-@@ -0,0 +1,424 @@
+@@ -0,0 +1,441 @@
 +"""Isolated probes; this file never starts a remote command."""
 +import ast, builtins, copy, io, json, math, os, runpy, signal, subprocess, sys, tarfile, time
 +from pathlib import Path
@@ -1154,16 +1297,14 @@
 +
 +def fill(package,w,c):
 +    P.need(sys.version_info[:3]==(3,6,8),'Require actual login Python 3.6.8')
++    original_files,_,_,original_plan=P.structure(package)
++    P.export_identity(c,original_files,original_plan)
 +    if c.get('fill_mode','mirrors')=='structural':
 +        import pack_structural as S
-+        original_files,_,_,original_plan=P.structure(package)
-+        binding=original_plan['export_binding']
-+        P.need(all(c['fill'][k]==binding[k] for k in ('object','step','lineage')),'Configured fill identity differs from sealed binding')
-+        constants={n.targets[0].id:ast.literal_eval(n.value) for n in ast.parse(original_files['a/4.py']).body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id.startswith('REVIEWED_')}
-+        P.need(constants['REVIEWED_OBJECT']==binding['object'],'Sealed helper object differs from binding')
++        reference=S.dependency_reference(json.loads(original_files['a/0.json']),c)
 +        original=P.fingerprint(P.package_files(package));target,small=S.rebind(w/'standins',package)
-+        cfg=dict(c,fill_mode='mirrors',mirrors=small['mirrors'],fill=small['fill'],old_identities=[],max_read_bytes=10*1024**2)
-+        result=fill(target,w,cfg);result.update(mode='structural',source_tree=original,standin_bytes=sum(x['bytes'] for x in small['mirrors'].values()),production_archive_identity=False)
++        cfg=dict(c,fill_mode='mirrors',mirrors=small['mirrors'],fill=small['fill'],remote_input_pins={k:dict(bytes=v['bytes']) for k,v in small['mirrors'].items()},old_identities=[],max_read_bytes=10*1024**2)
++        result=fill(target,w,cfg);result.update(mode='structural',source_tree=original,dependency_reference=reference,standin_bytes=sum(x['bytes'] for x in small['mirrors'].values()),production_archive_identity=False)
 +        P.need(P.fingerprint(P.package_files(package))==original,'Structural probe changed delivery');return result
 +    P.need(c.get('fill_mode','mirrors')=='mirrors','Unknown fill mode')
 +    mapping=validate_mirrors(c);f,pay,pub,plan=P.structure(package);remote=P.ROOT+'/'+P.PREFIX+pub['token'];local=P.extract(f,w/(P.PREFIX+pub['token']))
@@ -1195,9 +1336,26 @@
 +            finally:subprocess.run=original_run
 +            P.need(len(calls)==1,'Native submit did not call stub sbatch')
 +        resolution=resolve_inputs(filled,base,cfg,c,mapping,remote,local)
++        dry=native_dry(c,w,mapping,remote,local,filled)
 +    finally:sys.argv=saved
 +    P.privacy(local,c)
-+    return dict(python=sys.version,fill_executed=True,entry_check_executed=True,submit_executed=True,pool=pool_probe(package,w,c),resolution=resolution)
++    return dict(python=sys.version,fill_executed=True,entry_check_executed=True,submit_executed=True,pool=pool_probe(package,w,c),resolution=resolution,native_dry=dry)
++
++def native_dry(c,w,mapping,remote,local,filled):
++    """Run the pinned native dryres checker without changing its source bytes."""
++    import contextlib
++    pin=c.get('native_dry');P.need(pin is not None,'Required input missing: native_dry (pinned dryres_d.py)')
++    P.required_inputs(dict(required_inputs=[dict(pin,name='native_dry')]))
++    P.need('sha256' in pin,'Required input pin missing: native_dry.sha256')
++    saved=sys.argv[:];log=w/'native_dry.log'
++    try:
++        sys.argv=[pin['path'],remote+'/a/1.json',remote+'/a/0.json',filled['archives'][-1]['sha256']]
++        with log.open('w') as output,contextlib.redirect_stdout(output),Mirrors(dict(mapping,**{remote:str(local)})):
++            try:runpy.run_path(pin['path'],run_name='__main__')
++            except SystemExit as error:P.need(error.code==0,'Native dry harness refused; see '+str(log))
++        result=P.read(log);P.need(result.get('passed') is True,'Native dry harness did not pass')
++        return dict(path=pin['path'],sha256=pin['sha256'],python=sys.version,result=result)
++    finally:sys.argv=saved
 +
 +def pool_probe(package,w,c):
 +    script=P.adapted_script(c,'gpu',P.ROOT+'/'+P.PREFIX+P.read(package/'0.json')['token'],package)
@@ -1225,6 +1383,8 @@
 +
 +def receipt(package,w,c):
 +    """Run the sealed submit receipt predicate on exact native CPU writer output."""
++    predicate_python=subprocess.check_output(['/usr/bin/python3','-I','-s','-B','-c','import sys;print(sys.version)'],env=P.environment(w),timeout=30).decode().strip()
++    P.need(predicate_python.startswith('3.6.8'),'Require actual receipt Python 3.6.8')
 +    f,pay,pub,plan=P.structure(package);local=P.extract(f,w/'p');root=w/'a';root.mkdir(mode=0o700)
 +    script=P.adapted_script(c,'gpu',P.ROOT+'/'+P.PREFIX+pub['token'],package)
 +    code=P.heredocs(script)[0];tree=ast.parse(code)
@@ -1267,14 +1427,14 @@
 +        v=copy.deepcopy(value);d=v
 +        for key in keys[:-1]:d=d[key]
 +        d[keys[-1]]=new;check(v,'bad'+str(i),False)
-+    return dict(synthetic_receipt_only=True,negative_cases=len(mutations),full_reader_validator_cases=validator_cases,full_reader_validator=validator is not None,python='3.6.8')
++    return dict(synthetic_receipt_only=True,negative_cases=len(mutations),full_reader_validator_cases=validator_cases,full_reader_validator=validator is not None,python=sys.version,predicate_python=predicate_python)
 +
 +def main():
 +    mode,package,work,config=sys.argv[1:];os.umask(0o077);P.limits();w=Path(work);result=globals()[mode](Path(package),w,P.read(config));result['passed']=True;P.write(w/'1.json',result)
 +if __name__=='__main__':main()
 --- /dev/null
 +++ b/pack_structural.py
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,90 @@
 +"""Tiny structural stand-ins; never production identity evidence."""
 +import ast, io, json, re, tarfile
 +from pathlib import Path
@@ -1295,6 +1455,17 @@
 +    with tarfile.open(fileobj=out,mode='w') as t:
 +        for n,b in files.items():m=tarfile.TarInfo(n);m.size=len(b);m.mode=0o600;t.addfile(m,io.BytesIO(b))
 +    return out.getvalue()
++
++def dependency_reference(base,c):
++    pin=c.get('dependency_reference')
++    P.need(pin is not None,'Required input missing: dependency_reference (Orchard-proven base inputs)')
++    P.required_inputs(dict(required_inputs=[dict(pin,name='dependency_reference')]))
++    P.need('sha256' in pin,'Required input pin missing: dependency_reference.sha256')
++    def selected(v):
++        return dict(archives=v['archives'][1:],files=v['files'])
++    expected=P.digest(P.canonical(selected(P.read(pin['path']))));actual=P.digest(P.canonical(selected(base)))
++    P.need(actual==expected,'Dependency layout differs from pinned reference')
++    return dict(sha256=actual,reference_sha256=pin['sha256'],real_dependency_archives=len(base['archives'])-1)
 +
 +def rebind(w,package):
 +    """Keep native read code; bind fill to tiny explicit fixture data and pins."""
@@ -1345,6 +1516,7 @@
 +    for key,value in [('archive_bytes',len(raw)),('archive_sha256',P.digest(raw))]:
 +        if key in binding:binding[key]=value
 +    size=len(raw)//4;parts=[mirrored(raw[i*size:(i+1)*size] if i<3 else raw[i*size:]) for i in range(4)]
++    binding.update(parts=[dict(bytes=x['bytes'],sha256=x['sha256']) for x in parts],archive_bytes=len(raw),archive_sha256=P.digest(raw))
 +    done=mirrored(('%s %d %s\n'%(binding['object'],len(raw),P.digest(raw))).encode())
 +    prep_paths={k:mirrored(b)['path'] for k,b in prep.items()}
 +    base['archives']=[dict(base['archives'][0])]+archives;f['a/0.json']=jd(base)
@@ -1381,7 +1553,7 @@
 +if __name__=='__main__':main()
 --- /dev/null
 +++ b/test_native.py
-@@ -0,0 +1,76 @@
+@@ -0,0 +1,81 @@
 +"""Native D builds and release-check compatibility; all writes stay under --work."""
 +import argparse, ast, base64, gzip, json, os, subprocess, sys
 +from pathlib import Path
@@ -1444,6 +1616,11 @@
 +    # Structural mode changes only a disposable probe copy and authenticates no live archives.
 +    fixture,small=T.fixture(w/'tiny');check_cfg=dict(small,work=cfg['work'],builder=coherent_cfg['builder'],fill_mode='structural')
 +    binding=P.structure(built['package'])[3]['export_binding']
++    binding_path=T.D/'bind_D200.json';full_binding=P.read(binding_path)
++    check_cfg['export_binding_pin']=dict(path=str(binding_path),sha256=P.file_digest(binding_path))
++    check_cfg['dependency_reference']=dict(path=str(T.B5/'a/0.json'),sha256=P.file_digest(T.B5/'a/0.json'))
++    check_cfg['remote_input_pins']=dict(small['remote_input_pins'])
++    for path,pin in zip(small['fill']['parts'],full_binding['parts']):check_cfg['remote_input_pins'][path]=dict(bytes=pin['bytes'])
 +    check_cfg['fill']=dict(small['fill'],**{k:binding[k] for k in ('object','step','lineage')})
 +    check_cfg['remote']=dict(small['remote'],walltime='04:00:00')
 +    for key,name in [('cpu','o_cpu_D.sh'),('gpu','o_sub_D.sh')]:
@@ -1687,7 +1864,7 @@
 +if __name__=='__main__':main()
 --- /dev/null
 +++ b/test_review.py
-@@ -0,0 +1,123 @@
+@@ -0,0 +1,133 @@
 +"""Review round 1 regressions; selectable source root supports before/after proof."""
 +import copy, json, os, subprocess, sys, time, unittest
 +from pathlib import Path
@@ -1737,6 +1914,7 @@
 +        with self.assertRaises(P.Rejected):P.probe('fill',bad,w,c)
 +        self.assertIn('Fill must append',(w/'0.log').read_text())
 +    def test_r4_readonly_preflight_precedes_place(self):
++        Path(self.c['ledger']).write_text(self.b['token']+'\n')
 +        scripts=P.plan(self.c,self.b);self.assertIn('preflight',scripts)
 +        code=P.heredocs(Path(scripts['preflight']).read_text())[0]
 +        import pack_checks as Q
@@ -1766,7 +1944,11 @@
 +        self.assertEqual(P.privacy(p,{})['names'],15)
 +        with self.assertRaisesRegex(P.Rejected,'umask'):P.privacy(T.B5,{})
 +    def test_r6_login_runtime_guard_submit_pool(self):
-+        guard=P.probe('guard',self.p,self.fresh('q'),self.c);self.assertTrue(guard['python'].startswith('3.6.8'))
++        runs=[];original=P.run
++        def traced(argv,*args,**kwargs):runs.append(argv);return original(argv,*args,**kwargs)
++        with patch.object(P,'run',side_effect=traced):guard=P.probe('guard',self.p,self.fresh('q'),self.c)
++        self.assertEqual(runs[0][0],'/usr/bin/python3','CPU guard must execute under the login interpreter')
++        self.assertTrue(guard.get('python','').startswith('3.6.8'))
 +        r=P.probe('fill',self.p,self.fresh('q'),self.c)
 +        self.assertTrue(r['submit_executed']);self.assertTrue(r['pool']['positive']);self.assertTrue(r['pool']['oversize_rejected'])
 +    def test_r6_operational_inventory(self):
@@ -1800,9 +1982,14 @@
 +        for text in ("cat >a/0 <<'A'\nmodel /tmp/0\nA\nbash a/0", "bash <<'A'\nmodel\nA", "cat <<'A' # python3 -\nmodel\nA"):
 +            with self.assertRaisesRegex(P.Rejected,'Only Python stdin'):P.shell_privacy(text)
 +    def test_r11_login_exact_delivery(self):
-+        c=dict(self.c,work=str(self.fresh('state')));P.write(Path(c['work'])/'BUILD.json',self.b)
++        c=dict(self.c,work=str(self.fresh('state')));d=self.fresh('noncanonical.tgz');raw=Path(self.b['delivery']).read_bytes();d.write_bytes(raw[:4]+b'\x01\x00\x00\x00'+raw[8:])
++        b=dict(self.b,delivery=str(d),sha256=P.file_digest(d));P.write(Path(c['work'])/'BUILD.json',b)
++        w=self.fresh('login');w.mkdir();driver=self.fresh('driver.py')
++        driver.write_text('import sys\nsys.path.insert(0,%r)\nimport pack as P,pack_checks as Q\nfrom pathlib import Path\noriginal=P.place_code\ndef place(b):\n assert b["sha256"]==%r,"Login must place recorded delivery bytes"\n return original(b)\nP.place_code=place\nQ.login(Path(%r),Path(%r),%r)\n'%(str(Path(P.__file__).parent),b['sha256'],str(self.p),str(w),c))
++        result=subprocess.run(['/usr/bin/python3','-I','-s','-B',str(driver)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=P.environment(w))
++        self.assertEqual(result.returncode,0,result.stderr.decode())
 +        r=P.probe('login',self.p,self.fresh('q'),c)
-+        self.assertTrue(r['recorded_delivery']);self.assertEqual(r['delivery_sha256'],self.b['sha256'])
++        self.assertTrue(r.get('recorded_delivery',False));self.assertEqual(r.get('delivery_sha256'),b['sha256'])
 +    def test_required_inputs_refuse_by_name(self):
 +        c=dict(required_inputs=[dict(name='step-600 binding',path=str(self.w/'absent'))])
 +        with self.assertRaisesRegex(P.Rejected,'Required input missing: step-600 binding'):P.required_inputs(c)
@@ -1812,8 +1999,133 @@
 +if __name__=='__main__':
 +    P.limits();unittest.main(verbosity=2)
 --- /dev/null
++++ b/test_review2.py
+@@ -0,0 +1,122 @@
++"""Round-2 defect regressions; PACK_SOURCE selects the untouched reviewed code."""
++import copy, json, os, subprocess, sys, unittest
++from pathlib import Path
++from unittest.mock import patch
++sys.path.insert(0,os.environ.get('PACK_SOURCE',str(Path(__file__).parent)))
++import pack as P
++import test_support as T
++
++class Review2(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.root=Path(os.environ['PACK_R2_WORK']);cls.root.mkdir()
++        fixture=Path(os.environ['PACK_R2_FIXTURE']);cls.p=fixture/'p';cls.config=P.read(fixture/'config.json')
++        cls.f=P.package_files(cls.p);cls.d=fixture/'1.tgz'
++        cls.b=dict(token=P.read(cls.p/'0.json')['token'],package=str(cls.p),delivery=str(cls.d),sha256=P.file_digest(cls.d),tree=P.fingerprint(cls.f))
++    def setUp(self):
++        self.w=self.root/self._testMethodName;self.w.mkdir();self.c=copy.deepcopy(self.config)
++        self.c['work']=str(self.w/'state');self.c['ledger']=str(self.w/'ledger');Path(self.c['ledger']).write_text(self.b['token']+'\n')
++    def preflight(self,code,mapping,label):
++        driver=self.w/(label+'.py')
++        driver.write_text('import sys\nsys.path.insert(0,%r)\nimport pack_checks as Q\nwith Q.Mirrors(%r):exec(compile(%r,"preflight","exec"),{})\n'%(str(Path(P.__file__).parent),mapping,code))
++        return subprocess.run(['/usr/bin/python3','-I','-s','-B',str(driver)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=P.environment(self.w))
++    def test_01_wrong_part_pins_at_check(self):
++        for label,sizes in [('one',[1,0,0,0]),('same_sum',[1,-1,0,0])]:
++            c=copy.deepcopy(self.c);c['fill_mode']='structural';c['mirrors']={}
++            for path,delta in zip(c['fill']['parts'],sizes):c['remote_input_pins'][path]['bytes']+=delta
++            w=self.w/label
++            with self.assertRaises(P.Rejected):P.probe('fill',self.p,w,c)
++            self.assertIn('part size differs from binding',(w/'0.log').read_text())
++    def test_01_missing_binding_parts_names_input(self):
++        f=dict(self.f);pay=P.untar(f['0.tgz']);plan=json.loads(pay['9.json']);plan['export_binding'].pop('parts');pay['9.json']=json.dumps(plan).encode()
++        p=P.extract(T.seal(f,pay),self.w/'p');c=dict(self.c,fill_mode='structural',mirrors={});w=self.w/'q'
++        with self.assertRaises(P.Rejected):P.probe('fill',p,w,c)
++        self.assertIn('Required input missing: export_binding_pin',(w/'0.log').read_text())
++    def test_01_wrong_part_sum(self):
++        f=dict(self.f);pay=P.untar(f['0.tgz']);plan=json.loads(pay['9.json'])
++        plan['export_binding']['parts'][0]['bytes']+=1;pay['9.json']=json.dumps(plan).encode()
++        p=P.extract(T.seal(f,pay),self.w/'p');c=copy.deepcopy(self.c);c.update(fill_mode='structural',mirrors={})
++        c['remote_input_pins'][c['fill']['parts'][0]]['bytes']+=1;w=self.w/'q'
++        with self.assertRaises(P.Rejected):P.probe('fill',p,w,c)
++        self.assertIn('Export part sum differs from REVIEWED_ARCHIVE_BYTES',(w/'0.log').read_text())
++    def test_01_wrong_done_before_place_attempt(self):
++        self.corrupt_preflight('done')
++    def test_01_wrong_preparation_before_place_attempt(self):
++        for name in ('config','receipt','data_receipt'):
++            with self.subTest(name=name):self.corrupt_preflight(name)
++    def corrupt_preflight(self,key):
++        scripts=P.plan(self.c,self.b);code=P.heredocs(Path(scripts['preflight']).read_text())[0]
++        mapping={k:v['path'] for k,v in self.c['mirrors'].items()}
++        good=self.preflight(code,mapping,key+'good');self.assertEqual(good.returncode,0,good.stderr)
++        path=self.c['fill'][key];raw=Path(mapping[path]).read_bytes();bad=self.w/(key+'.bad')
++        if key=='done':raw=raw[:-2]+(b'0' if raw[-2:-1]!=b'0' else b'1')+raw[-1:]
++        else:raw=raw.replace(b'{',b'[',1)
++        bad.write_bytes(raw);self.assertEqual(bad.stat().st_size,Path(mapping[path]).stat().st_size);mapping[path]=str(bad)
++        calls=[];c=dict(self.c,work=str(self.w/key))
++        def call(phase):
++            calls.append(phase)
++            if phase=='preflight':return self.preflight(code,mapping,key+'bad')
++            (P.state_root(c)/'place.attempt').write_text('spent');return subprocess.CompletedProcess([],0,b'',b'')
++        with patch.object(P,'checked',return_value=self.b):
++            with self.assertRaisesRegex(P.Rejected,'before placement'):P.execute(c,scripts,['place'],call=call)
++        self.assertEqual(calls,['preflight']);self.assertFalse((Path(c['work'])/'place.attempt').exists())
++    def test_02_dropped_real_dependency(self):
++        f=dict(self.f);base=json.loads(f['a/0.json']);base['archives'].pop(2);f['a/0.json']=T.jd(base);p=P.extract(T.seal(f),self.w/'p')
++        c=dict(self.c,fill_mode='structural',mirrors={});w=self.w/'q'
++        with self.assertRaises(P.Rejected):P.probe('fill',p,w,c)
++        self.assertIn('Dependency layout differs from pinned reference',(w/'0.log').read_text())
++    def test_03_unreserved_token_before_preflight(self):
++        Path(self.c['ledger']).write_text('');calls=[]
++        def call(k):calls.append(k);return subprocess.CompletedProcess([],0,b'',b'')
++        with patch.object(P,'checked',return_value=self.b):
++            with self.assertRaisesRegex(P.Rejected,'reserve.*Trinity ledger'):P.execute(self.c,{},['place'],call=call)
++        self.assertEqual(calls,[]);self.assertFalse((Path(self.c['work'])/'place.attempt').exists())
++    def test_04_all_job_names_and_no_comments(self):
++        for line in ('#SBATCH --job-name=other','#SBATCH --comment=ticket42','sbatch --job-name=xyz --comment=abc','sbatch -J xyz','sbatch -Jxyz','sbatch --job-name other','sbatch --comment abc'):
++            with self.subTest(line=line):
++                with self.assertRaises(P.Rejected):P.shell_privacy(line)
++        for line in ('sbatch --job-name=a15_cot_apa123456789ab','sbatch -J a15_cot_apf123456789ab','sbatch --job-name="${P##*/}"'):
++            P.shell_privacy(line)
++    def test_05_exact_forbidden_rule_documented(self):
++        docs=Path(os.environ.get('PACK_DOCS',str(Path(P.__file__).parent/'out')))
++        for name in ('NOTE_FOR_CONT_OPS.md','REPORT.md'):
++            text=(docs/name).read_text()
++            for term in ('^a15_cot_ap[a-f][0-9a-f]{10,15}$','forbidden_extra','case-insensitively, as substrings','Python stdin heredoc bodies','old_identities','0700','0600','umask 077','/tmp/a<job><token>'):
++                self.assertIn(term,text)
++    def test_06_five_rows_and_error_limit(self):
++        text=(Path(os.environ.get('PACK_DOCS',str(Path(P.__file__).parent/'out')))/'ORCHARD_ONLY_CHECKS.md').read_text()
++        for label in ('6(a): staged content identity','6(b): structural dependency layout','6(c): ledger reservation','6(d): CPU failure text','6(e): transport and remote environments'):
++            self.assertIn(label,text)
++        self.assertIn('the third consecutive error aborts',text);self.assertNotIn('at most three consecutive errors',text)
++    def test_07_failed_cpu_returns_log_text(self):
++        scripts=P.plan(self.c,self.b);p=self.w/'p';(p/'a').mkdir(parents=True);(p/'a/4.txt').write_text('123\n')
++        for name in ('4.err','4.log'):(p/'a'/name).write_text('cpu_failure_'+name+'\n')
++        text=Path(scripts['poll']).read_text().replace(P.remote_path(self.b),str(p))
++        text=text.replace(P.HEADER,P.HEADER+"sacct(){ printf 'FAILED|\\n'; }\n",1)
++        script=self.w/'poll.sh';script.write_text(text)
++        result=subprocess.run(['bash',str(script)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=P.environment(self.w))
++        self.assertEqual(result.returncode,0,result.stderr);self.assertIn(b'cpu_failure_4.err',result.stderr);self.assertIn(b'cpu_failure_4.log',result.stderr)
++        with patch.object(P,'checked',return_value=self.b):
++            with self.assertRaisesRegex(P.Rejected,'cpu_failure_4.err'):P.execute(self.c,scripts,['gpu'],True,self.b['token'],call=lambda k:result,sleeper=lambda n:None)
++    def test_08_pinned_native_harness_is_executed(self):
++        script=self.w/'native.py';script.write_text("raise ValueError('native dry refusal sentinel')\n"+Path(self.c['native_dry']['path']).read_text())
++        c=dict(self.c,native_dry=dict(path=str(script),sha256=P.file_digest(script)));w=self.w/'q'
++        with self.assertRaises(P.Rejected):P.probe('fill',self.p,w,c)
++        self.assertIn('native dry refusal sentinel',(w/'0.log').read_text())
++    def test_09_transport_uses_caller_identity(self):
++        captured=[]
++        def call(argv,**kw):captured.append(kw['env']);return subprocess.CompletedProcess(argv,0,b'',b'')
++        with patch.dict(os.environ,HOME='/tmp/caller_home',SSH_AUTH_SOCK='/tmp/caller_sock'),patch.object(P,'checked',return_value=self.b),patch.object(P.subprocess,'run',side_effect=call):
++            P.execute(self.c,dict(preflight='/tmp/0',place='/tmp/1'),['place'])
++        self.assertEqual(len(captured),2)
++        for env in captured:self.assertEqual(env.get('HOME'),'/tmp/caller_home');self.assertEqual(env.get('SSH_AUTH_SOCK'),'/tmp/caller_sock')
++    def test_10_fill_body_bash_syntax(self):
++        original=P.shell_join
++        def broken(argv):return 'if then' if '/a/4.py' in ' '.join(argv) else original(argv)
++        with patch.object(P,'shell_join',side_effect=broken):
++            with self.assertRaises(P.Rejected):P.plan(self.c,self.b)
++    def test_10_receipt_interpreter_label(self):
++        r=P.probe('receipt',self.p,self.w/'q',self.c)
++        self.assertTrue(r.get('python','').startswith(sys.version.split()[0]),'receipt wrapper interpreter must report its actual version')
++
++if __name__=='__main__':P.limits();unittest.main(verbosity=2)
+--- /dev/null
 +++ b/test_support.py
-@@ -0,0 +1,83 @@
+@@ -0,0 +1,86 @@
 +"""Bounded fixtures derived from the authenticated supplied B5 package."""
 +import ast, io, json, re, tarfile
 +from pathlib import Path
@@ -1887,6 +2199,7 @@
 +    heads=b'fixture weights';artifact=jd(dict(step=600,config_sha256=binding['config_sha256'],base_identity=binding['base_identity'],frame_layout='duplicate',geometry_online=False,heads=dict(path='/scratch/jjyeung/'+binding['run']+'/m600/heads.pt',sha256=P.digest(heads)),full_weights=dict(path='/scratch/jjyeung/'+binding['run']+'/m600/full_weights/full_weights.json',sha256=P.digest(full))))
 +    raw=archive({'m600/artifact.json':artifact,'m600/heads.pt':heads,'m600/full_weights/full_weights.json':full,'m600/full_weights/0.bin':b'x','m600/full_weights/0.json':b'{}'})
 +    size=len(raw)//4;parts=[mirrored(raw[i*size:(i+1)*size] if i<3 else raw[i*size:]) for i in range(4)]
++    binding.update(parts=[dict(bytes=x['bytes'],sha256=x['sha256']) for x in parts],archive_bytes=len(raw),archive_sha256=P.digest(raw))
 +    done=mirrored(('%s %d %s\n'%(binding['object'],len(raw),P.digest(raw))).encode())
 +    prep_paths={k:mirrored(b)['path'] for k,b in prep.items()}
 +    base['archives']=[dict(base['archives'][0])]+archives;f['a/0.json']=jd(base)
@@ -1895,5 +2208,7 @@
 +    f['a/4.py']=fill.encode();plan['export_binding']=binding;pay['9.json']=json.dumps(plan,sort_keys=True).encode();f=seal(f,pay);p=P.extract(f,w/'p')
 +    c=dict(python=P.PYTHON,work=str(w/'state'),ledger=str(w/'ledger.jsonl'),normalize_wrapper=True,max_read_bytes=10*1024**2,mirrors=mapping,fill=dict(parts=[x['path'] for x in parts],done=done['path'],object=binding['object'],lineage='SFT',step=600,**prep_paths),remote=dict(ossh='/unavailable/ossh.sh',walltime='02:30:00',cpu=dict(path=str(R/'o_cpu_B4.sh'),sha256=P.file_digest(R/'o_cpu_B4.sh'),old_token='d50ba921ef1f4',adapt_token=True),gpu=dict(path=str(R/'o_sub_B5.sh'),sha256=P.file_digest(R/'o_sub_B5.sh'),old_token='b635a315de01e',adapt_token=True)))
 +    c['remote']['gpu'].pop('old_token');c['remote']['gpu'].pop('adapt_token')
++    c['dependency_reference']=dict(path=str(p/'a/0.json'),sha256=P.file_digest(p/'a/0.json'))
++    c['native_dry']=dict(path=str(D/'dryres_d.py'),sha256=P.file_digest(D/'dryres_d.py'))
 +    c['remote_input_pins']={k:dict(bytes=v['bytes']) for k,v in mapping.items()}
 +    (w/'ledger.jsonl').write_text('');P.write(w/'config.json',c);return p,c

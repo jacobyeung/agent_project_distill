@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/u0/a4.py
-@@ -0,0 +1,476 @@
+@@ -0,0 +1,500 @@
 +"""Flush and resume complete (item, arm, mode) reads from b04's generator."""
 +import argparse
 +from contextlib import contextmanager
@@ -173,6 +173,26 @@
 +            raise
 +
 +
++@contextmanager
++def weight_journal(generator, out):
++    """A journal with unchecked weight-dependent rows cannot resume or merge."""
++    boundary=getattr(generator,'weight_boundary',None)
++    if boundary is None:
++        yield
++        return
++    from .atomic_journal import atomic_write
++    receipt=out/'WEIGHTS.json'
++    def state(value):atomic_write(receipt,(json.dumps({'verified':value})+'\n').encode())
++    state(False)
++    try:
++        boundary()
++        yield
++    finally:
++        # A fatal mismatch leaves verified=False, even across process restarts.
++        boundary()
++        state(True)
++
++
 +def run(args, *, make_real=None, factory_options=None, generators=None):
 +    stop_at = getattr(args, 'stop_at', None)
 +    finish_by = getattr(args, 'finish_by', None)
@@ -269,6 +289,9 @@
 +    counts=read_counts(selected_items,interventions,arms,bool(tower_from))
 +    print(json.dumps(dict(read_plan=counts,shard=args.shard)),flush=True)
 +    out.mkdir(parents=True,exist_ok=True)
++    receipt=out/'WEIGHTS.json'
++    if receipt.exists() and json.loads(receipt.read_text()).get('verified') is not True:
++        raise ValueError('Unchecked cache weights; use a fresh journal')
 +    with writer_guard(out,binding,atomic=getattr(args,'atomic_journal',False),
 +                      expected=len(plan(selected_items,arms,interventions))):
 +        env=out/'environment.json'
@@ -347,34 +370,35 @@
 +                    else:
 +                        generator=maker(export,artifact,selected_items,perception_factory=factory,device=args.device)
 +                    load_s=time.perf_counter()-t
-+                    try:
-+                        for item in todo:
-+                            if stopping():break
-+                            if finish_by is not None and time.time() >= finish_by:break
-+                            t=time.perf_counter();output=generator(mapped[item['id']] if reviewed else item);seconds=time.perf_counter()-t
-+                            if not isinstance(output,dict) or 'text' not in output or 'finish' not in output:
-+                                raise ValueError('make_real generator must return reader output with text and finish')
-+                            if arm=='own' and bound and 'heads' in bound[-1].last:
-+                                state=bound[-1].last;heads=state['heads']
-+                                output={**output,'heads':dict(pose9=heads.pose9.tolist(),gravity=heads.gravity.tolist()),
-+                                        'intervention':state['intervention'], 'finite_heads':state.get('finite_heads',{})}
-+                            if arm=='own' and bound and binding['save_own_depth']:
-+                                from .depth_snapshot import save
-+                                snapshot=save(out, item['id'], key, bound[-1].last)
-+                                if snapshot is not None:output={**output, 'own_depth':snapshot}
-+                            row=dict(id=item['id'],room_key=item['room_key'],type=item['question_type'],
-+                                     arm=arm,mode=key,intervention=mode,applied=arm=='own',
-+                                     output=output,seconds=seconds,complete=True)
-+                            if durable is not None:durable.commit(row)
-+                            commit_record(stream, row)
-+                            done[(item['id'],arm,key)]=row;added+=1
-+                            if len(sample)<10:
-+                                sample.append(seconds)
-+                                if len(sample)==10:project()
-+                            print(json.dumps(dict(id=item['id'],arm=arm,mode=key,finish=output['finish'],seconds=seconds)),flush=True)
-+                    finally:
-+                        if not reviewed and callable(getattr(generator,'close',None)):generator.close()
-+                        del generator
++                    with weight_journal(generator,out):
++                        try:
++                            for item in todo:
++                                if stopping():break
++                                if finish_by is not None and time.time() >= finish_by:break
++                                t=time.perf_counter();output=generator(mapped[item['id']] if reviewed else item);seconds=time.perf_counter()-t
++                                if not isinstance(output,dict) or 'text' not in output or 'finish' not in output:
++                                    raise ValueError('make_real generator must return reader output with text and finish')
++                                if arm=='own' and bound and 'heads' in bound[-1].last:
++                                    state=bound[-1].last;heads=state['heads']
++                                    output={**output,'heads':dict(pose9=heads.pose9.tolist(),gravity=heads.gravity.tolist()),
++                                            'intervention':state['intervention'], 'finite_heads':state.get('finite_heads',{})}
++                                if arm=='own' and bound and binding['save_own_depth']:
++                                    from .depth_snapshot import save
++                                    snapshot=save(out, item['id'], key, bound[-1].last)
++                                    if snapshot is not None:output={**output, 'own_depth':snapshot}
++                                row=dict(id=item['id'],room_key=item['room_key'],type=item['question_type'],
++                                         arm=arm,mode=key,intervention=mode,applied=arm=='own',
++                                         output=output,seconds=seconds,complete=True)
++                                if durable is not None:durable.commit(row)
++                                commit_record(stream, row)
++                                done[(item['id'],arm,key)]=row;added+=1
++                                if len(sample)<10:
++                                    sample.append(seconds)
++                                    if len(sample)==10:project()
++                                print(json.dumps(dict(id=item['id'],arm=arm,mode=key,finish=output['finish'],seconds=seconds)),flush=True)
++                        finally:
++                            if not reviewed and callable(getattr(generator,'close',None)):generator.close()
++                            del generator
 +                    timings.append(dict(arm=arm,mode=mode,load_s=load_s,items=len(todo)))
 +                if cached_generator is not None and generators is None:
 +                    if callable(getattr(cached_generator,'close',None)):cached_generator.close()
@@ -590,7 +614,7 @@
 +    return [r for r in items if owners[r['room_key']] == index]
 --- /dev/null
 +++ b/u0/a6.py
-@@ -0,0 +1,121 @@
+@@ -0,0 +1,124 @@
 +"""Merge complete unperturbed tower shards into a deterministic answer/trace return.
 +
 +Run metadata and measured timings stay in PROVENANCE.json. The tar contains the
@@ -639,6 +663,9 @@
 +    common=None;found={};evidence=[];shard_count=None
 +    seen_bindings=set()
 +    for root in map(Path,roots):
++        receipt=root/'WEIGHTS.json'
++        if receipt.exists() and (wire.loads if wire else json.loads)(receipt.read_text()).get('verified') is not True:
++            raise ValueError('Unchecked cache weights; cannot merge journal')
 +        env=(wire.loads if wire else json.loads)((root/'environment.json').read_text());binding=env['binding']
 +        if binding.get('journal_mode') != 'atomic-items-v1':raise ValueError('Merge requires atomic journals')
 +        if binding['item_set_sha256'] != manifest['item_set_sha256']:raise ValueError('Item-set binding differs')
@@ -1104,7 +1131,7 @@
 +        else:target.write_text(_json.dumps(codec.decode(read_wire(RAW_LOADS(path.read_bytes()))),indent=2)+'\n')
 --- /dev/null
 +++ b/u0/a10.py
-@@ -0,0 +1,186 @@
+@@ -0,0 +1,191 @@
 +"""Exact answers/traces; measured timing and audit/cache telemetry are separate."""
 +import argparse
 +from collections import Counter
@@ -1180,6 +1207,11 @@
 +    paths+=sorted(Path(root).glob('shard-*/journals/*/*/items.jsonl'))
 +    paths+=sorted(Path(root).glob('u*/journals/*/*/items.jsonl'))
 +    for path in paths:
++        receipt=path.parent/'WEIGHTS.json'
++        if receipt.exists():
++            from a9 import read_wire
++            if read_wire(json.loads(receipt.read_bytes())).get('verified') is not True:
++                raise ValueError('Unchecked cache weights; cannot compare journal')
 +        for line in path.read_bytes().splitlines(keepends=True):
 +            if not line.endswith(b'\n'):raise ValueError('Torn JSONL: '+str(path))
 +            row=json.loads(line)
@@ -1293,7 +1325,7 @@
 +if __name__=='__main__':raise SystemExit(main())
 --- /dev/null
 +++ b/u0/a11.py
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,59 @@
 +"""Private-host helpers for public settings and authenticated return restoration."""
 +import argparse
 +import json
@@ -1335,6 +1367,8 @@
 +        (out/'u1.json').write_text(json.dumps({'u0':pack(identity)},sort_keys=True)+'\n')
 +        pins=json.loads((incoming/'EXTENSION_PINS.json').read_bytes())
 +        (out/'u3.json').write_text(json.dumps({'u0':pack(pins)},sort_keys=True)+'\n')
++        base=json.loads((incoming/'BASE_PIN.json').read_bytes())
++        (out/'u4.json').write_text(json.dumps({'u0':pack(base)},sort_keys=True)+'\n')
 +        config=json.loads(Path(args.config).read_bytes()) if args.config else json.loads((incoming/'config.example.json').read_bytes())
 +        seal_settings(config,out/'u2.json')
 +    elif args.action=='seal':
@@ -1750,7 +1784,7 @@
 +            self.assertEqual(cache.stats['vision']['hits'],1)
 +            v.weight=torch.nn.Parameter(torch.tensor(9.),requires_grad=False)
 +            try:actual=v(torch.tensor(1.)).item()
-+            except ValueError:return
++            except (ValueError,getattr(C,'ModelMutationError',ValueError)):return
 +            self.assertEqual(actual,9.)
 +
 +    def test_f5_deadline_handler_does_not_repair_after_lock_unwinds(self):

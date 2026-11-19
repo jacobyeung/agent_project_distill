@@ -10,15 +10,21 @@ def directory(out, part):
 def score_files(out, part):
  folder=directory(out,part)
  # This directory holds only the freeze pair and scores. Unknown files fail closed.
- files=[p for p in folder.rglob('*') if p.is_file() and p.name not in ('BARS.json','FREEZE.json')]
+ files=[p for p in folder.rglob('*') if p.is_file() and not (p.parent==folder and p.name in ('BARS.json','FREEZE.json'))]
  legacy=[f'PER_ITEM_{part}_*.jsonl'] if part!='H' else ['PER_ITEM_*_heldout.jsonl']
  for pattern in legacy:files.extend(Path(out).glob(pattern))
  if (Path(out)/'PER_ITEM.jsonl').is_file():files.append(Path(out)/'PER_ITEM.jsonl')
+ names={'A':['A_POSE.json','A_DISTANCE.txt'],'B':['B_LADDER_TRAIN.txt'],'C':['C_CAMERA.txt'],'H':['HELDOUT_once.txt']}[part]
+ for name in names:
+  path=Path(out)/name
+  if path.is_file():
+   value=read_json(path)
+   if value.get('rows') or value.get('results'):files.append(path)
  return files
 
 def protocol(part):
  cfg=read_json(ROOT/'configs/kit.json')
- shared=dict(part=part,bootstrap=cfg['bootstrap'],positive_bar='paired CI lower endpoint > 0',
+ shared=dict(part=part,code_sha256=digest(code_pins()),bootstrap=cfg['bootstrap'],positive_bar='paired CI lower endpoint > 0',
              protocol_sha256={n:sha(ROOT/n) for n in ('code/metrics.py','code/evaluate_v2.py','code/camera_pricing.py','code/exclusions.py','configs/KBOX_WINNING_BOX_RULE.json')})
  if part in ('A','B'):
   shared.update(population='K1 train outside withheld rooms',decision_rows=1012,full_rows_report_only=1037)
@@ -35,6 +41,7 @@ def require_score(out, part):
  if not bars.is_file() or not receipt.is_file():raise RuntimeError('REFUSE: missing frozen bars or freeze receipt: '+str(folder))
  frozen=read_json(receipt)
  if frozen.get('part')!=part or frozen.get('bars_sha256')!=sha(bars):raise RuntimeError('REFUSE: frozen bars sha256 differs from freeze')
+ if read_json(bars).get('code_sha256')!=digest(code_pins()):raise RuntimeError('REFUSE: code differs from BARS.json')
  if frozen.get('code_sha256')!=digest(code_pins()):raise RuntimeError('REFUSE: code differs from freeze')
  return frozen
 

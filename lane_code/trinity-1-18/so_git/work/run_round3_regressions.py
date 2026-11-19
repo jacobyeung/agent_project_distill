@@ -11,7 +11,8 @@ mode = sys.argv[1]
 source = L / 'work/review_round3_source'
 if mode == 'before':
     root = L / 'work/round3_before'
-    shutil.copytree(str(L / 'work/review_round3_base'), str(root))
+    if not root.exists():
+        shutil.copytree(str(L / 'work/review_round3_base'), str(root))
     shutil.copyfile(str(source / 'tests/test_review_round3.py'), str(root / 'tests/test_review_round3.py'))
 else:
     root = source

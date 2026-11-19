@@ -78,7 +78,7 @@ class LocalParity(unittest.TestCase):
                         streams=None if info is None else info['stream_means'])
                     state['logged_numbers'] = None if info is None else {k:v for k,v in info.items()
                         if k not in ('wall_seconds','data_seconds','memory','peak_allocated_bytes',
-                                     'peak_reserved_bytes','decoded_cache')}
+                                     'peak_reserved_bytes','decoded_cache','performance','cpu_prefetch')}
                     self.assertEqual(len(losses), 2 if failure else 8)
                     self.assertEqual(error is not None, failure)
                     if arm == 'off':

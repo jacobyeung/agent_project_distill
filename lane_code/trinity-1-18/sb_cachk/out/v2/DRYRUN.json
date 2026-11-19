@@ -1,0 +1,635 @@
+{
+ "step0": {
+  "passed": true,
+  "tau_025": {
+   "added": 538,
+   "correct": 390,
+   "precision": 0.724907063197026
+  },
+  "predicate_equal": "2310/2310"
+ },
+ "step1": {
+  "all_1037": {
+   "rows": 1037,
+   "expected_rows": 1037,
+   "equal": 1037,
+   "mra": 56.769527483124406,
+   "reference_mra": 56.769527483124406,
+   "first_differences": [],
+   "passed": true
+  },
+  "decision_1012": {
+   "rows": 1012,
+   "expected_rows": 1012,
+   "equal": 1012,
+   "mra": 56.92687747035573,
+   "reference_mra": 56.92687747035573,
+   "first_differences": [],
+   "passed": true
+  }
+ },
+ "step1b": {
+  "empty_stub_C_best1": {
+   "rows": 1037,
+   "expected_rows": 1037,
+   "equal": 1037,
+   "mra": 56.769527483124406,
+   "reference_mra": 56.769527483124406,
+   "first_differences": [],
+   "passed": true
+  },
+  "empty_members": {
+   "seeded_objects": 760,
+   "added": 760,
+   "correct": 0,
+   "positive_empty": 760,
+   "rule": "each seeded object carries one positive-score empty member: the ladder counts it added and incorrect",
+   "passed": true
+  }
+ },
+ "step2": {
+  "C_best1_vs_A2": {
+   "rows": 1037,
+   "expected_rows": 1037,
+   "equal": 1037,
+   "mra": 73.97299903567985,
+   "reference_mra": 73.97299903567985,
+   "first_differences": [],
+   "passed": true
+  },
+  "C_fused_vs_fused_cf": {
+   "rows": 1037,
+   "expected_rows": 1037,
+   "equal": 1037,
+   "mra": 78.62102217936354,
+   "reference_mra": 78.62102217936354,
+   "first_differences": [],
+   "passed": true
+  },
+  "decision_1012": {
+   "step2_raster_stub_C_best1_vs_A2_gt_masks": true,
+   "step2_raster_stub_C_fused_vs_fused_cf": true
+  }
+ },
+ "step3": {
+  "status": "PASS",
+  "captures": 209,
+  "frames": 13376,
+  "failures": 0
+ },
+ "step4a": {
+  "status": "FAILED_AS_RECORDED",
+  "attempts": [
+   {
+    "label": "build_sam3_video_predictor(checkpoint_path=pinned)",
+    "status": "FAILED",
+    "error": "RuntimeError: No CUDA GPUs are available",
+    "raised_at": "/scratch/jjyeung/envs/sam3_capretry_native_v1/lib/python3.12/site-packages/torch/cuda/__init__.py:424 torch._C._cuda_init()"
+   },
+   {
+    "label": "Sam3VideoPredictor(checkpoint_path=pinned)",
+    "status": "FAILED",
+    "error": "RuntimeError: No CUDA GPUs are available",
+    "raised_at": "/scratch/jjyeung/envs/sam3_capretry_native_v1/lib/python3.12/site-packages/torch/cuda/__init__.py:424 torch._C._cuda_init()"
+   }
+  ]
+ },
+ "step4": {
+  "capture": "arkitscenes/41048124",
+  "status": "PARTIAL",
+  "threads": 8,
+  "limit_seconds": 2700,
+  "spent_seconds": 2290.591667819768,
+  "wall_seconds": 2290.5613036397845,
+  "sets": [
+   "S_A0/D64",
+   "S_GT/D64",
+   "S_A0/A32",
+   "S_GT/A32",
+   "S_PHR/D64",
+   "S_PHR/A32"
+  ],
+  "done": {
+   "S_A0/D64": 1,
+   "S_GT/D64": 1,
+   "S_A0/A32": 1,
+   "S_GT/A32": 0,
+   "S_PHR/D64": 0,
+   "S_PHR/A32": 0
+  },
+  "stopped": null,
+  "dropped": [
+   "S_GT/A32",
+   "S_PHR/D64",
+   "S_PHR/A32"
+  ],
+  "units": {
+   "S_A0/D64": {
+    "embedded_frames": 64,
+    "tracked": 2,
+    "reused": 0,
+    "embed_seconds": 671.2951969932765,
+    "track_seconds": 237.20457350183278,
+    "seconds": 908.9840043652803
+   },
+   "S_GT/D64": {
+    "embedded_frames": 64,
+    "tracked": 2,
+    "reused": 0,
+    "embed_seconds": 686.356523651164,
+    "track_seconds": 238.63358316989616,
+    "seconds": 925.4624149790034
+   },
+   "S_A0/A32": {
+    "embedded_frames": 32,
+    "tracked": 2,
+    "reused": 0,
+    "embed_seconds": 341.12300398014486,
+    "track_seconds": 102.93784335581586,
+    "seconds": 444.2982651600614
+   }
+  },
+  "rates": {
+   "embed_per_frame": 10.617342028903659,
+   "track_per_object_frame": 1.8086750000860774,
+   "overhead_per_unit": 0.39798661740496755
+  },
+  "projections": [
+   {
+    "stage": "receipt",
+    "projected_seconds": 2739.2403334048577,
+    "drop": [
+     "S_GT/A32",
+     "S_PHR/D64",
+     "S_PHR/A32"
+    ]
+   }
+  ],
+  "projected_all_sets_seconds": 2739.2403334048577,
+  "peak_rss_gib": 8.369625091552734,
+  "priced": [
+   "S_A0_A32",
+   "S_A0_D64",
+   "S_GT_D64"
+  ]
+ },
+ "seeds": {
+  "check1_first5": {
+   "objects": 13,
+   "passed": 13,
+   "captures_passed": 5,
+   "captures": 5
+  },
+  "check1_all": {
+   "objects": 770,
+   "passed": 770,
+   "captures_passed": 209,
+   "captures": 209
+  },
+  "summary": {
+   "objects": 770,
+   "S_A0": {
+    "ok": 760,
+    "refused": 10,
+    "unseen": 0,
+    "on_target": 519
+   },
+   "S_GT": {
+    "ok": 770,
+    "not_visible": 0
+   },
+   "S_PHR": {
+    "status": "PRESENT",
+    "phrase_folds": {
+     "path": "/scratch/jjyeung/orch_n30/sb_mask_phrase/out/PHRASE_FOLDS.json",
+     "sha256": "5af09f4b670382bcbb0253690ba109e4002f849b53b7bd3e2e8cd599375f2285",
+     "arm": "W1",
+     "decision": "/scratch/jjyeung/orch_n30/sb_mask_phrase/out/DECISION.json",
+     "decision_sha256": "2dac01fcbba7a6fde09d6ae81ab609de70e3149b04423325f24e44047d4e1a4e",
+     "bars_file": "/scratch/jjyeung/orch_n30/sb_mask_phrase/out/BARS.json",
+     "bars_sha256": "150d16a232b42d86b33c6df792133f3a001d92f7b3b723c96dfc3391f0f17bc6",
+     "phrase_worth": "PASS",
+     "phrase_safe": "PASS"
+    },
+    "ok": 764,
+    "on_target": 531,
+    "differs_from_S_A0": 20,
+    "second_calls": 0,
+    "unlisted_names": [],
+    "policies": [
+     "radiator"
+    ]
+   },
+   "phr_path_parity": {
+    "objects": 770,
+    "equal": 770
+   }
+  }
+ },
+ "population": {
+  "population_id": "f0ecd8ee39f1e668027d2fbdf16d4b6bff56d9568dfedd4a90698929f4171bf0",
+  "decision_captures": 204,
+  "decision_rows": 1012,
+  "beside_captures": 209,
+  "beside_rows": 1037,
+  "excluded_captures": 5,
+  "excluded_rows": 25
+ },
+ "guard": {
+  "exclusions": {
+   "R0": {
+    "passed": true,
+    "hits": 0,
+    "rows": 0
+   },
+   "dev_S1": {
+    "passed": true,
+    "hits": 0,
+    "rows": 0
+   },
+   "BENCH_v2": {
+    "passed": true,
+    "hits": 0,
+    "rows": 0
+   },
+   "withheld_80": {
+    "passed": false,
+    "hits": 5,
+    "rows": 25
+   },
+   "K1_heldout": {
+    "passed": true,
+    "hits": 0,
+    "rows": 0
+   }
+  },
+  "withheld_default": "keep: the kit fits nothing and the ladder it reproduces priced these rows; bars stay on 1,037 rows and a sensitivity row on the other 1012 rows decides nothing; mc_track_pass.py --exclude-withheld skips them if the orchestrator rules so",
+  "k1_split": true,
+  "folds": true,
+  "reuse_K1_TRACK": "MISSING: file and its directory are absent on this node; the kit runs the tracker itself"
+ },
+ "deployed_frame_recall": {
+  "frames": 9263,
+  "hits": 5363,
+  "rate": 0.5789700960811832
+ },
+ "frame_spacing": {
+  "decision": {
+   "arkitscenes": {
+    "captures": 127,
+    "anchor_gap": {
+     "median": 25.0,
+     "mean": 28.36245872491745,
+     "p10": 14.0,
+     "p90": 44.0,
+     "min": 9,
+     "max": 115
+    },
+    "dense_gap": {
+     "median": 12.0,
+     "mean": 13.956130483689538,
+     "p10": 7.0,
+     "p90": 22.0,
+     "min": 2,
+     "max": 58
+    },
+    "anchor_span": {
+     "median": 760.0,
+     "mean": 879.2362204724409,
+     "p10": 440.4,
+     "p90": 1359.0,
+     "min": 296,
+     "max": 3554
+    },
+    "median_of_capture_anchor_medians": 25.0,
+    "spec_anchor_gap_median": 25,
+    "spec_dense_gap_median": 12.5
+   },
+   "scannet": {
+    "captures": 17,
+    "anchor_gap": {
+     "median": 44.0,
+     "mean": 48.43453510436433,
+     "p10": 20.0,
+     "p90": 80.0,
+     "min": 19,
+     "max": 140
+    },
+    "dense_gap": {
+     "median": 22.0,
+     "mean": 23.832866479925304,
+     "p10": 10.0,
+     "p90": 40.0,
+     "min": 5,
+     "max": 70
+    },
+    "anchor_span": {
+     "median": 1373.0,
+     "mean": 1501.4705882352941,
+     "p10": 620.0,
+     "p90": 2184.2000000000003,
+     "min": 615,
+     "max": 4335
+    },
+    "median_of_capture_anchor_medians": 44.0,
+    "spec_anchor_gap_median": 35,
+    "spec_dense_gap_median": 17.5
+   },
+   "scannetpp": {
+    "captures": 60,
+    "anchor_gap": {
+     "median": 269.5,
+     "mean": 336.93440860215054,
+     "p10": 165.70000000000002,
+     "p90": 535.6000000000063,
+     "min": 103,
+     "max": 1622
+    },
+    "dense_gap": {
+     "median": 133.0,
+     "mean": 165.7931216931217,
+     "p10": 81.0,
+     "p90": 266.0,
+     "min": 27,
+     "max": 811
+    },
+    "anchor_span": {
+     "median": 8358.0,
+     "mean": 10444.966666666667,
+     "p10": 5157.8,
+     "p90": 16594.9,
+     "min": 3220,
+     "max": 50260
+    },
+    "median_of_capture_anchor_medians": 269.5,
+    "spec_anchor_gap_median": 272,
+    "spec_dense_gap_median": 136.0
+   }
+  },
+  "beside": {
+   "arkitscenes": {
+    "captures": 127,
+    "anchor_gap": {
+     "median": 25.0,
+     "mean": 28.36245872491745,
+     "p10": 14.0,
+     "p90": 44.0,
+     "min": 9,
+     "max": 115
+    },
+    "dense_gap": {
+     "median": 12.0,
+     "mean": 13.956130483689538,
+     "p10": 7.0,
+     "p90": 22.0,
+     "min": 2,
+     "max": 58
+    },
+    "anchor_span": {
+     "median": 760.0,
+     "mean": 879.2362204724409,
+     "p10": 440.4,
+     "p90": 1359.0,
+     "min": 296,
+     "max": 3554
+    },
+    "median_of_capture_anchor_medians": 25.0,
+    "spec_anchor_gap_median": 25,
+    "spec_dense_gap_median": 12.5
+   },
+   "scannet": {
+    "captures": 22,
+    "anchor_gap": {
+     "median": 36.0,
+     "mean": 45.03225806451613,
+     "p10": 20.0,
+     "p90": 64.0,
+     "min": 19,
+     "max": 140
+    },
+    "dense_gap": {
+     "median": 17.0,
+     "mean": 22.158730158730158,
+     "p10": 10.0,
+     "p90": 32.0,
+     "min": 5,
+     "max": 70
+    },
+    "anchor_span": {
+     "median": 1129.0,
+     "mean": 1396.0,
+     "p10": 642.5,
+     "p90": 1974.8000000000002,
+     "min": 615,
+     "max": 4335
+    },
+    "median_of_capture_anchor_medians": 36.5,
+    "spec_anchor_gap_median": 35,
+    "spec_dense_gap_median": 17.5
+   },
+   "scannetpp": {
+    "captures": 60,
+    "anchor_gap": {
+     "median": 269.5,
+     "mean": 336.93440860215054,
+     "p10": 165.70000000000002,
+     "p90": 535.6000000000063,
+     "min": 103,
+     "max": 1622
+    },
+    "dense_gap": {
+     "median": 133.0,
+     "mean": 165.7931216931217,
+     "p10": 81.0,
+     "p90": 266.0,
+     "min": 27,
+     "max": 811
+    },
+    "anchor_span": {
+     "median": 8358.0,
+     "mean": 10444.966666666667,
+     "p10": 5157.8,
+     "p90": 16594.9,
+     "min": 3220,
+     "max": 50260
+    },
+    "median_of_capture_anchor_medians": 269.5,
+    "spec_anchor_gap_median": 272,
+    "spec_dense_gap_median": 136.0
+   }
+  }
+ },
+ "tests": "74 passed in 1.33s",
+ "staging": {
+  "total_bytes": 14924708860,
+  "items": 20
+ },
+ "gpu_estimate": {
+  "per_set": {
+   "S_A0/D64": {
+    "units": 209,
+    "embed_frames": 13376,
+    "object_frames": 48640,
+    "objects": 760,
+    "reused": 0,
+    "hours": 0.7836444444444444
+   },
+   "S_GT/D64": {
+    "units": 209,
+    "embed_frames": 13376,
+    "object_frames": 49280,
+    "objects": 770,
+    "reused": 0,
+    "hours": 0.7880888888888888
+   },
+   "S_A0/A32": {
+    "units": 209,
+    "embed_frames": 6688,
+    "object_frames": 24320,
+    "objects": 760,
+    "reused": 0,
+    "hours": 0.3918222222222222
+   },
+   "S_GT/A32": {
+    "units": 209,
+    "embed_frames": 6688,
+    "object_frames": 24640,
+    "objects": 770,
+    "reused": 0,
+    "hours": 0.3940444444444444
+   },
+   "S_PHR/D64": {
+    "units": 20,
+    "embed_frames": 1280,
+    "object_frames": 1280,
+    "objects": 20,
+    "reused": 744,
+    "hours": 0.051555555555555556
+   },
+   "S_PHR/A32": {
+    "units": 20,
+    "embed_frames": 640,
+    "object_frames": 640,
+    "objects": 20,
+    "reused": 744,
+    "hours": 0.025777777777777778
+   }
+  },
+  "cumulative": [
+   {
+    "set": "S_A0/D64",
+    "hours": 0.7836444444444444,
+    "cumulative_hours": 0.8003111111111111,
+    "fits_hard_stop": true
+   },
+   {
+    "set": "S_GT/D64",
+    "hours": 0.7880888888888888,
+    "cumulative_hours": 1.5884,
+    "fits_hard_stop": true
+   },
+   {
+    "set": "S_A0/A32",
+    "hours": 0.3918222222222222,
+    "cumulative_hours": 1.9802222222222223,
+    "fits_hard_stop": true
+   },
+   {
+    "set": "S_GT/A32",
+    "hours": 0.3940444444444444,
+    "cumulative_hours": 2.3742666666666667,
+    "fits_hard_stop": false
+   },
+   {
+    "set": "S_PHR/D64",
+    "hours": 0.051555555555555556,
+    "cumulative_hours": 2.425822222222222,
+    "fits_hard_stop": false
+   },
+   {
+    "set": "S_PHR/A32",
+    "hours": 0.025777777777777778,
+    "cumulative_hours": 2.4516,
+    "fits_hard_stop": false
+   }
+  ],
+  "total_hours": 2.4516,
+  "decision_arm_hours": 0.8003111111111111,
+  "kept_at_assumed_rates": [
+   "S_A0/D64",
+   "S_GT/D64",
+   "S_A0/A32"
+  ],
+  "dropped_at_assumed_rates": [
+   "S_GT/A32",
+   "S_PHR/D64",
+   "S_PHR/A32"
+  ],
+  "old_single_embedding_estimate_hours": 1.48253,
+  "rates": {
+   "embed_seconds_per_frame": 0.12,
+   "track_seconds_per_object_frame": 0.025,
+   "load_seconds": 60.0
+  },
+  "binding": "TIMING_RECEIPT.json after the first 10 S_A0/D64 captures replaces these rates; the pass drops trailing sets while its projection exceeds the 2 h cumulative stop"
+ },
+ "gpu_memory": {
+  "weights_fp32": 3450062241,
+  "frame_cache_per_frame": 22809600,
+  "frames_per_unit": 64,
+  "frame_cache": 1459814400,
+  "activations": 1500000000.0,
+  "cuda_context": 1000000000.0,
+  "total_bytes": 7409876641.0,
+  "card_min_bytes": 24000000000.0,
+  "margin": 3.238920317135142,
+  "fits_24GB": true,
+  "bf16": "native bf16 needs compute capability >= 8.0 (Ampere or later)",
+  "batch": "one frame per backbone forward; one object per tracker step; a unit holds at most 64 frames"
+ },
+ "input_sha256": {
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/dryrun.sh": "a0cb5568136221062c046e35f040c34d50ac9db5e0b57e850de61d04682aeb7a",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/gpu_inner.sh": "f616e8c8a93a700d78030838bc0d1dde4be794f944c32833a9dd306f67486f29",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/launch_gpu.sh": "1de42e08d90c0abfd1e8acb53205df23b97d21a14c0044466e14fd4ac1d81e09",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/manifest.sh": "677c577686235797e5f0db766a28625bd1d00e7fba7af1be7df45cb42eac6d34",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_bars.py": "38d6eff01ad7b85c5afcac39400bf4578a44561915d1e0539a3aa28fced53acf",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_common.py": "d945d070ae4a298fcc364db913700f0728082cd4f9db852828d4de173e6185ca",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_dryrun_report.py": "138bef721cd6268042cc693c2a648abe2ff5d9c75aa8bea382bcf6639f12ff2c",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_frames.py": "3f0bde9e1750319cfd64e658e8c0dc0ed93ab833022554beec9835640be4d12e",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_guard.py": "65f9b3cef22eac5e99eee66adc238e36a697af24da1da5434a97153e6b810074",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_ladder.py": "0a9581f335386ec03040f53d0f4b7762da40cd5c905f395cdcd27d957d6e641c",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_measure.py": "e42b9c4c8b115575f9a0348726650ee6ae7082ced432d17a64067e583c199c97",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_phrase.py": "6753f76e5618772665a5e49b74b7f1fcd61080dd6c772df9efd889365ce67b4e",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_population.py": "e3304aba95ad9dcb8fed58596a11c65c707f58a57cf5851822aacd7bf83f33fb",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_preflight.py": "55b04a9489214a7841e92070d6770823c07936dcc98bb2618e12b7d3c560b21b",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_price.py": "41c03670ece93787b857bbb619974e7f143e617affbf07045485ff7191111535",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_probe_cpu.py": "a74565080a2675f977320be419ec2c09c635c9ccb0b3dfdc639ba3c650021474",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_probe_predictor.py": "676b8ba1f3ae8bda33885e125dff65a496b00fc7c569e3a6a2f3339281aa5cb5",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_seeds.py": "2cd992fbb95667e32f3884cd68a9a749a23f8a7649dfbd46717b15278d9cb7c7",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_staging.py": "95ac31cace6eca6a7b1c8096a4ccdf1a05d3f3b0ed37f3fcd0740fdd0d0630cd",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_step0.py": "7fc795e37cce20e74775e552f36d225a762a3dcf4bf26af34001ff2a89b087d7",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_stubs.py": "f9c4ba41c557bd4455352bf1e3025b61dfcbfa0931a9fd72c1394462f9ec156d",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_summary.py": "06ee35966d0d567e909facd58bd50b80d940ae0aa16ee0d20892d4e76220c88f",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_track_io.py": "33f5b841c88faabff2bc53a8a019a3efcd52da814dc4bbf831e05e5fd21667fb",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_track_pass.py": "a540ab24f01b13bc94ff6bc8d9b65b829edb0a1c1fbba5ce68d748838c110000",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_tracker.py": "cf2ff59a9d8b786b9c5972861ab286cebb18f49edbf32b193a4fbf6a98c598e4",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/post_gpu.sh": "f75d9d06d42e6588e373c0aa22229059005c97c3591208cd9a611ce429860460",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/run_cpu.sh": "9910fd8349619afc4d9ecd180cbfaaa3d6aa5945b345a42dfbe06b2439d716ef",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/vendor/terminator.sh": "19727987d5517c0e2549e1205e55f4bcc87f34dafe66c96bdf90233305942e5d",
+  "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/vendor/vnice.sh": "3ab2b542726f32dbecdbe30104f903aa2bef3526a9257013fd5f8bcc99461c6b",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/FRAME_SETS.json": "84c0ddbb5e13de1c2e91dc6556e7fea90fec3f633daf033d84e10880f6bfb9e7",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/GUARD.json": "b541a92018863f4b41aa724c20254501876b72ef52025694454c19837e9c4531",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/POPULATION.json": "ee2d1f2ef61b4ba4d8936bebddea41e9a9a1638772d80c6ebc6d0dc6ec77ded5",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/STAGING.json": "a39f119a4f132aed3107cc886c13afa6324f56c481b9a7cebd97062d30a26f88",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/dry/PREDICTOR_CPU.json": "8269eddb5c4b29898fc9df48a751a9e99c5703632466ebdd469d8fb4852a7746",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/dry/STEP0_PRECISION.json": "187af2c0ca566f3cbd18fac006b5eb1a12c820aae967ffaaa02792c519edfe06",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/dry/STUB_PARITY.json": "99fbc08bb947fad50e5fa8dbef1b54ad792b66f8227f8286f379f592717cb487",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/dry/track_cpu_full/BUDGET.json": "30821bd6b44a45c5464bbe0e1c02e162ad982cc9a1ecf5ade47c0f1302b22e2e",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/dry/track_cpu_full/S_A0_A32/arkitscenes__41048124.json.gz": "190dd87a78fa0e58ec8900d7a02b7af9f85602e0b9ec0f7e6d6b66ca0f5c81bd",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/dry/track_cpu_full/S_A0_D64/arkitscenes__41048124.json.gz": "3280ccfaeab1a8d3e5805bfc064b0d5a7f9a84bf4d072b5a9c2b8672023045b2",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/dry/track_cpu_full/S_GT_D64/arkitscenes__41048124.json.gz": "8f48452e82caa7e687f804f6c83ca35f107aeaea5651955ed5bf33d68fe1d5fd",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/dry/track_cpu_full/TRACK_INDEX.json": "c039f83eb950479dcb8d3105e6e762cfb3a3eb8565898ec0677e82ddfe7e4db4",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/seeds/SEEDS.json": "7a1aa239a36fb21b831a2ee7ef7d83386cde0252150df92a7c2bb3856ee9906a",
+  "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/seeds/SEEDS_first5.json": "080cd1db2696200c28df4979d63cccb7120df07438a527393bc64c5645fe7166"
+ }
+}

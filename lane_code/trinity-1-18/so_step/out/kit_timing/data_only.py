@@ -1,8 +1,10 @@
 """Actual CPU rows/processor on one host; optional copies fit a single 48 GB GPU."""
 import argparse
+import hashlib
 import json
 import os
 import random
+import resource
 from pathlib import Path
 import statistics
 import sys
@@ -10,19 +12,31 @@ import time
 from types import SimpleNamespace
 
 
+def descriptor_for(run, cfg, receipt):
+    descriptor = SimpleNamespace(recipe=run.recipe_for(cfg), training_mode=cfg.get('training_mode','final'),
+        frame_count=cfg.get('frame_count',32), geometry_online=cfg.get('geometry_online'),
+        r1_training=cfg.get('r1_training'))
+    if cfg.get('align') != receipt.get('align'):
+        raise ValueError('Configuration and receipt alignment differ')
+    if receipt.get('align'):
+        descriptor.align_settings = receipt['align']
+    return descriptor
+
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--tree',required=True)
     parser.add_argument('--receipt',required=True,help='Actual prepared receipt JSON, with local staged frame paths')
     parser.add_argument('--manifest',required=True,help='The base-model manifest used by processor_for_receipt')
-    parser.add_argument('--plan',required=True,help='off/rank0/plan.json from the production comparison')
+    parser.add_argument('--plan',required=True,help='Bounded continuation plan from write_plan.py')
     parser.add_argument('--config',required=True)
     parser.add_argument('--out',required=True)
     parser.add_argument('--rank',type=int,default=0)
     parser.add_argument('--arm',choices=('off','prefetch','cache','all'),default='off')
     parser.add_argument('--baseline', help='OFF output JSON; required for every ON arm')
     parser.add_argument('--steps', type=int, default=10)
-    parser.add_argument('--full-plan', action='store_true', help='Audit every supplied epoch plan; no 100-step cap')
+    parser.add_argument('--full-plan', action='store_true', help='Audit every supplied plan (normally the bounded 10-update plan)')
+    parser.add_argument('--require-coverage',action='store_true',help='Require actual augmented pose rows and capped processor grids')
     parser.add_argument('--gpu-copy',action='store_true')
     parser.add_argument('--pin',action='store_true')
     parser.add_argument('--consumer-ms',type=float,default=0.,help='Optional simulated compute delay; NEVER a measured GPU speedup')
@@ -34,29 +48,37 @@ def main():
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from row_hash import encoded_hash, compare_rows
     os.environ.update(C1_CPU_PREFETCH='1' if args.arm in ('prefetch','all') else '0',
-                      C1_DECODED_CACHE_MIB='512' if args.arm in ('cache','all') else '0',C1_BATCH_METRICS='0')
+                      C1_DECODED_CACHE_MIB='512' if args.arm in ('cache','all') else '0',C1_BATCH_METRICS='0', C1_CPU_PREFETCH_FALLBACK='0')
     sys.path.insert(0,str(Path(args.tree).resolve()))
     import torch
     import numpy as np
     from student_pilot import carrier_c1_run as run
     cfg=run.load(args.config)
-    processor=run.processor_for_receipt(run.load(args.manifest),run.load(args.receipt))
-    descriptor=SimpleNamespace(recipe=run.recipe_for(cfg),training_mode=cfg.get('training_mode','final'),
-                               frame_count=cfg.get('frame_count',32),geometry_online=cfg.get('geometry_online'),
-                               r1_training=cfg.get('r1_training'))
+    receipt = run.load(args.receipt)
+    processor=run.processor_for_receipt(run.load(args.manifest),receipt)
+    descriptor=descriptor_for(run,cfg,receipt)
     if cfg.get('geometry_online') or cfg.get('mdg') or cfg.get('geometry_connector') == 'gf1':
         raise ValueError('This data-only descriptor covers the four-stream run A path, not geometry/MDG checks')
     frozen=run.load(args.plan)
+    if frozen.get('config_sha256',run.identity(cfg)) != run.identity(cfg):
+        raise ValueError('Audit plan configuration differs')
+    if frozen.get('receipt_sha256',run.file_pin(args.receipt)['sha256']) != run.file_pin(args.receipt)['sha256']:
+        raise ValueError('Audit plan receipt differs')
     if args.full_plan:
         args.steps = len(frozen['plans'])
         if not args.steps:
             raise ValueError('Full plan is empty')
     if not 0 <= args.rank < frozen['world_size'] or len(frozen['plans']) < args.steps:
         raise ValueError('Need a valid rank and at least the requested step plans')
-    rows=run.Rows(run.load(args.receipt),processor)
+    rows=run.Rows(receipt,processor)
+    from audit import Coverage
+    from student_pilot import pose_samples
+    coverage = Coverage()
+    augmentation = coverage.augmentation(pose_samples)
+    augmentation.__enter__()
     result=[]
     try:
-        for step,plan in enumerate(frozen['plans'][:args.steps],1):
+        for step,plan in enumerate(frozen['plans'][:args.steps],frozen.get('start_step',0)+1):
             before_rng=(random.getstate(),np.random.get_state(),torch.get_rng_state().clone())
             tick=time.perf_counter()
             waiting=copy_seconds=hash_seconds=0.
@@ -74,6 +96,7 @@ def main():
                 before=time.perf_counter()
                 batch,targets,audit=next(iterator)
                 waiting+=time.perf_counter()-before
+                coverage.observe(batch)
                 draws.append([stream, int(indices[args.rank]), int(audit['index'])])
                 held += tensor_bytes((batch, targets, audit))
                 slot += 1
@@ -99,24 +122,33 @@ def main():
             rng_equal=(before_rng[0]==after_rng[0] and before_rng[1][0]==after_rng[1][0]
                        and np.array_equal(before_rng[1][1],after_rng[1][1])
                        and before_rng[1][2:]==after_rng[1][2:] and torch.equal(before_rng[2],after_rng[2]))
-            result.append(dict(step=step,wall_seconds=time.perf_counter()-tick,data_seconds=waiting,
+            result.append(dict(step=step,plan_sha256=hashlib.sha256(json.dumps(plan,sort_keys=True).encode()).hexdigest(),wall_seconds=time.perf_counter()-tick,data_seconds=waiting,
                                max_group_tensor_bytes=max(group_sizes, default=0), group_tensor_bytes=group_sizes,
                                encoded_row_sha256=hashes, row_draws=draws, hash_seconds=hash_seconds,
                                copy_seconds=copy_seconds,simulated_consumer_ms=args.consumer_ms,
                                global_rng_unchanged=rng_equal))
     finally:
         rows.close()
+        augmentation.__exit__(None,None,None)
     Path(args.out).write_text(json.dumps(result,indent=2)+'\n')
     peak = max(r['max_group_tensor_bytes'] for r in result)
     Path(args.out+'.manifest.json').write_text(json.dumps(dict(arm=args.arm, full_plan=args.full_plan,
         plans_checked=args.steps, plans_available=len(frozen['plans']), rank=args.rank, world_size=frozen['world_size'],
+        start_step=frozen.get('start_step',0), resume=frozen.get('resume'), config_sha256=run.identity(cfg),
+        plan_sha256=run.file_pin(args.plan)['sha256'],
+        peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024,
+        augmented_pose_rows=coverage.augmented_pose_rows, augmentation_threads=sorted(coverage.augmentation_threads),
+        grid_cap=[32,20,26], observed_max_grid=coverage.max_grid, grid_rows=coverage.grid_rows,
+        coverage_required=args.require_coverage,
         peak_group_tensor_bytes=peak, group_budget_bytes=MAX_GROUP_TENSOR_BYTES,
         intraop=torch.get_num_threads(), interop=torch.get_num_interop_threads(),
         environment={k:v for k,v in os.environ.items() if k.startswith(('OMP_', 'MKL_', 'OPENBLAS_', 'TOKENIZERS_'))}),indent=2)+'\n')
+    if args.require_coverage:
+        coverage.require(prefetch=args.arm in ('prefetch','all'))
     if args.baseline:
         compare_rows(json.loads(Path(args.baseline).read_text()), result)
     if peak > MAX_GROUP_TENSOR_BYTES:
-        raise ValueError('Full group tensor budget exceeded; keep prefetch OFF')
+        raise ValueError('Prepared group tensor budget exceeded; keep prefetch OFF')
     if not all(r['global_rng_unchanged'] for r in result):
         raise ValueError('Actual row/processor path changed a global RNG; do not enable threaded prefetch')
     print(json.dumps(dict(arm=args.arm,steps=args.steps,encoded_rows_equal_to_off=True if args.baseline else None,median_wall_seconds=statistics.median(x['wall_seconds'] for x in result),

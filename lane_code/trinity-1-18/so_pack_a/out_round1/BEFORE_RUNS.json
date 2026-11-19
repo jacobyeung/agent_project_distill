@@ -1,0 +1,23 @@
+{
+  "cwd": "/scratch/jjyeung/orch_n30/so_pack_a",
+  "runs": [
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r1/baseline PACK_REVIEW_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r1/before_tests /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r1/src/test_review.py > work/r1/before_review.log 2>&1",
+      "log": "before_review.log",
+      "returncode": 1,
+      "scope": "Reviewed-source gaps; package-init case is not finding 7 evidence"
+    },
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r1/baseline PACK_REVIEW_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r1/before_import /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r1/src/test_review.py Review.test_r7_production_module_import > work/r1/before_import.log 2>&1",
+      "log": "before_import.log",
+      "returncode": 1,
+      "scope": "Relative module import"
+    },
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r1/baseline PACK_REVIEW_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r1/before_coverage PACK_REVIEW_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r1/after_tests PACK_NATIVE_RESULT=/scratch/jjyeung/orch_n30/so_pack_a/work/native_release/RESULT.json /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r1/src/test_review.py Review.test_r3_actual_D_integration Review.test_r6_operational_inventory Review.test_required_inputs_refuse_by_name > work/r1/before_coverage.log 2>&1",
+      "log": "before_coverage.log",
+      "returncode": 1,
+      "scope": "D integration, operational inventory and named missing-input gate"
+    }
+  ]
+}

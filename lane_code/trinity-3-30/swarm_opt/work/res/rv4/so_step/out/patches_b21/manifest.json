@@ -1,0 +1,124 @@
+{
+  "01_cpu_prefetch.diff": {
+    "sha256": "7ce3a5b6aab6ce3bed1b773a9c260e0b3a37d6ad2d19d4f9464b8b0eb64fd8a9",
+    "bytes": 42864,
+    "paths": [
+      "student_pilot/carrier_c1_run.py",
+      "student_pilot/c1_cpu_prefetch.py",
+      "student_pilot/c1_switches.py",
+      "tests/so_helpers.py",
+      "tests/so_processor.py",
+      "tests/test_so_prefetch.py",
+      "tests/test_so_review.py",
+      "tests/test_carrier_c1_run.py",
+      "tests/test_gx_carrier.py",
+      "tests/test_gx_s6.py",
+      "tests/test_gx_s7.py",
+      "tests/test_gx_s8.py",
+      "tests/test_carrier_c1_t0.py"
+    ],
+    "base_pin": "b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8"
+  },
+  "02_decoded_rgb_cache.diff": {
+    "sha256": "7695b70d511c8a1b1033f133180b09b9a448ddc2bf627dfc836ae4b7ad6c23d7",
+    "bytes": 8057,
+    "paths": [
+      "student_pilot/carrier_c1_run.py",
+      "student_pilot/c1_decoded_cache.py",
+      "student_pilot/pose_samples.py",
+      "student_pilot/batches.py",
+      "tests/test_so_cache.py"
+    ],
+    "base_pin": "b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8"
+  },
+  "03_batch_metrics.diff": {
+    "sha256": "c8712100988d91e466203922243ac043036fca3c544cc795405379d962192606",
+    "bytes": 15899,
+    "paths": [
+      "student_pilot/carrier_c1_run.py",
+      "student_pilot/c1_batch_metrics.py",
+      "tests/test_so_metrics.py",
+      "tests/test_so_joint.py"
+    ],
+    "base_pin": "b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8"
+  },
+  "04_test_joint_hash_0dim.diff": {
+    "sha256": "ca65704ef69efcb0ab9d98dc3ed5f51377ec5688f287927ab5216153ca20a7fb",
+    "bytes": 16074,
+    "paths": [
+      "tests/test_so_joint.py",
+      "tests/test_so_round2.py",
+      "tests/test_so_round3.py"
+    ],
+    "base_pin": "b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8"
+  },
+  "_application": {
+    "method": "Apply 01, 02, 03, 04 in order with patch --batch --fuzz=0 -p1; build 21 only, zero offsets/fuzz.",
+    "input_root": "/scratch/jjyeung/orch_n30/so_xstore/in/tree21b/work/tree_r1",
+    "tested_tree": "/scratch/jjyeung/orch_n30/so_step/work/b21_final/work/tree_r1",
+    "base_pin": {
+      "tree_sha256": "b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8",
+      "files": 936
+    },
+    "package_sha256": "fb9de190d0da8ed0727f2132d4c08ac4737a65a7aed3226d6ab4cbe1f65ebf59",
+    "package_pin_source": "/scratch/jjyeung/orch_n30/so_xstore/in/tree21b/READY",
+    "defaults": {
+      "C1_CPU_PREFETCH": "0",
+      "C1_DECODED_CACHE_MIB": "0",
+      "C1_BATCH_METRICS": "0",
+      "C1_CPU_PREFETCH_FALLBACK": "0"
+    },
+    "input_sha256": {
+      "student_pilot/batches.py": "fde1ef381084d6f865cf89b57973c9058aa2a5c413be28021bb5835291775291",
+      "student_pilot/c1_batch_metrics.py": null,
+      "student_pilot/c1_cpu_prefetch.py": null,
+      "student_pilot/c1_decoded_cache.py": null,
+      "student_pilot/c1_switches.py": null,
+      "student_pilot/carrier_c1_run.py": "e26eddaaeb2f609b1eb8f5279f50df5d79dd8c438c2efbe4a9c845f5aa996273",
+      "student_pilot/pose_samples.py": "e51ed30d47602518f22637133ccac0f7cf7fb72e795706e7db72c4152ca29433",
+      "tests/so_helpers.py": null,
+      "tests/so_processor.py": null,
+      "tests/test_carrier_c1_run.py": "654aca4d32a1d850ee107f302262b17518adb5cedfac9ba3cb42c6522e0415db",
+      "tests/test_carrier_c1_t0.py": "1ee1d32d79b4d31b8a86ceb13c43003c98e63e19cb00c2bc80eb56ed70ecf093",
+      "tests/test_gx_carrier.py": "30782617193f0ed043ba20f25ad04617c8086d611620946f920a04237b3c75c8",
+      "tests/test_gx_s6.py": "1e8d062faa90d4dc56df9b289be47d9f1a9b3b2b4ac322ad02ef1fb52e6a6363",
+      "tests/test_gx_s7.py": "0eb133289269c199fbc323bee69c41c14d0fba6d48af9ae4d409ac2aac73e33a",
+      "tests/test_gx_s8.py": "cf0e35b8f5e2d1a277110e9c426fde63103a46e8da875532a41ab86e03287f38",
+      "tests/test_so_cache.py": null,
+      "tests/test_so_joint.py": null,
+      "tests/test_so_metrics.py": null,
+      "tests/test_so_prefetch.py": null,
+      "tests/test_so_review.py": null,
+      "tests/test_so_round2.py": null,
+      "tests/test_so_round3.py": null
+    },
+    "output_sha256": {
+      "student_pilot/batches.py": "a3a242b81ca140b6a9bd54c5c17692386b56c67f0b54f91cb57ca5fafa252c34",
+      "student_pilot/c1_batch_metrics.py": "0c6453ff8b180d8d0b6be98c99349ecd867a85ebfbd9c824b35103c6d9f89c15",
+      "student_pilot/c1_cpu_prefetch.py": "3db1888adf4fc441159b67d594ee75c33698010b3509096024d291d8ed1afbef",
+      "student_pilot/c1_decoded_cache.py": "834b42bc2cf6c55f837eef558b738ee339795b360f2ebeeaedfa4012a605d74b",
+      "student_pilot/c1_switches.py": "06ca57419a513288674ca57ff5bee29fbd332498e9ea81bd5dd28f9da2c13161",
+      "student_pilot/carrier_c1_run.py": "7d69fa15ef49d9e67901897243cf1656f723dbf932d24e709885e5b94e52772b",
+      "student_pilot/pose_samples.py": "1cc5e798cb7dbb1fb9cdb8e77e5969a10a3228b5f79158babf904baf945ed882",
+      "tests/so_helpers.py": "127e09b6f24716007b5b5f8f7cd766b23baef17a7f4dce244ac8612ed8fa753f",
+      "tests/so_processor.py": "d27fd51d4fb3bad43c8bfd54a2fa735649f0d202e4866a31a81254a34a1c41d2",
+      "tests/test_carrier_c1_run.py": "0fec54ae505853bb5ff55bd30310e8d5b55e0cddf12ac7d246d5a2d1f52177c5",
+      "tests/test_carrier_c1_t0.py": "6072a40024e95a72bc04597e28c4a31310ce82f84a16772d52b81e47164f527b",
+      "tests/test_gx_carrier.py": "4c802097f0d2aeda88cdafc2034a7bb6f14307734eae0cc1fdd9e82b754d6ff1",
+      "tests/test_gx_s6.py": "30b32c47fea212fa112746d56a60f6bdb23c6d99fdd2532d1ba0380d0fe8fefd",
+      "tests/test_gx_s7.py": "681df6c164d135aa18fe2382fb01a41b7de730bfcf1df0bb9d386fb994426acc",
+      "tests/test_gx_s8.py": "66935ddb894ac6e71099d187b91a73ce7db3afa1c26293f221221ddffaf6df03",
+      "tests/test_so_cache.py": "6daffa603f6b76f5549352012124ca57a352a1679b93bc1e0c45c8b19cf8c691",
+      "tests/test_so_joint.py": "51feaed62d8b9d47c004a8a807b9afb868a65f367cd92e0b802b6bf759936919",
+      "tests/test_so_metrics.py": "cae825ac8139b7d8037dfa9a92a0996e84fab3d1c5fbb65d858d4c57a793d967",
+      "tests/test_so_prefetch.py": "88f5364fcb2ab40abbe0d0ba6f6ad3b7747c5b102719a7b566fa581607beb291",
+      "tests/test_so_review.py": "f940effd55490523755492b4d5a780895c096910ef2af825508a7a42594538fa",
+      "tests/test_so_round2.py": "5cd64f53f829da3025a962cca3318ac9c848ef2e5d87552bcfc76da275ff6f6f",
+      "tests/test_so_round3.py": "d3fb8456def1a348a1f76879e4c147297dcb817f8272e4ea41dae3c938bea8bd"
+    },
+    "test_method": "REPORT.md Coordinator command; local gates use SO_TEST_TREE=/scratch/jjyeung/orch_n30/so_step/work/b21_final/work/tree_r1",
+    "candidate_source_tree_sha256": "f79e2cb8cabadccd1bc404a51cbc247aab7e45c181ddb297a45ed2e8a5b81cf5",
+    "candidate_source_files": 949,
+    "patch_04": "Scalar collective-hash repair, round-2 tests and round-3 tests; run tests after all four patches."
+  }
+}

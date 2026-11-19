@@ -1,6 +1,6 @@
 {
   "cuda_visible_devices": "",
-  "max_child_rss_bytes": 400216064,
+  "max_child_rss_bytes": 400650240,
   "results": [
     {
       "command": [
@@ -80,6 +80,42 @@
         "-I",
         "-s",
         "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round3.py"
+      ],
+      "name": "round3",
+      "output": "round3.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py"
+      ],
+      "name": "operator3",
+      "output": "operator3.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_lock_round3.py"
+      ],
+      "name": "lock3",
+      "output": "lock3.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
         "/scratch/jjyeung/orch_n30/so_read/out/kit_parity50/test_compare.py"
       ],
       "name": "kit",
@@ -102,5 +138,5 @@
   "torch": "2.11.0+cpu",
   "torch_threads": 8,
   "transformers": "5.12.1",
-  "workspace_bytes": 204321549
+  "workspace_bytes": 1192848601
 }

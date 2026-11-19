@@ -1,0 +1,30 @@
+{
+ "gpus": 1,
+ "walltime": "05:00:00",
+ "allocated_seconds": 18000,
+ "admission_stops_at_seconds": 16200,
+ "measured": {
+  "staging_seconds": 257,
+  "tower_decode_seconds_step200": 3553,
+  "tower_decode_seconds_step544": 3448,
+  "own_decode_seconds_step544": 3139,
+  "tower_load_seconds": 75,
+  "own_load_seconds": 77,
+  "own_process_overhead_seconds_incl_load": [
+   113,
+   85,
+   85
+  ]
+ },
+ "model": "staging + 3 type processes x (own process overhead incl. own load + tower load) + tower decode + own decode + 120 s return",
+ "estimated_seconds": 7633,
+ "estimated_hours": 2.12,
+ "upper_seconds_decode_x1_5": 10979,
+ "upper_hours": 3.05,
+ "headroom_to_admission_stop": 1.48,
+ "sources": {
+  "tower200": "job 172744 (A4)",
+  "tower544": "job 171253 read 0",
+  "own544": "job 170631 mode none"
+ }
+}

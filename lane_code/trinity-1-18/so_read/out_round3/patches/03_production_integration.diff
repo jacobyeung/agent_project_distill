@@ -1,0 +1,1196 @@
+--- /dev/null
++++ b/u0/a12.py
+@@ -0,0 +1,199 @@
++"""Build locally; never stage remotely or invoke Slurm."""
++import argparse
++import base64
++import io
++import json
++import os
++from pathlib import Path
++import secrets
++import shlex
++import sys
++import tarfile
++
++if not __package__:
++    sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
++from orchard_h10.common import canonical, opaque, sha, valid_token, write
++
++K=Path(__file__).resolve().parents[1]
++B=Path('/scratch/jjyeung/orch_n30/b04_e2ehook')
++T=K/'tmp/b8/readk_tmpl/launcher'
++CORE=('orchard_launcher.py','orchard_job.py','orchard_stage.py','export_stage.py',
++      'orchard_results.py','return_io.py','stdout_transfer.py','trace_runtime.py',
++      'chain_save.py','ORCHARD_ASSETS.json','MODELS.json','TRANSPORT.json')
++
++
++def sources(enable_extensions=False):
++    files={}
++    def add(path, name):
++        if path.is_symlink():raise ValueError('Code package must contain regular source: '+str(path))
++        if path.stat().st_size>4*1024**2:raise ValueError('Large source file: '+str(path))
++        files[name]=path
++    for folder in ('tree','h1eval','auth','rows','orchard_h10'):
++        for path in sorted((K/folder).rglob('*')):
++            if not path.is_file() or '__pycache__' in path.parts:continue
++            if folder=='orchard_h10' and (path.suffix!='.py' or path.parent!=K/folder):continue
++            if path.suffix in ('.pyc','.pt','.safetensors','.tar','.gz'):continue
++            add(path,str(path.relative_to(K)))
++    add(K/'items/devs1_routed.json','items/devs1_routed.json')
++    add(K/'items/r0dev.json','items/r0dev.json')
++    from h1eval.items import R0_PINS
++    for name in R0_PINS:add(K/'inputs/r0dev'/name,'inputs/r0dev/'+name)
++    # The reviewed reader imports these modules and their native task bindings.
++    for folder in ('e2e_reader','heads/selector','heads/scale','parity_kit'):
++        for path in sorted((B/folder).glob('*.py')):add(path,'b/'+str(path.relative_to(B)))
++    for name in ('work/meta/x/sj/orch_cd/legs1_reads/work/vendor/r3/TASKS.jsonl',
++                 'work/meta/x/sj/orch_cd/legs1_routed/out2/CAMERA_TASKS.jsonl',
++                 'work/meta/x/sj/orch_cd/legs1_reads/work/vendor/r3/FRAMES.json',
++                 'work/meta/x/sj/orch_cd/evalx/work/milestone/raw_g3t_20261114/admission/DENSE_MANIFEST.json',
++                 'work/meta/x/fsw/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/config.json',
++                 'work/meta/x/fsw/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/prepared/s1_receipt.json',
++                 'work/meta/x/fsw/ap/8865619b/runs/469ddece/inputs/data_receipt.json',
++                 'work/n13/ret/native/paired/request.json',
++                 'work/c8r/sj/orch_cd/evalx/work/milestone/native/out2/reader_policy.py'):
++        add(B/name,'b/'+name)
++    for name in CORE:add(T/name,'orchard_h10/vendor/'+name)
++    if enable_extensions:
++        for path in sorted((K/'u0').rglob('*')):
++            if path.is_file() and '__pycache__' not in path.parts and path.suffix!='.pyc':
++                add(path,str(path.relative_to(K)))
++        for name,alias in (('entry','a13'),('job','a16'),('runner','a17'),('prepare','a18')):
++            files['orchard_h10/'+name+'.py']=K/'u0'/(alias+'.py')
++    return files
++
++
++def batch(bundle, token):
++    """The batch contains only an opaque descriptor and numeric bootstrap names."""
++    import hashlib
++    text="""#!/bin/bash
++set -euo pipefail
++exec /usr/bin/python3 -I -s -B - <<'A'
++import hashlib,io,json,os,sys,tarfile
++from pathlib import Path,PurePosixPath
++j=os.environ.get('SLURM_JOB_ID','')
++if not j.isdigit():raise ValueError('Allocation required')
++b=bytes.fromhex(%r)
++r=Path('/tmp')/('a'+j+%r)
++r.mkdir(mode=0o700)
++with tarfile.open(fileobj=io.BytesIO(b)) as a:
++    for e in a:
++        n=PurePosixPath(e.name)
++        if n.is_absolute() or '..' in n.parts or not e.isfile():raise ValueError('Unsafe input')
++        p=r/e.name;p.parent.mkdir(parents=True,exist_ok=True)
++        with a.extractfile(e) as i,p.open('xb') as o:o.write(i.read())
++os.chdir(r)
++os.execv(sys.executable,[sys.executable,'-I','-s','-B',str(r/'0.py'),str(r)])
++A
++""" % (bundle.hex(),token)
++    opaque([text])
++    if len(text)>3*1024**2:raise ValueError('Batch exceeds limit')
++    return text
++
++
++def repin_reader(spec, old):
++    """An explicit complete inventory is required; no implicit reader refresh."""
++    source=Path(spec['source']).resolve();expected=spec['sha256']
++    paths={str(p.relative_to(source)):p for p in source.rglob('*') if p.is_file()}
++    if set(paths)!=set(expected) or any(p.is_symlink() for p in paths.values()):
++        raise ValueError('Reader inventory differs')
++    if any(sha(p)!=expected[n] for n,p in paths.items()):raise ValueError('Reader hash differs')
++    if set(expected)!=set(old):raise ValueError('Reader inventory must match the pinned package')
++    return {n:p.read_bytes() for n,p in paths.items()}
++
++
++def build(destination, token=None, refresh=False, reader_repin=None, *, enable_extensions=False):
++    from orchard_h10.common import template
++    template(T)
++    import orchard_launcher as L
++    destination=Path(destination).resolve()
++    if not destination.is_relative_to(K):raise ValueError('Build output must stay in K')
++    if refresh:
++        if (destination/'LEDGER.jsonl').exists():raise ValueError('Cannot refresh a submitted package')
++        previous=json.loads((destination/'CONFIG.json').read_text())
++        token=previous['token'] if token is None else token
++        if token!=previous['token']:raise ValueError('Refresh cannot change a package token')
++    elif destination.exists() and any(destination.iterdir()):raise ValueError('Require a fresh package directory')
++    token=valid_token(token or secrets.choice('abcdef')+secrets.token_hex(6))
++    destination.mkdir(parents=True,exist_ok=True)
++    paths=sources(enable_extensions)
++    import hashlib
++    payload={n:p.read_bytes() for n,p in paths.items()}
++    # A refresh keeps the reviewed reader frozen, even if its upstream changed.
++    if (destination/'0.tgz').exists():
++        with tarfile.open(destination/'0.tgz') as archive:
++            old={e.name[2:]:archive.extractfile(e).read() for e in archive
++                 if e.isfile() and e.name.startswith('b/e2e_reader/')}
++        for n,raw in old.items():payload['b/'+n]=raw
++    else:old={n[2:]:raw for n,raw in payload.items() if n.startswith('b/e2e_reader/')}
++    if reader_repin:
++        new=repin_reader(json.loads(Path(reader_repin).read_text()),old)
++        for n,raw in new.items():payload['b/'+n]=raw
++    payload['8.py']=(K/'orchard_h10/operator.py').read_bytes()
++    pins={n:dict(sha256=hashlib.sha256(raw).hexdigest(),bytes=len(raw)) for n,raw in payload.items()}
++    cfg=dict(schema='h10-orchard-v1',token=token,logical='/scratch/jjyeung/b01ec87a6f29b',
++             payload_pins=pins,perception_memo_modules=['g3t'],
++             template_pins={n:sha(T/n) for n in CORE},
++             order=list(__import__('orchard_h10.common',fromlist=['ORDER']).ORDER),
++             inputs_name='1.json',cpu_check_name='2.json',pool='/project/community/jjyeung/okh7/ae71c903',
++             stop_margin=1800,return_margin=1200,budget_gpu_seconds=18000)
++    if enable_extensions:
++        cfg.update(read_extensions=True,read_scene_shards=True,read_atomic_journal=True,
++                   read_processor_cache='on',read_vision_cache='on',read_sam_cache='on',
++                   read_cache_bytes=12*1024**3)
++    plan=canonical(cfg)
++    payload['9.json']=json.dumps(cfg,sort_keys=True).encode()
++    raw=L.tar_bytes(payload)
++    if len(raw)>8*1024**2:raise ValueError('Code archive exceeds local allowance')
++    (destination/'0.tgz').write_bytes(raw)
++    public=dict(token=token,payload_sha256=sha(destination/'0.tgz'),payload_bytes=len(raw),plan_sha256=plan)
++    boot=("import sys,json,hashlib,tarfile\nfrom pathlib import Path\n"
++          "r=Path(sys.argv[1]);c=json.loads((r/'0.json').read_text())\n"
++          "a=Path('/project/community/jjyeung')/c['token']/'0.tgz'\n"
++          "assert hashlib.sha256(a.read_bytes()).hexdigest()==c['payload_sha256']\n"
++          "with tarfile.open(a) as t:\n"
++          " for e in t:\n"
++          "  if not e.name.startswith('orchard_h10/'):continue\n"
++          "  if not e.isfile() or '..' in Path(e.name).parts:raise ValueError('Unsafe input')\n"
++          "  p=r/'p'/e.name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(t.extractfile(e).read())\n"
++          "sys.path.insert(0,str(r/'p'))\nfrom orchard_h10.job import main\nmain(r)\n").encode()
++    bundle=L.tar_bytes({'0.py':boot,'0.json':json.dumps(public).encode()})
++    (destination/'BATCH.sh').write_text(batch(bundle,token))
++    write(destination/'CONFIG.json',public)
++    (destination/'SUBMIT.cmd').write_text('#!/bin/bash\nset -euo pipefail\ncd "$(dirname "$0")"\n'
++        'exec /usr/bin/python3 -I -s -B 3.py submit --gpus "${A_N:?Set 1 to 4}" --time "${A_T:?Set HH:MM:SS}" "$@"\n')
++    helper="""import hashlib,json,tarfile
++from pathlib import Path
++p=Path(__file__).resolve().parent
++c=json.loads((p/'0.json').read_text())
++assert hashlib.sha256((p/'0.tgz').read_bytes()).hexdigest()==c['payload_sha256']
++with tarfile.open(p/'0.tgz') as t:
++    exec(compile(t.extractfile('8.py').read(),__file__,'exec'))
++"""
++    opaque([helper]);(destination/'3.py').write_text(helper)
++    write(destination/'INPUTS.example.json',dict(schema=1,archives=[],files={},python=None,
++        policy=dict(vnice=None,terminator=None),resume=None,
++        export_pin=dict(path='a/export.json',sha256=None,bytes=None),
++        note='Fill and pin on Orchard; do not submit this unresolved example.'))
++    (destination/'0.json').write_text(json.dumps(public,sort_keys=True)+'\n')
++    write(destination/'PACKAGE.json',dict(token=token,files={n:sha(destination/n) for n in
++          ('0.tgz','BATCH.sh','CONFIG.json','3.py','0.json')}))
++    for path in destination.iterdir():
++        if path.is_file() and path.name!='0.tgz':opaque([path.name,path.read_text()])
++    if reader_repin:
++        with (K/'BUILD_REPORT.md').open('a') as report:
++            report.write('\nReader repin hashes (old → new):\n\n')
++            for n in sorted(old):report.write(f"- `{n}`: `{hashlib.sha256(old[n]).hexdigest()}` → `{pins['b/'+n]['sha256']}`.\n")
++    mapping=K/'orchard_h10/TOKENS.json'
++    old=json.loads(mapping.read_text()) if mapping.exists() else {}
++    old[token]=dict(package=str(destination.relative_to(K)),meaning='Pinned export; own dev-S1; registered modes and ordered types')
++    write(mapping,old)
++    return dict(directory=str(destination),token=token,code_bytes=len(raw),files=len(paths),plan=plan)
++
++
++if __name__=='__main__':
++    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--out',required=True);p.add_argument('--token');p.add_argument('--refresh',action='store_true');p.add_argument('--reader-repin',help='JSON with source directory and complete sha256 inventory')
++    p.add_argument('--enable-extensions',action='store_true')
++    p.add_argument('--reader-source');p.add_argument('--template-source')
++    a=p.parse_args()
++    if a.reader_source:B=Path(a.reader_source).resolve()
++    if a.template_source:T=Path(a.template_source).resolve()
++    print(json.dumps(build(a.out,a.token,a.refresh,a.reader_repin,enable_extensions=a.enable_extensions),sort_keys=True))
+--- /dev/null
++++ b/u0/a13.py
+@@ -0,0 +1,31 @@
++"""Private dispatch. Only this numeric entry and its numeric config reach argv."""
++import json
++from pathlib import Path
++import sys
++
++cfg=json.loads(Path(sys.argv[1]).read_text())
++p=Path(cfg['package'])
++sys.path[:0]=[str(p/'b'),str(p/'tree'),str(p)]
++from orchard_h10.common import install_process_guard
++install_process_guard(Path(sys.argv[1]).resolve().parent)
++action=cfg['action']
++if cfg['config'].get('read_extensions') is True:
++    sys.path.insert(0,str(p/'u0'))
++    from a8 import activate
++    activate(enabled=True)
++if action==0:
++    from orchard_h10.prepare import run
++    run(cfg['config'],cfg['inputs'])
++elif action==1:
++    import os
++    from orchard_h10.runner import run
++    result=run(cfg['config'],os.environ['CUDA_VISIBLE_DEVICES'].split(','),cfg['end'],prefix=cfg['config']['prefix'])
++    raise SystemExit(1 if result['failure'] else 0)
++elif action==2:
++    from orchard_h10.runner import worker_args
++    if cfg['config'].get('read_extensions') is True:
++        from a8 import main
++        raise SystemExit(main(['--enable-extensions',*worker_args(cfg)]))
++    from h1eval.h10.launch import main
++    raise SystemExit(main(worker_args(cfg)))
++else:raise ValueError('Invalid dispatch')
+--- /dev/null
++++ b/u0/a14.py
+@@ -0,0 +1,22 @@
++"""Neutral staged array entry. No scheduler commands execute in this module."""
++from pathlib import Path
++import sys
++
++
++def main():
++    source=Path(__file__).resolve().parent.parent
++    sys.path[:0]=[str(source/'u0'),str(source),str(source/'tree'),str(source/'b')]
++    from a9 import PublicLog,install_wire_decoder
++    install_wire_decoder()
++    sys.stdout=PublicLog(sys.stdout);sys.stderr=PublicLog(sys.stderr)
++    try:
++        from a8 import activate
++        activate(enabled=True)
++        from h1eval.h10.array_worker import main as worker
++        return worker()
++    except Exception as error:
++        print(type(error).__name__)
++        return 2
++
++
++if __name__=='__main__':raise SystemExit(main())
+--- /dev/null
++++ b/u0/a15.py
+@@ -0,0 +1,84 @@
++"""Generate a reviewable array command and script; never invoke the scheduler."""
++import argparse
++import hashlib
++import json
++from pathlib import Path
++import shlex
++import sys
++
++
++def validate_policy(policy,shards,seconds):
++    # An owner must approve the exact partition and lifetime budget. No policy
++    # is assumed from the availability of a partition or a scheduler flag.
++    if not isinstance(policy,dict) or policy.get('approved') is not True:
++        raise ValueError('Array policy requires explicit owner approval')
++    if policy.get('partition')!='preempt':raise ValueError('Unsupported array partition')
++    attempts=policy.get('max_attempts')
++    if type(attempts) is not int or not 1<=attempts<=4:raise ValueError('Invalid attempt bound')
++    if type(shards) is not int or not 1<=shards<=4:raise ValueError('Invalid shard count')
++    if type(seconds) is not int or seconds<2400:raise ValueError('Require at least 40 minutes')
++    budget=policy.get('gpu_seconds')
++    if type(budget) is not int or not 0<budget<=18000 or shards*seconds*attempts>budget:
++        raise ValueError('Array exceeds approved lifetime GPU-hour budget')
++    return attempts
++
++
++def submission(token,config,python,source,config_path,*,enabled=False):
++    if enabled is not True:raise ValueError('Array generation is OFF')
++    from orchard_h10.common import submit_argv,opaque
++    from a9 import validate_config,opaque_path
++    validate_config(config)
++    if not all(opaque_path(p) for p in (python,source,config_path)):
++        raise ValueError('Array requires approved neutral staged paths')
++    pin=hashlib.sha256(json.dumps(config,sort_keys=True,separators=(',',':')).encode()).hexdigest()
++    count=config['shards'];seconds=config['attempt_seconds']
++    attempts=validate_policy(config.get('policy'),count,seconds)
++    wall=f'{seconds//3600:02}:{seconds//60%60:02}:{seconds%60:02}'
++    argv=submit_argv(token,1,wall)
++    argv=[v.replace('--partition=general','--partition=preempt')
++          .replace('--no-requeue','--requeue').replace('--signal=B:USR1@1800','--signal=B:USR1@900')
++          for v in argv]
++    argv+=['--array=0-'+str(count-1)+'%'+str(count)]
++    # exec-style forwarding lets the reader drain at its existing deadlines.
++    # Exit 75 requests a bounded retry; all other failures remain failures.
++    script='''#!/bin/bash
++set -euo pipefail
++export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
++export TOKENIZERS_PARALLELISM=false HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
++if (( ${SLURM_RESTART_COUNT:-0} >= LIMIT )); then exit 75; fi
++trap 'kill -USR1 "$pid" 2>/dev/null || true' USR1 TERM INT
++rc=0
++COMMAND &
++pid=$!
++while true; do
++    wait "$pid" && rc=0 || rc=$?
++    if ! kill -0 "$pid" 2>/dev/null; then break; fi
++done
++if (( rc == 75 && ${SLURM_RESTART_COUNT:-0} + 1 < LIMIT )); then
++    scontrol requeue "${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
++    exit 0
++fi
++exit "$rc"
++'''.replace('LIMIT',str(attempts)).replace('COMMAND',shlex.join([
++        'nice','-n','10',python,'-I','-s','-B',str(Path(source)/'u0/a14.py'),config_path,'--enable-array','--config-sha256',pin]))
++    opaque(argv);opaque([script])
++    return dict(argv=argv,script=script,config_sha256=pin)
++
++
++def main():
++    p=argparse.ArgumentParser();p.add_argument('config');p.add_argument('--out',required=True)
++    p.add_argument('--token',required=True);p.add_argument('--python',required=True)
++    p.add_argument('--source',required=True);p.add_argument('--staged-config',required=True)
++    p.add_argument('--enable-array',action='store_true');a=p.parse_args()
++    source=Path(__file__).resolve().parent.parent
++    sys.path[:0]=[str(source/'u0'),str(source)]
++    from a9 import read_wire
++    result=submission(a.token,read_wire(json.loads(Path(a.config).read_bytes())),a.python,a.source,
++                      a.staged_config,enabled=a.enable_array)
++    out=Path(a.out);out.mkdir(parents=True,exist_ok=False)
++    (out/'0.sh').write_text(result.pop('script'))
++    (out/'0.json').write_text(json.dumps(result,sort_keys=True)+'\n')
++    return 0
++
++
++if __name__=='__main__':raise SystemExit(main())
+--- /dev/null
++++ b/u0/a16.py
+@@ -0,0 +1,225 @@
++"""Job-private staging, reviewed bwrap namespace, and template result return."""
++import io
++import json
++import os
++from pathlib import Path
++import secrets
++import signal
++import subprocess
++import sys
++import tarfile
++import time
++
++from orchard_h10.common import ORDER, canonical, sha, template, write, opaque, checked_run, read_config
++
++
++def verify_config(cfg):
++    if canonical({k:v for k,v in cfg.items() if k not in ('plan_sha256','payload_sha256','payload_bytes')})!=cfg['plan_sha256']:
++        raise ValueError('Plan digest differs')
++
++
++def check_inputs(inputs, cfg, *, package=None):
++    """Fail closed until every unresolved archive and dependency has a full pin."""
++    from orchard_h10.export_pins import load, admit
++    export = load(inputs, package or Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+cfg['token']))
++    import re
++    valid=lambda value:isinstance(value,str) and re.fullmatch('[0-9a-f]{64}',value)
++    if 'types' in inputs:
++        types=inputs['types']
++        if (not isinstance(types,list) or not types
++                or any(not isinstance(kind,str) or kind not in ORDER for kind in types)
++                or types!=[kind for kind in ORDER if kind in types]):
++            raise ValueError('Invalid type selection')
++    if inputs.get('schema')!=1 or not inputs.get('archives'):raise ValueError('Unresolved input archives')
++    for a in inputs['archives']:
++        if not valid(a.get('sha256')) or not a.get('parts') or a.get('expanded_bytes',0)<=0:
++            raise ValueError('Unresolved archive pin or size')
++        for part in a['parts']:
++            if not valid(part.get('sha256')) or part.get('bytes',0)<=0:raise ValueError('Unresolved archive part')
++            if not str(part.get('path','')).startswith('/project/community/jjyeung/'):
++                raise ValueError('Stage additional inputs to the registered community namespace')
++        target=Path(a['destination'])
++        if target.is_absolute() or '..' in target.parts or str(target)!=str(Path('sj')/Path(cfg['logical']).relative_to('/scratch/jjyeung')/'d'):
++            raise ValueError('Additional archives must unpack under the stable data root')
++    needed={'artifact','heads','full_weights','g3t_weights','g3t_config','sam_checkpoint',
++            'sam_receipt','selector_weights','selector_config','base_config','original_model'}
++    if not needed<=inputs.get('files',{}).keys():raise ValueError('Unresolved dependency files')
++    for name,f in inputs['files'].items():
++        if not valid(f.get('sha256')) or f.get('bytes',0)<=0:raise ValueError('Unresolved file pin: '+name)
++        path=Path(f.get('path',''))
++        if not path.is_relative_to(Path(cfg['logical'])/'d') or '..' in path.parts:
++            raise ValueError('Input file must live under the stable data root')
++    admit(inputs, cfg, export)
++    expected={'sam_checkpoint':'9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e',
++              'selector_weights':'6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1'}
++    for name,h in expected.items():
++        if inputs['files'][name]['sha256']!=h:raise ValueError('Registered dependency differs: '+name)
++    for name,prefix in [('g3t_weights','d460957b'),
++                        ('g3t_config','5aeb2acd'),('sam_checkpoint','9999e234')]:
++        if not inputs['files'][name]['sha256'].startswith(prefix):raise ValueError('Registered pin prefix differs: '+name)
++    for key in ('frames_root','sam_source'):
++        path=Path(inputs.get(key,''))
++        if '..' in path.parts or not path.is_relative_to(Path(cfg['logical'])/'d'):raise ValueError('Missing logical '+key)
++    if not inputs.get('python') or not inputs.get('policy',{}).get('vnice') or not inputs['policy'].get('terminator'):
++        raise ValueError('Python or vnice/terminator contract unresolved')
++    # A new/overlaid environment needs authenticated archives; the template environment alone
++    # does not establish torchvision, transformers 5.12+, scipy, or SAM dependencies.
++    if not inputs.get('environment_receipt') or not inputs.get('policy_receipt'):
++        raise ValueError('Require pinned environment and policy receipts in files')
++    for key in ('environment_receipt','policy_receipt'):
++        if inputs[key] not in inputs['files']:raise ValueError('Unpinned '+key)
++    if inputs.get('optional'):
++        optional=inputs['optional'];idx=optional['archive']
++        if type(idx) is not int or not 0<=idx<len(inputs['archives']):raise ValueError('Optional archive index differs')
++        if optional['sha256']!=inputs['archives'][idx]['sha256']:raise ValueError('Optional archive pin differs')
++        path=Path(optional['root'])
++        if not path.is_relative_to(Path(cfg['logical'])/'d') or '..' in path.parts:raise ValueError('Optional root differs')
++    return inputs
++
++
++def restore_resume(spec, out, cfg, S):
++    if not spec:return
++    source=Path(spec['path'])
++    if source.stat().st_size!=spec['bytes'] or sha(source)!=spec['sha256']:
++        raise ValueError('Resume archive differs')
++    # Read only the returned journal subtree. Terminal and stop markers are allocation-local.
++    with tarfile.open(source) as archive:
++        identity=json.load(archive.extractfile('metadata/IDENTITY.json'))
++        if identity['plan']!=cfg['plan_sha256']:raise ValueError('Resume plan differs')
++        seen=set();total=0
++        for entry in archive:
++            S.relative(entry.name);total+=entry.size
++            if not entry.isfile() or entry.name in seen or total>512*1024**2:raise ValueError('Unsafe resume')
++            seen.add(entry.name)
++            if entry.name=='metadata/IDENTITY.json' or entry.name.startswith('metadata/journals/'):
++                target=Path(out)/entry.name;target.parent.mkdir(parents=True,exist_ok=True)
++                with target.open('xb') as f:f.write(archive.extractfile(entry).read())
++
++
++def stage(root, cfg, inputs, S, J):
++    root=Path(root); receipts={}; archives=root/'a';archives.mkdir()
++    assets=json.loads((Path(__file__).parent/'vendor/ORCHARD_ASSETS.json').read_text())
++    payload=dict(path=str(Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+cfg['token'])/'0.tgz'),
++                 bytes=cfg['payload_bytes'],sha256=cfg['payload_sha256'])
++    receipts['code']=S.copy_parts([payload],archives/'c',lambda p:Path(p['path']).open('rb'))
++    with (archives/'c').open('rb') as stream:
++        S.extract_stream(stream,J.physical(root,cfg['logical']+'/p'),None,32*1024**2)
++    for rel,pin in cfg['payload_pins'].items():
++        if sha(J.physical(root,cfg['logical']+'/p/'+rel))!=pin['sha256']:raise ValueError('Code payload differs')
++    # Exact template parts and symlink policy; no template D0 export fetch or unrelated reads.
++    for i,group in enumerate(assets['groups']):
++        parts=[dict(path=p,bytes=n,sha256=h) for p,n,h in group]
++        dest=archives/str(i)
++        receipts[str(i)]=S.copy_parts(parts,dest,lambda p:Path(p['path']).open('rb'))
++        S.room(root,dest.stat().st_size);S.unpack(dest,root,links=True)
++    bwrap=assets['bwrap_pin']
++    receipts['bwrap']=S.copy_parts([bwrap],root/'bwrap',lambda p:Path(p['path']).open('rb'))
++    (root/'bwrap').chmod(0o700)
++    for i,a in enumerate(inputs['archives']):
++        dest=archives/('a'+str(i))
++        receipts['a'+str(i)]=S.copy_parts(a['parts'],dest,lambda p:Path(p['path']).open('rb'),expected_sha=a['sha256'])
++        S.room(root,a['expanded_bytes'])
++        with dest.open('rb') as stream:
++            S.extract_stream(stream,root/a['destination'],None,a['expanded_bytes'],links=True)
++    for name,f in inputs['files'].items():
++        path=J.physical(root,f['path'])
++        if path.stat().st_size!=f['bytes'] or S.sha(path)!=f['sha256']:raise ValueError('Input differs: '+name)
++    for name in ('vnice','terminator'):
++        path=J.physical(root,inputs['policy'][name])
++        if S.sha(path)!=assets[name+'_sha256']:raise ValueError('Policy script differs: '+name)
++    # Provenance receipts must attest the paths actually admitted; do not execute a terminator.
++    policy=json.loads(J.physical(root,inputs['files'][inputs['policy_receipt']]['path']).read_text())
++    if policy.get('vnice')!=inputs['policy']['vnice'] or policy.get('terminator')!=inputs['policy']['terminator'] or policy.get('authorized') is not True:
++        raise ValueError('Policy receipt does not authorize these scripts')
++    write(root/'STAGING.json',receipts)
++    return receipts
++
++
++def main(root):
++    root=Path(root);public=json.loads((root/'0.json').read_text())
++    cfg=read_config(Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+public['token']));verify_config(cfg)
++    os.umask(0o077)
++    from orchard_h10.common import install_process_guard
++    install_process_guard(root)
++    S,J,R,I,A=template(); job=os.environ['SLURM_JOB_ID']
++    n=int(os.environ['A_N']);seconds=int(os.environ['A_T'])
++    start=float(os.environ.get('SLURM_JOB_START_TIME',time.time()))
++    end=min(start+seconds,float(os.environ.get('SLURM_JOB_END_TIME',start+seconds)))
++    out=J.physical(root,cfg['logical']+'/r');out.mkdir(parents=True)
++    (out/'metadata').mkdir();(out/'logs').mkdir()
++    if not job.isdigit() or not 0<int(job)<2**32:raise ValueError('Invalid allocation ID')
++    return_token=cfg['token']+format(int(job),'08x')
++    write(out/'metadata/RETURN_ID.json',dict(token=return_token,job=job))
++    failed=None;summary=None;pool_ready=False
++    def interrupted(number,frame):
++        (out/'metadata/STOP').write_text(str(number)+'\n')
++    for number in (signal.SIGUSR1,signal.SIGTERM,signal.SIGINT):signal.signal(number,interrupted)
++    try:
++        write(out/'metadata/STORAGE.json',J.storage_proof(root,job=job))
++        R.write_test(cfg['pool'],return_token);pool_ready=True
++        shared=Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+cfg['token'])
++        if sha(shared/'a/1.json')!=os.environ['A_I'] or sha(shared/'2.json')!=os.environ['A_C']:
++            raise ValueError('Submitted input or CPU receipt changed')
++        inputs=check_inputs(json.loads((shared/'a/1.json').read_text()),cfg)
++        cpu=json.loads((shared/'2.json').read_text())
++        if cpu.get('plan')!=cfg['plan_sha256'] or cpu.get('inputs')!=os.environ['A_I'] or cpu.get('passed') is not True:
++            raise ValueError('CPU receipt does not bind this submission')
++        from orchard_h10.export_pins import load
++        export_pins=load(inputs,shared)
++        write(out/'metadata/EXPORT_PIN.json',export_pins)
++        write(out/'metadata/INPUTS.json',inputs)
++        stage(root,cfg,inputs,S,J)
++        write(root/'1.json',inputs)
++        if time.time()>=end-cfg['stop_margin'] or (out/'metadata/STOP').exists():raise ValueError('No read budget after staging')
++        for name in ('sj','fsw','m/ap'):(root/name).mkdir(parents=True,exist_ok=True)
++        env=J.environment(root)
++        p=cfg['logical']+'/p'
++        env={k:v for k,v in env.items() if 'sam' not in k.lower()}
++        env.update(OMP_NUM_THREADS='16',MKL_NUM_THREADS='16',
++                   OPENBLAS_NUM_THREADS='16',CUDA_VISIBLE_DEVICES='')
++        dispatch=root/'a';dispatch.mkdir(mode=0o700,exist_ok=True)
++        (dispatch/'5.py').write_bytes((Path(__file__).parent/'entry.py').read_bytes())
++        write(dispatch/'0.json',dict(action=0,package=p,config=cfg,inputs={**inputs,'_export':export_pins}))
++        opaque([f'{k}={v}' for k,v in env.items()])
++        with (out/'logs/0.log').open('wb') as log:
++            checked_run(J.namespace(root)+[inputs['python'],'-B','-I',str(dispatch/'5.py'),str(dispatch/'0.json')],
++                        env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
++        restore_resume(inputs.get('resume'),out,cfg,S)
++        run_cfg=dict(export_pin=cfg['logical']+'/d/6.json',export_cache=cfg['logical']+'/d/7.json',allocation=job,package=p,output=cfg['logical']+'/r',python=inputs['python'],
++                     export=cfg['logical']+'/d/e',binding=cfg['logical']+'/d/binding.json',
++                     settings=cfg['logical']+'/d/settings.json',plan_sha256=cfg['plan_sha256'],
++                     inputs_sha256=canonical({k:v for k,v in inputs.items() if k!='resume'}),
++                     types=inputs.get('types') or list(ORDER),
++                     stop_margin=cfg['stop_margin'],return_margin=cfg['return_margin'],
++                     prefix=['bash',inputs['policy']['vnice']])
++        if cfg.get('read_extensions') is True:
++            run_cfg.update(read_extensions=True,read_scene_shards=cfg.get('read_scene_shards',False),
++                           read_atomic_journal=cfg.get('read_atomic_journal',False),
++                           arms=['tower'],modes=['none'],single_worker=True)
++        if inputs.get('optional'):
++            receipt=J.physical(root,cfg['logical']+'/d/8.json')
++            run_cfg['optional']=dict(items=p+'/items/r0dev.json',receipt=cfg['logical']+'/d/8.json',sha256=sha(receipt))
++        write(dispatch/'1.json',dict(action=1,package=p,config=run_cfg,end=end))
++        cards=os.environ.get('CUDA_VISIBLE_DEVICES','').split(',')
++        if len(cards)!=n or not all(cards) or not 1<=n<=4 or n*seconds>18000:
++            raise ValueError('Allocation differs from GPU/hour contract')
++        # Retain assigned GPU evidence once; no occupancy polling or scheduler operations.
++        evidence=checked_run(['nvidia-smi','--query-gpu=uuid,name,memory.used','--format=csv'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True,check=True)
++        write(out/'metadata/CARDS.json',dict(visible=cards,query=evidence.stdout))
++        env['CUDA_VISIBLE_DEVICES']=','.join(cards)
++        with (out/'logs/1.log').open('wb') as log:
++            result=checked_run(J.namespace(root)+[inputs['python'],'-B','-I',str(dispatch/'5.py'),str(dispatch/'1.json')],
++                                  env=env,stdout=log,stderr=subprocess.STDOUT)
++        if result.returncode:raise RuntimeError('Allocation runner failed; no retry')
++        summary=json.loads((out/'SUMMARY.json').read_text())
++    except Exception as error:
++        failed=str(error);write(out/'FAILED.json',dict(error=failed))
++    finally:
++        if summary and summary['complete'] and not failed:
++            write(out/'COMPLETE.json',dict(plan_sha256=cfg['plan_sha256'],synthetic=False,items=summary['completed']))
++        write(out/'metadata/ALLOCATION.json',dict(end=end,plan=cfg['plan_sha256'],failure=failed,summary=summary))
++        if pool_ready:
++            returned=R.publish(out,cfg['pool'],return_token,cfg['plan_sha256'],1 if failed else 0)
++            write(root/'RETURN.json',returned)
++        # The template marks partial archives incomplete; SUMMARY distinguishes a clean stop.
++    if failed:raise SystemExit(1)
+--- /dev/null
++++ b/u0/a17.py
+@@ -0,0 +1,222 @@
++"""One process per GPU, with a barrier between question types."""
++import argparse
++from contextlib import ExitStack
++import json
++import os
++from pathlib import Path
++import signal
++import subprocess
++import sys
++import time
++
++from orchard_h10.common import ORDER, canonical, write, opaque
++
++
++def append(path, value):
++    with Path(path).open('a') as stream:
++        stream.write(json.dumps(value,sort_keys=True)+'\n');stream.flush();os.fsync(stream.fileno())
++
++
++def control(config):
++    root=Path(config['output'])/'metadata'/'a'
++    root.mkdir(parents=True,exist_ok=True,mode=0o700);root.chmod(0o700)
++    if not (root/'5.py').exists():
++        (root/'5.py').write_bytes((Path(__file__).parent/'entry.py').read_bytes())
++    return root
++
++
++def commands(config, kind, index, cards, stop_at, finish_by):
++    root=control(config)
++    t=ORDER.index(kind) if kind in ORDER else len(ORDER)
++    cfg=dict(action=2,package=config['package'],config=config,type=t,index=index,
++             cards=len(cards),stop_at=stop_at,finish_by=finish_by)
++    name=f'{t}{index}.json';write(root/name,cfg)
++    argv=[config['python'],'-B','-I','5.py',name]
++    opaque(argv)
++    return argv
++
++
++def worker_args(cfg):
++    config=cfg['config'];p=Path(config['package']);t=cfg['type'];i=cfg['index']
++    root=Path(config['output'])/'metadata'/'a'
++    source=Path(config.get('items',p/'items/devs1_routed.json')) if t<len(ORDER) else Path(config['optional']['items'])
++    dest=root/f'{t}.json'
++    raw=source.read_bytes()
++    import fcntl
++    with (root/f'{t}.lock').open('a') as lock:
++        fcntl.flock(lock,fcntl.LOCK_EX)
++        if dest.exists():
++            if dest.read_bytes()!=raw:raise ValueError('Item input changed')
++        else:dest.write_bytes(raw)
++    args=['--export-pin',config['export_pin'],'--items',str(dest),'--export',config['export'],'--artifact-manifest',config['binding'],
++          '--reader-root',str(p/'b'),'--settings',config['settings'],
++          '--out',str(Path(config['output'])/'metadata/journals'/str(t)/str(i)),
++          '--arms',','.join(config.get('arms',['own'])),'--shard',f"{i}/{cfg['cards']}",'--device',config.get('device','cuda:0'),
++          '--stop-at',str(cfg['stop_at']),'--finish-by',str(cfg['finish_by']),
++          '--stop-file',str(config.get('stop_file',Path(config['output'])/'metadata/STOP'))]
++    if config.get('export_cache'):
++        args+=['--export-cache',config['export_cache'],'--allocation',config['allocation']]
++    if config.get('modes'):args+=['--modes',','.join(config['modes'])]
++    if t<len(ORDER):args+=['--types',ORDER[t]]
++    else:args+=['--modes','none']
++    if config.get('single_worker'):
++        args[args.index('--types')+1]=','.join(config['types'])
++        args[args.index('--out')+1]=str(Path(config['output'])/'metadata/journals')
++        args+=['--type-journals']
++    if config.get('read_extensions') is True:
++        if config.get('read_scene_shards'):args+=['--scene-shards']
++        if config.get('read_atomic_journal'):args+=['--atomic-journal']
++    return args
++
++
++def optional_ready(config):
++    spec=config.get('optional')
++    if not spec:return False
++    from orchard_h10.common import sha
++    receipt=Path(spec['receipt'])
++    if not receipt.exists():return False
++    value=json.loads(receipt.read_text())
++    if sha(receipt)!=spec['sha256'] or value.get('verified') is not True:
++        raise ValueError('Optional archive verification differs')
++    return True
++
++
++def environment(config, card, index):
++    p=Path(config['package']); out=Path(config.get('cache_root',Path(config['output'])/'cache'))/str(index)
++    out.mkdir(parents=True,exist_ok=True)
++    env={k:os.environ[k] for k in ('PATH','LD_LIBRARY_PATH','B8_DELAY') if k in os.environ}
++    env.update(CUDA_VISIBLE_DEVICES=card,PYTHONDONTWRITEBYTECODE='1',TMPDIR=str(out),
++               HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',TOKENIZERS_PARALLELISM='false',
++               OMP_NUM_THREADS='4',MKL_NUM_THREADS='4',OPENBLAS_NUM_THREADS='4',NUMEXPR_NUM_THREADS='4')
++    for j,name in enumerate(('XDG_CACHE_HOME','HF_HOME','TRITON_CACHE_DIR','TORCHINDUCTOR_CACHE_DIR','TORCH_HOME')):
++        env[name]=str(out/str(j));Path(env[name]).mkdir(exist_ok=True)
++    # CPU fixtures use a local path whose ancestor is the lane name. Production
++    # uses only the stable token namespace, and scans the entire environment.
++    if config.get('device')!='cpu':opaque([f'{k}={v}' for k,v in env.items()])
++    return env
++
++
++def summarize(config, cards):
++    from h1eval.h10.launch import read_records, selected, select_types
++    from h1eval.items import load_manifest
++    from h1eval.modes import DEFAULT_MODES, plan
++    from h1eval.cli import modes
++    items=load_manifest(config.get('items',Path(config['package'])/'items/devs1_routed.json'))['items']
++    root=Path(config['output'])/'metadata/journals';counts=[]
++    for kind in config.get('types') or list(ORDER):
++        t=ORDER.index(kind)
++        for i in range(len(cards)):
++            chosen_items=selected(items,f'{i}/{len(cards)}')
++            if config.get('read_extensions') is True and config.get('read_scene_shards'):
++                from h1eval.h10.atomic_journal import scene_selected
++                chosen_items=scene_selected(items,i,len(cards))
++            chosen=select_types(items,chosen_items,kind,allow_empty=True) if config.get('read_extensions') is True else select_types(items,chosen_items,kind)
++            expected=plan(chosen,config.get('arms',['own']),[{'name':'none'},*modes(','.join(config['modes']) if config.get('modes') else DEFAULT_MODES)])
++            rows=read_records(root/str(t)/str(i)/'items.jsonl')
++            actual={(r['id'],r['arm'],r['mode']) for r in rows}
++            if not actual<=expected:raise ValueError('Journal contains unplanned reads')
++            counts.append(dict(type=t,shard=f'{i}/{len(cards)}',completed=len(actual),expected=len(expected)))
++    if optional_ready(config):
++        extra=load_manifest(config['optional']['items'])['items']
++        for i in range(len(cards)):
++            expected=plan(selected(extra,f'{i}/{len(cards)}'),['own'],[{'name':'none'}])
++            rows=read_records(root/str(len(ORDER))/str(i)/'items.jsonl')
++            actual={(r['id'],r['arm'],r['mode']) for r in rows}
++            if not actual<=expected:raise ValueError('Unplanned optional read')
++            counts.append(dict(type=len(ORDER),shard=f'{i}/{len(cards)}',completed=len(actual),expected=len(expected)))
++    total=sum(r['completed'] for r in counts); expected=sum(r['expected'] for r in counts)
++    return dict(completed=total,expected=expected,complete=total==expected,shards=counts)
++
++
++def merge_return(config,cards):
++    from h1eval.items import load_manifest
++    from h1eval.h10.merge_read import merge
++    from orchard_h10.common import sha
++    manifest=load_manifest(config.get('items',Path(config['package'])/'items/devs1_routed.json'))
++    output=Path(config['output']);journals=output/'metadata/journals'
++    types=config.get('types') or list(ORDER)
++    roots=[journals/str(ORDER.index(kind))/str(i) for kind in types for i in range(len(cards))]
++    result=merge(manifest,roots,output/'metadata/u0',types=types)
++    # The existing return transport includes metadata recursively. Keep the
++    # deterministic artifact within that envelope and bind it in SUMMARY.
++    artifact='metadata/u0/answer_trace_return.tgz'
++    return dict(path=artifact,sha256=sha(output/artifact),items=result['items'])
++
++
++def run(config, cards, end_time, *, prefix=(), clock=time.time, launcher=subprocess.Popen):
++    if not 1 <= len(cards) <= 4 or len(set(cards))!=len(cards):raise ValueError('Require 1–4 distinct assigned cards')
++    out=Path(config['output']);(out/'metadata').mkdir(parents=True,exist_ok=True);(out/'logs').mkdir(exist_ok=True)
++    types=config.get('types') or list(ORDER)
++    identity=dict(plan=config['plan_sha256'],inputs=config.get('inputs_sha256'),cards=len(cards),order=list(ORDER),types=types,arms=config.get('arms',['own']),
++                  stage1_select_rule=config.get('stage1_select_rule','null_argmax'),modes=config.get('modes'))
++    actual=json.loads(Path(config['settings']).read_text()) if config.get('settings') else config
++    identity.update(perception_memo=actual.get('perception_memo','off'),
++                    perception_memo_modules=actual['perception_memo_modules'],
++                    perception_memo_verify_ids=actual.get('perception_memo_verify_ids',[]),
++                    settings_sha256=canonical(actual))
++    if config.get('read_extensions') is True:
++        if optional_ready(config):raise ValueError('Extension reads require the primary item set')
++        identity.update(read_extensions=True,read_scene_shards=config.get('read_scene_shards',False),
++                        read_atomic_journal=config.get('read_atomic_journal',False))
++    identity_path=out/'metadata/IDENTITY.json'
++    if identity_path.exists() and json.loads(identity_path.read_text())!=identity:
++        raise ValueError('Resume requires the same plan and GPU shard count')
++    write(identity_path,identity)
++    stop_at=end_time-config.get('stop_margin',1800);finish_by=end_time-config.get('return_margin',1200)
++    marker=Path(config.get('stop_file',out/'metadata/STOP'))
++    # A resume archive deliberately omits the allocation-local stop marker.
++    def stop(number, frame):
++        marker.write_text(str(number)+'\n')
++    old={n:signal.signal(n,stop) for n in (signal.SIGUSR1,signal.SIGTERM,signal.SIGINT)}
++    failure=None
++    try:
++        for kind in (types[:1] if config.get('single_worker') else (*types,*(['optional'] if optional_ready(config) else []))):
++            t=ORDER.index(kind) if kind in ORDER else len(ORDER)
++            if clock()>=stop_at or marker.exists():break
++            processes=[]
++            with ExitStack() as stack:
++                try:
++                    for i,card in enumerate(cards):
++                        argv=[*prefix,*commands(config,kind,i,cards,stop_at,finish_by)]
++                        opaque(argv)
++                        log=stack.enter_context((out/'logs'/f'{t}{i}.log').open('ab'))
++                        append(out/'STEPS.jsonl',dict(event='start',type=t,shard=f'{i}/{len(cards)}',utc=clock(),argv=argv))
++                        processes.append((i,launcher(argv,env=environment(config,card,i),cwd=Path(config['output'])/'metadata/a',stdout=log,stderr=subprocess.STDOUT)))
++                except Exception as error:
++                    marker.write_text('launch failure\n');failure=str(error)
++                # A process failure forbids another type; all siblings drain to their own guard.
++                for i,process in processes:
++                    rc=process.wait()
++                    append(out/'STEPS.jsonl',dict(event='exit',type=t,shard=f'{i}/{len(cards)}',utc=clock(),returncode=rc))
++                    if rc not in (0,75):
++                        failure=f'Worker {t}/{i} exited {rc}'
++                        marker.write_text('worker failure\n')
++                    if rc==75:marker.write_text('deadline\n')
++            if failure:break
++        summary=summarize(config,cards)
++        summary.update(stopped=not summary['complete'] and failure is None,failure=failure)
++        summary['optional_admitted']=optional_ready(config)
++        if config.get('read_extensions') is True and summary['complete'] and not failure and config.get('read_atomic_journal'):
++            summary['merged_return']=merge_return(config,cards)
++        write(out/'SUMMARY.json',summary)
++        # Aggregate measured timing even when no shard has reached ten reads yet.
++        from h1eval.h10.launch import read_records
++        samples=[]
++        for kind in (*types,*(['optional'] if optional_ready(config) else [])):
++            t=ORDER.index(kind) if kind in ORDER else len(ORDER)
++            for path in sorted((out/'metadata/journals'/str(t)).glob('*/items.jsonl')):
++                samples.extend(r['seconds'] for r in read_records(path))
++        write(out/'metadata/projection.json',dict(sample_reads=len(samples),
++            seconds_per_read=sum(samples)/len(samples) if samples else None,
++            projected_gpu_hours=summary['expected']*sum(samples)/len(samples)/3600 if samples else None,
++            excludes_model_loading=True))
++        return summary
++    finally:
++        for n,handler in old.items():signal.signal(n,handler)
++
++
++if __name__=='__main__':
++    p=argparse.ArgumentParser();p.add_argument('config');p.add_argument('end',type=float)
++    a=p.parse_args();cfg=json.loads(Path(a.config).read_text())
++    result=run(cfg,os.environ['CUDA_VISIBLE_DEVICES'].split(','),a.end,prefix=cfg['prefix'])
++    raise SystemExit(1 if result['failure'] else 0)
+--- /dev/null
++++ b/u0/a18.py
+@@ -0,0 +1,83 @@
++"""Prepare the reviewed restore inside the stable bwrap namespace, on CPU."""
++import json
++from pathlib import Path
++import sys
++from orchard_h10.common import sha, write
++
++
++def run(config, inputs):
++    import torch, torchvision, transformers, scipy
++    from packaging.version import Version
++    if Version(transformers.__version__) < Version('5.12'):
++        raise ValueError('transformers >= 5.12 is required')
++    p=Path(config['logical'])/'p'; b=p/'b'; d=Path(config['logical'])/'d'
++    sys.path[:0]=[str(b),str(p/'tree')]
++    from parity_kit.stage_restore import stage
++    from parity_kit.build_manifest import build
++    from parity_kit.common import META, PREP, REQUEST
++    f=inputs['files']; path=lambda name:Path(f[name]['path'])
++    receipt=json.loads(path(inputs['environment_receipt']).read_text())
++    versions={m.__name__:m.__version__ for m in (torch,torchvision,transformers,scipy)}
++    if receipt.get('versions')!=versions:raise ValueError('Environment versions differ from staged receipt')
++    write(d/'ENVIRONMENT.json',dict(versions=versions,python=sys.executable))
++    pins=inputs['_export']
++    from orchard_h10.export_pins import validate
++    validate(pins)
++    # The sealed D0 metadata also supplies the unchanged 544 input archives.
++    bundled=dict(config=META/PREP/'config.json',receipt=META/PREP/'prepared/s1_receipt.json',
++                 data_receipt=META/'fsw/ap/8865619b/runs/469ddece/inputs/data_receipt.json')
++    for name,spec in pins['preparation'].items():
++        dest=d/spec['path']
++        if not dest.exists():
++            src=bundled[name]
++            if sha(src)!=spec['sha256'] or src.stat().st_size!=spec['bytes']:
++                raise ValueError('Stage the pinned preparation file: '+name)
++            dest.parent.mkdir(parents=True,exist_ok=True)
++            with dest.open('xb') as stream:stream.write(src.read_bytes())
++    write(d/'6.json',pins)
++    # Each file was authenticated against INPUTS before entering the namespace.
++    export=d/'e'; binding=d/'binding.json'
++    stage(path('full_weights').parent,path('artifact').parent,META,export,
++          request=REQUEST,tree=p/'tree',base_assets=path('base_config').parent,
++          model_manifest_tar=path('original_model'),export_pins=pins,data_root=d)
++    sam=dict(source_root=str(path('sam_receipt').parent/'source'),
++             checkpoint_path=str(path('sam_checkpoint')),receipt_path=str(path('sam_receipt')))
++    # The source tree has its own explicit logical path; never infer a host path.
++    sam['source_root']=inputs['sam_source']
++    code=dict(reader=b/'e2e_reader',heads=b/'heads',tree=p/'tree',sam3_source=Path(sam['source_root']),
++              evaluator=p/'h1eval',rows=p/'rows',runner=b/'parity_kit')
++    if config.get('read_extensions') is True:code['extensions']=p/'u0'
++    manifest=build(Path(config['logical']),export,path('g3t_weights').parent,
++                   selector_head=path('selector_config').parent,sam3=sam,code_roots=code)
++    write(d/'manifest.json',manifest)
++    write(binding,dict(root=config['logical'],name='d/manifest.json',sha256=sha(d/'manifest.json'),
++                       code_roots={k:str(v) for k,v in code.items()}))
++    settings=dict(export_dir=str(export),artifact_manifest=str(binding),tree=str(p/'tree'),
++        config=str(d/pins['preparation']['config']['path']),frames_root=inputs['frames_root'],
++        selector_head=str(path('selector_config').parent),sam3=sam,
++        env_roots=inputs.get('env_roots',[]),arm='own_depth',
++        stage1_select_rule=config.get('stage1_select_rule','null_argmax'),
++        save_own_depth=config.get('save_own_depth',False),
++        perception_memo=config.get('perception_memo','off'),
++        perception_memo_modules=config['perception_memo_modules'],
++        perception_memo_verify_ids=config.get('perception_memo_verify_ids',[]))
++    if inputs.get('optional'):
++        from h1eval.items import load_manifest
++        from h1eval.h10.reserve_frames import captures
++        spec=inputs['optional'];items=load_manifest(p/'items/r0dev.json')['items']
++        bound=captures(items,spec['root'])
++        # Verify every selected RGB once before publishing the admission receipt.
++        for c in bound.values():
++            for frame in c['frames']:
++                if sha(Path(spec['root'])/frame['path'])!=frame['sha256']:raise ValueError('Optional RGB differs')
++        settings['item_sets']={'r0dev_f32':dict(frames_root=spec['root'])}
++        write(d/'8.json',dict(verified=True,archive_sha256=spec['sha256'],frames_manifest_sha256=load_manifest(p/'items/r0dev.json')['frames_manifest_sha256']))
++    if config.get('read_extensions') is True:
++        for key in ('read_processor_cache','read_vision_cache','read_sam_cache'):
++            settings[key]=config.get(key,'off')
++        settings['read_cache_bytes']=config.get('read_cache_bytes',12*1024**3)
++    write(d/'settings.json',settings)
++    write(d/'READY.json',dict(settings=sha(d/'settings.json'),binding=sha(binding),restore=sha(export/'RESTORE.json')))
++
++
++if __name__=='__main__':run(*[json.loads(Path(p).read_text()) for p in sys.argv[1:3]])
+--- /dev/null
++++ b/u0/tests/test_round2.py
+@@ -0,0 +1,306 @@
++"""Round-2 regressions. READ_ROUND2_BEFORE=1 selects the reviewed bytes."""
++import copy
++import fcntl
++import hashlib
++import importlib.util
++import io
++import json
++import os
++from pathlib import Path
++import runpy
++import subprocess
++import sys
++import tarfile
++import types
++import unittest
++import uuid
++from unittest.mock import patch
++
++import torch
++torch.set_num_threads(8)
++SRC=Path(__file__).resolve().parents[2]
++L=Path(os.environ.get('READ_WORKSPACE','/scratch/jjyeung/orch_n30/so_read'))
++INPUT=Path(os.environ['READ_INPUT_SRC'])
++BEFORE=os.environ.get('READ_ROUND2_BEFORE')=='1'
++E=L/'work/round2-before/src/u0' if BEFORE else SRC/'u0'
++KIT=L/'work/round2-before/kit' if BEFORE else L/'out/kit_parity50'
++sys.path[:0]=[str(E),str(SRC),str(SRC/'b'),str(INPUT/'tree'),str(INPUT)]
++
++
++def load(name,path):
++    spec=importlib.util.spec_from_file_location(name,path)
++    module=importlib.util.module_from_spec(spec);sys.modules[name]=module
++    spec.loader.exec_module(module)
++    return module
++
++
++def directory():
++    root=Path(os.environ['READ_TEST_TMP'])/uuid.uuid4().hex
++    root.mkdir(parents=True);return root
++
++
++def require(test,name):
++    path=E/name;test.assertTrue(path.is_file(),'Missing implementation: '+name)
++    return path
++
++
++class Round2Tests(unittest.TestCase):
++    def test_f1_actual_isolated_script_plain_and_opaque(self):
++        # Execute the real loader as a script under -I. Tiny dependent modules
++        # avoid model loading but retain a4's real top-level a8 import.
++        loader=load('entry_definition',E/'a8.py')
++        for opaque in (False,True):
++            with self.subTest(opaque=opaque):
++                root=directory();extension=root/'u0';extension.mkdir()
++                for package in ('b/e2e_reader','h1eval','h1eval/h10'):
++                    p=root/package;p.mkdir(parents=True,exist_ok=True);(p/'__init__.py').write_text('')
++                (extension/'a8.py').write_bytes((E/'a8.py').read_bytes())
++                (extension/'a9.py').write_bytes((E/'a9.py').read_bytes())
++                for name,filename in loader.MODULES:
++                    text=''
++                    if filename=='a4.py':
++                        text='def main(argv):\n from a8 import source_hash\n assert len(source_hash())==64\n return 0\n'
++                    (extension/filename).write_text(text)
++                command=[sys.executable,'-I','-s','-B',str(extension/'a8.py'),'--enable-extensions']
++                if opaque:command+=['--opaque']
++                result=subprocess.run(command,capture_output=True,text=True)
++                self.assertEqual(result.returncode,0,result.stdout+result.stderr)
++
++    def test_f2_all_three_path_checks_accept_established_roots(self):
++        boundary=load('path_boundary',E/'a9.py');root=directory()
++        paths=['/scratch/jjyeung/ab0123456789/u1',
++               '/project/community/jjyeung/okh7/a15_cot_apab0123456789/u2.json',
++               '/project/community/jjyeung/ab0123456789/0.tgz']
++        for path in paths:
++            boundary.seal_settings({'asset':path},root/'u0')
++            cfg=json.loads((E/'tests/u1.json').read_text())
++            for key in ('journal_root','items','export','export_pin','artifact_manifest','reader_root','settings'):cfg[key]=path
++            boundary.validate_config(cfg)
++            self.assertTrue(boundary.OPAQUE_PATH.fullmatch(path))
++        from orchard_h10.common import FORBIDDEN,opaque
++        for word in FORBIDDEN:
++            with self.assertRaises(ValueError):opaque(['/scratch/jjyeung/u0/'+word])
++            self.assertFalse(boundary.OPAQUE_PATH.fullmatch('/scratch/jjyeung/u0/'+word))
++        for path in ('/scratch/somebody/u0','/project/community/else/u0','/scratch/jjyeung/u0/../u1',
++                     '/scratch/jjyeung/u0//u1','/scratch/jjyeung/u0/model.safetensors'):
++            self.assertFalse(boundary.OPAQUE_PATH.fullmatch(path),path)
++
++    def test_f3_approved_argv_budget_script_and_retry(self):
++        module=load('array_policy',require(self,'a15.py'))
++        cfg=json.loads((SRC/'u0/tests/u1.json').read_text())
++        args=('ab0123456789',cfg,'/scratch/jjyeung/u0/u1','/scratch/jjyeung/u0/u2','/scratch/jjyeung/u0/u3')
++        with self.assertRaisesRegex(ValueError,'OFF'):module.submission(*args)
++        with self.assertRaisesRegex(ValueError,'owner approval'):module.submission(*args,enabled=True)
++        cfg['policy']['approved']=True
++        plan=module.submission(*args,enabled=True)
++        for flag in ('--account=mt01','--export=NONE','--output=/dev/null','--error=/dev/null',
++                     '--job-name=a15_cot_apab0123456789','--array=0-1%2','--requeue'):
++            self.assertIn(flag,plan['argv'])
++        from orchard_h10.common import opaque
++        opaque(plan['argv']);opaque([plan['script']])
++        cfg['attempt_seconds']=172800
++        with self.assertRaisesRegex(ValueError,'budget'):module.submission(*args,enabled=True)
++        # Execute only the shell control flow with local fake worker/scheduler
++        # functions. No scheduler binary, job, or GPU is invoked.
++        for code,restarts,expected,want_retry in ((0,0,0,False),(2,0,2,False),(75,0,0,True),(75,1,75,False)):
++            text=plan['script'];lines=text.splitlines()
++            lines=[f'(exit {code}) &' if line.startswith('nice ') else line for line in lines]
++            text='\n'.join(lines).replace('set -euo pipefail',
++                 'set -euo pipefail\nscontrol() { printf "retry:%s:%s\\n" "$1" "$2"; }')
++            env=dict(os.environ,SLURM_RESTART_COUNT=str(restarts),SLURM_ARRAY_JOB_ID='123',SLURM_ARRAY_TASK_ID='1')
++            result=subprocess.run(['bash'],input=text,text=True,env=env,capture_output=True)
++            self.assertEqual(result.returncode,expected,result.stderr)
++            self.assertEqual('retry:requeue:123_1' in result.stdout,want_retry)
++
++    def test_f4_build_pins_on_overlay_and_off_package_bytes(self):
++        builder=load('production_builder',require(self,'a12.py'))
++        original=load('original_builder',INPUT/'orchard_h10/build.py')
++        original.B=INPUT/'b';original.T=INPUT/'orchard_h10/vendor'
++        inventory=original.sources();root=directory()
++        for name,path in inventory.items():
++            dest=root/name;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(path.read_bytes())
++        for path in (SRC/'u0').rglob('*'):
++            if path.is_file():
++                dest=root/'u0'/path.relative_to(SRC/'u0');dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(path.read_bytes())
++        for implementation in (original,builder):
++            implementation.K=root;implementation.B=root/'b';implementation.T=root/'orchard_h10/vendor'
++        self.assertEqual(set(original.sources()),set(builder.sources()))
++        on=builder.sources(True)
++        self.assertIn('u0/a8.py',on)
++        for name,alias in (('entry','a13'),('job','a16'),('runner','a17'),('prepare','a18')):
++            self.assertEqual(on['orchard_h10/'+name+'.py'],root/'u0'/(alias+'.py'))
++        original.build(root/'u1','ab0123456789')
++        builder.build(root/'u2','ab0123456789')
++        for name in ('0.tgz','0.json','CONFIG.json','BATCH.sh','PACKAGE.json'):
++            self.assertEqual((root/'u1'/name).read_bytes(),(root/'u2'/name).read_bytes(),name)
++        builder.build(root/'u3','ab0123456789',enable_extensions=True)
++        with tarfile.open(root/'u3/0.tgz') as archive:
++            cfg=json.load(archive.extractfile('9.json'))
++            self.assertIs(cfg['read_extensions'],True)
++            self.assertIs(cfg['read_scene_shards'],True)
++            self.assertEqual(cfg['read_cache_bytes'],12*1024**3)
++            for name,pin in cfg['payload_pins'].items():
++                raw=archive.extractfile(name).read()
++                self.assertEqual(hashlib.sha256(raw).hexdigest(),pin['sha256'],name)
++            self.assertIn('u0/a8.py',cfg['payload_pins'])
++            self.assertEqual(archive.extractfile('orchard_h10/entry.py').read(),(E/'a13.py').read_bytes())
++
++    def test_f4_scene_summary_and_existing_return_envelope(self):
++        runner=load('production_runner',require(self,'a17.py'))
++        from a8 import activate
++        activate(enabled=True)
++        fixtures=load('round2_journal_fixture',SRC/'u0/tests/test_read_journal.py')
++        case=fixtures.RunnerTests();case.setUp()
++        try:
++            case.manifest['items'][0]['question_type']='camera_displacement'
++            types_=['camera_displacement','camera_rotation']
++            out=case.root/'production'
++            cfg=dict(package=str(SRC),output=str(out),items=str(case.root/'items.json'),types=types_,
++                     arms=['tower'],modes=['none'],read_extensions=True,read_scene_shards=True,read_atomic_journal=True)
++            from orchard_h10.common import ORDER
++            for kind in types_:
++                for i in range(3):
++                    args=case.args('unused',shard=f'{i}/3',scene=True)
++                    args.out=str(out/'metadata/journals'/str(ORDER.index(kind))/str(i));args.types=kind
++                    fixtures.launch.run(args,make_real=case.make_real)
++            with patch('h1eval.items.load_manifest',return_value=case.manifest):
++                summary=runner.summarize(cfg,['0','1','2'])
++                self.assertTrue(summary['complete']);self.assertEqual(summary['completed'],5)
++                receipt=runner.merge_return(cfg,['0','1','2'])
++            self.assertEqual(receipt['items'],5)
++            sys.path.insert(0,str(INPUT/'orchard_h10/vendor'))
++            import chain_save
++            self.assertIn(receipt['path'],chain_save.members(out))
++            # Compare the canonical payload from the integrated return to one shard.
++            args=case.args('single',scene=True);fixtures.launch.run(args,make_real=case.make_real)
++            fixtures.merge(case.manifest,[args.out],case.root/'merged')
++            self.assertEqual((out/receipt['path']).read_bytes(),(case.root/'merged/answer_trace_return.tgz').read_bytes())
++        finally:case.doCleanups()
++
++    def test_f4_dispatch_uses_extension_entry_only_when_enabled(self):
++        entry=require(self,'a13.py')
++        import a8
++        from h1eval.h10 import launch
++        root=directory();path=root/'0.json'
++        saved_path=sys.path[:]
++        try:
++            for enabled in (False,True):
++                path.write_text(json.dumps(dict(action=2,package=str(SRC),config={'read_extensions':enabled})))
++                with patch.object(sys,'argv',[str(entry),str(path)]), \
++                     patch('orchard_h10.common.install_process_guard') as guard, \
++                     patch('orchard_h10.runner.worker_args',return_value=['--items','u0']), \
++                     patch.object(a8,'activate') as activate, \
++                     patch.object(a8,'main',return_value=17) as extended, \
++                     patch.object(launch,'main',return_value=17) as ordinary:
++                    with self.assertRaises(SystemExit) as exited:runpy.run_path(str(entry),run_name='__main__')
++                    self.assertEqual(exited.exception.code,17);guard.assert_called_once()
++                    if enabled:
++                        activate.assert_called_once_with(enabled=True)
++                        extended.assert_called_once_with(['--enable-extensions','--items','u0'])
++                        ordinary.assert_not_called()
++                    else:
++                        activate.assert_not_called();extended.assert_not_called()
++                        ordinary.assert_called_once_with(['--items','u0'])
++        finally:sys.path[:]=saved_path
++
++    def test_f5_sam_default_capacity_and_raw_mutation_safety(self):
++        cache=load('round2_cache_safety',E/'a0.py')
++        self.assertTrue(hasattr(cache,'cache_bytes'),'Missing SAM capacity policy')
++        self.assertEqual(cache.cache_bytes({'read_sam_cache':'on'}),12*1024**3)
++        self.assertEqual(cache.cache_bytes({}),4*1024**3)
++        self.assertEqual(cache.cache_bytes({'read_sam_cache':'on','read_cache_bytes':1000000}),1000000)
++        # Model the reservation of a 3 GiB payload without allocating it.
++        value=object();payload=3*1024**3
++        for cap,hits in ((4*1024**3,0),(cache.cache_bytes({'read_sam_cache':'on'}),1)):
++            store=cache.ReadCache(cap)
++            with patch.object(cache,'nbytes',side_effect=lambda v:payload if v is value else 128), \
++                 patch.object(cache,'payload_bytes',return_value=payload), \
++                 patch.object(cache,'snapshot',return_value=b'fixture'), \
++                 patch.object(cache,'restore',return_value=value):
++                store.call('sam_features','clip',lambda:value)
++                store.call('sam_features','clip',lambda:value)
++            self.assertEqual(store.stats['sam_features']['hits'],hits)
++        model=torch.nn.Linear(2,2).eval().requires_grad_(False)
++        before=cache.module_identity(model)
++        stamp=(id(model.weight),model.weight.data_ptr(),model.weight._version)
++        model.weight.data.add_(1)
++        self.assertEqual(stamp,(id(model.weight),model.weight.data_ptr(),model.weight._version))
++        self.assertNotEqual(before,cache.module_identity(model))
++
++    def test_f6_nonatomic_deadline_counts_under_lock(self):
++        from a8 import activate
++        activate(enabled=True)
++        from h1eval.h10 import launch
++        root=directory();binding={'ids':['a'],'arms':['tower'],'modes':[{'name':'none'}]}
++        (root/'environment.json').write_text(json.dumps({'binding':binding}))
++        row={'id':'a','arm':'tower','mode':'none','complete':True}
++        (root/'items.jsonl').write_text(json.dumps(row)+'\n')
++        original=(root/'items.jsonl').read_bytes();reader=launch.read_records;checks=[]
++        def checked(path):
++            with (root/'writer.lock').open('a') as other:
++                with self.assertRaises(BlockingIOError):fcntl.flock(other,fcntl.LOCK_EX|fcntl.LOCK_NB)
++            checks.append(True);return reader(path)
++        with patch.object(launch,'read_records',side_effect=checked):
++            with self.assertRaises(launch.ReadDeadline) as raised:
++                with launch.writer_guard(root,binding,atomic=False,expected=2):raise launch.ReadDeadline()
++        self.assertEqual(raised.exception.progress,dict(completed=1,expected=2,stopped=True,initialized=True))
++        self.assertTrue(checks);self.assertEqual((root/'items.jsonl').read_bytes(),original)
++        self.assertFalse((root/'committed').exists())
++
++    def test_f7_lock_wait_is_bounded_and_then_recovers(self):
++        worker=load('array_lock',E/'a7.py');self.assertTrue(hasattr(worker,'acquire'),'Missing bounded lock wait')
++        root=directory();clock=[0.];sleeps=[]
++        def sleep(seconds):clock[0]+=seconds;sleeps.append(seconds)
++        with (root/'lock').open('a') as holder,(root/'lock').open('a') as second:
++            fcntl.flock(holder,fcntl.LOCK_EX|fcntl.LOCK_NB)
++            self.assertFalse(worker.acquire(second,.5,clock=lambda:clock[0],sleep=sleep))
++            self.assertAlmostEqual(clock[0],.5);self.assertGreater(len(sleeps),1)
++            fcntl.flock(holder,fcntl.LOCK_UN)
++            self.assertTrue(worker.acquire(second,.5,clock=lambda:clock[0],sleep=sleep))
++
++    def test_f8_processor_bypass_is_counted(self):
++        cache=load('round2_processor',E/'a0.py')
++        class Processor:
++            def to_dict(self):return {}
++            def __call__(self,value):return value
++        store=cache.ReadCache(1000000);proxy=cache.VideoProcessorCache(Processor(),store)
++        value=object();self.assertIs(proxy(value),value);self.assertIs(proxy(value),value)
++        self.assertEqual(store.stats.get('processor',{}).get('bypasses'),2)
++        self.assertEqual(len(store.entries),0)
++
++    def test_f9_roots_and_manifest_checked_before_any_arm(self):
++        kit=load('root_check_kit',KIT/'run.py')
++        self.assertTrue(hasattr(kit,'validate_roots'),'Missing independent root validation')
++        root=directory();original=root/'u0';source=root/'u1';original.mkdir();(source/'u0').mkdir(parents=True)
++        (source/'u0/a8.py').write_bytes(b'fixture')
++        pins={'u0/a8.py':hashlib.sha256(b'fixture').hexdigest()}
++        (root/'EXTENSION_PINS.json').write_text(json.dumps(pins));kit.HERE=root
++        cfg={'original_source_root':str(original),'source_root':str(source)}
++        kit.validate_roots(cfg)
++        with self.assertRaisesRegex(ValueError,'must differ'):kit.validate_roots(dict(cfg,original_source_root=str(source)))
++        (source/'u0/a8.py').write_bytes(b'tampered')
++        with self.assertRaisesRegex(ValueError,'hash differs'):kit.validate_roots(cfg)
++        (source/'u0/a9.py').write_bytes(b'extra')
++        with self.assertRaisesRegex(ValueError,'inventory differs'):kit.validate_roots(cfg)
++
++    def test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs(self):
++        module=load('test_strength',E/'tests/test_round1.py')
++        case=module.ReviewRegressions('test_f2_absent_hits_and_incomplete_trace_cannot_pass')
++        with patch.object(module.checker,'compare',side_effect=ValueError('unrelated fixture failure')):
++            result=unittest.TestResult();case.run(result)
++        self.assertFalse(result.wasSuccessful(),'An unrelated ValueError was accepted')
++        self.assertTrue(hasattr(module,'load_tests'),'Behavioural tests missing from round-1 suite')
++        suite=module.load_tests(unittest.TestLoader(),unittest.TestSuite(),None)
++        def names(suite):
++            for test in suite:
++                if isinstance(test,unittest.TestSuite):yield from names(test)
++                else:yield test.id()
++        self.assertTrue(any(name.endswith('test_deadline_recovery_keeps_writer_lock') for name in names(suite)))
++
++    def test_f16_no_descriptive_environment_variable(self):
++        source=(KIT/'run.py').read_text()
++        self.assertTrue("os.environ['H10_SETTINGS']" not in source,'Descriptive settings environment remains')
++        self.assertTrue("sys.argv.extend(['--settings',cfg['settings']])" in source,'Missing native-tree selection through in-process arguments')
++
++
++if __name__=='__main__':unittest.main(verbosity=2)

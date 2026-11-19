@@ -26,6 +26,9 @@ for name,path in [('cache','work/src/u0/tests/test_read_cache.py'),
                   ('public','work/src/u0/tests/test_public.py'),
                   ('round1','work/src/u0/tests/test_round1.py'),
                   ('round2','work/src/u0/tests/test_round2.py'),
+                  ('round3','work/src/u0/tests/test_round3.py'),
+                  ('operator3','work/src/u0/tests/test_operator_round3.py'),
+                  ('lock3','work/src/u0/tests/test_lock_round3.py'),
                   ('kit','out/kit_parity50/test_compare.py'),
                   ('kit_launch','out/kit_parity50/test_run.py')]:
     command=[sys.executable,'-I','-s','-B',str(L/path)]
@@ -47,6 +50,19 @@ result=subprocess.run(command,env=dict(env,READ_ROUND2_BEFORE='1'),cwd=L,
 (out/'round2_before.txt').write_text(result.stdout)
 assert result.returncode==1 and 'FAILED (failures=13, errors=1)' in result.stdout,result.stdout
 print('PASS: all 13 round-2 regressions fail against the round-2 reviewed implementation (14 failures including both CLI variants).')
+
+for name,script,variable,summary,args in (
+    ('round3_before','test_round3.py','READ_ROUND3_BEFORE','FAILED (failures=15)',[]),
+    ('operator3_before','test_operator_round3.py','READ_ROUND3_BEFORE','FAILED (failures=2)',[]),
+    ('lock3_before','test_lock_round3.py','READ_LOCK_BEFORE','FAILED (failures=2)',[]),
+    ('f16_behavior_before','test_round3.py','READ_F16_BEFORE','FAILED (failures=1)',
+     ['Round3Tests.test_f4_worker_uses_settings_argv_without_environment_side_effect'])):
+    command=[sys.executable,'-I','-s','-B',str(L/'work/src/u0/tests'/script),*args]
+    result=subprocess.run(command,env=dict(env,**{variable:'1'}),cwd=L,
+                          stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+    (out/(name+'.txt')).write_text(result.stdout)
+    assert result.returncode==1 and summary in result.stdout,result.stdout
+    print('PASS: '+name+' reproduces '+summary+'.')
 assert (L/'work/src/u0/a9.py').read_bytes()==(L/'out/kit_parity50/a9.py').read_bytes()
 assert (L/'work/src/u0/a10.py').read_bytes()==(L/'out/kit_parity50/compare.py').read_bytes()
 assert (L/'work/src/u0/tests/test_compare.py').read_bytes()==(L/'out/kit_parity50/test_compare.py').read_bytes()

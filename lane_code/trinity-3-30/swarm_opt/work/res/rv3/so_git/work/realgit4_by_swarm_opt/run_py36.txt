@@ -1,0 +1,54 @@
+LCS_REVIEW2_FIXES=1
+test_failed_commit_clears_staging_without_moving_head (test_real_git_owner.RealGitOwnerTests) ... ok
+test_land_probe_and_hourly_pathspec_preserves_kits (test_real_git_owner.RealGitOwnerTests) ... ok
+test_origin_rejection_stops_before_home_and_receipts (test_real_git_owner.RealGitOwnerTests) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.024s
+
+OK
+
+REAL_GIT_ROOT /scratch/jjyeung/orch_n30/so_git/work/realgit4_by_swarm_opt/py36/real_git_7gar937t
+FAILED_COMMIT staging_cleared=true head_unchanged=true kit_untracked=true rerun_refused=true
+
+REAL_GIT_ROOT /scratch/jjyeung/orch_n30/so_git/work/realgit4_by_swarm_opt/py36/real_git_i1ejloe0
+AUDIT /scratch/jjyeung/orch_n30/so_git/work/realgit4_by_swarm_opt/py36/real_git_i1ejloe0/state/land_kit_85ayehpg
+FILE "probe.py" bytes=13 sha256=54a86268b34591ff8cedfc34f598073d9cb106af20e7c7f091e6c1485e527a9e
+COUNT files=1 bytes=13 metadata_files=1
+2026-11-19T12:01:14Z verified GitHub lane-code = bcf058a1eb7bf1c0839a3bc7560842ffbcfe7cec
+2026-11-19T12:01:14Z verified home lane-code = bcf058a1eb7bf1c0839a3bc7560842ffbcfe7cec
+2026-11-19T12:01:14Z LANDED kits/_probe commit=bcf058a1eb7bf1c0839a3bc7560842ffbcfe7cec sha256=467a3f4745864c0a9a05839c3881115fcfc2c0b1e8c63d54daf3a4049c9b7199
+COMMIT
+commit bcf058a1eb7bf1c0839a3bc7560842ffbcfe7cec
+Author:     Owner tool test <owner-test@invalid>
+AuthorDate: Thu Nov 19 07:01:14 2026 -0500
+Commit:     Owner tool test <owner-test@invalid>
+CommitDate: Thu Nov 19 07:01:14 2026 -0500
+
+    Land kit _probe
+    
+    Seal: probe-seal
+    SHA256: 467a3f4745864c0a9a05839c3881115fcfc2c0b1e8c63d54daf3a4049c9b7199
+    Builder: test_builder
+    Reviewer: test_reviewer
+    Date: 2026-11-19T12:01:14Z
+TREE
+kits/_probe/KIT.json
+kits/_probe/probe.py
+lane_code/fake_node/module.py
+lane_code/fake_node/move_me.py
+tools/lane_code_filter.py
+tools/lane_code_scan.py
+tools/lane_code_sync.sh
+LS_REMOTE origin
+bcf058a1eb7bf1c0839a3bc7560842ffbcfe7cec	refs/heads/lane-code
+LS_REMOTE home
+bcf058a1eb7bf1c0839a3bc7560842ffbcfe7cec	refs/heads/lane-code
+HOURLY_KITS_TREE before=0c916b4a71e6f64767f16121c24211342781c63e after=0c916b4a71e6f64767f16121c24211342781c63e unchanged=true
+HOURLY_UNSTAGED_KITS
+kits/_probe/KIT.json
+kits/_probe/probe.py
+
+REAL_GIT_ROOT /scratch/jjyeung/orch_n30/so_git/work/realgit4_by_swarm_opt/py36/real_git_8c9bs6_3
+ORIGIN_REJECTION stop=true home_unchanged=true origin_unchanged=true receipt_absent=true
+rc=0

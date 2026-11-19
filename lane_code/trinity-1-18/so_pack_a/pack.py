@@ -91,6 +91,16 @@ def shell_privacy(text,extra=()):
         line=line.replace('#SBATCH','')
         try:words=shlex.split(line,comments=True)
         except ValueError:words=[line]
+        for i,word in enumerate(words):
+            need('--comment' not in word,'Slurm --comment is forbidden')
+            value=None
+            if word in ('--job-name','-J'):
+                need(i+1<len(words),'Missing job name');value=words[i+1]
+            elif word.startswith('--job-name='):value=word.split('=',1)[1]
+            elif word.startswith('-J'):value=word[2:].lstrip('=')
+            if value is not None:
+                dynamic=value=='${P##*/}' and '"${P##*/}"' in line
+                need(dynamic or re.fullmatch(PREFIX+'[a-f][0-9a-f]{10,15}',value),'Invalid job name '+value)
         # Parse shell punctuation so utility exemptions apply only at command position.
         lex=shlex.shlex(line,posix=True,punctuation_chars=';&|()');lex.whitespace_split=True;lex.commenters='#'
         try:tokens=list(lex)
@@ -124,6 +134,11 @@ def normalize_wrapper(f,enabled=False):
     out['BATCH.sh']=t.encode();m=json.loads(out['PACKAGE.json']);m['files']['BATCH.sh']=digest(out['BATCH.sh']);out['PACKAGE.json']=(json.dumps(m,sort_keys=True,indent=2)+'\n').encode();return out
 def environment(root):
     return dict(PATH='/usr/local/bin:/usr/bin:/bin',HOME=str(root),USER='jjyeung',CUDA_VISIBLE_DEVICES='',PYTHONDONTWRITEBYTECODE='1',OMP_NUM_THREADS='8',MKL_NUM_THREADS='8',OPENBLAS_NUM_THREADS='8',TOKENIZERS_PARALLELISM='false',TMPDIR=str(root),XDG_CACHE_HOME=str(root/'0'))
+def transport_environment(root):
+    env=environment(root)
+    for key in ('HOME','SSH_AUTH_SOCK'):
+        if key in os.environ:env[key]=os.environ[key]
+    return env
 def run(argv,cwd,log,env=None,seconds=180):
     with Path(log).open('wb') as out:r=subprocess.run(['nice','-n','10']+list(argv),cwd=str(cwd),env=env or environment(Path(cwd)),stdout=out,stderr=subprocess.STDOUT,timeout=seconds)
     need(r.returncode==0,'Command failed (%s); see %s'%(r.returncode,log))
@@ -271,8 +286,33 @@ def remote_inputs(c,b):
         need(pin is not None,'Required remote input pin missing: '+path);add(dict(pin,path=path))
     return pins
 
+def export_identity(c,f,plan):
+    sealed=plan['export_binding'];binding=sealed
+    if 'parts' not in binding:
+        pin=c.get('export_binding_pin')
+        need(pin is not None,'Required input missing: export_binding_pin (binding with parts[].bytes and archive_bytes)')
+        required_inputs(dict(required_inputs=[dict(pin,name='export_binding_pin')]))
+        need('sha256' in pin,'Required input pin missing: export_binding_pin.sha256')
+        binding=read(pin['path'])
+        need(all(binding.get(k)==v for k,v in sealed.items()),'Pinned export binding differs from sealed plan')
+    constants={n.targets[0].id:ast.literal_eval(n.value) for n in ast.parse(f['a/4.py']).body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id.startswith('REVIEWED_')}
+    for key,name in [('object','REVIEWED_OBJECT'),('archive_bytes','REVIEWED_ARCHIVE_BYTES'),('archive_sha256','REVIEWED_ARCHIVE_SHA256')]:
+        need(key in binding,'Required binding input missing: '+key)
+        need(binding[key]==constants.get(name),'Binding differs from '+name)
+    need(all(c['fill'][k]==sealed[k] for k in ('object','step','lineage')),'Configured fill identity differs from sealed binding')
+    parts=binding.get('parts',[]);paths=c['fill']['parts']
+    need(len(parts)==len(paths)==4 and len(set(paths))==4,'Binding requires four distinct export parts')
+    for index,(part,path) in enumerate(zip(parts,paths)):
+        size=part.get('bytes');actual=c.get('remote_input_pins',{}).get(path,{}).get('bytes')
+        need(type(size) is int and size>0 and type(actual) is int and actual==size,'Export part size differs from binding: part %d (%s)'%(index,path))
+    need(sum(part['bytes'] for part in parts)==constants['REVIEWED_ARCHIVE_BYTES'],'Export part sum differs from REVIEWED_ARCHIVE_BYTES')
+    prep=binding.get('preparation_sha256',{})
+    for key in ('config','receipt','data_receipt'):need(isinstance(prep.get(key),str) and re.fullmatch('[0-9a-f]{64}',prep[key]),'Required binding input missing: preparation_sha256.'+key)
+    return dict(done=[binding['object'],str(binding['archive_bytes']),binding['archive_sha256']],preparation={c['fill'][k]:prep[k] for k in ('config','receipt','data_receipt')})
+
 def remote_preflight(c,b):
-    return python_block("from pathlib import Path\npins=%r\nfor name,size in pins.items():\n p=Path(name)\n if not p.is_file() or p.stat().st_size!=size:raise ValueError('Required staged input missing or size differs: '+name)\nprint('inputs ready')"%remote_inputs(c,b))
+    f,_,_,plan=structure(b['package']);identity=export_identity(c,f,plan)
+    return python_block("from pathlib import Path\nimport hashlib\npins=%r\nfor name,size in pins.items():\n p=Path(name)\n if not p.is_file() or p.stat().st_size!=size:raise ValueError('Required staged input missing or size differs: '+name)\ndone=Path(%r)\nif done.stat().st_size>4096 or done.read_text().split()!=%r:raise ValueError('Reviewed whole-tar receipt differs: '+str(done))\nfor name,sha in %r.items():\n p=Path(name)\n if p.stat().st_size>1048576:raise ValueError('Preparation input exceeds metadata budget: '+name)\n if hashlib.sha256(p.read_bytes()).hexdigest()!=sha:raise ValueError('Reviewed preparation differs: '+name)\nprint('inputs ready')"%(remote_inputs(c,b),c['fill']['done'],identity['done'],identity['preparation']))
 
 def detached_fill(body,p):
     # Exclusive launch directory survives transport loss and prevents duplicate hashing.
@@ -286,9 +326,10 @@ def plan(c,b):
     scripts=dict(preflight=HEADER+remote_preflight(c,b),place=HEADER+python_block(place_code(b)),fill=detached_fill(fill_body,p),cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
     scripts['fill_poll']=HEADER+'cd '+shlex.quote(p)+'\nif test -f a/1.txt; then test "$(cat a/1.txt)" = 0; printf "complete\\n"; elif test -f a/f.exit; then tail -c 8192 a/f.log >&2; exit 1; else printf "wait\\n"; tail -c 8192 a/f.log >&2; fi\n'
     job='P='+p+'\nJ=$(cat "$P/a/4.txt")\n[[ "$J" =~ ^[0-9]+$ ]]\n'
-    scripts['poll']=HEADER+job+'if ! sacct -n -X -j "$J" -o State --parsable2; then printf "accounting unavailable for %s\\n" "$J" >&2; exit 75; fi\n'
+    scripts['poll']=HEADER+job+'if ! S=$(sacct -n -X -j "$J" -o State --parsable2); then printf "accounting unavailable for %s\\n" "$J" >&2; exit 75; fi\nprintf "%s\\n" "$S"\ncase "${S%%|*}" in COMPLETED|PENDING|RUNNING|CONFIGURING|COMPLETING|\'\') ;; *) tail -c 8192 "$P/a/4.err" "$P/a/4.log" >&2 || true ;; esac\n'
     scripts['gpu']=HEADER+job+'S=$(sacct -n -X -j "$J" -o State --parsable2)\n[[ "${S%%|*}" = COMPLETED ]]\ntest -s "$P/a/c/CPU.json"\n'+adapted_script(c,'gpu',p,b['package'])
     w=state_root(c)/'commands';w.mkdir(exist_ok=True,mode=0o700)
+    body=w/'fill_body.sh';body.write_text(fill_body);body.chmod(0o600);run(['bash','-n',str(body)],w,w/'fill_body.log')
     for k,text in scripts.items():
         shell_privacy(text,c.get('forbidden_extra',()));f=w/(k+'.sh');f.write_text(text);f.chmod(0o600);run(['bash','-n',str(f)],w,w/(k+'.log'))
         for i,body in enumerate(heredocs(text)):
@@ -312,13 +353,15 @@ def execute(c,scripts,phases,yes=False,explicit=None,call=None,sleeper=time.slee
             marker=state_root(c)/(k+'.attempt');need(not marker.exists(),'Already attempted '+k);marker.write_text(str(time.time()))
         cmd=command(c,scripts[k]);print(cmd,flush=True)
         log=state_root(c)/('call_'+k+'_'+str(time.time_ns() if hasattr(time,'time_ns') else int(time.time()*1000000))+'.json')
-        try:r=subprocess.run(['nice','-n','10','bash','-o','pipefail','-c',cmd],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=310,env=environment(state_root(c)))
+        try:r=subprocess.run(['nice','-n','10','bash','-o','pipefail','-c',cmd],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=310,env=transport_environment(state_root(c)))
         except subprocess.TimeoutExpired as e:
             write(log,dict(phase=k,timeout=True,stdout=(e.stdout or b'').decode(errors='replace'),stderr=(e.stderr or b'').decode(errors='replace')));raise
         write(log,dict(phase=k,returncode=r.returncode,stdout=r.stdout.decode(errors='replace'),stderr=r.stderr.decode(errors='replace')));return r
     invoke=call or actual
     for phase in phases:
         if phase=='place':
+            ledger=Path(c['ledger']);need(ledger.is_file(),'Trinity token ledger missing before place')
+            need(b['token'] in ledger.read_text(),'Must reserve built token in Trinity ledger before place')
             r=invoke('preflight');need(r.returncode==0,'Remote input preflight failed before placement: '+r.stderr.decode(errors='replace'))
         if phase=='gpu':
             errors=0;deadline=time.monotonic()+int(c['remote'].get('cpu_wait',14400))
@@ -329,7 +372,9 @@ def execute(c,scripts,phases,yes=False,explicit=None,call=None,sleeper=time.slee
                     errors+=1;need(errors<3,'Repeated sacct error: '+r.stderr.decode(errors='replace'))
                 else:
                     errors=0
-                    if poll_state(r.stdout.decode())=='complete':
+                    try:state=poll_state(r.stdout.decode())
+                    except Rejected as error:raise Rejected(str(error)+'\n'+r.stderr.decode(errors='replace'))
+                    if state=='complete':
                         sleeper(60);break
                 sleeper(60)
         r=invoke(phase);need(r.returncode==0,'Remote '+phase+' failed: '+r.stderr.decode(errors='replace'))

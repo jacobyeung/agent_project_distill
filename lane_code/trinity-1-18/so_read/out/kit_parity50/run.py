@@ -44,6 +44,22 @@ def validate_roots(cfg):
     if any(p.is_symlink() or hashlib.sha256(p.read_bytes()).hexdigest()!=pins[n] for n,p in actual.items()):
         raise ValueError('Extension hash differs from MANIFEST')
     if (original/'u0').exists():raise ValueError('Original source contains extensions')
+    base_path=HERE/'u4.json' if (HERE/'u4.json').is_file() else HERE/'BASE_PIN.json'
+    base=read_wire(json.loads(base_path.read_bytes()))
+    expected=base['inventory']
+    pin=hashlib.sha256(json.dumps(sorted(expected.items()),sort_keys=True,
+                      separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
+    if not expected or base['files']!=len(expected) or pin!=base['sha256']:
+        raise ValueError('Invalid base pin')
+    for root in (original,source):
+        paths=[p for p in root.rglob('*') if p.relative_to(root).parts[0]!='u0'
+               and '__pycache__' not in p.parts and p.suffix!='.pyc']
+        if any(p.is_symlink() for p in paths):raise ValueError('Base contains symlinks')
+        actual={str(p.relative_to(root)):p for p in paths if p.is_file()}
+        if set(actual)!=set(expected):raise ValueError('Base inventory differs from MANIFEST')
+        if any(hashlib.sha256(p.read_bytes()).hexdigest()!=expected[n] for n,p in actual.items()):
+            raise ValueError('Base hash differs from MANIFEST')
+
 
 
 def worker(cfg,mode,out,enabled,shard='0/1',durable_scene=False):

@@ -129,7 +129,7 @@ def worker(rank, directory):
                                  stream_means=None if info is None else info['stream_means'])
                     state['logged_numbers'] = None if info is None else {k:v for k,v in info.items()
                         if k not in ('wall_seconds','data_seconds','memory','peak_allocated_bytes',
-                                     'peak_reserved_bytes','decoded_cache')}
+                                     'peak_reserved_bytes','decoded_cache','performance','cpu_prefetch')}
                     if failure:
                         assert error and 'Final-mode row failure' in error,error
                         assert len(losses) == 2,('wrong failure microstep',len(losses))

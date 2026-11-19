@@ -109,7 +109,7 @@ Ruling 0749Z permits this kit's 3.6 expected GPU-h and the room kit's 0.2 to sha
 CPU interpreter: `/scratch/jjyeung/envs/p1cpu/bin/python`; prepared GPU interpreter: `/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python`.
 `out/EDITED_LINES.json` and its patch list every copied-source edit; `out/CODE_SHA256.json` pins the delivered code. All generated JSON receipts record input SHA256 values.
 GPU performance and decision outputs are MISSING/NOT_RUN. No GPU, network, SSH, Git, tmux or process-control action ran; the archive was not mirrored.
-Archive: `out/sb_ktfix2.tar`; verify with `sha256sum -c out/sb_ktfix2.tar.sha256`.
+Archive: `out/sb_ktfix3.tar`; verify with `sha256sum -c out/sb_ktfix3.tar.sha256`.
 Writing skill: no-archaeology. No revision-history sentences were retained.
 '''
  assert len(report.splitlines())<=50
@@ -124,13 +124,13 @@ Writing skill: no-archaeology. No revision-history sentences were retained.
  paths+=[p for p in (OUT/'fix_validation').rglob('*') if p.is_file()]
  paths+=[OUT/'FIX_REPORT.md']
  paths+=[T/n for n in ('A_POSE.json','A_DEPTH.json','A_SCALE.json','A_DISTANCE.txt','B_LADDER_TRAIN.txt','B_GAINS_ONCE.txt','HELDOUT_once.txt','C_PARITY.json','C_CAMERA.txt','DECISION.json','PASS_TIMING.json','AVAILABILITY.json','CODE_SHA256.json','EDITED_LINES.json','EDITED_LINES.patch')]+[ROOT/'STATUS.md']
- archive=OUT/'sb_ktfix2.tar'
+ archive=OUT/'sb_ktfix3.tar'
  with tarfile.open(archive,'w',format=tarfile.PAX_FORMAT) as tar:
   for p in sorted(set(paths)):
    if not p.is_file():continue
    info=tar.gettarinfo(str(p),arcname=str(p.relative_to(ROOT)));info.uid=info.gid=0;info.uname=info.gname='';info.mtime=0
    with p.open('rb') as f:tar.addfile(info,f)
- h=sha(archive);(OUT/'sb_ktfix2.tar.sha256').write_text(h+'  out/sb_ktfix2.tar\n')
+ h=sha(archive);(OUT/'sb_ktfix3.tar.sha256').write_text(h+'  out/sb_ktfix3.tar\n')
  with tarfile.open(archive) as tar:
   members=tar.getnames()
   for n in ('out/REPORT.md','out/DRYRUN.json','out/GPU_NEED.json'):assert n in members

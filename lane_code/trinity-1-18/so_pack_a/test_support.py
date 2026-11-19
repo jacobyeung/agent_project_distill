@@ -71,6 +71,7 @@ def fixture(w):
     heads=b'fixture weights';artifact=jd(dict(step=600,config_sha256=binding['config_sha256'],base_identity=binding['base_identity'],frame_layout='duplicate',geometry_online=False,heads=dict(path='/scratch/jjyeung/'+binding['run']+'/m600/heads.pt',sha256=P.digest(heads)),full_weights=dict(path='/scratch/jjyeung/'+binding['run']+'/m600/full_weights/full_weights.json',sha256=P.digest(full))))
     raw=archive({'m600/artifact.json':artifact,'m600/heads.pt':heads,'m600/full_weights/full_weights.json':full,'m600/full_weights/0.bin':b'x','m600/full_weights/0.json':b'{}'})
     size=len(raw)//4;parts=[mirrored(raw[i*size:(i+1)*size] if i<3 else raw[i*size:]) for i in range(4)]
+    binding.update(parts=[dict(bytes=x['bytes'],sha256=x['sha256']) for x in parts],archive_bytes=len(raw),archive_sha256=P.digest(raw))
     done=mirrored(('%s %d %s\n'%(binding['object'],len(raw),P.digest(raw))).encode())
     prep_paths={k:mirrored(b)['path'] for k,b in prep.items()}
     base['archives']=[dict(base['archives'][0])]+archives;f['a/0.json']=jd(base)
@@ -79,5 +80,7 @@ def fixture(w):
     f['a/4.py']=fill.encode();plan['export_binding']=binding;pay['9.json']=json.dumps(plan,sort_keys=True).encode();f=seal(f,pay);p=P.extract(f,w/'p')
     c=dict(python=P.PYTHON,work=str(w/'state'),ledger=str(w/'ledger.jsonl'),normalize_wrapper=True,max_read_bytes=10*1024**2,mirrors=mapping,fill=dict(parts=[x['path'] for x in parts],done=done['path'],object=binding['object'],lineage='SFT',step=600,**prep_paths),remote=dict(ossh='/unavailable/ossh.sh',walltime='02:30:00',cpu=dict(path=str(R/'o_cpu_B4.sh'),sha256=P.file_digest(R/'o_cpu_B4.sh'),old_token='d50ba921ef1f4',adapt_token=True),gpu=dict(path=str(R/'o_sub_B5.sh'),sha256=P.file_digest(R/'o_sub_B5.sh'),old_token='b635a315de01e',adapt_token=True)))
     c['remote']['gpu'].pop('old_token');c['remote']['gpu'].pop('adapt_token')
+    c['dependency_reference']=dict(path=str(p/'a/0.json'),sha256=P.file_digest(p/'a/0.json'))
+    c['native_dry']=dict(path=str(D/'dryres_d.py'),sha256=P.file_digest(D/'dryres_d.py'))
     c['remote_input_pins']={k:dict(bytes=v['bytes']) for k,v in mapping.items()}
     (w/'ledger.jsonl').write_text('');P.write(w/'config.json',c);return p,c

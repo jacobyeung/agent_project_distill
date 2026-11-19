@@ -32,7 +32,7 @@ class LaunchTests(unittest.TestCase):
                  '--source-root',str(source),'--input',str(HERE),'--out',str(output)]
         process=subprocess.run(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
         self.assertEqual(process.returncode,0,process.stderr)
-        self.assertEqual({p.name for p in output.iterdir()},{'u0.py','u1.py','a9.py','u0.json','u1.json','u2.json','u3.json'})
+        self.assertEqual({p.name for p in output.iterdir()},{'u0.py','u1.py','a9.py','u0.json','u1.json','u2.json','u3.json','u4.json'})
         sys.path.insert(0,str(HERE))
         from a9 import read_wire
         identity=read_wire(json.loads((output/'u1.json').read_bytes()))

@@ -19,6 +19,17 @@ def archive(files):
         for n,b in files.items():m=tarfile.TarInfo(n);m.size=len(b);m.mode=0o600;t.addfile(m,io.BytesIO(b))
     return out.getvalue()
 
+def dependency_reference(base,c):
+    pin=c.get('dependency_reference')
+    P.need(pin is not None,'Required input missing: dependency_reference (Orchard-proven base inputs)')
+    P.required_inputs(dict(required_inputs=[dict(pin,name='dependency_reference')]))
+    P.need('sha256' in pin,'Required input pin missing: dependency_reference.sha256')
+    def selected(v):
+        return dict(archives=v['archives'][1:],files=v['files'])
+    expected=P.digest(P.canonical(selected(P.read(pin['path']))));actual=P.digest(P.canonical(selected(base)))
+    P.need(actual==expected,'Dependency layout differs from pinned reference')
+    return dict(sha256=actual,reference_sha256=pin['sha256'],real_dependency_archives=len(base['archives'])-1)
+
 def rebind(w,package):
     """Keep native read code; bind fill to tiny explicit fixture data and pins."""
     w=Path(w);w.mkdir(parents=True,exist_ok=False,mode=0o700);f,pay,pub,plan=P.structure(package);pay=dict(pay)
@@ -68,6 +79,7 @@ def rebind(w,package):
     for key,value in [('archive_bytes',len(raw)),('archive_sha256',P.digest(raw))]:
         if key in binding:binding[key]=value
     size=len(raw)//4;parts=[mirrored(raw[i*size:(i+1)*size] if i<3 else raw[i*size:]) for i in range(4)]
+    binding.update(parts=[dict(bytes=x['bytes'],sha256=x['sha256']) for x in parts],archive_bytes=len(raw),archive_sha256=P.digest(raw))
     done=mirrored(('%s %d %s\n'%(binding['object'],len(raw),P.digest(raw))).encode())
     prep_paths={k:mirrored(b)['path'] for k,b in prep.items()}
     base['archives']=[dict(base['archives'][0])]+archives;f['a/0.json']=jd(base)

@@ -1,39 +1,44 @@
 # Checks requiring Orchard or missing production inputs
 
-The local structural check tests packaging logic without authenticating large production archives. CHECK.json records `production_archive_identity: false`. Default mirror mode still requires every pinned local archive. Both modes leave the delivery intact and require all phase scripts to validate before transport.
+Structural mode checks the real dependency metadata against the pinned B5 reference, then substitutes tiny archives. CHECK.json reports production_archive_identity=false; its native dryres_d result covers those stand-ins. This does not authenticate staged production bytes.
 
-| Live check | Why it remains live | Failure evidence |
+| Check | Local coverage and remaining live requirement | Failure evidence |
 |---|---|---|
-| Stage export parts, `.done`, preparation and dependency archives | The packaging command does not fetch them. The native place_fill_d.py uses REUSE_PARTS_FROM / PREP_FROM or a GCS pull; its whole driver owns placement too and must not share a token with pack place | Read-only remote size preflight refuses a missing or wrong-sized input before place; remote_input_pins must name every fill input |
-| Fresh token and private modes | The Trinity ledger cannot prove Orchard directory state | Reserve the token in the Trinity ledger before place; atomic package mkdir rejects a used token |
-| Fill duration and real export identity | Native a/4.py streams and hashes all export bytes; production duration is unmeasured here | Detached fill, a/f.log, a/f.exit, and final a/1.txt; short calls at least 60 seconds apart, 300-second call timeout, explicit 1800-second default fill_wait. Expiration stops without relaunch |
-| Live dependency-archive hashes | Login 3.py check compares sizes only. Matching stand-ins or mirrors do not prove Orchard copies match | Native job.stage checks part, archive and member hashes in the CPU job before GPU submission; inspect a/4.log, a/4.err and CPU.json |
-| Allocated node storage, namespace and bwrap support | Mount policy, free disk and real node environment depend on the allocation | Native CPU failure and readable stdout/stderr; no GPU submission without completion and CPU.json |
-| Real full-reader/export/RGB/environment checks | Identical production bytes and job environment are absent here; these could run on Trinity if supplied and authorized | Native FULL_READER and MEMORY receipts plus journal; synthetic receipt tests prove predicates only |
-| Real return-pool access and persistence | A local temporary pool cannot prove shared storage permissions or quota | Native guarded write and pool refusal before the GPU lock |
-| CPU scheduling, sacct and general queue | These are live scheduler state | Short CPU submission/poll/GPU calls. Only explicit sacct-unavailable status 75 is tolerated, at most three consecutive errors; transport errors stop |
-| GPU submission and retry ambiguity | Another lane may occupy general; transport can fail after sbatch accepts | gpu action rechecks COMPLETED and CPU.json without resubmitting CPU. Native a/8.txt plus a/g.lock block duplicate or uncertain submission |
-| Slurm USR1 delivery and production ranks | Local shell and read-runner signals do not prove --signal=B:USR1@1800 delivery, teardown or trainer-rank cooperation | BATCH EXIT capture stores node, exit status and last 60 lines in a/x<job>; returned journals show partial work |
-| Real GPU compute and memory | Tests use CPU only | Production CPU/GPU receipts and measured memory; no timing or GPU-memory claim from stand-ins |
+| 6(a): staged content identity | check binds part sizes to the complete pinned binding and REVIEWED_ARCHIVE_BYTES. Preflight checks all sizes, the .done triple and the three preparation SHA256s. Same-sized wrong export parts require native whole-export hashing; dependencies require job.stage. A valid receipt is not proof of part bytes. | Wrong .done/preparation refuses before place.attempt. Native fill records a/f.log and a/f.exit; CPU stage records a/4.err and a/4.log. A change after preflight remains possible. |
+| 6(b): structural dependency layout | Real archives[1:] and dependency file pins must hash to the pinned Orchard-proven B5 reference before synthetic replacement. B5/D have five real dependency archives; the tiny resolver uses four synthetic groups. Actual archive members remain live-only. | Dropped, reordered or changed dependencies refuse on Trinity. Native job.stage verifies actual member ownership and hashes. |
+| 6(c): ledger reservation | Build requires token absence; place requires presence in the current Trinity ledger before preflight. The operator records token and delivery SHA between these actions. The check enforces token presence only, not ledger locking or SHA format. | Missing reservation refuses without place.attempt. all --execute-remote cannot self-reserve. Atomic Orchard mkdir detects an already-used remote token. |
+| 6(d): CPU failure text | The poll script tails 8192 bytes from each of a/4.err and a/4.log on a terminal non-COMPLETED state; execute includes stderr in its refusal and retains call JSON. | A failed CPU job exposes its state and captured failure text. Missing log files produce tail diagnostics; a total transport outage can prevent retrieval. |
+| 6(e): transport and remote environments | Transport inherits caller HOME and SSH_AUTH_SOCK. The remote env -i shell and HEADER still set HOME=/tmp, with no inherited locale or agent socket. These settings reach --export=ALL jobs and native GPU submission. Live authentication and HOME-dependent behavior remain untested. | First live call is read-only preflight. Transport errors stop; inspect call_*.json. Guard/cache checks pass under the locally reproduced environment only. |
+| Stage export, .done and preparation | Pack does not fetch inputs. place_fill_d.py documents REUSE_PARTS_FROM / PREP_FROM or GCS staging; its complete driver also owns placement and must not share pack's token. | Named remote-input size/content preflight refuses absent or inconsistent metadata. |
+| Private modes and token uniqueness | Local place tests 0700 directories and 0600 files; only Orchard knows current directory state. | Atomic mkdir and the phase EXIT trap refuse or expose failures. |
+| Fill duration | Production whole-export hashing duration is unmeasured. | Detached fill, a/f.log, a/f.exit and final a/1.txt; polls at least 60 seconds apart, call timeout at most 300 seconds, default fill_wait 1800 seconds. Expiration stops without relaunch. |
+| Node storage, namespaces and bwrap | Allocation disk and mount policy require the real node. | Native CPU logs and CPU.json; no GPU submission without completion and receipt. |
+| Real full-reader/export/RGB/environment | Actual bytes and job venv are unavailable; receipts here are synthetic. | Native FULL_READER, MEMORY and journals. Missing local inputs refuse by name. |
+| Return-pool persistence | A temporary local pool cannot establish live permissions or quota. | Native guarded writes and pool refusal before the GPU lock. |
+| CPU scheduling, sacct and queue state | Slurm remains live-only. Only explicit sacct-unavailable exit 75 is tolerated twice; the third consecutive error aborts. Transport errors stop immediately. | Short calls retain stdout, stderr and status; unknown terminal states refuse. |
+| GPU submission ambiguity | Queue state can change; a connection can fail after sbatch accepts. | gpu rechecks COMPLETED and CPU.json; a/8.txt and a/g.lock block duplicate or uncertain submission. |
+| Slurm USR1 and trainer ranks | Local BATCH/read-runner signals do not prove --signal=B:USR1@1800 delivery or trainer-rank cooperation. | BATCH EXIT capture preserves node, exit and the last 60 lines in a/x<job>; returned journals expose partial work. |
+| Real GPU memory and performance | CPU checks cannot measure GPU behavior. | Production receipts and measurements are required. |
 
-The following checks run on Trinity under the actual `/usr/bin/python3` **3.6.8**: generated place, native fill, `3.py check`, the native CPU guard/dispatch helper, `8.py submit` with a stub `sbatch`, and the native pool-walk heredoc over a temporary pool. The pool test includes a positive directory and an injected oversized stat result. Submit uses the delivered BATCH bytes and records a synthetic job receipt. None of these tests calls Slurm. The full CPU job's model environment remains untested.
+Under real /usr/bin/python3 3.6.8, local tests execute generated place, preflight, native fill, 3.py check, guard/dispatch, 8.py submit with stub sbatch, pool predicates, native dryres_d.py and the receipt predicate. The receipt constructor and validator run under CPU Python 3.12 and report that interpreter separately. Login/fill still share an interpreter across native steps. No local test invokes Slurm. CPU/BATCH traps preserve failure text; the B4 root cause is unknown.
 
-All calls retain stdout, stderr and exit status locally. The remote phase EXIT trap exposes the failing line; BATCH's EXIT trap preserves failure text even before a result archive exists. The B4 three-second cause and trainer-rank USR1 defect have no claimed repair.
+## Review round 2: finding -> fix -> test
+
+| Finding | Fix or remaining limit | Regression |
+|---|---|---|
+| 1 MEDIUM | Check each export part size against the binding and its sum against REVIEWED_ARCHIVE_BYTES. Preflight reads the REVIEWED .done triple and hashes all three preparation files before place.attempt. A missing complete binding requires export_binding_pin. | test_01_wrong_part_pins_at_check; test_01_wrong_part_sum; test_01_missing_binding_parts_names_input; test_01_wrong_done_before_place_attempt; test_01_wrong_preparation_before_place_attempt |
+| 2 LOW | Hash the real dependency archives and dependency file pins against the pinned Orchard-proven B5 reference before substituting tiny archives. | test_02_dropped_real_dependency |
+| 3 LOW | Require the built token in the Trinity ledger before even calling preflight. | test_03_unreserved_token_before_preflight |
+| 4 LOW | Validate every --job-name / -J value; reject every --comment. | test_04_all_job_names_and_no_comments |
+| 5 LOW | State the exact forbidden-word rule in NOTE and REPORT. | test_05_exact_forbidden_rule_documented |
+| 6 LOW | Add check 6(a–e) rows and state that the third consecutive accounting error aborts. | test_06_five_rows_and_error_limit |
+| 7 LOW | Poll tails 8192 bytes per CPU stderr/stdout file for terminal failures; the local exception includes that text. | test_07_failed_cpu_returns_log_text |
+| 8 INFO | Execute the SHA-pinned native dryres_d.py unchanged under 3.6.8 on filled local inputs. dry2/dry2b predicates remain translated: their fixed production policy archive is absent. | test_08_pinned_native_harness_is_executed; positive fill results contain native_dry.result |
+| 9 INFO | Pass the caller's HOME and SSH_AUTH_SOCK to the local transport. Remote HOME=/tmp remains a documented live-environment difference. | test_09_transport_uses_caller_identity |
+| 10 INFO | bash -n validates the detached fill body; receipt reports its actual wrapper interpreter and its 3.6.8 predicate interpreter separately. Round-2 before-fix regressions fail on the defect, with no KeyError. The guard test observes the launched interpreter; the login test observes the SHA of the bytes passed to place. | test_10_fill_body_bash_syntax; test_10_receipt_interpreter_label; test_r6_login_runtime_guard_submit_pool; test_r11_login_exact_delivery; before.log and before_evidence.log |
+
+The login/fill probes still run several native steps inside one isolated 3.6.8 interpreter with the pack path on sys.path. Separating each step while preserving filesystem redirection and the sbatch stub requires more than the requested small INFO fix; live process isolation remains untested. The D scorer mismatch, budget_fits=false, absent full r10 build, B4 root cause, and trainer-rank USR1 remain open.
 
 ## Review round 1: finding -> fix -> test
 
-| Finding | Fix | Regression evidence |
-|---|---|---|
-| 1: fill can outlive its foreground call | Detach with setsid/nohup; exclusive launch lock; write a/1.txt last; poll a/f.log and status at 60-second intervals | test_r1_detached_slow_fill |
-| 2: local archives exceed practical defaults | Explicit structural fill uses tiny pinned stand-ins; live identity remains a native Orchard gate | test_r2_structural_without_archive_mirrors, including a planted dropped environment slot |
-| 3: D had no complete check | Run every probe on the actual pack-built D delivery and plan its D scripts at 04:00:00 | test_native.py and test_r3_actual_D_integration |
-| 4: absent staged inputs spend a token | Read-only size preflight runs before place and its attempt marker | test_r4_readonly_preflight_precedes_place |
-| 5: system head rejected | Exempt listed utilities only in command position; scan arguments and retain umask 077 | test_r5_system_command_only |
-| 6: operational and Python gaps | Document staging, fill timing and live hashes; execute guard, 8.py submit with stub sbatch, and the pool walk under 3.6.8 | test_r6_login_runtime_guard_submit_pool and test_r6_operational_inventory |
-| 7: isolated import differs | Import h1eval.h10.launch as a module with production path roots | test_r7_production_module_import uses a relative import |
-| 8: GPU refusal strands passed CPU work | gpu action rechecks completion and receipts; native a/8.txt and an exclusive pre-submit lock prevent duplicate submission | test_r8_gpu_only_retry |
-| 9: arbitrary heredoc bypass | Permit only Python stdin heredocs | test_r9_only_python_stdin_heredocs |
-| 10: native scorer drift | Keep the native source-consistency refusal; require a coherent generated release | test_native.py and test_07b_native_source_drift_blocks_release |
-| 11: login delivery and ledger gaps | Place the recorded BUILD delivery in the login probe; require an operator ledger reservation before place | test_r11_login_exact_delivery and test_r6_operational_inventory |
-
-No HIGH, MEDIUM or LOW finding is deferred. Missing production data and routed harness files are named in REQUIRED_INPUTS.json; check_required_inputs.py refuses absent local groups by name. A structural result does not certify production archive identity or a real full-reader run.
+Detached fill, structural stand-ins, actual D checks, staged-input preflight, command-only utility exemptions, 3.6 execution, production module imports, GPU-only retry, Python-stdin heredoc restrictions and exact-delivery checks remain covered by test_review.py. Native scorer drift remains a refusal tested by test_native.py. The test suite also checks the Trinity ledger prerequisite and the operator inventory.

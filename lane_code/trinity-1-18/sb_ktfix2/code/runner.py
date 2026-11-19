@@ -79,6 +79,7 @@ def validate_card(memory,capability):
 def main():
  p=argparse.ArgumentParser();p.add_argument('part',choices=['A','B','C']);p.add_argument('--preflight-only',action='store_true');a=p.parse_args()
  freeze(OUT,a.part)
+ if a.part=='A':freeze(OUT,'H')
  # CPU preflight does not probe a GPU.
  cfg=preflight(a.part)
  if a.part in ('A','B'):

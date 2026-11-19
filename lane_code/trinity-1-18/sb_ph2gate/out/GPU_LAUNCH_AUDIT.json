@@ -1,0 +1,60 @@
+{
+ "status": "NOT_GPU_LAUNCH_READY",
+ "method": "Static code review plus CPU admission tests; no GPU probing or inference",
+ "review": "Independent read-only guard review accepted the path/option fixes; GPU launch safeguards remain blockers.",
+ "checks": [
+  {
+   "check": "placement and one 48 GB card off trinity-0-13",
+   "status": "FAIL",
+   "evidence": "No GPU launcher exists. require_go checks only PART2_GO=1; neither placement nor card/node is verified."
+  },
+  {
+   "check": "two empty nvidia-smi readings 300 seconds apart",
+   "status": "FAIL",
+   "evidence": "No nvidia-smi or 300-second wait in the launcher or GPU script; no readings taken in this CPU task."
+  },
+  {
+   "check": "vnice",
+   "status": "FAIL",
+   "evidence": "Shown in the GPU script docstring only; the CPU launcher uses run.sh and nice, not vnice."
+  },
+  {
+   "check": "timeout at remaining budget",
+   "status": "FAIL",
+   "evidence": "No timeout in the launcher or GPU script. The pass timer starts after tower load and plan creation and excludes STEP5."
+  },
+  {
+   "check": "1.2 GPU-hour hard stop",
+   "status": "FAIL",
+   "evidence": "HARD_GPU_H=1.2 drives the ten-capture projection and a post-capture elapsed check; there is no interrupt for a stalled capture. New phrases drop first if projection is too large."
+  },
+  {
+   "check": "KILLED never rerun",
+   "status": "FAIL",
+   "evidence": "The new gate refuses existing STOP.json/KILLED/KILLED.json. No external launcher records abrupt kills, so an unmarked partial pass can still resume by skipping existing receipts."
+  },
+  {
+   "check": "writes only under GPU output directory",
+   "status": "FAIL",
+   "evidence": "OUT is out/pool_part2, but TIMING_RECEIPT.json is written under out/. No GPU launcher confines runtime caches."
+  },
+  {
+   "check": "bars-first and existing score refusal",
+   "status": "PASS",
+   "evidence": "gate.py runs before imports/writes in the direct GPU/scoring entry points, and before mkdir in the CPU launchers; tested on planted files and missing/altered bars."
+  },
+  {
+   "check": "STEP5 gates the pool pass",
+   "status": "PASS",
+   "evidence": "run() requires STEP5.json status PASS. CPU attempt exits before tower loading with the CUDA-required error."
+  }
+ ],
+ "input_sha256": {
+  "/scratch/jjyeung/orch_n30/sb_ph2gate/sb_mask_phrase/part2/sam3_pass.py": "5fc93dfe850a830d9e8ce355b360367403fd5444906cdae01424d10e11e30441",
+  "/scratch/jjyeung/orch_n30/sb_ph2gate/sb_mask_phrase/part2/launch_part2.sh": "616831daf54d48a6557a1e13382b500967b3fcf376958bcd1cd03aa1318363da",
+  "/scratch/jjyeung/orch_n30/sb_ph2gate/sb_mask_phrase/part2/gate.py": "f40b93d12e79768eea1ee6b2b2911695fcc64b4f935e9c4589bcd8b20a5a8368",
+  "/scratch/jjyeung/orch_n30/sb_ph2gate/sb_mask_phrase/part2/BARS_PART2.json": "166be15bcd56f303b9b032bab84712264a687bc073b791251b57b814e515d774",
+  "/scratch/jjyeung/orch_n30/sb_ph2gate/sb_mask_phrase/in/v3/KIT_SPEC_mask_phrase_v2.md": "7504242eb527b4c676330f413cda081748da20680352f33ed0e8972c9d8932d3",
+  "/scratch/jjyeung/orch_n30/sb_ph2gate/out/gpu_checks.txt": "a9aaac539a3d402e673c65518e162d2fffb9ca94cce2d9b5f110962647bb363d"
+ }
+}

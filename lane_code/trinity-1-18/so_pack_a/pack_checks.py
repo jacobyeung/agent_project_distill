@@ -304,16 +304,14 @@ def resolve_inputs(inputs,base,cfg,c,mapping,remote,local):
 
 def fill(package,w,c):
     P.need(sys.version_info[:3]==(3,6,8),'Require actual login Python 3.6.8')
+    original_files,_,_,original_plan=P.structure(package)
+    P.export_identity(c,original_files,original_plan)
     if c.get('fill_mode','mirrors')=='structural':
         import pack_structural as S
-        original_files,_,_,original_plan=P.structure(package)
-        binding=original_plan['export_binding']
-        P.need(all(c['fill'][k]==binding[k] for k in ('object','step','lineage')),'Configured fill identity differs from sealed binding')
-        constants={n.targets[0].id:ast.literal_eval(n.value) for n in ast.parse(original_files['a/4.py']).body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id.startswith('REVIEWED_')}
-        P.need(constants['REVIEWED_OBJECT']==binding['object'],'Sealed helper object differs from binding')
+        reference=S.dependency_reference(json.loads(original_files['a/0.json']),c)
         original=P.fingerprint(P.package_files(package));target,small=S.rebind(w/'standins',package)
-        cfg=dict(c,fill_mode='mirrors',mirrors=small['mirrors'],fill=small['fill'],old_identities=[],max_read_bytes=10*1024**2)
-        result=fill(target,w,cfg);result.update(mode='structural',source_tree=original,standin_bytes=sum(x['bytes'] for x in small['mirrors'].values()),production_archive_identity=False)
+        cfg=dict(c,fill_mode='mirrors',mirrors=small['mirrors'],fill=small['fill'],remote_input_pins={k:dict(bytes=v['bytes']) for k,v in small['mirrors'].items()},old_identities=[],max_read_bytes=10*1024**2)
+        result=fill(target,w,cfg);result.update(mode='structural',source_tree=original,dependency_reference=reference,standin_bytes=sum(x['bytes'] for x in small['mirrors'].values()),production_archive_identity=False)
         P.need(P.fingerprint(P.package_files(package))==original,'Structural probe changed delivery');return result
     P.need(c.get('fill_mode','mirrors')=='mirrors','Unknown fill mode')
     mapping=validate_mirrors(c);f,pay,pub,plan=P.structure(package);remote=P.ROOT+'/'+P.PREFIX+pub['token'];local=P.extract(f,w/(P.PREFIX+pub['token']))
@@ -345,9 +343,26 @@ def fill(package,w,c):
             finally:subprocess.run=original_run
             P.need(len(calls)==1,'Native submit did not call stub sbatch')
         resolution=resolve_inputs(filled,base,cfg,c,mapping,remote,local)
+        dry=native_dry(c,w,mapping,remote,local,filled)
     finally:sys.argv=saved
     P.privacy(local,c)
-    return dict(python=sys.version,fill_executed=True,entry_check_executed=True,submit_executed=True,pool=pool_probe(package,w,c),resolution=resolution)
+    return dict(python=sys.version,fill_executed=True,entry_check_executed=True,submit_executed=True,pool=pool_probe(package,w,c),resolution=resolution,native_dry=dry)
+
+def native_dry(c,w,mapping,remote,local,filled):
+    """Run the pinned native dryres checker without changing its source bytes."""
+    import contextlib
+    pin=c.get('native_dry');P.need(pin is not None,'Required input missing: native_dry (pinned dryres_d.py)')
+    P.required_inputs(dict(required_inputs=[dict(pin,name='native_dry')]))
+    P.need('sha256' in pin,'Required input pin missing: native_dry.sha256')
+    saved=sys.argv[:];log=w/'native_dry.log'
+    try:
+        sys.argv=[pin['path'],remote+'/a/1.json',remote+'/a/0.json',filled['archives'][-1]['sha256']]
+        with log.open('w') as output,contextlib.redirect_stdout(output),Mirrors(dict(mapping,**{remote:str(local)})):
+            try:runpy.run_path(pin['path'],run_name='__main__')
+            except SystemExit as error:P.need(error.code==0,'Native dry harness refused; see '+str(log))
+        result=P.read(log);P.need(result.get('passed') is True,'Native dry harness did not pass')
+        return dict(path=pin['path'],sha256=pin['sha256'],python=sys.version,result=result)
+    finally:sys.argv=saved
 
 def pool_probe(package,w,c):
     script=P.adapted_script(c,'gpu',P.ROOT+'/'+P.PREFIX+P.read(package/'0.json')['token'],package)
@@ -375,6 +390,8 @@ def pool_probe(package,w,c):
 
 def receipt(package,w,c):
     """Run the sealed submit receipt predicate on exact native CPU writer output."""
+    predicate_python=subprocess.check_output(['/usr/bin/python3','-I','-s','-B','-c','import sys;print(sys.version)'],env=P.environment(w),timeout=30).decode().strip()
+    P.need(predicate_python.startswith('3.6.8'),'Require actual receipt Python 3.6.8')
     f,pay,pub,plan=P.structure(package);local=P.extract(f,w/'p');root=w/'a';root.mkdir(mode=0o700)
     script=P.adapted_script(c,'gpu',P.ROOT+'/'+P.PREFIX+pub['token'],package)
     code=P.heredocs(script)[0];tree=ast.parse(code)
@@ -417,7 +434,7 @@ def receipt(package,w,c):
         v=copy.deepcopy(value);d=v
         for key in keys[:-1]:d=d[key]
         d[keys[-1]]=new;check(v,'bad'+str(i),False)
-    return dict(synthetic_receipt_only=True,negative_cases=len(mutations),full_reader_validator_cases=validator_cases,full_reader_validator=validator is not None,python='3.6.8')
+    return dict(synthetic_receipt_only=True,negative_cases=len(mutations),full_reader_validator_cases=validator_cases,full_reader_validator=validator is not None,python=sys.version,predicate_python=predicate_python)
 
 def main():
     mode,package,work,config=sys.argv[1:];os.umask(0o077);P.limits();w=Path(work);result=globals()[mode](Path(package),w,P.read(config));result['passed']=True;P.write(w/'1.json',result)

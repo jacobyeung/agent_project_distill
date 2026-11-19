@@ -1,0 +1,196 @@
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -1709,7 +1709,11 @@
+     after_optimizer = memory_stats(device)
+     if device.type == 'cuda':
+         torch.cuda.synchronize(device)
+-    return dict(step=step, **({'gf1_harm_screen': screen_metrics} if gf1_enabled else {}), wall_seconds=time.perf_counter()-started, data_seconds=waiting,
++    cache_record = {}
++    if performance_switch('C1_DECODED_CACHE_MIB') != '0':
++        from .c1_decoded_cache import stats
++        cache_record['decoded_cache'] = stats()
++    return dict(step=step, **cache_record, **({'gf1_harm_screen': screen_metrics} if gf1_enabled else {}), wall_seconds=time.perf_counter()-started, data_seconds=waiting,
+                 skipped_microsteps=skipped, skip_totals=dict(SKIPPED),
+                 component_normalization='components: sum over microsteps of each row-mean loss / len(plan); '
+                                         'stream_means: row-mean loss of each stream over its own microsteps',
+--- /dev/null
++++ b/student_pilot/c1_decoded_cache.py
+@@ -0,0 +1,69 @@
++"""Bounded in-memory RGB cache after the original per-read frame verification."""
++from collections import OrderedDict
++import hashlib
++import io
++from threading import RLock
++
++import numpy as np
++from PIL import Image
++
++
++class DecodedRGB:
++    def __init__(self, capacity_bytes):
++        self.capacity = capacity_bytes
++        self.values = OrderedDict()
++        self.bytes = self.hits = self.misses = 0
++        self.lock = RLock()
++
++    def get(self, path, logical_path, sha256):
++        # Callers must verify the pin on EVERY access, including hits. An eviction
++        # never changes admission, row selection, augmentation or preprocessing.
++        with self.lock:
++            identity = sha256
++            cached = self.values.get(identity)
++            if cached is not None:
++                self.hits += 1
++                self.values.move_to_end(identity)
++                return cached.copy()
++            self.misses += 1
++            payload = path.read_bytes()
++            if hashlib.sha256(payload).hexdigest() != sha256:
++                raise ValueError(f'Stale frame pin: {logical_path}')
++            with Image.open(io.BytesIO(payload)) as image:
++                if image.mode != 'RGB':
++                    raise ValueError(f'Source is not RGB: {logical_path}')
++                value = np.asarray(image).copy()
++            if value.nbytes <= self.capacity:
++                while self.bytes + value.nbytes > self.capacity and self.values:
++                    _, old = self.values.popitem(last=False)
++                    self.bytes -= old.nbytes
++                self.values[identity] = value
++                self.bytes += value.nbytes
++            return value.copy()
++
++
++_cache = None
++_lock = RLock()
++
++
++def read(path, logical_path, sha256):
++    global _cache
++    from .c1_switches import get
++    mib = int(get('C1_DECODED_CACHE_MIB'))
++    if not 1 <= mib <= 4096:
++        raise ValueError('C1_DECODED_CACHE_MIB must be 0 (OFF) or 1..4096')
++    with _lock:
++        if _cache is None or _cache.capacity != mib * (1 << 20):
++            _cache = DecodedRGB(mib * (1 << 20))
++        cache = _cache
++    return cache.get(path, logical_path, sha256)
++
++
++def stats():
++    """Cumulative counters; step differences give hits/misses during that update."""
++    with _lock:
++        if _cache is None:
++            return dict(hits=0, misses=0, bytes=0, capacity_bytes=0)
++        with _cache.lock:
++            return dict(hits=_cache.hits, misses=_cache.misses, bytes=_cache.bytes,
++                        capacity_bytes=_cache.capacity)
+--- a/student_pilot/pose_samples.py
++++ b/student_pilot/pose_samples.py
+@@ -172,11 +172,17 @@
+ 
+ 
+ def load_frames(inputs):
++    from .c1_switches import get as performance_switch
++    cache_enabled = performance_switch('C1_DECODED_CACHE_MIB') != '0'
+     from PIL import Image
+     from .r2_frames import verify_frame
+ 
+     images = []
+     for frame in inputs["frames"]:
++        if cache_enabled:
++            from .c1_decoded_cache import read
++            images.append(read(verify_frame(frame), frame['path'], frame['sha256']))
++            continue
+         with Image.open(verify_frame(frame)) as image:
+             if image.mode != "RGB":
+                 raise ValueError(f"Source is not RGB: {frame['path']}")
+--- a/student_pilot/batches.py
++++ b/student_pilot/batches.py
+@@ -56,6 +56,8 @@
+ 
+ 
+ def load_rgb(inputs):
++    from .c1_switches import get as performance_switch
++    cache_enabled = performance_switch('C1_DECODED_CACHE_MIB') != '0'
+     if set(inputs) != INPUT_FIELDS:
+         raise ValueError(f"Student input contains unexpected or missing fields: {set(inputs) ^ INPUT_FIELDS}")
+     indices, timestamps, frames = inputs["frame_indices"], inputs["timestamps"], inputs["frames"]
+@@ -73,6 +75,12 @@
+     images, sizes = [], []
+     for frame in frames:
+         binding(frame["path"], frame["sha256"])
++        if cache_enabled:
++            from .c1_decoded_cache import read
++            array = read(resolve_read(frame['path']), frame['path'], frame['sha256'])
++            sizes.append([array.shape[1], array.shape[0]])
++            images.append(array)
++            continue
+         with Image.open(resolve_read(frame["path"])) as image:
+             if image.mode != "RGB":
+                 raise ValueError(f"Source is not RGB: {frame['path']}")
+--- /dev/null
++++ b/tests/test_so_cache.py
+@@ -0,0 +1,62 @@
++import os
++import unittest
++from unittest.mock import patch
++
++import numpy as np
++from PIL import Image
++import torch
++
++from student_pilot import pose_samples, carrier_c1_run as run
++from student_pilot.c1_decoded_cache import DecodedRGB
++from student_pilot.p3_provenance import file_pin
++from tests.so_helpers import root, inputs, TinyProcessor, assert_nested
++
++
++class CacheTests(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
++    def test_same_encoded_rows_hits_invalidation_and_mutation_isolation(self):
++        torch.set_num_threads(8)
++        directory = root()
++        receipt = inputs(directory)
++        values = []
++        for setting in ('0','1'):
++            with patch.dict(os.environ,C1_DECODED_CACHE_MIB=setting):
++                rows = run.Rows(receipt,TinyProcessor())
++                try:
++                    values.append([rows.get(stream,0) for stream in receipt['streams']])
++                finally:
++                    rows.close()
++        assert_nested(self,values[0],values[1])
++        from student_pilot import c1_decoded_cache
++        self.assertGreater(c1_decoded_cache._cache.hits,0)
++        pin = file_pin(directory/'rgb.png')
++        with patch.dict(os.environ,C1_DECODED_CACHE_MIB='1'):
++            first = pose_samples.load_frames({'frames':[pin]})
++            first[:] = 0
++            self.assertTrue(pose_samples.load_frames({'frames':[pin]}).any())
++            Image.new('RGB',(32,32),(200,10,50)).save(directory/'rgb.png')
++            with self.assertRaisesRegex(ValueError,'Stale frame pin'):
++                pose_samples.load_frames({'frames':[pin]})
++            changed = pose_samples.load_frames({'frames':[file_pin(directory/'rgb.png')]})
++            self.assertEqual(changed[0,0,0].tolist(),[200,10,50])
++
++    def test_bounded_cache_and_non_rgb_errors(self):
++        directory = root()
++        cache = DecodedRGB(64*64*3)
++        for i in range(3):
++            path = directory/f'{i}.png'
++            Image.new('RGB',(64,64),(i,0,0)).save(path)
++            cache.get(path,str(path),file_pin(path)['sha256'])
++            self.assertLessEqual(cache.bytes,cache.capacity)
++            self.assertEqual(len(cache.values),1)
++        path = directory/'gray.png'
++        Image.new('L',(32,32),10).save(path)
++        with self.assertRaisesRegex(ValueError,'Source is not RGB'):
++            cache.get(path,str(path),file_pin(path)['sha256'])
++
++
++if __name__ == '__main__':
++    unittest.main()

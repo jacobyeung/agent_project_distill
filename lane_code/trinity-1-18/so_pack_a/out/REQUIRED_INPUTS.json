@@ -127,9 +127,42 @@
       "name": "r10 original A filled inputs",
       "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/r10/a15_cot_apd72cdcff1e22a/a/1.json",
       "reason": "Native r10 reads this file after building selected deliveries"
+    },
+    {
+      "config_key": "export_binding_pin.path and export_binding_pin.sha256",
+      "group": "pack_check",
+      "location": "local",
+      "name": "export_binding_pin (step-600 binding with parts[].bytes and archive_bytes)",
+      "path": "/REPLACE/binding600.json",
+      "reason": "Native builder omits part pins from the sealed plan; check authenticates this binding against sealed fields and REVIEWED constants"
+    },
+    {
+      "config_key": "dependency_reference",
+      "group": "pack_check",
+      "location": "local",
+      "name": "dependency_reference (Orchard-proven B5 base inputs)",
+      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/0.json",
+      "reason": "Structural mode compares real dependency metadata to this SHA-pinned reference",
+      "sha256": "206f81ec51f0ce38113b14289f9cf9896baded0e8a950e88ac6653764b24ac04"
+    },
+    {
+      "config_key": "native_dry",
+      "group": "pack_check",
+      "location": "local",
+      "name": "native_dry (unchanged native dryres_d.py)",
+      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/dryres_d.py",
+      "reason": "Execute native resolution predicates unchanged after local fill",
+      "sha256": "e1981c7909b96006a9df9adaf2397c4a70210f7263f58ba484aff81923c225f2"
+    },
+    {
+      "group": "native_dry2",
+      "location": "local",
+      "name": "native a3.tar policy archive for unchanged dry2/dry2b",
+      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/a3.tar",
+      "reason": "dry2/dry2b select its fixed 05dc8f79 SHA prefix; tiny synthetic policy bytes cannot satisfy that check"
     }
   ],
   "local_check": "check_required_inputs.py --manifest out/REQUIRED_INPUTS.json --group production_build|r10|routed_harness",
   "production_ready": false,
-  "remote_check": "pack place executes a read-only preflight before its placement marker; fill and job.stage verify live identity"
+  "remote_check": "place requires ledger reservation, then read-only size/.done/preparation preflight before place.attempt; fill and job.stage authenticate large live archives"
 }

@@ -27,18 +27,21 @@ ROWS = [
      'RunnerEvidenceTests.test_f3_* passes without Git. RealGitOwnerTests.test_failed_commit_* and test_origin_rejection_* await authorized Git execution.'],
     ['4', 'Check all fetch and push URLs for origin/home before clone mutation; resolve local paths and symlinks inside the test boundary.',
      'RemoteBoundaryTests.test_f4_* covers external URLs, symlink escape, relative paths, multiple push destinations and no-Git dry runs.'],
-    ['5', 'Apply SUBSTR to full orchestration-relative paths for hourly totals; retain raw filter counts.',
-     'NestedCoverageTests.test_f5_* compares nested out/ counts with whole-tree filter selection.'],
+    ['5', 'Apply SUBSTR to full orchestration-relative paths for hourly totals; retain raw filter counts. Refuse ambiguous deduplicated output and request the lane root.',
+     'NestedCoverageTests.test_f5_* compares nested out/ counts with whole-tree selection and checks the duplicate-representative refusal.'],
 ]
 (L / 'work/round3_findings.json').write_text(json.dumps(ROWS, indent=2) + '\n')
 
-lane_command = '''L=/scratch/jjyeung/orch_n30/so_git
+lane_command = '''(
+set -e
+L=/scratch/jjyeung/orch_n30/so_git
 mkdir -p "$L/work/realgit_round3_lane"
 for PY in /usr/bin/python3 /scratch/jjyeung/envs/p1cpu/bin/python; do
   LCS_RUN_REAL_GIT_TESTS=1 LCS_REVIEW2_FIXES=1 \\
     LCS_REAL_GIT_WORK="$L/work/realgit_round3_lane" LCS_PYTHON="$PY" \\
-    bash "$L/work/review_round3_source/tests/run_real_git_owner.sh" || break
-done'''
+    bash "$L/work/review_round3_source/tests/run_real_git_owner.sh"
+done
+)'''
 (L / 'work/round3_lane_command.txt').write_text(lane_command + '\n')
 handover = '''# Owner handover
 
@@ -153,6 +156,8 @@ for number, base, description in (
     records, body = {}, ''
     for path in ['tools/' + n for n in TOOLS] + ['tests/' + n for n in TESTS + ('test_filter_shell_copies.py',)]:
         before = (base / path).read_text() if (base / path).exists() else ''
+        if base == INSTALLED_BASE and path in ('tests/test_review_round2.py', 'tests/test_review_round3.py'):
+            before = ''  # Regression overlays were not part of the installed package.
         after = (OUT / path).read_text()
         if before != after:
             body += delta(before, after, path, records)

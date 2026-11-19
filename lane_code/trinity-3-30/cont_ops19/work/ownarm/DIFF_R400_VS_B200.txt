@@ -1,0 +1,321 @@
+PASS: delivery reproduces b200 with only token, export_binding and REVIEWED_* changes.
+PASS: operator, tower settings, item order and all payload code are byte-identical.
+PASS: READ_PLAN.json changes only export_binding, plan_sha256 and token.
+BUILD.json records build provenance; manifests and archive hashes follow the rebind.
+Preparation copies and the existing hash guard run before gsutil in both pull scripts.
+
+delivery 0.json: CHANGED (permitted; exact reseal verified)
+delivery 0.tgz: CHANGED (permitted; exact reseal verified)
+delivery 3.py: IDENTICAL
+delivery BATCH.sh: CHANGED (permitted; exact reseal verified)
+delivery CONFIG.json: CHANGED (permitted; exact reseal verified)
+delivery INPUTS.example.json: IDENTICAL
+delivery PACKAGE.json: CHANGED (permitted; exact reseal verified)
+delivery SUBMIT.cmd: IDENTICAL
+delivery a/0.json: IDENTICAL
+delivery a/1.json: IDENTICAL
+delivery a/4.py: CHANGED (permitted; exact reseal verified)
+delivery a/5.py: IDENTICAL
+delivery a/6.py: IDENTICAL
+delivery a/7.py: IDENTICAL
+delivery a/export.json: IDENTICAL
+
+Payload: 926/927 members identical; only 9.json differs.
+--- b200/package/a/4.py
++++ r400/package/a/4.py
+@@ -8,9 +8,9 @@
+ import tarfile
+ 
+ LOGICAL = '/scratch/jjyeung/b01ec87a6f29b'
+-REVIEWED_OBJECT = 'q8/8865619b/673bc60f_m200.tar'
++REVIEWED_OBJECT = 'q8/8865619b/6ed2c7aa_m400.tar'
+ REVIEWED_ARCHIVE_BYTES = 21583032320
+-REVIEWED_ARCHIVE_SHA256 = '795ef9ef7e59bf37443c14a4d3a7e734eabcb2fd5fcb289ad3d77ae7096e283b'
++REVIEWED_ARCHIVE_SHA256 = 'dcd49569e1555e18c403207f429de7b352f806bb11827fb57aa9973f4ceec7b5'
+ 
+ MEMBERS = dict(artifact='artifact.json', heads='heads.pt',
+                full_weights='full_weights/full_weights.json')
+--- b200/export_binding
++++ r400/export_binding
+@@ -1,15 +1,15 @@
+ {
+   "base_identity": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+-  "config_sha256": "620d5cf8c573afd72e9dcbcf822fb8c8cbae27dd6c2ca803ec156d7cda41e51a",
++  "config_sha256": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4",
+   "frame_layout": "duplicate",
+   "lineage": "SFT",
+-  "member_directory": "m200",
+-  "object": "q8/8865619b/673bc60f_m200.tar",
++  "member_directory": "m400",
++  "object": "q8/8865619b/6ed2c7aa_m400.tar",
+   "preparation_sha256": {
+-    "config": "3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1",
+-    "data_receipt": "7f654d2f0ae9f06083f2fc8fd793512c154b4d01ce8632fb733d4191205af770",
+-    "receipt": "4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915"
++    "config": "b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad",
++    "data_receipt": "03daaa0a051a72c30e147e20553376e196ad09a183889f243a64a0ab1a212f47",
++    "receipt": "a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda"
+   },
+-  "run": "673bc60f",
+-  "step": 200
++  "run": "6ed2c7aa",
++  "step": 400
+ }
+
+SCRIPT o_cpucheck.sh: unified diff follows
+--- b200/o_cpucheck.sh
++++ r400/o_cpucheck.sh
+@@ -1,13 +1,13 @@
+ #!/bin/bash
+ set -euo pipefail
+ umask 077
+-P=/project/community/jjyeung/okh7/a15_cot_apade90fc02479b
++P=/project/community/jjyeung/okh7/a15_cot_apfadf2291c654b
+ test "$(cat "$P/a/1.txt")" = 0
+ cd "$P"
+ CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 05:00:00
+ test ! -e "$P/a/4.txt"
+ test ! -e "$P/a/c"
+-CPU_REPLY=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME="$HOME" USER="$USER" CUDA_VISIBLE_DEVICES=  sbatch --parsable --account=mt01 --partition=preempt --nodes=1 --ntasks=1  --job-name=a15_cot_apade90fc02479b --cpus-per-task=8 --mem=200G --time=04:00:00  --exclude='orchard-flame-[0-31]' --export=ALL --no-requeue --chdir=/tmp  --output="$P/a/4.log" --error="$P/a/4.err"  --wrap="exec /usr/bin/python3 -I -s -B $P/a/5.py --package $P --sequence $P/a/6.py --results $P/a/c")
++CPU_REPLY=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME="$HOME" USER="$USER" CUDA_VISIBLE_DEVICES=  sbatch --parsable --account=mt01 --partition=preempt --nodes=1 --ntasks=1  --job-name=a15_cot_apfadf2291c654b --cpus-per-task=8 --mem=200G --time=04:00:00  --exclude='orchard-flame-[0-31]' --export=ALL --no-requeue --chdir=/tmp  --output="$P/a/4.log" --error="$P/a/4.err"  --wrap="exec /usr/bin/python3 -I -s -B $P/a/5.py --package $P --sequence $P/a/6.py --results $P/a/c")
+ CPU_JOB=${CPU_REPLY%%;*}
+ [[ "$CPU_JOB" =~ ^[0-9]+$ ]]
+ printf '%s
+
+SCRIPT o_fetch.sh: unified diff follows
+--- b200/o_fetch.sh
++++ r400/o_fetch.sh
+@@ -1,13 +1,13 @@
+ #!/bin/bash
+ set -euo pipefail
+ umask 077
+-P=/project/community/jjyeung/okh7/a15_cot_apade90fc02479b
++P=/project/community/jjyeung/okh7/a15_cot_apfadf2291c654b
+ cd "$P"
+ JOB=$(cat "$P/a/8.txt")
+ [[ "$JOB" =~ ^[0-9]+$ ]]
+ RET=$(/usr/bin/python3 -I -s -B - "$JOB" <<'PYCODE'
+ import sys
+-print('ade90fc02479b'+format(int(sys.argv[1]),'08x'))
++print('fadf2291c654b'+format(int(sys.argv[1]),'08x'))
+ PYCODE
+ )
+ /usr/bin/python3 -I -s -B "$P/a/7.py" --package "$P" --return-token "$RET" --out "$P/a/f"
+
+SCRIPT o_place.sh: unified diff follows
+--- b200/o_place.sh
++++ r400/o_place.sh
+@@ -1,11 +1,11 @@
+ #!/bin/bash
+ set -euo pipefail
+ umask 077
+-P=/project/community/jjyeung/okh7/a15_cot_apade90fc02479b
++P=/project/community/jjyeung/okh7/a15_cot_apfadf2291c654b
+ # D must identify the existing delivery directory, whose basename is opaque.
+ : "${D:?Set D to the existing opaque delivery directory}"
+ [[ "$D" =~ ^/project/community/jjyeung/okh7/a15_cot_ap[0-9a-f]+$ ]]
+-printf '%s  %s\n' af37ab141f6d0304264ffdeb47ec840037fce6366b5825f5c7142508b16147bf "$D/1.tgz" | sha256sum -c -
++printf '%s  %s\n' 359151d1aafc9128b42f6e3b3a788cecc5aaf510fe57219f8367290a1afdd61a "$D/1.tgz" | sha256sum -c -
+ test ! -e "$P"
+ mkdir -m 700 "$P"
+ tar -xzf "$D/1.tgz" -C "$P"
+@@ -19,7 +19,7 @@
+ assert m['token']==v['token']
+ with tarfile.open(p/'0.tgz') as t:c=json.load(t.extractfile('9.json'))
+ assert hashlib.sha256(json.dumps(c,sort_keys=True,separators=(',',':')).encode()).hexdigest()==v['plan_sha256']
+-b=c['export_binding'];assert b['run']=='673bc60f' and b['step']==200 and b['member_directory']=='m200'
++b=c['export_binding'];assert b['run']=='6ed2c7aa' and b['step']==400 and b['member_directory']=='m400'
+ assert json.loads((p/'a/1.json').read_text())=={'pending':True}
+ print('Metadata verified; export fill required')
+ PYCODE
+
+SCRIPT o_pullfill.sh: unified diff follows
+--- b200/o_pullfill.sh
++++ r400/o_pullfill.sh
+@@ -1,26 +1,25 @@
+ #!/bin/bash
+ set -euo pipefail
+ umask 077
+-P=/project/community/jjyeung/okh7/a15_cot_apade90fc02479b
++P=/project/community/jjyeung/okh7/a15_cot_apfadf2291c654b
+ test ! -e "$P/a/0.sh"
+ cat > "$P/a/0.sh" <<'SHELLCODE'
+ #!/bin/bash
+ set -euo pipefail
+ umask 077
+ export TZ=UTC CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud CLOUDSDK_CORE_DISABLE_PROMPTS=1
+-A=/project/community/jjyeung/okh7/a15_cot_apade90fc02479b
++A=/project/community/jjyeung/okh7/a15_cot_apfadf2291c654b
+ E=$A/a/e
+-OBJECT=q8/8865619b/673bc60f_m200.tar
+-DONE=/project/community/jjyeung/okh7/x_69d2930d/o/gcs_673bc60f_m200.done
+-I=/project/community/jjyeung/okh7/x_69d2930d/runs/673bc60f/inputs
++OBJECT=q8/8865619b/6ed2c7aa_m400.tar
++DONE=/project/community/jjyeung/okh7/x_ee227714/o/gcs_6ed2c7aa_m400.done
+ test -f "$DONE"
+ test -f "$A/0.tgz"
+ test ! -e "$E"
+ mkdir -m 700 "$E"
+ cp "$DONE" "$E/5"
+-cp "$I/prepare_9b0c4b095487492a80bd5e9030d5bbc0/config.json" "$E/7"
+-cp "$I/prepare_9b0c4b095487492a80bd5e9030d5bbc0/prepared/s1_receipt.json" "$E/8"
+-cp "$I/data_receipt.json" "$E/9"
++cp "/project/community/jjyeung/okh7/x_ee227714/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json" "$E/7"
++cp "/project/community/jjyeung/okh7/x_ee227714/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/s1_receipt.json" "$E/8"
++cp "/project/community/jjyeung/okh7/x_ee227714/runs/6ed2c7aa/inputs/data_receipt.json" "$E/9"
+ /usr/bin/python3 -I -s -B - "$A" "$E" <<'PYCODE'
+ import hashlib,json,sys,tarfile,re
+ from pathlib import Path
+@@ -28,7 +27,7 @@
+ with tarfile.open(p/'0.tgz') as t:b=json.load(t.extractfile('9.json'))['export_binding']
+ f=(e/'5').read_text().split()
+ assert len(f)==3 and f[0]==b['object'] and f[1].isdigit() and int(f[1])>0 and re.fullmatch('[0-9a-f]{64}',f[2])
+-assert int(f[1])==21583032320 and f[2]=='795ef9ef7e59bf37443c14a4d3a7e734eabcb2fd5fcb289ad3d77ae7096e283b', 'Completion receipt differs from the reviewed export'
++assert int(f[1])==21583032320 and f[2]=='dcd49569e1555e18c403207f429de7b352f806bb11827fb57aa9973f4ceec7b5', 'Completion receipt differs from the reviewed export'
+ for key,name in [('config','7'),('receipt','8'),('data_receipt','9')]:
+  assert hashlib.sha256((e/name).read_bytes()).hexdigest()==b['preparation_sha256'][key]
+ PYCODE
+@@ -37,8 +36,8 @@
+   gsutil -o Boto:num_retries=0 -o Boto:metadata_service_num_attempts=1 -o GSUtil:parallel_process_count=1 -o GSUtil:parallel_thread_count=1 -o GSUtil:sliced_object_download_threshold=0 -o GSUtil:sliced_object_download_max_components=1 -q cp "gs://cmu-gpucloud-jjyeung/$OBJECT.part0$i-of-04" "$E/$i.partial"
+   mv "$E/$i.partial" "$E/$i"
+ done
+-P=/project/community/jjyeung/okh7/a15_cot_apade90fc02479b
+-/usr/bin/python3 -I -s -B "$P/a/4.py" --parts "$E/0" "$E/1" "$E/2" "$E/3"  --done "$E/5" --object "$OBJECT" --config "$E/7" --receipt "$E/8" --data-receipt "$E/9"  --lineage SFT --step 200 --out "$P/a/export.json" --prep-tar "$P/a/6"  --base-inputs "$P/a/0.json" --inputs-out "$P/a/1.json"
++P=/project/community/jjyeung/okh7/a15_cot_apfadf2291c654b
++/usr/bin/python3 -I -s -B "$P/a/4.py" --parts "$E/0" "$E/1" "$E/2" "$E/3"  --done "$E/5" --object "$OBJECT" --config "$E/7" --receipt "$E/8" --data-receipt "$E/9"  --lineage SFT --step 400 --out "$P/a/export.json" --prep-tar "$P/a/6"  --base-inputs "$P/a/0.json" --inputs-out "$P/a/1.json"
+ cd "$P"
+ CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 05:00:00
+ /usr/bin/python3 -I -s -B - "$P" "$E" <<'PYCODE'
+
+SCRIPT o_pullfill_resume.sh: unified diff follows
+--- b200/o_pullfill_resume.sh
++++ r400/o_pullfill_resume.sh
+@@ -1,20 +1,23 @@
+ #!/bin/bash
+ set -euo pipefail
+ umask 077
+-P=/project/community/jjyeung/okh7/a15_cot_apade90fc02479b
++P=/project/community/jjyeung/okh7/a15_cot_apfadf2291c654b
+ test -e "$P/a/0.sh" && test ! -e "$P/a/0r.sh" && test ! -e "$P/a/1.txt" && test -s "$P/a/e/0" && test ! -e "$P/a/e/1" && test ! -e "$P/a/e/2" && test ! -e "$P/a/e/3" || exit 1
+ cat > "$P/a/0r.sh" <<'SHELLCODE'
+ #!/bin/bash
+ set -euo pipefail
+ umask 077
+ export TZ=UTC CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud CLOUDSDK_CORE_DISABLE_PROMPTS=1
+-A=/project/community/jjyeung/okh7/a15_cot_apade90fc02479b
++A=/project/community/jjyeung/okh7/a15_cot_apfadf2291c654b
+ E=$A/a/e
+-OBJECT=q8/8865619b/673bc60f_m200.tar
+-DONE=/project/community/jjyeung/okh7/x_69d2930d/o/gcs_673bc60f_m200.done
+-I=/project/community/jjyeung/okh7/x_69d2930d/runs/673bc60f/inputs
++OBJECT=q8/8865619b/6ed2c7aa_m400.tar
++DONE=/project/community/jjyeung/okh7/x_ee227714/o/gcs_6ed2c7aa_m400.done
+ test -f "$DONE"
+ test -f "$A/0.tgz"
++cp "$DONE" "$E/5"
++cp "/project/community/jjyeung/okh7/x_ee227714/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json" "$E/7"
++cp "/project/community/jjyeung/okh7/x_ee227714/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/s1_receipt.json" "$E/8"
++cp "/project/community/jjyeung/okh7/x_ee227714/runs/6ed2c7aa/inputs/data_receipt.json" "$E/9"
+ /usr/bin/python3 -I -s -B - "$A" "$E" <<'PYCODE'
+ import hashlib,json,sys,tarfile,re
+ from pathlib import Path
+@@ -22,7 +25,7 @@
+ with tarfile.open(p/'0.tgz') as t:b=json.load(t.extractfile('9.json'))['export_binding']
+ f=(e/'5').read_text().split()
+ assert len(f)==3 and f[0]==b['object'] and f[1].isdigit() and int(f[1])>0 and re.fullmatch('[0-9a-f]{64}',f[2])
+-assert int(f[1])==21583032320 and f[2]=='795ef9ef7e59bf37443c14a4d3a7e734eabcb2fd5fcb289ad3d77ae7096e283b', 'Completion receipt differs from the reviewed export'
++assert int(f[1])==21583032320 and f[2]=='dcd49569e1555e18c403207f429de7b352f806bb11827fb57aa9973f4ceec7b5', 'Completion receipt differs from the reviewed export'
+ for key,name in [('config','7'),('receipt','8'),('data_receipt','9')]:
+  assert hashlib.sha256((e/name).read_bytes()).hexdigest()==b['preparation_sha256'][key]
+ PYCODE
+@@ -32,8 +35,8 @@
+   gsutil -o Boto:num_retries=0 -o Boto:metadata_service_num_attempts=1 -o GSUtil:parallel_process_count=1 -o GSUtil:parallel_thread_count=1 -o GSUtil:sliced_object_download_threshold=0 -o GSUtil:sliced_object_download_max_components=1 -q cp "gs://cmu-gpucloud-jjyeung/$OBJECT.part0$i-of-04" "$E/$i.partial"
+   mv "$E/$i.partial" "$E/$i"
+ done
+-P=/project/community/jjyeung/okh7/a15_cot_apade90fc02479b
+-/usr/bin/python3 -I -s -B "$P/a/4.py" --parts "$E/0" "$E/1" "$E/2" "$E/3"  --done "$E/5" --object "$OBJECT" --config "$E/7" --receipt "$E/8" --data-receipt "$E/9"  --lineage SFT --step 200 --out "$P/a/export.json" --prep-tar "$P/a/6"  --base-inputs "$P/a/0.json" --inputs-out "$P/a/1.json"
++P=/project/community/jjyeung/okh7/a15_cot_apfadf2291c654b
++/usr/bin/python3 -I -s -B "$P/a/4.py" --parts "$E/0" "$E/1" "$E/2" "$E/3"  --done "$E/5" --object "$OBJECT" --config "$E/7" --receipt "$E/8" --data-receipt "$E/9"  --lineage SFT --step 400 --out "$P/a/export.json" --prep-tar "$P/a/6"  --base-inputs "$P/a/0.json" --inputs-out "$P/a/1.json"
+ cd "$P"
+ CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 05:00:00
+ /usr/bin/python3 -I -s -B - "$P" "$E" <<'PYCODE'
+
+SCRIPT o_sub.sh: unified diff follows
+--- b200/o_sub.sh
++++ r400/o_sub.sh
+@@ -1,7 +1,7 @@
+ #!/bin/bash
+ set -euo pipefail
+ umask 077
+-P=/project/community/jjyeung/okh7/a15_cot_apade90fc02479b
++P=/project/community/jjyeung/okh7/a15_cot_apfadf2291c654b
+ cd "$P"
+ /usr/bin/python3 -I -s -B - "$P" <<'PYCODE'
+ import hashlib,json,sys,tarfile
+
+SCRIPT package/BATCH.sh: unified diff follows
+--- b200/package/BATCH.sh
++++ r400/package/BATCH.sh
+@@ -5,8 +5,8 @@
+ from pathlib import Path,PurePosixPath
+ j=os.environ.get('SLURM_JOB_ID','')
+ if not j.isdigit():raise ValueError('Allocation required')
+-b=bytes.fromhex('1f8b08000000000002ffed5a5b6fdb4896ee67fd0ab6fb81a44cd39464f9220f1bc824ee9d2c3a17c44963178240506249624c915c16655b1de4bfef774e1529ea62c78bc1f43e8c0ab624b2aa4e9d3ad7af2e9efb5566e94fffd2e2a19c7b1e7f7bbbdf5eafbffeadde9f5f74fb3f19de4f7f4159ca322c0ce3a77fd3f2ad65184779b84ab2300ac6ab52c8a381d1eff6bb57fd4ba75927e761b77f8ecaa3fe9527c2e9d8eb9e45e7179d1ebebdf35e38ee8551d4179d73d13b13e79d6e78e18d3b17ded5e5596f3a0d7b176762dc8fbcab68dc3f527493306d10159757d154f4cffb57d3f0a2dfef8fcfc6177dafd7eb75a35ed439ef4dc751ffeaf2fc4a9cf7279717627c36c5d0ddee45773c1561afdf5144cbec4ea4442e8cc495379d80b78babf151eb7beba743d9ef9b6ebefa978ff1bcff9f9d75ceb7fdffacd33bf8ff5f518e8e8e3e16428ae25e18799145cb491967a911468b584afc720cc86716a733c70893249b845c3dce966924f12a8d0cf45e2625beca6591baa0d78a17795694c63c94f3241e3b94601c08791a27c2912bd99a16d9c2c8c3926a0dddf8231e5bad5624a6c622bc1341144bb498ccad22cb4ac7c88a184c84097ee5a208cbacd0b1c31eb40ca6971593795844c1bce3b9936cb100979a341ab60c225cd30c8bd9bdd3c6a774daedbb07fa41748c5f8c0f69b2c254109c26c228e7f8cff29344dc8ba439fd8a9028ae21349187857a4fe278c88a3b514812dbcac8e33415910bd2f1d44844ca23dbbffa5d6e4a0fc393ee60e4fb4359163cd553333cedc3274ddb69beea709a36ed11b1694ca6339f9e5d8accd2da69e5160211bb148fa565dbd42194d07049fd8666c81a36316847d31a9a932c9dc633733434b7c48b665b6fa8cfee800f455c0a352233162d17b9b4405b8d8fd9a3b7ee76c1d3fb799b30cfcc28c2580ae38f30598a9ba2c80acbfc3b4c2d1151ad78037a4e6778114e4b51909c8b72999b6a9e90a83f6cb3600727dd51438617cf08155d95f9d676b6d7445a55ab4affb5c1c6a9450644847db2640b66ee32179d917d9d2fc7493cd9a3316fbfbe208f42448a90790aaffc2a26e52919f5328dcbd5e9d7af2bb14c67a7d9ddfcc2b44f2d33ecf483495606616e1eabc18626a7427304725af9da1d5d256dcb52a31013e5eccf8a07460060c29d8bc7289e09098e7cbfa2b989054cc8ed212ee786f66d171a4ab7c96274aa27e54ea1bb8511a7d53359459a95c6c24dc38570599192085a66c3994f4d7b00f32ce37429363ac59206b56ce8cc305dd724ca2c3245cf7673a237d835a82fa90ca7c2986491505693fb4a1db979aafa5ee7d459a4a5bbb88be2c2520fd2ff5c2c85231e635906d91d3f41b9daf695e43007176a2ce064ccdd42c955a915364151cf8d535288e5358c11f66bef06b22a827dcdc62f8b725b2ee56f3b5d8b627c36dd30c54a61e1e9e4f4f5c72ffb4d524bdde2ee6408b0a9c81c19b134480c1cceb8ce9d89d232c7ecb3c16c49bceac6f6538d21da621548f13f4b914ec433cd6b03a4e0f5b44d56a5d90f6073a3d31a7c62128d86719a2f4b494d49746bd154a1622ff5dd98b92f686e7553735f884556ac4ce7db775b4b2e94b1c4e47ddf30a7f1a3888259af242ab990e6ded1358991ea8f712722a7081f5045b0404a4f84a6383441ec09116d9291e102fd43b92cc402fa090a68272e2ab5fc162652bc80ca342ee55a91f61e5ffc6d992406ac0e415d4cee1058a753244f92336cdee5971041b14cfd3da860ab89b30d0d14118eced4de46b8861d0701b97810f8be1904541904e64085f07fc355c2c5ff3bfeef7abdced92efe3facffff2afcffa10256957771a6ce5202bf0fa238817b9f640fa93181db14a1418981f33ef22d355ae3e226f867d08f8ce794f142381a7b3c83fc3f7df9fde6d6b7cc09468ba310b934007e5a848fa663b75e7ff8f2fe336a3b7dcf69fef7e0e3b7afff71f3069d7d0b09d5b31d7c76f8b38bbcf5ead3bb5b9fb010e6613a266681e877f35f1f6f5e7fbe79e35f799e027091909322ce2103895c3fb90b6782e19c427bc3289e9400840be9133d07215548504d317b9320269a7790bf12a034c4a144f8fb6621c37b1180812042789efb1c429d750ce5b215bc7d1329c77922a2fb3a98efd4df8b229eae82384293d1f608e52aa7ae909103742c1e73f00ca8598904509805224508c81d30b2b1485fce3d05ed172cb6b80be305863a0c9600283947345007573621c6cf3e8fb027457c227b8b23642160df6686d8e14ef1ae1664c2526b9a17b0fce1d39b9b4f0e5496a5f1244c5a0672b050e85bd140865f96c00540d3d7529480a233d984501b4dab0668bc8ba15423951c33d6599898f65e8c5ae9c6a8da198c4dcc0a268aae0888be28dc2d0ba811a1e68420385b46f5a2b5f968553f9c2acb2b68cb1c577598d88e9d033a1128441c60efdd338d657a9792cdefe94b801833947ed3f92a216a272481579af7d90b09b8f975ab268a731474ab2bd5e3ba9a1c611b1ed7eadd0670b08602fed37148c2d267461d09ac41aee757210753f8c5f8cfdb0fefb1f003e02d310b6316df0b489c96a5e3441809cc9ff613688b252dd52e014557da345908857aa4dbaaedbb69568d8574556d9301365c932cf514a0ab0c116cc2d3b76f6ede7f7efbf9bf155875ea5e2d6d78d2fff6bdc5e3c70ecd895427d225857510e359f23e08af63b768b324cc535ab2c4048327f30c53f2bfb5dbb5f9ec33910151dd6f3c68bf1113cdc14e506cb7bfdd290a7723e6fb8e58de41b908ed4f47c13d953528fe0e7170a0d22bc07ab67a657ebd1b08d5bc49021b755bfd3fddbc7a136ca9830db8ddaeb4c2b6e543115a7cb5515681c8d243f1168a56e0301e91c8d59353c5a541b590b49d75fce197c4b25d491469090617504355ab54cc6f2bcdda8e0165657940cbd766ab7a6ab79f3f7c34d7342506c3524f6d7b552a34295b9a03b27e4b1900bf18813fce9ee6a04e9f26a724bce0303c2c959e39aaa89eaa7e345a8ff87fb3b27537cc6a81741ca7e6a073e9798ea912fcfa65172fdbedcde0a895f0bd55e301ad0a956d0a31176121495b4fe71b2c4e525154719976338a2c7194c80820c897e5a8b51b6fe5b86bb5078b7c5f79f7643a2309eaf62e2c7421798baa1a9df7e6f4a6cc5d8ce44cad692b508b9b37684a9fc775512f1e2d6a56edb249bfc1bdc596adc6f241c4211a7ee97037dfab83296b202cf16b1aa7b19c07e395dfddd8a0246a43fad0439a27276c38f671078b6a85e31c4271cff75136a63bb19d3ddf5ecd59b56761105ad1ef4fbe66503aacdaac929d52d873f432cad34c8dfc47c18369134634dca926cf0e58a2ca337f201292e309fbe7f620db7065c76d1b84b701ccbe81aa5842e36cc299fdcee6fb8c0410a5786b59a5887f6ea0e6f635d31bee447fd272b661134fb46c6605747a1e796012cf13a0f194e3b9619e8b34527ea0c33afb001993c3eec23bc9357854fcedc1df0c296e1e312a412981c86c2801030892888d720eac319bf3d904464ad41acd90d9e44e946a3b5696cbb1f120e2d9bc2468c19185368eb11a29dd051a564145ed61ab06ec0255c52dbe13f11eeb3d2c082704e7d5fb9202d40efeacf1261b04a5b544852166b8468710d702cd3948f1710c62406965e3af4e244accd041208d9c99c860b205b2232fa4d26592544b280e5f063ab85c471fd7f444fd7cfae0a7280e676926cb784268e79a86acd4836a32276ebf35458b2417d0687e122ec65168b4c3014fd72d452a8165871dd7e9ba4ec7f3dc115b25cb9a45e8823026602901b8b7f4f52145160c029a6310008ae1db76365a939c1cf333a9ef3f7a9f4d4727235ecaf8ef11b4747bcb6c40fd4a3ceeb4a04dac097067b9d5b5d75582524f340af95312ac4dd922ea90fa7d3ca1b56abefcf12253868b5ec0a6e66bf66d4719265073ad807d6b61fab06b7e5c65a88a039e64ab765a52d5d01b29ed72bfdd3a455939daa3af14f4a7283269759dfea5edd0d69e6fc2566c3ede6af812390ced62209fec3a1155ac45604c439ad7aae14e343bc6e9cad417b467513d0040e72b5a64a5b9f68d794760b62ea5f186606990caf3d66ff558ada7a26505fcbcd1736b4ba5ec5db24ad0dbc60e18c65a2758a0d655299626f7905c0d67e8a86c2b5a5156ad5a939439b1d2e039aafd34d78ab07a5de70a0b157a3b1c38e723bfe3560f17237fc12bff106e9a4aebdcabdb5d6e555daeabba23ffc4edb4314258d0d11f46c0a8ac921d3fa62e573e7d3ab322bca72515f72bc29535f45ce7046e4c1eeca86d18edec5367793f40bb29028045e7b4cb7b1bdeae5b0120e6be3656180ee2a8335ec6c05bcaa493f0cf95b248895c3e11c1fcc1b7ce2e3de7fccc039edee650f1cd9f36edfbd707744c134a06f4e754da71d5293158d255049b4ac1fe061b707978c9fad72414774380ec7b90b0ccbfd10fb649bf83e8ed773abf9a364c0909337a347ce3d8733dcf583846b4da78fa939e3ad513507c984e04dea957e6ce78147e783c06c87bc7e31a1a03b17f66d6605a25508da597a9367707e15ac14647616716bf3349103d7cda5174e9e305581b4fe499e2514c96b42ff5e2dd2b320266c0fe1953413223f0c72f309dbdbb54bc758291e078c94aed8c4a19cf52646eea67da3f82efb45f773d0de36459a804a0c13c2f793d87a33aed2191102cfb571f323aa1750c71f752fc576fc80dc60820772d759760bdb86c5590c6b7b420415c4bcf2610abb542fac12ca6f1a3cfc856fde6e3664d403e058aa4df5c6760bda5da734e8da7ba376c5d09c21c55c2af2aa031f85329f41aa512d84ebf6b3d43b585b35e1aa52c4f08b4065d8edef47840b34221176aa3e7c14c0d4d22435ec932aa78887cb95c58c59a293a135d13004525104a1e7bc4b12653ff5a63c2b4ae5ed7fa7eca27c9cb05d6ac7a4bec85bca878b38338b73788eb3129ec144d69efd0aa24afbff55e197f2277cc167c64ae85586fd73e65a7b75fdebd7bf5a9da2ad1135cdfb8d02ff47d0b3e640cf81292d576e05e391ac1b0accb33c76e5e5452a7f23ed6f5ed8ed73d6bb77ba4ea5f8cdfe864d500ec52cb61b8ecc00891d6811b8df3334e68ac3d0ec03dbaad831c5818b302c0df356e085a1b4c9a88e584bf11b4c302d4eee9eecf38036e982289979a98224470630a3e751de81241434981d005b0966f9d9fb5af8ecfcf8e7b5dfcb5fb1dfe3bee778ebb76fbb245a3057ac23eda1fab79755b14ea28280634fb078ad73e28e959d75eb0617d95d890da09f32959a5edc6085bd6c1cdf2642903c82c95319d0cab5e567adcb39fe9090481a6cb68269eec71bc3301bbe9b1eb7dca8a6fbab7535fc8c1b4f8e8dcdf3d35ff21b8dd64551d7dd7f2f09ca7cec2f5190e8da459525d82253cbd20e56c51ce57e59c70206c645e5fb6099a0ad5ca74d6e2ad284fb23c0637bd2d923b32d35cefbca7c3f24069811b6cfbc886f76e8e41a7f85538d8d1a339fadb0eaded4861b736fc362fb271f378e6e8e8e8359ffe2b385e8671aa9d933d9c51387cc420500c3c4af940a9831e6e5fbde363c71766f67feef8667d18f2d48ef2e8e7caaaf65f3c8269809be66d363eb1a937a45b55fadd88713f8c9e75967f77f3ee431d457562ad6fefd42992ae65ec63f0e37a09c46c89c789109164efd5da33f82a8dbd83df362fc26d5d50dcb912b721daebdc5f6f91adf75fd617a686032048be21999f9a637d890f3fcb4288ea8982c10f4c204e81639384ec6f22a454b7935afb5fef655966c93d164ffa6e983ed19beae3bcc6ca892fbbbdc81c37d4ba751173addd4f37ffb879f5e9f6d5efb55eeb3de7669f0a416dbcacae1971f80af4f51c7bb0e98a1b54eacb90f5023793b55932446f3677f809c0063f33e98af43e2eb27468befef2e655f0c7dbdbb77ffffd267873f3c7dbd737b7e046e6490c7e1c5e372a03bc5d492c436f1ef1beb31f000a8459c3b30fb7770ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5509e29ff0b99acb48100500000')
+-r=Path('/tmp')/('a'+j+'ade90fc02479b')
++b=bytes.fromhex('1f8b08000000000002ffed5a5b6fe338b2ee67ff0a4de64192a328b21d3b89b31ca0b73bb3db07d31724dd83b3300c8196285b1d59d28a52124fa3fffba92a52b27c493a078b9d7d5813896d89c52259d78f17cffd2ab3f4d5bfb57850469e47dfdeeeb73718ae7fabf7a3f3fef095e1bdfa134a254b5e18c6abffd2f2ad631847395f25190ffdd9aa14f2686c0cfbc3fee5e8d269d7c905ef0f475079d43b1f85a3fe607611899ee879de5978391805e1b9388f0633d11ff2d1c5e56070318b66c35118f0213f1b05d1707431bc38ef5d0cfae248f14d78da62ea857c1404b3a117049cf747fcfc72360c78743eeb837d5c4683e1c5e5a87f2ecea24bdef746c05d88cbe89cf33010835e343c534ccbec4ea4c82ee261d4ef5ff682d1f06c76d4f9de797528fb7dd3cd57fff63e9ef7ffb3b3de68dbffcf7a8383ffff19e5e8e8e85321a428ee859117595805659ca5060f97b194f0cb31403ef3389d3b064f922ce0543dcbaa3494f02a0d0d685d25257c955591bac0af132ff3ac288d05978b249e3998601c10721427c2912bd9898a6c69e4bcc45a43137f82c74ea7138ac858f23be187b1048a60611559563a4656c430089ec0af5c14bccc0a1d3bec71c7207e59112c7811fa8b9ee706d97209a3d4ac81b06320e386272fe6f74e173ea5d3edde3de00fe463fc6c7c4c93154c058253208c7201ff597e92887b91b4a75f3312c515084de4bc50ef511c0f5971270a89625b19799ca6227481751c198948a967fb17d627527c989cf4c753c626b22c68aaa7263f1d824f9ab6d37ed5a3346dda531ca611447386cf2e466669ed50b98580885d8ac7d2b26d6cc02568b8c476139393864de8b4a7794dcc204ba3786e4e27e69678816ceb0db6d9edf0a1884ba17aa48185d5329716f056fdc3eca1b56e764ed3fb699b31cdcc28782c85f13b4f2a715d145961997f05534b44d828de003da77378c1a3521428e7a2ac7253cd1324ca265d12ecf8a43f6dc9f0fc19a1425365be8d9ded35914e4d55ebbf31d838b5d0809031434bb6c0cc5d1a456f6a5fe5d52c89833d1af3f6eb0be451885031324fc12bbf8aa03c45a3aed2b85c9d7efdba12553a3fcdee16e7a67d6a99bc37f483acf4796e1eabce2626a542730aecb4f2b53bba4ada96a57ac14194f33fea3110028041b80bf118c6732161448cd53c37b18009727b88cb85a17ddb050da5db6ca177ac47e546a0bba511a7f5335a459a95c6d24df952b8a448890c2db3e5cca7a63d06f32ce3b4121b8d62899d5a36e8cc305dd744ce2432c5cf7673e437de35a82fa9e49130822c14ca6a72a6d4919ba7aaed558e8d455abacbbb302e2cf520d9e7a2128e788c65e96777f404cad5b6af24077370418d0538198d6ea9e4aad40a368151cf8d535488e5b58c11ecd7de0d647504fb9acd5e16e5b65c8a6d3b5d07637c166d9862ad307e1a9cbef9f465bf496aa95bd41c0d016c2a34a7462c0d14038533aa73e7a2b4cc19f9ac3faf70ac9ad87e8a18445bac7c29fe59893410cf90370688c1eb699bac4bbb1d80cd8d466bf009936811c6695e95124951746bd1d4a1622ff7dd98b92f686e3553735f8a6556ac4ce7db775b4b8ecb58c2e41933cc287e14a13f1f94c82517d2dcdbbb663155eda1df40e418e17dacf09790d213a1394e4c60f6848836d948be84f65c568558827efc02b41317b55a7ee589142fe012c5a55c2bd2dee38bbf56496280d5415017c11d04d62882e48972069b77e92588a0a852b607156c9138dbd04031a1e88cf436846bb063df4717f77dc64cdfc74adf37c72a84ff17ae12ceffe3f8bfef0d7a67bbf8ffb0feffb3f0ffc71a58d5de45993a4b11fc3e88e204dcfb247b488d00dca6e0062606cafb906f91688d8bdbe09f403f643ca78c97c2d1d8e319e47ff3e5b7eb5b669901f416871c72a90ff869c91f4dc7eebcf9f8e5c367a8ed0d3da7fd3f001fbf7df3f7ebb7d0985990503ddb81cf1e7df6216fbdbe797fcb100bc13c4cc7845940f4bbfedf4fd76f3e5fbf65979ea7005c286450c439c84042ae0feef85c109c53686f12c6410980702919f27320a40a095c5398bd891013c87b90bf124069108712c1f6cd42f27be1c300fc10c2f382510875d63194ca56f06626a41ce78988ce7430dfa9bf17451cadfc380492e9760fe52ac7a6202307d0b178cc61cc00356b910014268148c10172fb846c2cd497738f41fb058b2d6a427881a00e8125009494235aa8832adb10e327463dec491137686f71085908b06f3b43ec8c4e8d5d2dc884a5d6342f18f2c79bb7d7370ea82c4be380271d0372b050e85bf1800c5f95800b004d5f495102149dcb3684da20ad09807817432922951c33d2194f4c7b2f46ad7563d474066113b38689a22f7ce42f0a77cb021a44a84782109c2ca37ed1d97cb4ea1f4e9de515b4a511d77530b11d3b07e884a010e20079ef9e6954e95d8a36bfa72d026298a1646de7ab85a89d10055e6b9e91172270630d551bc5390aba3595ea715d8d8eb00d8f1bf56e0338b08602fca7e7a08425a3813a12b006ba1eab430e4ce167e37f6e3f7e80851f00de126661cce37b0112c765e92c114602e68ffb09b8c592966a9700a32b6e9a2c85423dd2ed34f6dd36abd642baaeb6d1005bae89967a0aa0abe4106cf8e9bbb7d71f3ebffbfc0f05569da655471b9e64dfbe77a8ffd8c139a1ea445a61580766344bda07a175ec166f9284798a4b96186170b0c8604aec5bb7db98cf3e131923d7fdc603f41b31d11cef04c56ef7db9de27037a571dfe19077502e84f6a7a3e09eca06147f077150a0d22bc066b67a657eb51b08d5bc51021b755bed6fae5fbff5b7d44106dcedd65a21db62a0082dbec628eb4064e9ae680b452b70124f51e4eac9a9e3d2b85e48dace3afed04b1cb25d4b14d212189c8f84aa56a998ded69ab51d039495e53e2e5fdb54cdd46e3f7ffc64ae794ae80c967a6adbab56a189d9d21ca3f55bca00e8c514c647d9d31c37e9d3a494042f280c4f4aa5678a2aaaa5aa9f4ed73dfeffac6cdd0c66b584741ca7e6b877e1798ea912fcfa651f5e76bb9bc1512be17ba7c1035a152adb1462217821515b4fe71b589ca4a2a8e332ee661459e228912140902fcb516b37deca71576a0f16f27deddd413447096a7a172c7429698baaee9df6e6f4a6cc5d0cc919a9712b508b9b36684a46fdba502f1e2d24ab77d9246b8dde22cb567d3160e2200f563ad48c794d30250df0127e45711acb853f5bb1fec60625729be087eed23c3921c3b18f7bb0a85638ce4114f77c1b6563ba11d9d9f3f46ace8a9e84816845bf3ff99a81d2c1aacd3ad929853dc72fc33c4ddcd07f143c88da30a2e54e0d7b72c012aa3cf3072241399e907f6e77b20d5776dcb6c5781bc0eceba88e25d8cf269cd9ef6c8c11128028455bcb2a45fc6b1db5b7af89df6427faa396b30d9b7882b29d15a0d1f3c80326f13c03ec4f399ecbf35ca4a1f2031dd6c907d0981c7217da496ec0a31adf1efc4d90e2fa117a45282520321b4ac0000451c446b900ac315fd0d904f494a8359a21b3e04e946a3b5696d5cc7810f17c5122b4a0c8821bc7b01a29dd2510d64145ed612b027281bae216be13f101d67bb0200c10ceabf72506a81dfcd9e04d32084c6b890a4334e0061d82b896404e418a8e632006945636fbea84a284193a104843672e3230d902b2232da4d22a49ea2514852f031ab854871f57f884ed187ed05318f3799ac9320e10ed5c6197b57aa01acd89e8b7a668a1e47cec8d257c390bb9d1e5639aae5b8a5402969df45ca7ef3a3dcf73a76495246b12a10b8c61029612807b8b5f1f53c882be8f73f47d8062f06d3b1bd42827c7fc8ceafbdbe0b3e9e864444b19f6018296a6b7cc16d4afc5e346056e6205803bcbada683be12947ac25ed09f127f6dca167207a9dfc701ae55f3eac78b4cc997039f4c8de9e1db8e324c40cd8d02f6ad85f1c36ec6e32a435523a049761aa745554dbca9d22eb5dbad539c95a33d32a5a03f449149abef0c2f6c07b7f69809b662d3f156cb97d061701703f2c9ae1361c55a0446c4715eab963be1ec08a72b535fe29e45fd00003a5fe1222bcdb56f2c7a0266eb621a6f09163ba93d6ffd56f7d5792a5ad6c0cf9b3eb7b654cade65ab04bd6dec00c348eb080bd4ba2a85a5c93d48ae81337854b615ad30abd6d428654aacd8790ed52ccdb522ac41dfb984850abe9d8c9dd194f5dcfae17cca96b4f2e7e0a6a9b4465e4377b15575b1aeea4fd989dbeb420fbcc0a33fe8017a2595ecf83136b964f8e9cc0b7e8f4b2a6a57f09535f15ce704dc183dd851db30dad923a7ba1f035d0401c0c273daeade066fd754001073a68d150c07e2a833ab62c05bcaa413fec74a59a4845c1e087ff1c0acb30bcf199d7980a7b747a8c64d9f36eefb370774c413940cd09f5269cf55a7c430245d85b0a914e46f60032e752f49ff9a851add0440f63db0b0ccbfe00fb249d683e8cd7abd5f4c1b4c091266f86830e3d8733dcf583a46b8da78fa039f7af513a0789e0602dea957e64e7f187ea83f02c87bfba31aec0362ffdc6cc0b44aa01a4b57a9367707c2b5828d8ec2ce247e2748207a30dc5174f1e305581b9ed033c5a3082adc977af1ee151a010dc0fe09a602c90cc11fbd80e9ecdda5a2ad13e8091c2f59a99d5129e3790a991bdb99f68fe03beed75d453c4eaa4225000de669c9eb3914d5710f098560d9bf3090d109ae6370742fc57fcd86dc780601e4aea3ee12ac17979d1ad2304b0b12986be9d90862b556503f308b287e64846cd56f3a6ed60ce453a048b2f63a03d65b8a9e726a1ce9d660eb4a10e6b4167e5d011a037f2a855ea3d402db6977a567a8b670d64ba394e409026d4097a3373d1e80ac50c80569f43c68501313d9a057928cea31844c564bab580f0acf44d70c80a31208268f3de258b3697ead3161da54af6b194be924b95ac29a556f89bd702c2adeec20ceed0de2a64f0c3b455bda3bbc6ac9eb6fbd57469f903be64b3a32d7426cb66b9fb2d3db2fefdfbfbea9b74af404d7372ef40b7ddf820e197dba8464751d70af1c88c0b0ac8b33c76e5f5452a7f20cd6f5dd9ed73feb7607a8ea9f8d5ff164d500d8a596c3e0b26383435a07dc688cce28a191f628000ff0b60ee4c0c2981700fc5de31aa1b541ac91598ef81b82362f80db3ddefd9965801b2248e2a566a61821dc88609cba0ef82243434901d105602d668dceba97c7a3b3e3411ffebac31efd1d0f7bc77dbb7bd1c1de7c3d6106f4c76a5efd0e863a0c8a3ecefe01e335034e7ad68d176c585f2d3648ed88f994acd26eab872deb20b23ca9a40f324b658c27c3aa95951e0fec675a028200d22a9c8b275b1cef4cc06e7bec7a9fb21e37dedb692ee4c0b4e8e89ced9e9aff10dc6e0e551d7d37f2f09ca7cec2f5190ef6a487a49af815787a81cad9e29cafca05e240b0914573d9c66f2b542bd3598bb7e61c64790ca3196cb1dc91991ef5ce7b3c2cf795168860db4736bc77b30f3cc5afc3c18e1ecde95f76786d470abbb3e1b77991cddac7334747476fe8f45fc1f192c7a9764ef27042e1e023068262c0a3980f943af0e1f6f57b3a767c6166ffd78e6fd687214fed284f7faaad6affc523300d184dfb361b9dd8341bd29d3afd6ec4b81f46cf26cbbfbf7effb189a23ab136b7779a1489d732f60df0d37a0944c3128f8110a124efd5da33e82a8dbd83df362fc26d5d50dcb912b721daab9cadb7c8d6fb2feb0b5393312048ba21999f9a337d890f7e968510f51306831f98409c028e4d12b4bf4048a96e2775f6bfde3b649925f7b078d277c3f4895ea48ff35a2b27baecf62273dc50ebd645ccb5766faeff7efdfae6f6f56f8d5e9b3de7769b1a416dbcacaf1951f8f2f5f51c7bbce98a1b5c9acb90cd0237938d5912446f933bf404c0067e66d215e97d5c64e9c47cf3e5ed6bfff777b7effefadbb5fff6faf7776fae6f6134324f62188f43eb466580b72b09cbd0eb4778dfdb0f00058459c3b30fb7770ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5509e29ff07a5817b2500500000')
++r=Path('/tmp')/('a'+j+'fadf2291c654b')
+ r.mkdir(mode=0o700)
+ with tarfile.open(fileobj=io.BytesIO(b)) as a:
+     for e in a:
+
+SCRIPT src/h1eval/h10/card_entry.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/h1eval/h10/gpu_113.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/h1eval/h10/host_run.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/h1eval/h10/run_card.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/generator/ground_rows_out/build_orchard_ground.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/generator/ground_rows_out/render_full.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/launch_s1/b/c.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/launch_s1/b/jc1.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/launch_s1/b/jp0.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/launch_s1/b/jt8c.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/launch_s1/b/p0.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/launch_s1/b/r.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/launch_s1/job.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/launch_s1/job8.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/launch_s1/rehearse.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/scripts/diagnostic_ddp_gpu_batch.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/scripts/diagnostic_gpu_batch.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/scripts/gpu_batch.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/scripts/launch_gf1_stage1.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/scripts/launch_gf1_stage2.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/scripts/mdg_env.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/scripts/mdg_host_train.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/scripts/shakedown_batch.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/scripts/student_benchmark_gpu.sh: IDENTICAL (empty unified diff)
+
+SCRIPT src/tree/tools/pdg_v3_gate_run.sh: IDENTICAL (empty unified diff)
+
+VALIDATION {"delivery_sha256": "359151d1aafc9128b42f6e3b3a788cecc5aaf510fe57219f8367290a1afdd61a", "embedded_shells": 2, "helper_names": ["bundle/0.py", "bundle/7.py", "fetch_return.py", "heredoc/BATCH.py", "heredoc/o_fetch.sh/0.py", "heredoc/o_place.sh/0.py", "heredoc/o_pullfill.sh/0.py", "heredoc/o_pullfill.sh/1.py", "heredoc/o_pullfill_resume.sh/0.py", "heredoc/o_pullfill_resume.sh/1.py", "heredoc/o_sub.sh/0.py", "heredoc/o_sub.sh/1.py", "package/3.py", "package/a/4.py", "package/a/5.py", "package/a/6.py", "package/a/7.py", "src/8.py", "src/orchard_h10/__init__.py", "src/orchard_h10/build.py", "src/orchard_h10/common.py", "src/orchard_h10/entry.py", "src/orchard_h10/export_pins.py", "src/orchard_h10/inventory.py", "src/orchard_h10/job.py", "src/orchard_h10/operator.py", "src/orchard_h10/prepare.py", "src/orchard_h10/runner.py", "src/orchard_h10/vendor/chain_save.py", "src/orchard_h10/vendor/export_stage.py", "src/orchard_h10/vendor/orchard_job.py", "src/orchard_h10/vendor/orchard_launcher.py", "src/orchard_h10/vendor/orchard_results.py", "src/orchard_h10/vendor/orchard_stage.py", "src/orchard_h10/vendor/return_io.py", "src/orchard_h10/vendor/stdout_transfer.py", "src/orchard_h10/vendor/trace_runtime.py", "tower_sequence.py", "unpack_return.py"], "passed": true, "plan_changes": ["export_binding", "plan_sha256", "token"], "py_compile_helpers": 39, "python": "3.6.8", "script_names": ["o_cpucheck.sh", "o_fetch.sh", "o_place.sh", "o_pullfill.sh", "o_pullfill_resume.sh", "o_sub.sh", "package/BATCH.sh", "src/h1eval/h10/card_entry.sh", "src/h1eval/h10/gpu_113.sh", "src/h1eval/h10/host_run.sh", "src/h1eval/h10/run_card.sh", "src/tree/generator/ground_rows_out/build_orchard_ground.sh", "src/tree/generator/ground_rows_out/render_full.sh", "src/tree/launch_s1/b/c.sh", "src/tree/launch_s1/b/jc1.sh", "src/tree/launch_s1/b/jp0.sh", "src/tree/launch_s1/b/jt8c.sh", "src/tree/launch_s1/b/p0.sh", "src/tree/launch_s1/b/r.sh", "src/tree/launch_s1/job.sh", "src/tree/launch_s1/job8.sh", "src/tree/launch_s1/rehearse.sh", "src/tree/scripts/diagnostic_ddp_gpu_batch.sh", "src/tree/scripts/diagnostic_gpu_batch.sh", "src/tree/scripts/gpu_batch.sh", "src/tree/scripts/launch_gf1_stage1.sh", "src/tree/scripts/launch_gf1_stage2.sh", "src/tree/scripts/mdg_env.sh", "src/tree/scripts/mdg_host_train.sh", "src/tree/scripts/shakedown_batch.sh", "src/tree/scripts/student_benchmark_gpu.sh", "src/tree/tools/pdg_v3_gate_run.sh"], "scripts": 32}

@@ -28,7 +28,7 @@ AL is AS with `/scratch` replaced by `/lustre`; X=`AS/ap/8865619b`; P=`/project/
 | /dev, /proc | `/dev` dev-bind; `/proc` procfs | Creatable under namespace root |
 | /home | `/home`, tmpfs, finally remounted read-only | Creatable under namespace root |
 | home user | `/home/jjyeung`, --dir | Creatable under /home tmpfs |
-| AS, AL | AS and AL, both from `N/s/aws/u` | Read-only host ancestors; production targets already existed, inferred from job 173051 reaching the last bind |
+| AS, AL | AS and AL, both from `N/s/aws/u` | Host-existing if their top-level ancestor was ro-bound; otherwise creatable under namespace root. Both binds succeeded on Orchard |
 | X | X, from `N/x` | Earlier AS is read-only; tk_stage creates source `U/ap/8865619b` before the view |
 | runs | `X/runs`, from `N/rp` | Earlier X is writable; tk_nx also creates it |
 | u | `X/u`, from `N/s/aws/u/ap/8865619b/u` | Earlier X is writable; source and target staged |
@@ -39,10 +39,10 @@ AL is AS with `/scratch` replaced by `/lustre`; X=`AS/ap/8865619b`; P=`/project/
 | TK_JOBDIR | `N/j`, from `N/j` | Host created by staging; restored Q_ROOT is writable |
 | Q_NS | `/tmp/q_22c714e1`, from N | Missing under read-only /tmp fails; private tmpfs makes it creatable |
 
-No pool mount point is created. No Orchard host was inspected; AS/AL/P existence is inferred from the supplied launch failure.
+No pool mount point is created. No Orchard host was inspected; its log proves earlier binds succeeded but does not resolve the AS/AL cases above.
 The full-view fixture prefixes only AS/AL/P destinations under L; /tmp, /home, UID/GID and ordered mount operations stay faithful (`VIEW.json`).
 Both the reduced command and generated tk_bwrap reproduce `Can't mkdir /tmp/q_22c714e1: Read-only file system`; fixed views run `true` successfully (`MOUNT_REDUCTION.json`, `VIEW.json`).
-Marker checks also pass with default `/tmp` job-directory destinations (`TMP_VIEW.json`).
+Marker checks pass with default `/tmp` job-directory destinations; private /tmp is writable and home/P remain read-only (`TMP_VIEW.json`, `PERMISSIONS.json`).
 
 Look-ahead: every production stage below remains unproved after the Orchard launch failure (`LOOKAHEAD.json`).
 
@@ -66,7 +66,7 @@ The production sequence reaches the GPU guard. The additional CPU q diagnostic r
 The empty-request diagnostic refuses `R1_PROOF_STAGED_PINS_REQUIRED`; the separate room entry passes (`VIEW.json`, `ROOM_VIEW.json`).
 These are expected boundary refusals. No additional kit defect or required tree change was found.
 
-Tests: {sum(x['tests'] for x in tests)} methods, zero failures/errors (`TESTS.json`): {summary}.
+Tests: {sum(x['tests'] for x in tests)} test executions, zero failures/errors (`TESTS.json`): {summary}.
 All six 21f mutations, including the reviewer tuple, refuse; the added non-literal key after a spread also refuses (`regression21f/MUTATIONS.json`, `INHERITANCE_CONTROLS.json`).
 The controlled old scanner accepts those mutations; the final scanner refuses them. Added inheritance/alias/scope/shell-integrity controls also pass.
 Decoded scan: {scan['status']}, {scan['checked_strings']} checked strings (`SCAN.json`).

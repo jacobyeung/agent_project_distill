@@ -10,7 +10,9 @@ for i in $(seq 1 600); do
     grep -qi 'general' $f && ! grep -qi 'runs on preempt\|released general\|releases general\|not take general' $f && PR="PROOF $(basename $f)"; done
   echo "$(date -u +%TZ) $R $PR" >> $LOG
   st=$(echo "$R" | grep -oE 'ST (RUNNING|PENDING|CONFIGURING|COMPLETING)' | head -1 | cut -d' ' -f2)
-  if [ -z "$st" ]; then st=$(timeout 120 bash $O "TZ=UTC sacct -j $J -X -n -o State,ExitCode,Elapsed,NodeList" 2>&1 | awk 'NF{print; exit}'); echo "$(date -u +%TZ) LEFT_QUEUE $st" >> $LOG; exit 0; fi
+  if [ -z "$st" ]; then sa=$(timeout 120 bash $O "TZ=UTC sacct -j $J -X -n -o State,ExitCode,Elapsed,NodeList" 2>&1 | awk 'NF{print; exit}')
+    if echo "$sa" | grep -qE '^ *(COMPLETED|FAILED|CANCELLED|TIMEOUT|OUT_OF_ME|NODE_FAIL|PREEMPTED)'; then echo "$(date -u +%TZ) LEFT_QUEUE $sa" >> $LOG; exit 0; fi
+    echo "$(date -u +%TZ) POLL_FAILED_OR_UNKNOWN $sa" >> $LOG; sleep 60; continue; fi
   if echo "$R" | grep -q 'GQ jjy_' || [ -n "$PR" ]; then
     why=$( [ -n "$PR" ] && echo "proof takes general ($PR)" || echo "a jjy_* job pends on general")
     if [ "$st" = PENDING ]; then timeout 120 bash $O "scancel $J" >> $LOG 2>&1; act="scancel (was pending)"

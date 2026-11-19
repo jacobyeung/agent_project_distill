@@ -1,0 +1,937 @@
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -33,6 +33,7 @@
+ from .p3_provenance import digest, file_pin, load, pinned, write, source_files, sha256, unique
+ from . import carrier_c1_routing as routing
+ from . import rehearsal
++from .c1_switches import get as performance_switch
+ 
+ 
+ def identity(cfg):
+@@ -1055,6 +1056,9 @@
+ 
+ class Rows:
+     def __init__(self, receipt, processor):
++        self._cpu_prefetch_enabled = performance_switch('C1_CPU_PREFETCH')
++        if self._cpu_prefetch_enabled == '1':
++            self._cpu_prefetch_receipt = receipt
+         from .r2_contract import Admission
+         self.r2_admission = Admission(receipt['r2_membership']) if receipt.get('r2_membership') else None
+         self.connections = {k: connect(v['database']) for k, v in receipt['streams'].items() if v.get('kind') not in ('mix', 'mdg')}
+@@ -1164,7 +1168,15 @@
+             batch['aux_token_weights'] = torch.cat((torch.zeros_like(shifted[:, :1]), shifted), dim=1)
+         return batch, targets, audit
+ 
++    def cpu_prefetch_factory(self):
++        from .c1_cpu_prefetch import rows_factory
++        return rows_factory(self)
++
+     def close(self):
++        producer = getattr(self, '_c1_cpu_producer', None)
++        if producer is not None:
++            producer.close()
++            self._c1_cpu_producer = None
+         if self.validation is not None:
+             self.validation.close()
+         for conn in self.connections.values():
+@@ -1485,6 +1497,13 @@
+     else:
+         factor = nominal_slices(model.recipe, plan) if getattr(model, 'training_mode', None) == 'final' else 1
+         groups = [plan[start:start + factor] for start in range(0, len(plan), factor)]
++    prefetch = getattr(rows, '_cpu_prefetch_enabled', None)
++    if prefetch is None:
++        prefetch = performance_switch('C1_CPU_PREFETCH')
++    if prefetch == '1':
++        from .c1_cpu_prefetch import fetch_groups
++        yield from fetch_groups(rows, model, groups, rank, device, distributed)
++        return
+     for group in groups:
+         factor = len(group)
+         stream, indices = group[0]
+@@ -2864,6 +2883,8 @@
+     # rank 0 hashes and loads assets, may wait longer (a separate gloo group, 60 min).
+     dist.init_process_group('gloo' if cpu else 'nccl', timeout=datetime.timedelta(seconds=30 if cpu else 900))
+     startup=dist.new_group(backend='gloo', timeout=datetime.timedelta(seconds=30 if cpu else 3600))
++    from .c1_switches import startup as performance_startup, accept as performance_accept
++    performance_values = performance_startup(cfg)
+     started=time.monotonic()
+     if os.environ.get('TK_JOB_START','').isdecimal():
+         # The leg budget counts from the allocation start (kit staging included), so the trainer
+@@ -2875,12 +2896,16 @@
+     if rank==0:
+         try:
+             values[0]=prepared(cfg,admission=True)
++            if performance_values[0] != ('0', '0', '0'):
++                values[0] = (*values[0], performance_values[0])
+         except Exception as exc:
+             values[0]=dict(error=f'{type(exc).__name__}: {exc}')
+     dist.broadcast_object_list(values,src=0,group=startup)
+     if isinstance(values[0],dict):
+         raise ValueError('Rank 0 preparation check failed: '+values[0]['error'][:400])
+-    receipt,manifest=values[0]
++    receipt,manifest=values[0][:2]
++    performance_error = performance_accept(performance_values,
++        values[0][2] if len(values[0]) == 3 else ('0', '0', '0'))
+     # All ranks authenticate the source, without repeatedly hashing large data.
+     commit=authenticate(cfg)
+     authorization=load(pinned(cfg['authorization'])) if cfg.get('authorization') else {}
+@@ -2892,13 +2917,13 @@
+     processor=processor_for_receipt(manifest,receipt)
+     # Parent stages a single authenticated model on node-local storage. Hash once
+     # in rank zero; every rank still loads the same immutable base manifest.
+-    model, error = None, None
+-    if rank==0:
++    model, error = None, performance_error
++    if rank==0 and error is None:
+         try:
+             model=load_model(manifest,receipt,processor)
+         except Exception as exc:
+             error=f'{type(exc).__name__}: {exc}'
+-    agree(startup, error if rank==0 else None)
++    agree(startup, error)
+     if rank!=0:
+         try:
+             model=load_model(manifest,receipt,processor,verify_assets=False)
+--- /dev/null
++++ b/student_pilot/c1_cpu_prefetch.py
+@@ -0,0 +1,162 @@
++"""One CPU producer; admission and every distributed call stay on the training thread."""
++from concurrent.futures import ThreadPoolExecutor
++import copy
++import threading
++
++import torch
++
++MAX_GROUP_ROWS = 8
++MAX_GROUP_TENSOR_BYTES = 1 << 30
++
++
++def tensor_bytes(value):
++    if isinstance(value, torch.Tensor):
++        return value.untyped_storage().nbytes()
++    if isinstance(value, dict):
++        return sum(tensor_bytes(v) for v in value.values())
++    if isinstance(value, (list, tuple)):
++        return sum(tensor_bytes(v) for v in value)
++    return 0
++
++
++def _cpu_only(value):
++    if isinstance(value, torch.Tensor):
++        if value.device.type != 'cpu':
++            raise ValueError('C1 CPU prefetch received a non-CPU tensor')
++    elif isinstance(value, dict):
++        for item in value.values():
++            _cpu_only(item)
++    elif isinstance(value, (tuple, list)):
++        for item in value:
++            _cpu_only(item)
++
++
++class Producer:
++    def __init__(self, factory):
++        self.factory = factory
++        self.rows = None
++        self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='c1-row-cpu')
++        self.owner = threading.get_ident()
++
++    def prepare(self, stream, indices, check, model):
++        # Connections are opened, queried and closed on this single worker. Keep
++        # sqlite's check_same_thread=True; never pass a live main-thread connection.
++        if self.rows is None:
++            try:
++                self.rows = self.factory()
++            except Exception as exc:
++                return [(False, exc) for _ in indices]
++        result = []
++        held_bytes = 0
++        for index in indices:
++            try:
++                item = self.rows.get(stream, index)
++                _cpu_only(item)
++                check(item[0], item[1], stream, model)
++                held_bytes += tensor_bytes(item)
++                if held_bytes > MAX_GROUP_TENSOR_BYTES:
++                    raise ValueError('C1 prefetch group exceeds 1 GiB encoded tensor budget')
++                result.append((True, item))
++            except Exception as exc:
++                # Do not retain failed-row tensors through traceback frames.
++                exc.__traceback__ = None
++                result.append((False, exc))
++            item = None
++        return result
++
++    def close(self):
++        if threading.get_ident() != self.owner:
++            raise RuntimeError('Close the CPU producer on its owning training thread')
++        try:
++            if self.rows is not None:
++                self.pool.submit(self.rows.close).result()
++        finally:
++            self.pool.shutdown(wait=True)
++
++
++def for_rows(rows):
++    producer = getattr(rows, '_c1_cpu_producer', None)
++    if producer is None:
++        # Each producer owns its tokenizer, image/video processor and SQLite
++        # connections. The main thread retains its processor for own-value routing.
++        # No call changes PyTorch's process-wide thread count or global RNG state.
++        try:
++            factory = rows.cpu_prefetch_factory()
++        except Exception as exc:
++            # A processor-copy/setup failure is also a local preparation failure.
++            # Carry it to the original group admission instead of stranding peers.
++            def factory(error=exc):
++                raise error
++        producer = rows._c1_cpu_producer = Producer(factory)
++    return producer
++
++
++class Replay:
++    """Feed prepared values/errors through the unchanged fetch admission code."""
++    def __init__(self, rows, stream, indices, values):
++        self.rows, self.stream = rows, stream
++        self.values = iter(zip(indices, values))
++
++    def count(self, stream):
++        return self.rows.count(stream)
++
++    def get(self, stream, candidate):
++        index, (ok, value) = next(self.values)
++        if stream != self.stream or candidate != index:
++            raise RuntimeError('C1 prefetch candidate order changed')
++        if not ok:
++            raise value
++        return value
++
++
++def fetch_groups(rows, model, groups, rank, device, distributed):
++    from .carrier_c1_run import check_row, fetch, fetch_nominal
++    from .c1_switches import prefetch_supported
++    prefetch_supported(model, [stream for group in groups for stream, _ in group])
++    if any(not 1 <= len(group) <= MAX_GROUP_ROWS for group in groups):
++        raise ValueError('C1 prefetch requires admission groups of 1..8 rows')
++    producer = for_rows(rows)
++
++    def submit(group):
++        stream = group[0][0]
++        indices = [part[rank] % rows.count(stream) for _, part in group]
++        return producer.pool.submit(producer.prepare, stream, indices, check_row, model)
++
++    future = submit(groups[0]) if groups else None
++    try:
++        for group_id, group in enumerate(groups):
++            stream = group[0][0]
++            indices = [part[rank] for _, part in group]
++            candidates = [index % rows.count(stream) for index in indices]
++            replay = Replay(rows, stream, candidates, future.result())
++            # Original fetch functions retain the MIN all_reduce, its position,
++            # error text, and the repeated cheap CPU validation on the main thread.
++            if len(group) == 1:
++                admitted = [fetch(replay, stream, indices[0], model, device=device, distributed=distributed)]
++            else:
++                admitted = fetch_nominal(replay, stream, indices, model, device=device, distributed=distributed)
++            replay.values = None
++            # Do not speculate past an unadmitted group. A row failure therefore
++            # makes precisely the same get calls as the synchronous path, even on
++            # the healthy rank, and raises at the same nominal microstep boundary.
++            future = submit(groups[group_id + 1]) if group_id + 1 < len(groups) else None
++            for slot in range(len(admitted)):
++                item = admitted[slot]
++                admitted[slot] = None
++                yield item
++                item = None
++    finally:
++        # Drain in-flight CPU work on early consumer exit; its exception is data,
++        # not an exception raised on the worker or at an earlier microstep.
++        if future is not None:
++            future.result()
++
++
++def rows_factory(rows):
++    from .carrier_c1_run import Rows
++    if any(not hasattr(source, 'conn') for mix in getattr(rows, 'mixes', {}).values()
++           for source in mix.sources):
++        raise ValueError('C1 CPU prefetch has not audited clip mix sources')
++    receipt = copy.deepcopy(rows._cpu_prefetch_receipt)
++    processor = copy.deepcopy(rows.processor)
++    return lambda: Rows(receipt, processor)
+--- /dev/null
++++ b/student_pilot/c1_switches.py
+@@ -0,0 +1,53 @@
++"""Validate and freeze the three optional performance switches before model load."""
++import os
++
++NAMES = ('C1_CPU_PREFETCH', 'C1_DECODED_CACHE_MIB', 'C1_BATCH_METRICS')
++_frozen = None
++
++
++def parse():
++    values = tuple(os.environ.get(name, '0') for name in NAMES)
++    for name, value in zip(NAMES, values):
++        if name == 'C1_DECODED_CACHE_MIB':
++            if not value.isdecimal() or not 0 <= int(value) <= 4096:
++                raise ValueError(name + ' must be 0 (OFF) or 1..4096')
++        elif value not in ('0', '1'):
++            raise ValueError(name + ' must be 0 or 1')
++    return tuple(str(int(value)) for value in values)
++
++
++def get(name):
++    return (_frozen if _frozen is not None else parse())[NAMES.index(name)]
++
++
++def prefetch_supported(model, streams=()):
++    if getattr(model, 'training_mode', None) != 'final':
++        raise ValueError('C1 CPU prefetch requires final-mode fail-without-substitution admission')
++    if (getattr(model, 'geometry_online', None) or getattr(model, 'geometry_connector', None) == 'gf1'
++            or getattr(model, 'gf1', None) or getattr(model, 'mdg', None)
++            or 'mdg' in streams):
++        raise ValueError('C1 CPU prefetch has not audited MDG, geometry_online or gf1 paths')
++
++
++def startup(cfg):
++    """Parse locally; the trainer carries agreement through its existing collectives."""
++    from types import SimpleNamespace
++    values, error = None, None
++    try:
++        values = parse()
++        if values[0] == '1':
++            prefetch_supported(SimpleNamespace(**cfg))
++    except (ValueError, TypeError, AttributeError) as exc:
++        error = str(exc)
++    return values, error
++
++
++def accept(local, root_values):
++    """Return a local error for the existing agree(), and freeze validated values."""
++    global _frozen
++    values, error = local
++    if error is not None:
++        return 'C1 switch startup refusal: ' + error
++    if values != root_values:
++        return 'C1 switches differ across ranks'
++    _frozen = values
+--- /dev/null
++++ b/tests/so_helpers.py
+@@ -0,0 +1,112 @@
++"""Retained synthetic RGB/SQLite inputs and the tree's native tiny Qwen fixture."""
++import copy
++import json
++import os
++from pathlib import Path
++import random
++import sqlite3
++import tempfile
++from types import SimpleNamespace
++
++import numpy as np
++from PIL import Image
++import torch
++
++from student_pilot import carrier_c1_run as run
++from student_pilot.p3_provenance import file_pin
++from tests.so_processor import TinyProcessor
++from tests.test_carrier_c1_final import final_fixture
++
++
++def reset_switches(test):
++    """Isolate process-local startup state in tests that train or change switches."""
++    from student_pilot import c1_switches
++    c1_switches._frozen = None
++    test.addCleanup(setattr, c1_switches, '_frozen', None)
++
++
++def root():
++    return Path(tempfile.mkdtemp(prefix='so_', dir=os.environ['LANE_TEST_OUTPUT']))
++
++
++def inputs(directory):
++    image = directory/'rgb.png'
++    Image.new('RGB', (32,32), (30,70,110)).save(image)
++    frame = file_pin(image)
++    target = dict(camera=[[0.,0.,0.,0.,0.,0.,1.,1.,1.]]*32, camera_mask=[True]*32,
++        trajectory_scale=1., gravity=[0.,-1.,0.], gravity_mask=True,
++        point_depth=dict(uv=[[[500.,500.]]]*32, depth=[[2.]]*32, mask=[[True]]*32))
++    source = dict(question='Where is the chair?', options=[], frames=[frame]*32,
++                  frame_indices=list(range(32)), timestamps=[i/30 for i in range(32)], fps=30,
++                  total_num_frames=32, recording_id='synthetic-so', width=32, height=32)
++    # Native duplicate layout uses these frame indices/timestamps unchanged.
++    streams = {}
++    for stream in ('pose','vqa','routing','pointing'):
++        db = directory/(stream+'.sqlite')
++        conn = sqlite3.connect(db)
++        conn.execute('CREATE TABLE rows (i INTEGER PRIMARY KEY, row TEXT, target TEXT)')
++        for index in range(32):
++            row = dict(qid=f'{stream}-{index}', dataset='synthetic', scene='test',
++                       target='<think>\n\n</think>\n\nA', student_input=source)
++            if stream == 'routing':
++                row['routing'] = dict(qid=row['qid'], events=[dict(kind='canonical_text', text='The chair is visible.')],
++                                      answer='<answer>A</answer>')
++            conn.execute('INSERT INTO rows VALUES (?,?,?)', (index,json.dumps(row),json.dumps(target)))
++        conn.commit()
++        conn.close()
++        streams[stream] = dict(database=file_pin(db), count=32)
++    return dict(streams=streams, training_mode='final', frame_layout='duplicate')
++
++
++def native(world=1, factor=2):
++    model, _, _ = final_fixture()
++    # The existing lossless CPU processor uses character IDs. Enlarge only the
++    # synthetic fixture's vocabulary; both arms use these exact initial weights.
++    model.model.language_model.embed_tokens = torch.nn.Embedding(512,32)
++    model.lm_head = torch.nn.Linear(32,512,bias=False)
++    model.config.text_config.vocab_size = 512
++    model.frame_layout = 'duplicate'
++    model.auxiliary_heads.depth.config.p3['frame_layout'] = 'duplicate'
++    model.recipe = {**model.recipe, 'world_size':world, 'reference_world_size':world*factor,
++                    'global_batch':world*factor*4}
++    model.r1_training = True
++    model.train()
++    return model
++
++
++def compact_processor():
++    """Lossless timestamp tokens keep native CPU backward tests small."""
++    processor = TinyProcessor()
++    processor.tokenizer.special = {**processor.tokenizer.special,
++        **{f'<{i/10:.1f} seconds>':300+i for i in range(21)}}
++    return processor
++
++
++def plan(world=1, factor=2):
++    return [(stream, [i*world+r for r in range(world)])
++            for stream in ('pose','vqa','routing','pointing') for i in range(factor)]
++
++
++def rng_state():
++    return random.getstate(), copy.deepcopy(np.random.get_state()), torch.get_rng_state().clone()
++
++
++def same_rng(a, b):
++    return (a[0] == b[0] and a[1][0] == b[1][0] and np.array_equal(a[1][1],b[1][1])
++            and a[1][2:] == b[1][2:] and torch.equal(a[2],b[2]))
++
++
++def assert_nested(test, a, b):
++    if isinstance(a, torch.Tensor):
++        test.assertEqual(a.dtype,b.dtype)
++        test.assertTrue(torch.equal(a,b))
++    elif isinstance(a, dict):
++        test.assertEqual(a.keys(),b.keys())
++        for k in a:
++            assert_nested(test,a[k],b[k])
++    elif isinstance(a,(tuple,list)):
++        test.assertEqual(len(a),len(b))
++        for x,y in zip(a,b):
++            assert_nested(test,x,y)
++    else:
++        test.assertEqual(a,b)
+--- /dev/null
++++ b/tests/so_processor.py
+@@ -0,0 +1,51 @@
++"""Portable copies of the existing test_r2_data_path processor fixtures; no external fixture imports."""
++from types import SimpleNamespace
++import torch
++
++class TinyTokenizer:
++    """Lossless stand-in for the unavailable pretrained tokenizer."""
++    pad_token_id, eos_token_id, eos_token = 0, 1, '<eos>'
++    special = {'<eos>': 1, '<|fim_middle|>': 5, '<|video_pad|>': 61}
++
++    def encode(self, text, **kwargs):
++        return self(text)['input_ids']
++
++    def __call__(self, text, **kwargs):
++        ids, offsets, i = [], [], 0
++        while i < len(text):
++            token = next((t for t in self.special if text.startswith(t, i)), text[i])
++            ids.append(self.special.get(token, ord(token[0])+100))
++            offsets.append((i, i+len(token)))
++            i += len(token)
++        return dict(input_ids=ids, offset_mapping=offsets)
++
++    def decode(self, ids, **kwargs):
++        reverse = {v: k for k, v in self.special.items()}
++        return ''.join(reverse.get(int(i), chr(int(i)-100) if int(i) >= 100 else '<visual>') for i in ids)
++
++    def convert_tokens_to_ids(self, token):
++        return self.special.get(token, self.eos_token_id)
++
++class TinyProcessor:
++    """Only the pretrained processor boundary stands in; actual RGB loaders run."""
++    video_token_id = 61
++
++    def __init__(self):
++        self.tokenizer = TinyTokenizer()
++        self.video_processor = SimpleNamespace(merge_size=2, temporal_patch_size=2)
++
++    def apply_chat_template(self, messages, **kwargs):
++        prefix = 'Question: '+messages[0]['content'][1]['text']+'\n<think>\n'
++        return prefix if len(messages) == 1 else prefix+messages[-1]['content'].removeprefix('<think>\n')+'<eos>\n'
++
++    def __call__(self, text, videos, video_metadata, **kwargs):
++        metadata, arrays = video_metadata[0], videos[0]
++        ids = self.tokenizer.encode(text[0])
++        for i in range(0, len(arrays), 2):
++            timestamp = sum(metadata.frames_indices[i:i+2])/(2*metadata.fps)
++            ids += self.tokenizer.encode(f'<{timestamp:.1f} seconds>') + [62, 61, 63]
++        pixels = arrays[:, ::8, ::8].reshape(len(arrays)//2, 2, 2, 2, 2, 2, 3)
++        pixels = pixels.transpose(0, 2, 4, 6, 1, 3, 5).reshape(-1, 24)
++        token_ids = torch.tensor([ids])
++        return dict(input_ids=token_ids, mm_token_type_ids=torch.where(token_ids == 61, 2, 0), video_grid_thw=torch.tensor([[len(arrays)//2, 2, 2]]),
++                    pixel_values_videos=torch.tensor(pixels, dtype=torch.float32)/255)
+--- /dev/null
++++ b/tests/test_so_prefetch.py
+@@ -0,0 +1,229 @@
++import copy
++import datetime
++import json
++import os
++import random
++import sqlite3
++import threading
++import unittest
++from unittest.mock import patch
++
++import numpy as np
++import torch
++import torch.distributed as dist
++import torch.multiprocessing as mp
++
++from student_pilot import carrier_c1_run as run
++from student_pilot.c1_cpu_prefetch import Producer
++from tests.so_helpers import root, inputs, native, plan, TinyProcessor, rng_state, same_rng, assert_nested
++
++
++def admission_worker(rank, directory):
++    from pathlib import Path
++    from types import SimpleNamespace
++    torch.set_num_threads(8)
++    directory=Path(directory)
++    receipt=json.loads((directory/'receipt.json').read_text())
++    dist.init_process_group('gloo',init_method='file://'+str(directory/'admission'),rank=rank,world_size=2,
++                            timeout=datetime.timedelta(seconds=60))
++    try:
++        from student_pilot import c1_switches
++        with patch.object(c1_switches, '_frozen', None), patch.dict(os.environ,
++                C1_CPU_PREFETCH=str(rank), C1_DECODED_CACHE_MIB='0', C1_BATCH_METRICS='0'):
++            try:
++                local = c1_switches.startup({'training_mode':'final'})
++                values = [local[0] if rank == 0 else None]
++                dist.broadcast_object_list(values, src=0)
++                run.agree(dist.group.WORLD, c1_switches.accept(local, values[0]))
++                raise AssertionError('rank mismatch was admitted')
++            except ValueError as exc:
++                assert 'differ across ranks' in str(exc)
++        proof=[]
++        for factor in (1,2):
++            for failure_stream, failure_group in (('pose',0),('vqa',1),('pointing',3)):
++                model=SimpleNamespace(recipe={'world_size':2,'reference_world_size':2*factor},
++                                      training_mode='final',r1_training=True,frame_count=32)
++                compared=[]
++                for enabled in ('0','1'):
++                    draws,collectives=[],[]
++                    original_get,original_reduce=run.Rows.get,dist.all_reduce
++                    def get(rows,stream,index):
++                        draws.append((stream,index,index))
++                        if rank==1 and stream==failure_stream and index==2*(factor-1)+rank:
++                            raise ValueError('planted admission failure')
++                        return original_get(rows,stream,index)
++                    def reduce(flag,*a,**kw):
++                        assert threading.current_thread() is threading.main_thread()
++                        collectives.append((str(kw.get('op')),flag.tolist()))
++                        return original_reduce(flag,*a,**kw)
++                    with patch.dict(os.environ,C1_CPU_PREFETCH=enabled),patch.object(run.Rows,'get',get),patch.object(dist,'all_reduce',reduce):
++                        rows=run.Rows(receipt,TinyProcessor())
++                        iterator=run.fetch_plan(rows,model,plan(2,factor),rank,distributed=True)
++                        yielded=0
++                        try:
++                            for _ in iterator:
++                                yielded+=1
++                            raise AssertionError('Missing shared row failure')
++                        except ValueError as exc:
++                            error=str(exc)
++                        finally:
++                            iterator.close()
++                            rows.close()
++                    assert yielded==factor*failure_group,(rank,factor,failure_group,yielded)
++                    compared.append((draws,collectives,error,yielded))
++                assert compared[0]==compared[1],compared
++                proof.append(dict(factor=factor,failure_microstep=factor*failure_group,draws=compared[0][0],collectives=len(compared[0][1])))
++        (directory/f'admission_rank{rank}.json').write_text(json.dumps(proof,indent=2)+'\n')
++    finally:
++        dist.destroy_process_group()
++
++
++class PrefetchTests(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
++    def test_two_rank_admission_failure_for_single_and_nominal_groups(self):
++        directory=root()
++        (directory/'receipt.json').write_text(json.dumps(inputs(directory)))
++        mp.spawn(admission_worker,args=(str(directory),),nprocs=2,join=True)
++        print('SO_ADMISSION_PROOF '+str(directory)+' factors=1,2; both ranks raise in first/middle/last groups',flush=True)
++
++    def test_processor_copy_failure_reaches_original_admission(self):
++        receipt=inputs(root())
++        model=native()
++        with patch.dict(os.environ,C1_CPU_PREFETCH='1'),patch.object(run.Rows,'cpu_prefetch_factory',side_effect=ValueError('copy failed')):
++            rows=run.Rows(receipt,TinyProcessor())
++            try:
++                with self.assertRaisesRegex(ValueError,'copy failed'):
++                    next(run.fetch_plan(rows,model,plan(),0))
++            finally:
++                rows.close()
++
++    def test_composite_pose_connections_are_created_on_the_worker(self):
++        from student_pilot.p3_provenance import file_pin
++        directory=root()
++        receipt=inputs(directory)
++        order=directory/'order.json'
++        order.write_text(json.dumps([[0,i] for i in range(32)]))
++        receipt['streams']['pose']={'kind':'mix','count':32,'order':file_pin(order),
++            'sources':[{'kind':'rows','database':receipt['streams']['pose']['database']}]}
++        receipt['depth']={'num_points_per_frame':1}
++        model=native()
++        results=[]
++        for enabled in ('0','1'):
++            with patch.dict(os.environ,C1_CPU_PREFETCH=enabled):
++                rows=run.Rows(receipt,TinyProcessor())
++                try:
++                    results.append(list(run.fetch_plan(rows,model,plan(),0)))
++                    if enabled=='1':
++                        with self.assertRaises(sqlite3.ProgrammingError):
++                            rows._c1_cpu_producer.rows.mixes['pose'].sources[0].conn.execute('SELECT 1')
++                finally:
++                    rows.close()
++        assert_nested(self,*results)
++
++    def test_real_rows_cpu_rng_sqlite_processor_ownership_and_exact_bytes(self):
++        torch.set_num_threads(8)
++        directory = root()
++        receipt = inputs(directory)
++        model = native()
++        sequences, owners, calls, closes = [], {}, [], []
++        original_get, original_close = run.Rows.get, run.Rows.close
++
++        def get(rows, stream, index):
++            tid = threading.get_ident()
++            owners.setdefault(tid,set()).add(id(rows.processor))
++            calls.append((stream,index,index))
++            before = rng_state()
++            value = original_get(rows,stream,index)
++            self.assertTrue(same_rng(before,rng_state()), 'Rows.get consumed a global RNG')
++            self.assertEqual(torch.get_num_threads(),8)
++            return value
++
++        def close(rows):
++            closes.append(threading.get_ident())
++            return original_close(rows)
++
++        for enabled in ('0','1'):
++            calls.clear()
++            with patch.dict(os.environ,C1_CPU_PREFETCH=enabled), patch.object(run.Rows,'get',get), patch.object(run.Rows,'close',close):
++                rows = run.Rows(receipt,TinyProcessor())
++                main_processor = id(rows.processor)
++                try:
++                    before = rng_state()
++                    values = list(run.fetch_plan(rows,model,plan(),0))
++                    self.assertTrue(same_rng(before,rng_state()))
++                    sequences.append((copy.deepcopy(calls),values))
++                    if enabled == '1':
++                        producer = rows._c1_cpu_producer
++                        self.assertNotEqual(id(producer.rows.processor),main_processor)
++                        with self.assertRaises(sqlite3.ProgrammingError):
++                            producer.rows.connections['vqa'].execute('SELECT 1')
++                finally:
++                    rows.close()
++        self.assertEqual(sequences[0][0],sequences[1][0])
++        assert_nested(self,sequences[0][1],sequences[1][1])
++        self.assertGreaterEqual(len(owners),2)
++        self.assertTrue(any(tid != threading.get_ident() for tid in closes))
++
++    def test_one_group_lookahead_and_exception_deferred_to_its_boundary(self):
++        torch.set_num_threads(8)
++        receipt = inputs(root())
++        model = native()
++        original = run.Rows.get
++        future_failed = threading.Event()
++        calls = []
++        def get(rows,stream,index):
++            calls.append((stream,index))
++            if stream == 'vqa' and index == 0:
++                future_failed.set()
++                raise ValueError('planted future row error')
++            return original(rows,stream,index)
++        with patch.dict(os.environ,C1_CPU_PREFETCH='1'), patch.object(run.Rows,'get',get):
++            rows = run.Rows(receipt,TinyProcessor())
++            iterator = run.fetch_plan(rows,model,plan(),0)
++            try:
++                next(iterator)
++                self.assertTrue(future_failed.wait(10))
++                next(iterator)  # Remaining admitted pose slice is still valid.
++                with self.assertRaisesRegex(ValueError,'Final-mode row failure'):
++                    next(iterator)
++                self.assertEqual(calls,[('pose',0),('pose',1),('vqa',0),('vqa',1)])
++            finally:
++                iterator.close()
++                rows.close()
++
++    def test_native_tokenizer_and_video_processor_are_private_and_deterministic(self):
++        torch.set_num_threads(8)
++        from tokenizers import Tokenizer, models, pre_tokenizers
++        from transformers import PreTrainedTokenizerFast
++        from transformers.models.qwen3_vl.video_processing_qwen3_vl import Qwen3VLVideoProcessor
++        raw = Tokenizer(models.WordLevel({'[UNK]':0,'hello':1,'world':2},unk_token='[UNK]'))
++        raw.pre_tokenizer = pre_tokenizers.Whitespace()
++        processor = dict(tokenizer=PreTrainedTokenizerFast(tokenizer_object=raw,unk_token='[UNK]'),
++                         video=Qwen3VLVideoProcessor(patch_size=16,temporal_patch_size=2,merge_size=2))
++        private = copy.deepcopy(processor)
++        self.assertIsNot(processor['tokenizer']._tokenizer,private['tokenizer']._tokenizer)
++        pixels = np.full((4,32,32,3),100,dtype=np.uint8)
++        def encode(p):
++            # Match the repository's CPU video fixture: torchvision is absent,
++            # so exercise native rescaling/patch packing, not RGB conversion/resize.
++            return (p['tokenizer']('hello world'),p['video'](videos=[pixels],do_sample_frames=False,
++                      do_resize=False,do_convert_rgb=False,do_normalize=False,return_tensors='pt'))
++        before = rng_state()
++        expected = encode(processor)
++        from concurrent.futures import ThreadPoolExecutor
++        with ThreadPoolExecutor(max_workers=1) as pool:
++            future = pool.submit(encode,private)
++            main = encode(processor)
++            actual = future.result()
++        self.assertEqual(expected[0]['input_ids'],actual[0]['input_ids'])
++        for key in expected[1]:
++            self.assertTrue(torch.equal(expected[1][key],actual[1][key]))
++            self.assertTrue(torch.equal(expected[1][key],main[1][key]))
++        self.assertTrue(same_rng(before,rng_state()))
++
++
++if __name__ == '__main__':
++    unittest.main()
+--- /dev/null
++++ b/tests/test_so_review.py
+@@ -0,0 +1,140 @@
++"""Regressions for bounded lookahead, shutdown, refusals and startup validation."""
++import copy
++import os
++import threading
++import unittest
++import weakref
++from types import SimpleNamespace
++from unittest.mock import patch
++
++import torch
++from student_pilot import c1_cpu_prefetch as prefetch, c1_switches as switches
++from student_pilot import carrier_c1_run as run, c1_decoded_cache
++from tests.so_helpers import root, inputs, native, plan, TinyProcessor, assert_nested
++
++
++class ReviewTests(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
++    def test_startup_values_errors_cross_rank_and_frozen_settings(self):
++        with patch.dict(os.environ, C1_CPU_PREFETCH='0', C1_DECODED_CACHE_MIB='0', C1_BATCH_METRICS='0'):
++            for name, bad in [('C1_CPU_PREFETCH','2'), ('C1_BATCH_METRICS','yes'),
++                              ('C1_DECODED_CACHE_MIB','bad'), ('C1_DECODED_CACHE_MIB','4097')]:
++                with patch.dict(os.environ, {name:bad}):
++                    self.assertIn('startup refusal', switches.accept(switches.startup({}), ('0','0','0')))
++            self.assertIn('differ across ranks', switches.accept(switches.startup({}), ('1','0','0')))
++            self.assertIsNone(switches.accept(switches.startup({}), ('0','0','0')))
++            os.environ['C1_CPU_PREFETCH'] = '1'
++            self.assertEqual(switches.get('C1_CPU_PREFETCH'), '0')
++
++    def test_refusal_list_and_group_cap(self):
++        for fields in [dict(training_mode='mixed'), dict(geometry_online={'gf1':{}}),
++                       dict(geometry_connector='gf1'), dict(gf1=True), dict(mdg=True)]:
++            model = SimpleNamespace(**dict(dict(training_mode='final'), **fields))
++            with self.assertRaises(ValueError):
++                switches.prefetch_supported(model)
++        with self.assertRaisesRegex(ValueError, 'MDG'):
++            switches.prefetch_supported(SimpleNamespace(training_mode='final'), ['mdg'])
++        with self.assertRaisesRegex(ValueError, '1..8'):
++            next(prefetch.fetch_groups(None, SimpleNamespace(training_mode='final'),
++                 [[('vqa',[0])]*9], 0, None, False))
++
++    def test_group_tensor_budget_error_is_deferred(self):
++        rows = SimpleNamespace(get=lambda *a:(torch.ones(3), None, {}), close=lambda:None)
++        producer = prefetch.Producer(lambda:rows)
++        try:
++            with patch.object(prefetch, 'MAX_GROUP_TENSOR_BYTES', 16):
++                values = producer.pool.submit(producer.prepare, 'vqa', [0,1], lambda *a:None, None).result()
++            self.assertTrue(values[0][0])
++            self.assertFalse(values[1][0])
++            self.assertIn('budget', str(values[1][1]))
++            self.assertIsNone(values[1][1].__traceback__)
++        finally:
++            producer.close()
++
++    def test_nonowner_close_refused_and_owner_closes(self):
++        producer = prefetch.Producer(lambda:None)
++        errors = []
++        def other():
++            try:
++                producer.close()
++            except RuntimeError as exc:
++                errors.append(str(exc))
++        worker = threading.Thread(target=other)
++        worker.start(); worker.join()
++        self.assertEqual(len(errors), 1)
++        producer.close()
++
++    def test_replay_releases_consumed_rows_and_consumer_failure_drains_future(self):
++        entered, release, finished = threading.Event(), threading.Event(), threading.Event()
++        refs = []
++        class Rows:
++            def count(self, stream): return 8
++            def cpu_prefetch_factory(self): return Rows
++            def get(self, stream, index):
++                if index >= 2:
++                    entered.set()
++                    if not release.wait(10): raise RuntimeError('test release timeout')
++                    finished.set()
++                value = torch.ones(1)
++                refs.append(weakref.ref(value))
++                return value, None, {}
++            def close(self): pass
++        rows = Rows()
++        def fetch_nominal(source,stream,indices,*a,**kw):
++            return [source.get(stream,index) for index in indices]
++        groups = [[('vqa',[i]) for i in (0,1)], [('vqa',[i]) for i in (2,3)]]
++        with patch.object(run,'check_row',lambda *a:None), patch.object(run,'fetch_nominal',fetch_nominal):
++            iterator = prefetch.fetch_groups(rows,SimpleNamespace(training_mode='final'),groups,0,None,False)
++            first = next(iterator)
++            self.assertTrue(entered.wait(10))
++            del first
++            second = next(iterator)
++            self.assertIsNone(refs[0]())
++            try:
++                raise ValueError('consumer failed mid-group')
++            except ValueError:
++                release.set()
++                iterator.close()
++            self.assertTrue(finished.is_set())
++            rows._c1_cpu_producer.close()
++
++    def test_first_and_last_group_failure_and_combined_cache_at_1_4_8_threads(self):
++        receipt = inputs(root())
++        model = native()
++        original = run.Rows.get
++        try:
++            for threads in (1,4,8):
++                torch.set_num_threads(threads)
++                for failure in (None,'pose','pointing'):
++                    outcomes=[]
++                    for enabled in ('0','1'):
++                        draws=[]
++                        def get(rows,stream,index):
++                            self.assertEqual(torch.get_num_threads(), threads)
++                            draws.append((stream,index))
++                            if stream == failure and index == 0:
++                                raise ValueError('planted boundary failure')
++                            return original(rows,stream,index)
++                        with patch.dict(os.environ,C1_CPU_PREFETCH=enabled,
++                                        C1_DECODED_CACHE_MIB=enabled), patch.object(run.Rows,'get',get):
++                            rows=run.Rows(receipt,TinyProcessor())
++                            values=[]; error=None
++                            iterator=run.fetch_plan(rows,model,plan(),0)
++                            try:
++                                values.extend(iterator)
++                            except ValueError as exc:
++                                error=str(exc)
++                            finally:
++                                iterator.close();rows.close()
++                            outcomes.append((draws,values,error))
++                    assert_nested(self,*outcomes)
++                    self.assertEqual(len(outcomes[0][1]), {'pose':0,'pointing':6,None:8}[failure])
++            stats=c1_decoded_cache.stats()
++            self.assertGreater(stats['hits'],0)
++            self.assertGreater(stats['misses'],0)
++            self.assertLessEqual(stats['bytes'],stats['capacity_bytes'])
++        finally:
++            torch.set_num_threads(8)
+--- a/tests/test_carrier_c1_run.py
++++ b/tests/test_carrier_c1_run.py
+@@ -66,6 +66,10 @@
+ 
+ 
+ class RunnerTests(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
+     def root(self):
+         return Path(tempfile.mkdtemp(prefix='c1_',dir=os.environ['LANE_TEST_OUTPUT']))
+ 
+--- a/tests/test_gx_carrier.py
++++ b/tests/test_gx_carrier.py
+@@ -172,6 +172,10 @@
+ 
+ 
+ class GXTests(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
+     def test_vendor_bytes_digest_and_import_origin(self):
+         source = Path('/scratch/jjyeung/orch_cd/c1r/work/D/g3t_src/vggt')
+         files = sorted((gx.VENDOR/'vggt').rglob('*.py'))
+--- a/tests/test_gx_s6.py
++++ b/tests/test_gx_s6.py
+@@ -71,6 +71,10 @@
+ 
+ 
+ class S6RecoveryTests(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
+     def test_every_byte_prefix_of_metrics_write_is_recoverable(self):
+         directory = root(); path = directory/'metrics_cpu.jsonl'
+         first = json.dumps(dict(step=1, ranks=ranks(1, world=1)))+'\n'
+--- a/tests/test_gx_s7.py
++++ b/tests/test_gx_s7.py
+@@ -18,6 +18,10 @@
+ 
+ 
+ class S7ReferenceTests(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
+     def fixture(self, *, full_config=False):
+         reference = root()
+         cfg = paired_cfg(root(), reference)
+--- a/tests/test_gx_s8.py
++++ b/tests/test_gx_s8.py
+@@ -14,6 +14,10 @@
+ 
+ 
+ class ProductionCtrlReference(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
+     def fixture(self, world=8, full_config=False):
+         reference = root()
+         cfg = paired_cfg(root(), reference)
+--- a/tests/test_carrier_c1_t0.py
++++ b/tests/test_carrier_c1_t0.py
+@@ -306,6 +306,10 @@
+ 
+ 
+ class ExportLeg(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
+     """The 'x' leg restores a run's newest resume state under that run's binding and exports m<step>."""
+     BOUND = dict(config_sha256='a'*64, preparation={'path': '/p/receipt.json', 'sha256': 'b'*64},
+                  trainer_commit='c'*40, world_size=32)

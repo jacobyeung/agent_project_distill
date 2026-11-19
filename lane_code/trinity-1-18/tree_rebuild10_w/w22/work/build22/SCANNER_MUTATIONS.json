@@ -1,0 +1,42 @@
+[
+  {
+    "source": "import os\ndef helper(env):\n env[\"\".join([\"BeNcH\",\"mArK\"]) ]=\"q\"\ne={**os.environ}\nhelper(env=e)",
+    "result": "REFUSE",
+    "reason": "ENV_UNRESOLVED:mutation.py:5:environment:inherited environment reaches a callee without a non-mutation proof: e"
+  },
+  {
+    "source": "def helper(**kw):\n kw[\"env\"][make_key()]=\"q\"\nhelper(env={**os.environ})",
+    "result": "REFUSE",
+    "reason": "ENV_UNRESOLVED:mutation.py:3:environment:environment map reaches a callee without a non-mutation proof: helper(env={**os.environ})"
+  },
+  {
+    "source": "def helper(env):\n env[make_key()]=\"q\"\nhelper(**{\"env\":{**os.environ}})",
+    "result": "REFUSE",
+    "reason": "ENV_UNRESOLVED:mutation.py:3:environment:environment map is not a complete literal mapping: helper(**{'env': {**os.environ}})"
+  },
+  {
+    "source": "env=os.environ.copy()\nunknown(env=env)",
+    "result": "REFUSE",
+    "reason": "ENV_UNRESOLVED:mutation.py:2:environment:inherited environment reaches a callee without a non-mutation proof: env"
+  },
+  {
+    "source": "def helper(env):\n return env\nhelper(env={**os.environ})",
+    "result": "REFUSE",
+    "reason": "ENV_UNRESOLVED:mutation.py:3:environment:environment map reaches a callee without a non-mutation proof: helper(env={**os.environ})"
+  },
+  {
+    "source": "def helper(env):\n return 0\nhelper=unknown\nhelper(env={**os.environ})",
+    "result": "REFUSE",
+    "reason": "ENV_UNRESOLVED:mutation.py:4:environment:environment map reaches a callee without a non-mutation proof: helper(env={**os.environ})"
+  },
+  {
+    "source": "import subprocess\ndef outer(subprocess):\n subprocess.run([],env={**os.environ})",
+    "result": "REFUSE",
+    "reason": "ENV_UNRESOLVED:mutation.py:3:environment:environment map reaches a callee without a non-mutation proof: subprocess.run([], env={**os.environ})"
+  },
+  {
+    "source": "from subprocess import run\ndef run(env):\n env[make_key()]=\"q\"\nrun(env={**os.environ})",
+    "result": "REFUSE",
+    "reason": "ENV_UNRESOLVED:mutation.py:4:environment:environment capability escapes supported literal operations: run(env={**os.environ})"
+  }
+]

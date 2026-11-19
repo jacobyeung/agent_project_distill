@@ -1,57 +1,3 @@
---- a/HOWTO.md
-+++ b/HOWTO.md
-@@ -4,12 +4,14 @@
- 
- ## After each fetched, complete return (one command, CPU, seconds)
- ```
--cd /scratch/jjyeung/orch_n30/corpus && bash tool/add_read.sh <return dir or result.tar.gz> <read_id> <set> <vehicle> <job id> "<purpose>" <RESULT event path> [--inputs <package dir>] [--official]
-+cd /scratch/jjyeung/orch_n30/corpus && bash tool/add_read.sh <return dir or result.tar.gz> <read_id> <set> <vehicle> <job id> "<purpose>" <RESULT event path> --review2-checks [--inputs <package dir>] [--official]
- ```
- - `read_id`: `<run>_s<step>_<set>_<vehicle>_<token>`, e.g. `6ed2c7aa_s400_devS1R0_direct_a59a7bff4c4`.
--- `--inputs`: routed packages only (the package folder holding `package/0.tgz`, e.g. `r1route/out3/A4`).
-+- `--review2-checks`: explicitly enable the ingest checks for every new read ID, including D@544 and step-400/600 reads. The wrapper forwards this flag; both the wrapper and direct ingest default to checks off for compatibility. Do not use an existing published read ID to activate the checks.
-+- `--inputs`: routed or native task inputs (for example, the routed package folder holding `package/0.tgz`, `r1route/out3/A4`). With checks enabled, every native result must resolve a task when inputs are supplied, including an empty input directory.
- - The script runs `ingest_read.py ingest` into `stage2/`, prints item count, sha256 and the per-arm mean scores, then publishes the read file and its index line with `copy_archive.py` (governed, 4 MB/s) and rebuilds `INDEX.jsonl` in staging. Exit 2 means a partial or failed return: nothing is published; fix the fetch or rerun with `--archive-partial` only for a return that is final and known partial.
- - Check the printed means against your RESULT before you post it (or run `python3 tool/corpus_score.py stage2/reads/<read_id>.jsonl.gz --arm B2048 --by question_type`).
-+- With checks enabled, missing native arms or declared keys can be archived with `--archive-partial`; the read and index record `partial=true`. Conflicting scores, task identities, declarations, unexpected arms/keys, and missing input tasks always refuse ingestion, even with `--archive-partial`.
- 
- ## Rules
- - Run on trinity-3-30 only; never point `--out` at /home or /data*.
---- a/SCHEMA.md
-+++ b/SCHEMA.md
-@@ -40,6 +40,17 @@
- bytes return exit 3. Publication uses a lock and atomic rename. Existing index
- provenance stays immutable on `SAME`. Scratch databases and abandoned temporary
- files remain under `t/` or the chosen output root; no deletion commands run.
-+
-+For new read IDs, pass `--review2-checks` explicitly, including through
-+`add_read.sh`. The switch defaults off to preserve the legacy output path.
-+With this switch, native validates declared arm names and key sets. Missing arms
-+and subsets of declared keys produce partial issues (exit 2 unless
-+`--archive-partial`, then `partial=true`). Undeclared arms, extra keys, invalid
-+or contradictory declarations, and conflicting labels always refuse ingestion.
-+Kit report lookup prefers exact IDs, then key-only `devrows:<id>` aliases;
-+actual-ID rows cannot supply alias scores. All eligible report rows at the
-+selected precedence must agree on `scores`, or ingestion refuses even with
-+`--archive-partial`. Original rows remain in raw records or the orphan sidecar.
- 
- `lost --meta FILE` records only reported evidence with status `lost` or
- `orchard_only`; it creates no read. `index --out ROOT` rebuilds `INDEX.jsonl`,
-@@ -91,6 +102,14 @@
- no external task paths are followed automatically. COMPLETE supplies step/artifact
- SHA256; ORCHARD_NATIVE supplies job/date; request fields describe serving.
- 
-+With `--review2-checks`, native compares all supplied task-candidate fields and
-+shared row/task identity fields before joining. An unresolved key with explicit
-+`--inputs` always refuses, even with `--archive-partial`. Report rows in `arms.X`
-+without an `arm` field use X for validation and normalization; their original raw
-+rows remain unchanged. Conflicting journal/report duplicates always refuse.
-+Compatible additive fields in unselected tasks remain in the orphan sidecar;
-+they are not merged into `raw.input` or normalized fields.
-+
- `--mean-of-types` averages question-type means within each `--by` group, then
- averages those group means. Original item-weighted means remain in
- `item_mean_score`. Both official headlines use
 --- a/ingest_read.py
 +++ b/ingest_read.py
 @@ -80,9 +80,10 @@
@@ -279,6 +225,70 @@
          try:
              store.load(args.source)
              if args.inputs:
+--- a/SCHEMA.md
++++ b/SCHEMA.md
+@@ -22,7 +22,7 @@
+ | `serving` | Kit models/scope; routed identity, settings and cards; supplied fields override extracted fields. |
+ | `reader` | `format`, `build`, sorted logical `source_files`. Routed `task_hash_verified` records a verified mapping hash; `task_join_rule` records `exact`, `unambiguous_id`, or the documented room134 rule below. |
+ | `job_id`, `date` | Recorded or supplied job identifier and date; no ingestion timestamp is substituted. |
+-| `raw` | `arms.<arm>` holds each original parsed row without dropped or changed fields, including token IDs and nested budgets. `input` holds the joined task; `mapping` holds routed binding evidence; `source` preserves each arm's logical file and original directory; `records` holds matching source rows, including supplementary items, reports, task manifests and mappings. Reserved fields cannot collide with arm names. Records index exact IDs. Key-only `devrows:<id>` records can match the explicit benchmark-key alias; an actual `id` is never stripped. “Verbatim” means JSON values, not original whitespace/key order. |
++| `raw` | `arms.<arm>` holds each original parsed row without dropped or changed fields, including token IDs and nested budgets. `input` holds the joined task; `mapping` holds routed binding evidence; `source` preserves each arm's logical file and original directory; `records` holds matching source rows, including supplementary items, reports, task manifests and mappings. Reserved fields cannot collide with arm names. Records index exact IDs. Key-only `devrows:<id>` records can match the explicit benchmark-key alias; an actual `id` is never stripped. With `--review2-checks`, kit score lookup enforces this alias restriction and refuses conflicting eligible scores. “Verbatim” means JSON values, not original whitespace/key order. |
+ 
+ Each index entry contains supplied metadata (`purpose`, `reported_by`, `notes`,
+ `arms` included), `provenance` for metadata precedence (CLI > meta > return > absent),
+@@ -40,6 +40,18 @@
+ bytes return exit 3. Publication uses a lock and atomic rename. Existing index
+ provenance stays immutable on `SAME`. Scratch databases and abandoned temporary
+ files remain under `t/` or the chosen output root; no deletion commands run.
++
++For new read IDs, pass `--review2-checks` explicitly, including through
++`add_read.sh`. The separate wrapper patch supplies it automatically for new reads.
++Direct ingest defaults off to preserve the legacy output path.
++With this switch, native validates declared arm names and key sets. Missing arms
++and subsets of declared keys produce partial issues (exit 2 unless
++`--archive-partial`, then `partial=true`). Undeclared arms, extra keys, invalid
++or contradictory declarations, and conflicting labels always refuse ingestion.
++Kit report lookup prefers exact IDs, then key-only `devrows:<id>` aliases;
++actual-ID rows cannot supply alias scores. All eligible report rows at the
++selected precedence must agree on `scores`, or ingestion refuses even with
++`--archive-partial`. Original rows remain in raw records or the orphan sidecar.
+ 
+ `lost --meta FILE` records only reported evidence with status `lost` or
+ `orchard_only`; it creates no read. `index --out ROOT` rebuilds `INDEX.jsonl`,
+@@ -91,6 +103,14 @@
+ no external task paths are followed automatically. COMPLETE supplies step/artifact
+ SHA256; ORCHARD_NATIVE supplies job/date; request fields describe serving.
+ 
++With `--review2-checks`, native compares all supplied task-candidate fields and
++shared row/task identity fields before joining. An unresolved key with explicit
++`--inputs` always refuses, even with `--archive-partial`. Report rows in `arms.X`
++without an `arm` field use X for validation and normalization; their original raw
++rows remain unchanged. Conflicting journal/report duplicates always refuse.
++Compatible additive fields in unselected tasks remain in the orphan sidecar;
++they are not merged into `raw.input` or normalized fields.
++
+ `--mean-of-types` averages question-type means within each `--by` group, then
+ averages those group means. Original item-weighted means remain in
+ `item_mean_score`. Both official headlines use
+--- a/HOWTO.md
++++ b/HOWTO.md
+@@ -4,12 +4,14 @@
+ 
+ ## After each fetched, complete return (one command, CPU, seconds)
+ ```
+-cd /scratch/jjyeung/orch_n30/corpus && bash tool/add_read.sh <return dir or result.tar.gz> <read_id> <set> <vehicle> <job id> "<purpose>" <RESULT event path> [--inputs <package dir>] [--official]
++cd /scratch/jjyeung/orch_n30/corpus && bash tool/add_read.sh <return dir or result.tar.gz> <read_id> <set> <vehicle> <job id> "<purpose>" <RESULT event path> --review2-checks [--inputs <package dir>] [--official]
+ ```
+ - `read_id`: `<run>_s<step>_<set>_<vehicle>_<token>`, e.g. `6ed2c7aa_s400_devS1R0_direct_a59a7bff4c4`.
+-- `--inputs`: routed packages only (the package folder holding `package/0.tgz`, e.g. `r1route/out3/A4`).
++- `--review2-checks`: enable the ingest checks for every new read ID, including D@544 and step-400/600 reads. Direct ingest defaults off. The separate `02_add_read_review2.diff` patch makes `add_read.sh` pass the flag automatically; the explicit flag above also works without that wrapper patch. Passing it twice is harmless. Use the patched wrapper only for new read IDs. Never activate the checks by republishing an existing read ID.
++- `--inputs`: routed or native task inputs (for example, the routed package folder holding `package/0.tgz`, `r1route/out3/A4`). With checks enabled, every native result must resolve a task when inputs are supplied, including an empty input directory.
+ - The script runs `ingest_read.py ingest` into `stage2/`, prints item count, sha256 and the per-arm mean scores, then publishes the read file and its index line with `copy_archive.py` (governed, 4 MB/s) and rebuilds `INDEX.jsonl` in staging. Exit 2 means a partial or failed return: nothing is published; fix the fetch or rerun with `--archive-partial` only for a return that is final and known partial.
+ - Check the printed means against your RESULT before you post it (or run `python3 tool/corpus_score.py stage2/reads/<read_id>.jsonl.gz --arm B2048 --by question_type`).
++- With checks enabled, missing native arms or declared keys can be archived with `--archive-partial`; the read and index record `partial=true`. Conflicting scores, task identities, declarations, unexpected arms/keys, and missing input tasks always refuse ingestion, even with `--archive-partial`.
+ 
+ ## Rules
+ - Run on trinity-3-30 only; never point `--out` at /home or /data*.
 --- /dev/null
 +++ b/tests/test_review2.py
 @@ -0,0 +1,279 @@
@@ -638,7 +648,7 @@
 +''' + line
 +        result = subprocess.run(['bash', '-c', script], text=True, capture_output=True, check=True)
 +        args = result.stdout.splitlines()
-+        self.assertEqual(args.count('--review2-checks'), 1)
++        self.assertIn('--review2-checks', args)
 +        self.assertEqual(args[-2:], ['--inputs', 'input package'])
 +
 +    def test_f3_conflicting_key_only_scores_refused(self):

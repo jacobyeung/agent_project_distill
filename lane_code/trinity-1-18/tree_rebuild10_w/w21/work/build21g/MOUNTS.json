@@ -52,16 +52,16 @@
       "source": "--dir"
     },
     {
-      "availability": "read-only host /scratch ancestor; already exists on production host (inferred)",
+      "availability": "if /scratch was ro-bound, target already exists on host; if /scratch was absent, target is creatable under namespace root",
       "destination": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
-      "evidence": "Orchard job 173051 reached Q_NS after this bind; absent elsewhere would require an operator-provided host path",
+      "evidence": "Orchard job 173051 reached Q_NS after this bind; the log does not distinguish these two cases",
       "name": "AS",
       "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/s/aws/u"
     },
     {
-      "availability": "read-only host /lustre ancestor; already exists on production host (inferred)",
+      "availability": "if /lustre was ro-bound, target already exists on host; if /lustre was absent, target is creatable under namespace root",
       "destination": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
-      "evidence": "Orchard job 173051 reached Q_NS after this bind; absent elsewhere would require an operator-provided host path",
+      "evidence": "Orchard job 173051 reached Q_NS after this bind; the log does not distinguish these two cases",
       "name": "AL",
       "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/s/aws/u"
     },
@@ -129,7 +129,7 @@
       "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}"
     }
   ],
-  "qualifications": "No Orchard host inspection was performed. AS/AL/P host existence follows from the reported ordered bwrap failure, not a new stat on Orchard. The stand-in test creates only prefixed AS/AL/P host targets under L.",
+  "qualifications": "No Orchard host inspection was performed. The supplied ordered failure proves AS/AL/P binds succeeded; AS/AL may instead have been created below an absent top-level prefix. P lies below the existing pool /project prefix. The stand-in test creates only prefixed AS/AL/P host targets under L.",
   "source": "ext/pwrap/b/c.sh:339-366; decoded kits/q/k/j.json; supplied Orchard job 173051 failure",
   "trinity_argument_order": [
     {
@@ -385,5 +385,22 @@
       "order": 43,
       "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node"
     }
-  ]
+  ],
+  "unprefixed_trinity_targets": {
+    "AL": {
+      "exists_on_host": false,
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+      "top_level_exists": false
+    },
+    "AS": {
+      "exists_on_host": false,
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+      "top_level_exists": true
+    },
+    "P": {
+      "exists_on_host": false,
+      "path": "/project/community/jjyeung/c7d31ddd",
+      "top_level_exists": false
+    }
+  }
 }

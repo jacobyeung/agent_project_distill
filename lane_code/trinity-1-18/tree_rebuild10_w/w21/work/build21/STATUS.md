@@ -1,5 +1,5 @@
-Build 21e: the resolver handles JSONL data and authenticates P runtime/kit identities. GO remains false.
+Build 21g: the kit gives the namespace bind a private writable /tmp parent and restores the job root. GO remains false.
 
-Real metadata replay: work/build21e/REPLAY.json. Tests, coverage, final scan and upload changes: work/build21e/.
-The sealed tree and staging paths are unchanged. No capacity restaging is required by the build condition.
-Delivery: work/build21e/DELIVERY.json. Report: out/BUILD21E_REPORT.md.
+Mount reproduction and CPU in-view evidence: work/build21g/VIEW.json, NATIVE_VIEW.json, ROOM_VIEW.json.
+The scanner accepts checked whole-environment inheritance and refuses the required mutations.
+Tests, coverage, final scan, seals and upload differences: work/build21g/. The sealed tree and P wrapper are unchanged.

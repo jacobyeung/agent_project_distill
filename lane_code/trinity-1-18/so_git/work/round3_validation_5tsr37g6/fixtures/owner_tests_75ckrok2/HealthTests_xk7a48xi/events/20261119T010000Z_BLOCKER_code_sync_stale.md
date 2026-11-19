@@ -1,0 +1,1 @@
+2026-11-19T01:00:00Z code_sync stale: last success no verified GitHub lane-code line in available log; limit 90 minutes; log /scratch/jjyeung/orch_n30/so_git/work/round3_validation_5tsr37g6/fixtures/owner_tests_75ckrok2/HealthTests_xk7a48xi/state/sync.log

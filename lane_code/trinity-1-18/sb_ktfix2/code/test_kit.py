@@ -206,7 +206,7 @@ class KitTests(unittest.TestCase):
   freeze(root,'B')
   for status,low,want in [('OK',2.,'PASS'),('OK',0.,'FAIL'),('MISSING',None,'MISSING')]:
    gain=dict(status=status,low=low)
-   with patch.object(E,'OUT',root),patch.object(E,'labels',return_value={}),patch.object(E,'captures',return_value=[]),patch.object(E,'row_ids',return_value={'absent'}),patch.object(E,'emit'),patch.object(E,'items_file'),patch.object(E,'gains_once',return_value=dict(gains={'added_frame_gain':gain})):
+   with patch.object(E,'OUT',root),patch.object(E,'labels',return_value={}),patch.object(E,'captures',return_value=[]),patch.object(E,'row_ids',return_value={'absent'}),patch.object(E,'emit'),patch.object(E,'items_file'),patch.object(E,'gains_once',return_value=dict(gains={'added_frame_gain':gain})),patch.object(E,'a_train_rows',return_value=[]):
     E.run_b()
    d=read_json(root/'DECISION.json');self.assertEqual(d['bars']['B']['added_frame_gain']['verdict'],want)
  def test_dense_best_uses_remapped_anchor_areas(self):
@@ -394,5 +394,10 @@ class KitTests(unittest.TestCase):
     self.assertEqual(path.read_bytes(),before)
 
 if __name__=='__main__':
- result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(KitTests))
+ from test_fix3 import Fix3Tests,PROBES
+ suite=unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromTestCase(c) for c in (KitTests,Fix3Tests)])
+ result=unittest.TextTestRunner(verbosity=2).run(suite)
+ for p in (ROOT/'work/ktchk_probes').glob('*'):
+  if p.is_file():sha(p)
+ write_json(ROOT/'out/FIX3_PROBES.json',dict(status='PASS' if result.wasSuccessful() else 'FAIL',probes=PROBES,command='bash scripts/cpu.sh code/test_kit.py'))
  code_pins();write_json(ROOT/'out/TESTS.json',dict(status='PASS' if result.wasSuccessful() else 'FAIL',tests=result.testsRun,failures=len(result.failures),errors=len(result.errors)));sys.exit(not result.wasSuccessful())

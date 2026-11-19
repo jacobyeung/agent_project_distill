@@ -3,7 +3,6 @@ import ast,datetime,difflib,hashlib,json,sys,tarfile
 L=Path(__file__).resolve().parents[2];B=L/'work/build21';D=L/'work/build21g';A=L/'attic/build21g';K=B/'kits/q'
 sys.path[:0]=[str(B),str(L/'work/tree_r1')]
 import joblib as J
-from naming21 import scan_decoded
 print(datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
 groups=['scanner21g','resolver21g','kit21g','naming21cg','extra21cg','naming21dg','final_focused','edges','producer_edges']
 assert all(x['returncode']==0 for x in J.load(D/'SUITES.json'))
@@ -13,7 +12,9 @@ for group in groups:
     p=B/'proofs'/group/'TESTS.json';v=J.load(p);assert v['successful'],group
     tests.append(dict(name=group,tests=v['tests'],failures=len(v['failures']),errors=len(v['errors']),source=str(p.relative_to(L))))
 J.write(D/'TESTS.json',tests)
-scan=scan_decoded(K);J.write(D/'SCAN.json',scan)
+verification=J.load(B/'FINAL_KITS.json')
+assert verification['kits']['q']['kit_sha256']==J.seal(K)
+scan=verification['decoded_scan'];assert scan['status']=='PASS';J.write(D/'SCAN.json',scan)
 baseline=L/'out/tree_rebuild_b21e_ac8fa8e3.tar'
 with tarfile.open(baseline,'r:gz') as t:before=json.load(t.extractfile('work/build21/UPLOADS.json'))
 assert before==J.load(A/'UPLOADS.json')
@@ -55,7 +56,7 @@ operator=(B/'OPERATOR.md').read_text()
 a=operator.index('The scanner checks every decoded key');b=operator.index('\n\nThe result archive',a)
 operator=operator[:a]+'''The scanner checks every decoded key/string value, all literal environment contributions, and unresolved environment operations. Only the whole unmodified host environment may be inherited through a spread or copy; every added key is checked. Runtime Python values require one of the five explicit path names in `environment21f.py`. Complex shell programs require their exact reviewed source hash and the literal-name runtime allowlist in `environment_shell21g.json`; any edit invalidates that proof. The authenticated content exceptions remain in `../build21d/ALLOWLIST.json`. Final scan and upload differences: `../build21g/SCAN.json` and `../build21g/UPLOAD_DIFF.json`.
 
-The view mounts a private writable `/tmp`, restores the node-local job root at its original path, then applies the remaining binds and `/tmp/q_22c714e1` alias. It creates no pool mount point. The production AS, AL and P target directories must exist on the host, as they did in job 173051; their values and every ordered destination are in `../build21g/MOUNTS.json`. The CPU stand-in view passes; the production GPU/model/store proof remains required.''' + operator[b:]
+The view mounts a private writable `/tmp`, restores the node-local job root at its original path, then applies the remaining binds and `/tmp/q_22c714e1` alias. It creates no pool mount point. AS, AL and P must already exist wherever their host ancestor is read-only; an absent top-level prefix can instead be created under the namespace root. Those earlier binds succeeded in job 173051. Their values and every ordered destination are in `../build21g/MOUNTS.json`. The CPU stand-in view passes; the production GPU/model/store proof remains required.''' + operator[b:]
 import re
 operator=re.sub(r'Upload total: \d+ bytes in \d+ files',f'Upload total: {after["total_bytes"]} bytes in {len(new)} files',operator)
 (B/'OPERATOR.md').write_text(operator)

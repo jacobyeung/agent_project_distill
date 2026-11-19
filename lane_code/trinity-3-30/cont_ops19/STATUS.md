@@ -45,3 +45,14 @@ Base state: /scratch/jjyeung/orch_n30/cont_ops18/STATUS.md (09:10Z section). Bri
 - Routed A 173054 running (monR_173054).
 ## 11:45Z
 - Rem2 a15_cot_apd5b7ea08426cd filled + dry pass (r544c/pf.log); CPU check 173055 on preempt (submitted 11:44Z). GPU submit after A: P=/project/community/jjyeung/okh7/a15_cot_apd5b7ea08426cd T=01:30:00 bash /project/community/jjyeung/okh7/813f42db/r544c/o_sub_D.sh, then monR (J, P, LB=D544rem2).
+## 11:56Z
+- Rem2 CPU check 173055 PASS (CPU.json passed, guard, entry, full_reader, memory fits).
+- Own-arm kit: assumes run 673bc60f (receipt x_69d2930d, prep paths of 673bc60f) -> needs rebinding to 6ed2c7aa. Codex Astra build running: tmux c19_own400, workspace cont_ops19/work/ownarm (BRIEF_OWN400.md, kit extracted, BIND400.json, refs), tests /dev/shm/c19o/w; output out/pkg/r400 + REPORT_OWN400.md. Needs one review (it touches the binding/fill) before its GPU run (last in queue).
+## 12:25Z
+- tree_rebuild12 RESULT 1209Z: proof takes general. Routed A 173054 USR1 by hand 12:14Z (monitor had exited on an ossh failure; monR.sh fixed, retries unknown states). 173054 COMPLETED partial: 80/636 (distance 80/150, nothing else); return c9399fd2d11580002a3fe 8618e2df, unpacked out3/A10/ret; out4s/A now = A10 (READ_PLAN patched for 400). Partial distance: MRA 47.87 vs 23.50 (544, same 80 items), calls 57/80, 1 capped. RESULT *_RESULT_routedA400_173054_yield.md.
+- Routed A RERUN package a15_cot_apdc76460c3a164 (g400b = gen400b r10b with A only; stage 813f42db/r10b); place/pull/fill running (r10b/fill.log). Then CPU check (adapt o_cpu_A10.sh), GPU when the proof releases general.
+- Queue on general after proof: A rerun, D@544 rem2 (a15_cot_apd5b7ea08426cd), D@200, E, H@544, H@200, own-arm (Codex c19_own400 building).
+## 12:40Z
+- A rerun CPU 173058 PASS; submit: o_sub_A10b.sh via ossh (after proof releases general), monitor monR (J, P=/project/community/jjyeung/okh7/a15_cot_apdc76460c3a164, LB=routedA400b); fetch o_fetch_A10b.sh; unpack into out3/A10b like A10; out4s/A links then -> A10b.
+- Own-arm r400 built (token fadf2291c654b, 1.tgz 359151d1; REPORT_OWN400.md has the Orchard sequence; D staging a15_cot_ap7e4d49a0f823). Mirror trinity-1-18 n30_mirror/cont_ops19/own400_kit.tar 16db72f8. Review requested in RESULT; package/src symlinks point at /dev/shm/c19o/w/r400 (temporary).
+- Proof 173057 running on general since ~12:15Z (1.5-3 h).

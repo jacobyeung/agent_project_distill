@@ -1,0 +1,221 @@
+--- /dev/null
++++ b/prove_kit_alias_ids.py
+@@ -0,0 +1,102 @@
++#!/usr/bin/env python3
++"""Read only six named published files, serially paced, to check alias safety.
++
++The corpus owner runs this on trinity-3-30 after scheduling the shared I/O.
++Exit 0 proves no devrows: item IDs in these files; 1 finds such IDs; 2 means
++the scan is incomplete or the file identities/counts do not match the snapshot.
++This does not certify duplicate report scores or native-return integrity.
++"""
++import argparse
++import gzip
++import io
++import json
++from pathlib import Path
++import sys
++import time
++import zlib
++
++
++# From the supplied published INDEX snapshot, SHA256
++# bdf2d9cef181e5d8ca33775bf2793ef8ced115d97b0dd25fae8495c3bd93944c.
++EXPECTED_COUNTS = {
++    '17c4ffa4_s100_devS1R0facing_direct_a24ea1a1936': 3994,
++    '359fcc3c_s100_devS1R0facing_direct_af35386aa3e': 3994,
++    '359fcc3c_s200_devS1facing_direct_a4cadd8934b': 1825,
++    '673bc60f_s100_devS1R0_direct_a5d2d909067': 3120,
++    '673bc60f_s200_devS1R0_direct_a8102c3207b': 3120,
++    '673bc60f_s200_facing_direct_a2e46c0504e': 300,
++}
++BYTES_PER_SECOND = 1024 * 1024
++CHUNK = 64 * 1024
++MAX_LINE = 128 * 1024 * 1024
++
++
++class PacedReader(io.RawIOBase):
++    """Sleep before every bounded, unbuffered physical read; never catch up."""
++    def __init__(self, stream):
++        self.stream = stream
++        self.bytes_read = 0
++
++    def readable(self):
++        return True
++
++    def readinto(self, buffer):
++        size = min(len(buffer), CHUNK)
++        if not size:
++            return 0
++        time.sleep(size / BYTES_PER_SECOND)
++        data = self.stream.read(size)
++        buffer[:len(data)] = data
++        self.bytes_read += len(data)
++        return len(data)
++
++
++def scan(root):
++    total_items = total_matches = total_bytes = 0
++    for read_id, expected in EXPECTED_COUNTS.items():
++        path = Path(root) / 'reads' / (read_id + '.jsonl.gz')
++        print('SCAN ' + str(path), flush=True)
++        count = matches = 0
++        # No glob, directory walk, INDEX read, or other corpus files are opened.
++        with path.open('rb', buffering=0) as raw:
++            paced = PacedReader(raw)
++            with io.BufferedReader(paced, buffer_size=CHUNK) as buffered:
++                with gzip.GzipFile(fileobj=buffered, mode='rb') as stream:
++                    while True:
++                        line = stream.readline(MAX_LINE + 1)
++                        if not line:
++                            break
++                        if len(line) > MAX_LINE:
++                            raise ValueError('Oversized row in ' + str(path))
++                        row = json.loads(line)
++                        if (not isinstance(row, dict) or row.get('read_id') != read_id
++                                or not isinstance(row.get('item_id'), str)):
++                            raise ValueError('Invalid read_id/item_id in ' + str(path))
++                        count += 1
++                        matches += row['item_id'].startswith('devrows:')
++        if count != expected:
++            raise ValueError('%s: %d items != expected %d' % (read_id, count, expected))
++        total_items += count
++        total_matches += matches
++        total_bytes += paced.bytes_read
++        print('%s: items=%d devrows_item_ids=%d compressed_bytes=%d' %
++              (read_id, count, matches, paced.bytes_read), flush=True)
++    print('COMPLETE: files=%d items=%d devrows_item_ids=%d compressed_bytes=%d' %
++          (len(EXPECTED_COUNTS), total_items, total_matches, total_bytes), flush=True)
++    return 1 if total_matches else 0
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--corpus-root', required=True,
++                        help='Explicit corpus root; the script opens only the six named reads.')
++    args = parser.parse_args(argv)
++    try:
++        return scan(args.corpus_root)
++    except (OSError, EOFError, ValueError, zlib.error) as error:
++        print('INCOMPLETE: ' + str(error), file=sys.stderr, flush=True)
++        return 2
++
++
++if __name__ == '__main__':
++    sys.exit(main())
+--- /dev/null
++++ b/tests/test_kit_alias_proof.py
+@@ -0,0 +1,113 @@
++"""Exercise the owner-only scan on local synthetic files, never on /data*."""
++import contextlib
++import gzip
++import io
++import json
++from pathlib import Path
++import tempfile
++import unittest
++from unittest import mock
++
++import ingest_read
++import prove_kit_alias_ids as proof
++
++
++class KitAliasProofTests(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='alias-proof-', dir=ingest_read.SCRATCH))
++        (self.root / 'reads').mkdir()
++        self.ids = list(proof.EXPECTED_COUNTS)
++        self.assertEqual(len(self.ids), 6)
++        self.counts = mock.patch.object(proof, 'EXPECTED_COUNTS', dict.fromkeys(self.ids, 2))
++        self.counts.start()
++        self.addCleanup(self.counts.stop)
++        self.pause = mock.patch.object(proof.time, 'sleep')
++        self.sleep = self.pause.start()
++        self.addCleanup(self.pause.stop)
++        for read_id in self.ids:
++            self.write(read_id, ['q1', 'q2'])
++
++    def write(self, read_id, item_ids):
++        with gzip.open(self.root / 'reads' / (read_id + '.jsonl.gz'), 'wt') as stream:
++            for item_id in item_ids:
++                stream.write(json.dumps(dict(read_id=read_id, item_id=item_id)) + '\n')
++
++    def run_scan(self):
++        output, error = io.StringIO(), io.StringIO()
++        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(error):
++            code = proof.main(['--corpus-root', str(self.root)])
++        return code, output.getvalue(), error.getvalue()
++
++    def test_scans_only_six_named_files_and_proves_absence(self):
++        (self.root / 'reads' / 'unrelated.jsonl.gz').write_bytes(b'not gzip')
++        code, output, error = self.run_scan()
++        self.assertEqual(code, 0, error)
++        self.assertIn('COMPLETE: files=6 items=12 devrows_item_ids=0', output)
++        self.assertEqual(output.count('SCAN '), 6)
++        self.assertTrue(self.sleep.called)
++
++    def test_prefix_at_end_of_last_file_fails_proof(self):
++        self.write(self.ids[-1], ['q1', 'devrows:q2'])
++        code, output, error = self.run_scan()
++        self.assertEqual(code, 1, error)
++        self.assertIn('COMPLETE: files=6 items=12 devrows_item_ids=1', output)
++
++    def test_missing_named_file_is_incomplete(self):
++        empty_root = self.root / 'empty'
++        empty_root.mkdir()
++        output, error = io.StringIO(), io.StringIO()
++        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(error):
++            code = proof.main(['--corpus-root', str(empty_root)])
++        self.assertEqual(code, 2)
++        self.assertIn('INCOMPLETE:', error.getvalue())
++        self.assertNotIn('COMPLETE:', output.getvalue())
++
++    def test_corrupt_gzip_is_incomplete(self):
++        (self.root / 'reads' / (self.ids[-1] + '.jsonl.gz')).write_bytes(b'bad gzip')
++        code, output, error = self.run_scan()
++        self.assertEqual(code, 2)
++        self.assertIn('INCOMPLETE:', error)
++        self.assertNotIn('COMPLETE:', output)
++
++    def test_short_file_is_incomplete(self):
++        self.write(self.ids[-1], ['q1'])
++        code, output, error = self.run_scan()
++        self.assertEqual(code, 2)
++        self.assertIn('1 items != expected 2', error)
++        self.assertNotIn('COMPLETE:', output)
++
++    def test_damaged_deflate_or_json_is_incomplete(self):
++        for data in [b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x07',
++                     gzip.compress(b'not JSON\n')]:
++            with self.subTest(data=data):
++                (self.root / 'reads' / (self.ids[0] + '.jsonl.gz')).write_bytes(data)
++                code, output, error = self.run_scan()
++                self.assertEqual(code, 2)
++                self.assertIn('INCOMPLETE:', error)
++                self.assertNotIn('COMPLETE:', output)
++
++    def test_wrong_read_id_or_nonstring_item_is_incomplete(self):
++        for row in [dict(read_id='another_read', item_id='q'),
++                    dict(read_id=self.ids[0], item_id=None)]:
++            with self.subTest(row=row):
++                with gzip.open(self.root / 'reads' / (self.ids[0] + '.jsonl.gz'), 'wt') as stream:
++                    stream.write(json.dumps(row) + '\n')
++                code, output, error = self.run_scan()
++                self.assertEqual(code, 2)
++                self.assertIn('Invalid read_id/item_id', error)
++                self.assertNotIn('COMPLETE:', output)
++
++    def test_each_physical_read_is_bounded_and_paced_before_read(self):
++        events = []
++        class Source:
++            def read(self, size):
++                events.append(('read', size))
++                return b'x' * size
++        self.sleep.side_effect = lambda seconds: events.append(('sleep', seconds))
++        paced = proof.PacedReader(Source())
++        buffer = bytearray(2 * proof.CHUNK)
++        self.assertEqual(paced.readinto(buffer), proof.CHUNK)
++        self.assertEqual(paced.readinto(buffer), proof.CHUNK)
++        self.assertEqual(events, [('sleep', proof.CHUNK / proof.BYTES_PER_SECOND),
++                                  ('read', proof.CHUNK)] * 2)
++        self.assertEqual(paced.bytes_read, 2 * proof.CHUNK)

@@ -124,7 +124,25 @@ class RemoteBoundaryTests(owner.Fixture):
 
 
 class NestedCoverageTests(owner.Fixture):
+    def test_f5_excluded_duplicate_representative_refuses_ambiguous_count(self):
+        if not str(self.root).startswith('/scratch/jjyeung/orch_n30/'):
+            self.skipTest('dry-count integration requires LCS_TEST_WORK under /scratch/jjyeung/orch_n30')
+        folder = self.root / 'out'
+        for name in ('devin_traces', 'z_kept'):
+            (folder / name).mkdir(parents=True)
+            (folder / name / 'same.py').write_text('SAME = 1\n')
+        env = dict(os.environ, **self.env)
+        env['LCS_REVIEW2_FIXES'] = '1'
+        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(owner.TOOLS / 'dry_count.py'), str(folder)],
+                                env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                universal_newlines=True, timeout=10)
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout, '')
+        self.assertIn('count the containing lane root', result.stderr)
+
     def test_f5_exclusion_spanning_folder_boundary_matches_whole_tree(self):
+        if not str(self.root).startswith('/scratch/jjyeung/orch_n30/'):
+            self.skipTest('dry-count integration requires LCS_TEST_WORK under /scratch/jjyeung/orch_n30')
         folder = self.root / 'out'
         (folder / 'devin_traces').mkdir(parents=True)
         (folder / 'devin_traces/trace.py').write_text('TRACE = 1\n')

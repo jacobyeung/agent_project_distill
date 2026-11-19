@@ -1,0 +1,304 @@
+--- a/kit_v2/launch_gpu.sh
++++ b/kit_v2/launch_gpu.sh
+@@ -25,6 +25,8 @@
+   SMI="${MC_NVIDIA_SMI:-$SMI}"; WAIT="${MC_WAIT_SECONDS:-$WAIT}"; HOST="${MC_HOST:-$HOST}"
+   OUT="${MC_TEST_OUT:-$OUT}"; SKIP_PREFLIGHT="${MC_SKIP_PREFLIGHT:-0}"
+ fi
++# This check precedes mkdir, logs, the ledger, preflight and GPU inspection.
++PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 "$PY" -B -S "$KIT/mc_score_guard.py" "$ROOT/out/v2" "$ROOT/out/v2" "$OUT" || exit 1
+ mkdir -p "$OUT"
+ STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+ LOG="$OUT/launch_$STAMP.log"
+--- a/kit_v2/mc_common.py
++++ b/kit_v2/mc_common.py
+@@ -125,6 +125,11 @@
+     return raw
+ 
+ 
++def scoring_guard(*outputs, capture_scores=False):
++    from mc_score_guard import check
++    PINS.update(check(OUT, outputs, capture_scores=capture_scores))
++
++
+ def write_json(path, obj, gz=False):
+     path = Path(path)
+     path.parent.mkdir(parents=True, exist_ok=True)
+--- a/kit_v2/mc_dryrun_report.py
++++ b/kit_v2/mc_dryrun_report.py
+@@ -83,6 +83,7 @@
+ 
+ 
+ def main():
++    C.scoring_guard(C.OUT)
+     o = C.OUT
+     j = lambda p: C.read_json(o/p)
+     step0 = j('dry/STEP0_PRECISION.json')['summary']
+--- a/kit_v2/mc_price.py
++++ b/kit_v2/mc_price.py
+@@ -129,6 +129,7 @@
+ 
+ def main():
+     track_root, price_root = Path(sys.argv[1]), Path(sys.argv[2])
++    C.scoring_guard(price_root, capture_scores=True)
+     limit = sys.argv[3] if len(sys.argv) > 3 else 'all'
+     seed_set, frame_set = track_root.name.split('_', 2)[0]+'_'+track_root.name.split('_', 2)[1], track_root.name.split('_', 2)[2]
+     arm_tag = f'{seed_set}/{frame_set}'
+--- /dev/null
++++ b/kit_v2/mc_score_guard.py
+@@ -0,0 +1,40 @@
++"""Bars-first checks for scoring and launch (RULING 1135Z item 4).
++The registered freeze keeps its original bytes; BARS_AMENDMENT.json records the
++empty-mask and population semantics without changing any numerical bar.
++This module uses only the standard library and never writes a file.
++"""
++import hashlib
++from pathlib import Path
++import sys
++
++FROZEN_SHA256 = 'edff8724b27328f6874b4adb0dd93727cc70fdfd4ddf2fb301cf572a46ceaaf4'
++
++
++def check(bars_dir, output_dirs=(), *, capture_scores=False):
++    """Refuse before any output or scoring work. Return the verified input pin.
++
++    PER_ITEM score exports are forbidden in every output directory. Pricing also
++    refuses existing per-capture .json.gz files in its destination. Summary input
++    prices and resumable tracker masks are inputs, not summary output files.
++    """
++    frozen = Path(bars_dir)/'BARS_FROZEN.json'
++    try:
++        actual = hashlib.sha256(frozen.read_bytes()).hexdigest()
++    except OSError as exc:
++        raise SystemExit(f'BARS_FIRST: missing or unreadable {frozen}: {exc}') from exc
++    if actual != FROZEN_SHA256:
++        raise SystemExit(f'BARS_FIRST: sha256 mismatch for {frozen}: {actual}; expected {FROZEN_SHA256}')
++    for directory in output_dirs:
++        directory = Path(directory)
++        if not directory.exists():
++            continue
++        for p in sorted(directory.iterdir()):
++            name = p.name.lower()
++            per_item = name.startswith(('per_item', 'per-item')) and ('.json' in name or '.csv' in name or '.parquet' in name)
++            if per_item or (capture_scores and name.endswith('.json.gz')):
++                raise SystemExit(f'BARS_FIRST: per-item score file already exists: {p}; use a fresh output directory')
++    return {str(frozen): actual}
++
++
++if __name__ == '__main__':
++    check(sys.argv[1], sys.argv[2:])
+--- a/kit_v2/mc_seeds.py
++++ b/kit_v2/mc_seeds.py
+@@ -160,6 +160,7 @@
+ 
+ 
+ def main():
++    C.scoring_guard(C.OUT/'seeds')
+     limit = sys.argv[1] if len(sys.argv) > 1 else 'all'
+     parity = '--phr-parity' in sys.argv
+     t0 = time.monotonic()
+--- a/kit_v2/mc_step0.py
++++ b/kit_v2/mc_step0.py
+@@ -58,6 +58,7 @@
+ 
+ 
+ def main():
++    C.scoring_guard(C.OUT/'dry')
+     limit = sys.argv[1] if len(sys.argv) > 1 else 'all'
+     t0 = time.monotonic()
+     init_worker()
+--- a/kit_v2/mc_stubs.py
++++ b/kit_v2/mc_stubs.py
+@@ -54,6 +54,7 @@
+ 
+ 
+ def main():
++    C.scoring_guard(C.OUT/'dry')
+     kind = sys.argv[1]
+     limit = sys.argv[2] if len(sys.argv) > 2 else 'all'
+     t0 = time.monotonic()
+--- a/kit_v2/mc_summary.py
++++ b/kit_v2/mc_summary.py
+@@ -263,6 +263,7 @@
+ 
+ 
+ def dry():
++    C.scoring_guard(C.OUT/'dry')
+     t0 = time.monotonic()
+     S = L.S()
+     pub = published()
+@@ -313,6 +314,7 @@
+ 
+ def final(price_root=None, dest=None):
+     price_root, dest = Path(price_root or C.OUT/'price'), Path(dest or C.OUT)
++    C.scoring_guard(dest)
+     t0 = time.monotonic()
+     bars = C.read_json(C.OUT/'BARS_FROZEN.json')
+     amendment = C.read_json(C.BARS_AMENDMENT)
+--- a/kit_v2/mc_track_pass.py
++++ b/kit_v2/mc_track_pass.py
+@@ -190,6 +190,7 @@
+     out = Path(args.out).resolve()
+     if not str(out).startswith('/scratch/'):
+         raise SystemExit('results go to /scratch only')
++    C.scoring_guard(C.OUT, out)
+     out.mkdir(parents=True, exist_ok=True)
+     STATE['events'] = out/'EVENTS.jsonl'
+     t_start = time.monotonic()
+--- a/kit_v2/post_gpu.sh
++++ b/kit_v2/post_gpu.sh
+@@ -4,6 +4,19 @@
+ set -euo pipefail
+ KIT="$(cd "$(dirname "$0")" && pwd)"
+ ROOT="$(dirname "$KIT")"
++# Validate every output before any arm is priced, so a rerun cannot partially write.
++PY=/scratch/jjyeung/envs/p1cpu/bin/python
++PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 "$PY" -B -S - "$KIT" "$ROOT/out/v2" <<'GUARD'
++import sys
++from pathlib import Path
++sys.path.insert(0, sys.argv[1])
++from mc_score_guard import check
++root = Path(sys.argv[2])
++check(root, [root])
++for track in (root/'track').glob('S_*_*'):
++    if track.is_dir():
++        check(root, [root/'price'/track.name], capture_scores=True)
++GUARD
+ for d in "$ROOT"/out/v2/track/S_*_*/; do
+   d="${d%/}"
+   [ -n "$(ls "$d"/*.json.gz 2>/dev/null | head -1)" ] || continue
+--- a/kit_v2/run_cpu.sh
++++ b/kit_v2/run_cpu.sh
+@@ -14,6 +14,27 @@
+ export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 NUMEXPR_NUM_THREADS=8
+ export XDG_CACHE_HOME="$ROOT/work/v2/cache" HF_HOME="$ROOT/work/v2/hf" TRITON_CACHE_DIR="$ROOT/work/v2/triton"
+ export MPLCONFIGDIR="$ROOT/work/v2/mpl" TMPDIR="$ROOT/work/v2/tmp" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
++# Validate scoring destinations before creating the runner's temporary directory.
++"$PY" -B -S - "$PWD" "$ROOT/out/v2" "$@" <<'GUARD'
++import sys
++from pathlib import Path
++sys.path.insert(0, sys.argv[1])
++from mc_score_guard import check
++root, script, args = Path(sys.argv[2]), Path(sys.argv[3]).name, sys.argv[4:]
++if script == 'mc_price.py':
++    check(root, [args[1]], capture_scores=True)
++elif script == 'mc_summary.py':
++    check(root, [root/'dry' if args[0] == 'dry' else Path(args[2]) if len(args) > 2 else root])
++elif script in ('mc_step0.py', 'mc_stubs.py'):
++    check(root, [root/'dry'])
++elif script == 'mc_seeds.py':
++    check(root, [root/'seeds'])
++elif script == 'mc_dryrun_report.py':
++    check(root, [root])
++elif script == 'mc_track_pass.py':
++    dest = Path(args[args.index('--out')+1]) if '--out' in args else root/'track'
++    check(root, [root, dest])
++GUARD
+ mkdir -p "$TMPDIR"
+ ulimit -v 39000000
+ exec nice -n 10 "$PY" -B "$@"
+--- /dev/null
++++ b/kit_v2/tests/test_score_guard.py
+@@ -0,0 +1,103 @@
++"""CPU-only refusal tests: each public scoring entry must fail before writing."""
++import hashlib
++import os
++from pathlib import Path
++import shutil
++import subprocess
++import sys
++import pytest
++
++KIT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(KIT))
++import mc_score_guard as G
++
++
++def snapshot(root):
++    return {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else 'directory'
++            for p in root.rglob('*')}
++
++
++def prepare(root, case, output):
++    bars = root/'out/v2'
++    bars.mkdir(parents=True)
++    if case != 'missing':
++        raw = (KIT.parent/'out/v2/BARS_FROZEN.json').read_bytes()
++        (bars/'BARS_FROZEN.json').write_bytes(raw + (b' ' if case == 'tampered' else b''))
++    if case == 'existing':
++        output.mkdir(parents=True, exist_ok=True)
++        (output/'PER_ITEM.jsonl').write_text('existing score bytes\n')
++    return bars
++
++
++ENTRIES = [
++    ('mc_price', "m.main()", "['mc_price.py','S_A0_D64',str(o/'price')] ", 'price'),
++    ('mc_summary', 'm.dry()', "['mc_summary.py','dry']", 'dry'),
++    ('mc_summary', 'm.final()', "['mc_summary.py','final']", ''),
++    ('mc_step0', 'm.main()', "['mc_step0.py','all']", 'dry'),
++    ('mc_seeds', 'm.main()', "['mc_seeds.py','all']", 'seeds'),
++    ('mc_stubs', 'm.main()', "['mc_stubs.py','seed']", 'dry'),
++    ('mc_dryrun_report', 'm.main()', "['mc_dryrun_report.py']", ''),
++    ('mc_track_pass', "sys.exit(m.main(['--device','cpu','--out',str(o/'track')]))", "['mc_track_pass.py']", 'track'),
++]
++
++
++@pytest.mark.parametrize('case', ['missing', 'tampered', 'existing'])
++@pytest.mark.parametrize('module,call,argv,subdir', ENTRIES)
++def test_scoring_entry_refuses_without_writes(tmp_path, case, module, call, argv, subdir):
++    out = tmp_path/'out/v2'
++    prepare(tmp_path, case, out/subdir)
++    before = snapshot(tmp_path)
++    code = (f'import sys; from pathlib import Path; sys.path.insert(0,{str(KIT)!r}); '
++            f'import mc_common as C; o=Path({str(out)!r}); C.OUT=o; '
++            f'import {module} as m; sys.argv={argv}; {call}')
++    env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1', PYTHONNOUSERSITE='1', CUDA_VISIBLE_DEVICES='')
++    ret = subprocess.run([sys.executable, '-B', '-c', code], env=env, capture_output=True, text=True)
++    assert ret.returncode != 0 and 'BARS_FIRST:' in ret.stderr, ret.stderr
++    assert snapshot(tmp_path) == before
++
++
++@pytest.mark.parametrize('case', ['missing', 'tampered', 'existing'])
++@pytest.mark.parametrize('script', ['launch_gpu.sh', 'post_gpu.sh'])
++def test_shell_entry_refuses_without_writes(tmp_path, case, script):
++    kit = tmp_path/'kit_v2'; kit.mkdir()
++    for name in (script, 'mc_score_guard.py'):
++        shutil.copy2(KIT/name, kit/name)
++    out = tmp_path/'out/v2'
++    prepare(tmp_path, case, out)
++    before = snapshot(tmp_path)
++    env = dict(os.environ, MC_DRY_LAUNCH='1', MC_SKIP_PREFLIGHT='1', MC_HOST='trinity-1-18', MC_WAIT_SECONDS='0',
++               MC_NVIDIA_SMI='/missing/mock-smi-must-never-be-reached', PYTHONDONTWRITEBYTECODE='1')
++    ret = subprocess.run(['bash', str(kit/script)], env=env, capture_output=True, text=True)
++    assert ret.returncode != 0 and 'BARS_FIRST:' in ret.stderr, ret.stderr
++    assert snapshot(tmp_path) == before
++
++
++def test_capture_price_existing_file_refused(tmp_path):
++    bars = prepare(tmp_path, 'valid', tmp_path/'scores')
++    target = tmp_path/'scores'; target.mkdir()
++    (target/'scannet__capture.json.gz').write_bytes(b'existing per-capture scores')
++    before = snapshot(tmp_path)
++    with pytest.raises(SystemExit, match='already exists'):
++        G.check(bars, [target], capture_scores=True)
++    assert snapshot(tmp_path) == before
++
++
++def test_valid_freeze_returns_pin_without_writes(tmp_path):
++    bars = prepare(tmp_path, 'valid', tmp_path/'scores')
++    before = snapshot(tmp_path)
++    assert G.check(bars, [tmp_path/'scores']) == {str(bars/'BARS_FROZEN.json'): G.FROZEN_SHA256}
++    assert snapshot(tmp_path) == before
++
++
++@pytest.mark.parametrize('case', ['missing', 'tampered', 'existing'])
++def test_cpu_runner_refuses_before_cache_creation(tmp_path, case):
++    kit = tmp_path/'kit_v2'; kit.mkdir()
++    for name in ('run_cpu.sh', 'mc_score_guard.py'):
++        shutil.copy2(KIT/name, kit/name)
++    out = tmp_path/'out/v2'
++    prepare(tmp_path, case, out/'price')
++    before = snapshot(tmp_path)
++    ret = subprocess.run(['bash', str(kit/'run_cpu.sh'), 'p1cpu', 'mc_price.py', 'S_A0_D64', str(out/'price')],
++                         capture_output=True, text=True)
++    assert ret.returncode != 0 and 'BARS_FIRST:' in ret.stderr, ret.stderr
++    assert snapshot(tmp_path) == before

@@ -1,0 +1,79 @@
+[
+  {
+    "name": "before_findings",
+    "utc": "Thu Nov 19 11:59:00 UTC 2026",
+    "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/pre_round3 test_review3",
+    "exit_code": 1,
+    "output": "out/round4_logs/before_findings.txt"
+  },
+  {
+    "name": "before_wrapper",
+    "utc": "Thu Nov 19 11:59:01 UTC 2026",
+    "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/pre_round4 test_new_read_wrapper",
+    "exit_code": 1,
+    "output": "out/round4_logs/before_wrapper.txt"
+  },
+  {
+    "name": "input_regressions",
+    "utc": "Thu Nov 19 11:59:03 UTC 2026",
+    "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool /scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/corpusin --case Review2Tests.test_kit_alias_rejects_actual_id --case Review2Tests.test_native_requires_exact_arm_populations --case Review2Tests.test_native_rejects_full_task_identity_conflict test_review2",
+    "exit_code": 1,
+    "output": "out/round4_logs/input_regressions.txt"
+  },
+  {
+    "name": "input_existing",
+    "utc": "Thu Nov 19 11:59:05 UTC 2026",
+    "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool /scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/corpusin test_synthetic",
+    "exit_code": 0,
+    "output": "out/round4_logs/input_existing.txt"
+  },
+  {
+    "name": "package",
+    "utc": "Thu Nov 19 12:02:03 UTC 2026",
+    "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/package_round4.py",
+    "exit_code": 0,
+    "output": "out/round4_logs/package.txt"
+  },
+  {
+    "name": "core_tests",
+    "utc": "Thu Nov 19 12:02:03 UTC 2026",
+    "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/patchcheck_round4_core --tests work/patchcheck_round4_core/tests test_review2 test_review3 test_synthetic test_no_leftovers",
+    "exit_code": 0,
+    "output": "out/round4_logs/core_tests.txt"
+  },
+  {
+    "name": "full_tests",
+    "utc": "Thu Nov 19 12:02:05 UTC 2026",
+    "command": "nice -n 10 /usr/bin/time -f 'MEASURED_MAX_RSS_KIB=%M\nMEASURED_ELAPSED_SECONDS=%e\nEXIT_CODE=%x' /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/patchcheck_round4_full --tests work/patchcheck_round4_full/tests test_review2 test_review3 test_new_read_wrapper test_kit_alias_proof test_synthetic test_no_leftovers",
+    "exit_code": 0,
+    "output": "out/round4_logs/full_tests.txt"
+  },
+  {
+    "name": "existing_enabled",
+    "utc": "Thu Nov 19 12:02:07 UTC 2026",
+    "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/patchcheck_round4_full --tests work/patchcheck_round4_full/tests --enable-review2 test_synthetic",
+    "exit_code": 0,
+    "output": "out/round4_logs/existing_enabled.txt"
+  },
+  {
+    "name": "default_compat",
+    "utc": "Thu Nov 19 12:02:09 UTC 2026",
+    "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/check_default_compat.py",
+    "exit_code": 0,
+    "output": "out/round4_logs/default_compat.txt"
+  },
+  {
+    "name": "published_snapshot_audit",
+    "utc": "Thu Nov 19 12:02:11 UTC 2026",
+    "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/audit_round4.py",
+    "exit_code": 0,
+    "output": "out/round4_logs/published_snapshot_audit.txt"
+  },
+  {
+    "name": "wrapper_syntax",
+    "utc": "Thu Nov 19 12:02:11 UTC 2026",
+    "command": "nice -n 10 bash -n work/patchcheck_round4_full/add_read.sh",
+    "exit_code": 0,
+    "output": "out/round4_logs/wrapper_syntax.txt"
+  }
+]

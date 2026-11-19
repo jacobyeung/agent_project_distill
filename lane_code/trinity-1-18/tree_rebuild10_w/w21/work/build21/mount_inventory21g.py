@@ -24,8 +24,8 @@ row('/dev','/dev','/dev','special dev-bind; parent is namespace root','P tk_bwra
 row('/proc','/proc','procfs','special proc mount; parent is namespace root','P tk_bwrap')
 row('/home','/home','tmpfs','creatable at namespace root; remounted read-only last','P tk_bwrap')
 row('/home/jjyeung','/home/jjyeung','--dir','creatable inside preceding /home tmpfs','P tk_bwrap')
-row('AS',AS,N+'/s/aws/u','read-only host /scratch ancestor; already exists on production host (inferred)','Orchard job 173051 reached Q_NS after this bind; absent elsewhere would require an operator-provided host path')
-row('AL',AL,N+'/s/aws/u','read-only host /lustre ancestor; already exists on production host (inferred)','Orchard job 173051 reached Q_NS after this bind; absent elsewhere would require an operator-provided host path')
+row('AS',AS,N+'/s/aws/u','if /scratch was ro-bound, target already exists on host; if /scratch was absent, target is creatable under namespace root','Orchard job 173051 reached Q_NS after this bind; the log does not distinguish these two cases')
+row('AL',AL,N+'/s/aws/u','if /lustre was ro-bound, target already exists on host; if /lustre was absent, target is creatable under namespace root','Orchard job 173051 reached Q_NS after this bind; the log does not distinguish these two cases')
 row('X',X,N+'/x','inside earlier read-only AS bind; target exists in U/ap/8865619b','tk_stage creates U/ap/K before tk_bwrap; this bind makes X writable')
 row('X/runs',X+'/runs',N+'/rp','inside earlier writable X; also created in NX/runs','tk_nx creates NX/runs')
 row('X/u',X+'/u',N+'/s/aws/u/ap/8865619b/u','inside earlier writable X; also created in NX/u','tk_stage creates NX/u and source U/ap/K/u')
@@ -37,7 +37,8 @@ row('TK_JOBDIR',N+'/j',N+'/j','host created by tk_stage; inside restored writabl
 row('Q_NS','/tmp/q_22c714e1',N,'absent host destination under read-only /tmp before fix; creatable in private tmpfs after fix','MOUNT_REDUCTION.json and VIEW.json reproduce failure and success')
 J.write(D/'MOUNTS.json',dict(mode='q',job_example='173051: N=/tmp/q_22c714e1_173051 only if SLURM_TMPDIR is unset; its actual production value is unavailable here.',
     production=rows,trinity_argument_order=mounts,source='ext/pwrap/b/c.sh:339-366; decoded kits/q/k/j.json; supplied Orchard job 173051 failure',
-    qualifications='No Orchard host inspection was performed. AS/AL/P host existence follows from the reported ordered bwrap failure, not a new stat on Orchard. The stand-in test creates only prefixed AS/AL/P host targets under L.'))
+    unprefixed_trinity_targets={key:dict(path=path,exists_on_host=Path(path).exists(),top_level_exists=Path('/'+path.split('/')[1]).exists()) for key,path in [('AS',AS),('AL',AL),('P',P)]},
+    qualifications='No Orchard host inspection was performed. The supplied ordered failure proves AS/AL/P binds succeeded; AS/AL may instead have been created below an absent top-level prefix. P lies below the existing pool /project prefix. The stand-in test creates only prefixed AS/AL/P host targets under L.'))
 stages=[
  ('bwrap mounts','Exact generated function, before failure and after true/marker success; AS/AL/P use documented L prefix.','VIEW.json; TMP_VIEW.json','Production mounts and all GPU driver paths still need the real job.'),
  ('b/g.py GPU guard','Real in-view entry refuses E42 on CPU.','VIEW.json','No GPU availability, driver or 80-GiB capacity claim.'),

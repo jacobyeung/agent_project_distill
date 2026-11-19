@@ -28,9 +28,10 @@ def main():
     parser.add_argument('--resume-config', help='Original production configuration for a source-only checkpoint bridge')
     parser.add_argument('--warmup', type=int, default=20)
     parser.add_argument('--measure', type=int, default=20)
-    parser.add_argument('--mode', choices=('profile', 'timing'), default='profile')
+    parser.add_argument('--mode', choices=('profile', 'timing', 'replay'), default='profile')
     parser.add_argument('--plan', help='Plan JSON emitted by the baseline arm (mandatory for timing ON arms)')
     parser.add_argument('--arm', choices=('off', 'prefetch', 'cache', 'metrics', 'all'), default='off')
+    parser.add_argument('--batch-metrics', choices=('0','1'), default='0', help='Hold 03 constant across acceptance replays')
     parser.add_argument('--profile-microsteps', type=int, default=4)
     args = parser.parse_args()
     if not 1 <= args.profile_microsteps <= 8:
@@ -62,7 +63,7 @@ def main():
     from student_pilot import carrier_c1_run as run
     from instrument import Phases, hooks, instrument_step, profiler_table
     from disposable import measurement_train
-    switches = {'C1_CPU_PREFETCH': '0', 'C1_DECODED_CACHE_MIB': '0', 'C1_BATCH_METRICS': '0'}
+    switches = {'C1_CPU_PREFETCH': '0', 'C1_DECODED_CACHE_MIB': '0', 'C1_BATCH_METRICS': args.batch_metrics, 'C1_CPU_PREFETCH_FALLBACK': '0'}
     if args.arm in ('prefetch', 'all'):
         switches['C1_CPU_PREFETCH'] = '1'
     if args.arm in ('cache', 'all'):
@@ -70,6 +71,8 @@ def main():
     if args.arm in ('metrics', 'all'):
         switches['C1_BATCH_METRICS'] = '1'
     os.environ.update(switches)
+    if args.mode == 'replay' and (not args.resume or not args.plan):
+        parser.error('Replay requires --resume and the CPU-audited --plan')
     if args.mode == 'timing' and args.arm != 'off' and not args.plan:
         parser.error('An ON timing arm requires the baseline --plan')
     resume_pin = run.load(args.resume) if args.resume else None
@@ -181,7 +184,9 @@ def main():
                                          'stream_means','peak_allocated_bytes','peak_reserved_bytes')}
             record['microstep_host'] = {label: [wall for name,wall,_,_ in phases.records if name == label]
                 for label in ('forward_total', 'backward_including_recompute_and_fsdp')}
-            record['measured'] = args.mode == 'profile' or index >= args.warmup
+            record['measured'] = args.mode != 'timing' or index >= args.warmup
+            if 'performance' in info:
+                record['performance'] = info['performance']
             if 'decoded_cache' in info:
                 record['decoded_cache'] = info['decoded_cache']
             record.update(end_to_end_seconds=elapsed, rank=rank, arm=args.arm,

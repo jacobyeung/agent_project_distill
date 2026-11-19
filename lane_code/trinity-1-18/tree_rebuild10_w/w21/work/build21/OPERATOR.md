@@ -69,7 +69,9 @@ Native export files stage together under their manifest sibling names.
 
 Mode q also requires authenticated host envelopes for all bound routing slices, with exact row membership, RGB joins, scene coverage and extent receipt. A missing input must remain a refusal. `proofs/receipts/RESULT.json` lists absent dependencies by SHA-256 and original path. The local capacity proof does not supply production RGB, model shards or host envelopes.
 
-The scanner checks every decoded key and string value, including nested payloads, and every literal contribution to Python and shell environment assignments and passed environment maps. Exact authenticated content exceptions, their reasons and use restrictions are listed in `../build21d/ALLOWLIST.json`; no nested payload is exempt. The final scan is in `../build21e/SCAN.json`; `../build21e/UPLOAD_DIFF.json` identifies changed uploads. The job checks dynamic staging and archive names. Runtime-supplied arguments and inherited environment values are not evaluated by the static scanner.
+The scanner checks every decoded key/string value, all literal environment contributions, and unresolved environment operations. Only the whole unmodified host environment may be inherited through a spread or copy; every added key is checked. Runtime Python values require one of the five explicit path names in `environment21f.py`. Complex shell programs require their exact reviewed source hash and the literal-name runtime allowlist in `environment_shell21g.json`; any edit invalidates that proof. The authenticated content exceptions remain in `../build21d/ALLOWLIST.json`. Final scan and upload differences: `../build21g/SCAN.json` and `../build21g/UPLOAD_DIFF.json`.
+
+The view mounts a private writable `/tmp`, restores the node-local job root at its original path, then applies the remaining binds and `/tmp/q_22c714e1` alias. It creates no pool mount point. AS, AL and P must already exist wherever their host ancestor is read-only; an absent top-level prefix can instead be created under the namespace root. Those earlier binds succeeded in job 173051. Their values and every ordered destination are in `../build21g/MOUNTS.json`. The CPU stand-in view passes; the production GPU/model/store proof remains required.
 
 The result archive contains the proof result and a separate room census. The census cannot admit a failed proof.
 
@@ -78,7 +80,7 @@ The exclusion payload stages as `k/3119aa4a.json`. Its SHA-256 remains
 The authenticated `p_sources` map reads the same bytes from N's `u/<sha256>` upload.
 Configuration pins and hash-keyed catalogs use the pinned opaque map. P's original files remain unchanged.
 
-Upload total: 137108099 bytes in 164 files (source: `UPLOADS.json`).
+Upload total: 137108151 bytes in 164 files (source: `UPLOADS.json`).
 
 The focused test fixture closure would add 202336662 bytes.
 The delivery includes 22066639 bytes of smaller fixture inputs; the remaining prerequisites,

@@ -35,7 +35,7 @@ ValueError: Settings contain a non-opaque staged asset path
 FAIL: test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs (__main__.Round2Tests.test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 291, in test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 295, in test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs
     self.assertFalse(result.wasSuccessful(),'An unrelated ValueError was accepted')
 AssertionError: True is not false : An unrelated ValueError was accepted
 
@@ -43,7 +43,7 @@ AssertionError: True is not false : An unrelated ValueError was accepted
 FAIL: test_f16_no_descriptive_environment_variable (__main__.Round2Tests.test_f16_no_descriptive_environment_variable)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 302, in test_f16_no_descriptive_environment_variable
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 306, in test_f16_no_descriptive_environment_variable
     self.assertTrue("os.environ['H10_SETTINGS']" not in source,'Descriptive settings environment remains')
 AssertionError: False is not true : Descriptive settings environment remains
 
@@ -54,13 +54,13 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 67, in test_f1_actual_isolated_script_plain_and_opaque
     self.assertEqual(result.returncode,0,result.stdout+result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/c1a2c8335b0245c0b4cc9d881cc0370d/u0/a8.py", line 65, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/3beccf807c314fe5a4513040f7499082/u0/a8.py", line 65, in <module>
     raise SystemExit(main())
                      ^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/c1a2c8335b0245c0b4cc9d881cc0370d/u0/a8.py", line 61, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/3beccf807c314fe5a4513040f7499082/u0/a8.py", line 61, in main
     return launch(rest)
            ^^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/c1a2c8335b0245c0b4cc9d881cc0370d/u0/a4.py", line 2, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/3beccf807c314fe5a4513040f7499082/u0/a4.py", line 2, in main
     from a8 import source_hash
 ModuleNotFoundError: No module named 'a8'
 
@@ -72,10 +72,10 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 67, in test_f1_actual_isolated_script_plain_and_opaque
     self.assertEqual(result.returncode,0,result.stdout+result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/90c30fcc3f5546b194c8750db0d7030f/u0/a8.py", line 65, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/cad4a01827b54f32a100fdd099cbf792/u0/a8.py", line 65, in <module>
     raise SystemExit(main())
                      ^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/90c30fcc3f5546b194c8750db0d7030f/u0/a8.py", line 56, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/cad4a01827b54f32a100fdd099cbf792/u0/a8.py", line 56, in main
     from a9 import install_wire_decoder,PublicLog
 ModuleNotFoundError: No module named 'a9'
 
@@ -176,6 +176,6 @@ Traceback (most recent call last):
 AssertionError: False is not true : Missing independent root validation
 
 ----------------------------------------------------------------------
-Ran 13 tests in 0.163s
+Ran 13 tests in 0.208s
 
 FAILED (failures=13, errors=1)

@@ -1,0 +1,107 @@
+--- a/tests/test_so_joint.py
++++ b/tests/test_so_joint.py
+@@ -101,7 +101,7 @@
+                             assert threading.get_ident() == main_thread, 'collective on CPU worker'
+                             tensors = [x for x in a if isinstance(x,torch.Tensor)]
+                             source = a[1] if name in ('all_gather','all_gather_into_tensor','reduce_scatter_tensor') else a[0]
+-                            digest = hashlib.sha256(source.detach().contiguous().view(torch.uint8).numpy().tobytes()).hexdigest()
++                            digest = hashlib.sha256(source.detach().contiguous().reshape(-1).view(torch.uint8).numpy().tobytes()).hexdigest()
+                             collectives.append((name,[(tuple(t.shape),str(t.dtype)) for t in tensors],
+                                                 str(kw.get('op','default')),digest))
+                             return original(*a,**kw)
+--- /dev/null
++++ b/tests/test_so_round2.py
+@@ -0,0 +1,93 @@
++"""Second-review regressions, including positive controls for every ON path."""
++import os
++import threading
++import unittest
++from types import SimpleNamespace
++from unittest.mock import patch
++
++import torch
++from PIL import Image
++from student_pilot import c1_switches as switches, c1_decoded_cache as cache
++from student_pilot import c1_cpu_prefetch as prefetch
++from student_pilot.p3_provenance import file_pin
++from tests.so_helpers import root
++
++
++class Round2(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
++    def test_startup_has_no_collective_and_agrees_with_root(self):
++        import torch.distributed as dist
++        with patch.dict(os.environ, dict(zip(switches.NAMES, ('0','0','0')))), \
++                patch.object(switches, '_frozen', None), \
++                patch.object(dist, 'all_gather_object', side_effect=AssertionError('extra collective')):
++            local = switches.startup({'training_mode':'final'})
++            self.assertIsNone(switches.accept(local, ('0','0','0')))
++            self.assertEqual(switches._frozen, ('0','0','0'))
++            self.assertIn('differ across ranks', switches.accept(local, ('1','0','0')))
++            with patch.dict(os.environ, C1_CPU_PREFETCH='bad'):
++                self.assertIn('startup refusal', switches.accept(switches.startup({}), ('0','0','0')))
++
++    def test_fixture_resets_frozen_switches_before_and_after_case(self):
++        from tests.test_so_cache import CacheTests
++        from tests.test_carrier_c1_run import RunnerTests
++        try:
++            for cls in (CacheTests, RunnerTests):
++                switches._frozen = ('0','0','0')
++                case = cls(next(n for n in dir(cls) if n.startswith('test_')))
++                case.setUp()
++                self.assertIsNone(switches._frozen)
++                switches._frozen = ('1','0','0')
++                case.doCleanups()
++                self.assertIsNone(switches._frozen)
++        finally:
++            switches._frozen = None
++
++    def test_cache_miss_hashes_the_bytes_that_are_decoded(self):
++        path = root()/'frame.bmp'
++        Image.new('RGB', (8,8), (1,2,3)).save(path)
++        pin = file_pin(path)
++        Image.new('RGB', (8,8), (4,5,6)).save(path)
++        decoded = cache.DecodedRGB(4096)
++        with self.assertRaisesRegex(ValueError, 'Stale frame pin'):
++            decoded.get(path, str(path), pin['sha256'])
++        self.assertEqual(decoded.bytes, 0)
++        Image.new('RGB', (8,8), (1,2,3)).save(path)
++        result = decoded.get(path, str(path), pin['sha256'])
++        self.assertEqual(result[0,0].tolist(), [1,2,3])
++        self.assertIn(pin['sha256'], decoded.values)
++
++    def test_prefetch_refuses_clip_mix_before_starting_worker(self):
++        rows = SimpleNamespace(mixes={'pose':SimpleNamespace(sources=[SimpleNamespace()])})
++        with self.assertRaisesRegex(ValueError, 'clip'):
++            prefetch.rows_factory(rows)
++
++    def test_pinned_cache_caller_rejects_rewrite_after_verification(self):
++        from student_pilot import pose_samples, r2_frames
++        path = root()/'frame.bmp'
++        Image.new('RGB', (8,8), (1,2,3)).save(path)
++        pin = file_pin(path)
++        def verified_then_rewritten(frame):
++            Image.new('RGB', (8,8), (4,5,6)).save(path)
++            return path
++        with patch.dict(os.environ, C1_DECODED_CACHE_MIB='1'), patch.object(cache, '_cache', None), \
++                patch.object(r2_frames, 'verify_frame', side_effect=verified_then_rewritten):
++            with self.assertRaisesRegex(ValueError, 'Stale frame pin'):
++                pose_samples.load_frames({'frames':[pin]})
++
++    def test_fetch_uses_captured_switch_without_eager_environment_parse(self):
++        from student_pilot import carrier_c1_run as run
++        rows = SimpleNamespace(_cpu_prefetch_enabled='0')
++        model = SimpleNamespace(recipe={}, training_mode='mixed')
++        with patch.dict(os.environ, C1_CPU_PREFETCH='invalid'):
++            self.assertEqual(list(run.fetch_plan(rows, model, [], 0)), [])
++
++    def test_joint_positive_controls_refuse_silent_off(self):
++        from tests.test_so_joint import assert_on_paths
++        for arm in ('prefetch','cache','metrics','all'):
++            with self.assertRaises(AssertionError):
++                assert_on_paths(arm, ['MainThread'], 0, 0)
++        assert_on_paths('all', ['c1-row-cpu_0'], 1, 8)
++        assert_on_paths('off', ['MainThread'], 0, 0)

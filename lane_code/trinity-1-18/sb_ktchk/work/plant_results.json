@@ -1,0 +1,130 @@
+[
+ {
+  "attempt": "A_report",
+  "part": "A",
+  "planted": "A_DISTANCE.txt",
+  "returncode": 0,
+  "refused": false,
+  "guard_passed": false,
+  "last_error": "",
+  "planted_overwritten": true,
+  "written": [
+   "A_DEPTH.json",
+   "A_DISTANCE.txt",
+   "A_POSE.json",
+   "A_SCALE.json",
+   "DECISION.json",
+   "parts/A/PER_ITEM_A_train.jsonl"
+  ]
+ },
+ {
+  "attempt": "A_subdir_bars",
+  "part": "A",
+  "planted": "parts/A/old/BARS.json",
+  "returncode": 0,
+  "refused": false,
+  "guard_passed": false,
+  "last_error": "",
+  "planted_overwritten": false,
+  "written": [
+   "A_DEPTH.json",
+   "A_DISTANCE.txt",
+   "A_POSE.json",
+   "A_SCALE.json",
+   "DECISION.json",
+   "parts/A/PER_ITEM_A_train.jsonl"
+  ]
+ },
+ {
+  "attempt": "A_control_per_item",
+  "part": "A",
+  "planted": "parts/A/PER_ITEM_A_train.jsonl",
+  "returncode": 1,
+  "refused": true,
+  "guard_passed": false,
+  "last_error": "RuntimeError: REFUSE: per-item score file already exists: /scratch/jjyeung/orch_n30/sb_ktfix2/runtime/plant_A_control_per_item_f5a8b7aa/parts/A/PER_ITEM_A_train.jsonl",
+  "planted_overwritten": false,
+  "written": []
+ },
+ {
+  "attempt": "B_report",
+  "part": "B",
+  "planted": "B_LADDER_TRAIN.txt",
+  "returncode": 0,
+  "refused": false,
+  "guard_passed": false,
+  "last_error": "",
+  "planted_overwritten": true,
+  "written": [
+   "B_GAINS_ONCE.txt",
+   "B_LADDER_TRAIN.txt",
+   "DECISION.json",
+   "parts/B/PER_ITEM_B_train.jsonl"
+  ]
+ },
+ {
+  "attempt": "C_report",
+  "part": "C",
+  "planted": "C_CAMERA.txt",
+  "returncode": 0,
+  "refused": false,
+  "guard_passed": false,
+  "last_error": "",
+  "planted_overwritten": true,
+  "written": [
+   "C_CAMERA.txt",
+   "C_PARITY.json"
+  ]
+ },
+ {
+  "attempt": "H_report",
+  "part": "H",
+  "planted": "HELDOUT_once.txt",
+  "returncode": 1,
+  "refused": false,
+  "guard_passed": true,
+  "last_error": "FileNotFoundError: MISSING /scratch/jjyeung/orch_n30/sb_kbox2/heldout_labels.json; held-out look not consumed",
+  "planted_overwritten": false,
+  "written": []
+ },
+ {
+  "attempt": "H_control_legacy",
+  "part": "H",
+  "planted": "PER_ITEM_A_heldout.jsonl",
+  "returncode": 1,
+  "refused": true,
+  "guard_passed": false,
+  "last_error": "RuntimeError: REFUSE: per-item score file already exists: /scratch/jjyeung/orch_n30/sb_ktfix2/runtime/plant_H_control_legacy_e13afd13/PER_ITEM_A_heldout.jsonl",
+  "planted_overwritten": false,
+  "written": []
+ },
+ {
+  "attempt": "B_reads_planted_A_DISTANCE",
+  "note": "evaluate_v2.run_b reads OUT/A_DISTANCE.txt rows with no hash check",
+  "verdicts": {
+   "40.0": {
+    "point": 10.0,
+    "low": 10.0,
+    "verdict": "PASS"
+   },
+   "60.0": {
+    "point": -10.0,
+    "low": -10.0,
+    "verdict": "FAIL"
+   }
+  }
+ },
+ {
+  "attempt": "A_planted_FREEZE_after_code_edit",
+  "before_plant": {
+   "returncode": 1,
+   "refused": true,
+   "last_error": "RuntimeError: REFUSE: code differs from freeze"
+  },
+  "after_plant": {
+   "returncode": 0,
+   "refused": false,
+   "stdout": "08f6addf12ac80327bb7cb5f092f812705c3faa6f57d2f95f8adfaf2f448fe57"
+  }
+ }
+]

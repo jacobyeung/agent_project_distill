@@ -32,7 +32,7 @@ class KitRound2(unittest.TestCase):
         directory = root()
         recipe = native().recipe
         values = [('receipt.json',inputs(directory)), ('manifest.json',{}),
-                  ('config.json',dict(training_mode='final',r1_training=True)),
+                  ('config.json',dict(training_mode='final',r1_training={'fixture':True})),
                   ('plan.json',dict(world_size=1,plans=[plan()]*101))]
         for name, value in values:
             (directory/name).write_text(json.dumps(value))

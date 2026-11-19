@@ -1,6 +1,6 @@
 --- a/student_pilot/carrier_c1_run.py
 +++ b/student_pilot/carrier_c1_run.py
-@@ -1532,6 +1532,11 @@
+@@ -1538,6 +1538,11 @@
  def optimize_step(model, optimizer, rows, plan, rank, device, step, distributed=False, gates=None):
      """Rank-aligned microsteps (four in mixed/pose-only); FSDP reduces each (no large no_sync grads)."""
      started, waiting = time.perf_counter(), 0.
@@ -12,7 +12,7 @@
      unwrapped = model.module if distributed else model
      recipe = unwrapped.recipe
      if 'stream_rows_per_step' in recipe:
-@@ -1581,7 +1586,7 @@
+@@ -1587,7 +1592,7 @@
              batch, audit = own_values(model, rows, batch, audit, (audit or {}).get('index', indices[rank]),
                                        tuple(bool(x) for x in decisions[microstep].tolist()), device)
          batch, targets = move(batch, device), move(targets, device)
@@ -21,7 +21,7 @@
              torch.cuda.synchronize(device)
          if gf1_enabled and step == 1 and screen is None and stream == 'vqa':
              from .gf1 import screen_loss, harm_guard
-@@ -1609,10 +1614,13 @@
+@@ -1615,10 +1620,13 @@
          reserved_peaks.append(torch.cuda.max_memory_reserved(device) if device.type == 'cuda' else 0)
          phase_memory.append(dict(microbatch=len(phase_memory), stream=stream, **phases,
                                   peak_allocated_bytes=peaks[-1], peak_reserved_bytes=reserved_peaks[-1]))
@@ -39,7 +39,7 @@
          stream_counts[stream] = stream_counts.get(stream, 0) + 1
          for key in routing.Gates.METRICS:
              value = result.get('metrics', {}).get(key)
-@@ -1636,6 +1644,8 @@
+@@ -1642,6 +1650,8 @@
          if stream == 'pose':
              pose_batch = (batch,targets)
          del result
@@ -48,6 +48,18 @@
      if accumulated is not None:
          accumulated.restore()
      reduced = torch.tensor([v for k in routing.Gates.METRICS for v in (head_sums[k], head_counts[k])],
+@@ -1715,7 +1725,10 @@
+     after_optimizer = memory_stats(device)
+     if device.type == 'cuda':
+         torch.cuda.synchronize(device)
+-    cache_record = {}
++    from .c1_switches import record as performance_record
++    cache_record = performance_record()
++    if performance_switch('C1_CPU_PREFETCH_FALLBACK') == '1':
++        cache_record['cpu_prefetch'] = dict(budget_fallback_groups=getattr(rows, '_c1_budget_fallback_groups', 0))
+     if performance_switch('C1_DECODED_CACHE_MIB') != '0':
+         from .c1_decoded_cache import stats
+         cache_record['decoded_cache'] = stats()
 --- /dev/null
 +++ b/student_pilot/c1_batch_metrics.py
 @@ -0,0 +1,32 @@
@@ -247,7 +259,7 @@
 +                                 stream_means=None if info is None else info['stream_means'])
 +                    state['logged_numbers'] = None if info is None else {k:v for k,v in info.items()
 +                        if k not in ('wall_seconds','data_seconds','memory','peak_allocated_bytes',
-+                                     'peak_reserved_bytes','decoded_cache')}
++                                     'peak_reserved_bytes','decoded_cache','performance','cpu_prefetch')}
 +                    if failure:
 +                        assert error and 'Final-mode row failure' in error,error
 +                        assert len(losses) == 2,('wrong failure microstep',len(losses))

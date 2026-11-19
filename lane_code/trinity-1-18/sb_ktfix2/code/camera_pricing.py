@@ -78,7 +78,7 @@ def run():
   groups.update({'frame_gap_'+str(g):[r for r in rr if r['frame_gap']==g] for g in {r['frame_gap'] for r in rr}})
   summaries[arm]={key:dict(n=len(v),mean_score=mean([r['score'] for r in v]),paired_delta=paired(v)) for key,v in groups.items()}
  result=dict(status='OK',role='DIAGNOSTIC_ONLY',no_decision_bar=True,rows=rows,summaries=summaries,skipped=skips,scale_rule='proxy: stored scale times median(G32/G64 depth) over shared anchor grid; own depth unavailable',adoption='Nothing is adopted from Part C')
- write_json(OUT/'C_CAMERA.txt',result)
  from evaluate import items_file
  items_file(rows,'C','devs1')
+ write_json(OUT/'C_CAMERA.txt',result)
  return result

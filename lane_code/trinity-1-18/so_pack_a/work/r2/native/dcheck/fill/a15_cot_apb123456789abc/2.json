@@ -1,0 +1,28 @@
+{
+  "argv": [
+    "sbatch",
+    "--parsable",
+    "--account=mt01",
+    "--partition=general",
+    "--nodes=1",
+    "--ntasks=1",
+    "--gres=gpu:1",
+    "--cpus-per-task=16",
+    "--mem=200G",
+    "--time=04:00:00",
+    "--signal=B:USR1@1800",
+    "--no-requeue",
+    "--export=NONE",
+    "--output=/dev/null",
+    "--error=/dev/null",
+    "--chdir=/tmp",
+    "--job-name=a15_cot_apb123456789abc"
+  ],
+  "gpus": 1,
+  "inputs": "0adc196d20daf61287cc173bcc2e224a03e4ec0d7dd2992978b251890a19fcd2",
+  "package": "42cf50f51c08011e810bc098972174bc41ce05069249c03e2f28376624ca50ce",
+  "passed": true,
+  "plan": "545b1fa88624e018c7b41f2039757be193d7e9ba2f0d11f40a0e2ce2bb76530d",
+  "scope": 0,
+  "time": "04:00:00"
+}

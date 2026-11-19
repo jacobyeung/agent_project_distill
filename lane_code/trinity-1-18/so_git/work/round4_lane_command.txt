@@ -1,0 +1,19 @@
+(
+set -euo pipefail
+L=/scratch/jjyeung/orch_n30/so_git
+export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
+export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
+mkdir -p "$L/work/realgit5_by_swarm_opt/py36" "$L/work/realgit5_by_swarm_opt/py312"
+for TAG in py36 py312; do
+  case "$TAG" in
+    py36) PY=/usr/bin/python3 ;;
+    py312) PY=/scratch/jjyeung/envs/p1cpu/bin/python ;;
+  esac
+  date -u
+  nice -n 10 "$PY" -I -s -B -c 'import lzma'
+  LCS_RUN_REAL_GIT_TESTS=1 LCS_REVIEW2_FIXES=1 \
+    LCS_REAL_GIT_WORK="$L/work/realgit5_by_swarm_opt/$TAG" LCS_PYTHON="$PY" \
+    nice -n 10 bash "$L/work/review_round4_source/tests/run_real_git_owner.sh" \
+    2>&1 | tee "$L/work/realgit5_by_swarm_opt/run_$TAG.txt"
+done
+)

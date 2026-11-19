@@ -1,3 +1,2 @@
-Thu Nov 19 11:05:40 UTC 2026
-
-All six required review findings are fixed. The cumulative patch applies cleanly and reproduces all 20 delivered tool files. The patch-applied suite passes 60 tests and skips one absent-real-return test; the enabled existing suite passes 20. Thirteen default compatibility fixtures preserve compressed read/orphan bytes and every index field except tool_version. REPORT.md is PARTIAL solely because enabled-mode published impact for seven reads cannot be certified without absent source returns. Their IDs, exact owner replay/new-ID commands, metadata, test outputs and hashes are delivered. The published index was read only; no published payload or input tree was edited.
+Thu Nov 19 12:04:19 UTC 2026
+DONE: findings 1–6 verified, all patches and regression evidence packaged. Core: 60 pass/1 skip; full: 69 pass/1 skip; 20 enabled existing tests pass; 13 default-byte fixtures pass. Report and manifest written. Owner on trinity-3-30 must run six-file proof and any published-source replay; seven enabled payloads remain unverified. Published corpus untouched.

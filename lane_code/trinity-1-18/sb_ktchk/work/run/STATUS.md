@@ -1,0 +1,1 @@
+The section-8 CPU dry run is PASS. Five train captures, the scale check, all 296 numbering assertions, and all 450 staged camera calls were checked. Section 8b depends on the box-kit A0 rows named in out/DRYRUN.json. No GPU work ran.
