@@ -1,0 +1,137 @@
+{
+  "cases": [
+    {
+      "body": "<call>\n<tool_response>dz = -0.68 m</tool_response>\nThe backward response component is -dz = 0.68 m.",
+      "expected_pass": false,
+      "name": "symbolic_negation",
+      "passed": false,
+      "violations": [
+        {
+          "detail": "Number lacks permitted provenance: 0.68",
+          "line": "The backward response component is -dz = 0.68 m.",
+          "line_no": 3,
+          "rule_id": "number_not_allowed"
+        },
+        {
+          "detail": "Unit quantity needs a printed value or a correct explicit result: 0.68",
+          "line": "The backward response component is -dz = 0.68 m.",
+          "line_no": 3,
+          "rule_id": "unit_quantity"
+        }
+      ]
+    },
+    {
+      "body": "<call>\n<tool_response>dz = -0.68 m</tool_response>\nThe backward response component is 0 - -0.68 = 0.68 m.",
+      "expected_pass": false,
+      "name": "unsupported_zero",
+      "passed": false,
+      "violations": [
+        {
+          "detail": "Arithmetic operands lack permitted provenance.",
+          "line": "The backward response component is 0 - -0.68 = 0.68 m.",
+          "line_no": 3,
+          "rule_id": "number_not_allowed"
+        },
+        {
+          "detail": "Unit quantity needs a printed value or a correct explicit result: 0.68",
+          "line": "The backward response component is 0 - -0.68 = 0.68 m.",
+          "line_no": 3,
+          "rule_id": "unit_quantity"
+        }
+      ]
+    },
+    {
+      "body": "<call>\n<tool_response>dz = -0.68 m</tool_response>\nThe response gives -0.68 - -0.68 = 0.00.\nThe backward response component is 0.00 - -0.68 = 0.68 m.",
+      "expected_pass": true,
+      "name": "sourced_zero",
+      "passed": true,
+      "violations": []
+    },
+    {
+      "body": "<call>\n<tool_response>dz = -0.68 m</tool_response>\nThe backward response component is -dz.",
+      "expected_pass": true,
+      "name": "symbol_only",
+      "passed": true,
+      "violations": []
+    },
+    {
+      "body": "I will use the pose head turn, wrapped to (-180, 180], with positive turn meaning left and a half turn reported as +180 degrees.\n<call>\n<tool_response>turn = -88 deg</tool_response>",
+      "expected_pass": false,
+      "name": "numeric_half_turn",
+      "passed": false,
+      "violations": [
+        {
+          "detail": "Number lacks permitted provenance: -180",
+          "line": "I will use the pose head turn, wrapped to (-180, 180], with positive turn meaning left and a half turn reported as +180 degrees.",
+          "line_no": 1,
+          "rule_id": "number_not_allowed"
+        },
+        {
+          "detail": "Unit quantity needs a printed value or a correct explicit result: +180",
+          "line": "I will use the pose head turn, wrapped to (-180, 180], with positive turn meaning left and a half turn reported as +180 degrees.",
+          "line_no": 1,
+          "rule_id": "unit_quantity"
+        }
+      ]
+    },
+    {
+      "body": "I will use the pose head turn, wrapped to the shortest signed turn, with positive turn meaning left and a half turn reported as positive.\n<call>\n<tool_response>turn = -88 deg</tool_response>",
+      "expected_pass": true,
+      "name": "worded_half_turn",
+      "passed": true,
+      "violations": []
+    }
+  ],
+  "command": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/grammar_notes.py",
+  "grammar_sha256": "a41ba19190eb354168ce5837b2047fb6510c868c5d7cbfbf160cbe924777e268",
+  "inputs": {
+    "/scratch/jjyeung/orch_n30/fb_pack/cam/out/CLASSIFICATION.json": {
+      "bytes": 3088884,
+      "sha256": "1b81a56350a23e6de7124c1d66ea6691ffdceed96fc9919a7f5060ffb14670f7"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/cam/out/SOURCE_FORMS.json": {
+      "bytes": 2354097,
+      "sha256": "6d85fd9834c89f804b6a440fe3e05cf95dd357f8c31dcaf05987701a1b701636"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/cam/work/common.py": {
+      "bytes": 2681,
+      "sha256": "4535d0f1371268cd3590b477eea75f806c0156ff5b58b824261ee352b7d01712"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/cam/work/grammar_notes.py": {
+      "bytes": 5616,
+      "sha256": "87b35762f8f1e40932e4192903d35bb1eb2cdac46887f1f093a96d9893eba9b8"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/cam/work/intake_reference.py": {
+      "bytes": 7066,
+      "sha256": "e4297934a3af94aeec0473a09594ff327ed4e96b94098bba5cbc0eaa74fe7163"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/cam/work/route.py": {
+      "bytes": 17454,
+      "sha256": "a2796bf08c35d5ba577668db0fcd4b20de6d0c8f759e9c2e5327ca90515f63a3"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r0_scenes.json": {
+      "bytes": 319810,
+      "sha256": "f7c458176426e22a13e47908b03abd2c6f5939d3e48eb7c24e7eba45b75ad479"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_dev_merged.json": {
+      "bytes": 106183,
+      "sha256": "a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_grammar.py": {
+      "bytes": 11040,
+      "sha256": "9bddc97d8f47fd64e94b6dd91b990d19f54f921f24b446795cc825cfb5ce8c6b"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_withheld.json": {
+      "bytes": 20320,
+      "sha256": "634820b44927b1a50c18db9b90246b4b99f8954b0d7f5f2893e547f1c92879ed"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/trace_grammar.py": {
+      "bytes": 35192,
+      "sha256": "a41ba19190eb354168ce5837b2047fb6510c868c5d7cbfbf160cbe924777e268"
+    }
+  }
+}

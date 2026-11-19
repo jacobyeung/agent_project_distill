@@ -1,0 +1,1 @@
+The named build record and seal evidence are retained in out/. All 939 base files match TREE_FILES.sha256; base and new copies are staged locally. The seal serialization is being verified before edits. No implementation has changed.

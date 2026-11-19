@@ -1,0 +1,64 @@
+{
+  "status": "MISSING",
+  "native_error": "R1_COMPLETE_FILTERED_POPULATION_REQUIRED",
+  "before_draws": "MISSING",
+  "after_draws": "MISSING",
+  "reason": "No complete prepared population is supplied; validation fails before stream counts are consumed.",
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/N_LAUNCH_CONFIG.json",
+      "sha256": "0e78d7f86f85cf6090db94bb4916fbd1c57b9fa2aff04dd0a8428a414a4a5f5f"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior/loader_boundary.py",
+      "sha256": "9d5d8cb9beeffce60b440105fa61e7c8ad5030bbdc4d20d2f58d4da600b9b450"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_mix.py",
+      "sha256": "76e9963e443307e064ef653f0b7b9e62450ce80cfc27558c0840141e80fe9fb1"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_population.py",
+      "sha256": "063ed256bc4b6d797bd99c99bdaf4f11c8fe045a2606645a1dfbcef548c6c76a"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_loader.py",
+      "sha256": "4351861953cc559a79fec7ec8d799272a5dc5c42d90c53eb07bcf8bd7fc93595"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_training.py",
+      "sha256": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/mix.json",
+      "sha256": "c0167f682bd49fce84d1ca447a64131ae1605a345f534ce61ee98aabf7bee9c8"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/indices.json",
+      "sha256": "b6fdc34ecc3008fef7d906a14631d8687382e2c77eede6bf6a1e864f846d201d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/inputs/population.json",
+      "sha256": "a1a79d795739361b5d3bbedbddc5317687fdccc7fc92643f92c22ef5eef1bc2d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/p3_provenance.py",
+      "sha256": "afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_persisted.py",
+      "sha256": "33d1615f17c2928009e7b32bce2fc2ef180f880e449c220b7613e0e332b53287"
+    }
+  ],
+  "supported_per_row_delta": false,
+  "code_lines": {
+    "ceiling": "r1_mix.py:27 min(n, 4*counts[k]); r1_loader.py:92-93 checks per-qid repeats > 4",
+    "unique_population": "r1_mix.py:76-79 rejects duplicate offsets; 83-84 requires full index coverage",
+    "uniform_selection": "r1_mix.py:81-82 seeded shuffle; 96 cycles through each cell uniformly",
+    "population_builder": "r1_population.py:120-130 assigns each native offset to exactly its family cell"
+  }
+}

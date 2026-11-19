@@ -1,0 +1,227 @@
+{
+  "camera": {
+    "carrier_token": "<|fim_middle|>",
+    "component_reduction": "mean",
+    "embed_dim": 64,
+    "feature_layer_convention": "hidden_states_index_k_after_k_layers_last_is_final_norm_v1",
+    "feature_layers": null,
+    "fov_activation": "bounded_sigmoid_v1",
+    "frame_addressing": "group16",
+    "gate": null,
+    "head_only_steps": 0,
+    "lm_gate": null,
+    "loss_clamp": 100.0,
+    "max_groups": 32,
+    "min_trajectory_scale_m": 0.05,
+    "num_heads": 4,
+    "placement": "append_after_temporal_group_video_tokens_v1",
+    "point_depth": null,
+    "pose_encoding": "opencv_cam_from_frame0_anchor_second_of_pair_T3_quatxyzw4_fovhw2_v2",
+    "pose_origin": "first_sampled_frame_v1",
+    "refine_iterations": 4,
+    "representative_frame": "second_of_temporal_pair_v1",
+    "stage_gamma": 0.6,
+    "supervision": {
+      "path": "/fixture",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "token_scheme": "first_and_rest_learned_v1",
+    "trajectory_balance": true,
+    "trunk_depth": 4,
+    "warmup_ratio": 0.0,
+    "weight": 1.0,
+    "weight_focal": 0.5,
+    "weight_gravity": 1.0,
+    "weight_rot": 1.0,
+    "weight_scale": 0.02,
+    "weight_trans": 1.0
+  },
+  "config_sha256": "11561e6d561449b084569f88af3be836b4098c5b5d3ceef10cf04f953a4cf485",
+  "depth": {
+    "context_depth": 1,
+    "d_proj": 16,
+    "mlp_hidden": 16,
+    "num_heads": 4,
+    "vit_layers": [
+      1,
+      2,
+      3
+    ],
+    "weight": 0.05
+  },
+  "model": {
+    "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/n1fix/b12_meta_edges/producer/model.json",
+    "sha256": "dae99c9243869f1ca0e6fcef9c6d6216d819eb6bd3c1f174a0b2dd45306dea1a"
+  },
+  "recipe": {
+    "clip_norm": 1.0,
+    "encoder_learning_rate": 1e-05,
+    "export_at_stop": true,
+    "global_batch": 288,
+    "learning_rate": 0.0001,
+    "lm_learning_rate": 1e-05,
+    "milestones": [
+      100,
+      200,
+      400,
+      600,
+      800,
+      1000
+    ],
+    "mix": [
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing"
+    ],
+    "reference_world_size": 32,
+    "resume_every_seconds": 7200,
+    "scheduled_sampling": {
+      "depth_open_absrel": 0.25,
+      "ema_steps": 100,
+      "exposure_from_step": null,
+      "exposure_probability": 0.0,
+      "force_from_step": null,
+      "fov_open_deg": 2.0,
+      "max_own_probability": 0.0,
+      "pose_full_deg": 10.0,
+      "pose_open_deg": 20.0,
+      "seed": 17
+    },
+    "seed": 17,
+    "steps": 1000,
+    "stop_before_seconds": 3600,
+    "wall_seconds": 86400,
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.01,
+    "weights": {
+      "depth": 0.25,
+      "depth_fov": 0.05,
+      "pointing": 1.0,
+      "pose": 1.5,
+      "routing": 1.0,
+      "vqa": 1.0
+    },
+    "world_size": 4
+  },
+  "schema": "c1-preparation-v1",
+  "streams": {
+    "pointing": {
+      "count": 32,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/n1fix/b12_meta_edges/producer/pointing.db",
+        "sha256": "8c3b5cdff0d760cb11e12ae85517624d6a51b9bf580f34034371c3e9d01cdb81"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/n1fix/b12_meta_edges/producer/pointing.json",
+        "sha256": "28a783ed3bcb9a8b5654c91764e2130df6a251b5abd8d8e96c21e9274ee851f1"
+      },
+      "source_count": 32
+    },
+    "pose": {
+      "count": 64,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/n1fix/b12_meta_edges/producer/pose.db",
+        "sha256": "a6193406f4a80496aa1500ba83e40ab54b3b2af17abb45418cdc238353907440"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/n1fix/b12_meta_edges/producer/pose.json",
+        "sha256": "5adc9b2ae8513a127efe8739aac71a51f22f18f094d528497574cb0482f3ef17"
+      },
+      "source_count": 64
+    },
+    "routing": {
+      "count": 64,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/n1fix/b12_meta_edges/producer/routing.db",
+        "sha256": "03be40e9ee0f61af536771520187496555e205856ac022ab80d7a11dea79f4f9"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/n1fix/b12_meta_edges/producer/routing.json",
+        "sha256": "3bc32543f306b11ab2865bbceaa17c4844c387d1bdad7dfa4fac0812e622b625"
+      },
+      "source_count": 64
+    },
+    "vqa": {
+      "count": 128,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/n1fix/b12_meta_edges/producer/vqa.db",
+        "sha256": "6b7c7218a97f69459cfc899fcf8dc136b0e25f166456007a8079a54e07cee0ad"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/sb_fhalias/work/focused_after/main/n1fix/b12_meta_edges/producer/vqa.json",
+        "sha256": "bf67131634d0082698943ecbb51375ece18f9a90c52d9ca300259a2a3792ffdb"
+      },
+      "source_count": 128
+    }
+  },
+  "training_mode": "final"
+}

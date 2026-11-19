@@ -1,4 +1,4 @@
-"""Local-only runtime extraction and explicit path relocation; Python 3.6 compatible."""
+"""Local-only runtime extraction with package namespace links preserved; Python 3.6 compatible."""
 import hashlib
 import os
 from pathlib import Path
@@ -14,7 +14,12 @@ def runtime_path(name, mapping):
     path=Path(name)
     if path.is_absolute() or '..' in path.parts:raise Refusal('Unsafe runtime member')
     for prefix in sorted(mapping,key=len,reverse=True):
-        if beneath(path,prefix):return local(Path(mapping[prefix])/path.relative_to(prefix))
+        if beneath(path,prefix):
+            target=Path(mapping[prefix])/path.relative_to(prefix)
+            # A tar may include the namespace root itself (notably sj/).
+            # Its parent /scratch is outside the allowed user root.
+            local(target if target==Path(mapping[prefix]) else target.parent)
+            return target
     if any(beneath(Path(prefix),path) for prefix in mapping):return None
     raise Refusal('Unregistered runtime namespace: '+name)
 
@@ -32,7 +37,7 @@ def runtime_link(name, link, mapping):
 
 def extract_runtime(group, archive_mapping, *, limit):
     from stage228 import PartStream
-    stream=PartStream(group['parts'],archive_mapping);inventory={};seen=set();total=0
+    stream=PartStream(group['parts'],archive_mapping);inventory={};members=[];seen=set();total=0;conflicts=[]
     namespace=group['namespace_map']
     try:
         with tarfile.open(fileobj=stream,mode='r|*') as archive:
@@ -40,6 +45,7 @@ def extract_runtime(group, archive_mapping, *, limit):
                 name=str(Path(member.name))
                 if name in seen:raise Refusal('Duplicate runtime member')
                 seen.add(name)
+                members.append(dict(name=name,bytes=member.size,type=member.type.decode('ascii'),link=member.linkname))
                 if len(seen)>200000:raise Refusal('Runtime member count exceeds package limit')
                 target=runtime_path(name,namespace)
                 if target is None:
@@ -54,17 +60,17 @@ def extract_runtime(group, archive_mapping, *, limit):
                 if member.issym():
                     resolved=runtime_link(name,member.linkname,namespace)
                     if resolved is None:raise Refusal('Runtime link targets namespace parent')
-                    link=os.path.relpath(str(resolved),str(target.parent))
+                    link=member.linkname  # Preserve the package link; bwrap supplies its absolute target.
                     if target.is_symlink():
-                        if os.readlink(str(target))!=link:raise Refusal('Existing runtime link differs')
-                    elif target.exists():raise Refusal('Existing runtime path is not a link')
+                        if os.readlink(str(target))!=link:conflicts.append(str(target))
+                    elif target.exists():conflicts.append(str(target))
                     else:target.symlink_to(link)
                     inventory[str(target)]=dict(link=link);continue
                 if member.islnk():
                     source=runtime_path(member.linkname,namespace)
                     if source is None or source.is_symlink() or not source.is_file():raise Refusal('Unsafe runtime hardlink')
                     if target.exists():
-                        if not os.path.samefile(str(source),str(target)):raise Refusal('Existing runtime hardlink differs')
+                        if not os.path.samefile(str(source),str(target)):conflicts.append(str(target))
                     else:os.link(str(source),str(target))
                     inventory[str(target)]=dict(hardlink=str(source));continue
                 if not member.isfile() or target.is_symlink():raise Refusal('Unsafe runtime file')
@@ -78,9 +84,9 @@ def extract_runtime(group, archive_mapping, *, limit):
                         for chunk in iter(lambda:source.read(1024*1024),b''):
                             digest.update(chunk);n+=len(chunk)
                             if old is not None:
-                                if old.read(len(chunk))!=chunk:raise Refusal('Existing runtime file differs: '+str(target))
+                                if old.read(len(chunk))!=chunk:conflicts.append(str(target))
                             else:new.write(chunk)
-                    if old is not None and old.read(1):raise Refusal('Existing runtime file is longer')
+                    if old is not None and old.read(1):conflicts.append(str(target))
                 finally:
                     if old:old.close()
                     if new:new.close()
@@ -90,36 +96,9 @@ def extract_runtime(group, archive_mapping, *, limit):
         # tar readers may stop at the end marker before consuming the final pinned part.
         while stream.read(1024*1024):pass
     finally:stream.close()
-    return dict(files=inventory,expanded_bytes=total,archive_sha256=stream.digest.hexdigest())
+    if conflicts:raise Refusal('Existing runtime members differ; preserved: '+str(sorted(set(conflicts))))
+    if group.get('sha256') and group['sha256']!=stream.digest.hexdigest():raise Refusal('Runtime archive hash differs')
+    return dict(files=inventory,members=members,expanded_bytes=total,archive_sha256=stream.digest.hexdigest())
 
 def relocate_runtime(plan, *, enabled=False):
-    if not enabled:raise Refusal('Runtime relocation is OFF; requires explicit --relocate-runtime')
-    stage=local(plan['stage_root']);data=local(Path(plan['logical'])/'d')
-    receipt=stage/'RUNTIME_RELOCATION.json'
-    if receipt.exists():
-        result=read(receipt)
-        for row in result['files']:checked(row['path'],row['after'])
-        return result
-    extracted={}
-    for name in ('INPUT_EXTRACTION.json','RUNTIME_EXTRACTION.json'):
-        extracted.update(read(stage/name)['files'])
-    env=plan['environment'];base=local(env['local_base_env'])
-    replacements={AP:str(stage/'runtime/m/ap'),FSW:str(stage/'runtime/fsw'),
-        UV:str(Path(env['local_base_python']).parents[1])}
-    result=dict(enabled=True,changes='Absolute runtime prefixes only; sealed reader and overlay bytes unchanged.',files=[])
-    # Preserve and authenticate each file before replacing an Orchard namespace prefix.
-    # v/boot.py is included because it may name the base interpreter or stdlib path.
-    for path in (data/'v/py',data/'v/boot.py',base/'pyvenv.cfg'):
-        local(path)
-        if str(path) not in extracted:raise Refusal('Runtime relocation input lacks an extraction pin: '+str(path))
-        checked(path,extracted[str(path)]);before=path.read_bytes();after=before
-        for source,dest in replacements.items():after=after.replace(source.encode(),dest.encode())
-        if b'/lustre/' in after or b'/home/' in after:raise Refusal('Unresolved external prefix in '+str(path))
-        saved=stage/'relocation_originals'/str(path.relative_to('/scratch/jjyeung'))
-        saved.parent.mkdir(parents=True,exist_ok=True)
-        with saved.open('xb') as stream:stream.write(before)
-        path.write_bytes(after)
-        result['files'].append(dict(path=str(path),original=str(saved),before=extracted[str(path)],
-            after=dict(bytes=len(after),sha256=hashlib.sha256(after).hexdigest())))
-    if not (base/'bin/python').is_file():raise Refusal('Relocated runtime interpreter is missing')
-    write(receipt,result);return result
+    raise Refusal('Runtime relocation is OFF and unavailable: use the package namespace; pinned bytes must remain unchanged')

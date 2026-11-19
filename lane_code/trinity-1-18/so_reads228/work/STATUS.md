@@ -1,2 +1,2 @@
-Thu Nov 19 18:28:19 UTC 2026
-Task: all 99 current CPU tests pass. The 17-test round-2 comparison/launch suite fails on preserved code (34 assertions); all 11 stage/namespace/ingest tests fail there. All eight cr2probe directories were replayed in seven comparisons: every preserved-code comparison accepts and every revised comparison refuses. Next: documentation, additive patch, fresh apply/bootstrap tests, delivery manifest.
+Thu Nov 19 19:28:48 UTC 2026
+Implemented HIGH 1 and LOW 2; private logical-root bind, stage-local extraction logs and pinned package policy paths are in work/round3/kit. The native -S controller successfully ran the real sealed operator in a separate CPU interpreter with a GPU-worker double. All 17 regressions fail against out_round2. Full-suite validation is running. No target or GPU work has run.

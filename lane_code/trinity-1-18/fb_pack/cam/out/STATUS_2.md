@@ -1,0 +1,1 @@
+Stage 2: Envelope, coverage, upstream receipt and 5979 QID bindings are rebuilt using route helpers and native exclusion predicates. 836 rows remain exclusion-ineligible; all rows remain in the delivered file.

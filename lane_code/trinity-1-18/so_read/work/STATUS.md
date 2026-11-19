@@ -1,11 +1,9 @@
-Thu Nov 19 17:52:26 UTC 2026
-VERDICT: DONE — round-8 fixes and delivery are complete.
-All five findings are fixed. The archive preserves admitted symlinks, rejects escaping/broken/cyclic links and retains stderr.
-The GPU interpreter/cache/preflight contract is explicit; CPU READY, gate, workers, ue.json and submit bind environment versions and SHA256.
-The builder admits only step 400 before reading base inputs; no alternate-export gate parameter remains. Archive-path aliases resolve on both sides.
-129 workspace tests and 48 fresh-application tests pass. All 12 retained failure controls reran; the ten round-8 tests produce 29 expected assertion failures before fixes.
-Five diffs apply with zero fuzz; original reader bytes and OFF output bytes are unchanged. ON CPU answers/traces remain exact.
-Archive/real-loader admission, CPU operator path, synthetic gate/submit integration, source probes, benchmark/profile and documentation checks pass.
-Workspace size after seal: 2,940,997,394 unique-inode bytes. out_round8 and the reviewed source snapshot retain their original hashes.
-No GPU, Git, SSH, scheduler operation, paid API, input-tree edit or deletion command ran. Production GPU parity/performance/memory and host interpreter/restore remain unrun.
-Completed before 18:30:31 UTC. FINAL_INTEGRITY.json seals the delivery.
+Thu Nov 19 19:15:26 UTC 2026
+VERDICT: DONE — round-9 fixes and delivery are complete.
+140 workspace tests and 59 fresh-application tests pass. All 13 fail-before controls reran; all 11 round-9 tests fail before and pass after.
+A4 runtime staging, namespace/wrapper commands, J.environment, production guard self-test, failed ue.json persistence, submit evidence, pre-allocation transfer and exact extraction commands are covered.
+Five patches apply with zero fuzz; original reader files and OFF output bytes remain unchanged. CPU ON equality passes; H100 byte equality remains required and unrun.
+All 13 runtime parts plus bwrap are pinned and listed as exact Orchard prerequisites, absent from supplied files. No dependency on the reference workspace remains.
+REPORT/NOTE contain Review round 9 and exact outputs. MANIFEST and FINAL_INTEGRITY seal the delivery. out_round9 is unchanged; eight round-7 logs are labelled.
+Workspace after seal: 2,941,839,039 unique-inode bytes. No Git, SSH, SCP, Slurm, GPU, paid API, input edit or deletion command ran.
+Completed before 19:38:16 UTC.

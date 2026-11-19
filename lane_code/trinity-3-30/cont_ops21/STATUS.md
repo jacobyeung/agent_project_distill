@@ -15,3 +15,17 @@ Base: /scratch/jjyeung/orch_n30/cont_ops20/STATUS.md (17:45Z ROTATE section). To
 ## 18:23Z
 - Own-arm staged on Orchard: D a15_cot_ap7e4d49a0f823 (1.tgz 359151d1), package a15_cot_apfadf2291c654b; o_pullfill.sh running (nohup; log P/a/0.log). Then: check a/e dryres/drypackage/10.json passed, o_cpucheck.sh, then o_sub.sh (REPORT_OWN400.md sequence; scripts in D dir).
 - 600 camera build DONE (Codex c21_a600, ~37 min): trinity-1-18 /scratch/jjyeung/orch_n30/cont_ops21_b/a600 (copy cont_ops21/work/a600, REPORT_A600C.md; stage 813f42db/c21a600; T 03:00:00; scorer unchanged). Review Astra c21_reva600 running on trinity-1-18 (log a600/review_dispatch.log).
+## 18:33Z
+- ANSWER 1823Z: 4th advanced card for n_ops1's forward; but 173258 H@544 was already RUNNING on it since 18:19Z. QUESTION 1830Z (default keep it; n_ops1 gets E's card). 173259 H@200 moved to general (pending QOSMaxJobsPerUser; starts after H@400), monitor tmux c21_monG259 (work/monG.sh, log work/monG_173259.log); c21_monA4 killed. RESULT 1831Z.
+## 18:45Z
+- E 173242 COMPLETED 18:37Z (59:37, advanced, orchard-community-1, cvd 0). Fetched; work/E: package/ (no a/e), src/, ret2/ (authenticated unpack), scores_E2.json (score_e.py). all: MRA 30.0 call 0.680 (A4 50.3/0.587; 544 28.3/0.993). Corpus ingest tmux c21_ingE (log work/E/ingest.log; WROTE, waiting on pub); RESULT path in work/E/RESULT_PATH (write after ingest).
+- Own-arm: fill receipts passed; CPU check 173264 (preempt) running. Then o_sub.sh (needs general empty -> after H@200, or advanced if a card frees under the yield rule).
+- ANSWER 1831Z: option (a) keep H@544; H@200 on general after H@400 (done: 173259 pending general).
+## 18:55Z
+- E RESULT posted (events/cont_ops/20261119T1840Z_RESULT_E_D0_step200_distance150.md; corpus 359fcc3c_s200_devS1_dist150_E_173242 published).
+- ORCH QUESTION 1845Z (project fs falling): answered RESULT 1847Z (own-arm fill wrote 21.6 GB at 18:20-18:23Z; reads use node /tmp). Offer: hardlink own-arm a/e parts to D@400's (frees 21.6 GB) on ORCH word. 600 staging (another 21.6 GB) held until ORCH says space allows.
+- Own-arm CPU check 173264 COMPLETED (a/c/CPU.json present). Ready to o_sub.sh (needs empty general).
+- 600 camera review: GO AFTER FIXES (1: scorer wrapper must check archive sha/bytes); copy work/a600/REVIEW_A600C.md. Fix round Codex c21_fixa600 on trinity-1-18 running.
+## 19:15Z
+- ANSWER 1853Z: no file replacement; packages link existing export parts instead of pulling (fill change + one Astra review before next staging); 600 dose point unstaged until N launched and n_ops1 reports >300 GiB free. Done: RESULT 1902Z (bytes 129.78 GB, 6 export copies), events/cont_ops/files_m400/ORCHARD_REMOVAL_CANDIDATES.md, E line in distill_design/R1_DISTANCE_NO_CALL_DIAGNOSIS_20261119.md.
+- 600 kit: scorer fix done (score_c600.py wrapper, 10 rejection tests). Link-first fill round Codex c21_linka600 running on trinity-1-18 (LINK_A600C_BRIEF.md). Then ONE Astra review covering scorer fix + link fill.

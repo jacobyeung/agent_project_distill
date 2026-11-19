@@ -1,0 +1,1776 @@
+{
+  "audit_results": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/AUDIT_RESULTS.json",
+    "sha256": "c1e15b7f2f2ea043a8979ac07efe382c1d52738e5d0c47f79cf516c0adb2ac5e"
+  },
+  "blocker_diagnostics": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/BLOCKER_DIAGNOSTICS.json",
+    "sha256": "48eefe65300eb3f0b05f0b3fb26c7df7a133ceff2f4210d31bc9d7ceb35b86f8"
+  },
+  "camera": {
+    "citing_rows": 150,
+    "diff": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/CAMERA_KR9C_DIFF.json",
+      "sha256": "9cfc5ab193295955c65e4ce0789593bb37635ecd131d8e0f00b5c3f41258fbdc"
+    },
+    "frame_reference_occurrences": 150,
+    "selection": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/CAMERA_SELECTION.json",
+      "sha256": "408e731104c46ab3b91158ba0a191fc677b6259069f45a20876296956df03716"
+    },
+    "unique_frame_keys": 7,
+    "unique_k6tk_hashes": 7,
+    "unique_kr9c_hashes": 7,
+    "variant_A_count": 5979,
+    "variant_B_count": 5829
+  },
+  "command": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/finalize.py",
+  "commands": {
+    "accounting": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/route.py 3",
+    "archive": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/package.py",
+    "audits": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/audit.py",
+    "camera": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/route.py 2",
+    "diagnostics": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/diagnose.py",
+    "envelopes": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/route.py 4",
+    "intake": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/intake.py",
+    "localization": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/localize.py",
+    "manifest": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/finalize.py",
+    "phrase": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/route.py 1"
+  },
+  "compose": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/COMPOSE_RESULT.json",
+    "sha256": "471956cbc4b41aa5c58da1e0403c8e09d985c32c23e70c1be6bd05a521d89f8e"
+  },
+  "config_handoff": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/CONFIG_HANDOFF.json",
+    "sha256": "8e3db2bac5ebec3ba118c180cf52aec282b6d2213d60eedb77e5de0ef7b4cb6c"
+  },
+  "frame_byte_verification": "MISSING: expected N frame-host staging and retained-frame audit receipts; no producer path or verified Q_E4 destinations supplied.",
+  "frame_coverage": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/FRAME_COVERAGE.json",
+    "sha256": "9868d1e0fa2dc1422f5195199a5b41cd08d3a0fe511eeaa4bd255a5fb6427755"
+  },
+  "inputs": {
+    "/scratch/jjyeung/n30_mirror/dist_diag/coverage_v2h/COVERAGE_DISTANCE_V2H.jsonl": {
+      "bytes": 10838154,
+      "sha256": "15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022"
+    },
+    "/scratch/jjyeung/n30_mirror/dist_diag/coverage_v2h/COVERAGE_UNITS_V2H.jsonl": {
+      "bytes": 57255154,
+      "sha256": "8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82"
+    },
+    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/repaired/rows.jsonl": {
+      "bytes": 55968241,
+      "sha256": "aedd3b54b913fd416b8daa53f022c86d1b3d98259f3c5e1a479e8bde528449d9"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/FRAME_COVERAGE.json": {
+      "bytes": 938,
+      "sha256": "9868d1e0fa2dc1422f5195199a5b41cd08d3a0fe511eeaa4bd255a5fb6427755"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/AUDIT_RESULTS.json": {
+      "bytes": 83249,
+      "sha256": "c1e15b7f2f2ea043a8979ac07efe382c1d52738e5d0c47f79cf516c0adb2ac5e"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/BLOCKER_DIAGNOSTICS.json": {
+      "bytes": 16625,
+      "sha256": "48eefe65300eb3f0b05f0b3fb26c7df7a133ceff2f4210d31bc9d7ceb35b86f8"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/CAMERA_KR9C_DIFF.json": {
+      "bytes": 27734,
+      "sha256": "9cfc5ab193295955c65e4ce0789593bb37635ecd131d8e0f00b5c3f41258fbdc"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/CAMERA_SELECTION.json": {
+      "bytes": 7688,
+      "sha256": "408e731104c46ab3b91158ba0a191fc677b6259069f45a20876296956df03716"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/COMPOSE_RESULT.json": {
+      "bytes": 45108,
+      "sha256": "471956cbc4b41aa5c58da1e0403c8e09d985c32c23e70c1be6bd05a521d89f8e"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/CONFIG_HANDOFF.json": {
+      "bytes": 35553,
+      "sha256": "8e3db2bac5ebec3ba118c180cf52aec282b6d2213d60eedb77e5de0ef7b4cb6c"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/ENVELOPE_INDEX.json": {
+      "bytes": 14763,
+      "sha256": "88bc41a6069e4ec4fdfeb98279ac5cceb53f71e61faf3c2da19c79d85dffb51c"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/EXCLUSION_ACCOUNTING.json": {
+      "bytes": 40345,
+      "sha256": "0f7cac4342081928070351182920d68d282c1722d76d235b0d1ae30061d952ee"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/INTAKE_RESULTS.json": {
+      "bytes": 69703,
+      "sha256": "f3951382955aad33537cf4813f15077e227742899b8cf5c5f60664729968be8a"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/LOCALIZED_INDEX.json": {
+      "bytes": 41404,
+      "sha256": "9c06c45c5435de70fe8480127245e50b803f6be9e21499d6df3a2158356e5069"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/PHRASE_DECISION.json": {
+      "bytes": 115350,
+      "sha256": "02f3ebd4af6c241c02df89a4ff51d933d68a320b75939cd82fd18524891b20b2"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/STAGED_INPUTS_FINAL.json": {
+      "bytes": 97338,
+      "sha256": "a7b2748e3eb70b785e5c3ba769d573b1e9c09308ca5651183b81010752861a77"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/TREE_IMPORTS.json": {
+      "bytes": 41733,
+      "sha256": "f9a7b1cdfd2cb687780848852179a6a84f0a602a074c0d2043dd83b174aefb50"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/config/LOCALIZED_ROW_SOURCES.json": {
+      "bytes": 27240,
+      "sha256": "47ccb8c33a2633cb3448428b1009f304a513198806e4feea12e6e7f2f2bbe167"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/config/LOCALIZED_SOURCE_MEMBERSHIP.json": {
+      "bytes": 1208146,
+      "sha256": "23726d542677e6fb51be6f4e0cac03d394c63c669902483cf208cd0c0cef2079"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/absolute_distance/envelope.json": {
+      "bytes": 767756,
+      "sha256": "da1ce4a887f459fd0ea6c5487ad9e9cb2c83c8f899805b5d3c8da2ee087790b8"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/camera_wording/envelope.json": {
+      "bytes": 1326653,
+      "sha256": "24da644568f09688c334cb51e0cbe9d14fc5d438447ea6d67a28addbad1247d8"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/coverage_distance/envelope.json": {
+      "bytes": 169092,
+      "sha256": "7ac3942fec8df7a8fb2e49ebb7e37a1876ee2645e606f067df9df6ac7cb3f300"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/coverage_units/envelope.json": {
+      "bytes": 498278,
+      "sha256": "324c93092821138a6f7a2d68835553074e24e9598643f677e1a177f79fe9b205"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/recovery/envelope.json": {
+      "bytes": 133621,
+      "sha256": "51fcd734aeced0992ae03410a1f93be33ee4daedf244c9e966fc215e4b07b381"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/units/envelope.json": {
+      "bytes": 864935,
+      "sha256": "86f4b7b25eac5761e82d66eba69ea481ffbcab9ce886cfea49f3a616fe2e6613"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/rows/camera_wording.jsonl": {
+      "bytes": 88186690,
+      "sha256": "31914ba5470c1b5b7fac4ba52a13482cb6ce2965a732b69f6f57a55ed1fbe814"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/rows/recovery_retained.jsonl": {
+      "bytes": 9641033,
+      "sha256": "bd005995cd7c905dda69572e4c39184883a91b756fc372dcddd9da23be07d08c"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/out/rows/units_retained.jsonl": {
+      "bytes": 104702790,
+      "sha256": "454b6b28388c8d171e117a7c1c290f387a233066c892e744d9794650c8bc53bf"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/prompts/fbp_route.md": {
+      "bytes": 8797,
+      "sha256": "aa40e79282a784bf7c5406a6e943f42af68a22c0bc133434bebe87dac780ea35"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/work/audit.py": {
+      "bytes": 3556,
+      "sha256": "ce9204dfe36f61347367d10790dfc5eede6a5cda1c20438a24ba6dc21aa8a088"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/work/code/a9b5799b5b5be533682e1154b593465d870a207307606226bb44da0173aaffa2.py": {
+      "bytes": 9457,
+      "sha256": "a9b5799b5b5be533682e1154b593465d870a207307606226bb44da0173aaffa2"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/work/code/b6c65b390f2161e3ca82fcb8c6fd0cc60bc9fd5e3c9ad6ab821fbe878ec7a4a9.py": {
+      "bytes": 17382,
+      "sha256": "b6c65b390f2161e3ca82fcb8c6fd0cc60bc9fd5e3c9ad6ab821fbe878ec7a4a9"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/work/diagnose.py": {
+      "bytes": 3875,
+      "sha256": "0f33d5b90bca68038ddd023de883671b3a18a9e0117216be5e716d4ad5ac22b5"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/work/finalize.py": {
+      "bytes": 16239,
+      "sha256": "7a7686d69fa2e8bc51479a58615f7c10935d53ef95de01a35dcc41b5a4f129df"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/work/intake.py": {
+      "bytes": 7066,
+      "sha256": "e4297934a3af94aeec0473a09594ff327ed4e96b94098bba5cbc0eaa74fe7163"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/work/localize.py": {
+      "bytes": 2963,
+      "sha256": "3e1dc82d4dd7494a1d1cb0d9a3c138d3507a7b59b7e8b23f5b258184aa348bee"
+    },
+    "/scratch/jjyeung/orch_n30/fb_pack/route/work/route.py": {
+      "bytes": 17454,
+      "sha256": "a2796bf08c35d5ba577668db0fcd4b20de6d0c8f759e9c2e5327ca90515f63a3"
+    },
+    "/scratch/jjyeung/orch_n30/sb_fullinv/out/FULL_INVENTORY.json": {
+      "bytes": 1105181,
+      "sha256": "a021698d65b0b3f293c381e9d7424e5f2275cbb3742e8f747f6320f2eed05eb3"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/row_sources.json": {
+      "bytes": 2721,
+      "sha256": "4369e2bbc89203ec864204290c401df33cac661cfb405917ee0007d91fd81dff"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/BUILD24E_REPORT.md": {
+      "bytes": 2754,
+      "sha256": "280ded9e885b83102d81407dbe2ee82661b6df99089f1b2c994cb6575a608137"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/N_LAUNCH_CONFIG.json": {
+      "bytes": 33176,
+      "sha256": "0e78d7f86f85cf6090db94bb4916fbd1c57b9fa2aff04dd0a8428a414a4a5f5f"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/TREE_SEAL.json": {
+      "bytes": 104,
+      "sha256": "2d8ff9682bf515f3a0b65bca5ee6e730474a037ccb6351dc3f2a91524ff32a17"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24e/upload/q/k/c.json": {
+      "bytes": 33757,
+      "sha256": "d3fa63662275a2a4d2f08113bdf8309a88a2b1e8194e382317a139fda18c0353"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24e/upload/q/k/n.json": {
+      "bytes": 37269,
+      "sha256": "5ed88bd0bcc11038d33028e4d4f025ff6a3f02e4780733e0d1980dc464480f5f"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/__init__.py": {
+      "bytes": 108,
+      "sha256": "72a82429fbe02185a5cbb5d8719ede6921ae543fbf15c163946f71b4815c468d"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/bindings.py": {
+      "bytes": 14979,
+      "sha256": "310be85df943d7cc740ad194af4f249e5e9b2b9ec2918bac0e5d00b5c1a1a531"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/box_v313.py": {
+      "bytes": 30926,
+      "sha256": "f84f6c306c301cd26b5c781b2825d23682a51b9ff546df32bac6c572c3a71ee0"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/calculator.py": {
+      "bytes": 12891,
+      "sha256": "24526a9fd406e32ab9737e74a3c91bda09b5a27dc18499e641132d11dcac3f42"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/common.py": {
+      "bytes": 3481,
+      "sha256": "14fe598a2c178afcb844b9a8a649851c84f82b946f83d3f0a87b173bd659d1fe"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/ground_v312.py": {
+      "bytes": 17280,
+      "sha256": "8a27fd6d585eb9835d85ce136978b5d58e1a8564503402e845c81f2d12bfe6dc"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/ground_v312_quality.py": {
+      "bytes": 10604,
+      "sha256": "a74c799c83fcfb7153da18d37667a62556a65c382b0e4553bd3e0e038d6a0078"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/ground_v313.py": {
+      "bytes": 27025,
+      "sha256": "6e5f1a2a49eafe6a74174b337878e9a2a7093804e8a321c60ba64acf118e5874"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/ground_v313_distance.py": {
+      "bytes": 2100,
+      "sha256": "c4cadcb8f6e39d1862cea695f9bf901abe5dc23b1634117bef20229ed9ea4c0d"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/instance_policy314.py": {
+      "bytes": 351,
+      "sha256": "4369d5b950aeba98991cc636419500a69fc610f6623b5ad197ea30f4a2718de4"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/paraphrase.py": {
+      "bytes": 16892,
+      "sha256": "688b035df990b33570636c1b3e42a3830b6cb75bde321026591bc9355159857b"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/generator/derivgen_v7/derivgen/room_v314.py": {
+      "bytes": 9627,
+      "sha256": "035d405d5907146683c990ae0dfb77148609e8bddac443c03fd40d420ec63f50"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/auxiliary_config.py": {
+      "bytes": 4283,
+      "sha256": "70a8bca46ad72d48885b3df23f35199e87b00b8e96d8d8b8de8eac04a9191dde"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/auxiliary_losses.py": {
+      "bytes": 32995,
+      "sha256": "d3889816c067d88887bc412576064686302385e39c14b5ff685b365c46e7c0aa"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/auxiliary_reason.py": {
+      "bytes": 14635,
+      "sha256": "7b16e6e1c8f458722e2927c2db5424aeb92bab65142ebcfc0f50d171d9444753"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/camera_config.py": {
+      "bytes": 11660,
+      "sha256": "c143d4514363d3f27d2a081147266f020114372183a4256a6c8bb56c767f3019"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/camera_head.py": {
+      "bytes": 33598,
+      "sha256": "f345803093d762ace1ffcef763aca8e66c806b209e0a68cb5dade43fb897a3fc"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/camera_targets.py": {
+      "bytes": 20981,
+      "sha256": "59a9475e87c6eb49fc103e8077ec224746f06fcdbde9b0a1a38088cb1aed18a4"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/carrier_c1_data.py": {
+      "bytes": 38629,
+      "sha256": "9ccee823404c8dc225c6f7d73a9f1c31d5b18cc40cd77a79c331c9021174b701"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/carrier_c1_routing.py": {
+      "bytes": 62535,
+      "sha256": "9ad354d548a80473de4399407f27054101c8e4707657ee7c349181f7e638d3e2"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/decoupled_resume.py": {
+      "bytes": 9231,
+      "sha256": "0935b5e81ec2fa05c0a89d41cebd68d6ea8390011c5b5997bb9c583f9a9b14f5"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/decoupled_v.py": {
+      "bytes": 14397,
+      "sha256": "5f249ed8cf10949d64718012ff47d8af59aa5787a2867bd1fcff6e1198a74d49"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/decoupled_v_run.py": {
+      "bytes": 40673,
+      "sha256": "3847d98e6f19ad1cd5950f1cbe23859bbee75d9a81a991b56bcde3c80cbbbbb1"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/decoupled_vc.py": {
+      "bytes": 3181,
+      "sha256": "a88c1e9727608698052477f3324d60c5d587491c810676d737fbe11dfa66d5f7"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/extent_receipt.py": {
+      "bytes": 2230,
+      "sha256": "dd0e355c89a1a1e8e89d25cb45adb45f7871ef27fa32bb68119c91097cf7641f"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/geometry_input.py": {
+      "bytes": 40053,
+      "sha256": "f0faffeed8d100dfb63d98872808aaf98945bba754078ea3d927b3a187259631"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/ground_lifting.py": {
+      "bytes": 13595,
+      "sha256": "55946ca1b528c60497c75e8c50155b0b9901816fb5986db3f480b4556102cd6d"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/ground_replay.py": {
+      "bytes": 4589,
+      "sha256": "aec017a851d8a8a0ba16cbe56eec9320add38ac6ad3ad54e274057b05bcda091"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/ground_rows.py": {
+      "bytes": 7156,
+      "sha256": "6c525f744aa20fa1b50d990233e120285e741b2b65c682316fe183d699db1c6e"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/grounding_features.py": {
+      "bytes": 6971,
+      "sha256": "d490f317b1054965743801e39d5400567c37a71386245c054e97c9ac2fad83f3"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/head_programs.py": {
+      "bytes": 31612,
+      "sha256": "571bea4d1a09270282a6f93f2e80977111d4ff9b8ee0f8b76a2a530d8e1342f0"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/live_trace313.py": {
+      "bytes": 14876,
+      "sha256": "334b491159390cd552a206ad08e2b956c60d04886515a55294731ad50df44655"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/mdg_decode.py": {
+      "bytes": 6977,
+      "sha256": "eeaf3b7a1c3a2cf3f665d708c738e950682d9ea4fee8eb7a42d007774c2fd55f"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/mdg_features.py": {
+      "bytes": 19072,
+      "sha256": "1d926c5398b8dcab8b6b9f3bebed8ddc9b8269bef90c7723721c9c1bc97ae40c"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/mdg_stream.py": {
+      "bytes": 7057,
+      "sha256": "ab57e71ddb3f6fa5afa2b1a0f06005fc621b3ef08eb19c5727348a97619dd923"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/next_gpu_check.py": {
+      "bytes": 3079,
+      "sha256": "17ff653b662231c310a0bf743aed42f56da86dc79ede7db54c3abca515b4079d"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/p3_geometry.py": {
+      "bytes": 8973,
+      "sha256": "7e8fd71bf1132216bdb0e2e424b64b6dfe841ba9ac71b825789ccaebc02bdcdd"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/p3_grammar.py": {
+      "bytes": 4663,
+      "sha256": "324fff572d07b90b74aebff7f6eebbad7e09c8328fc5420ce67f303024822a2f"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/p3_heads.py": {
+      "bytes": 9655,
+      "sha256": "ef6c96dccd7389ffadecf465d18873cdbda57fa884e67ef26e20e3b331288f9d"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/p3_printed_calculator.py": {
+      "bytes": 170,
+      "sha256": "00ad1a2a3e314ba256a1529e70d93ddec88d14997c79e76fe6969d2668b298ac"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/p3_printed_calculator_v2.py": {
+      "bytes": 11740,
+      "sha256": "9d63fc8af00beab117cd06ff51f4e2ccb87c6238af2dfb8ce71f48ea3985820d"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/p3_provenance.py": {
+      "bytes": 4347,
+      "sha256": "afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/phrases.py": {
+      "bytes": 12108,
+      "sha256": "11d1ac34cf5ee2c5237271bd46fdfbd761edd28f06a24e9c8c9ca89e44b856f3"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/point_depth_head.py": {
+      "bytes": 17666,
+      "sha256": "960a4334fb50f39d394fafe59bda71a80abf6dc5fd42dc4ea1b17c2e16e5eb69"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r0_exclusion.py": {
+      "bytes": 2817,
+      "sha256": "4c22cae7f0e6ad0512e224636c2dcc693d35481ad2b0fd1b078cc61187d99812"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r0_scenes.json": {
+      "bytes": 319810,
+      "sha256": "f7c458176426e22a13e47908b03abd2c6f5939d3e48eb7c24e7eba45b75ad479"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_coverage.py": {
+      "bytes": 13160,
+      "sha256": "63eb1982e6696d740c0818ad20dbc35924f9ab009cfe732f0c36ed67ce2217c3"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_launch22.py": {
+      "bytes": 2216,
+      "sha256": "ab841ac02648467c947ae072a866b7889bc2b9b8508520bc028d4dfdb2cfdc75"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_persisted.py": {
+      "bytes": 9997,
+      "sha256": "33d1615f17c2928009e7b32bce2fc2ef180f880e449c220b7613e0e332b53287"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_population.py": {
+      "bytes": 12167,
+      "sha256": "063ed256bc4b6d797bd99c99bdaf4f11c8fe045a2606645a1dfbcef548c6c76a"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_rooms.py": {
+      "bytes": 11512,
+      "sha256": "83b0363613dbb17bc8daf8bafc14a54ce77015509d49d7723b5402281f94d18f"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_routing.py": {
+      "bytes": 9850,
+      "sha256": "07c8751ffd2c0c3fbca6a251a5a6fad8d60c259592e2a6cf0621ee5f3a2bd538"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_training.py": {
+      "bytes": 9031,
+      "sha256": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_adapters.py": {
+      "bytes": 5749,
+      "sha256": "7ed39d466779eaeec440fbd32d5a375c5713e199542d2da51d8554f499bc1582"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_contract.py": {
+      "bytes": 13824,
+      "sha256": "1f77c21801944bf3d040096f7b59f9e52fd9411684985fdbe8062b046faaeb17"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_dev_merged.json": {
+      "bytes": 106183,
+      "sha256": "a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_exclusions.py": {
+      "bytes": 4870,
+      "sha256": "ff58f003e9f2002cab4b5e068b401d1dd8bc3cd3af5ed19ee83ed373607103c9"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_grammar.py": {
+      "bytes": 11040,
+      "sha256": "9bddc97d8f47fd64e94b6dd91b990d19f54f921f24b446795cc825cfb5ce8c6b"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_intake.py": {
+      "bytes": 7680,
+      "sha256": "fc968e85827dc56686c6b11814a02b3274f52fb3ca6281758111e1612a3e1c48"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_scene_bindings.py": {
+      "bytes": 18662,
+      "sha256": "f07b18611fa36d8c507e6c75f8e99544338a79fd4ff7d444a338576fce1d5a24"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_units.py": {
+      "bytes": 2169,
+      "sha256": "cc09432f9f5ae73e83a5d91b5d284fa63a681b6d12b219e1dc8dbce42bff3031"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_withheld.json": {
+      "bytes": 20320,
+      "sha256": "634820b44927b1a50c18db9b90246b4b99f8954b0d7f5f2893e547f1c92879ed"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r2_withheld.py": {
+      "bytes": 1843,
+      "sha256": "2f4e7b182555b25052ac62abf094264d87c26051e4ad56fe44916b328b7db45b"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/readout_geometry.py": {
+      "bytes": 2202,
+      "sha256": "7aebaa14d41e66d33b25a1b8d9be84aa577dd6494badc18885d5952aae5b28ac"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/row_removals.py": {
+      "bytes": 5014,
+      "sha256": "440810bd0377f8f72b24040e1f2bbe4a7686feb86c29ba537f5e31ac1f64c800"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/s1_exclusions.py": {
+      "bytes": 19442,
+      "sha256": "974d32a9a3c99fdfe3f74ab3a79d2d62c13623bfca9e190f8f47a54ca2e16c31"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/s1_routing.py": {
+      "bytes": 29073,
+      "sha256": "122353169d335771b97cb08ff31f0b1f12d904e2b42b1afb75c5fc31be35f3e3"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/s1_scene_census.py": {
+      "bytes": 6038,
+      "sha256": "34d30e3fccd6444b804d82132e8c4b38d336fdaaa75682b678d9b4b3348ff3ea"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/trace_grammar.py": {
+      "bytes": 35192,
+      "sha256": "a41ba19190eb354168ce5837b2047fb6510c868c5d7cbfbf160cbe924777e268"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/training_contract.py": {
+      "bytes": 7246,
+      "sha256": "750b1a4ed2eccd22aee2ae8549f62c67f073b918f929b9e0b52af4bb0afadfd8"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/trace_format/__init__.py": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/trace_format/box_v313.py": {
+      "bytes": 39310,
+      "sha256": "3a09cc1dafaaf51fc27e5653cdb82aa3ae34521c6ed9cb2c0c34050a4e1e3b6f"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/trace_format/calculator.py": {
+      "bytes": 12607,
+      "sha256": "23e5804145d6f5b81ed266ea36b15e4d6a25a6e7453ff8d369fee305f9a15b52"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/trace_format/contracts.py": {
+      "bytes": 5186,
+      "sha256": "206a7637c5584cc9d589910ade83d62113a58803602c83b00bf07a0639630e5f"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/trace_format/ground_v312.py": {
+      "bytes": 17032,
+      "sha256": "0acdc6a67d3892b179a22164dcb0f91d003f23dec5e225d798f430b2b86828e3"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/trace_format/ground_v313.py": {
+      "bytes": 28992,
+      "sha256": "c01b125171a5e4a17c1c5a0072a73fc2b9e9e434e5fe407c119461fcb51a99d3"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/trace_format/instance_policy314.py": {
+      "bytes": 351,
+      "sha256": "4369d5b950aeba98991cc636419500a69fc610f6623b5ad197ea30f4a2718de4"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/trace_format/program_errors.py": {
+      "bytes": 192,
+      "sha256": "3bfc15ce81736a8e15199902c9b09033009351216cd09f899967dee5cd47ffb3"
+    },
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/trace_format/room_v314.py": {
+      "bytes": 10030,
+      "sha256": "37c8d5fcfa24bbc29155a18f4400ad91dd5326a22b019edd66809f192afd1d07"
+    }
+  },
+  "packaging": {
+    "archive": "out/fbp_route.tar",
+    "reason": "New row files exceed the 300 MB inclusion limit; preserve source paths/pins and stage row bytes separately. No store was copied.",
+    "receipt": "out/PACKAGE.json",
+    "rows_included": false,
+    "sha256_file": "out/fbp_route.tar.sha256"
+  },
+  "passed_slices": [
+    "absolute_distance",
+    "units",
+    "coverage_distance",
+    "coverage_units"
+  ],
+  "phrase": {
+    "decision": "Original call text retained in production; radiator variant R invalidates c072905b extent content and raw row_bindings.",
+    "registered_document": {
+      "note": "Read once as instructed; the initial bounded read did not capture a file-byte digest. No second NFS read was made. The same rewrite rule is explicit in the supplied task prompt.",
+      "path": "/data2/jjyeung/agent_project_data/distill_design/PHRASE_KIT_K1_TRAIN_20261119.md",
+      "sha256": "MISSING"
+    },
+    "report": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/PHRASE_DECISION.json",
+      "sha256": "02f3ebd4af6c241c02df89a4ff51d933d68a320b75939cd82fd18524891b20b2"
+    },
+    "variants": {
+      "absolute_distance": {
+        "changed_rows": 806,
+        "file": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/variant_R/absolute_distance.jsonl",
+          "row_count": 8315,
+          "sha256": "0fa61fec627038b4437964f54f705154acb3039a2e0788ced3466235e2dcf9b4"
+        }
+      },
+      "camera_wording": {
+        "changed_rows": 0,
+        "file": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/variant_R/camera_wording.jsonl",
+          "row_count": 6000,
+          "sha256": "e3c72962e3fd774c7e15fa1e4aeae1b6642264bf4f3cf54b9e350b8d7bfb9707"
+        }
+      },
+      "coverage_distance": {
+        "changed_rows": 149,
+        "file": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/variant_R/coverage_distance.jsonl",
+          "row_count": 1500,
+          "sha256": "77e8b85637b2479bf11b4ca6ac7b772e8822ae89b6b1986a5732ab428103327b"
+        }
+      },
+      "coverage_units": {
+        "changed_rows": 476,
+        "file": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/variant_R/coverage_units.jsonl",
+          "row_count": 4500,
+          "sha256": "3d7c803edc56b9639070cb41024b8ebfe38744a77c46102c167163b9d080a252"
+        }
+      },
+      "recovery": {
+        "changed_rows": 112,
+        "file": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/variant_R/recovery.jsonl",
+          "row_count": 994,
+          "sha256": "d73236ea4277687e6a03337f6cdbd659ffb6f85b361a6d7246390504f8ea682c"
+        }
+      },
+      "units": {
+        "changed_rows": 818,
+        "file": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/variant_R/units.jsonl",
+          "row_count": 8577,
+          "sha256": "bfb74ed038edb6897961c0704b36b217abd0ea67d79e70bc9dd9abf97e49d600"
+        }
+      }
+    }
+  },
+  "production_ready": false,
+  "schema": "fbp-route-manifest-v1",
+  "slices": {
+    "absolute_distance": {
+      "audit": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/audits/02_rows_aedd3b54b913/audit.json",
+        "row_count": 8315,
+        "sha256": "fd790e5d7d66adf1e4b6fc72f5ba3c3866d8ca655c6dbe20298b24f54ab4d597"
+      },
+      "audit_hits": {
+        "BENCH v2": 0,
+        "K1": 0,
+        "R0": 0,
+        "dev-S1": 0,
+        "withheld-80": 0
+      },
+      "camera_remove": null,
+      "coverage": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/absolute_distance/coverage.json",
+        "row_count": 8315,
+        "sha256": "93e882f5e79a8670f3e42131e21cde51e77723201bfc930c08782b476fc5196f"
+      },
+      "envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/absolute_distance/envelope.json",
+        "row_count": 8315,
+        "sha256": "da1ce4a887f459fd0ea6c5487ad9e9cb2c83c8f899805b5d3c8da2ee087790b8"
+      },
+      "every_row_seen": true,
+      "first2000": {
+        "admitted": 1868,
+        "reasons": {
+          "excluded:eval_rooms": 132
+        },
+        "refused": 132,
+        "report": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/absolute_distance_first2000.json",
+          "sha256": "f2a41a7000fbe8c5cfda63dae7c32dff8354946971eb94b08100da293b170ad5"
+        },
+        "seen": 2000,
+        "status": "PASS_WITH_EXPLAINED_REFUSALS"
+      },
+      "localized_first2000": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/absolute_distance/intake.json",
+        "row_count": 2000,
+        "sha256": "2dfe24d274369466c67d6c4a7ea9a1afcf6b0b9d240cf4f553a20d584d23ab30"
+      },
+      "native_counts": {
+        "admitted": 7805,
+        "refused": 510,
+        "seen": 8315
+      },
+      "native_refusal_reasons": {
+        "excluded:eval_rooms": 510
+      },
+      "prefiltered": false,
+      "remove": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/REMOVE_absolute_distance_exclusions.json",
+        "row_count": 0,
+        "sha256": "e652af1dfc281150393553ead750a095e85412573e445a627364e1b5e04b29e9"
+      },
+      "rows": {
+        "path": "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/repaired/rows.jsonl",
+        "row_count": 8315,
+        "sha256": "aedd3b54b913fd416b8daa53f022c86d1b3d98259f3c5e1a479e8bde528449d9"
+      },
+      "shards": [
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/000/coverage.json",
+            "sha256": "24bc5476e7d274c1af5704c9b0796fb665c597d31f19b87f33c54acec87c5a05"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/000/envelope.json",
+            "sha256": "b659cb24d1c60d27aa5eb71c5ca57ea741c0ec079dfad63b5b41aac931ba3bca"
+          },
+          "result": {
+            "admitted": 1868,
+            "reasons": {
+              "excluded:eval_rooms": 132
+            },
+            "refused": 132,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/absolute_distance_shard000.json",
+              "sha256": "db06f12199eb4430e22e9140674f9b45db66455ebc4edd9151e1848a1e0cd22f"
+            },
+            "seen": 2000,
+            "status": "PASS_WITH_EXPLAINED_REFUSALS"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/000/rows.jsonl",
+            "sha256": "4a9951256d153fb945ea173c02fedb163829f0ce59140f85afa4875ecde90c48"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/001/coverage.json",
+            "sha256": "e7fc3c0fd7f56b753695fd14fd4d15b621886c6815c8f1b2bf5bc29b961b2603"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/001/envelope.json",
+            "sha256": "56cc5c3c6b64b6b8e91ba5a5fbe3babd821aaf83d4557f85cb01d315c17c7585"
+          },
+          "result": {
+            "admitted": 1881,
+            "reasons": {
+              "excluded:eval_rooms": 119
+            },
+            "refused": 119,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/absolute_distance_shard001.json",
+              "sha256": "2c15f7d6b9abf46a3ddf91aaf95548d6042f1fb00ffa91e11ffdc3a1018a0962"
+            },
+            "seen": 2000,
+            "status": "PASS_WITH_EXPLAINED_REFUSALS"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/001/rows.jsonl",
+            "sha256": "d33658f724a2a321fdaf64b1e044efefeb4c6b7e962b87d991cd67a1d031f389"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/002/coverage.json",
+            "sha256": "4f025e7045180b3da342740ffaa1c3c6375a8daf885c30000568a649a2ffb3b6"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/002/envelope.json",
+            "sha256": "6b367cd7b1795f4cb7c743dc2d59fc4047c8adfe1775975f3a7a626db9bb7a0e"
+          },
+          "result": {
+            "admitted": 1865,
+            "reasons": {
+              "excluded:eval_rooms": 135
+            },
+            "refused": 135,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/absolute_distance_shard002.json",
+              "sha256": "d8b76908e4f6d7a643d71dde5da9fd9791e20a723fc863196027994dc9b6fbe8"
+            },
+            "seen": 2000,
+            "status": "PASS_WITH_EXPLAINED_REFUSALS"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/002/rows.jsonl",
+            "sha256": "56787a45af04a10d9411697e4284c72eda52fa80be9b8b3b8ad2a3d1ce02c468"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/003/coverage.json",
+            "sha256": "00a6f9c6a54e27d16f390c98fe27433784c57d648e713375e3b18477da703e40"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/003/envelope.json",
+            "sha256": "d0de3422a19267ca9c6054d7a54a0bfbefca8c0a30f449c7b1709d71118a07c4"
+          },
+          "result": {
+            "admitted": 1889,
+            "reasons": {
+              "excluded:eval_rooms": 111
+            },
+            "refused": 111,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/absolute_distance_shard003.json",
+              "sha256": "5e73194f71c381bc20bb33e39986c4467b099be68748caf3644c623c2d201cb6"
+            },
+            "seen": 2000,
+            "status": "PASS_WITH_EXPLAINED_REFUSALS"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/003/rows.jsonl",
+            "sha256": "415d9d3efd6511b9849943bac6f49eb9e3c81eb5e0b2a190987ad6e9ffac63cc"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/004/coverage.json",
+            "sha256": "9849b14d6772e7e02bfc12e89ccda615943eb0df908afcaba5e6c592c513d8c0"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/004/envelope.json",
+            "sha256": "f744d3984dacc02c9d0f8ad11d68a44826bcd909170d71fbd44b727a307ad57a"
+          },
+          "result": {
+            "admitted": 302,
+            "reasons": {
+              "excluded:eval_rooms": 13
+            },
+            "refused": 13,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/absolute_distance_shard004.json",
+              "sha256": "46c405858057d18b8b06f6bebf411c60e054b6d6068fe74e911c1c39d17558be"
+            },
+            "seen": 315,
+            "status": "PASS_WITH_EXPLAINED_REFUSALS"
+          },
+          "row_count": 315,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/absolute_distance/004/rows.jsonl",
+            "sha256": "1c431406b9913dd7d6ecb693d76d272d5806416b2809b803e1bc6190cf2eaa84"
+          }
+        }
+      ],
+      "status": "PASSED_NATIVE_INTAKE_WITH_EXCLUSIONS",
+      "transport_envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/envelopes/absolute_distance.json",
+        "row_count": 8315,
+        "sha256": "dc4eac20f0ed95d529735f96503797d8e6898ccb50a30952da1e483ec86f335c"
+      },
+      "upstream_accounting_scope": "Exclusion predicates on every final source row, before grammar/extent checks; counts can differ from first-failure native counts.",
+      "upstream_receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/absolute_distance/upstream.json",
+        "row_count": 8315,
+        "sha256": "266ff6c464fe17d276d636909be8e75dc0d5eb469edc466fb83fdfa95d5d79c2"
+      }
+    },
+    "camera_B": {
+      "audit": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/audits/04_camera_B_3ec380f0b578/audit.json",
+        "row_count": 5829,
+        "sha256": "c9733c587ef89882cc9cacdd7a61b3cd9252e8e4bc6fa9fce9e8332e1e561e90"
+      },
+      "audit_hits": {
+        "BENCH v2": 0,
+        "K1": 0,
+        "R0": 0,
+        "dev-S1": 0,
+        "withheld-80": 0
+      },
+      "camera_remove": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/REMOVE_camera_B.json",
+        "sha256": "b4fdecbb25de62d76ebb0039b3e75e36a137a72b866f1b000939086626a65cb5"
+      },
+      "coverage": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/camera_B/coverage.json",
+        "row_count": 5829,
+        "sha256": "239e0507d577bebb4c6e43687825380a6370555f11ae877c83e33bbdb0c6c6a7"
+      },
+      "envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/camera_B/envelope.json",
+        "row_count": 5829,
+        "sha256": "a8bb8fa44e4aa903096a76fef63a43e417c8ea83c0ea424fa4a80bc19276ae16"
+      },
+      "every_row_seen": true,
+      "first2000": {
+        "admitted": 1702,
+        "reasons": {
+          "Shared grammar: unit_quantity": 53,
+          "excluded:eval_rooms": 245
+        },
+        "refused": 298,
+        "report": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_B_first2000.json",
+          "sha256": "c97a826b9286fc3a89307aa5516fd0fd78978e864689e60996ae40884ea4c8e2"
+        },
+        "seen": 2000,
+        "status": "TREE_FIX_REQUIRED"
+      },
+      "localized_first2000": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/camera_B/intake.json",
+        "row_count": 2000,
+        "sha256": "4da16d298827bd14d4cfe87169b1293a5cf81c0153e315d14dc0cadf46682ccb"
+      },
+      "native_counts": {
+        "admitted": 1707,
+        "refused": 4122,
+        "seen": 5829
+      },
+      "native_refusal_reasons": {
+        "Shared grammar: number_not_allowed,unit_quantity": 1938,
+        "Shared grammar: unit_quantity": 1936,
+        "excluded:eval_rooms": 248
+      },
+      "prefiltered": true,
+      "remove": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/REMOVE_camera_B_exclusions.json",
+        "row_count": 0,
+        "sha256": "2f87ffdf9067f6bd1bf7f82aa7e174c7578d854834c2dfe9569e399f81db73e6"
+      },
+      "rows": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/rows/camera_B.jsonl",
+        "row_count": 5829,
+        "sha256": "3ec380f0b5784942984c24165b56f56581abad8a449f369b1a7d719804ab465a"
+      },
+      "shards": [
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_B/000/coverage.json",
+            "sha256": "a7a6b01625f49327ac26ad0f8968500b0a4699fa320015b40fe4dfa747ab9f0a"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_B/000/envelope.json",
+            "sha256": "b0ae3cf220421538054abc06d5d5dfb37d5a7968362a95403c5d9236c726a48e"
+          },
+          "result": {
+            "admitted": 1702,
+            "reasons": {
+              "Shared grammar: unit_quantity": 53,
+              "excluded:eval_rooms": 245
+            },
+            "refused": 298,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_B_shard000.json",
+              "sha256": "9f0b28a4b14de878c02563ffdbd15128ed8e9a42d3ac31d399e8519e31509218"
+            },
+            "seen": 2000,
+            "status": "TREE_FIX_REQUIRED"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_B/000/rows.jsonl",
+            "sha256": "153207dd1b539c4f3681a900df4f39452d04b5a110dfe02c0f7ccba16bbfd66e"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_B/001/coverage.json",
+            "sha256": "a1e65855313b59503c12c2598c3eebd00c3a1232ca8df4719c87cda37ae9253a"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_B/001/envelope.json",
+            "sha256": "9367e1c5726bbe9efb4c3720d7f86a4dbf15d2b3acfabff4b073d29f9af35036"
+          },
+          "result": {
+            "admitted": 1,
+            "reasons": {
+              "Shared grammar: number_not_allowed,unit_quantity": 115,
+              "Shared grammar: unit_quantity": 1883,
+              "excluded:eval_rooms": 1
+            },
+            "refused": 1999,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_B_shard001.json",
+              "sha256": "943f4994b27e437162cd8cb7df36e3c44b632f12648fa1a82a1d7f112ccc8416"
+            },
+            "seen": 2000,
+            "status": "TREE_FIX_REQUIRED"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_B/001/rows.jsonl",
+            "sha256": "1eee5d58ac83443f90090b17b6b2d8bae86c1018bb48c8bb4596424a7008e809"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_B/002/coverage.json",
+            "sha256": "b9e039b8beef555bf9d73e1d22189412e4a6811c70b66479066fc831ffa858ee"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_B/002/envelope.json",
+            "sha256": "a9261fe4514074656a4025a6de070d9c7287baaf2b1aba1da056f65f21261dcc"
+          },
+          "result": {
+            "admitted": 4,
+            "reasons": {
+              "Shared grammar: number_not_allowed,unit_quantity": 1823,
+              "excluded:eval_rooms": 2
+            },
+            "refused": 1825,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_B_shard002.json",
+              "sha256": "3e14ff5df38b9680a1dc4b3d5b2dd04754539fbcaa361cb444a2f625170d026b"
+            },
+            "seen": 1829,
+            "status": "TREE_FIX_REQUIRED"
+          },
+          "row_count": 1829,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_B/002/rows.jsonl",
+            "sha256": "bd4c034f3395e6f62aef06a489af7bb87b689d7629924522bc4eee65ac68541e"
+          }
+        }
+      ],
+      "status": "BLOCKED_TREE_CONTRACT",
+      "transport_envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/envelopes/camera_B.json",
+        "row_count": 5829,
+        "sha256": "96488cb5a9b7022effe78efeb2e0f7b0e896d7119ae6b8be2cf541e02d4b9ce8"
+      },
+      "upstream_accounting_scope": "Exclusion predicates on every final source row, before grammar/extent checks; counts can differ from first-failure native counts.",
+      "upstream_receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/camera_B/upstream.json",
+        "row_count": 5829,
+        "sha256": "e1f0530df3c2936246b5552616ac9f2beaf5b091fdbf54a99126d9834499bb54"
+      }
+    },
+    "camera_wording": {
+      "audit": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/audits/06_camera_wording_31914ba5470c/audit.json",
+        "row_count": 5979,
+        "sha256": "63a774f9f3c9e9b5c2b7ad5c982ca3a519333c7adc10243065f6bf977164f2ab"
+      },
+      "audit_hits": {
+        "BENCH v2": 0,
+        "K1": 0,
+        "R0": 0,
+        "dev-S1": 0,
+        "withheld-80": 0
+      },
+      "camera_remove": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/REMOVE_camera_wording.json",
+        "sha256": "881d0e0dded4a050355bcd78b3396c02e759e6545017690fa3f5c2aed49699a8"
+      },
+      "coverage": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/camera_wording/coverage.json",
+        "row_count": 5979,
+        "sha256": "9594e099777ea5bc72a9e5b1ce2f019025b0259ff4ed5676ec20e5e4aec00112"
+      },
+      "envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/camera_wording/envelope.json",
+        "row_count": 5979,
+        "sha256": "24da644568f09688c334cb51e0cbe9d14fc5d438447ea6d67a28addbad1247d8"
+      },
+      "every_row_seen": true,
+      "first2000": {
+        "admitted": 1717,
+        "reasons": {
+          "Shared grammar: unit_quantity": 6,
+          "excluded:eval_rooms": 277
+        },
+        "refused": 283,
+        "report": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_wording_first2000.json",
+          "sha256": "3fd6265d59b8f8a09aa63c36611db8e5e112279d976752d6e34dbb7e29951b0a"
+        },
+        "seen": 2000,
+        "status": "TREE_FIX_REQUIRED"
+      },
+      "localized_first2000": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/camera_wording/intake.json",
+        "row_count": 2000,
+        "sha256": "146c0bdeb0714cb2fdc28d148ff4052e38b3b3885881b151832375245628a6b3"
+      },
+      "native_counts": {
+        "admitted": 1722,
+        "refused": 4257,
+        "seen": 5979
+      },
+      "native_refusal_reasons": {
+        "Shared grammar: number_not_allowed,unit_quantity": 1984,
+        "Shared grammar: unit_quantity": 1993,
+        "excluded:eval_rooms": 280
+      },
+      "prefiltered": true,
+      "remove": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/REMOVE_camera_wording_exclusions.json",
+        "row_count": 0,
+        "sha256": "af1c018fac85b4c1f34a1c928330f626a137782094acc2723d24671cf4ed92a2"
+      },
+      "rows": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/rows/camera_wording.jsonl",
+        "row_count": 5979,
+        "sha256": "31914ba5470c1b5b7fac4ba52a13482cb6ce2965a732b69f6f57a55ed1fbe814"
+      },
+      "shards": [
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_wording/000/coverage.json",
+            "sha256": "41947af041297251c964bfaaff805d6fea3789f2ee9be5203cfd5a43e1c872a1"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_wording/000/envelope.json",
+            "sha256": "1c685404971360b041ab06a0fc9c064208372a9fb7edadb2c5c8b901a1e48691"
+          },
+          "result": {
+            "admitted": 1717,
+            "reasons": {
+              "Shared grammar: unit_quantity": 6,
+              "excluded:eval_rooms": 277
+            },
+            "refused": 283,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_wording_shard000.json",
+              "sha256": "a0685df7771f8ed9328da1ead0cdf837b4ae28414f85c4b646ed0ec85eb5a2dd"
+            },
+            "seen": 2000,
+            "status": "TREE_FIX_REQUIRED"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_wording/000/rows.jsonl",
+            "sha256": "30b5da996687b9f3536909a12e2ac8c67e2cdf379cc4db5b640a66fc8fa45a42"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_wording/001/coverage.json",
+            "sha256": "bc5b84b8a4956feb6a1eb22e11af960efc221ff51e7cfb8a5cb086e4bf30f37d"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_wording/001/envelope.json",
+            "sha256": "06fc4cfacbaa6fc8e5428f1ee27df510af9561f8696885438f464695d6a6bf57"
+          },
+          "result": {
+            "admitted": 0,
+            "reasons": {
+              "Shared grammar: number_not_allowed,unit_quantity": 13,
+              "Shared grammar: unit_quantity": 1987
+            },
+            "refused": 2000,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_wording_shard001.json",
+              "sha256": "cd43aff9ed42697b0a8f1c3f89926c03032bc16a652d13da4c2e9fed3ea19e78"
+            },
+            "seen": 2000,
+            "status": "TREE_FIX_REQUIRED"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_wording/001/rows.jsonl",
+            "sha256": "bdcc356f2dbdc31eb8f50c8bb4a3129453df00d71136d957c06d02ccdf1e609d"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_wording/002/coverage.json",
+            "sha256": "4f18d008e092eccf127cf4cc7298c2c63c14948cd498bd5a4e08c968c5a1c76a"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_wording/002/envelope.json",
+            "sha256": "5f393db3e4190f1a5a1724172c2a6b0f625a73a44aa3cdb80bc52e6bdde6a8a1"
+          },
+          "result": {
+            "admitted": 5,
+            "reasons": {
+              "Shared grammar: number_not_allowed,unit_quantity": 1971,
+              "excluded:eval_rooms": 3
+            },
+            "refused": 1974,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_wording_shard002.json",
+              "sha256": "18b7b136ef6ab712a42d609d4fd10875a1f991b291d7239710a253b765358701"
+            },
+            "seen": 1979,
+            "status": "TREE_FIX_REQUIRED"
+          },
+          "row_count": 1979,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/camera_wording/002/rows.jsonl",
+            "sha256": "898c801d6faf5bb8eb54b72ae32b2b23daa24f7e508dca834cd50f254cdfd48e"
+          }
+        }
+      ],
+      "status": "BLOCKED_TREE_CONTRACT",
+      "transport_envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/envelopes/camera_wording.json",
+        "row_count": 5979,
+        "sha256": "ef52fb558da7a2190d741bab22c0c9748886ee46e2e896b3036f6568d545f6eb"
+      },
+      "upstream_accounting_scope": "Exclusion predicates on every final source row, before grammar/extent checks; counts can differ from first-failure native counts.",
+      "upstream_receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/camera_wording/upstream.json",
+        "row_count": 5979,
+        "sha256": "c9b42b6d3f34fd2bce1cc79ac0e1a68182daaf85c8f007c11113c0ca7976e50d"
+      }
+    },
+    "coverage_distance": {
+      "audit": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/audits/00_COVERAGE_DISTANCE_V2H_15387646fd4a/audit.json",
+        "row_count": 1500,
+        "sha256": "5367978b5aece4c513698e4de2c89c7f59cd22bb8968c44f5aef71cec0bc2121"
+      },
+      "audit_hits": {
+        "BENCH v2": 0,
+        "K1": 0,
+        "R0": 0,
+        "dev-S1": 0,
+        "withheld-80": 0
+      },
+      "camera_remove": null,
+      "coverage": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/coverage_distance/coverage.json",
+        "row_count": 1500,
+        "sha256": "87a4501326c7eb008cb22e0f5c040925b01aba8568cf8fef6cac473d40823bc4"
+      },
+      "envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/coverage_distance/envelope.json",
+        "row_count": 1500,
+        "sha256": "7ac3942fec8df7a8fb2e49ebb7e37a1876ee2645e606f067df9df6ac7cb3f300"
+      },
+      "every_row_seen": true,
+      "first2000": {
+        "admitted": 1500,
+        "reasons": {},
+        "refused": 0,
+        "report": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/coverage_distance_first2000.json",
+          "sha256": "63a6a5456be402eb5c48d1dd7b7b068622cc334fed5f1e790baee40abe39e5da"
+        },
+        "seen": 1500,
+        "status": "PASS"
+      },
+      "localized_first2000": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/coverage_distance/intake.json",
+        "row_count": 1500,
+        "sha256": "b9690bde92dd925aa145a90f1333d37499ee08e0e6c54253f81b10f8299e87fd"
+      },
+      "native_counts": {
+        "admitted": 1500,
+        "refused": 0,
+        "seen": 1500
+      },
+      "native_refusal_reasons": {},
+      "prefiltered": false,
+      "remove": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/REMOVE_coverage_distance_exclusions.json",
+        "row_count": 0,
+        "sha256": "3049ca7d43c07f94a09d208b11ca8a9544a3a9fc7072d5f039b52b7134db72dd"
+      },
+      "rows": {
+        "path": "/scratch/jjyeung/n30_mirror/dist_diag/coverage_v2h/COVERAGE_DISTANCE_V2H.jsonl",
+        "row_count": 1500,
+        "sha256": "15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022"
+      },
+      "shards": [
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_distance/000/coverage.json",
+            "sha256": "8056aa999e7f96f62bc4978847f483bf24297ce9f65b30a231a59012aa1f577d"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_distance/000/envelope.json",
+            "sha256": "f150a414b282c98d5167a09d9afc35fa7a7caebeb191e24f461089f3e1cb7e31"
+          },
+          "result": {
+            "admitted": 1500,
+            "reasons": {},
+            "refused": 0,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/coverage_distance_shard000.json",
+              "sha256": "f4ff5fc66c5f968c03fa2bd004d29b252e5cc8593d222fd23c3053c201fff785"
+            },
+            "seen": 1500,
+            "status": "PASS"
+          },
+          "row_count": 1500,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_distance/000/rows.jsonl",
+            "sha256": "15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022"
+          }
+        }
+      ],
+      "status": "PASSED_NATIVE_INTAKE_WITH_EXCLUSIONS",
+      "transport_envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/envelopes/coverage_distance.json",
+        "row_count": 1500,
+        "sha256": "81fd0960d6f4d7f9743f0dce7ed76581f3a475ecdd2e98e26d360587e728e31c"
+      },
+      "upstream_accounting_scope": "Exclusion predicates on every final source row, before grammar/extent checks; counts can differ from first-failure native counts.",
+      "upstream_receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/coverage_distance/upstream.json",
+        "row_count": 1500,
+        "sha256": "4adb1ac3d56da082b9a4d23e37cf2dbb39a678ed43ad176676f9934b5d24fc51"
+      }
+    },
+    "coverage_units": {
+      "audit": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/audits/01_COVERAGE_UNITS_V2H_8ec1efd2c185/audit.json",
+        "row_count": 4500,
+        "sha256": "f84378fb44436b070a5c7c12b502dfe0eda234f3747c12c5b266ce9e84427eda"
+      },
+      "audit_hits": {
+        "BENCH v2": 0,
+        "K1": 0,
+        "R0": 0,
+        "dev-S1": 0,
+        "withheld-80": 0
+      },
+      "camera_remove": null,
+      "coverage": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/coverage_units/coverage.json",
+        "row_count": 4500,
+        "sha256": "fbd4a4d189ed63c705b7bef4e035d6c026896b58042f34b7c33efaaaa8ad6b8a"
+      },
+      "envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/coverage_units/envelope.json",
+        "row_count": 4500,
+        "sha256": "324c93092821138a6f7a2d68835553074e24e9598643f677e1a177f79fe9b205"
+      },
+      "every_row_seen": true,
+      "first2000": {
+        "admitted": 2000,
+        "reasons": {},
+        "refused": 0,
+        "report": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/coverage_units_first2000.json",
+          "sha256": "ab2ef6e5861be63915f66c901cb32d9b28a8897d81e015cc71e8741f84a8986a"
+        },
+        "seen": 2000,
+        "status": "PASS"
+      },
+      "localized_first2000": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/coverage_units/intake.json",
+        "row_count": 2000,
+        "sha256": "76704b57246d283e5fe2cecfcc5943932a85cb1278d89fcc6c4d3b7bd8bfde3f"
+      },
+      "native_counts": {
+        "admitted": 4500,
+        "refused": 0,
+        "seen": 4500
+      },
+      "native_refusal_reasons": {},
+      "prefiltered": false,
+      "remove": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/REMOVE_coverage_units_exclusions.json",
+        "row_count": 0,
+        "sha256": "06b2ff277888f07f2008061190bce76d56d0b9ebe360797dcebc18483923da7b"
+      },
+      "rows": {
+        "path": "/scratch/jjyeung/n30_mirror/dist_diag/coverage_v2h/COVERAGE_UNITS_V2H.jsonl",
+        "row_count": 4500,
+        "sha256": "8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82"
+      },
+      "shards": [
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_units/000/coverage.json",
+            "sha256": "545da1e754ddeab1f1a155851efeec1fd63f8410db063596efdf582d4fabe2e6"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_units/000/envelope.json",
+            "sha256": "f55e05719f2f7da6c9265a25472de6a5484ab5e518cecd272700931db950a36e"
+          },
+          "result": {
+            "admitted": 2000,
+            "reasons": {},
+            "refused": 0,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/coverage_units_shard000.json",
+              "sha256": "47843118a2dd4656b2bd950f5640e3250fdff638de87e1486cb405447e3bfe5d"
+            },
+            "seen": 2000,
+            "status": "PASS"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_units/000/rows.jsonl",
+            "sha256": "c8f34093290c39662f85028c718fbe396955e6fd37bb02fceb04fc36c46af377"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_units/001/coverage.json",
+            "sha256": "de38fba95faef03d7f6ac2e228d4e0d5d3e7d5f741124407b7b330c8b8413dc7"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_units/001/envelope.json",
+            "sha256": "9ca7e6b917541683fca2afa6e79d6f88930fb857c560f42c69a6e3395769c551"
+          },
+          "result": {
+            "admitted": 2000,
+            "reasons": {},
+            "refused": 0,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/coverage_units_shard001.json",
+              "sha256": "9bcb5e4a521853e8e3b81493e2790523d24422ac8caf685c639af5115ca4a114"
+            },
+            "seen": 2000,
+            "status": "PASS"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_units/001/rows.jsonl",
+            "sha256": "48e43f0143faadc8ab20ca597425e891c0799014851d8cc0f7ac3e1ed65b9b64"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_units/002/coverage.json",
+            "sha256": "a67f5f113de6a2f6c1fc0ad581c36b8443e8708c0e54a24cdb3aad9bde6b6ce2"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_units/002/envelope.json",
+            "sha256": "9bae576777811e38f7832a71dab391da5d7db74e315acb61bef45680feba79a4"
+          },
+          "result": {
+            "admitted": 500,
+            "reasons": {},
+            "refused": 0,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/coverage_units_shard002.json",
+              "sha256": "1c3f545b9723388d779b6e2bbc42712ff6ad1b02bb0dab2d55739210e10a12d8"
+            },
+            "seen": 500,
+            "status": "PASS"
+          },
+          "row_count": 500,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/coverage_units/002/rows.jsonl",
+            "sha256": "c756b679dc38e12a1866833cdf25dd4911a236ac07028048557e7f8a664a63d8"
+          }
+        }
+      ],
+      "status": "PASSED_NATIVE_INTAKE_WITH_EXCLUSIONS",
+      "transport_envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/envelopes/coverage_units.json",
+        "row_count": 4500,
+        "sha256": "44849666f1ee4c163690b5d8ca0980ffda3831529481f504038789f449c6d834"
+      },
+      "upstream_accounting_scope": "Exclusion predicates on every final source row, before grammar/extent checks; counts can differ from first-failure native counts.",
+      "upstream_receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/coverage_units/upstream.json",
+        "row_count": 4500,
+        "sha256": "071bda3d6320b927f308067d7b52cceac530fc012704d04520ca8c21dc1bd26a"
+      }
+    },
+    "recovery": {
+      "audit": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/audits/08_recovery_retained_bd005995cd7c/audit.json",
+        "row_count": 973,
+        "sha256": "89f557fe7cc2830d25e87644851e538af7d20f55b59622d40c78c2c4e3367641"
+      },
+      "audit_hits": {
+        "BENCH v2": 0,
+        "K1": 0,
+        "R0": 0,
+        "dev-S1": 0,
+        "withheld-80": 0
+      },
+      "camera_remove": null,
+      "coverage": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/recovery/coverage.json",
+        "row_count": 973,
+        "sha256": "45f497faa68e81f279c70732c0414dbecc0d3c15f25c54a71361ffa5b22354d2"
+      },
+      "envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/recovery/envelope.json",
+        "row_count": 973,
+        "sha256": "51fcd734aeced0992ae03410a1f93be33ee4daedf244c9e966fc215e4b07b381"
+      },
+      "every_row_seen": true,
+      "first2000": {
+        "admitted": 760,
+        "reasons": {
+          "R2 fallback calls again after a failed response": 152,
+          "excluded:eval_rooms": 61
+        },
+        "refused": 213,
+        "report": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/recovery_first2000.json",
+          "sha256": "74f38749cd330302bb5342661535c4c5615e590f38a244d63d331f72fc9b98da"
+        },
+        "seen": 973,
+        "status": "TREE_FIX_REQUIRED"
+      },
+      "localized_first2000": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/recovery/intake.json",
+        "row_count": 973,
+        "sha256": "ae0516f0902cca4560433c0444f6d809bb64f133ddffe0f8ce6dfe42b75121c5"
+      },
+      "native_counts": {
+        "admitted": 760,
+        "refused": 213,
+        "seen": 973
+      },
+      "native_refusal_reasons": {
+        "R2 fallback calls again after a failed response": 152,
+        "excluded:eval_rooms": 61
+      },
+      "prefiltered": true,
+      "remove": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/REMOVE_recovery_exclusions.json",
+        "row_count": 21,
+        "sha256": "af438b516b8e44659b9a20bf7d65d7d907e3b940d158a116ed9c002d7ec7aa1e"
+      },
+      "rows": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/rows/recovery_retained.jsonl",
+        "row_count": 973,
+        "sha256": "bd005995cd7c905dda69572e4c39184883a91b756fc372dcddd9da23be07d08c"
+      },
+      "shards": [
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/recovery/000/coverage.json",
+            "sha256": "98f409705f8b44225b788957bca3ddcd30431db80133314dc02d7abd143f94cc"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/recovery/000/envelope.json",
+            "sha256": "bb6b56db6f4bcb7fcf738431702837c626250ce216b7635e3e194b852cc9300d"
+          },
+          "result": {
+            "admitted": 760,
+            "reasons": {
+              "R2 fallback calls again after a failed response": 152,
+              "excluded:eval_rooms": 61
+            },
+            "refused": 213,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/recovery_shard000.json",
+              "sha256": "80b188f06ac2af12414b33c2ad1285491fdb968ec3c3b3b8c5ae30feaebb4c76"
+            },
+            "seen": 973,
+            "status": "TREE_FIX_REQUIRED"
+          },
+          "row_count": 973,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/recovery/000/rows.jsonl",
+            "sha256": "bd005995cd7c905dda69572e4c39184883a91b756fc372dcddd9da23be07d08c"
+          }
+        }
+      ],
+      "status": "BLOCKED_TREE_CONTRACT",
+      "transport_envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/envelopes/recovery.json",
+        "row_count": 973,
+        "sha256": "b354a8205b167b58e018ee9dd52d45d2e056fa055e4226547dd90f0f0a2ccafd"
+      },
+      "upstream_accounting_scope": "Exclusion predicates on every final source row, before grammar/extent checks; counts can differ from first-failure native counts.",
+      "upstream_receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/recovery/upstream.json",
+        "row_count": 973,
+        "sha256": "54b3df61bab2f1a22c99512290f481b48842770274f22b3fd3d36fc33bdd6060"
+      }
+    },
+    "units": {
+      "audit": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/audits/09_units_retained_454b6b28388c/audit.json",
+        "row_count": 8315,
+        "sha256": "9002ca7c73f0f31a531fd99c81bb765bcf1e8bca0e0d82ff8cbb48917929a75a"
+      },
+      "audit_hits": {
+        "BENCH v2": 0,
+        "K1": 0,
+        "R0": 0,
+        "dev-S1": 0,
+        "withheld-80": 0
+      },
+      "camera_remove": null,
+      "coverage": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/units/coverage.json",
+        "row_count": 8315,
+        "sha256": "2a17a2f5a467d4378347d98c588449102059798949594f6b72e1f307d4601ec2"
+      },
+      "envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/units/envelope.json",
+        "row_count": 8315,
+        "sha256": "86f4b7b25eac5761e82d66eba69ea481ffbcab9ce886cfea49f3a616fe2e6613"
+      },
+      "every_row_seen": true,
+      "first2000": {
+        "admitted": 1791,
+        "reasons": {
+          "excluded:eval_rooms": 209
+        },
+        "refused": 209,
+        "report": {
+          "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/units_first2000.json",
+          "sha256": "52cff30f48e6c6ee97348536e9b3b19ac614aa7c4910018142cfd50ef08869c0"
+        },
+        "seen": 2000,
+        "status": "PASS_WITH_EXPLAINED_REFUSALS"
+      },
+      "localized_first2000": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/units/intake.json",
+        "row_count": 2000,
+        "sha256": "fc4114a6cfe3f2e46c0ba807808bc841ef743bfcdb169c7a9fd6e566a960f5ee"
+      },
+      "native_counts": {
+        "admitted": 7805,
+        "refused": 510,
+        "seen": 8315
+      },
+      "native_refusal_reasons": {
+        "excluded:eval_rooms": 510
+      },
+      "prefiltered": true,
+      "remove": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/REMOVE_units_exclusions.json",
+        "row_count": 262,
+        "sha256": "a34c6c68a1c25dcbdf20b0da35490b62519036ef543508e9153b2602bd37bfef"
+      },
+      "rows": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/rows/units_retained.jsonl",
+        "row_count": 8315,
+        "sha256": "454b6b28388c8d171e117a7c1c290f387a233066c892e744d9794650c8bc53bf"
+      },
+      "shards": [
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/000/coverage.json",
+            "sha256": "f94fe3d30940915de770f4f587a37662259ebbc1d9797d70c1a23e3f94fcc379"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/000/envelope.json",
+            "sha256": "d4f553977908da9c96164507c3e6ae84d964b08173c08e405e3a6bc0e799e9ca"
+          },
+          "result": {
+            "admitted": 1791,
+            "reasons": {
+              "excluded:eval_rooms": 209
+            },
+            "refused": 209,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/units_shard000.json",
+              "sha256": "8387b844768a4fa2a5c6d327257d225c027d25eaf422236947f8b8e05732c1a0"
+            },
+            "seen": 2000,
+            "status": "PASS_WITH_EXPLAINED_REFUSALS"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/000/rows.jsonl",
+            "sha256": "00677130bb61dec7a40327145ce6060df53d7026f05e85a0ec88b2402fcf2977"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/001/coverage.json",
+            "sha256": "9cafa11e9dd69e0a06b4d896d61427f8c3032dd9e100a44814a6349472d3dddd"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/001/envelope.json",
+            "sha256": "1c549f832be322c7d4cc00e34737af30ea619dd017220f78eb29184fe727bb0d"
+          },
+          "result": {
+            "admitted": 1743,
+            "reasons": {
+              "excluded:eval_rooms": 257
+            },
+            "refused": 257,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/units_shard001.json",
+              "sha256": "10e07f39cbdd7b661de7bbdbab9132a2ba56dd483f1490700c229f83865dcbdc"
+            },
+            "seen": 2000,
+            "status": "PASS_WITH_EXPLAINED_REFUSALS"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/001/rows.jsonl",
+            "sha256": "74125c12fdf5c324d23a9ae79b5fd2eef7a159b3dc59efa764a10343f22846e4"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/002/coverage.json",
+            "sha256": "adc3c1267778fd3e73cae21900b3d84f04d00125a84eb9e29a38f77c2dfc4c31"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/002/envelope.json",
+            "sha256": "2115146f8a580821f9bd236d1cffca52309d30940367b8e1b4aceae2167cab98"
+          },
+          "result": {
+            "admitted": 2000,
+            "reasons": {},
+            "refused": 0,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/units_shard002.json",
+              "sha256": "e5db0c71d76ce59c8ab8e175243f147ebb2fbab4e1ebc012e2cf6db197753a44"
+            },
+            "seen": 2000,
+            "status": "PASS"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/002/rows.jsonl",
+            "sha256": "097d81feb9ffa79121754e088b6030b504bfb4b4cbc9573cf1e93083b3eaf376"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/003/coverage.json",
+            "sha256": "0543049dbb0777d6709166ed01eff1ab066392d4cec44accaec7783823370c80"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/003/envelope.json",
+            "sha256": "66bfae58f1341b7a5441b1d8040b760bbbb230c5f3351ad1e8270840f304b11c"
+          },
+          "result": {
+            "admitted": 1956,
+            "reasons": {
+              "excluded:eval_rooms": 44
+            },
+            "refused": 44,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/units_shard003.json",
+              "sha256": "fd513b318df137586382afb34a2697836893933063f1062ec7981454fc1cfe31"
+            },
+            "seen": 2000,
+            "status": "PASS_WITH_EXPLAINED_REFUSALS"
+          },
+          "row_count": 2000,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/003/rows.jsonl",
+            "sha256": "ea358f1805bda6107497b990ee3bd4d50dc945028cd602aabb701369658029d7"
+          }
+        },
+        {
+          "coverage": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/004/coverage.json",
+            "sha256": "c03d82c96189e26cde68d16cb4a06b8c5bbf3a99dee6f544f7a2b52b18f555c9"
+          },
+          "envelope": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/004/envelope.json",
+            "sha256": "51275fc29eebc82de2e011ffa19ea40956c1bd9fc0b02ffb88a888ce1e53875c"
+          },
+          "result": {
+            "admitted": 315,
+            "reasons": {},
+            "refused": 0,
+            "report": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/units_shard004.json",
+              "sha256": "eab57fb2f3ad43736616d66dfdb8cf60a229be1158a4470c0f18644f54039f86"
+            },
+            "seen": 315,
+            "status": "PASS"
+          },
+          "row_count": 315,
+          "rows": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/shards/units/004/rows.jsonl",
+            "sha256": "8a1df5915863ad245c98f33a1838cf38ecdacc4c5dc4253a49b949f773f489e7"
+          }
+        }
+      ],
+      "status": "PASSED_NATIVE_INTAKE_WITH_EXCLUSIONS",
+      "transport_envelope": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/envelopes/units.json",
+        "row_count": 8315,
+        "sha256": "68270488a2db64c3833390a900eb38000d3276dfdf5a45f20f6891d0fcce13df"
+      },
+      "upstream_accounting_scope": "Exclusion predicates on every final source row, before grammar/extent checks; counts can differ from first-failure native counts.",
+      "upstream_receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/localized/units/upstream.json",
+        "row_count": 8315,
+        "sha256": "b81ac32ed034b47a01d82cea0cfb32e3e3877366b04b6e2d9a7529e32e923d2b"
+      }
+    }
+  },
+  "staging": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/STAGED_INPUTS_FINAL.json",
+    "sha256": "a7b2748e3eb70b785e5c3ba769d573b1e9c09308ca5651183b81010752861a77"
+  },
+  "status": "DELIVERED_WITH_TREE_AND_FRAME_HOST_BLOCKERS",
+  "tree_imports": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/route/out/TREE_IMPORTS.json",
+    "sha256": "f9a7b1cdfd2cb687780848852179a6a84f0a602a074c0d2043dd83b174aefb50"
+  },
+  "tree_seal": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/TREE_SEAL.json",
+    "sha256": "2d8ff9682bf515f3a0b65bca5ee6e730474a037ccb6351dc3f2a91524ff32a17"
+  },
+  "tree_seal_value": {
+    "files": 939,
+    "tree_sha256": "57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7"
+  }
+}

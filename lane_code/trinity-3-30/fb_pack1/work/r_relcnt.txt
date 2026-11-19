@@ -1,0 +1,134 @@
+The relative-count packet is **PASS for CPU data checks; ready for tree_rebuild binding**. It is not bound to a production store.
+
+`out/relative_count.jsonl` contains 4,000 rows from 1,803 b12 total-count source rows. The 20 wordings each have 200 rows.
+Each target has two counting-procedure lines, one qualitative comparison in question order, and one option letter after `</think>`.
+The procedure body matches the pinned v7 object_counting row exactly after category substitution. Numeric step labels are omitted.
+Every think block contains zero numbers, number words, instance lists, tool calls, or stated measurements.
+Only the target and input-hash provenance differ from the selected sb_rowC rows; questions, options, frames, identifiers and sampling match.
+
+Balance: first category larger 1,800; second category larger 1,800; equal 400. Every template has 90/90/20.
+Letters: A=1,334; B=1,333; C=1,333. Each template has 66 or 67 occurrences of each letter.
+Dataset rows: ARKitScenes=3,195; ScanNet=805. The packet covers 739 captures and 444 physical rooms.
+Reuse maxima: source=8; unordered pair=4; oriented pair=2; capture=24. Full per-template and count-bucket tables are in CHECKS.json.
+
+N tree: `57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7` (w24 TREE_SEAL).
+All 4,000 pass `trace_grammar.validate_trace`, `validate_row`, `r1_counting.admit`, and `r1_training.row_check`.
+All 4,000 pass `ground_rows.pack/validate` through the direct-to-ground serialization adapter, which preserves think bytes and wraps only the answer.
+All 4,000 qids and candidate_ids are unique; every candidate_id matches the kit formula.
+Independent set cardinalities from b12 totals reproduce every comparison and option letter; the exact-match scorer accepts every GT target.
+All 739 selected local GT rasters match their source/census/raster-audit SHA-256 pins. Raster arithmetic is inherited by hash; totals arithmetic is fresh.
+The native room checker resolves every row. R0 bdb5d402, dev-S1 969cdb56, BENCH v2 3119aa4a, withheld-80 634820b4 and K1 4d4736cf each have zero hits.
+Wording distance passes on all 4,000 rows: minimum 0.5666666667 against the required 0.4 threshold.
+The references contain 139 dev-S1 relative-count items, 130 unique wordings; R0-dev has zero relative-count items among 2,169 items.
+Distance uses NFKC/casefold/word-token normalization and character Levenshtein divided by maximum length; normalized text is ASCII. The C++ routine passes 300 Python-oracle cases.
+
+I read all 40 complete question/option/target/answer/GT summaries: one unequal row and one tie per template. READ40.md prints the corresponding full JSON rows.
+The object_counting/relative_count cross-family review passes: the procedure is shared, while the relative-count answer is the matching option letter.
+READ40_REVIEW.json and CROSS_FAMILY_REVIEW.json identify the reviewed rows and scope; this is a primary-agent review.
+
+BINDING.json documents direct VQA store augmentation, the existing configuration fields, the counting cell and required production proofs.
+N's direction-twin verifier is specific to its pinned twins; tree_rebuild must add authenticated support for this family and regenerate the store/receipt/room/plan bindings.
+N's current removal-key reader does not consume provenance.relative_count.source_qid; tree_rebuild must bind the verified b12 source key explicitly.
+This packet makes no tree changes. It supplies no fabricated production receipt, scene mapping, native admitted offsets, or accuracy claim.
+No required packet input is missing. RGB inspection, frame-host preparation, production-store augmentation and training were not run.
+
+Commands below run from this workspace with `nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1`.
+`python code/build.py` authenticates the v7 store procedure and writes the 4,000 rows and BUILD.json.
+`python code/check.py` produces every row/GT/identity/balance/scorer count, wording distance and oracle count, ROW_CHECKS.json and the 40-row read files.
+`g++ -O3 -shared -fPIC code/nearest.cpp -o code/nearest.so` builds the exact distance implementation.
+`python code/raster_hash_check.py` produces the 739 byte matches in RASTER_CHECK.json.
+`python /scratch/jjyeung/orch_n30/sb_auditfix2/store_room_audit.py --store "$PWD/out/relative_count.jsonl" --tree /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1 --lists /scratch/jjyeung/orch_n30/sb_auditfix2/inputs/lists --out "$PWD/out/room_audit_final"` produces room counts and exclusion hits; its output directory must be empty.
+`sed -n '1,260p' out/READ40_TEXT.md` and `sed -n '261,560p' out/READ40_TEXT.md` supplied the manual read.
+`python code/review_binding.py` records that completed review, checks the cross-family contract, writes BINDING.json and consolidates CHECKS.json.
+`python code/package.py` verifies every declared local input SHA-256 and exact full-JSON read sample, then produces the report, archive and PACKAGE_CHECK.json.
+Every JSON audit binds its inputs by SHA-256; every delivered row retains its source/frame hashes and adds the build-input hashes.
+The package includes code, rows, full read samples and audits. Reproduction requires the pinned read-only inputs; RGB, raster arrays and the v7 store are not bundled.
+Archive: `out/fbp_relcnt.tar`; SHA-256: `out/fbp_relcnt.tar.sha256` and `out/SHA256SUMS.txt`. Check with `sha256sum -c out/fbp_relcnt.tar.sha256`.
+No-archaeology review: no borderline historical wording is retained. This is an internal build report.
+===BIND
+{
+  "existing_direction_path": {
+    "configuration_fields": [
+      "r1_training.direction_twins.rows",
+      "r1_training.direction_twins.binding",
+      "r1_training.direction_twins.aliases",
+      "r1_training.direction_twins.source_database",
+      "r1_training.direction_augmented"
+    ],
+    "mechanism": "augment appends authenticated direct rows to a new VQA SQLite store, emits augmentation.json and receipt.json, and verifies unchanged source rows plus every appended row.",
+    "module": "student_pilot/r1_direction_twins.py",
+    "restriction": "These keys and their accepted hashes, row count, source-key membership, and room checks are direction-twin specific. They cannot be pointed at this relative-count packet."
+  },
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/code/common.py": "1cb2eae9bc71e6cea2aed4e34f4c5c1171a849e39177b0c7468a15eaa52067f0",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/code/review_binding.py": "42e30a6b94350e882870f6749a74f585587b07cafb4263580d2677c8460e62f6",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/BUILD.json": "99a541db261e9f284383bd2594ad14583c252a84a2aff27f0add4dc11295f450",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/GT_CHECK.json": "053f13bc107f7f1edf7d5be40a03f547c010b402cce0aa12ed8635c4bbd4122f",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/RASTER_CHECK.json": "63d1c23faa9a9a0948c60801d49a6736fc25f23ea5e7486b3cba8219db504f3b",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/READ40.md": "4d6cb2cf010cee5b6a33f1ab61f167f1448c28255d5a1dbdf158c93c01ec7bc0",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/READ40_TEXT.md": "82784cb40a6b6a7df370e1de69ab81d49988d36b524fe415dbe5d8a378f8135e",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/ROW_CHECKS.json": "c70a1397771bd3612bf5848c973240b8d66d754756a1a9d0c4e032129cef5186",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/relative_count.jsonl": "1ad9e3a572bd4393afc1ce8a2363ed7974ccac471f28c63a28e38497d3b76c78",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/room_audit_final/audit.json": "735d3eb91799bc802c1b81371a1bcadceffbbb1ddbb9c33f0d73f39c7cf7b05f",
+    "/scratch/jjyeung/orch_n30/sb_rowC/in/b12/out/PACKET_b12_v4/count_total.jsonl": "0ec47aa286991fcc36b254d30258c1044bd434b707c6a20a542f0a4e13d911a1",
+    "/scratch/jjyeung/orch_n30/sb_rowC/in/procedure_source.json": "3c8529fe9686b3c574f84e6a41326e7b14d407e5b9c6fa3d3da899f87ecee2f2",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w22/out/BUILD22_REPORT.md": "745acb5c077a89b236
+AUDIT_RESULTS.json
+BLOCKER_DIAGNOSTICS.json
+CAMERA_KR9C_DIFF.json
+CAMERA_SELECTION.json
+COMPOSE_RESULT.json
+CONFIG_HANDOFF.json
+ENVELOPE_INDEX.json
+EXCLUSION_ACCOUNTING.json
+INTAKE_PROGRESS.json
+INTAKE_RESULTS.json
+LOCALIZED_INDEX.json
+PACKAGE.json
+PHRASE_DECISION.json
+REMOVE_absolute_distance_exclusions.json
+REMOVE_camera_B.json
+REMOVE_camera_B_exclusions.json
+REMOVE_camera_wording.json
+REMOVE_camera_wording_exclusions.json
+REMOVE_coverage_distance_exclusions.json
+REMOVE_coverage_units_exclusions.json
+REMOVE_recovery_exclusions.json
+REMOVE_units_exclusions.json
+REPORT.md
+ROUTE_MANIFEST.json
+STAGED_INPUTS.json
+STAGED_INPUTS_FINAL.json
+STATUS_1.md
+STATUS_2.md
+STATUS_3.md
+STATUS_4.md
+STATUS_5.md
+STATUS_6.md
+STATUS_7.md
+TREE_IMPORTS.json
+audits
+config
+coverage
+diagnose.log
+envelopes
+fbp_route.tar
+fbp_route.tar.sha256
+finalize.log
+intake
+localize.log
+localized
+package.log
+rows
+shards
+stage1.log
+stage2.log
+stage3.log
+stage3_final.log
+stage4.log
+stage5.log
+stage6.log
+upstream
+variant_R
+14058
+{"camera_family_present": true, "camera_pinned_source": "e3c72962e3fd774c7e15fa1e4aeae1b6642264bf4f3cf54b9e350b8d7bfb9707", "command": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B work/diagnose.py", "inputs": {"/scratch/jjyeung/orch_n30/fb_pack/route/out/EXCLUSION_ACCOUNTING.json": {"bytes": 40345, "sha256": "0f7cac4342081928070351182920d68d282c1722d76d235b0d1ae30061d952ee"}, "/scratch/jjyeung/orch_n30/fb_pack/route/out/INTAKE_RESULTS.json": {"bytes": 69703, "sha256": "f3951382955aad33537cf4813f15077e227742899b8cf5c5f60664729968be8a"}, "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_B_shard000.json": {"bytes": 122954, "sha256": "9f0b28a4b14de878c02563ffdbd15128ed8e9a42d3ac31d399e8519e31509218"}, "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_B_shard001.json": {"bytes": 395493, "sha256": "943f4994b27e437162cd8cb7df36e3c44b632f12648fa1a82a1d7f112ccc8416"}, "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_B_shard002.json": {"bytes": 399109, "sha256": "3e14ff5df38b9680a1dc4b3d5b2dd04754539fbcaa361cb444a2f625170d026b"}, "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_wording_shard000.json": {"bytes": 116137, "sha256": "a0685df7771f8ed9328da1ead0cdf837b4ae28414f85c4b646ed0ec85eb5a2dd"}, "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_wording_shard001.json": {"bytes": 389832, "sha256": "cd43aff9ed42697b0a8f1c3f89926c03032bc16a652d13da4c2e9fed3ea19e78"}, "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/camera_wording_shard002.json": {"bytes": 420951, "sha256": "18b7b136ef6ab712a42d609d4fd10875a1f991b291d7239710a253b765358701"}, "/scratch/jjyeung/orch_n30/fb_pack/route/out/intake/recovery_shard000.json": {"bytes": 86232, "sha256": "80b188f06ac2af12414b33c2ad1285491fdb968ec3c3b3b8c5ae30feaebb4c76"}, "/scratch/jjyeung/orch_n30/fb_pack/route/work/diagnose.py": {"bytes": 3875, "sha256": "0f33d5b90bca68038ddd023de883671b3a18a9e0117216be5e716d4ad5ac22b5"}, "/scratch/jjyeung/orch_n30/fb_pack/route/work/route.py": {"bytes": 17454, "sha256": "a2796bf08c35d5ba577668db0fcd4b20de6d0c8f759e9c2e5327ca90515f63a3"}, "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/__init__.py": {"bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}, "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/camera_config.py": {"bytes": 11660, "sha256": "c143d4514363d3f27d2a081147266f020114372183a4256a6c8bb56c767f3019"}, "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/camera_targets.py": {"bytes": 20981, "sha256": "59a9475e87c6eb49fc103e8077ec224746f06fcdbde9b0a1a38088cb1aed18a4"}, "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/carrier_c1_routing.py": {"bytes": 62535, "sha256": "9ad354d548a80473de4399407f27054101c8e4707657ee7c349181f7e638d3e2"}, "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1

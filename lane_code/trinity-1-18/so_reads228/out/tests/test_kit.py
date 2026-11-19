@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import uuid
 import types
 import unittest
 from unittest.mock import patch
@@ -32,7 +33,7 @@ WORK=Path(os.environ.get('READ228_TEST_WORK','/scratch/jjyeung/orch_n30/so_reads
 WORK.mkdir(parents=True,exist_ok=True)
 
 def directory():
-    return Path(tempfile.mkdtemp(prefix='a',dir=WORK))
+    path=WORK/('a'+uuid.uuid4().hex);path.mkdir();return path
 
 def copy_reference(*, local_provenance=True):
     dest=directory()
@@ -41,6 +42,7 @@ def copy_reference(*, local_provenance=True):
             target=dest/p.relative_to(HERE/'reference');target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copyfile(p,target)
     if local_provenance:
+        write(dest/'SUMMARY.json',dict(completed=50,failure=None,complete=False))
         write(dest/'metadata/LOCAL_RUN.json',dict(backend='trinity-local',host='trinity-2-28',mode='OFF',synthetic_cpu_fixture=True))
         write(dest/'metadata/CARDS.json',dict(snapshot=dict(name='NVIDIA RTX 6000 Ada Generation')))
         identity=read(dest/'metadata/RETURN_ID.json');identity['job']='314159265'
@@ -110,7 +112,7 @@ class PackageTests(unittest.TestCase):
 
     def test_shell_launch_refuses_wrong_node_without_gpu_query(self):
         result=subprocess.run(['bash',str(HERE/'run228.sh'),str(HERE/'A10b'),'0',str(directory()/'out')],
-                              env=dict(os.environ,READ228_CONTROL_PYTHON=sys.executable),text=True,capture_output=True)
+                              env=dict(os.environ,READ228_CONTROL_PYTHON=sys.executable,READ228_CONTROL_ROOT=str(WORK/"control")),text=True,capture_output=True)
         self.assertEqual(result.returncode,2)
         self.assertIn('restricted to trinity-2-28',result.stderr)
 
@@ -154,7 +156,7 @@ class StreamTests(unittest.TestCase):
 
     def test_existing_member_mismatch_is_preserved(self):
         root,group,mapping=self.fixture();p=root/'dest/m200/weight';p.parent.mkdir(parents=True);p.write_bytes(b'bad')
-        with self.assertRaisesRegex(Refusal,'Existing member differs'):
+        with self.assertRaisesRegex(Refusal,'Existing archive members differ'):
             stage228.extract_group(group,mapping,root/'dest')
         self.assertEqual(p.read_bytes(),b'bad')
 
@@ -412,8 +414,8 @@ print('sealed resolver and maker binding unchanged')
         # Patch only host/occupancy/process boundaries; execute the original operator and worker_args/summarize.
         with ExitStack() as stack:
             for name,value in [('target_host',lambda:'trinity-2-28'),('deployment',lambda _: (root,cfg,inputs,export)),
-                ('stage_check',lambda *a,**k:dict(environment={})),('snapshot',lambda _:gpu),('idle_gate',lambda *a,**k:gpu),
-                ('Sampler',Sampler),('STAGE',work/'stage')]:stack.enter_context(patch.object(runner228,name,value))
+                ('stage_check',lambda *a,**k:dict(environment={},namespace=dict(bwrap={'fixture':True}))),('snapshot',lambda _:gpu),('idle_gate',lambda *a,**k:gpu),
+                ('namespace_command',lambda *a: ['/usr/bin/bwrap','--fixture']),('Sampler',Sampler),('STAGE',work/'stage')]:stack.enter_context(patch.object(runner228,name,value))
             stack.enter_context(patch.object(runner228.subprocess,'Popen',Worker))
             # utc uses subprocess too, so supply deterministic text only within this CPU test.
             stack.enter_context(patch.object(runner228,'utc',lambda:'CPU_TEST'))

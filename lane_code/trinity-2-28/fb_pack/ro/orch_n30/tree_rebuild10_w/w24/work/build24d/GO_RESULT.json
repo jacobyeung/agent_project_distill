@@ -1,0 +1,40 @@
+{
+  "first_scheduled_export": 100,
+  "fixture_export_step": null,
+  "gate_step": 400,
+  "observed_optimizer_steps": 0,
+  "progress": {
+    "canary_result_present": true,
+    "frame_audit_complete": true,
+    "prepare_complete": true,
+    "timestamp": "2026-11-19T17:31:07.290786+00:00",
+    "training_stages": [
+      {
+        "log": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go/stage0.log",
+        "returncode": 0,
+        "stage": "room audit"
+      },
+      {
+        "log": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go/stage1.log",
+        "returncode": 0,
+        "stage": "h.py writes v.json"
+      },
+      {
+        "log": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go/stage2.log",
+        "returncode": 0,
+        "stage": "fixture frame-host and review evidence"
+      },
+      {
+        "log": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go/stage3.log",
+        "returncode": 1,
+        "stage": "t.py / u.py / native train"
+      }
+    ]
+  },
+  "ranks": {},
+  "reason": "t.py invoked one torch.distributed.run; sandbox denied localhost TCP sockets (EPERM) before workers started. No optimizer steps ran.",
+  "requested_world_size": 4,
+  "status": "BLOCKED",
+  "torchrun_attempts": 1,
+  "torchrun_completed": false
+}

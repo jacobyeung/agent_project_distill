@@ -11,4 +11,9 @@ last=$(cat "$L/last" 2>/dev/null || echo 0); now=$(date +%s); wait=$(( last + 35
 (( wait > 0 )) && sleep "$wait"
 date +%s > "$L/last"; echo "$(date -u +%FT%TZ) $N $*" | cut -c1-200 >> "$L/log"
 flock -u 9
+if [ "${LCS_ROBUST_SYNC:-0}" = 1 ] && [ "${LCS_STAGE_TIMEOUT_OWNER:-0}" = 1 ]; then
+  # The stage caller already owns the process group and TERM/KILL deadline.
+  # Exec SSH directly: a nested timeout can exit before its SSH child does.
+  exec ssh -o ConnectTimeout=20 -o ConnectionAttempts=1 -o BatchMode=yes "$N" "$@"
+fi
 exec timeout 900 ssh -o ConnectTimeout=20 -o BatchMode=yes "$N" "$@"

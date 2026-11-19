@@ -29,7 +29,7 @@ EVIDENCE={}
 def fixture(name):
     root=D/'live_tests'/name;root.mkdir(parents=True,exist_ok=False)
     kit=root/'kit';(kit/'k').mkdir(parents=True);(kit/'b').mkdir()
-    node=root/'node';node.mkdir();train=node/'rp/469ddece';train.mkdir(parents=True)
+    node=root/'node';node.mkdir();train=node/'r';train.mkdir(parents=True)
     target=root/'target';target.mkdir();home=root/'home';home.mkdir()
     C.put(kit/'k/p.json',dict(n_root=str(target)))
     C.put(kit/'k/n.json',dict(output='/run/469ddece'))

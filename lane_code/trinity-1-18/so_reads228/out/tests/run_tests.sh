@@ -10,4 +10,9 @@ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_revie
 date -u
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_prepare.py"
 date -u
-exec nice -n 10 /usr/bin/python3 -I -s -B "$test_dir/test_bootstrap36.py"
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_bootstrap36.py"
+
+date -u
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_review2.py"
+date -u
+exec nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$test_dir/test_stage2.py"

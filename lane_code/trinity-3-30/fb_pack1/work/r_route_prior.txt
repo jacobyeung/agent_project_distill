@@ -1,0 +1,107 @@
+Host-side routing package delivered; production remains blocked. Four of six slices pass native intake with only sealed exclusion refusals. Recovery and camera require owner changes.
+
+Tree seal: `57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7`. `TREE_IMPORTS.json` records and rechecks every tree dependency captured by the executed stages. No tree file was edited.
+
+| Slice | Final rows | Native admitted | Native refused | Result |
+|---|---:|---:|---:|---|
+| recovery | 973 | 760 | 213 | BLOCKED |
+| absolute_distance | 8,315 | 7,805 | 510 | PASS with exclusions |
+| units | 8,315 | 7,805 | 510 | PASS with exclusions |
+| coverage_distance | 1,500 | 1,500 | 0 | PASS with exclusions |
+| coverage_units | 4,500 | 4,500 | 0 | PASS with exclusions |
+| camera_wording | 5,979 | 1,722 | 4,257 | BLOCKED |
+| camera_B | 5,829 | 1,707 | 4,122 | BLOCKED |
+
+The six primary slices contain 29,582 rows; all were covered by disjoint shards of at most 2,000 rows. Full envelopes were also called with `limit=2000`. Camera B is an alternative, not an extra training family.
+Native refusal reasons: recovery—61 `excluded:eval_rooms`, 152 `R2 fallback calls again after a failed response`; absolute_distance—510 `excluded:eval_rooms`; units—510 `excluded:eval_rooms`; both coverage slices—none.
+Camera A refuses 280 `excluded:eval_rooms`, 1,993 `Shared grammar: unit_quantity`, and 1,984 `Shared grammar: number_not_allowed,unit_quantity`. Camera B refuses 248, 1,936, and 1,938 respectively.
+Upstream receipts run the actual seven-pin Exclusions.check, withheld-room check, merged-dev check, and native removal predicates over every final row. Their counts describe exclusion eligibility before grammar checks; native first-failure counts differ. No prefiltered flag skips a check.
+
+Radiator: the change affects 112/806/818/149/476 rows in recovery/absolute_distance/units/coverage_distance/coverage_units; camera changes zero. Every changed row fails the sealed extent-content comparison. Production keeps the original call text. Variant R changes only the obj phrase in ground-call strings; it is diagnostic and needs repacked spans and new independent extent/raw membership/source/coverage pins before use.
+The independent extent-audit owner and tree_rebuild must regenerate the affected extent entries and config pin, plus V2H source constants/derivations and downstream bindings. No extent receipt was invented and no radiator REMOVE list is active.
+Camera A removes the 21 unproven d2/vfc2c241f2978 rows. Camera B also removes 150 citing rows: 150 differing frame-reference occurrences across 7 unique keys and 7 kr9c/k6tk hash pairs. CAMERA_KR9C_DIFF.json lists every key, both pins, and citing QIDs. No PNG bytes were read or substituted.
+K1: 21 recovery and 262 units rows were physically removed with existing native removal matches. The other final slices have zero K1 matches.
+
+All 37 checker runs pass, with zero R0 bdb5d402, dev-S1 969cdb56, BENCH v2 3119aa4a, withheld-80 634820b4, and placeholder-object remove hits. The only K1 hits are 21/262 in diagnostic recovery/units variant R; every hit matches an existing removal list. Unselected intermediate row files were audited too.
+
+Recovery blocker: student_pilot/r2_contract.py:248 refuses the second distinct operand probe after the first reports failure in 152 sealed rows. The recovery contract owner must reconcile that guard with the authenticated event sequence; this lane did not weaken it.
+Camera blocker: student_pilot/r2_grammar.py:183 invokes pinned trace_grammar.py, whose rules at :502/:509 reject unsupported signed arithmetic values and the +180-degree convention in canonical camera prose. The tree/camera owner must reconcile rendering/adaptation with a41ba191 or regenerate authenticated rows and bindings. BLOCKER_DIAGNOSTICS.json records exact examples.
+Composition: the supplied deferred N config raises KeyError recovery at r1_routing.py:171. The concrete six-family first-boundary candidate refuses R1_CAMERA_SOURCE_PIN at r1_coverage.py:190. This w24 tree already includes camera_wording in source_names; its EXTRA_PINS still binds the old 6,000-row file and must be updated/resealed for the selected source.
+Composition therefore stops before the host veto. A separate unmodified intake(limit=None) call refuses `Local slices must contain at most 2000 rows per family` at r2_intake.py:42 on trinity-1-18. No hostname, environment, or function was spoofed.
+
+Pin paths: portable envelopes carry u/<sha256>. Dry shard intake resolves them through the existing r1_persisted.scope map; withheld_rooms reads u/<sha256> relative to the workspace. out/localized envelopes instead carry absolute active pins and were checked without a scope. ENVELOPE_INDEX.json, STAGED_INPUTS_FINAL.json, and LOCALIZED_INDEX.json enumerate both forms.
+Production must stage identical bytes under its root/u/<sha256> and run work/localize.py --tree <production-tree>; then bind the resulting envelope hashes and exact equal rows/extent pins. Its coverage and upstream exclusion paths are regenerated together. Inline kit localization alone does not rewrite nested envelope files.
+CONFIG_HANDOFF.json supplies routing_inputs in config and request, row_slice_inputs, row_sources, source_membership, extent_receipt, and both routing-base fields. Exit deferred_first_boundary by omitting routing_slices at the first boundary. Preserve the fixed removal order.
+Q_E4 must map /data2/k6tk and /data2/kr9c to verified absolute node-local roots. Those destinations and N raster/staging receipts are MISSING. Set Q_E7=1 only after the separate alias patch and reseal; preserve the local-node and non-Trinity vetoes. The named map/plan/FPS hashes were verified; raster/store readiness is not claimed.
+The registered phrase document was read once; its file-byte SHA256 is MISSING because the initial bounded read did not capture it. The same rewrite policy is explicit in the task prompt. Its exact path is recorded in ROUTE_MANIFEST.json.
+
+Commands for all numbers (run from this workspace): prefix each Python command with `nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -B`.
+`work/route.py 1` produces radiator counts/pin checks; `2` produces camera counts/diffs; `3` produces final row/removal/accounting counts; `4` binds envelopes.
+`work/intake.py` produces all native counts and composition refusals; `work/localize.py` checks absolute pins; `work/diagnose.py` attributes refusal types/examples; `work/audit.py` produces all checker and placeholder counts.
+`work/finalize.py` computes the reference-occurrence total, verifies the recorded tree hashes, and writes this manifest/report. `work/package.py` computes package bytes and SHA256 and verifies archive members.
+
+Delivery: ROUTE_MANIFEST.json, fbp_route.tar, fbp_route.tar.sha256, and PACKAGE.json. The tar contains code, envelopes, coverage, receipts, audits, and reports. Row files exceed the 300 MB inclusion cap and are excluded; their exact paths/hashes remain in the manifest. The 1.7 GB store was not copied.
+=====PRIOR
+# Vehicle N hard-direction prior
+
+**BLOCKED at task step 3.** The sealed loader cannot express selective row weights or repeats. No tree or launch config changed. `PRIOR_DELTA.json` is an explicit non-runnable proposal; native before/after draws are `MISSING`.
+
+Tree seal: `57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7`. The native sampler refuses N’s actual binding with `R1_COMPLETE_FILTERED_POPULATION_REQUIRED`. The bound population has `complete=false`, `after_all_filters=false`, and zero counts.
+
+Commands (run from this workspace; all numerical tables come from these scripts):
+```bash
+export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python census_source.py
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python loader_boundary.py
+nice -n 10 python analyze_prior.py
+python manual_review.py
+nice -n 10 python finalize.py
+```
+
+The source scan authenticated 204,413 v7 rows and 7,971 twins. All 12 launch removal lists apply, including n, z, the K1 union, and the 109-row naming list. It removed 23,315 rows; six additional relative-distance rows failed native text checks. Direction retains 98,315 rows: 55,808 in `direction` and 42,507 in `facing_pairs`.
+
+`READ40.md` contains 40 manually checked question/trace/option examples; all agree with the parser. Every hard forward relation also agrees with its clause/answer transform, and every twin preserves its source forward line and applies the expected answer half-turn. Source and code hashes appear in every output JSON.
+
+Row census and expected draws per 1,000 steps (expectations over the native shuffle, **not realized seed-17 loader counts**):
+
+| Clause / difficulty | Rows | Front % | Back % | Expected draws | Draw back % |
+|---|---:|---:|---:|---:|---:|
+| away / easy | 14,967 | 0.000 | 0.000 | 7,326.791 | 0.000 |
+| away / hard | 10,528 | 28.400 | 71.600 | 5,429.534 | 67.873 |
+| away / medium | 7,985 | 0.000 | 44.208 | 3,413.260 | 44.208 |
+| toward / easy | 19,725 | 0.000 | 0.000 | 11,324.039 | 0.000 |
+| toward / hard | 24,862 | 82.596 | 17.404 | 15,407.062 | 17.567 |
+| toward / medium | 20,248 | 0.000 | 4.361 | 12,135.314 | 4.447 |
+
+Easy rows are lateral; medium rows also carry lateral relations. `CENSUS.json` includes all answer labels and stated forward relations. The card allocates 36,866 direction draws and 18,170 facing-pair draws, within 128,000 VQA and 288,000 total draws. Other-stream quota feasibility is not newly proven here.
+
+Options keep every row eligible and preserve card-cell quotas. (a)/(b) assign the stated actual draw counts to selected rows and distribute the remaining quota uniformly. (c) and the chosen policy normalize relative weights within each cell. These are analytical expectations; a finite sampler must enforce the hard cap.
+
+| Option | Toward-hard back % | Away-hard back % | Total draws |
+|---|---:|---:|---:|
+| Before | 17.567 | 67.873 | 288,000 |
+| (a) Behind rows: four actual draws | 66.981 | 70.480 | 288,000 |
+| (b) 2,000 source rows: two actual draws | 30.889 | 68.557 | 288,000 |
+| 2,000 source rows: four actual draws | 46.375 | 69.682 | 288,000 |
+| (a)+(b), capped at 4 | 66.981 | 70.480 | 288,000 |
+| (c) Down-weight front to balance | 50.000 | 66.175 | 288,000 |
+| Chosen: balanced, same toward-hard mass | 50.000 | 67.873 | 288,000 |
+
+For the chosen option, back/front weights are `direction`: `10251/3676` / `10251/16826`; `facing_pairs`: `2180/651` / `2180/3709`. Other rows retain weight 1. Each cell’s toward-hard mass stays constant, so every other clause/difficulty draw total and answer share stays unchanged. The target is 50%, independent of dev truth shares.
+The largest modeled direction-row expected draw count is 1.842130, below four. This is not a realized-cap proof. `CENSUS.json` lists every option’s effects on all six clause/difficulty groups and every card cell. (a)+(b) cannot add copies beyond four: the 2,000 sources are a subset of (a).
+
+Drawing the 2,000 sources twice means two actual draws per source, not multiplying their baseline expected dose by two. This distinction supports the analyst’s roughly 30% estimate. The quoted 71.8% away-hard share precedes removals and ignores the two cell draw rates.
+
+Exact ceiling and selection code:
+
+- `student_pilot/r1_mix.py:27`: `totals = {k: min(n, 4*counts[k]) for k, n in requested.items()}`.
+- `student_pilot/r1_loader.py:92-93`: `if max(repeats.values(), default=0) > 4:` then `raise ValueError('R1_REPEAT_LIMIT_EXCEEDED')`.
+- `r1_mix.py:76-79` rejects duplicate population offsets; `83-84` requires full coverage. `81-82` shuffles once, and `96` selects `pool[consumed[kind] % len(pool)]`. No per-row weight is read.
+
+The smallest sampler change is an authenticated finite per-cell draw schedule in `r1_mix.py:68-86,95-97`, with unchanged eligible indices, exact cell quotas, and a per-row cap of four. Normal preparation also needs to bind it at `r1_population.py:148-156`. `PRIOR_DELTA.json` identifies those edits; none were applied.
+
+The loader audit omits `facing_pairs` and its clause parser disagrees on 23,121 source rows. Fix `r1_loader.py:55-70,101-105` and `r1_direction_twins.py:136-143` before reporting a balanced result.
+
+`MISSING`: complete `w24/work/build24/inputs/population.json` and matching `indices.json` (the supplied files are placeholders), plus production `.../ap/8865619b/f/469ddece/receipt.json`. Exact absolute paths appear in `PRIOR_DELTA.json`. No mappings, manifests, scene lists, or production proofs were invented.
+
+Artifacts: `CENSUS.json`, `PRIOR_DELTA.json`, `READ40.md`, source evidence, scripts, and input hashes are packaged by `python package_outputs.py` into `fbp_prior.tar`; `fbp_prior.tar.sha256` records its digest.

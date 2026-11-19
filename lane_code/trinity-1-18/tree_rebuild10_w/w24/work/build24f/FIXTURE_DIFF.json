@@ -1,4 +1,797 @@
 {
+  "build24fr": {
+    "external_evidence_expected": [
+      "rehearsal2/repro_tied.json",
+      "rehearsal2/repro_untied.json",
+      "rehearsal2/CHECK.json"
+    ],
+    "fields": [
+      {
+        "after": false,
+        "before": true,
+        "field": "effective_model.config.tie_word_embeddings",
+        "production": false
+      },
+      {
+        "after": false,
+        "before": true,
+        "field": "effective_model.config.text_config.tie_word_embeddings",
+        "production": false
+      },
+      {
+        "after": "independent cloned Parameter, exactly equal initial values",
+        "before": "same Parameter as input embedding",
+        "field": "effective_model.lm_head.weight identity/storage",
+        "production": "independent Parameter"
+      },
+      {
+        "after": 1985970,
+        "before": 993714,
+        "field": "effective_model.full_ft_report.base_parameters"
+      },
+      {
+        "after": 1984942,
+        "before": 992686,
+        "field": "effective_model.full_ft_report.trainable_parameters"
+      },
+      {
+        "after": 1984942,
+        "before": 992686,
+        "field": "effective_model.full_ft_report.group_parameters.llm"
+      },
+      {
+        "after": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2",
+        "before": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal",
+        "field": "physical_output_root"
+      },
+      {
+        "after": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2/tmp",
+        "before": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tmp",
+        "field": "TMPDIR and cache roots"
+      },
+      {
+        "after": "read-only; rehearsal2 remains read/write",
+        "before": "read/write",
+        "field": "existing bwrap bind modes"
+      },
+      {
+        "after": "four-rank CPU/gloo tied/untied reproduction",
+        "before": null,
+        "field": "launcher preflight"
+      },
+      {
+        "after": "before native h.py plus native entry refusal tests",
+        "before": "after h.py",
+        "field": "fixture host/review staging order"
+      },
+      {
+        "after": {
+          "path": "u/b82b413c34e7e0a88bc6fc6e7f92d82c76fced9d51deb65f260439f7235a91d0",
+          "sha256": "b82b413c34e7e0a88bc6fc6e7f92d82c76fced9d51deb65f260439f7235a91d0"
+        },
+        "before": null,
+        "field": "h.py in-memory control.review"
+      },
+      {
+        "after": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2/code.json",
+        "before": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal/code.json",
+        "field": "input.json.code.path"
+      },
+      {
+        "after": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2/input.json",
+        "before": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal/input.json",
+        "field": "r.json.config.path"
+      },
+      {
+        "after": "1779a97d9a2b5d7aa50b32af908de58057bf50018e5efa7fa8bee8745c4fa7af",
+        "before": "7d4ce1efac6a6afa70c1202c118690b5e943fba30f77739d5f916388ac986239",
+        "field": "r.json.config.sha256"
+      },
+      {
+        "after": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2/input.json",
+            "sha256": "1779a97d9a2b5d7aa50b32af908de58057bf50018e5efa7fa8bee8745c4fa7af"
+          }
+        ],
+        "before": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal/input.json",
+            "sha256": "7d4ce1efac6a6afa70c1202c118690b5e943fba30f77739d5f916388ac986239"
+          }
+        ],
+        "field": "r.json.staged_pins"
+      },
+      {
+        "after": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2/input.json",
+        "before": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal/input.json",
+        "field": "r2.json.config.path"
+      },
+      {
+        "after": "1779a97d9a2b5d7aa50b32af908de58057bf50018e5efa7fa8bee8745c4fa7af",
+        "before": "7d4ce1efac6a6afa70c1202c118690b5e943fba30f77739d5f916388ac986239",
+        "field": "r2.json.config.sha256"
+      },
+      {
+        "after": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2/input.json",
+            "sha256": "1779a97d9a2b5d7aa50b32af908de58057bf50018e5efa7fa8bee8745c4fa7af"
+          }
+        ],
+        "before": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal/input.json",
+            "sha256": "7d4ce1efac6a6afa70c1202c118690b5e943fba30f77739d5f916388ac986239"
+          }
+        ],
+        "field": "r2.json.staged_pins"
+      },
+      {
+        "after": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2/code.json",
+        "before": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal/code.json",
+        "field": "n.json.code.path"
+      },
+      {
+        "after": "5e4babd750ec12fadefdae67258128754028d1fbd76f367b0ba81f9cc556bf8c",
+        "before": "9b4d04d7792ac1ae5657a9d632356881372e6b810fce542f6caa1c45dfa19b07",
+        "field": "v.json.admission.sha256"
+      },
+      {
+        "after": "d2688934db29091f6df8e5e441c8862f39c4a58c82102ddb5a3b12bd95db0215",
+        "before": "4359b868baab5d744290e69df243351898050920f7ee3def8617c66d05be6370",
+        "field": "v.json.authorization.sha256"
+      },
+      {
+        "after": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2/code.json",
+        "before": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal/code.json",
+        "field": "v.json.code.path"
+      },
+      {
+        "after": "95653d4597203e276bd4ee3ef1b764a2adae6a6451d14aeba97913c2a21c3ed4",
+        "before": "127a35f72a56d62996f4769e18b61b65447ff576ef6cf8f955bdad5870f014dc",
+        "field": "v.json.preparation.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/prepared",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/prepared",
+        "field": "v.json.preparation_output"
+      },
+      {
+        "after": "9080d20aba4e90ed7a14e7db6890aeaf28348e5d6df6d793b6e526dcb75def05",
+        "before": "9e9011e363616ff91876589ed540b38076569ded52e26863df618702a78f2b3c",
+        "field": "v.json.r1_training.continuation_identity"
+      },
+      {
+        "after": "47f8f58bb2c4dffaf1ac9f26a62d066be1eaf60601142bbcda347e6ce201ef87",
+        "before": "0f45b87d7227a7dc0063d03dc98cc897ff51d6c5350e04131d0b5fba704830c6",
+        "field": "v.json.r1_training.handover_mapping.sha256"
+      },
+      {
+        "after": "8363880f7aec183ac6ec06d853113b93d0d57bed28b921e59b95273fb81e7c1c",
+        "before": "d9297cbdf714bf119c3b0ccc031382715e06b089ba0a777125c2f0caddd5ebd1",
+        "field": "v.json.r1_training.host_receipt.sha256"
+      },
+      {
+        "after": "b82b413c34e7e0a88bc6fc6e7f92d82c76fced9d51deb65f260439f7235a91d0",
+        "before": "9730d8c63164c54a9d5b15141d3f1e4da1596526f5530dd8a67344246746ad93",
+        "field": "v.json.r1_training.review.sha256"
+      },
+      {
+        "after": "21cc58f543f5cc6224ef1188d8e5fe7c55cfd4019cb30cc799e667282a7881f9",
+        "before": "cfeddf289507c3b717442718526fe2b1870b54fe8b942718c0e4ea8b2dc3104b",
+        "field": "v.json.r1_training.row_plan_sha256"
+      },
+      {
+        "after": "008b97f847c1b058241e09ff68a557f15d82b0a52270d1fa02a6786b373ecc46",
+        "before": "2b5166c328aadfd7b2a3a8a6a19e79146bb23e65cd025cec9abb8a043cce55b6",
+        "field": "v.json.r2_sampling.indices.sha256"
+      },
+      {
+        "after": "25b758bdcded377c428735ab64e0b40fcd66a88eb94e18d77e23ff4d2640882c",
+        "before": "bf8be216427385003b9751fca30b946c07b21ec6afd189de537369e7ff1f7a00",
+        "field": "v.json.r2_sampling.population.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/pointing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/pointing/receipt.json",
+        "field": "v.json.streams.pointing.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/receipt.json",
+        "field": "v.json.streams.routing.path"
+      },
+      {
+        "after": "3efecca8838e7032f3e087ee467db51d8e723854cbfcecf341599502269dff13",
+        "before": "eacdf25b8c2ab997cd5d40104757f73ff1b6d74a8b355651ace78df6438cf5d5",
+        "field": "v.json.streams.routing.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/vqa/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/vqa/receipt.json",
+        "field": "v.json.streams.vqa.path"
+      },
+      {
+        "after": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2/code.json",
+        "before": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal/code.json",
+        "field": "prepared.json._r1_start_config.code.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/prepared/s1_receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/prepared/s1_receipt.json",
+        "field": "prepared.json._r1_start_config.preparation.path"
+      },
+      {
+        "after": "50c14f57e166e5db8fd3b7464630fafb7b1ac87f2c809bc36c58652b9df79001",
+        "before": "9b523983a393b4a2f7376b369b9e13afb18cd36201e7847ee1f8253fc7bd941a",
+        "field": "prepared.json._r1_start_config.preparation.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/prepared",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/prepared",
+        "field": "prepared.json._r1_start_config.preparation_output"
+      },
+      {
+        "after": "f09655413c8f24b28533b4ae1d70ae6bf7d02a15b2c4fe997b899f693f71da13",
+        "before": "caf82ca852c01f98e7639f014e0d4d6e26d1079602e5c2378cdb343d399f7e10",
+        "field": "prepared.json._r1_start_config.r1_training.continuation_identity"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/handover.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/handover.json",
+        "field": "prepared.json._r1_start_config.r1_training.handover_mapping.path"
+      },
+      {
+        "after": "d3135aa3ff1b36a3100e56c185e3ddf24b1191b6d9cd108430f1a81e8b600441",
+        "before": "0bb765114e7e99e10e9d390869dcbed7408f392e8215140b10e3ab0a5b450a64",
+        "field": "prepared.json._r1_start_config.r1_training.handover_mapping.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/pointing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/pointing/receipt.json",
+        "field": "prepared.json._r1_start_config.streams.pointing.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/receipt.json",
+        "field": "prepared.json._r1_start_config.streams.routing.path"
+      },
+      {
+        "after": "3efecca8838e7032f3e087ee467db51d8e723854cbfcecf341599502269dff13",
+        "before": "eacdf25b8c2ab997cd5d40104757f73ff1b6d74a8b355651ace78df6438cf5d5",
+        "field": "prepared.json._r1_start_config.streams.routing.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/vqa/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/vqa/receipt.json",
+        "field": "prepared.json._r1_start_config.streams.vqa.path"
+      },
+      {
+        "after": "3f19ab021c20cbd53ec91bca1ea65ccc3e057725cd3a414de0a45ed8cc2dc667",
+        "before": "efbf13f0cebabee13bb8234eed8ca10e25b03880b3835d9083499a41a3f90446",
+        "field": "prepared.json.config_sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/prepared/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/prepared/receipt.json",
+        "field": "prepared.json.native_preparation.path"
+      },
+      {
+        "after": "6812f142d087160a02cb6878958cfecb3483860fee101379f912ec333070216a",
+        "before": "cb737aba57ed197cef7265627a963899a8a450ec44c2b90cb1b58b331fdfdb6d",
+        "field": "prepared.json.native_preparation.sha256"
+      },
+      {
+        "after": "9080d20aba4e90ed7a14e7db6890aeaf28348e5d6df6d793b6e526dcb75def05",
+        "before": "9e9011e363616ff91876589ed540b38076569ded52e26863df618702a78f2b3c",
+        "field": "prepared.json.r1_training.continuation_identity"
+      },
+      {
+        "after": "47f8f58bb2c4dffaf1ac9f26a62d066be1eaf60601142bbcda347e6ce201ef87",
+        "before": "0f45b87d7227a7dc0063d03dc98cc897ff51d6c5350e04131d0b5fba704830c6",
+        "field": "prepared.json.r1_training.handover_mapping.sha256"
+      },
+      {
+        "after": "8363880f7aec183ac6ec06d853113b93d0d57bed28b921e59b95273fb81e7c1c",
+        "before": "d9297cbdf714bf119c3b0ccc031382715e06b089ba0a777125c2f0caddd5ebd1",
+        "field": "prepared.json.r1_training.host_receipt.sha256"
+      },
+      {
+        "after": "b82b413c34e7e0a88bc6fc6e7f92d82c76fced9d51deb65f260439f7235a91d0",
+        "before": "9730d8c63164c54a9d5b15141d3f1e4da1596526f5530dd8a67344246746ad93",
+        "field": "prepared.json.r1_training.review.sha256"
+      },
+      {
+        "after": "21cc58f543f5cc6224ef1188d8e5fe7c55cfd4019cb30cc799e667282a7881f9",
+        "before": "cfeddf289507c3b717442718526fe2b1870b54fe8b942718c0e4ea8b2dc3104b",
+        "field": "prepared.json.r1_training.row_plan_sha256"
+      },
+      {
+        "after": "008b97f847c1b058241e09ff68a557f15d82b0a52270d1fa02a6786b373ecc46",
+        "before": "2b5166c328aadfd7b2a3a8a6a19e79146bb23e65cd025cec9abb8a043cce55b6",
+        "field": "prepared.json.r2_sampling.indices.sha256"
+      },
+      {
+        "after": "25b758bdcded377c428735ab64e0b40fcd66a88eb94e18d77e23ff4d2640882c",
+        "before": "bf8be216427385003b9751fca30b946c07b21ec6afd189de537369e7ff1f7a00",
+        "field": "prepared.json.r2_sampling.population.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/rows.sqlite",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/rows.sqlite",
+        "field": "prepared.json.scene_filter_report.expected.routing.population.database.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/pool/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/pool/receipt.json",
+        "field": "prepared.json.scene_filter_report.upstream.routing.expected.pool/source.reference.path"
+      },
+      {
+        "after": "d7a50b87ccd36d0318c3b1d1e250493d9ace1389fcdd2c8b114a15572f08a819",
+        "before": "567b07ad218a7891236080af192ef64ba749cbe67ae3d9b0ab3468c47f4aeb41",
+        "field": "prepared.json.scene_filter_report.upstream.routing.expected.pool/source.reference.sha256"
+      },
+      {
+        "after": "3f19ab021c20cbd53ec91bca1ea65ccc3e057725cd3a414de0a45ed8cc2dc667",
+        "before": "efbf13f0cebabee13bb8234eed8ca10e25b03880b3835d9083499a41a3f90446",
+        "field": "prepared.json.source_seal.config_sha256"
+      },
+      {
+        "after": "5684771e86fa3d2f2b03b8054758f4986d82893c9f3cfc68e5efaeaf62023547",
+        "before": "dbb518c1aeb52701fc06abc8088a044e9ea0c4423dc4e586f5e29ab03790bb7c",
+        "field": "prepared.json.source_seal.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/prepared/pointing_scene_indices.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/prepared/pointing_scene_indices.json",
+        "field": "prepared.json.streams.pointing.reader_source.indices.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/pointing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/pointing/receipt.json",
+        "field": "prepared.json.streams.pointing.reader_source.receipt.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/pointing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/pointing/receipt.json",
+        "field": "prepared.json.streams.pointing.reader_source.scene_source.receipt.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/pointing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/pointing/receipt.json",
+        "field": "prepared.json.streams.pointing.receipt.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/pointing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/pointing/receipt.json",
+        "field": "prepared.json.streams.pointing.scene_source.receipt.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/prepared/pose_scene_order.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/prepared/pose_scene_order.json",
+        "field": "prepared.json.streams.pose.reader_source.order.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/prepared/pose_mix_order.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/prepared/pose_mix_order.json",
+        "field": "prepared.json.streams.pose.reader_source.scene_source.order.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/prepared/pose_mix_order.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/prepared/pose_mix_order.json",
+        "field": "prepared.json.streams.pose.scene_source.order.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/rows.sqlite",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/rows.sqlite",
+        "field": "prepared.json.streams.routing.database.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/rows.sqlite",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/rows.sqlite",
+        "field": "prepared.json.streams.routing.reader_source.database.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/prepared/routing_scene_indices.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/prepared/routing_scene_indices.json",
+        "field": "prepared.json.streams.routing.reader_source.indices.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/receipt.json",
+        "field": "prepared.json.streams.routing.reader_source.receipt.path"
+      },
+      {
+        "after": "3efecca8838e7032f3e087ee467db51d8e723854cbfcecf341599502269dff13",
+        "before": "eacdf25b8c2ab997cd5d40104757f73ff1b6d74a8b355651ace78df6438cf5d5",
+        "field": "prepared.json.streams.routing.reader_source.receipt.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/rows.sqlite",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/rows.sqlite",
+        "field": "prepared.json.streams.routing.reader_source.scene_source.database.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/receipt.json",
+        "field": "prepared.json.streams.routing.reader_source.scene_source.receipt.path"
+      },
+      {
+        "after": "3efecca8838e7032f3e087ee467db51d8e723854cbfcecf341599502269dff13",
+        "before": "eacdf25b8c2ab997cd5d40104757f73ff1b6d74a8b355651ace78df6438cf5d5",
+        "field": "prepared.json.streams.routing.reader_source.scene_source.receipt.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/receipt.json",
+        "field": "prepared.json.streams.routing.receipt.path"
+      },
+      {
+        "after": "3efecca8838e7032f3e087ee467db51d8e723854cbfcecf341599502269dff13",
+        "before": "eacdf25b8c2ab997cd5d40104757f73ff1b6d74a8b355651ace78df6438cf5d5",
+        "field": "prepared.json.streams.routing.receipt.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/rows.sqlite",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/rows.sqlite",
+        "field": "prepared.json.streams.routing.scene_source.database.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/routing/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/routing/receipt.json",
+        "field": "prepared.json.streams.routing.scene_source.receipt.path"
+      },
+      {
+        "after": "3efecca8838e7032f3e087ee467db51d8e723854cbfcecf341599502269dff13",
+        "before": "eacdf25b8c2ab997cd5d40104757f73ff1b6d74a8b355651ace78df6438cf5d5",
+        "field": "prepared.json.streams.routing.scene_source.receipt.sha256"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/prepared/vqa_scene_indices.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/prepared/vqa_scene_indices.json",
+        "field": "prepared.json.streams.vqa.reader_source.indices.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/vqa/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/vqa/receipt.json",
+        "field": "prepared.json.streams.vqa.reader_source.receipt.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/vqa/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/vqa/receipt.json",
+        "field": "prepared.json.streams.vqa.reader_source.scene_source.receipt.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/vqa/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/vqa/receipt.json",
+        "field": "prepared.json.streams.vqa.receipt.path"
+      },
+      {
+        "after": "/tmp/q_22c714e1/p2/q/p/prepare_2b71c37ce25f4b3cbe96ef8260da2044/vqa/receipt.json",
+        "before": "/tmp/q_22c714e1/p2/q/p/prepare_3b8e00077aab443a96aa84cd4dfddc1c/vqa/receipt.json",
+        "field": "prepared.json.streams.vqa.scene_source.receipt.path"
+      },
+      {
+        "after": "d95794b4d44f1843873f372e82d79c8b8cebd1d13ff05b2c776afa3b64e88ec8",
+        "before": "da81d3c5e2ac0333d893bc911dd97fa49e5beff935ea3245e8f8a70aab32b81e",
+        "field": "PREPARED.json.canary"
+      },
+      {
+        "after": "8d96ece0054dd1b731929e90d77f5d83b9a39be847bacbde4c51c680bba66379",
+        "before": "fb7a6d462f59b2f5fe2085c6bce0bbe751b8250c173861cb1203d85ddd1f16b6",
+        "field": "PREPARED.json.kit"
+      },
+      {
+        "after": [
+          "/usr/bin/bwrap",
+          "--symlink",
+          "usr/bin",
+          "/bin",
+          "--ro-bind",
+          "/boot",
+          "/boot",
+          "--ro-bind",
+          "/compute",
+          "/compute",
+          "--ro-bind",
+          "/data",
+          "/data",
+          "--ro-bind",
+          "/data2",
+          "/data2",
+          "--ro-bind",
+          "/data3",
+          "/data3",
+          "--ro-bind",
+          "/data4",
+          "/data4",
+          "--ro-bind",
+          "/etc",
+          "/etc",
+          "--symlink",
+          "usr/lib",
+          "/lib",
+          "--symlink",
+          "usr/lib64",
+          "/lib64",
+          "--ro-bind",
+          "/lost+found",
+          "/lost+found",
+          "--ro-bind",
+          "/media",
+          "/media",
+          "--ro-bind",
+          "/mnt",
+          "/mnt",
+          "--ro-bind",
+          "/opt",
+          "/opt",
+          "--ro-bind",
+          "/root",
+          "/root",
+          "--ro-bind",
+          "/run",
+          "/run",
+          "--symlink",
+          "usr/sbin",
+          "/sbin",
+          "--ro-bind",
+          "/scratch",
+          "/scratch",
+          "--ro-bind",
+          "/srv",
+          "/srv",
+          "--ro-bind",
+          "/ssd0",
+          "/ssd0",
+          "--ro-bind",
+          "/ssd1",
+          "/ssd1",
+          "--ro-bind",
+          "/sys",
+          "/sys",
+          "--ro-bind",
+          "/tmp",
+          "/tmp",
+          "--ro-bind",
+          "/usr",
+          "/usr",
+          "--ro-bind",
+          "/var",
+          "/var",
+          "--tmpfs",
+          "/tmp",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node",
+          "--dev-bind",
+          "/dev",
+          "/dev",
+          "--proc",
+          "/proc",
+          "--tmpfs",
+          "/home",
+          "--dir",
+          "/home/jjyeung",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/aws/u",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/aws/u",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/x",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/rp",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/aws/u/ap/8865619b/u",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/c7d31ddd/data2root",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/data2root",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/c7d31ddd/runs/aws128p_20261025/models",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/models",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/c7d31ddd",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/project/community/jjyeung/c7d31ddd",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/epochs",
+          "/home/jjyeung/6d00e578",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/j",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/j",
+          "--remount-ro",
+          "/home",
+          "--unshare-user",
+          "--uid",
+          "25409",
+          "--gid",
+          "25409",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node",
+          "/tmp/q_22c714e1",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go",
+          "/tmp/q_22c714e1",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/kit_n_go",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/kit_n_go",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal2",
+          "/tmp/q_22c714e1",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go/p",
+          "/tmp/q_22c714e1/p"
+        ],
+        "before": [
+          "/usr/bin/bwrap",
+          "--symlink",
+          "usr/bin",
+          "/bin",
+          "--ro-bind",
+          "/boot",
+          "/boot",
+          "--ro-bind",
+          "/compute",
+          "/compute",
+          "--ro-bind",
+          "/data",
+          "/data",
+          "--ro-bind",
+          "/data2",
+          "/data2",
+          "--ro-bind",
+          "/data3",
+          "/data3",
+          "--ro-bind",
+          "/data4",
+          "/data4",
+          "--ro-bind",
+          "/etc",
+          "/etc",
+          "--symlink",
+          "usr/lib",
+          "/lib",
+          "--symlink",
+          "usr/lib64",
+          "/lib64",
+          "--ro-bind",
+          "/lost+found",
+          "/lost+found",
+          "--ro-bind",
+          "/media",
+          "/media",
+          "--ro-bind",
+          "/mnt",
+          "/mnt",
+          "--ro-bind",
+          "/opt",
+          "/opt",
+          "--ro-bind",
+          "/root",
+          "/root",
+          "--ro-bind",
+          "/run",
+          "/run",
+          "--symlink",
+          "usr/sbin",
+          "/sbin",
+          "--ro-bind",
+          "/scratch",
+          "/scratch",
+          "--ro-bind",
+          "/srv",
+          "/srv",
+          "--ro-bind",
+          "/ssd0",
+          "/ssd0",
+          "--ro-bind",
+          "/ssd1",
+          "/ssd1",
+          "--ro-bind",
+          "/sys",
+          "/sys",
+          "--ro-bind",
+          "/tmp",
+          "/tmp",
+          "--ro-bind",
+          "/usr",
+          "/usr",
+          "--ro-bind",
+          "/var",
+          "/var",
+          "--tmpfs",
+          "/tmp",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node",
+          "--dev-bind",
+          "/dev",
+          "/dev",
+          "--proc",
+          "/proc",
+          "--tmpfs",
+          "/home",
+          "--dir",
+          "/home/jjyeung",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/aws/u",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/aws/u",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/x",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/rp",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/aws/u/ap/8865619b/u",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/c7d31ddd/data2root",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/data2root",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/c7d31ddd/runs/aws128p_20261025/models",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/models",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/c7d31ddd",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/dest/project/community/jjyeung/c7d31ddd",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/s/epochs",
+          "/home/jjyeung/6d00e578",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/j",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node/j",
+          "--remount-ro",
+          "/home",
+          "--unshare-user",
+          "--uid",
+          "25409",
+          "--gid",
+          "25409",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build21g/proofs/view/node",
+          "/tmp/q_22c714e1",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go",
+          "/tmp/q_22c714e1",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/kit_n_go",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/kit_n_go",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal",
+          "--bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f/rehearsal",
+          "/tmp/q_22c714e1",
+          "--ro-bind",
+          "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24d/go/p",
+          "/tmp/q_22c714e1/p"
+        ],
+        "field": "VIEW.json"
+      }
+    ],
+    "model_boundary": "After native tied donor load; before optimizer and FSDP; original pinned base/donor files remain authenticated and unchanged",
+    "production_evidence": "rehearsal2/PRODUCTION_EVIDENCE.json",
+    "retained_fields": "Native recipe, admission, legality, row stores, initialization receipt and trained groups are unchanged; no training results are prepopulated.",
+    "scope": "CPU fixture only; all native functions and production inputs unchanged",
+    "single_process_evidence": "rehearsal2/SINGLE_PROCESS.json"
+  },
   "fields": [
     {
       "field": "admission",

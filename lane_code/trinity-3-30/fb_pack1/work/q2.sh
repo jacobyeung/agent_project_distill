@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack; date -u +%TZ; tmux ls 2>&1 | grep fbp; for t in route prior relcnt; do echo "== $t"; tail -c 300 $F/$t/dispatch.log; echo; head -c 700 $F/$t/STATUS.md; echo; ls $F/$t/out; done; df -h /scratch | tail -1; du -sh $F 2>/dev/null

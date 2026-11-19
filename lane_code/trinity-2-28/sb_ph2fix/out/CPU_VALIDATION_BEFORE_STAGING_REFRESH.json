@@ -1,0 +1,165 @@
+{
+ "status": "PASS",
+ "runs": [
+  {
+   "name": "final_part1",
+   "command": [
+    "bash",
+    "sb_mask_phrase/run.sh",
+    "test_kit.py"
+   ],
+   "environment": {},
+   "returncode": 0,
+   "expected_returncode": 0,
+   "status": "PASS",
+   "log": "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_part1.log"
+  },
+  {
+   "name": "final_part2",
+   "command": [
+    "bash",
+    "sb_mask_phrase/run.sh",
+    "part2/test_part2.py"
+   ],
+   "environment": {},
+   "returncode": 0,
+   "expected_returncode": 0,
+   "status": "PASS",
+   "log": "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_part2.log"
+  },
+  {
+   "name": "launcher_tests",
+   "command": [
+    "bash",
+    "sb_mask_phrase/run.sh",
+    "part2/test_launcher.py"
+   ],
+   "environment": {},
+   "returncode": 0,
+   "expected_returncode": 0,
+   "status": "PASS",
+   "log": "/scratch/jjyeung/orch_n30/sb_ph2fix/out/launcher_tests.log"
+  },
+  {
+   "name": "final_dryrun",
+   "command": [
+    "bash",
+    "sb_mask_phrase/run.sh",
+    "dryrun.py",
+    "report"
+   ],
+   "environment": {},
+   "returncode": 0,
+   "expected_returncode": 0,
+   "status": "PASS",
+   "log": "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_dryrun.log"
+  },
+  {
+   "name": "final_fixture",
+   "command": [
+    "bash",
+    "sb_mask_phrase/run.sh",
+    "part2/price.py",
+    "fixture",
+    "arkitscenes/41048124,scannetpp/067e2e4e61"
+   ],
+   "environment": {
+    "PART2_FIXTURE_DIR": "work/part2_cpu_ph2fix_verified"
+   },
+   "returncode": 0,
+   "expected_returncode": 0,
+   "status": "PASS",
+   "log": "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_fixture.log"
+  },
+  {
+   "name": "final_aggregate",
+   "command": [
+    "bash",
+    "sb_mask_phrase/run.sh",
+    "part2/price.py",
+    "fixture-aggregate"
+   ],
+   "environment": {
+    "PART2_FIXTURE_DIR": "work/part2_aggregate_ph2fix_verified"
+   },
+   "returncode": 0,
+   "expected_returncode": 0,
+   "status": "PASS",
+   "log": "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_aggregate.log"
+  },
+  {
+   "name": "final_step5_cpu",
+   "command": [
+    "bash",
+    "sb_mask_phrase/run.sh",
+    "part2/sam3_pass.py",
+    "step5"
+   ],
+   "environment": {
+    "PART2_GO": "1"
+   },
+   "returncode": 1,
+   "expected_returncode": 1,
+   "status": "PASS",
+   "log": "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_step5_cpu.log"
+  },
+  {
+   "name": "final_staging",
+   "command": [
+    "bash",
+    "sb_mask_phrase/run.sh",
+    "part2/staging.py"
+   ],
+   "environment": {},
+   "returncode": 0,
+   "expected_returncode": 0,
+   "status": "PASS",
+   "log": "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_staging.log"
+  }
+ ],
+ "synthetic_capture_staging_command": [
+  "cp",
+  "-a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/part2_fixture/caps",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/part2_aggregate_ph2fix_verified/"
+ ],
+ "part1_tests": 26,
+ "part2_tests": 20,
+ "step5": {
+  "status": "FAIL",
+  "reason": "CUDA required; expected CPU refusal; no GPU model loaded"
+ },
+ "gpu_pass": "NOT RUN",
+ "launcher_tests": 23,
+ "input_sha256": {
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/LAUNCHER_TESTS.json": "a78ed4d1dbc95225148b26881e6fdb484d9584f5ecd9fe417bb0e739729ab456",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/out/TESTS.json": "f6f10375dbad9be38f2e6d3a7b3e678458ded41e914f33eb2722fa45997b1c03",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/out/part2/TESTS_PART2.json": "778dfa2b506666ad7c2ae103aa7e2af862084fd2d611419569f0090d6eb623f9",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/out/DRYRUN.json": "72b541143b61fcca9df0be3501f7e433f27ad7dd1ecead76a6177ab431520b9f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/part2_cpu_ph2fix_verified/FIXTURE.json": "32162fa26e3e6fff7856749bc49a75befb942c93b7b280f61a2b45b1a3e03206",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/part2_aggregate_ph2fix_verified/aggregate/DECISION_PART2.json": "6cb07b62bb42792de6b3feb3b4fdb81782045754b7aabf89e5b651e116f5ae6c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/STAGING_PART2.json": "b6eab6774d2733e5e933f073c78e27141e18273a696001a5a338b3e692966c3c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/PIN_RELOCATION.json": "95186aa608b24aa3e948807cfc44751114c15b7e11b3a5405a980c3851d0d800",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/verify_cpu.py": "ce84667d84be97f48fba0246b539ce7a7864b852a93fdb0fc839add861174f2d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/run.sh": "5005008880f47f5016dea19e9644fd51c659417ae0ab5c9f19ca31844262be5f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/launch.sh": "71128cbafccbb50b3f03c8f134552233e510dcdd80091568f51eda8328f8fa59",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/gate.py": "f40b93d12e79768eea1ee6b2b2911695fcc64b4f935e9c4589bcd8b20a5a8368",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_gpu.py": "03ff08f672d4c48cb8e9644b8f3969a99704fac8e276ea3dcb2e88d99de6834e",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/price.py": "18bc1047dface717948f12f6116f2bdc86bbed099868e5ccb986b1e22bc91fb7",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/sam3_pass.py": "92d187e8918f82b61f2c774a0337d8ae23c2a048ac1e3329f3a1a6d64d04681a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/staged_paths.py": "3ba66ee8cba8ad6f7a774ab061afc18e0aa5c8bb87f06ac38ef797dd6eb4cd7d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/staging.py": "372defe2d1c04f81b761d8b0a2efa9236f808c94d0507b13cf52d98c9aa8800e",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/test_launcher.py": "7cb7da725de28a5c941ea53f888d20f7047a7f9c87314020360be1cabdaa93f6",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/test_part2.py": "9d927282769f4701fc833251459766a115f8686ab25c7f12dd323d4f4dd06deb",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/watchdog.py": "0c3392e6ab7a4c98c628d29c968365d897655339b4b7f7ad07524b46fc4a9c0a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_part2.sh": "616831daf54d48a6557a1e13382b500967b3fcf376958bcd1cd03aa1318363da",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_part1.log": "91d1d2df02aeb5ecf2e206ce280d13bcabfddea15eeaf2bd1d931e4f4f23b5fd",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_part2.log": "d7585aaa3b3cbce2cda1bfe19bd85a69c62dd505125fa174c5477bc5b5a56b1a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/launcher_tests.log": "49a00217e36d7e703c19b36a3794038f8243122970b118c0827dd6bf27b5c9c0",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_dryrun.log": "6799445c9150b18be4b97384def27a1795125df52800264ebea80d02e04e016b",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_fixture.log": "a5c58c0adb1be8223a5200a52d7bd78f98dc0f8448491ae96857fbb79146000c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_aggregate.log": "085e53b55f119e8f63d0c15119301b15235a33ec858c5829a6934f4fee87bab2",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_step5_cpu.log": "687bfd325c7cb78116b402160a5ba9fc7bea563e504d4c99301a2b9cf54e6974",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/final_staging.log": "e366a887913cc3ceed7faa263d163f8351ce6f946f902271241fff9a3e105d00"
+ }
+}

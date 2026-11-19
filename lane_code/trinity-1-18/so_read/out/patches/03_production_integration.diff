@@ -1075,7 +1075,7 @@
 +    authenticate(base, source, original, payload, manifest_path, extension_pins_path)
 +    kit = json.loads(Path(manifest_path).read_text())['kit_files']
 +    gate_kit = {name:kit[name]['public_sha256' if name=='sample50.json' else 'sha256']
-+                for name in ('run.py','compare.py','sample50.json')}
++                for name in ('run.py','compare.py','sample50.json','host.py')}
 +    cfg = json.loads(payload['9.json'])
 +    if canonical(cfg) != public['plan_sha256']:
 +        raise ValueError('A4 plan differs')
@@ -1172,7 +1172,7 @@
 +                          manifest_path=args.manifest,extension_pins_path=args.extension_pins), sort_keys=True))
 --- /dev/null
 +++ b/u0/a20.py
-@@ -0,0 +1,304 @@
+@@ -0,0 +1,306 @@
 +"""Explicit local A4 operation plans and parity settings; never launches jobs."""
 +import argparse
 +import importlib.util
@@ -1358,6 +1358,8 @@
 + if isinstance(v,list):return [decode(x) for x in v]
 + return v
 +gate=decode(json.loads((p/'a/g.json').read_text())['u0'])
++self_test=gate.get('guard_self_test')
++if (not isinstance(self_test,dict) or self_test.get('passed') is not True or self_test.get('checks')!=dict(add_=True,copy_=True,load_state_dict=True) or self_test.get('errors')):raise ValueError('GPU guard self-test failed or missing')
 +keys=('stage1_select_rule','perception_memo','perception_memo_modules','perception_memo_verify_ids','save_own_depth','read_processor_only','read_processor_cache','read_vision_cache','read_sam_cache','read_cache_bytes')
 +expected={k:cfg[k] for k in keys}
 +if (gate.get('passed') is not True or gate.get('adoption_plan_sha256')!=pub['plan_sha256'] or gate.get('required_device_type')!='H100_80GB' or json.dumps(gate.get('adoption_profile'),sort_keys=True)!=json.dumps(expected,sort_keys=True)):raise ValueError('GPU gate differs from adopted plan/profile/device')
@@ -1477,6 +1479,178 @@
 +
 +
 +if __name__=='__main__':main()
+--- /dev/null
++++ b/u0/a21.py
+@@ -0,0 +1,169 @@
++"""Explicit H100 namespace staging/launch, using A4's authenticated runtime code.
++
++The host entrypoint is Python 3.6 compatible. Runtime code is imported only after
++its package payload hash and member pins pass. No downloads, installs or retries.
++"""
++import argparse
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import subprocess
++import sys
++import tarfile
++
++PREFLIGHT = """import importlib.util,json,sys
++from pathlib import Path
++p=Path(sys.argv[1]);sys.path.insert(0,str(p.parent))
++from a9 import read_wire
++spec=importlib.util.spec_from_file_location('u0_probe',p.parent/'u0.py')
++kit=importlib.util.module_from_spec(spec);spec.loader.exec_module(kit)
++kit.validate_environment(read_wire(json.loads(p.read_bytes())))
++import torch
++torch.set_num_threads(8)
++if not torch.cuda.is_available():raise ValueError('GPU interpreter/environment preflight failed')
++print('Environment preflight passed')
++"""
++
++
++def sha(path):
++    h=hashlib.sha256()
++    with Path(path).open('rb') as stream:
++        for chunk in iter(lambda:stream.read(1024**2),b''):h.update(chunk)
++    return h.hexdigest()
++
++
++def stage_runtime(root, assets, S):
++    # Unchanged runtime-group/bwrap block from orchard_h10.job.stage:110-117.
++    # The prepared d archive supplies all additional inputs, so do not refetch them.
++    root=Path(root);receipts={};archives=root/'a';archives.mkdir()
++    for i,group in enumerate(assets['groups']):
++        parts=[dict(path=p,bytes=n,sha256=h) for p,n,h in group]
++        dest=archives/str(i)
++        receipts[str(i)]=S.copy_parts(parts,dest,lambda p:Path(p['path']).open('rb'))
++        S.room(root,dest.stat().st_size);S.unpack(dest,root,links=True)
++    bwrap=assets['bwrap_pin']
++    receipts['bwrap']=S.copy_parts([bwrap],root/'bwrap',lambda p:Path(p['path']).open('rb'))
++    (root/'bwrap').chmod(0o700)
++    return receipts
++
++
++def namespace_command(root, inputs, J, args):
++    # Never substitute sys.executable: v/py installs the production site overlay.
++    return J.namespace(root)+[inputs['python'],'-B','-I']+list(args)
++
++
++def gate_environment(root, kit, J):
++    env=J.environment(root)
++    env.update(XDG_CACHE_HOME=kit+'/u6',HF_HOME=kit+'/u6/u0',TRITON_CACHE_DIR=kit+'/u6/u1',
++               MKL_NUM_THREADS='8',U0_ROOT=str(root),U0_KIT=kit)
++    return env
++
++
++def runtime_context(root):
++    root=Path(root)
++    sys.path.insert(0,str(root/'bootstrap'))
++    from orchard_h10.common import template
++    S,J,*_=template()
++    inputs=json.loads((root/'1.json').read_text())
++    sealed=json.loads((root/'2.json').read_text())
++    if sha(root/'1.json')!=sealed['inputs']:raise ValueError('Staged inputs changed')
++    return inputs,S,J
++
++
++def authenticate(package):
++    package=Path(package)
++    public=json.loads((package/'0.json').read_text())
++    if sha(package/'0.tgz')!=public['payload_sha256']:raise ValueError('Package payload differs')
++    proof=json.loads((package/'a/c/CPU.json').read_text())
++    if (proof.get('passed') is not True or proof['payload']!=public['payload_sha256']
++            or proof['plan']!=public['plan_sha256'] or proof['inputs']!=sha(package/'a/1.json')):
++        raise ValueError('CPU proof does not bind package and inputs')
++    with tarfile.open(str(package/'0.tgz')) as archive:
++        cfg=json.load(archive.extractfile('9.json'))
++    asset=proof['gate_assets']
++    if (asset['logical']!=cfg['logical']
++            or Path(asset['path']).resolve()!=(package/'a/4.tar').resolve()):
++        raise ValueError('Asset receipt logical root/path differs')
++    return cfg,proof
++
++
++def stage(package, root, kit, archive):
++    package=Path(package);root=Path(root);archive=Path(archive)
++    cfg,proof=authenticate(package)
++    asset=proof['gate_assets']
++    if archive.stat().st_size!=asset['bytes'] or sha(archive)!=asset['sha256']:
++        raise ValueError('Prepared asset archive differs')
++    # Extract only pinned staging code; never import the host's unverified source.
++    with tarfile.open(str(package/'0.tgz')) as source:
++        for member in source:
++            if not member.name.startswith('orchard_h10/'):continue
++            if not member.isfile() or '..' in Path(member.name).parts:raise ValueError('Unsafe staging module')
++            raw=source.extractfile(member).read();pin=cfg['payload_pins'][member.name]
++            if len(raw)!=pin['bytes'] or hashlib.sha256(raw).hexdigest()!=pin['sha256']:
++                raise ValueError('Staging module pin differs')
++            target=root/'bootstrap'/member.name;target.parent.mkdir(parents=True,exist_ok=True)
++            with target.open('xb') as stream:stream.write(raw)
++    sys.path.insert(0,str(root/'bootstrap'))
++    from orchard_h10.common import template
++    S,J,*_=template()
++    J.storage_proof(root,job=os.environ['SLURM_JOB_ID'])
++    assets=json.loads((root/'bootstrap/orchard_h10/vendor/ORCHARD_ASSETS.json').read_text())
++    receipts=stage_runtime(root,assets,S)
++    # READY's artifact manifest also authenticates code at logical/p.
++    # Reuse job.stage's authenticated payload extraction, preserving that layout.
++    archives=root/'a';archives.mkdir(exist_ok=True)
++    public=json.loads((package/'0.json').read_text())
++    payload=dict(path=str(package/'0.tgz'),bytes=public['payload_bytes'],sha256=public['payload_sha256'])
++    receipts['code']=S.copy_parts([payload],archives/'c',lambda p:Path(p['path']).open('rb'))
++    with (archives/'c').open('rb') as stream:
++        S.extract_stream(stream,J.physical(root,cfg['logical']+'/p'),None,32*1024**2)
++    for rel,pin in cfg['payload_pins'].items():
++        if sha(J.physical(root,cfg['logical']+'/p/'+rel))!=pin['sha256']:raise ValueError('Code payload differs')
++    for name in ('sj','fsw','m/ap'):(root/name).mkdir(parents=True,exist_ok=True)
++    data=J.physical(root,cfg['logical']+'/d');data.mkdir(parents=True,exist_ok=False)
++    S.room(root,asset['bytes'])
++    # Tar reads the authenticated archive through stdin; /project stays outside bwrap.
++    env=gate_environment(root,kit,J)
++    with archive.open('rb') as stream:
++        subprocess.run(J.namespace(root)+['/bin/tar','-xf','-','-C',cfg['logical']+'/d'],
++                       stdin=stream,env=env,check=True)
++    for name,target in (('7.json','binding.json'),('9.json','ENVIRONMENT.json')):
++        (data/name).symlink_to(target)
++    for path in (kit+'/u6',kit+'/u6/u0',kit+'/u6/u1'):
++        J.physical(root,path).mkdir(parents=True,exist_ok=True)
++    # The input wrapper path comes from the same a/1.json authenticated by CPU.json.
++    raw=(package/'a/1.json').read_bytes()
++    with (root/'1.json').open('xb') as stream:stream.write(raw)
++    record=dict(inputs=sha(root/'1.json'),payload=proof['payload'],gate_assets=asset,runtime=receipts)
++    with (root/'2.json').open('x') as stream:json.dump(record,stream,sort_keys=True)
++    return record
++
++
++def launch(root, kit):
++    inputs,S,J=runtime_context(root)
++    env=gate_environment(root,kit,J)
++    config=kit+'/u0/u2.json'
++    subprocess.run(namespace_command(root,inputs,J,['-c',PREFLIGHT,config]),env=env,check=True)
++    return subprocess.run(namespace_command(root,inputs,J,[kit+'/u0/u0.py',config,
++        '--out',kit+'/u9','--enable-gpu','--public','--repeat-baseline','--shards','4']),env=env).returncode
++
++
++def main():
++    p=argparse.ArgumentParser();p.add_argument('--enable-namespace',action='store_true')
++    modes=p.add_mutually_exclusive_group(required=True);modes.add_argument('--stage',action='store_true');modes.add_argument('--run',action='store_true')
++    p.add_argument('--package');p.add_argument('--archive');p.add_argument('--root',required=True);p.add_argument('--kit-root',required=True)
++    a=p.parse_args()
++    if not a.enable_namespace:p.error('Namespace gate is OFF; pass --enable-namespace')
++    root=Path(a.root).resolve()
++    if root.parent!=Path('/tmp') or not re.fullmatch('a[0-9a-f]{12,32}',root.name):
++        p.error('Use a fresh opaque directory under the job-private /tmp')
++    if not re.fullmatch('/scratch/jjyeung/a[0-9a-f]{12,32}',a.kit_root):p.error('Require a fresh opaque kit root')
++    if not os.environ.get('SLURM_JOB_ID','').isdigit():p.error('Run on an allocated compute node')
++    if a.stage:
++        if not a.package or not a.archive:p.error('--stage requires --package and --archive')
++        stage(a.package,root,a.kit_root,a.archive);return 0
++    return launch(root,a.kit_root)
++
++if __name__=='__main__':raise SystemExit(main())
 --- /dev/null
 +++ b/u0/tests/test_round2.py
 @@ -0,0 +1,310 @@
@@ -2968,7 +3142,7 @@
 +if __name__=='__main__':unittest.main(verbosity=2)
 --- /dev/null
 +++ b/u0/tests/test_round6.py
-@@ -0,0 +1,272 @@
+@@ -0,0 +1,273 @@
 +"""Executable adoption regressions against the reviewed round-6 snapshot."""
 +import ast
 +import copy
@@ -3066,6 +3240,7 @@
 +                             export_pin=sha(package/'a/export.json')),
 +        adoption_kit=cfg.get('gate_kit_sha256',{}),required_device_type='H100_80GB')
 +    environment=json.loads((package/'a/c/ENVIRONMENT.json').read_text())
++    value['guard_self_test']={'passed':True,'checks':dict(add_=True,copy_=True,load_state_dict=True)}
 +    value['adoption_environment']=dict(sha256=sha(package/'a/c/ENVIRONMENT.json'),torch=environment['versions']['torch'],transformers=environment['versions']['transformers'],cuda=environment['cuda'])
 +    write(package/'a/g.json',{'u0':pack(value)})
 +    return value
@@ -3243,7 +3418,7 @@
 +if __name__=='__main__':unittest.main(verbosity=2)
 --- /dev/null
 +++ b/u0/tests/test_round7.py
-@@ -0,0 +1,176 @@
+@@ -0,0 +1,177 @@
 +"""Executable staging, receipt and export-selection regressions; no GPU or scheduler."""
 +import copy
 +import hashlib
@@ -3365,7 +3540,7 @@
 +        self.assertTrue(hasattr(self.kit,'kit_hashes'),'Receipt omits executing kit/comparator/sample bytes')
 +        got=self.kit.kit_hashes()
 +        self.assertEqual(got,{'run.py':sha(OUT/'kit_parity50/run.py'),
-+            'compare.py':sha(OUT/'kit_parity50/compare.py'),'sample50.json':sha(OUT/'kit_parity50/sample50.json')})
++            'compare.py':sha(OUT/'kit_parity50/compare.py'),'sample50.json':sha(OUT/'kit_parity50/sample50.json'),**({'host.py':sha(OUT/'kit_parity50/host.py')} if not BEFORE else {})})
 +        fixture=r6.Round6Tests();fixture.target=self.target;fixture.helper=self.helper;fixture.builder=self.builder
 +        p,proof,command=fixture.submit_fixture()
 +        self.assertEqual(subprocess.run(command,capture_output=True).returncode,0)
@@ -3380,7 +3555,7 @@
 +        cfg={key:value[key] for key in ('adoption_plan_sha256','adoption_profile','adoption_assets','required_device_type')}
 +        cfg['adoption_kit']=got;root=fresh()
 +        with patch.object(self.kit,'validate_environment',return_value=value['adoption_environment'],create=True):
-+            self.kit.write_gate_receipt(root,cfg,True)
++            self.kit.write_gate_receipt(root,cfg,True,**({'guard_self_test':{'passed':True,'checks':dict(add_=True,copy_=True,load_state_dict=True)}} if 'guard_self_test' in inspect.signature(self.kit.write_gate_receipt).parameters else {}))
 +        self.assertEqual(read_wire(json.loads((root/'ue.json').read_text()))['adoption_kit'],got)
 +
 +    def test_info_unpack_ignores_python_environment_and_keeps_sibling_import(self):
@@ -3400,7 +3575,8 @@
 +        text=(OUT/'kit_parity50/README.md').read_text()
 +        self.assertNotIn('$LOCAL/5.tar',text)
 +        self.assertIn('salloc --account=mt01',text)
-+        self.assertIn('physically exist and be writable',text)
++        self.assertIn('GPU_ROOT="/tmp/${GATE_TOKEN}"',text)
++        self.assertIn('GPU_PHYSICAL_KIT="$GPU_ROOT/sj/${GATE_TOKEN}"',text)
 +        self.assertIn('1.json',next(b for b in re.findall(r'```bash\n(.*?)\n```',text,re.S) if 'CPU.json MEMORY.json' in b))
 +
 +    def test_rebind_step400_only(self):
@@ -3422,7 +3598,7 @@
 +if __name__=='__main__':unittest.main(verbosity=2)
 --- /dev/null
 +++ b/u0/tests/test_round8.py
-@@ -0,0 +1,222 @@
+@@ -0,0 +1,207 @@
 +"""Round-8 regressions: real loader admission, environment binding and fixed export."""
 +import copy
 +import inspect
@@ -3535,7 +3711,7 @@
 +        fake_transformers=types.SimpleNamespace(__version__=expected['transformers'])
 +        with patch.dict(sys.modules,torch=fake_torch,transformers=fake_transformers):
 +            self.assertEqual(self.kit.validate_environment(cfg),expected)
-+            self.kit.write_gate_receipt(root,cfg,True)
++            self.kit.write_gate_receipt(root,cfg,True,**({'guard_self_test':{'passed':True,'checks':dict(add_=True,copy_=True,load_state_dict=True)}} if 'guard_self_test' in inspect.signature(self.kit.write_gate_receipt).parameters else {}))
 +            from a9 import read_wire
 +            self.assertEqual(read_wire(json.loads((root/'ue.json').read_text()))['adoption_environment'],expected)
 +            for field in ('torch','transformers','cuda'):
@@ -3548,35 +3724,20 @@
 +        print('Runtime torch/transformers/CUDA and environment SHA256 are exact; changed versions, bytes and CPU build refuse.')
 +
 +    def test_f2_gpu_shell_preflight_executes_archived_interpreter(self):
-+        text=(OUT/'kit_parity50/README.md').read_text()
-+        self.assertIn('# BEGIN GPU_ENVIRONMENT',text,'GPU shell preflight is missing')
-+        block=text.split('# BEGIN GPU_ENVIRONMENT\n')[1].split('# END GPU_ENVIRONMENT')[0]
-+        root=fresh();logical=root/'logical';(logical/'d/v').mkdir(parents=True)
-+        # The executable at d/v/py is a test double for CUDA imports only.
-+        # Execute the actual README heredoc and shell setup without a GPU.
-+        wrapper=logical/'d/v/py'
-+        wrapper.write_text('#!'+sys.executable+'\n'+"""import os,sys,types
-+values={'torch':'2.11.0+cu129','transformers':'5.12.0','cuda':'12.9'}
-+key=os.environ.get('MUTATE_ENVIRONMENT')
-+if key in values:values[key]='wrong'
-+t=types.ModuleType('torch');t.__version__=values['torch'];t.version=types.SimpleNamespace(cuda=values['cuda'])
-+t.set_num_threads=lambda n:None;t.cuda=types.SimpleNamespace(is_available=lambda:key!='available')
-+f=types.ModuleType('transformers');f.__version__=values['transformers']
-+sys.modules.update(torch=t,transformers=f)
-+sys.argv=['-',sys.argv[-1]]
-+exec(compile(sys.stdin.read(),'<README GPU preflight>','exec'))
-+""")
-+        wrapper.chmod(0o700)
-+        write(logical/'d/ENVIRONMENT.json',dict(versions=dict(torch='2.11.0+cu129',transformers='5.12.0'),cuda='12.9'))
-+        block=block.replace('GPU_KIT=/scratch/jjyeung/ab0123456789','GPU_KIT='+str(root/'kit'))
-+        env=dict(os.environ,GPU_LOGICAL=str(logical),READ_PYTHON='/wrong/interpreter')
-+        result=subprocess.run(['bash','-eu','-c',block],env=env,capture_output=True,text=True)
-+        self.assertEqual(result.returncode,0,result.stderr);self.assertIn('preflight passed',result.stdout)
-+        for key in ('torch','transformers','cuda','available'):
-+            with self.subTest(field=key):
-+                result=subprocess.run(['bash','-eu','-c',block],env=dict(env,MUTATE_ENVIRONMENT=key),capture_output=True,text=True)
-+                self.assertNotEqual(result.returncode,0);self.assertIn('preflight failed',result.stderr)
-+        print('README GPU block runs d/v/py and refuses each version mismatch or unavailable CUDA; CUDA imports are test doubles.')
++        # Use A4's real namespace argv; never substitute a host-executable d/v/py.
++        host_path=OUT/'kit_parity50/host.py'
++        self.assertTrue(host_path.is_file(),'Preflight lacks A4 namespace launcher')
++        host=load('host8',host_path)
++        from orchard_h10.common import template
++        _,J,*_=template()
++        root=fresh();inputs={'python':'/scratch/jjyeung/b01ec87a6f29b/d/v/py'}
++        args=['-c',host.PREFLIGHT,'/scratch/jjyeung/a123456789abc/u0/u2.json']
++        command=host.namespace_command(root,inputs,J,args)
++        self.assertEqual(command,J.namespace(root)+[inputs['python'],'-B','-I']+args)
++        self.assertNotIn('sys.executable',inspect.getsource(self.kit.main))
++        self.assertEqual(inspect.getsource(self.kit.main).count('worker_command('),3)
++        self.assertIn('namespace_command',inspect.getsource(self.kit.worker_command))
++        print('Preflight and every worker launch require real A4 namespace argv and the authenticated wrapper path; no host d/v/py test double.')
 +
 +    def test_f2_gate_authenticates_environment_before_gpu(self):
 +        self.assertIn('environment',inspect.getsource(self.helper.gate),'Gate omits CPU environment receipt binding')
@@ -3636,12 +3797,302 @@
 +
 +    def test_info_gpu_commands_and_aliases(self):
 +        text=(OUT/'kit_parity50/README.md').read_text()
-+        self.assertIn('READ_PYTHON="$GPU_LOGICAL/d/v/py"',text)
-+        self.assertIn('export XDG_CACHE_HOME="$GPU_KIT/u6" HF_HOME="$GPU_KIT/u6/u0" TRITON_CACHE_DIR="$GPU_KIT/u6/u1"',text)
++        self.assertIn("inputs['python']",text)
++        self.assertIn('XDG_CACHE_HOME/HF_HOME/TRITON_CACHE_DIR',text)
 +        self.assertIn('aliases must be symlinks',text.lower())
 +        self.assertIn('--job-name="a15_cot_ap${GATE_TOKEN}"',text)
 +        self.assertIn('secrets.token_hex',text)
 +        self.assertRegex(text,r'33 GB.{0,50}estimat|estimat.{0,50}33 GB')
 +        self.assertNotIn('cp "$GPU_LOGICAL/d/binding.json"',text)
++
++if __name__=='__main__':unittest.main(verbosity=2)
+--- /dev/null
++++ b/u0/tests/test_round9.py
+@@ -0,0 +1,287 @@
++"""Namespace and production guard regressions, with preserved round-9 controls."""
++import ast
++import copy
++import inspect
++import io
++import json
++import os
++from pathlib import Path
++import subprocess
++import sys
++import tarfile
++import types
++import unittest
++from unittest.mock import patch
++
++L=Path(os.environ.get('READ_WORKSPACE','/scratch/jjyeung/orch_n30/so_read'))
++SRC=Path(__file__).resolve().parents[2]
++sys.path[:0]=[str(SRC),str(SRC/'u0'),str(SRC/'u0/tests'),str(L/'out/kit_parity50')]
++import torch
++torch.set_num_threads(8)
++import test_round5 as r5
++import test_round6 as r6
++BEFORE=os.environ.get('READ_ROUND9_BEFORE')=='1'
++OUT=L/('out_round9' if BEFORE else 'out')
++load=r5.load;fresh=r5.fresh;sha=r5.sha
++
++class Round9Tests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.kit=load('kit9',OUT/'kit_parity50/run.py')
++
++    def host(self):
++        path=OUT/'kit_parity50/host.py'
++        self.assertTrue(path.is_file(),'Missing namespace host launcher')
++        return load('host9',path)
++
++    def test_f1_all_commands_use_real_namespace_and_input_wrapper(self):
++        host=self.host()
++        from orchard_h10.common import template
++        _,J,*_=template()
++        root=fresh();kit='/scratch/jjyeung/a123456789abc'
++        inputs={'python':'/scratch/jjyeung/b01ec87a6f29b/d/v/py'}
++        with patch.dict(os.environ,USER='jjyeung',SLURM_JOB_ID='123',CUDA_VISIBLE_DEVICES='0'):
++            env=host.gate_environment(root,kit,J)
++        self.assertEqual(env['HOME'],str(root/'home'));self.assertEqual(env['TMPDIR'],str(root/'temp'))
++        self.assertEqual(env['OPENBLAS_NUM_THREADS'],'1')
++        self.assertEqual(env['TRITON_CACHE_DIR'],kit+'/u6/u1')
++        for args in (['-c',host.PREFLIGHT,kit+'/u0/u2.json'],[kit+'/u0/u0.py',kit+'/u0/u2.json'],['--worker','ON']):
++            command=host.namespace_command(root,inputs,J,args)
++            prefix=J.namespace(root)
++            self.assertEqual(command[:len(prefix)],prefix)
++            self.assertEqual(command[len(prefix):len(prefix)+3],[inputs['python'],'-B','-I'])
++            self.assertEqual(command[-len(args):],args)
++        source=inspect.getsource(self.kit.main)
++        self.assertNotIn('sys.executable',source)
++        self.assertEqual(source.count('worker_command('),3)
++        self.assertNotIn("OPENBLAS_NUM_THREADS='8'",source)
++        self.assertIn('namespace_command',inspect.getsource(self.kit.worker_command))
++        print('Real J.namespace prefix and inputs[python] wrap preflight, parent and all three worker launch sites; J.environment retains HOME/TMPDIR/OPENBLAS=1.')
++
++    def test_f1_runtime_staging_reuses_package_block_and_pins(self):
++        host=self.host()
++        from orchard_h10.common import template
++        from orchard_h10 import job
++        S,J,*_=template()
++        # The group loop and bwrap copy are byte-identical to the package block.
++        block=inspect.getsource(job.stage).split("    for i,group in enumerate(assets['groups']):",1)[1].split("    for i,a in enumerate(inputs['archives']):",1)[0]
++        self.assertIn("    for i,group in enumerate(assets['groups']):"+block,inspect.getsource(host.stage_runtime))
++        root=fresh();source=root/'source';source.mkdir();target=root/'root';target.mkdir()
++        archive=source/'0.tar'
++        with tarfile.open(archive,'w') as t:
++            data=b'fixture interpreter';m=tarfile.TarInfo('sj/uv-python/fixture');m.size=len(data);t.addfile(m,io.BytesIO(data))
++        bwrap=source/'bwrap';bwrap.write_bytes(b'fixture bwrap')
++        assets={'groups':[[[str(archive),archive.stat().st_size,sha(archive)]]],
++                'bwrap_pin':dict(path=str(bwrap),bytes=bwrap.stat().st_size,sha256=sha(bwrap))}
++        with patch.object(S,'room'):
++            receipt=host.stage_runtime(target,assets,S)
++        self.assertEqual((target/'sj/uv-python/fixture').read_bytes(),b'fixture interpreter')
++        self.assertEqual(receipt['bwrap']['sha256'],sha(bwrap))
++        bad=copy.deepcopy(assets);bad['groups'][0][0][2]='0'*64
++        another=root/'bad';another.mkdir()
++        with patch.object(S,'room'),self.assertRaisesRegex(ValueError,'SHA256'):
++            host.stage_runtime(another,bad,S)
++        pins=json.loads((OUT/'kit_parity50/RUNTIME_PINS.json').read_text())
++        actual=json.loads((SRC/'orchard_h10/vendor/ORCHARD_ASSETS.json').read_text())
++        self.assertEqual(pins['groups'],actual['groups']);self.assertEqual(pins['bwrap_pin'],actual['bwrap_pin'])
++        self.assertEqual(sum(len(g) for g in pins['groups']),13)
++        print('Package staging block extracts pinned fixture runtime; changed part hash refuses; 13 part pins plus bwrap match A4 receipts.')
++
++    def test_f1_actual_launch_calls_namespace_twice(self):
++        host=self.host()
++        from orchard_h10.common import template
++        S,J,*_=template()
++        root=fresh();kit='/scratch/jjyeung/a123456789abc'
++        inputs={'python':'/scratch/jjyeung/b01ec87a6f29b/d/v/py'}
++        with patch.object(host,'runtime_context',return_value=(inputs,S,J)), \
++             patch.dict(os.environ,USER='jjyeung',SLURM_JOB_ID='123',CUDA_VISIBLE_DEVICES='0'), \
++             patch.object(host.subprocess,'run',return_value=types.SimpleNamespace(returncode=0)) as run:
++            self.assertEqual(host.launch(root,kit),0)
++        self.assertEqual(run.call_count,2)
++        for call in run.call_args_list:
++            command=call.args[0];prefix=J.namespace(root)+[inputs['python'],'-B','-I']
++            self.assertEqual(command[:len(prefix)],prefix)
++            self.assertEqual(call.kwargs['env']['OPENBLAS_NUM_THREADS'],'1')
++            self.assertEqual(call.kwargs['env']['U0_ROOT'],str(root))
++        self.assertIn(host.PREFLIGHT,run.call_args_list[0].args[0])
++        self.assertIn(kit+'/u0/u0.py',run.call_args_list[1].args[0])
++        print('Actual host launch calls preflight then parent with real namespace prefixes and the input wrapper.')
++
++    def test_f1_authenticated_bootstrap_and_physical_asset_extraction(self):
++        host=self.host()
++        from orchard_h10.common import template
++        S,J,*_=template()
++        root=fresh();package=root/'package';(package/'a/c').mkdir(parents=True)
++        original=Path(os.environ['READ_INPUT_SRC']).parent/'package'
++        for name in ('0.tgz','0.json','a/1.json'):
++            (package/name).write_bytes((original/name).read_bytes())
++        public=json.loads((package/'0.json').read_text())
++        with tarfile.open(package/'0.tgz') as t:cfg=json.load(t.extractfile('9.json'))
++        archive=package/'a/4.tar'
++        with tarfile.open(archive,'w') as t:
++            for name,raw in (('binding.json',b'{}'),('ENVIRONMENT.json',b'{}'),('m400/heads.pt',b'heads'),('v/py',b'wrapper bytes remain untouched')):
++                item=tarfile.TarInfo(name);item.size=len(raw);t.addfile(item,io.BytesIO(raw))
++            item=tarfile.TarInfo('e/heads.pt');item.type=tarfile.SYMTYPE;item.linkname=cfg['logical']+'/d/m400/heads.pt';t.addfile(item)
++        proof=dict(passed=True,payload=public['payload_sha256'],plan=public['plan_sha256'],inputs=sha(package/'a/1.json'),
++                   gate_assets=dict(path=str(archive),logical=cfg['logical'],bytes=archive.stat().st_size,sha256=sha(archive)))
++        (package/'a/c/CPU.json').write_text(json.dumps(proof))
++        physical=root/'root';physical.mkdir();kit='/scratch/jjyeung/a123456789abc';calls=[]
++        real_run=subprocess.run
++        def unpack(command,**kwargs):
++            prefix=J.namespace(physical)
++            self.assertEqual(command[:len(prefix)],prefix)
++            self.assertEqual(command[len(prefix):],['/bin/tar','-xf','-','-C',cfg['logical']+'/d'])
++            calls.append(command)
++            return real_run(['/bin/tar','-xf','-','-C',str(J.physical(physical,cfg['logical']+'/d'))],**kwargs)
++        with patch.object(host,'stage_runtime',return_value={'fixture':True}),patch.object(J,'storage_proof'), \
++             patch.object(S,'room'),patch.object(host.subprocess,'run',side_effect=unpack), \
++             patch.dict(os.environ,USER='jjyeung',SLURM_JOB_ID='123',CUDA_VISIBLE_DEVICES='0'):
++            receipt=host.stage(package,physical,kit,archive)
++        self.assertEqual(len(calls),1)
++        data=J.physical(physical,cfg['logical']+'/d')
++        self.assertEqual((data/'v/py').read_bytes(),b'wrapper bytes remain untouched')
++        self.assertEqual(os.readlink(data/'e/heads.pt'),cfg['logical']+'/d/m400/heads.pt')
++        self.assertEqual(os.readlink(data/'7.json'),'binding.json')
++        self.assertEqual(os.readlink(data/'9.json'),'ENVIRONMENT.json')
++        self.assertEqual(receipt['inputs'],sha(package/'a/1.json'))
++        package_code=J.physical(physical,cfg['logical']+'/p')
++        self.assertEqual((package_code/'b/e2e_reader/artifact.py').read_bytes(),(SRC/'b/e2e_reader/artifact.py').read_bytes())
++        self.assertEqual(receipt['runtime']['code']['sha256'],public['payload_sha256'])
++        self.assertEqual((physical/'bootstrap/orchard_h10/job.py').read_bytes(),(SRC/'orchard_h10/job.py').read_bytes())
++        proof['inputs']='0'*64;(package/'a/c/CPU.json').write_text(json.dumps(proof))
++        with self.assertRaises(ValueError):host.authenticate(package)
++        print('Authenticated real A4 bootstrap stages fixture 4.tar to root/sj/<logical>/d with preserved wrapper/links and the complete pinned logical/p code tree; changed input proof refuses. Runtime I/O and bwrap execution are explicit doubles.')
++
++    def test_f2_real_guard_self_test_and_each_missed_operation(self):
++        self.assertTrue(hasattr(self.kit,'guard_self_test'),'Missing production guard self-test')
++        from a0 import WeightGuard
++        result=self.kit.guard_self_test({'source_root':str(SRC)})
++        self.assertEqual(result,{'passed':True,'checks':dict(add_=True,copy_=True,load_state_dict=True)})
++        for missed in ('add_','copy_','load_state_dict'):
++            index=('add_','copy_','load_state_dict').index(missed)
++            class SelectiveGuard(WeightGuard):
++                count=0
++                def __init__(self,provider):
++                    self.index=SelectiveGuard.count;SelectiveGuard.count+=1
++                    super().__init__(provider)
++                def check(self):
++                    if self.index!=index:return super().check()
++            with patch('a0.WeightGuard',SelectiveGuard):
++                bad=self.kit.guard_self_test({'source_root':str(SRC)})
++            self.assertFalse(bad['passed']);self.assertIs(bad['checks'][missed],False)
++        source=inspect.getsource(self.kit.main)
++        self.assertLess(source.index('guard_self_test('),source.index('for mode in'))
++        print('Real frozen scratch module detects add_, copy_ and load_state_dict; each injected detection miss fails independently before workers.')
++
++    def test_f2_failed_self_test_is_recorded_and_cannot_pass_receipt(self):
++        self.assertIn('guard_self_test',inspect.signature(self.kit.write_gate_receipt).parameters,'Receipt omits self-test')
++        cfg=dict(adoption_plan_sha256='a'*64,adoption_profile={},adoption_assets={},required_device_type='H100_80GB')
++        root=fresh();bad={'passed':False,'checks':dict(add_=True,copy_=False,load_state_dict=True)}
++        with patch.object(self.kit,'validate_kit'),patch.object(self.kit,'validate_environment',return_value={}):
++            self.kit.write_gate_receipt(root,cfg,False,guard_self_test=bad)
++            from a9 import read_wire
++            value=read_wire(json.loads((root/'ue.json').read_text()))
++            self.assertFalse(value['passed']);self.assertEqual(value['guard_self_test'],bad)
++            with self.assertRaises(ValueError):self.kit.write_gate_receipt(root,cfg,True,guard_self_test=bad)
++            with self.assertRaises(ValueError):self.kit.write_gate_receipt(root,cfg,True)
++        print('A missed mutation persists in failed ue.json; missing or failed guard evidence cannot produce passed=true.')
++
++    def test_f2_main_records_failure_and_never_starts_workers(self):
++        self.assertTrue(hasattr(self.kit,'guard_self_test'),'Missing production self-test')
++        from contextlib import ExitStack
++        import a9
++        root=fresh();settings=root/'settings.json';settings.write_text('{}')
++        cfg=dict(settings=str(settings),source_root=str(SRC),adoption_plan_sha256='a'*64,
++                 adoption_profile={},adoption_assets={},required_device_type='H100_80GB')
++        config=root/'config.json';config.write_text(json.dumps({'u0':a9.pack(cfg)}))
++        sample=root/'sample.json';sample.write_text(json.dumps({'u0':a9.pack([])}))
++        identity=root/'identity.json';identity.write_text(json.dumps({'u0':a9.pack({})}))
++        for setup_error in (False,True):
++            output=root/('failure' if not setup_error else 'exception')
++            with ExitStack() as stack:
++                stack.enter_context(patch.object(json,'loads',json.loads))
++                stack.enter_context(patch.object(a9,'install_log_boundary'))
++                stack.enter_context(patch.object(a9,'validate_paths'))
++                stack.enter_context(patch.object(a9.OPAQUE_PATH,'fullmatch',return_value=True))
++                stack.enter_context(patch.object(self.kit,'SAMPLE',sample));stack.enter_context(patch.object(self.kit,'IDENTITY',identity))
++                for name in ('validate_roots','validate_profile','validate_assets','validate_kit'):
++                    stack.enter_context(patch.object(self.kit,name))
++                stack.enter_context(patch.object(self.kit,'validate_environment',return_value={}))
++                bad=dict(passed=False,checks=dict(add_=False,copy_=True,load_state_dict=True))
++                stack.enter_context(patch.object(self.kit,'guard_self_test',**({'side_effect':RuntimeError('fixture')} if setup_error else {'return_value':bad})))
++                worker=stack.enter_context(patch.object(self.kit,'worker_command',side_effect=AssertionError('Worker started after failed self-test')))
++                stack.enter_context(patch.object(sys,'argv',['u0.py',str(config),'--out',str(output),'--enable-gpu','--public']))
++                self.assertEqual(self.kit.main(),1);worker.assert_not_called()
++            receipt=a9.read_wire(a9.RAW_LOADS((output/'ue.json').read_text()))
++            self.assertFalse(receipt['passed']);self.assertFalse(receipt['guard_self_test']['passed'])
++            if setup_error:self.assertEqual(receipt['guard_self_test']['errors'],{'setup':'RuntimeError'})
++        print('Actual main writes failed ue.json and starts zero workers for a missed mutation or self-test setup exception.')
++
++    def test_f2_submit_requires_all_three_guard_checks(self):
++        # Exercise the same standalone submit checker used by operators.
++        helper=load('helper9',L/'work/round9-before-a20.py' if BEFORE else SRC/'u0/a20.py')
++        self.assertIn("gate.get('guard_self_test')",helper.SUBMIT_CHECK,'Submit omits guard evidence')
++        r6.Round6Tests.setUpClass();f=r6.Round6Tests();f.target=r6.Round6Tests.target;f.helper=helper;f.builder=r6.Round6Tests.builder
++        package,proof,command=f.submit_fixture()
++        from a9 import pack,read_wire
++        path=package/'a/g.json';value=read_wire(json.loads(path.read_text()))
++        value['guard_self_test']={'passed':True,'checks':dict(add_=True,copy_=True,load_state_dict=True)}
++        path.write_text(json.dumps({'u0':pack(value)}))
++        self.assertEqual(subprocess.run(command,capture_output=True).returncode,0)
++        for op in ('add_','copy_','load_state_dict'):
++            bad=copy.deepcopy(value);bad['guard_self_test']['checks'][op]=False
++            path.write_text(json.dumps({'u0':pack(bad)}))
++            self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0)
++        print('Submit accepts complete guard evidence and rejects each missed mutation.')
++
++    def test_f3_staging_transfer_precedes_allocation_and_roots_extract(self):
++        text=(OUT/'kit_parity50/README.md').read_text()
++        allocation=text.index('salloc --account')
++        for marker in ('--enable-extensions gate','a11.py" seal','a11.py" stage-kit','--bwlimit=8000'):
++            self.assertLess(text.index(marker),allocation,marker)
++        for command in ('tar -xzf "$GPU_TRANSFER/4.tgz" -C "$GPU_PHYSICAL_KIT"',
++                        'tar -xf "$GPU_PHYSICAL_KIT/1.tar" -C "$GPU_PHYSICAL_KIT/u1"',
++                        'tar -xf "$GPU_PHYSICAL_KIT/2.tar" -C "$GPU_PHYSICAL_KIT/u2"'):
++            self.assertIn(command,text)
++        self.assertIn('--stage',text);self.assertIn('--run',text)
++        self.assertNotIn('interpreter outside bwrap',text)
++        root=fresh();transfer=root/'transfer';transfer.mkdir();physical=root/'root/sj/a123456789abc'
++        members={}
++        for number,label in ((1,'patched'),(2,'original')):
++            buf=io.BytesIO()
++            with tarfile.open(fileobj=buf,mode='w') as t:
++                raw=label.encode();item=tarfile.TarInfo('source.py');item.size=len(raw);t.addfile(item,io.BytesIO(raw))
++            members[str(number)+'.tar']=buf.getvalue()
++        members['u0/u0.py']=b'fixture kit'
++        with tarfile.open(transfer/'4.tgz','w:gz') as t:
++            for name,raw in members.items():
++                item=tarfile.TarInfo(name);item.size=len(raw);t.addfile(item,io.BytesIO(raw))
++        (transfer/'4.sha256').write_text(sha(transfer/'4.tgz')+'  4.tgz\n')
++        block=text.split('mkdir -p "$GPU_PHYSICAL_KIT"',1)[1].split('# Stage runtime',1)[0]
++        block='mkdir -p "$GPU_PHYSICAL_KIT"'+block
++        result=subprocess.run(['bash','-eu','-c',block],env=dict(os.environ,GPU_TRANSFER=str(transfer),GPU_PHYSICAL_KIT=str(physical)),capture_output=True,text=True)
++        self.assertEqual(result.returncode,0,result.stderr)
++        self.assertEqual((physical/'u1/source.py').read_text(),'patched')
++        self.assertEqual((physical/'u2/source.py').read_text(),'original')
++        self.assertEqual((physical/'u0/u0.py').read_bytes(),b'fixture kit')
++        print('Gate/seal/stage-kit/transfer precede salloc; exact README host commands successfully extract kit and both source fixture archives.')
++
++    def test_info_token_and_framework_gap_and_guard_limits(self):
++        text=(OUT/'kit_parity50/README.md').read_text()
++        self.assertIn('GPU_KIT="/scratch/jjyeung/${GATE_TOKEN}"',text)
++        self.assertNotIn('ab0123456789',(OUT/'kit_parity50/config.example.json').read_text())
++        evidence=(OUT/'FRAMEWORK_EVIDENCE.md').read_text()
++        for phrase in ('2.13.0+cu130','5.19.0','load_state_dict','2.11.0+cpu','5.12.1'):
++            self.assertIn(phrase,evidence)
++        for phrase in ('Raw writes restored between boundaries','Models must remain frozen'):
++            self.assertIn(phrase,text)
++        print('Fresh token derives kit paths; framework version gap and carried guard limits are explicit.')
++
++    def test_info_round7_logs_are_labelled(self):
++        names=('lock_round3','operator_round3','public','read_cache','read_journal','round1','round2','round3')
++        for name in names:
++            self.assertTrue((OUT/'checks/round7'/('applied_'+name+'.txt')).is_file(),name)
++            self.assertFalse((OUT/'checks'/('applied_'+name+'.txt')).exists(),name)
++        print('Eight carried round-7 applied logs live only under checks/round7.')
 +
 +if __name__=='__main__':unittest.main(verbosity=2)

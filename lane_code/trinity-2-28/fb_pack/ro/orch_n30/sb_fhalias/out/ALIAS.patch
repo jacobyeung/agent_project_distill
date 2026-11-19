@@ -1,0 +1,85 @@
+--- tree_before/launch_r2/distributed.py
++++ tree_after/launch_r2/distributed.py
+@@ -74,6 +74,7 @@
+     root = Path(root).resolve()
+     if arm != '0':
+         raise ValueError('Unknown worker arm')
++    os.environ.pop('Q_E7', None)
+     for native, opaque in (('STUDENT_FRAME_ROOT_MAP','K4'),('C1_INIT_LOCAL','K5'),('STUDENT_R2_FRAME_HOST','K6')):
+         if opaque in os.environ:
+             os.environ[native]=os.environ[opaque]
+--- tree_before/launch_r2/host.py
++++ tree_after/launch_r2/host.py
+@@ -250,6 +250,7 @@
+ 
+ def execute_packet(root, packet, guard, *, full):
+     from .runtime import bounded_writes, obligations, statement_hits, checked_hits, init_layout
++    os.environ.pop('Q_E7', None)
+     checklist = begin_checks(root, packet) if full else None
+     paths = input_paths(packet, root)
+     guard.tick()
+--- tree_before/launch_r2/runtime.py
++++ tree_after/launch_r2/runtime.py
+@@ -58,8 +58,12 @@
+ 
+ 
+ def obligations():
+-    from student_pilot import r2_materialize as materializer, carrier_c1_run as run
+-    specs = [(materializer.materialize, "if os.environ.get('STUDENT_R2_FRAME_HOST')", 'frame-host'),
++    from student_pilot import r2_materialize as materializer, r2_intake as intake, carrier_c1_run as run
++    lines, _ = inspect.getsourcelines(intake.intake)
++    needle = "remote_full = (limit is None and os.environ.get(env_key('STUDENT_R2_FRAME_HOST')) == '1'"
++    if sum(needle in line for line in lines) != 1:
++        raise ValueError('Statement obligation is ambiguous or absent')
++    specs = [(materializer.materialize, "if os.environ.get(env_key('STUDENT_R2_FRAME_HOST'))", 'frame-host'),
+              (materializer.materialize, "raise ValueError('Full materialization requires an explicit frame-host admission')", 'frame-host'),
+              (materializer.materialize, 'limit = None', 'frame-host'),
+              (run.dryrun, 'plan = next(data.mixed_indices(', 'model-loader'),
+--- tree_before/student_pilot/job_env.py
++++ tree_after/student_pilot/job_env.py
+@@ -1,6 +1,6 @@
+ """Opaque deployment names preserve the legacy environment contract."""
+ import os
+-ALIASES = {'STUDENT_ORCHARD': 'Q_E1', 'STUDENT_SLURM_SITE': 'Q_E2', 'STUDENT_MODEL_ROOT': 'Q_E3', 'STUDENT_FRAME_ROOT_MAP': 'Q_E4', 'R1_STUDENT_HEX': 'Q_E5'}
++ALIASES = {'STUDENT_ORCHARD': 'Q_E1', 'STUDENT_SLURM_SITE': 'Q_E2', 'STUDENT_MODEL_ROOT': 'Q_E3', 'STUDENT_FRAME_ROOT_MAP': 'Q_E4', 'R1_STUDENT_HEX': 'Q_E5', 'STUDENT_R2_FRAME_HOST': 'Q_E7'}
+ def key(name):
+     alias=ALIASES.get(name)
+     return alias if alias is not None and alias in os.environ else name
+--- tree_before/student_pilot/r2_intake.py
++++ tree_after/student_pilot/r2_intake.py
+@@ -7,6 +7,7 @@
+ import gzip
+ import json
+ import os
++from .job_env import key as env_key
+ from pathlib import Path
+ import sys
+ from .p3_provenance import digest, load, pinned, write
+@@ -35,7 +36,7 @@
+         raise ValueError('Old-format or unnamed family manifest')
+     if manifest.get('trace_contract') != CONTRACT or manifest.get('validator_sha256') != SHARED_SHA256:
+         raise ValueError('Manifest contract or validator pin differs')
+-    remote_full = (limit is None and os.environ.get('STUDENT_R2_FRAME_HOST') == '1'
++    remote_full = (limit is None and os.environ.get(env_key('STUDENT_R2_FRAME_HOST')) == '1'
+                    and os.environ.get('STUDENT_R2_LOCAL_NODE') != '1'
+                    and not os.uname().nodename.startswith('trinity'))
+     if not remote_full and (type(limit) is not int or not 1 <= limit <= 2000):
+--- tree_before/student_pilot/r2_materialize.py
++++ tree_after/student_pilot/r2_materialize.py
+@@ -2,6 +2,7 @@
+ import argparse
+ import json
+ import os
++from .job_env import key as env_key
+ from pathlib import Path
+ import sqlite3
+ from .p3_provenance import digest, file_pin, write, load, pinned
+@@ -22,7 +23,7 @@
+                  or os.uname().nodename.startswith('trinity')):
+         raise ValueError('Full store forbidden on a local node; use slices of at most 2000 rows per family')
+     if full:
+-        if os.environ.get('STUDENT_R2_FRAME_HOST') != '1':
++        if os.environ.get(env_key('STUDENT_R2_FRAME_HOST')) != '1':
+             raise ValueError('Full materialization requires an explicit frame-host admission')
+         limit = None
+     output = Path(output)

@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import uuid
 import types
 import unittest
 from unittest.mock import patch
@@ -28,9 +29,10 @@ WORK.mkdir(parents=True,exist_ok=True)
 REFERENCE=FIXTURE/'reference'
 FIXED=C.read(FIXTURE/'FIRST50.json')
 
-def directory():return Path(tempfile.mkdtemp(prefix='a',dir=WORK))
+def directory():path=WORK/('a'+uuid.uuid4().hex);path.mkdir();return path
 def candidate():
     root=directory()/'ret';shutil.copytree(str(REFERENCE),str(root))
+    C.write(root/'SUMMARY.json',dict(completed=50,failure=None,complete=False))
     C.write(root/'metadata/LOCAL_RUN.json',dict(backend='trinity-local',host='trinity-2-28',mode='OFF',synthetic_cpu_fixture=True))
     C.write(root/'metadata/CARDS.json',dict(snapshot=dict(name='NVIDIA RTX 6000 Ada Generation')))
     C.write(root/'metadata/RETURN_ID.json',dict(job='234567',token='dc76460c3a164'+format(234567,'08x')))
@@ -176,8 +178,8 @@ class RunnerFindings(unittest.TestCase):
         C.install_imports(root/'src')
         with ExitStack() as stack:
             for name,value in [('target_host',lambda:'trinity-2-28'),('deployment',lambda _: (root,cfg,inputs,export)),
-                ('stage_check',lambda *a,**k:dict(environment={})),('snapshot',lambda _:gpu),('idle_gate',lambda *a,**k:gpu),
-                ('Sampler',Sampler),('STAGE',work/'stage'),('utc',lambda:'CPU_TEST')]:
+                ('stage_check',lambda *a,**k:dict(environment={},namespace=dict(bwrap={'fixture':True}))),('snapshot',lambda _:gpu),('idle_gate',lambda *a,**k:gpu),
+                ('namespace_command',lambda *a: ['/usr/bin/bwrap','--fixture']),('Sampler',Sampler),('STAGE',work/'stage'),('utc',lambda:'CPU_TEST')]:
                 stack.enter_context(patch.object(runner,name,value))
             stack.enter_context(patch.dict(os.environ,{'PATH':'/usr/local/bin:/usr/bin:/bin'}))
             stack.enter_context(patch.object(runner.subprocess,'Popen',Worker))

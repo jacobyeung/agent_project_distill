@@ -1,0 +1,127 @@
+{
+  "existing_direction_path": {
+    "configuration_fields": [
+      "r1_training.direction_twins.rows",
+      "r1_training.direction_twins.binding",
+      "r1_training.direction_twins.aliases",
+      "r1_training.direction_twins.source_database",
+      "r1_training.direction_augmented"
+    ],
+    "mechanism": "augment appends authenticated direct rows to a new VQA SQLite store, emits augmentation.json and receipt.json, and verifies unchanged source rows plus every appended row.",
+    "module": "student_pilot/r1_direction_twins.py",
+    "restriction": "These keys and their accepted hashes, row count, source-key membership, and room checks are direction-twin specific. They cannot be pointed at this relative-count packet."
+  },
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/code/common.py": "1cb2eae9bc71e6cea2aed4e34f4c5c1171a849e39177b0c7468a15eaa52067f0",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/code/review_binding.py": "42e30a6b94350e882870f6749a74f585587b07cafb4263580d2677c8460e62f6",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/BUILD.json": "99a541db261e9f284383bd2594ad14583c252a84a2aff27f0add4dc11295f450",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/GT_CHECK.json": "053f13bc107f7f1edf7d5be40a03f547c010b402cce0aa12ed8635c4bbd4122f",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/RASTER_CHECK.json": "63d1c23faa9a9a0948c60801d49a6736fc25f23ea5e7486b3cba8219db504f3b",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/READ40.md": "4d6cb2cf010cee5b6a33f1ab61f167f1448c28255d5a1dbdf158c93c01ec7bc0",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/READ40_TEXT.md": "82784cb40a6b6a7df370e1de69ab81d49988d36b524fe415dbe5d8a378f8135e",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/ROW_CHECKS.json": "c70a1397771bd3612bf5848c973240b8d66d754756a1a9d0c4e032129cef5186",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/relative_count.jsonl": "1ad9e3a572bd4393afc1ce8a2363ed7974ccac471f28c63a28e38497d3b76c78",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/room_audit_final/audit.json": "735d3eb91799bc802c1b81371a1bcadceffbbb1ddbb9c33f0d73f39c7cf7b05f",
+    "/scratch/jjyeung/orch_n30/sb_rowC/in/b12/out/PACKET_b12_v4/count_total.jsonl": "0ec47aa286991fcc36b254d30258c1044bd434b707c6a20a542f0a4e13d911a1",
+    "/scratch/jjyeung/orch_n30/sb_rowC/in/procedure_source.json": "3c8529fe9686b3c574f84e6a41326e7b14d407e5b9c6fa3d3da899f87ecee2f2",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w22/out/BUILD22_REPORT.md": "745acb5c077a89b2365a5e04c6a715b9b240f34b1968c14cab421cfb786b42cb",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/TREE_SEAL.json": "2d8ff9682bf515f3a0b65bca5ee6e730474a037ccb6351dc3f2a91524ff32a17",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/p3_provenance.py": "afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_counting.py": "21f8525c2b76025060f75b4dd71dfd318b9813e7137952cfb2d98cc2a4f355d9",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_direction_twins.py": "6e9f1f4a1c405dbc89881881f109495d6948802e6de44312eb63253b07d9f093",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_launch22.py": "ab841ac02648467c947ae072a866b7889bc2b9b8508520bc028d4dfdb2cfdc75",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_loader.py": "4351861953cc559a79fec7ec8d799272a5dc5c42d90c53eb07bcf8bd7fc93595",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_mix.py": "76e9963e443307e064ef653f0b7b9e62450ce80cfc27558c0840141e80fe9fb1",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_population.py": "063ed256bc4b6d797bd99c99bdaf4f11c8fe045a2606645a1dfbcef548c6c76a",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_rooms.py": "83b0363613dbb17bc8daf8bafc14a54ce77015509d49d7723b5402281f94d18f",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_training.py": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/row_removals.py": "440810bd0377f8f72b24040e1f2bbe4a7686feb86c29ba537f5e31ac1f64c800",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/trace_grammar.py": "a41ba19190eb354168ce5837b2047fb6510c868c5d7cbfbf160cbe924777e268"
+  },
+  "no_tree_change": true,
+  "not_provided": [
+    "A materialized augmented production VQA database and receipt.",
+    "A production augmentation proof or native admitted-offset list.",
+    "Training, RGB inspection, or a measured accuracy improvement."
+  ],
+  "required_existing_fields": [
+    {
+      "field": "streams.vqa",
+      "value": "Pin the materialized augmented c1-stream-v1 VQA receipt."
+    },
+    {
+      "field": "r1_training.store_parameter",
+      "value": "Use the same VQA receipt pin."
+    },
+    {
+      "field": "r1_training.store_hashes.vqa",
+      "value": "Use the augmented receipt database SHA-256; set all three with r1_training.configure_store."
+    },
+    {
+      "field": "r1_training.room_authority",
+      "value": "Keep the pinned room authorities used by N; regenerate the store room proof for the exact augmented database."
+    },
+    {
+      "field": "remove_files and r1_training.v7_k1_removal",
+      "value": "Preserve N exclusion order and union. Filter packet qids and verified b12 source qids; do not infer source membership from question text."
+    },
+    {
+      "field": "r1_training.mix",
+      "value": "Pin the selected card with the vqa/counting cell and counting_admission=procedure_only_v1; recompute eligibility and draws after native filtering."
+    },
+    {
+      "field": "r2_sampling",
+      "value": "Regenerate card/population/native-offset indices/allocation from the augmented prepared reader."
+    },
+    {
+      "field": "r1_training.row_plan_sha256",
+      "value": "Set to native p3_provenance.digest(r2_sampling)."
+    },
+    {
+      "field": "preparation",
+      "value": "Pin the regenerated prepared receipt; regenerate its config and source seals and any handover store/plan binding."
+    }
+  ],
+  "required_tree_work": [
+    "Add an authenticated direct-family augmentation path alongside or generalizing the direction-twin path. Pin this JSONL and its b12 source binding; preserve every base and existing twin row.",
+    "Authenticate each final appended row using N p3_provenance.digest, not a raw Unicode serialization hash. Authenticate source qids against b12 count_total.jsonl; those sources must not be assumed to belong to v7.",
+    "Extend the STORE exception and its verifier in r1_rooms.verify_audit to authenticate this exact augmented population. Reusing direction_twins with different data currently refuses.",
+    "Carry each b12 source key into removal checks through a verified sidecar or a reviewed label_row_keys/provenance.row_key binding. Current row_removals.row_keys does not inspect provenance.relative_count.source_qid. Any added row fields require fresh row digests and a new packet pin.",
+    "Stage every pinned source/row/binding/proof into the launch kit, rebuild its source seal, then run native preparation and the frame-host production audit."
+  ],
+  "room_audit": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/room_audit_final/audit.json",
+    "sha256": "735d3eb91799bc802c1b81371a1bcadceffbbb1ddbb9c33f0d73f39c7cf7b05f"
+  },
+  "row_contract": {
+    "answer_form": "single option letter after </think>\\n\\n",
+    "candidate_identity": "ground- + sha256(json.dumps([qid, scene, frame_indices, question_type, question, options, [], \"3.14\", \"phrases-v3\"], ensure_ascii=False))",
+    "category": "relative_count",
+    "count_arity": "ABSENT",
+    "count_kind": "ABSENT",
+    "counting_form": "PROC",
+    "native_family": "counting",
+    "question_type": "relative_count",
+    "stream": "vqa",
+    "trace_form": "direct"
+  },
+  "rows": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/relative_count.jsonl",
+    "sha256": "1ad9e3a572bd4393afc1ce8a2363ed7974ccac471f28c63a28e38497d3b76c78"
+  },
+  "rows_count": 4000,
+  "source_bindings": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/GT_CHECK.json",
+    "sha256": "053f13bc107f7f1edf7d5be40a03f547c010b402cce0aa12ed8635c4bbd4122f"
+  },
+  "source_totals": {
+    "path": "/scratch/jjyeung/orch_n30/sb_rowC/in/b12/out/PACKET_b12_v4/count_total.jsonl",
+    "sha256": "0ec47aa286991fcc36b254d30258c1044bd434b707c6a20a542f0a4e13d911a1"
+  },
+  "status": "READY_FOR_TREE_REBUILD_BINDING; NOT_BOUND",
+  "tree_seal": {
+    "files": 939,
+    "tree_sha256": "57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7"
+  }
+}

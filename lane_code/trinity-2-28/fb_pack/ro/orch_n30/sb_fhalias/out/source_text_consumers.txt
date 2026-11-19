@@ -1,0 +1,460 @@
+work/tree_before/generator/accept_v314.py:125:                    rgb = dict(frames=[dict(path='/placeholder/%d.png' % k, sha256='0' * 64, source_index=k) for k in fi],
+work/tree_before/headcall/gate_eval.py:403:    sources = [name for name in ("adapter_dir", "full_weights", "milestone") if getattr(args, name)]
+work/tree_before/generator/derivgen_v7/fixture_v313_r3.py:28:source=[json.loads(s) for s in (BASE/'ground_rows/out/pilot_v4/candidates.jsonl').read_text().splitlines()]
+work/tree_before/generator/derivgen_v7/fixture_v313_r3.py:71:    normals=[r for r in source if r['scene']==scene and r['type']=='object_abs_distance' and not r['not_seen']]
+work/tree_before/generator/derivgen_v7/fixture_v313_r3.py:173:    src=source[i];scene=src['scene'];a,b=[src['roles'][k] for k in ['a','b']]
+work/tree_before/evalpath/routed_types.py:61:        entry = {**cell(rows), 'by_source': {s: cell([r for r in rows if r['dataset'] == s]) for s in SOURCES}}
+work/tree_before/evalpath/routed_types.py:66:    return dict(per_type=result, by_source={s: cell([r for r in records if r['dataset'] == s]) for s in SOURCES})
+work/tree_before/hrp/pointing.py:53:    for row in source['items']:
+work/tree_before/generator/derivgen_v7/derivgen/ground_v312_production.py:81:                for line in source:
+work/tree_before/generator/derivgen_v7/derivgen/ground_v312_production.py:168:                admission='GT/replay/cap checks only; production membership, RGB joins, canonical-source admission and consumer form/total-token checks remain required',
+work/tree_before/generator/derivgen_v7/derivgen/ground_v312_production.py:221:    identity=dict(set_policy=args.set_policy,config=config,code=code,manifest=pin(args.manifest),sources=[pin(path) for path in args.input],
+work/tree_before/launch_s1/build.py:32:               for path in source_files([tree / "student_pilot/carrier_c1_run.py"])}
+work/tree_before/launch_s1/build.py:33:    operations = {str(path.relative_to(tree)): sha256(path) for path in source_files([
+work/tree_before/launch_s1/build.py:55:        source = pinned({key: pin[key] for key in ("path", "sha256")})
+work/tree_before/launch_s1/build.py:136:                dict(source="pool_s1:"+name) for name, entry in pool["sources"].items()
+work/tree_before/hrp/export.py:128:        if any(r['frame_indices'] != expected or r['source_index'] != expected[r['frame']-1] for r in rows):
+work/tree_before/evalpath/pointing_markers.py:155:        frame_indices=task['source_frame_indices'], timestamps=[i/task['fps'] for i in task['source_frame_indices']],
+work/tree_before/evalpath/pointing_markers.py:262:        frames_indices=[i for i in task['source_frame_indices'] for _ in range(2)],
+work/tree_before/generator/derivgen_v7/derivgen/balance.py:79:                                    "source_box_convention": {key: scene.native_source.get(key) for key in ("box_convention", "provider_axesLengths", "released_boxes", "obb_estimator_used")},
+work/tree_before/generator/derivgen_v7/derivgen/ground_v312_pack.py:48:    for source,name in [('balanced','balanced_training_rows'),('gt_accepted','gt_accepted_training_rows')]:
+work/tree_before/evalpath/routed_dev.py:93:    source = min((t for t in tasks if t['question_type'] == TYPES[2]), key=lambda t: t['example_id'])
+work/tree_before/evalpath/official.py:1:"""Verbatim official protocol functions; source pins in SOURCE_PINS.json."""
+work/tree_before/evalpath/run.py:161:                   'evaluator_sources': {p.name: sha256(p) for p in sorted(package.glob('*.py'))}})
+work/tree_before/evalpath/items.py:104:                    if source is not None and field in labels[key] and source != labels[key][field]:
+work/tree_before/launch_r1/production_proof.py:50:        source=actual, target={key:expected[key] for key in actual}))
+work/tree_before/rk/geom.py:108:    sources = {p.name: p for p in g3t.glob('*__*.npz')}
+work/tree_before/launch_r1/build.py:44:    cfg['r1_training']['row_slice_inputs']={k:row_sources[k]['source'] for k in source_names(row_sources)}
+work/tree_before/launch_r1/build.py:59:    sources={str(p.relative_to(TREE)):sha256(p) for p in source_files([TREE/'student_pilot/carrier_c1_run.py'])}
+work/tree_before/launch_r1/build.py:61:              archive={k:source[k] for k in ('path','sha256')},sources=sources,operation_sources=sources)
+work/tree_before/generator/derivgen_v7/derivgen/surface_rows_v313.py:89:        if any(r['provenance']['inputs'] != pins for r in source_rows):
+work/tree_before/generator/derivgen_v7/derivgen/surface_rows_v313.py:107:        for iid, label, witness, source in zip(pair['instances'],pair['labels'],pair['witnesses'],source_rows):
+work/tree_before/generator/derivgen_v7/derivgen/surface_rows_v313.py:157:            source_qids=[r['qid'] for r in source_rows], source_frame_indices=indices.tolist(),
+work/tree_before/rk/programs.py:156:        is_oracle |= any(value == 'gt' for value in sources[key].values())
+work/tree_before/launch_s1/b/d.py:114:            or data["source_counts"] != {key: stream["count"] for key, stream in preparation["streams"].items()}
+work/tree_before/launch_r2/build.py:189:    source_pin = put(dict(tree_sha256=digest(files), files=files, archive=archive_pin))
+work/tree_before/launch_r2/build.py:191:    sources = {str(p.relative_to(TREE)):sha256(p) for p in source_files([TREE/'student_pilot/carrier_c1_run.py'])}
+work/tree_before/generator/derivgen_v7/derivgen/ground_v312_io.py:292:    code_pins = {str(path): sha(path) for path in code_paths}
+work/tree_before/generator/derivgen_v7/derivgen/ground_v312_io.py:414:                row['direct_canonical_source'] = {k:v for k,v in item['direct_canonical'].items() if k != 'body'}
+work/tree_before/generator/derivgen_v7/derivgen/ground_v312_io.py:443:    if any(sha(path) != value for path, value in code_pins.items()):
+work/tree_before/generator/ground_rows_out/render_full.py:192:                    [f['source_index'] for f in m['frames']] != item['frame_indices'] or
+work/tree_before/generator/ground_rows_out/render_full.py:227:                    [(f['source_index'],f['sha256']) for f in data['frames']] !=
+work/tree_before/generator/ground_rows_out/render_full.py:228:                    [(f['source_index'],f['sha256']) for f in original['frames']]):
+work/tree_before/generator/ground_rows_out/render_full.py:328:        for index, source in enumerate(items):
+work/tree_before/generator/ground_rows_out/render_full.py:425:                # CP2 numeric source labels are printed to two decimals; retain them for
+work/tree_before/generator/ground_rows_out/render_full.py:620:                 source_label_agreement=dict(source_agreement),cpu_seconds=sum(d['cpu_seconds'] for d in done),
+work/tree_before/generator/ground_rows_out/render_full.py:664:             fixed_pins=fixed,code=[pin(path) for path in code_paths],numpy=np.__version__,
+work/tree_before/launch_s1/b/w.py:99:                    scanned(root,[s[k] for s in source['sources']
+work/tree_before/launch_s1/b/sa/prestage_hooks.py:260:        receipt = {'schema': 'student-frame-staging-v1', 'files': files, 'source_references': staging['source_references'], 'unique_frames': len(files), 'staged_bytes': sum((item['bytes'] for item in files)), 'scratch_root': str(module.scratch_directory(scratch_root)), 'rows': len(rows), **({'orchard_path_map': os.environ.get('STUDENT_FRAME_ROOT_MAP')} if module.orchard_enabled() else {})}
+work/tree_before/launch_s1/b/sa/prestage_hooks.py:325:        if [(item['source']['sha256'], item['bytes']) for item in plan] != [(item['staged']['sha256'], item['bytes']) for item in files] or (root / 'frames').exists():
+work/tree_before/launch_s1/b/sa/prestage_hooks.py:483:    if hashlib.sha256(source_bytes).hexdigest() not in PINNED[module.__name__]:
+work/tree_before/launch_s1/b/sa/prestage_hooks.py:489:        if function is patch_probe and hashlib.sha256(source_bytes).hexdigest() in TOKEN_BUDGET_TREES:
+work/tree_before/generator/derivgen_v7/derivgen/replay.py:367:    require(reference.get("source_box_convention") == {key: scene.native_source.get(key) for key in ("box_convention", "provider_axesLengths", "released_boxes", "obb_estimator_used")}, "generated_GT_box_convention")
+work/tree_before/launch_r2/staging.py:118:                for member, expected in source.get('inventory', {}).items():
+work/tree_before/verifykit/export.py:39:            candidate_source=sorted({g['candidate_source'] for g in gs}),arm=arm,accept=accept,
+work/tree_before/generator/ground_rows_out/render_programs_v314.py:21:  for line in source:
+work/tree_before/generator/derivgen_v7/derivgen/pipeline.py:146:        if self.source_schedule not in ("source_order", "review_type_coverage"):
+work/tree_before/generator/derivgen_v7/derivgen/pipeline.py:237:                    raise ProvenanceError("student-input join source-row mismatch")
+work/tree_before/generator/derivgen_v7/derivgen/pipeline.py:276:                       "score_nomination_allowed", "result_status", "pool", "category", "generation_commit", "validation_commit", "label_source", "license_ref", "agree_released") if k in row}
+work/tree_before/generator/derivgen_v7/derivgen/pipeline.py:455:        for pin in code_closure: pinned(pin)
+work/tree_before/generator/derivgen_v7/derivgen/geometry.py:107:            if key in source and source[key] != value:
+work/tree_before/generator/derivgen_v7/derivgen/geometry.py:116:    for g in source["segGroups"]:
+work/tree_before/launch_s1/b/sa/sitecustomize.py:23:    tree = ast.parse(data, path)
+work/tree_before/launch_s1/b/sa/sitecustomize.py:30:    tree.body[commands[0] + 1:commands[0] + 1] = ast.parse(RETRY_SOURCE).body + ast.parse(CACHE_SOURCE).body
+work/tree_before/launch_s1/b/sa/sitecustomize.py:31:    tree.body[positions[0] + 1:positions[0] + 1] = ast.parse(ALIAS_SOURCE).body
+work/tree_before/launch_r2/runtime.py:69:        lines, start = inspect.getsourcelines(fn)
+work/tree_before/launch_r2/runtime.py:73:        records.append(dict(source=file_pin(inspect.getsourcefile(fn)), line=matches[0], category=category))
+work/tree_before/launch_r2/runtime.py:79:    selected = {r['source']['path'] for r in records}
+work/tree_before/launch_r2/runtime.py:97:    result = [{**r, 'reached':(r['source']['path'],r['line']) in hits} for r in records]
+work/tree_before/generator/derivgen_v7/derivgen/check_build.py:44:            if "source_alias" in provenance and provenance["alias"] != rung1_alias(provenance["canonical"], source_alias):
+work/tree_before/generator/derivgen_v7/derivgen/plan_contract.py:30:    """Preserve source-bound object names in every non-count sentence."""
+work/tree_before/generator/derivgen_v7/derivgen/ground_v312_input.py:26:        raise ValueError('source GT pin mismatch')
+work/tree_before/generator/derivgen_v7/derivgen/ground_v312_input.py:69:                for line in source:
+work/tree_before/verifykit/score.py:234:    if not all(g.get('candidate_source')=='GT_INSTANCES_ORACLE' for g in groups):
+work/tree_before/verifykit/score.py:245:        candidate_sources=sorted({g['candidate_source'] for g in groups}),
+work/tree_before/verifykit/score.py:256:    if any(g['candidate_source'] != 'E1_LINKED_TOP_K' for g in groups):
+work/tree_before/generator/derivgen_v7/derivgen/ground_v312_quality.py:152:    if str(item.get('source_answer')) in mapping:
+work/tree_before/launch_r2/host.py:259:    if {value.get('pose_source_sha256') for value in pose_headers} != {pin['sha256'] for pin in packet['pose_sources']}:
+work/tree_before/generator/derivgen_v7/test_v313_r3.py:218:        tree=ast.parse(path.read_text())
+work/tree_before/generator/derivgen_v7/derivgen/camera_rows.py:134:                frames=[{**f, 'source_index': index} for f,index in zip(si['frames'], indices)],
+work/tree_before/generator/derivgen_v7/derivgen/camera_rows.py:216:               frames=clip['frames'], frame_indices=[f['source_index'] for f in clip['frames']],
+work/tree_before/generator/derivgen_v7/derivgen/camera_rows.py:416:            [f['source_index'] for f in clip['frames']],t,q,options])[:32]
+work/tree_before/generator/derivgen_v7/derivgen/camera_rows.py:421:                      recording_id=clip['recording_id'],frame_indices=[f['source_index'] for f in clip['frames']],
+work/tree_before/generator/derivgen_v7/derivgen/camera_rows.py:427:    provenance.update({k:copy.deepcopy(clip[k]) for k in ('gt_source','source_rgb_manifest') if k in clip})
+work/tree_before/generator/derivgen_v7/derivgen/camera_rows.py:520:        for source in questions:
+work/tree_before/generator/derivgen_v7/derivgen/camera_rows.py:540:    random.Random(digest([seed,recording,[f['source_index'] for f in clip['frames']]])).shuffle(pairs)
+work/tree_before/generator/derivgen_v7/derivgen/native.py:240:             "native_box_convention": {key: annotation_source.get(key) for key in ("box_convention", "provider_axesLengths", "released_boxes", "obb_estimator_used")},
+work/tree_before/generator/derivgen_v7/derivgen/provenance.py:123:                or not any(p["path"] == source.get("path") and p["sha256"] == source.get("sha256") for p in config["inputs"])):
+work/tree_before/tests/test_provisional.py:131:        function = next(node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef) and node.name == name)
+work/tree_before/scripts/gpu_native_selector.py:85:  outputs=D.generate(model,processor,batches,max_new_tokens=16384,mask_source='svp_sam3',ground_backend=backends,verify=None,reread=None,trace_session=[LiveSession(b,program_version=model_version(model,a.trace_program_version)) for b in backends],reference_trace=refs)
+work/tree_before/scripts/gpu_native_selector.py:89:   repeat=D.generate(model,processor,batches,max_new_tokens=16384,mask_source='svp_sam3',ground_backend=backends,verify=None,reread=None,trace_session=[LiveSession(b,program_version=model_version(model,a.trace_program_version)) for b in backends],reference_trace=refs)
+work/tree_before/scripts/gpu_native_selector.py:98:   enabled=D.generate(model,processor,reread_batches,max_new_tokens=16384,mask_source='svp_sam3',ground_backend=backends,verify=None,reread=None,trace_session=[LiveSession(b,program_version=model_version(model,a.trace_program_version)) for b in backends],reference_trace=refs)
+work/tree_before/scripts/gpu_native_selector.py:131:     profile_source_sha256=sha(R/'work/tree/student_pilot/ground_profiles.py'),scope='Live backend responses and free final answers; learned routing unmeasured in scripted mode.')
+work/tree_before/launch_r2/entry.py:15:    expected = {(s['source']['sha256'],s['line'],s['category']) for s in obligations()}
+work/tree_before/launch_r2/entry.py:16:    reached = {(s['source']['sha256'],s['line'],s['category']) for s in value.get('statements',[]) if s.get('reached') is True}
+work/tree_before/scripts/tracecold_transport.py:42:    node = next(value for value in ast.parse(text).body if isinstance(value, ast.FunctionDef) and value.name == name)
+work/tree_before/scripts/tracecold_transport.py:53:    source = {Path(value['path']).name: value for value in donor['runtime_code']}
+work/tree_before/scripts/tracecold_transport.py:55:    texts = {name: verify(source[name]).read_text() for name in names}
+work/tree_before/scripts/tracecold_transport.py:75:        ast.parse(text)
+work/tree_before/scripts/tracecold_transport.py:85:        'donor_stage': bound['staged'], 'source_code': [source[name] for name in names], 'runtime_code': runtime, 'diffs': diffs,
+work/tree_before/scripts/tracecold_transport.py:211:    for value in source_audit['evidence']:
+work/tree_before/scripts/tracecold_build_rows.py:70:        require(field in source_scene and not source_scene[field], 'A source physical-scene exclusion did not pass: ' + field)
+work/tree_before/tests/test_recording_pose.py:74:    for n in source['pool']:
+work/tree_before/tests/test_recording_pose.py:192:            self.assertTrue(all(len(s['sha256']) == 64 for pins in excluded['sources'].values() for s in pins))
+work/tree_before/scripts/tracecold_token_proof.py:63:              'samples': records, 'sampling_rule': 'The first frozen source row, identically selected in each matched arm.',
+work/tree_before/tests/test_c1_pose_mix_division.py:63:        value = dict(schema=mix.SCHEMA, sources=[dict(kind='rows', receipt=r, frame_prefix=None) for r in sources])
+work/tree_before/tests/test_c1_pose_mix_division.py:64:        for source, count in zip(value['sources'], counts or []):
+work/tree_before/scripts/tracecold_prepare.py:52:                == {key: value for key, value in source_protocol['training'].items() if key != 'seed'},
+work/tree_before/scripts/gpu_routed_batch.py:48:            kwargs=dict(max_new_tokens=16384,mask_source=[b.mask_source for b in backends],ground_backend=backends,trace_session=sessions,reference_trace=refs if a.call_mode=='scripted' else None)
+work/tree_before/tests/test_batched_routed_decode.py:191:            out = D.generate(model, p, rows, pose_source='tower', logits_processor=[Script([1]) for _ in rows])
+work/tree_before/scripts/tracecold_bare_prepare.py:35:    source_pin = io.pin(helper.SOURCE_READY)
+work/tree_before/scripts/tracecold_bare_prepare.py:38:    for value in source['native_files'] + source['base']['files']:
+work/tree_before/scripts/tracecold_bare_prepare.py:74:    io.require(source_pin == io.pin(helper.SOURCE_READY) and not torch.cuda.is_initialized(), 'Source readiness changed or CUDA initialized')
+work/tree_before/scripts/tracecold_bare_prepare.py:75:    result = {key: source[key] for key in ('schema', 'native_commit', 'native_files', 'base', 'versions', 'rgb', 'seed',
+work/tree_before/scripts/sam3_reference.py:21:    tree = ast.parse(writer.read_text())
+work/tree_before/scripts/benchmark_own_vit_reread.py:185:        vision_attention_source_sha256=hashlib.sha256(inspect.getsource(Qwen3_5VisionAttention.forward).encode()).hexdigest(),
+work/tree_before/tools/prep_pdg_v3.py:191:    if [row["qid"] for row in loaded["rows"]] != [row["qid"] for row in source["rows"]]:
+work/tree_before/scripts/tracecold_step0_prepare.py:94:    source_pin = pin(SOURCE_READY)
+work/tree_before/scripts/tracecold_step0_prepare.py:97:    for value in source['native_files'] + source['base']['files']:
+work/tree_before/scripts/tracecold_step0_prepare.py:145:    require(source_pin == pin(SOURCE_READY) and not torch.cuda.is_initialized(), 'Source readiness changed or CPU preparation initialized CUDA')
+work/tree_before/scripts/tracecold_step0_prepare.py:146:    result = {key: source[key] for key in ('schema', 'native_commit', 'native_files', 'base', 'versions', 'rgb', 'seed',
+work/tree_before/tests/test_seed_config.py:101:            node = next(node.value for node in ast.walk(ast.parse(text)) if isinstance(node, ast.Assign)
+work/tree_before/tests/test_seed_config.py:131:        tree = ast.parse((REPO / "student_pilot/ddp_training.py").read_text())
+work/tree_before/student_pilot/provisional_data.py:156:    accepted = [row for row in source_rows(protocol, label) if row["qid"] in train_ids]
+work/tree_before/student_pilot/provisional_data.py:298:        accepted = {row["qid"]: row for row in source_rows(protocol, label) if row["qid"] in training}
+work/tree_before/student_pilot/provisional_data.py:336:    rows = [input_row(row) for row in source_rows(protocol, label) if row["qid"] in heldout]
+work/tree_before/student_pilot/provisional_data.py:388:    labels = {row["qid"]: row for row in source_rows(protocol, label) if row["qid"] in set(ids)}
+work/tree_before/student_pilot/mdg_inputs.py:17:    paths = [pinned(source).resolve() for source in sources]
+work/tree_before/student_pilot/mdg_inputs.py:37:    for source in report["sources"]:
+work/tree_before/student_pilot/auxiliary_targets.py:124:        result['sources'] = {k: receipt[k] for k in ('calibration', 'alignment', 'source_provenance')}
+work/tree_before/tests/test_r2_build4.py:70:            frames=[dict(path='/fh/'+str(i),sha256='a'*64,source_index=i) for i in indices])}
+work/tree_before/tests/test_r2_build4.py:109:                frames=[dict(path='/fh/'+str(i),sha256='a'*64,source_index=i) for i in indices])}
+work/tree_before/student_pilot/probe_cache.py:155:            or any(not re.fullmatch('[0-9a-f]{64}', source.get(key, {}).get('sha256', '')) for key in ('run', 'probe'))
+work/tree_before/student_pilot/probe_cache.py:156:            or expected['source_commit'] not in (None, source['commit'])):
+work/tree_before/student_pilot/storage.py:164:            if frame["path"] not in sources:
+work/tree_before/student_pilot/storage.py:167:    unique = {frame["sha256"]: frame for frame in sources.values()}
+work/tree_before/student_pilot/storage.py:175:        files.append({"source": {key: frame[key] for key in ("path", "sha256")},
+work/tree_before/student_pilot/storage.py:220:            files.append({"source": {key: frame[key] for key in ("path", "sha256")},
+work/tree_before/student_pilot/storage.py:225:        sources = {frame["path"]: frame for frame in ordered_io(pool, verify_source, source_frames(), workers * 2)}
+work/tree_before/student_pilot/storage.py:226:        unique = {frame["sha256"]: frame for frame in sources.values()}
+work/tree_before/scripts/orchard/gpu_idle_watchdog.py:97:        for resource, declared, allocated in matches:
+work/tree_before/student_pilot/mdg_parent.py:15:    for source in pose.get("sources", []):
+work/tree_before/student_pilot/r2_grammar.py:53:        value = evaluate(ast.parse(expression, mode='eval').body)
+work/tree_before/tools/dist9/replay_text_audit.py:94:            for question, answer in source_turns(row):
+work/tree_before/tools/dist9/replay_text_audit.py:132:            'interpretation': 'Question and answer coincidences are disclosed only; the current ruling permits source questions and prohibits release answers in targets or admission gates.'}
+work/tree_before/student_pilot/a1_pipeline.py:185:        for digest, source in sorted(frames.items()):
+work/tree_before/student_pilot/a1_pipeline.py:194:                for member in source_tar:
+work/tree_before/student_pilot/a1_pipeline.py:217:        for source, legacy in ((Path(new_rows), False), (Path(a0), True)):
+work/tree_before/tests/test_integ_v314_r2.py:63:  owner=NS(geometry=geo,source=NS(selector_candidates=lambda n:[Candidate(frame=k,uv=[500,500],mask=m,source='sam3') for k,m in masks] if n=='chair' else []),scene=NS(frames=getattr(geo,'frame_map',None)))
+work/tree_before/student_pilot/checks.py:61:        report["source_rgb_checks"] = [encode_row(processor, row)[1] for row in manifest["rows"]]
+work/tree_before/student_pilot/mdg_eval.py:119:                 source_height_width=[list(a.shape[:2]) for a in arrays])
+work/tree_before/student_pilot/mdg_eval.py:151:        if 'source_index' in item and item['source_index'] != entry['frame_indices'][item['frame']-1]:
+work/tree_before/student_pilot/mdg_eval.py:546:        raise ValueError('Pointing GT source pin differs')
+work/tree_before/student_pilot/s1_pool.py:26:        self.sources = {entry["name"]: entry for entry in entries}
+work/tree_before/student_pilot/s1_pool.py:36:            if (any(len(pair) != 2 or not all(pair) or pair[0] not in self.sources for pair in pairs)
+work/tree_before/student_pilot/s1_pool.py:48:        if ("room" in name or "room_size_estimation" in source.get("rows_per_type", {})) and name not in self.room_sets:
+work/tree_before/student_pilot/s1_pool.py:95:    return {str(path.relative_to(root)): sha256(path) for path in source_files([Path(__file__)])}
+work/tree_before/student_pilot/s1_pool.py:117:    memberships = {kind: {qid for source_name, qid in pool.lists[key] if source_name == name}
+work/tree_before/student_pilot/s1_pool.py:131:    for name, source in pool.sources.items():
+work/tree_before/student_pilot/s1_pool.py:139:            kind = "packed" if "packed" in source["files"] else "rows"
+work/tree_before/student_pilot/s1_pool.py:183:            listed_qids = {qid for pairs in pool.lists.values() for source_name, qid in pairs if source_name == name}
+work/tree_before/tools/g3t_camera_sidecar_store.py:240:    if str(source) not in sys.path:
+work/tree_before/student_pilot/stageb_mdg.py:96:    clips = [pinned(value) for value in source.get('clips_sources', [source['clips_jsonl']])]
+work/tree_before/student_pilot/stageb_mdg.py:109:                if row['scene'] in source['exclude_scenes']:
+work/tree_before/student_pilot/stageb_mdg.py:122:                base = path.parent if 'clips_sources' in source else Path(source['rasters'])
+work/tree_before/student_pilot/stageb_mdg.py:133:                        holdout_fraction=.05, root=None if 'clips_sources' in source else source['rasters'],
+work/tree_before/student_pilot/stageb_mdg.py:139:        index[split] = [mdg_inputs.explicit_frames(row, source['frame_root']) for row in index[split]]
+work/tree_before/student_pilot/all_frame_bank.py:118:    for source in request['sources']:
+work/tree_before/student_pilot/s1_grounding.py:54:    if new_contracts() and (row.get('uses_mask_cache') or row.get('mask_source') in ('sam3', 'cached_sam3', 'cache')) and binding is None:
+work/tree_before/student_pilot/orchard_eval/prepare.py:106:    by_id = {numeric_qid(row['id']): row for row in source}
+work/tree_before/student_pilot/orchard_eval/prepare.py:123:    source_pin = binding(authority, None if synthetic else VSTI_SHA)
+work/tree_before/student_pilot/orchard_eval/prepare.py:348:    source_names += [f'dsibench/metadatas/{variant}.csv' for variant in VARIANTS]
+work/tree_before/student_pilot/orchard_eval/prepare.py:350:    for name in source_names:
+work/tree_before/tests/test_conversion_v2.py:79:        for source, quote in (("prefix cafe\u0301 suffix", "caf\u00e9"), ("x \u1100\u1161\u11a8 y", "\uac01"),
+work/tree_before/tests/test_conversion_v2.py:109:        self.assertEqual([item["source_pointer"] for item in result["claim_id_mapping"]],
+work/tree_before/tests/test_conversion_v2.py:251:        for source, family in (("Assume the observation holds.", "assumption"), ("The previous identification was clearly wrong.", "correction")):
+work/tree_before/student_pilot/orchard_eval/generate.py:450:    for source in load_json(manifest['media']['path']).values():
+work/tree_before/student_pilot/orchard_eval/contracts.py:322:        raise ValueError('Conversation/media control tokens in source input')
+work/tree_before/student_pilot/orchard_eval/contracts.py:376:        if source != {key: item[key] for key in ('video_path', 'video_sha256', 'frame_receipt')}:
+work/tree_before/student_pilot/orchard_eval/contracts.py:463:            'generation_config_source': 'generation_config.json' if 'generation_config.json' in names else 'model_config'}
+work/tree_before/tests/test_r2_preparation.py:48:            sources = {str(p.relative_to(tree)): sha256(p) for p in source_files([Path(trainer.__file__)])}
+work/tree_before/student_pilot/s1_exclusions.py:86:        for source in (row, row.get("routing") or {}, row.get("provenance") or {}):
+work/tree_before/student_pilot/s1_exclusions.py:119:        self.datasets[source].update(key.split("/", 1)[0] for key in keys)
+work/tree_before/student_pilot/s1_exclusions.py:133:            for source, counts in self.sources.items():
+work/tree_before/student_pilot/s1_exclusions.py:153:        rule.expect(source, (json.loads(text) for index, text in connection.execute("SELECT i,row FROM rows ORDER BY i")
+work/tree_before/student_pilot/s1_exclusions.py:207:                    item[0] >= len(value["sources"]) for item in order) or
+work/tree_before/student_pilot/s1_exclusions.py:212:            indices = [index for source, index in order if source == number]
+work/tree_before/student_pilot/s1_exclusions.py:223:            changes["teacher_rows"] = sum(value["sources"][source]["kind"] == "c1r_clips" for source, _ in selected)
+work/tree_before/student_pilot/s1_exclusions.py:242:    for source, counts in report["sources"].items():
+work/tree_before/student_pilot/tower_read.py:172:            raise TowerError('Tower G3T source pin differs')
+work/tree_before/tools/label_bank_build.py:176:        for i, (dataset, scene, source) in enumerate(zip(data['datasets'].tolist(), data['scenes'].tolist(),
+work/tree_before/tools/label_bank_build.py:258:                'dataset_tokens': DATASET_TOKENS, 'depth_source_counts': {s: sum(x['depth_source'] == s for x in scenes)
+work/tree_before/student_pilot/r2_scene_bindings.py:78:    for source in value['sets']:
+work/tree_before/student_pilot/r2_scene_bindings.py:80:        kind = 'packed' if 'packed' in source['files'] else 'rows'
+work/tree_before/student_pilot/r2_scene_bindings.py:81:        pin = {key: source['files'][kind][key] for key in ('path', 'sha256')}
+work/tree_before/student_pilot/r2_scene_bindings.py:175:    reports = {name: load(pinned(pin))['source_scene_exclusions'] for name, pin in receipts.items()}
+work/tree_before/student_pilot/r2_scene_bindings.py:241:    for source, pin in result['receipts'].items():
+work/tree_before/student_pilot/r2_scene_bindings.py:244:        allowed[source] = {row['qid'] for i, row in enumerate(rows(receipt['scene_rebuild']['population'])) if i in selected}
+work/tree_before/student_pilot/r2_scene_bindings.py:247:    for source in selection['sources'].values():
+work/tree_before/student_pilot/r2_scene_bindings.py:250:            allowed['pool'].update(row['qid'] for i, row in enumerate(rows(source['source'])) if i in selected)
+work/tree_before/tests/test_s1_remove_admission.py:41:        source_pin = file_pin(root / "source.json")
+work/tree_before/tests/test_s1_remove_admission.py:46:        original_streams = {name: value["scene_source"] for name, value in receipt["streams"].items()}
+work/tree_before/student_pilot/pose_source_guard.py:6:# The scene-audit/Orchard receipt names this source by its retained pin prefix.
+work/tree_before/student_pilot/h1_faithful.py:159:    for source in rows:
+work/tree_before/student_pilot/reread_isolation.py:3:The original block and its source hash are recorded in SOURCE_PINS.json.
+work/tree_before/tests/test_r2_build5_host_order.py:38:    poses=[entry(dict(source=name)) for name in ('one','two')]
+work/tree_before/student_pilot/c1r_targets.py:47:                or any(type(v) is not int or not 0 <= v < source['total_num_frames'] for v in ordinals)):
+work/tree_before/tools/g3t_patch_grid_store.py:96:    for source, target in maps:
+work/tree_before/student_pilot/training_contract.py:66:        cache_reader = row.get('mask_source') in ('sam3', 'cached_sam3', 'cache') or row.get('uses_mask_cache', False)
+work/tree_before/student_pilot/grounding_train.py:76:        if source['frame_indices'] != indices or [f['sha256'] for f in source['frames']] != hashes:
+work/tree_before/student_pilot/live_parity_adapter.py:118:    elif mask_source in ('mdg','svp_own'):
+work/tree_before/tests/test_r2_host_runtime.py:33:        record=dict(source=file_pin(__file__),line=inspect.getsourcelines(marker)[1]+1)
+work/tree_before/tests/test_r2_host_runtime.py:38:        with patch.object(inspect,'getsourcelines',return_value=(['pass'],1)):
+work/tree_before/tests/test_s1_scene_exclusions.py:45:        streams = {name: dict(self.source) for name in ("pose", "vqa", "pointing", "routing")}
+work/tree_before/student_pilot/head_programs.py:477:            if source.r_origin is None:
+work/tree_before/student_pilot/ground_target_filter.py:111:                    by_source={key: dict(value) for key, value in self.by_source.items()},
+work/tree_before/student_pilot/conversion_v2.py:38:    "citation_occurrence": "Optional one-based index among overlapping matches in source order at the first matching search tier; required for ambiguity.",
+work/tree_before/student_pilot/conversion_v2.py:66:Each claim contains text and citations only. Do NOT invent claim IDs: code assigns them in reading order. Each citation contains an evidence_id and an exact nonempty quote copied from that entry. Do NOT supply start or end offsets: code resolves them against the original text. If the quote repeats, supply occurrence as a ONE-BASED index in source order; otherwise omit it. Exact search is preferred, with whitespace-normalized and Unicode-NFC fallbacks only. Ambiguous or absent quotes are rejected. Cite the smallest sufficient spans, with multiple citations when needed. Every factual or inferential clause needs supporting evidence, including comparisons, qualifications, and the conclusion. A quotation containing only the answer is not an explanation.
+work/tree_before/tools/headcall_rows.py:264:        for line in source:
+work/tree_before/student_pilot/gf1_cache.py:59:    parts = [SCHEMA, inspect.getsource(gf1.area_pool), inspect.getsource(pooled_nhat),
+work/tree_before/student_pilot/gf1_cache.py:60:             inspect.getsource(gf1.Fusion.cached_bank)]
+work/tree_before/student_pilot/inspect_source.py:85:    report["subset"]["source_pointers"] = {key: subset[key] for key in ("materialization", "source_join", "alignment_eligibility")}
+work/tree_before/student_pilot/infrastructure_smoke.py:66:            row = {key: copy.deepcopy(source[key]) for key in ("qid", "dataset", "scene", "student_input")}
+work/tree_before/student_pilot/infrastructure_smoke.py:140:    for source, local in zip(original, staged):
+work/tree_before/student_pilot/admission.py:100:    sources = {key: binding(path) for key, path in paths.items()}
+work/tree_before/student_pilot/admission.py:126:    if len(indices) != 32 or [Path(asset["path"]).stem for asset in assets] != names or any(asset["source"] != "preextracted_png" for asset in assets):
+work/tree_before/student_pilot/diagnostic_data.py:204:        accepted.update({row["qid"]: row for row in source["rows"]})
+work/tree_before/student_pilot/diagnostic_data.py:264:                if len(selection["indices"]) != 32 or [Path(asset["path"]).stem for asset in assets] != selection["frame_names"] or any(asset["source"] != "preextracted_png" for asset in assets):
+work/tree_before/student_pilot/e2e_routing_rows.py:13:    if source.get('spec_version') not in REVISIONS:
+work/tree_before/student_pilot/e2e_routing_rows.py:16:    if source['spec_version'] == '3.12.2' and re.search(r'\(best \d+, p [^)]+\)', text):
+work/tree_before/student_pilot/e2e_routing_rows.py:62:                routing=raw, ground_build={k: copy.deepcopy(source[k]) for k in (
+work/tree_before/student_pilot/e2e_routing_rows.py:64:                    'mask_source', 'scene_gt_sha256', 'gt_authority', 'simulated_misses') if k in source})
+work/tree_before/tests/test_stageb_mdg.py:406:                             source_count=321152 if k == 'pose' else 1) for k in ('pose', 'vqa', 'pointing')},
+work/tree_before/tests/test_r2_data_path.py:54:                                  dense_source=dict(frames=[dict(pin, source_index=i) for i, pin in enumerate(pins)])))
+work/tree_before/tools/heads_only_configs.py:106:    for arm, source in rows.items():
+work/tree_before/tools/heads_only_configs.py:122:    for arm, source in rows.items():
+work/tree_before/student_pilot/r1_routing.py:54:    """Consume authenticated intake batches, preserving source identity in stored rows."""
+work/tree_before/student_pilot/r1_routing.py:67:        k:dict(source=v, rows={}) for k,v in sources.items()})
+work/tree_before/student_pilot/r1_routing.py:71:    for pin in sources.values():
+work/tree_before/student_pilot/r1_routing.py:90:        if rooms is not None and origin in sources:
+work/tree_before/student_pilot/r1_routing.py:107:        for raw, target in source.execute('SELECT row,target FROM rows ORDER BY i'):
+work/tree_before/student_pilot/r1_routing.py:116:    for kind, source_pin, items, intake_pin in batches:
+work/tree_before/student_pilot/r1_routing.py:126:                rgb = dict(inputs, frames=[dict(pin, source_index=i) for i,pin in
+work/tree_before/student_pilot/r1_routing.py:168:    sources = {k:specs[k]['source'] for k in names}
+work/tree_before/student_pilot/r2_frames.py:24:        if not source.is_absolute() or not destination.is_absolute() or '..' in destination.parts:
+work/tree_before/student_pilot/clean_conversion.py:113:    for value in source["sources"].values():
+work/tree_before/student_pilot/clean_conversion.py:401:                      "snapshot": job["snapshot"], "instruction": "Review every claim of every admitted example against exact source evidence. Unreviewed examples remain unaccepted. Native finals are provenance only. Never infer support from a sample."})
+work/tree_before/student_pilot/clean_conversion.py:418:    sources = {row["qid"]: row for row in snapshot["rows"]}
+work/tree_before/student_pilot/ground_v3.py:40:        if mask_source not in MASK_SOURCES:
+work/tree_before/tests/test_orchard_eval_qwen36_27b.py:220:        for source, rank, index in zip(sources, ranks, self.indices):
+work/tree_before/tests/test_orchard_eval_qwen36_27b.py:515:        source = {key: rows[0]['student_input'][key] for key in ('video_path', 'video_sha256', 'frame_receipt')}
+work/tree_before/student_pilot/r1_rooms.py:100:    for kind in source_names(sources):
+work/tree_before/student_pilot/r1_rooms.py:145:    for kind in source_names(sources):
+work/tree_before/student_pilot/gf1.py:59:    the 1024-pixel padded source. Flatten output in temporal/row/column order.
+work/tree_before/student_pilot/decoupled_v_run.py:195:                    or any(receipt[k] != source[k] for k in ('model', 'database', 'inputs', 'count', 'audit'))):
+work/tree_before/student_pilot/r1_handover.py:47:                    step=artifact['step'],source=actual,target={key:expected[key] for key in actual}))
+work/tree_before/student_pilot/r1_handover.py:80:        for source in receipt['sources']:
+work/tree_before/student_pilot/r1_handover.py:100:    for source, part in zip(receipt['sources'], value['sources']):
+work/tree_before/student_pilot/r1_handover.py:102:        if any(part.get(k) != source[k] for k in keys):
+work/tree_before/student_pilot/r1_handover.py:174:        if (key not in source or key not in target) and key not in EFFECTIVE_DEFAULTS and key != 'camera_overrides':
+work/tree_before/student_pilot/r1_handover.py:373:                    or any(type(i) is not int or not 0 <= i < source_count for i in rows)):
+work/tree_before/student_pilot/r2_dense.py:17:    for pin in source['frames']:
+work/tree_before/student_pilot/compact_label_bank.py:72:        if source not in DEPTH_SOURCES:
+work/tree_before/student_pilot/r1_training.py:15:    if (row.get('response_source') in ('own', 'predicted') or
+work/tree_before/student_pilot/r1_training.py:16:            row.get('own_valued') or provenance.get('geometry_source') in ('own', 'predicted') or
+work/tree_before/tests/test_r1_build18.py:79:        cfg['r1_training']['row_sources']=write(self.root/'sources.json',{k:dict(source=file_pin(empty)) for k in ('recovery','units','absolute_distance')})
+work/tree_before/tests/test_full_ft.py:313:        for parameter, source in zip(reference, full):
+work/tree_before/student_pilot/orchard_paths.py:32:    for source, destination in pairs.items():
+work/tree_before/student_pilot/orchard_paths.py:33:        if source not in allowed:
+work/tree_before/student_pilot/recording_pose.py:277:    for i, source in enumerate(extras):
+work/tree_before/student_pilot/recording_pose.py:429:    reason_sources = {name: [authorities[name]] for name in ('gate', 'vsi288', 'vsti', 'admission_policy')}
+work/tree_before/student_pilot/recording_pose.py:432:    reason_sources.update({f'extra_{i}': [source] for i, source in enumerate(authorities['extra_benchmarks'])})
+work/tree_before/student_pilot/recording_pose.py:434:    for source in index['recordings']:
+work/tree_before/student_pilot/recording_pose.py:446:                             'sources': {reason: reason_sources[reason] for reason in reasons}})
+work/tree_before/student_pilot/recording_pose.py:515:    for source in plan['scenes']:
+work/tree_before/student_pilot/recording_pose.py:520:        if source['scene'] != token(dataset, native) or (dataset, native) in seen:
+work/tree_before/student_pilot/recording_pose.py:716:    sources = [s for i, s in enumerate(plan['scenes']) if i % shards == shard]
+work/tree_before/student_pilot/r2_adapters.py:45:        if ('r2_source_sha256' not in raw and record.get('mask_source') == record.get('geometry_source') == 'gt'
+work/tree_before/student_pilot/r2_adapters.py:54:            rgb['frames'] = [dict(pin, source_index=i) for i, pin in zip(rgb['frame_indices'], rgb['frames'])]
+work/tree_before/student_pilot/r2_adapters.py:60:        indices = [pin['source_index'] for pin in rgb['frames']]
+work/tree_before/student_pilot/mdg_runtime.py:104:    for name, source in sources.items():
+work/tree_before/student_pilot/mdg_runtime.py:112:    for name, source in sources.items():
+work/tree_before/student_pilot/trace_grammar.py:458:            if not all(sourced(v) or v in CONVERSIONS for v in (a, b)):
+work/tree_before/student_pilot/live_instances314.py:93:        for c in source.selector_candidates(name):
+work/tree_before/student_pilot/carrier_c1_decode.py:294:        if mask_source not in MASK_SOURCES or ground_backend is None or ground_backend.mask_source != mask_source:
+work/tree_before/student_pilot/adapters.py:102:        source = state_dict[name] if state_dict is not None and name in state_dict else parameter
+work/tree_before/student_pilot/orchard_media.py:54:    expected = {key: source[key] for key in ('video_path', 'video_sha256', 'frame_receipt')}
+work/tree_before/tests/test_source_receipt.py:92:        row = next(row for row in provisional_data.source_rows(self.protocol, LABEL) if row["qid"] in heldout)
+work/tree_before/student_pilot/r1_population.py:66:        for kind, source in self.sources.items():
+work/tree_before/student_pilot/r1_population.py:70:            for qid, row_hash in source['rows'].items():
+work/tree_before/student_pilot/r1_population.py:201:        if 'reader_source' not in value:
+work/tree_before/student_pilot/conversion.py:152:    if row["sources"] != packet["sources"] or any(row[key] != packet[key] for key in ("student_input", "source_video", "video_timing")):
+work/tree_before/student_pilot/routed_features.py:179:        points = [member_points(geometry.source, frame, mask, rng) for frame, mask in masks]
+work/tree_before/tests/test_s1_pool_admission.py:87:                source = next((json.loads(line) for line in stream if "floor height -0.00 m" in line), None)
+work/tree_before/student_pilot/p3_provenance.py:78:        tree = ast.parse(path.read_text())
+work/tree_before/student_pilot/p3_provenance.py:111:    actual = {str(p.relative_to(Path(__file__).parent.parent)): sha256(p) for p in source_files()}
+work/tree_before/student_pilot/conversion_dry_run.py:58:        source_pin = binding(path, item["context"]["sha256"])
+work/tree_before/student_pilot/conversion_dry_run.py:81:    for qid, source_pin, request, boundary in prepared:
+work/tree_before/student_pilot/g3t_vendor/vggt/models/aggregator.py:4:# This source code is licensed under the license found in the
+work/tree_before/student_pilot/c1_pose_mix.py:40:    for source in spec['sources']:
+work/tree_before/student_pilot/c1_pose_mix.py:43:            if set(source) != CLIP_KEYS or source['layout'] not in ('duplicate', 'paired', 'spread') \
+work/tree_before/student_pilot/c1_pose_mix.py:47:            if (set(source) not in (ROW_KEYS, ROW_KEYS | {'count'})
+work/tree_before/student_pilot/c1_pose_mix.py:49:                    or ('count' in source and (type(source['count']) is not int or source['count'] < 1))):
+work/tree_before/student_pilot/c1_pose_mix.py:134:    With a spec-level division, every row source must pin that division or its admitted parent
+work/tree_before/student_pilot/c1_pose_mix.py:135:    (rows-only sources pin none), every selected row's scene must be a train scene of that division,
+work/tree_before/student_pilot/c1_pose_mix.py:144:    for k, source in enumerate(spec['sources']):
+work/tree_before/student_pilot/c1_pose_mix.py:158:                raise ValueError(f'Clip source {k} has {outside} clips outside the pose mix division train scenes')
+work/tree_before/student_pilot/g3t_vendor/vggt/heads/utils.py:4:# This source code is licensed under the license found in the
+work/tree_before/student_pilot/s1_admission.py:72:        for source, rows in sorted(self.rows.items()):
+work/tree_before/student_pilot/s1_admission.py:115:    for source in report["sources"].values():
+work/tree_before/student_pilot/s1_admission.py:116:        for sample in source["hash_sample"]:
+work/tree_before/student_pilot/s1_admission.py:141:    resource.setrlimit(resource.RLIMIT_AS, (min(value for value in (soft, hard, limit) if value > 0), hard))
+work/tree_before/student_pilot/s1_admission.py:247:    if "source_seal" not in receipt:
+work/tree_before/student_pilot/s1_admission.py:273:        source_counts={key: value["count"] for key, value in receipt["streams"].items()},
+work/tree_before/student_pilot/s1_admission.py:325:                  input_streams=before, source_counts={key: value["count"] for key, value in receipt["streams"].items()},
+work/tree_before/student_pilot/g3t_vendor/vggt/utils/pose_enc.py:4:# This source code is licensed under the license found in the
+work/tree_before/student_pilot/g3t_vendor/vggt/dependency/distortion.py:4:# This source code is licensed under the license found in the
+work/tree_before/student_pilot/s1_routing.py:319:                for (encoded,) in source.execute("SELECT row FROM rows ORDER BY i"):
+work/tree_before/student_pilot/s1_routing.py:329:            for (encoded,) in source.execute("SELECT row FROM rows ORDER BY i"):
+work/tree_before/student_pilot/s1_routing.py:472:        frame_rate_sources={key: dict(values) for key, values in frame_rate_sources.items()},
+work/tree_before/student_pilot/g3t_vendor/vggt/utils/rotation.py:4:# This source code is licensed under the license found in the
+work/tree_before/tests/test_r2_build5_faults.py:41:            frames=[dict(path='/fixture/'+str(i),sha256='a'*64,source_index=i) for i in indices])}
+work/tree_before/tests/test_r2_build5_faults.py:70:            frames=[dict(path='/fixture/'+str(i),sha256='a'*64,source_index=i) for i in indices])}
+work/tree_before/tests/test_stagefast.py:824:                        sources = [root / name for name in ("uncopied.bin", "copied.bin")]
+work/tree_before/tests/test_stagefast.py:825:                        for source in sources:
+work/tree_before/tests/test_stagefast.py:827:                        rows = [{"student_input": {"frames": [common.binding(source) for source in sources]}}]
+work/tree_before/student_pilot/g3t_vendor/vggt/layers/__init__.py:4:# This source code is licensed under the license found in the
+work/tree_before/student_pilot/g3t_vendor/vggt/heads/dpt_head.py:4:# This source code is licensed under the license found in the
+work/tree_before/student_pilot/carrier_c1_routing.py:228:    and the pose source places them in frame 1 (the reverse hybrid).
+work/tree_before/student_pilot/carrier_c1_routing.py:672:    """Choose the value source per head for one routing row (None: train the GT row).
+work/tree_before/student_pilot/carrier_c1_routing.py:781:    if len(frames) not in (32, 64) or [f['source_index'] for f in frames] != row['provenance']['frame_indices']:
+work/tree_before/student_pilot/carrier_c1_routing.py:796:    if source_sha is None and row.get('form') in ground_rows.FORMS.values():
+work/tree_before/student_pilot/carrier_c1_routing.py:806:                                   frame_indices=[f['source_index'] for f in frames],
+work/tree_before/student_pilot/carrier_c1_routing.py:807:                                   timestamps=[f['source_index'] / fps for f in frames], fps=fps,
+work/tree_before/student_pilot/carrier_c1_routing.py:1079:    parser.add_argument('--source', required=True, help='JSON pin {path, sha256} of the derivgen POOL/rows JSONL')
+work/tree_before/student_pilot/carrier_c1_routing.py:1086:    parser.add_argument('--direct-source', help='JSON pin of concrete direct traces (JSONL)')
+work/tree_before/student_pilot/finetune_artifacts.py:53:              "source_files": {name: binding(REPO / name) for name in SOURCE_FILES},
+work/tree_before/student_pilot/finetune_artifacts.py:126:                "source_files": {name: binding(REPO / name) for name in SOURCE_FILES},
+work/tree_before/student_pilot/g3t_vendor/vggt/utils/geometry.py:4:# This source code is licensed under the license found in the
+work/tree_before/student_pilot/g3t_vendor/vggt/heads/head_act.py:4:# This source code is licensed under the license found in the
+work/tree_before/student_pilot/r2_materialize.py:77:                rgb = dict(inputs, frames=[dict(pin, source_index=i) for i, pin in zip(inputs['frame_indices'], inputs['frames'], strict=True)])
+work/tree_before/tests/test_r2_build8.py:172:        rgb=dict(frames=[dict(f,source_index=i) for f,i in zip(source['student_input']['frames'],source['student_input']['frame_indices'])],fps=10,total_num_frames=64)
+work/tree_before/tests/test_r2_build8.py:244:        frames=[dict(f,source_index=i) for f,i in zip(fixture['student_input']['frames'],fixture['student_input']['frame_indices'])]
+work/tree_before/student_pilot/g3t_vendor/vggt/utils/load_fn.py:4:# This source code is licensed under the license found in the
+work/tree_before/student_pilot/g3t_vendor/vggt/heads/camera_head.py:4:# This source code is licensed under the license found in the
+work/tree_before/tests/test_fsdp.py:45:    rows = [copy.deepcopy(source[index % 2]) for index in range(8)]
+work/tree_before/student_pilot/clean_source.py:126:        if source in self.mapping:
+work/tree_before/student_pilot/clean_source.py:366:    references.extend(("source_RGB", frame) for frame in scene.get("frames", []))
+work/tree_before/student_pilot/clean_source.py:381:                                    "frames": [{"source_path": frame["path"], "sha256": frame["sha256"]} for frame in mismatches]})
+work/tree_before/student_pilot/clean_source.py:459:    unique = {(record["source_path"], record["kind"], record.get("sha256")): record for record in store.captures[start:]}
+work/tree_before/student_pilot/clean_source.py:592:    sources = {key: store.capture(path, decision["trace_sha256"] if key == "raw" else None, "selected_" + key) for key, path in paths.items()}
+work/tree_before/student_pilot/clean_source.py:601:    entries = {key: store.json(value) for key, value in sources.items()}
+work/tree_before/student_pilot/clean_source.py:713:    attempt_authorities = {(value["source_path"], value["kind"]): value for value in store.captures
+work/tree_before/student_pilot/clean_source.py:761:    expected_authorities = {(value["source_path"], value["sha256"], value["kind"]) for item in inventory
+work/tree_before/student_pilot/verify_pass.py:374:        # Resource metrics belong in diagnostics, not deterministic decode records.
+work/tree_before/student_pilot/ddp_training.py:789:            if "initialization_source" in report:
+work/tree_before/student_pilot/r2_real_proof.py:23:        raise ValueError('Real proof requires every native stream, including both pose sources in its inventory')
+work/tree_before/student_pilot/carrier_c1_run.py:129:    if 'exclude_sources' in cfg and (not isinstance(cfg['exclude_sources'], dict) or any(
+work/tree_before/student_pilot/carrier_c1_run.py:188:    actual = {str(p.relative_to(root)): sha256(p) for p in source_files([Path(__file__)])}
+work/tree_before/student_pilot/carrier_c1_run.py:285:            or source_ids != [i for i in expected if i in source_set]):
+work/tree_before/student_pilot/carrier_c1_run.py:384:    return row.get('qid') in qids.get(name, ()) or any(tag in row_source(row) for tag in sources.get(name, ()))
+work/tree_before/student_pilot/carrier_c1_run.py:437:    if source.get('schema') not in ROWS_ONLY_SCHEMAS:
+work/tree_before/student_pilot/carrier_c1_run.py:753:        if (source.get('schema') not in ROWS_ONLY_SCHEMAS or source['database'] != value['database']
+work/tree_before/student_pilot/carrier_c1_run.py:784:                    or any(type(i) is not int or not 0 <= i < source['count'] for i in indices)
+work/tree_before/student_pilot/carrier_c1_run.py:1619:                           **({k: audit[k] for k in ('source', 'dataset') if k in audit}
+work/tree_before/student_pilot/carrier_c1_clip.py:114:    for source in sources:
+work/tree_before/student_pilot/carrier_c1_clip.py:130:                timestamps=[i/source['fps'] for i in ORDINALS], total_num_frames=total,
+work/tree_before/tests/test_r2_n1fix.py:17:    nodes = [node for node in ast.parse(path.read_text()).body
+work/tree_before/tests/test_r2_n1fix.py:169:                       step=200, source=actual, target={k:expected[k] for k in actual})
+work/tree_before/student_pilot/carrier_c1.py:32:    settings = {k: v for k, v in source.items() if k not in
+work/tree_before/student_pilot/carrier_c1.py:113:        if depth_fov_source not in ('private', 'pose_head'):
+work/tree_before/student_pilot/clean_media.py:59:                "frames": [store.reference(frame, "source_RGB") for frame in frames],
+work/tree_before/student_pilot/clean_media.py:94:    if provenance is None or alignment is None or source_frames is None or any(p["availability"] != "verified" for p in references):
+work/tree_before/student_pilot/c1r_clips.py:86:    for source in data['scenes']:
+work/tree_before/student_pilot/c1r_clips.py:88:        if (source['dataset'] not in ('d1', 'd2', 'd3') or key in seen
+work/tree_before/student_pilot/c1r_clips.py:196:    for source in sources:
+work/tree_before/student_pilot/c1r_clips.py:237:    numbers = [posed_ordinals(s) for s in sources]
+work/tree_before/student_pilot/c1r_clips.py:238:    ids = [fingerprint(s) for s in sources]
+work/tree_before/student_pilot/c1r_clips.py:277:            row['effective_gap_seconds'] = [(b - a) / source['fps'] for a, b in zip(row['ordinals'], row['ordinals'][1:])]
+work/tree_before/student_pilot/c1r_clips.py:396:    numbers = [posed_ordinals(s) for s in sources]
+work/tree_before/student_pilot/c1r_clips.py:397:    ids = [fingerprint(s) for s in sources]
+work/tree_before/student_pilot/c1r_dense.py:130:    for position, source in enumerate(sources):
+work/tree_before/student_pilot/c1r_dense.py:131:        variants = {str(n): dense_frames(source, n) for n in CAPACITIES}
+work/tree_before/student_pilot/benchmark_eval/generate.py:132:    for source in load_json(manifest['media']['path']).values():
+work/tree_before/student_pilot/benchmark_eval/contracts.py:262:        raise ValueError('Conversation/media control tokens in source input')
+work/tree_before/student_pilot/benchmark_eval/contracts.py:313:        if source != {key: item[key] for key in ('video_path', 'video_sha256', 'frame_receipt')}:
+work/tree_before/student_pilot/benchmark_eval/contracts.py:371:            'generation_config_source': 'generation_config.json' if 'generation_config.json' in names else 'model_config'}
+work/tree_before/student_pilot/g3t_online.py:101:        raise ValueError('GX source pin differs')
+work/tree_before/student_pilot/g3t_online.py:383:    """Centre-pad in source pixels, then resize once; coordinates use a 1024-square raster."""
+work/tree_before/student_pilot/benchmark_eval/prepare.py:106:    by_id = {numeric_qid(row['id']): row for row in source}
+work/tree_before/student_pilot/benchmark_eval/prepare.py:123:    source_pin = binding(authority, None if synthetic else VSTI_SHA)
+work/tree_before/student_pilot/benchmark_eval/prepare.py:346:    source_names += [f'dsibench/metadatas/{variant}.csv' for variant in VARIANTS]
+work/tree_before/student_pilot/benchmark_eval/prepare.py:348:    for name in source_names:
+work/tree_before/tests/test_sft_warmstart.py:118:        node = next(node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef)
+work/tree_before/tests/test_ddp_checkpoints.py:328:        rows = [source[index % len(source)] for index in range(35)]
+work/tree_before/tests/ground_row_decode.py:72:    for source in (PILOT,PRODUCTION,'/scratch/jjyeung/orch_cd/ground_rows/out/training_v2_review/balanced_training_rows.jsonl'):
+work/tree_before/tests/test_conversion_v2_integration.py:147:        for source, quote in (("Box", "box"), ("\ufb01xture", "fixture")):
+work/tree_before/tests/test_clean_source_review.py:67:        self.assertTrue(any(item["source_path"] == str(path) for item in snapshot["missing"]))
+work/tree_before/tests/test_clean_source_review.py:179:        self.assertTrue(any(item["source_path"] == str(fixture.raw_paths["vsi590k_000002"]) for item in rejected["files"]))
+work/tree_before/tests/test_clean_source_review.py:181:        self.assertTrue(any("vsi590k_000003" in item["source_path"] for item in snapshot["missing"]))
+work/tree_before/tests/test_clean_source_review.py:214:        missing = {(item["source_path"], item["sha256"]) for item in report["missing"]}
+work/tree_before/tests/test_clean_source_review.py:235:        paths = {item["source_path"] for item in caught.exception.inventory["missing"]}
+work/tree_before/tests/test_r2_n1fix3.py:47:        node=next(n for n in ast.parse(base.read_text()).body if isinstance(n,ast.FunctionDef) and n.name=='parameter_groups')
+work/tree_before/tests/test_r2_n1fix3.py:113:        script=next(n.value for n in ast.walk(ast.parse(source)) if isinstance(n,ast.Constant)
+work/tree_before/tests/test_review_r2_integration.py:66:        for source_depth,target_depth in [(4.,4.1),(.2,.22)]:
+work/tree_before/tests/test_s1_routing.py:422:            rows = [(index, json.loads(value)) for index, value in source.execute("SELECT i,row FROM rows ORDER BY i")]
+work/tree_before/tests/test_r2_final_kits.py:18:        self.assertEqual(len({r['source_sha256'] for r in results}),1)
+work/tree_before/tests/test_integrated_startup.py:36:        tree = ast.parse(current)
+work/tree_before/tests/test_r2_refusals.py:157:        rgb = dict(inputs, frames=[dict(p, source_index=i) for i, p in zip(inputs['frame_indices'], inputs['frames'], strict=True)])
+work/tree_before/tests/test_qwen36_27b.py:204:                    ast.parse(self.embedded(path, delimiter), filename=str(path) + ":" + delimiter)
+work/tree_before/tests/test_integration_r2.py:44:            source=TowerSAM3(tower,[row['ground_frames'][k] for k in range(1,33)],g.frame_map,'sam_fixture',codec())
+work/tree_before/tests/test_room_v314.py:61:        for source in ('depth','pose'):
+work/tree_before/tests/test_a1_decoder.py:49:        sources = [dict(source, scene=str(n), video=video) for n in range(100, 104)]
+work/tree_before/tests/test_ddp_preservation.py:21:    tree = ast.parse(source)
+work/tree_before/tests/test_ddp_preservation.py:43:        for node in ast.parse(before).body:
+work/tree_before/tests/test_ddp_preservation.py:50:        for node in ast.parse(before).body:
+work/tree_before/tests/test_ddp_preservation.py:85:        node = next(node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef) and node.name == "adapter_binding")
+work/tree_before/tests/test_all_frames.py:152:        source['pool'] = [v*2 for v in range(96)]
+work/tree_before/tests/test_all_frames.py:207:        tree = ast.parse(path.read_text())
+work/tree_before/tests/test_verify_r2.py:206:        for source in ('gt','mdg','svp_sam3','svp_own'):
+work/tree_before/tests/test_verify_r2.py:209:            backends=[make_backend(source) for _ in rows]
+work/tree_before/tests/test_verify_r2.py:210:            singles=[D.generate(model,p,r,mask_source=source,ground_backend=b,verify=V.Config(b),logits_processor=force(s)) for r,b,s in zip(rows,backends,scripts)]
+work/tree_before/tests/test_verify_r2.py:211:            backends=[make_backend(source) for _ in rows]
+work/tree_before/tests/test_verify_r2.py:212:            records=D.generate(model,p,rows,mask_source=source,ground_backend=backends,verify=[V.Config(b) for b in backends],logits_processor=[force(s) for s in scripts])
+work/tree_before/tests/test_carrier_c1_single_image.py:90:        source.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+work/tree_before/tests/coverage_b8_rows.py:14:        frames=[dict((frames[i] if frames else {}),source_index=i*2) for i in range(count)],
+work/tree_before/tests/test_r1_build13.py:124:            k:dict(source=self.source,rows=dict(duplicate='a'*64)) for k in ('recovery','units')}))
+work/tree_before/tests/test_r1_build13.py:139:        return base,cfg,{k:self.source for k in ('recovery','absolute_distance','units')}
+work/tree_before/tests/test_r1_build13.py:147:        batches=[(k,p,[dict(row={**row,'qid':'slice_'+k},target={})],self.source) for k,p in sources.items()]
+work/tree_before/tests/test_r1_build13.py:244:                k:dict(source=v['source'],qids=[]) for k,v in sources.items()})))
+work/tree_before/tests/test_carrier_c1_routing.py:271:        source.write_text(''.join(json.dumps(r) + '\n' for r in rows))
+work/tree_before/tests/fullft_eval_toys.py:84:    source = {key: items[0]['student_input'][key] for key in ('video_path', 'video_sha256', 'frame_receipt')}
+work/tree_before/tests/test_recording_pose_sparse.py:72:        wrong = {**source, 'frame_numbers': [f + 1 for f in source['frame_numbers'][:-1]] + [999]}
+work/tree_before/tests/test_recording_pose_sparse.py:119:            dense_source = {k: v for k, v in source.items() if k not in ('sparse_poses', 'frame_numbers')}
+work/tree_before/tests/test_recording_pose_sparse.py:120:            indices = [source['frame_numbers'].index(f) for f in order]
+work/tree_before/tests/test_recording_pose_sparse.py:126:            dense_source['pool'] = [source['frame_numbers'].index(f) for f in source['pool']]
+work/tree_before/tests/test_recording_pose_sparse.py:144:                             for f in source['pool']]}
+work/tree_before/tests/test_recording_pose_sparse.py:146:        rows = [rp.build_row(source, poses, staged, sampler, i, 17) for i in range(80)]
+work/tree_before/tests/test_r2_build9_recovery.py:73:                            frames=[dict(path='/unavailable-rgb/'+str(i),sha256='a'*64,source_index=i) for i in indices])}
+work/tree_before/tests/test_gxp_mix.py:595:        self.assertIn('step400_gate_enabled(cfg)', inspect.getsource(run.train))
+work/tree_before/tests/headcall/test_loop.py:70:        self.assertTrue(len(codes) > 3 and all(c == "limit" for c in codes[3:]))
+work/tree_before/tests/test_decoupled_resume.py:251:        for path in source.iterdir():
+work/tree_before/tests/test_division.py:23:        source = next(row for row in self.members if row["qid"] == heldout_id)
+work/tree_before/tests/test_tracecold_audit.py:28:        for source_answer, expected in [('3', 1), ('4', 0)]:
+work/tree_before/tests/test_mdg_eval.py:65:            source_index=k-1) for name, obj, k in [('a', ' Chair ', 3), ('b', 'chair', 4), ('c', 'missing', 1)]]
+work/tree_before/tests/test_ddp.py:175:        self.assertEqual([row["source_rows"] for row in first], [32, 3])
+work/tree_before/tests/test_merge11.py:24:        nodes=[n for n in ast.parse(source.read_text()).body if isinstance(n,ast.FunctionDef) and n.name=='export']
+work/tree_before/tests/test_r2_build3b.py:394:        for source,stream in (('T0_gen_r2','routing'),('T0_room','vqa')):
+work/tree_before/tests/test_r2_build3b.py:400:            values=[at_scene(row,scene,source+str(i)) for i,scene in enumerate(('d1/fixture_clean',NATIVE,ALIAS))]
+work/tree_before/tests/test_benchmark_eval.py:272:                for entry in source_manifest['files']:
+work/tree_before/tests/test_benchmark_eval.py:286:        for array, source in zip(arrays, receipt['frames']):
+work/tree_before/tests/test_sam3_tower.py:214:        tree = ast.parse(reference.read_text())
+work/tree_before/tests/test_division_inheritance_protocol.py:28:    node = next(item for item in ast.parse(source).body if isinstance(item, ast.FunctionDef) and item.name == name)
+work/tree_before/tests/test_division_inheritance_protocol.py:89:        invalid = [("missing_schema", {key: value for key, value in source.items() if key != "schema"}, "schema"),
+work/tree_before/tests/test_c1_provenance.py:31:        for name,raw in sources.items():
+work/tree_before/tests/test_c1_provenance.py:56:                                sources={str(p.relative_to(root)):provenance.sha256(p) for p in closure})
+work/tree_before/tests/test_c1_provenance.py:62:                {'sources':{k:v for k,v in seal['sources'].items() if k!='headcall/geometry.py'}})):
+work/tree_before/tests/coverage_b8_preparation.py:54:            sources = {str(p.relative_to(tree)): sha256(p) for p in source_files([Path(trainer.__file__)])}
+work/tree_before/tests/test_storage.py:112:                 "student_input": {"frames": [binding(source)], "question": "CPU fixture"}} for index in range(2)]
+work/tree_before/tests/auxiliary_toys.py:28:    tree = ast.parse(path.read_text())
+work/tree_before/tests/test_pose_samples.py:79:                             [source["student_input"]["frame_indices"][k] for k in row["pose_sample"]["positions"]])

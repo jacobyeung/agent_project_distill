@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import uuid
 import types
 import unittest
 from unittest.mock import patch
@@ -18,7 +19,7 @@ import stage228 as S
 import read228
 WORK=Path(os.environ.get('READ228_TEST_WORK','/scratch/jjyeung/orch_n30/so_reads228/work/prepare_tests'))
 WORK.mkdir(parents=True,exist_ok=True)
-def directory():return Path(tempfile.mkdtemp(prefix='a',dir=WORK))
+def directory():path=WORK/('a'+uuid.uuid4().hex);path.mkdir();return path
 def pinned(path,value):
     C.write(path,value);return dict(path=str(path),bytes=path.stat().st_size,sha256=C.sha(path))
 
@@ -39,6 +40,7 @@ class PrepareTests(unittest.TestCase):
         launches=[]
         def prepare(argv,**kwargs):
             launches.append(argv)
+            self.assertIn('/usr/bin/bwrap',argv)
             dispatch=C.read(argv[-1]);self.assertEqual(dispatch['inputs']['_export'],export)
             self.assertEqual(kwargs['env']['CUDA_VISIBLE_DEVICES'],'')
             (data/'e').mkdir()
@@ -48,7 +50,9 @@ class PrepareTests(unittest.TestCase):
             C.write(data/'READY.json',dict(settings=C.sha(data/'settings.json'),binding=C.sha(data/'binding.json'),restore=C.sha(data/'e/RESTORE.json')))
             return types.SimpleNamespace(returncode=0)
         with ExitStack() as stack:
-            for name,value in [('STAGE',stage),('source_check',lambda *a:None),('policy_check',lambda:None),('staging_receipts',lambda *a:dict(fixture=True)),
+            for name,value in [('STAGE',stage),('source_check',lambda *a:None),('policy_check',lambda:None),('staging_receipts',lambda *a:dict(fixture=True,files={},runtime_members={},namespace={'fixture':True})),
+                               ('reconcile',lambda *a:dict(passed=True)),('runtime_requirements',lambda *a:dict(passed=True)),
+                               ('record_prepare_products',lambda *a:None),('namespace_command',lambda *a:['/usr/bin/bwrap','--fixture']),
                                ('versions',lambda *a:dict(prefix=str(root),base_prefix=str(root),audit_coverage_verified=True)),
                                ('utc',lambda:'CPU_TEST')]:stack.enter_context(patch.object(S,name,value))
             stack.enter_context(patch.object(S.subprocess,'run',side_effect=prepare))
@@ -93,7 +97,7 @@ class PrepareTests(unittest.TestCase):
 
     def test_read_shell_accepts_items_without_using_missing_p1cpu_default(self):
         got=subprocess.run(['bash',str(HERE/'read228.sh'),str(HERE/'A10b'),'0','--items','50'],
-            env=dict(os.environ,READ228_CONTROL_PYTHON=sys.executable),capture_output=True,text=True)
+            env=dict(os.environ,READ228_CONTROL_PYTHON=sys.executable,READ228_CONTROL_ROOT=str(WORK/"control")),capture_output=True,text=True)
         self.assertEqual(got.returncode,2);self.assertIn('restricted to trinity-2-28',got.stderr)
         for name in ('read228.sh','run228.sh','compare228.sh'):
             self.assertNotIn('/envs/p1cpu',(HERE/name).read_text())

@@ -125,7 +125,8 @@ def validate_device(cfg, torch):
 
 def kit_hashes():
     return {name:hashlib.sha256(path.read_bytes()).hexdigest() for name,path in
-            (('run.py',Path(__file__)),('compare.py',COMPARE),('sample50.json',SAMPLE))}
+            (('run.py',Path(__file__)),('compare.py',COMPARE),('sample50.json',SAMPLE),
+             ('host.py',HERE/('u2.py' if (HERE/'u2.py').is_file() else 'host.py')))}
 
 
 def validate_kit(cfg):
@@ -133,12 +134,65 @@ def validate_kit(cfg):
         raise ValueError('Executing kit/comparator/sample differs from MANIFEST pins')
 
 
-def write_gate_receipt(out, cfg, passed):
+def host_module():
+    import importlib.util
+    path=HERE/('u2.py' if (HERE/'u2.py').is_file() else 'host.py')
+    spec=importlib.util.spec_from_file_location('u0_host',path)
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    return module
+
+
+def worker_command(args):
+    host=host_module();root=Path(os.environ['U0_ROOT'])
+    inputs,S,J=host.runtime_context(root)
+    return host.namespace_command(root,inputs,J,args)
+
+
+def worker_environment():
+    host=host_module();root=Path(os.environ['U0_ROOT'])
+    inputs,S,J=host.runtime_context(root)
+    return host.gate_environment(root,os.environ['U0_KIT'],J)
+
+
+def guard_self_test(cfg):
+    """Probe tracked mutations before any reader work, on the production interpreter."""
+    import torch
+    torch.set_num_threads(8)
+    sys.path.insert(0,str(Path(cfg['source_root'])/'u0'))
+    from a0 import WeightGuard,ModelMutationError
+    checks={};errors={}
+    for name in ('add_','copy_','load_state_dict'):
+        try:
+            model=torch.nn.Linear(2,2,bias=False).eval().requires_grad_(False)
+            guard=WeightGuard(lambda:model)
+            with torch.no_grad():
+                if name=='add_':model.weight.add_(1)
+                elif name=='copy_':model.weight.copy_(torch.zeros_like(model.weight))
+                else:model.load_state_dict({'weight':torch.zeros_like(model.weight)})
+            try:guard.check()
+            except ModelMutationError:checks[name]=True
+            else:checks[name]=False
+        except BaseException as error:
+            checks[name]=False;errors[name]=type(error).__name__
+    value=dict(passed=all(checks.values()),checks=checks)
+    if errors:value['errors']=errors
+    return value
+
+
+def guard_passed(value):
+    return (isinstance(value,dict) and value.get('passed') is True
+            and value.get('checks')==dict(add_=True,copy_=True,load_state_dict=True)
+            and not value.get('errors'))
+
+
+def write_gate_receipt(out, cfg, passed, guard_self_test=None):
     from a9 import pack
     validate_kit(cfg)
     record = {key:cfg[key] for key in ('adoption_plan_sha256','adoption_profile','adoption_assets','required_device_type')}
     record['adoption_kit'] = kit_hashes()
     record['adoption_environment'] = validate_environment(cfg)
+    if passed and not guard_passed(guard_self_test):raise ValueError('Guard self-test did not pass')
+    record['guard_self_test'] = guard_self_test
     record['passed'] = bool(passed)
     (Path(out)/'ue.json').write_text(json.dumps({'u0':pack(record)},sort_keys=True)+'\n')
 
@@ -265,25 +319,31 @@ def main():
     validate_roots(cfg)
     if a.worker:return worker(cfg,a.worker,a.out,a.enable_gpu,a.shard,a.durable_scene)
     out=Path(a.out);out.mkdir(parents=True,exist_ok=False)
-    env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',OMP_NUM_THREADS='8',MKL_NUM_THREADS='8',
-             OPENBLAS_NUM_THREADS='8',TOKENIZERS_PARALLELISM='false',HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1')
+    try:guard_result=guard_self_test(cfg)
+    except BaseException as error:
+        guard_result=dict(passed=False,checks=dict(add_=False,copy_=False,load_state_dict=False),
+                          errors={'setup':type(error).__name__})
+    if not guard_passed(guard_result):
+        write_gate_receipt(out,cfg,False,guard_self_test=guard_result)
+        return 1
+    env=worker_environment()
     for mode in ['ORIGINAL','OFF','OFF_REPEAT','ON']:
-        command=[sys.executable,'-I','-s','-B',str(Path(__file__).resolve()),a.config,
-                 '--out',str(out/DIRS[mode]),'--worker',mode,'--enable-gpu','--public']
+        command=worker_command([str(Path(__file__).resolve()),a.config,
+                 '--out',str(out/DIRS[mode]),'--worker',mode,'--enable-gpu','--public'])
         with (out/(DIRS[mode]+'.log')).open('xb') as log:
             result=subprocess.run(command,env=env,stdout=log,stderr=subprocess.STDOUT)
         if result.returncode:raise SystemExit(result.returncode)
     if a.shards:
-        command=[sys.executable,'-I','-s','-B',str(Path(__file__).resolve()),a.config,
-                 '--out',str(out/DIRS['ON_JOURNAL']),'--worker','ON','--enable-gpu','--public','--durable-scene']
+        command=worker_command([str(Path(__file__).resolve()),a.config,
+                 '--out',str(out/DIRS['ON_JOURNAL']),'--worker','ON','--enable-gpu','--public','--durable-scene'])
         with (out/'u4.log').open('xb') as log:
             result=subprocess.run(command,env=env,stdout=log,stderr=subprocess.STDOUT)
         if result.returncode:raise SystemExit(result.returncode)
         (out/DIRS['SHARDED']).mkdir()
         for index in range(a.shards):
-            command=[sys.executable,'-I','-s','-B',str(Path(__file__).resolve()),a.config,
+            command=worker_command([str(Path(__file__).resolve()),a.config,
                      '--out',str(out/DIRS['SHARDED']/f'u{index:x}'),'--worker','ON','--enable-gpu','--public',
-                     '--shard',f'{index}/{a.shards}','--durable-scene']
+                     '--shard',f'{index}/{a.shards}','--durable-scene'])
             with (out/f'u6{index:x}.log').open('xb') as log:
                 result=subprocess.run(command,env=env,stdout=log,stderr=subprocess.STDOUT)
             if result.returncode:raise SystemExit(result.returncode)
@@ -318,7 +378,7 @@ def main():
         same=(out/'uc/answer_trace_return.tgz').read_bytes()==(out/'ud/answer_trace_return.tgz').read_bytes()
         passed &= same
         (out/'ub.json').write_text(wire.dumps(dict(passed=same,single=one,sharded=many),indent=2)+'\n')
-    write_gate_receipt(out,cfg,passed)
+    write_gate_receipt(out,cfg,passed,guard_self_test=guard_result)
     return 0 if passed else 1
 
 

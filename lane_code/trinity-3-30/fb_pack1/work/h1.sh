@@ -1,0 +1,1 @@
+hostname; date -u +%TZ; nproc; uptime; free -g | head -2; df -h /scratch | tail -1; ls /scratch/jjyeung/envs | tr "\n" " "; echo; ls /scratch/jjyeung/orch_n30 | tr "\n" " "; echo; which codex agent python3; nvidia-smi --query-gpu=index,memory.used --format=csv,noheader | tr '\n' ' '; ps -u jjyeung -o pid=,comm= | wc -l; ip -4 addr show ib0 | grep inet

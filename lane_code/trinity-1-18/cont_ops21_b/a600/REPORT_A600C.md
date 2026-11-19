@@ -29,8 +29,17 @@ Simulated fill executes the real receipt, preparation and binding checks using a
 `verify_c600.py` passes all original submit-assertion checks, the empty-general guard check, six rejection cases, and full/partial/stop-margin operator cases. CPU receipts in this test are explicitly synthetic.
 All 29 login/helper/embedded Python sources pass `py_compile` on local `/usr/bin/python3` 3.6.8; all five shell scripts, generated fill shell and BATCH.sh pass `bash -n`. Staged model code retains A's Python environment.
 
-`test_score_c600.py` passes with an unchanged copy of `score_r5_look.py`; no scorer patch is needed. The synthetic return contains exactly 450 original camera rows and no distance/room rows.
+Score with `python score_c600.py --read-plan READ_PLAN_C600.json --package-root <scorer-A-directory> --a <return-directory> --out <scores-directory>`; the wrapper checks the archive hash, bytes, object, member directory, step and package/return identity against the plan before calling unchanged `score_r5_look.py` at step 600. The synthetic test return contains exactly 450 camera rows and no distance/room rows.
 All camera metric dictionaries, intervals, call counts and H3 decisions equal the full step-400 result at 99.82%: displacement 81.600%, rotation 76.133%, direction 94.667%; calls 450/450.
-The existing look-level test and three corrupt-binding rejection tests pass. Missing distance/room type rows are incomplete; separate A-only room diagnostics remain baseline-only. These are synthetic results, not step-600 measurements.
-Evidence: `rehearsal/RESULT.json`, `TIMING.json`, `verify/RESULT.json`, and `scoring/TEST_RESULT.json`; local reruns use p1cpu Python with BLAS/OpenMP threads set to 1.
+The look-level test, three original identity rejection tests and ten wrapper rejection tests pass, including the swapped step-400 archive hash, wrong bytes/object/step, missing bytes and mismatched package identity. Missing distance/room type rows are incomplete; A-only room diagnostics remain baseline-only. These are synthetic results, not step-600 measurements.
+Evidence: `rehearsal/RESULT.json`, `TIMING.json`, `verify/RESULT.json`, and `rehearsal/scoring_fix/TEST_RESULT.json`; local scorer tests use p1cpu Python with six-CPU affinity and BLAS/OpenMP threads set to 1.
 Not tested: live GCS/download hashes, real large archives, the two policy bodies, actual Orchard CPU staging, model inference, Slurm submission, live USR1 delivery or remote fetching. No SSH, network, Git, GPU, deletion or submission ran locally.
+
+## Link-first fill
+
+Set `REUSE_PARTS_FROM=<package>/a/e` in the placement process environment, or set `REUSE_SEARCH=1` for sorted, immediate-package marker discovery; discovery skips the destination package.
+Reuse validates marker fields, four regular non-symlink files of 5,395,758,080 bytes each, and the streamed concatenated SHA256 before linking; any validation or link failure stops without copying or pulling.
+Without explicit reuse or a discovery match, the original zero-retry pull loop runs; both modes report the source mode and part 0 link count.
+All five scripts are regenerated; [DIFF](rehearsal/link/DIFF.txt) changes only fill acquisition. Receipt, preparation, binding, dry, `3.py check` and A-only checks remain byte-identical.
+`/usr/bin/python3 -B test_link_c600.py`: 18 cases pass with sparse 256-KiB parts and a test-only binding, including partial-link failure and unchanged pull arguments; Python 3.6.8 compilation and all six shell syntax checks pass.
+[Test output](rehearsal/link/TEST_OUTPUT.txt) and [results](rehearsal/link/RESULT.json) record local evidence; production archive reads and Orchard execution were not run.

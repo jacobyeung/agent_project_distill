@@ -1,0 +1,39 @@
+cache: OK
+journal: OK
+off: OK
+public: OK
+round1: OK
+round2: OK
+round3: OK
+operator3: OK
+lock3: OK
+round4: CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/6102ddcd5202468d98771075fb6c9b4c
+round5: All CPU receipt checks passed
+round6: Detached fill: success=0, failure=17, duplicate launch refused.
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/run_checks.py", line 44, in <module>
+    assert result.returncode==0,result.stdout
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: setUpClass (__main__.Round7Tests) ... ERROR
+
+======================================================================
+ERROR: setUpClass (__main__.Round7Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 31, in setUpClass
+    r6.Round6Tests.setUpClass()
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 107, in setUpClass
+    r5.Round5Tests.setUpClass()
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 58, in setUpClass
+    cls.builder.build(cls.base,SRC,cls.root/'binding.json',cls.target,'ab0123456789',enable_extensions=True,**cls.options)
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/a19.py", line 163, in build
+    authenticate(base, source, original, payload, manifest_path, extension_pins_path)
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/a19.py", line 138, in authenticate
+    raise ValueError('Extension inventory differs from reviewed pins')
+ValueError: Extension inventory differs from reviewed pins
+
+----------------------------------------------------------------------
+Ran 0 tests in 0.251s
+
+FAILED (errors=1)
+

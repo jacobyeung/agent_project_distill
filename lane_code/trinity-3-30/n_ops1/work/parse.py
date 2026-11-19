@@ -30,6 +30,7 @@ sq=[l.split('|') for l in sec('SQ')[1].splitlines() if l.count('|')>=8]
 adv=[q for q in sq if q[2]=='advanced']
 info['newest_out']=sec('NEWEST')[0]; dfp=int(sec('DF')[0] or 0); info['proj_free_G']=dfp
 if dfp and dfp<150:flags.append('PROJECT_DISK<150G')
+elif dfp and dfp<250:warn.append('project_free<250G')
 mine=[q for q in sq if q[0]==J]
 state=mine[0][3] if mine else None
 sa=[l.split('|') for l in sec('SACCT')[1].splitlines() if '|' in l]
@@ -166,6 +167,16 @@ if J!='0':
       else:S['gpu0']=0
   S['sig']=sig;S['cpu']=cpu;S['t']=now
   info['stage']=stage; S['stage']=stage
+  live=sec('LIVE')[1]; gd=sorted(set(re.findall(r'gcs_(m\w+)\.done',live))); info['gcs_done']=gd
+  if gd!=S.get('gcs_done',[]):warn.append('NEW_GCS_DONE '+','.join(gd));S['gcs_done']=gd
+  if re.search(r'gcs_m\w+\.json',live):warn.append('gcs_json_present(export not uploaded?)')
+  if re.search(r'WAITING_REVIEW',live):
+    S.setdefault('wr_since',now); info['waiting_review_min']=round((now-S['wr_since'])/60); warn.append('WAITING_REVIEW')
+    if 'review.json' not in sec('NR')[1] and now-S['wr_since']>1800:flags.append('NO_REVIEW_30MIN')
+  if logs.get('q.log',(-1,))[0]>=0:
+    S.setdefault('q_start',now); info['prep_min']=round((now-S['q_start'])/60); info['prep_pct_vs141']=round(100*(now-S['q_start'])/60/141)
+  nck=sec('NCK')[1].strip()
+  if nck:info['n_ck']=nck.splitlines()[-2:]
   ck=sec('CK')[1].strip().splitlines(); info['ck']=ck[-3:]
   if ck and ck!=S.get('ck'):S['ck_new']=ck;warn.append('NEW_CK_MARKER')
   S['ck']=ck

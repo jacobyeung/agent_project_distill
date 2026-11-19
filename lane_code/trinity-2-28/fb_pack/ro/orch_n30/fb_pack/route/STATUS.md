@@ -1,0 +1,1 @@
+Stage 7: The manifest, report, and all row/shard pins are verified. Four slices pass native intake; recovery and camera remain blocked by recorded contract checks. The metadata/code archive excludes row files and requires the separate frame host and tree-owner fixes.

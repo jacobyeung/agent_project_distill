@@ -1,0 +1,73 @@
+{
+  "benchmark_accuracy_claim": false,
+  "findings": [
+    "Both object_counting and relative_count enter the existing counting cell and satisfy PROC admission.",
+    "Object counting asks for a number; relative count asks for an option letter. All delivered relative-count rows end with A, B, or C and contain two procedure bodies followed by a qualitative comparison.",
+    "The procedure body matches the v7 object_counting text exactly after category substitution. Numeric Step labels are omitted to obey the zero-number think rule.",
+    "The direct answer separator is exactly </think> followed by two newlines and the answer, matching the store.",
+    "Ground-row packing uses a serialization adapter with no events; it preserves think bytes and wraps only the answer. It does not establish native trainer/frame-host admission."
+  ],
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/code/common.py": "1cb2eae9bc71e6cea2aed4e34f4c5c1171a849e39177b0c7468a15eaa52067f0",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/code/review_binding.py": "42e30a6b94350e882870f6749a74f585587b07cafb4263580d2677c8460e62f6",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/BUILD.json": "99a541db261e9f284383bd2594ad14583c252a84a2aff27f0add4dc11295f450",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/GT_CHECK.json": "053f13bc107f7f1edf7d5be40a03f547c010b402cce0aa12ed8635c4bbd4122f",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/RASTER_CHECK.json": "63d1c23faa9a9a0948c60801d49a6736fc25f23ea5e7486b3cba8219db504f3b",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/READ40.md": "4d6cb2cf010cee5b6a33f1ab61f167f1448c28255d5a1dbdf158c93c01ec7bc0",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/READ40_TEXT.md": "82784cb40a6b6a7df370e1de69ab81d49988d36b524fe415dbe5d8a378f8135e",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/ROW_CHECKS.json": "c70a1397771bd3612bf5848c973240b8d66d754756a1a9d0c4e032129cef5186",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/relative_count.jsonl": "1ad9e3a572bd4393afc1ce8a2363ed7974ccac471f28c63a28e38497d3b76c78",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/room_audit_final/audit.json": "735d3eb91799bc802c1b81371a1bcadceffbbb1ddbb9c33f0d73f39c7cf7b05f",
+    "/scratch/jjyeung/orch_n30/sb_rowC/in/procedure_source.json": "3c8529fe9686b3c574f84e6a41326e7b14d407e5b9c6fa3d3da899f87ecee2f2",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/p3_provenance.py": "afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_counting.py": "21f8525c2b76025060f75b4dd71dfd318b9813e7137952cfb2d98cc2a4f355d9",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_population.py": "063ed256bc4b6d797bd99c99bdaf4f11c8fe045a2606645a1dfbcef548c6c76a",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_training.py": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/trace_grammar.py": "a41ba19190eb354168ce5837b2047fb6510c868c5d7cbfbf160cbe924777e268"
+  },
+  "relative_count": [
+    {
+      "options": [
+        "A. more",
+        "B. fewer",
+        "C. equal number"
+      ],
+      "qid": "sb_rowC_7fc8d78bdd527da483efefec",
+      "question": "Count the separate objects in the 'table' and 'bed' categories. For 'table' relative to 'bed', which choice describes the result?",
+      "row_sha256": "ee3e97fe6ccb8c7b05808cd965e5dc031b0be26392bc3f4e271b01dc5bbba2e2",
+      "target": "<think>\nlocate the distinct instances of table; count each once across the frames.\nlocate the distinct instances of bed; count each once across the frames.\nSo there are more table instances than bed instances.\n</think>\n\nA"
+    },
+    {
+      "options": [
+        "A. fewer",
+        "B. equal number",
+        "C. more"
+      ],
+      "qid": "sb_rowC_01f8b51de1fa1ac9eedacad8",
+      "question": "Consider the room's 'tv' objects as one group and its 'sofa' objects as another. Which comparison describes the size of the first group?",
+      "row_sha256": "a09a94e4f458b4b2d3f3a4093698553c0231bb13b8f89a4d7ed55a3d6d659c87",
+      "target": "<think>\nlocate the distinct instances of tv; count each once across the frames.\nlocate the distinct instances of sofa; count each once across the frames.\nSo there are fewer tv instances than sofa instances.\n</think>\n\nA"
+    },
+    {
+      "options": [
+        "A. equal number",
+        "B. fewer",
+        "C. more"
+      ],
+      "qid": "sb_rowC_ffbe29dcfb62e9c7119cde1d",
+      "question": "Count the separate objects in the 'stool' and 'table' categories. For 'stool' relative to 'table', which choice describes the result?",
+      "row_sha256": "190808b16c157ce395a0fcea8eee21fb59798fabdfcb74e8bb3ccbafe4a26897",
+      "target": "<think>\nlocate the distinct instances of stool; count each once across the frames.\nlocate the distinct instances of table; count each once across the frames.\nSo there are as many stool instances as table instances.\n</think>\n\nA"
+    }
+  ],
+  "reviewer": "primary agent; cross-family review against the authenticated v7 object_counting example",
+  "source": {
+    "family": "counting",
+    "qid": "qd88b08be8cf5e2cc852360e3",
+    "question": "How many box(s) do we have in this room?",
+    "row_sha256": "04b33b92483a4897524527876e129feb2957ab9c9e8f6b7d52ebae1ad6e7ea77",
+    "target": "<think>\nStep 1: locate the distinct instances of box; count each once across the frames.\n</think>\n\n8"
+  },
+  "status": "PASS"
+}

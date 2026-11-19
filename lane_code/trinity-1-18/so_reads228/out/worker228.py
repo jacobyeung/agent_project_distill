@@ -18,9 +18,8 @@ def main():
     target_host()
     cfg=read(args.config);out=Path(cfg['adapter']['out']);worker=cfg['worker'];source=Path(worker['package'])
     install_imports(source)
-    settings=worker['config']['settings']
-    # h1eval chooses its native tree from this supported settings hook before import.
-    sys.argv.extend(['--settings',settings])
+    # Orchard imports h1eval with only the entry and dispatch argv. Preserve that branch.
+    sys.argv=[str(source/'orchard_h10/entry.py'),str(args.config)]
     if cfg['adapter']['on']:
         extension=Path(cfg['adapter']['extensions'])
         sys.path.insert(0,str(extension/'u0'))

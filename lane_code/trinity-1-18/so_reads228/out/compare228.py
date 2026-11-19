@@ -89,6 +89,15 @@ def compare(left,right,first50=None):
     fixed=first50 or read(HERE/'FIRST50.json');expected=[r['id'] for r in fixed['items']]
     if len(expected)!=50 or len(set(expected))!=50:raise Refusal('Require the sealed 50-item prefix')
     reasons=[];data=[];envs=[]
+    # Reference metadata is immutable even when a candidate copies the same edit.
+    reference_pins=fixed.get('reference_sha256',{})
+    required={'metadata/IDENTITY.json'}|{str(p.relative_to(Path(left))) for p in
+        Path(left).glob('metadata/reads/*/metadata/journals/*/*/environment.json')}
+    if set(reference_pins)!=required:reasons.append('orchard: reference pin inventory differs')
+    for name,digest in reference_pins.items():
+        path=Path(left)/name
+        if Path(name).is_absolute() or '..' in Path(name).parts:raise Refusal('Unsafe reference pin path')
+        if not path.is_file() or sha(path)!=digest:reasons.append('orchard: reference pin differs: '+name)
     for label,root in (('orchard',Path(left)),('trinity',Path(right))):
         loaded,env=rows(root);data.append(loaded);envs.append(env)
         if [r['id'] for r in loaded[:50]]!=expected:reasons.append(label+': first 50 IDs/order differ or are incomplete')
@@ -104,10 +113,21 @@ def compare(left,right,first50=None):
             elif any(k.startswith('read_') and v not in ('off',False,0,None,[]) for k,v in settings.items()):
                 reasons.append(label+': Extension-enabled settings; OFF required')
         if label=='trinity':
+            summary_path=root/'SUMMARY.json'
+            summary=read(summary_path) if summary_path.is_file() else {}
+            if 'failure' not in summary or summary['failure'] is not None:
+                reasons.append('trinity: SUMMARY failure must be explicitly None')
+            if type(summary.get('completed')) is not int or summary['completed']<50:
+                reasons.append('trinity: SUMMARY completed must be >=50')
+            if (root/'FAILED.json').exists():reasons.append('trinity: FAILED.json exists')
             info=root/'metadata/LOCAL_RUN.json'
             if not info.is_file():reasons.append('trinity: missing LOCAL_RUN.json')
             else:
                 local_run=read(info)
+                if local_run.get('deviation'):
+                    reasons.append('trinity: recorded deviation: '+str(local_run['deviation']))
+                if (root/'metadata/RUNTIME_RELOCATION.json').exists():
+                    reasons.append('trinity: recorded deviation: runtime_relocation')
                 for key,wanted in (('backend','trinity-local'),('host','trinity-2-28'),('mode','OFF')):
                     if local_run.get(key)!=wanted:reasons.append('trinity: LOCAL_RUN '+key+' must be '+wanted)
             cards=root/'metadata/CARDS.json'
@@ -122,8 +142,13 @@ def compare(left,right,first50=None):
             if job is None or str(job)==str(fixed.get('reference_job','173060')):
                 reasons.append('trinity: missing RETURN_ID or Orchard reference job reused')
     for kind in set(envs[0])&set(envs[1]):
-        for key in BINDINGS:
-            if envs[0][kind]['binding'][key]!=envs[1][kind]['binding'][key]:reasons.append('binding differs: '+str(kind)+'.'+key)
+        for section in ('binding','settings'):
+            x,y=envs[0][kind].get(section),envs[1][kind].get(section)
+            if not isinstance(x,dict) or not isinstance(y,dict):
+                reasons.append(section+' missing or not a dict: '+str(kind));continue
+            for key in sorted(set(x)|set(y)):
+                if key not in x or key not in y or x[key]!=y[key]:
+                    reasons.append(section+' differs: '+str(kind)+'.'+key)
     if canonical(data[0][:50])!=fixed['orchard_prefix_sha256']:
         reasons.append('Orchard baseline bytes differ from the authenticated job 173060 prefix')
     # Return diagnostics for every expected ID even if the run is incomplete.

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "frozen_before_gt": true,
+  "estimator": "median(vc_depth / g3t_depth)",
+  "population": "all grid points across the 32 anchors in one clip",
+  "confidence": "depth_conf_grid strictly above the per-clip 50th percentile of finite confidence values",
+  "vc_valid": "finite and strictly 0.1 < depth < 10 metres",
+  "g3t_valid": "finite and depth > 0",
+  "gt_diagnostic": "median(gt_depth / g3t_depth) on the identical selected grid points with finite positive GT depth and valid GT pose",
+  "grid": "linspace(0,1000,51) over native canvas; GT pixel = clip(floor(uv/1000 * raster_size))",
+  "scale_bar": "fraction with 0.8 <= estimated_scale / gt_scale <= 1.2 must be >= 0.75",
+  "depth_adoption": "per scene G3T x s AbsRel <= 0.9 * V-C AbsRel on identical finite prediction pixels with valid GT pose and 0.1 < GT < 10",
+  "bootstrap": {"unit": "scene", "interval": 0.90, "draws": 2000, "seed": 17}
+}

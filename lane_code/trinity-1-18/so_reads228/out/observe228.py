@@ -5,7 +5,8 @@ from common228 import append, write
 
 def is_oom(error, torch):
     return isinstance(error,torch.cuda.OutOfMemoryError) or (
-        isinstance(error,RuntimeError) and 'cuda out of memory' in str(error).lower())
+        isinstance(error,RuntimeError) and any(token in str(error).lower()
+            for token in ('out of memory','alloc_failed')))
 
 def install(parity, launch, torch, out, stop_file, limit, *, enabled=False):
     if enabled is not True:raise ValueError('Observation is OFF; explicit activation required')

@@ -1,0 +1,1 @@
+Stage 3: Every selected row has been checked by the native exclusion predicates. K1 removal matches are removed; sealed eval-room overlaps remain for native intake to refuse. Each final receipt reruns every check and binds exact file and tree hashes.

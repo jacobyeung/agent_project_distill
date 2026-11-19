@@ -1,0 +1,278 @@
+{
+  "findings": [
+    "Every comparison uses the category order requested by the question, including reference-last wording.",
+    "Every tie uses as many and selects equal number in its displayed option position.",
+    "The two procedure bodies name the two categories once each, count each instance once across frames, and state no count or numeric label.",
+    "Each final answer is the matching single option letter."
+  ],
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/code/common.py": "1cb2eae9bc71e6cea2aed4e34f4c5c1171a849e39177b0c7468a15eaa52067f0",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/code/review_binding.py": "42e30a6b94350e882870f6749a74f585587b07cafb4263580d2677c8460e62f6",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/BUILD.json": "99a541db261e9f284383bd2594ad14583c252a84a2aff27f0add4dc11295f450",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/GT_CHECK.json": "053f13bc107f7f1edf7d5be40a03f547c010b402cce0aa12ed8635c4bbd4122f",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/RASTER_CHECK.json": "63d1c23faa9a9a0948c60801d49a6736fc25f23ea5e7486b3cba8219db504f3b",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/READ40.md": "4d6cb2cf010cee5b6a33f1ab61f167f1448c28255d5a1dbdf158c93c01ec7bc0",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/READ40_TEXT.md": "82784cb40a6b6a7df370e1de69ab81d49988d36b524fe415dbe5d8a378f8135e",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/ROW_CHECKS.json": "c70a1397771bd3612bf5848c973240b8d66d754756a1a9d0c4e032129cef5186",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/relative_count.jsonl": "1ad9e3a572bd4393afc1ce8a2363ed7974ccac471f28c63a28e38497d3b76c78",
+    "/scratch/jjyeung/orch_n30/fb_pack/relcnt/out/room_audit_final/audit.json": "735d3eb91799bc802c1b81371a1bcadceffbbb1ddbb9c33f0d73f39c7cf7b05f",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/p3_provenance.py": "afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_counting.py": "21f8525c2b76025060f75b4dd71dfd318b9813e7137952cfb2d98cc2a4f355d9",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_population.py": "063ed256bc4b6d797bd99c99bdaf4f11c8fe045a2606645a1dfbcef548c6c76a",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/r1_training.py": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1/student_pilot/trace_grammar.py": "a41ba19190eb354168ce5837b2047fb6510c868c5d7cbfbf160cbe924777e268"
+  },
+  "method": "Read every complete question, option list, target, answer, and GT count summary in READ40_TEXT.md; READ40.md contains the corresponding full JSON rows. Structural metadata and source/frame equality were checked for all rows by code/check.py.",
+  "read_commands": [
+    "sed -n 1,260p out/READ40_TEXT.md",
+    "sed -n 261,560p out/READ40_TEXT.md"
+  ],
+  "reviewed": [
+    {
+      "qid": "sb_rowC_7fc8d78bdd527da483efefec",
+      "relation": "more",
+      "row_sha256": "ee3e97fe6ccb8c7b05808cd965e5dc031b0be26392bc3f4e271b01dc5bbba2e2",
+      "template_id": 0
+    },
+    {
+      "qid": "sb_rowC_01f8b51de1fa1ac9eedacad8",
+      "relation": "fewer",
+      "row_sha256": "a09a94e4f458b4b2d3f3a4093698553c0231bb13b8f89a4d7ed55a3d6d659c87",
+      "template_id": 1
+    },
+    {
+      "qid": "sb_rowC_65ff46fd69f32dab39a9fa01",
+      "relation": "fewer",
+      "row_sha256": "6bd9e0196fa90b40bac1589041a878c37053f99ce67d5745c203f55697c969d7",
+      "template_id": 2
+    },
+    {
+      "qid": "sb_rowC_431d0433c97802a00557e670",
+      "relation": "more",
+      "row_sha256": "8128e3614c8bdf0d69c45f97c34da075d89fdca3bb29b2c932b22179ad8d08ad",
+      "template_id": 3
+    },
+    {
+      "qid": "sb_rowC_b41eb1eddab02259cf6fe9a8",
+      "relation": "fewer",
+      "row_sha256": "fe55b1b94d89151a166b1677eca17844e298a2ef8c97001ca2eb5a8896552820",
+      "template_id": 4
+    },
+    {
+      "qid": "sb_rowC_7457f239fbd9b6dd6892cced",
+      "relation": "more",
+      "row_sha256": "d73e75fda84d96db307d01d8fcb1bd7855831994661e4bb1c9873f55392709d6",
+      "template_id": 5
+    },
+    {
+      "qid": "sb_rowC_b577e41f823e003e2e80b431",
+      "relation": "more",
+      "row_sha256": "b40657eeb5d47618df9052066c8661589d3e8a0abb7e248d643cb8c3857e1b3b",
+      "template_id": 6
+    },
+    {
+      "qid": "sb_rowC_2abef0785b17f722fe7ba26d",
+      "relation": "more",
+      "row_sha256": "2e880dda65759392e422ac806a553e07f92d85dfa58d0c70823bb8eb70187126",
+      "template_id": 7
+    },
+    {
+      "qid": "sb_rowC_4f2a776e7d2408d48b1059b0",
+      "relation": "fewer",
+      "row_sha256": "48feb1640dfaec5798bfd42b8101edaa830b9dce226a23f9dcd1b6e4825deac5",
+      "template_id": 8
+    },
+    {
+      "qid": "sb_rowC_1cd7ec9a0e4dcd870cb64294",
+      "relation": "fewer",
+      "row_sha256": "e589d9b072eaf73b78f43fd3d7ed32ab6af707ed5de3566b236b41b7c1d094b4",
+      "template_id": 9
+    },
+    {
+      "qid": "sb_rowC_879c73c197b85f8cdb3550b2",
+      "relation": "more",
+      "row_sha256": "c4d3ec98b11aed87f81be69f7a713ee49cff465de40772c11c1a4f37279f9a7a",
+      "template_id": 10
+    },
+    {
+      "qid": "sb_rowC_4ba2e81cbbe85ec42b0eb71c",
+      "relation": "fewer",
+      "row_sha256": "afbdccc9a8f57de93fdb89bc1382175ecf84945a29032c36475849d18800faaf",
+      "template_id": 11
+    },
+    {
+      "qid": "sb_rowC_d10e24ffb9944bc5dca5c7bf",
+      "relation": "more",
+      "row_sha256": "cc3a8ed09fd9b518d20507af166b8c03eeb9ee253daf96ee5a25988ccfe52e2a",
+      "template_id": 12
+    },
+    {
+      "qid": "sb_rowC_75105c399484935b2ca576e4",
+      "relation": "fewer",
+      "row_sha256": "47d80573921fc6204b1ffe76dc4cd983acbbf010f5f1244d5d31bf24f5b84c26",
+      "template_id": 13
+    },
+    {
+      "qid": "sb_rowC_255548d87fda5da1d1487dd8",
+      "relation": "more",
+      "row_sha256": "9fc0006798e8c554b5e8d52125b01d0e795c06e077e02266cc892551873d7a53",
+      "template_id": 14
+    },
+    {
+      "qid": "sb_rowC_829086d84de402a0446531c9",
+      "relation": "fewer",
+      "row_sha256": "5f14b33b08c9342baae84f0d6908abb002a05281fa0ebc03a0831ff20735f2a7",
+      "template_id": 15
+    },
+    {
+      "qid": "sb_rowC_ff21654835038f0314498ff2",
+      "relation": "fewer",
+      "row_sha256": "92c7f73dc170b87f0ae48e273c12881267a5561989e6cb8c66bedb31f990b00f",
+      "template_id": 16
+    },
+    {
+      "qid": "sb_rowC_9536fff6ce99f1cbaa659f1f",
+      "relation": "more",
+      "row_sha256": "2b83a03cf4d860034d711751cbd5162d393f60d4e6173ac12d0956ef4214d629",
+      "template_id": 17
+    },
+    {
+      "qid": "sb_rowC_db9c2c50375a48811318ab1d",
+      "relation": "more",
+      "row_sha256": "0901962d31e89b304d06745aa0224095919d7600e48059f3488e22f205bede4b",
+      "template_id": 18
+    },
+    {
+      "qid": "sb_rowC_87d58d777e1a4e7ac5cb0bc5",
+      "relation": "more",
+      "row_sha256": "27df161a4154a756bbf7d2c53d2a87d8427030dbb5dbc88ca03f8315032ef7ab",
+      "template_id": 19
+    },
+    {
+      "qid": "sb_rowC_ffbe29dcfb62e9c7119cde1d",
+      "relation": "tie",
+      "row_sha256": "190808b16c157ce395a0fcea8eee21fb59798fabdfcb74e8bb3ccbafe4a26897",
+      "template_id": 0
+    },
+    {
+      "qid": "sb_rowC_28c82814191e835dcf016c34",
+      "relation": "tie",
+      "row_sha256": "26be68f4a8ae6087644ae6fb09865094cdc27faae2df7e1d7b476a666e58134c",
+      "template_id": 1
+    },
+    {
+      "qid": "sb_rowC_3802b3512dd58ebcdaf9fd38",
+      "relation": "tie",
+      "row_sha256": "2ad33b03bf02cf7ca1fb3a134b6cd21223274e2f6cd08161a16d88f0c17320de",
+      "template_id": 2
+    },
+    {
+      "qid": "sb_rowC_cad2aa88a775e19bf1b59fa4",
+      "relation": "tie",
+      "row_sha256": "61bc42de077f03b1527bcd5812f04afa1408fe1373c1004cef629a40028eb2b7",
+      "template_id": 3
+    },
+    {
+      "qid": "sb_rowC_3118cba64250cc91d78067fe",
+      "relation": "tie",
+      "row_sha256": "3e3c025a4d7c40e637c9d82ed8eed0718aef12dc875eec072068b426cf5e19d4",
+      "template_id": 4
+    },
+    {
+      "qid": "sb_rowC_0e3a58b4b0b7859fd4aa56e6",
+      "relation": "tie",
+      "row_sha256": "e58fbf566787bff23439ae1db2e4babdc6a403773dfd462e57e05443ca329d0d",
+      "template_id": 5
+    },
+    {
+      "qid": "sb_rowC_9a8fead546a1c968a3ca456c",
+      "relation": "tie",
+      "row_sha256": "d58ad50dadaeb0d8a3907346bd3f996cc61f9bd552e8668a089b31f0464b5b80",
+      "template_id": 6
+    },
+    {
+      "qid": "sb_rowC_b83742ff67b6420522ac265e",
+      "relation": "tie",
+      "row_sha256": "ceebc00492a6f59c4ae4351ab5bbc849a34c6895a1f3dda4e2b8ffa561598812",
+      "template_id": 7
+    },
+    {
+      "qid": "sb_rowC_4df006159c5fac0d290ba00e",
+      "relation": "tie",
+      "row_sha256": "4a8248644434b9202b718d5d3ce911f04cc2840d534b49f9858cf13f0498c8dd",
+      "template_id": 8
+    },
+    {
+      "qid": "sb_rowC_1a162c84532fd00a39eae92c",
+      "relation": "tie",
+      "row_sha256": "4e584ce96e73a65f58ed3b1630bff2bb11ec1b100692a8622e6c8c49cd9b5085",
+      "template_id": 9
+    },
+    {
+      "qid": "sb_rowC_760c173f7282382d3a0629fc",
+      "relation": "tie",
+      "row_sha256": "1c72f1e7909d8eeb5410540371357c74bf64994e8a27d16c1727c758cc527911",
+      "template_id": 10
+    },
+    {
+      "qid": "sb_rowC_6758e2a3b97f38f699e35928",
+      "relation": "tie",
+      "row_sha256": "5d4c17d3471845a1437752e582bb4a2f7374faf27a235c5606150ec1e77e2e60",
+      "template_id": 11
+    },
+    {
+      "qid": "sb_rowC_5b1c40a24866a1a8d2d9d74b",
+      "relation": "tie",
+      "row_sha256": "2397c99ee3aa2f0b7ea7dcedc6db46a926070c1b6e359f5ba275c028b88a5a34",
+      "template_id": 12
+    },
+    {
+      "qid": "sb_rowC_3351b9547b97d2d848964146",
+      "relation": "tie",
+      "row_sha256": "ea1319c8c36dc40ea04fc74641855d6c7d0a76b037c86bba8c06cde0ce1cd931",
+      "template_id": 13
+    },
+    {
+      "qid": "sb_rowC_a36b106db631195a1c9537c3",
+      "relation": "tie",
+      "row_sha256": "c1ebbcb21503e6cabf8977fdb9f83912278a1d0176bf4c8aa1a09dc7550e40e7",
+      "template_id": 14
+    },
+    {
+      "qid": "sb_rowC_5eb1be3cf41fb66b167a6b7f",
+      "relation": "tie",
+      "row_sha256": "22103b42ec878b537fe4ad62a826486a2fa497bf410eb927ab6cb817d8a6a579",
+      "template_id": 15
+    },
+    {
+      "qid": "sb_rowC_2b672ca467e2d9c81e078045",
+      "relation": "tie",
+      "row_sha256": "a74bcf6837a556bf3e8314d82218a1673296326c8e679b09c19fc7dd61dcb15e",
+      "template_id": 16
+    },
+    {
+      "qid": "sb_rowC_007b561154b59867180ca296",
+      "relation": "tie",
+      "row_sha256": "0a8f8004ce88c4a4cb3262e64e9728d6907471c7a7b6754e19ef2402062ee4b0",
+      "template_id": 17
+    },
+    {
+      "qid": "sb_rowC_5770ca645cd5b6da25eb9e21",
+      "relation": "tie",
+      "row_sha256": "cf2a583356eb434d69f8cfbe025d0432e14bf94f21f09d674a2a8042d09eabd8",
+      "template_id": 18
+    },
+    {
+      "qid": "sb_rowC_dd248c61ce91b57288ff404e",
+      "relation": "tie",
+      "row_sha256": "15f09e69e5cc93c7fa6710679a357214f4c550641aea94564223fb2b13b04f40",
+      "template_id": 19
+    }
+  ],
+  "reviewer": "primary agent; manual text review, not an independent agent",
+  "rows": 40,
+  "status": "PASS",
+  "templates": 20,
+  "ties": 20
+}

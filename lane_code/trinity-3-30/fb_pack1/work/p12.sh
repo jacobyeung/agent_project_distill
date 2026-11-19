@@ -1,0 +1,4 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w
+for f in /scratch/jjyeung/n30_mirror/rows_r1/out/recovery_v3/rows.jsonl /scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/repaired/rows.jsonl /scratch/jjyeung/n30_mirror/rows_r1/out/vehN_units/repaired/rows_slice.jsonl /scratch/jjyeung/n30_mirror/dist_diag/coverage_v2h/COVERAGE_DISTANCE_V2H.jsonl /scratch/jjyeung/n30_mirror/dist_diag/coverage_v2h/COVERAGE_UNITS_V2H.jsonl /scratch/jjyeung/orch_n30/sb_rowA/out/CAMERA_ROWS.jsonl; do echo "$(grep -ci heater $f) $(grep -c 'obj=[^>]*heater' $f) $(grep -ci '"remove"\|obj=remove\|the remove\b' $f) $f"; done
+echo ==kit; grep -o 'cp4tk_fr[^"]*' $W/w24/out/N_LAUNCH_CONFIG.json | sort -u | head; grep -c k6tk $W/w24/out/N_LAUNCH_CONFIG.json; grep -o '"f1\?[0-9]"' $W/w24/out/N_LAUNCH_CONFIG.json | sort | uniq -c | head
+ls $W/w24/out/kit_n_go | head; grep -l "k6tk\|cp4tk_fr" -r $W/w24/out/kit_n_go 2>/dev/null | head -5

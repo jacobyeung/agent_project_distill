@@ -6,7 +6,7 @@ import subprocess
 import sys
 import time
 
-L=Path(__file__).resolve().parents[2];D=L/'work/build24f';root=D/'rehearsal';ns='/tmp/q_22c714e1'
+L=Path(__file__).resolve().parents[2];D=L/'work/build24f';root=D/'rehearsal2';ns='/tmp/q_22c714e1'
 sys.path[:0]=[str(L/'work/build24'),str(L/'work/tree_r1'),str(D)]
 import joblib as J
 from student_pilot.source_seal import create,inventory
@@ -46,14 +46,26 @@ def run(stage,cmd,phase='fresh'):
 
 def main():
     prepared=root/'PREPARED.json'
+    if '--finish-preparation' in sys.argv:
+        previous=J.load(root/'STAGES.json')
+        assert [(v['stage'],v['returncode']) for v in previous]==[('canary',0),('rooms',0),('v_config',1)]
+        assert 'R1_HOST_RECEIPT_MISSING' in (root/'v_config.log').read_text()
+        assert not (root/'PREPARATION_INITIAL_STAGES.json').exists()
+        J.write(root/'PREPARATION_INITIAL_STAGES.json',previous)
+        (root/'v_config.log').rename(root/'v_config_initial.log')
+        records.extend(previous[:2])
+        args=J.load(root/'VIEW.json');kit=L/'out/kit_n_go';py=sys.executable
+        finish_preparation(args,kit,py,prepared)
+        return
     if prepared.exists():
         v=J.load(prepared)
         assert v['tree']==J.load(L/'out/TREE_SEAL.json')['tree_sha256']
         args=J.load(root/'VIEW.json');kit=L/'out/kit_n_go';py=sys.executable
         assert not (root/'fresh_rank0.json').exists(), 'Rehearsal already ran; preserve its output before a repeat'
         records.extend(J.load(root/'STAGES.json'))
+        if '--prepare-only' in sys.argv:return
         return training(args,kit,py)
-    if root.exists() and any(root.iterdir()):raise RuntimeError('Incomplete rehearsal output exists; preserve it in attic before another run')
+    if (root/'STAGES.json').exists():raise RuntimeError('Incomplete rehearsal output exists; preserve the evidence before another run')
     root.mkdir(parents=True,exist_ok=True)
     cfg=J.load(L/'work/build24d/go/input2.json')
     cfg['output']=ns+'/train';cfg['r1_training']['stop_after_step']=6
@@ -67,18 +79,23 @@ def main():
     request=J.load(L/'work/build24d/go/r2.json');request['config']=pin;request['staged_pins']=[pin]
     J.write(root/'r.json',request);J.write(root/'r2.json',request);J.write(root/'n.json',cfg)
     # Existing fixture bind sources are node-local. The final mount owns all writes.
-    args=J.load(L/'work/build24d/GO_VIEW.json')+['--bind',str(root),str(root),'--bind',str(root),ns,'--ro-bind',str(L/'work/build24d/go/p'),ns+'/p']
+    # Existing stores, kits and previous evidence are strictly read-only.
+    args=['--ro-bind' if x=='--bind' else x for x in J.load(L/'work/build24d/GO_VIEW.json')]+['--bind',str(root),str(root),'--bind',str(root),ns,'--ro-bind',str(L/'work/build24d/go/p'),ns+'/p']
     J.write(root/'VIEW.json',args)
     kit=L/'out/kit_n_go';py=sys.executable
     # Every native producer/reader in the canary runs; the byte stores and frame host are fixture boundaries.
-    run('canary',args+[py,'-B',str(D/'boundary.py'),str(kit/'b/a.py'),'q',ns+'/p2',ns+'/r2.json'])
+    run('canary',args+[py,'-B',str(D/'rehearsal_boundary.py'),str(kit/'b/a.py'),'q',ns+'/p2',ns+'/r2.json'])
     result=J.load(root/'p2/q/RESULT.json');assert result['status']=='ADMIT'
     run('rooms',args+[py,'-B',str(kit/'b/d.py'),ns+'/p2/s',ns+'/r2.json',ns+'/n.json',ns+'/rooms.json'])
-    run('v_config',args+[py,'-B',str(kit/'b/h.py'),ns+'/p2',ns+'/v.json'])
-    run('fixture_gates',args+[py,'-B',str(D/'fixture_gates.py')])
-    J.write(prepared,dict(tree=J.load(L/'out/TREE_SEAL.json')['tree_sha256'],kit=J.seal(kit),canary=J.sha(root/'p2/q/RESULT.json')))
+    finish_preparation(args,kit,py,prepared)
     if '--prepare-only' in sys.argv:return
     training(args,kit,py)
+
+
+def finish_preparation(args,kit,py,prepared):
+    run('v_config',args+[py,'-B',str(D/'rehearsal_handoff.py'),ns+'/p2',ns+'/v.json'])
+    run('fixture_gates',args+[py,'-B',str(D/'rehearsal_gates.py')])
+    J.write(prepared,dict(tree=J.load(L/'out/TREE_SEAL.json')['tree_sha256'],kit=J.seal(kit),canary=J.sha(root/'p2/q/RESULT.json')))
 
 
 def training(args,kit,py):
@@ -88,7 +105,7 @@ def training(args,kit,py):
         for phase in ('fresh','budget','resume'):
             if phase!='fresh':
                 run('authorize_'+phase,args+[py,'-B',str(D/'rehearsal_authorize.py'),phase],phase)
-            run('train_'+phase,args+[py,'-B',str(D/'boundary.py'),str(kit/'b/t.py'),ns+'/p2',ns+'/v.json'],phase)
+            run('train_'+phase,args+[py,'-B',str(D/'rehearsal_boundary.py'),str(kit/'b/t.py'),ns+'/p2',ns+'/v.json'],phase)
     finally:
         copier.send_signal(signal.SIGTERM);copier.wait(timeout=60)
 

@@ -1,0 +1,3 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; free -g | sed -n 2p; tmux ls | grep tr14; du -s --block-size=1G $W | tail -1
+for l in tree_rebuild24fr tree_rebuild24h2; do d=$(ls -dt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*$l | head -1); echo "== $l"; ls $d | tr '\n' ' '; grep -c "at capacity" $d/transcript.log; test -f $d/final_message.md && head -c 2500 $d/final_message.md || tail -c 1500 $d/transcript.log | tr -cd "[:print:]\n" | grep -v "^[ +@-]" | tail -3 | cut -c1-300; echo; done
+test -f $W/w24/work/build24f/REHEARSAL_FIX_REPORT.md && cat $W/w24/work/build24f/REHEARSAL_FIX_REPORT.md

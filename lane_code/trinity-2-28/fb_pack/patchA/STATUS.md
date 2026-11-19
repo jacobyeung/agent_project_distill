@@ -1,0 +1,1 @@
+Base verification: PASS. Both local copies were checked with the kit inventory and digest functions. 0 files differ from the supplied seal list. Details and all input hashes are in out/BASE_VERIFICATION.json.

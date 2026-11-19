@@ -1,0 +1,88 @@
+def stage3():
+ from student_pilot.r2_exclusions import Exclusions,upstream
+ from student_pilot.r2_withheld import Withheld
+ from student_pilot.s1_exclusions import Exclusions as NativeExclusions
+ from student_pilot.r2_scene_bindings import require_merged
+ from student_pilot.row_removals import Removals
+ from student_pilot.r2_adapters import normalize
+ from student_pilot.s1_routing import Frames
+ from student_pilot.r1_persisted import scope
+ ds=drafts();camera=load(ROOT/'out/CAMERA_SELECTION.json');load(ROOT/'out/PHRASE_DECISION.json')
+ cfg=load(BASE/'tree_rebuild10_w/w24/out/N_LAUNCH_CONFIG.json')
+ for p in cfg['remove_files']:pin(p['path'],p['sha256'])
+ removals=Removals(cfg['remove_files'])
+ fps=framepins();fm=Frames(fps['frame_map'],fps['frame_plan'],fps_authority=fps['fps_authority'])
+ e=ds['recovery'];exclusions={k:staged(v) for k,v in e['exclusions'].items()}
+ withheld_pin=staged(e['withheld_rooms']);merged_pin=staged(e['dev_scene_exclusions'])
+ manifest={}
+ with scope(MAPS):
+  rule=Exclusions(exclusions);withheld=Withheld(withheld_pin);require_merged(merged_pin)
+  merged=NativeExclusions(merged_pin,exclusions['benchmark'])
+  def assess(raw,coverage):
+   row=normalize(raw,fm);reasons=rule.check(row,coverage)
+   if withheld.touches(row,coverage):reasons.append('withheld_room')
+   if merged.excluded(row):reasons.append('merged_dev_or_benchmark')
+   # The actual tree removal predicate, including the K1 union and defect restrictions.
+   hits=removals.match(raw)
+   if hits:reasons.append('remove_files')
+   return row,reasons,hits
+  for name in NAMES+['camera_B']:
+   e=ds['camera_wording' if name=='camera_B' else name]
+   selection=camera['variants'].get(name)
+   src=selection['rows'] if selection else e['rows'];pin(src['path'],src['sha256'])
+   source_cov=selection['coverage'] if selection else e['scene_coverage'];cov=load(source_cov['path'])
+   original_counts={};drop=[];kept=[];matches={}
+   for r in rows(src['path']):
+    q=r['qid'];row,reasons,hits=assess(r,cov['rows'][q]);kind=row.get('question_type',row.get('type','routing'))
+    c=original_counts.setdefault(kind,dict(seen=0,admitted=0,refused=0,reasons=Counter()));c['seen']+=1
+    if reasons:
+     c['refused']+=1;c['reasons'][','.join(reasons)]+=1;drop.append(dict(row_key=q,reasons=reasons,matched_remove_files=[cfg['remove_files'][i] for i in hits]));matches[q]=hits
+    else:c['admitted']+=1;kept.append(q)
+   keep=set(kept)
+   if drop:
+    dest=ROOT/f'out/rows/{name}_retained.jsonl';dest.parent.mkdir(parents=True,exist_ok=True)
+    with dest.open('w') as f:
+     for line,r in lines(src['path']):
+      if r['qid'] in keep:f.write(line)
+    final=pin(dest)
+   else:final=src
+   rem=write(f'out/REMOVE_{name}_exclusions.json',dict(source=src,rows=drop,row_count=len(drop),prior_camera_remove=selection['remove'] if selection else None,semantics='QID removals only from the exact source pin; no radiator replacement removals are active.'))
+   cp=write(f'out/coverage/{name}_final.json',dict(rows_sha256=final['sha256'],exclusions=exclusions,rows={q:cov['rows'][q] for q in kept},source_coverage=source_cov,scope='Exact QID subset of independently witnessed coverage.'))
+   # Rerun all predicates on every row of the final file. Receipt counts attest this file only.
+   counts={};checked=0
+   for r in rows(final['path']):
+    row,reasons,hits=assess(r,cov['rows'][r['qid']]);kind=row.get('question_type',row.get('type','routing'))
+    c=counts.setdefault(kind,dict(seen=0,admitted=0,refused=0,reasons=Counter()));c['seen']+=1;checked+=1
+    if reasons:c['refused']+=1;c['reasons'][','.join(reasons)]+=1
+    else:c['admitted']+=1
+   assert checked==len(kept)
+   rp=write(f'out/upstream/{name}.json',dict(schema='fbp-exclusion-accounting-v1',exclusions=exclusions,counts=counts,source_file=final,source_file_sha256=final['sha256'],coverage=cp,withheld_rooms=withheld_pin,dev_scene_exclusions=merged_pin,remove_files=cfg['remove_files'],attests='All rows of source_file were checked using the unmodified tree Exclusions.check, Withheld.touches, merged-dev exclusion and Removals.match. Counts describe exclusion eligibility, not geometry, raster bytes or full intake. Prior selection accounting is separate.',selection=dict(source=src,counts=original_counts,removed=len(drop),remove_list=rem),prefiltered=bool(drop or selection)))
+   up=staged(rp);MAPS[up['sha256']]=str(ROOT/up['path'])
+   # Enter a refreshed scope because this receipt was staged after the outer scope began.
+   with scope(MAPS):assert upstream([up],exclusions)
+   manifest[name]=dict(rows=final,row_count=len(kept),coverage=cp,upstream_receipt=rp,remove=rem,camera_remove=selection['remove'] if selection else None,prefiltered=bool(drop or selection),removed=len(drop),selection_counts=original_counts)
+   print(name,len(kept),'removed',len(drop),flush=True)
+ write('out/EXCLUSION_ACCOUNTING.json',dict(slices=manifest,exclusions=exclusions,withheld_rooms=withheld_pin,dev_scene_exclusions=merged_pin))
+ status(3,'Every selected row has been checked by the native exclusion predicates. Matching rows are removed before final receipts; each final receipt reruns every check and binds exact file and tree hashes.')
+
+def stage4():
+ from student_pilot.p3_provenance import digest
+ ds=drafts();acc=load(ROOT/'out/EXCLUSION_ACCOUNTING.json');fps=framepins();out={}
+ for name,s in acc['slices'].items():
+  base=ds['camera_wording' if name=='camera_B' else name]
+  family='camera_wording' if name=='camera_B' else name
+  bindings={r['qid']:digest(r) for r in rows(s['rows']['path'])}
+  # Raw membership must be inherited, never synthesized for unrecognized source rows.
+  assert all(base['row_bindings'][q]==h for q,h in bindings.items())
+  e={k:base[k] for k in ['schema','stream','trace_contract','validator_sha256']}
+  e.update(family=family,count=s['row_count'],rows=staged(s['rows']),row_bindings=bindings,scene_coverage=staged(s['coverage']),upstream_receipts=[staged(s['upstream_receipt'])],prefiltered=s['prefiltered'],exclusions=acc['exclusions'],withheld_rooms=acc['withheld_rooms'],dev_scene_exclusions=acc['dev_scene_exclusions'],extent_receipt=staged(base['extent_receipt']),required_exclusion_pins={k:staged(v) for k,v in base['required_exclusion_pins'].items()})
+  for p in [*base['exclusions'].values(),base['withheld_rooms'],base['dev_scene_exclusions']]:staged(p)
+  if name not in ['camera_wording','camera_B']:e.update({k:staged(v) for k,v in fps.items()})
+  else:e['frame_metadata_mode']='Embedded kr9c pins, indices, timestamps, fps and total_num_frames; no RGB substitution.'
+  if base.get('mix_cells'):e['mix_cells']={q:v for q,v in base['mix_cells'].items() if q in bindings}
+  e['source_draft']=pin(INV/f'work/envelopes/{family}.json')
+  out[name]=dict(envelope=write(f'out/envelopes/{name}.json',e),row_count=s['row_count'])
+ write('out/ENVELOPE_INDEX.json',dict(slices=out,resolution='Active pins carry u/<sha256>. Dry intake runs with cwd at this workspace and r1_persisted.scope mapping each hash to the absolute workspace/u/<sha256>. Withheld.touches reader uses its u/<sha256> path directly relative to cwd. Production must stage identical bytes under its own u/ directory, establish the same hash-to-absolute-path scope and use that staging root as cwd, or fully localize all active nested pins and regenerate coverage/receipt/envelope hashes together. PNG paths stay /data2/k6tk and /data2/kr9c and require Q_E4.'))
+ write('out/STAGED_INPUTS.json',dict(paths=MAPS,files=[dict(staged_name='u/'+h,path=p,source_path=str(Path(p).resolve()),sha256=h,bytes=Path(p).stat().st_size) for h,p in sorted(MAPS.items())],production='Copy the referent bytes once to staging_root/u/<sha256>; these local symlinks are not production byte-staging proof.'))
+ status(4,'Six final envelopes and camera B are complete. Active metadata pins use u/<sha256>; the resolver and direct withheld-room path requirements are recorded in ENVELOPE_INDEX.json.')
+

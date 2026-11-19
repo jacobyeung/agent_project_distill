@@ -52,7 +52,8 @@ class Copier:
         self.live.mkdir(parents=True, exist_ok=True)
         self.spool = self.root/'live_spool'
         self.spool.mkdir(parents=True, exist_ok=True)
-        self.train = Path(train) if train else self.root/'rp'/Path(self.cfg['output']).name
+        # z.py resolve()/resolve600() bind the final cfg.output to namespace/r.
+        self.train = Path(train) if train else self.root/'r'
         self.home = Path(home or os.environ.get('TK_KIT_HOME', str(self.root/'h')))
         self.writer = Path(writer) if writer else self.kit/'b/gc.py'
         self.names = read(self.kit/'k/y.json')

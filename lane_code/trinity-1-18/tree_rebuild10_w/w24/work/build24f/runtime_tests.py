@@ -5,12 +5,22 @@ from unittest.mock import patch
 L=Path(__file__).resolve().parents[2];D=L/'work/build24f'
 sys.path[:0]=[str(D),str(L/'work/build24')]
 import live as C,live_tests as F,joblib as J
-F.D=D/'runtime_tests';F.D.mkdir(exist_ok=True)
+F.D=D/'runtime_verified';F.D.mkdir(exist_ok=True)
 for n in ('live.py','live.sh'):(F.D/n).write_bytes((D/n).read_bytes())
 EVIDENCE={}
 
 
 class Runtime(unittest.TestCase):
+    def test_resolved_output_path(self):
+        c,root=F.fixture('resolved')
+        self.assertEqual(c.train,c.root/'r')
+        # Both authenticated resolver branches use the same node-local output.
+        source=(L/'work/build24/joblib.py').read_text()
+        self.assertEqual(source.count("cfg.update(output=ns+'/r',"),2)
+        (c.train/'metrics_41.jsonl').write_text('{"step":1}\n')
+        c.small();self.assertTrue((c.live/'metrics_41.jsonl').exists())
+        EVIDENCE['resolved_output']='Q_ROOT/r'
+
     def test_native_archive_race(self):
         c,root=F.fixture('race');marker=F.state(c,'m100');identity=C.sha(marker)
         persist=c.train/'persist';persist.mkdir();(persist/(identity+'.local.claim')).write_text(identity)
@@ -42,7 +52,9 @@ class Runtime(unittest.TestCase):
         self.assertEqual(e.exception.code,0);self.assertEqual(len(calls),1)
         self.assertEqual(calls[0][1]['env']['TK_JOB_START'],value)
         self.assertIn('--nproc_per_node=4',calls[0][0][0])
-        args=J.load(D/'sequence_final/n/view.json')
+        import gzip
+        p=D/'sequence_final/n/view.json';args=json.loads(p.read_text() if p.exists() else gzip.decompress(p.with_name(p.name+'.gz').read_bytes()).decode())
+        args=['/usr/bin/bwrap','--ro-bind','/usr','/usr','--symlink','usr/bin','/bin','--symlink','usr/lib','/lib','--symlink','usr/lib64','/lib64','--ro-bind','/etc','/etc','--ro-bind','/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu','/opt/py','--proc','/proc','--dev','/dev']
         result=subprocess.run(args+['--setenv','TK_JOB_START',value,'/opt/py/bin/python3.12','-B','-c','import os; print("TK_JOB_START="+os.environ["TK_JOB_START"])'],text=True,capture_output=True)
         self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(result.stdout.strip(),'TK_JOB_START='+value)
         print(result.stdout.strip(),flush=True)

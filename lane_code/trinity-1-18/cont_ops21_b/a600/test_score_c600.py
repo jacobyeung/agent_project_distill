@@ -1,4 +1,4 @@
-"""Prove the unchanged scorer accepts the camera subset at its 99.82% look.
+"""Prove the wrapper rejects mismatched bindings and preserves the 99.82% look.
 
 Run after rehearse_c600.py. This is synthetic scoring evidence, not a step-600 result.
 """
@@ -25,17 +25,20 @@ def write(p,v):
     p.parent.mkdir(parents=True,exist_ok=True)
     p.write_text(json.dumps(v,indent=2,sort_keys=True)+'\n')
 def link(p,q):
-    p.parent.mkdir(parents=True,exist_ok=True);p.symlink_to(q.resolve())
+    p.parent.mkdir(parents=True,exist_ok=True)
+    if p.is_symlink():assert p.resolve()==q.resolve()
+    else:p.symlink_to(q.resolve())
 
 result=read(W/'RESULT.json');P=Path(result['package']);pub=read(P/'0.json')
-O=W/'scoring';O.mkdir();A=O/'A';A.mkdir()
+O=W/'scoring_fix';O.mkdir(exist_ok=True);A=O/'A';A.mkdir(exist_ok=True)
 source=H/'in/out4s'
+original_scorer_sha=sha(source/'score_r5_look.py')
 (O/'score_r5_look.py').write_bytes((source/'score_r5_look.py').read_bytes())
 assert sha(O/'score_r5_look.py')==sha(source/'score_r5_look.py')
 link(O/'bases',source/'bases');link(A/'package',P)
 (A/'tower_sequence.py').write_bytes((P/'a/6.py').read_bytes())
 link(A/'tower_pair.py',source/'A/tower_pair.py')
-(A/'src').mkdir()
+(A/'src').mkdir(exist_ok=True)
 for p in (source/'A/src').iterdir():
     if p.name!='9.json':link(A/'src'/p.name,p)
 with tarfile.open(str(P/'0.tgz')) as t:
@@ -57,7 +60,7 @@ assert len(plan['item_ids_in_execution_order'])==450
 from make_read_plan_c600 import make
 assert plan==make(P,binding,read(source/'A/READ_PLAN.json'))
 write(A/'READ_PLAN.json',plan)
-write(H/'READ_PLAN_C600.json',plan)
+assert read(H/'READ_PLAN_C600.json')==plan
 
 old=H/'in/out3/A10b/ret';ret=O/'synthetic_camera_return'
 identity=read(old/'metadata/IDENTITY.json')
@@ -65,7 +68,7 @@ identity.update(plan=pub['plan_sha256'],operator_sha256=sha(A/'tower_sequence.py
                 inputs=sha(P/'a/1.json'),reads=plan['read_settings'],schedule=plan['sequence'])
 write(ret/'metadata/IDENTITY.json',identity)
 pin=read(old/'metadata/EXPORT_PIN.json')
-for k in ('run','step','member_directory','object','config_sha256','archive_sha256'):
+for k in ('run','step','member_directory','object','config_sha256','archive_sha256','archive_bytes'):
     pin[k]=binding[k]
 write(ret/'metadata/EXPORT_PIN.json',pin)
 found={};sources=[]
@@ -77,7 +80,7 @@ for t,kind in enumerate(camera):
     assert len(rows)==150 and all(r['type']==kind for r in rows)
     for row in rows:
         assert row['id'] not in found;found[row['id']]=row
-    dest=ret/rel;dest.mkdir(parents=True)
+    dest=ret/rel;dest.mkdir(parents=True,exist_ok=True)
     (dest/'items.jsonl').write_text(''.join(selected))
     assert (dest/'items.jsonl').read_bytes()==(old/rel/'items.jsonl').read_bytes()
     env=read(old/rel/'environment.json');env['binding']['step']=600
@@ -98,7 +101,10 @@ def command(argv,log,cwd=None):
         r=subprocess.run(argv,stdout=f,stderr=subprocess.STDOUT,cwd=cwd)
     assert r.returncode==0,(argv,str(O/log))
 command([sys.executable,'-B',str(source/'score_r5_look.py'),'--step','400','--a',str(old),'--out',str(O/'full400')],'full400.log')
-command([sys.executable,'-B',str(O/'score_r5_look.py'),'--step','600','--a',str(ret),'--out',str(O/'camera600')],'camera600.log')
+wrapper=[sys.executable,'-B',str(H/'score_c600.py'),'--step','600',
+         '--package-root',str(A),'--read-plan',str(H/'READ_PLAN_C600.json'),
+         '--baseline-root',str(source/'bases'),'--a',str(ret)]
+command(wrapper+['--out',str(O/'camera600')],'camera600.log')
 a=read(O/'full400/scores.json');b=read(O/'camera600/scores.json')
 for kind in camera:
     assert a['types'][kind]==b['types'][kind],kind
@@ -114,7 +120,47 @@ assert b['distance_call_cap']['complete'] is False
 assert b['units']['current']['completed']==0
 command([sys.executable,'-B',str(source/'test_score_r5_look.py'),'score_r5_look'],'look_level_test.log',O)
 
-# Binding corruption and unplanned rows must still fail in the unchanged scorer.
+# The wrapper must reject metadata mismatches before creating scoring output.
+rejections=[]
+def reject_wrapper(path, mutate, label, error):
+    original=path.read_bytes()
+    out=O/('rejected_'+label)
+    assert not out.exists()
+    try:
+        data=read(path);mutate(data);write(path,data)
+        result=subprocess.run(wrapper+['--out',str(out)],stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT,universal_newlines=True)
+        assert result.returncode==2,(label,result.stdout)
+        assert error+' differs from READ_PLAN_C600.json' in result.stdout,(label,result.stdout)
+        assert not out.exists(),label
+        rejections.append(label)
+    finally:path.write_bytes(original)
+
+old_pin=read(old/'metadata/EXPORT_PIN.json')
+assert old_pin['archive_sha256'].startswith('dcd49569')
+for field,value in (('archive_sha256',old_pin['archive_sha256']),
+                    ('archive_bytes',binding['archive_bytes']+1),
+                    ('object',old_pin['object']),('step',400),('member_directory','m400')):
+    reject_wrapper(ret/'metadata/EXPORT_PIN.json',lambda d,k=field,v=value:d.update({k:v}),
+                   field,'Export '+field)
+reject_wrapper(ret/'metadata/EXPORT_PIN.json',lambda d:d.pop('archive_bytes'),
+               'missing_archive_bytes','Export archive_bytes')
+for field in ('plan','operator_sha256'):
+    reject_wrapper(ret/'metadata/IDENTITY.json',lambda d,k=field:d.update({k:'0'*64}),
+                   'identity_'+field,'Return '+field)
+reject_wrapper(A/'READ_PLAN.json',lambda d:d.update(token='wrong-package'),
+               'package_read_plan','Package read plan')
+operator=(A/'tower_sequence.py').read_bytes()
+try:
+    (A/'tower_sequence.py').write_bytes(operator+b'\n# mismatched operator\n')
+    result=subprocess.run(wrapper+['--out',str(O/'rejected_package_operator')],
+                          stdout=subprocess.PIPE,stderr=subprocess.STDOUT,universal_newlines=True)
+    assert result.returncode==2 and 'Package operator differs from READ_PLAN_C600.json' in result.stdout
+    assert not (O/'rejected_package_operator').exists()
+    rejections.append('package_operator')
+finally:(A/'tower_sequence.py').write_bytes(operator)
+
+# Existing return identity checks must still fail in the unchanged scorer.
 spec=importlib.util.spec_from_file_location('score_local',str(O/'score_r5_look.py'))
 M=importlib.util.module_from_spec(spec);spec.loader.exec_module(M)
 M.STEP=600;M.LEVEL=M.level_for(600)
@@ -132,10 +178,12 @@ def reject(mutator, label):
 reject(lambda d:d.update(operator_sha256='0'*64),'wrong operator')
 reject(lambda d:d['reads'][0].update(types=[3,0,1,2,4]),'old type selection')
 reject(lambda d:d.update(plan='0'*64),'wrong plan')
+assert sha(source/'score_r5_look.py')==original_scorer_sha==sha(O/'score_r5_look.py')
 summary=dict(passed=True,scorer_unchanged=True,scorer_sha256=sha(O/'score_r5_look.py'),
     synthetic=True,camera_rows_equal=True,level=.9982,camera_calls=b['camera_calls'],
     cameras={k:dict(score=b['types'][k]['current']['score'],delta=b['types'][k]['paired']['value'],complete=b['types'][k]['complete']) for k in camera},
     absent_types_marked_incomplete=True,negative_binding_tests=3,
+    wrapper_rejection_tests=len(rejections),wrapper_rejections=rejections,
     caveat='A-only scorer retains baseline-only room diagnostics; they are not step-600 room observations.')
 write(O/'TEST_RESULT.json',summary)
 print(json.dumps(summary,indent=2))

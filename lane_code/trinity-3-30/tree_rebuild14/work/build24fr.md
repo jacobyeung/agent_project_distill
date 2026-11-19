@@ -1,0 +1,14 @@
+# Codex build 24fr of lane tree_rebuild: fix the CPU rehearsal fixture of build 24f so the four-rank training paths run (fixture-only)
+
+You run once, on trinity-1-18; nobody answers questions. Writable: `L=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24f` files whose names start with `rehearsal`, `make_rehearsal`, `check_rehearsal`, `go_rehearsal`, `REHEARSAL` or `FIXTURE`, plus a new dir `L/rehearsal2`. Build 24g runs in the same workspace on other files: touch nothing else, and never the kits, packages, tree or `out/`. Binding prompts: `/scratch/jjyeung/orch_n30/tree_rebuild10_w/prompts/build24f.md` and those it names (rules hold). Time limit: 40 minutes.
+
+## Finding
+The lane ran `work/build24f/go_rehearsal.sh` outside the sandbox at 18:51Z (log `work/build24f/rehearsal_run.log`, `rehearsal/train_fresh.log`). The run passed clock inheritance and the fresh-optimizer/counter-zero checks. All four ranks then failed in the first step, inside `student_pilot/carrier_c1.py:562` `touch = touch + self.lm_head(hidden[:, :1]).sum() * 0.` (pose stream) under FSDP (`carrier_c1_run.wrap_model` -> `full_ft.wrap_full_model`): `RuntimeError: size mismatch, got input (1), mat (1x4), vec (248064)`. The lm_head weight reaches F.linear as a flat 1-D tensor. carrier_c1.py is unchanged from the base tree that trained P on 4 H100, so the cause is most likely a property of the tiny fixture model or of the CPU FSDP wrapping (for example tied input/output embeddings split across FSDP units), not of production.
+
+## Do
+1. Find the cause and show it with one minimal reproduction under the same wrapping (CPU, gloo, 2 to 4 ranks, a script the lane runs, since the sandbox forbids localhost TCP; also give a single-process reason from reading the code). State whether production (the pinned 9B base model's config, read from the staged metadata the kits pin, and 4-GPU NCCL FSDP) has the same property. If production could fail the same way, stop and say so first in the report: that is a launch blocker for the orchestrator.
+2. If the cause is fixture-only, make the fixture match production in that property (for example untie the tiny model's lm_head if the 9B model is untied), change nothing native, and regenerate the rehearsal inputs in `L/rehearsal2`. List every changed fixture field in `FIXTURE_DIFF.json` (append a section).
+3. Make `go_rehearsal.sh` use the new inputs and write `REHEARSAL_FIX_REPORT.md` (under 20 lines): the cause, the evidence, the production verdict, and the exact command the lane runs. Do not run the four-rank rehearsal yourself.
+
+## Rules (restating build 21's)
+No ssh, network, Orchard, GPU, Git, tmux, scheduler or other agents. Never list, search or grep on /home or /data*: read only named files there. No deletion. Every CPU process runs under `nice -n 10` with at most 8 threads, under 20 GB RAM. Do not change the tree, kits, config, admission or legality.

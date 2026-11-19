@@ -1,6 +1,6 @@
 from pathlib import Path
 import signal,sys,time
-D=Path(__file__).resolve().parent;L=D.parents[1];root=D/'rehearsal'
+D=Path(__file__).resolve().parent;L=D.parents[1];root=D/'rehearsal2'
 sys.path.insert(0,str(D))
 from live import Copier,put
 from live_tests import WRITER

@@ -57,12 +57,16 @@ s=s[:start]+'''if helper.endswith('/u.py'):
         return result
     N.C.train=training;N.C.run_steps=run_steps;N.C.optimize_step=step;persistence.milestone=save
 ''' + s[end:]
-(D/'boundary.py').write_text(s)
-s=(L/'work/build24e/cpu_python').read_text().replace("str(D/'boundary.py')","str(D/'boundary.py')")
-(D/'cpu_python').write_text(s);(D/'cpu_python').chmod(0o755)
+s=s.replace("str(D/'cpu_python')", "str(D/'rehearsal_cpu_python')")
+s=s.replace("D/'rehearsal'", "D/'rehearsal2'")
+s=s.replace("N.torch.set_num_threads(2)", "N.torch.set_num_threads(2)\nimport tempfile\ntempfile.tempdir=str(D/'rehearsal2/tmp')\nsys.path.insert(0,str(D))\nfrom rehearsal_model import install\ninstall(N.C)")
+(D/'rehearsal_boundary.py').write_text(s)
+s=(L/'work/build24e/cpu_python').read_text().replace("str(D/'boundary.py')","str(D/'rehearsal_boundary.py')")
+(D/'rehearsal_cpu_python').write_text(s);(D/'rehearsal_cpu_python').chmod(0o755)
 s=(L/'work/build24e/fixture_gates.py').read_text().replace("D=L/'work/build24e'","D=L/'work/build24f'")
 s=s.replace("os.environ['S1_REHEARSAL_ATTEMPT']='b24d_go'","os.environ['S1_REHEARSAL_ATTEMPT']='b24f_fresh'")
-(D/'fixture_gates.py').write_text(s)
+s=s.replace("identity=N.C.identity(cfg);records=[]", "identity=N.C.identity(cfg);records=[]\ncfg['r1_training'].pop('host_receipt',None)\ncfg['r1_training'].pop('review',None)")
+(D/'rehearsal_gates.py').write_text(s)
 # Reuse only synthetic byte stores; every retained source must match its native pin.
 J.write(D/'REHEARSAL_OVERRIDES.json',dict(
  production_config_edited=False,smoke_steps=None,world_size=4,backend='gloo',

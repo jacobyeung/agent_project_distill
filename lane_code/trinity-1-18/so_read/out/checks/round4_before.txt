@@ -22,14 +22,14 @@ FAIL: test_f2_bound_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 343, in test_f2_bound_real_job_and_rehearsal_memory
     self.assertEqual(result.returncode,0,str(root)+'\n'+result.stdout+result.stderr+logs+'\n'+'\n'.join(p.read_text() for p in (root/'job/sandbox/r').glob('FAILED.json')))
-AssertionError: 1 != 0 : /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/146db46e5ba84dd2807cae082ab5b01c
+AssertionError: 1 != 0 : /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/70ec06bd2d1744cba2253c4d77f56c70
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 436, in <module>
     elif len(sys.argv)>1 and sys.argv[1]=='--control':control_child(Path(sys.argv[2]),Path(sys.argv[3]),sys.argv[4])
                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 284, in control_child
     node.main()
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/146db46e5ba84dd2807cae082ab5b01c/built/package/a/5.py", line 147, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/70ec06bd2d1744cba2253c4d77f56c70/built/package/a/5.py", line 147, in main
     raise ValueError('Prepared default settings differ')
 ValueError: Prepared default settings differ
 PASS action 0 rehearsal False
@@ -82,6 +82,6 @@ Traceback (most recent call last):
 AssertionError: ValueError not raised
 
 ----------------------------------------------------------------------
-Ran 4 tests in 9.547s
+Ran 4 tests in 9.774s
 
 FAILED (failures=7, skipped=1)

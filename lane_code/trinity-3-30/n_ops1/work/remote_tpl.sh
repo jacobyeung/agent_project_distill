@@ -11,6 +11,9 @@ if [[ $J != 0 ]]; then
  echo "@@JOUT $(stat -c %s $O 2>/dev/null || echo -1)"
  test -f $O && grep -v "_cgroup_procs_check\|unable to read" $O | grep -E "gpu0|resolve|^[0-9a-f]{64}$|stage |frames f|init mirror|overlay on|^\{\"v\"|ADMIT|REFUS|Traceback|Error|error|E[0-9][0-9]|job done|rc=|Killed|CANCEL|DUE TO|oom" | cut -c1-300 | tail -40
  echo "@@JTAIL"; test -f $O && grep -v "_cgroup_procs_check\|unable to read" $O | tail -6 | cut -c1-300
+ echo "@@LIVE"; ls -la --time-style=+%T $X/o/$J/live 2>/dev/null | tail -n +4 | cut -c1-200 | tail -25; for m in $X/o/$J/live/gcs_*.done $X/o/$J/live/gcs_*.json; do test -f $m && { echo "== $m"; head -c 600 $m; echo; }; done
+ echo "@@NR"; ls -la --time-style=+%T $X/n_r 2>/dev/null | tail -n +4; for m in $X/o/$J/live/WAITING_REVIEW*; do test -f $m && { echo "== $m"; head -c 400 $m; echo; }; done
+ echo "@@NCK"; ls -la --time-style=+%T /project/community/jjyeung/okh7/n_ck/$J 2>/dev/null | tail -n +2 | head -8
  echo "@@ODIR"; ls -la --time-style=+%T $X/o/$J 2>/dev/null | tail -n +4
  test -f $X/o/$J/o.tar && { echo "@@OTAR"; cat $X/o/$J/RESULT.json 2>/dev/null; echo; for m in q.log rooms.log t.log; do tar xzOf $X/o/$J/o.tar $m 2>/dev/null | tail -4 | cut -c1-400; done; }
  if squeue -j $J -h -o %T 2>/dev/null | grep -q RUNNING; then

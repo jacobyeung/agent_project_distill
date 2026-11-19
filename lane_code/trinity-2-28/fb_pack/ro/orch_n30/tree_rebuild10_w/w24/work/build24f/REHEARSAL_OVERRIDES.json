@@ -1,0 +1,76 @@
+{
+  "backend": "gloo",
+  "config_fields": {
+    "checkpoint_disk_guard.reserve_bytes": 0,
+    "code": "new tree seal",
+    "output": "/tmp/q_22c714e1/train",
+    "preparation/admission/authorization/host_receipt/review": "native fixture pins, never production approval",
+    "r1_training.stop_after_step": 6
+  },
+  "copier": {
+    "m2_object": "same fixed object as production m100; stub only",
+    "sessions": "local empty fixture map",
+    "target": "rehearsal2/target",
+    "writer": "local byte-part stub"
+  },
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "OMP_NUM_THREADS": 8,
+    "S1_CPU_REHEARSAL": "1",
+    "S1_REHEARSAL_ATTEMPT": "b24f_<phase>",
+    "TK_JOB_START": "fresh/resume: batch-driver epoch; budget: epoch minus 90000",
+    "torch_threads_per_rank": 2
+  },
+  "expected": {
+    "budget": [
+      3,
+      4
+    ],
+    "budget_stop_export": 4,
+    "fresh": [
+      0,
+      3
+    ],
+    "milestone_export": 2,
+    "resume": [
+      4,
+      5
+    ],
+    "timed_checkpoint": 2
+  },
+  "loop_only_fields": {
+    "recipe.milestones": [
+      2
+    ],
+    "recipe.resume_every_seconds": 1,
+    "recipe.steps": {
+      "budget": 1000,
+      "fresh": 3,
+      "resume": 5
+    }
+  },
+  "model_boundary": {
+    "apply": "After native authenticated warm-start load, before optimizer/FSDP",
+    "lm_head_weight": "Independent FP32 Parameter cloned from the loaded tied weight; equal values",
+    "production": {
+      "path": "/scratch/jjyeung/devs1c_models/cp1/base/config.json",
+      "sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"
+    },
+    "source": "work/build24/proofs/capacity/model/config.json",
+    "text_config.tie_word_embeddings": false,
+    "tie_word_embeddings": false
+  },
+  "production_config_edited": false,
+  "smoke_steps": null,
+  "stand_ins": [
+    "Tiny native model and synthetic RGB/labels; retained native prepared stores",
+    "CPU/gloo and fixture frame host",
+    "Fixture-only host/review receipts",
+    "Local GCS transport"
+  ],
+  "timing": {
+    "fresh_step_2_delay_seconds": 1.05,
+    "purpose": "exercise native elapsed-time checkpoint predicate"
+  },
+  "world_size": 4
+}

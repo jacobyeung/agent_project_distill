@@ -2,7 +2,6 @@
 set -euo pipefail
 date -u
 kit_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
-export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
-control_python="${READ228_CONTROL_PYTHON:-/scratch/jjyeung/b01ec87a6f29b/d/v/py}"
+source "$kit_dir/control_environment228.sh"
+control_python="${READ228_CONTROL_PYTHON:-/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12}"
 exec nice -n 10 "$control_python" -B -I "$kit_dir/compare228.py" "$@"

@@ -1,0 +1,2 @@
+- own-arm a/e/{0..3} (a15_cot_apfadf2291c654b, 21.6 GB, m400 parts duplicate of a15_cot_apda6f7936c1779/a/e) -> replace by hardlinks after sha check; only on ORCH word
+- cont_ops21/work/H400/ret and scores_H400.json: unpack verification failed after extraction (missing src); verified copy is ret1/scores_H400b.json

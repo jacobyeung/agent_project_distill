@@ -1,0 +1,116 @@
+{
+  "Seen": {
+    "exact_masked_wording_source_pairs": 4360,
+    "existing_admitted_easy_hard_clauses": {
+      "away": 11678,
+      "opposite": 5846,
+      "toward": 11678
+    },
+    "new_rows": 0,
+    "reason": "Existing Seen sources already include away wording; all new rows target the toward-only Step-1 family."
+  },
+  "Step1_wording_clause_mix": {
+    "admitted_after": {
+      "away": 7971,
+      "toward": 47837
+    },
+    "admitted_before": {
+      "toward": 47837
+    },
+    "teaching_subset": {
+      "away": 7971,
+      "toward": 7971
+    },
+    "v7_before": {
+      "toward": 49901
+    },
+    "v7_plus_new_after": {
+      "away": 7971,
+      "toward": 49901
+    }
+  },
+  "best_clause_accuracy": 0.5,
+  "clause_bayes_accuracy": {
+    "TARGET_final_line_form": {
+      "accuracy": 0.5,
+      "feature_values": 2
+    },
+    "TARGET_step1_line_form": {
+      "accuracy": 0.5,
+      "feature_values": 3
+    },
+    "full_masked_question_wording": {
+      "accuracy": 0.5,
+      "feature_values": 39
+    },
+    "masked_question+TARGET_step1_line_form": {
+      "accuracy": 0.5,
+      "feature_values": 103
+    },
+    "masked_question+opening+name_set": {
+      "accuracy": 0.5,
+      "feature_values": 7556
+    },
+    "masked_question+opening+role_triple+dataset+frame_indices+option_order": {
+      "accuracy": 0.5,
+      "feature_values": 7971
+    },
+    "masked_question_wording": {
+      "accuracy": 0.5,
+      "feature_values": 38
+    },
+    "name_set": {
+      "accuracy": 0.5,
+      "feature_values": 4045
+    },
+    "opening": {
+      "accuracy": 0.5,
+      "feature_values": 1
+    },
+    "reviewer_new_template+name_set": {
+      "accuracy": 0.5,
+      "feature_values": 4045
+    }
+  },
+  "command": "nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 python d7/leak_test_filtered.py",
+  "input_sha256": {
+    "/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite": {
+      "bytes": 1718255616,
+      "sha256": "210b25349b23af5b38a5b5d90caa97be2bb296dbabd8773d54e658e0aad22443"
+    },
+    "/scratch/jjyeung/orch_n30/sb_rowD7f/d7/leak_test_filtered.py": {
+      "bytes": 6451,
+      "sha256": "72578bd4eebab22b7421125aba25a76763d4aaf252fdbf7ec94bbdb0fe6ea2df"
+    },
+    "/scratch/jjyeung/orch_n30/sb_rowD7f/d7/out/SURVEY.json": {
+      "bytes": 35751966,
+      "sha256": "cd7a8238173691ce74874b7c6b006e7a78c4655fbb75248372011654c01e1704"
+    },
+    "/scratch/jjyeung/orch_n30/sb_rowD7f/d7/reference/reviewer/rev_balance.py": {
+      "bytes": 8743,
+      "sha256": "1d0bed58e5a07579a807510777a44d05615d0b5c087f1f28183830603261f3ee"
+    },
+    "/scratch/jjyeung/orch_n30/sb_rowD7f/d7/reference/reviewer/rev_census.py": {
+      "bytes": 3566,
+      "sha256": "26cf88565b2cbafd9700f371221bf4d37fbafb45c4226ff6681e18290f884c18"
+    },
+    "/scratch/jjyeung/orch_n30/sb_rowD7f/out/NEW_ROWS.jsonl": {
+      "bytes": 72229674,
+      "sha256": "7b3d696d580386f9e8af3240fa142e2ad50eebb277a8718c97e2db497dcc925e"
+    },
+    "/scratch/jjyeung/orch_n30/sb_rowD7f/out/SOURCE_MAP.jsonl": {
+      "bytes": 6629321,
+      "sha256": "5b584f1d863ae9c679624f8ee596a9e9ea7e94603200dc81903ae4d205dea17f"
+    }
+  },
+  "limitation": "Chance-level guarantee applies to the paired teaching subset and these clause-masked features. Full v7 remains imbalanced; answers and traces contain the intended direction signal.",
+  "method": "Exact reviewer rev_balance.bayes majority class per feature value; exact reviewer clause mask; full-question joint feature adds opening and exact name set.",
+  "opening_clause": {
+    "Step 1|away": 7971,
+    "Step 1|toward": 7971
+  },
+  "pair_feature_mismatches": [],
+  "status": "PASS",
+  "teaching_rows": 15942,
+  "threshold": 0.6
+}

@@ -13,6 +13,7 @@ from common228 import *
 from gpu228 import card_name,idle_gate,require_idle,snapshot,Sampler
 from stage228 import stage_check
 from return228 import package_return,new_return_identity
+from namespace228 import namespace_command
 
 def extensions():
     source=HERE/'extensions'
@@ -59,6 +60,7 @@ def run_one(a):
             requested_items=a.items,orchard_reference_job='173060',operator_sha256=sha(root/'tower_sequence.py'),
             source_payload_sha256=cfg['payload_sha256'],adapter_sha256=sha(__file__),
             actual_python=inputs['python'],runtime_environment=proof['environment'],
+            namespace=proof['namespace'],bwrap=proof['namespace']['bwrap'],
             archive_path_map=str(HERE/'STAGE_PLAN.json'),utc=utc(),same_instrument=False))
         p=Path(cfg['logical'])/'p';data=Path(cfg['logical'])/'d'
         install_imports(p)
@@ -88,8 +90,8 @@ def run_one(a):
                 write(worker_file,dict(worker=config,adapter=dict(out=str(out),on=a.on,
                     items=a.items,extensions=str(ext) if ext else None)))
                 worker_env=clean_environment(out,card)
-                command=['nice','-n','10','bash',str(VNICE),inputs['python'],'-B','-I',
-                         str(HERE/'worker228.py'),str(worker_file),'--observe']
+                command=['nice','-n','10','bash',str(VNICE)]+namespace_command()+[
+                         inputs['python'],'-B','-I',str(HERE/'worker228.py'),str(worker_file),'--observe']
                 write(out/'metadata/COMMAND.json',dict(argv=command,env=worker_env,start_new_session=True))
                 process=subprocess.Popen(command,env=worker_env,stdout=kwargs['stdout'],
                     stderr=kwargs['stderr'],cwd=out,start_new_session=True)

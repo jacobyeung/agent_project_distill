@@ -54,6 +54,71 @@ pf = pf.replace('  if [ \\$X = A ]; then P=\\$PA; T='+WALLTIME+'; D2=d2.py; else
 pf = pf.replace(' A=$PA B=$PB', ' A=$PA')
 pf = pf.replace('cat > "$S/fill.sh" <<SHELLCODE',
     '/usr/bin/python3 -I -s -B "$S/read_plan.py" "$PA" "$S/bind.json" "$S/read_plan_template.json" "$S/READ_PLAN_C600.json"\ncat > "$S/fill.sh" <<SHELLCODE')
+# Keep the original pull loop and every surrounding guard byte-for-byte.
+pull_start = pf.index('for i in 0 1 2 3; do\n')
+pull_end = pf.index('\nfor X in A; do\n', pull_start)
+pull = pf[pull_start:pull_end]
+reuse_pin = {k: b[k] for k in ('object', 'archive_bytes', 'archive_sha256')}
+assert b['archive_bytes'] == 4 * 5395758080
+reuse = '''import hashlib
+import os
+import stat
+import sys
+from pathlib import Path
+
+pin = %s
+dest = Path(sys.argv[1])
+fields = [pin['object'], str(pin['archive_bytes']), pin['archive_sha256']]
+reuse = os.environ.get('REUSE_PARTS_FROM')
+if reuse is None and os.environ.get('REUSE_SEARCH') == '1':
+    root = Path('/project/community/jjyeung/okh7')
+    with os.scandir(str(root)) as entries:
+        names = sorted(e.name for e in entries if e.name.startswith('a15_cot_ap')
+                       and e.is_dir(follow_symlinks=False))
+    for name in names:
+        source = root/name/'a/e'
+        if source.resolve() == dest.resolve():
+            continue
+        try:
+            marker = (source/'5').read_text().split()
+        except FileNotFoundError:
+            continue
+        if marker == fields:
+            reuse = str(source)
+            break
+if reuse is None:
+    print('pull')
+else:
+    if not reuse:
+        raise ValueError('REUSE_PARTS_FROM is empty')
+    source = Path(reuse)
+    if (source/'5').read_text().split() != fields:
+        raise ValueError('Reuse marker differs from m600 pin')
+    parts = [source/str(i) for i in range(4)]
+    for part in parts:
+        info = part.lstat()
+        if not stat.S_ISREG(info.st_mode) or info.st_size != pin['archive_bytes'] // 4:
+            raise ValueError('Reuse part is not a regular file of pinned size: ' + str(part))
+    digest = hashlib.sha256()
+    for part in parts:
+        with part.open('rb') as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+                digest.update(chunk)
+    if digest.hexdigest() != pin['archive_sha256']:
+        raise ValueError('Reuse concatenated sha256 differs from m600 pin')
+    for i in range(4):
+        if os.path.lexists(str(dest/str(i))):
+            raise ValueError('Reuse destination already exists: ' + str(dest/str(i)))
+    for i, part in enumerate(parts):
+        os.link(str(part), str(dest/str(i)), follow_symlinks=False)
+    print('linked from %%s; part 0 link count %%d' %% (source, (dest/'0').stat().st_nlink))
+''' % repr(reuse_pin)
+fill = ('MODE=$( /usr/bin/python3 -I -s -B - "$E" <<\'REUSE_PY\'\n' + reuse +
+        'REUSE_PY\n)\nif [ "$MODE" = pull ]; then\n')
+# The outer, unquoted SHELLCODE heredoc must defer these expansions to fill.sh.
+fill = fill.replace('$', '\\$') + pull
+fill += '\n  echo "pulled; part 0 link count \\$(stat -c %h "\\$E/0")"\nelse\n  echo "\\$MODE"\nfi'
+pf = pf[:pull_start] + fill + pf[pull_end:]
 assert '$PB' not in pf and 'd2b' not in pf and 'm400' not in pf
 write('o_place_pull_fill_c600.sh', pf)
 

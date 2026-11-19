@@ -1,0 +1,800 @@
+--- build20/build.py
++++ work/tree_r1/launch_r1/build.py
+@@ -40,7 +40,8 @@
+     from student_pilot.p3_provenance import pinned
+     from student_pilot.r1_population import SLICE_CELLS
+     row_sources=load(pinned(cfg['r1_training']['row_sources']))
+-    cfg['r1_training']['row_slice_inputs']={k:row_sources[k]['source'] for k in SLICE_CELLS}
++    from student_pilot.r1_coverage import source_names
++    cfg['r1_training']['row_slice_inputs']={k:row_sources[k]['source'] for k in source_names(row_sources)}
+     # The catalog pins source QID membership; the host composes its own admitted offsets.
+     if cfg['r1_training'].get('source_membership'):
+         pinned(cfg['r1_training']['source_membership'])
+--- build20/production_proof.py
++++ work/tree_r1/launch_r1/production_proof.py
+@@ -92,6 +92,11 @@
+         device = request.get('device','cpu')
+         if device not in ('cpu','cuda:0'):
+             raise ValueError('R1_PROOF_DEVICE_INVALID')
++        # Refuse missing component evidence before writing capacity-sized stores.
++        from student_pilot.r1_training import training_components
++        with scope(closure['paths']):
++            training_components(cfg['r1_training']['registry'], cfg)
++        result['steps'].append('training_components')
+         # Produce and bind the witness before native prepare validates the init boundary.
+         from .p_opener_witness import produce as opener
+         with scope(closure['paths']):
+--- build20/carrier_c1_run.py
++++ work/tree_r1/student_pilot/carrier_c1_run.py
+@@ -794,6 +794,8 @@
+         if (review.get('verdict') != 'PASS' or not review.get('reviewer')
+                 or review.get('config_sha256') != identity(cfg) or review.get('preparation') != cfg['preparation']):
+             warn(cfg, 'Parent must bind independent C1 admission')
++    if cfg.get('r1_training'):
++        receipt = {**receipt, '_r1_start_config': copy.deepcopy(cfg)}
+     return receipt, model
+ 
+ 
+@@ -1062,6 +1064,8 @@
+         self.h1 = receipt.get('h1', {})
+         self.b7_inputs = receipt.get('b7_inputs')
+         self.r1_training = receipt.get('r1_training')
++        from .r1_coverage import validate_binding
++        self.wording_exclusion = validate_binding(receipt)
+         from .extent_receipt import Extents
+         self.extents = Extents(receipt.get('extent_receipt'))
+         self.placement = receipt.get('carrier_placement', data.C1_A)
+@@ -1116,6 +1120,8 @@
+         if row is None:
+             raise ValueError('Missing planned C1 row')
+         value = json.loads(row[0])
++        if getattr(self, 'wording_exclusion', None) is not None:
++            self.wording_exclusion.check(value)
+         from .row_text_audit import check
+         check(value, stream)
+         from .extent_receipt import Extents
+--- build20/grounding_train.py
++++ work/tree_r1/student_pilot/grounding_train.py
+@@ -1,4 +1,5 @@
+ """Frozen-C1 grounding training, training-scene calibration and retained checkpoints."""
++from .job_env import key as env_key
+ import argparse
+ from dataclasses import asdict
+ import json
+@@ -24,7 +25,7 @@
+     from . import orchard_paths
+     if cfg.get('frame_root'):
+         root = Path(cfg['frame_root'])
+-        existing = os.environ.get('STUDENT_FRAME_ROOT_MAP')
++        existing = os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))
+         pairs = json.loads(existing) if existing and existing.startswith('{') else {}
+         if existing and not existing.startswith('{'):
+             source, destination = existing.split('=', 1)
+@@ -32,7 +33,7 @@
+         if '/data2' in pairs and Path(pairs['/data2']) != root:
+             raise ValueError('Configured frame root differs from the active data2root binding')
+         pairs['/data2'] = str(root)
+-        os.environ['STUDENT_FRAME_ROOT_MAP'] = json.dumps(pairs)
++        os.environ[env_key('STUDENT_FRAME_ROOT_MAP')] = json.dumps(pairs)
+         orchard_paths.resolve_read('/data2/k8pd')
+ 
+ 
+--- build20/job_env.py
++++ work/tree_r1/student_pilot/job_env.py
+@@ -0,0 +1,6 @@
++"""Opaque deployment names preserve the legacy environment contract."""
++import os
++ALIASES = {'STUDENT_ORCHARD': 'Q_E1', 'STUDENT_SLURM_SITE': 'Q_E2', 'STUDENT_MODEL_ROOT': 'Q_E3', 'STUDENT_FRAME_ROOT_MAP': 'Q_E4', 'R1_STUDENT_HEX': 'Q_E5'}
++def key(name):
++    alias=ALIASES.get(name)
++    return alias if alias is not None and alias in os.environ else name
+--- build20/orchard_admission.py
++++ work/tree_r1/student_pilot/orchard_admission.py
+@@ -1,4 +1,5 @@
+ """Slurm-owned admission, used only by explicitly enabled Orchard launchers."""
++from .job_env import key as env_key
+ import json
+ import os
+ import re
+@@ -94,7 +95,7 @@
+ def allocation():
+     if not enabled():
+         raise ValueError('Orchard admission is opt-in')
+-    site = os.environ.get('STUDENT_SLURM_SITE', 'orchard')
++    site = os.environ.get((env_key('STUDENT_SLURM_SITE')), 'orchard')
+     if site not in SLURM_SITES:
+         raise ValueError(f'Unknown Slurm site: {site}')
+     profile = SLURM_SITES[site]
+--- build20/orchard_paths.py
++++ work/tree_r1/student_pilot/orchard_paths.py
+@@ -1,4 +1,5 @@
+ """Explicit Orchard read relocation; file bindings retain their original path strings."""
++from .job_env import key as env_key
+ import json
+ import os
+ from pathlib import Path
+@@ -8,7 +9,7 @@
+ 
+ 
+ def enabled():
+-    return os.environ.get('STUDENT_ORCHARD') == '1'
++    return os.environ.get((env_key('STUDENT_ORCHARD'))) == '1'
+ 
+ 
+ def owned(path, *, resolve=None):
+@@ -19,7 +20,7 @@
+ def resolve_read(path, *, resolve=None):
+     path = Path(path)
+     resolve = resolve or Path.resolve
+-    mapping = os.environ.get('STUDENT_FRAME_ROOT_MAP')
++    mapping = os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))
+     if not mapping:
+         return path
+     if not enabled():
+@@ -54,7 +55,7 @@
+ 
+ 
+ def snapshot(spec):
+-    root = Path(os.environ['STUDENT_MODEL_ROOT']).resolve()
++    root = Path(os.environ[env_key('STUDENT_MODEL_ROOT')]).resolve()
+     if not owned(root):
+         raise ValueError('Orchard model root must be owned project or node-local storage')
+     original = spec['snapshot']
+--- build20/provisional_data.py
++++ work/tree_r1/student_pilot/provisional_data.py
+@@ -1,3 +1,4 @@
++from .job_env import key as env_key
+ from collections import Counter, defaultdict
+ from pathlib import Path
+ 
+@@ -73,7 +74,7 @@
+     from .orchard_paths import enabled
+     if enabled():
+         import os
+-        protocol["orchard_path_map"] = os.environ.get("STUDENT_FRAME_ROOT_MAP")
++        protocol["orchard_path_map"] = os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))
+     write_artifact(output, protocol, label, scratch_root)
+     return tag({"status": "PROVISIONAL_PROTOCOL_FROZEN_NO_GPU", "protocol": binding(output),
+                 "PROVISIONAL_DIVISION_SHA": protocol["PROVISIONAL_DIVISION_SHA"],
+@@ -119,7 +120,7 @@
+     from .orchard_paths import enabled
+     if enabled():
+         import os
+-        if protocol.get("orchard_path_map") != os.environ.get("STUDENT_FRAME_ROOT_MAP"):
++        if protocol.get("orchard_path_map") != os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP'))):
+             raise ValueError("Orchard input mapping changed after preparation")
+     return protocol
+ 
+@@ -131,7 +132,7 @@
+     from .orchard_paths import enabled
+     if enabled():
+         import os
+-        if protocol.get("orchard_path_map") != os.environ.get("STUDENT_FRAME_ROOT_MAP"):
++        if protocol.get("orchard_path_map") != os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP'))):
+             raise ValueError("Orchard input mapping changed after preparation")
+     return protocol
+ 
+--- build20/r1_coverage.py
++++ work/tree_r1/student_pilot/r1_coverage.py
+@@ -0,0 +1,94 @@
++"""Pinned wording exclusion and coverage-source identities for training intake."""
++import json,re,unicodedata
++from .p3_provenance import load,pinned,digest
++
++SPLIT = '2463193d00fabda5c62d07027527f57a5943dd52ee2b346a215576e55d1abf19'
++PINS = {'coverage_units':'8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82',
++        'coverage_distance':'15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022'}
++
++def source_names(sources):
++    from .r1_population import SLICE_CELLS
++    extra=set(sources)&set(PINS)
++    if extra and extra!=set(PINS):raise ValueError('R1_COVERAGE_SOURCES_INCOMPLETE')
++    return (*SLICE_CELLS,*sorted(extra))
++
++def normalize(text):
++    return ' '.join(unicodedata.normalize('NFKC',text).casefold().split())
++
++class WordingExclusion:
++    def __init__(self,pin):
++        if pin.get('sha256')!=SPLIT:raise ValueError('R1_WORDING_EXCLUSION_PIN')
++        value=load(pinned(pin));self.patterns=[]
++        if len(value.get('held_out',[]))!=8:raise ValueError('R1_WORDING_EXCLUSION_COUNT')
++        for template in value['held_out']:
++            expression=re.escape(normalize(template))
++            for name in ('a','b','u'):expression=expression.replace(re.escape('{'+name+'}'),'.+?')
++            self.patterns.append((template,re.compile('^'+expression+'$')))
++
++    def check(self,row):
++        for value in (row,row.get('student_input',{}),row.get('routing',{}),row.get('ground_record',{})):
++            if not isinstance(value,dict):continue
++            question=value.get('question')
++            if isinstance(question,str):
++                for name,pattern in self.patterns:
++                    if pattern.fullmatch(normalize(question)):
++                        raise ValueError('R1_HELD_OUT_WORDING:'+name)
++        return row
++
++def validate_binding(cfg):
++    value=cfg.get('r1_training') or {};pin=value.get('wording_exclusion')
++    sources=load(pinned(value['row_sources'])) if value.get('row_sources') else {}
++    extra=set(PINS)&set(sources)
++    if extra:
++        source_names(sources)
++        if pin is None:raise ValueError('R1_WORDING_EXCLUSION_REQUIRED')
++        for name,h in PINS.items():
++            if sources[name]['source']['sha256']!=h:raise ValueError('R1_COVERAGE_SOURCE_PIN:'+name)
++            pinned(sources[name]['source'])
++    return WordingExclusion(pin) if pin else None
++
++def rewording(child,parent):
++    """Prove that a pinned coverage row changes wording and identifiers only."""
++    from copy import deepcopy
++    a,b=deepcopy(child),deepcopy(parent)
++    units='ground_record' in a
++    p=a['provenance']
++    edit=p.get('details',{}).pop('question_edit',None) if units else p.pop('dist_diag_question_edit',None)
++    if (not edit or edit.get('reworded_from')!=b['qid'] or edit.get('before')!=b['question']
++            or edit.get('after')!=a['question'] or edit.get('candidate_id_before')!=b['candidate_id']
++            or a['candidate_id']==b['candidate_id']):raise ValueError('R1_COVERAGE_PARENT_IDENTITY')
++    keys=('qid','question','candidate_id') if units else ('qid','question','question_identity','candidate_id')
++    for row in (a,b):
++        for key in keys:row.pop(key,None)
++        if units:
++            for key in ('qid','question','question_identity','candidate_id'):row['ground_record'].pop(key,None)
++    if a!=b:raise ValueError('R1_COVERAGE_NON_WORDING_CHANGE')
++    return parent['qid']
++
++def union_rows(base,extra):
++    values={}
++    for rows in (base,extra):
++        for row in rows:
++            if (set(row)!={'row_key','canonical','reason'} or row.get('reason')!='k1_heldout_v7'
++                    or not isinstance(row.get('row_key'),str) or not row['row_key']
++                    or not isinstance(row.get('canonical'),str) or '/' not in row['canonical']):
++                raise ValueError('R1_K1_UNION_ROW_INVALID')
++            if row['row_key'] in values and values[row['row_key']]!=row:raise ValueError('R1_K1_UNION_CONFLICT')
++            values[row['row_key']]=row
++    return [values[k] for k in sorted(values)]
++
++def read_list(pin):
++    with pinned(pin).open() as f:return [json.loads(line) for line in f if line.strip()]
++
++def verify_union(value,removals,base_hash,n_hash):
++    spec=value.get('v7_k1_union');pin=value.get('v7_k1_removal',{})
++    if not spec:return False
++    if set(spec)!={'base','extra','union'} or spec['base'].get('sha256')!=base_hash or spec['union']!=pin:
++        raise ValueError('R1_K1_UNION_BINDING')
++    expected=union_rows(read_list(spec['base']),read_list(spec['extra']))
++    if read_list(pin)!=expected:raise ValueError('R1_K1_UNION_CONTENT')
++    hashes=[p['sha256'] for p in removals]
++    if (hashes.count(base_hash)!=1 or hashes.count(pin['sha256'])!=1 or n_hash not in hashes
++            or not hashes.index(base_hash)<hashes.index(pin['sha256'])<hashes.index(n_hash)):
++        raise ValueError('R1_K1_UNION_ORDER')
++    return True
+--- build20/r1_population.py
++++ work/tree_r1/student_pilot/r1_population.py
+@@ -61,8 +61,10 @@
+             raise ValueError('R1_SOURCE_MEMBERSHIP_INVALID')
+         self.rows = {}
+         self.sources = value['sources']
++        from .r1_coverage import PINS, source_names
++        source_names(self.sources)
+         for kind, source in self.sources.items():
+-            if kind not in SLICE_CELLS:
++            if kind not in (*SLICE_CELLS,*PINS):
+                 raise ValueError('R1_SLICE_CELL_INVALID:'+kind)
+             pinned(source['source'])
+             for qid, row_hash in source['rows'].items():
+@@ -83,7 +85,7 @@
+         kind, source_hash, row_hash = entry
+         if marker != dict(family=kind, sha256=source_hash) or digest(row) != row_hash:
+             raise ValueError('R1_SLICE_ROW_MISFILED:'+row['qid'])
+-        return kind
++        return 'coverage' if kind in ('coverage_units','coverage_distance') else kind
+ 
+ 
+ def produce(reader, card_pin, membership_pin, evidence, output):
+--- build20/r1_rooms.py
++++ work/tree_r1/student_pilot/r1_rooms.py
+@@ -96,7 +96,8 @@
+         raise ValueError('R1_PROOF_ROOM_AUTHORITY_INCOMPLETE')
+     rooms = Rooms(audit['authority'])
+     sources = load(pinned(value['row_sources']))
+-    for kind in ('recovery','units','absolute_distance'):
++    from .r1_coverage import source_names
++    for kind in source_names(sources):
+         report = audit['slices'][kind]
+         if (pin_values(report['source'])!=pin_values(sources[kind]['source']) or report['unresolved']!=0
+                 or report['unremoved_hits']!=0):
+@@ -115,7 +116,9 @@
+     if actual['sha256'] == STORE:
+         pin = value.get('v7_k1_removal') or {}
+         hashes = [p['sha256'] for p in cfg['remove_files']]
+-        if (pin.get('sha256') != V7_K1_LIST or hashes.count(V7_K1_LIST) != 1
++        from .r1_coverage import verify_union
++        union = verify_union(value, cfg['remove_files'], V7_K1_LIST, N_LIST)
++        if ((not union and pin.get('sha256') != V7_K1_LIST) or hashes.count(V7_K1_LIST) != 1
+                 or N_LIST not in hashes or hashes.index(V7_K1_LIST) >= hashes.index(N_LIST)
+                 or pin_values(store.get('k1_removal')) != pin_values(pin)):
+             raise ValueError('R1_PROOF_V7_K1_REMOVAL_REQUIRED')
+@@ -134,18 +137,22 @@
+     value = cfg['r1_training']
+     rooms = Rooms(value['room_authority'])
+     removals = Removals(cfg['remove_files'])
++    from .r1_coverage import validate_binding
++    wording = validate_binding(cfg)
+     reports, hits = {}, []
+     sources = load(pinned(value['row_sources']))
+-    for kind in ('recovery','units','absolute_distance'):
++    from .r1_coverage import source_names
++    for kind in source_names(sources):
+         counts, hows = Counter(), Counter()
+         with pinned(sources[kind]['source']).open() as f:
+             for line in f:
+                 row = json.loads(line)
++                if wording is not None:wording.check(row)
+                 status, canonical, how = rooms.status(row)
+                 counts['rows'] += 1; counts[status] += 1; hows[how] += 1
+                 if status in ('k1_heldout','r0'):
+                     hits.append(dict(row_key=row['qid'],reason='k1_heldout_known' if status=='k1_heldout' else status,
+-                                     scene=row['dataset']+'/'+row['scene'],canonical=canonical))
++                                     scene=row.get('dataset','')+'/'+row.get('scene',''),canonical=canonical))
+                     counts['unremoved_hits'] += int(removals.keep(row))
+         reports[kind] = dict(source=sources[kind]['source'],canonical_from=dict(hows),
+                             **{k:counts[k] for k in ('rows','ok','k1_heldout','r0','unresolved','unremoved_hits')})
+@@ -154,7 +161,9 @@
+     connection = sqlite3.connect(pinned(database).as_uri()+'?mode=ro',uri=True)
+     try:
+         for (raw,) in connection.execute('SELECT row FROM rows ORDER BY i'):
+-            row = json.loads(raw); status, canonical, how = rooms.status(row)
++            row = json.loads(raw)
++            if wording is not None:wording.check(row)
++            status, canonical, how = rooms.status(row)
+             counts['rows'] += 1; counts[status] += 1; hows[how] += 1
+             if status in ('k1_heldout','r0'):
+                 counts['unremoved_hits'] += int(removals.keep(row))
+@@ -174,5 +183,5 @@
+                             unresolved_examples=examples,
+                             k1_removal=value.get('v7_k1_removal'),
+                             **{k:counts[k] for k in ('rows','ok','k1_heldout','r0','unresolved','unremoved_hits')}),
+-                 certifies='All three pinned slices exclude K1/R0 after the pinned lists. The N-side list excludes resolvable v7 K1 rows when bound. Unresolved v7 rows retain the population admitted by P and are bound to the pinned v7 build record, not declared overlap-free. The build record certifies only the population that record names.')
++                 certifies='All bound pinned slices exclude K1/R0 after the pinned lists. The N-side list excludes resolvable v7 K1 rows when bound. Unresolved v7 rows retain the population admitted by P and are bound to the pinned v7 build record, not declared overlap-free. The build record certifies only the population that record names.')
+     return audit, hits
+--- build20/r1_routing.py
++++ work/tree_r1/student_pilot/r1_routing.py
+@@ -65,7 +65,8 @@
+     output.mkdir(parents=True, exist_ok=True)
+     members = dict(schema='r1-source-membership-v1', sources={
+         k:dict(source=v, rows={}) for k,v in sources.items()})
+-    if set(sources) != set(SLICE_CELLS):
++    from .r1_coverage import source_names
++    if set(sources) != set(source_names(sources)):
+         raise ValueError('R1_ROUTING_SLICES_REQUIRED')
+     for pin in sources.values():
+         pinned(pin)
+@@ -161,7 +162,10 @@
+     """Host envelopes must bind the exact source slices and independent scene coverage."""
+     from .r2_intake import intake
+     specs = load(pinned(cfg['r1_training']['row_sources']))
+-    sources = {k:specs[k]['source'] for k in SLICE_CELLS}
++    from .r1_coverage import source_names, validate_binding
++    validate_binding(cfg)
++    names = source_names(specs)
++    sources = {k:specs[k]['source'] for k in names}
+     staged = cfg['r1_training'].get('row_slice_inputs', sources)
+     if set(staged) != set(sources) or any(staged[k]['sha256'] != v['sha256'] for k,v in sources.items()):
+         raise ValueError('R1_SLICE_SOURCE_DIFFERS:staging')
+@@ -175,7 +179,7 @@
+             raise ValueError('R1_SOURCE_CATALOG_DIFFERS:'+kind)
+ 
+     def batches():
+-        for kind in SLICE_CELLS:
++        for kind in names:
+             manifest_pin = manifests[kind]
+             manifest = load(pinned(manifest_pin))
+             if (manifest['rows'] != sources[kind] or manifest['family'] != kind
+--- build20/r1_training.py
++++ work/tree_r1/student_pilot/r1_training.py
+@@ -65,6 +65,8 @@
+ 
+ def validate(cfg):
+     value = cfg['r1_training']
++    from .r1_coverage import validate_binding
++    validate_binding(cfg)
+     if value.get('schema') != 'r1-training-v1' or value.get('s2') is not False:
+         raise ValueError('R1_S2_MUST_BE_OFF')
+     if cfg.get('geometry_connector') != 'none' or cfg.get('geometry_online') or cfg.get('r2_schedule'):
+--- build20/r2_frames.py
++++ work/tree_r1/student_pilot/r2_frames.py
+@@ -1,4 +1,5 @@
+ """Mapped RGB reads and a bounded, identity-invalidated process hash memo."""
++from .job_env import key as env_key
+ from collections import OrderedDict
+ import hashlib
+ import json
+@@ -15,7 +16,7 @@
+     raw = Path(path)
+     if not raw.is_absolute() or '..' in raw.parts:
+         raise ValueError('Frame path must be absolute without traversal')
+-    mapping = json.loads(os.environ.get('STUDENT_FRAME_ROOT_MAP', '{}'))
++    mapping = json.loads(os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')), '{}'))
+     if not isinstance(mapping, dict):
+         raise ValueError('STUDENT_FRAME_ROOT_MAP must be a JSON object')
+     for old in sorted(mapping, key=len, reverse=True):
+--- build20/r2_openers.py
++++ work/tree_r1/student_pilot/r2_openers.py
+@@ -44,6 +44,23 @@
+         raise ValueError('Routing opener lineage or vocabulary differs')
+ 
+ 
++def start_context(receipt):
++    """Recover the full configuration carried by the authenticated prepared reader."""
++    from .r1_training import PARENT
++    if (receipt.get('schema') != 'c1-preparation-v1'
++            or (receipt.get('init_artifact') or {}).get('artifact',{}).get('sha256') == PARENT):
++        return receipt
++    cfg = receipt.get('_r1_start_config')
++    if not isinstance(cfg, dict):
++        raise ValueError('R1_OPENER_START_CONFIG_REQUIRED')
++    from .carrier_c1_run import identity
++    if (identity(cfg) != receipt.get('config_sha256')
++            or any(cfg.get(k) != receipt.get(k) for k in ('r1_training','init_artifact','routing_opener_init','routing_vocabulary'))
++            or cfg.get('streams') != {k:v['receipt'] for k,v in receipt.get('streams',{}).items()}):
++        raise ValueError('R1_OPENER_START_CONFIG_MISMATCH')
++    return cfg
++
++
+ def initialize(model, processor, receipt):
+     from . import carrier_c1_routing as routing
+     selected = policy(receipt)
+@@ -54,7 +71,7 @@
+             or report.get('r2_lineage') == bound_init(receipt)['artifact_sha256'])
+     if receipt.get('r1_training') and selected == 'keep':
+         from .r1_training import start
+-        start(receipt)
++        start(start_context(receipt))
+         same = warm
+     if selected == 'keep' and not (warm and same):
+         raise ValueError('Keep requires a full warm start in the bound lineage')
+--- build20/s1_admission.py
++++ work/tree_r1/student_pilot/s1_admission.py
+@@ -1,3 +1,4 @@
++from .job_env import key as env_key
+ import argparse
+ from collections import Counter
+ import fcntl
+@@ -169,7 +170,7 @@
+     before = dict(cfg["streams"])
+     request = dict(schema="s1-admission-request-v1", config=config_pin, source_revision=revision,
+                    frame_roots=[str(Path(root).resolve()) for root in roots], sample_size=sample_size,
+-                   cpu_threads=threads, frame_root_map=os.environ.get("STUDENT_FRAME_ROOT_MAP"),
++                   cpu_threads=threads, frame_root_map=os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP'))),
+                    rehearsal=rehearsal.enabled(), **presence)
+     if (output / "request.json").exists():
+         if load(output / "request.json") != request:
+--- build20/startup_receipt.py
++++ work/tree_r1/student_pilot/startup_receipt.py
+@@ -1,3 +1,4 @@
++from .job_env import key as env_key
+ import hashlib
+ import json
+ import os
+@@ -108,7 +109,7 @@
+     inventory = {'schema': 'student-shared-frame-inventory-v1', 'manifest': pins['training.json'],
+                  'files': files, 'references_sha256': digest_json(references),
+                  'unique_paths': len(files), 'total_bytes': sum(item['size_bytes'] for item in files),
+-                 'frame_mode': 'shared_verified_on_read', 'path_map': os.environ.get('STUDENT_FRAME_ROOT_MAP')}
++                 'frame_mode': 'shared_verified_on_read', 'path_map': os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))}
+     value = tag({'schema': SCHEMA, 'status': 'CPU_VALIDATED_NO_GPU_ADMISSION', 'student': student,
+                  'world_size': world_size, 'inputs': pins, 'dropped_dependencies': dependencies,
+                  'frame_mode': inventory['frame_mode'], 'path_map': inventory['path_map'],
+@@ -139,7 +140,7 @@
+     require_mode(receipt, label)
+     if (receipt.get('schema') != SCHEMA or receipt.get('status') != 'CPU_VALIDATED_NO_GPU_ADMISSION'
+             or receipt.get('student') != student or receipt.get('frame_mode') != 'shared_verified_on_read'
+-            or receipt.get('path_map') != os.environ.get('STUDENT_FRAME_ROOT_MAP')
++            or receipt.get('path_map') != os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))
+             or set(receipt.get('inputs', {})) != set(FROZEN_FILES)):
+         raise ValueError('Startup receipt changed its validated identity or shared frame mapping')
+     value = {key: item for key, item in receipt.items() if key != 'provenance'}
+--- build20/storage.py
++++ work/tree_r1/student_pilot/storage.py
+@@ -1,3 +1,4 @@
++from .job_env import key as env_key
+ from .orchard_paths import resolve_read, enabled as orchard_enabled, owned as orchard_owned
+ import copy
+ import os
+@@ -180,7 +181,7 @@
+     return staged, {"schema": "student-frame-staging-v1", "files": files, "source_references": list(sources.values()),
+                     "unique_frames": len(files), "staged_bytes": sum(item["bytes"] for item in files),
+                     "scratch_root": str(scratch_directory(scratch_root)), "rows": len(rows),
+-                    **({"orchard_path_map": os.environ.get("STUDENT_FRAME_ROOT_MAP")} if orchard_enabled() else {})}
++                    **({"orchard_path_map": os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))} if orchard_enabled() else {})}
+ 
+ 
+ def _stage_frames_parallel(rows, output, scratch_root, workers):
+@@ -241,7 +242,7 @@
+     return staged, {"schema": "student-frame-staging-v1", "files": files, "source_references": list(sources.values()),
+                     "unique_frames": len(files), "staged_bytes": sum(item["bytes"] for item in files),
+                     "scratch_root": str(scratch_directory(scratch_root)), "rows": len(rows),
+-                    **({"orchard_path_map": os.environ.get("STUDENT_FRAME_ROOT_MAP")} if orchard_enabled() else {})}
++                    **({"orchard_path_map": os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))} if orchard_enabled() else {})}
+ 
+ 
+ def localize_frames(rows, store, manifest_path, scratch_root=None, stage=False):
+--- build20/students.py
++++ work/tree_r1/student_pilot/students.py
+@@ -1,3 +1,4 @@
++from .job_env import key as env_key
+ import os
+ from pathlib import Path
+ 
+@@ -51,7 +52,7 @@
+ 
+ 
+ def runtime_student():
+-    value = os.environ.get("R1_STUDENT_HEX")
++    value = os.environ.get((env_key('R1_STUDENT_HEX')))
+     student = bytes.fromhex(value).decode() if value else "qwen35"
+     if student not in STUDENTS:
+         raise ValueError("Unknown runtime student")
+--- build20/joblib.py
++++ work/build21/joblib.py
+@@ -191,7 +191,20 @@
+         if h not in resolved['small_files']:
+             if h not in byhash:raise ValueError('E37:'+label)
+             os.link(byhash[h],u/h) if not (u/h).exists() else checked(u/h,h)
+-    cfgpin=write(root/'n.json',resolved['config']);ns=spec['namespace']
++    ns=spec['namespace']
++    # The native reader opens the manifest and its siblings by their export names.
++    mp=receipt['pins']['full_weights'];manifest=load(checked(u/mp['sha256'],mp['sha256']))
++    native=root/'w';native.mkdir(exist_ok=True)
++    names={'full_weights.json':mp['sha256'],manifest['index']['name']:manifest['index']['sha256']}
++    names.update({item['name']:item['sha256'] for item in manifest['files']})
++    for name,h in names.items():
++        if PurePosixPath(name).name!=name or name in ('.','..'):raise ValueError('E43')
++        source=checked(u/h,h);target=inside(native,name)
++        if target.exists():checked(target,h)
++        else:os.link(source,target)
++        resolved['paths'][h]=ns+'/w/'+name
++        resolved['config']['r1_training']['persisted_files'][h]=ns+'/w/'+name
++    cfgpin=write(root/'n.json',resolved['config'])
+     request=resolved['request'];request['config']=dict(cfgpin,path=ns+'/n.json')
+     request['staged_pins'].append(request['config']);request['_paths']=resolved['paths']
+     request['_paths'].update(resolved['config']['r1_training']['persisted_files'])
+@@ -199,6 +212,20 @@
+     return request
+ 
+ def load_raw(path):return json.loads(Path(path).read_text())
++
++def screen(line,words,hashes):
++    import re
++    def replace(match):
++        token=match.group();lower=token.lower()
++        digest=lambda text:hashlib.sha256(text.encode()).hexdigest()
++        bad=any(word in lower for word in words)
++        for part in re.findall(r'[a-z0-9_]+',lower):
++            bad=bad or digest(part) in hashes['word']
++            for width,values in hashes['substr'].items():
++                n=int(width)
++                bad=bad or any(digest(part[i:i+n]) in values for i in range(len(part)-n+1))
++        return 'x_'+digest(token) if bad else token
++    return re.sub(r'[^\s"\x27<>]+',replace,line)
+ 
+ def bootstrap(kit,resolved_path,node):
+     kit=Path(kit).resolve();node=Path(node).resolve();spec=load(kit/'k/p.json');seal(kit)
+@@ -208,12 +235,33 @@
+         src=Path(spec['pool'])/spec['p_root']/name
+         target=inside(hx,name);target.parent.mkdir(parents=True,exist_ok=True)
+         checked(src,h);shutil.copyfile(src,target)
++    if 'ANON_OK.json' not in spec['p_files']:raise ValueError('E44')
++    if spec.get('local_map'):
++        value=load(kit/spec['local_map'])
++        for item in spec['link_checks']:checked(item['path'],item['sha256'])
++        write(hx/'k/0.json',value)
+     code=base64.b64decode(load_raw(kit/'k/j.json')['payload'])
+     if hashlib.sha256(code).hexdigest()!=load_raw(kit/'k/j.json')['sha256']:raise ValueError('E38')
+     (node/'j.sh').write_bytes(code)
+     stage_payload(kit,resolved,node)
+     env={**os.environ,'Q_ROOT':str(node),'Q_KIT':str(kit),'Q_NS':spec['namespace'],'TK_KIT_HOME':str(hx),'TK_JOBDIR':str(node/'j')}
+     return subprocess.run(['/bin/bash',str(node/'j.sh')],env=env).returncode
++
++def snapshot(path,expected,root,revision):
++    checked(path,expected);root=Path(root);root.mkdir(parents=True,exist_ok=True)
++    marker='/snapshots/'+revision+'/';found=set()
++    with tarfile.open(path,'r|*') as archive:
++        for member in archive:
++            if not member.isfile():
++                if member.isdir():continue
++                raise ValueError('E45')
++            if marker not in member.name:continue
++            name=member.name.partition(marker)[2]
++            target=inside(root,name)
++            if name in found:raise ValueError('E46')
++            found.add(name);target.parent.mkdir(parents=True,exist_ok=True)
++            with archive.extractfile(member) as a,target.open('wb') as b:shutil.copyfileobj(a,b,8<<20)
++    if 'config.json' not in found:raise ValueError('E47')
+ 
+ def room_report(cfg,output):
+     import sqlite3
+--- build20/kit.py
++++ work/build21/kit.py
+@@ -1,11 +1,11 @@
+ from pathlib import Path
+ import base64,hashlib,json,os,re,sys
+-L=Path(__file__).resolve().parents[2];B=L/'work/build20';T=L/'work/tree_r1';E=L.parent/'ext/pwrap';K=B/'kits/q';O=B/'proofs/operator'
+-O.mkdir(parents=True,exist_ok=True);sys.path.insert(0,str(T))
++L=Path(__file__).resolve().parents[2];B=L/'work/build21';T=L/'work/tree_r1';E=L.parent/'ext/pwrap';K=B/'kits/q';O=B/'proofs/operator'
++O.mkdir(parents=True,exist_ok=True);sys.path[:0]=[str(T),str(B)]
+ from student_pilot.p3_provenance import load,file_pin,sha256,source_files
+ from student_pilot.source_seal import create
+ from launch_r1.build import build,verify
+-from launch_r2.build import capsule_json,scan
++from launch_r2.build import capsule_json,scan,WORDS
+ def capraw(raw):return json.dumps(dict(encoding='base64',payload=base64.b64encode(raw).decode(),sha256=hashlib.sha256(raw).hexdigest())).encode()
+ def cap(name,value):(K/name).write_bytes(capsule_json(value))
+ for name in ('config.json','kit_config.json'):
+@@ -19,8 +19,9 @@
+ else:
+     assert (B/'KIT_Q_INITIAL.json').exists(),'The initial kit must be staged from empty.'
+ if not (B/'KIT_Q_INITIAL.json').exists():(B/'KIT_Q_INITIAL.json').write_text(json.dumps(dict(initial_empty=True,base_seal=verify(K))))
+-ns='/tmp/q_90a20c41';pool='/project/community/jjyeung/okh7';nroot=pool+'/x_90a20c41';proot='x_ee227714'
++ns='/tmp/q_22c714e1';pool='/project/community/jjyeung/okh7';nroot=pool+'/x_22c714e1';proot='x_ee227714'
+ cfg=load(B/'inputs/config.json');uploads={};missing={};seen=set()
++receipt_index=load(B/'proofs/receipts/INDEX.json') if (B/'proofs/receipts/INDEX.json').exists() else {}
+ def local(path):
+     p=Path(path)
+     if str(p).startswith(('/home/','/data')):return None
+@@ -35,9 +36,10 @@
+     if isinstance(value,dict):
+         if isinstance(value.get('path'),str) and re.fullmatch('[a-f0-9]{64}',str(value.get('sha256',''))):
+             h=value['sha256'];path=local(value['path'])
++            if path is None and h in receipt_index:path=Path(receipt_index[h])
+             if h not in seen:
+                 seen.add(h)
+-                if path and path.suffix not in ('.db','.sqlite','.pt','.safetensors','.bin','.png','.npz') and path.stat().st_size<30_000_000:
++                if path and path.suffix not in ('.db','.sqlite','.pt','.safetensors','.bin','.png','.npz') and (path.stat().st_size<30_000_000 or h in ('8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82','15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022')):
+                     if sha256(path)!=h:raise ValueError('Static pin mismatch '+str(path))
+                     uploads[h]=dict(local_path=str(path),opaque_name='u/'+h,sha256=h,bytes=path.stat().st_size)
+                     if path.suffix=='.json' and depth<8:
+@@ -49,7 +51,12 @@
+     elif isinstance(value,list):
+         for v in value:visit(v,depth)
+ visit(cfg)
+-room=file_pin(L/'work/build18/inputs/room_audit.json');visit(room)
++if (B/'proofs/receipts/RESULT.json').exists():
++    real=load(B/'proofs/receipts/RESULT.json')
++    for row in real['fetched']:visit(row)
++    for row in real['receipts']:visit(row['pin'])
++    for row in real['prepared']:visit(row['preparation'])
++room=file_pin(B/'inputs/room_audit.json');visit(room)
+ withheld=file_pin(L/'fixtures/work/shared/WITHHELD_ROOMS_80.json');visit(withheld)
+ source=load(K/'k/a.json')['source'];archive=K/source['path']
+ staging=load(K/'k/s.json');bound=load(K/'k/c.json')['r1_training']['mix']['path']
+@@ -60,12 +67,18 @@
+ pfiles={n:h for h,n in (line.split('  ',1) for line in (E/'SHA256SUMS.txt').read_text().splitlines())}
+ # Only P's sealed metadata/code inputs enter the local staging copy; its run is never copied.
+ pfiles={n:h for n,h in pfiles.items() if n.startswith(('b/','k/','in_small/')) or n in ('ANON_OK.json',)}
++pfiles['ANON_OK.json']=sha256(E/'ANON_OK.json')
+ pfiles['SHA256SUMS.txt']=sha256(E/'SHA256SUMS.txt')
+ spec=dict(pool=pool,n_root=nroot,p_root=proot,milestone='h_6ed2c7aa/m400',namespace=ns,
+     p_identity='774503e26f274a10c96ad06210d339c49ebc9a704ac254df81f389b0da4d98a1',
+     p_files=pfiles,p_pins=file_pin(E/'k/0.json'),room_sha256=room['sha256'],code_sha256=hashlib.sha256(raw).hexdigest(),
+     uploads=list(uploads.values()),frame_roots=load(E/'k/launch.json')['in_job_admission']['frame_roots'])
++from naming21 import neutral_map
++neutral,links=neutral_map(load(E/'k/0.json'))
++cap('k/l.json',neutral)
++spec.update(local_map='k/l.json',link_checks=links)
+ cap('k/p.json',spec);cap('k/n.json',cfg);cap('k/r.json',load(L/'work/build17/proofs/operator/REQUEST_TEMPLATE.json'))
++cap('k/g.json',list(WORDS))
+ (K/'b/z.py').write_bytes((B/'joblib.py').read_bytes())
+ (K/'b/resolve.py').write_text('''import argparse,sys
+ from pathlib import Path
+@@ -85,6 +98,14 @@
+ sys.path.insert(0,str(Path(__file__).resolve().parent))
+ from z import seal
+ print(seal(sys.argv[1]))
++''')
++(K/'b/l.py').write_text('''import sys
++from pathlib import Path
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++from z import load,screen
++k=Path(sys.argv[1]);w=load(k/'k/g.json');h=load(k/'b/wh.json')
++for line in sys.stdin:
++ sys.stdout.write(screen(line,w,h));sys.stdout.flush()
+ ''')
+ (K/'b/g.py').write_text('''import torch
+ if not torch.cuda.is_available() or torch.cuda.get_device_properties(0).total_memory < 80*(1<<30):
+@@ -106,6 +127,8 @@
+ shell=shell.replace('S=/tmp/jjyeung/a_6ed2c7aa/root','S="$Q_ROOT/s"')
+ shell=shell.replace('NX=/tmp/jjyeung/a_6ed2c7aa/x_${SLURM_JOB_ID:-local}','NX="$Q_ROOT/x"').replace('NR=/tmp/jjyeung/a_6ed2c7aa/runs','NR="$Q_ROOT/rp"')
+ shell=shell[:shell.index('tk_persist_small()')]
++from naming21 import neutral_shell
++shell=neutral_shell(shell)
+ shell+='''
+ tk_stage full
+ tk_env
+@@ -118,14 +141,15 @@
+ fi
+ "${BW[@]}" "$PILOT_VENV/bin/python" -s -B "$Q_KIT/b/g.py"
+ set +e
+-"${BW[@]}" "$PILOT_VENV/bin/python" -s -B "$Q_KIT/b/a.py" q "$Q_NS/p" "$Q_NS/r.json" > "$Q_ROOT/q.log" 2>&1
+-rc=$?
+-"${BW[@]}" "$PILOT_VENV/bin/python" -s -B "$Q_KIT/b/d.py" "$Q_NS/p/s" "$Q_NS/r.json" "$Q_NS/n.json" "$Q_NS/rooms.json" > "$Q_ROOT/rooms.log" 2>&1
+-rr=$?
++"${BW[@]}" "$PILOT_VENV/bin/python" -s -B "$Q_KIT/b/a.py" q "$Q_NS/p" "$Q_NS/r.json" 2>&1 | /usr/bin/python3 "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/q.log"
++rc=${PIPESTATUS[0]}
++"${BW[@]}" "$PILOT_VENV/bin/python" -s -B "$Q_KIT/b/d.py" "$Q_NS/p/s" "$Q_NS/r.json" "$Q_NS/n.json" "$Q_NS/rooms.json" 2>&1 | /usr/bin/python3 "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rooms.log"
++rr=${PIPESTATUS[0]}
+ /usr/bin/python3 "$Q_KIT/b/o.py" "$Q_ROOT" "$rc" "$rr"
+ exit "$rc"
+ '''
+ (K/'k/j.json').write_bytes(capraw(shell.encode()))
++(K/'b/m.py').write_text('import sys\nfrom pathlib import Path\nsys.path.insert(0,str(Path(__file__).resolve().parent))\nfrom z import snapshot\nsnapshot(*sys.argv[1:])\n')
+ (K/'b/w.py').write_text('import json,sys\nfrom pathlib import Path\nPath(sys.argv[1]).write_text(json.dumps(sys.argv[2:]))\n')
+ (K/'b/o.py').write_text('''import json,sys,tarfile,os
+ from pathlib import Path
+@@ -149,10 +173,10 @@
+ set -euo pipefail
+ umask 077
+ ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+-N="${SLURM_TMPDIR:-/tmp}/q_90a20c41_${SLURM_JOB_ID:?}"
++N="${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID:?}"
+ export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1
+ python3 -I -s -B "$ROOT/b/v.py" "$ROOT"
+-exec python3 -I -s -B "$ROOT/b/x.py" "$ROOT" "${1:?}" "$N"
++python3 -I -s -B "$ROOT/b/x.py" "$ROOT" "${1:?}" "$N" 2>&1 | python3 -I -s -B "$ROOT/b/l.py" "$ROOT"
+ ''')
+ for name in ('q.sh','q1.sh'):
+     (K/'b'/name).write_text('#!/bin/bash\nset -eu\nROOT="$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")"\nexec /bin/bash "$ROOT/job.sh" "$@"\n')
+--- build20/naming21.py
++++ work/build21/naming21.py
+@@ -0,0 +1,48 @@
++from pathlib import Path
++import hashlib,json,re
++POOL='/project/community/jjyeung/okh7'
++OLD='/project/community/jjyeung/distill/okit'
++MODEL='/project/community/jjyeung/cp4tk_rt/kit/model_qwen35_9b_c2022362.tar'
++ALIASES={OLD:POOL+'/l_94a76bda',MODEL:POOL+'/l_3d48eea0'}
++ENV={'STUDENT_ORCHARD':'Q_E1','STUDENT_SLURM_SITE':'Q_E2','STUDENT_MODEL_ROOT':'Q_E3','STUDENT_FRAME_ROOT_MAP':'Q_E4','R1_STUDENT_HEX':'Q_E5','STUDENT_PRESERVE_CHECKPOINTS':'Q_E6'}
++def neutral_map(value):
++    def visit(v):
++        if isinstance(v,dict):return {k:visit(x) for k,x in v.items()}
++        if isinstance(v,list):return [visit(x) for x in v]
++        if isinstance(v,str):
++            for old,new in ALIASES.items():
++                if v==old or v.startswith(old+'/'):return new+v[len(old):]
++        return v
++    neutral=visit(value)
++    checks=[dict(path=neutral['small']['file'],sha256=value['small']['sha256']),dict(path=neutral['model']['file'],sha256=value['model']['sha256'])]
++    return neutral,checks
++def neutral_shell(shell):
++    shell=shell.replace(OLD,ALIASES[OLD])
++    for old,new in ENV.items():shell=shell.replace(old,new)
++    a=shell.index('    local tmp="$S/.model.$$"');b=shell.index('    tk_readonly_files "$snap"',a)
++    shell=shell[:a]+'    /usr/bin/python3 -I "$Q_KIT/b/m.py" "$file" "$sha" "$snap" "$REV"\n'+shell[b:]
++    shell='\n'.join(line for line in shell.splitlines() if not line.lstrip().startswith('#'))+'\n'
++    return shell
++def scan_decoded(kit):
++    import base64,sys
++    from launch_r2.build import bad_string
++    kit=Path(kit);wh=json.loads((kit/'b/wh.json').read_text());checked=[]
++    for p in [kit/'job.sh',*sorted((kit/'b').glob('*.sh')),kit/'k/j.json']:
++        raw=p.read_bytes()
++        if p.suffix=='.json':
++            value=json.loads(raw);raw=base64.b64decode(value['payload'],validate=True)
++            if hashlib.sha256(raw).hexdigest()!=value['sha256']:raise ValueError('CAPSULE_HASH')
++        for n,line in enumerate(raw.decode().splitlines(),1):
++            if line.lstrip().startswith('#') and not line.startswith('#SBATCH'):continue
++            if bad_string(line,wh):raise ValueError('EXECUTABLE_NAME:'+p.name+':'+str(n))
++        checked.append(str(p.relative_to(kit)))
++    value=json.loads((kit/'k/l.json').read_text());raw=base64.b64decode(value['payload'],validate=True)
++    if hashlib.sha256(raw).hexdigest()!=value['sha256']:raise ValueError('CAPSULE_HASH')
++    def visit(v):
++        if isinstance(v,dict):
++            for x in v.values():visit(x)
++        elif isinstance(v,list):
++            for x in v:visit(x)
++        elif isinstance(v,str) and v.startswith('/') and bad_string(v,wh):raise ValueError('INPUT_NAME')
++    visit(json.loads(raw))
++    return dict(status='PASS',executables=checked,decoded_input_map='k/l.json',scope='Executable shell, arguments, environment names/values, staged names and decoded operational input paths; sealed source code and provenance records retain their original identities.')

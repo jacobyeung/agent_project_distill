@@ -1,0 +1,1 @@
+BUILT_FOR_INDEPENDENT_REVIEW. C 6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74, run 05b8ac69, p_6a5c7d00.tar SHA256 6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888. All 88 tests pass. Read out/CONT3.md and out/CONT3.diff. Independent review, production proof and written GO remain required.

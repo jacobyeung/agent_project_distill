@@ -168,27 +168,76 @@ The gate must seal **A4 prepare's actual output plus the operator's per-read ove
 
 The **owner-only commands below are unrun here**. The shared asset archive already exists when CPU.json appears; never try to reopen the CPU job's private `/tmp`. Reserve storage for the archive before running `o_cpu.sh`: **about 33 GB, estimated**, from about 32.6 GB of expanded inputs plus tar headers. Preserving symlinks avoids duplicated shards and heads. Reserve separate space for extraction, sources and runtime outputs. The job records actual bytes; no production archive size was measured here.
 
-Allocate the gate on Orchard, then enter its compute task. This is one non-requeued H100 job, eight CPUs, 200G and a five-hour maximum. Preserve its actual `CUDA_VISIBLE_DEVICES`; the Python guard requires exactly `NVIDIA H100 80GB HBM3`, 132 SMs, capability 9.0 and the 80 GB memory class.
+Run the Trinity configuration gate, seal and kit staging **before allocating the H100**. The CPU proof already records the logical data root. A fresh token determines the kit/source paths; the host needs no physical `/scratch/jjyeung` directory outside bwrap.
 
 ```bash
 set -euo pipefail
-GATE_TOKEN=$(/usr/bin/python3 -I -s -B -c 'import secrets;print(secrets.token_hex(6))')
+GATE_TOKEN=$(nice -n 10 "$READ_PYTHON" -I -s -B -c 'import secrets;print("a"+secrets.token_hex(6))')
+GPU_KIT="/scratch/jjyeung/${GATE_TOKEN}"
+GPU_LOGICAL=$(nice -n 10 "$READ_PYTHON" -I -s -B -c 'import json,sys;print(json.load(open(sys.argv[1]))["gate_assets"]["logical"])' "$LOCAL/adopted/proof/CPU.json")
+export GATE_TOKEN GPU_KIT GPU_LOGICAL
+PRIVATE_CONFIG_TEMPLATE="$LOCAL/PRIVATE_TEMPLATE.json"
+nice -n 10 "$READ_PYTHON" -I -s -B - "$DELIVERY/kit_parity50/config.example.json" "$PRIVATE_CONFIG_TEMPLATE" <<'PYCONFIG'
+import os,sys
+from pathlib import Path
+value=Path(sys.argv[1]).read_text()
+for key in ('GPU_KIT','GPU_LOGICAL'):value=value.replace('@'+key+'@',os.environ[key])
+Path(sys.argv[2]).write_text(value)
+PYCONFIG
+: "${PRIVATE_ALIASES:?Private JSON mapping preparation paths to staged opaque symlink aliases}"
+PRIVATE_SETTINGS="$LOCAL/PRIVATE_SETTINGS.json"
+PRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"
+CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \
+  --operator "$LOCAL/adopted" --prepared "$LOCAL/adopted/proof/SETTINGS.json" \
+  --proof "$LOCAL/adopted/proof/CPU.json" --config "$PRIVATE_CONFIG_TEMPLATE" \
+  --asset-receipts "$LOCAL/adopted/proof" \
+  --settings-out "$PRIVATE_SETTINGS" --config-out "$PRIVATE_CONFIG"
+mkdir -p "$LOCAL/public"
+CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" seal \
+  --source-root "$EXT_SOURCE" --input "$PRIVATE_SETTINGS" --aliases "$PRIVATE_ALIASES" \
+  --out "$LOCAL/public/u3"
+CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" stage-kit \
+  --source-root "$EXT_SOURCE" --input "$DELIVERY/kit_parity50" \
+  --config "$PRIVATE_CONFIG" --out "$LOCAL/public/u0"
+nice -n 10 tar -cf "$LOCAL/public/1.tar" -C "$EXT_SOURCE" .
+nice -n 10 tar -cf "$LOCAL/public/2.tar" -C "$A4_BASE/src" .
+printf '%s\n' "$GATE_TOKEN" > "$LOCAL/public/0"
+nice -n 10 tar -czf "$LOCAL/4.tgz" -C "$LOCAL/public" u0 u3 0 1.tar 2.tar
+(cd "$LOCAL" && nice -n 10 sha256sum 4.tgz > 4.sha256)
+: "${ORCHARD_TRANSFER:?Approved transport endpoint and existing opaque receiving directory on Orchard}"
+nice -n 10 rsync --bwlimit=8000 --partial "$LOCAL/4.tgz" "$LOCAL/4.sha256" "$ORCHARD_TRANSFER/"
+```
+
+The two source archives contain the complete 927-file A4 base: `1.tar` also contains the added extensions; `2.tar` contains no extensions. No build outputs or extra files may enter these roots. The kit authenticates both complete inventories and all extension bytes. The transfer sends archives, public configuration and code only; private settings and reverse maps stay on Trinity. The command above is an owner-run transfer instruction, not a transfer performed here. Keep its trusted SHA256 for the host check.
+
+`export`, `export_pin`, `artifact_manifest` and `environment_receipt` resolve to `$GPU_LOGICAL/d/{e,6.json,7.json,9.json}`. The neutral binding and environment aliases must be symlinks; the host helper creates `7.json -> binding.json` and `9.json -> ENVIRONMENT.json`. Include those exact mappings in PRIVATE_ALIASES and map other prepared asset paths to existing opaque symlinks. Copies can fail the loader's resolved-path allow-list.
+
+Before allocation, require all **13 runtime parts plus bwrap** listed with exact Orchard paths, byte counts and SHA256 in [RUNTIME_PINS.json](RUNTIME_PINS.json). The pins come from A4's `orchard_h10/vendor/ORCHARD_ASSETS.json`, observed on `orchard-login-001`; they do not establish present-day host reachability. Their bytes are absent from this delivery. Missing parts are deployment prerequisites; do not substitute an environment or guess an alternate source. The host helper copies and verifies them serially using A4's `job.stage` runtime-group/bwrap block and its own `S.copy_parts`, `S.room`, and `S.unpack`. It retains A4's 200 GiB free-space floor. The prepared `4.tar` supplies `d/` without refetching the six input archives. The helper also extracts the authenticated full package at `logical/p`, because d/manifest.json authenticates those code paths. The two parity source roots remain separate.
+
+After the transfer completes, run on Orchard. `GPU_TRANSFER` names that existing receiving directory. The allocation is one H100, eight CPUs, 200G and five hours, general/no-requeue. Preserve its actual CUDA_VISIBLE_DEVICES.
+
+```bash
+set -euo pipefail
+: "${GPU_TRANSFER:?Absolute Orchard directory containing transferred 4.tgz and 4.sha256}"
+(cd "$GPU_TRANSFER" && sha256sum -c 4.sha256)
+GATE_TOKEN=$(tar -xOzf "$GPU_TRANSFER/4.tgz" 0)
+export GATE_TOKEN GPU_TRANSFER PACKAGE_TOKEN
 salloc --account=mt01 --partition=general --nodes=1 --ntasks=1 --cpus-per-task=8 \
   --mem=200G --gres=gpu:1 --time=05:00:00 --no-requeue \
   --exclude=orchard-community-2 --job-name="a15_cot_ap${GATE_TOKEN}" \
   srun --ntasks=1 --pty bash --noprofile --norc
 ```
 
-On that H100 host, `/scratch/jjyeung` must **physically exist and be writable** outside bwrap. A4 creates `/scratch` only inside its namespace; it does not satisfy this host requirement. The operator must provision the host path before the gate. The exact logical root (currently `/scratch/jjyeung/b01ec87a6f29b`) must be absent so extraction cannot overlay another run. Preserve it so manifests and restore paths remain valid. Provision the separate opaque kit/source directories there too. Stage the source trees and public kit as single authenticated archives; keep private inputs and reverse maps on Trinity.
-
-The shared path `$P/a/4.tar` is visible directly on Orchard. If approved transport copies it, set `ASSET_ARCHIVE` to that received path; CPU.json still supplies the expected hash and bytes. Run inside the allocation:
+Run these commands inside that compute task. A4's namespace binds the job-private physical root onto `/scratch/jjyeung`, `/lustre/.../ap`, and its UV Python path. A fresh `/tmp/$GATE_TOKEN` holds runtime, data, sources and outputs; it must not exist. The package's exact logical data root remains valid **inside bwrap**.
 
 ```bash
 set -euo pipefail
 : "${PACKAGE_TOKEN:?Fresh package token from the build}"
+: "${GATE_TOKEN:?Token carried in the transferred archive}"
+: "${GPU_TRANSFER:?Transferred archive directory}"
 P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}
 ASSET_ARCHIVE=${ASSET_ARCHIVE:-"$P/a/4.tar"}
-GPU_LOGICAL=$(/usr/bin/python3 -I -s -B - "$P" "$ASSET_ARCHIVE" <<'PYASSET'
+GPU_LOGICAL=$(nice -n 10 /usr/bin/python3 -I -s -B - "$P" "$ASSET_ARCHIVE" <<'PYASSET'
 import hashlib,json,sys,tarfile
 from pathlib import Path
 p=Path(sys.argv[1]);archive=Path(sys.argv[2]);proof=json.loads((p/'a/c/CPU.json').read_text())
@@ -203,82 +252,46 @@ assert h.hexdigest()==asset['sha256']
 print(cfg['logical'])
 PYASSET
 )
-test -d /scratch/jjyeung && test -w /scratch/jjyeung
-test ! -e "$GPU_LOGICAL"
-mkdir -p "$GPU_LOGICAL/d" "$GPU_LOGICAL/p"
-tar -xf "$ASSET_ARCHIVE" -C "$GPU_LOGICAL/d"
-tar -xzf "$P/0.tgz" -C "$GPU_LOGICAL/p"
-test ! -e "$GPU_LOGICAL/d/7.json"
-ln -s binding.json "$GPU_LOGICAL/d/7.json"
-test ! -e "$GPU_LOGICAL/d/9.json"
-ln -s ENVIRONMENT.json "$GPU_LOGICAL/d/9.json"
-```
-
-Create a private neutral configuration from `config.example.json` with separate authenticated A4 original/patched source roots. Set `export=$GPU_LOGICAL/d/e`, `export_pin=$GPU_LOGICAL/d/6.json`, and `artifact_manifest=$GPU_LOGICAL/d/7.json`. Set `environment_receipt=$GPU_LOGICAL/d/9.json`. The neutral binding and environment aliases must be symlinks, as created above. Include that exact `binding.json` to `7.json` mapping in `PRIVATE_ALIASES.json`; map the other private prepared asset paths to staged opaque aliases of those same files. These aliases must be symlinks so `resolve()` reaches the manifest allow-list target; copies are rejected. Keep private settings and reverse maps on Trinity. The following commands use files under `$LOCAL`:
-
-```bash
-set -euo pipefail
-: "${PRIVATE_CONFIG_TEMPLATE:?Private neutral GPU configuration with staged asset paths}"
-: "${PRIVATE_ALIASES:?Private JSON mapping preparation paths to staged opaque paths}"
-PRIVATE_SETTINGS="$LOCAL/PRIVATE_SETTINGS.json"
-PRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"
-CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \
-  --operator "$LOCAL/adopted" --prepared "$LOCAL/adopted/proof/SETTINGS.json" \
-  --proof "$LOCAL/adopted/proof/CPU.json" --config "$PRIVATE_CONFIG_TEMPLATE" \
-  --asset-receipts "$LOCAL/adopted/proof" \
-  --settings-out "$PRIVATE_SETTINGS" --config-out "$PRIVATE_CONFIG"
-```
-
-```bash
-set -euo pipefail
-mkdir -p "$LOCAL/public"
-CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" seal \
-  --source-root "$EXT_SOURCE" --input "$PRIVATE_SETTINGS" --aliases "$PRIVATE_ALIASES" \
-  --out "$LOCAL/public/u3"
-CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" stage-kit \
-  --source-root "$EXT_SOURCE" --input "$DELIVERY/kit_parity50" \
-  --config "$PRIVATE_CONFIG" --out "$LOCAL/public/u0"
-```
-
-The package embeds the driver/comparator SHA256 and the deterministically sealed sample SHA256 from MANIFEST `kit_files`. The driver and every worker authenticate those executing bytes, and `ue.json` carries them to SUBMIT_CHECK. The staged `u3.json` pins every extension; `u4.json` authenticates both full 927-file base inventories. The driver rejects changed bases, equal original/patched roots, and an original root containing extensions. It authenticates the sealed sample bytes and the logical sample pin. Transfer only the staged directory through the approved transport under an opaque root.
-
-On an assigned **H100 80 GB** GPU, run the acceptance command below; it is **unrun here**. Preserve that allocation's actual `CUDA_VISIBLE_DEVICES`.
-
-```bash
-set -euo pipefail
+GPU_ROOT="/tmp/${GATE_TOKEN}"
+GPU_KIT="/scratch/jjyeung/${GATE_TOKEN}"
+GPU_PHYSICAL_KIT="$GPU_ROOT/sj/${GATE_TOKEN}"
+test ! -e "$GPU_ROOT"
+mkdir -m 700 "$GPU_ROOT"
+mkdir -p "$GPU_PHYSICAL_KIT"
+(cd "$GPU_TRANSFER" && sha256sum -c 4.sha256)
+nice -n 10 tar -xzf "$GPU_TRANSFER/4.tgz" -C "$GPU_PHYSICAL_KIT"
+mkdir "$GPU_PHYSICAL_KIT/u1" "$GPU_PHYSICAL_KIT/u2"
+nice -n 10 tar -xf "$GPU_PHYSICAL_KIT/1.tar" -C "$GPU_PHYSICAL_KIT/u1"
+nice -n 10 tar -xf "$GPU_PHYSICAL_KIT/2.tar" -C "$GPU_PHYSICAL_KIT/u2"
+# Stage runtime groups/bwrap and extract 4.tar to root/sj/<logical>/d.
+nice -n 10 /usr/bin/python3 -I -s -B "$GPU_PHYSICAL_KIT/u0/u2.py" --enable-namespace --stage \
+  --package "$P" --archive "$ASSET_ARCHIVE" --root "$GPU_ROOT" --kit-root "$GPU_KIT"
 # BEGIN GPU_ENVIRONMENT
-: "${GPU_LOGICAL:?Exact logical root extracted above}"
-GPU_KIT=/scratch/jjyeung/ab0123456789
-READ_PYTHON="$GPU_LOGICAL/d/v/py"
-export XDG_CACHE_HOME="$GPU_KIT/u6" HF_HOME="$GPU_KIT/u6/u0" TRITON_CACHE_DIR="$GPU_KIT/u6/u1"
-export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1
-export PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false
-export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
-mkdir -p "$XDG_CACHE_HOME" "$HF_HOME" "$TRITON_CACHE_DIR"
-nice -n 10 "$READ_PYTHON" -I -s -B - "$GPU_LOGICAL/d/ENVIRONMENT.json" <<'PYENV'
-import json,sys,torch,transformers
-from pathlib import Path
-torch.set_num_threads(8)
-environment=json.loads(Path(sys.argv[1]).read_text())
-actual=dict(torch=torch.__version__,transformers=transformers.__version__,cuda=torch.version.cuda)
-expected=dict(torch=environment['versions']['torch'],transformers=environment['versions']['transformers'],cuda=environment['cuda'])
-if actual!=expected or not actual['cuda'] or not torch.cuda.is_available():
-    raise ValueError('GPU interpreter/environment preflight failed')
-print('Environment preflight passed')
-PYENV
+# The helper executes both commands as J.namespace(root) + [inputs['python'], ...].
+# J.environment supplies HOME, TMPDIR and OPENBLAS_NUM_THREADS=1.
+# XDG_CACHE_HOME/HF_HOME/TRITON_CACHE_DIR are kit/u6, kit/u6/u0, kit/u6/u1.
+test ! -e "$GPU_TRANSFER/5.tar"
+gate_rc=0
+nice -n 10 /usr/bin/python3 -I -s -B "$GPU_PHYSICAL_KIT/u0/u2.py" --enable-namespace --run \
+  --root "$GPU_ROOT" --kit-root "$GPU_KIT" || gate_rc=$?
+# Preserve a passing or failed self-test receipt before job-private /tmp disappears.
+if test -f "$GPU_PHYSICAL_KIT/u9/ue.json"; then
+  nice -n 10 tar -cf "$GPU_TRANSFER/5.tar" -C "$GPU_PHYSICAL_KIT/u9" ue.json
+  nice -n 10 sha256sum "$GPU_TRANSFER/5.tar"
+fi
+test "$gate_rc" -eq 0
 # END GPU_ENVIRONMENT
-nice -n 10 "$READ_PYTHON" -I -s -B /scratch/jjyeung/ab0123456789/u0/u0.py \
-  /scratch/jjyeung/ab0123456789/u0/u2.json --out /scratch/jjyeung/ab0123456789/u9 \
-  --enable-gpu --public --repeat-baseline --shards 4
 ```
 
-The preflight runs the archived production interpreter outside bwrap and fails before the gate if it cannot start, lacks dependencies/CUDA, or differs from ENVIRONMENT.json. No substitute interpreter is accepted. The gate parent, every worker and receipt writer independently compare the recorded versions and SHA256. Cache roots are explicit under the opaque kit root, matching A4's XDG/HF pattern with an explicit Triton root.
+The host helper authenticates the package, CPU-bound inputs and asset archive, stages A4's runtime and the pinned full payload at `logical/p`, then extracts `4.tar` through the live namespace into `root/sj/<logical>/d`. `/usr/bin/python3` handles only stdlib staging and launch. The preflight, `u0.py`, and every worker use A4’s `-B -I` wrapper calling convention and run through `inputs['python']`, the production `d/v/py` wrapper, in `J.namespace(root)`. Workers retain its site overlay. `J.environment(root)` supplies HOME, TMPDIR and OPENBLAS_NUM_THREADS=1; explicit XDG/HF/Triton cache paths stay under the opaque kit root. Missing runtime, failed extraction or version/CUDA mismatch stops the attempt without retry.
+
+The production interpreter first tests the frozen-weight guard on a scratch module: `add_`, `copy_`, and `load_state_dict` must each make `check()` raise ModelMutationError. Any missed mutation or unexpected exception writes `ue.json` with `passed=false` and per-operation evidence, then exits before spawning readers. A passing receipt requires all three checks, and SUBMIT_CHECK enforces that evidence. This self-test supplements the byte-parity comparisons; it does not establish coverage for arbitrary raw writes.
 
 Every arm starts a fresh process. ORIGINAL/OFF/OFF_REPEAT use ordinary journals and modulo shards. ON tests caches; ON_JOURNAL and sequential whole-scene shards test separate journal/shard features. Sequential shards establish equality, not parallel speed. Public logs tokenize item/native/room identities and arbitrary stdout/stderr. No reverse map is written on Orchard.
 
 Acceptance requires all 50 expected IDs, complete production output schemas, nonempty text/tokens/heads, scale even when null, every served response and forced-token count, matching call counters, and **zero semantic byte differences**. ORIGINAL/OFF must also retain every production source hash. Each enabled cache must report its memory bound and useful hits; SAM needs both feature and detection hits. Empty or all-miss runs fail. Only clocks and explicit audit/cache/memo telemetry are excluded from semantic comparison; audit violations fail. There is no answer/trace tolerance.
 
-Each RUN.json and ue.json record the checked torch/transformers/CUDA versions and ENVIRONMENT.json SHA256. Each RUN.json also records the adopted package plan, read profile, asset pins, required device type, actual device, cache slots and budget. The worker checks CUDA device properties before model loading and refuses a different exact name, SM count, compute capability or memory class. `ue.json` is written only after all comparisons finish and records whether they all passed; failed or missing receipts cannot authorize submit. On the H100 host, archive it with `tar -cf /scratch/jjyeung/ab0123456789/5.tar -C /scratch/jjyeung/ab0123456789/u9 ue.json` and print `sha256sum /scratch/jjyeung/ab0123456789/5.tar` for authenticated return transport. Judge net time from `RUN.json`'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).
+Each RUN.json and ue.json record the checked torch/transformers/CUDA versions and ENVIRONMENT.json SHA256. Each RUN.json also records the adopted package plan, read profile, asset pins, required device type, actual device, cache slots and budget. The worker checks CUDA device properties before model loading and refuses a different exact name, SM count, compute capability or memory class. `ue.json` records the guard self-test and, when that passes, whether all comparisons passed; failed or missing receipts cannot authorize submit. The host command saves a passing or failed self-test receipt as `$GPU_TRANSFER/5.tar` and prints its SHA256 before returning the gate exit status. Return that archive through authenticated transport before submitting. This shared receipt survives the allocation’s private /tmp cleanup. Judge net time from `RUN.json`'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).
 
 The cache cap covers retained cache storage and transient copies, not model/caller working memory. Measure full-process host/GPU peaks. Models must remain frozen: calls check parameter/buffer identities, pointers and counters; install/type boundaries hash content. Persistent raw writes fail at a boundary. Raw writes restored between boundaries, private tensor attributes and arbitrary non-tensor state are outside this guard's coverage. Graceful stops verify journals; a hard kill can leave an unchecked journal that requires fresh output.
 
@@ -301,9 +314,9 @@ No multi-card A4 operator is delivered. The array helper is a separate inert pro
 ```bash
 set -euo pipefail
 CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a15.py" PRIVATE_ARRAY_CONFIG.json \
-  --enable-array --token ab0123456789 --out "$LOCAL/array-plan" \
-  --python /scratch/jjyeung/ab0123456789/u1 --source /scratch/jjyeung/ab0123456789/u2 \
-  --staged-config /project/community/jjyeung/okh7/a15_cot_apab0123456789/u3.json
+  --enable-array --token "$GATE_TOKEN" --out "$LOCAL/array-plan" \
+  --python "$GPU_KIT/u1" --source "$GPU_KIT/u2" \
+  --staged-config "/project/community/jjyeung/okh7/a15_cot_ap${GATE_TOKEN}/u3.json"
 ```
 
 This writes commands without running them. Exit 75 requests bounded requeue; other errors remain failures. Lock waits stop after 60 seconds, and the attempt limit forbids more work. Public paths must use approved roots and pass the forbidden-word screen; name checks do not establish storage permissions or capacity.
@@ -327,7 +340,16 @@ Frozen weights remain required. Persistent raw writes are boundary-checked; writ
 | Finding | Fix | Regression |
 |---|---|---|
 | 1. Archive breaks loader admission | Preserve in-tree symlinks; refuse escaping targets before tar; estimated archive is about 33 GB. | Extract an absolute heads link and run real Artifact.verify/load_native admission; reject external, chained, directory, dangling and cyclic links. |
-| 2. Environment unspecified | Use archived d/v/py; preflight versions/CUDA; pin ENVIRONMENT.json through READY, gate and submit; set opaque cache roots. | Changed versions/hash and CPU build refuse; synthetic matching versions pass; submit rejects each changed field. |
+| 2. Environment unspecified | Use archived d/v/py inside A4’s namespace; preflight versions/CUDA; pin ENVIRONMENT.json through READY, gate and submit; set opaque cache roots. | Changed versions/hash and CPU build refuse; synthetic matching versions pass; submit rejects each changed field. |
 | 3. Other export checked late | Builder admits only reviewed step-400 identity/preparation. | Eleven identity/preparation mutations refuse before reading the base. |
 | 4. Unresolved package path | Resolve both archive-path operands. | README validation executes through a symlinked package parent. |
 | 5. Handoff details | Aliases are symlinks; retain tar stderr; generate a fresh a15_cot_ap job token. | Error text survives; commands and alias instructions are checked. |
+
+## Review round 9: finding -> fix -> test
+
+| Finding | Fix | Regression |
+|---|---|---|
+| 1. Wrapper depends on namespace runtime | Stage all pinned A4 runtime groups and bwrap; map data to root/sj; launch preflight, parent and workers with the authenticated wrapper and J.environment. | Exact package staging block, fixture extraction, real namespace argv, parent launch and all worker sites are checked; the round-8 host-interpreter double is removed. |
+| 2. Framework version gap | State CPU/production versions and run the real guard self-test before readers; require its evidence at submit. | add_, copy_ and load_state_dict detection passes; injected misses/setup failure persist failed ue.json and start no workers. |
+| 3. Idle allocation | Gate, seal, stage-kit and transfer precede salloc; give exact host extraction commands. | Ordering assertion and executable archive-extraction block pass. |
+| 4. Token/environment/logs/limits | Fresh kit token, A4 HOME/TMPDIR/OPENBLAS=1, labelled round-7 logs and explicit raw-write limits. | Token, environment, moved-log and documentation regressions pass. |

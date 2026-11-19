@@ -1,55 +1,84 @@
-VERDICT: DONE All round-8 fixes pass CPU verification; production adoption requires the step-400 H100 byte-parity gate.
+VERDICT: DONE The round-9 fixes pass CPU verification; deployment still requires the pinned runtime files and a passing step-400 H100 byte-parity gate.
 
-**Measured validation:** 129 workspace tests and 48 fresh-application tests pass. All ten round-8 tests fail on the reviewed implementation with 29 expected assertion failures and pass on the delivered implementation. All twelve retained fail-before controls reran. Five diffs apply with zero fuzz. Original reader files and OFF output bytes remain unchanged; ON CPU fixtures preserve exact answers and traces. GPU byte equality remains unmeasured and mandatory.
+| Quantity | Value | Evidence type |
+|---|---:|---|
+| Workspace tests | 140 passed | Measured; RESULTS.json and exact outputs below |
+| Fresh-application tests | 59 passed | Measured; MANIFEST applied_cpu_suites |
+| Round-9 regressions | 11 fail before; 11 pass after | Measured; round9_before.txt and round9.txt |
+| Retained fail-before controls | 13 rerun | Measured; exact outputs below |
+| Original base | 927 files unchanged | Measured; full inventory/hash comparison |
+| Additive reader files | 40 | Measured; patches 01–03 |
+| Runtime archive parts | 13; 10,497,433,600 bytes | Read from A4's own receipt; bytes not supplied |
+| bwrap | 72,160 bytes | Read from A4's own receipt; binary not supplied |
+| Prepared asset archive | About 33 GB | Estimate from 32,606,120,583 declared expanded input bytes plus tar headers |
+| Largest suite child RSS | 399,388,672 bytes | Measured CPU process resource counter |
+| Guard benchmark peak RSS | 1,322,348,544 bytes | Measured CPU process resource counter |
+| Workspace at report generation | 2,941,806,587 unique-inode bytes | Measured; below 3,000,000,000 |
 
-**Bound export, read from supplied pins:** step **400 only**, read A/job **173060**, source package **a15_cot_apdc76460c3a164**, artifact SHA256 **5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd**. Every later export is diagnostic and cannot authorize adoption through this kit. The builder refuses a different identity before reading the base; the gate requires the complete supplied export pin.
+OFF reader source and output bytes remain unchanged. ON CPU fixtures preserve exact answers and traces. GPU equality, throughput and memory remain unmeasured. Zero answer/trace byte differences remain mandatory; aggregate score equality cannot authorize adoption.
 
-**Estimated storage:** the uncompressed asset archive is **about 33 GB**, based on **32,606,120,583 expanded bytes read from the six archives declared in the supplied a10b_pins/1.json**, plus tar headers ([source pin](checks/ARCHIVE_ESTIMATE8.json)). The links preserve shared shard/head targets. No production-size archive was measured. Reserve additional space for extraction, source trees and runtime outputs.
+Work started at **18:38:16 UTC on 2026-11-19**; the deadline is **19:38:16 UTC**. This report was generated at Thu Nov 19 19:15:25 UTC 2026. [out_round9](../out_round9/) preserves the reviewed delivery. All local computation used nice 10, hidden CUDA and at most eight torch/OMP/MKL/OpenBLAS threads. No Git, SSH, SCP, Slurm operation, GPU, paid API, input-tree edit or deletion command ran. Network reads were limited to library documentation.
 
-**Measured local resources:** largest suite child RSS 399,253,504 bytes; guard benchmark peak RSS 1,326,075,904 bytes. Workspace usage at report generation: 2,940,861,788 unique-inode bytes, below 3,000,000,000. [STORAGE8.json](checks/STORAGE8.json) records 164,251,867 identical bytes shared across 4,198 completed pre-task fixture paths, preserving each path and its bytes. No workspace-cap violation was observed.
+## Review round 9: finding -> fix -> test
 
-Work started **17:30:31 UTC, 2026-11-19**; deadline **18:30:31 UTC**. Report generated at Thu Nov 19 17:52:25 UTC 2026. [out_round8](../out_round8/) preserves the complete reviewed delivery. CPU checks used torch 2.11.0+cpu, transformers 5.12.1, eight torch threads, CUDA hidden and `nice -n 10` (benchmark effective nice 19). No Git, SSH, scheduler action, GPU execution, paid API, input-tree edit or deletion command ran. Network reads were limited to official library documentation.
-
-## Review round 8: finding -> fix -> test
-
-| Finding | Fix | Regression test |
+| Finding | Fix | Regression |
 |---|---|---|
-| MEDIUM 1: dereferenced restore links fail loader admission | Validate all links inside the live namespace, then `tar -cf - -C <logical>/d .`; preserve in-tree links and reject escaping targets, dangling links and cycles. Archive estimate: about 33 GB. | `test_f1_preserved_absolute_link_passes_real_artifact_and_load_native` extracts `e/heads.pt -> <logical>/d/m400/heads.pt`, calls real Artifact.verify and real load_native, and reaches the stub processor only after the real resolve() checks. Six link-refusal cases pass. |
-| LOW 2: GPU interpreter/environment unbound | README uses d/v/py, explicit opaque XDG/HF/Triton caches and executable version/CUDA preflight. ON prepare adds CUDA and READY.environment. CPU evidence includes ENVIRONMENT.json; gate, workers, ue.json and submit compare exact torch/transformers/CUDA values and its SHA256. | Runtime/receipt, executable shell preflight, CPU-bound gate and submit mutation tests reject changed versions/hash and missing CUDA. CUDA imports/device availability are explicit test doubles. |
-| LOW 3: another export fails late | a19 admits only the reviewed step-400 identity, archive pin/size, base/frame identity and preparation hashes before reading the base. Gate accepts only the complete reviewed export; no selection flag remains. | Eleven binding mutations refuse before base access/output. Fixed step-400 build and complete CPU operator path pass; changed artifact refuses at the gate. |
-| LOW 4: unresolved package path | Resolve both recorded and package archive paths. | Execute the README archive-validation heredoc through a symlinked package parent. |
-| INFO 5: aliases, stderr and job name | Require symlink aliases; keep stderr in results/4.err; generate a fresh a15_cot_ap hexadecimal job token. | Real tar failure diagnostic survives; README alias/environment/token commands are checked. |
+| MEDIUM 1: the wrapper needs A4's namespace | The host helper authenticates the package and staging modules, executes A4's unchanged runtime-group/bwrap staging block, and extracts the CPU-bound archive to root/sj/<logical>/d. Preflight, parent and every worker use J.namespace(root), inputs['python'] and A4's -B -I convention. J.environment supplies HOME, TMPDIR and OPENBLAS_NUM_THREADS=1. | Four round-9 tests cover real namespace argv, actual parent launch, authenticated bootstrap/data extraction, the unchanged staging block and part hashes. The round-8 host-executable wrapper double is removed. |
+| LOW 2: framework version gap | FRAMEWORK_EVIDENCE states CPU torch 2.11.0+cpu / transformers 5.12.1 versus production torch 2.13.0+cu130 / transformers 5.19.0. Before readers, the production interpreter must detect add_, copy_ and load_state_dict on fresh frozen scratch modules. ue.json records each result; submit requires all three. | Four tests exercise the actual guard, each injected miss, receipt refusal, actual main's failed receipt with zero worker launches, setup exceptions, and submit rejection. |
+| LOW 3: idle H100 allocation and incomplete staging commands | The private configuration gate, seal, stage-kit and archive transfer precede salloc. README gives exact kit and original/patched source extraction commands. | The ordering regression also executes README's extraction block on small authenticated archives. Fresh application separately authenticates both complete 927-file roots. |
+| INFO: token, environment, log labels and limits | A fresh opaque token determines the kit root; A4 owns HOME/TMPDIR/OPENBLAS. Eight carried applied logs live under checks/round7/. Frozen ownership and raw-write limits remain explicit. | Two regressions check fresh-token/version/guard documentation and all eight moved logs; namespace tests check the actual environment. |
 
+
+## Runtime prerequisites and exact pins
+
+The following files must be reachable at their **exact Orchard paths** before the H100 gate can stage. None exists at its corresponding path in the supplied so_in mirror. This is a prerequisite, not a claim that the files are absent on Orchard: this task had no host access. No alternative source or substitute interpreter is assumed.
+
+The authoritative receipt is A4/src/orchard_h10/vendor/ORCHARD_ASSETS.json, SHA256 `a62285317a774cee040ceb5817e7ad7a7e08e12ea412b8f416cfb97b5a1c12ee`, observed on **orchard-login-001**. [RUNTIME_PINS.json](kit_parity50/RUNTIME_PINS.json) copies its three groups and bwrap pin. [RUNTIME_PREREQUISITES9.json](checks/RUNTIME_PREREQUISITES9.json) records each exact supplied-mirror path checked. Group numbers retain the package's grouping; archive member lists were not supplied, so this report does not guess which part contains each library.
+
+| Group | Exact Orchard source | Bytes, from receipt | SHA256, from receipt |
+|---|---|---:|---|
+| 0 | `/home/jjyeung/okit/p/d59945c1/4fe70504.00` | 900000000 | `273174ae1d1bc812a8843b3e2eec77e77b66b4a10d60c8871ea47529c395e2d7` |
+| 0 | `/home/jjyeung/okit/p/d59945c1/4fe70504.01` | 721422080 | `c733222251bfa18ca823a719e025e3924fda21cffffc6f50cd19bb8ece4860a3` |
+| 1 | `/home/jjyeung/okit/p/d59945c1/50011a59.00` | 900000000 | `a4ca7e645d1c4384bdb9506ef3e823e3964e18948f48cc627709f843744ea976` |
+| 1 | `/home/jjyeung/okit/p/d59945c1/50011a59.01` | 900000000 | `beca0e524255eb310d978ec092bfab080f45e36e05ae99bfc2c3e6aeb0882e9a` |
+| 1 | `/home/jjyeung/okit/p/d59945c1/50011a59.02` | 900000000 | `508e09bcce4652471a5f3115344c2ab2e2fde61cc3db17d872d45c37861087c1` |
+| 1 | `/home/jjyeung/okit/p/d59945c1/50011a59.03` | 900000000 | `6f25823a68896cbf0dc87ae26a9e4d2fa25d57b1d52739c22ccad5c5d49214ef` |
+| 1 | `/home/jjyeung/okit/p/d59945c1/50011a59.04` | 900000000 | `139fcc93fb1b36552564fceacf201127586c237d03f43b8e3c8e45d116f1be97` |
+| 1 | `/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.05` | 900000000 | `1cd72e6e222dbe15efab47d01adeca45aaecf3f62fcd52a6e72dd7786b307489` |
+| 1 | `/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.06` | 900000000 | `010b1302ce0ec32d1db758a4bf503e9cca4583e898ec868be4dc613694f50ed6` |
+| 1 | `/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.07` | 900000000 | `32687478f272e14632411099b316fdbb6b2d1587708ccd1893c4819a2511ba19` |
+| 1 | `/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.08` | 900000000 | `d571f17a5ed9e03514ec4553919cdebacb33fe037cad39d8f0aadb1cfafcb4fc` |
+| 1 | `/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.09` | 366728960 | `128dfaca7b744e0cf884b7caf1bc15080fab549b8e26107adb5a9b8d2b5a51a5` |
+| 2 | `/project/community/jjyeung/bd8ae51c/p/d59945c1/371be2e2.00` | 409282560 | `4b11b4df5ebf8a20e5c73e5ae09f4f4695f79b44e0223254a8bbaad84127b6b3` |
+| bwrap | `/project/community/jjyeung/cp4tk_rt/kit/bwrap` | 72160 | `e318903862396f96de3df57264e0158682b952fd3fb53ac23d876413e7b30f71` |
+
+The helper executes the runtime-group and bwrap block copied unchanged from `job.stage:110–117`; a regression compares that block with the real package source. Its S.copy_parts checks every part's bytes and SHA256 before S.unpack; S.room retains A4's 200 GiB free-space floor. Only the tiny fixture archives were staged here. The real runtime expansion and host disk usage are not measured.
+
+The runtime binds supply `/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904/e` and `/home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu`, following `vendor/orchard_job.py:129–131`. The wrapper is inputs['python'], `/scratch/jjyeung/b01ec87a6f29b/d/v/py`, from the CPU-authenticated a/1.json. The wrapper and its site overlay remain intact. The host helper, not the wrapper, runs under `/usr/bin/python3`; the helper passes actual Python 3.6 syntax/import checks.
 
 ## Staging and adoption contract
 
-The ON CPU-proof job opens `$P/a/4.tar` outside bwrap, then runs link validation and tar inside its live `J.namespace(root)`. Validation walks `logical/d` without following directory symlinks and resolves every symlink strictly. A target outside that root, a broken chain or a cycle aborts. The same namespace process executes `/bin/tar -cf - -C <logical>/d .`. Absolute in-tree links therefore reach their original targets when the GPU host restores the same logical root. Tar stderr persists at `results/4.err`; a failed attempt has no successful CPU.json. The job flushes/fsyncs and hashes the archive before publishing its path, bytes, logical root and SHA256. OFF performs none of this staging.
+Follow [README](kit_parity50/README.md): apply patches 01–03 to the pinned full A4 source and 04–05 to its operator; build with `u0/a19.py --enable-extensions --manifest ... --extension-pins ...`; place, fill and obtain the CPU proof. Then run the private configuration gate, seal, stage-kit and archive transfer before salloc. The fresh token determines kit and source paths. Exact commands extract the public kit and both full source roots on the allocated host.
 
-The tiny archive/loader regression uses real Artifact and load_native admission; it stubs only model construction after admission. The complete A4 CPU fixture executes the patched CPU helper, preparation, rehearsal, bootstrap and 636 stub reads. Its data, namespace/storage and model work are synthetic. Applied-tree integration reconstructs READY-identical assets from the produced archive after the original fixture data directory becomes unavailable.
+The H100 host uses a fresh job-private `/tmp/<token>` root. Its namespace maps root/sj to /scratch/jjyeung and binds the runtime roots; no bare-host /scratch path is needed. The helper authenticates the package payload and staging members, CPU proof and exact a/1.json, restores the pinned full payload at logical/p for the code paths authenticated by d/manifest.json, then verifies the prepared archive's bytes/hash and extracts it through bwrap into root/sj/<logical>/d. Absolute in-tree links retain their logical targets. The neutral binding/environment aliases are symlinks. Runtime/data staging must finish before the preflight or reader starts.
 
-ON prepare records torch/transformers and compiled CUDA versions in ENVIRONMENT.json and pins its exact bytes in READY. The CPU helper copies that file into proof evidence. `a20 gate` checks the evidence against CPU READY before GPU work; the parent, each worker and receipt writer compare the actual library/build versions and hash again. `ue.json` carries those checked values, and SUBMIT_CHECK compares them with the CPU-bound file. The real CPU fixture records cuda=null, so it cannot pass the production environment check. A separate, explicitly synthetic version-import double exercises successful receipt serialization and submit checks; it is not GPU evidence.
+Preflight, parent and every worker run as `J.namespace(root) + [inputs['python'], '-B', '-I', ...]`. Every process uses J.environment(root), including HOME, TMPDIR and OPENBLAS_NUM_THREADS=1, with explicit XDG/HF/Triton caches under the opaque kit root. The parent and all workers authenticate environment, assets and kit bytes. The host helper is included in the package's kit hashes and checked at submit.
 
-On the H100 host, `/scratch/jjyeung` must physically exist and be writable outside bwrap. Preserve the exact logical root; its destination must be absent before extraction. The README sets `READ_PYTHON="$GPU_LOGICAL/d/v/py"` and preflights that executable, versions and CUDA availability before starting the gate. If that interpreter depends on an unavailable external path, the preflight fails; no substitute interpreter is accepted. XDG_CACHE_HOME, HF_HOME and TRITON_CACHE_DIR live under the opaque kit root. Neutral asset aliases must be symlinks because the loader admits resolved manifest targets. The binding/environment examples use symlinks too.
+The gate binds **step 400 only**, read A/job **173060**, source package **a15_cot_apdc76460c3a164**, artifact SHA256 **5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd**. Other exports cannot authorize adoption. The candidate is A4's **636-item** schedule, one card, caches only, general/no-requeue. All-cache allowance is 12 GiB; processor-only is 4 GiB and requires its own matching gate. The gate requires exactly NVIDIA H100 80GB HBM3, 132 SMs, capability 9.0 and 79–86 billion bytes of memory.
 
-The gate allocation is one H100, eight CPUs, 200G, five hours, general/no-requeue, named `a15_cot_ap` plus a fresh opaque hexadecimal token. Preserve the allocation's actual CUDA_VISIBLE_DEVICES. Device admission requires **NVIDIA H100 80GB HBM3**, **132 SMs**, capability **9.0**, and **79–86 billion bytes** of memory.
+The CPU proof preserves in-tree symlinks, rejects escaping/broken/cyclic links, records archive hash/bytes before CPU.json and retains tar stderr in results/4.err. Reserve about 33 GB for that archive **as an estimate**, plus data extraction and runtime space. Missing pins, failed staging, failed self-tests or byte differences stop the attempt; no automatic retry or substitute runtime is provided.
 
-Follow [README](kit_parity50/README.md): apply reader patches 01–03 and operator patches 04–05; build with `u0/a19.py --enable-extensions --manifest ... --extension-pins ...` and the delivered step-400 binding; generate operations; place; run detached fill; wait at most 14,400 seconds; run CPU proof; stage and run the zero-difference GPU gate; return its receipt; submit; fetch and unpack. Failed/killed attempts require inspection and a fresh token, never automatic retry.
+## Framework gap, equality and guard limits
 
-Submit keeps cont_ops' complete CPU assertions verbatim and checks cache memory, both dry checks, an empty general queue, the bounded return pool, and matching gate plan/profile/assets/device/environment/kit hashes. A refused unpack leaves its extracted tree behind. Scorers require **success output after exit status 0**; complete=false remains partial. The documented unpack command uses `-s -E -B` from the operator directory and an `&&` handoff.
+CPU verification uses **torch 2.11.0+cpu / transformers 5.12.1**. The production receipt requires **torch 2.13.0+cu130 / transformers 5.19.0**. [PRODUCTION_ENVIRONMENT9.json](checks/PRODUCTION_ENVIRONMENT9.json) is authenticated against the 359-byte a/1.json files.env pin; it was copied into this delivery, so no reference-workspace file is needed to run the kit. [FRAMEWORK_EVIDENCE](FRAMEWORK_EVIDENCE.md) distinguishes local source evidence from production requirements and cites installed source lines plus official documentation. Torch counter/loading behavior and transformers processor/model/kernel dispatch may differ across these versions.
 
-## Equality and mutation limits
+The production interpreter runs the actual WeightGuard self-test before reader workers. Each fresh frozen scratch module undergoes one of add_, copy_ or load_state_dict, followed by check(); all three must raise ModelMutationError. A missed detection or setup error writes a failed ue.json and starts no workers. The receipt and submit checker require complete passing guard evidence. Local tests measured this on torch 2.11 only; no torch 2.13 outcome is claimed.
 
-The ordinary reader imports no extension and parses no new settings. The OFF fixture compares complete output files/stdout, including source hashes and controlled timing fields, against the original without exclusions. [OFF_BYTES.json](checks/OFF_BYTES.json) records the byte proof. The operator memory/return additions are guarded by read_extensions, whose default is OFF.
+Models must remain frozen. Calls check identities, pointers, tensor versions, shapes/dtypes/devices and requires_grad; installation and type boundaries hash content. Persistent raw writes fail at a boundary. **Raw writes restored between boundaries remain undetected**; private tensor attributes and arbitrary non-tensor state also remain outside coverage. A hard kill can leave an unchecked journal requiring fresh output. The cache cap covers retained storage and transient copies, not model/caller memory.
 
-The 50-item CPU fixture compares original/OFF/processor+vision/processor-only answers and traces exactly with stub generation. Separate SAM fixtures check cached values, geometry recomputation and mutation rejection. Production adoption requires the unrun ORIGINAL/OFF/OFF_REPEAT/ON/journal/sharded GPU gates, useful hits in every enabled cache, and **zero answer/trace byte differences**. Only clocks and explicit telemetry are excluded; equal scores cannot hide changed answers. No batching implementation or numeric tolerance is delivered.
+The gate requires all 50 expected IDs, full production output schemas, useful hits for every enabled cache, unchanged ORIGINAL/OFF source hashes and zero semantic byte differences across the arms. Only clocks and explicit audit/cache/memo telemetry are excluded; audit violations fail. Sequential scene shards test equality, not parallel speed. Batching and numerical tolerances are not offered. A multi-card A4 operator is not delivered; the array prototype remains approved=false.
 
-Calls check every parameter/buffer identity, pointer and version. Full hashes run at installation and type boundaries. Persistent .data/NumPy/raw-storage writes fail at boundaries; a raw write restored before the next boundary can evade detection. Private tensor attributes and arbitrary non-tensor module state are outside the guard's coverage. Models must remain frozen. A hard worker death can leave WEIGHTS.json false; graceful stops validate it. Processor-only runs install no weight guard.
-
-ON eagerly constructs SAM outside inference mode; OFF constructs it lazily inside inference mode. This changes load timing and potentially RNG use. Only the GPU byte gate can clear the difference. Per-item timing omits installation and boundary costs; judge net performance using RUN.json worker_wall_seconds. The sample overstates reuse: its ten distance items share one clip, while A4 has 150 distance items over 60 clips (review finding 7). No production saving is credited.
-
-
-
-
+A refused unpack leaves its extracted tree behind. Scorers require **success output after exit status 0**, and complete=false remains partial. Submit retains cont_ops' complete CPU assertions, cache memory, dry proofs, queue/pool checks and matching plan/profile/assets/device/environment/kit/self-test evidence.
 
 ## Measured profile and forecast
 
@@ -80,579 +109,88 @@ A4 already records 461 G3T memo hits and 77 misses, retaining 128,553,354 payloa
 
 
 
+
 ## Measured CPU guard overhead
 
-Each bf16 stub has 2048×1024 parameter tensors and a 1024-element buffer per module. Forward returns a 32-element tensor without model-sized matrix work. After one miss and a warm hit, each implementation runs seven timed hits; the boundary median covers three hashes. These CPU measurements do not predict GPU speedup. Raw samples: [CACHE_COST3.json](checks/CACHE_COST3.json).
+These rerun CPU stubs use bf16 2048×1024 parameter tensors and 1024-element buffers. Their forward returns a 32-element tensor without model-sized matrix work. Seven warm cache hits and three boundary hashes are timed per case. The numbers do not predict H100 speedup; raw samples are in [CACHE_COST3.json](checks/CACHE_COST3.json).
 
 | Parameters | Parameter/buffer tensors | Weight+buffer bytes | Full hashing ms/call | Live guard ms/call | Install s | Boundary s |
 |---:|---:|---:|---:|---:|---:|---:|
-| 268435456 | 128/128 | 537133056 | 381.157 | 38.085 | 0.378 | 0.365 |
-| 536870912 | 256/256 | 1074266112 | 852.952 | 57.091 | 0.724 | 0.809 |
-
-## Framework evidence
-
-[FRAMEWORK_EVIDENCE.md](FRAMEWORK_EVIDENCE.md) supplies installed-source file:line citations and official documentation for retained framework assumptions. Environment-version evidence comes from torch/__init__.py:60, torch/torch_version.py:66, torch/version.py:4–6 and transformers/__init__.py:21. CUDA availability comes from torch/cuda/__init__.py:161–180; device properties from :673–695 and torch/_C/__init__.pyi:12448–12453. [SOURCE_EVIDENCE8.json](checks/SOURCE_EVIDENCE8.json) pins those installed files and documentation URLs. [TORCH_VERSIONS3.json](checks/TORCH_VERSIONS3.json) records rerun mutation probes. No GPU call was executed locally.
+| 268435456 | 128/128 | 537133056 | 372.883 | 28.331 | 0.385 | 0.383 |
+| 536870912 | 256/256 | 1074266112 | 793.565 | 56.689 | 0.750 | 0.743 |
 
 ## Patches and authentication
 
-Base SHA256: `813fe4c57b2deed4bd731dd1e3493b6b0bed8d31e7bff92ff112cf5c9df823c3` over **927 files**. Reviewed A4 payload SHA256: `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d` (5252958 bytes). B5 checks establish patch applicability; this GPU kit authenticates A4.
+Base SHA256: `813fe4c57b2deed4bd731dd1e3493b6b0bed8d31e7bff92ff112cf5c9df823c3` across 927 files. Reader patches add 40 files and change no original reader bytes. Operator changes remain behind read_extensions, default OFF. Five patches apply with zero fuzz to fresh copies; full original/patched base inventories and extension hashes pass. MANIFEST pins copied A4 members, payload, batch/bootstrap, operators, kit, operation files and export provenance.
 
 | Patch | Bytes | SHA256 |
 |---|---:|---|
 | [01_bounded_read_caches.diff](patches/01_bounded_read_caches.diff) | 90430 | `369af9663fbc1008f9ecf5a32c5067ba4a5f4cd31412f07db8263b13b23fd4c3` |
-| [02_atomic_scene_shards.diff](patches/02_atomic_scene_shards.diff) | 218841 | `5f76cf79e29471138161e476daf3920ec2bcbf751586fc47528fbd7388530cfa` |
-| [03_production_integration.diff](patches/03_production_integration.diff) | 228258 | `a8759582c4335a0c17d3c9e1a5eb7664a8c95af6832e27d01d138a0b8c76ffaa` |
+| [02_atomic_scene_shards.diff](patches/02_atomic_scene_shards.diff) | 218861 | `451fa5b97a8df76ec5985d0b4c8ce0c7d9ca2723c3865feeaa5148ecd04b1b0c` |
+| [03_production_integration.diff](patches/03_production_integration.diff) | 256154 | `d603113a6325a8e285a8b142c4fd49249d29cc7bf350e584fb745417eaeb70be` |
 | [04_operator_cache_bound.diff](patches/04_operator_cache_bound.diff) | 2723 | `0d3bdc2d943554cd525627466d2d71f30881884e76df95204ede6c1accdb9061` |
 | [05_operator_return_and_proof.diff](patches/05_operator_return_and_proof.diff) | 6754 | `5369d7a7b2442a00a63bf318904a5e60ba972f6a6512500241c64019c77778cd` |
 
-Reader patches add **38 files** under u0/, including tests, and preserve all original reader bytes. Operator changes remain behind read_extensions. MANIFEST pins full original inventories, copied A4 members, batch/bootstrap, patched operators, extension bytes, kit, operation files and export provenance. The 85 original development files and all 927 original fresh-application files match their input hashes.
+Eight carried round-7 applied logs were moved into **checks/round7/** without changing their bytes. Current applied logs are listed by MANIFEST. Identical completed fixture files share storage after byte-for-byte checks; paths and contents remain intact. [STORAGE9.json](checks/STORAGE9.json) records bounded local sharing passes.
 
 ## What could go wrong and how we would notice
 
 | Risk | Detection and response |
 |---|---|
-| Restore/environment includes a symlink outside d, or tar/storage fails | Namespace validation or tar fails before CPU.json; results/4.err preserves the error. Inspect and use a fresh attempt. |
-| Exact logical path or interpreter is unavailable outside bwrap | Host-path checks and the executable GPU preflight fail before gate work. |
-| Environment changes after CPU proof | Gate/runtime/receipt/submit hash and exact version comparisons refuse. |
-| Different export, changed filled pin, source, operator or kit | Builder, CPU evidence, worker and submit pins refuse. |
-| GPU kernels or eager SAM change answer/trace bytes | Zero-difference gate refuses; equal scores cannot waive it. |
-| Cache overhead or working memory outweighs savings | Measure full worker wall time and host/GPU peaks; cache limits exclude model/caller memory. |
-| A raw write is restored between boundaries | Frozen ownership remains required; the guard cannot detect this sequence. |
-| A partial/refused return is scored | Require successful unpack output and complete status. |
+| Missing runtime part, bwrap, insufficient local space or failed extraction | Exact part hash/size checks, S.room and staging errors refuse before the preflight. Supply the named prerequisite; do not substitute an environment. |
+| Namespace or wrapper cannot start on H100 | Preflight is wrapped in real J.namespace and uses the authenticated wrapper; failure stops the attempt. Actual bwrap execution is untested here. |
+| Torch 2.13 changes guarded mutation behavior | In-gate self-test writes failed per-operation evidence and starts no readers; submit rejects it. |
+| Different versions, export, source, operator or kit | CPU, gate, worker and submit pins refuse. |
+| GPU kernels or eager SAM loading change bytes | Zero-difference acceptance refuses; score agreement is insufficient. |
+| Cache overhead or caller/model memory dominates | Measure whole-worker time and host/GPU peaks before crediting savings. |
+| Raw write restored between boundaries | Frozen ownership remains required; the guard cannot detect that sequence. |
+| Partial or refused output reaches a scorer | Require successful unpack output and complete status. |
 
 ## Not done
 
-No production GPU parity, throughput or peak-memory measurement; large archive; real bwrap/restore; interpreter execution on H100; transport/upload/submit; return publication; persistent-storage requeue; or multi-card A4 operator was run or delivered here. No numerical tolerance or batching is offered. The array prototype remains approved=false. CPU tests need no local OS sockets. Archive size is an estimate, and host storage/interpreter readiness remain external preconditions.
+The 13 runtime parts and bwrap were not fetched. No real H100 namespace, production wrapper/overlay, torch 2.13 self-test, GPU byte parity, throughput, memory peak, large archive, transfer, submit, return publication or persistent-storage requeue was run. The source/bootstrap/extraction tests use tiny files; namespace execution and missing-runtime I/O are explicit doubles. CPU checks need no local OS sockets. No runtime dependency on so_reads228 remains.
+
+The requested review sections below are retained as test traceability. They state current contracts; the required round labels are the only historical framing retained under the no-archaeology writing rule.
+
+## Review round 8: finding -> fix -> test
+
+Symlink-preserving archive/real-loader admission, CPU-bound runtime versions, step-400-only build admission, resolved archive paths and retained tar diagnostics pass. The interpreter command is checked inside A4’s namespace. The preserved control reproduces 29 assertion failures.
 
 ## Review round 7: finding -> fix -> test
 
-CPU-job staging, bounded fill waits, exact SXM admission, kit/input evidence and host-safe receipt/unpack commands pass their regressions. The decision export is step 400 only. The retained before-fix control reproduces ten assertion failures.
+CPU-job asset staging, bounded fill waits, exact HBM3/132-SM admission, kit/input evidence and step-400 export binding pass. The preserved control reproduces ten assertion failures.
 
 ## Review round 6: finding -> fix -> test
 
-Executable unpack, detached locked fill, complete cont_ops assertions, copied-member pins and checkpoint/device admission pass. The reviewed implementation reproduces 31 expected assertion failures.
+Executable unpack, detached locked fill, complete cont_ops CPU assertions, copied-member pins and export/device admission pass. The preserved control reproduces 31 assertion failures.
 
 ## Review round 5: finding -> fix -> test
 
-The batch matches cont_ops wrap_batch and passes the real bundle guard. Payload/operator/extension authentication, operations, profile, pool, forecast and unpack checks pass; the before-fix control reproduces eleven failures.
+Batch wrapping, package/operator/extension authentication, executable operations, exact adoption profile, pool bound and unpack checks pass. The preserved control reproduces eleven assertion failures.
 
 ## Review round 4: finding -> fix -> test
 
-The A4 route preserves run keys, binding, fill admission and compatible helpers; CPU preparation/rehearsal/bootstrap/action dispatch pass. The fixed step-400 fixture completes 636 stub reads in five verified ordinary journals. Return checks reject invalid weight receipts. Both retained failure controls reproduce.
+The A4 builder retains export binding and compatible operation helpers. Preparation, rehearsal, bootstrap/action dispatch and return checks pass, including 636 stub reads. Both preserved controls reproduce their failures.
 
 ## Review round 3: finding -> fix -> test
 
-Install/type-boundary hashes, cheap fatal live guards, processor-only mode, operator memory/dispatch, base authentication, lock/worker and OFF-import checks pass. Retained failure controls reproduce.
+Install/boundary hashing, fatal per-call identity/counter checks, processor-only mode, operator cache allowance/dispatch, base authentication, lock recovery and worker arguments pass. Preserved controls reproduce their failures.
 
 ## Review round 2: finding -> fix -> test
 
-Entry isolation, path policy, bounded array attempts, overlay pins, SAM capacity, deadline/lock/accounting and worker setup pass. The before-fix control reproduces thirteen assertions and the expected CLI import error.
+Entry isolation, path policy, bounded arrays, overlay pins, SAM capacity, deadline/lock/accounting and worker setup pass. The preserved control reproduces thirteen assertions and one expected CLI import error.
 
 ## Review round 1: finding -> fix -> test
 
-Typed keys, parity schemas, original/OFF provenance, frozen identity, lock-held recovery, opaque transport and bounded storage pass; all eight before-fix regressions reproduce.
+Cache keys, strict parity schema/hits, unchanged OFF bytes, weight identity, writer-lock recovery, opacity and hard retained-memory accounting pass. The preserved control reproduces eight assertion failures.
 
-The review sections are retained because the binding prompts explicitly request them. Historical test-control labels identify the preserved defect demonstrations; they do not offer additional adoption targets.
+## Exact commands and outputs
 
-## Commands and exact outputs
+Commands run from the workspace use work/cpu.sh, which sets the required environment and execs nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B. Fixture commands additionally use work/run_fixture5.py to share immutable fixture bytes; this does not replace production logic. Before-control failures below are expected. Development failures remain in separately labelled logs.
 
-Commands ran from `/scratch/jjyeung/orch_n30/so_read`. `work/cpu.sh` exports CUDA_VISIBLE_DEVICES="", OMP/MKL/OPENBLAS threads=8, TOKENIZERS_PARALLELISM=false, PYTHONDONTWRITEBYTECODE=1 and scratch caches; it executes the approved Python through `nice -n 10` and `-I -s -B`. Children inherit these limits. Tests set torch threads to eight. The documented unpack command uses `-s -E -B` for sibling imports.
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_read_cache.py`
 
-Test subprocesses set READ_INPUT_SRC=/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src and READ_TEST_TMP=/scratch/jjyeung/orch_n30/so_read/work/test-artifacts. Applied suites set READ_OPERATOR_SOURCE and READ_OPERATOR4_SOURCE beneath `/scratch/jjyeung/orch_n30/so_read/work/apply-round8/7bad3024af544e60b7370835bb10f7cb/operator`. Immutable fixture sharing detaches shared files before edits. All outputs below are literal. Before-fix failures are expected controls. No cluster kill or automatic relaunch occurred.
-
-```bash
-bash work/cpu.sh work/run_checks.py
-```
-
-Exact output:
-
-```text
-cache: OK
-journal: OK
-off: OK
-public: OK
-round1: OK
-round2: OK
-round3: OK
-operator3: OK
-lock3: OK
-round4: CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d18b78d68ff04ed89f95f8173c9ed0f8
-round5: All CPU receipt checks passed
-round6: Detached fill: success=0, failure=17, duplicate launch refused.
-round7: Only reviewed step-400 export passes; changed artifact and selectable-export API refuse.
-round8: Runtime torch/transformers/CUDA and environment SHA256 are exact; changed versions, bytes and CPU build refuse.
-kit: OK
-kit_launch: OK
-PASS: all 8 round-1 regressions fail against the round-1 reviewed implementation.
-PASS: all 13 round-2 regressions fail against the round-2 reviewed implementation (14 failures including both CLI variants).
-PASS: round3_before reproduces FAILED (failures=15).
-PASS: operator3_before reproduces FAILED (failures=2).
-PASS: lock3_before reproduces FAILED (failures=2).
-PASS: round5_before reproduces FAILED (failures=11).
-PASS: round6_before reproduces FAILED (failures=31).
-PASS: round7_before reproduces FAILED (failures=10).
-PASS: round8_before reproduces FAILED (failures=29).
-PASS: round4_before reproduces FAILED (failures=7, skipped=1).
-PASS: node4_before reproduces FAILED (failures=1).
-PASS: f16_behavior_before reproduces FAILED (failures=1).
-PASS: Python syntax, shell syntax, and default-off execution guards.
-{"cuda_visible_devices": "", "max_child_rss_bytes": 399253504, "torch": "2.11.0+cpu", "torch_threads": 8, "transformers": "5.12.1", "workspace_bytes": 2957955790}
-```
-
-```bash
-bash work/cpu.sh work/run_fixture5.py work/build_patches.py
-```
-
-Exact output:
-
-```text
-PASS: 3 additive reader diffs (38 files) plus 2 default-OFF A4 operator diffs; zero-fuzz application; unchanged original reader hash trees.
-PASS: OFF, round-4/5/6/7/8 integration and comparator suites pass from the fresh applied A4 tree; both complete 927-file base inventories authenticate.
-Applied verification root: /scratch/jjyeung/orch_n30/so_read/work/apply-round8/7bad3024af544e60b7370835bb10f7cb
-```
-
-```bash
-bash work/cpu.sh work/gate_integration8.py
-```
-
-Exact output:
-
-```text
-PASS: actual CPU fixture environment refuses before synthetic GPU receipt serialization.
-All CPU receipt checks passed
-{"passed": true, "pool_bytes": 0}
-PASS: CPU helper produced the archive before CPU.json; its recorded hash/bytes and exact a/1.json match.
-PASS: archive reconstructs READY-identical assets after the fixture private data path becomes unavailable.
-PASS: public stage-kit bytes match MANIFEST-derived pins; changed driver, comparator and sealed sample each refuse.
-PASS: exact CPU evidence feeds gate and full submit assertions; only reviewed step400 passes; synthetic environment evidence binds submit.
-PASS: failed synthetic GPU receipt refuses; no GPU evidence was measured or submitted.
-{"archive_bytes": 20480, "archive_sha256": "789efaf638b91b70a6193a23c236fd6802f869b8cdde069016bf64b62f2f08cb", "assets": {"binding": "4e4cbf9cb04ec6d1fe6efcba26a6316662fdf2769a7d33b2278471904cef6e80", "export_pin": "3ecf348301576174e3322b7105b6c3cab87606ef906226dab7cdb6073d651a5e", "restore": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"}, "environment": {"cuda": "12.9", "sha256": "437dd3df35eac78affdb22dacee5045ea803d23f451d95fa4590fb321782af6d", "torch": "2.11.0+cpu", "transformers": "5.12.1"}, "kit": {"compare.py": "73858354fe8d366880873246e6256393ea2b27d5979af4e128e93c569a92f50e", "run.py": "82357dffb4611336220008e75b05e9f59a20c9bcb866d2f128445cb9939ff71a", "sample50.json": "1fdb65050f933d8578c849fbaa1010515ed07ad959234afd2d90cefdd946531b"}, "plan": "faecc4a21ca3ecff24167d8b6e320b19b3b2d5c79fd674dc92d5d7b93625805b", "required_device_type": "H100_80GB"}
-```
-
-```bash
-bash work/cpu.sh work/profile.py
-```
-
-Exact output:
-
-```text
-package,type,items,seconds_mean,seconds_median,seconds_p90,tokens_mean,chosen_tokens_mean,calls_mean,g3t_seconds_mean,prefill_seconds_mean,factory_load_seconds,memo_hits,memo_misses
-A4,object_abs_distance,150,23.599762386313476,18.275352681001095,29.181164655301444,354.52666666666664,239.52666666666667,1.76,1.9979346477866784,0.7367918526601474,75.44613318200209,45,43
-A4,camera_displacement,150,9.553418849733328,7.640535711499979,15.356754048199218,164.05333333333334,124.05333333333333,1,2.00042000095343,0.5960202045065671,5.23999915458262e-07,117,33
-A4,camera_rotation,150,5.088042348260205,5.008183966501747,5.266059609701188,89.93333333333334,79.02,1,0.10294739982023506,0.5878986225467573,5.270012479741126e-07,149,1
-A4,camera_movement_direction,150,9.04453233268665,8.96309851549995,9.604166692998842,203.60666666666665,163.6,1,0.054859042846558924,0.6688661366800565,5.660003807861358e-07,150,0
-A4,room_size_estimation,36,3.6673470785834876,3.641862107999259,3.8561768934996508,65.25,65.25,0,,0.570126933693953,1.5570003597531468e-06,0,0
-B5,room_size_estimation,134,3.9415213698808493,3.523957444002008,4.505284694300644,66.66417910447761,66.66417910447761,0,,0.7769587752761131,78.96129892199679,0,0
-
-A4 wall 7351.824172258377 outside timers 49.7613715433763
-object_abs_distance timings {'g3t_s': 1.9979, 'prefill_s': 0.7368, 'total_s': 22.7406} families {'ground': 176, 'gap': 88} outer-core 0.8592 unattributed 0.5086 rooms 46 memo {'hits': 45, 'misses': 43, 'held_bytes': 71767526, 'requested': 'on', 'events': 0}
-camera_displacement timings {'g3t_s': 2.0004, 'prefill_s': 0.596, 'total_s': 8.6717} families {'move': 150} outer-core 0.8817 unattributed 0.3302 rooms 36 memo {'hits': 117, 'misses': 33, 'held_bytes': 126883032, 'requested': 'on', 'events': 0}
-camera_rotation timings {'g3t_s': 0.1029, 'prefill_s': 0.5879, 'total_s': 4.2036} families {'turn': 150} outer-core 0.8844 unattributed 0.3192 rooms 34 memo {'hits': 149, 'misses': 1, 'held_bytes': 128553354, 'requested': 'on', 'events': 0}
-camera_movement_direction timings {'g3t_s': 0.0549, 'prefill_s': 0.6689, 'total_s': 8.1506} families {'move': 150} outer-core 0.894 unattributed 0.4929 rooms 36 memo {'hits': 150, 'misses': 0, 'held_bytes': 128553354, 'requested': 'on', 'events': 0}
-room_size_estimation timings {'prefill_s': 0.5701, 'total_s': 2.7924} families {} outer-core 0.875 unattributed 0.0779 rooms 9 memo {'hits': 0, 'misses': 0, 'held_bytes': 128553354, 'requested': 'on', 'events': 0}
-B5 wall 645.7347497940063 outside timers 33.016660970002704
-room_size_estimation timings {'prefill_s': 0.777, 'total_s': 3.2551} families {} outer-core 0.6864 unattributed 5.5929 rooms 107 memo {'hits': 0, 'misses': 0, 'held_bytes': 0, 'requested': 'on', 'events': 0}
-```
-
-```bash
-bash work/cpu.sh work/torch_versions3.py
-```
-
-Exact output:
-
-```text
-{
-  "events": [
-    {
-      "after": {
-        "data_ptr": 141078912,
-        "object_id": 139768179614544,
-        "version": 1
-      },
-      "before": {
-        "data_ptr": 141078912,
-        "object_id": 139768179614544,
-        "version": 0
-      },
-      "object_changed": false,
-      "operation": "parameter.add_",
-      "pointer_changed": false,
-      "version_changed": true
-    },
-    {
-      "after": {
-        "data_ptr": 141089408,
-        "object_id": 139768179614864,
-        "version": 1
-      },
-      "before": {
-        "data_ptr": 141089408,
-        "object_id": 139768179614864,
-        "version": 0
-      },
-      "object_changed": false,
-      "operation": "detach().add_",
-      "pointer_changed": false,
-      "version_changed": true
-    },
-    {
-      "after": {
-        "data_ptr": 141090112,
-        "object_id": 139768179614544,
-        "version": 0
-      },
-      "before": {
-        "data_ptr": 141090112,
-        "object_id": 139768179614544,
-        "version": 0
-      },
-      "object_changed": false,
-      "operation": "parameter.data.add_",
-      "pointer_changed": false,
-      "version_changed": false
-    },
-    {
-      "after": {
-        "data_ptr": 141092736,
-        "object_id": 139768179614864,
-        "version": 0
-      },
-      "before": {
-        "data_ptr": 141090624,
-        "object_id": 139768179614864,
-        "version": 0
-      },
-      "object_changed": false,
-      "operation": "parameter.data assignment to cloned storage",
-      "pointer_changed": true,
-      "version_changed": false
-    },
-    {
-      "after": {
-        "data_ptr": 141093120,
-        "object_id": 139768179614544,
-        "version": 0
-      },
-      "before": {
-        "data_ptr": 141093120,
-        "object_id": 139768179614544,
-        "version": 0
-      },
-      "object_changed": false,
-      "operation": "parameter.data assignment to same storage",
-      "pointer_changed": false,
-      "version_changed": false
-    },
-    {
-      "after": {
-        "data_ptr": 141093248,
-        "object_id": 139768179614864,
-        "version": 0
-      },
-      "before": {
-        "data_ptr": 141093248,
-        "object_id": 139768179614864,
-        "version": 0
-      },
-      "object_changed": false,
-      "operation": "numpy raw storage write",
-      "pointer_changed": false,
-      "version_changed": false
-    },
-    {
-      "after": {
-        "data_ptr": 141093440,
-        "object_id": 139768179614544,
-        "version": 1
-      },
-      "before": {
-        "data_ptr": 141093440,
-        "object_id": 139768179614544,
-        "version": 0
-      },
-      "object_changed": false,
-      "operation": "SGD.step foreach=False",
-      "pointer_changed": false,
-      "version_changed": true
-    },
-    {
-      "error": "Inference tensors do not track version counter.",
-      "operation": "inference tensor _version"
-    }
-  ],
-  "sources": {
-    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/autograd/graph.py": "05470e880f0f293b31f59d4670eea1eeca14139bfc07ebfea8ee2ce3a5f4d8d7",
-    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/include/c10/core/TensorImpl.h": "f0fc518750b2316da0e7baf8bf9de619d260948168552666028e1e300026d65f",
-    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/include/torch/csrc/autograd/VariableTypeUtils.h": "3786bb26eb90dcee698387405efab2e8ed9cf4d23dd79e9c3b1a04f756379caa",
-    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/optim/sgd.py": "8c97f1289923574f2a4ad7ff2fb758ea6e66e1be658d039a9a3bae10a1222a28"
-  },
-  "threads": 8,
-  "torch": "2.11.0+cpu"
-}
-```
-
-```bash
-bash work/cpu.sh work/benchmark_round3.py
-```
-
-Exact output:
-
-```text
-{
-  "cases": [
-    {
-      "after_install_seconds": 0.37753095710650086,
-      "after_per_call": {
-        "max_seconds": 0.04523695819079876,
-        "median_seconds": 0.03808464715257287,
-        "min_seconds": 0.031626817770302296,
-        "seconds": [
-          0.031626817770302296,
-          0.034481871873140335,
-          0.03762305388227105,
-          0.03808464715257287,
-          0.04367958102375269,
-          0.04523695819079876,
-          0.04367376212030649
-        ]
-      },
-      "before_install_seconds": 6.081210449337959e-05,
-      "before_per_call": {
-        "max_seconds": 0.5183775341138244,
-        "median_seconds": 0.38115734700113535,
-        "min_seconds": 0.36364213982596993,
-        "seconds": [
-          0.46960617415606976,
-          0.38115734700113535,
-          0.36364213982596993,
-          0.5183775341138244,
-          0.3796976371668279,
-          0.39939274499192834,
-          0.3713282709941268
-        ]
-      },
-      "blocks": 128,
-      "boundary": {
-        "max_seconds": 0.3655566619709134,
-        "median_seconds": 0.364585654810071,
-        "min_seconds": 0.35290226712822914,
-        "seconds": [
-          0.35290226712822914,
-          0.364585654810071,
-          0.3655566619709134
-        ]
-      },
-      "buffer_shape": [
-        1024
-      ],
-      "buffer_tensors": 128,
-      "dtype": "bfloat16",
-      "median_speed_ratio": 10.008162750574037,
-      "parameter_count": 268435456,
-      "parameter_shape": [
-        2048,
-        1024
-      ],
-      "parameter_tensors": 128,
-      "weight_and_buffer_bytes": 537133056
-    },
-    {
-      "after_install_seconds": 0.7241286048665643,
-      "after_per_call": {
-        "max_seconds": 0.06026602489873767,
-        "median_seconds": 0.05709055112674832,
-        "min_seconds": 0.055647526402026415,
-        "seconds": [
-          0.06026602489873767,
-          0.05890423199161887,
-          0.05700187757611275,
-          0.056477099657058716,
-          0.05709055112674832,
-          0.055647526402026415,
-          0.058933827094733715
-        ]
-      },
-      "before_install_seconds": 5.6263990700244904e-05,
-      "before_per_call": {
-        "max_seconds": 1.056832719128579,
-        "median_seconds": 0.8529518940486014,
-        "min_seconds": 0.7361530251801014,
-        "seconds": [
-          0.8529518940486014,
-          1.056832719128579,
-          0.9871446690522134,
-          0.794601493049413,
-          0.9360874486155808,
-          0.7819303632713854,
-          0.7361530251801014
-        ]
-      },
-      "blocks": 256,
-      "boundary": {
-        "max_seconds": 0.8288969350978732,
-        "median_seconds": 0.8085775999352336,
-        "min_seconds": 0.8060437492094934,
-        "seconds": [
-          0.8288969350978732,
-          0.8085775999352336,
-          0.8060437492094934
-        ]
-      },
-      "buffer_shape": [
-        1024
-      ],
-      "buffer_tensors": 256,
-      "dtype": "bfloat16",
-      "median_speed_ratio": 14.940333859362106,
-      "parameter_count": 536870912,
-      "parameter_shape": [
-        2048,
-        1024
-      ],
-      "parameter_tensors": 256,
-      "weight_and_buffer_bytes": 1074266112
-    }
-  ],
-  "cuda_visible_devices": "",
-  "kind": "measured CPU stub cache-hit overhead, not GPU speedup",
-  "max_rss_bytes": 1326075904,
-  "nice": 19,
-  "threads": 8,
-  "torch": "2.11.0+cpu"
-}
-```
-
-```bash
-bash work/cpu.sh work/docs_check8.py
-```
-
-Exact output:
-
-```text
-PASS: 15 README shell blocks parse; archive-validation heredoc parses as Python 3.6; host paths and allocation documented.
-PASS: cont_ops CPU assertion block remains verbatim; submit and operator helpers parse as Python 3.6.
-PASS: installed device-property declarations and official 2.11 documentation recorded; no CUDA query executed.
-PASS: step-400-only handoff, symlink archive, version preflight, retained stderr and 33 GB estimate documented.
-```
-
-```bash
-bash work/cpu.sh work/verify_archive_command8.py
-```
-
-Exact output:
-
-```text
-PASS: link-validation/tar argv passes the real production opaque-command guard; namespace script parses as Python 3.6.
-```
-
-```bash
-bash work/cpu.sh work/share_storage8.py
-bash work/cpu.sh work/share_storage8_more.py  # first additional pass
-bash work/cpu.sh work/share_storage8_more.py  # second additional pass
-bash work/cpu.sh work/share_known8.py
-```
-
-Exact output:
-
-```text
-{"changed_files": 2277, "paths_preserved": true, "read_bytes": 77477050, "scope": "completed pre-task fixtures only; replacements checked byte-for-byte; bounded 100 MB local candidate reads", "unique_bytes_shared": 60001929, "workspace_bytes": 2873281091}
-{"changed_files": 1555, "paths_preserved": true, "read_bytes": 99095642, "scope": "completed pre-task fixtures only; replacements checked byte-for-byte; bounded 100 MB local candidate reads", "unique_bytes_shared": 41343325, "workspace_bytes": 2933410474}
-Cumulative: {"changed_files": 3832, "passes": 2, "paths_preserved": true, "read_bytes": 176572692, "scope": "completed pre-task fixtures only; replacements checked byte-for-byte; each pass bounded to 100 MB local candidate reads", "unique_bytes_shared": 101345254, "workspace_bytes": 2933410474}
-{"changed_files": 188, "paths_preserved": true, "read_bytes": 99002953, "scope": "completed pre-task fixtures only; replacements checked byte-for-byte; bounded 100 MB local candidate reads", "unique_bytes_shared": 12527259, "workspace_bytes": 2945444620}
-Cumulative: {"changed_files": 4020, "passes": 3, "paths_preserved": true, "read_bytes": 275575645, "scope": "completed pre-task fixtures only; replacements checked byte-for-byte; each pass bounded to 100 MB local candidate reads", "unique_bytes_shared": 113872513, "workspace_bytes": 2945444620}
-Known-reference pass: {"changed_files": 178, "read_bytes": 99933615, "unique_bytes_shared": 50379354, "workspace_bytes": 2940420340}
-Cumulative: {"changed_files": 4198, "passes": 4, "paths_preserved": true, "read_bytes": 375509260, "scope": "completed pre-task fixtures only; replacements checked byte-for-byte; each pass bounded to 100 MB local candidate reads", "unique_bytes_shared": 164251867, "workspace_bytes": 2940420340}
-```
-
-Patch subprocess output:
-
-```text
-patching file u0/a0.py
-patching file u0/a1.py
-patching file u0/a2.py
-patching file u0/a3.py
-patching file u0/tests/test_read_cache.py
-patching file u0/tests/test_off.py
-patching file u0/a4.py
-patching file u0/a5.py
-patching file u0/a6.py
-patching file u0/a7.py
-patching file u0/a8.py
-patching file u0/a9.py
-patching file u0/a10.py
-patching file u0/a11.py
-patching file u0/tests/test_read_journal.py
-patching file u0/tests/test_public.py
-patching file u0/tests/test_round1.py
-patching file u0/tests/test_compare.py
-patching file u0/tests/u0.json
-patching file u0/tests/u1.json
-patching file u0/a12.py
-patching file u0/a13.py
-patching file u0/a14.py
-patching file u0/a15.py
-patching file u0/a16.py
-patching file u0/a17.py
-patching file u0/a18.py
-patching file u0/a19.py
-patching file u0/a20.py
-patching file u0/tests/test_round2.py
-patching file u0/tests/test_round3.py
-patching file u0/tests/test_operator_round3.py
-patching file u0/tests/test_lock_round3.py
-patching file u0/tests/test_round4.py
-patching file u0/tests/test_round5.py
-patching file u0/tests/test_round6.py
-patching file u0/tests/test_round7.py
-patching file u0/tests/test_round8.py
-patching file u0/a0.py
-patching file u0/a1.py
-patching file u0/a2.py
-patching file u0/a3.py
-patching file u0/tests/test_read_cache.py
-patching file u0/tests/test_off.py
-patching file u0/a4.py
-patching file u0/a5.py
-patching file u0/a6.py
-patching file u0/a7.py
-patching file u0/a8.py
-patching file u0/a9.py
-patching file u0/a10.py
-patching file u0/a11.py
-patching file u0/tests/test_read_journal.py
-patching file u0/tests/test_public.py
-patching file u0/tests/test_round1.py
-patching file u0/tests/test_compare.py
-patching file u0/tests/u0.json
-patching file u0/tests/u1.json
-patching file u0/a12.py
-patching file u0/a13.py
-patching file u0/a14.py
-patching file u0/a15.py
-patching file u0/a16.py
-patching file u0/a17.py
-patching file u0/a18.py
-patching file u0/a19.py
-patching file u0/a20.py
-patching file u0/tests/test_round2.py
-patching file u0/tests/test_round3.py
-patching file u0/tests/test_operator_round3.py
-patching file u0/tests/test_lock_round3.py
-patching file u0/tests/test_round4.py
-patching file u0/tests/test_round5.py
-patching file u0/tests/test_round6.py
-patching file u0/tests/test_round7.py
-patching file u0/tests/test_round8.py
-patching file tower_sequence.py
-patching file unpack_return.py
-patching file package/a/5.py
-```
-
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_read_cache.py
-```
-
-Exact output:
+Output ([checks/cache.txt](checks/cache.txt)):
 
 ```text
 test_budget_eviction_oversize_and_process_reset (__main__.ReadCacheTests.test_budget_eviction_oversize_and_process_reset) ... ok
@@ -672,16 +210,14 @@ test_vision_execution_settings_and_live_options_invalidate (__main__.ReadCacheTe
 test_vision_returns_same_type_and_keeps_outer_hooks (__main__.ReadCacheTests.test_vision_returns_same_type_and_keeps_outer_hooks) ... ok
 
 ----------------------------------------------------------------------
-Ran 15 tests in 2.625s
+Ran 15 tests in 2.632s
 
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_read_journal.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_read_journal.py`
 
-Exact output:
+Output ([checks/journal.txt](checks/journal.txt)):
 
 ```text
 test_duplicate_corruption_and_unowned_jsonl_fail (__main__.JournalTests.test_duplicate_corruption_and_unowned_jsonl_fail) ... ok
@@ -699,31 +235,27 @@ test_shards_merge_byte_identical_to_single_and_reject_missing_duplicate (__main_
 test_type_journals_support_empty_scene_shards (__main__.RunnerTests.test_type_journals_support_empty_scene_shards) ... ok
 
 ----------------------------------------------------------------------
-Ran 13 tests in 0.131s
+Ran 13 tests in 0.161s
 
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_off.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_off.py`
 
-Exact output:
+Output ([checks/off.txt](checks/off.txt)):
 
 ```text
 test_every_output_byte_and_source_hash_matches_original (__main__.OffContractTests.test_every_output_byte_and_source_hash_matches_original) ... ok
 
 ----------------------------------------------------------------------
-Ran 1 test in 5.002s
+Ran 1 test in 5.375s
 
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_public.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_public.py`
 
-Exact output:
+Output ([checks/public.txt](checks/public.txt)):
 
 ```text
 test_legacy_worker_log_context_manager_never_writes_raw_library_output (__main__.PublicTests.test_legacy_worker_log_context_manager_never_writes_raw_library_output) ... ok
@@ -740,11 +272,9 @@ Ran 7 tests in 0.004s
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round1.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round1.py`
 
-Exact output:
+Output ([checks/round1.txt](checks/round1.txt)):
 
 ```text
 test_f1_nested_mapping_boundaries_and_stale_processor (__main__.ReviewRegressions.test_f1_nested_mapping_boundaries_and_stale_processor) ... ok
@@ -766,16 +296,14 @@ test_unstructured_library_logs_and_partial_lines_only_publish_tokens (round1_pub
 test_every_output_byte_and_source_hash_matches_original (round1_off_tests.OffContractTests.test_every_output_byte_and_source_hash_matches_original) ... ok
 
 ----------------------------------------------------------------------
-Ran 17 tests in 3.879s
+Ran 17 tests in 3.595s
 
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py`
 
-Exact output:
+Output ([checks/round2.txt](checks/round2.txt)):
 
 ```text
 test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs (__main__.Round2Tests.test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs) ... ok
@@ -793,16 +321,14 @@ test_f8_processor_bypass_is_counted (__main__.Round2Tests.test_f8_processor_bypa
 test_f9_roots_and_manifest_checked_before_any_arm (__main__.Round2Tests.test_f9_roots_and_manifest_checked_before_any_arm) ... ok
 
 ----------------------------------------------------------------------
-Ran 13 tests in 3.829s
+Ran 13 tests in 3.602s
 
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round3.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round3.py`
 
-Exact output:
+Output ([checks/round3.txt](checks/round3.txt)):
 
 ```text
 test_f1_calls_never_hash_parameters_or_buffers (__main__.Round3Tests.test_f1_calls_never_hash_parameters_or_buffers) ... ok
@@ -816,48 +342,42 @@ test_f4_worker_uses_settings_argv_without_environment_side_effect (__main__.Roun
 test_f7_off_import_guard_covers_all_overlay_modules (__main__.Round3Tests.test_f7_off_import_guard_covers_all_overlay_modules) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 1.838s
+Ran 9 tests in 1.625s
 
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py`
 
-Exact output:
+Output ([checks/operator3.txt](checks/operator3.txt)):
 
 ```text
 test_f2_a12_payload_through_a4_actions_and_nested_return (__main__.OperatorTests.test_f2_a12_payload_through_a4_actions_and_nested_return) ... ok
 test_f2_operator_memory_bound_includes_cache_only_when_enabled (__main__.OperatorTests.test_f2_operator_memory_bound_includes_cache_only_when_enabled) ... ok
 
 ----------------------------------------------------------------------
-Ran 2 tests in 9.717s
+Ran 2 tests in 9.087s
 
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_lock_round3.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_lock_round3.py`
 
-Exact output:
+Output ([checks/lock3.txt](checks/lock3.txt)):
 
 ```text
 test_deadline_recovery_keeps_writer_lock (lock_behavior.RunnerTests.test_deadline_recovery_keeps_writer_lock) ... ok
 test_type_deadline_recovery_holds_writer_lock (__main__.TypeLockTests.test_type_deadline_recovery_holds_writer_lock) ... ok
 
 ----------------------------------------------------------------------
-Ran 2 tests in 0.018s
+Ran 2 tests in 0.015s
 
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py`
 
-Exact output:
+Output ([checks/round4.txt](checks/round4.txt)):
 
 ```text
 test_f1_bound_package_preserves_a4_contract_and_binding (__main__.Round4Tests.test_f1_bound_package_preserves_a4_contract_and_binding) ... ok
@@ -866,18 +386,16 @@ test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test
 test_f9_off_builder_guard_and_processor_only (__main__.Round4Tests.test_f9_off_builder_guard_and_processor_only) ... ok
 
 ----------------------------------------------------------------------
-Ran 4 tests in 21.795s
+Ran 4 tests in 25.686s
 
 OK
-{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d18b78d68ff04ed89f95f8173c9ed0f8/verified-return", "complete": false, "status": "FAILED", "sha256": "79bc8cb5e395a636f9bfa900a218546d1ca18a2a81d74c4d42178726e026667a"}
-CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d18b78d68ff04ed89f95f8173c9ed0f8
+{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/eeb25e05635b485aa859d3490dc9bffa/verified-return", "complete": false, "status": "FAILED", "sha256": "efc5ca5588514cfa95c513572d7184ea1a322e216dd8ac3ca93875ac34f645d0"}
+CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/eeb25e05635b485aa859d3490dc9bffa
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py`
 
-Exact output:
+Output ([checks/round5.txt](checks/round5.txt)):
 
 ```text
 test_f1_batch_wrapper_and_real_bundle_guard (__main__.Round5Tests.test_f1_batch_wrapper_and_real_bundle_guard) ... ok
@@ -889,7 +407,7 @@ test_f5_forecast_identifies_both_reads (__main__.Round5Tests.test_f5_forecast_id
 test_f7_refused_unpack_not_scoreable (__main__.Round5Tests.test_f7_refused_unpack_not_scoreable) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 9.665s
+Ran 7 tests in 10.926s
 
 OK
 All CPU receipt checks passed
@@ -897,11 +415,9 @@ All CPU receipt checks passed
 All CPU receipt checks passed
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py`
 
-Exact output:
+Output ([checks/round6.txt](checks/round6.txt)):
 
 ```text
 test_f1_readme_unpack_subprocess (__main__.Round6Tests.test_f1_readme_unpack_subprocess) ... ok
@@ -915,18 +431,16 @@ test_info_done_whitespace (__main__.Round6Tests.test_info_done_whitespace) ... o
 test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 29.103s
+Ran 9 tests in 35.846s
 
 OK
 README unpack command: exit 0; authenticated partial return accepted.
 Detached fill: success=0, failure=17, duplicate launch refused.
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py`
 
-Exact output:
+Output ([checks/round7.txt](checks/round7.txt)):
 
 ```text
 test_f1_archive_runs_inside_live_namespace_and_survives_it (__main__.Round7Tests.test_f1_archive_runs_inside_live_namespace_and_survives_it) ... ok
@@ -939,7 +453,7 @@ test_info_unpack_ignores_python_environment_and_keeps_sibling_import (__main__.R
 test_rebind_step400_only (__main__.Round7Tests.test_rebind_step400_only) ... ok
 
 ----------------------------------------------------------------------
-Ran 8 tests in 6.011s
+Ran 8 tests in 5.964s
 
 OK
 Live namespace tar: regular file and symlink preserved; archive survives namespace loss; duplicate and OFF guarded.
@@ -947,11 +461,9 @@ Fill wait: missing token, dead worker, deadline and exit 17 refuse; exit 0 passe
 Only reviewed step-400 export passes; changed artifact and selectable-export API refuse.
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py`
 
-Exact output:
+Output ([checks/round8.txt](checks/round8.txt)):
 
 ```text
 test_f1_external_symlinks_refuse_before_archive (__main__.Round8Tests.test_f1_external_symlinks_refuse_before_archive) ... ok
@@ -966,19 +478,51 @@ test_info_gpu_commands_and_aliases (__main__.Round8Tests.test_info_gpu_commands_
 test_info_tar_stderr_is_retained (__main__.Round8Tests.test_info_tar_stderr_is_retained) ... ok
 
 ----------------------------------------------------------------------
-Ran 10 tests in 7.314s
+Ran 10 tests in 7.381s
 
 OK
 Absolute e/heads.pt symlink survives tar/extract; real Artifact.verify and load_native admission pass before model loading.
-README GPU block runs d/v/py and refuses each version mismatch or unavailable CUDA; CUDA imports are test doubles.
+Preflight and every worker launch require real A4 namespace argv and the authenticated wrapper path; no host d/v/py test double.
 Runtime torch/transformers/CUDA and environment SHA256 are exact; changed versions, bytes and CPU build refuse.
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/out/kit_parity50/test_compare.py
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py`
+
+Output ([checks/round9.txt](checks/round9.txt)):
+
+```text
+test_f1_actual_launch_calls_namespace_twice (__main__.Round9Tests.test_f1_actual_launch_calls_namespace_twice) ... ok
+test_f1_all_commands_use_real_namespace_and_input_wrapper (__main__.Round9Tests.test_f1_all_commands_use_real_namespace_and_input_wrapper) ... ok
+test_f1_authenticated_bootstrap_and_physical_asset_extraction (__main__.Round9Tests.test_f1_authenticated_bootstrap_and_physical_asset_extraction) ... ok
+test_f1_runtime_staging_reuses_package_block_and_pins (__main__.Round9Tests.test_f1_runtime_staging_reuses_package_block_and_pins) ... ok
+test_f2_failed_self_test_is_recorded_and_cannot_pass_receipt (__main__.Round9Tests.test_f2_failed_self_test_is_recorded_and_cannot_pass_receipt) ... ok
+test_f2_main_records_failure_and_never_starts_workers (__main__.Round9Tests.test_f2_main_records_failure_and_never_starts_workers) ... ok
+test_f2_real_guard_self_test_and_each_missed_operation (__main__.Round9Tests.test_f2_real_guard_self_test_and_each_missed_operation) ... ok
+test_f2_submit_requires_all_three_guard_checks (__main__.Round9Tests.test_f2_submit_requires_all_three_guard_checks) ... ok
+test_f3_staging_transfer_precedes_allocation_and_roots_extract (__main__.Round9Tests.test_f3_staging_transfer_precedes_allocation_and_roots_extract) ... ok
+test_info_round7_logs_are_labelled (__main__.Round9Tests.test_info_round7_logs_are_labelled) ... ok
+test_info_token_and_framework_gap_and_guard_limits (__main__.Round9Tests.test_info_token_and_framework_gap_and_guard_limits) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 4.575s
+
+OK
+Actual host launch calls preflight then parent with real namespace prefixes and the input wrapper.
+Real J.namespace prefix and inputs[python] wrap preflight, parent and all three worker launch sites; J.environment retains HOME/TMPDIR/OPENBLAS=1.
+Authenticated real A4 bootstrap stages fixture 4.tar to root/sj/<logical>/d with preserved wrapper/links and the complete pinned logical/p code tree; changed input proof refuses. Runtime I/O and bwrap execution are explicit doubles.
+Package staging block extracts pinned fixture runtime; changed part hash refuses; 13 part pins plus bwrap match A4 receipts.
+A missed mutation persists in failed ue.json; missing or failed guard evidence cannot produce passed=true.
+Actual main writes failed ue.json and starts zero workers for a missed mutation or self-test setup exception.
+Real frozen scratch module detects add_, copy_ and load_state_dict; each injected detection miss fails independently before workers.
+Submit accepts complete guard evidence and rejects each missed mutation.
+Gate/seal/stage-kit/transfer precede salloc; exact README host commands successfully extract kit and both source fixture archives.
+Eight carried round-7 applied logs live only under checks/round7.
+Fresh token derives kit paths; framework version gap and carried guard limits are explicit.
 ```
 
-Exact output:
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/out/kit_parity50/test_compare.py`
+
+Output ([checks/kit.txt](checks/kit.txt)):
 
 ```text
 test_changed_answer_detected_even_when_score_unchanged (__main__.CompareTests.test_changed_answer_detected_even_when_score_unchanged) ... ok
@@ -992,16 +536,14 @@ test_telemetry_different_exact_trace_passes (__main__.CompareTests.test_telemetr
 test_tokens_calls_heads_and_finish_each_detected (__main__.CompareTests.test_tokens_calls_heads_and_finish_each_detected) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 0.292s
+Ran 9 tests in 0.302s
 
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/out/kit_parity50/test_run.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/out/kit_parity50/test_run.py`
 
-Exact output:
+Output ([checks/kit_launch.txt](checks/kit_launch.txt)):
 
 ```text
 test_durable_scene_comparison_requires_explicit_on_arm (__main__.LaunchTests.test_durable_scene_comparison_requires_explicit_on_arm) ... ok
@@ -1009,31 +551,27 @@ test_original_and_off_do_not_opt_in_to_journaling_or_sharding (__main__.LaunchTe
 test_stage_kit_uses_opaque_names_token_metadata_and_authenticated_sample_bytes (__main__.LaunchTests.test_stage_kit_uses_opaque_names_token_metadata_and_authenticated_sample_bytes) ... ok
 
 ----------------------------------------------------------------------
-Ran 3 tests in 0.069s
+Ran 3 tests in 0.060s
 
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round8/7bad3024af544e60b7370835bb10f7cb/src/u0/tests/test_off.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_off.py`
 
-Exact output:
+Output ([checks/applied_off.txt](checks/applied_off.txt)):
 
 ```text
 test_every_output_byte_and_source_hash_matches_original (__main__.OffContractTests.test_every_output_byte_and_source_hash_matches_original) ... ok
 
 ----------------------------------------------------------------------
-Ran 1 test in 5.748s
+Ran 1 test in 7.412s
 
 OK
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round8/7bad3024af544e60b7370835bb10f7cb/src/u0/tests/test_round4.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round4.py`
 
-Exact output:
+Output ([checks/applied_round4.txt](checks/applied_round4.txt)):
 
 ```text
 test_f1_bound_package_preserves_a4_contract_and_binding (__main__.Round4Tests.test_f1_bound_package_preserves_a4_contract_and_binding) ... ok
@@ -1042,18 +580,16 @@ test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test
 test_f9_off_builder_guard_and_processor_only (__main__.Round4Tests.test_f9_off_builder_guard_and_processor_only) ... ok
 
 ----------------------------------------------------------------------
-Ran 4 tests in 22.938s
+Ran 4 tests in 27.582s
 
 OK
-{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/94d0bb20e51c4e45a7f4d079a9e636e6/verified-return", "complete": false, "status": "FAILED", "sha256": "53e1b8f79c8a7522d43a1ee76d0aa13a505de28a79810aac877a8b6bfb0d90ec"}
-CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/94d0bb20e51c4e45a7f4d079a9e636e6
+{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/2d7b98be07f340cb8336a265dbc681e6/verified-return", "complete": false, "status": "FAILED", "sha256": "3fdc107628ecc7ae1fc9d40b858a048e27dca8b8aec7393c3a0df9dc75955be3"}
+CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/2d7b98be07f340cb8336a265dbc681e6
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round8/7bad3024af544e60b7370835bb10f7cb/src/u0/tests/test_round5.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round5.py`
 
-Exact output:
+Output ([checks/applied_round5.txt](checks/applied_round5.txt)):
 
 ```text
 test_f1_batch_wrapper_and_real_bundle_guard (__main__.Round5Tests.test_f1_batch_wrapper_and_real_bundle_guard) ... ok
@@ -1065,7 +601,7 @@ test_f5_forecast_identifies_both_reads (__main__.Round5Tests.test_f5_forecast_id
 test_f7_refused_unpack_not_scoreable (__main__.Round5Tests.test_f7_refused_unpack_not_scoreable) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 9.810s
+Ran 7 tests in 9.971s
 
 OK
 All CPU receipt checks passed
@@ -1073,11 +609,9 @@ All CPU receipt checks passed
 All CPU receipt checks passed
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round8/7bad3024af544e60b7370835bb10f7cb/src/u0/tests/test_round6.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round6.py`
 
-Exact output:
+Output ([checks/applied_round6.txt](checks/applied_round6.txt)):
 
 ```text
 test_f1_readme_unpack_subprocess (__main__.Round6Tests.test_f1_readme_unpack_subprocess) ... ok
@@ -1091,18 +625,16 @@ test_info_done_whitespace (__main__.Round6Tests.test_info_done_whitespace) ... o
 test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 28.841s
+Ran 9 tests in 29.337s
 
 OK
 README unpack command: exit 0; authenticated partial return accepted.
 Detached fill: success=0, failure=17, duplicate launch refused.
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round8/7bad3024af544e60b7370835bb10f7cb/src/u0/tests/test_round7.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round7.py`
 
-Exact output:
+Output ([checks/applied_round7.txt](checks/applied_round7.txt)):
 
 ```text
 test_f1_archive_runs_inside_live_namespace_and_survives_it (__main__.Round7Tests.test_f1_archive_runs_inside_live_namespace_and_survives_it) ... ok
@@ -1115,7 +647,7 @@ test_info_unpack_ignores_python_environment_and_keeps_sibling_import (__main__.R
 test_rebind_step400_only (__main__.Round7Tests.test_rebind_step400_only) ... ok
 
 ----------------------------------------------------------------------
-Ran 8 tests in 6.055s
+Ran 8 tests in 5.724s
 
 OK
 Live namespace tar: regular file and symlink preserved; archive survives namespace loss; duplicate and OFF guarded.
@@ -1123,11 +655,9 @@ Fill wait: missing token, dead worker, deadline and exit 17 refuse; exit 0 passe
 Only reviewed step-400 export passes; changed artifact and selectable-export API refuse.
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round8/7bad3024af544e60b7370835bb10f7cb/src/u0/tests/test_round8.py
-```
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round8.py`
 
-Exact output:
+Output ([checks/applied_round8.txt](checks/applied_round8.txt)):
 
 ```text
 test_f1_external_symlinks_refuse_before_archive (__main__.Round8Tests.test_f1_external_symlinks_refuse_before_archive) ... ok
@@ -1142,19 +672,51 @@ test_info_gpu_commands_and_aliases (__main__.Round8Tests.test_info_gpu_commands_
 test_info_tar_stderr_is_retained (__main__.Round8Tests.test_info_tar_stderr_is_retained) ... ok
 
 ----------------------------------------------------------------------
-Ran 10 tests in 7.329s
+Ran 10 tests in 7.431s
 
 OK
 Absolute e/heads.pt symlink survives tar/extract; real Artifact.verify and load_native admission pass before model loading.
-README GPU block runs d/v/py and refuses each version mismatch or unavailable CUDA; CUDA imports are test doubles.
+Preflight and every worker launch require real A4 namespace argv and the authenticated wrapper path; no host d/v/py test double.
 Runtime torch/transformers/CUDA and environment SHA256 are exact; changed versions, bytes and CPU build refuse.
 ```
 
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round8/7bad3024af544e60b7370835bb10f7cb/src/u0/tests/test_compare.py
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_round9.py`
+
+Output ([checks/applied_round9.txt](checks/applied_round9.txt)):
+
+```text
+test_f1_actual_launch_calls_namespace_twice (__main__.Round9Tests.test_f1_actual_launch_calls_namespace_twice) ... ok
+test_f1_all_commands_use_real_namespace_and_input_wrapper (__main__.Round9Tests.test_f1_all_commands_use_real_namespace_and_input_wrapper) ... ok
+test_f1_authenticated_bootstrap_and_physical_asset_extraction (__main__.Round9Tests.test_f1_authenticated_bootstrap_and_physical_asset_extraction) ... ok
+test_f1_runtime_staging_reuses_package_block_and_pins (__main__.Round9Tests.test_f1_runtime_staging_reuses_package_block_and_pins) ... ok
+test_f2_failed_self_test_is_recorded_and_cannot_pass_receipt (__main__.Round9Tests.test_f2_failed_self_test_is_recorded_and_cannot_pass_receipt) ... ok
+test_f2_main_records_failure_and_never_starts_workers (__main__.Round9Tests.test_f2_main_records_failure_and_never_starts_workers) ... ok
+test_f2_real_guard_self_test_and_each_missed_operation (__main__.Round9Tests.test_f2_real_guard_self_test_and_each_missed_operation) ... ok
+test_f2_submit_requires_all_three_guard_checks (__main__.Round9Tests.test_f2_submit_requires_all_three_guard_checks) ... ok
+test_f3_staging_transfer_precedes_allocation_and_roots_extract (__main__.Round9Tests.test_f3_staging_transfer_precedes_allocation_and_roots_extract) ... ok
+test_info_round7_logs_are_labelled (__main__.Round9Tests.test_info_round7_logs_are_labelled) ... ok
+test_info_token_and_framework_gap_and_guard_limits (__main__.Round9Tests.test_info_token_and_framework_gap_and_guard_limits) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 4.623s
+
+OK
+Actual host launch calls preflight then parent with real namespace prefixes and the input wrapper.
+Real J.namespace prefix and inputs[python] wrap preflight, parent and all three worker launch sites; J.environment retains HOME/TMPDIR/OPENBLAS=1.
+Authenticated real A4 bootstrap stages fixture 4.tar to root/sj/<logical>/d with preserved wrapper/links and the complete pinned logical/p code tree; changed input proof refuses. Runtime I/O and bwrap execution are explicit doubles.
+Package staging block extracts pinned fixture runtime; changed part hash refuses; 13 part pins plus bwrap match A4 receipts.
+A missed mutation persists in failed ue.json; missing or failed guard evidence cannot produce passed=true.
+Actual main writes failed ue.json and starts zero workers for a missed mutation or self-test setup exception.
+Real frozen scratch module detects add_, copy_ and load_state_dict; each injected detection miss fails independently before workers.
+Submit accepts complete guard evidence and rejects each missed mutation.
+Gate/seal/stage-kit/transfer precede salloc; exact README host commands successfully extract kit and both source fixture archives.
+Eight carried round-7 applied logs live only under checks/round7.
+Fresh token derives kit paths; framework version gap and carried guard limits are explicit.
 ```
 
-Exact output:
+Command: `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40/src/u0/tests/test_compare.py`
+
+Output ([checks/applied_compare.txt](checks/applied_compare.txt)):
 
 ```text
 test_changed_answer_detected_even_when_score_unchanged (__main__.CompareTests.test_changed_answer_detected_even_when_score_unchanged) ... ok
@@ -1168,16 +730,14 @@ test_telemetry_different_exact_trace_passes (__main__.CompareTests.test_telemetr
 test_tokens_calls_heads_and_finish_each_detected (__main__.CompareTests.test_tokens_calls_heads_and_finish_each_detected) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 0.295s
+Ran 9 tests in 0.303s
 
 OK
 ```
 
-```bash
-READ_REVIEW_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_round1.py
-```
+Command: `bash work/cpu.sh work/run_checks.py  # round1_before control, exact invocation in the runner`
 
-Exact output:
+Output ([checks/round1_before.txt](checks/round1_before.txt)):
 
 ```text
 test_f1_nested_mapping_boundaries_and_stale_processor (__main__.ReviewRegressions.test_f1_nested_mapping_boundaries_and_stale_processor) ... FAIL
@@ -1266,16 +826,14 @@ Traceback (most recent call last):
 AssertionError: 1 != 0
 
 ----------------------------------------------------------------------
-Ran 8 tests in 0.016s
+Ran 8 tests in 0.018s
 
 FAILED (failures=8)
 ```
 
-```bash
-READ_ROUND2_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_round2.py
-```
+Command: `bash work/cpu.sh work/run_checks.py  # round2_before control, exact invocation in the runner`
 
-Exact output:
+Output ([checks/round2_before.txt](checks/round2_before.txt)):
 
 ```text
 test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs (__main__.Round2Tests.test_f10_wrong_exception_is_not_accepted_and_lock_suite_runs) ... FAIL
@@ -1334,13 +892,13 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 67, in test_f1_actual_isolated_script_plain_and_opaque
     self.assertEqual(result.returncode,0,result.stdout+result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d2bda1c9788a4df5ad4aa198ce664724/u0/a8.py", line 65, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/b5439edb53c146e6bff93fa646ce4145/u0/a8.py", line 65, in <module>
     raise SystemExit(main())
                      ^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d2bda1c9788a4df5ad4aa198ce664724/u0/a8.py", line 61, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/b5439edb53c146e6bff93fa646ce4145/u0/a8.py", line 61, in main
     return launch(rest)
            ^^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d2bda1c9788a4df5ad4aa198ce664724/u0/a4.py", line 2, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/b5439edb53c146e6bff93fa646ce4145/u0/a4.py", line 2, in main
     from a8 import source_hash
 ModuleNotFoundError: No module named 'a8'
 
@@ -1352,10 +910,10 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 67, in test_f1_actual_isolated_script_plain_and_opaque
     self.assertEqual(result.returncode,0,result.stdout+result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/05569808ed0c4bc29ac678e99b6be981/u0/a8.py", line 65, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/79e6c1a9df804dd1a485e3b267966c52/u0/a8.py", line 65, in <module>
     raise SystemExit(main())
                      ^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/05569808ed0c4bc29ac678e99b6be981/u0/a8.py", line 56, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/79e6c1a9df804dd1a485e3b267966c52/u0/a8.py", line 56, in main
     from a9 import install_wire_decoder,PublicLog
 ModuleNotFoundError: No module named 'a9'
 
@@ -1456,16 +1014,14 @@ Traceback (most recent call last):
 AssertionError: False is not true : Missing independent root validation
 
 ----------------------------------------------------------------------
-Ran 13 tests in 0.211s
+Ran 13 tests in 0.183s
 
 FAILED (failures=13, errors=1)
 ```
 
-```bash
-READ_ROUND3_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_round3.py
-```
+Command: `bash work/cpu.sh work/run_checks.py  # round3_before control, exact invocation in the runner`
 
-Exact output:
+Output ([checks/round3_before.txt](checks/round3_before.txt)):
 
 ```text
 test_f1_calls_never_hash_parameters_or_buffers (__main__.Round3Tests.test_f1_calls_never_hash_parameters_or_buffers) ... FAIL
@@ -1520,7 +1076,7 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round3.py", line 46, in visit
     if isinstance(v,torch.Tensor):self.assertNotIn(id(v),weights,'Per-call weight hashing')
                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: 140136670512624 unexpectedly found in {140136670512624, 140136670512944} : Per-call weight hashing
+AssertionError: 140618051519984 unexpectedly found in {140618051519984, 140618855836768} : Per-call weight hashing
 
 ======================================================================
 FAIL: test_f1_parameter_and_buffer_changes_are_fatal_and_latched (__main__.Round3Tests.test_f1_parameter_and_buffer_changes_are_fatal_and_latched)
@@ -1662,16 +1218,14 @@ Traceback (most recent call last):
 AssertionError: AssertionError not raised
 
 ----------------------------------------------------------------------
-Ran 9 tests in 0.818s
+Ran 9 tests in 0.849s
 
 FAILED (failures=15)
 ```
 
-```bash
-READ_ROUND3_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_operator_round3.py
-```
+Command: `bash work/cpu.sh work/run_checks.py  # operator3_before control, exact invocation in the runner`
 
-Exact output:
+Output ([checks/operator3_before.txt](checks/operator3_before.txt)):
 
 ```text
 test_f2_a12_payload_through_a4_actions_and_nested_return (__main__.OperatorTests.test_f2_a12_payload_through_a4_actions_and_nested_return) ... FAIL
@@ -1690,7 +1244,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 138, in child
     boot.main();main_job.assert_called_once_with(root)
     ^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/298e8db9916442d28279dfc9f32a1cb2/0.py", line 44, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/45efd3cdc1eb44fb914ddeb009f9bf2a/0.py", line 44, in main
     job.main(root)
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
     return self._mock_call(*args, **kwargs)
@@ -1703,7 +1257,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
              ^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 122, in run_job
     job.checked_run([sys.executable,'-I','-s','-B',str(root/'a/5.py'),str(cfgpath)])
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/298e8db9916442d28279dfc9f32a1cb2/0.py", line 18, in dispatch
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/45efd3cdc1eb44fb914ddeb009f9bf2a/0.py", line 18, in dispatch
     return original(argv,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
@@ -1718,7 +1272,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 114, in dispatch
     try:operator.main()
         ^^^^^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/298e8db9916442d28279dfc9f32a1cb2/7.py", line 139, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/45efd3cdc1eb44fb914ddeb009f9bf2a/7.py", line 139, in main
     result=run(cfg['config'],cfg['end'],os.environ['CUDA_VISIBLE_DEVICES'].split(','))
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
@@ -1733,7 +1287,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 113, in <lambda>
     with patch.object(sys,'argv',argv[-2:]),patch.object(operator,'run',side_effect=lambda config,end,cards:actual_operator(config,end,['cpu-fixture'])):
                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/298e8db9916442d28279dfc9f32a1cb2/7.py", line 87, in run
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/45efd3cdc1eb44fb914ddeb009f9bf2a/7.py", line 87, in run
     result=(runner or execute)(cfg,cards,end,prefix=cfg['prefix'])
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
@@ -1760,16 +1314,14 @@ Traceback (most recent call last):
 AssertionError: 'read_extensions' not found in mappingproxy(OrderedDict({'captures': <Parameter "captures=(84,)">, 'allocation_bytes': <Parameter "allocation_bytes=214748364800">})) : Operator omits read cache memory
 
 ----------------------------------------------------------------------
-Ran 2 tests in 9.253s
+Ran 2 tests in 9.016s
 
 FAILED (failures=2)
 ```
 
-```bash
-READ_LOCK_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_lock_round3.py
-```
+Command: `bash work/cpu.sh work/run_checks.py  # lock3_before control, exact invocation in the runner`
 
-Exact output:
+Output ([checks/lock3_before.txt](checks/lock3_before.txt)):
 
 ```text
 test_deadline_recovery_keeps_writer_lock (lock_behavior.RunnerTests.test_deadline_recovery_keeps_writer_lock) ... FAIL
@@ -1821,16 +1373,14 @@ Traceback (most recent call last):
 AssertionError: BlockingIOError not raised
 
 ----------------------------------------------------------------------
-Ran 2 tests in 0.012s
+Ran 2 tests in 0.015s
 
 FAILED (failures=2)
 ```
 
-```bash
-READ_ROUND4_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_round4.py
-```
+Command: `bash work/cpu.sh work/run_checks.py  # round4_before control, exact invocation in the runner`
 
-Exact output:
+Output ([checks/round4_before.txt](checks/round4_before.txt)):
 
 ```text
 test_f1_bound_package_preserves_a4_contract_and_binding (__main__.Round4Tests.test_f1_bound_package_preserves_a4_contract_and_binding) ... FAIL
@@ -1857,14 +1407,14 @@ FAIL: test_f2_bound_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 343, in test_f2_bound_real_job_and_rehearsal_memory
     self.assertEqual(result.returncode,0,str(root)+'\n'+result.stdout+result.stderr+logs+'\n'+'\n'.join(p.read_text() for p in (root/'job/sandbox/r').glob('FAILED.json')))
-AssertionError: 1 != 0 : /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/146db46e5ba84dd2807cae082ab5b01c
+AssertionError: 1 != 0 : /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/70ec06bd2d1744cba2253c4d77f56c70
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 436, in <module>
     elif len(sys.argv)>1 and sys.argv[1]=='--control':control_child(Path(sys.argv[2]),Path(sys.argv[3]),sys.argv[4])
                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 284, in control_child
     node.main()
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/146db46e5ba84dd2807cae082ab5b01c/built/package/a/5.py", line 147, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/70ec06bd2d1744cba2253c4d77f56c70/built/package/a/5.py", line 147, in main
     raise ValueError('Prepared default settings differ')
 ValueError: Prepared default settings differ
 PASS action 0 rehearsal False
@@ -1917,16 +1467,35 @@ Traceback (most recent call last):
 AssertionError: ValueError not raised
 
 ----------------------------------------------------------------------
-Ran 4 tests in 9.547s
+Ran 4 tests in 9.774s
 
 FAILED (failures=7, skipped=1)
 ```
 
-```bash
-READ_ROUND5_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_round5.py
+Command: `bash work/cpu.sh work/run_checks.py  # node4_before control, exact invocation in the runner`
+
+Output ([checks/node4_before.txt](checks/node4_before.txt)):
+
+```text
+test_f2_bound_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_bound_real_job_and_rehearsal_memory) ... FAIL
+
+======================================================================
+FAIL: test_f2_bound_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_bound_real_job_and_rehearsal_memory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 345, in test_f2_bound_real_job_and_rehearsal_memory
+    self.assertEqual(proof['memory'].get('read_cache_bytes'),12*1024**3)
+AssertionError: None != 12884901888
+
+----------------------------------------------------------------------
+Ran 1 test in 8.898s
+
+FAILED (failures=1)
 ```
 
-Exact output:
+Command: `bash work/cpu.sh work/run_checks.py  # round5_before control, exact invocation in the runner`
+
+Output ([checks/round5_before.txt](checks/round5_before.txt)):
 
 ```text
 test_f1_batch_wrapper_and_real_bundle_guard (__main__.Round5Tests.test_f1_batch_wrapper_and_real_bundle_guard) ... FAIL
@@ -1948,7 +1517,7 @@ FAIL: test_f1_batch_wrapper_and_real_bundle_guard (__main__.Round5Tests.test_f1_
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 66, in test_f1_batch_wrapper_and_real_bundle_guard
     self.assertIn('#SBATCH --exclude=orchard-community-2\n',batch)
-AssertionError: '#SBATCH --exclude=orchard-community-2\n' not found in "#!/bin/bash\nset -euo pipefail\nexec /usr/bin/python3 -I -s -B - <<'A'\nimport hashlib,io,json,os,sys,tarfile\nfrom pathlib import Path,PurePosixPath\nj=os.environ.get('SLURM_JOB_ID','')\nif not j.isdigit():raise ValueError('Allocation required')\nb=bytes.fromhex('1f8b08000000000002ffed5aeb6fdbba15ef67ff15bad907490eabc8efc4b91ad0b5b95b87db079af602836108b444d96a644913e53c56f47fdf3987942ccb4e9a61d81d8699486c4b240f0fcff3c787eb7c9559fae23f5a5c2863d7a56f77ffdb1d0c27f56ff57e3c990c5e18ee8bdfa16c64c90b18f2c5ff67f9d6318c939c3f24190ffdc54329e4c9d4180d2683d1a4c79a7572c5fba331549e5c4cdcf3b0175d885e6fd41fb90b3e0cc4a277cec7d1f9641cf5fb9351e02e06e164b0182c865c8cfbe717e360310afa9321bfe8f1e044d14d78da201a4617a3453fe80d2f461783e87c38106e6fc4c110c6bd09f4bd80bf68713e70c3de45042ff8c80d841847a1887814c1d08a6899dd8814c9f185dbeb0f86a3f1e4fce2a4f3bdf3e2581ef14d277ff88f8ff1b4ff0f87bd71dbff87a3a3ffff2ee5e4e4e46321a4286e85911759b809ca384b0d1eae6329e11733403ecb385d328327491670aa5e649b3494f02a0d0de8bd494af82a3745ea00bd4ebcceb3a234565cae9278c130c1301072142782c907d9898a6c6de4bcc45a4337fe088f9d4e07fcd958f31be187b18416c1ca2ab2ac644656c4c0044fe0572e0a5e66858e1df6b46310bdac0856bc08fd55cf75826cbd062e356968d83190704d9317cb5bd6854fc9badd9b3bfc81748c3f181fd2e401a602c1291046b982ff2c7f99885b9134a75f1112c525084de4bc50ef511c775971230a89627b30f2384d45e800e938321291d2c8f61fbd3e35c587d9cbfe74ee7933591634d533939f8dc0274d9b355ff5284d9bf61cd9348268e9e1b38391595a7bad9c4240c42ec57d69d93676e012345c62bf99c949c3260cdad3b4666690a551bc34e733b3255e68d67a837df607bc2be252a81189b170b3cea505b4d5f8307be8adbb4d687a3fb509d3cc8c82c75218bff16423ae8a222b2cf34f606a89086bc51ba0e774092f78548a02e55c949bdc54f304897ab32e0976fab23f6fc870f28450a1ab32dfdace0e9a48a76a55e9bf36d838b5d08090b087966c81993bc4456f6e5fe69b4512070734e61ed617c8a310a122649e81577e1541798646bd49e3f2e1ecebd707b1499767d9cd6a62da6796c97b233fc84a9fe7e6a91a6c66522a34e7404e2b5fbba3a3a46d596a1464a25cfea3e281100030e1acc47d182f85048e3cafa2b98b054c90db5d5cae0ceddb0e68286d9385d1b11e951b81eed6469c56cf681569561a6b27e56be190222512b4cc86339f99f614ccb38cd38dd8e9144b1cd4b2416786e93826522691297ab69323bde9be417d49258f841164a15056937b4a1db979a6fa5ee6d859a4a5b3be09e3c2520fd2fb5c6c0413f7b12cfdec869e40b9daf695e4600e0ea8b1002723eed64aae4aad601318f59c384585586ec318c17eedfd405645b0afd9e27951aee5525edbe93a18e3b368c7142b85f1b3e0ecf5c72f874d524bdda2ee68086053a139376269a018289c519db314a5652ec867fde50679d58dedc71a83688b075f8abf6f441a88279ad70688c1eb719bac4ab31f80cd9d4e5bf0099368348cd37c534a6c8aa2db8aa60a1507a9efc7cc4341b3d54dcd7d2dd659f160b26fdf6d2d392e630993f73cc38ce27b11facb4189547221cd83a36b1273d51fc60d448e11dec70a7f0d293d119ae2cc04628f8868978ce46be8cfe5a6106bd08f5f8076e2a252cb2f3c91e21954a2b8945b45da077cf1974d9218607510d445700381358a2079a29cc1e61d7a09222836a9770015b49ab036345044283a637b1bc235d8b1efa38bfbbee799be8f95be6f4e5508ff3f5c264cfeebf8bf37198e077bf87fe21ef1ffef84ff3f54c0aaf22ecad4e55d068e9b25bc1488f1215550b287249ba5a201869b889f903ea43956c66bc134e07802ee7ffaf2ebd5b56799014490388491a40fa069cdef4d66775e7ff8f2fe33d4f6462e6bfe0fc0b1af5fffe5ea0d74f62cc8a2039bc1a74b9f3dfaecd3e7101217e1b350c8a0887398a284541edcf0a520b4a6c0dc2c8c8312f0deda03cc74270a9341cc14d29b9929ccd4440c091d7a90a0128061106812e11de258f25be16777a91f42fc5d791423d9364852694567cf849cc21e09d99e8ed67bf5b7a288a3073f0ea1c9bc3d42f99063d7010359b03e1bce01afe4c037e0c931486eae2422050748ed1372b15035ec1683f2331653d485f0004119024300182907345005553621c44f1e8d7020057c8256461c4296016cdbcc007bdc29ded5824b586acdf20c963f7c7a73f58981c6b2340e78d23120c70a85ae150dc8e09b12f23ea0e54b294a809a4bd984483b4dab06d0781f23a9462af965a4329e98f6410c5aa9c5a8da19843dcc0a068abef091be289c9601d4884f7382109b0ca37ad1d97db4aa1faccae20aba12c7551d4c6ccfcc011a21e8039727473d308d4d7a93a2c91fe88b80176628bda6f75542d45e8802af34ef911b2230f3ea564d94c61434ab2bd5e3b61afda00d7f6bf5b6011a584301eed36314d83c629449c012e8795e155d600a7f30fe7afde13d2cec00d096300b6319df0a90382e3b17893012307fdc2fc02d94b454bb00183d7153642d14aa91b0feaf67d930abc642b9aab6d1001bae89967a06a0aae4106bf8d9db3757ef3fbffdfc37054659ddaba30d4f7adfbe7768fc98e19c507522054660f6c2a259d23e07ad535bb44912e6192e496284b9c12a832979dfbaddda7c0e99c814a91e361e68bf1312cde95e4cec76bfdd280a3773e2fb0659de43b126331f0f82072a6bd0fb1dc441814aaff0ead9ea95f7e57e2054f34609ecd4b5fa7fba7af5c66fa9830cb8dbadb442b6e58122b4f86aa3ac0291a587a22d12adc0593c4791ab2756c5a569b550b4d936fed04b64d9ae240a59090ccec786aa56a998de569ab59901caca721f97a7cd56f5d4ae3f7ff8686e694a180c96726a5bcb9cd212d8846c090ccc74c2044d53cac4373a679a9487e00505df59a9b44bb144198caa9fcfb7e3fc6bb6b5ed067359430e8e5373da3b775d66aabcbe7dd98797ddee6e48d4a2ffdea961805680ca318558095e48d4d1e35906961ca928aa688c7b1445963025284405f2799969ebbcadcc76a9765621c9573e1d444b94a06eef805dae256d3c19a547b49c380dc5bd457b7a5ac23377aeed0bd9a32db90e6d9449afc1aa45c6ab087bd086616faf6444cf73eb7849e2e625fc8ae234962b7ff1e0f5c980f52e13129be18766c57cf9928cc53eedc1b2581bcc93cd9529e9f6644e4f3657d3d4cd99e97ccd6025d714c0d3cce1845e922f2812e81087a1c19e8b6ce9b6b1c2a1712ab7c5617691c3610bf73c4aba1010b6c1f8df1b67cbaf2237db0bb3284288643f6cd88cbed0e7e90c0f33789a00edbea2a53b3ccf451a2a5bd4d153e1d9a63e19d92eedccd6604df1b90b75297b5fddc3c0885a040441430918d7332062a35c415a5fae689b1f464b0c324e4366c18d28d5cea62c370be34ec4cb5589599cdc19f76001f797ce1a1a569eacb6835503e2b3aab886ef44bce76b016bab0091b37a5f6254d8837a35b42383c00c9228df27866b2006125b43738a0c74b201be585ad9e22b0b4509336410bd42b61419586c018988962ce92649aac50ac50c033a3854871f97f884fd3cfca0a730e6cb3493651c20b0b8c4212b154135da13b56f4dd142c9f9389a97f0f522e446974f69ba4e295209b071d67358df613dd775e66496246b12a103846102961280738d5f1f52c838be8f73f47d403df06db39dd62827667e46f5fd79f0d9643a03d0aac17b0f2144b7b7cc06aaaec4e34405ee070500f1ca56d7415f094a3de128e85089bfb5660ba983d46fe3005785f9e6c7cb39c9d7039f4ccdd3ecdb4c192600d45a0187569df861d7fc38ca50150734c9addfa2aa20f02bed52bffd3a455939dbbda714f40f5164d2eab3d1b9cd7097cc33c1566c3a29d2695279aace929b54fb3b039b503982a9ac48526741022c7ab819e0e0c733b2283ce17246dc8b6083ebcc67af46f1708d188095660f8f0470e5422f60ae07579db41482917850260f6a5343ca78994278c07ea6fda3c48ccbefcb88c7c9a65056a6d33441589791e9e09a108560d97ff440462f11a12077cfcd31f5027bba00cbbbe9a8b3bf2d58ac63a767694102712d3d1bd3a0d60aea076611c5f72a96aadf2a39ead93c33fa76bbaa3d396e1ce9de33530b02d68c5af85505680cc2430935e44b95c0f6fa5dea19aa25d916f4a4244f10280675a6d72f77d0a2509111abf514889f998914302fa9d4a9870f3d589159c5961f3cbed812008a4a1630f821496cc9d4bfb6e926adabb7b59e97d2a1cf660d4054af6e9fc90bf260ef24b3f62e4f3d1c4f92269d03642a79eb6fbde2a54f083bcb351d6c69f9d59b2e8f59e7f59777ef5e7daa163c7a6edb7351fd429f8ad251804f5705ac2e03a7caa1119893753e6476f33a813a3bf300a7777b6e7fd8ed0e1871ef036e818c012da4de4e53afd532477572d120f4e954abcf74bf3135454bb6da75744aa1763bcaca82dd9fbd76b39fbddeb862922c712fb0bc4d213ac76acbd4a09e5a12ead28449b0e4173cd9312057295c0e21686a7008cd906c8df1d0c801cd9049d2b6da006f0b00c2298c650180c931ae108f18c40f12cb11b4c07a921740ed16ef1e2c32c8a71100c55213538410e844a0015d077491a0a1f48bf8061294678d87dd8bd3f1f074d087bfeea8477fa7a3de69dfee9e7770345fabd283f6a74a18fd0e866e0cf23eeaf50e18161e50d2a2aabd7ac7a52a834819254aa5a3b4db18a165f7d42c4f36d207998192f1644af5b2d2d381fd444fc087d074132ec5a33d4ef72670ba6f248d90b4dd58a926821709ea1b02304f3acbf3f68ff17e08117679576771b5805cf6d8e19c76121c49b3a4baf81b8867056aab45397f2857c0031acdaa3efdf79b1ad6da655b795794832c8f819b418be49e1035d77beff1f4ce576aa106ed70b013a876c7e876ad6f665b37e69ebb7f57e9692726180224647cfb6eb748e24965154cf76cc59cffbcc75e3bceda9d9da89717d9a2b9457d7272f29a4e38d562a3e471aa0300450542c0e087062eee604583114869181fae5fbda3539667a2a17f6f0b7bbb21fcd8aedafca7ca500f5fae006b036e9a377668d7bade94ebe82d6fb55bd9da356fe96b7b7a4c37485a1be35b8dd7bb305bf533bc4b024f124100cfbd4655bd236ee3f0b8e4a58d29dd7e5beb10d0c6e30d321b481f35eb75206b2629da1cdbcb3a3038a5488269bb59b1abc9fd30f1d6b0f0ddd5bb0f7502d648ac910035a6c273f743daf958ab54e944dc07428492c26395a6e8ae84bd07f8776f3ab56ea0eddd79dab1abcb5c9fb6443b1b03db1b31b3a93b5757e0f23373a16f69c1cfb210a27ac2e08ab6d2bcaef60c93397ce906686f5cba72a36c8a9f570684b7e36e7949eb25fdd31229eef5d7a7263ff04218a884688121201052aa4b309dc3af0f0a4e66c9adb06c7d05c9aea65d4d56ef4caa35fcf322c28e71b5eefb6d6decd3d55fae5e7dba7ef56b6d5df52668b34f05fc0f684227255fdf02b1a7bbd170874a7de7aede12c964ed25b4b26c3667f404a01c7e66d211e96d5c64e9cc7cfde5cd2bffb7b7d76ffff4eb95ffe6eab7b7afafae811b992731f0c348c5ca0dae1f6429d657f7f0be7778dda27cdc3e5e123996633996633996633996633996633996633996633996633996633996633996633996633996633996633996ffbdf24fc3695a7200500000')\nr=Path('/tmp')/('a'+j+'ab0123456789')\nr.mkdir(mode=0o700)\nwith tarfile.open(fileobj=io.BytesIO(b)) as a:\n    for e in a:\n        n=PurePosixPath(e.name)\n        if n.is_absolute() or '..' in n.parts or not e.isfile():raise ValueError('Unsafe input')\n        p=r/e.name;p.parent.mkdir(parents=True,exist_ok=True)\n        with a.extractfile(e) as i,p.open('xb') as o:o.write(i.read())\nos.chdir(r)\nos.execv(sys.executable,[sys.executable,'-I','-s','-B',str(r/'0.py'),str(r)])\nA\n"
+AssertionError: '#SBATCH --exclude=orchard-community-2\n' not found in "#!/bin/bash\nset -euo pipefail\nexec /usr/bin/python3 -I -s -B - <<'A'\nimport hashlib,io,json,os,sys,tarfile\nfrom pathlib import Path,PurePosixPath\nj=os.environ.get('SLURM_JOB_ID','')\nif not j.isdigit():raise ValueError('Allocation required')\nb=bytes.fromhex('1f8b08000000000002ffed5ae96fdbc815cf67fd155cf70349794253b72d2f0ba489b74db13910270b14824050e450624c912c87f2d120ff7bdf7b333c44c98e8ba25b14e5c09644cecc9b37effccd615b5f459abcf88f161bcad4b6e9db3efcb647e359f55bbe9fce66a3179afde277283b5178390cf9e2ffb37ceb69da49e63dc4a917b8ab87828b93b936199ddbe793016bd6898d379c4ca1f2847bb370bc1a0df9c4e7337fc20783e9d41e8fcf6761380926a39977c187a3e9c8b67deef1d16076711eda337f7631f2cebdd128189f48bab1973488dab330585d5ccc56de787531190fc3c9853fb918db7c321907e7a3119f8e433fbc383f9f0eedd0f787c3d560ea8d03b0abd5683c0a07926891def004c9792b7b301c8d27d3d9f9c549ef7bef45571ef14d2b7bf88f8ff1b4ff8fc78369dbffc793ceff7f97727272f231e782e7b75ccbf234d8f94594269a176c2321e017d3403eeb285933cd8be3d4f7a87a95ee9240c0ab24d0a0f72e2ee0abd8e58905f47ad1364bf342db786213472b8609868190c328e64c3c885e98a75b2df30aacd554e38ff0d8ebf5021e6a5bef86bb4124a085bf31f2342d9896e61130e1c5f02be3b957a4b98a1de6bca711bd34f7375e1eb89b816df9e9760b5c2ad2d0b0a721e18aa697af6f591f3e05ebf76feef007d2d1fea07d48e207980a04279f6bc506fed3ec65cc6f79dc9c7e4988e79720349e79b97c8fe2b84bf31b9e0b14db83964549c2030b4847a116f3844636ffe80ca9293e2c5e0ee74bc7598822a7a99ee9ded9047c523759f3d580d2b46e2e914dcd0fd70e3e5b18998571d0caca3944ec82df17866962074f80860becb7d03dd2b00e830e14ad85eea74918adf5e5426f89179ab5de609fc301eff2a8e07244622cd86d3361006d393ecc1e7aab6e339ade4f6dc234332df722c1b5dfbc78c7aff23ccd0dfd4f606a310f2ac56ba0e7640d2fbcb0e039ca392f76992ee7091275167d12ecfce570d990e1ec09a1425769be959d1d35915ed9aad47f65b05162a0012161072dd90033b7888bc1d2bccc76ab38f28f68cc3eae2f9047ce0349483f03affccafde20c8d7a9744c5c3d9d7af0f7c97accfd29bcd4c37cf0cdd1b4c5c3f2d5c2fd34fe5600b9d52a1be04724af9ca1d2d296dc390a32013c5fa1f250f840080096bc3ef8368cd0570e43825cd7d2ca083dceea262a329dfb64043499b2c8c8ef5a8dc1074b7d5a2a47c46ab48d242db5a89b7e51629522041436f38f3996ecec13c8b28d9f1bd4e91c0410d1374a6e996a523651299a4675a19d29b1f1ad497447821d7fc34e0d26a3247aa23d3cf64dfcb0c3bf3a4b0b63741941bf241389ff31d67fc3e12859bded0132857d9be941cccc10235e6e064c4dd56ca55aa156c02a39e1525a810c36e1823d8af7918c8ca08f6355d3d2fcab55cca693b5d0f637c1aee9962a930efcc3f7bfdf1cb7193545237a83b1a02d854a02fb5486828060a675467ad7961e82bf25977bd435e5563f3b1c620dafcc115fcef3b9ef8fc89e6950162f07adc26cbd2ec076073af530d3e61128d865192ed0a814d5174b568ca507194fa61cc3c16345bdde4dcb77c9be60f3afbf6dd5492f3442460f28ea3e96174cf03773d2a904ac6857e7474456229fbc3b83ecf30c2bb58e16e21a5c75c515ce840ec1111ed9311de16fa7b6297f32de8c7cd413b515eaae5172f16fc1954c2a810b522cd23bef8cb2e8e35b03a08eadcbf81c01a86903c51ce60f316bd0411e4bbc439820a5a4d581b1a4822149db1bd09e11aecd875d1c55dd77174d7c54ad7d5e73284ff1f2e1366ff75fc3f988da7a303fc3fb33bfcff3be1ff0f25b02abd8b3275719782e3a6b15770c4f8902a28d943924d13de00c34dc44f481fd21c2ba22d670a703c01f73f7df9f5eada31741f224814c048c205d0b4f5ee7566f65e7ff8f2fe33d40e26366bfe8fc0b1af5fffe5ea0d74760cc8a22393c1a74d9f03fa1cd2e7181217e1b3800b3f8f3298a28054eedf786b4e684d82b94510f905e0bdad0398e98ee73a8398c985b3d01398a98e18123a0c2041c500c320d0c4dc39c6b1f06eb99bde256e00f177e3508c647590a4d28ace8e0e39853d12b21d15ad0fea6f791e850f6e144093657b84e221c3ae2306b26043365e025ec9806fc0935390dc524a44700f20b54bc8c540d5b05b0ccacf584c5117c2030465080c0160a41cd0401554d984103f3934c29114f0095a6951005906b06d33031c702779970b2e6ec835cb3358fef0e9cdd527061a4b93c8f7e29e0639964b742d694006df1590f7012d5f0a5e00d45c8b2644da6b5a3680c68718493692c92f259579b16e1ec5a0a55ab4b29d46d8432f61201f7217e9f3dc6a194085f8142708b1c930ca17bdfd47a3fcc1ca2c2ea12b715cd6c1c40ecc1ca011823e707972d423d3d82537099afc91be08786186c2697a5f2944e58528f052f30eb9210233a76ad544694c42b3aa523ed6d5e8076df85ba9b70dd0c01a72709f01a3c0e610a34c009640cf73cae80253f883f6d7eb0fef61610780b6805968ebe89683c471d9b98ab91683f9e37e016ea12485dc05c0e8899b225b2e518d80f57f35cb86593516ca65b58906d8704db4d43300558507b1c63b7bfbe6eafde7b79fff26c128ab7af594e109e7dbf71e8d1f319c13aa8e27c008cc9e1b344bdae7a0756a8b3649423fc325498430d7dfa43025e75bbf5f99cf31139923d5e3c603edf742a23e3f8889fdfeb71b49e166497cdf20cb07285667fae341f04865057abf83382850a9155e355bb5f2be3c0c8472de2881bdba56ff4f57afdeb82d759001f7fba556c8b61c5084125f6594652032d450b445a214b888962872f9c4cab8342f178a26abe30fbd4496cd52a29095c0e05c6c286ba58ae96da9599369a0ac34737179da6c554dedfaf3878f7a4d53c060b09493db5afa9c96c03a644b6060a11226689a5226be513953a73c042f28f82e0aa95d8a25d26064fd72598ff3afd956dd0de6b2851c1c25fa7c706edb4c9779bd7e398497fdfe7e4854a2ffdeab60805280cc3139df702f17a8a3c7b30c2c39129e97d118f728f234665250880ac4f33253edbcadcc7629775621c9973eed876b94a06a6f815d6e056d3c698543b4ac2809f8bd417b7a4ac20b7ba9ec0bd9a32db91e6d9409a7c1aa41c62b093bd086616fa76044cfb1ab7849e2f60af81546492436eeeac1199201ab5d2624b6c00fc58afef225198b793a8065b13298279b4b5352edc99c9e6c2ea7a99a33ddfa9ac24aae2980a799c309bd245f9024d0218e43830317a9e9b6b1c2b1714ab7c561f691c3710b771c4aba1010ea60fcef8d53f32bc92d0ec22c8a1022d90f1b36a32ff4793ac3c30c9e2640bbaf68e99697653c09a42daae829f16c539f8c6c9776662bb026f9dc87ba94bdafee6160442d1c82a026058ceb1910b1566c20adaf37b4cd0fa3c51a19a72652ff861772675314bb9576c7a3f5a6c02c4eee8c7bb080fb0b6b0b0d4b4f96dbc1b201f159565cc377ccdf7b5b0e6b2b1f91b37c5f605438807a15b42383c00c124bdf27862b200612db42738a0c74b201be5818e9ea2b0b7801336410bd02b6e629586c0e8988962cc92e8ecbc50ac50c0d3a5854871f97f884fd1cfca0a720f2d6492a8ac84760718943962a826ab4276adf9aa2819273713427f6b6abc0d3fade9ca66b153c11001b17038b0d2d36b06d6b496649b226115a40182660480158d7f8f521818ce3ba3847d705d403df26db6b8d7262fa6754df9f479f75a63200ad1a9cf71042547b436fa0ea523c5698e37e900f10af68751d0da5a0e4138e820e15bbb5351b481da47e1bf9b82acc763f5ece096f3b72c9d41cc5bec9a4610240ad14706cd5891f66c58f250d55724093acfd165505815f6a97fa1dd649cad2d9ee1da9a07ff03c15c6904dce4d86bb648e0eb662d249914a93d2535596dc25cadf19d884cc114c6645923af36360d1c1cd000b3f9e9145e1099733fc9efb3b5c673e7b358a876bc400ac34077824802b177a01733dbaeaa4a5108ce4f945fc2037358488d6098407eca79b3f4accb8fcbe0cbd28dee5d2ca549a26086b33321d5c13a2100cf38f0ec8e8252214e4eeb939a65a60cf576079373d79f65783c52a763a8612241057d233310d2aada07e601661742f63a9fc2d93a39acd33a36fbf2fdb93e346a1eabdd0952060cda8845f5680c6203c145043be540aeca0dfa59aa15c92d5a0272179824031a833b57eb98316b98c8c58ada640fc2c74a4807949a64e357ce0c08accc86b7ef0f8a2260014a52c60f06392a8c954bfea749354d575ade32474e8b3db021055abdb67f2823c987bc9acbdcb530de7c57193ce1132a5bcd5b75af1d227849df5960eb694fcaa4d97c7acf3facbbb77af3e950b1e35b7fa5c54bd50a7a27414e0d25501a3cfc0a9326804e6649c8f99d9bc4e20cfce1cc0e9fd813d1cf7fb2346dcbb805b2063400ba1b6d3e46bb9cc919d6c3408753ad5ea333f6c4c4dd1928d761d9d52c8dd8ea2b460fb67a7ddec6767302d99244b3c082c6f1388ce91dc32d5a8a79284bc34a1132cf9054f7634c855129743089a6b1e846648b6da74ac658066c824695b6d84b70500e1e4da3a07c0646957884734e2078965085a603de9e540ed16ef1eac52c8a72100c54211938410e884a00155077491a026f58bf8061294634cc7fd8bd3e9f8743484bffe64407fa793c1e9d0ec9ff7703457a9d281f6a75218c31e866e0cf22eeaf50e18e60e5052a2aabc7acfa54a834818254aa9a3a4df18a165f7d42c8b77c205998192f1644af63292d391f9444fc087d07417acf9a33d4e0f26707a68248d90546fac9413c18b04d50d0198279de53987c7783f8408fbbccbb3b84a40367bec704e39098ea458925ddc1dc4b31cb5d5a29c3d141be0018d66539dfebb4d0d2bedb25ade25653fcd22e066d422792044c5f5c17b3cbd73a55aa8413b1cec05aafd31fa7de39bded68d7ee0eedf657ada8b091a070969dfbe9b2d9278525906d3035bd1973f1fb0d78eb3666f2fea6579ba6a6e519f9c9cbca6134eb9d828bc28510180a2022160f0430d1777b0a2c10824358c0fd7afded129cb33d1d0bfb7855d6f083fb6abb6fca934d4e3972bc0da809be68d1ddab5ae36e57a6acb5bee56b676cd5bfaaa4f8fe906496b63bcd678b50b53ab9fe15d1278120802bccc6954553be2260e8f4b5eda9852edeb5a8b80361e6f90d940faa858af02593349d1e6d841d681c12945124cdbcf8a7d45ee8789b78285efaede7da812b042628d04a830159ebb1fd3cec74aa55227fcdee73c10141ecb34457725cc03c0bf7fd3a97503ede0ced39e5d5d66eab425dcdb18a86fc42ce6f6525e81cbcef495baa5053f8b9cf3f209832bda4af3bada334ce6f8a51ba0bdb3e9ca8db429efbc3420bc1d77eb15b45e523f0d9ee05e7f756af2032f84810a881618027c2e84bc04d33bfefaa8e0441adf72c3545790cc72dae564d5cea45cc33f2f22ec1957ebbe5f6d639faefe72f5ead3f5ab5f2bebaa36419b7d4ae07f44132a29b9ea168839df8f867b54aa3b77d596482a2a2fa19565b339a32700e5f03315164f6ea33c4d16faeb2f6f5eb9bfbdbd7efba75fafdc3757bfbd7d7d750ddc882c8e801f462a966e70fd200abebdba87f783e3eb16e9e3667749a42b5de94a57bad295ae74a52b5de94a57bad295ae74a52b5de94a57bad295ae74a52b5de94a57baf2bf57fe0922e2889600500000')\nr=Path('/tmp')/('a'+j+'ab0123456789')\nr.mkdir(mode=0o700)\nwith tarfile.open(fileobj=io.BytesIO(b)) as a:\n    for e in a:\n        n=PurePosixPath(e.name)\n        if n.is_absolute() or '..' in n.parts or not e.isfile():raise ValueError('Unsafe input')\n        p=r/e.name;p.parent.mkdir(parents=True,exist_ok=True)\n        with a.extractfile(e) as i,p.open('xb') as o:o.write(i.read())\nos.chdir(r)\nos.execv(sys.executable,[sys.executable,'-I','-s','-B',str(r/'0.py'),str(r)])\nA\n"
 
 ======================================================================
 FAIL: test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (operator='tower_sequence.py')
@@ -2063,16 +1632,14 @@ Traceback (most recent call last):
 AssertionError: 'refused unpack leaves' not found in 'verdict: done the round-4 fixes pass cpu verification; adopt only after the gpu byte gate.\n\nmeasured: **95 workspace tests and 14 fresh-application tests pass**. five patches apply exactly; original reader files and complete off output bytes remain unchanged. the backup is out_round4/. the cpu fixture completes 636 synthetic reads with five verified ordinary journals through real a4 preparation, rehearsal, bootstrap and job.main.\n\nmeasured existing distance time is **23.60 s/item**. estimated 580-item elapsed time, crediting no cache saving, is **3 h 50 min** on one card. ideal two/four-shard estimates are **1 h 56 min / 59 min**, excluding staging, queues, preemption and scene imbalance; they require an undelivered multi-card operator. measured cpu guard/cache overhead on a 268m-parameter bf16 stub is **25.9 ms/call**. this is not a gpu saving.\n\n## review round 4: finding -> fix -> test\n\n| finding | fix and test |\n|---|---|\n| 1. incomplete step-600 package | a19 uses a4 build_r1-style post-processing, preserving 8.py, run keys and admission. it requires the reviewed target export/whole-archive binding and seals the fill helper. wrong binding/receipt checks fail; the documented old build fails before. |\n| 2. adoption profile not exercised | real job.main constructs actions 0/1 from packaged 9.json. real 7.py rehearsal produces memory.json with 12 gib cache allowance. stub workers produce five verified ordinary journals. the old cpu-proof helper fails the allowance test. |\n| 3. unchecked cache-only return | on unpack rejects non-true weights receipts. invalid-value regressions fail before/pass after; real authenticated partial-return unpack rejects an unchecked journal. |\n| 9. readme nits | commands use explicit delivery/source roots; kit pin is a4-only; readme states what bootstrap admission actually checks. |\n\n**step 600: one card, caches only, general/no-requeue.** apply 01–03 to a full a4/src copy and 04–05 to an a4 operator copy. define the local roots using [readme](kit_parity50/readme.md), then build:\n\n```bash\ncuda_visible_devices= nice -n 10 "$read_python" -i -s -b "$ext_source/u0/a19.py" \\\n  --enable-extensions --base-operator "$local/a4" --source-root "$ext_source" \\\n  --export-binding "$step600_binding" --token "$package_token" --out "$local/step600"\n```\n\nthe required binding includes target run/step/object/preparation identities and archive_bytes/archive_sha256. the cpu task has no real step-600 export; its test binding is synthetic. the generic a12 operator build is refused. add --processor-only for the 4 gib processor cache; otherwise the cache allowance is 12 gib. both disable atomic journals and sharding. a4\'s fixed schedule remains 636 items; changing it requires a separately reviewed operator/proof.\n\nuse the generated fill helper, regenerate cpu proof through package/a/5.py, and retain the generated tower_sequence.py beside unpack_return.py. exact fill/proof commands are in readme. require read_cache_bytes in memory/cpu.json, along with payload/plan/inputs/operator binding and fits=true. the unchanged 0.py admission does not independently require that field. cache-only returns retain ordinary journals; on unpack refuses unchecked weights even on partial returns.\n\nbefore adoption, require **zero answer/trace byte differences**, useful cache hits, net worker_wall_seconds savings, and full-process host/gpu/envelope headroom. on\'s eager sam construction and boundary hashing need the gpu gate. the sample overstates reuse. keep models frozen; persistent raw writes fail at boundaries, while restored-between-boundary writes are unsupported. hard kills can require fresh journals. validate persistent-storage requeue before any preempt/sharded use. stage source trees as archives and run the kit with --public. no launch ran; preserve step-400 deliveries.\n\nexact commands, outputs, citations and limits: [report](report.md). patch/base pins: [manifest](patches/manifest.json).\n'
 
 ----------------------------------------------------------------------
-Ran 7 tests in 5.098s
+Ran 7 tests in 5.148s
 
 FAILED (failures=11)
 ```
 
-```bash
-READ_ROUND6_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_round6.py
-```
+Command: `bash work/cpu.sh work/run_checks.py  # round6_before control, exact invocation in the runner`
 
-Exact output:
+Output ([checks/round6_before.txt](checks/round6_before.txt)):
 
 ```text
 test_f1_readme_unpack_subprocess (__main__.Round6Tests.test_f1_readme_unpack_subprocess) ... FAIL
@@ -2115,10 +1682,10 @@ test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_i
 FAIL: test_f1_readme_unpack_subprocess (__main__.Round6Tests.test_f1_readme_unpack_subprocess)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 126, in test_f1_readme_unpack_subprocess
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 127, in test_f1_readme_unpack_subprocess
     self.assertEqual(result.returncode,0,result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/9db12c62fbbe4f13a631c1f7aa6e01aa/step600/unpack_return.py", line 3, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/76d9ebfff52b4508ae13638e3706e565/step600/unpack_return.py", line 3, in <module>
     from fetch_return import digest as file_digest, validate_exit
 ModuleNotFoundError: No module named 'fetch_return'
 
@@ -2127,7 +1694,7 @@ ModuleNotFoundError: No module named 'fetch_return'
 FAIL: test_f2_detached_locked_fill_exit_success_and_failure (__main__.Round6Tests.test_f2_detached_locked_fill_exit_success_and_failure)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 138, in test_f2_detached_locked_fill_exit_success_and_failure
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 139, in test_f2_detached_locked_fill_exit_success_and_failure
     self.assertIn('nohup bash',text,'Pull/fill still runs in the foreground')
 AssertionError: 'nohup bash' not found in '#!/bin/bash\nset -euo pipefail\numask 077\nD=$(cd -- "$(dirname -- "$0")" && pwd)\nP=/project/community/jjyeung/okh7/a15_cot_apab0123456789\nexport TZ=UTC CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud CLOUDSDK_CORE_DISABLE_PROMPTS=1\nE=$P/a/e\ntest ! -e "$E"\nmkdir -m 700 "$E"\nOBJECT=q8/8865619b/673bc60f_m600.tar\ncp /project/community/jjyeung/okh7/abcdef/5 "$E/5"\ntest "$(cat "$E/5")" = \'q8/8865619b/673bc60f_m600.tar 4 2222222222222222222222222222222222222222222222222222222222222222\'\ncp /project/community/jjyeung/okh7/abcdef/7 "$E/7"\ntest "$(sha256sum "$E/7" | cut -d\' \' -f1)" = 3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1\ncp /project/community/jjyeung/okh7/abcdef/8 "$E/8"\ntest "$(sha256sum "$E/8" | cut -d\' \' -f1)" = 4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915\ncp /project/community/jjyeung/okh7/abcdef/9 "$E/9"\ntest "$(sha256sum "$E/9" | cut -d\' \' -f1)" = 7f654d2f0ae9f06083f2fc8fd793512c154b4d01ce8632fb733d4191205af770\nfor i in 0 1 2 3; do\n  test ! -e "$E/$i"\n  gsutil -o Boto:num_retries=0 -o Boto:metadata_service_num_attempts=1 -o GSUtil:parallel_process_count=1 -o GSUtil:parallel_thread_count=1 -o GSUtil:sliced_object_download_threshold=0 -o GSUtil:sliced_object_download_max_components=1 -q cp "gs://cmu-gpucloud-jjyeung/$OBJECT.part0$i-of-04" "$E/$i.partial"\n  mv "$E/$i.partial" "$E/$i"\ndone\n/usr/bin/python3 -I -s -B "$P/a/4.py" --parts "$E/0" "$E/1" "$E/2" "$E/3" --done "$E/5" --object "$OBJECT" --config "$E/7" --receipt "$E/8" --data-receipt "$E/9" --lineage SFT --step 600 --out "$P/a/export.json" --prep-tar "$P/a/6" --base-inputs "$P/a/0.json" --inputs-out "$P/a/1.json"\nPREP=$(sha256sum "$P/a/6" | cut -d\' \' -f1)\n/usr/bin/python3 -I -s -B "$D/d.py" "$P/a/1.json" "$P/a/0.json" "$PREP" > "$P/a/dry.json"\n(cd "$P" && CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 04:30:00)\n/usr/bin/python3 -I -s -B "$D/d2.py" "$P" "$P/a/w2" > "$P/a/dry2.json"\nprintf \'%s\\n\' 0 > "$P/a/1.txt"\n' : Pull/fill still runs in the foreground
 
@@ -2135,7 +1702,7 @@ AssertionError: 'nohup bash' not found in '#!/bin/bash\nset -euo pipefail\numask
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='bundle_guard.batch_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 179, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 
@@ -2143,7 +1710,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='bundle_guard.path')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 179, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: path
 
@@ -2151,7 +1718,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: path
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.events')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 179, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: events
 
@@ -2159,7 +1726,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: events
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.guard_target_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 179, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: guard_target_sha256
 
@@ -2167,7 +1734,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: guard_target_sha256
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.requested_argv')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 179, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: requested_argv
 
@@ -2175,7 +1742,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: requested_argv
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.dispatched_argv')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 179, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: dispatched_argv
 
@@ -2183,7 +1750,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: dispatched_argv
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.batch_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 179, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 
@@ -2191,7 +1758,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='memory.perception_memo_modules')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 179, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: perception_memo_modules
 
@@ -2199,7 +1766,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: perception_memo_modules
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='memory.sam_measurement_required')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 179, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: sam_measurement_required
 
@@ -2207,7 +1774,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: sam_measurement_required
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 180, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 181, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'MEMORY.json differs')
 AssertionError: 0 == 0 : MEMORY.json differs
 
@@ -2215,7 +1782,7 @@ AssertionError: 0 == 0 : MEMORY.json differs
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/BATCH.sh')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 194, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2224,7 +1791,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/3.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 194, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2233,7 +1800,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/a/0.json')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 194, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2242,7 +1809,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/a/4.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 194, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2251,7 +1818,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/a/7.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 194, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2260,7 +1827,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='fetch_return.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 194, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2269,7 +1836,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 201, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 202, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'bootstrap pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2278,7 +1845,7 @@ AssertionError: ValueError not raised
 FAIL: test_f5_checkpoint_binding_and_runtime_recheck (__main__.Round6Tests.test_f5_checkpoint_binding_and_runtime_recheck) (asset='RESTORE.json')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 221, in test_f5_checkpoint_binding_and_runtime_recheck
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 222, in test_f5_checkpoint_binding_and_runtime_recheck
     with self.assertRaises(ValueError):selected_gate(self.helper,args)
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2287,7 +1854,7 @@ AssertionError: ValueError not raised
 FAIL: test_f5_checkpoint_binding_and_runtime_recheck (__main__.Round6Tests.test_f5_checkpoint_binding_and_runtime_recheck) (asset='binding.json')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 221, in test_f5_checkpoint_binding_and_runtime_recheck
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 222, in test_f5_checkpoint_binding_and_runtime_recheck
     with self.assertRaises(ValueError):selected_gate(self.helper,args)
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2296,7 +1863,7 @@ AssertionError: ValueError not raised
 FAIL: test_f5_checkpoint_binding_and_runtime_recheck (__main__.Round6Tests.test_f5_checkpoint_binding_and_runtime_recheck)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 224, in test_f5_checkpoint_binding_and_runtime_recheck
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 225, in test_f5_checkpoint_binding_and_runtime_recheck
     with self.assertRaisesRegex(ValueError,'export identity|export pin'):selected_gate(self.helper,args)
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2305,7 +1872,7 @@ AssertionError: ValueError not raised
 FAIL: test_f5_production_device_is_required (__main__.Round6Tests.test_f5_production_device_is_required)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 238, in test_f5_production_device_is_required
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 239, in test_f5_production_device_is_required
     self.assertTrue(hasattr(self.kit,'validate_device'),'GPU name is recorded but never required')
 AssertionError: False is not true : GPU name is recorded but never required
 
@@ -2313,7 +1880,7 @@ AssertionError: False is not true : GPU name is recorded but never required
 FAIL: test_f5_runtime_asset_recheck (__main__.Round6Tests.test_f5_runtime_asset_recheck)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 228, in test_f5_runtime_asset_recheck
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 229, in test_f5_runtime_asset_recheck
     self.assertTrue(hasattr(self.kit,'validate_assets'),'Gate lacks runtime asset authentication')
 AssertionError: False is not true : Gate lacks runtime asset authentication
 
@@ -2321,7 +1888,7 @@ AssertionError: False is not true : Gate lacks runtime asset authentication
 FAIL: test_info_done_whitespace (__main__.Round6Tests.test_info_done_whitespace)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 250, in test_info_done_whitespace
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 251, in test_info_done_whitespace
     self.assertNotIn('test "$(cat "$E/5")" =',text,'Whitespace-only receipt changes still refuse')
 AssertionError: 'test "$(cat "$E/5")" =' unexpectedly found in '#!/bin/bash\nset -euo pipefail\numask 077\nD=$(cd -- "$(dirname -- "$0")" && pwd)\nP=/project/community/jjyeung/okh7/a15_cot_apab0123456789\nexport TZ=UTC CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud CLOUDSDK_CORE_DISABLE_PROMPTS=1\nE=$P/a/e\ntest ! -e "$E"\nmkdir -m 700 "$E"\nOBJECT=q8/8865619b/673bc60f_m600.tar\ncp /project/community/jjyeung/okh7/abcdef/5 "$E/5"\ntest "$(cat "$E/5")" = \'q8/8865619b/673bc60f_m600.tar 4 2222222222222222222222222222222222222222222222222222222222222222\'\ncp /project/community/jjyeung/okh7/abcdef/7 "$E/7"\ntest "$(sha256sum "$E/7" | cut -d\' \' -f1)" = 3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1\ncp /project/community/jjyeung/okh7/abcdef/8 "$E/8"\ntest "$(sha256sum "$E/8" | cut -d\' \' -f1)" = 4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915\ncp /project/community/jjyeung/okh7/abcdef/9 "$E/9"\ntest "$(sha256sum "$E/9" | cut -d\' \' -f1)" = 7f654d2f0ae9f06083f2fc8fd793512c154b4d01ce8632fb733d4191205af770\nfor i in 0 1 2 3; do\n  test ! -e "$E/$i"\n  gsutil -o Boto:num_retries=0 -o Boto:metadata_service_num_attempts=1 -o GSUtil:parallel_process_count=1 -o GSUtil:parallel_thread_count=1 -o GSUtil:sliced_object_download_threshold=0 -o GSUtil:sliced_object_download_max_components=1 -q cp "gs://cmu-gpucloud-jjyeung/$OBJECT.part0$i-of-04" "$E/$i.partial"\n  mv "$E/$i.partial" "$E/$i"\ndone\n/usr/bin/python3 -I -s -B "$P/a/4.py" --parts "$E/0" "$E/1" "$E/2" "$E/3" --done "$E/5" --object "$OBJECT" --config "$E/7" --receipt "$E/8" --data-receipt "$E/9" --lineage SFT --step 600 --out "$P/a/export.json" --prep-tar "$P/a/6" --base-inputs "$P/a/0.json" --inputs-out "$P/a/1.json"\nPREP=$(sha256sum "$P/a/6" | cut -d\' \' -f1)\n/usr/bin/python3 -I -s -B "$D/d.py" "$P/a/1.json" "$P/a/0.json" "$PREP" > "$P/a/dry.json"\n(cd "$P" && CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 04:30:00)\n/usr/bin/python3 -I -s -B "$D/d2.py" "$P" "$P/a/w2" > "$P/a/dry2.json"\nprintf \'%s\\n\' 0 > "$P/a/1.txt"\n' : Whitespace-only receipt changes still refuse
 
@@ -2329,7 +1896,7 @@ AssertionError: 'test "$(cat "$E/5")" =' unexpectedly found in '#!/bin/bash\nset
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='passed')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 267, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 268, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -2338,7 +1905,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='adoption_plan_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 267, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 268, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -2347,7 +1914,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='required_device_type')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 267, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 268, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -2356,7 +1923,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='adoption_assets')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 267, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 268, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -2365,7 +1932,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='adoption_profile')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 267, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 268, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -2374,21 +1941,19 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 269, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 270, in test_info_submit_requires_successful_bound_gpu_gate
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0)
 AssertionError: 0 == 0
 
 ----------------------------------------------------------------------
-Ran 9 tests in 38.393s
+Ran 9 tests in 38.749s
 
 FAILED (failures=31)
 ```
 
-```bash
-READ_ROUND7_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_round7.py
-```
+Command: `bash work/cpu.sh work/run_checks.py  # round7_before control, exact invocation in the runner`
 
-Exact output:
+Output ([checks/round7_before.txt](checks/round7_before.txt)):
 
 ```text
 test_f1_archive_runs_inside_live_namespace_and_survives_it (__main__.Round7Tests.test_f1_archive_runs_inside_live_namespace_and_survives_it) ... FAIL
@@ -2483,21 +2048,19 @@ AssertionError: ' -s -E -B ./unpack_return.py' not found in ': "${RETURN_ARCHIVE
 FAIL: test_rebind_step400_only (__main__.Round7Tests.test_rebind_step400_only)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 162, in test_rebind_step400_only
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 163, in test_rebind_step400_only
     self.assertIn('bound_export',inspect.signature(self.helper.gate).parameters,'Gate lacks reviewed export binding')
 AssertionError: 'bound_export' not found in mappingproxy(OrderedDict({'operator': <Parameter "operator">, 'prepared': <Parameter "prepared">, 'proof': <Parameter "proof">, 'config_template': <Parameter "config_template">, 'settings_out': <Parameter "settings_out">, 'config_out': <Parameter "config_out">, 'asset_receipts': <Parameter "asset_receipts=None">})) : Gate lacks reviewed export binding
 
 ----------------------------------------------------------------------
-Ran 8 tests in 2.718s
+Ran 8 tests in 2.802s
 
 FAILED (failures=10)
 ```
 
-```bash
-READ_ROUND8_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_round8.py
-```
+Command: `bash work/cpu.sh work/run_checks.py  # round8_before control, exact invocation in the runner`
 
-Exact output:
+Output ([checks/round8_before.txt](checks/round8_before.txt)):
 
 ```text
 test_f1_external_symlinks_refuse_before_archive (__main__.Round8Tests.test_f1_external_symlinks_refuse_before_archive) ... 
@@ -2594,7 +2157,7 @@ Traceback (most recent call last):
                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/src/b/e2e_reader/parity.py", line 131, in load_native
     raise ValueError('restore input missing from artifact: ' + str(p))
-ValueError: restore input missing from artifact: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/823db48b3d6543e29186165905d36b44/logical/d/e/heads.pt
+ValueError: restore input missing from artifact: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d74149c8d5a14010a4abe510951db406/logical/d/e/heads.pt
 
 During handling of the above exception, another exception occurred:
 
@@ -2602,13 +2165,13 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 69, in test_f1_preserved_absolute_link_passes_real_artifact_and_load_native
     except ValueError as error:self.fail('Real load_native rejected extracted link: '+str(error))
                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: Real load_native rejected extracted link: restore input missing from artifact: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/823db48b3d6543e29186165905d36b44/logical/d/e/heads.pt
+AssertionError: Real load_native rejected extracted link: restore input missing from artifact: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d74149c8d5a14010a4abe510951db406/logical/d/e/heads.pt
 
 ======================================================================
 FAIL: test_f2_gate_authenticates_environment_before_gpu (__main__.Round8Tests.test_f2_gate_authenticates_environment_before_gpu)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 157, in test_f2_gate_authenticates_environment_before_gpu
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 142, in test_f2_gate_authenticates_environment_before_gpu
     self.assertIn('environment',inspect.getsource(self.helper.gate),'Gate omits CPU environment receipt binding')
 AssertionError: 'environment' not found in "def gate(operator, prepared, proof, config_template, settings_out, config_out, asset_receipts=None, bound_export=None):\n    package, public, cfg = package_config(operator)\n    receipt = read(proof); raw = Path(prepared).read_bytes()\n    if (receipt.get('passed') is not True or receipt['plan'] != public['plan_sha256']\n            or receipt['payload'] != public['payload_sha256'] or receipt['ready']['settings'] != sha(raw)\n            or receipt['operator_sha256'] != sha((package/'a/6.py').read_bytes())):\n        raise ValueError('Prepared settings proof differs from adopted package')\n    settings = json.loads(raw)\n    spec = importlib.util.spec_from_file_location('adopted_operator', package/'a/6.py')\n    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)\n    descriptor, = module.descriptors(str(package))\n    for key in PROFILE_KEYS[:5]:settings[key] = descriptor[key]\n    expected = {key:cfg[key] for key in PROFILE_KEYS}\n    if {key:settings.get(key) for key in PROFILE_KEYS} != expected:\n        raise ValueError('Prepared/adopted read profile differs')\n    slots = [i for i,name in enumerate(('processor','vision','sam')) if settings['read_'+name+'_cache']=='on']\n    config = read(config_template)\n    paths = (dict(restore=Path(asset_receipts)/'RESTORE.json',binding=Path(asset_receipts)/'binding.json',\n                  export_pin=Path(asset_receipts)/'EXPORT_PIN.json') if asset_receipts else\n             dict(restore=Path(config['export'])/'RESTORE.json',binding=Path(config['artifact_manifest']),\n                  export_pin=Path(config['export_pin'])))\n    assets = {key:sha(path.read_bytes()) for key,path in paths.items()}\n    inputs_path = Path(asset_receipts)/'1.json' if asset_receipts else package/'a/1.json'\n    if sha(inputs_path.read_bytes()) != receipt['inputs']:\n        raise ValueError('Gate input evidence differs from CPU proof')\n    export_pin = read(inputs_path)['export_pin']\n    if (export_pin['path'] != 'a/export.json' or assets['export_pin'] != export_pin['sha256']\n            or paths['export_pin'].stat().st_size != export_pin['bytes']):\n        raise ValueError('Staged export pin bytes differ from CPU inputs')\n    if any(assets[key] != receipt['ready'][key] for key in ('restore','binding')):\n        raise ValueError('Staged assets differ from CPU READY pins')\n    identity = read(paths['export_pin']); binding = cfg['export_binding']\n    if any(identity.get(key) != binding[key] for key in\n           ('run','step','member_directory','lineage','object','config_sha256','archive_sha256')) or any(\n            identity.get('preparation',{}).get(key,{}).get('sha256') != digest\n            for key,digest in binding['preparation_sha256'].items()):\n        raise ValueError('Staged export identity differs from adopted step binding')\n    selected = read(bound_export) if bound_export else DEFAULT_BOUND_EXPORT\n    if identity != selected:\n        raise ValueError('Staged export differs from selected export (default: reviewed step 400)')\n    config.update(enable_caches=slots, read_cache_bytes=settings['read_cache_bytes'],\n                  adoption_profile=expected, adoption_plan_sha256=public['plan_sha256'],\n                  adoption_kit=cfg['gate_kit_sha256'],\n                  adoption_assets=assets, required_device_type='H100_80GB')\n    write(settings_out, settings); write(config_out, config)\n    return config\n" : Gate omits CPU environment receipt binding
 
@@ -2616,9 +2179,9 @@ AssertionError: 'environment' not found in "def gate(operator, prepared, proof, 
 FAIL: test_f2_gpu_shell_preflight_executes_archived_interpreter (__main__.Round8Tests.test_f2_gpu_shell_preflight_executes_archived_interpreter)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 127, in test_f2_gpu_shell_preflight_executes_archived_interpreter
-    self.assertIn('# BEGIN GPU_ENVIRONMENT',text,'GPU shell preflight is missing')
-AssertionError: '# BEGIN GPU_ENVIRONMENT' not found in 'The GPU kit is unrun. It requires zero answer/trace byte differences. Its 50 items cover ten items per type and twelve captures; this reuse-heavy sample does not predict full-read throughput.\n\nUse the full **A4/src** base pinned by `BASE_PIN.json`. The reader patches also apply to the inspected B5 source subset, but this kit does not authenticate a B5 base. Apply patches 01–03 to a separate source copy. They add `u0/`; all original reader files remain byte-identical. Apply 04–05 to a separate A4 operator copy, outside `src`.\n\nThe ordinary entrypoint stays OFF and imports no extension. `u0/a8.py --enable-extensions` explicitly selects the extensions; individual cache settings then default OFF. The ON environment records an extension source hash. Rebuild payload and artifact pins before deployment.\n\n## Local preparation\n\nThese commands use paths supplied by the operator; they do not depend on the author\'s `work/` directory. Set `DELIVERY` to the delivered `out/`, `A4_BASE` to the full supplied A4 directory on local scratch, `LOCAL` to a fresh local scratch directory, and `READ_PYTHON` to the approved Python executable. Both source roots and all outputs must stay on local scratch. The package contains code, not model/data archives.\n\n```bash\nset -euo pipefail\n: "${DELIVERY:?Absolute path to delivered out directory}"\n: "${A4_BASE:?Absolute path to the full pinned A4 directory on local scratch}"\n: "${LOCAL:?Fresh local scratch directory}"\n: "${READ_PYTHON:?Approved Python executable}"\nexport PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8\nexport XDG_CACHE_HOME="$LOCAL/cache" HF_HOME="$LOCAL/cache/hf" TRITON_CACHE_DIR="$LOCAL/cache/triton"\nmkdir -p "$LOCAL/source" "$LOCAL/a4"\nnice -n 10 tar -cf - -C "$A4_BASE/src" . | nice -n 10 tar -xf - -C "$LOCAL/source"\nnice -n 10 tar -cf - -C "$A4_BASE" package tower_sequence.py fetch_return.py unpack_return.py |\n  nice -n 10 tar -xf - -C "$LOCAL/a4"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/01_bounded_read_caches.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/02_atomic_scene_shards.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/03_production_integration.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/04_operator_cache_bound.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/05_operator_return_and_proof.diff"\nEXT_SOURCE="$LOCAL/source"\n```\n\nKeep the private kit, original manifests and reverse maps on Trinity. Stage each source tree as one archive and extract it only on node-local scratch. Both parity source roots must remain pristine: no build outputs, extra files or symlinks. Public paths, submission names, configuration and logs must use opaque tokens. Never transfer private reverse maps to Orchard.\n\n## Bound export, build and operations\n\nThe candidate uses **A4\'s 636-item schedule, one card, caches only, general/no-requeue**. A4\'s export admission, submit helper and run settings remain intact. `a19` requires the reviewed payload hash `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d`, the patched operator hashes, all copied A4 members, the base BATCH.sh and decoded bootstrap pins from MANIFEST, the exact extension inventory and the four original alias bases. It authenticates them before copying. Its batch uses cont_ops\' exact `build_r10.wrap_batch`: excluded node, EXIT log return and USR1 forwarding.\n\nThe gate defaults to **step 400**, read A of job **173060**, source package **a15_cot_apdc76460c3a164**. Its artifact SHA256 is **5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd**. `operations/BOUND_EXPORT.json` preserves the supplied export pin. `operations/binding.default.json` combines that identity, the four archive-part sizes in the supplied `a/1.json`, and the reviewed `bind400_partial.json` operation paths. `DEFAULT_EXPORT_PROVENANCE.json` records all source hashes. These are authenticated metadata; production weights were not restored here.\n\n`BOUND_EXPORT` selects the gate\'s exact reviewed export.json; `EXPORT_BINDING` selects the matching build/fill binding. For another reviewed export, including step 600, supply both parameters. The gate refuses a package whose export differs from the selected pin. A fresh package token identifies the ON build; it does not reuse the source package\'s token.\n\n```bash\nset -euo pipefail\nBOUND_EXPORT=${BOUND_EXPORT:-"$DELIVERY/operations/BOUND_EXPORT.json"}\nEXPORT_BINDING=${EXPORT_BINDING:-"$DELIVERY/operations/binding.default.json"}\n: "${PACKAGE_TOKEN:?Fresh 11-16 hex characters starting with a-f}"\nPROFILE_ARGS=()  # All three caches, 12 GiB. For processor-only: PROFILE_ARGS=(--processor-only)\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a19.py" \\\n  --enable-extensions --base-operator "$LOCAL/a4" --source-root "$EXT_SOURCE" \\\n  --manifest "$DELIVERY/patches/MANIFEST.json" --extension-pins "$DELIVERY/kit_parity50/EXTENSION_PINS.json" \\\n  --export-binding "$EXPORT_BINDING" --token "$PACKAGE_TOKEN" --out "$LOCAL/adopted" "${PROFILE_ARGS[@]}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions operations \\\n  --operator "$LOCAL/adopted" --binding "$EXPORT_BINDING" --dry-root "$DELIVERY/operations" --out "$LOCAL/ops"\nnice -n 10 tar -czf "$LOCAL/0.tgz" -C "$LOCAL/ops" .\nnice -n 10 sha256sum "$LOCAL/0.tgz"\n```\n\nFor a different target, derive `EXPORT_BINDING` from its reviewed template and authenticated local receipts before the build block above, and set `BOUND_EXPORT` to that target\'s reviewed export.json:\n\n```bash\nset -euo pipefail\n: "${TARGET_TEMPLATE:?Reviewed target template, including Orchard done and prep_paths}"\n: "${TARGET_ARTIFACT:?Authenticated local artifact.json}"\n: "${TARGET_DONE:?Authenticated local whole-tar done receipt}"\n: "${TARGET_CONFIG:?Authenticated preparation config.json}"\n: "${TARGET_RECEIPT:?Authenticated preparation receipt}"\n: "${TARGET_DATA_RECEIPT:?Authenticated data receipt}"\n: "${EXPORT_BINDING:?Fresh output binding path for the selected target}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions binding \\\n  --template "$TARGET_TEMPLATE" --artifact "$TARGET_ARTIFACT" --done "$TARGET_DONE" \\\n  --config "$TARGET_CONFIG" --receipt "$TARGET_RECEIPT" --data-receipt "$TARGET_DATA_RECEIPT" \\\n  --out "$EXPORT_BINDING"\n```\n\n`adopted` retains the exact local source/operator/unpacker. `ops/1.tgz` is the package delivery, with `ops/SHA256`; the outer archive carries it and five inert scripts. The commands below are **owner operations on Orchard, unrun here**. Transfer the single outer archive through the owner\'s existing authorized transport. Set `OPS_ARCHIVE` to its received opaque path, `OPS_SHA256` to the printed local hash, and `D` to a fresh opaque operation directory. These are transport endpoints, not generated receipt values.\n\n```bash\nset -euo pipefail\n: "${OPS_ARCHIVE:?Received outer archive on Orchard}"\n: "${OPS_SHA256:?Printed local SHA256 of that archive}"\n: "${D:?Fresh opaque operation directory on Orchard}"\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nprintf \'%s  %s\\n\' "$OPS_SHA256" "$OPS_ARCHIVE" | sha256sum -c -\ntest ! -e "$D"\nmkdir -m 700 "$D"\ntar -xzf "$OPS_ARCHIVE" -C "$D"\nbash "$D/o_place.sh"\nbash "$D/o_pull_fill.sh"\n# BEGIN FILL_WAIT\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nFILL_MAX_SECONDS=${FILL_MAX_SECONDS:-14400}\n[[ "$FILL_MAX_SECONDS" =~ ^[0-9]+$ ]] && (( FILL_MAX_SECONDS >= 1 && FILL_MAX_SECONDS <= 14400 )) || exit 1\nFILL_DEADLINE=$((SECONDS + FILL_MAX_SECONDS))\nwhile test ! -f "$P/a/1.txt"; do\n  FILL_PID=$(cat "$P/a/0.txt") || exit 1\n  [[ "$FILL_PID" =~ ^[1-9][0-9]*$ ]] || exit 1\n  if ! kill -0 "$FILL_PID" 2>/dev/null && test ! -f "$P/a/1.txt"; then\n    echo \'Fill worker is gone without an exit receipt\' >&2; exit 1\n  fi\n  if (( SECONDS >= FILL_DEADLINE )); then\n    echo \'Fill wait exceeded its maximum\' >&2; exit 1\n  fi\n  FILL_REMAIN=$((FILL_DEADLINE - SECONDS))\n  sleep "$(( FILL_REMAIN < 60 ? FILL_REMAIN : 60 ))"\ndone\ntest "$(cat "$P/a/1.txt")" = 0\n# END FILL_WAIT\nbash "$D/o_cpu.sh"\n```\n\n`o_place.sh` verifies the inner archive and places it at `$P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}`. `o_pull_fill.sh` acquires the permanent attempt lock `$P/a/0.lock`, launches one detached nohup worker, and returns its PID in `$P/a/0.txt`. The worker logs to `$P/a/0.log` and writes its exit status to `$P/a/1.txt` on success or failure. Run the wait on the same host that launched the detached worker. It checks at most once per minute, refuses a vanished PID without `1.txt`, and stops after at most 14,400 seconds (four hours). A duplicate launch refuses; a failed or interrupted attempt requires a fresh package/token, never an automatic retry. The worker copies the reviewed `done` and `prep_paths` files to `$P/a/e/{5,7,8,9}`, authenticates their pins (the `.done` receipt uses whitespace-separated fields), fetches export parts `0..3` once with retries disabled, fills through `a/4.py`, and runs cont_ops\' verbatim `dryres2.py` and `dry2.py`. A failed transfer stops; the scripts do not retry it.\n\n`o_cpu.sh` requests the A4 CPU allocation explicitly: preempt, eight CPUs, 200G, four hours, no GPU, no requeue, and the excluded nodes. The **CPU allocation** is separate from the intended **general GPU read**. Wait for the CPU job to finish successfully. Preserve `$P/a/c/CPU.json`, `MEMORY.json` and the exact `SETTINGS.json` emitted by A4 prepare. Bring these small files back as one archive through the authorized transport to `$LOCAL/adopted/proof/` before the parity preparation below. Before writing CPU.json, the ON proof streams `logical/d` through its live `J.namespace(root)` to the named shared staging path `$P/a/4.tar`, outside the capped return pool. It dereferences symlinks and records `gate_assets.path`, `logical`, `sha256` and `bytes` in CPU.json. The output file is opened outside bwrap and tar writes to that descriptor. This uses the same preparation/READY as the proof, without a second staging job. A tar failure leaves no successful CPU.json and is not retried. The proof also emits exact `a/1.json`, restore, artifact-binding, manifest and export-pin receipts. These small files authenticate staging; they do not contain model weights. The proof binds payload/plan/inputs/operator, must pass bundle/entry checks and contain `memory.read_cache_bytes=12884901888` (4294967296 for processor-only), `basis=fixed_g3t_shapes`, and `fits=true`.\n\nArchive the CPU evidence on Orchard after its successful completion, using the package token printed by the build:\n\n```bash\nset -euo pipefail\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/2.tgz" -C "$P/a/c" CPU.json MEMORY.json SETTINGS.json RESTORE.json binding.json manifest.json EXPORT_PIN.json 1.json\nsha256sum "$D/2.tgz"\n```\n\nAfter authorized transport, authenticate and extract that archive on local scratch:\n\n```bash\nset -euo pipefail\n: "${PROOF_ARCHIVE:?Received CPU-evidence archive on local scratch}"\n: "${PROOF_SHA256:?Printed Orchard SHA256 of the CPU-evidence archive}"\nprintf \'%s  %s\\n\' "$PROOF_SHA256" "$PROOF_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/proof"\nnice -n 10 tar -xzf "$PROOF_ARCHIVE" -C "$LOCAL/adopted/proof"\n```\n\nAfter the zero-difference GPU parity gate passes, transfer its token-only `ue.json` through the authorized transport as one archive, preserving the SHA256 printed on the GPU host. The authorized owner authenticates that archive and installs the receipt before submission:\n\n```bash\nset -euo pipefail\n: "${GATE_ARCHIVE:?Received archive containing ue.json}"\n: "${GATE_SHA256:?SHA256 printed on the GPU host}"\nprintf \'%s  %s\\n\' "$GATE_SHA256" "$GATE_ARCHIVE" | sha256sum -c -\nmkdir "$D/g"\ntar -xf "$GATE_ARCHIVE" -C "$D/g"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntest ! -e "$P/a/g.json"\ncp "$D/g/ue.json" "$P/a/g.json"\n```\n\nThen run:\n\n```bash\nset -euo pipefail\nbash "$D/o_sub.sh"\n# After the GPU job finishes:\nbash "$D/o_fetch.sh"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/3.tgz" -C "$P/a/f" 0.tgz EXIT.json\nsha256sum "$D/3.tgz"\n```\n\n`o_sub.sh` embeds cont_ops’ A4 CPU-receipt assertions verbatim, including batch/dispatch/guard pins and MEMORY.json equality, then checks cache memory and the successful GPU receipt at `$P/a/g.json`, requires both dry checks to pass, requires an empty general queue, and refuses a return pool over **75,000,000 bytes** (including errors/symlinks). It then runs `3.py check` and one `3.py submit --gpus 1 --time 04:30:00`, saving the job ID. The GPU receipt must match the CPU restore/binding pins, filled export pin, adopted plan/profile and H100 80 GB requirement. The unchanged bootstrap itself does not require the cache-memory field; this submit preflight does. `o_fetch.sh` derives the authenticated return token and fetches `$P/a/f/{0.tgz,EXIT.json}`.\n\nTransfer `$D/3.tgz` through the authorized transport, preserving the local operator directory. Authenticate, extract and unpack it locally:\n\n```bash\nset -euo pipefail\n: "${RETURN_ARCHIVE:?Received fetched-return archive on local scratch}"\n: "${RETURN_SHA256:?Printed Orchard SHA256 of the fetched-return archive}"\nprintf \'%s  %s\\n\' "$RETURN_SHA256" "$RETURN_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/f"\nnice -n 10 tar -xzf "$RETURN_ARCHIVE" -C "$LOCAL/adopted/f"\n(cd "$LOCAL/adopted" && CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -s -E -B ./unpack_return.py \\\n  --archive "$LOCAL/adopted/f/0.tgz" --exit "$LOCAL/adopted/f/EXIT.json" \\\n  --out "$LOCAL/adopted/ret" > "$LOCAL/adopted/unpack-success.json" && \\\n  test -s "$LOCAL/adopted/unpack-success.json")\n```\n\nA refused unpack leaves its extracted tree behind. Scorers must consume only unpack\'s **success output after exit status 0**, never a directory merely because it exists; the command\'s `&&` chain enforces that handoff. A successful partial return still has `complete=false` and must not be scored as complete. The ON unpacker refuses any existing weight receipt whose verified value is not JSON true. Processor-only journals need no weight receipt. OFF behavior remains unchanged. Whole-archive identity follows A4\'s design: fill checks the sealed whole-tar constants; job/unpack admission compare against inputs.archives[0].\n\n**Forecasts:** Package D is the 580-item distance read (B5 fork, 03:30 walltime); it has **no ON route** in a19. Its one-card **estimate** is 13,813.069 s (3 h 50 min), using the measured 23.600 s/item and crediting no cache saving. The **636-item** A4 read that a19 actually builds has an **estimate** of **7,351.824 s (2 h 02 min 32 s; 11.559 s/item)**, obtained by carrying forward the supplied A4 total, with zero assumed saving. Target weights, cache costs and staging/queue delays can change it; neither forecast measures the selected export.\n\n## GPU parity staging and acceptance\n\nThe gate must seal **A4 prepare\'s actual output plus the operator\'s per-read overrides** for the package being adopted. Do not supply an unrelated PRIVATE_SETTINGS.json. `a20 gate` checks the prepared bytes and exact RESTORE.json/artifact-binding bytes against CPU.json’s READY pins, checks export identity against the adopted step binding, checks the export-pin hash and byte count against the exact `a/1.json` bytes authenticated by CPU.json, and checks payload, plan and operator bindings. The selected export defaults to the pinned step-400 export; `--bound-export` explicitly changes it. Every GPU worker rechecks those asset bytes and the artifact manifest before reading; changing paths cannot substitute another checkpoint. It applies the authenticated operator descriptor and derives `enable_caches`, `read_cache_bytes` and the full adoption profile: candidates_argmax, memo on, g3t, empty verify IDs, save_own_depth=false, and the exact cache switches. Both the parent driver and every worker refuse a different profile. Processor-only adoption is explicitly gated with slots `[0]` and 4 GiB; all-cache adoption uses `[0,1,2]` and 12 GiB.\n\nThe **owner-only commands below are unrun here**. The shared asset archive already exists when CPU.json appears; never try to reopen the CPU job\'s private `/tmp`. Reserve storage for the archive before running `o_cpu.sh`. Its size is recorded by the job; no production archive size was measured here.\n\nAllocate the gate on Orchard, then enter its compute task. This is one non-requeued H100 job, eight CPUs, 200G and a five-hour maximum. Preserve its actual `CUDA_VISIBLE_DEVICES`; the Python guard requires exactly `NVIDIA H100 80GB HBM3`, 132 SMs, capability 9.0 and the 80 GB memory class.\n\n```bash\nset -euo pipefail\nsalloc --account=mt01 --partition=general --nodes=1 --ntasks=1 --cpus-per-task=8 \\\n  --mem=200G --gres=gpu:1 --time=05:00:00 --no-requeue \\\n  --exclude=orchard-community-2 --job-name=ab0123456789 \\\n  srun --ntasks=1 --pty bash --noprofile --norc\n```\n\nOn that H100 host, `/scratch/jjyeung` must **physically exist and be writable** outside bwrap. A4 creates `/scratch` only inside its namespace; it does not satisfy this host requirement. The operator must provision the host path before the gate. The exact logical root (currently `/scratch/jjyeung/b01ec87a6f29b`) must be absent so extraction cannot overlay another run. Preserve it so manifests and restore paths remain valid. Provision the separate opaque kit/source directories there too. Stage the source trees and public kit as single authenticated archives; keep private inputs and reverse maps on Trinity.\n\nThe shared path `$P/a/4.tar` is visible directly on Orchard. If approved transport copies it, set `ASSET_ARCHIVE` to that received path; CPU.json still supplies the expected hash and bytes. Run inside the allocation:\n\n```bash\nset -euo pipefail\n: "${PACKAGE_TOKEN:?Fresh package token from the build}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nASSET_ARCHIVE=${ASSET_ARCHIVE:-"$P/a/4.tar"}\nGPU_LOGICAL=$(/usr/bin/python3 -I -s -B - "$P" "$ASSET_ARCHIVE" <<\'PYASSET\'\nimport hashlib,json,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);archive=Path(sys.argv[2]);proof=json.loads((p/\'a/c/CPU.json\').read_text())\nassert proof[\'passed\'] is True\nwith tarfile.open(p/\'0.tgz\') as t:cfg=json.load(t.extractfile(\'9.json\'))\nasset=proof[\'gate_assets\'];assert asset[\'logical\']==cfg[\'logical\']\nassert asset[\'path\']==str(p/\'a/4.tar\') and archive.stat().st_size==asset[\'bytes\']\nh=hashlib.sha256()\nwith archive.open(\'rb\') as stream:\n    for chunk in iter(lambda:stream.read(1024**2),b\'\'):h.update(chunk)\nassert h.hexdigest()==asset[\'sha256\']\nprint(cfg[\'logical\'])\nPYASSET\n)\ntest -d /scratch/jjyeung && test -w /scratch/jjyeung\ntest ! -e "$GPU_LOGICAL"\nmkdir -p "$GPU_LOGICAL/d" "$GPU_LOGICAL/p"\ntar -xf "$ASSET_ARCHIVE" -C "$GPU_LOGICAL/d"\ntar -xzf "$P/0.tgz" -C "$GPU_LOGICAL/p"\ntest ! -e "$GPU_LOGICAL/d/7.json"\ncp "$GPU_LOGICAL/d/binding.json" "$GPU_LOGICAL/d/7.json"\n```\n\nCreate a private neutral configuration from `config.example.json` with separate authenticated A4 original/patched source roots. Set `export=$GPU_LOGICAL/d/e`, `export_pin=$GPU_LOGICAL/d/6.json`, and `artifact_manifest=$GPU_LOGICAL/d/7.json`. The last file is a byte-identical neutral alias for the CPU binding. Include that exact `binding.json` to `7.json` mapping in `PRIVATE_ALIASES.json`; map the other private prepared asset paths to staged opaque aliases of those same files. Keep private settings and reverse maps on Trinity. The following commands use files under `$LOCAL`:\n\n```bash\nset -euo pipefail\n: "${PRIVATE_CONFIG_TEMPLATE:?Private neutral GPU configuration with staged asset paths}"\n: "${PRIVATE_ALIASES:?Private JSON mapping preparation paths to staged opaque paths}"\nPRIVATE_SETTINGS="$LOCAL/PRIVATE_SETTINGS.json"\nPRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \\\n  --operator "$LOCAL/adopted" --prepared "$LOCAL/adopted/proof/SETTINGS.json" \\\n  --proof "$LOCAL/adopted/proof/CPU.json" --config "$PRIVATE_CONFIG_TEMPLATE" \\\n  --asset-receipts "$LOCAL/adopted/proof" --bound-export "$BOUND_EXPORT" \\\n  --settings-out "$PRIVATE_SETTINGS" --config-out "$PRIVATE_CONFIG"\n```\n\n```bash\nset -euo pipefail\nmkdir -p "$LOCAL/public"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" seal \\\n  --source-root "$EXT_SOURCE" --input "$PRIVATE_SETTINGS" --aliases "$PRIVATE_ALIASES" \\\n  --out "$LOCAL/public/u3"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" stage-kit \\\n  --source-root "$EXT_SOURCE" --input "$DELIVERY/kit_parity50" \\\n  --config "$PRIVATE_CONFIG" --out "$LOCAL/public/u0"\n```\n\nThe package embeds the driver/comparator SHA256 and the deterministically sealed sample SHA256 from MANIFEST `kit_files`. The driver and every worker authenticate those executing bytes, and `ue.json` carries them to SUBMIT_CHECK. The staged `u3.json` pins every extension; `u4.json` authenticates both full 927-file base inventories. The driver rejects changed bases, equal original/patched roots, and an original root containing extensions. It authenticates the sealed sample bytes and the logical sample pin. Transfer only the staged directory through the approved transport under an opaque root.\n\nOn an assigned **H100 80 GB** GPU, run the acceptance command below; it is **unrun here**. Preserve that allocation\'s actual `CUDA_VISIBLE_DEVICES`.\n\n```bash\nset -euo pipefail\nnice -n 10 "$READ_PYTHON" -I -s -B /scratch/jjyeung/ab0123456789/u0/u0.py \\\n  /scratch/jjyeung/ab0123456789/u0/u2.json --out /scratch/jjyeung/ab0123456789/u9 \\\n  --enable-gpu --public --repeat-baseline --shards 4\n```\n\nEvery arm starts a fresh process. ORIGINAL/OFF/OFF_REPEAT use ordinary journals and modulo shards. ON tests caches; ON_JOURNAL and sequential whole-scene shards test separate journal/shard features. Sequential shards establish equality, not parallel speed. Public logs tokenize item/native/room identities and arbitrary stdout/stderr. No reverse map is written on Orchard.\n\nAcceptance requires all 50 expected IDs, complete production output schemas, nonempty text/tokens/heads, scale even when null, every served response and forced-token count, matching call counters, and **zero semantic byte differences**. ORIGINAL/OFF must also retain every production source hash. Each enabled cache must report its memory bound and useful hits; SAM needs both feature and detection hits. Empty or all-miss runs fail. Only clocks and explicit audit/cache/memo telemetry are excluded from semantic comparison; audit violations fail. There is no answer/trace tolerance.\n\nEach RUN.json records the adopted package plan, read profile, asset pins, required device type, actual device, cache slots and budget. The worker checks CUDA device properties before model loading and refuses a different exact name, SM count, compute capability or memory class. `ue.json` is written only after all comparisons finish and records whether they all passed; failed or missing receipts cannot authorize submit. On the H100 host, archive it with `tar -cf /scratch/jjyeung/ab0123456789/5.tar -C /scratch/jjyeung/ab0123456789/u9 ue.json` and print `sha256sum /scratch/jjyeung/ab0123456789/5.tar` for authenticated return transport. Judge net time from `RUN.json`\'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).\n\nThe cache cap covers retained cache storage and transient copies, not model/caller working memory. Measure full-process host/GPU peaks. Models must remain frozen: calls check parameter/buffer identities, pointers and counters; install/type boundaries hash content. Persistent raw writes fail at a boundary. Raw writes restored between boundaries, private tensor attributes and arbitrary non-tensor state are outside this guard\'s coverage. Graceful stops verify journals; a hard kill can leave an unchecked journal that requires fresh output.\n\nOutput directories u0–u5 represent ORIGINAL/OFF/OFF_REPEAT/ON/ON_JOURNAL/SHARDED. Reports u6–ua compare arms; ub.json checks merge equality; uc/ud contain canonical single/sharded returns. Restore on Trinity with the private inputs:\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" restore \\\n  --source-root "$EXT_SOURCE" --input PRIVATE_RETURN --out "$LOCAL/restored" \\\n  --private-source "$DELIVERY/kit_parity50/sample50.json" \\\n  --private-source "$PRIVATE_CONFIG" --private-source "$PRIVATE_SETTINGS"\n```\n\nRestoration authenticates committed rows before rebuilding private IDs/checksums. Merge with the original manifest through the explicit extension entrypoint. The canonical answer/trace archive must match exactly; transport-envelope clocks remain variable.\n\n## Array validation\n\nNo multi-card A4 operator is delivered. The array helper is a separate inert prototype. Its example has `approved=false`: two one-hour shards, at most two attempts, four GPU-hours total. Approval must bind the exact partition, shards, time and attempts, with no more than five allocated GPU-hours over all attempts. Before any sharded/preempt adoption, validate real persistent-storage preemption/requeue.\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a15.py" PRIVATE_ARRAY_CONFIG.json \\\n  --enable-array --token ab0123456789 --out "$LOCAL/array-plan" \\\n  --python /scratch/jjyeung/ab0123456789/u1 --source /scratch/jjyeung/ab0123456789/u2 \\\n  --staged-config /project/community/jjyeung/okh7/a15_cot_apab0123456789/u3.json\n```\n\nThis writes commands without running them. Exit 75 requests bounded requeue; other errors remain failures. Lock waits stop after 60 seconds, and the attempt limit forbids more work. Public paths must use approved roots and pass the forbidden-word screen; name checks do not establish storage permissions or capacity.\n\nNo delivered CPU suite or single-GPU kit requires a local OS socket. StageOneSocket is a Python callback. Real restore, bwrap isolation, remote transport, GPU parity/performance/memory and persistent requeue remain unrun.\n\n## Review round 7: finding -> fix -> test\n\n| Finding | Fix | Regression |\n|---|---|---|\n| 1. Private root disappears | Archive inside CPU proof to `$P/a/4.tar` before CPU.json; record hash/bytes. | Real fixture tar runs through a namespace wrapper, survives loss of the root, and the CPU operator fixture executes staging. |\n| 2. Fill wait hangs | Guard PACKAGE_TOKEN, check PID and cap wait at four hours. | Missing token, dead PID, timeout and failed exit refuse; success passes. |\n| 3. PCIe accepted | Require exact HBM3 name and 132 SMs. | SXM stub passes; PCIe and wrong-SM stubs refuse. |\n| 4. Evidence/host nits | Bind executing kit/comparator/sample; include a/1.json; unpack with -s -E -B; use an H100-local archive path. | Mutated pins refuse, environment-polluted unpack succeeds, allocation/evidence blocks are checked. |\n| 5. Decision export | Default to the supplied step-400 export; require an explicit parameter for other exports. | Step 400 passes by default; synthetic step 600 passes only when selected; wrong artifact refuses. |\n\nFrozen weights remain required. Persistent raw writes are boundary-checked; writes restored between boundaries remain outside the guard. GPU byte equality and performance remain unrun.\n' : GPU shell preflight is missing
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 128, in test_f2_gpu_shell_preflight_executes_archived_interpreter
+    self.assertTrue(host_path.is_file(),'Preflight lacks A4 namespace launcher')
+AssertionError: False is not true : Preflight lacks A4 namespace launcher
 
 ======================================================================
 FAIL: test_f2_runtime_environment_and_receipt (__main__.Round8Tests.test_f2_runtime_environment_and_receipt)
@@ -2632,7 +2195,7 @@ AssertionError: False is not true : GPU environment lacks a preflight
 FAIL: test_f2_submit_checks_environment_versions_and_sha (__main__.Round8Tests.test_f2_submit_checks_environment_versions_and_sha) (field='sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 179, in test_f2_submit_checks_environment_versions_and_sha
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 164, in test_f2_submit_checks_environment_versions_and_sha
     with self.subTest(field=field):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Submit ignored '+field)
                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : Submit ignored sha256
@@ -2641,7 +2204,7 @@ AssertionError: 0 == 0 : Submit ignored sha256
 FAIL: test_f2_submit_checks_environment_versions_and_sha (__main__.Round8Tests.test_f2_submit_checks_environment_versions_and_sha) (field='torch')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 179, in test_f2_submit_checks_environment_versions_and_sha
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 164, in test_f2_submit_checks_environment_versions_and_sha
     with self.subTest(field=field):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Submit ignored '+field)
                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : Submit ignored torch
@@ -2650,7 +2213,7 @@ AssertionError: 0 == 0 : Submit ignored torch
 FAIL: test_f2_submit_checks_environment_versions_and_sha (__main__.Round8Tests.test_f2_submit_checks_environment_versions_and_sha) (field='transformers')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 179, in test_f2_submit_checks_environment_versions_and_sha
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 164, in test_f2_submit_checks_environment_versions_and_sha
     with self.subTest(field=field):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Submit ignored '+field)
                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : Submit ignored transformers
@@ -2659,7 +2222,7 @@ AssertionError: 0 == 0 : Submit ignored transformers
 FAIL: test_f2_submit_checks_environment_versions_and_sha (__main__.Round8Tests.test_f2_submit_checks_environment_versions_and_sha) (field='cuda')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 179, in test_f2_submit_checks_environment_versions_and_sha
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 164, in test_f2_submit_checks_environment_versions_and_sha
     with self.subTest(field=field):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Submit ignored '+field)
                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : Submit ignored cuda
@@ -2668,7 +2231,7 @@ AssertionError: 0 == 0 : Submit ignored cuda
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base) (field='step')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 195, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 180, in test_f3_builder_refuses_other_export_before_reading_base
     self.builder.build(root/'absent-base',SRC,root/'binding.json',root/'output','ab0123456789',enable_extensions=True)
   File "/scratch/jjyeung/orch_n30/so_read/work/round8-before-u0/a19.py", line 152, in build
     original = (base/'package/0.tgz').read_bytes()
@@ -2682,12 +2245,12 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/52eca773ec314e39ac0841a06cd4abb5/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/b21be7ef0dd146e9a110aa8fe1450026/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 196, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 181, in test_f3_builder_refuses_other_export_before_reading_base
     except FileNotFoundError:self.fail('Builder read the base before rejecting another export: '+key)
                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Builder read the base before rejecting another export: step
@@ -2696,7 +2259,7 @@ AssertionError: Builder read the base before rejecting another export: step
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base) (field='run')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 195, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 180, in test_f3_builder_refuses_other_export_before_reading_base
     self.builder.build(root/'absent-base',SRC,root/'binding.json',root/'output','ab0123456789',enable_extensions=True)
   File "/scratch/jjyeung/orch_n30/so_read/work/round8-before-u0/a19.py", line 152, in build
     original = (base/'package/0.tgz').read_bytes()
@@ -2710,12 +2273,12 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/7fd1581d5db246f6b7dbc5d3470e21a4/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d8c4a349a72c4871b9beaede88913264/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 196, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 181, in test_f3_builder_refuses_other_export_before_reading_base
     except FileNotFoundError:self.fail('Builder read the base before rejecting another export: '+key)
                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Builder read the base before rejecting another export: run
@@ -2724,7 +2287,7 @@ AssertionError: Builder read the base before rejecting another export: run
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base) (field='member_directory')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 195, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 180, in test_f3_builder_refuses_other_export_before_reading_base
     self.builder.build(root/'absent-base',SRC,root/'binding.json',root/'output','ab0123456789',enable_extensions=True)
   File "/scratch/jjyeung/orch_n30/so_read/work/round8-before-u0/a19.py", line 152, in build
     original = (base/'package/0.tgz').read_bytes()
@@ -2738,12 +2301,12 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/20606ae9342a43079da8cef9957bc1f7/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/2504e95887e54faeb9bcc1f91ef3fcd4/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 196, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 181, in test_f3_builder_refuses_other_export_before_reading_base
     except FileNotFoundError:self.fail('Builder read the base before rejecting another export: '+key)
                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Builder read the base before rejecting another export: member_directory
@@ -2752,7 +2315,7 @@ AssertionError: Builder read the base before rejecting another export: member_di
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base) (field='lineage')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 195, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 180, in test_f3_builder_refuses_other_export_before_reading_base
     self.builder.build(root/'absent-base',SRC,root/'binding.json',root/'output','ab0123456789',enable_extensions=True)
   File "/scratch/jjyeung/orch_n30/so_read/work/round8-before-u0/a19.py", line 152, in build
     original = (base/'package/0.tgz').read_bytes()
@@ -2766,12 +2329,12 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/cbdaf2ce90c742448b725cd29803a7b0/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/c7b0533bb290437cabd9c7b40d7511a0/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 196, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 181, in test_f3_builder_refuses_other_export_before_reading_base
     except FileNotFoundError:self.fail('Builder read the base before rejecting another export: '+key)
                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Builder read the base before rejecting another export: lineage
@@ -2780,7 +2343,7 @@ AssertionError: Builder read the base before rejecting another export: lineage
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base) (field='object')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 195, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 180, in test_f3_builder_refuses_other_export_before_reading_base
     self.builder.build(root/'absent-base',SRC,root/'binding.json',root/'output','ab0123456789',enable_extensions=True)
   File "/scratch/jjyeung/orch_n30/so_read/work/round8-before-u0/a19.py", line 152, in build
     original = (base/'package/0.tgz').read_bytes()
@@ -2794,12 +2357,12 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/33f52f353b0944d3beedcb0dab1fb1de/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/af711806e6ed402b8c21b2c6ba693149/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 196, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 181, in test_f3_builder_refuses_other_export_before_reading_base
     except FileNotFoundError:self.fail('Builder read the base before rejecting another export: '+key)
                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Builder read the base before rejecting another export: object
@@ -2808,7 +2371,7 @@ AssertionError: Builder read the base before rejecting another export: object
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base) (field='config_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 195, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 180, in test_f3_builder_refuses_other_export_before_reading_base
     self.builder.build(root/'absent-base',SRC,root/'binding.json',root/'output','ab0123456789',enable_extensions=True)
   File "/scratch/jjyeung/orch_n30/so_read/work/round8-before-u0/a19.py", line 152, in build
     original = (base/'package/0.tgz').read_bytes()
@@ -2822,12 +2385,12 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/16b189aa15a64dbf867ee0370a4c9486/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/7fadfb2bb5534304bb60213d924ca8cf/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 196, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 181, in test_f3_builder_refuses_other_export_before_reading_base
     except FileNotFoundError:self.fail('Builder read the base before rejecting another export: '+key)
                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Builder read the base before rejecting another export: config_sha256
@@ -2836,7 +2399,7 @@ AssertionError: Builder read the base before rejecting another export: config_sh
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base) (field='archive_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 195, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 180, in test_f3_builder_refuses_other_export_before_reading_base
     self.builder.build(root/'absent-base',SRC,root/'binding.json',root/'output','ab0123456789',enable_extensions=True)
   File "/scratch/jjyeung/orch_n30/so_read/work/round8-before-u0/a19.py", line 152, in build
     original = (base/'package/0.tgz').read_bytes()
@@ -2850,12 +2413,12 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/b370c9c1e7514065a1aaa23b37135bc1/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/472e0bd6e94340aca79a949a729ece18/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 196, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 181, in test_f3_builder_refuses_other_export_before_reading_base
     except FileNotFoundError:self.fail('Builder read the base before rejecting another export: '+key)
                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Builder read the base before rejecting another export: archive_sha256
@@ -2864,7 +2427,7 @@ AssertionError: Builder read the base before rejecting another export: archive_s
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base) (field='archive_bytes')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 195, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 180, in test_f3_builder_refuses_other_export_before_reading_base
     self.builder.build(root/'absent-base',SRC,root/'binding.json',root/'output','ab0123456789',enable_extensions=True)
   File "/scratch/jjyeung/orch_n30/so_read/work/round8-before-u0/a19.py", line 152, in build
     original = (base/'package/0.tgz').read_bytes()
@@ -2878,12 +2441,12 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/b486f15e63734b4c84a643c74dded25e/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/aaa76f38221043ec8e65448c198daabe/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 196, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 181, in test_f3_builder_refuses_other_export_before_reading_base
     except FileNotFoundError:self.fail('Builder read the base before rejecting another export: '+key)
                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Builder read the base before rejecting another export: archive_bytes
@@ -2892,7 +2455,7 @@ AssertionError: Builder read the base before rejecting another export: archive_b
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base) (field='base_identity')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 195, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 180, in test_f3_builder_refuses_other_export_before_reading_base
     self.builder.build(root/'absent-base',SRC,root/'binding.json',root/'output','ab0123456789',enable_extensions=True)
   File "/scratch/jjyeung/orch_n30/so_read/work/round8-before-u0/a19.py", line 152, in build
     original = (base/'package/0.tgz').read_bytes()
@@ -2906,12 +2469,12 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/40068fcf51de4ad2910741e01cc6bb42/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/510c524120644459848e583242188fe4/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 196, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 181, in test_f3_builder_refuses_other_export_before_reading_base
     except FileNotFoundError:self.fail('Builder read the base before rejecting another export: '+key)
                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Builder read the base before rejecting another export: base_identity
@@ -2920,7 +2483,7 @@ AssertionError: Builder read the base before rejecting another export: base_iden
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base) (field='frame_layout')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 195, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 180, in test_f3_builder_refuses_other_export_before_reading_base
     self.builder.build(root/'absent-base',SRC,root/'binding.json',root/'output','ab0123456789',enable_extensions=True)
   File "/scratch/jjyeung/orch_n30/so_read/work/round8-before-u0/a19.py", line 152, in build
     original = (base/'package/0.tgz').read_bytes()
@@ -2934,12 +2497,12 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/eaaa413e68e9494ca54b78774280054d/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d95196b8dc164a8f919c000c5278f8e7/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 196, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 181, in test_f3_builder_refuses_other_export_before_reading_base
     except FileNotFoundError:self.fail('Builder read the base before rejecting another export: '+key)
                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Builder read the base before rejecting another export: frame_layout
@@ -2948,7 +2511,7 @@ AssertionError: Builder read the base before rejecting another export: frame_lay
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base) (field='preparation_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 195, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 180, in test_f3_builder_refuses_other_export_before_reading_base
     self.builder.build(root/'absent-base',SRC,root/'binding.json',root/'output','ab0123456789',enable_extensions=True)
   File "/scratch/jjyeung/orch_n30/so_read/work/round8-before-u0/a19.py", line 152, in build
     original = (base/'package/0.tgz').read_bytes()
@@ -2962,12 +2525,12 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/fdf38f83fa374eb2acac1c65ad7a4a5b/absent-base/package/0.tgz'
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/847a311dc2304761bcc1000a89b55af9/absent-base/package/0.tgz'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 196, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 181, in test_f3_builder_refuses_other_export_before_reading_base
     except FileNotFoundError:self.fail('Builder read the base before rejecting another export: '+key)
                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: Builder read the base before rejecting another export: preparation_sha256
@@ -2976,7 +2539,7 @@ AssertionError: Builder read the base before rejecting another export: preparati
 FAIL: test_f3_builder_refuses_other_export_before_reading_base (__main__.Round8Tests.test_f3_builder_refuses_other_export_before_reading_base)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 198, in test_f3_builder_refuses_other_export_before_reading_base
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 183, in test_f3_builder_refuses_other_export_before_reading_base
     self.assertNotIn('--bound-export',(OUT/'kit_parity50/README.md').read_text())
 AssertionError: '--bound-export' unexpectedly found in 'The GPU kit is unrun. It requires zero answer/trace byte differences. Its 50 items cover ten items per type and twelve captures; this reuse-heavy sample does not predict full-read throughput.\n\nUse the full **A4/src** base pinned by `BASE_PIN.json`. The reader patches also apply to the inspected B5 source subset, but this kit does not authenticate a B5 base. Apply patches 01–03 to a separate source copy. They add `u0/`; all original reader files remain byte-identical. Apply 04–05 to a separate A4 operator copy, outside `src`.\n\nThe ordinary entrypoint stays OFF and imports no extension. `u0/a8.py --enable-extensions` explicitly selects the extensions; individual cache settings then default OFF. The ON environment records an extension source hash. Rebuild payload and artifact pins before deployment.\n\n## Local preparation\n\nThese commands use paths supplied by the operator; they do not depend on the author\'s `work/` directory. Set `DELIVERY` to the delivered `out/`, `A4_BASE` to the full supplied A4 directory on local scratch, `LOCAL` to a fresh local scratch directory, and `READ_PYTHON` to the approved Python executable. Both source roots and all outputs must stay on local scratch. The package contains code, not model/data archives.\n\n```bash\nset -euo pipefail\n: "${DELIVERY:?Absolute path to delivered out directory}"\n: "${A4_BASE:?Absolute path to the full pinned A4 directory on local scratch}"\n: "${LOCAL:?Fresh local scratch directory}"\n: "${READ_PYTHON:?Approved Python executable}"\nexport PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8\nexport XDG_CACHE_HOME="$LOCAL/cache" HF_HOME="$LOCAL/cache/hf" TRITON_CACHE_DIR="$LOCAL/cache/triton"\nmkdir -p "$LOCAL/source" "$LOCAL/a4"\nnice -n 10 tar -cf - -C "$A4_BASE/src" . | nice -n 10 tar -xf - -C "$LOCAL/source"\nnice -n 10 tar -cf - -C "$A4_BASE" package tower_sequence.py fetch_return.py unpack_return.py |\n  nice -n 10 tar -xf - -C "$LOCAL/a4"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/01_bounded_read_caches.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/02_atomic_scene_shards.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/03_production_integration.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/04_operator_cache_bound.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/05_operator_return_and_proof.diff"\nEXT_SOURCE="$LOCAL/source"\n```\n\nKeep the private kit, original manifests and reverse maps on Trinity. Stage each source tree as one archive and extract it only on node-local scratch. Both parity source roots must remain pristine: no build outputs, extra files or symlinks. Public paths, submission names, configuration and logs must use opaque tokens. Never transfer private reverse maps to Orchard.\n\n## Bound export, build and operations\n\nThe candidate uses **A4\'s 636-item schedule, one card, caches only, general/no-requeue**. A4\'s export admission, submit helper and run settings remain intact. `a19` requires the reviewed payload hash `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d`, the patched operator hashes, all copied A4 members, the base BATCH.sh and decoded bootstrap pins from MANIFEST, the exact extension inventory and the four original alias bases. It authenticates them before copying. Its batch uses cont_ops\' exact `build_r10.wrap_batch`: excluded node, EXIT log return and USR1 forwarding.\n\nThe gate defaults to **step 400**, read A of job **173060**, source package **a15_cot_apdc76460c3a164**. Its artifact SHA256 is **5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd**. `operations/BOUND_EXPORT.json` preserves the supplied export pin. `operations/binding.default.json` combines that identity, the four archive-part sizes in the supplied `a/1.json`, and the reviewed `bind400_partial.json` operation paths. `DEFAULT_EXPORT_PROVENANCE.json` records all source hashes. These are authenticated metadata; production weights were not restored here.\n\n`BOUND_EXPORT` selects the gate\'s exact reviewed export.json; `EXPORT_BINDING` selects the matching build/fill binding. For another reviewed export, including step 600, supply both parameters. The gate refuses a package whose export differs from the selected pin. A fresh package token identifies the ON build; it does not reuse the source package\'s token.\n\n```bash\nset -euo pipefail\nBOUND_EXPORT=${BOUND_EXPORT:-"$DELIVERY/operations/BOUND_EXPORT.json"}\nEXPORT_BINDING=${EXPORT_BINDING:-"$DELIVERY/operations/binding.default.json"}\n: "${PACKAGE_TOKEN:?Fresh 11-16 hex characters starting with a-f}"\nPROFILE_ARGS=()  # All three caches, 12 GiB. For processor-only: PROFILE_ARGS=(--processor-only)\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a19.py" \\\n  --enable-extensions --base-operator "$LOCAL/a4" --source-root "$EXT_SOURCE" \\\n  --manifest "$DELIVERY/patches/MANIFEST.json" --extension-pins "$DELIVERY/kit_parity50/EXTENSION_PINS.json" \\\n  --export-binding "$EXPORT_BINDING" --token "$PACKAGE_TOKEN" --out "$LOCAL/adopted" "${PROFILE_ARGS[@]}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions operations \\\n  --operator "$LOCAL/adopted" --binding "$EXPORT_BINDING" --dry-root "$DELIVERY/operations" --out "$LOCAL/ops"\nnice -n 10 tar -czf "$LOCAL/0.tgz" -C "$LOCAL/ops" .\nnice -n 10 sha256sum "$LOCAL/0.tgz"\n```\n\nFor a different target, derive `EXPORT_BINDING` from its reviewed template and authenticated local receipts before the build block above, and set `BOUND_EXPORT` to that target\'s reviewed export.json:\n\n```bash\nset -euo pipefail\n: "${TARGET_TEMPLATE:?Reviewed target template, including Orchard done and prep_paths}"\n: "${TARGET_ARTIFACT:?Authenticated local artifact.json}"\n: "${TARGET_DONE:?Authenticated local whole-tar done receipt}"\n: "${TARGET_CONFIG:?Authenticated preparation config.json}"\n: "${TARGET_RECEIPT:?Authenticated preparation receipt}"\n: "${TARGET_DATA_RECEIPT:?Authenticated data receipt}"\n: "${EXPORT_BINDING:?Fresh output binding path for the selected target}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions binding \\\n  --template "$TARGET_TEMPLATE" --artifact "$TARGET_ARTIFACT" --done "$TARGET_DONE" \\\n  --config "$TARGET_CONFIG" --receipt "$TARGET_RECEIPT" --data-receipt "$TARGET_DATA_RECEIPT" \\\n  --out "$EXPORT_BINDING"\n```\n\n`adopted` retains the exact local source/operator/unpacker. `ops/1.tgz` is the package delivery, with `ops/SHA256`; the outer archive carries it and five inert scripts. The commands below are **owner operations on Orchard, unrun here**. Transfer the single outer archive through the owner\'s existing authorized transport. Set `OPS_ARCHIVE` to its received opaque path, `OPS_SHA256` to the printed local hash, and `D` to a fresh opaque operation directory. These are transport endpoints, not generated receipt values.\n\n```bash\nset -euo pipefail\n: "${OPS_ARCHIVE:?Received outer archive on Orchard}"\n: "${OPS_SHA256:?Printed local SHA256 of that archive}"\n: "${D:?Fresh opaque operation directory on Orchard}"\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nprintf \'%s  %s\\n\' "$OPS_SHA256" "$OPS_ARCHIVE" | sha256sum -c -\ntest ! -e "$D"\nmkdir -m 700 "$D"\ntar -xzf "$OPS_ARCHIVE" -C "$D"\nbash "$D/o_place.sh"\nbash "$D/o_pull_fill.sh"\n# BEGIN FILL_WAIT\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nFILL_MAX_SECONDS=${FILL_MAX_SECONDS:-14400}\n[[ "$FILL_MAX_SECONDS" =~ ^[0-9]+$ ]] && (( FILL_MAX_SECONDS >= 1 && FILL_MAX_SECONDS <= 14400 )) || exit 1\nFILL_DEADLINE=$((SECONDS + FILL_MAX_SECONDS))\nwhile test ! -f "$P/a/1.txt"; do\n  FILL_PID=$(cat "$P/a/0.txt") || exit 1\n  [[ "$FILL_PID" =~ ^[1-9][0-9]*$ ]] || exit 1\n  if ! kill -0 "$FILL_PID" 2>/dev/null && test ! -f "$P/a/1.txt"; then\n    echo \'Fill worker is gone without an exit receipt\' >&2; exit 1\n  fi\n  if (( SECONDS >= FILL_DEADLINE )); then\n    echo \'Fill wait exceeded its maximum\' >&2; exit 1\n  fi\n  FILL_REMAIN=$((FILL_DEADLINE - SECONDS))\n  sleep "$(( FILL_REMAIN < 60 ? FILL_REMAIN : 60 ))"\ndone\ntest "$(cat "$P/a/1.txt")" = 0\n# END FILL_WAIT\nbash "$D/o_cpu.sh"\n```\n\n`o_place.sh` verifies the inner archive and places it at `$P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}`. `o_pull_fill.sh` acquires the permanent attempt lock `$P/a/0.lock`, launches one detached nohup worker, and returns its PID in `$P/a/0.txt`. The worker logs to `$P/a/0.log` and writes its exit status to `$P/a/1.txt` on success or failure. Run the wait on the same host that launched the detached worker. It checks at most once per minute, refuses a vanished PID without `1.txt`, and stops after at most 14,400 seconds (four hours). A duplicate launch refuses; a failed or interrupted attempt requires a fresh package/token, never an automatic retry. The worker copies the reviewed `done` and `prep_paths` files to `$P/a/e/{5,7,8,9}`, authenticates their pins (the `.done` receipt uses whitespace-separated fields), fetches export parts `0..3` once with retries disabled, fills through `a/4.py`, and runs cont_ops\' verbatim `dryres2.py` and `dry2.py`. A failed transfer stops; the scripts do not retry it.\n\n`o_cpu.sh` requests the A4 CPU allocation explicitly: preempt, eight CPUs, 200G, four hours, no GPU, no requeue, and the excluded nodes. The **CPU allocation** is separate from the intended **general GPU read**. Wait for the CPU job to finish successfully. Preserve `$P/a/c/CPU.json`, `MEMORY.json` and the exact `SETTINGS.json` emitted by A4 prepare. Bring these small files back as one archive through the authorized transport to `$LOCAL/adopted/proof/` before the parity preparation below. Before writing CPU.json, the ON proof streams `logical/d` through its live `J.namespace(root)` to the named shared staging path `$P/a/4.tar`, outside the capped return pool. It dereferences symlinks and records `gate_assets.path`, `logical`, `sha256` and `bytes` in CPU.json. The output file is opened outside bwrap and tar writes to that descriptor. This uses the same preparation/READY as the proof, without a second staging job. A tar failure leaves no successful CPU.json and is not retried. The proof also emits exact `a/1.json`, restore, artifact-binding, manifest and export-pin receipts. These small files authenticate staging; they do not contain model weights. The proof binds payload/plan/inputs/operator, must pass bundle/entry checks and contain `memory.read_cache_bytes=12884901888` (4294967296 for processor-only), `basis=fixed_g3t_shapes`, and `fits=true`.\n\nArchive the CPU evidence on Orchard after its successful completion, using the package token printed by the build:\n\n```bash\nset -euo pipefail\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/2.tgz" -C "$P/a/c" CPU.json MEMORY.json SETTINGS.json RESTORE.json binding.json manifest.json EXPORT_PIN.json 1.json\nsha256sum "$D/2.tgz"\n```\n\nAfter authorized transport, authenticate and extract that archive on local scratch:\n\n```bash\nset -euo pipefail\n: "${PROOF_ARCHIVE:?Received CPU-evidence archive on local scratch}"\n: "${PROOF_SHA256:?Printed Orchard SHA256 of the CPU-evidence archive}"\nprintf \'%s  %s\\n\' "$PROOF_SHA256" "$PROOF_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/proof"\nnice -n 10 tar -xzf "$PROOF_ARCHIVE" -C "$LOCAL/adopted/proof"\n```\n\nAfter the zero-difference GPU parity gate passes, transfer its token-only `ue.json` through the authorized transport as one archive, preserving the SHA256 printed on the GPU host. The authorized owner authenticates that archive and installs the receipt before submission:\n\n```bash\nset -euo pipefail\n: "${GATE_ARCHIVE:?Received archive containing ue.json}"\n: "${GATE_SHA256:?SHA256 printed on the GPU host}"\nprintf \'%s  %s\\n\' "$GATE_SHA256" "$GATE_ARCHIVE" | sha256sum -c -\nmkdir "$D/g"\ntar -xf "$GATE_ARCHIVE" -C "$D/g"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntest ! -e "$P/a/g.json"\ncp "$D/g/ue.json" "$P/a/g.json"\n```\n\nThen run:\n\n```bash\nset -euo pipefail\nbash "$D/o_sub.sh"\n# After the GPU job finishes:\nbash "$D/o_fetch.sh"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/3.tgz" -C "$P/a/f" 0.tgz EXIT.json\nsha256sum "$D/3.tgz"\n```\n\n`o_sub.sh` embeds cont_ops’ A4 CPU-receipt assertions verbatim, including batch/dispatch/guard pins and MEMORY.json equality, then checks cache memory and the successful GPU receipt at `$P/a/g.json`, requires both dry checks to pass, requires an empty general queue, and refuses a return pool over **75,000,000 bytes** (including errors/symlinks). It then runs `3.py check` and one `3.py submit --gpus 1 --time 04:30:00`, saving the job ID. The GPU receipt must match the CPU restore/binding pins, filled export pin, adopted plan/profile and H100 80 GB requirement. The unchanged bootstrap itself does not require the cache-memory field; this submit preflight does. `o_fetch.sh` derives the authenticated return token and fetches `$P/a/f/{0.tgz,EXIT.json}`.\n\nTransfer `$D/3.tgz` through the authorized transport, preserving the local operator directory. Authenticate, extract and unpack it locally:\n\n```bash\nset -euo pipefail\n: "${RETURN_ARCHIVE:?Received fetched-return archive on local scratch}"\n: "${RETURN_SHA256:?Printed Orchard SHA256 of the fetched-return archive}"\nprintf \'%s  %s\\n\' "$RETURN_SHA256" "$RETURN_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/f"\nnice -n 10 tar -xzf "$RETURN_ARCHIVE" -C "$LOCAL/adopted/f"\n(cd "$LOCAL/adopted" && CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -s -E -B ./unpack_return.py \\\n  --archive "$LOCAL/adopted/f/0.tgz" --exit "$LOCAL/adopted/f/EXIT.json" \\\n  --out "$LOCAL/adopted/ret" > "$LOCAL/adopted/unpack-success.json" && \\\n  test -s "$LOCAL/adopted/unpack-success.json")\n```\n\nA refused unpack leaves its extracted tree behind. Scorers must consume only unpack\'s **success output after exit status 0**, never a directory merely because it exists; the command\'s `&&` chain enforces that handoff. A successful partial return still has `complete=false` and must not be scored as complete. The ON unpacker refuses any existing weight receipt whose verified value is not JSON true. Processor-only journals need no weight receipt. OFF behavior remains unchanged. Whole-archive identity follows A4\'s design: fill checks the sealed whole-tar constants; job/unpack admission compare against inputs.archives[0].\n\n**Forecasts:** Package D is the 580-item distance read (B5 fork, 03:30 walltime); it has **no ON route** in a19. Its one-card **estimate** is 13,813.069 s (3 h 50 min), using the measured 23.600 s/item and crediting no cache saving. The **636-item** A4 read that a19 actually builds has an **estimate** of **7,351.824 s (2 h 02 min 32 s; 11.559 s/item)**, obtained by carrying forward the supplied A4 total, with zero assumed saving. Target weights, cache costs and staging/queue delays can change it; neither forecast measures the selected export.\n\n## GPU parity staging and acceptance\n\nThe gate must seal **A4 prepare\'s actual output plus the operator\'s per-read overrides** for the package being adopted. Do not supply an unrelated PRIVATE_SETTINGS.json. `a20 gate` checks the prepared bytes and exact RESTORE.json/artifact-binding bytes against CPU.json’s READY pins, checks export identity against the adopted step binding, checks the export-pin hash and byte count against the exact `a/1.json` bytes authenticated by CPU.json, and checks payload, plan and operator bindings. The selected export defaults to the pinned step-400 export; `--bound-export` explicitly changes it. Every GPU worker rechecks those asset bytes and the artifact manifest before reading; changing paths cannot substitute another checkpoint. It applies the authenticated operator descriptor and derives `enable_caches`, `read_cache_bytes` and the full adoption profile: candidates_argmax, memo on, g3t, empty verify IDs, save_own_depth=false, and the exact cache switches. Both the parent driver and every worker refuse a different profile. Processor-only adoption is explicitly gated with slots `[0]` and 4 GiB; all-cache adoption uses `[0,1,2]` and 12 GiB.\n\nThe **owner-only commands below are unrun here**. The shared asset archive already exists when CPU.json appears; never try to reopen the CPU job\'s private `/tmp`. Reserve storage for the archive before running `o_cpu.sh`. Its size is recorded by the job; no production archive size was measured here.\n\nAllocate the gate on Orchard, then enter its compute task. This is one non-requeued H100 job, eight CPUs, 200G and a five-hour maximum. Preserve its actual `CUDA_VISIBLE_DEVICES`; the Python guard requires exactly `NVIDIA H100 80GB HBM3`, 132 SMs, capability 9.0 and the 80 GB memory class.\n\n```bash\nset -euo pipefail\nsalloc --account=mt01 --partition=general --nodes=1 --ntasks=1 --cpus-per-task=8 \\\n  --mem=200G --gres=gpu:1 --time=05:00:00 --no-requeue \\\n  --exclude=orchard-community-2 --job-name=ab0123456789 \\\n  srun --ntasks=1 --pty bash --noprofile --norc\n```\n\nOn that H100 host, `/scratch/jjyeung` must **physically exist and be writable** outside bwrap. A4 creates `/scratch` only inside its namespace; it does not satisfy this host requirement. The operator must provision the host path before the gate. The exact logical root (currently `/scratch/jjyeung/b01ec87a6f29b`) must be absent so extraction cannot overlay another run. Preserve it so manifests and restore paths remain valid. Provision the separate opaque kit/source directories there too. Stage the source trees and public kit as single authenticated archives; keep private inputs and reverse maps on Trinity.\n\nThe shared path `$P/a/4.tar` is visible directly on Orchard. If approved transport copies it, set `ASSET_ARCHIVE` to that received path; CPU.json still supplies the expected hash and bytes. Run inside the allocation:\n\n```bash\nset -euo pipefail\n: "${PACKAGE_TOKEN:?Fresh package token from the build}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nASSET_ARCHIVE=${ASSET_ARCHIVE:-"$P/a/4.tar"}\nGPU_LOGICAL=$(/usr/bin/python3 -I -s -B - "$P" "$ASSET_ARCHIVE" <<\'PYASSET\'\nimport hashlib,json,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);archive=Path(sys.argv[2]);proof=json.loads((p/\'a/c/CPU.json\').read_text())\nassert proof[\'passed\'] is True\nwith tarfile.open(p/\'0.tgz\') as t:cfg=json.load(t.extractfile(\'9.json\'))\nasset=proof[\'gate_assets\'];assert asset[\'logical\']==cfg[\'logical\']\nassert asset[\'path\']==str(p/\'a/4.tar\') and archive.stat().st_size==asset[\'bytes\']\nh=hashlib.sha256()\nwith archive.open(\'rb\') as stream:\n    for chunk in iter(lambda:stream.read(1024**2),b\'\'):h.update(chunk)\nassert h.hexdigest()==asset[\'sha256\']\nprint(cfg[\'logical\'])\nPYASSET\n)\ntest -d /scratch/jjyeung && test -w /scratch/jjyeung\ntest ! -e "$GPU_LOGICAL"\nmkdir -p "$GPU_LOGICAL/d" "$GPU_LOGICAL/p"\ntar -xf "$ASSET_ARCHIVE" -C "$GPU_LOGICAL/d"\ntar -xzf "$P/0.tgz" -C "$GPU_LOGICAL/p"\ntest ! -e "$GPU_LOGICAL/d/7.json"\ncp "$GPU_LOGICAL/d/binding.json" "$GPU_LOGICAL/d/7.json"\n```\n\nCreate a private neutral configuration from `config.example.json` with separate authenticated A4 original/patched source roots. Set `export=$GPU_LOGICAL/d/e`, `export_pin=$GPU_LOGICAL/d/6.json`, and `artifact_manifest=$GPU_LOGICAL/d/7.json`. The last file is a byte-identical neutral alias for the CPU binding. Include that exact `binding.json` to `7.json` mapping in `PRIVATE_ALIASES.json`; map the other private prepared asset paths to staged opaque aliases of those same files. Keep private settings and reverse maps on Trinity. The following commands use files under `$LOCAL`:\n\n```bash\nset -euo pipefail\n: "${PRIVATE_CONFIG_TEMPLATE:?Private neutral GPU configuration with staged asset paths}"\n: "${PRIVATE_ALIASES:?Private JSON mapping preparation paths to staged opaque paths}"\nPRIVATE_SETTINGS="$LOCAL/PRIVATE_SETTINGS.json"\nPRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \\\n  --operator "$LOCAL/adopted" --prepared "$LOCAL/adopted/proof/SETTINGS.json" \\\n  --proof "$LOCAL/adopted/proof/CPU.json" --config "$PRIVATE_CONFIG_TEMPLATE" \\\n  --asset-receipts "$LOCAL/adopted/proof" --bound-export "$BOUND_EXPORT" \\\n  --settings-out "$PRIVATE_SETTINGS" --config-out "$PRIVATE_CONFIG"\n```\n\n```bash\nset -euo pipefail\nmkdir -p "$LOCAL/public"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" seal \\\n  --source-root "$EXT_SOURCE" --input "$PRIVATE_SETTINGS" --aliases "$PRIVATE_ALIASES" \\\n  --out "$LOCAL/public/u3"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" stage-kit \\\n  --source-root "$EXT_SOURCE" --input "$DELIVERY/kit_parity50" \\\n  --config "$PRIVATE_CONFIG" --out "$LOCAL/public/u0"\n```\n\nThe package embeds the driver/comparator SHA256 and the deterministically sealed sample SHA256 from MANIFEST `kit_files`. The driver and every worker authenticate those executing bytes, and `ue.json` carries them to SUBMIT_CHECK. The staged `u3.json` pins every extension; `u4.json` authenticates both full 927-file base inventories. The driver rejects changed bases, equal original/patched roots, and an original root containing extensions. It authenticates the sealed sample bytes and the logical sample pin. Transfer only the staged directory through the approved transport under an opaque root.\n\nOn an assigned **H100 80 GB** GPU, run the acceptance command below; it is **unrun here**. Preserve that allocation\'s actual `CUDA_VISIBLE_DEVICES`.\n\n```bash\nset -euo pipefail\nnice -n 10 "$READ_PYTHON" -I -s -B /scratch/jjyeung/ab0123456789/u0/u0.py \\\n  /scratch/jjyeung/ab0123456789/u0/u2.json --out /scratch/jjyeung/ab0123456789/u9 \\\n  --enable-gpu --public --repeat-baseline --shards 4\n```\n\nEvery arm starts a fresh process. ORIGINAL/OFF/OFF_REPEAT use ordinary journals and modulo shards. ON tests caches; ON_JOURNAL and sequential whole-scene shards test separate journal/shard features. Sequential shards establish equality, not parallel speed. Public logs tokenize item/native/room identities and arbitrary stdout/stderr. No reverse map is written on Orchard.\n\nAcceptance requires all 50 expected IDs, complete production output schemas, nonempty text/tokens/heads, scale even when null, every served response and forced-token count, matching call counters, and **zero semantic byte differences**. ORIGINAL/OFF must also retain every production source hash. Each enabled cache must report its memory bound and useful hits; SAM needs both feature and detection hits. Empty or all-miss runs fail. Only clocks and explicit audit/cache/memo telemetry are excluded from semantic comparison; audit violations fail. There is no answer/trace tolerance.\n\nEach RUN.json records the adopted package plan, read profile, asset pins, required device type, actual device, cache slots and budget. The worker checks CUDA device properties before model loading and refuses a different exact name, SM count, compute capability or memory class. `ue.json` is written only after all comparisons finish and records whether they all passed; failed or missing receipts cannot authorize submit. On the H100 host, archive it with `tar -cf /scratch/jjyeung/ab0123456789/5.tar -C /scratch/jjyeung/ab0123456789/u9 ue.json` and print `sha256sum /scratch/jjyeung/ab0123456789/5.tar` for authenticated return transport. Judge net time from `RUN.json`\'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).\n\nThe cache cap covers retained cache storage and transient copies, not model/caller working memory. Measure full-process host/GPU peaks. Models must remain frozen: calls check parameter/buffer identities, pointers and counters; install/type boundaries hash content. Persistent raw writes fail at a boundary. Raw writes restored between boundaries, private tensor attributes and arbitrary non-tensor state are outside this guard\'s coverage. Graceful stops verify journals; a hard kill can leave an unchecked journal that requires fresh output.\n\nOutput directories u0–u5 represent ORIGINAL/OFF/OFF_REPEAT/ON/ON_JOURNAL/SHARDED. Reports u6–ua compare arms; ub.json checks merge equality; uc/ud contain canonical single/sharded returns. Restore on Trinity with the private inputs:\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" restore \\\n  --source-root "$EXT_SOURCE" --input PRIVATE_RETURN --out "$LOCAL/restored" \\\n  --private-source "$DELIVERY/kit_parity50/sample50.json" \\\n  --private-source "$PRIVATE_CONFIG" --private-source "$PRIVATE_SETTINGS"\n```\n\nRestoration authenticates committed rows before rebuilding private IDs/checksums. Merge with the original manifest through the explicit extension entrypoint. The canonical answer/trace archive must match exactly; transport-envelope clocks remain variable.\n\n## Array validation\n\nNo multi-card A4 operator is delivered. The array helper is a separate inert prototype. Its example has `approved=false`: two one-hour shards, at most two attempts, four GPU-hours total. Approval must bind the exact partition, shards, time and attempts, with no more than five allocated GPU-hours over all attempts. Before any sharded/preempt adoption, validate real persistent-storage preemption/requeue.\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a15.py" PRIVATE_ARRAY_CONFIG.json \\\n  --enable-array --token ab0123456789 --out "$LOCAL/array-plan" \\\n  --python /scratch/jjyeung/ab0123456789/u1 --source /scratch/jjyeung/ab0123456789/u2 \\\n  --staged-config /project/community/jjyeung/okh7/a15_cot_apab0123456789/u3.json\n```\n\nThis writes commands without running them. Exit 75 requests bounded requeue; other errors remain failures. Lock waits stop after 60 seconds, and the attempt limit forbids more work. Public paths must use approved roots and pass the forbidden-word screen; name checks do not establish storage permissions or capacity.\n\nNo delivered CPU suite or single-GPU kit requires a local OS socket. StageOneSocket is a Python callback. Real restore, bwrap isolation, remote transport, GPU parity/performance/memory and persistent requeue remain unrun.\n\n## Review round 7: finding -> fix -> test\n\n| Finding | Fix | Regression |\n|---|---|---|\n| 1. Private root disappears | Archive inside CPU proof to `$P/a/4.tar` before CPU.json; record hash/bytes. | Real fixture tar runs through a namespace wrapper, survives loss of the root, and the CPU operator fixture executes staging. |\n| 2. Fill wait hangs | Guard PACKAGE_TOKEN, check PID and cap wait at four hours. | Missing token, dead PID, timeout and failed exit refuse; success passes. |\n| 3. PCIe accepted | Require exact HBM3 name and 132 SMs. | SXM stub passes; PCIe and wrong-SM stubs refuse. |\n| 4. Evidence/host nits | Bind executing kit/comparator/sample; include a/1.json; unpack with -s -E -B; use an H100-local archive path. | Mutated pins refuse, environment-polluted unpack succeeds, allocation/evidence blocks are checked. |\n| 5. Decision export | Default to the supplied step-400 export; require an explicit parameter for other exports. | Step 400 passes by default; synthetic step 600 passes only when selected; wrong artifact refuses. |\n\nFrozen weights remain required. Persistent raw writes are boundary-checked; writes restored between boundaries remain outside the guard. GPU byte equality and performance remain unrun.\n'
 
@@ -2984,7 +2547,7 @@ AssertionError: '--bound-export' unexpectedly found in 'The GPU kit is unrun. It
 FAIL: test_f4_readme_archive_path_accepts_symlinked_parent (__main__.Round8Tests.test_f4_readme_archive_path_accepts_symlinked_parent)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 209, in test_f4_readme_archive_path_accepts_symlinked_parent
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 194, in test_f4_readme_archive_path_accepts_symlinked_parent
     self.assertEqual(result.returncode,0,result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
   File "<stdin>", line 7, in <module>
@@ -2995,9 +2558,9 @@ AssertionError
 FAIL: test_info_gpu_commands_and_aliases (__main__.Round8Tests.test_info_gpu_commands_and_aliases)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 214, in test_info_gpu_commands_and_aliases
-    self.assertIn('READ_PYTHON="$GPU_LOGICAL/d/v/py"',text)
-AssertionError: 'READ_PYTHON="$GPU_LOGICAL/d/v/py"' not found in 'The GPU kit is unrun. It requires zero answer/trace byte differences. Its 50 items cover ten items per type and twelve captures; this reuse-heavy sample does not predict full-read throughput.\n\nUse the full **A4/src** base pinned by `BASE_PIN.json`. The reader patches also apply to the inspected B5 source subset, but this kit does not authenticate a B5 base. Apply patches 01–03 to a separate source copy. They add `u0/`; all original reader files remain byte-identical. Apply 04–05 to a separate A4 operator copy, outside `src`.\n\nThe ordinary entrypoint stays OFF and imports no extension. `u0/a8.py --enable-extensions` explicitly selects the extensions; individual cache settings then default OFF. The ON environment records an extension source hash. Rebuild payload and artifact pins before deployment.\n\n## Local preparation\n\nThese commands use paths supplied by the operator; they do not depend on the author\'s `work/` directory. Set `DELIVERY` to the delivered `out/`, `A4_BASE` to the full supplied A4 directory on local scratch, `LOCAL` to a fresh local scratch directory, and `READ_PYTHON` to the approved Python executable. Both source roots and all outputs must stay on local scratch. The package contains code, not model/data archives.\n\n```bash\nset -euo pipefail\n: "${DELIVERY:?Absolute path to delivered out directory}"\n: "${A4_BASE:?Absolute path to the full pinned A4 directory on local scratch}"\n: "${LOCAL:?Fresh local scratch directory}"\n: "${READ_PYTHON:?Approved Python executable}"\nexport PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8\nexport XDG_CACHE_HOME="$LOCAL/cache" HF_HOME="$LOCAL/cache/hf" TRITON_CACHE_DIR="$LOCAL/cache/triton"\nmkdir -p "$LOCAL/source" "$LOCAL/a4"\nnice -n 10 tar -cf - -C "$A4_BASE/src" . | nice -n 10 tar -xf - -C "$LOCAL/source"\nnice -n 10 tar -cf - -C "$A4_BASE" package tower_sequence.py fetch_return.py unpack_return.py |\n  nice -n 10 tar -xf - -C "$LOCAL/a4"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/01_bounded_read_caches.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/02_atomic_scene_shards.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/03_production_integration.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/04_operator_cache_bound.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/05_operator_return_and_proof.diff"\nEXT_SOURCE="$LOCAL/source"\n```\n\nKeep the private kit, original manifests and reverse maps on Trinity. Stage each source tree as one archive and extract it only on node-local scratch. Both parity source roots must remain pristine: no build outputs, extra files or symlinks. Public paths, submission names, configuration and logs must use opaque tokens. Never transfer private reverse maps to Orchard.\n\n## Bound export, build and operations\n\nThe candidate uses **A4\'s 636-item schedule, one card, caches only, general/no-requeue**. A4\'s export admission, submit helper and run settings remain intact. `a19` requires the reviewed payload hash `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d`, the patched operator hashes, all copied A4 members, the base BATCH.sh and decoded bootstrap pins from MANIFEST, the exact extension inventory and the four original alias bases. It authenticates them before copying. Its batch uses cont_ops\' exact `build_r10.wrap_batch`: excluded node, EXIT log return and USR1 forwarding.\n\nThe gate defaults to **step 400**, read A of job **173060**, source package **a15_cot_apdc76460c3a164**. Its artifact SHA256 is **5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd**. `operations/BOUND_EXPORT.json` preserves the supplied export pin. `operations/binding.default.json` combines that identity, the four archive-part sizes in the supplied `a/1.json`, and the reviewed `bind400_partial.json` operation paths. `DEFAULT_EXPORT_PROVENANCE.json` records all source hashes. These are authenticated metadata; production weights were not restored here.\n\n`BOUND_EXPORT` selects the gate\'s exact reviewed export.json; `EXPORT_BINDING` selects the matching build/fill binding. For another reviewed export, including step 600, supply both parameters. The gate refuses a package whose export differs from the selected pin. A fresh package token identifies the ON build; it does not reuse the source package\'s token.\n\n```bash\nset -euo pipefail\nBOUND_EXPORT=${BOUND_EXPORT:-"$DELIVERY/operations/BOUND_EXPORT.json"}\nEXPORT_BINDING=${EXPORT_BINDING:-"$DELIVERY/operations/binding.default.json"}\n: "${PACKAGE_TOKEN:?Fresh 11-16 hex characters starting with a-f}"\nPROFILE_ARGS=()  # All three caches, 12 GiB. For processor-only: PROFILE_ARGS=(--processor-only)\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a19.py" \\\n  --enable-extensions --base-operator "$LOCAL/a4" --source-root "$EXT_SOURCE" \\\n  --manifest "$DELIVERY/patches/MANIFEST.json" --extension-pins "$DELIVERY/kit_parity50/EXTENSION_PINS.json" \\\n  --export-binding "$EXPORT_BINDING" --token "$PACKAGE_TOKEN" --out "$LOCAL/adopted" "${PROFILE_ARGS[@]}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions operations \\\n  --operator "$LOCAL/adopted" --binding "$EXPORT_BINDING" --dry-root "$DELIVERY/operations" --out "$LOCAL/ops"\nnice -n 10 tar -czf "$LOCAL/0.tgz" -C "$LOCAL/ops" .\nnice -n 10 sha256sum "$LOCAL/0.tgz"\n```\n\nFor a different target, derive `EXPORT_BINDING` from its reviewed template and authenticated local receipts before the build block above, and set `BOUND_EXPORT` to that target\'s reviewed export.json:\n\n```bash\nset -euo pipefail\n: "${TARGET_TEMPLATE:?Reviewed target template, including Orchard done and prep_paths}"\n: "${TARGET_ARTIFACT:?Authenticated local artifact.json}"\n: "${TARGET_DONE:?Authenticated local whole-tar done receipt}"\n: "${TARGET_CONFIG:?Authenticated preparation config.json}"\n: "${TARGET_RECEIPT:?Authenticated preparation receipt}"\n: "${TARGET_DATA_RECEIPT:?Authenticated data receipt}"\n: "${EXPORT_BINDING:?Fresh output binding path for the selected target}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions binding \\\n  --template "$TARGET_TEMPLATE" --artifact "$TARGET_ARTIFACT" --done "$TARGET_DONE" \\\n  --config "$TARGET_CONFIG" --receipt "$TARGET_RECEIPT" --data-receipt "$TARGET_DATA_RECEIPT" \\\n  --out "$EXPORT_BINDING"\n```\n\n`adopted` retains the exact local source/operator/unpacker. `ops/1.tgz` is the package delivery, with `ops/SHA256`; the outer archive carries it and five inert scripts. The commands below are **owner operations on Orchard, unrun here**. Transfer the single outer archive through the owner\'s existing authorized transport. Set `OPS_ARCHIVE` to its received opaque path, `OPS_SHA256` to the printed local hash, and `D` to a fresh opaque operation directory. These are transport endpoints, not generated receipt values.\n\n```bash\nset -euo pipefail\n: "${OPS_ARCHIVE:?Received outer archive on Orchard}"\n: "${OPS_SHA256:?Printed local SHA256 of that archive}"\n: "${D:?Fresh opaque operation directory on Orchard}"\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nprintf \'%s  %s\\n\' "$OPS_SHA256" "$OPS_ARCHIVE" | sha256sum -c -\ntest ! -e "$D"\nmkdir -m 700 "$D"\ntar -xzf "$OPS_ARCHIVE" -C "$D"\nbash "$D/o_place.sh"\nbash "$D/o_pull_fill.sh"\n# BEGIN FILL_WAIT\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nFILL_MAX_SECONDS=${FILL_MAX_SECONDS:-14400}\n[[ "$FILL_MAX_SECONDS" =~ ^[0-9]+$ ]] && (( FILL_MAX_SECONDS >= 1 && FILL_MAX_SECONDS <= 14400 )) || exit 1\nFILL_DEADLINE=$((SECONDS + FILL_MAX_SECONDS))\nwhile test ! -f "$P/a/1.txt"; do\n  FILL_PID=$(cat "$P/a/0.txt") || exit 1\n  [[ "$FILL_PID" =~ ^[1-9][0-9]*$ ]] || exit 1\n  if ! kill -0 "$FILL_PID" 2>/dev/null && test ! -f "$P/a/1.txt"; then\n    echo \'Fill worker is gone without an exit receipt\' >&2; exit 1\n  fi\n  if (( SECONDS >= FILL_DEADLINE )); then\n    echo \'Fill wait exceeded its maximum\' >&2; exit 1\n  fi\n  FILL_REMAIN=$((FILL_DEADLINE - SECONDS))\n  sleep "$(( FILL_REMAIN < 60 ? FILL_REMAIN : 60 ))"\ndone\ntest "$(cat "$P/a/1.txt")" = 0\n# END FILL_WAIT\nbash "$D/o_cpu.sh"\n```\n\n`o_place.sh` verifies the inner archive and places it at `$P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}`. `o_pull_fill.sh` acquires the permanent attempt lock `$P/a/0.lock`, launches one detached nohup worker, and returns its PID in `$P/a/0.txt`. The worker logs to `$P/a/0.log` and writes its exit status to `$P/a/1.txt` on success or failure. Run the wait on the same host that launched the detached worker. It checks at most once per minute, refuses a vanished PID without `1.txt`, and stops after at most 14,400 seconds (four hours). A duplicate launch refuses; a failed or interrupted attempt requires a fresh package/token, never an automatic retry. The worker copies the reviewed `done` and `prep_paths` files to `$P/a/e/{5,7,8,9}`, authenticates their pins (the `.done` receipt uses whitespace-separated fields), fetches export parts `0..3` once with retries disabled, fills through `a/4.py`, and runs cont_ops\' verbatim `dryres2.py` and `dry2.py`. A failed transfer stops; the scripts do not retry it.\n\n`o_cpu.sh` requests the A4 CPU allocation explicitly: preempt, eight CPUs, 200G, four hours, no GPU, no requeue, and the excluded nodes. The **CPU allocation** is separate from the intended **general GPU read**. Wait for the CPU job to finish successfully. Preserve `$P/a/c/CPU.json`, `MEMORY.json` and the exact `SETTINGS.json` emitted by A4 prepare. Bring these small files back as one archive through the authorized transport to `$LOCAL/adopted/proof/` before the parity preparation below. Before writing CPU.json, the ON proof streams `logical/d` through its live `J.namespace(root)` to the named shared staging path `$P/a/4.tar`, outside the capped return pool. It dereferences symlinks and records `gate_assets.path`, `logical`, `sha256` and `bytes` in CPU.json. The output file is opened outside bwrap and tar writes to that descriptor. This uses the same preparation/READY as the proof, without a second staging job. A tar failure leaves no successful CPU.json and is not retried. The proof also emits exact `a/1.json`, restore, artifact-binding, manifest and export-pin receipts. These small files authenticate staging; they do not contain model weights. The proof binds payload/plan/inputs/operator, must pass bundle/entry checks and contain `memory.read_cache_bytes=12884901888` (4294967296 for processor-only), `basis=fixed_g3t_shapes`, and `fits=true`.\n\nArchive the CPU evidence on Orchard after its successful completion, using the package token printed by the build:\n\n```bash\nset -euo pipefail\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/2.tgz" -C "$P/a/c" CPU.json MEMORY.json SETTINGS.json RESTORE.json binding.json manifest.json EXPORT_PIN.json 1.json\nsha256sum "$D/2.tgz"\n```\n\nAfter authorized transport, authenticate and extract that archive on local scratch:\n\n```bash\nset -euo pipefail\n: "${PROOF_ARCHIVE:?Received CPU-evidence archive on local scratch}"\n: "${PROOF_SHA256:?Printed Orchard SHA256 of the CPU-evidence archive}"\nprintf \'%s  %s\\n\' "$PROOF_SHA256" "$PROOF_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/proof"\nnice -n 10 tar -xzf "$PROOF_ARCHIVE" -C "$LOCAL/adopted/proof"\n```\n\nAfter the zero-difference GPU parity gate passes, transfer its token-only `ue.json` through the authorized transport as one archive, preserving the SHA256 printed on the GPU host. The authorized owner authenticates that archive and installs the receipt before submission:\n\n```bash\nset -euo pipefail\n: "${GATE_ARCHIVE:?Received archive containing ue.json}"\n: "${GATE_SHA256:?SHA256 printed on the GPU host}"\nprintf \'%s  %s\\n\' "$GATE_SHA256" "$GATE_ARCHIVE" | sha256sum -c -\nmkdir "$D/g"\ntar -xf "$GATE_ARCHIVE" -C "$D/g"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntest ! -e "$P/a/g.json"\ncp "$D/g/ue.json" "$P/a/g.json"\n```\n\nThen run:\n\n```bash\nset -euo pipefail\nbash "$D/o_sub.sh"\n# After the GPU job finishes:\nbash "$D/o_fetch.sh"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/3.tgz" -C "$P/a/f" 0.tgz EXIT.json\nsha256sum "$D/3.tgz"\n```\n\n`o_sub.sh` embeds cont_ops’ A4 CPU-receipt assertions verbatim, including batch/dispatch/guard pins and MEMORY.json equality, then checks cache memory and the successful GPU receipt at `$P/a/g.json`, requires both dry checks to pass, requires an empty general queue, and refuses a return pool over **75,000,000 bytes** (including errors/symlinks). It then runs `3.py check` and one `3.py submit --gpus 1 --time 04:30:00`, saving the job ID. The GPU receipt must match the CPU restore/binding pins, filled export pin, adopted plan/profile and H100 80 GB requirement. The unchanged bootstrap itself does not require the cache-memory field; this submit preflight does. `o_fetch.sh` derives the authenticated return token and fetches `$P/a/f/{0.tgz,EXIT.json}`.\n\nTransfer `$D/3.tgz` through the authorized transport, preserving the local operator directory. Authenticate, extract and unpack it locally:\n\n```bash\nset -euo pipefail\n: "${RETURN_ARCHIVE:?Received fetched-return archive on local scratch}"\n: "${RETURN_SHA256:?Printed Orchard SHA256 of the fetched-return archive}"\nprintf \'%s  %s\\n\' "$RETURN_SHA256" "$RETURN_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/f"\nnice -n 10 tar -xzf "$RETURN_ARCHIVE" -C "$LOCAL/adopted/f"\n(cd "$LOCAL/adopted" && CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -s -E -B ./unpack_return.py \\\n  --archive "$LOCAL/adopted/f/0.tgz" --exit "$LOCAL/adopted/f/EXIT.json" \\\n  --out "$LOCAL/adopted/ret" > "$LOCAL/adopted/unpack-success.json" && \\\n  test -s "$LOCAL/adopted/unpack-success.json")\n```\n\nA refused unpack leaves its extracted tree behind. Scorers must consume only unpack\'s **success output after exit status 0**, never a directory merely because it exists; the command\'s `&&` chain enforces that handoff. A successful partial return still has `complete=false` and must not be scored as complete. The ON unpacker refuses any existing weight receipt whose verified value is not JSON true. Processor-only journals need no weight receipt. OFF behavior remains unchanged. Whole-archive identity follows A4\'s design: fill checks the sealed whole-tar constants; job/unpack admission compare against inputs.archives[0].\n\n**Forecasts:** Package D is the 580-item distance read (B5 fork, 03:30 walltime); it has **no ON route** in a19. Its one-card **estimate** is 13,813.069 s (3 h 50 min), using the measured 23.600 s/item and crediting no cache saving. The **636-item** A4 read that a19 actually builds has an **estimate** of **7,351.824 s (2 h 02 min 32 s; 11.559 s/item)**, obtained by carrying forward the supplied A4 total, with zero assumed saving. Target weights, cache costs and staging/queue delays can change it; neither forecast measures the selected export.\n\n## GPU parity staging and acceptance\n\nThe gate must seal **A4 prepare\'s actual output plus the operator\'s per-read overrides** for the package being adopted. Do not supply an unrelated PRIVATE_SETTINGS.json. `a20 gate` checks the prepared bytes and exact RESTORE.json/artifact-binding bytes against CPU.json’s READY pins, checks export identity against the adopted step binding, checks the export-pin hash and byte count against the exact `a/1.json` bytes authenticated by CPU.json, and checks payload, plan and operator bindings. The selected export defaults to the pinned step-400 export; `--bound-export` explicitly changes it. Every GPU worker rechecks those asset bytes and the artifact manifest before reading; changing paths cannot substitute another checkpoint. It applies the authenticated operator descriptor and derives `enable_caches`, `read_cache_bytes` and the full adoption profile: candidates_argmax, memo on, g3t, empty verify IDs, save_own_depth=false, and the exact cache switches. Both the parent driver and every worker refuse a different profile. Processor-only adoption is explicitly gated with slots `[0]` and 4 GiB; all-cache adoption uses `[0,1,2]` and 12 GiB.\n\nThe **owner-only commands below are unrun here**. The shared asset archive already exists when CPU.json appears; never try to reopen the CPU job\'s private `/tmp`. Reserve storage for the archive before running `o_cpu.sh`. Its size is recorded by the job; no production archive size was measured here.\n\nAllocate the gate on Orchard, then enter its compute task. This is one non-requeued H100 job, eight CPUs, 200G and a five-hour maximum. Preserve its actual `CUDA_VISIBLE_DEVICES`; the Python guard requires exactly `NVIDIA H100 80GB HBM3`, 132 SMs, capability 9.0 and the 80 GB memory class.\n\n```bash\nset -euo pipefail\nsalloc --account=mt01 --partition=general --nodes=1 --ntasks=1 --cpus-per-task=8 \\\n  --mem=200G --gres=gpu:1 --time=05:00:00 --no-requeue \\\n  --exclude=orchard-community-2 --job-name=ab0123456789 \\\n  srun --ntasks=1 --pty bash --noprofile --norc\n```\n\nOn that H100 host, `/scratch/jjyeung` must **physically exist and be writable** outside bwrap. A4 creates `/scratch` only inside its namespace; it does not satisfy this host requirement. The operator must provision the host path before the gate. The exact logical root (currently `/scratch/jjyeung/b01ec87a6f29b`) must be absent so extraction cannot overlay another run. Preserve it so manifests and restore paths remain valid. Provision the separate opaque kit/source directories there too. Stage the source trees and public kit as single authenticated archives; keep private inputs and reverse maps on Trinity.\n\nThe shared path `$P/a/4.tar` is visible directly on Orchard. If approved transport copies it, set `ASSET_ARCHIVE` to that received path; CPU.json still supplies the expected hash and bytes. Run inside the allocation:\n\n```bash\nset -euo pipefail\n: "${PACKAGE_TOKEN:?Fresh package token from the build}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nASSET_ARCHIVE=${ASSET_ARCHIVE:-"$P/a/4.tar"}\nGPU_LOGICAL=$(/usr/bin/python3 -I -s -B - "$P" "$ASSET_ARCHIVE" <<\'PYASSET\'\nimport hashlib,json,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);archive=Path(sys.argv[2]);proof=json.loads((p/\'a/c/CPU.json\').read_text())\nassert proof[\'passed\'] is True\nwith tarfile.open(p/\'0.tgz\') as t:cfg=json.load(t.extractfile(\'9.json\'))\nasset=proof[\'gate_assets\'];assert asset[\'logical\']==cfg[\'logical\']\nassert asset[\'path\']==str(p/\'a/4.tar\') and archive.stat().st_size==asset[\'bytes\']\nh=hashlib.sha256()\nwith archive.open(\'rb\') as stream:\n    for chunk in iter(lambda:stream.read(1024**2),b\'\'):h.update(chunk)\nassert h.hexdigest()==asset[\'sha256\']\nprint(cfg[\'logical\'])\nPYASSET\n)\ntest -d /scratch/jjyeung && test -w /scratch/jjyeung\ntest ! -e "$GPU_LOGICAL"\nmkdir -p "$GPU_LOGICAL/d" "$GPU_LOGICAL/p"\ntar -xf "$ASSET_ARCHIVE" -C "$GPU_LOGICAL/d"\ntar -xzf "$P/0.tgz" -C "$GPU_LOGICAL/p"\ntest ! -e "$GPU_LOGICAL/d/7.json"\ncp "$GPU_LOGICAL/d/binding.json" "$GPU_LOGICAL/d/7.json"\n```\n\nCreate a private neutral configuration from `config.example.json` with separate authenticated A4 original/patched source roots. Set `export=$GPU_LOGICAL/d/e`, `export_pin=$GPU_LOGICAL/d/6.json`, and `artifact_manifest=$GPU_LOGICAL/d/7.json`. The last file is a byte-identical neutral alias for the CPU binding. Include that exact `binding.json` to `7.json` mapping in `PRIVATE_ALIASES.json`; map the other private prepared asset paths to staged opaque aliases of those same files. Keep private settings and reverse maps on Trinity. The following commands use files under `$LOCAL`:\n\n```bash\nset -euo pipefail\n: "${PRIVATE_CONFIG_TEMPLATE:?Private neutral GPU configuration with staged asset paths}"\n: "${PRIVATE_ALIASES:?Private JSON mapping preparation paths to staged opaque paths}"\nPRIVATE_SETTINGS="$LOCAL/PRIVATE_SETTINGS.json"\nPRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \\\n  --operator "$LOCAL/adopted" --prepared "$LOCAL/adopted/proof/SETTINGS.json" \\\n  --proof "$LOCAL/adopted/proof/CPU.json" --config "$PRIVATE_CONFIG_TEMPLATE" \\\n  --asset-receipts "$LOCAL/adopted/proof" --bound-export "$BOUND_EXPORT" \\\n  --settings-out "$PRIVATE_SETTINGS" --config-out "$PRIVATE_CONFIG"\n```\n\n```bash\nset -euo pipefail\nmkdir -p "$LOCAL/public"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" seal \\\n  --source-root "$EXT_SOURCE" --input "$PRIVATE_SETTINGS" --aliases "$PRIVATE_ALIASES" \\\n  --out "$LOCAL/public/u3"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" stage-kit \\\n  --source-root "$EXT_SOURCE" --input "$DELIVERY/kit_parity50" \\\n  --config "$PRIVATE_CONFIG" --out "$LOCAL/public/u0"\n```\n\nThe package embeds the driver/comparator SHA256 and the deterministically sealed sample SHA256 from MANIFEST `kit_files`. The driver and every worker authenticate those executing bytes, and `ue.json` carries them to SUBMIT_CHECK. The staged `u3.json` pins every extension; `u4.json` authenticates both full 927-file base inventories. The driver rejects changed bases, equal original/patched roots, and an original root containing extensions. It authenticates the sealed sample bytes and the logical sample pin. Transfer only the staged directory through the approved transport under an opaque root.\n\nOn an assigned **H100 80 GB** GPU, run the acceptance command below; it is **unrun here**. Preserve that allocation\'s actual `CUDA_VISIBLE_DEVICES`.\n\n```bash\nset -euo pipefail\nnice -n 10 "$READ_PYTHON" -I -s -B /scratch/jjyeung/ab0123456789/u0/u0.py \\\n  /scratch/jjyeung/ab0123456789/u0/u2.json --out /scratch/jjyeung/ab0123456789/u9 \\\n  --enable-gpu --public --repeat-baseline --shards 4\n```\n\nEvery arm starts a fresh process. ORIGINAL/OFF/OFF_REPEAT use ordinary journals and modulo shards. ON tests caches; ON_JOURNAL and sequential whole-scene shards test separate journal/shard features. Sequential shards establish equality, not parallel speed. Public logs tokenize item/native/room identities and arbitrary stdout/stderr. No reverse map is written on Orchard.\n\nAcceptance requires all 50 expected IDs, complete production output schemas, nonempty text/tokens/heads, scale even when null, every served response and forced-token count, matching call counters, and **zero semantic byte differences**. ORIGINAL/OFF must also retain every production source hash. Each enabled cache must report its memory bound and useful hits; SAM needs both feature and detection hits. Empty or all-miss runs fail. Only clocks and explicit audit/cache/memo telemetry are excluded from semantic comparison; audit violations fail. There is no answer/trace tolerance.\n\nEach RUN.json records the adopted package plan, read profile, asset pins, required device type, actual device, cache slots and budget. The worker checks CUDA device properties before model loading and refuses a different exact name, SM count, compute capability or memory class. `ue.json` is written only after all comparisons finish and records whether they all passed; failed or missing receipts cannot authorize submit. On the H100 host, archive it with `tar -cf /scratch/jjyeung/ab0123456789/5.tar -C /scratch/jjyeung/ab0123456789/u9 ue.json` and print `sha256sum /scratch/jjyeung/ab0123456789/5.tar` for authenticated return transport. Judge net time from `RUN.json`\'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).\n\nThe cache cap covers retained cache storage and transient copies, not model/caller working memory. Measure full-process host/GPU peaks. Models must remain frozen: calls check parameter/buffer identities, pointers and counters; install/type boundaries hash content. Persistent raw writes fail at a boundary. Raw writes restored between boundaries, private tensor attributes and arbitrary non-tensor state are outside this guard\'s coverage. Graceful stops verify journals; a hard kill can leave an unchecked journal that requires fresh output.\n\nOutput directories u0–u5 represent ORIGINAL/OFF/OFF_REPEAT/ON/ON_JOURNAL/SHARDED. Reports u6–ua compare arms; ub.json checks merge equality; uc/ud contain canonical single/sharded returns. Restore on Trinity with the private inputs:\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" restore \\\n  --source-root "$EXT_SOURCE" --input PRIVATE_RETURN --out "$LOCAL/restored" \\\n  --private-source "$DELIVERY/kit_parity50/sample50.json" \\\n  --private-source "$PRIVATE_CONFIG" --private-source "$PRIVATE_SETTINGS"\n```\n\nRestoration authenticates committed rows before rebuilding private IDs/checksums. Merge with the original manifest through the explicit extension entrypoint. The canonical answer/trace archive must match exactly; transport-envelope clocks remain variable.\n\n## Array validation\n\nNo multi-card A4 operator is delivered. The array helper is a separate inert prototype. Its example has `approved=false`: two one-hour shards, at most two attempts, four GPU-hours total. Approval must bind the exact partition, shards, time and attempts, with no more than five allocated GPU-hours over all attempts. Before any sharded/preempt adoption, validate real persistent-storage preemption/requeue.\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a15.py" PRIVATE_ARRAY_CONFIG.json \\\n  --enable-array --token ab0123456789 --out "$LOCAL/array-plan" \\\n  --python /scratch/jjyeung/ab0123456789/u1 --source /scratch/jjyeung/ab0123456789/u2 \\\n  --staged-config /project/community/jjyeung/okh7/a15_cot_apab0123456789/u3.json\n```\n\nThis writes commands without running them. Exit 75 requests bounded requeue; other errors remain failures. Lock waits stop after 60 seconds, and the attempt limit forbids more work. Public paths must use approved roots and pass the forbidden-word screen; name checks do not establish storage permissions or capacity.\n\nNo delivered CPU suite or single-GPU kit requires a local OS socket. StageOneSocket is a Python callback. Real restore, bwrap isolation, remote transport, GPU parity/performance/memory and persistent requeue remain unrun.\n\n## Review round 7: finding -> fix -> test\n\n| Finding | Fix | Regression |\n|---|---|---|\n| 1. Private root disappears | Archive inside CPU proof to `$P/a/4.tar` before CPU.json; record hash/bytes. | Real fixture tar runs through a namespace wrapper, survives loss of the root, and the CPU operator fixture executes staging. |\n| 2. Fill wait hangs | Guard PACKAGE_TOKEN, check PID and cap wait at four hours. | Missing token, dead PID, timeout and failed exit refuse; success passes. |\n| 3. PCIe accepted | Require exact HBM3 name and 132 SMs. | SXM stub passes; PCIe and wrong-SM stubs refuse. |\n| 4. Evidence/host nits | Bind executing kit/comparator/sample; include a/1.json; unpack with -s -E -B; use an H100-local archive path. | Mutated pins refuse, environment-polluted unpack succeeds, allocation/evidence blocks are checked. |\n| 5. Decision export | Default to the supplied step-400 export; require an explicit parameter for other exports. | Step 400 passes by default; synthetic step 600 passes only when selected; wrong artifact refuses. |\n\nFrozen weights remain required. Persistent raw writes are boundary-checked; writes restored between boundaries remain outside the guard. GPU byte equality and performance remain unrun.\n'
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round8.py", line 199, in test_info_gpu_commands_and_aliases
+    self.assertIn("inputs['python']",text)
+AssertionError: "inputs['python']" not found in 'The GPU kit is unrun. It requires zero answer/trace byte differences. Its 50 items cover ten items per type and twelve captures; this reuse-heavy sample does not predict full-read throughput.\n\nUse the full **A4/src** base pinned by `BASE_PIN.json`. The reader patches also apply to the inspected B5 source subset, but this kit does not authenticate a B5 base. Apply patches 01–03 to a separate source copy. They add `u0/`; all original reader files remain byte-identical. Apply 04–05 to a separate A4 operator copy, outside `src`.\n\nThe ordinary entrypoint stays OFF and imports no extension. `u0/a8.py --enable-extensions` explicitly selects the extensions; individual cache settings then default OFF. The ON environment records an extension source hash. Rebuild payload and artifact pins before deployment.\n\n## Local preparation\n\nThese commands use paths supplied by the operator; they do not depend on the author\'s `work/` directory. Set `DELIVERY` to the delivered `out/`, `A4_BASE` to the full supplied A4 directory on local scratch, `LOCAL` to a fresh local scratch directory, and `READ_PYTHON` to the approved Python executable. Both source roots and all outputs must stay on local scratch. The package contains code, not model/data archives.\n\n```bash\nset -euo pipefail\n: "${DELIVERY:?Absolute path to delivered out directory}"\n: "${A4_BASE:?Absolute path to the full pinned A4 directory on local scratch}"\n: "${LOCAL:?Fresh local scratch directory}"\n: "${READ_PYTHON:?Approved Python executable}"\nexport PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8\nexport XDG_CACHE_HOME="$LOCAL/cache" HF_HOME="$LOCAL/cache/hf" TRITON_CACHE_DIR="$LOCAL/cache/triton"\nmkdir -p "$LOCAL/source" "$LOCAL/a4"\nnice -n 10 tar -cf - -C "$A4_BASE/src" . | nice -n 10 tar -xf - -C "$LOCAL/source"\nnice -n 10 tar -cf - -C "$A4_BASE" package tower_sequence.py fetch_return.py unpack_return.py |\n  nice -n 10 tar -xf - -C "$LOCAL/a4"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/01_bounded_read_caches.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/02_atomic_scene_shards.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/03_production_integration.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/04_operator_cache_bound.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/05_operator_return_and_proof.diff"\nEXT_SOURCE="$LOCAL/source"\n```\n\nKeep the private kit, original manifests and reverse maps on Trinity. Stage each source tree as one archive and extract it only on node-local scratch. Both parity source roots must remain pristine: no build outputs, extra files or symlinks. Public paths, submission names, configuration and logs must use opaque tokens. Never transfer private reverse maps to Orchard.\n\n## Bound export, build and operations\n\nThe candidate uses **A4\'s 636-item schedule, one card, caches only, general/no-requeue**. A4\'s export admission, submit helper and run settings remain intact. `a19` requires the reviewed payload hash `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d`, the patched operator hashes, all copied A4 members, the base BATCH.sh and decoded bootstrap pins from MANIFEST, the exact extension inventory and the four original alias bases. It authenticates them before copying. Its batch uses cont_ops\' exact `build_r10.wrap_batch`: excluded node, EXIT log return and USR1 forwarding.\n\nThe gate defaults to **step 400**, read A of job **173060**, source package **a15_cot_apdc76460c3a164**. Its artifact SHA256 is **5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd**. `operations/BOUND_EXPORT.json` preserves the supplied export pin. `operations/binding.default.json` combines that identity, the four archive-part sizes in the supplied `a/1.json`, and the reviewed `bind400_partial.json` operation paths. `DEFAULT_EXPORT_PROVENANCE.json` records all source hashes. These are authenticated metadata; production weights were not restored here.\n\n`BOUND_EXPORT` selects the gate\'s exact reviewed export.json; `EXPORT_BINDING` selects the matching build/fill binding. For another reviewed export, including step 600, supply both parameters. The gate refuses a package whose export differs from the selected pin. A fresh package token identifies the ON build; it does not reuse the source package\'s token.\n\n```bash\nset -euo pipefail\nBOUND_EXPORT=${BOUND_EXPORT:-"$DELIVERY/operations/BOUND_EXPORT.json"}\nEXPORT_BINDING=${EXPORT_BINDING:-"$DELIVERY/operations/binding.default.json"}\n: "${PACKAGE_TOKEN:?Fresh 11-16 hex characters starting with a-f}"\nPROFILE_ARGS=()  # All three caches, 12 GiB. For processor-only: PROFILE_ARGS=(--processor-only)\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a19.py" \\\n  --enable-extensions --base-operator "$LOCAL/a4" --source-root "$EXT_SOURCE" \\\n  --manifest "$DELIVERY/patches/MANIFEST.json" --extension-pins "$DELIVERY/kit_parity50/EXTENSION_PINS.json" \\\n  --export-binding "$EXPORT_BINDING" --token "$PACKAGE_TOKEN" --out "$LOCAL/adopted" "${PROFILE_ARGS[@]}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions operations \\\n  --operator "$LOCAL/adopted" --binding "$EXPORT_BINDING" --dry-root "$DELIVERY/operations" --out "$LOCAL/ops"\nnice -n 10 tar -czf "$LOCAL/0.tgz" -C "$LOCAL/ops" .\nnice -n 10 sha256sum "$LOCAL/0.tgz"\n```\n\nFor a different target, derive `EXPORT_BINDING` from its reviewed template and authenticated local receipts before the build block above, and set `BOUND_EXPORT` to that target\'s reviewed export.json:\n\n```bash\nset -euo pipefail\n: "${TARGET_TEMPLATE:?Reviewed target template, including Orchard done and prep_paths}"\n: "${TARGET_ARTIFACT:?Authenticated local artifact.json}"\n: "${TARGET_DONE:?Authenticated local whole-tar done receipt}"\n: "${TARGET_CONFIG:?Authenticated preparation config.json}"\n: "${TARGET_RECEIPT:?Authenticated preparation receipt}"\n: "${TARGET_DATA_RECEIPT:?Authenticated data receipt}"\n: "${EXPORT_BINDING:?Fresh output binding path for the selected target}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions binding \\\n  --template "$TARGET_TEMPLATE" --artifact "$TARGET_ARTIFACT" --done "$TARGET_DONE" \\\n  --config "$TARGET_CONFIG" --receipt "$TARGET_RECEIPT" --data-receipt "$TARGET_DATA_RECEIPT" \\\n  --out "$EXPORT_BINDING"\n```\n\n`adopted` retains the exact local source/operator/unpacker. `ops/1.tgz` is the package delivery, with `ops/SHA256`; the outer archive carries it and five inert scripts. The commands below are **owner operations on Orchard, unrun here**. Transfer the single outer archive through the owner\'s existing authorized transport. Set `OPS_ARCHIVE` to its received opaque path, `OPS_SHA256` to the printed local hash, and `D` to a fresh opaque operation directory. These are transport endpoints, not generated receipt values.\n\n```bash\nset -euo pipefail\n: "${OPS_ARCHIVE:?Received outer archive on Orchard}"\n: "${OPS_SHA256:?Printed local SHA256 of that archive}"\n: "${D:?Fresh opaque operation directory on Orchard}"\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nprintf \'%s  %s\\n\' "$OPS_SHA256" "$OPS_ARCHIVE" | sha256sum -c -\ntest ! -e "$D"\nmkdir -m 700 "$D"\ntar -xzf "$OPS_ARCHIVE" -C "$D"\nbash "$D/o_place.sh"\nbash "$D/o_pull_fill.sh"\n# BEGIN FILL_WAIT\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nFILL_MAX_SECONDS=${FILL_MAX_SECONDS:-14400}\n[[ "$FILL_MAX_SECONDS" =~ ^[0-9]+$ ]] && (( FILL_MAX_SECONDS >= 1 && FILL_MAX_SECONDS <= 14400 )) || exit 1\nFILL_DEADLINE=$((SECONDS + FILL_MAX_SECONDS))\nwhile test ! -f "$P/a/1.txt"; do\n  FILL_PID=$(cat "$P/a/0.txt") || exit 1\n  [[ "$FILL_PID" =~ ^[1-9][0-9]*$ ]] || exit 1\n  if ! kill -0 "$FILL_PID" 2>/dev/null && test ! -f "$P/a/1.txt"; then\n    echo \'Fill worker is gone without an exit receipt\' >&2; exit 1\n  fi\n  if (( SECONDS >= FILL_DEADLINE )); then\n    echo \'Fill wait exceeded its maximum\' >&2; exit 1\n  fi\n  FILL_REMAIN=$((FILL_DEADLINE - SECONDS))\n  sleep "$(( FILL_REMAIN < 60 ? FILL_REMAIN : 60 ))"\ndone\ntest "$(cat "$P/a/1.txt")" = 0\n# END FILL_WAIT\nbash "$D/o_cpu.sh"\n```\n\n`o_place.sh` verifies the inner archive and places it at `$P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}`. `o_pull_fill.sh` acquires the permanent attempt lock `$P/a/0.lock`, launches one detached nohup worker, and returns its PID in `$P/a/0.txt`. The worker logs to `$P/a/0.log` and writes its exit status to `$P/a/1.txt` on success or failure. Run the wait on the same host that launched the detached worker. It checks at most once per minute, refuses a vanished PID without `1.txt`, and stops after at most 14,400 seconds (four hours). A duplicate launch refuses; a failed or interrupted attempt requires a fresh package/token, never an automatic retry. The worker copies the reviewed `done` and `prep_paths` files to `$P/a/e/{5,7,8,9}`, authenticates their pins (the `.done` receipt uses whitespace-separated fields), fetches export parts `0..3` once with retries disabled, fills through `a/4.py`, and runs cont_ops\' verbatim `dryres2.py` and `dry2.py`. A failed transfer stops; the scripts do not retry it.\n\n`o_cpu.sh` requests the A4 CPU allocation explicitly: preempt, eight CPUs, 200G, four hours, no GPU, no requeue, and the excluded nodes. The **CPU allocation** is separate from the intended **general GPU read**. Wait for the CPU job to finish successfully. Preserve `$P/a/c/CPU.json`, `MEMORY.json` and the exact `SETTINGS.json` emitted by A4 prepare. Bring these small files back as one archive through the authorized transport to `$LOCAL/adopted/proof/` before the parity preparation below. Before writing CPU.json, the ON proof streams `logical/d` through its live `J.namespace(root)` to the named shared staging path `$P/a/4.tar`, outside the capped return pool. It dereferences symlinks and records `gate_assets.path`, `logical`, `sha256` and `bytes` in CPU.json. The output file is opened outside bwrap and tar writes to that descriptor. This uses the same preparation/READY as the proof, without a second staging job. A tar failure leaves no successful CPU.json and is not retried. The proof also emits exact `a/1.json`, restore, artifact-binding, manifest and export-pin receipts. These small files authenticate staging; they do not contain model weights. The proof binds payload/plan/inputs/operator, must pass bundle/entry checks and contain `memory.read_cache_bytes=12884901888` (4294967296 for processor-only), `basis=fixed_g3t_shapes`, and `fits=true`.\n\nArchive the CPU evidence on Orchard after its successful completion, using the package token printed by the build:\n\n```bash\nset -euo pipefail\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/2.tgz" -C "$P/a/c" CPU.json MEMORY.json SETTINGS.json RESTORE.json binding.json manifest.json EXPORT_PIN.json 1.json\nsha256sum "$D/2.tgz"\n```\n\nAfter authorized transport, authenticate and extract that archive on local scratch:\n\n```bash\nset -euo pipefail\n: "${PROOF_ARCHIVE:?Received CPU-evidence archive on local scratch}"\n: "${PROOF_SHA256:?Printed Orchard SHA256 of the CPU-evidence archive}"\nprintf \'%s  %s\\n\' "$PROOF_SHA256" "$PROOF_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/proof"\nnice -n 10 tar -xzf "$PROOF_ARCHIVE" -C "$LOCAL/adopted/proof"\n```\n\nAfter the zero-difference GPU parity gate passes, transfer its token-only `ue.json` through the authorized transport as one archive, preserving the SHA256 printed on the GPU host. The authorized owner authenticates that archive and installs the receipt before submission:\n\n```bash\nset -euo pipefail\n: "${GATE_ARCHIVE:?Received archive containing ue.json}"\n: "${GATE_SHA256:?SHA256 printed on the GPU host}"\nprintf \'%s  %s\\n\' "$GATE_SHA256" "$GATE_ARCHIVE" | sha256sum -c -\nmkdir "$D/g"\ntar -xf "$GATE_ARCHIVE" -C "$D/g"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntest ! -e "$P/a/g.json"\ncp "$D/g/ue.json" "$P/a/g.json"\n```\n\nThen run:\n\n```bash\nset -euo pipefail\nbash "$D/o_sub.sh"\n# After the GPU job finishes:\nbash "$D/o_fetch.sh"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/3.tgz" -C "$P/a/f" 0.tgz EXIT.json\nsha256sum "$D/3.tgz"\n```\n\n`o_sub.sh` embeds cont_ops’ A4 CPU-receipt assertions verbatim, including batch/dispatch/guard pins and MEMORY.json equality, then checks cache memory and the successful GPU receipt at `$P/a/g.json`, requires both dry checks to pass, requires an empty general queue, and refuses a return pool over **75,000,000 bytes** (including errors/symlinks). It then runs `3.py check` and one `3.py submit --gpus 1 --time 04:30:00`, saving the job ID. The GPU receipt must match the CPU restore/binding pins, filled export pin, adopted plan/profile and H100 80 GB requirement. The unchanged bootstrap itself does not require the cache-memory field; this submit preflight does. `o_fetch.sh` derives the authenticated return token and fetches `$P/a/f/{0.tgz,EXIT.json}`.\n\nTransfer `$D/3.tgz` through the authorized transport, preserving the local operator directory. Authenticate, extract and unpack it locally:\n\n```bash\nset -euo pipefail\n: "${RETURN_ARCHIVE:?Received fetched-return archive on local scratch}"\n: "${RETURN_SHA256:?Printed Orchard SHA256 of the fetched-return archive}"\nprintf \'%s  %s\\n\' "$RETURN_SHA256" "$RETURN_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/f"\nnice -n 10 tar -xzf "$RETURN_ARCHIVE" -C "$LOCAL/adopted/f"\n(cd "$LOCAL/adopted" && CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -s -E -B ./unpack_return.py \\\n  --archive "$LOCAL/adopted/f/0.tgz" --exit "$LOCAL/adopted/f/EXIT.json" \\\n  --out "$LOCAL/adopted/ret" > "$LOCAL/adopted/unpack-success.json" && \\\n  test -s "$LOCAL/adopted/unpack-success.json")\n```\n\nA refused unpack leaves its extracted tree behind. Scorers must consume only unpack\'s **success output after exit status 0**, never a directory merely because it exists; the command\'s `&&` chain enforces that handoff. A successful partial return still has `complete=false` and must not be scored as complete. The ON unpacker refuses any existing weight receipt whose verified value is not JSON true. Processor-only journals need no weight receipt. OFF behavior remains unchanged. Whole-archive identity follows A4\'s design: fill checks the sealed whole-tar constants; job/unpack admission compare against inputs.archives[0].\n\n**Forecasts:** Package D is the 580-item distance read (B5 fork, 03:30 walltime); it has **no ON route** in a19. Its one-card **estimate** is 13,813.069 s (3 h 50 min), using the measured 23.600 s/item and crediting no cache saving. The **636-item** A4 read that a19 actually builds has an **estimate** of **7,351.824 s (2 h 02 min 32 s; 11.559 s/item)**, obtained by carrying forward the supplied A4 total, with zero assumed saving. Target weights, cache costs and staging/queue delays can change it; neither forecast measures the selected export.\n\n## GPU parity staging and acceptance\n\nThe gate must seal **A4 prepare\'s actual output plus the operator\'s per-read overrides** for the package being adopted. Do not supply an unrelated PRIVATE_SETTINGS.json. `a20 gate` checks the prepared bytes and exact RESTORE.json/artifact-binding bytes against CPU.json’s READY pins, checks export identity against the adopted step binding, checks the export-pin hash and byte count against the exact `a/1.json` bytes authenticated by CPU.json, and checks payload, plan and operator bindings. The selected export defaults to the pinned step-400 export; `--bound-export` explicitly changes it. Every GPU worker rechecks those asset bytes and the artifact manifest before reading; changing paths cannot substitute another checkpoint. It applies the authenticated operator descriptor and derives `enable_caches`, `read_cache_bytes` and the full adoption profile: candidates_argmax, memo on, g3t, empty verify IDs, save_own_depth=false, and the exact cache switches. Both the parent driver and every worker refuse a different profile. Processor-only adoption is explicitly gated with slots `[0]` and 4 GiB; all-cache adoption uses `[0,1,2]` and 12 GiB.\n\nThe **owner-only commands below are unrun here**. The shared asset archive already exists when CPU.json appears; never try to reopen the CPU job\'s private `/tmp`. Reserve storage for the archive before running `o_cpu.sh`. Its size is recorded by the job; no production archive size was measured here.\n\nAllocate the gate on Orchard, then enter its compute task. This is one non-requeued H100 job, eight CPUs, 200G and a five-hour maximum. Preserve its actual `CUDA_VISIBLE_DEVICES`; the Python guard requires exactly `NVIDIA H100 80GB HBM3`, 132 SMs, capability 9.0 and the 80 GB memory class.\n\n```bash\nset -euo pipefail\nsalloc --account=mt01 --partition=general --nodes=1 --ntasks=1 --cpus-per-task=8 \\\n  --mem=200G --gres=gpu:1 --time=05:00:00 --no-requeue \\\n  --exclude=orchard-community-2 --job-name=ab0123456789 \\\n  srun --ntasks=1 --pty bash --noprofile --norc\n```\n\nOn that H100 host, `/scratch/jjyeung` must **physically exist and be writable** outside bwrap. A4 creates `/scratch` only inside its namespace; it does not satisfy this host requirement. The operator must provision the host path before the gate. The exact logical root (currently `/scratch/jjyeung/b01ec87a6f29b`) must be absent so extraction cannot overlay another run. Preserve it so manifests and restore paths remain valid. Provision the separate opaque kit/source directories there too. Stage the source trees and public kit as single authenticated archives; keep private inputs and reverse maps on Trinity.\n\nThe shared path `$P/a/4.tar` is visible directly on Orchard. If approved transport copies it, set `ASSET_ARCHIVE` to that received path; CPU.json still supplies the expected hash and bytes. Run inside the allocation:\n\n```bash\nset -euo pipefail\n: "${PACKAGE_TOKEN:?Fresh package token from the build}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nASSET_ARCHIVE=${ASSET_ARCHIVE:-"$P/a/4.tar"}\nGPU_LOGICAL=$(/usr/bin/python3 -I -s -B - "$P" "$ASSET_ARCHIVE" <<\'PYASSET\'\nimport hashlib,json,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);archive=Path(sys.argv[2]);proof=json.loads((p/\'a/c/CPU.json\').read_text())\nassert proof[\'passed\'] is True\nwith tarfile.open(p/\'0.tgz\') as t:cfg=json.load(t.extractfile(\'9.json\'))\nasset=proof[\'gate_assets\'];assert asset[\'logical\']==cfg[\'logical\']\nassert asset[\'path\']==str(p/\'a/4.tar\') and archive.stat().st_size==asset[\'bytes\']\nh=hashlib.sha256()\nwith archive.open(\'rb\') as stream:\n    for chunk in iter(lambda:stream.read(1024**2),b\'\'):h.update(chunk)\nassert h.hexdigest()==asset[\'sha256\']\nprint(cfg[\'logical\'])\nPYASSET\n)\ntest -d /scratch/jjyeung && test -w /scratch/jjyeung\ntest ! -e "$GPU_LOGICAL"\nmkdir -p "$GPU_LOGICAL/d" "$GPU_LOGICAL/p"\ntar -xf "$ASSET_ARCHIVE" -C "$GPU_LOGICAL/d"\ntar -xzf "$P/0.tgz" -C "$GPU_LOGICAL/p"\ntest ! -e "$GPU_LOGICAL/d/7.json"\ncp "$GPU_LOGICAL/d/binding.json" "$GPU_LOGICAL/d/7.json"\n```\n\nCreate a private neutral configuration from `config.example.json` with separate authenticated A4 original/patched source roots. Set `export=$GPU_LOGICAL/d/e`, `export_pin=$GPU_LOGICAL/d/6.json`, and `artifact_manifest=$GPU_LOGICAL/d/7.json`. The last file is a byte-identical neutral alias for the CPU binding. Include that exact `binding.json` to `7.json` mapping in `PRIVATE_ALIASES.json`; map the other private prepared asset paths to staged opaque aliases of those same files. Keep private settings and reverse maps on Trinity. The following commands use files under `$LOCAL`:\n\n```bash\nset -euo pipefail\n: "${PRIVATE_CONFIG_TEMPLATE:?Private neutral GPU configuration with staged asset paths}"\n: "${PRIVATE_ALIASES:?Private JSON mapping preparation paths to staged opaque paths}"\nPRIVATE_SETTINGS="$LOCAL/PRIVATE_SETTINGS.json"\nPRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \\\n  --operator "$LOCAL/adopted" --prepared "$LOCAL/adopted/proof/SETTINGS.json" \\\n  --proof "$LOCAL/adopted/proof/CPU.json" --config "$PRIVATE_CONFIG_TEMPLATE" \\\n  --asset-receipts "$LOCAL/adopted/proof" --bound-export "$BOUND_EXPORT" \\\n  --settings-out "$PRIVATE_SETTINGS" --config-out "$PRIVATE_CONFIG"\n```\n\n```bash\nset -euo pipefail\nmkdir -p "$LOCAL/public"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" seal \\\n  --source-root "$EXT_SOURCE" --input "$PRIVATE_SETTINGS" --aliases "$PRIVATE_ALIASES" \\\n  --out "$LOCAL/public/u3"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" stage-kit \\\n  --source-root "$EXT_SOURCE" --input "$DELIVERY/kit_parity50" \\\n  --config "$PRIVATE_CONFIG" --out "$LOCAL/public/u0"\n```\n\nThe package embeds the driver/comparator SHA256 and the deterministically sealed sample SHA256 from MANIFEST `kit_files`. The driver and every worker authenticate those executing bytes, and `ue.json` carries them to SUBMIT_CHECK. The staged `u3.json` pins every extension; `u4.json` authenticates both full 927-file base inventories. The driver rejects changed bases, equal original/patched roots, and an original root containing extensions. It authenticates the sealed sample bytes and the logical sample pin. Transfer only the staged directory through the approved transport under an opaque root.\n\nOn an assigned **H100 80 GB** GPU, run the acceptance command below; it is **unrun here**. Preserve that allocation\'s actual `CUDA_VISIBLE_DEVICES`.\n\n```bash\nset -euo pipefail\nnice -n 10 "$READ_PYTHON" -I -s -B /scratch/jjyeung/ab0123456789/u0/u0.py \\\n  /scratch/jjyeung/ab0123456789/u0/u2.json --out /scratch/jjyeung/ab0123456789/u9 \\\n  --enable-gpu --public --repeat-baseline --shards 4\n```\n\nEvery arm starts a fresh process. ORIGINAL/OFF/OFF_REPEAT use ordinary journals and modulo shards. ON tests caches; ON_JOURNAL and sequential whole-scene shards test separate journal/shard features. Sequential shards establish equality, not parallel speed. Public logs tokenize item/native/room identities and arbitrary stdout/stderr. No reverse map is written on Orchard.\n\nAcceptance requires all 50 expected IDs, complete production output schemas, nonempty text/tokens/heads, scale even when null, every served response and forced-token count, matching call counters, and **zero semantic byte differences**. ORIGINAL/OFF must also retain every production source hash. Each enabled cache must report its memory bound and useful hits; SAM needs both feature and detection hits. Empty or all-miss runs fail. Only clocks and explicit audit/cache/memo telemetry are excluded from semantic comparison; audit violations fail. There is no answer/trace tolerance.\n\nEach RUN.json records the adopted package plan, read profile, asset pins, required device type, actual device, cache slots and budget. The worker checks CUDA device properties before model loading and refuses a different exact name, SM count, compute capability or memory class. `ue.json` is written only after all comparisons finish and records whether they all passed; failed or missing receipts cannot authorize submit. On the H100 host, archive it with `tar -cf /scratch/jjyeung/ab0123456789/5.tar -C /scratch/jjyeung/ab0123456789/u9 ue.json` and print `sha256sum /scratch/jjyeung/ab0123456789/5.tar` for authenticated return transport. Judge net time from `RUN.json`\'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).\n\nThe cache cap covers retained cache storage and transient copies, not model/caller working memory. Measure full-process host/GPU peaks. Models must remain frozen: calls check parameter/buffer identities, pointers and counters; install/type boundaries hash content. Persistent raw writes fail at a boundary. Raw writes restored between boundaries, private tensor attributes and arbitrary non-tensor state are outside this guard\'s coverage. Graceful stops verify journals; a hard kill can leave an unchecked journal that requires fresh output.\n\nOutput directories u0–u5 represent ORIGINAL/OFF/OFF_REPEAT/ON/ON_JOURNAL/SHARDED. Reports u6–ua compare arms; ub.json checks merge equality; uc/ud contain canonical single/sharded returns. Restore on Trinity with the private inputs:\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" restore \\\n  --source-root "$EXT_SOURCE" --input PRIVATE_RETURN --out "$LOCAL/restored" \\\n  --private-source "$DELIVERY/kit_parity50/sample50.json" \\\n  --private-source "$PRIVATE_CONFIG" --private-source "$PRIVATE_SETTINGS"\n```\n\nRestoration authenticates committed rows before rebuilding private IDs/checksums. Merge with the original manifest through the explicit extension entrypoint. The canonical answer/trace archive must match exactly; transport-envelope clocks remain variable.\n\n## Array validation\n\nNo multi-card A4 operator is delivered. The array helper is a separate inert prototype. Its example has `approved=false`: two one-hour shards, at most two attempts, four GPU-hours total. Approval must bind the exact partition, shards, time and attempts, with no more than five allocated GPU-hours over all attempts. Before any sharded/preempt adoption, validate real persistent-storage preemption/requeue.\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a15.py" PRIVATE_ARRAY_CONFIG.json \\\n  --enable-array --token ab0123456789 --out "$LOCAL/array-plan" \\\n  --python /scratch/jjyeung/ab0123456789/u1 --source /scratch/jjyeung/ab0123456789/u2 \\\n  --staged-config /project/community/jjyeung/okh7/a15_cot_apab0123456789/u3.json\n```\n\nThis writes commands without running them. Exit 75 requests bounded requeue; other errors remain failures. Lock waits stop after 60 seconds, and the attempt limit forbids more work. Public paths must use approved roots and pass the forbidden-word screen; name checks do not establish storage permissions or capacity.\n\nNo delivered CPU suite or single-GPU kit requires a local OS socket. StageOneSocket is a Python callback. Real restore, bwrap isolation, remote transport, GPU parity/performance/memory and persistent requeue remain unrun.\n\n## Review round 7: finding -> fix -> test\n\n| Finding | Fix | Regression |\n|---|---|---|\n| 1. Private root disappears | Archive inside CPU proof to `$P/a/4.tar` before CPU.json; record hash/bytes. | Real fixture tar runs through a namespace wrapper, survives loss of the root, and the CPU operator fixture executes staging. |\n| 2. Fill wait hangs | Guard PACKAGE_TOKEN, check PID and cap wait at four hours. | Missing token, dead PID, timeout and failed exit refuse; success passes. |\n| 3. PCIe accepted | Require exact HBM3 name and 132 SMs. | SXM stub passes; PCIe and wrong-SM stubs refuse. |\n| 4. Evidence/host nits | Bind executing kit/comparator/sample; include a/1.json; unpack with -s -E -B; use an H100-local archive path. | Mutated pins refuse, environment-polluted unpack succeeds, allocation/evidence blocks are checked. |\n| 5. Decision export | Default to the supplied step-400 export; require an explicit parameter for other exports. | Step 400 passes by default; synthetic step 600 passes only when selected; wrong artifact refuses. |\n\nFrozen weights remain required. Persistent raw writes are boundary-checked; writes restored between boundaries remain outside the guard. GPU byte equality and performance remain unrun.\n'
 
 ======================================================================
 FAIL: test_info_tar_stderr_is_retained (__main__.Round8Tests.test_info_tar_stderr_is_retained)
@@ -3009,39 +2572,137 @@ Traceback (most recent call last):
 AssertionError: False is not true : Tar stderr was discarded
 
 ----------------------------------------------------------------------
-Ran 10 tests in 4.169s
+Ran 10 tests in 4.323s
 
 FAILED (failures=29)
 ```
 
-```bash
-READ_NODE4_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_round4.py Round4Tests.test_f2_bound_real_job_and_rehearsal_memory
-```
+Command: `bash work/cpu.sh work/run_checks.py  # round9_before control, exact invocation in the runner`
 
-Exact output:
+Output ([checks/round9_before.txt](checks/round9_before.txt)):
 
 ```text
-test_f2_bound_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_bound_real_job_and_rehearsal_memory) ... FAIL
+test_f1_actual_launch_calls_namespace_twice (__main__.Round9Tests.test_f1_actual_launch_calls_namespace_twice) ... FAIL
+test_f1_all_commands_use_real_namespace_and_input_wrapper (__main__.Round9Tests.test_f1_all_commands_use_real_namespace_and_input_wrapper) ... FAIL
+test_f1_authenticated_bootstrap_and_physical_asset_extraction (__main__.Round9Tests.test_f1_authenticated_bootstrap_and_physical_asset_extraction) ... FAIL
+test_f1_runtime_staging_reuses_package_block_and_pins (__main__.Round9Tests.test_f1_runtime_staging_reuses_package_block_and_pins) ... FAIL
+test_f2_failed_self_test_is_recorded_and_cannot_pass_receipt (__main__.Round9Tests.test_f2_failed_self_test_is_recorded_and_cannot_pass_receipt) ... FAIL
+test_f2_main_records_failure_and_never_starts_workers (__main__.Round9Tests.test_f2_main_records_failure_and_never_starts_workers) ... FAIL
+test_f2_real_guard_self_test_and_each_missed_operation (__main__.Round9Tests.test_f2_real_guard_self_test_and_each_missed_operation) ... FAIL
+test_f2_submit_requires_all_three_guard_checks (__main__.Round9Tests.test_f2_submit_requires_all_three_guard_checks) ... FAIL
+test_f3_staging_transfer_precedes_allocation_and_roots_extract (__main__.Round9Tests.test_f3_staging_transfer_precedes_allocation_and_roots_extract) ... FAIL
+test_info_round7_logs_are_labelled (__main__.Round9Tests.test_info_round7_logs_are_labelled) ... FAIL
+test_info_token_and_framework_gap_and_guard_limits (__main__.Round9Tests.test_info_token_and_framework_gap_and_guard_limits) ... FAIL
 
 ======================================================================
-FAIL: test_f2_bound_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_bound_real_job_and_rehearsal_memory)
+FAIL: test_f1_actual_launch_calls_namespace_twice (__main__.Round9Tests.test_f1_actual_launch_calls_namespace_twice)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 345, in test_f2_bound_real_job_and_rehearsal_memory
-    self.assertEqual(proof['memory'].get('read_cache_bytes'),12*1024**3)
-AssertionError: None != 12884901888
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 91, in test_f1_actual_launch_calls_namespace_twice
+    host=self.host()
+         ^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 34, in host
+    self.assertTrue(path.is_file(),'Missing namespace host launcher')
+AssertionError: False is not true : Missing namespace host launcher
+
+======================================================================
+FAIL: test_f1_all_commands_use_real_namespace_and_input_wrapper (__main__.Round9Tests.test_f1_all_commands_use_real_namespace_and_input_wrapper)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 38, in test_f1_all_commands_use_real_namespace_and_input_wrapper
+    host=self.host()
+         ^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 34, in host
+    self.assertTrue(path.is_file(),'Missing namespace host launcher')
+AssertionError: False is not true : Missing namespace host launcher
+
+======================================================================
+FAIL: test_f1_authenticated_bootstrap_and_physical_asset_extraction (__main__.Round9Tests.test_f1_authenticated_bootstrap_and_physical_asset_extraction)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 111, in test_f1_authenticated_bootstrap_and_physical_asset_extraction
+    host=self.host()
+         ^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 34, in host
+    self.assertTrue(path.is_file(),'Missing namespace host launcher')
+AssertionError: False is not true : Missing namespace host launcher
+
+======================================================================
+FAIL: test_f1_runtime_staging_reuses_package_block_and_pins (__main__.Round9Tests.test_f1_runtime_staging_reuses_package_block_and_pins)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 62, in test_f1_runtime_staging_reuses_package_block_and_pins
+    host=self.host()
+         ^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 34, in host
+    self.assertTrue(path.is_file(),'Missing namespace host launcher')
+AssertionError: False is not true : Missing namespace host launcher
+
+======================================================================
+FAIL: test_f2_failed_self_test_is_recorded_and_cannot_pass_receipt (__main__.Round9Tests.test_f2_failed_self_test_is_recorded_and_cannot_pass_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 177, in test_f2_failed_self_test_is_recorded_and_cannot_pass_receipt
+    self.assertIn('guard_self_test',inspect.signature(self.kit.write_gate_receipt).parameters,'Receipt omits self-test')
+AssertionError: 'guard_self_test' not found in mappingproxy(OrderedDict({'out': <Parameter "out">, 'cfg': <Parameter "cfg">, 'passed': <Parameter "passed">})) : Receipt omits self-test
+
+======================================================================
+FAIL: test_f2_main_records_failure_and_never_starts_workers (__main__.Round9Tests.test_f2_main_records_failure_and_never_starts_workers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 190, in test_f2_main_records_failure_and_never_starts_workers
+    self.assertTrue(hasattr(self.kit,'guard_self_test'),'Missing production self-test')
+AssertionError: False is not true : Missing production self-test
+
+======================================================================
+FAIL: test_f2_real_guard_self_test_and_each_missed_operation (__main__.Round9Tests.test_f2_real_guard_self_test_and_each_missed_operation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 156, in test_f2_real_guard_self_test_and_each_missed_operation
+    self.assertTrue(hasattr(self.kit,'guard_self_test'),'Missing production guard self-test')
+AssertionError: False is not true : Missing production guard self-test
+
+======================================================================
+FAIL: test_f2_submit_requires_all_three_guard_checks (__main__.Round9Tests.test_f2_submit_requires_all_three_guard_checks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 223, in test_f2_submit_requires_all_three_guard_checks
+    self.assertIn("gate.get('guard_self_test')",helper.SUBMIT_CHECK,'Submit omits guard evidence')
+AssertionError: "gate.get('guard_self_test')" not found in "import hashlib,json,os,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);pool=Path(sys.argv[2]);h=lambda f:hashlib.sha256(f.read_bytes()).hexdigest()\npub=json.loads((p/'0.json').read_text());proof=json.loads((p/'a/c/CPU.json').read_text())\nwith tarfile.open(p/'0.tgz') as t:cfg=json.load(t.extractfile('9.json'))\nif h(p/'0.tgz')!=pub['payload_sha256']:raise ValueError('Payload differs')\nfor key in ('passed','entry_sequence_passed','bundle_guard_passed'):\n if proof.get(key) is not True:raise ValueError('CPU receipt failed: '+key)\nif (proof['plan']!=pub['plan_sha256'] or proof['payload']!=pub['payload_sha256'] or proof['inputs']!=h(p/'a/1.json') or proof['operator_sha256']!=h(p/'a/6.py')):raise ValueError('CPU receipt binding differs')\nmemory=proof['memory']\nif memory.get('fits') is not True or memory.get('basis')!='fixed_g3t_shapes' or memory.get('read_cache_bytes')!=cfg['read_cache_bytes']:raise ValueError('CPU memory proof differs')\nimport hashlib,json,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);c=json.loads((p/'a/c/CPU.json').read_text());v=json.loads((p/'0.json').read_text())\nsha=lambda path:hashlib.sha256(path.read_bytes()).hexdigest()\nassert c['passed'] is True and c['bundle_guard_passed'] is True and c['entry_sequence_passed'] is True\nassert c['payload']==v['payload_sha256'] and c['plan']==v['plan_sha256']\nassert c['operator_sha256']==sha(p/'a/6.py') and c['inputs']==sha(p/'a/1.json')\ng=c['bundle_guard']\nassert g['passed'] is True and g['path']=='7.py' and g['guard_target']=='6.py' and g['action']=='test'\nassert g['operator_sha256']==sha(p/'a/6.py') and g['batch_sha256']==sha(p/'BATCH.sh')\ne=c['entry_sequence'];root=Path(c['root'])\nassert e['passed'] is True and e['entry_sequence_passed'] is True\nassert e['events']==['guard_installed','write_test','operator_dispatch']\nassert e['operator_sha256_before']==e['operator_sha256_after']==c['operator_sha256']\nassert e['path']=='7.py' and e['guard_target']=='6.py' and e['action']=='test'\nassert e['operator_sha256']==c['operator_sha256'] and e['batch_sha256']==sha(p/'BATCH.sh')\nassert e['pool']==str(root/'wpool') and e['token']==v['token']\nw=e['write_test']\nassert type(w['bytes']) is int and w['bytes']==4*1024**2\nassert isinstance(w['sha256'],str) and len(w['sha256'])==64 and all(ch in '0123456789abcdef' for ch in w['sha256'])\nwith tarfile.open(p/'0.tgz') as archive:\n    guard_sha=hashlib.sha256(archive.extractfile('orchard_h10/vendor/return_io.py').read()).hexdigest()\nassert e['guard_target_sha256']==guard_sha\nassert {k:v for k,v in e.items() if k!='entry_sequence_passed'}==g\nassert e['requested_argv'][-2:]==[str(root/'a/5.py'),str(root/'a/1.json')]\nassert e['dispatched_argv']==e['requested_argv'][:-2]+[str(root/'7.py'),str(root/'a/1.json')]\nm=c['memory']\nassert m==json.loads((p/'a/c/MEMORY.json').read_text())\nassert m['fits'] is True and m['basis']=='fixed_g3t_shapes'\nassert m['perception_memo_modules']==['g3t'] and m['sam_measurement_required'] is False\nprint('All CPU receipt checks passed')\nfor name in ('dry.json','dry2.json'):\n if json.loads((p/'a'/name).read_text()).get('passed') is not True:raise ValueError('Dry check failed')\nif not pool.is_dir() or pool.is_symlink():raise ValueError('Return pool missing or linked')\ntotal=0\ndef fail(error):raise error\nfor base,dirs,files in os.walk(str(pool),followlinks=False,onerror=fail):\n for name in dirs+files:\n  f=Path(base)/name\n  if f.is_symlink():raise ValueError('Unexpected pool symlink')\n for name in files:\n  total+=(Path(base)/name).stat().st_size\n  if total>75000000:raise ValueError('Return pool exceeds 75 MB')\ndef decode(v):\n if isinstance(v,str):return bytes.fromhex(v[1:]).decode() if v.startswith('u') else (_ for _ in ()).throw(ValueError('Invalid gate token'))\n if isinstance(v,dict):return {decode(k):decode(x) for k,x in v.items()}\n if isinstance(v,list):return [decode(x) for x in v]\n return v\ngate=decode(json.loads((p/'a/g.json').read_text())['u0'])\nkeys=('stage1_select_rule','perception_memo','perception_memo_modules','perception_memo_verify_ids','save_own_depth','read_processor_only','read_processor_cache','read_vision_cache','read_sam_cache','read_cache_bytes')\nexpected={k:cfg[k] for k in keys}\nif (gate.get('passed') is not True or gate.get('adoption_plan_sha256')!=pub['plan_sha256'] or gate.get('required_device_type')!='H100_80GB' or json.dumps(gate.get('adoption_profile'),sort_keys=True)!=json.dumps(expected,sort_keys=True)):raise ValueError('GPU gate differs from adopted plan/profile/device')\nassets=dict(restore=proof['ready']['restore'],binding=proof['ready']['binding'],export_pin=h(p/'a/export.json'))\nif gate.get('adoption_assets')!=assets:raise ValueError('GPU gate assets differ from CPU proof')\nif gate.get('adoption_kit')!=cfg['gate_kit_sha256']:raise ValueError('GPU gate kit/comparator/sample differ from MANIFEST pins')\nenvironment=json.loads((p/'a/c/ENVIRONMENT.json').read_text())\nenvironment_sha=h(p/'a/c/ENVIRONMENT.json')\nif environment_sha!=proof['ready']['environment']:raise ValueError('CPU environment receipt differs')\nexpected_environment=dict(sha256=environment_sha,torch=environment['versions']['torch'],transformers=environment['versions']['transformers'],cuda=environment['cuda'])\nif gate.get('adoption_environment')!=expected_environment:raise ValueError('GPU gate environment versions/hash differ')\nprint(json.dumps(dict(passed=True,pool_bytes=total)))\n" : Submit omits guard evidence
+
+======================================================================
+FAIL: test_f3_staging_transfer_precedes_allocation_and_roots_extract (__main__.Round9Tests.test_f3_staging_transfer_precedes_allocation_and_roots_extract)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 241, in test_f3_staging_transfer_precedes_allocation_and_roots_extract
+    self.assertLess(text.index(marker),allocation,marker)
+AssertionError: 19997 not less than 16512 : --enable-extensions gate
+
+======================================================================
+FAIL: test_info_round7_logs_are_labelled (__main__.Round9Tests.test_info_round7_logs_are_labelled)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 283, in test_info_round7_logs_are_labelled
+    self.assertTrue((OUT/'checks/round7'/('applied_'+name+'.txt')).is_file(),name)
+AssertionError: False is not true : lock_round3
+
+======================================================================
+FAIL: test_info_token_and_framework_gap_and_guard_limits (__main__.Round9Tests.test_info_token_and_framework_gap_and_guard_limits)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round9.py", line 271, in test_info_token_and_framework_gap_and_guard_limits
+    self.assertIn('GPU_KIT="/scratch/jjyeung/${GATE_TOKEN}"',text)
+AssertionError: 'GPU_KIT="/scratch/jjyeung/${GATE_TOKEN}"' not found in 'The GPU kit is unrun. It requires zero answer/trace byte differences. Its 50 items cover ten items per type and twelve captures; this reuse-heavy sample does not predict full-read throughput.\n\nUse the full **A4/src** base pinned by `BASE_PIN.json`. The reader patches also apply to the inspected B5 source subset, but this kit does not authenticate a B5 base. Apply patches 01–03 to a separate source copy. They add `u0/`; all original reader files remain byte-identical. Apply 04–05 to a separate A4 operator copy, outside `src`.\n\nThe ordinary entrypoint stays OFF and imports no extension. `u0/a8.py --enable-extensions` explicitly selects the extensions; individual cache settings then default OFF. The ON environment records an extension source hash. Rebuild payload and artifact pins before deployment.\n\n## Local preparation\n\nThese commands use paths supplied by the operator; they do not depend on the author\'s `work/` directory. Set `DELIVERY` to the delivered `out/`, `A4_BASE` to the full supplied A4 directory on local scratch, `LOCAL` to a fresh local scratch directory, and `READ_PYTHON` to the approved Python executable. Both source roots and all outputs must stay on local scratch. The package contains code, not model/data archives.\n\n```bash\nset -euo pipefail\n: "${DELIVERY:?Absolute path to delivered out directory}"\n: "${A4_BASE:?Absolute path to the full pinned A4 directory on local scratch}"\n: "${LOCAL:?Fresh local scratch directory}"\n: "${READ_PYTHON:?Approved Python executable}"\nexport PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8\nexport XDG_CACHE_HOME="$LOCAL/cache" HF_HOME="$LOCAL/cache/hf" TRITON_CACHE_DIR="$LOCAL/cache/triton"\nmkdir -p "$LOCAL/source" "$LOCAL/a4"\nnice -n 10 tar -cf - -C "$A4_BASE/src" . | nice -n 10 tar -xf - -C "$LOCAL/source"\nnice -n 10 tar -cf - -C "$A4_BASE" package tower_sequence.py fetch_return.py unpack_return.py |\n  nice -n 10 tar -xf - -C "$LOCAL/a4"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/01_bounded_read_caches.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/02_atomic_scene_shards.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/03_production_integration.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/04_operator_cache_bound.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/05_operator_return_and_proof.diff"\nEXT_SOURCE="$LOCAL/source"\n```\n\nKeep the private kit, original manifests and reverse maps on Trinity. Stage each source tree as one archive and extract it only on node-local scratch. Both parity source roots must remain pristine: no build outputs, extra files or symlinks. Public paths, submission names, configuration and logs must use opaque tokens. Never transfer private reverse maps to Orchard.\n\n## Bound export, build and operations\n\nThe candidate uses **A4\'s 636-item schedule, one card, caches only, general/no-requeue**. A4\'s export admission, submit helper and run settings remain intact. `a19` requires the reviewed payload hash `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d`, the patched operator hashes, all copied A4 members, the base BATCH.sh and decoded bootstrap pins from MANIFEST, the exact extension inventory and the four original alias bases. It authenticates them before copying. Its batch uses cont_ops\' exact `build_r10.wrap_batch`: excluded node, EXIT log return and USR1 forwarding.\n\nThe kit binds **step 400 only**, read A of job **173060**, source package **a15_cot_apdc76460c3a164**. Its artifact SHA256 is **5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd**. `operations/BOUND_EXPORT.json` preserves the supplied export pin. `operations/binding.default.json` combines that identity, the four archive-part sizes in the supplied `a/1.json`, and the reviewed `bind400_partial.json` operation paths. `DEFAULT_EXPORT_PROVENANCE.json` records all source hashes. These are authenticated metadata; production weights were not restored here.\n\n`a19 build` checks the reviewed step-400 identity and preparation hashes before reading or copying the base. No other export can authorize adoption. A fresh package token identifies the ON build; it does not reuse the source package\'s token.\n\n```bash\nset -euo pipefail\nEXPORT_BINDING="$DELIVERY/operations/binding.default.json"\n: "${PACKAGE_TOKEN:?Fresh 11-16 hex characters starting with a-f}"\nPROFILE_ARGS=()  # All three caches, 12 GiB. For processor-only: PROFILE_ARGS=(--processor-only)\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a19.py" \\\n  --enable-extensions --base-operator "$LOCAL/a4" --source-root "$EXT_SOURCE" \\\n  --manifest "$DELIVERY/patches/MANIFEST.json" --extension-pins "$DELIVERY/kit_parity50/EXTENSION_PINS.json" \\\n  --export-binding "$EXPORT_BINDING" --token "$PACKAGE_TOKEN" --out "$LOCAL/adopted" "${PROFILE_ARGS[@]}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions operations \\\n  --operator "$LOCAL/adopted" --binding "$EXPORT_BINDING" --dry-root "$DELIVERY/operations" --out "$LOCAL/ops"\nnice -n 10 tar -czf "$LOCAL/0.tgz" -C "$LOCAL/ops" .\nnice -n 10 sha256sum "$LOCAL/0.tgz"\n```\n\n`adopted` retains the exact local source/operator/unpacker. `ops/1.tgz` is the package delivery, with `ops/SHA256`; the outer archive carries it and five inert scripts. The commands below are **owner operations on Orchard, unrun here**. Transfer the single outer archive through the owner\'s existing authorized transport. Set `OPS_ARCHIVE` to its received opaque path, `OPS_SHA256` to the printed local hash, and `D` to a fresh opaque operation directory. These are transport endpoints, not generated receipt values.\n\n```bash\nset -euo pipefail\n: "${OPS_ARCHIVE:?Received outer archive on Orchard}"\n: "${OPS_SHA256:?Printed local SHA256 of that archive}"\n: "${D:?Fresh opaque operation directory on Orchard}"\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nprintf \'%s  %s\\n\' "$OPS_SHA256" "$OPS_ARCHIVE" | sha256sum -c -\ntest ! -e "$D"\nmkdir -m 700 "$D"\ntar -xzf "$OPS_ARCHIVE" -C "$D"\nbash "$D/o_place.sh"\nbash "$D/o_pull_fill.sh"\n# BEGIN FILL_WAIT\n: "${PACKAGE_TOKEN:?Copy the fresh build token to this Orchard shell}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nFILL_MAX_SECONDS=${FILL_MAX_SECONDS:-14400}\n[[ "$FILL_MAX_SECONDS" =~ ^[0-9]+$ ]] && (( FILL_MAX_SECONDS >= 1 && FILL_MAX_SECONDS <= 14400 )) || exit 1\nFILL_DEADLINE=$((SECONDS + FILL_MAX_SECONDS))\nwhile test ! -f "$P/a/1.txt"; do\n  FILL_PID=$(cat "$P/a/0.txt") || exit 1\n  [[ "$FILL_PID" =~ ^[1-9][0-9]*$ ]] || exit 1\n  if ! kill -0 "$FILL_PID" 2>/dev/null && test ! -f "$P/a/1.txt"; then\n    echo \'Fill worker is gone without an exit receipt\' >&2; exit 1\n  fi\n  if (( SECONDS >= FILL_DEADLINE )); then\n    echo \'Fill wait exceeded its maximum\' >&2; exit 1\n  fi\n  FILL_REMAIN=$((FILL_DEADLINE - SECONDS))\n  sleep "$(( FILL_REMAIN < 60 ? FILL_REMAIN : 60 ))"\ndone\ntest "$(cat "$P/a/1.txt")" = 0\n# END FILL_WAIT\nbash "$D/o_cpu.sh"\n```\n\n`o_place.sh` verifies the inner archive and places it at `$P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}`. `o_pull_fill.sh` acquires the permanent attempt lock `$P/a/0.lock`, launches one detached nohup worker, and returns its PID in `$P/a/0.txt`. The worker logs to `$P/a/0.log` and writes its exit status to `$P/a/1.txt` on success or failure. Run the wait on the same host that launched the detached worker. It checks at most once per minute, refuses a vanished PID without `1.txt`, and stops after at most 14,400 seconds (four hours). A duplicate launch refuses; a failed or interrupted attempt requires a fresh package/token, never an automatic retry. The worker copies the reviewed `done` and `prep_paths` files to `$P/a/e/{5,7,8,9}`, authenticates their pins (the `.done` receipt uses whitespace-separated fields), fetches export parts `0..3` once with retries disabled, fills through `a/4.py`, and runs cont_ops\' verbatim `dryres2.py` and `dry2.py`. A failed transfer stops; the scripts do not retry it.\n\n`o_cpu.sh` requests the A4 CPU allocation explicitly: preempt, eight CPUs, 200G, four hours, no GPU, no requeue, and the excluded nodes. The **CPU allocation** is separate from the intended **general GPU read**. Wait for the CPU job to finish successfully. Preserve `$P/a/c/CPU.json`, `MEMORY.json` and the exact `SETTINGS.json` emitted by A4 prepare. Bring these small files back as one archive through the authorized transport to `$LOCAL/adopted/proof/` before the parity preparation below. Before writing CPU.json, the ON proof streams `logical/d` through its live `J.namespace(root)` to the named shared staging path `$P/a/4.tar`, outside the capped return pool. It refuses any symlink whose resolved target leaves `logical/d` (including directory links, chains, dangling links and cycles), preserves admitted links with `tar -cf - -C <logical>/d .`, and records `gate_assets.path`, `logical`, `sha256` and `bytes` in CPU.json. The output file is opened outside bwrap and tar writes to that descriptor. This uses the same preparation/READY as the proof, without a second staging job. Validation and tar run in the same live namespace. Tar stderr goes to `results/4.err`. A tar failure leaves no successful CPU.json and is not retried. The proof also emits exact `a/1.json`, restore, artifact-binding, manifest, export-pin and ENVIRONMENT.json receipts. ON prepare adds the compiled CUDA version to ENVIRONMENT.json and its SHA256 to READY. These small files authenticate staging; they do not contain model weights. The proof binds payload/plan/inputs/operator, must pass bundle/entry checks and contain `memory.read_cache_bytes=12884901888` (4294967296 for processor-only), `basis=fixed_g3t_shapes`, and `fits=true`.\n\nArchive the CPU evidence on Orchard after its successful completion, using the package token printed by the build:\n\n```bash\nset -euo pipefail\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/2.tgz" -C "$P/a/c" CPU.json MEMORY.json SETTINGS.json RESTORE.json binding.json manifest.json EXPORT_PIN.json 1.json ENVIRONMENT.json\nsha256sum "$D/2.tgz"\n```\n\nAfter authorized transport, authenticate and extract that archive on local scratch:\n\n```bash\nset -euo pipefail\n: "${PROOF_ARCHIVE:?Received CPU-evidence archive on local scratch}"\n: "${PROOF_SHA256:?Printed Orchard SHA256 of the CPU-evidence archive}"\nprintf \'%s  %s\\n\' "$PROOF_SHA256" "$PROOF_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/proof"\nnice -n 10 tar -xzf "$PROOF_ARCHIVE" -C "$LOCAL/adopted/proof"\n```\n\nAfter the zero-difference GPU parity gate passes, transfer its token-only `ue.json` through the authorized transport as one archive, preserving the SHA256 printed on the GPU host. The authorized owner authenticates that archive and installs the receipt before submission:\n\n```bash\nset -euo pipefail\n: "${GATE_ARCHIVE:?Received archive containing ue.json}"\n: "${GATE_SHA256:?SHA256 printed on the GPU host}"\nprintf \'%s  %s\\n\' "$GATE_SHA256" "$GATE_ARCHIVE" | sha256sum -c -\nmkdir "$D/g"\ntar -xf "$GATE_ARCHIVE" -C "$D/g"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntest ! -e "$P/a/g.json"\ncp "$D/g/ue.json" "$P/a/g.json"\n```\n\nThen run:\n\n```bash\nset -euo pipefail\nbash "$D/o_sub.sh"\n# After the GPU job finishes:\nbash "$D/o_fetch.sh"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/3.tgz" -C "$P/a/f" 0.tgz EXIT.json\nsha256sum "$D/3.tgz"\n```\n\n`o_sub.sh` embeds cont_ops’ A4 CPU-receipt assertions verbatim, including batch/dispatch/guard pins and MEMORY.json equality, then checks cache memory and the successful GPU receipt at `$P/a/g.json`, requires both dry checks to pass, requires an empty general queue, and refuses a return pool over **75,000,000 bytes** (including errors/symlinks). It then runs `3.py check` and one `3.py submit --gpus 1 --time 04:30:00`, saving the job ID. The GPU receipt must match the CPU restore/binding pins, filled export pin, adopted plan/profile and H100 80 GB requirement. The unchanged bootstrap itself does not require the cache-memory field; this submit preflight does. `o_fetch.sh` derives the authenticated return token and fetches `$P/a/f/{0.tgz,EXIT.json}`.\n\nTransfer `$D/3.tgz` through the authorized transport, preserving the local operator directory. Authenticate, extract and unpack it locally:\n\n```bash\nset -euo pipefail\n: "${RETURN_ARCHIVE:?Received fetched-return archive on local scratch}"\n: "${RETURN_SHA256:?Printed Orchard SHA256 of the fetched-return archive}"\nprintf \'%s  %s\\n\' "$RETURN_SHA256" "$RETURN_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/adopted/f"\nnice -n 10 tar -xzf "$RETURN_ARCHIVE" -C "$LOCAL/adopted/f"\n(cd "$LOCAL/adopted" && CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -s -E -B ./unpack_return.py \\\n  --archive "$LOCAL/adopted/f/0.tgz" --exit "$LOCAL/adopted/f/EXIT.json" \\\n  --out "$LOCAL/adopted/ret" > "$LOCAL/adopted/unpack-success.json" && \\\n  test -s "$LOCAL/adopted/unpack-success.json")\n```\n\nA refused unpack leaves its extracted tree behind. Scorers must consume only unpack\'s **success output after exit status 0**, never a directory merely because it exists; the command\'s `&&` chain enforces that handoff. A successful partial return still has `complete=false` and must not be scored as complete. The ON unpacker refuses any existing weight receipt whose verified value is not JSON true. Processor-only journals need no weight receipt. OFF behavior remains unchanged. Whole-archive identity follows A4\'s design: fill checks the sealed whole-tar constants; job/unpack admission compare against inputs.archives[0].\n\n**Forecasts:** Package D is the 580-item distance read (B5 fork, 03:30 walltime); it has **no ON route** in a19. Its one-card **estimate** is 13,813.069 s (3 h 50 min), using the measured 23.600 s/item and crediting no cache saving. The **636-item** A4 read that a19 actually builds has an **estimate** of **7,351.824 s (2 h 02 min 32 s; 11.559 s/item)**, obtained by carrying forward the supplied A4 total, with zero assumed saving. Target weights, cache costs and staging/queue delays can change it; neither forecast measures the selected export.\n\n## GPU parity staging and acceptance\n\nThe gate must seal **A4 prepare\'s actual output plus the operator\'s per-read overrides** for the package being adopted. Do not supply an unrelated PRIVATE_SETTINGS.json. `a20 gate` checks the prepared bytes and exact RESTORE.json/artifact-binding bytes against CPU.json’s READY pins, checks export identity against the adopted step binding, checks the export-pin hash and byte count against the exact `a/1.json` bytes authenticated by CPU.json, and checks payload, plan and operator bindings. The complete export must equal the supplied step-400 pin. The gate also authenticates ENVIRONMENT.json against CPU READY; submit compares its hash and torch/transformers/CUDA versions with ue.json. Every GPU worker rechecks those asset bytes and the artifact manifest before reading; changing paths cannot substitute another checkpoint. It applies the authenticated operator descriptor and derives `enable_caches`, `read_cache_bytes` and the full adoption profile: candidates_argmax, memo on, g3t, empty verify IDs, save_own_depth=false, and the exact cache switches. Both the parent driver and every worker refuse a different profile. Processor-only adoption is explicitly gated with slots `[0]` and 4 GiB; all-cache adoption uses `[0,1,2]` and 12 GiB.\n\nThe **owner-only commands below are unrun here**. The shared asset archive already exists when CPU.json appears; never try to reopen the CPU job\'s private `/tmp`. Reserve storage for the archive before running `o_cpu.sh`: **about 33 GB, estimated**, from about 32.6 GB of expanded inputs plus tar headers. Preserving symlinks avoids duplicated shards and heads. Reserve separate space for extraction, sources and runtime outputs. The job records actual bytes; no production archive size was measured here.\n\nAllocate the gate on Orchard, then enter its compute task. This is one non-requeued H100 job, eight CPUs, 200G and a five-hour maximum. Preserve its actual `CUDA_VISIBLE_DEVICES`; the Python guard requires exactly `NVIDIA H100 80GB HBM3`, 132 SMs, capability 9.0 and the 80 GB memory class.\n\n```bash\nset -euo pipefail\nGATE_TOKEN=$(/usr/bin/python3 -I -s -B -c \'import secrets;print(secrets.token_hex(6))\')\nsalloc --account=mt01 --partition=general --nodes=1 --ntasks=1 --cpus-per-task=8 \\\n  --mem=200G --gres=gpu:1 --time=05:00:00 --no-requeue \\\n  --exclude=orchard-community-2 --job-name="a15_cot_ap${GATE_TOKEN}" \\\n  srun --ntasks=1 --pty bash --noprofile --norc\n```\n\nOn that H100 host, `/scratch/jjyeung` must **physically exist and be writable** outside bwrap. A4 creates `/scratch` only inside its namespace; it does not satisfy this host requirement. The operator must provision the host path before the gate. The exact logical root (currently `/scratch/jjyeung/b01ec87a6f29b`) must be absent so extraction cannot overlay another run. Preserve it so manifests and restore paths remain valid. Provision the separate opaque kit/source directories there too. Stage the source trees and public kit as single authenticated archives; keep private inputs and reverse maps on Trinity.\n\nThe shared path `$P/a/4.tar` is visible directly on Orchard. If approved transport copies it, set `ASSET_ARCHIVE` to that received path; CPU.json still supplies the expected hash and bytes. Run inside the allocation:\n\n```bash\nset -euo pipefail\n: "${PACKAGE_TOKEN:?Fresh package token from the build}"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\nASSET_ARCHIVE=${ASSET_ARCHIVE:-"$P/a/4.tar"}\nGPU_LOGICAL=$(/usr/bin/python3 -I -s -B - "$P" "$ASSET_ARCHIVE" <<\'PYASSET\'\nimport hashlib,json,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);archive=Path(sys.argv[2]);proof=json.loads((p/\'a/c/CPU.json\').read_text())\nassert proof[\'passed\'] is True\nwith tarfile.open(p/\'0.tgz\') as t:cfg=json.load(t.extractfile(\'9.json\'))\nasset=proof[\'gate_assets\'];assert asset[\'logical\']==cfg[\'logical\']\nassert Path(asset[\'path\']).resolve()==(p/\'a/4.tar\').resolve() and archive.stat().st_size==asset[\'bytes\']\nh=hashlib.sha256()\nwith archive.open(\'rb\') as stream:\n    for chunk in iter(lambda:stream.read(1024**2),b\'\'):h.update(chunk)\nassert h.hexdigest()==asset[\'sha256\']\nprint(cfg[\'logical\'])\nPYASSET\n)\ntest -d /scratch/jjyeung && test -w /scratch/jjyeung\ntest ! -e "$GPU_LOGICAL"\nmkdir -p "$GPU_LOGICAL/d" "$GPU_LOGICAL/p"\ntar -xf "$ASSET_ARCHIVE" -C "$GPU_LOGICAL/d"\ntar -xzf "$P/0.tgz" -C "$GPU_LOGICAL/p"\ntest ! -e "$GPU_LOGICAL/d/7.json"\nln -s binding.json "$GPU_LOGICAL/d/7.json"\ntest ! -e "$GPU_LOGICAL/d/9.json"\nln -s ENVIRONMENT.json "$GPU_LOGICAL/d/9.json"\n```\n\nCreate a private neutral configuration from `config.example.json` with separate authenticated A4 original/patched source roots. Set `export=$GPU_LOGICAL/d/e`, `export_pin=$GPU_LOGICAL/d/6.json`, and `artifact_manifest=$GPU_LOGICAL/d/7.json`. Set `environment_receipt=$GPU_LOGICAL/d/9.json`. The neutral binding and environment aliases must be symlinks, as created above. Include that exact `binding.json` to `7.json` mapping in `PRIVATE_ALIASES.json`; map the other private prepared asset paths to staged opaque aliases of those same files. These aliases must be symlinks so `resolve()` reaches the manifest allow-list target; copies are rejected. Keep private settings and reverse maps on Trinity. The following commands use files under `$LOCAL`:\n\n```bash\nset -euo pipefail\n: "${PRIVATE_CONFIG_TEMPLATE:?Private neutral GPU configuration with staged asset paths}"\n: "${PRIVATE_ALIASES:?Private JSON mapping preparation paths to staged opaque paths}"\nPRIVATE_SETTINGS="$LOCAL/PRIVATE_SETTINGS.json"\nPRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \\\n  --operator "$LOCAL/adopted" --prepared "$LOCAL/adopted/proof/SETTINGS.json" \\\n  --proof "$LOCAL/adopted/proof/CPU.json" --config "$PRIVATE_CONFIG_TEMPLATE" \\\n  --asset-receipts "$LOCAL/adopted/proof" \\\n  --settings-out "$PRIVATE_SETTINGS" --config-out "$PRIVATE_CONFIG"\n```\n\n```bash\nset -euo pipefail\nmkdir -p "$LOCAL/public"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" seal \\\n  --source-root "$EXT_SOURCE" --input "$PRIVATE_SETTINGS" --aliases "$PRIVATE_ALIASES" \\\n  --out "$LOCAL/public/u3"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" stage-kit \\\n  --source-root "$EXT_SOURCE" --input "$DELIVERY/kit_parity50" \\\n  --config "$PRIVATE_CONFIG" --out "$LOCAL/public/u0"\n```\n\nThe package embeds the driver/comparator SHA256 and the deterministically sealed sample SHA256 from MANIFEST `kit_files`. The driver and every worker authenticate those executing bytes, and `ue.json` carries them to SUBMIT_CHECK. The staged `u3.json` pins every extension; `u4.json` authenticates both full 927-file base inventories. The driver rejects changed bases, equal original/patched roots, and an original root containing extensions. It authenticates the sealed sample bytes and the logical sample pin. Transfer only the staged directory through the approved transport under an opaque root.\n\nOn an assigned **H100 80 GB** GPU, run the acceptance command below; it is **unrun here**. Preserve that allocation\'s actual `CUDA_VISIBLE_DEVICES`.\n\n```bash\nset -euo pipefail\n# BEGIN GPU_ENVIRONMENT\n: "${GPU_LOGICAL:?Exact logical root extracted above}"\nGPU_KIT=/scratch/jjyeung/ab0123456789\nREAD_PYTHON="$GPU_LOGICAL/d/v/py"\nexport XDG_CACHE_HOME="$GPU_KIT/u6" HF_HOME="$GPU_KIT/u6/u0" TRITON_CACHE_DIR="$GPU_KIT/u6/u1"\nexport HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1\nexport PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8\nmkdir -p "$XDG_CACHE_HOME" "$HF_HOME" "$TRITON_CACHE_DIR"\nnice -n 10 "$READ_PYTHON" -I -s -B - "$GPU_LOGICAL/d/ENVIRONMENT.json" <<\'PYENV\'\nimport json,sys,torch,transformers\nfrom pathlib import Path\ntorch.set_num_threads(8)\nenvironment=json.loads(Path(sys.argv[1]).read_text())\nactual=dict(torch=torch.__version__,transformers=transformers.__version__,cuda=torch.version.cuda)\nexpected=dict(torch=environment[\'versions\'][\'torch\'],transformers=environment[\'versions\'][\'transformers\'],cuda=environment[\'cuda\'])\nif actual!=expected or not actual[\'cuda\'] or not torch.cuda.is_available():\n    raise ValueError(\'GPU interpreter/environment preflight failed\')\nprint(\'Environment preflight passed\')\nPYENV\n# END GPU_ENVIRONMENT\nnice -n 10 "$READ_PYTHON" -I -s -B /scratch/jjyeung/ab0123456789/u0/u0.py \\\n  /scratch/jjyeung/ab0123456789/u0/u2.json --out /scratch/jjyeung/ab0123456789/u9 \\\n  --enable-gpu --public --repeat-baseline --shards 4\n```\n\nThe preflight runs the archived production interpreter outside bwrap and fails before the gate if it cannot start, lacks dependencies/CUDA, or differs from ENVIRONMENT.json. No substitute interpreter is accepted. The gate parent, every worker and receipt writer independently compare the recorded versions and SHA256. Cache roots are explicit under the opaque kit root, matching A4\'s XDG/HF pattern with an explicit Triton root.\n\nEvery arm starts a fresh process. ORIGINAL/OFF/OFF_REPEAT use ordinary journals and modulo shards. ON tests caches; ON_JOURNAL and sequential whole-scene shards test separate journal/shard features. Sequential shards establish equality, not parallel speed. Public logs tokenize item/native/room identities and arbitrary stdout/stderr. No reverse map is written on Orchard.\n\nAcceptance requires all 50 expected IDs, complete production output schemas, nonempty text/tokens/heads, scale even when null, every served response and forced-token count, matching call counters, and **zero semantic byte differences**. ORIGINAL/OFF must also retain every production source hash. Each enabled cache must report its memory bound and useful hits; SAM needs both feature and detection hits. Empty or all-miss runs fail. Only clocks and explicit audit/cache/memo telemetry are excluded from semantic comparison; audit violations fail. There is no answer/trace tolerance.\n\nEach RUN.json and ue.json record the checked torch/transformers/CUDA versions and ENVIRONMENT.json SHA256. Each RUN.json also records the adopted package plan, read profile, asset pins, required device type, actual device, cache slots and budget. The worker checks CUDA device properties before model loading and refuses a different exact name, SM count, compute capability or memory class. `ue.json` is written only after all comparisons finish and records whether they all passed; failed or missing receipts cannot authorize submit. On the H100 host, archive it with `tar -cf /scratch/jjyeung/ab0123456789/5.tar -C /scratch/jjyeung/ab0123456789/u9 ue.json` and print `sha256sum /scratch/jjyeung/ab0123456789/5.tar` for authenticated return transport. Judge net time from `RUN.json`\'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).\n\nThe cache cap covers retained cache storage and transient copies, not model/caller working memory. Measure full-process host/GPU peaks. Models must remain frozen: calls check parameter/buffer identities, pointers and counters; install/type boundaries hash content. Persistent raw writes fail at a boundary. Raw writes restored between boundaries, private tensor attributes and arbitrary non-tensor state are outside this guard\'s coverage. Graceful stops verify journals; a hard kill can leave an unchecked journal that requires fresh output.\n\nOutput directories u0–u5 represent ORIGINAL/OFF/OFF_REPEAT/ON/ON_JOURNAL/SHARDED. Reports u6–ua compare arms; ub.json checks merge equality; uc/ud contain canonical single/sharded returns. Restore on Trinity with the private inputs:\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" restore \\\n  --source-root "$EXT_SOURCE" --input PRIVATE_RETURN --out "$LOCAL/restored" \\\n  --private-source "$DELIVERY/kit_parity50/sample50.json" \\\n  --private-source "$PRIVATE_CONFIG" --private-source "$PRIVATE_SETTINGS"\n```\n\nRestoration authenticates committed rows before rebuilding private IDs/checksums. Merge with the original manifest through the explicit extension entrypoint. The canonical answer/trace archive must match exactly; transport-envelope clocks remain variable.\n\n## Array validation\n\nNo multi-card A4 operator is delivered. The array helper is a separate inert prototype. Its example has `approved=false`: two one-hour shards, at most two attempts, four GPU-hours total. Approval must bind the exact partition, shards, time and attempts, with no more than five allocated GPU-hours over all attempts. Before any sharded/preempt adoption, validate real persistent-storage preemption/requeue.\n\n```bash\nset -euo pipefail\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a15.py" PRIVATE_ARRAY_CONFIG.json \\\n  --enable-array --token ab0123456789 --out "$LOCAL/array-plan" \\\n  --python /scratch/jjyeung/ab0123456789/u1 --source /scratch/jjyeung/ab0123456789/u2 \\\n  --staged-config /project/community/jjyeung/okh7/a15_cot_apab0123456789/u3.json\n```\n\nThis writes commands without running them. Exit 75 requests bounded requeue; other errors remain failures. Lock waits stop after 60 seconds, and the attempt limit forbids more work. Public paths must use approved roots and pass the forbidden-word screen; name checks do not establish storage permissions or capacity.\n\nNo delivered CPU suite or single-GPU kit requires a local OS socket. StageOneSocket is a Python callback. Real restore, bwrap isolation, remote transport, GPU parity/performance/memory and persistent requeue remain unrun.\n\n## Review round 7: finding -> fix -> test\n\n| Finding | Fix | Regression |\n|---|---|---|\n| 1. Private root disappears | Archive inside CPU proof to `$P/a/4.tar` before CPU.json; record hash/bytes. | Real fixture tar runs through a namespace wrapper, survives loss of the root, and the CPU operator fixture executes staging. |\n| 2. Fill wait hangs | Guard PACKAGE_TOKEN, check PID and cap wait at four hours. | Missing token, dead PID, timeout and failed exit refuse; success passes. |\n| 3. PCIe accepted | Require exact HBM3 name and 132 SMs. | SXM stub passes; PCIe and wrong-SM stubs refuse. |\n| 4. Evidence/host nits | Bind executing kit/comparator/sample; include a/1.json; unpack with -s -E -B; use an H100-local archive path. | Mutated pins refuse, environment-polluted unpack succeeds, allocation/evidence blocks are checked. |\n| 5. Decision export | Bind only the supplied step-400 export at build and gate. | Other identities refuse before the builder reads the base; wrong artifact refuses at the gate. |\n\nFrozen weights remain required. Persistent raw writes are boundary-checked; writes restored between boundaries remain outside the guard. GPU byte equality and performance remain unrun.\n\n## Review round 8: finding -> fix -> test\n\n| Finding | Fix | Regression |\n|---|---|---|\n| 1. Archive breaks loader admission | Preserve in-tree symlinks; refuse escaping targets before tar; estimated archive is about 33 GB. | Extract an absolute heads link and run real Artifact.verify/load_native admission; reject external, chained, directory, dangling and cyclic links. |\n| 2. Environment unspecified | Use archived d/v/py; preflight versions/CUDA; pin ENVIRONMENT.json through READY, gate and submit; set opaque cache roots. | Changed versions/hash and CPU build refuse; synthetic matching versions pass; submit rejects each changed field. |\n| 3. Other export checked late | Builder admits only reviewed step-400 identity/preparation. | Eleven identity/preparation mutations refuse before reading the base. |\n| 4. Unresolved package path | Resolve both archive-path operands. | README validation executes through a symlinked package parent. |\n| 5. Handoff details | Aliases are symlinks; retain tar stderr; generate a fresh a15_cot_ap job token. | Error text survives; commands and alias instructions are checked. |\n'
 
 ----------------------------------------------------------------------
-Ran 1 test in 8.718s
+Ran 11 tests in 0.018s
 
-FAILED (failures=1)
+FAILED (failures=11)
 ```
 
-```bash
-READ_F16_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_round3.py Round3Tests.test_f4_worker_uses_settings_argv_without_environment_side_effect
-```
+Command: `bash work/cpu.sh work/run_checks.py  # f16_behavior_before control, exact invocation in the runner`
 
-Exact output:
+Output ([checks/f16_behavior_before.txt](checks/f16_behavior_before.txt)):
 
 ```text
 test_f4_worker_uses_settings_argv_without_environment_side_effect (__main__.Round3Tests.test_f4_worker_uses_settings_argv_without_environment_side_effect) ... FAIL
@@ -3052,12 +2713,384 @@ FAIL: test_f4_worker_uses_settings_argv_without_environment_side_effect (__main_
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round3.py", line 189, in test_f4_worker_uses_settings_argv_without_environment_side_effect
     self.assertNotIn('H10_SETTINGS',kit.os.environ)
-AssertionError: 'H10_SETTINGS' unexpectedly found in {'CUDA_VISIBLE_DEVICES': 'fixture', 'H10_SETTINGS': '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/c598a3cc708f44869f19e78cf64a4b3e/u0.json'}
+AssertionError: 'H10_SETTINGS' unexpectedly found in {'CUDA_VISIBLE_DEVICES': 'fixture', 'H10_SETTINGS': '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/45d99519ef034578a51535360d414e2a/u0.json'}
 
 ----------------------------------------------------------------------
-Ran 1 test in 0.843s
+Ran 1 test in 0.810s
 
 FAILED (failures=1)
 ```
 
-The final seal runs `bash work/cpu.sh work/integrity8.py`. Its exact output is [integrity8.txt](checks/integrity8.txt); [FINAL_INTEGRITY.json](checks/FINAL_INTEGRITY.json) pins this report, the note, MANIFEST, diffs and evidence. Seal output stays external to avoid a report/hash cycle.
+Command: `bash work/cpu.sh work/run_checks.py`
+
+Output ([checks/run_checks9.txt](checks/run_checks9.txt)):
+
+```text
+cache: OK
+journal: OK
+off: OK
+public: OK
+round1: OK
+round2: OK
+round3: OK
+operator3: OK
+lock3: OK
+round4: CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/eeb25e05635b485aa859d3490dc9bffa
+round5: All CPU receipt checks passed
+round6: Detached fill: success=0, failure=17, duplicate launch refused.
+round7: Only reviewed step-400 export passes; changed artifact and selectable-export API refuse.
+round8: Runtime torch/transformers/CUDA and environment SHA256 are exact; changed versions, bytes and CPU build refuse.
+round9: Fresh token derives kit paths; framework version gap and carried guard limits are explicit.
+kit: OK
+kit_launch: OK
+PASS: all 8 round-1 regressions fail against the round-1 reviewed implementation.
+PASS: all 13 round-2 regressions fail against the round-2 reviewed implementation (14 failures including both CLI variants).
+PASS: round3_before reproduces FAILED (failures=15).
+PASS: operator3_before reproduces FAILED (failures=2).
+PASS: lock3_before reproduces FAILED (failures=2).
+PASS: round5_before reproduces FAILED (failures=11).
+PASS: round6_before reproduces FAILED (failures=31).
+PASS: round7_before reproduces FAILED (failures=10).
+PASS: round9_before reproduces FAILED (failures=11).
+PASS: round8_before reproduces FAILED (failures=29).
+PASS: round4_before reproduces FAILED (failures=7, skipped=1).
+PASS: node4_before reproduces FAILED (failures=1).
+PASS: f16_behavior_before reproduces FAILED (failures=1).
+PASS: Python syntax, shell syntax, and default-off execution guards.
+{"cuda_visible_devices": "", "max_child_rss_bytes": 399388672, "torch": "2.11.0+cpu", "torch_threads": 8, "transformers": "5.12.1", "workspace_bytes": 2974892106}
+```
+
+Command: `bash work/cpu.sh work/build_patches.py`
+
+Output ([checks/build_patches9.txt](checks/build_patches9.txt)):
+
+```text
+PASS: 3 additive reader diffs (40 files) plus 2 default-OFF A4 operator diffs; zero-fuzz application; unchanged original reader hash trees.
+PASS: OFF, round-4/5/6/7/8 integration and comparator suites pass from the fresh applied A4 tree; both complete 927-file base inventories authenticate.
+Applied verification root: /scratch/jjyeung/orch_n30/so_read/work/apply-round9/6d9e41ef956944199759f2181b206c40
+```
+
+Command: `bash work/cpu.sh work/gate_integration9.py`
+
+Output ([checks/gate_integration9.txt](checks/gate_integration9.txt)):
+
+```text
+PASS: actual CPU fixture environment refuses before synthetic GPU receipt serialization.
+All CPU receipt checks passed
+{"passed": true, "pool_bytes": 0}
+PASS: CPU helper produced the archive before CPU.json; its recorded hash/bytes and exact a/1.json match.
+PASS: archive reconstructs READY-identical assets after the fixture private data path becomes unavailable.
+PASS: public stage-kit bytes match MANIFEST-derived pins; changed driver, comparator, host helper and sealed sample each refuse.
+PASS: exact CPU evidence feeds gate and full submit assertions; only reviewed step400 passes; synthetic environment evidence binds submit.
+PASS: failed synthetic GPU receipt refuses; no GPU evidence was measured or submitted.
+{"archive_bytes": 20480, "archive_sha256": "6449721a0ed8a0c2cfa899bb7bf9ef51293db2b7944380cef0e2e6638af495a4", "assets": {"binding": "a3b2c81273d34ca963e19e4f52a6d305240dfaf918ca87ae49c7010a1202c159", "export_pin": "3ecf348301576174e3322b7105b6c3cab87606ef906226dab7cdb6073d651a5e", "restore": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"}, "environment": {"cuda": "12.9", "sha256": "437dd3df35eac78affdb22dacee5045ea803d23f451d95fa4590fb321782af6d", "torch": "2.11.0+cpu", "transformers": "5.12.1"}, "kit": {"compare.py": "73858354fe8d366880873246e6256393ea2b27d5979af4e128e93c569a92f50e", "host.py": "afbcd84afd2ca8fe7278080f3d76d8f671b421a5f42df6278399730e1099155c", "run.py": "2cb5917beef275402eceb92cc45efe4cc1625d6124b35196f02461057453bbf1", "sample50.json": "1fdb65050f933d8578c849fbaa1010515ed07ad959234afd2d90cefdd946531b"}, "plan": "60bfac0dd47d400e93062cc82ae6306f077ccc265c45e5f3125ee28c1254fe05", "required_device_type": "H100_80GB"}
+```
+
+Command: `bash work/cpu.sh work/docs_check9.py`
+
+Output ([checks/docs9.txt](checks/docs9.txt)):
+
+```text
+PASS: 13 README shell blocks parse; archive-validation heredoc parses as Python 3.6; host paths and allocation documented.
+PASS: cont_ops CPU assertion block remains verbatim; submit and operator helpers parse as Python 3.6.
+PASS: installed device-property declarations and official 2.11 documentation recorded; no CUDA query executed.
+PASS: step-400-only handoff, symlink archive, version preflight, retained stderr and 33 GB estimate documented.
+PASS: namespace host bootstrap parses and runs --help under actual /usr/bin/python3 3.6.8; no runtime staging or GPU executed.
+PASS: private gate, seal, stage-kit and archive transfer precede allocation; exact host extraction and namespaced wrapper commands are present.
+PASS: exact receipt-handoff shell preserves failed ue.json outside private /tmp and still exits nonzero; only the GPU launch is replaced by false.
+```
+
+Command: `bash work/cpu.sh work/verify_archive_command8.py`
+
+Output ([checks/archive_command9.txt](checks/archive_command9.txt)):
+
+```text
+PASS: link-validation/tar argv passes the real production opaque-command guard; namespace script parses as Python 3.6.
+```
+
+Command: `bash work/cpu.sh work/profile.py`
+
+Output ([checks/profile_rerun.txt](checks/profile_rerun.txt)):
+
+```text
+package,type,items,seconds_mean,seconds_median,seconds_p90,tokens_mean,chosen_tokens_mean,calls_mean,g3t_seconds_mean,prefill_seconds_mean,factory_load_seconds,memo_hits,memo_misses
+A4,object_abs_distance,150,23.599762386313476,18.275352681001095,29.181164655301444,354.52666666666664,239.52666666666667,1.76,1.9979346477866784,0.7367918526601474,75.44613318200209,45,43
+A4,camera_displacement,150,9.553418849733328,7.640535711499979,15.356754048199218,164.05333333333334,124.05333333333333,1,2.00042000095343,0.5960202045065671,5.23999915458262e-07,117,33
+A4,camera_rotation,150,5.088042348260205,5.008183966501747,5.266059609701188,89.93333333333334,79.02,1,0.10294739982023506,0.5878986225467573,5.270012479741126e-07,149,1
+A4,camera_movement_direction,150,9.04453233268665,8.96309851549995,9.604166692998842,203.60666666666665,163.6,1,0.054859042846558924,0.6688661366800565,5.660003807861358e-07,150,0
+A4,room_size_estimation,36,3.6673470785834876,3.641862107999259,3.8561768934996508,65.25,65.25,0,,0.570126933693953,1.5570003597531468e-06,0,0
+B5,room_size_estimation,134,3.9415213698808493,3.523957444002008,4.505284694300644,66.66417910447761,66.66417910447761,0,,0.7769587752761131,78.96129892199679,0,0
+
+A4 wall 7351.824172258377 outside timers 49.7613715433763
+object_abs_distance timings {'g3t_s': 1.9979, 'prefill_s': 0.7368, 'total_s': 22.7406} families {'ground': 176, 'gap': 88} outer-core 0.8592 unattributed 0.5086 rooms 46 memo {'hits': 45, 'misses': 43, 'held_bytes': 71767526, 'requested': 'on', 'events': 0}
+camera_displacement timings {'g3t_s': 2.0004, 'prefill_s': 0.596, 'total_s': 8.6717} families {'move': 150} outer-core 0.8817 unattributed 0.3302 rooms 36 memo {'hits': 117, 'misses': 33, 'held_bytes': 126883032, 'requested': 'on', 'events': 0}
+camera_rotation timings {'g3t_s': 0.1029, 'prefill_s': 0.5879, 'total_s': 4.2036} families {'turn': 150} outer-core 0.8844 unattributed 0.3192 rooms 34 memo {'hits': 149, 'misses': 1, 'held_bytes': 128553354, 'requested': 'on', 'events': 0}
+camera_movement_direction timings {'g3t_s': 0.0549, 'prefill_s': 0.6689, 'total_s': 8.1506} families {'move': 150} outer-core 0.894 unattributed 0.4929 rooms 36 memo {'hits': 150, 'misses': 0, 'held_bytes': 128553354, 'requested': 'on', 'events': 0}
+room_size_estimation timings {'prefill_s': 0.5701, 'total_s': 2.7924} families {} outer-core 0.875 unattributed 0.0779 rooms 9 memo {'hits': 0, 'misses': 0, 'held_bytes': 128553354, 'requested': 'on', 'events': 0}
+B5 wall 645.7347497940063 outside timers 33.016660970002704
+room_size_estimation timings {'prefill_s': 0.777, 'total_s': 3.2551} families {} outer-core 0.6864 unattributed 5.5929 rooms 107 memo {'hits': 0, 'misses': 0, 'held_bytes': 0, 'requested': 'on', 'events': 0}
+```
+
+Command: `bash work/cpu.sh work/torch_versions3.py`
+
+Output ([checks/torch_versions3.txt](checks/torch_versions3.txt)):
+
+```text
+{
+  "events": [
+    {
+      "after": {
+        "data_ptr": 132838976,
+        "object_id": 140624249234256,
+        "version": 1
+      },
+      "before": {
+        "data_ptr": 132838976,
+        "object_id": 140624249234256,
+        "version": 0
+      },
+      "object_changed": false,
+      "operation": "parameter.add_",
+      "pointer_changed": false,
+      "version_changed": true
+    },
+    {
+      "after": {
+        "data_ptr": 132849472,
+        "object_id": 140624249234576,
+        "version": 1
+      },
+      "before": {
+        "data_ptr": 132849472,
+        "object_id": 140624249234576,
+        "version": 0
+      },
+      "object_changed": false,
+      "operation": "detach().add_",
+      "pointer_changed": false,
+      "version_changed": true
+    },
+    {
+      "after": {
+        "data_ptr": 132850176,
+        "object_id": 140624249234256,
+        "version": 0
+      },
+      "before": {
+        "data_ptr": 132850176,
+        "object_id": 140624249234256,
+        "version": 0
+      },
+      "object_changed": false,
+      "operation": "parameter.data.add_",
+      "pointer_changed": false,
+      "version_changed": false
+    },
+    {
+      "after": {
+        "data_ptr": 132852800,
+        "object_id": 140624249234576,
+        "version": 0
+      },
+      "before": {
+        "data_ptr": 132850560,
+        "object_id": 140624249234576,
+        "version": 0
+      },
+      "object_changed": false,
+      "operation": "parameter.data assignment to cloned storage",
+      "pointer_changed": true,
+      "version_changed": false
+    },
+    {
+      "after": {
+        "data_ptr": 132853056,
+        "object_id": 140624249234256,
+        "version": 0
+      },
+      "before": {
+        "data_ptr": 132853056,
+        "object_id": 140624249234256,
+        "version": 0
+      },
+      "object_changed": false,
+      "operation": "parameter.data assignment to same storage",
+      "pointer_changed": false,
+      "version_changed": false
+    },
+    {
+      "after": {
+        "data_ptr": 132853248,
+        "object_id": 140624249234576,
+        "version": 0
+      },
+      "before": {
+        "data_ptr": 132853248,
+        "object_id": 140624249234576,
+        "version": 0
+      },
+      "object_changed": false,
+      "operation": "numpy raw storage write",
+      "pointer_changed": false,
+      "version_changed": false
+    },
+    {
+      "after": {
+        "data_ptr": 132853376,
+        "object_id": 140624249234256,
+        "version": 1
+      },
+      "before": {
+        "data_ptr": 132853376,
+        "object_id": 140624249234256,
+        "version": 0
+      },
+      "object_changed": false,
+      "operation": "SGD.step foreach=False",
+      "pointer_changed": false,
+      "version_changed": true
+    },
+    {
+      "error": "Inference tensors do not track version counter.",
+      "operation": "inference tensor _version"
+    }
+  ],
+  "sources": {
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/autograd/graph.py": "05470e880f0f293b31f59d4670eea1eeca14139bfc07ebfea8ee2ce3a5f4d8d7",
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/include/c10/core/TensorImpl.h": "f0fc518750b2316da0e7baf8bf9de619d260948168552666028e1e300026d65f",
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/include/torch/csrc/autograd/VariableTypeUtils.h": "3786bb26eb90dcee698387405efab2e8ed9cf4d23dd79e9c3b1a04f756379caa",
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/optim/sgd.py": "8c97f1289923574f2a4ad7ff2fb758ea6e66e1be658d039a9a3bae10a1222a28"
+  },
+  "threads": 8,
+  "torch": "2.11.0+cpu"
+}
+```
+
+Command: `bash work/cpu.sh work/benchmark_round3.py`
+
+Output ([checks/cache_cost3.txt](checks/cache_cost3.txt)):
+
+```text
+{
+  "cases": [
+    {
+      "after_install_seconds": 0.38480953220278025,
+      "after_per_call": {
+        "max_seconds": 0.03036930225789547,
+        "median_seconds": 0.0283307540230453,
+        "min_seconds": 0.027562140952795744,
+        "seconds": [
+          0.028940679039806128,
+          0.02791395829990506,
+          0.02902387361973524,
+          0.03036930225789547,
+          0.028006567619740963,
+          0.027562140952795744,
+          0.0283307540230453
+        ]
+      },
+      "before_install_seconds": 3.424100577831268e-05,
+      "before_per_call": {
+        "max_seconds": 0.4689995110966265,
+        "median_seconds": 0.37288348004221916,
+        "min_seconds": 0.349032677244395,
+        "seconds": [
+          0.41764826886355877,
+          0.357668693177402,
+          0.349032677244395,
+          0.3879786869511008,
+          0.4689995110966265,
+          0.36966161616146564,
+          0.37288348004221916
+        ]
+      },
+      "blocks": 128,
+      "boundary": {
+        "max_seconds": 0.38921072520315647,
+        "median_seconds": 0.3834858969785273,
+        "min_seconds": 0.37796131800860167,
+        "seconds": [
+          0.38921072520315647,
+          0.37796131800860167,
+          0.3834858969785273
+        ]
+      },
+      "buffer_shape": [
+        1024
+      ],
+      "buffer_tensors": 128,
+      "dtype": "bfloat16",
+      "median_speed_ratio": 13.161791590117993,
+      "parameter_count": 268435456,
+      "parameter_shape": [
+        2048,
+        1024
+      ],
+      "parameter_tensors": 128,
+      "weight_and_buffer_bytes": 537133056
+    },
+    {
+      "after_install_seconds": 0.7500350028276443,
+      "after_per_call": {
+        "max_seconds": 0.06101168366149068,
+        "median_seconds": 0.05668903002515435,
+        "min_seconds": 0.056436529848724604,
+        "seconds": [
+          0.058170842938125134,
+          0.056769439950585365,
+          0.05649229418486357,
+          0.056436529848724604,
+          0.05644609499722719,
+          0.05668903002515435,
+          0.06101168366149068
+        ]
+      },
+      "before_install_seconds": 4.062103107571602e-05,
+      "before_per_call": {
+        "max_seconds": 0.8785760509781539,
+        "median_seconds": 0.7935647601261735,
+        "min_seconds": 0.7555420049466193,
+        "seconds": [
+          0.7825775858946145,
+          0.8070048238150775,
+          0.837296640034765,
+          0.8785760509781539,
+          0.7935647601261735,
+          0.7555420049466193,
+          0.7577684251591563
+        ]
+      },
+      "blocks": 256,
+      "boundary": {
+        "max_seconds": 0.7544169081375003,
+        "median_seconds": 0.7431809697300196,
+        "min_seconds": 0.7277138847857714,
+        "seconds": [
+          0.7544169081375003,
+          0.7277138847857714,
+          0.7431809697300196
+        ]
+      },
+      "buffer_shape": [
+        1024
+      ],
+      "buffer_tensors": 256,
+      "dtype": "bfloat16",
+      "median_speed_ratio": 13.998559505675944,
+      "parameter_count": 536870912,
+      "parameter_shape": [
+        2048,
+        1024
+      ],
+      "parameter_tensors": 256,
+      "weight_and_buffer_bytes": 1074266112
+    }
+  ],
+  "cuda_visible_devices": "",
+  "kind": "measured CPU stub cache-hit overhead, not GPU speedup",
+  "max_rss_bytes": 1322348544,
+  "nice": 19,
+  "threads": 8,
+  "torch": "2.11.0+cpu"
+}
+```

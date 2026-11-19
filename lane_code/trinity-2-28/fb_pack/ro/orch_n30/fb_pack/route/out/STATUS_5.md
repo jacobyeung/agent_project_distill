@@ -1,0 +1,1 @@
+Stage 5: All full-envelope prefixes and all 2,000-row shards ran native intake. INTAKE_RESULTS.json lists every reason and count; COMPOSE_RESULT.json records actual composition and full-intake host refusals without spoofing.

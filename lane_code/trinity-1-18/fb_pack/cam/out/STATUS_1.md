@@ -1,0 +1,1 @@
+Stage 1: All 5,979 rows pass the pinned shared grammar and native replay. Uniform rules changed 3981 traces. Calls, printed responses, questions, options, answers and GT remain unchanged; response offsets and QID digests are regenerated.
