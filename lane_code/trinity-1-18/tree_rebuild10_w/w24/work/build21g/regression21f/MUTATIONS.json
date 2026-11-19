@@ -252,60 +252,60 @@
     "label": "reviewer_tuple",
     "source": "key, value = (\"BeNcHmArK\", \"q\")\nos.environ[key] = value",
     "old": "PASS",
-    "old_checked_strings": 76255,
+    "old_checked_strings": 76258,
     "new": "REFUSE",
     "error": "ENV_UNRESOLVED:b/o.py:13:environment:environment key is not a literal string: os.environ[key] = value",
-    "seconds": 15.172368109226227
+    "seconds": 15.114473487250507
   },
   {
     "test": "naming_test21f.Naming21f.test_required_mutations",
     "label": "putenv",
     "source": "key, value = (\"BeNcHmArK\", \"q\")\nos.putenv(key, value)",
     "old": "PASS",
-    "old_checked_strings": 76255,
+    "old_checked_strings": 76258,
     "new": "REFUSE",
     "error": "ENV_UNRESOLVED:b/o.py:13:environment:environment key is not a literal string: os.putenv(key, value)",
-    "seconds": 15.279016861692071
+    "seconds": 15.09210994001478
   },
   {
     "test": "naming_test21f.Naming21f.test_required_mutations",
     "label": "setdefault",
     "source": "key, value = (\"BeNcHmArK\", \"q\")\nos.environ.setdefault(key, value)",
     "old": "PASS",
-    "old_checked_strings": 76255,
+    "old_checked_strings": 76258,
     "new": "REFUSE",
     "error": "ENV_UNRESOLVED:b/o.py:13:environment:environment key is not a literal string: os.environ.setdefault(key, value)",
-    "seconds": 15.024118101689965
+    "seconds": 14.706917887087911
   },
   {
     "test": "naming_test21f.Naming21f.test_required_mutations",
     "label": "loop_pairs",
     "source": "for key, value in [(\"BeNcHmArK\", \"q\")]:\n os.environ[key] = value",
     "old": "PASS",
-    "old_checked_strings": 76255,
+    "old_checked_strings": 76258,
     "new": "REFUSE",
     "error": "ENV_UNRESOLVED:b/o.py:13:environment:environment key is not a literal string: os.environ[key] = value",
-    "seconds": 14.90688593313098
+    "seconds": 14.37545178597793
   },
   {
     "test": "naming_test21f.Naming21f.test_required_mutations",
     "label": "fstring",
     "source": "key, value = (\"BeNcHmArK\", \"q\")\nos.environ[f\"{key}\"] = value",
     "old": "PASS",
-    "old_checked_strings": 76255,
+    "old_checked_strings": 76258,
     "new": "REFUSE",
     "error": "ENV_UNRESOLVED:b/o.py:13:environment:environment key is not a literal string: os.environ[f'{key}'] = value",
-    "seconds": 14.706110903061926
+    "seconds": 14.348999275825918
   },
   {
     "test": "naming_test21f.Naming21f.test_required_mutations",
     "label": "helper_map",
     "source": "def make_env():\n key, value = (\"BeNcHmArK\", \"q\")\n return {key:value}\nsubprocess.run([\"true\"], env=make_env())",
     "old": "PASS",
-    "old_checked_strings": 76255,
+    "old_checked_strings": 76258,
     "new": "REFUSE",
     "error": "ENV_UNRESOLVED:b/o.py:15:environment:environment map is not a complete literal mapping: subprocess.run(['true'], env=make_env())",
-    "seconds": 15.328917687293142
+    "seconds": 14.132559807039797
   },
   {
     "test": "naming_test21f.Naming21f.test_shell_forms",

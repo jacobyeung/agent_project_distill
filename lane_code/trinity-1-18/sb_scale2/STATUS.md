@@ -1,0 +1,1 @@
+The CPU displacement and depth diagnostics are computed under the frozen bars. Both calibration fits use only their fit-half rooms, and the unchanged folds match sb_scale1. Exact GT-mask distance pricing is running for the same three scale rules before ITEMS12 is published.

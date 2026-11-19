@@ -23,3 +23,18 @@ Base state: /scratch/jjyeung/orch_n30/cont_ops19/STATUS.md (14:17Z section). Bri
 - 173202 monitor now monR.sh (tmux monR_173202).
 - Entry baselines H@400 then D@400: Codex c20_hd400 RUNNING on trinity-1-18 tmux c20_hd400, workspace /scratch/jjyeung/orch_n30/cont_ops20_b/hd400 (BRIEF_HD400.md; in/ has BIND400, A10b INPUTS parts shas, m400.done). 1-18 load was 78 at launch.
 - Then: review, Orchard build (STEP=400), place/fill REUSE_PARTS_FROM A10b a/e, CPU check, GPU.
+## 16:25Z
+- D@544 rem2 173202 COMPLETED; merged 478+3+99 = 580 complete (work/d3/SCORES_D544_merged.json, post work/d3/post_rem2.out). Corpus ingest tmux c20_ingD (3 segments, log work/d3/ingest.log); RESULT after it (path in work/d3/RESULT_PATH).
+- H@400 (entry baseline): Astra review GO (codex_runs/20261119T155538Z_c20_revh400). Orchard stage 813f42db/c20h400, package a15_cot_apd7a6db629db02 (filled, dry pass, CPU 173232 PASS). GPU 173234 submitted 16:2xZ on general; tmux monR_173234 (monR.sh). Scripts work/hd400/h400/. Fetch: P/3.py fetch (REPORT_HD400 sequence) or o_fetch pattern. Score: hd400 hcam/score_h.py (on trinity-1-18 /scratch/jjyeung/orch_n30/cont_ops20_b/hd400/hcam; local copy work/hd400/h400/score_h.py).
+- D@400: Codex c20_d400f (finish validation with in/B5_1.tgz) running on trinity-1-18; then one review, Orchard build STEP=400, fill, CPU, GPU after H@400.
+## 16:50Z
+- D544 RESULT posted (events/cont_ops/20261119T1615Z_RESULT_D544_merged_580_complete.md). Corpus re-ingest tmux c20_ingD2 (seg0b, seg1b, seg2; timeout 5400; log work/d3/ingest2.log); first try's two 0-byte .copying stubs in REMOVAL_CANDIDATES.md.
+- H@400 173234 RUNNING (budget ~3 h; end ~19:30Z), monitor monR_173234.
+- D@400 package a15_cot_apda6f7936c1779 (stage 813f42db/c20d400): Astra GO, filled, CPU 173235 PASS. Submit after H@400: P=/project/community/jjyeung/okh7/a15_cot_apda6f7936c1779 T=04:00:00 with work/hd400/d400/o_sub_D.sh (wrap like h400/o_sub_h400.sh); partial expected (budget 19,595 s) -> remainder via dresume (make_items_remainder.py / build_remainder.py, as RESUME_D.md).
+- face_look review tmux c20_revface (work/face_rev).
+- Fetch H400: work/hd400/h400/o_fetch_h400.sh, then pull pkg (no a/e) and score with hcam/score_h.py (--return R --package BUILD.json) from trinity-1-18 copy.
+## 17:07Z
+- Corpus D@544 published: 469ddece_s544_R0dev_D580_seg0b_172957, _seg1b_173053, _seg2_173202 (ingest2.log rc 0/0/0).
+- face_look.py: review GO AFTER FIXES, fix applied (RESULT 1656Z).
+- m600 export exists (r1_ops10 1704Z: object 6ed2c7aa_m600.tar sha 673c147c..., parts 4x5395758080; artifact 0db794d9). Use only for the camera part of read A as a dose point, AFTER H@400 and D@400 (+remainder). Not built yet (needs BIND600.json + camera-only variant of gen400b A).
+- Codex c20_drem400 (D remainder kit for step 400) running on trinity-1-18.

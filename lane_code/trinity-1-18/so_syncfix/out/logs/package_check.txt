@@ -1,23 +1,61 @@
-$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/patchcheck_6bofmx42 -i /scratch/jjyeung/orch_n30/so_syncfix/out/patches/01_filter.diff
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_9yqvkc8x -i /scratch/jjyeung/orch_n30/so_syncfix/work/round1/patches/01_filter.diff
 patching file tools/lane_code_filter.py
 patching file tests/test_filter.py
 patching file inputs/lane_code_filter.py
 patching file inputs/lane_code_filter.py.orig
-$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/patchcheck_6bofmx42 -i /scratch/jjyeung/orch_n30/so_syncfix/out/patches/02_stage_driver.diff
+
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_9yqvkc8x -i /scratch/jjyeung/orch_n30/so_syncfix/work/round1/patches/02_stage_driver.diff
 patching file tools/lane_code_sync.sh
 patching file tools/lane_code_stage.sh
+patching file tools/lane_code_log.py
+patching file tests/test_log.py
 patching file tests/support.py
 patching file tests/test_driver.py
+patching file tests/test_review.py
 patching file tests/run_tests.py
+patching file tests/check_delivery.py
 patching file inputs/lane_code_sync.sh
-$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/patchcheck_6bofmx42 -i /scratch/jjyeung/orch_n30/so_syncfix/out/patches/03_tssh.diff
+
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_9yqvkc8x -i /scratch/jjyeung/orch_n30/so_syncfix/work/round1/patches/03_tssh.diff
 patching file tools/tssh.sh
 patching file tests/test_wrapper.py
-PASS: all patched tools, tests, and reference inputs match out/ byte-for-byte.
-$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/installcheck_ii1u9xm_ -i /scratch/jjyeung/orch_n30/so_syncfix/out/INSTALL_TOOLS.diff
+patching file inputs/tssh.sh
+
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_9yqvkc8x -i /scratch/jjyeung/orch_n30/so_syncfix/work/round1/patches/04_atomic_scan.diff
+patching file tools/lane_code_scan.py
+patching file tests/test_slots.py
+patching file tests/test_install.py
+patching file inputs/lane_code_scan.py
+patching file inputs/sync_health.py
+patching file install_tools.py
+patching file calibrate_budgets.py
+patching file PREIMAGE.sha256
+patching file POSTIMAGE.sha256
+
+PASS: numbered patches reproduce every tool, test, input, installer, and hash file byte-for-byte.
+
+$ patch --dry-run --batch --fuzz=0 -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/round1_installcheck_wr__2j7d -i /scratch/jjyeung/orch_n30/so_syncfix/work/round1/INSTALL_TOOLS.diff
+checking file tools/lane_code_filter.py
+checking file tools/lane_code_sync.sh
+checking file tools/tssh.sh
+checking file tools/lane_code_scan.py
+checking file tools/lane_code_stage.sh
+checking file tools/lane_code_log.py
+
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -d /scratch/jjyeung/orch_n30/so_syncfix/work/round1_installcheck_wr__2j7d -i /scratch/jjyeung/orch_n30/so_syncfix/work/round1/INSTALL_TOOLS.diff
 patching file tools/lane_code_filter.py
 patching file tools/lane_code_sync.sh
-patching file tools/lane_code_stage.sh
 patching file tools/tssh.sh
-PASS: install-only patch produces the exact replacement tools.
-PASS: bash -n lane_code_sync.sh lane_code_stage.sh tssh.sh
+patching file tools/lane_code_scan.py
+patching file tools/lane_code_stage.sh
+patching file tools/lane_code_log.py
+
+PASS: INSTALL_TOOLS.diff reproduces all seven postimage tools.
+
+$ bash -n /scratch/jjyeung/orch_n30/so_syncfix/work/round1_installcheck_wr__2j7d/tools/lane_code_sync.sh
+
+$ bash -n /scratch/jjyeung/orch_n30/so_syncfix/work/round1_installcheck_wr__2j7d/tools/lane_code_stage.sh
+
+$ bash -n /scratch/jjyeung/orch_n30/so_syncfix/work/round1_installcheck_wr__2j7d/tools/tssh.sh
+
+PASS: shell syntax and Python compilation.

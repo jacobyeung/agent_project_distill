@@ -394,5 +394,9 @@ set +e
 rc=${PIPESTATUS[0]}
 "${BW[@]}" "$PILOT_VENV/bin/python" -s -B "$Q_KIT/b/d.py" "$Q_NS/p/s" "$Q_NS/r.json" "$Q_NS/n.json" "$Q_NS/rooms.json" 2>&1 | /usr/bin/python3 "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/rooms.log"
 rr=${PIPESTATUS[0]}
+if [[ "$rc" == 0 && "$rr" == 0 ]]; then
+"${BW[@]}" "$PILOT_VENV/bin/python" -s -B "$Q_KIT/b/t.py" "$Q_NS/p" "$Q_NS/v.json" 2>&1 | /usr/bin/python3 "$Q_KIT/b/l.py" "$Q_KIT" > "$Q_ROOT/t.log"
+rc=${PIPESTATUS[0]}
+fi
 /usr/bin/python3 "$Q_KIT/b/o.py" "$Q_ROOT" "$rc" "$rr"
 exit "$rc"

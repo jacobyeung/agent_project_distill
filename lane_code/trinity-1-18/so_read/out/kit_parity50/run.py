@@ -104,14 +104,27 @@ def validate_assets(cfg):
 def validate_device(cfg, torch):
     # torch/cuda/__init__.py:673-695 initializes CUDA and returns device properties.
     prop = torch.cuda.get_device_properties(0)
-    if (cfg.get('required_device_type') != 'H100_80GB' or not prop.name.startswith('NVIDIA H100')
+    if (cfg.get('required_device_type') != 'H100_80GB' or prop.name != 'NVIDIA H100 80GB HBM3'
+            or prop.multi_processor_count != 132
             or (prop.major,prop.minor) != (9,0) or not 79_000_000_000 <= prop.total_memory <= 86_000_000_000):
         raise ValueError('GPU gate requires the production H100 80 GB device type')
 
 
+def kit_hashes():
+    return {name:hashlib.sha256(path.read_bytes()).hexdigest() for name,path in
+            (('run.py',Path(__file__)),('compare.py',COMPARE),('sample50.json',SAMPLE))}
+
+
+def validate_kit(cfg):
+    if kit_hashes() != cfg.get('adoption_kit'):
+        raise ValueError('Executing kit/comparator/sample differs from MANIFEST pins')
+
+
 def write_gate_receipt(out, cfg, passed):
     from a9 import pack
+    validate_kit(cfg)
     record = {key:cfg[key] for key in ('adoption_plan_sha256','adoption_profile','adoption_assets','required_device_type')}
+    record['adoption_kit'] = kit_hashes()
     record['passed'] = bool(passed)
     (Path(out)/'ue.json').write_text(json.dumps({'u0':pack(record)},sort_keys=True)+'\n')
 
@@ -135,6 +148,7 @@ def worker(cfg,mode,out,enabled,shard='0/1',durable_scene=False):
     torch.set_num_threads(8)
     if not torch.cuda.is_available():raise ValueError('CUDA is unavailable')
     validate_device(cfg,torch)
+    validate_kit(cfg)
     validate_assets(cfg)
     random.seed(17);np.random.seed(17);torch.manual_seed(17)
     from h1eval.h10.parity_adapter import settings_for
@@ -225,6 +239,7 @@ def main():
     validate_paths(cfg);validate_paths(json.loads(Path(cfg['settings']).read_bytes()))
     validate_profile(cfg,json.loads(Path(cfg['settings']).read_bytes()))
     validate_assets(cfg)
+    validate_kit(cfg)
     if any(type(i) is not int or not 0<=i<3 for i in cfg.get('enable_caches',[0,1,2])):
         raise ValueError('Cache selectors must be numeric slots 0..2')
     wire=PublicJSON(Codec(json.loads(SAMPLE.read_text()),cfg))

@@ -220,7 +220,11 @@ class Resolver24(unittest.TestCase):
         import resolver21e as R
         R.K=D/'kits/q';R.D=O/'legacy400';R.D.mkdir(exist_ok=True)
         f=R.fixture()
-        with R.external_boundary(f):result=J.resolve(R.K,f['pool'],f['listing'],O/'real400.json')
+        original=J.load;sp=deepcopy(original(R.K/'k/p.json'))
+        with tarfile.open(f['m']/'s.tar') as archive:sp['m4']['v']=hashlib.sha256(archive.extractfile('MANIFEST.json').read()).hexdigest()
+        tokens=(f['pool']/sp['p_root']/'o/gcs_6ed2c7aa_m400.done').read_text().split();sp['m4'].update(t=tokens[2],b=int(tokens[1]))
+        with R.external_boundary(f),patch.object(J,'load',side_effect=lambda p:deepcopy(sp) if Path(p)==R.K/'k/p.json' else original(p)):
+            result=J.resolve(R.K,f['pool'],f['listing'],O/'real400.json')
         self.assertEqual(result['request']['milestone'],400)
         self.assertEqual(result['config']['streams']['vqa'],J.load(R.K/'k/n.json')['streams']['vqa'])
 

@@ -198,24 +198,28 @@ def robust_scan():
                     os.close(dfd)
                     dfd = nextfd
                 name = 'DEDUP_%s.tsv.gz' % label.replace('/', '_')
-                # O_EXCL prevents opening a pre-existing special file or hard link.
-                # Replace by rename from a unique regular file, never by following it.
-                import uuid
-                with deadline():
-                    for unused in range(100):
-                        tmp = '.dedup-' + uuid.uuid4().hex
-                        try:
-                            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
-                                         0o600, dir_fd=dfd)
-                            break
-                        except FileExistsError:
-                            continue
-                    else:
-                        raise OSError('cannot allocate manifest file')
+                # The enclosing scan timeout bounds manifest construction/compression.
+                # Reuse one prelogged name per label, including after SIGKILL/ENOSPC.
+                # Validate the descriptor before truncating any pre-existing file.
+                tmp = '.dedup-%s.pending' % label.replace('/', '_')
+                try:
+                    sys.stderr.write('MANIFEST_PENDING %s\n' % os.path.join(mdir, tmp))
+                    sys.stderr.flush()
+                    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK,
+                                 0o600, dir_fd=dfd)
                     with os.fdopen(fd, 'wb') as raw:
+                        info = os.fstat(raw.fileno())
+                        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                            raise ValueError('manifest temporary file must be regular with one link')
+                        os.ftruncate(raw.fileno(), 0)
                         with gzip.GzipFile(filename=name, mode='wb', fileobj=raw) as g:
                             g.write(''.join(x + '\n' for x in dups).encode('utf-8', 'surrogateescape'))
                     os.rename(tmp, name, src_dir_fd=dfd, dst_dir_fd=dfd)
+                    tmp = None
+                finally:
+                    if tmp is not None:
+                        sys.stderr.write('MANIFEST_LEFTOVER %s\n' % os.path.join(mdir, tmp))
+                        sys.stderr.flush()
                 out.write(os.path.relpath(os.path.join(mdir, name)).encode('utf-8', 'surrogateescape') + b'\0')
             finally:
                 os.close(dfd)

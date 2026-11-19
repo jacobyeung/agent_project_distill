@@ -1,0 +1,57 @@
+--- a/unpack_return.py
++++ b/unpack_return.py
+@@ -3,8 +3,12 @@
+ from fetch_return import digest as file_digest, validate_exit
+ from pathlib import Path
+ 
+-def validate_journals(dest):
++def validate_journals(dest, *, read_extensions=False):
+  root=Path(dest)
++ if read_extensions:
++  for weights in (root/'metadata/reads').glob('*/metadata/journals/*/*/WEIGHTS.json'):
++   if json.loads(weights.read_text()).get('verified') is not True:
++    raise ValueError('Unverified weight journal: '+str(weights.parent))
+  # A read start proves a worker was launched, even if it failed before type setup.
+  for steps in (root/'metadata/reads').glob('*/STEPS.jsonl'):
+   if any(json.loads(line).get('event')=='start' for line in steps.read_text().splitlines()):
+@@ -49,10 +53,11 @@
+  inputs=json.loads(((O/'package/a/1.json') if a.baseline else (dest/'metadata/INPUTS.json')).read_text())
+  from orchard_h10.common import read_config
+  from orchard_h10.export_pins import validate,admit
+- admit(inputs,read_config(O/'package'),validate(json.loads(((O/'package/a/export.json') if a.baseline else (dest/'metadata/EXPORT_PIN.json')).read_text())))
++ config=read_config(O/'package')
++ admit(inputs,config,validate(json.loads(((O/'package/a/export.json') if a.baseline else (dest/'metadata/EXPORT_PIN.json')).read_text())))
+  if (identity['plan']!=public['plan_sha256'] or identity['cards']!=1 or identity['inputs']!=canonical({k:v for k,v in inputs.items() if k!='resume'})
+      or identity['operator_sha256']!=sha(O/'tower_sequence.py')):raise ValueError('Read identity differs')
+- validate_journals(dest)
++ validate_journals(dest,read_extensions=config.get('read_extensions') is True)
+  print(json.dumps(dict(output=str(dest),complete=receipt['complete'],status=receipt['status'],sha256=digest)))
+ 
+ if __name__=='__main__':main()
+--- a/package/a/5.py
++++ b/package/a/5.py
+@@ -141,7 +141,13 @@
+         checked_run(J.namespace(root)+[inputs['python'],'-B','-I',str(dispatch/'5.py'),str(dispatch/'0.json')],
+                     env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+     ready=json.loads(J.physical(root,cfg['logical']+'/d/READY.json').read_text())
+-    settings=json.loads(J.physical(root,cfg['logical']+'/d/settings.json').read_text())
++    settings_path=J.physical(root,cfg['logical']+'/d/settings.json')
++    settings=json.loads(settings_path.read_text())
++    if cfg.get('read_extensions') is True:
++        (results/'SETTINGS.json').write_bytes(settings_path.read_bytes())
++        for source,name in (('e/RESTORE.json','RESTORE.json'),('binding.json','binding.json'),
++                            ('manifest.json','manifest.json'),('6.json','EXPORT_PIN.json')):
++            (results/name).write_bytes(J.physical(root,cfg['logical']+'/d/'+source).read_bytes())
+     if (settings['stage1_select_rule']!='candidates_argmax' or settings['perception_memo']!='on'
+         or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
+         raise ValueError('Prepared default settings differ')
+@@ -150,6 +156,9 @@
+         export_pin=cfg['logical']+'/d/6.json',settings=cfg['logical']+'/d/settings.json',
+         plan_sha256=cfg['plan_sha256'],inputs_sha256=canonical({k:v for k,v in inputs.items() if k!='resume'}),
+         operator_sha256=sha(sequence),device='cpu',prefix=[],measure_memory=True)
++    if cfg.get('read_extensions') is True:
++        run_cfg.update(read_extensions=True,read_scene_shards=cfg.get('read_scene_shards',False),
++                       read_atomic_journal=cfg.get('read_atomic_journal',False))
+     write(dispatch/'1.json',dict(action=1,package=run_cfg['package'],config=run_cfg,rehearsal=True))
+     with (results/'1.log').open('wb') as log:
+         entry_sequence=dispatch_operator(root,bundle_guard,

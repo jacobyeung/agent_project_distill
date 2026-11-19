@@ -1,18 +1,50 @@
-BLOCKED: no local D400 or fresh D544 delivery was built.
-The B5 source package is absent at the exact path recorded by dbuild/test_d.py.
-The supplied dbuild/evidence/INDEX.md explicitly excludes full 0.tgz and 1.tgz archives.
-Compared with authenticated A4, D needs these unavailable payload bytes:
-  h1eval/h10/launch.py
-  h1eval/room134.py
-  inputs/room_captures.json
-  items/room134.json
-  orchard_h10/build.py
-  orchard_h10/job.py
-  orchard_h10/prepare.py
-Therefore no claim of D400/D544 byte equivalence is made.
-Required input: B5 1.tgz with SHA256
-c3187ab9f88b3eb5a7ab1e30a8010e4ef86acb49d6c76e98fd97eec393b4e45a,
-or the complete reviewed B5 package directory.
-After both builds, test_hd400.py D STAGE400 STAGE544 verifies exact payload equality
-except 9.json token/export_binding, delivery pin derivation, unchanged operator/settings,
-return authentication, and the 400-versus-544 scoring CLI, then writes this diff.
+PASS: step 400 versus step 544; all package, plan and payload pins verified.
+Payload members: only 9.json differs (token and export_binding); all other bytes identical.
+Delivery changes: 0.json, 0.tgz, BATCH.sh, CONFIG.json, PACKAGE.json, a/4.py
+BATCH.sh: only token and verified embedded public descriptor differ.
+a/4.py: only REVIEWED_OBJECT and REVIEWED_ARCHIVE_SHA256 differ.
+Operator, items, settings, serving code, walltime and CPU/submit helpers unchanged.
+--- 544/payload/9.json
++++ 400/payload/9.json
+@@ -4,16 +4,16 @@
+   "export_binding": {
+     "base_identity": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+-    "config_sha256": "84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb",
++    "config_sha256": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4",
+     "frame_layout": "duplicate",
+     "lineage": "SFT",
+-    "member_directory": "m544",
+-    "object": "q8/8865619b/469ddece_mstop.tar",
++    "member_directory": "m400",
++    "object": "q8/8865619b/6ed2c7aa_m400.tar",
+     "preparation_sha256": {
+-      "config": "78341acb36ffd03b9cec6de65effc9fafcbe8bccdc1dfb43e9da7bd88af47560",
+-      "data_receipt": "ebc2983ef7ba33e2e77f4435fff7a031b633a449ef9311622ecab653ea759f40",
+-      "receipt": "34cf26a691728802db8d47766c42bd4045c5481fe1f27c09a486abafaec1a3d6"
+-    },
+-    "run": "469ddece",
+-    "step": 544
++      "config": "b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad",
++      "data_receipt": "03daaa0a051a72c30e147e20553376e196ad09a183889f243a64a0ab1a212f47",
++      "receipt": "a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda"
++    },
++    "run": "6ed2c7aa",
++    "step": 400
+   },
+   "inputs_name": "1.json",
+@@ -3769,4 +3769,4 @@
+     "trace_runtime.py": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+   },
+-  "token": "d5df266d18a00"
++  "token": "d47fe042d05fa"
+ }
+Additional D checks: 15 delivery members and 930 payload members; archive metadata unchanged.
+0.json and CONFIG.json contain only verified token, payload length/hash and plan hash; PACKAGE.json contains only verified token and member hashes.
+Every payload pin and delivery pin matches the actual bytes.
+Items: 580; walltime: 04:00:00; budget: 19595 + 1800 stop-margin seconds; budget_fits=false in both.
+source_sha256: c3187ab9f88b3eb5a7ab1e30a8010e4ef86acb49d6c76e98fd97eec393b4e45a
+operator_sha256: f56faeee50825d76a652078a93cfef952b83dcb7613175a821ecca3d0bf59994
+items_sha256: ff9795a886be8173f67ca3bba9bc5271fde5c6f35a58855478e29965b93063bb
+settings_sha256: 2501f0ba000cd1228c9435291d439912b57321a26f76ad0e81b4e05e004432a2
+D400 BUILD.json: /scratch/jjyeung/orch_n30/cont_ops20_b/hd400/validation/d_finish_dzss590z/actual400/BUILD.json
+D544 BUILD.json: /scratch/jjyeung/orch_n30/cont_ops20_b/hd400/validation/d_finish_dzss590z/actual544/BUILD.json

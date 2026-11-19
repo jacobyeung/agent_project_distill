@@ -2,7 +2,7 @@ from support import *
 
 class FilterTests(unittest.TestCase):
     def setUp(self):
-        self.root = Path(tempfile.mkdtemp(prefix='filter_', dir=str(FIXTURES)))
+        self.root = Path(tempfile.mkdtemp(prefix='tmp_filter_', dir=str(FIXTURES)))
 
     def scan(self, enabled=True, source=None, injection='', manifest=None):
         source = source or TOOLS / 'lane_code_filter.py'

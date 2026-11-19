@@ -14,7 +14,7 @@ import time
 import unittest
 
 BASE = Path(__file__).resolve().parents[1]
-TOOLS = BASE / 'tools'
+TOOLS = Path(os.environ.get('LCS_TOOLS', str(BASE / 'tools')))
 INPUT = Path(os.environ.get('LCS_INPUT', str(BASE / 'inputs')))
 FIXTURES = Path(os.environ['LCS_TEST_WORK'])
 FIXTURES.mkdir(parents=True, exist_ok=True)
@@ -42,8 +42,17 @@ if host == 'trinity-3-30.ib':
         signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(5)
     rc = subprocess.call(['bash', '-c', command])
     if os.environ.get('FAKE_STAGE_FIFO') == '1' and os.environ.get('FAKE_ACTIVE_HOST') == 'trinity-1-18':
-        dest = shlex.split(command)[-1]
-        os.mkfifo(str(Path(dest) / 'aaa_raced.json'))
+        import tarfile
+        writer = shlex.split(command)[-1]
+        if writer.startswith('cat > '):
+            archive = shlex.split(writer)[-1]
+            with tarfile.open(archive, 'a') as stream:
+                member = tarfile.TarInfo('aaa_raced.json')
+                member.type = tarfile.FIFOTYPE
+                stream.addfile(member)
+        else:
+            dest = shlex.split(command)[-1]
+            os.mkfifo(str(Path(dest) / 'aaa_raced.json'))
     sys.exit(rc)
 mode = os.environ.get('FAKE_' + host.replace('-', '_'), 'success')
 if mode == 'unreachable':
@@ -67,8 +76,12 @@ script = sys.stdin.read()
 source = str(root / 'sources' / host)
 if mode == 'missing': source += '_absent'
 script = script.replace(shlex.quote(os.environ['LCS_LANES_ROOT']), shlex.quote(source), 1)
+if mode == 'remote_hang': script = 'sleep 5\n' + script
 if mode == 'scanner_hang':
-    script = script.replace('python3 - ', 'python3 -c "import time; time.sleep(5)" ', 1)
+    for token in ('python3 -I -s -B - ', 'python3 - '):
+        if token in script:
+            script = script.replace(token, 'python3 -I -s -B -c \"import time; time.sleep(5)\" ', 1)
+            break
 result = subprocess.run(['bash', '-c', command], input=script.encode(),
                         env=dict(os.environ, FAKE_ACTIVE_HOST=host))
 sys.exit(23 if mode == 'partial' else result.returncode)
@@ -90,7 +103,7 @@ elif args[:1] not in (['add'], ['commit'], ['push']):
 
 class DriverFixture(unittest.TestCase):
     def setUp(self):
-        self.root = Path(tempfile.mkdtemp(prefix='driver_', dir=str(FIXTURES)))
+        self.root = Path(tempfile.mkdtemp(prefix='tmp_driver_', dir=str(FIXTURES)))
         self.bin = self.root / 'bin'
         self.state = self.root / 'state'
         self.repo = self.state / 'repo'
@@ -98,16 +111,23 @@ class DriverFixture(unittest.TestCase):
         self.local = self.root / 'sources' / 'trinity-3-30'
         for p in (self.bin, self.repo, self.b / 'tools', self.b / 'briefs', self.root / 'events'):
             p.mkdir(parents=True, exist_ok=True)
-        for name in ('lane_code_sync.sh', 'lane_code_filter.py', 'lane_code_stage.sh', 'lane_code_scan.py'):
-            (self.b / 'tools' / name).write_bytes((TOOLS / name).read_bytes())
+        for name in ('lane_code_sync.sh', 'lane_code_filter.py', 'lane_code_stage.sh', 'lane_code_scan.py', 'lane_code_log.py'):
+            if not (TOOLS / name).exists():
+                continue
+            (self.b / 'tools' / name).write_text((TOOLS / name).read_text().replace(
+                '/scratch/jjyeung/orch_n30', str(self.local)) if name == 'lane_code_sync.sh'
+                else (TOOLS / name).read_text())
         write(self.b / 'briefs' / 'brief.md', 'brief')
         # Use the real wrapper, relocating its lock and removing only its 35 s rate delay.
         wrapper = (TOOLS / 'tssh.sh').read_text()
         wrapper = wrapper.replace('L=/scratch/jjyeung/.tssh_$(hostname -s)',
                                   'L=' + shlex.quote(str(self.root / 'tssh')))
         write(self.b / 'tools' / 'tssh.sh', wrapper.replace('last + 35', 'last + 0'))
-        write(self.bin / 'ssh', '#!' + sys.executable + '\n' + FAKE_SSH, True)
-        write(self.bin / 'git', '#!' + sys.executable + '\n' + FAKE_GIT, True)
+        write(self.bin / 'ssh_impl.py', FAKE_SSH)
+        write(self.bin / 'git_impl.py', FAKE_GIT)
+        for command in ('ssh', 'git'):
+            write(self.bin / command, '#!/bin/bash\nexec ' + shlex.quote(sys.executable) +
+                  ' -I -s -B ' + shlex.quote(str(self.bin / (command + '_impl.py'))) + ' \"$@\"\n', True)
         write(self.bin / 'hostname', '#!/bin/bash\necho trinity-3-30\n', True)
         write(self.bin / 'python3', '#!/bin/bash\nexec ' + shlex.quote(sys.executable) + ' -I -s -B "$@"\n', True)
         for node in ('trinity-1-18', 'trinity-2-28', 'trinity-3-30'):
@@ -144,4 +164,3 @@ class DriverFixture(unittest.TestCase):
         self.assertEqual(sum(args[0] == 'push' for args in calls), 2)
         self.assertEqual(len(list((self.root / 'events').glob('*_BLOCKER_sync_failed.md'))), 1)
         self.assertIn(b'PIPE 0 0 0', result.stdout)
-

@@ -10,7 +10,7 @@ from student_pilot import r1_persisted as P,r1_training as R
 from launch_r1 import entry
 from student_pilot.p3_provenance import load,pinned,file_pin
 import joblib as J
-REAL=L.parent/'ext/m400real';receipt=load(REAL/'e.json');run=load(REAL/'r.json');AP=receipt['pins']['artifact']
+REAL=L.parent/'ext/m400real';REAL=REAL if REAL.exists() else D/'inputs/m400real';receipt=load(REAL/'e.json');run=load(REAL/'r.json');AP=receipt['pins']['artifact']
 paths={p['sha256']:str(REAL/('files'+p['path'])) for p in receipt['pins'].values() if (REAL/('files'+p['path'])).is_file()}
 BEFORE=[]
 def old(name,file):

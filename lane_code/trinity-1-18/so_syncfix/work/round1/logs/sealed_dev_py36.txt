@@ -1,0 +1,37 @@
+Thu Nov 19 16:26:38 UTC 2026
+test_append_and_reuse_are_bounded (test_log.BoundedLogTests) ... ok
+test_late_detached_writer_cannot_mutate_saved_log (test_log.BoundedLogTests) ... ok
+test_regular_fd_stays_capped_while_other_files_can_grow (test_log.BoundedLogTests) ... ok
+test_all_sources_success_and_new_node (test_driver.DriverTests) ... ok
+test_copy_scanner_fifo_is_bounded_per_source (test_driver.DriverTests) ... ok
+test_default_off_driver_matches_input_behavior (test_driver.DriverTests) ... ok
+test_dry_mode_and_stage_only_keep_existing_semantics (test_driver.DriverTests) ... ok
+test_invalid_zero_timeout_refused (test_driver.DriverTests) ... ok
+test_legacy_substitution_reproduces_held_pipe (test_driver.DriverTests) ... MEASURE legacy_substitution_elapsed=1.264s timeout=0.2s holder_lifetime=1.2s
+ok
+test_missing_root_skipped_other_sources_publish (test_driver.DriverTests) ... ok
+test_outer_remote_timeout (test_driver.DriverTests) ... ok
+test_partial_failed_node_cannot_overwrite_or_delete_previous (test_driver.DriverTests) ... MEASURE partial_failure_elapsed=1.918s commit=1 pushes=2 preserved=1
+ok
+test_receiver_timeout_does_not_block_local_publish (test_driver.DriverTests) ... ok
+test_remote_scanner_timeout_reports_pipestatus (test_driver.DriverTests) ... ok
+test_tar_leg_kill_after_and_other_sources_publish (test_driver.DriverTests) ... ok
+test_unreachable_skipped_other_sources_publish (test_driver.DriverTests) ... ok
+test_held_stdout_deadline_and_lock_release (test_wrapper.WrapperTests) ... MEASURE held_stdout_driver_elapsed=2.446s node_limit=0.35s kill_after=0.15s holder_alive=1 lock_free=1
+MEASURE held_stdout_node_elapsed=0.552s
+ok
+test_tssh_rate_lock_wait_is_also_bounded (test_wrapper.WrapperTests) ... ok
+test_archive_copy_matches_directory_copy_bytes_and_flags (test_slots.ArchiveTests) ... ok
+test_special_entries_and_truncated_archives_preserve_accepted (test_slots.ArchiveTests) ... ok
+test_absent_directory_fifo_and_symlink_flags_stay_off (test_slots.SlotDriverTests) ... ok
+test_budget_file_and_environment_precedence (test_slots.SlotDriverTests) ... ok
+test_budget_file_is_not_shell_code (test_slots.SlotDriverTests) ... ok
+test_environment_alone_enables (test_slots.SlotDriverTests) ... ok
+test_flag_wins_over_environment_zero (test_slots.SlotDriverTests) ... ok
+test_large_log_is_capped_and_reused (test_slots.SlotDriverTests) ... ok
+test_old_receiver_lock_refuses_new_writer (test_slots.SlotDriverTests) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 40.940s
+
+OK

@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30/sb_scale2; ls $R/out | tr "\n" " "; echo; cat $R/STATUS.md | cut -c1-600; echo; wc -c $R/out/score.log $R/out/completion.log; tail -c 2500 $R/out/score.log; echo; tail -c 1200 $R/out/completion.log; ls $R/code 2>/dev/null | tr "\n" " "

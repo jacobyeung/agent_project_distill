@@ -24,7 +24,7 @@ a = argparse.ArgumentParser(); a.add_argument('--x', required=True); a.add_argum
 H1 = 0.9929 if a.step == 200 else 0.9982
 import os
 STEP = json.load(open(os.path.join(a.x, 'SPEC.json')))['step'] if os.path.exists(os.path.join(a.x, 'SPEC.json')) else None
-assert STEP is None or STEP == a.step, ('SPEC.json step differs from --step', STEP, a.step)
+if STEP is not None and STEP != a.step: raise SystemExit('SPEC.json step %s differs from --step %s' % (STEP, a.step))
 LABEL = ('m%d' % STEP) if STEP else 'read'
 out = {'export_step': STEP}; lines = []
 for fam in ('away', 'forward'):

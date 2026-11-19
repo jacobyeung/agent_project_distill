@@ -1,0 +1,77 @@
+Thu Nov 19 16:29:13 UTC 2026
+Python 3.6.8
+test_all_sources_success_and_new_node (test_driver.DriverTests) ... ok
+test_copy_scanner_fifo_is_bounded_per_source (test_driver.DriverTests) ... ok
+test_default_off_driver_matches_input_behavior (test_driver.DriverTests) ... ok
+test_dry_mode_and_stage_only_keep_existing_semantics (test_driver.DriverTests) ... ok
+test_invalid_zero_timeout_refused (test_driver.DriverTests) ... ok
+test_legacy_substitution_reproduces_held_pipe (test_driver.DriverTests) ... MEASURE legacy_substitution_elapsed=1.259s timeout=0.2s holder_lifetime=1.2s
+ok
+test_missing_root_skipped_other_sources_publish (test_driver.DriverTests) ... ok
+test_outer_remote_timeout (test_driver.DriverTests) ... ok
+test_partial_failed_node_cannot_overwrite_or_delete_previous (test_driver.DriverTests) ... MEASURE partial_failure_elapsed=1.576s commit=1 pushes=2 preserved=1
+ok
+test_receiver_timeout_does_not_block_local_publish (test_driver.DriverTests) ... ok
+test_remote_scanner_timeout_reports_pipestatus (test_driver.DriverTests) ... ok
+test_tar_leg_kill_after_and_other_sources_publish (test_driver.DriverTests) ... ok
+test_unreachable_skipped_other_sources_publish (test_driver.DriverTests) ... ok
+test_changed_regular_inode_is_rejected (test_filter.FilterTests) ... ok
+test_device_mode_is_rejected_before_open (test_filter.FilterTests) ... ok
+test_directory_replacement_never_follows_link_or_blocks_on_fifo (test_filter.FilterTests) ... ok
+test_fifo_socket_symlinks_never_opened (test_filter.FilterTests) ... ok
+test_growth_is_capped_and_io_errors_counted (test_filter.FilterTests) ... ok
+test_manifest_content_matches_and_link_parent_refused (test_filter.FilterTests) ... ok
+test_original_fifo_reproduces_and_hotfix_skips (test_filter.FilterTests) ... MEASURE original_fifo_timeout_rc=124 elapsed=0.155s hotfix_rc=0
+ok
+test_regular_tree_byte_identical_and_default_off (test_filter.FilterTests) ... MEASURE regular_paths_sha256=f338b0c8a232b99e54dc5afa5d34ea456d60c3ba10a22761c16373a29ec728a3
+ok
+test_replacement_fifo_is_nonblocking_and_fstat_rejected (test_filter.FilterTests) ... ok
+test_replacement_symlink_is_not_followed (test_filter.FilterTests) ... ok
+test_slow_read_deadline_counts_and_continues (test_filter.FilterTests) ... MEASURE slow_file_elapsed=0.084s deadline=0.05s
+ok
+test_derives_budgets_and_refuses_failure_or_incomplete_log (test_install.CalibrationTests) ... ok
+test_busy_lock_defers_without_writes (test_install.InstallTests) ... ok
+test_install_preimages_backups_atomic_replacements_and_postimages (test_install.InstallTests) ... ok
+test_mismatched_preimage_stops_before_backup_or_install (test_install.InstallTests) ... ok
+test_append_and_reuse_are_bounded (test_log.BoundedLogTests) ... ok
+test_late_detached_writer_cannot_mutate_saved_log (test_log.BoundedLogTests) ... ok
+test_regular_fd_stays_capped_while_other_files_can_grow (test_log.BoundedLogTests) ... ok
+test_copy_timeout_cannot_commit_a_truncated_file (test_review.ReviewCopyTests) ... ok
+test_default_off_copy_matches_input (test_review.ReviewCopyTests) ... ok
+test_file_deadline_driver_and_filter_agree (test_review.ReviewDriverTests) ... ok
+test_initialization_errors_all_emit_blocker (test_review.ReviewDriverTests) ... ok
+test_missing_root_has_no_fail_or_blocker (test_review.ReviewDriverTests) ... ok
+test_optional_unreachable_node_is_skip (test_review.ReviewDriverTests) ... ok
+test_regular_flag_enables_without_environment (test_review.ReviewDriverTests) ... ok
+test_slots_reused_and_failed_attempt_never_scanned (test_review.ReviewDriverTests) ... MEASURE failed_slot=trinity-1-18 incoming_bytes=10240 accepted_bytes=10240
+MEASURE slot=trinity-1-18 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 14083, "run.log": 676} total=24999
+MEASURE slot=trinity-2-28 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 14083, "run.log": 676} total=24999
+MEASURE slot=trinity-3-30 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13957, "run.log": 676} total=24873
+MEASURE slot=orch_n30/tools bytes={"accepted": 51200, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13951, "run.log": 613} total=65764
+MEASURE slot=orch_n30/briefs bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13956, "run.log": 612} total=24808
+MEASURE slots_initial_bytes=165443 slots_final_bytes=165443 runs=4
+ok
+test_tar_exit_one_quarantines_node_but_publishes_other_sources (test_review.ReviewDriverTests) ... ok
+test_750000_duplicate_manifest_default_budgets (test_review.ReviewFilterTests) ... MEASURE large_manifest lines=750000 raw_bytes=127500000 gzip_bytes=58724873 elapsed=11.528s file_budget=3 scan_budget=120
+ok
+test_manifest_exception_logs_every_leftover_and_preserves_final (test_review.ReviewFilterTests) ... ok
+test_manifest_scan_timeout_logs_pending_name (test_review.ReviewFilterTests) ... ok
+test_archive_copy_matches_directory_copy_bytes_and_flags (test_slots.ArchiveTests) ... ok
+test_special_entries_and_truncated_archives_preserve_accepted (test_slots.ArchiveTests) ... ok
+test_atomic_copy_preserves_existing_mode_and_respects_umask (test_slots.CopyModeTests) ... ok
+test_absent_directory_fifo_and_symlink_flags_stay_off (test_slots.SlotDriverTests) ... ok
+test_budget_file_and_environment_precedence (test_slots.SlotDriverTests) ... ok
+test_budget_file_is_not_shell_code (test_slots.SlotDriverTests) ... ok
+test_environment_alone_enables (test_slots.SlotDriverTests) ... ok
+test_flag_wins_over_environment_zero (test_slots.SlotDriverTests) ... ok
+test_large_log_is_capped_and_reused (test_slots.SlotDriverTests) ... ok
+test_old_receiver_lock_refuses_new_writer (test_slots.SlotDriverTests) ... ok
+test_held_stdout_deadline_and_lock_release (test_wrapper.WrapperTests) ... MEASURE held_stdout_driver_elapsed=2.318s node_limit=0.35s kill_after=0.15s holder_alive=1 lock_free=1
+MEASURE held_stdout_node_elapsed=0.549s
+ok
+test_tssh_rate_lock_wait_is_also_bounded (test_wrapper.WrapperTests) ... ok
+
+----------------------------------------------------------------------
+Ran 55 tests in 70.421s
+
+OK

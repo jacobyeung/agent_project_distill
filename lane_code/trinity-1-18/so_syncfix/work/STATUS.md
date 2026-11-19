@@ -1,2 +1,2 @@
-Time: 2026-11-19T15:58:13Z
-Read the full review and binding prompt on trinity-1-18. Preserved out/ as out_round1/. Working in work/round1/. Plan: scan-budget-only manifest writes with logged leftovers; reused per-label slots; legacy-compatible missing-root and optional-host skips; BLOCKER on robust early exits; atomic clone writes; flag-file enablement; tar rc=1 policy; matching file deadline bounds. No installation, real SSH, Git, or external job actions.
+Time: Thu Nov 19 17:23:18 UTC 2026
+All 72 tests pass on Python 3.6.8 in 74.537s. Python 3.12 final suite is running. Default-path audit verifies installed scanner body/PATS, queue block, and legacy filter body are byte-identical. Output files and all diffs/manifests regenerated; bundle and report await final logs. Saved owner scripts validated with bash -n.

@@ -153,6 +153,9 @@ exec python3 -I -s -B "$ROOT/b/x.py" "$ROOT" "${1:?}" "$N"
 ''')
 for name in ('q.sh','q1.sh'):
     (K/'b'/name).write_text('#!/bin/bash\nset -eu\nROOT="$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")"\nexec /bin/bash "$ROOT/job.sh" "$@"\n')
+sys.path.insert(0,str(L/'work/build24c'))
+from runtime import harden_kit
+harden_kit(K)
 manifest={str(p.relative_to(K)):sha256(p) for p in K.rglob('*') if p.is_file() and p.name not in ('SHA256SUMS.txt','BUILD.json')}
 (K/'SHA256SUMS.txt').write_text(''.join(f'{h}  {n}\n' for n,h in sorted(manifest.items())))
 result=dict(GO=False,kit_sha256=verify(K),source_seal=code['tree_sha256'],resource_request=dict(partition='general',gpus=1,minimum_gpu_gib=75,cpus=8,memory_gib=192,wall_hours=12),sizing='GUESS; real model fit has not been measured')

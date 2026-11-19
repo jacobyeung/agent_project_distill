@@ -1,0 +1,1 @@
+D=/project/community/jjyeung/okh7/x_22c714e1/o/173236; cat $D/RESULT.json; tar tzvf $D/o.tar; echo ==== q.log; tar xzOf $D/o.tar q.log | tail -30 | cut -c1-600; echo ==== RESULT; tar xzOf $D/o.tar p/q/RESULT.json 2>/dev/null | head -c 4000; echo; echo ==== rooms; tar xzOf $D/o.tar rooms.log | tail -8 | cut -c1-400

@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 import unittest
 here = Path(__file__).resolve().parent
-os.environ.setdefault('LCS_TEST_WORK', str(here.parent / 'test-work'))
+os.environ.setdefault('LCS_TEST_WORK', str(here.parent / 'tmp_test-work'))
 sys.path.insert(0, str(here))
 suite = unittest.defaultTestLoader.discover(str(here), pattern='test_*.py')
 result = unittest.TextTestRunner(verbosity=2).run(suite)

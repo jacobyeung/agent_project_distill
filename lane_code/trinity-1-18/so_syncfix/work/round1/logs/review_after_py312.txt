@@ -1,0 +1,32 @@
+test_copy_timeout_cannot_commit_a_truncated_file (test_review.ReviewCopyTests.test_copy_timeout_cannot_commit_a_truncated_file) ... FAIL
+test_default_off_copy_matches_input (test_review.ReviewCopyTests.test_default_off_copy_matches_input) ... ok
+test_file_deadline_driver_and_filter_agree (test_review.ReviewDriverTests.test_file_deadline_driver_and_filter_agree) ... ok
+test_initialization_errors_all_emit_blocker (test_review.ReviewDriverTests.test_initialization_errors_all_emit_blocker) ... ok
+test_missing_root_has_no_fail_or_blocker (test_review.ReviewDriverTests.test_missing_root_has_no_fail_or_blocker) ... ok
+test_optional_unreachable_node_is_skip (test_review.ReviewDriverTests.test_optional_unreachable_node_is_skip) ... ok
+test_regular_flag_enables_without_environment (test_review.ReviewDriverTests.test_regular_flag_enables_without_environment) ... ok
+test_slots_reused_and_failed_attempt_never_scanned (test_review.ReviewDriverTests.test_slots_reused_and_failed_attempt_never_scanned) ... MEASURE slot=trinity-1-18 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 14077, "run.log": 669} total=24986
+MEASURE slot=trinity-2-28 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 14077, "run.log": 669} total=24986
+MEASURE slot=trinity-3-30 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13951, "run.log": 669} total=24860
+MEASURE slot=orch_n30/tools bytes={"accepted": 51200, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13945, "run.log": 487} total=65632
+MEASURE slot=orch_n30/briefs bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13950, "run.log": 486} total=24676
+MEASURE slots_initial_bytes=166211 slots_final_bytes=165140 runs=4
+ok
+test_tar_exit_one_quarantines_node_but_publishes_other_sources (test_review.ReviewDriverTests.test_tar_exit_one_quarantines_node_but_publishes_other_sources) ... ok
+test_750000_duplicate_manifest_default_budgets (test_review.ReviewFilterTests.test_750000_duplicate_manifest_default_budgets) ... MEASURE large_manifest lines=750000 raw_bytes=127500000 gzip_bytes=58724873 elapsed=10.032s file_budget=3 scan_budget=120
+ok
+test_manifest_exception_logs_every_leftover_and_preserves_final (test_review.ReviewFilterTests.test_manifest_exception_logs_every_leftover_and_preserves_final) ... ok
+test_manifest_scan_timeout_logs_pending_name (test_review.ReviewFilterTests.test_manifest_scan_timeout_logs_pending_name) ... ok
+
+======================================================================
+FAIL: test_copy_timeout_cannot_commit_a_truncated_file (test_review.ReviewCopyTests.test_copy_timeout_cannot_commit_a_truncated_file)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1/tests/test_review.py", line 207, in test_copy_timeout_cannot_commit_a_truncated_file
+    self.assertTrue(pending.is_file())
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 12 tests in 19.456s
+
+FAILED (failures=1)

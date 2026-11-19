@@ -1,16 +1,22 @@
 #!/bin/bash
 # lane_code_sync.sh [--dry]: hourly sync of agent-written lane code to GitHub branch lane-code.
 # Stages whitelisted source/records from /scratch/jjyeung/orch_n30/*/ on each lane node (InfiniBand tar
-# stream into $S/stage/<node>/ on trinity-3-30), plus orch_n30 tools/ and briefs/, secret-scans them,
+# stream into legacy directories or robust tar slots on trinity-3-30), plus tools/ and briefs/, secret-scans them,
 # copies clean files into $S/repo/lane_code/<node>/..., commits on lane-code, pushes to origin and to the
 # /home repo as branch lane-code. Runs on trinity-3-30 only. --dry prints per-node counts and stops;
 # --stage-only stages, scans and copies into the clone, then stops before git.
 # A failed run writes one line to the log and one BLOCKER event; the next attempt is the next hourly run.
 set -u
 # --queue-only runs only the push-queue step (publish queued eff/* branches; see push_queue below).
-# The LCS_* variables exist for tests only; production runs set none of them.
+# Robust mode is OFF unless LCS_ROBUST_SYNC=1 or the regular, non-symlink file
+# $S/LCS_ROBUST_SYNC exists. The running hourly tmux loop checks it every invocation.
+# Robust budgets may be set in $S/LCS_ROBUST_BUDGETS; environment values take precedence.
+# Other LCS_* path overrides support local tests.
 B=${LCS_B:-/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30}
 S=${LCS_S:-/scratch/jjyeung/distill_sync}
+if [ "${LCS_ROBUST_SYNC:-0}" = 1 ] || { [ -f "$S/LCS_ROBUST_SYNC" ] && [ ! -L "$S/LCS_ROBUST_SYNC" ]; }; then
+  export LCS_ROBUST_SYNC=1
+fi
 R=${LCS_R:-$S/repo}
 EV=${LCS_EV:-$B/events/code_sync}
 FILTER=$B/tools/lane_code_filter.py
@@ -106,10 +112,16 @@ if [ $QUEUE_ONLY = 1 ]; then
 fi
 
 STAGE_ROOT=$S/stage
+robust_early_exit() {
+  # Do not fall back to the unbounded path after the owner enabled robust mode.
+  STAMP=$(date -u +%Y%m%dT%H%MZ)
+  echo "$(ts) code_sync run failed${FAILS} (log $S/sync.log; next attempt next hour)" > "$EV/${STAMP}_BLOCKER_sync_failed.md"
+  log "END with failures"; exit 2
+}
 if [ "${LCS_ROBUST_SYNC:-0}" = 1 ]; then
   # Keep the legacy path unchanged unless the coordinator explicitly enables this.
-  if ! . "$B/tools/lane_code_stage.sh"; then fail "load robust staging"; exit 2; fi
-  robust_stages || { fail "initialize robust staging"; exit 2; }
+  if ! . "$B/tools/lane_code_stage.sh"; then fail "load robust staging"; robust_early_exit; fi
+  robust_stages || { fail "initialize robust staging"; robust_early_exit; }
 else
 # Remote script: filter on the lane node, then tar stream over InfiniBand into stage on trinity-3-30.
 gen_remote() {
@@ -156,13 +168,13 @@ fi
 mkdir -p "$R/tools"
 cp "$B/tools/lane_code_sync.sh" "$FILTER" "$SCAN" "$R/tools/" || fail "copy tools into clone"
 if [ "${LCS_ROBUST_SYNC:-0}" = 1 ]; then
-  cp "$B/tools/lane_code_stage.sh" "$R/tools/" || fail "copy robust helper into clone"
+  cp "$B/tools/lane_code_stage.sh" "$B/tools/lane_code_log.py" "$R/tools/" || fail "copy robust helper into clone"
 fi
 [ $STAGE_ONLY = 1 ] && { log "STAGE-ONLY done${FAILS}"; exit 0; }
 
 git -C "$R" add -f -A lane_code tools/lane_code_sync.sh tools/lane_code_filter.py tools/lane_code_scan.py || fail "git add"
 if [ "${LCS_ROBUST_SYNC:-0}" = 1 ]; then
-  git -C "$R" add -f tools/lane_code_stage.sh || fail "git add robust helper"
+  git -C "$R" add -f tools/lane_code_stage.sh tools/lane_code_log.py || fail "git add robust helper"
 fi
 if git -C "$R" diff --cached --quiet; then
   log "no changes"

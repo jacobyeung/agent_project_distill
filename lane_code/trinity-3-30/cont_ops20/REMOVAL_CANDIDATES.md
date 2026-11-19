@@ -1,0 +1,1 @@
+- /data2/jjyeung/agent_project_data/distill_trace_corpus/reads/469ddece_s544_R0dev_D580_seg0_172957.jsonl.gz.copying and ..._seg1_173053.jsonl.gz.copying (0-byte stubs: my add_read publishes were killed by timeout 1800 / tmux kill while waiting in the IO governor; re-ingested as seg0b, seg1b). Also corpus stage2 files for read ids ..._seg0_172957 and ..._seg1_173053 (superseded).

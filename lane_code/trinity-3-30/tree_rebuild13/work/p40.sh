@@ -1,0 +1,1 @@
+cat /scratch/jjyeung/orch_n30/tree_rebuild10_w/w23/work/build21/kits/q/b/o.py | cut -c1-300; echo; grep -n "Q_ROOT=\|Q_OUT\|Q_NS=" <(/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -c "import json,base64;print(base64.b64decode(json.load(open(\"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w23/work/build21/kits/q/k/j.json\"))[\"payload\"]).decode())") | cut -c1-250

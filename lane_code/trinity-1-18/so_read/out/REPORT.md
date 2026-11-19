@@ -1,46 +1,48 @@
-VERDICT: DONE All five LOW findings and the two actionable INFO items pass CPU verification; production adoption requires the bound H100 GPU byte gate.
+VERDICT: DONE All requested round-7 fixes pass CPU verification; production adoption still requires the selected-export H100 byte-parity gate.
 
-Measured validation: **111 workspace tests and 30 fresh-application tests pass**. The nine round-6 regressions fail on the reviewed snapshot with **31 expected assertion failures**, then pass on the delivered implementation. The baseline includes the actual `ModuleNotFoundError` from the README unpack subprocess. All retained before-fix controls reran. Five diffs apply with zero fuzz; all original reader files and original/OFF output bytes remain unchanged. ON CPU fixtures retain exact answers and traces. GPU ON/OFF equality remains unmeasured and mandatory.
+**Measured validation:** 119 workspace tests and 38 fresh-application tests pass. The eight round-7 tests produce ten expected assertion failures on the reviewed implementation and pass on the delivered implementation. All eleven retained before-fix controls reran. Five diffs apply with zero fuzz. All original reader files and original/OFF output bytes remain unchanged; ON CPU fixtures retain exact answers and traces. GPU byte equality remains unmeasured and mandatory.
 
-Measured resources: the suite's largest child-process peak RSS was **400,371,712 bytes**; the separate guard benchmark peak was **1,334,685,696 bytes**. These are process peaks, not GPU memory measurements. The workspace measured **2,811,877,501 unique-inode bytes** at report generation, below 3,000,000,000. Immutable completed fixtures share identical bytes through hard links; all paths were preserved. [STORAGE6.json](checks/STORAGE6.json) and [storage6.txt](checks/storage6.txt) record the sharing. The task observed no workspace-cap violation.
+**Default export, read from supplied pins:** step **400**, read A/job **173060**, source package **a15_cot_apdc76460c3a164**, artifact SHA256 **5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd**. The gate's `--bound-export` parameter selects a different reviewed export.json. The default compares the complete supplied export identity, including artifact, head, full-weight and preparation pins. The builder accepts positive reviewed steps; the gate requires the selected identity. The synthetic step-600 fixture passes only with an explicit selection.
 
-The supplied existing A4 timings support an **estimate** of **7,351.824 s for the 636-item read**, with zero credited cache saving. The separate Package D estimate is **13,813.069 s for 580 distance items**; a19 has **no ON route** for Package D. Neither number measures a step-600 GPU run.
+**Measured resources:** the suite's largest child-process RSS was 399,781,888 bytes; the separate guard benchmark peaked at 1,337,815,040 bytes. The workspace measured 2,855,759,441 unique-inode bytes at report generation, below 3,000,000,000. The suite recorded 2,975,305,259 bytes before completed-fixture sharing. [STORAGE7.json](checks/STORAGE7.json) records 163,241,740 identical bytes shared across 5,721 completed pre-task fixture paths; each replacement preserved bytes and path. No workspace-cap violation was observed.
 
-Work began at **15:13:03 UTC on 2026-11-19**; the deadline is **16:13:03 UTC**. This report was generated at Thu Nov 19 15:37:41 UTC 2026. The original delivery is preserved in [out_round6](../out_round6/). CPU execution used torch 2.11.0+cpu, transformers 5.12.1, eight torch threads, nice -n 10, and CUDA hidden. No Git, SSH, scheduler action, GPU execution, paid API, input-tree edit or deletion command ran. Network reads covered official PyTorch documentation only.
+**Estimates:** the supplied A4 timing supports **7,351.824 s for its 636-item schedule**, with zero credited cache saving. The separate **Package D** estimate is **13,813.069 s for 580 distance items**; a19 has **no ON route** for Package D. Neither estimate measures the selected export on a GPU.
 
-## Review round 6: finding -> fix -> test
+Work started at **16:27:18 UTC on 2026-11-19**; the deadline is **17:42:18 UTC**. This report was generated at Thu Nov 19 16:49:51 UTC 2026. [out_round7](../out_round7/) preserves the entire reviewed delivery. CPU tests used torch 2.11.0+cpu, transformers 5.12.1, eight torch threads, CUDA hidden and `nice -n 10` (the benchmark observed effective nice 19). No Git, SSH, scheduler action, GPU execution, paid API, input-tree edit or deletion command ran. Network access read only official PyTorch documentation.
+
+## Review round 7: finding -> fix -> test
 
 
 | Finding | Fix | Regression |
 |---|---|---|
-| 1. Unpack import fails | Run `-s -B` from the operator directory. | Execute the README command as a subprocess on an authenticated fixture return. |
-| 2. Foreground pull/fill | Detached nohup worker, permanent attempt lock, PID/log and exit file; no retries. | Success 0 and failure 17 both report completion; duplicate launch refuses. |
-| 3. Weak submit receipt | Embed every cont_ops A4 CPU assertion, then enforce cache and pool checks. | Batch/guard/action/argv/events/memory tampering and a resealed stale batch fail. |
-| 4. Unpinned copied members | Pin all A4 copied members, base batch and decoded bootstrap before output. | Mutations of each additional member and bootstrap pin refuse before writing. |
-| 5. Unbound checkpoint/device | READY restore/binding pins and export identity bind step-600 assets; workers recheck assets and require H100 80 GB. | Changed receipts, wrong step, changed staged files and non-production GPU properties fail. |
-| INFO: receipt whitespace | Compare the three whitespace-separated fields. | Tabs/newlines pass; extra fields fail. |
-| INFO: manual GPU handoff | Submit requires the successful token-only GPU receipt for the same plan/profile/assets/device. | Failed, absent, stale or mismatched evidence refuses. |
+| 1. Private root disappears | Archive inside CPU proof to `$P/a/4.tar` before CPU.json; record hash/bytes. | Real fixture tar runs through a namespace wrapper, survives loss of the root, and the CPU operator fixture executes staging. |
+| 2. Fill wait hangs | Guard PACKAGE_TOKEN, check PID and cap wait at four hours. | Missing token, dead PID, timeout and failed exit refuse; success passes. |
+| 3. PCIe accepted | Require exact HBM3 name and 132 SMs. | SXM stub passes; PCIe and wrong-SM stubs refuse. |
+| 4. Evidence/host nits | Bind executing kit/comparator/sample; include a/1.json; unpack with -s -E -B; use an H100-local archive path. | Mutated pins refuse, environment-polluted unpack succeeds, allocation/evidence blocks are checked. |
+| 5. Decision export | Default to the supplied step-400 export; require an explicit parameter for other exports. | Step 400 passes by default; synthetic step 600 passes only when selected; wrong artifact refuses. |
 
-The binding retains Orchard `done`/`prep_paths` as authenticated operation metadata; admission still checks its fixed identity keys. Persistent raw writes remain boundary-checked; restored-between-boundary raw writes remain unsupported and require frozen model ownership. These informational limits do not change reader behavior.
+Frozen weights remain required. Persistent raw writes are boundary-checked; writes restored between boundaries remain outside the guard. GPU byte equality and performance remain unrun.
 
 
-The two remaining INFO notes stay documented. `done` and `prep_paths` are inert, authenticated operation metadata; removing them would disrupt the operation plan without improving admission. Restored-between-boundary raw writes cannot be caught by the reviewed identity/counter checks; detecting them would require stronger interception or per-call content hashing, which changes the reviewed cost contract. Existing path-preservation and weight-guard regressions still run.
+## Staging and adoption contract
 
-The detached fill is a single attempt. Its permanent `a/0.lock` prevents concurrent or repeated launches; nohup detaches the entire pull/fill/dry sequence; the EXIT trap records success or failure in `a/1.txt`. Tests exercise the generated launcher, lock, log and exit trap with tiny success/failure commands. They do not fetch the roughly 21.6 GB production export. A hard kill can leave no exit receipt; the owner inspects the log and starts a fresh token rather than retrying the same attempt.
+The selected implementation archives assets **inside the existing CPU-proof job**. This uses its already-prepared files and READY receipt, so a separate staging job cannot diverge from the CPU proof. When `read_extensions is True`, `a/5.py` opens the named shared staging path **`$P/a/4.tar`** with exclusive creation outside bwrap and runs `tar -chf - -C logical/d .` through **`J.namespace(root)`**, streaming to that descriptor. Tar dereferences symlinks. The helper flushes/fsyncs the file, hashes it in 1 MiB chunks, and records its path, logical root, SHA256 and byte count in CPU.json. CPU.json is written only after tar succeeds. OFF does not call the helper or create an archive.
 
-The submit checker embeds the complete assertion block from `cont_ops17/work/o_sub_A4.sh:7-37` verbatim. It retains cache-budget and return-pool checks. The added GPU receipt is token-only and binds success, plan, profile, restore/binding/export pins and the H100 80 GB requirement. The CPU integration uses the actual fixture CPU proof, verifies its emitted asset receipts, exercises receipt serialization and proves that a failed GPU receipt refuses submission. Its synthetic receipt is a test control, not GPU evidence.
+The archive lives in the package's shared staging area, outside the 75 MB return pool. Reserve capacity before the CPU job. A failed staging attempt leaves an incomplete archive and no successful CPU.json; a new attempt needs inspection and a fresh package token. The CPU job also copies exact a/1.json into the evidence directory. The gate verifies that file against CPU.json.inputs and verifies EXPORT_PIN.json against its export_pin.sha256 and bytes before GPU work.
 
-The gate checks exact RESTORE.json and artifact-binding hashes against CPU READY, plus run/step/member/lineage/object/config/archive/preparation identity against the adopted binding. Workers recheck staged receipt bytes and the manifest hash. The original loader then verifies every pinned checkpoint/component file before model loading (`b/e2e_reader/parity.py:190-196`, `b/e2e_reader/artifact.py:109-120`). Preserving the CPU logical root keeps those pinned paths valid. The README stages a neutral byte-identical binding alias at `d/7.json`; private settings must map to the same file.
+**Measured fixture staging:** the real A4 CPU helper emitted a **20,480-byte fixture archive** before CPU.json. The integration check made the original fixture data path unavailable, extracted the archive, and recovered READY-identical assets. Its model/storage/namespace inputs are synthetic; 20,480 bytes is not a production-size estimate. No real large archive was created here.
 
-Device checks use the CUDA properties for device 0 and refuse a non-H100 name, a capability other than 9.0, or total memory outside 79–86 billion bytes. This is a production device-class policy; MIG and the 94 GB NVL variant fail closed. CPU tests supply explicit property stubs. Actual H100 compatibility and performance remain unrun.
+On the H100 host, **`/scratch/jjyeung` must physically exist and be writable outside bwrap**. The package's exact logical root must be absent before extraction; currently it is `/scratch/jjyeung/b01ec87a6f29b`. A4's namespace-only `/scratch` creation cannot satisfy this host requirement. The [README](kit_parity50/README.md) supplies the owner-only `salloc ... srun` command for one GPU, eight CPUs, 200G, five hours, general/no-requeue, plus CPU-bound archive verification and extraction. Preserve the allocation's actual CUDA_VISIBLE_DEVICES. Device checks require exactly **NVIDIA H100 80GB HBM3**, **132 SMs**, capability **9.0**, and **79–86 billion bytes** of device memory. PCIe, wrong-SM, NVL, MIG and other device types refuse.
 
-## Adoption contract
+Follow the README for patch application, `u0/a19.py --enable-extensions --manifest ... --extension-pins ...`, matching EXPORT_BINDING/BOUND_EXPORT selection, generated operations, placement, detached fill, CPU proof, GPU gate, receipt handoff, submit and unpack. The delivered `operations/binding.default.json` derives its identity from the supplied export pin, its archive byte count from the four a/1.json part sizes, and its operation paths/base identity/frame layout from the reviewed bind400_partial.json. [DEFAULT_EXPORT_PROVENANCE.json](operations/DEFAULT_EXPORT_PROVENANCE.json) pins all four supplied files and the template. This is metadata verification, not a new restore of step-400 weights.
 
-Follow [README](kit_parity50/README.md) in order. Apply reader patches 01–03 and operator patches 04–05 to fresh A4 copies. Derive the real reviewed step-600 binding; build with `u0/a19.py --enable-extensions --manifest ... --extension-pins ...`; generate and place the pinned operations; run detached fill and require exit 0; obtain the allocated CPU proof and emitted receipts; stage the same assets; pass the GPU gate; authenticate/install its `ue.json` as `a/g.json`; submit; fetch and unpack.
+The fill wait requires PACKAGE_TOKEN, checks the PID from 0.txt on the launch host when 1.txt is absent, and has a **14,400-second maximum**. It polls at most once per minute and shortens its final sleep to the remaining deadline. A missing PID, exited worker without a receipt, timeout or nonzero exit receipt fails; it never retries a killed attempt.
 
-The default profile is A4's 636 items, one GPU, general/no-requeue, caches only, with a 12 GiB host-cache allowance. `--processor-only` selects 4 GiB and requires its own gate. Both leave scene sharding and atomic journals disabled. No multi-card A4 operator is delivered. Owner transport, allocations, the real target binding and storage capacity remain external inputs.
+The package embeds driver/comparator SHA256 values and the deterministically sealed sample SHA256 derived from MANIFEST kit_files. The driver, workers and receipt writer check their actual bytes. The token-only ue.json carries those hashes, and SUBMIT_CHECK compares them with the immutable package's MANIFEST-derived pins. The public-kit integration changes each staged file in turn and confirms refusal. It also confirms that a failed synthetic receipt cannot authorize submit. Receipt serialization in CPU tests is explicitly synthetic and does not certify a GPU run.
 
-A refused unpack leaves its extracted tree behind. Scorers must use only success output after unpack exit status 0; `complete=false` remains partial. The documented command runs `-s -B` from the operator directory and gates its handoff with `&&`.
+Submit retains cont_ops' CPU assertions verbatim, including batch/dispatch/guard pins and MEMORY.json equality. It also requires the cache allowance, both dry checks, an empty general queue, the bounded return pool, and a successful gate for the same plan/profile/assets/device/kit. The original loader still verifies all pinned checkpoint components before model loading. Every gate worker rechecks staged receipt bytes and the manifest hash.
+
+A refused unpack leaves its extracted tree behind. Scorers require **success output after exit status 0**, and complete=false remains partial. The command uses **-s -E -B** from the operator directory: sibling imports work while PYTHONPATH/PYTHONHOME are ignored. GPU receipt transport uses an explicit H100-host archive path.
 
 ## Equality and mutation limits
 
@@ -51,6 +53,7 @@ The 50-item CPU fixture compares original/OFF/processor+vision/processor-only an
 Calls check every parameter/buffer identity, pointer and version. Full hashes run at installation and type boundaries. Persistent .data/NumPy/raw-storage writes fail at boundaries; a raw write restored before the next boundary can evade detection. Private tensor attributes and arbitrary non-tensor module state are outside the guard's coverage. Models must remain frozen. A hard worker death can leave WEIGHTS.json false; graceful stops validate it. Processor-only runs install no weight guard.
 
 ON eagerly constructs SAM outside inference mode; OFF constructs it lazily inside inference mode. This changes load timing and potentially RNG use. Only the GPU byte gate can clear the difference. Per-item timing omits installation and boundary costs; judge net performance using RUN.json worker_wall_seconds. The sample overstates reuse: its ten distance items share one clip, while A4 has 150 distance items over 60 clips (review finding 7). No production saving is credited.
+
 
 
 
@@ -75,111 +78,91 @@ The distance profile retains one unexplained 648.397-second, 2,056-token item. T
 
 A4 already records 461 G3T memo hits and 77 misses, retaining 128,553,354 payload bytes. This saving cannot be counted again. The new caches store video processor outputs, visual outputs and raw SAM values. They do not store question text, language/KV/recurrent state, own-depth scale, geometry or full tool responses.
 
-**Estimate for what a19 builds:** the 636-item A4 schedule takes about **7,351.824 s (2 h 02 min 32 s; 11.559 s/item including fixed overhead)** if the supplied A4 throughput carries forward, with zero assumed cache saving. This is not a step-600 measurement. Target weights, cache guard/copy costs, actual reuse and staging can change it.
+**Estimate for what a19 builds:** the 636-item A4 schedule takes about **7,351.824 s (2 h 02 min 32 s; 11.559 s/item including fixed overhead)** if the supplied A4 throughput carries forward, with zero assumed cache saving. This does not measure the selected export. Target weights, cache guard/copy costs, actual reuse and staging can change it.
 
 **Separate Package D estimate:** the 580-item distance read is a B5 fork with a 03:30 walltime and has **no ON route in a19**. Using 23.599762 s/item plus 75.446133 s loading and 49.761372 s overhead gives an estimate of **13,813.069 s (3 h 50 min)** on one card. Ideal two/four balanced-shard estimates are 6,969.138 / 3,547.173 s; they require an undelivered multi-card operator and exclude scene imbalance, staging, queues and preemption. The fixed 50-item reuse-heavy sample cannot establish these throughput estimates.
 
 
 
+
 ## Measured CPU guard overhead
 
-Each stub uses bf16 parameters shaped 2048×1024 and a 1024-element buffer per module. Forward returns a 32-element tensor without model-sized matrix work. Each implementation runs one miss and a warm hit, then seven timed hits; boundary cost is the median of three hashes. These are CPU cache costs, not GPU speedups. Exact samples are in [CACHE_COST3.json](checks/CACHE_COST3.json).
+Each stub uses bf16 parameters shaped 2048×1024 and a 1024-element buffer per module. Its forward returns a 32-element tensor without model-sized matrix work. Each implementation runs one miss and a warm hit, then seven timed hits; boundary cost is the median of three hashes. These measurements compare per-call full hashing with the delivered boundary/live-metadata guard on CPU. They do not measure GPU speedup. Exact samples are in [CACHE_COST3.json](checks/CACHE_COST3.json).
 
-| Parameters | Parameter/buffer tensors | Weight+buffer bytes | Per-call hashing ms | Boundary guard ms/call | Install s | Boundary s |
+| Parameters | Parameter/buffer tensors | Weight+buffer bytes | Full hashing ms/call | Delivered guard ms/call | Install s | Boundary s |
 |---:|---:|---:|---:|---:|---:|---:|
-| 268435456 | 128/128 | 537133056 | 394.252 | 28.902 | 0.392 | 0.430 |
-| 536870912 | 256/256 | 1074266112 | 797.468 | 60.229 | 0.829 | 0.781 |
+| 268435456 | 128/128 | 537133056 | 403.580 | 27.168 | 0.343 | 0.351 |
+| 536870912 | 256/256 | 1074266112 | 796.500 | 55.204 | 0.742 | 0.778 |
 
-## Framework and source evidence
+## Framework evidence
 
-[FRAMEWORK_EVIDENCE](FRAMEWORK_EVIDENCE.md) provides installed torch/transformers file:line citations and official documentation links. The new device guard relies on `torch/cuda/__init__.py:641-695` and `torch/_C/__init__.pyi:12448-12453`. [SOURCE_EVIDENCE6.json](checks/SOURCE_EVIDENCE6.json) pins those files and the cont_ops submit reference. The official [device-properties](https://docs.pytorch.org/docs/2.11/generated/torch.cuda.get_device_properties.html) and [capability](https://docs.pytorch.org/docs/2.11/generated/torch.cuda.get_device_capability.html) pages were checked on 2026-11-19. [TORCH_VERSIONS3.json](checks/TORCH_VERSIONS3.json) contains the rerun mutation-counter probes. No GPU property was queried locally.
+[FRAMEWORK_EVIDENCE.md](FRAMEWORK_EVIDENCE.md) cites the installed torch/transformers source for every retained framework assumption. The device guard uses [torch/cuda/__init__.py:673](/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/cuda/__init__.py:673), which initializes CUDA, validates the index and returns native properties. [torch/_C/__init__.pyi:12448](/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/_C/__init__.pyi:12448) declares name, capability, SM count and memory; multi_processor_count appears at line 12452. The official [PyTorch 2.11 device-properties documentation](https://docs.pytorch.org/docs/2.11/generated/torch.cuda.get_device_properties.html) was reread on 2026-11-19. [SOURCE_EVIDENCE7.json](checks/SOURCE_EVIDENCE7.json) pins the installed files and cont_ops assertion source. [TORCH_VERSIONS3.json](checks/TORCH_VERSIONS3.json) contains the rerun mutation-counter probes. Device tests use stubs; no local CUDA query ran.
 
 ## Patches and authentication
 
-A4 source base: `813fe4c57b2deed4bd731dd1e3493b6b0bed8d31e7bff92ff112cf5c9df823c3` over 927 files. Reviewed payload: `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d` (5252958 bytes). B5 base archive: `ac2e259025d6a821aa5eb13e236f0635bd970313859086fc2f3ce3276647f2f0`. B5 validation proves applicability; the GPU kit authenticates A4.
+The A4 base is `813fe4c57b2deed4bd731dd1e3493b6b0bed8d31e7bff92ff112cf5c9df823c3` over **927 files**. The reviewed A4 payload is `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d` (5252958 bytes). B5 base archive: `ac2e259025d6a821aa5eb13e236f0635bd970313859086fc2f3ce3276647f2f0`. B5 checks establish patch applicability; the GPU kit authenticates A4.
 
 | Patch | Bytes | SHA256 |
 |---|---:|---|
 | [01_bounded_read_caches.diff](patches/01_bounded_read_caches.diff) | 90430 | `369af9663fbc1008f9ecf5a32c5067ba4a5f4cd31412f07db8263b13b23fd4c3` |
 | [02_atomic_scene_shards.diff](patches/02_atomic_scene_shards.diff) | 218841 | `5f76cf79e29471138161e476daf3920ec2bcbf751586fc47528fbd7388530cfa` |
-| [03_production_integration.diff](patches/03_production_integration.diff) | 193367 | `070a12fee6fc24a9a691e78fa48f9f3768b0138234608faf55a091030bcaa79b` |
+| [03_production_integration.diff](patches/03_production_integration.diff) | 209517 | `1836061b44430b5a19a7b68a44a33e9a62b9f395c1a67fd96ca8a6d214c872b5` |
 | [04_operator_cache_bound.diff](patches/04_operator_cache_bound.diff) | 2723 | `0d3bdc2d943554cd525627466d2d71f30881884e76df95204ede6c1accdb9061` |
-| [05_operator_return_and_proof.diff](patches/05_operator_return_and_proof.diff) | 3779 | `35322b12677d59487181a28a070352526816d8ab11f581f9344f466d1c71f5cb` |
+| [05_operator_return_and_proof.diff](patches/05_operator_return_and_proof.diff) | 5843 | `79426b74d74493bc0cb6fa3d0fdb3f511f67b61a2ad2fec62b235e74dc5a598b` |
 
-Reader patches add 36 files under `u0/`, including the regression tests. Operator patches remain behind `read_extensions`; the ON CPU helper additionally exports the small asset receipts. The original bootstrap bytes remain unchanged. MANIFEST records the six additional copied-member pins, base batch and decoded-bootstrap pins, patched operator hashes, complete source inventories, kit and operation files. The builder requires all those applicable pins before copying. Fresh-application OFF, round-4/5/6 and comparator suites pass; the applied extension bytes equal the workspace-tested bytes.
-
-The development source copy contains 85 original reader files; their bytes match the base, and tests obtain the remaining immutable resources through READ_INPUT_SRC. The fresh applied source contains and authenticates all 927 original files. The final seal checks both inventories explicitly.
+Reader patches add **37 files** under u0/, including regression tests; all original reader bytes remain unchanged. Operator patches remain behind read_extensions. Fresh applied OFF/round-4/5/6/7/comparator suites pass. MANIFEST pins the complete original inventories, additional copied A4 members, base batch/decoded bootstrap, patched operators, extensions, kit, default-export provenance and operation files. The 85 original files in the development source copy and all 927 originals in the fresh applied tree match their input hashes.
 
 ## What could go wrong and how we would notice
 
-| Risk | Detection and action |
+| Risk | Detection and response |
 |---|---|
-| Wrong A4 member, base batch, bootstrap or extension | Builder refuses the pin mismatch before creating output. |
-| Interrupted fill or duplicate launch | Permanent attempt lock refuses duplicates; log and exit receipt distinguish completion. Missing receipt requires inspection and a fresh token. |
-| Stale CPU proof or jointly resealed batch/package | Full cont_ops receipt assertions compare the proof with current batch, dispatch, guard, input, operator and memory bytes. |
-| Wrong checkpoint or modified staged files | READY/identity checks, per-worker receipt/manifest checks and original component hash verification refuse. |
-| Missing, failed or unrelated GPU evidence | Submit requires `a/g.json` for this plan/profile/assets/device. A CPU proof alone cannot authorize the read. |
-| Namespace or alias differs from CPU staging | Path validation, asset checks or the original loader fails before reading; preserve the logical root and neutral alias bytes. |
-| GPU kernels or eager SAM change answer/trace bytes | Require zero byte differences; equal scores do not waive the gate. |
-| Cache overhead erases savings or process memory exceeds cache caps | Compare full worker wall time and measure host/GPU peaks on the real allocation. |
-| Raw tensor write restored between boundaries | Frozen ownership remains required; that sequence is outside guard coverage. Persistent raw writes fail a boundary check. |
-| Refused or partial return is scored | Require unpack exit 0 and success JSON, then inspect complete status. |
+| Archive staging fails, storage fills or a namespace disappears too early | checked_run fails before CPU.json; preserve the failed attempt for inspection and use a fresh token. |
+| H100 host lacks the logical directory's writable parent | Explicit host checks fail before extraction; provision the path before gate work. |
+| Fill dies without an exit receipt or PID is reused | PID check catches the missing worker; the four-hour deadline bounds even a reused PID. |
+| Wrong export or changed filled pin | Exact CPU input/READY checks and selected-export identity refuse before GPU execution; runtime component hashes check actual weights. |
+| Stale or changed driver/comparator/sample | Runtime hashes and submit's package-bound expected hashes refuse. |
+| Different H100 variant | Exact name, 132 SMs, capability and memory checks refuse before model loading. |
+| Changed input/operator/batch or incomplete CPU proof | Builder pins and the full cont_ops submit assertion block refuse. |
+| GPU kernels or eager SAM alter answer/trace bytes | Zero-difference gate fails; equal aggregate scores cannot waive it. |
+| Cache cost erases savings or whole-process memory exceeds the cache cap | Compare full worker wall time and actual host/GPU peaks; the cache cap excludes model/caller working memory. |
+| A raw write is restored between boundaries | Frozen ownership remains required; this sequence is outside the guard. |
+| A refused/partial return is scored | Require unpack success output and inspect complete status. |
 
 ## Not done
 
-No real step-600 export/binding, large pull, production restore, namespace/transport/storage run, GPU parity/performance/memory measurement, scheduler submission, upload, return publication or persistent-storage requeue ran. No batching or multi-card A4 operator is delivered. The array policy remains approved=false. Delivered CPU suites need no local OS sockets.
+No production GPU parity, throughput, peak-memory measurement, scheduler allocation, large pull/staging archive, real bwrap isolation/restore, transport, upload, submit, return publication or persistent-storage requeue ran. No numeric tolerance, batching or multi-card A4 operator is delivered. The array prototype remains approved=false. CPU suites need no local OS sockets. The H100 host path and production interpreter/storage capacity are owner-side preconditions, not verified here.
 
-The first complete-suite attempt caught a non-opaque path in the staging example; [run_checks6_development.txt](checks/run_checks6_development.txt) retains that failure. The corrected example passes the full rerun. No cluster kill or automatic relaunch occurred. The requested review audit sections below are retained because the binding prompts explicitly require them.
+## Review round 6: finding -> fix -> test
 
-## Required review audit sections
+The documented unpack subprocess runs; detached fill retains its lock/PID/log/exit status; submit embeds every cont_ops CPU assertion; copied A4 members, batch and bootstrap are pinned; CPU receipts bind checkpoint assets. The round-6 suite passes and its reviewed-snapshot control still produces 31 expected assertion failures. The round-7 gate uses the selected export parameter and exact SXM admission described above.
 
 ## Review round 5: finding -> fix -> test
 
-
-| Finding | Fix | Regression |
-|---|---|---|
-| 1. Dropped batch wrapper | Exact cont_ops wrapper retains exclusion, EXIT log and USR1 forwarding. | Built script equals wrap_batch output and passes the real a/5.py bundle guard. |
-| 2. Unpinned build inputs | Reviewed A4 payload, operator MANIFEST pins, extension inventory and alias bases must match before copying. | Changed self-consistent payload, each operator, extensions and alias pins are refused before output. |
-| 3. Incomplete operations | Binding derivation, delivery archive/SHA, place/fetch/fill/dry/allocated-proof/guarded-submit/fetch scripts and gated unpack command. | Generated shell syntax, delivery members and command order pass; actual submit checker refuses missing cache proof and an oversized pool. |
-| 4. Unbound GPU profile | Prepare bytes plus operator overrides bind settings, selectors, budget and package plan. | Both cache profiles pass; changed settings, selectors, cap and plan fail. |
-| 5. Forecast scope | Package D and a19's A4 schedule have separate labelled estimates. | Documentation regression requires both scopes and A4's 7,351.824 s estimate. |
-| 7. Refused unpack tree | Scorers require success output after exit 0; the shell handoff uses &&. | Documentation regression checks the warning and executable success chain. |
-
-
+The built batch equals cont_ops wrap_batch and passes the real bundle guard. Builder tests refuse changed payload/operators/extensions before output. Operation, profile, pool, forecast and unpack-success tests pass. The reviewed-snapshot control reproduces eleven expected failures.
 
 ## Review round 4: finding -> fix -> test
 
-| Finding | Fix | Evidence |
-|---|---|---|
-| 1 MEDIUM: step-600 build drops A4 run keys, export binding and compatible helper | The explicit a19 builder uses cont_ops' build_r1-style post-processing over A4's authenticated payload. It retains 8.py, admission/vendor bytes and every A4 run key, installs the ON overlays, and seals the reviewed target binding into 9.json. It retargets A4's fill-helper object/size/hash constants and rebuilds every affected pin. The incomplete a12 operator route is refused. | test_f1 checks target binding, payload pins, A4 keys and helper bytes/compatibility. The real admission rejects changed run, step, member, lineage, object, config, archive or preparation hashes. The fill helper rejects changed whole-tar identity/receipt. The documented reviewed build fails this test on the missing stage1 rule. |
-| 2 LOW: hand-built action config and generic profile hide adoption failures | A4's CPU-proof helper propagates read_extensions into the real 7.py rehearsal. The test reads packaged 9.json as-is and runs real job.main to construct a/0.json and a/1.json; it only translates namespace paths and stubs storage/device/model work. | test_f2 runs real preparation, rehearsal, bootstrap admission, operator and runner/action-2 dispatch. MEMORY.json contains 12,884,901,888 cache bytes. All 636 items complete in five ordinary journals, each with verified=true; no atomic commit store or canonical merge exists. The old route fails preparation. Independently, the original CPU-proof helper fails with None != 12884901888. |
-| 3 LOW: cache-only return accepts unchecked weights | With read_extensions=true, unpack_return refuses an existing WEIGHTS.json unless verified is exactly JSON true. OFF retains its existing path. | The same test accepts missing/true receipts, refuses false/null/0/1/string values, and retains OFF behavior. All five invalid-value assertions fail on reviewed code. The real authenticated unpack entry accepts a verified partial return and rejects an unverified partial return. |
-| 9 INFO: non-delivery paths, B5 base claim, proof-field wording | README uses explicit delivery/source/scratch variables; the kit is A4-only. It distinguishes the generated cache-memory proof from unchanged bootstrap admission. | The CPU integration uses the delivered Python tools and asserts the generated cache allowance. The kit authenticates complete A4 inventories; B5 applicability is limited to the separate patch-application check. |
-
+The A4 builder retains run keys, binding, fill admission and compatible helpers. The real CPU fixture executes preparation, rehearsal, bootstrap, job/action dispatch and all 636 stub reads in five verified ordinary journals. Return tests reject invalid weight receipts and retain OFF behavior. Its explicit alternate-export fixture uses step 600; this is not the default decision export. Both the reviewed route and original CPU-helper controls reproduce their expected failures.
 
 ### Review round 1: finding -> fix -> test
 
-Typed keys, complete parity schemas, original/OFF provenance, frozen identity, lock-held recovery, opaque transport and bounded storage retain passing tests. All eight reviewed-baseline regressions fail as expected.
+Typed keys, complete parity schemas, original/OFF provenance, frozen identity, lock-held recovery, opaque transport and bounded storage pass their regressions; all eight baseline regressions fail as expected.
 
 ### Review round 2: finding -> fix -> test
 
-Isolated entry, path policy, bounded array retries, pinned overlays, SAM capacity, deadline counts, lock waits, cache bypass accounting, source-root checks and worker setup retain passing tests. All thirteen reviewed-baseline regressions reproduce, including both CLI variants.
+Isolated entry, path policy, bounded array attempts, pinned overlays, SAM capacity, deadline counts, lock waits, accounting, source-root checks and worker setup pass. The baseline reproduces thirteen assertions plus the expected CLI import error.
 
 ### Review round 3: finding -> fix -> test
 
-Install/type-boundary hashes and cheap fatal live guards, processor-only mode, operator memory/overlay dispatch, full base authentication, behavioral lock/worker regressions and the OFF import guard retain passing tests. The generic operator test checks the atomic nested merge; the round-4 test checks the actual cache-only adoption profile. The OFF guard now includes a0–a19. All round-3 failing baselines reproduce.
+Install/type-boundary hashes and cheap fatal live guards, processor-only mode, operator memory/overlay dispatch, full-base authentication, lock/worker behavior and OFF import checks pass. The generic operator test checks its nested atomic merge; the A4 adoption fixture checks the cache-only single-card profile. All baseline controls reproduce.
 
-These audit sections retain finding history only because the dispatch explicitly requires it. Other sections state the delivered behavior and current evidence.
-
-
+These named review sections are retained because the binding prompts explicitly request them. Test-output names containing step600 identify synthetic alternate-export fixtures, not an operational default.
 
 ## Commands and exact outputs
 
-Commands ran from `/scratch/jjyeung/orch_n30/so_read`. `work/cpu.sh` exports CUDA_VISIBLE_DEVICES="", OMP/MKL/OPENBLAS threads=8, TOKENIZERS_PARALLELISM=false, PYTHONDONTWRITEBYTECODE=1 and scratch caches, then executes the required Python with `nice -n 10 -I -s -B`. Tests set eight torch threads. Child commands inherit priority and environment. Fixture storage shares identical immutable input bytes and detaches shared files before edits.
+Commands ran from `/scratch/jjyeung/orch_n30/so_read`. `work/cpu.sh` exports CUDA_VISIBLE_DEVICES="", OMP/MKL/OPENBLAS threads=8, TOKENIZERS_PARALLELISM=false, PYTHONDONTWRITEBYTECODE=1 and scratch caches, then executes the approved Python with `nice -n 10 -I -s -B`. Child processes inherit those limits. The documented unpack command intentionally uses -s -E -B for its sibling import. Fixture storage shares immutable bytes and detaches shared files before edits.
 
-The README unpack subprocess intentionally uses `-s -B` without `-I`, as finding 1 requires, so the authenticated sibling helper can import. Its interpreter, CPU environment and priority remain the same.
-
-Test commands additionally use READ_INPUT_SRC=/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src and READ_TEST_TMP=/scratch/jjyeung/orch_n30/so_read/work/test-artifacts. Applied commands use READ_OPERATOR_SOURCE and READ_OPERATOR4_SOURCE from the fresh verification root. Every output below is literal; baseline failures are expected regression controls.
+Test commands additionally set READ_INPUT_SRC=/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src and READ_TEST_TMP=/scratch/jjyeung/orch_n30/so_read/work/test-artifacts. Applied suites also set READ_OPERATOR_SOURCE and READ_OPERATOR4_SOURCE under `/scratch/jjyeung/orch_n30/so_read/work/apply-round7/29851255c3074802ac1047736a9d9e9a/operator`. All outputs below are literal; before-fix failures are expected controls. No cluster kill or automatic relaunch occurred.
 
 ```bash
 bash work/cpu.sh work/run_checks.py
@@ -197,9 +180,10 @@ round2: OK
 round3: OK
 operator3: OK
 lock3: OK
-round4: CPU step-600 fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/9bf19b9fec6744d7a063f2a3f1489cc3
+round4: CPU step-600 fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d78d62f3657442ceae64ee6ac71ae14d
 round5: All CPU receipt checks passed
 round6: Detached fill: success=0, failure=17, duplicate launch refused.
+round7: Default step-400 artifact is pinned; explicit step-600 passes; default-on-600 and wrong artifact refuse.
 kit: OK
 kit_launch: OK
 PASS: all 8 round-1 regressions fail against the round-1 reviewed implementation.
@@ -209,11 +193,12 @@ PASS: operator3_before reproduces FAILED (failures=2).
 PASS: lock3_before reproduces FAILED (failures=2).
 PASS: round5_before reproduces FAILED (failures=11).
 PASS: round6_before reproduces FAILED (failures=31).
+PASS: round7_before reproduces FAILED (failures=10).
 PASS: round4_before reproduces FAILED (failures=7, skipped=1).
 PASS: node4_before reproduces FAILED (failures=1).
 PASS: f16_behavior_before reproduces FAILED (failures=1).
 PASS: Python syntax, shell syntax, and default-off execution guards.
-{"cuda_visible_devices": "", "max_child_rss_bytes": 400371712, "torch": "2.11.0+cpu", "torch_threads": 8, "transformers": "5.12.1", "workspace_bytes": 2771577384}
+{"cuda_visible_devices": "", "max_child_rss_bytes": 399781888, "torch": "2.11.0+cpu", "torch_threads": 8, "transformers": "5.12.1", "workspace_bytes": 2975305259}
 ```
 
 ```bash
@@ -223,13 +208,13 @@ bash work/cpu.sh work/run_fixture5.py work/build_patches.py
 Exact output:
 
 ```text
-PASS: 3 additive reader diffs (36 files) plus 2 default-OFF A4 operator diffs; zero-fuzz application; unchanged original reader hash trees.
-PASS: OFF, round-4/5 integration and comparator suites pass from the fresh applied A4 tree; both complete 927-file base inventories authenticate.
-Applied verification root: /scratch/jjyeung/orch_n30/so_read/work/apply-round6/751d7f0734d3447783f9b391cfd4d0f2
+PASS: 3 additive reader diffs (37 files) plus 2 default-OFF A4 operator diffs; zero-fuzz application; unchanged original reader hash trees.
+PASS: OFF, round-4/5/6/7 integration and comparator suites pass from the fresh applied A4 tree; both complete 927-file base inventories authenticate.
+Applied verification root: /scratch/jjyeung/orch_n30/so_read/work/apply-round7/29851255c3074802ac1047736a9d9e9a
 ```
 
 ```bash
-bash work/cpu.sh work/gate_integration6.py
+bash work/cpu.sh work/gate_integration7.py
 ```
 
 Exact output:
@@ -237,10 +222,12 @@ Exact output:
 ```text
 All CPU receipt checks passed
 {"passed": true, "pool_bytes": 0}
-PASS: exact CPU-emitted restore/binding/export receipts feed the gate; staged bytes and manifest recheck.
-PASS: real bundle/entry/memory CPU proof passes cont_ops assertions; synthetic failed GPU receipt refuses.
-No GPU evidence was measured: receipt serialization used explicit synthetic pass/fail controls.
-{"assets": {"binding": "9637c68a4c624249ad55ee5922c177466c155c3c4cddd9077b5b0fb4bbf7ed04", "export_pin": "094d8d36773012097318172d96befb844805aae9e4a785e65a4f9454d2c7ec9e", "restore": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"}, "plan": "3a271f9f0b5263eec6f3cc0f1eb58482bd69b6919ad2eee5209d1b5c26bd56ec", "required_device_type": "H100_80GB"}
+PASS: CPU helper produced the archive before CPU.json; its recorded hash/bytes and exact a/1.json match.
+PASS: archive reconstructs READY-identical assets after the fixture private data path becomes unavailable.
+PASS: public stage-kit bytes match MANIFEST-derived pins; changed driver, comparator and sealed sample each refuse.
+PASS: exact CPU evidence feeds gate and full submit assertions; default400 refuses synthetic600, explicit selection passes.
+PASS: failed synthetic GPU receipt refuses; no GPU evidence was measured or submitted.
+{"archive_bytes": 20480, "archive_sha256": "67b355dbc9370d3ce58b638ac2c15fd91359b4c9cff8610231b4ec7671e0bc8f", "assets": {"binding": "21397fddb5e9a40597ca7ae5824494d6656b68591f35f705287bfce770f8dd7a", "export_pin": "094d8d36773012097318172d96befb844805aae9e4a785e65a4f9454d2c7ec9e", "restore": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"}, "kit": {"compare.py": "73858354fe8d366880873246e6256393ea2b27d5979af4e128e93c569a92f50e", "run.py": "c175e55c9090b33c219a5aef58b8b21b10b1238084abd59342eab7b7f5b5ad84", "sample50.json": "1fdb65050f933d8578c849fbaa1010515ed07ad959234afd2d90cefdd946531b"}, "plan": "f829c4521af353c4a848def6573dbef734f2dc2313ffe8a03b963597431684c5", "required_device_type": "H100_80GB"}
 ```
 
 ```bash
@@ -279,13 +266,13 @@ Exact output:
   "events": [
     {
       "after": {
-        "data_ptr": 132456256,
-        "object_id": 139840171418448,
+        "data_ptr": 113228928,
+        "object_id": 140261195899728,
         "version": 1
       },
       "before": {
-        "data_ptr": 132456256,
-        "object_id": 139840171418448,
+        "data_ptr": 113228928,
+        "object_id": 140261195899728,
         "version": 0
       },
       "object_changed": false,
@@ -295,13 +282,13 @@ Exact output:
     },
     {
       "after": {
-        "data_ptr": 132466752,
-        "object_id": 139840171418768,
+        "data_ptr": 113239424,
+        "object_id": 140261195900048,
         "version": 1
       },
       "before": {
-        "data_ptr": 132466752,
-        "object_id": 139840171418768,
+        "data_ptr": 113239424,
+        "object_id": 140261195900048,
         "version": 0
       },
       "object_changed": false,
@@ -311,13 +298,13 @@ Exact output:
     },
     {
       "after": {
-        "data_ptr": 132467392,
-        "object_id": 139840171418448,
+        "data_ptr": 113240128,
+        "object_id": 140261195899728,
         "version": 0
       },
       "before": {
-        "data_ptr": 132467392,
-        "object_id": 139840171418448,
+        "data_ptr": 113240128,
+        "object_id": 140261195899728,
         "version": 0
       },
       "object_changed": false,
@@ -327,13 +314,13 @@ Exact output:
     },
     {
       "after": {
-        "data_ptr": 132470016,
-        "object_id": 139840171418768,
+        "data_ptr": 113242752,
+        "object_id": 140261195900048,
         "version": 0
       },
       "before": {
-        "data_ptr": 132467776,
-        "object_id": 139840171418768,
+        "data_ptr": 113240640,
+        "object_id": 140261195900048,
         "version": 0
       },
       "object_changed": false,
@@ -343,13 +330,13 @@ Exact output:
     },
     {
       "after": {
-        "data_ptr": 132470336,
-        "object_id": 139840171418448,
+        "data_ptr": 113243136,
+        "object_id": 140261195899728,
         "version": 0
       },
       "before": {
-        "data_ptr": 132470336,
-        "object_id": 139840171418448,
+        "data_ptr": 113243136,
+        "object_id": 140261195899728,
         "version": 0
       },
       "object_changed": false,
@@ -359,13 +346,13 @@ Exact output:
     },
     {
       "after": {
-        "data_ptr": 132470528,
-        "object_id": 139840171418768,
+        "data_ptr": 113243264,
+        "object_id": 140261195900048,
         "version": 0
       },
       "before": {
-        "data_ptr": 132470528,
-        "object_id": 139840171418768,
+        "data_ptr": 113243264,
+        "object_id": 140261195900048,
         "version": 0
       },
       "object_changed": false,
@@ -375,13 +362,13 @@ Exact output:
     },
     {
       "after": {
-        "data_ptr": 132470592,
-        "object_id": 139840171418448,
+        "data_ptr": 113243456,
+        "object_id": 140261195899728,
         "version": 1
       },
       "before": {
-        "data_ptr": 132470592,
-        "object_id": 139840171418448,
+        "data_ptr": 113243456,
+        "object_id": 140261195899728,
         "version": 0
       },
       "object_changed": false,
@@ -415,45 +402,45 @@ Exact output:
 {
   "cases": [
     {
-      "after_install_seconds": 0.3923319079913199,
+      "after_install_seconds": 0.342553183902055,
       "after_per_call": {
-        "max_seconds": 0.032248938921839,
-        "median_seconds": 0.028901728335767984,
-        "min_seconds": 0.028460956178605556,
+        "max_seconds": 0.02751278318464756,
+        "median_seconds": 0.02716766484081745,
+        "min_seconds": 0.02685382403433323,
         "seconds": [
-          0.029457141179591417,
-          0.029063791036605835,
-          0.028901728335767984,
-          0.028482078574597836,
-          0.028460956178605556,
-          0.028683640994131565,
-          0.032248938921839
+          0.02685382403433323,
+          0.026951179839670658,
+          0.027089558076113462,
+          0.02718622237443924,
+          0.02729942323639989,
+          0.02716766484081745,
+          0.02751278318464756
         ]
       },
-      "before_install_seconds": 5.37908636033535e-05,
+      "before_install_seconds": 4.2974017560482025e-05,
       "before_per_call": {
-        "max_seconds": 0.537929771002382,
-        "median_seconds": 0.39425168791785836,
-        "min_seconds": 0.3768933368846774,
+        "max_seconds": 0.5149778532795608,
+        "median_seconds": 0.40357976080849767,
+        "min_seconds": 0.3581583430059254,
         "seconds": [
-          0.389938126783818,
-          0.3983989697881043,
-          0.537929771002382,
-          0.3854467491619289,
-          0.3768933368846774,
-          0.4312117942608893,
-          0.39425168791785836
+          0.460304566193372,
+          0.36115757236257195,
+          0.38943942822515965,
+          0.4926336333155632,
+          0.40357976080849767,
+          0.3581583430059254,
+          0.5149778532795608
         ]
       },
       "blocks": 128,
       "boundary": {
-        "max_seconds": 0.4415983557701111,
-        "median_seconds": 0.4302190849557519,
-        "min_seconds": 0.4018775480799377,
+        "max_seconds": 0.3531409460119903,
+        "median_seconds": 0.35146467201411724,
+        "min_seconds": 0.3442889880388975,
         "seconds": [
-          0.4018775480799377,
-          0.4302190849557519,
-          0.4415983557701111
+          0.35146467201411724,
+          0.3442889880388975,
+          0.3531409460119903
         ]
       },
       "buffer_shape": [
@@ -461,7 +448,7 @@ Exact output:
       ],
       "buffer_tensors": 128,
       "dtype": "bfloat16",
-      "median_speed_ratio": 13.641111124483974,
+      "median_speed_ratio": 14.85515089990908,
       "parameter_count": 268435456,
       "parameter_shape": [
         2048,
@@ -471,45 +458,45 @@ Exact output:
       "weight_and_buffer_bytes": 537133056
     },
     {
-      "after_install_seconds": 0.8292312738485634,
+      "after_install_seconds": 0.7423426792956889,
       "after_per_call": {
-        "max_seconds": 0.06197645561769605,
-        "median_seconds": 0.060229025315493345,
-        "min_seconds": 0.05963139794766903,
+        "max_seconds": 0.05567771429196,
+        "median_seconds": 0.05520420288667083,
+        "min_seconds": 0.05339152365922928,
         "seconds": [
-          0.05963139794766903,
-          0.06004501832649112,
-          0.05970699107274413,
-          0.060229025315493345,
-          0.061858517583459616,
-          0.06197645561769605,
-          0.06118130311369896
+          0.055284484289586544,
+          0.05520420288667083,
+          0.05567771429196,
+          0.05525902472436428,
+          0.053932304959744215,
+          0.05339152365922928,
+          0.053717562928795815
         ]
       },
-      "before_install_seconds": 5.66849485039711e-05,
+      "before_install_seconds": 3.7375837564468384e-05,
       "before_per_call": {
-        "max_seconds": 0.8657932351343334,
-        "median_seconds": 0.7974681537598372,
-        "min_seconds": 0.7501520323567092,
+        "max_seconds": 1.1242351457476616,
+        "median_seconds": 0.7965004621073604,
+        "min_seconds": 0.6924755121581256,
         "seconds": [
-          0.8657932351343334,
-          0.811951152049005,
-          0.7910035462118685,
-          0.7974681537598372,
-          0.7501520323567092,
-          0.7751497533172369,
-          0.8183510722592473
+          0.6924755121581256,
+          0.7965004621073604,
+          0.7191511681303382,
+          1.1242351457476616,
+          0.740694236010313,
+          0.8977804249152541,
+          0.8292495901696384
         ]
       },
       "blocks": 256,
       "boundary": {
-        "max_seconds": 0.8283837935887277,
-        "median_seconds": 0.7812584768980742,
-        "min_seconds": 0.7713759420439601,
+        "max_seconds": 0.8296124143525958,
+        "median_seconds": 0.7776896841824055,
+        "min_seconds": 0.7716436041519046,
         "seconds": [
-          0.8283837935887277,
-          0.7812584768980742,
-          0.7713759420439601
+          0.8296124143525958,
+          0.7776896841824055,
+          0.7716436041519046
         ]
       },
       "buffer_shape": [
@@ -517,7 +504,7 @@ Exact output:
       ],
       "buffer_tensors": 256,
       "dtype": "bfloat16",
-      "median_speed_ratio": 13.240595370463284,
+      "median_speed_ratio": 14.428257640863013,
       "parameter_count": 536870912,
       "parameter_shape": [
         2048,
@@ -529,7 +516,7 @@ Exact output:
   ],
   "cuda_visible_devices": "",
   "kind": "measured CPU stub cache-hit overhead, not GPU speedup",
-  "max_rss_bytes": 1334685696,
+  "max_rss_bytes": 1337815040,
   "nice": 19,
   "threads": 8,
   "torch": "2.11.0+cpu"
@@ -537,27 +524,107 @@ Exact output:
 ```
 
 ```bash
-bash work/cpu.sh work/docs_check6.py
+bash work/cpu.sh work/docs_check7.py
 ```
 
 Exact output:
 
 ```text
-PASS: 15 README shell blocks parse; owner operations were not executed.
-PASS: complete cont_ops A4 CPU assertion block is verbatim; SUBMIT_CHECK parses as Python 3.6.
-PASS: changed operator helpers parse as Python 3.6.
-PASS: source hashes and official device-property references recorded; no CUDA call executed.
+PASS: 16 README shell blocks parse; archive-validation heredoc parses as Python 3.6; host paths and allocation documented.
+PASS: cont_ops CPU assertion block remains verbatim; submit and operator helpers parse as Python 3.6.
+PASS: installed device-property declarations and official 2.11 documentation recorded; no CUDA query executed.
 ```
 
 ```bash
-bash work/cpu.sh work/share_storage6.py
+bash work/cpu.sh work/share_storage7.py
 ```
 
 Exact output:
 
 ```text
-Immutable fixture paths preserved: 7501 unique bytes shared: 220399888
-2661710793	/scratch/jjyeung/orch_n30/so_read
+{"changed_files": 5721, "paths_preserved": true, "read_bytes": 208576544, "scope": "completed pre-task fixtures only; every replacement checked byte-for-byte", "unique_bytes_shared": 163241740, "workspace_bytes": 2812067270}
+```
+
+The patch-application subprocess output from build_patches.py is retained verbatim:
+
+```text
+patching file u0/a0.py
+patching file u0/a1.py
+patching file u0/a2.py
+patching file u0/a3.py
+patching file u0/tests/test_read_cache.py
+patching file u0/tests/test_off.py
+patching file u0/a4.py
+patching file u0/a5.py
+patching file u0/a6.py
+patching file u0/a7.py
+patching file u0/a8.py
+patching file u0/a9.py
+patching file u0/a10.py
+patching file u0/a11.py
+patching file u0/tests/test_read_journal.py
+patching file u0/tests/test_public.py
+patching file u0/tests/test_round1.py
+patching file u0/tests/test_compare.py
+patching file u0/tests/u0.json
+patching file u0/tests/u1.json
+patching file u0/a12.py
+patching file u0/a13.py
+patching file u0/a14.py
+patching file u0/a15.py
+patching file u0/a16.py
+patching file u0/a17.py
+patching file u0/a18.py
+patching file u0/a19.py
+patching file u0/a20.py
+patching file u0/tests/test_round2.py
+patching file u0/tests/test_round3.py
+patching file u0/tests/test_operator_round3.py
+patching file u0/tests/test_lock_round3.py
+patching file u0/tests/test_round4.py
+patching file u0/tests/test_round5.py
+patching file u0/tests/test_round6.py
+patching file u0/tests/test_round7.py
+patching file u0/a0.py
+patching file u0/a1.py
+patching file u0/a2.py
+patching file u0/a3.py
+patching file u0/tests/test_read_cache.py
+patching file u0/tests/test_off.py
+patching file u0/a4.py
+patching file u0/a5.py
+patching file u0/a6.py
+patching file u0/a7.py
+patching file u0/a8.py
+patching file u0/a9.py
+patching file u0/a10.py
+patching file u0/a11.py
+patching file u0/tests/test_read_journal.py
+patching file u0/tests/test_public.py
+patching file u0/tests/test_round1.py
+patching file u0/tests/test_compare.py
+patching file u0/tests/u0.json
+patching file u0/tests/u1.json
+patching file u0/a12.py
+patching file u0/a13.py
+patching file u0/a14.py
+patching file u0/a15.py
+patching file u0/a16.py
+patching file u0/a17.py
+patching file u0/a18.py
+patching file u0/a19.py
+patching file u0/a20.py
+patching file u0/tests/test_round2.py
+patching file u0/tests/test_round3.py
+patching file u0/tests/test_operator_round3.py
+patching file u0/tests/test_lock_round3.py
+patching file u0/tests/test_round4.py
+patching file u0/tests/test_round5.py
+patching file u0/tests/test_round6.py
+patching file u0/tests/test_round7.py
+patching file tower_sequence.py
+patching file unpack_return.py
+patching file package/a/5.py
 ```
 
 ```bash
@@ -584,7 +651,7 @@ test_vision_execution_settings_and_live_options_invalidate (__main__.ReadCacheTe
 test_vision_returns_same_type_and_keeps_outer_hooks (__main__.ReadCacheTests.test_vision_returns_same_type_and_keeps_outer_hooks) ... ok
 
 ----------------------------------------------------------------------
-Ran 15 tests in 2.895s
+Ran 15 tests in 2.892s
 
 OK
 ```
@@ -611,7 +678,7 @@ test_shards_merge_byte_identical_to_single_and_reject_missing_duplicate (__main_
 test_type_journals_support_empty_scene_shards (__main__.RunnerTests.test_type_journals_support_empty_scene_shards) ... ok
 
 ----------------------------------------------------------------------
-Ran 13 tests in 0.126s
+Ran 13 tests in 0.142s
 
 OK
 ```
@@ -626,7 +693,7 @@ Exact output:
 test_every_output_byte_and_source_hash_matches_original (__main__.OffContractTests.test_every_output_byte_and_source_hash_matches_original) ... ok
 
 ----------------------------------------------------------------------
-Ran 1 test in 5.755s
+Ran 1 test in 5.725s
 
 OK
 ```
@@ -678,7 +745,7 @@ test_unstructured_library_logs_and_partial_lines_only_publish_tokens (round1_pub
 test_every_output_byte_and_source_hash_matches_original (round1_off_tests.OffContractTests.test_every_output_byte_and_source_hash_matches_original) ... ok
 
 ----------------------------------------------------------------------
-Ran 17 tests in 4.593s
+Ran 17 tests in 4.400s
 
 OK
 ```
@@ -705,7 +772,7 @@ test_f8_processor_bypass_is_counted (__main__.Round2Tests.test_f8_processor_bypa
 test_f9_roots_and_manifest_checked_before_any_arm (__main__.Round2Tests.test_f9_roots_and_manifest_checked_before_any_arm) ... ok
 
 ----------------------------------------------------------------------
-Ran 13 tests in 4.169s
+Ran 13 tests in 3.872s
 
 OK
 ```
@@ -728,7 +795,7 @@ test_f4_worker_uses_settings_argv_without_environment_side_effect (__main__.Roun
 test_f7_off_import_guard_covers_all_overlay_modules (__main__.Round3Tests.test_f7_off_import_guard_covers_all_overlay_modules) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 2.009s
+Ran 9 tests in 1.923s
 
 OK
 ```
@@ -744,7 +811,7 @@ test_f2_a12_payload_through_a4_actions_and_nested_return (__main__.OperatorTests
 test_f2_operator_memory_bound_includes_cache_only_when_enabled (__main__.OperatorTests.test_f2_operator_memory_bound_includes_cache_only_when_enabled) ... ok
 
 ----------------------------------------------------------------------
-Ran 2 tests in 10.905s
+Ran 2 tests in 10.134s
 
 OK
 ```
@@ -760,7 +827,7 @@ test_deadline_recovery_keeps_writer_lock (lock_behavior.RunnerTests.test_deadlin
 test_type_deadline_recovery_holds_writer_lock (__main__.TypeLockTests.test_type_deadline_recovery_holds_writer_lock) ... ok
 
 ----------------------------------------------------------------------
-Ran 2 tests in 0.018s
+Ran 2 tests in 0.021s
 
 OK
 ```
@@ -778,11 +845,11 @@ test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test
 test_f9_off_builder_guard_and_processor_only (__main__.Round4Tests.test_f9_off_builder_guard_and_processor_only) ... ok
 
 ----------------------------------------------------------------------
-Ran 4 tests in 25.325s
+Ran 4 tests in 23.365s
 
 OK
-{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/9bf19b9fec6744d7a063f2a3f1489cc3/verified-return", "complete": false, "status": "FAILED", "sha256": "b8459fd3f75d9df163d8c1062d4714ab47f7bd714e7c04717f29172c5f5ec117"}
-CPU step-600 fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/9bf19b9fec6744d7a063f2a3f1489cc3
+{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d78d62f3657442ceae64ee6ac71ae14d/verified-return", "complete": false, "status": "FAILED", "sha256": "e7ef3d7b5e9017bea6fccbca98e9b7eb5347d4b4e301dff67d70ed8d93589daa"}
+CPU step-600 fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d78d62f3657442ceae64ee6ac71ae14d
 ```
 
 ```bash
@@ -801,7 +868,7 @@ test_f5_forecast_identifies_both_reads (__main__.Round5Tests.test_f5_forecast_id
 test_f7_refused_unpack_not_scoreable (__main__.Round5Tests.test_f7_refused_unpack_not_scoreable) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 9.925s
+Ran 7 tests in 9.970s
 
 OK
 All CPU receipt checks passed
@@ -827,11 +894,36 @@ test_info_done_whitespace (__main__.Round6Tests.test_info_done_whitespace) ... o
 test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 31.205s
+Ran 9 tests in 29.955s
 
 OK
 README unpack command: exit 0; authenticated partial return accepted.
 Detached fill: success=0, failure=17, duplicate launch refused.
+```
+
+```bash
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py
+```
+
+Exact output:
+
+```text
+test_f1_archive_runs_inside_live_namespace_and_survives_it (__main__.Round7Tests.test_f1_archive_runs_inside_live_namespace_and_survives_it) ... ok
+test_f2_fill_wait_missing_token_dead_pid_timeout_and_success (__main__.Round7Tests.test_f2_fill_wait_missing_token_dead_pid_timeout_and_success) ... ok
+test_f3_exact_sxm_name_and_132_sms (__main__.Round7Tests.test_f3_exact_sxm_name_and_132_sms) ... ok
+test_info_export_bytes_bound_to_cpu_inputs_before_gpu (__main__.Round7Tests.test_info_export_bytes_bound_to_cpu_inputs_before_gpu) ... ok
+test_info_host_paths_allocation_and_input_evidence (__main__.Round7Tests.test_info_host_paths_allocation_and_input_evidence) ... ok
+test_info_receipt_records_and_submit_checks_kit_comparator_sample (__main__.Round7Tests.test_info_receipt_records_and_submit_checks_kit_comparator_sample) ... ok
+test_info_unpack_ignores_python_environment_and_keeps_sibling_import (__main__.Round7Tests.test_info_unpack_ignores_python_environment_and_keeps_sibling_import) ... ok
+test_rebind_default400_and_explicit600 (__main__.Round7Tests.test_rebind_default400_and_explicit600) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 8.578s
+
+OK
+Live namespace tar: regular file and dereferenced link preserved; archive survives namespace loss; duplicate and OFF guarded.
+Fill wait: missing token, dead worker, deadline and exit 17 refuse; exit 0 passes; production maximum 14400 seconds.
+Default step-400 artifact is pinned; explicit step-600 passes; default-on-600 and wrong artifact refuse.
 ```
 
 ```bash
@@ -852,7 +944,7 @@ test_telemetry_different_exact_trace_passes (__main__.CompareTests.test_telemetr
 test_tokens_calls_heads_and_finish_each_detected (__main__.CompareTests.test_tokens_calls_heads_and_finish_each_detected) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 0.279s
+Ran 9 tests in 0.282s
 
 OK
 ```
@@ -869,13 +961,13 @@ test_original_and_off_do_not_opt_in_to_journaling_or_sharding (__main__.LaunchTe
 test_stage_kit_uses_opaque_names_token_metadata_and_authenticated_sample_bytes (__main__.LaunchTests.test_stage_kit_uses_opaque_names_token_metadata_and_authenticated_sample_bytes) ... ok
 
 ----------------------------------------------------------------------
-Ran 3 tests in 0.064s
+Ran 3 tests in 0.061s
 
 OK
 ```
 
 ```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round6/751d7f0734d3447783f9b391cfd4d0f2/src/u0/tests/test_off.py
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round7/29851255c3074802ac1047736a9d9e9a/src/u0/tests/test_off.py
 ```
 
 Exact output:
@@ -884,13 +976,13 @@ Exact output:
 test_every_output_byte_and_source_hash_matches_original (__main__.OffContractTests.test_every_output_byte_and_source_hash_matches_original) ... ok
 
 ----------------------------------------------------------------------
-Ran 1 test in 6.328s
+Ran 1 test in 4.956s
 
 OK
 ```
 
 ```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round6/751d7f0734d3447783f9b391cfd4d0f2/src/u0/tests/test_round4.py
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round7/29851255c3074802ac1047736a9d9e9a/src/u0/tests/test_round4.py
 ```
 
 Exact output:
@@ -902,15 +994,15 @@ test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test
 test_f9_off_builder_guard_and_processor_only (__main__.Round4Tests.test_f9_off_builder_guard_and_processor_only) ... ok
 
 ----------------------------------------------------------------------
-Ran 4 tests in 24.895s
+Ran 4 tests in 22.256s
 
 OK
-{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/59e7e14702904a8e81bf774dfc11f833/verified-return", "complete": false, "status": "FAILED", "sha256": "6eba4584a212633a47e9c152ed5fa6770d5d825188daeffb473f119c2d9651a3"}
-CPU step-600 fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/59e7e14702904a8e81bf774dfc11f833
+{"output": "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/7e42e6400b6a4b0c8821772699c9dfae/verified-return", "complete": false, "status": "FAILED", "sha256": "f42d58e86206a8eb8ef4653870f0dd4a8eb08c0c702f40ea56900b9368a70f6c"}
+CPU step-600 fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/7e42e6400b6a4b0c8821772699c9dfae
 ```
 
 ```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round6/751d7f0734d3447783f9b391cfd4d0f2/src/u0/tests/test_round5.py
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round7/29851255c3074802ac1047736a9d9e9a/src/u0/tests/test_round5.py
 ```
 
 Exact output:
@@ -925,7 +1017,7 @@ test_f5_forecast_identifies_both_reads (__main__.Round5Tests.test_f5_forecast_id
 test_f7_refused_unpack_not_scoreable (__main__.Round5Tests.test_f7_refused_unpack_not_scoreable) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 10.073s
+Ran 7 tests in 10.121s
 
 OK
 All CPU receipt checks passed
@@ -934,7 +1026,7 @@ All CPU receipt checks passed
 ```
 
 ```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round6/751d7f0734d3447783f9b391cfd4d0f2/src/u0/tests/test_round6.py
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round7/29851255c3074802ac1047736a9d9e9a/src/u0/tests/test_round6.py
 ```
 
 Exact output:
@@ -951,7 +1043,7 @@ test_info_done_whitespace (__main__.Round6Tests.test_info_done_whitespace) ... o
 test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 30.602s
+Ran 9 tests in 29.944s
 
 OK
 README unpack command: exit 0; authenticated partial return accepted.
@@ -959,7 +1051,32 @@ Detached fill: success=0, failure=17, duplicate launch refused.
 ```
 
 ```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round6/751d7f0734d3447783f9b391cfd4d0f2/src/u0/tests/test_compare.py
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round7/29851255c3074802ac1047736a9d9e9a/src/u0/tests/test_round7.py
+```
+
+Exact output:
+
+```text
+test_f1_archive_runs_inside_live_namespace_and_survives_it (__main__.Round7Tests.test_f1_archive_runs_inside_live_namespace_and_survives_it) ... ok
+test_f2_fill_wait_missing_token_dead_pid_timeout_and_success (__main__.Round7Tests.test_f2_fill_wait_missing_token_dead_pid_timeout_and_success) ... ok
+test_f3_exact_sxm_name_and_132_sms (__main__.Round7Tests.test_f3_exact_sxm_name_and_132_sms) ... ok
+test_info_export_bytes_bound_to_cpu_inputs_before_gpu (__main__.Round7Tests.test_info_export_bytes_bound_to_cpu_inputs_before_gpu) ... ok
+test_info_host_paths_allocation_and_input_evidence (__main__.Round7Tests.test_info_host_paths_allocation_and_input_evidence) ... ok
+test_info_receipt_records_and_submit_checks_kit_comparator_sample (__main__.Round7Tests.test_info_receipt_records_and_submit_checks_kit_comparator_sample) ... ok
+test_info_unpack_ignores_python_environment_and_keeps_sibling_import (__main__.Round7Tests.test_info_unpack_ignores_python_environment_and_keeps_sibling_import) ... ok
+test_rebind_default400_and_explicit600 (__main__.Round7Tests.test_rebind_default400_and_explicit600) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 8.637s
+
+OK
+Live namespace tar: regular file and dereferenced link preserved; archive survives namespace loss; duplicate and OFF guarded.
+Fill wait: missing token, dead worker, deadline and exit 17 refuse; exit 0 passes; production maximum 14400 seconds.
+Default step-400 artifact is pinned; explicit step-600 passes; default-on-600 and wrong artifact refuse.
+```
+
+```bash
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py /scratch/jjyeung/orch_n30/so_read/work/apply-round7/29851255c3074802ac1047736a9d9e9a/src/u0/tests/test_compare.py
 ```
 
 Exact output:
@@ -976,7 +1093,7 @@ test_telemetry_different_exact_trace_passes (__main__.CompareTests.test_telemetr
 test_tokens_calls_heads_and_finish_each_detected (__main__.CompareTests.test_tokens_calls_heads_and_finish_each_detected) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 0.301s
+Ran 9 tests in 0.306s
 
 OK
 ```
@@ -1074,7 +1191,7 @@ Traceback (most recent call last):
 AssertionError: 1 != 0
 
 ----------------------------------------------------------------------
-Ran 8 tests in 0.018s
+Ran 8 tests in 0.016s
 
 FAILED (failures=8)
 ```
@@ -1142,13 +1259,13 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 67, in test_f1_actual_isolated_script_plain_and_opaque
     self.assertEqual(result.returncode,0,result.stdout+result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/af2e284d2c524a6f9395f9b2a5231138/u0/a8.py", line 65, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/a429414872004e938ba4526cdc5d63e2/u0/a8.py", line 65, in <module>
     raise SystemExit(main())
                      ^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/af2e284d2c524a6f9395f9b2a5231138/u0/a8.py", line 61, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/a429414872004e938ba4526cdc5d63e2/u0/a8.py", line 61, in main
     return launch(rest)
            ^^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/af2e284d2c524a6f9395f9b2a5231138/u0/a4.py", line 2, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/a429414872004e938ba4526cdc5d63e2/u0/a4.py", line 2, in main
     from a8 import source_hash
 ModuleNotFoundError: No module named 'a8'
 
@@ -1160,10 +1277,10 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round2.py", line 67, in test_f1_actual_isolated_script_plain_and_opaque
     self.assertEqual(result.returncode,0,result.stdout+result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/9b748703c78a4990a6a65395fa730abf/u0/a8.py", line 65, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/c41d2b737ba6459794fe46729c0dc801/u0/a8.py", line 65, in <module>
     raise SystemExit(main())
                      ^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/9b748703c78a4990a6a65395fa730abf/u0/a8.py", line 56, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/c41d2b737ba6459794fe46729c0dc801/u0/a8.py", line 56, in main
     from a9 import install_wire_decoder,PublicLog
 ModuleNotFoundError: No module named 'a9'
 
@@ -1264,7 +1381,7 @@ Traceback (most recent call last):
 AssertionError: False is not true : Missing independent root validation
 
 ----------------------------------------------------------------------
-Ran 13 tests in 0.178s
+Ran 13 tests in 0.183s
 
 FAILED (failures=13, errors=1)
 ```
@@ -1328,7 +1445,7 @@ Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round3.py", line 46, in visit
     if isinstance(v,torch.Tensor):self.assertNotIn(id(v),weights,'Per-call weight hashing')
                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: 139877540414880 unexpectedly found in {139877540414880, 139877540415200} : Per-call weight hashing
+AssertionError: 140371491997088 unexpectedly found in {140371491997088, 140371491997408} : Per-call weight hashing
 
 ======================================================================
 FAIL: test_f1_parameter_and_buffer_changes_are_fatal_and_latched (__main__.Round3Tests.test_f1_parameter_and_buffer_changes_are_fatal_and_latched)
@@ -1470,7 +1587,7 @@ Traceback (most recent call last):
 AssertionError: AssertionError not raised
 
 ----------------------------------------------------------------------
-Ran 9 tests in 0.899s
+Ran 9 tests in 0.791s
 
 FAILED (failures=15)
 ```
@@ -1498,7 +1615,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 138, in child
     boot.main();main_job.assert_called_once_with(root)
     ^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/36a60c0f3d0941d29a1ec28e9b72f3c1/0.py", line 44, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/6481c7c6a76a4c55a0fc4331be71c481/0.py", line 44, in main
     job.main(root)
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
     return self._mock_call(*args, **kwargs)
@@ -1511,7 +1628,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
              ^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 122, in run_job
     job.checked_run([sys.executable,'-I','-s','-B',str(root/'a/5.py'),str(cfgpath)])
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/36a60c0f3d0941d29a1ec28e9b72f3c1/0.py", line 18, in dispatch
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/6481c7c6a76a4c55a0fc4331be71c481/0.py", line 18, in dispatch
     return original(argv,*args,**kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
@@ -1526,7 +1643,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 114, in dispatch
     try:operator.main()
         ^^^^^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/36a60c0f3d0941d29a1ec28e9b72f3c1/7.py", line 139, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/6481c7c6a76a4c55a0fc4331be71c481/7.py", line 139, in main
     result=run(cfg['config'],cfg['end'],os.environ['CUDA_VISIBLE_DEVICES'].split(','))
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
@@ -1541,7 +1658,7 @@ AssertionError: 1 != 0 : Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_operator_round3.py", line 113, in <lambda>
     with patch.object(sys,'argv',argv[-2:]),patch.object(operator,'run',side_effect=lambda config,end,cards:actual_operator(config,end,['cpu-fixture'])):
                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/36a60c0f3d0941d29a1ec28e9b72f3c1/7.py", line 87, in run
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/6481c7c6a76a4c55a0fc4331be71c481/7.py", line 87, in run
     result=(runner or execute)(cfg,cards,end,prefix=cfg['prefix'])
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
@@ -1568,7 +1685,7 @@ Traceback (most recent call last):
 AssertionError: 'read_extensions' not found in mappingproxy(OrderedDict({'captures': <Parameter "captures=(84,)">, 'allocation_bytes': <Parameter "allocation_bytes=214748364800">})) : Operator omits read cache memory
 
 ----------------------------------------------------------------------
-Ran 2 tests in 9.691s
+Ran 2 tests in 9.352s
 
 FAILED (failures=2)
 ```
@@ -1629,7 +1746,7 @@ Traceback (most recent call last):
 AssertionError: BlockingIOError not raised
 
 ----------------------------------------------------------------------
-Ran 2 tests in 0.016s
+Ran 2 tests in 0.014s
 
 FAILED (failures=2)
 ```
@@ -1655,7 +1772,7 @@ test_f9_off_builder_guard_and_processor_only (__main__.Round4Tests.test_f9_off_b
 FAIL: test_f1_step600_package_preserves_a4_contract_and_binding (__main__.Round4Tests.test_f1_step600_package_preserves_a4_contract_and_binding)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 289, in test_f1_step600_package_preserves_a4_contract_and_binding
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 292, in test_f1_step600_package_preserves_a4_contract_and_binding
     self.assertEqual(cfg.get(key),old[key],key)
 AssertionError: None != 'candidates_argmax' : stage1_select_rule
 
@@ -1663,16 +1780,16 @@ AssertionError: None != 'candidates_argmax' : stage1_select_rule
 FAIL: test_f2_step600_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_step600_real_job_and_rehearsal_memory)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 332, in test_f2_step600_real_job_and_rehearsal_memory
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 335, in test_f2_step600_real_job_and_rehearsal_memory
     self.assertEqual(result.returncode,0,str(root)+'\n'+result.stdout+result.stderr+logs+'\n'+'\n'.join(p.read_text() for p in (root/'job/sandbox/r').glob('FAILED.json')))
-AssertionError: 1 != 0 : /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/92b5356764844076b676be7c76b460fd
+AssertionError: 1 != 0 : /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/ca2a72dd5ba747b3b71ba47da8432941
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 425, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 428, in <module>
     elif len(sys.argv)>1 and sys.argv[1]=='--control':control_child(Path(sys.argv[2]),Path(sys.argv[3]),sys.argv[4])
                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 273, in control_child
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 276, in control_child
     node.main()
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/92b5356764844076b676be7c76b460fd/built/package/a/5.py", line 147, in main
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/ca2a72dd5ba747b3b71ba47da8432941/built/package/a/5.py", line 147, in main
     raise ValueError('Prepared default settings differ')
 ValueError: Prepared default settings differ
 PASS action 0 rehearsal False
@@ -1683,7 +1800,7 @@ PASS action 0 rehearsal False
 FAIL: test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test_f3_cache_only_return_refuses_unverified_journals) (verified=False)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 401, in test_f3_cache_only_return_refuses_unverified_journals
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 404, in test_f3_cache_only_return_refuses_unverified_journals
     with self.subTest(verified=value),self.assertRaisesRegex(ValueError,'Unverified weight journal'):validate()
                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -1692,7 +1809,7 @@ AssertionError: ValueError not raised
 FAIL: test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test_f3_cache_only_return_refuses_unverified_journals) (verified=None)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 401, in test_f3_cache_only_return_refuses_unverified_journals
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 404, in test_f3_cache_only_return_refuses_unverified_journals
     with self.subTest(verified=value),self.assertRaisesRegex(ValueError,'Unverified weight journal'):validate()
                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -1701,7 +1818,7 @@ AssertionError: ValueError not raised
 FAIL: test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test_f3_cache_only_return_refuses_unverified_journals) (verified=0)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 401, in test_f3_cache_only_return_refuses_unverified_journals
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 404, in test_f3_cache_only_return_refuses_unverified_journals
     with self.subTest(verified=value),self.assertRaisesRegex(ValueError,'Unverified weight journal'):validate()
                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -1710,7 +1827,7 @@ AssertionError: ValueError not raised
 FAIL: test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test_f3_cache_only_return_refuses_unverified_journals) (verified=1)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 401, in test_f3_cache_only_return_refuses_unverified_journals
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 404, in test_f3_cache_only_return_refuses_unverified_journals
     with self.subTest(verified=value),self.assertRaisesRegex(ValueError,'Unverified weight journal'):validate()
                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -1719,13 +1836,13 @@ AssertionError: ValueError not raised
 FAIL: test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test_f3_cache_only_return_refuses_unverified_journals) (verified='true')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 401, in test_f3_cache_only_return_refuses_unverified_journals
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 404, in test_f3_cache_only_return_refuses_unverified_journals
     with self.subTest(verified=value),self.assertRaisesRegex(ValueError,'Unverified weight journal'):validate()
                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
 
 ----------------------------------------------------------------------
-Ran 4 tests in 11.365s
+Ran 4 tests in 9.906s
 
 FAILED (failures=7, skipped=1)
 ```
@@ -1756,7 +1873,7 @@ FAIL: test_f1_batch_wrapper_and_real_bundle_guard (__main__.Round5Tests.test_f1_
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round5.py", line 63, in test_f1_batch_wrapper_and_real_bundle_guard
     self.assertIn('#SBATCH --exclude=orchard-community-2\n',batch)
-AssertionError: '#SBATCH --exclude=orchard-community-2\n' not found in "#!/bin/bash\nset -euo pipefail\nexec /usr/bin/python3 -I -s -B - <<'A'\nimport hashlib,io,json,os,sys,tarfile\nfrom pathlib import Path,PurePosixPath\nj=os.environ.get('SLURM_JOB_ID','')\nif not j.isdigit():raise ValueError('Allocation required')\nb=bytes.fromhex('1f8b08000000000002ffed5ae96fdb4616cf67fd15acfb81a43ca1255197e5b2409ab8db2c9a03715260210804458e24c614c9e5503e1ae47fdff7de0c0f51b2e345d12e16e5c09644cecc9b37effccdd1b33e8b247ef6a7961e9471af47dfbdc3ef9e3d9c94bfe5fbf164623fd37acffe82b213b997c190cffe9ee54b47d34e52ef3e4abcc05ddee75c9cccb4913d1ef7ce6d56af131b6f301a43e509e7c3516f3cf047237f6cf3e970706e4fecf130584ea7c3e9747c6e4feda06ff7ecb16d4f57038f8f46bde160e88f569cf7bcc924389174232fae11f53c1ef479609ffb13dfe7fe24383fb7c7fe6a3a982ecffb3e1f4fa7fd89eddbe7e3e53008ce6d3b9840e3e58a4f82be373a1ff525d13cb9e631915bf6fa037b381a4fa6e7279daf9d676d79c037adf4fe4f1fe371ff1f0efbe3a6ff0f47adffff25e5e4e4e47dc605cf6eb8966649b0f3f33089352fd88642c02fa6817cd661bc669a174589ef51f532d9c581805771a041ef5d94c357becb620be875c26d9a64b9b6f1c4260a970c130c0321afc28833712f3aab2cd96aa99763ada61abf87c74ea713f095b6f5aeb91b84025af81b234b929c69491602135e04bf529e797992a9d861ce3a1ad14b327fe36581bbe9f72c3fd96e814b451a1a7634245cd2f4b2f50debc2a760ddeef52dfe403adaf7dabb38ba87a94070f2b9966fe03f499f47fc8647f5e9178478760142e3a997c9f7288edb24bbe69940b1dd6b6918c73cb08074b8d2221ed3c8e68fce809ae2c3fcf960b6709cb9c8339aea99ee9d8dc0277593d55ff5294debe602d9d4fcd5dac1670b23b3300e5a591987889df3bbdc304dece009d0708efde6ba471ad661d0bea235d7fd245e856b7d31d71be285668d37d8e770c0db2cccb91c91180b76db5418405b8e0fb387deaadb84a6f75d9330cd4ccbbc5070ed372fdaf1cb2c4b3243ff094c2de241a9780df41cafe185b7ca798672cef25daacb7982449d7997043b7b3e58d464387944a8d0559a6f6967474da453b42af45f1a6c181b684048d8414b36c0cc2de2a2bf302fd2dd320afd231aeb1dd717c823e38124a49f81577ee67e7e8646bd8bc3fcfeecf3e77bbe8bd767c9f566a29b6786eef547ae9fe4ae97eaa772b0b94ea9505f0039a57ce58e9694b661c85190897cfd7bc103210060c2daf0bb205c73011c394e41731f0be820b7db30df68cab72dd050dc240ba3633d2a7705badb6a615c3ca355c449ae6dadd8db728b142990a0a1d79cf94c3767609e7918eff85ea750e0a086093ad374cbd29132894cd233ad14e9cd0e0dea532cbc15d7fc24e0d26a5247aa23d5cf64df8b143bf338b7b6d7419819f241381fb31d67fc2e14b99b5cd3132857d9be941cccc1023566e064c4dd56ca55aa156c02a39e15c6a810a3573346b05ff330901511ec73b27c5a946bb894d374ba0ec6f864b5678a85c2bc33ffece5fb4fc74d5249dda0ee6808605381bed042a1a118289c519db5e6b9a12fc967ddf50e79558dcd871a8368b37b57f07fef78ecf3479a970688c1eb619b2c4abd1f80cdbd4e15f88449d41a8671bacb053645d155a22942c551ea8731f358d06c749373dff26d92ddebeccb575349ce13a180c93b8ea6afc23b1eb86b3b472a2917fad1d1158985ec0fe3fa3cc508ef6285bb85941e714571ae03b10744b44f46785be8ef895dc6b7a01f3703ed8459a1969fbd48f027505985b9a814691ef1c59f7751a481d54150e7fe3504d6d50a9227ca196cdea29720826c173b475041a3096b42034984a233b637215c831dbb2ebab8eb3a8eeeba58e9bafa4c86f0bfe13261f23fc7fffdc9706c1fe0ff49afc5ff7f11fe7f5700abc2bb2853e7b709386e127939478c0fa982923d24d924e635305c47fc84f421cdb13cdc72a600c72370ffc3a75f2faf1c43f7218284018c245c004d5bef4e6766e7e5bb4f6f3f426d7fd463f57f1b1cfbeae52f97afa0b3634016b54d069f3dfaecd3e7803e8790b8089f055cf85998c21405a472ffda5b73426b12cccd83d0cf01ef6d1dc04cb73cd319c44c2e9cb91ec34c75c490d0a10f092a0218068126e2ce318e8577c3dde436760388bf1b876224ab82249546747674c829ec8190eda8687d507fc3b37075ef860134593447c8ef53ec6a3390051bb0e102f04a0a7c039e1c83e4165222827b00a95d422e06aa86dd60507ec2628aba101e20284360080023e5801aaaa0ca3a84f8cea1118ea4800fd04a0b03c832806deb19e0803bc9bb5c707143ae599ec0f2bb0faf2e3f30d0581287be177534c8b15ca26b490332f82e87bc0f68f942f01ca0e65ad421d25ed3a201343ec448b2914c7e09a9cc8b74f328062dd4a215ed34c21e7a0103f980bb489f6756c3004ac4a73841884d8651bce8ec3f1ac50f566471095d89e3a20e267660e6008d10f481cb93a31e99c62ebe8ed1e48ff445c00b33144eddfb0a212a2f4481179a77c80d11983965ab3a4a63129a9595f2b1aa463f68c2df52bd4d8006d69081fbf419053687186502b0047a9e53441798c2f7da3fafdebd85851d00da1c66a1adc31b0e12c765e732e25a04e68ffb05b88512e7721700a3276e8a6cb9443502d6ffe52c6b66555b2817d5261a60cd35d152cf0054e51ec41aefecf5abcbb71f5f7ffc9704a3acecd55186279c2f5f3b347ec8704ea83a1e0323307b6ed02c699f83d6a90dda2409fd0c972421c25c7f93c0949c2fdd6e693ec74c6486548f1b0fb4df0b89faec202676bb5fae2585eb05f17d8d2c1fa0589de90f07c1239525e8fd0ae2a040a55678e56cd5cafbe23010ca79a304f6ea1afd3f5cbe78e536d44106dced165a21db7240114a7ca5511681c85043d1168952e03c5ca0c8e5132be2d2ac58289aac8a3ff41259360b894256028373b1a1ac952aa6b785664da681b292d4c5e569bd5539b5ab8fefdeeb154d0183c1524e6e6be9335a02eb902d8181b94a98a0694a99f846e54c9df210bca0e03bcfa5762996488391f58b4535ce7f675b553798cb16727018ebb3feb4d763baccebd5cb01bcec76f743a212fdd74e09039402648ec9f8867b99401d3d9c6560c911f3ac88c6b84791251193824254209e96992ae76d64b60bb9b30a49bef0697fb54609aaf616d8e556d0c693963b44cb0ae380df19b4a7a7243cef2d947d217bb425d7a18d32e1d45835c878256107da30ecede48ce839bd325e92b8bd1c7eadc238141b7779ef0cc880d52e13129be38762457ffe9c8cc53cedc3b25819cca3cda529a9f6644e8f3697d354cd996e7d4e60255717c0e3cce1849e932f4812e810c7a1c1818b54749b58e1d83885dbe230fbc8e1b8853b0e255d08085530fe63e354fc4a72f383308b228448f6cd86f5e80b7d1ecff03083c709d0ee2b5abae5a5298f03698b2a7a4a3c5bd72723dba59dd912ac493ef7a12e65efcb3b1818510b8720a84901e37a0644ace51b48ebeb0d6df3c3689146c6a989c4bfe6b9dcd914f96ea9ddf270bdc9318b933be31e2ce0fedcda42c3c293e576b06c407c161557f01df1b7de96c3daca47e42cdfe718150ea05e09edc820308344d2f789e1128881c4b6d09c22039d6c802fe646b2fccc029ec30c1944af80ad7902169b4122a2254bbc8ba262b1423143830e16d5e1c7053e613f073fe82908bd759c883cf411585ce090858aa01aed89da37a668a0e45c1ccd89bced32f0b4ae37a3e95a398f05c0c679df62038bf57b3d6b416649b226115a4018266048015857f8f52e868ce3ba3847d705d403df26db6b8d7262fa4754df3fec8f3a531980560dce5b0821aabda1d75075211e6b95e17e900f102f6f74b5075250f2094741878adcca9a0da40e52bf097d5c15a6bb6f2fe784b7b55d323547b16f32699800504b051c5b75e28759f2634943951cd0242bbf455541e097daa57e877592b274b63b472ae8779e25c218b0d1d464b84be6e8602b269d14a934293d5565c95dacfc9d814dc81cc1645624a9333f02161ddc0cb0f0e30959149e7039c3efb8bfc375e69357a378b8460cc04ab38f4702b872a11730d7a3ab4e5a0ac1489e9f47f772534388701d4378c07ebaf9adc48ccbef8b951746bb4c5a994ad304617b8c4c07d7842804c3fcd101193d478482dc3d35c7940becd9122cefba23cffe2ab058c64ec7508204e24a7a26a641a515d40fcc6215dec9582a7fcbe4a866f3c4e8dbedcaf6e4b8e14af59eeb4a10b06654c22f2a4063101e72a8215f2a0476d0ef42cd502ec92ad013933c41a018d4995abfdc428b4c4646ac5653207ee63a52c0bc2453a71a3e7060456664153f787c5111008a521630f831495464ca5f55ba89cbeaaad671623af4d96d0188aad5ed1379411eccbd64d6dce52987f3a2a84ee7089942deea5bad78e913c2ce7a4b075b4a7ee5a6cb43d679f5e9cd9b171f8a058f9a5b752eaa5ea853513a0a70e9aa80d165e0542934027332a64366d6af13c8b33307707ab7df1b0cbb5d9b11f72ee016c818d042a8ed34f95a2e7364a71e1a843a9d6af4991d36a6a668c946b38e4e29e46e475e5870ef07a7d9ec07a73f2e98244b3c082caf6388cea1dc32d5a8a79284bc34a1132cf9194f7634c855129743089a691e846648b6da78a8a58066c824695bcdc6db028070326d9d0160b2b44bc4231af183c452042db09ef432a07683770f9609e4d31500c55c11938410e8ac4003aa0ee822414dea17f10d2428c7180fbbe7a7e3e1a93d80bfeea84f7fa7a3fee9c0ec4e3b389aab54e940fb53298c41074337067917f57a0b0c7307282951955ebde7528541c48c12a5d451dcad8dd0b07b6a96463be182cc40c97832257b19f1a96d3ed213f02134dd056bfe608fd383099c1e1a492d24551b2bc544f02241794300e6496779cee131de3721c23eeff22cae14508f3d7438a79c0447522cc92eee0ee25986da6a504eeff30df08046b3294fffddba8695765925ef82b29fa421706337481e0851717df01e4fef5ca9166ad00c077b816a7f8c6ed7f8a23775a31fb8fb57999ef66282c64142da97af6683249e5416c1f4c056f4c50f07ec35e3acd9d98b7a69962ceb5bd42727272fe984532e36722f8c5500a0a8400818fc50c3c51dac683002490de3c3d58b3774caf24434f4c7b6b0ab0de18776d516df15867afc7205581b7053bfb143bbd6e5a65c476d79cbddcac6ae79435fd5e931dd20696c8c571a2f77612af533bc4b024f024180973ab5aa7247dcc4e171c94b1b53aa7d556b11d0c6e30d321b481f25eb6520ab2729da1c3bc83a3038a5488269fb59b1abc87d33f196b0f0cde59b7765025648ac960015a6c273f763da795faa54ea84dff99c0782c26391a6e8ae847900f8f76f3a356ea01ddc79dab3ab8b549db6acf63606aa1b31f3596f21afc0a567fa52ddd2829f79c679f184c1156da57e5ded092673fcd20dd0def5e8ca8db4296f5a1810de8ebbf1725a2fa99f068f71afbf3c35f98617c24039440b0c013e17425e82e91c7f7d547022896eb861aa2b486631ed62b26a6752aee19f1611f68cab71dfafb2b10f97bf5cbef870f5e2d7d2baca4dd07a9f02f81fd1844a4aaeba0562cef6a3e11e95f2ce5db9259288d24b6865596fcee8094039fc4c84c5e39b304be2b9fef2d3ab17ee6fafaf5efff4eba5fbeaf2b7d72f2faf801b914621f0c348c5d20daeee45ceb79777f0be7f7cdd227ddc6c2f89b4a52d6d694b5bdad296b6b4a52d6d694b5bdad296b6b4a52d6d694b5bdad296b6b4a52d6d694b5bfeffca7f002a07d30500500000')\nr=Path('/tmp')/('a'+j+'ab0123456789')\nr.mkdir(mode=0o700)\nwith tarfile.open(fileobj=io.BytesIO(b)) as a:\n    for e in a:\n        n=PurePosixPath(e.name)\n        if n.is_absolute() or '..' in n.parts or not e.isfile():raise ValueError('Unsafe input')\n        p=r/e.name;p.parent.mkdir(parents=True,exist_ok=True)\n        with a.extractfile(e) as i,p.open('xb') as o:o.write(i.read())\nos.chdir(r)\nos.execv(sys.executable,[sys.executable,'-I','-s','-B',str(r/'0.py'),str(r)])\nA\n"
+AssertionError: '#SBATCH --exclude=orchard-community-2\n' not found in "#!/bin/bash\nset -euo pipefail\nexec /usr/bin/python3 -I -s -B - <<'A'\nimport hashlib,io,json,os,sys,tarfile\nfrom pathlib import Path,PurePosixPath\nj=os.environ.get('SLURM_JOB_ID','')\nif not j.isdigit():raise ValueError('Allocation required')\nb=bytes.fromhex('1f8b08000000000002ffed5ae96fdb4616cf67fd15acfb81a43ca1a9c3922d9705d2c4dd66d11c8893020b412046e448624c915c0ee5a341fef77defcdf010253b5e14ed62510d125ae4ccbc79f3cedf1caef359a6c9b33fb5b85046ae4b7fddddbfee6038ae7eabefa3f178f0cc709ffd0565230b9ec390cffe9ee54bc7308e327e1fa73cf4e7f785904713e374303a3f1b8d59b34eae78ff74049547e3f3333e9f0783fe80bb61af1f04e7ee78713a10bdf3452f1c9f05a7433ee6e3f385180ccffabc370f5d310e43310c837e7f7e361e1d29ba314f1a44c5e9d9409cf5463df77c18f24178da1f9dbba7bdd13c14e1201c2c7a231ecc83fec00d8783053c46e3fe9043cbf3e162b180a7225aa4d72241727ceef6fa83e1e9687c767ed4f9da7976280ff8a693ddffe9633ceeffc3616fd4f6ffe1e9c1ffff92727474f43e1752e437c2c8f234dc04459426060fd79194f08b19209f65942c99c1e3380d3855cfd34d124af8948406f4dec405fc293679e200bd4eb4ced2bc30565caee268ce30c13010f2228a0593f7b2b3c8d3b591f1026b0dddf83dbc763a9d502c8c35bf167e18496811acac3c4d0b66a479044cf0187e6522e7459aebd8614f3a06d14bf360c5f3d05ff55c2748d76be0529386861d0309573479bebc615d784ad6ed5edfe20fa4637c6fbc4be27b980a04a74018c50afea7d9f358dc88b839fd9290c82f406822e3b9fa8ee2b84df36b914b14dbbd91454922420748470b2316098d6cffe8f5a929be4c9ff72733cf9bca22a7a99e98fce4147cd2b459f3538fd2b469cf904d23582c3d7c7730324b6ba795930b88d885b82b2cdbc60e5c82860bec37353969d884417b9ad6d40cd264112dcdd9d46c89179ab5be609fdd016ff3a8106a44622cdcac3369016d353ecc1e7aeb6e639ade776dc2343323e79114c66f3cde88cb3c4f73cbfc094c2d1661a57803f49c2ce1035f14224739e7c52633d53c41a2deb44b829d3cefcf1a321c3f2254e8aaccb7b2b3bd26d2295b95faaf0c364a2c342024eca1255b60e60e71d19bd917d9661e47c11e8db9fbf505f2c845a8089927e0959f45509ca0516f92a8b83ff9fcf95e6c92e5497abd1a9bf68965f2dea91fa485cf33f3580d363529159a3320a795afddd151d2b62c350a32512c7f2f792004004c382b7117464b218123cf2b696e630113e4761b152b43fbb6031a4ada646174ac47e52e40776b234aca77b48a242d8cb593f0b570489112095a66c3994f4c7b02e65944c9466c758a240e6ad9a033c3741c132993c8143ddbc990de64d7a03e25922f8411a4a1505693794a1d9979a2fa5e64d8592485b3be0ea3dc522fd2fb986f041377912cfcf49ade40b9daf695e4600e0ea831072723eed64aae4aad601318f59c284185586ec318c17eeddd405646b0cfe9fc6951aee5525edbe93a18e3d3c59629960ae327c1c9cbf79ff69ba496ba45ddd110c0a642736644d240315038a33a67290acb9c93cffacb0df2aa1bdb0f3506d1e6f7be14ffde8824108f34af0c1083d7c3365996663f009b5b9d6af0099368348c926c53486c8aa2ab4553868abdd47763e6bea0d9eaa6e6be16eb34bf37d997afb6961c979184c97b9e612ea23b11facb4181543221cdbda36b1233d51fc60d448611dec70a7f0d293d169ae2d404620f88689b8ce46be8cfe526176bd08f9f8376a2bc54cbcf3c96e209541651216b45da7b7cf1e74d1c1b607510d445700d8175b180e48972069b77e8238820df24de1e54d06ac2dad04011a1e88ced6d08d760c7be8f2eeefb9e67fa3e56fabe395121fc6fb84c18ffcff17f6f3c1c0d76f0ffd83de0ffbf08ffbf2b8155e95d94a98bdb141c378d792110e343aaa0640f49364d44030c37113f217d4873ac88d68269c0f108dcfff0e9d7cb2bcf32038820510823491f40d39adf99cceebc7cf7e9ed47a8ed9dbaacf97f008e7df5f297cb57d0d9b3208b0e6c064f979e3d7af6e93984c445f82c1432c8a30ca628219507d77c2908ad2930370da3a000bcb7f60033dd8adc64103385f4a666023335114342871e24a8186018049a5878fb3896fc46f8e96de287107f571ec5485607492aade8ec999053d80321dbd3d17aa7fe46e4d1e2de8f4268326b8f50dc67d875c04016accf8633c02b19f00d787204929b298948c10152fb845c2c540dbbc1a0fc84c51475213c405086c0100046ca010d5441954d08f19d4723ec49011fa0951185906500db3633c00e778a77b5e012965ab33c81e5771f5e5d7e60a0b13489021e770cc8b142a16b450332f8a680bc0f68f9428a02a0e6523621d256d3b20134dec548aa914a7e29a98cc7a6bd1783966a31ca7606610fb38481a22f7ca42f72a7650015e2d39c20c426c3283f74b65fadf2072bb3b882aec471590713db3173804608fac0e5c951f74c63935c2768f27bfa22e085194aafe97da510b517a2c04bcd7be48608ccbcaa5513a53105cdaa4af55a57a31fb4e16fa5de3640036bc8c17d7a8c029b478c320958023dcf2ba30b4ce17be39f57efdec2c20e006d01b33096d18d0089e3b2731e0b2306f3c7fd02dc42490ab50b80d1133745d642a11a09ebff6a960db36a2c94cb6a1b0db0e19a68a92700aa0a0eb1869fbc7e75f9f6e3eb8fff52609455bd3adaf0a4f7e56b87c68f18ce095527126004662f2c9a25ed73d03ab5459b24619ee0922442981bac529892f7a5dbadcc679f894c90ea7ee381f65b21d19cecc4c46ef7cbb5a2703d23beaf91e51d146b32f3e120b8a7b202bd5f411c14a8f40aaf9aad5e795fec0642356f94c0565dabff87cb17affc963ac880bbdd522b645b1e28428baf32ca3210597a28da22d10a9c463314b97a63655c9a940b459bd5f1873e22cb762951c84a60703e3654b54ac5f4b5d4accd0c50569af9b83c6db6aaa676f5f1dd7bb3a629613058caa96d2d73424b6013b2253030d50913344d2913bfe89c69521e820f147ca785d22ec5126530aa7e36abc7f9ef6cabee067359430e8e1273d23b735d66aabc5e7fecc3c76e773b246ad17fed5430402b40e5985cac04cf25eae8e12c034b8e44e46534c63d8a3c8d991214a202f9b4cc543b6f2bb35da89d5548f2a54f078b254a50b777c02ed792369e8cc2235a4e9484e2cea23d3d2de1a93bd3f685ecd1965c8736caa4d760d522e355843d68c3b0b75730a2e7b955bc2471f3027e2da224922b7f7eeff5c980f52e13129be243b3623e7f4ec6621ff76059ac0de6d1e6ca94747b32a7479bab69eae6cc743ea7b0926b0ae071e67042cfc91714097488fdd060c7456aba6dacb06f9cd26d71986de4b0dfc23d8f922e04843a18ffb1716a7e15b9e94e9845114224fb66c366f4853e8f677898c1e30468f7152ddde159269250d9a28e9e0acf36f5c9c8766967b6026b8acf6da84bd9fbf20e0646d42220081a4ac0b89e01111bc50ad2fa7245dbfc305a6c90711a320dae45a1763665b1991bb7225aae0acce2e4ceb8070bb8bf70d6d0b0f464b51dac1a109f65c515fc8dc55bbe16b0b60a1039abef0546851da857413b3208cc20b1f27d62b8026220b13534a7c840271be08b8595ce3fb35014304306d12b644b9182c5e6908868c9926ce2b85cac50cc30a0834375f8b8c037ece7e183dec2882f9354165180c0e202872c5504d5684fd4be35450b25e7e3685eccd7f3901b5d3ea1e93a854824c0c669cf617d87f55cd799915992ac49840e108609584a00ce15fe799740c6f17d9ca3ef03ea81bf36db6a8d7262e64754df3f061f4da63300ad1abcb71042747bcb6ca0ea523cce22c7fda000205ed1ea3ae82b41a9371c051d2af66b6bb6903a48fd260a7055986dbebd9c937c3df0c9d43ccdbecd94610240ad14b06fd5890fbbe2c75186aa38a049d67e8baa82c0afb44bfd76eb1465e56c779e52d0ef224fa5d567a76736c35d32cf045bb1e9a448a749e5a93a4b6e12edef0c6c42e508a6b222499d0531b0e8e16680838f27645178c3e58cb813c106d7994f5e8de2e11a31002bcd1e1e09e0ca853ec05cf7ae3a69290423f1a088efd5a68694d13281f080fd4cfb5b891997df170b1ec59b5c59994ed304615d46a6836b42148265ffe8818c9e234241ee9e9a63aa05f6640e9677dd51677f3558ac62a767694102712d3d1bd3a0d60aea0766b188ee542c55bf5572d4b37962f4ed76557b72dc68a17b4f4d2d0858336ae19715a031080f05d4902f9502dbe977a167a8966435e849489e20500cea4caf5f6ea145ae222356eb29103f531329605e52a9530f1f7ab022b3f29a1f3cbea8090045250b187c9f246a32d5af3add2455755deb79091dfa6cd60044f5eaf689bc200ff656326beff254c3f1386ed2d943a694b7feab57bcf484b0b35cd3c196965fb5e9f290755e7d7af3e6c58772c1a3e7569f8bea0ffa54948e027cba2a6075193855068dc09cacb321b39bd709d4d9990738bddb73fbc36e77c0887b1f700b640c6821f5769afaac9639aa938b06a14fa75a7d26bb8da9295ab2d5aea3530ab5db519416ecfee0b59bfde0f546259364893b81e57502d139525ba606f5d4925097264c82253fe3c98e01b94ae17208411383436886646b8c86460668864c92b6d506785b00104e6e2c73004c8e718978c4207e905886a005d6933c076a3778f7609e423e5d00502c3431450881ce0234a0eb802e1234947e11df4082f2acd1b07b7e3c1a1e0ffaf0af7bdaa37fc7a7bde3bedd3debe068be56a507ed8f9530fa1d0cdd18e47dd4eb2d302c3ca0a4455579f5964b950691304a944a4749b73142cbeea959166fa40f320325e3c994ea6525c703fb919e800fa1e9265c8a077b1cef4ce078d7481a21a9de582927821709aa1b02304f3acbf3768ff1be0911b67957677195805cf6d0e19c76121c49b3a4baf81b8867396aab4539bb2f56c0031acdaa3afdf79b1ad6da65b5bc4bca419a45c0cda0457247889aeb9def787ae72bb550837638d80a54db6374bbd617b3ad1b73c7ddbfaaf4b415130c011232be7cb55b24f1a4b20ca63bb662ce7ed861af1d67edce56d4cbf274dedca23e3a3a7a49279c6ab151f028d10180a2022160f043031777b0a2c108a4348c2f572fded029cb13d1d01fdbc2ae37841fda559b7d571aeafecb15606dc04df3c60eed5a579b721dbde5ad762b5bbbe62d7dd5a7c77483a4b5315e6bbcda85a9d5cff02e09bc4904013cf31a55d58eb88dc3e3929736a674fbbad621a08dc71b6436903e2ad6ab40d64c52b439b6937560704a9104d3b6b3625793fb66e2ad60e19bcb37efaa04ac915823016a4c85e7eefbb4f3be52a9d289b80b84082585c7324dd15d097b07f06fdf746add40dbb9f3b4655717993e6d596c6d0cd43762a61377a6aec06527e65cdfd2829f452e44f986c1156da5795ded0926b3ffd20dd0deb874e546d9143f2b0d086fc7ddf082d64bfaa72512dcebaf4e4dbee185305001d102434020a45497603afb3fef159c4ce31b61d9fa0a925d4ebb9cacde99546bf8a745842de36addf7ab6decc3e52f972f3e5cbdf8b5b2ae6a13b4d9a704fe7b34a19392af6f81d893ed68b845a5ba73576d89a4b2f2125a59369b337a03500e3f53e988e426cad3646abefcf4ea85ffdbebabd73ffd7ae9bfbafcedf5cbcb2be046667104fc3052b17283ab7b5988f5e51d7cefed5fb7281fb70f97440ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5500ee5ffaffc07c53c59f200500000')\nr=Path('/tmp')/('a'+j+'ab0123456789')\nr.mkdir(mode=0o700)\nwith tarfile.open(fileobj=io.BytesIO(b)) as a:\n    for e in a:\n        n=PurePosixPath(e.name)\n        if n.is_absolute() or '..' in n.parts or not e.isfile():raise ValueError('Unsafe input')\n        p=r/e.name;p.parent.mkdir(parents=True,exist_ok=True)\n        with a.extractfile(e) as i,p.open('xb') as o:o.write(i.read())\nos.chdir(r)\nos.execv(sys.executable,[sys.executable,'-I','-s','-B',str(r/'0.py'),str(r)])\nA\n"
 
 ======================================================================
 FAIL: test_f2_pins_refuse_before_copy (__main__.Round5Tests.test_f2_pins_refuse_before_copy) (operator='tower_sequence.py')
@@ -1871,7 +1988,7 @@ Traceback (most recent call last):
 AssertionError: 'refused unpack leaves' not found in 'verdict: done the round-4 fixes pass cpu verification; adopt only after the gpu byte gate.\n\nmeasured: **95 workspace tests and 14 fresh-application tests pass**. five patches apply exactly; original reader files and complete off output bytes remain unchanged. the backup is out_round4/. the cpu fixture completes 636 synthetic reads with five verified ordinary journals through real a4 preparation, rehearsal, bootstrap and job.main.\n\nmeasured existing distance time is **23.60 s/item**. estimated 580-item elapsed time, crediting no cache saving, is **3 h 50 min** on one card. ideal two/four-shard estimates are **1 h 56 min / 59 min**, excluding staging, queues, preemption and scene imbalance; they require an undelivered multi-card operator. measured cpu guard/cache overhead on a 268m-parameter bf16 stub is **25.9 ms/call**. this is not a gpu saving.\n\n## review round 4: finding -> fix -> test\n\n| finding | fix and test |\n|---|---|\n| 1. incomplete step-600 package | a19 uses a4 build_r1-style post-processing, preserving 8.py, run keys and admission. it requires the reviewed target export/whole-archive binding and seals the fill helper. wrong binding/receipt checks fail; the documented old build fails before. |\n| 2. adoption profile not exercised | real job.main constructs actions 0/1 from packaged 9.json. real 7.py rehearsal produces memory.json with 12 gib cache allowance. stub workers produce five verified ordinary journals. the old cpu-proof helper fails the allowance test. |\n| 3. unchecked cache-only return | on unpack rejects non-true weights receipts. invalid-value regressions fail before/pass after; real authenticated partial-return unpack rejects an unchecked journal. |\n| 9. readme nits | commands use explicit delivery/source roots; kit pin is a4-only; readme states what bootstrap admission actually checks. |\n\n**step 600: one card, caches only, general/no-requeue.** apply 01–03 to a full a4/src copy and 04–05 to an a4 operator copy. define the local roots using [readme](kit_parity50/readme.md), then build:\n\n```bash\ncuda_visible_devices= nice -n 10 "$read_python" -i -s -b "$ext_source/u0/a19.py" \\\n  --enable-extensions --base-operator "$local/a4" --source-root "$ext_source" \\\n  --export-binding "$step600_binding" --token "$package_token" --out "$local/step600"\n```\n\nthe required binding includes target run/step/object/preparation identities and archive_bytes/archive_sha256. the cpu task has no real step-600 export; its test binding is synthetic. the generic a12 operator build is refused. add --processor-only for the 4 gib processor cache; otherwise the cache allowance is 12 gib. both disable atomic journals and sharding. a4\'s fixed schedule remains 636 items; changing it requires a separately reviewed operator/proof.\n\nuse the generated fill helper, regenerate cpu proof through package/a/5.py, and retain the generated tower_sequence.py beside unpack_return.py. exact fill/proof commands are in readme. require read_cache_bytes in memory/cpu.json, along with payload/plan/inputs/operator binding and fits=true. the unchanged 0.py admission does not independently require that field. cache-only returns retain ordinary journals; on unpack refuses unchecked weights even on partial returns.\n\nbefore adoption, require **zero answer/trace byte differences**, useful cache hits, net worker_wall_seconds savings, and full-process host/gpu/envelope headroom. on\'s eager sam construction and boundary hashing need the gpu gate. the sample overstates reuse. keep models frozen; persistent raw writes fail at boundaries, while restored-between-boundary writes are unsupported. hard kills can require fresh journals. validate persistent-storage requeue before any preempt/sharded use. stage source trees as archives and run the kit with --public. no launch ran; preserve step-400 deliveries.\n\nexact commands, outputs, citations and limits: [report](report.md). patch/base pins: [manifest](patches/manifest.json).\n'
 
 ----------------------------------------------------------------------
-Ran 7 tests in 5.106s
+Ran 7 tests in 4.994s
 
 FAILED (failures=11)
 ```
@@ -1923,10 +2040,10 @@ test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_i
 FAIL: test_f1_readme_unpack_subprocess (__main__.Round6Tests.test_f1_readme_unpack_subprocess)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 102, in test_f1_readme_unpack_subprocess
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 116, in test_f1_readme_unpack_subprocess
     self.assertEqual(result.returncode,0,result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/ea3587775273481bac24d663b7f2e2df/step600/unpack_return.py", line 3, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/f92badda14ac4809b4b1942584bf22e7/step600/unpack_return.py", line 3, in <module>
     from fetch_return import digest as file_digest, validate_exit
 ModuleNotFoundError: No module named 'fetch_return'
 
@@ -1935,7 +2052,7 @@ ModuleNotFoundError: No module named 'fetch_return'
 FAIL: test_f2_detached_locked_fill_exit_success_and_failure (__main__.Round6Tests.test_f2_detached_locked_fill_exit_success_and_failure)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 114, in test_f2_detached_locked_fill_exit_success_and_failure
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 128, in test_f2_detached_locked_fill_exit_success_and_failure
     self.assertIn('nohup bash',text,'Pull/fill still runs in the foreground')
 AssertionError: 'nohup bash' not found in '#!/bin/bash\nset -euo pipefail\numask 077\nD=$(cd -- "$(dirname -- "$0")" && pwd)\nP=/project/community/jjyeung/okh7/a15_cot_apab0123456789\nexport TZ=UTC CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud CLOUDSDK_CORE_DISABLE_PROMPTS=1\nE=$P/a/e\ntest ! -e "$E"\nmkdir -m 700 "$E"\nOBJECT=q8/8865619b/673bc60f_m600.tar\ncp /project/community/jjyeung/okh7/abcdef/5 "$E/5"\ntest "$(cat "$E/5")" = \'q8/8865619b/673bc60f_m600.tar 4 2222222222222222222222222222222222222222222222222222222222222222\'\ncp /project/community/jjyeung/okh7/abcdef/7 "$E/7"\ntest "$(sha256sum "$E/7" | cut -d\' \' -f1)" = 3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1\ncp /project/community/jjyeung/okh7/abcdef/8 "$E/8"\ntest "$(sha256sum "$E/8" | cut -d\' \' -f1)" = 4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915\ncp /project/community/jjyeung/okh7/abcdef/9 "$E/9"\ntest "$(sha256sum "$E/9" | cut -d\' \' -f1)" = 7f654d2f0ae9f06083f2fc8fd793512c154b4d01ce8632fb733d4191205af770\nfor i in 0 1 2 3; do\n  test ! -e "$E/$i"\n  gsutil -o Boto:num_retries=0 -o Boto:metadata_service_num_attempts=1 -o GSUtil:parallel_process_count=1 -o GSUtil:parallel_thread_count=1 -o GSUtil:sliced_object_download_threshold=0 -o GSUtil:sliced_object_download_max_components=1 -q cp "gs://cmu-gpucloud-jjyeung/$OBJECT.part0$i-of-04" "$E/$i.partial"\n  mv "$E/$i.partial" "$E/$i"\ndone\n/usr/bin/python3 -I -s -B "$P/a/4.py" --parts "$E/0" "$E/1" "$E/2" "$E/3" --done "$E/5" --object "$OBJECT" --config "$E/7" --receipt "$E/8" --data-receipt "$E/9" --lineage SFT --step 600 --out "$P/a/export.json" --prep-tar "$P/a/6" --base-inputs "$P/a/0.json" --inputs-out "$P/a/1.json"\nPREP=$(sha256sum "$P/a/6" | cut -d\' \' -f1)\n/usr/bin/python3 -I -s -B "$D/d.py" "$P/a/1.json" "$P/a/0.json" "$PREP" > "$P/a/dry.json"\n(cd "$P" && CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 04:30:00)\n/usr/bin/python3 -I -s -B "$D/d2.py" "$P" "$P/a/w2" > "$P/a/dry2.json"\nprintf \'%s\\n\' 0 > "$P/a/1.txt"\n' : Pull/fill still runs in the foreground
 
@@ -1943,7 +2060,7 @@ AssertionError: 'nohup bash' not found in '#!/bin/bash\nset -euo pipefail\numask
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='bundle_guard.batch_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 154, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 
@@ -1951,7 +2068,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='bundle_guard.path')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 154, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: path
 
@@ -1959,7 +2076,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: path
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.events')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 154, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: events
 
@@ -1967,7 +2084,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: events
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.guard_target_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 154, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: guard_target_sha256
 
@@ -1975,7 +2092,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: guard_target_sha256
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.requested_argv')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 154, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: requested_argv
 
@@ -1983,7 +2100,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: requested_argv
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.dispatched_argv')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 154, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: dispatched_argv
 
@@ -1991,7 +2108,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: dispatched_argv
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.batch_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 154, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 
@@ -1999,7 +2116,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='memory.perception_memo_modules')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 154, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: perception_memo_modules
 
@@ -2007,7 +2124,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: perception_memo_modules
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='memory.sam_measurement_required')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 154, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: sam_measurement_required
 
@@ -2015,7 +2132,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: sam_measurement_required
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 156, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 170, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'MEMORY.json differs')
 AssertionError: 0 == 0 : MEMORY.json differs
 
@@ -2023,7 +2140,7 @@ AssertionError: 0 == 0 : MEMORY.json differs
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/BATCH.sh')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 169, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2032,7 +2149,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/3.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 169, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2041,7 +2158,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/a/0.json')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 169, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2050,7 +2167,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/a/4.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 169, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2059,7 +2176,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/a/7.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 169, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2068,7 +2185,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='fetch_return.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 169, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2077,7 +2194,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 177, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 191, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'bootstrap pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -2086,8 +2203,8 @@ AssertionError: ValueError not raised
 FAIL: test_f5_checkpoint_binding_and_runtime_recheck (__main__.Round6Tests.test_f5_checkpoint_binding_and_runtime_recheck) (asset='RESTORE.json')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 197, in test_f5_checkpoint_binding_and_runtime_recheck
-    with self.assertRaises(ValueError):self.helper.gate(*args)
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 211, in test_f5_checkpoint_binding_and_runtime_recheck
+    with self.assertRaises(ValueError):selected_gate(self.helper,args)
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
 
@@ -2095,8 +2212,8 @@ AssertionError: ValueError not raised
 FAIL: test_f5_checkpoint_binding_and_runtime_recheck (__main__.Round6Tests.test_f5_checkpoint_binding_and_runtime_recheck) (asset='binding.json')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 197, in test_f5_checkpoint_binding_and_runtime_recheck
-    with self.assertRaises(ValueError):self.helper.gate(*args)
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 211, in test_f5_checkpoint_binding_and_runtime_recheck
+    with self.assertRaises(ValueError):selected_gate(self.helper,args)
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
 
@@ -2104,16 +2221,16 @@ AssertionError: ValueError not raised
 FAIL: test_f5_checkpoint_binding_and_runtime_recheck (__main__.Round6Tests.test_f5_checkpoint_binding_and_runtime_recheck)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 200, in test_f5_checkpoint_binding_and_runtime_recheck
-    with self.assertRaisesRegex(ValueError,'export identity'):self.helper.gate(*args)
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 214, in test_f5_checkpoint_binding_and_runtime_recheck
+    with self.assertRaisesRegex(ValueError,'export identity|export pin'):selected_gate(self.helper,args)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
 
 ======================================================================
 FAIL: test_f5_production_device_is_required (__main__.Round6Tests.test_f5_production_device_is_required)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 214, in test_f5_production_device_is_required
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 228, in test_f5_production_device_is_required
     self.assertTrue(hasattr(self.kit,'validate_device'),'GPU name is recorded but never required')
 AssertionError: False is not true : GPU name is recorded but never required
 
@@ -2121,7 +2238,7 @@ AssertionError: False is not true : GPU name is recorded but never required
 FAIL: test_f5_runtime_asset_recheck (__main__.Round6Tests.test_f5_runtime_asset_recheck)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 204, in test_f5_runtime_asset_recheck
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 218, in test_f5_runtime_asset_recheck
     self.assertTrue(hasattr(self.kit,'validate_assets'),'Gate lacks runtime asset authentication')
 AssertionError: False is not true : Gate lacks runtime asset authentication
 
@@ -2129,7 +2246,7 @@ AssertionError: False is not true : Gate lacks runtime asset authentication
 FAIL: test_info_done_whitespace (__main__.Round6Tests.test_info_done_whitespace)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 226, in test_info_done_whitespace
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 240, in test_info_done_whitespace
     self.assertNotIn('test "$(cat "$E/5")" =',text,'Whitespace-only receipt changes still refuse')
 AssertionError: 'test "$(cat "$E/5")" =' unexpectedly found in '#!/bin/bash\nset -euo pipefail\numask 077\nD=$(cd -- "$(dirname -- "$0")" && pwd)\nP=/project/community/jjyeung/okh7/a15_cot_apab0123456789\nexport TZ=UTC CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud CLOUDSDK_CORE_DISABLE_PROMPTS=1\nE=$P/a/e\ntest ! -e "$E"\nmkdir -m 700 "$E"\nOBJECT=q8/8865619b/673bc60f_m600.tar\ncp /project/community/jjyeung/okh7/abcdef/5 "$E/5"\ntest "$(cat "$E/5")" = \'q8/8865619b/673bc60f_m600.tar 4 2222222222222222222222222222222222222222222222222222222222222222\'\ncp /project/community/jjyeung/okh7/abcdef/7 "$E/7"\ntest "$(sha256sum "$E/7" | cut -d\' \' -f1)" = 3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1\ncp /project/community/jjyeung/okh7/abcdef/8 "$E/8"\ntest "$(sha256sum "$E/8" | cut -d\' \' -f1)" = 4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915\ncp /project/community/jjyeung/okh7/abcdef/9 "$E/9"\ntest "$(sha256sum "$E/9" | cut -d\' \' -f1)" = 7f654d2f0ae9f06083f2fc8fd793512c154b4d01ce8632fb733d4191205af770\nfor i in 0 1 2 3; do\n  test ! -e "$E/$i"\n  gsutil -o Boto:num_retries=0 -o Boto:metadata_service_num_attempts=1 -o GSUtil:parallel_process_count=1 -o GSUtil:parallel_thread_count=1 -o GSUtil:sliced_object_download_threshold=0 -o GSUtil:sliced_object_download_max_components=1 -q cp "gs://cmu-gpucloud-jjyeung/$OBJECT.part0$i-of-04" "$E/$i.partial"\n  mv "$E/$i.partial" "$E/$i"\ndone\n/usr/bin/python3 -I -s -B "$P/a/4.py" --parts "$E/0" "$E/1" "$E/2" "$E/3" --done "$E/5" --object "$OBJECT" --config "$E/7" --receipt "$E/8" --data-receipt "$E/9" --lineage SFT --step 600 --out "$P/a/export.json" --prep-tar "$P/a/6" --base-inputs "$P/a/0.json" --inputs-out "$P/a/1.json"\nPREP=$(sha256sum "$P/a/6" | cut -d\' \' -f1)\n/usr/bin/python3 -I -s -B "$D/d.py" "$P/a/1.json" "$P/a/0.json" "$PREP" > "$P/a/dry.json"\n(cd "$P" && CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 04:30:00)\n/usr/bin/python3 -I -s -B "$D/d2.py" "$P" "$P/a/w2" > "$P/a/dry2.json"\nprintf \'%s\\n\' 0 > "$P/a/1.txt"\n' : Whitespace-only receipt changes still refuse
 
@@ -2137,7 +2254,7 @@ AssertionError: 'test "$(cat "$E/5")" =' unexpectedly found in '#!/bin/bash\nset
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='passed')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 243, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 257, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -2146,7 +2263,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='adoption_plan_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 243, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 257, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -2155,7 +2272,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='required_device_type')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 243, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 257, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -2164,7 +2281,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='adoption_assets')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 243, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 257, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -2173,7 +2290,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='adoption_profile')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 243, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 257, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -2182,14 +2299,123 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 245, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 259, in test_info_submit_requires_successful_bound_gpu_gate
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0)
 AssertionError: 0 == 0
 
 ----------------------------------------------------------------------
-Ran 9 tests in 43.231s
+Ran 9 tests in 39.597s
 
 FAILED (failures=31)
+```
+
+```bash
+READ_ROUND7_BEFORE=1 bash work/cpu.sh work/run_fixture5.py work/src/u0/tests/test_round7.py
+```
+
+Exact output:
+
+```text
+test_f1_archive_runs_inside_live_namespace_and_survives_it (__main__.Round7Tests.test_f1_archive_runs_inside_live_namespace_and_survives_it) ... FAIL
+test_f2_fill_wait_missing_token_dead_pid_timeout_and_success (__main__.Round7Tests.test_f2_fill_wait_missing_token_dead_pid_timeout_and_success) ... FAIL
+test_f3_exact_sxm_name_and_132_sms (__main__.Round7Tests.test_f3_exact_sxm_name_and_132_sms) ... 
+  test_f3_exact_sxm_name_and_132_sms (__main__.Round7Tests.test_f3_exact_sxm_name_and_132_sms) (name='NVIDIA H100 PCIe', sms=114) ... FAIL
+  test_f3_exact_sxm_name_and_132_sms (__main__.Round7Tests.test_f3_exact_sxm_name_and_132_sms) (name='NVIDIA H100 80GB HBM3', sms=114) ... FAIL
+  test_f3_exact_sxm_name_and_132_sms (__main__.Round7Tests.test_f3_exact_sxm_name_and_132_sms) (name='NVIDIA H100 PCIe', sms=132) ... FAIL
+test_info_export_bytes_bound_to_cpu_inputs_before_gpu (__main__.Round7Tests.test_info_export_bytes_bound_to_cpu_inputs_before_gpu) ... FAIL
+test_info_host_paths_allocation_and_input_evidence (__main__.Round7Tests.test_info_host_paths_allocation_and_input_evidence) ... FAIL
+test_info_receipt_records_and_submit_checks_kit_comparator_sample (__main__.Round7Tests.test_info_receipt_records_and_submit_checks_kit_comparator_sample) ... FAIL
+test_info_unpack_ignores_python_environment_and_keeps_sibling_import (__main__.Round7Tests.test_info_unpack_ignores_python_environment_and_keeps_sibling_import) ... FAIL
+test_rebind_default400_and_explicit600 (__main__.Round7Tests.test_rebind_default400_and_explicit600) ... FAIL
+
+======================================================================
+FAIL: test_f1_archive_runs_inside_live_namespace_and_survives_it (__main__.Round7Tests.test_f1_archive_runs_inside_live_namespace_and_survives_it)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 39, in test_f1_archive_runs_inside_live_namespace_and_survives_it
+    self.assertTrue(hasattr(self.node,'stage_gate_assets'),'CPU proof does not stage the assets while its namespace exists')
+AssertionError: False is not true : CPU proof does not stage the assets while its namespace exists
+
+======================================================================
+FAIL: test_f2_fill_wait_missing_token_dead_pid_timeout_and_success (__main__.Round7Tests.test_f2_fill_wait_missing_token_dead_pid_timeout_and_success)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 69, in test_f2_fill_wait_missing_token_dead_pid_timeout_and_success
+    self.assertIn('# BEGIN FILL_WAIT',text,'Fill wait has no bounded executable block')
+AssertionError: '# BEGIN FILL_WAIT' not found in 'The GPU kit is unrun. It requires zero answer/trace byte differences. Its 50 items cover ten items per type and twelve captures; this reuse-heavy sample does not predict full-read throughput.\n\nUse the full **A4/src** base pinned by `BASE_PIN.json`. The reader patches also apply to the inspected B5 source subset, but this kit does not authenticate a B5 base. Apply patches 01–03 to a separate source copy. They add `u0/`; all original reader files remain byte-identical. Apply 04–05 to a separate A4 operator copy, outside `src`.\n\nThe ordinary entrypoint stays OFF and imports no extension. `u0/a8.py --enable-extensions` explicitly selects the extensions; individual cache settings then default OFF. The ON environment records an extension source hash. Rebuild payload and artifact pins before deployment.\n\n## Local preparation\n\nThese commands use paths supplied by the operator; they do not depend on the author\'s `work/` directory. Set `DELIVERY` to the delivered `out/`, `A4_BASE` to the full supplied A4 directory on local scratch, `LOCAL` to a fresh local scratch directory, and `READ_PYTHON` to the approved Python executable. Both source roots and all outputs must stay on local scratch. The package contains code, not model/data archives.\n\n```bash\n: "${DELIVERY:?Absolute path to delivered out directory}"\n: "${A4_BASE:?Absolute path to the full pinned A4 directory on local scratch}"\n: "${LOCAL:?Fresh local scratch directory}"\n: "${READ_PYTHON:?Approved Python executable}"\nexport PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8\nexport XDG_CACHE_HOME="$LOCAL/cache" HF_HOME="$LOCAL/cache/hf" TRITON_CACHE_DIR="$LOCAL/cache/triton"\nmkdir -p "$LOCAL/source" "$LOCAL/a4"\nnice -n 10 tar -cf - -C "$A4_BASE/src" . | nice -n 10 tar -xf - -C "$LOCAL/source"\nnice -n 10 tar -cf - -C "$A4_BASE" package tower_sequence.py fetch_return.py unpack_return.py |\n  nice -n 10 tar -xf - -C "$LOCAL/a4"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/01_bounded_read_caches.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/02_atomic_scene_shards.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/03_production_integration.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/04_operator_cache_bound.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/05_operator_return_and_proof.diff"\nEXT_SOURCE="$LOCAL/source"\n```\n\nKeep the private kit, original manifests and reverse maps on Trinity. Stage each source tree as one archive and extract it only on node-local scratch. Both parity source roots must remain pristine: no build outputs, extra files or symlinks. Public paths, submission names, configuration and logs must use opaque tokens. Never transfer private reverse maps to Orchard.\n\n## Step-600 binding, build and operations\n\nThe candidate uses **A4\'s 636-item schedule, one card, caches only, general/no-requeue**. A4\'s export admission, submit helper and run settings remain intact. `a19` requires the reviewed payload hash `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d`, the patched operator hashes, all copied A4 members, the base BATCH.sh and decoded bootstrap pins from MANIFEST, the exact extension inventory and the four original alias bases. It authenticates them before copying. Its batch uses cont_ops\' exact `build_r10.wrap_batch`: excluded node, EXIT log return and USR1 forwarding.\n\nThe owner supplies a **reviewed step-600 target template** in cont_ops\' `bind400_partial.json` schema: target run, step, member_directory, lineage, object, preparation_sha256, `done` and `prep_paths`. `done` and `prep_paths` are paths on Orchard; preparation_sha256 holds hashes, not paths. Use authenticated local copies of that target\'s artifact.json, whole-tar `.done` receipt and three preparation files. The helper fills configuration/archive fields from those files and checks target run/member/step and preparation hashes. Do not edit a step-200/400 receipt to manufacture step-600 evidence. No real target receipt was supplied to this CPU task.\n\n```bash\n: "${TARGET_TEMPLATE:?Reviewed target template, including Orchard done and prep_paths}"\n: "${TARGET_ARTIFACT:?Authenticated local artifact.json from target export}"\n: "${TARGET_DONE:?Authenticated local whole-tar done receipt}"\n: "${TARGET_CONFIG:?Authenticated local preparation config.json}"\n: "${TARGET_RECEIPT:?Authenticated local preparation s1_receipt.json}"\n: "${TARGET_DATA_RECEIPT:?Authenticated local data_receipt.json}"\nSTEP600_BINDING="$LOCAL/binding600.json"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions binding \\\n  --template "$TARGET_TEMPLATE" --artifact "$TARGET_ARTIFACT" --done "$TARGET_DONE" \\\n  --config "$TARGET_CONFIG" --receipt "$TARGET_RECEIPT" --data-receipt "$TARGET_DATA_RECEIPT" \\\n  --out "$STEP600_BINDING"\n: "${PACKAGE_TOKEN:?Fresh 11-16 hex characters starting with a-f}"\nPROFILE_ARGS=()  # All three caches, 12 GiB. For processor-only: PROFILE_ARGS=(--processor-only)\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a19.py" \\\n  --enable-extensions --base-operator "$LOCAL/a4" --source-root "$EXT_SOURCE" \\\n  --manifest "$DELIVERY/patches/MANIFEST.json" --extension-pins "$DELIVERY/kit_parity50/EXTENSION_PINS.json" \\\n  --export-binding "$STEP600_BINDING" --token "$PACKAGE_TOKEN" --out "$LOCAL/step600" "${PROFILE_ARGS[@]}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions operations \\\n  --operator "$LOCAL/step600" --binding "$STEP600_BINDING" --dry-root "$DELIVERY/operations" --out "$LOCAL/ops"\nnice -n 10 tar -czf "$LOCAL/0.tgz" -C "$LOCAL/ops" .\nnice -n 10 sha256sum "$LOCAL/0.tgz"\n```\n\n`step600` retains the exact local source/operator/unpacker. `ops/1.tgz` is the package delivery, with `ops/SHA256`; the outer archive carries it and five inert scripts. The commands below are **owner operations on Orchard, unrun here**. Transfer the single outer archive through the owner\'s existing authorized transport. Set `OPS_ARCHIVE` to its received opaque path, `OPS_SHA256` to the printed local hash, and `D` to a fresh opaque operation directory. These are transport endpoints, not generated receipt values.\n\n```bash\n: "${OPS_ARCHIVE:?Received outer archive on Orchard}"\n: "${OPS_SHA256:?Printed local SHA256 of that archive}"\n: "${D:?Fresh opaque operation directory on Orchard}"\nprintf \'%s  %s\\n\' "$OPS_SHA256" "$OPS_ARCHIVE" | sha256sum -c -\ntest ! -e "$D"\nmkdir -m 700 "$D"\ntar -xzf "$OPS_ARCHIVE" -C "$D"\nbash "$D/o_place.sh"\nbash "$D/o_pull_fill.sh"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\n# Detached worker: inspect completion no more than once per minute.\nwhile test ! -f "$P/a/1.txt"; do sleep 60; done\ntest "$(cat "$P/a/1.txt")" = 0\nbash "$D/o_cpu.sh"\n```\n\n`o_place.sh` verifies the inner archive and places it at `$P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}`. `o_pull_fill.sh` acquires the permanent attempt lock `$P/a/0.lock`, launches one detached nohup worker, and returns its PID in `$P/a/0.txt`. The worker logs to `$P/a/0.log` and writes its exit status to `$P/a/1.txt` on success or failure. A duplicate launch refuses; a failed or interrupted attempt requires a fresh package/token, never an automatic retry. The worker copies the reviewed `done` and `prep_paths` files to `$P/a/e/{5,7,8,9}`, authenticates their pins (the `.done` receipt uses whitespace-separated fields), fetches export parts `0..3` once with retries disabled, fills through `a/4.py`, and runs cont_ops\' verbatim `dryres2.py` and `dry2.py`. A failed transfer stops; the scripts do not retry it.\n\n`o_cpu.sh` requests the A4 CPU allocation explicitly: preempt, eight CPUs, 200G, four hours, no GPU, no requeue, and the excluded nodes. The **CPU allocation** is separate from the intended **general GPU read**. Wait for the CPU job to finish successfully. Preserve `$P/a/c/CPU.json`, `MEMORY.json` and the exact `SETTINGS.json` emitted by A4 prepare. Bring these small files back as one archive through the authorized transport to `$LOCAL/step600/proof/` before the parity preparation below. The proof emits exact restore, artifact-binding, manifest and export-pin receipts. These small files authenticate staging; they do not contain model weights. The proof binds payload/plan/inputs/operator, must pass bundle/entry checks and contain `memory.read_cache_bytes=12884901888` (4294967296 for processor-only), `basis=fixed_g3t_shapes`, and `fits=true`.\n\nArchive the CPU evidence on Orchard after its successful completion, using the package token printed by the build:\n\n```bash\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/2.tgz" -C "$P/a/c" CPU.json MEMORY.json SETTINGS.json RESTORE.json binding.json manifest.json EXPORT_PIN.json\nsha256sum "$D/2.tgz"\n```\n\nAfter authorized transport, authenticate and extract that archive on local scratch:\n\n```bash\n: "${PROOF_ARCHIVE:?Received CPU-evidence archive on local scratch}"\n: "${PROOF_SHA256:?Printed Orchard SHA256 of the CPU-evidence archive}"\nprintf \'%s  %s\\n\' "$PROOF_SHA256" "$PROOF_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/step600/proof"\nnice -n 10 tar -xzf "$PROOF_ARCHIVE" -C "$LOCAL/step600/proof"\n```\n\nAfter the zero-difference GPU parity gate passes, transfer its token-only `ue.json` through the authorized transport as one archive, preserving the SHA256 printed on the GPU host. The authorized owner authenticates that archive and installs the receipt before submission:\n\n```bash\n: "${GATE_ARCHIVE:?Received archive containing ue.json}"\n: "${GATE_SHA256:?SHA256 printed on the GPU host}"\nprintf \'%s  %s\\n\' "$GATE_SHA256" "$GATE_ARCHIVE" | sha256sum -c -\nmkdir "$D/g"\ntar -xf "$GATE_ARCHIVE" -C "$D/g"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntest ! -e "$P/a/g.json"\ncp "$D/g/ue.json" "$P/a/g.json"\n```\n\nThen run:\n\n```bash\nbash "$D/o_sub.sh"\n# After the GPU job finishes:\nbash "$D/o_fetch.sh"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/3.tgz" -C "$P/a/f" 0.tgz EXIT.json\nsha256sum "$D/3.tgz"\n```\n\n`o_sub.sh` embeds cont_ops’ A4 CPU-receipt assertions verbatim, including batch/dispatch/guard pins and MEMORY.json equality, then checks cache memory and the successful GPU receipt at `$P/a/g.json`, requires both dry checks to pass, requires an empty general queue, and refuses a return pool over **75,000,000 bytes** (including errors/symlinks). It then runs `3.py check` and one `3.py submit --gpus 1 --time 04:30:00`, saving the job ID. The GPU receipt must match the CPU restore/binding pins, filled export pin, adopted plan/profile and H100 80 GB requirement. The unchanged bootstrap itself does not require the cache-memory field; this submit preflight does. `o_fetch.sh` derives the authenticated return token and fetches `$P/a/f/{0.tgz,EXIT.json}`.\n\nTransfer `$D/3.tgz` through the authorized transport, preserving the local operator directory. Authenticate, extract and unpack it locally:\n\n```bash\n: "${RETURN_ARCHIVE:?Received fetched-return archive on local scratch}"\n: "${RETURN_SHA256:?Printed Orchard SHA256 of the fetched-return archive}"\nprintf \'%s  %s\\n\' "$RETURN_SHA256" "$RETURN_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/step600/f"\nnice -n 10 tar -xzf "$RETURN_ARCHIVE" -C "$LOCAL/step600/f"\n(cd "$LOCAL/step600" && CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -s -B ./unpack_return.py \\\n  --archive "$LOCAL/step600/f/0.tgz" --exit "$LOCAL/step600/f/EXIT.json" \\\n  --out "$LOCAL/step600/ret" > "$LOCAL/step600/unpack-success.json" && \\\n  test -s "$LOCAL/step600/unpack-success.json")\n```\n\nA refused unpack leaves its extracted tree behind. Scorers must consume only unpack\'s **success output after exit status 0**, never a directory merely because it exists; the command\'s `&&` chain enforces that handoff. A successful partial return still has `complete=false` and must not be scored as complete. The ON unpacker refuses any existing weight receipt whose verified value is not JSON true. Processor-only journals need no weight receipt. OFF behavior remains unchanged. Whole-archive identity follows A4\'s design: fill checks the sealed whole-tar constants; job/unpack admission compare against inputs.archives[0].\n\n**Forecasts:** Package D is the 580-item distance read (B5 fork, 03:30 walltime); it has **no ON route** in a19. Its one-card **estimate** is 13,813.069 s (3 h 50 min), using the measured 23.600 s/item and crediting no cache saving. The **636-item** A4 read that a19 actually builds has an **estimate** of **7,351.824 s (2 h 02 min 32 s; 11.559 s/item)**, obtained by carrying forward the supplied A4 total, with zero assumed saving. Target weights, cache costs and staging/queue delays can change it; neither forecast is a step-600 measurement.\n\n## GPU parity staging and acceptance\n\nThe gate must seal **A4 prepare\'s actual output plus the operator\'s per-read overrides** for the package being adopted. Do not supply an unrelated PRIVATE_SETTINGS.json. `a20 gate` checks the prepared bytes and exact RESTORE.json/artifact-binding bytes against CPU.json’s READY pins, checks export identity against the adopted step binding, and checks payload, plan and operator bindings. Every GPU worker rechecks those asset bytes and the artifact manifest before reading; changing paths cannot substitute another checkpoint. It applies the authenticated operator descriptor and derives `enable_caches`, `read_cache_bytes` and the full adoption profile: candidates_argmax, memo on, g3t, empty verify IDs, save_own_depth=false, and the exact cache switches. Both the parent driver and every worker refuse a different profile. Processor-only adoption is explicitly gated with slots `[0]` and 4 GiB; all-cache adoption uses `[0,1,2]` and 12 GiB.\n\nStage the exact retained CPU data on the intended GPU host; preserve the CPU logical directory so pinned manifests and restore paths stay unchanged. Do not rebuild RESTORE.json or the manifest for a different checkpoint. The following **owner-only, unrun staging commands** create one data archive on the CPU proof’s compute node. `CPU.json.root` is node-local, so run there while that directory remains available. The archive can be large; use the owner’s approved storage/transport plan.\n\n```bash\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\n/usr/bin/python3 -I -s -B - "$P" <<\'PY\'\nimport json,subprocess,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);root=Path(json.loads((p/\'a/c/CPU.json\').read_text())[\'root\'])\nwith tarfile.open(p/\'0.tgz\') as archive:cfg=json.load(archive.extractfile(\'9.json\'))\nsys.path.insert(0,str(root/\'bootstrap\'))\nfrom orchard_h10.common import template\n_,J,_,_,_=template()\nsubprocess.run(J.namespace(root)+[\'/bin/tar\',\'-chf\',str(root/\'4.tar\'),\'-C\',cfg[\'logical\']+\'/d\',\'.\'],check=True)\nprint(root/\'4.tar\')\nsubprocess.run([\'sha256sum\',str(root/\'4.tar\')],check=True)\nPY\n```\n\nTransfer that single archive through approved transport. On the assigned GPU host, extract it under the package’s exact opaque logical root, and stage the package payload there for the manifest’s code roots. `P` refers to the same filled package in the registered Orchard namespace. These commands refuse an existing destination:\n\n```bash\n: "${ASSET_ARCHIVE:?Received CPU data archive}"\n: "${ASSET_SHA256:?Printed CPU archive SHA256}"\nprintf \'%s  %s\\n\' "$ASSET_SHA256" "$ASSET_ARCHIVE" | sha256sum -c -\nGPU_LOGICAL=$(/usr/bin/python3 -I -s -B - "$P/0.tgz" <<\'PY\'\nimport json,sys,tarfile\nwith tarfile.open(sys.argv[1]) as archive:print(json.load(archive.extractfile(\'9.json\'))[\'logical\'])\nPY\n)\ntest ! -e "$GPU_LOGICAL"\nmkdir -p "$GPU_LOGICAL/d" "$GPU_LOGICAL/p"\ntar -xf "$ASSET_ARCHIVE" -C "$GPU_LOGICAL/d"\ntar -xzf "$P/0.tgz" -C "$GPU_LOGICAL/p"\ntest ! -e "$GPU_LOGICAL/d/7.json"\ncp "$GPU_LOGICAL/d/binding.json" "$GPU_LOGICAL/d/7.json"\n```\n\nCreate a private neutral configuration from `config.example.json` with separate authenticated A4 original/patched source roots. Set `export=$GPU_LOGICAL/d/e`, `export_pin=$GPU_LOGICAL/d/6.json`, and `artifact_manifest=$GPU_LOGICAL/d/7.json`. The last file is a byte-identical neutral alias for the CPU binding. Include that exact `binding.json` to `7.json` mapping in `PRIVATE_ALIASES.json`; map the other private prepared asset paths to staged opaque aliases of those same files. Keep private settings and reverse maps on Trinity. The following commands use files under `$LOCAL`:\n\n```bash\n: "${PRIVATE_CONFIG_TEMPLATE:?Private neutral GPU configuration with staged asset paths}"\n: "${PRIVATE_ALIASES:?Private JSON mapping preparation paths to staged opaque paths}"\nPRIVATE_SETTINGS="$LOCAL/PRIVATE_SETTINGS.json"\nPRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \\\n  --operator "$LOCAL/step600" --prepared "$LOCAL/step600/proof/SETTINGS.json" \\\n  --proof "$LOCAL/step600/proof/CPU.json" --config "$PRIVATE_CONFIG_TEMPLATE" \\\n  --asset-receipts "$LOCAL/step600/proof" \\\n  --settings-out "$PRIVATE_SETTINGS" --config-out "$PRIVATE_CONFIG"\n```\n\n```bash\nmkdir -p "$LOCAL/public"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" seal \\\n  --source-root "$EXT_SOURCE" --input "$PRIVATE_SETTINGS" --aliases "$PRIVATE_ALIASES" \\\n  --out "$LOCAL/public/u3"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" stage-kit \\\n  --source-root "$EXT_SOURCE" --input "$DELIVERY/kit_parity50" \\\n  --config "$PRIVATE_CONFIG" --out "$LOCAL/public/u0"\n```\n\nThe staged `u3.json` pins every extension; `u4.json` authenticates both full 927-file base inventories. The driver rejects changed bases, equal original/patched roots, and an original root containing extensions. It authenticates the sealed sample bytes and the logical sample pin. Transfer only the staged directory through the approved transport under an opaque root.\n\nOn an assigned **H100 80 GB** GPU, run the acceptance command below; it is **unrun here**. Preserve that allocation\'s actual `CUDA_VISIBLE_DEVICES`.\n\n```bash\nnice -n 10 "$READ_PYTHON" -I -s -B /scratch/jjyeung/ab0123456789/u0/u0.py \\\n  /scratch/jjyeung/ab0123456789/u0/u2.json --out /scratch/jjyeung/ab0123456789/u9 \\\n  --enable-gpu --public --repeat-baseline --shards 4\n```\n\nEvery arm starts a fresh process. ORIGINAL/OFF/OFF_REPEAT use ordinary journals and modulo shards. ON tests caches; ON_JOURNAL and sequential whole-scene shards test separate journal/shard features. Sequential shards establish equality, not parallel speed. Public logs tokenize item/native/room identities and arbitrary stdout/stderr. No reverse map is written on Orchard.\n\nAcceptance requires all 50 expected IDs, complete production output schemas, nonempty text/tokens/heads, scale even when null, every served response and forced-token count, matching call counters, and **zero semantic byte differences**. ORIGINAL/OFF must also retain every production source hash. Each enabled cache must report its memory bound and useful hits; SAM needs both feature and detection hits. Empty or all-miss runs fail. Only clocks and explicit audit/cache/memo telemetry are excluded from semantic comparison; audit violations fail. There is no answer/trace tolerance.\n\nEach RUN.json records the adopted package plan, read profile, asset pins, required device type, actual device, cache slots and budget. The worker checks CUDA device properties before model loading and refuses a different GPU family, compute capability or memory class. `ue.json` is written only after all comparisons finish and records whether they all passed; failed or missing receipts cannot authorize submit. Archive it with `tar -cf "$LOCAL/5.tar" -C /scratch/jjyeung/ab0123456789/u9 ue.json` and print `sha256sum "$LOCAL/5.tar"` for the authenticated return transport. Judge net time from `RUN.json`\'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).\n\nThe cache cap covers retained cache storage and transient copies, not model/caller working memory. Measure full-process host/GPU peaks. Models must remain frozen: calls check parameter/buffer identities, pointers and counters; install/type boundaries hash content. Persistent raw writes fail at a boundary. Raw writes restored between boundaries, private tensor attributes and arbitrary non-tensor state are outside this guard\'s coverage. Graceful stops verify journals; a hard kill can leave an unchecked journal that requires fresh output.\n\nOutput directories u0–u5 represent ORIGINAL/OFF/OFF_REPEAT/ON/ON_JOURNAL/SHARDED. Reports u6–ua compare arms; ub.json checks merge equality; uc/ud contain canonical single/sharded returns. Restore on Trinity with the private inputs:\n\n```bash\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" restore \\\n  --source-root "$EXT_SOURCE" --input PRIVATE_RETURN --out "$LOCAL/restored" \\\n  --private-source "$DELIVERY/kit_parity50/sample50.json" \\\n  --private-source "$PRIVATE_CONFIG" --private-source "$PRIVATE_SETTINGS"\n```\n\nRestoration authenticates committed rows before rebuilding private IDs/checksums. Merge with the original manifest through the explicit extension entrypoint. The canonical answer/trace archive must match exactly; transport-envelope clocks remain variable.\n\n## Array validation\n\nNo multi-card A4 operator is delivered. The array helper is a separate inert prototype. Its example has `approved=false`: two one-hour shards, at most two attempts, four GPU-hours total. Approval must bind the exact partition, shards, time and attempts, with no more than five allocated GPU-hours over all attempts. Before any sharded/preempt adoption, validate real persistent-storage preemption/requeue.\n\n```bash\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a15.py" PRIVATE_ARRAY_CONFIG.json \\\n  --enable-array --token ab0123456789 --out "$LOCAL/array-plan" \\\n  --python /scratch/jjyeung/ab0123456789/u1 --source /scratch/jjyeung/ab0123456789/u2 \\\n  --staged-config /project/community/jjyeung/okh7/a15_cot_apab0123456789/u3.json\n```\n\nThis writes commands without running them. Exit 75 requests bounded requeue; other errors remain failures. Lock waits stop after 60 seconds, and the attempt limit forbids more work. Public paths must use approved roots and pass the forbidden-word screen; name checks do not establish storage permissions or capacity.\n\nNo delivered CPU suite or single-GPU kit requires a local OS socket. StageOneSocket is a Python callback. Real restore, bwrap isolation, remote transport, GPU parity/performance/memory and persistent requeue remain unrun.\n\n## Review round 6: finding -> fix -> test\n\n| Finding | Fix | Regression |\n|---|---|---|\n| 1. Unpack import fails | Run `-s -B` from the operator directory. | Execute the README command as a subprocess on an authenticated fixture return. |\n| 2. Foreground pull/fill | Detached nohup worker, permanent attempt lock, PID/log and exit file; no retries. | Success 0 and failure 17 both report completion; duplicate launch refuses. |\n| 3. Weak submit receipt | Embed every cont_ops A4 CPU assertion, then enforce cache and pool checks. | Batch/guard/action/argv/events/memory tampering and a resealed stale batch fail. |\n| 4. Unpinned copied members | Pin all A4 copied members, base batch and decoded bootstrap before output. | Mutations of each additional member and bootstrap pin refuse before writing. |\n| 5. Unbound checkpoint/device | READY restore/binding pins and export identity bind step-600 assets; workers recheck assets and require H100 80 GB. | Changed receipts, wrong step, changed staged files and non-production GPU properties fail. |\n| INFO: receipt whitespace | Compare the three whitespace-separated fields. | Tabs/newlines pass; extra fields fail. |\n| INFO: manual GPU handoff | Submit requires the successful token-only GPU receipt for the same plan/profile/assets/device. | Failed, absent, stale or mismatched evidence refuses. |\n\nThe binding retains Orchard `done`/`prep_paths` as authenticated operation metadata; admission still checks its fixed identity keys. Persistent raw writes remain boundary-checked; restored-between-boundary raw writes remain unsupported and require frozen model ownership. These informational limits do not change reader behavior.\n' : Fill wait has no bounded executable block
+
+======================================================================
+FAIL: test_f3_exact_sxm_name_and_132_sms (__main__.Round7Tests.test_f3_exact_sxm_name_and_132_sms) (name='NVIDIA H100 PCIe', sms=114)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 95, in test_f3_exact_sxm_name_and_132_sms
+    with self.subTest(name=name,sms=sms),self.assertRaises(ValueError):check(name,sms)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_f3_exact_sxm_name_and_132_sms (__main__.Round7Tests.test_f3_exact_sxm_name_and_132_sms) (name='NVIDIA H100 80GB HBM3', sms=114)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 95, in test_f3_exact_sxm_name_and_132_sms
+    with self.subTest(name=name,sms=sms),self.assertRaises(ValueError):check(name,sms)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_f3_exact_sxm_name_and_132_sms (__main__.Round7Tests.test_f3_exact_sxm_name_and_132_sms) (name='NVIDIA H100 PCIe', sms=132)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 95, in test_f3_exact_sxm_name_and_132_sms
+    with self.subTest(name=name,sms=sms),self.assertRaises(ValueError):check(name,sms)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_info_export_bytes_bound_to_cpu_inputs_before_gpu (__main__.Round7Tests.test_info_export_bytes_bound_to_cpu_inputs_before_gpu)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 116, in test_info_export_bytes_bound_to_cpu_inputs_before_gpu
+    with self.assertRaisesRegex(ValueError,'export pin|export bytes'):self.helper.gate(*args,**kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_info_host_paths_allocation_and_input_evidence (__main__.Round7Tests.test_info_host_paths_allocation_and_input_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 153, in test_info_host_paths_allocation_and_input_evidence
+    self.assertNotIn('$LOCAL/5.tar',text)
+AssertionError: '$LOCAL/5.tar' unexpectedly found in 'The GPU kit is unrun. It requires zero answer/trace byte differences. Its 50 items cover ten items per type and twelve captures; this reuse-heavy sample does not predict full-read throughput.\n\nUse the full **A4/src** base pinned by `BASE_PIN.json`. The reader patches also apply to the inspected B5 source subset, but this kit does not authenticate a B5 base. Apply patches 01–03 to a separate source copy. They add `u0/`; all original reader files remain byte-identical. Apply 04–05 to a separate A4 operator copy, outside `src`.\n\nThe ordinary entrypoint stays OFF and imports no extension. `u0/a8.py --enable-extensions` explicitly selects the extensions; individual cache settings then default OFF. The ON environment records an extension source hash. Rebuild payload and artifact pins before deployment.\n\n## Local preparation\n\nThese commands use paths supplied by the operator; they do not depend on the author\'s `work/` directory. Set `DELIVERY` to the delivered `out/`, `A4_BASE` to the full supplied A4 directory on local scratch, `LOCAL` to a fresh local scratch directory, and `READ_PYTHON` to the approved Python executable. Both source roots and all outputs must stay on local scratch. The package contains code, not model/data archives.\n\n```bash\n: "${DELIVERY:?Absolute path to delivered out directory}"\n: "${A4_BASE:?Absolute path to the full pinned A4 directory on local scratch}"\n: "${LOCAL:?Fresh local scratch directory}"\n: "${READ_PYTHON:?Approved Python executable}"\nexport PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8\nexport XDG_CACHE_HOME="$LOCAL/cache" HF_HOME="$LOCAL/cache/hf" TRITON_CACHE_DIR="$LOCAL/cache/triton"\nmkdir -p "$LOCAL/source" "$LOCAL/a4"\nnice -n 10 tar -cf - -C "$A4_BASE/src" . | nice -n 10 tar -xf - -C "$LOCAL/source"\nnice -n 10 tar -cf - -C "$A4_BASE" package tower_sequence.py fetch_return.py unpack_return.py |\n  nice -n 10 tar -xf - -C "$LOCAL/a4"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/01_bounded_read_caches.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/02_atomic_scene_shards.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/source" < "$DELIVERY/patches/03_production_integration.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/04_operator_cache_bound.diff"\nnice -n 10 patch --batch --fuzz=0 -p1 -d "$LOCAL/a4" < "$DELIVERY/patches/05_operator_return_and_proof.diff"\nEXT_SOURCE="$LOCAL/source"\n```\n\nKeep the private kit, original manifests and reverse maps on Trinity. Stage each source tree as one archive and extract it only on node-local scratch. Both parity source roots must remain pristine: no build outputs, extra files or symlinks. Public paths, submission names, configuration and logs must use opaque tokens. Never transfer private reverse maps to Orchard.\n\n## Step-600 binding, build and operations\n\nThe candidate uses **A4\'s 636-item schedule, one card, caches only, general/no-requeue**. A4\'s export admission, submit helper and run settings remain intact. `a19` requires the reviewed payload hash `4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d`, the patched operator hashes, all copied A4 members, the base BATCH.sh and decoded bootstrap pins from MANIFEST, the exact extension inventory and the four original alias bases. It authenticates them before copying. Its batch uses cont_ops\' exact `build_r10.wrap_batch`: excluded node, EXIT log return and USR1 forwarding.\n\nThe owner supplies a **reviewed step-600 target template** in cont_ops\' `bind400_partial.json` schema: target run, step, member_directory, lineage, object, preparation_sha256, `done` and `prep_paths`. `done` and `prep_paths` are paths on Orchard; preparation_sha256 holds hashes, not paths. Use authenticated local copies of that target\'s artifact.json, whole-tar `.done` receipt and three preparation files. The helper fills configuration/archive fields from those files and checks target run/member/step and preparation hashes. Do not edit a step-200/400 receipt to manufacture step-600 evidence. No real target receipt was supplied to this CPU task.\n\n```bash\n: "${TARGET_TEMPLATE:?Reviewed target template, including Orchard done and prep_paths}"\n: "${TARGET_ARTIFACT:?Authenticated local artifact.json from target export}"\n: "${TARGET_DONE:?Authenticated local whole-tar done receipt}"\n: "${TARGET_CONFIG:?Authenticated local preparation config.json}"\n: "${TARGET_RECEIPT:?Authenticated local preparation s1_receipt.json}"\n: "${TARGET_DATA_RECEIPT:?Authenticated local data_receipt.json}"\nSTEP600_BINDING="$LOCAL/binding600.json"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions binding \\\n  --template "$TARGET_TEMPLATE" --artifact "$TARGET_ARTIFACT" --done "$TARGET_DONE" \\\n  --config "$TARGET_CONFIG" --receipt "$TARGET_RECEIPT" --data-receipt "$TARGET_DATA_RECEIPT" \\\n  --out "$STEP600_BINDING"\n: "${PACKAGE_TOKEN:?Fresh 11-16 hex characters starting with a-f}"\nPROFILE_ARGS=()  # All three caches, 12 GiB. For processor-only: PROFILE_ARGS=(--processor-only)\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a19.py" \\\n  --enable-extensions --base-operator "$LOCAL/a4" --source-root "$EXT_SOURCE" \\\n  --manifest "$DELIVERY/patches/MANIFEST.json" --extension-pins "$DELIVERY/kit_parity50/EXTENSION_PINS.json" \\\n  --export-binding "$STEP600_BINDING" --token "$PACKAGE_TOKEN" --out "$LOCAL/step600" "${PROFILE_ARGS[@]}"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions operations \\\n  --operator "$LOCAL/step600" --binding "$STEP600_BINDING" --dry-root "$DELIVERY/operations" --out "$LOCAL/ops"\nnice -n 10 tar -czf "$LOCAL/0.tgz" -C "$LOCAL/ops" .\nnice -n 10 sha256sum "$LOCAL/0.tgz"\n```\n\n`step600` retains the exact local source/operator/unpacker. `ops/1.tgz` is the package delivery, with `ops/SHA256`; the outer archive carries it and five inert scripts. The commands below are **owner operations on Orchard, unrun here**. Transfer the single outer archive through the owner\'s existing authorized transport. Set `OPS_ARCHIVE` to its received opaque path, `OPS_SHA256` to the printed local hash, and `D` to a fresh opaque operation directory. These are transport endpoints, not generated receipt values.\n\n```bash\n: "${OPS_ARCHIVE:?Received outer archive on Orchard}"\n: "${OPS_SHA256:?Printed local SHA256 of that archive}"\n: "${D:?Fresh opaque operation directory on Orchard}"\nprintf \'%s  %s\\n\' "$OPS_SHA256" "$OPS_ARCHIVE" | sha256sum -c -\ntest ! -e "$D"\nmkdir -m 700 "$D"\ntar -xzf "$OPS_ARCHIVE" -C "$D"\nbash "$D/o_place.sh"\nbash "$D/o_pull_fill.sh"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\n# Detached worker: inspect completion no more than once per minute.\nwhile test ! -f "$P/a/1.txt"; do sleep 60; done\ntest "$(cat "$P/a/1.txt")" = 0\nbash "$D/o_cpu.sh"\n```\n\n`o_place.sh` verifies the inner archive and places it at `$P=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}`. `o_pull_fill.sh` acquires the permanent attempt lock `$P/a/0.lock`, launches one detached nohup worker, and returns its PID in `$P/a/0.txt`. The worker logs to `$P/a/0.log` and writes its exit status to `$P/a/1.txt` on success or failure. A duplicate launch refuses; a failed or interrupted attempt requires a fresh package/token, never an automatic retry. The worker copies the reviewed `done` and `prep_paths` files to `$P/a/e/{5,7,8,9}`, authenticates their pins (the `.done` receipt uses whitespace-separated fields), fetches export parts `0..3` once with retries disabled, fills through `a/4.py`, and runs cont_ops\' verbatim `dryres2.py` and `dry2.py`. A failed transfer stops; the scripts do not retry it.\n\n`o_cpu.sh` requests the A4 CPU allocation explicitly: preempt, eight CPUs, 200G, four hours, no GPU, no requeue, and the excluded nodes. The **CPU allocation** is separate from the intended **general GPU read**. Wait for the CPU job to finish successfully. Preserve `$P/a/c/CPU.json`, `MEMORY.json` and the exact `SETTINGS.json` emitted by A4 prepare. Bring these small files back as one archive through the authorized transport to `$LOCAL/step600/proof/` before the parity preparation below. The proof emits exact restore, artifact-binding, manifest and export-pin receipts. These small files authenticate staging; they do not contain model weights. The proof binds payload/plan/inputs/operator, must pass bundle/entry checks and contain `memory.read_cache_bytes=12884901888` (4294967296 for processor-only), `basis=fixed_g3t_shapes`, and `fits=true`.\n\nArchive the CPU evidence on Orchard after its successful completion, using the package token printed by the build:\n\n```bash\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/2.tgz" -C "$P/a/c" CPU.json MEMORY.json SETTINGS.json RESTORE.json binding.json manifest.json EXPORT_PIN.json\nsha256sum "$D/2.tgz"\n```\n\nAfter authorized transport, authenticate and extract that archive on local scratch:\n\n```bash\n: "${PROOF_ARCHIVE:?Received CPU-evidence archive on local scratch}"\n: "${PROOF_SHA256:?Printed Orchard SHA256 of the CPU-evidence archive}"\nprintf \'%s  %s\\n\' "$PROOF_SHA256" "$PROOF_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/step600/proof"\nnice -n 10 tar -xzf "$PROOF_ARCHIVE" -C "$LOCAL/step600/proof"\n```\n\nAfter the zero-difference GPU parity gate passes, transfer its token-only `ue.json` through the authorized transport as one archive, preserving the SHA256 printed on the GPU host. The authorized owner authenticates that archive and installs the receipt before submission:\n\n```bash\n: "${GATE_ARCHIVE:?Received archive containing ue.json}"\n: "${GATE_SHA256:?SHA256 printed on the GPU host}"\nprintf \'%s  %s\\n\' "$GATE_SHA256" "$GATE_ARCHIVE" | sha256sum -c -\nmkdir "$D/g"\ntar -xf "$GATE_ARCHIVE" -C "$D/g"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntest ! -e "$P/a/g.json"\ncp "$D/g/ue.json" "$P/a/g.json"\n```\n\nThen run:\n\n```bash\nbash "$D/o_sub.sh"\n# After the GPU job finishes:\nbash "$D/o_fetch.sh"\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\ntar -czf "$D/3.tgz" -C "$P/a/f" 0.tgz EXIT.json\nsha256sum "$D/3.tgz"\n```\n\n`o_sub.sh` embeds cont_ops’ A4 CPU-receipt assertions verbatim, including batch/dispatch/guard pins and MEMORY.json equality, then checks cache memory and the successful GPU receipt at `$P/a/g.json`, requires both dry checks to pass, requires an empty general queue, and refuses a return pool over **75,000,000 bytes** (including errors/symlinks). It then runs `3.py check` and one `3.py submit --gpus 1 --time 04:30:00`, saving the job ID. The GPU receipt must match the CPU restore/binding pins, filled export pin, adopted plan/profile and H100 80 GB requirement. The unchanged bootstrap itself does not require the cache-memory field; this submit preflight does. `o_fetch.sh` derives the authenticated return token and fetches `$P/a/f/{0.tgz,EXIT.json}`.\n\nTransfer `$D/3.tgz` through the authorized transport, preserving the local operator directory. Authenticate, extract and unpack it locally:\n\n```bash\n: "${RETURN_ARCHIVE:?Received fetched-return archive on local scratch}"\n: "${RETURN_SHA256:?Printed Orchard SHA256 of the fetched-return archive}"\nprintf \'%s  %s\\n\' "$RETURN_SHA256" "$RETURN_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/step600/f"\nnice -n 10 tar -xzf "$RETURN_ARCHIVE" -C "$LOCAL/step600/f"\n(cd "$LOCAL/step600" && CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -s -B ./unpack_return.py \\\n  --archive "$LOCAL/step600/f/0.tgz" --exit "$LOCAL/step600/f/EXIT.json" \\\n  --out "$LOCAL/step600/ret" > "$LOCAL/step600/unpack-success.json" && \\\n  test -s "$LOCAL/step600/unpack-success.json")\n```\n\nA refused unpack leaves its extracted tree behind. Scorers must consume only unpack\'s **success output after exit status 0**, never a directory merely because it exists; the command\'s `&&` chain enforces that handoff. A successful partial return still has `complete=false` and must not be scored as complete. The ON unpacker refuses any existing weight receipt whose verified value is not JSON true. Processor-only journals need no weight receipt. OFF behavior remains unchanged. Whole-archive identity follows A4\'s design: fill checks the sealed whole-tar constants; job/unpack admission compare against inputs.archives[0].\n\n**Forecasts:** Package D is the 580-item distance read (B5 fork, 03:30 walltime); it has **no ON route** in a19. Its one-card **estimate** is 13,813.069 s (3 h 50 min), using the measured 23.600 s/item and crediting no cache saving. The **636-item** A4 read that a19 actually builds has an **estimate** of **7,351.824 s (2 h 02 min 32 s; 11.559 s/item)**, obtained by carrying forward the supplied A4 total, with zero assumed saving. Target weights, cache costs and staging/queue delays can change it; neither forecast is a step-600 measurement.\n\n## GPU parity staging and acceptance\n\nThe gate must seal **A4 prepare\'s actual output plus the operator\'s per-read overrides** for the package being adopted. Do not supply an unrelated PRIVATE_SETTINGS.json. `a20 gate` checks the prepared bytes and exact RESTORE.json/artifact-binding bytes against CPU.json’s READY pins, checks export identity against the adopted step binding, and checks payload, plan and operator bindings. Every GPU worker rechecks those asset bytes and the artifact manifest before reading; changing paths cannot substitute another checkpoint. It applies the authenticated operator descriptor and derives `enable_caches`, `read_cache_bytes` and the full adoption profile: candidates_argmax, memo on, g3t, empty verify IDs, save_own_depth=false, and the exact cache switches. Both the parent driver and every worker refuse a different profile. Processor-only adoption is explicitly gated with slots `[0]` and 4 GiB; all-cache adoption uses `[0,1,2]` and 12 GiB.\n\nStage the exact retained CPU data on the intended GPU host; preserve the CPU logical directory so pinned manifests and restore paths stay unchanged. Do not rebuild RESTORE.json or the manifest for a different checkpoint. The following **owner-only, unrun staging commands** create one data archive on the CPU proof’s compute node. `CPU.json.root` is node-local, so run there while that directory remains available. The archive can be large; use the owner’s approved storage/transport plan.\n\n```bash\nP=/project/community/jjyeung/okh7/a15_cot_ap${PACKAGE_TOKEN}\n/usr/bin/python3 -I -s -B - "$P" <<\'PY\'\nimport json,subprocess,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);root=Path(json.loads((p/\'a/c/CPU.json\').read_text())[\'root\'])\nwith tarfile.open(p/\'0.tgz\') as archive:cfg=json.load(archive.extractfile(\'9.json\'))\nsys.path.insert(0,str(root/\'bootstrap\'))\nfrom orchard_h10.common import template\n_,J,_,_,_=template()\nsubprocess.run(J.namespace(root)+[\'/bin/tar\',\'-chf\',str(root/\'4.tar\'),\'-C\',cfg[\'logical\']+\'/d\',\'.\'],check=True)\nprint(root/\'4.tar\')\nsubprocess.run([\'sha256sum\',str(root/\'4.tar\')],check=True)\nPY\n```\n\nTransfer that single archive through approved transport. On the assigned GPU host, extract it under the package’s exact opaque logical root, and stage the package payload there for the manifest’s code roots. `P` refers to the same filled package in the registered Orchard namespace. These commands refuse an existing destination:\n\n```bash\n: "${ASSET_ARCHIVE:?Received CPU data archive}"\n: "${ASSET_SHA256:?Printed CPU archive SHA256}"\nprintf \'%s  %s\\n\' "$ASSET_SHA256" "$ASSET_ARCHIVE" | sha256sum -c -\nGPU_LOGICAL=$(/usr/bin/python3 -I -s -B - "$P/0.tgz" <<\'PY\'\nimport json,sys,tarfile\nwith tarfile.open(sys.argv[1]) as archive:print(json.load(archive.extractfile(\'9.json\'))[\'logical\'])\nPY\n)\ntest ! -e "$GPU_LOGICAL"\nmkdir -p "$GPU_LOGICAL/d" "$GPU_LOGICAL/p"\ntar -xf "$ASSET_ARCHIVE" -C "$GPU_LOGICAL/d"\ntar -xzf "$P/0.tgz" -C "$GPU_LOGICAL/p"\ntest ! -e "$GPU_LOGICAL/d/7.json"\ncp "$GPU_LOGICAL/d/binding.json" "$GPU_LOGICAL/d/7.json"\n```\n\nCreate a private neutral configuration from `config.example.json` with separate authenticated A4 original/patched source roots. Set `export=$GPU_LOGICAL/d/e`, `export_pin=$GPU_LOGICAL/d/6.json`, and `artifact_manifest=$GPU_LOGICAL/d/7.json`. The last file is a byte-identical neutral alias for the CPU binding. Include that exact `binding.json` to `7.json` mapping in `PRIVATE_ALIASES.json`; map the other private prepared asset paths to staged opaque aliases of those same files. Keep private settings and reverse maps on Trinity. The following commands use files under `$LOCAL`:\n\n```bash\n: "${PRIVATE_CONFIG_TEMPLATE:?Private neutral GPU configuration with staged asset paths}"\n: "${PRIVATE_ALIASES:?Private JSON mapping preparation paths to staged opaque paths}"\nPRIVATE_SETTINGS="$LOCAL/PRIVATE_SETTINGS.json"\nPRIVATE_CONFIG="$LOCAL/PRIVATE_NEUTRAL_CONFIG.json"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a20.py" --enable-extensions gate \\\n  --operator "$LOCAL/step600" --prepared "$LOCAL/step600/proof/SETTINGS.json" \\\n  --proof "$LOCAL/step600/proof/CPU.json" --config "$PRIVATE_CONFIG_TEMPLATE" \\\n  --asset-receipts "$LOCAL/step600/proof" \\\n  --settings-out "$PRIVATE_SETTINGS" --config-out "$PRIVATE_CONFIG"\n```\n\n```bash\nmkdir -p "$LOCAL/public"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" seal \\\n  --source-root "$EXT_SOURCE" --input "$PRIVATE_SETTINGS" --aliases "$PRIVATE_ALIASES" \\\n  --out "$LOCAL/public/u3"\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" stage-kit \\\n  --source-root "$EXT_SOURCE" --input "$DELIVERY/kit_parity50" \\\n  --config "$PRIVATE_CONFIG" --out "$LOCAL/public/u0"\n```\n\nThe staged `u3.json` pins every extension; `u4.json` authenticates both full 927-file base inventories. The driver rejects changed bases, equal original/patched roots, and an original root containing extensions. It authenticates the sealed sample bytes and the logical sample pin. Transfer only the staged directory through the approved transport under an opaque root.\n\nOn an assigned **H100 80 GB** GPU, run the acceptance command below; it is **unrun here**. Preserve that allocation\'s actual `CUDA_VISIBLE_DEVICES`.\n\n```bash\nnice -n 10 "$READ_PYTHON" -I -s -B /scratch/jjyeung/ab0123456789/u0/u0.py \\\n  /scratch/jjyeung/ab0123456789/u0/u2.json --out /scratch/jjyeung/ab0123456789/u9 \\\n  --enable-gpu --public --repeat-baseline --shards 4\n```\n\nEvery arm starts a fresh process. ORIGINAL/OFF/OFF_REPEAT use ordinary journals and modulo shards. ON tests caches; ON_JOURNAL and sequential whole-scene shards test separate journal/shard features. Sequential shards establish equality, not parallel speed. Public logs tokenize item/native/room identities and arbitrary stdout/stderr. No reverse map is written on Orchard.\n\nAcceptance requires all 50 expected IDs, complete production output schemas, nonempty text/tokens/heads, scale even when null, every served response and forced-token count, matching call counters, and **zero semantic byte differences**. ORIGINAL/OFF must also retain every production source hash. Each enabled cache must report its memory bound and useful hits; SAM needs both feature and detection hits. Empty or all-miss runs fail. Only clocks and explicit audit/cache/memo telemetry are excluded from semantic comparison; audit violations fail. There is no answer/trace tolerance.\n\nEach RUN.json records the adopted package plan, read profile, asset pins, required device type, actual device, cache slots and budget. The worker checks CUDA device properties before model loading and refuses a different GPU family, compute capability or memory class. `ue.json` is written only after all comparisons finish and records whether they all passed; failed or missing receipts cannot authorize submit. Archive it with `tar -cf "$LOCAL/5.tar" -C /scratch/jjyeung/ab0123456789/u9 ue.json` and print `sha256sum "$LOCAL/5.tar"` for the authenticated return transport. Judge net time from `RUN.json`\'s `worker_wall_seconds`, which includes install/boundary hashing and eager SAM loading. Per-item timing alone cannot establish savings. ON constructs SAM outside inference mode to obtain tracked parameters; that changes loading time and potentially RNG use. The GPU byte gate must clear it. The sample overrepresents clip reuse: its ten distance items share one clip, while A4 has 150 distance items across 60 clips (review finding 7).\n\nThe cache cap covers retained cache storage and transient copies, not model/caller working memory. Measure full-process host/GPU peaks. Models must remain frozen: calls check parameter/buffer identities, pointers and counters; install/type boundaries hash content. Persistent raw writes fail at a boundary. Raw writes restored between boundaries, private tensor attributes and arbitrary non-tensor state are outside this guard\'s coverage. Graceful stops verify journals; a hard kill can leave an unchecked journal that requires fresh output.\n\nOutput directories u0–u5 represent ORIGINAL/OFF/OFF_REPEAT/ON/ON_JOURNAL/SHARDED. Reports u6–ua compare arms; ub.json checks merge equality; uc/ud contain canonical single/sharded returns. Restore on Trinity with the private inputs:\n\n```bash\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a11.py" restore \\\n  --source-root "$EXT_SOURCE" --input PRIVATE_RETURN --out "$LOCAL/restored" \\\n  --private-source "$DELIVERY/kit_parity50/sample50.json" \\\n  --private-source "$PRIVATE_CONFIG" --private-source "$PRIVATE_SETTINGS"\n```\n\nRestoration authenticates committed rows before rebuilding private IDs/checksums. Merge with the original manifest through the explicit extension entrypoint. The canonical answer/trace archive must match exactly; transport-envelope clocks remain variable.\n\n## Array validation\n\nNo multi-card A4 operator is delivered. The array helper is a separate inert prototype. Its example has `approved=false`: two one-hour shards, at most two attempts, four GPU-hours total. Approval must bind the exact partition, shards, time and attempts, with no more than five allocated GPU-hours over all attempts. Before any sharded/preempt adoption, validate real persistent-storage preemption/requeue.\n\n```bash\nCUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a15.py" PRIVATE_ARRAY_CONFIG.json \\\n  --enable-array --token ab0123456789 --out "$LOCAL/array-plan" \\\n  --python /scratch/jjyeung/ab0123456789/u1 --source /scratch/jjyeung/ab0123456789/u2 \\\n  --staged-config /project/community/jjyeung/okh7/a15_cot_apab0123456789/u3.json\n```\n\nThis writes commands without running them. Exit 75 requests bounded requeue; other errors remain failures. Lock waits stop after 60 seconds, and the attempt limit forbids more work. Public paths must use approved roots and pass the forbidden-word screen; name checks do not establish storage permissions or capacity.\n\nNo delivered CPU suite or single-GPU kit requires a local OS socket. StageOneSocket is a Python callback. Real restore, bwrap isolation, remote transport, GPU parity/performance/memory and persistent requeue remain unrun.\n\n## Review round 6: finding -> fix -> test\n\n| Finding | Fix | Regression |\n|---|---|---|\n| 1. Unpack import fails | Run `-s -B` from the operator directory. | Execute the README command as a subprocess on an authenticated fixture return. |\n| 2. Foreground pull/fill | Detached nohup worker, permanent attempt lock, PID/log and exit file; no retries. | Success 0 and failure 17 both report completion; duplicate launch refuses. |\n| 3. Weak submit receipt | Embed every cont_ops A4 CPU assertion, then enforce cache and pool checks. | Batch/guard/action/argv/events/memory tampering and a resealed stale batch fail. |\n| 4. Unpinned copied members | Pin all A4 copied members, base batch and decoded bootstrap before output. | Mutations of each additional member and bootstrap pin refuse before writing. |\n| 5. Unbound checkpoint/device | READY restore/binding pins and export identity bind step-600 assets; workers recheck assets and require H100 80 GB. | Changed receipts, wrong step, changed staged files and non-production GPU properties fail. |\n| INFO: receipt whitespace | Compare the three whitespace-separated fields. | Tabs/newlines pass; extra fields fail. |\n| INFO: manual GPU handoff | Submit requires the successful token-only GPU receipt for the same plan/profile/assets/device. | Failed, absent, stale or mismatched evidence refuses. |\n\nThe binding retains Orchard `done`/`prep_paths` as authenticated operation metadata; admission still checks its fixed identity keys. Persistent raw writes remain boundary-checked; restored-between-boundary raw writes remain unsupported and require frozen model ownership. These informational limits do not change reader behavior.\n'
+
+======================================================================
+FAIL: test_info_receipt_records_and_submit_checks_kit_comparator_sample (__main__.Round7Tests.test_info_receipt_records_and_submit_checks_kit_comparator_sample)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 119, in test_info_receipt_records_and_submit_checks_kit_comparator_sample
+    self.assertTrue(hasattr(self.kit,'kit_hashes'),'Receipt omits executing kit/comparator/sample bytes')
+AssertionError: False is not true : Receipt omits executing kit/comparator/sample bytes
+
+======================================================================
+FAIL: test_info_unpack_ignores_python_environment_and_keeps_sibling_import (__main__.Round7Tests.test_info_unpack_ignores_python_environment_and_keeps_sibling_import)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 141, in test_info_unpack_ignores_python_environment_and_keeps_sibling_import
+    self.assertIn(' -s -E -B ./unpack_return.py',block)
+AssertionError: ' -s -E -B ./unpack_return.py' not found in ': "${RETURN_ARCHIVE:?Received fetched-return archive on local scratch}"\n: "${RETURN_SHA256:?Printed Orchard SHA256 of the fetched-return archive}"\nprintf \'%s  %s\\n\' "$RETURN_SHA256" "$RETURN_ARCHIVE" | nice -n 10 sha256sum -c -\nmkdir "$LOCAL/step600/f"\nnice -n 10 tar -xzf "$RETURN_ARCHIVE" -C "$LOCAL/step600/f"\n(cd "$LOCAL/step600" && CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -s -B ./unpack_return.py \\\n  --archive "$LOCAL/step600/f/0.tgz" --exit "$LOCAL/step600/f/EXIT.json" \\\n  --out "$LOCAL/step600/ret" > "$LOCAL/step600/unpack-success.json" && \\\n  test -s "$LOCAL/step600/unpack-success.json")'
+
+======================================================================
+FAIL: test_rebind_default400_and_explicit600 (__main__.Round7Tests.test_rebind_default400_and_explicit600)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round7.py", line 159, in test_rebind_default400_and_explicit600
+    self.assertIn('bound_export',inspect.signature(self.helper.gate).parameters,'Gate lacks selectable export parameter')
+AssertionError: 'bound_export' not found in mappingproxy(OrderedDict({'operator': <Parameter "operator">, 'prepared': <Parameter "prepared">, 'proof': <Parameter "proof">, 'config_template': <Parameter "config_template">, 'settings_out': <Parameter "settings_out">, 'config_out': <Parameter "config_out">, 'asset_receipts': <Parameter "asset_receipts=None">})) : Gate lacks selectable export parameter
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.797s
+
+FAILED (failures=10)
 ```
 
 ```bash
@@ -2205,12 +2431,12 @@ test_f2_step600_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_step
 FAIL: test_f2_step600_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_step600_real_job_and_rehearsal_memory)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 334, in test_f2_step600_real_job_and_rehearsal_memory
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 337, in test_f2_step600_real_job_and_rehearsal_memory
     self.assertEqual(proof['memory'].get('read_cache_bytes'),12*1024**3)
 AssertionError: None != 12884901888
 
 ----------------------------------------------------------------------
-Ran 1 test in 10.308s
+Ran 1 test in 8.701s
 
 FAILED (failures=1)
 ```
@@ -2230,12 +2456,12 @@ FAIL: test_f4_worker_uses_settings_argv_without_environment_side_effect (__main_
 Traceback (most recent call last):
   File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round3.py", line 188, in test_f4_worker_uses_settings_argv_without_environment_side_effect
     self.assertNotIn('H10_SETTINGS',kit.os.environ)
-AssertionError: 'H10_SETTINGS' unexpectedly found in {'CUDA_VISIBLE_DEVICES': 'fixture', 'H10_SETTINGS': '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/f7f1a8584a33452d8b0e8497dd36696c/u0.json'}
+AssertionError: 'H10_SETTINGS' unexpectedly found in {'CUDA_VISIBLE_DEVICES': 'fixture', 'H10_SETTINGS': '/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/f3b5331eb574445b88a6ebd4034bca11/u0.json'}
 
 ----------------------------------------------------------------------
-Ran 1 test in 0.903s
+Ran 1 test in 0.878s
 
 FAILED (failures=1)
 ```
 
-The final seal is verified by `bash work/cpu.sh work/integrity6.py`; its exact output is [integrity6.txt](checks/integrity6.txt). [FINAL_INTEGRITY.json](checks/FINAL_INTEGRITY.json) pins the documents, MANIFEST, diffs, kit, operations and evidence. The seal output stays external to avoid a report/hash cycle.
+The final seal runs `bash work/cpu.sh work/integrity7.py`; its exact output is [integrity7.txt](checks/integrity7.txt). [FINAL_INTEGRITY.json](checks/FINAL_INTEGRITY.json) pins the report, note, MANIFEST, diffs and evidence. Seal output stays external to avoid a report/hash cycle.

@@ -1,0 +1,1 @@
+2026-11-19T16:20:46Z code_sync run failed; invalid budget assignment LCS_SCAN_SECONDS; initialize robust staging (log /scratch/jjyeung/orch_n30/so_syncfix/work/round1_isolated_final_py312/driver_a596t46t/state/sync.log; next attempt next hour)

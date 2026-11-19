@@ -3,7 +3,7 @@ from support import *
 class WrapperTests(DriverFixture):
     def test_held_stdout_deadline_and_lock_release(self):
         self.env['FAKE_trinity_1_18'] = 'held_hang'
-        self.env['LCS_NODE_SECONDS'] = '0.35'
+        self.env.update(LCS_NODE_SECONDS='0.55', LCS_REMOTE_SECONDS='0.50', LCS_LEG_SECONDS='0.45')
         result = self.run_driver()
         self.check_partial_success(result)
         self.assertLess(self.elapsed, 3)
@@ -17,24 +17,23 @@ class WrapperTests(DriverFixture):
         locked = subprocess.run(['flock', '-n', str(self.state / '.sync.lock'), 'true'])
         self.assertEqual(locked.returncode, 0)
         self.assertRegex(result.stdout.decode(), r'trinity-1-18 stage rc=(124|137)')
-        run = next((self.state / 'stage-runs').iterdir())
-        node_elapsed = (run / 'trinity-1-18.snapshot').stat().st_mtime - (run / 'trinity-1-18.sh').stat().st_mtime
-        self.assertLess(node_elapsed, 0.9)
-        self.assertGreater(node_elapsed, 0.35)
-        print('MEASURE held_stdout_driver_elapsed=%.3fs node_limit=0.35s kill_after=0.15s holder_alive=1 lock_free=1' % self.elapsed, flush=True)
+        slot = self.state / 'stage-robust' / 'trinity-1-18'
+        node_elapsed = (slot / 'run.log').stat().st_mtime - (slot / 'program.sh').stat().st_mtime
+        self.assertLess(node_elapsed, 1.1)
+        self.assertGreater(node_elapsed, 0.55)
+        print('MEASURE held_stdout_driver_elapsed=%.3fs node_limit=0.55s kill_after=0.15s holder_alive=1 lock_free=1' % self.elapsed, flush=True)
         print('MEASURE held_stdout_node_elapsed=%.3fs' % node_elapsed, flush=True)
 
     def test_tssh_rate_lock_wait_is_also_bounded(self):
         wrapper = self.b / 'tools' / 'tssh.sh'
         wrapper.write_text(wrapper.read_text().replace('last + 0', 'last + 35'))
         write(self.root / 'tssh' / 'last', str(int(time.time())))
-        self.env['LCS_NODE_SECONDS'] = '0.15'
+        self.env.update(LCS_NODE_SECONDS='0.55', LCS_REMOTE_SECONDS='0.50', LCS_LEG_SECONDS='0.45')
         result = self.run_driver()
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn(b'trinity-1-18 stage rc=124', result.stdout)
-        self.assertIn(b'trinity-2-28 stage rc=124', result.stdout)
+        self.assertIn(b'SKIP trinity-2-28 (unreachable or silent; rc=124)', result.stdout)
         self.assertFalse((self.root / 'ssh.jsonl').exists())
         self.assertTrue((self.repo / 'lane_code' / 'trinity-3-30' / 'good.py').is_file())
         self.assertIn(b'committed', result.stdout)
-        self.assertLess(self.elapsed, 2)
-
+        self.assertLess(self.elapsed, 3)

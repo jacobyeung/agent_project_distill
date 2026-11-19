@@ -1,13 +1,14 @@
-Thu Nov 19 15:38:41 UTC 2026
-VERDICT: DONE — round-6 fixes, tests, patches and handoff are complete.
+Thu Nov 19 16:49:52 UTC 2026
+VERDICT: DONE — round-7 fixes and delivery are complete.
 
-- The out_round6 backup and 35-file source snapshot match their original pins.
-- README unpack runs as written. Pull/fill/dry runs under nohup with an attempt lock, PID/log and success/failure exit file.
-- Submit embeds every cont_ops A4 CPU assertion and requires the bound successful GPU receipt. A4 copied members, batch and bootstrap are pinned before output.
-- The gate binds CPU restore/manifest receipts and step-600 export identity. Workers recheck staged assets and require H100 80 GB. CPU proof exports the small exact receipts needed for local preflight.
-- 111 workspace tests and 30 applied tests pass. All ten baseline controls reran; round 6 fails 31 assertions on the reviewed snapshot and passes after fixes.
-- Five diffs apply with zero fuzz; all original reader and OFF output bytes remain unchanged. ON CPU answer/trace checks pass. GPU byte equality remains unrun and mandatory.
-- Profile, framework probes, guard benchmark, real CPU-proof gate/submit integration and documentation checks pass. Exact outputs and measured resources are in REPORT.md.
-- The final workspace is 2,811,878,382 unique-inode bytes, below 3 GB. Immutable fixture sharing preserves every path. No GPU, Git, SSH, scheduler action, paid API, deletion command or input-tree edit ran.
-- Real target weights, production transfer/restore, GPU parity/performance/memory and persistent requeue remain external checks. No multi-card A4 operator is delivered.
-- Completed before 16:13:03 UTC; FINAL_INTEGRITY.json seals the reviewed delivery and evidence.
+The out_round7 backup and 36-file source snapshot match their original pins.
+The CPU job stages its asset archive before CPU.json and records hash/bytes; fixture reconstruction preserves READY.
+Fill waits guard the token, check the PID and stop after four hours. The device guard requires HBM3 and 132 SMs.
+Gate and submit bind kit/comparator/sample; a/1.json authenticates export bytes before GPU work. Unpack uses -s -E -B.
+Default export is step 400/read A/job 173060, artifact 5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd; explicit step-600 fixture selection passes.
+119 workspace and 38 fresh-application tests pass. All 11 baseline controls reran; round 7 has ten expected assertion failures before fixes.
+Five diffs apply with zero fuzz; 927 base files and OFF outputs remain byte-identical. ON CPU answer/trace tests pass.
+Public-kit, archive staging, gate/submit, documentation, profile and source probes pass. Exact outputs are in REPORT.md.
+The workspace is 2,855,826,442 unique-inode bytes. No GPU, Git, SSH, scheduler operation, paid API, input-tree edit or deletion command ran.
+Real H100 parity/performance/memory, large staging/transport and persistent requeue remain external checks. No multi-card A4 operator is delivered.
+Completed before 17:42:18 UTC. FINAL_INTEGRITY.json seals the delivery.

@@ -4,10 +4,10 @@
     "label": "nonliteral_after_spread",
     "source": "key,value=(\"BeNcHmArK\",\"q\")\nenv={**os.environ}\nenv[key]=value\nsubprocess.run([\"true\"],env=env)",
     "old": "PASS",
-    "old_checked_strings": 76255,
+    "old_checked_strings": 76258,
     "new": "REFUSE",
     "error": "ENV_UNRESOLVED:b/o.py:14:environment:environment key is not a literal string: env[key] = value",
-    "seconds": 15.683155367150903
+    "seconds": 14.630088684149086
   },
   {
     "source": "env={**os.environ}\nenv[key]=\"q\"\nrun(env=env)",

@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30/sb_scale2; ls $R/out | tr "\n" " "; echo; tail -3 $R/out/score.log; cat $R/STATUS.md | cut -c1-600; echo; [ -f $R/out/ITEMS12.md ] && { wc -c $R/out/ITEMS12.md; sha256sum $R/out/ITEMS12.md $R/out/ITEMS12.json | cut -c1-16; cat $R/out/ITEMS12.md; }

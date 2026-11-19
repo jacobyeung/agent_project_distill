@@ -4,7 +4,7 @@ from copy import deepcopy
 from unittest.mock import patch,Mock
 from contextlib import ExitStack
 import sys,json,unittest,importlib.util
-L=Path(__file__).resolve().parents[2];D=L/'work/build24/proofs/tests23b';B=L/'work/build21';T=Path(os.environ.get('R2_TREE',L/'work/tree_r1'));R=D/'unit';R.mkdir(parents=True,exist_ok=True)
+L=Path(__file__).resolve().parents[2];D=L/'work/build24b/proofs/tests23b';B=L/'work/build21';T=Path(os.environ.get('R2_TREE',L/'work/tree_r1'));R=D/'unit';R.mkdir(parents=True,exist_ok=True)
 sys.path[:0]=[str(T),str(B),str(L/'work/n1fix2')]
 from monitor9 import Monitor
 monitor=Monitor(T)

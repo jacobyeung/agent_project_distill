@@ -1,0 +1,125 @@
+Thu Nov 19 16:34:38 UTC 2026
+Python 3.6.8
+test_copy_timeout_cannot_commit_a_truncated_file (test_review.ReviewCopyTests) ... FAIL
+test_default_off_copy_matches_input (test_review.ReviewCopyTests) ... ok
+test_file_deadline_driver_and_filter_agree (test_review.ReviewDriverTests) ... FAIL
+test_initialization_errors_all_emit_blocker (test_review.ReviewDriverTests) ... test_missing_root_has_no_fail_or_blocker (test_review.ReviewDriverTests) ... FAIL
+test_optional_unreachable_node_is_skip (test_review.ReviewDriverTests) ... FAIL
+test_regular_flag_enables_without_environment (test_review.ReviewDriverTests) ... FAIL
+test_slots_reused_and_failed_attempt_never_scanned (test_review.ReviewDriverTests) ... FAIL
+test_tar_exit_one_quarantines_node_but_publishes_other_sources (test_review.ReviewDriverTests) ... FAIL
+test_750000_duplicate_manifest_default_budgets (test_review.ReviewFilterTests) ... FAIL
+test_manifest_exception_logs_every_leftover_and_preserves_final (test_review.ReviewFilterTests) ... FAIL
+test_manifest_scan_timeout_logs_pending_name (test_review.ReviewFilterTests) ... FAIL
+
+======================================================================
+FAIL: test_copy_timeout_cannot_commit_a_truncated_file (test_review.ReviewCopyTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 210, in test_copy_timeout_cannot_commit_a_truncated_file
+    self.assertEqual((dest / 'good.py').read_text(), 'complete-prior-file')
+AssertionError: 'truncated' != 'complete-prior-file'
+- truncated
++ complete-prior-file
+
+
+======================================================================
+FAIL: test_file_deadline_driver_and_filter_agree (test_review.ReviewDriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 159, in test_file_deadline_driver_and_filter_agree
+    self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+AssertionError: 1 != 2 : b'2026-11-19T16:34:40Z START dry=0 queue_only=0\n2026-11-19T16:34:40Z ROBUST run=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_iwyjgpr0/state/stage-runs/run.lyZZ8IFL node_seconds=1.3 kill_seconds=0.15\n  [trinity-1-18] Traceback (most recent call last):\n  [trinity-1-18]   File "<stdin>", line 233, in <module>\n  [trinity-1-18]   File "<stdin>", line 29, in robust_scan\n  [trinity-1-18] ValueError: LCS_FILE_SECONDS must be in (0, 30]\n  [trinity-1-18] PIPE 1 0 0\n2026-11-19T16:34:40Z FAIL trinity-1-18 stage rc=4 (skipped; previous stage and clone preserved; log /scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_iwyjgpr0/state/stage-runs/run.lyZZ8IFL/trinity-1-18.log)\n  [trinity-2-28] Traceback (most recent call last):\n  [trinity-2-28]   File "<stdin>", line 233, in <module>\n  [trinity-2-28]   File "<stdin>", line 29, in robust_scan\n  [trinity-2-28] ValueError: LCS_FILE_SECONDS must be in (0, 30]\n  [trinity-2-28] PIPE 1 0 0\n2026-11-19T16:34:40Z FAIL trinity-2-28 stage rc=4 (skipped; previous stage and clone preserved; log /scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_iwyjgpr0/state/stage-runs/run.lyZZ8IFL/trinity-2-28.log)\n  [trinity-3-30] Traceback (most recent call last):\n  [trinity-3-30]   File "<stdin>", line 233, in <module>\n  [trinity-3-30]   File "<stdin>", line 29, in robust_scan\n  [trinity-3-30] ValueError: LCS_FILE_SECONDS must be in (0, 30]\n  [trinity-3-30] PIPE 1 0 0\n2026-11-19T16:34:40Z FAIL trinity-3-30 stage rc=4 (skipped; previous stage and clone preserved; log /scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_iwyjgpr0/state/stage-runs/run.lyZZ8IFL/local.log)\n  [orch_n30/tools] Traceback (most recent call last):\n  [orch_n30/tools]   File "<stdin>", line 233, in <module>\n  [orch_n30/tools]   File "<stdin>", line 29, in robust_scan\n  [orch_n30/tools] ValueError: LCS_FILE_SECONDS must be in (0, 30]\n  [orch_n30/tools] PIPE 1 0 0\n2026-11-19T16:34:40Z FAIL orch_n30/tools stage rc=4 (skipped; previous stage and clone preserved; log /scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_iwyjgpr0/state/stage-runs/run.lyZZ8IFL/tools.log)\n  [orch_n30/briefs] Traceback (most recent call last):\n  [orch_n30/briefs]   File "<stdin>", line 233, in <module>\n  [orch_n30/briefs]   File "<stdin>", line 29, in robust_scan\n  [orch_n30/briefs] ValueError: LCS_FILE_SECONDS must be in (0, 30]\n  [orch_n30/briefs] PIPE 1 0 0\n2026-11-19T16:34:40Z FAIL orch_n30/briefs stage rc=4 (skipped; previous stage and clone preserved; log /scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_iwyjgpr0/state/stage-runs/run.lyZZ8IFL/briefs.log)\n2026-11-19T16:34:40Z committed 1 files, 1 lanes: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:34:40Z verified GitHub lane-code = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:34:40Z QUEUE done: 0 new lines\n2026-11-19T16:34:40Z END with failures\n'
+
+======================================================================
+FAIL: test_initialization_errors_all_emit_blocker (test_review.ReviewDriverTests) (failure='missing_helper')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 151, in test_initialization_errors_all_emit_blocker
+    self.assertTrue(events, result.stdout + result.stderr)
+AssertionError: [] is not true : b'2026-11-19T16:34:40Z START dry=0 queue_only=0\n2026-11-19T16:34:40Z FAIL load robust staging\n/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_6_ttbjc1/orchestrator/tools/lane_code_sync.sh: line 111: /scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_6_ttbjc1/orchestrator/tools/lane_code_stage.sh: No such file or directory\n'
+
+======================================================================
+FAIL: test_initialization_errors_all_emit_blocker (test_review.ReviewDriverTests) (failure='bad_budget')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 151, in test_initialization_errors_all_emit_blocker
+    self.assertTrue(events, result.stdout + result.stderr)
+AssertionError: [] is not true : b'2026-11-19T16:34:40Z START dry=0 queue_only=0\n2026-11-19T16:34:40Z FAIL invalid LCS_NODE_SECONDS=0\n2026-11-19T16:34:40Z FAIL initialize robust staging\n'
+
+======================================================================
+FAIL: test_initialization_errors_all_emit_blocker (test_review.ReviewDriverTests) (failure='slot_mkdir')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 151, in test_initialization_errors_all_emit_blocker
+    self.assertTrue(events, result.stdout + result.stderr)
+AssertionError: [] is not true : b'2026-11-19T16:34:40Z START dry=0 queue_only=0\n2026-11-19T16:34:40Z FAIL initialize robust staging\n'
+
+======================================================================
+FAIL: test_missing_root_has_no_fail_or_blocker (test_review.ReviewDriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 123, in test_missing_root_has_no_fail_or_blocker
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : b'2026-11-19T16:34:40Z START dry=0 queue_only=0\n2026-11-19T16:34:40Z ROBUST run=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_82ku4yaj/state/stage-runs/run.5iOS4Se1 node_seconds=1.3 kill_seconds=0.15\n  [trinity-1-18] SKIP trinity-1-18 no orch_n30/source\n2026-11-19T16:34:40Z FAIL trinity-1-18 stage rc=66 (skipped; previous stage and clone preserved; log /scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_82ku4yaj/state/stage-runs/run.5iOS4Se1/trinity-1-18.log)\n  [trinity-2-28] STATS trinity-2-28 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-2-28] PIPE 0 0 0\n2026-11-19T16:34:41Z STAGED trinity-2-28 rc=0\n  [trinity-3-30] STATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-3-30] PIPE 0 0 0\n2026-11-19T16:34:41Z STAGED trinity-3-30 rc=0\n  [orch_n30/tools] STATS orch_n30/tools files=5 bytes=33972 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/tools] PIPE 0 0 0\n2026-11-19T16:34:41Z STAGED orch_n30/tools rc=0\n  [orch_n30/briefs] STATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/briefs] PIPE 0 0 0\n2026-11-19T16:34:41Z STAGED orch_n30/briefs rc=0\n  [copy trinity-2-28] SCAN scanned=2 copied=2 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_82ku4yaj/state/stage-runs/run.5iOS4Se1/copy_trinity-2-28.flags\n  [copy trinity-3-30] SCAN scanned=2 copied=2 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_82ku4yaj/state/stage-runs/run.5iOS4Se1/copy_trinity-3-30.flags\n  [copy orch_n30/tools] SCAN scanned=5 copied=5 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_82ku4yaj/state/stage-runs/run.5iOS4Se1/copy_orch_n30_tools.flags\n  [copy orch_n30/briefs] SCAN scanned=1 copied=1 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_82ku4yaj/state/stage-runs/run.5iOS4Se1/copy_orch_n30_briefs.flags\n2026-11-19T16:34:41Z committed 1 files, 1 lanes: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:34:41Z verified GitHub lane-code = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:34:41Z QUEUE done: 0 new lines\n2026-11-19T16:34:41Z END with failures\n'
+
+======================================================================
+FAIL: test_optional_unreachable_node_is_skip (test_review.ReviewDriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 131, in test_optional_unreachable_node_is_skip
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : b'2026-11-19T16:34:41Z START dry=0 queue_only=0\n2026-11-19T16:34:41Z ROBUST run=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_luizq8ip/state/stage-runs/run.3s5JMxZg node_seconds=1.3 kill_seconds=0.15\n  [trinity-1-18] STATS trinity-1-18 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-1-18] PIPE 0 0 0\n2026-11-19T16:34:41Z STAGED trinity-1-18 rc=0\n  [trinity-2-28] ssh: connect to host trinity-2-28: Connection timed out\n2026-11-19T16:34:42Z FAIL trinity-2-28 stage rc=255 (skipped; previous stage and clone preserved; log /scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_luizq8ip/state/stage-runs/run.3s5JMxZg/trinity-2-28.log)\n  [trinity-3-30] STATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-3-30] PIPE 0 0 0\n2026-11-19T16:34:42Z STAGED trinity-3-30 rc=0\n  [orch_n30/tools] STATS orch_n30/tools files=5 bytes=33972 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/tools] PIPE 0 0 0\n2026-11-19T16:34:42Z STAGED orch_n30/tools rc=0\n  [orch_n30/briefs] STATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/briefs] PIPE 0 0 0\n2026-11-19T16:34:42Z STAGED orch_n30/briefs rc=0\n  [copy trinity-1-18] SCAN scanned=2 copied=2 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_luizq8ip/state/stage-runs/run.3s5JMxZg/copy_trinity-1-18.flags\n  [copy trinity-3-30] SCAN scanned=2 copied=2 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_luizq8ip/state/stage-runs/run.3s5JMxZg/copy_trinity-3-30.flags\n  [copy orch_n30/tools] SCAN scanned=5 copied=5 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_luizq8ip/state/stage-runs/run.3s5JMxZg/copy_orch_n30_tools.flags\n  [copy orch_n30/briefs] SCAN scanned=1 copied=1 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver_luizq8ip/state/stage-runs/run.3s5JMxZg/copy_orch_n30_briefs.flags\n2026-11-19T16:34:42Z committed 1 files, 1 lanes: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:34:42Z verified GitHub lane-code = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:34:42Z QUEUE done: 0 new lines\n2026-11-19T16:34:42Z END with failures\n'
+
+======================================================================
+FAIL: test_regular_flag_enables_without_environment (test_review.ReviewDriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 168, in test_regular_flag_enables_without_environment
+    self.assertIn(b'ROBUST', result.stdout)
+AssertionError: b'ROBUST' not found in b'2026-11-19T16:34:42Z START dry=1 queue_only=0\n  [trinity-1-18] STATS trinity-1-18 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0 \n  [trinity-1-18] PIPE 0\nSTATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0 \nSTATS orch_n30/tools files=5 bytes=33972 dups=0 skipped_oversize=0 skipped_bigdirs=0 \nSTATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0 \n2026-11-19T16:34:43Z DRY done\n'
+
+======================================================================
+FAIL: test_slots_reused_and_failed_attempt_never_scanned (test_review.ReviewDriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 86, in test_slots_reused_and_failed_attempt_never_scanned
+    self.assertTrue(slots.is_dir())
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_tar_exit_one_quarantines_node_but_publishes_other_sources (test_review.ReviewDriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 179, in test_tar_exit_one_quarantines_node_but_publishes_other_sources
+    self.assertIn(b'not published: archive may contain changed or incomplete files', result.stdout)
+AssertionError: b'not published: archive may contain changed or incomplete files' not found in b'2026-11-19T16:34:44Z START dry=0 queue_only=0\n2026-11-19T16:34:44Z ROBUST run=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver__ndh7vb0/state/stage-runs/run.Kj8nEAJe node_seconds=1.3 kill_seconds=0.15\n  [trinity-1-18] STATS trinity-1-18 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-1-18] tar: file changed as we read it\n  [trinity-1-18] PIPE 0 1 0\n2026-11-19T16:34:44Z FAIL trinity-1-18 stage rc=4 (skipped; previous stage and clone preserved; log /scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver__ndh7vb0/state/stage-runs/run.Kj8nEAJe/trinity-1-18.log)\n  [trinity-2-28] STATS trinity-2-28 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-2-28] PIPE 0 0 0\n2026-11-19T16:34:44Z STAGED trinity-2-28 rc=0\n  [trinity-3-30] STATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-3-30] PIPE 0 0 0\n2026-11-19T16:34:44Z STAGED trinity-3-30 rc=0\n  [orch_n30/tools] STATS orch_n30/tools files=5 bytes=33972 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/tools] PIPE 0 0 0\n2026-11-19T16:34:44Z STAGED orch_n30/tools rc=0\n  [orch_n30/briefs] STATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/briefs] PIPE 0 0 0\n2026-11-19T16:34:44Z STAGED orch_n30/briefs rc=0\n  [copy trinity-2-28] SCAN scanned=2 copied=2 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver__ndh7vb0/state/stage-runs/run.Kj8nEAJe/copy_trinity-2-28.flags\n  [copy trinity-3-30] SCAN scanned=2 copied=2 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver__ndh7vb0/state/stage-runs/run.Kj8nEAJe/copy_trinity-3-30.flags\n  [copy orch_n30/tools] SCAN scanned=5 copied=5 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver__ndh7vb0/state/stage-runs/run.Kj8nEAJe/copy_orch_n30_tools.flags\n  [copy orch_n30/briefs] SCAN scanned=1 copied=1 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/delivery_before_py36/driver__ndh7vb0/state/stage-runs/run.Kj8nEAJe/copy_orch_n30_briefs.flags\n2026-11-19T16:34:44Z committed 1 files, 1 lanes: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:34:44Z verified GitHub lane-code = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:34:45Z QUEUE done: 0 new lines\n2026-11-19T16:34:45Z END with failures\n'
+
+======================================================================
+FAIL: test_750000_duplicate_manifest_default_budgets (test_review.ReviewFilterTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 39, in test_750000_duplicate_manifest_default_budgets
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : b'STATS fixture files=0 bytes=0 dups=750000 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\nTraceback (most recent call last):\n  File "<string>", line 17, in <module>\n  File "/scratch/jjyeung/orch_n30/so_syncfix/out_round1/tools/lane_code_filter.py", line 233, in <module>\n    robust_scan()\n  File "/scratch/jjyeung/orch_n30/so_syncfix/out_round1/tools/lane_code_filter.py", line 183, in robust_scan\n    if mdir:\n  File "/usr/lib64/python3.6/gzip.py", line 264, in write\n    self.fileobj.write(self.compress.compress(data))\n  File "/scratch/jjyeung/orch_n30/so_syncfix/out_round1/tools/lane_code_filter.py", line 25, in alarm\n    raise ReadDeadline()\n__main__.ReadDeadline\n'
+
+======================================================================
+FAIL: test_manifest_exception_logs_every_leftover_and_preserves_final (test_review.ReviewFilterTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 64, in test_manifest_exception_logs_every_leftover_and_preserves_final
+    self.assertIn(str(leftovers[0].relative_to(self.root)).encode(), result.stderr)
+AssertionError: b'meta/.dedup-301d9b105fdc47b9b38bbf50ab8e155b' not found in b'STATS fixture files=0 bytes=0 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\nTraceback (most recent call last):\n  File "<string>", line 8, in <module>\n  File "/scratch/jjyeung/orch_n30/so_syncfix/out_round1/tools/lane_code_filter.py", line 233, in <module>\n    robust_scan()\n  File "/scratch/jjyeung/orch_n30/so_syncfix/out_round1/tools/lane_code_filter.py", line 217, in robust_scan\n    g.write(\'\'.join(x + \'\\n\' for x in dups).encode(\'utf-8\', \'surrogateescape\'))\n  File "<string>", line 4, in broken_write\nOSError: injected manifest disk failure\n'
+
+======================================================================
+FAIL: test_manifest_scan_timeout_logs_pending_name (test_review.ReviewFilterTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "work/round1/tests/test_review.py", line 78, in test_manifest_scan_timeout_logs_pending_name
+    self.assertIn(str(leftovers[0].relative_to(self.root)).encode(), result.stderr)
+AssertionError: b'meta/.dedup-a28e56e702654a1eb283860acf3abd3d' not found in b''
+
+----------------------------------------------------------------------
+Ran 12 tests in 16.416s
+
+FAILED (failures=13)

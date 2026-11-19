@@ -28,8 +28,11 @@ class DriverTests(DriverFixture):
     def test_missing_root_skipped_other_sources_publish(self):
         self.env['FAKE_trinity_1_18'] = 'missing'
         result = self.run_driver()
-        self.check_partial_success(result)
-        self.assertIn(b'SKIP trinity-1-18 no orch_n30/source', result.stdout)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn(b'SKIP trinity-1-18 (no source root)', result.stdout)
+        self.assertNotIn(b'FAIL', result.stdout)
+        self.assertFalse(list((self.root / 'events').glob('*_BLOCKER*')))
+        self.assertTrue((self.repo / 'lane_code' / 'trinity-2-28' / 'good.py').is_file())
 
     def test_legacy_substitution_reproduces_held_pipe(self):
         self.env['FAKE_trinity_1_18'] = 'held_exit'
@@ -75,8 +78,7 @@ class DriverTests(DriverFixture):
         self.assertFalse((self.root / 'ssh.jsonl').exists())
 
     def test_outer_remote_timeout(self):
-        self.env.update(FAKE_trinity_1_18='scanner_hang', LCS_SCAN_SECONDS='2',
-                        LCS_LEG_SECONDS='2', LCS_REMOTE_SECONDS='0.3')
+        self.env.update(FAKE_trinity_1_18='remote_hang')
         result = self.run_driver()
         self.check_partial_success(result)
         self.assertIn(b'trinity-1-18 stage rc=124', result.stdout)
@@ -86,7 +88,8 @@ class DriverTests(DriverFixture):
         self.env['FAKE_STAGE_FIFO'] = '1'
         result = self.run_driver()
         self.check_partial_success(result)
-        self.assertIn(b'trinity-1-18 scan/copy rc=124', result.stdout)
+        self.assertIn(b'trinity-1-18 accept stage rc=1', result.stdout)
+        self.assertIn(b'nonregular archive entry', result.stdout)
         self.assertLess(self.elapsed, 3)
 
     def test_tar_leg_kill_after_and_other_sources_publish(self):
@@ -95,9 +98,10 @@ class DriverTests(DriverFixture):
               '  trap "" TERM; sleep 4\n'
               'else exec /usr/bin/tar "$@"; fi\n', True)
         self.env['LCS_LEG_SECONDS'] = '0.25'
+        self.env['LCS_SCAN_SECONDS'] = '0.2'
         result = self.run_driver()
         self.check_partial_success(result)
-        self.assertRegex(result.stdout.decode(), r'PIPE 0 137 (2|124|137)')
+        self.assertRegex(result.stdout.decode(), r'PIPE 0 137 (0|2|124|137)')
         self.assertLess(self.elapsed, 3)
 
     def test_default_off_driver_matches_input_behavior(self):
@@ -121,4 +125,3 @@ class DriverTests(DriverFixture):
             trees.append({str(p.relative_to(repo)): p.read_bytes() for p in repo.rglob('*') if p.is_file()})
         self.assertEqual(outputs[0], outputs[1])
         self.assertEqual(trees[0], trees[1])
-

@@ -1,0 +1,225 @@
+Thu Nov 19 16:14:41 UTC 2026
+Python 3.6.8
+test_all_sources_success_and_new_node (test_driver.DriverTests) ... FAIL
+test_copy_scanner_fifo_is_bounded_per_source (test_driver.DriverTests) ... FAIL
+test_default_off_driver_matches_input_behavior (test_driver.DriverTests) ... ERROR
+test_dry_mode_and_stage_only_keep_existing_semantics (test_driver.DriverTests) ... FAIL
+test_invalid_zero_timeout_refused (test_driver.DriverTests) ... ok
+test_legacy_substitution_reproduces_held_pipe (test_driver.DriverTests) ... FAIL
+test_missing_root_skipped_other_sources_publish (test_driver.DriverTests) ... ERROR
+test_outer_remote_timeout (test_driver.DriverTests) ... FAIL
+test_partial_failed_node_cannot_overwrite_or_delete_previous (test_driver.DriverTests) ... FAIL
+test_receiver_timeout_does_not_block_local_publish (test_driver.DriverTests) ... FAIL
+test_remote_scanner_timeout_reports_pipestatus (test_driver.DriverTests) ... FAIL
+test_tar_leg_kill_after_and_other_sources_publish (test_driver.DriverTests) ... FAIL
+test_unreachable_skipped_other_sources_publish (test_driver.DriverTests) ... FAIL
+test_changed_regular_inode_is_rejected (test_filter.FilterTests) ... ok
+test_device_mode_is_rejected_before_open (test_filter.FilterTests) ... ok
+test_directory_replacement_never_follows_link_or_blocks_on_fifo (test_filter.FilterTests) ... ok
+test_fifo_socket_symlinks_never_opened (test_filter.FilterTests) ... ok
+test_growth_is_capped_and_io_errors_counted (test_filter.FilterTests) ... ok
+test_manifest_content_matches_and_link_parent_refused (test_filter.FilterTests) ... ok
+test_original_fifo_reproduces_and_hotfix_skips (test_filter.FilterTests) ... MEASURE original_fifo_timeout_rc=124 elapsed=0.604s hotfix_rc=0
+ok
+test_regular_tree_byte_identical_and_default_off (test_filter.FilterTests) ... MEASURE regular_paths_sha256=f338b0c8a232b99e54dc5afa5d34ea456d60c3ba10a22761c16373a29ec728a3
+ok
+test_replacement_fifo_is_nonblocking_and_fstat_rejected (test_filter.FilterTests) ... ok
+test_replacement_symlink_is_not_followed (test_filter.FilterTests) ... ok
+test_slow_read_deadline_counts_and_continues (test_filter.FilterTests) ... MEASURE slow_file_elapsed=0.084s deadline=0.05s
+ok
+test_derives_budgets_and_refuses_failure_or_incomplete_log (test_install.CalibrationTests) ... ok
+test_busy_lock_defers_without_writes (test_install.InstallTests) ... ok
+test_install_preimages_backups_atomic_replacements_and_postimages (test_install.InstallTests) ... ok
+test_mismatched_preimage_stops_before_backup_or_install (test_install.InstallTests) ... ok
+test_copy_timeout_cannot_commit_a_truncated_file (test_review.ReviewCopyTests) ... ok
+test_default_off_copy_matches_input (test_review.ReviewCopyTests) ... ok
+test_file_deadline_driver_and_filter_agree (test_review.ReviewDriverTests) ... ok
+test_initialization_errors_all_emit_blocker (test_review.ReviewDriverTests) ... ok
+test_missing_root_has_no_fail_or_blocker (test_review.ReviewDriverTests) ... ok
+test_optional_unreachable_node_is_skip (test_review.ReviewDriverTests) ... ok
+test_regular_flag_enables_without_environment (test_review.ReviewDriverTests) ... ok
+test_slots_reused_and_failed_attempt_never_scanned (test_review.ReviewDriverTests) ... MEASURE failed_slot=trinity-1-18 incoming_bytes=10240 accepted_bytes=10240
+MEASURE slot=trinity-1-18 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 14074, "run.log": 666} total=24980
+MEASURE slot=trinity-2-28 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 14074, "run.log": 666} total=24980
+MEASURE slot=trinity-3-30 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13948, "run.log": 666} total=24854
+MEASURE slot=orch_n30/tools bytes={"accepted": 51200, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13942, "run.log": 603} total=65745
+MEASURE slot=orch_n30/briefs bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13947, "run.log": 602} total=24789
+MEASURE slots_initial_bytes=165348 slots_final_bytes=165348 runs=4
+ok
+test_tar_exit_one_quarantines_node_but_publishes_other_sources (test_review.ReviewDriverTests) ... ok
+test_750000_duplicate_manifest_default_budgets (test_review.ReviewFilterTests) ... MEASURE large_manifest lines=750000 raw_bytes=127500000 gzip_bytes=58724873 elapsed=10.047s file_budget=3 scan_budget=120
+ok
+test_manifest_exception_logs_every_leftover_and_preserves_final (test_review.ReviewFilterTests) ... ok
+test_manifest_scan_timeout_logs_pending_name (test_review.ReviewFilterTests) ... ok
+test_archive_copy_matches_directory_copy_bytes_and_flags (test_slots.ArchiveTests) ... ok
+test_special_entries_and_truncated_archives_preserve_accepted (test_slots.ArchiveTests) ... ok
+test_absent_directory_fifo_and_symlink_flags_stay_off (test_slots.SlotDriverTests) ... ok
+test_budget_file_and_environment_precedence (test_slots.SlotDriverTests) ... ok
+test_budget_file_is_not_shell_code (test_slots.SlotDriverTests) ... ok
+test_environment_alone_enables (test_slots.SlotDriverTests) ... ok
+test_flag_wins_over_environment_zero (test_slots.SlotDriverTests) ... ok
+test_large_log_is_capped_and_reused (test_slots.SlotDriverTests) ... ok
+test_old_receiver_lock_refuses_new_writer (test_slots.SlotDriverTests) ... ok
+test_held_stdout_deadline_and_lock_release (test_wrapper.WrapperTests) ... FAIL
+test_tssh_rate_lock_wait_is_also_bounded (test_wrapper.WrapperTests) ... FAIL
+
+======================================================================
+ERROR: test_default_off_driver_matches_input_behavior (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/subprocess.py", line 425, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+  File "/usr/lib64/python3.6/subprocess.py", line 863, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+  File "/usr/lib64/python3.6/subprocess.py", line 1535, in _communicate
+    self._check_timeout(endtime, orig_timeout)
+  File "/usr/lib64/python3.6/subprocess.py", line 891, in _check_timeout
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['bash', '/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_220swzg8/baseline.sh']' timed out after 5 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 121, in test_default_off_driver_matches_input_behavior
+    stderr=subprocess.PIPE, timeout=5)
+  File "/usr/lib64/python3.6/subprocess.py", line 430, in run
+    stderr=stderr)
+subprocess.TimeoutExpired: Command '['bash', '/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_220swzg8/baseline.sh']' timed out after 5 seconds
+
+======================================================================
+ERROR: test_missing_root_skipped_other_sources_publish (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib64/python3.6/subprocess.py", line 425, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+  File "/usr/lib64/python3.6/subprocess.py", line 863, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+  File "/usr/lib64/python3.6/subprocess.py", line 1535, in _communicate
+    self._check_timeout(endtime, orig_timeout)
+  File "/usr/lib64/python3.6/subprocess.py", line 891, in _check_timeout
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['bash', '/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_i5qmf1dx/orchestrator/tools/lane_code_sync.sh']' timed out after 12 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 30, in test_missing_root_skipped_other_sources_publish
+    result = self.run_driver()
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/support.py", line 140, in run_driver
+    env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=12)
+  File "/usr/lib64/python3.6/subprocess.py", line 430, in run
+    stderr=stderr)
+subprocess.TimeoutExpired: Command '['bash', '/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_i5qmf1dx/orchestrator/tools/lane_code_sync.sh']' timed out after 12 seconds
+
+======================================================================
+FAIL: test_all_sources_success_and_new_node (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 6, in test_all_sources_success_and_new_node
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : b'2026-11-19T16:14:41Z START dry=0 queue_only=0\n2026-11-19T16:14:41Z ROBUST slots=/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/stage-robust file_seconds=0.1 scan_seconds=0.4 copy_seconds=0.4 leg_seconds=0.7 remote_seconds=1.0 node_seconds=1.3 kill_seconds=0.15\n2026-11-19T16:14:41Z ROBUST stage trinity-1-18\n  [trinity-1-18] MANIFEST_PENDING code_sync/meta/.dedup-e4f5c53e242542f6beb0f4cb8cec9eac\n  [trinity-1-18] STATS trinity-1-18 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n2026-11-19T16:14:43Z FAIL trinity-1-18 stage rc=124 (not published: archive may contain changed or incomplete files; log /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/stage-robust/trinity-1-18/run.log)\n2026-11-19T16:14:43Z ROBUST stage trinity-2-28\n  [trinity-2-28] MANIFEST_PENDING code_sync/meta/.dedup-863eb4c4c6ff441489fde4e08805dbd4\n  [trinity-2-28] STATS trinity-2-28 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n2026-11-19T16:14:44Z FAIL trinity-2-28 stage rc=124 (not published: archive may contain changed or incomplete files; log /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/stage-robust/trinity-2-28/run.log)\n2026-11-19T16:14:44Z ROBUST stage trinity-3-30\n  [trinity-3-30] MANIFEST_PENDING code_sync/meta/.dedup-932c263a11154ac698e3925824f8f9c8\n  [trinity-3-30] STATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-3-30] PIPE 0 0 0\n2026-11-19T16:14:44Z ROBUST accept trinity-3-30\n2026-11-19T16:14:44Z STAGED trinity-3-30 rc=0\n2026-11-19T16:14:44Z ROBUST stage orch_n30/tools\n  [orch_n30/tools] STATS orch_n30/tools files=5 bytes=42477 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/tools] PIPE 0 0 0\n2026-11-19T16:14:44Z ROBUST accept orch_n30/tools\n2026-11-19T16:14:44Z STAGED orch_n30/tools rc=0\n2026-11-19T16:14:44Z ROBUST stage orch_n30/briefs\n  [orch_n30/briefs] STATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/briefs] PIPE 0 0 0\n2026-11-19T16:14:44Z ROBUST accept orch_n30/briefs\n2026-11-19T16:14:44Z STAGED orch_n30/briefs rc=0\n2026-11-19T16:14:44Z ROBUST copy trinity-3-30\n  [copy trinity-3-30] MANIFEST_PENDING code_sync/meta/.dedup-932c263a11154ac698e3925824f8f9c8\n  [copy trinity-3-30] STATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [copy trinity-3-30] PIPE 0 0 0\n  [copy trinity-3-30] ACCEPTED /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/stage-robust/trinity-3-30/accepted\n  [copy trinity-3-30] COPY_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/repo/.lcs-copy.pending\n  [copy trinity-3-30] SCAN scanned=2 copied=2 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/stage-robust/trinity-3-30/copy.flags\n2026-11-19T16:14:44Z COPIED trinity-3-30 rc=0\n2026-11-19T16:14:44Z ROBUST copy orch_n30/tools\n  [copy orch_n30/tools] STATS orch_n30/tools files=5 bytes=42477 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [copy orch_n30/tools] PIPE 0 0 0\n  [copy orch_n30/tools] ACCEPTED /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/stage-robust/orch_n30/tools/accepted\n  [copy orch_n30/tools] COPY_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/repo/.lcs-copy.pending\n  [copy orch_n30/tools] SCAN scanned=5 copied=5 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/stage-robust/orch_n30/tools/copy.flags\n2026-11-19T16:14:44Z COPIED orch_n30/tools rc=0\n2026-11-19T16:14:44Z ROBUST copy orch_n30/briefs\n  [copy orch_n30/briefs] STATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [copy orch_n30/briefs] PIPE 0 0 0\n  [copy orch_n30/briefs] ACCEPTED /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/stage-robust/orch_n30/briefs/accepted\n  [copy orch_n30/briefs] COPY_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/repo/.lcs-copy.pending\n  [copy orch_n30/briefs] SCAN scanned=1 copied=1 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_btl52khk/state/stage-robust/orch_n30/briefs/copy.flags\n2026-11-19T16:14:44Z COPIED orch_n30/briefs rc=0\n2026-11-19T16:14:49Z committed 1 files, 1 lanes: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:14:52Z verified GitHub lane-code = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:14:52Z QUEUE done: 0 new lines\n2026-11-19T16:14:52Z END with failures\n'
+
+======================================================================
+FAIL: test_copy_scanner_fifo_is_bounded_per_source (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 91, in test_copy_scanner_fifo_is_bounded_per_source
+    self.check_partial_success(result)
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/support.py", line 151, in check_partial_success
+    self.assertTrue((self.repo / 'lane_code' / 'trinity-2-28' / 'good.py').is_file())
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_dry_mode_and_stage_only_keep_existing_semantics (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 70, in test_dry_mode_and_stage_only_keep_existing_semantics
+    self.assertTrue((self.repo / 'lane_code' / 'trinity-2-28' / 'good.py').is_file())
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_legacy_substitution_reproduces_held_pipe (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 45, in test_legacy_substitution_reproduces_held_pipe
+    self.assertGreater(elapsed, 1)
+AssertionError: 0.2055130871012807 not greater than 1
+
+======================================================================
+FAIL: test_outer_remote_timeout (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 84, in test_outer_remote_timeout
+    self.check_partial_success(result)
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/support.py", line 151, in check_partial_success
+    self.assertTrue((self.repo / 'lane_code' / 'trinity-2-28' / 'good.py').is_file())
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_partial_failed_node_cannot_overwrite_or_delete_previous (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 17, in test_partial_failed_node_cannot_overwrite_or_delete_previous
+    self.check_partial_success(result)
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/support.py", line 151, in check_partial_success
+    self.assertTrue((self.repo / 'lane_code' / 'trinity-2-28' / 'good.py').is_file())
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_receiver_timeout_does_not_block_local_publish (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 58, in test_receiver_timeout_does_not_block_local_publish
+    self.assertIn(b'PIPE 0 0 137', result.stdout)
+AssertionError: b'PIPE 0 0 137' not found in b'2026-11-19T16:15:49Z START dry=0 queue_only=0\n2026-11-19T16:15:49Z ROBUST slots=/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/stage-robust file_seconds=0.1 scan_seconds=0.4 copy_seconds=0.4 leg_seconds=0.7 remote_seconds=1.0 node_seconds=1.3 kill_seconds=0.15\n2026-11-19T16:15:49Z ROBUST stage trinity-1-18\n  [trinity-1-18] MANIFEST_PENDING code_sync/meta/.dedup-d3b620946d8e4747b41cc7d135a3d1f5\n  [trinity-1-18] STATS trinity-1-18 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n2026-11-19T16:15:50Z FAIL trinity-1-18 stage rc=124 (not published: archive may contain changed or incomplete files; log /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/stage-robust/trinity-1-18/run.log)\n2026-11-19T16:15:50Z ROBUST stage trinity-2-28\n  [trinity-2-28] MANIFEST_PENDING code_sync/meta/.dedup-ca69e56d5d2c4367bb44faa39ea77689\n  [trinity-2-28] STATS trinity-2-28 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n2026-11-19T16:15:51Z FAIL trinity-2-28 stage rc=124 (not published: archive may contain changed or incomplete files; log /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/stage-robust/trinity-2-28/run.log)\n2026-11-19T16:15:51Z ROBUST stage trinity-3-30\n  [trinity-3-30] MANIFEST_PENDING code_sync/meta/.dedup-ef5e793719d741109e74ca7907c2940f\n  [trinity-3-30] STATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-3-30] PIPE 0 0 0\n2026-11-19T16:15:52Z ROBUST accept trinity-3-30\n2026-11-19T16:15:52Z STAGED trinity-3-30 rc=0\n2026-11-19T16:15:52Z ROBUST stage orch_n30/tools\n  [orch_n30/tools] STATS orch_n30/tools files=5 bytes=42477 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/tools] PIPE 0 0 0\n2026-11-19T16:15:52Z ROBUST accept orch_n30/tools\n2026-11-19T16:15:52Z STAGED orch_n30/tools rc=0\n2026-11-19T16:15:52Z ROBUST stage orch_n30/briefs\n  [orch_n30/briefs] STATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/briefs] PIPE 0 0 0\n2026-11-19T16:15:52Z ROBUST accept orch_n30/briefs\n2026-11-19T16:15:52Z STAGED orch_n30/briefs rc=0\n2026-11-19T16:15:52Z ROBUST copy trinity-3-30\n  [copy trinity-3-30] MANIFEST_PENDING code_sync/meta/.dedup-ef5e793719d741109e74ca7907c2940f\n  [copy trinity-3-30] STATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [copy trinity-3-30] PIPE 0 0 0\n  [copy trinity-3-30] ACCEPTED /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/stage-robust/trinity-3-30/accepted\n  [copy trinity-3-30] COPY_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/repo/.lcs-copy.pending\n  [copy trinity-3-30] SCAN scanned=2 copied=2 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/stage-robust/trinity-3-30/copy.flags\n2026-11-19T16:15:52Z COPIED trinity-3-30 rc=0\n2026-11-19T16:15:52Z ROBUST copy orch_n30/tools\n  [copy orch_n30/tools] STATS orch_n30/tools files=5 bytes=42477 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [copy orch_n30/tools] PIPE 0 0 0\n  [copy orch_n30/tools] ACCEPTED /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/stage-robust/orch_n30/tools/accepted\n  [copy orch_n30/tools] COPY_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/repo/.lcs-copy.pending\n  [copy orch_n30/tools] SCAN scanned=5 copied=5 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/stage-robust/orch_n30/tools/copy.flags\n2026-11-19T16:15:52Z COPIED orch_n30/tools rc=0\n2026-11-19T16:15:52Z ROBUST copy orch_n30/briefs\n  [copy orch_n30/briefs] STATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [copy orch_n30/briefs] PIPE 0 0 0\n  [copy orch_n30/briefs] ACCEPTED /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/stage-robust/orch_n30/briefs/accepted\n  [copy orch_n30/briefs] COPY_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/repo/.lcs-copy.pending\n  [copy orch_n30/briefs] SCAN scanned=1 copied=1 unchanged=0 flagged=0 list=/scratch/jjyeung/orch_n30/so_syncfix/work/round1_final_py36/driver_2lyr2azq/state/stage-robust/orch_n30/briefs/copy.flags\n2026-11-19T16:15:52Z COPIED orch_n30/briefs rc=0\n2026-11-19T16:15:55Z committed 1 files, 1 lanes: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:15:58Z verified GitHub lane-code = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n2026-11-19T16:15:58Z QUEUE done: 0 new lines\n2026-11-19T16:15:58Z END with failures\n'
+
+======================================================================
+FAIL: test_remote_scanner_timeout_reports_pipestatus (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 51, in test_remote_scanner_timeout_reports_pipestatus
+    self.check_partial_success(result)
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/support.py", line 151, in check_partial_success
+    self.assertTrue((self.repo / 'lane_code' / 'trinity-2-28' / 'good.py').is_file())
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_tar_leg_kill_after_and_other_sources_publish (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 103, in test_tar_leg_kill_after_and_other_sources_publish
+    self.check_partial_success(result)
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/support.py", line 151, in check_partial_success
+    self.assertTrue((self.repo / 'lane_code' / 'trinity-2-28' / 'good.py').is_file())
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_unreachable_skipped_other_sources_publish (test_driver.DriverTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_driver.py", line 26, in test_unreachable_skipped_other_sources_publish
+    self.assertLess(self.elapsed, 3)
+AssertionError: 6.090668897610158 not less than 3
+
+======================================================================
+FAIL: test_held_stdout_deadline_and_lock_release (test_wrapper.WrapperTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_wrapper.py", line 8, in test_held_stdout_deadline_and_lock_release
+    self.check_partial_success(result)
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/support.py", line 151, in check_partial_success
+    self.assertTrue((self.repo / 'lane_code' / 'trinity-2-28' / 'good.py').is_file())
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_tssh_rate_lock_wait_is_also_bounded (test_wrapper.WrapperTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/work/round1_patchcheck_3d8orbq3/tests/test_wrapper.py", line 39, in test_tssh_rate_lock_wait_is_also_bounded
+    self.assertLess(self.elapsed, 2)
+AssertionError: 3.724368256982416 not less than 2
+
+----------------------------------------------------------------------
+Ran 51 tests in 172.189s
+
+FAILED (failures=12, errors=2)

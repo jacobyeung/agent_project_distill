@@ -1,3 +1,23 @@
+--- build24/student_pilot/r1_components.py
++++ build24b/student_pilot/r1_components.py
+@@ -10,7 +10,7 @@
+ def deferred(cfg, phase='training', root=None):
+     """Only a persisted P export and the pinned N card authorize deferral."""
+     from .r1_training import PARENT
+-    from .r1_persisted import verify, scope
++    from .r1_persisted import verify, scope, init_policy
+     from .r2_policy import LINEAGE, EXTERNAL, NEW
+     from .r2_portable import bound
+     value = cfg.get('r1_training') or {}
+@@ -23,7 +23,7 @@
+     if spec.get('sha256') == PARENT or not value.get('handover_receipt'):
+         return None
+     closure = verify(value['handover_receipt'], value.get('p_run', {}), spec,
+-                     value.get('persisted_files', {}), proof_mode=value.get('proof_mode'))
++                     value.get('persisted_files', {}), proof_mode=value.get('proof_mode'),init_policy=init_policy(value))
+     with scope(closure['paths']):
+         donor = load(pinned(value['p_run']['config']))
+         artifact = load(pinned(spec))
 --- build24/student_pilot/r1_persisted.py
 +++ build24b/student_pilot/r1_persisted.py
 @@ -18,10 +18,33 @@

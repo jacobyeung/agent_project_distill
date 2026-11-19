@@ -7,7 +7,7 @@ sys.path[:0]=[str(B),str(L/'work/build21'),str(T)]
 import joblib as J
 from student_pilot.p3_provenance import file_pin
 from launch_r2.build import capsule_json
-K=B/'kits/n';real=L.parent/'ext/m400real';records=[]
+K=B/'kits/n';real=L.parent/'ext/m400real';real=real if real.exists() else D/'inputs/m400real';records=[]
 def fixture():
  root=O/'controls';root.mkdir(exist_ok=True)
  for name in ('e.json','r.json','DONE.json','RP.json'):(root/name).write_bytes((real/name).read_bytes())
@@ -106,5 +106,19 @@ class Pins24b(unittest.TestCase):
    elif isinstance(v,list):
     for x in v:yield from fields(x)
   self.assertEqual(list(fields(before)),list(fields(after)))
+ def test_11_default_listing_resolves_without_fill(self):
+  import resolver21e as R
+  R.K=K;R.D=O/'auto';R.D.mkdir(exist_ok=True);f=R.fixture();original=J.load
+  sp=deepcopy(original(K/'k/p.json'));sp['n_root']=str(f['pool']/'x_22c714e1');root=Path(sp['n_root']);(root/'w').mkdir(parents=True,exist_ok=True)
+  listing=J.load(f['listing'])
+  for i,part in enumerate(listing['objects']):(root/'w'/str(i)).write_bytes(Path(part['pool_path']).read_bytes())
+  J.write(root/'l.json',dict(metadata=listing['metadata']))
+  with tarfile.open(f['m']/'s.tar') as archive:sp['m4']['v']=hashlib.sha256(archive.extractfile('MANIFEST.json').read()).hexdigest()
+  marker=(f['pool']/sp['p_root']/'o/gcs_6ed2c7aa_m400.done').read_text().split();sp['m4'].update(t=marker[2],b=int(marker[1]))
+  with R.external_boundary(f),patch.object(J,'load',side_effect=lambda p:deepcopy(sp) if Path(p)==K/'k/p.json' else original(p)):
+   result=J.resolve(K,f['pool'],None,O/'auto_resolved.json')
+  self.assertEqual(result['request']['milestone'],400);self.assertEqual(result['config']['r1_training']['proof_mode'],'train')
+  self.assertEqual([x['path'] for x in result['parts']],[str(root/'w'/str(i)) for i in range(4)])
+  self.assertEqual(result['config']['init_artifact']['artifact']['sha256'],sp['m4']['a'])
 if __name__=='__main__':
  r=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Pins24b));J.write(D/'PIN_TESTS.json',dict(tests=r.testsRun,successful=r.wasSuccessful(),errors=len(r.errors),failures=len(r.failures)));raise SystemExit(not r.wasSuccessful())

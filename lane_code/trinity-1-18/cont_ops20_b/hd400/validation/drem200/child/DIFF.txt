@@ -1,0 +1,587 @@
+--- B5/0.json
++++ D/0.json
+@@ -1,6 +1,6 @@
+ {
+-  "payload_bytes": 4989267,
+-  "payload_sha256": "ac2e259025d6a821aa5eb13e236f0635bd970313859086fc2f3ce3276647f2f0",
+-  "plan_sha256": "3d6ddc47f1968c24b5b997448084910d4d8962942fa7a1347942f7cb1b0b0248",
+-  "token": "b635a315de01e"
++  "payload_bytes": 5376076,
++  "payload_sha256": "a4ceed7dac0f8157f1f4d77132913612a0d7ea90fb8823865bf118a84bb41760",
++  "plan_sha256": "9393c205df6e51da5f0b34c33c4d7db318108c501d99b3168cb7a4dba299775b",
++  "token": "d045e69873621"
+ }
+--- B5/3.py
++++ D/3.py
+@@ -12,4 +12,11 @@
+     exec(compile(raw,str(p/'a/7.py'),'exec'),dict(__name__='__main__',__file__=str(p/'a/7.py')))
+     raise SystemExit(0)
++if len(sys.argv)>1 and sys.argv[1] in ('check','submit'):
++    for flag,value in (('--gpus','1'),('--time','04:00:00')):
++        matches=[i for i,x in enumerate(sys.argv) if x==flag or x.startswith(flag+'=')]
++        if not matches:sys.argv.extend([flag,value]);continue
++        if len(matches)!=1:raise ValueError('Duplicate '+flag)
++        i=matches[0];got=sys.argv[i].split('=',1)[1] if '=' in sys.argv[i] else sys.argv[i+1]
++        if got!=value:raise ValueError('D requires '+flag+' '+value)
+ with tarfile.open(p/'0.tgz') as t:
+     exec(compile(t.extractfile('8.py').read(),__file__,'exec'))
+--- B5/BATCH.sh
++++ D/BATCH.sh
+@@ -2,5 +2,5 @@
+ #SBATCH --exclude=orchard-community-2
+ set -uo pipefail
+-P=/project/community/jjyeung/okh7/a15_cot_apb635a315de01e
++P=/project/community/jjyeung/okh7/a15_cot_apd045e69873621
+ L=/tmp/a${SLURM_JOB_ID:-0}.l
+ R=$P/a/x${SLURM_JOB_ID:-0}
+@@ -14,5 +14,5 @@
+ if not j.isdigit():raise ValueError('Allocation required')
+ b=bytes.fromhex(<bundle>)
+-r=Path('/tmp')/('a'+j+'b635a315de01e')
++r=Path('/tmp')/('a'+j+'d045e69873621')
+ r.mkdir(mode=0o700)
+ with tarfile.open(fileobj=io.BytesIO(b)) as a:
+--- B5/CONFIG.json
++++ D/CONFIG.json
+@@ -1,6 +1,6 @@
+ {
+-  "payload_bytes": 4989267,
+-  "payload_sha256": "ac2e259025d6a821aa5eb13e236f0635bd970313859086fc2f3ce3276647f2f0",
+-  "plan_sha256": "3d6ddc47f1968c24b5b997448084910d4d8962942fa7a1347942f7cb1b0b0248",
+-  "token": "b635a315de01e"
++  "payload_bytes": 5376076,
++  "payload_sha256": "a4ceed7dac0f8157f1f4d77132913612a0d7ea90fb8823865bf118a84bb41760",
++  "plan_sha256": "9393c205df6e51da5f0b34c33c4d7db318108c501d99b3168cb7a4dba299775b",
++  "token": "d045e69873621"
+ }
+--- B5/PACKAGE.json
++++ D/PACKAGE.json
+@@ -1,15 +1,15 @@
+ {
+   "files": {
+-    "0.json": "4babb358eea283979599aa328e1dd1e185503cb1dbe5db97e0decfe810b3125d",
+-    "0.tgz": "ac2e259025d6a821aa5eb13e236f0635bd970313859086fc2f3ce3276647f2f0",
+-    "3.py": "7d0a373edbf56725b3d382264a5c2fbc709b253bbcd6966294e182ba7398eb74",
+-    "BATCH.sh": "d1d1286a7100b17ae7a63543a2543cc504cc2cca6cca2576f6d6aa025b1f6186",
+-    "CONFIG.json": "4babb358eea283979599aa328e1dd1e185503cb1dbe5db97e0decfe810b3125d",
+-    "a/0.json": "206f81ec51f0ce38113b14289f9cf9896baded0e8a950e88ac6653764b24ac04",
++    "0.json": "313bb3382bc676b86c2a8ea8228c2e155b172d5f1421808f2f529efd8202794b",
++    "0.tgz": "a4ceed7dac0f8157f1f4d77132913612a0d7ea90fb8823865bf118a84bb41760",
++    "3.py": "1798988e12467bf0dfcd95b448b36f91c5e459a87ddbc7987f9d5e6e55426500",
++    "BATCH.sh": "8d20335c889348ef6ab102ce6a78f60a8b653b014a80dedcd070a2e59594ca1e",
++    "CONFIG.json": "313bb3382bc676b86c2a8ea8228c2e155b172d5f1421808f2f529efd8202794b",
++    "a/0.json": "2501f0ba000cd1228c9435291d439912b57321a26f76ad0e81b4e05e004432a2",
+     "a/4.py": "671fb919e8bef77fe62060d7ea50753fe265e1c5d544a46750ebd53a52c34134",
+-    "a/5.py": "05392debfae602123a1d8b59d583992e90c8c919000e2338142d6a60af4f4147",
+-    "a/6.py": "247f8cdfd507c2655adb5e68169c1cb198800c7bb24ef3ac4f9d7352404b34af",
++    "a/5.py": "c9ce54dba75ff096a41cca06525d20ecdd9740c92266d96ba191c62d67321ccd",
++    "a/6.py": "9d05b14c9add093b35ac7b6c020ec560fe4d80e0d15abaa8a03b97fc974723c6",
+     "a/7.py": "5c3e3b897be6cb5383dc5a489a8aa1324cf745b9716ecea90f1e951b1c098011"
+   },
+-  "token": "b635a315de01e"
++  "token": "d045e69873621"
+ }
+--- B5/SUBMIT.cmd
++++ D/SUBMIT.cmd
+@@ -2,3 +2,3 @@
+ set -euo pipefail
+ cd "$(dirname "$0")"
+-exec /usr/bin/python3 -I -s -B 3.py submit --gpus "${A_N:?Set 1 to 4}" --time "${A_T:?Set HH:MM:SS}" "$@"
++exec /usr/bin/python3 -I -s -B 3.py submit --gpus "${A_N:-1}" --time "${A_T:-04:00:00}" "$@"
+--- B5/a/0.json
++++ D/a/0.json
+@@ -176,5 +176,5 @@
+   "schema": 1,
+   "types": [
+-    "room_size_estimation"
++    "object_abs_distance"
+   ]
+ }
+--- B5/a/5.py
++++ D/a/5.py
+@@ -17,9 +17,9 @@
+     if full.get('passed') is not True or full.get('device')!='cpu':raise ValueError('Full reader failed')
+     records=full.get('records',[])
+-    if [r['set'] for r in records]!=['dev-S1','R0-dev']:raise ValueError('Full reader sets differ')
++    if [r['set'] for r in records]!=['R0-dev-reworded', 'R0-dev-twin']:raise ValueError('Full reader sets differ')
+     for r in records:
+         row=r['record'];output=row['output']
+         if (r.get('passed') is not True or row.get('complete') is not True or row['id']!=r['item']
+-            or row['type']!='room_size_estimation' or output['finish']!='eos'
++            or row['type']!='object_abs_distance' or output['finish']!='eos'
+             or len(r['frames'])!=32 or r['official_score']['parse_failed']
+             or output['scores']['answer']!=r['official_score']['score']):
+@@ -160,5 +160,5 @@
+     settings=json.loads(J.physical(root,cfg['logical']+'/d/settings.json').read_text())
+     if (settings['stage1_select_rule']!='candidates_argmax' or settings['perception_memo']!='on'
+-        or settings.get('types')!=['room_size_estimation'] or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
++        or settings.get('types')!=['object_abs_distance'] or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
+         raise ValueError('Prepared default settings differ')
+     run_cfg=dict(package=cfg['logical']+'/p',output=cfg['logical']+'/r',python=inputs['python'],
+--- B5/a/6.py
++++ D/a/6.py
+@@ -1,14 +1,14 @@
+-"""Operator dispatch for one room read within one allocation."""
++"""Operator dispatch for one distance read within one allocation."""
+ import json,sys,time,hashlib
+ from pathlib import Path
+ 
+ RULES=('candidates_argmax',)
+-COUNTS=(0,0,0,0,134)
+-SCHEDULE=((0,4),)
++COUNTS=(0,0,0,250,0)
++SCHEDULE=((0,3),)
+ 
+ def descriptors(package):
+  return [dict(arm='tower',modes=['none'],stage1_select_rule='candidates_argmax',save_own_depth=False,
+               perception_memo='on',perception_memo_modules=['g3t'],perception_memo_verify_ids=[],
+-              types=[4],expected=134)]
++              types=[3],expected=250)]
+ 
+ def sealed_write(path,value):
+@@ -35,5 +35,5 @@
+   path=root/'metadata/0.json';sealed_write(path,chosen)
+   sealed_write(root/'metadata/READ_IDENTITY.json',dict(**identity,read=i,settings_sha256=canonical(chosen)))
+-  configs[i]={**config,'items':str(Path(config['package'])/'items/room134.json'),'output':str(root),'settings':str(path),
++  configs[i]={**config,'items':str(Path(config['package'])/'items/dist580.json'),'output':str(root),'settings':str(path),
+       'cache_root':str(base/'cache'/str(i)), 'stop_file':str(base/'metadata/STOP'),
+       'single_worker':True,'arms':['tower'],'modes':['none'],'types':[ORDER[t] for t in spec['types']],
+@@ -59,5 +59,5 @@
+   assert chosen['perception_memo']=='on'
+   assert chosen['perception_memo_verify_ids']==descriptors(config['package'])[i]['perception_memo_verify_ids']
+-  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=134))
++  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=250))
+  # Exercise each selected rule through the real tower socket with stub weights.
+  from unittest.mock import patch
+@@ -96,9 +96,9 @@
+  if config.get('device')!='cpu':raise ValueError('CPU rehearsal requires CPU')
+  package=Path(config['package'])
+- manifest=load_manifest(package/'items/room134.json')
++ manifest=load_manifest(package/'items/dist580.json')
+  settings=json.loads(Path(config['settings']).read_text())
+  expected=dict(stage1_select_rule='candidates_argmax',perception_memo='on',
+    perception_memo_modules=['g3t'],perception_memo_verify_ids=[],save_own_depth=False,
+-   types=['room_size_estimation'])
++   types=['object_abs_distance'])
+  if any(settings.get(k)!=v for k,v in expected.items()):raise ValueError('Rehearsal settings differ')
+  # Never fabricate a restore or alter the staged settings in the allocated check.
+@@ -120,11 +120,11 @@
+   return NS(logits=z,past_key_values=None)
+  reports=[]
+- for ordinal,name in enumerate(('dev-S1','R0-dev')):
++ for ordinal,name in enumerate(('R0-dev-reworded', 'R0-dev-twin')):
+   item=next(r for r in manifest['items'] if r['id'] in manifest['sets'][name])
+   index=manifest['items'].index(item);journal=root/str(ordinal)
+-  args=launch.parser().parse_args(['--items',str(package/'items/room134.json'),
++  args=launch.parser().parse_args(['--items',str(package/'items/dist580.json'),
+     '--export',config['export'],'--artifact-manifest',config['binding'],
+     '--reader-root',str(package/'b'),'--out',str(journal),'--export-pin',config['export_pin'],
+-    '--settings',config['settings'],'--types','room_size_estimation','--arms','tower',
++    '--settings',config['settings'],'--types','object_abs_distance','--arms','tower',
+     '--modes','none','--device','cpu','--shard',f'{index}/{len(manifest["items"])}','--type-journals'])
+   art=NS(manifest=dict(components={k:dict(files=[dict(rel=k+'/weights',
+@@ -159,14 +159,14 @@
+     patch.object(parity,'_head',lambda *a:NS()),patch.object(parity,'policy',lambda:NS(ThinkingBudget=Budget,DECODE_BUDGET=1)),
+     patch.object(sam3_tower,'Sam3Tower',lambda *a:NS()),patch.object(runtime,'prompt_batch',prompt),
+-    patch.object(tower_read,'FrozenG3TTower',side_effect=AssertionError('Direct room stub must not invoke G3T')),
++    patch.object(tower_read,'FrozenG3TTower',side_effect=AssertionError('Direct distance stub must not invoke G3T')),
+     patch.object(decode,'_prepare_decode',prefill),patch.object(decode,'consume_cache_tokens',consume),
+     patch.object(real,'Audit',lambda a,**k:original_audit(a,enforce=False))]
+    for stub in stubs:stack.enter_context(stub)
+    result=launch.run_types(args,make_real=parity_adapter.make_capped_real)
+-  rows=launch.read_records(journal/'4'/str(index)/'items.jsonl')
++  rows=launch.read_records(journal/'3'/str(index)/'items.jsonl')
+   if result['completed']!=1 or len(rows)!=1 or len(loads)!=1 or len(seen)!=32:
+    raise ValueError('Full reader did not complete exactly one item')
+   row=rows[0];output=row['output']
+-  if (row['id']!=item['id'] or row['complete'] is not True or row['type']!='room_size_estimation'
++  if (row['id']!=item['id'] or row['complete'] is not True or row['type']!='object_abs_distance'
+       or row['arm']!='tower' or row['mode']!='none' or output['finish']!='eos'
+       or output['calls']['records']!=[] or output['tokens']!=[10,11,2]):
+@@ -176,5 +176,5 @@
+   if score['parse_failed'] or output['scores']['answer']!=score['score']:
+    raise ValueError('Official score differs')
+-  environment=json.loads((journal/'4'/str(index)/'environment.json').read_text())
++  environment=json.loads((journal/'3'/str(index)/'environment.json').read_text())
+   if any(environment['binding'].get(k)!=v for k,v in expected.items()):
+    raise ValueError('Full reader type or settings binding differs')
+@@ -201,14 +201,14 @@
+    failure=result['failure'];break
+  reads=[]
+- for i,n in ((0,134),):
++ for i,n in ((0,250),):
+   rows=[r for r in results if r['read']==i]
+   completed=sum(r['completed'] for r in rows)
+   reads.append(dict(read=i,completed=completed,expected=n,complete=completed==n))
+- summary=dict(completed=sum(r['completed'] for r in reads),expected=134,
++ summary=dict(completed=sum(r['completed'] for r in reads),expected=250,
+               complete=all(r['complete'] for r in reads),failure=failure,reads=reads,segments=results)
+  write(Path(config['output'])/'SUMMARY.json',summary)
+  return summary
+ 
+-def memory_bound(*, captures=(134,), allocation_bytes=200*1024**3):
++def memory_bound(*, captures=(84,), allocation_bytes=200*1024**3):
+  # Fixed G3T contract: at most 64 pose rows and 32 anchor grids. Eight bytes
+  # per scalar covers both float64 poses and the fresh float32 grid outputs.
+--- B5/payload/9.json
++++ D/payload/9.json
+@@ -1,4 +1,4 @@
+ {
+-  "budget_gpu_seconds": 9000,
++  "budget_gpu_seconds": 9470,
+   "cpu_check_name": "2.json",
+   "export_binding": {
+@@ -255,4 +255,8 @@
+       "sha256": "9ae5fe8da7b62ac3cb39fa1ef4219b61e3370e9a1035f0021d31752343b2452f"
+     },
++    "h1eval/dist580.py": {
++      "bytes": 7554,
++      "sha256": "f0a590a92432184395afb99194f41a9d665b9c2bc38d057de363436e25c317a0"
++    },
+     "h1eval/h10/RUN_H10.md": {
+       "bytes": 9440,
+@@ -296,6 +300,6 @@
+     },
+     "h1eval/h10/parity_adapter.py": {
+-      "bytes": 13750,
+-      "sha256": "89326a85085a6db3e1ee955bb0ebe9e069a714202d0ab7c751f570c01e281824"
++      "bytes": 13850,
++      "sha256": "a4b0f2bcb4a26872aedbe1dab0dad28a54d2af62e48c432096a45f9ba58e76ca"
+     },
+     "h1eval/h10/perception_own.py": {
+@@ -312,6 +316,6 @@
+     },
+     "h1eval/items.py": {
+-      "bytes": 13877,
+-      "sha256": "9d3180a56d3748919081e2bbf36defa7b5eb5c3a169c4fe96785f153a0a3428b"
++      "bytes": 14199,
++      "sha256": "74458d4d8925d1a47a5cf0743c61739687e26570fcc0334b9d213a9d20a5d6ee"
+     },
+     "h1eval/modes.py": {
+@@ -422,4 +426,8 @@
+       "bytes": 828159,
+       "sha256": "f84f9b25df9de0f4dc73861b38ecb3bec0fd1adc5a412893f2f795f09cd985fd"
++    },
++    "items/dist580.json": {
++      "bytes": 3456129,
++      "sha256": "23976dd19444bf12005603d71c2d84de283e482413b5bd8aa9797f7fb77cbd2e"
+     },
+     "items/room134.json": {
+@@ -3761,4 +3769,4 @@
+     "trace_runtime.py": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+   },
+-  "token": "b635a315de01e"
++  "token": "d045e69873621"
+ }
+--- B5/payload/h1eval/dist580.py
++++ D/payload/h1eval/dist580.py
+@@ -0,0 +1,155 @@
++"""Build and validate the 580-item development-only distance manifest (Python 3.6)."""
++import argparse
++import copy
++import hashlib
++import json
++from collections import Counter
++from pathlib import Path
++
++SETS = ('R0-dev-reworded', 'R0-dev-twin')
++CAPTURE = ('dataset', 'scene', 'native', 'room', 'room_key', 'fps', 'frame_indices',
++           'source_frame_indices', 'frame_paths', 'num_frames', 'total_num_frames')
++
++
++def digest(value):
++    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':'),
++                                     ensure_ascii=False, allow_nan=False).encode()).hexdigest()
++
++
++def validate(m, rooms, dev):
++    assert m['schema'] == 'h1-items-v1' and m['status'] == 'ready' and m['name'] == 'dist580'
++    assert m['development_only'] is True and m['fitting_permitted'] is False
++    rows = m['items']; byid = {r['id']: r for r in rows}
++    assert len(rows) == len(byid) == m['count'] == 580
++    assert rows == sorted(rows, key=lambda r: r['id']) and digest(rows) == m['item_set_sha256']
++    assert m['per_type'] == {'object_abs_distance': 580}
++    assert m['r0_check'] == dict(pin=rooms['r0_check']['pin'], checked=580, found=580)
++    assert m['frames_manifest_sha256'] == rooms['frames_manifest_sha256']
++    r0ids = set(rooms['sets']['R0-dev'])
++    captures = {r['room_key']: r for r in rooms['items'] if r['id'] in r0ids}
++    assert len(captures) == 98 and set(captures) <= dev
++    reworded = [r for r in rows if r['id'].endswith('_ho')]
++    twins = [r for r in rows if not r['id'].endswith('_ho')]
++    assert len(reworded) == len(twins) == 290
++    assert Counter(r['unit'] for r in reworded) == dict(m=73, ft=73, **{'in':72, 'cm':72})
++    assert Counter(r['unit'] for r in twins) == {'m': 290}
++    assert m['sets'] == {SETS[0]: sorted(r['id'] for r in reworded),
++                         SETS[1]: sorted(r['id'] for r in twins), 'R0-dev': sorted(byid)}
++    assert len({r['room_key'] for r in rows}) == 98
++    for r in rows:
++        assert r['room_key'] in dev and r['r0_split'] == 'R0-dev'
++        assert r['development_only'] is True and r['question_type'] == 'object_abs_distance'
++        assert r['scorer'] == 'official_vsi_mra' and r['answer_type'] == 'numeric'
++        assert r['qid'] == r['id'] and r['options'] == []
++        assert all(r[k] == captures[r['room_key']][k] for k in CAPTURE)
++        assert len(r['frame_paths']) == len(r['frame_indices']) == 32
++        twin = byid[r['twin_id']]
++        assert twin['twin_id'] == r['id'] and twin['room_key'] == r['room_key']
++        assert twin['gt']['distance_m'] == r['gt']['distance_m']
++        assert twin['gt']['pair'] == r['gt']['pair']
++        if r['id'].endswith('_ho'):
++            assert r['id'] == twin['id'] + '_ho' and twin in twins
++    assert len({r['twin_id'] for r in reworded}) == 290
++    return m
++
++
++def make(source, rooms, dev):
++    rows = copy.deepcopy(source if isinstance(source, list) else source['items'])
++    r0ids = set(rooms['sets']['R0-dev'])
++    captures = {r['room_key']: r for r in rooms['items'] if r['id'] in r0ids}
++    for r in rows:
++        c = captures[r['room_key']]
++        assert r['frame_indices'] == c['frame_indices'], r['id']
++        for k in CAPTURE:
++            if k in r: assert r[k] == c[k], (r['id'], k)
++            r[k] = copy.deepcopy(c[k])
++    rows.sort(key=lambda r: r['id'])
++    m = dict(schema='h1-items-v1', name='dist580', status='ready', count=len(rows),
++             development_only=True, fitting_permitted=False, items=rows,
++             frames_manifest_sha256=rooms['frames_manifest_sha256'], item_set_sha256=digest(rows),
++             per_type=dict(Counter(r['question_type'] for r in rows)),
++             r0_check=dict(pin=rooms['r0_check']['pin'], checked=len(rows), found=len(rows)),
++             sets={SETS[0]: [r['id'] for r in rows if r['id'].endswith('_ho')],
++                   SETS[1]: [r['id'] for r in rows if not r['id'].endswith('_ho')],
++                   'R0-dev': [r['id'] for r in rows]})
++    return validate(m, rooms, dev)
++
++
++def validate_payload(m):
++    from h1eval.items import K
++    rooms = json.loads((K/'items/room134.json').read_text())
++    dev = set((K/'auth/R0_DEV_ROOMS.txt').read_text().splitlines())
++    validate(m, rooms, dev)
++
++
++def bind(items, settings):
++    """Bind new IDs to the authenticated R0 capture, preserving each item answer."""
++    from h1eval.items import K
++    from e2e_reader import parity
++    extra = json.loads((K/'inputs/room_captures.json').read_text())['captures']
++    settings.update(frames_json={'captures': extra}, dense_manifest={'captures': extra}, require_dense64=False)
++    mapped = {}; mapping = []
++    for item in items:
++        task = dict(item)
++        c = extra[task['native']]
++        assert task['frame_paths'] == [f['path'] for f in c['frames']]
++        b = parity.bind_item(task, settings, verify=False)
++        mapped[item['id']] = task
++        mapping.append(dict(id=item['id'], key=parity.key(task), native=task['native'],
++                            task_sha256=digest(task), layout_count=32,
++                            anchor_indices=b['frames']['anchor_indices'], dense_count=32,
++                            frame_binding_sha256=digest(c)))
++    mapping.sort(key=lambda r: r['id'])
++    assert len({r['key'] for r in mapping}) == len(items)
++    return mapped, dict(schema='h10-parity-mapping-v1', items=mapping, sha256=digest(mapping))
++
++
++validate_full = validate
++
++
++def subset(parent, completed, provenance):
++    """Keep exact parent rows; a completed twin need not remain in the subset."""
++    byid = {r['id']: r for r in parent['items']}
++    if len(completed) != len(set(completed)) or not set(completed) <= set(byid):
++        raise ValueError('Duplicate or unknown completed IDs')
++    m = copy.deepcopy(parent)
++    m['items'] = [r for r in parent['items'] if r['id'] not in set(completed)]
++    n = len(m['items'])
++    if not n:
++        raise ValueError('No unfinished items; no package needed')
++    m.update(count=n, item_set_sha256=digest(m['items']),
++             per_type={'object_abs_distance': n},
++             r0_check=dict(parent['r0_check'], checked=n, found=n))
++    keep = {r['id'] for r in m['items']}
++    m['sets'] = {k: [i for i in ids if i in keep] for k, ids in parent['sets'].items()}
++    m['parent_manifest'] = parent
++    m['remainder'] = dict(provenance, completed_ids=sorted(completed),
++                          parent_item_set_sha256=parent['item_set_sha256'])
++    return m
++
++
++def validate(m, rooms, dev):
++    if 'remainder' not in m:
++        return validate_full(m, rooms, dev)
++    parent = m['parent_manifest']
++    validate_full(parent, rooms, dev)
++    proof = m['remainder']
++    expected = subset(parent, proof['completed_ids'], proof)
++    if m != expected:
++        raise ValueError('Remainder differs from exact parent subset')
++    return m
++
++
++def main():
++    p = argparse.ArgumentParser(description=__doc__)
++    p.add_argument('items'); p.add_argument('room134'); p.add_argument('out')
++    p.add_argument('--rooms', help='R0_DEV_ROOMS.txt; default: room134 parent/../auth')
++    a = p.parse_args(); roompath = Path(a.room134)
++    devpath = Path(a.rooms) if a.rooms else roompath.parent.parent/'auth/R0_DEV_ROOMS.txt'
++    m = make(json.loads(Path(a.items).read_text()), json.loads(roompath.read_text()),
++             set(devpath.read_text().splitlines()))
++    out = Path(a.out); out.parent.mkdir(parents=True, exist_ok=True)
++    out.write_text(json.dumps(m, sort_keys=True, indent=1, allow_nan=False)+'\n')
++    print(json.dumps(dict(count=m['count'], item_set_sha256=m['item_set_sha256'], out=str(out))))
++
++
+--- B5/payload/h1eval/h10/parity_adapter.py
++++ D/payload/h1eval/h10/parity_adapter.py
+@@ -98,4 +98,7 @@
+ 
+ def map_items(items, settings, *, name='devs1_routed'):
++    if name=='dist580':
++        from h1eval.dist580 import bind
++        return bind(items,settings)
+     if name=='room134':
+         from h1eval.room134 import bind
+--- B5/payload/h1eval/items.py
++++ D/payload/h1eval/items.py
+@@ -101,5 +101,5 @@
+     if m['count'] != len(m['items']) or m['r0_check']['checked'] != m['count'] or found != m['r0_check']['found']:
+         raise ValueError('Item-set R0 coverage differs')
+-    if m['name'] not in ('r0dev','r0dev_f32','room134') and found:
++    if m['name'] not in ('r0dev','r0dev_f32','room134','dist580') and found:
+         raise ValueError('Item set overlaps R0')
+     if m['name'] in ('r0dev','r0dev_f32'):
+@@ -114,4 +114,7 @@
+         for key in ('item_set_sha256','sources','constants','frames_manifest_sha256','per_type','count','source'):
+             if m[key]!=expected[key]:raise ValueError('R0-dev pinned '+key+' differs')
++    if m['name']=='dist580':
++        from .dist580 import validate_payload
++        validate_payload(m)
+     if m['name']=='room134':
+         from .room134 import validate
+@@ -244,4 +247,7 @@
+ 
+ def read_contract(manifest, arms, interventions, types=None):
++    if manifest['name']=='dist580':
++        if arms!=['tower'] or interventions!=[{'name':'none'}] or types!='object_abs_distance':
++            raise ValueError('D requires tower/none and distance type only')
+     if manifest['name']=='room134':
+         if arms!=['tower'] or interventions!=[{'name':'none'}] or types!='room_size_estimation':
+Added payload/items/dist580.json: 250 items; sha256 23976dd19444bf12005603d71c2d84de283e482413b5bd8aa9797f7fb77cbd2e
+--- B5/BATCH.sh/bundle/0.json
++++ D/BATCH.sh/bundle/0.json
+@@ -1,6 +1,6 @@
+ {
+-  "payload_bytes": 4989267,
+-  "payload_sha256": "ac2e259025d6a821aa5eb13e236f0635bd970313859086fc2f3ce3276647f2f0",
+-  "plan_sha256": "3d6ddc47f1968c24b5b997448084910d4d8962942fa7a1347942f7cb1b0b0248",
+-  "token": "b635a315de01e"
++  "payload_bytes": 5376076,
++  "payload_sha256": "a4ceed7dac0f8157f1f4d77132913612a0d7ea90fb8823865bf118a84bb41760",
++  "plan_sha256": "9393c205df6e51da5f0b34c33c4d7db318108c501d99b3168cb7a4dba299775b",
++  "token": "d045e69873621"
+ }
+--- B5/BATCH.sh/bundle/7.py
++++ D/BATCH.sh/bundle/7.py
+@@ -1,14 +1,14 @@
+-"""Operator dispatch for one room read within one allocation."""
++"""Operator dispatch for one distance read within one allocation."""
+ import json,sys,time,hashlib
+ from pathlib import Path
+ 
+ RULES=('candidates_argmax',)
+-COUNTS=(0,0,0,0,134)
+-SCHEDULE=((0,4),)
++COUNTS=(0,0,0,250,0)
++SCHEDULE=((0,3),)
+ 
+ def descriptors(package):
+  return [dict(arm='tower',modes=['none'],stage1_select_rule='candidates_argmax',save_own_depth=False,
+               perception_memo='on',perception_memo_modules=['g3t'],perception_memo_verify_ids=[],
+-              types=[4],expected=134)]
++              types=[3],expected=250)]
+ 
+ def sealed_write(path,value):
+@@ -35,5 +35,5 @@
+   path=root/'metadata/0.json';sealed_write(path,chosen)
+   sealed_write(root/'metadata/READ_IDENTITY.json',dict(**identity,read=i,settings_sha256=canonical(chosen)))
+-  configs[i]={**config,'items':str(Path(config['package'])/'items/room134.json'),'output':str(root),'settings':str(path),
++  configs[i]={**config,'items':str(Path(config['package'])/'items/dist580.json'),'output':str(root),'settings':str(path),
+       'cache_root':str(base/'cache'/str(i)), 'stop_file':str(base/'metadata/STOP'),
+       'single_worker':True,'arms':['tower'],'modes':['none'],'types':[ORDER[t] for t in spec['types']],
+@@ -59,5 +59,5 @@
+   assert chosen['perception_memo']=='on'
+   assert chosen['perception_memo_verify_ids']==descriptors(config['package'])[i]['perception_memo_verify_ids']
+-  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=134))
++  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=250))
+  # Exercise each selected rule through the real tower socket with stub weights.
+  from unittest.mock import patch
+@@ -96,9 +96,9 @@
+  if config.get('device')!='cpu':raise ValueError('CPU rehearsal requires CPU')
+  package=Path(config['package'])
+- manifest=load_manifest(package/'items/room134.json')
++ manifest=load_manifest(package/'items/dist580.json')
+  settings=json.loads(Path(config['settings']).read_text())
+  expected=dict(stage1_select_rule='candidates_argmax',perception_memo='on',
+    perception_memo_modules=['g3t'],perception_memo_verify_ids=[],save_own_depth=False,
+-   types=['room_size_estimation'])
++   types=['object_abs_distance'])
+  if any(settings.get(k)!=v for k,v in expected.items()):raise ValueError('Rehearsal settings differ')
+  # Never fabricate a restore or alter the staged settings in the allocated check.
+@@ -120,11 +120,11 @@
+   return NS(logits=z,past_key_values=None)
+  reports=[]
+- for ordinal,name in enumerate(('dev-S1','R0-dev')):
++ for ordinal,name in enumerate(('R0-dev-reworded', 'R0-dev-twin')):
+   item=next(r for r in manifest['items'] if r['id'] in manifest['sets'][name])
+   index=manifest['items'].index(item);journal=root/str(ordinal)
+-  args=launch.parser().parse_args(['--items',str(package/'items/room134.json'),
++  args=launch.parser().parse_args(['--items',str(package/'items/dist580.json'),
+     '--export',config['export'],'--artifact-manifest',config['binding'],
+     '--reader-root',str(package/'b'),'--out',str(journal),'--export-pin',config['export_pin'],
+-    '--settings',config['settings'],'--types','room_size_estimation','--arms','tower',
++    '--settings',config['settings'],'--types','object_abs_distance','--arms','tower',
+     '--modes','none','--device','cpu','--shard',f'{index}/{len(manifest["items"])}','--type-journals'])
+   art=NS(manifest=dict(components={k:dict(files=[dict(rel=k+'/weights',
+@@ -159,14 +159,14 @@
+     patch.object(parity,'_head',lambda *a:NS()),patch.object(parity,'policy',lambda:NS(ThinkingBudget=Budget,DECODE_BUDGET=1)),
+     patch.object(sam3_tower,'Sam3Tower',lambda *a:NS()),patch.object(runtime,'prompt_batch',prompt),
+-    patch.object(tower_read,'FrozenG3TTower',side_effect=AssertionError('Direct room stub must not invoke G3T')),
++    patch.object(tower_read,'FrozenG3TTower',side_effect=AssertionError('Direct distance stub must not invoke G3T')),
+     patch.object(decode,'_prepare_decode',prefill),patch.object(decode,'consume_cache_tokens',consume),
+     patch.object(real,'Audit',lambda a,**k:original_audit(a,enforce=False))]
+    for stub in stubs:stack.enter_context(stub)
+    result=launch.run_types(args,make_real=parity_adapter.make_capped_real)
+-  rows=launch.read_records(journal/'4'/str(index)/'items.jsonl')
++  rows=launch.read_records(journal/'3'/str(index)/'items.jsonl')
+   if result['completed']!=1 or len(rows)!=1 or len(loads)!=1 or len(seen)!=32:
+    raise ValueError('Full reader did not complete exactly one item')
+   row=rows[0];output=row['output']
+-  if (row['id']!=item['id'] or row['complete'] is not True or row['type']!='room_size_estimation'
++  if (row['id']!=item['id'] or row['complete'] is not True or row['type']!='object_abs_distance'
+       or row['arm']!='tower' or row['mode']!='none' or output['finish']!='eos'
+       or output['calls']['records']!=[] or output['tokens']!=[10,11,2]):
+@@ -176,5 +176,5 @@
+   if score['parse_failed'] or output['scores']['answer']!=score['score']:
+    raise ValueError('Official score differs')
+-  environment=json.loads((journal/'4'/str(index)/'environment.json').read_text())
++  environment=json.loads((journal/'3'/str(index)/'environment.json').read_text())
+   if any(environment['binding'].get(k)!=v for k,v in expected.items()):
+    raise ValueError('Full reader type or settings binding differs')
+@@ -201,14 +201,14 @@
+    failure=result['failure'];break
+  reads=[]
+- for i,n in ((0,134),):
++ for i,n in ((0,250),):
+   rows=[r for r in results if r['read']==i]
+   completed=sum(r['completed'] for r in rows)
+   reads.append(dict(read=i,completed=completed,expected=n,complete=completed==n))
+- summary=dict(completed=sum(r['completed'] for r in reads),expected=134,
++ summary=dict(completed=sum(r['completed'] for r in reads),expected=250,
+               complete=all(r['complete'] for r in reads),failure=failure,reads=reads,segments=results)
+  write(Path(config['output'])/'SUMMARY.json',summary)
+  return summary
+ 
+-def memory_bound(*, captures=(134,), allocation_bytes=200*1024**3):
++def memory_bound(*, captures=(84,), allocation_bytes=200*1024**3):
+  # Fixed G3T contract: at most 64 pose rows and 32 anchor grids. Eight bytes
+  # per scalar covers both float64 poses and the fresh float32 grid outputs.

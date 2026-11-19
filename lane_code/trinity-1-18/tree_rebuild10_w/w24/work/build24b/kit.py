@@ -16,7 +16,7 @@ def reseal(k):
  (k/'SHA256SUMS.txt').write_text(''.join(f'{h}  {n}\n' for n,h in sorted(fs.items())))
  b=J.load(k/'BUILD.json');b.update(GO=False,kit_sha256=J.seal(k));cap(k,'BUILD.json',b);return J.seal(k)
 def main():
- real=L.parent/'ext/m400real';receipt=J.load(real/'e.json');run=J.load(real/'r.json');assert receipt['pins']['artifact']['sha256'].startswith('5083243c')
+ real=L.parent/'ext/m400real';real=real if real.exists() else D/'inputs/m400real';receipt=J.load(real/'e.json');run=J.load(real/'r.json');assert receipt['pins']['artifact']['sha256'].startswith('5083243c')
  prep=J.load(real/('files'+run['preparation']['path']));model=J.load(real/('files'+prep['model']['path']));manifest=J.load(real/'MANIFEST.json')
  m4={key:J.sha(real/name) for key,name in [('d','DONE.json'),('e','e.json'),('r','r.json'),('p','RP.json'),('v','MANIFEST.json')]}
  m4.update(a=receipt['pins']['artifact']['sha256'],t='dcd49569e1555e18c403207f429de7b352f806bb11827fb57aa9973f4ceec7b5',b=21583032320)
@@ -26,9 +26,14 @@ def main():
   k=B/'kits'/name
   save=A/('kit_'+name)
   if not save.exists():shutil.copytree(k,save)
+  else:
+   import time
+   k.rename(A/(name+'_superseded_'+str(time.time_ns())))
+   shutil.copytree(save,k)
   ns=J.load(k/'k/p.json')['namespace'];control=J.load(k/'k/a.json');old=k/control['source']['path']
-  old.rename(A/(name+'_'+old.name))
-  target=k/'k'/('t_'+tree[:16]+'.tar');archive(T,target,files,compress=True);check_archive(file_pin(target),files)
+  import time
+  old.rename(A/(name+'_'+str(time.time_ns())+'_'+old.name))
+  target=k/control['source']['path'];archive(T,target,files,compress=True);check_archive(file_pin(target),files)
   source=dict(path=str(target.relative_to(k)),sha256=J.sha(target),tree_sha256=tree)
   cap(k,'k/7.json',dict(schema='c1-sealed-source-v1',commit='sha256:'+tree,tree_sha256=tree,files=files,
     archive={key:source[key] for key in ('path','sha256')},sources=closure,operation_sources=closure))
@@ -88,6 +93,9 @@ fi
 '''
    assert shell.count(marker)==1;shell=shell.replace(marker,addition+marker)
    payload=shell.encode();rawj.update(payload=base64.b64encode(payload).decode(),sha256=hashlib.sha256(payload).hexdigest());(k/'k/j.json').write_text(json.dumps(rawj))
+  sys.path.insert(0,str(L/'work/build24c'))
+  from runtime import harden_kit
+  harden_kit(k)
   cap(k,'BUILD.json',build);seal=reseal(k)
   oldlist=J.load(B/('UPLOADS_'+name+'.json'))
   uploads=[x for x in oldlist['files'] if x['opaque_name'].startswith('u/')]

@@ -1,0 +1,60 @@
+--- work/build20/kit.py before
++++ work/build20/kit.py
+@@ -153,6 +153,9 @@
+ ''')
+ for name in ('q.sh','q1.sh'):
+     (K/'b'/name).write_text('#!/bin/bash\nset -eu\nROOT="$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")"\nexec /bin/bash "$ROOT/job.sh" "$@"\n')
++sys.path.insert(0,str(L/'work/build24c'))
++from runtime import harden_kit
++harden_kit(K)
+ manifest={str(p.relative_to(K)):sha256(p) for p in K.rglob('*') if p.is_file() and p.name not in ('SHA256SUMS.txt','BUILD.json')}
+ (K/'SHA256SUMS.txt').write_text(''.join(f'{h}  {n}\n' for n,h in sorted(manifest.items())))
+ result=dict(GO=False,kit_sha256=verify(K),source_seal=code['tree_sha256'],resource_request=dict(partition='general',gpus=1,minimum_gpu_gib=75,cpus=8,memory_gib=192,wall_hours=12),sizing='GUESS; real model fit has not been measured')
+--- work/build21/base/kit.py before
++++ work/build21/base/kit.py
+@@ -153,6 +153,9 @@
+ ''')
+ for name in ('q.sh','q1.sh'):
+     (K/'b'/name).write_text('#!/bin/bash\nset -eu\nROOT="$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")"\nexec /bin/bash "$ROOT/job.sh" "$@"\n')
++sys.path.insert(0,str(L/'work/build24c'))
++from runtime import harden_kit
++harden_kit(K)
+ manifest={str(p.relative_to(K)):sha256(p) for p in K.rglob('*') if p.is_file() and p.name not in ('SHA256SUMS.txt','BUILD.json')}
+ (K/'SHA256SUMS.txt').write_text(''.join(f'{h}  {n}\n' for n,h in sorted(manifest.items())))
+ result=dict(GO=False,kit_sha256=verify(K),source_seal=code['tree_sha256'],resource_request=dict(partition='general',gpus=1,minimum_gpu_gib=75,cpus=8,memory_gib=192,wall_hours=12),sizing='GUESS; real model fit has not been measured')
+--- work/build21/kit.py before
++++ work/build21/kit.py
+@@ -203,6 +203,9 @@
+ ''')
+ for name in ('q.sh','q1.sh'):
+     (K/'b'/name).write_text('#!/bin/bash\nset -eu\nROOT="$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")"\nexec /bin/bash "$ROOT/job.sh" "$@"\n')
++sys.path.insert(0,str(L/'work/build24c'))
++from runtime import harden_kit
++harden_kit(K)
+ manifest={str(p.relative_to(K)):sha256(p) for p in K.rglob('*') if p.is_file() and p.name not in ('SHA256SUMS.txt','BUILD.json')}
+ (K/'SHA256SUMS.txt').write_text(''.join(f'{h}  {n}\n' for n,h in sorted(manifest.items())))
+ result=dict(GO=False,kit_sha256=verify(K),source_seal=code['tree_sha256'],resource_request=dict(partition='general',gpus=1,minimum_gpu_gib=75,cpus=8,memory_gib=192,wall_hours=12),sizing='GUESS; real model fit has not been measured')
+--- work/build22/kit.py before
++++ work/build22/kit.py
+@@ -206,6 +206,9 @@
+ ''')
+ for name in ('q.sh','q1.sh'):
+     (K/'b'/name).write_text('#!/bin/bash\nset -eu\nROOT="$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")"\nexec /bin/bash "$ROOT/job.sh" "$@"\n')
++sys.path.insert(0,str(L/'work/build24c'))
++from runtime import harden_kit
++harden_kit(K)
+ manifest={str(p.relative_to(K)):sha256(p) for p in K.rglob('*') if p.is_file() and p.name not in ('SHA256SUMS.txt','BUILD.json')}
+ (K/'SHA256SUMS.txt').write_text(''.join(f'{h}  {n}\n' for n,h in sorted(manifest.items())))
+ result=dict(GO=False,kit_sha256=verify(K),source_seal=code['tree_sha256'],resource_request=dict(partition='general',gpus=1,minimum_gpu_gib=75,cpus=8,memory_gib=192,wall_hours=12),sizing='GUESS; real model fit has not been measured')
+--- work/build24b/kit.py before
++++ work/build24b/kit.py
+@@ -93,6 +93,9 @@
+ '''
+    assert shell.count(marker)==1;shell=shell.replace(marker,addition+marker)
+    payload=shell.encode();rawj.update(payload=base64.b64encode(payload).decode(),sha256=hashlib.sha256(payload).hexdigest());(k/'k/j.json').write_text(json.dumps(rawj))
++  sys.path.insert(0,str(L/'work/build24c'))
++  from runtime import harden_kit
++  harden_kit(k)
+   cap(k,'BUILD.json',build);seal=reseal(k)
+   oldlist=J.load(B/('UPLOADS_'+name+'.json'))
+   uploads=[x for x in oldlist['files'] if x['opaque_name'].startswith('u/')]

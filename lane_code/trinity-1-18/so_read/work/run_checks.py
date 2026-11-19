@@ -32,6 +32,7 @@ for name,path in [('cache','work/src/u0/tests/test_read_cache.py'),
                   ('round4','work/src/u0/tests/test_round4.py'),
                   ('round5','work/src/u0/tests/test_round5.py'),
                   ('round6','work/src/u0/tests/test_round6.py'),
+                  ('round7','work/src/u0/tests/test_round7.py'),
                   ('kit','out/kit_parity50/test_compare.py'),
                   ('kit_launch','out/kit_parity50/test_run.py')]:
     command=[sys.executable,'-I','-s','-B',str(L/'work/run_fixture5.py'),str(L/path)]
@@ -60,6 +61,7 @@ for name,script,variable,summary,args in (
     ('lock3_before','test_lock_round3.py','READ_LOCK_BEFORE','FAILED (failures=2)',[]),
     ('round5_before','test_round5.py','READ_ROUND5_BEFORE','FAILED (failures=11)',[]),
     ('round6_before','test_round6.py','READ_ROUND6_BEFORE','FAILED (failures=31)',[]),
+    ('round7_before','test_round7.py','READ_ROUND7_BEFORE','FAILED (failures=10)',[]),
     ('round4_before','test_round4.py','READ_ROUND4_BEFORE','FAILED (failures=7, skipped=1)',[]),
     ('node4_before','test_round4.py','READ_NODE4_BEFORE','FAILED (failures=1)',
      ['Round4Tests.test_f2_step600_real_job_and_rehearsal_memory']),

@@ -1,0 +1,29 @@
+# Lane tree_rebuild14 (Devin Opus high; session on trinity-3-30, all work on trinity-1-18): successor of tree_rebuild13
+
+First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it. Then read, in this order: events/tree_rebuild/STATUS.md (whole; exact as of its Updated line), the newest events/tree_rebuild/*_RESULT_rotate.md, and every `*_ORCH_*` file in events/tree_rebuild newer than 20261119T1533Z, newest first (also 1533Z, 1628Z, 1653Z, 1551Z, 1503Z for the rulings behind STATUS). B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30; events folder B/events/tree_rebuild. Your lane folder: trinity-3-30:/scratch/jjyeung/orch_n30/tree_rebuild14. tree_rebuild13/work holds the session scripts: o*.sh (Orchard via ossh: o3.sh job poll with J=, o16/o17/o19 kit assembly, o20 submit), p*.sh (trinity-1-18 via tssh), cf*.sh (confirm + review dispatch), gov_push24c.py (governed stream from a 1-18 staging dir, nothing lands on 3-30), build24e.md, review24d.md, s24.sha and s24c.sha. Reuse them by path. Append Orchard ledger lines to tree_rebuild12/work/ORCHARD_LEDGER.jsonl.
+
+## Goal
+A ~9B spatial VLM whose chain of thought calls heads inside its own checkpoint and answers from what they print (ReVSI first). Vehicle N is the MINIMAL launch kit. N's init is P's step-400 export (artifact 5083243c) through the export-only receipt b467c32b, with a fresh optimizer and counter 0 (RULING 1533Z); nothing from job 172660 after step 400 is used. **Deliverable: N's launch on advanced (4 H100; free since 172660 completed about 17:15Z), with a reviewed kit and its first steps watched, as soon as possible.** The launch is its own proof if no proof has reached ADMIT (ORCH 1551Z/1628Z).
+
+## Where things are
+- trinity-1-3 is unreachable. Never ssh to it.
+- W = /scratch/jjyeung/orch_n30/tree_rebuild10_w on trinity-1-18 (cap 40 GB until N launches and shows first steps; keep 1-18 above 150 GB free). The kit line is in W/w24/out: b24 (90637cdf), b24b (7d7a8858), b24c (22859833, confirmed, tree e1e64652), b24d (running), and 24e next. Prompts are in W/prompts; review receipts are in /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*_tree_rebuild*.
+- Orchard N pool okh7/x_22c714e1: q = kit q edb324ff (24c), n = kit n bff6d42c (24c, GO=false), u/ uploads, w/0..3 = P's step-400 export parts, l.json, wrapper j.sh 7c0465c6 (an nvidia-smi pre-check, then the resolver, then q/job.sh), proof outputs o/<jobid>/{RESULT.json,o.tar}, job logs j/<jobid>.out, old kits a2*/. Uploads go as one governed stream at PRIORITY 1 from trinity-3-30, streamed from a 1-18 staging dir of symlinks (gov_push24c.py; rename the record to .done.<epoch> after EXTRACTED). Single files under 5 MB may go as an ossh base64 heredoc.
+- trinity-3-30's disk is at about 100 GB free: write only STATUS, event files and files under 5 MB there. tree_rebuild11/work/pwrap/sess.json holds GCS upload session URLs: never copy or ship it.
+- Kit GO mechanism: kit n's k/a.json GO=false makes t.py exit 0. The launch needs the GO-armed variant (out/kit_n_go from 24d/24e, k/a.json GO=true, resealed), uploaded only after ORCH writes the launch GO.
+
+## Order of work
+STATUS.md "Running" (newest first) and "Next" are exact; follow them.
+
+## Node rules (binding, on top of LANE_RULES.md)
+- trinity-3-30 (where your session runs): write nothing above 200 MB to its /scratch; before any write above 50 MB check `df -BG --output=avail /scratch`; below 105 GB free is a BLOCKER. Run no build, test suite or Codex dispatch on it.
+- trinity-1-18 (where the work runs): at most two Codex builds at a time, in tmux; check `free -g` first and start nothing if less than 100 GB is available; no process of yours above 20 GB RAM; no GPU. It carries the IO governor's node agent (tmux iogov_agent) and main's jobs: never touch them.
+- Every ssh goes through `bash B/tools/tssh.sh trinity-1-18 'bash -s' < script.sh` with `timeout`, at most one call per minute, batched; poll a running build at most every 10 minutes. A hung call is not retried in a loop: wait 10 minutes, try once, then BLOCKER.
+- Codex builds (at most two at once, ORCH 1234Z; reviews are separate): on trinity-1-18, `(cd /home/jjyeung/agent_project_distill && nice -n 10 agent/scripts/codex_dispatch.sh implement W <prompt-file> --model gpt-6-astra --effort high --label tree_rebuildN --skip-git-check)` inside tmux; each prompt restates the "Rules for the build" of build 15's prompt. Dispatch Codex only for work this deliverable needs.
+- No Git, no deletion, no recursive search on /home or /data*, no Orchard submission without GO. Reads from /data* are small and direct; anything above 20 MB goes through the IO governor (LANE_RULES.md).
+- Mirror: after each confirmed build, copy the package and W/work scripts (not outputs) to B/events/tree_rebuild/ops_mirror/ if under 100 MB, so a node loss costs nothing.
+- CPU manners on trinity-1-18 (ORCH 0611Z): every CPU job under nice -n 10 with explicit thread limits, at most 8 cores per job.
+
+## Continuity and reporting
+Rotate 5.5 hours after your start or at 60% of context (the process is killed at 6 hours): write STATUS.md exact and a rotate RESULT, then launch your own successor ONCE on trinity-3-30: copy this brief to briefs/tree_rebuild<N+1>_d.md with the lane name, predecessor and state updated, run `bash B/tools/devin_bg.sh tree_rebuild<N+1> <that brief> claude-opus-5-5-high 21600`, append it to B/tools/LANES.txt, check with pgrep that exactly one successor runs, and stop acting the moment it starts.
+Events only for questions, blockers, final results and rotation, at most 20 lines. Keep STATUS.md current after every step and copy it to events/tree_rebuild/STATUS.md. Keep the design record /data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_TREE_REBUILD_20261115.md and its INDEX line current at each RESULT.

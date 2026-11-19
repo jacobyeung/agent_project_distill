@@ -1,0 +1,187 @@
+test_high1_environment_versions_are_resolved (__main__.Findings.test_high1_environment_versions_are_resolved) ... FAIL
+test_high1_prepare_precedes_gpu_gate (__main__.Findings.test_high1_prepare_precedes_gpu_gate) ... FAIL
+test_high1_scratch_runtime_prefix_is_accepted (__main__.Findings.test_high1_scratch_runtime_prefix_is_accepted) ... ERROR
+test_high3_one_ulp_stage1_drift_preserves_instrument (__main__.Findings.test_high3_one_ulp_stage1_drift_preserves_instrument) ... FAIL
+test_high4_ada_card_is_mandatory (__main__.Findings.test_high4_ada_card_is_mandatory) ... FAIL
+test_high4_every_journal_host_is_mandatory (__main__.Findings.test_high4_every_journal_host_is_mandatory) ... FAIL
+test_high4_local_host_is_mandatory (__main__.Findings.test_high4_local_host_is_mandatory) ... FAIL
+test_high4_orchard_against_orchard_is_ineligible (__main__.Findings.test_high4_orchard_against_orchard_is_ineligible) ... FAIL
+test_high4_orchard_job_cannot_be_reused (__main__.Findings.test_high4_orchard_job_cannot_be_reused) ... FAIL
+test_high4_positive_local_provenance (__main__.Findings.test_high4_positive_local_provenance) ... ok
+test_low6_worker_identity_and_all_caches_are_local (__main__.Findings.test_low6_worker_identity_and_all_caches_are_local) ... FAIL
+test_low7_off_is_checked_in_settings (__main__.Findings.test_low7_off_is_checked_in_settings) ... FAIL
+test_low8_deployment_verifies_both_policy_scripts (__main__.Findings.test_low8_deployment_verifies_both_policy_scripts) ... FAIL
+test_low9_compare_output_cannot_escape_scratch (__main__.Findings.test_low9_compare_output_cannot_escape_scratch) ... 2026-11-19T17:08:01Z
+FAIL
+test_low9_original_unpack_acceptance_test_writes_under_work (__main__.Findings.test_low9_original_unpack_acceptance_test_writes_under_work) ... FAIL
+{"verdict": "SAME_INSTRUMENT"}
+CPU_TEST Waiting for the second idle reading (five minutes).
+{"archive": "/scratch/jjyeung/orch_n30/so_reads228/work/review_tests/a5xc4a1te/run/return/result.tar.gz", "complete": false, "completed": 50, "exit": "/scratch/jjyeung/orch_n30/so_reads228/work/review_tests/a5xc4a1te/run/return/EXIT.json", "returncode": 0, "sha256": "3983568eba7ef5a5404b9d4cdbb9ebcf02769454a2b20cf064c906ec7f693aa4"}
+test_info11_worker_has_own_process_group (__main__.RunnerFindings.test_info11_worker_has_own_process_group) ... FAIL
+test_medium5_orchard_metadata_members_are_present (__main__.RunnerFindings.test_medium5_orchard_metadata_members_are_present) ... FAIL
+
+======================================================================
+ERROR: test_high1_scratch_runtime_prefix_is_accepted (__main__.Findings.test_high1_scratch_runtime_prefix_is_accepted)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 57, in test_high1_scratch_runtime_prefix_is_accepted
+    got=stage.versions(prefix+'/bin/python',dict(versions=env['versions']),{'TMPDIR':str(tmp)})
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_reads228/out_round0/stage228.py", line 127, in versions
+    raise Refusal('Stage the Python environment under /scratch/jjyeung/envs')
+common228.Refusal: Stage the Python environment under /scratch/jjyeung/envs
+
+======================================================================
+FAIL: test_high1_environment_versions_are_resolved (__main__.Findings.test_high1_environment_versions_are_resolved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 48, in test_high1_environment_versions_are_resolved
+    self.assertEqual(C.read(TARGET/'STAGE_PLAN.json')['environment']['versions'],expected)
+AssertionError: None != {'scipy': '1.14.1', 'torch': '2.13.0+cu13[55 chars]9.0'}
+
+======================================================================
+FAIL: test_high1_prepare_precedes_gpu_gate (__main__.Findings.test_high1_prepare_precedes_gpu_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 68, in test_high1_prepare_precedes_gpu_gate
+    runner.run_one(types.SimpleNamespace(package='unused',card='0',out=str(directory()/'run'),items=50,on=False))
+  File "/scratch/jjyeung/orch_n30/so_reads228/out_round0/runner228.py", line 35, in run_one
+    proof=stage_check(root,cfg,inputs,export)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 64, in prepare
+    events.append('prepare');self.assertIs(kwargs.get('prepare'),True);raise Prepared()
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not True
+
+======================================================================
+FAIL: test_high3_one_ulp_stage1_drift_preserves_instrument (__main__.Findings.test_high3_one_ulp_stage1_drift_preserves_instrument)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 79, in test_high3_one_ulp_stage1_drift_preserves_instrument
+    self.assertEqual(got['verdict'],'SAME_INSTRUMENT')
+AssertionError: 'DIAGNOSTIC_ONLY' != 'SAME_INSTRUMENT'
+- DIAGNOSTIC_ONLY
++ SAME_INSTRUMENT
+
+
+======================================================================
+FAIL: test_high4_ada_card_is_mandatory (__main__.Findings.test_high4_ada_card_is_mandatory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 95, in test_high4_ada_card_is_mandatory
+    self.assertFalse(result(root)['eligible'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_high4_every_journal_host_is_mandatory (__main__.Findings.test_high4_every_journal_host_is_mandatory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 100, in test_high4_every_journal_host_is_mandatory
+    self.assertFalse(result(root)['eligible'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_high4_local_host_is_mandatory (__main__.Findings.test_high4_local_host_is_mandatory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 91, in test_high4_local_host_is_mandatory
+    self.assertFalse(result(root)['eligible'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_high4_orchard_against_orchard_is_ineligible (__main__.Findings.test_high4_orchard_against_orchard_is_ineligible)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 84, in test_high4_orchard_against_orchard_is_ineligible
+    got=result(REFERENCE);self.assertFalse(got['eligible']);self.assertEqual(got['verdict'],'DIAGNOSTIC_ONLY')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_high4_orchard_job_cannot_be_reused (__main__.Findings.test_high4_orchard_job_cannot_be_reused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 104, in test_high4_orchard_job_cannot_be_reused
+    self.assertFalse(result(root)['eligible'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_low6_worker_identity_and_all_caches_are_local (__main__.Findings.test_low6_worker_identity_and_all_caches_are_local)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 108, in test_low6_worker_identity_and_all_caches_are_local
+    self.assertEqual(env.get('USER'),'jjyeung');self.assertEqual(env.get('LOGNAME'),'jjyeung')
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'jjyeung'
+
+======================================================================
+FAIL: test_low7_off_is_checked_in_settings (__main__.Findings.test_low7_off_is_checked_in_settings)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 114, in test_low7_off_is_checked_in_settings
+    self.assertFalse(result(root)['eligible'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_low8_deployment_verifies_both_policy_scripts (__main__.Findings.test_low8_deployment_verifies_both_policy_scripts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 124, in test_low8_deployment_verifies_both_policy_scripts
+    self.assertIn('vnice.sh',seen);self.assertIn('terminator.sh',seen)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'vnice.sh' not found in ['0.json', '0.tgz', '3.py', 'BATCH.sh', 'CONFIG.json', 'INPUTS.example.json', 'PACKAGE.json', 'SUBMIT.cmd', '0.json', '1.json', '4.py', '5.py', '6.py', '7.py', 'export.json', 'tower_sequence.py', '8.py', '9.json', 'R0_DEV_ROOMS.txt', 'R0_ROOMS.txt', 'd0_base.json', 'd0_override.txt', '__init__.py', 'artifact.py', 'assemble.py', 'callhook.py', 'core.py', 'generate.py', 'geometry.py', 'grounding.py', 'parity.py', 'perception_memo.py', 'real.py', 'servers.py', 'stage1.py', 'eval_heldout.py', 'extract_features.py', 'scale_head.py', 'sh_heldout.py', 'train_scale.py', 'common.py', 'eval_selector.py', 'isolate_tables.py', 'logistic.py', 'logistic_cv.py', 'retrain_final.py', 'selector_head.py', 'selector_inputs.py', 'name_emb.py', 'selector_inputs.py', 'sl_tables.py', 'sl_tables_v1.py', 'train_selector.py', '__init__.py', 'build_manifest.py', 'common.py', 'compare.py', 'cpu_first_batch.py', 'provenance.py', 'pytest_scope.py', 'run_parity.py', 'sam3_probe.py', 'stage_restore.py', 'reader_policy.py', 'data_receipt.json', 'config.json', 's1_receipt.json', 'DENSE_MANIFEST.json', 'FRAMES.json', 'TASKS.jsonl', 'CAMERA_TASKS.jsonl', 'request.json', '__init__.py', 'cli.py', 'RUN_H10.md', '__init__.py', 'card_entry.sh', 'cpu_first_batch.py', 'depth_snapshot.py', 'gpu_113.sh', 'host_entry.py', 'host_run.sh', 'launch.py', 'merge.py', 'parity_adapter.py', 'perception_own.py', 'reserve_frames.py', 'run_card.sh', 'items.py', 'modes.py', 'native.py', 'perception.py', '__init__.py', 'artifact.py', 'assemble.py', 'callhook.py', 'core.py', 'generate.py', 'geometry.py', 'grounding.py', 'real.py', 'servers.py', 'stage1.py', 'scale_head.py', 'selector_head.py', 'selector_inputs.py', 'selector_inputs.py', 'runner.py', 'scorers.py', 'statistics.py', 'FRAMES_MANIFEST.json', 'R0_DEV_ROOMS.txt', 'R0_QUESTIONS_SUMMARY.json', 'R0_QUESTIONS_dev_f32.jsonl', 'devs1_routed.json', 'r0dev.json', '__init__.py', 'build.py', 'common.py', 'entry.py', 'export_pins.py', 'inventory.py', 'job.py', 'operator.py', 'prepare.py', 'runner.py', 'MODELS.json', 'ORCHARD_ASSETS.json', 'TRANSPORT.json', 'chain_save.py', 'export_stage.py', 'orchard_job.py', 'orchard_launcher.py', 'orchard_results.py', 'orchard_stage.py', 'return_io.py', 'stdout_transfer.py', 'trace_runtime.py', '__init__.py', 'a0_recovery.jsonl', 'a0_units.jsonl', 'camera_fixtures.jsonl', 'camera_generation.json', 'expected_calls.py', 'faithful_check.py', 'faithful_gate.py', 'ground_fixtures.jsonl', 'mix_h1.py', '.gitignore', 'AGENTS.md', 'DESIGN.md', 'DESIGN_FULLFT_GXS.md', 'DESIGN_HEADCALL_FULLFT.md', 'FIXES.md', 'THREAT_MODEL.md', 'E2E-1C.json', 'E2E-1G.json', 'gate_heldout_scenes_v1.json', 'gf1_stage1.json', 'gf1_stage2.json', 'stageb_cp1rv_mdg_w4.json', 'student_benchmark_eval_v1.json', 'EVAL_HARNESS_HANDOFF.md', 'carrier_c1_memory_layout.md', 'carrier_c1_resume.md', 'carrier_c1_sweeps.md', 'recording_pose.md', 'SOURCE_PINS.json', '__init__.py', 'heldout_loss.py', 'items.py', 'kit_inputs.py', 'official.py', 'parity.py', 'pointing_candidates.py', 'pointing_markers.py', 'pose_override.py', 'routed_dev.py', 'routed_types.py', 'run.py', 'runtime.py', 'sampling.py', 'vqa_direct.py', 'worker_errors.py', 'V314_MANIFEST.json', 'accept_v314.py', 'GROUND_V312.md', 'INTERFACE_BOX_PROVIDER.md', 'SPEC_v3.12.1.md', 'SPEC_v3.12.2.md', 'SPEC_v3.12.md', 'SPEC_v3.13.md', '__init__.py', '__main__.py', 'balance.py', 'bindings.py', 'box_v313.py', 'calculator.py', 'camera_policy.py', 'camera_rows.py', 'canon.py', 'canon_check.py', 'canon_native.py', 'canon_render.py', 'check_build.py', 'common.py', 'gaps_v314.py', 'generate_v313.py', 'geometry.py', 'goal_exclusions.py', 'ground_v312.py', 'ground_v312_balance.py', 'ground_v312_degenerate.py', 'ground_v312_input.py', 'ground_v312_io.py', 'ground_v312_pack.py', 'ground_v312_production.py', 'ground_v312_quality.py', 'ground_v312_tokens.py', 'ground_v313.py', 'ground_v313_distance.py', 'ground_v313_pack.py', 'ground_v313_tokens.py', 'instance_policy314.py', 'materialize.py', 'native.py', 'paraphrase.py', 'pipeline.py', 'plan_contract.py', 'program.py', 'programs_v314.py', 'provenance.py', 'replay.py', 'review.py', 'room_rows_v314.py', 'room_v314.py', 'scan_witness_v313.py', 'surface_rows_v313.py', 'trace.py', 'fixture_v313.py', 'fixture_v313_r3.py', 'printed_replay_v313.py', 'test_render_gaps.py', 'test_scan_v313.py', 'test_v312_benchmark.py', 'test_v312_ground.py', 'test_v312_quality.py', 'test_v312_review.py', 'test_v313.py', 'test_v313_delivery.py', 'test_v313_r2.py', 'test_v313_r3.py', 'test_v314.py', 'test_v7.py', 'dose_t0.py', 'build_orchard_ground.sh', 'orchard_ground_adapter.py', 'render_full.py', 'render_full.sh', 'render_gaps_v314.py', 'render_programs_v314.py', 'render_room_v314.py', 'select_ground_rows.py', '__init__.py', 'decode.py', 'derive.py', 'eval_hook.py', 'gate_eval.py', 'geometry.py', 'heads.py', 'phase1.py', 'protocol.py', 'rows.py', 'training.py', '__init__.py', 'export.py', 'oracle.py', 'pointing.py', 'selector.py', 'sources.py', 'a.py', 'ab.py', 'b3900003.py', 'c.sh', 'd.py', 'f2.py', 'g.py', 'gcsput.py', 'h.py', 'i.py', 'jc1.sh', 'jp0.sh', 'jt8c.sh', 'kitx.py', 'opaque.py', 'p0.py', 'p0.sh', 'profile.json', 'q0.py', 'r.sh', 'r8.py', 'rd.py', 's.py', 'prestage_hooks.py', 'sitecustomize.py', 'sg.py', 'v.py', 'w.py', 'wh.json', 'x.py', 'z.py', 'build.py', 'job.sh', 'job8.sh', 'rehearse.sh', '__init__.py', 'core.py', 'hrp_reference.py', 'requirements.txt', '__init__.py', 'anchors.py', 'geom.py', 'ground.py', 'gtmask.py', 'programs.py', 'report.py', 'resample.py', 'revsi.py', 'sam3mask.py', 'scheme.py', 'sets.py', 'acceptance_live_adapter.py', 'benchmark_own_vit_reread.py', 'diagnostic_ddp_gpu_batch.sh', 'diagnostic_gpu_batch.sh', 'gf1_stall_guard.py', 'gpu_batch.sh', 'gpu_native_selector.py', 'gpu_routed_batch.py', 'gxp_mix_cpu_tests.py', 'head_probe.py', 'launch_gf1_stage1.sh', 'launch_gf1_stage2.sh', 'mdg_env.sh', 'mdg_host_train.sh', 'cpu_startup.py', 'eval_job.py', 'gpu_idle_watchdog.py', 'train_job.py', 'reason_generate.py', 'run_clean_offline_tests.py', 'sam3_batch_probe.py', 'sam3_reference.py', 'sam3_validate.py', 'shakedown_batch.sh', 'shakedown_finalize.py', 'shakedown_monitor.py', 'student_benchmark_gpu.sh', 'tracecold_bare_prepare.py', 'tracecold_build_rows.py', 'tracecold_configure.py', 'tracecold_export.py', 'tracecold_prepare.py', 'tracecold_probe.py', 'tracecold_read_native.py', 'tracecold_resources.py', 'tracecold_seal.py', 'tracecold_step.py', 'tracecold_step0_prepare.py', 'tracecold_token_proof.py', 'tracecold_train.py', 'tracecold_transport.py', 'ddp_config.py', 'diag_admission.py', 'diag_common.py', 'diag_worker.py', 'eval_common.py', 'route_admission.py', 'route_generation_config.py', 'run_cell.py', '__init__.py', '_tower_native.py', 'a1_pipeline.py', 'a1_scan.py', 'acceptance_evidence.py', 'adapters.py', 'admission.py', 'all_frame_bank.py', 'all_frame_readout.py', 'routed_policy_v1.json', 's1_version.json', 'auxiliary_config.py', 'auxiliary_losses.py', 'auxiliary_reason.py', 'auxiliary_targets.py', 'batches.py', '__init__.py', '__main__.py', 'answers.py', 'contracts.py', 'frames.py', 'generate.py', 'prepare.py', 'score.py', 'c1_pose_mix.py', 'c1r_align.py', 'c1r_clips.py', 'c1r_data.py', 'c1r_dense.py', 'c1r_ref.py', 'c1r_targets.py', 'camera_config.py', 'camera_gate.py', 'camera_head.py', 'camera_targets.py', 'candidate_policy.py', 'carrier_c1.py', 'carrier_c1_batch_benchmark.py', 'carrier_c1_batch_decode.py', 'carrier_c1_canary.py', 'carrier_c1_clip.py', 'carrier_c1_data.py', 'carrier_c1_decode.py', 'carrier_c1_routing.py', 'carrier_c1_run.py', 'carrier_c1_sweep.py', 'checkpoint_space.py', 'checks.py', 'clean_conversion.py', 'clean_media.py', 'clean_source.py', 'cli.py', 'common.py', 'compact_label_bank.py', 'conversion.py', 'conversion_dry_run.py', 'conversion_v2.py', 'ddp_admission.py', 'ddp_checkpoints.py', 'ddp_config.py', 'ddp_core.py', 'ddp_training.py', 'decode_parity.py', 'decoupled_resume.py', 'decoupled_v.py', 'decoupled_v_run.py', 'decoupled_vc.py', 'dense_eval.py', 'diagnostic.py', 'diagnostic_data.py', 'division.py', 'e2e_recipe.py', 'e2e_routing_rows.py', 'finetune_artifacts.py', 'finetune_lane.py', 'finetune_prepare.py', 'first_batch_progress.py', 'fsdp_training.py', 'full_ft.py', 'g3t_online.py', '__init__.py', '__init__.py', 'distortion.py', '__init__.py', 'camera_head.py', 'dpt_head.py', 'head_act.py', 'utils.py', '__init__.py', 'attention.py', 'block.py', 'drop_path.py', 'layer_scale.py', 'mlp.py', 'patch_embed.py', 'rope.py', 'swiglu_ffn.py', 'vision_transformer.py', '__init__.py', 'aggregator.py', 'g3t.py', '__init__.py', 'geometry.py', 'load_fn.py', 'pose_enc.py', 'rotation.py', 'gate_driver.py', 'gate_eval.py', 'geometry_input.py', 'geometry_profiles.py', 'gf1.py', 'gf1_config.py', 'gf1_memory.py', 'ground_admission.py', 'ground_context.py', 'ground_lifting.py', 'ground_profiles.py', 'ground_replay.py', 'ground_rows.py', 'ground_sources.py', 'ground_target_filter.py', 'ground_tokens.py', 'ground_v3.py', 'grounding_eval.py', 'grounding_features.py', 'grounding_head.py', 'grounding_targets.py', 'grounding_train.py', 'h1.py', 'h1_faithful.py', 'h1_r0.py', 'head_api.py', 'head_programs.py', 'hrp_reread.py', 'infrastructure_smoke.py', 'inspect_source.py', 'lease.py', 'live_instances314.py', 'live_parity_adapter.py', 'live_trace313.py', 'mask_grounding_head.py', 'mdg_decode.py', 'mdg_decode_attach.py', 'mdg_decode_tokens.py', 'mdg_eval.py', 'mdg_features.py', 'mdg_inputs.py', 'mdg_lora.py', 'mdg_parent.py', 'mdg_rasters.py', 'mdg_runtime.py', 'mdg_stream.py', 'mdg_targets.py', 'mdg_train.py', 'native_selection.py', 'next_gpu_check.py', 'object_memory.py', 'opaque_logs.py', 'orchard_admission.py', 'orchard_checkpoints.py', '__init__.py', '__main__.py', 'answers.py', 'contracts.py', 'frames.py', 'generate.py', 'prepare.py', 'score.py', 'sharding.py', 'orchard_media.py', 'orchard_paths.py', 'p3_geometry.py', 'p3_grammar.py', 'p3_heads.py', 'p3_printed_calculator.py', 'p3_printed_calculator_v2.py', 'p3_provenance.py', 'point_depth_head.py', 'pose_overfit.py', 'pose_samples.py', 'pose_source_guard.py', 'precision_parity.py', 'probe_cache.py', 'provisional.py', 'provisional_cli.py', 'provisional_data.py', 'provisional_eval.py', 'readout_geometry.py', 'recording_pose.py', 'redecision.py', 'rehearsal.py', 'republish.py', 'reread.py', 'reread_isolation.py', 'routed_candidates.py', 'routed_features.py', 'row_removals.py', 'run_live_parity.py', 'runner.py', 's1_admission.py', 's1_exclusions.py', 's1_first_step.py', 's1_grounding.py', 's1_pool.py', 's1_pool_relocate.py', 's1_route_policy.py', 's1_routing.py', 's1_scene_census.py', 'sam3_tower.py', 'scene_state.py', 'scripted_calls.py', 'shakedown.py', 'source_seal.py', 'spatial_pose.py', 'stageb_mdg.py', 'startup_receipt.py', 'storage.py', 'students.py', 'svp_stages.py', 'tower_errors.py', 'tower_read.py', 'tower_scale.py', 'tower_scale_rule.json', 'tower_scale_rule.py', 'trace_contract.py', 'trace_format313.py', 'trace_io.py', 'trace_readout.py', 'trace_statistics.py', 'trace_targets.py', 'trace_version.py', 'trained_groups.py', 'verify_pass.py', 'warmstart.py', 'auxiliary_baseline.py', 'auxiliary_toys.py', 'batched_ground_rows.py', 'clean_r1313_fixture.py', 'cpu_stubs.py', 'hflip.csv', 'reverse.csv', 'reverse_hflip.csv', 'std.csv', 'LICENSE', 'SOURCE.json', 'evaluate.py', 'blue.ppm', 'green.ppm', 'red.ppm', 'MEMBERSHIP_ANSWERABLE_500.json', 'answerable500_gt_canonical.json', 'vstibench_repr_450_v2.json', 'vstibench_repr_450_v2.json.provenance', 'conversion_3919.json', 'EXCERPT.md', 'pdg_s1_config.json', 'pdg_s2_v2_config.json', 'smoke_pdg_s1_config.json', 'sharded_equivalence_entries.jsonl', 'v3122_open_vocabulary_calls.json', 'fullft_eval_toys.py', 'fullft_toys.py', 'ground_backend_gt.py', 'ground_backend_real.py', 'ground_calibration_protocol.py', 'ground_handcheck.py', 'ground_no_call_logits.py', 'ground_row_decode.py', 'ground_shared_opener_rows.py', 'common.py', 'rows_fixture.py', 'test_derive.py', 'test_eval_hook.py', 'test_gate.py', 'test_gate_fullft.py', 'test_geometry_headcall.py', 'test_loop.py', 'test_phase1_interface.py', 'test_prefill.py', 'test_protocol.py', 'test_qwen.py', 'test_training.py', 'pd_toys.py', 'retained_workers.py', 'test_a1_decoder.py', 'test_a1_pipeline.py', 'test_acceptance_cpu_e2e_r13.py', 'test_acceptance_parity_rules.py', 'test_addressing_r15.py', 'test_admission.py', 'test_all_frame_overfit.py', 'test_all_frame_recipe.py', 'test_all_frames.py', 'test_auxiliary.py', 'test_auxiliary_multinode.py', 'test_auxiliary_reason.py', 'test_batch_options.py', 'test_batched_routed_benchmark.py', 'test_batched_routed_decode.py', 'test_benchmark_eval.py', 'test_c1_blockers.py', 'test_c1_masked_uv.py', 'test_c1_pose_mix_division.py', 'test_c1_pose_warm.py', 'test_c1_provenance.py', 'test_c1_validation_slice.py', 'test_camera.py', 'test_camera_gate.py', 'test_camera_windows.py', 'test_carrier_c1.py', 'test_carrier_c1_attention.py', 'test_carrier_c1_clip.py', 'test_carrier_c1_cp2.py', 'test_carrier_c1_data.py', 'test_carrier_c1_final.py', 'test_carrier_c1_layout.py', 'test_carrier_c1_memory.py', 'test_carrier_c1_overfit.py', 'test_carrier_c1_prefix.py', 'test_carrier_c1_routing.py', 'test_carrier_c1_run.py', 'test_carrier_c1_single_image.py', 'test_carrier_c1_sweep.py', 'test_carrier_c1_t0.py', 'test_clean_offline_runner.py', 'test_clean_r1313.py', 'test_clean_source_review.py', 'test_conversion.py', 'test_conversion_regressions.py', 'test_conversion_v2.py', 'test_conversion_v2_integration.py', 'test_cpu_startup.py', 'test_ddp.py', 'test_ddp_admission.py', 'test_ddp_checkpoints.py', 'test_ddp_launch.py', 'test_ddp_models.py', 'test_ddp_pipeline.py', 'test_ddp_preservation.py', 'test_ddp_revision.py', 'test_decode_parity_r9.py', 'test_decoupled_overfit.py', 'test_decoupled_pose_fix.py', 'test_decoupled_prefetch.py', 'test_decoupled_resume.py', 'test_decoupled_schedule.py', 'test_decoupled_startup.py', 'test_decoupled_v.py', 'test_decoupled_vc.py', 'test_deploy_alias.py', 'test_diagnostic.py', 'test_division.py', 'test_division_inheritance.py', 'test_division_inheritance_protocol.py', 'test_e2e_ground_tokens.py', 'test_e2e_inputs.py', 'test_e2e_merge.py', 'test_e2e_open_vocabulary.py', 'test_e2e_pose_source_guard.py', 'test_e2e_routing_rows.py', 'test_e2e_shared_rows.py', 'test_finetune_lane.py', 'test_finetune_prepare.py', 'test_fsdp.py', 'test_full_ft.py', 'test_full_ft_eval.py', 'test_g3t_camtoken.py', 'test_g3t_patch_grid_store.py', 'test_geometry_training.py', 'test_gf1.py', 'test_gf1_contracts.py', 'test_gf1_review.py', 'test_gf1_trainer.py', 'test_gpu_idle_watchdog.py', 'test_ground_backend.py', 'test_ground_calibration_protocol.py', 'test_ground_r2.py', 'test_ground_r3.py', 'test_ground_review_v2.py', 'test_grounding_decode.py', 'test_grounding_eval.py', 'test_grounding_features.py', 'test_grounding_head.py', 'test_grounding_targets.py', 'test_grounding_train.py', 'test_gx_carrier.py', 'test_gx_dense_binding.py', 'test_gx_s6.py', 'test_gx_s7.py', 'test_gx_s8.py', 'test_gxp_mix.py', 'test_hc_v3.py', 'test_head_probe.py', 'test_headcall_eval.py', 'test_headcall_fullft.py', 'test_heads_only.py', 'test_hrp_reread.py', 'test_infrastructure_smoke.py', 'test_inherited_record_validation.py', 'test_integ_v314.py', 'test_integ_v314_r2.py', 'test_integrated_startup.py', 'test_integration_r2.py', 'test_landing.py', 'test_live_adapter_r3.py', 'test_mask_grounding_head.py', 'test_mdg_eval.py', 'test_mdg_features.py', 'test_mdg_rasters.py', 'test_mdg_runtime.py', 'test_mdg_stream.py', 'test_mdg_targets.py', 'test_mdg_train.py', 'test_multinode.py', 'test_multinode_frames.py', 'test_multinode_gloo.py', 'test_multinode_launch.py', 'test_native_selector84.py', 'test_native_selector_profile.py', 'test_orchard.py', 'test_orchard_eval_qwen36_27b.py', 'test_orchard_eval_wrapper.py', 'test_orchard_step.py', 'test_orchard_train_job.py', 'test_orchard_w4.py', 'test_own_vit_reread.py', 'test_pd_build2.py', 'test_pdg_v3.py', 'test_phase3_terminator.py', 'test_pose_samples.py', 'test_precision_parity_r12.py', 'test_probe_cache.py', 'test_provisional.py', 'test_provisional_pipeline.py', 'test_qwen36_27b.py', 'test_readout_geometry.py', 'test_readout_rows.py', 'test_reason_generate.py', 'test_recording_pose.py', 'test_recording_pose_sparse.py', 'test_rehearsal_guards.py', 'test_rescue_claims_r2.py', 'test_review_r2_integration.py', 'test_rg2p_policy.py', 'test_room_v314.py', 'test_run_control_republish.py', 'test_s1_admission.py', 'test_s1_call_interception.py', 'test_s1_camera_answers.py', 'test_s1_candidate_policy.py', 'test_s1_checkpoint_buffers.py', 'test_s1_first_batch_progress.py', 'test_s1_first_step.py', 'test_s1_grounding_runtime.py', 'test_s1_in_job_gate.py', 'test_s1_launch_kit.py', 'test_s1_mdg_inputs.py', 'test_s1_native_replay.py', 'test_s1_persistent_resume.py', 'test_s1_pool_admission.py', 'test_s1_pool_rows.py', 'test_s1_production_imports.py', 'test_s1_remove_admission.py', 'test_s1_room_format.py', 'test_s1_routing.py', 'test_s1_scene_exclusions.py', 'test_s1_source_seal.py', 'test_s1_staging.py', 'test_s1_target_filter.py', 'test_s1_trained_groups.py', 'test_s1_world4.py', 'test_sam3_reference_r10.py', 'test_sam3_tower.py', 'test_sam3_validate.py', 'test_seed_config.py', 'test_segment_loss.py', 'test_sft_warmstart.py', 'test_sft_warmstart_training.py', 'test_sharded_equivalence_native.py', 'test_sharded_targets.py', 'test_source_receipt.py', 'test_spatial_pose.py', 'test_stageb_mdg.py', 'test_stagefast.py', 'test_startup_cache.py', 'test_startup_controller.py', 'test_startup_receipt.py', 'test_startup_receipt_native.py', 'test_startup_training.py', 'test_startup_training_gloo.py', 'test_storage.py', 'test_supervised_logits.py', 'test_svp_stages_r2.py', 'test_tower_read.py', 'test_tower_read_live_grids.py', 'test_tower_read_v2.py', 'test_trace_format313_decode.py', 'test_tracecold.py', 'test_tracecold_audit.py', 'test_tracecold_native_readout.py', 'test_tracecold_operator.py', 'test_tracecold_statistics.py', 'test_training.py', 'test_verify_r2.py', 'test_vision_frozen_targets.py', 'tower_gt_check.py', 'tower_live_grids.py', 'tower_live_parity.py', 'version_pin.py', '__init__.py', 'build_pose_rows.py', 'c1_mixed_gate_config.py', '__init__.py', 'replay_text_audit.py', 'e2e_cpu_first_batch.py', 'e2e_real_parity_guard.py', 'e2e_v312_first_batch.py', 'extract_g3t_camera_sidecar.py', 'fullft_arm_configs.py', 'g3t_camera_sidecar_store.py', 'g3t_patch_grid_store.py', 'hc_v3.py', 'hc_v3_decode_check.py', 'hc_v3_launch_gate.py', 'headcall_arm_configs.py', 'headcall_eval_summary.py', 'headcall_rows.py', 'heads_only_configs.py', 'label_bank_build.py', 'migrate_camtoken_init.py', 'pd_arm_configs.py', 'pdg_v3.py', 'pdg_v3_gate.py', 'pdg_v3_gate_run.sh', 'prep_hc_v3.py', 'prep_pdg_v3.py', 'publish_hc_v3.py', 'run_gate_eval_pdg.py', 'stage1_dev_metrics.py', '__init__.py', 'box_v313.py', 'calculator.py', 'category_vocab.py', 'ground_v312.py', 'ground_v313.py', 'instance_policy314.py', 'program_errors.py', 'room_v314.py', 'vsi_scannet_vocab.json', 'evalx_pointing.py', '__init__.py', 'adapt_e1.py', 'audit_labels.py', 'export.py', 'gpu_suite.py', 'io.py', 'model.py', 'prepare.py', 'presence.py', 'render.py', 'run.py', 'score.py', 'splits.py']
+
+======================================================================
+FAIL: test_low9_compare_output_cannot_escape_scratch (__main__.Findings.test_low9_compare_output_cannot_escape_scratch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 128, in test_low9_compare_output_cannot_escape_scratch
+    with self.assertRaises(C.Refusal):compare.main([str(REFERENCE),'--out','/home/jjyeung/forbidden.json'])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_low9_original_unpack_acceptance_test_writes_under_work (__main__.Findings.test_low9_original_unpack_acceptance_test_writes_under_work)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 145, in test_low9_original_unpack_acceptance_test_writes_under_work
+    self.assertEqual(outcome.errors+outcome.failures,[])
+AssertionError: Lists differ: [(<reviewed_test_kit.ReturnTests testMetho[1366 chars]\n')] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+(<reviewed_test_kit.ReturnTests testMethod=test_partial_return_accepted_by_original_a4_unpacker>, 'Traceback (most recent call last):\n  File "/scratch/jjyeung/orch_n30/so_reads228/out_round0/tests/test_kit.py", line 328, in test_partial_return_accepted_by_original_a4_unpacker\n    result=subprocess.run(command,text=True,capture_output=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call\n    result = effect(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 140, in child\n    self.assertTrue(dest.is_relative_to(module.WORK),\'test output escaped work: \'+str(dest))\nAssertionError: False is not true : test output escaped work: /scratch/jjyeung/orch_n30/so_reads228/out_round0/test_returns/adorjw_n6\n')
+
+Diff is 1612 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_info11_worker_has_own_process_group (__main__.RunnerFindings.test_info11_worker_has_own_process_group)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 198, in test_info11_worker_has_own_process_group
+    self.assertEqual(len(self.options),1);self.assertIs(self.options[0].get('start_new_session'),True)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not True
+
+======================================================================
+FAIL: test_medium5_orchard_metadata_members_are_present (__main__.RunnerFindings.test_medium5_orchard_metadata_members_are_present)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/tests/test_review.py", line 187, in test_medium5_orchard_metadata_members_are_present
+    self.assertIn(name,paths);self.assertTrue((self.out/'ret'/name).is_file(),name)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : metadata/reads/0/metadata/IDENTITY.json
+
+----------------------------------------------------------------------
+Ran 17 tests in 1.911s
+
+FAILED (failures=15, errors=1)

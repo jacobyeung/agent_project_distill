@@ -1,0 +1,81 @@
+{
+  "rows": [
+    {
+      "destination": "Disabled by -B at every shell/direct/distributed Python start; PYTHONDONTWRITEBYTECODE=1 also inherited",
+      "evidence": [
+        "runtime.py",
+        "STARTS_q.json",
+        "STARTS_n.json",
+        "BEFORE.json",
+        "SEQUENCE.json"
+      ],
+      "write": "Python import bytecode, including isolated-mode staging imports"
+    },
+    {
+      "destination": "/tmp/q_%j.log and /tmp/q_%j.err",
+      "evidence": [
+        "kits/q/job.sh",
+        "kits/n/job.sh"
+      ],
+      "write": "Scheduler stdout/stderr; otherwise relative to submission directory"
+    },
+    {
+      "destination": "job.sh changes cwd to node-local $N; j.sh changes cwd to $Q_ROOT; f.sh uses the separate node-local proof sibling",
+      "evidence": [
+        "runtime.py:local_env"
+      ],
+      "write": "Relative runtime files and library-generated files"
+    },
+    {
+      "destination": "TMPDIR, XDG_CACHE_HOME, HF_HOME, TORCH_HOME, TRITON_CACHE_DIR, CUDA_CACHE_PATH and MPLCONFIGDIR below job-local directories",
+      "evidence": [
+        "runtime.py:local_env",
+        "decoded j.sh tk_env"
+      ],
+      "write": "Temporary files and caches"
+    },
+    {
+      "destination": "$Q_ROOT/{j.sh,h,u,w,n.json,r.json,e,c.json,t.tar}",
+      "evidence": [
+        "b/z.py:bootstrap",
+        "b/z.py:stage_payload"
+      ],
+      "write": "Decoded j.sh, staged P helper tree, payload/config/request/export files"
+    },
+    {
+      "destination": "$Q_ROOT/{s,x,rp,h,j}; /tmp/jjyeung is only a node-local directory",
+      "evidence": [
+        "decoded j.sh tk_stage/tk_nx/tk_venv_shebangs"
+      ],
+      "write": "Stage locks, stamps, extracted environments, shebang rewrites, overlays, frame/model/init files"
+    },
+    {
+      "destination": "$Q_ROOT/h/o; $Q_ROOT/{q.log,rooms.log,t.log,args.json,p,rooms.json}",
+      "evidence": [
+        "decoded j.sh",
+        "b/a.py",
+        "b/w.py",
+        "b/d.py"
+      ],
+      "write": "Step log, proof/room/training logs, capture args, extracted sealed source and proof outputs"
+    },
+    {
+      "destination": "Created below $Q_ROOT/o; completed deliverables copied to the unchanged n_root/o/JOB_ID sibling outside both kits",
+      "evidence": [
+        "b/o.py"
+      ],
+      "write": "Result archive and RESULT.json"
+    },
+    {
+      "destination": "Caller supplies a path outside the kits; operator uses existing n_root/rn.json",
+      "evidence": [
+        "b/resolve.py",
+        "OPERATOR_24C.md"
+      ],
+      "write": "Resolver result"
+    }
+  ],
+  "scope": "Kit-owned helpers and emitted programs; production GPU/model internals not executed. Strict file-set verification remains unchanged; existing unlisted files still refuse.",
+  "status": "PASS",
+  "tree_changed": false
+}

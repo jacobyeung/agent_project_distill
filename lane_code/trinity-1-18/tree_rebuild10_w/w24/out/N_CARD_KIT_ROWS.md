@@ -1,30 +1,36 @@
-Vehicle N’s MINIMAL kit is unsubmitted. GO remains false.
-Tree: `e047002134f979bd0e33ea2857c5e0d6de431a0b5c7d339f86588a224f18158c`.
-Proof q (400): `9fe55a1361a2245e3a373dfeed097acf01c17bb0c5b337b8f44c1bc372c5e127`.
-Launch n (600): `6437b2f1b89de2ce1797666d07950fd1eacc08b03b2f5c5afa332da375db4e9d`; four ranks, advanced partition.
-N’s checkpoint configuration uses `proof_mode: train`; the same allocation supplies the canary proof.
+Vehicle N uses MINIMAL. GO remains false; the kit awaits independent review.
+Init = P’s step-400 export `5083243c` from run `6ed2c7aa`, via the export-only receipt `b467c32b`.
+No checkpoint or state after P’s step 400 initializes N. No handover fill remains.
+Tree: `e1e64652087c2cde689620e4fb6edca57123feccae78c8a0a4b70ce8f7b35c10`.
+Kit n: `efe2a12e4b7319fd6f5571915d9d9aad284a091322326c199005736fb28dbc89`.
+Kit q: `13a54582adfd427fb9f04a0e56ce74d52c933f378d0035124ff08ad368a3386e`.
+Seal and pin sources: `work/build24b/KIT.json`, `out/M400_PINS.json`.
+
+N requests advanced, four GPUs/four ranks and one launcher; the allocation runs its own mode-q canary.
 Declaration: `r1_training.routing_slices: "deferred_first_boundary"`.
-The 600 template requires authenticated handover pins; `out/fill_m600.py` fills and reseals it.
+Init policy: `r1_training.init_policy: "step400_export_weights_fresh_v1"`.
+The export supplies weights only. N starts a fresh optimizer and a fresh step counter at zero.
+N’s first 200 steps therefore use local steps 1–200, including a fresh schedule and sampler position.
+They start from P’s step-400 weights; they do not resume P’s optimizer or advance P’s counter to 600.
 
-N’s first 200 steps start from P’s step-600 weights and run through absolute step 800.
-N uses the same routing rows as vehicle P, job 172660: P’s regenerated S1 base only.
-The 400 proof base has 47,898 rows; receipt ca0616db, database 4e8e6c04.
-The 600 fill binds the base from P’s authenticated runtime config.
-Distance call rate, unit conversions and camera wording should stay where step 600 leaves them; this is an expectation, not a measured outcome.
-Recovery, absolute_distance, units, coverage_distance, coverage_units and camera_wording contribute zero new rows.
-Their gates count from the boundary at which those slices enter.
+N keeps P’s routing stream: the regenerated S1 base, with receipt `ca0616db` and database `4e8e6c04`.
+Recovery, absolute_distance, units, coverage_distance, coverage_units and camera_wording hold zero new rows.
+Distance calls, unit conversions and camera wording receive no targeted new routing examples in this window.
+Their behavior can still change through training; improvement is not established by the CPU fixture.
+Routing-slice gates start at the boundary where those slices enter.
 
-| VQA change | Count |
+| VQA change against P | Count |
 |---|---:|
-| Named-route removal list, after all existing lists | 109 matches; 107 newly removed |
-| Direction half-turn twins through path (b) | +7,971 |
-| Eligible direction rows | 47,837 → 55,808 |
-| Eligible route-planning rows | 8,669 → 8,562 |
+| Named-route removal list after the existing lists | 109 matches; 107 newly removed |
+| Direction half-turn twins, path (b) | +7,971 |
+| Eligible direction rows | 55,808 |
+| Eligible route-planning rows | 8,562 |
+Counts and unchanged exclusion pins: `work/build24/CENSUS.json`.
 
-Build 22’s held-out wording exclusions remain active: 8 coverage wordings and 24 camera wordings.
-The two absent head slots retain NOT_PRESENT; seven other component slots remain DEFERRED.
-The pose family record remains bound; its 23 excluded venue rows stay excluded.
-P’s trained opener rows and the step-544 lineage remain unchanged.
-Relative-count rows and answer-prior weights wait for the first boundary.
-Step-time patches remain absent/OFF; the frame-host alias patch waits for the first boundary.
-The advanced allocation runs its own mode-q canary proof; production admission and review gates remain enforced.
+Held-out wording exclusions, K1 removals and room rules remain active.
+P’s trained opener rows stay `routing_opener_init=keep`; the step-544 lineage remains pinned.
+The two absent head slots retain NOT_PRESENT; seven other slots stay DEFERRED, blocking official reads.
+The pose record stays bound. Relative-count rows, answer-prior weights and the frame-host alias wait for the first boundary.
+Step-time patches remain absent/OFF.
+N launches without a freeze of the tower scale in the point-depth head. H3 can fire again at N’s first look for the same cause.
+CPU evidence: `work/build24b/CPU_SUMMARY.json`; both kits ADMIT at init 400 and every rank has finite full-forward loss.

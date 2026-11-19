@@ -1,0 +1,1093 @@
+{
+  "active_export": {
+    "member_directory": "m200",
+    "reason": "Sealed A4 plan and Orchard job 172744 require m200; a/0.json is a template.",
+    "step": 200
+  },
+  "budget": {
+    "basis": "Input sizes read from pins; runtime expansion and 5 GB operating allowance are estimates, enforced as caps. Retain archives; no deletion needed.",
+    "code_returns_cache_allowance_bytes": 5000000000,
+    "estimated_peak_bytes": 120716601141,
+    "free_floor_bytes": 214748364800,
+    "input_archives_bytes": 32613048320,
+    "input_expanded_bytes": 32606119221,
+    "limit_bytes": 150000000000,
+    "runtime_archives_bytes": 10497433600,
+    "runtime_expanded_allowance_bytes": 40000000000
+  },
+  "code": {
+    "archive": "/scratch/jjyeung/a4228/kit/A4/package/0.tgz",
+    "destination": "/scratch/jjyeung/b01ec87a6f29b/p",
+    "expanded_bytes": 24684350,
+    "files": 927,
+    "sha256": "4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d"
+  },
+  "environment": {
+    "constraints": [
+      "prepare.py requires transformers >=5.12 and exact receipt versions for torch, torchvision, transformers, scipy",
+      "torch 2.11 + CUDA 12.9 is dispatch information, not a recovered A4 env receipt",
+      "No pip/conda installation or downloads inside run228",
+      "a3.tar contains q/env.json; its bytes are absent from this mirror",
+      "v/py and v/site may alias the staged /scratch/jjyeung/envs closure; resolve targets and preserve pins"
+    ],
+    "env_roots": [
+      "/scratch/jjyeung/b01ec87a6f29b/d/v/site"
+    ],
+    "python": "/scratch/jjyeung/b01ec87a6f29b/d/v/py",
+    "python_runtime": "3.12 (template closure; exact production version checked at staging)",
+    "receipt": {
+      "bytes": 359,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/env.json",
+      "sha256": "e46a9a59e1de189ae736a5d4e94c7827eabfcfa695057fda9640e8120a54a81a"
+    },
+    "target_env_root": "/scratch/jjyeung/envs",
+    "versions": null
+  },
+  "expanded_files": [
+    {
+      "bytes": 11474,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m200/artifact.json",
+      "role": "artifact",
+      "sha256": "4c230a8518eb5922466d796a1af7226c13558ab015464d27baece39103004e05",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/m200/artifact.json"
+    },
+    {
+      "bytes": 3126,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/b/config.json",
+      "role": "base_config",
+      "sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/b/config.json"
+    },
+    {
+      "bytes": 359,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/env.json",
+      "role": "env",
+      "sha256": "e46a9a59e1de189ae736a5d4e94c7827eabfcfa695057fda9640e8120a54a81a",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/q/env.json"
+    },
+    {
+      "bytes": 1794,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m200/full_weights/full_weights.json",
+      "role": "full_weights",
+      "sha256": "6e6b2efbb673538f625a1eda8d9e023e7c627d32cb116b421acde34a99502a1b",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/m200/full_weights/full_weights.json"
+    },
+    {
+      "bytes": 149,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/config.json",
+      "role": "g3t_config",
+      "sha256": "5aeb2acd008d41a1cac52e10216fbf35e8dfeb2ce26b89bb24e7ccc4ee0817d7",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/g/config.json"
+    },
+    {
+      "bytes": 5627166200,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/model.safetensors",
+      "role": "g3t_weights",
+      "sha256": "d460957bb1c8a8c228d83ab10bad8a6dbcf80b03f29d7fbebf9c0f2c1c25f702",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/g/model.safetensors"
+    },
+    {
+      "bytes": 2763214343,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m200/heads.pt",
+      "role": "heads",
+      "sha256": "78d6971fb26f30af2418886cdf629fe48e5e868320d97669f815a3a9879f798e",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/m200/heads.pt"
+    },
+    {
+      "bytes": 10240,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/o/model_8005668fc14ce5ee.tar",
+      "role": "original_model",
+      "sha256": "8005668fc14ce5ee088d0d631d581f62ca73e6cb8130fde4a2deb73de74f635b",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/o/model_8005668fc14ce5ee.tar"
+    },
+    {
+      "bytes": 321,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/policy.json",
+      "role": "policy",
+      "sha256": "a95a881cdfdeb86ae15a2ec3b3b484416f296f4bcd0d19c6a28667ea21835e2e",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/q/policy.json"
+    },
+    {
+      "bytes": 3450062241,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt",
+      "role": "sam_checkpoint",
+      "sha256": "9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e",
+      "source": {
+        "kind": "existing_on_target_user_report",
+        "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt",
+        "todo": "Verify full SHA256 locally; matching size alone is insufficient. Archive fallback only if pin differs.",
+        "verified": false
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt"
+    },
+    {
+      "bytes": 1123,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/SAM3_RECEIPT.json",
+      "role": "sam_receipt",
+      "sha256": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/k/SAM3_RECEIPT.json"
+    },
+    {
+      "bytes": 6541,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.json",
+      "role": "selector_config",
+      "sha256": "63aa0a6995890c1d555062f1187a900809e998b8da021bbe2b6a3777b41fea5e",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.json"
+    },
+    {
+      "bytes": 207328,
+      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.safetensors",
+      "role": "selector_weights",
+      "sha256": "6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1",
+      "source": {
+        "kind": "member_of_authenticated_input_or_runtime_archive",
+        "todo": "Resolve member-to-archive map on first authorized staging; do not download duplicate loose weights."
+      },
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.safetensors"
+    },
+    {
+      "bytes": 20192,
+      "path": "p0/config.json",
+      "role": "preparation_config",
+      "sha256": "3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1",
+      "source": {
+        "group": "a5",
+        "kind": "archive_member"
+      },
+      "source_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/673bc60f/inputs/prepare_9b0c4b095487492a80bd5e9030d5bbc0/config.json",
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/p0/config.json"
+    },
+    {
+      "bytes": 73119,
+      "path": "p0/data_receipt.json",
+      "role": "preparation_data_receipt",
+      "sha256": "7f654d2f0ae9f06083f2fc8fd793512c154b4d01ce8632fb733d4191205af770",
+      "source": {
+        "group": "a5",
+        "kind": "archive_member"
+      },
+      "source_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/673bc60f/inputs/data_receipt.json",
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/p0/data_receipt.json"
+    },
+    {
+      "bytes": 86230,
+      "path": "p0/receipt.json",
+      "role": "preparation_receipt",
+      "sha256": "4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915",
+      "source": {
+        "group": "a5",
+        "kind": "archive_member"
+      },
+      "source_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/673bc60f/inputs/prepare_9b0c4b095487492a80bd5e9030d5bbc0/prepared/s1_receipt.json",
+      "target": "/scratch/jjyeung/b01ec87a6f29b/d/p0/receipt.json"
+    }
+  ],
+  "files": [
+    {
+      "bytes": 874,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "d9eeb1875e8bed3842936a2b5862c1133f4c418b83d9d1338d3d5970bb476360",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/PACKAGE.json"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/PACKAGE.json"
+    },
+    {
+      "bytes": 735,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "7d0a373edbf56725b3d382264a5c2fbc709b253bbcd6966294e182ba7398eb74",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/3.py"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/3.py"
+    },
+    {
+      "bytes": 8533,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "cda29adeea5a245adb7a96c8e21c575953718b3bb1cda213d13cb52c92b6f64f",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/BATCH.sh"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/BATCH.sh"
+    },
+    {
+      "bytes": 232,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "d9594d3c7dc05bcbab5b1b36d6d6c0c6502bbb92f3d201ae735e98978cf9f242",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/0.json"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/0.json"
+    },
+    {
+      "bytes": 315,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "1f0e23861cc1814705c214a2dc93cc105c63e3c30be0adc22bf774dca9b6066d",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/INPUTS.example.json"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/INPUTS.example.json"
+    },
+    {
+      "bytes": 157,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "4bd2fa9cd882eb0445dccf47d39650bedc8a620af73279271846f1cec971282b",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/SUBMIT.cmd"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/SUBMIT.cmd"
+    },
+    {
+      "bytes": 232,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "d9594d3c7dc05bcbab5b1b36d6d6c0c6502bbb92f3d201ae735e98978cf9f242",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/CONFIG.json"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/CONFIG.json"
+    },
+    {
+      "bytes": 5252958,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/0.tgz"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/0.tgz"
+    },
+    {
+      "bytes": 6573,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "5e3416d9d8d94a64c50b159d69efd5c1f01923cd35bf4612fb532deacfd3bd85",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/a/1.json"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/a/1.json"
+    },
+    {
+      "bytes": 9863,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "e4648e671c719e3b1cb56618a7442ea3ec97e549562add9492603c56ebe0776a",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/a/5.py"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/a/5.py"
+    },
+    {
+      "bytes": 12368,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "671fb919e8bef77fe62060d7ea50753fe265e1c5d544a46750ebd53a52c34134",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/a/4.py"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/a/4.py"
+    },
+    {
+      "bytes": 4404,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "5c3e3b897be6cb5383dc5a489a8aa1324cf745b9716ecea90f1e951b1c098011",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/a/7.py"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/a/7.py"
+    },
+    {
+      "bytes": 6101,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "025b4688121ac3df8d5ecf92798b1abadf6f4a8d055eb3980a606915ceea0207",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/a/0.json"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/a/0.json"
+    },
+    {
+      "bytes": 7282,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "97c8e6dfe33e7fd2988dc44e740f7a3b19627259b8f86827598ed368e1659e22",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/a/6.py"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/a/6.py"
+    },
+    {
+      "bytes": 1739,
+      "pin_basis": "package seal or authenticated return fill",
+      "role": "package",
+      "sha256": "ed907e4adc1772db9c802eebafb252dbd87b4d591c04392fce7e5f6062156834",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/package/a/export.json"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/package/a/export.json"
+    },
+    {
+      "bytes": 7282,
+      "role": "operator",
+      "sha256": "97c8e6dfe33e7fd2988dc44e740f7a3b19627259b8f86827598ed368e1659e22",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/tower_sequence.py"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/tower_sequence.py"
+    },
+    {
+      "bytes": 3843,
+      "role": "operator",
+      "sha256": "147415564913339b30eaf07fef6dde4ea8d992c31ccfe459cf5f4fb57f77c014",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/unpack_return.py"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/unpack_return.py"
+    },
+    {
+      "bytes": 4404,
+      "role": "operator",
+      "sha256": "5c3e3b897be6cb5383dc5a489a8aa1324cf745b9716ecea90f1e951b1c098011",
+      "source": {
+        "kind": "Trinity_delivery",
+        "node": "trinity-1-18",
+        "path": "/scratch/jjyeung/orch_n30/so_reads228/out/A4/fetch_return.py"
+      },
+      "target": "/scratch/jjyeung/a4228/kit/A4/fetch_return.py"
+    },
+    {
+      "bytes": 5395758080,
+      "group": "a0",
+      "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/0",
+      "role": "A4_input_archive",
+      "sha256": "54c5c16ae8100ec501b2c6e650efa998a488db05afb7c9a4341defb9593730cf",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/0",
+        "register_command": null,
+        "todo": "Coordinator must supply commands from IO-governor README; mirror absent. Download once; no agent SSH."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/a0/0"
+    },
+    {
+      "bytes": 5395758080,
+      "group": "a0",
+      "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/1",
+      "role": "A4_input_archive",
+      "sha256": "028aaee51b02d1265cc05d3ab2057625a14a4178429f1e2840301b1e77cc299a",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/1",
+        "register_command": null,
+        "todo": "Coordinator must supply commands from IO-governor README; mirror absent. Download once; no agent SSH."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/a0/1"
+    },
+    {
+      "bytes": 5395758080,
+      "group": "a0",
+      "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/2",
+      "role": "A4_input_archive",
+      "sha256": "500f0643c46e7511e66e553766dcff4c6836ae02c997c6abbc51cc36cdffa9b2",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/2",
+        "register_command": null,
+        "todo": "Coordinator must supply commands from IO-governor README; mirror absent. Download once; no agent SSH."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/a0/2"
+    },
+    {
+      "bytes": 5395758080,
+      "group": "a0",
+      "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/3",
+      "role": "A4_input_archive",
+      "sha256": "67988559d896dc33363066b6c89d3cb17479e6c8c93f11f978013f7d4a647dc8",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/3",
+        "register_command": null,
+        "todo": "Coordinator must supply commands from IO-governor README; mirror absent. Download once; no agent SSH."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/a0/3"
+    },
+    {
+      "bytes": 5627176960,
+      "group": "a1",
+      "path": "/project/community/jjyeung/okh7/e6fc152498/g/0",
+      "role": "A4_input_archive",
+      "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/okh7/e6fc152498/g/0",
+        "register_command": null,
+        "todo": "Coordinator must supply commands from IO-governor README; mirror absent. Download once; no agent SSH."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/a1/0"
+    },
+    {
+      "bytes": 5257369600,
+      "group": "a2",
+      "path": "/project/community/jjyeung/okh7/e6fc152498/a2.tar",
+      "role": "A4_input_archive",
+      "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/okh7/e6fc152498/a2.tar",
+        "register_command": null,
+        "todo": "Coordinator must supply commands from IO-governor README; mirror absent. Download once; no agent SSH."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/a2/0"
+    },
+    {
+      "bytes": 145274880,
+      "group": "a3",
+      "path": "/project/community/jjyeung/okh7/e6fc152498/a4.tar",
+      "role": "A4_input_archive",
+      "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/okh7/e6fc152498/a4.tar",
+        "register_command": null,
+        "todo": "Coordinator must supply commands from IO-governor README; mirror absent. Download once; no agent SSH."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/a3/0"
+    },
+    {
+      "bytes": 10240,
+      "group": "a4",
+      "path": "/project/community/jjyeung/okh7/e6fc152498/a3.tar",
+      "role": "A4_input_archive",
+      "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/okh7/e6fc152498/a3.tar",
+        "register_command": null,
+        "todo": "Coordinator must supply commands from IO-governor README; mirror absent. Download once; no agent SSH."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/a4/0"
+    },
+    {
+      "bytes": 184320,
+      "group": "a5",
+      "path": "/project/community/jjyeung/okh7/a15_cot_apd60a20ec01296/a/6",
+      "role": "A4_input_archive",
+      "sha256": "a5cb4096ca9ca144fcceb88e2c6697dcd0cf55edb3fb3870fc72d36200399a4e",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/okh7/a15_cot_apd60a20ec01296/a/6",
+        "register_command": null,
+        "todo": "Coordinator must supply commands from IO-governor README; mirror absent. Download once; no agent SSH."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/a5/0"
+    },
+    {
+      "bytes": 900000000,
+      "group": "r0",
+      "path": "/home/jjyeung/okit/p/d59945c1/4fe70504.00",
+      "role": "template_runtime_archive",
+      "sha256": "273174ae1d1bc812a8843b3e2eec77e77b66b4a10d60c8871ea47529c395e2d7",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/home/jjyeung/okit/p/d59945c1/4fe70504.00",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r0/0"
+    },
+    {
+      "bytes": 721422080,
+      "group": "r0",
+      "path": "/home/jjyeung/okit/p/d59945c1/4fe70504.01",
+      "role": "template_runtime_archive",
+      "sha256": "c733222251bfa18ca823a719e025e3924fda21cffffc6f50cd19bb8ece4860a3",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/home/jjyeung/okit/p/d59945c1/4fe70504.01",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r0/1"
+    },
+    {
+      "bytes": 900000000,
+      "group": "r1",
+      "path": "/home/jjyeung/okit/p/d59945c1/50011a59.00",
+      "role": "template_runtime_archive",
+      "sha256": "a4ca7e645d1c4384bdb9506ef3e823e3964e18948f48cc627709f843744ea976",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/home/jjyeung/okit/p/d59945c1/50011a59.00",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r1/0"
+    },
+    {
+      "bytes": 900000000,
+      "group": "r1",
+      "path": "/home/jjyeung/okit/p/d59945c1/50011a59.01",
+      "role": "template_runtime_archive",
+      "sha256": "beca0e524255eb310d978ec092bfab080f45e36e05ae99bfc2c3e6aeb0882e9a",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/home/jjyeung/okit/p/d59945c1/50011a59.01",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r1/1"
+    },
+    {
+      "bytes": 900000000,
+      "group": "r1",
+      "path": "/home/jjyeung/okit/p/d59945c1/50011a59.02",
+      "role": "template_runtime_archive",
+      "sha256": "508e09bcce4652471a5f3115344c2ab2e2fde61cc3db17d872d45c37861087c1",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/home/jjyeung/okit/p/d59945c1/50011a59.02",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r1/2"
+    },
+    {
+      "bytes": 900000000,
+      "group": "r1",
+      "path": "/home/jjyeung/okit/p/d59945c1/50011a59.03",
+      "role": "template_runtime_archive",
+      "sha256": "6f25823a68896cbf0dc87ae26a9e4d2fa25d57b1d52739c22ccad5c5d49214ef",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/home/jjyeung/okit/p/d59945c1/50011a59.03",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r1/3"
+    },
+    {
+      "bytes": 900000000,
+      "group": "r1",
+      "path": "/home/jjyeung/okit/p/d59945c1/50011a59.04",
+      "role": "template_runtime_archive",
+      "sha256": "139fcc93fb1b36552564fceacf201127586c237d03f43b8e3c8e45d116f1be97",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/home/jjyeung/okit/p/d59945c1/50011a59.04",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r1/4"
+    },
+    {
+      "bytes": 900000000,
+      "group": "r1",
+      "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.05",
+      "role": "template_runtime_archive",
+      "sha256": "1cd72e6e222dbe15efab47d01adeca45aaecf3f62fcd52a6e72dd7786b307489",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.05",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r1/5"
+    },
+    {
+      "bytes": 900000000,
+      "group": "r1",
+      "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.06",
+      "role": "template_runtime_archive",
+      "sha256": "010b1302ce0ec32d1db758a4bf503e9cca4583e898ec868be4dc613694f50ed6",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.06",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r1/6"
+    },
+    {
+      "bytes": 900000000,
+      "group": "r1",
+      "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.07",
+      "role": "template_runtime_archive",
+      "sha256": "32687478f272e14632411099b316fdbb6b2d1587708ccd1893c4819a2511ba19",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.07",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r1/7"
+    },
+    {
+      "bytes": 900000000,
+      "group": "r1",
+      "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.08",
+      "role": "template_runtime_archive",
+      "sha256": "d571f17a5ed9e03514ec4553919cdebacb33fe037cad39d8f0aadb1cfafcb4fc",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.08",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r1/8"
+    },
+    {
+      "bytes": 366728960,
+      "group": "r1",
+      "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.09",
+      "role": "template_runtime_archive",
+      "sha256": "128dfaca7b744e0cf884b7caf1bc15080fab549b8e26107adb5a9b8d2b5a51a5",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.09",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r1/9"
+    },
+    {
+      "bytes": 409282560,
+      "group": "r2",
+      "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/371be2e2.00",
+      "role": "template_runtime_archive",
+      "sha256": "4b11b4df5ebf8a20e5c73e5ae09f4f4695f79b44e0223254a8bbaad84127b6b3",
+      "source": {
+        "kind": "Orchard_IO_governor_stream",
+        "launch_command": null,
+        "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/371be2e2.00",
+        "register_command": null,
+        "todo": "Obtain the registered stream command from the coordinator; do not infer a transport URL."
+      },
+      "target": "/scratch/jjyeung/a4228/archives/r2/0"
+    }
+  ],
+  "input_archives": [
+    {
+      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "expanded_bytes": 21583016318,
+      "id": "a0",
+      "parts": [
+        {
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/0",
+          "sha256": "54c5c16ae8100ec501b2c6e650efa998a488db05afb7c9a4341defb9593730cf",
+          "target": "/scratch/jjyeung/a4228/archives/a0/0"
+        },
+        {
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/1",
+          "sha256": "028aaee51b02d1265cc05d3ab2057625a14a4178429f1e2840301b1e77cc299a",
+          "target": "/scratch/jjyeung/a4228/archives/a0/1"
+        },
+        {
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/2",
+          "sha256": "500f0643c46e7511e66e553766dcff4c6836ae02c997c6abbc51cc36cdffa9b2",
+          "target": "/scratch/jjyeung/a4228/archives/a0/2"
+        },
+        {
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apd72cdcff1e22a/a/e/3",
+          "sha256": "67988559d896dc33363066b6c89d3cb17479e6c8c93f11f978013f7d4a647dc8",
+          "target": "/scratch/jjyeung/a4228/archives/a0/3"
+        }
+      ],
+      "sha256": "795ef9ef7e59bf37443c14a4d3a7e734eabcb2fd5fcb289ad3d77ae7096e283b"
+    },
+    {
+      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "expanded_bytes": 5627166349,
+      "id": "a1",
+      "parts": [
+        {
+          "bytes": 5627176960,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/g/0",
+          "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf",
+          "target": "/scratch/jjyeung/a4228/archives/a1/0"
+        }
+      ],
+      "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf"
+    },
+    {
+      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "expanded_bytes": 5251971237,
+      "id": "a2",
+      "parts": [
+        {
+          "bytes": 5257369600,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/a2.tar",
+          "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9",
+          "target": "/scratch/jjyeung/a4228/archives/a2/0"
+        }
+      ],
+      "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9"
+    },
+    {
+      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "expanded_bytes": 143782645,
+      "id": "a3",
+      "parts": [
+        {
+          "bytes": 145274880,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/a4.tar",
+          "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea",
+          "target": "/scratch/jjyeung/a4228/archives/a3/0"
+        }
+      ],
+      "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
+    },
+    {
+      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "expanded_bytes": 3131,
+      "id": "a4",
+      "parts": [
+        {
+          "bytes": 10240,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/a3.tar",
+          "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae",
+          "target": "/scratch/jjyeung/a4228/archives/a4/0"
+        }
+      ],
+      "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
+    },
+    {
+      "destination": "/scratch/jjyeung/b01ec87a6f29b/d",
+      "expanded_bytes": 179541,
+      "id": "a5",
+      "parts": [
+        {
+          "bytes": 184320,
+          "path": "/project/community/jjyeung/okh7/a15_cot_apd60a20ec01296/a/6",
+          "sha256": "a5cb4096ca9ca144fcceb88e2c6697dcd0cf55edb3fb3870fc72d36200399a4e",
+          "target": "/scratch/jjyeung/a4228/archives/a5/0"
+        }
+      ],
+      "sha256": "a5cb4096ca9ca144fcceb88e2c6697dcd0cf55edb3fb3870fc72d36200399a4e"
+    }
+  ],
+  "io": {
+    "admin_plan_required_for_more_than_30GB": true,
+    "governor_readme_mirrored": false,
+    "network_limit_bytes_per_second": 8000000,
+    "read_shared_limit_bytes_per_second": 8000000,
+    "streams": 1,
+    "todo": "Coordinator must authorize heavy IO and read /data3/jjyeung/orch_n13_20261026/io_governor/README.md, register ONE sequential stream, and supply its exact register/launch commands. No transfer is run by this kit.",
+    "total_user_limit_bytes_per_second": 18000000,
+    "write_shared_limit_bytes_per_second": 4000000
+  },
+  "kit_target": "/scratch/jjyeung/a4228/kit",
+  "logical": "/scratch/jjyeung/b01ec87a6f29b",
+  "requested_m544": {
+    "archive": {
+      "destination": "sj/b01ec87a6f29b/d",
+      "expanded_bytes": 21583016318,
+      "parts": [
+        {
+          "active": false,
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/e/0",
+          "sha256": "5cd24e72f5b8a4f7ad6cb73d27dd426042be25e7600dcf00e4038de4c129f31a",
+          "source": {
+            "kind": "Orchard_IO_governor_stream",
+            "launch_command": null,
+            "path": "/project/community/jjyeung/okh7/e6fc152498/e/0",
+            "register_command": null,
+            "todo": "Do not transfer for A4; incompatible export. Coordinator supplies governor commands only for a separately bound m544 package."
+          },
+          "target": "/scratch/jjyeung/a4228/archives/m544/0"
+        },
+        {
+          "active": false,
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/e/1",
+          "sha256": "6ed00d4724b1cfc57d0af6a017639d88284a139479ebf8b9943f280dc6c5df9f",
+          "source": {
+            "kind": "Orchard_IO_governor_stream",
+            "launch_command": null,
+            "path": "/project/community/jjyeung/okh7/e6fc152498/e/1",
+            "register_command": null,
+            "todo": "Do not transfer for A4; incompatible export. Coordinator supplies governor commands only for a separately bound m544 package."
+          },
+          "target": "/scratch/jjyeung/a4228/archives/m544/1"
+        },
+        {
+          "active": false,
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/e/2",
+          "sha256": "557d8f649b964bd81a1c022dd87db18bdca0c2b61e420c2eccb1fc446a58f7bf",
+          "source": {
+            "kind": "Orchard_IO_governor_stream",
+            "launch_command": null,
+            "path": "/project/community/jjyeung/okh7/e6fc152498/e/2",
+            "register_command": null,
+            "todo": "Do not transfer for A4; incompatible export. Coordinator supplies governor commands only for a separately bound m544 package."
+          },
+          "target": "/scratch/jjyeung/a4228/archives/m544/2"
+        },
+        {
+          "active": false,
+          "bytes": 5395758080,
+          "path": "/project/community/jjyeung/okh7/e6fc152498/e/3",
+          "sha256": "37e64c63c294a3eda298c61f637087c84851afa17f42ad18a4d24c8823c7f686",
+          "source": {
+            "kind": "Orchard_IO_governor_stream",
+            "launch_command": null,
+            "path": "/project/community/jjyeung/okh7/e6fc152498/e/3",
+            "register_command": null,
+            "todo": "Do not transfer for A4; incompatible export. Coordinator supplies governor commands only for a separately bound m544 package."
+          },
+          "target": "/scratch/jjyeung/a4228/archives/m544/3"
+        }
+      ],
+      "sha256": "3ed73aead82cb0bb6468321256ea25e8fdaa5a2963da31062fdf8874bda2d4c7"
+    },
+    "eligible_for_A4_parity": false,
+    "files": {
+      "artifact": {
+        "active": false,
+        "bytes": 11474,
+        "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/artifact.json",
+        "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef",
+        "target": "/scratch/jjyeung/b01ec87a6f29b/d/m544/artifact.json"
+      },
+      "full_weights": {
+        "active": false,
+        "bytes": 1794,
+        "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/full_weights/full_weights.json",
+        "sha256": "211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302",
+        "target": "/scratch/jjyeung/b01ec87a6f29b/d/m544/full_weights/full_weights.json"
+      },
+      "heads": {
+        "active": false,
+        "bytes": 2763214343,
+        "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/heads.pt",
+        "sha256": "8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91",
+        "target": "/scratch/jjyeung/b01ec87a6f29b/d/m544/heads.pt"
+      }
+    },
+    "reason": "Contradicts sealed export_binding and returned m200 identity; do not stage both exports for this run."
+  },
+  "runtime_archives": [
+    {
+      "destination": "/scratch/jjyeung",
+      "expanded_bytes": null,
+      "id": "r0",
+      "parts": [
+        {
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/4fe70504.00",
+          "sha256": "273174ae1d1bc812a8843b3e2eec77e77b66b4a10d60c8871ea47529c395e2d7",
+          "target": "/scratch/jjyeung/a4228/archives/r0/0"
+        },
+        {
+          "bytes": 721422080,
+          "path": "/home/jjyeung/okit/p/d59945c1/4fe70504.01",
+          "sha256": "c733222251bfa18ca823a719e025e3924fda21cffffc6f50cd19bb8ece4860a3",
+          "target": "/scratch/jjyeung/a4228/archives/r0/1"
+        }
+      ],
+      "todo": "Inspect authenticated archive member map; stage only /scratch runtime closure, never /home or /data."
+    },
+    {
+      "destination": "/scratch/jjyeung",
+      "expanded_bytes": null,
+      "id": "r1",
+      "parts": [
+        {
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/50011a59.00",
+          "sha256": "a4ca7e645d1c4384bdb9506ef3e823e3964e18948f48cc627709f843744ea976",
+          "target": "/scratch/jjyeung/a4228/archives/r1/0"
+        },
+        {
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/50011a59.01",
+          "sha256": "beca0e524255eb310d978ec092bfab080f45e36e05ae99bfc2c3e6aeb0882e9a",
+          "target": "/scratch/jjyeung/a4228/archives/r1/1"
+        },
+        {
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/50011a59.02",
+          "sha256": "508e09bcce4652471a5f3115344c2ab2e2fde61cc3db17d872d45c37861087c1",
+          "target": "/scratch/jjyeung/a4228/archives/r1/2"
+        },
+        {
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/50011a59.03",
+          "sha256": "6f25823a68896cbf0dc87ae26a9e4d2fa25d57b1d52739c22ccad5c5d49214ef",
+          "target": "/scratch/jjyeung/a4228/archives/r1/3"
+        },
+        {
+          "bytes": 900000000,
+          "path": "/home/jjyeung/okit/p/d59945c1/50011a59.04",
+          "sha256": "139fcc93fb1b36552564fceacf201127586c237d03f43b8e3c8e45d116f1be97",
+          "target": "/scratch/jjyeung/a4228/archives/r1/4"
+        },
+        {
+          "bytes": 900000000,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.05",
+          "sha256": "1cd72e6e222dbe15efab47d01adeca45aaecf3f62fcd52a6e72dd7786b307489",
+          "target": "/scratch/jjyeung/a4228/archives/r1/5"
+        },
+        {
+          "bytes": 900000000,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.06",
+          "sha256": "010b1302ce0ec32d1db758a4bf503e9cca4583e898ec868be4dc613694f50ed6",
+          "target": "/scratch/jjyeung/a4228/archives/r1/6"
+        },
+        {
+          "bytes": 900000000,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.07",
+          "sha256": "32687478f272e14632411099b316fdbb6b2d1587708ccd1893c4819a2511ba19",
+          "target": "/scratch/jjyeung/a4228/archives/r1/7"
+        },
+        {
+          "bytes": 900000000,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.08",
+          "sha256": "d571f17a5ed9e03514ec4553919cdebacb33fe037cad39d8f0aadb1cfafcb4fc",
+          "target": "/scratch/jjyeung/a4228/archives/r1/8"
+        },
+        {
+          "bytes": 366728960,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.09",
+          "sha256": "128dfaca7b744e0cf884b7caf1bc15080fab549b8e26107adb5a9b8d2b5a51a5",
+          "target": "/scratch/jjyeung/a4228/archives/r1/9"
+        }
+      ],
+      "todo": "Inspect authenticated archive member map; stage only /scratch runtime closure, never /home or /data."
+    },
+    {
+      "destination": "/scratch/jjyeung",
+      "expanded_bytes": null,
+      "id": "r2",
+      "parts": [
+        {
+          "bytes": 409282560,
+          "path": "/project/community/jjyeung/bd8ae51c/p/d59945c1/371be2e2.00",
+          "sha256": "4b11b4df5ebf8a20e5c73e5ae09f4f4695f79b44e0223254a8bbaad84127b6b3",
+          "target": "/scratch/jjyeung/a4228/archives/r2/0"
+        }
+      ],
+      "todo": "Inspect authenticated archive member map; stage only /scratch runtime closure, never /home or /data."
+    }
+  ],
+  "schema": "read228-stage-v1",
+  "stage_root": "/scratch/jjyeung/a4228",
+  "target_host": "trinity-2-28",
+  "todos": [
+    "Recover and verify q/env.json and runtime member map before selecting an env; refuse CUDA execution until versions agree.",
+    "Coordinator supplies authenticated IO-governor register/launch commands and authorizes heavy staging.",
+    "Target SAM file is user-reported only; hash on 2-28 before reusing it.",
+    "Run first 50 OFF items on 2-28; compare with authenticated Orchard return. No Ada fit/parity has been measured."
+  ]
+}

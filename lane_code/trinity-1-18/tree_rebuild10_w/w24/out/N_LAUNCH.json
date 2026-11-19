@@ -1,21 +1,31 @@
 {
   "GO": false,
-  "canary": "Submit the launch allocation as its own mode-q proof after filling and independent review.",
+  "approval": "GO=false. Existing native host/review/admission/allocation checks remain mandatory. v.json supplies the independently admitted prepared config; no init pin is filled there.",
+  "canary": "The same allocation runs mode q before the gated training launcher.",
   "configuration": "out/N_LAUNCH_CONFIG.json",
   "first_window": {
-    "end": 800,
-    "new_routing_slices": 0,
-    "start": 600
+    "end": 200,
+    "new_routing_slice_rows": 0,
+    "start": 1
   },
-  "frame_host_alias_patch": "deferred_first_boundary",
   "gpus": 4,
+  "init_artifact": {
+    "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/artifact.json",
+    "sha256": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd"
+  },
+  "init_milestone": 400,
+  "init_policy": "step400_export_weights_fresh_v1",
   "kit": "work/build24/kits/n",
   "launcher_tasks": 1,
   "nodes": 1,
+  "optimizer": "fresh",
   "partition": "advanced",
+  "pins": "out/M400_PINS.json",
   "proof_mode": "train",
   "ranks": 4,
-  "step": 600,
-  "step_time_patches": "absent/OFF",
-  "submission": "Not submitted; no scheduler or network used."
+  "receipt": "p-export-only-v1",
+  "submitted": false,
+  "tower_scale_freeze": false,
+  "training": "b/t.py invokes one torch.distributed.run with four workers; b/u.py checks the canary, exact configuration identity, and native admission.",
+  "training_start_step": 0
 }
