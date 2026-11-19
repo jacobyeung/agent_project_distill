@@ -6,7 +6,9 @@ the room-bootstrap call rate (10,000 draws, seed 17, 46 rooms), the trace forms,
   --rule n (vehicle N, at its entry boundary + 200): PASS when at least 143 of 150 items draw a tower call and every
   asked unit reaches 90% (m >= 39/43, ft >= 42/46, in >= 30/33, cm >= 26/28); otherwise FAIL (the coverage family is rebuilt).
   --rule p (vehicle P, steps 400 and 600): the same numbers, printed as PRINTED; P cannot take the fix, so nothing is decided.
-  With --coverage COVERAGE.json the counts are also split into the 15 coverage wordings and the 6 others.
+  With --coverage COVERAGE.json the counts are also split into the 15 coverage wordings and the 6 others; with --split SPLIT_V2.json
+  (and --coverage) into (a) the HELD-OUT wordings and (c) the TRAIN-DEV wordings by unit. Set (b), the 290 reworded R0-dev items,
+  needs its own routed read (item file R0_HELDOUT_EVAL_V1.json); score it with the same counts per unit.
 Usage (python 3.8+, numpy; run from anywhere):
   python dist_gate.py --score-dir <dir holding score_r5.py, A/, bases/> --ret <return root> --package <package dir> --step 400 --rule p|n [--coverage COVERAGE.json] [--out GATE.json]
   python dist_gate.py --score-dir ... --self-test [--coverage COVERAGE.json]   (baseline 544: PASS 149/150; step 200 A4: FAIL 88/150)
@@ -27,20 +29,23 @@ def form(sc, out):
         return 'call_convert_answer' if CONV.search(post) else 'call_answer'
     if NUMU.search(th) or re.search(r'\d', re.sub(r'frame \d+|Step \d+', '', th)): return 'nocall_estimate'
     return 'nocall_qualitative'
-def summarize(S, rows, items, keys, cov=None):
+def summarize(S, rows, items, keys, cov=None, split=None):
     sc = S.scorers; by = Counter(); tot = Counter(); forms = Counter(); rel = 0; wc = Counter(); wt = Counter()
     for k in keys:
         u = UNITS[sc.unit_factor(items[k]['question'])]; tot[u] += 1
         out = rows[k]['output']; c = bool(sc.records(out)); by[u] += c; f = form(sc, out); forms[f] += 1
         if not c and any(p.search(out.get('text', '')) for p in REL): rel += 1
-        if cov:
+        if cov and split:
+            w = cov['item_template'].get(k); g = 'a_held_out' if w in split['held_out'] else 'c_train_dev' if w in split['train_dev'] else 'unused'
+            wt[(g, u)] += 1; wc[(g, u)] += c
+        if cov and not split:
             g = 'coverage_wordings' if cov['item_template'].get(k) in cov['named'] else 'other_wordings'; wt[g] += 1; wc[g] += c
     called = sum(by.values()); nm = sum(by[u] for u in tot if u != 'm'); nmt = sum(tot[u] for u in tot if u != 'm')
     boot = S.bootstrap([(items[k]['room_key'], int(bool(sc.records(rows[k]['output'])))) for k in keys])
     return dict(items=len(keys), called=called, metre=[by['m'], tot['m']], non_metre=[nm, nmt],
                 by_unit={u: [by[u], tot[u]] for u in ('m', 'ft', 'in', 'cm') if tot[u]}, forms=dict(forms),
                 nocall_with_reldistance_phrasing=rel, call_rate_room_bootstrap=dict(value=boot['value'], ci95=boot['ci95'], rooms=boot['rooms']),
-                by_wording_group={g: [wc[g], wt[g]] for g in wt})
+                by_wording_group={(g if isinstance(g, str) else '%s|%s' % g): [wc[g], wt[g]] for g in wt})
 FLOOR = {'m': 39, 'ft': 42, 'in': 30, 'cm': 26}   # 90% of 43 / 46 / 33 / 28
 def verdict(s, rule='n'):
     a = s['called'] >= 143; units = {u: s['by_unit'].get(u, [0, 0])[0] >= f for u, f in FLOOR.items()}
@@ -49,19 +54,19 @@ def verdict(s, rule='n'):
 def main():
     p = argparse.ArgumentParser(); p.add_argument('--score-dir', required=True); p.add_argument('--ret'); p.add_argument('--package')
     p.add_argument('--step', type=int); p.add_argument('--out'); p.add_argument('--self-test', action='store_true')
-    p.add_argument('--rule', choices=('n', 'p'), default='n'); p.add_argument('--coverage'); a = p.parse_args()
-    cov = json.load(open(a.coverage)) if a.coverage else None
+    p.add_argument('--rule', choices=('n', 'p'), default='n'); p.add_argument('--coverage'); p.add_argument('--split'); a = p.parse_args()
+    cov = json.load(open(a.coverage)) if a.coverage else None; split = json.load(open(a.split)) if a.split else None
     sys.argv = ['x']; sys.path.insert(0, str(Path(a.score_dir).resolve())); import score_r5 as S
     bd, items, _, _ = S.load(S.BASE / 'b1/work/ret', S.BASE / 'b1', 1, 544, 'candidates_argmax')
     keys = sorted(k for k, i in items.items() if i['question_type'] == S.DISTANCE and k in bd)
-    base = summarize(S, bd, items, keys, cov); res = dict(baseline_544=base, baseline_verdict=verdict(base, 'n'))
+    base = summarize(S, bd, items, keys, cov, split); res = dict(baseline_544=base, baseline_verdict=verdict(base, 'n'))
     if a.self_test:
         cur, _, _, _ = S.load(S.O.parent / 'out3/A4/ret', S.O / 'A', 0, 200, 'candidates_argmax'); step = 200
     else:
         cur, _, _, _ = S.load(Path(a.ret), Path(a.package), 0, a.step, 'candidates_argmax'); step = a.step
     missing = [k for k in keys if k not in cur]
     if missing: raise SystemExit('incomplete read: %d of 150 distance items missing' % len(missing))
-    s = summarize(S, cur, items, keys, cov); res.update(step=step, current=s, gate=verdict(s, a.rule))
+    s = summarize(S, cur, items, keys, cov, split); res.update(step=step, current=s, gate=verdict(s, a.rule))
     print(json.dumps(res, indent=1))
     if a.out: Path(a.out).write_text(json.dumps(res, indent=1) + '\n')
 if __name__ == '__main__': main()

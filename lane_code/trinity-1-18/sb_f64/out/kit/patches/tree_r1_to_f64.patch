@@ -1,0 +1,624 @@
+diff -ruN -x __pycache__ -x '*.pyc' tree_r1/student_pilot/b7_inputs.py tree_f64/student_pilot/b7_inputs.py
+--- tree_r1/student_pilot/b7_inputs.py	2026-11-17 06:54:59.711120400 -0500
++++ tree_f64/student_pilot/b7_inputs.py	2026-11-18 23:26:47.124265814 -0500
+@@ -41,6 +41,11 @@
+         raise ValueError('frame_count_must_be_32_or_64')
+     if result['frame_layout'] != 'duplicate' or result['frame_markers'] is not True:
+         raise ValueError('training_frame_layout_mismatch')
++    from .frame_input import check_spec
++    if check_spec(value.get('frame_input')) is not None:
++        if result['frame_count'] != 32:
++            raise ValueError('nested_frame_input_requires_32_slots')
++        result['frame_input'] = dict(value['frame_input'])
+     return result
+ 
+ 
+diff -ruN -x __pycache__ -x '*.pyc' tree_r1/student_pilot/carrier_c1_data.py tree_f64/student_pilot/carrier_c1_data.py
+--- tree_r1/student_pilot/carrier_c1_data.py	2026-11-17 01:27:14.469704200 -0500
++++ tree_f64/student_pilot/carrier_c1_data.py	2026-11-18 23:26:23.164313990 -0500
+@@ -158,11 +158,15 @@
+     from transformers.video_utils import VideoMetadata
+     from .pose_samples import CATEGORY, DEFAULT_PIXELS, augment, check_sample, encode_frames, load_frames
+     frame_count = getattr(getattr(processor, 'tokenizer', None), '_c1_frame_count', 32)
++    spec = getattr(processor, '_b7_layout', {}).get('frame_input')
+     if hasattr(processor, '_b7_layout'):
+         from .r0_exclusion import reserve
+         reserve().check(row, 'dense_frames')
+-        if len(row['student_input']['frames']) != frame_count:
++        if len(row['student_input']['frames']) != (spec['viewpoints'] if spec else frame_count):
+             raise ValueError('row_training_frame_count_mismatch')
++        if spec:
++            from .frame_input import check_row
++            check_row(row, spec)
+     inputs = layout_inputs(row, layout, gap, frame_count=frame_count)
+     is_pose = row.get('category') == CATEGORY and 'pose_sample' in row
+     if is_pose:
+@@ -196,7 +200,14 @@
+     else:
+         arrays = load_frames(original)
+         if is_pose:
+-            arrays = augment(arrays, row['pose_sample']['augment'])
++            slots = anchor_slots(row['student_input'], layout)
++            if slots is not None:
++                # Anchors keep the 32-viewpoint row's jitter draws; bisection frames draw after them.
++                sparse_arrays = augment(arrays[slots], row['pose_sample']['augment'])
++                arrays = augment(arrays, row['pose_sample']['augment'])
++                arrays[slots] = sparse_arrays
++            else:
++                arrays = augment(arrays, row['pose_sample']['augment'])
+     if native_g3t:
+         from .g3t_online import native_square_518
+         images, coords = native_square_518(arrays[::2] if layout == 'paired' else arrays)
+@@ -213,10 +224,11 @@
+                    **({'gf1_bank': bank_audit} if bank_audit is not None else {})}
+ 
+ 
+-def insert_frame_markers(batch, tokenizer, frame_layout):
++def insert_frame_markers(batch, tokenizer, frame_layout, anchors=None):
+     """Text marker `Frame k: ` (k = viewpoint, 1-based) before each temporal group's
+     <|vision_start|>, so prompts that name frames by number need not count groups.
+-    Duplicate/paired layouts only (one viewpoint per group). Markers are unsupervised text."""
++    Duplicate/paired layouts only (one viewpoint per group). Markers are unsupervised text.
++    Under the nested frame input only anchor groups carry markers, k = anchor ordinal."""
+     if frame_layout not in ('duplicate', 'paired'):
+         raise ValueError('Frame markers need one viewpoint per temporal group')
+     ids = batch['input_ids']
+@@ -228,7 +240,11 @@
+     if len(firsts) != groups or any(i == 0 or int(ids[0, i-1]) != start for i in firsts):
+         raise ValueError('Frame markers need one <|vision_start|> before each temporal group')
+     cuts = [i - 1 for i in firsts]
+-    markers = [tokenizer.encode(f'Frame {k}: ', add_special_tokens=False) for k in range(1, groups + 1)]
++    labelled = list(range(groups))
++    if anchors is not None and getattr(tokenizer, '_c1_frame_input', None):
++        labelled = list(anchors)
++        cuts = [cuts[g] for g in labelled]
++    markers = [tokenizer.encode(f'Frame {k}: ', add_special_tokens=False) for k in range(1, len(labelled) + 1)]
+     result = dict(batch)
+     for key, fill in dict(input_ids=None, labels=-100, attention_mask=1, mm_token_type_ids=0).items():
+         if key not in batch:
+@@ -255,7 +271,7 @@
+     `anchors` (duplicate layout, up to 64 groups): only those groups carry carriers.
+     """
+     if getattr(tokenizer, '_c1_frame_markers', False):
+-        batch = insert_frame_markers(batch, tokenizer, frame_layout)
++        batch = insert_frame_markers(batch, tokenizer, frame_layout, anchors)
+     if carrier_placement not in PLACEMENTS:
+         raise ValueError('Unknown carrier_placement')
+     if frame_layout not in ('spread', 'duplicate', 'paired'):
+@@ -323,6 +339,8 @@
+     result['aux_carrier_placement'] = torch.tensor([PLACEMENTS.index(carrier_placement)], device=ids.device)
+     if frame_layout != 'spread':
+         result['aux_frame_layout'] = torch.tensor([('spread', 'duplicate', 'paired').index(frame_layout)], device=ids.device)
++    if anchors is not None:
++        result['aux_anchor_groups'] = torch.tensor([list(anchors)], device=ids.device, dtype=torch.long)
+     return result
+ 
+ 
+@@ -626,14 +644,14 @@
+                     raise ValueError('C1 data violate scene division or unique row identity')
+                 seen.add(row['qid']); scenes.add(scene)
+                 inputs = row['student_input']
+-                nested = stream == 'vqa' and anchor_slots(inputs) is not None and len(inputs['frames']) == 64
++                nested = anchor_slots(inputs) is not None and len(inputs['frames']) == 64
+                 if (not single_image_row(row, stream, training_mode=training_mode, geometry_online=geometry_online)
+                         and not nested and (len(inputs['frames']) not in (32, 64) or len(inputs['frame_indices']) != len(inputs['frames']))):
+                     raise ValueError('C1 preservation rows require 32 pinned native frames or 64 pinned native frames')
+                 if nested:
+                     anchors = [inputs['frame_indices'][k] for k in inputs['anchor_slots']]
+                     if (len(anchors) != 32 or nested_indices(anchors) != (inputs['frame_indices'], inputs['anchor_slots'])):
+-                        raise ValueError('Nested VQA rows must hold the 32 anchors plus their bisection frames')
++                        raise ValueError('Nested rows must hold the 32 anchors plus their bisection frames')
+                 for frame in inputs['frames']:
+                     if set(frame) != {'path', 'sha256'}:
+                         raise ValueError('Input requires an exact path/SHA256 pin')
+@@ -642,12 +660,14 @@
+                     point = row['pointing']
+                     frame = point['frame']
+                     identity = point.get('label') if point['kind'] == 'gt_absent' else point.get('instance_id')
++                    # pointing.frame names the anchor ordinal, as the question text does.
++                    named = inputs['anchor_slots'] if nested else list(range(len(inputs['frames'])))
+                     if (point['kind'] not in POINTING_KINDS or type(frame) is not int
+-                            or not 1 <= frame <= len(inputs['frames']) or identity in (None, '')
+-                            or point['rgb_sha256'] != inputs['frames'][frame-1]['sha256']):
++                            or not 1 <= frame <= len(named) or identity in (None, '')
++                            or point['rgb_sha256'] != inputs['frames'][named[frame-1]]['sha256']):
+                         raise ValueError('GT-mask frame/RGB provenance mismatch')
+                     target, audit = mask_target(point['mask'], point.get('key', 'mask'), point['kind'])
+-                    with Image.open(resolve_read(inputs['frames'][frame-1]['path'])) as rgb:
++                    with Image.open(resolve_read(inputs['frames'][named[frame-1]]['path'])) as rgb:
+                         if list(reversed(rgb.size)) != audit['shape']:
+                             raise ValueError('GT mask raster differs from the pinned RGB frame')
+                     row = {**row, 'target': READOUT_TARGET + target,
+diff -ruN -x __pycache__ -x '*.pyc' tree_r1/student_pilot/carrier_c1_run.py tree_f64/student_pilot/carrier_c1_run.py
+--- tree_r1/student_pilot/carrier_c1_run.py	2026-11-18 19:55:51.567314600 -0500
++++ tree_f64/student_pilot/carrier_c1_run.py	2026-11-18 23:26:59.552240824 -0500
+@@ -632,7 +632,7 @@
+                   depth_enabled=cfg.get('depth_enabled', True), recipe=cfg['recipe'])
+     result.update({k: cfg[k] for k in ('frame_layout', 'frame_pair_gap_seconds', 'skip_unsupervised_lm',
+                                        'depth_fov_source', 'depth_init', 'exclusions', 'report_exclusions',
+-                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'h1', 'b7_inputs', 'r1_training', 'frame_count', 'max_pixels', 'min_pixels', 'frame_markers', 'r2_membership',
++                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'h1', 'b7_inputs', 'r1_training', 'frame_count', 'frame_input', 'max_pixels', 'min_pixels', 'frame_markers', 'r2_membership',
+                                        'routing_opener_init', 'routing_vocabulary', 'r2_identity', 'r2_sampling', 'extent_receipt') if k in cfg})
+     if 'mdg' in cfg:
+         result['mdg'] = cfg['mdg']
+@@ -1059,6 +1059,8 @@
+         self.h1 = receipt.get('h1', {})
+         self.b7_inputs = receipt.get('b7_inputs')
+         self.r1_training = receipt.get('r1_training')
++        from .frame_input import check_spec
++        self.frame_input = check_spec(receipt.get('frame_input'))
+         from .extent_receipt import Extents
+         self.extents = Extents(receipt.get('extent_receipt'))
+         self.placement = receipt.get('carrier_placement', data.C1_A)
+@@ -1119,7 +1121,9 @@
+         (getattr(self, 'extents', None) or Extents(None)).check(value, stream)
+         if getattr(self, 'r1_training', False):
+             from .r1_training import row_check
++            from .frame_input import check_row
+             row_check(value, stream)
++            check_row(value, getattr(self, 'frame_input', None))
+         if self.b7_inputs or getattr(self, 'r1_training', False):
+             from .r0_exclusion import reserve
+             reserve().check(value, stream)
+@@ -1244,6 +1248,8 @@
+         # Per-group `Frame k: ` markers (config switch, off by default); every encode path reads it.
+         processor.tokenizer._c1_frame_markers = bool(receipt.get('frame_markers', False))
+     processor.tokenizer._c1_frame_count = receipt.get('frame_count',32)
++    from .frame_input import check_spec
++    processor.tokenizer._c1_frame_input = check_spec(receipt.get('frame_input'))
+     if receipt.get('b7_inputs') or receipt.get('r1_training'):
+         from .b7_inputs import layout
+         processor._b7_layout = layout(receipt.get('b7_inputs') or receipt)
+@@ -2115,6 +2121,7 @@
+             config_sha256=identity(cfg),base_identity=cfg['base_identity'],
+             readout_config=model.readout_config,
+             anchors=list(range(1,cfg.get('frame_count',32)+1)),
++            **({'frame_input': cfg['frame_input']} if cfg.get('frame_input') else {}),
+             **({'b7_inputs':cfg['b7_inputs'], 'max_pixels':cfg['max_pixels'],
+                 'min_pixels':cfg['min_pixels'], 'frame_count':cfg['frame_count'],
+                 'frame_markers':cfg['frame_markers'],
+diff -ruN -x __pycache__ -x '*.pyc' tree_r1/student_pilot/decoupled_v.py tree_f64/student_pilot/decoupled_v.py
+--- tree_r1/student_pilot/decoupled_v.py	2026-11-17 23:35:13.285281700 -0500
++++ tree_f64/student_pilot/decoupled_v.py	2026-11-18 23:26:38.946282257 -0500
+@@ -103,6 +103,8 @@
+ 
+ def features(model, batch, allow_short=False):
+     """P3's exact finish implementation after a vision-only native forward."""
++    from .frame_input import anchor_view
++    batch = anchor_view(batch)
+     grid = batch['video_grid_thw']
+     if grid.shape != (1, 3):
+         raise ValueError('Use one video per microbatch; accumulate row means')
+diff -ruN -x __pycache__ -x '*.pyc' tree_r1/student_pilot/frame_input.py tree_f64/student_pilot/frame_input.py
+--- tree_r1/student_pilot/frame_input.py	1969-12-31 19:00:00.000000000 -0500
++++ tree_f64/student_pilot/frame_input.py	2026-11-18 23:55:19.167195300 -0500
+@@ -0,0 +1,91 @@
++"""Nested 64-viewpoint input for 32-slot heads.
++
++Each video row keeps its 32 sampled viewpoints as anchors and adds the 32 frames
++that `carrier_c1_data.nested_indices` bisects between them. Carriers, `Frame k: `
++markers (k = anchor ordinal), pose and depth slots, targets and the question text
++stay on the anchors, so "frame k of 32" keeps one meaning in training and reads.
++"""
++import torch
++
++NESTED = {'viewpoints': 64, 'anchors': 32, 'rule': 'nested_bisection_v1'}
++
++
++def check_spec(value):
++    """None keeps the 32-viewpoint input; the only other admitted value is NESTED."""
++    if value is not None and value != NESTED:
++        raise ValueError('FRAME_INPUT_UNSUPPORTED')
++    return value
++
++
++def nested(row):
++    inputs = row.get('student_input') or {}
++    return inputs.get('anchor_slots') is not None
++
++
++def anchors(inputs):
++    return [inputs['frame_indices'][k] for k in inputs['anchor_slots']]
++
++
++def check_row(row, spec):
++    """Every multi-frame row under NESTED carries the anchors plus exactly their bisection frames."""
++    from .carrier_c1_data import nested_indices
++    inputs = row.get('student_input') or {}
++    count = len(inputs.get('frames') or ())
++    if spec is None:
++        if nested(row):
++            raise ValueError('FRAME_INPUT_NESTED_ROW_UNDECLARED')
++        return row
++    if count <= 1:
++        return row
++    slots = inputs.get('anchor_slots')
++    if (count != spec['viewpoints'] or not isinstance(slots, list) or len(slots) != spec['anchors']
++            or any(len(inputs.get(k) or ()) != count for k in ('frame_indices', 'timestamps'))):
++        raise ValueError('FRAME_INPUT_ROW_NOT_NESTED')
++    if nested_indices(anchors(inputs), spec['viewpoints']) != (inputs['frame_indices'], slots):
++        raise ValueError('FRAME_INPUT_ROW_RULE_DIFFERS')
++    return row
++
++
++def nest_row(row, pins, spec=NESTED):
++    """32-viewpoint row -> nested row. `pins` maps source ordinal -> {path, sha256}; anchors keep their pins."""
++    from copy import deepcopy
++    from .carrier_c1_data import nested_indices
++    result = deepcopy(row)
++    inputs = result['student_input']
++    if nested(row) or len(inputs['frames']) != spec['anchors']:
++        raise ValueError('FRAME_INPUT_SOURCE_NOT_32')
++    try:
++        indices, slots = nested_indices(inputs['frame_indices'], spec['viewpoints'])
++    except ValueError as error:
++        raise ValueError(f'FRAME_INPUT_CLIP_TOO_SHORT:{error}') from None
++    by_ordinal = dict(zip(inputs['frame_indices'], inputs['frames'], strict=True))
++    for ordinal in indices:
++        if ordinal in by_ordinal:
++            continue
++        pin = pins.get(ordinal)
++        if not isinstance(pin, dict) or set(pin) != {'path', 'sha256'}:
++            raise ValueError(f'FRAME_INPUT_DENSE_FRAME_MISSING:{ordinal}')
++        by_ordinal[ordinal] = dict(pin)
++    fps = inputs['fps']
++    stamps = dict(zip(inputs['frame_indices'], inputs['timestamps'], strict=True))
++    inputs.update(frames=[by_ordinal[k] for k in indices], frame_indices=indices,
++                  timestamps=[stamps.get(k, k / fps) for k in indices], anchor_slots=slots)
++    return result
++
++
++def anchor_view(batch):
++    """The anchor groups' patches only, so the 32-slot private depth ViT reads the anchors."""
++    groups = batch.get('aux_anchor_groups')
++    grid = batch.get('video_grid_thw')
++    if groups is None or grid is None:
++        return batch
++    t, h, w = (int(v) for v in grid[0])
++    chosen = [int(g) for g in groups[0]]
++    if len(chosen) == t:
++        return batch
++    pixels = batch['pixel_values_videos']
++    if grid.shape != (1, 3) or pixels.shape[0] != t * h * w or chosen != sorted(set(chosen)) or chosen[-1] >= t:
++        raise ValueError('FRAME_INPUT_ANCHOR_VIEW_SHAPE')
++    index = torch.cat([torch.arange(g * h * w, (g + 1) * h * w, device=pixels.device) for g in chosen])
++    return {**batch, 'pixel_values_videos': pixels.index_select(0, index),
++            'video_grid_thw': grid.new_tensor([[len(chosen), h, w]])}
+diff -ruN -x __pycache__ -x '*.pyc' tree_r1/student_pilot/pose_samples.py tree_f64/student_pilot/pose_samples.py
+--- tree_r1/student_pilot/pose_samples.py	2026-11-16 18:42:16.711287500 -0500
++++ tree_f64/student_pilot/pose_samples.py	2026-11-18 23:26:32.779294657 -0500
+@@ -125,7 +125,9 @@
+     sample = row.get("pose_sample")
+     if row.get("category") != CATEGORY or not isinstance(sample, dict) or sample.get("schema") != SCHEMA:
+         raise ValueError("A pose-only row needs its pose-only-sample-v1 record")
+-    frames = len(row["student_input"]["frames"])
++    slots = row["student_input"].get("anchor_slots")
++    # A nested row's pose record stays the anchors' record; bisection frames carry no target.
++    frames = len(slots) if slots is not None else len(row["student_input"]["frames"])
+     if (sample["frames"] != frames or frames not in (*SAMPLE_SIZES, 64, 96)
+             or frames > 2 * max_groups or len(sample["positions"]) != frames):
+         raise ValueError("Pose-only sample frame count disagrees with its frames")
+diff -ruN -x __pycache__ -x '*.pyc' tree_r1/student_pilot/r1_handover.py tree_f64/student_pilot/r1_handover.py
+--- tree_r1/student_pilot/r1_handover.py	2026-11-18 21:36:01.017577600 -0500
++++ tree_f64/student_pilot/r1_handover.py	2026-11-18 23:27:11.905215986 -0500
+@@ -23,6 +23,7 @@
+     'checkpoint_disk_guard': 'N disk preflight rebinds checkpoint storage accounting.',
+     'r2_all_stream_exclusions': 'N preparation rechecks exclusions across every stream.',
+     'r2_scene_rebuild': 'N preparation rebinds scene-filtered stream receipts.',
++    'frame_input': 'N rows add nested bisection viewpoints; carriers, heads, targets and markers stay on the 32 anchors.',
+ }
+ HANDOVER_VARIABLE_KEYS |= HANDOVER_ROW_KEYS.keys()
+ 
+@@ -51,8 +52,8 @@
+ # Only defaults actually used by the trainer are normalized. Unknown missing keys refuse.
+ EFFECTIVE_DEFAULTS = {
+     'frame_count': 32,  # carrier_c1_run.py:811: receipt.get('frame_count',32).
+-    'max_pixels': None,  # carrier_c1_data.py:209: DEFAULT_PIXELS outside b7_inputs.
+-    'min_pixels': None,  # carrier_c1_data.py:209: DEFAULT_PIXELS outside b7_inputs.
++    'max_pixels': 384 * 384,  # carrier_c1_data.py:209: DEFAULT_PIXELS outside b7_inputs.
++    'min_pixels': 128 * 128,  # carrier_c1_data.py:209: DEFAULT_PIXELS outside b7_inputs.
+     'geometry_connector': 'none',  # carrier_c1_run.py:813-815: geometry_online alone attaches it.
+ }
+ 
+@@ -114,6 +115,9 @@
+         if (key not in source or key not in target) and key not in EFFECTIVE_DEFAULTS and key != 'camera_overrides':
+             raise ValueError('P_EXPORT_CONFIG_DIFFERENCE:'+key)
+         a, b = source.get(key, EFFECTIVE_DEFAULTS.get(key)), target.get(key, EFFECTIVE_DEFAULTS.get(key))
++        if key in ('max_pixels', 'min_pixels'):
++            # An unpinned processor encodes with DEFAULT_PIXELS, so null and the default agree.
++            a, b = (EFFECTIVE_DEFAULTS[key] if v is None else v for v in (a, b))
+         if key == 'camera_overrides':
+             a, b = source.get(key, {}), target.get(key, {})  # carrier_c1_run.py:716.
+         if key == 'camera_overrides' and (a != b or candidates):
+diff -ruN -x __pycache__ -x '*.pyc' tree_r1/student_pilot/r1_training.py tree_f64/student_pilot/r1_training.py
+--- tree_r1/student_pilot/r1_training.py	2026-11-18 21:20:59.029725000 -0500
++++ tree_f64/student_pilot/r1_training.py	2026-11-18 23:27:05.590228684 -0500
+@@ -74,6 +74,8 @@
+         raise ValueError('R1_OWN_ROWS_REFUSED')
+     if (cfg.get('frame_count'), cfg.get('frame_layout'), cfg.get('frame_markers')) != (32, 'duplicate', True):
+         raise ValueError('R1_FRAME_LAYOUT_DIFFERS')
++    from .frame_input import check_spec
++    check_spec(cfg.get('frame_input'))
+     card = load(pinned(value['mix']))
+     scale = value.get('weight_scale')
+     import math
+diff -ruN -x __pycache__ -x '*.pyc' tree_r1/tests/test_f64_layout.py tree_f64/tests/test_f64_layout.py
+--- tree_r1/tests/test_f64_layout.py	1969-12-31 19:00:00.000000000 -0500
++++ tree_f64/tests/test_f64_layout.py	2026-11-18 23:56:59.647026211 -0500
+@@ -0,0 +1,276 @@
++"""Nested 64-viewpoint input: rows, anchor-only markers and depth view, pose check, config keys,
++and agreement between the training and read frame layouts."""
++import json
++import os
++import sys
++import tempfile
++import unittest
++from pathlib import Path
++from unittest import mock
++
++import torch
++
++from student_pilot import frame_input as F
++from student_pilot.carrier_c1_data import nested_indices
++
++T, FPS = 368, 24.0
++ANCHORS = [i * (T - 1) // 31 for i in range(32)]
++
++
++def pin(k, root='/frames'):
++    return {'path': f'{root}/{k:05d}.png', 'sha256': f'{k:064x}'}
++
++
++def row32(anchors=ANCHORS, root='/frames'):
++    return {'qid': 'q1', 'dataset': 'd1', 'scene': 's1', 'question_type': 'object_counting',
++            'student_input': {'frames': [pin(k, root) for k in anchors], 'frame_indices': list(anchors),
++                              'timestamps': [k / FPS for k in anchors], 'fps': FPS, 'total_num_frames': T,
++                              'question': 'How many chairs are in frame 3 of 32?', 'options': []}}
++
++
++def bisection_pins(anchors=ANCHORS, root='/frames'):
++    indices, _ = nested_indices(anchors, 64)
++    return {k: pin(k, root) for k in indices if k not in set(anchors)}
++
++
++class NestedRows(unittest.TestCase):
++    def test_nest_row_keeps_anchors_and_follows_the_rule(self):
++        source = row32()
++        source['student_input']['timestamps'][5] += 0.004
++        si = F.nest_row(source, bisection_pins())['student_input']
++        indices, slots = nested_indices(ANCHORS, 64)
++        self.assertEqual((si['frame_indices'], si['anchor_slots']), (indices, slots))
++        self.assertEqual(len(si['frames']), 64)
++        self.assertEqual([si['frames'][s] for s in slots], source['student_input']['frames'])
++        self.assertEqual([si['timestamps'][s] for s in slots], source['student_input']['timestamps'])
++        self.assertEqual(si['timestamps'][1], indices[1] / FPS)
++        F.check_row({'student_input': si}, F.NESTED)
++
++    def test_missing_frames_short_clips_and_double_nesting_refuse(self):
++        pins = bisection_pins()
++        dropped = sorted(pins)[7]
++        del pins[dropped]
++        with self.assertRaisesRegex(ValueError, f'FRAME_INPUT_DENSE_FRAME_MISSING:{dropped}'):
++            F.nest_row(row32(), pins)
++        with self.assertRaisesRegex(ValueError, 'FRAME_INPUT_CLIP_TOO_SHORT'):
++            F.nest_row(row32(list(range(32))), {})
++        nested = F.nest_row(row32(), bisection_pins())
++        with self.assertRaisesRegex(ValueError, 'FRAME_INPUT_SOURCE_NOT_32'):
++            F.nest_row(nested, bisection_pins())
++
++    def test_check_row_and_spec_refusals(self):
++        nested = F.nest_row(row32(), bisection_pins())
++        with self.assertRaisesRegex(ValueError, 'FRAME_INPUT_NESTED_ROW_UNDECLARED'):
++            F.check_row(nested, None)
++        with self.assertRaisesRegex(ValueError, 'FRAME_INPUT_ROW_NOT_NESTED'):
++            F.check_row(row32(), F.NESTED)
++        F.check_row(row32(), None)
++        F.check_row({'student_input': {'frames': [pin(0)]}}, F.NESTED)
++        bent = F.nest_row(row32(), bisection_pins())
++        bent['student_input']['frame_indices'][1] += 1
++        with self.assertRaisesRegex(ValueError, 'FRAME_INPUT_ROW_RULE_DIFFERS'):
++            F.check_row(bent, F.NESTED)
++        for bad in ({'viewpoints': 48, 'anchors': 32, 'rule': 'nested_bisection_v1'}, {'viewpoints': 64}):
++            with self.assertRaisesRegex(ValueError, 'FRAME_INPUT_UNSUPPORTED'):
++                F.check_spec(bad)
++        self.assertIsNone(F.check_spec(None))
++
++
++class AnchorOnlyLayout(unittest.TestCase):
++    class Tok:
++        _c1_frame_markers = True
++        _c1_frame_input = F.NESTED
++
++        def encode(self, text, **kwargs):
++            if not text.startswith('Frame '):
++                return [5]
++            return [40, 100 + int(text.split()[1].rstrip(':'))]
++
++        def convert_tokens_to_ids(self, token):
++            return {'<|fim_middle|>': 5, '<|vision_start|>': 62}.get(token, 61)
++
++    def batch(self, groups):
++        ids = torch.tensor([[2] + [v for _ in range(groups) for v in (62, 61, 63)] + [10, 11, 12]])
++        batch = dict(input_ids=ids, attention_mask=torch.ones_like(ids), labels=torch.full_like(ids, -100),
++                     mm_token_type_ids=torch.where(ids == 61, 2, 0), video_grid_thw=torch.tensor([[groups, 2, 2]]))
++        batch['labels'][0, -2:] = ids[0, -2:]
++        return batch
++
++    def test_markers_and_carriers_sit_on_anchor_groups_numbered_by_anchor(self):
++        from student_pilot.carrier_c1_data import insert_frame_carriers
++        _, slots = nested_indices(ANCHORS, 64)
++        out = insert_frame_carriers(self.batch(64), self.Tok(), carrier_placement='append_after_temporal_group_video_tokens_v1',
++                                    frame_layout='duplicate', anchors=slots)
++        seq = out['input_ids'][0].tolist()
++        anchor_of = {g: k for k, g in enumerate(slots, 1)}
++        expected = [2] + [v for g in range(64) for v in ((40, 100 + anchor_of[g], 62, 61, 5, 63) if g in anchor_of
++                                                         else (62, 61, 63))] + [10, 11, 12]
++        self.assertEqual(seq, expected)
++        self.assertEqual(out['aux_anchor_groups'][0].tolist(), slots)
++        self.assertEqual(len(out['aux_camera_positions'][0]), 32)
++        self.assertEqual(out['labels'][0, -2:].tolist(), [11, 12])
++
++    def test_depth_view_reads_only_anchor_patches(self):
++        t, h, w = 64, 2, 3
++        _, slots = nested_indices(ANCHORS, 64)
++        pixels = torch.arange(t * h * w, dtype=torch.float32)[:, None].repeat(1, 4)
++        batch = dict(pixel_values_videos=pixels, video_grid_thw=torch.tensor([[t, h, w]]),
++                     aux_anchor_groups=torch.tensor([slots]))
++        view = F.anchor_view(batch)
++        self.assertEqual(view['video_grid_thw'].tolist(), [[32, h, w]])
++        self.assertEqual(view['pixel_values_videos'][:, 0].long().tolist(),
++                         [g * h * w + i for g in slots for i in range(h * w)])
++        every = dict(batch, aux_anchor_groups=torch.tensor([list(range(t))]))
++        self.assertIs(F.anchor_view(every), every)
++        with self.assertRaisesRegex(ValueError, 'FRAME_INPUT_ANCHOR_VIEW_SHAPE'):
++            F.anchor_view(dict(batch, pixel_values_videos=pixels[:-1]))
++
++    def test_pose_sample_keeps_the_anchor_record(self):
++        from student_pilot.camera_targets import trajectory_scale
++        from student_pilot.pose_samples import AUGMENT, CATEGORY, SCHEMA, check_sample
++        camera = [[0.02 * i, 0., 0.01 * i, 0., 0., 0., 1., 1.0, 1.25] for i in range(32)]
++        sample = dict(schema=SCHEMA, recording=dict(sampling=dict(variant='all_frames32')), frames=32,
++                      positions=list(range(32)), temporal_grouping='fused_pairs_all_frames', anchors=list(range(1, 33)),
++                      augment={**AUGMENT, 'seed': 17}, metric=True, camera=camera, camera_mask=[True] * 32,
++                      trajectory_scale=trajectory_scale(camera, [True] * 32), gravity=[0., -1., 0.], gravity_mask=True)
++        row = dict(row32(), category=CATEGORY, pose_sample=sample)
++        expected = check_sample(row, max_groups=32)
++        self.assertEqual(check_sample(F.nest_row(row, bisection_pins()), max_groups=32), expected)
++        dense = F.nest_row(row, bisection_pins())
++        del dense['student_input']['anchor_slots']
++        with self.assertRaisesRegex(ValueError, 'frame count disagrees'):
++            check_sample(dense, max_groups=32)
++
++
++class ConfigKeys(unittest.TestCase):
++    def test_b7_layout_carries_frame_input_only_with_32_slots(self):
++        from student_pilot.b7_inputs import layout
++        base = dict(frame_count=32, frame_layout='duplicate', frame_markers=True, max_pixels=384 * 384, min_pixels=128 * 128)
++        self.assertNotIn('frame_input', layout(base))
++        self.assertEqual(layout(dict(base, frame_input=F.NESTED))['frame_input'], F.NESTED)
++        with self.assertRaisesRegex(ValueError, 'nested_frame_input_requires_32_slots'):
++            layout(dict(base, frame_count=64, frame_input=F.NESTED))
++        with self.assertRaisesRegex(ValueError, 'FRAME_INPUT_UNSUPPORTED'):
++            layout(dict(base, frame_input={'viewpoints': 64}))
++
++    def test_handover_names_frame_input_and_reads_null_pixels_as_defaults(self):
++        from student_pilot import r1_handover as H
++        self.assertIn('frame_input', H.HANDOVER_ROW_KEYS)
++        self.assertEqual((H.EFFECTIVE_DEFAULTS['max_pixels'], H.EFFECTIVE_DEFAULTS['min_pixels']), (384 * 384, 128 * 128))
++
++
++def reader_root():
++    root = os.environ.get('F64_READER_ROOT')
++    return Path(root) if root else None
++
++
++@unittest.skipUnless(reader_root(), 'F64_READER_ROOT names the patched reader (e2e_reader, parity_kit, f64_read)')
++class TrainingReadAgreement(unittest.TestCase):
++    """The reader's student row equals the training row for one clip, and the layout check binds the export."""
++
++    @classmethod
++    def setUpClass(cls):
++        sys.path.insert(0, str(reader_root()))
++        import f64_read
++        from e2e_reader import parity
++        cls.f64_read, cls.parity = f64_read, parity
++
++    def capture(self, root):
++        return {'native': 'd1/s1', 'anchor_indices': list(ANCHORS), 'timestamps': [k / FPS for k in ANCHORS],
++                'fps': FPS, 'total_num_frames': T,
++                'frames': [dict(index=k, path=f'{k:05d}.png', sha256=pin(k)['sha256']) for k in ANCHORS]}
++
++    def read_row(self, root):
++        capture = self.capture(root)
++        task = {'id': 'q1', 'dataset': 'd1', 'scene': 's1', 'question_type': 'object_counting',
++                'question': row32()['student_input']['question'], 'options': []}
++        row = self.parity.trainer_row(task, capture, root, verify=False)
++        plan = self.f64_read.plan_manifest({'captures': [capture]})['captures']['d1/s1']
++        plan['pins'] = {str(k): pin(k, root) for k in plan['decode']}
++        return self.f64_read.student_row(row, capture, plan)
++
++    def test_student_frames_match_training_rows(self):
++        root = '/scratch/frames'
++        train = F.nest_row(row32(root=root), bisection_pins(root=root))['student_input']
++        read = self.read_row(root)['student_input']
++        for key in ('frame_indices', 'anchor_slots', 'timestamps', 'fps', 'total_num_frames'):
++            self.assertEqual(read[key], train[key], key)
++        self.assertEqual([f['sha256'] for f in read['frames']], [f['sha256'] for f in train['frames']])
++        self.assertEqual(read['video_identity']['kind'], 'devS1-pinned-PNG-clip-nested64-v1')
++
++    def test_layout_check_binds_the_export(self):
++        R = self.f64_read
++        artifact = {'frame_layout': 'duplicate', 'frame_input': F.NESTED}
++        trained = R.training_layout(artifact, {'frame_count': 32, 'frame_input': F.NESTED})
++        self.assertEqual(R.check_layout(R.READ_FRAMES, trained)['matches_training'], True)
++        old = R.training_layout({'frame_layout': 'duplicate'}, {'frame_count': 32})
++        with self.assertRaisesRegex(ValueError, 'read_frame_layout_differs_from_training'):
++            R.check_layout(R.READ_FRAMES, old)
++        with self.assertRaisesRegex(ValueError, 'read_frame_layout_differs_from_training'):
++            R.check_layout(dict(layout='duplicate', count=32), trained)
++        with self.assertRaisesRegex(ValueError, 'export_frame_input_differs_from_config'):
++            R.training_layout(artifact, {'frame_count': 32, 'frame_input': dict(F.NESTED, viewpoints=48)})
++
++    def test_manifest_entry_must_follow_the_rule(self):
++        root = '/scratch/frames'
++        capture = self.capture(root)
++        plan = self.f64_read.plan_manifest({'captures': [capture]})['captures']['d1/s1']
++        with self.assertRaisesRegex(ValueError, 'lacks decoded frames'):
++            self.f64_read.check_manifest_entry(capture, dict(plan, pins={}))
++        bent = dict(plan, frame_indices=[*plan['frame_indices'][:-1], plan['frame_indices'][-1] - 1])
++        with self.assertRaisesRegex(ValueError, 'differs from the nesting rule'):
++            self.f64_read.check_manifest_entry(capture, bent)
++
++
++@unittest.skipUnless(reader_root() and os.environ.get('F64_META') and os.environ.get('F64_CONFIG'),
++                     'F64_META and F64_CONFIG name the real processor files and the 64-frame config')
++class EncodedAgreement(unittest.TestCase):
++    """Training encode (data.encode, as Rows.get) and read encode (canary.prompt_batch, as the reader)
++    produce the same video, markers, carriers and anchor groups for one clip."""
++
++    def test_encoded_frames_agree(self):
++        import numpy as np
++        from PIL import Image
++        from student_pilot import carrier_c1_data as data
++        from student_pilot.carrier_c1_canary import prompt_batch
++        from student_pilot.carrier_c1_run import processor_for_receipt
++        sys.path.insert(0, str(reader_root()))
++        import f64_read
++        from e2e_reader import parity
++        cfg = json.loads(Path(os.environ['F64_CONFIG']).read_text())
++        receipt = {k: cfg[k] for k in ('frame_layout', 'frame_pair_gap_seconds', 'r1_training', 'frame_count',
++                                       'frame_input', 'max_pixels', 'min_pixels', 'frame_markers') if k in cfg}
++        processor = processor_for_receipt({'root': os.environ['F64_META']}, receipt)
++        with tempfile.TemporaryDirectory() as tmp:
++            indices, _ = nested_indices(ANCHORS, 64)
++            rng = np.random.default_rng(3)
++            for k in indices:
++                Image.fromarray(rng.integers(0, 255, (96, 128, 3), dtype=np.uint8)).save(f'{tmp}/{k:05d}.png')
++            real = lambda k: {'path': f'{tmp}/{k:05d}.png', 'sha256': __import__('hashlib').sha256(
++                Path(f'{tmp}/{k:05d}.png').read_bytes()).hexdigest()}
++            source = row32(root=tmp)
++            source['student_input']['frames'] = [real(k) for k in ANCHORS]
++            train_row = F.nest_row(source, {k: real(k) for k in indices if k not in ANCHORS})
++            capture = {'native': 'd1/s1', 'anchor_indices': list(ANCHORS), 'timestamps': [k / FPS for k in ANCHORS],
++                       'fps': FPS, 'total_num_frames': T,
++                       'frames': [dict(index=k, path=f'{k:05d}.png', sha256=real(k)['sha256']) for k in ANCHORS]}
++            task = {'id': 'q1', 'dataset': 'd1', 'scene': 's1', 'question_type': 'object_counting',
++                    'question': source['student_input']['question'], 'options': []}
++            plan = f64_read.plan_manifest({'captures': [capture]})['captures']['d1/s1']
++            plan['pins'] = {str(k): real(k) for k in plan['decode']}
++            read_row = f64_read.student_row(parity.trainer_row(task, capture, tmp, verify=True), capture, plan)
++            layout, gap = data.layout_settings(cfg)
++            with mock.patch('student_pilot.r0_exclusion.reserve') as reserve:
++                reserve.return_value.check.return_value = None
++                train, _, _ = data.encode(processor, {**train_row, 'target': 'A'}, {}, 'vqa', cfg['carrier_placement'],
++                                          'final', frame_layout=layout, frame_pair_gap_seconds=gap)
++                read = prompt_batch(processor, read_row, cfg)
++        cut = read['input_ids'].shape[1]
++        self.assertEqual(train['input_ids'][0, :cut].tolist(), read['input_ids'][0].tolist())
++        for key in ('video_grid_thw', 'pixel_values_videos', 'aux_camera_positions', 'aux_anchor_groups'):
++            self.assertTrue(torch.equal(train[key], read[key]), key)
++        self.assertEqual(train['video_grid_thw'].tolist()[0][0], 64)
++
++
++if __name__ == '__main__':
++    unittest.main()

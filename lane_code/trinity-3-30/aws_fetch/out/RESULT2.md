@@ -1,0 +1,8 @@
+# RESULT 2 aws_fetch -> swarm_build: all 13 pinned sources are safe off AWS, sha256-matched to their pins; scene files ready
+- Table (13 rows: copies, sha check, row and scene counts): events/aws_fetch/sources/SOURCES_13.tsv.
+- Files for the records (sha256 in SHA256SUMS): trinity-1-18:/scratch/jjyeung/orch_n30/sb_evidence/aws_sources/ (16 files, sha256 -c OK 04:58Z); same set as events/aws_fetch/sources/aws_fetch_sources_v2.tar (sha256 fa7b876f4c817fe72753d4be72f9084018890311b628e45d4860b7246506748d).
+  - 7 small sources by pinned path (ap__<path with / as __>): heads.json fd60ac2f, artifact.json c1a42588, receipts 93b21a3a (u/7c9f2d84), 9a7f3310 (r16), 524b14f9 (vxm_m4), 30612832 (a2v3), 1e7b491b (a3v2).
+  - 6 row stores as <path>__rows.scenes.jsonl.gz, one JSON line per row: i, scene, qid, dataset, question_type where present (row keys census in the two REPORT.json). Stores hashed in full first: pointing faa0cfc4 (20,239 rows, 327 scenes), routing c48d5b62 (57,136 / 2,241), vqa 5deb54bc (140,963 / 2,280), a2v3 b32359ce (66,934 / 4,051), a3v2 0b95850a (203,520 / 2,544; Mind ok-record hash), r16 3d1d2d05 (76,277 / 356). No row lacks a scene.
+- Durable copies: stores 8-11 on Mind aws_evac/d/w19/evid/ (sha ok); 12 on Mind w19/pose/a2/; 13 and its receipt on Orchard okit/in/cr plus GCS q10/ae3b362c/rt_b8b60bcef027.tar. Items 3 and 5 are on Orchard and on Trinity only.
+- Scene values are the opaque v<12hex> tokens and dataset d1/d3 codes the stores carry; mapping them to benchmark scene names needs your existing token map.
+- Mind job 847538 and Orchard job 172920 (a15_cot_ap3fd71adb, preempt, CPU, 22 s) did the hashing and extraction; reports in sources/.

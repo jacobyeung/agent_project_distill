@@ -1,0 +1,83 @@
+--- a/src/b/e2e_reader/parity.py	2026-11-18 23:51:56.075543225 -0500
++++ b/src/b/e2e_reader/parity.py	2026-11-18 23:52:08.354522521 -0500
+@@ -80,6 +80,12 @@
+             with Image.open(p) as im:
+                 images.append(im.convert('RGB'))
+     row = trainer_row(item, c, settings['frames_root'], verify=verify)
++    if settings.get('student_manifest'):
++        from f64_read import student_row
++        entry = _captures(settings['student_manifest'])[item['native']]
++        entry = dict(entry, pins={k: dict(v, path=str(_frame_path(v['path'], settings['frames_root'])))
++                                  for k, v in (entry.get('pins') or {}).items()})
++        row = student_row(row, c, entry, verify=checked if verify else None)
+     frames = dict(native_frames=images if verify else [str(p) for p in paths],
+                   dense_indices=[f['index'] for f in d['frames']], anchor_slots=slots,
+                   anchor_indices=anchors)
+@@ -202,10 +208,18 @@
+         raise ValueError('duplicate selected keys')
+     bound_settings = dict(settings, frames_json={'captures': _captures(settings.get('frames_json', FRAMES))},
+                           dense_manifest={'captures': _captures(settings.get('dense_manifest', DENSE))})
++    if settings.get('student_manifest'):
++        bound_settings['student_manifest'] = {'captures': _captures(settings['student_manifest'])}
+     cfg = deepcopy(info['config'])
+     if cfg.get('tool_mode_flag'):
+         raise ValueError('parity requires the unflagged prompt')
+-    layout = dict(layout=info['export']['frame_layout'], count=32)
++    from f64_read import check_layout as check_frames, training_layout
++    trained = training_layout(info['export'], cfg)
++    read_frames = settings.get('frames', dict(layout=info['export']['frame_layout'], count=32))
++    check_frames(read_frames, trained)
++    if (trained['count'] == 64) != bool(settings.get('student_manifest')):
++        raise ValueError('a 64-viewpoint read needs the student manifest, and only then')
++    layout = dict(layout=trained['layout'], count=trained['count'])
+     default_perception = None
+     if perception_factory is None:
+         if settings.get('sam3') and not settings.get('selector_head'):
+--- a/src/h1eval/h10/parity_adapter.py	2026-11-18 23:52:51.364450009 -0500
++++ b/src/h1eval/h10/parity_adapter.py	2026-11-18 23:53:07.500422803 -0500
+@@ -131,10 +131,11 @@
+         b = parity.bind_item(task, bound_settings, verify=False)
+         c, d = captures[task['native']], dense[task['native']]
+         mapping.append(dict(id=item['id'], key=parity.key(task), native=task['native'],
+-                            task_sha256=digest(task), layout_count=32,
++                            task_sha256=digest(task), layout_count=settings.get('frames', {}).get('count', 32),
+                             anchor_indices=b['frames']['anchor_indices'],
+                             dense_count=len(b['frames']['dense_indices']),
+-                            frame_binding_sha256=digest(dict(anchors=c, dense=d))))
++                            frame_binding_sha256=digest(dict(anchors=c, dense=d, **(
++                                dict(student=b['row']['student_input']['frames']) if settings.get('student_manifest') else {})))))
+         mapped[item['id']] = task
+     if len({r['key'] for r in mapping}) != len(items):
+         raise ValueError('Duplicate mapped reader keys')
+@@ -215,7 +216,8 @@
+         for field in ('stage1_select_rule','perception_memo','perception_memo_verify_ids','perception_memo_modules'):
+             if field not in receipt['inputs']['settings'] or receipt['inputs']['settings'][field] != settings[field]:
+                 raise ValueError('Tower perception settings differ: ' + field)
+-        for field in ('tree', 'frames_root', 'selector_head', 'scale_head', 'sam3', 'require_dense64'):
++        for field in ('tree', 'frames_root', 'selector_head', 'scale_head', 'sam3', 'require_dense64',
++                      'frames', 'student_manifest'):
+             if receipt['inputs']['settings'].get(field) != settings.get(field):
+                 raise ValueError('Tower perception settings differ: ' + field)
+         code = receipt['inputs']['runtime_code']
+@@ -242,7 +244,8 @@
+             key = row['key']
+             if key in rows:
+                 raise ValueError('Duplicate tower items')
+-            if not isinstance(row.get('text'), str) or not row.get('finish') or row.get('frames', {}).get('count') != 32 or row.get('id') != key:
++            if (not isinstance(row.get('text'), str) or not row.get('finish') or row.get('id') != key
++                    or row.get('frames', {}).get('count') != settings.get('frames', {}).get('count', 32)):
+                 raise ValueError('Incomplete tower record')
+             rows[key] = row
+         pins.append(dict(path=str(journal), records_sha256=sha(journal), receipt_sha256=sha(receipt_path)))
+--- a/src/orchard_h10/prepare.py	2026-11-18 23:52:51.367450004 -0500
++++ b/src/orchard_h10/prepare.py	2026-11-18 23:52:59.230436746 -0500
+@@ -59,7 +59,8 @@
+         save_own_depth=config.get('save_own_depth',False),
+         perception_memo=config.get('perception_memo','off'),
+         perception_memo_modules=config['perception_memo_modules'],
+-        perception_memo_verify_ids=config.get('perception_memo_verify_ids',[]))
++        perception_memo_verify_ids=config.get('perception_memo_verify_ids',[]),
++        **{k:config[k] for k in ('frames','student_manifest') if k in config})
+     if inputs.get('optional'):
+         from h1eval.items import load_manifest
+         from h1eval.h10.reserve_frames import captures

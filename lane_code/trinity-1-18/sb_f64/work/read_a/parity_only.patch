@@ -1,0 +1,35 @@
+--- a/src/b/e2e_reader/parity.py	2026-11-18 23:51:56.075543225 -0500
++++ b/src/b/e2e_reader/parity.py	2026-11-18 23:52:08.354522521 -0500
+@@ -80,6 +80,12 @@
+             with Image.open(p) as im:
+                 images.append(im.convert('RGB'))
+     row = trainer_row(item, c, settings['frames_root'], verify=verify)
++    if settings.get('student_manifest'):
++        from f64_read import student_row
++        entry = _captures(settings['student_manifest'])[item['native']]
++        entry = dict(entry, pins={k: dict(v, path=str(_frame_path(v['path'], settings['frames_root'])))
++                                  for k, v in (entry.get('pins') or {}).items()})
++        row = student_row(row, c, entry, verify=checked if verify else None)
+     frames = dict(native_frames=images if verify else [str(p) for p in paths],
+                   dense_indices=[f['index'] for f in d['frames']], anchor_slots=slots,
+                   anchor_indices=anchors)
+@@ -202,10 +208,18 @@
+         raise ValueError('duplicate selected keys')
+     bound_settings = dict(settings, frames_json={'captures': _captures(settings.get('frames_json', FRAMES))},
+                           dense_manifest={'captures': _captures(settings.get('dense_manifest', DENSE))})
++    if settings.get('student_manifest'):
++        bound_settings['student_manifest'] = {'captures': _captures(settings['student_manifest'])}
+     cfg = deepcopy(info['config'])
+     if cfg.get('tool_mode_flag'):
+         raise ValueError('parity requires the unflagged prompt')
+-    layout = dict(layout=info['export']['frame_layout'], count=32)
++    from f64_read import check_layout as check_frames, training_layout
++    trained = training_layout(info['export'], cfg)
++    read_frames = settings.get('frames', dict(layout=info['export']['frame_layout'], count=32))
++    check_frames(read_frames, trained)
++    if (trained['count'] == 64) != bool(settings.get('student_manifest')):
++        raise ValueError('a 64-viewpoint read needs the student manifest, and only then')
++    layout = dict(layout=trained['layout'], count=trained['count'])
+     default_perception = None
+     if perception_factory is None:
+         if settings.get('sam3') and not settings.get('selector_head'):

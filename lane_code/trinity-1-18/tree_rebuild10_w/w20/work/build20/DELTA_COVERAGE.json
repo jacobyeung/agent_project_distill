@@ -1,0 +1,1964 @@
+{
+  "method": "Changed AST statement heads against saved build-19 bytes; only current SHA-256 and compiled-source fingerprint observations count.",
+  "total": 94,
+  "observed": 94,
+  "statements": [
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 65,
+      "text": "def stream_identity(receipt, name):",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 88,
+      "text": "def prepared_stream_identity(receipt, stream, name):",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 67,
+      "text": "    import re",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 68,
+      "text": "    def check(pin):",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 73,
+      "text": "    if receipt.get('schema') == 'c1-pose-mix-v1':",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 84,
+      "text": "    check(receipt.get('database'))",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 85,
+      "text": "    return receipt['database']['sha256']",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 90,
+      "text": "    identity = stream_identity(receipt, name)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 91,
+      "text": "    if receipt.get('schema') != 'c1-pose-mix-v1':",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 95,
+      "text": "    value = stream.get('scene_source', stream)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 96,
+      "text": "    if (value.get('kind') != 'mix' or len(value.get('sources', [])) != len(receipt['sources'])",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 99,
+      "text": "    limits = []",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 100,
+      "text": "    for source, part in zip(receipt['sources'], value['sources']):",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 111,
+      "text": "    order = load(pinned(value['order']))",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 112,
+      "text": "    if (len(order) != value['count'] or len({tuple(v) for v in order}) != len(order)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 117,
+      "text": "    if stream is not value:",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 122,
+      "text": "    return identity, stream['count']",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 69,
+      "text": "        if (not isinstance(pin, dict) or set(pin) != {'path', 'sha256'}",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 74,
+      "text": "        from .c1_pose_mix import validate_spec",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 75,
+      "text": "        validate_spec(receipt)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 76,
+      "text": "        if name != 'pose' or set(receipt) - {'schema', 'sources', 'division'}:",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 78,
+      "text": "        if 'division' in receipt:",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 80,
+      "text": "        for source in receipt['sources']:",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 83,
+      "text": "        return digest(pin_values(receipt))",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 92,
+      "text": "        if stream.get('database') != receipt.get('database'):",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 94,
+      "text": "        return identity, receipt['count']",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 98,
+      "text": "        raise ValueError('P_EXPORT_STORE_RECEIPT_MISMATCH:'+name)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 101,
+      "text": "        keys = ('kind', 'receipt', 'frame_prefix') if source['kind'] == 'rows' else tuple(source)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 102,
+      "text": "        if any(part.get(k) != source[k] for k in keys):",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 104,
+      "text": "        if source['kind'] == 'rows':",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 116,
+      "text": "        raise ValueError('P_EXPORT_INDEX_COUNT_MISMATCH:'+name)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 118,
+      "text": "        selected = load(pinned(stream['order']))",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 119,
+      "text": "        if (len(selected) != stream['count'] or len({tuple(v) for v in selected}) != len(selected)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 363,
+      "text": "        if stream.get('receipt') != receipt_pin:",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 365,
+      "text": "        stores[name], source_count = prepared_stream_identity(receipt, stream, name)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 367,
+      "text": "        if receipt.get('schema') == 'c1-pose-mix-v1':",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 72,
+      "text": "            raise ValueError('P_EXPORT_TARGET_STORE_INVALID:'+name)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 77,
+      "text": "            raise ValueError('P_EXPORT_TARGET_STORE_INVALID:'+name)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 79,
+      "text": "            check(receipt['division'])",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 81,
+      "text": "            for key in (('receipt',) if source['kind'] == 'rows' else ('clips_plan', 'dense_plan', 'teacher', 'model')):",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 93,
+      "text": "            raise ValueError('P_EXPORT_STORE_RECEIPT_MISMATCH:'+name)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 103,
+      "text": "            raise ValueError('P_EXPORT_STORE_RECEIPT_MISMATCH:'+name)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 105,
+      "text": "            child = load(pinned(source['receipt']))",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 106,
+      "text": "            if child.get('database') != part.get('database'):",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 108,
+      "text": "            limits.append(child['count'])",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 110,
+      "text": "            limits.append(source['count'])",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 121,
+      "text": "            raise ValueError('P_EXPORT_INDEX_COUNT_MISMATCH:'+name)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 368,
+      "text": "            indices[name] = stream['order']['sha256']",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 376,
+      "text": "        elif counts[name] != source_count:",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 82,
+      "text": "                check(source[key])",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_handover.py",
+      "line": 107,
+      "text": "                raise ValueError('P_EXPORT_STORE_RECEIPT_MISMATCH:'+name)",
+      "sha256": "21dc0d2f62975932e3c6837a873df71968a760bacff8ec0cbcdc512bf67fbcb9",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_training.py",
+      "line": 105,
+      "text": "    from .r1_handover import stream_identity",
+      "sha256": "026adbaf97d6fe4290e76b784bb7257d5e309cf9bbedfa487e15334b4c75a2d2",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_training.py",
+      "line": 108,
+      "text": "        stores[name] = stream_identity(receipt, name)",
+      "sha256": "026adbaf97d6fe4290e76b784bb7257d5e309cf9bbedfa487e15334b4c75a2d2",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 2,
+      "text": "from .p3_provenance import load, pinned, digest",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 83,
+      "text": "def normalize(records):",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 88,
+      "text": "def artifact_binding(cfg, status):",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 84,
+      "text": "    return {k: v if v.get('status') in ('DEFERRED', 'VERIFIED') else dict(status='VERIFIED', record=v)",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 90,
+      "text": "    if not status:",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 92,
+      "text": "    if 'r1_training' in cfg:",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 98,
+      "text": "    if not pin or normalize(load(pinned(pin)).get('component_evidence', {})) != status:",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 100,
+      "text": "    return dict(component_preparation=pin, component_evidence_sha256=digest(status))",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 57,
+      "text": "        if (artifact.get('r1_progress') or artifact.get('component_preparation')",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 63,
+      "text": "        status = artifact.get('component_evidence')",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 64,
+      "text": "        if status:",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 91,
+      "text": "        return {}",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 93,
+      "text": "        pin = cfg.get('preparation')",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 95,
+      "text": "        from .r1_handover import metadata_load",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 96,
+      "text": "        parent = metadata_load(cfg['init_artifact']['artifact'], {})",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 97,
+      "text": "        pin = parent.get('component_preparation')",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 99,
+      "text": "        raise ValueError('COMPONENT_EVIDENCE_PREPARATION_MISMATCH:export')",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 114,
+      "text": "        guard(dict(component_evidence=inherited, component_preparation=cfg.get('preparation'),",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 65,
+      "text": "            from .r2_policy import LINEAGE, EXTERNAL, NEW, components",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 66,
+      "text": "            if set(status) != set((*LINEAGE, *EXTERNAL, *NEW)):",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 68,
+      "text": "            if any(v.get('status') != 'VERIFIED' or not v.get('record') for v in status.values()):",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 70,
+      "text": "            pin = artifact.get('component_preparation')",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 71,
+      "text": "            if not pin:",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 73,
+      "text": "            prep = load(pinned(pin))",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 74,
+      "text": "            recorded = normalize(prep.get('component_evidence', {}))",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 75,
+      "text": "            if (prep.get('schema') != 'c1-preparation-v1' or recorded != status",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 78,
+      "text": "            records = components(prep['r1_training']['registry'], 'training')",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 79,
+      "text": "            if normalize(records) != status:",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 67,
+      "text": "                raise ValueError('COMPONENT_EVIDENCE_SLOTS_DIFFER:'+boundary)",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 69,
+      "text": "                raise ValueError('COMPONENT_EVIDENCE_RECORD_REQUIRED:'+boundary)",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 72,
+      "text": "                raise ValueError('COMPONENT_EVIDENCE_PREPARATION_REQUIRED:'+boundary)",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 77,
+      "text": "                raise ValueError('COMPONENT_EVIDENCE_PREPARATION_MISMATCH:'+boundary)",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_components.py",
+      "line": 80,
+      "text": "                raise ValueError('COMPONENT_EVIDENCE_RECORD_MISMATCH:'+boundary)",
+      "sha256": "33cc4e82115721d4b058dcde307bf17a0b9c5123dd035d81dbb4709de0fcf437",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_contract.py",
+      "line": 30,
+      "text": "    identity = init_identity(value.get('identity'))",
+      "sha256": "1f77c21801944bf3d040096f7b59f9e52fd9411684985fdbe8062b046faaeb17",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_contract.py",
+      "line": 37,
+      "text": "    return identity",
+      "sha256": "1f77c21801944bf3d040096f7b59f9e52fd9411684985fdbe8062b046faaeb17",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_contract.py",
+      "line": 32,
+      "text": "        if identity['artifact_sha256'] != value['artifact'].get('sha256'):",
+      "sha256": "1f77c21801944bf3d040096f7b59f9e52fd9411684985fdbe8062b046faaeb17",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_contract.py",
+      "line": 33,
+      "text": "            raise ValueError('INIT_SELECTION_ARTIFACT_IDENTITY_MISMATCH')",
+      "sha256": "1f77c21801944bf3d040096f7b59f9e52fd9411684985fdbe8062b046faaeb17",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/carrier_c1_run.py",
+      "line": 638,
+      "text": "        from .r1_components import artifact_status",
+      "sha256": "4b1ae65eb5c12090ac730209212c8aaee739ae624ec00b85ac2cbf14e75a701f",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/carrier_c1_run.py",
+      "line": 639,
+      "text": "        result['component_evidence'] = artifact_status(cfg)",
+      "sha256": "4b1ae65eb5c12090ac730209212c8aaee739ae624ec00b85ac2cbf14e75a701f",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/carrier_c1_run.py",
+      "line": 2112,
+      "text": "        from .r1_components import artifact_status, artifact_binding",
+      "sha256": "4b1ae65eb5c12090ac730209212c8aaee739ae624ec00b85ac2cbf14e75a701f",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/carrier_c1_run.py",
+      "line": 2113,
+      "text": "        component_status = artifact_status(cfg)",
+      "sha256": "4b1ae65eb5c12090ac730209212c8aaee739ae624ec00b85ac2cbf14e75a701f",
+      "observed": true
+    }
+  ],
+  "sources": [
+    "work/build20/proofs/edges/hits.json",
+    "work/build20/proofs/review/hits.json",
+    "work/build20/proofs/retained19/hits.json",
+    "work/build20/proofs/rooms/hits.json",
+    "work/build20/proofs/final_focused/hits.json",
+    "work/build20/proofs/native/hits.json",
+    "work/build20/proofs/job/hits.json",
+    "work/build20/proofs/edge20/hits.json",
+    "work/build20/proofs/real/hits.json",
+    "work/build20/proofs/receipts/hits.json",
+    "work/build20/proofs/producer_edges/hits.json",
+    "work/build20/proofs/job_mutations/run/hits.json",
+    "work/build20/proofs/final/packet/coverage/hits.json"
+  ],
+  "job_library": {
+    "file": "work/build20/joblib.py",
+    "sha256": "b26d82bb2157c53a588da44e1085f422b29a5d856a6fa5e4271aaf180ee659e7",
+    "total": 319,
+    "observed": 273,
+    "statements": [
+      {
+        "line": 2,
+        "observed": true
+      },
+      {
+        "line": 3,
+        "observed": true
+      },
+      {
+        "line": 5,
+        "observed": true
+      },
+      {
+        "line": 11,
+        "observed": true
+      },
+      {
+        "line": 19,
+        "observed": true
+      },
+      {
+        "line": 24,
+        "observed": true
+      },
+      {
+        "line": 30,
+        "observed": true
+      },
+      {
+        "line": 37,
+        "observed": true
+      },
+      {
+        "line": 42,
+        "observed": true
+      },
+      {
+        "line": 49,
+        "observed": true
+      },
+      {
+        "line": 71,
+        "observed": true
+      },
+      {
+        "line": 141,
+        "observed": true
+      },
+      {
+        "line": 155,
+        "observed": true
+      },
+      {
+        "line": 201,
+        "observed": true
+      },
+      {
+        "line": 203,
+        "observed": true
+      },
+      {
+        "line": 218,
+        "observed": true
+      },
+      {
+        "line": 6,
+        "observed": true
+      },
+      {
+        "line": 7,
+        "observed": true
+      },
+      {
+        "line": 9,
+        "observed": true
+      },
+      {
+        "line": 12,
+        "observed": true
+      },
+      {
+        "line": 13,
+        "observed": true
+      },
+      {
+        "line": 17,
+        "observed": true
+      },
+      {
+        "line": 20,
+        "observed": true
+      },
+      {
+        "line": 20,
+        "observed": true
+      },
+      {
+        "line": 21,
+        "observed": true
+      },
+      {
+        "line": 22,
+        "observed": true
+      },
+      {
+        "line": 25,
+        "observed": true
+      },
+      {
+        "line": 26,
+        "observed": true
+      },
+      {
+        "line": 28,
+        "observed": true
+      },
+      {
+        "line": 31,
+        "observed": true
+      },
+      {
+        "line": 32,
+        "observed": true
+      },
+      {
+        "line": 33,
+        "observed": true
+      },
+      {
+        "line": 34,
+        "observed": true
+      },
+      {
+        "line": 35,
+        "observed": true
+      },
+      {
+        "line": 38,
+        "observed": true
+      },
+      {
+        "line": 39,
+        "observed": true
+      },
+      {
+        "line": 40,
+        "observed": true
+      },
+      {
+        "line": 43,
+        "observed": true
+      },
+      {
+        "line": 44,
+        "observed": true
+      },
+      {
+        "line": 45,
+        "observed": true
+      },
+      {
+        "line": 46,
+        "observed": true
+      },
+      {
+        "line": 47,
+        "observed": true
+      },
+      {
+        "line": 50,
+        "observed": true
+      },
+      {
+        "line": 50,
+        "observed": true
+      },
+      {
+        "line": 51,
+        "observed": true
+      },
+      {
+        "line": 69,
+        "observed": true
+      },
+      {
+        "line": 72,
+        "observed": true
+      },
+      {
+        "line": 72,
+        "observed": true
+      },
+      {
+        "line": 72,
+        "observed": true
+      },
+      {
+        "line": 72,
+        "observed": true
+      },
+      {
+        "line": 73,
+        "observed": true
+      },
+      {
+        "line": 73,
+        "observed": true
+      },
+      {
+        "line": 73,
+        "observed": true
+      },
+      {
+        "line": 74,
+        "observed": true
+      },
+      {
+        "line": 75,
+        "observed": true
+      },
+      {
+        "line": 77,
+        "observed": true
+      },
+      {
+        "line": 78,
+        "observed": true
+      },
+      {
+        "line": 79,
+        "observed": true
+      },
+      {
+        "line": 79,
+        "observed": true
+      },
+      {
+        "line": 80,
+        "observed": true
+      },
+      {
+        "line": 82,
+        "observed": true
+      },
+      {
+        "line": 84,
+        "observed": true
+      },
+      {
+        "line": 85,
+        "observed": true
+      },
+      {
+        "line": 85,
+        "observed": true
+      },
+      {
+        "line": 86,
+        "observed": true
+      },
+      {
+        "line": 87,
+        "observed": true
+      },
+      {
+        "line": 88,
+        "observed": true
+      },
+      {
+        "line": 89,
+        "observed": true
+      },
+      {
+        "line": 90,
+        "observed": true
+      },
+      {
+        "line": 91,
+        "observed": true
+      },
+      {
+        "line": 91,
+        "observed": true
+      },
+      {
+        "line": 91,
+        "observed": true
+      },
+      {
+        "line": 92,
+        "observed": true
+      },
+      {
+        "line": 93,
+        "observed": true
+      },
+      {
+        "line": 93,
+        "observed": true
+      },
+      {
+        "line": 93,
+        "observed": true
+      },
+      {
+        "line": 94,
+        "observed": true
+      },
+      {
+        "line": 100,
+        "observed": true
+      },
+      {
+        "line": 101,
+        "observed": true
+      },
+      {
+        "line": 101,
+        "observed": true
+      },
+      {
+        "line": 102,
+        "observed": true
+      },
+      {
+        "line": 102,
+        "observed": true
+      },
+      {
+        "line": 103,
+        "observed": true
+      },
+      {
+        "line": 103,
+        "observed": true
+      },
+      {
+        "line": 104,
+        "observed": true
+      },
+      {
+        "line": 104,
+        "observed": true
+      },
+      {
+        "line": 105,
+        "observed": true
+      },
+      {
+        "line": 108,
+        "observed": true
+      },
+      {
+        "line": 109,
+        "observed": true
+      },
+      {
+        "line": 109,
+        "observed": true
+      },
+      {
+        "line": 110,
+        "observed": true
+      },
+      {
+        "line": 111,
+        "observed": true
+      },
+      {
+        "line": 114,
+        "observed": true
+      },
+      {
+        "line": 120,
+        "observed": true
+      },
+      {
+        "line": 121,
+        "observed": true
+      },
+      {
+        "line": 125,
+        "observed": true
+      },
+      {
+        "line": 126,
+        "observed": true
+      },
+      {
+        "line": 127,
+        "observed": true
+      },
+      {
+        "line": 127,
+        "observed": true
+      },
+      {
+        "line": 128,
+        "observed": true
+      },
+      {
+        "line": 129,
+        "observed": true
+      },
+      {
+        "line": 130,
+        "observed": true
+      },
+      {
+        "line": 131,
+        "observed": true
+      },
+      {
+        "line": 138,
+        "observed": true
+      },
+      {
+        "line": 139,
+        "observed": true
+      },
+      {
+        "line": 142,
+        "observed": true
+      },
+      {
+        "line": 143,
+        "observed": true
+      },
+      {
+        "line": 156,
+        "observed": true
+      },
+      {
+        "line": 156,
+        "observed": true
+      },
+      {
+        "line": 156,
+        "observed": true
+      },
+      {
+        "line": 157,
+        "observed": true
+      },
+      {
+        "line": 158,
+        "observed": true
+      },
+      {
+        "line": 158,
+        "observed": true
+      },
+      {
+        "line": 158,
+        "observed": true
+      },
+      {
+        "line": 159,
+        "observed": true
+      },
+      {
+        "line": 159,
+        "observed": true
+      },
+      {
+        "line": 160,
+        "observed": true
+      },
+      {
+        "line": 165,
+        "observed": true
+      },
+      {
+        "line": 165,
+        "observed": true
+      },
+      {
+        "line": 166,
+        "observed": true
+      },
+      {
+        "line": 170,
+        "observed": true
+      },
+      {
+        "line": 173,
+        "observed": true
+      },
+      {
+        "line": 173,
+        "observed": true
+      },
+      {
+        "line": 174,
+        "observed": true
+      },
+      {
+        "line": 175,
+        "observed": true
+      },
+      {
+        "line": 176,
+        "observed": true
+      },
+      {
+        "line": 177,
+        "observed": true
+      },
+      {
+        "line": 177,
+        "observed": true
+      },
+      {
+        "line": 177,
+        "observed": true
+      },
+      {
+        "line": 178,
+        "observed": true
+      },
+      {
+        "line": 185,
+        "observed": true
+      },
+      {
+        "line": 186,
+        "observed": true
+      },
+      {
+        "line": 187,
+        "observed": true
+      },
+      {
+        "line": 188,
+        "observed": true
+      },
+      {
+        "line": 189,
+        "observed": true
+      },
+      {
+        "line": 194,
+        "observed": true
+      },
+      {
+        "line": 194,
+        "observed": true
+      },
+      {
+        "line": 195,
+        "observed": true
+      },
+      {
+        "line": 195,
+        "observed": true
+      },
+      {
+        "line": 196,
+        "observed": true
+      },
+      {
+        "line": 196,
+        "observed": true
+      },
+      {
+        "line": 197,
+        "observed": true
+      },
+      {
+        "line": 198,
+        "observed": true
+      },
+      {
+        "line": 199,
+        "observed": true
+      },
+      {
+        "line": 201,
+        "observed": true
+      },
+      {
+        "line": 204,
+        "observed": false
+      },
+      {
+        "line": 204,
+        "observed": false
+      },
+      {
+        "line": 204,
+        "observed": false
+      },
+      {
+        "line": 204,
+        "observed": false
+      },
+      {
+        "line": 205,
+        "observed": false
+      },
+      {
+        "line": 205,
+        "observed": false
+      },
+      {
+        "line": 206,
+        "observed": false
+      },
+      {
+        "line": 206,
+        "observed": false
+      },
+      {
+        "line": 207,
+        "observed": false
+      },
+      {
+        "line": 211,
+        "observed": false
+      },
+      {
+        "line": 212,
+        "observed": false
+      },
+      {
+        "line": 213,
+        "observed": false
+      },
+      {
+        "line": 214,
+        "observed": false
+      },
+      {
+        "line": 215,
+        "observed": false
+      },
+      {
+        "line": 216,
+        "observed": false
+      },
+      {
+        "line": 219,
+        "observed": true
+      },
+      {
+        "line": 220,
+        "observed": true
+      },
+      {
+        "line": 221,
+        "observed": true
+      },
+      {
+        "line": 222,
+        "observed": true
+      },
+      {
+        "line": 223,
+        "observed": true
+      },
+      {
+        "line": 224,
+        "observed": true
+      },
+      {
+        "line": 224,
+        "observed": true
+      },
+      {
+        "line": 225,
+        "observed": true
+      },
+      {
+        "line": 226,
+        "observed": true
+      },
+      {
+        "line": 242,
+        "observed": true
+      },
+      {
+        "line": 243,
+        "observed": true
+      },
+      {
+        "line": 8,
+        "observed": true
+      },
+      {
+        "line": 14,
+        "observed": true
+      },
+      {
+        "line": 15,
+        "observed": true
+      },
+      {
+        "line": 16,
+        "observed": true
+      },
+      {
+        "line": 27,
+        "observed": true
+      },
+      {
+        "line": 32,
+        "observed": true
+      },
+      {
+        "line": 34,
+        "observed": true
+      },
+      {
+        "line": 39,
+        "observed": true
+      },
+      {
+        "line": 46,
+        "observed": true
+      },
+      {
+        "line": 52,
+        "observed": true
+      },
+      {
+        "line": 53,
+        "observed": true
+      },
+      {
+        "line": 54,
+        "observed": true
+      },
+      {
+        "line": 55,
+        "observed": true
+      },
+      {
+        "line": 57,
+        "observed": true
+      },
+      {
+        "line": 58,
+        "observed": true
+      },
+      {
+        "line": 68,
+        "observed": true
+      },
+      {
+        "line": 74,
+        "observed": true
+      },
+      {
+        "line": 76,
+        "observed": true
+      },
+      {
+        "line": 78,
+        "observed": true
+      },
+      {
+        "line": 81,
+        "observed": true
+      },
+      {
+        "line": 83,
+        "observed": true
+      },
+      {
+        "line": 86,
+        "observed": true
+      },
+      {
+        "line": 87,
+        "observed": true
+      },
+      {
+        "line": 88,
+        "observed": true
+      },
+      {
+        "line": 90,
+        "observed": true
+      },
+      {
+        "line": 92,
+        "observed": true
+      },
+      {
+        "line": 95,
+        "observed": true
+      },
+      {
+        "line": 95,
+        "observed": true
+      },
+      {
+        "line": 95,
+        "observed": true
+      },
+      {
+        "line": 96,
+        "observed": true
+      },
+      {
+        "line": 98,
+        "observed": true
+      },
+      {
+        "line": 99,
+        "observed": true
+      },
+      {
+        "line": 99,
+        "observed": true
+      },
+      {
+        "line": 100,
+        "observed": true
+      },
+      {
+        "line": 122,
+        "observed": true
+      },
+      {
+        "line": 123,
+        "observed": true
+      },
+      {
+        "line": 125,
+        "observed": true
+      },
+      {
+        "line": 128,
+        "observed": true
+      },
+      {
+        "line": 132,
+        "observed": true
+      },
+      {
+        "line": 142,
+        "observed": true
+      },
+      {
+        "line": 142,
+        "observed": true
+      },
+      {
+        "line": 142,
+        "observed": true
+      },
+      {
+        "line": 142,
+        "observed": true
+      },
+      {
+        "line": 144,
+        "observed": true
+      },
+      {
+        "line": 145,
+        "observed": true
+      },
+      {
+        "line": 146,
+        "observed": true
+      },
+      {
+        "line": 153,
+        "observed": true
+      },
+      {
+        "line": 157,
+        "observed": true
+      },
+      {
+        "line": 161,
+        "observed": true
+      },
+      {
+        "line": 167,
+        "observed": false
+      },
+      {
+        "line": 168,
+        "observed": false
+      },
+      {
+        "line": 169,
+        "observed": false
+      },
+      {
+        "line": 171,
+        "observed": false
+      },
+      {
+        "line": 172,
+        "observed": false
+      },
+      {
+        "line": 175,
+        "observed": true
+      },
+      {
+        "line": 176,
+        "observed": true
+      },
+      {
+        "line": 179,
+        "observed": true
+      },
+      {
+        "line": 185,
+        "observed": true
+      },
+      {
+        "line": 186,
+        "observed": true
+      },
+      {
+        "line": 190,
+        "observed": true
+      },
+      {
+        "line": 191,
+        "observed": true
+      },
+      {
+        "line": 208,
+        "observed": false
+      },
+      {
+        "line": 209,
+        "observed": false
+      },
+      {
+        "line": 209,
+        "observed": false
+      },
+      {
+        "line": 210,
+        "observed": false
+      },
+      {
+        "line": 210,
+        "observed": false
+      },
+      {
+        "line": 212,
+        "observed": false
+      },
+      {
+        "line": 227,
+        "observed": true
+      },
+      {
+        "line": 228,
+        "observed": true
+      },
+      {
+        "line": 233,
+        "observed": true
+      },
+      {
+        "line": 234,
+        "observed": true
+      },
+      {
+        "line": 242,
+        "observed": true
+      },
+      {
+        "line": 8,
+        "observed": true
+      },
+      {
+        "line": 15,
+        "observed": true
+      },
+      {
+        "line": 53,
+        "observed": true
+      },
+      {
+        "line": 56,
+        "observed": false
+      },
+      {
+        "line": 59,
+        "observed": true
+      },
+      {
+        "line": 59,
+        "observed": true
+      },
+      {
+        "line": 60,
+        "observed": true
+      },
+      {
+        "line": 61,
+        "observed": true
+      },
+      {
+        "line": 63,
+        "observed": true
+      },
+      {
+        "line": 64,
+        "observed": true
+      },
+      {
+        "line": 65,
+        "observed": true
+      },
+      {
+        "line": 66,
+        "observed": true
+      },
+      {
+        "line": 67,
+        "observed": true
+      },
+      {
+        "line": 68,
+        "observed": true
+      },
+      {
+        "line": 83,
+        "observed": true
+      },
+      {
+        "line": 97,
+        "observed": true
+      },
+      {
+        "line": 98,
+        "observed": true
+      },
+      {
+        "line": 133,
+        "observed": false
+      },
+      {
+        "line": 134,
+        "observed": false
+      },
+      {
+        "line": 134,
+        "observed": false
+      },
+      {
+        "line": 134,
+        "observed": false
+      },
+      {
+        "line": 135,
+        "observed": false
+      },
+      {
+        "line": 136,
+        "observed": false
+      },
+      {
+        "line": 137,
+        "observed": false
+      },
+      {
+        "line": 144,
+        "observed": true
+      },
+      {
+        "line": 147,
+        "observed": true
+      },
+      {
+        "line": 150,
+        "observed": true
+      },
+      {
+        "line": 151,
+        "observed": true
+      },
+      {
+        "line": 152,
+        "observed": true
+      },
+      {
+        "line": 152,
+        "observed": true
+      },
+      {
+        "line": 152,
+        "observed": true
+      },
+      {
+        "line": 162,
+        "observed": true
+      },
+      {
+        "line": 163,
+        "observed": true
+      },
+      {
+        "line": 164,
+        "observed": true
+      },
+      {
+        "line": 169,
+        "observed": false
+      },
+      {
+        "line": 172,
+        "observed": false
+      },
+      {
+        "line": 180,
+        "observed": true
+      },
+      {
+        "line": 183,
+        "observed": true
+      },
+      {
+        "line": 183,
+        "observed": true
+      },
+      {
+        "line": 184,
+        "observed": true
+      },
+      {
+        "line": 192,
+        "observed": true
+      },
+      {
+        "line": 193,
+        "observed": true
+      },
+      {
+        "line": 229,
+        "observed": false
+      },
+      {
+        "line": 232,
+        "observed": false
+      },
+      {
+        "line": 235,
+        "observed": true
+      },
+      {
+        "line": 62,
+        "observed": false
+      },
+      {
+        "line": 65,
+        "observed": true
+      },
+      {
+        "line": 67,
+        "observed": true
+      },
+      {
+        "line": 97,
+        "observed": true
+      },
+      {
+        "line": 97,
+        "observed": true
+      },
+      {
+        "line": 97,
+        "observed": true
+      },
+      {
+        "line": 133,
+        "observed": false
+      },
+      {
+        "line": 148,
+        "observed": true
+      },
+      {
+        "line": 151,
+        "observed": true
+      },
+      {
+        "line": 151,
+        "observed": true
+      },
+      {
+        "line": 151,
+        "observed": true
+      },
+      {
+        "line": 163,
+        "observed": true
+      },
+      {
+        "line": 181,
+        "observed": false
+      },
+      {
+        "line": 182,
+        "observed": false
+      },
+      {
+        "line": 184,
+        "observed": true
+      },
+      {
+        "line": 192,
+        "observed": true
+      },
+      {
+        "line": 230,
+        "observed": false
+      },
+      {
+        "line": 231,
+        "observed": false
+      },
+      {
+        "line": 236,
+        "observed": true
+      },
+      {
+        "line": 236,
+        "observed": true
+      },
+      {
+        "line": 237,
+        "observed": true
+      },
+      {
+        "line": 238,
+        "observed": true
+      },
+      {
+        "line": 239,
+        "observed": true
+      },
+      {
+        "line": 240,
+        "observed": true
+      },
+      {
+        "line": 240,
+        "observed": true
+      },
+      {
+        "line": 241,
+        "observed": true
+      },
+      {
+        "line": 148,
+        "observed": true
+      },
+      {
+        "line": 181,
+        "observed": false
+      },
+      {
+        "line": 230,
+        "observed": false
+      },
+      {
+        "line": 241,
+        "observed": true
+      },
+      {
+        "line": 149,
+        "observed": true
+      }
+    ]
+  }
+}

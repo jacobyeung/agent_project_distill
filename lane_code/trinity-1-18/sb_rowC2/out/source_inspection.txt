@@ -1,0 +1,84 @@
+extracted 17879 removal_ids 17879 kinds Counter({"('b12_cntapp_gt_v1', 'total')": 7962, "('r1g', None)": 6636, "('b12_cntapp_gt_v1', 'single')": 2042, "('rows_rebuild_d0_ARKIT_gaps', None)": 363, "('rows_rebuild_d0_T1H1_gaps', None)": 307, "('rows_rebuild_d0_T0_gaps', None)": 290, "('rows_rebuild_d0_T1H2_gaps', None)": 279})
+
+EXAMPLE ('r1g', None) KEYS ['answer', 'benchmark_improvement_claim', 'benchmark_trained_diagnostic', 'category', 'dataset', 'generation_commit', 'infrastructure_only', 'license', 'pool', 'provenance', 'provisional_diagnostic', 'qid', 'question_type', 'result_status', 'scene', 'score_nomination_allowed', 'student_input', 'target', 'validation_commit', 'retrace', 'retrace_a2']
+Q How many dish soap bottle(s) do we have in this room?
+T <think>
+Step 1: list each distinct dish soap bottle once, by the frame where it first appears: frame 7; frame 17.
+So the count is 2.
+</think>
+
+2
+PROV {'frame_map_sha256': '17aa3e9eb8f5757b6121b60e753e42b0b80e73b18c03ca678859349e25d51ec3', 'frame_store': 'k6tk', 'generation_commit': 'a2e3478432e7e1c8da0e4cd72205d1caa8020ce0', 'gt_kind': 'gt_canonical_trace', 'source': '/scratch/jjyeung/orch_cd/weak_data/inputs/P1C_ROWS.jsonl.gz', 'source_kind': 'weak_data_canonical_trace_pack', 'view_labels': 'p1c_u_view_times_to_frame_numbers'}
+
+EXAMPLE ('rows_rebuild_d0_T0_gaps', None) KEYS ['answer', 'benchmark_improvement_claim', 'benchmark_trained_diagnostic', 'category', 'dataset', 'generation_commit', 'infrastructure_only', 'license', 'pool', 'provenance', 'provisional_diagnostic', 'qid', 'question_type', 'result_status', 'scene', 'score_nomination_allowed', 'validation_commit', 'student_input', 'target', 'count_kind', 'count_arity']
+Q Count the ceiling lamp(s) and table(s) and trash can(s) in this room together. How many are there in total?
+T <think>
+Step 1: list each distinct ceiling lamp once, by the frame where it first appears: frame 13; frame 24.
+Step 2: list each distinct table once, by the frame where it first appears: frame 1; frame 1.
+Step 3: list each distinct trash can once, by the frame where it first appears: frame 4; frame 4.
+Step 4: add them: 2 + 2 = 4; 4 + 2 = 6.
+So there are 6 in total.
+</think>
+
+6
+PROV {'source': '/scratch/jjyeung/orch_n30/rows_rebuild/work/pull/pool/7a1c59097139f59d.jsonl.gz', 'source_qid': 'total3_390809cc29f32be31328650b', 'source_set': 'T0_gaps', 'view_labels': 'frame_numbers', 'total_categories': [{'name': 'ceiling lamp', 'ids': [47, 48], 'frames': [13, 24]}, {'name': 'table', 'ids': [10, 42], 'frames': [1, 1]}, {'name': 'trash can', 'ids': [11, 34], 'frames': [4, 4]}], 'component_qids': ['vsi590k_170492', 'vsi590k_170493', 'vsi590k_170495']}
+
+EXAMPLE ('rows_rebuild_d0_T1H1_gaps', None) KEYS ['answer', 'benchmark_improvement_claim', 'benchmark_trained_diagnostic', 'category', 'dataset', 'generation_commit', 'infrastructure_only', 'license', 'pool', 'provenance', 'provisional_diagnostic', 'qid', 'question_type', 'result_status', 'scene', 'score_nomination_allowed', 'validation_commit', 'student_input', 'target', 'count_kind', 'count_arity']
+Q Count the door(s) and shoes(s) and table(s) in this room together. How many are there in total?
+T <think>
+Step 1: find each distinct door, using its first-seen frame: frame 17; frame 17.
+Step 2: find each distinct shoes, using its first-seen frame: frame 24; frame 24; frame 24.
+Step 3: list the distinct table instances by first appearance: frame 5; frame 23.
+Step 4: add them: 2 + 3 = 5; 5 + 2 = 7.
+So there are 7 in total.
+</think>
+
+7
+PROV {'source': '/scratch/jjyeung/orch_n30/rows_rebuild/work/pull/pool/b6ac18d55d697a23.jsonl.gz', 'source_qid': 'total3_e0e4b1640e7fa1ffdc4820ee', 'source_set': 'T1H1_gaps', 'view_labels': 'frame_numbers', 'total_categories': [{'name': 'door', 'ids': [19, 74], 'frames': [17, 17]}, {'name': 'shoes', 'ids': [23, 25, 26], 'frames': [24, 24, 24]}, {'name': 'table', 'ids': [22, 110], 'frames': [5, 23]}], 'component_qids': ['vsi590k_171613', 'vsi590k_171615', 'vsi590k_171614']}
+
+EXAMPLE ('rows_rebuild_d0_T1H2_gaps', None) KEYS ['answer', 'benchmark_improvement_claim', 'benchmark_trained_diagnostic', 'category', 'dataset', 'generation_commit', 'infrastructure_only', 'license', 'pool', 'provenance', 'provisional_diagnostic', 'qid', 'question_type', 'result_status', 'scene', 'score_nomination_allowed', 'validation_commit', 'student_input', 'target', 'count_kind', 'count_arity']
+Q How many sofa(s) and whiteboard(s) are in this room in total?
+T <think>
+Step 1: list each distinct sofa once, by the frame where it first appears: frame 1; frame 1; frame 1; frame 2; frame 3.
+Step 2: locate each distinct whiteboard at its first appearance: frame 1; frame 1; frame 1; frame 1; frame 2; frame 8; frame 8; frame 22.
+Step 3: add them: 5 + 8 = 13.
+So there are 13 in total.
+</think>
+
+13
+PROV {'source': '/scratch/jjyeung/orch_n30/rows_rebuild/work/pull/pool/9bf0518db09a07d8.jsonl.gz', 'source_qid': 'vsi590k_180413', 'source_set': 'T1H2_gaps', 'view_labels': 'frame_numbers', 'total_categories': [{'name': 'sofa', 'ids': [14, 15, 16, 32, 98], 'frames': [1, 1, 1, 2, 3]}, {'name': 'whiteboard', 'ids': [20, 21, 22, 29, 36, 43, 44, 45], 'frames': [1, 1, 1, 1, 2, 8, 8, 22]}], 'component_qids': ['vsi590k_180413']}
+
+EXAMPLE ('rows_rebuild_d0_ARKIT_gaps', None) KEYS ['answer', 'benchmark_improvement_claim', 'benchmark_trained_diagnostic', 'category', 'dataset', 'generation_commit', 'head_program', 'infrastructure_only', 'license', 'pool', 'provenance', 'provisional_diagnostic', 'qid', 'question_type', 'result_status', 'scene', 'score_nomination_allowed', 'validation_commit', 'student_input', 'target', 'count_kind', 'count_arity']
+Q How many objects are there altogether among the chair(s) and sofa(s) in this room?
+T <think>
+Step 1: list each distinct chair once, by the frame where it first appears: frame 14; frame 16; frame 16; frame 16.
+Step 2: list the distinct sofa instances by first appearance: frame 2; frame 16; frame 18.
+Step 3: add them: 4 + 3 = 7.
+So there are 7 in total.
+</think>
+
+7
+PROV {'source': '/scratch/jjyeung/orch_n30/rows_rebuild/work/pull/pool/6053fd47c70c0b25.jsonl.gz', 'source_qid': 'vsi590k_270971', 'source_set': 'ARKIT_gaps', 'view_labels': 'frame_numbers', 'total_categories': [{'name': 'chair', 'ids': [13, 14, 15, 16], 'frames': [14, 16, 16, 16]}, {'name': 'sofa', 'ids': [17, 18, 19], 'frames': [2, 16, 18]}], 'component_qids': ['vsi590k_270971']}
+
+EXAMPLE ('b12_cntapp_gt_v1', 'single') KEYS ['answer', 'benchmark_improvement_claim', 'benchmark_trained_diagnostic', 'category', 'dataset', 'generation_commit', 'infrastructure_only', 'license', 'pool', 'provenance', 'provisional_diagnostic', 'qid', 'question_type', 'result_status', 'scene', 'score_nomination_allowed', 'student_input', 'target', 'validation_commit']
+Q Count the pillow(s) in this room. How many are there?
+T <think>
+Step 1: list each distinct pillow once, by the frame where it first appears: frame 1 (left); frame 1 (left).
+So there are 2 in all.
+</think>
+
+2
+PROV {'canonical': 'scannet/scene0262_01', 'count_kind': 'single', 'frame_map_sha256': '17aa3e9eb8f5757b6121b60e753e42b0b80e73b18c03ca678859349e25d51ec3', 'frame_store': 'k6tk', 'generator_sha256': 'e3f3838f622d68d0761ca8b4d4df434158217d9eb6b074325c2ae3bd4b86f884', 'gtvis_sha256': 'e43e96764917ebbd3cc3be0a92d297d33d0fffd5d4a1a19baba795e0a58a2a2e', 'instances': [{'frame': 1, 'id': 8, 'region': 'left', 'share': 0.0041}, {'frame': 1, 'id': 33, 'region': 'left', 'share': 0.00954}], 'onset_eps': 0.0005, 'raster': 'scannet__scene0262_01.npz', 'raster_sha256': 'fb7b084cfaea729e4989bf72f65da95b7078ef2b932421717168ab266309cb31', 'source': 'b12_cntapp gt raster', 'view_labels': 'frame_numbers', 'visibility_floor': 0.002}
+
+EXAMPLE ('b12_cntapp_gt_v1', 'total') KEYS ['answer', 'benchmark_improvement_claim', 'benchmark_trained_diagnostic', 'category', 'count_arity', 'count_kind', 'dataset', 'generation_commit', 'infrastructure_only', 'license', 'pool', 'provenance', 'provisional_diagnostic', 'qid', 'question_type', 'result_status', 'scene', 'score_nomination_allowed', 'student_input', 'target', 'validation_commit']
+Q How many objects are there altogether among the monitor(s) and plant(s) and whiteboard eraser(s) in this room?
+T <think>
+Step 1: find each distinct monitor, using its first-seen frame: frame 1 (right).
+Step 2: find each distinct plant, using its first-seen frame: frame 1 (middle); frame 1 (right); frame 10 (left); frame 10 (left); frame 10 (middle).
+Step 3: list each distinct whiteboard eraser once, by the frame where it first appears: frame 26 (right).
+Step 4: add them: 1 + 5 = 6; 6 + 1 = 7.
+So there are 7 in total.
+</think>
+
+7
+PROV {'canonical': 'scannet/scene0262_01', 'count_kind': 'total', 'frame_map_sha256': '17aa3e9eb8f5757b6121b60e753e42b0b80e73b18c03ca678859349e25d51ec3', 'frame_store': 'k6tk', 'generator_sha256': 'e3f3838f622d68d0761ca8b4d4df434158217d9eb6b074325c2ae3bd4b86f884', 'gtvis_sha256': 'e43e96764917ebbd3cc3be0a92d297d33d0fffd5d4a1a19baba795e0a58a2a2e', 'onset_eps': 0.0005, 'raster': 'scannet__scene0262_01.npz', 'raster_sha256': 'fb7b084cfaea729e4989bf72f65da95b7078ef2b932421717168ab266309cb31', 'source': 'b12_cntapp gt raster', 'total_categories': [{'frames': [1], 'ids': [17], 'name': 'monitor'}, {'frames': [10, 10, 10, 1, 1], 'ids': [12, 13, 14, 22, 30], 'name': 'plant'}, {'frames': [26], 'ids': [4], 'name': 'whiteboard eraser'}], 'view_labels': 'frame_numbers', 'visibility_floor': 0.002}

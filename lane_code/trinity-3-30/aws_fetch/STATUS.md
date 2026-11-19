@@ -1,0 +1,10 @@
+# aws_fetch STATUS (trinity-3-30; lane start 04:27Z)
+- Part 1 DONE (RESULT 0442Z). AWS ap/ and split/ are gone; AWS ssh master closed (ORCH 0445Z: Part 3 closed).
+- Part 2 DONE (RESULT 0457Z, copied to events/swarm_build/). 13 sources sha-matched; table out/SOURCES_13.tsv; files in sources/ (here), events/aws_fetch/sources/aws_fetch_sources_v2.tar (fa7b876f), trinity-1-18 sb_evidence/aws_sources/.
+- Orchard-only rt_* sets (5, 5.14 GB) uploaded Orchard->GCS q10/ae3b362c/ via session URIs minted on 3-30; md5 equal to Orchard job 172920 md5 (ledger work/ORCHARD_LEDGER.jsonl). DATA_MAP.md section appended. Governed relay record aws_fetch_r16 cancelled unused (streams/aws_fetch_r16.cancelled.1795064104).
+- Mind jobs: 847538 (stores 8-11 extracted to aws_evac/d/w19/evid/, scene files), 847541 (pins2: 8 prepared/* + 3 readout pins, all sha = pins), 847586 (sha256 of Mind gcs_evac_20261111/wave4/oc29/w/sam3.pt, running), 847590 (tar listing, done).
+- Further pins (swarm_build 0454Z): all 8 found and shipped in aws_fetch_sources_v3.tar (1351dac5) and 1-18 aws_sources (sha -c 16 OK). G3T: Orchard cache/hf/hub/models--thatbrguy--g3t rev c55e91a0, config.json 5aeb2acd (hashed), model.safetensors blob name d460957b... (HF content address, not re-hashed, 5,627,166,200 B). SAM3: candidate Mind wave4/oc29/w/sam3.pt + GCS oc29/w/sam3.pt (3,450,062,241 B), hash pending.
+- Removal candidate: REMOVAL_CANDIDATES.md (empty .part on Mind).
+- 05:09Z RESULT further pins (all found; SAM3 9999e234 hashed on Mind). 05:12Z RESULT camera rows: 35,423 rows (14,020/9,143/12,260) gz 9e6aa2bd on 1-18 aws_sources. Design record distill_design/COMPONENT_EVIDENCE_SOURCES_OFF_AWS_20261119.md + INDEX line.
+- Open: Mind copy of GCS q10/ae3b362c (5 objects, 5.14 GB) not made (mover's job unless ORCH asks). Three false-positive guard entries from this lane sit in PENDING_USER_COMMANDS.md (no file needs removing).
+- State: all owed work delivered; lane idle, waiting for ORCH/swarm_build events.

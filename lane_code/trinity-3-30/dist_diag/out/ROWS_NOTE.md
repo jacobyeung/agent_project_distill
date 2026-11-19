@@ -1,19 +1,25 @@
-# ROWS_NOTE: coverage rows v1 for vehicle N (dist_diag, 2026-11-19; ORCH ORDER 0351Z)
-- Purpose: routed rows for the 15 dev-S1 absolute-distance wordings whose step-200 call rate is under 90% and that no routed row covers. Every routed row in P, N and the A0 pool uses one wording; the coverage table is `work/q5/COVERAGE.md`. R0-dev's 290 items all use that routed wording, so none is named. No unit is named on N, which binds cm 2,588, in 2,583, ft 2,634 and m 7,805 rows.
-- Rows: 6,000, that is 15 wordings x 4 units (m, ft, in, cm) x 100. Each row copies one bound N row (same scene, objects, frames, calls, printed responses, ground truth, trace and answer) and rewords only the question. Its qid is the source qid plus `_ddNN`, where NN is the wording id. Each source row is used once. Sources are drawn by lowest sha256('dist_diag|cov|'+qid) within the unit, from the build-16 membership (bound rows only, which excludes the s.json K1 list and the 510 eval-room refusals). The rows inherit their source rooms.
-- Files (raw on trinity-1-18:/scratch/jjyeung/n30_mirror/dist_diag/coverage_v1/; gz copies in `events/dist_diag/COVERAGE_V1_PUB.tar` 6118e06a):
-  - `COVERAGE_UNITS_V1.jsonl`: 4,500 rows (ft/in/cm) in the units slice format (aa1432cd), 56,543,007 B, sha256 03a66cc76bf9f133cf272f18959d3e1b35bde669619e7ce3b461ca5546c4d6a0 (gz a03c8e09).
-  - `COVERAGE_DISTANCE_V1.jsonl`: 1,500 metre rows in the distance slice format (aedd3b54), 10,479,272 B, sha256 68e73f2350375c49661282997da8877be992ffdae460252859239cb7e0250937 (gz 4d6b5ee7).
-  - Generator `coverage_rows.py` 7d8d0aa1; wordings `TEMPLATES_V1.json` 87d26d0c; `SUMMARY.json` b5bbd9fd; sources `COVERAGE_SOURCES_V1.jsonl.gz` 9cfded92. Trace forms: non-metre rows call ground, ground, gap, print the gap, write "Converting to <unit>: g x F = y", and answer y; metre rows answer the printed gap.
-- Checks, all passing:
-  - Conversion recomputed from the printed gap (factor 100 / 3.28084 / 39.3701, ROUND_HALF_UP to 1 cm or 0.01 ft/in, unit word equals the question's and the record's): 4,500 of 4,500.
-  - Metre answer equals the printed gap, with no conversion line: 1,500 of 1,500.
-  - N kit validator (native `ground_rows.pack` + `ground_rows.validate` of tree_r1; distance rows rebuild their events from the suffix first): 6,000 of 6,000 rows and 6,000 of 6,000 sources, on trinity-1-18 (build-18 tree) and again on trinity-3-30 (build-17 mirror tree).
-  - Field diff against the source: only qid, question, ground_record.qid/question/question_identity and one provenance edit record differ, on 6,000 of 6,000 (`work/q5/check_cov.py`, CHECK_COV_V1.json).
-  - Wording equals the wording template filled with the source's own objects and unit: 6,000 of 6,000. qids are unique.
-- I read 30 rows, two per wording, spread over the four units (`READ30.txt`); all read correctly. Examples: "How many inches separate the closest points of the telephone and the bed?" -> gap 1.54 m, "1.54 x 39.3701 = 60.63", answer 60.63; "Calculate the minimal span from the monitor to the blanket using their closest points, in centimeters." -> 0.77 m -> 77; "In meters, what's the smallest distance between the bookshelf and the telephone using their closest points?" -> 1.43.
-- Recovery (item 4): all 760 bound recovery rows open with a ground call and show the failed status ("not seen" or "box unavailable") before the answer. All 760 say "I do not call it again", none calls gap, and none answers without a call line, so none has to be listed. They teach the ending, an answer with no measurement, but never the skip.
+# ROWS_NOTE: coverage rows v2 for vehicle N (dist_diag, 2026-11-19; ORCH ORDER 0351Z; Codex review V1 fixes applied)
+- Purpose: routed rows for the 15 dev-S1 absolute-distance wordings whose step-200 call rate is under 90%. No routed row covers them, because every routed row in P, N and the A0 pool uses one wording (`COVERAGE.md`). R0-dev's 290 items all use that routed wording, so none is named. No unit is named on N, which binds m 7,805, ft 2,634, in 2,583 and cm 2,588 rows.
+- Rows: 6,000, that is 15 wordings x 4 units (m, ft, in, cm) x 100. Each row copies one bound N row (same scene, objects, frames, calls, printed responses, ground truth, trace and answer) and rewords the question. Its qid is the source qid plus `_ddNN`. Each source is used once. Sources are drawn by lowest sha256('dist_diag|cov|'+qid) within the unit, from build-16's bound membership, which excludes the s.json K1 list and the 510 eval-room refusals. The rows inherit their source rooms.
+- Files (raw on trinity-1-18:/scratch/jjyeung/n30_mirror/dist_diag/coverage_v2/; gz copies in `events/dist_diag/COVERAGE_V2_PUB.tar` d7768990):
+  - `COVERAGE_UNITS_V2.jsonl`: 4,500 ft/in/cm rows in the units slice format, 57,195,507 B, sha256 6f3285fe529595d02661eca9f6e17b56043b36a66b01d384ae8ba84bdcf2452a (gz 0b2ccf96).
+  - `COVERAGE_DISTANCE_V2.jsonl`: 1,500 metre rows in the distance slice format, 10,689,902 B, sha256 95a14b676b43199487a42734f45b609a47c034db4d0f50a2e60d313b3284df10 (gz b170df1a).
+  - Generator `coverage_rows_v2.py` 66b8a42f; `SUMMARY.json` 806b4790; sources 9cfded92.
+  - Trace forms: non-metre rows call ground, ground, gap, print the gap, write "Converting to <unit>: g x F = y", and answer y; metre rows answer the printed gap.
+- Fields edited: qid, question and question_identity. candidate_id is recomputed with the kit's `candidate_identity` formula on the new qid and question: 1,145 rows use the 3.14 variant that reproduces their source's id, and 4,855 rows use a fresh formula id. The units rows carry the same edits in ground_record. One provenance edit record keeps the old question, the source qid and the old candidate_id.
+- Checks (v2 generator asserts plus my independent `check_cov_v2.py`), all passing:
+  - all 60 cells hold exactly 100 rows (a refused row is replaced by the next source), and each source is used once;
+  - conversions recomputed from the printed gap (factor 100 / 3.28084 / 39.3701, ROUND_HALF_UP to 1 cm or 0.01 ft/in, unit word in the question, ground_record.unit present and equal): 4,500/4,500;
+  - metre answer equals the printed gap: 1,500/1,500;
+  - native pack + `ground_rows.validate`: 6,000/6,000 rows and sources, on the build-18 tree (1-18) and the build-17 mirror tree (3-30);
+  - candidate_ids are unique (6,000), none equals a source's, and every one equals the formula;
+  - field diff against the source shows only the edited fields.
+- I read 30 rows (`READ30.txt`), and the Codex review read 60, one per wording and unit; no grammar or referent problem in either. Example: "How many inches separate the closest points of the telephone and the bed?" -> 1.54 m, "1.54 x 39.3701 = 60.63", answer 60.63.
+- Recovery: all 760 bound recovery rows open with a ground call and show the failed status before the answer. 0 call gap and 0 answer without a call line (`RECOVERY_CHECK.json`), so none has to be listed.
+- Codex review V1 (gpt-6-astra high, read-only): GO AFTER FIXES. All four fixes are applied in v2: (1) count and reuse asserts; (2) ground_record.unit required; (3) candidate_id recomputed, where v1 left 879 duplicate excess ids and shared every id with its source; (4) N's unit counts filled in COVERAGE.md.
 - Open for the bind (tree_rebuild11):
-  - The two files are new sources, so they need their own pins and receipts.
-  - Cell: 6,000 rows at the card rule allow at most 24.0 rows per step; suggested 3.0, about 0.75 per unit and 0.2 per wording.
-  - dev-S1 now trains its own wordings, so it no longer measures transfer to unseen wording: report its 150 items as seen-wording, and use ReVSI's distance items as the transfer check.
+  - The two files are new sources, so they need their own pins.
+  - Suggested cell 3.00 (ceiling 24.0).
+  - `shuffled_item` (generation path only, not called by pack or validate) would rewrite the metre wordings back; the kit's paraphrase parser parses none of the 15 wordings (generation path only).
+  - Reading "400 per uncovered template and unit" per cell needs 24,000 rows, which is feasible with at most 3 rewordings per source; v2 meets the 6,000 cap at 400 per wording.
+  - dev-S1 wordings are now trained: report dev-S1 distance as seen-wording and read transfer on ReVSI.

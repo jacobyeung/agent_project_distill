@@ -6,26 +6,53 @@
       "-B",
       "/scratch/jjyeung/orch_n30/sb_callrate/callrate.py",
       "--input-root",
-      "/scratch/jjyeung/orch_n30/sb_callrate/in",
+      "in",
       "--a",
-      "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/ret",
+      "in/cont_ops/work/r1route/out3/A4/ret",
       "--a-step",
       "200",
       "--out",
-      "/scratch/jjyeung/orch_n30/sb_callrate/out/step200"
+      "out/step200",
+      "--summary"
     ],
     [
       "/data2/jjyeung/envs/planner/bin/python",
       "-B",
       "/scratch/jjyeung/orch_n30/sb_callrate/callrate.py",
       "--input-root",
-      "/scratch/jjyeung/orch_n30/sb_callrate/in",
+      "in",
       "--a",
-      "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/B5/ret",
+      "in/cont_ops/work/r1route/out3/B5/ret",
       "--a-step",
       "200",
       "--out",
-      "/scratch/jjyeung/orch_n30/sb_callrate/out/room134"
+      "out/room134",
+      "--summary"
+    ],
+    [
+      "/data2/jjyeung/envs/planner/bin/python",
+      "-B",
+      "/scratch/jjyeung/orch_n30/sb_callrate/make_strata_example.py",
+      "--input",
+      "out/step200/callrate.json",
+      "--out",
+      "/scratch/jjyeung/orch_n30/sb_callrate/examples/devs1_wording_strata.json"
+    ],
+    [
+      "/data2/jjyeung/envs/planner/bin/python",
+      "-B",
+      "/scratch/jjyeung/orch_n30/sb_callrate/callrate.py",
+      "--input-root",
+      "in",
+      "--a",
+      "in/cont_ops/work/r1route/out3/A4/ret",
+      "--a-step",
+      "200",
+      "--out",
+      "out/strata_example",
+      "--summary",
+      "--strata",
+      "/scratch/jjyeung/orch_n30/sb_callrate/examples/devs1_wording_strata.json"
     ]
   ],
   "checks": [
@@ -414,6 +441,206 @@
       "status": "PASS"
     },
     {
+      "check": "room_size_estimation/a/score",
+      "actual": 0.6694444444444445,
+      "expected": 0.6694444444444445,
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/a/n",
+      "actual": 36,
+      "expected": 36,
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/a/call_count",
+      "actual": 0,
+      "expected": 0,
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/a/capped_count",
+      "actual": 0,
+      "expected": 0,
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/b/score",
+      "actual": 0.11666666666666664,
+      "expected": 0.11666666666666664,
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/b/n",
+      "actual": 36,
+      "expected": 36,
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/b/call_count",
+      "actual": 36,
+      "expected": 36,
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/b/capped_count",
+      "actual": 29,
+      "expected": 29,
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/paired_score/value",
+      "actual": 55.27777777777778,
+      "expected": 55.27777777777778,
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/paired_score/ci95",
+      "actual": [
+        38.8235294117647,
+        70.38541666666666
+      ],
+      "expected": [
+        38.8235294117647,
+        70.38541666666666
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/paired_score/ci9929",
+      "actual": [
+        33.370943181818184,
+        73.55056932773107
+      ],
+      "expected": [
+        33.370943181818184,
+        73.55056932773107
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/paired_score/upper95",
+      "actual": 68.33333333333333,
+      "expected": 68.33333333333333,
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/paired_score/n",
+      "actual": 36,
+      "expected": 36,
+      "status": "PASS"
+    },
+    {
+      "check": "room_size_estimation/paired_score/rooms",
+      "actual": 9,
+      "expected": 9,
+      "status": "PASS"
+    },
+    {
+      "check": "room36/b/rounded_score",
+      "actual": "0.116667",
+      "expected": "0.116667",
+      "status": "PASS"
+    },
+    {
+      "check": "room36/b/capped",
+      "actual": 29,
+      "expected": 29,
+      "status": "PASS"
+    },
+    {
+      "check": "room36/rounded_delta",
+      "actual": "55.28",
+      "expected": "55.28",
+      "status": "PASS"
+    },
+    {
+      "check": "room36/rounded_ci",
+      "actual": [
+        "38.82",
+        "70.39"
+      ],
+      "expected": [
+        "38.82",
+        "70.39"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "room36/primary_source",
+      "actual": [
+        "b1/read 0"
+      ],
+      "expected": [
+        "b1/read 0"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "room36/secondary_source",
+      "actual": [
+        "b2/read 0"
+      ],
+      "expected": [
+        "b2/read 0"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "room36/secondary_capped",
+      "actual": 27,
+      "expected": 27,
+      "status": "PASS"
+    },
+    {
+      "check": "room36/secondary_delta",
+      "actual": "55.83",
+      "expected": "55.83",
+      "status": "PASS"
+    },
+    {
+      "check": "distance/a/usage",
+      "actual": 1.0,
+      "expected": 1.0,
+      "status": "PASS"
+    },
+    {
+      "check": "distance/a/copied",
+      "actual": 12,
+      "expected": 12,
+      "status": "PASS"
+    },
+    {
+      "check": "distance/a/answer",
+      "actual": 150,
+      "expected": 150,
+      "status": "PASS"
+    },
+    {
+      "check": "distance/b/usage",
+      "actual": 1.0,
+      "expected": 1.0,
+      "status": "PASS"
+    },
+    {
+      "check": "distance/b/copied",
+      "actual": 70,
+      "expected": 70,
+      "status": "PASS"
+    },
+    {
+      "check": "distance/b/answer",
+      "actual": 147,
+      "expected": 147,
+      "status": "PASS"
+    },
+    {
+      "check": "distance/b/not_seen",
+      "actual": 3,
+      "expected": 3,
+      "status": "PASS"
+    },
+    {
       "check": "room134/a/n",
       "actual": 134,
       "expected": 134,
@@ -466,6 +693,618 @@
       "actual": 0.1111111111111111,
       "expected": 0.1111111111111111,
       "status": "PASS"
+    },
+    {
+      "check": "population/dev-S1/a/n",
+      "actual": 36,
+      "expected": 36,
+      "status": "PASS"
+    },
+    {
+      "check": "population/dev-S1/a/mra_answer",
+      "actual": 0.6888888888888889,
+      "expected": 0.6888888888888889,
+      "status": "PASS"
+    },
+    {
+      "check": "population/dev-S1/b/n",
+      "actual": 36,
+      "expected": 36,
+      "status": "PASS"
+    },
+    {
+      "check": "population/dev-S1/b/mra_answer",
+      "actual": 0.1111111111111111,
+      "expected": 0.1111111111111111,
+      "status": "PASS"
+    },
+    {
+      "check": "population/dev-S1/paired/value",
+      "actual": 57.77777777777778,
+      "expected": 57.77777777777778,
+      "status": "PASS"
+    },
+    {
+      "check": "population/dev-S1/paired/ci95",
+      "actual": [
+        39.4108455882353,
+        74.1188725490196
+      ],
+      "expected": [
+        39.4108455882353,
+        74.1188725490196
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "population/dev-S1/paired/ci9929",
+      "actual": [
+        33.0,
+        77.67976555023918
+      ],
+      "expected": [
+        33.0,
+        77.67976555023918
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "population/dev-S1/paired/upper95",
+      "actual": 71.875,
+      "expected": 71.875,
+      "status": "PASS"
+    },
+    {
+      "check": "population/dev-S1/paired/n",
+      "actual": 36,
+      "expected": 36,
+      "status": "PASS"
+    },
+    {
+      "check": "population/dev-S1/paired/rooms",
+      "actual": 9,
+      "expected": 9,
+      "status": "PASS"
+    },
+    {
+      "check": "population/R0-dev/a/n",
+      "actual": 98,
+      "expected": 98,
+      "status": "PASS"
+    },
+    {
+      "check": "population/R0-dev/a/mra_answer",
+      "actual": 0.6275510204081632,
+      "expected": 0.6275510204081632,
+      "status": "PASS"
+    },
+    {
+      "check": "population/R0-dev/b/n",
+      "actual": 98,
+      "expected": 98,
+      "status": "PASS"
+    },
+    {
+      "check": "population/R0-dev/b/mra_answer",
+      "actual": 0.04897959183673469,
+      "expected": 0.04897959183673469,
+      "status": "PASS"
+    },
+    {
+      "check": "population/R0-dev/paired/value",
+      "actual": 57.857142857142854,
+      "expected": 57.857142857142854,
+      "status": "PASS"
+    },
+    {
+      "check": "population/R0-dev/paired/ci95",
+      "actual": [
+        50.816326530612244,
+        64.6938775510204
+      ],
+      "expected": [
+        50.816326530612244,
+        64.6938775510204
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "population/R0-dev/paired/ci9929",
+      "actual": [
+        48.16326530612245,
+        66.88811734693871
+      ],
+      "expected": [
+        48.16326530612245,
+        66.88811734693871
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "population/R0-dev/paired/upper95",
+      "actual": 63.57142857142857,
+      "expected": 63.57142857142857,
+      "status": "PASS"
+    },
+    {
+      "check": "population/R0-dev/paired/n",
+      "actual": 98,
+      "expected": 98,
+      "status": "PASS"
+    },
+    {
+      "check": "population/R0-dev/paired/rooms",
+      "actual": 98,
+      "expected": 98,
+      "status": "PASS"
+    },
+    {
+      "check": "population/all/a/n",
+      "actual": 134,
+      "expected": 134,
+      "status": "PASS"
+    },
+    {
+      "check": "population/all/a/mra_answer",
+      "actual": 0.6440298507462687,
+      "expected": 0.6440298507462686,
+      "status": "PASS"
+    },
+    {
+      "check": "population/all/b/n",
+      "actual": 134,
+      "expected": 134,
+      "status": "PASS"
+    },
+    {
+      "check": "population/all/b/mra_answer",
+      "actual": 0.06567164179104477,
+      "expected": 0.06567164179104479,
+      "status": "PASS"
+    },
+    {
+      "check": "population/all/paired/value",
+      "actual": 57.83582089552239,
+      "expected": 57.83582089552239,
+      "status": "PASS"
+    },
+    {
+      "check": "population/all/paired/ci95",
+      "actual": [
+        50.74626865671642,
+        64.67625899280576
+      ],
+      "expected": [
+        50.74626865671642,
+        64.67625899280576
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "population/all/paired/ci9929",
+      "actual": [
+        47.94095766423358,
+        66.70446051302198
+      ],
+      "expected": [
+        47.94095766423358,
+        66.70446051302198
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "population/all/paired/upper95",
+      "actual": 63.50018248175182,
+      "expected": 63.50018248175182,
+      "status": "PASS"
+    },
+    {
+      "check": "population/all/paired/n",
+      "actual": 134,
+      "expected": 134,
+      "status": "PASS"
+    },
+    {
+      "check": "population/all/paired/rooms",
+      "actual": 107,
+      "expected": 107,
+      "status": "PASS"
+    },
+    {
+      "check": "population/rounded/b/dev-S1",
+      "actual": "11.11",
+      "expected": "11.11",
+      "status": "PASS"
+    },
+    {
+      "check": "population/rounded/b/R0-dev",
+      "actual": "4.90",
+      "expected": "4.90",
+      "status": "PASS"
+    },
+    {
+      "check": "population/rounded/b/all",
+      "actual": "6.57",
+      "expected": "6.57",
+      "status": "PASS"
+    },
+    {
+      "check": "population/rounded/a/all",
+      "actual": "64.40",
+      "expected": "64.40",
+      "status": "PASS"
+    },
+    {
+      "check": "population/rounded/a/R0-dev",
+      "actual": "62.76",
+      "expected": "62.76",
+      "status": "PASS"
+    },
+    {
+      "check": "A4/population/dev-S1/n",
+      "actual": 36,
+      "expected": 36,
+      "status": "PASS"
+    },
+    {
+      "check": "A4/population/R0-dev/n",
+      "actual": 0,
+      "expected": 0,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/all_150",
+      "actual": 150,
+      "expected": 150,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/same_per_item",
+      "actual": true,
+      "expected": true,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:box_distance_is+grid_5cm_two_objects+ground_boxes_intro/paired_n",
+      "actual": 49,
+      "expected": 49,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:box_distance_is+grid_5cm_two_objects+ground_boxes_intro/call_marginals",
+      "actual": 49,
+      "expected": 49,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:box_distance_is+grid_5cm_two_objects+ground_boxes_intro/units_partition",
+      "actual": 49,
+      "expected": 49,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/paired_n",
+      "actual": 16,
+      "expected": 16,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/call_marginals",
+      "actual": 16,
+      "expected": 16,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/units_partition",
+      "actual": 16,
+      "expected": 16,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+i_find_it_to_be+nearest_to_farthest+step_n/paired_n",
+      "actual": 5,
+      "expected": 5,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+i_find_it_to_be+nearest_to_farthest+step_n/call_marginals",
+      "actual": 5,
+      "expected": 5,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+i_find_it_to_be+nearest_to_farthest+step_n/units_partition",
+      "actual": 5,
+      "expected": 5,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+nearest_to_farthest+question_asks_for+step_n/paired_n",
+      "actual": 3,
+      "expected": 3,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+nearest_to_farthest+question_asks_for+step_n/call_marginals",
+      "actual": 3,
+      "expected": 3,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+nearest_to_farthest+question_asks_for+step_n/units_partition",
+      "actual": 3,
+      "expected": 3,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+nearest_to_farthest+step_n/paired_n",
+      "actual": 3,
+      "expected": 3,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+nearest_to_farthest+step_n/call_marginals",
+      "actual": 3,
+      "expected": 3,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+first_seen_frame+nearest_to_farthest+step_n/units_partition",
+      "actual": 3,
+      "expected": 3,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/paired_n",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/call_marginals",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/units_partition",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+nearest_to_farthest+question_asks_for+step_n/paired_n",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+nearest_to_farthest+question_asks_for+step_n/call_marginals",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:candidates_ordered+nearest_to_farthest+question_asks_for+step_n/units_partition",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:converting_to+grid_both_objects+ground_boxes_intro/paired_n",
+      "actual": 38,
+      "expected": 38,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:converting_to+grid_both_objects+ground_boxes_intro/call_marginals",
+      "actual": 38,
+      "expected": 38,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:converting_to+grid_both_objects+ground_boxes_intro/units_partition",
+      "actual": 38,
+      "expected": 38,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/paired_n",
+      "actual": 10,
+      "expected": 10,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/call_marginals",
+      "actual": 10,
+      "expected": 10,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/units_partition",
+      "actual": 10,
+      "expected": 10,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+i_find_it_to_be+nearest_to_farthest+step_n/paired_n",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+i_find_it_to_be+nearest_to_farthest+step_n/call_marginals",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+i_find_it_to_be+nearest_to_farthest+step_n/units_partition",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+i_find_it_to_be+step_n/paired_n",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+i_find_it_to_be+step_n/call_marginals",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+i_find_it_to_be+step_n/units_partition",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+nearest_to_farthest+question_asks_for+step_n/paired_n",
+      "actual": 2,
+      "expected": 2,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+nearest_to_farthest+question_asks_for+step_n/call_marginals",
+      "actual": 2,
+      "expected": 2,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+nearest_to_farthest+question_asks_for+step_n/units_partition",
+      "actual": 2,
+      "expected": 2,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+nearest_to_farthest+step_n/paired_n",
+      "actual": 8,
+      "expected": 8,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+nearest_to_farthest+step_n/call_marginals",
+      "actual": 8,
+      "expected": 8,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:first_seen_frame+nearest_to_farthest+step_n/units_partition",
+      "actual": 8,
+      "expected": 8,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:gap_between_closest_points+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/paired_n",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:gap_between_closest_points+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/call_marginals",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:gap_between_closest_points+i_find_it_to_be+nearest_to_farthest+question_asks_for+step_n/units_partition",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:gap_between_closest_points+step_n/paired_n",
+      "actual": 3,
+      "expected": 3,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:gap_between_closest_points+step_n/call_marginals",
+      "actual": 3,
+      "expected": 3,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:gap_between_closest_points+step_n/units_partition",
+      "actual": 3,
+      "expected": 3,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:gap_between_closest_points+step_n+the_gap_is/paired_n",
+      "actual": 5,
+      "expected": 5,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:gap_between_closest_points+step_n+the_gap_is/call_marginals",
+      "actual": 5,
+      "expected": 5,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:gap_between_closest_points+step_n+the_gap_is/units_partition",
+      "actual": 5,
+      "expected": 5,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:grid_5cm_two_objects+ground_boxes_intro/paired_n",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:grid_5cm_two_objects+ground_boxes_intro/call_marginals",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:grid_5cm_two_objects+ground_boxes_intro/units_partition",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:i_find_it_to_be+stand_at_facing+step_n/paired_n",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:i_find_it_to_be+stand_at_facing+step_n/call_marginals",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:i_find_it_to_be+stand_at_facing+step_n/units_partition",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:step_n/paired_n",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:step_n/call_marginals",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
+    },
+    {
+      "check": "strata/TRACE_A4:step_n/units_partition",
+      "actual": 1,
+      "expected": 1,
+      "status": "PASS"
     }
   ],
   "sources": [
@@ -475,7 +1314,11 @@
     },
     {
       "path": "/scratch/jjyeung/orch_n30/sb_callrate/callrate.py",
-      "sha256": "4d146c64236bae5700845b1784c29ae55c3a60a77a1bca45529b11544e758dc8"
+      "sha256": "50931a34c0cfefe696c318cc87f31cc742c07eb269cbb024e780127cca0ca1c1"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/examples/devs1_wording_strata.json",
+      "sha256": "54cb1ed89c82eb0beb55745b1fff69902558aa0a21ebd4898daea49f4b0f34c4"
     },
     {
       "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/package/0.json",
@@ -854,24 +1697,36 @@
       "sha256": "2f3e73ec3c15f268f832447828e5844cdf1612d95a9f600f5e6b2d3e351b0652"
     },
     {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/make_strata_example.py",
+      "sha256": "433d27f79b626f27a8ce8965ef3395926df6a205bdb93c79488ca70283d05913"
+    },
+    {
       "path": "/scratch/jjyeung/orch_n30/sb_callrate/measurements.py",
-      "sha256": "36d19d6b50d629caf40b090c6299736733897cd253eaa514e4fdee6f6feff63d"
+      "sha256": "70109823e10cc4e6efa32697327132fe11bce5782ab10a4b5235f6e952d25481"
     },
     {
       "path": "/scratch/jjyeung/orch_n30/sb_callrate/out/room134/callrate.json",
-      "sha256": "e5cefa0fb1cf740d94c5a756620b85cdc3705b509ff71c01b40664b4454a5fbf"
+      "sha256": "21b7510a19e69795a53807be38007084c63af5daa18ccddf421adeb60be5d265"
     },
     {
       "path": "/scratch/jjyeung/orch_n30/sb_callrate/out/step200/callrate.json",
-      "sha256": "3db6ff00841edd086368f14aee727ea59ac7b09ffd90630c22ae828ae0d07d4d"
+      "sha256": "4917bc48488eabb41c9b120d6ffd492bd71e6b3de778c3ecd74a45d6d60a0442"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/out/strata_example/callrate.json",
+      "sha256": "c70bf05f5018ab8d8a2f8f57cd70eba03ef22b3a1689104891fdf4f344a9625a"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/populations.py",
+      "sha256": "e0e3518891ac97a59a0b1b9b9ed30782baa6e3320b16934c8bc3bc1ba1b9c67f"
     },
     {
       "path": "/scratch/jjyeung/orch_n30/sb_callrate/reproduce.py",
-      "sha256": "04e35cee9dce6e49885b6ee5808cc88109b41a90a30100b4c62e792fb99b3226"
+      "sha256": "06ab7969d931456feaf3474be3745e9ae512f1856d4383d97651f395f2d02075"
     },
     {
       "path": "/scratch/jjyeung/orch_n30/sb_callrate/return_reader.py",
-      "sha256": "c64386390cf2e63f573884f59e231fe7c28822292a54f07fa7bd3208f15b5205"
+      "sha256": "e69c5ed6bf9dfa4af2c73ed9cd87c115e868ffd3a1133ba84e27eb4c2e032937"
     },
     {
       "path": "/scratch/jjyeung/orch_n30/sb_callrate/wording.py",

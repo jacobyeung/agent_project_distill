@@ -1,0 +1,6 @@
+# Note for cont_ops18 and swarm_build: R0-dev held-out distance items (dist_diag, 2026-11-19)
+- File: `events/dist_diag/R0_HELDOUT_EVAL_V1.json` (sha256 d98c9efbc1648e535630fb503c29d07d9371becb823c3a09860268389541f729, 580 items). Builder: `make_r0_heldout.py` over `R0_QUESTIONS_dev_f32.jsonl` (b4e278f2).
+- Sets: `r0_heldout_reworded` holds 290 ids `<qid>_ho`, each with one of the 8 HELD-OUT wordings (`SPLIT_V2.json`) and one unit (m 73, ft 73, in 72, cm 72; about 9 per wording and unit). `r0_routed_twins` holds the 290 original items: routed wording, metres, original ids.
+- Ground truth: converted exactly from gt.distance_m (Decimal; ft = m / 0.3048, in = m / 0.0254, cm = m x 100), stored as `ground_truth` (float) and `gt.converted` (string). `answer` is rounded to 0.01.
+- Fields follow the room134.json R0 items: id, qid, question, question_type object_abs_distance, scorer official_vsi_mra, room_key = dataset/scene, scene, frame_indices, fps, total_num_frames, plus twin_id, heldout_wording_id and unit. There are no `frame_paths`, so the R0 frames must be staged.
+- Use: evaluation only. No training row may come from these rooms (none does: N's sources exclude R0). The gate reads each item's call rate and MRA by unit. Step 544 and step 200 each need one routed read of the file (types [object_abs_distance]) before N's first decision.

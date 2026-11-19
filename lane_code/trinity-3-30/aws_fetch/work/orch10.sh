@@ -1,0 +1,2 @@
+cd /project/community/jjyeung
+timeout 200 find okh7 distill -maxdepth 5 \( -name '6053fd47c70c0b25*' -o -name '7a1c59097139f59d*' -o -name '7e4e92918e312afd*' -o -name '9bf0518db09a07d8*' -o -name '9eecedf23da3bd91*' -o -name 'b6ac18d55d697a23*' -o -name 'ba96a4182147a384*' -o -name 'c16c5db36e04c1ef*' -o -name 'PACK_object_rel_direction*' -o -name 'scannet__scene0152_01*' \) -printf '%s %p\n' 2>/dev/null | head -30

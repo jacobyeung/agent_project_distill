@@ -1,0 +1,7 @@
+# Task sb_rowD: facing-away rows that state the half turn as their own step
+Workspace: /scratch/jjyeung/orch_n30/sb_rowD (write here only).
+Finding: on R0-dev "facing away" direction items the model's trace writes the toward clause ("so I keep that heading") on 43 of 202 items; 31 are wrong, and applying the half turn to the trace's own relation fixes 21 of 31. Store v7 holds 8,511 away rows in ReVSI wording.
+Do:
+1. Read 60 of the 8,511 ReVSI-worded away rows (seeded sample; find them via store v7's family index and ROWS_V7 notes in n30_mirror/rows_r1) and classify: does the trace state the half turn as its own step (relation as if facing toward, then "facing away turns this by half a turn", then the answer)? Count each form; print 10 examples per form to out/READ60.md.
+2. If the half turn is not its own step in most rows: rebuild all 8,511 away rows so it is (relation toward, then the half-turn step, then the answer), answers recomputed from GT geometry, each with a toward twin (the same scene/objects asked facing toward, from existing toward rows if present, else generated) recorded by id; same trace grammar otherwise. If it already is its own step in nearly all rows, say so with counts and build nothing beyond the audit.
+3. Deliver replacement rows, toward twins, and out/REMOVE.json in exactly the format of N's n.json removal list (find n.json under /scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records; copy its schema).

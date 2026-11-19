@@ -1,0 +1,75 @@
+{
+ "schema": "pose-stream-a3-v1",
+ "row_schema": "A1 all_frames32 pose-only rows; every slot carries depth",
+ "count": 203520,
+ "database": {
+  "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a3v2/rows.sqlite",
+  "sha256": "0b95850a2dec57ec6702ca72cd198eb5afdcdcdd5f711a76a878104e30ec3571"
+ },
+ "scenes": {
+  "d1": 1141,
+  "d3": 1403
+ },
+ "labels": {
+  "d1": {
+   "rows": 91280,
+   "pose_all32": 91280,
+   "gravity": 91280,
+   "scale_pos": 91280,
+   "fov_finite": 91280,
+   "depth_rows": 91280,
+   "depth_slots": null,
+   "partner_frames": 91280
+  },
+  "d3": {
+   "rows": 112240,
+   "pose_all32": 112240,
+   "gravity": 112240,
+   "scale_pos": 112240,
+   "fov_finite": 112240,
+   "depth_rows": 112240,
+   "depth_slots": 3591680,
+   "partner_frames": 112240
+  }
+ },
+ "frames": 301281,
+ "fps_gap": {
+  "d1:24.0:12": 1143,
+  "d3:10.0:5": 1403
+ },
+ "order": "grouped by recording (the trainer sampler shuffles)",
+ "deferred": {
+  "few_valid": 78,
+  "up_dot": 1
+ },
+ "excluded": {
+  "d1_held": 330,
+  "d3_held": 149
+ },
+ "held_tokens": 499,
+ "test_scene_hits_in_rows": 0,
+ "seed": 17,
+ "config": {
+  "tables_s": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/a3/s",
+  "tables_a": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/a3/a",
+  "videos": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/z/v3.json",
+  "held": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/in3/held_a3b.json",
+  "logical": "/data2/k8pd",
+  "pool_size": 128,
+  "rows_min": 80,
+  "rows_max": 160,
+  "min_up_dot": 0.1,
+  "workers": 24,
+  "seed": 17,
+  "out": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a3v1",
+  "frame_root": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/f3/k8pd",
+  "out_frames": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/f3"
+ },
+ "parent_build": {
+  "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a3v1/receipt.json"
+ },
+ "division_heldout_rows_dropped": {
+  "d1/v2ea09b1e83f4": 80,
+  "d1/vbaa9879267fa": 80
+ }
+}

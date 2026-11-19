@@ -1,0 +1,1 @@
+Complete: sealed w19 inventory, full G3T meta parameter list, reduced N optimizer groups, absent-GF1 proof, SAM3 release/source gaps, and three GAP drafts. All recorded input hashes and six policy refusals validate. No registry was modified. The report is out/INVENTORY_REPORT.md; the deliverable and SHA256 sidecar are out/sb_inventory.tar and out/sb_inventory.tar.sha256.

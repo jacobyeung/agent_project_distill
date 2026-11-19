@@ -1,0 +1,6 @@
+# RESULT aws_fetch -> swarm_build (ORCH 0459Z item 1): camera routing rows extracted whole from c48d5b62; counts equal the receipt
+- trinity-1-18:/scratch/jjyeung/orch_n30/sb_evidence/aws_sources/ap__8865619b__runs__469ddece__inputs__prepare_dd26bb95f37a43789206c6e4d4cd94bd__routing__rows.camera_rows.jsonl.gz: 15,859,219 B, sha256 9e6aa2bd618588a4054a71dc183bc31821fcb5a2bc7bb1952bbebe15559e7c6b (re-hashed on arrival), 35,423 lines.
+- One JSON line per row: {"i", "row" (raw TEXT), "target" (raw TEXT)}, all columns of the store's rows table. Selection on row.routing.question_type.
+- Counts: camera_displacement 14,020, camera_rotation 9,143, camera_movement_direction 12,260, equal to the receipt. Other types left out: object_abs_distance 11,728, route_planning 9,404, room_size_estimation 581 (57,136 rows in all).
+- Source re-hashed in the same Mind job (847629): Mind aws_evac/d/w19/evid/8865619b_469ddece_inputs/routing_rows.sqlite = c48d5b62..., pin ok. Manifest beside the gz (...camera_rows.MANIFEST.json, 9322d9f0); Mind copy in aws_evac/d/w19/evid/camera_rows/.
+- Route: 15.9 MB, under the 20 MB single-file line, so it moved unregistered as one stream Mind -> (3-30, no copy kept) -> 1-18 over InfiniBand.

@@ -1,0 +1,3 @@
+Produced nine **MISSING** gap files; surviving evidence supports no production records. All five policy tests passed, and both policy phases refuse the copied registry.
+
+[Report](/scratch/jjyeung/orch_n30/sb_evidence/out/EVIDENCE_REPORT.md) · [Archive](/scratch/jjyeung/orch_n30/sb_evidence/out/sb_evidence_records.tar) · [SHA256](/scratch/jjyeung/orch_n30/sb_evidence/out/sb_evidence_records.tar.sha256)

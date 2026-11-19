@@ -1,0 +1,59 @@
+{
+  "input_sha256": {
+    "convert_rows.py": "4490fa0d066ea5bb1cd6ce87edda53da30aaae2f7715207e037051697b143e0d",
+    "inputs/removed_rows.jsonl": "4fc8f291cb4712fdb7b9127d5a923492259a010d46950b5ecf7640c1566d28de",
+    "ned_filter.c": "2508e2d18b0f010893dab666d95ab01f7221cc3adf384f78f08a08a78731f726",
+    "ned_filter.so": "977599275d079bfc4c081e5eafabb826ab63fcd6abf5bbc936c93be0da70c6dc",
+    "test_contract.py": "230b6649a778ccd89653b1ef205e1ba8424ba282b8248a641942f0d15a33eee7"
+  },
+  "status": "PASS",
+  "tests": [
+    {
+      "name": "wrong stored total",
+      "pass": true,
+      "reason": "sum_answer_mismatch"
+    },
+    {
+      "name": "frame outside sampled range",
+      "pass": true,
+      "reason": "frame_outside_1_32"
+    },
+    {
+      "name": "asked category missing",
+      "pass": true,
+      "reason": "asked_category_missing_or_extra"
+    },
+    {
+      "name": "duplicate annotation id",
+      "pass": true,
+      "reason": "annotation_duplicate_id_or_length"
+    },
+    {
+      "name": "frame annotation mismatch",
+      "pass": true,
+      "reason": "region_annotation_mismatch"
+    },
+    {
+      "name": "region annotation mismatch",
+      "pass": true,
+      "reason": "region_annotation_mismatch"
+    },
+    {
+      "name": "missing independent evidence",
+      "pass": true,
+      "reason": "MISSING_independent_instance_annotations"
+    },
+    {
+      "name": "compound category stays intact",
+      "pass": true
+    },
+    {
+      "name": "same frame and region preserve two distinct instances",
+      "pass": true
+    },
+    {
+      "name": "bounded Levenshtein matches independent full DP on 3000 cases",
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+- Trace-analysis evidence for this build (read only the sections you need): /data2/jjyeung/agent_project_data/distill_design/R1_M200_TRACE_ANALYSIS_20261119.md (record by lane swarm_an from the step-200 dev traces), and the analyst reports on another node summarised in the task above.

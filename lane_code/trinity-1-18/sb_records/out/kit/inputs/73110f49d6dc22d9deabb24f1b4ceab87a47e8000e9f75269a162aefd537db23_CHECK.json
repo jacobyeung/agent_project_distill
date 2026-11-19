@@ -1,0 +1,56 @@
+{
+  "answers_unchanged": "PASS",
+  "code_sha256": {
+    "/scratch/jjyeung/orch_n30/rows_r1/work/codeA/build_units.py": "c4aa043af2fe20baf48bc8a73089f6dd455966f5bb362cc8b11f0a69a7be325a",
+    "/scratch/jjyeung/orch_n30/rows_r1/work/codeA/build_units_run4.py": "ff8cba786d6158ed5be55513161be2c4667a22f487a458311d7c345a3887ef92",
+    "/scratch/jjyeung/orch_n30/rows_r1/work/codeA/common.py": "b820aebfa4f61c04037d01ab03bb305bf36e42cc3734ed42bd238a9cd6039c14",
+    "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/base/tree_b01ce449/generator/derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/base/tree_b01ce449/generator/derivgen_v7/derivgen/ground_v313_distance.py": "d17c97cb7a0a777ff4a8dbf6a486ef8edd11dca331cbd79999bfe3f411be43d4",
+    "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/base/tree_b01ce449/student_pilot/ground_rows.py": "d9361d1fd2e0c3fda2143acdd12e97359562f851bbd522dc92f1c87346e4a583",
+    "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/base/tree_b01ce449/student_pilot/s1_pool.py": "7b8859d629dc30be0b3b6749e7539d324cd2d0595cba4de67a16454ef0660ee7",
+    "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/base/tree_b01ce449/trace_format/ground_v312.py": "0acdc6a67d3892b179a22164dcb0f91d003f23dec5e225d798f430b2b86828e3"
+  },
+  "counts_sha256": "67997f0aa4fb87edcbd3be7a65732ef83bb8aeafb93dd8c8698d46cdf82c2b6a",
+  "cpu_only": true,
+  "dropped_sealed_validator_fail": 9721,
+  "independent_check": "Second full-source pass independently constructs the transform and packs/validates every source; reads each passing output line in source order and validates it again.",
+  "inputs_and_code_unchanged": "PASS",
+  "inputs_sha256": {
+    "/scratch/jjyeung/n30_mirror/rows_rebuild/final/out/rows/a0_v4/units/MANIFEST.json": "6190dbaeaa0f58265ffd73db6ed202c18ed4afe79d780cba813cbf7555d1c32d",
+    "/scratch/jjyeung/n30_mirror/rows_rebuild/final/out/rows/a0_v4/units/rows.jsonl.gz": "bd3832738d3e52a3faff2f015e2b17993001fd68bb42e39b3ac984db77d4d381",
+    "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/rows_slices/slices_final/COUNTS_A0_v4.json": "2335b10e5d7ac01766858bf8fdf1b3ab3ea170a4c54616d06e0aad3f17499f1f",
+    "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/rows_slices/slices_final/a0_units.jsonl": "04fd83aecd83064b8ff44857a6f4318f53a110586ddf8edb93250090bbe7d363"
+  },
+  "kept_lines_equal_transform_of_source": 1224,
+  "kept_sealed_validator_pass": 1224,
+  "reimplemented_label_rule": false,
+  "rows_sha256": "40437c8a626a794c4098fa08c102098a0fc666a33d4da650f9894ab2874b89fe",
+  "sealed_check_error_counts": {
+    "ValueError: Absolute label mismatch": 9721
+  },
+  "source_counts_match_manifest": "PASS",
+  "source_manifest_pin": "PASS",
+  "source_order": "PASS",
+  "source_rows": 10945,
+  "status": "PASS",
+  "transform_proof": {
+    "byte_identical_lines": 2000,
+    "fields_present_in_full_family": {
+      "events": 10945,
+      "frames": 0
+    },
+    "full_rows": 10945,
+    "matched_qids": 2000,
+    "mismatch_qids": [],
+    "missing_qids": [],
+    "reference_rows": 2000,
+    "reference_sha256": "04fd83aecd83064b8ff44857a6f4318f53a110586ddf8edb93250090bbe7d363",
+    "reproduced_sha256": "04fd83aecd83064b8ff44857a6f4318f53a110586ddf8edb93250090bbe7d363",
+    "selection": "Lowest sha256('20261115|slice|a0_units|' + qid), in hash order, first 2000.",
+    "selection_qids_and_order_equal": true,
+    "serialization": "UTF-8 json.dumps(sort_keys=True, ensure_ascii=True), default separators, LF.",
+    "status": "PASS",
+    "transform": "Remove top-level events and frames; preserve all other fields and values."
+  },
+  "validation": "Run 3 validate_slice: native ground_rows.pack, normalize_room (no-op), s1_pool.validate_source_row(packed, packed) -> ground_rows.validate."
+}

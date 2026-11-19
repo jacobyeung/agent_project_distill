@@ -1,0 +1,8 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; C=$W/work/conf19; date -u +%TZ; cat $C/seal.log; tmux ls | grep tr11
+cat > $C/cf19b.sh <<'EOS'
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; C=$W/work/conf19
+cd $C/pkg && B19_PROOF=final_focused timeout 2400 bash work/build19/run.sh work/build19/test19.py tests.test_r1_build19 tests.test_r1_build18 tests.test_r1_build17 tests.test_r1_export17 tests.test_r1_build16 tests.test_r1_build15 tests.test_r1_build14 tests.test_r2_build_n1 tests.test_r2_n1fix tests.test_r2_n1fix3 tests.test_r2_build12 tests.test_r1_build13 tests.test_r2_build3.Build3.test_opener_export_keep_and_reset export_mutation17.HashTwin.test_same_size_shard_refuses > $C/focused.log 2>&1; echo "focused rc=$?" >> $C/focused.log
+cd $W/w19 && tar czf $W/mirror/tr11_b19_core_8ea1fe6b.tgz work/tree_r1 out/BUILD19_REPORT.md out/TREE_SEAL.json work/build19/inputs work/build19/KIT_RESULT.json work/build19/DELIVERY.json work/build19/proofs/rows/RESULT.json work/build19/proofs/native_summary/RESULT.json work/build19/proofs/review/RESULT.json work/build19/native19.py > $C/core.log 2>&1; ls -la $W/mirror/tr11_b19_core_8ea1fe6b.tgz >> $C/core.log; sha256sum $W/mirror/tr11_b19_core_8ea1fe6b.tgz >> $C/core.log
+echo ALLDONE >> $C/focused.log
+EOS
+grep -q SEALDONE $C/seal.log && tmux new -d -s tr11_cf19b "bash $C/cf19b.sh" && echo launched

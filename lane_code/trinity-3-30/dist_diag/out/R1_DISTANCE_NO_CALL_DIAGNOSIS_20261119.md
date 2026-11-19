@@ -12,7 +12,7 @@ The skips sit where the routed form has no precedent:
 - The feet unit rows taught the model to answer in the asked unit. All 38 conversions at step 200 copy their lines, and 41 of the 55 non-metre guesses are round metres converted.
 - Step 544 trained only metre routing rows and a relative-distance form that wrote metres, and it called on 149 of 150 items whatever the unit. My reading (an inference, not a test) is that R1 made routing depend on the unit and the wording, and the relative-distance template catches the questions left without a routed precedent.
 
-The fix is coverage of the routed form rather than removal of direct rows: 6,000 routed rows for N reword bound N rows into the 15 wordings in all four units, and all of them pass the kit validator. P cannot take it. The gate prints P at steps 400 and 600 and decides N at its entry boundary plus 200. Until the gate passes, the distance gain is unplaced: 55 of the 62 skips are non-metre items, which rose from 12.18 to 46.00 MRA without a call.
+The fix is coverage of the routed form rather than removal of direct rows. Coverage v2H gives N 6,000 routed rows that reword bound N rows: 10 failing dev-S1 wordings (TRAIN-DEV, 50 rows per unit) and 40 new wordings (25 per unit), in all four units. Eight dev-S1 wordings stay HELD-OUT of every training row, so the gate can test transfer, and every row passes the kit validator. P cannot take the fix. The gate prints P at steps 400 and 600. It decides N at its entry boundary plus 200, on the held-out dev-S1 items and on 290 R0-dev items reworded into the held-out wordings. Until the gate passes, the distance gain is unplaced: 55 of the 62 skips are non-metre items, which rose from 12.18 to 46.00 MRA without a call.
 
 ## Evidence
 Every count below comes from files in the lane folder `trinity-3-30:/scratch/jjyeung/orch_n30/dist_diag`: scripts and outputs in `work/q1` (traces), `work/q2` (rows), `work/q3` (other reads), `work/q4` (vehicle N) and `work/q5` (coverage), fix files in `out/`. The fix files and tars are also in `events/dist_diag/` (`SHA256SUMS.txt`). Reads are used in place: the step-200 return `cont_ops/work/r1route/out3/A4/ret` and step 544's `out3/bases/b1/work/ret` read 1, both through cont_ops' `out3s/score_r5.load`, with the same identity checks. Intervals resample the 46 rooms (10,000 draws, seed 17).
@@ -101,34 +101,46 @@ At step 200 the model had drawn about 200 feet rows, 4,548 relative-distance row
 - P (continuation from step 400 or 600):
   - No REMOVE list, and no P row change can pass the gate: P has no centimetre rows, its 64 inch rows sit under the 100-row family floor, and it has no reworded routed row. The only lever is the feet cell raised to its ceiling of 2.73.
   - The conditional option `A_P400_OPTION_REMOVE_RELDIST.jsonl` (20,665 rows, n.json Removals format; format checked on all 601 n.json rows, 0 overlap with n.json or z.json) is for use only if the settling read below shows the D0 relative-distance form alone causes the skips.
-- N (ORCH ORDER 0351Z): coverage family v1.
-  - Size and shape: 6,000 routed rows, 15 wordings x 4 units x 100. Each row copies a bound N row (same scene, objects, frames, calls, printed responses, ground truth, trace and answer) and rewords only its question; qid = source qid + `_ddNN`; each source is used once; rooms are inherited.
-  - Files: `COVERAGE_UNITS_V1.jsonl` (4,500 rows, 03a66cc7) and `COVERAGE_DISTANCE_V1.jsonl` (1,500 metre rows, 68e73f23) on `trinity-1-18:/scratch/jjyeung/n30_mirror/dist_diag/coverage_v1/`; gz copies with the generator (7d8d0aa1) in `events/dist_diag/COVERAGE_V1_PUB.tar` (6118e06a).
-  - Checks, 0 failures: conversions recomputed 4,500/4,500; metre answers equal the printed gap 1,500/1,500; native pack plus the kit's `ground_rows.validate` on 6,000 rows and their 6,000 sources, on two trees (build 18 on 1-18, the build-17 mirror on 3-30); the field diff against the source shows only the edited fields; 30 rows read.
+- N (ORCH ORDERS 0351Z and 0422Z): coverage v2H.
+  - Split: dev-S1's 21 exact wordings divide into 15 that call under 90% at step 200 and 6 others (`SPLIT_V2.json`). HELD-OUT = the 5 failing and 3 other wordings with the lowest sha256('dist_diag|split|'+wording), covering 62 dev-S1 items; TRAIN-DEV = the other 10 failing wordings, covering 80 items.
+  - NEW wordings: 40, filtered from 80 Codex drafts by rule (`WORDINGS_V2.md`): each names both objects, the closest-point convention and the unit, and keeps a normalized edit distance of at least 0.40 from every dev and routed wording (minimum 0.409).
+  - Rows: 6,000 = TRAIN-DEV 10 x 4 units x 50 + NEW 40 x 4 x 25. Each row copies a bound N row (same scene, objects, frames, calls, printed responses, ground truth, trace and answer) and rewords its question; qid = source qid + `_dhNN`; candidate_id is recomputed with the kit's candidate_identity formula; each source is used once; rooms are inherited.
+  - Files: `COVERAGE_UNITS_V2H.jsonl` (4,500, 8ec1efd2) and `COVERAGE_DISTANCE_V2H.jsonl` (1,500 metre rows, 15387646) on `trinity-1-18:/scratch/jjyeung/n30_mirror/dist_diag/coverage_v2h/`; gz copies with the generator (coverage_rows_v2h.py 8537355c) in `events/dist_diag/COVERAGE_V2H_PUB.tar` (8a267cf0).
+  - Checks, 0 failures (generator asserts plus `check_cov_v2h.py`):
+    - 200 cells with exact quotas; conversions recomputed 4,500/4,500 with ground_record.unit present; metre answers 1,500/1,500;
+    - native pack plus `ground_rows.validate` on 6,000 rows and their 6,000 sources;
+    - candidate_ids unique and none equal to a source's; field diff against the source only in the edited fields;
+    - no HELD-OUT wording in any of the 6,000 rows, nor in N's bound routed rows (distance 7,805, units 7,805 and recovery 760 checked).
+  - An earlier 6,000-row set that trained all 15 dev wordings (v1, and v1 with the review fixes) is kept but not bound.
+  - Held-out evaluation set `R0_HELDOUT_EVAL_V1.json` (d98c9efb): R0-dev's 290 routed distance items, each reworded into one HELD-OUT wording and one unit (73/73/72/72), with the ground truth converted exactly, plus the 290 original twins. Evaluation only; R0 rooms are in no training row.
   - Cell 3.00 (ceiling 24.0), taken pro rata from the four program cells.
-  - Expected effect (a guess grounded in sections 1 and 3): calls return on the reworded and non-metre items, centimetre and inch calls convert, and distance MRA rises where calls convert (call-and-convert 64.7 against 40.4 for a guess). Centimetre is the exception: its guesses score 71.3 against 6.9 for its metre-answering calls, so it may stay level.
+  - Expected effect (a guess grounded in sections 1 and 3): calls return on the trained and the held-out wordings, and in every unit, and centimetre and inch calls convert. Distance MRA rises where calls convert (call-and-convert 64.7 against 40.4 for a guess). Centimetre is the exception: its guesses score 71.3 against 6.9 for its metre-answering calls, so it may stay level.
 
-**7. Gate (Q6; `GATE_DISTANCE_CALL_RATE.md`, `dist_gate.py`).**
-- What every boundary prints: calls by unit, the room-bootstrap call rate, the forms, the relative-distance phrasing count, and the calls split by coverage wording.
+**7. Gate (Q6; `GATE_DISTANCE_CALL_RATE_V2.md`, `dist_gate.py --coverage --split`).**
+- Sets, each read on the claimed arm by unit, with calls and MRA:
+  - (a) the 62 dev-S1 items in HELD-OUT wordings: step 544 calls on 62/62, step 200 on 28/62;
+  - (b) the 290 reworded R0-dev items: routed reads of step 544 and step 200 are owed;
+  - (c) the 80 dev-S1 TRAIN-DEV items: 79/80 and 52/80, printed only.
 - P at steps 400 and 600: printed only.
-- N at its entry boundary + 200: passes with at least 143 of 150 calls and every unit at 90% (m 39/43, ft 42/46, in 30/33, cm 26/28); otherwise the coverage family is rebuilt, with the branch chosen by where the misses sit.
-- Results so far: step 544 passes and step 200 fails every clause. The gate passes with probability 0.999 at step 544's skip rate, 0.963 at 2% and 0.348 at 5% (binomial per item).
+- N at its entry boundary + 200: (a) passes with at least 59/62 calls and m 17/18, ft 15/16, in 11/12, cm 15/16; (b) passes with at least 276/290 and m 66/73, ft 66/73, in 65/72, cm 65/72. The gate needs both.
+- If (c) passes while (a) or (b) fails, calling has not transferred, and the NEW wording family is widened before the next boundary.
+- Both pass with probability 0.959 at a 1% skip rate, 0.852 at 2% and 0.219 at 5% (exact per-unit binomial).
 
 ## Options rejected
 - **Remove the relative-distance rows** (all 20,665, or the 10,387 with the two copied phrasings). The sealed relative-distance form wrote metres without a call, and it coexisted with 149 of 150 calls at step 544, so the template's presence does not by itself make the model skip. Removal leaves a protected direct type untrained, and the 10 direction-only traces show the model would pick up another direct template. The rows are kept as a conditional option for the settling read.
 - **Remove the feet unit rows on P.** They are the only routed rows that answer non-metre questions faithfully; without them every non-metre answer reverts to metres (step 544: 15.23 MRA). The unit-sensitivity they taught would not unlearn on metre rows alone, because nothing teaches "inches -> call".
 - **Raise P's feet cell as the fix.** It covers neither centimetres nor reworded questions, so the gate cannot pass on P; it remains only a partial lever for a P continuation.
-- **Hold some dev-S1 wordings out of the coverage rows as a transfer check.** ORCH ORDER 0351Z sets the coverage rows to the dev-set wordings; transfer to unseen wording is read on ReVSI's distance items instead.
+- **Train all 15 failing dev-S1 wordings.** Then dev-S1 could no longer test transfer to unseen wording (ORCH ORDER 0422Z). That set (v1) is built and checked, but it is not bound.
 - **Lower the relative-distance dose.** The template is already learned at step 200, and count_diag's size and counting cases show that a lower dose of a learned form does not remove it.
 - **Route relative distance through gap calls (H1-2).** It is not launchable: its rows wait on a response cache.
 
 ## What might not work, and how we would notice
 - The unit-sensitivity reading is an inference. The D0 VQA forms may cause the skips on their own, since no D0 or H1-1 export was ever read on routed distance. Notice: the settling read below.
 - 3.00 rows per step may be too thin: each coverage row is drawn about 0.5 times in 1,000 steps, against the 22.74 relative-distance rows that share the vocabulary. Notice: the N gate. Raise the cell toward 6 to 9 if the coverage wordings still miss.
-- The rows teach the dev-S1 wordings themselves, so dev-S1 becomes seen-wording, and transfer to other wordings is unmeasured. Notice: the ReVSI distance call rate beside the gate.
+- Calling may not transfer from 50 trained wordings to the 8 held-out ones. Notice: gate sets (a) and (b) against (c).
 - The recovery ending could become the skipped-call form on N. Notice: non-calling traces with "I see the X in frame N" and a bare number. Halve recovery if so.
 - C' trains to step 600 with the drift and no fix, so the skips may grow. Notice: P's printed gate at steps 400 and 600.
-- At bind time the kit may treat the new rows differently from the build-16 sources: the distance slice carries no event list (validation rebuilt it from the suffix), candidate_id is kept equal to the source's, and the two files need their own pins. Notice: tree_rebuild11's census on the bound files, and the Codex review of the rows.
+- At bind time the kit may treat the new rows differently from the build-16 sources: the distance slice carries no event list (validation rebuilt it from the suffix), the generation-path functions `shuffled_item` and the paraphrase parser would rewrite or fail to parse the new wordings, and the two files need their own pins. Notice: tree_rebuild11's census on the bound files.
 - The guesses' MRA (46.0 on 55 non-metre items) partly pays for the gain at step 200. Restoring calls may lower centimetre MRA if conversion fails. Notice: distance MRA split by calling, by unit, at N's read.
 
 ## Tests that would settle it
@@ -138,7 +150,9 @@ At step 200 the model had drawn about 200 feet rows, 4,548 relative-distance row
 - An optional ablation: N with and without the coverage family at the same step.
 
 ## Status
-- Q1 to Q6 are answered, and the coverage rows are built with every check passing.
-- An independent Codex review (gpt-6-astra high, read-only) is under way. Its verdict, and the bind and the cell, belong to the orchestrator and tree_rebuild11.
+- Q1 to Q6 are answered, and coverage v2H with held-out wordings is built with every check passing; the R0 held-out set and gate v2 are delivered.
+- The independent Codex review (gpt-6-astra high, read-only) of v1 returned GO AFTER FIXES: count and reuse asserts, a required unit field, recomputed candidate_ids, and the coverage table's N counts. All four are fixed in v2 and verified by `check_cov_v2.py`.
+- The independent Codex review of v2H (gpt-6-astra high, read-only; `CODEX_REVIEW_V2H.md`) found no verified problem and returned GO. It recomputed the split, the held-out exclusion (0 of 6,000; minimum held-out-to-new distance 0.436), the wording filter, every row against its source, the arithmetic, the kit validation, the candidate ids and the R0 set.
+- The bind, the cell and the owed routed reads of set (b) belong to the orchestrator, tree_rebuild11 and cont_ops18.
 - No training, job, store or kit was changed.
 - Lane: trinity-3-30:/scratch/jjyeung/orch_n30/dist_diag.

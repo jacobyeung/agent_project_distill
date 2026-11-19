@@ -1,0 +1,102 @@
+{
+  "schema": "sb-policy-checks-v1",
+  "checks": [
+    {
+      "component": "geometry_tower",
+      "case": "missing_record",
+      "result": "REFUSE",
+      "message": "Missing component evidence: geometry_tower"
+    },
+    {
+      "component": "geometry_tower",
+      "case": "required_boolean_false",
+      "result": "REFUSE",
+      "message": "External exemption requires frozen pretrained weights"
+    },
+    {
+      "component": "segmenter",
+      "case": "missing_record",
+      "result": "REFUSE",
+      "message": "Missing component evidence: segmenter"
+    },
+    {
+      "component": "segmenter",
+      "case": "required_boolean_false",
+      "result": "REFUSE",
+      "message": "External exemption requires frozen pretrained weights"
+    },
+    {
+      "component": "heads_gf1_connector",
+      "case": "missing_record",
+      "result": "REFUSE",
+      "message": "Missing component evidence: heads_gf1_connector"
+    },
+    {
+      "component": "heads_gf1_connector",
+      "case": "required_boolean_false",
+      "result": "REFUSE",
+      "message": "New training requires complete clean scene evidence"
+    }
+  ],
+  "passed": 6,
+  "official_items_read": 0,
+  "note": "Synthetic refusal probes only. Existing policy test source was inspected; full suite not run.",
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/out/PACKAGE.json",
+      "sha256": "65615a513c28cb1bcae219616256640c5318485df9e42218ebbbdf880b72313c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/out/inventories/optimizer.json",
+      "sha256": "69824cadd9decebc7ff46905664f80f441aedf7953b5382415bd0c525803fbb7"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/build_report.py",
+      "sha256": "9fe4f5c72a667cbc54c6404f1160058c811f3b59af215df5bb592ac8e3c779d0"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/policy_probes/geometry_tower.json",
+      "sha256": "9472d97aa8adfb6041486c869e6805e39fb0e0a7a5acbf90a73e04cedc671dcb"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/policy_probes/heads_gf1_connector.json",
+      "sha256": "b041a74c009650b0f0bf9e3b2ab3beaaece953aef133e2573c84099e22e643ce"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/policy_probes/segmenter.json",
+      "sha256": "39aedc63eda9d17f4cb36f01734abb8eae7f78b5aa9a14944d157df68941fda7"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/build19/inputs/kit_config.json",
+      "sha256": "b2e23841aa3634bf581dd775b4b44d6d73b26832bfd497e769976ed47a5b91aa"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/carrier_c1.py",
+      "sha256": "3eaae0dd75fac3eebc5ccfaeaacf3e265e294fe4288fb2aaeb0dd7740f352a13"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/carrier_c1_run.py",
+      "sha256": "1f6a9a72910c0b449beee70c358201fb5a579e18a6b98031d9050dbe2046ace0"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r1_components.py",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r1_training.py",
+      "sha256": "7517d775a7fe64f4a52478de7fe494dbc5334a36b114a2b948af9dc1de6ab1a2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r2_policy.py",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r2_portable.py",
+      "sha256": "952b2c2d85dce700ed95396ae1a07153b8396c28f3cbf95a30b76cff0b59f500"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tests/test_r2_policy.py",
+      "sha256": "36b91fa241ecff92fad055f4c885e3ab86a50bfd4d1142b8893994af52eefa5d"
+    }
+  ]
+}

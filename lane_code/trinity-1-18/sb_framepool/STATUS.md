@@ -1,0 +1,1 @@
+The frame-map and plan reproduce 290,880 frames in 4,697 captures. BENCH v2 intersects 146 distinct captures: 126 STI-Bench/ReSTI, 20 MindCube, and 2 venue-381879 captures. Two ScanNet captures belong to both STI-Bench/ReSTI and MindCube, so the requested 148 is a membership sum. All 146 appear in BENCH v2. Training-store and evaluation-item scans are pending.

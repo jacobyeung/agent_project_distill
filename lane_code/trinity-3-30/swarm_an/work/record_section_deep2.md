@@ -1,0 +1,9 @@
+
+
+### 10.4 Frame citations (`deep_frames`)
+- **Census.** Appearance-order traces cite a value above 32 on 100 of 246 items at step 544, 105 at R1 step 100 and 100 at R1 step 200; VSTI traces on 64 of 900 at step 544 and 373 of 900 at step 200 (the step-200 form cites first-seen frames, the base form mostly did not). The mixture is not resolving with training.
+- **The out-of-range values are not the sampled frames' seconds.** A cited value lies within 0.6 s of one of its own video's 32 sampled timestamps on 17 of 153 appearance-order values, 36 of 513 VSTI values and 38 of 251 away-twin values; against another item's timestamps the hit counts are 42, 100 and 35. The base's decimal counting citations match on 1 of 313. This refutes the reading in this lane's first RESULT (04:28Z) that the values are seconds.
+- **Training rows are clean:** 2,426 of 2,426 numeric citations in a 600-row sample are integers in 1 to 32.
+- **What each consumer expects.** The tools take sampled-frame indices: the camera calls copy the question's "frame a ... frame b of 32" on 450 of 450 items, and ground responses print indices of at most 32. Vehicle N's rows (store v7) cite indices. No tool call carries an out-of-range value.
+- **No wrong answer is shown to follow from a bad citation.** On appearance order the answer does not derive from the trace's frames at all (answers 62.2; best agreement with the stated frames 54.9; pairwise order accuracy 1,155 of 1,476 pairs for the frames against 1,240 for the answers). On VSTI all 900 traces repeat the queried frame k correctly and accuracy shows no consistent penalty by video spacing or by whether an out-of-range value is cited.
+- Change for N: render every citation as "sampled frame k of 32" and keep the frames attached to the sorted appearance sequence; at the next read repeat the census.

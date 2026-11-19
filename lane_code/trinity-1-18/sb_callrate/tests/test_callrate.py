@@ -9,14 +9,16 @@ import io
 import json
 import random
 import unittest
-import uuid
+import tempfile
 from collections import defaultdict
 from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).absolute().parents[1]
 sys.path.insert(0, str(ROOT))
-from callrate import setup_scorer, paired, execute, parser, main as cli_main
+from callrate import setup_scorer, paired, execute, parser, summary, main as cli_main
+from populations import tag_items, inherit_tags, room_mra
+from callrate import check_pair_items
 from return_reader import Inputs, OUT3, OUT3S, canonical, load_read
 from measurements import capped, measure, question_template, follows
 from bootstrap import bootstrap
@@ -41,6 +43,61 @@ def row(records=None, answer='1', finish='eos', text=None):
 
 def gap(value=1, **extra):
     return dict(call='<gap a="chair" b="table" rule="box_grid_5cm">', response=f'distance {value} m', **extra)
+
+
+class PopulationTests(unittest.TestCase):
+    def test_explicit_sets_and_tags(self):
+        i = item('room_size_estimation')
+        for manifest in ({'items':[i], 'sets':{'dev-S1':['synthetic']}},
+                         {'items':[{**i, 'r0_split':'R0-dev'}]}):
+            tagged = tag_items(manifest)
+            self.assertIn(tagged['synthetic']['_population'], ('dev-S1','R0-dev'))
+        self.assertNotIn('_population', i)
+
+    def test_unknown_membership_never_uses_prefix_or_dataset(self):
+        i = {**item('room_size_estimation'), 'id':'r0_fake', 'dataset':'scannetpp'}
+        self.assertIsNone(tag_items({'items':[i]})['r0_fake']['_population'])
+
+    def test_conflicts_duplicates_and_absent_members(self):
+        i = {**item('room_size_estimation'), 'r0_split':'R0-dev'}
+        for sets in ({'dev-S1':['synthetic']}, {'R0-dev':['synthetic','synthetic']},
+                     {'dev-S1':['absent']}, {'R0-dev':['synthetic'],'dev-S1':['synthetic']}):
+            with self.subTest(sets=sets), self.assertRaises(ValueError):
+                tag_items({'items':[i], 'sets':sets})
+
+    def test_catalog_join_checks_identity_and_population(self):
+        items = tag_items({'items':[item('room_size_estimation')]})
+        catalog = tag_items({'items':[{**item('room_size_estimation'), 'r0_split':'R0-dev'}]})
+        inherit_tags(items, catalog, check_pair_items)
+        self.assertEqual(items['synthetic']['_population'], 'R0-dev')
+        catalog['synthetic']['_population'] = 'dev-S1'
+        with self.assertRaisesRegex(ValueError, 'population differs'):
+            inherit_tags(items, catalog, check_pair_items)
+        catalog['synthetic']['ground_truth'] = 999
+        with self.assertRaisesRegex(ValueError, 'Paired item differs'):
+            inherit_tags(items, catalog, check_pair_items)
+
+    def test_population_bootstrap_clusters_rooms_and_tracks_missing(self):
+        items, a, b = {}, {}, {}
+        for k, room, pop, score in [('x','room1','dev-S1',1.), ('y','room1','dev-S1',.5),
+                                     ('z','room2','dev-S1',0.), ('reserve','room3','R0-dev',.8),
+                                     ('unknown','room4',None,.3)]:
+            i = {**item('room_size_estimation'), 'id':k, 'room_key':room, '_population':pop}
+            items[k] = i
+            m = measure({**row(), 'id':k}, i, SC)
+            a[k] = {**m, 'score':score}
+            b[k] = {**m, 'score':0.}
+        result = room_mra({'a':a, 'b':b}, {'a':items,'b':items})
+        expected = bootstrap([('room1',100.),('room1',50.),('room2',0.)])
+        for key, value in expected.items():
+            self.assertEqual(result['dev-S1']['paired'][key], value)
+        self.assertEqual(result['dev-S1']['a']['mra_answer'], .5)
+        self.assertEqual(result['MISSING']['a']['n'], 1)
+        self.assertEqual(result['all']['a']['n'], 5)
+        partial = room_mra({'a':{k:v for k,v in a.items() if k!='reserve'}, 'b':b}, {'a':items,'b':items})
+        self.assertEqual(partial['R0-dev']['a']['status'], 'MISSING')
+        self.assertEqual(partial['R0-dev']['a']['missing_ids'], ['reserve'])
+        self.assertIsNone(partial['R0-dev']['paired']['value'])
 
 
 class MetricTests(unittest.TestCase):
@@ -165,7 +222,9 @@ class MetricTests(unittest.TestCase):
 
 class LoaderTests(unittest.TestCase):
     def setUp(self):
-        self.work=ROOT/'tests/artifacts'/uuid.uuid4().hex
+        temp_root = ROOT/'scratch/tests'
+        temp_root.mkdir(parents=True, exist_ok=True)
+        self.work=Path(tempfile.mkdtemp(prefix='callrate-', dir=temp_root))
         self.package=self.work/'package'
         self.ret=self.work/'ret'
         self.journal=self.ret/'metadata/reads/0/metadata/journals/0/0'
@@ -279,6 +338,84 @@ class LoaderTests(unittest.TestCase):
         self.assertEqual(result['status'],'MISSING')
         self.assertIn('absent-return/metadata/IDENTITY.json',result['error'])
         self.assertTrue(result['sources'])
+
+    def test_summary_400_600_with_room_populations(self):
+        def configure(step):
+            self.pin.update(step=step,member_directory='m'+str(step),object='synthetic'+str(step))
+            self.write(self.package/'READ_PLAN.json', self.plan)
+            self.write(self.ret/'metadata/EXPORT_PIN.json', {**self.pin,'preparation':{}})
+            entries = [{**item('room_size_estimation'), 'id':key, 'r0_split':pop}
+                       for key,pop in [('s1','dev-S1'),('reserve','R0-dev')]]
+            self.manifest = {'items':entries,'item_set_sha256':'synthetic-set'}
+            path = self.package/'src/items/devs1_routed.json'
+            self.write(path,self.manifest)
+            self.write(self.package/'src/9.json',{'order':['room_size_estimation']})
+            self.env['binding'].update(step=step,items_sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+            self.write(self.journal/'environment.json',self.env)
+            records = [{**self.record,'id':i['id'],'type':'room_size_estimation'} for i in entries]
+            (self.journal/'items.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in records))
+        configure(400)
+        a_ret,a_package = self.ret,self.package
+        self.setUp()
+        configure(600)
+        target = self.work/'summary-output'
+        args = ['--a',str(a_ret),'--a-step','400','--a-package',str(a_package),
+                '--b',str(self.ret),'--b-step','600','--b-package',str(self.package),
+                '--scorer-src',str(IO.root/OUT3/'A4/src'),'--baseline-root',str(BASE),
+                '--out',str(target),'--summary']
+        stdout,stderr = io.StringIO(),io.StringIO()
+        with contextlib.redirect_stdout(stdout),contextlib.redirect_stderr(stderr):
+            self.assertEqual(cli_main(args),0)
+        result = json.loads((target/'callrate.json').read_text())
+        self.assertEqual(stdout.getvalue(),summary(result))
+        self.assertEqual(stdout.getvalue(),(target/'callrate.summary.txt').read_text())
+        self.assertEqual(stderr.getvalue(),'')
+        self.assertEqual(len(stdout.getvalue().splitlines()),7)
+        self.assertRegex(stdout.getvalue(), r'dev-S1 \[A=.+/read 0; B=.+/read 0\] \| 1/1 / 1/1 \| 100.00/100.00')
+        self.assertRegex(stdout.getvalue(), r'R0-dev .* \| 1/1 / 1/1 \| 100.00/100.00')
+        self.assertNotIn('wording=',stdout.getvalue())
+        self.assertIn('wording=',(target/'callrate.txt').read_text())
+        for source in result['sources']:
+            self.assertEqual(hashlib.sha256(Path(source['path']).read_bytes()).hexdigest(),source['sha256'])
+
+    def test_summary_distance_units(self):
+        target = self.work/'distance-summary'
+        args = ['--a',str(self.ret),'--a-step','400','--a-package',str(self.package),
+                '--b',str(self.ret),'--b-step','400','--b-package',str(self.package),
+                '--scorer-src',str(IO.root/OUT3/'A4/src'),'--baseline-root',str(BASE),
+                '--out',str(target),'--summary']
+        stdout,stderr = io.StringIO(),io.StringIO()
+        with contextlib.redirect_stdout(stdout),contextlib.redirect_stderr(stderr):
+            self.assertEqual(cli_main(args),0)
+        self.assertIn('object_abs_distance | 1/1 / 1/1 | 100.00/100.00', stdout.getvalue())
+        self.assertIn('object_abs_distance unit=m | 1/1 / 1/1 | 100.00/100.00', stdout.getvalue())
+        self.assertIn('follow_converted A/B', stdout.getvalue())
+        self.assertEqual(stderr.getvalue(),'')
+
+    def test_cli_unknown_population_retains_metrics_and_reports_missing(self):
+        self.manifest['items'] = [item('room_size_estimation')]
+        path = self.package/'src/items/devs1_routed.json'
+        self.write(path,self.manifest)
+        self.write(self.package/'src/9.json',{'order':['room_size_estimation']})
+        self.env['binding']['items_sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+        self.write(self.journal/'environment.json',self.env)
+        self.record['type'] = 'room_size_estimation'
+        (self.journal/'items.jsonl').write_text(json.dumps(self.record)+'\n')
+        target = self.work/'unknown-population'
+        args = ['--a',str(self.ret),'--a-step','400','--a-package',str(self.package),
+                '--b',str(self.ret),'--b-step','400','--b-package',str(self.package),
+                '--scorer-src',str(IO.root/OUT3/'A4/src'),'--baseline-root',str(BASE),
+                '--out',str(target),'--summary']
+        stdout,stderr = io.StringIO(),io.StringIO()
+        with contextlib.redirect_stdout(stdout),contextlib.redirect_stderr(stderr):
+            self.assertEqual(cli_main(args),2)
+        result = json.loads((target/'callrate.json').read_text())
+        self.assertEqual(result['missing_population_ids'],['synthetic'])
+        self.assertEqual(result['room_mra']['MISSING']['a']['n'],1)
+        self.assertEqual(result['room_mra']['dev-S1']['a']['n'],0)
+        self.assertIsNone(result['room_mra']['dev-S1']['a']['mra_answer'])
+        self.assertIn('b2/src/items/room134.json',stderr.getvalue())
+        self.assertRegex(stdout.getvalue(), r'MISSING \[.*\] \| 1/1 / 1/1')
 
 
 if __name__=='__main__':

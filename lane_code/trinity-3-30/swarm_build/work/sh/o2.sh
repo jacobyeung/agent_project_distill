@@ -1,0 +1,2 @@
+hostname; for d in /lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap /scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap /lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung; do echo "## $d"; ls "$d" 2>&1 | head -60 | tr '\n' ' '; echo; done
+for h in 97a6a3eb f2ad01ad 8865619b 5e1d07a4 1742c666 f02f16ad; do for r in /lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap /scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap; do [ -e $r/$h ] && { echo "HIT $r/$h"; ls $r/$h | head; }; done; done

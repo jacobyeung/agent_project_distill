@@ -1,0 +1,18 @@
+# Task sb_callrate3: fix the call-rate reader per its independent review
+Workspace: /scratch/jjyeung/orch_n30/sb_callrate (your earlier build). Read /scratch/jjyeung/orch_n30/sb_crrev/REVIEW_VERDICT.md (read-only; evidence under sb_crrev/scratch, including rob/run.sh probes you can rerun) and fix:
+1. --summary must show n/expected on every row and a PARTIAL banner when any type is incomplete; refuse in --summary without --allow-partial (exit 2 with a one-line reason on stderr).
+2. Refuse when a type's A and B id sets differ (unless --allow-subset, which then computes marginals and deltas on the shared set only and prints both set sizes).
+3. Distance usage: report three categories per item and as rates: follow_converted (answer equals the printed response converted to the requested unit, scorer tolerance), copied_unconverted (answer equals the printed metre value but the question asks another unit), other. Keep "usage" = follow_converted + copied_unconverted ("answer follows the response") and print conversion failure separately; same for other types where a unit applies.
+4. Room36 pairing: use the registered baseline b1/read 0 (as score_r5.py does) by default for A4-style five-type reads; print the b2/read 0 comparison as a labelled secondary line. Label every room population with its source read (finding 6).
+5. Symlink relocation: relocate only links whose target is missing and lies under --original-root; never rewrite a link whose target exists.
+6. Answer rate: count only answers the type's scorer can parse as a value/option; report 'not seen' and other non-numeric answers as a separate rate.
+7. Tests: add tests for each fix (including the reviewer's t2/t3/t4 probes as regression tests); stop writing fixtures into the source tree (use a temp dir); no absolute-path assertions.
+8. Prepare for the wording split coming from lane dist_diag: an optional --strata FILE (JSON: item id -> stratum label, e.g. HELDOUT / TRAIN_DEV / R0_REWORDED, and unit) that adds per-stratum and per-stratum-by-unit rows (call rate and score/MRA) to the table and --summary. Ship an example strata file built from the dev-S1 wording tags you already compute.
+Keep all earlier reproduction checks passing (update the room36 expected values to the b1/read 0 baseline: 0.116667, capped 29/36, delta 55.28 [38.82, 70.39] per score_r5). Update README.md and append a "Review fixes" section to out/CALLRATE_REPORT.md (keep it under 250 lines). Rebuild out/sb_callrate.tar and its sha256.
+## Standing rules and answers (read first; you will get no replies, so do not wait for any)
+- You run on trinity-1-18 (CMU Trinity cluster), CPU only, no GPU, no network. Never ssh, never kill a process, never touch tmux sessions, no Git, no deletion outside your workspace.
+- /home and /data* are an overloaded NFS server: never search, list recursively or bulk-read there. Read only files this prompt names, each once. /scratch is local disk: bounded `rg --files`/`find` under the directories named here is fine.
+- Write only inside your workspace. Every path outside it that this prompt names is read-only to you (other lanes own it).
+- Local-disk IO needs no approval. Ordinary failures: debug and rerun. The sandbox has no loopback sockets. Stay under 40 GB RAM per process; use at most 16 cores.
+- Legality: never invent a mapping, a manifest, a scene list or a proof. A missing input is reported by its exact name and expected location; the affected output says MISSING, never a guess.
+- Every output JSON records sha256 of each input it rests on, and your report states the command that produced each number. Write a STATUS.md in the workspace after each stage (one paragraph) and a final report named in the task.

@@ -1,0 +1,58 @@
+{
+  "blockers": [
+    {
+      "context_evidence": [
+        "out/NAMING_CONFLICT.json",
+        "G3 task: operator-supplied Orchard staging context"
+      ],
+      "description": "Runtime item keys, signed metadata paths and trainer members still expose prohibited names.",
+      "evidence": "out/NAMING.json",
+      "id": "naming",
+      "operator_context": "The seven names sit inside the sealed trainer tree b01ce449, the same tree job 170056 and D0's training job already staged on Orchard; ORCH decides.",
+      "status": "OPEN"
+    },
+    {
+      "description": "The operator reports that the CPU fixture passes stage, prepare, proof, canary, native subset, merge, admit, publish, fetch and report. The report correctly refuses the incomplete fixture. This closes the CPU-fixture blocker only.",
+      "details": "out/rehearsal/OPERATOR_EVIDENCE_G3.json",
+      "evidence": "out/rehearsal/whole/31f44f39c63b4d68be53660ff5780980/RESULT.json",
+      "evidence_source": "Operator-supplied; G3 did not access the protected run directory.",
+      "id": "whole_worker",
+      "limitations": [
+        "The fixture cannot establish real tensors, GPU parity or token identity.",
+        "Production cloud staging and allocation remain unvalidated."
+      ],
+      "scope": "CPU fixture only",
+      "status": "CLOSED"
+    },
+    {
+      "description": "New coordinator, single-arm admission and checker namespace adapter need independent review and live runtime validation.",
+      "evidence": "out/DIFF.md",
+      "id": "production_review",
+      "status": "OPEN"
+    },
+    {
+      "description": "Each production milestone needs its own closure, completed export, matching review and exact ORCH GO.",
+      "evidence": "out/RUN.md",
+      "id": "candidate_authority",
+      "status": "WAITING_FOR_OPERATOR"
+    }
+  ],
+  "g1_blocker_status": {
+    "1": "CLOSED_FOR_REAL_METADATA; actual tensor restore remains in-job",
+    "2": "IMPLEMENTED_AND_CPU_FIXTURE_TESTED; production runtime remains unvalidated",
+    "3": "OPEN; outer archive aliases and projections only",
+    "4": "CLOSED_FOR_CPU_FIXTURE; operator-supplied pass; real tensors/GPU parity/token identity unproven"
+  },
+  "not_checked": [
+    "Real candidate export weights",
+    "GPU restore/parity/token identity",
+    "Production whole-worker execution with real tensors",
+    "Orchard allocation and resource admission",
+    "Live GCS generations/credentials and publication",
+    "Live result-pool state",
+    "Installed ossh/governor CLI",
+    "Complete runtime naming migration"
+  ],
+  "production_packet_authorized": false,
+  "status": "NOT_READY"
+}

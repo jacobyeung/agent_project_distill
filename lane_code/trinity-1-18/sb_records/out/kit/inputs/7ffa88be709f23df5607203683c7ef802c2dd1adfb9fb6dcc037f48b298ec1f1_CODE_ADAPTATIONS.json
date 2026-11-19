@@ -1,0 +1,61 @@
+{
+  "adaptations": [
+    "Only the r0 rejection reason is removed for the 100 authorized dev rooms. All other exclusion reasons remain active.",
+    "The archived f32 pins and sliced pose entries provide each room's camera inputs. Missing question-file rooms are excluded.",
+    "CPU triangle first-hit ray casting produces 320x240 rasters. Provider OBB extents are tested against labeled vertices and stored as full lengths.",
+    "The source generator supplies all questions, options, answers, margins, first-seen evidence, frame-N shares and lr bearings. Selection caps each room at four items per type; a short type may use six.",
+    "The dev schema carries archive member references and hashes, a model-trace capture flag, and no training target. Training-style traces are saved only under work for scorer testing.",
+    "The checker imports neither generate nor geometry and independently recomputes item evidence.",
+    "Each small named NFS authority is read into a local cache once; imported authority code reads the cached bytes."
+  ],
+  "imports": {
+    "check.py": [
+      "check_source",
+      "check_frame_n",
+      "first",
+      "closest",
+      "horizontal_angle",
+      "margin",
+      "sibling"
+    ],
+    "generate.py": [
+      "candidates",
+      "render",
+      "seed",
+      "label filters",
+      "sibling",
+      "frame_n_provenance"
+    ],
+    "geometry.py": [
+      "verify_source"
+    ],
+    "sources.py": [
+      "exclusions",
+      "rejection",
+      "load_npz"
+    ]
+  },
+  "source_sha256s": {
+    "/scratch/jjyeung/orch_n30/rows_a2/vsti/code/check.py": {
+      "bytes": 25018,
+      "sha256": "bdb38bb743676aa130d0dc408857fdfffe26f30de5e221b38730b81cfb816696"
+    },
+    "/scratch/jjyeung/orch_n30/rows_a2/vsti/code/generate.py": {
+      "bytes": 15244,
+      "sha256": "fceb45e6bee7aff7d8c4b388cdf0caf269c1141b42d06c24c6833d23afabcb88"
+    },
+    "/scratch/jjyeung/orch_n30/rows_a2/vsti/code/geometry.py": {
+      "bytes": 6543,
+      "sha256": "ff6e98e1d1663126924ab193979517c350b1b335ad78cb29f6ebc9548eaf0621"
+    },
+    "/scratch/jjyeung/orch_n30/rows_a2/vsti/code/rewrite_v4.py": {
+      "bytes": 7041,
+      "sha256": "1c7f92b9413498b4e9cc8218cb20edb54793d5e38795d4ec9905aa6fb584e5ea"
+    },
+    "/scratch/jjyeung/orch_n30/rows_a2/vsti/code/sources.py": {
+      "bytes": 5194,
+      "sha256": "4278b8ed47671c0c86195ca573841e6cbe279470ae1d0c4bcd5418e6c181f6ef"
+    }
+  },
+  "training_source_edits": false
+}

@@ -1,0 +1,1 @@
+- dist_diag coverage v1 superseded by v2: trinity-1-18:/scratch/jjyeung/n30_mirror/dist_diag/coverage_v1/ (67 MB raw + gz); events/dist_diag/COVERAGE_V1_PUB.tar (9.0 MB); trinity-3-30 review_cov1/pub (v1 gz). Remove after the v2 bind is accepted.

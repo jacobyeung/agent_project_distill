@@ -25,13 +25,13 @@ Calls = items with at least one served tower call (step 544 read 171253/1; step 
 | Counting from the closest points, how many {u} lie between the {a} and the {b}? | 0/2/0/1 | 0/2/0/1 (3/3) | 0/2/0/1 (3/3) | 100% | 0 | 0 | no (>= 90%) |
 | Provide the separation distance between the closest points of the {a} and the {b} in {u}. | 1/2/0/0 | 1/2/0/0 (3/3) | 1/2/0/0 (3/3) | 100% | 0 | 0 | no (>= 90%) |
 | Using their nearest points, measure the distance from the {a} to the {b} in {u}. | 0/1/0/0 | 0/1/0/0 (1/1) | 0/1/0/0 (1/1) | 100% | 0 | 0 | no (>= 90%) |
-| Measuring from the closest point of each object, what is the distance between the {a} and the {b} (in {u})? (R0-dev, 290 items, all metres; no routed read of R0-dev distance exists) | 290/0/0/0 | - | - | - | m 11,728; ft 683 | m 8565; ft/in/cm None/None/None | no (covered) |
+| Measuring from the closest point of each object, what is the distance between the {a} and the {b} (in {u})? (R0-dev, 290 items, all metres; no routed read of R0-dev distance exists) | 290/0/0/0 | - | - | - | m 11,728; ft 683 | m 8565; ft/in/cm 2634/2583/2588 | no (covered) |
 
 | Unit (dev-S1, all templates) | items | calls 544 | calls 200 | call rate 200 | P routed rows | N routed rows | named |
 |---|---|---|---|---|---|---|---|
 | m | 43 | 43 | 36 | 84% | 11728 | 8565 | no on N |
-| ft | 46 | 46 | 30 | 65% | 683 | None | no on N |
-| in | 33 | 32 | 9 | 27% | 0 | None | no on N (>= 200 rows); P uncovered |
-| cm | 28 | 28 | 13 | 46% | 0 | None | no on N (>= 200 rows); P uncovered |
+| ft | 46 | 46 | 30 | 65% | 683 | 2634 | no on N |
+| in | 33 | 32 | 9 | 27% | 0 | 2583 | no on N (>= 200 rows); P uncovered |
+| cm | 28 | 28 | 13 | 46% | 0 | 2588 | no on N (>= 200 rows); P uncovered |
 
 Named (call rate under 90% at step 200 and fewer than 200 routed rows on N): 15 templates, listed above with "yes". No unit is named on N: every unit has at least 200 routed rows there, all in the one routed template. On P, inches (64 stored, not drawn) and centimetres (0) are uncovered, but P takes no row change.

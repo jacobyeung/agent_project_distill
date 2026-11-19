@@ -1,0 +1,68 @@
+"""Devin deep-read briefs: /scratch/jjyeung/orch_n30/swarm_an/briefs/<lane>.md (lane = san_dd_<id>)."""
+import sys
+B = '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30'
+P = B + '/events/swarm_an/prompts'; tag = sys.argv[1] if len(sys.argv) > 1 else 'm200'
+src = open('%s/%s_deep_size.md' % (P, tag)).read()
+def block(a, b): return src[src.index(a):src.index(b)]
+RULES = block('## Rules', '## What this is'); CONTEXT = block('## What this is', '## Your assignment'); KIT = block('## How to read the traces', '## Required report')
+HEAD = """# Lane %(lane)s (Devin Opus, trinity-3-30): deep read for the trace-analysis swarm (coordinator: lane swarm_an)
+
+First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it. Your lane folder is /scratch/jjyeung/orch_n30/%(lane)s on trinity-3-30. You are an analyst: you read, compute and write one report. You change nothing outside your lane folder.
+
+Where this brief is stricter than LANE_RULES.md, the brief wins:
+- trinity-3-30 /scratch is below its floor: write under 20 MB in total in your lane folder, no file above 2 MB, no copies of returns, stores or rows. Compute in memory; keep only scripts and small result tables under `work/`.
+- No events at all, except one BLOCKER event (in B/events/%(lane)s/) if a rule stops you. No STATUS mirror to the events folder. The coordinator reads your files.
+- No Codex dispatch, no subagents, no GPU, no Orchard, no ssh, no Git, no network, no deletion.
+- Stop when the report is written; do not wait for an answer. Budget: finish within 75 minutes of your start; write the report with what you have by then.
+
+""" + RULES + "\n" + CONTEXT + "\n"
+TAIL = "\n" + KIT + """
+## Deliverable
+`/scratch/jjyeung/orch_n30/%(lane)s/REPORT.md`, at most 260 lines, full sentences, for a reader who has not seen the data:
+1. **Answers**: each question of the assignment with its answer first and the count that carries it ("n of N"; scores with item counts).
+2. **Evidence tables** and, where a claim rests on reading, the item ids (at least three verbatim excerpts per claim: id, question, truth, answer, the trace lines).
+3. **For vehicle N**: ranked row or trace changes (add, reword, drop; family; rows; one verbatim example of each new trace), the dev items each addresses, the expected effect with its basis, and how the next read would show that it failed.
+4. **Refuted or corrected**: anything in the first-wave reports that your reading contradicts.
+5. **Not established**, and what would settle it.
+Then write `/scratch/jjyeung/orch_n30/%(lane)s/work/reproduce.py` (runnable as is; prints the five numbers your answers rest on) and, last of all, an empty file `/scratch/jjyeung/orch_n30/%(lane)s/DONE`. Keep `STATUS.md` in your lane folder current (three lines: step, findings so far, next).
+Quote counts from files. Label every guess. Do not pad.
+"""
+A = {}
+A['dist'] = """## Your assignment: routed absolute distance and room size, end to end (placement, head accuracy, usage), with prices
+These are the routed types where the call is sometimes not placed. The first-wave report `routed_dist` and lane dist_diag's diagnosis (`/data2/jjyeung/agent_project_data/distill_design/R1_DISTANCE_NO_CALL_DIAGNOSIS_20261119.md`, read it once) hold the known facts: at step 200, 62 of 150 dev-S1 distance items make no call and copy the relative-distance direct template; of the 88 that call, 54 wrong items copy a wrong printed gap, 12 answer metres for a non-metre question (11 centimetre), 2 invent a value after `not seen`. Coverage rows (reworded routed rows in more wordings and units) are being built for vehicle N.
+Read all 150 distance traces at step 200 and at step 544 yourself (`K.routed`, planner python), and the 134 + 36 room traces. Then answer:
+1. The definitive table per unit (m, ft, in, cm) and per question wording at both steps: items, calls placed, gap printed, conversion written, conversion right, answer follows the response, MRA. Reconcile every number with the first-wave report and say where you differ.
+2. Price each fix by counterfactual, on the scored truth: (a) every item calls and answers the step's own printed gap x the right factor, using for a no-call item the gap that step 544 printed for the same item (the call strings are the same at both steps); (b) the same with a perfect gap; (c) only the centimetre conversions fixed; (d) only the no-call items fixed. Give the type's MRA under each, with the item counts, and say which fixes add and which overlap.
+3. The no-call traces, read closely: what in the question triggers the direct template (unit, wording, object class, room)? Is there a wording where the same objects call in one unit and not in another? Do the no-call answers show any use of the frames (do they vary with truth: correlation of answer with truth in metres) or are they a prior?
+4. The usage path after the response: every conversion line, checked by recomputation; every case where the final answer departs from the printed value; what the trace says when a ground response is `not seen`.
+5. Recovery: the ruling allows rows whose response is a real failure and whose trace then answers from the frames. From these traces, how would the model tell a failed or implausible response from a good one? Read the 20 worst head errors and the 20 best: is there anything in the response text (frames listed, box size, a zero gap) that separates them?
+6. Room size: at step 200 no item calls (64.4 MRA on 134); at step 544 every item calls and 115 hit the call cap (6.6 MRA). What does the step-200 trace state, does the answer follow from it, and what are the failure modes with counts (truth band, unit asked: square feet against square metres)? Is "room needs no head" supported, and what would a derivation the frames support look like?
+7. For N: the rows to add or reword for distance and room (family, count, one verbatim example each), with the gate you would read at N's first routed read.
+"""
+A['count'] = """## Your assignment: counting and relative count — what is wrong beyond the loop, and which trace form to train
+Known (first-wave report `count`, verified): at step 200 runaways cost 17.9 points on dev-S1 counting (27 wrong), 19.5 on R0-dev (78 wrong) and 11.5 on relative count (16 wrong); runaways loop on one identical entry ("frame 7; frame 7; ...") on 161 of 176 force-closed traces, and 57% of the removed first-seen list rows themselves list the same frame consecutively. Stopping the list would not restore the count (the distinct frames before the first repeat equal truth on 3 of 77). Undercount and overcount each cost 12 to 14 points; the undercount answer is "2" on 21 of 27 and 55 of 71 items. Accuracy by truth at step 200 (dev-S1 / R0-dev MRA): truth 2: 77 / 73; truth 3: 49 / 44; truth 4: 32 / 34; truth 5 or more: 17 / 14. The kept counting rows (2,617) state no inventory; relative_count has no training family. A Codex analyst is checking a "tally" form (one entry per frame in increasing order with the number of new instances, then the sum) against the removed rows; you judge the forms by reading.
+Read the counting traces at step 544, R1 step 100 and R1 step 200 on both sets (150 + 385 items) and relative count (139), and the training rows (kept and removed, both pools; the GT-backed pool is `b12_cntapp_gt_v1`). Then answer:
+1. Three trace forms exist in the model: step 544's (frames that show the object, then cross-frame matching into instances), the first-seen list (R1), and the generic instruction (kept rows). On the same items, which form's count is closest to truth by truth bin, and where does each fail? Use paired items and exclude runaways where stated.
+2. Undercount and overcount, read closely (at least 60 wrong non-runaway items across bins): what do the listed frames show? Overcount at truth 2 (14 of 76 dev-S1, 42 of 189 R0-dev): the same frame twice, adjacent frames, or distinct frames? Undercount at truth 3 or more: does the list stop at two entries? Is "2" a prior (share of training rows with answer 2, from a primary-key sample of 1,500 counting rows)?
+3. Multiple-category questions on R0-dev (98 items, 43.0): which category's count is wrong, by how much, and is the error the same-frame duplicate?
+4. relative_count (139 items): the trace form at each step, why 49 of 65 force-closed items are still right, what the 33 non-runaway wrong items get wrong, and the row family you would build (two counts and a comparison), with 3 verbatim example rows written from real training-row content.
+5. Judge the candidate forms for vehicle N against (i) loop safety, (ii) what the source annotation can honestly supply under the trace ruling, (iii) whether the answer is determined by the trace, (iv) copy risk onto other types: (A) tally by frame, (B) count announced first and then exactly that many numbered entries, (C) numbered entries with a region tag and a closing "that is all", (D) no inventory (the kept rows' form). Recommend one, write its exact wording for single, multiple and relative questions, and say what it cannot fix.
+6. What a counting head would have to print for a routed counting form, and whether any head inside the checkpoint could inform counting today (the ruling's both-paths rule); say so plainly if none can.
+7. Label defects: the first-wave report flags 11 of 118 dev-S1 room/category groups whose items disagree on the truth (e.g. tables in d1/scene0155: 2 against 3). Check all of them: are they different scans of the room (scene id suffix), different question wordings, or real conflicts? Price the effect.
+"""
+A['dir'] = """## Your assignment: relative direction on the ReVSI-style set (R0-dev) — the largest direct-type loss on the first target benchmark
+Known (first-wave reports `dir_easy`, `dir_med`, `dir_hard`, `facing`, `rows_a`; verified): the answer follows the trace's stated relation on every item; all loss is in the relation the trace asserts. R0-dev at step 200: easy 78.6, medium 64.9, hard 57.8 (dev-S1: 93.3, 88.0, 82.7). On "facing away" items the trace writes a no-turn clause ("so I keep that heading") on 43 of 202 items, 31 of them wrong; the away twins on training-distribution rooms never do (0 of 150). The remaining loss is a wrong relation when facing the reference object (R0-dev toward: 28 easy, 41 medium, 46 hard wrong) or a wrong forward relation before a correct half turn (8, 22, 14). Training rows: skeleton D ("Step 1: find the X, the Y and the Z." ... "I keep that heading."; toward only; 49,901 rows, no frames) and skeletons T/A/O ("Seen: X in frame a; ..."; A/O carry the half turn).
+Read every wrong R0-dev direction trace at step 200 (41 + 68 + 81) with its step-544 and R1 step-100 counterparts, the twins, and at least 150 training rows across the direction families. Then answer:
+1. Consistency across levels and subtypes: R0-dev asks about object triples (observer, facing object, target) at several levels and as toward/away. Group the items by (room, observer, facing object, target) from the question text (and by `pair_id` if it is filled). For triples asked more than once, does the model state the same geometric relation each time (e.g. easy says left, hard says front-left; away is the half turn of toward)? Count consistent-and-right, consistent-and-wrong, inconsistent. Consistent-and-wrong points to perception of the scene; inconsistent points to noise in the asserted line.
+2. The no-turn clause on away items: confirm the 43 of 202, split by level, and find what selects it. Is it the opening of the trace (the D-style "Step 1: find" against "Seen:"), the object names, the room? Does any training row pair an away question with the D-style opening (sample by primary key)? State the mechanism you believe and the evidence.
+3. Away-hard and the use of "back": twins answer back on 40 of 50 against 33 of 50 truths; R0-dev away-hard answers back on 46 of 71 against 61 of 71 truths. Explain both from the forward relations the traces state and from the distribution of forward relations in away training rows.
+4. Medium level: truth "back" is answered on 2 of 9 (dev-S1), 6 of 17 (R0 toward) and 20 of 39 (R0 away) items. Which band wording does the trace use (ahead / slightly / out to / behind) and where is the boundary error? Is the 135-degree rule applied in the trace?
+5. Toward items: why is R0-dev 15 to 20 points below dev-S1? Test dataset (room prefix), video length (`K.timing` spacing), object vocabulary, and question wording (dev-S1 uses many paraphrases, R0-dev one template; list accuracy by template on dev-S1). Say which explanation the numbers support.
+6. Step 544 against step 200 on R0-dev toward items: 544 stated an angle ("lies 30 degrees left of straight ahead"), 200 states a verbal relation. On the items where they disagree, which is right more often, and is the angle form's relation at 544 more often right near the boundaries (close to 0, 90, 135, 180 degrees)?
+7. For N: the row changes (family, rows, exact skeleton for a toward and an away example at each level) that (a) make the turn depend on the question's clause rather than on the opening, (b) balance the forward relation in away rows, (c) anything your reading of consistency suggests; with the R0-dev and dev-S1 items each addresses and the category points at stake (the direction category is the mean of the three levels).
+"""
+for k, v in A.items():
+    lane = 'san_dd_' + k
+    p = '/scratch/jjyeung/orch_n30/swarm_an/briefs/%s.md' % lane
+    open(p, 'w').write((HEAD + v + TAIL) % dict(lane=lane) if False else (HEAD % dict(lane=lane)) + v + (TAIL % dict(lane=lane)))
+    print(p, len(open(p).read().splitlines()))

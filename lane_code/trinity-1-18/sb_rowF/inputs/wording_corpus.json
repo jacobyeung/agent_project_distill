@@ -1,0 +1,593 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl": "f7f8bf757072d5eb5d3d32babbf8a088654179e0b61866ad64efb51d3c8fd068",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_pool_abs_distance_reworded.jsonl": "a1d43f57377d4d968589b1afcc4f4ed91075d1b52fb83f7866cf673c162590ff",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_recovery.jsonl": "2b27d0e8389baf95820f94a10048e180194189f06ccfb4669e10d0f4185b4967",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_room.jsonl": "d51b1d3b23cb7af11979eea7dd99bee93a3baa52191097f393336bad8cc7d871",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_units.jsonl": "26a13efc85b29c222ef6d447a37fbf8705cb5b26d705e0a9c0f2e98af4a38ba1",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_recovery.jsonl": "e812db747a30f5117984ee9fd6db57b4e680211815f67339bb6441e41cf84195",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_room.jsonl": "e2e6bb12f7022b7a39c6231387ad51f34468c2300cd360bb923486286b81b6dc",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_units.jsonl": "26a13efc85b29c222ef6d447a37fbf8705cb5b26d705e0a9c0f2e98af4a38ba1",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_easy.jsonl": "8845c8e33a8349c2eca6c2cc665c882181c468579105bf0223a98b44ce4b2ea0",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_hard.jsonl": "ffa1b38b7ec981c7338e953f35ebb18d3bc7ff4d6456b9f89fbd66efdbfc430a",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_medium.jsonl": "e39ce046898de95540d42c29bddc3dba9a6b39b447ac761d671fe5a76abbf354",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_box_3d.jsonl": "0e62665fa4a1b5548f2b4d036719679b0119657df2cfe8b0d78ac338cfff8fb4",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_obj_appearance_order.jsonl": "f2f96f256e2b3b16cae95ae66e63b4db83a61e16739ae33e849158bb10048f75",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_counting.jsonl": "9fe613bc1ea587561b4be04e296ef3ecf399807a484aafa83062f627b4a1d41a",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_easy.jsonl": "9440eed905e27a626ae024bd85a9484e5792d8ed29291585e3a8f39f1c818f18",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_hard.jsonl": "7a1e86ecb7592570443cd8c48d4b56299d30640fe15933467b4b0817257fa38e",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_medium.jsonl": "2d9213faafaaceba9a72a30b24d67ee2f27b88c622b32ae7aba7c834d41eb3fc",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_distance.jsonl": "f14c028f1503b1e306ebd9417f0be38c8fdf0679c9bea2eaeeb79769dc248d88",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_size_estimation.jsonl": "4f005f56fd858f12eaac4b9b38b02e8cc7dd578c9c141177e067a6c77a1d31c1",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_route_planning.jsonl": "b75020fe17f326ff1603396b18b24468c9509fc3aebddd6e4a67eb009ace02e4",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_totals.jsonl": "878189141e12e2a79ff124f25384f1a54dffebacebcbfd173a5b3d34f0f63420",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_abs_distance.jsonl": "079360d45cb225ec61e5ed6b700af94b9fe318a1f5f17752950b2f35bb3db37c",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_room.jsonl": "989862e0cb63204aa43dae68d0ddfd1c29db2839c10ca6cb5d2be76637fd23c1",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_route_planning.jsonl": "d7ad7dba0fecf45c45322125287430807d62753be66598d59353122295379f12",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_box_3d.jsonl": "ab7238a47755b49601a2f66674401162f6260c8e9988f3ab2a0974ebd7fea5c7",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_obj_appearance_order.jsonl": "057b98a6c974b65b0434cfc6c4eef370566c33d8ffa50c678c0545492a304950",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_abs_distance.jsonl": "1b086920a6f2b53d7537d595e240ca2f63849b56214a9340c978f72747badd87",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_counting.jsonl": "69e65b74f1775cbfa6cd6f9c675bd69ed3d3b4a7025bc1f631a75925e0782abd",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_easy.jsonl": "eaef7c0aa8b624fbb7704a2940eeffa3b44f5b445d1ea864b10410e31dd99603",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_hard.jsonl": "2f89383ee8c30628ceafdab93f2c5c220d6c3c6006578295716d46e89b891e85",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_medium.jsonl": "28af5061c4a3ffe59de01d3081fc8b36ad461ec80eb5974a83e2a87811d3652b",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_distance.jsonl": "ff05e2d152d2a3839e13809ef595c859a66b97674df1fd50783f2e52fba8b37a",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_size_estimation.jsonl": "c59d5f57317c95e41d6d0b02bd7a1d1b513816b197683f81a032af14c99a56a0",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_room_size_estimation.jsonl": "e141a3a07fd22ef9238ee7c26605443b3505881e70b453cdaf6f3151273817f4",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/configs/student_benchmark_eval_v1.json": "50f9011e5e87cddc4a73e9404f06928542e9509e28c3e02edd1fd21ae2380e0b",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/hflip.csv": "8da3d7666d3ed0df9e45a045cf3667add27cea5c8912d3801b7e91cb2db4aaca",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse.csv": "2d6284a778f599826826e9d154505f09ce3f8a1022fe6272484dd5d6f1ad6317",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse_hflip.csv": "d6a4f0b9bd47623ed15f1e30654235d7ff996c5b41eee2dd51f2e6fef44ecce4",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/std.csv": "ebbb3dc8ce1ec90d5d2213732486cc9495e37bbcfb9d2d3049a6eb5231c34ac9",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/vsibench/answerable500_gt_canonical.json": "d06395bcadffaba47d97bdb8d62ea22c13c42d9d06a784b37ec2e1528f51d2a3",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/vstibench/vstibench_repr_450_v2.json": "a0f9c6c36df29da99ec40543354cc47880f4949eed7991c042b623af8cfb3fda",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/conversion_3919.json": "6705c0d88fa1b801375b0b2c4ff1500a3cd9c677527bd127c9e5e0afb9e04a05"
+  },
+  "questions": {
+    "Can you tell me the room size in square meters? For several rooms, estimate the overall size.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_room_size_estimation.jsonl"
+    ],
+    "Choose the sequence of first appearances in the video for these categories: bed, cabinet, closet doors, nightstand.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_obj_appearance_order.jsonl"
+    ],
+    "Compare the shortest gaps from the armchair to these objects: bag, basket, book, broom. Which object is nearest?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_distance.jsonl"
+    ],
+    "Compare the shortest gaps from the chair to these objects: mirror, radiator, window, bed. Which object is nearest? Use the closest instance if multiple exist.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_distance.jsonl"
+    ],
+    "Compare the shortest gaps from the refrigerator to these objects: chair, stool, stove, table. Which object is nearest?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_distance.jsonl"
+    ],
+    "Compare the shortest gaps from the stool to these objects: cabinet, chair, oven, sofa. Which object is nearest?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_distance.jsonl"
+    ],
+    "Count the window(s) in this room. What is the total?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_counting.jsonl"
+    ],
+    "Count the wooden beam(s) in this room. What is the total?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_counting.jsonl"
+    ],
+    "Describe the blue square's direction of motion.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse_hflip.csv"
+    ],
+    "Describe the colored square's direction of motion.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse_hflip.csv"
+    ],
+    "Describe the synthetic camera's direction of motion.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse_hflip.csv"
+    ],
+    "Detect the bed in frame 25 and predict the 3D box in the camera coordinates of that frame. Output JSON: [{\"bbox_3d\":[x_center, y_center, z_center, x_size, y_size, z_size, roll, pitch, yaw],\"label\":\"category\"}].": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_box_3d.jsonl"
+    ],
+    "Detect the humidifier in frame 12 and predict the 3D box in the camera coordinates of that frame. Output JSON: [{\"bbox_3d\":[x_center, y_center, z_center, x_size, y_size, z_size, roll, pitch, yaw],\"label\":\"category\"}].": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_box_3d.jsonl"
+    ],
+    "Detect the monitor in frame 31 and predict the 3D box in the camera coordinates of that frame. Output JSON: [{\"bbox_3d\":[x_center, y_center, z_center, x_size, y_size, z_size, roll, pitch, yaw],\"label\":\"category\"}].": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_box_3d.jsonl"
+    ],
+    "Detect the slippers in frame 16 and predict the 3D box in the camera coordinates of that frame. Output JSON: [{\"bbox_3d\":[x_center, y_center, z_center, x_size, y_size, z_size, roll, pitch, yaw],\"label\":\"category\"}].": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_box_3d.jsonl"
+    ],
+    "Detect the trash can in frame 8 and predict the 3D box in the camera coordinates of that frame. Output JSON: [{\"bbox_3d\":[x_center, y_center, z_center, x_size, y_size, z_size, roll, pitch, yaw],\"label\":\"category\"}].": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_box_3d.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_box_3d.jsonl"
+    ],
+    "How far does the synthetic camera move in meters?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/vstibench/vstibench_repr_450_v2.json"
+    ],
+    "How long is the longest side of the air purifier? State its length in centimeters.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_size_estimation.jsonl"
+    ],
+    "How many colored squares are visible in this synthetic clip?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/vsibench/answerable500_gt_canonical.json"
+    ],
+    "How many curtain(s) are there in the room shown in the video?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_counting.jsonl"
+    ],
+    "How many end table(s) do we have in this room?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_counting.jsonl"
+    ],
+    "How many heater(s) and table(s) and whiteboard(s) are in this room in total?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_totals.jsonl"
+    ],
+    "How many plant(s) and towel(s) are in this room in total?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_totals.jsonl"
+    ],
+    "How many steel beam(s) are there in the room shown in the video?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_counting.jsonl"
+    ],
+    "I stand by the bathroom cabinet looking at the door. Where is the towel radiator relative to me: front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_hard.jsonl"
+    ],
+    "I stand by the chair looking at the tv. Where is the sofa relative to me: left, right, or behind me?\n'Behind' means turning at least 135 degrees to face it.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_medium.jsonl"
+    ],
+    "If I am standing by the air fryer and facing the books, is the appliance to my front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_hard.jsonl"
+    ],
+    "If I am standing by the ball and facing the nightstand, is the dresser to my left, right, or back?\nAn object is to my back if I would have to turn at least 135 degrees in order to face it.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_medium.jsonl"
+    ],
+    "If I am standing by the bathtub and facing the cabinet, is the toilet to the left or the right of the cabinet?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_easy.jsonl"
+    ],
+    "If I am standing by the bed and facing the table, is the cup to my front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_hard.jsonl"
+    ],
+    "If I am standing by the book and facing the file cabinet, is the door to my left, right, or back?\nAn object is to my back if I would have to turn at least 135 degrees in order to face it.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_medium.jsonl"
+    ],
+    "If I am standing by the cabinet and facing the stool, is the toilet to the left or the right of the stool?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_easy.jsonl"
+    ],
+    "If I am standing by the chair and facing the bathtub, is the toilet to my front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_hard.jsonl"
+    ],
+    "If I am standing by the couch and facing the plant, is the tv to the left or the right of the plant?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_easy.jsonl"
+    ],
+    "If I am standing by the door and facing the whiteboard, is the heater to my left, right, or back?\nAn object is to my back if I would have to turn at least 135 degrees in order to face it.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_medium.jsonl"
+    ],
+    "If I am standing by the door and turned away from the blanket, is the table to my left or to my right?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_easy.jsonl"
+    ],
+    "If I am standing by the keyboard and facing the projector, is the window frame to my left, right, or back?\nAn object is to my back if I would have to turn at least 135 degrees in order to face it.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_medium.jsonl"
+    ],
+    "If I am standing by the oven and facing the sofa, is the tv to my front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_hard.jsonl"
+    ],
+    "If I am standing by the plunger and facing the door, is the washing machine to my front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_hard.jsonl"
+    ],
+    "If I am standing by the refrigerator and with my back to the stove, is the table to my front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_hard.jsonl"
+    ],
+    "If I am standing by the sofa and facing the door, is the laptop to my left, right, or back?\nAn object is to my back if I would have to turn at least 135 degrees in order to face it.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_medium.jsonl"
+    ],
+    "If I am standing by the table and facing the heater, is the door to my front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_hard.jsonl"
+    ],
+    "If I am standing by the trash can and turned away from the laptop, is the pillow to my left or to my right?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_easy.jsonl"
+    ],
+    "If I am standing by the whiteboard and facing the door, is the tv on my left or on my right?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_easy.jsonl"
+    ],
+    "If I am standing by the whiteboard and with my back to the door, is the shoes to my left, right, or back?\nAn object is to my back if I would have to turn at least 135 degrees in order to face it.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_medium.jsonl"
+    ],
+    "If my location is beside the bookshelf and I'm facing towards the fan, is the trash bin to my left, right, or rear? 'Rear' means I'd need to rotate at least 135 degrees.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_medium.jsonl"
+    ],
+    "Imagine standing next to the refrigerator with the clock ahead of you. On which side, left or right, is the table?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_easy.jsonl"
+    ],
+    "In terms of square meters, what\u2019s the room's size? If multiple rooms appear, estimate their total area.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_room_size_estimation.jsonl"
+    ],
+    "In this supplied clip which direction does the blue square move?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse.csv"
+    ],
+    "In this supplied clip which way does the synthetic camera move?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse.csv"
+    ],
+    "In what order do these object categories first appear in the video: basket, sliding glass door, spice rack, wall decoration?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_obj_appearance_order.jsonl"
+    ],
+    "Measure the shortest separation between the bed and the heat shield. Express it in meters.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_abs_distance.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the bed and the chair (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_recovery.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_recovery.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_recovery.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_recovery.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the bed and the shoes (in inches)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_units.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_units.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_units.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_units.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the bookshelf and the chair (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_abs_distance.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the chair and the bed (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the chair and the sofa (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_pool_abs_distance_reworded.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the chair and the toilet (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_recovery.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_recovery.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_recovery.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_recovery.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the cup and the trash can (in feet)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_units.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_units.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_units.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_units.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the dishwasher and the tv (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the fireplace and the sofa (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the mouse and the suitcase (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_abs_distance.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the plant and the cup (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_pool_abs_distance_reworded.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the refrigerator and the stove (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the refrigerator and the table (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the refrigerator and the tv (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the slippers and the keyboard (in centimeters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_units.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_units.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_units.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_units.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the sofa and the bed (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the stool and the bed (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the stool and the fireplace (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the stove and the tv (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the table and the stove (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_abs_distance.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the table and the tv (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the toilet and the bathtub (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the trash can and the door (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_recovery.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_recovery.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_recovery.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_recovery.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the tv and the bed (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl"
+    ],
+    "Measuring from the closest point of each object, what is the distance between the tv and the sofa (in meters)?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_pool_abs_distance_reworded.jsonl"
+    ],
+    "Specify how far apart the computer monitor and the book are at their closest points, expressed in meters.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_abs_distance.jsonl"
+    ],
+    "Specify how far apart the microwave and the bag are at their closest points, expressed in meters.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_abs_distance.jsonl"
+    ],
+    "Standing next to the whiteboard, and facing the headphones, do you see the tv positioned to the left or to the right?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_easy.jsonl"
+    ],
+    "Using closest-point distances to the couch, select the nearest object from door, metronome, piano bench, tv.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_distance.jsonl"
+    ],
+    "What is the length of the longest dimension (length, width, or height) of the kitchen counter, measured in centimeters?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_size_estimation.jsonl"
+    ],
+    "What is the length of the longest edge of the clothes rack, in centimeters?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_size_estimation.jsonl"
+    ],
+    "What is the length of the longest edge of the coat, in centimeters?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_size_estimation.jsonl"
+    ],
+    "What is the length of the longest edge of the shower, in centimeters?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_size_estimation.jsonl"
+    ],
+    "What is the length of the longest edge of the sink, in centimeters?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_size_estimation.jsonl"
+    ],
+    "What is the size of this room (in square meters)? \nIf multiple rooms are shown, estimate the size of the combined space.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_room.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_room.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_room.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_room.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_room.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_room.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_room.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_room.jsonl",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_room.jsonl"
+    ],
+    "What is the synthetic distance in meters?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/vsibench/answerable500_gt_canonical.json"
+    ],
+    "What is the total count of sink(s) in the room depicted by the video?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_counting.jsonl"
+    ],
+    "What is the total number of chair(s) and desk(s) in this room?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_totals.jsonl"
+    ],
+    "What will be the first-time appearance order of the following categories in the video: backpack, bed, clipboard, dustpan?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_obj_appearance_order.jsonl"
+    ],
+    "What will be the first-time appearance order of the following categories in the video: backpack, carpet, door, lamp?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_obj_appearance_order.jsonl"
+    ],
+    "What will be the first-time appearance order of the following categories in the video: bar, bathroom vanity, mirror, shower walls?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_obj_appearance_order.jsonl"
+    ],
+    "What will be the first-time appearance order of the following categories in the video: bookshelf, door, keyboard, chair?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/conversion_3919.json"
+    ],
+    "What's the area of the room measured in square meters? For several rooms, estimate the combined size.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_room_size_estimation.jsonl"
+    ],
+    "Where is the red square relative to the blue square?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/vstibench/vstibench_repr_450_v2.json"
+    ],
+    "Which colored square is closer in this synthetic clip?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/vsibench/answerable500_gt_canonical.json"
+    ],
+    "Which direction does the colored square move in this supplied clip?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse.csv"
+    ],
+    "Which of these objects (bag, door, trash bin, wardrobe closet) is closest to the chair, measuring between the closest points of the objects?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_distance.jsonl"
+    ],
+    "Which option lists cabinet, refrigerator, sofa, stool in the chronological order of their first appearances in the video?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_obj_appearance_order.jsonl"
+    ],
+    "Which synthetic square is closest to the camera?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/vstibench/vstibench_repr_450_v2.json"
+    ],
+    "Which way does the blue square move?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/std.csv"
+    ],
+    "Which way does the blue square travel?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/hflip.csv"
+    ],
+    "Which way does the colored square move?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/std.csv"
+    ],
+    "Which way does the colored square travel?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/hflip.csv"
+    ],
+    "Which way does the synthetic camera move?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/std.csv"
+    ],
+    "Which way does this synthetic camera travel?": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/hflip.csv"
+    ],
+    "While standing by the sofa and looking at the table, decide whether the bed lies to your left or your right.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_easy.jsonl"
+    ],
+    "With the chair ahead of me as I stand by the tv, which direction describes the sofa: left, right, or behind?\n'Behind' means turning at least 135 degrees around.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_medium.jsonl"
+    ],
+    "With the toilet ahead of me as I stand by the cabinet, which direction describes the bathtub: front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_hard.jsonl"
+    ],
+    "You are a robot beginning at the coffee table and facing the mini fridge. You want to navigate to the seat. You will perform the following actions (Note: for each [please fill in], choose either 'turn back,' 'turn left,' or 'turn right.'): 1. [please fill in] 2. Go forward until the seat. You have reached the final destination.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_route_planning.jsonl"
+    ],
+    "You are a robot beginning at the plush toy and facing the shoes. You want to navigate to the bookshelf. You will perform the following actions (Note: for each [please fill in], choose either 'turn back,' 'turn left,' or 'turn right.'): 1. [please fill in] 2. Go forward until the bed 3. [please fill in] 4. Go forward until the chair 5. [please fill in] 6. Go forward until the bookshelf. You have reached the final destination.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_route_planning.jsonl"
+    ],
+    "You are a robot beginning at the sink facing the bed. You want to navigate to the toilet. You will perform the following actions (Note: for each [please fill in], choose either 'turn back,' 'turn left,' or 'turn right.'): 1. [please fill in] 2. Go forward until the toilet. You have reached the final destination.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_route_planning.jsonl"
+    ],
+    "You are a robot beginning at the stool and facing the sofa. You want to navigate to the shelf. You will perform the following actions (Note: for each [please fill in], choose either 'turn back,' 'turn left,' or 'turn right.'): 1. [please fill in] 2. Go forward until the shelf. You have reached the final destination.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_route_planning.jsonl"
+    ],
+    "You are a robot beginning at the stove and facing the exhaust fan. You want to navigate to the washing machine. You will perform the following actions (Note: for each [please fill in], choose either 'turn back,' 'turn left,' or 'turn right.'): 1. [please fill in] 2. Go forward until the refrigerator 3. [please fill in] 4. Go forward until the washing machine. You have reached the final destination.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_route_planning.jsonl"
+    ],
+    "You are a robot beginning at the trash can and facing the soap dispenser. You want to navigate to the counter. You will perform the following actions (Note: for each [please fill in], choose either 'turn back,' 'turn left,' or 'turn right.'): 1. [please fill in] 2. Go forward until the counter. You have reached the final destination.": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_route_planning.jsonl"
+    ],
+    "native_user_video_then_verbatim_question_options": [
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/configs/student_benchmark_eval_v1.json"
+    ]
+  },
+  "scope": "All question/prompt fields in JSON/JSONL/CSV of sealed kit and fixtures; includes synthetic and training fixtures.",
+  "searched_files": [
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/configs/E2E-1C.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/configs/E2E-1G.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/configs/gate_heldout_scenes_v1.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/configs/gf1_stage1.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/configs/gf1_stage2.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/configs/stageb_cp1rv_mdg_w4.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/configs/student_benchmark_eval_v1.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/evalpath/SOURCE_PINS.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/generator/V314_MANIFEST.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/launch_r2/staging_sources.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/launch_s1/b/profile.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/launch_s1/b/wh.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/assets/routed_policy_v1.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/assets/s1_version.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/r0_scenes.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/r2_dev_merged.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/r2_withheld.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/response_spec.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/tower_scale_rule.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/hflip.csv",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse.csv",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse_hflip.csv",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/metadatas/std.csv",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/dsibench/official_repo/SOURCE.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/vsibench/MEMBERSHIP_ANSWERABLE_500.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/vsibench/answerable500_gt_canonical.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/benchmark_eval/vstibench/vstibench_repr_450_v2.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/conversion_3919.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/pdg_v3/pdg_s1_config.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/pdg_v3/pdg_s2_v2_config.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/pdg_v3/smoke_pdg_s1_config.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/sharded_equivalence_entries.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/tests/fixtures/v3122_open_vocabulary_calls.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/trace_format/readout_config.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/trace_format/vsi_scannet_vocab.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/references/B3_BANK_ENTRYPOINTS.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/join_examples.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_pool_abs_distance_reworded.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_recovery.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_room.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_final/a0_units.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_recovery.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_room.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/a0_units.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_easy.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_hard.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_facing_medium.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_box_3d.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_obj_appearance_order.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_counting.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_easy.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_hard.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_direction_medium.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_rel_distance.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_retrace_object_size_estimation.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_route_planning.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/d0_totals.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_abs_distance.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_room.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/pool_route_planning.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_box_3d.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_obj_appearance_order.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_abs_distance.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_counting.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_easy.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_hard.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_direction_medium.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_rel_distance.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_object_size_estimation.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/rows/slices_v3/sealed_vqa_room_size_estimation.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/build6/INIT_INPUT.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/ANON_OK.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/BUILD.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/0.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/1.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/28429cf9.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/4.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/6.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/600ef69d.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/66c427e2.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/7.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/8.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/8957d119.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/932c0c4e.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/99e6eed6.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/archive.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/b02e4385.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/benchmark_scene_exclusions.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/binding_evidence.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/c1d5e631.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/c1d5e831.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/c2db2a1a.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/cf50c7ce.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/dafa4a9c.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/dev_scene_exclusions.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/frame_rates.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/input_mdg_clips.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/input_mdg_rasters.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/launch.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_0.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_1.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_10.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_11.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_12.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_2.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_3.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_5.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_6.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_7.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_8.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_indices_9.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_manifest.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_selection.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/prep_c1d5e631.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/r.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/remove_0.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/remove_1.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/remove_2.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/remove_3.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/remove_4.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/remove_5.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/review.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/routes.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/s1_record.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/scene_reference.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/staging.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/data_receipt.dbaf4cc8592349daa08a3493fdbe3eff.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/data_receipt.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/first_step_169097.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/frames_56d68d6f67e249b5bea05a4039aa88f3/result.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/phase_frames.complete.9baed64e47e04c39b7dd4a08a4ee5d02.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/phase_frames.complete.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/phase_prepare.complete.5cc3b3b77a3d45f1bc8a735a4ac3e4f2.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/phase_prepare.complete.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/config.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/parent_grounding.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/pointing/receipt.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/prepared/receipt.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/prepared/s1_receipt.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/result.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/routing/materialization.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/routing/pool/manifest.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/routing/pool/receipt.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/routing/pool/relocation.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/routing/receipt.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/vqa/receipt.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/request.d909b2a2142c4e96b3830280dc571bd2.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/request.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/sess.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/sess.json.receipts.jsonl",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/records/design/REFREEZE_PREREGISTRATION_20261115.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/records/devs1_masks/out/MANIFEST.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/records/dose_pool/out/POOL_S1/FRAMES_GATE.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/records/ofs_e1/out/ROOM_SPLIT.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/records/own_probe/out/EVAL_ROOMS.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/records/revsi_dev/BENCH_SCENE_EXCLUSIONS_v2.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/shared/WITHHELD_ROOMS_80.json",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/shared/dev_scene_exclusions_d0.json"
+  ]
+}

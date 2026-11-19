@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30; for t in sb_evrev sb_crrev; do echo "=== $t"; ls $R/$t; tail -c 600 $R/$t/cursor.log; cat $R/$t/REVIEW_VERDICT.md 2>/dev/null; done; echo "=== inv"; tail -c 600 $R/sb_inventory/dispatch.log; ls $R/sb_inventory/out; cat $R/codex_local/agent/scratch/codex_runs/CODEX_SPEND.log

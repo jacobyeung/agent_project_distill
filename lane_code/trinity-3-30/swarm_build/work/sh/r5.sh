@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30; C=$R/codex_local/agent/scratch/codex_runs; cat $C/CODEX_SPEND.log; for d in $C/*sb_rowA $C/*sb_rowC $C/*sb_rowD $C/*sb_rlkit; do echo "=== $d"; cat $d/final_message.md 2>/dev/null | head -c 1200; echo; done; ls $R/sb_rowA/out $R/sb_rowC/out $R/sb_rowD/out $R/sb_rlkit/out

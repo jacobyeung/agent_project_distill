@@ -1,0 +1,985 @@
+{
+  "status": "OK",
+  "partial": false,
+  "allow_partial": false,
+  "allow_subset": false,
+  "room_secondary": null,
+  "missing_strata_ids": [],
+  "strata_unused_ids": [],
+  "a_step": 400,
+  "b_step": 400,
+  "bootstrap": {
+    "seed": 17,
+    "draws": 10000,
+    "cluster": "physical room",
+    "difference_units": "percentage points"
+  },
+  "definitions": {
+    "call": "At least one recorded call belonging to the item type; unserved calls count. Unrelated calls do not.",
+    "capped": "finish in max_calls, max_new_tokens, length; denominator is all completed items, including no-call truncation.",
+    "usage": "Answer follows the response: follow_converted + copied_unconverted. Three exclusive categories use scorer tolerance (5%, exact zero). Converted agreement takes precedence at zero. Categories and usage divide by parsed response eligibility; missing answers are other. conversion_failure is copied_unconverted divided by eligible non-metre questions (square units for rooms).",
+    "answer": "Final answer parses as a finite value using the scorer numeric parser or as a listed option. not_seen and other_non_numeric have separate rates over completed items. max_calls suppresses answers.",
+    "score": "h1eval.scorers.accuracy task_accuracy, including official EM/MRA and supplied score overrides.",
+    "room_mra": "mra_answer equals the room answer score on [0,1], averaged over completed items including unanswered/capped items, not conditioned on answer presence. Population comes from explicit manifest sets/tags or an identity-checked join to the registered room134 manifest. Summary displays MRA in percent.",
+    "rates": "Marginals and deltas use shared completed IDs; n/expected and original planned/completed set sizes are explicit. Incomplete coverage is PARTIAL.",
+    "unit": "scorers.unit_factor; m/cm/ft/in/mm. N/A for non-length questions; room units refer to square units.",
+    "wording": "Trace-derived diagnostics, not question-wording effects: q1/classify.py overlapping tags with tool responses removed; otherwise masked question templates. Both marginals and deltas use shared tag membership.",
+    "strata": "External item-ID mapping fixes membership across sides, independent of the current output. Per-stratum and stratum-by-unit score/MRA and call rows use shared IDs. Missing labels within a represented type say MISSING; units must match the question.",
+    "paired_usage": "Paired usage delta only among ids eligible on both sides; not the difference between separately eligible marginal usage rates."
+  },
+  "room_mra": {},
+  "population_status": "OK",
+  "missing_population_ids": [],
+  "population_error": null,
+  "default_baseline_excluded_ids": [],
+  "types": {
+    "object_abs_distance": {
+      "a": {
+        "n": 1,
+        "expected": 1,
+        "missing_ids": [],
+        "status": "OK",
+        "call_rate": 1.0,
+        "call_n": 1,
+        "call_count": 1,
+        "call_rate_status": "OK",
+        "capped_rate": 0.0,
+        "capped_n": 1,
+        "capped_count": 0,
+        "capped_rate_status": "OK",
+        "answer_rate": 1.0,
+        "answer_n": 1,
+        "answer_count": 1,
+        "answer_rate_status": "OK",
+        "not_seen_rate": 0.0,
+        "not_seen_n": 1,
+        "not_seen_count": 0,
+        "not_seen_rate_status": "OK",
+        "non_numeric_rate": 0.0,
+        "non_numeric_n": 1,
+        "non_numeric_count": 0,
+        "non_numeric_rate_status": "OK",
+        "other_non_numeric_rate": 0.0,
+        "other_non_numeric_n": 1,
+        "other_non_numeric_count": 0,
+        "other_non_numeric_rate_status": "OK",
+        "score": 1.0,
+        "score_n": 1,
+        "score_status": "OK",
+        "usage": 1.0,
+        "usage_n": 1,
+        "usage_count": 1,
+        "usage_status": "OK",
+        "follow_converted": 1.0,
+        "follow_converted_n": 1,
+        "follow_converted_count": 1,
+        "follow_converted_status": "OK",
+        "copied_unconverted": 0.0,
+        "copied_unconverted_n": 1,
+        "copied_unconverted_count": 0,
+        "copied_unconverted_status": "OK",
+        "other": 0.0,
+        "other_n": 1,
+        "other_count": 0,
+        "other_status": "OK",
+        "conversion_failure": null,
+        "conversion_failure_n": 0,
+        "conversion_failure_count": 0,
+        "conversion_failure_status": "MISSING",
+        "usage_reasons": {
+          "eligible": 1
+        },
+        "finishes": {
+          "eos": 1
+        }
+      },
+      "b": {
+        "n": 1,
+        "expected": 1,
+        "missing_ids": [],
+        "status": "OK",
+        "call_rate": 1.0,
+        "call_n": 1,
+        "call_count": 1,
+        "call_rate_status": "OK",
+        "capped_rate": 0.0,
+        "capped_n": 1,
+        "capped_count": 0,
+        "capped_rate_status": "OK",
+        "answer_rate": 1.0,
+        "answer_n": 1,
+        "answer_count": 1,
+        "answer_rate_status": "OK",
+        "not_seen_rate": 0.0,
+        "not_seen_n": 1,
+        "not_seen_count": 0,
+        "not_seen_rate_status": "OK",
+        "non_numeric_rate": 0.0,
+        "non_numeric_n": 1,
+        "non_numeric_count": 0,
+        "non_numeric_rate_status": "OK",
+        "other_non_numeric_rate": 0.0,
+        "other_non_numeric_n": 1,
+        "other_non_numeric_count": 0,
+        "other_non_numeric_rate_status": "OK",
+        "score": 1.0,
+        "score_n": 1,
+        "score_status": "OK",
+        "usage": 1.0,
+        "usage_n": 1,
+        "usage_count": 1,
+        "usage_status": "OK",
+        "follow_converted": 1.0,
+        "follow_converted_n": 1,
+        "follow_converted_count": 1,
+        "follow_converted_status": "OK",
+        "copied_unconverted": 0.0,
+        "copied_unconverted_n": 1,
+        "copied_unconverted_count": 0,
+        "copied_unconverted_status": "OK",
+        "other": 0.0,
+        "other_n": 1,
+        "other_count": 0,
+        "other_status": "OK",
+        "conversion_failure": null,
+        "conversion_failure_n": 0,
+        "conversion_failure_count": 0,
+        "conversion_failure_status": "MISSING",
+        "usage_reasons": {
+          "eligible": 1
+        },
+        "finishes": {
+          "eos": 1
+        }
+      },
+      "paired": {
+        "n": 1,
+        "a_only_ids": [],
+        "b_only_ids": [],
+        "call": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 1,
+          "rooms": 1,
+          "status": "OK"
+        },
+        "capped": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 1,
+          "rooms": 1,
+          "status": "OK"
+        },
+        "answer": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 1,
+          "rooms": 1,
+          "status": "OK"
+        },
+        "score": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 1,
+          "rooms": 1,
+          "status": "OK"
+        },
+        "usage": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "ci9929": [
+            0.0,
+            0.0
+          ],
+          "upper95": 0.0,
+          "n": 1,
+          "rooms": 1,
+          "status": "OK"
+        }
+      },
+      "set_sizes": {
+        "a": 1,
+        "b": 1,
+        "completed_a": 1,
+        "completed_b": 1,
+        "shared": 1
+      },
+      "coverage": {
+        "a": {
+          "n": 1,
+          "expected": 1,
+          "missing_ids": [],
+          "status": "OK",
+          "call_rate": 1.0,
+          "call_n": 1,
+          "call_count": 1,
+          "call_rate_status": "OK",
+          "capped_rate": 0.0,
+          "capped_n": 1,
+          "capped_count": 0,
+          "capped_rate_status": "OK",
+          "answer_rate": 1.0,
+          "answer_n": 1,
+          "answer_count": 1,
+          "answer_rate_status": "OK",
+          "not_seen_rate": 0.0,
+          "not_seen_n": 1,
+          "not_seen_count": 0,
+          "not_seen_rate_status": "OK",
+          "non_numeric_rate": 0.0,
+          "non_numeric_n": 1,
+          "non_numeric_count": 0,
+          "non_numeric_rate_status": "OK",
+          "other_non_numeric_rate": 0.0,
+          "other_non_numeric_n": 1,
+          "other_non_numeric_count": 0,
+          "other_non_numeric_rate_status": "OK",
+          "score": 1.0,
+          "score_n": 1,
+          "score_status": "OK",
+          "usage": 1.0,
+          "usage_n": 1,
+          "usage_count": 1,
+          "usage_status": "OK",
+          "follow_converted": 1.0,
+          "follow_converted_n": 1,
+          "follow_converted_count": 1,
+          "follow_converted_status": "OK",
+          "copied_unconverted": 0.0,
+          "copied_unconverted_n": 1,
+          "copied_unconverted_count": 0,
+          "copied_unconverted_status": "OK",
+          "other": 0.0,
+          "other_n": 1,
+          "other_count": 0,
+          "other_status": "OK",
+          "conversion_failure": null,
+          "conversion_failure_n": 0,
+          "conversion_failure_count": 0,
+          "conversion_failure_status": "MISSING",
+          "usage_reasons": {
+            "eligible": 1
+          },
+          "finishes": {
+            "eos": 1
+          }
+        },
+        "b": {
+          "n": 1,
+          "expected": 1,
+          "missing_ids": [],
+          "status": "OK",
+          "call_rate": 1.0,
+          "call_n": 1,
+          "call_count": 1,
+          "call_rate_status": "OK",
+          "capped_rate": 0.0,
+          "capped_n": 1,
+          "capped_count": 0,
+          "capped_rate_status": "OK",
+          "answer_rate": 1.0,
+          "answer_n": 1,
+          "answer_count": 1,
+          "answer_rate_status": "OK",
+          "not_seen_rate": 0.0,
+          "not_seen_n": 1,
+          "not_seen_count": 0,
+          "not_seen_rate_status": "OK",
+          "non_numeric_rate": 0.0,
+          "non_numeric_n": 1,
+          "non_numeric_count": 0,
+          "non_numeric_rate_status": "OK",
+          "other_non_numeric_rate": 0.0,
+          "other_non_numeric_n": 1,
+          "other_non_numeric_count": 0,
+          "other_non_numeric_rate_status": "OK",
+          "score": 1.0,
+          "score_n": 1,
+          "score_status": "OK",
+          "usage": 1.0,
+          "usage_n": 1,
+          "usage_count": 1,
+          "usage_status": "OK",
+          "follow_converted": 1.0,
+          "follow_converted_n": 1,
+          "follow_converted_count": 1,
+          "follow_converted_status": "OK",
+          "copied_unconverted": 0.0,
+          "copied_unconverted_n": 1,
+          "copied_unconverted_count": 0,
+          "copied_unconverted_status": "OK",
+          "other": 0.0,
+          "other_n": 1,
+          "other_count": 0,
+          "other_status": "OK",
+          "conversion_failure": null,
+          "conversion_failure_n": 0,
+          "conversion_failure_count": 0,
+          "conversion_failure_status": "MISSING",
+          "usage_reasons": {
+            "eligible": 1
+          },
+          "finishes": {
+            "eos": 1
+          }
+        }
+      },
+      "source_reads": {
+        "a": [
+          "callrate-yfhtziew/read 0"
+        ],
+        "b": [
+          "callrate-yfhtziew/read 0"
+        ]
+      },
+      "scorers": [
+        "h1eval.scorers.accuracy"
+      ],
+      "by_unit": {
+        "m": {
+          "a": {
+            "n": 1,
+            "expected": 1,
+            "missing_ids": [],
+            "status": "OK",
+            "call_rate": 1.0,
+            "call_n": 1,
+            "call_count": 1,
+            "call_rate_status": "OK",
+            "capped_rate": 0.0,
+            "capped_n": 1,
+            "capped_count": 0,
+            "capped_rate_status": "OK",
+            "answer_rate": 1.0,
+            "answer_n": 1,
+            "answer_count": 1,
+            "answer_rate_status": "OK",
+            "not_seen_rate": 0.0,
+            "not_seen_n": 1,
+            "not_seen_count": 0,
+            "not_seen_rate_status": "OK",
+            "non_numeric_rate": 0.0,
+            "non_numeric_n": 1,
+            "non_numeric_count": 0,
+            "non_numeric_rate_status": "OK",
+            "other_non_numeric_rate": 0.0,
+            "other_non_numeric_n": 1,
+            "other_non_numeric_count": 0,
+            "other_non_numeric_rate_status": "OK",
+            "score": 1.0,
+            "score_n": 1,
+            "score_status": "OK",
+            "usage": 1.0,
+            "usage_n": 1,
+            "usage_count": 1,
+            "usage_status": "OK",
+            "follow_converted": 1.0,
+            "follow_converted_n": 1,
+            "follow_converted_count": 1,
+            "follow_converted_status": "OK",
+            "copied_unconverted": 0.0,
+            "copied_unconverted_n": 1,
+            "copied_unconverted_count": 0,
+            "copied_unconverted_status": "OK",
+            "other": 0.0,
+            "other_n": 1,
+            "other_count": 0,
+            "other_status": "OK",
+            "conversion_failure": null,
+            "conversion_failure_n": 0,
+            "conversion_failure_count": 0,
+            "conversion_failure_status": "MISSING",
+            "usage_reasons": {
+              "eligible": 1
+            },
+            "finishes": {
+              "eos": 1
+            }
+          },
+          "b": {
+            "n": 1,
+            "expected": 1,
+            "missing_ids": [],
+            "status": "OK",
+            "call_rate": 1.0,
+            "call_n": 1,
+            "call_count": 1,
+            "call_rate_status": "OK",
+            "capped_rate": 0.0,
+            "capped_n": 1,
+            "capped_count": 0,
+            "capped_rate_status": "OK",
+            "answer_rate": 1.0,
+            "answer_n": 1,
+            "answer_count": 1,
+            "answer_rate_status": "OK",
+            "not_seen_rate": 0.0,
+            "not_seen_n": 1,
+            "not_seen_count": 0,
+            "not_seen_rate_status": "OK",
+            "non_numeric_rate": 0.0,
+            "non_numeric_n": 1,
+            "non_numeric_count": 0,
+            "non_numeric_rate_status": "OK",
+            "other_non_numeric_rate": 0.0,
+            "other_non_numeric_n": 1,
+            "other_non_numeric_count": 0,
+            "other_non_numeric_rate_status": "OK",
+            "score": 1.0,
+            "score_n": 1,
+            "score_status": "OK",
+            "usage": 1.0,
+            "usage_n": 1,
+            "usage_count": 1,
+            "usage_status": "OK",
+            "follow_converted": 1.0,
+            "follow_converted_n": 1,
+            "follow_converted_count": 1,
+            "follow_converted_status": "OK",
+            "copied_unconverted": 0.0,
+            "copied_unconverted_n": 1,
+            "copied_unconverted_count": 0,
+            "copied_unconverted_status": "OK",
+            "other": 0.0,
+            "other_n": 1,
+            "other_count": 0,
+            "other_status": "OK",
+            "conversion_failure": null,
+            "conversion_failure_n": 0,
+            "conversion_failure_count": 0,
+            "conversion_failure_status": "MISSING",
+            "usage_reasons": {
+              "eligible": 1
+            },
+            "finishes": {
+              "eos": 1
+            }
+          },
+          "paired": {
+            "n": 1,
+            "a_only_ids": [],
+            "b_only_ids": [],
+            "call": {
+              "value": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "ci9929": [
+                0.0,
+                0.0
+              ],
+              "upper95": 0.0,
+              "n": 1,
+              "rooms": 1,
+              "status": "OK"
+            },
+            "capped": {
+              "value": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "ci9929": [
+                0.0,
+                0.0
+              ],
+              "upper95": 0.0,
+              "n": 1,
+              "rooms": 1,
+              "status": "OK"
+            },
+            "answer": {
+              "value": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "ci9929": [
+                0.0,
+                0.0
+              ],
+              "upper95": 0.0,
+              "n": 1,
+              "rooms": 1,
+              "status": "OK"
+            },
+            "score": {
+              "value": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "ci9929": [
+                0.0,
+                0.0
+              ],
+              "upper95": 0.0,
+              "n": 1,
+              "rooms": 1,
+              "status": "OK"
+            },
+            "usage": {
+              "value": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "ci9929": [
+                0.0,
+                0.0
+              ],
+              "upper95": 0.0,
+              "n": 1,
+              "rooms": 1,
+              "status": "OK"
+            }
+          }
+        }
+      },
+      "by_wording": {
+        "template: what is the distance between the <object> and the <object> in meters?": {
+          "a": {
+            "n": 1,
+            "expected": 1,
+            "missing_ids": [],
+            "status": "OK",
+            "call_rate": 1.0,
+            "call_n": 1,
+            "call_count": 1,
+            "call_rate_status": "OK",
+            "capped_rate": 0.0,
+            "capped_n": 1,
+            "capped_count": 0,
+            "capped_rate_status": "OK",
+            "answer_rate": 1.0,
+            "answer_n": 1,
+            "answer_count": 1,
+            "answer_rate_status": "OK",
+            "not_seen_rate": 0.0,
+            "not_seen_n": 1,
+            "not_seen_count": 0,
+            "not_seen_rate_status": "OK",
+            "non_numeric_rate": 0.0,
+            "non_numeric_n": 1,
+            "non_numeric_count": 0,
+            "non_numeric_rate_status": "OK",
+            "other_non_numeric_rate": 0.0,
+            "other_non_numeric_n": 1,
+            "other_non_numeric_count": 0,
+            "other_non_numeric_rate_status": "OK",
+            "score": 1.0,
+            "score_n": 1,
+            "score_status": "OK",
+            "usage": 1.0,
+            "usage_n": 1,
+            "usage_count": 1,
+            "usage_status": "OK",
+            "follow_converted": 1.0,
+            "follow_converted_n": 1,
+            "follow_converted_count": 1,
+            "follow_converted_status": "OK",
+            "copied_unconverted": 0.0,
+            "copied_unconverted_n": 1,
+            "copied_unconverted_count": 0,
+            "copied_unconverted_status": "OK",
+            "other": 0.0,
+            "other_n": 1,
+            "other_count": 0,
+            "other_status": "OK",
+            "conversion_failure": null,
+            "conversion_failure_n": 0,
+            "conversion_failure_count": 0,
+            "conversion_failure_status": "MISSING",
+            "usage_reasons": {
+              "eligible": 1
+            },
+            "finishes": {
+              "eos": 1
+            }
+          },
+          "b": {
+            "n": 1,
+            "expected": 1,
+            "missing_ids": [],
+            "status": "OK",
+            "call_rate": 1.0,
+            "call_n": 1,
+            "call_count": 1,
+            "call_rate_status": "OK",
+            "capped_rate": 0.0,
+            "capped_n": 1,
+            "capped_count": 0,
+            "capped_rate_status": "OK",
+            "answer_rate": 1.0,
+            "answer_n": 1,
+            "answer_count": 1,
+            "answer_rate_status": "OK",
+            "not_seen_rate": 0.0,
+            "not_seen_n": 1,
+            "not_seen_count": 0,
+            "not_seen_rate_status": "OK",
+            "non_numeric_rate": 0.0,
+            "non_numeric_n": 1,
+            "non_numeric_count": 0,
+            "non_numeric_rate_status": "OK",
+            "other_non_numeric_rate": 0.0,
+            "other_non_numeric_n": 1,
+            "other_non_numeric_count": 0,
+            "other_non_numeric_rate_status": "OK",
+            "score": 1.0,
+            "score_n": 1,
+            "score_status": "OK",
+            "usage": 1.0,
+            "usage_n": 1,
+            "usage_count": 1,
+            "usage_status": "OK",
+            "follow_converted": 1.0,
+            "follow_converted_n": 1,
+            "follow_converted_count": 1,
+            "follow_converted_status": "OK",
+            "copied_unconverted": 0.0,
+            "copied_unconverted_n": 1,
+            "copied_unconverted_count": 0,
+            "copied_unconverted_status": "OK",
+            "other": 0.0,
+            "other_n": 1,
+            "other_count": 0,
+            "other_status": "OK",
+            "conversion_failure": null,
+            "conversion_failure_n": 0,
+            "conversion_failure_count": 0,
+            "conversion_failure_status": "MISSING",
+            "usage_reasons": {
+              "eligible": 1
+            },
+            "finishes": {
+              "eos": 1
+            }
+          },
+          "paired": {
+            "n": 1,
+            "a_only_ids": [],
+            "b_only_ids": [],
+            "call": {
+              "value": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "ci9929": [
+                0.0,
+                0.0
+              ],
+              "upper95": 0.0,
+              "n": 1,
+              "rooms": 1,
+              "status": "OK"
+            },
+            "capped": {
+              "value": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "ci9929": [
+                0.0,
+                0.0
+              ],
+              "upper95": 0.0,
+              "n": 1,
+              "rooms": 1,
+              "status": "OK"
+            },
+            "answer": {
+              "value": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "ci9929": [
+                0.0,
+                0.0
+              ],
+              "upper95": 0.0,
+              "n": 1,
+              "rooms": 1,
+              "status": "OK"
+            },
+            "score": {
+              "value": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "ci9929": [
+                0.0,
+                0.0
+              ],
+              "upper95": 0.0,
+              "n": 1,
+              "rooms": 1,
+              "status": "OK"
+            },
+            "usage": {
+              "value": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "ci9929": [
+                0.0,
+                0.0
+              ],
+              "upper95": 0.0,
+              "n": 1,
+              "rooms": 1,
+              "status": "OK"
+            }
+          }
+        }
+      },
+      "by_stratum": {},
+      "by_stratum_unit": {}
+    }
+  },
+  "per_item": {
+    "a": {
+      "synthetic": {
+        "id": "synthetic",
+        "room": "synthetic-room",
+        "type": "object_abs_distance",
+        "call": 1,
+        "capped": 0,
+        "answer": 1,
+        "parsed_answer": 1.0,
+        "not_seen": 0,
+        "non_numeric": 0,
+        "other_non_numeric": 0,
+        "score": 1.0,
+        "usage": 1,
+        "usage_category": "follow_converted",
+        "follow_converted": 1,
+        "copied_unconverted": 0,
+        "other": 0,
+        "conversion_failure": null,
+        "source_read": "callrate-yfhtziew/read 0",
+        "usage_reason": "eligible",
+        "response_decision": 1.0,
+        "unit": "m",
+        "wording": [
+          "template: what is the distance between the <object> and the <object> in meters?"
+        ],
+        "call_status": "OK",
+        "finish": "eos"
+      }
+    },
+    "b": {
+      "synthetic": {
+        "id": "synthetic",
+        "room": "synthetic-room",
+        "type": "object_abs_distance",
+        "call": 1,
+        "capped": 0,
+        "answer": 1,
+        "parsed_answer": 1.0,
+        "not_seen": 0,
+        "non_numeric": 0,
+        "other_non_numeric": 0,
+        "score": 1.0,
+        "usage": 1,
+        "usage_category": "follow_converted",
+        "follow_converted": 1,
+        "copied_unconverted": 0,
+        "other": 0,
+        "conversion_failure": null,
+        "source_read": "callrate-yfhtziew/read 0",
+        "usage_reason": "eligible",
+        "response_decision": 1.0,
+        "unit": "m",
+        "wording": [
+          "template: what is the distance between the <object> and the <object> in meters?"
+        ],
+        "call_status": "OK",
+        "finish": "eos"
+      }
+    }
+  },
+  "runtime": {
+    "python": "3.12.13",
+    "numpy": "2.2.6"
+  },
+  "command": [
+    "/data2/jjyeung/envs/planner/bin/python",
+    "/scratch/jjyeung/orch_n30/sb_callrate/callrate.py",
+    "--a",
+    "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/ret",
+    "--a-step",
+    "400",
+    "--a-package",
+    "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/package",
+    "--b",
+    "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/ret",
+    "--b-step",
+    "400",
+    "--b-package",
+    "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/package",
+    "--scorer-src",
+    "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src",
+    "--baseline-root",
+    "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/bases",
+    "--out",
+    "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/distance-summary",
+    "--summary"
+  ],
+  "sources": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/bootstrap.py",
+      "sha256": "ac36cd104d7a60b6d87aab821dc7cfe49df7f31d9a47898bd07bd4fe076c8d2d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/callrate.py",
+      "sha256": "50931a34c0cfefe696c318cc87f31cc742c07eb269cbb024e780127cca0ca1c1"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/h1eval/__init__.py",
+      "sha256": "8266dbda472dccebd1deb9d329bf792a4e92d1a2f01f42f8a9d02ab66f003429"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/h1eval/scorers.py",
+      "sha256": "2736e479888481cda4c1682f2db3d8b54f0b6d5957d8a4603d86469dc2b493fd"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/rows/__init__.py",
+      "sha256": "8448dc6d6d2bb793c771328eda6c1879632748da706844846844367d5c2d4d7b"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/rows/expected_calls.py",
+      "sha256": "2ebef5248701dbe9f152f4849e58298af051f095ef3cabe0b3b992359c9b1e07"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/tree/evalpath/__init__.py",
+      "sha256": "320ff8e49d53c5528f439ae83544dcd0e4063933eb2168774b70ca6d9d1cdd38"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/tree/evalpath/items.py",
+      "sha256": "94c20c73c5806d4242224d76d81a358e4d30386416b665fb86d0bc70939fa70e"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/tree/evalpath/official.py",
+      "sha256": "a5d6d79fd29fce43791401cd01438f16f3ff6ad7a6c2651cb70d0d42088cf589"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/tree/evalpath/run.py",
+      "sha256": "06cf9bd14482792516976e93001aff14f90ee35906afeb1621f6583f6256bbd2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/tree/student_pilot/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/tree/student_pilot/camera_config.py",
+      "sha256": "ce16908bb2f748ec9f6562d907e880e4700c2092ef2759a0e2b39a4dca744e7a"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/tree/student_pilot/camera_targets.py",
+      "sha256": "59a9475e87c6eb49fc103e8077ec224746f06fcdbde9b0a1a38088cb1aed18a4"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/src/tree/trace_format/room_v314.py",
+      "sha256": "37c8d5fcfa24bbc29155a18f4400ad91dd5326a22b019edd66809f192afd1d07"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/bases/b1/work/ret/metadata/reads/0/metadata/journals/0/0/environment.json",
+      "sha256": "20e3d81d4c330e30b57b761722b5573a00546f0eb5ff7c8cc1358512eacee09a"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/measurements.py",
+      "sha256": "5b7857adff6be8335d534068a1060653ff3fa69409ee39c5b6f5172e58dbe178"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/populations.py",
+      "sha256": "e0e3518891ac97a59a0b1b9b9ed30782baa6e3320b16934c8bc3bc1ba1b9c67f"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/return_reader.py",
+      "sha256": "e69c5ed6bf9dfa4af2c73ed9cd87c115e868ffd3a1133ba84e27eb4c2e032937"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/package/READ_PLAN.json",
+      "sha256": "84e7a6279fcdb99a212641816490c19cbe64b2f36bfcbf031e9a410a3971f1a6"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/package/package/0.json",
+      "sha256": "2066591d387d02c9e22b8da9f2b86edee776534949bfa8316425d29f4ff58759"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/package/src/9.json",
+      "sha256": "f33a81f9624975f1049ba94c42da89220c957dbe5b8b4bcc4e5deb119d492876"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/package/src/items/devs1_routed.json",
+      "sha256": "aacc93a5ee292376718a8bfbd53c8a9b3628cf402a740eb2e7cbd2dbfb973ccc"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/package/tower_sequence.py",
+      "sha256": "d75c1f4181d285a1e76e11cb85087d5cb2e8d95ffe78cd982e8c56b7e63de32d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/ret/metadata/EXPORT_PIN.json",
+      "sha256": "b5baafb957518a00b1167dbd45a6f9e18dccbed3accb9cb83edb2ac36b3133f2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/ret/metadata/IDENTITY.json",
+      "sha256": "09da5b0c0c772adc7032094eeb96d0833d97691fabe86273a29b6a561f690169"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/ret/metadata/reads/0/metadata/journals/0/0/environment.json",
+      "sha256": "c6cb8a9d99e0caa3751fd281ec052b0004fdfa6944604d3030c2a1a2bda0cedf"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/scratch/tests/callrate-yfhtziew/ret/metadata/reads/0/metadata/journals/0/0/items.jsonl",
+      "sha256": "a0c3e64711ffbde6b26e4276a10afa8109c783623bc71d54045c76a4ba53cbe5"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_callrate/wording.py",
+      "sha256": "fbdeaf4433623f76561c7da05de07cdcd1809129e8820db0b7ea8f4fecac5727"
+    }
+  ],
+  "relocated_links": {}
+}

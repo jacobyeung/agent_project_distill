@@ -96,8 +96,6 @@ if (( rc_pins == 0 )); then
     rc_e=$?; echo "export-only receipt rc=$rc_e in $(( $(date +%s) - t0 )) s: $(tail -1 "$D/e.out" | cut -c1-200)"
   fi
 fi
-after=$(ckdirs | tr '\n' ' '); overlap=no; [[ "$after" == "$before" ]] && ! writing > /dev/null || overlap=yes
-echo "checkpoint dirs unchanged during hashing: $([[ $overlap == no ]] && echo yes || echo NO)"
 # Items 1-3 small files (ORCH 0036Z item 2, tree_rebuild10 0140Z/0259Z): every existing pinned file up to 64 MB reachable
 # from the receipts, artifact, checkpoint manifest, config, binding, data receipt and the preparation/model receipts.
 # Checkpoint shards, replicated.pt and full-weight shards are excluded in add() whatever pins them.
@@ -165,11 +163,20 @@ with tarfile.open(fileobj=sys.stdout.buffer,mode='w|') as t:
 print('files',len(keep),'bytes',acc,'skipped',len(skipped),'mismatch',sum(1 for v in keep if not v['match']),file=sys.stderr)
 PY
 rc_copy=$?; echo "copy rc=$rc_copy $(tail -1 "$D/s.err")"
-if (( rc_copy == 0 )); then mv "$D/s.tar.part" "$D/s.tar" && sha256sum "$D/s.tar"; else mv "$D/s.tar.part" "$D/s.tar.failed"; fi
-for f in RP.json h.json r.json e.json; do [[ -f $R/m$STEP/$f ]] && cat "$R/m$STEP/$f" > "$D/$f" && sha256sum "$R/m$STEP/$f" "$D/$f"; done
-if [[ $STEP == 400 ]]; then ok=$(( rc_e == 0 && rc_copy == 0 )); else ok=$(( rc_h == 0 && rc_copy == 0 )); fi
-printf '{"step": %s, "mode": "%s", "checkpoint": "%s", "handover_rc": %s, "export_only_rc": "%s", "copy_rc": %s, "checkpoint_overlap": "%s", "ok": %s, "utc": "%s"}\n' \
-  "$STEP" "$MODE" "$CKN" "$rc_h" "$rc_e" "$rc_copy" "$overlap" "$ok" "$(date -u +%FT%TZ)" > "$D/DONE.json"
+# Overlap check after all hashing (receipts and archive): any new or unfinished checkpoint dir voids the evidence.
+after=$(ckdirs | tr '\n' ' '); overlap=no; { [[ "$after" == "$before" ]] && ! writing > /dev/null; } || overlap=yes
+echo "checkpoint dirs unchanged during all hashing: $([[ $overlap == no ]] && echo yes || echo NO)"
+pub=0
+if (( rc_copy == 0 )); then { mv "$D/s.tar.part" "$D/s.tar" && sha256sum "$D/s.tar"; } || pub=1; else mv "$D/s.tar.part" "$D/s.tar.failed"; pub=1; fi
+need="RP.json"; [[ $STEP == 400 ]] && need="RP.json r.json e.json" || need="RP.json h.json"
+for f in RP.json h.json r.json e.json; do
+  if [[ -f $R/m$STEP/$f ]]; then { cat "$R/m$STEP/$f" > "$D/$f" && cmp -s "$R/m$STEP/$f" "$D/$f" && sha256sum "$D/$f"; } || pub=1
+  elif [[ " $need " == *" $f "* ]]; then echo "MISSING $f"; pub=1; fi
+done
+if [[ $STEP == 400 ]]; then ok=$(( rc_e == 0 && rc_copy == 0 && pub == 0 )); else ok=$(( rc_h == 0 && rc_copy == 0 && pub == 0 )); fi
+[[ $overlap == yes ]] && ok=0
+printf '{"step": %s, "mode": "%s", "checkpoint": "%s", "handover_rc": %s, "export_only_rc": "%s", "copy_rc": %s, "publish_rc": %s, "checkpoint_overlap": "%s", "ok": %s, "utc": "%s"}\n' \
+  "$STEP" "$MODE" "$CKN" "$rc_h" "$rc_e" "$rc_copy" "$pub" "$overlap" "$ok" "$(date -u +%FT%TZ)" > "$D/DONE.json.part" && mv "$D/DONE.json.part" "$D/DONE.json" || ok=0
 echo "step end $(date -u +%FT%TZ) ok=$ok"
 (( ok == 1 )) || exit 1
 STEPSCRIPT

@@ -1,0 +1,1 @@
+The census and room-removal audit are complete for 93,370 direction rows. The bundle contains 3,026 verified room-removal records, the common skeleton and 24 proposed twin cells. The row build remains MISSING because all source GT joins are absent; replacements and twins are empty, and CHECKS.json explicitly refuses certification. See out/REPORT.md.

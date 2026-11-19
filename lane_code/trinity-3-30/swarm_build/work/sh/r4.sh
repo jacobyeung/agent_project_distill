@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30; for t in sb_rowA sb_rowC sb_rowD sb_k1list sb_rlkit; do echo "=== $t"; tail -c 700 $R/$t/dispatch.log; echo; done; echo; tail -3 $R/sb_queue/codexq.log; head -50 $R/sb_k1list/out/U2_REPORT.md

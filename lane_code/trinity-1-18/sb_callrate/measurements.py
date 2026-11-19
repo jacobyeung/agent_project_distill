@@ -127,6 +127,34 @@ def follows(answer, expected, item, sc):
     return sc.answer_equals(str(value), expected)
 
 
+def parsed_answer(answer, item, sc):
+    """Use the scorer's numeric parser and require a listed option for choices."""
+    from evalpath import official
+    meta = sc.metadata(item)
+    kind = meta.get('answer_type', 'multiple_choice' if item['question_type'] == 'camera_movement_direction' else 'numeric')
+    value = official.official_fuzzy_matching(answer)
+    if kind == 'multiple_choice':
+        options = meta.get('options') or []
+        labels = [re.match(r'([A-Z])[.)]', opt.strip()) for opt in options]
+        allowed = {m[1].lower() if m else chr(97+i) for i,m in enumerate(labels)}
+        return value if value.lower() in allowed else None
+    return official.official_to_float(value)
+
+
+def response_category(answer, expected, item, sc):
+    if expected is None:
+        return None
+    # Correct conversion takes precedence at zero, where copying is indistinguishable.
+    if follows(answer, expected, item, sc):
+        return 'follow_converted'
+    if item['question_type'] in ('camera_displacement', 'object_abs_distance', 'room_size_estimation'):
+        factor = sc.unit_factor(item['question'])
+        power = 2 if item['question_type'] == 'room_size_estimation' else 1
+        if factor != 1 and follows(answer, expected / factor**power, item, sc):
+            return 'copied_unconverted'
+    return 'other'
+
+
 def measure(row, item, sc):
     output = row['output']
     records = sc.records(output) or []
@@ -149,12 +177,28 @@ def measure(row, item, sc):
     if isinstance(expected, (int, float)) and not math.isfinite(expected):
         expected, reason = None, 'nonfinite_response'
     eligible = expected is not None
+    category = response_category(answer, expected, item, sc)
+    from evalpath.official import extract_q35_final_answer
+    scorer_answer = extract_q35_final_answer(output.get('text', ''), enable_thinking=True)[0] if output.get('finish') != 'max_calls' else ''
+    parsed = parsed_answer(scorer_answer, item, sc)
+    visible_answer = scorer_answer or answer
+    not_seen = bool(visible_answer) and visible_answer.strip().lower().rstrip('.') == 'not seen'
+    conversion_required = eligible and item['question_type'] in ('camera_displacement', 'object_abs_distance', 'room_size_estimation') and sc.unit_factor(item['question']) != 1
     score = sc.accuracy(output, item)['task_accuracy']
     if score is not None and not math.isfinite(score):
         raise ValueError('Non-finite score: ' + row['id'])
     return dict(id=row['id'], room=item['room_key'], type=item['question_type'],
                 call=None if call is None else int(call), capped=int(capped(output)),
-                answer=int(bool(answer)), score=score, usage=int(follows(answer, expected, item, sc)) if eligible else None,
+                answer=int(parsed is not None), parsed_answer=parsed,
+                not_seen=int(not_seen), non_numeric=int(bool(answer) and parsed is None),
+                other_non_numeric=int(bool(answer) and parsed is None and not not_seen),
+                score=score, usage=int(category != 'other') if eligible else None,
+                usage_category=category,
+                follow_converted=int(category == 'follow_converted') if eligible else None,
+                copied_unconverted=int(category == 'copied_unconverted') if eligible else None,
+                other=int(category == 'other') if eligible else None,
+                conversion_failure=int(category == 'copied_unconverted') if conversion_required else None,
+                source_read=item.get('_source_read', 'MISSING'),
                 usage_reason='eligible' if eligible else reason, response_decision=expected,
                 unit=unit(item, sc), wording=wording(output, item, sc),
                 call_status='OK' if call is not None else 'MISSING: type routing specification',
@@ -165,9 +209,9 @@ def summarize(rows, expected_ids):
     n = len(rows)
     result = dict(n=n, expected=len(expected_ids), missing_ids=sorted(set(expected_ids)-{r['id'] for r in rows}))
     result['status'] = 'MISSING' if result['missing_ids'] else 'OK'
-    for name in ('call', 'capped', 'answer', 'score', 'usage'):
+    for name in ('call', 'capped', 'answer', 'not_seen', 'non_numeric', 'other_non_numeric', 'score', 'usage', 'follow_converted', 'copied_unconverted', 'other', 'conversion_failure'):
         values = [r[name] for r in rows if r[name] is not None]
-        key = name + '_rate' if name in ('call', 'capped', 'answer') else name
+        key = name + '_rate' if name in ('call', 'capped', 'answer', 'not_seen', 'non_numeric', 'other_non_numeric') else name
         result[key] = (float(np.mean(values)) if name == 'score' else sum(values)/len(values)) if values and (name not in ('call', 'score') or len(values) == n) else None
         result[name + '_n'] = len(values)
         if name != 'score':

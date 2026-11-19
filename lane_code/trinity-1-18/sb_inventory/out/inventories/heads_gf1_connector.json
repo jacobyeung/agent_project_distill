@@ -1,0 +1,117 @@
+{
+  "schema": "sb-component-inventory-v1",
+  "component": "heads_gf1_connector",
+  "status": "ABSENT_IN_N_POLICY_GAP",
+  "release": {
+    "name": "GF-1 connector (local implementation)",
+    "revision": "N sealed source tree 8ea1fe6bd032c9cc49f5974279a18e211b0d55e3f615fc083fb1acc678689caa",
+    "assets": [],
+    "license": "No component-specific license recorded; no GF1 weights loaded by this N configuration"
+  },
+  "parameters": [],
+  "parameter_tensors": 0,
+  "parameter_numel": 0,
+  "optimizer_parameter_tensors": 0,
+  "claims": [
+    {
+      "claim": "R1 validate refuses non-none geometry_connector or any geometry_online. CarrierC1 creates auxiliary_heads.gf1 only when geometry_online contains gf1.",
+      "sources": [
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/build19/inputs/kit_config.json",
+          "sha256": "b2e23841aa3634bf581dd775b4b44d6d73b26832bfd497e769976ed47a5b91aa"
+        },
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r1_training.py",
+          "sha256": "7517d775a7fe64f4a52478de7fe494dbc5334a36b114a2b948af9dc1de6ab1a2"
+        },
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/carrier_c1.py",
+          "sha256": "3eaae0dd75fac3eebc5ccfaeaacf3e265e294fe4288fb2aaeb0dd7740f352a13"
+        }
+      ]
+    },
+    {
+      "claim": "The reconstructed N student has no GF1 module, parameter tensor or optimizer member.",
+      "sources": [
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_inventory/out/inventories/optimizer.json",
+          "sha256": "69824cadd9decebc7ff46905664f80f441aedf7953b5382415bd0c525803fbb7"
+        }
+      ]
+    },
+    {
+      "claim": "The strict policy still requires heads_gf1_connector as new_training, phase both, verdict PROVEN_CLEAN and exclusions_complete true; there is no disabled/not-applicable verdict.",
+      "sources": [
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r2_policy.py",
+          "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1"
+        }
+      ]
+    },
+    {
+      "claim": "R1 training may skip the absent connector or defer it; official reads still require its lost record.",
+      "sources": [
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r1_training.py",
+          "sha256": "7517d775a7fe64f4a52478de7fe494dbc5334a36b114a2b948af9dc1de6ab1a2"
+        },
+        {
+          "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r1_components.py",
+          "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff"
+        }
+      ]
+    }
+  ],
+  "clean_record_possible_now": false,
+  "reason": "Absence proves that this constructor creates no connector training population. It does not authenticate the lost component receipt or establish exclusions_complete for the mandatory slot. No not-applicable policy branch exists.",
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/out/PACKAGE.json",
+      "sha256": "65615a513c28cb1bcae219616256640c5318485df9e42218ebbbdf880b72313c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/out/inventories/optimizer.json",
+      "sha256": "69824cadd9decebc7ff46905664f80f441aedf7953b5382415bd0c525803fbb7"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/out/inventories/release_pin_index.json",
+      "sha256": "20e2301f27a8c3dd08ef583782d256728483ec8236a716d7252ed49c92040353"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/build_report.py",
+      "sha256": "9fe4f5c72a667cbc54c6404f1160058c811f3b59af215df5bb592ac8e3c779d0"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/build19/inputs/kit_config.json",
+      "sha256": "b2e23841aa3634bf581dd775b4b44d6d73b26832bfd497e769976ed47a5b91aa"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/carrier_c1.py",
+      "sha256": "3eaae0dd75fac3eebc5ccfaeaacf3e265e294fe4288fb2aaeb0dd7740f352a13"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/carrier_c1_run.py",
+      "sha256": "1f6a9a72910c0b449beee70c358201fb5a579e18a6b98031d9050dbe2046ace0"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/gf1.py",
+      "sha256": "16feac4bbc2c192cdb15a727c90dcc6846e64803cda47c45a549ba26942ccfbc"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r1_components.py",
+      "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r1_training.py",
+      "sha256": "7517d775a7fe64f4a52478de7fe494dbc5334a36b114a2b948af9dc1de6ab1a2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r2_policy.py",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tests/test_r2_policy.py",
+      "sha256": "36b91fa241ecff92fad055f4c885e3ab86a50bfd4d1142b8893994af52eefa5d"
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "build": "/scratch/jjyeung/orch_n30/sb_ownread/out/pkg/b200",
+  "work": "/scratch/jjyeung/orch_n30/sb_ownread/work/proofb",
+  "python": "3.12.13",
+  "steps": {
+    "rehearsal": {
+      "passed": true,
+      "seconds": 1.4,
+      "workers": [
+        {
+          "type": "camera_displacement",
+          "arms": "tower,own",
+          "out": "journals/0/0"
+        },
+        {
+          "type": "camera_rotation",
+          "arms": "tower,own",
+          "out": "journals/1/0"
+        },
+        {
+          "type": "camera_movement_direction",
+          "arms": "tower,own",
+          "out": "journals/2/0"
+        }
+      ],
+      "memory_fits": true,
+      "checks": [
+        "per-type worker args (arms tower,own; modes none; no --type-journals)",
+        "tower socket stub, candidates_argmax",
+        "own head server stub: scale 1, move and turn served"
+      ]
+    },
+    "settings_identity": {
+      "passed": true,
+      "tower_settings_identical_to_a4_operator": true,
+      "identical_to_a4_return_settings": true,
+      "settings_sha256": "2c3cc6b4f97ed64157f9addf73447763c781d2ba2294c7a3ff1b95ef75a0ebca",
+      "worker_config_keys_that_differ": [
+        "arms",
+        "single_worker",
+        "types"
+      ]
+    },
+    "fixture_read": {
+      "passed": true,
+      "seconds": 1.3,
+      "summary": {
+        "completed": 900,
+        "expected": 900,
+        "complete": true,
+        "failure": null
+      },
+      "worker_starts": [
+        0,
+        1,
+        2
+      ],
+      "journal_rows": {
+        "0": {
+          "tower": 150,
+          "own": 150
+        },
+        "1": {
+          "tower": 150,
+          "own": 150
+        },
+        "2": {
+          "tower": 150,
+          "own": 150
+        }
+      },
+      "identity": {
+        "arms": [
+          "tower",
+          "own"
+        ],
+        "expected": 900,
+        "modes": [
+          "none"
+        ],
+        "perception_memo": "on",
+        "perception_memo_modules": [
+          "g3t"
+        ],
+        "perception_memo_verify_ids": [],
+        "save_own_depth": false,
+        "stage1_select_rule": "candidates_argmax",
+        "types": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "fixture_return": {
+      "passed": true,
+      "unpack": {
+        "output": "/scratch/jjyeung/orch_n30/sb_ownread/work/proofb/ret_fixture",
+        "complete": true,
+        "status": "COMPLETE",
+        "sha256": "c94b930b46c1da3761f3eef52645c4222a85f7f950e71f1bcb7029780543f448"
+      },
+      "strict_scorer_refuses_fixture": "Journal binding differs: fixture",
+      "registered_544_reproduced": true,
+      "scores": "/scratch/jjyeung/orch_n30/sb_ownread/work/proofb/score_fixture/ownread.txt"
+    },
+    "strict_return": {
+      "passed": true,
+      "scores": "/scratch/jjyeung/orch_n30/sb_ownread/work/proofb/score_strict/ownread.txt",
+      "own_minus_tower": {
+        "camera_displacement": -34.67,
+        "camera_movement_direction": -19.33,
+        "camera_rotation": -33.53
+      }
+    }
+  },
+  "passed": true
+}

@@ -1,0 +1,3 @@
+step: 6 of 6 done (05:03Z) - REPORT.md (193 lines), work/reproduce.py (reprints the seven numbers; rerun OK), work/ITEM_IDS.json, work/cnt.py; DONE written
+findings: list length is a prior on 2 (49 of 49 truth-3 undercounts stop at two entries; same prior at step 544); multi truth-2 overcounts inflate the first category (20 of 24) and training never has total = n categories (0 of 664); relative runaways stay right because the loop marks the larger category (39 of 44); 11 label groups are different scans (0 same-scan conflicts); no head prints instances; recommend form B (count first, "k of N" entries)
+next: none (lane finished; coordinator reads REPORT.md)

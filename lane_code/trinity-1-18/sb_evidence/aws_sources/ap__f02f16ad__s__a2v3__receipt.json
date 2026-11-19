@@ -1,0 +1,319 @@
+{
+ "schema": "pose-stream-a2-v1",
+ "compatible_with": "decoupled-v-preparation-v1",
+ "count": 66934,
+ "database": {
+  "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a2v3/rows.sqlite",
+  "sha256": "b32359ce256a567912d6436fac95dcab78bcef3bb2e1154cabdca57bacdc5320"
+ },
+ "settings": {
+  "anchors": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   21,
+   22,
+   23,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31,
+   32
+  ],
+  "base_identity": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "camera": {
+   "carrier_token": "<|fim_middle|>",
+   "component_reduction": "mean",
+   "embed_dim": 2048,
+   "feature_layer_convention": "hidden_states_index_k_after_k_layers_last_is_final_norm_v1",
+   "feature_layers": null,
+   "fov_activation": "bounded_sigmoid_v1",
+   "frame_addressing": "group16",
+   "gate": null,
+   "head_only_steps": 0,
+   "lm_gate": null,
+   "loss_clamp": 100.0,
+   "min_trajectory_scale_m": 0.05,
+   "num_heads": 16,
+   "placement": "append_after_temporal_group_video_tokens_v1",
+   "point_depth": {
+    "context_depth": 2,
+    "d_proj": 256,
+    "max_depth_m": 25.0,
+    "min_depth_m": 0.05,
+    "mlp_hidden": 256,
+    "num_heads": 8,
+    "num_points_per_frame": 64,
+    "silog_lambda": 0.5,
+    "smooth_l1_beta": 0.1,
+    "vit_layers": [
+     9,
+     17,
+     25
+    ],
+    "weight": 0.1,
+    "weight_grad": 0.5,
+    "weight_metric": 0.5,
+    "weight_silog": 1.0
+   },
+   "pose_encoding": "opencv_cam_from_frame0_anchor_second_of_pair_T3_quatxyzw4_fovhw2_v2",
+   "pose_input": "spatial_tokens_v1",
+   "pose_origin": "first_sampled_frame_v1",
+   "pose_reference": "first_group_concat_v1",
+   "refine_iterations": 4,
+   "representative_frame": "second_of_temporal_pair_v1",
+   "stage_gamma": 0.6,
+   "supervision": {
+    "path": "/project/community/jjyeung/c7d31ddd/lb/51f013139e77.npz",
+    "sha256": "51f013139e775bf1f0adadac6a8f5973d019717ffca800698d81b74980312c04"
+   },
+   "token_scheme": "first_and_rest_learned_v1",
+   "trajectory_balance": false,
+   "trunk_depth": 4,
+   "warmup_ratio": 0.0,
+   "weight": 0.2,
+   "weight_focal": 0.5,
+   "weight_gravity": 0.1,
+   "weight_rot": 1.0,
+   "weight_scale": 0.04,
+   "weight_trans": 1.0
+  },
+  "depth_convention": "optical_axis_metric",
+  "feature_backing": "decoupled_vc",
+  "feature_encoder_sha256": "67a46fe469185f41cc313544233992dc2c18fb5bd3c6a8abbab08d70f8cb2770",
+  "head_loss_weight": 0.0,
+  "schema": "p3-model-v1",
+  "start": "base",
+  "temporal_grouping": "fused_pairs_all_frames",
+  "translation_convention": "metric"
+ },
+ "inputs": {
+  "bank": {
+   "path": "/project/community/jjyeung/c7d31ddd/lb/51f013139e77.npz",
+   "sha256": "51f013139e775bf1f0adadac6a8f5973d019717ffca800698d81b74980312c04"
+  },
+  "camera_source": {
+   "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5b1db41e/arm/frozen/D451299D/config.json",
+   "sha256": "32d7f9bf8e5e2d34b25b926121e96b0d046bd52783fdf2045e443ad6f99fcf41"
+  },
+  "division": {
+   "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/4c230a7e.json",
+   "sha256": "0d28fdd432b02ae96b6ce2aaa840b744005291a540920ce48409f0e8c90276ad"
+  },
+  "rows": {
+   "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/6c012ab8.jsonl",
+   "sha256": "c05f8bc7b3cbabc78843b7ad0cef1559b146825c193917b2bcec1065f19cc264"
+  }
+ },
+ "model": {
+  "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/arm/frozen/6f27ae81/model.json",
+  "sha256": "cc724d5ee1b0bd62ba759be3eb0831afd009cd7635ea5966ddc0fd26c4599fb7"
+ },
+ "parent": {
+  "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/arm/frozen/6f27ae81/receipt.json",
+  "database": {
+   "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/arm/frozen/6f27ae81/rows.sqlite",
+   "sha256": "eba62ef933d984ef285bbd4603dd85ceb9c87c9b85ac78d63c987f71f3a35301"
+  },
+  "count": 321152
+ },
+ "composition": {
+  "d1/new": 20080,
+  "d2/a1": 5863,
+  "d2/new": 7524,
+  "d3/a1": 33467
+ },
+ "shares": {
+  "d1": 0.3,
+  "d2": 0.2,
+  "d3": 0.5
+ },
+ "scenes": {
+  "d1": 502,
+  "d2": 685,
+  "d3": 2864
+ },
+ "labels": {
+  "d1": {
+   "rows": 20080,
+   "pose_all32": 20080,
+   "gravity": 20080,
+   "scale_pos": 20080,
+   "fov_finite": 20080,
+   "depth_rows": 20080,
+   "depth_slots": 160988,
+   "depth_points": 10303232
+  },
+  "d2": {
+   "rows": 13387,
+   "pose_all32": 13387,
+   "gravity": 13387,
+   "scale_pos": 13387,
+   "fov_finite": 13387,
+   "depth_rows": 7524,
+   "depth_slots": 60260,
+   "depth_points": 3856640
+  },
+  "d3": {
+   "rows": 33467,
+   "pose_all32": 33467,
+   "gravity": 33467,
+   "scale_pos": 33467,
+   "fov_finite": 33467,
+   "depth_rows": 0,
+   "depth_slots": 0,
+   "depth_points": 0
+  }
+ },
+ "test_scene_exclusion": {
+  "tokens": 562,
+  "hits_in_rows": 0,
+  "a1_rows_skipped": 0
+ },
+ "spot_checks": {
+  "d1": [
+   {
+    "a1_row": 283202,
+    "kind": "a0_16",
+    "common_frames": 2,
+    "png_sha_equal": "2/2",
+    "rot_deg_max": 0.0,
+    "trans_m_max": 2.7844484654654072e-06,
+    "gravity_deg_max": 0.017011861060998,
+    "fov_rad_max": 3.3456727832614774e-08
+   },
+   {
+    "a1_row": 283203,
+    "kind": "a0_16",
+    "common_frames": 2,
+    "png_sha_equal": "2/2",
+    "rot_deg_max": 0.018831147647045892,
+    "trans_m_max": 5.678256648509482e-07,
+    "gravity_deg_max": 0.015196283309075432,
+    "fov_rad_max": 3.3456727832614774e-08
+   },
+   {
+    "a1_row": 283208,
+    "kind": "a0_16",
+    "common_frames": 2,
+    "png_sha_equal": "2/2",
+    "rot_deg_max": 0.0,
+    "trans_m_max": 7.145276474605395e-07,
+    "gravity_deg_max": 0.01701185426953995,
+    "fov_rad_max": 3.3456727832614774e-08
+   }
+  ],
+  "d2": [
+   {
+    "a1_row": 230726,
+    "kind": "all32",
+    "common_frames": 2,
+    "png_sha_equal": "0/2",
+    "rot_deg_max": 0.08845349069637923,
+    "trans_m_max": 1.12760229277222e-06,
+    "gravity_deg_max": 0.0,
+    "fov_rad_max": 0.0
+   },
+   {
+    "a1_row": 230737,
+    "kind": "all32",
+    "common_frames": 2,
+    "png_sha_equal": "0/2",
+    "rot_deg_max": 0.08143760839186814,
+    "trans_m_max": 8.522421934210108e-07,
+    "gravity_deg_max": 0.0,
+    "fov_rad_max": 0.0
+   },
+   {
+    "a1_row": 230738,
+    "kind": "all32",
+    "common_frames": 2,
+    "png_sha_equal": "0/2",
+    "rot_deg_max": 0.12023351738134874,
+    "trans_m_max": 1.2460091097524225e-06,
+    "gravity_deg_max": 0.0,
+    "fov_rad_max": 0.0
+   }
+  ],
+  "d3": [
+   {
+    "a1_row": 3,
+    "dataset": "d3",
+    "all32_mask": true,
+    "quat_norm_err": 1.1102230246251565e-16,
+    "gravity_norm": 1.0,
+    "slot0_identity": true
+   },
+   {
+    "a1_row": 7,
+    "dataset": "d3",
+    "all32_mask": true,
+    "quat_norm_err": 1.1102230246251565e-16,
+    "gravity_norm": 1.0,
+    "slot0_identity": true
+   },
+   {
+    "a1_row": 8,
+    "dataset": "d3",
+    "all32_mask": true,
+    "quat_norm_err": 2.220446049250313e-16,
+    "gravity_norm": 1.0,
+    "slot0_identity": true
+   }
+  ]
+ },
+ "frames": {
+  "nonfinite_pose_frames": 18,
+  "outside_division": 58,
+  "png_equal_to_reference": 0,
+  "png_compared": 113856
+ },
+ "deferred_scenes": 0,
+ "seed": 17,
+ "config": {
+  "a1_db": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/arm/frozen/6f27ae81/rows.sqlite",
+  "a1_receipt": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/arm/frozen/6f27ae81/receipt.json",
+  "pk_npz": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/in/pk.npz",
+  "pk_json": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/in/pk.json",
+  "videos": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/z/v.json",
+  "seed": 17,
+  "rows_new_d1": 40,
+  "rows_new_d2": 11,
+  "d2_new_fraction": 1.0,
+  "shares": {
+   "d3": 0.5,
+   "d1": 0.3,
+   "d2": 0.2
+  },
+  "workers": 24,
+  "frame_root": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/f/k7pd",
+  "out_frames": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/f",
+  "out": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a2v3",
+  "division": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/4c230a7e.json"
+ },
+ "division_check": {
+  "new_scenes_outside_division_skipped": 58
+ },
+ "row_schema": "A1 all_frames32 pose-only rows; target adds point_depth labels where the bank covers a frame"
+}

@@ -1,140 +1,104 @@
 # Call-rate reader report
 
-The CLI passes 37 synthetic, loader, and CLI tests and 65 reproduction checks. Camera and distance scores match `scoresAB/scores.json` bit for bit; their bootstrap outputs also match. Room134 reproduces 0 calls at step 200, 134 calls at step 544, and 115 capped items at step 544.
-
-The archive contains code, the 40-line README, and tests only. No returns or data are included.
+The reader passes 56 unit tests, 190 reproduction checks, and 31 checks against the independent reviewer’s saved probes. All original reproduction checks remain enabled. Camera, distance and room36 primary scores and bootstrap intervals match `score_r5.py` outputs.
 
 Archive: `sb_callrate.tar`  
-SHA-256: `63d91071e3211c2bc114bfc286136acb9b8d0bc8ebdfb73e2a5a2652042af4a4`
+SHA-256: `ba53f02503ec38b437a398f60b97f49e02c2d0ab2ac2e9dd29bcf4c75694c043`
+
+The archive contains code, tests, documentation and the example strata mapping. It excludes returns and test fixtures.
 
 ## Commands and validation
 
-All commands ran on trinity-1-18 with CPU only, no network, and one BLAS/OpenMP thread. The commands below produce every reported metric. The synthetic step-400/600 CLI test verifies input hashes before and after execution.
+These commands ran on trinity-1-18 with CPU only, no network and one BLAS/OpenMP thread. The reader commands recorded in the reproduction and review JSON files produce every metric below.
 
 ```bash
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
 python -B -m unittest discover -s tests -v > out/unit_tests.txt 2>&1
 python -B reproduce.py --input-root in --out out > out/reproduction_tests.txt 2>&1
+python -B review_probes.py --review-root /scratch/jjyeung/orch_n30/sb_crrev/scratch/rob --out out/review_probes > out/review_probes.txt 2>&1
 python -B build_delivery.py
 ```
 
-The reproduction command runs these two exact reader commands:
+The reproduction command invokes:
 
 ```bash
-/data2/jjyeung/envs/planner/bin/python -B /scratch/jjyeung/orch_n30/sb_callrate/callrate.py --input-root /scratch/jjyeung/orch_n30/sb_callrate/in --a /scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4/ret --a-step 200 --out /scratch/jjyeung/orch_n30/sb_callrate/out/step200
-/data2/jjyeung/envs/planner/bin/python -B /scratch/jjyeung/orch_n30/sb_callrate/callrate.py --input-root /scratch/jjyeung/orch_n30/sb_callrate/in --a /scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/B5/ret --a-step 200 --out /scratch/jjyeung/orch_n30/sb_callrate/out/room134
+/data2/jjyeung/envs/planner/bin/python -B /scratch/jjyeung/orch_n30/sb_callrate/callrate.py --input-root in --a in/cont_ops/work/r1route/out3/A4/ret --a-step 200 --out out/step200 --summary
+/data2/jjyeung/envs/planner/bin/python -B /scratch/jjyeung/orch_n30/sb_callrate/callrate.py --input-root in --a in/cont_ops/work/r1route/out3/B5/ret --a-step 200 --out out/room134 --summary
+/data2/jjyeung/envs/planner/bin/python -B /scratch/jjyeung/orch_n30/sb_callrate/make_strata_example.py --input out/step200/callrate.json --out /scratch/jjyeung/orch_n30/sb_callrate/examples/devs1_wording_strata.json
+/data2/jjyeung/envs/planner/bin/python -B /scratch/jjyeung/orch_n30/sb_callrate/callrate.py --input-root in --a in/cont_ops/work/r1route/out3/A4/ret --a-step 200 --out out/strata_example --summary --strata /scratch/jjyeung/orch_n30/sb_callrate/examples/devs1_wording_strata.json
 ```
 
-Unit tests: **37 passed** in 0.620 s. Reproduction: **65 checks passed**.
-Tests cover type-specific and unserved calls, cap reasons, unit conversion, response agreement/disagreement, absent responses, fixed direction math, room-area parsing, exact bootstrap equivalence, wording expressions, export steps, identity tampering, partial/duplicate journals, missing inputs, and read-only execution.
-
-Logs: [unit tests](unit_tests.txt), [reproduction](reproduction_tests.txt), [per-check values](reproduction.json).
+[Unit-test log](unit_tests.txt) · [reproduction checks and hashes](reproduction.json) · [review probe checks and hashes](review_probes/review_probes.json)
 
 ## Reproduction table
 
-A is step 200; B is registered step 544. Scores use the package scorer, and deltas use percentage points. Camera/distance values come from the first reader command; room134 values come from the second.
+A is step 200; B is registered step 544. Camera/distance and A4 room rows come from the first reader command; B5 room rows come from the second. Scores use package overrides when supplied. Deltas use percentage points.
 
-| Population | n A/B | Calls A/B | Capped A/B | Score A | Score B | Score delta, 95% CI (pp) |
+| Population / source reads A vs B | n/expected A / B | Calls A/B | Capped A/B | Score A | Score B | Score delta, 95% CI (pp) |
 |---|---:|---:|---:|---:|---:|---|
-| Camera displacement | 150/150 | 150/150 | 0/0 | 0.818666667 | 0.823333333 | -0.466667 [-1.006711, -0.000000] |
-| Camera rotation | 150/150 | 150/150 | 0/0 | 0.762666667 | 0.756000000 | 0.666667 [-0.365898, 1.687520] |
-| Camera direction | 150/150 | 150/150 | 0/0 | 0.946666667 | 0.946666667 | 0.000000 [0.000000, 0.000000] |
-| Object distance | 150/150 | 88/149 | 0/0 | 0.502666667 | 0.282666667 | 22.000000 [13.149333, 29.609958] |
-| Room36 (A4 subset) | 36/36 | 0/36 | 0/27 | 0.669444444 | 0.111111111 | 55.833333 [39.499342, 70.500000] |
-| Room134 (B5) | 134/134 | 0/134 | 0/115 | 0.644029851 | 0.065671642 | 57.835821 [50.746269, 64.676259] |
+| Camera displacement: A4/read 0 vs b1/read 0 | 150/150 / 150/150 | 150/150 | 0/0 | 0.818666667 | 0.823333333 | -0.466667 [-1.006711, -0.000000] |
+| Camera rotation: A4/read 0 vs b1/read 0 | 150/150 / 150/150 | 150/150 | 0/0 | 0.762666667 | 0.756000000 | 0.666667 [-0.365898, 1.687520] |
+| Camera direction: A4/read 0 vs b1/read 0 | 150/150 / 150/150 | 150/150 | 0/0 | 0.946666667 | 0.946666667 | 0.000000 [0.000000, 0.000000] |
+| Distance: A4/read 0 vs b1/read 1 | 150/150 / 150/150 | 88/149 | 0/0 | 0.502666667 | 0.282666667 | 22.000000 [13.149333, 29.609958] |
+| Room36 primary: A4/read 0 vs b1/read 0 | 36/36 / 36/36 | 0/36 | 0/29 | 0.669444444 | 0.116666667 | 55.277778 [38.823529, 70.385417] |
+| Room36 secondary: A4/read 0 vs b2/read 0 | 36/36 / 36/36 | 0/36 | 0/27 | 0.669444444 | 0.111111111 | 55.833333 [39.499342, 70.500000] |
+| Room134: B5/read 0 vs b2/read 0 | 134/134 / 134/134 | 0/134 | 0/115 | 0.644029851 | 0.065671642 | 57.835821 [50.746269, 64.676259] |
 
-The two room rows overlap: the 36 A4 room IDs are part of room134. They are separate comparisons and must not be added. Default pairing uses b1/read 0 for camera types, b1/read 1 for distance, and b2/read 0 for rooms; it restricts B to A’s planned IDs.
+Room36 uses b1/read 0 because A4 is the registered five-type read. The b2/read 0 comparison is secondary. The room36 and room134 populations overlap and must not be added.
 
 ## Metric definitions and missing values
 
-- Call rate counts recorded calls that belong to the item type, including unserved calls. Unrelated calls do not count.
-- Capped rate uses the exact `score_r5.py` definition: `max_calls`, `max_new_tokens`, or `length`. Its denominator includes all completed items, even when no call occurs.
-- Usage measures agreement with the last parsed matching response. It uses the scorer’s 5% relative tolerance (exact zero), requested units, direction argmax, and the room parser’s area. A called item with a parsed response but no final answer is an eligible failure.
-- Paired usage requires eligibility on both sides. Its delta can differ from the difference between marginal usage rates. Every paired metric uses the unchanged `score_r5.py` room bootstrap: seed 17, 10,000 draws, ratio estimator, and 95%/99.29% intervals.
-- Answer rate requires a final segment or explicit answer tag. The scorer suppresses answers when `finish=max_calls`.
-- Unit labels follow `scorers.unit_factor`; room labels denote square units, and non-length types use `N/A`. Distance wording reuses `classify.py` tags, which overlap. Other wording groups use questions with numbers and route object names masked.
-- Room usage is `MISSING` on both steps because neither supplies a parsed room response. Unknown types remain in the output; missing routing or response interpretation is explicitly `MISSING`, never an inferred mapping.
+- Call rate counts recorded calls of the item type, including unserved calls. Capped rate counts `max_calls`, `max_new_tokens` and `length` over all compared items.
+- Usage means the answer follows the response: `follow_converted + copied_unconverted`. Category rates divide by items with parsed responses; a missing answer is `other`. Converted agreement takes precedence at zero, where copying and conversion cannot be distinguished.
+- `conversion_failure` counts unconverted copies among response-eligible questions requiring a unit conversion. Room area uses squared units; camera displacement uses length units.
+- Answer rate counts finite values parsed by the type scorer or listed options. `not_seen` and `other_non_numeric` have separate rates over compared items. `max_calls` suppresses answers.
+- Scores preserve package accuracy and supplied `scores.answer` overrides. Numeric-task scores are MRA. MRA includes unanswered/capped items and is not answer rate.
+- Marginals and deltas use shared completed IDs. Paired usage additionally requires response eligibility on both sides. Intervals retain the seed-17, 10,000-draw physical-room bootstrap.
+- Missing responses make usage `MISSING`; room usage is MISSING in these reads. Population membership uses explicit manifest tags or identity-checked joins. Unknown membership is never guessed.
 
-## Step-200 versus step-544 output
+## Room populations and RESULT summary
 
-The full JSON includes per-item measurements, all five paired metrics, 95%/99.29% intervals, coverage, input hashes, and symlink relocation records. Copied symlinks are resolved under `in/` without modifying them.
+The second reader command yields these room MRAs. The explicit manifest contains 36 dev-S1 and 98 R0-dev items. The A4 dev-S1 population is separately labelled in the primary table and summary.
 
-[A4 JSON](step200/callrate.json) · [A4 table](step200/callrate.txt) · [Room134 JSON](room134/callrate.json) · [Room134 table](room134/callrate.txt)
+| Population / source reads A vs B | n/expected A / B | MRA A (%) | MRA B (%) | Delta, 95% CI (pp) |
+|---|---:|---:|---:|---|
+| dev-S1: B5/read 0 vs b2/read 0 | 36/36 / 36/36 | 68.89 | 11.11 | 57.78 [39.41, 74.12] |
+| R0-dev: B5/read 0 vs b2/read 0 | 98/98 / 98/98 | 62.76 | 4.90 | 57.86 [50.82, 64.69] |
+| all: B5/read 0 vs b2/read 0 | 134/134 / 134/134 | 64.40 | 6.57 | 57.84 [50.75, 64.68] |
 
-A4 (636 items):
+[A4 table](step200/callrate.txt) · [A4 summary](step200/callrate.summary.txt) · [A4 JSON](step200/callrate.json) · [Room134 table](room134/callrate.txt) · [Room134 JSON](room134/callrate.json)
 
-```text
-type / stratum | n A/B | calls A/B | capped A/B | usage (eligible) A/B | answers A/B | score A/B | delta call pp [95% CI] | delta capped pp [95% CI] | delta usage pp [95% CI] | delta answer pp [95% CI] | delta score pp [95% CI]
-camera_displacement | 150/150 | 1.000000/1.000000 | 0.000000/0.000000 | 1.000000 (150)/1.000000 (150) | 1.000000/1.000000 | 0.818667/0.823333 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | -0.466667 [-1.006711, -0.000000]
-  unit=m | 150/150 | 1.000000/1.000000 | 0.000000/0.000000 | 1.000000 (150)/1.000000 (150) | 1.000000/1.000000 | 0.818667/0.823333 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | -0.466667 [-1.006711, -0.000000]
-  wording=template: approximately how far (in meters) did the camera move between frame <number> and frame <number> of <number>? | 150/150 | 1.000000/1.000000 | 0.000000/0.000000 | 1.000000 (150)/1.000000 (150) | 1.000000/1.000000 | 0.818667/0.823333 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | -0.466667 [-1.006711, -0.000000]
-camera_movement_direction | 150/150 | 1.000000/1.000000 | 0.000000/0.000000 | 1.000000 (150)/1.000000 (150) | 1.000000/1.000000 | 0.946667/0.946667 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000]
-  unit=N/A | 150/150 | 1.000000/1.000000 | 0.000000/0.000000 | 1.000000 (150)/1.000000 (150) | 1.000000/1.000000 | 0.946667/0.946667 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000]
-  wording=template: during the sequence between frame <number> and frame <number> of <number>, what was the primary consistent direction of the camera's movement relative to its orientation at the start? the options are backward, right, left and forward. | 150/150 | 1.000000/1.000000 | 0.000000/0.000000 | 1.000000 (150)/1.000000 (150) | 1.000000/1.000000 | 0.946667/0.946667 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000]
-camera_rotation | 150/150 | 1.000000/1.000000 | 0.000000/0.000000 | 1.000000 (150)/1.000000 (150) | 1.000000/1.000000 | 0.762667/0.756000 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.666667 [-0.365898, 1.687520]
-  unit=N/A | 150/150 | 1.000000/1.000000 | 0.000000/0.000000 | 1.000000 (150)/1.000000 (150) | 1.000000/1.000000 | 0.762667/0.756000 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.666667 [-0.365898, 1.687520]
-  wording=template: what is the signed camera rotation in degrees between frame <number> and frame <number> of <number>? positive means left; use (<number>, <number>]. | 150/150 | 1.000000/1.000000 | 0.000000/0.000000 | 1.000000 (150)/1.000000 (150) | 1.000000/1.000000 | 0.762667/0.756000 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.666667 [-0.365898, 1.687520]
-object_abs_distance | 150/150 | 0.586667/0.993333 | 0.000000/0.000000 | 0.858824 (85)/0.507042 (142) | 1.000000/1.000000 | 0.502667/0.282667 | -40.666667 [-52.247463, -28.204698] | 0.000000 [0.000000, 0.000000] | 31.764706 [19.791380, 43.957143] | 0.000000 [0.000000, 0.000000] | 22.000000 [13.149333, 29.609958]
-  unit=cm | 28/28 | 0.464286/1.000000 | 0.000000/0.000000 | 0.083333 (12)/0.115385 (26) | 1.000000/1.000000 | 0.414286/0.050000 | -53.571429 [-70.370370, -33.333333] | 0.000000 [0.000000, 0.000000] | 8.333333 [0.000000, 27.272727] | 0.000000 [0.000000, 0.000000] | 36.428571 [23.998214, 49.600000]
-  unit=ft | 46/46 | 0.652174/1.000000 | 0.000000/0.000000 | 0.966667 (30)/0.279070 (43) | 1.000000/1.000000 | 0.491304/0.171739 | -34.782609 [-53.488372, -17.073171] | 0.000000 [0.000000, 0.000000] | 73.333333 [52.000000, 88.571429] | 0.000000 [0.000000, 0.000000] | 31.956522 [16.666667, 46.809594]
-  unit=in | 33/33 | 0.272727/0.969697 | 0.000000/0.000000 | 1.000000 (8)/0.483871 (31) | 1.000000/1.000000 | 0.506061/0.212121 | -69.696970 [-87.500000, -48.272669] | 0.000000 [0.000000, 0.000000] | 50.000000 [16.666667, 100.000000] | 0.000000 [0.000000, 0.000000] | 29.393939 [6.785714, 47.382326]
-  unit=m | 43/43 | 0.837209/1.000000 | 0.000000/0.000000 | 1.000000 (35)/1.000000 (42) | 1.000000/1.000000 | 0.569767/0.606977 | -16.279070 [-31.428571, -4.347826] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | -3.720930 [-12.380952, 4.857143]
-  wording=box_distance_is | 49/134 | 1.000000/0.992537 | 0.000000/0.000000 | 0.750000 (48)/0.519084 (131) | 1.000000/1.000000 | 0.471429/0.300746 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 2.325581 [0.000000, 7.894737] | 0.000000 [0.000000, 0.000000] | 1.590909 [-1.555556, 7.073973]
-  wording=candidates_ordered | 29/0 | 0.000000/MISSING | 0.000000/MISSING | MISSING (0)/MISSING (0) | 1.000000/MISSING | 0.458621/MISSING | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING]
-  wording=converting_to | 38/5 | 1.000000/1.000000 | 0.000000/0.000000 | 1.000000 (37)/1.000000 (5) | 1.000000/1.000000 | 0.647368/0.420000 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000]
-  wording=first_seen_frame | 49/1 | 0.000000/0.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.483673/0.000000 | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING]
-  wording=gap_between_closest_points | 9/0 | 0.000000/MISSING | 0.000000/MISSING | MISSING (0)/MISSING (0) | 1.000000/MISSING | 0.311111/MISSING | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING]
-  wording=grid_5cm_two_objects | 50/149 | 1.000000/1.000000 | 0.000000/0.000000 | 0.750000 (48)/0.507042 (142) | 1.000000/1.000000 | 0.462000/0.284564 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 2.083333 [0.000000, 7.317073] | 0.000000 [0.000000, 0.000000] | 1.400000 [-1.395349, 6.428571]
-  wording=grid_both_objects | 38/0 | 1.000000/MISSING | 0.000000/MISSING | 1.000000 (37)/MISSING (0) | 1.000000/MISSING | 0.647368/MISSING | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING]
-  wording=ground_boxes_intro | 88/149 | 1.000000/1.000000 | 0.000000/0.000000 | 0.858824 (85)/0.507042 (142) | 1.000000/1.000000 | 0.542045/0.284564 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | 31.764706 [19.791380, 43.957143] | 0.000000 [0.000000, 0.000000] | 17.954545 [10.375000, 25.897727]
-  wording=i_find_it_to_be | 36/0 | 0.000000/MISSING | 0.000000/MISSING | MISSING (0)/MISSING (0) | 1.000000/MISSING | 0.441667/MISSING | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING]
-  wording=nearest_to_farthest | 51/0 | 0.000000/MISSING | 0.000000/MISSING | MISSING (0)/MISSING (0) | 1.000000/MISSING | 0.498039/MISSING | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING]
-  wording=question_asks_for | 34/0 | 0.000000/MISSING | 0.000000/MISSING | MISSING (0)/MISSING (0) | 1.000000/MISSING | 0.497059/MISSING | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING]
-  wording=stand_at_facing | 1/0 | 0.000000/MISSING | 0.000000/MISSING | MISSING (0)/MISSING (0) | 1.000000/MISSING | 0.300000/MISSING | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING]
-  wording=step_n | 62/1 | 0.000000/0.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.446774/0.000000 | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000] | MISSING [MISSING] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000]
-  wording=the_gap_is | 5/0 | 0.000000/MISSING | 0.000000/MISSING | MISSING (0)/MISSING (0) | 1.000000/MISSING | 0.140000/MISSING | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING] | MISSING [MISSING]
-room_size_estimation | 36/36 | 0.000000/1.000000 | 0.000000/0.750000 | MISSING (0)/MISSING (0) | 1.000000/0.250000 | 0.669444/0.111111 | -100.000000 [-100.000000, -100.000000] | -75.000000 [-88.461538, -60.000000] | MISSING [MISSING] | 75.000000 [60.000000, 88.461538] | 55.833333 [39.499342, 70.500000]
-  unit=ft | 7/7 | 0.000000/1.000000 | 0.000000/0.857143 | MISSING (0)/MISSING (0) | 1.000000/0.142857 | 0.700000/0.042857 | -100.000000 [-100.000000, -100.000000] | -85.714286 [-100.000000, -50.000000] | MISSING [MISSING] | 85.714286 [50.000000, 100.000000] | 65.714286 [37.142857, 87.142857]
-  unit=m | 29/29 | 0.000000/1.000000 | 0.000000/0.724138 | MISSING (0)/MISSING (0) | 1.000000/0.275862 | 0.662069/0.127586 | -100.000000 [-100.000000, -100.000000] | -72.413793 [-86.206897, -56.521739] | MISSING [MISSING] | 72.413793 [56.521739, 86.206897] | 53.448276 [38.000000, 69.583333]
-  wording=template: can you specify the room size in square feet? if several rooms are presented, estimate the combined area. | 1/1 | 0.000000/1.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.700000/0.300000 | -100.000000 [-100.000000, -100.000000] | 0.000000 [0.000000, 0.000000] | MISSING [MISSING] | 0.000000 [0.000000, 0.000000] | 40.000000 [40.000000, 40.000000]
-  wording=template: can you specify the room size in square meters? if several rooms are presented, estimate the combined area. | 1/1 | 0.000000/1.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.800000/1.000000 | -100.000000 [-100.000000, -100.000000] | 0.000000 [0.000000, 0.000000] | MISSING [MISSING] | 0.000000 [0.000000, 0.000000] | -20.000000 [-20.000000, -20.000000]
-  wording=template: could you estimate the room size in square feet? when multiple rooms are present, provide the total area. | 1/1 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 0.900000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 90.000000 [90.000000, 90.000000]
-  wording=template: could you provide the dimensions of the room using square meters? if multiple rooms appear, estimate their total space. | 2/2 | 0.000000/1.000000 | 0.000000/0.500000 | MISSING (0)/MISSING (0) | 1.000000/0.500000 | 0.900000/0.350000 | -100.000000 [-100.000000, -100.000000] | -50.000000 [-100.000000, 0.000000] | MISSING [MISSING] | 50.000000 [0.000000, 100.000000] | 55.000000 [30.000000, 80.000000]
-  wording=template: could you provide the room dimensions in square meters? if multiple rooms are displayed, please estimate their total size. | 1/1 | 0.000000/1.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.500000/0.000000 | -100.000000 [-100.000000, -100.000000] | 0.000000 [0.000000, 0.000000] | MISSING [MISSING] | 0.000000 [0.000000, 0.000000] | 50.000000 [50.000000, 50.000000]
-  wording=template: in terms of square feet, what’s the room's size? if multiple rooms appear, estimate their total area. | 2/2 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 0.500000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 50.000000 [0.000000, 100.000000]
-  wording=template: in terms of square meters, what’s the room's size? if multiple rooms appear, estimate their total area. | 1/1 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 1.000000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 100.000000 [100.000000, 100.000000]
-  wording=template: state the room size in terms of square meters. if multiple rooms are shown, estimate their combined dimensions. | 2/2 | 0.000000/1.000000 | 0.000000/0.500000 | MISSING (0)/MISSING (0) | 1.000000/0.500000 | 0.450000/0.250000 | -100.000000 [-100.000000, -100.000000] | -50.000000 [-100.000000, 0.000000] | MISSING [MISSING] | 50.000000 [0.000000, 100.000000] | 20.000000 [10.000000, 30.000000]
-  wording=template: what is the room's size in square meters? provide the combined size if more than one room is depicted. | 1/1 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 1.000000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 100.000000 [100.000000, 100.000000]
-  wording=template: what is the size of this room (in square meters)? if multiple rooms are shown, estimate the size of the combined space. | 18/18 | 0.000000/1.000000 | 0.000000/0.888889 | MISSING (0)/MISSING (0) | 1.000000/0.111111 | 0.655556/0.000000 | -100.000000 [-100.000000, -100.000000] | -88.888889 [-100.000000, -75.000000] | MISSING [MISSING] | 88.888889 [75.000000, 100.000000] | 65.555556 [55.263158, 75.714286]
-  wording=template: what is the total size of the room expressed in square meters? estimate combined dimensions if multiple rooms are visible. | 1/1 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 0.400000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 40.000000 [40.000000, 40.000000]
-  wording=template: what's the area measurement of the room in square meters? estimate the total size if multiple rooms are shown. | 1/1 | 0.000000/1.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.400000/0.900000 | -100.000000 [-100.000000, -100.000000] | 0.000000 [0.000000, 0.000000] | MISSING [MISSING] | 0.000000 [0.000000, 0.000000] | -50.000000 [-50.000000, -50.000000]
-  wording=template: what's the measurement of the room in square feet? estimate combined space if multiple rooms are visible. | 1/1 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 0.900000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 90.000000 [90.000000, 90.000000]
-  wording=template: what's the room dimension in square feet? for multiple rooms, provide an estimate of their total area. | 2/2 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 0.700000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 70.000000 [50.000000, 90.000000]
-  wording=template: what's the room size in square meters? if multiple rooms appear, calculate the combined area. | 1/1 | 0.000000/1.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.600000/0.600000 | -100.000000 [-100.000000, -100.000000] | 0.000000 [0.000000, 0.000000] | MISSING [MISSING] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000]
-```
+## Review fixes
 
-Room134 (134 items):
+The review-probe command above reruns the supplied t2/t3/t4 cases with outputs confined to this workspace. The review fixtures remain read-only.
 
-```text
-type / stratum | n A/B | calls A/B | capped A/B | usage (eligible) A/B | answers A/B | score A/B | delta call pp [95% CI] | delta capped pp [95% CI] | delta usage pp [95% CI] | delta answer pp [95% CI] | delta score pp [95% CI]
-room_size_estimation | 134/134 | 0.000000/1.000000 | 0.000000/0.858209 | MISSING (0)/MISSING (0) | 1.000000/0.141791 | 0.644030/0.065672 | -100.000000 [-100.000000, -100.000000] | -85.820896 [-91.869919, -79.469745] | MISSING [MISSING] | 85.820896 [79.469745, 91.869919] | 57.835821 [50.746269, 64.676259]
-  unit=ft | 7/7 | 0.000000/1.000000 | 0.000000/0.857143 | MISSING (0)/MISSING (0) | 1.000000/0.142857 | 0.742857/0.042857 | -100.000000 [-100.000000, -100.000000] | -85.714286 [-100.000000, -50.000000] | MISSING [MISSING] | 85.714286 [50.000000, 100.000000] | 70.000000 [42.857143, 90.000000]
-  unit=m | 127/127 | 0.000000/1.000000 | 0.000000/0.858268 | MISSING (0)/MISSING (0) | 1.000000/0.141732 | 0.638583/0.066929 | -100.000000 [-100.000000, -100.000000] | -85.826772 [-91.666667, -79.838540] | MISSING [MISSING] | 85.826772 [79.838540, 91.666667] | 57.165354 [50.223839, 63.967005]
-  wording=template: can you specify the room size in square feet? if several rooms are presented, estimate the combined area. | 1/1 | 0.000000/1.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.900000/0.300000 | -100.000000 [-100.000000, -100.000000] | 0.000000 [0.000000, 0.000000] | MISSING [MISSING] | 0.000000 [0.000000, 0.000000] | 60.000000 [60.000000, 60.000000]
-  wording=template: can you specify the room size in square meters? if several rooms are presented, estimate the combined area. | 1/1 | 0.000000/1.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.800000/1.000000 | -100.000000 [-100.000000, -100.000000] | 0.000000 [0.000000, 0.000000] | MISSING [MISSING] | 0.000000 [0.000000, 0.000000] | -20.000000 [-20.000000, -20.000000]
-  wording=template: could you estimate the room size in square feet? when multiple rooms are present, provide the total area. | 1/1 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 0.900000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 90.000000 [90.000000, 90.000000]
-  wording=template: could you provide the dimensions of the room using square meters? if multiple rooms appear, estimate their total space. | 2/2 | 0.000000/1.000000 | 0.000000/0.500000 | MISSING (0)/MISSING (0) | 1.000000/0.500000 | 0.900000/0.350000 | -100.000000 [-100.000000, -100.000000] | -50.000000 [-100.000000, 0.000000] | MISSING [MISSING] | 50.000000 [0.000000, 100.000000] | 55.000000 [30.000000, 80.000000]
-  wording=template: could you provide the room dimensions in square meters? if multiple rooms are displayed, please estimate their total size. | 1/1 | 0.000000/1.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.500000/0.000000 | -100.000000 [-100.000000, -100.000000] | 0.000000 [0.000000, 0.000000] | MISSING [MISSING] | 0.000000 [0.000000, 0.000000] | 50.000000 [50.000000, 50.000000]
-  wording=template: in terms of square feet, what’s the room's size? if multiple rooms appear, estimate their total area. | 2/2 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 0.500000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 50.000000 [0.000000, 100.000000]
-  wording=template: in terms of square meters, what’s the room's size? if multiple rooms appear, estimate their total area. | 1/1 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 1.000000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 100.000000 [100.000000, 100.000000]
-  wording=template: state the room size in terms of square meters. if multiple rooms are shown, estimate their combined dimensions. | 2/2 | 0.000000/1.000000 | 0.000000/0.500000 | MISSING (0)/MISSING (0) | 1.000000/0.500000 | 0.450000/0.250000 | -100.000000 [-100.000000, -100.000000] | -50.000000 [-100.000000, 0.000000] | MISSING [MISSING] | 50.000000 [0.000000, 100.000000] | 20.000000 [10.000000, 30.000000]
-  wording=template: what is the room's size in square meters? provide the combined size if more than one room is depicted. | 1/1 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 1.000000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 100.000000 [100.000000, 100.000000]
-  wording=template: what is the size of this room (in square meters)? if multiple rooms are shown, estimate the size of the combined space. | 116/116 | 0.000000/1.000000 | 0.000000/0.896552 | MISSING (0)/MISSING (0) | 1.000000/0.103448 | 0.635345/0.041379 | -100.000000 [-100.000000, -100.000000] | -89.655172 [-94.782609, -83.898305] | MISSING [MISSING] | 89.655172 [83.898305, 94.782609] | 59.396552 [53.076923, 65.431034]
-  wording=template: what is the total size of the room expressed in square meters? estimate combined dimensions if multiple rooms are visible. | 1/1 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 0.400000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 40.000000 [40.000000, 40.000000]
-  wording=template: what's the area measurement of the room in square meters? estimate the total size if multiple rooms are shown. | 1/1 | 0.000000/1.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.400000/0.900000 | -100.000000 [-100.000000, -100.000000] | 0.000000 [0.000000, 0.000000] | MISSING [MISSING] | 0.000000 [0.000000, 0.000000] | -50.000000 [-50.000000, -50.000000]
-  wording=template: what's the measurement of the room in square feet? estimate combined space if multiple rooms are visible. | 1/1 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 0.900000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 90.000000 [90.000000, 90.000000]
-  wording=template: what's the room dimension in square feet? for multiple rooms, provide an estimate of their total area. | 2/2 | 0.000000/1.000000 | 0.000000/1.000000 | MISSING (0)/MISSING (0) | 1.000000/0.000000 | 0.750000/0.000000 | -100.000000 [-100.000000, -100.000000] | -100.000000 [-100.000000, -100.000000] | MISSING [MISSING] | 100.000000 [100.000000, 100.000000] | 75.000000 [60.000000, 90.000000]
-  wording=template: what's the room size in square meters? if multiple rooms appear, calculate the combined area. | 1/1 | 0.000000/1.000000 | 0.000000/0.000000 | MISSING (0)/MISSING (0) | 1.000000/1.000000 | 0.600000/0.600000 | -100.000000 [-100.000000, -100.000000] | 0.000000 [0.000000, 0.000000] | MISSING [MISSING] | 0.000000 [0.000000, 0.000000] | 0.000000 [0.000000, 0.000000]
-```
+- **Partial summaries:** t2 refuses with exit 2, empty stdout and one stderr line. With `--allow-partial --allow-subset`, it prints PARTIAL, distance 100/150 and room 20/36, and computes both sides on those shared IDs.
+- **Mismatched populations:** t4 refuses without `--allow-subset`. With it, the room row prints original planned sizes A=36, B=134 and compares only the 36 shared IDs; both marginals use that set.
+- **Symlink relocation:** t3 reproduces the reference metrics with the default original root. Existing targets are retained even when a stale relocated target exists. Only missing targets under the original root relocate.
+- **Authentication and resumes:** wrong steps, bindings, packages, duplicate rows, uncommitted tails and started segments without journals still refuse. The legitimate two-segment resume matches the complete read.
+- **Test isolation:** fixtures use temporary directories under `scratch/tests`; path assertions derive from temporary paths or stable suffixes.
 
-[Delivery validation and source hashes](delivery_validation.json) authenticate the report inputs and archive.
+The first reproduction reader command produces the response-following and answer results below:
+
+| Distance metric | A4/read 0 (step 200) | b1/read 1 (step 544) |
+|---|---:|---:|
+| Usage | 85/85 (100.00%) | 142/142 (100.00%) |
+| Follow converted | 73/85 (85.88%) | 72/142 (50.70%) |
+| Copied unconverted | 12/85 (14.12%) | 70/142 (49.30%) |
+| Other | 0/85 (0.00%) | 0/142 (0.00%) |
+| Conversion failure | 12/50 (24.00%) | 70/100 (70.00%) |
+| Parseable answer | 150/150 (100.00%) | 147/150 (98.00%) |
+| Not seen | 0/150 (0.00%) | 3/150 (2.00%) |
+| Other non-numeric | 0/150 (0.00%) | 0/150 (0.00%) |
+
+Room36 primary reproduces B=0.116667, capped 29/36, and delta 55.28 [38.82, 70.39]. Its labelled secondary b2/read 0 comparison gives delta 55.83 [39.50, 70.50].
+
+**External strata:** `--strata FILE` adds per-stratum and per-stratum-by-unit call rates and score/MRA to the table and summary. The example generator command freezes the existing dev-S1 A4 trace tags for 150 distance IDs into 19 labels. The reproduction checks confirm that these rows partition the same items and leave per-item measurements unchanged.
+
+The example labels describe generated traces, not question-wording effects or HELDOUT/TRAIN_DEV/R0_REWORDED membership. No dist_diag split is inferred. Supply its explicit ID mapping when available. Units must match questions, and missing labels within a represented type say MISSING and exit 2.
+
+[Example mapping](../examples/devs1_wording_strata.json) · [stratified table](strata_example/callrate.txt) · [stratified summary](strata_example/callrate.summary.txt)
+
+The README documents the schema, denominators, opt-in flags and step-400/600 commands. Real step-400/600 metrics require those returns; synthetic tests cover their CLI behavior.
+
+[Delivery validation](delivery_validation.json) records input hashes, archive contents, checks and this report’s hash.

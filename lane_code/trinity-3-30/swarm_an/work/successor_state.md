@@ -1,0 +1,11 @@
+
+
+## State at rotation (session 1 -> swarm_an2, 2026-11-19T04:55Z). Read this before anything else in the brief.
+You are lane swarm_an2, the second session of the same lane. Session 1 started at 04:03Z and rotated at 60% of context. Keep the lane folder `/scratch/jjyeung/orch_n30/swarm_an` (kit, work, briefs, STATUS.md) and the events folder `B/events/swarm_an`; your own launcher output is under `/scratch/jjyeung/orch_n30/swarm_an2/out`. Your next rotation would be swarm_an3.
+
+1. Read `/scratch/jjyeung/orch_n30/swarm_an/STATUS.md` in full: it lists the kit, how to verify a report, what is verified, what is running, what is owed and the next steps in order. Resume from it alone; do not redo verified work.
+2. Read the record `/data2/jjyeung/agent_project_data/distill_design/R1_M200_TRACE_ANALYSIS_20261119.md` (189 lines) once, and the events in `B/events/swarm_an` (two RESULTs of session 1, ORCH NOTE 0433Z with three asks) and my two notes in `B/events/swarm_build` (0449Z, 0452Z).
+3. Done by session 1 and not to be repeated: sections 1 to 6 of the brief's swarm list for step 200 (18 first-wave analysts dispatched and verified; first RESULT 0428Z; record and INDEX line written; synthesis RESULT 0450Z); a deepening wave of 8 Codex analysts (4 verified and in record section 10) and 3 Devin Opus deep reads (running).
+4. Your work, in order: the "Next steps" list of STATUS.md (verify the 4 remaining Codex deep reports and the 3 Devin reads and append them to the record; the category-point table the orchestrator asked for; one Codex refuter on the record; a RESULT that reports the deep wave, answers asks 1 and 2b and corrects the first RESULT's claim that out-of-range frame numbers are seconds; then the step-400 rerun when lane cont_ops18 posts the fetched returns).
+5. Ask 3 of the ORCH NOTE stands for you: when an analyst confirms or contradicts a build that swarm_build is making (camera wording, VSTI frame k, relative count, facing half turn, counting above four), write it to `B/events/swarm_build` at once.
+6. Reports are long (160 to 340 lines): read them through `kit/digest.py` or `kit/digest2.py` with `cut` and `head`, and print compact tables, so that your context lasts through the step-400 wave.

@@ -1,0 +1,666 @@
+{
+  "schema": "sb-release-pin-index-v1",
+  "occurrences": [
+    {
+      "source": {
+        "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/briefs/selector_head.md",
+        "sha256": "70be3e03dfeac2c8135ac0de8a3bd634464fa54307bb81d7b0717051cf140def"
+      },
+      "occurrences": [
+        {
+          "line": 20,
+          "text": "3. Name embedding: prefer the frozen SAM 3 text encoder's embedding of the raw name (weights trinity-1-18 /scratch/jjyeung/orch_cd/ttower/work/sam3_weights/sam3.pt, sha 9999e234; sam3 source next to it; CPU only) computed once per unique name and cached as a tensor file; if that is not feasible on CPU within an hour, use a learned character-trigram hashing embedding inside the head (its parameters live in the head) and say so."
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/e2e_reader/assemble.py",
+        "sha256": "04f42cd15d519fd096f050c682fbcd3d9af2e46f1580e08233e7e31c0bd77c45"
+      },
+      "occurrences": [
+        {
+          "line": 7,
+          "text": "  sam3/            frozen SAM 3 tower (sam3.pt, its receipt)"
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/heads/selector/SELECTOR_HEAD_REPORT.md",
+        "sha256": "2009520c79b6cd5144ddd64bfc92da1d6a417d709cfc28abbc4f81a87c386f69"
+      },
+      "occurrences": [
+        {
+          "line": 28,
+          "text": "- Frozen SAM 3 text embedding of the 65 names (sam3.pt 9999e234): `data/emb/NAME_EMB_SAM3.safetensors` (a3d48931...); CV picked it in neither table."
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/heads/selector/data/emb/NAME_EMB_SAM3.json",
+        "sha256": "f513373c7c6713b65bef395a38dc64426b1159bf58117b0164de5eeaa279cc93"
+      },
+      "occurrences": [
+        {
+          "line": 137,
+          "text": " \"checkpoint\": \"/scratch/jjyeung/orch_cd/ttower/work/sam3_weights/sam3.pt\","
+        },
+        {
+          "line": 138,
+          "text": " \"checkpoint_sha256\": \"9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e\","
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/heads/selector/data/name_emb.py",
+        "sha256": "8e4b862b2fd7cde48c4491c36fc593c00137b26cd9ae2a1fecfb540c1a826520"
+      },
+      "occurrences": [
+        {
+          "line": 27,
+          "text": "CKPT = '/scratch/jjyeung/orch_cd/ttower/work/sam3_weights/sam3.pt'"
+        },
+        {
+          "line": 51,
+          "text": "    assert ck.startswith('9999e234'), ck"
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/heads/selector/sl118/name_emb.py",
+        "sha256": "8e4b862b2fd7cde48c4491c36fc593c00137b26cd9ae2a1fecfb540c1a826520"
+      },
+      "occurrences": [
+        {
+          "line": 27,
+          "text": "CKPT = '/scratch/jjyeung/orch_cd/ttower/work/sam3_weights/sam3.pt'"
+        },
+        {
+          "line": 51,
+          "text": "    assert ck.startswith('9999e234'), ck"
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/extracted/b08_partA/code/pricekit/vendor/SAM3_RECEIPT.json",
+        "sha256": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75"
+      },
+      "occurrences": [
+        {
+          "line": 2,
+          "text": "  \"checkpoint_path\": \"/scratch/jjyeung/orch_cd/ttower/work/sam3_weights/sam3.pt\","
+        },
+        {
+          "line": 3,
+          "text": "  \"checkpoint_sha256\": \"9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e\","
+        },
+        {
+          "line": 4,
+          "text": "  \"sam3_upstream_revision\": \"5dd401d1c5c1d5c3eedff06d41b77af824517619\","
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/scripts/gpu_native_selector.py",
+        "sha256": "5df858a7f37051ecad9599e45cad381717c7b48deedacf431e0f6defe5433e20"
+      },
+      "occurrences": [
+        {
+          "line": 58,
+          "text": "     receipt_path=str(R/'inputs/sam3_tower/SAM3_RECEIPT.json'),device=str(device)),enabled=True)"
+        },
+        {
+          "line": 73,
+          "text": "   source=TowerSAM3(tower,frames,mapping,'sam3_cache_contract:'+sha(R/'inputs/sam3_tower/SAM3_RECEIPT.json'),codec())"
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/c1r_ref.py",
+        "sha256": "b83a0d948bde2948292f60a6b967298ee1cc4581ae82ea8a977dd38928d52de3"
+      },
+      "occurrences": [
+        {
+          "line": 8,
+          "text": "REPOSITORY = 'thatbrguy/g3t'"
+        },
+        {
+          "line": 9,
+          "text": "REVISION = 'c55e91a04f1cbbad67359072536351201fd19e8b'"
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/sam3_tower.py",
+        "sha256": "e8821fdd960ca1cbd493f57e1230629e5b02bf9363f3333640fb356b32cd597d"
+      },
+      "occurrences": [
+        {
+          "line": 16,
+          "text": "CHECKPOINT_SHA256 = '9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e'"
+        },
+        {
+          "line": 17,
+          "text": "UPSTREAM_REVISION = '5dd401d1c5c1d5c3eedff06d41b77af824517619'"
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/tower_read.py",
+        "sha256": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634"
+      },
+      "occurrences": [
+        {
+          "line": 19,
+          "text": "REVISION = 'c55e91a04f1cbbad67359072536351201fd19e8b'"
+        },
+        {
+          "line": 20,
+          "text": "WEIGHTS_SHA256 = 'd460957bb1c8a8c228d83ab10bad8a6dbcf80b03f29d7fbebf9c0f2c1c25f702'"
+        },
+        {
+          "line": 21,
+          "text": "CONFIG_SHA256 = '5aeb2acd008d41a1cac52e10216fbf35e8dfeb2ce26b89bb24e7ccc4ee0817d7'"
+        },
+        {
+          "line": 22,
+          "text": "SOURCE_SHA256 = 'df1ea59a73b0ad08b51670bfa37da84eace99b9d0c45c8d270f7052b42e98701'"
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tests/fixtures/pdg_v3/pdg_s1_config.json",
+        "sha256": "5e2e24ac50c77dd2cd432a2b1680c32841affbbd2a42fcf0298a1cbbfffb8433"
+      },
+      "occurrences": [
+        {
+          "line": 79,
+          "text": "      \"repository\": \"thatbrguy/g3t\","
+        },
+        {
+          "line": 80,
+          "text": "      \"revision\": \"c55e91a04f1cbbad67359072536351201fd19e8b\","
+        },
+        {
+          "line": 81,
+          "text": "      \"source_sha256\": \"8223a095c258d8f2a720af8c5821f52ecbed1fe64ae127d4b78b8239354b868d\""
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tests/fixtures/pdg_v3/pdg_s2_v2_config.json",
+        "sha256": "deaeb67f1ff94946927bd2a4c1bc46fda3c5e376e51ec77632d6150e746a564c"
+      },
+      "occurrences": [
+        {
+          "line": 94,
+          "text": "   \"repository\": \"thatbrguy/g3t\","
+        },
+        {
+          "line": 95,
+          "text": "   \"revision\": \"c55e91a04f1cbbad67359072536351201fd19e8b\","
+        },
+        {
+          "line": 96,
+          "text": "   \"source_sha256\": \"8223a095c258d8f2a720af8c5821f52ecbed1fe64ae127d4b78b8239354b868d\""
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tests/fixtures/pdg_v3/smoke_pdg_s1_config.json",
+        "sha256": "7a7c6180d7e22418bc3cee786aeb6467c8e1c8e5de83f5e5b3b509d737933c6f"
+      },
+      "occurrences": [
+        {
+          "line": 79,
+          "text": "      \"repository\": \"thatbrguy/g3t\","
+        },
+        {
+          "line": 80,
+          "text": "      \"revision\": \"c55e91a04f1cbbad67359072536351201fd19e8b\","
+        },
+        {
+          "line": 81,
+          "text": "      \"source_sha256\": \"8223a095c258d8f2a720af8c5821f52ecbed1fe64ae127d4b78b8239354b868d\""
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tools/fullft_arm_configs.py",
+        "sha256": "49829f92a2434b0f9d159a89bd2242ab33f25410a92a677402dbb7734bfff108"
+      },
+      "occurrences": [
+        {
+          "line": 51,
+          "text": "               \"repository\": \"thatbrguy/g3t\", \"revision\": \"c55e91a04f1cbbad67359072536351201fd19e8b\","
+        },
+        {
+          "line": 52,
+          "text": "               \"source_sha256\": \"8223a095c258d8f2a720af8c5821f52ecbed1fe64ae127d4b78b8239354b868d\"}"
+        },
+        {
+          "line": 274,
+          "text": "            \"thatbrguy/g3t c55e91a0, source sha256 8223a095)\","
+        }
+      ]
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tools/g3t_patch_grid_store.py",
+        "sha256": "d595910fb1bf7d13ff6cffcaf1025f8f192ee006963f77742b1156064f79bdf9"
+      },
+      "occurrences": [
+        {
+          "line": 33,
+          "text": "REPOSITORY, REVISION = \"thatbrguy/g3t\", \"c55e91a04f1cbbad67359072536351201fd19e8b\""
+        },
+        {
+          "line": 34,
+          "text": "SOURCE_SHA256 = \"8223a095c258d8f2a720af8c5821f52ecbed1fe64ae127d4b78b8239354b868d\""
+        }
+      ]
+    }
+  ],
+  "config_keys": [
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/build19/inputs/kit_config.json",
+        "sha256": "b2e23841aa3634bf581dd775b4b44d6d73b26832bfd497e769976ed47a5b91aa"
+      },
+      "keys": {
+        "geometry_connector": "none",
+        "geometry_online": "ABSENT",
+        "sam3": "ABSENT",
+        "sam3_tower": "ABSENT",
+        "tower": "ABSENT",
+        "pose_source": "ABSENT",
+        "frame_count": 32,
+        "frame_layout": "duplicate",
+        "training_mode": "final"
+      }
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/n1fix2/inputs/config.json",
+        "sha256": "8063ef04f6b6e2efaad933388efe1961e0b903d7449ac75f8fc761eb9a117011"
+      },
+      "keys": {
+        "geometry_connector": "none",
+        "geometry_online": "ABSENT",
+        "sam3": "ABSENT",
+        "sam3_tower": "ABSENT",
+        "tower": "ABSENT",
+        "pose_source": "ABSENT",
+        "frame_count": 32,
+        "frame_layout": "duplicate",
+        "training_mode": "final"
+      }
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_configs/RUNTIME_CONFIG_171377_673bc60f.json",
+        "sha256": "3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1"
+      },
+      "keys": {
+        "geometry_connector": "ABSENT",
+        "geometry_online": "ABSENT",
+        "sam3": "ABSENT",
+        "sam3_tower": "ABSENT",
+        "tower": "ABSENT",
+        "pose_source": "ABSENT",
+        "frame_count": "ABSENT",
+        "frame_layout": "duplicate",
+        "training_mode": "final"
+      }
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_configs/a0_9fd18816.json",
+        "sha256": "9fd188164999788af36d5c6563d47b30351182ce68962b33703995c6ae45b0bb"
+      },
+      "keys": {
+        "geometry_connector": "ABSENT",
+        "geometry_online": "ABSENT",
+        "sam3": "ABSENT",
+        "sam3_tower": "ABSENT",
+        "tower": "ABSENT",
+        "pose_source": "ABSENT",
+        "frame_count": "ABSENT",
+        "frame_layout": "duplicate",
+        "training_mode": "final"
+      }
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_configs/c4_21528289.json",
+        "sha256": "2152828974490944a1713f5a539e87211f80179f0b5f9254ea9966fc65788733"
+      },
+      "keys": {
+        "geometry_connector": "ABSENT",
+        "geometry_online": "ABSENT",
+        "sam3": "ABSENT",
+        "sam3_tower": "ABSENT",
+        "tower": "ABSENT",
+        "pose_source": "ABSENT",
+        "frame_count": "ABSENT",
+        "frame_layout": "duplicate",
+        "training_mode": "final"
+      }
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_configs/cprime_31abe087.json",
+        "sha256": "31abe0871f35f9ca8d4a6445c5ee95ac03ec2324d37273e6b1f508acdbf246a1"
+      },
+      "keys": {
+        "geometry_connector": "ABSENT",
+        "geometry_online": "ABSENT",
+        "sam3": "ABSENT",
+        "sam3_tower": "ABSENT",
+        "tower": "ABSENT",
+        "pose_source": "ABSENT",
+        "frame_count": "ABSENT",
+        "frame_layout": "duplicate",
+        "training_mode": "final"
+      }
+    },
+    {
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_runtime/A_runtime_673bc60f.json",
+        "sha256": "3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1"
+      },
+      "keys": {
+        "geometry_connector": "ABSENT",
+        "geometry_online": "ABSENT",
+        "sam3": "ABSENT",
+        "sam3_tower": "ABSENT",
+        "tower": "ABSENT",
+        "pose_source": "ABSENT",
+        "frame_count": "ABSENT",
+        "frame_layout": "duplicate",
+        "training_mode": "final"
+      }
+    }
+  ],
+  "b18_comparison": [
+    {
+      "file": "r2_policy.py",
+      "w19": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r2_policy.py",
+        "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1"
+      },
+      "b18": {
+        "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/r2_policy.py",
+        "sha256": "f10f0b7e65a1f952de604331300d459429df606e98250007fd40e8ad2d0c9fda"
+      },
+      "equal": false
+    },
+    {
+      "file": "carrier_c1.py",
+      "w19": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/carrier_c1.py",
+        "sha256": "3eaae0dd75fac3eebc5ccfaeaacf3e265e294fe4288fb2aaeb0dd7740f352a13"
+      },
+      "b18": {
+        "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/carrier_c1.py",
+        "sha256": "3eaae0dd75fac3eebc5ccfaeaacf3e265e294fe4288fb2aaeb0dd7740f352a13"
+      },
+      "equal": true
+    },
+    {
+      "file": "carrier_c1_run.py",
+      "w19": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/carrier_c1_run.py",
+        "sha256": "1f6a9a72910c0b449beee70c358201fb5a579e18a6b98031d9050dbe2046ace0"
+      },
+      "b18": {
+        "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/carrier_c1_run.py",
+        "sha256": "e621770d81f03fc5a1d646b64474a00f8c33f71d489c825707b495b032663a57"
+      },
+      "equal": false
+    },
+    {
+      "file": "g3t_online.py",
+      "w19": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/g3t_online.py",
+        "sha256": "aad0fb6d801b70abe2a1c9560ec3d6239e47045e55a25bc56fba10e637e2459d"
+      },
+      "b18": {
+        "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/g3t_online.py",
+        "sha256": "aad0fb6d801b70abe2a1c9560ec3d6239e47045e55a25bc56fba10e637e2459d"
+      },
+      "equal": true
+    },
+    {
+      "file": "tower_read.py",
+      "w19": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/tower_read.py",
+        "sha256": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634"
+      },
+      "b18": {
+        "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/tower_read.py",
+        "sha256": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634"
+      },
+      "equal": true
+    },
+    {
+      "file": "sam3_tower.py",
+      "w19": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/sam3_tower.py",
+        "sha256": "e8821fdd960ca1cbd493f57e1230629e5b02bf9363f3333640fb356b32cd597d"
+      },
+      "b18": {
+        "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/sam3_tower.py",
+        "sha256": "e8821fdd960ca1cbd493f57e1230629e5b02bf9363f3333640fb356b32cd597d"
+      },
+      "equal": true
+    },
+    {
+      "file": "gf1.py",
+      "w19": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/gf1.py",
+        "sha256": "16feac4bbc2c192cdb15a727c90dcc6846e64803cda47c45a549ba26942ccfbc"
+      },
+      "b18": {
+        "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/gf1.py",
+        "sha256": "16feac4bbc2c192cdb15a727c90dcc6846e64803cda47c45a549ba26942ccfbc"
+      },
+      "equal": true
+    },
+    {
+      "file": "gf1_config.py",
+      "w19": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/gf1_config.py",
+        "sha256": "46f104d96adc0c048d912d24904bacd3702ca9b849fcc06d663fae7eacdec1eb"
+      },
+      "b18": {
+        "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/gf1_config.py",
+        "sha256": "46f104d96adc0c048d912d24904bacd3702ca9b849fcc06d663fae7eacdec1eb"
+      },
+      "equal": true
+    },
+    {
+      "file": "r1_training.py",
+      "w19": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r1_training.py",
+        "sha256": "7517d775a7fe64f4a52478de7fe494dbc5334a36b114a2b948af9dc1de6ab1a2"
+      },
+      "b18": {
+        "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/r1_training.py",
+        "sha256": "ceb2b01ee005b54b55907f76f42660b01c9c47ddab9245fd498e2520fce184e5"
+      },
+      "equal": false
+    },
+    {
+      "file": "r1_components.py",
+      "w19": {
+        "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/r1_components.py",
+        "sha256": "949d9e486c245aab759cbe689adf58dc0e18851cd42d8ab6c89dc6c6649903ff"
+      },
+      "b18": {
+        "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/r1_components.py",
+        "status": "MISSING"
+      },
+      "equal": false
+    }
+  ],
+  "search_scope": "All .py/.json/.md files below the listed source/runtime/mirror directories, each below 2 MB; archive contents snapshotted separately. Tests and other arms are labeled by source paths, not treated as N configuration.",
+  "scanned_files": 2915,
+  "aws_sources_present": false,
+  "unavailable_survey_sources": [],
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/briefs/selector_head.md",
+      "sha256": "70be3e03dfeac2c8135ac0de8a3bd634464fa54307bb81d7b0717051cf140def"
+    },
+    {
+      "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/e2e_reader/assemble.py",
+      "sha256": "04f42cd15d519fd096f050c682fbcd3d9af2e46f1580e08233e7e31c0bd77c45"
+    },
+    {
+      "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/heads/selector/SELECTOR_HEAD_REPORT.md",
+      "sha256": "2009520c79b6cd5144ddd64bfc92da1d6a417d709cfc28abbc4f81a87c386f69"
+    },
+    {
+      "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/heads/selector/data/emb/NAME_EMB_SAM3.json",
+      "sha256": "f513373c7c6713b65bef395a38dc64426b1159bf58117b0164de5eeaa279cc93"
+    },
+    {
+      "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/heads/selector/data/name_emb.py",
+      "sha256": "8e4b862b2fd7cde48c4491c36fc593c00137b26cd9ae2a1fecfb540c1a826520"
+    },
+    {
+      "path": "/scratch/jjyeung/n30_mirror/b04_e2ehook/b04_e2ehook/heads/selector/sl118/name_emb.py",
+      "sha256": "8e4b862b2fd7cde48c4491c36fc593c00137b26cd9ae2a1fecfb540c1a826520"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/out/PIN_RESOLUTION.json",
+      "sha256": "259975f2f9243a4c1fa00df09b426bfa5f2df7cb7f9e45389d43f7b0838f64e2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/out/SURVEY.json",
+      "sha256": "75cf59b62b7bc0a7f7704423820dcae1a2ebb23b2ae96df7189e879cb8880ba4"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_evidence/work/extracted/b08_partA/code/pricekit/vendor/SAM3_RECEIPT.json",
+      "sha256": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/carrier_c1.py",
+      "sha256": "3eaae0dd75fac3eebc5ccfaeaacf3e265e294fe4288fb2aaeb0dd7740f352a13"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/carrier_c1_run.py",
+      "sha256": "e621770d81f03fc5a1d646b64474a00f8c33f71d489c825707b495b032663a57"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/g3t_online.py",
+      "sha256": "aad0fb6d801b70abe2a1c9560ec3d6239e47045e55a25bc56fba10e637e2459d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/gf1.py",
+      "sha256": "16feac4bbc2c192cdb15a727c90dcc6846e64803cda47c45a549ba26942ccfbc"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/gf1_config.py",
+      "sha256": "46f104d96adc0c048d912d24904bacd3702ca9b849fcc06d663fae7eacdec1eb"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/r1_training.py",
+      "sha256": "ceb2b01ee005b54b55907f76f42660b01c9c47ddab9245fd498e2520fce184e5"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/r2_policy.py",
+      "sha256": "f10f0b7e65a1f952de604331300d459429df606e98250007fd40e8ad2d0c9fda"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/sam3_tower.py",
+      "sha256": "e8821fdd960ca1cbd493f57e1230629e5b02bf9363f3333640fb356b32cd597d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/tower_read.py",
+      "sha256": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/build_report.py",
+      "sha256": "9fe4f5c72a667cbc54c6404f1160058c811f3b59af215df5bb592ac8e3c779d0"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/build19/inputs/kit_config.json",
+      "sha256": "b2e23841aa3634bf581dd775b4b44d6d73b26832bfd497e769976ed47a5b91aa"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/n1fix2/inputs/config.json",
+      "sha256": "8063ef04f6b6e2efaad933388efe1961e0b903d7449ac75f8fc761eb9a117011"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/scripts/gpu_native_selector.py",
+      "sha256": "5df858a7f37051ecad9599e45cad381717c7b48deedacf431e0f6defe5433e20"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/c1r_ref.py",
+      "sha256": "b83a0d948bde2948292f60a6b967298ee1cc4581ae82ea8a977dd38928d52de3"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/sam3_tower.py",
+      "sha256": "e8821fdd960ca1cbd493f57e1230629e5b02bf9363f3333640fb356b32cd597d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/student_pilot/tower_read.py",
+      "sha256": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tests/fixtures/pdg_v3/pdg_s1_config.json",
+      "sha256": "5e2e24ac50c77dd2cd432a2b1680c32841affbbd2a42fcf0298a1cbbfffb8433"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tests/fixtures/pdg_v3/pdg_s2_v2_config.json",
+      "sha256": "deaeb67f1ff94946927bd2a4c1bc46fda3c5e376e51ec77632d6150e746a564c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tests/fixtures/pdg_v3/smoke_pdg_s1_config.json",
+      "sha256": "7a7c6180d7e22418bc3cee786aeb6467c8e1c8e5de83f5e5b3b509d737933c6f"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tools/fullft_arm_configs.py",
+      "sha256": "49829f92a2434b0f9d159a89bd2242ab33f25410a92a677402dbb7734bfff108"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_inventory/work/sealed/work/tree_r1/tools/g3t_patch_grid_store.py",
+      "sha256": "d595910fb1bf7d13ff6cffcaf1025f8f192ee006963f77742b1156064f79bdf9"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_configs/RUNTIME_CONFIG_171377_673bc60f.json",
+      "sha256": "3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_configs/a0_9fd18816.json",
+      "sha256": "9fd188164999788af36d5c6563d47b30351182ce68962b33703995c6ae45b0bb"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_configs/c4_21528289.json",
+      "sha256": "2152828974490944a1713f5a539e87211f80179f0b5f9254ea9966fc65788733"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_configs/cprime_31abe087.json",
+      "sha256": "31abe0871f35f9ca8d4a6445c5ee95ac03ec2324d37273e6b1f508acdbf246a1"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/p_runtime/A_runtime_673bc60f.json",
+      "sha256": "3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1"
+    }
+  ]
+}

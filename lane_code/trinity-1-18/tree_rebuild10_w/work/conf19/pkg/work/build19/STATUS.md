@@ -1,0 +1,1 @@
+Build 19: GO=false. Native preparation passes at both milestones; population capacity refuses pose. Validation, mutation results and the report are complete. Package generation and stream verification remain. See out/BUILD19_REPORT.md.

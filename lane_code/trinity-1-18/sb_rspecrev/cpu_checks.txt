@@ -1,0 +1,19 @@
+S1_BIND scannetpp/036bce3393 dense_frames 64 anchor_slots 32
+CONVERSION scannetpp/036bce3393 rebuilt 39.35 stored 39.35 scale_counts 1 1
+S1_BIND scannetpp/067e2e4e61 dense_frames 64 anchor_slots 32
+CONVERSION scannetpp/067e2e4e61 rebuilt 14.73 stored 14.73 scale_counts 1 1
+RESUME original True
+RESUME changed False (False means the existing main loop reruns and overwrites, rather than refusing)
+GATE CPU accepted
+GATE no_GO refused
+GATE multi_GPU refused
+GATE single_GPU accepted
+STAT direct_n 98 direct_mean 62.755102040816325 direct_SD 28.99628885763234 K1_train_scannetpp_n 69 head_mean 84.05797101449275 head_SD 18.967374510529307 independent_fixed_variance_normal_halfwidth 6.860131608274498
+COST nominal_forward_GPU_hours 0.5172222222222222 devS1_extra 0.05
+K1 variant heldout nonnull 0 reproduction [134, 134]
+SCORER missing primary raises False decision present False
+BASELINE per-set calls {'R0-dev': 0, 'dev-S1': 0}
+BASELINE per-set MRA {'R0-dev': np.float64(62.755102040816325), 'dev-S1': np.float64(68.88888888888889)}
+HARNESS scannetpp__036bce3393.npz (39.35, None) expected 39.35
+HARNESS scannetpp__067e2e4e61.npz (14.73, None) expected 14.73
+HARNESS external lane write fails Write outside harness workspace: /scratch/jjyeung/orch_n30/sb_rspecrev/harness_write_probe.txt

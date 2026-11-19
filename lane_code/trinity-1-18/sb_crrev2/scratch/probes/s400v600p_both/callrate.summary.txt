@@ -1,0 +1,21 @@
+PARTIAL: incomplete return coverage; all comparisons use shared completed IDs.
+SETS camera_displacement: planned A=150 B=150; completed A=150 B=150; shared=150; coverage 150/150 / 150/150
+SETS camera_movement_direction: planned A=150 B=150; completed A=150 B=150; shared=150; coverage 150/150 / 150/150
+SETS camera_rotation: planned A=150 B=150; completed A=150 B=150; shared=150; coverage 150/150 / 150/150
+SETS object_abs_distance: planned A=150 B=150; completed A=150 B=100; shared=100; coverage 150/150 / 100/150
+SETS room_size_estimation: planned A=36 B=36; completed A=36 B=20; shared=20; coverage 36/36 / 20/36
+A=400 B=600; rates/scores in %, delta A-B in pp
+type / stratum | n/expected A / B | call A/B | capped A/B | usage A/B | follow_converted A/B | copied_unconverted A/B | other A/B | conversion_failure A/B | answer A/B | not_seen A/B | other_non_numeric A/B | score/MRA A/B | delta call [95% CI] | delta score [95% CI]
+camera_displacement | 150/150 / 150/150 | 100.00/100.00 | 0.00/0.00 | 100.00/100.00 | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | MISSING/MISSING | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 81.87/81.87 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00]
+camera_movement_direction | 150/150 / 150/150 | 100.00/100.00 | 0.00/0.00 | 100.00/100.00 | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | MISSING/MISSING | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 94.67/94.67 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00]
+camera_rotation | 150/150 / 150/150 | 100.00/100.00 | 0.00/0.00 | 100.00/100.00 | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | MISSING/MISSING | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 76.27/76.27 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00]
+object_abs_distance | 100/150 / 100/150 | 53.00/53.00 | 0.00/0.00 | 100.00/100.00 | 84.00/84.00 | 16.00/16.00 | 0.00/0.00 | 32.00/32.00 | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 48.50/48.50 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00]
+object_abs_distance unit=cm | 20/28 / 20/28 | 40.00/40.00 | 0.00/0.00 | 100.00/100.00 | 0.00/0.00 | 100.00/100.00 | 0.00/0.00 | 100.00/100.00 | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 40.50/40.50 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00]
+object_abs_distance unit=ft | 27/46 / 27/46 | 51.85/51.85 | 0.00/0.00 | 100.00/100.00 | 92.86/92.86 | 7.14/7.14 | 0.00/0.00 | 7.14/7.14 | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 46.67/46.67 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00]
+object_abs_distance unit=in | 23/33 / 23/33 | 21.74/21.74 | 0.00/0.00 | 100.00/100.00 | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 0.00/0.00 | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 50.00/50.00 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00]
+object_abs_distance unit=m | 30/43 / 30/43 | 86.67/86.67 | 0.00/0.00 | 100.00/100.00 | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | MISSING/MISSING | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 54.33/54.33 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00]
+room_size_estimation [A=p400/read 0; B=p600partial/read 0] | 20/36 / 20/36 | 0.00/0.00 | 0.00/0.00 | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | MISSING/MISSING | 100.00/100.00 | 0.00/0.00 | 0.00/0.00 | 63.00/63.00 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00]
+room population [source read A/B] | n/expected A / B | MRA answer % A/B | delta A-B pp [95% CI]
+all [A=p400/read 0; B=p600partial/read 0] | 20/36 / 20/36 | 63.00/63.00 | 0.00 [0.00, 0.00]
+dev-S1 [A=p400/read 0; B=p600partial/read 0] | 20/36 / 20/36 | 63.00/63.00 | 0.00 [0.00, 0.00]
+R0-dev [A=p400/read 0; B=p600partial/read 0] | 0/0 / 0/0 | MISSING/MISSING | MISSING [MISSING]

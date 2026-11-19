@@ -1,0 +1,1 @@
+Complete as a kit: 17,564 rows per alternative, 315 explicit refusals, independent checks and 30-row review passed. W/w19 native source validation passes; TALLY grammar and counting admission require the amendment in out/TRACE_RULE_AMENDMENT.md. All requested artifacts are under out; no training or trainer changes were made.

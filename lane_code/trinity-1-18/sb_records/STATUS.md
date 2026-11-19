@@ -1,0 +1,1 @@
+Stage 2 complete. The audit recomputes canonical scenes, physical rooms and all three benchmark intersections for recovered raw stores, step-544 admitted indices, the frame universe, readout scene list, v7 and routing slices. Overlaps and unresolved tokens remain explicit; no complete ancestry is inferred from these populations.

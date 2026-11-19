@@ -64,3 +64,9 @@ Lane folder /scratch/jjyeung/orch_n30/r1_ops6. Events .../orch_n30/events/r1_ops
 - m400 ETA ~09:20Z (step 207 at ~02:07Z, 155 s/step trending to ~133).
 - 02:25Z monitors lengthened: node 300 -> 600 s, pool 600 s; steps 207-211 at 155-143 s/step, early_cp PASS each check. ORCH RULING 0209Z: m400 default (a) + export-only receipt zip from tree_rebuild10 when posted; diff list rehearsal vs m600 plan before step 500.
 - 03:05Z export-only receipt (build 17) staged okh7/h_6ed2c7aa/q3_846ead7a.zip 346c4cba; rehearsed in allocation; hr.sh now a13eba5c (handover + export-only at 400; handover at 600). RESULT 0305Z.
+- 04:36Z receipts: hr2.sh (dcab452d) supersedes hr.sh; modes nsenter (trainer alive) / rebuilt bwrap (after trainer exit, stop step; binds from probe7.out). Reviews REVIEW1/REVIEW2 in ops_mirror/r1_ops7. Watcher tmux r7m400 = work/r7/exw.sh 400 <08:30Z epoch> (outputs work/r7/m400/: exq.last/hist, log, hr.N.out; stop file work/r7/m400/stop); writes cont_ops RESULT automatically on the m400 marker, then hr2.sh 400, then auto RESULT in events/r1_ops.
+- m600 (~17:30Z): arm `tmux new-session -d -s r7m600 "bash work/r7/exw.sh 600 <epoch ~16:45Z>"`; window = marker -> job end (~15 min, slot copy). Before step 500: post the rehearsal-vs-m600 difference list (RULING 0209Z item 4).
+- 04:48Z card 600 row: N DEFERRED text (tree_rebuild11 0436Z); card 31b14d9e.
+## NOW (r1_ops7 rotation, ~05:25Z 11-19) for successor r1_ops8 (brief briefs/r1_ops8.md)
+- 172660 RUNNING (step 290 at 05:19Z, ~133 s/step, early_cp PASS each check). tmux r1mon6, r7node, r7m400 (armed from 08:30Z) running; r7rv/r7rv2 were Codex reviews (done).
+- Owed: m400 checks + RESULT (here and tree_rebuild), difference list before step 500, arm m600 watcher, end slot and job exit; open BLOCKER 0201Z and identity confirmation (9459724f) from tree_rebuild10.

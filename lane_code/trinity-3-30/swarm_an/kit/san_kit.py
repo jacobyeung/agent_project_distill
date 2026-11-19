@@ -8,7 +8,8 @@ Usage (python /usr/bin/python3 for direct/facing/vsti; /scratch/jjyeung/envs/pla
     K.SOURCES                                        # every file each loader reads
 
 Row fields (direct, facing, VSTI):
-    id, set, run, step, type, question, options (list of 'A. ...' strings or []), gt (ground truth),
+    id, set, run, step, type, question, options (list of 'A. ...' strings or []), gt (the truth the score uses: the item's
+    `answer` field), gt_released (the item's `ground_truth` field; differs slightly from gt on some numeric dev-S1 items),
     pred / score      : the SCORED arm B2048 (thinking force-closed at 2,048 tokens, then the answer is generated)
     pred_on / score_on: the full 16k generation (ON16k); None when that file was not returned
     text              : the model's full generated text (chain of thought, '</think>', answer) from ON16k when present,
@@ -20,6 +21,7 @@ Row fields (direct, facing, VSTI):
 Routed rows (K.routed): id, set, step, type, question, options, gt, text (with <tool_response> blocks), finish
     ('eos' | 'max_calls' | 'max_new_tokens' | 'length'), calls (list of dicts: call, family, served, response),
     ncalls, answer (the scorer's parsed answer), score (task accuracy: MRA for numeric types, accuracy for choice), scale.
+    gt is the truth the accepted scorer uses; gt_released is the released label (distance and room items carry both and they differ slightly).
 """
 import json, os, sys
 C = '/scratch/jjyeung/orch_n30/cont_ops16/work/c15'
@@ -63,7 +65,7 @@ def _load(on, b, items, setname, run, step, types=None):
     rows = {}; order = []
     def base(r):
         d = dict(id=r['id'], set=setname, run=run, step=step, type=r['question_type'], question=r['question'],
-                 options=r.get('options') or [], gt=r.get('ground_truth'))
+                 options=r.get('options') or [], gt=r.get('answer', r.get('ground_truth')), gt_released=r.get('ground_truth'))
         for k in KEEP: d[k] = r.get(k)
         d.update(pred=None, score=None, pred_on=None, score_on=None, text=None, forced_close=None, think_tokens=None,
                  out_tokens=None, hit_cap=None, finish=None)
@@ -128,6 +130,23 @@ def summary(rows):
         x = t[r['type']]; x[0] += 1; x[1] += (r['score'] or 0.0); x[2] += int(bool(r['forced_close']))
     return {k: dict(items=v[0], score_pct=round(100 * v[1] / v[0], 2), forced_close=v[2]) for k, v in sorted(t.items())}
 
+def timing(run, step, setname):
+    """id -> dict(fps, total_frames, source_frame_indices (32 ints), spacing_s (seconds between sampled frames),
+    timestamps_s (list of 32 seconds)) for a direct set ('dev-S1', 'R0-dev'), a facing twin or 'vsti'; read from the ON16k file."""
+    if setname == 'vsti': root = XVSTI[(run, step)]
+    elif setname in ('away', 'forward'): root = XFACE.get((run, step)) or X[(run, step)]
+    else: root = X[(run, step)]
+    on, b, it = _files(root, FAM[setname]); out = {}
+    for r in _jl(on or b):
+        m = r.get('media') or {}
+        idx = r.get('source_frame_indices') or m.get('source_frame_indices') or r.get('anchor_indices')
+        fps = r.get('fps') or (m.get('metadata') or {}).get('fps')
+        if not idx or not fps: continue
+        ts = [i / float(fps) for i in idx]
+        out[r['id']] = dict(fps=fps, total_frames=r.get('total_num_frames') or (m.get('metadata') or {}).get('total_num_frames'),
+                            source_frame_indices=idx, spacing_s=(ts[-1] - ts[0]) / (len(ts) - 1), timestamps_s=ts)
+    return out
+
 # ---------------- routed (G3T arm) ----------------
 _S = None
 def _scorer():
@@ -164,8 +183,8 @@ def routed(step, types=None, part='A'):
         if types and it['question_type'] not in types: continue
         recs = sc.records(o)
         out.append(dict(id=k, set='dev-S1-routed' if part == 'A' else 'room134', step=step, type=it['question_type'],
-                        question=it['question'], options=it.get('options') or [], gt=it.get('ground_truth'),
-                        room=it.get('room_key'), text=o.get('text', ''), finish=o.get('finish'),
+                        question=it['question'], options=it.get('options') or [], gt=it.get('answer', it.get('ground_truth')),
+                        gt_released=it.get('released_answer'), gt_item_field=it.get('ground_truth'), room=it.get('room_key'), text=o.get('text', ''), finish=o.get('finish'),
                         calls=[dict(call=c.get('call'), family=c.get('family'), served=c.get('served'), response=c.get('response')) for c in recs],
                         ncalls=len(recs), answer=sc.answer_text(o), score=float(sc.accuracy(o, it)['task_accuracy']),
                         scale=o.get('scale'), tokens=len(o.get('tokens') or [])))

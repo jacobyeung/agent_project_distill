@@ -1,0 +1,1015 @@
+{
+ "findings": [
+  {
+   "clause": "A3",
+   "rule": "A3.data_file",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/artifact.py",
+   "rel": "e2e_reader/artifact.py",
+   "line": 19,
+   "function": "<module>",
+   "detail": "string '.pth'",
+   "text": "CODE_SUFFIXES = ('.py', '.pyc', '.so', '.pth')"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/artifact.py",
+   "rel": "e2e_reader/artifact.py",
+   "line": 24,
+   "function": "sha256",
+   "detail": "constant 22",
+   "text": "def sha256(path, chunk=1 << 22):"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.data_file",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/artifact.py",
+   "rel": "e2e_reader/artifact.py",
+   "line": 48,
+   "function": "write_manifest",
+   "detail": "string 'E2E_MANIFEST.json'",
+   "text": "def write_manifest(root, manifest, name='E2E_MANIFEST.json'):"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.table_load",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/artifact.py",
+   "rel": "e2e_reader/artifact.py",
+   "line": 65,
+   "function": "Artifact.__init__",
+   "detail": "json.loads()",
+   "text": "self.manifest = json.loads(path.read_text())"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.table_load",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/artifact.py",
+   "rel": "e2e_reader/artifact.py",
+   "line": 209,
+   "function": "load_tensors",
+   "detail": "load()",
+   "text": "return load(f.read())"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/callhook.py",
+   "rel": "e2e_reader/callhook.py",
+   "line": 19,
+   "function": "<module>",
+   "detail": "constant 96",
+   "text": "MAX_CALL_TOKENS = 96  # sealed call window (carrier_c1_decode.MAX_CALL_TOKENS)"
+  },
+  {
+   "clause": "A2",
+   "rule": "A2.response_outside_model",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/callhook.py",
+   "rel": "e2e_reader/callhook.py",
+   "line": 25,
+   "function": "<module>",
+   "detail": "response text built outside a torch module method",
+   "text": "OPEN, CLOSE = '<tool_response>', '</tool_response>'"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.threshold",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/callhook.py",
+   "rel": "e2e_reader/callhook.py",
+   "line": 86,
+   "function": "CallHook.push_sampled",
+   "detail": "compares against MAX_CALL_TOKENS",
+   "text": "if self.active is not None and (tail.endswith('>') or len(ids) - self.active > MAX_CALL_TOKENS):"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.except_substitute",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/callhook.py",
+   "rel": "e2e_reader/callhook.py",
+   "line": 112,
+   "function": "CallHook.respond",
+   "detail": "except-handler returns a substitute",
+   "text": "return []"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.status_literal",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/callhook.py",
+   "rel": "e2e_reader/callhook.py",
+   "line": 113,
+   "function": "CallHook.respond",
+   "detail": "string 'error'",
+   "text": "if info.get('kind') == 'error' and info.get('direct_answer_fallback') and not self.error_suffix:"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.status_literal",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/callhook.py",
+   "rel": "e2e_reader/callhook.py",
+   "line": 113,
+   "function": "CallHook.respond",
+   "detail": "string 'direct_answer_fallback'",
+   "text": "if info.get('kind') == 'error' and info.get('direct_answer_fallback') and not self.error_suffix:"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/generate.py",
+   "rel": "e2e_reader/generate.py",
+   "line": 51,
+   "function": "Perception.lazy.build",
+   "detail": "identifier guard_verdicts",
+   "text": "built['guard_verdicts'] = geometry.guard_verdicts"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/generate.py",
+   "rel": "e2e_reader/generate.py",
+   "line": 85,
+   "function": "generate",
+   "detail": "constant 16384",
+   "text": "def generate(model, hook, perception, frames, prompt_ids, *, artifact, eos_ids, max_new_tokens=16384,"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/generate.py",
+   "rel": "e2e_reader/generate.py",
+   "line": 113,
+   "function": "generate",
+   "detail": "identifier guard_verdicts",
+   "text": "scale=built.get('scale'), guard_verdicts=built.get('guard_verdicts'))"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 21,
+   "function": "<module>",
+   "detail": "identifier GUARD",
+   "text": "GUARD = 'reference_camera_up_opposes_gravity'"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 22,
+   "function": "<module>",
+   "detail": "constant 0.3",
+   "text": "UP_PLANE_MIN = .3  # reviewed C8r guard constant; used only to RECORD its verdict (report item 5)"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 36,
+   "function": "<module>",
+   "detail": "def reviewed_guard_refuses",
+   "text": "def reviewed_guard_refuses(R):"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.threshold",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 41,
+   "function": "reviewed_guard_refuses",
+   "detail": "compares against UP_PLANE_MIN",
+   "text": "if plane[0] >= UP_PLANE_MIN:"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.threshold",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 43,
+   "function": "reviewed_guard_refuses",
+   "detail": "compares against UP_PLANE_MIN",
+   "text": "usable = plane >= UP_PLANE_MIN"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 47,
+   "function": "<module>",
+   "detail": "class no_guard",
+   "text": "class no_guard:"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.except_substitute",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 63,
+   "function": "no_guard.__enter__.validate",
+   "detail": "except-handler returns a substitute",
+   "text": "return contract"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 73,
+   "function": "<module>",
+   "detail": "def unguarded",
+   "text": "def unguarded(contract_factory):"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 77,
+   "function": "unguarded",
+   "detail": "identifier sealed_guard_refuses",
+   "text": "verdict = dict(sealed_guard_refuses=False)"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.except_substitute",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 88,
+   "function": "unguarded.validate",
+   "detail": "except-handler returns a substitute",
+   "text": "return self  # the terminal guard is the last statement; every other check passed"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.status_literal",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 87,
+   "function": "unguarded.validate",
+   "detail": "string 'sealed_guard_refuses'",
+   "text": "verdict['sealed_guard_refuses'] = True"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.status_literal",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 95,
+   "function": "unguarded",
+   "detail": "string 'reviewed_guard_refuses'",
+   "text": "verdict['reviewed_guard_refuses'] = reviewed_guard_refuses(R)"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 95,
+   "function": "unguarded",
+   "detail": "identifier reviewed_guard_refuses",
+   "text": "verdict['reviewed_guard_refuses'] = reviewed_guard_refuses(R)"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 96,
+   "function": "unguarded",
+   "detail": "identifier guard_verdicts",
+   "text": "geometry.guard_verdicts = verdict"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 111,
+   "function": "from_arrays",
+   "detail": "identifier unguarded",
+   "text": "return unguarded(make)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 121,
+   "function": "from_tower",
+   "detail": "constant 32",
+   "text": "C = np.repeat(np.eye(4)[None], 32, axis=0)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 124,
+   "function": "from_tower",
+   "detail": "constant 32",
+   "text": "K = np.zeros((32, 3, 3))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 128,
+   "function": "from_tower",
+   "detail": "constant 1000",
+   "text": "A = np.repeat(np.diag([W / 1000, H / 1000, 1.])[None], 32, axis=0)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 128,
+   "function": "from_tower",
+   "detail": "constant 32",
+   "text": "A = np.repeat(np.diag([W / 1000, H / 1000, 1.])[None], 32, axis=0)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.table_load",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 136,
+   "function": "from_npz",
+   "detail": "np.load()",
+   "text": "with np.load(path, allow_pickle=False) as z:"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 152,
+   "function": "camera_geometry",
+   "detail": "constant 32",
+   "text": "pose = np.empty((32, 9), dtype=np.float64)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 152,
+   "function": "camera_geometry",
+   "detail": "constant 9",
+   "text": "pose = np.empty((32, 9), dtype=np.float64)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/geometry.py",
+   "rel": "e2e_reader/geometry.py",
+   "line": 153,
+   "function": "camera_geometry",
+   "detail": "constant 33",
+   "text": "for k in range(1, 33):"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/grounding.py",
+   "rel": "e2e_reader/grounding.py",
+   "line": 127,
+   "function": "StageOneSocket.__call__",
+   "detail": "constant 32",
+   "text": "masks = np.zeros((32,) + self.mask_shape, bool)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/real.py",
+   "rel": "e2e_reader/real.py",
+   "line": 27,
+   "function": "TowerG3T.__init__",
+   "detail": "constant 8",
+   "text": "def __init__(self, artifact, device, dtype='bf16', depth_chunk_size=8):"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.data_file",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/real.py",
+   "rel": "e2e_reader/real.py",
+   "line": 35,
+   "function": "TowerG3T.__call__",
+   "detail": "string 'g3t/model.safetensors'",
+   "text": "self.model = FrozenG3TTower(dict(weights_path=str(self.artifact.path('g3t', 'g3t/model.safetensors')),"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.data_file",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/real.py",
+   "rel": "e2e_reader/real.py",
+   "line": 36,
+   "function": "TowerG3T.__call__",
+   "detail": "string 'g3t/config.json'",
+   "text": "config_path=str(self.artifact.path('g3t', 'g3t/config.json')),"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/real.py",
+   "rel": "e2e_reader/real.py",
+   "line": 97,
+   "function": "generate_real",
+   "detail": "identifier guard_verdicts",
+   "text": "guard_verdicts=built.get('guard_verdicts'),"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/servers.py",
+   "rel": "e2e_reader/servers.py",
+   "line": 30,
+   "function": "ReadServers.session_call",
+   "detail": "identifier no_guard",
+   "text": "with no_guard():"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.except_substitute",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/servers.py",
+   "rel": "e2e_reader/servers.py",
+   "line": 33,
+   "function": "ReadServers.session_call",
+   "detail": "except-handler returns a substitute",
+   "text": "return ('error: ' + str(exc) + ERROR_SUFFIX,"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.status_literal",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/servers.py",
+   "rel": "e2e_reader/servers.py",
+   "line": 33,
+   "function": "ReadServers.session_call",
+   "detail": "string 'error: '",
+   "text": "return ('error: ' + str(exc) + ERROR_SUFFIX,"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.status_literal",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/servers.py",
+   "rel": "e2e_reader/servers.py",
+   "line": 34,
+   "function": "ReadServers.session_call",
+   "detail": "string 'error'",
+   "text": "dict(kind='error', code=str(exc), spec_version=session.spec_version, direct_answer_fallback=True))"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.guard",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/servers.py",
+   "rel": "e2e_reader/servers.py",
+   "line": 34,
+   "function": "ReadServers.session_call",
+   "detail": "identifier direct_answer_fallback",
+   "text": "dict(kind='error', code=str(exc), spec_version=session.spec_version, direct_answer_fallback=True))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 23,
+   "function": "<module>",
+   "detail": "constant 0.01",
+   "text": "FLOOR_LEVELS = (0.01, 0.02, 0.05, 0.10, 0.25)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 23,
+   "function": "<module>",
+   "detail": "constant 0.02",
+   "text": "FLOOR_LEVELS = (0.01, 0.02, 0.05, 0.10, 0.25)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 23,
+   "function": "<module>",
+   "detail": "constant 0.05",
+   "text": "FLOOR_LEVELS = (0.01, 0.02, 0.05, 0.10, 0.25)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 23,
+   "function": "<module>",
+   "detail": "constant 0.1",
+   "text": "FLOOR_LEVELS = (0.01, 0.02, 0.05, 0.10, 0.25)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 23,
+   "function": "<module>",
+   "detail": "constant 0.25",
+   "text": "FLOOR_LEVELS = (0.01, 0.02, 0.05, 0.10, 0.25)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 24,
+   "function": "<module>",
+   "detail": "constant 0.75",
+   "text": "HEIGHT_LEVELS = (0.50, 0.75, 0.90, 0.95)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 24,
+   "function": "<module>",
+   "detail": "constant 0.9",
+   "text": "HEIGHT_LEVELS = (0.50, 0.75, 0.90, 0.95)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 24,
+   "function": "<module>",
+   "detail": "constant 0.95",
+   "text": "HEIGHT_LEVELS = (0.50, 0.75, 0.90, 0.95)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 25,
+   "function": "<module>",
+   "detail": "constant 0.1",
+   "text": "DEPTH_LEVELS = (0.10, 0.25, 0.50, 0.75, 0.90)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 25,
+   "function": "<module>",
+   "detail": "constant 0.25",
+   "text": "DEPTH_LEVELS = (0.10, 0.25, 0.50, 0.75, 0.90)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 25,
+   "function": "<module>",
+   "detail": "constant 0.75",
+   "text": "DEPTH_LEVELS = (0.10, 0.25, 0.50, 0.75, 0.90)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 25,
+   "function": "<module>",
+   "detail": "constant 0.9",
+   "text": "DEPTH_LEVELS = (0.10, 0.25, 0.50, 0.75, 0.90)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 26,
+   "function": "<module>",
+   "detail": "constant 0.9",
+   "text": "RADIUS_LEVELS = (0.50, 0.90, 0.99)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 26,
+   "function": "<module>",
+   "detail": "constant 0.99",
+   "text": "RADIUS_LEVELS = (0.50, 0.90, 0.99)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 27,
+   "function": "<module>",
+   "detail": "constant 1e-06",
+   "text": "EPS = 1e-6"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 29,
+   "function": "<module>",
+   "detail": "constant 100",
+   "text": "[f'log_floor_dist_q{int(q * 100):02d}' for q in FLOOR_LEVELS]"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 30,
+   "function": "<module>",
+   "detail": "constant 100",
+   "text": "+ [f'log_height_above_q01_q{int(q * 100):02d}' for q in HEIGHT_LEVELS]"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 32,
+   "function": "<module>",
+   "detail": "constant 100",
+   "text": "+ [f'log_depth_conf_q{int(q * 100):02d}' for q in DEPTH_LEVELS]"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 33,
+   "function": "<module>",
+   "detail": "constant 100",
+   "text": "+ [f'log_depth_all_q{int(q * 100):02d}' for q in (0.10, 0.50, 0.90)]"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 33,
+   "function": "<module>",
+   "detail": "constant 0.1",
+   "text": "+ [f'log_depth_all_q{int(q * 100):02d}' for q in (0.10, 0.50, 0.90)]"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 33,
+   "function": "<module>",
+   "detail": "constant 0.9",
+   "text": "+ [f'log_depth_all_q{int(q * 100):02d}' for q in (0.10, 0.50, 0.90)]"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 34,
+   "function": "<module>",
+   "detail": "constant 100",
+   "text": "+ [f'log_horiz_radius_q{int(q * 100):02d}' for q in RADIUS_LEVELS]"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 58,
+   "function": "clip_features",
+   "detail": "constant -2",
+   "text": "R = quat_xyzw_to_matrix(pose[:, 3:7]).transpose(-1, -2)            # [32,3,3] camera -> ref"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 63,
+   "function": "clip_features",
+   "detail": "constant 1000",
+   "text": "u = (grid_uv / 1000 - 0.5) * 2                                      # columns -> x"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 76,
+   "function": "clip_features",
+   "detail": "constant 0.99",
+   "text": "zq = _q(z, FLOOR_LEVELS + HEIGHT_LEVELS + (0.99,))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 82,
+   "function": "clip_features",
+   "detail": "constant 0.1",
+   "text": "dall = torch.log(_q(depth[valid], (0.10, 0.50, 0.90)))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 82,
+   "function": "clip_features",
+   "detail": "constant 0.9",
+   "text": "dall = torch.log(_q(depth[valid], (0.10, 0.50, 0.90)))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 95,
+   "function": "clip_features",
+   "detail": "constant 0.01",
+   "text": "pfloor = torch.log((cam_h - torch.quantile(zp, 0.01)).clamp_min(EPS))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 124,
+   "function": "ScaleHead.features",
+   "detail": "constant 1000",
+   "text": "grid_uv = torch.linspace(0, 1000, depth_grid.shape[-1], dtype=torch.float64)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.table_load",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 154,
+   "function": "prepare_inputs",
+   "detail": "np.load()",
+   "text": "with np.load(tower_npz, allow_pickle=False) as z:"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.data_file",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 171,
+   "function": "load_head",
+   "detail": "string 'scale_head.safetensors'",
+   "text": "weights = directory / 'scale_head.safetensors'"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.table_load",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 172,
+   "function": "load_head",
+   "detail": "json.loads()",
+   "text": "meta = json.loads((directory / 'scale_head.json').read_text())"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.data_file",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 172,
+   "function": "load_head",
+   "detail": "string 'scale_head.json'",
+   "text": "meta = json.loads((directory / 'scale_head.json').read_text())"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.table_load",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/scale/scale_head.py",
+   "rel": "heads/scale/scale_head.py",
+   "line": 178,
+   "function": "load_head",
+   "detail": "load_file()",
+   "text": "head.load_state_dict(load_file(str(weights)))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/selector_head.py",
+   "rel": "heads/selector/selector_head.py",
+   "line": 18,
+   "function": "<module>",
+   "detail": "constant 58",
+   "text": "F_IN = 58"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/selector_head.py",
+   "rel": "heads/selector/selector_head.py",
+   "line": 19,
+   "function": "<module>",
+   "detail": "constant 256",
+   "text": "D_NAME = 256"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/selector_head.py",
+   "rel": "heads/selector/selector_head.py",
+   "line": 20,
+   "function": "<module>",
+   "detail": "constant 256",
+   "text": "D_MASK = 256"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/selector_head.py",
+   "rel": "heads/selector/selector_head.py",
+   "line": 21,
+   "function": "<module>",
+   "detail": "constant 1024",
+   "text": "D_VIT = 1024"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/selector_head.py",
+   "rel": "heads/selector/selector_head.py",
+   "line": 35,
+   "function": "SelectorHead.__init__",
+   "detail": "constant 64",
+   "text": "def __init__(self, hidden=64, name_mode='sam3', n_hash=4096, f_in=F_IN):"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/selector_head.py",
+   "rel": "heads/selector/selector_head.py",
+   "line": 35,
+   "function": "SelectorHead.__init__",
+   "detail": "constant 4096",
+   "text": "def __init__(self, hidden=64, name_mode='sam3', n_hash=4096, f_in=F_IN):"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.table_load",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/selector_head.py",
+   "rel": "heads/selector/selector_head.py",
+   "line": 88,
+   "function": "load_head",
+   "detail": "json.loads()",
+   "text": "meta = json.loads((d / 'selector_head.json').read_text())"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.data_file",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/selector_head.py",
+   "rel": "heads/selector/selector_head.py",
+   "line": 88,
+   "function": "load_head",
+   "detail": "string 'selector_head.json'",
+   "text": "meta = json.loads((d / 'selector_head.json').read_text())"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.data_file",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/selector_head.py",
+   "rel": "heads/selector/selector_head.py",
+   "line": 89,
+   "function": "load_head",
+   "detail": "string 'selector_head.safetensors'",
+   "text": "weights = d / 'selector_head.safetensors'"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.table_load",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/selector_head.py",
+   "rel": "heads/selector/selector_head.py",
+   "line": 95,
+   "function": "load_head",
+   "detail": "load_file()",
+   "text": "head.load_state_dict(load_file(str(weights)))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.threshold",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/sl118/selector_inputs.py",
+   "rel": "heads/selector/sl118/selector_inputs.py",
+   "line": 67,
+   "function": "candidate_vectors",
+   "detail": "compares against 0.3",
+   "text": "name_frames = sum(any(float(e['score']) >= .3 for e in frame) for frame in raw_frames) / 32."
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/sl118/selector_inputs.py",
+   "rel": "heads/selector/sl118/selector_inputs.py",
+   "line": 67,
+   "function": "candidate_vectors",
+   "detail": "constant 0.3",
+   "text": "name_frames = sum(any(float(e['score']) >= .3 for e in frame) for frame in raw_frames) / 32."
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/sl118/selector_inputs.py",
+   "rel": "heads/selector/sl118/selector_inputs.py",
+   "line": 67,
+   "function": "candidate_vectors",
+   "detail": "constant 32.0",
+   "text": "name_frames = sum(any(float(e['score']) >= .3 for e in frame) for frame in raw_frames) / 32."
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/sl118/selector_inputs.py",
+   "rel": "heads/selector/sl118/selector_inputs.py",
+   "line": 78,
+   "function": "candidate_vectors",
+   "detail": "constant 0.001",
+   "text": "depths = np.log(np.clip(np.array([v.depth for v in p], float), 1e-3, None))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/sl118/selector_inputs.py",
+   "rel": "heads/selector/sl118/selector_inputs.py",
+   "line": 79,
+   "function": "candidate_vectors",
+   "detail": "constant 0.001",
+   "text": "ext = np.log(np.clip(np.array([v.extent for v in p], float), 1e-3, None))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/sl118/selector_inputs.py",
+   "rel": "heads/selector/sl118/selector_inputs.py",
+   "line": 82,
+   "function": "candidate_vectors",
+   "detail": "constant 6",
+   "text": "boxes = np.array(boxes, float) if boxes else np.zeros((1, 6))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/sl118/selector_inputs.py",
+   "rel": "heads/selector/sl118/selector_inputs.py",
+   "line": 85,
+   "function": "candidate_vectors",
+   "detail": "constant 1e-06",
+   "text": "math.log(max(float(f.get('best_view_area', 0.)), 1e-6)),"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/sl118/selector_inputs.py",
+   "rel": "heads/selector/sl118/selector_inputs.py",
+   "line": 88,
+   "function": "candidate_vectors",
+   "detail": "constant 32.0",
+   "text": "len(set(frames.tolist())) / 32., (frames.max() - frames.min()) / 31.,"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/sl118/selector_inputs.py",
+   "rel": "heads/selector/sl118/selector_inputs.py",
+   "line": 88,
+   "function": "candidate_vectors",
+   "detail": "constant 31.0",
+   "text": "len(set(frames.tolist())) / 32., (frames.max() - frames.min()) / 31.,"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/sl118/selector_inputs.py",
+   "rel": "heads/selector/sl118/selector_inputs.py",
+   "line": 90,
+   "function": "candidate_vectors",
+   "detail": "constant 0.01",
+   "text": "float(centre[2] - cam[2]), math.log(max(float(np.linalg.norm(centre[:2] - cam[:2])), 1e-2)),"
+  }
+ ],
+ "suppressed": []
+}

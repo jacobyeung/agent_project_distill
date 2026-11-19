@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30; grep framepool $R/codex_local/agent/scratch/codex_runs/CODEX_SPEND.log; ls $R/sb_framepool $R/sb_framepool/out; cat $R/sb_framepool/STATUS.md 2>/dev/null | head -20; d=$(ls -d $R/codex_local/agent/scratch/codex_runs/*sb_framepool); cat $d/final_message.md | head -c 2000; tail -c 800 $d/transcript.log

@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30; head -c 2500 $R/sb_rowA/out/CAMERA_ROWS.MISSING.json; echo; grep -n -i -E "missing|camera rows|source" $R/sb_rowA/out/REPORT.md | head -20; head -c 1500 $R/sb_rowA/out/HANDOFF_cont_ops18.md

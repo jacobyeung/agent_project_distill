@@ -1,0 +1,1 @@
+Input inspection complete on trinity-1-18. W19 is selected; the recovered camera extract provides explicit decision frame bindings and pose geometry. Four held-out and wording files are frozen by SHA256. N admission and scorer patch checks are in progress; no training rows are admitted yet.

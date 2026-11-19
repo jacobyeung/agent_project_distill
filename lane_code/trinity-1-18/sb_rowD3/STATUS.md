@@ -1,0 +1,1 @@
+The node is trinity-1-18. D2 reports 93,370 direction rows, including 49,901 Step 1 toward rows and no Step 1 turn rows; it produced no GT-certified rows. I am checking local source availability and deriving the minimum additions for equal opening/clause shares while retaining compliant rows. W/w19 provides the sealed validator tree.

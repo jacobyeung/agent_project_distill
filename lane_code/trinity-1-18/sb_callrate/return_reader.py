@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from populations import tag_items
 
 HERE = Path(__file__).absolute().parent
 DEFAULT_INPUT = HERE / 'in'
@@ -18,7 +19,7 @@ class Inputs:
         self.links = {}
 
     def path(self, path):
-        """Resolve copied links without accessing the original node's targets."""
+        """Resolve links, relocating only missing targets under the original root."""
         path = Path(os.path.abspath(path))
         for _ in range(32):
             changed = False
@@ -26,10 +27,10 @@ class Inputs:
                 if parent.is_symlink():
                     target = Path(os.readlink(parent))
                     self.links[str(parent)] = str(target)
-                    if target.is_absolute() and target.is_relative_to(self.original_root):
+                    if not target.is_absolute():
+                        target = Path(os.path.abspath(parent.parent / target))
+                    if not target.exists() and target.is_relative_to(self.original_root):
                         target = self.root / target.relative_to(self.original_root)
-                    elif not target.is_absolute():
-                        target = parent.parent / target
                     path = Path(os.path.abspath(target / path.relative_to(parent)))
                     changed = True
                     break
@@ -102,7 +103,7 @@ def load_read(io, root, package, read_no, step, bases, manifest_path=None, refer
         raise FileNotFoundError('MISSING: unique manifest with sha256 ' + first['items_sha256'] + ' at ' + str(src / 'items/*.json'))
     manifest_path = matching[0]
     manifest = io.read(manifest_path)
-    items = {i['id']: i for i in manifest['items']}
+    items = tag_items(manifest)
     if len(items) != len(manifest['items']):
         raise ValueError('Duplicate manifest id')
     order = io.read(src / '9.json')['order']
@@ -153,16 +154,21 @@ def load_read(io, root, package, read_no, step, bases, manifest_path=None, refer
             # Scores need no heads, tokens, timing, or audit arrays.
             output = row['output']
             rows[key] = {**row, 'output': {k: output[k] for k in ('text', 'finish', 'calls', 'hook', 'scores') if k in output}}
+    for value in planned.values():
+        label = package.name if root.parent.name == 'work' else root.parent.name
+        value['_source_read'] = f'{label}/read {read_no}'
     return rows, planned, manifest
 
 
-def registered(io, bases):
+def registered(io, bases, room_baseline="b1"):
     bases = io.path(bases)
     ba, ia, _ = load_read(io, bases/'b1/work/ret', bases/'b1', 0, 544, bases)
     bd, id_, _ = load_read(io, bases/'b1/work/ret', bases/'b1', 1, 544, bases)
     br, ir, _ = load_read(io, bases/'b2/work/ret', bases/'b2', 0, 544, bases)
-    # The camera/distance read's 36 room ids also occur in room134: b2 is authoritative.
-    return {**ba, **bd, **br}, {**ia, **id_, **ir}
+    # Five-type reads use b1/read 0 rooms, as registered by score_r5.
+    if room_baseline == 'b2':
+        return {**ba, **bd, **br}, {**ia, **id_, **ir}
+    return {**br, **ba, **bd}, {**ir, **ia, **id_}
 
 
 def infer_package(io, root):

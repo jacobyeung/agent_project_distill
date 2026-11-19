@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30; echo "=== alrev"; cat $R/sb_alrev/REVIEW_VERDICT.md | head -70; echo "=== framepool"; head -40 $R/sb_framepool/out/FRAMEPOOL_REPORT.md; echo "=== callrate3"; cat $R/codex_local/agent/scratch/codex_runs/*sb_callrate3/final_message.md | head -c 1500

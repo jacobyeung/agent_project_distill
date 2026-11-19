@@ -1,0 +1,1 @@
+The delivery is complete: 6,827 replacements pass native and independent checks, 5,099 source rows are refused with recorded reasons, and REMOVE.json covers all 11,926 sources. Thirty complete examples have been reviewed. The report, archive, and checksum are in out/.

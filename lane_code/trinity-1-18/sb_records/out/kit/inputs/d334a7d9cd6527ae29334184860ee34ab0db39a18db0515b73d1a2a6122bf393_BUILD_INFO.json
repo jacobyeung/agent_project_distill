@@ -1,0 +1,122 @@
+{
+  "alias_mapping": {
+    "mouse": "computer mouse"
+  },
+  "box_unavailable_denominator": "320 of 1600 total rows (20%); all single-miss",
+  "dataset_weighting": {
+    "formula": "remaining 400 * pool_rows * observed not-seen pair rate, normalized",
+    "other_weights": {
+      "arkitscenes": 260.6808510638298,
+      "scannet": 241.29310344827587
+    },
+    "rates": {
+      "arkitscenes": 0.0851063829787234,
+      "scannet": 0.15517241379310345
+    },
+    "scannetpp_target": 0.75,
+    "target_rows": {
+      "arkitscenes": 208,
+      "scannet": 192,
+      "scannetpp": 1200
+    }
+  },
+  "eligible_rows": 10945,
+  "excluded": {},
+  "fallback_score": 0.25,
+  "kept_from_v1": 0,
+  "large_furniture_policy": "zero simulated misses; successful partner names are allowed",
+  "name_cap": "160 rows for every literal name, counting either operand, including successful partners",
+  "pool_datasets": {
+    "arkitscenes": 3063,
+    "scannet": 1555,
+    "scannetpp": 6327
+  },
+  "pool_rows": 10945,
+  "quotas": {
+    "arkitscenes": {
+      "box_a": 21,
+      "box_b": 21,
+      "seen_a": 59,
+      "seen_b": 59,
+      "two": 48
+    },
+    "scannet": {
+      "box_a": 19,
+      "box_b": 19,
+      "seen_a": 84,
+      "seen_b": 46,
+      "two": 24
+    },
+    "scannetpp": {
+      "box_a": 120,
+      "box_b": 120,
+      "seen_a": 353,
+      "seen_b": 391,
+      "two": 216
+    }
+  },
+  "rates": {
+    "backpack": 0.0,
+    "bathtub": 0.0,
+    "bed": 0.0,
+    "blanket": 1.0,
+    "bookshelf": 0.0,
+    "bowl": 0.0,
+    "bucket": 1.0,
+    "ceiling light": 0.25,
+    "chair": 0.058823529411764705,
+    "clock": 0.0,
+    "closet": 0.0,
+    "computer mouse": 1.0,
+    "counter": 1.0,
+    "cup": 0.5,
+    "cutting board": 1.0,
+    "desk": 0.0,
+    "dishwasher": 0.3333333333333333,
+    "door": 0.0,
+    "exhaust fan": 1.0,
+    "fireplace": 0.5,
+    "guitar": 0.0,
+    "headphones": 0.2857142857142857,
+    "heater": 0.8666666666666667,
+    "keyboard": 0.5,
+    "lamp": 0.0,
+    "laptop": 0.0,
+    "microwave": 0.0,
+    "mirror": 0.0,
+    "monitor": 0.16666666666666666,
+    "nightstand": 0.75,
+    "paper bag": 0.8571428571428571,
+    "pillow": 0.0,
+    "plant": 0.25,
+    "power strip": 1.0,
+    "printer": 0.0,
+    "radiator": 1.0,
+    "refrigerator": 0.0,
+    "shoe rack": 0.75,
+    "shoes": 1.0,
+    "slippers": 1.0,
+    "sofa": 0.0,
+    "stool": 0.14285714285714285,
+    "stove": 0.15384615384615385,
+    "suitcase": 0.0,
+    "table": 0.07142857142857142,
+    "table lamp": 0.0,
+    "telephone": 0.0,
+    "toilet": 0.0,
+    "trash bin": 0.0,
+    "trash can": 0.0,
+    "tv": 0.0,
+    "washer": 0.3333333333333333,
+    "window": 0.5
+  },
+  "seed": "rows_r1_recovery_v2",
+  "selection": "unique source qids; ascending exponential weighted hash rank; rare datasets first; within each dataset two-miss first, then box a/b, not-seen a/b; no cap relaxation",
+  "shortfalls": [],
+  "size_quantile": "nearest-rank ceil(N/3), all 21890 pool operands",
+  "size_thresholds": {
+    "horizontal_footprint_m2": 0.06668763620895651,
+    "longest_edge_m": 0.4993663453189586
+  },
+  "two_miss_dataset_allocation": "216 ScanNet++, 24 ScanNet (all available), 48 ARKitScenes"
+}
