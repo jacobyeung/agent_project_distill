@@ -1,0 +1,95 @@
+{
+  "a0_recovery": {
+    "admission_modified": false,
+    "conclusion": "All supplied rows fail the sealed not_seen membership rule even after native packing.",
+    "counts": {
+      "ValueError: Grounding membership flags differ": 1532,
+      "supplied_rows": 1532
+    },
+    "examples": {
+      "ValueError: Grounding membership flags differ": {
+        "expected_rounded_gt": "3.30",
+        "fields": {
+          "answer": "3.30",
+          "gt_agrees": true,
+          "gt_answer": 3.2963642659550207,
+          "not_seen": true,
+          "training_admitted": false,
+          "unit": null
+        },
+        "qid": "a0_recovery_vsi590k_050104",
+        "raises": {
+          "code": "raise ValueError(\"Grounding membership flags differ\")",
+          "line": 82,
+          "path": "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/base/tree_b01ce449/student_pilot/ground_rows.py"
+        }
+      }
+    },
+    "full_source_available": false,
+    "not_seen_flags": {
+      "True": 1532
+    },
+    "production_path": [
+      "s1_pool.prepare:173 normalize_room (no-op for these non-room types)",
+      "s1_pool.prepare:174 validate_source_row -> ground_rows.validate",
+      "s1_routing.build:369 selected_rows validates again before frames.resolve/c1_row"
+    ],
+    "slice_manifest": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/rows_slices/slices_final/COUNTS_A0_v4.json",
+      "sha256": "2335b10e5d7ac01766858bf8fdf1b3ab3ea170a4c54616d06e0aad3f17499f1f"
+    },
+    "slice_rule": "A0 v4 slices only (D0 v3 slices stay in slices_v3/). Same rule as make_slices_v3.py: lowest sha256('20261115|slice|' + family + '|' + qid), <= 2,000 rows, events and frames dropped; counts and scene ids (dataset/scene) cover every row.",
+    "source_population_declared": 1532,
+    "supplied_file": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/rows_slices/slices_final/a0_recovery.jsonl",
+      "sha256": "f5166900e229f62292999fa89204363a7ec4baf479abb47e10a55333958f2130"
+    }
+  },
+  "a0_units": {
+    "admission_modified": false,
+    "conclusion": "Missing top-level events is a slice artifact. Native packing admits 216/2000; 1784 fail exact two-decimal GT label equality. Full 10945-row admission is not measured.",
+    "counts": {
+      "ValueError: Absolute label mismatch": 1784,
+      "repacked_admitted": 216,
+      "supplied_rows": 2000
+    },
+    "examples": {
+      "ValueError: Absolute label mismatch": {
+        "expected_rounded_gt": "10.58",
+        "fields": {
+          "answer": "10.56",
+          "gt_agrees": true,
+          "gt_answer": 10.578873080525234,
+          "not_seen": false,
+          "training_admitted": false,
+          "unit": "feet"
+        },
+        "qid": "a0_units_vsi590k_168819",
+        "raises": {
+          "code": "raise ValueError(\"Absolute label mismatch\")",
+          "line": 92,
+          "path": "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/base/tree_b01ce449/student_pilot/ground_rows.py"
+        }
+      }
+    },
+    "full_source_available": false,
+    "not_seen_flags": {
+      "False": 2000
+    },
+    "production_path": [
+      "s1_pool.prepare:173 normalize_room (no-op for these non-room types)",
+      "s1_pool.prepare:174 validate_source_row -> ground_rows.validate",
+      "s1_routing.build:369 selected_rows validates again before frames.resolve/c1_row"
+    ],
+    "slice_manifest": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/rows_slices/slices_final/COUNTS_A0_v4.json",
+      "sha256": "2335b10e5d7ac01766858bf8fdf1b3ab3ea170a4c54616d06e0aad3f17499f1f"
+    },
+    "slice_rule": "A0 v4 slices only (D0 v3 slices stay in slices_v3/). Same rule as make_slices_v3.py: lowest sha256('20261115|slice|' + family + '|' + qid), <= 2,000 rows, events and frames dropped; counts and scene ids (dataset/scene) cover every row.",
+    "source_population_declared": 10945,
+    "supplied_file": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/rows_slices/slices_final/a0_units.jsonl",
+      "sha256": "04fd83aecd83064b8ff44857a6f4318f53a110586ddf8edb93250090bbe7d363"
+    }
+  }
+}

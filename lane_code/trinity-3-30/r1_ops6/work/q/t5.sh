@@ -1,0 +1,1 @@
+mkdir -p /scratch/jjyeung/n30_mirror/r1_ops6 && cat > /scratch/jjyeung/n30_mirror/r1_ops6/cprime_build_32337655.tar && sha256sum /scratch/jjyeung/n30_mirror/r1_ops6/cprime_build_32337655.tar && df -h /scratch | tail -1

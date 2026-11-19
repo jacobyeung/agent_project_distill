@@ -1,0 +1,21 @@
+src=open('/scratch/jjyeung/orch_n30/tree_rebuild_w/work/conf12/s/n1r.py').read().split("R=W/'tmp/n1r'")[0]
+exec(src)
+R=W/'tmp/n1c';cfg,p,model,art=handover_fixture(R/'h')
+def remap(c):
+    c['r1_training'].pop('handover_mapping',None)
+    _,_,actual,_=H.donor(c,art)
+    c['r1_training'].update(continuation_identity=actual['config_identity'],store_hashes=actual['stores'])
+    t=contract.target_identity(c);c['r1_training'].update(continuation_identity=t['config_identity'],store_hashes=t['stores'])
+    e=contract.boundary(c,200)
+    c['r1_training']['handover_mapping']=write(R/('map_'+str(len(OUT))+'.json'),dict(schema='r1-handover-map-v1',artifact_sha256=c['init_artifact']['artifact']['sha256'],step=200,source=actual,target={k:e[k] for k in actual}))
+    return c
+src_=load(cfg['r1_training']['p_run']['config']['path']);prep=load(cfg['r1_training']['p_run']['preparation']['path'])
+fp=deepcopy(prep);n=fp['streams']['vqa']['count']-1;fp['streams']['vqa']['count']=n;fp['streams']['vqa']['indices']=write(R/'f/idx.json',list(range(1,n+1)))
+fprep=write(R/'f/preparation.json',fp);fsrc=dict(src_,preparation=fprep);fcfg=write(R/'f/config.json',fsrc)
+fb=load(cfg['r1_training']['p_run']['binding']['path']);fb['preparation']=fprep;fbpin=write(R/'f/binding.json',fb)
+c7=deepcopy(cfg);c7['r1_training']['p_run'].update(config=fcfg,preparation=fprep,binding=fbpin)
+rec('forged_prep_cfg_binding_honest_complete',lambda:H.progress(remap(deepcopy(c7)),art)['step'])
+c7b=deepcopy(c7);c7b['r1_training']['p_run']['checkpoint']=write(R/'f/complete.json',dict(schema='c1-checkpoint-v1',binding=fb,step=200))
+rec('forged_prep_cfg_binding_AND_complete',lambda:(lambda c:(H.progress(c,art)['step'],contract.start(c),dict(H.donor(c,art)[3]['counts'])))(remap(c7b)))
+OUT['artifact_keys']=sorted(art)
+(W/'N1C.json').write_text(json.dumps(OUT,indent=1,default=str))

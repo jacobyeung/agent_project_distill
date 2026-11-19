@@ -5,3 +5,11 @@
 - /tmp/c16_*.json
 - work/c16_mirror_2245Z.tar (2 GB; equal copy on trinity-1-18)
 - work/c15/h1face/h1orch_dummy (empty file created by mistake)
+- (23:40Z) All recoverable; user decides:
+  - work/c16_mirror_2245Z.tar 2.0 GB: equal copy trinity-1-18:/scratch/jjyeung/n30_mirror/cont_ops/c16_mirror_2245Z.tar (90996b26).
+  - work/c15/h1vsti 2.3 GB: = trinity-1-18 n30_mirror/cont_ops/h1vsti_v1_1045Z.tar (3c433159) plus my small fetched returns (also on Orchard ae71c903_fetched/).
+  - work/c15/r1route/out2 961 MB (superseded by out3; gates/ 724 MB test copies); out3/gates 1.4 GB and out3/fill_fixtures 152 MB (test copies, regenerable).
+  - work/c15/h1face assets/readk/evidence hardlinks (no extra space; the 50 MB own files are in the mirror tar).
+  - work/c15/h1read_partial, h1vsti_partial, work/x27 78 MB, work/cd 42 MB (= events/count_diag tgz).
+  - Orchard: okh7/a15_cot_apd72cdcff1e22a/a/0.sh, a/0.log, a/0.txt (failed first pull; the partial a/e/1.partial_.gstmp is overwritten or resumed by the resume run).
+- Orchard okh7/a15_cot_apd72cdcff1e22a and a15_cot_apb9188e9225a85: fill outputs from the defective fill (a/1.json, a/export.json, a/6, a/1.txt, a/10.json under a/e) and A's failed CPU check (a/4.txt, a/4.log, a/4.err); keep A's a/e/0-3 (verified export parts) until the routed read is done.

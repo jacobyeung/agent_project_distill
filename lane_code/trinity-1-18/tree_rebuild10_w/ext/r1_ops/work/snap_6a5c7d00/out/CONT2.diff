@@ -1,0 +1,813 @@
+--- C1/out/CONT1.md
++++ C2/out/CONT1.md
+@@ -1,4 +1,4 @@
+-BUILT_FOR_INDEPENDENT_REVIEW. C resumes A at absolute step 200 and stops at 600. The launch gate accepts only a completed PASS CPU proof and separate written GO. No canary is needed.
++LOCAL_CHECKS_PENDING_HEAVY_TEST. C resumes A at absolute step 200 and stops at 600. The launch gate accepts only a completed PASS CPU proof and separate written GO. No canary is needed.
+ 
+ | Identity | Value |
+ |---|---|
+@@ -9,9 +9,9 @@
+ | Bundle | `/project/community/jjyeung/okh7/i_7f1589c1` |
+ | Kit | `/project/community/jjyeung/okh7/x_7f1589c1` |
+ | Persistent slots | `/project/community/jjyeung/okh7/r/05b8ac69` |
+-| Archive | `p_fcc9a6f3.tar` |
+-| Archive SHA256 | `fcc9a6f333735d5b9b73ed6c56d21e41d00a683b10f46b00a2efff744d34f329` |
+-| Proof script | `p_05b8ac69.sh` (general, CPU only) |
++| Archive | `p_c60b9015.tar` |
++| Archive SHA256 | `c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c` |
++| Proof script | `p_05b8ac69.sh` (general or bootstrap, CPU only; 48 CPUs, 800 GB, four hours) |
+ | Training time limit | `24:00:00` (advanced, four GPUs) |
+ 
+ The estimate is `(400 × 0.153 + 11) / 4 = 18.05` wall hours. The 24-hour allocation leaves 5.95 hours for restore, exports and variation. The existing trainer budget remains 86,400 seconds with a 3,600-second stop reserve. The wrapper's GCS fallback deadline also uses 86,400 seconds.
+@@ -39,10 +39,14 @@
+ 
+ H1's `C1_INIT_LOCAL` path loads the pinned m544 full-weight/head export before optimizer construction. That warm start alone cannot preserve Adam or absolute step. C retains that initialization for compatibility, then restores A's full checkpoint. A's GCS `m200` and `mstop*` objects are weight exports, not substitutes for the verified slot. If A uses its separate GCS slot fallback, an operator must restore and verify a normal A/B slot before C can start; C does not fetch network objects.
+ 
++The deriver seals `b/` and every code subdirectory at `0500` after inventory generation and evidence validation. Isolated job-prefix imports cannot create bytecode in the kit. The resume chooser explicitly includes its sealed code directory so `python -I` can import the donor verifier. `tk_nx` uses `rsync --chmod=D700` to create private node-local directories at `0700`. `b/z.py` refuses in-place redeployment of a sealed kit. Operators must derive a fresh kit; changing permissions to redeploy is unsupported.
++
++The CPU proof accepts `general` and `bootstrap`. Seal with `p.py --partition bootstrap` and submit the packaged proof script with `sbatch -p bootstrap`; the selected partition must match the authority. The default script selects `general`. Both use 48 CPUs, 800 GB, no GPUs and `04:00:00`. The kit authorization lists the two proof partitions and `advanced`; training stays on `advanced` with four GPUs and `24:00:00`. These partition fields do not grant submission GO.
++
+ The CPU proof retains A's admission, namespace, loader-audit and fix-11 environment setup. It additionally exercises the actual slot extraction and pointer verifier against a four-rank fixture. PASS requires `checks.resume_pointer.status=PASS`; the launch gate refuses CANARY. The proof fixture does not attest a future real A slot, which is verified at runtime.
+ 
+-Validation: 78 unique packet tests have passing results. The initial full run executed 77 tests; its single stale generated-diff failure is covered by the final 35-test recheck. `CONT1_TEST_LEDGER.json` records each result and both logs. Passing tests of unchanged code, including the 1.79 GB division fixture and historical A CANARY gate, are retained to respect the scratch cap. The runner checks deterministic archives, two byte-equal fixture kit derivations, production-form review/staging/archive evidence, four-rank D0 OFF optimizer identity, native unit regeneration, the CPU first batch and fix-11 nounset replay. Large immutable local fixture files share hardlinks; source snapshots remain untouched. The continuation tests compare default step-201–600 plans, check wrong run/step/config/checksums and missing optimizer state, exercise the adapter and resume chooser, and execute the PASS-only gate. The native small-model test compares 206 uninterrupted updates with 200 plus six resumed updates: parameters, Adam state, RNG, LR and rows are bit-exact. It uses native shard serialization/restore with mocked single-rank collectives. Other sampler populations are synthetic; the VQA check also uses the real local admitted population.
++Validation: 82 packet tests pass on this build. The 1.79 GB full-store regression awaits the required heavy-I/O authorization; all other tests ran. `tools/run_local_checks.py` checks deterministic packaging, two equal kit derivations, production-form evidence, four-rank D0 optimizer identity, native unit regeneration, CPU first batch and fix-11 shell replay. Five mode/partition regressions verify `0500` code directories, isolated cold and donor prefix execution without bytecode, inventory preservation, real `tk_nx` copies with the proof directory-mode checker, sealed-kit redeploy refusal, and both partition authorities. The native continuation test checks bit-exact parameters, Adam state, RNG, LR and rows for 206 uninterrupted updates versus 200 plus six resumed updates, with single-rank collectives mocked. Production RGB and other absent populations remain fixture boundaries.
+ 
+-Reviewer checks: inspect the A launch-to-effective-config authentication chain, slot extraction and checksum checks, native restore adapter, new-output binding, row-population equality, independent writable namespaces, PASS-only gate, fix-11 replay, 24-hour limits and exact archive/derived-kit inventory. Confirm the real step-200 slot exists with full optimizer state. Independently scan the new runtime/proof text and seal the final deployed kit. Confirm the operator's written boundary GO and normal monitoring rules before submission.
++Reviewer checks: verify the archived deriver seals all code directories, `tk_nx` copies them at `0700`, the isolated prefix preserves inventory, and the selected proof partition matches both authority and submission. Verify training still selects advanced and inspect the A launch-to-effective-config authentication chain, slot extraction and checksum checks, native restore adapter, new-output binding, row-population equality, independent writable namespaces, PASS-only gate, fix-11 replay, 24-hour limits and exact archive/derived-kit inventory. Confirm the real step-200 slot exists with full optimizer state. Independently scan the new runtime/proof text and seal the final deployed kit. Confirm the operator's written boundary GO and normal monitoring rules before submission.
+ 
+-Local tests do not prove Orchard namespaces, filesystem capacity, real A checkpoint availability, GPU/FSDP bit-exactness, production RGB admission, full routing regeneration or throughput. Regenerated database or population hashes may differ in production; C then refuses and needs investigation. No Orchard access, SSH, Git, GPU launch, external write, mirror or independent review occurred. The brief confines this task to local CPU work; `out/REVIEW_REQUEST.json` is the local handoff. `out/proof/CONT1_RESEAL.json` is a fixture seal, not production approval. The explicit snapshot comparison in this report identifies the requested authority baseline. `out/CONT1_STORAGE.json` records a conservative 2.88 GB of changed local storage, counting immutable hardlinks once. The workspace also contains substantial inherited artifacts; no cleanup was attempted.
++Local tests do not prove Orchard namespaces, filesystem capacity, real A checkpoint availability, GPU/FSDP bit-exactness, production RGB admission, full routing regeneration or throughput. Regenerated database or population hashes may differ in production; C then refuses and needs investigation. No Orchard access, SSH, Git, GPU launch, external write, mirror or independent review occurred. The brief confines this task to local CPU work; `out/REVIEW_REQUEST.json` is the local handoff. `out/proof/CONT2_RESEAL.json` is a fixture seal, not production approval. `out/CONT2.diff` compares the C1 baseline with this packet, including derived kit bytes and directory modes. `out/CONT2_STORAGE.json` records new local storage. No cleanup was attempted.
+--- C1/out/OPERATOR.json
++++ C2/out/OPERATOR.json
+@@ -1 +1 @@
+-{"archive":"p_fcc9a6f3.tar","bundle":"/project/community/jjyeung/okh7/i_7f1589c1","contract":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","job_name":"a15_cot_ap05b8ac69","kit":"/project/community/jjyeung/okh7/x_7f1589c1","private_content_scan":"REQUIRES_INDEPENDENT_REVIEW","production_authorized":false,"proof_script":"p_05b8ac69.sh","public_filename_scan":"PASS","sha256":"fcc9a6f333735d5b9b73ed6c56d21e41d00a683b10f46b00a2efff744d34f329","wrapper_sha256":"5e03795db020451f3705d322505273a38f10130c6a007f0c86752de17e6e1605"}
++{"archive":"p_c60b9015.tar","bundle":"/project/community/jjyeung/okh7/i_7f1589c1","contract":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","job_name":"a15_cot_ap05b8ac69","kit":"/project/community/jjyeung/okh7/x_7f1589c1","private_content_scan":"REQUIRES_INDEPENDENT_REVIEW","production_authorized":false,"proof_script":"p_05b8ac69.sh","public_filename_scan":"PASS","sha256":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c","wrapper_sha256":"5e03795db020451f3705d322505273a38f10130c6a007f0c86752de17e6e1605"}
+--- C1/out/operator/d.py
++++ C2/out/operator/d.py
+@@ -115,6 +115,9 @@
+             # their private directories searchable at the required mode 0700.
+             if text.count('chmod -R a-w ')!=3:raise ValueError('Inherited staging permissions differ')
+             text=text.replace('chmod -R a-w ','tk_readonly_files ')
++            anchor='rsync -rt "$HX/b"'
++            if text.count(anchor)!=1:raise ValueError('Inherited kit copy differs')
++            text=text.replace(anchor,'rsync -rt --chmod=D700 "$HX/b"')
+             helper='tk_readonly_files() {\n    find "$1" -type f -exec chmod a-w {} +\n    find "$1" -type d -exec chmod 700 {} +\n}\n'
+             text=text.replace('tk_stage_model() {',helper+'\ntk_stage_model() {')
+         path.write_text(text)
+@@ -145,7 +148,9 @@
+     launch['in_job_admission']['directory']=cfg['output']+'/inputs'
+     # Independent review, native staging and written authorization remain external inputs.
+     pending=dict(status='PENDING',config_sha256=identity(cfg),source_revision=code['commit'],production_authorized=False)
+-    for n in ('review.json','staging.json','4.json'):write(out/'k'/n,pending)
++    for n in ('review.json','staging.json','4.json'):
++        value={**pending,'allowed_partitions':['advanced','general','bootstrap']} if n=='4.json' else pending
++        write(out/'k'/n,value)
+     arc=dict(schema='s1-source-archive-v1',status='PENDING',durable=False,tree_sha256=code['tree_sha256'],
+              sha256=sha(archive),bytes=(archive).stat().st_size)
+     write(out/'k/archive.json',arc)
+@@ -158,6 +163,8 @@
+         for n in ('review.json','staging.json','4.json','archive.json'):
+             value=load(Path(evidence)/n)
+             if n!='archive.json' and value.get('config_sha256')!=identity(cfg):raise ValueError('Evidence identity differs: '+n)
++            if n=='4.json':
++                value['allowed_partitions']=['advanced','general','bootstrap']
+             write(out/'k'/n,value)
+         cfg['admission']=dict(path=AS+'8865619b/k/review.json',sha256=sha(out/'k/review.json'))
+         launch.update(status='READY',production_authorized=True)
+@@ -180,7 +187,10 @@
+         anchor='MODE="$(/usr/bin/python3 -I "$ROOT/b/r8.py"'
+         if s.count(anchor)!=1:raise ValueError('Mode boundary differs')
+         s=s.replace(anchor,'/usr/bin/python3 -I "$ROOT/b/c0.py" "$ROOT" "$RUN"\n'+anchor);p.write_text(s)
+-        p=out/'b/r8.py';s=p.read_text();anchor='    if persistent is not None:\n'
++        p=out/'b/r8.py';s=p.read_text()
++        s=s.replace('import argparse\n','import argparse\nimport sys\n')
++        s=s.replace('import uuid\n','import uuid\n\nsys.path.insert(0, str(Path(__file__).resolve().parent))\n')
++        anchor='    if persistent is not None:\n'
+         if s.count(anchor)!=1:raise ValueError('Resume boundary differs')
+         s=s.replace(anchor,"    if not checkpoints and (root/'d/0.json').exists():\n        from c0 import verify, load as c_load\n        kit=Path(os.environ['TK_KIT_HOME'])\n        verify(root/'d',c_load(kit/'k/a0.json'))\n        if persistent is not None:persistent_check(root,persistent,job,'t',None,0)\n        return 'u'\n"+anchor);p.write_text(s)
+         # r8 executes before r.sh exports the kit location.
+@@ -188,11 +198,18 @@
+         p=out/'b/w.py';s=p.read_text();anchor="        cfg['milestone_gate']=pick(auth,'milestone_gate',arm)"
+         if s.count(anchor)!=1:raise ValueError('Training boundary differs')
+         s=s.replace(anchor,"        if cfg.get('continuation'):\n            if mode!='u':raise ValueError('c0:38')\n            from c0 import install\n            install(run,cfg,json.loads((root/'k/a0.json').read_text()))\n"+anchor);p.write_text(s)
++    p=out/'b/z.py';s=p.read_text();anchor="    with archive.open('rb') as stream:"
++    if s.count(anchor)!=1:raise ValueError('Redeploy boundary differs')
++    s=s.replace(anchor,"    if (root/'b').exists() and not (root/'b').stat().st_mode & 0o200:\n        raise ValueError('Sealed kit refuses in-place redeployment; derive a fresh kit')\n"+anchor);p.write_text(s)
+     names=set(manifest)|{'k/'+key+'.json','k/'+archive_name}|added
+     actual={n:manifest[n] if n in missing else sha(out/n) for n in sorted(names)}
+     (out/'SHA256SUMS.txt').write_text(''.join(h+'  '+n+'\n' for n,h in actual.items()))
+     if evidence:
+         validate_evidence(out)
++    # Seal code directories only after inventory and evidence validation.
++    for directory in sorted((p for p in (out/'b').rglob('*') if p.is_dir()),reverse=True):
++        directory.chmod(0o500)
++    (out/'b').chmod(0o500)
+     result=dict(status=launch['status'],config_identity=identity(cfg),config_key=key,manifest_sha256=sha(out/'SHA256SUMS.txt'),
+         source_manifest_sha256=source_manifest_sha,missing_source_members=missing,source_identity=H1_ID,
+         run_key=run,staged_additions=staged,production_authorized=False,
+--- C1/out/operator/p.py
++++ C2/out/operator/p.py
+@@ -15,7 +15,7 @@
+ 
+ def main():
+     p=argparse.ArgumentParser();p.add_argument('--kit',type=Path,required=True);p.add_argument('--bundle',type=Path,required=True)
+-    p.add_argument('--partition',choices=('advanced','general'),required=True)
++    p.add_argument('--partition',choices=('advanced','general','bootstrap'),required=True)
+     p.add_argument('--binding',type=Path,required=True);p.add_argument('--out',type=Path,required=True);a=p.parse_args()
+     binding=load(a.binding);launch=load(a.kit/'k/launch.json');cfg=load(a.kit/launch['config']['file'])
+     sys.path.insert(0,str(a.kit/'b'));from i import identity
+@@ -27,6 +27,12 @@
+     equality=load(a.kit/'k/selection_equality.json')
+     if not equality.get('native_regeneration_executed') or equality.get('selection_sha256')!=binding['selection_sha256']:raise ValueError('Native selection regeneration required')
+     if binding.get('unit_binding') and not equality.get('native_unit_regeneration_executed'):raise ValueError('Native unit selection regeneration required')
++    allowed=['general','bootstrap'] if binding.get('continuation') else ['advanced','general','bootstrap']
++    auth=load(a.kit/'k/4.json')
++    if a.partition not in allowed or a.partition not in auth.get('allowed_partitions',[auth.get('partition')]):
++        raise ValueError('Proof partition is not authorized')
++    for directory in [a.kit/'b',*(p for p in (a.kit/'b').rglob('*') if p.is_dir())]:
++        if directory.stat().st_mode & 0o777 != 0o500:raise ValueError('Kit code directory is not sealed')
+     runtime={}
+     for line in (a.kit/'SHA256SUMS.txt').read_text().splitlines():
+         expected,name=line.split('  ',1)
+@@ -38,7 +44,7 @@
+         expected,name=line.split('  ',1)
+         if Path(name).is_absolute() or '..' in Path(name).parts or sha(a.bundle/name)!=expected:raise ValueError('Bundle bytes differ')
+         bundle_files[name]=expected
+-    authority=dict(partition=a.partition,bundle_files=bundle_files,identity=identity(cfg),contract=digest(contract(launch,cfg)),kh=str(a.kit.resolve()),bun=str(a.bundle.resolve()),
++    authority=dict(partition=a.partition,allowed_partitions=allowed,bundle_files=bundle_files,identity=identity(cfg),contract=digest(contract(launch,cfg)),kh=str(a.kit.resolve()),bun=str(a.bundle.resolve()),
+         runtime=runtime,selection_sha256=binding['selection_sha256'],equality_sha256=sha(a.kit/'k/selection_equality.json'),
+         wrapper_sha256=sha(a.bundle/'jb.sh'),persistent_root=launch['persistent_run_root'],job_name=binding['job_name'],
+         run_key=binding['run_key'],tag=binding['run_key'])
+--- C1/out/operator/p_05b8ac69.sh
++++ C2/out/operator/p_05b8ac69.sh
+@@ -7,8 +7,8 @@
+ PY=$(command -v python3)
+ exec "$PY" -I -B - "$1" <<'P'
+ import base64,hashlib,json,sys,zlib
+-raw=zlib.decompress(base64.b64decode('eNrdPGt328ax3/Ur1mpSABEISk4bJ7LRVrbYWLUt6Yh00l6ZBwcEFiJCEECwoB5N/N/vzOwusABBJjn32/U5EYF9zM7OzM5rB4l5wu7DLI3DmgfiIa2jJRd2lNw5pwcM/h0eHp7F67RmRZ49selzBkOWbHrCiiRhYR6zRQHvxUM+EuG6zNL8jpVVsQgXaZbWKRfsv7wqPIBC0JY+QPbueG1byxPL/eWzQ80CFo03GRe+3fTrtjjQgGm82wyoeJSWnBr3zpBLpAmzl2pisamhMygLwYM6rKBRWA5LBcuLms2qDWdFxdTgJIT9JpssgC0GUbjmVRhUxYMx4Z9hJjitof/B7DB/suunkttCglmHjwShpc2T5Tg0P82Znea1m2RFWDsdQC08cTsIYv7MP2YJ9iOYhoyOYh7+q8JUcPZDmG34pKqKyrbeh5s8WrKK/7xJK+DQ9Llfw6Zd4Kqf4GbclrEDi/rHlnNwABydPPJoU3MW8apOk5THyPl4E9VpkcMjL8MqpGdALRVFBhIGQ5ZPIo3CjFWbnGVFRCMECUi6LouqZstQLLN0oV9/EkWunwtxkFTFmpVhjUOYar6GVz2k4voJoPDH9gV4njVv6V0etm91WDfPmwVsIuJCNC1PzWOdrvnBQQwnRixDu1REXjJf4+xB+/O/fmNLLtJJQdxgqFeUPAfRW4DchIIlLX+QewsiUc0rOwvXizg8ZYlX8TC2T9irV+z5seOyhWU5pyCUmxJPqr2QS1S83lQ5NC/5Y5zecVHD2oQhCFOMKOohSEYPG4WtUcIVgpo/whyY9PZqOguuz2ZvYTvWeCOqMXInGy/S/JRe6QH+WHLo7Orq/RTGwrkD+lkusxAx/F2v4rSihgT/hg8r/FkWos7h/OBzHaYZ/kbLdRFbbk/mLZiuRyKOcJIJAggb/kgai82a1roneMUmWtIQxGQL3Aa7kjSPaTpwkoaWBF885RF1w25XEjfCPak4IZDKSRnn5TbkRSh4syc5XvCfLcUCnt+nVZGveQ4Ulgz/E5tmm2oNYlaCgoKzF2b6DLA0hoFwvl6CVgD23eGBXvIsw+Of5ktepXh+ohAVtKugXT/VSzxswFHhsvgJkEmjEbKZV6y451UFUKEHQLwGEUVRr+pNyZZFsYLFK85yzmMeewQPEAaG/rI6ZfcklisXHgCNQnhqLx7gsBa2g+p05RE0tBlL25q+/3jzIbCczxqSllQUKb8RLpe9vfow8a1xvS7HP/30xDeopdnsw/X5xY1sxtf/8a2PszdbBGfv3wRn79/7FnSxNx/Pz4IfLqYXr99PgvPJDxdvJlPfgo7r/8zeXl2eX13Ofry5mE1e/2c2eXN1DoueWPLUGPuJMh5W9lazwh1eFS9RekEJ8iRL75YNO9P8HnhWVE9Its/azoDG8ID0ApgapHlSsFfM/tpl3+1Vytet6mwUsz5245LY/DX7m8++9r5Tu0AOofCRAUFRpBOghkpRJNldwhHC37v/piTyeRpJyS7008MylccH9gv66Yi1B7xFGTdGStSj4TYu7ZLktdwlm3hZ5Py0w7i9u0XKouG4q8I12+ThPeiGcJHxU2Yd4RqtRcS1gNCkvn4bFdRvYHTuud1CaPh1i1PmACxOo9qmmaKu6AF0rdQwPil5bHG6zL614ioFBlvbACRuwH9OthH3YeDRBf0bYzsKvllbSuMqrYPFQxWW9mqppKoEKfCl1l8tx9ZqfOyhyrecW4tGWvODPg1hyi2oxYxb89ZHQo8EB3mpCMIFIAMWHs47yprRg7PaVjg4YYQ20zaICI3/Dq7eOX3PCCdU3AOXKluH4G3a1u3x6LtwlMx/+eYvn0EKCS1JJ42Y6QhpprBnfm/ovuP1DjxYogNrqa3AwWTgYpLAiUWZa7bQYUDTKhmA4iPKMOLkGIE5fmgU/AfcFKtXkkGWYFUBO+b5Bl1Hknh0rhoA45jfwzEco9cxXhZwnJMsvBOeNhd1eAdaH5RAzESxqSIu1TYYgWiFHU+m0xUm4EOgkgfjceex2RKOIyGooEUhufdsxaucZ6Be4FeMP16cj9ZhaWLCwO0FQwVDFxz0DGdoh9G3D6toCbKv8FPEsSzQNTUb8U0BLCk5Tj54/aNvQ8cRuWHez5uiJjIdQZtzgLoLBBoUJ4jt+Cs29m6feXP89f7+1UsWFwQ+AvPKDr+ggYc0Egn0KyL6K6HpsKgAm5mDx/7yJeMijGje7S3g0k789Vc2et++zufYoidqwcc5nUEvWb3kOXv945Fvj0biaY1uCAywtUvSDHYO20fAAhxoPasqRsS5BqwxLkkPYtCUB2oo7EmOxd3JP6MRsUIyZDQC05gISQJ4Ax9JPkuhh7X4utjkNazZjNnkIN4VHyGf8TVFTGz4O9oAzqPRXdtw5xw6B4df/PL6x9t/zD8fMjI7aFPYKELfBnT0qJKojAXPkjE6fRvB/vxnJjsfCOdxDse6bYwlKtZBWUGEkzDrS/HpU26BDYLubrzQHAjWWFl2fTadWgcgMPLQAZB7tMra8S4bRSaPKhDWMFdoeEFDeBliqmwAf4x4CREbaK/Lov4n0Csm/bBPc5yDKY7Ixq83sKcF13g0ygLiOIpK0PB19Ciu7E2Diyn4NjYiBB5TAB4vJ82pez+Ab9LrBdV2XLw4Pu4rPz0KOQljCgouObzZ+yO+37MHSeMIpLvmwUNRrWz842KcFqz4U6PfztiCNJzhua7DJ+lZypAnzBlfl/UTQ2/OY5ccbCUjVx/3kBQw8QEGKXj8MRU1pQ1AVPP6pXZ/8Pgxgf6NwhWUtN6F1HMUZyDIyeTfF9OZty0EuANPwvVotI309Ym2WxIxQURETx7KECJBelDCZ4BUUR42DAMnD026Z9Kvtbper/k6DgPrSNGaAo6iFhQ9VRTnQI+wDB4THuPcGVhZnRVyqGy0QSWvXPZTsRBRlZZ1w8hrUO+8uufmKYyK9RrMk2DAMmBzuvbYBHQSsqLYIM0VvNYsCGCINi+w3XWK9COigD2ViQRYGgJjPSWtBTApTHPg+QjxZqBPOC0/RtusQ5EY41DUtah4kBxMgM4owZl+Zef8AfULqHFMXDgWTQFOcRRBiaEXoTYEDz52mO+z54qJPEkfAbAadHuqR4Pm5Y80WvpJ6xA3gCjcfLz0QUlu+eKjC1KN5tINjdXiEgitf0LjYECDQjP49rSdJ9FQ8yQm5D4gHldXM0REBccdSzRKGOrus+nbYHr18ebN5PYYlDio9MM+fnJ5hR+CNrADbwM9DDyLpM9EDSYfUxsYkBrAyQt8yRAhEIA1sFKQhPDHMKrZu7fe0F7VwhUvM1DytLTbbOrd20Or427ZyqH4lPNHSr0MBnuHh2hMjjRbj5j1KdfzsL1ZtqNHaVhr3w6/QCTGi3EFQnoIRuUYJvcnKCxm74J3F7OAQlg5DzCQblkLJ0I4e2GASE0DjHcPv7i82T/0X1ev5cBfpl+OkWifxygtY3ingBv6g4vz079/9uAUF8kQsM06FCt2/OLFp1xqzFHJRmsGugKFplnjy/FXnw+bIbq/6R6CrE8nLR2Aci6quPMSgP9BBxbc4WhTodJksscZAAeDA3BYD7+YjqMX8dcncRyPw/wJA8TxF32wFN2gQ9Xv2EPPmxMk/eziwyS4mby5ujkHul7/1hID4LRz/ymHJ4iZ6VfqBYqvyoE5hm8Fi168v5oFP0wufzBUCnhkr9kIev99yF69uv6Uq0O4wbxQUKagAj2Z2QnCTQzxjMpK4gH8lLfZSuAhtFBkGVZ397cncyA2gNNpKaXjwRl32WrpMmXmRWMYZnCWH5YFBEgY5gGcmq8xsEd2j+gaQFlNIhhDCwBBilb1yGAOuqwJYa7AlmTgIbx7q6yDwAzoA8+yU4ZnhZWYKwHTy/41vbokMCGmyGq0+crSo5koNUDpEGtPJgRlxQHKQ5XKqI7c4FMwuznaKYr5sA9iGQh0xt9fnAPFyga7M5bzGklgeKBhDBYwlJkJ5Y1gEo9BPIw/MgXdGE1P+3yV0L6G/EEXbbVUL3tzP5IAdDpQ29PWyHUnvWrY56LEIBIMLI5TKhOYLEDH3iI/ra7Tb1FLnPIROmYjiYnVGVbKBGcTq+DLWP3pyLAlwxHq0g8UtlCL+h1pGOhUkotCno+DQ8gF6oOkoEaNb2ilLB+6KK1nQo6pYFfjCmktWeEB+1qplPxCAkZhjv53XAD9wvqldk+UIF6RjKFOENIdKYDKMh7FlGwLEIkGbo8EvN7U6q6i8e3osGOaFk4ej1v8MUtaoVtmeuWANGVPmpTdSj67htxQvuu0G5uac1MRqEDUdropNhKCI5ACq4lVLcrBaB+hTc04bpvNmDdAMGzdDbIVDjNN1oVijjfZ2mzPGRYQ6eo6erDTS/puCYlajhjQpf4usrc0t4ptn3qY3F1aD92iQQ+EsKu0lpkMq01V7aGcJpuxCRUh9JAyYfRJljuaFvC4TXxjOKYCC8vpvcCYaCnvaBRJt2kOfhRmg2HwkOuF7XTutRtFhz/qJ+yVF/dSRX/oUozQwp2gEXyOf74+fEkZOTPhILbAhAamWzI1pDqUG4lUkUYPjn6aPAXyVpKkxW2uIgOguZIYNJrypOXoMdvHLeUWlsoIkvqPtfXlSYLBy72UnkxerXYSsbJNZWNlXiu5M4bI/lsLxDBJ76x5NycL5h6AYzDUrETIAwxXJp/lfBmoNyGyTGebG1TYx2EdBioLbPaPrTQvN7UY0wBlwyXSzTyNdAOjSRtjy60lc0LWHA2fdX0zuT67mZxbGBbK/rtyEyRpJeoAI7mghHALL+nn5tX7/juS9k45TmOVSg4x3bpEZwUgj2RyYoGpnbA5lEociFxhvE4F3c2A27DJah9xc5m57cDI0rd73bqMYlqaAsHDTPgEXkYDviIIvVC3NXfNO3E1wGiBAUN3/1v/pJio+VpmXJBKdF9Us3wBEdoG2UhRIOcGdDJSHvszqgGQ/CEqBjJVDl1U4qBvNWWjjWcLTgfFrS7eV7rqkJEkgu/lt3fpnnHCME9E8oy36R7+sTWTkB36SkXKkm/98+ziPZz+KvJPXD054GUR4YULvblsi6WYiRuiZo9hNGzPjt0mUbFFiu1UE2a+gArqov9x655fZywlcRT56Mz5moh4F6/YALE3eB5+Qk+86hBzOju/+jhrzY3c9K1VRXQjVXpS3CN0msmUGe9/89mxTFGfPP92ZHZ1rZ8xxYcpvfs8WlBfkkqu244zMMbQCagSKJ9rpN1eh4JP6JFuLwS2GwogQq33GHl6J6kAtVyHecRtaHbZlEKTyWNaO+TSdftpGpIYeuWOD4Y3sC1qsDIoLRA4jorHp0IegOh4QYCuRBAcWTpzis2m/GqgCciNWDayagg7QM0gACEphDMYC7NzpIS6o7ck5CaxB0Fqm3y1ww04qRDf6AwtCHidkoox7rOpBqnNGIBinl3MLq4urUaDN9OamiQrjO+RluBLWHccZBaUGCWum6HP/GZxUGW61ZqfDl74FuYi6sKtXb+P7KDX4TzzLWsndAqbsKzozfVHcuB3Q5ek+P764zS4ugwur84nsMljqy3IsuT7wFoAXAW+igmgzACQGDA1LSuaJzfHTO0gOueEx+XZh4kkMwzaoLTZjoeT5F24UsHoegRlFub2AgxdxrEqzu1m6tcYu9eg4YSvPGRwxrC87lZXzoGn0Q4CY6Fq8eqiLEHRLYoi6w6XuKrFQzTiRamdIkoo+hmovhakcwRnz1bwGlYQSLq+LAvoB5dFrIK7TVjFiBDuKYej8cDxBiiQiwmsc6MVBvgxkbkdBCOx6MkWhfU+bFWe19QhpztFLreozo9sGEEbcuXva/3wBv2TRJNFapLbub49KMGYArEUha2fvx1/++03f/3m5LvFuEnnH1mBLGU4sjw43eip1l8eP4cgMxkd/8X6Mu2UchC+LY5VmN9x+y9tFaNaSjF+bIHmeKytTjWXJ8osrSF04QLU8jNfo7mHehzvYGR8q+g3JM+DzJGccQ15ax9dJFuQwElZhNEqkLz4eouex666i4gDJE5gokNCpXegr6lA7cPa4OCRayakNQW3GMMjLf+IFTC+DbRSF4YhTfVlvHRiusEitICSUUHU6VZoqNw7unbEybfp0cnceSmrSH3V8nzeqZqhKc98GX7J23+8zaDmtuADA84KLAP5ZnUhL5racpAB3p2tFynmjJrMV8zRpeZ5ZAajkg4eXnPk4LobPioeB/nouGoD8sfZZr22kWTCicwBZlp8HZM6rsYiUISXP60XBpLJqxyDDeVkd2MVHZySGKPyDmQ84qOIZmkEYTaE2i5T+o6KHLiuiSDDIoi0cObQkmLFRIjpHJ31RBsKljtJH2FTFEIZsqJiOfmDdZxULEr8Brnzu+0etgUYBVIZTNBYYis6tlwKFcfRsVdqJkDku8l4H4hslWAQoI1/nJf4V2V5qS4okONs+WM6Gm7gBr5s9vSuZEIF0TDiz1BXApmNL1TbTj+Dcsh93wJNEt4m2MfF8YsXji71a6scVcjaHG8bK203axWeNHmU1nGzwQ09koPaO1N4JyMsy3S96cX3s8nNB5e17xeXM/P14/TmBICrBvmDs13WsT6YnfbZbrfo4pzyGo2qHShVOhl9N8d6pflXFt2pDqaGLlG9pJF5Ra7SyPFvuSSIhnIBIIg23CtYi9QneFcDK/4LdkYGpGv7MFEAB0bXSRjgVkuMDreaYbBOPDT5tTa54mqA+EDH9dQoylC8bzQ389WosQ3Ig+0jr8nMg/yJ3agraIzflV6Q+1CXxaj3cwEaUV6zszNdmEQpAyosQI3ktfXWBgI7QzGqhY4369Lu6Labj5eXF5ffS8b68B/FAjJIbHPwgSLXf5tgEKS7VbeJR5cNtvUpt4bi2j/onv/f/EV3MIpudrdnU0PRczf67kQ0wxH4ULw9EDq3x8TfE93sCN7ase0IrfuxML9Xt9uMAWpRDtRWeUWjSDQWOtG1oLxYLEyhNe7ToefW0mXbGOJ2TqzRQcEpDkZ/ogqjemtw29FfBJNQhMdPWEVhOb2JqoAh0FWQne8KSAa074RnuXvUYzRA6KuBb68Ku7uBfpo0y1P4sdeVlEGYBGsWVHaLeAktly172Ciz/RuIUMIbFePy9DdKqJUXYKLR4vD7srR/NFOL/4a/pGq9x9+RXm5SzGnjlihBco2TEtyVG9Ed36SktSxhfhg/CWklW/aHrYh5ZOZXyy3R1ltt0zdYgjI5O/+PpaRZ4kT72yn4fajqExWNYJO6RiDO7z4RPSrYFpZWaTyO+6Mp3hQngfrqC7nWFBzRizo4veWbMdsnyziYUnbasWDlQ/xGSslRD6bu3QYZFWtSlB3Foxp3KB89BT8My9OEizowt6Kxm749g7bpxw9TGSfuBqPywRCwWnOw1rQqQiIfYafo093aVipSJQnMOM6a+728BSUtujpArm5o8gf0Isxq9y0l39S3DxfjLx46Bfj9+vtut9OpHNRuU/djFWcMAgcBvYE4hCJIMmhEj7Bl6lYt5f7NgpLTZO7c5WD2o4MD1QoOwTqyxnh/OB7uHdDZNxv8NA9r+0Qaq8vwh7wNr806A41iCie4e3VrXLyiIyI7bev3YgxLjPFbIiwUcDyqB0UDsMvC0A2/ujGiOlMDv0qwnsCWTW0F3nJR0GrSXJ9lefXcO6/mXJrXloXqrxh99gc3u5s9hpmg+wCAPfCZAZW7ydrOjltg5n9cRkdf1l1avQ/9uhWkFt1dy2HkuMpxqlS0e6Pt7y4d6nyjI/y96ZkdjhylBNUlWm++L79vI2bLtMNATqI59rSI4yoXINB6YmhO06cfYJ5Sg9qI+R1L5+rrt74+3HV319PN/i617DZWW4/cYSvJVO5arTFE/n6r57KeKfL3Waldq3VdT3+PU+pqh2xgbOP57VqGJNSkX19wuzf5nZvvnZRqZpAK8werUegrmm6a649pNWs3p+BIZgHG9BXfCK6vG6NNHAb3qUgxjyY/xxH4SeMOID1HyP89txwMrzWMMGhTw6Hm/vCt7lD8nhV3SB79ofK+wgpn11lXq25fYUolgNKq8nV0R4Cf2vk7EnitisKaSNIXvl6/qWkIjUIGnedthrcWp1v+hAN88sbasU4/KqGuWwsEAIQFWNrTHmi6Bz3jAev2Xn61K++W9MheQqcXD21tNFPOIq5KiLUENUtH6aYl7bi/uxGSxaaLJ6y+61wN7GJeE5p3URieJAv5AhDha2DyFtY6bxYk4TrFL6axsTNnTwXbtlR1idA1CZdXMywPNja3CGN9f6BD18Ypc6NlmsUVz12KoNVn0g9hJn29njCRWJJf0gDYYuhWhd/WR0I0Qn7O1Hwr9Ex+9nEKuOocf+8LxmFKNHgQGNEnBiWMECuAK+9otMkEmsB/JmjJIf+X/pl1LbrbQ3cfnvX/daM1Q67VWnR46Rl9nNIz4QSxi7bbZak7IDCfzWMvU7pyyCsfb0T7pHH0/75ji2areRsPP1MuhPxOni7qFFT6NF429ADvK6LoJuqwBMEs6sBiBOfg/3vlBHAj5kkIj7bVLZ8A2Ea6ceekXl0FYqSo2AM3HxnlKW1OU+uoHYnkhz2JZHUnw7BgB2NccAOEKuXBb3ry2n+O33yayWF8TbKNWNrwCLojwf8VhQ1toE/yQm+Tvpy0m4VEJ2XdL7KRLDAkx9VZdfJgjC05ztDVj5x08L9BegID'))
+-if hashlib.sha256(raw).hexdigest()!='51d6f0944f96977f4ed96ef99149355a54ce1e34976f56ab18f97e1c969f65eb':raise ValueError('Embedded source differs')
++raw=zlib.decompress(base64.b64decode('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'))
++if hashlib.sha256(raw).hexdigest()!='861b540bef15666fd8dc97fb6999e495743613b1c5e0573117681aec45e064b9':raise ValueError('Embedded source differs')
+ authority=json.load(open(sys.argv[1]))
+ if authority['identity']!='6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74':raise ValueError('Configuration differs')
+ namespace={};exec(compile(raw,'p.py','exec'),namespace)
+--- C1/out/operator/sums.txt
++++ C2/out/operator/sums.txt
+@@ -5,7 +5,7 @@
+ e0ef07f2df7a01d35657b9854647cb7f32d5774b9aa42f285fe0cdbd6e09fefa  c0.py
+ 2152828974490944a1713f5a539e87211f80179f0b5f9254ea9966fc65788733  config.json
+ aaecc9c42cd549ebdf4da6483ffa6de6f580dc1039a2b53457e975cfe5082ebb  d.json
+-ab58d662fae904bdb5ce6d50cb3cc969a4cc09adfda1caefe336c8e4b8aa187b  d.py
++f6faacbfb7703c1054cf51454dda4a9a1cbdc81c0d6ccf842d8c486d2d1d18a5  d.py
+ 8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd  d_8091154cd499c474.json
+ 817461a219aa3c0674e22b9a87e98fcf768dc20696a29e23b43eb6999db72288  e.txt
+ 5e4ae8a89de8efcad68346e09ae1a42d4828163dc7e498e113df78bebdd4b6be  i.json
+@@ -14,8 +14,8 @@
+ 5e03795db020451f3705d322505273a38f10130c6a007f0c86752de17e6e1605  jb.sh
+ 0d83e1372e7f4e7b499c424e868248990faf1b6ea8cccb6b7207f560554856dc  m.json
+ 02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411  n.json
+-b697bb75a19589a9ed4795b60fd2af0eb0d0cd0ac7dbd2c32c9747f9da0a4f28  p.py
+-21f60f9cd548eea3a54ce259fa2facea6f3ab6e7a1c250afbacf684497d6cd7c  p_05b8ac69.sh
++3cc8d60b5140d7fc5fe74d59dbd639cb3709bc04fac4071eb7e75dbe682a2947  p.py
++4a304bfd2042c618ddb2bad4e33faaf429ba290480c2bde282149c10af9042db  p_05b8ac69.sh
+ 0e59331b3746695f0444ce7f6c29f13902497a76ceecf6ed64c5da8feec11224  proof/selection/q.json
+ 5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af  proof/selection/r.json
+ 060dbf93da990a4a6803419176f82365a00e020f30475b34c7f373e151d195e0  q.py
+--- C1/out/proof/DERIVATION.json
++++ C2/out/proof/DERIVATION.json
+@@ -1 +1 @@
+-{"config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","fixture_paths":["/scratch/jjyeung/orch_n30/r1_pkt/work/derive_qohixd94/a","/scratch/jjyeung/orch_n30/r1_pkt/work/derive_qohixd94/b"],"manifest_sha256":"009c8a6a7a5d0d2172d965892b0d8498067c7595c5f108ac630d8749331012c9","missing_source_members":["k/np226_5204b3a0.tar","k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar"],"operator_archive_sha256":"fcc9a6f333735d5b9b73ed6c56d21e41d00a683b10f46b00a2efff744d34f329","operator_archive_twice_exact":true,"scope":"FIXTURE; two inherited source members absent locally","source_manifest_sha256":"f13eccc20b7d2ee8b9622ce66db36e3cf561d0d41e69a367e9c435d5bf4261d6","status":"PASS","two_derivations_exact":true}
++{"config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","fixture_paths":["/scratch/jjyeung/orch_n30/r1_pkt/work/derive_sd014gpo/a","/scratch/jjyeung/orch_n30/r1_pkt/work/derive_sd014gpo/b"],"manifest_sha256":"b23b622e31c9b7a9bd961ea89c458cfbfabd9b447c0ca4aa6aec92e19e2bfdc3","missing_source_members":["k/np226_5204b3a0.tar","k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar"],"operator_archive_sha256":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c","operator_archive_twice_exact":true,"scope":"FIXTURE; two inherited source members absent locally","source_manifest_sha256":"f13eccc20b7d2ee8b9622ce66db36e3cf561d0d41e69a367e9c435d5bf4261d6","status":"PASS","two_derivations_exact":true}
+--- C1/out/proof/PRE_SUBMISSION.json
++++ C2/out/proof/PRE_SUBMISSION.json
+@@ -1 +1 @@
+-{"config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_3p6qwid0","inherited_runtime_unchanged":true,"operator_archive_sha256":"fcc9a6f333735d5b9b73ed6c56d21e41d00a683b10f46b00a2efff744d34f329","persistent_entry_called":false,"scope":"Production-form records from driver builder; two missing data archives replaced only in local fixture; no production authorization or native data proof.","slurm_identity_present":false,"source_sentinels":["k/np226_5204b3a0.tar","k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar"],"status":"PASS","writes_confined_to_fixture":true}
++{"config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_wt55atj7","inherited_runtime_unchanged":true,"operator_archive_sha256":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c","persistent_entry_called":false,"scope":"Production-form records from driver builder; two missing data archives replaced only in local fixture; no production authorization or native data proof.","slurm_identity_present":false,"source_sentinels":["k/np226_5204b3a0.tar","k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar"],"status":"PASS","writes_confined_to_fixture":true}
+--- C1/out/proof/p.py
++++ C2/out/proof/p.py
+@@ -194,10 +194,18 @@
+ 
+ def proof_allocation(authority):
+     partition=os.environ.get('SLURM_JOB_PARTITION')
+-    if partition not in ('advanced','general') or partition!=authority['partition']:raise ValueError('Proof partition differs')
++    if partition not in ('advanced','general','bootstrap') or partition!=authority['partition']:raise ValueError('Proof partition differs')
++    if partition not in authority.get('allowed_partitions',('advanced','general','bootstrap')):raise ValueError('Proof partition is not authorized')
+     if os.environ.get('CUDA_VISIBLE_DEVICES')!='':raise ValueError('Proof must run CPU-only')
+     if os.environ.get('SLURM_GPUS_ON_NODE','0') not in ('','0'):raise ValueError('CPU proof allocated GPUs')
+     return dict(partition=partition,node=os.environ.get('SLURMD_NODENAME') or os.uname().nodename)
++
++def directory_modes(work):
++    bad=[]
++    for directory,children,files in os.walk(work):
++        path=Path(directory)
++        if path.is_symlink() or stat.S_IMODE(path.stat().st_mode)!=0o700:bad.append(str(path))
++    return dict(status='FAIL' if bad else 'PASS',bad=bad)
+ 
+ def export_plan(bundle,cfg,run_key):
+     milestones=sorted(set(cfg['recipe']['milestones']))
+@@ -305,11 +313,7 @@
+             result['absent_on_P']=audit['checks']['required_families']['absent_on_P']
+         else:
+             result['checks']['loader_audit']=dict(status='NOT_RUN')
+-        bad=[]
+-        for directory,children,files in os.walk(work):
+-            path=Path(directory)
+-            if path.is_symlink() or stat.S_IMODE(path.stat().st_mode)!=0o700:bad.append(str(path))
+-        result['checks']['directory_modes']=dict(status='FAIL' if bad else 'PASS',bad=bad)
++        result['checks']['directory_modes']=directory_modes(work)
+         required={'resume_pointer','disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
+         if not required<=set(result['checks']) or any(result['checks'][k]['status']!='PASS' for k in required if k in result['checks']):
+             result.update(status='FAIL',rc=result['rc'] or 1)
+--- C1/tests/test_cont2.py
++++ C2/tests/test_cont2.py
+@@ -0,0 +1,129 @@
++"""Exercise sealed kit imports, writable local copies and CPU partitions."""
++import importlib.util
++import os
++from pathlib import Path
++import shlex
++import shutil
++import stat
++import subprocess
++import sys
++import tempfile
++import unittest
++from unittest.mock import patch
++from rebind import ROOT, load, sha, write
++
++
++class ZContinuationModes(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.kit = Path(load(ROOT/'out/proof/PRE_SUBMISSION.json')['fixture'])/'ready'
++        spec = importlib.util.spec_from_file_location('proof_c2', ROOT/'out/proof/p.py')
++        cls.proof = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(cls.proof)
++
++    def root(self):
++        return Path(tempfile.mkdtemp(prefix='cont2_test_', dir=ROOT/'work'))
++
++    def test_derived_code_directories_are_sealed(self):
++        for kit in [self.kit, *map(Path, load(ROOT/'out/proof/DERIVATION.json')['fixture_paths'])]:
++            directories = [kit/'b', *(p for p in (kit/'b').rglob('*') if p.is_dir())]
++            self.assertGreater(len(directories), 1)
++            for p in directories:
++                self.assertEqual(stat.S_IMODE(p.stat().st_mode), 0o500, str(p))
++            self.assertEqual(list((kit/'b').rglob('*.pyc')), [])
++
++    def test_isolated_job_prefix_preserves_inventory(self):
++        root = self.root(); kit = root/'kit'
++        def clone(src, dst):
++            if Path(src).suffix in ('.tar','.gz') and Path(src).stat().st_size > 1_000_000:
++                os.link(src, dst); return dst
++            return shutil.copy2(src, dst)
++        shutil.copytree(self.kit, kit, copy_function=clone)
++        launch = load(kit/'k/launch.json')
++        launch['persistent_run_root'] = str(root/'slots')
++        write(kit/'k/launch.json', launch)
++        sums = kit/'SHA256SUMS.txt'
++        names = [line.split('  ', 1)[1] for line in sums.read_text().splitlines()]
++        sums.write_text(''.join(sha(kit/n)+'  '+n+'\n' for n in names))
++        write(kit/'ANON_OK.json', dict(status='CLEAN', hits=0, manifest_sha256=sha(sums), fixture=True))
++        env = {**os.environ, 'SLURM_JOB_ID':'191201', 'TK_KIT_HOME':str(kit),
++               'PYTHONDONTWRITEBYTECODE':'1', 'CUDA_VISIBLE_DEVICES':''}
++        isolated=subprocess.run([sys.executable,'-I','-c',
++            'import sys; assert sys.flags.isolated and not sys.dont_write_bytecode'],env=env,capture_output=True)
++        self.assertEqual(isolated.returncode,0,isolated.stderr)
++        for command in ([str(kit/'b/g.py'),str(kit),'p'],
++                        [str(kit/'b/r8.py'),launch['run_directory'],'--kit',str(kit)]):
++            result = subprocess.run([sys.executable,'-I',*command], env=env, text=True, capture_output=True)
++            self.assertEqual(result.returncode, 0, result.stderr)
++        result = subprocess.run([sys.executable,'-B',str(kit/'b/a.py'),str(kit)],
++                                env=env, text=True, capture_output=True)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertFalse((kit/'b/__pycache__').exists())
++        self.assertEqual(list((kit/'b').rglob('*.pyc')), [])
++        self.assertTrue((root/'slots/RUN.json').is_file())
++        # Exercise the continuation-only import under the same isolated CLI.
++        import continuation
++        donor_root=root/'donor'
++        continuation.fixture(donor_root,load(kit/'k/a0.json'),load(kit/'k/7.json'))
++        launch['run_directory']=str(donor_root)
++        launch['persistent_run_root']=str(root/'donor_slots')
++        write(kit/'k/launch.json',launch)
++        sums.write_text(''.join(sha(kit/n)+'  '+n+'\n' for n in names))
++        write(kit/'ANON_OK.json',dict(status='CLEAN',hits=0,manifest_sha256=sha(sums),fixture=True))
++        result=subprocess.run([sys.executable,'-I',str(kit/'b/r8.py'),str(donor_root),'--kit',str(kit)],
++                              env=env,text=True,capture_output=True)
++        self.assertEqual(result.returncode,0,result.stderr)
++        self.assertEqual(result.stdout.strip(),'u')
++        result=subprocess.run([sys.executable,'-B',str(kit/'b/a.py'),str(kit)],env=env,text=True,capture_output=True)
++        self.assertEqual(result.returncode,0,result.stderr)
++        self.assertEqual(list((kit/'b').rglob('*.pyc')),[])
++
++
++    def test_tk_nx_and_proof_directory_modes(self):
++        root=self.root(); source=root/'source'; work=root/'work'
++        source.mkdir(mode=0o700);work.mkdir(mode=0o700)
++        shutil.copytree(self.kit/'b',source/'b')
++        (source/'k').mkdir(mode=0o700)
++        for name in ('k/0.json','SHA256SUMS.txt'):
++            (source/name).write_bytes((self.kit/name).read_bytes())
++        write(source/'ANON_OK.json',dict(fixture=True,manifest_sha256=sha(source/'SHA256SUMS.txt')))
++        shell='set -euo pipefail\numask 077\n/usr/bin/python3() { '+shlex.quote(sys.executable)+' "$@"; }\n'
++        shell+='export TK_KIT_HOME='+shlex.quote(str(source))+'\nsource "$TK_KIT_HOME/b/c.sh"\n'
++        shell+='\n'.join(k+'='+shlex.quote(str(v)) for k,v in
++                         dict(HX=source,HM=work/'mirror',NX=work/'nx',NR=work/'runs').items())
++        shell+='\ntk_nx\n'
++        result=subprocess.run(['/bin/bash','-c',shell],text=True,capture_output=True)
++        self.assertEqual(result.returncode,0,result.stderr)
++        self.assertEqual(self.proof.directory_modes(work),dict(status='PASS',bad=[]))
++        self.assertEqual(stat.S_IMODE((source/'b').stat().st_mode),0o500)
++        self.assertEqual(stat.S_IMODE((work/'nx/b/sa').stat().st_mode),0o700)
++        (work/'nx/b/sa').chmod(0o500)
++        self.assertEqual(self.proof.directory_modes(work)['status'],'FAIL')
++
++    def test_redeploy_refuses_sealed_kit_before_reading_archive(self):
++        result=subprocess.run([sys.executable,'-I',str(self.kit/'b/z.py'),
++                               '/nonexistent','0'*64,str(self.kit)],text=True,capture_output=True)
++        self.assertNotEqual(result.returncode,0)
++        self.assertIn('Sealed kit refuses in-place redeployment',result.stderr)
++
++    def test_proof_authority_partitions_and_training_resources(self):
++        auth=load(self.kit/'k/4.json')
++        self.assertEqual(auth['allowed_partitions'],['advanced','general','bootstrap'])
++        root=self.root()
++        for partition in ('general','bootstrap'):
++            out=root/(partition+'.json')
++            result=subprocess.run([sys.executable,'-B',str(ROOT/'tools/seal_proof.py'),
++                '--kit',str(self.kit),'--bundle',str(ROOT/'out/operator'),
++                '--binding',str(ROOT/'out/BINDING.json'),'--partition',partition,'--out',str(out)],
++                text=True,capture_output=True)
++            self.assertEqual(result.returncode,0,result.stderr)
++            authority=load(out)
++            self.assertEqual(authority['allowed_partitions'],['general','bootstrap'])
++            with patch.dict(os.environ,dict(SLURM_JOB_PARTITION=partition,CUDA_VISIBLE_DEVICES='',SLURM_GPUS_ON_NODE='0')):
++                self.assertEqual(self.proof.proof_allocation(authority)['partition'],partition)
++                with self.assertRaisesRegex(ValueError,'not authorized'):
++                    self.proof.proof_allocation({**authority,'allowed_partitions':[]})
++        job=(self.kit/'job.sh').read_text()
++        self.assertIn('--partition=advanced',job)
++        self.assertIn('--gpus-per-node=4',job)
++        self.assertIn('--time=24:00:00',job)
+--- C1/tests/test_derivation_pre_submit.py
++++ C2/tests/test_derivation_pre_submit.py
+@@ -18,7 +18,7 @@
+         prior=Path(previous.get('fixture','/nonexistent'))/'source'
+         def clone(src,dst):
+             donor=prior/Path(src).relative_to(DRIVER/'fixture_h')
+-            if (Path(src).stat().st_size>1_000_000 and donor.is_file()
++            if (Path(src).suffix in ('.tar','.gz') and Path(src).stat().st_size>1_000_000 and donor.is_file()
+                     and donor.resolve().is_relative_to(ROOT/'work') and sha(Path(src))==sha(donor)):
+                 os.link(donor,dst);return dst
+             return shutil.copy2(src,dst)
+@@ -76,7 +76,7 @@
+ # Large, immutable source bytes share storage within this test fixture only.
+ # The production derive code still authenticates and emits their exact bytes.
+ cache={hashlib.sha256(p.read_bytes()).hexdigest():p for p in (allowed/'source').rglob('*')
+-       if p.is_file() and not p.is_symlink() and p.stat().st_size>1_000_000}
++       if p.is_file() and not p.is_symlink() and p.suffix in ('.tar','.gz') and p.stat().st_size>1_000_000}
+ native_write=Path.write_bytes
+ def fixture_write(path,raw):
+     donor=cache.get(hashlib.sha256(raw).hexdigest()) if len(raw)>1_000_000 else None
+--- C1/tests/test_fix11.py
++++ C2/tests/test_fix11.py
+@@ -187,7 +187,9 @@
+             self.assertEqual(sha(ROOT/path), expected)
+         old_kit = Path(load(SNAP/'out/proof/DERIVATION.json')['fixture_paths'][0])
+         for name in ('b/c.sh', 'b/r.sh', 'b/p0.sh'):
+-            self.assertEqual((self.kit/name).read_text().replace(self.key,'673bc60f'), (old_kit/name).read_text())
++            expected=(old_kit/name).read_text()
++            if name=='b/c.sh':expected=expected.replace('rsync -rt "$HX/b"','rsync -rt --chmod=D700 "$HX/b"')
++            self.assertEqual((self.kit/name).read_text().replace(self.key,'673bc60f'),expected)
+         self.assertEqual(load(ROOT/'out/config.json')['continuation']['run'],'673bc60f')
+ 
+     def test_archive_embeds_fixed_proof_and_reseals(self):
+--- C1/tests/test_packet.py
++++ C2/tests/test_packet.py
+@@ -686,7 +686,7 @@
+         from unittest.mock import patch
+         spec=importlib.util.spec_from_file_location('partition_proof',ROOT/'out/proof/p.py')
+         proof=importlib.util.module_from_spec(spec);spec.loader.exec_module(proof)
+-        for partition in ('advanced','general'):
++        for partition in ('advanced','general','bootstrap'):
+             with patch.dict(os.environ,dict(SLURM_JOB_PARTITION=partition,SLURMD_NODENAME='fixture-node',CUDA_VISIBLE_DEVICES='',SLURM_GPUS_ON_NODE='0')):
+                 self.assertEqual(proof.proof_allocation({'partition':partition}),dict(partition=partition,node='fixture-node'))
+                 with self.assertRaisesRegex(ValueError,'partition differs'):proof.proof_allocation({'partition':'other'})
+@@ -705,5 +705,6 @@
+ from test_fix11 import Fix11
+ from test_fix12 import Fix12
+ from test_cont1 import Continuation
++from test_cont2 import ZContinuationModes
+ 
+ if __name__=='__main__':unittest.main(verbosity=2)
+--- C1/tools/derive_deployment.py
++++ C2/tools/derive_deployment.py
+@@ -115,6 +115,9 @@
+             # their private directories searchable at the required mode 0700.
+             if text.count('chmod -R a-w ')!=3:raise ValueError('Inherited staging permissions differ')
+             text=text.replace('chmod -R a-w ','tk_readonly_files ')
++            anchor='rsync -rt "$HX/b"'
++            if text.count(anchor)!=1:raise ValueError('Inherited kit copy differs')
++            text=text.replace(anchor,'rsync -rt --chmod=D700 "$HX/b"')
+             helper='tk_readonly_files() {\n    find "$1" -type f -exec chmod a-w {} +\n    find "$1" -type d -exec chmod 700 {} +\n}\n'
+             text=text.replace('tk_stage_model() {',helper+'\ntk_stage_model() {')
+         path.write_text(text)
+@@ -145,7 +148,9 @@
+     launch['in_job_admission']['directory']=cfg['output']+'/inputs'
+     # Independent review, native staging and written authorization remain external inputs.
+     pending=dict(status='PENDING',config_sha256=identity(cfg),source_revision=code['commit'],production_authorized=False)
+-    for n in ('review.json','staging.json','4.json'):write(out/'k'/n,pending)
++    for n in ('review.json','staging.json','4.json'):
++        value={**pending,'allowed_partitions':['advanced','general','bootstrap']} if n=='4.json' else pending
++        write(out/'k'/n,value)
+     arc=dict(schema='s1-source-archive-v1',status='PENDING',durable=False,tree_sha256=code['tree_sha256'],
+              sha256=sha(archive),bytes=(archive).stat().st_size)
+     write(out/'k/archive.json',arc)
+@@ -158,6 +163,8 @@
+         for n in ('review.json','staging.json','4.json','archive.json'):
+             value=load(Path(evidence)/n)
+             if n!='archive.json' and value.get('config_sha256')!=identity(cfg):raise ValueError('Evidence identity differs: '+n)
++            if n=='4.json':
++                value['allowed_partitions']=['advanced','general','bootstrap']
+             write(out/'k'/n,value)
+         cfg['admission']=dict(path=AS+'8865619b/k/review.json',sha256=sha(out/'k/review.json'))
+         launch.update(status='READY',production_authorized=True)
+@@ -180,7 +187,10 @@
+         anchor='MODE="$(/usr/bin/python3 -I "$ROOT/b/r8.py"'
+         if s.count(anchor)!=1:raise ValueError('Mode boundary differs')
+         s=s.replace(anchor,'/usr/bin/python3 -I "$ROOT/b/c0.py" "$ROOT" "$RUN"\n'+anchor);p.write_text(s)
+-        p=out/'b/r8.py';s=p.read_text();anchor='    if persistent is not None:\n'
++        p=out/'b/r8.py';s=p.read_text()
++        s=s.replace('import argparse\n','import argparse\nimport sys\n')
++        s=s.replace('import uuid\n','import uuid\n\nsys.path.insert(0, str(Path(__file__).resolve().parent))\n')
++        anchor='    if persistent is not None:\n'
+         if s.count(anchor)!=1:raise ValueError('Resume boundary differs')
+         s=s.replace(anchor,"    if not checkpoints and (root/'d/0.json').exists():\n        from c0 import verify, load as c_load\n        kit=Path(os.environ['TK_KIT_HOME'])\n        verify(root/'d',c_load(kit/'k/a0.json'))\n        if persistent is not None:persistent_check(root,persistent,job,'t',None,0)\n        return 'u'\n"+anchor);p.write_text(s)
+         # r8 executes before r.sh exports the kit location.
+@@ -188,11 +198,18 @@
+         p=out/'b/w.py';s=p.read_text();anchor="        cfg['milestone_gate']=pick(auth,'milestone_gate',arm)"
+         if s.count(anchor)!=1:raise ValueError('Training boundary differs')
+         s=s.replace(anchor,"        if cfg.get('continuation'):\n            if mode!='u':raise ValueError('c0:38')\n            from c0 import install\n            install(run,cfg,json.loads((root/'k/a0.json').read_text()))\n"+anchor);p.write_text(s)
++    p=out/'b/z.py';s=p.read_text();anchor="    with archive.open('rb') as stream:"
++    if s.count(anchor)!=1:raise ValueError('Redeploy boundary differs')
++    s=s.replace(anchor,"    if (root/'b').exists() and not (root/'b').stat().st_mode & 0o200:\n        raise ValueError('Sealed kit refuses in-place redeployment; derive a fresh kit')\n"+anchor);p.write_text(s)
+     names=set(manifest)|{'k/'+key+'.json','k/'+archive_name}|added
+     actual={n:manifest[n] if n in missing else sha(out/n) for n in sorted(names)}
+     (out/'SHA256SUMS.txt').write_text(''.join(h+'  '+n+'\n' for n,h in actual.items()))
+     if evidence:
+         validate_evidence(out)
++    # Seal code directories only after inventory and evidence validation.
++    for directory in sorted((p for p in (out/'b').rglob('*') if p.is_dir()),reverse=True):
++        directory.chmod(0o500)
++    (out/'b').chmod(0o500)
+     result=dict(status=launch['status'],config_identity=identity(cfg),config_key=key,manifest_sha256=sha(out/'SHA256SUMS.txt'),
+         source_manifest_sha256=source_manifest_sha,missing_source_members=missing,source_identity=H1_ID,
+         run_key=run,staged_additions=staged,production_authorized=False,
+--- C1/tools/finalize.py
++++ C2/tools/finalize.py
+@@ -5,7 +5,7 @@
+ def main():
+     out=ROOT/'out';b=load(out/'BINDING.json');op=load(out/'OPERATOR.json');cfg=load(out/'config.json')
+     if cfg.get('continuation'):
+-        from report_cont1 import main as report
++        from report_cont2 import main as report
+         return report()
+     log=(out/'logs/tests.log').read_text();assert log.rstrip().endswith('OK')
+     count=int(re.search(r'Ran (\d+) tests',log).group(1))
+--- C1/tools/make_proof.py
++++ C2/tools/make_proof.py
+@@ -5,9 +5,9 @@
+ ROOT=Path(__file__).resolve().parents[1]
+ 
+ def main():
+-    parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,default=ROOT/'out');parser.add_argument('--partition',choices=('advanced','general'));args=parser.parse_args();out=args.out
++    parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,default=ROOT/'out');parser.add_argument('--partition',choices=('advanced','general','bootstrap'));args=parser.parse_args();out=args.out
+     partition=args.partition or json.loads((out/'BINDING.json').read_text())['proof_partition']
+-    if partition not in ('advanced','general'):raise ValueError('Invalid proof partition')
++    if partition not in ('advanced','general','bootstrap'):raise ValueError('Invalid proof partition')
+     text=(ROOT/'work/proof_parent.py').read_text()
+     text=inspect.getsource(validate_switches)+'\n'+text
+     needle="        cfg = load(kh/launch['config']['file'])"
+@@ -17,13 +17,24 @@
+     text=text.replace('        host_preflight()', "        allocation=proof_allocation(authority)\n        result.update(allocation)\n        host_preflight()")
+     helper='''def proof_allocation(authority):
+     partition=os.environ.get('SLURM_JOB_PARTITION')
+-    if partition not in ('advanced','general') or partition!=authority['partition']:raise ValueError('Proof partition differs')
++    if partition not in ('advanced','general','bootstrap') or partition!=authority['partition']:raise ValueError('Proof partition differs')
++    if partition not in authority.get('allowed_partitions',('advanced','general','bootstrap')):raise ValueError('Proof partition is not authorized')
+     if os.environ.get('CUDA_VISIBLE_DEVICES')!='':raise ValueError('Proof must run CPU-only')
+     if os.environ.get('SLURM_GPUS_ON_NODE','0') not in ('','0'):raise ValueError('CPU proof allocated GPUs')
+     return dict(partition=partition,node=os.environ.get('SLURMD_NODENAME') or os.uname().nodename)
+ 
+ '''
+     text=text.replace('def main(authority):',helper+'def main(authority):')
++    helper='''def directory_modes(work):
++    bad=[]
++    for directory,children,files in os.walk(work):
++        path=Path(directory)
++        if path.is_symlink() or stat.S_IMODE(path.stat().st_mode)!=0o700:bad.append(str(path))
++    return dict(status='FAIL' if bad else 'PASS',bad=bad)
++
++'''
++    text=text.replace('def main(authority):',helper+'def main(authority):')
++
+     text=text.replace("def host_preflight():", "def host_preflight():\n    inventory = {}")
+     text=text.replace("    for name in ('/bin/bash', '/usr/bin/python3') + HOST_TOOLS:", "    for name in ('bash', 'python3', 'sed', 'head', 'gzip', 'nice', 'ionice', 'which', 'env') + HOST_TOOLS:")
+     text=text.replace("            raise ValueError('Production host program unavailable: '+name)", "            raise ValueError('Production host program unavailable: '+name)\n        path = Path(shutil.which(name, path=HOST_PATH)).resolve()\n        inventory[name] = dict(path=str(path), sha256=sha(path))\n    inventory['driver'] = dict(path=str(Path(sys.executable).resolve()), sha256=sha(Path(sys.executable).resolve()))\n    return inventory")
+@@ -77,11 +88,7 @@
+             result['absent_on_P']=audit['checks']['required_families']['absent_on_P']
+         else:
+             result['checks']['loader_audit']=dict(status='NOT_RUN')
+-        bad=[]
+-        for directory,children,files in os.walk(work):
+-            path=Path(directory)
+-            if path.is_symlink() or stat.S_IMODE(path.stat().st_mode)!=0o700:bad.append(str(path))
+-        result['checks']['directory_modes']=dict(status='FAIL' if bad else 'PASS',bad=bad)
++        result['checks']['directory_modes']=directory_modes(work)
+         required={'disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
+         if not required<=set(result['checks']) or any(result['checks'][k]['status']!='PASS' for k in required if k in result['checks']):
+             result.update(status='FAIL',rc=result['rc'] or 1)
+--- C1/tools/report_cont2.py
++++ C2/tools/report_cont2.py
+@@ -0,0 +1,101 @@
++"""Report the current continuation packet and its local evidence."""
++import difflib
++import json
++import re
++import subprocess
++import sys
++import tempfile
++from pathlib import Path
++from rebind import ROOT, load, sha, write
++
++
++def main():
++    out=ROOT/'out';base=ROOT/'work/cont2_baseline'
++    b=load(out/'BINDING.json');op=load(out/'OPERATOR.json')
++    log=(out/'logs/tests.log').read_text()
++    assert log.rstrip().endswith('OK')
++    count=int(re.search(r'Ran (\d+) tests',log).group(1))
++    full='Fix10.test_full_store_build_stream_division_with_and_without_remove' in log
++    heavy=out/'logs/cont2_heavy.log'
++    if not full and heavy.exists() and heavy.read_text().rstrip().endswith('OK'):
++        count+=1;full=True
++    for name in ('FIRST_BATCH','DERIVATION','PRE_SUBMISSION','SWITCH_GUARDS','UNIT_REAL'):
++        record=load(out/'proof'/(name+'.json'))
++        assert record['status']=='PASS' and record['config_identity']==b['config_identity'],name
++    for name,digest in load(base/'archives.json').items():assert sha(out/name)==digest,name
++    assert sha(out/op['archive'])==op['sha256']
++    assert op['archive'] not in load(base/'archives.json')
++    ready=Path(load(out/'proof/PRE_SUBMISSION.json')['fixture'])/'ready'
++    seals={};sealroot=Path(tempfile.mkdtemp(prefix='cont2_seal_',dir=ROOT/'work'))
++    for partition in ('general','bootstrap'):
++        dest=sealroot/(partition+'.json')
++        subprocess.run([sys.executable,'-B',str(ROOT/'tools/seal_proof.py'),'--kit',str(ready),
++            '--bundle',str(out/'operator'),'--binding',str(out/'BINDING.json'),
++            '--partition',partition,'--out',str(dest)],check=True)
++        seals[partition]=dict(path=str(dest),sha256=sha(dest))
++    write(out/'proof/CONT2_RESEAL.json',dict(status='PASS',authorities=seals,scope='Local fixture only'))
++    text=(base/'out/CONT1.md').read_text()
++    old=load(base/'out/OPERATOR.json')
++    if not full:text=text.replace('BUILT_FOR_INDEPENDENT_REVIEW.','LOCAL_CHECKS_PENDING_HEAVY_TEST.',1)
++    text=text.replace(old['archive'],op['archive']).replace(old['sha256'],op['sha256'])
++    text=text.replace('(general, CPU only)','(general or bootstrap, CPU only; 48 CPUs, 800 GB, four hours)')
++    insertion="""The deriver seals `b/` and every code subdirectory at `0500` after inventory generation and evidence validation. Isolated job-prefix imports cannot create bytecode in the kit. The resume chooser explicitly includes its sealed code directory so `python -I` can import the donor verifier. `tk_nx` uses `rsync --chmod=D700` to create private node-local directories at `0700`. `b/z.py` refuses in-place redeployment of a sealed kit. Operators must derive a fresh kit; changing permissions to redeploy is unsupported.
++
++The CPU proof accepts `general` and `bootstrap`. Seal with `p.py --partition bootstrap` and submit the packaged proof script with `sbatch -p bootstrap`; the selected partition must match the authority. The default script selects `general`. Both use 48 CPUs, 800 GB, no GPUs and `04:00:00`. The kit authorization lists the two proof partitions and `advanced`; training stays on `advanced` with four GPUs and `24:00:00`. These partition fields do not grant submission GO.
++
++"""
++    text=text.replace('The CPU proof retains',insertion+'The CPU proof retains')
++    validation=f"Validation: {count} packet tests pass on this build. "
++    validation+=('The complete suite ran, including the full-store division regression. ' if full else
++                 'The 1.79 GB full-store regression awaits the required heavy-I/O authorization; all other tests ran. ')
++    validation+='''`tools/run_local_checks.py` checks deterministic packaging, two equal kit derivations, production-form evidence, four-rank D0 optimizer identity, native unit regeneration, CPU first batch and fix-11 shell replay. Five mode/partition regressions verify `0500` code directories, isolated cold and donor prefix execution without bytecode, inventory preservation, real `tk_nx` copies with the proof directory-mode checker, sealed-kit redeploy refusal, and both partition authorities. The native continuation test checks bit-exact parameters, Adam state, RNG, LR and rows for 206 uninterrupted updates versus 200 plus six resumed updates, with single-rank collectives mocked. Production RGB and other absent populations remain fixture boundaries.
++
++'''
++    start=text.index('Validation:');end=text.index('Reviewer checks:',start)
++    text=text[:start]+validation+text[end:]
++    text=text.replace('Reviewer checks: inspect','Reviewer checks: verify the archived deriver seals all code directories, `tk_nx` copies them at `0700`, the isolated prefix preserves inventory, and the selected proof partition matches both authority and submission. Verify training still selects advanced and inspect')
++    start=text.index('The explicit snapshot comparison in this report')
++    text=text[:start]+'''`out/CONT2.diff` compares the C1 baseline with this packet, including derived kit bytes and directory modes. `out/CONT2_STORAGE.json` records new local storage. No cleanup was attempted.\n'''
++    text=text.replace('out/proof/CONT1_RESEAL.json','out/proof/CONT2_RESEAL.json')
++    (out/'CONT2.md').write_text(text)
++    (out/'CONT1.md').write_text(text)
++    for name in ('REPORT.md','R1P_PACKET.md'):(out/name).write_text(text)
++    paths={str(p.relative_to(base)) for p in base.rglob('*') if p.is_file() and p.parts[len(base.parts)] in ('tools','tests','configs','out')}
++    paths.update(str(p.relative_to(ROOT)) for d in ('tools','tests','configs') for p in (ROOT/d).glob('*') if p.is_file())
++    patches=[];changes={}
++    for name in sorted(paths):
++        left=base/name;right=ROOT/name
++        a=left.read_bytes() if left.is_file() else b'';z=right.read_bytes() if right.is_file() else b''
++        if a==z:continue
++        changes[name]=dict(before=sha(left) if left.exists() else None,after=sha(right) if right.exists() else None)
++        try:patches.extend(difflib.unified_diff(a.decode().splitlines(True),z.decode().splitlines(True),fromfile='C1/'+name,tofile='C2/'+name))
++        except UnicodeDecodeError:patches.append('Binary content differs: '+name+'\n')
++    oldkit=Path(load(base/'out/proof/PRE_SUBMISSION.json')['fixture'])/'ready'
++    for path in sorted(ready.rglob('*')):
++        if path.is_dir():
++            oldpath=oldkit/path.relative_to(ready)
++            if oldpath.exists() and oldpath.stat().st_mode & 0o777 != path.stat().st_mode & 0o777:
++                patches.append(f"Mode kit/{path.relative_to(ready)}: {oldpath.stat().st_mode & 0o777:04o} -> {path.stat().st_mode & 0o777:04o}\n")
++        elif path.is_file() and path.stat().st_size<1_000_000:
++            oldpath=oldkit/path.relative_to(ready)
++            a=oldpath.read_bytes() if oldpath.exists() else b'';z=path.read_bytes()
++            if a==z:continue
++            try:patches.extend(difflib.unified_diff(a.decode().splitlines(True),z.decode().splitlines(True),fromfile='C1/kit/'+str(path.relative_to(ready)),tofile='C2/kit/'+str(path.relative_to(ready))))
++            except UnicodeDecodeError:pass
++    (out/'CONT2.diff').write_text(''.join(patches))
++    write(out/'CONT2_INVENTORY.json',changes)
++    result=dict(status='BUILT_FOR_INDEPENDENT_REVIEW' if full else 'LOCAL_CHECKS_PENDING_HEAVY_TEST',
++        identity=b['config_identity'],run=b['run_key'],bundle=op['bundle'],kit=op['kit'],
++        archive=op['archive'],sha256=op['sha256'],tests=count,full_suite=full,
++        production_authorized=False,review='REQUIRED',proof_partitions=['general','bootstrap'])
++    write(out/'proof/CONT2_TEST_LEDGER.json',dict(tests=count,full_suite=full,
++        suite_log='out/logs/tests.log',heavy_log='out/logs/cont2_heavy.log' if heavy.exists() else None,
++        deferred=[] if full else ['Fix10.test_full_store_build_stream_division_with_and_without_remove'],
++        reason=None if full else 'Trinity heavy-I/O permission requested; answer pending.'))
++    write(out/'CONT2_RESULT.json',result);write(out/'REVIEW_REQUEST.json',result)
++    write(out/'proof/GATES.json',result)
++    (ROOT/'STATUS.md').write_text(f"{result['status']}. C {b['config_identity']}, run {b['run_key']}, {op['archive']} SHA256 {op['sha256']}. {count} tests pass. Read out/CONT2.md and out/CONT2.diff. Independent review, production proof and written GO remain required.\n")
++    print(json.dumps(result))
++
++
++if __name__=='__main__':main()
+--- C1/tools/run_local_checks.py
++++ C2/tools/run_local_checks.py
+@@ -9,7 +9,7 @@
+         subprocess.run([sys.executable,'-B',*map(str,args)],cwd=ROOT,stdout=f,stderr=subprocess.STDOUT,check=True)
+ 
+ def main():
+-    parser=argparse.ArgumentParser();parser.add_argument('--continuation-recheck',action='store_true');args=parser.parse_args()
++    parser=argparse.ArgumentParser();parser.add_argument('--continuation-recheck',action='store_true');parser.add_argument('--defer-heavy-test',action='store_true');parser.add_argument('--share-fixture-bytes',action='store_true');args=parser.parse_args()
+     out=ROOT/'out';binding=load(out/'BINDING.json')
+     # The caller must finish rebind before running this command.
+     run([ROOT/'tools/make_proof.py'],'make_proof.log')
+@@ -22,10 +22,10 @@
+     # Every destination retains the normal SHA checks; no source kit is linked.
+     from unittest.mock import patch
+     cached={}
+-    if args.continuation_recheck:
++    if args.continuation_recheck or args.share_fixture_bytes:
+         previous=Path(load(out/'proof/DERIVATION.json')['fixture_paths'][0])
+         for f in previous.rglob('*'):
+-            if f.is_file() and not f.is_symlink() and f.stat().st_size>1_000_000:cached[sha(f)]=f
++            if f.is_file() and not f.is_symlink() and f.stat().st_size>1_000_000 and f.suffix in ('.tar','.gz'):cached[sha(f)]=f
+     native=Path.write_bytes
+     def fixture_write(path,raw):
+         donor=cached.get(hashlib.sha256(raw).hexdigest()) if len(raw)>1_000_000 else None
+@@ -69,6 +69,15 @@
+         'Fix8.test_real_packing_payload_pins_and_native_selection',
+         'Mix.test_config_switches_disk_and_identity',
+         'VehicleP.test_fallback_filter_and_deployed_diff_baseline'] if args.continuation_recheck else []
++    if args.defer_heavy_test:
++        sys.path.insert(0,str(ROOT/'tests'))
++        import unittest,test_packet
++        def cases(suite):
++            for case in suite:
++                if isinstance(case,unittest.TestSuite):yield from cases(case)
++                else:yield case
++        selected=['.'.join(t.id().split('.')[-2:]) for t in cases(unittest.defaultTestLoader.loadTestsFromModule(test_packet))
++                  if not t.id().endswith('Fix10.test_full_store_build_stream_division_with_and_without_remove')]
+     run([ROOT/'tests/test_packet.py',*selected],'tests.log')
+     if args.continuation_recheck:
+         statuses={}
+@@ -84,6 +93,7 @@
+             initial_full_suite='out/logs/cont1_full_tests.log',final_rechecks='out/logs/tests.log',
+             reason='Retain unchanged passing tests to respect the 3 GB scratch cap; rerun changed runtime, proof, namespace, identity and failed config-diff checks.'))
+     run([ROOT/'tools/finalize.py'],'finalize.log')
+-    print(json.dumps(dict(status='BUILT_BLOCKED',config_identity=binding['config_identity'],operator_archive_sha256=expected)))
++    status=load(out/'CONT2_RESULT.json')['status'] if binding.get('continuation') else 'BUILT_BLOCKED'
++    print(json.dumps(dict(status=status,config_identity=binding['config_identity'],operator_archive_sha256=expected)))
+ 
+ if __name__=='__main__':main()
+--- C1/tools/seal_proof.py
++++ C2/tools/seal_proof.py
+@@ -15,7 +15,7 @@
+ 
+ def main():
+     p=argparse.ArgumentParser();p.add_argument('--kit',type=Path,required=True);p.add_argument('--bundle',type=Path,required=True)
+-    p.add_argument('--partition',choices=('advanced','general'),required=True)
++    p.add_argument('--partition',choices=('advanced','general','bootstrap'),required=True)
+     p.add_argument('--binding',type=Path,required=True);p.add_argument('--out',type=Path,required=True);a=p.parse_args()
+     binding=load(a.binding);launch=load(a.kit/'k/launch.json');cfg=load(a.kit/launch['config']['file'])
+     sys.path.insert(0,str(a.kit/'b'));from i import identity
+@@ -27,6 +27,12 @@
+     equality=load(a.kit/'k/selection_equality.json')
+     if not equality.get('native_regeneration_executed') or equality.get('selection_sha256')!=binding['selection_sha256']:raise ValueError('Native selection regeneration required')
+     if binding.get('unit_binding') and not equality.get('native_unit_regeneration_executed'):raise ValueError('Native unit selection regeneration required')
++    allowed=['general','bootstrap'] if binding.get('continuation') else ['advanced','general','bootstrap']
++    auth=load(a.kit/'k/4.json')
++    if a.partition not in allowed or a.partition not in auth.get('allowed_partitions',[auth.get('partition')]):
++        raise ValueError('Proof partition is not authorized')
++    for directory in [a.kit/'b',*(p for p in (a.kit/'b').rglob('*') if p.is_dir())]:
++        if directory.stat().st_mode & 0o777 != 0o500:raise ValueError('Kit code directory is not sealed')
+     runtime={}
+     for line in (a.kit/'SHA256SUMS.txt').read_text().splitlines():
+         expected,name=line.split('  ',1)
+@@ -38,7 +44,7 @@
+         expected,name=line.split('  ',1)
+         if Path(name).is_absolute() or '..' in Path(name).parts or sha(a.bundle/name)!=expected:raise ValueError('Bundle bytes differ')
+         bundle_files[name]=expected
+-    authority=dict(partition=a.partition,bundle_files=bundle_files,identity=identity(cfg),contract=digest(contract(launch,cfg)),kh=str(a.kit.resolve()),bun=str(a.bundle.resolve()),
++    authority=dict(partition=a.partition,allowed_partitions=allowed,bundle_files=bundle_files,identity=identity(cfg),contract=digest(contract(launch,cfg)),kh=str(a.kit.resolve()),bun=str(a.bundle.resolve()),
+         runtime=runtime,selection_sha256=binding['selection_sha256'],equality_sha256=sha(a.kit/'k/selection_equality.json'),
+         wrapper_sha256=sha(a.bundle/'jb.sh'),persistent_root=launch['persistent_run_root'],job_name=binding['job_name'],
+         run_key=binding['run_key'],tag=binding['run_key'])
+--- C1/kit/SHA256SUMS.txt
++++ C2/kit/SHA256SUMS.txt
+@@ -1,7 +1,7 @@
+ 0ec9f5e9c1680ce73bf829301456c5cf987def1766516e07aa9f2e8ef44414de  b/a.py
+ 0e1dd0ac6126fb2325affd6f12aee338f19b7fc842d6681c2d32c488622d7825  b/ab.py
+ 1749abcb5b41efb5a829298c0575d71d8acf7a0fa84ec09eaf19fb8e353049d9  b/b3900003.py
+-cc462686e1007832df1be7dfaeaa3ddd97323e5dbcbf71f64130b62564bfd650  b/c.sh
++f99e3b6fcc1bac6866f796a97eed642b44dd16ae5df8d80ae8a5f05c361176f3  b/c.sh
+ e0ef07f2df7a01d35657b9854647cb7f32d5774b9aa42f285fe0cdbd6e09fefa  b/c0.py
+ fc4e4c380daf678576b1f48cd4e6794baf45dc4342590300a4d4eddce176eea5  b/d.py
+ 515c61e19baf0b189866a5145c19bfc96a671af0b24be49398034d40aaca7b67  b/f2.py
+@@ -19,7 +19,7 @@
+ 51190cc4ef08e4419f50cfa9090a73e990cddee1219c4d75bad6e5ba5144d23a  b/profile.json
+ ae087f2b8b0540e0b913fb810388fc882ade79bb0b5440f834eb4231f2c67c62  b/q0.py
+ 9a2261b07ed208ed6989f7eddbf4c3080741d0082259db3415caaeb15b11eca0  b/r.sh
+-2b9a4c091af25ec5b19c47a7affb36f73da289a2777e403f3b13afe218d17931  b/r8.py
++e4d48215ccfb29aad7e68b7f8e245fd7e6a10875c9dcf791612ea9eb26a9abf0  b/r8.py
+ 59d6c043db853b16492257eaf67676e2cfc705adb5d9c0a2d74321f81a20e800  b/rd.py
+ db7a1149abf4e582160f8e1e692bed842db5d99961682d90e05412e089a44873  b/s.py
+ b946487191158333dbd0df07b8b1849109b944a7be0ac09a6814d3b4a0ae0a0d  b/sa/prestage_hooks.py
+@@ -29,13 +29,13 @@
+ 7cd4972b43abcf00dc40574e2e33d7f204f62b5a2f914119f7d857a8043ce19c  b/w.py
+ 1f58a1f2e03f39ffd4c74b079766ee93ee7633ef73ec4fb4c344655964ef1d35  b/wh.json
+ fadf985cf2a0d7e3f8f909b2ffe43151213b7812904b428e49ba5ef807ce6d07  b/x.py
+-f3dba650f47e74cd5422cf7be385ca43fabcd8f0b14bb31801e1477053e0d7f9  b/z.py
++56c146d61a2d52b6dc7af78d292b717e06015815670a00313de65c326063981b  b/z.py
+ 93d8d4e3961d929d5509c58a2282d8e989a8077176a38192130738a3269120c1  job.sh
+ 86b5b6a30c5ccae3dd03c1f01d6f8b218945f435ddcd7f8367166fd72914a87c  job8.sh
+ ddf74f09d32aa6805dacd80f3eb02ecbcb9a3a2e63625b4d40a285b41d217a35  k/0.json
+ 8fbbc05b5a2abc0bce4b5b0a3e158716b7e5ed1eb1d7d6e7681ee7264a48aa68  k/1.json
+ 8b7558ad9d4e08d32e8d58550aecdd26f943989fa77529816373e96e1698a518  k/28429cf9.json
+-83a519ddd89828a93eb068a4ed5cdc6fde228291dc0bae10aa38488f4f123fe5  k/4.json
++355c50bf74bf4ac315493cbf05f63730e0ce58ef3f3ec21bc157ab07a0478a42  k/4.json
+ 7b41529a6221879007928a93ff5d254a73983283d32ed0744a4841333d8c12be  k/6.json
+ 600ef69de0674fb15c8972f3b64f0bd19e682a5a1ca19ab01e8d41279d064295  k/600ef69d.json
+ 66c427e2262331be2e0c598f2ecc39087f3a722a5155caaf1ab84a89c8cd0f6f  k/66c427e2.json
+@@ -94,7 +94,7 @@
+ 62c54ed48c7e5782aed296549f9a750d5d76fd6589cbdeba2ed92acdf5282a35  k/routes.json
+ 1e0245bbaa5e8e20fe50293db225ff34e9f4a42a04d8dd1525106b65cd67c3ed  k/s1_record.json
+ 06cdfa5e8b217246b72805d982247ad986c6d986a5a2846b3024969a0777723f  k/scene_reference.json
+-c5ef3a236949be0b9488c6ce2d65ea907bbfd0fa38fbad34f95729e020de9d84  k/selection_equality.json
++062f9253b239188d500b4ebfcd5620f20ead982ac6e87800002ba59bf877a21d  k/selection_equality.json
+ 7e0faa5cf024b74f80f05ad31f5bc81451f8bd78ccd704baea6b933ec11ce6f8  k/staging.json
+ 25f1c3a7394564d9287ba382fa58c476c4fb17d20063f5b643937d388339a4ec  k/t_9588661986650d29.tar
+ 845b17895e466671bc5c5ecdb6a5a5d697a43a5e02d07d1555b11be74f8fd415  k/t_b01ce449beffe35b.tar
+Mode kit/b: 0700 -> 0500
+--- C1/kit/b/c.sh
++++ C2/kit/b/c.sh
+@@ -397,7 +397,7 @@
+ # Per-job writable kit root: kit bytes from /home (read-only), prep outputs restored from the /home mirror.
+ tk_nx() {
+     mkdir -p "$NR" "$NX/o" "$NX/runs" "$NX/arm" "$NX/ck" "$NX/data2root" "$NX/models" "$HM/o" "$HM/arm" "$HM/runs"
+-    rsync -rt "$HX/b" "$HX/k" "$HX/ANON_OK.json" "$HX/SHA256SUMS.txt" "$NX/"
++    rsync -rt --chmod=D700 "$HX/b" "$HX/k" "$HX/ANON_OK.json" "$HX/SHA256SUMS.txt" "$NX/"
+     rsync -rt "$HM/arm/" "$NX/arm/"
+ }
+ tk_persist_small() {
+--- C1/kit/b/r8.py
++++ C2/kit/b/r8.py
+@@ -1,5 +1,6 @@
+ """Print u when the run directory holds a parseable complete.json under a checkpoint, else t (jt8's mode chooser)."""
+ import argparse
++import sys
+ import datetime
+ import json
+ import hashlib
+@@ -7,6 +8,8 @@
+ from pathlib import Path
+ import re
+ import uuid
++
++sys.path.insert(0, str(Path(__file__).resolve().parent))
+ 
+ 
+ def complete(path, binding):
+Mode kit/b/sa: 0700 -> 0500
+--- C1/kit/b/z.py
++++ C2/kit/b/z.py
+@@ -17,6 +17,8 @@
+ 
+ def deploy(archive, expected_sha256, root):
+     archive, root = Path(archive), Path(root).resolve()
++    if (root/'b').exists() and not (root/'b').stat().st_mode & 0o200:
++        raise ValueError('Sealed kit refuses in-place redeployment; derive a fresh kit')
+     with archive.open('rb') as stream:
+         if stream_sha(stream) != expected_sha256:
+             raise ValueError('Archive digest differs')
+--- C1/kit/k/4.json
++++ C2/kit/k/4.json
+@@ -1 +1 @@
+-{"account":"mt01","admission_contract_sha256":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","allocation_memory_gib":800,"allow_until_utc":"2026-11-26T00:00:00Z","arm":["0"],"conditions":["One CPU proof job on advanced; refuse a pending a15_cot_ap job on advanced.","The final manifest requires independent content certification.","Production submission requires a separate identity-bound GO."],"config_sha256":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","full_population_admission":false,"gpu_cap":4,"guard":null,"kernel":null,"max_parallel_jobs":1,"milestone_gate":null,"modes":["p"],"native_admission_memory_gib":256,"native_memory_sufficiency_proven":false,"new_gpus":{"p":0},"other_running_and_pending_gpus":0,"partition":"advanced","production_full_mode_p_required":true,"production_go_granted":false,"production_go_required_separately":true,"resource_counts_are_submission_conditions":true,"resume":"latest","review":null,"scope":"One mode-p CPU proof; production GO remains pending.","source_revision":"sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b","wall_seconds":14400,"world_size":4}
++{"account":"mt01","admission_contract_sha256":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","allocation_memory_gib":800,"allow_until_utc":"2026-11-26T00:00:00Z","allowed_partitions":["advanced","general","bootstrap"],"arm":["0"],"conditions":["One CPU proof job on advanced; refuse a pending a15_cot_ap job on advanced.","The final manifest requires independent content certification.","Production submission requires a separate identity-bound GO."],"config_sha256":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","full_population_admission":false,"gpu_cap":4,"guard":null,"kernel":null,"max_parallel_jobs":1,"milestone_gate":null,"modes":["p"],"native_admission_memory_gib":256,"native_memory_sufficiency_proven":false,"new_gpus":{"p":0},"other_running_and_pending_gpus":0,"partition":"advanced","production_full_mode_p_required":true,"production_go_granted":false,"production_go_required_separately":true,"resource_counts_are_submission_conditions":true,"resume":"latest","review":null,"scope":"One mode-p CPU proof; production GO remains pending.","source_revision":"sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b","wall_seconds":14400,"world_size":4}
+--- C1/kit/k/selection_equality.json
++++ C2/kit/k/selection_equality.json
+@@ -1 +1 @@
+-{"final_materialized_room_rows_expected":581,"final_materialized_room_rows_verified":false,"indices":{"ARKIT_gaps":{"count":6560,"sha256":"61dbe64275d654b880d58f3a34df4d5cb3e3dfe49bde82d7a0995dfac69716de","unchanged":true},"ARKIT_gen_r2":{"count":11321,"sha256":"a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd","unchanged":true},"SCENE_room":{"count":384,"sha256":"846987fbc9a43c097693a80ef9ada8875ff79c27537556be06dc81b47af042a4","unchanged":false},"T0_gaps":{"count":11052,"sha256":"8607dfa3522db91885b1382f3cb1ae8447e3542db0e103d8b442ca3406550de2","unchanged":true},"T0_gen_r2":{"count":22290,"sha256":"14fdfe17bfae194af4d5e46cff6b4fe708678681f1d2faac25b38455869270f2","unchanged":true},"T0_room":{"count":76,"sha256":"cbef7600f0a248792556669f5b03937de41e8da683b0d602a1ce0eca74799f94","unchanged":false},"T1H1_gaps":{"count":5919,"sha256":"ebcca9404f88634c71af0c612ff81e412eed8f26d5160e0c819da7d2c07cfce5","unchanged":true},"T1H1_gen_r2":{"count":11012,"sha256":"db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c","unchanged":true},"T1H1_room":{"count":126,"sha256":"5db7885d00058c8342024b88bb9151d76ff373c98dbf2391fb1b8bf666447af2","unchanged":false},"T1H2_gaps":{"count":5130,"sha256":"bffdff4d022af167d035be0bc421217194356df65f8b55b2136ab423e2295fa2","unchanged":true},"T1H2_gen_r2":{"count":9314,"sha256":"efb18189cd4b6a017b701fa7af1dc3b3a827f3f79338b18c355646d9f9bf3ce5","unchanged":true}},"native_receipt":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_3p6qwid0/native/receipt.json","sha256":"9a65a463561d6964f551b387a6d577c0c3f81892f55cfb07a74ceb4511d38a00"},"native_regeneration_executed":true,"native_unit_regeneration_executed":true,"non_room_entry_bytes_equal":{"ARKIT_gaps":true,"ARKIT_gen_r2":true,"ROUTE_direct":true,"SCENE_room_sppK":true,"T0_gaps":true,"T0_gen_r2":true,"T1H1_gaps":true,"T1H1_gen_r2":true,"T1H2_gaps":true,"T1H2_gen_r2":true},"note":"586 selected source rows precede final admission; 581 is the brief's materialized count. Full native regeneration needs the source archives absent locally.","parent_sha256":"eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9","production_authorized":false,"removed_selection_rows":586,"removed_source_rows":{"SCENE_room":384,"T0_room":76,"T1H1_room":126},"schema":"r1-selection-projection-v1","selected_rows":83345,"selection_sha256":"5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af","status":"PASS","tool_sha256":"060dbf93da990a4a6803419176f82365a00e020f30475b34c7f373e151d195e0"}
++{"final_materialized_room_rows_expected":581,"final_materialized_room_rows_verified":false,"indices":{"ARKIT_gaps":{"count":6560,"sha256":"61dbe64275d654b880d58f3a34df4d5cb3e3dfe49bde82d7a0995dfac69716de","unchanged":true},"ARKIT_gen_r2":{"count":11321,"sha256":"a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd","unchanged":true},"SCENE_room":{"count":384,"sha256":"846987fbc9a43c097693a80ef9ada8875ff79c27537556be06dc81b47af042a4","unchanged":false},"T0_gaps":{"count":11052,"sha256":"8607dfa3522db91885b1382f3cb1ae8447e3542db0e103d8b442ca3406550de2","unchanged":true},"T0_gen_r2":{"count":22290,"sha256":"14fdfe17bfae194af4d5e46cff6b4fe708678681f1d2faac25b38455869270f2","unchanged":true},"T0_room":{"count":76,"sha256":"cbef7600f0a248792556669f5b03937de41e8da683b0d602a1ce0eca74799f94","unchanged":false},"T1H1_gaps":{"count":5919,"sha256":"ebcca9404f88634c71af0c612ff81e412eed8f26d5160e0c819da7d2c07cfce5","unchanged":true},"T1H1_gen_r2":{"count":11012,"sha256":"db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c","unchanged":true},"T1H1_room":{"count":126,"sha256":"5db7885d00058c8342024b88bb9151d76ff373c98dbf2391fb1b8bf666447af2","unchanged":false},"T1H2_gaps":{"count":5130,"sha256":"bffdff4d022af167d035be0bc421217194356df65f8b55b2136ab423e2295fa2","unchanged":true},"T1H2_gen_r2":{"count":9314,"sha256":"efb18189cd4b6a017b701fa7af1dc3b3a827f3f79338b18c355646d9f9bf3ce5","unchanged":true}},"native_receipt":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_wt55atj7/native/receipt.json","sha256":"51d21e62ce53fbeb1504896dbd5de21a0908a7b1bb6deb61e311504d87b3629c"},"native_regeneration_executed":true,"native_unit_regeneration_executed":true,"non_room_entry_bytes_equal":{"ARKIT_gaps":true,"ARKIT_gen_r2":true,"ROUTE_direct":true,"SCENE_room_sppK":true,"T0_gaps":true,"T0_gen_r2":true,"T1H1_gaps":true,"T1H1_gen_r2":true,"T1H2_gaps":true,"T1H2_gen_r2":true},"note":"586 selected source rows precede final admission; 581 is the brief's materialized count. Full native regeneration needs the source archives absent locally.","parent_sha256":"eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9","production_authorized":false,"removed_selection_rows":586,"removed_source_rows":{"SCENE_room":384,"T0_room":76,"T1H1_room":126},"schema":"r1-selection-projection-v1","selected_rows":83345,"selection_sha256":"5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af","status":"PASS","tool_sha256":"060dbf93da990a4a6803419176f82365a00e020f30475b34c7f373e151d195e0"}

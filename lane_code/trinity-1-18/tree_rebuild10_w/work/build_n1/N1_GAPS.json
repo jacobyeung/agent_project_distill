@@ -1,0 +1,194 @@
+{
+  "launch_r1/entry.py": [
+    [
+      82,
+      "def localize(value):"
+    ],
+    [
+      83,
+      "if isinstance(value, dict):"
+    ],
+    [
+      84,
+      "return {k:localize(v) for k,v in value.items()}"
+    ],
+    [
+      85,
+      "if isinstance(value, list):"
+    ],
+    [
+      86,
+      "return [localize(v) for v in value]"
+    ],
+    [
+      87,
+      "if isinstance(value, str) and value.startswith('u/'):"
+    ],
+    [
+      88,
+      "return str(root/value)"
+    ],
+    [
+      89,
+      "return value"
+    ]
+  ],
+  "student_pilot/carrier_c1_run.py": [
+    [
+      672,
+      "raise ValueError('Preparation R1 inputs differ')"
+    ],
+    [
+      674,
+      "raise ValueError('Preparation R1 sampler differs')"
+    ],
+    [
+      1383,
+      "raise ValueError('R1 row failure forbids substituting the pinned row plan')"
+    ],
+    [
+      2298,
+      "steps = min(steps, cfg['r1_training']['stop_after_step'])"
+    ]
+  ],
+  "student_pilot/r1_loader.py": [
+    [
+      30,
+      "if coverage[row['qid']] != digest(row):"
+    ],
+    [
+      31,
+      "raise ValueError('R1_ADMITTED_ROW_IDENTITY_DIFFERS')"
+    ],
+    [
+      32,
+      "seen['admitted'] += 1"
+    ]
+  ],
+  "student_pilot/r1_mix.py": [
+    [
+      11,
+      "raise ValueError('R1_CARD_INVALID')"
+    ],
+    [
+      21,
+      "raise ValueError('R1_CELL_POPULATION_MISMATCH')"
+    ],
+    [
+      23,
+      "raise ValueError('R1_POPULATION_INVALID')"
+    ],
+    [
+      26,
+      "raise ValueError('R1_NEGATIVE_CELL')"
+    ],
+    [
+      33,
+      "raise ValueError('R1_CARD_QUOTA_MISMATCH:'+stream)"
+    ],
+    [
+      59,
+      "raise ValueError('R1_COMPLETE_FILTERED_POPULATION_REQUIRED')"
+    ],
+    [
+      64,
+      "raise ValueError('R1_INDICES_DIFFER')"
+    ],
+    [
+      71,
+      "raise ValueError('R1_PLAN_POSITION_INVALID')"
+    ],
+    [
+      79,
+      "raise ValueError('R1_INDEX_OVERLAP_OR_COUNT')"
+    ],
+    [
+      84,
+      "raise ValueError('R1_INDEX_COVERAGE')"
+    ]
+  ],
+  "student_pilot/r1_training.py": [
+    [
+      20,
+      "return row"
+    ],
+    [
+      24,
+      "raise ValueError('CAMERA_OBJECT_ABSOLUTE_DISTANCE_EXCLUDED')"
+    ],
+    [
+      26,
+      "raise ValueError('QUALITATIVE_TRACE_REQUIRED')"
+    ],
+    [
+      36,
+      "raise ValueError('ROOM_TRACE_INVALID:'+','.join(sorted({e.rule_id for e in errors})))"
+    ],
+    [
+      47,
+      "raise ValueError('Component registry differs')"
+    ],
+    [
+      54,
+      "raise ValueError('Component slot was reclassified')"
+    ],
+    [
+      70,
+      "raise ValueError('R1_RECIPE_DIFFERS')"
+    ],
+    [
+      72,
+      "raise ValueError('R1_OWN_PROBABILITY_REFUSED')"
+    ],
+    [
+      74,
+      "raise ValueError('R1_OWN_ROWS_REFUSED')"
+    ],
+    [
+      83,
+      "raise ValueError('R1_MILESTONES_DIFFER')"
+    ],
+    [
+      94,
+      "raise ValueError('R1_PROGRESS_STEP_INVALID')"
+    ],
+    [
+      106,
+      "raise ValueError('R1_EXPORT_FORMAT_DIFFERS')"
+    ],
+    [
+      109,
+      "raise ValueError('R1_PARENT_STEP_DIFFERS')"
+    ],
+    [
+      142,
+      "raise ValueError('VQA_RECEIPT_INVALID')"
+    ]
+  ],
+  "student_pilot/r2_contract.py": [
+    [
+      63,
+      "from .r1_training import training_components"
+    ],
+    [
+      64,
+      "training_components(cfg['r1_training']['registry'], cfg)"
+    ],
+    [
+      65,
+      "from .r2_openers import preparation as opener_preparation"
+    ],
+    [
+      66,
+      "opener_preparation(cfg)"
+    ],
+    [
+      67,
+      "if not cfg.get('r2_all_stream_exclusions') or not cfg.get('r2_sampling'):"
+    ],
+    [
+      68,
+      "raise ValueError('R1_SCENE_AND_SAMPLER_BINDINGS_REQUIRED')"
+    ]
+  ]
+}

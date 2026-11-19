@@ -1,0 +1,90 @@
+--- packet runner
++++ lane runner
+@@ -5,8 +5,8 @@
+ import tempfile
+ import shutil
+ import signal
+-L=Path(__file__).resolve().parents[1]
+-tree=L/'work/base/work/base/tree_b01ce449' if sys.argv[1]=='overlay' else L/'work/trees'/sys.argv[1]
++L=Path(__file__).resolve().parents[2]
++tree=L/'work/tree_r1'
+ overlay=Path(os.environ.get('R4_OVERLAY', str(L/'work/src_r6')))
+ import importlib.abc, importlib.util
+ class OverlayFinder(importlib.abc.MetaPathFinder):
+@@ -21,8 +21,10 @@
+     raise SystemExit('Pre-final mutation evidence superseded; no test launched.')
+ tag=sys.argv[2]
+ os.chdir(tree)
+-sys.path[:0]=[str(tree),str(L/'work/tests_r6')]
+-root=L/'work/tmp'/tag
++sys.path[:0]=[str(tree),str(L/'work/contracts_r6/tests_r6')]
++root=L/'work/tmp/packet_r6'
++proof=L/'work/build6/proofs/packet'
++proof.mkdir(parents=True,exist_ok=True)
+ root.mkdir(parents=True,exist_ok=True)
+ tempfile.tempdir=str(root)
+ tempfile.TemporaryDirectory.cleanup=lambda self: self._finalizer.detach()
+@@ -45,6 +47,9 @@
+         if flags & (os.O_WRONLY|os.O_RDWR|os.O_CREAT) and not path.is_relative_to(L):
+             raise PermissionError('Proof writes only in lane: '+str(path))
+ sys.addaudithook(audit)
++sys.path.insert(0,str(L/'work/build5'))
++from compact_tmp import inventory, compact
++sizes=[]
+ import pytest
+ class Coverage:
+     current='collection'
+@@ -56,13 +61,13 @@
+     def pytest_collectstart(self,collector):
+         self.current=collector.nodeid+' [collection]'
+     paths={}
+-    tracked=set(json.loads((L/'out/PATCH_MANIFEST_R6.json').read_text())['files'])
+-    tracked.update('tests_r6/'+p.name for p in (L/'work/tests_r6').glob('*.py'))
++    tracked=set(json.loads((L/'work/contracts_r6/PATCH_MANIFEST_R6.json').read_text())['files'])
++    tracked.update('tests_r6/'+p.name for p in (L/'work/contracts_r6/tests_r6').glob('*.py'))
+     def trace(self, frame,event,arg):
+         filename=frame.f_code.co_filename
+         if filename not in self.paths:
+             rel = filename[len(str(overlay))+1:] if filename.startswith(str(overlay)+'/') else filename[len(str(tree))+1:] if filename.startswith(str(tree)+'/') else None
+-            if filename.startswith(str(L/'work/tests_r6')+'/'):rel='tests_r6/'+Path(filename).name
++            if filename.startswith(str(L/'work/contracts_r6/tests_r6')+'/'):rel='tests_r6/'+Path(filename).name
+             self.paths[filename]=rel if rel in self.tracked else None
+         name=self.paths[filename]
+         if name is None:return None
+@@ -70,25 +75,33 @@
+             self.hits.setdefault(name,{}).setdefault(str(frame.f_lineno),set()).add(self.current)
+         return self.trace
+     def pytest_runtest_setup(self,item):
++        measured=sum(inventory(L/'work/tmp').values())
++        sizes.append(dict(test=item.nodeid,phase='before',bytes=measured))
++        if measured>200*1024**2:raise RuntimeError('temporary storage policy')
+         self.current=item.nodeid
+         (root/'current_test.txt').write_text(item.nodeid)
+         signal.signal(signal.SIGALRM,lambda *args: (_ for _ in ()).throw(TimeoutError('CPU test exceeded 90 seconds')))
+         signal.alarm(90)
+     def pytest_runtest_teardown(self,item):
+         signal.alarm(0)
++        measured=sum(inventory(L/'work/tmp').values())
++        sizes.append(dict(test=item.nodeid,phase='after',bytes=measured))
++        compact(root)
++        if measured>200*1024**2:raise RuntimeError('temporary storage policy')
+     def pytest_runtest_logreport(self,report):
+         if report.when=='call' or report.failed or report.skipped:
+             self.results[report.nodeid]=dict(outcome=report.outcome,when=report.when,
+                 detail=str(report.longrepr) if report.failed or report.skipped else '')
+ cov=Coverage()
+ args=(json.loads((L/('work/base_tests_extra.json' if sys.argv[3]=='base-extra' else 'work/base_tests.json')).read_text())
+-      if sys.argv[3].startswith('base') else ([] if sys.argv[3]=='tree' else [str(L/'work/tests_r6')]))
++      if sys.argv[3].startswith('base') else ([] if sys.argv[3]=='tree' else [str(L/'work/contracts_r6/tests_r6')]))
+ args+=['-q','-p','no:cacheprovider','--basetemp',str(root/'pytest'), '--tb=short',
+        '--log-file', str(root/'pytest.log'),'--continue-on-collection-errors']
+ if len(sys.argv)>4: args+=sys.argv[4:]
+ if not sys.argv[3].startswith('base') and not os.environ.get('R6_NO_TRACE'):sys.settrace(cov.trace)
+ result=pytest.main(args,plugins=[cov])
+ sys.settrace(None)
+-(L/f'work/{tag}_results.json').write_text(json.dumps(cov.results,indent=2))
+-(L/f'work/{tag}_trace.json').write_text(json.dumps({k:{n:sorted(ts) for n,ts in v.items()} for k,v in cov.hits.items()}))
++(proof/'results.json').write_text(json.dumps(cov.results,indent=2))
++(proof/'trace.json').write_text(json.dumps({k:{n:sorted(ts) for n,ts in v.items()} for k,v in cov.hits.items()}))
++(proof/'temporary_sizes.json').write_text(json.dumps(sizes,indent=2))
+ raise SystemExit(result)

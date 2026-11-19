@@ -1,0 +1,35 @@
+--- build5/test_runner.py
++++ build6/test_runner.py
+@@ -97,6 +97,10 @@
+     if not any(p==root or root in p.parents for root in (temp_root,output)):
+         raise PermissionError('Build file policy refuses '+str(p))
+ def audit(event, args):
++    if (event == 'subprocess.Popen' and compact_tmp.inventory_root
++            and (compact_tmp.inventory_root == str(temp_root) or compact_tmp.inventory_root.startswith(str(temp_root)+'/'))
++            and args[1] == ['/usr/bin/find', compact_tmp.inventory_root, '-type', 'f', '-printf', r'%s\t%p\0']):
++        return
+     if reserve_probe and event=='subprocess.Popen' and args[1]==['df','-BG','--output=avail','/scratch']:
+         return
+     if event in ('os.'+'remove','os.'+'rmdir','shutil.'+'rmtree','os.system','socket.connect','socket.bind','os.fork','os.posix_spawn','subprocess.Popen'):
+@@ -178,9 +182,11 @@
+     def addError(self, test, error):
+         super().addError(test,error)
+         (output/'latest_error.json').write_text(json.dumps(dict(test=test.id(),traceback=self._exc_info_to_string(error,test))))
++        (output/'live_errors.json').write_text(json.dumps([(t.id(), e) for t,e in self.errors],indent=2))
+     def addFailure(self, test, error):
+         super().addFailure(test,error)
+         (output/'latest_failure.json').write_text(json.dumps(dict(test=test.id(),traceback=self._exc_info_to_string(error,test))))
++        (output/'live_failures.json').write_text(json.dumps([(t.id(), e) for t,e in self.failures],indent=2))
+     def startTest(self, test):
+         global reserve_probe
+         self.started = time.monotonic()
+@@ -286,6 +292,9 @@
+     modules.append(part)
+     suite.addTests(part)
+ (output/'TEST_INVENTORY.json').write_text(json.dumps(dict(modules=names,discovered_tests=suite.countTestCases()),indent=2))
++for name in ('live_errors.json','live_failures.json'):
++    (output/name).write_text('[]\n')
++(output/'progress.json').write_text(json.dumps(dict(completed=0,last=None,status='running')))
+ result = Result(sys.stdout, True, 1)
+ completed_modules = 0
+ (output/'scratch_receipts.jsonl').write_text('')

@@ -1,0 +1,25 @@
+# Brief 08 part B: assignment rule built, rows blocked on four inputs (lane b08_headrows, 2026-11-16)
+
+## Built (CPU, tested)
+- `code/headrows/assign.py`: one decision per training item from the deployed pipeline's response.
+  - head: response right (numeric within 15% of GT, counts exact integer, options exact letter) AND, for every operand, the accepted instance-id set equals the GT instance-id set (no extra operands).
+  - direct: response wrong, masks mismatch, or GT instance ids missing (`mask_unverified`). No head row copies a silently wrong response, including right-by-chance option answers with wrong masks.
+  - recovery: a real runtime failure status (`<name>: not seen`, no measurement/answer, not found/visible).
+  - drop: room size (ORCH 12:27Z) and appearance order (brief 11); operator faults of trace ruling 2.4(d); unknown statuses; response without pipeline + sha256 provenance; dev-S1, benchmark or withheld rooms.
+  - Eligibility uses the sealed `student_pilot.s1_exclusions.Exclusions` with dev list a1869ae2... (544 aliases, 180 rooms; holds all 80 withheld rooms) and benchmark list 3119aa4a..., decoded from rows_a2's staging payloads and sha-checked, plus WITHHELD_ROOMS_80.json (634820b4...). Copies in `work/auth/`.
+  - Selection: only the minority family per type (head rows on counting, size, relative distance, direction e/m/h; direct rows on absolute distance) plus recovery rows; cap 2,000 per (type, form); at most 4 rows per (type, room, form); deterministic order sha256(seed:qid), seed b08-20261116.
+  - Outputs DECISIONS.jsonl, SELECTED.jsonl, ASSIGN_SUMMARY.json (input, code and pin hashes, tallies).
+- `code/headrows/tests/test_assign.py`: 10 tests OK (size and direction easy now drop as `no_head_grammar`; assign.py 0230f74c...) (`cd code/headrows && /scratch/jjyeung/envs/p1cpu/bin/python -B -m unittest tests.test_assign`).
+- Dry run on the dev-S1 program arm: all 6,161 items refused as dev_s1 (the eligibility gate works). With eligibility bypassed and masks assumed to match (an upper bound), the head share per item is counting 0.34, size 0.46, relative distance 0.42, direction 0.66 to 0.70, absolute distance 0.46. So 2,000 head rows per type need at least about 6,000 counting, 4,400 size and 4,800 relative-distance training items with responses, more once the mask check bites.
+
+## Blockers (Part B rows)
+1. Responses on training items from the deployed pipeline: brief 04's reader (b04_e2ehook, not ready) or brief 05's own head (b05_owngrd, teacher pass not yet run). Neither exists today.
+2. GT instance ids per operand on those items (rasters / pool instances; rows_a2 builds rasters on trinity-1-3). Without them every item lands on direct (`mask_unverified`).
+3. Call grammar for the new head types. The reader serves ground/gap/camera; counting (instances ground), size, relative distance (gap per candidate) and direction (calculator `<angle>`) renderings must come from what the reader prints, in event form with masked responses.
+4. Tree amendment (tree lane plus one independent review). The sealed validator `trace_grammar.py` a41ba191 is type-agnostic: a program-form row passes in any type, so it needs a type gate, not a lexical change. The real refusal sits in `carrier_c1_routing.py` (build loop near line 880): every policy in `POLICIES` puts a type in route OR direct, and a direct-policy row with calls is refused (`direct_policy_row_has_tool_calls`); route types drop their direct rows. The mix needs a policy with a `both` set (counting, size, relative distance, direction e/m/h, absolute distance) that keeps both forms, and a validator type gate that admits program form only in route or both types.
+
+## Renderer and grammar coverage (read from the sealed tree copy `rows_rebuild/work/tree/src`)
+- Head-form rows need no new renderer. The sealed `student_pilot/ground_rows.pack(record, provenance)` turns a v3.12-3.14 Session record (`qid, type, question, options, answer, gt_answer, candidate_id, spec_version, events[{call, response}], suffix`) into a derivgen-row-v2 route row with masked response spans, and `ground_rows.validate` re-renders it. So a head row is the reader's own recorded suffix on a training item that passed `assign.decide`.
+- Grammar covers: absolute distance, relative distance, direction medium and hard (`trace_format/ground_v312.py` TYPES: `<ground>`, `<gap>`), counting and appearance order (`ground_v313.py` instance path). Not covered: object size and direction easy. Under the ORCH both-path ruling those two keep their current form until a grammar and head exist for them.
+- Requirement on the response cache (brief 04 reader / brief 05 head): save the full Session record per item (fields above, plus per-operand accepted instance ids and the pipeline sha256), not only the answer; otherwise rows cannot be packed.
+- `ground_rows.validate` requires `gt_accepted True`, `gt_agrees True`, `not_seen` false; recovery rows (real failure) therefore need a recovery form outside `ground_rows` (trace ruling 2.4 recovery family); tree_rebuild4 joins.

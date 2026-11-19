@@ -1,0 +1,749 @@
+--- build5/generator/derivgen_v7/test_v312_quality.py
++++ build6/generator/derivgen_v7/test_v312_quality.py
+@@ -174,9 +174,12 @@
+             mask=np.zeros((32,8,8),bool);mask[0,1,1 if n=='table' else 6]=True
+             return mask,mask.any(axis=(1,2)).astype(float)
+         clip.masks=masks
+-        q=item();q['roles']={'a':'wooden table','b':'bed'}
+-        with self.assertRaisesRegex(RowRefusal,'unresolved_qualified_name'):clip.validate_operands(q)
+-        q['roles']['a']='table';clip.validate_operands(q)
++        from trace_format.contracts import contract_epoch
++        for enabled,reason in ((False,'unresolved_qualified_name'),(True,'single_instance_required')):
++            with contract_epoch(enabled):
++                q=item();q['roles']={'a':'wooden table','b':'bed'}
++                with self.assertRaisesRegex(RowRefusal,reason):clip.validate_operands(q)
++                q['roles']['a']='table';clip.validate_operands(q)
+ 
+     def test_best_camera_axes_and_y_sign_independent_expected_values(self):
+         from test_v312_ground import Geometry,masks,BACKEND
+--- build5/tests/r2_init_fixture.py
++++ build6/tests/r2_init_fixture.py
+@@ -0,0 +1,7 @@
++from pathlib import Path
++import os
++from student_pilot.p3_provenance import load, file_pin
++ROOT = Path(os.environ.get('R2_FIXTURES', Path(__file__).resolve().parents[3]/'fixtures'))
++PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')
++INIT = load(ROOT/'work/build6/INIT_INPUT.json')['identity']
++def binding(): return dict(r2_identity=dict(init=INIT))
+--- build5/tests/test_c1_validation_slice.py
++++ build6/tests/test_c1_validation_slice.py
+@@ -176,9 +176,12 @@
+         cfg = dict(schema='carrier-c1-run-v1', init='base', parallel='fsdp', all_frames=True,
+                    carrier_placement=run.data.C1_A, streams=dict(pose={}, vqa={}, pointing={}))
+         cfg['recipe'] = recipe_for(cfg)
++        raw_before = run.digest(cfg)
+         before = run.identity(cfg)
+         run.validate(cfg)
+-        self.assertEqual(before, run.digest(cfg))
++        self.assertEqual(raw_before, run.digest(cfg))
++        from trace_format.contracts import HEADING_PLANE_MIN_DEFAULT
++        self.assertEqual(before, run.digest({**cfg, 'heading_plane_min':HEADING_PLANE_MIN_DEFAULT}))
+         run.validate({**cfg, 'validation': self.cfg['validation']})
+         self.assertEqual(before, run.identity(cfg))
+         for bad in (None, {}, {'rows': self.rows}, {**self.cfg['validation'], 'other': {}},
+--- build5/tests/test_e2e_open_vocabulary.py
++++ build6/tests/test_e2e_open_vocabulary.py
+@@ -8,7 +8,7 @@
+ import numpy as np
+ 
+ from student_pilot import mdg_decode as D, mdg_features as F, mdg_stream
+-from student_pilot.ground_admission import LABELS, qualification
++from student_pilot.ground_admission import LABELS, qualification, normalized_name
+ from student_pilot.p3_printed_calculator import PrintedPointRegistry
+ from tests.test_ground_backend import Geometry, masks
+ 
+@@ -42,6 +42,7 @@
+                 b=known.ground(name,None,PrintedPointRegistry())
+                 self.assertEqual(a,b)
+                 self.assertNotIn('not seen',a)
+-                self.assertTrue(unknown.queries[0]['name_outside_decoder_vocabulary'])
++                self.assertEqual(unknown.queries[0]['name_outside_decoder_vocabulary'],
++                                 normalized_name(name) not in {normalized_name(label) for label in LABELS})
+                 self.assertFalse(known.queries[0]['name_outside_decoder_vocabulary'])
+                 self.assertFalse(unknown.queries[0]['qualified'])
+--- build5/tests/test_gxp_mix.py
++++ build6/tests/test_gxp_mix.py
+@@ -721,6 +721,9 @@
+ class MemoryFallback(unittest.TestCase):
+     def test_absent_keys_preserve_normalized_identity_and_fp32_output_bytes(self):
+         # Captured on the pinned S10 input checkout with the supplied CPU wrapper.
++        previous_threads = torch.get_num_threads()
++        self.addCleanup(torch.set_num_threads, previous_threads)
++        torch.set_num_threads(1)
+         expected = ['657308f57b5a02d3a14add15e07a6e41c374198304a37d016df1ab34ac27ac69',
+                     '82668c672c6df471df1f81390b9c025961842e5a7f0d83e46c46d38b72131cbc',
+                     'd5213e36cf4ca7c2b4e0a4df2361e2a02e13490817a4b6a517a851034386530f']
+@@ -737,7 +740,13 @@
+             result = encoder(torch.rand(4, 3, 28, 28))
+             hashes = [hashlib.sha256(x.numpy().tobytes()).hexdigest() for x in result]
+             self.assertEqual(hashes, expected + (['522e752c60b3f4eb1807285d985e443bd48e9492288f853a99681312161ebad8'] if fusion else []))
+-        self.assertEqual(run.identity(configuration()), '67e65629e78c3cf5f39511b549c3e345d92cf73fb98ce6ea7753d9cc3d6d6aae')
++        cfg = configuration()
++        self.assertEqual(run.digest(cfg), '67e65629e78c3cf5f39511b549c3e345d92cf73fb98ce6ea7753d9cc3d6d6aae')
++        from trace_format.contracts import HEADING_PLANE_MIN_DEFAULT
++        self.assertEqual(run.identity(cfg), run.digest({**cfg, 'heading_plane_min':HEADING_PLANE_MIN_DEFAULT}))
++        off = {**cfg, 'contract_epoch':False}
++        self.assertEqual(run.identity(off), run.digest(off))
++        self.assertEqual(run.identity({**off, 'heading_plane_min':HEADING_PLANE_MIN_DEFAULT}), run.digest(off))
+ 
+     def test_frozen_only_strict_options_and_identity_binding(self):
+         original = configuration()
+--- build5/tests/test_r2_build.py
++++ build6/tests/test_r2_build.py
+@@ -35,7 +35,7 @@
+         for connector in ('none','gf1'):
+             kit=root/('a0' if connector=='none' else 'a2')
+             before=sum(p.stat().st_size for p in (LANE/'work/tmp').rglob('*') if p.is_file())
+-            result=B.build(base, kit, connector=connector, records=inputs(),dense_manifest=dp if connector=='gf1' else None)
++            result=B.build(base, kit, connector=connector, records=inputs(),dense_manifest=dp if connector=='gf1' else None, init_pin=INIT_PIN)
+             after=sum(p.stat().st_size for p in (LANE/'work/tmp').rglob('*') if p.is_file())
+             self.assertEqual(result['kit_sha256'],B.verify(kit))
+             self.assertEqual(result['target_site'],C.SITE)
+@@ -51,7 +51,7 @@
+             with self.assertRaises(ValueError): B.verify(kit)
+             job=kit/'job.sh';job.write_text(job.read_text()+'export X=QWEN\n')
+             with self.assertRaisesRegex(ValueError,'environment'):B.scan(kit)
+-            with self.assertRaises(ValueError): B.build(base,kit,connector=connector,records=inputs(),dense_manifest=dp)
++            with self.assertRaises(ValueError): B.build(base,kit,connector=connector,records=inputs(),dense_manifest=dp, init_pin=INIT_PIN)
+         (PROOFS/'B2_KIT_TESTS.json').write_text(json.dumps(results,indent=2)+'\n')
+ 
+     def test_scanner_and_configuration_refusals(self):
+@@ -65,14 +65,14 @@
+         root=directory(); dp=dense(root)
+         for connector in ('none','gf1'):
+             with self.assertRaisesRegex(ValueError,'Camera'):
+-                C.configure({**parent,'camera_connector':True},connector,dense_manifest=dp)
+-        with self.assertRaisesRegex(ValueError,'dense'): C.configure(parent,'gf1')
+-        with self.assertRaises(ValueError): C.configure(parent,'other')
+-        with self.assertRaises(ValueError): C.configure(parent,'none',stage=0)
+-        with self.assertRaises(ValueError): C.configure({**parent,'geometry_online':{} or {'mode':'frozen'}},'none')
++                C.configure({**parent,'camera_connector':True},connector,dense_manifest=dp, init_pin=INIT_PIN)
++        with self.assertRaisesRegex(ValueError,'dense'): C.configure(parent,'gf1', init_pin=INIT_PIN)
++        with self.assertRaises(ValueError): C.configure(parent,'other', init_pin=INIT_PIN)
++        with self.assertRaises(ValueError): C.configure(parent,'none',stage=0, init_pin=INIT_PIN)
++        with self.assertRaises(ValueError): C.configure({**parent,'geometry_online':{} or {'mode':'frozen'}},'none', init_pin=INIT_PIN)
+         path=root/'invalid.json';write(path,{})
+-        with self.assertRaises(ValueError): C.configure(parent,'gf1',dense_manifest=file_pin(path))
+-        cfg=C.configure(parent,'gf1',dense_manifest=dp)
++        with self.assertRaises(ValueError): C.configure(parent,'gf1',dense_manifest=file_pin(path), init_pin=INIT_PIN)
++        cfg=C.configure(parent,'gf1',dense_manifest=dp, init_pin=INIT_PIN)
+         with self.assertRaises(ValueError): C.apply_native(cfg)
+         with self.assertRaises(ValueError): C.apply_native({**cfg,'camera_connector':True})
+ 
+@@ -113,3 +113,5 @@
+         self.assertEqual(M.check_route_rows([row],{'d1/fixture_clean'}),1)
+         for rows,scenes in [([row,row],{'d1/fixture_clean'}),([row],set()),([{**row,'events':[{}]}],{'d1/fixture_clean'})]:
+             with self.assertRaises(ValueError): M.check_route_rows(rows,scenes)
++
++from tests.r2_init_fixture import PIN as INIT_PIN
+--- build5/tests/test_r2_build3.py
++++ build6/tests/test_r2_build3.py
+@@ -14,7 +14,7 @@
+ from unittest.mock import patch
+ import torch
+ from student_pilot.p3_provenance import file_pin, load, write, digest
+-from student_pilot.r2_contract import INIT
++from tests.r2_init_fixture import INIT
+ from student_pilot import r2_openers as O
+ from launch_r2 import host as H, parent, build as B, bootstrap
+ from tests.test_r2_data_path import PROOFS, directory, LANE, TinyProcessor, fixture, manifest
+@@ -153,7 +153,7 @@
+         spec = dict(artifact=file_pin(root/'artifact.json'), lm='full', heads=[])
+         witness = dict(artifact_sha256=spec['artifact']['sha256'], lineage_sha256=INIT['artifact_sha256'], **O.vocabulary(processor))
+         write(root/'v.json', witness)
+-        receipt = dict(init_artifact=spec, routing_vocabulary=file_pin(root/'v.json'))
++        receipt = dict(r2_identity=dict(init=INIT),init_artifact=spec, routing_vocabulary=file_pin(root/'v.json'))
+         for policy in ('keep', 'reset'):
+             live = Embeddings()
+             live.init_report = R.init_from_artifact(live, spec, part='lm')
+@@ -163,7 +163,8 @@
+                 expected = state[name][7] if policy=='keep' else state[name][[1,2]].mean(0)
+                 self.assertTrue(torch.equal(attr.weight[7], expected))
+         with self.assertRaisesRegex(ValueError,'Unknown'): O.initialize(live,processor,{'routing_opener_init':'x'})
+-        with self.assertRaisesRegex(ValueError,'Missing'): O.initialize(live,processor,dict(init_artifact=spec,routing_opener_init='keep'))
++        with self.assertRaisesRegex(ValueError,'Missing routing vocabulary witness'):
++            O.initialize(live,processor,dict(r2_identity=dict(init=INIT),init_artifact=spec,routing_opener_init='keep'))
+         (root/'v.json').write_text(json.dumps({**witness,'lineage_sha256':'f'*64}))
+         with self.assertRaisesRegex(ValueError,'vocabulary'):
+             O.initialize(live,processor,{**receipt,'routing_opener_init':'keep','routing_vocabulary':file_pin(root/'v.json')})
+@@ -172,7 +173,7 @@
+ 
+     def test_four_stream_record_identity(self):
+         base = LANE/'work/kit07ca49df_meta/m'
+-        result = B.build(base, directory()/'a', overrides=False)
++        result = B.build(base, directory()/'a', overrides=False, init_pin=INIT_PIN)
+         self.assertTrue(all(item['identical'] for item in result))
+         (PROOFS/'B3_PARENT_REPRO.json').write_text(json.dumps(result,indent=2)+'\n')
+         cfg = load(base/'k/b02e4385.json')
+@@ -198,8 +199,8 @@
+         pin=archive('a.tar',members)
+         hashes={k:hashlib.sha256(v).hexdigest() for k,v in members.items()}
+         result=H.stage_init(pin,root/'s',hashes,max_member_bytes=100)
+-        self.assertTrue(result['m544/heads.pt'].startswith('ap/8865619b/runs/469ddece/'))
+-        self.assertFalse(result['m544/artifact.json'].startswith('ap/8865619b/'))
++        self.assertEqual(result['m544/heads.pt'],'ap/'+pin['sha256'][:16]+'/e/heads.pt')
++        self.assertEqual(result['m544/artifact.json'],'ap/'+pin['sha256'][:16]+'/a/artifact.json')
+         for key,relative in result.items():self.assertEqual((root/'s'/relative).read_bytes(),members[key])
+         with self.assertRaisesRegex(ValueError,'Unadmitted'):H.stage_init(pin,root/'b',hashes,max_member_bytes=1)
+         with self.assertRaisesRegex(ValueError,'sha256'):H.stage_init(pin,root/'c',{k:'0'*64 for k in hashes},max_member_bytes=100)
+@@ -244,7 +245,7 @@
+             root=directory();dp=dense(root)
+             kit=root/'a'
+             result=B.build(LANE/'work/kit07ca49df_meta/m',kit,connector=connector,records=inputs(),
+-                           dense_manifest=dp if connector=='gf1' else None)
++                           dense_manifest=dp if connector=='gf1' else None, init_pin=INIT_PIN)
+             cfg=load(kit/result['config']['path'])
+             self.assertEqual(cfg['routing_opener_init'],'keep')
+             self.assertNotEqual(load(kit/'k/4.json')['modes'],[])
+@@ -278,3 +279,5 @@
+ 
+ for number, entry in enumerate(load(LANE/'references/B3_BANK_ENTRYPOINTS.json')):
+     setattr(EvaluationEntrypoints,'test_refusal_'+str(number),refusal(entry))
++
++from tests.r2_init_fixture import PIN as INIT_PIN
+--- build5/tests/test_r2_build3_gaps.py
++++ build6/tests/test_r2_build3_gaps.py
+@@ -58,7 +58,7 @@
+         invoke(packet,{**cfg,'geometry_connector':'gf1'},reason='tower assets')
+         write(root/'assets.json',settings())
+         parent=load(LANE/'work/kit07ca49df_meta/m/k/b02e4385.json')
+-        gf=configure(parent,'gf1',dense_manifest=packet['dense'])
++        gf=configure(parent,'gf1',dense_manifest=packet['dense'], init_pin=INIT_PIN)
+         invoke({**packet,'geometry_assets':file_pin(root/'assets.json'),'output':'../escape'},gf,reason='new folder')
+         # Reach native arm binding in the bounded metadata fixture; the unsafe
+         # output path then refuses before a store or frozen tower is opened.
+@@ -117,6 +117,8 @@
+             with self.assertRaisesRegex(ValueError,'arm'):runpy.run_path(worker.__file__,run_name='__main__')
+         # The final-kit test stages the current source before this check.
+         from tests.test_r2_build import inputs
+-        kit=directory()/'a';B.build(LANE/'work/kit07ca49df_meta/m',kit,connector='none',records=inputs())
++        kit=directory()/'a';B.build(LANE/'work/kit07ca49df_meta/m',kit,connector='none',records=inputs(), init_pin=INIT_PIN)
+         with patch.dict(sys.modules,{'v':object()}):
+             previous=sys.modules['v'];B.verify(kit);self.assertIs(sys.modules['v'],previous)
++
++from tests.r2_init_fixture import PIN as INIT_PIN
+--- build5/tests/test_r2_build4.py
++++ build6/tests/test_r2_build4.py
+@@ -37,7 +37,10 @@
+         row['events'][4:4]=[dict(row['events'][2],call_id='g2'),dict(row['events'][3],call_id='g2')]
+         row['ground_record']['events'].append(deepcopy(row['ground_record']['events'][0]))
+         row['target'],row['tool_output_spans'],_=render_ground(row['events'],row['answer'])
+-        with self.assertRaisesRegex(ValueError,'calls again'):
++        from trace_format.contracts import contract_epoch
++        with contract_epoch(False), self.assertRaisesRegex(ValueError,'calls again'):
++            C.event_row(row)
++        with contract_epoch(True), self.assertRaisesRegex(ValueError,'contract_call_after_failed_ground'):
+             C.event_row(row)
+ 
+     def test_duplicate_row_and_repeat_limit(self):
+@@ -116,7 +119,7 @@
+                 C.event_row({**row,'response_source':None})
+ 
+     def test_keep_preparation_never_resets(self):
+-        cfg=dict(routing_opener_init='keep',init_artifact=dict(lm='full',artifact=dict(sha256=C.INIT['artifact_sha256'])))
++        cfg=dict(r2_identity=dict(init=INIT),routing_opener_init='keep',init_artifact=dict(lm='full',artifact=dict(sha256=INIT['artifact_sha256'])))
+         with self.assertRaisesRegex(ValueError,'vocabulary witness'):
+             O.preparation(cfg)
+         with self.assertRaisesRegex(ValueError,'full warm'):
+@@ -124,7 +127,7 @@
+         with self.assertRaisesRegex(ValueError,'init artifact'):
+             O.preparation({**cfg,'init_artifact':dict(lm='full',artifact={})})
+         root=directory();p=root/'v.json'
+-        write(p,dict(artifact_sha256=C.INIT['artifact_sha256'],lineage_sha256=C.INIT['artifact_sha256'],
++        write(p,dict(artifact_sha256=INIT['artifact_sha256'],lineage_sha256=INIT['artifact_sha256'],
+                      vocabulary_sha256='a'*64,tokens={'<move':1}))
+         O.preparation({**cfg,'routing_vocabulary':file_pin(p)})
+         O.preparation(dict(routing_opener_init='reset'))
+@@ -171,9 +174,9 @@
+     def test_parent_configuration_path(self):
+         from student_pilot.r2_config import configure
+         parent=load(LANE/'work/kit07ca49df_meta/m/k/b02e4385.json')
+-        self.assertEqual(configure(parent,None,overrides=False),parent)
++        self.assertEqual(configure(parent,None,overrides=False, init_pin=INIT_PIN),parent)
+         with self.assertRaisesRegex(ValueError,'Invalid'):
+-            configure({'streams':{s:{} for s in ('pose','vqa','pointing','routing')}},None,overrides=False)
++            configure({'streams':{s:{} for s in ('pose','vqa','pointing','routing')}},None,overrides=False, init_pin=INIT_PIN)
+ 
+     def test_bank_caller_catalog_refuses(self):
+         from student_pilot import r2_policy as P
+@@ -188,7 +191,7 @@
+     def test_persistence_survives_project_full(self):
+         from student_pilot.r2_config import configure
+         parent=load(LANE/'work/kit07ca49df_meta/m/k/b02e4385.json')
+-        cfg=configure(parent,'none');root=directory();cfg['output']=str(root)
++        cfg=configure(parent,'none', init_pin=INIT_PIN);root=directory();cfg['output']=str(root)
+         cfg['r2_persistence']={"test":True}
+         # Only the network transport stands in. Real archive creation, hashing,
+         # receipt checks and ordering run on tiny synthetic export bytes.
+@@ -212,3 +215,7 @@
+         self.assertEqual(len(uploaded),len(cfg['recipe']['milestones']))
+         (PROOFS/'PERSISTENCE.json').write_text(json.dumps(dict(plan=persistence.plan(cfg),milestones=len(uploaded),
+             stand_in='network uploader, tiny export bytes',checkpoint_restore_checked=False)))
++
++from tests.r2_init_fixture import INIT
++
++from tests.r2_init_fixture import PIN as INIT_PIN
+--- build5/tests/test_r2_build5.py
++++ build6/tests/test_r2_build5.py
+@@ -119,7 +119,7 @@
+ 
+     def test_vocabulary_reads_staged_export(self):
+         from launch_r2.checklist import Checklist
+-        from student_pilot.r2_contract import INIT
++        from tests.r2_init_fixture import INIT
+         from student_pilot.p3_provenance import digest
+         root=directory();tokens=dict(ids={'<move':3},constituents={'<move':[1,2]})
+         vocab={'a':1,'b':2,'<move':3}
+@@ -132,7 +132,7 @@
+             source_seal=seal,training_source_seal=seal,config_sha256='b'*64,routing_vocabulary=recorded))
+         pin=file_pin(root/'artifact.json')
+         write(root/'v.json',dict(artifact_sha256=pin['sha256'],lineage_sha256=INIT['artifact_sha256'],**recorded))
+-        cfg=dict(init_artifact=dict(artifact=pin,lm='full'),routing_opener_init='keep',routing_vocabulary=file_pin(root/'v.json'))
++        cfg=dict(r2_identity=dict(init=INIT),init_artifact=dict(artifact=pin,lm='full'),routing_opener_init='keep',routing_vocabulary=file_pin(root/'v.json'))
+         processor=SimpleNamespace(tokenizer=SimpleNamespace(get_vocab=lambda:vocab,convert_tokens_to_ids=lambda t:vocab[t]))
+         c=Checklist(root,{},cfg)
+         with patch('transformers.AutoProcessor.from_pretrained',return_value=processor) as loader:
+--- build5/tests/test_r2_build5_coverage.py
++++ build6/tests/test_r2_build5_coverage.py
+@@ -73,11 +73,12 @@
+         from student_pilot import carrier_c1_run as R,r2_policy as P
+         root=directory();write(root/'code.json',dict(tree_sha256='a'*64))
+         binding=dict(counts=dict(path='fixture',sha256='b'*64))
+-        result=native_config(dict(code=file_pin(root/'code.json'),r2_build2={}),
++        from tests.r2_init_fixture import INIT
++        result=native_config(dict(code=file_pin(root/'code.json'),r2_build2={},r2_identity=dict(init=INIT)),
+                              dict(streams={},r2_membership={},r2_sampling=binding),{},root/'config')
+         self.assertEqual(result['r2_sampling'],binding)
+         self.assertEqual(result['r2_build2']['counts'],binding['counts'])
+-        cfg=configure(load(LANE/'work/kit07ca49df_meta/m/k/b02e4385.json'),'none')
++        cfg=configure(load(LANE/'work/kit07ca49df_meta/m/k/b02e4385.json'),'none', init_pin=INIT_PIN)
+         cfg['r2_identity']={};cfg.pop('r2_sampling',None)
+         with self.assertRaisesRegex(ValueError,'bound r2_sampling'):
+             R.run_steps(None,None,None,None,{},root,cfg,{},'cpu',distributed=False)
+@@ -107,3 +108,5 @@
+         (root/'plan.json').write_text(json.dumps(dict(entries={})))
+         (root/'k/0.json').write_text(json.dumps(dict(staging=file_pin(root/'plan.json'))))
+         with self.assertRaisesRegex(ValueError,'No staged'):c.staged()
++
++from tests.r2_init_fixture import PIN as INIT_PIN
+--- build5/tests/test_r2_build5_persistence.py
++++ build6/tests/test_r2_build5_persistence.py
+@@ -12,7 +12,7 @@
+ 
+ def fixture():
+     root = directory()
+-    cfg = configure(load(LANE/'work/kit07ca49df_meta/m/k/b02e4385.json'),'none')
++    cfg = configure(load(LANE/'work/kit07ca49df_meta/m/k/b02e4385.json'),'none', init_pin=INIT_PIN)
+     cfg.update(output=str(root),r2_persistence={'synthetic':True})
+     state = root/'s'
+     state.mkdir()
+@@ -131,3 +131,5 @@
+         write(state.parent/'sessions.json',{})
+         cfg['r2_persistence']=dict(sessions=file_pin(state.parent/'sessions.json'),uploader=file_pin(tool))
+         with self.assertRaisesRegex(ValueError,'upload failed'):P.upload(cfg,state,'export')
++
++from tests.r2_init_fixture import PIN as INIT_PIN
+--- build5/tests/test_r2_build6.py
++++ build6/tests/test_r2_build6.py
+@@ -0,0 +1,177 @@
++"""Next-leg selection, final admission, direct units and score contracts."""
++from copy import deepcopy
++import json
++import unittest
++from student_pilot import r2_admission as A, r2_contract as C, r2_policy as P, r2_units as U
++from student_pilot.p3_provenance import file_pin, write
++from tests.test_r2_data_path import directory, fixture
++from tests.r2_init_fixture import INIT, PIN
++
++
++class Build6(unittest.TestCase):
++    def test_selected_archive_layout(self):
++        import hashlib,io,tarfile
++        from launch_r2.runtime import init_layout
++        from launch_r2.host import stage_init
++        root=directory()
++        for prefix in ('m544','m200'):
++            members={prefix+'/artifact.json':b'{}',prefix+'/heads.pt':b'tiny',prefix+'/full_weights/a':b'tiny'}
++            archive=root/(prefix+'.tar')
++            with tarfile.open(archive,'w') as tar:
++                for name,raw in members.items():
++                    entry=tarfile.TarInfo(name);entry.size=len(raw);tar.addfile(entry,io.BytesIO(raw))
++            hashes={k:hashlib.sha256(v).hexdigest() for k,v in members.items()}
++            result=init_layout(file_pin(archive),root/prefix,hashes,100)
++            mirror=__import__('pathlib').Path(result['mirror_root'])/result['artifact']['sha256'][:16]
++            self.assertEqual((mirror/'heads.pt').read_bytes(),b'tiny')
++            self.assertEqual((mirror/'full_weights/a').read_bytes(),b'tiny')
++        with self.assertRaisesRegex(ValueError,'incomplete'):
++            stage_init({},root/'bad',{'m1/a':'a','m2/b':'b'},max_member_bytes=100)
++
++    def test_room_call_in_shipped_sessions(self):
++        from types import SimpleNamespace
++        import numpy as np
++        from trace_format.ground_v313 import Session
++        from generator.derivgen_v7.derivgen.ground_v313 import Session as GeneratorSession
++        from student_pilot.live_trace313 import LiveSession, AuditSession
++        from student_pilot.carrier_c1_routing import OwnGeometry
++        from student_pilot.ground_lifting import OwnGeometryAdapter
++        from trace_format import room_v314 as R
++        from trace_format.contracts import contract_epoch
++        from tests.test_room_v314 import Sensor
++        evidence=[]
++        for enabled in (False, True):
++            with contract_epoch(enabled):
++                for cls in (Session, GeneratorSession):
++                    kwargs=dict(multi_instance=True,geometry_mode='sensor')
++                    if cls is Session:kwargs['program_version']='3.14'
++                    session=cls(None,Sensor(),None,**kwargs)
++                    body=session.execute(R.CALL)
++                    self.assertGreater(R.parse_response(body)['area_m2'],0)
++                    evidence.append(dict(runtime=cls.__module__,enabled=enabled,response=body))
++                p=np.zeros((32,9));p[:,6]=1;p[:,7:]=1.2
++                geometry=OwnGeometryAdapter(OwnGeometry(p,[0.,-1.,0.],lambda k,uv:np.full(len(uv),2.)))
++                live=LiveSession(SimpleNamespace(geometry=geometry),program_version='3.14')
++                body=live.execute(R.CALL)
++                self.assertIn('area ',body)
++                replay=AuditSession(live.queries,program_version='3.14')
++                self.assertEqual(replay.execute(R.CALL),body)
++                evidence.append(dict(runtime='LiveSession and AuditSession',enabled=enabled,response=body))
++                from student_pilot import trace_format313 as routing
++                token=routing._current.set(live)
++                try:self.assertEqual(routing.respond(R.CALL,live.registry)[0],body)
++                finally:routing._current.reset(token)
++                from tests.test_trace_format313_decode import FormatTests
++                decoder_session=Session(None,Sensor(),None,program_version='3.14')
++                records,_=FormatTests().run_rows([[50,1]],sessions=[decoder_session],extra_words={50:R.CALL})
++                self.assertGreater(R.parse_response(records[0]['calls'][0]['response'])['area_m2'],0)
++                evidence.append(dict(runtime='trace_format313 responder and routed decoder',enabled=enabled,response=records[0]['calls'][0]['response']))
++        from tests.test_r2_data_path import PROOFS
++        (PROOFS/'ROOM_RUNTIME.json').write_text(json.dumps(dict(boundary='Synthetic dense depth and pose stand in for GPU heads; real room measurement and session readers run.',sessions=evidence)))
++
++    def test_pinned_init_and_unpinned_refusal(self):
++        self.assertEqual(C.selected_init(PIN), INIT)
++        for pin in (None, {}, dict(path=PIN['path'], sha256='0'*64)):
++            with self.assertRaises(ValueError): C.selected_init(pin)
++        root=directory();path=root/'i.json'
++        for value in ({},dict(schema='r2-init-selection-v1',identity={}),
++                      dict(schema='r2-init-selection-v1',identity={**INIT,'step':-1}),
++                      dict(schema='r2-init-selection-v1',identity={**INIT,'parent_source_seal':'x'})):
++            path.write_text(json.dumps(value))
++            with self.assertRaises(ValueError): C.selected_init(file_pin(path))
++        changed={**INIT,'artifact_sha256':'d'*64,'parent_run':'fixture','step':200}
++        path.write_text(json.dumps(dict(schema='r2-init-selection-v1',identity=changed)))
++        self.assertEqual(C.selected_init(file_pin(path)),changed)
++        spec=dict(contract=C.CONTRACT,init=changed,mode='warm_start',run_id='new',code_sha256='a'*64,mixture_sha256='b'*64)
++        self.assertEqual(C.check_init(spec,changed),spec)
++        with self.assertRaises(ValueError): C.check_init(spec,INIT)
++        from student_pilot.r2_config import configure
++        from launch_r2.build import build
++        with self.assertRaisesRegex(ValueError,'pinned init'):
++            configure({},'none')
++        from tests.test_r2_build import inputs
++        from tests.test_r2_data_path import LANE
++        with self.assertRaisesRegex(ValueError,'Missing pinned init selection'):
++            build(LANE/'work/kit07ca49df_meta/m',root/'unpinned',connector='none',records=inputs())
++
++    def test_family_gate_refuses_below_ninety_after_exclusions(self):
++        reports=[dict(family=names[-1],counts={'x':dict(seen=110,admitted=90,refused=20)},
++                      refusals=[dict(reason='excluded:withheld_room') for _ in range(10)]+[dict(reason='missing frame') for _ in range(10)])
++                 for names in A.FAMILIES.values()]
++        self.assertTrue(all(v==dict(eligible=100,admitted=90) for v in A.family_admission(reports).values()))
++        for index in range(len(reports)):
++            bad=deepcopy(reports);bad[index]['counts']['x']['admitted']=89
++            bad[index]['counts']['x']['refused']=21
++            bad[index]['refusals'].append(dict(reason='missing frame'))
++            with self.assertRaisesRegex(ValueError,'below 90%'): A.family_admission(bad)
++        unknown=deepcopy(reports);unknown[0]['refusals'][0]['reason']='excluded:unknown_overlap'
++        with self.assertRaisesRegex(ValueError,'below 90%'):A.family_admission(unknown)
++        self.assertEqual(A.family_admission(reports+[dict(family='pose')]),A.family_admission(reports))
++        with self.assertRaises(ValueError): A.family_admission([])
++        bad=deepcopy(reports);bad[0]['counts']['x']['admitted']=111
++        with self.assertRaisesRegex(ValueError,'Invalid'): A.family_admission(bad)
++        root=directory();path=root/'m.json'
++        with self.assertRaises(ValueError): A.check_family_receipt(None)
++        path.write_text('{}')
++        with self.assertRaises(ValueError): A.check_family_receipt(file_pin(path))
++        path.write_text(json.dumps(dict(schema='r2-materialization-v1',status='ready',intake=reports)))
++        self.assertEqual(A.check_family_receipt(file_pin(path)),A.family_admission(reports))
++        # Exercise the same pinned-receipt reader called by the launch entry.
++        for index in range(len(reports)):
++            bad=deepcopy(reports);bad[index]['counts']['x'].update(admitted=89,refused=21)
++            bad[index]['refusals'].append(dict(reason='missing frame'))
++            path.write_text(json.dumps(dict(schema='r2-materialization-v1',status='ready',intake=bad)))
++            with self.assertRaisesRegex(ValueError,'Family admission below 90%'):
++                A.check_family_receipt(file_pin(path))
++
++    def test_direct_square_feet_and_inches(self):
++        root=directory()
++        for unit,asked,kind in [('ft2','square feet',name) for name in U.ROOM]+[('in','inches','object_size_estimation')]:
++            row=fixture(root,qid=unit);question='What is the room size in '+asked+'?' if unit=='ft2' else 'How wide is the sofa in inches?'
++            row.update(question_type=kind,question=question,answer_unit=unit,answer='12')
++            row['student_input']['question']=question
++            row['target']='<think>\nLocate: the stove is seen in frame 17.\nLocate: the sofa is seen in frame 2.\nRelate: the stove is to the right of the sofa.\n</think>\n\n12'
++            if unit=='ft2':row['target']=row['target'].replace('the stove','the room')
++            C.validate(row,'vqa')
++            self.assertNotIn('compute',row['target'])
++            if unit=='ft2':
++                bad=deepcopy(row);bad['target']=bad['target'].replace('Relate:', 'Converting to square feet: Relate:')
++                with self.assertRaises(ValueError):C.validate(bad,'vqa')
++                bad=deepcopy(row);bad['answer_unit']='ft'
++                with self.assertRaisesRegex(ValueError,'unit'):C.validate(bad,'vqa')
++            row['student_input']['question']='How wide is the sofa in metres?'
++            with self.assertRaisesRegex(ValueError,'unit'):C.validate(row,'vqa')
++
++    def test_read_scores_per_asked_unit_metres_first(self):
++        items=[dict(question_type='object_abs_distance',question='How far in feet?',score=2),
++               dict(question_type='object_abs_distance',question='How far in metres?',score=4),
++               dict(question_type='room_size_estimation',question='What area in square feet?',score=6),
++               dict(question_type='room_size_estimation',question='What area in square metres?',score=8),
++               dict(question_type='object_counting',question='How many?',score=10)]
++        result=U.score_by_unit(items)
++        self.assertEqual([row['unit'] for row in result['distance']],['m','ft'])
++        self.assertEqual([row['unit'] for row in result['room']],['m2','ft2'])
++        self.assertEqual(result['distance'][0],dict(unit='m',count=1,score=4))
++        for kind in U.DISTANCE:
++            self.assertEqual(U.score_by_unit([dict(question_type=kind,question='How far in metres?',score=4)]),
++                             {'distance':[dict(unit='m',count=1,score=4)]})
++        receipt=dict(required_scores=['all','without_venue_381879'],metric_units=U.metric_units(items))
++        values={k:dict(by_asked_unit=result) for k in receipt['required_scores']}
++        self.assertEqual(P.require_scores(receipt,values),values)
++        from student_pilot.p3_provenance import load
++        path=directory()/'scores.json';write(path,values)
++        self.assertEqual(P.require_scores(receipt,load(path)),values)
++        bad=deepcopy(values)
++        bad['all']['by_asked_unit']['distance']=list(reversed(bad['all']['by_asked_unit']['distance']))
++        with self.assertRaisesRegex(ValueError,'metres first'):P.require_scores(receipt,bad)
++        bad=deepcopy(values);bad['all']['by_asked_unit']['distance'][0]['score']=float('nan')
++        with self.assertRaisesRegex(ValueError,'finite'):P.require_scores(receipt,bad)
++        bad['all']['by_asked_unit']['distance'][0].update(count=0,score=None)
++        self.assertEqual(P.require_scores(receipt,bad),bad)
++        with self.assertRaises(ValueError):P.require_scores(receipt,{k:1 for k in values})
++        for question in ('How far in centimetres?','How far in inches?'):
++            self.assertIn(U.asked_unit(dict(question_type='object_abs_distance',question=question)),('cm','in'))
++        for question in ('How far?','How far in square feet?'):
++            with self.assertRaises(ValueError):U.asked_unit(dict(question_type='object_abs_distance',question=question))
++        items[0]['score']=float('nan')
++        with self.assertRaises(ValueError):U.score_by_unit(items)
+--- build5/tests/test_r2_data_path.py
++++ build6/tests/test_r2_data_path.py
+@@ -183,8 +183,8 @@
+         self.enterContext(patch.dict(os.environ, STUDENT_FRAME_ROOT_MAP=json.dumps({'/logical/r2': str(self.root/'frames')}), STUDENT_R2_LOCAL_NODE='1'))
+ 
+     def test_init_warm_start_and_preparation_refusals(self):
+-        spec = dict(contract=C.CONTRACT, init=C.INIT, mode='warm_start', run_id='new-run', code_sha256='a'*64, mixture_sha256='b'*64)
+-        meta = dict(C.INIT, parent_configuration='a7ad7051-prefix-only')
++        spec = dict(contract=C.CONTRACT, init=INIT, mode='warm_start', run_id='new-run', code_sha256='a'*64, mixture_sha256='b'*64)
++        meta = dict(INIT, parent_configuration='a7ad7051-prefix-only')
+         self.assertEqual(C.check_init(spec, meta), spec)
+         for change in (dict(mode='exact_resume'), dict(run_id='469ddece'), dict(init={}), dict(code_sha256='short')):
+             with self.assertRaises(ValueError):
+@@ -194,7 +194,7 @@
+                 C.check_init(spec, {**meta, **change})
+         write(self.root/'EXPORT_ARTIFACT.json', meta)
+         spec['export_metadata'] = file_pin(self.root/'EXPORT_ARTIFACT.json')
+-        cfg = dict(r2=spec, init_artifact=dict(artifact=dict(sha256=C.INIT['artifact_sha256'])))
++        cfg = dict(r2=spec, init_artifact=dict(artifact=dict(sha256=INIT['artifact_sha256'])))
+         write(self.root/'code.json', dict(tree_sha256=spec['code_sha256']))
+         write(self.root/'membership.json', dict(contract=C.CONTRACT, rows={}))
+         cfg.update(code=file_pin(self.root/'code.json'), r2_membership=file_pin(self.root/'membership.json'))
+@@ -346,3 +346,5 @@
+                 G.validate_program({**row, **change})
+         with self.assertRaisesRegex(ValueError, 'masked routing'):
+             C.validate(row, 'vqa')
++
++from tests.r2_init_fixture import INIT
+--- build5/tests/test_r2_edges.py
++++ build6/tests/test_r2_edges.py
+@@ -61,20 +61,22 @@
+     def test_builder_guard_branches(self):
+         root=directory();base=LANE/'work/kit07ca49df_meta/m'
+         source=inputs();bad=root/'foreign.json';bad.write_text('{}')
+-        with self.assertRaises(ValueError):B.build(base,root/'x',connector='none',records={**source,'withheld':bad})
++        with self.assertRaises(ValueError):B.build(base,root/'x',connector='none',records={**source,'withheld':bad}, init_pin=INIT_PIN)
+         real=B.sha256
+         def stale(path):
+             return '0'*64 if Path(path).name=='trace_grammar.py' else real(path)
+         with patch.object(B,'sha256',side_effect=stale),self.assertRaisesRegex(ValueError,'grammar'):
+-            B.build(base,root/'y',connector='none',records=source)
++            B.build(base,root/'y',connector='none',records=source, init_pin=INIT_PIN)
+         with patch.object(B,'tree_files',return_value={'student_pilot/__init__.py':'0'*64}),self.assertRaisesRegex(ValueError,'Source changed'):
+-            B.build(base,root/'z',connector='none',records=source)
++            B.build(base,root/'z',connector='none',records=source, init_pin=INIT_PIN)
+         old_load=B.load
+         def no_pose(path):
+             result=old_load(path)
+             if Path(path)==base/'k/0.json':result={**result,'extra':[]}
+             return result
+         with patch.object(B,'load',side_effect=no_pose),patch.object(B,'tree_files',return_value={}),self.assertRaisesRegex(ValueError,'pose sources'):
+-            B.build(base,root/'w',connector='none',records=source)
++            B.build(base,root/'w',connector='none',records=source, init_pin=INIT_PIN)
+         hashes=dict(word=[hashlib.sha256(b'sensitive').hexdigest()],substr={'3':[hashlib.sha256(b'bad').hexdigest()]})
+         self.assertTrue(B.bad_string('sensitive',hashes));self.assertTrue(B.bad_string('xxbadxx',hashes))
++
++from tests.r2_init_fixture import PIN as INIT_PIN
+--- build5/tests/test_r2_final_kits.py
++++ build6/tests/test_r2_final_kits.py
+@@ -12,9 +12,11 @@
+         root=directory();dp=dense(root);results=[]
+         for name in ('none','gf1'):
+             result=B.build(LANE/'work/kit07ca49df_meta/m',root/name,connector=name,records=inputs(),
+-                dense_manifest=dp if name=='gf1' else None)
++                dense_manifest=dp if name=='gf1' else None, init_pin=INIT_PIN)
+             results.append(dict(result,connector=name))
+         self.assertEqual({r['connector'] for r in results},{'none','gf1'})
+         self.assertEqual(len({r['source_sha256'] for r in results}),1)
+         self.assertTrue(all(not r['admission'] for r in results))
+         (PROOFS/'B3_KITS.json').write_text(json.dumps(results))
++
++from tests.r2_init_fixture import PIN as INIT_PIN
+--- build5/tests/test_r2_host_runtime.py
++++ build6/tests/test_r2_host_runtime.py
+@@ -59,10 +59,11 @@
+ 
+     def test_descendant_lineage_authentication(self):
+         from tests.test_r2_build3 import tiny_export
+-        from student_pilot.r2_contract import lineage_init,INIT
++        from student_pilot.r2_contract import lineage_init
++        from tests.r2_init_fixture import INIT
+         root=directory();tiny_export(root)
+-        lineage_init({'sha256':INIT['artifact_sha256']})
+-        lineage_init(file_pin(root/'donor.json'))
++        lineage_init({'sha256':INIT['artifact_sha256']}, init=INIT)
++        lineage_init(file_pin(root/'donor.json'), init=INIT)
+         (root/'other.json').write_text('{}')
+-        with self.assertRaisesRegex(ValueError,'binding'):lineage_init(file_pin(root/'other.json'))
+-        with self.assertRaisesRegex(ValueError,'binding'):lineage_init({'sha256':'f'*64})
++        with self.assertRaisesRegex(ValueError,'binding'):lineage_init(file_pin(root/'other.json'), init=INIT)
++        with self.assertRaisesRegex(ValueError,'binding'):lineage_init({'sha256':'f'*64}, init=INIT)
+--- build5/tests/test_r2_models.py
++++ build6/tests/test_r2_models.py
+@@ -33,7 +33,7 @@
+             self.assertTrue(torch.equal(expected,actual))
+             self.assertEqual(fusion.auxiliary_heads.geometry_encoder.calls,1)
+             for connector,model in [('none',parent),('gf1',fusion)]:
+-                cfg=C.configure(parent_cfg,connector,dense_manifest=dp if connector=='gf1' else None,stage=stage)
++                cfg=C.configure(parent_cfg,connector,dense_manifest=dp if connector=='gf1' else None,stage=stage, init_pin=INIT_PIN)
+                 settings=C.apply_native(cfg,native['geometry_online'] if connector=='gf1' else None)
+                 self.assertEqual(settings['geometry_connector'],connector)
+                 names=[n for n,p in model.named_parameters() if p.requires_grad]
+@@ -58,3 +58,5 @@
+                 reports.append(dict(connector=connector,stage=stage,parity_exact=True,reload_exact=True,trainables=names,
+                                     finite_loss=True,synthetic=True))
+         (PROOFS/'B2_MODEL_PROOF.json').write_text(json.dumps(reports,indent=2)+'\n')
++
++from tests.r2_init_fixture import PIN as INIT_PIN
+--- build5/tests/test_r2_native_config.py
++++ build6/tests/test_r2_native_config.py
+@@ -15,7 +15,7 @@
+         for stage in (1,2):
+             _,_,native=fixture(stage)
+             for connector in ('none','gf1'):
+-                cfg=C.configure(parent,connector,stage=stage,dense_manifest=manifest if connector=='gf1' else None)
++                cfg=C.configure(parent,connector,stage=stage,dense_manifest=manifest if connector=='gf1' else None, init_pin=INIT_PIN)
+                 cfg=C.apply_native(cfg,native['geometry_online'] if connector=='gf1' else None)
+                 R.validate(cfg)
+                 self.assertNotIn('mdg',cfg)
+@@ -27,3 +27,5 @@
+                 R.validate(fallback)
+                 self.assertEqual(fallback['recipe']['stream_rows_per_step']['pose'],60)
+                 self.assertEqual(fallback['recipe']['stream_rows_per_step']['pointing'],36)
++
++from tests.r2_init_fixture import PIN as INIT_PIN
+--- build5/tests/test_r2_policy.py
++++ build6/tests/test_r2_policy.py
+@@ -41,7 +41,7 @@
+         self.freeze=file_pin(self.root/'freeze.json')
+ 
+     def bank(self, banks=('VSI-Bench',), venue='381879', kind='object_abs_distance'):
+-        items=[dict(id='synthetic', question_type=kind, venue=venue)]
++        items=[dict(id='synthetic', question_type=kind, venue=venue, question='What is the distance between the chair and table in metres?')]
+         path=self.root/'bank.json'; path.write_text(json.dumps(items))
+         catalog=dict(schema='r2-bank-catalog-v1', reader_sha256=P.reader_hash(),
+                      items={digest(items[0]):dict(banks=list(banks), venue=venue)},
+@@ -122,7 +122,8 @@
+             self.read(bank,caller_catalog_pin=bank[1])
+         _, receipt=self.read(bank, freeze_pin=self.freeze)
+         self.assertEqual(receipt['required_scores'],['all','without_venue_381879'])
+-        P.require_scores(receipt, dict(all=0,without_venue_381879=0))
++        P.require_scores(receipt, dict(all=dict(by_asked_unit={'distance':[dict(unit='m',count=1,score=0)]}),
++                                       without_venue_381879=dict(by_asked_unit={'distance':[dict(unit='m',count=0,score=None)]})))
+         with self.assertRaises(ValueError): P.require_scores(receipt, dict(all=0))
+         for denied in ['STI-Bench','ReSTI','MindCube','unknown']:
+             with self.assertRaisesRegex(ValueError,'outside'):
+--- build5/tests/test_r2_portable.py
++++ build6/tests/test_r2_portable.py
+@@ -11,7 +11,7 @@
+ from student_pilot import r2_mix as M, r2_policy as P
+ from student_pilot.p3_provenance import file_pin, load, write
+ from student_pilot.r2_portable import bound
+-from student_pilot.r2_contract import INIT
++from tests.r2_init_fixture import INIT
+ from tests.test_r2_data_path import directory, LANE
+ from tests.test_r2_build import inputs
+ from tests.test_r2_policy import evidence
+@@ -42,7 +42,7 @@
+ class Portable(unittest.TestCase):
+     def test_complete_bindings_in_real_builder(self):
+         root=directory(); bindings,counts=fixture(root)
+-        result=B.build(LANE/'work/kit07ca49df_meta/m',root/'a',connector='none',records=inputs(),bindings=bindings)
++        result=B.build(LANE/'work/kit07ca49df_meta/m',root/'a',connector='none',records=inputs(),bindings=bindings, init_pin=INIT_PIN)
+         kit=root/'a'; config=load(kit/result['config']['path'])
+         proof=P.preparation(config['r2_build2'],kit)
+         self.assertTrue(all(x<=4 for x in proof['repeats'].values()))
+@@ -63,7 +63,7 @@
+         with patch.object(B,'tree_files',return_value={}):
+             with self.assertRaisesRegex(ValueError,'indices require'):
+                 B.build(LANE/'work/kit07ca49df_meta/m',root/'b',connector='none',records=inputs(),
+-                        bindings={'registry':bindings['registry'],'indices':bindings['indices']})
++                        bindings={'registry':bindings['registry'],'indices':bindings['indices']}, init_pin=INIT_PIN)
+ 
+     def test_closure_and_pin_refusals(self):
+         root=directory(); bindings,_=fixture(root); target=root/'k';target.mkdir()
+@@ -92,3 +92,5 @@
+             with self.assertRaisesRegex(ValueError,'bank adapter'):run.inference(cfg,artifact,None)
+             with self.assertRaisesRegex(ValueError,'bank adapter'):grounding_eval.load_runtime(cfg,artifact,None,None)
+         P.legacy_reader_guard({'init_artifact':None},{'sha256':'f'*64})
++
++from tests.r2_init_fixture import PIN as INIT_PIN
+--- build5/tests/test_r2_preparation.py
++++ build6/tests/test_r2_preparation.py
+@@ -4,7 +4,8 @@
+ import unittest
+ from unittest.mock import patch
+ from student_pilot import carrier_c1_run as trainer
+-from student_pilot.r2_contract import CONTRACT, INIT
++from student_pilot.r2_contract import CONTRACT
++from tests.r2_init_fixture import INIT
+ from student_pilot.carrier_c1_sweep import recipe_for
+ from student_pilot.p3_provenance import digest, file_pin, load, sha256, source_files, write
+ from student_pilot.source_seal import inventory
+--- build5/tests/test_s1_launch_kit.py
++++ build6/tests/test_s1_launch_kit.py
+@@ -157,6 +157,14 @@
+         gate, launch, cfg = self.ready()
+         native = __import__("student_pilot.carrier_c1_run", fromlist=["identity"])
+         self.assertEqual(gate.identity(cfg), native.identity(cfg))
++        for fields in ({"contract_epoch":True}, {"heading_plane_min":0.2},
++                       {"contract_epoch":False}, {"contract_epoch":False,"heading_plane_min":0.7}):
++            value={**cfg, **fields}
++            self.assertEqual(gate.identity(value), native.identity(value))
++        for threshold in (None, True, 0, 1, float("nan"), "0.3"):
++            value={**cfg, "heading_plane_min":threshold}
++            with self.assertRaises(ValueError):gate.identity(value)
++            with self.assertRaises(ValueError):native.identity(value)
+         report = json.loads((self.root / "k/first.json").read_text())
+         report["records"] = [row for row in report["records"] if row["rank"] != 7]
+         batch = json.loads((self.root / "k/batch.json").read_text())
+--- build5/tests/test_sam3_tower.py
++++ build6/tests/test_sam3_tower.py
+@@ -217,7 +217,9 @@
+         namespace = {}
+         exec(compile(ast.Module(body=nodes, type_ignores=[]), str(reference), 'exec'), namespace)
+         for label in list(namespace['SINGULAR']) + ['  Kitchen_Cabinets ', 'TV', 'trash  bin', 'office chairs']:
+-            self.assertEqual(normalize_phrase(label), namespace['phrase'](label))
++            from trace_format.contracts import contract_epoch
++            with contract_epoch(False):
++                self.assertEqual(normalize_phrase(label), namespace['phrase'](label))
+ 
+ 
+ if __name__ == '__main__':

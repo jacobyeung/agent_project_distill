@@ -1,0 +1,5 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; cd $W && tar xzf - -C $W && ls inputs/count
+date -u +%TZ; tmux ls | grep tr10; tail -c 1200 $W/w15/work/build15/STATUS.md; ls $W/w15/out | grep -i 15
+M=/scratch/jjyeung/n30_mirror/rows_r2; head -c 1500 $M/out/vehN_pool_abs_distance_full/K1_DROP.json; echo; head -c 1500 $M/out/vehN_pool_abs_distance_full/EXCLUSION_CHECK.json; echo; ls $M/work $M/work/* | head -40
+wc -l /scratch/jjyeung/n30_mirror/rows_r1/out/recovery_v3/rows.jsonl /scratch/jjyeung/n30_mirror/rows_r1/out/vehN_units/repaired/rows_slice.jsonl /scratch/jjyeung/n30_mirror/rows_r1/out/vehN_units/repaired/rows.jsonl /scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/repaired/rows.jsonl
+sha256sum /scratch/jjyeung/n30_mirror/rows_r1/out/recovery_v3/rows.jsonl /scratch/jjyeung/n30_mirror/rows_r1/out/vehN_units/repaired/rows_slice.jsonl /scratch/jjyeung/n30_mirror/rows_r1/out/vehN_units/repaired/rows.jsonl /scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/repaired/rows.jsonl /scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/EXTENT_RECEIPT_merged_n1fix2.json | cut -c1-16,65-

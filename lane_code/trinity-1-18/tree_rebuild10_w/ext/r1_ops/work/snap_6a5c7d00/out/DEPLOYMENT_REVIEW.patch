@@ -1,0 +1,228 @@
+--- a/b/c.sh
++++ b/b/c.sh
+@@ -15,11 +15,11 @@
+ P=/project/community/jjyeung/c7d31ddd
+ RR=runs/aws128p_20261025
+ EPOCHS=/home/jjyeung/6d00e578
+-S=/tmp/jjyeung/a_17c4ffa4/root
++S=/tmp/jjyeung/a_05b8ac69/root
+ U=$S/aws/u
+ HM=$HX
+-NX=/tmp/jjyeung/a_17c4ffa4/x_${SLURM_JOB_ID:-local}
+-NR=/tmp/jjyeung/a_17c4ffa4/runs
++NX=/tmp/jjyeung/a_05b8ac69/x_${SLURM_JOB_ID:-local}
++NR=/tmp/jjyeung/a_05b8ac69/runs
+ CUR=$HX/k/0.json
+ COMMIT=$(/usr/bin/python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["commit"])' "$CUR")
+ tk_step() {
+@@ -91,6 +91,11 @@
+     tk_step "joined $(basename "$dest") $(stat -c %s "$dest") B"
+ }
+ 
++tk_readonly_files() {
++    find "$1" -type f -exec chmod a-w {} +
++    find "$1" -type d -exec chmod 700 {} +
++}
++
+ tk_stage_model() {
+     local snap="$S/c7d31ddd/$RR/models/a32330d0/snapshots/$REV" file sha
+     read -r file sha < <(tk_current model)
+@@ -100,7 +105,7 @@
+     /usr/bin/python3 -I "$HX/b/kitx.py" "$file" "$sha" "$tmp/x"
+     [[ ! -e "$snap" ]] || mv "$snap" "$snap.old.$(date +%s)"
+     mv "$tmp/x/models--Qwen--Qwen3.5-9B/snapshots/$REV" "$snap"
+-    chmod -R a-w "$snap"
++    tk_readonly_files "$snap"
+     touch "$S/.stamp/model.$sha"
+     tk_step "model staged: $(du -sk "$snap" | cut -f1) KiB"
+ }
+@@ -284,14 +289,14 @@
+     fi
+     if [[ ! -d "$S/epochs/$COMMIT" ]]; then
+         tk_kitx trainer "$S/epochs/$COMMIT"
+-        chmod -R a-w "$S/epochs/$COMMIT"
++        tk_readonly_files "$S/epochs/$COMMIT"
+     fi
+     if [[ "$mode" != preflight ]] && tk_has trainer_old; then
+         local old_commit
+         old_commit=$(/usr/bin/python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["trainer_old_commit"])' "$CUR")
+         if [[ ! -d "$S/epochs/$old_commit" ]]; then
+             tk_kitx trainer_old "$S/epochs/$old_commit"
+-            chmod -R a-w "$S/epochs/$old_commit"
++            tk_readonly_files "$S/epochs/$old_commit"
+         fi
+     fi
+     local rfile rsha
+@@ -392,7 +397,7 @@
+ # Per-job writable kit root: kit bytes from /home (read-only), prep outputs restored from the /home mirror.
+ tk_nx() {
+     mkdir -p "$NR" "$NX/o" "$NX/runs" "$NX/arm" "$NX/ck" "$NX/data2root" "$NX/models" "$HM/o" "$HM/arm" "$HM/runs"
+-    rsync -rt "$HX/b" "$HX/k" "$HX/ANON_OK.json" "$HX/SHA256SUMS.txt" "$NX/"
++    rsync -rt --chmod=D700 "$HX/b" "$HX/k" "$HX/ANON_OK.json" "$HX/SHA256SUMS.txt" "$NX/"
+     rsync -rt "$HM/arm/" "$NX/arm/"
+ }
+ tk_persist_small() {
+--- a/b/p0.sh
++++ b/b/p0.sh
+@@ -6,7 +6,7 @@
+ PYTHONPATH="$HX/b" PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES="" \
+     /usr/bin/python3 -B "$HX/b/p0.py" "$HX" p --metadata-only
+ source "$HX/b/c.sh"
+-export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.preflight
++export TK_JOBDIR=/tmp/jjyeung/a_05b8ac69/jobs/${SLURM_JOB_ID:?}.preflight
+ trap 'for report in "$NX/o/${SLURM_JOB_ID}".preflight.*.json; do [[ ! -f "$report" ]] || cp "$report" "$HX/o/"; done' EXIT
+ tk_stage preflight
+ /usr/bin/python3 -I - "$CUR" "$HX" "$NX" "$IN" "$SLURM_JOB_ID" <<'PYINPUTS'
+--- a/b/r.sh
++++ b/b/r.sh
+@@ -8,6 +8,7 @@
+ done
+ HX="$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")"
+ export TK_KIT_HOME="$HX"
++if [[ "${1:-}" == t || "${1:-}" == u ]]; then export TK_ALLOCATION_MODE="$1"; fi
+ child="" admission_child="" X=""
+ stop_file="$HX/o/${SLURM_JOB_ID:-local}.stop"
+ on_stop() {
+@@ -39,7 +40,7 @@
+ /usr/bin/python3 -I "$HX/b/g.py" "$HX" "${1:?}"
+ export TK_RUNS_DIR="$(/usr/bin/python3 -I -c 'import json,pathlib,sys; print(pathlib.Path(json.load(open(sys.argv[1]))["run_directory"]).parent)' "$HX/k/launch.json")"
+ source "$HX/b/c.sh"
+-export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.${1:-x}
++export TK_JOBDIR=/tmp/jjyeung/a_05b8ac69/jobs/${SLURM_JOB_ID:?}.${1:-x}
+ mkdir -p "$TK_JOBDIR" "$HM/o"
+ if [[ "${1:-}" == p ]] && ! /usr/bin/python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("in_job_admission") else 1)' "$HX/k/launch.json"; then
+     export TK_LIGHT=1
+--- a/b/i.py
++++ b/b/i.py
+@@ -46,6 +46,8 @@
+         from student_pilot import rehearsal
+         return rehearsal.authorize(root,mode,arm)
+     auth=load(root/'k/4.json');cur=load(root/'k/0.json')
++    from r4 import allocation
++    allocation(auth, mode, os.environ)
+     arms=auth['arm'] if isinstance(auth['arm'],list) else [auth['arm']]
+     if (mode not in GPU or arm not in arms or len(set(arms))!=len(arms)
+             or not set(arms)<=set(ARMS.values()) or mode not in auth['modes']):
+--- a/job.sh
++++ b/job.sh
+@@ -4,7 +4,7 @@
+ #SBATCH --gpus-per-node=4
+ #SBATCH --cpus-per-task=48
+ #SBATCH --mem=800G
+-#SBATCH --time=13:00:00
++#SBATCH --time=24:00:00
+ #SBATCH --no-requeue
+ #SBATCH --signal=B:USR1@3600
+ set -euo pipefail
+@@ -12,8 +12,11 @@
+ export TK_JOB_START="${TK_JOB_START:-$(date +%s)}"
+ ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+ /usr/bin/python3 -B "$ROOT/b/a.py" "$ROOT"
++if [[ "${SLURM_JOB_PARTITION:-}" == advanced ]]; then export TK_ALLOCATION_MODE=u; else export TK_ALLOCATION_MODE=p; fi
+ /bin/bash "$ROOT/b/p0.sh" "$ROOT"
+ /usr/bin/python3 -I "$ROOT/b/g.py" "$ROOT" p
+ RUN="$(/usr/bin/python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["run_directory"])' "$ROOT/k/launch.json")"
++export TK_KIT_HOME="$ROOT"
++/usr/bin/python3 -I "$ROOT/b/c0.py" "$ROOT" "$RUN"
+ MODE="$(/usr/bin/python3 -I "$ROOT/b/r8.py" "$RUN" --kit "$ROOT")"
+ exec /bin/bash "$ROOT/b/r.sh" "$MODE" 0
+--- a/jb.sh
++++ b/jb.sh
+@@ -1,6 +1,6 @@
+ #!/bin/bash
+ # Conditional four-rank entry; a separate submission approval is required.
+-#SBATCH -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00
++#SBATCH -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 24:00:00
+ #SBATCH --no-requeue --signal=B:USR1@3600
+ set -uo pipefail
+ umask 077
+@@ -15,21 +15,21 @@
+ 
+ export PATH=/usr/local/bin:/usr/bin:/bin
+ export TK_JOB_START="$(date +%s)"   # one wall clock for restore, staging, admission and training (job.sh must keep it)
+-KH=/project/community/jjyeung/okh7/x_3fdda0fb RUN=/tmp/jjyeung/a_17c4ffa4/runs/17c4ffa4
+-RS=/project/community/jjyeung/okh7/r/39504485 LOG=$KH/o/${SLURM_JOB_ID}.w.steps
++KH=/project/community/jjyeung/okh7/x_7f1589c1 RUN=/tmp/jjyeung/a_05b8ac69/runs/05b8ac69
++RS=/project/community/jjyeung/okh7/r/05b8ac69 LOG=$KH/o/${SLURM_JOB_ID}.w.steps
+ step() { printf '%s | %s\n' "$(date -u +%FT%TZ)" "$*" >> "$LOG"; }
+ newest() {  # newest verified slot: prints "slot step" (empty if none)
+     for s in A B; do [[ -f $RS/$s.json ]] && /usr/bin/python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["slot"], d["step"]) if d.get("verified") is True else None' "$RS/$s.json"; done | sort -k2,2n | tail -1
+ }
+ # BEGIN directory preflight
+-NL=/tmp/jjyeung/a_17c4ffa4
++NL=/tmp/jjyeung/a_05b8ac69
+ private_dir "$KH"
+ for p in /tmp/jjyeung "$NL" "$NL/runs" "$RUN" "$O/r" "$RS"; do
+     [[ ! -e "$p" && ! -L "$p" ]] || private_dir "$p"
+ done
+ for p in "$NL/runs"/* "$NL/runs"/.[!.]* "$NL/runs"/..?*; do
+     [[ ! -e "$p" && ! -L "$p" ]] && continue
+-    [[ "${p##*/}" == 17c4ffa4 && -d "$p" && ! -L "$p" ]] || { echo 'foreign run directory; refusing' >&2; exit 3; }
++    [[ "${p##*/}" == 05b8ac69 && -d "$p" && ! -L "$p" ]] || { echo 'foreign run directory; refusing' >&2; exit 3; }
+ done
+ mkdir -p -m 700 /tmp/jjyeung "$NL" "$NL/runs" "$RUN" "$O/r" "$RS" "$KH/o" || exit 3
+ for p in "$NL" "$NL/runs" "$RUN" "$RS"; do private_dir "$p"; done
+@@ -43,14 +43,14 @@
+ import json, os, stat, sys
+ p, run = sys.argv[1], sys.argv[2]
+ if stat.S_IMODE(os.stat(p).st_mode) != 0o600: sys.exit("sess.json mode is not 600")
+-d = json.load(open(p)); ms = ["m1", "m50", "m100", "m200", "m400", "m600", "m800", "m1000", "mstop", "mstopB", "mstopC"]
++d = json.load(open(p)); ms = ["m400", "m600", "mstop", "mstopB", "mstopC"]
+ want = {"q8/8865619b/%s_%s.tar.part%02d-of-04" % (run, m, i) for m in ms for i in range(4)}
+ miss = sorted(want - set(d))
+ sys.exit("sess.json lacks %d sessions, first %s" % (len(miss), miss[:1]) if miss else 0)' "$KH/sess.json" "${RUN##*/}" 2>> "$LOG" \
+     || { step "refused: export sessions incomplete for run ${RUN##*/}"; exit 5; }
+ step "export sessions present for run ${RUN##*/}"
+ # Actual archive contents of every new staging entry, before c.sh extracts them (vt.py; sealed k/0.json pinned inside).
+-/usr/bin/python3 -I /project/community/jjyeung/okh7/i_1be16f28/v.py "$KH" /project/community/jjyeung/okh7/x_07ca49df/k/0.json > "$KH/o/${SLURM_JOB_ID}.vt.json" 2>&1 \
++/usr/bin/python3 -I /project/community/jjyeung/okh7/i_7f1589c1/v.py "$KH" /project/community/jjyeung/okh7/i_7f1589c1/b0.json > "$KH/o/${SLURM_JOB_ID}.vt.json" 2>&1 \
+     || { step "refused: staging entry check: $(tail -c 300 "$KH/o/${SLURM_JOB_ID}.vt.json")"; exit 5; }
+ step "staging entries verified"
+ read -r slot sstep < <(newest || true)
+@@ -117,7 +117,7 @@
+     # as the step-544 repack used it), check size and md5 against the stream, record it, exit 6. SLOT_SKIPPED otherwise.
+     step "slot copy to project impossible: checkpoint $cstep needs $need B, $RS has $avail B free; streaming the slot to GCS"
+     ckn=$(basename "$ck"); obj="q8/d2d30e36/${RUN##*/}_s${cstep}.tar"; gs="gs://cmu-gpucloud-jjyeung/$obj"; sum="$RUN/.gslot.$SLURM_JOB_ID.json"
+-    left=$(( TK_JOB_START + 46800 - $(date +%s) - 300 )); t0=$(date +%s); gok=0
++    left=$(( TK_JOB_START + 86400 - $(date +%s) - 300 )); t0=$(date +%s); gok=0
+     if (( left > 600 )); then
+         tar --hard-dereference -cf - -C "$RUN" "$ckn" inputs binding.json \
+             | /usr/bin/python3 -I -c '
+--- a/s.sh
++++ b/s.sh
+@@ -10,19 +10,20 @@
+     }
+ }
+ private_dir "$O"
+-BUN=/project/community/jjyeung/okh7/i_1be16f28
+-KH=/project/community/jjyeung/okh7/x_3fdda0fb
++BUN=/project/community/jjyeung/okh7/i_7f1589c1
++KH=/project/community/jjyeung/okh7/x_7f1589c1
+ private_dir "$BUN"
+ private_dir "$KH"
+ cd "$BUN"
+ sha256sum -c sums.txt
+ # The separate approval record is supplied by the operator, never inferred from 4.json.
+-python3 -B - "$KH" "$BUN" <<'P'
++env -u PYTHONOPTIMIZE python3 -I -B - "$KH" "$BUN" <<'P'
+ import hashlib,json,sys,os,re
+ from pathlib import Path
+ k,b=map(Path,sys.argv[1:]);go=json.loads((b/'go.json').read_text());ids=json.loads((b/'ids.json').read_text())
+ assert go.get('production_go_granted') is True and go.get('config_sha256')==ids['identity'] and go.get('admission_contract_sha256')==ids['contract'] and go.get('wrapper_sha256')==hashlib.sha256((b/'jb.sh').read_bytes()).hexdigest()
+ assert go.get('manifest_sha256')==hashlib.sha256((k/'SHA256SUMS.txt').read_bytes()).hexdigest()
++assert go.get('canary') is not True
+ job=os.environ.get('PROOF_JOB','')
+ assert re.fullmatch('[1-9][0-9]*',job), 'PROOF_JOB must identify the completed CPU proof'
+ proof=json.loads((k/'o'/(job+'.proof.json')).read_text())
+@@ -34,7 +35,10 @@
+ assert proof.get('effective_config_verified') is True and proof.get('first_batch_executed') is False
+ assert proof.get('training_executed') is False and proof.get('admission_result', dict()).get('status')=='PREPARED'
+ assert proof.get('prepared_seals') and proof.get('real_job_reuse') is False
++for name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'):
++ assert proof.get('checks',{}).get(name,{}).get('status')=='PASS', name
+ 
++assert proof.get('checks',{}).get('resume_pointer',{}).get('status')=='PASS'
+ sys.path.insert(0,str(k/'b'));import a;a.main(k)
+ P
+-TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap5ee9da63 -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"
++TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap05b8ac69 -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 24:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"

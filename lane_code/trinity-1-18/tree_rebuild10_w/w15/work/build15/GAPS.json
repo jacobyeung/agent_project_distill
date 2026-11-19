@@ -1,0 +1,592 @@
+[
+  {
+    "file": "launch_r1/build.py",
+    "line": 29,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "output=Path(output)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 30,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "if output.exists() and any(output.iterdir()):raise ValueError('R1_KIT_ROOT_NOT_EMPTY')"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 31,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "output.mkdir(parents=True,mode=0o700,exist_ok=True)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 32,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "for name in ('b','k','o'):(output/name).mkdir(mode=0o700)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 33,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "files=inventory(TREE);seal=digest(files)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 34,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "archive_path=output/'k'/('t_'+seal[:16]+'.tar')"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 35,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "archive(TREE,archive_path,files,compress=True)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 36,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "check_archive(dict(path=str(archive_path),sha256=sha256(archive_path)),files)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 37,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "source=dict(path=str(archive_path.relative_to(output)),sha256=sha256(archive_path),tree_sha256=seal)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 38,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "cfg=load(cfg)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 39,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "from student_pilot.p3_provenance import pinned"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 40,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "from student_pilot.r1_population import SLICE_CELLS"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 41,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "row_sources=load(pinned(cfg['r1_training']['row_sources']))"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 42,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "cfg['r1_training']['row_slice_inputs']={k:row_sources[k]['source'] for k in SLICE_CELLS}"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 44,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "if cfg['r1_training'].get('source_membership'):"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 45,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "pinned(cfg['r1_training']['source_membership'])"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 47,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "from student_pilot.p3_provenance import pinned"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 48,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "staged_records={pin['path']:pinned({k:pin[k] for k in ('path','sha256')}) for pin in cfg.get('remove_files', [])"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 50,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "if cfg['r1_training'].get('source_membership'):"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 51,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "pin=cfg['r1_training']['source_membership']"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 52,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "staged_records[pin['path']]=pinned(pin)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 53,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "if cfg.get('scene_division'):"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 54,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "staged_records[cfg['scene_division']['path']]=pinned(cfg['scene_division'])"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 55,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "cfg.update(output='runs/r',preparation_output='o/p')"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 56,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "from student_pilot.p3_provenance import source_files"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 57,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "sources={str(p.relative_to(TREE)):sha256(p) for p in source_files([TREE/'student_pilot/carrier_c1_run.py'])}"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 58,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "code=dict(schema='c1-sealed-source-v1',commit='sha256:'+seal,tree_sha256=seal,files=files,"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 60,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "(output/'k/7.json').write_bytes(capsule_json(code))"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 61,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "cfg['code']=dict(path='k/7.json',sha256=sha256(output/'k/7.json'))"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 62,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "paths={};cfg=relocate(cfg,paths)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 64,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "entries={}"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 65,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "for original,destination in paths.items():"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 66,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "path=Path(original)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 67,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "if original in staged_records or (path.is_file() and inputs in path.parents and path.suffix in ('.json','.md')):"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 68,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "raw=path.read_bytes();entries[destination]=dict(payload=base64.b64encode(raw).decode(),sha256=hashlib.sha256(raw).hexdigest())"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 69,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "else:entries[destination]=dict(required_parameter='verified_remote_source')"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 70,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "init=load(inputs/'init.json')"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 71,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "init_dest=cfg['init_artifact']['artifact']['path']"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 72,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "artifact_member=next(k for k,v in init['archive']['files'].items() if v==init['artifact_sha256'])"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 73,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "entries[init_dest]=dict(archive=dict(parts=init['archive']['parts'],sha256=init['archive']['sha256'],"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 76,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "known=load(TREE/'launch_r2/staging_sources.json')"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 84,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "visit(cfg)"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 85,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "staging=dict(entries=entries,unresolved=sorted(k for k,v in entries.items() if 'required_parameter' in v))"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 86,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "(output/'k/8.json').write_bytes(capsule_json(dict(report_file='out/MIX_R1.json',"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 88,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "host=dict(schema='r1-host-request-v1',GO=False,binaries=['python3','bash','bwrap'],"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 96,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "for name,value in [('c',cfg),('s',staging),('h',host),('a',dict(GO=False,source=source,config='k/c.json',host='k/h.json'))]:"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 97,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "(output/'k'/f'{name}.json').write_bytes(capsule_json(value))"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 98,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "(output/'b/wh.json').write_bytes((TREE/'launch_s1/b/wh.json').read_bytes())"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 99,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "(output/'b/a.py').write_text('''import base64,hashlib,json,sys,tarfile"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 133,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "(output/'job.sh').write_text('#!/bin/bash\\nset -eu\\numask 077\\nexec python3 -I -s -B b/a.py t \"$1\"\\n')"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 134,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "(output/'b/f.sh').write_text('#!/bin/bash\\nset -eu\\numask 077\\nexport CUDA_VISIBLE_DEVICES=\"\"\\nexec python3 -I -s -B b/a.py p \"$1\"\\n')"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 135,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "manifest={str(p.relative_to(output)):sha256(p) for p in output.rglob('*') if p.is_file()}"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 136,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "(output/'SHA256SUMS.txt').write_text(''.join(f'{h}  {name}\\n' for name,h in sorted(manifest.items())))"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 137,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "result=dict(GO=False,kit_sha256=verify(output),source_seal=seal,config_sha256=sha256(output/'k/c.json'),"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 139,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "(output/'BUILD.json').write_bytes(capsule_json(result))"
+  },
+  {
+    "file": "launch_r1/build.py",
+    "line": 140,
+    "function": "build",
+    "source": "work/tree_r1/launch_r1/build.py",
+    "sha256": "75fe9274f5a9e5589a2af6c29d41fb7de3ea226b5c832113ada7a8b59e115a16",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "return result"
+  },
+  {
+    "file": "student_pilot/r2_openers.py",
+    "line": 30,
+    "function": "preparation",
+    "source": "work/tree_r1/student_pilot/r2_openers.py",
+    "sha256": "cc513d8a07f7205878767aab8930ebb49e5a4149d6b37ab295240dffcdfed761",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "raise ValueError('Keep requires a full warm start')"
+  },
+  {
+    "file": "student_pilot/r2_openers.py",
+    "line": 35,
+    "function": "preparation",
+    "source": "work/tree_r1/student_pilot/r2_openers.py",
+    "sha256": "cc513d8a07f7205878767aab8930ebb49e5a4149d6b37ab295240dffcdfed761",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "from .r2_contract import lineage_init"
+  },
+  {
+    "file": "student_pilot/r2_openers.py",
+    "line": 36,
+    "function": "preparation",
+    "source": "work/tree_r1/student_pilot/r2_openers.py",
+    "sha256": "cc513d8a07f7205878767aab8930ebb49e5a4149d6b37ab295240dffcdfed761",
+    "executed": false,
+    "classification": "CPU-reachable unresolved",
+    "text": "lineage_init(init.get('artifact', {}), init=bound_init(cfg))"
+  }
+]

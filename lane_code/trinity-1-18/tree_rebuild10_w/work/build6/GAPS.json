@@ -1,0 +1,890 @@
+{
+  "student_pilot/r2_contract.py": [
+    [
+      39,
+      "raise ValueError('Next-leg init identity differs from the accepted export')"
+    ],
+    [
+      41,
+      "raise ValueError('Changed code or mixture requires a new warm-start run')"
+    ],
+    [
+      44,
+      "raise ValueError('New run needs full code and mixture identities')"
+    ],
+    [
+      50,
+      "raise ValueError('Export metadata contradicts ' + key)"
+    ],
+    [
+      52,
+      "raise ValueError('Export parent configuration prefix differs')"
+    ],
+    [
+      57,
+      "from .r2_scene_bindings import verify as verify_scenes"
+    ],
+    [
+      58,
+      "verify_scenes(cfg)"
+    ],
+    [
+      59,
+      "if 'geometry_connector' in cfg:"
+    ],
+    [
+      60,
+      "from pathlib import Path"
+    ],
+    [
+      61,
+      "from .r2_policy import preparation as policy_preparation"
+    ],
+    [
+      62,
+      "policy_preparation(cfg['r2_build2'], Path.cwd())"
+    ],
+    [
+      63,
+      "from .r2_openers import preparation as opener_preparation"
+    ],
+    [
+      64,
+      "opener_preparation(cfg)"
+    ],
+    [
+      65,
+      "if not cfg.get('r2_sampling'):"
+    ],
+    [
+      66,
+      "raise ValueError('Missing bound r2_sampling table')"
+    ],
+    [
+      67,
+      "spec = cfg.get('r2')"
+    ],
+    [
+      68,
+      "if cfg.get('r2_membership') and spec is None:"
+    ],
+    [
+      69,
+      "raise ValueError('Next-leg membership requires the init and new-run binding')"
+    ],
+    [
+      70,
+      "if spec is not None:"
+    ],
+    [
+      71,
+      "check_init(spec, load(pinned(spec['export_metadata'])))"
+    ],
+    [
+      72,
+      "lineage_init(cfg.get('init_artifact', {}).get('artifact', {}), init=bound_init(cfg))"
+    ],
+    [
+      73,
+      "if load(pinned(cfg['code'])).get('tree_sha256') != spec['code_sha256']:"
+    ],
+    [
+      74,
+      "raise ValueError('New run code identity differs')"
+    ],
+    [
+      75,
+      "if digest({key: cfg.get(key) for key in ('recipe', 'streams', 'route_table')}) != spec['mixture_sha256']:"
+    ],
+    [
+      76,
+      "raise ValueError('New run mixture identity differs')"
+    ],
+    [
+      77,
+      "Admission(cfg['r2_membership'])"
+    ],
+    [
+      78,
+      "return spec"
+    ],
+    [
+      82,
+      "init = init_identity(init)"
+    ],
+    [
+      83,
+      "if pin.get('sha256') == init['artifact_sha256']:"
+    ],
+    [
+      84,
+      "return"
+    ],
+    [
+      85,
+      "try:"
+    ],
+    [
+      86,
+      "artifact = load(pinned(pin))"
+    ],
+    [
+      87,
+      "if (artifact.get('schema') != 'carrier-c1-artifact-v1' or artifact.get('r2_identity', {}).get('init') != init"
+    ],
+    [
+      89,
+      "raise ValueError('Foreign lineage')"
+    ],
+    [
+      90,
+      "from .source_seal import check_export"
+    ],
+    [
+      91,
+      "check_export({'source_seal':artifact['training_source_seal']},artifact)"
+    ],
+    [
+      93,
+      "raise ValueError('Trainer init artifact differs from next-leg binding') from error"
+    ],
+    [
+      100,
+      "from pathlib import PurePosixPath"
+    ],
+    [
+      101,
+      "result['frames'] = [{**pin, 'path': str(PurePosixPath(prefix) / pin['path'])} for pin in result['frames']]"
+    ],
+    [
+      110,
+      "raise ValueError('Expected ordered native frame pins and source ordinals')"
+    ],
+    [
+      114,
+      "raise ValueError('Invalid row clock or source bounds')"
+    ],
+    [
+      116,
+      "raise ValueError('Row timestamps differ from its own clock')"
+    ],
+    [
+      121,
+      "raise ValueError('Missing or malformed RGB pin')"
+    ],
+    [
+      126,
+      "raise ValueError('Stale pin or wrong scene: row differs from membership')"
+    ],
+    [
+      128,
+      "raise ValueError('Row identity or scene is missing')"
+    ],
+    [
+      134,
+      "raise ValueError('D0 route-planning rows enter VQA only')"
+    ],
+    [
+      136,
+      "raise ValueError('Language row needs a question type')"
+    ],
+    [
+      138,
+      "if stream != 'routing':"
+    ],
+    [
+      139,
+      "raise ValueError('Programs enter only the masked routing event path')"
+    ],
+    [
+      140,
+      "validate_program(row)"
+    ],
+    [
+      143,
+      "raise ValueError('Program-type row offered as direct')"
+    ],
+    [
+      150,
+      "raise ValueError('Answer differs from target')"
+    ],
+    [
+      154,
+      "raise ValueError('Numeric direct type needs a numeric final answer')"
+    ],
+    [
+      161,
+      "raise ValueError('Unknown answer unit')"
+    ],
+    [
+      166,
+      "elif stream not in ('pose', 'pointing'):"
+    ],
+    [
+      167,
+      "raise ValueError('Unknown native stream')"
+    ],
+    [
+      169,
+      "from .r2_frames import verify_frame"
+    ],
+    [
+      170,
+      "for pin in inputs['frames']:"
+    ],
+    [
+      171,
+      "verify_frame(pin)"
+    ],
+    [
+      176,
+      "if stream == 'pose':"
+    ],
+    [
+      177,
+      "import torch"
+    ],
+    [
+      178,
+      "from .decoupled_v import target_tensors"
+    ],
+    [
+      179,
+      "values = target_tensors(target, all_frames=True)"
+    ],
+    [
+      180,
+      "if (values['aux_camera_target'].shape != (1, 32, 9)"
+    ],
+    [
+      182,
+      "raise ValueError('Invalid native pose target')"
+    ],
+    [
+      183,
+      "elif stream == 'pointing':"
+    ],
+    [
+      184,
+      "value = json.loads(row['target'].split('</think>')[-1].strip())"
+    ],
+    [
+      185,
+      "point = value.get('point_2d')"
+    ],
+    [
+      186,
+      "if set(value) != {'point_2d'} or (point is not None and"
+    ],
+    [
+      188,
+      "raise ValueError('Invalid native pointing target')"
+    ],
+    [
+      193,
+      "from .r2_withheld import Withheld"
+    ],
+    [
+      194,
+      "self.withheld = Withheld()"
+    ],
+    [
+      195,
+      "self.manifest = load(pinned(pin))"
+    ],
+    [
+      196,
+      "if self.manifest.get('contract') != CONTRACT:"
+    ],
+    [
+      197,
+      "raise ValueError('Wrong membership contract')"
+    ],
+    [
+      200,
+      "expected = self.manifest['rows'].get(row['qid'])"
+    ],
+    [
+      201,
+      "if expected is None or expected != digest(dict(row=row, target=target, stream=stream)):"
+    ],
+    [
+      202,
+      "raise ValueError('Row missing or changed in sealed membership')"
+    ],
+    [
+      203,
+      "if self.withheld.touches(row, {}):"
+    ],
+    [
+      204,
+      "raise ValueError('Native reader refuses a withheld room')"
+    ],
+    [
+      205,
+      "from .r2_frames import verify_frame"
+    ],
+    [
+      206,
+      "inputs = row['student_input']"
+    ],
+    [
+      207,
+      "for pin in inputs.get('geometry_dense', inputs)['frames']:"
+    ],
+    [
+      208,
+      "verify_frame(pin)"
+    ],
+    [
+      209,
+      "return row"
+    ],
+    [
+      214,
+      "from .ground_rows import render_ground, validate as validate_ground"
+    ],
+    [
+      215,
+      "record = row.get('ground_record', {})"
+    ],
+    [
+      216,
+      "if (row.get('schema') != 'derivgen-row-v2' or row.get('infrastructure_only') is not False"
+    ],
+    [
+      221,
+      "raise ValueError('R2 program lacks its event schema or response lineage')"
+    ],
+    [
+      222,
+      "validate_ground(row)"
+    ],
+    [
+      223,
+      "target, spans, _ = render_ground(row['events'], row['answer'])"
+    ],
+    [
+      224,
+      "if target != row['target'] or spans != row['tool_output_spans']:"
+    ],
+    [
+      225,
+      "raise ValueError('R2 events differ from target or response spans')"
+    ],
+    [
+      226,
+      "failed = False"
+    ],
+    [
+      227,
+      "for event in row['events']:"
+    ],
+    [
+      228,
+      "if failed and event['kind'] == 'ground_call':"
+    ],
+    [
+      229,
+      "raise ValueError('R2 fallback calls again after a failed response')"
+    ],
+    [
+      230,
+      "if event['kind'] == 'ground_response' and re.search(r'not seen|failed|no linked candidate', event['text'], re.I):"
+    ],
+    [
+      231,
+      "failed = True"
+    ],
+    [
+      232,
+      "if failed and not re.search(r'\\b(?:in frame|frame)\\s+[1-9]\\d*\\b', target.split('</tool_response>')[-1], re.I):"
+    ],
+    [
+      233,
+      "raise ValueError('Failed response needs a located direct continuation')"
+    ],
+    [
+      234,
+      "return target, spans"
+    ]
+  ],
+  "student_pilot/r2_policy.py": [
+    [
+      20,
+      "result = {}"
+    ],
+    [
+      21,
+      "for name in COMPONENTS:"
+    ],
+    [
+      22,
+      "cls = 'lineage' if name in LINEAGE else 'program_choice' if name in CHOICES else 'external_frozen' if name in EXTERNAL else 'new_training'"
+    ],
+    [
+      23,
+      "result[name] = dict(component=name, component_class=cls,"
+    ],
+    [
+      27,
+      "return result"
+    ],
+    [
+      31,
+      "if not slot.get('record'):"
+    ],
+    [
+      32,
+      "raise ValueError('Missing component evidence: '+slot['component'])"
+    ],
+    [
+      33,
+      "data = load(bound(slot['record'], root))"
+    ],
+    [
+      34,
+      "if (data.get('schema') != slot['expected_schema'] or data.get('component') != slot['component']"
+    ],
+    [
+      37,
+      "raise ValueError('Component record schema, class, phase or inputs differ')"
+    ],
+    [
+      38,
+      "for pin in data['inputs']:"
+    ],
+    [
+      39,
+      "bound(pin, root)"
+    ],
+    [
+      40,
+      "if data.get('verdict') not in ('PROVEN_CLEAN', 'OVERLAP_FOUND', 'EXEMPT_FROZEN'):"
+    ],
+    [
+      41,
+      "raise ValueError('Unknown component evidence is not a pass')"
+    ],
+    [
+      42,
+      "if slot['component_class'] == 'external_frozen':"
+    ],
+    [
+      43,
+      "if data['verdict'] != 'EXEMPT_FROZEN' or data.get('frozen') is not True:"
+    ],
+    [
+      44,
+      "raise ValueError('External exemption requires frozen pretrained weights')"
+    ],
+    [
+      45,
+      "elif slot['component_class'] == 'lineage':"
+    ],
+    [
+      46,
+      "if not isinstance(data.get('overlaps'), list) or not isinstance(data.get('checked_banks'), list):"
+    ],
+    [
+      47,
+      "raise ValueError('Lineage needs explicit overlap and checked-bank evidence')"
+    ],
+    [
+      48,
+      "if not set(SCOPE) <= set(data['checked_banks']):"
+    ],
+    [
+      49,
+      "raise ValueError('Unknown claim-scope overlap')"
+    ],
+    [
+      50,
+      "if any(x['bank'] in SCOPE and str(x.get('venue')) != '381879' for x in data['overlaps']):"
+    ],
+    [
+      51,
+      "raise ValueError('Overlap inside claim scope')"
+    ],
+    [
+      52,
+      "elif slot['component_class'] == 'new_training':"
+    ],
+    [
+      53,
+      "if data['verdict'] != 'PROVEN_CLEAN' or data.get('exclusions_complete') is not True:"
+    ],
+    [
+      54,
+      "raise ValueError('New training requires complete clean scene evidence')"
+    ],
+    [
+      55,
+      "return data"
+    ],
+    [
+      59,
+      "registry = load(bound(registry_pin, root))"
+    ],
+    [
+      60,
+      "expected = slots()"
+    ],
+    [
+      61,
+      "if set(registry) != set(expected) or phase not in ('training', 'native_evaluation'):"
+    ],
+    [
+      62,
+      "raise ValueError('Component registry or phase differs')"
+    ],
+    [
+      63,
+      "result = {}"
+    ],
+    [
+      64,
+      "for name, spec in expected.items():"
+    ],
+    [
+      65,
+      "entry = registry[name]"
+    ],
+    [
+      66,
+      "if any(entry.get(k) != spec[k] for k in ('component', 'component_class', 'phase', 'expected_schema')):"
+    ],
+    [
+      67,
+      "raise ValueError('Component slot was reclassified')"
+    ],
+    [
+      68,
+      "if phase == 'training' and name in CHOICES:"
+    ],
+    [
+      69,
+      "continue"
+    ],
+    [
+      70,
+      "result[name] = record(entry, root)"
+    ],
+    [
+      71,
+      "return result"
+    ],
+    [
+      75,
+      "return digest(dict(source=sha256(Path(__file__)), entry='read_bank'))"
+    ],
+    [
+      79,
+      "prereg = pinned(prereg_pin)"
+    ],
+    [
+      80,
+      "if not pin:"
+    ],
+    [
+      81,
+      "raise ValueError('Native evaluation requires the single dated freeze file')"
+    ],
+    [
+      82,
+      "frozen = load(pinned(pin))"
+    ],
+    [
+      83,
+      "required = {'C1', 'C2', 'C3', 'C4', 'D1', 'D2'}"
+    ],
+    [
+      84,
+      "if (frozen.get('schema') != 'r2-dated-freeze-v1'"
+    ],
+    [
+      89,
+      "raise ValueError('Incomplete or foreign dated freeze')"
+    ],
+    [
+      90,
+      "for value in frozen['evidence']:"
+    ],
+    [
+      91,
+      "bound(value, root)"
+    ],
+    [
+      92,
+      "return frozen"
+    ],
+    [
+      98,
+      "if kit_root is None:"
+    ],
+    [
+      99,
+      "raise ValueError('Bank gateway requires a sealed kit configuration')"
+    ],
+    [
+      100,
+      "root = Path(kit_root).resolve()"
+    ],
+    [
+      101,
+      "from launch_r2.build import verify"
+    ],
+    [
+      102,
+      "verify(root)"
+    ],
+    [
+      103,
+      "launch = load(root/'k/launch.json')"
+    ],
+    [
+      104,
+      "cfg = load(bound(dict(path=launch['config']['file'], sha256=launch['config']['sha256']), root))"
+    ],
+    [
+      105,
+      "policy = cfg.get('r2_evaluation') or {}"
+    ],
+    [
+      106,
+      "if catalog_pin is not None and catalog_pin != policy.get('catalog'):"
+    ],
+    [
+      107,
+      "raise ValueError('Caller catalog differs from sealed membership')"
+    ],
+    [
+      108,
+      "catalog = load(bound(policy['catalog'], root))"
+    ],
+    [
+      109,
+      "if bank_pin['sha256'] not in catalog.get('files', {}):"
+    ],
+    [
+      110,
+      "raise ValueError('Actual bank file is absent from sealed membership')"
+    ],
+    [
+      111,
+      "choices = tuple(policy.get('choices', ()))"
+    ],
+    [
+      112,
+      "camera_routing = policy.get('camera_routing') is True"
+    ],
+    [
+      113,
+      "registry_pin = cfg['r2_build2']['registry']"
+    ],
+    [
+      114,
+      "prereg_pin = policy.get('prereg')"
+    ],
+    [
+      115,
+      "freeze_pin = policy.get('freeze')"
+    ],
+    [
+      116,
+      "items = load(pinned(bank_pin))"
+    ],
+    [
+      117,
+      "if (catalog.get('schema') != 'r2-bank-catalog-v1' or catalog.get('reader_sha256') != reader_hash()"
+    ],
+    [
+      119,
+      "raise ValueError('Unknown bank reader or empty bank')"
+    ],
+    [
+      120,
+      "identities, banks, venues = set(), set(), set()"
+    ],
+    [
+      121,
+      "for item in items:"
+    ],
+    [
+      122,
+      "key = digest(item)"
+    ],
+    [
+      123,
+      "facts = catalog['items'].get(key)"
+    ],
+    [
+      124,
+      "if (not facts or key in identities or not facts.get('banks')"
+    ],
+    [
+      127,
+      "raise ValueError('Unknown or repeated item identity')"
+    ],
+    [
+      128,
+      "identities.add(key)"
+    ],
+    [
+      129,
+      "banks.update(facts['banks'])"
+    ],
+    [
+      130,
+      "venues.add(str(facts.get('venue')))"
+    ],
+    [
+      131,
+      "if not banks <= {*SCOPE, 'dev-S1'}:"
+    ],
+    [
+      132,
+      "raise ValueError('Actual bank is outside lineage claim scope')"
+    ],
+    [
+      133,
+      "if set(choices) - set(CHOICES):"
+    ],
+    [
+      134,
+      "raise ValueError('Unknown program choice')"
+    ],
+    [
+      135,
+      "if 'grounding_selector_deployed' in choices and banks & {'ReVSI','VSTI'}:"
+    ],
+    [
+      136,
+      "raise ValueError('Deployed selector is fitted on this bank')"
+    ],
+    [
+      137,
+      "components(registry_pin, 'training', root)"
+    ],
+    [
+      138,
+      "camera_exception = camera_routing and banks == {'VSTI'} and not choices and all("
+    ],
+    [
+      140,
+      "if banks & set(SCOPE) and not camera_exception:"
+    ],
+    [
+      141,
+      "freeze_check(dict(path=str(bound(freeze_pin,root)),sha256=freeze_pin['sha256']) if freeze_pin else None,"
+    ],
+    [
+      143,
+      "registry = load(bound(registry_pin, root))"
+    ],
+    [
+      144,
+      "for name in choices:"
+    ],
+    [
+      145,
+      "record(registry[name], root)"
+    ],
+    [
+      146,
+      "from .r2_units import metric_units"
+    ],
+    [
+      147,
+      "return items, dict(metric_units=metric_units(items), reader_sha256=reader_hash(), item_set_sha256=digest(sorted(identities)),"
+    ],
+    [
+      155,
+      "result = dict(schema='r2-bank-catalog-v1', reader_sha256=reader_hash(), files={}, items={})"
+    ],
+    [
+      156,
+      "for bank, pin in bank_files.items():"
+    ],
+    [
+      157,
+      "values = load(pinned(pin))"
+    ],
+    [
+      158,
+      "keys = []"
+    ],
+    [
+      159,
+      "for item in values:"
+    ],
+    [
+      160,
+      "key = digest(item)"
+    ],
+    [
+      161,
+      "if key in result['items']:"
+    ],
+    [
+      162,
+      "raise ValueError('Repeated item in sealed bank files')"
+    ],
+    [
+      163,
+      "result['items'][key] = dict(banks=[bank], venue=item.get('venue'))"
+    ],
+    [
+      164,
+      "keys.append(key)"
+    ],
+    [
+      165,
+      "result['files'][pin['sha256']] = dict(banks=[bank], items=keys)"
+    ],
+    [
+      166,
+      "return result"
+    ],
+    [
+      171,
+      "raise ValueError('Both venue-inclusive and venue-excluded scores are required')"
+    ],
+    [
+      189,
+      "from .r2_mix import preflight"
+    ],
+    [
+      190,
+      "components(binding['registry'], 'training', root)"
+    ],
+    [
+      191,
+      "if not binding.get('counts'):"
+    ],
+    [
+      192,
+      "raise ValueError('Post-filter population counts are missing')"
+    ],
+    [
+      193,
+      "return preflight(binding['mix'], binding['counts'], root=root,"
+    ],
+    [
+      199,
+      "ancestor = (cfg.get('init_artifact') or {}).get('artifact', {}).get('sha256')"
+    ],
+    [
+      200,
+      "if (any(key in cfg for key in ('r2', 'r2_identity', 'r2_build2', 'geometry_connector'))"
+    ],
+    [
+      202,
+      "raise ValueError('Legacy reader has no authenticated R2 bank adapter; use the bound bank gateway')"
+    ],
+    [
+      212,
+      "raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)"
+    ]
+  ]
+}

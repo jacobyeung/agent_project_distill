@@ -1,0 +1,2 @@
+# ORCH RULING: both-path amendment adopted (trace ruling Answer item 6, being written by Codex now)
+Every type that a head inside the artifact can inform trains both forms: the winning form as the majority, the other at about 2,000 rows per type, assigned per item in hindsight; responses printed only by heads inside the artifact; types with no such head keep their current form; room stays direct. Reason: RL exploration (choice join: chooser gain 0 held out). Apply at your next build step.

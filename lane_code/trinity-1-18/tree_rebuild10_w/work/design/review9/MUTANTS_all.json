@@ -1,0 +1,549 @@
+{
+ "M01": {
+  "file": "student_pilot/row_text_audit.py",
+  "old": "r'box unavailable|not seen|unresolved'",
+  "new": "r'box unavailable|not seen'",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 1,
+    "summary": "FAILED (failures=1)",
+    "fails": [
+     "FAIL: test_status_scope (tests.test_r2_build9_recovery.RecoveryAdmission.test_status_scope)"
+    ]
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M02": {
+  "file": "student_pilot/row_text_audit.py",
+  "old": "r'<tool_response>[^<]*</tool_response>'",
+  "new": "r'<tool_response>[\\s\\S]*</tool_response>'",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M03": {
+  "file": "student_pilot/row_text_audit.py",
+  "old": "authored if key == 'runtime_box_status' else text",
+  "new": "authored",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 1,
+    "summary": "FAILED (failures=1)",
+    "fails": [
+     "FAIL: test_status_scope (tests.test_r2_build9_recovery.RecoveryAdmission.test_status_scope)"
+    ]
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M04": {
+  "file": "student_pilot/row_text_audit.py",
+  "old": "re.search(pattern,authored if key",
+  "new": "re.search(pattern,text if key",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 1,
+    "summary": "FAILED (failures=1, errors=1)",
+    "fails": [
+     "ERROR: test_real_slices_native_admission_and_reader (tests.test_r2_build9_recovery.RecoveryAdmission.test_real_slices_native_admission_and_reader)",
+     "FAIL: test_status_scope (tests.test_r2_build9_recovery.RecoveryAdmission.test_status_scope)"
+    ]
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_native_producer_reader_and_forward (tests.test_r2_build9_cpu.RecoveryRGB.test_native_producer_reader_and_forward)"
+    ]
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M05": {
+  "file": "student_pilot/row_text_audit.py",
+  "old": "re.sub(r'<tool_response>[^<]*</tool_response>', '', str(row.get(k,'')))\n                       for k in ('target','suffi",
+  "new": "str(row.get(k,'')) for k in ('target','suffix','response','trace'));authored=re.sub(r'<tool_response>[^<]*</tool_respons",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 1,
+    "summary": "FAILED (failures=1)",
+    "fails": [
+     "FAIL: test_status_scope (tests.test_r2_build9_recovery.RecoveryAdmission.test_status_scope)"
+    ]
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M06": {
+  "file": "student_pilot/routing_requirements.py",
+  "old": "if rates['recovery'] <= 0 or",
+  "new": "if rates['recovery'] < 0 or",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 1,
+    "summary": "FAILED (failures=1)",
+    "fails": [
+     "FAIL: test_zero_mix_refuses_even_with_positive_population (tests.test_r2_build9_requirements.RequiredTrainingRows.test_zero_mix_refuses_even_with_positive_population)"
+    ]
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M07": {
+  "file": "student_pilot/routing_requirements.py",
+  "old": "type(recovery) is not int or recovery <= 0",
+  "new": "not isinstance(recovery, int) or recovery <= 0",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 1,
+    "summary": "FAILED (failures=1)",
+    "fails": [
+     "FAIL: test_each_missing_population_refuses_inputs (tests.test_r2_build9_requirements.RequiredTrainingRows.test_each_missing_population_refuses_inputs)"
+    ]
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M08": {
+  "file": "student_pilot/routing_requirements.py",
+  "old": "or any(type(units.get(u)) is not int or units[u] <= 0 for u in UNITS)",
+  "new": "or all(type(units.get(u)) is not int or units[u] <= 0 for u in UNITS)",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 1,
+    "summary": "FAILED (failures=2)",
+    "fails": [
+     "FAIL: test_each_missing_population_refuses_inputs (tests.test_r2_build9_requirements.RequiredTrainingRows.test_each_missing_population_refuses_inputs)",
+     "FAIL: test_native_kit_records_named_refusals (tests.test_r2_build9_requirements.RequiredTrainingRows.test_native_kit_records_named_refusals)"
+    ]
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M09": {
+  "file": "student_pilot/b7_inputs.py",
+  "old": "    result.extend(row_blockers(table(), value.get('routing_training_counts')))\n",
+  "new": "",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 1,
+    "summary": "FAILED (failures=1)",
+    "fails": [
+     "FAIL: test_each_missing_population_refuses_inputs (tests.test_r2_build9_requirements.RequiredTrainingRows.test_each_missing_population_refuses_inputs)"
+    ]
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M10": {
+  "file": "launch_r2/build.py",
+  "old": "        cfg['b7_blockers'] = sorted(set(cfg['b7_blockers'] + row_blockers(\n            load(output/mix['path']), launch_",
+  "new": "        pass",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M11": {
+  "file": "generator/derivgen_v7/derivgen/materialize.py",
+  "old": "                answer = '<answer>' + str(answer) + '</answer>'\n",
+  "new": "                pass\n",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 1,
+    "summary": "FAILED (failures=1)",
+    "fails": [
+     "FAIL: test_admitted_camera_and_real_mismatch (tests.test_r2_build9_identity.FaithfulIdentity.test_admitted_camera_and_real_mismatch)"
+    ]
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=2)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)",
+     "ERROR: test_native_preparation_pins_identity_and_own_readout (tests.test_r2_build8.PreparationReaders.test_native_preparation_pins_identity_and_own_readout)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M12": {
+  "file": "generator/derivgen_v7/derivgen/materialize.py",
+  "old": "_require(old_answer == row['answer'] and old_result == e['result'], 'gt_decision_mismatch')",
+  "new": "_require(old_answer == row['answer'], 'gt_decision_mismatch')",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 1,
+    "summary": "FAILED (failures=1)",
+    "fails": [
+     "FAIL: test_admitted_camera_and_real_mismatch (tests.test_r2_build9_identity.FaithfulIdentity.test_admitted_camera_and_real_mismatch)"
+    ]
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ },
+ "M13": {
+  "file": "student_pilot/h1_faithful.py",
+  "old": "    own, gt = (re.fullmatch",
+  "new": "    _own, _gt = (re.fullmatch",
+  "caught": true,
+  "tests": {
+   "tests.test_r2_build9_recovery": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_identity": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_existing_training_metric_reads_enveloped_content (tests.test_r2_build9_identity.FaithfulIdentity.test_existing_training_metric_reads_enveloped_content)"
+    ]
+   },
+   "tests.test_r2_build9_requirements": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build9_cpu": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   },
+   "tests.test_r2_build8": {
+    "rc": 1,
+    "summary": "FAILED (errors=1)",
+    "fails": [
+     "ERROR: test_pose_and_response_refusals (tests.test_r2_build8.InputReaders.test_pose_and_response_refusals)"
+    ]
+   },
+   "tests.test_r2_build7": {
+    "rc": 0,
+    "summary": "OK",
+    "fails": []
+   }
+  }
+ }
+}

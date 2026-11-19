@@ -1,0 +1,67 @@
+# tree_rebuild STATUS (successor resumes from this file alone)
+Updated: 2026-11-17T04:42Z by tree_rebuild4 Devin session 4 (trinity-1-3, started 03:48Z; rotate by 09:30Z). Build 7's Codex (PID 841040) is alive; its final pass finished 04:38Z (W/work/build7/FINAL_PASS.json): package W/out/tree_rebuild_b7_26a635fc.tar, package suite complete, targeted.py failed rc 1, legacy_guard_proof/compare/coverage_all/eat1 scan,c8r,gf1/report complete. Tree r2 had 2 failures; base legacy 1810, base r2 progress 0. Codex is now resolving the remaining failures; wait for final_message.md + meta.json, then follow "When build 7 ends".
+Goal: next-leg source tree (A0, A2 kits) integrated, suites green, D1-D4 closed, EAT-1 run on CPU, then one second review. Percent done ~80%: builds 1-6 done (6 without final qualification); build 7 running.
+Lane W = trinity-1-3:/scratch/jjyeung/orch_n30/tree_rebuild_w (cap 8 GB; 2.0 GB). O = trinity-3-30:/scratch/jjyeung/orch_n30/tree_rebuild holds builds 1-4 history (3.95 of 5 GB; do not grow).
+Events: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/tree_rebuild/ (read every *_ORCH_* file there and W/inbox at each step). Poll helper: `bash W/poll2.sh [sleep_s]` (set for build 7). ORCH 1228Z: no checkpoint events; events only for questions, blockers, final results and rotate.
+
+## Running now
+- Build 7 (Codex gpt-6-astra high) in tmux `tree_rebuild_b7` on trinity-1-3, codex_dispatch PID 841040, started 23:16Z. Prompt W/prompts/build7.md (build7.pre_leftovers.md is the copy before item 19). Receipt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261116T231636Z_tree_rebuild7 (final_message.md + meta.json appear at the end). Its status W/work/build7/STATUS.md; report W/out/BUILD7_REPORT.md. Poll every 10 min with poll2.sh; tail only, never the whole transcript. Never start a second build while it runs.
+- If build 7's Codex dies on an API error again (meta.json exit!=0, no final_message.md), the tree may be mid-edit: read W/work/build7/STATUS.md, then dispatch a resume build (label tree_rebuild7b) with a prompt telling it to resume from that status. Do not rerun anything killed by the cluster.
+
+## Build 6 outcome (ended 23:02Z, Codex exit 1, API "model at capacity")
+- Final pass done: restage, kit_readcheck, kit_protocols, packet 202/202, row proofs, packaged tree generator + legacy (1810 executions, 0 lost build-5 passes, W/work/build6/LIVE_B5_LOSSES.json). Not done: tree r2 (76/349, 0 failures), base groups, coverage, comparison, final_review, BUILD6_REPORT (still IN PROGRESS).
+- Last full receipts (12:37Z/12:45Z, before later repairs): 2191 run / 1647 passed / 474 pre-existing / 4 regressions; 221 CPU gaps (r2_contract.py 102, r2_policy.py 119). Repairs (proofs/final_targeted 16/16) unverified on the full suite.
+- Seal 427fb3cb119bda8bd938f7e8edc43fac0c013d59fefdd85d46a8a4daf9475d28 (863 files) recomputed 23:12Z = TREE_SEAL.json. Package W/out/tree_rebuild_b6_427fb3cb.tar sha256 b134cae82245d418da2d6a388970a2a84406bed312262290cdc7ca65f7425161 (106,332,160 B), mirrored trinity-1-18:/scratch/jjyeung/n30_mirror/tree_rebuild/tree_rebuild_b6_427fb3cb.tar (sha equal, 23:14Z).
+- RESULT event 20261116T2318Z_RESULT_build6_end_build7_started.md written.
+
+## When build 7 ends
+1. Read final_message.md and W/out/BUILD7_REPORT.md. Recompute the seal: `cd W/work/tree_r1 && /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -c "import sys; sys.path.insert(0,'.'); from student_pilot.source_seal import inventory; from student_pilot.p3_provenance import digest; f=inventory('.'); print(len(f), digest(f))"`; it must equal W/out/TREE_SEAL.json and the package name.
+2. Mirror the package: `cat pkg | bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/tssh.sh trinity-1-18.ib 'cat > /scratch/jjyeung/n30_mirror/tree_rebuild/<pkg> && sha256sum /scratch/jjyeung/n30_mirror/tree_rebuild/<pkg>'`; compare sha256; record both paths here.
+3. RESULT build7 with the CPU EAT-1 verdicts, suite counts vs base, coverage classes, the 4 regressions / 221 gaps disposition, D1-D4 state. Ask ONCE for the second review (one review covers the `both` policy, GF-1 cache option, faithful-row patch) only if the full suite completed, zero CPU-reachable gaps remain, D1-D4 are closed (D4 may stay a named A2 blocker) and EAT-1 ran on build 7. Otherwise dispatch one more Codex fix build.
+4. Update the design record /data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_TREE_REBUILD_20261115.md header + INDEX line to build 7.
+5. The frame-host CPU job on Orchard needs the orchestrator's GO with its packet; never submit without it.
+
+## Build 7 prompt contents (W/prompts/build7.md, items 1-19 incl. 16a; inputs in W/work/design/)
+1-5 ORCH 1124Z D1-D4 + empty remove_files; 6 ORCH 1127Z pinned max/min_pixels and trainable list; 7-10 ORCH 1147Z scale-head loss, frozen response format, guard-only rows check, claim label; 11 ORCH 1155Z USER rulings (frame count 32/64 parameter incl. EAT-1's hard-coded sites, no answer-side unit conversion, ReVSI first, SFT first); 12 ORCH 1234Z both-path mix + ORCH 1250Z b08 `both` policy and type gate (spec PARTB_PREP_b08.md c32ca00c); 13 ORCH 1307Z R0 exclusion (R0_SCENES.json f7c45817 fetched from trinity-1-18 b10_reserve, sha verified; R0_ROOMS bdb5d402; R0_census.py); 14 ORCH 1300Z/1325Z GF-1 cache patch 3610e972; 15 ORCH 1318Z/1504Z/1527Z EAT-1 findings: export manifest with G3T tower weights, fix-or-register A3/A4 items, CPU EAT-1 run (code and reports from trinity-3-30 b03_e2etest in W/work/design/eat1_b03), portrait-stretch audit; 16 ORCH 1342Z h1_headsft faithful own-value rows patch cdc6c9f7 (W/inbox/h1_faithful_fix_b5_1620Z, supersedes bd0fd6bb; review verdict copy W/work/design/h1_faithful/REVIEW_VERDICT_H1KIT.md); 16a ORCH 1909Z USR1 stop defect (find why ranks ignore the stop file, fix, CPU proof with gloo ranks, keep stop_after_step + export fallback); 17 suites; 18 restage kits; 19 build 6 leftovers (finish its qualification on build 7's final tree; package runner resumes finished groups).
+
+## Done by tree_rebuild4 Devin session 3 (22:18Z-03:46Z)
+- Polled build 6 to its end; verified seal; mirrored the b6 package to trinity-1-18; filled item 19 in build7.md; dispatched build 7 23:16Z; RESULT build6_end_build7_started; polled build 7 every 10 min (poll2.sh now prints suite group progress); RESULT rotate 0346Z. One tssh call (mirror). No GPU, Orchard, Git or deletion.
+
+## Done by tree_rebuild4 Devin session 2 (18:08Z-22:15Z)
+- Polled build 6; recorded ORCH 1844Z no-GPU order (lane has no GPU job); folded ORCH 1909Z USR1 stop defect into build7_draft.md and build7.md as item 16a (copy W/work/design/20261116T1909Z_ORCH_NOTE_usr1_defect.md); rechecked build 7 inputs (gf1 3610e972 both copies, h1 cdc6c9f7, R0_SCENES f7c45817); pre-verified seal 427fb3cb and package sha; prepared W/prompts/build7.md. No ssh, GPU, Orchard, Git or deletion.
+
+## Done by tree_rebuild4 (Devin, 12:23Z-18:00Z)
+- RESULT 1227Z checkpoint (before ORCH 1228Z withdrew the order). Folded ORCH 1155Z-1527Z and the h1 patch into the build 7 prompt (list above). Fetched from other nodes with tssh: R0_SCENES.json and census.py (trinity-1-18), eat1 code + BASELINE_A2_TREE.md, EAT1_READY.md, RUN.md, SCOPE_READ.txt (trinity-3-30). No GPU, Orchard, Git or deletion.
+
+## Done by tree_rebuild3 (06:12Z-11:34Z)
+- RESULTs 0618Z build5_progress_and_units, 1026Z build5, 1031Z build6_started, 1134Z rotate; QUESTION 0619Z square_feet_rows -> ORCH 0620Z ANSWER (folded into build6.md item 6).
+- Unit rows: 2.871/step (1536/535) in routing (W/out/MIX_A0.json); 10,945 admitted (slices_final/COUNTS_A0_v4.json); all abs-distance programs with one written conversion line; slice: feet 689, inches 678, cm 633; no ft2.
+- Build 5 ended 10:21Z exit 0: seal ba346bd9 (855) verified by me; suite 2,185 run / 1,645 passed / 474 pre-existing failure events (base fails the same 395 cases, 14+460) / 0 regressions; R2 343/343; coverage 3,693 observed, 73 frame-host, 3 GPU, 0 CPU gaps.
+- Contracts dry run in a copy refused (W/work/contracts_r6/OPERATOR_DRYRUN.log); per-file precheck W/work/contracts_r6/OPERATOR_PRECHECK_R6.tsv. W/work/contracts_r6/tree_copy is an operator scratch copy (removal candidate).
+- Design record NEXT_LEG_TREE_REBUILD_20261115.md header and its INDEX.md line updated to build 5 / build 6.
+
+## Identities
+- Base: candidate A, seal b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99 (792 files) = the source of kit 07ca49df / run 469ddece = /data3/jjyeung/distill_src_archive/t_b01ce449beffe35b.tar (845b1789). The seals 38917ea5 and 37845077 belong to earlier trees. Accepted at ORCH 1819Z. Read-only copy: W/work/base/tree_b01ce449 (also O).
+- Tree seals: b1 fab2eea8 (807 files), b2 cd82c5c4 (825), b3 a1f559e2 (838; reviewed NOT READY by review_tree, events/review_tree/REVIEW_VERDICT_TREE.md, copy W/work/review1), b3b ba0c6ebf (841), b4 0fc11a63209cc6e73827149a78dea070aa72f279ec3ed7f79d8d3777be3f4320 (846; build 5's start), b5 ba346bd9e8ba41ed0cd77fea5ae494df544b959ff9f80731f83d761f51a32343 (855; recomputed by tree_rebuild3 10:25Z; build 6's start).
+- Packages and mirrors: O/out/tree_rebuild_b3_a1f559e2.tar (39b2b5db…) and O/out/tree_rebuild_b3b_ba0c6ebf.tar (aa75d294…), both mirrored at trinity-1-13:/scratch/jjyeung/n30_mirror/tree_rebuild/ (sha equal). No package of b4. Build 5: W/out/tree_rebuild_b5_ba346bd9.tar (84,500,480 B, sha256 bc31a06dd37e742dbf8bad493cbe5d90c18b2bf1dbb6b9f7ef992137a0b33726), mirrored at trinity-1-18:/scratch/jjyeung/n30_mirror/tree_rebuild/ (sha equal, 10:26Z). Build 5 kits W/work/build5/kits/a0 8cdda797..., a2 58a9b42e... (GO=false).
+- Pinned shared inputs (W/work/shared, W/work/rows_slices): validator a41ba19190eb354168ce5837b2047fb6510c868c5d7cbfbf160cbe924777e268 (rows_rebuild final; tests cab38fe6); WITHHELD_ROOMS_80.json 634820b4…; merged dev list dev_scene_exclusions_d0.json a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5 (bound byte for byte; the tree's own derivation 184fcda3 differs only in keying: O/out/MERGED_LIST_COMPARE.txt). Slices slices_v3 (D0 v3 + A0 v3) and slices_final (A0 v4) from trinity-1-13 rows_rebuild.
+- Init: step-544 artifact 1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef; an exact resume of 469ddece refuses, and a warm start under a new identity is the path.
+
+## Rulings in force (events)
+- ORCH 1848Z: rows_rebuild draws the single withheld list; camera/pose/pointing metadata are proved in the Orchard frame-host job.
+- ORCH 1915Z: keep the routing-opener rows on a warm start (config switch, witness); cont_ops: launch_s1/build.py cannot rebuild four-stream kits, so the four-stream case is first-class.
+- D0 ruling 1844Z, applied to A0: route planning is direct in the VQA store; routing carries programs only (out/MIX_A0.md).
+- ORCH 2018Z: the 80 withheld rooms are out of every A0 stream, with all bindings consistent (build 3b + a1869ae2).
+- ORCH 2233Z/2339Z: O cap 5 GB; 3-30 floor 200 GiB; future builds overwrite fixed proof folders in place; real-row outputs are counts + hashes + at most 200 examples.
+- ORCH 0022Z: the second review comes only after the full suite completes with zero CPU gaps; the frame-host job needs GO with its packet.
+- ORCH 1844Z (USER): no GPU use anywhere, no Orchard submission (general included) until the orchestrator says GPUs are back; this lane runs no GPU job (build 6 is CPU only).
+- Defaults in force (orchestrator header): claim scope VSI-Bench, VSTI, ReVSI; the 27 qualification rooms do not bind; 3D box keeps one Locate line; no replay from Devin logs; GF-1 schedule 400 adapter-only + 600 full steps (build default).
+
+## Open
+- 14 evidence records must be regenerated (W/out/RECORDS_TO_REGENERATE.md); the kits refuse at init_m544 until they exist; build 6 states which ones T2 changes.
+- Design record /data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_TREE_REBUILD_20261115.md (+INDEX line); update it at the next RESULT.
+- REMOVAL_CANDIDATES.md in O lists about 2.4 GB of temporaries and proof outputs for the user.
+
+## Rules reminders
+- Builds go to Codex only: `(cd /home/jjyeung/agent_project_distill && agent/scripts/codex_dispatch.sh implement W <prompt> --model gpt-6-astra --effort high --label tree_rebuildN --skip-git-check)`, run in tmux. Each prompt restates the "Rules for the build" (O/prompts/rules_block.md; replace the path with W).
+- Fewer than 2 ssh calls into Trinity per minute, each with timeout and -o ConnectTimeout=20. No Git, no deletion, no GPU, no Orchard submission without GO. Events at most 20 lines.

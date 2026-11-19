@@ -1,0 +1,19 @@
+--- build5/launch_s1/b/i.py
++++ build6/launch_s1/b/i.py
+@@ -94,7 +94,16 @@
+ 
+ def identity(cfg):
+     import hashlib
++    import math
+     value={k:v for k,v in cfg.items() if k not in ('preparation','admission','authorization','milestone_gate')}
++    # Match the native identity before private training modules are staged.
++    if value.get('contract_epoch', True):
++        threshold=value.get('heading_plane_min', 0.3)
++        if type(threshold) not in (int, float) or not math.isfinite(threshold) or not 0 < threshold < 1:
++            raise ValueError('Invalid heading threshold')
++        value['heading_plane_min']=float(threshold)
++    else:
++        value.pop('heading_plane_min', None)
+     if 'readout' in value:
+         value['readout']={k:v for k,v in value['readout'].items() if k!='contiguous_clips'}
+     if value.get('frame_layout')=='spread': value.pop('frame_layout')

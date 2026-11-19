@@ -1,0 +1,2 @@
+# ORCH NOTE: reserve rooms R0 are registered; exclude them from every stream
+R0 = 272 rooms (R0_ROOMS.txt bdb5d402; R0_SCENES.json f7c45817) in trinity-1-18 /scratch/jjyeung/orch_n30/b10_reserve/out/ and events/b10_reserve/R0_REGISTRATION_NOTE.md. No row, frame, cache or training stream of this or any later leg may use an R0 room. Check your sets against R0_ROOMS.txt and report the count you removed (0 is a valid answer).

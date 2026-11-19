@@ -1,0 +1,2000 @@
+{
+  "generator/derivgen_v7/derivgen/camera_rows.py": [
+    [
+      177,
+      "count = len(rgb['frames'])"
+    ],
+    [
+      178,
+      "_require(count in (32, 64), 'requires_32_or_64_frames')"
+    ],
+    [
+      179,
+      "_require(all(scene.gt.has(k) for k in range(1,count+1)), 'requires_exact_per_frame_poses')"
+    ],
+    [
+      180,
+      "c = np.broadcast_to(np.eye(4), (count,4,4)).copy()"
+    ],
+    [
+      181,
+      "for k in range(1,count+1):"
+    ],
+    [
+      350,
+      "return f'What is the signed camera rotation in degrees between frame {i} and frame {j} of {frame_count}? Positive means left; use (-180, 180].'"
+    ],
+    [
+      351,
+      "return (f\"During the sequence between frame {i} and frame {j} of {frame_count}, what was the primary consistent direction \""
+    ],
+    [
+      527,
+      "_require(M == len(clip[\"frames\"]) and 1 <= i <= M and 1 <= j <= M and i != j,'invalid_camera_frame_pair')"
+    ],
+    [
+      539,
+      "pairs = list(itertools.combinations(range(1,len(clip[\"frames\"])+1),2))"
+    ]
+  ],
+  "student_pilot/carrier_c1_data.py": [
+    [
+      165,
+      "raise ValueError('row_training_frame_count_mismatch')"
+    ],
+    [
+      169,
+      "check_sample(row, max_groups=frame_count)"
+    ],
+    [
+      178,
+      "if gf1.get('cached_bank') or 'geometry_bank_donor' in row['student_input']:"
+    ],
+    [
+      180,
+      "from .gf1_cache import row_bank"
+    ],
+    [
+      181,
+      "special, bank_audit = row_bank(row, gf1, dense, indices, is_pose)"
+    ],
+    [
+      183,
+      "geometry, arrays = special"
+    ],
+    [
+      467,
+      "if require_r2 and not r2_sampling:"
+    ],
+    [
+      468,
+      "raise ValueError('Missing bound r2_sampling table')"
+    ],
+    [
+      469,
+      "if r2_sampling is not None:"
+    ],
+    [
+      470,
+      "from .r2_mix import plans"
+    ],
+    [
+      471,
+      "yield from plans(r2_sampling, counts, steps, start_step, world)"
+    ],
+    [
+      472,
+      "return"
+    ],
+    [
+      632,
+      "raise ValueError('C1 preservation rows require 32 or 64 pinned native frames')"
+    ]
+  ],
+  "student_pilot/carrier_c1_routing.py": [
+    [
+      188,
+      "if row.get('trace_contract') == 'next-leg-r2-v1' or row.get('r2_source_sha256'):"
+    ],
+    [
+      189,
+      "from .r2_contract import event_row"
+    ],
+    [
+      190,
+      "return event_row(row)"
+    ],
+    [
+      199,
+      "require_training_think(target)"
+    ],
+    [
+      234,
+      "raise RenderError('own pose readout must be finite [32 or 64, 9]')"
+    ],
+    [
+      239,
+      "raise RenderError('own FoV readout must be finite [F, 2]')"
+    ],
+    [
+      500,
+      "require_training_think(target)"
+    ],
+    [
+      519,
+      "if not faithful and mode != 'gt' and spans and offsets is not None:"
+    ],
+    [
+      557,
+      "return finish(batch, ids, train, row, target, spans, mode, offsets, segments, faithful=faithful)"
+    ],
+    [
+      694,
+      "if type(frame_count) is not int or frame_count not in (32, 64):"
+    ],
+    [
+      695,
+      "raise RenderError(\"unsupported_frame_count\")"
+    ],
+    [
+      696,
+      "per_frame, index = [[] for _ in range(frame_count)], []"
+    ],
+    [
+      698,
+      "if type(frame) is not int or not 1 <= frame <= frame_count:"
+    ],
+    [
+      705,
+      "uv = np.full((frame_count, k, 2), 500., dtype=np.float32)"
+    ],
+    [
+      769,
+      "if len(frames) not in (32, 64) or [f['source_index'] for f in frames] != row['provenance']['frame_indices']:"
+    ],
+    [
+      893,
+      "if (not isinstance(target, str) or not target.startswith(THINK)"
+    ],
+    [
+      896,
+      "raise ValueError('LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED')"
+    ],
+    [
+      901,
+      "target = raw.get('target')"
+    ],
+    [
+      902,
+      "require_training_think(target)"
+    ],
+    [
+      904,
+      "count = len(inputs['frames'])"
+    ],
+    [
+      905,
+      "if count not in (32, 64) or len(inputs['frame_indices']) != count:"
+    ],
+    [
+      906,
+      "raise ValueError('Direct rows require 32 or 64 pinned native frames')"
+    ],
+    [
+      907,
+      "from .r2_grammar import validate_direct"
+    ],
+    [
+      908,
+      "answer = validate_direct(target, inputs['question'], count)"
+    ],
+    [
+      909,
+      "if answer != str(raw['answer']):"
+    ],
+    [
+      910,
+      "raise ValueError('Direct trace answer differs from its declared answer')"
+    ],
+    [
+      911,
+      "suffix = '\\n</think>\\n\\n' + answer"
+    ],
+    [
+      912,
+      "if not target.endswith(suffix):"
+    ],
+    [
+      913,
+      "raise ValueError('Direct trace target does not match the training renderer')"
+    ],
+    [
+      914,
+      "body = target[len(THINK):-len(suffix)]"
+    ],
+    [
+      918,
+      "events = [dict(kind='canonical_text', text=body)]"
+    ],
+    [
+      919,
+      "return dict(qid=raw['qid'], dataset=dataset, scene=scene, category='routing_trace', student_input=inputs,"
+    ],
+    [
+      974,
+      "both = qtype in policy.get('both', ())"
+    ],
+    [
+      975,
+      "kind = ('route' if calls else 'direct') if both else ('route' if qtype in policy['route'] else 'direct' if qtype in policy['direct'] else None)"
+    ],
+    [
+      976,
+      "gate_reason = None"
+    ],
+    [
+      977,
+      "if 'both' in policy:"
+    ],
+    [
+      978,
+      "from .routing_type_gate import refusal"
+    ],
+    [
+      979,
+      "gate_reason = refusal(qtype, 'routed' if calls else 'direct', policy)"
+    ],
+    [
+      980,
+      "row['answer_form'] = 'routed' if calls else 'direct'"
+    ],
+    [
+      983,
+      "reason = ('duplicate_qid' if row['qid'] in seen else"
+    ],
+    [
+      1024,
+      "reason = ('duplicate_qid' if row['qid'] in seen else"
+    ],
+    [
+      1030,
+      "if 'both' in policy:"
+    ],
+    [
+      1031,
+      "row['answer_form'] = 'direct'"
+    ],
+    [
+      1071,
+      "parser.add_argument('--direct-source', help='JSON pin of concrete direct traces (JSONL)')"
+    ]
+  ],
+  "student_pilot/carrier_c1_run.py": [
+    [
+      68,
+      "if 'b7_inputs' in cfg:"
+    ],
+    [
+      69,
+      "from .b7_inputs import validate as validate_inputs"
+    ],
+    [
+      70,
+      "validate_inputs(cfg['b7_inputs'], 'a2' if cfg.get('geometry_connector')=='gf1' else 'a0')"
+    ],
+    [
+      87,
+      "if budget.whole_leg and budget.policy != plan(cfg['recipe'], budget.policy['reserve_bytes'],"
+    ],
+    [
+      167,
+      "if cfg.get('h1', {}).get('faithful_own_camera_rows') is not None:"
+    ],
+    [
+      168,
+      "from .h1_faithful import validate as validate_faithful"
+    ],
+    [
+      169,
+      "validate_faithful(cfg)"
+    ],
+    [
+      341,
+      "from .r0_exclusion import reserve"
+    ],
+    [
+      342,
+      "return bool(routing.excluded(benchmark, *keys) or reserve().matches(row)), int(routing.excluded(reported, *keys))"
+    ],
+    [
+      363,
+      "if cfg.get('routing_policy')=='both-path-20261116':"
+    ],
+    [
+      364,
+      "from .carrier_c1_routing import POLICIES"
+    ],
+    [
+      365,
+      "if row.get('question_type') in POLICIES['both-path-20261116']['both']:"
+    ],
+    [
+      366,
+      "return False"
+    ],
+    [
+      461,
+      "from .r2_contract import preparation"
+    ],
+    [
+      462,
+      "preparation(cfg)"
+    ],
+    [
+      503,
+      "r2_pose = bool(cfg.get('r2_membership') and cfg.get('r2') and pose.get('count', 0) > 0)"
+    ],
+    [
+      504,
+      "if ((mix is None and (pose.get('schema') != 'decoupled-v-preparation-v1' or (pose.get('count') != 321152 and not tiny_pose and not r2_pose)))"
+    ],
+    [
+      627,
+      "result.update({k: cfg[k] for k in ('frame_layout', 'frame_pair_gap_seconds', 'skip_unsupervised_lm',"
+    ],
+    [
+      648,
+      "if cfg.get('h1', {}).get('faithful_own_camera_rows'):"
+    ],
+    [
+      649,
+      "from .h1_faithful import prepare_identity"
+    ],
+    [
+      650,
+      "result = prepare_identity(result, cfg)"
+    ],
+    [
+      660,
+      "from .r2_contract import preparation"
+    ],
+    [
+      661,
+      "preparation(cfg)"
+    ],
+    [
+      665,
+      "if 'b7_inputs' in cfg:"
+    ],
+    [
+      666,
+      "from .b7_inputs import layout"
+    ],
+    [
+      667,
+      "if receipt.get('b7_inputs') != cfg['b7_inputs'] or layout(receipt['b7_inputs']) != layout(cfg['b7_inputs']):"
+    ],
+    [
+      668,
+      "raise ValueError('Preparation pinned kit inputs differ')"
+    ],
+    [
+      693,
+      "if cfg.get('h1', {}).get('faithful_own_camera_rows'):"
+    ],
+    [
+      694,
+      "from .h1_faithful import require_identity"
+    ],
+    [
+      695,
+      "require_identity(receipt, cfg)"
+    ],
+    [
+      701,
+      "receipt = {**receipt, 'align': cfg.get('align'), 'init_artifact': cfg.get('init_artifact'),"
+    ],
+    [
+      707,
+      "if 'h1' in cfg:"
+    ],
+    [
+      708,
+      "receipt = {**receipt, 'h1': cfg['h1']}"
+    ],
+    [
+      936,
+      "report['r2_lineage'] = (artifact.get('r2_identity') or {}).get('init', {}).get('artifact_sha256')"
+    ],
+    [
+      1082,
+      "from .r0_exclusion import reserve"
+    ],
+    [
+      1083,
+      "reserve().check(value, stream)"
+    ],
+    [
+      1084,
+      "from .row_text_audit import check"
+    ],
+    [
+      1085,
+      "check(value, stream)"
+    ],
+    [
+      1087,
+      "self.r2_admission.check(value, stream, json.loads(row[1]))"
+    ],
+    [
+      1206,
+      "processor.tokenizer._c1_frame_count = receipt.get('frame_count',32)"
+    ],
+    [
+      1207,
+      "if receipt.get('b7_inputs'):"
+    ],
+    [
+      1208,
+      "from .b7_inputs import layout"
+    ],
+    [
+      1209,
+      "processor._b7_layout = layout(receipt['b7_inputs'])"
+    ],
+    [
+      1221,
+      "if getattr(rows, 'h1', {}).get('faithful_own_camera_rows'):"
+    ],
+    [
+      1222,
+      "from .h1_faithful import own_values as faithful_own_values"
+    ],
+    [
+      1223,
+      "return faithful_own_values(model, rows, batch, audit, index, decision, device)"
+    ],
+    [
+      1229,
+      "uv, slots = routing.query_tensor(queries, frame_count=batch[\"aux_camera_positions\"].shape[1])"
+    ],
+    [
+      1234,
+      "uv = torch.full((batch[\"aux_camera_positions\"].shape[1], 1, 2), 500.)"
+    ],
+    [
+      1303,
+      "if positions.shape != (1, getattr(model,'frame_count',32)) or torch.any(valid != (valid.long().cumprod(dim=1) > 0)):"
+    ],
+    [
+      1323,
+      "if mask.shape != positions.shape or torch.any(mask & ~valid) or not mask.any():"
+    ],
+    [
+      1326,
+      "if depth is None or depth.shape[:2] != positions.shape or torch.any(depth.any(-1) & ~valid):"
+    ],
+    [
+      1666,
+      "recipe = recipe_for(cfg)"
+    ],
+    [
+      1667,
+      "counts = {k:v['count'] for k,v in receipt['streams'].items()}"
+    ],
+    [
+      1668,
+      "offset = cfg.get('row_start_step', 0)"
+    ],
+    [
+      1669,
+      "plan = next(data.mixed_indices(counts,offset+1,start_step=offset,training_mode=cfg.get('training_mode', 'mixed'),"
+    ],
+    [
+      1671,
+      "if encode_only:"
+    ],
+    [
+      1672,
+      "return encode_plan_rows(receipt, processor, [plan], list(range(recipe['world_size'])), report_path)"
+    ],
+    [
+      2066,
+      "write(directory/'artifact.json',dict(**version_metadata,schema='carrier-c1-artifact-v1',step=step,"
+    ],
+    [
+      2087,
+      "if 'b7_inputs' in cfg:"
+    ],
+    [
+      2088,
+      "from .b7_inputs import module_trainability"
+    ],
+    [
+      2089,
+      "metadata = load(directory/'artifact.json')"
+    ],
+    [
+      2090,
+      "metadata['trainable_modules'] = module_trainability(model,cfg)"
+    ],
+    [
+      2091,
+      "(directory/'artifact.json').write_text(json.dumps(metadata,sort_keys=True,indent=2)+'\\n')"
+    ],
+    [
+      2092,
+      "from .eat1_export import write_manifest"
+    ],
+    [
+      2093,
+      "write_manifest(directory,model,cfg)"
+    ],
+    [
+      2269,
+      "from launch_r2.persistence import milestone"
+    ],
+    [
+      2270,
+      "if 'r2_identity' in cfg and not cfg.get('r2_sampling'):"
+    ],
+    [
+      2271,
+      "raise ValueError('Missing bound r2_sampling table')"
+    ],
+    [
+      2301,
+      "milestone(cfg, output/'m0', 'export', rank, distributed)"
+    ],
+    [
+      2327,
+      "for step,plan in enumerate(data.mixed_indices(counts,offset+steps,start_step=offset+start_step,"
+    ],
+    [
+      2377,
+      "from .stop_control import requested"
+    ],
+    [
+      2378,
+      "stop[0] = requested(stop[0], cfg, step)"
+    ],
+    [
+      2388,
+      "saved = checkpoint(output/f'checkpoint_{step:06d}',wrapped,optimizer,bound,step,rotate=True, **checkpoint_options())"
+    ],
+    [
+      2389,
+      "milestone(cfg, Path(saved['path']).parent, 'checkpoint', rank, distributed)"
+    ],
+    [
+      2392,
+      "if not smoke_steps and (step in recipe['milestones'] or (stopping and (recipe.get('export_at_stop') or cfg.get('stop_after_step') is not None))):"
+    ],
+    [
+      2399,
+      "milestone(cfg, output/f'm{step}', 'export', rank, distributed)"
+    ],
+    [
+      2998,
+      "rows = Rows(receipt, processor)"
+    ],
+    [
+      2999,
+      "records = []"
+    ],
+    [
+      3000,
+      "try:"
+    ],
+    [
+      3001,
+      "for step, plan in enumerate(plans, 1):"
+    ],
+    [
+      3002,
+      "for stream, indices in plan:"
+    ],
+    [
+      3003,
+      "for rank in ranks:"
+    ],
+    [
+      3004,
+      "batch, _, _ = rows.get(stream, int(indices[rank]))"
+    ],
+    [
+      3005,
+      "if any(v.is_cuda for v in batch.values() if hasattr(v, 'is_cuda')):"
+    ],
+    [
+      3006,
+      "raise ValueError('Encoding-only admission requires CPU tensors')"
+    ],
+    [
+      3007,
+      "records.append(dict(step=step, rank=rank, stream=stream, index=int(indices[rank]),"
+    ],
+    [
+      3009,
+      "write(out_path, dict(schema='r2-encoded-first-batch-v1', records=records,"
+    ],
+    [
+      3011,
+      "return records"
+    ],
+    [
+      3013,
+      "rows.close()"
+    ],
+    [
+      3032,
+      "plans = list(data.mixed_indices(counts, steps, training_mode=cfg.get('training_mode', 'mixed'),"
+    ],
+    [
+      3034,
+      "if encode_only:"
+    ],
+    [
+      3035,
+      "if device != 'cpu' or progress_dir is not None:"
+    ],
+    [
+      3036,
+      "raise ValueError('Encoding-only admission requires CPU and a fresh check')"
+    ],
+    [
+      3037,
+      "return encode_plan_rows(receipt, processor_for_receipt(manifest, receipt), plans, ranks, out_path)"
+    ],
+    [
+      3198,
+      "from student_pilot.r2_policy import unsupported_entry"
+    ],
+    [
+      3199,
+      "unsupported_entry('student_pilot/carrier_c1_run.py:inference')"
+    ],
+    [
+      3227,
+      "from student_pilot.r2_policy import unsupported_entry"
+    ],
+    [
+      3228,
+      "unsupported_entry('student_pilot/carrier_c1_run.py:probe')"
+    ],
+    [
+      3251,
+      "from student_pilot.r2_policy import unsupported_entry"
+    ],
+    [
+      3252,
+      "unsupported_entry('student_pilot/carrier_c1_run.py:evaluate')"
+    ]
+  ],
+  "student_pilot/gf1_cache.py": [
+    [
+      33,
+      "raise ValueError('GF1 cache key needs sha256-pinned dense frames')"
+    ],
+    [
+      44,
+      "raise ValueError('GF1 cache bank, ROI and grid disagree')"
+    ],
+    [
+      86,
+      "fusion = model.auxiliary_heads.gf1"
+    ],
+    [
+      87,
+      "eps = {float(n.eps) for n in fusion.norms}"
+    ],
+    [
+      88,
+      "dims = {int(n.normalized_shape[0]) for n in fusion.norms}"
+    ],
+    [
+      89,
+      "dtypes = {str(p.weight.dtype).removeprefix('torch.') for p in fusion.projections}"
+    ],
+    [
+      90,
+      "if len(eps) != 1 or len(dims) != 1 or len(dtypes) != 1:"
+    ],
+    [
+      91,
+      "raise ValueError('GF1 cached bank needs one LayerNorm eps, width and projection dtype')"
+    ],
+    [
+      92,
+      "return identity(model.geometry_online, device_type=device_type, eps=eps.pop(), input_dim=dims.pop(),"
+    ],
+    [
+      97,
+      "h = hashlib.sha256()"
+    ],
+    [
+      98,
+      "with open(path, 'rb') as f:"
+    ],
+    [
+      99,
+      "for block in iter(lambda: f.read(1 << 22), b''):"
+    ],
+    [
+      100,
+      "h.update(block)"
+    ],
+    [
+      101,
+      "return h.hexdigest()"
+    ],
+    [
+      117,
+      "raise ValueError('GF1 cache dtype must be float32 or bfloat16')"
+    ],
+    [
+      121,
+      "raise ValueError('GF1 cache anchors must equal the temporal merger grid')"
+    ],
+    [
+      145,
+      "return record"
+    ],
+    [
+      160,
+      "raise ValueError('Unknown GF1 row bank kind')"
+    ],
+    [
+      165,
+      "for name in ('mapping', 'tensor', 'images', 'coords'):"
+    ],
+    [
+      166,
+      "value = getattr(self, name)"
+    ],
+    [
+      167,
+      "if value is not None:"
+    ],
+    [
+      168,
+      "setattr(self, name, value.to(device))"
+    ],
+    [
+      169,
+      "return self"
+    ],
+    [
+      182,
+      "for entry in self.entries:"
+    ],
+    [
+      183,
+      "if entry is not None:"
+    ],
+    [
+      184,
+      "entry.to(device)"
+    ],
+    [
+      185,
+      "return self"
+    ],
+    [
+      196,
+      "raise ValueError('GF1 cached_bank root is missing: ' + str(root))"
+    ],
+    [
+      199,
+      "return None"
+    ],
+    [
+      204,
+      "raise ValueError('GF1 cached bank identity differs from the row: ' + key)"
+    ],
+    [
+      207,
+      "raise ValueError('GF1 cached bank tensor sha256 differs: ' + key)"
+    ],
+    [
+      215,
+      "if (not isinstance(anchors, list) or not anchors or anchors[0] != 0 or anchors != sorted(set(anchors))"
+    ],
+    [
+      217,
+      "raise ValueError('GF1 bank donor anchors must be ordered dense slots starting at 0')"
+    ],
+    [
+      222,
+      "from .g3t_online import native_square_518"
+    ],
+    [
+      223,
+      "from .gf1 import ClipCache"
+    ],
+    [
+      224,
+      "from .pose_samples import load_frames"
+    ],
+    [
+      225,
+      "inputs = row['student_input']"
+    ],
+    [
+      226,
+      "own = clip_key(dense)"
+    ],
+    [
+      227,
+      "donor = inputs.get('geometry_bank_donor')"
+    ],
+    [
+      228,
+      "settings = cfg.get('cached_bank')"
+    ],
+    [
+      229,
+      "lm = lambda: load_frames(dict(frames=[dense['frames'][i] for i in indices]))"
+    ],
+    [
+      230,
+      "if donor is not None:"
+    ],
+    [
+      231,
+      "if is_pose:"
+    ],
+    [
+      232,
+      "raise ValueError('GF1 shuffled bank is a read option; pose rows keep their own augmented clip')"
+    ],
+    [
+      233,
+      "if (not isinstance(donor, dict) or donor.get('schema') != DONOR_SCHEMA"
+    ],
+    [
+      235,
+      "raise ValueError('Invalid GF1 bank donor')"
+    ],
+    [
+      236,
+      "other, anchors = donor['geometry_dense'], donor['anchor_slots']"
+    ],
+    [
+      237,
+      "if len(other.get('frames', [])) != cfg['dense_frames'] or other.get('frame_indices') != sorted(set(other['frame_indices'])):"
+    ],
+    [
+      238,
+      "raise ValueError('GF1 bank donor needs the configured ordered dense frames')"
+    ],
+    [
+      239,
+      "_check_anchors(anchors, cfg['dense_frames'])"
+    ],
+    [
+      240,
+      "if len(anchors) != len(indices):"
+    ],
+    [
+      241,
+      "raise ValueError('GF1 bank donor anchor count differs from the row')"
+    ],
+    [
+      242,
+      "key = clip_key(other)"
+    ],
+    [
+      243,
+      "if key != donor['clip_key'] or key == own:"
+    ],
+    [
+      244,
+      "raise ValueError('GF1 bank donor key differs from its frames or names the row\\'s own clip')"
+    ],
+    [
+      245,
+      "entry = load_cached(settings, key, anchors) if settings else None"
+    ],
+    [
+      246,
+      "if entry is None:"
+    ],
+    [
+      247,
+      "images, coords = native_square_518(load_frames(other), expected_frames=cfg['dense_frames'])"
+    ],
+    [
+      248,
+      "entry = RowBank('dense', torch.tensor(anchors, dtype=torch.long), images=images, coords=coords)"
+    ],
+    [
+      249,
+      "entry.donor = dict(clip_key=key, own_clip_key=own, permutation_sha256=donor['permutation_sha256'])"
+    ],
+    [
+      250,
+      "geometry = dict(aux_gf1_cache=ClipCache(), aux_gf1_lm_indices=torch.tensor([indices], dtype=torch.long),"
+    ],
+    [
+      252,
+      "return (geometry, lm()), dict(source='shuffled_' + entry.kind, clip_key=own, donor_clip_key=key,"
+    ],
+    [
+      254,
+      "if is_pose:"
+    ],
+    [
+      255,
+      "return None, dict(source='online', reason='pose_row_augmented', clip_key=own)"
+    ],
+    [
+      256,
+      "entry = load_cached(settings, own, indices)"
+    ],
+    [
+      257,
+      "if entry is None:"
+    ],
+    [
+      258,
+      "raise ValueError('GF1 cached_bank has no record for clip ' + own + '; write the cache for every non-pose clip first')"
+    ],
+    [
+      259,
+      "geometry = dict(aux_gf1_cache=ClipCache(), aux_gf1_lm_indices=torch.tensor([indices], dtype=torch.long),"
+    ],
+    [
+      261,
+      "return (geometry, lm()), dict(source='cached', clip_key=own, tensor_sha256=entry.record['tensor']['sha256'])"
+    ],
+    [
+      281,
+      "raise ValueError('GF1 row banks must name one entry per row')"
+    ],
+    [
+      285,
+      "raise ValueError('GF1 dense clip batch shape differs')"
+    ],
+    [
+      289,
+      "raise ValueError('GF1 requires dense RGB, valid ROI and explicit nested LM indices')"
+    ],
+    [
+      292,
+      "raise ValueError('GF1 dense clip batch shape differs')"
+    ],
+    [
+      298,
+      "raise ValueError('GF1 shuffled-bank donors are a read-time option only')"
+    ],
+    [
+      300,
+      "raise ValueError('GF1 cached bank supplied while the cached_bank switch is off')"
+    ],
+    [
+      303,
+      "raise ValueError('GF1 cache must be owned by the encoded row')"
+    ],
+    [
+      317,
+      "raise ValueError('GF1 LM frames must be an ordered nested subset of dense frames')"
+    ],
+    [
+      328,
+      "with torch.no_grad():"
+    ],
+    [
+      329,
+      "_, bank = features(encoder, image.to(device), roi.to(device))"
+    ],
+    [
+      330,
+      "forwards += 1"
+    ],
+    [
+      340,
+      "record = entry.record"
+    ],
+    [
+      341,
+      "expected = model_identity(model, grid.tolist(), device.type)"
+    ],
+    [
+      342,
+      "for field, value in expected.items():"
+    ],
+    [
+      343,
+      "if record.get(field) != value:"
+    ],
+    [
+      344,
+      "raise ValueError(f'GF1 cached bank identity differs in {field}: refusing the cache')"
+    ],
+    [
+      345,
+      "if entry.donor is None and record['anchor_slots'] != mapping.tolist():"
+    ],
+    [
+      346,
+      "raise ValueError('GF1 cached bank anchors differ from the row\\'s nested LM indices')"
+    ],
+    [
+      347,
+      "if record['anchor_slots'] != entry.mapping.tolist():"
+    ],
+    [
+      348,
+      "raise ValueError('GF1 cached bank anchors differ from its entry')"
+    ],
+    [
+      349,
+      "pooled = entry.tensor.to(device)"
+    ],
+    [
+      350,
+      "pooled = pooled.reshape(pooled.shape[0], -1, pooled.shape[-1])"
+    ],
+    [
+      351,
+      "clips.append((torch.zeros_like(pooled) if model.gx_zero_feature else pooled, CACHED_MARK, grid))"
+    ],
+    [
+      352,
+      "cached += 1"
+    ],
+    [
+      353,
+      "donors += entry.donor is not None"
+    ],
+    [
+      376,
+      "raise ValueError('Shuffled-bank seed must be an integer')"
+    ],
+    [
+      381,
+      "raise ValueError('One clip has two datasets or grids')"
+    ],
+    [
+      383,
+      "raise ValueError('A shuffled-bank read needs at least two clips')"
+    ],
+    [
+      390,
+      "left += members"
+    ],
+    [
+      391,
+      "continue"
+    ],
+    [
+      406,
+      "candidates = [a for a in sorted(donor) if not require_same_grid or"
+    ],
+    [
+      408,
+      "if not candidates:"
+    ],
+    [
+      409,
+      "raise ValueError('No shuffled-bank partner shares this clip\\'s merger grid: ' + k)"
+    ],
+    [
+      410,
+      "a = min(candidates, key=lambda a: (info[a][0] != info[k][0], info[a][1] != info[k][1], a))"
+    ],
+    [
+      411,
+      "donor[k], donor[a] = donor[a], k"
+    ],
+    [
+      427,
+      "from PIL import Image"
+    ],
+    [
+      428,
+      "from .grounding_targets import grid_for"
+    ],
+    [
+      429,
+      "from .r2_frames import verify_frame"
+    ],
+    [
+      430,
+      "with Image.open(verify_frame(row['student_input']['frames'][0])) as image:"
+    ],
+    [
+      431,
+      "gh, gw = grid_for(image.size)"
+    ],
+    [
+      432,
+      "return [len(row['student_input']['frames']), 2 * gh, 2 * gw]"
+    ],
+    [
+      436,
+      "value = row.get('dataset') or row['student_input'].get('dataset') or str(row.get('scene', '')).split('/')[0]"
+    ],
+    [
+      437,
+      "if not value:"
+    ],
+    [
+      438,
+      "raise ValueError('Shuffled-bank pairing needs each row\\'s dataset')"
+    ],
+    [
+      439,
+      "return value"
+    ],
+    [
+      444,
+      "from .gf1 import dense_inputs"
+    ],
+    [
+      445,
+      "dense_of, anchors_of, units = {}, {}, []"
+    ],
+    [
+      446,
+      "keyed = []"
+    ],
+    [
+      447,
+      "for row in rows:"
+    ],
+    [
+      448,
+      "dense, anchors = dense_inputs(row, settings)"
+    ],
+    [
+      449,
+      "key = clip_key(dense)"
+    ],
+    [
+      450,
+      "content = (list(dense['frame_indices']), [f['sha256'] for f in dense['frames']], dense.get('timestamps'))"
+    ],
+    [
+      451,
+      "first = dense_of.setdefault(key, dense)"
+    ],
+    [
+      452,
+      "if (anchors_of.setdefault(key, anchors) != anchors"
+    ],
+    [
+      454,
+      "raise ValueError('Rows of one dense clip disagree on its frames, timestamps or LM anchors')"
+    ],
+    [
+      455,
+      "grid = grids[key] if grids is not None else frame_grid(row)"
+    ],
+    [
+      456,
+      "units.append(dict(clip_key=key, dataset=_dataset(row), grid=grid))"
+    ],
+    [
+      457,
+      "keyed.append(key)"
+    ],
+    [
+      458,
+      "plan = shuffled_bank_plan(units, seed, require_same_grid)"
+    ],
+    [
+      459,
+      "donors = {p['clip_key']: p['donor_clip_key'] for p in plan['pairs']}"
+    ],
+    [
+      460,
+      "result = []"
+    ],
+    [
+      461,
+      "for row, key in zip(rows, keyed):"
+    ],
+    [
+      462,
+      "row = copy.deepcopy(row)"
+    ],
+    [
+      463,
+      "other = donors[key]"
+    ],
+    [
+      464,
+      "row['student_input']['geometry_bank_donor'] = dict("
+    ],
+    [
+      467,
+      "result.append(row)"
+    ],
+    [
+      468,
+      "return result, plan"
+    ],
+    [
+      487,
+      "import os"
+    ],
+    [
+      488,
+      "os.environ.setdefault('CUBLAS_WORKSPACE_CONFIG', ':4096:8')"
+    ],
+    [
+      490,
+      "torch.use_deterministic_algorithms(True, warn_only=True)"
+    ],
+    [
+      491,
+      "encoder = g3t_online.G3TEncoder(geometry)"
+    ],
+    [
+      492,
+      "encoder.load_pinned(geometry['encoder']['weights']['path'])"
+    ],
+    [
+      493,
+      "encoder.to(args.device).eval()"
+    ],
+    [
+      494,
+      "seen, written = set(), []"
+    ],
+    [
+      495,
+      "with open(args.rows) as handle:"
+    ],
+    [
+      496,
+      "for line in handle:"
+    ],
+    [
+      497,
+      "row = json.loads(line)"
+    ],
+    [
+      498,
+      "if row.get('category') == CATEGORY and 'pose_sample' in row:"
+    ],
+    [
+      499,
+      "continue"
+    ],
+    [
+      500,
+      "dense, _ = dense_inputs(row, geometry['gf1'])"
+    ],
+    [
+      501,
+      "key = clip_key(dense)"
+    ],
+    [
+      502,
+      "if key in seen:"
+    ],
+    [
+      503,
+      "continue"
+    ],
+    [
+      504,
+      "seen.add(key)"
+    ],
+    [
+      505,
+      "record = write_clip(encoder, row, args.root, grid=frame_grid(row), dtype=args.dtype)"
+    ],
+    [
+      506,
+      "written.append(dict(clip_key=key, sha256=record['tensor']['sha256'], bytes=record['tensor']['bytes']))"
+    ],
+    [
+      507,
+      "print(json.dumps(written[-1]), flush=True)"
+    ],
+    [
+      508,
+      "if args.limit and len(written) >= args.limit:"
+    ],
+    [
+      509,
+      "break"
+    ],
+    [
+      510,
+      "print(json.dumps(dict(clips=len(written), bytes=sum(w['bytes'] for w in written))))"
+    ],
+    [
+      514,
+      "main()"
+    ]
+  ],
+  "student_pilot/ground_sources.py": [
+    [
+      146,
+      "raise ValueError('tower_requires_32_or_64_frames_and_identity')"
+    ]
+  ],
+  "student_pilot/h1_faithful.py": [
+    [
+      2,
+      "import copy"
+    ],
+    [
+      3,
+      "import re"
+    ],
+    [
+      4,
+      "import torch"
+    ],
+    [
+      5,
+      "from . import carrier_c1_routing as routing"
+    ],
+    [
+      6,
+      "from generator.derivgen_v7.derivgen.materialize import materialize, MaterializeRefusal"
+    ],
+    [
+      7,
+      "CAMERA_TYPES = routing.CAMERA_MOTION"
+    ],
+    [
+      10,
+      "def validate(cfg):"
+    ],
+    [
+      11,
+      "h = cfg.get('h1', {})"
+    ],
+    [
+      12,
+      "flag = h.get('faithful_own_camera_rows', False)"
+    ],
+    [
+      13,
+      "if type(flag) is not bool:"
+    ],
+    [
+      14,
+      "raise ValueError('h1.faithful_own_camera_rows must be boolean')"
+    ],
+    [
+      15,
+      "if flag:"
+    ],
+    [
+      16,
+      "if tuple(h.get('camera_types', CAMERA_TYPES)) != CAMERA_TYPES:"
+    ],
+    [
+      17,
+      "raise ValueError('S1 requires the three canonical camera types')"
+    ],
+    [
+      18,
+      "schedule = cfg['scheduled_sampling']"
+    ],
+    [
+      19,
+      "if schedule['max_own_probability'] != .5 or schedule['force_from_step'] != 1:"
+    ],
+    [
+      20,
+      "raise ValueError('S1 requires max_own_probability=0.5 and force_from_step=1')"
+    ],
+    [
+      23,
+      "def camera(row, settings):"
+    ],
+    [
+      24,
+      "return row.get('question_type') in settings.get('camera_types', CAMERA_TYPES)"
+    ],
+    [
+      27,
+      "def canonical_row(row):"
+    ],
+    [
+      34,
+      "raw = copy.deepcopy(row.get('routing', row))"
+    ],
+    [
+      35,
+      "if 'routing' in row:"
+    ],
+    [
+      36,
+      "raw.update(question=row['student_input']['question'],"
+    ],
+    [
+      38,
+      "if raw.get('trace_revision') == '3.11' and raw.get('question_type') in CAMERA_TYPES:"
+    ],
+    [
+      39,
+      "calls = [e for e in raw['events'] if e['kind'] == 'tool_call']"
+    ],
+    [
+      40,
+      "if len(calls) == 1 and calls[0]['name'] in ('move', 'turn'):"
+    ],
+    [
+      41,
+      "raw.setdefault('frame_pair_rule', 'frame_gap')"
+    ],
+    [
+      42,
+      "raw.setdefault('frame_pair_turn', [])"
+    ],
+    [
+      43,
+      "if raw['question_type'] == 'camera_movement_direction':"
+    ],
+    [
+      45,
+      "from decimal import Decimal, localcontext, Context"
+    ],
+    [
+      46,
+      "event = next(e for e in raw['events'] if e['kind'] == 'tool_response')"
+    ],
+    [
+      47,
+      "dx, _, dz = map(lambda x: Decimal(str(x)), event['values'][event['call_id']+'.delta']['value'])"
+    ],
+    [
+      48,
+      "scores = dict(left=-dx, right=dx, forward=dz, backward=-dz)"
+    ],
+    [
+      49,
+      "labels = [re.sub(r'^[A-Z][.)]\\s*', '', o).lower() for o in raw['options']]"
+    ],
+    [
+      50,
+      "with localcontext(Context(prec=1024)):"
+    ],
+    [
+      51,
+      "top, second = sorted((scores[o] for o in labels), reverse=True)[:2]"
+    ],
+    [
+      52,
+      "if top > 0:"
+    ],
+    [
+      53,
+      "raw.setdefault('margin_m', float(top-second))"
+    ],
+    [
+      54,
+      "raw.setdefault('margin_rel', float((top-second)/top))"
+    ],
+    [
+      55,
+      "return raw"
+    ],
+    [
+      58,
+      "def printed_camera(row, target, spans):"
+    ],
+    [
+      60,
+      "responses = {e['call_id']: e for e in row['events'] if e['kind'] == 'tool_response'}"
+    ],
+    [
+      61,
+      "printed = {}"
+    ],
+    [
+      62,
+      "number = r'([+-]?\\d+(?:\\.\\d+)?)'"
+    ],
+    [
+      63,
+      "for span in spans:"
+    ],
+    [
+      64,
+      "cid = span['call_id']; name = responses[cid]['name']"
+    ],
+    [
+      65,
+      "text = target[span['start']:span['end']]"
+    ],
+    [
+      66,
+      "text = text.removeprefix('<tool_response>').removesuffix('</tool_response>')"
+    ],
+    [
+      67,
+      "if name == 'move':"
+    ],
+    [
+      68,
+      "m = re.fullmatch(r'dx = '+number+r' m, dy = '+number+r' m, dz = '+number+r' m, distance = '+number+' m', text)"
+    ],
+    [
+      69,
+      "if m is None:"
+    ],
+    [
+      70,
+      "raise MaterializeRefusal('invalid_printed_move')"
+    ],
+    [
+      71,
+      "values = list(map(float, m.groups()))"
+    ],
+    [
+      72,
+      "printed[cid] = dict(delta=values[:3], distance=values[3])"
+    ],
+    [
+      73,
+      "elif name == 'turn':"
+    ],
+    [
+      74,
+      "m = re.fullmatch(r'turn = ([+-]?\\d+) deg', text)"
+    ],
+    [
+      75,
+      "if m is None:"
+    ],
+    [
+      76,
+      "raise MaterializeRefusal('invalid_printed_turn')"
+    ],
+    [
+      77,
+      "printed[cid] = dict(value=int(m[1]))"
+    ],
+    [
+      79,
+      "raise MaterializeRefusal('non_camera_head')"
+    ],
+    [
+      80,
+      "return printed"
+    ],
+    [
+      83,
+      "def faithful(row, geometry):"
+    ],
+    [
+      84,
+      "raw = canonical_row(row)"
+    ],
+    [
+      85,
+      "target, spans, _ = routing.rerender(raw, geometry)"
+    ],
+    [
+      86,
+      "result = materialize(raw, printed_camera(raw, target, spans))"
+    ],
+    [
+      87,
+      "target, spans, segments = routing.render_full(result['events'], result['answer'])"
+    ],
+    [
+      88,
+      "require_render_identity(result, target)"
+    ],
+    [
+      89,
+      "return result, target, spans, segments"
+    ],
+    [
+      92,
+      "def require_render_identity(result, target):"
+    ],
+    [
+      94,
+      "if target != result['target']:"
+    ],
+    [
+      95,
+      "raise MaterializeRefusal('faithful_render_mismatch')"
+    ],
+    [
+      98,
+      "def answer_differs(kind, own, gt):"
+    ],
+    [
+      100,
+      "from decimal import Decimal"
+    ],
+    [
+      101,
+      "if kind == 'camera_movement_direction':"
+    ],
+    [
+      102,
+      "return str(own).strip() != str(gt).strip()"
+    ],
+    [
+      103,
+      "a,b=Decimal(str(own)),Decimal(str(gt))"
+    ],
+    [
+      104,
+      "if not a.is_finite() or not b.is_finite():raise ValueError('Nonfinite camera answer')"
+    ],
+    [
+      105,
+      "if kind == 'camera_displacement':return abs(a-b) > Decimal('.1')*abs(b)"
+    ],
+    [
+      106,
+      "if kind == 'camera_rotation':"
+    ],
+    [
+      107,
+      "delta=(a-b+180)%360"
+    ],
+    [
+      108,
+      "if delta<0:delta+=360"
+    ],
+    [
+      109,
+      "return abs(delta-180)>10"
+    ],
+    [
+      110,
+      "raise ValueError('Unknown camera answer type')"
+    ],
+    [
+      113,
+      "ROW_FAILURES = (MaterializeRefusal, routing.RenderError, ValueError, KeyError, StopIteration, IndexError)"
+    ],
+    [
+      116,
+      "def own_values(model, rows, batch, audit, index, decision, device):"
+    ],
+    [
+      118,
+      "from .carrier_c1_run import move"
+    ],
+    [
+      119,
+      "import torch.distributed as dist"
+    ],
+    [
+      120,
+      "info=dict(type='unknown',values='gt',refused=None,answer_differs=False)"
+    ],
+    [
+      121,
+      "audit={**audit,'h1':info};failure=None;row=None;changed={};new=batch"
+    ],
+    [
+      122,
+      "try:"
+    ],
+    [
+      123,
+      "row,_=rows.row('routing',index)"
+    ],
+    [
+      124,
+      "raw=row['routing'];info['type']=raw.get('question_type','unknown')"
+    ],
+    [
+      126,
+      "failure=exc"
+    ],
+    [
+      127,
+      "if any(decision):"
+    ],
+    [
+      129,
+      "uv,slots=routing.query_tensor([], frame_count=batch[\"aux_camera_positions\"].shape[1])"
+    ],
+    [
+      130,
+      "with torch.no_grad():"
+    ],
+    [
+      131,
+      "readout=model(move(routing.prefix_batch(batch),device),{'uv':uv.to(device)},stream='readout')"
+    ],
+    [
+      132,
+      "try:"
+    ],
+    [
+      133,
+      "if failure is not None:raise failure"
+    ],
+    [
+      134,
+      "if camera(raw,rows.h1) and decision[1]:"
+    ],
+    [
+      135,
+      "geometry,source=routing.row_geometry(raw,readout,[],slots,False,True)"
+    ],
+    [
+      136,
+      "if geometry is None:raise routing.RenderError(source)"
+    ],
+    [
+      137,
+      "result,target,spans,segments=faithful(row,geometry)"
+    ],
+    [
+      138,
+      "new,changed=routing.encode_own(rows.processor,row,batch,target,spans,segments,source,faithful=True)"
+    ],
+    [
+      139,
+      "differs=answer_differs(info['type'],result['answer'],raw['answer'])"
+    ],
+    [
+      140,
+      "info.update(values='own',answer_differs=differs,answer=result['answer'])"
+    ],
+    [
+      142,
+      "failure=exc;new=batch;changed={}"
+    ],
+    [
+      143,
+      "if failure is not None:"
+    ],
+    [
+      144,
+      "info.update(values='gt',answer_differs=False,"
+    ],
+    [
+      146,
+      "flag=torch.tensor([failure is not None],dtype=torch.int32,device=device)"
+    ],
+    [
+      147,
+      "if dist.is_initialized():dist.all_reduce(flag,op=dist.ReduceOp.MAX)"
+    ],
+    [
+      149,
+      "info['any_rank_refused']=bool(flag.item())"
+    ],
+    [
+      150,
+      "return new,{**audit,**changed,**({'own_refusal':info['refused']} if failure is not None else {})}"
+    ],
+    [
+      153,
+      "def identity_check(rows):"
+    ],
+    [
+      155,
+      "from collections import Counter"
+    ],
+    [
+      156,
+      "counts=Counter();by_type={};refusals=Counter()"
+    ],
+    [
+      157,
+      "for source in rows:"
+    ],
+    [
+      158,
+      "raw=source.get('routing',source)"
+    ],
+    [
+      159,
+      "kind=raw.get('question_type',raw.get('type','unknown'))"
+    ],
+    [
+      160,
+      "if kind not in CAMERA_TYPES:continue"
+    ],
+    [
+      161,
+      "counts['rows']+=1;d=by_type.setdefault(kind,Counter());d['rows']+=1"
+    ],
+    [
+      162,
+      "try:"
+    ],
+    [
+      163,
+      "row=canonical_row(source)"
+    ],
+    [
+      164,
+      "printed={e['call_id']:e for e in row.get('events',[]) if e['kind']=='tool_response'}"
+    ],
+    [
+      165,
+      "key='identical' if materialize(row,printed)['target']==row['target'] else 'different'"
+    ],
+    [
+      166,
+      "counts[key]+=1;d[key]+=1"
+    ],
+    [
+      168,
+      "counts['refused']+=1;d['refused']+=1"
+    ],
+    [
+      169,
+      "refusals[str(getattr(exc,'reason',None) or type(exc).__name__+': '+str(exc))]+=1"
+    ],
+    [
+      170,
+      "rate=counts['identical']/counts['rows'] if counts['rows'] else None"
+    ],
+    [
+      171,
+      "return dict(rows=counts['rows'],identical=counts['identical'],different=counts['different'],"
+    ],
+    [
+      176,
+      "def identity_rows(path):"
+    ],
+    [
+      178,
+      "import json"
+    ],
+    [
+      179,
+      "import sqlite3"
+    ],
+    [
+      180,
+      "from pathlib import Path"
+    ],
+    [
+      181,
+      "from .p3_provenance import pinned"
+    ],
+    [
+      182,
+      "path=Path(path).resolve()"
+    ],
+    [
+      183,
+      "with path.open('rb') as handle:header=handle.read(16)"
+    ],
+    [
+      184,
+      "if header==b'SQLite format 3\\x00':"
+    ],
+    [
+      185,
+      "with sqlite3.connect(path.as_uri()+'?mode=ro',uri=True) as conn:"
+    ],
+    [
+      186,
+      "for (text,) in conn.execute('SELECT row FROM rows ORDER BY i'):yield json.loads(text)"
+    ],
+    [
+      187,
+      "elif path.suffix=='.json':"
+    ],
+    [
+      188,
+      "value=json.loads(path.read_text())"
+    ],
+    [
+      189,
+      "if isinstance(value,list):yield from value"
+    ],
+    [
+      190,
+      "elif 'database' in value:"
+    ],
+    [
+      191,
+      "yield from identity_rows(pinned(value['database']))"
+    ],
+    [
+      192,
+      "elif 'streams' in value:"
+    ],
+    [
+      193,
+      "source=value['streams']['routing']"
+    ],
+    [
+      194,
+      "yield from identity_rows(pinned(source.get('receipt',source.get('database'))))"
+    ],
+    [
+      195,
+      "else:yield value"
+    ],
+    [
+      197,
+      "with path.open() as handle:"
+    ],
+    [
+      198,
+      "for text in handle:"
+    ],
+    [
+      199,
+      "if text.strip():yield json.loads(text)"
+    ],
+    [
+      202,
+      "def prepare_identity(receipt,cfg):"
+    ],
+    [
+      204,
+      "from pathlib import Path"
+    ],
+    [
+      205,
+      "from .p3_provenance import pinned,write"
+    ],
+    [
+      206,
+      "if not cfg.get('h1',{}).get('faithful_own_camera_rows'):return receipt"
+    ],
+    [
+      207,
+      "source=cfg['streams']['routing']"
+    ],
+    [
+      208,
+      "report=dict(identity_check(identity_rows(pinned(source))),source_receipt=source)"
+    ],
+    [
+      209,
+      "result={**receipt,'h1_faithful_identity':report}"
+    ],
+    [
+      212,
+      "if not report['passes']:"
+    ],
+    [
+      213,
+      "write(Path(cfg['preparation_output'])/'receipt.json',result)"
+    ],
+    [
+      214,
+      "require_identity(result,cfg)"
+    ],
+    [
+      215,
+      "return result"
+    ],
+    [
+      218,
+      "def require_identity(receipt,cfg):"
+    ],
+    [
+      219,
+      "if not cfg.get('h1',{}).get('faithful_own_camera_rows'):return"
+    ],
+    [
+      220,
+      "report=receipt.get('h1_faithful_identity',{})"
+    ],
+    [
+      221,
+      "rate=report.get('identity_rate')"
+    ],
+    [
+      222,
+      "if (report.get('source_receipt')!=cfg['streams']['routing'] or"
+    ],
+    [
+      224,
+      "raise ValueError('S1 launch requires faithful identity >= 95% on the bound routing receipt')"
+    ]
+  ]
+}

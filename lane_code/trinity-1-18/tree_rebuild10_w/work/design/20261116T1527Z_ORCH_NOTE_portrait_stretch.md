@@ -1,0 +1,2 @@
+# ORCH NOTE: portrait frames are stretched by the deployed pipeline
+k1_ops7 found routed_features.py:8-9 resizes every frame to a fixed 480x640 / 240x320 canvas with ndimage.zoom, so portrait ARKit frames (80 of 300 K1 captures) are processed aspect-distorted. Check whether your reader, trainer and evaluator do the same; fix it where you own the code (aspect-preserving resize or native shape), or record it as a known defect with the portrait share of your item sets.

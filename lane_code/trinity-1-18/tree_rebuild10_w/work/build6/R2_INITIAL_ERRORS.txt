@@ -1,0 +1,166 @@
+r2_diagnostic {"tests": 347, "passed": 335, "failures": 2, "errors": 10, "skips": 0, "fatal": null, "tmp_bytes": 47244281, "completed_modules": 31, "scheduled_modules": 31, "complete": true, "coverage_code_filter": "compiled-source fingerprint"}
+tests.test_r2_build3.Build3.test_native_prepare_and_every_rank_encode Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_build3.py", line 121, in test_native_prepare_and_every_rank_encode
+    host_result=H.run_packet(root,file_pin(root/'packet.json'),full=False)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/launch_r2/host.py", line 217, in run_packet
+    return execute_packet(root,packet,guard,full=full)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/launch_r2/host.py", line 346, in execute_packet
+    run.dryrun(cfg, output/'2.json', encode_only=True)
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/carrier_c1_run.py", line 1622, in dryrun
+    receipt, manifest = prepared(cfg, admission=True)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/carrier_c1_run.py", line 648, in prepared
+    commit = authenticate(cfg)
+             ^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/carrier_c1_run.py", line 181, in authenticate
+    raise ValueError('Rehearsal source closure differs')
+ValueError: Rehearsal source closure differs
+
+tests.test_r2_build3.Build3.test_opener_export_keep_and_reset Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_build3.py", line 160, in test_opener_export_keep_and_reset
+    self.assertEqual(O.initialize(live, processor, {**receipt,'routing_opener_init':policy}),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_openers.py", line 40, in initialize
+    same = warm and policy == 'keep' and (init.get('artifact', {}).get('sha256') == bound_init(receipt)['artifact_sha256']
+                                                      ^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_contract.py", line 32, in bound_init
+    return init_identity(value)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_contract.py", line 13, in init_identity
+    raise ValueError('Missing pinned init identity')
+ValueError: Missing pinned init identity
+
+tests.test_r2_build5.Build5.test_vocabulary_reads_staged_export Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/launch_r2/checklist.py", line 27, in step
+    evidence = action()
+               ^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/launch_r2/checklist.py", line 147, in vocabulary
+    preparation(self.cfg)
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_openers.py", line 21, in preparation
+    lineage_init(init.get('artifact', {}), init=bound_init(cfg))
+                                                ^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_contract.py", line 32, in bound_init
+    return init_identity(value)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_contract.py", line 13, in init_identity
+    raise ValueError('Missing pinned init identity')
+ValueError: Missing pinned init identity
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_build5.py", line 139, in test_vocabulary_reads_staged_export
+    c.step(9,c.vocabulary)
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/launch_r2/checklist.py", line 32, in step
+    raise ValueError('Host check '+str(item)+' refused') from error
+ValueError: Host check 9 refused
+
+tests.test_r2_build5_coverage.LocalBranches.test_native_sampling_binding_and_training_refusal Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_build5_coverage.py", line 76, in test_native_sampling_binding_and_training_refusal
+    from tests.r2_init_fixture import INIT
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/launch_r2/host.py", line 178, in native_config
+    cfg['r2'] = {**cfg.get('r2', {}), 'contract':CONTRACT, 'init':bound_init(cfg), 'mode':'warm_start',
+                                                                  ^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_contract.py", line 32, in bound_init
+    return init_identity(value)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_contract.py", line 13, in init_identity
+    raise ValueError('Missing pinned init identity')
+ValueError: Missing pinned init identity
+
+tests.test_r2_build6.Build6.test_direct_square_feet_and_inches Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_build6.py", line 57, in test_direct_square_feet_and_inches
+    from student_pilot.r2_config import configure
+        ^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_contract.py", line 143, in validate
+    answer = validate_direct(row['target'], inputs['question'], len(inputs['frames']))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_grammar.py", line 163, in validate_direct
+    raise ValueError('Shared grammar: '+','.join(e.rule_id for e in errors))
+ValueError: Shared grammar: line_kind,no_evidence
+
+tests.test_r2_build6.Build6.test_family_gate_refuses_below_ninety_after_exclusions Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_build6.py", line 47, in test_family_gate_refuses_below_ninety_after_exclusions
+    dict(schema='r2-init-selection-v1',identity={**INIT,'step':-1}),
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/p3_provenance.py", line 56, in write
+    with path.open('x') as f:
+         ^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/r2_ilirvb66/m.json'
+
+tests.test_r2_build6.Build6.test_pinned_init_and_unpinned_refusal Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_build6.py", line 19, in test_pinned_init_and_unpinned_refusal
+    from trace_format import room_v314 as R
+        ^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/p3_provenance.py", line 56, in write
+    with path.open('x') as f:
+         ^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/r2_dikgs5dj/i.json'
+
+tests.test_r2_host_runtime.Runtime.test_descendant_lineage_authentication Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_host_runtime.py", line 66, in test_descendant_lineage_authentication
+    lineage_init(file_pin(root/'donor.json'), init=INIT)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: lineage_init() missing 1 required keyword-only argument: 'init'
+
+tests.test_r2_policy.Policy.test_actual_bank_identity_and_scope Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_policy.py", line 123, in test_actual_bank_identity_and_scope
+    _, receipt=self.read(bank, freeze_pin=self.freeze)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_policy.py", line 86, in read
+    return P.read_bank(bank[0],catalog_pin=kwargs.get('caller_catalog_pin'),kit_root=root,choices=(),camera_routing=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py", line 146, in read_bank
+    return items, dict(metric_units=metric_units(items), reader_sha256=reader_hash(), item_set_sha256=digest(sorted(identities)),
+                                    ^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_units.py", line 29, in metric_units
+    unit = asked_unit(item)
+           ^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_units.py", line 22, in asked_unit
+    raise ValueError('Metric question has no unambiguous asked unit')
+ValueError: Metric question has no unambiguous asked unit
+
+tests.test_r2_policy.Policy.test_selector_and_freeze Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_policy.py", line 148, in test_selector_and_freeze
+    self.read(self.bank(),choices=list(P.CHOICES),freeze_pin=self.freeze)
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_policy.py", line 86, in read
+    return P.read_bank(bank[0],catalog_pin=kwargs.get('caller_catalog_pin'),kit_root=root,choices=(),camera_routing=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py", line 146, in read_bank
+    return items, dict(metric_units=metric_units(items), reader_sha256=reader_hash(), item_set_sha256=digest(sorted(identities)),
+                                    ^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_units.py", line 29, in metric_units
+    unit = asked_unit(item)
+           ^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_units.py", line 22, in asked_unit
+    raise ValueError('Metric question has no unambiguous asked unit')
+ValueError: Metric question has no unambiguous asked unit
+
+tests.test_r2_build4.ReviewGuards.test_isolated_mutation_guards ValueError: contract_call_after_failed_ground
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_build4.py", line 40, in test_isolated_mutation_guards
+    with self.assertRaisesRegex(ValueError,'calls again'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "calls again" does not match "contract_call_after_failed_ground"
+
+tests.test_r2_build4.ReviewGuards.test_keep_preparation_never_resets ValueError: Missing pinned init identity
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_r2_build4.py", line 120, in test_keep_preparation_never_resets
+    with self.assertRaisesRegex(ValueError,'vocabulary witness'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "vocabulary witness" does not match "Missing pinned init identity"
+

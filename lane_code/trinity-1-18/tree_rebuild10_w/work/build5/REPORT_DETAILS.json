@@ -1,0 +1,130 @@
+{
+  "cause_notes": [
+    {
+      "test": "tests.test_carrier_c1_t0.FirstBatchCheck.test_records_finite_rows_substitutions_and_failures",
+      "original_cause": "unclassified: AssertionError: False is not true",
+      "cause": "legacy first-batch fixture expects failed-row substitution, but native final-mode fetch refuses it",
+      "source": "work/build5/SUITE_COMPARISON.json",
+      "base_traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_carrier_c1_t0.py\", line 451, in test_records_finite_rows_substitutions_and_failures\n    self.assertTrue(all(r['finite'] for r in records))\nAssertionError: False is not true\n",
+      "implementation": "work/base/tree_b01ce449/student_pilot/carrier_c1_run.py:1279"
+    },
+    {
+      "test": "tests.test_ddp.BatchTests.test_two_process_gloo_matches_single_process_loss_and_adapter_updates",
+      "original_cause": "unclassified: PermissionError: [Errno 1] Operation not permitted",
+      "cause": "sandbox refuses socket creation before the distributed fixture can start",
+      "source": "work/build5/SUITE_COMPARISON.json",
+      "base_traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_ddp.py\", line 219, in test_two_process_gloo_matches_single_process_loss_and_adapter_updates\n    with socket.socket() as server:\n         ^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py\", line 233, in __init__\n    _socket.socket.__init__(self, family, type, proto, fileno)\nPermissionError: [Errno 1] Operation not permitted\n",
+      "implementation": "socket creation site in the recorded base traceback"
+    },
+    {
+      "test": "tests.test_ddp_revision.DistributedAdmissionTests.test_delayed_rank_zero_write_precedes_every_model_boundary",
+      "original_cause": "unclassified: PermissionError: [Errno 1] Operation not permitted",
+      "cause": "sandbox refuses socket creation before the distributed fixture can start",
+      "source": "work/build5/SUITE_COMPARISON.json",
+      "base_traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_ddp_revision.py\", line 304, in test_delayed_rank_zero_write_precedes_every_model_boundary\n    self.run_case(\"delayed_write\")\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_ddp_revision.py\", line 283, in run_case\n    with socket.socket() as server:\n         ^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py\", line 233, in __init__\n    _socket.socket.__init__(self, family, type, proto, fileno)\nPermissionError: [Errno 1] Operation not permitted\n",
+      "implementation": "socket creation site in the recorded base traceback"
+    },
+    {
+      "test": "tests.test_ddp_revision.DistributedAdmissionTests.test_one_failed_probe_exits_whole_job_nonzero",
+      "original_cause": "unclassified: PermissionError: [Errno 1] Operation not permitted",
+      "cause": "sandbox refuses socket creation before the distributed fixture can start",
+      "source": "work/build5/SUITE_COMPARISON.json",
+      "base_traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_ddp_revision.py\", line 310, in test_one_failed_probe_exits_whole_job_nonzero\n    self.run_case(\"probe_failure\")\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_ddp_revision.py\", line 283, in run_case\n    with socket.socket() as server:\n         ^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py\", line 233, in __init__\n    _socket.socket.__init__(self, family, type, proto, fileno)\nPermissionError: [Errno 1] Operation not permitted\n",
+      "implementation": "socket creation site in the recorded base traceback"
+    },
+    {
+      "test": "tests.test_ddp_revision.DistributedAdmissionTests.test_write_failure_refuses_every_rank_before_model_work",
+      "original_cause": "unclassified: PermissionError: [Errno 1] Operation not permitted",
+      "cause": "sandbox refuses socket creation before the distributed fixture can start",
+      "source": "work/build5/SUITE_COMPARISON.json",
+      "base_traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_ddp_revision.py\", line 307, in test_write_failure_refuses_every_rank_before_model_work\n    self.run_case(\"write_failure\")\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_ddp_revision.py\", line 283, in run_case\n    with socket.socket() as server:\n         ^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py\", line 233, in __init__\n    _socket.socket.__init__(self, family, type, proto, fileno)\nPermissionError: [Errno 1] Operation not permitted\n",
+      "implementation": "socket creation site in the recorded base traceback"
+    },
+    {
+      "test": "tests.test_headcall_fullft.FullExportTests.test_milestone_export_warm_starts_weights_and_heads_exactly",
+      "original_cause": "unclassified: PermissionError: [Errno 1] Operation not permitted",
+      "cause": "sandbox refuses socket creation before the distributed fixture can start",
+      "source": "work/build5/SUITE_COMPARISON.json",
+      "base_traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_headcall_fullft.py\", line 532, in test_milestone_export_warm_starts_weights_and_heads_exactly\n    milestone = write_milestone(output_root(\"hcfull_milestone_\"), trained, heads)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_headcall_fullft.py\", line 500, in write_milestone\n    dist.init_process_group(\"gloo\", init_method=f\"tcp://127.0.0.1:{free_port()}\", rank=0, world_size=1)\n                                                                   ^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_headcall_fullft.py\", line 513, in free_port\n    with socket.socket() as server:\n         ^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py\", line 233, in __init__\n    _socket.socket.__init__(self, family, type, proto, fileno)\nPermissionError: [Errno 1] Operation not permitted\n",
+      "implementation": "socket creation site in the recorded base traceback"
+    },
+    {
+      "test": "setUpClass (tests.test_s1_checkpoint_buffers.CheckpointBufferTests)",
+      "original_cause": "unclassified: PermissionError: [Errno 1] Operation not permitted",
+      "cause": "sandbox refuses socket creation before the distributed fixture can start",
+      "source": "work/build5/SUITE_COMPARISON.json",
+      "base_traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package/work/base/tree_b01ce449/tests/test_s1_checkpoint_buffers.py\", line 32, in setUpClass\n    with socket.socket() as sock:\n         ^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/socket.py\", line 233, in __init__\n    _socket.socket.__init__(self, family, type, proto, fileno)\nPermissionError: [Errno 1] Operation not permitted\n",
+      "implementation": "socket creation site in the recorded base traceback"
+    }
+  ],
+  "temporary_sizes": [
+    {
+      "variant": "tree",
+      "source": "work/build5/proofs/suite_tree/temporary_sizes.json",
+      "maximum": {
+        "test": "tests.test_carrier_c1_t0.T0Teacher.test_pre_teacher_init_keeps_the_planned_projector",
+        "before_bytes": 43886517,
+        "after_bytes": 253601717,
+        "scratch_available_gib": 905,
+        "seconds": 7.081108218058944
+      },
+      "above_cap": [
+        {
+          "test": "tests.test_carrier_c1_t0.T0Teacher.test_head_graft_loads_pose_only_and_refuses_key_or_placement_drift",
+          "before_bytes": 43886257,
+          "after_bytes": 253601457,
+          "scratch_available_gib": 905,
+          "seconds": 7.045550357783213
+        },
+        {
+          "test": "tests.test_carrier_c1_t0.T0Teacher.test_pose_only_donor_grafts_and_final_branches_keep_planned_init",
+          "before_bytes": 43886387,
+          "after_bytes": 253601587,
+          "scratch_available_gib": 905,
+          "seconds": 6.763878969941288
+        },
+        {
+          "test": "tests.test_carrier_c1_t0.T0Teacher.test_pre_teacher_init_keeps_the_planned_projector",
+          "before_bytes": 43886517,
+          "after_bytes": 253601717,
+          "scratch_available_gib": 905,
+          "seconds": 7.081108218058944
+        }
+      ]
+    },
+    {
+      "variant": "base",
+      "source": "work/build5/proofs/suite_base/temporary_sizes.json",
+      "maximum": {
+        "test": "tests.test_carrier_c1_t0.T0Teacher.test_pre_teacher_init_keeps_the_planned_projector",
+        "before_bytes": 45885519,
+        "after_bytes": 255600719,
+        "scratch_available_gib": 889,
+        "seconds": 7.355946632102132
+      },
+      "above_cap": [
+        {
+          "test": "tests.test_carrier_c1_t0.T0Teacher.test_head_graft_loads_pose_only_and_refuses_key_or_placement_drift",
+          "before_bytes": 45885259,
+          "after_bytes": 255600459,
+          "scratch_available_gib": 889,
+          "seconds": 6.684331747936085
+        },
+        {
+          "test": "tests.test_carrier_c1_t0.T0Teacher.test_pose_only_donor_grafts_and_final_branches_keep_planned_init",
+          "before_bytes": 45885389,
+          "after_bytes": 255600589,
+          "scratch_available_gib": 889,
+          "seconds": 7.226478214142844
+        },
+        {
+          "test": "tests.test_carrier_c1_t0.T0Teacher.test_pre_teacher_init_keeps_the_planned_projector",
+          "before_bytes": 45885519,
+          "after_bytes": 255600719,
+          "scratch_available_gib": 889,
+          "seconds": 7.355946632102132
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "test": "tests.test_carrier_c1_t0.FirstBatchCheck.test_records_finite_rows_substitutions_and_failures",
+  "cause": "The legacy fixture expects substitution after a deliberately failing row; both native implementations refuse that row immediately.",
+  "scope": "Static guard and fixture identity explains the expected-substitution failure. No internal forward error is inferred.",
+  "sources": [
+    {
+      "variant": "tree",
+      "source": "work/tree_r1/student_pilot/carrier_c1_run.py",
+      "source_sha256": "c1c6bc036e90b2b8852c509f4e50b57ac5a9941399bbbea9c1ad82478549454b",
+      "guard_line": 1325,
+      "guard_ast_sha256": "236125eb5480652914291a03a943d80d753b6e91cf070636cc577330f67849e8",
+      "fixture": "work/tree_r1/tests/test_carrier_c1_t0.py",
+      "fixture_line": 433,
+      "fixture_ast_sha256": "0b1073050204896761f3b8d32f2fb70165b1a8e10d3b25a3ffddd7b95a949131"
+    },
+    {
+      "variant": "base",
+      "source": "work/base/tree_b01ce449/student_pilot/carrier_c1_run.py",
+      "source_sha256": "895772a9f5e0fd09277db72a8a091782728bfe2f525567c301e4d5bf58275471",
+      "guard_line": 1302,
+      "guard_ast_sha256": "236125eb5480652914291a03a943d80d753b6e91cf070636cc577330f67849e8",
+      "fixture": "work/base/tree_b01ce449/tests/test_carrier_c1_t0.py",
+      "fixture_line": 433,
+      "fixture_ast_sha256": "0b1073050204896761f3b8d32f2fb70165b1a8e10d3b25a3ffddd7b95a949131"
+    }
+  ],
+  "verified": true
+}
