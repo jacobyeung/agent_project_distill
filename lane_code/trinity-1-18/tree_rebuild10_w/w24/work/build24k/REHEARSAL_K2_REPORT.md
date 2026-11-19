@@ -1,12 +1,11 @@
-NOT READY: the probe stopped during native routing staging; it did not reach q or P_EXPORT_RUN_BINDING_MISMATCH.
-rehearsal_k2_probe/PROBE_RESULT.json records 2,325,064,180 retained bytes against the 1.5 GB cap; the polling guard stopped its child too late.
-Cause: the request's frame_roots names the whole capacity directory; native pl.py expands its old prepared databases, with 3,269,160,788 planned staging bytes.
-No probe retry or four-rank training ran; bwrap started, and localhost TCP was not attempted. Oversized evidence remains preserved because deletion is prohibited.
-The draft go_rehearsal_k.sh accepts [kit_dir], defaults to out/kit_n_go, and reserves fresh rehearsal_k2; go_rehearsal_k1.sh preserves the original launcher.
-The draft uses the selected sealed source, native q/h.py/rv.py, a fixture review, zero-GPU authorization, and the selected kit's own copier with 0700/0600 local sessions.
-Authorization now re-pins v.json in config and staged_pins of both requests; check_rehearsal_repin.py passes budget/resume mutation checks while preserving unrelated pins (rehearsal_k2_probe/REPIN_VALIDATION.json).
-Fixture-only cause: rehearsal4/r.json pins immutable input.json; rehearsal5/r.json pins v.json, but rehearsal_authorize.py changes v.json without updating that hash.
-Production pl.py/a.py pins staged inputs before h.py/rv.py write v.json; u.py calls train(cfg). Native carrier_c1_run.train supports resume_pin, but latest resume is explicitly supplied by the fixture, not this shipped job.
-Python parsing and shell syntax pass; check_rehearsal.py prints all 11 requested rows as NOT PROVED. The supplied kit seal is unchanged; the tree, packages and out/ were not edited.
-A pre-copy plan-size guard now refuses this oversized fixture before staging. The bounded input layout still needs repair and validation; do not treat this launcher as ready for 24m.
-Lane command, ONLY after that repair and validation: cd /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24 && nice -n 10 bash work/build24k/go_rehearsal_k.sh out/kit_n_go
+READY FOR FINAL-KIT REHEARSAL: the bounded native probe reaches exactly P_EXPORT_RUN_BINDING_MISMATCH in the tested kit.
+The harness stages only the rehearsal3 fixture closure, a single RGB image, and five hard-linked fixture databases; it excludes the inherited production upload catalog and request path map (rehearsal_k3_probe/INPUT_LAYOUT.json).
+Native plans: routing 596,646,606 bytes; canary 596,648,661 bytes, both below the 600,000,000-byte pre-copy cap (rehearsal_k3_probe/routing_retained/STAGING_BUDGET.json and p2/STAGING_BUDGET.json).
+The probe retained 526,253,348 new file bytes and allocated 533,819,392 new disk bytes; including linked inputs, unique retained allocation is 1,079,508,992 bytes, below 1.2 GB (rehearsal_k3_probe/PROBE_RESULT.json).
+Native routing exits 0; native q exits 1 after direction_twins and training_components with ValueError:P_EXPORT_RUN_BINDING_MISMATCH (rehearsal_k3_probe/STAGES.json and p2/q/RESULT.json).
+The probe used verified kit 23051bc8; its preserved fixture kit and source archive verify. The concurrent kit build now seals as c81592bc; no fallback or probe rerun occurred (rehearsal_k3_probe/SETUP.json and VALIDATION.json).
+The cap mutations, syntax, unchanged database hashes, both stages’ shared inodes, and a separate native RGB containment/hash/inventory audit pass (rehearsal_k3_probe/VALIDATION.json and frame_audit_check/RESULT.json).
+The fixture frame-host boundary maps only /data2/f.png into the staged frame root. This harness leaves native admission, handover checks, supplied kits, packages, tree and out/ unedited.
+The launcher retains native q/d.py/h.py/rv.py, the selected kit copier and the budget/resume v.json re-pin. All 11 downstream rows remain NOT PROVED; no four-rank training ran (rehearsal_k3_probe/CHECK.json).
+After the corrected tree is sealed into the final kit, run once into the absent rehearsal_k2 directory:
+`cd /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24 && REHEARSAL_K2_ROOT=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k/rehearsal_k2 REHEARSAL_K2_PROBE=0 nice -n 10 bash work/build24k/go_rehearsal_k.sh out/kit_n_go`

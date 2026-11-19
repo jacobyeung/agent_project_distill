@@ -1,1 +1,1 @@
-full_base: 1941 tests completed with 18 failures, 473 errors and 145 skips. Detailed outcomes, tracebacks, commands and input hashes are in out/full_base.json.
+Stage 4: N's actual admission prepare closure forwards the pinned Locate rule into the native pointing builder. Its synthetic receipt-source fixture retains three rows, with native masks, target filtering and scene exclusions checked. The full base CPU suite finished; the new suite is running. Real-mask rebuilding remains MISSING because local pointing masks and RGB assets are not staged.

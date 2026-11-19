@@ -1,0 +1,14 @@
+# Codex build 24kr3 of lane tree_rebuild: finish the native-path rehearsal harness (bounded inputs), probe it to the handover
+
+You run once, on trinity-1-18; nobody answers questions. Writable: under `K=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24k`, only files whose names start with `rehearsal`, `make_rehearsal`, `check_rehearsal`, `go_rehearsal`, `REHEARSAL` or `FIXTURE`, plus a new dir `K/rehearsal_k3_probe` (and `K/rehearsal_k2`, which the final run uses; leave it absent or empty). Read only: `K/rehearsal_k2_probe` (evidence of the last attempt), `K/rehearsal_k`, `w24/work/build24f/` (rehearsal2..5), kits in `w24/out/`, the tree `w24/work/tree_r1`. Another build (24m1) edits kits and `out/` in the same workspace: never touch kits, packages, tree, `out/` or files outside the names above. Binding prompts: `/scratch/jjyeung/orch_n30/tree_rebuild10_w/prompts/build24kr2.md` and those it names (rules hold); read `K/REHEARSAL_K2_REPORT.md` first. Time limit: 45 minutes. The node is short of disk: new space under 1.2 GB in all.
+
+## State
+24kr2 drafted `K/go_rehearsal_k.sh [kit_dir]` (native q canary, rooms, h.py/rv.py v.json, fresh/budget/resume with the kit's own copier, fixed v.json re-pin, 11-row check_rehearsal.py) but its probe stopped during native routing staging at 2.33 GB: the request's frame_roots names the whole capacity directory, so the native planner (kit b/pl.py) expanded its old prepared databases (3.27 GB planned staging).
+
+## Do
+1. Give the harness a bounded input layout: frame_roots and every staged store point at the small fixture inputs rehearsal3/4/5 used (or a minimal subset made by links or read-only binds, never copies of large files), so the planned staging is under 600 MB; the pre-copy plan-size guard stays and refuses above the cap.
+2. Probe on the current kit (`w24/out/kit_n_go`; if 24m1 is mid-edit and its seal check fails, wait up to 10 minutes once, then use `K/../../out/tree_rebuild_b24k_2ace1de4.tar`'s kit_n_go extracted under the probe dir by links where possible): setup and canary in `K/rehearsal_k3_probe`. It must stop exactly at P_EXPORT_RUN_BINDING_MISMATCH (the known tree blocker, fixed in a later tree), which proves the harness reaches the handover. Report the furthest point and the bytes used.
+3. Update `K/REHEARSAL_K2_REPORT.md` (under 15 lines): what changed, the probe's furthest point and bytes, and the lane's command for the final kit (into a fresh `K/rehearsal_k2`).
+
+## Rules (restating build 21's)
+No ssh, network, Orchard, GPU, Git, tmux, scheduler or other agents. Never list, search or grep on /home or /data*: read only named files there. No deletion. Every CPU process runs under `nice -n 10` with at most 8 threads, under 20 GB RAM. Do not change the tree, kits, config, admission or legality. Do not run the four-rank training.

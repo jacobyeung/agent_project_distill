@@ -105,11 +105,14 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
     # P's regeneration recipe additionally consumes its materialization receipt.
     # Authenticate that recipe and its inputs before the native hook copies bytes.
     if regeneration and cfg.get('streams',{}).get('routing',{}).get('sha256')=='ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984':
+        closure(cfg['r1_training']['p_run']['config'])
         with scope(sources):
             p_config=load(pinned(cfg['r1_training']['p_run']['config']))
             p_receipt=load(pinned(p_config['streams']['routing']))
             closure(p_receipt['materialization'])
             recipe=load(sources[p_receipt['materialization']['sha256']])
+        for field in ('remove_files','dev_scene_exclusions','benchmark_scene_exclusions'):
+            closure(p_config[field])
         for field in ('inputs','legacy','division','base_model'):closure(recipe[field])
         for h,p in recipe['inputs'].get('catalog',{}).items():
             if h not in sources:remember(p,h)

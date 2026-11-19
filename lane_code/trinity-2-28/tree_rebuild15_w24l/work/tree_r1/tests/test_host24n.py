@@ -23,7 +23,7 @@ def donor_fixture(root):
         sha256=digest(s)), count=1)) for s in ('pose','vqa','routing','pointing')}
     ident = H.export_identity(source)
     preparation = put('preparation.json', dict(schema='c1-preparation-v1', config_sha256=ident,
-        recipe=source['recipe'], training_mode='final', streams={s:dict(receipt=p,
+        recipe=source['recipe'], training_mode='final', camera={}, streams={s:dict(receipt=p,
         database=load(pinned(p))['database'],count=1) for s,p in source['streams'].items()}))
     source['preparation'] = preparation
     run = dict(config=put('config.json',source), preparation=preparation,
@@ -197,6 +197,8 @@ class LocalizedQ(unittest.TestCase):
     def run_native_q(self, *, fresh=False):
         from launch_r1 import production_proof as proof
         cfg, request = self.fixture()
+        cfg['preparation'] = self.pin('q_preparation.json', dict(schema='c1-preparation-v1',
+            camera={}, streams={name:dict(receipt=pin) for name,pin in cfg['streams'].items()}), stage=True)
         donor, artifact = donor_fixture(self.area/'donor')
         value=donor['r1_training']
         if fresh:
@@ -213,9 +215,19 @@ class LocalizedQ(unittest.TestCase):
         cfg['routing_opener_init']='keep'
         self.repin(cfg,request)
         native_donor, native_verify, native_bind, native_admission = H.donor, P.verify, H.bind_target, P.admission
+        native_compare = H.compare_configs
+        # Capacity producers retain the config; native donor/config/mapping gates run.
+        def prepare(pin, directory, *args, **kwargs):
+            write(directory/'config.json', load(pinned(pin)))
+            return dict(config=file_pin(directory/'config.json'))
+        def populate(current, directory):
+            write(directory/'config.json', current)
+            return file_pin(directory/'config.json')
         with self.dependencies(), patch.object(H,'donor',native_donor), \
                 patch.object(P,'verify',native_verify), patch.object(H,'bind_target',native_bind), \
-                patch.object(P,'admission',native_admission):
+                patch.object(P,'admission',native_admission), patch.object(H,'compare_configs',native_compare), \
+                patch('student_pilot.s1_admission.admit',side_effect=prepare), \
+                patch('student_pilot.r1_population.bind_prepared',side_effect=populate):
             result=proof.run(request,self.root)
         self.host(result)
         self.assertIn('persisted_handover',result['steps'])

@@ -4,6 +4,19 @@ PASS deterministic manifests: repeat runs, different labels/directories, both pa
 PASS dry_count root gate: every fixture directory rule, ancestor gates and protected/MAXDIR rules in both review modes
 PASS stdin delimiters, syntax and unchanged dry_count main
 ALL FILTER TESTS PASSED on Python 3.6.8
+test_finding1_run_records (__main__.ReviewRegressions) ... ok
+test_finding1_word_number (__main__.ReviewRegressions) ... ok
+test_finding4_directory_python (__main__.ReviewRegressions) ... ok
+test_finding5_proven_outputs (__main__.ReviewRegressions) ... ok
+test_finding6_default_ancestor_gate (__main__.ReviewRegressions) ... ok
+test_finding6_default_documented (__main__.ReviewRegressions) ... ok
+test_finding7_old_anchor (__main__.ReviewRegressions) ... ok
+test_findings2_3_context (__main__.ReviewRegressions) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.688s
+
+OK
 PASS install/rollback hostname gate refuses trinity-2-28
 PASS install and rollback refuse held lock with exit 3
 PASS package checksum and installed PREIMAGE mismatches refuse writes
@@ -12,6 +25,10 @@ PASS install: verified backup, complete tool replacement, POSTIMAGE, modes; robu
 PASS rollback: hostname/manual-edit guards, PREIMAGE restoration under lock; robust mode stays ON
 PASS rollback restores a partial two-file installation
 ALL INSTALL TESTS PASSED on Python 3.6.8
+PASS PREIMAGE matches supplied hashes and input bytes; POSTIMAGE matches replacement bytes
+PASS SHA256SUMS: complete coverage and all 36 hashes verify
+PASS both unified patches reproduce complete replacements from copied inputs
+PASS preserved out_round1 matches every original package checksum
 SKIP python3.12: unavailable on PATH
 SKIP python3.11: unavailable on PATH
 PASS shell syntax

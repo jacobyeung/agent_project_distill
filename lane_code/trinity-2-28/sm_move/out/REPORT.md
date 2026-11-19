@@ -1,41 +1,42 @@
-VERDICT: DONE The sync-host migration tools and owner package pass all 13 local regression tests while preserving default staging programs and Git/SSH commands.
+VERDICT: DONE All requested review-round-1 fixes pass regression tests and the complete local suite; the owner package is ready for review.
 
-`LCS_HOST` defaults to `trinity-3-30`. The driver, robust staging helper, kit command, and new loop validate the host and refuse the prohibited nodes. On `trinity-2-28`, staging receives through `trinity-2-28.ib`, gathers remote sources from `trinity-1-18` and `trinity-3-30`, and keeps the local label `trinity-2-28`. Source-node labels and clone paths remain stable.
+The driver copies lock skips verbatim into the heartbeat without inventing START/END lines. The kit command refuses a failed hostname lookup with exit 2. The owner instructions specify the decided InfiniBand bundle transfer, config and main-ref restoration, cutover/recovery sequence, receiver preflight, and health startup order. The submitted package remains intact in `../out_round1/` (21/21 original checksums verified).
 
-The optional heartbeat preserves the last 300 existing lines and appends this run's exact START, verified-push, and END evidence plus a HOST line. It publishes by same-directory atomic rename. A failed heartbeat write logs a warning without changing the driver status. The hourly wrapper appends to the existing sync log, sleeps 3600 seconds, and stops on a driver exit status of 128 or higher.
+## Review round 1: finding -> fix -> test
 
-The package replaces `tools/lane_code_sync.sh`, `tools/lane_code_stage.sh`, and `tools/land_kit.py`. It adds `tools/lane_code_sync_loop.sh`. The shell kit wrapper needs no change. The filter, scanner, SSH helper, dry-count tools, and health tools are unchanged. `DECISIONS.md` records every input `3-30` occurrence and its disposition. `GIT_OWNER_patch.md` supplies the replacement owner text and exactly three failover instruction lines.
+| Finding | Fix | Test/evidence |
+|---|---|---|
+| 1 | Planned moves and failover stream `git bundle create - --all` through `tools/tssh.sh <new>.ib`, clone locally, and restore `.git/config`. Recover `origin/main` from either bundled ref; fetch origin only when the bundle lacks main. GitHub clone requires no surviving clone, explicit user approval, and an agreed throttle; no single-branch restriction. | Test 16 executes the documented restore block against three local bundle cases. Config is byte-identical, main resolves correctly, and only the absent-main case fetches origin. Test 17 checks the documented transfer commands. |
+| 2 | Capture the exact `FAIL previous run still holds the lock` line and suppress synthetic START/END on skips. Preserve exit 3 and HOST metadata. | Tests 12 and 14 failed on the submitted code and pass with the fix. The unchanged `sync_health.py` reports `active=none` at 60 minutes and `active=stale` at 90 minutes + 1 second for both logs; emitted event contents match after normalizing the log path, including the latest lock-skip annotation. No false failed BLOCKER appears. |
+| 3 | Copy immediately after old-loop END ok; start the new loop at once. Stop on its first non-fast-forward push, then fetch lane-code and merge with `--ff-only`; ask the user if unpublished work prevents this. | Test 17 checks the exact fetch/merge command and absence of a hard reset. Manual procedure review confirms the cutover order and orchestrator stop notices. No live concurrent cutover was run. |
+| 4 | Restart health with LCS_LOG only after the heartbeat's first verified line. | Test 17 checks this prerequisite; the full-push health test remains green. |
+| 5 | Use `$B/code_sync_heartbeat/HEARTBEAT.log`, with its parent created before sync. | Test 17 checks the dedicated path and rejects the event-inbox path. |
+| 6 | Retain “Consumers may move delivered events; only undelivered events replay.” | Test 17 checks the exact sentence. |
+| 7 | Choose a lane node or prepare an empty `/scratch/jjyeung/orch_n30`; require a successful --dry before starting. | Test 17 checks both requirements; manual review covers destination preparation. |
+| 8 | Run one `ssh -o BatchMode=yes <new>.ib true` from each streaming source before cutover; explain that --dry does not test receiver SSH. | Test 17 checks the preflight command; manual review confirms planned sources trinity-1-18 and trinity-3-30. No real SSH ran. |
+| 9 | Catch CalledProcessError in sync_host and raise Refusal without a traceback. | Test 15 failed with exit 1/traceback on the submitted code and passes with exit 2 and `REFUSED: hostname -s failed (exit 7)`. It also checks that no owner lock is created. |
 
-The installer checks all package hashes, verifies the three preimages, and takes the nonblocking sync lock on `trinity-3-30`. It archives the preimages with their manifest, writes and syntax-checks every temporary before replacing any live file, then verifies all four postimages. It refuses an existing loop file. Rollback restores the verified preimages under the same lock and renames the added wrapper aside. Both leave the robust marker and budgets intact. The installer follows the supplied `in/install_tools.py` pattern, using the same kernel flock through Python's `fcntl.flock`.
+The failover section contains exactly three numbered lines. The four complete tools and four unified patches are in `tools/` and `patches/`. PREIMAGE contains the three replaced input files; POSTIMAGE adds the new wrapper. The filter, scanner, dry-count tools, land_kit.sh, and sync_health tools remain unchanged.
 
-Measured validation:
+## Validation
 
-- Python 3.6.8 passed 13 tests in 25.623 seconds. Python 3.12 and 3.11 are unavailable on PATH, so neither could be tested. The suite will also run on one of those interpreters if it is available.
-- The full default comparison produced five byte-identical `program.sh` files and byte-identical argument records for 19 Git commands, four SSH calls, and two tssh calls, including a real local queue publication. Both comparison sides use the same paths, frozen clock, queue, and source-file inventory, including the added wrapper. The legacy generator/staging block and every driver Git/SSH/tssh source line also match the input byte-for-byte.
-- The moved-host run committed source files under all three stable node labels and pushed the same HEAD to two local bare repositories. It produced four heartbeat lines. A failure run retained exactly 300 old lines plus four current lines, including `END with failures`, and replaced the heartbeat inode.
-- The unchanged health checker, run with `LCS_TEST_ROOT` and `LCS_LOG`, reported the verified push as fresh. It stayed fresh at exactly 90 minutes and emitted one stale BLOCKER at 90 minutes plus one second, matching its existing strict greater-than comparison.
-- Forty checks exercised forbidden, malformed, and mismatched hosts across all four entrypoints. Further cases checked remote SKIP scope, overrides, early-exit heartbeats, write-error status preservation, hourly sleep, signal-status stopping, lock contention, install/rollback, checksum/preimage rejection, and syntax-check failure before replacement.
-- All 14 input-tool hashes still match `in/TOOLS.sha256`. Replaying all four unified diffs under `work/tmp_package_*` reproduces the delivered tools exactly. The final SHA256SUMS verifies all 21 package files other than itself.
-- GNU time measured 25.68 seconds elapsed, 103% average CPU utilization, and 18,132 KiB maximum resident set size for the suite. Its full output is in `tests/RESOURCES.txt`; this RSS figure is not a measurement of aggregate concurrent memory.
-- Before final report packaging, the workspace measured 20,980,314 logical bytes and 30,764 KiB of allocated disk space using `du -sb` and `du -sk` on this workspace only. This is well below the 2 GB limit. No production runtime, network throughput, or production disk savings were measured.
-
-One command runs all tests from this workspace:
+Run every test with:
 
 ```bash
 nice -n 10 bash out/tests/run_all.sh
 ```
 
-The recorded measured run used:
+The measured full run used:
 
 ```bash
-nice -n 10 /usr/bin/time -v -o work/test_run_2.time bash out/tests/run_all.sh > work/test_run_2.log 2>&1
+nice -n 10 /usr/bin/time -v -o work/review1_full.time bash out/tests/run_all.sh > work/review1_full.log 2>&1
 ```
 
-Its exact captured test output follows and is also in `tests/RESULTS.txt`:
+Exact output (also `tests/RESULTS.txt`):
 
 ```text
 INTERPRETER: 3.6.8
-FIXTURES: /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_g0rs7adj
+FIXTURES: /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_l0m3qfac
 test_01_default_programs_and_commands_identical (__main__.SyncMove) ... ok
 test_02_moved_full_push_heartbeat_and_health (__main__.SyncMove) ... ok
 test_03_failure_heartbeat_and_retention (__main__.SyncMove) ... ok
@@ -49,40 +50,63 @@ test_10_input_integrity_and_syntax (__main__.SyncMove) ... ok
 test_11_legacy_default_generator_and_command_text_unchanged (__main__.SyncMove) ... ok
 test_12_heartbeat_for_lock_and_stage_only (__main__.SyncMove) ... ok
 test_13_installer_preimage_checksum_and_syntax_refusals (__main__.SyncMove) ... ok
+test_14_lock_skip_health_matches_sync_log (__main__.SyncMove) ... ok
+test_15_hostname_failure_refuses_without_traceback (__main__.SyncMove) ... ok
+test_16_documented_bundle_restore_preserves_config_and_main (__main__.SyncMove) ... ok
+test_17_owner_procedure_requirements (__main__.SyncMove) ... ok
 
 ----------------------------------------------------------------------
-Ran 13 tests in 25.623s
+Ran 17 tests in 26.504s
 
 OK
 MEASURED default: 5 program.sh files; command counts {'git': 19, 'ssh': 4, 'bash': 2}; byte-identical
 HEALTH fresh: HEALTH last_verified=2026-11-19T21:00:00Z active=none
 HEALTH at 90m: HEALTH last_verified=2026-11-19T21:00:00Z active=none
-HEALTH at 90m+1s: EVENT /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_g0rs7adj/moved/events/20261119T223001Z_BLOCKER_code_sync_stale.md
+HEALTH at 90m+1s: EVENT /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_l0m3qfac/moved/events/20261119T223001Z_BLOCKER_code_sync_stale.md
 HEALTH last_verified=2026-11-19T21:00:00Z active=stale
 MEASURED heartbeat retention: 300 old + 4 current = 304 lines
 MEASURED host refusals: 40 checks
 LEGACY: generator/staging block and every driver Git/SSH/tssh source line byte-identical
+LOCK HEALTH 2026-11-19T22:00:00Z: heartbeat=['HEALTH last_verified=2026-11-19T21:00:00Z active=none']; sync.log=['HEALTH last_verified=2026-11-19T21:00:00Z active=none']
+LOCK HEALTH 2026-11-19T22:30:01Z: heartbeat=['HEALTH last_verified=2026-11-19T21:00:00Z active=stale']; sync.log=['HEALTH last_verified=2026-11-19T21:00:00Z active=stale']
+HOSTNAME FAILURE: REFUSED: hostname -s failed (exit 7)
+BUNDLE remote_only_main: config byte-identical; origin/main=1c58fb4cf40b5d295647fb337c32eebd01511b97; fetch=local bundle
+BUNDLE local_main: config byte-identical; origin/main=1c58fb4cf40b5d295647fb337c32eebd01511b97; fetch=local bundle
+BUNDLE missing_main: config byte-identical; origin/main=1c58fb4cf40b5d295647fb337c32eebd01511b97; fetch=origin
 SECOND_INTERPRETER: python3.12 and python3.11 are unavailable on PATH
 ```
 
-The fixtures reside entirely under the printed `work/tmp_syncmove_*` directory. They use real Git only with throwaway local repositories and filesystem remotes. Fake hostname and SSH commands run through PATH. The copied tssh helper changes only its hardcoded lock-directory assignment; fake SSH substitutes the remote program's initial source directory and runs its receiver locally. No real SSH, network, Slurm, GPU, paid API, or Git operation outside the test repositories ran.
+The regression command was run before and after the two code fixes:
 
-The owner must place this `out/` directory on `trinity-3-30` before installing it. With `PACKAGE` naming that owner-local copy, run:
+```bash
+nice -n 10 /usr/bin/python3 -I -s -B out/tests/test_syncmove.py SyncMove.test_12_heartbeat_for_lock_and_stage_only SyncMove.test_14_lock_skip_health_matches_sync_log SyncMove.test_15_hostname_failure_refuses_without_traceback
+```
+
+Its complete exact outputs are `tests/REGRESSION_BEFORE.txt` (three expected failures against the submitted tools) and `tests/REGRESSION_AFTER.txt` (three passes). The full suite above also reruns each regression. Python 3.6.8 is the installed interpreter; Python 3.12 and 3.11 are unavailable on PATH.
+
+Measured results:
+
+- All 17 tests passed in 26.504 seconds; GNU time measured 26.56 seconds wall time, 103% CPU, and 18,172 KiB peak RSS. The RSS figure does not measure aggregate concurrent memory. Exact resource output is in `tests/RESOURCES.txt`.
+- The default run generated five byte-identical programs and identical command records: 19 Git, four SSH, and two tssh-wrapper calls. The legacy generator and driver Git/SSH/tssh source lines remain identical.
+- The heartbeat retention test kept 300 old lines plus four new lines. Forty host refusal checks passed. Health remains fresh at exactly 90 minutes and becomes stale one second later.
+- All four patches replay byte-exactly. All 14 input tool hashes match. PREIMAGE has three valid entries; POSTIMAGE has four. Both owner Bash blocks pass `bash -n`. The final SHA256SUMS covers all 24 package files except itself. Exact checks are in `tests/PACKAGE_CHECKS.txt`; the final checksum output is `../work/review1_final_checks.log`.
+- During validation, this workspace measured 46,770,092 logical bytes and 69,744 KiB allocated space, including retained fixtures and the review inputs. This is below 2 GB. No production throughput, clone size, or runtime was measured.
+
+## Owner handoff and limits
+
+The owner applies `GIT_OWNER_patch.md` manually; the installer does not edit Markdown. On trinity-3-30, with PACKAGE naming the package copy, install using:
 
 ```bash
 B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30 \
 S=/scratch/jjyeung/distill_sync bash -eu "$PACKAGE/install.sh"
 ```
 
-Retain the printed `BACKUP` directory. To roll back while both sync loops are stopped, use the same `B` and `S` assignments with `bash -eu "$PACKAGE/rollback.sh" "$BACKUP"`. Installation exits 3 when the existing sync holds the lock. A changed installed preimage exits 2 and requires a package based on those current files; do not override the check.
+Retain the printed BACKUP directory. Rollback uses the same B/S assignments with `bash -eu "$PACKAGE/rollback.sh" "$BACKUP"` while the sync loops are stopped. Installation refuses a held lock, changed preimage, bad checksum, invalid syntax, or existing wrapper. Robust mode stays enabled. All temporaries are checked before replacement; rollback restores the preimage and renames the wrapper aside.
 
-Operational risks and evidence:
+Host-local locks do not serialize two nodes. A non-fast-forward first push requires the documented stop/fast-forward/user-reconciliation sequence. A diverged unpublished commit can prevent a fast-forward; the procedure preserves that work. Push-queue discovery remains local to the selected host, so the owner must account for pending rows/clones and applicable receipts during cutover.
 
-- The two hosts have separate local locks. During cutover they can create divergent commits; a non-fast-forward push appears as a failed push and a sync BLOCKER. The owner must reconcile without force-pushing. Stop the old loop only after the first verified new-host push, as requested.
-- Use a shared heartbeat file and set the health loop's `LCS_LOG` to that same path. Its parent directory must exist. A node-local heartbeat on `trinity-2-28` is not visible at the same path on `trinity-3-30`. A write failure produces `WARN heartbeat write failed`; missing fresh verification becomes stale after more than 90 minutes.
-- SIGKILL, power loss, or an unavailable filesystem can prevent a final heartbeat. The loop stops on signal exit status when it survives to observe that status; the monitor detects missing verified pushes. A stopped or killed job requires owner investigation before restart.
-- Multi-file installation is not one filesystem transaction. All files are staged and checked first, but interruption during replacement may leave a mix of validated preimages and postimages. The retained backup and rollback support this state. Rollback refuses tools that have changed independently.
-- Push-queue discovery remains local to the selected host. Queue rows and clones left only on `trinity-3-30` are not published by the new host. The owner must account for them during cutover; this package performs no data movement.
-- The legacy path remains fixed to its original host, source, and commands. A different `LCS_HOST` without robust mode refuses clearly. Production robust mode remains enabled through the existing state marker.
+A heartbeat write failure logs a warning; stale verification then alerts health. SIGKILL, power loss, or a failed filesystem can prevent the final heartbeat. Keep the heartbeat parent outside the event inbox and wait for verified evidence before changing the monitor. An interrupted multi-file installation can leave a mixture of valid tool versions; use the retained backup for rollback.
 
-Not done: no live installation, data transfer, clone migration, health-loop reconfiguration, or production loop start/stop was attempted because everything outside this workspace is read-only for this task. The tests use local transport emulation, so production SSH reachability, GitHub/home permissions, concurrent cutover behavior, and production runtime are not validated. The owner must supply the actual GitHub URL in the failover instructions; the copied inputs do not identify it.
+Not done: no live installation, production clone transfer, real SSH/network access, health-loop restart, or production loop start/stop. The bundle tests use local bare remotes; they verify Git behavior and config preservation, not production connectivity or bandwidth. The GitHub fallback needs the user's approved URL, identity, and throttle when no clone survives.
+
+The no-archaeology review retains the required finding-to-fix table, before/after regression evidence, input line numbers, preimages, and old-loop references because they support review, installation, or cutover decisions.

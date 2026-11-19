@@ -1,2 +1,2 @@
-2026-11-19T21:45:55Z
-Review round 1: out_round1 snapshot complete. Findings 2 and 9 fixed. Three regressions failed before and passed after; health now agrees on fresh/stale lock skips and preserves the stale annotation. Owner procedure and full package validation remain.
+2026-11-19T21:49:56Z
+DONE: Findings 1–9 addressed. Three regressions fail before and pass after; all 17 tests pass on Python 3.6.8. Four patches replay byte-exactly, PREIMAGE/POSTIMAGE verify, all 14 input hashes match, and final SHA256SUMS verifies 24/24 package files. out_round1 snapshot verifies 21/21 original files. REPORT.md contains the finding-to-fix-to-test audit and exact full-suite output. No production changes or transfers.

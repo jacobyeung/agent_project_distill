@@ -31,6 +31,7 @@ LCS_HOST=${LCS_HOST:-trinity-3-30}
 HB_LINES=()
 HB_STARTED=0
 HB_ENDED=0
+HB_SKIP=0
 ts() { date -u +%FT%TZ; }
 log() {
   local line="$(ts) $*"
@@ -40,6 +41,7 @@ log() {
       START\ *) HB_STARTED=1; HB_LINES+=("$line") ;;
       verified\ GitHub\ lane-code\ =\ *) HB_LINES+=("$line") ;;
       END\ *) HB_ENDED=1; HB_LINES+=("$line") ;;
+      FAIL\ previous\ run\ still\ holds\ the\ lock) HB_SKIP=1; HB_LINES+=("$line") ;;
     esac
   fi
 }
@@ -49,10 +51,12 @@ fail() { FAILS="$FAILS; $*"; log "FAIL $*"; }
 heartbeat_exit() {
   local rc=$?
   trap - EXIT
-  [ "$HB_STARTED" = 1 ] || log "START dry=$DRY queue_only=$QUEUE_ONLY"
-  if [ "$HB_ENDED" != 1 ]; then
-    if [ "$rc" = 0 ] && [ -z "$FAILS" ]; then log "END ok"
-    else log "END with failures"; fi
+  if [ "$HB_SKIP" != 1 ]; then
+    [ "$HB_STARTED" = 1 ] || log "START dry=$DRY queue_only=$QUEUE_ONLY"
+    if [ "$HB_ENDED" != 1 ]; then
+      if [ "$rc" = 0 ] && [ -z "$FAILS" ]; then log "END ok"
+      else log "END with failures"; fi
+    fi
   fi
   if ! python3 -I -s -B - "$LCS_HEARTBEAT" "${HB_LINES[@]}" "$(ts) HOST $LCS_HOST" <<'LCS_HEARTBEAT_PY'
 import collections

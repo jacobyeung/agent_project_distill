@@ -1,0 +1,1 @@
+df -BG --output=avail /scratch | tail -1; ls -la /scratch/jjyeung/orch_n30/sb_own400/in 2>&1 | head; tmux has-session -t iogov_agent 2>&1 && echo agent_up; ls /scratch/jjyeung/io_governor/ratelimit.py

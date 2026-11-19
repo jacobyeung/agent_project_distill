@@ -1,0 +1,232 @@
+[
+  {
+    "command": "exec \"$PY\" -B -s \"$ROOT/b/u.py\" \"$@\"",
+    "line": 7,
+    "path": "b/e.sh"
+  },
+  {
+    "command": "exec python3 -B -I -s \"$ROOT/b/a.py\" p \"$P\"",
+    "line": 16,
+    "path": "b/f.sh"
+  },
+  {
+    "command": "        python3 -B -I -s \"$ROOT/b/sr.py\" \"$TK_WORK_PID\" 420 signal || waited=$?",
+    "line": 9,
+    "path": "b/pc.sh"
+  },
+  {
+    "command": "            python3 -B -I -s \"$ROOT/b/sr.py\" \"$copy_pid\" 5 || kill -KILL -- \"-$copy_pid\" 2>/dev/null || true",
+    "line": 20,
+    "path": "b/pc.sh"
+  },
+  {
+    "command": "        timeout --signal=TERM --kill-after=5 150 python3 -B -I -s \"$ROOT/b/pc.py\" \"$ROOT\" \"$N\" \"$SLURM_JOB_ID\" --final || true",
+    "line": 25,
+    "path": "b/pc.sh"
+  },
+  {
+    "command": "        timeout --signal=TERM --kill-after=5 150 python3 -B -I -s \"$ROOT/b/pc.py\" \"$ROOT\" \"$N\" \"$SLURM_JOB_ID\" --small || true",
+    "line": 28,
+    "path": "b/pc.sh"
+  },
+  {
+    "command": "setsid python3 -B -I -s \"$ROOT/b/pc.py\" \"$ROOT\" \"$N\" \"$SLURM_JOB_ID\" --loop &",
+    "line": 35,
+    "path": "b/pc.sh"
+  },
+  {
+    "command": "setsid python3 -B -I -s \"$ROOT/b/pc.py\" \"$ROOT\" \"$N\" \"$SLURM_JOB_ID\" --loop-small &",
+    "line": 37,
+    "path": "b/pc.sh"
+  },
+  {
+    "command": "python3 -B -I -s -B \"$ROOT/b/v.py\" \"$ROOT\"",
+    "line": 27,
+    "path": "job.sh"
+  },
+  {
+    "command": "( set +e; python3 -B -I -s -B \"$ROOT/b/x.py\" \"$ROOT\" \"$R\" \"$N\" 2>&1 | python3 -B -I -s -B \"$ROOT/b/l.py\" \"$ROOT\"; exit \"${PIPESTATUS[0]}\" ) &",
+    "line": 29,
+    "path": "job.sh"
+  },
+  {
+    "command": "( set +e; python3 -B -I -s -B \"$ROOT/b/x.py\" \"$ROOT\" \"$R\" \"$N\" 2>&1 | python3 -B -I -s -B \"$ROOT/b/l.py\" \"$ROOT\"; exit \"${PIPESTATUS[0]}\" ) &",
+    "line": 29,
+    "path": "job.sh"
+  },
+  {
+    "command": "COMMIT=$(/usr/bin/python3 -B -I -c 'import json, sys; print(json.load(open(sys.argv[1]))[\"commit\"])' \"$CUR\")",
+    "line": 26,
+    "path": "k/j.json"
+  },
+  {
+    "command": "tk_current() { /usr/bin/python3 -B -I -c 'import json, sys; e = json.load(open(sys.argv[1]))[sys.argv[2]]; print(e[\"file\"], e[\"sha256\"])' \"$CUR\" \"$1\"; }",
+    "line": 41,
+    "path": "k/j.json"
+  },
+  {
+    "command": "tk_has() { /usr/bin/python3 -B -I -c 'import json,sys; sys.exit(0 if sys.argv[2] in json.load(open(sys.argv[1])) else 1)' \"$CUR\" \"$1\"; }",
+    "line": 42,
+    "path": "k/j.json"
+  },
+  {
+    "command": "    /usr/bin/python3 -B -I \"$HX/b/kitx.py\" \"$file\" \"$sha\" \"$dest\"",
+    "line": 51,
+    "path": "k/j.json"
+  },
+  {
+    "command": "    /usr/bin/python3 -B -I - \"$v/bin\" \"$P/venvs/rwtrain_torch211_cu129/bin/python\" <<'PYSHEBANG'",
+    "line": 60,
+    "path": "k/j.json"
+  },
+  {
+    "command": "    /usr/bin/python3 -B -I \"$Q_KIT/b/m.py\" \"$file\" \"$sha\" \"$snap\" \"$REV\"",
+    "line": 104,
+    "path": "k/j.json"
+  },
+  {
+    "command": "    done < <(/usr/bin/python3 -B -I -c 'import json,sys",
+    "line": 132,
+    "path": "k/j.json"
+  },
+  {
+    "command": "    n=$(/usr/bin/python3 -B -I -c 'import json,sys; print(len(json.load(open(sys.argv[1])).get(\"tars\", [])))' \"$CUR\")",
+    "line": 139,
+    "path": "k/j.json"
+  },
+  {
+    "command": "        id=$(/usr/bin/python3 -B -I -c 'import json,sys,hashlib; e=json.load(open(sys.argv[1]))[\"tars\"][int(sys.argv[2])]; print(hashlib.sha256(json.dumps(e,sort_keys=True).encode()).hexdigest()[:16])' \"$CUR\" \"$i\")",
+    "line": 142,
+    "path": "k/j.json"
+  },
+  {
+    "command": "        parts=$(/usr/bin/python3 -B -I -c 'import json,sys; print(\" \".join(json.load(open(sys.argv[1]))[\"tars\"][int(sys.argv[2])][\"parts\"]))' \"$CUR\" \"$i\")",
+    "line": 144,
+    "path": "k/j.json"
+  },
+  {
+    "command": "        /usr/bin/python3 -B -I - \"$CUR\" \"$i\" \"$U\" <<'PYTARS'",
+    "line": 147,
+    "path": "k/j.json"
+  },
+  {
+    "command": "    if /usr/bin/python3 -B -I -c 'import json,sys; p=json.load(open(sys.argv[1])).get(\"staged_inputs\", {}); sys.exit(0 if sys.argv[2] in p.get(\"covered_bundles\", []) else 1)' \"$CUR\" \"$key\"; then",
+    "line": 184,
+    "path": "k/j.json"
+  },
+  {
+    "command": "        store=$(/usr/bin/python3 -B -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[\"stores\"].get(sys.argv[2], \"\"))' \"$CUR\" \"$key\")",
+    "line": 185,
+    "path": "k/j.json"
+  },
+  {
+    "command": "        /usr/bin/python3 -B -I \"$HX/b/f2.py\" \"$manifest\" \"$dest\" \"$manifest_sha\" \"$store\"",
+    "line": 186,
+    "path": "k/j.json"
+  },
+  {
+    "command": "        parts=$(/usr/bin/python3 -B -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(\" \".join(d.get(\"bundle_parts\", {}).get(sys.argv[2], d.get(\"f3_parts\") if sys.argv[2] == \"f3\" else [])))' \"$CUR\" \"$key\")",
+    "line": 193,
+    "path": "k/j.json"
+  },
+  {
+    "command": "        store=$(/usr/bin/python3 -B -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[\"stores\"].get(sys.argv[2], \"\"))' \"$CUR\" \"$key\")",
+    "line": 201,
+    "path": "k/j.json"
+  },
+  {
+    "command": "        /usr/bin/python3 -B -I \"$HX/b/f2.py\" \"$manifest\" \"$dest\" \"$manifest_sha\" $store",
+    "line": 202,
+    "path": "k/j.json"
+  },
+  {
+    "command": "    /usr/bin/python3 -B -I - \"$dest.part\" \"$sha\" \"$U\" \"$AS\" \"$AL\" <<'PYINIT'",
+    "line": 218,
+    "path": "k/j.json"
+  },
+  {
+    "command": "        old_commit=$(/usr/bin/python3 -B -I -c 'import json, sys; print(json.load(open(sys.argv[1]))[\"trainer_old_commit\"])' \"$CUR\")",
+    "line": 281,
+    "path": "k/j.json"
+  },
+  {
+    "command": "    /usr/bin/python3 -B -I \"$Q_KIT/b/s.py\" \"$Q_KIT\" \"$CUR\" \"$HX\" \"$S\" \"$import_mode\"",
+    "line": 312,
+    "path": "k/j.json"
+  },
+  {
+    "command": "Q_LIVE=$(/usr/bin/python3 -B -I -s \"$Q_KIT/b/rv.py\" --live \"$Q_ROOT\" \"${SLURM_JOB_ID:?}\")",
+    "line": 395,
+    "path": "k/j.json"
+  },
+  {
+    "command": "    /usr/bin/python3 -B \"$Q_KIT/b/w.py\" \"$Q_ROOT/args.json\" \"${BW[@]}\"",
+    "line": 398,
+    "path": "k/j.json"
+  },
+  {
+    "command": "\"${BW[@]}\" \"$PILOT_VENV/bin/python\" -B -s \"$Q_KIT/b/g.py\"",
+    "line": 402,
+    "path": "k/j.json"
+  },
+  {
+    "command": "\"${BW[@]}\" \"$PILOT_VENV/bin/python\" -B -s \"$Q_KIT/b/a.py\" \"${Q_MODE:-q}\" \"$Q_NS/p\" \"$Q_NS/r.json\" 2>&1 | /usr/bin/python3 -B \"$Q_KIT/b/l.py\" \"$Q_KIT\" > \"$Q_ROOT/q.log\"",
+    "line": 405,
+    "path": "k/j.json"
+  },
+  {
+    "command": "\"${BW[@]}\" \"$PILOT_VENV/bin/python\" -B -s \"$Q_KIT/b/a.py\" \"${Q_MODE:-q}\" \"$Q_NS/p\" \"$Q_NS/r.json\" 2>&1 | /usr/bin/python3 -B \"$Q_KIT/b/l.py\" \"$Q_KIT\" > \"$Q_ROOT/q.log\"",
+    "line": 405,
+    "path": "k/j.json"
+  },
+  {
+    "command": "    /usr/bin/python3 -B -I -s \"$Q_KIT/b/rd.py\" \"$Q_ROOT\" \"${SLURM_JOB_ID:?}\" \"$rc\"",
+    "line": 408,
+    "path": "k/j.json"
+  },
+  {
+    "command": "\"${BW[@]}\" \"$PILOT_VENV/bin/python\" -B -s \"$Q_KIT/b/d.py\" \"$Q_NS/p/s\" \"$Q_NS/r.json\" \"$Q_NS/n.json\" \"$Q_NS/rooms.json\" 2>&1 | /usr/bin/python3 -B \"$Q_KIT/b/l.py\" \"$Q_KIT\" > \"$Q_ROOT/rooms.log\"",
+    "line": 413,
+    "path": "k/j.json"
+  },
+  {
+    "command": "\"${BW[@]}\" \"$PILOT_VENV/bin/python\" -B -s \"$Q_KIT/b/d.py\" \"$Q_NS/p/s\" \"$Q_NS/r.json\" \"$Q_NS/n.json\" \"$Q_NS/rooms.json\" 2>&1 | /usr/bin/python3 -B \"$Q_KIT/b/l.py\" \"$Q_KIT\" > \"$Q_ROOT/rooms.log\"",
+    "line": 413,
+    "path": "k/j.json"
+  },
+  {
+    "command": "\"${BW[@]}\" \"$PILOT_VENV/bin/python\" -B -s \"$Q_KIT/b/h.py\" \"$Q_NS/p\" \"$Q_NS/v.json\" 2>&1 | /usr/bin/python3 -B \"$Q_KIT/b/l.py\" \"$Q_KIT\" > \"$Q_ROOT/h.log\"",
+    "line": 416,
+    "path": "k/j.json"
+  },
+  {
+    "command": "\"${BW[@]}\" \"$PILOT_VENV/bin/python\" -B -s \"$Q_KIT/b/h.py\" \"$Q_NS/p\" \"$Q_NS/v.json\" 2>&1 | /usr/bin/python3 -B \"$Q_KIT/b/l.py\" \"$Q_KIT\" > \"$Q_ROOT/h.log\"",
+    "line": 416,
+    "path": "k/j.json"
+  },
+  {
+    "command": "\"${BW[@]}\" nice -n 10 \"$PILOT_VENV/bin/python\" -B -s \"$Q_KIT/b/rv.py\" \"$Q_NS\" \"$Q_NS/v.json\" \"${SLURM_JOB_ID:?}\" 2>&1 | /usr/bin/python3 -B \"$Q_KIT/b/l.py\" \"$Q_KIT\" > \"$Q_ROOT/rv.log\"",
+    "line": 420,
+    "path": "k/j.json"
+  },
+  {
+    "command": "\"${BW[@]}\" nice -n 10 \"$PILOT_VENV/bin/python\" -B -s \"$Q_KIT/b/rv.py\" \"$Q_NS\" \"$Q_NS/v.json\" \"${SLURM_JOB_ID:?}\" 2>&1 | /usr/bin/python3 -B \"$Q_KIT/b/l.py\" \"$Q_KIT\" > \"$Q_ROOT/rv.log\"",
+    "line": 420,
+    "path": "k/j.json"
+  },
+  {
+    "command": "\"${BW[@]}\" \"$PILOT_VENV/bin/python\" -B -s \"$Q_KIT/b/t.py\" \"$Q_NS/p\" \"$Q_NS/v.json\" 2>&1 | /usr/bin/python3 -B \"$Q_KIT/b/l.py\" \"$Q_KIT\" > \"$Q_ROOT/t.log\"",
+    "line": 425,
+    "path": "k/j.json"
+  },
+  {
+    "command": "\"${BW[@]}\" \"$PILOT_VENV/bin/python\" -B -s \"$Q_KIT/b/t.py\" \"$Q_NS/p\" \"$Q_NS/v.json\" 2>&1 | /usr/bin/python3 -B \"$Q_KIT/b/l.py\" \"$Q_KIT\" > \"$Q_ROOT/t.log\"",
+    "line": 425,
+    "path": "k/j.json"
+  },
+  {
+    "command": "/usr/bin/python3 -B \"$Q_KIT/b/o.py\" \"$Q_ROOT\" \"$rc\" \"$rr\"",
+    "line": 429,
+    "path": "k/j.json"
+  }
+]

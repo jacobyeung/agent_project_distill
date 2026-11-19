@@ -1,0 +1,92 @@
+--- a/tools/lane_code_filter.py
++++ b/tools/lane_code_filter.py
+@@ -7,11 +7,33 @@
+ MAXB = 512 * 1024
+ DATA_MAXB = 256 * 1024  # .json/.jsonl above this are data rows or result dumps
+ MAXDIR = 2000
+-SUBSTR = ('out/devin_traces', '/dl/', '/root/', '/envs/', 'site-packages', '__pycache__', '.cache', 'node_modules')
++SUBSTR = ('out/devin_traces', '/dl/', '/root/', '/envs/', 'site-packages', '__pycache__', '.cache', 'node_modules',
++          '/orch_n30/', '/scratch/jjyeung/', '/lib/python', '/conda-meta/', '/work/extract/', '/payload/environment/')
+ # Scratch copies, test/mutation outputs, caches, vendored libraries, data rows and result dumps.
+ DIRRE = re.compile(r'^(tmp.*|retained_.*|rows_.*|slices_v\d+|.*proofs?|.*_proof|artifacts|r2_[a-z0-9_]{8}|rec_v\d.*'
+                    r'|.*_stale|.*_prev|cmp_.*|test_products|results|clone|mutation.*|mut|mut_.*|.*_mut|round_.*'
+-                   r'|.*cache.*|scipy|numpy|torch|.*\.dist-info|.*\.egg-info|runs|evidence|transactions|env\d*|venv|\.venv)$')
++                   r'|.*cache.*|scipy|numpy|torch|.*\.dist-info|.*\.egg-info|runs|evidence|transactions|env\d*|venv|\.venv'
++                   r'|(?i:test_runs|test-artifacts|lane_test_output|b2_test_output|tmpdir|r2_proofs'
++                   r'|patch_validation_.*|fixtry|rehearsal[0-9]*|attic|sandbox|sandboxes)'
++                   r'|(?:sam_r10|finetune_gate_test|provisional|driver)_[a-z0-9_]{8}'
++                   r'|(?s:.*[a-fA-F0-9]{32}.*)|(?s:.*)_(?=[a-z0-9_]{0,7}[a-z])(?=[a-z0-9_]{0,7}[0-9])[a-z0-9_]{8})\Z')
++# Nested build work and named test outputs are generated; keep build-level code/reports.
++PATHRE = re.compile(r'/work/build[^/]*/(?:work|review_tests|integration[0-9]*)/')
++KEEPDIRRE = re.compile(r'^(out|out_round[0-9]+|in|kit|kits|src|tests|code|inputs)\Z')
++
++def protected_dir(name, path):
++    # Root children are lane folders. Never drop a whole lane due to its name/size.
++    # .git remains repository metadata, not a lane.
++    return (name != '.git' and (path.count('/') == 2 or KEEPDIRRE.match(name)
++                               or path.endswith(('/work/prompts/', '/work/tree/'))))
++
++def excluded_dir(name, path):
++    # Protected containers still have their children checked against every rule.
++    if protected_dir(name, path):
++        return False
++    return (name == '.git' or 'frames' in name or DIRRE.match(name)
++            or any(s in path for s in SUBSTR) or PATHRE.search(path))
++
+ def robust_scan():
+     """Linux/Python 3.6: anchor traversal to directory fds and bound each read."""
+     import contextlib
+@@ -100,7 +122,7 @@
+             keep = []
+             for x in dirs:
+                 q = p + x + '/'
+-                if x == '.git' or 'frames' in x or DIRRE.match(x) or any(s in q for s in SUBSTR):
++                if excluded_dir(x, q):
+                     continue
+                 fd = None
+                 try:
+@@ -113,7 +135,7 @@
+                             skips['nonregular'] += 1
+                             continue
+                         fd = os.open(x, flags | os.O_DIRECTORY, dir_fd=dfd)
+-                        if len(os.listdir(fd)) > MAXDIR:
++                        if not protected_dir(x, q) and len(os.listdir(fd)) > MAXDIR:
+                             bigdirs.append(q[1:])
+                             continue
+                         keep.append(x)
+@@ -212,7 +234,7 @@
+                         if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                             raise ValueError('manifest temporary file must be regular with one link')
+                         os.ftruncate(raw.fileno(), 0)
+-                        with gzip.GzipFile(filename=name, mode='wb', fileobj=raw) as g:
++                        with gzip.GzipFile(filename='', mode='wb', fileobj=raw, mtime=0) as g:
+                             g.write(''.join(x + '\n' for x in dups).encode('utf-8', 'surrogateescape'))
+                     os.rename(tmp, name, src_dir_fd=dfd, dst_dir_fd=dfd)
+                     tmp = None
+@@ -246,10 +268,12 @@
+     keep = []
+     for x in dirs:
+         q = p + x + '/'
+-        if x == '.git' or 'frames' in x or DIRRE.match(x) or any(s in q for s in SUBSTR):
++        if excluded_dir(x, q):
+             continue
+         try:
+-            if len(os.listdir(os.path.join(d, x))) > MAXDIR:
++            if os.path.islink(os.path.join(d, x)):
++                continue
++            if not protected_dir(x, q) and len(os.listdir(os.path.join(d, x))) > MAXDIR:
+                 bigdirs.append(q[1:]); continue
+         except OSError:
+             continue
+@@ -279,8 +303,9 @@
+ if mdir:
+     os.makedirs(mdir, exist_ok=True)
+     mp = os.path.join(mdir, 'DEDUP_%s.tsv.gz' % label.replace('/', '_'))
+-    with gzip.open(mp, 'wt', encoding='utf-8', errors='surrogateescape') as g:
+-        g.write(''.join(x + '\n' for x in dups))
++    with open(mp, 'wb') as raw:
++        with gzip.GzipFile(filename='', mode='wb', fileobj=raw, mtime=0) as g:
++            g.write(''.join(x + '\n' for x in dups).encode('utf-8', 'surrogateescape'))
+     out.write(os.path.relpath(mp).encode() + b'\0')
+ sys.stderr.write('STATS %s files=%d bytes=%d dups=%d skipped_oversize=%d skipped_bigdirs=%d %s\n'
+                  % (label, n, tot, len(dups), big, len(bigdirs), ' '.join(bigdirs[:20])))

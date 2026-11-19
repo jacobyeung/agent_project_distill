@@ -1,0 +1,71 @@
+INTERPRETER: 3.6.8
+FIXTURES: /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_2t3m3umx
+test_12_heartbeat_for_lock_and_stage_only (__main__.SyncMove) ... FAIL
+test_14_lock_skip_health_matches_sync_log (__main__.SyncMove) ... FAIL
+test_15_hostname_failure_refuses_without_traceback (__main__.SyncMove) ... FAIL
+
+======================================================================
+FAIL: test_12_heartbeat_for_lock_and_stage_only (__main__.SyncMove)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "out/tests/test_syncmove.py", line 381, in test_12_heartbeat_for_lock_and_stage_only
+    NOW + ' FAIL previous run still holds the lock', NOW + ' HOST trinity-2-28'])
+AssertionError: Lists differ: ['202[13 chars]:00Z START dry=0 queue_only=0', '2026-11-19T21[64 chars]-28'] != ['202[13 chars]:00Z FAIL previous run still holds the lock', [36 chars]-28']
+
+First differing element 0:
+'2026-11-19T21:00:00Z START dry=0 queue_only=0'
+'2026-11-19T21:00:00Z FAIL previous run still holds the lock'
+
+First list contains 1 additional elements.
+First extra element 2:
+'2026-11-19T21:00:00Z HOST trinity-2-28'
+
++ ['2026-11-19T21:00:00Z FAIL previous run still holds the lock',
+- ['2026-11-19T21:00:00Z START dry=0 queue_only=0',
+-  '2026-11-19T21:00:00Z END with failures',
+   '2026-11-19T21:00:00Z HOST trinity-2-28']
+
+======================================================================
+FAIL: test_14_lock_skip_health_matches_sync_log (__main__.SyncMove)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "out/tests/test_syncmove.py", line 423, in test_14_lock_skip_health_matches_sync_log
+    self.assertEqual(verdicts[0], verdicts[1])
+AssertionError: Lists differ: ['HEALTH last_verified=2026-11-19T21:00:00Z active=failed'] != ['HEALTH last_verified=2026-11-19T21:00:00Z active=none']
+
+First differing element 0:
+'HEALTH last_verified=2026-11-19T21:00:00Z active=failed'
+'HEALTH last_verified=2026-11-19T21:00:00Z active=none'
+
+- ['HEALTH last_verified=2026-11-19T21:00:00Z active=failed']
+?                                                    ^^^^ -
+
++ ['HEALTH last_verified=2026-11-19T21:00:00Z active=none']
+?                                                    ^^^
+
+
+======================================================================
+FAIL: test_15_hostname_failure_refuses_without_traceback (__main__.SyncMove)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "out/tests/test_syncmove.py", line 441, in test_15_hostname_failure_refuses_without_traceback
+    self.assertEqual(p.returncode, 2, p.stdout)
+AssertionError: 1 != 2 : Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_2t3m3umx/hostname_failure/B/tools/land_kit.py", line 454, in <module>
+    sys.exit(main())
+  File "/scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_2t3m3umx/hostname_failure/B/tools/land_kit.py", line 407, in main
+    sync_host()
+  File "/scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_2t3m3umx/hostname_failure/B/tools/land_kit.py", line 389, in sync_host
+    actual = subprocess.check_output(['hostname', '-s']).decode('utf-8').strip()
+  File "/usr/lib64/python3.6/subprocess.py", line 356, in check_output
+    **kwargs).stdout
+  File "/usr/lib64/python3.6/subprocess.py", line 438, in run
+    output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['hostname', '-s']' returned non-zero exit status 7.
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.721s
+
+FAILED (failures=3)
+LOCK HEALTH 2026-11-19T22:00:00Z: heartbeat=['HEALTH last_verified=2026-11-19T21:00:00Z active=failed']; sync.log=['HEALTH last_verified=2026-11-19T21:00:00Z active=none']

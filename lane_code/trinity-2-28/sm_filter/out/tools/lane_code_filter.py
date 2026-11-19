@@ -7,24 +7,28 @@ EXT = ('.py', '.sh', '.md', '.json', '.jsonl', '.yaml', '.yml', '.toml', '.cfg',
 MAXB = 512 * 1024
 DATA_MAXB = 256 * 1024  # .json/.jsonl above this are data rows or result dumps
 MAXDIR = 2000
+ROOT_LANES = re.match(r'trinity-[0-9]+-[0-9]+\Z', sys.argv[1] if len(sys.argv) > 1 else '') is not None
 SUBSTR = ('out/devin_traces', '/dl/', '/root/', '/envs/', 'site-packages', '__pycache__', '.cache', 'node_modules',
-          '/orch_n30/', '/scratch/jjyeung/', '/lib/python', '/conda-meta/', '/work/extract/', '/payload/environment/')
+          '/orch_n30/', '/scratch/jjyeung/', '/conda-meta/', '/work/extract/', '/payload/environment/')
 # Scratch copies, test/mutation outputs, caches, vendored libraries, data rows and result dumps.
 DIRRE = re.compile(r'^(tmp.*|retained_.*|rows_.*|slices_v\d+|.*proofs?|.*_proof|artifacts|r2_[a-z0-9_]{8}|rec_v\d.*'
                    r'|.*_stale|.*_prev|cmp_.*|test_products|results|clone|mutation.*|mut|mut_.*|.*_mut|round_.*'
-                   r'|.*cache.*|scipy|numpy|torch|.*\.dist-info|.*\.egg-info|runs|evidence|transactions|env\d*|venv|\.venv'
-                   r'|(?i:test_runs|test-artifacts|lane_test_output|b2_test_output|tmpdir|r2_proofs'
+                   r'|.*cache.*|scipy|numpy|torch|.*\.dist-info|.*\.egg-info|runs|evidence|transactions|env\d*|venv|\.venv)$'
+                   r'|^(?:(?i:test_runs|test-artifacts|lane_test_output|b2_test_output|tmpdir|r2_proofs'
                    r'|patch_validation_.*|fixtry|rehearsal[0-9]*|attic|sandbox|sandboxes)'
                    r'|(?:sam_r10|finetune_gate_test|provisional|driver)_[a-z0-9_]{8}'
-                   r'|(?s:.*[a-fA-F0-9]{32}.*)|(?s:.*)_(?=[a-z0-9_]{0,7}[a-z])(?=[a-z0-9_]{0,7}[0-9])[a-z0-9_]{8})\Z')
+                   r'|(?s:.*[a-fA-F0-9]{32}.*)|(?s:.*)_(?![a-z_]*[a-z][0-9]{1,3}\Z)(?=[a-z0-9_]{0,7}[a-z])(?=[a-z0-9_]{0,7}[0-9])[a-z0-9_]{8})\Z')
 # Nested build work and named test outputs are generated; keep build-level code/reports.
-PATHRE = re.compile(r'/work/build[^/]*/(?:work|review_tests|integration[0-9]*)/')
+PATHRE = re.compile(r'/work/build[^/]*/(?:work|review_tests|integration[0-9]*)/'
+                    r'|/lib/python[0-9][^/]*/|/work/(?:fcopy|scopy|lcopy|pcopy)/'
+                    r'|/(?:work|out)/(?:[^/]+/)*pytest_(?:kit|dry|dry_verified|patched)/')
 KEEPDIRRE = re.compile(r'^(out|out_round[0-9]+|in|kit|kits|src|tests|code|inputs)\Z')
 
 def protected_dir(name, path):
-    # Root children are lane folders. Never drop a whole lane due to its name/size.
+    # Only node-tree root children are lanes; lane/kit scans keep ordinary gates.
     # .git remains repository metadata, not a lane.
-    return (name != '.git' and (path.count('/') == 2 or KEEPDIRRE.match(name)
+    return (name != '.git' and ((ROOT_LANES and path.count('/') == 2) or KEEPDIRRE.match(name)
+                               or path.rsplit('/', 2)[0].endswith('/codex_runs')
                                or path.endswith(('/work/prompts/', '/work/tree/'))))
 
 def excluded_dir(name, path):

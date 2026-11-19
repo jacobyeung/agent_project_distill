@@ -11,11 +11,11 @@ patterns = [
  ('test_runs / test-artifacts', r'(?i)/(?:test_runs|test-artifacts)/'),
  ('LANE_TEST_OUTPUT / B2_TEST_OUTPUT / TMPDIR / R2_PROOFS', r'(?i)/(?:lane_test_output|b2_test_output|tmpdir|r2_proofs)/'),
  ('32 hexadecimal characters in a directory', r'/[^/]*[a-fA-F0-9]{32}[^/]*/'),
- ('Mixed letter/digit eight-character suffix', r'/[^/]*_(?=[a-z0-9_]{0,7}[a-z])(?=[a-z0-9_]{0,7}[0-9])[a-z0-9_]{8}/'),
+ ('Mixed letter/digit eight-character suffix', r'/[^/]*_(?![a-z_]*[a-z][0-9]{1,3}/)(?=[a-z0-9_]{0,7}[a-z])(?=[a-z0-9_]{0,7}[0-9])[a-z0-9_]{8}/'),
  ('Known tempfile families', r'/(?:sam_r10|finetune_gate_test|provisional|driver)_[a-z0-9_]{8}/'),
  ('Nested orch_n30 tree', r'/orch_n30/'),
  ('Nested scratch/jjyeung tree', r'/scratch/jjyeung/'),
- ('Vendored Python library', r'/lib/python'),
+ ('Vendored Python library', r'/lib/python[0-9][^/]*/'),
  ('Conda metadata', r'/conda-meta/'),
  ('Staged interpreter environment', r'/payload/environment/'),
  ('Extracted work archives', r'/work/extract/'),
@@ -27,6 +27,8 @@ patterns = [
  ('patch_validation_*', r'(?i)/patch_validation_[^/]*/'),
  ('fixtry', r'(?i)/fixtry/'),
  ('sandbox / sandboxes', r'(?i)/(?:sandbox|sandboxes)/'),
+ ('Named pytest output trees', r'/(?:work|out)/(?:[^/]+/)*pytest_(?:kit|dry|dry_verified|patched)/'),
+ ('Nested lane copies', r'/work/(?:fcopy|scopy|lcopy|pcopy)/'),
  ('Existing cache rules', r'/[^/]*cache[^/]*/'),
 ]
 patterns = [(name, re.compile(pattern)) for name, pattern in patterns]
@@ -40,7 +42,7 @@ for source in sorted(Path('in/commits').glob('*.gz')):
    if label == 'repository': continue
    if path.startswith('code_sync/meta/DEDUP_') and path.endswith('.tsv.gz'):
     manifest_counts[commit][0]+=1;manifest_counts[commit][1]+=size
-   # Only directories for basename predicates; interpreter /lib/python is also a substring.
+   # Count directory paths only; matches can overlap protected run records.
    q='/'+'/'.join(path.split('/')[:-1])+'/'
    for name, pattern in patterns:
     if pattern.search(q):

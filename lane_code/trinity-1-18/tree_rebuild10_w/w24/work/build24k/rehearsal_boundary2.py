@@ -3,6 +3,7 @@ from pathlib import Path
 import json,os,runpy,sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from rehearsal_paths2 import L,D,R
+from rehearsal_inputs2 import usage,plan_bytes,check_budget,frame_host,PLAN_LIMIT,DISK_LIMIT
 O=L/'work/build24/proofs/capacity'
 sys.path[:0]=[str(L/'work/build24'),str(R/'source'),str(L/'work/build21')]
 os.environ['R2_TREE']=str(R/'source')
@@ -29,6 +30,8 @@ os.environ['S1_REHEARSAL_ATTEMPT']='b24k2_'+phase
 os.environ['OMP_NUM_THREADS']='2';os.environ['MKL_NUM_THREADS']='2';os.environ['OPENBLAS_NUM_THREADS']='2'
 aliases={p.name:str(p) for folder in ('build21','build22') for p in (L/'work'/folder/'upload/u').glob('*') if p.is_file()}
 helper=sys.argv[1];sys.argv=sys.argv[1:]
+if (R/'p2/plan.json').exists():
+    frame_host(J.load(R/'p2/plan.json')['request']['frame_roots'][0])
 if helper.endswith('/t.py'):sys.executable=str(D/'rehearsal_cpu_python2')
 if helper.endswith('/a.py'):
     # Check the native plan before any byte copier runs. A polling guard alone
@@ -39,12 +42,35 @@ if helper.endswith('/a.py'):
     def bounded_plan(*args,**kwargs):
         request,paths,stage=native_plan(*args,**kwargs)
         plan=J.load(Path(args[2])/'plan.json')
-        planned=sum(item.get('bytes',2*item.get('archive',{}).get('bytes',0)) for item in plan['entries'].values())
-        current=sum(p.stat().st_size for p in R.rglob('*') if p.is_file() and not p.is_symlink())
-        J.write(R/'STAGING_BUDGET.json',dict(planned_bytes=planned,current_bytes=current,limit=1_350_000_000))
-        if current+planned>1_350_000_000:
-            raise RuntimeError('REHEARSAL_STAGING_BUDGET: native plan exceeds rehearsal cap before copying')
-        return request,paths,stage
+        planned=plan_bytes(plan['entries']);current=usage(R)
+        budget=dict(planned_bytes=planned,**current,plan_limit=PLAN_LIMIT,disk_limit=DISK_LIMIT)
+        J.write(Path(args[2])/'STAGING_BUDGET.json',budget)
+        J.write(R/'STAGING_BUDGET.json',budget)
+        check_budget(planned,max(current['new_bytes'],current['allocated_bytes']))
+        # The host boundary maps the fixture's sole logical RGB path to exactly
+        # the native planner's staged frame directory.
+        frame_host(request['frame_roots'][0])
+        layout=J.load(R/'INPUT_LAYOUT.json')
+        resolved=args[1]
+        overwritten=set(resolved['small_files'])
+        overwritten.update(x['sha256'] for x in resolved.get('external_metadata',[]))
+        overwritten.update(x['sha256'] for x in J.load(Path(args[0])/'k/p.json')['uploads'])
+        def linked_stage(received,directory):
+            directory=Path(directory)
+            if received!=plan['entries']:raise ValueError('R1_STAGING_PLAN_DIFFERS')
+            (directory/'u').mkdir(exist_ok=True)
+            for h,item in layout['stores'].items():
+                if h in overwritten:raise ValueError('Fixture store would be overwritten by native copier')
+                entry=received.get('u/'+h)
+                if entry is None or entry['sha256']!=h or entry['bytes']!=item['bytes']:
+                    raise ValueError('Fixture store differs from native staging plan')
+                # Both names lie in this namespace's writable mount. Native
+                # staging authenticates the existing file and never rewrites it.
+                cached=directory.parents[1]/'inputs/stores'/h
+                os.link(cached,directory/'u'/h)
+            return stage(received,directory)
+        linked_stage.close=stage.close
+        return request,paths,linked_stage
     pl.plan_payload=bounded_plan
 if helper.endswith('/a.py') and sys.argv[1]=='r':
     sys.path.insert(0,str(Path(helper).parent))

@@ -1,0 +1,458 @@
+{
+  "N_histogram": {
+    "16": 20,
+    "24": 13,
+    "32": 27,
+    "8": 20
+  },
+  "authorities": {
+    "admission_policy": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/policy.json",
+      "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+    },
+    "division": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/division.json",
+      "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+    },
+    "extra_benchmarks": [],
+    "gate": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/gate.json",
+      "sha256": "fe13939f44ce3329eac12f19a8974c1266670e580f842ed53f66cf00d7dcb8a9"
+    },
+    "vsi288": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/scenes.tsv",
+      "sha256": "c28ed09f905bb62898d38c86c82c6da4741673d720dc318c883aecfa2e8cda1c"
+    },
+    "vsti": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/vsti.json",
+      "sha256": "a30aa828455b4844823e25d3b37619f64f916871e93a8cea134745ce10d10b49"
+    }
+  },
+  "conditioning": "Table 14 mode probabilities; starts and intervals conditioned on exact feasible pool paths",
+  "datasets": {
+    "d1": {
+      "modes": {},
+      "rows": 0,
+      "scenes": 0
+    },
+    "d2": {
+      "modes": {},
+      "rows": 0,
+      "scenes": 0
+    },
+    "d3": {
+      "modes": {
+        "collection": 7,
+        "fixed": 41,
+        "variable": 32
+      },
+      "rows": 80,
+      "scenes": 1
+    }
+  },
+  "deferred": [
+    {
+      "dataset": "d1",
+      "pose_count": 127,
+      "reason": "sparse_pose_count",
+      "scene": "scene0300_00",
+      "total_num_frames": 1000
+    }
+  ],
+  "deferred_counts": {
+    "sparse_pose_count": 1
+  },
+  "deferred_scenes": 1,
+  "depth_labels_built": false,
+  "excluded": [
+    {
+      "dataset": "d1",
+      "reasons": [
+        "vsti"
+      ],
+      "scene": "scene0200_00",
+      "sources": {
+        "vsti": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/vsti.json",
+            "sha256": "a30aa828455b4844823e25d3b37619f64f916871e93a8cea134745ce10d10b49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d3",
+      "reasons": [
+        "vsi288",
+        "outside_frozen_training_division"
+      ],
+      "scene": "2000",
+      "sources": {
+        "outside_frozen_training_division": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          },
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ],
+        "vsi288": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/scenes.tsv",
+            "sha256": "c28ed09f905bb62898d38c86c82c6da4741673d720dc318c883aecfa2e8cda1c"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d3",
+      "reasons": [
+        "outside_frozen_training_division"
+      ],
+      "scene": "outsider",
+      "sources": {
+        "outside_frozen_training_division": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          },
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d2",
+      "reasons": [
+        "admission_policy"
+      ],
+      "scene": "example",
+      "sources": {
+        "admission_policy": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d1",
+      "reasons": [
+        "division_heldout"
+      ],
+      "scene": "scene0400_00",
+      "sources": {
+        "division_heldout": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          }
+        ]
+      }
+    }
+  ],
+  "excluded_scenes": 5,
+  "exclusion_counts": {
+    "admission_policy": 1,
+    "division_heldout": 1,
+    "outside_frozen_training_division": 2,
+    "vsi288": 1,
+    "vsti": 1
+  },
+  "exclusion_counts_by_dataset": {
+    "d1": {
+      "division_heldout": 1,
+      "vsti": 1
+    },
+    "d2": {
+      "admission_policy": 1
+    },
+    "d3": {
+      "outside_frozen_training_division": 2,
+      "vsi288": 1
+    }
+  },
+  "interval_histograms": {
+    "collection": {
+      "-102": 1,
+      "-105": 1,
+      "-106": 1,
+      "-112": 1,
+      "-114": 1,
+      "-127": 1,
+      "-129": 1,
+      "-13": 1,
+      "-130": 1,
+      "-145": 1,
+      "-156": 1,
+      "-185": 1,
+      "-186": 1,
+      "-189": 1,
+      "-215": 1,
+      "-217": 1,
+      "-219": 1,
+      "-220": 1,
+      "-233": 1,
+      "-24": 1,
+      "-251": 1,
+      "-260": 1,
+      "-288": 1,
+      "-296": 1,
+      "-298": 1,
+      "-299": 1,
+      "-30": 1,
+      "-308": 1,
+      "-313": 1,
+      "-322": 1,
+      "-330": 1,
+      "-348": 1,
+      "-355": 1,
+      "-374": 1,
+      "-384": 1,
+      "-41": 1,
+      "-410": 1,
+      "-428": 1,
+      "-440": 1,
+      "-451": 1,
+      "-475": 1,
+      "-487": 1,
+      "-491": 1,
+      "-493": 1,
+      "-499": 1,
+      "-50": 1,
+      "-505": 1,
+      "-508": 1,
+      "-531": 1,
+      "-545": 1,
+      "-570": 1,
+      "-572": 1,
+      "-576": 1,
+      "-589": 1,
+      "-601": 2,
+      "-609": 1,
+      "-61": 1,
+      "-634": 1,
+      "-64": 1,
+      "-67": 1,
+      "-68": 1,
+      "-681": 1,
+      "-69": 1,
+      "-75": 1,
+      "-756": 1,
+      "-766": 1,
+      "-780": 1,
+      "-87": 1,
+      "-877": 1,
+      "-9": 1,
+      "-964": 1,
+      "101": 1,
+      "125": 1,
+      "127": 1,
+      "130": 1,
+      "143": 1,
+      "150": 1,
+      "155": 2,
+      "16": 1,
+      "160": 1,
+      "170": 1,
+      "180": 1,
+      "181": 1,
+      "19": 1,
+      "191": 1,
+      "204": 1,
+      "205": 2,
+      "206": 1,
+      "21": 1,
+      "210": 1,
+      "217": 1,
+      "230": 1,
+      "240": 1,
+      "248": 1,
+      "25": 1,
+      "262": 1,
+      "268": 1,
+      "276": 1,
+      "279": 1,
+      "298": 1,
+      "306": 1,
+      "310": 1,
+      "325": 1,
+      "330": 1,
+      "336": 1,
+      "341": 1,
+      "360": 2,
+      "371": 1,
+      "375": 1,
+      "376": 1,
+      "380": 1,
+      "385": 1,
+      "390": 2,
+      "402": 1,
+      "419": 1,
+      "434": 1,
+      "495": 1,
+      "498": 1,
+      "515": 1,
+      "530": 1,
+      "542": 1,
+      "55": 1,
+      "581": 1,
+      "600": 1,
+      "604": 1,
+      "62": 1,
+      "620": 1,
+      "623": 2,
+      "645": 1,
+      "65": 1,
+      "697": 1,
+      "835": 1,
+      "849": 1,
+      "89": 1,
+      "90": 2,
+      "930": 1,
+      "97": 1,
+      "997": 1
+    },
+    "fixed": {
+      "30": 129,
+      "31": 570,
+      "60": 21,
+      "62": 52,
+      "90": 7,
+      "93": 28
+    },
+    "variable": {
+      "100": 1,
+      "30": 416,
+      "31": 33,
+      "32": 9,
+      "33": 5,
+      "34": 4,
+      "35": 6,
+      "36": 8,
+      "37": 1,
+      "38": 3,
+      "39": 4,
+      "40": 1,
+      "41": 3,
+      "42": 5,
+      "43": 1,
+      "45": 2,
+      "46": 3,
+      "47": 1,
+      "48": 1,
+      "49": 2,
+      "50": 1,
+      "51": 9,
+      "52": 2,
+      "53": 1,
+      "54": 1,
+      "55": 1,
+      "56": 1,
+      "58": 3,
+      "59": 4,
+      "60": 6,
+      "61": 1,
+      "62": 9,
+      "63": 3,
+      "64": 1,
+      "65": 5,
+      "66": 1,
+      "67": 1,
+      "68": 1,
+      "69": 1,
+      "70": 2,
+      "71": 2,
+      "72": 1,
+      "73": 4,
+      "74": 3,
+      "76": 3,
+      "77": 1,
+      "79": 1,
+      "80": 1,
+      "81": 2,
+      "82": 2,
+      "83": 1,
+      "84": 1,
+      "85": 5,
+      "86": 1,
+      "87": 3,
+      "88": 3,
+      "89": 4,
+      "90": 4,
+      "91": 1,
+      "92": 1,
+      "93": 7,
+      "94": 4,
+      "95": 2,
+      "96": 1,
+      "97": 1,
+      "99": 2
+    }
+  },
+  "plan": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/plan.json",
+    "sha256": "3c90086f2bac8e89f3dc892f48a833c362b1a68f14b504208c88d35d5cc70536"
+  },
+  "pool_coverage": [
+    {
+      "dataset": "d3",
+      "max_frame_number": 999,
+      "min_frame_number": 0,
+      "occupied_sixteenths": 16,
+      "pool_fraction": 0.096,
+      "pool_frames": 96,
+      "recording_frames": 1000,
+      "sample_sizes": [
+        8,
+        16,
+        24,
+        32
+      ],
+      "scene": "v058188da3fc3",
+      "span_fraction": 1.0,
+      "used_frames": 96,
+      "used_pool_fraction": 1.0
+    }
+  ],
+  "pose_rows": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/built/pose_rows.jsonl",
+    "sha256": "0251b812349437e973576ddb31c9d64b4ad0a35538b1dbda7955f8644a4a2c71"
+  },
+  "probabilities": {
+    "d1": [
+      0.6,
+      0.6
+    ],
+    "d2": [
+      0.8,
+      0.5
+    ],
+    "d3": [
+      0.8,
+      0.5
+    ]
+  },
+  "rows": 80,
+  "rows_per_scene": 80,
+  "scenes": 1,
+  "schema": "recording-pose-audit-v1",
+  "seed": 17,
+  "staging": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_new/fixture_1aw5vah4/staged.json",
+      "sha256": "770d5d62c290773e48c5b6c9564adebaab0dee07db6b983548030e76eb64dc9c"
+    }
+  ],
+  "target_sanity": {
+    "finite_translation": true,
+    "max_abs_translation": 1.3798516053181804,
+    "max_gravity_norm_error": 0.0,
+    "max_quaternion_norm_error": 1.1102230246251565e-16
+  }
+}

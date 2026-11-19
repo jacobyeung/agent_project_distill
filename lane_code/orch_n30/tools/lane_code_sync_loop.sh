@@ -1,0 +1,21 @@
+#!/bin/bash
+# Start in tmux on LCS_HOST with an optional shared LCS_HEARTBEAT path.
+set -u
+LCS_HOST=${LCS_HOST:-trinity-3-30}
+[[ "$LCS_HOST" =~ ^trinity-[0-9]+-[0-9]+$ ]] || { echo "REFUSED: invalid LCS_HOST: $LCS_HOST" >&2; exit 2; }
+case "$LCS_HOST" in
+  trinity|trinity-2-18|trinity-0-8|trinity-0-18|trinity-0-23|trinity-3-23)
+    echo "REFUSED: forbidden LCS_HOST: $LCS_HOST" >&2; exit 2 ;;
+esac
+[ "$(hostname -s)" = "$LCS_HOST" ] || { echo "REFUSED: sync loop runs only on $LCS_HOST" >&2; exit 2; }
+B=${LCS_B:-/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30}
+S=${LCS_S:-/scratch/jjyeung/distill_sync}
+while true; do
+  bash "$B/tools/lane_code_sync.sh" >> "$S/sync.log" 2>&1
+  rc=$?
+  if [ "$rc" -ge 128 ]; then
+    echo "$(date -u +%FT%TZ) STOP driver signal exit rc=$rc; owner must investigate before restarting" >> "$S/sync.log"
+    exit "$rc"
+  fi
+  sleep 3600 || exit $?
+done

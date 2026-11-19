@@ -99,8 +99,9 @@ def receipt_bytes(path):
 
 def strip_frames(value):
     if isinstance(value, dict):
-        return {k: strip_frames(v) for k, v in value.items() if k not in
-                {"frames", "partner_frames", "frame_indices", "frame_index", "timestamps", "timestamp", "partner_frame_indices", "partner_timestamps"}}
+        return {k: strip_frames(v) for k, v in value.items()
+                if not (k in {'frame', 'frames', 'frame_index', 'frame_indices', 'frame_id',
+                              'timestamp', 'timestamps'} or '_frame' in k)}
     if isinstance(value, list):
         return [strip_frames(v) for v in value]
     return value

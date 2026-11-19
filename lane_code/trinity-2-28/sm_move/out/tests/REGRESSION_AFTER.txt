@@ -1,0 +1,13 @@
+INTERPRETER: 3.6.8
+FIXTURES: /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_ymtm3wz9
+test_12_heartbeat_for_lock_and_stage_only (__main__.SyncMove) ... ok
+test_14_lock_skip_health_matches_sync_log (__main__.SyncMove) ... ok
+test_15_hostname_failure_refuses_without_traceback (__main__.SyncMove) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 3.538s
+
+OK
+LOCK HEALTH 2026-11-19T22:00:00Z: heartbeat=['HEALTH last_verified=2026-11-19T21:00:00Z active=none']; sync.log=['HEALTH last_verified=2026-11-19T21:00:00Z active=none']
+LOCK HEALTH 2026-11-19T22:30:01Z: heartbeat=['HEALTH last_verified=2026-11-19T21:00:00Z active=stale']; sync.log=['HEALTH last_verified=2026-11-19T21:00:00Z active=stale']
+HOSTNAME FAILURE: REFUSED: hostname -s failed (exit 7)

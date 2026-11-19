@@ -98,6 +98,6 @@ for f,needle in [(H,"preparation = load(pinned(pins['preparation']))"),('student
  for i,line in enumerate((T/f).read_text().splitlines(),1):
   if needle in line:lines.append(f'- {f}:{i}: `{line.strip()}`')
 lines += ['', 'Tests: DonorPins.test_source_preparation_comparison and test_binding_preparation_comparison independently pass same SHA at another path, refuse another correctly hashed preparation, and refuse wrong localized bytes with the old SHA. Both reproduce P_EXPORT_RUN_BINDING_MISMATCH on the base.',
-'DonorPins also tests native persisted verification, schema/config-identity mismatches and malformed pin fields. LocalizedQ reaches native bind_target, final bind_handover, persisted admission and loader-audit control flow in q-proof and fresh-training modes. Capacity preparation/population/loader and opener production are fixture stubs; no real training or launch PASS is claimed.']
+'DonorPins also tests native persisted verification, schema/config-identity mismatches and malformed pin fields. LocalizedQ reaches native bind_target, final bind_handover, persisted admission and loader-audit control flow in q-proof and fresh-training modes. Capacity preparation/population/loader, routing build, room/component authority and opener production are fixture stubs; compare_configs runs natively; no real training or launch PASS is claimed.']
 (J/'out/PIN_COMPARISONS_24N.md').write_text('\n'.join(lines)+'\n')
 print('Comparison rows:',len(rows))

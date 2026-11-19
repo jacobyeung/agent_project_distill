@@ -39,7 +39,7 @@ info['state']=state
 if J!='0':
   if state not in ('PENDING','RUNNING','CONFIGURING','COMPLETING'):flags.append('STATE_'+str(state))
   others=[q[0]+':'+q[1] for q in adv if q[0]!=J]
-  if others and state in ('RUNNING','PENDING'):
+  if others and state in ('RUNNING','PENDING') and not os.path.exists(os.path.join(D,'noadv')):  # mon/noadv: job not on advanced (discovery run)
     S.setdefault('others_since',now); 
     if now-S['others_since']>300:flags.append('ADV_OTHERS '+','.join(others))
     else:warn.append('adv_others '+','.join(others))

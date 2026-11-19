@@ -4,6 +4,7 @@ import argparse, json, os, signal, subprocess, sys, time
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from rehearsal_paths2 import L,D,R,NS,reseal
 from rehearsal_copier2 import sha,put,read
+from rehearsal_inputs2 import usage,DISK_LIMIT
 import base64,hashlib
 
 def rss(pid):
@@ -36,13 +37,10 @@ class Runner:
         if self.peak>19_000_000_000: raise RuntimeError('Aggregate RSS exceeded 19 GB; stopped without retry')
         now=time.monotonic()
         if now-self.last_disk>5:
-            self.last_bytes=0
-            for path in R.rglob('*'):
-                try:
-                    if path.is_file() and not path.is_symlink(): self.last_bytes+=path.stat().st_size
-                except FileNotFoundError: pass
+            measured=usage(R)
+            self.last_bytes=max(measured['new_bytes'],measured['allocated_bytes'])
             self.last_disk=now
-        if self.last_bytes>1_350_000_000: raise RuntimeError('Disk guard exceeded 1.35 GB; stopped; measure final bytes before any further work')
+        if self.last_bytes>DISK_LIMIT: raise RuntimeError('Disk guard exceeded 1.1 GB; stopped; measure final bytes before any further work')
         if now-self.started>1800: raise RuntimeError('Rehearsal exceeded 30-minute run budget; stopped without retry')
         if self.copier is not None and self.copier.poll() is not None: raise RuntimeError('Copier exited unexpectedly; see copier.log')
     def run(self,stage,cmd,phase='fresh'):

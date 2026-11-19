@@ -33,6 +33,10 @@ def regenerate(cfg, root, *, compare=True):
         if not receipt['database']['sha256'].startswith('4e8e6c04'):raise ValueError('P_TRAINED_ROUTING_DATABASE_DIFFERS')
         materialization=load(pinned(receipt['materialization']))
         pcfg=deepcopy(p);pcfg['s1_routing']=materialization['inputs'];pcfg['streams']['routing']=materialization['legacy']
+        from i import refresh
+        p_input=write(root/'p0.json',pcfg)
+        refreshed=refresh(dict(config=p_input,staged_pins=[p_input]),root/'pi')
+        pcfg=load(pinned(refreshed['config']))
         reproduced=build(pcfg,root/'pr',materialization['division'],materialization['base_model'])
         hashes=[hashlib.sha256(),hashlib.sha256()];count=0
         with sqlite3.connect(p_db.as_uri()+'?mode=ro',uri=True) as a,sqlite3.connect(pinned(reproduced['database']).as_uri()+'?mode=ro',uri=True) as b:

@@ -33,6 +33,7 @@ def root_gate(script, folder):
         relative = current.relative_to(boundary).as_posix()
         path = '/' + relative + '/'
         protected = (name != '.git' and (path.count('/') == 2 or constants['KEEPDIRRE'].match(name)
+                     or path.rsplit('/', 2)[0].endswith('/codex_runs')
                      or path.endswith(('/work/prompts/', '/work/tree/'))))
         if protected:
             continue

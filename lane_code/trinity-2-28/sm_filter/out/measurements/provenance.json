@@ -1,5 +1,6 @@
 {
   "hostname": "trinity-2-28",
+  "independent_replay": "all commit and label rows agree",
   "inventory_sha256": {
     "sm_060e5381_s.txt.gz": "068ea41b3188fb4f523ef41aeb8bbf13a87541b6b1974a778cf68df42e0fc90d",
     "sm_06764bf4_s.txt.gz": "7e050b8ab4421ec1f5b64cb7051fd6df0a60492eb4b8a526d0613c8e5d7f1924",
@@ -10,11 +11,17 @@
     "sm_bdaaaad2_s.txt.gz": "24857d25b68c65d5a469d4aef05e33eb95493ba69e81e99ec22b3ebb827f05c7",
     "sm_c9a94e65_s.txt.gz": "aa79a18b452c4c3c3277b515635a12068c78d75068c39428420e514ac92525f0"
   },
-  "new_filter_sha256": "71db8554e481d0de503d90a968062b37b81d52cd4bf280e387031c330d44f6e2",
+  "new_filter_sha256": "f5afbe8f56f5be2792213a093d1d67ad4b3d25e80c9ac11d52ca2ba44310fb91",
   "new_scan_exit_code": 0,
+  "new_scan_seconds": 2,
   "old_filter_sha256": "1577615f6fd2465aca82d5e4de4e8e1d137501667e8b5006f9beec32e0156829",
   "old_scan_exit_code": 0,
+  "old_scan_seconds": 11,
   "python_version": "Python 3.6.8",
-  "recorded_utc": "2026-11-19T21:30:24Z",
-  "workspace_allocated_kib_measured": 28108
+  "recorded_utc": "2026-11-19T21:59:40Z",
+  "review_started_utc": "2026-11-19T21:51:51Z",
+  "review_tests": "8 methods pass; 13 expected pre-fix failures",
+  "scan_commands": "#!/bin/bash\nset -u\ncd /scratch/jjyeung/orch_n30\nL=/scratch/jjyeung/orch_n30/sm_filter\nexport CUDA_VISIBLE_DEVICES=\"\" LCS_ROBUST_SYNC=1\nstart=$(date +%s)\nnice -n 10 timeout 600 /usr/bin/python3 -I -s -B - trinity-2-28 < \"$L/in/tools/lane_code_filter.py\" > /dev/null 2> \"$L/work/dry-old-round1.stats\"\nrc=$?\nprintf 'old_exit=%s old_seconds=%s\\n' \"$rc\" \"$(( $(date +%s) - start ))\" > \"$L/work/live-round1.status\"\nif [ \"$rc\" -ne 0 ]; then exit \"$rc\"; fi\nstart=$(date +%s)\nnice -n 10 timeout 600 /usr/bin/python3 -I -s -B \"$L/out/tests/meter_scan.py\" \"$L/out/tools/lane_code_filter.py\" trinity-2-28 \"$L/work/dry-new-round1-lanes.json\" > /dev/null 2> \"$L/work/dry-new-round1.stats\"\nrc=$?\nprintf 'new_exit=%s new_seconds=%s\\n' \"$rc\" \"$(( $(date +%s) - start ))\" >> \"$L/work/live-round1.status\"\nexit \"$rc\"\n",
+  "scan_status": "old_exit=0 old_seconds=11\nnew_exit=0 new_seconds=2\n",
+  "workspace_allocated_kib_measured": 108000
 }

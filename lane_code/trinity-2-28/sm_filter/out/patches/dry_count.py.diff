@@ -1,6 +1,6 @@
 --- a/tools/dry_count.py
 +++ b/tools/dry_count.py
-@@ -17,25 +17,28 @@
+@@ -17,25 +17,29 @@
              name = node.targets[0].id
              if name in ('MAXDIR', 'SUBSTR'):
                  constants[name] = ast.literal_eval(node.value)
@@ -27,6 +27,7 @@
 +        relative = current.relative_to(boundary).as_posix()
 +        path = '/' + relative + '/'
 +        protected = (name != '.git' and (path.count('/') == 2 or constants['KEEPDIRRE'].match(name)
++                     or path.rsplit('/', 2)[0].endswith('/codex_runs')
 +                     or path.endswith(('/work/prompts/', '/work/tree/'))))
 +        if protected:
 +            continue

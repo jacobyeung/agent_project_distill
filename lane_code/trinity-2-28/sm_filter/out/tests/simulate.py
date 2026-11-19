@@ -62,6 +62,7 @@ def main():
         with gzip.open(str(source), 'rt') as stream:
             for line in stream:
                 size, label, path = parse(line)
+                scope['ROOT_LANES'] = re.match(r'trinity-[0-9]+-[0-9]+\Z', label) is not None
                 reject = excluded(path, scope) if label != 'repository' else None
                 row = counts.setdefault(label, [0, 0, 0, 0])
                 row[0] += 1; row[1] += size

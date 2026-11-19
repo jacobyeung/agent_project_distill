@@ -1,5 +1,5 @@
 INTERPRETER: 3.6.8
-FIXTURES: /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_g0rs7adj
+FIXTURES: /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_l0m3qfac
 test_01_default_programs_and_commands_identical (__main__.SyncMove) ... ok
 test_02_moved_full_push_heartbeat_and_health (__main__.SyncMove) ... ok
 test_03_failure_heartbeat_and_retention (__main__.SyncMove) ... ok
@@ -13,17 +13,27 @@ test_10_input_integrity_and_syntax (__main__.SyncMove) ... ok
 test_11_legacy_default_generator_and_command_text_unchanged (__main__.SyncMove) ... ok
 test_12_heartbeat_for_lock_and_stage_only (__main__.SyncMove) ... ok
 test_13_installer_preimage_checksum_and_syntax_refusals (__main__.SyncMove) ... ok
+test_14_lock_skip_health_matches_sync_log (__main__.SyncMove) ... ok
+test_15_hostname_failure_refuses_without_traceback (__main__.SyncMove) ... ok
+test_16_documented_bundle_restore_preserves_config_and_main (__main__.SyncMove) ... ok
+test_17_owner_procedure_requirements (__main__.SyncMove) ... ok
 
 ----------------------------------------------------------------------
-Ran 13 tests in 25.623s
+Ran 17 tests in 26.504s
 
 OK
 MEASURED default: 5 program.sh files; command counts {'git': 19, 'ssh': 4, 'bash': 2}; byte-identical
 HEALTH fresh: HEALTH last_verified=2026-11-19T21:00:00Z active=none
 HEALTH at 90m: HEALTH last_verified=2026-11-19T21:00:00Z active=none
-HEALTH at 90m+1s: EVENT /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_g0rs7adj/moved/events/20261119T223001Z_BLOCKER_code_sync_stale.md
+HEALTH at 90m+1s: EVENT /scratch/jjyeung/orch_n30/sm_move/work/tmp_syncmove_l0m3qfac/moved/events/20261119T223001Z_BLOCKER_code_sync_stale.md
 HEALTH last_verified=2026-11-19T21:00:00Z active=stale
 MEASURED heartbeat retention: 300 old + 4 current = 304 lines
 MEASURED host refusals: 40 checks
 LEGACY: generator/staging block and every driver Git/SSH/tssh source line byte-identical
+LOCK HEALTH 2026-11-19T22:00:00Z: heartbeat=['HEALTH last_verified=2026-11-19T21:00:00Z active=none']; sync.log=['HEALTH last_verified=2026-11-19T21:00:00Z active=none']
+LOCK HEALTH 2026-11-19T22:30:01Z: heartbeat=['HEALTH last_verified=2026-11-19T21:00:00Z active=stale']; sync.log=['HEALTH last_verified=2026-11-19T21:00:00Z active=stale']
+HOSTNAME FAILURE: REFUSED: hostname -s failed (exit 7)
+BUNDLE remote_only_main: config byte-identical; origin/main=1c58fb4cf40b5d295647fb337c32eebd01511b97; fetch=local bundle
+BUNDLE local_main: config byte-identical; origin/main=1c58fb4cf40b5d295647fb337c32eebd01511b97; fetch=local bundle
+BUNDLE missing_main: config byte-identical; origin/main=1c58fb4cf40b5d295647fb337c32eebd01511b97; fetch=origin
 SECOND_INTERPRETER: python3.12 and python3.11 are unavailable on PATH

@@ -1,0 +1,288 @@
+{
+  "N_histogram": {
+    "32": 4
+  },
+  "authorities": {
+    "admission_policy": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/policy.json",
+      "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+    },
+    "division": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/division.json",
+      "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+    },
+    "extra_benchmarks": [],
+    "gate": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/gate.json",
+      "sha256": "fe13939f44ce3329eac12f19a8974c1266670e580f842ed53f66cf00d7dcb8a9"
+    },
+    "vsi288": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/scenes.tsv",
+      "sha256": "c28ed09f905bb62898d38c86c82c6da4741673d720dc318c883aecfa2e8cda1c"
+    },
+    "vsti": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/vsti.json",
+      "sha256": "a30aa828455b4844823e25d3b37619f64f916871e93a8cea134745ce10d10b49"
+    }
+  },
+  "conditioning": "fresh sorted uniform 32 posed frames per row, conditioned on the staged pool; all 32 targets",
+  "datasets": {
+    "d1": {
+      "modes": {},
+      "rows": 0,
+      "scenes": 0
+    },
+    "d2": {
+      "modes": {},
+      "rows": 0,
+      "scenes": 0
+    },
+    "d3": {
+      "modes": {
+        "collection": 4
+      },
+      "rows": 4,
+      "scenes": 1
+    }
+  },
+  "deferred": [
+    {
+      "dataset": "d1",
+      "pose_count": 127,
+      "reason": "sparse_pose_count",
+      "scene": "scene0300_00",
+      "total_num_frames": 1000
+    }
+  ],
+  "deferred_counts": {
+    "sparse_pose_count": 1
+  },
+  "deferred_scenes": 1,
+  "depth_labels_built": false,
+  "excluded": [
+    {
+      "dataset": "d1",
+      "reasons": [
+        "vsti"
+      ],
+      "scene": "scene0200_00",
+      "sources": {
+        "vsti": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/vsti.json",
+            "sha256": "a30aa828455b4844823e25d3b37619f64f916871e93a8cea134745ce10d10b49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d3",
+      "reasons": [
+        "vsi288",
+        "outside_frozen_training_division"
+      ],
+      "scene": "2000",
+      "sources": {
+        "outside_frozen_training_division": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          },
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ],
+        "vsi288": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/scenes.tsv",
+            "sha256": "c28ed09f905bb62898d38c86c82c6da4741673d720dc318c883aecfa2e8cda1c"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d3",
+      "reasons": [
+        "outside_frozen_training_division"
+      ],
+      "scene": "outsider",
+      "sources": {
+        "outside_frozen_training_division": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          },
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d2",
+      "reasons": [
+        "admission_policy"
+      ],
+      "scene": "example",
+      "sources": {
+        "admission_policy": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/policy.json",
+            "sha256": "aed046cc7c330eaa97894ad4c2ceb5868815205b7edf90d6142d165e0bb08e49"
+          }
+        ]
+      }
+    },
+    {
+      "dataset": "d1",
+      "reasons": [
+        "division_heldout"
+      ],
+      "scene": "scene0400_00",
+      "sources": {
+        "division_heldout": [
+          {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/division.json",
+            "sha256": "5a78a0d37d40f4c423a8db83a5b04942d9682d11f53327d006d4475bb1d94e2e"
+          }
+        ]
+      }
+    }
+  ],
+  "excluded_scenes": 5,
+  "exclusion_counts": {
+    "admission_policy": 1,
+    "division_heldout": 1,
+    "outside_frozen_training_division": 2,
+    "vsi288": 1,
+    "vsti": 1
+  },
+  "exclusion_counts_by_dataset": {
+    "d1": {
+      "division_heldout": 1,
+      "vsti": 1
+    },
+    "d2": {
+      "admission_policy": 1
+    },
+    "d3": {
+      "outside_frozen_training_division": 2,
+      "vsi288": 1
+    }
+  },
+  "interval_histograms": {
+    "collection": {
+      "10": 6,
+      "108": 1,
+      "109": 1,
+      "11": 4,
+      "110": 1,
+      "114": 1,
+      "12": 1,
+      "13": 3,
+      "137": 1,
+      "14": 3,
+      "16": 3,
+      "17": 2,
+      "18": 3,
+      "19": 3,
+      "2": 4,
+      "20": 4,
+      "21": 1,
+      "22": 2,
+      "23": 1,
+      "24": 2,
+      "25": 1,
+      "26": 3,
+      "27": 1,
+      "28": 1,
+      "29": 2,
+      "3": 4,
+      "30": 1,
+      "31": 1,
+      "32": 3,
+      "33": 3,
+      "34": 6,
+      "37": 1,
+      "38": 1,
+      "39": 1,
+      "4": 4,
+      "40": 2,
+      "42": 3,
+      "46": 1,
+      "47": 1,
+      "49": 1,
+      "5": 5,
+      "54": 1,
+      "55": 1,
+      "56": 2,
+      "6": 3,
+      "60": 2,
+      "61": 1,
+      "62": 1,
+      "64": 2,
+      "69": 1,
+      "7": 5,
+      "70": 2,
+      "73": 1,
+      "75": 1,
+      "77": 1,
+      "8": 2,
+      "85": 1,
+      "87": 2,
+      "89": 1,
+      "9": 1
+    }
+  },
+  "plan": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/p.json",
+    "sha256": "18b28aeec43c67f4fcdaed98ccc1868f3bc7b88c4165e1e7316230120051e101"
+  },
+  "pool_coverage": [
+    {
+      "dataset": "d3",
+      "max_frame_number": 983,
+      "min_frame_number": 3,
+      "occupied_sixteenths": 16,
+      "pool_fraction": 0.096,
+      "pool_frames": 96,
+      "recording_frames": 1000,
+      "sample_sizes": [
+        32
+      ],
+      "scene": "v058188da3fc3",
+      "span_fraction": 0.981,
+      "used_frames": 73,
+      "used_pool_fraction": 0.7604166666666666
+    }
+  ],
+  "pose_rows": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/rows/pose_rows.jsonl",
+    "sha256": "f4da3f3e8ef7b58606cc504edda6a0cf5960c85242143f02ccebc31cef596cc2"
+  },
+  "probabilities": {},
+  "rows": 4,
+  "rows_per_scene": 4,
+  "sampling": {
+    "epoch": 0,
+    "pool_size": 96,
+    "variant": "all_frames32"
+  },
+  "scenes": 1,
+  "schema": "recording-pose-audit-v1",
+  "seed": 17,
+  "staging": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/test_runs/full_live/a1_1749xfws/staged.json",
+      "sha256": "95c2a55c9e6276bce5eb520cf443e9044e378b054157962ae77238f6e7cc450a"
+    }
+  ],
+  "target_sanity": {
+    "finite_translation": true,
+    "max_abs_translation": 1.339905288778555,
+    "max_gravity_norm_error": 0.0,
+    "max_quaternion_norm_error": 1.1102230246251565e-16
+  }
+}

@@ -444,6 +444,70 @@ robust_finish "$LABEL" "$RC" "$REMOTE"
         self.assertFalse((root / 'state/.sync.lock').exists())
         print('HOSTNAME FAILURE: ' + p.stdout.strip())
 
+    def test_16_documented_bundle_restore_preserves_config_and_main(self):
+        document = (PACKAGE / 'GIT_OWNER_patch.md').read_text()
+        restore = document.split('# BEGIN bundle restore\n', 1)[1].split('# END bundle restore', 1)[0]
+        for case in ('remote_only_main', 'local_main', 'missing_main'):
+            root, env = fixture('bundle_' + case)
+            source = root / 'state/repo'
+            def git(*args):
+                p = run(['/usr/bin/git', '-C', source] + list(args), env)
+                self.assert_ok(p)
+                return p.stdout.strip()
+            git('config', 'user.name', 'Preserved Owner')
+            git('config', 'user.email', 'preserved@example.invalid')
+            git('push', 'origin', 'main')
+            # Move, rather than delete, the local main ref to model a lane-only clone.
+            if case != 'local_main':
+                git('branch', '-m', 'main', 'preserved-main')
+            if case != 'remote_only_main':
+                # Keep its contents under another ref while main is absent from origin/*.
+                ref = source / '.git/refs/remotes/origin/main'
+                ref.rename(ref.with_name('main.saved'))
+            head = git('rev-parse', 'HEAD')
+            destination = root / 'destination'
+            destination.mkdir()
+            config = destination / 'transfer-state/repo/.git/config'
+            config.parent.mkdir(parents=True)
+            shutil.copyfile(str(source / '.git/config'), str(config))
+            bundle = destination / 'clone.bundle'
+            with bundle.open('wb') as stream:
+                p = subprocess.run(['/usr/bin/git', '-C', str(source), 'bundle', 'create', '-', '--all'],
+                                   env=env, cwd=str(root), stdout=stream, stderr=subprocess.PIPE,
+                                   universal_newlines=True, timeout=90)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            p = run(['/bin/bash', '-c', restore], dict(env, S=str(destination)))
+            self.assert_ok(p)
+            repo = destination / 'repo'
+            self.assertEqual((repo / '.git/config').read_bytes(), config.read_bytes())
+            p = run(['/usr/bin/git', '-C', repo, 'rev-parse', 'refs/remotes/origin/main'], env)
+            self.assert_ok(p)
+            self.assertEqual(p.stdout.strip(), head)
+            calls = [json.loads(line) for line in (root / 'commands.jsonl').read_text().splitlines()]
+            fetches = [args for name, args in calls if name == 'git' and 'fetch' in args]
+            self.assertEqual(len(fetches), 1)
+            remote = fetches[0][fetches[0].index('fetch') + 1]
+            self.assertEqual(remote, 'origin' if case == 'missing_main' else str(bundle))
+            print('BUNDLE %s: config byte-identical; origin/main=%s; fetch=%s' %
+                  (case, head, 'origin' if remote == 'origin' else 'local bundle'))
+
+    def test_17_owner_procedure_requirements(self):
+        document = (PACKAGE / 'GIT_OWNER_patch.md').read_text()
+        failover = document.split('### If the sync host fails\n', 1)[1].splitlines()
+        self.assertEqual(len(failover), 3)
+        self.assertEqual([line[:3] for line in failover], ['1. ', '2. ', '3. '])
+        for required in ('Consumers may move delivered events; only undelivered events replay.',
+                         '$B/code_sync_heartbeat/HEARTBEAT.log', 'git -C "$S/repo" bundle create - --all',
+                         'bash "$B/tools/tssh.sh" "$NEW.ib"',
+                         'ssh -o BatchMode=yes <new>.ib true',
+                         'git -C "$S/repo" fetch origin lane-code && git -C "$S/repo" merge --ff-only FETCH_HEAD',
+                         'Only after this heartbeat shows its first', 'empty `/scratch/jjyeung/orch_n30`',
+                         '18 MB/s', '--dry'):
+            self.assertIn(required, document)
+        self.assertNotIn('--single-branch', document)
+        self.assertNotIn('reset --hard', document)
+        self.assertNotIn('$B/events/code_sync/lane_code_heartbeat.log', document)
+
     def test_13_installer_preimage_checksum_and_syntax_refusals(self):
         root, env = fixture('install_refusals', changed=False, init=False)
         (root / 'B/tools/lane_code_sync_loop.sh').rename(root / 'saved_loop.sh')

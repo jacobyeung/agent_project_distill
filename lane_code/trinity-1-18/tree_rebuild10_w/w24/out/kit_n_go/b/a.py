@@ -13,6 +13,17 @@ root=Path(sys.argv[2]).resolve()
 if root==Path('/tmp') or not root.is_relative_to(Path('/tmp')):raise ValueError('E06')
 if root.exists() and any(root.iterdir()):raise ValueError('E04')
 root.mkdir(parents=True,mode=0o700,exist_ok=True)
+if sys.argv[1]=='r':
+ import os
+ sys.path.insert(0,str(kit/'b'))
+ from z import screen,write,load
+ def refused(kind,value,traceback):
+  text=screen(kind.__name__+':'+str(value),read(kit/'k/g.json'),load(kit/'b/wh.json'))
+  write(root/'r0.json',dict(status='REFUSE',refusal=text[:100000]))
+  sys.__excepthook__(kind,value,traceback)
+ sys.excepthook=refused
+ job=os.environ.get('SLURM_JOB_ID','')
+ if not job.isascii() or not job.isdigit():raise ValueError('R1_ROUTING_JOB_ID_REQUIRED')
 src=control['source'];p=kit/src['path']
 if hashlib.sha256(p.read_bytes()).hexdigest()!=src['sha256']:raise ValueError('E05')
 with tarfile.open(p) as t:t.extractall(root/'s',filter='data')
@@ -53,10 +64,6 @@ if sys.argv[1] in ('q','r'):
      check_host_scene(cfg,host)
      from rg import regenerate
      regenerate(cfg,directory)
-    spec=read(kit/'k/p.json');job=os.environ.get('SLURM_JOB_ID','')
-    if not job.isdigit():raise ValueError('R1_ROUTING_JOB_ID_REQUIRED')
-    destination=Path(spec['n_root'])/'o'/job;destination.mkdir(parents=True,exist_ok=True,mode=0o700)
-    shutil.copyfile(root/'routing_selection.json',destination/'routing_selection.json')
     r={'status':'ADMIT'}
   finally:stage.close()
  # d.py reads only the fully planned, authenticated configuration.

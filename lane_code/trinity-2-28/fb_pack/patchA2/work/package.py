@@ -19,6 +19,7 @@ def count(label):
     r=tests['runs'][label];return '/'.join(str(r[k]) for k in ('tests','failures','errors','skipped'))
 comparisons=tests['comparisons']
 clean=all(v['identical_failure_counts_and_causes'] for v in comparisons.values())
+matrix={x['check']:x['cases'] for x in read('must_final_new')['details'] if 'cases' in x}
 lines=[
 'PATCH_A2 fixes both MUST code changes. Full integration remains MISSING where the supplied kit lacks fixtures.',
 '',
@@ -37,7 +38,7 @@ f"PATCH_A2.patch replaces PATCH_A against the base ({len(files['files'])} touche
 '',
 'Counts below are tests/failures/errors/skips. Expected failures on base/PATCH_A demonstrate the fixes; subtest failures can exceed test counts.',
 f"MUST regressions: base {count('must_final_base')}; PATCH_A {count('must_final_patch_a')}; new {count('must_final_new')}; live {count('must_final_live')}.",
-'The differential matrix checks 1,280 source_names cases, 192 validate_binding cases and 204 Membership/cell cases against base.',
+f"The differential matrix checks {matrix['legacy_source_names']:,} source_names cases, {matrix['legacy_validate_binding']} validate_binding cases and {matrix['legacy_membership_and_cell']} Membership/cell cases against base.",
 f"Subset declarations: base {count('subset_base')}; new {count('subset_new')}; live {count('subset_live')}.",
 f"Focused: base {count('focused_base')}; new {count('focused_new')}; live {count('focused_live')}.",
 f"Integration plus host: base {count('integration_base')}; new {count('integration_new')}; live {count('integration_live')}.",

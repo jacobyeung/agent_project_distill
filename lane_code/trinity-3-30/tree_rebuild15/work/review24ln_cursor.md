@@ -1,0 +1,18 @@
+# Independent re-review (read-only, once) of TREE build 24l2 of lane tree_rebuild: the fixes to your review of build 24j plus one handover authenticity change (vehicle N's host receipt and handover, ORCH RULINGS 1943Z, 2046Z, 2128Z)
+
+You review; you do not fix or design fixes. You are a different model family from the builder; this change produces and checks admission evidence. You run once, read-only, on trinity-2-28. Report only verified problems, each with file:line and the command or reading that shows it. Your final message is the verdict.
+
+## What changed
+- Base: build 24j's tree `/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1_base` (seal 189df6ac590caf7622354c3bd1f991e599776494ced635a23f0c93eb1b567710). Changed: `/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1`. Patch, report, evidence: `/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/out/{HOST24LN.patch,BUILD24LN_REPORT.md,UNCHANGED24LN.json,TREE24LN_SEAL.json,ROUTING_DIGEST_STABILITY.json,PIN_COMPARISONS_24N.md,KIT_WIRING_24LN.md}`. Prompts: `../prompts/build24l.md`, `build24n.md`, `build24l2.md`. Your verdict on 24j: `../REVIEW24J_CURSOR.md` (read it first). Blocker evidence for the handover change: `../in24kr/`.
+- 24l part: (MUST 1) check_host_scene certifies the twin-augmented config that trains; host.json records the request's routing_selection pin and digest(regenerated); host.json records the routing_base / routing_inputs substitution (sha256 before and after, routing_substituted); staged entries are re-verified after a caller stage hook, or the stager recorded. ROUTING_DIGEST_STABILITY.json claims whether the selection digest depends on anything besides the root path and staged inputs: check it.
+- 24n part: r1_handover's donor binding check compares the preparation pin by sha256 (plus the unchanged schema and config-identity comparisons), not by path, because the kit localises staged copies into the job root (the old whole-pin compare refused N's production config: P_EXPORT_RUN_BINDING_MISMATCH). ORCH conditions: for each changed comparison the staged file's sha256 is verified before the handover reads it (file:line), and a test with different bytes at the localised path under the same stated sha256 refuses; only path-only mismatches change; PIN_COMPARISONS_24N.md lists EVERY whole-pin comparison on the q and u.py path.
+
+## Verify
+1. Each fix is present, correct and tested; the MUST 1 test fails on the 24j order; the hash-compare tests include the wrong-bytes-same-stated-sha case.
+2. The PIN_COMPARISONS list is complete: look yourself for whole-dict or path comparisons of pins on the q path (production_proof._run and what it calls) and the u.py/train path that a localised config would hit; name any it misses.
+3. Only the files the report names differ from 189df6ac (recompute every sha256 against UNCHANGED24LN.json); admit(), identity(), row legality, exclusions, routing policy, sampling, scoring, the DEFERRED component evidence and mode p are byte-identical; your 24j findings are not reintroduced.
+4. The host receipt still cannot be PASS unless all seven assertions hold on evidence, after bind_handover, for the final config identity.
+5. Say what you did not check.
+
+## Rules
+Read-only. No ssh, network, GPU, Git, tmux, scheduler or another agent. Never list, search or grep on /home or /data*. Any process runs under nice -n 10, at most 8 threads, under 20 GB RAM; use `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B` to run the tree's tests if you need to. Write your verdict to `VERDICT.md` in this folder and nowhere else. First line: `GO`, `GO AFTER FIXES` (each fix MUST or SHOULD, with evidence) or `NO-GO`. Then at most 30 lines.

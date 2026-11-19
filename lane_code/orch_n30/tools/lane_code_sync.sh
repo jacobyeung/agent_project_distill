@@ -1,9 +1,9 @@
 #!/bin/bash
 # lane_code_sync.sh [--dry]: hourly sync of agent-written lane code to GitHub branch lane-code.
 # Stages whitelisted source/records from /scratch/jjyeung/orch_n30/*/ on each lane node (InfiniBand tar
-# stream into legacy directories or robust tar slots on trinity-3-30), plus tools/ and briefs/, secret-scans them,
+# stream into legacy directories or robust tar slots on LCS_HOST), plus tools/ and briefs/, secret-scans them,
 # copies clean files into $S/repo/lane_code/<node>/..., commits on lane-code, pushes to origin and to the
-# /home repo as branch lane-code. Runs on trinity-3-30 only. --dry prints per-node counts and stops;
+# /home repo as branch lane-code. Runs on LCS_HOST (default trinity-3-30). --dry prints per-node counts and stops;
 # --stage-only stages, scans and copies into the clone, then stops before git.
 # A failed run writes one line to the log and one BLOCKER event; the next attempt is the next hourly run.
 set -u
@@ -27,10 +27,84 @@ DRY=0; [ "${1:-}" = "--dry" ] && DRY=1
 STAGE_ONLY=0; [ "${1:-}" = "--stage-only" ] && STAGE_ONLY=1
 QUEUE_ONLY=0; [ "${1:-}" = "--queue-only" ] && QUEUE_ONLY=1
 FAILS=""
+LCS_HOST=${LCS_HOST:-trinity-3-30}
+HB_LINES=()
+HB_STARTED=0
+HB_ENDED=0
+HB_SKIP=0
 ts() { date -u +%FT%TZ; }
-log() { echo "$(ts) $*"; }
+log() {
+  local line="$(ts) $*"
+  echo "$line"
+  if [ -n "${LCS_HEARTBEAT:-}" ]; then
+    case "$*" in
+      START\ *) HB_STARTED=1; HB_LINES+=("$line") ;;
+      verified\ GitHub\ lane-code\ =\ *) HB_LINES+=("$line") ;;
+      END\ *) HB_ENDED=1; HB_LINES+=("$line") ;;
+      FAIL\ previous\ run\ still\ holds\ the\ lock) HB_SKIP=1; HB_LINES+=("$line") ;;
+    esac
+  fi
+}
 fail() { FAILS="$FAILS; $*"; log "FAIL $*"; }
-[ "$(hostname -s)" = trinity-3-30 ] || { log "FAIL not on trinity-3-30"; exit 2; }
+# Capture only this driver's own evidence, preserving the exact emitted timestamps.
+# An EXIT trap also covers refusals, early returns and catchable signals.
+heartbeat_exit() {
+  local rc=$?
+  trap - EXIT
+  if [ "$HB_SKIP" != 1 ]; then
+    [ "$HB_STARTED" = 1 ] || log "START dry=$DRY queue_only=$QUEUE_ONLY"
+    if [ "$HB_ENDED" != 1 ]; then
+      if [ "$rc" = 0 ] && [ -z "$FAILS" ]; then log "END ok"
+      else log "END with failures"; fi
+    fi
+  fi
+  if ! python3 -I -s -B - "$LCS_HEARTBEAT" "${HB_LINES[@]}" "$(ts) HOST $LCS_HOST" <<'LCS_HEARTBEAT_PY'
+import collections
+import os
+import sys
+import uuid
+
+path = os.path.abspath(sys.argv[1])
+try:
+    try:
+        with open(path, 'rb') as old:
+            retained = list(collections.deque(old, maxlen=300))
+    except FileNotFoundError:
+        retained = []
+    temporary = os.path.join(os.path.dirname(path), '.lcs-heartbeat-' + uuid.uuid4().hex)
+    fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+    with os.fdopen(fd, 'wb') as stream:
+        for line in retained:
+            stream.write(line if line.endswith(b'\n') else line + b'\n')
+        for line in sys.argv[2:]:
+            stream.write(line.encode('utf-8') + b'\n')
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(temporary, path)
+except (OSError, ValueError) as error:
+    print('heartbeat write failed: %s' % error, file=sys.stderr)
+    sys.exit(1)
+LCS_HEARTBEAT_PY
+  then
+    log "WARN heartbeat write failed: $LCS_HEARTBEAT"
+  fi
+  exit "$rc"
+}
+if [ -n "${LCS_HEARTBEAT:-}" ]; then
+  trap heartbeat_exit EXIT
+  trap 'exit 129' HUP
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+fi
+[[ "$LCS_HOST" =~ ^trinity-[0-9]+-[0-9]+$ ]] || { log "FAIL invalid LCS_HOST: $LCS_HOST"; exit 2; }
+case "$LCS_HOST" in
+  trinity|trinity-2-18|trinity-0-8|trinity-0-18|trinity-0-23|trinity-3-23)
+    log "FAIL forbidden LCS_HOST: $LCS_HOST"; exit 2 ;;
+esac
+[ "$(hostname -s)" = "$LCS_HOST" ] || { log "FAIL not on $LCS_HOST"; exit 2; }
+if [ "${LCS_ROBUST_SYNC:-0}" != 1 ] && [ "$LCS_HOST" != trinity-3-30 ]; then
+  log "FAIL legacy staging requires LCS_HOST=trinity-3-30; enable robust mode"; exit 2
+fi
 exec 8>"$S/.sync.lock"; flock -n 8 || { log "FAIL previous run still holds the lock"; exit 3; }
 log "START dry=$DRY queue_only=$QUEUE_ONLY"
 

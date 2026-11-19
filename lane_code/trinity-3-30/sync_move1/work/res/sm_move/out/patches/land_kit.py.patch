@@ -8,7 +8,7 @@
  import subprocess
  import sys
  import tarfile
-@@ -381,6 +380,17 @@
+@@ -381,6 +380,20 @@
      print(landed)
  
  
@@ -18,7 +18,10 @@
 +                 'trinity-0-23', 'trinity-3-23')
 +    require(bool(re.fullmatch(r'trinity-[0-9]+-[0-9]+', host)) and host not in forbidden,
 +            'invalid or forbidden LCS_HOST: ' + host)
-+    actual = subprocess.check_output(['hostname', '-s']).decode('utf-8').strip()
++    try:
++        actual = subprocess.check_output(['hostname', '-s']).decode('utf-8').strip()
++    except subprocess.CalledProcessError as exc:
++        raise Refusal('hostname -s failed (exit %s)' % exc.returncode) from None
 +    require(actual == host, 'owner runs only on ' + host)
 +    return host
 +
@@ -26,7 +29,7 @@
  def main(argv=None):
      parser = argparse.ArgumentParser(description=__doc__)
      parser.add_argument('archive', type=Path)
-@@ -394,6 +404,7 @@
+@@ -394,6 +407,7 @@
      parser.add_argument('--bind-sha', help='owner confirms this SHA256 after reading the verdict')
      parser.add_argument('--allow-skips', action='store_true')
      args = parser.parse_args(argv)
@@ -34,7 +37,7 @@
      require(os.environ.get('LCS_ENABLE_KIT_LANDING') == '1', 'disabled; owner must set LCS_ENABLE_KIT_LANDING=1')
      require(bool(re.fullmatch('[a-z0-9_]+', args.name)), 'invalid kit name; use [a-z0-9_]+')
      safe_text(args.seal, 'seal')
-@@ -417,7 +428,6 @@
+@@ -417,7 +431,6 @@
      else:
          require(not any(k in os.environ for k in ('LCS_FILTER', 'LCS_SCAN', 'LCS_B', 'LCS_EV')),
                  'production tool/event overrides require LCS_TEST_ROOT')

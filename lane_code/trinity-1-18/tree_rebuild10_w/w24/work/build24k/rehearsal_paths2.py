@@ -3,8 +3,8 @@ import os
 D=Path(__file__).resolve().parent
 L=D.parents[1]
 R=Path(os.environ.get('REHEARSAL_K2_ROOT',str(D/'rehearsal_k2'))).resolve()
-if R not in (D/'rehearsal_k2',D/'rehearsal_k2_probe'):
-    raise ValueError('Only the two authorized rehearsal directories are writable')
+if R not in (D/'rehearsal_k2',D/'rehearsal_k3_probe'):
+    raise ValueError('Only the final rehearsal and the current probe are writable')
 NS='/tmp/q_22c714e1'
 
 def reseal(kit):

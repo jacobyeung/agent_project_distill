@@ -12,7 +12,7 @@
  # --stage-only stages, scans and copies into the clone, then stops before git.
  # A failed run writes one line to the log and one BLOCKER event; the next attempt is the next hourly run.
  set -u
-@@ -27,10 +27,80 @@
+@@ -27,10 +27,84 @@
  STAGE_ONLY=0; [ "${1:-}" = "--stage-only" ] && STAGE_ONLY=1
  QUEUE_ONLY=0; [ "${1:-}" = "--queue-only" ] && QUEUE_ONLY=1
  FAILS=""
@@ -20,6 +20,7 @@
 +HB_LINES=()
 +HB_STARTED=0
 +HB_ENDED=0
++HB_SKIP=0
  ts() { date -u +%FT%TZ; }
 -log() { echo "$(ts) $*"; }
 +log() {
@@ -30,6 +31,7 @@
 +      START\ *) HB_STARTED=1; HB_LINES+=("$line") ;;
 +      verified\ GitHub\ lane-code\ =\ *) HB_LINES+=("$line") ;;
 +      END\ *) HB_ENDED=1; HB_LINES+=("$line") ;;
++      FAIL\ previous\ run\ still\ holds\ the\ lock) HB_SKIP=1; HB_LINES+=("$line") ;;
 +    esac
 +  fi
 +}
@@ -40,10 +42,12 @@
 +heartbeat_exit() {
 +  local rc=$?
 +  trap - EXIT
-+  [ "$HB_STARTED" = 1 ] || log "START dry=$DRY queue_only=$QUEUE_ONLY"
-+  if [ "$HB_ENDED" != 1 ]; then
-+    if [ "$rc" = 0 ] && [ -z "$FAILS" ]; then log "END ok"
-+    else log "END with failures"; fi
++  if [ "$HB_SKIP" != 1 ]; then
++    [ "$HB_STARTED" = 1 ] || log "START dry=$DRY queue_only=$QUEUE_ONLY"
++    if [ "$HB_ENDED" != 1 ]; then
++      if [ "$rc" = 0 ] && [ -z "$FAILS" ]; then log "END ok"
++      else log "END with failures"; fi
++    fi
 +  fi
 +  if ! python3 -I -s -B - "$LCS_HEARTBEAT" "${HB_LINES[@]}" "$(ts) HOST $LCS_HOST" <<'LCS_HEARTBEAT_PY'
 +import collections

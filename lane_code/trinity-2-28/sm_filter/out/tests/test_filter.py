@@ -32,7 +32,7 @@ def walk_order(paths):
     return visit('')
 
 
-def run(root, robust, label='fixture', manifest=None):
+def run(root, robust, label='trinity-2-28', manifest=None):
     # Exercise the production stdin protocol, including -I -s -B.
     command = [sys.executable, '-I', '-s', '-B', '-', label]
     if manifest:
@@ -143,15 +143,15 @@ def main():
     dup_content = b'lane/duplicates/duplicate.py\t00_first.py\n'
     for robust in (0, 1):
         mdir = 'manifests%s' % robust
-        first = run(root, robust, 'first', mdir)
-        one = (root / mdir / 'DEDUP_first.tsv.gz').read_bytes()
+        first = run(root, robust, 'trinity-1-1', mdir)
+        one = (root / mdir / 'DEDUP_trinity-1-1.tsv.gz').read_bytes()
         time.sleep(1.05)
-        second = run(root, robust, 'first', mdir)
-        two = (root / mdir / 'DEDUP_first.tsv.gz').read_bytes()
-        run(root, robust, 'different', mdir + '_other')
-        three = (root / (mdir + '_other') / 'DEDUP_different.tsv.gz').read_bytes()
+        second = run(root, robust, 'trinity-1-1', mdir)
+        two = (root / mdir / 'DEDUP_trinity-1-1.tsv.gz').read_bytes()
+        run(root, robust, 'trinity-1-2', mdir + '_other')
+        three = (root / (mdir + '_other') / 'DEDUP_trinity-1-2.tsv.gz').read_bytes()
         assert one == two == three
-        assert first.stdout == second.stdout == expected + (mdir + '/DEDUP_first.tsv.gz').encode() + b'\0'
+        assert first.stdout == second.stdout == expected + (mdir + '/DEDUP_trinity-1-1.tsv.gz').encode() + b'\0'
         assert one[4:8] == b'\0' * 4 and not (one[3] & 8), 'mtime/FNAME header'
         assert gzip.decompress(one) == dup_content
         manifests.append(one)

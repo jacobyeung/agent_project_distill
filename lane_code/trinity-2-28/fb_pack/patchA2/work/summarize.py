@@ -26,6 +26,7 @@ def normalize(s):
     s=re.sub(re.escape(str(ROOT))+r'/work/test_runs/[^/\s\'\"]+','<RUN>',s)
     s=re.sub(re.escape(str(ROOT))+r'/work/(?:base|new|live_base|live|new_camform)(?=/|\b)','<TREE>',s)
     s=re.sub(r'(\.pruned_step_\d+_)[0-9a-f]{32}',r'\1<TEMP_UUID>',s)
+    s=re.sub(r'(/tmp/headcall_test_cache/hcfull_frames_)[a-z0-9_]{8}',r'\1<TEMP_SUFFIX>',s)
     return s
 def cause(x):
     trace=x.get('traceback','');lines=[l.strip() for l in trace.splitlines() if l.strip()]

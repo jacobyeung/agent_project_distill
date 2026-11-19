@@ -8,6 +8,7 @@ selected=Path(sys.argv[1]).resolve()
 sys.path[:0]=[str(L/'work/build24'),str(L/'work/build24f')]
 import joblib as J
 from rehearsal_paths2 import reseal
+from rehearsal_inputs2 import prepare
 source=L/'work/build24f/rehearsal3'
 if not source.exists():source=L/'work/build24f/rehearsal2'
 if R.exists():raise ValueError('Fresh rehearsal directory required; preserve any existing attempt')
@@ -41,14 +42,16 @@ code=create(tree,kit/control['source']['path'],closure,{},archive_path=ns+'/p2/q
 cap(kit/'k/c0.json',code);raw=base64.b64decode(json.loads((kit/'k/c0.json').read_text())['payload'])
 target=R/'target';(target/'u').mkdir(parents=True)
 spec=J.load(kit/'k/p.json');spec.update(n_root=str(target),namespace=ns,code_sha256=hashlib.sha256(raw).hexdigest(),uploads=[],host_paths={},frame_roots=[])
-inputs=J.load(L/'work/build24i/UPLOADS_n.json')['files']
-for item in inputs:
- if item['opaque_name'].startswith('u/'):
-  (target/'u'/item['sha256']).symlink_to(Path(item['local_path']).resolve())
-  spec['uploads'].append(dict(sha256=item['sha256'],bytes=item['bytes']))
+# Native planning follows the fixture's exact pins and stream-reader closure.
+# The production upload catalog contains unrelated stores and deferred slices.
+spec['pin_paths']={}
 cap(kit/'k/p.json',spec)
 request=J.load(L/'work/build24d/go/r2.json');request.update(weights=False,device='cpu',memory_gib=16,
     routing_base=cfg['streams']['routing'],room_audit=cfg['r1_training']['room_audit'])
+layout=prepare(R,L/'work/build24/proofs/capacity',cfg,J.write,J.sha)
+request.pop('_paths',None)
+request.pop('config',None)
+request.update(frame_roots=layout['frame_roots'],staged_pins=[])
 base=J.load(kit/'k/r.json');base['routing_base']=cfg['streams']['routing'];cap(kit/'k/r.json',base)
 receipt=cfg['r1_training']['handover_receipt'];hand=J.load(receipt['path'])
 small={}

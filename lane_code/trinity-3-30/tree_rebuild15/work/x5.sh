@@ -1,0 +1,1 @@
+J=/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/out; date -u +%TZ; cat $J/BUILD24LN_REPORT.md; echo ====; cat $J/KIT_WIRING_24LN.md; echo ====; head -c 1500 $J/ROUTING_DIGEST_STABILITY.json; echo; echo ====; head -c 4000 $J/PIN_COMPARISONS_24N.md; echo; cat $J/TREE24LN_SEAL.json | head -c 400

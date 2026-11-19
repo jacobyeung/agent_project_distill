@@ -1,0 +1,3601 @@
+{
+  "admitted_rows": 16000,
+  "answer_only": 0,
+  "canonical_room_reader": "student_pilot.r1_rooms.Rooms.canonical and Rooms.room; native exclusion-list readers",
+  "databases": [
+    {
+      "bytes": 99454976,
+      "path": "/tmp/q_22c714e1/p2/q/p/prepare_bcabe4a223664ea59be1d880024fbe0e/routing/rows.sqlite",
+      "sha256": "e0badd6979f01c70ff5d3ff81a0635c58662bff7b8ba238bbd56f99091aed517",
+      "source": "0"
+    }
+  ],
+  "protected_rooms": {
+    "bench_v2": {
+      "file": "e6.json",
+      "rows": 0,
+      "sha256": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970"
+    },
+    "dev_s1": {
+      "file": "e7.json",
+      "rows": 0,
+      "sha256": "a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5"
+    }
+  },
+  "question_types": {
+    "camera_displacement": 16000
+  },
+  "reasoning_field": "reasoning when present; otherwise target/suffix <think> body; missing body counts empty",
+  "sample": [
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing13010",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing13010",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 13011
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing7880",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing7880",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 7881
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing11553",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing11553",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 11554
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing8462",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing8462",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 8463
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing11706",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing11706",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 11707
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing12612",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing12612",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 12613
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing9997",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing9997",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 9998
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing3551",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing3551",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 3552
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing15994",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing15994",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 15995
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing15496",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing15496",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 15497
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing13843",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing13843",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 13844
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing338",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing338",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 339
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing4160",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing4160",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 4161
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing9268",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing9268",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 9269
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing11351",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing11351",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 11352
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing7268",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing7268",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 7269
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing5930",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing5930",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 5931
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing14120",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing14120",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 14121
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing903",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing903",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 904
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing4502",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing4502",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 4503
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing9965",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing9965",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 9966
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing824",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing824",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 825
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing11108",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing11108",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 11109
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing10911",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing10911",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 10912
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing2986",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing2986",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 2987
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing11869",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing11869",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 11870
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing4636",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing4636",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 4637
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing449",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing449",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 450
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing9934",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing9934",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 9935
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing7971",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing7971",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 7972
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing8310",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing8310",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 8311
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing5412",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing5412",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 5413
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing4908",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing4908",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 4909
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing13278",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing13278",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 13279
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing9197",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing9197",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 9198
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing9039",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing9039",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 9040
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing3549",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing3549",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 3550
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing959",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing959",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 960
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing100",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing100",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 101
+    },
+    {
+      "row": {
+        "answer": "<answer>0.24</answer>",
+        "category": "routing_trace",
+        "dataset": "d1",
+        "gt_answer": "0.24",
+        "provenance": {
+          "alias": "d1/scene9997_00",
+          "canonical": "scannet/scene9997_00",
+          "rgb_manifest": {
+            "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24/proofs/capacity/rgb.json",
+            "sha256": "c9304aa07185c1b33f4b4808b86b920ae38fe669b4a023c62cbff7e87cb9353c"
+          },
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c"
+        },
+        "qid": "routing3796",
+        "question": "How far in meters did the camera move from frame 1 to frame 25?",
+        "question_type": "camera_displacement",
+        "routing": {
+          "answer": "<answer>0.24</answer>",
+          "canonical": "scannet/scene9997_00",
+          "category": "route",
+          "events": [
+            {
+              "kind": "plan",
+              "text": "Call: measure camera displacement between frame 1 and frame 25."
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_call",
+              "token": "<move from=1 to=25>"
+            },
+            {
+              "call_id": "move",
+              "kind": "tool_response",
+              "name": "move",
+              "text": "dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m",
+              "values": {
+                "move.delta": {
+                  "value": [
+                    -0.24,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "move.distance": {
+                  "value": 0.24
+                }
+              }
+            },
+            {
+              "kind": "canonical_text",
+              "text": "\nStep: the printed distance is 0.24 m."
+            }
+          ],
+          "form": "spec-v3.8-calculator-v2",
+          "gt_answer": "0.24",
+          "head_layout": "per_frame",
+          "physical_group": null,
+          "qid": "routing3796",
+          "question_type": "camera_displacement",
+          "source_row_sha256": "a8bbcb464f1fe811b28f473ba5cbcef19c8d1d5ccc5426849ac6e55260bdfd0c",
+          "tool_output_spans": [
+            {
+              "call_id": "move",
+              "end": 182,
+              "event_index": 2,
+              "start": 92
+            }
+          ]
+        },
+        "scene": "scene9997_00",
+        "student_input": {
+          "fps": 10,
+          "options": [],
+          "question": "How far in meters did the camera move from frame 1 to frame 25?"
+        },
+        "target": "<think>\nCall: measure camera displacement between frame 1 and frame 25.\n\n<move from=1 to=25><tool_response>dx = -0.24 m, dy = +0.00 m, dz = +0.00 m, distance = 0.24 m</tool_response>\nStep: the printed distance is 0.24 m.\n</think>\n\n<answer>0.24</answer>",
+        "tool_output_spans": [
+          {
+            "call_id": "move",
+            "end": 182,
+            "event_index": 2,
+            "start": 92
+          }
+        ]
+      },
+      "row_id": 3797
+    }
+  ],
+  "sample_seed": 20261119,
+  "stream": "routing",
+  "trace_form_basis": "routing.form is canonical producer form; form is the stored trace form; answer_form selects native encoding; absent fields are not_recorded",
+  "trace_forms": [
+    {
+      "field": "routing.form",
+      "rows": 16000,
+      "value": "spec-v3.8-calculator-v2"
+    }
+  ]
+}

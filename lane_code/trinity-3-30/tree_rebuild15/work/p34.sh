@@ -1,0 +1,18 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; free -g | sed -n 2p; tmux ls | grep -E "tr15"
+cat > $W/prompts/q_scene.md <<'EOPX'
+# Read-only investigation for lane tree_rebuild: does vehicle N's in-job preparation refuse on missing scene-rebuild evidence?
+
+You investigate; you do not fix. You run once, read-only, on trinity-1-18; nobody answers questions. Report only verified facts, each with file:line or artifact path and the reading or command that shows it. Your final message is the answer (under 30 lines). Time limit: 40 minutes.
+
+## Question
+A tree build reports: the decoded launch configs of kit n (`/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/kit_n_go/k/c.json` and `k/n.json`; base64-json: `json.loads(base64.b64decode(json.load(open(f))['payload']))`) have `r2_all_stream_exclusions=true` with `r2_scene_rebuild` and `scene_coverage` null, and native `student_pilot/carrier_c1_run.prepare` calls `r2_scene_bindings.verify`, which requires an authenticated scene-rebuild pin. The tree is `/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/tree_r1` (seal 189df6ac; the pending tree changes nothing relevant).
+1. Trace exactly what N's job runs: kit `b/a.py q` -> launch_r1/production_proof._run -> s1_admission.admit(prepare_only=True) -> carrier_c1_run.prepare (and anything u.py/train later calls, e.g. prepared(admission=True)). Where and under which config conditions is r2_scene_bindings.verify (or any other check of r2_scene_rebuild / scene_coverage / r2_all_stream_exclusions) called, and would N's config as decoded (after the kit's localisation in b/pl.py) refuse there? Answer yes/no with the lines.
+2. P's run (job 172660, which trained this init): what did P's config carry for these fields? P's config and receipts are among the kit's pinned files (the p_run config pin in k/c.json r1_training.p_run; local bytes via the local_path entries of `/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/out/UPLOADS_MINIMAL.json` and `UPLOADS_*.json`). Did P's preparation pass this check, and with which pins?
+3. Fixtures: earlier fixture runs reported native preparation ADMIT at 400 (e.g. `w24/work/build24/`, `w24/work/build24b/`, `w24/work/build24f/rehearsal3`, `rehearsal4`): did they run this check, and with which values? If they set these fields, from where?
+4. If N would refuse: list the legitimate options that bind EXISTING evidence (e.g. the scene-rebuild receipt P used, if its rows are the rows N trains), what each would bind, and whether it changes exclusions, admission or legality. Do not propose weakening any gate.
+
+## Rules
+Read-only. No ssh, network, GPU, Git, tmux, scheduler or another agent. Never list, search or grep on /home or /data*: read only the named files there. Any process runs under nice -n 10, at most 8 threads, under 20 GB RAM; write nothing outside your own temporary directory.
+EOPX
+tmux new -d -s tr15_qscene "cd /home/jjyeung/agent_project_distill && nice -n 10 agent/scripts/codex_dispatch.sh review $W/w24 $W/prompts/q_scene.md --label tree_rebuild_qscene --skip-git-check > $W/work/qscene_dispatch.log 2>&1"
+sleep 10; tmux ls | grep tr15

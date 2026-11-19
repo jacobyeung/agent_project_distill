@@ -18,6 +18,7 @@ if name in ('git', 'ssh', 'sleep') or (name == 'bash' and args and args[0].endsw
 
 if name == 'hostname':
     print(os.environ.get('FAKE_HOST', 'trinity-3-30'))
+    sys.exit(int(os.environ.get('FAKE_HOSTNAME_RC', '0')))
 elif name == 'date' and os.environ.get('FAKE_DATE'):
     now = datetime.datetime.strptime(os.environ['FAKE_DATE'], '%Y-%m-%dT%H:%M:%SZ')
     print(now.strftime(args[-1][1:]))

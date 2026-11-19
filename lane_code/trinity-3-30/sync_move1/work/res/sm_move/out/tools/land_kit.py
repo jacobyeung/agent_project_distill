@@ -386,7 +386,10 @@ def sync_host():
                  'trinity-0-23', 'trinity-3-23')
     require(bool(re.fullmatch(r'trinity-[0-9]+-[0-9]+', host)) and host not in forbidden,
             'invalid or forbidden LCS_HOST: ' + host)
-    actual = subprocess.check_output(['hostname', '-s']).decode('utf-8').strip()
+    try:
+        actual = subprocess.check_output(['hostname', '-s']).decode('utf-8').strip()
+    except subprocess.CalledProcessError as exc:
+        raise Refusal('hostname -s failed (exit %s)' % exc.returncode) from None
     require(actual == host, 'owner runs only on ' + host)
     return host
 

@@ -10,3 +10,5 @@ Brief: B/briefs/n_ops2.md. B=/data2/jjyeung/agent_project_data/distillation_orch
 ## Next
 - Every <=10 min: read mon/last.line, ALERTS.txt, new files in events/n_ops, events/tree_rebuild, inbox.
 - At submission: write job id to mon/job, sleep 60, ledger line, confirm name/resources/advanced yield, RESULT job start.
+- ORCH ORDER 2157Z: tree_rebuild15 submits a DISCOVERY run (kit q of 24k union, preempt, 48 CPU, 800G, 4 h); I watch it with the launch watcher, report preparation progress (time prep at 48 CPUs) and every refusal with log lines. It claims and gates nothing.
+- parse.py change 22:05Z: file mon/noadv disables ADV_OTHERS (discovery job is not on advanced). Tests 32/32, replay 91/0 flags. Backup n_ops2/work/parse.py.bak_2205. For the discovery job: write its id to mon/job, touch mon/noadv, sleep 60. After it ends: mv mon/noadv to mon/noadv.used, write 0 (or N's id) to mon/job.

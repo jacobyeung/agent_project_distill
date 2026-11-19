@@ -64,3 +64,8 @@ Base: /scratch/jjyeung/orch_n30/cont_ops20/STATUS.md (17:45Z ROTATE section). To
 ## 21:27Z
 - 600 GPU 173348 PENDING on advanced (community-1, Resources), yield monitor c21_monA7. k1fwd1 P400 173346 running.
 - ORDER 2122Z: trinity-1-18 at 101 GB; nothing >200 MB there; new builds go to trinity-2-28. My 1-18 removal candidates listed (a600 in/ 296 MB, rehearsal 89 MB).
+## 22:00Z
+- H@544 173258 COMPLETED 21:50:42Z partial 482/900 (t0 300, t1 182, t2 0); fetched to package a/f WITHOUT pool move (work/o_fetch_H544_nomv.sh); local work/H544 (package, src, x/ extracted journals). RESULT 20261119T2158Z.
+- H remainder kit: Codex c21_hrem on trinity-2-28 tmux c21_hrem, workspace /scratch/jjyeung/orch_n30/cont_ops21_c/hrem (BRIEF_HREM.md). Then one Astra review, then Orchard build/fill/CPU for H@544 remainder (stage 813f42db/c21h544r), submit (advanced variant: replace general guard + scontrol Partition/QOS/NodeList).
+- H@200 173259 on general will hit USR1 at ~22:52Z (3:30) -> likely partial -> same kit (stage c21h200r).
+- 600 read 173348 RUNNING since 21:28Z (T 03:00, ends <= 00:28Z). Own-arm 173333 RUNNING since 20:11Z (T 05:00; USR1 at 4:30 = 00:41Z).
