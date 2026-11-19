@@ -1,0 +1,12 @@
+{
+  "run": {
+    "name": "before_final",
+    "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r3/final/before PACK_R3_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r3/final/before_final PACK_R3_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out_round2 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r3/applied_final/test_review3.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r3/final/before_final.log 2>&1",
+    "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r3/final/before_final.log",
+    "returncode": 1,
+    "expected_returncode": 1,
+    "started": "Thu Nov 19 13:27:13 UTC 2026"
+  },
+  "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r3/final/before_setup.log",
+  "reason": "Runner selected nonexistent final/before; excluded from defect evidence. The corrected before run uses the unchanged reviewed source in work/r3/before."
+}

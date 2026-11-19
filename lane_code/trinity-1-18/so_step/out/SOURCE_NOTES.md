@@ -99,3 +99,33 @@ Storage accounting uses `E/torch/storage.py:71–75,1036–1045`. The byte compa
 The CPU audit uses `resource.getrusage(resource.RUSAGE_SELF).ru_maxrss` for process lifetime maximum RSS, converted from Linux KiB to bytes. Separate arm processes keep their peaks independent; the result includes all threads, startup and receipt/processor copies. See Python's [resource usage documentation](https://docs.python.org/3.12/library/resource.html#resource.getrusage). This is not worker-only RSS or a total-memory bound. Real production RSS remains unmeasured here.
 
 The real train-startup CPU regression mocks transport/device selection, then restores CPU availability for the actual optimizer update. Installed torch `E/torch/optim/optimizer.py:451–474` selects a graph-capture check from accelerator availability; advertising mock CUDA availability during a CPU AdamW update would invoke the unavailable CUDA stub. The test retains actual CPU row preparation, model math and optimizer execution.
+
+## Audit grid, merged receipt and replay rule
+
+The grid observer reads the processor’s nested values with `Tensor.tolist()`;
+installed torch 2.11 documents that conversion at `E/torch/_tensor_docs.py:5523–5533`.
+It compares temporal size and spatial area, then selects an actual observed grid
+by volume. It assumes no framework-specific ordering of height and width.
+See the [versioned tolist documentation](https://docs.pytorch.org/docs/2.11/generated/torch.Tensor.tolist.html).
+
+The plan writer calls `B/student_pilot/carrier_c1_run.py:669` (`prepared`), whose
+final-mode merge is at `:712–720`. `Rows` reads pointing weights at `:1076` and
+encodes them with per-token decode at `:1170–1174`. The audit descriptor carries
+the merged receipt’s alignment settings. This reuses the trainer’s merge without
+maintaining a second list of config levers in the kit.
+
+Local tests set eight intra-op threads before model work, as documented in
+`E/torch/_torch_docs.py:9815–9825` and the
+[versioned thread API](https://docs.pytorch.org/docs/2.11/generated/torch.set_num_threads.html).
+The mixed-fallback regression uses the existing exact comparator: dtype and shape
+plus a flattened uint8 view, whose reinterpretation and nonzero-dimensional
+requirement are documented at `E/torch/_tensor_docs.py:6172–6192` and
+[Tensor.view](https://docs.pytorch.org/docs/2.11/generated/torch.Tensor.view.html).
+These official 2.11 pages were checked on 2026-11-19; the stable URL redirects to
+a different version and is not the basis for these claims.
+
+The replay’s factor 2 and continuation wall ratio <1.00 are declared operational
+thresholds, not framework guarantees or measured statistical confidence levels.
+The per-rank absolute maximum pools different loss magnitudes; a noisy large
+component can hide a smaller discrepancy, so exact CPU row hashes and draw
+equality remain mandatory. Bitwise-stable OFF repeats require bitwise ON equality.

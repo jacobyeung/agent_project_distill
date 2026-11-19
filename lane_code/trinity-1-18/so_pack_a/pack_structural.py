@@ -25,7 +25,7 @@ def dependency_reference(base,c):
     P.required_inputs(dict(required_inputs=[dict(pin,name='dependency_reference')]))
     P.need('sha256' in pin,'Required input pin missing: dependency_reference.sha256')
     def selected(v):
-        return dict(archives=v['archives'][1:],files=v['files'])
+        return dict({k:x for k,x in v.items() if k not in ('archives','types')},archives=v['archives'][1:])
     expected=P.digest(P.canonical(selected(P.read(pin['path']))));actual=P.digest(P.canonical(selected(base)))
     P.need(actual==expected,'Dependency layout differs from pinned reference')
     return dict(sha256=actual,reference_sha256=pin['sha256'],real_dependency_archives=len(base['archives'])-1)

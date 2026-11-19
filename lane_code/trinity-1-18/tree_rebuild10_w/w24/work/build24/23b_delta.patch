@@ -1,0 +1,122 @@
+--- a/launch_r1/build.py
++++ b/launch_r1/build.py
+@@ -26,6 +26,10 @@
+ 
+ 
+ def build(cfg, inputs, output):
++    cfg_input_root=Path(cfg).resolve().parent
++    cfg=load(cfg)
++    from student_pilot.r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     output=Path(output)
+     if output.exists() and any(output.iterdir()):raise ValueError('R1_KIT_ROOT_NOT_EMPTY')
+     output.mkdir(parents=True,mode=0o700,exist_ok=True)
+@@ -35,8 +39,6 @@
+     archive(TREE,archive_path,files,compress=True)
+     check_archive(dict(path=str(archive_path),sha256=sha256(archive_path)),files)
+     source=dict(path=str(archive_path.relative_to(output)),sha256=sha256(archive_path),tree_sha256=seal)
+-    cfg_input_root=Path(cfg).resolve().parent
+-    cfg=load(cfg)
+     from student_pilot.p3_provenance import pinned
+     from student_pilot.r1_population import SLICE_CELLS
+     row_sources=load(pinned(cfg['r1_training']['row_sources']))
+--- a/launch_r1/entry.py
++++ b/launch_r1/entry.py
+@@ -58,6 +58,8 @@
+ 
+ 
+ def admit(cfg):
++    from student_pilot.r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     value = cfg.get('r1_training', {})
+     if value.get('handover_receipt'):
+         receipt = load(pinned(value['handover_receipt']))
+@@ -104,6 +106,8 @@
+     from student_pilot.carrier_c1_run import identity
+     from student_pilot.checkpoint_space import plan
+     from student_pilot.carrier_c1_sweep import recipe_for
++    from student_pilot.r1_coverage import deferred
++    deferred(cfg, request)
+     root = Path(root).resolve()
+     job_tmp = fresh_tmp(root, request, job_tmp_token)
+     if root.exists() and any(root.iterdir()):
+--- a/launch_r1/production_proof.py
++++ b/launch_r1/production_proof.py
+@@ -67,6 +67,8 @@
+     try:
+         result['staged'] = verify_staging(request)
+         cfg = load(pinned(request['config']))
++        from student_pilot.r1_coverage import deferred
++        deferred(cfg, request, read_pins=True)
+         card = load(pinned(cfg['r1_training']['mix']))
+         if card.get('counting_admission') != 'procedure_only_v1':
+             raise ValueError('R1_PROOF_COUNTING_ADMISSION_REQUIRED')
+--- a/student_pilot/r1_population.py
++++ b/student_pilot/r1_population.py
+@@ -62,8 +62,9 @@
+             raise ValueError('R1_SOURCE_MEMBERSHIP_INVALID')
+         self.rows = {}
+         self.sources = value['sources']
+-        if minimal and self.sources:
+-            raise ValueError('R1_DEFERRED_MEMBERSHIP_NONEMPTY')
++        if minimal:
++            from .r1_coverage import deferred
++            deferred({'r1_training': {'routing_slices': 'deferred_first_boundary'}}, membership=value)
+         from .r1_coverage import PINS, source_names
+         source_names(self.sources)
+         for kind, source in self.sources.items():
+@@ -97,11 +98,12 @@
+ 
+ def produce(reader, card_pin, membership_pin, evidence, output, *, cfg=None):
+     """Walk every prepared offset. Reader failures refuse the population, never disappear."""
++    from .r1_coverage import deferred, deferred_card
++    minimal = deferred(cfg, read_pins=True)
+     output = Path(output)
+     output.mkdir(parents=True, exist_ok=True)
+     card = load(pinned(card_pin))
+-    from .r1_coverage import deferred, deferred_card
+-    minimal = deferred(cfg)
++    deferred(cfg, card=card)
+     if minimal:
+         deferred_card(card)
+     membership = Membership(membership_pin, minimal=minimal)
+@@ -158,6 +160,8 @@
+     """Publish a new preparation and config after native reader filtering and production."""
+     from .carrier_c1_run import Rows, prepared, identity
+     from .source_seal import binding as seal_binding
++    from .r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     receipt, _ = prepared(cfg)
+     output = Path(output)
+     output.mkdir(parents=True, exist_ok=True)
+--- a/student_pilot/r1_rooms.py
++++ b/student_pilot/r1_rooms.py
+@@ -85,6 +85,8 @@
+ 
+ def verify_audit(cfg, pin):
+     """Certify slice exclusion and bind a separate, explicitly scoped store record."""
++    from .r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     audit = load(pinned(pin))
+     value = cfg['r1_training']
+     from .r1_handover import pin_values
+@@ -134,6 +136,8 @@
+     import json
+     import sqlite3
+     from .row_removals import Removals
++    from .r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     value = cfg['r1_training']
+     rooms = Rooms(value['room_authority'])
+     removals = Removals(cfg['remove_files'])
+--- a/student_pilot/s1_admission.py
++++ b/student_pilot/s1_admission.py
+@@ -154,6 +154,8 @@
+     attempt_dir = output / ("attempt_"+attempt)
+     attempt_dir.mkdir()
+     cfg = load(pinned(config_pin))
++    from .r1_coverage import deferred
++    deferred(cfg, read_pins=True)
+     world = cfg.get("world_size")
+     if (type(world) is not int or world not in (4, 8) or cfg.get("ground_target_filter") is not True
+             or not cfg.get("dev_scene_exclusions") or not cfg.get("benchmark_scene_exclusions")

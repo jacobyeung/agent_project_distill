@@ -304,13 +304,13 @@ def resolve_inputs(inputs,base,cfg,c,mapping,remote,local):
 
 def fill(package,w,c):
     P.need(sys.version_info[:3]==(3,6,8),'Require actual login Python 3.6.8')
-    original_files,_,_,original_plan=P.structure(package)
+    original_files,_,_,original_plan=P.structure(package,c)
     P.export_identity(c,original_files,original_plan)
     if c.get('fill_mode','mirrors')=='structural':
         import pack_structural as S
         reference=S.dependency_reference(json.loads(original_files['a/0.json']),c)
         original=P.fingerprint(P.package_files(package));target,small=S.rebind(w/'standins',package)
-        cfg=dict(c,fill_mode='mirrors',mirrors=small['mirrors'],fill=small['fill'],remote_input_pins={k:dict(bytes=v['bytes']) for k,v in small['mirrors'].items()},old_identities=[],max_read_bytes=10*1024**2)
+        cfg=dict(c,fill_mode='mirrors',mirrors=small['mirrors'],fill=small['fill'],remote_input_pins={k:dict(bytes=v['bytes']) for k,v in small['mirrors'].items()},max_read_bytes=10*1024**2)
         result=fill(target,w,cfg);result.update(mode='structural',source_tree=original,dependency_reference=reference,standin_bytes=sum(x['bytes'] for x in small['mirrors'].values()),production_archive_identity=False)
         P.need(P.fingerprint(P.package_files(package))==original,'Structural probe changed delivery');return result
     P.need(c.get('fill_mode','mirrors')=='mirrors','Unknown fill mode')
@@ -333,6 +333,7 @@ def fill(package,w,c):
             calls=[];original_run=subprocess.run
             def sbatch(argv,**kwargs):
                 P.need(Path(argv[0]).name=='sbatch','Unexpected submit process')
+                P.submit_privacy(argv,pub['token'])
                 P.need(kwargs['input']==f['BATCH.sh'],'Submit wrapper bytes differ')
                 calls.append(argv);return subprocess.CompletedProcess(argv,0,b'123;local\n',b'')
             try:

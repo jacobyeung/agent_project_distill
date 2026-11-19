@@ -106,7 +106,7 @@
 +def build(destination, token=None, refresh=False, reader_repin=None, *, enable_extensions=False, processor_only=False, caches_only=False, operator_bootstrap=None, operator_source=None):
 +    if (processor_only or caches_only) and not enable_extensions:raise ValueError('Cache profiles require --enable-extensions')
 +    if bool(operator_bootstrap)!=bool(operator_source):raise ValueError('Supply both operator sources')
-+    if operator_source and not enable_extensions:raise ValueError('Operator overlay requires --enable-extensions')
++    if operator_source:raise ValueError('Use u0/a19.py with an A4 base and reviewed --export-binding')
 +    from orchard_h10.common import template
 +    template(T)
 +    import orchard_launcher as L
@@ -905,6 +905,465 @@
 +
 +if __name__=='__main__':run(*[json.loads(Path(p).read_text()) for p in sys.argv[1:3]])
 --- /dev/null
++++ b/u0/a19.py
+@@ -0,0 +1,241 @@
++"""Local A4 post-processing: preserve reviewed helpers and require an export binding."""
++import argparse
++import ast
++import gzip
++import hashlib
++import io
++import json
++from pathlib import Path
++import sys
++import tarfile
++
++if not __package__:
++    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
++from orchard_h10.common import canonical, valid_token, write
++from u0.a12 import batch
++
++
++
++# Vendored verbatim from cont_ops17/work/build_r10.py; no script-side effects.
++HEAD_OLD = "#!/bin/bash\nset -euo pipefail\nexec /usr/bin/python3 -I -s -B - <<'A'\n"
++def wrap_batch(text, tok):
++    # ORCH ANSWER 0318Z item 2: node-local log, EXIT trap copies node line + exit code + last 60 lines to the package's a/x<job>;
++    # USR1 (stop margin) is forwarded to the reader; a failed copy never changes the exit code. #SBATCH exclude: item 3.
++    t = text.decode(); assert t.startswith(HEAD_OLD) and t.endswith('\nA\n') and t.count('\nA\n') == 1
++    head = ("#!/bin/bash\n#SBATCH --exclude=orchard-community-2\nset -uo pipefail\n"
++            "P=/project/community/jjyeung/okh7/a15_cot_ap" + tok + "\nL=/tmp/a${SLURM_JOB_ID:-0}.l\nR=$P/a/x${SLURM_JOB_ID:-0}\n"
++            "fin(){ rc=$?; { head -n 1 \"$L\"; echo \"exit $rc\"; tail -n 60 \"$L\"; } > \"$R\" 2>/dev/null || true; exit $rc; }\n"
++            "trap fin EXIT\n"
++            "echo \"node $(hostname -s) tmp_free_kb $(df -Pk /tmp | awk 'NR==2{print $4}') gpus $(nvidia-smi -L 2>/dev/null | wc -l) cvd ${CUDA_VISIBLE_DEVICES:-none}\" > \"$L\" 2>/dev/null\n"
++            "/usr/bin/python3 -I -s -B - >>\"$L\" 2>&1 <<'A' &\n")
++    tail = "\nA\nPID=$!\ntrap 'kill -USR1 $PID 2>/dev/null' USR1\nwhile true; do wait $PID; rc=$?; kill -0 $PID 2>/dev/null || break; done\nexit $rc\n"
++    return (head + t[len(HEAD_OLD):-len('\nA\n')] + tail).encode()
++
++def sha(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def tarbytes(files):
++    # The same deterministic serializer used by cont_ops' build_r1.py.
++    result = io.BytesIO()
++    with gzip.GzipFile(fileobj=result, mode='wb', mtime=0) as gz:
++        with tarfile.open(fileobj=gz, mode='w') as archive:
++            for name, raw in sorted(files.items()):
++                member = tarfile.TarInfo(name)
++                member.size = len(raw)
++                member.mode = 0o600
++                archive.addfile(member, io.BytesIO(raw))
++    return result.getvalue()
++
++
++def unpack(raw):
++    files = {}
++    with tarfile.open(fileobj=io.BytesIO(raw)) as archive:
++        total = 0
++        for member in archive:
++            path = Path(member.name)
++            total += member.size
++            if (not member.isfile() or path.is_absolute() or '..' in path.parts
++                    or str(path) != member.name or member.name in files or total > 64*1024**2):
++                raise ValueError('Unsafe code archive')
++            files[member.name] = archive.extractfile(member).read()
++    return files
++
++
++def bootstrap(text):
++    lines = [line for line in text.splitlines() if line.startswith('b=bytes.fromhex(')]
++    if len(lines) != 1:
++        raise ValueError('A4 batch encoding differs')
++    files = unpack(bytes.fromhex(ast.literal_eval(lines[0][len('b=bytes.fromhex('):-1])))
++    if set(files) != {'0.py', '7.py', '0.json'}:
++        raise ValueError('A4 bundle inventory differs')
++    return files
++
++
++def checked_binding(path):
++    value = json.loads(Path(path).read_text())
++    required = {'run', 'step', 'member_directory', 'lineage', 'object', 'config_sha256',
++                'base_identity', 'frame_layout', 'preparation_sha256', 'archive_bytes', 'archive_sha256'}
++    if not required <= value.keys() or type(value['step']) is not int or value['step'] < 600:
++        raise ValueError('Require a reviewed step-600-or-later export binding')
++    if type(value['archive_bytes']) is not int or value['archive_bytes'] <= 0:
++        raise ValueError('Require reviewed export archive bytes')
++    if value['lineage'] not in ('SFT', 'RL'):
++        raise ValueError('Invalid export lineage')
++    if any(not isinstance(value[k], str) or not value[k] for k in required-{'step','preparation_sha256','archive_bytes'}):
++        raise ValueError('Incomplete export binding')
++    member = Path(value['member_directory'])
++    if member.is_absolute() or '..' in member.parts or str(member) != value['member_directory']:
++        raise ValueError('Invalid member directory')
++    import re
++    prep = value['preparation_sha256']
++    if not isinstance(prep, dict) or set(prep) != {'config', 'receipt', 'data_receipt'}:
++        raise ValueError('Incomplete preparation binding')
++    if any(not isinstance(h, str) or not re.fullmatch('[0-9a-f]{64}', h)
++           for h in [value['config_sha256'], value['archive_sha256'], *prep.values()]):
++        raise ValueError('Invalid binding digest')
++    return value
++
++
++REVIEWED_PAYLOAD = '4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d'
++
++
++def authenticate(base, source, original, payload, manifest_path, extension_pins_path):
++    if manifest_path is None or extension_pins_path is None:
++        raise ValueError('Require reviewed MANIFEST and EXTENSION_PINS')
++    manifest = json.loads(Path(manifest_path).read_text())
++    pins = json.loads(Path(extension_pins_path).read_text())
++    expected = {n: pin['after_sha256'] for patch in manifest['patches'].values()
++                for n, pin in patch['files'].items() if n.startswith('u0/')}
++    if not pins or pins != expected:
++        raise ValueError('Extension pins differ from MANIFEST')
++    if sha(original) != REVIEWED_PAYLOAD or manifest['a4_payload_pin'] != dict(
++            sha256=sha(original), bytes=len(original)):
++        raise ValueError('Require the reviewed A4 payload')
++    for name in ('tower_sequence.py', 'unpack_return.py', 'package/a/5.py'):
++        raw = (base/name).read_bytes()
++        if manifest['operator_files'][name] != dict(sha256=sha(raw), bytes=len(raw)):
++            raise ValueError('Patched operator pin differs: '+name)
++    paths = list((source/'u0').rglob('*'))
++    if (source/'u0').is_symlink() or any(p.is_symlink() for p in paths):
++        raise ValueError('Extension source must be regular')
++    actual = {str(p.relative_to(source)):sha(p.read_bytes()) for p in paths if p.is_file()}
++    if actual != pins:
++        raise ValueError('Extension inventory differs from reviewed pins')
++    for name in ('entry', 'job', 'runner', 'prepare'):
++        rel = 'orchard_h10/'+name+'.py'
++        if sha(payload[rel]) != manifest['base_pin']['inventory'][rel]:
++            raise ValueError('Alias base differs: '+rel)
++
++
++def build(base_operator, source_root, export_binding, destination, token, *,
++          enable_extensions=False, processor_only=False, manifest_path=None, extension_pins_path=None):
++    if not enable_extensions:
++        raise ValueError('A4 overlay build is OFF; require --enable-extensions')
++    base = Path(base_operator).resolve()
++    source = Path(source_root).resolve()
++    out = Path(destination).resolve()
++    token = valid_token(token)
++    binding = checked_binding(export_binding)
++    if out.exists() and any(out.iterdir()):
++        raise ValueError('Require a fresh operator directory')
++    original = (base/'package/0.tgz').read_bytes()
++    public = json.loads((base/'package/0.json').read_text())
++    if sha(original) != public['payload_sha256'] or len(original) != public['payload_bytes']:
++        raise ValueError('A4 payload differs')
++    payload = unpack(original)
++    authenticate(base, source, original, payload, manifest_path, extension_pins_path)
++    cfg = json.loads(payload['9.json'])
++    if canonical(cfg) != public['plan_sha256']:
++        raise ValueError('A4 plan differs')
++    if not isinstance(cfg.get('export_binding'), dict):
++        raise ValueError('A4 reviewed export binding is missing')
++    for name, pin in cfg['payload_pins'].items():
++        if sha(payload[name]) != pin['sha256'] or len(payload[name]) != pin['bytes']:
++            raise ValueError('A4 payload member differs: '+name)
++    keys = ('stage1_select_rule', 'perception_memo', 'perception_memo_modules',
++            'perception_memo_verify_ids', 'save_own_depth')
++    if any(k not in cfg for k in keys):
++        raise ValueError('A4 run keys are missing')
++    if cfg['stage1_select_rule'] != 'candidates_argmax' or cfg['perception_memo'] != 'on':
++        raise ValueError('Require the reviewed A4 run profile')
++    bundled = bootstrap((base/'package/BATCH.sh').read_text())
++    if json.loads(bundled['0.json']) != public:
++        raise ValueError('A4 bundled public descriptor differs')
++    # Keep 8.py, common, export admission, vendor code and serving bytes from A4.
++    for path in sorted((source/'u0').rglob('*')):
++        if path.is_symlink():
++            raise ValueError('Extension source must be regular')
++        if path.is_file() and '__pycache__' not in path.parts and path.suffix != '.pyc':
++            payload[str(path.relative_to(source))] = path.read_bytes()
++    for name, alias in (('entry','a13'),('job','a16'),('runner','a17'),('prepare','a18')):
++        payload['orchard_h10/'+name+'.py'] = payload['u0/'+alias+'.py']
++    cfg.update(token=token, export_binding=binding, read_extensions=True,
++               read_scene_shards=False, read_atomic_journal=False,
++               read_processor_only='on' if processor_only else 'off',
++               read_processor_cache='on', read_vision_cache='off' if processor_only else 'on',
++               read_sam_cache='off' if processor_only else 'on',
++               read_cache_bytes=(4 if processor_only else 12)*1024**3)
++    cfg['payload_pins'] = {n:dict(sha256=sha(b), bytes=len(b)) for n,b in payload.items() if n != '9.json'}
++    payload['9.json'] = json.dumps(cfg, sort_keys=True).encode()
++    raw = tarbytes(payload)
++    if len(raw) > 8*1024**2:
++        raise ValueError('Code archive exceeds local allowance')
++    public = dict(token=token, payload_sha256=sha(raw), payload_bytes=len(raw), plan_sha256=canonical(cfg))
++    package = out/'package'
++    package.mkdir(parents=True)
++    for name in ('3.py','a/0.json','a/4.py','a/5.py','a/7.py'):
++        dest = package/name
++        dest.parent.mkdir(parents=True, exist_ok=True)
++        dest.write_bytes((base/'package'/name).read_bytes())
++    for name in ('tower_sequence.py','fetch_return.py','unpack_return.py'):
++        (out/name).write_bytes((base/name).read_bytes())
++    # A4 seals the whole-tar receipt as constants in its fill helper. Bind the
++    # new constants to the required reviewed export, retaining all admission code.
++    fill = (package/'a/4.py').read_text()
++    replacements = {'REVIEWED_OBJECT':binding['object'],
++                    'REVIEWED_ARCHIVE_BYTES':binding['archive_bytes'],
++                    'REVIEWED_ARCHIVE_SHA256':binding['archive_sha256']}
++    lines = fill.splitlines(keepends=True)
++    for name, value in replacements.items():
++        positions = [i for i,line in enumerate(lines) if line.startswith(name+' = ')]
++        if len(positions) != 1:
++            raise ValueError('A4 fill helper constant differs: '+name)
++        lines[positions[0]] = name+' = '+repr(value)+'\n'
++    (package/'a/4.py').write_text(''.join(lines))
++    (package/'a').chmod(0o700)
++    operator = (out/'tower_sequence.py').read_bytes()
++    (package/'a/6.py').write_bytes(operator)
++    for name in ('0.json','CONFIG.json'):
++        write(package/name, public)
++    (package/'0.tgz').write_bytes(raw)
++    (package/'BATCH.sh').write_bytes(wrap_batch(batch(tarbytes({'0.py':bundled['0.py'], '7.py':operator,
++                                                  '0.json':(package/'0.json').read_bytes()}), token).encode(), token))
++    # Never carry the step-200 inputs, CPU proof or submit ledger into a new package.
++    for name in ('a/1.json','a/export.json'):
++        write(package/name, dict(pending=True))
++    for name, data in payload.items():
++        path = out/'src'/name
++        path.parent.mkdir(parents=True, exist_ok=True)
++        path.write_bytes(data)
++    write(out/'EXPORT_BINDING.json', binding)
++    immutable = ('0.tgz','0.json','3.py','BATCH.sh','CONFIG.json','a/0.json','a/4.py','a/5.py','a/6.py','a/7.py')
++    write(package/'PACKAGE.json', dict(token=token, files={n:sha((package/n).read_bytes()) for n in immutable}))
++    write(out/'BUILD.json', dict(base_payload_sha256=sha(original), base_plan_sha256=canonical(json.loads(unpack(original)['9.json'])),
++          export_binding_sha256=canonical(binding), operator_sha256=sha(operator),
++          bootstrap_sha256=sha(bundled['0.py']), submit_helper_sha256=sha(payload['8.py']),
++          profile='processor_only' if processor_only else 'caches_only', cards=1, expected=636,
++          partition='general', **public))
++    return dict(directory=str(out), **public)
++
++
++if __name__ == '__main__':
++    parser = argparse.ArgumentParser(description=__doc__)
++    for key in ('base-operator','source-root','export-binding','out','token','manifest','extension-pins'):
++        parser.add_argument('--'+key, required=True)
++    parser.add_argument('--enable-extensions', action='store_true')
++    parser.add_argument('--processor-only', action='store_true')
++    args = parser.parse_args()
++    print(json.dumps(build(args.base_operator,args.source_root,args.export_binding,args.out,args.token,
++                          enable_extensions=args.enable_extensions,processor_only=args.processor_only,
++                          manifest_path=args.manifest,extension_pins_path=args.extension_pins), sort_keys=True))
+--- /dev/null
++++ b/u0/a20.py
+@@ -0,0 +1,212 @@
++"""Explicit local A4 operation plans and parity settings; never launches jobs."""
++import argparse
++import importlib.util
++import json
++from pathlib import Path
++import shlex
++import sys
++
++if not __package__:
++    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
++from u0.a19 import checked_binding, sha, tarbytes, unpack
++from orchard_h10.common import canonical
++
++PROFILE_KEYS = ('stage1_select_rule', 'perception_memo', 'perception_memo_modules',
++                'perception_memo_verify_ids', 'save_own_depth', 'read_processor_only',
++                'read_processor_cache', 'read_vision_cache', 'read_sam_cache', 'read_cache_bytes')
++
++
++def read(path):
++    return json.loads(Path(path).read_text())
++
++
++def write(path, value):
++    Path(path).write_text(json.dumps(value, sort_keys=True, indent=2)+'\n')
++
++
++def derive_binding(template, artifact, done, prep_files, output):
++    value = read(template); art = read(artifact)
++    fields = Path(done).read_text().split()
++    if len(fields) != 3 or fields[0] != value['object']:
++        raise ValueError('Whole-tar receipt object differs from target')
++    if art['step'] != value['step'] or value['member_directory'] != 'm'+str(art['step']):
++        raise ValueError('Artifact step differs from reviewed target')
++    for key, filename in (('heads','heads.pt'), ('full_weights','full_weights/full_weights.json')):
++        tail = Path(value['run'])/value['member_directory']/filename
++        if Path(art[key]['path']).parts[-len(tail.parts):] != tail.parts:
++            raise ValueError('Artifact run/member differs from target')
++    for key in ('config_sha256', 'base_identity', 'frame_layout'):
++        supplied = value.get(key)
++        if supplied and not str(supplied).startswith('FILL_FROM_') and supplied != art[key]:
++            raise ValueError('Reviewed artifact field differs: '+key)
++        value[key] = art[key]
++    hashes = {key:sha(Path(path).read_bytes()) for key,path in prep_files.items()}
++    if hashes != value['preparation_sha256']:
++        raise ValueError('Preparation differs from reviewed template')
++    receipt = read(prep_files['receipt']); config = read(prep_files['config'])
++    if receipt['config_sha256'] != art['config_sha256'] or any(
++            config[k] != art[k] for k in ('base_identity','frame_layout')):
++        raise ValueError('Preparation artifact identity differs')
++    value.update(archive_bytes=int(fields[1]), archive_sha256=fields[2])
++    # Keep the reviewed Orchard paths; prep_files are authenticated local copies.
++    if set(value['prep_paths']) != set(prep_files) or not value['done']:
++        raise ValueError('Require reviewed remote receipt paths')
++    write(output, value); checked_binding(output)
++    return value
++
++
++def package_config(operator):
++    package = Path(operator)/'package'; public = read(package/'0.json')
++    raw = (package/'0.tgz').read_bytes()
++    if sha(raw) != public['payload_sha256']:raise ValueError('Payload differs')
++    cfg = json.loads(unpack(raw)['9.json'])
++    if canonical(cfg) != public['plan_sha256'] or cfg.get('read_extensions') is not True:
++        raise ValueError('Require a bound ON package')
++    for name,pin in read(package/'PACKAGE.json')['files'].items():
++        if sha((package/name).read_bytes()) != pin:raise ValueError('Package file differs: '+name)
++    return package, public, cfg
++
++
++def gate(operator, prepared, proof, config_template, settings_out, config_out):
++    package, public, cfg = package_config(operator)
++    receipt = read(proof); raw = Path(prepared).read_bytes()
++    if (receipt.get('passed') is not True or receipt['plan'] != public['plan_sha256']
++            or receipt['payload'] != public['payload_sha256'] or receipt['ready']['settings'] != sha(raw)
++            or receipt['operator_sha256'] != sha((package/'a/6.py').read_bytes())):
++        raise ValueError('Prepared settings proof differs from adopted package')
++    settings = json.loads(raw)
++    spec = importlib.util.spec_from_file_location('adopted_operator', package/'a/6.py')
++    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
++    descriptor, = module.descriptors(str(package))
++    for key in PROFILE_KEYS[:5]:settings[key] = descriptor[key]
++    expected = {key:cfg[key] for key in PROFILE_KEYS}
++    if {key:settings.get(key) for key in PROFILE_KEYS} != expected:
++        raise ValueError('Prepared/adopted read profile differs')
++    slots = [i for i,name in enumerate(('processor','vision','sam')) if settings['read_'+name+'_cache']=='on']
++    config = read(config_template)
++    config.update(enable_caches=slots, read_cache_bytes=settings['read_cache_bytes'],
++                  adoption_profile=expected, adoption_plan_sha256=public['plan_sha256'])
++    write(settings_out, settings); write(config_out, config)
++    return config
++
++
++SUBMIT_CHECK = '''import hashlib,json,os,sys,tarfile
++from pathlib import Path
++p=Path(sys.argv[1]);pool=Path(sys.argv[2]);h=lambda f:hashlib.sha256(f.read_bytes()).hexdigest()
++pub=json.loads((p/'0.json').read_text());proof=json.loads((p/'a/c/CPU.json').read_text())
++with tarfile.open(p/'0.tgz') as t:cfg=json.load(t.extractfile('9.json'))
++if h(p/'0.tgz')!=pub['payload_sha256']:raise ValueError('Payload differs')
++for key in ('passed','entry_sequence_passed','bundle_guard_passed'):
++ if proof.get(key) is not True:raise ValueError('CPU receipt failed: '+key)
++if (proof['plan']!=pub['plan_sha256'] or proof['payload']!=pub['payload_sha256'] or proof['inputs']!=h(p/'a/1.json') or proof['operator_sha256']!=h(p/'a/6.py')):raise ValueError('CPU receipt binding differs')
++memory=proof['memory']
++if memory.get('fits') is not True or memory.get('basis')!='fixed_g3t_shapes' or memory.get('read_cache_bytes')!=cfg['read_cache_bytes']:raise ValueError('CPU memory proof differs')
++for name in ('dry.json','dry2.json'):
++ if json.loads((p/'a'/name).read_text()).get('passed') is not True:raise ValueError('Dry check failed')
++if not pool.is_dir() or pool.is_symlink():raise ValueError('Return pool missing or linked')
++total=0
++def fail(error):raise error
++for base,dirs,files in os.walk(str(pool),followlinks=False,onerror=fail):
++ for name in dirs+files:
++  f=Path(base)/name
++  if f.is_symlink():raise ValueError('Unexpected pool symlink')
++ for name in files:
++  total+=(Path(base)/name).stat().st_size
++  if total>75000000:raise ValueError('Return pool exceeds 75 MB')
++print(json.dumps(dict(passed=True,pool_bytes=total)))
++'''
++
++
++def operations(operator, binding_path, dry_root, destination):
++    package, public, cfg = package_config(operator)
++    binding = checked_binding(binding_path)
++    if binding != cfg['export_binding']:raise ValueError('Operation binding differs from package')
++    if set(binding['prep_paths']) != {'config','receipt','data_receipt'}:
++        raise ValueError('Require prep_paths from reviewed target')
++    out = Path(destination); out.mkdir(parents=True, exist_ok=False)
++    raw = tarbytes({str(p.relative_to(package)):p.read_bytes() for p in package.rglob('*') if p.is_file()})
++    (out/'1.tgz').write_bytes(raw); (out/'SHA256').write_text(sha(raw)+'  1.tgz\n')
++    for old,new in (('dryres2.py','d.py'),('dry2.py','d2.py')):
++        (out/new).write_bytes((Path(dry_root)/old).read_bytes())
++    q = shlex.quote
++    pre = '#!/bin/bash\nset -euo pipefail\numask 077\nD=$(cd -- "$(dirname -- "$0")" && pwd)\n'
++    pre += 'P='+q('/project/community/jjyeung/okh7/a15_cot_ap'+public['token'])+'\n'
++    place = pre+'(cd "$D" && sha256sum -c SHA256)\ntest ! -e "$P"\nmkdir -m 700 "$P"\ntar -xzf "$D/1.tgz" -C "$P"\nchmod 700 "$P/a"\n'
++    fill = pre+'export TZ=UTC CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud CLOUDSDK_CORE_DISABLE_PROMPTS=1\nE=$P/a/e\ntest ! -e "$E"\nmkdir -m 700 "$E"\n'
++    fill += 'OBJECT='+q(binding['object'])+'\ncp '+q(binding['done'])+' "$E/5"\n'
++    fill += 'test "$(cat "$E/5")" = '+q(binding['object']+' '+str(binding['archive_bytes'])+' '+binding['archive_sha256'])+'\n'
++    for key,n in (('config',7),('receipt',8),('data_receipt',9)):
++        fill += 'cp '+q(binding['prep_paths'][key])+' "$E/'+str(n)+'"\n'
++        fill += 'test "$(sha256sum "$E/'+str(n)+'" | cut -d\' \' -f1)" = '+q(binding['preparation_sha256'][key])+'\n'
++    fill += '''for i in 0 1 2 3; do
++  test ! -e "$E/$i"
++  gsutil -o Boto:num_retries=0 -o Boto:metadata_service_num_attempts=1 -o GSUtil:parallel_process_count=1 -o GSUtil:parallel_thread_count=1 -o GSUtil:sliced_object_download_threshold=0 -o GSUtil:sliced_object_download_max_components=1 -q cp "gs://cmu-gpucloud-jjyeung/$OBJECT.part0$i-of-04" "$E/$i.partial"
++  mv "$E/$i.partial" "$E/$i"
++done
++/usr/bin/python3 -I -s -B "$P/a/4.py" --parts "$E/0" "$E/1" "$E/2" "$E/3" --done "$E/5" --object "$OBJECT" --config "$E/7" --receipt "$E/8" --data-receipt "$E/9"'''
++    fill += ' --lineage '+q(binding['lineage'])+' --step '+str(binding['step'])+''' --out "$P/a/export.json" --prep-tar "$P/a/6" --base-inputs "$P/a/0.json" --inputs-out "$P/a/1.json"
++PREP=$(sha256sum "$P/a/6" | cut -d' ' -f1)
++/usr/bin/python3 -I -s -B "$D/d.py" "$P/a/1.json" "$P/a/0.json" "$PREP" > "$P/a/dry.json"
++(cd "$P" && CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 04:30:00)
++/usr/bin/python3 -I -s -B "$D/d2.py" "$P" "$P/a/w2" > "$P/a/dry2.json"
++printf '%s\\n' 0 > "$P/a/1.txt"
++'''
++    cpu = pre+'''test "$(cat "$P/a/1.txt")" = 0
++test ! -e "$P/a/4.txt"
++test ! -e "$P/a/c"
++CPU_REPLY=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME="$HOME" USER="$USER" CUDA_VISIBLE_DEVICES= \\
++ sbatch --parsable --account=mt01 --partition=preempt --nodes=1 --ntasks=1 \\
++ --job-name="${P##*/}" --cpus-per-task=8 --mem=200G --time=04:00:00 \\
++ --exclude='orchard-flame-[0-31],orchard-community-2' --export=ALL --no-requeue --chdir=/tmp \\
++ --output="$P/a/4.log" --error="$P/a/4.err" \\
++ --wrap="exec /usr/bin/python3 -I -s -B $P/a/5.py --package $P --sequence $P/a/6.py --results $P/a/c")
++CPU_JOB=${CPU_REPLY%%;*}
++[[ "$CPU_JOB" =~ ^[0-9]+$ ]]
++printf '%s\\n' "$CPU_JOB" > "$P/a/4.txt"
++'''
++    submit = pre+'''test ! -e "$P/a/8.txt"
++/usr/bin/python3 -I -s -B "$D/check.py" "$P" /project/community/jjyeung/okh7/ae71c903
++squeue -u jjyeung -p general -h > "$P/a/9.txt"
++test ! -s "$P/a/9.txt"
++(cd "$P" && CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 04:30:00)
++JOB_REPLY=$(cd "$P" && /usr/bin/python3 -I -s -B 3.py submit --gpus 1 --time 04:30:00)
++JOB=${JOB_REPLY%%;*}
++[[ "$JOB" =~ ^[0-9]+$ ]]
++printf '%s\\n' "$JOB" > "$P/a/8.txt"
++'''
++    fetch = pre+'''JOB=$(cat "$P/a/8.txt")
++[[ "$JOB" =~ ^[0-9]+$ ]]
++RET=$(/usr/bin/python3 -I -s -B - "$P" "$JOB" <<'PY'
++import json,sys
++from pathlib import Path
++print(json.loads((Path(sys.argv[1])/'0.json').read_text())['token']+format(int(sys.argv[2]),'08x'))
++PY
++)
++(cd "$P" && /usr/bin/python3 -I -s -B 3.py fetch --return-token "$RET" --out "$P/a/f")
++'''
++    for name,text in (('o_place.sh',place),('o_pull_fill.sh',fill),('o_cpu.sh',cpu),('o_sub.sh',submit),('o_fetch.sh',fetch)):
++        (out/name).write_text(text)
++    (out/'check.py').write_text(SUBMIT_CHECK)
++    return dict(delivery_sha256=sha(raw), package='/project/community/jjyeung/okh7/a15_cot_ap'+public['token'])
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--enable-extensions', action='store_true')
++    sub = parser.add_subparsers(dest='action', required=True)
++    b = sub.add_parser('binding')
++    for key in ('template','artifact','done','config','receipt','data-receipt','out'):b.add_argument('--'+key, required=True)
++    o = sub.add_parser('operations')
++    for key in ('operator','binding','dry-root','out'):o.add_argument('--'+key, required=True)
++    g = sub.add_parser('gate')
++    for key in ('operator','prepared','proof','config','settings-out','config-out'):g.add_argument('--'+key, required=True)
++    a = parser.parse_args()
++    if not a.enable_extensions:parser.error('Preparation is OFF; require --enable-extensions')
++    if a.action=='binding':
++        result=derive_binding(a.template,a.artifact,a.done,dict(config=a.config,receipt=a.receipt,data_receipt=a.data_receipt),a.out)
++    elif a.action=='operations':result=operations(a.operator,a.binding,a.dry_root,a.out)
++    else:result=gate(a.operator,a.prepared,a.proof,a.config,a.settings_out,a.config_out)
++    print(json.dumps(result,sort_keys=True))
++
++
++if __name__=='__main__':main()
+--- /dev/null
 +++ b/u0/tests/test_round2.py
 @@ -0,0 +1,310 @@
 +"""Round-2 regressions. READ_ROUND2_BEFORE=1 selects the reviewed bytes."""
@@ -1420,7 +1879,7 @@
 +if __name__=='__main__':unittest.main(verbosity=2)
 --- /dev/null
 +++ b/u0/tests/test_operator_round3.py
-@@ -0,0 +1,249 @@
+@@ -0,0 +1,244 @@
 +"""Exercise A4's real operator bootstrap and sequence with an a12 ON payload."""
 +import ast
 +import hashlib
@@ -1657,15 +2116,10 @@
 +            result=subprocess.run(cmd,capture_output=True,text=True)
 +            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
 +        if not BEFORE:
-+            # Exercise the actual opt-in bundling interface, including processor-only.
-+            builder.build(builder.K/'operator','ab0123456789',enable_extensions=True,processor_only=True,
-+                          operator_bootstrap=root/'0.py',operator_source=OPERATOR)
-+            bundled=decode((builder.K/'operator/BATCH.sh').read_text())
-+            self.assertEqual(bundled['0.py'],(root/'0.py').read_bytes());self.assertEqual(bundled['7.py'],OPERATOR.read_bytes())
-+            with tarfile.open(builder.K/'operator/0.tgz') as t:
-+                config=json.load(t.extractfile('9.json'))
-+            self.assertEqual(config['read_processor_only'],'on');self.assertEqual(config['read_sam_cache'],'off')
-+            self.assertFalse(config['read_scene_shards']);self.assertFalse(config['read_atomic_journal'])
++            # The generic builder must not produce an incomplete A4 operator package.
++            with self.assertRaisesRegex(ValueError,'a19.py'):
++                builder.build(builder.K/'operator','ab0123456789',enable_extensions=True,processor_only=True,
++                              operator_bootstrap=root/'0.py',operator_source=OPERATOR)
 +
 +if __name__=='__main__':
 +    if len(sys.argv)>1 and sys.argv[1]=='--child':child(Path(sys.argv[2]),int(sys.argv[3]))
@@ -1713,3 +2167,664 @@
 +if __name__=='__main__':
 +    result=unittest.TextTestRunner(verbosity=2).run(suite)
 +    raise SystemExit(not result.wasSuccessful())
+--- /dev/null
++++ b/u0/tests/test_round4.py
+@@ -0,0 +1,425 @@
++"""A4 step-600 CPU contract: real preparation, rehearsal, bootstrap and job dispatch."""
++import ast
++from contextlib import ExitStack
++import copy
++import hashlib
++import importlib.util
++import io
++import json
++import os
++from pathlib import Path
++import runpy
++import subprocess
++import sys
++import tarfile
++import types
++import unittest
++import uuid
++from unittest.mock import patch
++
++L=Path(os.environ.get('READ_WORKSPACE','/scratch/jjyeung/orch_n30/so_read'))
++SRC=Path(__file__).resolve().parents[2]
++INPUT=Path(os.environ['READ_INPUT_SRC'])
++BEFORE=os.environ.get('READ_ROUND4_BEFORE')=='1'
++E=L/'work/round4-before-u0' if BEFORE else SRC/'u0'
++OP=Path(os.environ.get('READ_OPERATOR4_SOURCE',str(L/'work/operator4')))
++sys.path[:0]=[str(SRC),str(SRC/'b'),str(INPUT/'tree'),str(E)]
++
++
++def load(name,path):
++    spec=importlib.util.spec_from_file_location(name,path)
++    module=importlib.util.module_from_spec(spec);sys.modules[name]=module
++    spec.loader.exec_module(module);return module
++
++
++def write(path,value):
++    path.parent.mkdir(parents=True,exist_ok=True)
++    path.write_text(json.dumps(value,sort_keys=True))
++
++
++def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++def archive(path):
++    with tarfile.open(path) as tar:
++        return {m.name:tar.extractfile(m).read() for m in tar if m.isfile()}
++
++
++def directory():
++    root=Path(os.environ['READ_TEST_TMP'])/uuid.uuid4().hex;root.mkdir(parents=True)
++    return root
++
++
++def build_profile(root,processor_only=False):
++    base=root/'base'
++    for rel in ('package/0.tgz','package/0.json','package/BATCH.sh','package/3.py',
++                'package/a/0.json','package/a/4.py','package/a/7.py','fetch_return.py'):
++        dest=base/rel;dest.parent.mkdir(parents=True,exist_ok=True)
++        dest.write_bytes((INPUT.parent/rel).read_bytes())
++    for rel in ('tower_sequence.py','unpack_return.py','package/a/5.py'):
++        path=(L/'out_round4/operator/tower_sequence.py' if rel=='tower_sequence.py' else INPUT.parent/rel) if BEFORE else OP/rel
++        if rel=='package/a/5.py' and os.environ.get('READ_NODE4_BEFORE')=='1':path=INPUT.parent/rel
++        dest=base/rel;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(path.read_bytes())
++    cfg=json.loads(archive(base/'package/0.tgz')['9.json'])
++    # A synthetic binding tests the contract; it is not a production export receipt.
++    binding=dict(cfg['export_binding'],step=600,member_directory='m600',object='q8/8865619b/673bc60f_m600.tar',archive_bytes=4,archive_sha256='2'*64)
++    write(root/'binding.json',binding)
++    target=root/'built'
++    if BEFORE:
++        builder=load('before_builder4',E/'a12.py')
++        original=load('original_builder4',INPUT/'orchard_h10/build.py')
++        original.B=INPUT/'b';original.T=INPUT/'orchard_h10/vendor'
++        source=root/'source'
++        for name,path in original.sources().items():
++            dest=source/name;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(path.read_bytes())
++        for path in E.rglob('*'):
++            if path.is_file():
++                dest=source/'u0'/path.relative_to(E);dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(path.read_bytes())
++        builder.K=source;builder.B=source/'b';builder.T=source/'orchard_h10/vendor'
++        builder.build(source/'package','ab0123456789',enable_extensions=True,caches_only=True,
++                      processor_only=processor_only,operator_bootstrap=L/'out_round4/operator/0.py',
++                      operator_source=base/'tower_sequence.py')
++        for path in (source/'package').iterdir():
++            if path.is_file():
++                dest=target/'package'/path.name;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(path.read_bytes())
++        for rel in ('a/0.json','a/4.py','a/5.py'):
++            dest=target/'package'/rel;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes((base/'package'/rel).read_bytes())
++        for rel in ('tower_sequence.py','fetch_return.py','unpack_return.py'):
++            (target/rel).write_bytes((base/rel).read_bytes())
++        (target/'package/a/6.py').write_bytes((base/'tower_sequence.py').read_bytes())
++        for name,raw in archive(target/'package/0.tgz').items():
++            dest=target/'src'/name;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(raw)
++        names=('0.tgz','0.json','3.py','BATCH.sh','CONFIG.json','a/0.json','a/4.py','a/5.py','a/6.py')
++        write(target/'package/PACKAGE.json',dict(files={n:digest(target/'package'/n) for n in names}))
++    else:
++        builder=load('a4_builder4',(L/'work/round5-before-u0' if os.environ.get('READ_NODE4_BEFORE')=='1' else E)/'a19.py')
++        builder.build(base,SRC,root/'binding.json',target,'ab0123456789',
++                      enable_extensions=True,processor_only=processor_only,**({} if os.environ.get('READ_NODE4_BEFORE')=='1' else dict(
++                      manifest_path=L/'out/patches/MANIFEST.json',
++                      extension_pins_path=L/'out/kit_parity50/EXTENSION_PINS.json')))
++    return target,binding
++
++
++def seed_inputs(target,binding):
++    package=target/'package';payload=archive(package/'0.tgz');cfg=json.loads(payload['9.json'])
++    inputs=json.loads((package/'a/0.json').read_text())
++    inputs['archives'][0]['sha256']=binding['archive_sha256']
++    export=dict(schema='h1-export-pins-v1',**{k:binding[k] for k in ('run','step','member_directory','lineage','object','config_sha256')},
++                archive_sha256=inputs['archives'][0]['sha256'],preparation={})
++    from orchard_h10.export_pins import MEMBERS
++    for name,member in MEMBERS.items():
++        pin=dict(sha256='1'*64,bytes=1)
++        export[name]=pin
++        inputs['files'][name]=dict(path=cfg['logical']+'/d/'+binding['member_directory']+'/'+member,**pin)
++    for name,h in binding['preparation_sha256'].items():
++        export['preparation'][name]=dict(path=name+'.json',source_path='/scratch/jjyeung/ab0123456789/'+name+'.json',sha256=h,bytes=2)
++    write(package/'a/export.json',export)
++    inputs['export_pin']=dict(path='a/export.json',sha256=digest(package/'a/export.json'),bytes=(package/'a/export.json').stat().st_size)
++    inputs['python']=sys.executable
++    write(package/'a/1.json',inputs)
++    return cfg,inputs,export
++
++
++def action_child(target,root,cfgpath):
++    import torch
++    torch.set_num_threads(8)
++    original=json.loads(cfgpath.read_text())
++    logical=json.loads((target/'src/9.json').read_text())['logical']
++    sandbox=root/'sandbox'
++    def mapped(value):
++        if isinstance(value,str) and (value==logical or value.startswith(logical+'/')):
++            return str(sandbox)+value[len(logical):]
++        if isinstance(value,dict):return {k:mapped(v) for k,v in value.items()}
++        if isinstance(value,list):return [mapped(v) for v in value]
++        return value
++    cfg=mapped(original)
++    # This is the namespace stub: translate paths, never synthesize run keys.
++    local=cfgpath.with_name(cfgpath.stem+'-local.json');write(local,cfg)
++    p=sandbox/'p';sys.path[:0]=[str(p),str(p/'b'),str(p/'tree'),str(p/'u0')]
++    from orchard_h10 import common,runner
++    with ExitStack() as stack:
++        stack.enter_context(patch.object(common,'install_process_guard'))
++        if cfg['action']==0:
++            import transformers,scipy
++            tv=types.ModuleType('torchvision');tv.__version__='cpu-stub'
++            stack.enter_context(patch.dict(sys.modules,{'torchvision':tv}))
++            from parity_kit import stage_restore,build_manifest
++            receipt={'versions':{m.__name__:m.__version__ for m in (torch,tv,transformers,scipy)}}
++            write(Path(cfg['inputs']['files'][cfg['inputs']['environment_receipt']]['path']),receipt)
++            def stage(*args,**kwargs):
++                out=Path(args[3]);out.mkdir(parents=True,exist_ok=True);write(out/'RESTORE.json',{})
++            stack.enter_context(patch.object(stage_restore,'stage',side_effect=stage))
++            stack.enter_context(patch.object(build_manifest,'build',return_value={'fixture':True}))
++            stack.enter_context(patch.object(sys,'argv',[str(root/'a/5.py'),str(local)]))
++            runpy.run_path(str(root/'a/5.py'),run_name='__main__')
++        else:
++            operator=load('operator4_action',root/'7.py')
++            if not cfg.get('rehearsal'):
++                actual_run=runner.run
++                def execute(config,cards,end,**kwargs):
++                    from h1eval.h10 import launch
++                    assert Path(launch.__file__).read_bytes()==(p/'u0/a4.py').read_bytes()
++                    fixtures=load('operator4_fixture',p/'u0/tests/test_read_journal.py')
++                    case=fixtures.RunnerTests();case.setUp()
++                    case.manifest=json.loads((p/'items/devs1_routed.json').read_text())
++                    for patcher in case.patches:patcher.stop()
++                    case.patches=[patch.object(fixtures.launch,'load_manifest',return_value=case.manifest),
++                        patch.object(fixtures.item_module,'read_contract'),patch.object(fixtures.launch,'sha',return_value='0'*64),
++                        patch.object(fixtures.launch,'code_hash',return_value='1'*64),patch.object(fixtures.launch,'export_hash',return_value='2'*64)]
++                    for patcher in case.patches:patcher.start()
++                    from e2e_reader import read_cache
++                    class Qwen3_5VisionModel(torch.nn.Module):
++                        def __init__(self):
++                            super().__init__();self.weight=torch.nn.Parameter(torch.ones(2,2),requires_grad=False)
++                            self.config=types.SimpleNamespace(to_dict=lambda:{})
++                        def forward(self,x):return x@self.weight
++                    model=Qwen3_5VisionModel().eval();store=read_cache.ReadCache(1000000)
++                    read_cache.install_vision_cache(types.SimpleNamespace(model=types.SimpleNamespace(visual=model)),store)
++                    def factory(*args,**kw):
++                        def generate(item):
++                            with torch.no_grad():model(torch.ones(1,2))
++                            return fixtures.row(item['id'])['output']
++                        generate.weight_boundary=store.weight_boundary
++                        return generate
++                    def worker(argv,**kw):
++                        import a8
++                        def main(args):
++                            assert args.pop(0)=='--enable-extensions'
++                            parsed=fixtures.launch.parser().parse_args(args);parsed.reader_entry='fixture:make_real'
++                            assert not parsed.atomic_journal and not parsed.scene_shards
++                            parsed.device='cpu'
++                            assert fixtures.launch.run_types(parsed,make_real=factory)['completed']==636
++                            return 0
++                        worker_cfg=Path(kw['cwd'])/argv[-1]
++                        with patch.object(a8,'main',side_effect=main),patch.object(sys,'argv',[str(Path(kw['cwd'])/'5.py'),str(worker_cfg)]):
++                            try:runpy.run_path(str(Path(kw['cwd'])/'5.py'),run_name='__main__')
++                            except SystemExit as error:assert error.code==0
++                        return types.SimpleNamespace(wait=lambda:0)
++                    try:
++                        with patch('h1eval.items.load_manifest',return_value=case.manifest):
++                            # Only the namespace/model/device query is simulated.
++                            config=dict(config,device='cpu',prefix=[])
++                            return actual_run(config,['cpu-stub'],end,launcher=worker,**{k:v for k,v in kwargs.items() if k!='prefix'})
++                    finally:case.doCleanups()
++                stack.enter_context(patch.object(runner,'run',side_effect=execute))
++                actual_operator=operator.run
++                stack.enter_context(patch.object(operator,'run',side_effect=lambda config,end,cards:actual_operator(config,end,['cpu-stub'])))
++            stack.enter_context(patch.object(sys,'argv',[str(root/'7.py'),str(local)]))
++            try:operator.main()
++            except SystemExit as error:assert error.code==0
++    print('PASS action',cfg['action'],'rehearsal',bool(cfg.get('rehearsal')))
++
++
++def control_child(target,root,mode):
++    import torch
++    torch.set_num_threads(8)
++    p=target/'src';sys.path[:0]=[str(p),str(p/'b'),str(p/'tree'),str(p/'u0')]
++    from orchard_h10 import common,job,export_pins
++    package=target/'package';cfg=common.read_config(package)
++    logical=cfg['logical'];sandbox=root/'sandbox';root.mkdir(parents=True,exist_ok=True)
++    def physical(_,value):return sandbox/Path(value).relative_to(logical)
++    def stage(r,c,i,S,J):
++        assert c==cfg
++        # Namespace stub mounts the already-built source read-only by convention.
++        # Avoid making two more full payload copies for each CPU regression.
++        sandbox.mkdir(parents=True,exist_ok=True)
++        (sandbox/'p').symlink_to(p,target_is_directory=True)
++        for name,spec in export_pins.load(i,package)['preparation'].items():
++            dest=physical(r,logical+'/d/'+spec['path']);dest.parent.mkdir(parents=True,exist_ok=True);dest.write_text('{}')
++        (r/'a').mkdir(exist_ok=True)
++        return {}
++    def write_test(pool,token):
++        pool=root/'pool' if str(pool).startswith('/project/') else Path(pool)
++        dest=pool/token/'.wtest';dest.parent.mkdir(parents=True,exist_ok=True)
++        shared=Path(os.environ['READ_TEST_TMP'])/'write-test-4MiB'
++        if not shared.exists():shared.write_bytes(bytes(4*1024**2))
++        os.link(shared,dest)
++        (root/'6.py').write_bytes((p/'orchard_h10/vendor/return_io.py').read_bytes())
++        return dict(bytes=dest.stat().st_size,sha256=digest(dest))
++    def publish(*args):return {'stub_storage_publication':True}
++    J=types.SimpleNamespace(physical=physical,storage_proof=lambda *a,**k:{'fixture':True},
++          environment=lambda *a:dict(PATH='/usr/bin:/bin'),namespace=lambda *a:[])
++    R=types.SimpleNamespace(write_test=write_test,publish=publish,__file__=str(p/'orchard_h10/vendor/orchard_results.py'))
++    def execute(argv,**kwargs):
++        if argv[0]=='nvidia-smi':return types.SimpleNamespace(returncode=0,stdout='CPU stub; no GPU query ran')
++        action=Path(argv[-1]);value=json.loads(action.read_text())
++        assert Path(argv[-2]).name==('7.py' if value['action']==1 else '5.py')
++        result=subprocess.run([sys.executable,'-I','-s','-B',str(Path(__file__).resolve()),'--action',str(target),str(root),str(action)],
++                              env=dict(os.environ,CUDA_VISIBLE_DEVICES='',OMP_NUM_THREADS='8',MKL_NUM_THREADS='8',OPENBLAS_NUM_THREADS='8'),
++                              stdout=kwargs.get('stdout'),stderr=subprocess.STDOUT)
++        if kwargs.get('check') and result.returncode:raise subprocess.CalledProcessError(result.returncode,argv)
++        return result
++    def mapped_path(value):
++        if str(value)=='/project/community/jjyeung/okh7':return target.parent/'shared'
++        return Path(value)
++    with ExitStack() as stack:
++        stack.enter_context(patch.object(common,'template',return_value=(None,J,R,None,None)))
++        stack.enter_context(patch.object(job,'template',return_value=(None,J,R,None,None)))
++        stack.enter_context(patch.object(job,'stage',side_effect=stage))
++        stack.enter_context(patch.object(common,'install_process_guard'))
++        stack.enter_context(patch.object(common,'checked_run',side_effect=execute))
++        stack.enter_context(patch.object(job,'checked_run',side_effect=execute))
++        stack.enter_context(patch.object(job,'Path',side_effect=mapped_path))
++        stack.enter_context(patch.object(job,'os',types.SimpleNamespace(environ=dict(os.environ,
++            SLURM_JOB_ID='123',A_N='1',A_T='10000',CUDA_VISIBLE_DEVICES='cpu-stub',
++            A_I=digest(package/'a/1.json'),A_C=digest(package/'2.json') if (package/'2.json').exists() else ''),umask=os.umask)))
++        if mode=='node':
++            node=load('cpu_proof4',package/'a/5.py')
++            stack.enter_context(patch.object(node.tempfile,'mkdtemp',return_value=str(root)))
++            stack.enter_context(patch.dict(os.environ,SLURM_JOB_ID='123'))
++            stack.enter_context(patch.object(sys,'argv',[str(package/'a/5.py'),'--package',str(package),
++                  '--sequence',str(package/'a/6.py'),'--results',str(target/'proof')]))
++            node.main()
++        else:
++            boot=load('bootstrap4',root/'0.py')
++            stack.enter_context(patch.object(boot,'Path',side_effect=mapped_path))
++            stack.enter_context(patch.object(sys,'argv',[str(root/'0.py'),str(root)]))
++            # job.main is intentionally real; both a/0.json and a/1.json are its outputs.
++            boot.main()
++    print('PASS real',mode,'control path')
++
++
++class Round4Tests(unittest.TestCase):
++    def test_f1_step600_package_preserves_a4_contract_and_binding(self):
++        root=directory();target,binding=build_profile(root)
++        payload=archive(target/'package/0.tgz');cfg=json.loads(payload['9.json'])
++        base=archive(INPUT.parent/'package/0.tgz');old=json.loads(base['9.json'])
++        for key in ('stage1_select_rule','perception_memo','perception_memo_verify_ids','save_own_depth','perception_memo_modules'):
++            self.assertEqual(cfg.get(key),old[key],key)
++        self.assertEqual(cfg.get('export_binding'),binding)
++        self.assertEqual(payload['8.py'],base['8.py'])
++        fill=load('fill4',target/'package/a/4.py')
++        self.assertEqual(fill.reviewed_binding(),binding)
++        done=root/'done';done.write_text(binding['object']+' '+str(binding['archive_bytes'])+' '+binding['archive_sha256'])
++        fill.receipt_review(done)
++        done.write_text(binding['object']+' '+str(binding['archive_bytes']+1)+' '+binding['archive_sha256'])
++        with self.assertRaisesRegex(ValueError,'receipt'):fill.receipt_review(done)
++
++        self.assertEqual(payload['orchard_h10/export_pins.py'],base['orchard_h10/export_pins.py'])
++        ast.parse(payload['8.py'].decode(),feature_version=(3,6))
++        self.assertNotIn('file_digest',payload['8.py'].decode())
++        self.assertNotIn('capture_output',payload['8.py'].decode())
++        self.assertIn("/project/community/jjyeung/okh7",payload['8.py'].decode())
++        for n,pin in cfg['payload_pins'].items():
++            self.assertEqual(hashlib.sha256(payload[n]).hexdigest(),pin['sha256'])
++        self.assertTrue(cfg['read_extensions']);self.assertFalse(cfg['read_atomic_journal']);self.assertFalse(cfg['read_scene_shards'])
++        cfg,inputs,export=seed_inputs(target,binding)
++        admission=load('admission4',target/'src/orchard_h10/export_pins.py')
++        admission.admit(inputs,cfg,export)
++        artifact={key:binding[key] for key in ('step','config_sha256','base_identity','frame_layout')}
++        for name in ('heads','full_weights'):
++            artifact[name]=dict(path='/scratch/jjyeung/'+binding['run']+'/'+binding['member_directory']+'/'+fill.MEMBERS[name])
++        args=types.SimpleNamespace(object=binding['object'],step=binding['step'],lineage=binding['lineage'])
++        whole=dict(sha256=binding['archive_sha256'],parts=[{'bytes':binding['archive_bytes']}])
++        fill.bind_review(args,copy.deepcopy(export),artifact,whole,export['preparation'],binding)
++        with self.assertRaisesRegex(ValueError,'whole-tar'):
++            fill.bind_review(args,export,artifact,dict(whole,sha256='0'*64),export['preparation'],binding)
++
++        for key in ('step','run','object','member_directory','lineage','config_sha256','archive_sha256'):
++            bad=copy.deepcopy(export);bad[key]=601 if key=='step' else 'wrong'
++            with self.subTest(key=key),self.assertRaises(ValueError):admission.admit(inputs,cfg,bad)
++        for key in binding['preparation_sha256']:
++            bad=copy.deepcopy(export);bad['preparation'][key]['sha256']='0'*64
++            with self.subTest(preparation=key),self.assertRaises(ValueError):admission.admit(inputs,cfg,bad)
++
++    def test_f2_step600_real_job_and_rehearsal_memory(self):
++        root=directory();target,binding=build_profile(root);cfg,inputs,export=seed_inputs(target,binding)
++        # Both processes read the package's 9.json unchanged.
++        command=[sys.executable,'-I','-s','-B',str(Path(__file__).resolve()),'--control',str(target),str(root/'node'),'node']
++        result=subprocess.run(command,capture_output=True,text=True)
++        logs='\n'.join(p.read_text() for p in (target/'proof').glob('*.log'))
++        self.assertEqual(result.returncode,0,str(root)+'\n'+result.stdout+result.stderr+logs+'\n'+'\n'.join(p.read_text() for p in (root/'job/sandbox/r').glob('FAILED.json')))
++        proof=json.loads((target/'proof/CPU.json').read_text())
++        self.assertEqual(proof['memory'].get('read_cache_bytes'),12*1024**3)
++        self.assertTrue(proof['entry_sequence_passed']);self.assertTrue(proof['bundle_guard_passed'])
++        shared=root/'shared'/('a15_cot_ap'+cfg['token']);shared.mkdir(parents=True)
++        for path in (target/'package').rglob('*'):
++            if path.is_file():
++                dest=shared/path.relative_to(target/'package');dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(path.read_bytes())
++        write(shared/'a/c/CPU.json',proof)
++        receipt=dict(passed=True,plan=proof['plan'],inputs=proof['inputs'])
++        write(shared/'2.json',receipt);write(target/'package/2.json',receipt)
++        builder=load('bundle_decoder4',SRC/'u0/a19.py')
++        jobroot=root/'job';jobroot.mkdir()
++        for name,raw in builder.bootstrap((shared/'BATCH.sh').read_text()).items():(jobroot/name).write_bytes(raw)
++        command=[sys.executable,'-I','-s','-B',str(Path(__file__).resolve()),'--control',str(target),str(jobroot),'job']
++        result=subprocess.run(command,capture_output=True,text=True)
++        logs='\n'.join(p.read_text() for p in (jobroot/'sandbox/r/logs').glob('*.log'))
++        self.assertEqual(result.returncode,0,str(root)+'\n'+result.stdout+result.stderr+logs+'\n'+'\n'.join(p.read_text() for p in (root/'job/sandbox/r').glob('FAILED.json')))
++        zero=json.loads((jobroot/'a/0.json').read_text())
++        one=json.loads((jobroot/'a/1.json').read_text())
++        public=json.loads((shared/'0.json').read_text())
++        self.assertEqual(zero['config'],dict(cfg,**public))
++        self.assertEqual(zero['config']['export_binding'],binding)
++        self.assertFalse(one['config']['read_atomic_journal']);self.assertTrue(one['config']['read_extensions'])
++        settings=json.loads((jobroot/'sandbox/d/settings.json').read_text())
++        self.assertEqual(settings['stage1_select_rule'],'candidates_argmax');self.assertEqual(settings['perception_memo'],'on')
++        summary=json.loads((jobroot/'sandbox/r/SUMMARY.json').read_text());self.assertEqual(summary['completed'],636)
++        self.assertTrue(summary['complete']);self.assertIsNone(summary['failure'])
++        journals=jobroot/'sandbox/r/metadata/reads/0/metadata/journals'
++        receipts=list(journals.glob('*/*/WEIGHTS.json'));self.assertEqual(len(receipts),5)
++        for receipt in receipts:
++            self.assertIs(json.loads(receipt.read_text())['verified'],True)
++            self.assertFalse((receipt.parent/'committed').exists())
++        self.assertFalse((jobroot/'sandbox/r/metadata/reads/0/metadata/u0').exists())
++        self.assertEqual(digest(target/'tower_sequence.py'),one['config']['operator_sha256'])
++        # Exercise the actual authenticated unpack entry, including partial returns.
++        sys.path.insert(0,str(target));unpacker=load('return_entry4',target/'unpack_return.py')
++        def returned(name):
++            returned_root=jobroot/'sandbox/r'
++            raw=builder.tarbytes({str(p.relative_to(returned_root)):p.read_bytes()
++                for p in returned_root.rglob('*') if p.is_file()})
++            path=root/(name+'.tgz');path.write_bytes(raw)
++            receipt=dict(plan_sha256=public['plan_sha256'],token=cfg['token']+format(123,'08x'),
++                job='123',synthetic=False,archive_bytes=len(raw),archive_sha256=hashlib.sha256(raw).hexdigest(),
++                complete=False,status='FAILED')
++            exit_path=root/(name+'.json');write(exit_path,receipt)
++            with patch.object(sys,'argv',[str(target/'unpack_return.py'),'--archive',str(path),
++                    '--exit',str(exit_path),'--out',str(root/(name+'-return'))]):
++                unpacker.main()
++        returned('verified')
++        write(receipts[0],{'verified':False})
++        with self.assertRaisesRegex(ValueError,'Unverified weight journal'):returned('unverified')
++
++        write(root/'EVIDENCE.json',dict(synthetic_binding=binding,proof=proof,summary=summary,weight_receipts=5,
++             real_job_main=True,namespace_paths_only=True,ordinary_journals=True))
++        print('CPU step-600 fixture:',root)
++
++    def test_f3_cache_only_return_refuses_unverified_journals(self):
++        root=directory();path=INPUT.parent/'unpack_return.py' if BEFORE else OP/'unpack_return.py'
++        sys.path.insert(0,str(INPUT.parent));module=load('unpack4',path)
++        journal=root/'metadata/reads/0/metadata/journals/3/0';journal.mkdir(parents=True)
++        write(journal/'STARTED.json',{});write(journal/'environment.json',{})
++        (journal/'items.jsonl').write_text('{}\n')
++        def validate(enabled=True):
++            if BEFORE:return module.validate_journals(root)
++            return module.validate_journals(root,read_extensions=enabled)
++        validate()
++        for value in (False,None,0,1,'true'):
++            write(journal/'WEIGHTS.json',{'verified':value})
++            with self.subTest(verified=value),self.assertRaisesRegex(ValueError,'Unverified weight journal'):validate()
++        write(journal/'WEIGHTS.json',{'verified':True});validate()
++        write(journal/'WEIGHTS.json',{'verified':False});validate(False)
++
++    def test_f9_off_builder_guard_and_processor_only(self):
++        if BEFORE:self.skipTest('New route default and processor-only checks apply to delivered builder')
++        builder=load('default4',E/'a19.py')
++        root=directory()
++        with self.assertRaisesRegex(ValueError,'OFF'):
++            builder.build(INPUT.parent,SRC,root/'missing',root/'out','ab0123456789')
++        self.assertFalse((root/'out').exists())
++        target,binding=build_profile(root,processor_only=True)
++        cfg=json.loads(archive(target/'package/0.tgz')['9.json'])
++        self.assertEqual(cfg['read_processor_only'],'on');self.assertEqual(cfg['read_cache_bytes'],4*1024**3)
++        self.assertEqual(cfg['read_sam_cache'],'off');self.assertEqual(cfg['read_vision_cache'],'off')
++        self.assertEqual(cfg['export_binding'],binding)
++        bad=copy.deepcopy(binding);bad.pop('preparation_sha256');write(root/'bad.json',bad)
++        with self.assertRaisesRegex(ValueError,'binding'):
++            builder.build(root/'base',SRC,root/'bad.json',root/'badout','ab0123456789',enable_extensions=True)
++        self.assertFalse((root/'badout').exists())
++
++
++if __name__=='__main__':
++    if len(sys.argv)>1 and sys.argv[1]=='--action':action_child(*map(Path,sys.argv[2:5]))
++    elif len(sys.argv)>1 and sys.argv[1]=='--control':control_child(Path(sys.argv[2]),Path(sys.argv[3]),sys.argv[4])
++    else:unittest.main(verbosity=2)
+--- /dev/null
++++ b/u0/tests/test_round5.py
+@@ -0,0 +1,230 @@
++"""Round-5 packaging and operation contracts, with fail-before controls."""
++import ast
++import copy
++import hashlib
++import importlib.util
++import io
++import json
++import os
++from pathlib import Path
++import subprocess
++import sys
++import types
++import unittest
++import uuid
++from unittest.mock import patch
++
++L=Path(os.environ.get('READ_WORKSPACE','/scratch/jjyeung/orch_n30/so_read'))
++SRC=Path(__file__).resolve().parents[2]
++INPUT=Path(os.environ['READ_INPUT_SRC'])
++BEFORE=os.environ.get('READ_ROUND5_BEFORE')=='1'
++E=L/'work/round5-before-u0' if BEFORE else SRC/'u0'
++OUT=L/'out_round5' if BEFORE else L/'out'
++OP=Path(os.environ.get('READ_OPERATOR4_SOURCE',str(L/'work/operator4')))
++sys.path[:0]=[str(SRC),str(SRC/'b'),str(INPUT/'tree')]
++
++def load(name,path):
++    spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec)
++    sys.modules[name]=m;spec.loader.exec_module(m);return m
++
++def write(path,value):path.write_text(json.dumps(value,sort_keys=True))
++def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
++def fresh():
++    root=Path(os.environ['READ_TEST_TMP'])/uuid.uuid4().hex;root.mkdir(parents=True);return root
++
++class ReachedCopy(ValueError):pass
++
++class Round5Tests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.root=fresh();cls.base=cls.root/'base';cls.base.mkdir()
++        cls.builder=load('builder5',E/'a19.py')
++        for rel in ('package/0.tgz','package/0.json','package/BATCH.sh','package/3.py',
++                    'package/a/0.json','package/a/4.py','package/a/7.py','fetch_return.py',
++                    'tower_sequence.py','unpack_return.py','package/a/5.py'):
++            source=(OP/rel if rel in ('tower_sequence.py','unpack_return.py','package/a/5.py') else INPUT.parent/rel)
++            target=cls.base/rel;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(source.read_bytes())
++        cfg=json.loads(cls.builder.unpack((cls.base/'package/0.tgz').read_bytes())['9.json'])
++        cls.binding=dict(cfg['export_binding'],step=600,member_directory='m600',
++            object='q8/8865619b/673bc60f_m600.tar',archive_bytes=4,archive_sha256='2'*64,
++            done='/project/community/jjyeung/okh7/abcdef/5',
++            prep_paths={k:'/project/community/jjyeung/okh7/abcdef/'+str(i) for i,k in enumerate(('config','receipt','data_receipt'),7)})
++        write(cls.root/'binding.json',cls.binding)
++        cls.options={} if BEFORE else dict(manifest_path=L/'out/patches/MANIFEST.json',extension_pins_path=L/'out/kit_parity50/EXTENSION_PINS.json')
++        cls.target=cls.root/'built'
++        cls.builder.build(cls.base,SRC,cls.root/'binding.json',cls.target,'ab0123456789',enable_extensions=True,**cls.options)
++
++    def helpers(self):
++        self.assertTrue((E/'a20.py').is_file(),'Missing executable binding/operation/gate helper')
++        return load('operations5',E/'a20.py')
++
++    def test_f1_batch_wrapper_and_real_bundle_guard(self):
++        batch=(self.target/'package/BATCH.sh').read_text()
++        self.assertIn('#SBATCH --exclude=orchard-community-2\n',batch)
++        self.assertIn('trap fin EXIT',batch);self.assertIn("trap 'kill -USR1 $PID 2>/dev/null' USR1",batch)
++        self.assertIn('tail -n 60 "$L"',batch);self.assertIn('R=$P/a/x${SLURM_JOB_ID:-0}',batch)
++        subprocess.run(['bash','-n',str(self.target/'package/BATCH.sh')],check=True)
++        # The vendored wrapper must equal cont_ops' function, byte for byte.
++        reference=Path('/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/build_r10.py')
++        nodes=ast.parse(reference.read_text()).body
++        selected=[n for n in nodes if isinstance(n,ast.FunctionDef) and n.name=='wrap_batch' or
++                  isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='HEAD_OLD' for t in n.targets)]
++        scope={};exec(compile(ast.Module(body=selected,type_ignores=[]),str(reference),'exec'),scope)
++        raw=self.builder.bootstrap(batch)
++        plain=self.builder.batch(self.builder.tarbytes(raw),'ab0123456789').encode()
++        self.assertEqual(batch.encode(),scope['wrap_batch'](plain,'ab0123456789'))
++        node=load('node5',self.target/'package/a/5.py');root=fresh()
++        vendor=INPUT/'orchard_h10/vendor/return_io.py'
++        def write_test(pool,token):
++            dest=Path(pool)/token/'.wtest';dest.parent.mkdir(parents=True)
++            shared=Path(os.environ['READ_TEST_TMP'])/'write-test-4MiB'
++            if not shared.exists():shared.write_bytes(bytes(4*1024**2))
++            os.link(shared,dest)
++            (root/'6.py').write_bytes(vendor.read_bytes())
++            return dict(bytes=dest.stat().st_size,sha256=sha(dest))
++        from orchard_h10 import common
++        results=types.SimpleNamespace(write_test=write_test,__file__=str(vendor.with_name('orchard_results.py')))
++        with patch.object(common,'template',return_value=(None,None,results,None,None)):
++            proof=node.check_bundle_guard(self.target/'package',root)
++        self.assertIs(proof['passed'],True);self.assertEqual(proof['operator_sha256'],sha(self.target/'tower_sequence.py'))
++
++    def test_f2_pins_refuse_before_copy(self):
++        manifest=json.loads((L/'out/patches/MANIFEST.json').read_text())
++        original={r:(self.base/r).read_bytes() for r in ('package/0.tgz','package/0.json','package/BATCH.sh','tower_sequence.py','unpack_return.py','package/a/5.py')}
++        def attempt(options=None,source=SRC):
++            opts=self.options if options is None else options
++            with patch.object(self.builder,'tarbytes',side_effect=ReachedCopy('Unpinned input reached copy/build')):
++                self.builder.build(self.base,source,self.root/'binding.json',self.root/'refused','ab0123456789',enable_extensions=True,**opts)
++        for rel in ('tower_sequence.py','unpack_return.py','package/a/5.py'):
++            with self.subTest(operator=rel):
++                (self.base/rel).write_bytes(original[rel]+b'\n# changed\n')
++                try:
++                    with self.assertRaisesRegex(ValueError,'operator pin'):attempt()
++                finally:(self.base/rel).write_bytes(original[rel])
++        # A different but self-consistent payload/public/bundle still must fail.
++        payload=self.builder.unpack(original['package/0.tgz']);cfg=json.loads(payload['9.json']);cfg['unreviewed']=True
++        payload['9.json']=json.dumps(cfg,sort_keys=True).encode();raw=self.builder.tarbytes(payload)
++        public=json.loads(original['package/0.json']);public.update(payload_sha256=hashlib.sha256(raw).hexdigest(),payload_bytes=len(raw))
++        from orchard_h10.common import canonical
++        public['plan_sha256']=canonical(cfg)
++        (self.base/'package/0.tgz').write_bytes(raw);write(self.base/'package/0.json',public)
++        bundle=self.builder.bootstrap(original['package/BATCH.sh'].decode());bundle['0.json']=(self.base/'package/0.json').read_bytes()
++        (self.base/'package/BATCH.sh').write_text(self.builder.batch(self.builder.tarbytes(bundle),public['token']))
++        try:
++            with self.subTest(base='self-consistent'),self.assertRaisesRegex(ValueError,'reviewed A4 payload'):attempt()
++        finally:
++            for rel in ('package/0.tgz','package/0.json','package/BATCH.sh'):(self.base/rel).write_bytes(original[rel])
++        source=self.root/'tampered-source';(source/'u0').mkdir(parents=True)
++        for p in (SRC/'u0').rglob('*'):
++            if p.is_file():
++                dest=source/'u0'/p.relative_to(SRC/'u0');dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(p.read_bytes())
++        (source/'u0/a0.py').write_text('# altered\n')
++        with self.subTest(extension='changed'),self.assertRaisesRegex(ValueError,'Extension inventory'):attempt(source=source)
++        if not BEFORE:
++            bad=copy.deepcopy(manifest);bad['base_pin']['inventory']['orchard_h10/job.py']='0'*64
++            write(self.root/'bad-manifest.json',bad)
++            with self.assertRaisesRegex(ValueError,'Alias base differs'):
++                attempt(dict(self.options,manifest_path=self.root/'bad-manifest.json'))
++            bad=copy.deepcopy(manifest);bad['patches']['03_production_integration.diff']['files']['u0/a19.py']['after_sha256']='0'*64
++            write(self.root/'bad-manifest.json',bad)
++            with self.assertRaisesRegex(ValueError,'Extension pins differ'):
++                attempt(dict(self.options,manifest_path=self.root/'bad-manifest.json'))
++        self.assertFalse((self.root/'refused').exists())
++
++    def test_f3_binding_derivation_and_operations(self):
++        helper=self.helpers();root=fresh();binding=copy.deepcopy(self.binding)
++        art={k:binding[k] for k in ('step','config_sha256','base_identity','frame_layout')}
++        for key,name in (('heads','heads.pt'),('full_weights','full_weights/full_weights.json')):
++            art[key]={'path':'/scratch/jjyeung/'+binding['run']+'/'+binding['member_directory']+'/'+name}
++        write(root/'artifact.json',art);(root/'done').write_text(binding['object']+' 4 '+'2'*64+'\n')
++        prepared={k:root/k for k in ('config','receipt','data_receipt')}
++        for k,p in prepared.items():write(p,{'base_identity':art['base_identity'],'frame_layout':art['frame_layout'],'config_sha256':art['config_sha256']})
++        binding['preparation_sha256']={k:sha(p) for k,p in prepared.items()};binding['config_sha256']='FILL_FROM_ARTIFACT'
++        write(root/'template.json',binding)
++        got=helper.derive_binding(root/'template.json',root/'artifact.json',root/'done',prepared,root/'binding.json')
++        self.assertEqual(got['config_sha256'],art['config_sha256']);self.assertEqual(got['prep_paths'],binding['prep_paths'])
++        art['step']=400;write(root/'artifact.json',art)
++        with self.assertRaisesRegex(ValueError,'step'):helper.derive_binding(root/'template.json',root/'artifact.json',root/'done',prepared,root/'bad.json')
++        result=helper.operations(self.target,self.root/'binding.json',L/'out/operations',root/'ops')
++        self.assertEqual(result['delivery_sha256'],sha(root/'ops/1.tgz'))
++        members=self.builder.unpack((root/'ops/1.tgz').read_bytes())
++        self.assertEqual(members['BATCH.sh'],(self.target/'package/BATCH.sh').read_bytes())
++        for script in (root/'ops').glob('*.sh'):subprocess.run(['bash','-n',str(script)],check=True)
++        for script,need in {
++            'o_place.sh':['sha256sum -c SHA256','tar -xzf','test ! -e "$P"'],
++            'o_pull_fill.sh':['part0$i-of-04','Boto:num_retries=0','"$D/d.py"','"$D/d2.py"','--step 600'],
++            'o_cpu.sh':['sbatch --parsable','--partition=preempt','--cpus-per-task=8','--no-requeue','a/5.py'],
++            'o_sub.sh':['"$D/check.py"','squeue -u jjyeung -p general','test ! -s "$P/a/9.txt"','3.py submit'],
++            'o_fetch.sh':['3.py fetch --return-token']}.items():
++            text=(root/'ops'/script).read_text()
++            for term in need:self.assertIn(term,text)
++        for name in ('d.py','d2.py','check.py'):ast.parse((root/'ops'/name).read_text(),feature_version=(3,6))
++        self.assertLess((root/'ops/o_sub.sh').read_text().index('"$D/check.py"'),(root/'ops/o_sub.sh').read_text().index('3.py submit'))
++        self.assertIn('unpack_return.py', (OUT/'kit_parity50/README.md').read_text())
++
++    def test_f3_submit_pool_and_proof_refusals(self):
++        helper=self.helpers();root=fresh();package=root/'package';(package/'a/c').mkdir(parents=True)
++        for rel in ('0.json','0.tgz','a/6.py'):(package/rel).write_bytes((self.target/'package'/rel).read_bytes())
++        write(package/'a/1.json',{});public=json.loads((package/'0.json').read_text())
++        proof=dict(passed=True,entry_sequence_passed=True,bundle_guard_passed=True,plan=public['plan_sha256'],payload=public['payload_sha256'],inputs=sha(package/'a/1.json'),operator_sha256=sha(package/'a/6.py'),memory=dict(fits=True,basis='fixed_g3t_shapes',read_cache_bytes=12*1024**3))
++        write(package/'a/c/CPU.json',proof)
++        for name in ('dry.json','dry2.json'):write(package/'a'/name,dict(passed=True))
++        pool=root/'pool';pool.mkdir();script=root/'check.py';script.write_text(helper.SUBMIT_CHECK)
++        command=[sys.executable,'-I','-s','-B',str(script),str(package),str(pool)]
++        self.assertEqual(subprocess.run(command,capture_output=True).returncode,0)
++        bad=copy.deepcopy(proof);bad['memory'].pop('read_cache_bytes');write(package/'a/c/CPU.json',bad)
++        failed=subprocess.run(command,capture_output=True,text=True);self.assertNotEqual(failed.returncode,0);self.assertIn('CPU memory proof differs',failed.stderr)
++        write(package/'a/c/CPU.json',proof)
++        # Exercise the exact boundary through the real checker with stat-only sizes.
++        full=pool/'full';full.write_bytes(b'x');real_stat=Path.stat
++        import runpy
++        for size in (75000000,75000001):
++            def measured(path,*args,**kwargs):
++                return types.SimpleNamespace(st_size=size,st_mode=real_stat(path).st_mode) if path==full else real_stat(path,*args,**kwargs)
++            with patch.object(Path,'stat',new=measured),patch.object(sys,'argv',[str(script),str(package),str(pool)]):
++                if size==75000000:runpy.run_path(str(script),run_name='__main__')
++                else:
++                    with self.assertRaisesRegex(ValueError,'Return pool exceeds 75 MB'):runpy.run_path(str(script),run_name='__main__')
++
++    def test_f4_gate_pins_adopted_settings_and_profile(self):
++        kit=load('kit5',OUT/'kit_parity50/run.py')
++        self.assertTrue(hasattr(kit,'validate_profile'),'GPU gate accepts an unbound read profile')
++        helper=self.helpers()
++        for processor in (False,True):
++            root=fresh();target=self.target
++            if processor:
++                target=root/'built'
++                self.builder.build(self.base,SRC,self.root/'binding.json',target,'ab0123456789',enable_extensions=True,processor_only=True,**self.options)
++            package,public,cfg=helper.package_config(target)
++            settings={key:cfg[key] for key in helper.PROFILE_KEYS};settings['arm']='own_depth'
++            write(root/'prepared.json',settings)
++            proof=dict(passed=True,plan=public['plan_sha256'],payload=public['payload_sha256'],ready=dict(settings=sha(root/'prepared.json')),operator_sha256=sha(package/'a/6.py'))
++            write(root/'CPU.json',proof);write(root/'template.json',{})
++            config=helper.gate(target,root/'prepared.json',root/'CPU.json',root/'template.json',root/'settings.json',root/'config.json')
++            settings=json.loads((root/'settings.json').read_text());kit.validate_profile(config,settings)
++            self.assertEqual(config['enable_caches'],[0] if processor else [0,1,2])
++            for key,value in [('stage1_select_rule','null_argmax'),('perception_memo','off'),('read_cache_bytes',1),('save_own_depth',True),('save_own_depth',0)]:
++                with self.subTest(processor=processor,key=key),self.assertRaises(ValueError):kit.validate_profile(config,dict(settings,**{key:value}))
++            for key,value in [('enable_caches',[0,1]),('enable_caches',[False]),('read_cache_bytes',float(config['read_cache_bytes'])),('read_cache_bytes',1),('adoption_plan_sha256','')]:
++                with self.subTest(config=key),self.assertRaises(ValueError):kit.validate_profile(dict(config,**{key:value}),settings)
++            write(root/'prepared.json',dict(settings,read_cache_bytes=1))
++            with self.assertRaisesRegex(ValueError,'proof differs'):
++                helper.gate(target,root/'prepared.json',root/'CPU.json',root/'template.json',root/'badsettings',root/'badconfig')
++
++    def test_f5_forecast_identifies_both_reads(self):
++        for path in (OUT/'NOTE_FOR_CONT_OPS.md',OUT/'kit_parity50/README.md'):
++            text=path.read_text()
++            self.assertIn('Package D',text);self.assertIn('636-item',text)
++            self.assertIn('7,351.824',text);self.assertIn('estimate',text.lower())
++            self.assertIn('no ON route',text)
++
++    def test_f7_refused_unpack_not_scoreable(self):
++        for path in (OUT/'NOTE_FOR_CONT_OPS.md',OUT/'kit_parity50/README.md'):
++            text=path.read_text()
++            self.assertIn('refused unpack leaves',text.lower())
++            self.assertIn('success output',text.lower())
++        readme=(OUT/'kit_parity50/README.md').read_text()
++        self.assertIn('--out "$LOCAL/step600/ret" > "$LOCAL/step600/unpack-success.json"',readme)
++        self.assertIn('&&',readme)
++
++if __name__=='__main__':unittest.main(verbosity=2)

@@ -1,0 +1,30 @@
+{
+  "cwd": "/scratch/jjyeung/orch_n30/so_pack_a",
+  "note": "before.log ran the 14-method test file before test_01_wrong_part_sum was added; before_sum.log covers that method separately. Both use the same untouched reviewed runtime. before_evidence.log uses the preserved pre-round-1 runtime.",
+  "runs": [
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before PACK_R2_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before_tests PACK_R2_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out_round1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/src/test_review2.py > work/r2/before.log 2>&1",
+      "expected_failure": true,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before.log",
+      "name": "New defect regressions",
+      "returncode": 1,
+      "sha256": "397f94d5fd65f0c013acced36b2e77308bf6fb992c4caab3ca10cab443091526"
+    },
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before PACK_R2_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before_sum PACK_R2_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out_round1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/src/test_review2.py Review2.test_01_wrong_part_sum > work/r2/before_sum.log 2>&1",
+      "expected_failure": true,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before_sum.log",
+      "name": "Part-sum defect",
+      "returncode": 1,
+      "sha256": "bf210e2723a9501c200d716fdd05c8543fad3dda41b705c8f76838e139b0a642"
+    },
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r1/baseline PACK_REVIEW_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before_evidence PACK_REVIEW_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/src/test_review.py Review.test_r6_login_runtime_guard_submit_pool Review.test_r11_login_exact_delivery > work/r2/before_evidence.log 2>&1",
+      "expected_failure": true,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before_evidence.log",
+      "name": "Guard interpreter and recorded-delivery defects",
+      "returncode": 1,
+      "sha256": "dc0d5704159828a824f8093fa0316ae4dedf56a05711278ec7d908f60c126495"
+    }
+  ]
+}

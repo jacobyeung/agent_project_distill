@@ -46,7 +46,7 @@ class Review2(unittest.TestCase):
             with self.subTest(name=name):self.corrupt_preflight(name)
     def corrupt_preflight(self,key):
         scripts=P.plan(self.c,self.b);code=P.heredocs(Path(scripts['preflight']).read_text())[0]
-        mapping={k:v['path'] for k,v in self.c['mirrors'].items()}
+        mapping={k:v['path'] for k,v in self.c['mirrors'].items()};mapping.update(T.verification_fixture(self.c,self.b,self.w/key))
         good=self.preflight(code,mapping,key+'good');self.assertEqual(good.returncode,0,good.stderr)
         path=self.c['fill'][key];raw=Path(mapping[path]).read_bytes();bad=self.w/(key+'.bad')
         if key=='done':raw=raw[:-2]+(b'0' if raw[-2:-1]!=b'0' else b'1')+raw[-1:]
@@ -58,7 +58,7 @@ class Review2(unittest.TestCase):
             if phase=='preflight':return self.preflight(code,mapping,key+'bad')
             (P.state_root(c)/'place.attempt').write_text('spent');return subprocess.CompletedProcess([],0,b'',b'')
         with patch.object(P,'checked',return_value=self.b):
-            with self.assertRaisesRegex(P.Rejected,'before placement'):P.execute(c,scripts,['place'],call=call)
+            with self.assertRaisesRegex(P.Rejected,'before placement'):P.execute(c,scripts,['place'],True,self.b['token'],call=call)
         self.assertEqual(calls,['preflight']);self.assertFalse((Path(c['work'])/'place.attempt').exists())
     def test_02_dropped_real_dependency(self):
         f=dict(self.f);base=json.loads(f['a/0.json']);base['archives'].pop(2);f['a/0.json']=T.jd(base);p=P.extract(T.seal(f),self.w/'p')
@@ -69,7 +69,7 @@ class Review2(unittest.TestCase):
         Path(self.c['ledger']).write_text('');calls=[]
         def call(k):calls.append(k);return subprocess.CompletedProcess([],0,b'',b'')
         with patch.object(P,'checked',return_value=self.b):
-            with self.assertRaisesRegex(P.Rejected,'reserve.*Trinity ledger'):P.execute(self.c,{},['place'],call=call)
+            with self.assertRaisesRegex(P.Rejected,'reserve.*Trinity ledger'):P.execute(self.c,{},['place'],True,self.b['token'],call=call)
         self.assertEqual(calls,[]);self.assertFalse((Path(self.c['work'])/'place.attempt').exists())
     def test_04_all_job_names_and_no_comments(self):
         for line in ('#SBATCH --job-name=other','#SBATCH --comment=ticket42','sbatch --job-name=xyz --comment=abc','sbatch -J xyz','sbatch -Jxyz','sbatch --job-name other','sbatch --comment abc'):
@@ -107,7 +107,7 @@ class Review2(unittest.TestCase):
         captured=[]
         def call(argv,**kw):captured.append(kw['env']);return subprocess.CompletedProcess(argv,0,b'',b'')
         with patch.dict(os.environ,HOME='/tmp/caller_home',SSH_AUTH_SOCK='/tmp/caller_sock'),patch.object(P,'checked',return_value=self.b),patch.object(P.subprocess,'run',side_effect=call):
-            P.execute(self.c,dict(preflight='/tmp/0',place='/tmp/1'),['place'])
+            P.execute(self.c,dict(preflight='/tmp/0',place='/tmp/1'),['place'],True,self.b['token'])
         self.assertEqual(len(captured),2)
         for env in captured:self.assertEqual(env.get('HOME'),'/tmp/caller_home');self.assertEqual(env.get('SSH_AUTH_SOCK'),'/tmp/caller_sock')
     def test_10_fill_body_bash_syntax(self):

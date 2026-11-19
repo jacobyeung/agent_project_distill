@@ -36,6 +36,9 @@ class KitRound2(unittest.TestCase):
                   ('plan.json',dict(world_size=1,plans=[plan()]*101))]
         for name, value in values:
             (directory/name).write_text(json.dumps(value))
+        receipt=json.loads((directory/'receipt.json').read_text())
+        receipt['model']=run.file_pin(directory/'manifest.json')
+        (directory/'receipt.json').write_text(json.dumps(receipt))
         args = ['data_only.py','--tree',os.environ.get('SO_TEST_TREE',str(ROOT/'work/tree')),
                 '--receipt',str(directory/'receipt.json'),'--manifest',str(directory/'manifest.json'),
                 '--config',str(directory/'config.json'),'--plan',str(directory/'plan.json'),

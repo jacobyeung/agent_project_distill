@@ -1,0 +1,184 @@
+--- round3/pack.py
++++ round4/pack.py
+@@ -71,6 +71,7 @@
+     for n,pin in plan['payload_pins'].items():need(n in pay and digest(pay[n])==pin['sha256'] and len(pay[n])==pin['bytes'],'Payload member differs: '+n)
+     b=bundle(f['BATCH.sh']);need(set(b)=={'0.py','0.json','7.py'},'Bundle inventory differs');need(json.loads(b['0.json'])==v,'Bundle descriptor differs');need(b['7.py']==f['a/6.py'],'Bundle operator differs')
+     need(("'a'+j+%r"%v['token']).encode() in f['BATCH.sh'],'Temporary token differs')
++    need(not c.get('builder') or c.get('old_identities'),'Production builder requires at least one old identity')
+     for old in c.get('old_identities',[]):
+         need(isinstance(old,str) and re.fullmatch('[0-9a-f]{11,64}',old),'Invalid old identity: expected 11..64 lowercase hex characters')
+         for n,data in list(f.items())+list(pay.items())+list(b.items()):
+@@ -96,8 +97,9 @@
+         try:words=shlex.split(line,comments=True)
+         except ValueError:words=[line]
+         for i,word in enumerate(words):
+-            need('--com' not in word,'Slurm --comment is forbidden')
+-            need(not re.match(r'^(?:SBATCH|SLURM)_[A-Za-z_0-9]*=',word),'Scheduler environment assignment forbidden')
++            need('--com' not in word and '--admin-com' not in word,'Slurm --comment is forbidden')
++            reads=re.sub(r'\$SLURM_JOB_ID\b|\$\{SLURM_JOB_ID(?::-[0-9]*)?\}', '',word)
++            need('SBATCH_' not in word and 'SLURM_' not in reads,'Scheduler environment mutation or unsupported read forbidden')
+             need(not word.startswith('--job') or word=='--job-name' or word.startswith('--job-name='),'Abbreviated job name forbidden')
+             need(not (word.startswith('-') and not word.startswith('--') and 'J' in word[1:] and not word.startswith('-J')),'Clustered job name forbidden')
+             value=None
+@@ -317,6 +319,8 @@
+         need(binding[key]==constants.get(name),'Binding differs from '+name)
+     need(all(c['fill'][k]==sealed[k] for k in ('object','step','lineage')),'Configured fill identity differs from sealed binding')
+     parts=binding.get('parts',[]);paths=c['fill']['parts']
++    for path in paths+[c['fill'][k] for k in ('done','config','receipt','data_receipt')]:
++        need(isinstance(path,str) and PurePosixPath(path).is_absolute() and str(PurePosixPath(path))==path and not path.startswith('//') and '..' not in PurePosixPath(path).parts,'Staged input requires canonical absolute path: '+str(path))
+     need(len(parts)==len(paths)==4 and len(set(paths))==4,'Binding requires four distinct export parts')
+     for index,(part,path) in enumerate(zip(parts,paths)):
+         size=part.get('bytes');actual=c.get('remote_input_pins',{}).get(path,{}).get('bytes')
+@@ -340,8 +344,8 @@
+     code="from pathlib import Path\np=Path(%r)\n(p/'a/f.lock').mkdir(mode=0o700)\n(p/'a/f.sh').write_text(%r)"%(p,body)
+     return HEADER+python_block(code)+'cd '+shlex.quote(p)+'\nsetsid nohup bash a/f.sh </dev/null >a/f.log 2>&1 &\n'
+ 
+-def detached_verify(body,p):
+-    code='''import os
++def detached_verify(body,p,identity=None):
++    code='''import os,fcntl
+ from pathlib import Path
+ p=Path(%r)
+ p.mkdir(mode=0o700,exist_ok=True)
+@@ -351,19 +355,28 @@
+ try:v.mkdir(mode=0o700)
+ except FileExistsError:
+  assert not v.is_symlink() and v.is_dir() and not v.stat().st_mode & 0o077
++ lock=v/'0.lock'
++ assert not lock.is_symlink()
++ held=lock.open('a');fcntl.flock(held,fcntl.LOCK_EX|fcntl.LOCK_NB)
+  failed=v/'0.exit'
+- assert failed.is_file() and not failed.is_symlink() and failed.stat().st_size<16 and not (v/'0.txt').exists(), 'Verification active, successful or uncertain; do not relaunch'
+- assert 0<int(failed.read_text())<256, 'Invalid verification failure receipt'
++ completed=all((v/n).is_file() and not (v/n).is_symlink() for n in ('0.txt','0.json')) and (v/'0.txt').read_text()=='0\\n'
++ if completed:
++  assert %r is not None, 'Verification identity missing; do not relaunch'
++  try:exec(%r)
++  except (ValueError,OSError,KeyError,TypeError):pass
++  else:raise SystemExit(0)
++ else:
++  assert failed.is_file() and not failed.is_symlink() and failed.stat().st_size<16 and not (v/'0.txt').exists(), 'Verification active or uncertain; do not relaunch'
++  assert 0<int(failed.read_text())<256, 'Invalid verification failure receipt'
+  archive=v/os.urandom(8).hex();archive.mkdir(mode=0o700)
+- failed.rename(archive/'0.exit')
+- for name in ('0.sh','0.log','0.json'):
++ for name in ('0.txt','0.exit','0.sh','0.log','0.json'):
+   old=v/name
+   if old.exists():
+    assert not old.is_symlink() and old.is_file()
+    old.rename(archive/name)
+ (v/'0.sh').write_text(%r)
+-'''%(p,body)
+-    return HEADER+python_block(code)+'cd '+shlex.quote(p)+'\nsetsid nohup bash v/0.sh </dev/null >v/0.log 2>&1 &\n'
++'''%(p,identity,V.preflight_code(p,identity) if identity is not None else '',body)
++    return HEADER+python_block(code)+'cd '+shlex.quote(p)+'\nif test -f v/0.txt; then exit 0; fi\nsetsid nohup bash v/0.sh </dev/null >v/0.log 2>&1 &\n'
+ 
+ def plan(c,b):
+     p=remote_path(b);opaque(p,c.get('forbidden_extra',()));check=shell_join(['/usr/bin/python3','-I','-s','-B','3.py','check','--gpus','1','--time',c['remote']['walltime']])
+@@ -371,7 +384,7 @@
+     shell_privacy(fill_body,c.get('forbidden_extra',()))
+     f,_,_,binding=structure(b['package']);identity=export_identity(c,f,binding)
+     verify_body=HEADER+'cd '+shlex.quote(p)+'\ntrap \'rc=$?; if [ "$rc" != 0 ]; then printf "%s\\n" "$rc" >v/0.exit; fi\' EXIT\n'+python_block(V.verify_code(p,identity))
+-    scripts=dict(verify=detached_verify(verify_body,p),preflight=HEADER+remote_preflight(c,b),place=HEADER+python_block(place_code(b)),fill=detached_fill(fill_body,p),cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
++    scripts=dict(verify=detached_verify(verify_body,p,identity),preflight=HEADER+remote_preflight(c,b),place=HEADER+python_block(place_code(b)),fill=detached_fill(fill_body,p),cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
+     scripts['verify_poll']=HEADER+'cd '+shlex.quote(p)+'\nif test -f v/0.txt; then test "$(cat v/0.txt)" = 0; printf "complete\\n"; elif test -f v/0.exit; then tail -c 8192 v/0.log >&2; exit 1; else printf "wait\\n"; tail -c 8192 v/0.log >&2; fi\n'
+     scripts['fill_poll']=HEADER+'cd '+shlex.quote(p)+'\nif test -f a/1.txt; then test "$(cat a/1.txt)" = 0; printf "complete\\n"; elif test -f a/f.exit; then tail -c 8192 a/f.log >&2; exit 1; else printf "wait\\n"; tail -c 8192 a/f.log >&2; fi\n'
+     job='P='+p+'\nJ=$(cat "$P/a/4.txt")\n[[ "$J" =~ ^[0-9]+$ ]]\n'
+@@ -433,13 +446,18 @@
+             deadline=time.monotonic()+int(c['remote'].get(phase+'_wait',1800))
+             while True:
+                 sleeper(60);need(time.monotonic()<deadline,phase+' wait deadline exceeded; inspect remote log; do not relaunch')
+-                r=invoke(phase+'_poll');need(r.returncode==0,phase+' poll failed; inspect remote log; do not relaunch: '+r.stderr.decode(errors='replace'))
++                advice='recorded failure permits explicit verify retry; transport loss or uncertain state requires inspection' if phase=='verify' else 'inspect remote log; do not relaunch'
++                r=invoke(phase+'_poll');need(r.returncode==0,phase+' poll failed; '+advice+': '+r.stderr.decode(errors='replace'))
+                 state=r.stdout.decode().strip();need(state in ('wait','complete'),'Unexpected '+phase+' receipt')
+                 if state=='complete':break
+ def main(argv=None):
+     p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('build','check','verify','place','fill','gpu','submit','all'));p.add_argument('--config',required=True);p.add_argument('--enable',action='store_true');p.add_argument('--token');p.add_argument('--yes',action='store_true');p.add_argument('--execute-remote',action='store_true');a=p.parse_args(argv);need(a.enable,'Default OFF: pass --enable')
+     os.umask(0o077);limits();c=read(a.config);w=state_root(c)
+-    if a.action in ('build','all'):print(json.dumps(build(c,a.token),sort_keys=True))
++    if a.action in ('build','all'):
++        if a.action=='all' and (w/'BUILD.json').exists():
++            b=built(c);need(a.token==b['token'],'Build token differs from explicit token')
++        else:b=build(c,a.token)
++        print(json.dumps(b,sort_keys=True))
+     if a.action in ('check','all'):
+         b=built(c);r=local_check(c,b['package'],w/('c'+os.urandom(4).hex()));write(w/'CHECK.json',r);plan(c,b)
+     if a.action in ('verify','place','fill','gpu','submit','all'):
+--- round3/pack_verify.py
++++ round4/pack_verify.py
+@@ -1,14 +1,17 @@
+ """Generated Python 3.6 verification; receipts never authorize changed inputs."""
+ COMMON = '''import hashlib,json,os,stat,tarfile
+-from pathlib import Path
++from pathlib import Path,PurePosixPath
+ def stamp(p):
+  s=p.stat()
+  if not stat.S_ISREG(s.st_mode):raise ValueError('Export part is not a regular file: '+str(p))
+- return dict(bytes=s.st_size,mtime_ns=s.st_mtime_ns,ctime_ns=s.st_ctime_ns,device=s.st_dev,inode=s.st_ino)
++ return dict(bytes=s.st_size,mtime_ns=s.st_mtime_ns)
++def snapshot(p):
++ s=p.stat()
++ return dict(stamp(p),ctime_ns=s.st_ctime_ns,device=s.st_dev,inode=s.st_ino)
+ def header(path,member):
+  with Path(path).open('rb') as stream:raw=stream.read(512)
+  entry=tarfile.TarInfo.frombuf(raw,'utf-8','strict')
+- name=entry.name.rstrip('/')
++ name=str(PurePosixPath(entry.name))
+  if name!=member and not name.startswith(member+'/'):raise ValueError('Export tar member differs: '+name)
+  if '..' in name.split('/') or entry.type not in (tarfile.REGTYPE,tarfile.AREGTYPE,tarfile.DIRTYPE):raise ValueError('Unsupported export tar header')
+ '''
+@@ -19,19 +22,19 @@
+ header(identity['parts'][0]['path'],identity['member_directory'])
+ rows=[]
+ for pin in identity['parts']:
+- path=Path(pin['path']);before=stamp(path)
++ path=Path(pin['path']);before=snapshot(path)
+  if before['bytes']!=pin['bytes']:raise ValueError('Export part size differs: '+str(path))
+  h=hashlib.sha256()
+  with path.open('rb') as stream:
+   opened=os.fstat(stream.fileno())
+   if (opened.st_dev,opened.st_ino)!=(before['device'],before['inode']):raise ValueError('Export part changed before hashing')
+   for chunk in iter(lambda:stream.read(1024**2),b''):h.update(chunk)
+- if stamp(path)!=before:raise ValueError('Export part changed during hashing: '+str(path))
++ if snapshot(path)!=before:raise ValueError('Export part changed during hashing: '+str(path))
+  if h.hexdigest()!=pin['sha256']:raise ValueError('Export part sha256 differs: '+str(path))
+- rows.append(dict(before,path=str(path),sha256=h.hexdigest()))
++ rows.append(dict(before,path=pin['path'],sha256=h.hexdigest()))
+ for row in rows:
+- if any(row[k]!=v for k,v in stamp(Path(row['path'])).items()):raise ValueError('Export part changed after hashing')
+-receipt=dict(schema=1,parts=rows)
++ if any(row[k]!=v for k,v in snapshot(Path(row['path'])).items()):raise ValueError('Export part changed after hashing')
++receipt=dict(schema=1,parts=[{k:row[k] for k in ('path','bytes','mtime_ns','sha256')} for row in rows])
+ with (p/'0.json').open('x') as stream:
+  json.dump(receipt,stream,sort_keys=True);stream.flush();os.fsync(stream.fileno())
+ with (p/'0.txt').open('x') as stream:stream.write('0\\n')
+--- round3/test_pack.py
++++ round4/test_pack.py
+@@ -78,6 +78,7 @@
+         items=T.D/'evidence/items/dist580.json'
+         c=dict(builder=dict(path=str(T.D/'build_d.py'),sha256=P.file_digest(T.D/'build_d.py'),argv=['stage','source','sha',str(items),'binding']))
+         with self.assertRaisesRegex(P.Rejected,'score_d.py'):P.source_preflight(c)
++        c['old_identities']=['f'*64]  # Synthetic absent identity isolates the source-drift gate.
+         with patch.object(P,'probe',side_effect=AssertionError('Probe ran before source preflight')):
+             with self.assertRaisesRegex(P.Rejected,'score_d.py'):P.local_check(c,self.p,self.fresh('q'))
+         here=self.fresh('coherent');here.mkdir();script=(T.D/'o_build_D.sh').read_bytes();(here/'o_build_D.sh').write_bytes(script);(here/'check_release_d.py').write_bytes((T.D/'check_release_d.py').read_bytes())
+--- round3/test_native.py
++++ round4/test_native.py
+@@ -49,6 +49,7 @@
+     P.run(['/usr/bin/python3','-I','-s','-B','-c',code,str(here),str(w)],w,w/'coherent_after.log')
+     # Run the public pack build path against the actual native builder and items.
+     cfg=dict(work=str(w/'pack_build'),ledger=str(w/'ledger.jsonl'),normalize_wrapper=True,python=P.PYTHON,builder=dict(path=str(adapter),sha256=P.file_digest(adapter),argv=['--kind','d','--source',str(T.D/'build_d.py'),'--enable-token','--token','{token}','--','{work}/stage',str(source),P.digest(raw),str(items),str(T.D/'bind_D200.json')],env={'KROOT':'{work}/k'},report='{work}/stage/BUILD.json',key='D',inputs=[dict(path=str(T.D/'build_d.py'),sha256=P.file_digest(T.D/'build_d.py'))]))
++    cfg['old_identities']=[P.read(T.B5/'0.json')['token']]
+     (w/'ledger.jsonl').write_text('');P.write(w/'build_config.json',cfg)
+     P.run([P.PYTHON,'-I','-s','-B',str(Path(__file__).with_name('pack.py')),'build','--config',str(w/'build_config.json'),'--enable','--token','b123456789abc'],w,w/'pack_build.log');built=P.built(cfg)
+     try:P.source_preflight(cfg)
+@@ -58,7 +59,7 @@
+     P.need(P.source_preflight(coherent_cfg)['assets']==10,'Coherent native source failed')
+     # Exercise every public local check on an actual pack-built D delivery.
+     # Structural mode changes only a disposable probe copy and authenticates no live archives.
+-    fixture,small=T.fixture(w/'tiny');check_cfg=dict(small,work=cfg['work'],builder=coherent_cfg['builder'],fill_mode='structural')
++    fixture,small=T.fixture(w/'tiny');check_cfg=dict(small,work=cfg['work'],builder=coherent_cfg['builder'],old_identities=cfg['old_identities'],fill_mode='structural')
+     binding=P.structure(built['package'])[3]['export_binding']
+     binding_path=T.D/'bind_D200.json';full_binding=P.read(binding_path)
+     check_cfg['export_binding_pin']=dict(path=str(binding_path),sha256=P.file_digest(binding_path))

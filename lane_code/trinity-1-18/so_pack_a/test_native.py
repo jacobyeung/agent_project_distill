@@ -49,6 +49,7 @@ else:
     P.run(['/usr/bin/python3','-I','-s','-B','-c',code,str(here),str(w)],w,w/'coherent_after.log')
     # Run the public pack build path against the actual native builder and items.
     cfg=dict(work=str(w/'pack_build'),ledger=str(w/'ledger.jsonl'),normalize_wrapper=True,python=P.PYTHON,builder=dict(path=str(adapter),sha256=P.file_digest(adapter),argv=['--kind','d','--source',str(T.D/'build_d.py'),'--enable-token','--token','{token}','--','{work}/stage',str(source),P.digest(raw),str(items),str(T.D/'bind_D200.json')],env={'KROOT':'{work}/k'},report='{work}/stage/BUILD.json',key='D',inputs=[dict(path=str(T.D/'build_d.py'),sha256=P.file_digest(T.D/'build_d.py'))]))
+    cfg['old_identities']=[P.read(T.B5/'0.json')['token']]
     (w/'ledger.jsonl').write_text('');P.write(w/'build_config.json',cfg)
     P.run([P.PYTHON,'-I','-s','-B',str(Path(__file__).with_name('pack.py')),'build','--config',str(w/'build_config.json'),'--enable','--token','b123456789abc'],w,w/'pack_build.log');built=P.built(cfg)
     try:P.source_preflight(cfg)
@@ -58,7 +59,7 @@ else:
     P.need(P.source_preflight(coherent_cfg)['assets']==10,'Coherent native source failed')
     # Exercise every public local check on an actual pack-built D delivery.
     # Structural mode changes only a disposable probe copy and authenticates no live archives.
-    fixture,small=T.fixture(w/'tiny');check_cfg=dict(small,work=cfg['work'],builder=coherent_cfg['builder'],fill_mode='structural')
+    fixture,small=T.fixture(w/'tiny');check_cfg=dict(small,work=cfg['work'],builder=coherent_cfg['builder'],old_identities=cfg['old_identities'],fill_mode='structural')
     binding=P.structure(built['package'])[3]['export_binding']
     binding_path=T.D/'bind_D200.json';full_binding=P.read(binding_path)
     check_cfg['export_binding_pin']=dict(path=str(binding_path),sha256=P.file_digest(binding_path))

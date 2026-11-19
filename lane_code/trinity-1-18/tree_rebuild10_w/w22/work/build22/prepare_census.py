@@ -33,4 +33,13 @@ s=s.replace("reader.close();assert found==union",'''if value.get('direction_twin
 reader.close();assert found==union''')
 s=s.replace("for name in ('recovery','absolute_distance','units'):eligible[name]=slice_counts[name]['counts'].get('eligible',0)","for name in ('recovery','absolute_distance','units','camera_wording'):eligible[name]=slice_counts[name]['counts'].get('eligible',0)")
 s=s.replace("mp=envelope(chunk,normalized,'routing',kind);", "mp=envelope(chunk,normalized,'routing',kind);")
+s=s.replace("for cell in load(L/'work/build16/proofs/census/CENSUS.json')['vqa']['eligible_by_cell']:eligible[cell]=counts[cell]", "for cell in load(I/'mix.json')['cells']:\n if cell['stream']=='vqa':eligible[cell['type']]=counts[cell['type']]")
+s=s.replace("slice_counts={}", "slice_counts={};refusal_examples={}")
+s=s.replace("errors.update('intake:'+r['reason'] for r in report['refusals'])", """errors.update('intake:'+r['reason'] for r in report['refusals'])
+   for r in report['refusals']:
+    key=kind+':'+r['reason']
+    if key not in refusal_examples:
+     sample=next(x for x in normalized if x['qid']==r['qid'])
+     refusal_examples[key]=dict(refusal=r,row=sample)
+   write(O/'REFUSALS.json',refusal_examples)""")
 (D/'census.py').write_text(s)

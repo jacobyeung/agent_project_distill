@@ -1,0 +1,22 @@
+test_f1_step600_package_preserves_a4_contract_and_binding (__main__.Round4Tests.test_f1_step600_package_preserves_a4_contract_and_binding) ... ok
+test_f2_step600_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_step600_real_job_and_rehearsal_memory) ... FAIL
+test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test_f3_cache_only_return_refuses_unverified_journals) ... ok
+test_f9_off_builder_guard_and_processor_only (__main__.Round4Tests.test_f9_off_builder_guard_and_processor_only) ... ok
+
+======================================================================
+FAIL: test_f2_step600_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_step600_real_job_and_rehearsal_memory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 332, in test_f2_step600_real_job_and_rehearsal_memory
+    self.assertEqual(result.returncode,0,str(root)+'\n'+result.stdout+result.stderr+logs+'\n'+'\n'.join(p.read_text() for p in (root/'job/sandbox/r').glob('FAILED.json')))
+AssertionError: 1 != 0 : /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/daa1422c05d34fb3ad406472cac5155a
+
+{
+  "error": "Non-opaque Slurm surface: PATH=/data2/jjyeung/cli_agents/home/.local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/codex-path:/scratch/jjyeung/codex_home_trinity-1-18/tmp/arg0/codex-arg0J7kxey:/home/jjyeung/google-cloud-sdk/bin:/home/jjyeung/.local/bin:/home/jjyeung/bin:/usr/share/Modules/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin"
+}
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 15.052s
+
+FAILED (failures=1)

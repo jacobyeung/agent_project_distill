@@ -1,0 +1,2 @@
+PACKLINES1
+{"bytes": 10011977, "encoding": "PACKLINES1", "lines": [{"text": "import sys\n"}, {"text": "sys.path.insert(0,'/scratch/jjyeung/orch_n30/so_pack_a/work/r3/applied_final')\n"}, {"text": "import pack_checks as Q\n"}, {"block": "a979d3f82ccf4127600fed44bc36bc3bff260ed7e4660c27892a184b2767f18f"}], "path": "work/r3/final/review3/test_01_detached_verify_and_place/place.py", "sha256": "3e4dda89d4ceb0b778b1f620365e7c553e906454596457689f97408a2e62e33e"}

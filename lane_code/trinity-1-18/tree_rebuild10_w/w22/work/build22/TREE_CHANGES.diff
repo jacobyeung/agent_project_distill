@@ -42,9 +42,11 @@
              **({'r1_progress':r1_boundary(cfg,step)} if 'r1_training' in cfg else {}),
 --- build21/student_pilot/r1_absence.py
 +++ build22/student_pilot/r1_absence.py
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,94 @@
 +"""Mechanical absence proofs for the two configuration-dependent head slots."""
 +from .p3_provenance import digest, load, pinned, file_pin
++
++SLOT_CODES = {'0':'heads_gf1_connector','1':'heads_frame_embeddings'}
 +
 +PREFIXES = {'heads_gf1_connector':('gf1.', 'pose.cam_token_connector.'),
 +            'heads_frame_embeddings':('frame_embeddings.',)}
@@ -112,9 +114,10 @@
 +def evidence(cfg,artifact):
 +    """The persisted export pins the actual head payload; absence is never asserted from a list alone."""
 +    import torch
-+    slots=cfg.get('r1_training',{}).get('not_present_slots',[])
-+    if not slots:return {}
-+    if set(slots)!=set(PREFIXES) or len(slots)!=2:raise ValueError('NOT_PRESENT_SLOT_FORBIDDEN')
++    codes=cfg.get('r1_training',{}).get('not_present_slots',[])
++    if not codes:return {}
++    if not isinstance(codes,list) or set(codes)!=set(SLOT_CODES) or len(codes)!=2:raise ValueError('NOT_PRESENT_SLOT_FORBIDDEN')
++    slots=[SLOT_CODES[code] for code in codes]
 +    for slot in slots:configuration(cfg,slot)
 +    pin=artifact.get('heads')
 +    if not pin:raise ValueError('NOT_PRESENT_STATE_INVENTORY_REQUIRED')
@@ -130,7 +133,7 @@
 +    projected={**cfg,**record['configuration']}
 +    if any(k in cfg and cfg[k]!=v for k,v in record['configuration'].items()):
 +        raise ValueError('NOT_PRESENT_CONFIG_DIFFERS:'+slot)
-+    projected['r1_training']={**cfg.get('r1_training',{}),'not_present_slots':list(PREFIXES)}
++    projected['r1_training']={**cfg.get('r1_training',{}),'not_present_slots':list(SLOT_CODES)}
 +    actual=evidence(projected,{'heads':record['inventory']})[slot]
 +    if actual!=entry:raise ValueError('NOT_PRESENT_PROOF_DIFFERS:'+slot)
 +    return entry
@@ -161,12 +164,12 @@
                      or artifact.get('component_evidence_sha256') != digest(recorded)):
                  raise ValueError('COMPONENT_EVIDENCE_PREPARATION_MISMATCH:'+boundary)
 -            records = components(prep['r1_training']['registry'], 'training')
-+            from .r1_absence import verify as verify_absence, evidence as absence_evidence, PREFIXES
++            from .r1_absence import verify as verify_absence, evidence as absence_evidence, SLOT_CODES
 +            absent={k:v for k,v in status.items() if v.get('status')=='NOT_PRESENT'}
 +            for name,entry in absent.items():verify_absence(entry,prep,name)
 +            if absent:
 +                current={**prep,**next(iter(absent.values()))['record']['configuration']}
-+                current['r1_training']={**prep['r1_training'],'not_present_slots':list(PREFIXES)}
++                current['r1_training']={**prep['r1_training'],'not_present_slots':list(SLOT_CODES)}
 +                absence_evidence(current,artifact)
 +                from .r2_policy import record, CHOICES, slots
 +                registry=load(pinned(prep['r1_training']['registry']))

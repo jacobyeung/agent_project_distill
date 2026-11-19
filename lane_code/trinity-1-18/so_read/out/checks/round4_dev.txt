@@ -1,0 +1,30 @@
+test_f1_step600_package_preserves_a4_contract_and_binding (__main__.Round4Tests.test_f1_step600_package_preserves_a4_contract_and_binding) ... ok
+test_f2_step600_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_step600_real_job_and_rehearsal_memory) ... FAIL
+test_f3_cache_only_return_refuses_unverified_journals (__main__.Round4Tests.test_f3_cache_only_return_refuses_unverified_journals) ... ok
+test_f9_off_builder_guard_and_processor_only (__main__.Round4Tests.test_f9_off_builder_guard_and_processor_only) ... ok
+
+======================================================================
+FAIL: test_f2_step600_real_job_and_rehearsal_memory (__main__.Round4Tests.test_f2_step600_real_job_and_rehearsal_memory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 306, in test_f2_step600_real_job_and_rehearsal_memory
+    self.assertEqual(result.returncode,0,result.stdout+result.stderr+logs)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 381, in <module>
+    elif len(sys.argv)>1 and sys.argv[1]=='--control':control_child(Path(sys.argv[2]),Path(sys.argv[3]),sys.argv[4])
+                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round4.py", line 263, in control_child
+    node.main()
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/21f682fb81424328b587500b7b771480/built/package/a/5.py", line 131, in main
+    bundle_guard=check_bundle_guard(package,root)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/21f682fb81424328b587500b7b771480/built/package/a/5.py", line 51, in check_bundle_guard
+    vendor = Path(results.__file__).with_name('return_io.py')
+                  ^^^^^^^^^^^^^^^^
+AttributeError: 'types.SimpleNamespace' object has no attribute '__file__'. Did you mean: '__le__'?
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 8.453s
+
+FAILED (failures=1)

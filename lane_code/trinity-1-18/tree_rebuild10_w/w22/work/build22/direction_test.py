@@ -68,6 +68,31 @@ class Twins22(unittest.TestCase):
   self.assertFalse(Removals([file_pin(p)]).keep(self.twin))
   row=dict(self.twin,question='caméra')
   self.assertNotEqual(digest(row),__import__('hashlib').sha256(json.dumps(row,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest())
+ def test_complete_population_and_manifest_mutations(self):
+  for mode,reason in (('base','BASE_POPULATION_DIFFERS'),('twin','AUGMENTED_ROW_DIFFERS'),('extra','AUGMENTED_EXTRA_ROW')):
+   cfg=T.augment(self.cfg,self.root/mode);actual=load(cfg['streams']['vqa']['path'])['database']
+   db=sqlite3.connect(actual['path'])
+   if mode=='base':db.execute('UPDATE rows SET target=? WHERE i=0',('{"forged":1}',))
+   elif mode=='twin':db.execute('UPDATE rows SET target=? WHERE i=1',('{"forged":1}',))
+   else:db.execute('INSERT INTO rows VALUES(2,?,?)',(json.dumps(self.twin),'{}'))
+   db.commit();db.close();actual=file_pin(actual['path'])
+   proof=load(cfg['r1_training']['direction_augmented']['path']);proof['database']=actual
+   p=self.root/(mode+'_proof.json');write(p,proof);cfg['r1_training']['direction_augmented']=file_pin(p)
+   with self.subTest(mode=mode),self.assertRaisesRegex(ValueError,reason):T.verify_augmented(cfg,actual)
+  cfg=T.augment(self.cfg,self.root/'manifest');actual=load(cfg['streams']['vqa']['path'])['database']
+  proof=load(cfg['r1_training']['direction_augmented']['path']);proof['binding']=self.rows
+  p=self.root/'forged_proof.json';write(p,proof);cfg['r1_training']['direction_augmented']=file_pin(p)
+  with self.assertRaisesRegex(ValueError,'AUGMENTATION_BINDING'):T.verify_augmented(cfg,actual)
+  with self.assertRaisesRegex(ValueError,'OUTPUT_EXISTS'):T.augment(self.cfg,self.root/'manifest')
+ def test_incomplete_row_set_and_bad_authority(self):
+  for mode,raw,reason in (('empty','','ROWS_INCOMPLETE'),('duplicate',(json.dumps(self.twin)+'\n')*2,'ROW_DUPLICATE')):
+   p=self.root/(mode+'_rows.jsonl');p.write_text(raw);pin=file_pin(p)
+   cfg=deepcopy(self.cfg);cfg['r1_training']['direction_twins']['rows']=pin
+   with patch.object(T,'ROWS',pin['sha256']),self.assertRaisesRegex(ValueError,reason):list(T.Binding(cfg).rows())
+  p=self.root/'bad_authority.json';write(p,dict(complete=False,aliases={}));pin=file_pin(p)
+  cfg=deepcopy(self.cfg);cfg['r1_training']['direction_twins']['aliases']=pin
+  with patch.object(T,'ALIASES',pin['sha256']),self.assertRaisesRegex(ValueError,'ROOM_AUTHORITY'):T.Binding(cfg)
+  self.assertEqual(T.dimensions(dict(question='Other',answer='front',student_input={'options':{'front':'front'}})),('unspecified','unknown','front'))
  def test_clause_and_answer_dimensions(self):
   for clause,expected in (('facing away from','away'),('face away from','away'),('look toward','toward'),('facing','toward')):
    row=dict(question_type='object_rel_direction_hard',answer='B',student_input=dict(question=clause,options=['A. front-left','B. back-right']))

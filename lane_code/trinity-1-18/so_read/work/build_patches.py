@@ -20,8 +20,8 @@ groups={
  '02_atomic_scene_shards.diff':[f'u0/a{i}.py' for i in range(4,12)]+[
     'u0/tests/test_read_journal.py','u0/tests/test_public.py','u0/tests/test_round1.py',
     'u0/tests/test_compare.py','u0/tests/u0.json','u0/tests/u1.json'],
- '03_production_integration.diff':[f'u0/a{i}.py' for i in range(12,19)]+['u0/tests/test_round2.py','u0/tests/test_round3.py',
-     'u0/tests/test_operator_round3.py','u0/tests/test_lock_round3.py']}
+ '03_production_integration.diff':[f'u0/a{i}.py' for i in range(12,21)]+['u0/tests/test_round2.py','u0/tests/test_round3.py',
+     'u0/tests/test_operator_round3.py','u0/tests/test_lock_round3.py','u0/tests/test_round4.py','u0/tests/test_round5.py']}
 
 def sha(value):return hashlib.sha256(value).hexdigest()
 def files(root):
@@ -35,8 +35,8 @@ def copy_values(values,root):
   path=root/rel;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(data)
 
 manifest=dict(base=str(A),strip=1,apply_from='fresh full staged src tree',
-              default_off='all original files unchanged; no extension import/settings parse',
-              activation='u0/a8.py --enable-extensions; u0/a12.py --enable-extensions builds the production overlays (apply all three patches)',patches={},unchanged_roots={})
+              default_off='all original reader files unchanged; no extension import/settings parse; operator additions conditional on read_extensions',
+              activation='u0/a8.py --enable-extensions; u0/a19.py --enable-extensions builds the bound A4 cache-only package; a12 is the generic integration builder (apply reader patches 01-03 and A4 operator patches 04-05)',patches={},unchanged_roots={})
 original={}
 full_base=files(A)
 manifest['base_pin']=dict(algorithm='sha256 of compact sorted JSON [relative_path, sha256] pairs',
@@ -60,7 +60,7 @@ for name,paths in groups.items():
  raw=''.join(parts).encode();(L/'out/patches'/name).write_bytes(raw)
  manifest['patches'][name]=dict(sha256=sha(raw),bytes=len(raw),files=pins)
 
-run=L/'work/apply-round3'/uuid.uuid4().hex
+run=L/'work/apply-round5'/uuid.uuid4().hex
 verify=run/'src';verify.mkdir(parents=True)
 copy_values(full_base,verify)
 
@@ -95,7 +95,7 @@ manifest['verification_root']=str(run)
 
 # The operator patch has a separate input root; the three reader patches are additive.
 operator_before=(BASE/'A4/tower_sequence.py').read_bytes()
-operator_after=(L/'work/operator3/tower_sequence.py').read_bytes()
+operator_after=(L/'work/operator4/tower_sequence.py').read_bytes()
 assert operator_before==(L/'work/operator3-original/7.py').read_bytes()
 name='04_operator_cache_bound.diff'
 raw=''.join(difflib.unified_diff(operator_before.decode().splitlines(True),
@@ -116,14 +116,35 @@ manifest['operator_base_pin']=dict(path=str(BASE/'A4/tower_sequence.py'),sha256=
 public_operator=L/'out/operator';public_operator.mkdir(exist_ok=True)
 (public_operator/'0.py').write_bytes((L/'work/operator3-original/0.py').read_bytes())
 (public_operator/'tower_sequence.py').write_bytes(operator_after)
-manifest['operator_files']={p.name:dict(sha256=sha(p.read_bytes()),bytes=p.stat().st_size) for p in public_operator.iterdir() if p.is_file()}
+# The return and CPU-proof helpers are A4 operator-side changes, guarded by
+# read_extensions. They apply from the same operator directory as patch 04.
+name='05_operator_return_and_proof.diff';parts=[];pins={}
+for rel in ('unpack_return.py','package/a/5.py'):
+ before=(BASE/'A4'/rel).read_bytes();after=(L/'work/operator4'/rel).read_bytes()
+ parts.extend(difflib.unified_diff(before.decode().splitlines(True),after.decode().splitlines(True),
+                                  fromfile='a/'+rel,tofile='b/'+rel,n=3))
+ pins[rel]=dict(before_sha256=sha(before),after_sha256=sha(after),bytes=len(after))
+ dest=operator_root/rel;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(before)
+ dest=public_operator/rel;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(after)
+raw=''.join(parts).encode();(L/'out/patches'/name).write_bytes(raw)
+result=subprocess.run(['patch','--batch','--fuzz=0','-p1','-d',str(operator_root)],input=raw,
+                      stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+assert result.returncode==0 and b'fuzz' not in result.stdout.lower(),result.stdout
+for rel in pins:assert sha((operator_root/rel).read_bytes())==pins[rel]['after_sha256']
+with (L/'out/checks/patch_application.txt').open('a') as f:f.write(result.stdout.decode())
+manifest['patches'][name]=dict(sha256=sha(raw),bytes=len(raw),files=pins,
+    apply_from='fresh A4 operator directory, outside src, after patch 04')
+manifest['operator_files']={str(p.relative_to(public_operator)):dict(sha256=sha(p.read_bytes()),bytes=p.stat().st_size)
+    for p in public_operator.rglob('*') if p.is_file()}
 manifest['application_checks']['A4_operator']='zero fuzz; explicit read_extensions default OFF; exact delivered bytes'
 
 suite=[]
 env=dict(os.environ,READ_INPUT_SRC=str(A),READ_TEST_TMP=str(L/'work/test-artifacts'),
-         READ_OPERATOR_SOURCE=str(operator_root/'tower_sequence.py'))
-for name in ('read_cache','read_journal','off','public','round1','round2','round3','operator_round3','lock_round3','compare'):
- command=[sys.executable,'-I','-s','-B',str(verify/'u0/tests'/('test_'+name+'.py'))]
+         READ_OPERATOR_SOURCE=str(operator_root/'tower_sequence.py'),READ_OPERATOR4_SOURCE=str(operator_root))
+manifest['a4_payload_pin']=dict(sha256=sha((BASE/'A4/package/0.tgz').read_bytes()),bytes=(BASE/'A4/package/0.tgz').stat().st_size)
+(L/'out/patches/MANIFEST.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
+for name in ('off','round4','round5','compare'):
+ command=[sys.executable,'-I','-s','-B',str(L/'work/run_fixture5.py'),str(verify/'u0/tests'/('test_'+name+'.py'))]
  result=subprocess.run(command,cwd=L,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
  output='applied_'+name+'.txt';(L/'out/checks'/output).write_text(result.stdout)
  assert result.returncode==0,result.stdout
@@ -142,11 +163,12 @@ manifest['kit_files']={str(p.relative_to(L/'out/kit_parity50')):dict(sha256=sha(
 pins={rel:sha((W/rel).read_bytes()) for rel in sorted(all_files)}
 assert pins==json.loads((L/'out/kit_parity50/EXTENSION_PINS.json').read_bytes())
 manifest['b5_base_archive_sha256']=sha((BASE/'B5/package/0.tgz').read_bytes())
+manifest['operations_files']={str(p.relative_to(L/'out/operations')):dict(sha256=sha(p.read_bytes()),bytes=p.stat().st_size) for p in (L/'out/operations').iterdir() if p.is_file()}
 manifest['generated_utc']=datetime.now(timezone.utc).isoformat()
 (L/'out/patches/MANIFEST.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
-print('PASS: 3 additive reader diffs ('+str(len(all_files))+' files) plus 1 default-OFF A4 operator diff; zero-fuzz application; unchanged original reader hash trees.')
-print('PASS: all 10 CPU suites pass from the fresh applied A4 tree; both complete 927-file base inventories authenticate.')
+print('PASS: 3 additive reader diffs ('+str(len(all_files))+' files) plus 2 default-OFF A4 operator diffs; zero-fuzz application; unchanged original reader hash trees.')
+print('PASS: OFF, round-4/5 integration and comparator suites pass from the fresh applied A4 tree; both complete 927-file base inventories authenticate.')
 print('Applied verification root: '+str(run))
 
 with (L/'work/STATUS.md').open('a') as f:
-    f.write(subprocess.check_output(['date','-u'],text=True)+'Regenerated three additive reader diffs plus the operator diff; full A4/B5/operator base pins, zero-fuzz application and applied-tree suites passed.\n')
+    f.write(subprocess.check_output(['date','-u'],text=True)+'Regenerated three additive reader diffs plus two operator diffs; full A4/B5/operator base pins, zero-fuzz application and applied-tree suites passed.\n')

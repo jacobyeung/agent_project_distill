@@ -79,12 +79,12 @@ def guard(artifact, banks, boundary):
             if (prep.get('schema') != 'c1-preparation-v1' or recorded != status
                     or artifact.get('component_evidence_sha256') != digest(recorded)):
                 raise ValueError('COMPONENT_EVIDENCE_PREPARATION_MISMATCH:'+boundary)
-            from .r1_absence import verify as verify_absence, evidence as absence_evidence, PREFIXES
+            from .r1_absence import verify as verify_absence, evidence as absence_evidence, SLOT_CODES
             absent={k:v for k,v in status.items() if v.get('status')=='NOT_PRESENT'}
             for name,entry in absent.items():verify_absence(entry,prep,name)
             if absent:
                 current={**prep,**next(iter(absent.values()))['record']['configuration']}
-                current['r1_training']={**prep['r1_training'],'not_present_slots':list(PREFIXES)}
+                current['r1_training']={**prep['r1_training'],'not_present_slots':list(SLOT_CODES)}
                 absence_evidence(current,artifact)
                 from .r2_policy import record, CHOICES, slots
                 registry=load(pinned(prep['r1_training']['registry']))

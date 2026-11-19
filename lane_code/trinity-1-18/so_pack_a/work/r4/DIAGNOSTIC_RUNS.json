@@ -1,0 +1,20 @@
+[
+  {
+    "name": "review3_login",
+    "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_R3_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final/review3_login PACK_R3_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/run_test.py /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied/test_review3.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final/review3_login.log 2>&1",
+    "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final/review3_login_harness_error.log",
+    "returncode": 1,
+    "expected_returncode": 0,
+    "started": "Thu Nov 19 14:19:25 UTC 2026",
+    "sha256": "0c750dec65871d30643b6d83514908fbb4505dfc77ddc903fae5b11c603cffa1"
+  },
+  {
+    "name": "native",
+    "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied/test_native.py --work /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final/native > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final/native.log 2>&1",
+    "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final/native.log",
+    "returncode": 1,
+    "expected_returncode": 0,
+    "started": "Thu Nov 19 14:25:41 UTC 2026",
+    "sha256": "7b24889e96e16cec38d7c419383e7b25820ff4ed07ffeab14614f1f91e860c5b"
+  }
+]

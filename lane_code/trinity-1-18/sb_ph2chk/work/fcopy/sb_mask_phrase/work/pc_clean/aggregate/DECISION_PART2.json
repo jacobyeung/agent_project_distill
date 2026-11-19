@@ -1,0 +1,7492 @@
+{
+ "FIXTURE": "synthetic reruns copied from the stored cache: a CPU dry run of this aggregate; every number is meaningless",
+ "bars_file": {
+  "path": "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/BARS_PART2.json",
+  "sha256": "166be15bcd56f303b9b032bab84712264a687bc073b791251b57b814e515d774",
+  "verified_unchanged": true
+ },
+ "new_phrases_sha256": "9625e86fb5261fe1c8cd1997d191113c78a12ecbfce2354730ea2436bf84b130",
+ "part1_arm": "W1",
+ "rows": 1012,
+ "captures": 204,
+ "both_good_rows": 442,
+ "w_cf_mra": 60.75098814229249,
+ "w_cf_gain": {
+  "rows": 1012,
+  "rooms": 188,
+  "left_mra": 60.75098814229249,
+  "right_mra": 56.92687747035573,
+  "estimate": 3.824110671936759,
+  "ci95": [
+   2.1628814066439705,
+   5.628116775350778
+  ],
+  "draws": 10000,
+  "seed": 20261119,
+  "both_answered": {
+   "rows": 976,
+   "left_mra": 61.834016393442624,
+   "right_mra": 59.0266393442623,
+   "role": "diagnostic only; never a bar"
+  }
+ },
+ "bars": {
+  "exact_holds": {
+   "verdict": "PASS",
+   "estimate": 0.0,
+   "ci95": [
+    0.0,
+    0.0
+   ]
+  },
+  "new_worth": {
+   "verdict": "FAIL",
+   "estimate": 0.0,
+   "ci95": [
+    0.0,
+    0.0
+   ],
+   "phrase_safe": {
+    "verdict": "PASS",
+    "rows": 442,
+    "estimate": 0.47511312217194573,
+    "ci95": [
+     0.0,
+     1.2268594067304903
+    ]
+   }
+  },
+  "retention_worth": {
+   "verdict": "FAIL",
+   "estimate": 0.5237154150197629,
+   "ci95": [
+    -0.05263505068740452,
+    1.2875194201119162
+   ],
+   "phrase_safe": {
+    "verdict": "PASS",
+    "rows": 442,
+    "estimate": 0.38461538461538464,
+    "ci95": [
+     -0.2714960058097313,
+     1.208583879370689
+    ]
+   },
+   "base": "W_exact",
+   "adoption": "needs a seal review in addition to this bar"
+  }
+ },
+ "best_w": "W_exact",
+ "w_exact_rows_equal_w_cf": 1012,
+ "arms": {
+  "W_exact": {
+   "rows": 1012,
+   "rooms": 188,
+   "mra": 60.75098814229249,
+   "mra_ci95": [
+    56.117513445307274,
+    65.17417733944096
+   ],
+   "refusals": 22,
+   "gain": {
+    "rows": 1012,
+    "rooms": 188,
+    "left_mra": 60.75098814229249,
+    "right_mra": 56.92687747035573,
+    "estimate": 3.824110671936759,
+    "ci95": [
+     2.1628814066439705,
+     5.628116775350778
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 976,
+     "left_mra": 61.834016393442624,
+     "right_mra": 59.0266393442623,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "safe": {
+    "rows": 442,
+    "rooms": 140,
+    "left_mra": 75.70135746606336,
+    "right_mra": 75.22624434389141,
+    "estimate": 0.47511312217194573,
+    "ci95": [
+     0.0,
+     1.2268594067304903
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 442,
+     "left_mra": 75.70135746606336,
+     "right_mra": 75.22624434389141,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "operand_categories": {
+    "good": 1369,
+    "wrong_object": 265,
+    "weak": 184,
+    "poor_priced_frame": 184,
+    "refused": 22
+   },
+   "pool_recall": 1820,
+   "pool_recall_lift": 1773,
+   "operands": 2024,
+   "on_target": 1369,
+   "served_absent_frames": 883,
+   "served_absent_frames_unique_objects": 354,
+   "served_iou": {
+    "visible_frames": 13395,
+    "mean": 0.40120724954913917,
+    "rate_05": 0.4648749533407988,
+    "priced_frame_mean": 0.5803169343688797,
+    "priced_frame_rate_05": 0.6763833992094862,
+    "failure_05": {
+     "other_mask_error": 974,
+     "correct": 6227,
+     "no_proposal": 2665,
+     "partial_mask": 427,
+     "omitted_selection": 2362,
+     "merged_instances": 412,
+     "wrong_class": 328
+    }
+   },
+   "member_precision": {
+    "0.25": {
+     "added": 509,
+     "correct": 378,
+     "precision": 0.7426326129666012,
+     "passes_90": false,
+     "gt_iou_members": 509,
+     "gt_iou_correct": 175,
+     "gt_iou_precision": 0.343811394891945
+    },
+    "0.15": {
+     "added": 551,
+     "correct": 414,
+     "precision": 0.7513611615245009,
+     "passes_90": false,
+     "gt_iou_members": 551,
+     "gt_iou_correct": 201,
+     "gt_iou_precision": 0.3647912885662432
+    },
+    "0.4": {
+     "added": 470,
+     "correct": 354,
+     "precision": 0.7531914893617021,
+     "passes_90": false,
+     "gt_iou_members": 470,
+     "gt_iou_correct": 162,
+     "gt_iou_precision": 0.3446808510638298
+    }
+   },
+   "first_seen": {
+    "pairs": 1277,
+    "correct": 1003,
+    "rate": 0.7854346123727486,
+    "objects": 749,
+    "exact": 0.6074766355140186,
+    "within_one": 0.7036048064085447
+   },
+   "by_dataset": {
+    "arkitscenes": {
+     "rows": 344,
+     "mra": 62.441860465116285,
+     "a0_mra": 62.441860465116285,
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "scannet": {
+     "rows": 47,
+     "mra": 62.12765957446808,
+     "a0_mra": 62.12765957446808,
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "scannetpp": {
+     "rows": 621,
+     "mra": 59.71014492753623,
+     "a0_mra": 53.47826086956522,
+     "delta": 6.231884057971015,
+     "ci95": [
+      3.644180236861585,
+      9.203861773564409
+     ]
+    }
+   }
+  },
+  "W_new": {
+   "rows": 1012,
+   "rooms": 188,
+   "mra": 60.75098814229249,
+   "mra_ci95": [
+    56.117513445307274,
+    65.17417733944096
+   ],
+   "refusals": 22,
+   "gain": {
+    "rows": 1012,
+    "rooms": 188,
+    "left_mra": 60.75098814229249,
+    "right_mra": 56.92687747035573,
+    "estimate": 3.824110671936759,
+    "ci95": [
+     2.1628814066439705,
+     5.628116775350778
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 976,
+     "left_mra": 61.834016393442624,
+     "right_mra": 59.0266393442623,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "safe": {
+    "rows": 442,
+    "rooms": 140,
+    "left_mra": 75.70135746606336,
+    "right_mra": 75.22624434389141,
+    "estimate": 0.47511312217194573,
+    "ci95": [
+     0.0,
+     1.2268594067304903
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 442,
+     "left_mra": 75.70135746606336,
+     "right_mra": 75.22624434389141,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "operand_categories": {
+    "good": 1369,
+    "wrong_object": 265,
+    "weak": 184,
+    "poor_priced_frame": 184,
+    "refused": 22
+   },
+   "pool_recall": 1820,
+   "pool_recall_lift": 1773,
+   "operands": 2024,
+   "on_target": 1369,
+   "served_absent_frames": 883,
+   "served_absent_frames_unique_objects": 354,
+   "served_iou": {
+    "visible_frames": 13395,
+    "mean": 0.40120724954913917,
+    "rate_05": 0.4648749533407988,
+    "priced_frame_mean": 0.5803169343688797,
+    "priced_frame_rate_05": 0.6763833992094862,
+    "failure_05": {
+     "other_mask_error": 974,
+     "correct": 6227,
+     "no_proposal": 2665,
+     "partial_mask": 427,
+     "omitted_selection": 2362,
+     "merged_instances": 412,
+     "wrong_class": 328
+    }
+   },
+   "member_precision": {
+    "0.25": {
+     "added": 509,
+     "correct": 378,
+     "precision": 0.7426326129666012,
+     "passes_90": false,
+     "gt_iou_members": 509,
+     "gt_iou_correct": 175,
+     "gt_iou_precision": 0.343811394891945
+    },
+    "0.15": {
+     "added": 551,
+     "correct": 414,
+     "precision": 0.7513611615245009,
+     "passes_90": false,
+     "gt_iou_members": 551,
+     "gt_iou_correct": 201,
+     "gt_iou_precision": 0.3647912885662432
+    },
+    "0.4": {
+     "added": 470,
+     "correct": 354,
+     "precision": 0.7531914893617021,
+     "passes_90": false,
+     "gt_iou_members": 470,
+     "gt_iou_correct": 162,
+     "gt_iou_precision": 0.3446808510638298
+    }
+   },
+   "first_seen": {
+    "pairs": 1277,
+    "correct": 1003,
+    "rate": 0.7854346123727486,
+    "objects": 749,
+    "exact": 0.6074766355140186,
+    "within_one": 0.7036048064085447
+   },
+   "by_dataset": {
+    "arkitscenes": {
+     "rows": 344,
+     "mra": 62.441860465116285,
+     "a0_mra": 62.441860465116285,
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "scannet": {
+     "rows": 47,
+     "mra": 62.12765957446808,
+     "a0_mra": 62.12765957446808,
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "scannetpp": {
+     "rows": 621,
+     "mra": 59.71014492753623,
+     "a0_mra": 53.47826086956522,
+     "delta": 6.231884057971015,
+     "ci95": [
+      3.644180236861585,
+      9.203861773564409
+     ]
+    }
+   }
+  },
+  "R_cond": {
+   "rows": 1012,
+   "rooms": 188,
+   "mra": 61.27470355731226,
+   "mra_ci95": [
+    56.8594451003542,
+    65.48426495590932
+   ],
+   "refusals": 19,
+   "gain": {
+    "rows": 1012,
+    "rooms": 188,
+    "left_mra": 61.27470355731226,
+    "right_mra": 56.92687747035573,
+    "estimate": 4.3478260869565215,
+    "ci95": [
+     2.6153801843317974,
+     6.132085550717626
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 976,
+     "left_mra": 62.110655737704924,
+     "right_mra": 59.0266393442623,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "safe": {
+    "rows": 442,
+    "rooms": 140,
+    "left_mra": 75.6108597285068,
+    "right_mra": 75.22624434389141,
+    "estimate": 0.38461538461538464,
+    "ci95": [
+     -0.2714960058097313,
+     1.208583879370689
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 442,
+     "left_mra": 75.6108597285068,
+     "right_mra": 75.22624434389141,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "operand_categories": {
+    "good": 1363,
+    "wrong_object": 263,
+    "weak": 190,
+    "poor_priced_frame": 189,
+    "refused": 19
+   },
+   "pool_recall": 1828,
+   "pool_recall_lift": 1781,
+   "operands": 2024,
+   "on_target": 1363,
+   "served_absent_frames": 881,
+   "served_absent_frames_unique_objects": 351,
+   "served_iou": {
+    "visible_frames": 13395,
+    "mean": 0.39890511750846197,
+    "rate_05": 0.4620380739081747,
+    "priced_frame_mean": 0.5796038932875656,
+    "priced_frame_rate_05": 0.6734189723320159,
+    "failure_05": {
+     "other_mask_error": 974,
+     "correct": 6189,
+     "no_proposal": 2570,
+     "partial_mask": 435,
+     "omitted_selection": 2493,
+     "merged_instances": 402,
+     "wrong_class": 332
+    }
+   },
+   "member_precision": {
+    "0.25": {
+     "added": 522,
+     "correct": 389,
+     "precision": 0.7452107279693486,
+     "passes_90": false,
+     "gt_iou_members": 522,
+     "gt_iou_correct": 180,
+     "gt_iou_precision": 0.3448275862068966
+    },
+    "0.15": {
+     "added": 564,
+     "correct": 425,
+     "precision": 0.7535460992907801,
+     "passes_90": false,
+     "gt_iou_members": 564,
+     "gt_iou_correct": 206,
+     "gt_iou_precision": 0.36524822695035464
+    },
+    "0.4": {
+     "added": 475,
+     "correct": 358,
+     "precision": 0.7536842105263157,
+     "passes_90": false,
+     "gt_iou_members": 475,
+     "gt_iou_correct": 162,
+     "gt_iou_precision": 0.3410526315789474
+    }
+   },
+   "first_seen": {
+    "pairs": 1277,
+    "correct": 1004,
+    "rate": 0.7862176977290525,
+    "objects": 749,
+    "exact": 0.6048064085447263,
+    "within_one": 0.7009345794392523
+   },
+   "by_dataset": {
+    "arkitscenes": {
+     "rows": 344,
+     "mra": 62.7906976744186,
+     "a0_mra": 62.441860465116285,
+     "delta": 0.3488372093023256,
+     "ci95": [
+      -0.030959752321981438,
+      0.9294871794871793
+     ]
+    },
+    "scannet": {
+     "rows": 47,
+     "mra": 62.12765957446808,
+     "a0_mra": 62.12765957446808,
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "scannetpp": {
+     "rows": 621,
+     "mra": 60.37037037037037,
+     "a0_mra": 53.47826086956522,
+     "delta": 6.892109500805152,
+     "ci95": [
+      4.265163972937418,
+      9.83116802464229
+     ]
+    }
+   }
+  }
+ },
+ "new_choices": {
+  "0": {
+   "heater": "q:radiator"
+  },
+  "1": {
+   "heater": "q:radiator"
+  },
+  "2": {
+   "heater": "q:radiator"
+  },
+  "3": {
+   "heater": "q:radiator"
+  },
+  "4": {
+   "heater": "q:radiator"
+  },
+  "all_rooms": {
+   "heater": "q:radiator"
+  }
+ },
+ "new_evidence": {
+  "0": {
+   "backpack": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 22,
+    "counts": {
+     "raw": 20,
+     "q:bath tub": 2
+    }
+   },
+   "bed": {
+    "fit_objects": 38,
+    "counts": {
+     "raw": 21,
+     "q:bed frame": 9
+    }
+   },
+   "blanket": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 9,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 4,
+     "q:bookcase": 2,
+     "q:shelf": 1
+    }
+   },
+   "bowl": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 12,
+     "q:seat": 6
+    }
+   },
+   "clock": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 1
+    }
+   },
+   "computer tower": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:sofa": 2
+    }
+   },
+   "crate": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 8,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 35,
+    "counts": {
+     "raw": 31,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 22,
+    "counts": {
+     "raw": 7,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 15,
+    "counts": {
+     "raw": 4,
+     "q:radiator": 13,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:computer keyboard": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:light": 0
+    }
+   },
+   "laptop": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 6,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 5,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 7,
+     "q:computer monitor": 1
+    }
+   },
+   "mouse": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 2,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:chair": 0,
+     "q:desk chair": 1
+    }
+   },
+   "pan": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 1,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 35,
+    "counts": {
+     "raw": 29,
+     "q:fridge": 0
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 16,
+    "counts": {
+     "raw": 13,
+     "q:couch": 3
+    }
+   },
+   "stapler": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 25,
+    "counts": {
+     "raw": 16,
+     "q:seat": 1
+    }
+   },
+   "stove": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 17,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 40,
+    "counts": {
+     "raw": 27,
+     "q:desk": 3
+    }
+   },
+   "table lamp": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 7,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 36,
+    "counts": {
+     "raw": 32,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 19,
+    "counts": {
+     "raw": 6,
+     "q:bin": 2,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 52,
+    "counts": {
+     "raw": 43,
+     "q:television": 1
+    }
+   },
+   "washer": {
+    "fit_objects": 14,
+    "counts": {
+     "raw": 13,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 11,
+    "counts": {
+     "raw": 8,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  },
+  "1": {
+   "backpack": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 17,
+    "counts": {
+     "raw": 15,
+     "q:bath tub": 2
+    }
+   },
+   "bed": {
+    "fit_objects": 35,
+    "counts": {
+     "raw": 16,
+     "q:bed frame": 10
+    }
+   },
+   "blanket": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 9,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 4,
+     "q:bookcase": 2,
+     "q:shelf": 1
+    }
+   },
+   "bowl": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 29,
+    "counts": {
+     "raw": 15,
+     "q:seat": 8
+    }
+   },
+   "clock": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 1
+    }
+   },
+   "computer tower": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:sofa": 2
+    }
+   },
+   "crate": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 2,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 12,
+    "counts": {
+     "raw": 8,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 30,
+    "counts": {
+     "raw": 24,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 8,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 19,
+    "counts": {
+     "raw": 4,
+     "q:radiator": 15,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 7,
+     "q:computer keyboard": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:light": 0
+    }
+   },
+   "laptop": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 4,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 5,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 7,
+     "q:computer monitor": 1
+    }
+   },
+   "mouse": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:chair": 0,
+     "q:desk chair": 1
+    }
+   },
+   "pan": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 1,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 38,
+    "counts": {
+     "raw": 31,
+     "q:fridge": 1
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 20,
+    "counts": {
+     "raw": 18,
+     "q:couch": 2
+    }
+   },
+   "stapler": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 12,
+     "q:seat": 1
+    }
+   },
+   "stove": {
+    "fit_objects": 25,
+    "counts": {
+     "raw": 17,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 45,
+    "counts": {
+     "raw": 25,
+     "q:desk": 5
+    }
+   },
+   "table lamp": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 2,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 7,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 31,
+    "counts": {
+     "raw": 26,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 19,
+    "counts": {
+     "raw": 10,
+     "q:bin": 2,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 50,
+    "counts": {
+     "raw": 42,
+     "q:television": 0
+    }
+   },
+   "washer": {
+    "fit_objects": 12,
+    "counts": {
+     "raw": 9,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 12,
+    "counts": {
+     "raw": 10,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 1,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  },
+  "2": {
+   "backpack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 21,
+    "counts": {
+     "raw": 18,
+     "q:bath tub": 0
+    }
+   },
+   "bed": {
+    "fit_objects": 30,
+    "counts": {
+     "raw": 14,
+     "q:bed frame": 7
+    }
+   },
+   "blanket": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 5,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 3,
+     "q:bookcase": 2,
+     "q:shelf": 1
+    }
+   },
+   "bowl": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 27,
+    "counts": {
+     "raw": 13,
+     "q:seat": 6
+    }
+   },
+   "clock": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 0
+    }
+   },
+   "computer tower": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:sofa": 2
+    }
+   },
+   "crate": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 1,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 9,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 36,
+    "counts": {
+     "raw": 29,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 9,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 16,
+    "counts": {
+     "raw": 3,
+     "q:radiator": 12,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 2,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 7,
+     "q:computer keyboard": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:light": 0
+    }
+   },
+   "laptop": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 5,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 6,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 6,
+     "q:computer monitor": 0
+    }
+   },
+   "mouse": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:chair": 0,
+     "q:desk chair": 1
+    }
+   },
+   "pan": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 1,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 38,
+    "counts": {
+     "raw": 34,
+     "q:fridge": 1
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 20,
+     "q:couch": 4
+    }
+   },
+   "stapler": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 31,
+    "counts": {
+     "raw": 20,
+     "q:seat": 2
+    }
+   },
+   "stove": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 16,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 50,
+    "counts": {
+     "raw": 30,
+     "q:desk": 5
+    }
+   },
+   "table lamp": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 6,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 33,
+    "counts": {
+     "raw": 28,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 21,
+    "counts": {
+     "raw": 7,
+     "q:bin": 2,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 60,
+    "counts": {
+     "raw": 52,
+     "q:television": 1
+    }
+   },
+   "washer": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 11,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 11,
+    "counts": {
+     "raw": 8,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  },
+  "3": {
+   "backpack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 2,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 21,
+     "q:bath tub": 2
+    }
+   },
+   "bed": {
+    "fit_objects": 36,
+    "counts": {
+     "raw": 20,
+     "q:bed frame": 10
+    }
+   },
+   "blanket": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 8,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 5,
+     "q:bookcase": 3,
+     "q:shelf": 1
+    }
+   },
+   "bowl": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 11,
+     "q:seat": 5
+    }
+   },
+   "clock": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 1
+    }
+   },
+   "computer tower": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:sofa": 0
+    }
+   },
+   "crate": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 3,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 7,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 34,
+    "counts": {
+     "raw": 29,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 21,
+    "counts": {
+     "raw": 7,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 18,
+    "counts": {
+     "raw": 2,
+     "q:radiator": 14,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 6,
+     "q:computer keyboard": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:light": 0
+    }
+   },
+   "laptop": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 6,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 6,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 7,
+     "q:computer monitor": 1
+    }
+   },
+   "mouse": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:chair": 0,
+     "q:desk chair": 1
+    }
+   },
+   "pan": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 0,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 33,
+    "counts": {
+     "raw": 27,
+     "q:fridge": 1
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 19,
+     "q:couch": 4
+    }
+   },
+   "stapler": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 16,
+     "q:seat": 2
+    }
+   },
+   "stove": {
+    "fit_objects": 20,
+    "counts": {
+     "raw": 13,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 43,
+    "counts": {
+     "raw": 29,
+     "q:desk": 6
+    }
+   },
+   "table lamp": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 4,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 7,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 39,
+    "counts": {
+     "raw": 34,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 21,
+    "counts": {
+     "raw": 9,
+     "q:bin": 2,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 50,
+    "counts": {
+     "raw": 46,
+     "q:television": 1
+    }
+   },
+   "washer": {
+    "fit_objects": 11,
+    "counts": {
+     "raw": 8,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 11,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  },
+  "4": {
+   "backpack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 1,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 22,
+     "q:bath tub": 2
+    }
+   },
+   "bed": {
+    "fit_objects": 33,
+    "counts": {
+     "raw": 17,
+     "q:bed frame": 8
+    }
+   },
+   "blanket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 5,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 4,
+     "q:bookcase": 3,
+     "q:shelf": 0
+    }
+   },
+   "bowl": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 25,
+    "counts": {
+     "raw": 13,
+     "q:seat": 7
+    }
+   },
+   "clock": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 1
+    }
+   },
+   "computer tower": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:sofa": 2
+    }
+   },
+   "crate": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 1,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 8,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 33,
+    "counts": {
+     "raw": 27,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 19,
+    "counts": {
+     "raw": 9,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 12,
+    "counts": {
+     "raw": 3,
+     "q:radiator": 10,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 2,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:computer keyboard": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:light": 0
+    }
+   },
+   "laptop": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 7,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 6,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 5,
+     "q:computer monitor": 1
+    }
+   },
+   "mouse": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:chair": 0,
+     "q:desk chair": 0
+    }
+   },
+   "pan": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 1,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 36,
+    "counts": {
+     "raw": 31,
+     "q:fridge": 1
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 2,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 22,
+    "counts": {
+     "raw": 18,
+     "q:couch": 3
+    }
+   },
+   "stapler": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 25,
+    "counts": {
+     "raw": 16,
+     "q:seat": 2
+    }
+   },
+   "stove": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 13,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 38,
+    "counts": {
+     "raw": 21,
+     "q:desk": 5
+    }
+   },
+   "table lamp": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 9,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 37,
+    "counts": {
+     "raw": 32,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 16,
+    "counts": {
+     "raw": 8,
+     "q:bin": 0,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 56,
+    "counts": {
+     "raw": 49,
+     "q:television": 1
+    }
+   },
+   "washer": {
+    "fit_objects": 14,
+    "counts": {
+     "raw": 11,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 11,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  },
+  "all_rooms": {
+   "backpack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 27,
+    "counts": {
+     "raw": 24,
+     "q:bath tub": 2
+    }
+   },
+   "bed": {
+    "fit_objects": 43,
+    "counts": {
+     "raw": 22,
+     "q:bed frame": 11
+    }
+   },
+   "blanket": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 9,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 5,
+     "q:bookcase": 3,
+     "q:shelf": 1
+    }
+   },
+   "bowl": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 32,
+    "counts": {
+     "raw": 16,
+     "q:seat": 8
+    }
+   },
+   "clock": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 1
+    }
+   },
+   "computer tower": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:sofa": 2
+    }
+   },
+   "crate": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 3,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 16,
+    "counts": {
+     "raw": 10,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 42,
+    "counts": {
+     "raw": 35,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 27,
+    "counts": {
+     "raw": 10,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 20,
+    "counts": {
+     "raw": 4,
+     "q:radiator": 16,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 7,
+     "q:computer keyboard": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:light": 0
+    }
+   },
+   "laptop": {
+    "fit_objects": 11,
+    "counts": {
+     "raw": 7,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 7,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 8,
+     "q:computer monitor": 1
+    }
+   },
+   "mouse": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:chair": 0,
+     "q:desk chair": 1
+    }
+   },
+   "pan": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 1,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 45,
+    "counts": {
+     "raw": 38,
+     "q:fridge": 1
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 2,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 26,
+    "counts": {
+     "raw": 22,
+     "q:couch": 4
+    }
+   },
+   "stapler": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 32,
+    "counts": {
+     "raw": 20,
+     "q:seat": 2
+    }
+   },
+   "stove": {
+    "fit_objects": 29,
+    "counts": {
+     "raw": 19,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 54,
+    "counts": {
+     "raw": 33,
+     "q:desk": 6
+    }
+   },
+   "table lamp": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 4,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 11,
+    "counts": {
+     "raw": 9,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 44,
+    "counts": {
+     "raw": 38,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 10,
+     "q:bin": 2,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 67,
+    "counts": {
+     "raw": 58,
+     "q:television": 1
+    }
+   },
+   "washer": {
+    "fit_objects": 16,
+    "counts": {
+     "raw": 13,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 15,
+    "counts": {
+     "raw": 12,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  }
+ },
+ "rows_1037": 1037,
+ "captures_1037": 209,
+ "both_good_rows_1037": 456,
+ "w_cf_mra_1037": 60.50144648023144,
+ "w_cf_gain_1037": {
+  "rows": 1037,
+  "rooms": 192,
+  "left_mra": 60.50144648023144,
+  "right_mra": 56.769527483124406,
+  "estimate": 3.73191899710704,
+  "ci95": [
+   2.046248531308938,
+   5.477847132296759
+  ],
+  "draws": 10000,
+  "seed": 20261119,
+  "both_answered": {
+   "rows": 1001,
+   "left_mra": 61.54845154845155,
+   "right_mra": 58.81118881118882,
+   "role": "diagnostic only; never a bar"
+  }
+ },
+ "bars_1037": {
+  "exact_holds": {
+   "verdict": "PASS",
+   "estimate": 0.0,
+   "ci95": [
+    0.0,
+    0.0
+   ]
+  },
+  "new_worth": {
+   "verdict": "FAIL",
+   "estimate": 0.0,
+   "ci95": [
+    0.0,
+    0.0
+   ],
+   "phrase_safe": {
+    "verdict": "PASS",
+    "rows": 456,
+    "estimate": 0.46052631578947373,
+    "ci95": [
+     0.0,
+     1.2159967760689174
+    ]
+   }
+  },
+  "retention_worth": {
+   "verdict": "FAIL",
+   "estimate": 0.5110896817743491,
+   "ci95": [
+    -0.047036688617121354,
+    1.234828141783029
+   ],
+   "phrase_safe": {
+    "verdict": "PASS",
+    "rows": 456,
+    "estimate": 0.3728070175438597,
+    "ci95": [
+     -0.2702702702702703,
+     1.1946972226860355
+    ]
+   },
+   "base": "W_exact",
+   "adoption": "needs a seal review in addition to this bar"
+  }
+ },
+ "best_w_1037": "W_exact",
+ "w_exact_rows_equal_w_cf_1037": 1037,
+ "arms_1037": {
+  "W_exact": {
+   "rows": 1037,
+   "rooms": 192,
+   "mra": 60.50144648023144,
+   "mra_ci95": [
+    56.01723904247569,
+    64.80987835347487
+   ],
+   "refusals": 22,
+   "gain": {
+    "rows": 1037,
+    "rooms": 192,
+    "left_mra": 60.50144648023144,
+    "right_mra": 56.769527483124406,
+    "estimate": 3.73191899710704,
+    "ci95": [
+     2.046248531308938,
+     5.477847132296759
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 1001,
+     "left_mra": 61.54845154845155,
+     "right_mra": 58.81118881118882,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "safe": {
+    "rows": 456,
+    "rooms": 144,
+    "left_mra": 75.43859649122807,
+    "right_mra": 74.9780701754386,
+    "estimate": 0.46052631578947373,
+    "ci95": [
+     0.0,
+     1.2159967760689174
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 456,
+     "left_mra": 75.43859649122807,
+     "right_mra": 74.97807017543859,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "operand_categories": {
+    "good": 1408,
+    "wrong_object": 270,
+    "weak": 188,
+    "poor_priced_frame": 186,
+    "refused": 22
+   },
+   "pool_recall": 1867,
+   "pool_recall_lift": 1820,
+   "operands": 2074,
+   "on_target": 1408,
+   "served_absent_frames": 901,
+   "served_absent_frames_unique_objects": 364,
+   "served_iou": {
+    "visible_frames": 13793,
+    "mean": 0.4027217014222082,
+    "rate_05": 0.46748350612629597,
+    "priced_frame_mean": 0.5820979262780692,
+    "priced_frame_rate_05": 0.6788813886210222,
+    "failure_05": {
+     "other_mask_error": 988,
+     "correct": 6448,
+     "no_proposal": 2710,
+     "partial_mask": 443,
+     "omitted_selection": 2464,
+     "merged_instances": 412,
+     "wrong_class": 328
+    }
+   },
+   "member_precision": {
+    "0.25": {
+     "added": 551,
+     "correct": 398,
+     "precision": 0.7223230490018149,
+     "passes_90": false,
+     "gt_iou_members": 551,
+     "gt_iou_correct": 188,
+     "gt_iou_precision": 0.3411978221415608
+    },
+    "0.15": {
+     "added": 594,
+     "correct": 434,
+     "precision": 0.7306397306397306,
+     "passes_90": false,
+     "gt_iou_members": 594,
+     "gt_iou_correct": 214,
+     "gt_iou_precision": 0.3602693602693603
+    },
+    "0.4": {
+     "added": 512,
+     "correct": 374,
+     "precision": 0.73046875,
+     "passes_90": false,
+     "gt_iou_members": 512,
+     "gt_iou_correct": 175,
+     "gt_iou_precision": 0.341796875
+    }
+   },
+   "first_seen": {
+    "pairs": 1314,
+    "correct": 1037,
+    "rate": 0.789193302891933,
+    "objects": 770,
+    "exact": 0.6077922077922078,
+    "within_one": 0.7051948051948052
+   },
+   "by_dataset": {
+    "arkitscenes": {
+     "rows": 344,
+     "mra": 62.441860465116285,
+     "a0_mra": 62.441860465116285,
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "scannet": {
+     "rows": 72,
+     "mra": 58.05555555555555,
+     "a0_mra": 58.05555555555555,
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "scannetpp": {
+     "rows": 621,
+     "mra": 59.71014492753623,
+     "a0_mra": 53.47826086956522,
+     "delta": 6.231884057971015,
+     "ci95": [
+      3.644180236861585,
+      9.203861773564409
+     ]
+    }
+   }
+  },
+  "W_new": {
+   "rows": 1037,
+   "rooms": 192,
+   "mra": 60.50144648023144,
+   "mra_ci95": [
+    56.01723904247569,
+    64.80987835347487
+   ],
+   "refusals": 22,
+   "gain": {
+    "rows": 1037,
+    "rooms": 192,
+    "left_mra": 60.50144648023144,
+    "right_mra": 56.769527483124406,
+    "estimate": 3.73191899710704,
+    "ci95": [
+     2.046248531308938,
+     5.477847132296759
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 1001,
+     "left_mra": 61.54845154845155,
+     "right_mra": 58.81118881118882,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "safe": {
+    "rows": 456,
+    "rooms": 144,
+    "left_mra": 75.43859649122807,
+    "right_mra": 74.9780701754386,
+    "estimate": 0.46052631578947373,
+    "ci95": [
+     0.0,
+     1.2159967760689174
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 456,
+     "left_mra": 75.43859649122807,
+     "right_mra": 74.97807017543859,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "operand_categories": {
+    "good": 1408,
+    "wrong_object": 270,
+    "weak": 188,
+    "poor_priced_frame": 186,
+    "refused": 22
+   },
+   "pool_recall": 1867,
+   "pool_recall_lift": 1820,
+   "operands": 2074,
+   "on_target": 1408,
+   "served_absent_frames": 901,
+   "served_absent_frames_unique_objects": 364,
+   "served_iou": {
+    "visible_frames": 13793,
+    "mean": 0.4027217014222082,
+    "rate_05": 0.46748350612629597,
+    "priced_frame_mean": 0.5820979262780692,
+    "priced_frame_rate_05": 0.6788813886210222,
+    "failure_05": {
+     "other_mask_error": 988,
+     "correct": 6448,
+     "no_proposal": 2710,
+     "partial_mask": 443,
+     "omitted_selection": 2464,
+     "merged_instances": 412,
+     "wrong_class": 328
+    }
+   },
+   "member_precision": {
+    "0.25": {
+     "added": 551,
+     "correct": 398,
+     "precision": 0.7223230490018149,
+     "passes_90": false,
+     "gt_iou_members": 551,
+     "gt_iou_correct": 188,
+     "gt_iou_precision": 0.3411978221415608
+    },
+    "0.15": {
+     "added": 594,
+     "correct": 434,
+     "precision": 0.7306397306397306,
+     "passes_90": false,
+     "gt_iou_members": 594,
+     "gt_iou_correct": 214,
+     "gt_iou_precision": 0.3602693602693603
+    },
+    "0.4": {
+     "added": 512,
+     "correct": 374,
+     "precision": 0.73046875,
+     "passes_90": false,
+     "gt_iou_members": 512,
+     "gt_iou_correct": 175,
+     "gt_iou_precision": 0.341796875
+    }
+   },
+   "first_seen": {
+    "pairs": 1314,
+    "correct": 1037,
+    "rate": 0.789193302891933,
+    "objects": 770,
+    "exact": 0.6077922077922078,
+    "within_one": 0.7051948051948052
+   },
+   "by_dataset": {
+    "arkitscenes": {
+     "rows": 344,
+     "mra": 62.441860465116285,
+     "a0_mra": 62.441860465116285,
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "scannet": {
+     "rows": 72,
+     "mra": 58.05555555555555,
+     "a0_mra": 58.05555555555555,
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "scannetpp": {
+     "rows": 621,
+     "mra": 59.71014492753623,
+     "a0_mra": 53.47826086956522,
+     "delta": 6.231884057971015,
+     "ci95": [
+      3.644180236861585,
+      9.203861773564409
+     ]
+    }
+   }
+  },
+  "R_cond": {
+   "rows": 1037,
+   "rooms": 192,
+   "mra": 61.012536162005794,
+   "mra_ci95": [
+    56.79437095956678,
+    65.13494178235558
+   ],
+   "refusals": 19,
+   "gain": {
+    "rows": 1037,
+    "rooms": 192,
+    "left_mra": 61.012536162005794,
+    "right_mra": 56.769527483124406,
+    "estimate": 4.243008678881389,
+    "ci95": [
+     2.5236971736053384,
+     6.003537019991232
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 1001,
+     "left_mra": 61.81818181818183,
+     "right_mra": 58.81118881118882,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "safe": {
+    "rows": 456,
+    "rooms": 144,
+    "left_mra": 75.35087719298245,
+    "right_mra": 74.9780701754386,
+    "estimate": 0.3728070175438597,
+    "ci95": [
+     -0.2702702702702703,
+     1.1946972226860355
+    ],
+    "draws": 10000,
+    "seed": 20261119,
+    "both_answered": {
+     "rows": 456,
+     "left_mra": 75.35087719298245,
+     "right_mra": 74.97807017543859,
+     "role": "diagnostic only; never a bar"
+    }
+   },
+   "operand_categories": {
+    "good": 1402,
+    "wrong_object": 268,
+    "weak": 194,
+    "poor_priced_frame": 191,
+    "refused": 19
+   },
+   "pool_recall": 1875,
+   "pool_recall_lift": 1828,
+   "operands": 2074,
+   "on_target": 1402,
+   "served_absent_frames": 899,
+   "served_absent_frames_unique_objects": 361,
+   "served_iou": {
+    "visible_frames": 13793,
+    "mean": 0.4004859978997786,
+    "rate_05": 0.464728485463641,
+    "priced_frame_mean": 0.581402075193894,
+    "priced_frame_rate_05": 0.6759884281581485,
+    "failure_05": {
+     "other_mask_error": 988,
+     "correct": 6410,
+     "no_proposal": 2613,
+     "partial_mask": 451,
+     "omitted_selection": 2597,
+     "merged_instances": 402,
+     "wrong_class": 332
+    }
+   },
+   "member_precision": {
+    "0.25": {
+     "added": 564,
+     "correct": 409,
+     "precision": 0.725177304964539,
+     "passes_90": false,
+     "gt_iou_members": 564,
+     "gt_iou_correct": 193,
+     "gt_iou_precision": 0.3421985815602837
+    },
+    "0.15": {
+     "added": 607,
+     "correct": 445,
+     "precision": 0.7331136738056013,
+     "passes_90": false,
+     "gt_iou_members": 607,
+     "gt_iou_correct": 219,
+     "gt_iou_precision": 0.36079077429983525
+    },
+    "0.4": {
+     "added": 517,
+     "correct": 378,
+     "precision": 0.7311411992263056,
+     "passes_90": false,
+     "gt_iou_members": 517,
+     "gt_iou_correct": 175,
+     "gt_iou_precision": 0.33849129593810445
+    }
+   },
+   "first_seen": {
+    "pairs": 1314,
+    "correct": 1038,
+    "rate": 0.7899543378995434,
+    "objects": 770,
+    "exact": 0.6051948051948052,
+    "within_one": 0.7025974025974026
+   },
+   "by_dataset": {
+    "arkitscenes": {
+     "rows": 344,
+     "mra": 62.7906976744186,
+     "a0_mra": 62.441860465116285,
+     "delta": 0.3488372093023256,
+     "ci95": [
+      -0.030959752321981438,
+      0.9294871794871793
+     ]
+    },
+    "scannet": {
+     "rows": 72,
+     "mra": 58.05555555555555,
+     "a0_mra": 58.05555555555555,
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "scannetpp": {
+     "rows": 621,
+     "mra": 60.37037037037037,
+     "a0_mra": 53.47826086956522,
+     "delta": 6.892109500805152,
+     "ci95": [
+      4.265163972937418,
+      9.83116802464229
+     ]
+    }
+   }
+  }
+ },
+ "new_choices_1037": {
+  "0": {
+   "heater": "q:radiator"
+  },
+  "1": {
+   "heater": "q:radiator"
+  },
+  "2": {
+   "heater": "q:radiator"
+  },
+  "3": {
+   "heater": "q:radiator"
+  },
+  "4": {
+   "heater": "q:radiator"
+  },
+  "all_rooms": {
+   "heater": "q:radiator"
+  }
+ },
+ "new_evidence_1037": {
+  "0": {
+   "backpack": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 22,
+    "counts": {
+     "raw": 20,
+     "q:bath tub": 2
+    }
+   },
+   "bed": {
+    "fit_objects": 38,
+    "counts": {
+     "raw": 21,
+     "q:bed frame": 9
+    }
+   },
+   "blanket": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 9,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 4,
+     "q:bookcase": 2,
+     "q:shelf": 1
+    }
+   },
+   "bowl": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 12,
+     "q:seat": 6
+    }
+   },
+   "clock": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 1
+    }
+   },
+   "computer tower": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:sofa": 2
+    }
+   },
+   "counter": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:kitchen counter": 0
+    }
+   },
+   "crate": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 8,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 38,
+    "counts": {
+     "raw": 34,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 22,
+    "counts": {
+     "raw": 7,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 15,
+    "counts": {
+     "raw": 4,
+     "q:radiator": 13,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:computer keyboard": 0
+    }
+   },
+   "kitchen counter": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:counter": 0,
+     "q:countertop": 0,
+     "q:kitchen worktop": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:light": 1
+    }
+   },
+   "laptop": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 6,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 5,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 7,
+     "q:computer monitor": 1
+    }
+   },
+   "mouse": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 2,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:chair": 0,
+     "q:desk chair": 1
+    }
+   },
+   "pan": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 1,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "radiator": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:heater": 0,
+     "q:wall radiator": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 35,
+    "counts": {
+     "raw": 29,
+     "q:fridge": 0
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 16,
+    "counts": {
+     "raw": 13,
+     "q:couch": 3
+    }
+   },
+   "stapler": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 25,
+    "counts": {
+     "raw": 16,
+     "q:seat": 1
+    }
+   },
+   "stove": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 17,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 41,
+    "counts": {
+     "raw": 28,
+     "q:desk": 3
+    }
+   },
+   "table lamp": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 7,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 36,
+    "counts": {
+     "raw": 32,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 21,
+    "counts": {
+     "raw": 7,
+     "q:bin": 2,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 52,
+    "counts": {
+     "raw": 43,
+     "q:television": 1
+    }
+   },
+   "washer": {
+    "fit_objects": 14,
+    "counts": {
+     "raw": 13,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 11,
+    "counts": {
+     "raw": 8,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 2,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  },
+  "1": {
+   "backpack": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 17,
+    "counts": {
+     "raw": 15,
+     "q:bath tub": 2
+    }
+   },
+   "bed": {
+    "fit_objects": 35,
+    "counts": {
+     "raw": 16,
+     "q:bed frame": 10
+    }
+   },
+   "blanket": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 9,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 4,
+     "q:bookcase": 2,
+     "q:shelf": 1
+    }
+   },
+   "bowl": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 29,
+    "counts": {
+     "raw": 15,
+     "q:seat": 8
+    }
+   },
+   "clock": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 5,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 1
+    }
+   },
+   "computer tower": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 5,
+     "q:sofa": 2
+    }
+   },
+   "counter": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:kitchen counter": 0
+    }
+   },
+   "crate": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 2,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 12,
+    "counts": {
+     "raw": 8,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 33,
+    "counts": {
+     "raw": 27,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 8,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 19,
+    "counts": {
+     "raw": 4,
+     "q:radiator": 15,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 7,
+     "q:computer keyboard": 0
+    }
+   },
+   "kitchen counter": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:counter": 0,
+     "q:countertop": 0,
+     "q:kitchen worktop": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:light": 0
+    }
+   },
+   "laptop": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 4,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 5,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 7,
+     "q:computer monitor": 1
+    }
+   },
+   "mouse": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:chair": 0,
+     "q:desk chair": 1
+    }
+   },
+   "pan": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 1,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "radiator": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:heater": 0,
+     "q:wall radiator": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 39,
+    "counts": {
+     "raw": 32,
+     "q:fridge": 1
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 20,
+    "counts": {
+     "raw": 18,
+     "q:couch": 2
+    }
+   },
+   "stapler": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 12,
+     "q:seat": 1
+    }
+   },
+   "stove": {
+    "fit_objects": 25,
+    "counts": {
+     "raw": 17,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 46,
+    "counts": {
+     "raw": 26,
+     "q:desk": 6
+    }
+   },
+   "table lamp": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 2,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 7,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 31,
+    "counts": {
+     "raw": 26,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 20,
+    "counts": {
+     "raw": 11,
+     "q:bin": 2,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 50,
+    "counts": {
+     "raw": 42,
+     "q:television": 0
+    }
+   },
+   "washer": {
+    "fit_objects": 12,
+    "counts": {
+     "raw": 9,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 12,
+    "counts": {
+     "raw": 10,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 2,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  },
+  "2": {
+   "backpack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 21,
+    "counts": {
+     "raw": 18,
+     "q:bath tub": 0
+    }
+   },
+   "bed": {
+    "fit_objects": 30,
+    "counts": {
+     "raw": 14,
+     "q:bed frame": 7
+    }
+   },
+   "blanket": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 5,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 3,
+     "q:bookcase": 2,
+     "q:shelf": 1
+    }
+   },
+   "bowl": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 27,
+    "counts": {
+     "raw": 13,
+     "q:seat": 6
+    }
+   },
+   "clock": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 0
+    }
+   },
+   "computer tower": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:sofa": 2
+    }
+   },
+   "counter": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:kitchen counter": 0
+    }
+   },
+   "crate": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 1,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 9,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 38,
+    "counts": {
+     "raw": 31,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 9,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 16,
+    "counts": {
+     "raw": 3,
+     "q:radiator": 12,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 2,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 7,
+     "q:computer keyboard": 0
+    }
+   },
+   "kitchen counter": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:counter": 0,
+     "q:countertop": 0,
+     "q:kitchen worktop": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:light": 1
+    }
+   },
+   "laptop": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 5,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 6,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 6,
+     "q:computer monitor": 0
+    }
+   },
+   "mouse": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:chair": 0,
+     "q:desk chair": 1
+    }
+   },
+   "pan": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 1,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "radiator": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:heater": 0,
+     "q:wall radiator": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 39,
+    "counts": {
+     "raw": 35,
+     "q:fridge": 1
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 20,
+     "q:couch": 4
+    }
+   },
+   "stapler": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 31,
+    "counts": {
+     "raw": 20,
+     "q:seat": 2
+    }
+   },
+   "stove": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 16,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 52,
+    "counts": {
+     "raw": 32,
+     "q:desk": 6
+    }
+   },
+   "table lamp": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 6,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 33,
+    "counts": {
+     "raw": 28,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 22,
+    "counts": {
+     "raw": 7,
+     "q:bin": 2,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 60,
+    "counts": {
+     "raw": 52,
+     "q:television": 1
+    }
+   },
+   "washer": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 11,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 11,
+    "counts": {
+     "raw": 8,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  },
+  "3": {
+   "backpack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 2,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 21,
+     "q:bath tub": 2
+    }
+   },
+   "bed": {
+    "fit_objects": 36,
+    "counts": {
+     "raw": 20,
+     "q:bed frame": 10
+    }
+   },
+   "blanket": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 8,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 5,
+     "q:bookcase": 3,
+     "q:shelf": 1
+    }
+   },
+   "bowl": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 11,
+     "q:seat": 5
+    }
+   },
+   "clock": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 5,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 1
+    }
+   },
+   "computer tower": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:sofa": 0
+    }
+   },
+   "counter": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:kitchen counter": 0
+    }
+   },
+   "crate": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 3,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 7,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 38,
+    "counts": {
+     "raw": 33,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 21,
+    "counts": {
+     "raw": 7,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 18,
+    "counts": {
+     "raw": 2,
+     "q:radiator": 14,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 6,
+     "q:computer keyboard": 0
+    }
+   },
+   "kitchen counter": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:counter": 0,
+     "q:countertop": 0,
+     "q:kitchen worktop": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:light": 1
+    }
+   },
+   "laptop": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 6,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 8,
+    "counts": {
+     "raw": 6,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 7,
+     "q:computer monitor": 1
+    }
+   },
+   "mouse": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:chair": 0,
+     "q:desk chair": 1
+    }
+   },
+   "pan": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 0,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "radiator": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:heater": 0,
+     "q:wall radiator": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 34,
+    "counts": {
+     "raw": 28,
+     "q:fridge": 1
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 19,
+     "q:couch": 4
+    }
+   },
+   "stapler": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 16,
+     "q:seat": 2
+    }
+   },
+   "stove": {
+    "fit_objects": 20,
+    "counts": {
+     "raw": 13,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 45,
+    "counts": {
+     "raw": 31,
+     "q:desk": 7
+    }
+   },
+   "table lamp": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 4,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 7,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 39,
+    "counts": {
+     "raw": 34,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 10,
+     "q:bin": 2,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 50,
+    "counts": {
+     "raw": 46,
+     "q:television": 1
+    }
+   },
+   "washer": {
+    "fit_objects": 11,
+    "counts": {
+     "raw": 8,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 11,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  },
+  "4": {
+   "backpack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 1,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 24,
+    "counts": {
+     "raw": 22,
+     "q:bath tub": 2
+    }
+   },
+   "bed": {
+    "fit_objects": 33,
+    "counts": {
+     "raw": 17,
+     "q:bed frame": 8
+    }
+   },
+   "blanket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 5,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 4,
+     "q:bookcase": 3,
+     "q:shelf": 0
+    }
+   },
+   "bowl": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 25,
+    "counts": {
+     "raw": 13,
+     "q:seat": 7
+    }
+   },
+   "clock": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 1
+    }
+   },
+   "computer tower": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:sofa": 2
+    }
+   },
+   "counter": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:kitchen counter": 0
+    }
+   },
+   "crate": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 1,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 8,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 37,
+    "counts": {
+     "raw": 31,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 19,
+    "counts": {
+     "raw": 9,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 12,
+    "counts": {
+     "raw": 3,
+     "q:radiator": 10,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 2,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 4,
+     "q:computer keyboard": 0
+    }
+   },
+   "kitchen counter": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:counter": 0,
+     "q:countertop": 0,
+     "q:kitchen worktop": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:light": 1
+    }
+   },
+   "laptop": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 7,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 6,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 5,
+     "q:computer monitor": 1
+    }
+   },
+   "mouse": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:chair": 0,
+     "q:desk chair": 0
+    }
+   },
+   "pan": {
+    "fit_objects": 0,
+    "counts": {
+     "raw": 0,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 1,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "radiator": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:heater": 0,
+     "q:wall radiator": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 37,
+    "counts": {
+     "raw": 32,
+     "q:fridge": 1
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 1,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 2,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 22,
+    "counts": {
+     "raw": 18,
+     "q:couch": 3
+    }
+   },
+   "stapler": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 25,
+    "counts": {
+     "raw": 16,
+     "q:seat": 2
+    }
+   },
+   "stove": {
+    "fit_objects": 23,
+    "counts": {
+     "raw": 13,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 40,
+    "counts": {
+     "raw": 23,
+     "q:desk": 6
+    }
+   },
+   "table lamp": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 9,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 37,
+    "counts": {
+     "raw": 32,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 18,
+    "counts": {
+     "raw": 9,
+     "q:bin": 0,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 56,
+    "counts": {
+     "raw": 49,
+     "q:television": 1
+    }
+   },
+   "washer": {
+    "fit_objects": 14,
+    "counts": {
+     "raw": 11,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 13,
+    "counts": {
+     "raw": 11,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  },
+  "all_rooms": {
+   "backpack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:rucksack": 0,
+     "q:school bag": 0
+    }
+   },
+   "basket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:laundry basket": 0,
+     "q:storage basket": 0,
+     "q:wicker basket": 0
+    }
+   },
+   "bathtub": {
+    "fit_objects": 27,
+    "counts": {
+     "raw": 24,
+     "q:bath tub": 2
+    }
+   },
+   "bed": {
+    "fit_objects": 43,
+    "counts": {
+     "raw": 22,
+     "q:bed frame": 11
+    }
+   },
+   "blanket": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 9,
+     "q:bedspread": 0,
+     "q:quilt": 0,
+     "q:throw blanket": 0
+    }
+   },
+   "bookshelf": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 5,
+     "q:bookcase": 3,
+     "q:shelf": 1
+    }
+   },
+   "bowl": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:dish": 0,
+     "q:mixing bowl": 0
+    }
+   },
+   "bucket": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 4,
+     "q:pail": 0,
+     "q:plastic bucket": 0
+    }
+   },
+   "ceiling lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:ceiling light": 0,
+     "q:light fixture": 0,
+     "q:pendant lamp": 0
+    }
+   },
+   "chair": {
+    "fit_objects": 32,
+    "counts": {
+     "raw": 16,
+     "q:seat": 8
+    }
+   },
+   "clock": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 5,
+     "q:alarm clock": 0,
+     "q:wall clock": 0
+    }
+   },
+   "coat hanger": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:clothes hanger": 0,
+     "q:coat rack": 1
+    }
+   },
+   "computer tower": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:computer case": 0,
+     "q:desktop computer": 0,
+     "q:pc case": 0
+    }
+   },
+   "couch": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 5,
+     "q:sofa": 2
+    }
+   },
+   "counter": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:kitchen counter": 0
+    }
+   },
+   "crate": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:plastic crate": 0,
+     "q:storage box": 0,
+     "q:wooden crate": 0
+    }
+   },
+   "cup": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 3,
+     "q:glass": 0,
+     "q:mug": 0
+    }
+   },
+   "cushion": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:pillow": 0,
+     "q:seat cushion": 0,
+     "q:throw pillow": 0
+    }
+   },
+   "cutting board": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:chopping board": 0,
+     "q:wooden board": 0
+    }
+   },
+   "desk": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:table": 0,
+     "q:work desk": 0,
+     "q:writing desk": 0
+    }
+   },
+   "dishwasher": {
+    "fit_objects": 16,
+    "counts": {
+     "raw": 10,
+     "q:dish washer": 0,
+     "q:dishwashing machine": 0
+    }
+   },
+   "door": {
+    "fit_objects": 46,
+    "counts": {
+     "raw": 39,
+     "q:doorway": 0,
+     "q:wooden door": 0
+    }
+   },
+   "file folder": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:binder": 0,
+     "q:document folder": 0,
+     "q:folder": 0
+    }
+   },
+   "fireplace": {
+    "fit_objects": 27,
+    "counts": {
+     "raw": 10,
+     "q:fire place": 0,
+     "q:hearth": 0
+    }
+   },
+   "headphones": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 3,
+     "q:earphones": 0,
+     "q:headset": 0
+    }
+   },
+   "heater": {
+    "fit_objects": 20,
+    "counts": {
+     "raw": 4,
+     "q:radiator": 16,
+     "q:space heater": 0
+    }
+   },
+   "kettle": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:electric kettle": 0,
+     "q:tea kettle": 0
+    }
+   },
+   "keyboard": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 7,
+     "q:computer keyboard": 0
+    }
+   },
+   "kitchen counter": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:counter": 0,
+     "q:countertop": 0,
+     "q:kitchen worktop": 0
+    }
+   },
+   "lamp": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 3,
+     "q:light": 1
+    }
+   },
+   "laptop": {
+    "fit_objects": 11,
+    "counts": {
+     "raw": 7,
+     "q:laptop computer": 0,
+     "q:notebook computer": 0
+    }
+   },
+   "microwave": {
+    "fit_objects": 9,
+    "counts": {
+     "raw": 7,
+     "q:microwave oven": 0
+    }
+   },
+   "mirror": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:bathroom mirror": 0,
+     "q:wall mirror": 0
+    }
+   },
+   "monitor": {
+    "fit_objects": 10,
+    "counts": {
+     "raw": 8,
+     "q:computer monitor": 1
+    }
+   },
+   "mouse": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:computer mouse": 0
+    }
+   },
+   "office chair": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 4,
+     "q:chair": 0,
+     "q:desk chair": 1
+    }
+   },
+   "pan": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:frying pan": 0,
+     "q:pot": 0,
+     "q:skillet": 0
+    }
+   },
+   "paper bag": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 2,
+     "q:bag": 0,
+     "q:shopping bag": 0
+    }
+   },
+   "pillow": {
+    "fit_objects": 5,
+    "counts": {
+     "raw": 3,
+     "q:bed pillow": 0,
+     "q:cushion": 0
+    }
+   },
+   "plant": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:flower pot": 0,
+     "q:houseplant": 0,
+     "q:potted plant": 0
+    }
+   },
+   "power strip": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 1,
+     "q:extension cord": 0,
+     "q:power outlet strip": 0,
+     "q:surge protector": 0
+    }
+   },
+   "printer": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 2,
+     "q:copier": 0,
+     "q:laser printer": 0
+    }
+   },
+   "rack": {
+    "fit_objects": 3,
+    "counts": {
+     "raw": 0,
+     "q:drying rack": 0,
+     "q:shelf": 0,
+     "q:stand": 0
+    }
+   },
+   "radiator": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:heater": 0,
+     "q:wall radiator": 0
+    }
+   },
+   "refrigerator": {
+    "fit_objects": 46,
+    "counts": {
+     "raw": 39,
+     "q:fridge": 1
+    }
+   },
+   "shoe rack": {
+    "fit_objects": 2,
+    "counts": {
+     "raw": 0,
+     "q:shoe cabinet": 0,
+     "q:shoe shelf": 0,
+     "q:shoe stand": 0
+    }
+   },
+   "shoes": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 1,
+     "q:boots": 0,
+     "q:shoe": 0,
+     "q:sneakers": 0
+    }
+   },
+   "slippers": {
+    "fit_objects": 4,
+    "counts": {
+     "raw": 2,
+     "q:house shoes": 0,
+     "q:slipper": 0
+    }
+   },
+   "sofa": {
+    "fit_objects": 26,
+    "counts": {
+     "raw": 22,
+     "q:couch": 4
+    }
+   },
+   "stapler": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:office stapler": 0
+    }
+   },
+   "stool": {
+    "fit_objects": 32,
+    "counts": {
+     "raw": 20,
+     "q:seat": 2
+    }
+   },
+   "stove": {
+    "fit_objects": 29,
+    "counts": {
+     "raw": 19,
+     "q:cooktop": 0,
+     "q:oven": 0,
+     "q:range": 0
+    }
+   },
+   "suitcase": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:luggage": 0,
+     "q:travel bag": 0
+    }
+   },
+   "table": {
+    "fit_objects": 56,
+    "counts": {
+     "raw": 35,
+     "q:desk": 7
+    }
+   },
+   "table lamp": {
+    "fit_objects": 7,
+    "counts": {
+     "raw": 4,
+     "q:desk lamp": 0,
+     "q:lamp": 0
+    }
+   },
+   "telephone": {
+    "fit_objects": 12,
+    "counts": {
+     "raw": 9,
+     "q:desk phone": 0,
+     "q:landline phone": 0,
+     "q:phone": 0
+    }
+   },
+   "toilet": {
+    "fit_objects": 44,
+    "counts": {
+     "raw": 38,
+     "q:commode": 0,
+     "q:toilet bowl": 0
+    }
+   },
+   "towel": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 1,
+     "q:bath towel": 0,
+     "q:hand towel": 0
+    }
+   },
+   "trash can": {
+    "fit_objects": 26,
+    "counts": {
+     "raw": 11,
+     "q:bin": 2,
+     "q:waste bin": 0
+    }
+   },
+   "tv": {
+    "fit_objects": 67,
+    "counts": {
+     "raw": 58,
+     "q:television": 1
+    }
+   },
+   "washer": {
+    "fit_objects": 16,
+    "counts": {
+     "raw": 13,
+     "q:laundry machine": 0,
+     "q:washing machine": 0
+    }
+   },
+   "washing machine": {
+    "fit_objects": 1,
+    "counts": {
+     "raw": 0,
+     "q:laundry machine": 0,
+     "q:washer": 0
+    }
+   },
+   "whiteboard": {
+    "fit_objects": 15,
+    "counts": {
+     "raw": 12,
+     "q:white board": 0
+    }
+   },
+   "window": {
+    "fit_objects": 6,
+    "counts": {
+     "raw": 3,
+     "q:glass window": 0,
+     "q:window pane": 0
+    }
+   }
+  }
+ },
+ "fold_choices": {
+  "0": {
+   "heater": "q:radiator"
+  },
+  "1": {
+   "heater": "q:radiator"
+  },
+  "2": {
+   "heater": "q:radiator"
+  },
+  "3": {
+   "heater": "q:radiator"
+  },
+  "4": {
+   "heater": "q:radiator"
+  },
+  "all_rooms": {
+   "heater": "q:radiator"
+  }
+ },
+ "fold_choices_1037": {
+  "0": {
+   "heater": "q:radiator"
+  },
+  "1": {
+   "heater": "q:radiator"
+  },
+  "2": {
+   "heater": "q:radiator"
+  },
+  "3": {
+   "heater": "q:radiator"
+  },
+  "4": {
+   "heater": "q:radiator"
+  },
+  "all_rooms": {
+   "heater": "q:radiator"
+  }
+ },
+ "checks": {
+  "pools": 3616,
+  "survival_failed": 0,
+  "identities_failed": 0,
+  "reader_refused": 0
+ },
+ "rules": {
+  "written_utc": "2026-11-19T10:35:00Z",
+  "status": "written before any part 2 pool or score exists; part 2 has not run",
+  "source": "in/v3/KIT_SPEC_mask_phrase_v2.md (Bars, Part 2; GPU budget and stops) and in/v2/KIT_SPEC_mask_phrase.md (the same three bars)",
+  "contrast": "summarize_train.contrast: paired row MRA difference, 10,000 room-cluster draws, seed 20261119, 95% percentile interval",
+  "arms": {
+   "W_cf": "part 1 arm W1 as priced in out/PER_ITEM.jsonl (stored alias pools); the chosen part 1 arm",
+   "W_exact": "part 1 W1 fold policies unchanged; each non-raw phrase's pool is its SAM 3 rerun alone (out/pool_part2), raw-name pools stay the stored ones (parity)",
+   "W_new": "candidate phrases per name = rerun dictionary aliases plus NEW_PHRASES.json phrases (sha256 in part2/NEW_PHRASES.sha256), each pool its rerun alone; the part 1 fold rule (strictly more fit objects on target, ties to sorted phrase order, at least five fit objects) picks one phrase per name per fold",
+   "R_cond": "on top of the best of W_exact and W_new by MRA (ties to W_exact): in an anchor frame where the policy's phrase keeps no candidate, keep that call's queries with conditional score >= 0.5, at most 5, all with the call's one presence for that frame"
+  },
+  "bars": {
+   "exact_holds": "W_exact minus W_cf: 95% lower bound above -1.0",
+   "new_worth": "W_new minus W_exact at least +1.0 type points with lower bound above 0, and phrase_safe holds for W_new (W_new minus A0 on the both-good rows: lower bound above -1.0); MISSING (counts as not passed) when the new-phrase pass is dropped",
+   "retention_worth": "R_cond minus the best W arm at least +1.0 with lower bound above 0, and phrase_safe holds for R_cond; adoption needs a seal review in addition"
+  },
+  "both_good_rows": "the rows whose two operands are both good under A0 (part 1 recomputed 456)",
+  "gpu": {
+   "card": "one 48 GB card placed by swarm_build3, two empty nvidia-smi readings 5 minutes apart, under vnice.sh, off trinity-0-13",
+   "projection": "after the first 10 captures out/TIMING_RECEIPT.json projects the whole pass; above 1.2 GPU-h the new phrases are dropped for the remaining captures (new_worth MISSING); still above 1.2 the pass stops",
+   "hard_stop_gpu_h": 1.2,
+   "kill": "reported, not rerun"
+  },
+  "gate": "dry-run step 5 (out/pool_part2/STEP5.json PASS) before any part 2 pool is trusted",
+  "never": [
+   "choosing anything from dev-S1, held-out, R0-dev or official outcomes",
+   "pricing a pool whose anchor frame mixes presences",
+   "reusing A0 candidate ids or labels"
+  ]
+ },
+ "input_sha256": {
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/gate.py": "6dc58b25432a97bc6bd1ab6e9cb3bb34b293831cc190b6b17129e5671f027ffb",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/BARS_PART2.sha256": "1352c3dd92ecca5f2e39bfd4b1a0956027b9ec8099fe536c519dbf326b3f575c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/BARS_PART2.json": "166be15bcd56f303b9b032bab84712264a687bc073b791251b57b814e515d774",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/NEW_PHRASES.sha256": "30948696cdd1fdc9ecc8bc9618fe28bb35d24724076b737d0085cd8108aebf2b",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/NEW_PHRASES.json": "9625e86fb5261fe1c8cd1997d191113c78a12ecbfce2354730ea2436bf84b130",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/out/box_ladder/REFERENCE_REBUILD.json": "7e7b68e51f610b95da5011bf81bf0ccd0ce567d76575a06aa75b3c4f95d7a89b",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/pinned_train.json": "799baae4b389a69afea5dc7335d8efdfb72c1ae8d9e5e7a560f973eadb17cacb",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/train_manifest.json": "10d8de0dd0f1d61a97a0b3b2368cdc0f55462be9a41599563b616e18cb2ad5a2",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json": "91a2dbf9a0bdad1a45af44a5a3a2607d40f9f7a630f742fc4531544c00cade7c",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/gt_sets/GT_SET_PRIMARY_296.json": "2b82af5241db3c8048e9998f766b5dcd24accdaab93bbd8a169aefba39a1f121",
+  "/scratch/jjyeung/n30_mirror/gt_audit/gt_audit/work/k1audit/K1_BOX_AUDIT.json": "f02a8dc82dc5b0af8fa63b0c041c28b9306f0f3024f2300681abff10e46d757e",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/train_labels.json": "ffd1a7ac67f8e4a68080f51ac6e5744017bd1f4e4ba7b1244825788b5f0e70fb",
+  "/scratch/jjyeung/n30_mirror/gt_audit/gt_audit/work/k1audit/K1_LABELS_CORRECTED.jsonl": "d781ac7bf2313a3942020c17f3c0858eab4fbe4a349627e553d2c328da74f8c4",
+  "/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/K1_TRAIN_1037.txt": "e7646798c8a1e12ca6291723c5f686473b9954a78d068dcfa65c314be35a98ac",
+  "/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/K1_TRAIN_TABLES_883.txt": "778354e77f117e1d44033e5630c4cd55ba6788e6c4f4a25133a224d34f467191",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/train_boxes.json": "1ea71114c0cf340cd9be8856636931a456cf8299667c4c5cb4bea53c1fe6f42e",
+  "/scratch/jjyeung/n30_mirror/gt_audit/gt_audit/work/k1audit/K1_ROW_AUDIT.jsonl": "9659ab4076c77e11e437e6650e08abd8e3617e1ed4a7fe9765b20917e938c5ec",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/e3gd/out/FITS.json": "592c20480643fc8b3d45ba1a8e71cbee2998e7e02b63296f23c82c8393da9834",
+  "/scratch/jjyeung/orch_n30/b04host3/b04_e2ehook/heads/selector/sl118/SCALES_S4.json": "36ae953cac37be74419d66429f0b33c64406802d8719059fb2cdf174d3c354ba",
+  "/scratch/jjyeung/orch_n30/b04host3/b04_e2ehook/heads/selector/work/run_iso/selector_head.json": "63aa0a6995890c1d555062f1187a900809e998b8da021bbe2b6a3777b41fea5e",
+  "/scratch/jjyeung/orch_n30/b04host3/b04_e2ehook/heads/selector/work/run_iso/selector_head.safetensors": "6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/decisions.py": "807ff3cc4d96423cde6c0d5c1905432a18a96afd7cadcd6c0b7bac3b174fdf2e",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/train_pricing.py": "50c2ebf5e2db41c95f77ddc94efe3045197f1b7a33f16d389b63b8a41a112cfd",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/verify_restored.py": "690f3af13b232b6aa2804793ff388d6c099505a85d9253a35ab9d662c0eca7ca",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/box_math.py": "042fd0f65b19f46dc92793a61ddf8079b9577ed19b8b51c5558f803a0e578dd0",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/publish_base.py": "1effc944d3a81237bcffc4c9f69b9b91c7cfd6e20911e1d45fbd9fe7d37f1ee6",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/predicted.py": "f4f703849364a10e19a65e6bea03913e47be8c766f6c33326fd063734074bf1c",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/verify_outputs.py": "e786fe34194b1625265861cca81eeb0579a5e2bd21d280fafa536ea9d3ecc76f",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/debug_geometry.py": "9f9630bc5ce316504f99e48929152776601e8fc1113610ff378aa9b5497f8085",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/selector_nonull.py": "4a9874500b689e3f123d17d2b5c6aba5e64724be504501edb78d8111a5460244",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/finalize.py": "e669c6180efc471c0a065898128afa9aff6510a06d9d31b961c2ef5a656265de",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/audit_sources.py": "6c037a23444f948e35d6b242e12c7621473edfaf28aaff88e1595ae35687ec66",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/finalize_v2.py": "0f70be2e71b7b55782cf92f1911ec38a54d04de1e0dd8305a7257def3f95bc1b",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/serving_reference.py": "1e66813b33df596b659148b2c1aeff3c9d1b857a1cf98d3b1de1e9fa83f8087f",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/validate_dry.py": "4dfbd799c8b993f642b73affa109584541aedb726d48cdd394de4d4fcf2cf8c5",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/prepare.py": "7e5329f6f789b0cc209782a0e3d5987bef492ec918d4b5709a5907b5f3e16dc3",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/finalize_debug.py": "41da5b818783602d1db05347862b204517ff7149dae6f60c873bada4adc1ce14",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/math_v2.py": "ef221654ac60de16e4f2374cfd73503bd84295047e31d6234f91144581e5b338",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/preserve_diagnostics.py": "3ecaa3033d26113d14817a15e5dfda7f7c0b91873e7ef0cdc3514bbed42a5df5",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/pricing.py": "bbd16dd38f3c26d89049cbf0f39d2c85bd0058eb8fdacf45539519065c0b6982",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/predicted_dry.py": "b28fa8f6d4a3042f647a9fec729ceb04079e2c81c3d4b218c82e41a148669db0",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/dryrun.py": "fc40e6ccd2505caf3fd17c192a635d3cd79aa437d8a1b227b4917c2e6c8ee229",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/replay_check.py": "c3ff4b651153024de189e053b526e6e0f2fff4bf610ccd1e5590797dbfb0b8ba",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/confirm_dry.py": "ccb5a7014db11a27b793a81f3dc36526b69e07b30c8ea2aec6a28b47fee34882",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/diagnose_replay.py": "33ca2dd354f01e4fd52475ce0aba3b938003aca18e84413fd27274a58255d823",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/test_v2.py": "26d81d90e4729ee5dfcc5c8342fa46a6ea04c000f8b754c7de10b747812ce5f5",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/prepare_pinned.py": "ca33be3dc63bf0064310b5b09b0ba1fe4aa798f306ecfedbe21d7acc359fa522",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/train_nonull_v2.py": "4398d0f9f0df138c450aa8b96941c147d4d5adbe02775256579151f2e1f6a785",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/eligibility_report.py": "8915fe6259a5d4d121d8e8bb5c7dec92fa1d1838254ae6af8aa084e05cfb2548",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/adapters.py": "8a151c6c40c49ee062dae0f7c1a42a26bf8da4ce62243aaf7ab6dfe9b5623441",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/test_box_math.py": "57f1f6da7ef55fd8c80c20e903976e540306c137fc8e227f5fe5dd1be8237626",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/provenance_v2.py": "4492ae30837ba3005bae352a44a62a9bc97dc735108e49b364ea93bb394d8e01",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/summarize_train.py": "d417636ff3206fdb2a3f8889161ecb845dfdb70844c761416d994f6532e7a99e",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/audit_guard.py": "4661de1d4fa433780dd39f22c43a0e3ffa4a38368f1b1526ad71038e9ec2cc04",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/audit_serving_scale.py": "8aaee040be7ecf1cf460fe76339bea11faaa8283809296e962e91b404d020cf1",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/run_training_stages.py": "2e1e8f066a8d696d7cef96dd1d6cc44ebd1bc38969298a3856c90ad044704a6d",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/servers.py": "9e2b9584b466bbfd7e1f7b9ea5a5dde5553eddac1d51ebea6d35c32d679a5097",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/generate.py": "4101148f4867c0261369e69295790224b67bfc06f6913101b2ccfe68871f9ad4",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/geometry.py": "9303922852ba1e9ffd61e121076fbdc8c61dba06b55caa42f272d8e9f3f52684",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/perception_memo.py": "e1e658879aef3fa4ae2c12cfdad5d186002fbb90f25431dc381f8a44c7bb96cf",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/artifact.py": "2eea58d48df4bec3613daea57328ef1128eeefe4e6ebf086144d677198725544",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/callhook.py": "044caa0f15bc58703bb39d8b9c001a24d2b75d7f89fa8e89158e39a803aa11ae",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/parity.py": "d948af4264381ca523dfe1c311e537f9bdd2aebc27c43d2412dbfe3755161dd1",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/core.py": "dbbda5b8c2b8ea6577c1bc8f9a15f38eb6b28dd6b5b2d91c6c76e3bbf7abaca6",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/__init__.py": "481d2c8a8b5e38f7a39cc38635a64d97672e8fa1b4520e2c8aa4d13300b9106c",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/real.py": "d69be37f4787e268ca11ff22ff334aa3b41752f6bb6f2bf7bf3dc52e1d4e2e6e",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/assemble.py": "04f42cd15d519fd096f050c682fbcd3d9af2e46f1580e08233e7e31c0bd77c45",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/grounding.py": "d8fe3c617a2cba4f01527947826cceb2a923a4725bc3b9dd8b18a889e9c332c4",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/stage1.py": "b1a77424a2a014b12890805d8c72f1a83dd5e378cd54a2ff221887ccde1cafe1",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/run.sh": "1071e368f9814053e6d870b0cf473b1f1c8b2869ae29e4fe81353944ff549ed5",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/inputs/KIT_SPEC_box_ladder_k1_v2.md": "e78edab1d1aca4c257e5bf0b14d82db9167c6a9b8bf796624ec541345c73d670",
+  "/scratch/jjyeung/orch_n30/sb_kbox4/inputs/HEAD_ACCURACY_DESIGN_20261119.md": "ee4efb5553beb71151ef8ec1bcf2d9dddcef89b34871fa0cab95bb85a5d339ff",
+  "/scratch/jjyeung/orch_n30/b04host3/tree_rebuild/work/base/tree_b01ce449/student_pilot/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "/scratch/jjyeung/orch_n30/b04host3/tree_rebuild/work/base/tree_b01ce449/student_pilot/routed_candidates.py": "9a2004108d85f3c2a70ca5e4d66240748807d4f0c3ced8a2e0842fea4d78482f",
+  "/scratch/jjyeung/orch_n30/b04host3/tree_rebuild/work/base/tree_b01ce449/student_pilot/routed_features.py": "736c5a642fe28656c5508022210b050a87e49821381980a9c6f79007ef1fda13",
+  "/scratch/jjyeung/orch_n30/b04host3/b04_e2ehook/heads/selector/selector_head.py": "d783e646f2aa5c0bea6f698bf463548cd8c60b3c952840f9c38267d1487f8614",
+  "/scratch/jjyeung/orch_n30/b04host3/b04_e2ehook/heads/selector/sl118/selector_inputs.py": "9f7c0bafe0dc1a8dcaf522967085748cbb8db85053668ca2a024d24f3c954813",
+  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/variantlib.py": "10219e028f26caa5d6cf76e42e6739f8ebd68204faf135874974e593d5440198",
+  "/scratch/jjyeung/orch_n30/k1_ops3/kc/grd_selector/work/setsel/build.py": "1d0c3d6e5f82129b0d2d97302abadea56e16382f021ba3381023d659f786b907",
+  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/refit/build_tables.py": "341193168421714dd50a4ce87dc578a57f4cc92b6aea8a15dae31ccd9d516857",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/kit.py": "5c75aa97434190fb3b76f236560c6f65b55fafc1cbb686e2d57a8b45d3e13ea2",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/run.sh": "5005008880f47f5016dea19e9644fd51c659417ae0ab5c9f19ca31844262be5f",
+  "/scratch/jjyeung/orch_n30/sb_maskfail/analyze.py": "f58a63b6f7f7a60d1aeb2ef8701adb38f6d0996750f57d5e5af83263636c4d80",
+  "/scratch/jjyeung/orch_n30/sb_maskfail/RULES.md": "25eb8aeb3e3dc7873e5adb85f56689d480d9d11bc97b948191874b7f26bb4db2",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/out/BARS.json": "3157ad3e46fc70f0600897962e23416113bfc2fa0429097298540882e096e3da",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41048124.json.gz": "106e7b6fa0642e8858145bc9f9c38d2bf351255e7f9ec732577fb068e456a6b9",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41069076.json.gz": "2836406806188e5049f407b1b7a73497187bff78c478341e3e57d0e79e894eb1",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41098061.json.gz": "2bb30e4fb386e72c3babe982b23abdfb61f0833607f571470b1c868129d2dce4",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41098085.json.gz": "5a38e7f28e97017acae5b333e4760c1ba36c7cb572669390fe515a50f9792ceb",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41098191.json.gz": "41047b2495ddf15bd9d47a44e77207b1d6d6febb57f6868dbc830d899e2c6724",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41125564.json.gz": "a3552d5e70a7dddf023446879ebfc054f0ec08eae53bc19b558745da0e06b164",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41125837.json.gz": "1ba16cffc9f7eaa19c6f0a5dfccd885489c6ad66f59d62dd59f48382484420e0",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41126367.json.gz": "4653d1ef88f87e2584a6ca369f920b2a54c9d1bf73ce878d2978128ba1e2600e",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41126453.json.gz": "e706f11552d8bf44e9a3e006d7706c3fb4824a99ac00161a25e77fa0af6f1fb1",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41126744.json.gz": "f78defc4d59b17cdd7602c26c80d83278d21e61bd8e2562cd79b48b89ae56b50",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41126757.json.gz": "9a6242ab72cf39d4a6ce69dc103e2708ddc1f1a521eb1c6deea306e83c71b72d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41126783.json.gz": "1f833efa6e2f50a1097120c1f59c118aeb3eb6eec246a2528b827e2846615769",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41126996.json.gz": "98786a20e93792a028907904ab9bc6a41f2fdc00163589410dd193181a654ea2",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41127027.json.gz": "118881a856960aa45f017fa0be95d8249e52750544c03ee86c5e535410b044de",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41159381.json.gz": "a4fad109e8ae5301ecfdcaaa1e3c56ea19f2dd9f4d8cfbb57f708059d101d0f6",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41159425.json.gz": "16ba27642cdd0f9151f307cb9db3d67fa35eff4d9d9320d4ec32519244cb2c0c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41159653.json.gz": "618f2583e8691ca44a29e85d473229ce6041379fb2ea915e6f5368d127cd767d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41159675.json.gz": "f45ee5504ca0b9a52f72e68b0158848379cdfdffaab12e72ea459111b2d94f04",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__41159723.json.gz": "31c8681084c7c61e4a2999fbfab94bc00b528373d155cdcc6a6eff99f97b0d4f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42444513.json.gz": "8e4fb6f108eb02e235fc3e3cd33c35ad685c5103be9018fd2cf17ef0c358c711",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42444814.json.gz": "951f552ea7d3d215a01b8e743cbfe744956b4fcf6627244d2e4ce92579d8ddad",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42444887.json.gz": "a1d6d7440a91ee40779619096d1c0a37eed48495703ef61a10723d67e2045f70",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42444907.json.gz": "37975c87d1235a0a6cdb69b9c37bc5963404152f2446b0c1afca20039c8f930c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42445056.json.gz": "44534b15b347c42eb621b2945f742f66eea4fcf4b651ed818fb7205bea6d519c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42445092.json.gz": "cb59f186126399181449c2d442ddb29adb32de4ea1f18553eb10ed3ea837bf49",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42445454.json.gz": "bcd47cf6da55f9f422835884a2d32888aef7411f07c4a069c66481d103a3fdb4",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42445474.json.gz": "97e2303786f0c0a56c206137328de803331f864663faecd868449603834ba053",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42445924.json.gz": "bccc83b7b56ccdb0ec323c945d87471e84ff64502c0122e42290071a7f6e69d1",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42446074.json.gz": "85c1a51f56cb2c9c3814a6912c7d0ed535ac5566ed55c781854e34f0dfc7cf36",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42446080.json.gz": "10ff07ae7e35250f1061234ec3817b9dd931514898af4c10f0275e289db4d30f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42897467.json.gz": "ba232de0e6ef0f8146a55100c07d19d0690539177d4da417e93089f135426a96",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42897480.json.gz": "ab1d75c866a155651f2efff1dec03c2159cf871ed22462916859ef2e8183d105",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42897512.json.gz": "9dd09285c0cdd14149e18e4c04f53245bc783065554b5ed1ebdecc805119150e",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42897607.json.gz": "e00895e4f357585cc3f41e4911f5e25d3e2b74c3cc55ee675c45355bcf16e7f8",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42897622.json.gz": "29fe6041f52ae969cabf54a53de1c3f5e8c99108f09ddc4fa296722ba489c039",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42897668.json.gz": "6b67d2d4ed717a3fd1a9036e8051f4f0f4c6b932067a2f07de4744e879f39892",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42897783.json.gz": "fd968029b14812efcb7bce326e3b63ff8f52130616510d562dd3e9eafb645922",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42897784.json.gz": "94022114249a58a62496dd4b60b19885f78d60bf7ca5cded16e40efcf8dd4c5d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42897955.json.gz": "4aacc24961de96ed18394b9e17aee903e05225229cb29b850644f77db7b83c84",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42897967.json.gz": "be9b21203d32c1a6f9b0e84a5b393fac5494f0c1e7c3e9b76108bff6bb865c25",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898109.json.gz": "99c7ee8dfbed16f57014dc0201ec651a36fac318e2a0b0825fdd54310f40825e",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898141.json.gz": "bcf564a27bbf6b67b2e2e0c168e807c708b330d908d1589496729d6ac98ae823",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898213.json.gz": "43a37708300156664476e1e97db654b6c2010e1625da40d2221669105d007300",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898236.json.gz": "35abdb266d87429045226865abb6ea176d75d0cc1270b0ebb49d8d76ae627915",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898405.json.gz": "710f7154200429e3882c7d9468e19fe9596cf98ac13f4ca9ee3b7f1a7c7c5f36",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898477.json.gz": "5ecf3d2bfdd875b68cc0cd7c50d673c3462ebdcd1c63d73bb4966711c794a223",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898715.json.gz": "4b4bd2057ba0f251d9b4adae79ad0c3e380012699585f5fd6b564a37a5e5e076",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898740.json.gz": "31f9d152c3e5e13dca2287dd5bafd7da6aee8b2612beb8d6119f0ff48ca3327b",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898745.json.gz": "056c27962c641b755141821d897f615302b9538930fca3bd054da55bdf8b3598",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898786.json.gz": "89597cf9ed6d4f2fda0aa4c5424ae5f30d3e8c0fc76424caf199f564bf3eb4f5",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898792.json.gz": "8217772e854e8713317b91f1201a6d25c2a56c260c4fb0263169f7fdb31f4571",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898983.json.gz": "3ecabf83bc5db96d37f5253058d4a8da73db7b406827b584dffb26e2d31cb362",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42898990.json.gz": "a2f979016b57a6a587c891c4257266adbe75b49f4a0ec941f4008a125626ebad",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42899003.json.gz": "b602399253db2055d069fdd780b8ff918aac5012ac72ceb9e4a9b08d3412135d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42899285.json.gz": "d98d8d38b91be35a6542a2d90d3da9fdbbba9c4d5024bdb127a5b51e31dfe746",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42899559.json.gz": "fb25fd05102a40d7647288fa0352103ec0bbb5e7dc1f94231db65e37af4c10c6",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42899851.json.gz": "2e93661604046a237287dab35490c06ede0416aa5ed4a54a0c25ecd02779ba05",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__42899906.json.gz": "26306d9f154c16afc7b3659f4dd3a88a357f0ae503f9688c74149e761544ea2d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43649382.json.gz": "5bd8132b07046ee5fdea8d1554b29ec38600c1597668efb48bcb0077bac5aa0f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43649403.json.gz": "e2a1f085e2b6dbeaa1e03ae9fefb54c377fbc7be801b27f93c53ca805dd90a4d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43649474.json.gz": "70a131a3cba43ac629834da147a4429ad72c9c66260c8e600205082aa977044f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43649681.json.gz": "6779c5fd6e376d4ed6a4a8243860fe3f12c532d88226bde300689a5643d42421",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43649714.json.gz": "a886b60e0d7fc9fa0215f7d55993ca56b80edec857683529145d6a32e63d0526",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43828507.json.gz": "6be7351bcd3f8cecee1c2a23a5fad0106281679dedcd6bcb1d29ac93203dc65d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43828554.json.gz": "9c8e89c4c4eed7ac2148bf8b4be183ea1d8870ce83fd369303798bfafb0efba5",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43828583.json.gz": "0ea1735506f4e04fcf0bccf94e1a4e2657e3a59f8aab3be4cf68bccd7609ec8b",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43896055.json.gz": "d3b700cbb7a3754179dc993508eee231878a53e30e8d73e1033fa7209b4e79c9",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43896365.json.gz": "3b6ab2fd2136b5226a91b58f52911497f13941d1fe67040d8efe001f9250ee63",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43896469.json.gz": "13eec913c9b15385ef7a42fca0ed40e80652e0b431e8d4f19049e2e1e78bea84",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__43896478.json.gz": "17fb21c8e5faf3da3a8d9ebadeab68bcf67d9472a2ed07abd1abd634864c2863",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44358118.json.gz": "c0aecc4052c42c240473422e4b044bdc44bfd0941a522b8a21e95a6601f716cc",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44358426.json.gz": "5780b66b026d94c75621f503aa3b31ef1446680475a4ce8696a6dfea93858972",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44358557.json.gz": "07c43a5d4fbd2ec409b33da2911e062fba42e5d47df5b7b8a67142014b4f58fa",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44358593.json.gz": "13510cec89a6c7f79246d1d753273bca2e658aa0e0af6cd1ddaa217da5a3dce1",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44796221.json.gz": "11db856062d9d7e206f84b8660260f1ebcda8c30ff06357053f0586d955e519a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44796297.json.gz": "c3b0e3caa37638321cac87647979b896b588804e469e3eb521e743eb9ee40673",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44796304.json.gz": "979874e6a5373bf3c190d9a9860d495bf7b565e44622b56f950dded35363862c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44796324.json.gz": "ad41df495d76110a1b1ded090ff838770f5d6494582520a9416a5f7a25582fc8",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44796332.json.gz": "e95eaa722a4daa799cfc5289eeb46c5982a410b615d6fe1df5916be952a845bf",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44796349.json.gz": "4a81e2824c4dc36d4ab6019f04b152cde1a84a43785725ca863e9fa1701b73f3",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44796392.json.gz": "60d05b86ab6f8e52b033636a9ededdbfc9e8d520ba27ff940b88964830288bbc",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__44796450.json.gz": "042f418446dc96b8fecb2e65bf6dc18fe71e436fbf2d7d0800bd50b72c382d71",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__45260873.json.gz": "edced0e40b8e9d7786aed2d7d3d4ff799135fa6d8543d594523cf0c52d29b144",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__45261397.json.gz": "dde12b75f1f6b6658e6f7baa335bc32935eae7b41a8b2a06c1e8835ff23ed8d2",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__45662791.json.gz": "8053e8921480a31f71bd088191b79b736fa4fc3ff3a4adbf968b6469c72e2d95",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__45662816.json.gz": "70ac12c51cf97086b71345cd4a9d9b83e8e152d29d6db8e5f3b0a073411879b3",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__45662959.json.gz": "4f5a1c2294b50c62e916cb4403ee9329ee11fc07c91eec1fb2e43a6f30e91cc0",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__45663064.json.gz": "4ed7c9701a143190933cf4808135ab0d5946cbe2c6ce6d06ba501c9f8618fc5d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47115174.json.gz": "d8830acb840cd8cbcfe3af7aaaa56997efb0504be2366fd3063eb6a138f59724",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47115350.json.gz": "52b8004c5368fddc790bc45f2d066a0c7d3e8cb2947193af67926071e009cecc",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47115412.json.gz": "a6185f0290d5f02e18327f0def61bc32c3e6a4f5faac84e199a6ab963085aafa",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47115415.json.gz": "3b1d3ad7cb8a9d630926d9d522b45fcc783f3b6eaf537696b7f98a64fd2bce86",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47204274.json.gz": "499f462eced866f064e1754898dc1cc8677567714b4b312a220283c418ea5ec8",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47204392.json.gz": "9e3cd2d8a68ac6bc36c78541d93d49d724901c84b4d85f1465a52ff7fcdd46d5",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47204407.json.gz": "520fe2126359d731ea2d2fafa244c543881925751083c44adf654cfc1a456962",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47204482.json.gz": "7eacb7f5eb42bc4881a773ae910ceab95db194dd638a96393337b422901a3582",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47204517.json.gz": "41f7924d97a9b5c09b9fe21fb36adc3edff656acb2c6d5efded9ade71ca03e8e",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47204813.json.gz": "ea83d70f79f57db3d3072a07ee90e27ad98578297f61519ffd33c735f63aa7d7",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47204836.json.gz": "fa91ac601bac7de993cf85e5f65e7cd062f8c8e1eefb617d7c65d1790be89bbd",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47330995.json.gz": "71b9bea294e13c328e43aab3613508bf0d952c41f151b31157a48ed532cf698b",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331154.json.gz": "05c7497bd6aa24403fb8c36bec7353d0213f7c9999f78817c2dbce59c2c86b40",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331188.json.gz": "37fc847e6dbf1b9c9cd17d0ba10848c85fc769d8465c40755f795b4c4d66ba0c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331189.json.gz": "a10f956deea57d9dd2de07fd7954ef1a7a222fe67e70e1f176ec8602ef999a72",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331294.json.gz": "9d936c0d995ed0e243fcfa604c14df2c1bfc6f484e0f1f13c8103a270fb05ebc",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331479.json.gz": "b99e134829db17a523808ce93972cae62bf1294cc46c1da61f75901c5d6982c1",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331557.json.gz": "6d3e2a2c4e14ec9ee612319d0c0029cc1c19d84431341087511cee5e33b896c9",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331606.json.gz": "de2df08f9008dcf49f6412d26b0ab8cc28dc7af4bf1439ce886f4fbf7b1648d1",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331711.json.gz": "a79f72fdd11d0d83b20024d0ed8867b00558bc778479c321ea690646bed9cf88",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331771.json.gz": "fd2c41c6fd96848e947c40411ef2d0fe123bd5816df9909310de9b745eedf49a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331815.json.gz": "9e748d83bd14a8d15b3893c1a0d682c4057a87bf58af667bb622b73de02a9900",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331878.json.gz": "b318f35705f5eb34c55bbaf8245f065205054cf087895ebe019a49190d798904",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331880.json.gz": "8ca7fc65850b5a31e05ad44ef7e3e2fc037cc7dbc40ab3945347acca93851a3c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331928.json.gz": "0ce254e6c8f124b5a690424e94e2dc2967c694758a0a14c51f06b3adbf991f55",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47331946.json.gz": "475a6eb0158ea9242f058a424c6f28728ba40a1ac7fd0d4ab7e3dba7ff6e837f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332026.json.gz": "e7c563ed1a164d176514872916f91212ea1cca3e77abdf5ab71b2faca58f21c9",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332044.json.gz": "a0724a04c0084e35176934366422d31bee18c8c59e8f6387f7e1c7586c2a6286",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332125.json.gz": "864b9dee3d101817beda2e85f0af4410daafb72df10502a4db2bcbe22b229906",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332192.json.gz": "4c2db197eb8a651ffe29e3d6b3292b7f6ab6138cc838fcf07a65672d65ede5da",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332204.json.gz": "465821b1c6f7fd26f58553bae64ed8366adfe57a478a1f8207a48cb1e9b68d14",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332383.json.gz": "dd9a9983ce53d6f5e7a34d3d57277b5727a8de86dfbdfb138f251572abd65719",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332400.json.gz": "315fab3f176c68301e00ef8d2d2e66937e6db9d4c6ee7273ae03243764d5a3ec",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332430.json.gz": "1b3eb7b090445a3f5ec17d282ef1402a0e8d17d015d70acfa3a7fec12509b23d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332581.json.gz": "8a8fa5498fecb5fc0171590e9667d218ce3d7f42d33222abc62294293d124dc6",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332592.json.gz": "df96a75df99a248f90fa10de787f20f8fdd3b8fd9c8985b64822e17455939433",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332704.json.gz": "6cd7790fd2713c6a6144e749444309602e141ca8b220be56179ac89845989e8b",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332705.json.gz": "3ec5ee96a45850aee0d0dcbf4b5de8abfac8b276cb0f9f2f7818e0f82e5179af",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/arkitscenes__47332710.json.gz": "e0394d64a501fede03362c20037ce6108ec77dadc27c7f42f7e5435663a1fe84",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0201_02.json.gz": "6890fb9e049b62c054fa9d2bf567893f0ead884997a4075aa55d7e7ee330bab4",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0204_00.json.gz": "b4037d215260bc2e0956db8ae9662499d9c17bb08862b2fe2223e8bf0d1f8fec",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0232_02.json.gz": "6761a57068f17d022e1fac62dbe78db836f0949461504c83c20b02f9e8e59425",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0242_02.json.gz": "895ad2d96e92d52fdbbc5e7c8bab7b03c7742b450f01ae0d515e59340cc54e32",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0348_01.json.gz": "1ecc3d9b7e8ac9d11de1cb0a7f4e1ff1216420985ced2a7ba37237b3d482c06b",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0350_00.json.gz": "47807b9a58250d34fe65d4437d645d02018ef68502200853ce4a415c5a88800b",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0370_01.json.gz": "1cf0479f500f0a85fe069fd8b72f691f69d4aaa1ced30c36989ebc6fb58f4020",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0388_00.json.gz": "8597962f74fb9d003f96d4e27752e791c3630e8063400e0f0ece096dba52dbe4",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0452_02.json.gz": "236ba2484798ab887085dc8dde02d5306ec03b6f80833e16174008bc0738ca82",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0478_00.json.gz": "e6b9019e3d20c9f5121b4cf07b67ac3272b6a4c1e3ccf05e158f172ee1bca9ef",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0478_01.json.gz": "4bdf96805d0372138853b356a7c3a767f89bb17ac839637dd3f2fa76b1a0dac4",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0479_01.json.gz": "3464730e72d740dd5fdfff07db20d6ee0a6a0a240aaccc0ed08a10a1c50ce42f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0479_02.json.gz": "bebe7f8b5745fc131eb847ed75e9ae10ebcdab9c249ab47f6ec5ec6df2eda169",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0480_00.json.gz": "ab227bb3b5379a269803c9eda1534d996e434d093a53a69716f1de417204ccba",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0480_01.json.gz": "e80a17898fbe4cc92e040ff000ecf3c397673660eb489f4b9cc49cde78613bbe",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0505_01.json.gz": "d9ec0f5aa04140b11ef314ebddf891d3802e2b2b5e15a3820b4de223045ddaf7",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0505_04.json.gz": "d7de59ae1a79bc5517e6dd272ec9be3f13e7054e3f8bb71bafb217e0759fd6b1",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0540_02.json.gz": "f1122dc000c59626ede763e8e691a230643a85faf12438782073c0f6123984ed",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0614_02.json.gz": "c104aecb9777267141f6dc4dcdda38904a9047618970cfcda5b088486831e599",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0676_00.json.gz": "df9e92b44a26b53db40196252a57833689b02ee9ec72969d7aad3e675dbd8305",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0676_01.json.gz": "6424f08842b79ceaa2a5bca25dc85d978bc2fe9580ad0e9dee2cc5481af61d8b",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannet__scene0692_03.json.gz": "de6d56711900c0e4c41434090b59c4ccbdd9c451da8187987c7704540e637e8f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__036bce3393.json.gz": "d7dadb8270cf40dbfb38d19708da2c5391398fcb102d40d1035ec974fad7b958",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__067e2e4e61.json.gz": "63162f04a6bb7f3df888f48a25e5ce5b346c982b643d19b2857ae894dbefe37f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__07b8312ea9.json.gz": "3dd9ada478cd5bd8ff325e9a495c8aadc0969502540cc0d1067bd1ae98cdd62f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__07ff1c45bb.json.gz": "bea16ecfdc0d01368da2862743b72300bc200bb641b66bcd48b7276d8c4d21d9",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__0f69aefe3d.json.gz": "76ec6ac262d86fdbbe8da8f0c4202022d585493a20cc56cc18e3e30316b3c086",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__10c8ab99f4.json.gz": "3b82b1b89c68e15480970a7948c0e30516e95c59144a888d82094219db101bb7",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__116456116b.json.gz": "9f6cffbf4eede42c9b5c1ec6e8b8d092f77208dab55e2d24c83c3b26e1ccdcab",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__126d03d821.json.gz": "cd4e61f8c1f3067967478f1d9f0a8e7d99bee750c57a8964c7321422f5e07829",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__1a8e0d78c0.json.gz": "5e8348f411a187e0d2dc4884b16fffdc72bc3cf899c453e2fd7dae58d4d45312",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__1b75758486.json.gz": "f028b7ae2a995c4190d9b47bde8176edee1062e8516144d48447ad49cde359c9",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__1d003b07bd.json.gz": "48d0091eeb8d8f846989ccf3c125c9cc43ffcd11edf4c02475d58d91dabab74a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__2150596d57.json.gz": "88f987af6e9f8c9903c630926fae13fec867f3e97325b1f6422a34c846d58654",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__260fa55d50.json.gz": "37ebff4d6fe84b58a70de5bbc327458cf053422db7ec6dbd4a0534393700be0a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__268513240f.json.gz": "797ce6c7a0bc4a2d8bb6426f7a8cc1e3a9024e2cc833b9086ab044bf9ccccb47",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__2a496183e1.json.gz": "f010d6ceb40946ce41e93887347f1739f3150634257c94406226cd3619ba966a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__2c7c10379b.json.gz": "29e0104056236eb5767e9f4291305779394c010d66a3b1d48ec3b5c2b89c4424",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__2ebbca3e57.json.gz": "f970b0aaf062f44f2a552685d5997fdcf9e651de32422d5b9311ec9c01715bc7",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__2f5996ff01.json.gz": "d3e919a2ee2d527c17df2e39294f92f9e3a7a3b3fa79fe9532ac71394e95f545",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__302a7f6b67.json.gz": "6e2bc0e92872b08052ef291f9725f5d586ce6e1a345cd5efddea2fdb89e16025",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__35f2120068.json.gz": "dafa2d3e07c1ff675886c6ad8b557b4d3d567d62d1c9a906c7fbe63015a822d4",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__3928249b53.json.gz": "dc9b2806440b7dd7774f50162c36067efb11f1db8dee862874828e089b7d4b92",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__3a520af32a.json.gz": "0cf0a13ede3cde449e4ba95256eced7c04def3dfac02c9a7fc87a97ae302dd80",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__3b753d9ae8.json.gz": "f75f4c2a5d7240a5f1721aad4c559679bc45863037dc466102e787fd63e464e2",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__3caf4324fd.json.gz": "47fcf40080b2149a44581c44c283c11014dabe83df50be568d90156ef0a782d5",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__4117a4f02c.json.gz": "2754a3ce22c496c53158ab57b4023a9b3e0c893ac223f9ef827e59bce4828aac",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__4291be3b44.json.gz": "f70466e575db81e33d0c322195129de2f27b6a7edbf29a39c6b25e28b7efe4f9",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__469f112e38.json.gz": "60840b9242ff3724f745038eb70c9a46d414b96732f912cfb1a267b3af329147",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__4a1a3a7dc5.json.gz": "223e713d50eeb1e543d929d9c70b5e39dd3d02db7fb64f676dac26f168506743",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__4e2db5058c.json.gz": "f9995c0ed62bd876331f679011a2daa214403c8a7e62943937a2439483044671",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__58960ff105.json.gz": "0979cc2dab3c3a4d773145c4e0f7694941106ba8ad076a8920a8ebda5022f88b",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__66c98f4a9b.json.gz": "e1146c238bda93c6ab54376763a7864870c337c1b7c44917c7dc5c3fb7d9f82f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__67ab69f888.json.gz": "3d2f3c3987815e91235f404a81fb58a74d9d2f225812d69158ce6b94597d25f7",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__689fec23d7.json.gz": "400aaf0ba864de4a0af9dbe6e550e130915e62eebd4ad19a2fed10c2aa680d85",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__698c3bf2bb.json.gz": "d26f2fc42137a50a418da12129a15f75dc6f8c5546865b5773b43d438f4ddd55",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__6ad6cef000.json.gz": "3947c791e43f38d5919df546699ebf9835929cf5d21329ea2014021fb3d56511",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__6b40d1a939.json.gz": "d9b00193cff1d2d7997083f8e469d077df4b3465669d3d53e82d23ddde8d2d0c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__6cc2231b9c.json.gz": "7605930810c499b471df190663b8f3098ac2ed4235f813a2237098e424d98821",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__72f527a47c.json.gz": "57bd5002365b5e485ec0d4d4d15715c1b3a2eef9d7e548a58988d0f64f3302e8",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__778769dad8.json.gz": "9419af9b523faa64fe67208ec1d88bda67cdbe1ec1a692808b9b04ad2bcc4c47",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__77fe971eba.json.gz": "b5b6cebfa3113de787dc7b67b4e1bc5c6a31ef72c4811b23baf5c7e7f1c64983",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__79eb3fbc63.json.gz": "734bd192b7b653a068f7ff6b42f25bcaa8f34778b96e37601c056dc0c0552cf5",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__7b4a316aea.json.gz": "de54d35572e709803614f2ad0ac10d858180663cac02fd6e52f227bcb05846f3",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__867d97cf3d.json.gz": "f8d552dd7cbbdff2cbae8474364479d5c17bef1add94c59adf5f24c999e76c47",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__872268d1bf.json.gz": "ddcd121cbaff157dc29edce7db77b2311844bcbdf8194d2d13ca87a6cdf364e1",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__8a20d62ac0.json.gz": "4d1d8ea25087a5acd17d72e3cc6c9e0d8c27cebd2a5256917660d6b4940f4aaa",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__9c7b4394af.json.gz": "9bc655c72c03435314445693115398461a7f2c3913791bb3bcf8bb839b4d6b00",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__a9e4791c7e.json.gz": "5630b35b1466b8115c2f6a3edc4b77fcb70e3160352e16ccb9d088d9f3f9a4f4",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__abb6639ceb.json.gz": "a2b05afc1a799d879e052d6940779b4ec687cd4c40b8a814d96ab2d9d2f09541",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__acd69a1746.json.gz": "478918255b6ef4471375406b2a1d6866e45a0549add41537b02f9cec1740fadb",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__ad2d07fd11.json.gz": "ce6cc3cc63606bef0d3354dedc4e17c0b9d737d54330fd100d41f3fde11aa944",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__bb87c292ad.json.gz": "a52efc9cbb55c85fe6e5487d83d0ca2dbebc7aafb94d6624fc9d44aa84fcb7d6",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__c178491bc5.json.gz": "dfd3b28746e56fa86a3a5e76222f12a6a6af8ea4b66f2e7b8a89c06dd13acf02",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__c31ebd4b22.json.gz": "fee97ab07463265c30c4ffa4d622a399b8aa1ff4265bd0d58059f781fbdff537",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__d7abfc4b17.json.gz": "f61285cec7e75a2ea599bd7200b9fb7d2663da1c23c28f10d47dff198a68fe04",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__d82aaa88dc.json.gz": "b73a3511edd5a6ba717c3fd2f69f4e20c5ded25f51a53c1b7a22387cd286984e",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__dc5f00843f.json.gz": "53807a459371e0d044d0928aaa8e4a0dc2b1943dee08eb4d28748b4f70c141e3",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__dfa70fb232.json.gz": "38af002198188dd4793102078484045a2df473a1468998a711bfc185e2d299b8",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__e51b753e48.json.gz": "48d2683fac06baf9c8c2a7aeb5b34e3c74548868cae64a4de09137724f5227e8",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__edced53026.json.gz": "581f94914698a601371ca0b7abcf44ec960e2eed4871ace2682dd8b095c5a436",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/pc_clean/caps/scannetpp__f8e13ab4ae.json.gz": "2f0904dca9f9ef292228806666fdff02addca360358b72e4e15fcb99b21ffcc0",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/A0_ROWS.json": "eb8fec3ee977d1542eb3983899e49ff71cc0b764e6241e5bc61b37fc59e3d3d1",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/out/DECISION.json": "3361f374263c05dadd77e12107bdb4746dd6ce906feb704349e0599ff96af836",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/out/PER_ITEM.jsonl": "8812d8a318bb5969e21e6888b1dcc05c5d291825b7018a7bb3eeaab2f639325e",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/price.py": "3c504843fcd402be8ea44645d90c36ab3e01b9eab324170f6af5acbbd1eca17c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/sam3_pass.py": "92d187e8918f82b61f2c774a0337d8ae23c2a048ac1e3329f3a1a6d64d04681a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/aggregate.py": "1dc8a70dca01226218e4d557bd8f5d3725960ec5ebed3b81a6b6e97c5aadf9b7"
+ },
+ "heldout_opened": false,
+ "devs1_opened": false
+}

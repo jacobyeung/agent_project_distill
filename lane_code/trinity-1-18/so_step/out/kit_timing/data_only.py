@@ -12,12 +12,16 @@ import time
 from types import SimpleNamespace
 
 
+def processor_manifest(run, receipt, path):
+    if run.file_pin(path) != receipt['model']:
+        raise ValueError('Processor manifest differs from the trainer model pin')
+    return run.load(run.pinned(receipt['model']))
+
+
 def descriptor_for(run, cfg, receipt):
     descriptor = SimpleNamespace(recipe=run.recipe_for(cfg), training_mode=cfg.get('training_mode','final'),
         frame_count=cfg.get('frame_count',32), geometry_online=cfg.get('geometry_online'),
         r1_training=cfg.get('r1_training'))
-    if cfg.get('align') != receipt.get('align'):
-        raise ValueError('Configuration and receipt alignment differ')
     if receipt.get('align'):
         descriptor.align_settings = receipt['align']
     return descriptor
@@ -26,8 +30,8 @@ def descriptor_for(run, cfg, receipt):
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--tree',required=True)
-    parser.add_argument('--receipt',required=True,help='Actual prepared receipt JSON, with local staged frame paths')
-    parser.add_argument('--manifest',required=True,help='The base-model manifest used by processor_for_receipt')
+    parser.add_argument('--receipt',required=True,help='Merged prepared_receipt.json written by write_plan.py')
+    parser.add_argument('--manifest',required=True,help='Must equal the merged receipt model path/SHA256 pin')
     parser.add_argument('--plan',required=True,help='Bounded continuation plan from write_plan.py')
     parser.add_argument('--config',required=True)
     parser.add_argument('--out',required=True)
@@ -41,6 +45,8 @@ def main():
     parser.add_argument('--pin',action='store_true')
     parser.add_argument('--consumer-ms',type=float,default=0.,help='Optional simulated compute delay; NEVER a measured GPU speedup')
     args=parser.parse_args()
+    if Path(args.out).exists() or Path(args.out+'.manifest.json').exists():
+        raise ValueError('Audit output must be fresh; existing results cannot be reused')
     if args.arm != 'off' and not args.baseline:
         parser.error('Every ON arm requires --baseline OFF.json')
     if not args.full_plan and not 1 <= args.steps <= 100:
@@ -55,7 +61,7 @@ def main():
     from student_pilot import carrier_c1_run as run
     cfg=run.load(args.config)
     receipt = run.load(args.receipt)
-    processor=run.processor_for_receipt(run.load(args.manifest),receipt)
+    processor=run.processor_for_receipt(processor_manifest(run,receipt,args.manifest),receipt)
     descriptor=descriptor_for(run,cfg,receipt)
     if cfg.get('geometry_online') or cfg.get('mdg') or cfg.get('geometry_connector') == 'gf1':
         raise ValueError('This data-only descriptor covers the four-stream run A path, not geometry/MDG checks')
@@ -71,7 +77,7 @@ def main():
     if not 0 <= args.rank < frozen['world_size'] or len(frozen['plans']) < args.steps:
         raise ValueError('Need a valid rank and at least the requested step plans')
     rows=run.Rows(receipt,processor)
-    from audit import Coverage
+    from audit import Coverage, MAX_T, MAX_SPATIAL_AREA
     from student_pilot import pose_samples
     coverage = Coverage()
     augmentation = coverage.augmentation(pose_samples)
@@ -132,17 +138,18 @@ def main():
         augmentation.__exit__(None,None,None)
     Path(args.out).write_text(json.dumps(result,indent=2)+'\n')
     peak = max(r['max_group_tensor_bytes'] for r in result)
-    Path(args.out+'.manifest.json').write_text(json.dumps(dict(arm=args.arm, full_plan=args.full_plan,
+    manifest = dict(arm=args.arm, full_plan=args.full_plan,
         plans_checked=args.steps, plans_available=len(frozen['plans']), rank=args.rank, world_size=frozen['world_size'],
         start_step=frozen.get('start_step',0), resume=frozen.get('resume'), config_sha256=run.identity(cfg),
         plan_sha256=run.file_pin(args.plan)['sha256'],
         peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024,
         augmented_pose_rows=coverage.augmented_pose_rows, augmentation_threads=sorted(coverage.augmentation_threads),
-        grid_cap=[32,20,26], observed_max_grid=coverage.max_grid, grid_rows=coverage.grid_rows,
+        grid_cap=dict(max_t=MAX_T,max_spatial_area=MAX_SPATIAL_AREA), observed_max_grid=coverage.max_grid,
+        observed_grids=sorted(coverage.observed_grids), grid_rows=coverage.grid_rows,
         coverage_required=args.require_coverage,
         peak_group_tensor_bytes=peak, group_budget_bytes=MAX_GROUP_TENSOR_BYTES,
         intraop=torch.get_num_threads(), interop=torch.get_num_interop_threads(),
-        environment={k:v for k,v in os.environ.items() if k.startswith(('OMP_', 'MKL_', 'OPENBLAS_', 'TOKENIZERS_'))}),indent=2)+'\n')
+        environment={k:v for k,v in os.environ.items() if k.startswith(('OMP_', 'MKL_', 'OPENBLAS_', 'TOKENIZERS_'))})
     if args.require_coverage:
         coverage.require(prefetch=args.arm in ('prefetch','all'))
     if args.baseline:
@@ -151,6 +158,8 @@ def main():
         raise ValueError('Prepared group tensor budget exceeded; keep prefetch OFF')
     if not all(r['global_rng_unchanged'] for r in result):
         raise ValueError('Actual row/processor path changed a global RNG; do not enable threaded prefetch')
+    with Path(args.out+'.manifest.json').open('x') as output:
+        output.write(json.dumps(manifest,indent=2)+'\n')
     print(json.dumps(dict(arm=args.arm,steps=args.steps,encoded_rows_equal_to_off=True if args.baseline else None,median_wall_seconds=statistics.median(x['wall_seconds'] for x in result),
         median_data_seconds=statistics.median(x['data_seconds'] for x in result),loss_parity='not measured: no model',
         scope='actual encoding/copies; no LM, heads, FSDP, optimizer or inter-rank admission'),indent=2))

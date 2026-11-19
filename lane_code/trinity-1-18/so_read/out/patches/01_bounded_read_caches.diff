@@ -1506,7 +1506,7 @@
 +
 +class RefuseExtensions(importlib.abc.MetaPathFinder):
 +    def find_spec(self,fullname,path=None,target=None):
-+        if ('read_cache' in fullname or fullname in tuple('a'+str(i) for i in range(19))+('u0',) or fullname.startswith('u0.')):
++        if ('read_cache' in fullname or fullname in tuple('a'+str(i) for i in range(21))+('u0',) or fullname.startswith('u0.')):
 +            raise AssertionError('OFF attempted extension import: '+fullname)
 +
 +

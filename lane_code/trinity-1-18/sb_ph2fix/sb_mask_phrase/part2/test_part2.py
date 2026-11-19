@@ -2,6 +2,7 @@
 import json, os, subprocess, sys, unittest, tempfile, shutil
 from pathlib import Path
 import numpy as np
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import price as P  # noqa: E402
@@ -170,13 +171,52 @@ class Fixture(unittest.TestCase):
         self.assertEqual(set(d['arms']), {'W_exact', 'W_new', 'R_cond'})
         self.assertTrue(all(d['arms'][a]['rows'] == 1037 for a in d['arms']))
 
+    def test_decision_fixture_reproduces_W1_1012(self):
+        files = sorted((K.WORK/'part2_fixture/caps').glob('*.json.gz'))
+        data = [dict(AG.gz(p), _file=str(p)) for p in files]
+        part1 = json.loads(P.T.read(K.OUT/'DECISION.json'))
+        a0 = json.loads(P.T.read(K.WORK/'A0_ROWS.json'))['rows']['A0_deployed']
+        wcf = [json.loads(line) for line in P.T.read(K.OUT/'PER_ITEM.jsonl').decode().splitlines()]
+        wcf = [r for r in wcf if r['arm'] == 'W1']
+        result, arms = P.population(data, wcf, a0, lambda c: c not in AG.WITHHELD, part1['fold_choices']['W1'])
+        self.assertEqual((result['rows'], result['captures'], result['both_good_rows']), (1012, 204, 442))
+        gain = result['arms']['W_exact']['gain']
+        self.assertEqual(round(gain['estimate'], 2), 3.82)
+        self.assertEqual([round(v, 2) for v in gain['ci95']], [2.16, 5.63])
+        self.assertEqual(result['w_exact_rows_equal_w_cf'], 1012)
+        self.assertTrue(all(r['capture'] not in AG.WITHHELD for rows in arms.values() for r in rows))
+        # Every fitted object must come from the kept captures, including all-room fits.
+        expected = sum(len(d['names']) for d in data if d['capture'] not in AG.WITHHELD)
+        seen = []
+        original = AG.choose
+        def choose(objects, candidates, fold):
+            if fold is None:
+                seen.extend(objects)
+            return original(objects, candidates, fold)
+        with patch.object(AG, 'choose', choose), patch.object(AG, 'arm_report', return_value={}):
+            P.population(data, wcf, a0, lambda c: c not in AG.WITHHELD, part1['fold_choices']['W1'])
+        self.assertEqual(len(seen), expected)
+
+    def test_price_outputs_are_exclusive(self):
+        root = Path(tempfile.mkdtemp(dir=K.WORK))
+        for name, writer in [('score.json', P.write_json), ('score.json.gz', P.write_gz)]:
+            p = root/name
+            p.write_bytes(b'preserve')
+            with self.assertRaises(FileExistsError): writer(p, {})
+            self.assertEqual(p.read_bytes(), b'preserve')
+            link = root/('dangling_'+name)
+            target = root/('target_'+name)
+            link.symlink_to(target)
+            with self.assertRaises(FileExistsError): writer(link, {})
+            self.assertFalse(target.exists())
+
 
 class Admission(unittest.TestCase):
-    def exercise(self, condition):
+    def exercise(self, condition, entries=None):
         parent = K.WORK/'gate_tests'
         parent.mkdir(exist_ok=True)
         # Retain refusal fixtures for review; no deletion or temporary cleanup.
-        for entry in ('launcher', 'capture', 'aggregate', 'step5', 'pass', 'run_relative', 'run_absolute', 'run_aggregate', 'run_option'):
+        for entry in entries or ('launcher', 'capture', 'aggregate', 'step5', 'pass', 'run_relative', 'run_absolute', 'run_aggregate', 'run_option'):
             root = Path(tempfile.mkdtemp(prefix=condition+'_'+entry+'_', dir=parent))
             (root/'part2').mkdir()
             for name in ('gate.py', 'price.py', 'sam3_pass.py', 'launch_part2.sh'):
@@ -187,19 +227,46 @@ class Admission(unittest.TestCase):
             if condition in ('per_item', 'per_capture'):
                 dest = root/('out/part2/PER_ITEM_PART2.jsonl' if condition == 'per_item' else 'out/part2/captures/example.json')
                 dest.parent.mkdir(parents=True); dest.write_text('{}\n')
-            if condition == 'capture_work':
+            if condition in ('dangling_symlink', 'dir_symlink', 'upper_JSON', 'csv_scores'):
+                folder = root/'out/part2'
+                folder.mkdir(parents=True)
+                if condition == 'dangling_symlink':
+                    (folder/'PER_ITEM_PART2.jsonl').symlink_to(root/'absent.jsonl')
+                elif condition == 'dir_symlink':
+                    target = root/'elsewhere'; target.mkdir()
+                    (target/'score.json').write_text('{}')
+                    (folder/'linked').symlink_to(target, target_is_directory=True)
+                else:
+                    (folder/('scores.JSON' if condition == 'upper_JSON' else 'scores.csv')).write_text('{}')
+            if condition in ('decision_directory', 'decision_fifo'):
+                dest = root/'out/part2/DECISION_PART2.json'
+                dest.parent.mkdir(parents=True)
+                if condition == 'decision_directory':
+                    dest.mkdir()
+                else:
+                    os.mkfifo(dest)
+            if condition in ('capture_work', 'capture_directory'):
                 dest = root/'work/part2_caps/example.json.gz'
-                dest.parent.mkdir(parents=True); dest.write_bytes(b'planted')
+                dest.parent.mkdir(parents=True)
+                if condition == 'capture_directory':
+                    dest.mkdir()
+                else:
+                    dest.write_bytes(b'planted')
                 if entry in ('aggregate', 'run_aggregate'):
                     continue  # Capture files are aggregate inputs, not its destination.
+            if condition == 'running_without_pass':
+                dest = root/'out/pool_part2/RUNNING'
+                dest.parent.mkdir(parents=True); dest.write_text('running\n')
             if condition == 'killed':
                 dest = root/'out/pool_part2/KILLED.json'
                 dest.parent.mkdir(parents=True); dest.write_text('{}\n')
             def snapshot():
-                return {str(p.relative_to(root)): (K.sha(p) if p.is_file() else 'DIRECTORY', p.stat().st_mtime_ns)
+                return {str(p.relative_to(root)): (os.readlink(p) if p.is_symlink() else K.sha(p) if p.is_file() else p.lstat().st_mode, p.lstat().st_mtime_ns)
                         for p in root.rglob('*')}
             before = snapshot()
-            if entry == 'launcher':
+            if entry == 'gate_capture':
+                cmd = [sys.executable, '-B', str(root/'part2/gate.py'), 'capture']
+            elif entry == 'launcher':
                 cmd = ['bash', str(root/'part2/launch_part2.sh'), 'capture']
             elif entry.startswith('run_'):
                 script = str(root/'part2/price.py') if entry == 'run_absolute' else './part2/price.py'
@@ -216,6 +283,18 @@ class Admission(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0, (condition, entry))
             self.assertIn('REFUSED:', result.stderr, (condition, entry, result.stderr))
             self.assertEqual(before, snapshot(), (condition, entry, 'refusal wrote files'))
+
+    def test_dangling_symlink_refused_without_writes(self):
+        self.exercise('dangling_symlink')
+
+    def test_directory_symlink_refused_without_writes(self):
+        self.exercise('dir_symlink')
+
+    def test_uppercase_score_refused_without_writes(self):
+        self.exercise('upper_JSON')
+
+    def test_csv_score_refused_without_writes(self):
+        self.exercise('csv_scores')
 
     def test_planted_per_item_refused_without_writes(self):
         self.exercise('per_item')
@@ -235,6 +314,35 @@ class Admission(unittest.TestCase):
     def test_killed_never_rerun(self):
         self.exercise('killed')
 
+    def test_decision_directory_refused_without_writes(self):
+        self.exercise('decision_directory')
+
+    def test_decision_fifo_refused_without_writes(self):
+        self.exercise('decision_fifo')
+
+    def test_capture_directory_refused_without_writes(self):
+        self.exercise('capture_directory')
+
+    def test_capture_running_without_pass_refused_without_writes(self):
+        self.exercise('running_without_pass', ('gate_capture', 'launcher', 'capture', 'run_relative', 'run_absolute'))
+
+    def test_capture_completed_pool_and_aggregate_logs_admitted(self):
+        root = Path(tempfile.mkdtemp(prefix='completed_pool_', dir=K.WORK))
+        (root/'part2').mkdir()
+        (root/'part2/BARS_PART2.json').write_bytes(P.BARS2.read_bytes())
+        pool = root/'out/pool_part2'; pool.mkdir(parents=True)
+        (pool/'RUNNING').write_text('running\n')
+        (pool/'PASS_COMPLETE.json').write_text(json.dumps(dict(status='PASS', input_sha256={str(P.BARS2): K.sha(P.BARS2)})))
+        logs = root/'out/part2/logs'; logs.mkdir(parents=True)
+        (logs/'capture.log').write_text('log\n')
+        def snapshot():
+            return {str(p.relative_to(root)): (K.sha(p) if p.is_file() else 'DIRECTORY', p.stat().st_mtime_ns)
+                    for p in root.rglob('*')}
+        before = snapshot()
+        for mode in ('capture', 'aggregate'):
+            P.check(mode, root)
+        self.assertEqual(before, snapshot())
+
 
 if __name__ == '__main__':
     result = unittest.main(exit=False, verbosity=2).result
@@ -242,7 +350,7 @@ if __name__ == '__main__':
     (P.OUT2/'TESTS_PART2.json').write_text(json.dumps(dict(ran=result.testsRun, failures=[str(t) for t, _ in result.failures],
                                                            errors=[(str(t), e[-800:]) for t, e in result.errors], passed=result.wasSuccessful(),
                                                            role='CPU tests of the part 2 scripts on synthetic caches and a fixture; part 2 has not run',
-                                                           input_sha256={str(p): K.sha(p) for p in [P.PART2/'test_part2.py', P.PART2/'price.py',
+                                                           input_sha256=dict(P.T.PINS, **{str(p): K.sha(p) for p in [P.PART2/'test_part2.py', P.PART2/'price.py',
                                                                                                      P.PART2/'sam3_pass.py', P.PART2/'gate.py', P.PART2/'launch_part2.sh', P.NEW, P.BARS2, K.HERE/'kit.py',
-                                                                                                     K.WORK/'part2_fixture/FIXTURE.json', K.WORK/'part2_fixture/aggregate/DECISION_PART2.json']}), indent=1)+'\n')
+                                                                                                     K.WORK/'part2_fixture/FIXTURE.json', K.WORK/'part2_fixture/aggregate/DECISION_PART2.json']})), indent=1)+'\n')
     sys.exit(0 if result.wasSuccessful() else 1)

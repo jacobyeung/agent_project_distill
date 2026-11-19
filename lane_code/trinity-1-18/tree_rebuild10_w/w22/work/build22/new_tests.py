@@ -13,7 +13,7 @@ def trace(frame,event,arg):
     if event=='line':hits.add(frame.f_lineno)
     return trace
 sys.settrace(trace)
-suite=unittest.defaultTestLoader.loadTestsFromNames(['tests22','direction_test','absence_test','scanner_test'])
+suite=unittest.defaultTestLoader.loadTestsFromNames(['tests22','direction_test','absence_test','scanner_test','neutral_test'])
 result=unittest.TextTestRunner(verbosity=2).run(suite)
 sys.settrace(None);monitor.save(O)
 assert source==scanner.read_bytes()

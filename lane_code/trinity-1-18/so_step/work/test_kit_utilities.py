@@ -36,6 +36,9 @@ class Utilities(unittest.TestCase):
                                ('config.json',dict(training_mode='final',r1_training={'fixture':True})),
                                ('plan.json',dict(world_size=1,plans=[plan()]*10))]:
             (directory/filename).write_text(json.dumps(value))
+        receipt=json.loads((directory/'receipt.json').read_text())
+        receipt['model']=run.file_pin(directory/'manifest.json')
+        (directory/'receipt.json').write_text(json.dumps(receipt))
         replay=module('so_data_only',ROOT/'out/kit_timing/data_only.py')
         for arm in ('off','prefetch','cache','all'):
             destination=directory/(arm+'.json')

@@ -1,0 +1,1635 @@
+--- /dev/null
++++ b/u0/a0.py
+@@ -0,0 +1,436 @@
++"""Bounded, generator-owned caches for immutable evaluation inputs.
++
++No language-model state, prompt tokens, geometry, scale, or tool response is cached.
++All switches default to off. An entry owns its storage; every hit returns a copy.
++"""
++from collections import OrderedDict
++from collections.abc import Mapping
++from dataclasses import fields, is_dataclass
++from enum import Enum
++import hashlib
++import os
++import struct
++import sys
++import time
++import threading
++
++import numpy as np
++import torch
++
++
++SWITCHES = ('read_processor_cache', 'read_vision_cache', 'read_sam_cache')
++
++
++def switches(settings):
++    result = {k: settings.get(k, 'off') for k in SWITCHES}
++    if any(v not in ('off', 'on') for v in result.values()):
++        raise ValueError('read cache switches must be off or on')
++    only=settings.get('read_processor_only','off')
++    if only not in ('off','on'):raise ValueError('read_processor_only must be off or on')
++    if only=='on':result=dict(read_processor_cache='on',read_vision_cache='off',read_sam_cache='off')
++    return result
++
++
++def cache_bytes(settings):
++    return settings.get('read_cache_bytes',12*1024**3 if switches(settings)['read_sam_cache']=='on' else 4*1024**3)
++
++
++def digest(value):
++    h = hashlib.sha256()
++    def feed(v):
++        def raw(b):
++            h.update(str(len(b)).encode() + b':'); h.update(b)
++        raw((type(v).__module__ + '.' + type(v).__qualname__).encode())
++        if isinstance(v, Enum):
++            feed(v.value)
++        elif isinstance(v, torch.Tensor):
++            if type(v) not in (torch.Tensor,torch.nn.Parameter):raise TypeError('tensor subclass in cache key')
++            if v.layout != torch.strided:
++                raise TypeError('read cache requires strided tensors')
++            feed((str(v.dtype), str(v.device), tuple(v.shape), tuple(v.stride())))
++            h.update(str(v.numel()*v.element_size()).encode()+b':')
++            def chunks(t):
++                if t.is_contiguous():
++                    flat=t.detach().reshape(-1).view(torch.uint8)
++                    for offset in range(0,flat.numel(),65536):
++                        part=flat[offset:offset+65536].cpu().numpy()
++                        h.update(memoryview(part))
++                else:
++                    for row in t:chunks(row)
++            chunks(v)
++        elif isinstance(v, np.ndarray):
++            if type(v) is not np.ndarray:raise TypeError('array subclass in cache key')
++            if v.dtype.hasobject: raise TypeError('object array in read cache key')
++            feed((v.dtype.str, v.shape, v.strides))
++            h.update(str(v.nbytes).encode()+b':')
++            for part in np.nditer(v,flags=['external_loop','buffered','zerosize_ok'],
++                                  order='C',buffersize=max(1,65536//max(1,v.itemsize))):
++                h.update(part.tobytes())
++        elif is_dataclass(v) and not isinstance(v, type):
++            raw(str(len(fields(v))).encode())
++            for field in fields(v):feed(field.name);feed(getattr(v,field.name))
++        elif isinstance(v, Mapping):
++            raw(str(len(v)).encode())
++            for k,item in v.items():feed(k);feed(item)
++        elif isinstance(v, (list, tuple)):
++            raw(str(len(v)).encode())
++            for x in v: feed(x)
++        elif isinstance(v, np.generic):
++            if v.dtype.hasobject:raise TypeError('object scalar in cache key')
++            feed((v.dtype.str, v.tobytes()))
++        elif isinstance(v, bytes): raw(v)
++        elif isinstance(v, float): raw(struct.pack('!d', v))
++        elif type(v) is str:
++            length=sum(len(v[i:i+1024].encode()) for i in range(0,len(v),1024))
++            h.update(str(length).encode()+b':')
++            for i in range(0,len(v),1024):h.update(v[i:i+1024].encode())
++        elif v is None or type(v) in (bool, int): raw(str(v).encode())
++        else: raise TypeError('unsupported read cache key: ' + type(v).__name__)
++    feed(value)
++    return h.hexdigest()
++
++
++def snapshot(value):
++    """Store tensors on CPU, with dtype/device and container type preserved."""
++    if isinstance(value, torch.Tensor):
++        return ('tensor', value.detach().to(device='cpu', copy=True), value.device)
++    if isinstance(value, np.generic):return ('numpy_scalar',value.copy())
++    if isinstance(value, np.ndarray):
++        if value.dtype.hasobject: raise TypeError('object array in read cache value')
++        return ('array', value.copy(order='K'))
++    if is_dataclass(value) and not isinstance(value, type):
++        return ('dataclass', type(value), {f.name:snapshot(getattr(value,f.name)) for f in fields(value)})
++    if isinstance(value, Mapping):
++        return ('mapping', type(value), [(k,snapshot(v)) for k,v in value.items()])
++    if isinstance(value, (list, tuple)):
++        return ('sequence', type(value), [snapshot(v) for v in value])
++    if value is None or isinstance(value, (str, bytes, bool, int, float, np.generic, Enum)):
++        return ('scalar', value)
++    raise TypeError('unsupported read cache value: ' + type(value).__name__)
++
++
++def restore(value):
++    kind = value[0]
++    if kind == 'tensor': return value[1].to(device=value[2], copy=True)
++    if kind == 'array': return value[1].copy(order='K')
++    if kind == 'numpy_scalar': return value[1].copy()
++    if kind == 'dataclass': return value[1](**{k:restore(v) for k,v in value[2].items()})
++    if kind == 'mapping': return value[1]({k:restore(v) for k,v in value[2]})
++    if kind == 'sequence': return value[1](restore(v) for v in value[2])
++    return value[1]
++
++
++def image_identity(images, indices, identity):
++    """Hash decoded RGB pixels without materializing a clip/frame byte string."""
++    h=hashlib.sha256()
++    h.update(digest((identity,indices,len(images))).encode())
++    for image in images:
++        if image.mode!='RGB' or getattr(image,'fp',None) is not None:
++            raise ValueError('SAM cache requires decoded RGB memory images')
++        h.update(digest((image.mode,image.size)).encode())
++        for y in range(image.height):
++            for x in range(0,image.width,512):
++                h.update(image.crop((x,y,min(x+512,image.width),y+1)).tobytes())
++    return h.hexdigest()
++
++
++def immutable_key(value):
++    if type(value) in (str,bytes,int,float,bool,type(None)):return True
++    return type(value) is tuple and all(immutable_key(v) for v in value)
++
++
++def payload_bytes(value):
++    if isinstance(value,torch.Tensor):return value.numel()*value.element_size()
++    if isinstance(value,np.ndarray):return value.nbytes
++    if is_dataclass(value) and not isinstance(value,type):return sum(payload_bytes(getattr(value,f.name)) for f in fields(value))
++    if isinstance(value,Mapping):return sum(payload_bytes(v) for v in value.values())
++    if isinstance(value,(tuple,list)):return sum(map(payload_bytes,value))
++    return 0
++
++
++def nbytes(value):
++    """Conservative owned-storage charge, including every container and key.
++
++    Count aliases twice. The extra per-node allowance covers snapshot tags,
++    restored container slots, tensor/storage wrappers and allocator alignment.
++    The admission walk never copies a payload.
++    """
++    def visit(v, depth):
++        if depth > 64:
++            raise TypeError('read cache value nesting exceeds 64')
++        size = sys.getsizeof(v) + 512
++        if isinstance(v, torch.Tensor):
++            if type(v) not in (torch.Tensor,torch.nn.Parameter):raise TypeError('tensor subclass in cache value')
++            if not v.is_contiguous():raise TypeError('noncontiguous cache value')
++            return size + v.numel()*v.element_size() + 512
++        if isinstance(v, np.ndarray):
++            if type(v) is not np.ndarray:raise TypeError('array subclass in cache value')
++            if v.dtype.hasobject: raise TypeError('object array in read cache value')
++            if not (v.flags.c_contiguous or v.flags.f_contiguous):raise TypeError('noncontiguous cache array')
++            return size + (0 if v.flags.owndata else v.nbytes) + 512
++        if is_dataclass(v) and not isinstance(v, type):
++            cls=type(v)
++            generated=(getattr(getattr(cls.__init__,'__code__',None),'co_filename',None)=='<string>'
++                       and not hasattr(cls,'__post_init__')
++                       and cls.__setattr__ is object.__setattr__
++                       and cls.__new__ is object.__new__
++                       and cls.__getattribute__ is object.__getattribute__
++                       and not any(hasattr(cls.__dict__.get(f.name),'__set__') for f in fields(v)))
++            audited=cls.__module__.startswith('transformers.')
++            if not (generated or audited):raise TypeError('unaudited dataclass constructor')
++            return size + sum(visit(getattr(v, f.name), depth+1)+512 for f in fields(v))
++        if isinstance(v, Mapping):
++            if type(v) not in (dict,OrderedDict) and not (type(v).__module__.startswith('transformers.') and type(v).__name__=='BatchFeature'):
++                raise TypeError('unaudited mapping constructor')
++            if any(not immutable_key(k) for k in v):raise TypeError('mutable mapping key')
++            return size + sum(visit(k,depth+1)+visit(x,depth+1)+512 for k,x in v.items())
++        if isinstance(v, (tuple,list)):
++            if type(v) not in (tuple,list):raise TypeError('unaudited sequence constructor')
++            return size + sum(visit(x,depth+1)+512 for x in v)
++        if isinstance(v,np.generic) and v.dtype.hasobject:raise TypeError('object scalar in cache value')
++        if v is None or type(v) in (str,bytes,bool,int,float) or isinstance(v,(np.generic,Enum,torch.device,type)):
++            return size
++        raise TypeError('unsupported read cache value: '+type(v).__name__)
++    return visit(value,0)
++
++
++class ReadCache:
++    # Reserve room for the cache object, OrderedDict nodes, counters, and call
++    # bookkeeping. Cache-owned storage is bounded; model/processor working
++    # memory and values that the caller continues to own are outside this cap.
++    BOOKKEEPING = 262144
++    def __init__(self, max_bytes):
++        if type(max_bytes) is not int or not self.BOOKKEEPING <= max_bytes <= 16*1024**3:
++            raise ValueError('read_cache_bytes must be an integer in [256 KiB,16 GiB]')
++        self.max_bytes = max_bytes
++        self.entries = OrderedDict()
++        self.held_bytes = 0
++        self.peak_bytes = min(max_bytes,self.BOOKKEEPING)
++        self.pid = os.getpid()
++        self.thread = threading.get_ident()
++        self.stats = {}
++        self.weight_guards = []
++
++    def guard_weights(self, provider):
++        if len(self.weight_guards)>=2:raise ValueError('At most two frozen modules per read cache')
++        guard = WeightGuard(provider)
++        self.weight_guards.append(guard)
++        return guard
++
++    def weight_boundary(self):
++        for guard in self.weight_guards:guard.boundary()
++
++
++    def _room(self, reserve, info, keep=None):
++        while self.entries and self.BOOKKEEPING+self.held_bytes+reserve > self.max_bytes:
++            victim = next((k for k in self.entries if k != keep),None)
++            if victim is None: break
++            _, size, _ = self.entries.pop(victim)
++            self.held_bytes -= size; info['evictions'] += 1
++        total = self.BOOKKEEPING+self.held_bytes+reserve
++        if total > self.max_bytes:return False
++        self.peak_bytes = max(self.peak_bytes,total)
++        return True
++
++    def call(self, namespace, key, fresh):
++        if self.pid != os.getpid():
++            self.__init__(self.max_bytes)
++        if self.thread != threading.get_ident():
++            raise ValueError('ReadCache requires its owning serial thread')
++        # Production namespaces are fixed. Bound diagnostic growth as well.
++        if type(namespace) is not str or len(namespace)>64:return fresh()
++        if namespace not in self.stats and len(self.stats) >= 16:
++            return fresh()
++        info = self.stats.setdefault(namespace, dict(hits=0, misses=0, evictions=0,
++                                                     oversized=0, fresh_s=0., hit_s=0.))
++        start = time.perf_counter()
++        k = (namespace, key)
++        if k in self.entries:
++            saved, size, reserve = self.entries[k]
++            if self._room(reserve,info,keep=k):
++                info['hits'] += 1
++                self.entries.move_to_end(k)
++                out = restore(saved)
++                info['hit_s'] += time.perf_counter()-start
++                return out
++        info['misses'] += 1
++        value = fresh()
++        info['fresh_s'] += time.perf_counter()-start
++        try:
++            # A snapshot has tag containers in addition to the original value.
++            # Payload storage is charged once; the per-node allowance covers
++            # snapshot tags, container slots and key/entry overhead. Reserve
++            # a second complete copy before snapshots and hit restores.
++            size=nbytes(value);payload=payload_bytes(value)
++            reserve=payload+8*(size-payload)+nbytes(k)+8192+1024
++        except TypeError:
++            info['oversized'] += 1
++            return value
++        # Evict BEFORE allocating any snapshot. An oversized entry never copies.
++        if not self._room(2*reserve,info):
++            info['oversized'] += 1
++            return value
++        saved = snapshot(value)
++        size = nbytes(saved)+nbytes(k)+1024
++        if size > reserve:
++            raise RuntimeError('Snapshot exceeded its preflight reservation')
++        self.entries[k] = (saved, reserve, reserve)
++        self.held_bytes += reserve
++        return value
++
++
++class VideoProcessorCache:
++    """Forward all attributes; memoize only the processor's video call."""
++    def __init__(self, target, cache):
++        self.target, self.cache = target, cache
++
++    def __getattr__(self, name):
++        return getattr(self.target, name)
++
++    def __call__(self, *args, **kwargs):
++        config = self.target.to_dict()
++        methods=hashlib.sha256()
++        for cls in type(self.target).__mro__:
++            for name,value in cls.__dict__.items():
++                if callable(value):methods.update(digest((cls.__module__,cls.__qualname__,name,id(value))).encode())
++        try:key = digest((id(self.target),methods.hexdigest(),config,args,kwargs,execution_state(),str(torch.get_default_dtype())))
++        except (TypeError,RecursionError):
++            info=self.cache.stats.setdefault('processor',dict(hits=0,misses=0,evictions=0,
++                                                oversized=0,fresh_s=0.,hit_s=0.))
++            info['bypasses']=info.get('bypasses',0)+1
++            return self.target(*args,**kwargs)
++        return self.cache.call('processor', key, lambda:self.target(*args, **kwargs))
++
++
++def tensor_version(tensor):
++    try:return tensor._version
++    except RuntimeError:return None
++
++
++def execution_state():
++    return (torch.is_autocast_enabled('cuda'),str(torch.get_autocast_dtype('cuda')),
++            torch.is_autocast_enabled('cpu'),str(torch.get_autocast_dtype('cpu')),
++            torch.is_inference_mode_enabled(),torch.are_deterministic_algorithms_enabled(),
++            str(torch.get_default_dtype()),torch.get_num_threads(),
++            torch.get_float32_matmul_precision(),torch.backends.cudnn.deterministic,
++            torch.backends.cudnn.benchmark,torch.backends.cudnn.allow_tf32,
++            torch.backends.cuda.matmul.allow_tf32,
++            torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction,
++            torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction,
++            torch.backends.cuda.matmul.allow_fp16_accumulation,torch.backends.cuda.flash_sdp_enabled(),
++            torch.backends.cuda.mem_efficient_sdp_enabled(),torch.backends.cuda.math_sdp_enabled())
++
++
++def module_identity(model, *, weights=True):
++    """Bind runtime options; production calls omit weight bytes after guard.check()."""
++    h=hashlib.sha256()
++    h.update(digest((id(model),execution_state())).encode())
++    for name,module in model.named_modules():
++        h.update(digest((name,id(module),type(module).__module__,type(module).__qualname__,
++                         id(getattr(module.forward,'__func__',module.forward)),module.training)).encode())
++        configuration=getattr(module,'config',None)
++        h.update(digest((getattr(configuration,'_attn_implementation',None),
++                         getattr(configuration,'_attn_implementation_internal',None))).encode())
++        for key,value in vars(module).items():
++            if key.startswith('_') or key in ('training','calls'):continue
++            if hasattr(value,'to_dict'):value=value.to_dict()
++            elif callable(value):value=('callable',id(value))
++            try:stamp=digest(value)
++            except TypeError:stamp=digest((type(value).__module__,type(value).__qualname__,id(value)))
++            h.update(digest((key,stamp)).encode())
++    for iterator in (model.named_parameters(),model.named_buffers()):
++        for name,tensor in iterator:
++            h.update(digest((name,id(tensor),tensor.data_ptr(),tensor_version(tensor),
++                             digest(tensor) if weights else tensor_stamp(tensor))).encode())
++    return h.hexdigest()
++
++
++class ModelMutationError(BaseException):
++    """Fatal cache contract failure; item-level Exception handlers must not hide it."""
++
++
++def tensor_stamp(tensor):
++    return (id(tensor),tensor.data_ptr(),tensor_version(tensor),str(tensor.dtype),
++            str(tensor.device),tuple(tensor.shape),tuple(tensor.stride()),tensor.requires_grad)
++
++
++def weight_stamp(model):
++    h=hashlib.sha256(str(id(model)).encode())
++    for kind,iterator in (('p',model.named_parameters()),('b',model.named_buffers())):
++        for name,tensor in iterator:h.update(digest((kind,name,tensor_stamp(tensor))).encode())
++    return h.hexdigest()
++
++
++def weight_digest(model):
++    h=hashlib.sha256()
++    for kind,iterator in (('p',model.named_parameters()),('b',model.named_buffers())):
++        for name,tensor in iterator:h.update(digest((kind,name,tensor)).encode())
++    return h.hexdigest()
++
++
++class WeightGuard:
++    """Hash at install/boundaries; check identities and counters on every call.
++
++    TensorImpl.h:291-305,2051-2054: .data does not share the counter and
++    set_data preserves it. Boundary hashing guards untracked persistent writes.
++    Inference tensors have no counter (TensorImpl.h:413-418); refuse them.
++    """
++    def __init__(self, provider):
++        self.provider=provider;self.failed=False;self.pid=os.getpid()
++        model=provider()
++        if any(tensor_version(t) is None for iterator in (model.parameters(),model.buffers()) for t in iterator):
++            raise ModelMutationError('Cache weights require version counters')
++        self.stamp=weight_stamp(model)
++        self.content=weight_digest(model)
++
++    def fail(self):
++        self.failed=True
++        raise ModelMutationError('Cache weights changed; reject this run and its journals')
++
++    def check(self):
++        if self.failed or os.getpid()!=self.pid or weight_stamp(self.provider())!=self.stamp:self.fail()
++        return self.content
++
++    def boundary(self):
++        self.check()
++        if weight_digest(self.provider())!=self.content:self.fail()
++        return self.content
++
++
++def has_hooks(model, *, children_only=False):
++    from torch.nn.modules import module as runtime
++    for index,module in enumerate(model.modules()):
++        if (getattr(module,'_compiled_call_impl',None) is not None or getattr(module,'_hf_hook',None) is not None):
++            return True
++        if index==0 and children_only:continue
++        if module._forward_hooks or module._forward_pre_hooks:return True
++    return bool(runtime._global_forward_hooks or runtime._global_forward_pre_hooks)
++
++
++def install_vision_cache(model, cache):
++    """Cache only the frozen visual module, retaining every language forward."""
++    visual = model.model.visual
++    if getattr(visual, '_read_cache_installed', False):
++        raise ValueError('vision cache already installed')
++    if visual.__class__.__name__ != 'Qwen3_5VisionModel':
++        raise ValueError('vision cache requires the audited Qwen3_5VisionModel')
++    guard = cache.guard_weights(lambda:model.model.visual)
++    original = visual.forward
++    def forward(*args, **kwargs):
++        guard.check()
++        if torch.is_grad_enabled() or any(m.training for m in visual.modules()):
++            raise ValueError('vision cache requires no-grad evaluation')
++        # Outer hooks still run in Module.__call__; child/global hooks and
++        # compiled/accelerated dispatch must execute the original forward.
++        if has_hooks(visual,children_only=True):
++            info = cache.stats.setdefault('vision_bypass', {'calls':0})
++            info['calls'] += 1
++            return original(*args, **kwargs)
++        # Weight mutations fail the run; runtime-option changes produce distinct keys.
++        try:key = digest((visual.config.to_dict(),module_identity(visual,weights=False),guard.content,args,kwargs))
++        except (TypeError,RecursionError):
++            info=cache.stats.setdefault('vision_bypass',{'calls':0});info['calls']+=1
++            return original(*args,**kwargs)
++        return cache.call('vision', key, lambda:original(*args, **kwargs))
++    visual.forward = forward
++    visual._read_cache_installed = True
+--- /dev/null
++++ b/u0/a1.py
+@@ -0,0 +1,270 @@
++"""Native restore, frame binding, and official scoring for paired reader runs.
++
++load_native and bind_item are public so another lane can supply perception_factory.
++No answers are synthesized from tool responses.
++"""
++from copy import deepcopy
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import time
++
++from parity_kit.common import (DENSE, FRAMES, TREE, checked, install, key, pin, policy, read, sha)
++from .artifact import Artifact
++from .callhook import CallHook, install as install_hook
++from .core import E2EGenerator
++
++
++def _captures(value):
++    data = read(value) if isinstance(value, (str, Path)) else value
++    captures = data['captures']
++    return {c['native']: c for c in captures} if isinstance(captures, list) else captures
++
++
++def _frame_path(path, root):
++    path = Path(path)
++    if path.is_absolute():
++        path = path.relative_to('/scratch/jjyeung/devs1_frames')
++    result = (Path(root) / path).resolve()
++    if Path(root).resolve() not in result.parents:
++        raise ValueError('frame path escapes frames_root')
++    return result
++
++
++def trainer_row(task, capture, frames_root, verify=True):
++    """routed.trainer_row without importing its launcher or changing its path registry."""
++    frames = [dict(path=str(_frame_path(f['path'], frames_root)), sha256=f['sha256'])
++              for f in capture['frames']]
++    if verify:
++        for f in frames:
++            checked(f['path'], f['sha256'])
++    si = dict(frames=frames, frame_indices=capture['anchor_indices'], timestamps=capture['timestamps'],
++              fps=capture['fps'], total_num_frames=capture['total_num_frames'],
++              question=task['question'], options=task['options'])
++    identity = {k: si[k] for k in ('frame_indices', 'fps', 'total_num_frames')}
++    identity['frames'] = [f['sha256'] for f in frames]
++    digest = hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(',', ':'),
++                                       allow_nan=False).encode()).hexdigest()
++    si['video_identity'] = dict(video_sha256=digest, kind='devS1-pinned-PNG-clip-v1')
++    return dict(qid=task['id'], dataset=task['dataset'], scene=task['scene'],
++                question_type=task['question_type'], student_input=si)
++
++
++def bind_item(item, settings, *, verify=True):
++    """With verify=False return paths only; this mode never opens an image."""
++    captures = _captures(settings.get('frames_json', FRAMES))
++    dense = _captures(settings.get('dense_manifest', DENSE))
++    c, d = captures[item['native']], dense[item['native']]
++    anchors, slots = c['anchor_indices'], d['anchor_slots']
++    count = len(d['frames'])
++    if count not in (32, 64) or len(anchors) != 32 or len(slots) != len(anchors):
++        raise ValueError('expected 32 anchors and 32 or 64 pinned dense frames')
++    if settings.get('require_dense64', False) and count != 64:
++        raise ValueError('capture has 32 pinned dense frames; require_dense64 is set')
++    if any(type(s) is not int or not 0 <= s < count for s in slots):
++        raise ValueError('invalid dense anchor slot')
++    if ([d['frames'][s]['index'] for s in slots] != anchors
++            or [d['frames'][s]['sha256'] for s in slots] != [f['sha256'] for f in c['frames']]
++            or [f['index'] for f in c['frames']] != anchors):
++        raise ValueError('dense anchors differ from FRAMES.json')
++    if item.get('source_frame_indices', anchors) != anchors:
++        raise ValueError('task anchors differ from FRAMES.json')
++    paths = [_frame_path(f['path'], settings['frames_root']) for f in d['frames']]
++    images = []
++    if verify:
++        from PIL import Image
++        for f, p in zip(d['frames'], paths):
++            checked(p, f['sha256'])
++            with Image.open(p) as im:
++                images.append(im.convert('RGB'))
++    row = trainer_row(item, c, settings['frames_root'], verify=verify)
++    frames = dict(native_frames=images if verify else [str(p) for p in paths],
++                  dense_indices=[f['index'] for f in d['frames']], anchor_slots=slots,
++                  anchor_indices=anchors)
++    return dict(id=key(item), row=row, frames=frames)
++
++
++def decoded(output):
++    """Adapt the reader report to the sealed scorer's text/finish interface."""
++    if 'decode' in output:
++        output = output['decode'] or dict(text='', finish='item_error')
++    calls = output.get('calls', [])
++    if isinstance(calls, dict):
++        calls = calls['records']
++    return {**output, 'text': output.get('text', ''), 'finish': output.get('finish', 'item_error'),
++            'calls': calls, 'generated_tokens': output.get('generated_tokens', len(output.get('tokens', [])))}
++
++
++def score(task, output):
++    """The two labels in nomdg.make_record, including native_score's think-close rule."""
++    install()
++    from evalpath.run import score_item
++    dec = decoded(output)
++    labels = dict(answer=task['answer'],
++                  released_answer=task.get('released_answer_in_options', task.get('released_answer')))
++    no_answer = (dec.get('strict_no_answer') or not re.search(r'</think\s*>', dec['text'], re.I)
++                 or score_item({**task, 'ground_truth': task['answer']}, dec)['parse_failed'])
++    return {k: None if label is None else 0.0 if no_answer else
++            score_item({**task, 'ground_truth': label}, dec)['score'] for k, label in labels.items()}
++
++
++def load_native(export_dir, *, device='cpu', settings, artifact=None):
++    """Load the processor and model once, following read_runtime's evaluation ordering."""
++    install(settings.get('tree', TREE))
++    from student_pilot import carrier_c1_run as trainer
++    out = Path(export_dir).resolve()
++    restore = read(out / 'RESTORE.json')
++    for name, spec in restore['local'].items():
++        checked(out / name, spec['sha256'])
++    cfg = read(checked(settings['config'], restore['original']['config']['sha256']))
++    receipt = read(out / 'receipt.json')
++    checked(receipt['model']['path'], receipt['model']['sha256'])
++    manifest = read(receipt['model']['path'])
++    if artifact is not None:
++        export = read(out / 'artifact.json')
++        required = [out / 'artifact.json', Path(export['heads']['path']), Path(export['full_weights']['path'])]
++        required += [Path(manifest['root']) / n for n in manifest['files']]
++        for p in required:
++            if str(p.resolve()) not in artifact.allowed:
++                raise ValueError('restore input missing from artifact: ' + str(p))
++    receipt.update(align=cfg.get('align'), init_artifact=cfg.get('init_artifact'),
++                   frame_markers=cfg.get('frame_markers', False), pointing_weights=cfg.get('pointing_weights'),
++                   camera={**receipt['camera'], **cfg.get('camera_overrides', {})})
++    processor = trainer.processor_for_receipt(manifest, receipt)
++    loading = {k: v for k, v in receipt.items() if k != 'init_artifact'}
++    model = trainer.load_model(manifest, loading, processor, evaluation=True)
++    if cfg.get('depth_init') and 'depth_init' not in receipt:
++        # The omitted stage-1 depth init (stage_restore) also froze the private encoder copy; the trained-group
++        # contract of the export counts only the tensors that stayed trainable, so freeze it the same way.
++        model.auxiliary_heads.depth.model.visual.requires_grad_(False)
++        model.depth_stage1 = True
++    artifact = trainer.load_artifact(model, pin(out / 'artifact.json'))
++    if (artifact['base_identity'] != cfg['base_identity']
++            or artifact['config_sha256'] != trainer.identity(cfg)
++            or getattr(model, 'trace_program_version', None) != '3.14'):
++        raise ValueError('loaded export identity differs')
++    model.to(device).eval().requires_grad_(False)
++    return model, processor, dict(config=cfg, receipt=receipt, export=artifact, restore=restore)
++
++
++class ParityGenerator(E2EGenerator):
++    """E2EGenerator with its real decoder's explicit cap exposed.
++
++    The parent validates frame layout and owns the model/hook/perception. Its public
++    __call__ does not forward max_new_tokens, so this dispatch supplies the native cap.
++    """
++    def __call__(self, item):
++        from .real import generate_real
++        start = time.perf_counter()
++        batch = self.prompt_batch(self.processor, item['row'])
++        batch = {k: v.to(self.device) if hasattr(v, 'to') else v for k, v in batch.items()}
++        budget = self.budget_factory()
++        result = generate_real(self.model, self.processor, batch, item['frames'], self.hook,
++                               self.perception, artifact=self.artifact, budget=budget,
++                               max_new_tokens=16384)
++        result.update(id=item['id'], seconds=time.perf_counter() - start, frames=self.frames,
++                      decode_budget=budget.receipt(len(result['tokens'])))
++        return result
++
++
++def _head(artifact, directory, component):
++    from parity_kit.common import LANE, module
++    directory = Path(directory).resolve()
++    for suffix in ('.json', '.safetensors'):
++        if (directory / (component + suffix)).resolve() not in artifact.files(component):
++            raise ValueError('head file missing from artifact: ' + component)
++    loader = module(LANE / 'heads' / component.removesuffix('_head') / (component + '.py'),
++                    '_parity_' + component)
++    loaded = loader.load_head(directory)
++    return loaded[0] if isinstance(loaded, tuple) else loaded
++
++
++def make_real(export_dir, artifact_manifest, items, *, perception_factory=None, device='cpu', settings):
++    install(settings.get('tree', TREE))
++    arm = settings['arm']
++    if arm not in ('own_depth', 'scale_head'):
++        raise ValueError('unknown arm')
++    specs = dict(artifact_manifest)
++    artifact = Artifact(specs['root'], specs['name'], specs['sha256'],
++                        code_roots=specs.get('code_roots'), env_roots=settings.get('env_roots', ()),
++                        write_roots=[os.environ[k] for k in ('TRITON_CACHE_DIR', 'TORCHINDUCTOR_CACHE_DIR', 'XDG_CACHE_HOME',
++                                                             'HF_HOME', 'TORCH_HOME') if os.environ.get(k)],
++                        required_roles=('checkpoint', 'tokenizer', 'g3t') +
++                        (('scale_head',) if arm == 'scale_head' else ())).verify()
++    model, processor, info = load_native(export_dir, device=device, settings=settings, artifact=artifact)
++    from .read_cache import switches, cache_bytes
++    cache_switches = switches(settings)
++    if cache_switches['read_sam_cache']=='on' and 'sam3' in settings['perception_memo_modules']:
++        raise ValueError('Use one SAM cache policy; the bounded cache must not bypass SAM memo verification')
++    read_cache = None
++    if 'on' in cache_switches.values():
++        from .read_cache import ReadCache, VideoProcessorCache, install_vision_cache
++        read_cache = ReadCache(cache_bytes(settings))
++        if cache_switches['read_processor_cache'] == 'on':
++            processor.video_processor = VideoProcessorCache(processor.video_processor, read_cache)
++        if cache_switches['read_vision_cache'] == 'on':
++            install_vision_cache(model, read_cache)
++    hook = install_hook(model, CallHook(processor.tokenizer, processor._routing_tokens['ids'].values()))
++    from evalpath import runtime
++    from .real import real_perception
++    selection = {key(t): t for t in items}
++    if len(selection) != len(items):
++        raise ValueError('duplicate selected keys')
++    bound_settings = dict(settings, frames_json={'captures': _captures(settings.get('frames_json', FRAMES))},
++                          dense_manifest={'captures': _captures(settings.get('dense_manifest', DENSE))})
++    cfg = deepcopy(info['config'])
++    if cfg.get('tool_mode_flag'):
++        raise ValueError('parity requires the unflagged prompt')
++    layout = dict(layout=info['export']['frame_layout'], count=32)
++    default_perception = None
++    if perception_factory is None:
++        if settings.get('sam3') and not settings.get('selector_head'):
++            raise ValueError('SAM3 ground/gap requires a selector head')
++        scale = _head(artifact, settings['scale_head'], 'scale_head') if arm == 'scale_head' else None
++        selector = _head(artifact, settings['selector_head'], 'selector_head') if settings.get('selector_head') else None
++        sam = None
++        if settings.get('sam3'):
++            from student_pilot.sam3_tower import Sam3Tower
++            sam_settings = dict(settings['sam3'], device=device)
++            for name in ('checkpoint_path', 'receipt_path'):
++                if Path(sam_settings[name]).resolve() not in artifact.files('sam3'):
++                    raise ValueError('SAM file missing from artifact: ' + name)
++            sam = Sam3Tower(sam_settings)
++        default_perception = real_perception(artifact, device=device, scale_head=scale,
++                                             stage1_select_rule=settings.get('stage1_select_rule','null_argmax'),
++                                             perception_memo=settings['perception_memo'],
++                                             perception_memo_modules=settings['perception_memo_modules'],
++                                             perception_memo_verify_ids=settings['perception_memo_verify_ids'],
++                                             read_cache=read_cache if cache_switches['read_sam_cache']=='on' else None,
++                                             sam3_tower=sam, selector_head=selector)
++    budget_policy = policy()
++    generator = ParityGenerator(model, processor, artifact, default_perception, hook,
++                               dict(frames=layout), export_layout=layout,
++                               prompt_batch=lambda p, r: runtime.prompt_batch(p, r, cfg, 'routed'),
++                               budget_factory=lambda: budget_policy.ThinkingBudget(
++                                   processor.tokenizer, budget_policy.DECODE_BUDGET,
++                                   openers=processor._routing_tokens['ids'].values()), device=device)
++
++    def gen(item):
++        if key(item) not in selection or selection[key(item)] != item:
++            raise ValueError('item is not in the selected task set')
++        bound = bind_item(item, bound_settings)
++        if perception_factory is not None:
++            generator.perception = perception_factory(artifact=artifact, model=model, processor=processor,
++                                                        device=device, item=item)
++        memo = getattr(generator.perception, 'memo', None)
++        if memo is not None:
++            memo.item_id = str(item['id'])
++        result = generator(bound)
++        if read_cache is not None:
++            result['read_cache'] = dict(held_bytes=read_cache.held_bytes,
++                                       max_bytes=read_cache.max_bytes, peak_bytes=read_cache.peak_bytes,
++                                       enabled=[k for k,v in cache_switches.items() if v=='on'], stats=deepcopy(read_cache.stats))
++        return dict(result, key=key(item), room=item['room'], question_type=item['question_type'],
++                    stratum=item.get('stratum'), arm=arm, scores=score(item, result))
++    gen.generator, gen.load_info = generator, info
++    if read_cache is not None and read_cache.weight_guards:
++        gen.weight_boundary = read_cache.weight_boundary
++    return gen
+--- /dev/null
++++ b/u0/a2.py
+@@ -0,0 +1,136 @@
++"""The Qwen3.5 carrier model path of the end-to-end reader (step-544 lineage).
++
++Prefill is the sealed tree's `_prepare_decode` (carriers, frame positions, pose/gravity/depth
++heads read once from the same forward). After that the CallHook replaces the old reader's
++Row/respond_state: it detects closed calls and its servers answer them from this read's
++tensors. Forced ids go through `consume_cache_tokens` (native positions, one id per forward),
++so the KV/recurrent cache continues exactly as in the old reader.
++
++Towers run inside the first call that needs them: FrozenG3TTower on the read's dense frames
++(camera, ground, gap) and Sam3Tower on the read's anchor frames (ground). Their weights are
++artifact components. An opt-in process-local memo reuses only frozen perception values.
++"""
++import time
++
++import numpy as np
++import torch
++
++from .artifact import Audit
++from .callhook import decode_loop
++from .generate import Perception
++
++
++class TowerG3T:
++    """Frozen G3T inside the call. `frames` = dict(native_frames=[PIL], dense_indices=[int],
++    anchor_slots=[int], anchor_indices=[int])."""
++
++    def __init__(self, artifact, device, dtype='bf16', depth_chunk_size=8, memo=None):
++        self.memo = memo
++        self.artifact, self.device, self.dtype, self.chunk = artifact, device, dtype, depth_chunk_size
++        self.model = None
++
++    def __call__(self, frames):
++        if self.memo is None:
++            return self._fresh(frames)
++        from .perception_memo import weight_identity, frame_indices
++        identity = weight_identity(self.artifact, 'g3t', dict(device=str(self.device), dtype=self.dtype,
++                                   depth_chunk_size=self.chunk, dense_frames=len(frames['native_frames'])))
++        return self.memo.call('g3t', identity, frames['native_frames'], frame_indices(frames),
++                              lambda: self._fresh(frames))
++
++    def _fresh(self, frames):
++        from student_pilot.tower_read import FrozenG3TTower
++        images = frames['native_frames']
++        if self.model is None or self.model.dense_frames != len(images):
++            files = self.artifact.files('g3t')
++            def named(name):
++                matches = [p for p in files if p.name == name]
++                if len(matches) != 1:
++                    raise ValueError('g3t_file_not_unique:' + name)
++                return str(matches[0])
++            self.model = FrozenG3TTower(dict(weights_path=named('model.safetensors'),
++                                             config_path=named('config.json'),
++                                             device=self.device, dense_frames=len(images),
++                                             depth_chunk_size=self.chunk, dtype=self.dtype))
++        s = self.model.run(dict(tower_native_frames=images, tower_frame_indices=frames['dense_indices'],
++                                tower_anchor_slots=frames['anchor_slots'], frame_indices=frames['anchor_indices']))
++        return dict(raw_pose9=np.asarray(s.raw_pose9), anchor_slots=np.asarray(s.anchor_slots),
++                    frame_indices=np.asarray(s.frame_indices), depth_grid=np.asarray(s.depth_grid),
++                    depth_conf_grid=np.asarray(s.depth_conf_grid),
++                    points_grid=np.asarray(getattr(s, 'points_grid', np.zeros((0,)))),
++                    grid_uv=np.asarray(s.grid_uv), source_hw=(images[0].height, images[0].width))
++
++
++def own_gravity(state):
++    g = state.heads.gravity
++    if g is None:
++        raise ValueError('checkpoint_lacks_gravity_head')
++    return np.asarray(g, np.float64)
++
++
++def anchor_frames(frames):
++    return [frames['native_frames'][int(s)] for s in frames['anchor_slots']]
++
++
++def real_perception(artifact, *, device, perception_memo_modules, scale_head=None, sam3_tower=None, selector_head=None, serve_room=False, stage1_select_rule='null_argmax', perception_memo='off', perception_memo_verify_ids=(), read_cache=None):
++    """Servers of the carrier read. scale_head: a heads/scale ScaleHead (from the artifact's scale_head component),
++    or None for OwnDepthScale (the checkpoint's own depth head through the tree's frozen estimator, the default in
++    force); sam3_tower + selector_head enable stage-1 ground/gap (stage1.stage1_factory); without them ground/gap
++    calls are unserved and counted. Room is unserved (room is a direct type)."""
++    from .stage1 import OwnDepthScale, ScaleHeadCall, stage1_factory
++    from .perception_memo import process_memo
++    memo = process_memo(dict(perception_memo=perception_memo, perception_memo_modules=perception_memo_modules,
++                            perception_memo_verify_ids=perception_memo_verify_ids))
++    socket = stage1_factory(sam3_tower, selector_head, anchor_frames, rule=stage1_select_rule,
++                            memo=memo, artifact=artifact, read_cache=read_cache) if sam3_tower is not None else None
++    scale = OwnDepthScale() if scale_head is None else ScaleHeadCall(scale_head)
++    value = Perception(TowerG3T(artifact, device, memo=memo), own_gravity, scale, socket, serve_room)
++    if memo is not None:
++        value.memo = memo
++    return value
++
++
++@torch.no_grad()
++def generate_real(model, processor, batch, frames, hook, perception, *, artifact, budget=None,
++                  max_new_tokens=None, enforce_audit=True):
++    """generate(frames, question) for the carrier model. `batch` is the processor's prompt batch
++    for this question and these frames (evalpath.runtime.prompt_batch, unchanged)."""
++    from student_pilot.carrier_c1_decode import _prepare_decode, consume_cache_tokens
++    from student_pilot.ground_context import closed_adapters
++    memo = getattr(perception, 'memo', None)
++    if memo is not None:
++        memo.begin_read()
++    timings, entries = {}, dict(prefill=0, steps=0)
++    with Audit(artifact, enforce=enforce_audit) as audit:
++        t0 = time.perf_counter()
++        state = closed_adapters(_prepare_decode)(model, processor, batch, max_new_tokens=max_new_tokens)
++        entries['prefill'] += 1
++        timings['prefill_s'] = time.perf_counter() - t0
++        servers, built = perception.lazy(frames, state, timings)
++        hook.begin(servers)
++        if getattr(model, 'carrier_id', None) is not None and model.carrier_id not in hook.reserved:
++            hook.reserved.append(int(model.carrier_id))
++        eos = state.native.generation_config.eos_token_id if state.native.generation_config else None
++        eos = set(eos if isinstance(eos, (list, tuple)) else [eos or processor.tokenizer.eos_token_id])
++        eos |= {processor.tokenizer.eos_token_id}
++        cache = [state.output.past_key_values]
++        prompt, mask0 = batch['input_ids'], batch['attention_mask']
++
++        def step(tokens):
++            n = len(hook.ids)
++            full = torch.cat((prompt, prompt.new_tensor([hook.ids])), 1)
++            mask = torch.cat((mask0, mask0.new_ones((1, n))), 1)
++            output, cache[0] = consume_cache_tokens(state.native, full, mask, cache[0], observer=state.stream)
++            entries['steps'] += len(tokens)
++            return output
++        finish = decode_loop(step, state.output, hook, eos_ids=eos, cap=state.cap, logits_processor=budget)
++        timings['total_s'] = time.perf_counter() - t0
++        audit.entries = entries['prefill']
++    result = dict(tokens=list(hook.ids), text=processor.tokenizer.decode(hook.ids, skip_special_tokens=False),
++                finish=finish, calls=hook.report(), audit=audit.report(), entries=entries,
++                prompt_tokens=int(prompt.shape[1]), timings=timings, scale=built.get('scale'),
++                heads=dict(pose9=state.heads.pose9.tolist(),
++                           gravity=None if state.heads.gravity is None else state.heads.gravity.tolist()))
++    if memo is not None:
++        result['perception_memo'] = memo.report()
++    return result
+--- /dev/null
++++ b/u0/a3.py
+@@ -0,0 +1,257 @@
++"""In-call heads of the real reader: the stage-1 grounding socket and the scale-head adapter.
++
++Stage 1 (ground/gap): the frozen SAM 3 tower runs inside the call on this read's anchor frames with the name as
++written (lowercase and strip only; the tree's `normalize_phrase` singular map is bypassed). Its proposals are
++lifted, linked and featurised by the runtime's unchanged producers (`routed_features`, `routed_candidates`), the
++selector head's inputs come from `selector_inputs.candidate_vectors`, and the head's argmax over
++[candidates, null] picks one candidate or none. Proposal retention is the contract of the K1 raw-prompt run the
++head's raw-only tables come from (mask_kit variantlib 'dense': joint >= 0.05, at most 30 per frame, mask logit > 0),
++not the tree's live contract (joint >= 0.2, 10). Each name is featurised alone: cross-name exclusivity sees no
++other name, at training time and in the call, so a feature never depends on which names the model asked before.
++
++Scale: `ScaleHeadCall(head)(tower)` maps the tower dict of `Perception` onto ScaleHead's tensors.
++"""
++import sys
++from pathlib import Path
++
++import numpy as np
++import torch
++
++from parity_kit.common import LANE
++HEADS = LANE / 'heads'
++K1_CONTRACT = dict(joint_floor=.05, cap=30)
++
++
++def name_key(name):
++    return str(name).strip().lower()
++
++
++class ScaleHeadCall(torch.nn.Module):
++    def __init__(self, head):
++        super().__init__()
++        self.head = head
++
++    def forward(self, tower):
++        pose = np.asarray(tower['raw_pose9'])[np.asarray(tower['anchor_slots'])]
++        t = lambda a: torch.as_tensor(np.asarray(a))[None]  # noqa: E731
++        return self.head(depth_grid=t(tower['depth_grid']), depth_conf_grid=t(tower['depth_conf_grid']),
++                         points_grid=t(tower['points_grid']), anchor_pose=t(pose),
++                         grid_uv=torch.as_tensor(np.asarray(tower['grid_uv'])))[0]
++
++
++class OwnDepthScale(torch.nn.Module):
++    """Scale from the checkpoint's own depth head: median(own depth / G3T depth) on grid points whose tower
++    confidence is above the clip median and whose two depths are finite and positive (the confidence rule of
++    student_pilot.tower_scale_rule.estimate without its own-depth range gate). Own depth is the depth head queried at the tower's 51x51 grid of every anchor frame, from
++    the heads of this read's prefill. No parameters of its own: it reads the depth head inside the checkpoint."""
++
++    reads_prefill = True
++
++    def forward(self, tower, prefill_state):
++        heads = prefill_state.heads
++        if heads.depth_map is None:
++            raise ValueError('checkpoint_lacks_depth_head')
++        axis = torch.as_tensor(np.asarray(tower['grid_uv']).copy(), device=heads.depth_map.device)
++        yy, xx = torch.meshgrid(axis, axis, indexing='ij')
++        n = np.asarray(tower['depth_grid']).shape[0]
++        uv = torch.stack((xx, yy), -1).reshape(1, -1, 2).expand(n, -1, -1)
++        with torch.no_grad():
++            own = heads.depth_head.query(heads.depth_map, uv).double().cpu().numpy().reshape(np.asarray(tower['depth_grid']).shape)
++        scale = median_ratio(tower['depth_grid'], tower['depth_conf_grid'], own)
++        return torch.tensor(float(np.log(scale)), dtype=torch.float64)
++
++
++def median_ratio(depth, confidence, own):
++    d, c, v = (np.asarray(x, float) for x in (depth, confidence, own))
++    if d.shape != c.shape or d.shape != v.shape:
++        raise ValueError('depth_grids_differ')
++    finite = c[np.isfinite(c)]
++    if not len(finite):
++        raise ValueError('no_finite_confidence')
++    selected = np.isfinite(c) & (c > np.percentile(finite, 50)) & np.isfinite(d) & (d > 0) & np.isfinite(v) & (v > 0)
++    if not selected.any():
++        raise ValueError('no_scale_points')
++    return float(np.median(v[selected] / d[selected]))
++
++
++def sam3_detect(tower, features, name):
++    """One list per anchor frame of dict(mask bool[480,640], score, presence) for the raw name: Sam3Tower._detect's forward with the
++    K1 retention contract and no phrase normalisation."""
++    import torch.nn.functional as TF
++    from student_pilot import routed_features as F
++    tower._load()
++    phrase = name_key(name)
++    with torch.inference_mode(), tower._autocast():
++        text = tower._backend.model.backbone.forward_text([phrase], device=str(tower.device))
++    out = []
++    for stored, (h, w) in zip(features.frames, features.sizes):
++        backbone = {k: (v.to(tower.device) if hasattr(v, 'to') else [x.to(tower.device) for x in v])
++                    for k, v in stored.items()}
++        backbone['vision_features'] = backbone['backbone_fpn'][-1]
++        backbone.update(text)
++        with torch.inference_mode(), tower._autocast():
++            raw = tower._backend.model.forward_grounding(
++                backbone_out=backbone, find_input=tower._backend.find_stage,
++                geometric_prompt=tower._backend.model._get_dummy_prompt(), find_target=None)
++        scores = raw['pred_logits'].sigmoid().reshape(-1).float()
++        presence = float(raw['presence_logit_dec'].sigmoid().item())
++        joint = scores * presence
++        order = torch.argsort(scores, descending=True, stable=True)
++        keep = order[joint[order] >= K1_CONTRACT['joint_floor']][:K1_CONTRACT['cap']]
++        native = raw['pred_masks'].reshape(-1, *raw['pred_masks'].shape[-2:])
++        frame = []
++        for i in keep.tolist():
++            m = (TF.interpolate(native[i][None, None].float(), (h, w), mode='bilinear', align_corners=False)[0, 0] > 0)
++            frame.append(dict(mask=F.resize(m.cpu().numpy(), F.SHAPE), score=float(scores[i]), presence=presence))
++        out.append(frame)
++    return out
++
++
++class StageOne:
++    """propose(name) -> (candidates, inputs) and select(inputs) -> index or -1, for grounding.StageOneSocket.
++
++    detect(name) -> one raw list per anchor frame (sam3_detect bound to this read's tower features, or a cache reader in
++    tests). Every name is featurised alone (its own pool), as in the isolated K1 tables (heads/selector/
++    isolate_tables.py)."""
++
++    def __init__(self, detect, head, geometry, rule="null_argmax"):
++        if rule not in ("null_argmax", "candidates_argmax"):
++            raise ValueError("unknown_stage1_select_rule")
++        self.rule = rule
++        self.diagnostics = {}
++        from student_pilot import routed_features as F
++        if str(HEADS / 'selector/sl118') not in sys.path:
++            sys.path.insert(0, str(HEADS / 'selector/sl118'))
++        import selector_inputs as SI
++        self.F, self.SI, self.detect, self.head = F, SI, detect, head
++        self.geometry, self.exact = geometry, F.Geometry(geometry)
++        self.grids = F.candidates.lift_grid(geometry)
++        self.raw = {}
++
++    def features(self, name):
++        F = self.F
++        if name not in self.raw:
++            self.raw[name] = self.detect(name)
++        proposals, lift_outcomes = F.candidates.lift(F.cache_for(name, self.raw[name]), name, self.geometry, floor=.3,
++                                         grids=self.grids, phrase=name)
++        pools = {name: F.candidates.link(proposals, name)}
++        F.candidates.scene_candidates(pools, self.geometry)
++        accepted = F.accept_features(pools[name], self.raw[name], self.exact)
++        x = self.SI.candidate_vectors(pools[name], self.raw[name], self.exact, accepted) if accepted else []
++        self.diagnostics[name] = proposal_diagnostics(
++            self.rule, name, self.raw[name], proposals, lift_outcomes, accepted, x)
++        return accepted, x
++
++    def propose(self, name):
++        accepted, x = self.features(name)
++        cands = [dict(candidate_id=a['candidate_id'], masks=a['masks']) for a in accepted]
++        return cands, dict(x=torch.tensor(x, dtype=torch.float64), name=name)
++
++    @torch.no_grad()
++    def select(self, inputs):
++        rule = getattr(self, 'rule', 'null_argmax')
++        if rule == 'candidates_argmax' and len(inputs['x']) == 0:
++            return -1
++        slots = self.head.with_null(inputs['x'], None, inputs['name'])
++        k = int(torch.argmax(slots))
++        choice = -1 if k == len(slots) - 1 else k
++        if rule == 'candidates_argmax':
++            choice = int(torch.argmax(slots[:len(inputs['x'])]))
++        if inputs['name'] in getattr(self, 'diagnostics', {}):
++            record = self.diagnostics[inputs['name']]
++            for candidate, logit in zip(record['candidates'], slots):
++                candidate['logit'] = float(logit)
++            record.update(null_logit=float(slots[-1]), chosen_index=choice,
++                          null_would_win=k == len(slots) - 1)
++        return choice
++
++
++def proposal_diagnostics(rule, name, raw, proposals, lift_outcomes, accepted, vectors):
++    """Observe producers without changing any candidate, feature or response."""
++    from collections import Counter
++    flat = [entry for frame in raw for entry in frame]
++    return dict(rule=rule, name_key=name_key(name), sam3=dict(
++        kept_per_frame=[len(frame) for frame in raw],
++        max_score=max((float(e['score']) for e in flat), default=None),
++        max_presence=max((float(e['presence']) for e in flat), default=None),
++        max_joint=max((float(e['score'])*float(e['presence']) for e in flat), default=None)),
++        lift_entering=len(proposals)+len(lift_outcomes), lifted=len(proposals),
++        lift_reasons=dict(Counter(entry['reason'] for entry in lift_outcomes)),
++        linked_candidates=len(accepted), candidates=[dict(
++            id=a['candidate_id'], frames=list(a['masks']), peak=float(a['features']['peak']),
++            logit=None, inputs=np.asarray(x, dtype=np.float32).tolist())
++            for a, x in list(zip(accepted, vectors))[:K1_CONTRACT['cap']]],
++        null_logit=None, chosen_index=-1, null_would_win=None)
++
++
++def stage1_factory(sam3_tower, selector_head, anchor_frames_of, rule='null_argmax', *, memo=None, artifact=None, read_cache=None):
++    """socket(frames, geometry) for Perception: encodes the anchor frames once per read, in the call."""
++    from .grounding import StageOneSocket
++    guard = None
++    if read_cache is not None:
++        sam3_tower._load()
++        guard = read_cache.guard_weights(lambda:sam3_tower._backend.model)
++
++    def socket(frames, geometry):
++        cache = {}
++
++        def baseline_detection(name):
++            if 'features' not in cache:
++                if memo is None:
++                    cache['features'] = sam3_tower.encode(anchor_frames_of(frames))
++                else:
++                    from .perception_memo import sam_encode
++                    cache['features'] = sam_encode(memo, artifact, sam3_tower, anchor_frames_of(frames), frames)
++            return sam3_detect(sam3_tower, cache['features'], name)
++
++        def detect(name):
++            if guard is not None:guard.check()
++            if read_cache is not None and cache.get('bypass'):
++                info=read_cache.stats.setdefault('sam_bypass',{'calls':0});info['calls']+=1
++                return baseline_detection(name)
++            if read_cache is not None:
++                from .read_cache import digest, module_identity, has_hooks, execution_state, image_identity
++                from .perception_memo import weight_identity, frame_indices
++                from student_pilot.sam3_tower import ClipFeatures
++                images = anchor_frames_of(frames)
++                # Load before taking the live identity. Loading can replace the
++                # backend and also establishes frozen evaluation parameters.
++                sam3_tower._load()
++                model = sam3_tower._backend.model
++                if any(m.training for m in model.modules()) or any(p.requires_grad for p in model.parameters()):
++                    raise ValueError('SAM cache requires frozen evaluation')
++                if has_hooks(model):
++                    cache['bypass']=True
++                    info = read_cache.stats.setdefault('sam_bypass', {'calls':0})
++                    info['calls'] += 1
++                    return baseline_detection(name)
++                try:live = (guard.content,module_identity(model,weights=False))
++                except (TypeError,RecursionError):
++                    cache['bypass']=True
++                    info=read_cache.stats.setdefault('sam_bypass',{'calls':0});info['calls']+=1
++                    return baseline_detection(name)
++                identity = weight_identity(artifact, 'sam3', dict(
++                    device=str(sam3_tower.device), precision=sam3_tower.precision,
++                    image_batch_size=sam3_tower.image_batch_size,
++                    native_image_batch=sam3_tower.native_image_batch))
++                backend=sam3_tower._backend
++                options={k:getattr(backend,k) for k in ('resolution','confidence_threshold','device') if hasattr(backend,k)}
++                options={k:str(v) if isinstance(v,torch.device) else v for k,v in options.items()}
++                clip = digest((image_identity(images,frame_indices(frames),identity),live,
++                               id(sam3_tower),id(backend),id(sam3_tower._owner),execution_state(),
++                               getattr(sam3_tower,'settings',{}),options))
++                def fresh_detection():
++                    if cache.get('identity') != clip:
++                        def encode():
++                            f = sam3_tower.encode(images)
++                            return dict(frames=f.frames, sizes=f.sizes)
++                        value = read_cache.call('sam_features', clip, encode)
++                        cache['features'] = ClipFeatures(value['frames'], value['sizes'], sam3_tower._owner)
++                        cache['identity'] = clip
++                    return sam3_detect(sam3_tower, cache['features'], name)
++                return read_cache.call('sam_detections', digest((clip, name_key(name), K1_CONTRACT)), fresh_detection)
++            return baseline_detection(name)
++        s = StageOne(detect, selector_head, geometry, rule=rule)
++        from .geometry import frame_count
++        return StageOneSocket(s.propose, s.select, (240, 320), frame_count(geometry))
++    return socket
+--- /dev/null
++++ b/u0/tests/test_read_cache.py
+@@ -0,0 +1,370 @@
++"""CPU fixtures: run with Python -I -s -B and this file's absolute path."""
++import dataclasses
++import importlib.util
++import json
++import os
++from pathlib import Path
++import sys
++import types
++import tracemalloc
++import threading
++import unittest
++from unittest.mock import patch
++
++import numpy as np
++import torch
++torch.set_num_threads(8)
++SRC=Path(__file__).resolve().parents[2]
++INPUT=Path(os.environ['READ_INPUT_SRC'])
++sys.path[:0]=[str(SRC/'u0'),str(SRC/'b'),str(SRC),str(INPUT/'tree')]
++from a8 import activate
++activate(enabled=True)
++from e2e_reader.read_cache import (ReadCache, VideoProcessorCache, digest, install_vision_cache,
++                                   restore, snapshot, switches, ModelMutationError)
++from e2e_reader import stage1
++
++
++class TinyVideoProcessor:
++    def __init__(self): self.calls=0;self.factor=2
++    def to_dict(self): return {'factor':self.factor}
++    def __call__(self, videos, **kwargs):
++        self.calls += 1
++        return {'pixels':torch.as_tensor(videos[0].copy())*self.factor,
++                'metadata':kwargs.get('metadata')}
++
++
++@dataclasses.dataclass
++class Metadata:
++    fps: float
++    frames_indices: list
++
++
++@dataclasses.dataclass
++class VisionOutput:
++    last_hidden_state: torch.Tensor
++    pooler_output: torch.Tensor
++
++
++class Qwen3_5VisionModel(torch.nn.Module):
++    def __init__(self):
++        super().__init__();self.weight=torch.nn.Parameter(torch.tensor(2.))
++        self.config=types.SimpleNamespace(to_dict=lambda:{'width':1});self.calls=0
++    def forward(self, hidden_states, grid_thw, **kwargs):
++        self.calls += 1
++        return VisionOutput(hidden_states*self.weight, hidden_states.sum()*self.weight)
++
++
++class ReadCacheTests(unittest.TestCase):
++    def test_defaults_and_validation(self):
++        self.assertEqual(set(switches({}).values()), {'off'})
++        with self.assertRaises(ValueError): switches({'read_sam_cache':True})
++        with self.assertRaises(ValueError): ReadCache(0)
++
++    def test_exact_storage_signed_zero_nan_bfloat_and_mutation(self):
++        value={'array':np.array([-0.,np.nan,2.],dtype=np.float64),
++               'tensor':torch.tensor([-0.,1.],dtype=torch.bfloat16),
++               'metadata':Metadata(24.,[1,3])}
++        cache=ReadCache(1000000)
++        a=cache.call('test','key',lambda:value)
++        original=digest(a)
++        a['tensor'].fill_(4);a['array'][0]=2;a['metadata'].frames_indices.append(8)
++        b=cache.call('test','key',lambda:None)
++        self.assertEqual(digest(b),original)
++        b['tensor'].fill_(8)
++        self.assertEqual(digest(cache.call('test','key',lambda:None)),original)
++
++    def test_key_invalidates_pixels_metadata_kwargs_dtype_and_order(self):
++        a=np.zeros((2,2,3),np.uint8); b=a.copy();b[0,0,0]=1
++        values=[(a,Metadata(24.,[1,3]),{}),(b,Metadata(24.,[1,3]),{}),
++                (a,Metadata(30.,[1,3]),{}),(a,Metadata(24.,[3,1]),{}),
++                (a,Metadata(24.,[1,3]),{'resize':False}),
++                (a.astype(np.float32),Metadata(24.,[1,3]),{})]
++        self.assertEqual(len(set(map(digest,values))),len(values))
++
++    def test_budget_eviction_oversize_and_process_reset(self):
++        cache=ReadCache(450000)
++        for k in range(4):cache.call('x',k,lambda:np.zeros(50000,np.uint8))
++        self.assertLessEqual(cache.held_bytes,450000)
++        self.assertGreater(cache.stats['x']['evictions'],0)
++        cache.call('x','big',lambda:np.zeros(1000000,np.uint8))
++        self.assertNotIn(('x','big'),cache.entries)
++        with patch('e2e_reader.read_cache.os.getpid',return_value=cache.pid+1):
++            cache.call('x','child',lambda:1)
++            self.assertEqual(len(cache.entries),1)
++
++    def test_key_container_and_transient_memory_stay_within_hard_cache_bound(self):
++        value={'array':np.zeros(600000,np.uint8)}
++        cache=ReadCache(2000000)
++        tracemalloc.start()
++        try:
++            cache.call('processor','a',lambda:value)
++            hit=cache.call('processor','a',lambda:None)
++            self.assertEqual(cache.stats['processor']['hits'],1)
++            cache.call('processor','b',lambda:value)
++            current,peak=tracemalloc.get_traced_memory()
++            self.assertLessEqual(peak,cache.max_bytes)
++            self.assertLessEqual(cache.peak_bytes,cache.max_bytes)
++            self.assertLessEqual(cache.BOOKKEEPING+cache.held_bytes,cache.max_bytes)
++            self.assertTrue(np.array_equal(hit['array'],value['array']))
++            if os.environ.get('READ_MEMORY_RECEIPT'):
++                Path(os.environ['READ_MEMORY_RECEIPT']).write_text(json.dumps(dict(
++                    cap_bytes=cache.max_bytes,peak_python_bytes=peak,peak_reserved_bytes=cache.peak_bytes,
++                    held_reserved_bytes=cache.held_bytes,bookkeeping_bytes=cache.BOOKKEEPING,
++                    includes='keys, containers, retained snapshot, transient snapshot/hit copy',
++                    excludes='caller-owned original arrays allocated before tracing and model working memory'),indent=2)+'\n')
++        finally:tracemalloc.stop()
++        oversized={'key'+str(i):None for i in range(10000)}
++        calls=[]
++        with patch('e2e_reader.read_cache.snapshot',side_effect=lambda x:calls.append(x)):
++            cache.call('processor','container',lambda:oversized)
++        self.assertEqual(calls,[])
++        self.assertNotIn(('processor','container'),cache.entries)
++
++    def test_unaudited_container_constructors_bypass_without_snapshot(self):
++        @dataclasses.dataclass
++        class Custom:
++            value:int
++            def __post_init__(self):self.extra='arbitrary constructor side effect'
++        value=Custom(1);cache=ReadCache(1000000);calls=[]
++        def fresh():calls.append(1);return value
++        cache.call('processor','x',fresh);cache.call('processor','x',fresh)
++        self.assertEqual(len(calls),2);self.assertEqual(len(cache.entries),0)
++
++    def test_cache_enforces_serial_thread_ownership(self):
++        cache=ReadCache(1000000);errors=[]
++        def work():
++            try:cache.call('processor','x',lambda:1)
++            except ValueError as error:errors.append(str(error))
++        thread=threading.Thread(target=work);thread.start();thread.join()
++        self.assertEqual(len(errors),1);self.assertEqual(len(cache.entries),0)
++
++    def test_vision_execution_settings_and_live_options_invalidate(self):
++        visual=Qwen3_5VisionModel().eval().requires_grad_(False)
++        cache=ReadCache(1000000)
++        install_vision_cache(types.SimpleNamespace(model=types.SimpleNamespace(visual=visual)),cache)
++        with torch.no_grad():
++            visual(torch.ones(2),torch.tensor([1,1,2]));visual(torch.ones(2),torch.tensor([1,1,2]))
++            self.assertEqual(visual.calls,1)
++            visual.patch_size=2
++            visual(torch.ones(2),torch.tensor([1,1,2]));self.assertEqual(visual.calls,2)
++            with torch.autocast('cpu',dtype=torch.bfloat16):
++                visual(torch.ones(2),torch.tensor([1,1,2]))
++            self.assertEqual(visual.calls,3)
++            visual.config._attn_implementation='eager'
++            visual(torch.ones(2),torch.tensor([1,1,2]));self.assertEqual(visual.calls,4)
++            visual.config._attn_implementation='sdpa'
++            visual(torch.ones(2),torch.tensor([1,1,2]));self.assertEqual(visual.calls,5)
++
++    def test_processor_keeps_question_out_and_metadata_in_key(self):
++        target=TinyVideoProcessor();proxy=VideoProcessorCache(target,ReadCache(1000000))
++        pixels=np.zeros((2,3,3),np.uint8)
++        a=proxy([pixels],metadata=Metadata(24.,[0,1]))
++        b=proxy([pixels],metadata=Metadata(24.,[0,1]))
++        self.assertEqual(digest(a),digest(b));self.assertEqual(target.calls,1)
++        proxy([pixels],metadata=Metadata(25.,[0,1]));self.assertEqual(target.calls,2)
++        target.factor=3
++        proxy([pixels],metadata=Metadata(24.,[0,1]));self.assertEqual(target.calls,3)
++
++    def test_vision_returns_same_type_and_keeps_outer_hooks(self):
++        visual=Qwen3_5VisionModel().eval().requires_grad_(False)
++        model=types.SimpleNamespace(model=types.SimpleNamespace(visual=visual))
++        cache=ReadCache(1000000);install_vision_cache(model,cache)
++        hook_calls=[];visual.register_forward_hook(lambda *args:hook_calls.append(1))
++        with torch.no_grad():
++            a=visual(torch.ones(2),torch.tensor([1,1,2]))
++            b=visual(torch.ones(2),torch.tensor([1,1,2]))
++            self.assertIsInstance(b,VisionOutput);self.assertEqual(digest(a),digest(b))
++            self.assertEqual(visual.calls,1);self.assertEqual(len(hook_calls),2)
++        with self.assertRaisesRegex(ValueError,'no-grad'): visual(torch.ones(2),torch.tensor([1,1,2]))
++        with torch.no_grad():
++            visual.weight.add_(1)
++            with self.assertRaises(ModelMutationError):visual(torch.ones(2),torch.tensor([1,1,2]))
++        self.assertEqual(visual.calls,1)
++
++    def test_vision_child_hook_bypasses_cache(self):
++        visual=Qwen3_5VisionModel().eval().requires_grad_(False)
++        visual.child=torch.nn.Identity().eval()
++        original=visual.forward
++        visual.forward=lambda *a,**k:visual.child(original(*a,**k))
++        cache=ReadCache(1000000)
++        install_vision_cache(types.SimpleNamespace(model=types.SimpleNamespace(visual=visual)),cache)
++        calls=[];visual.child.register_forward_hook(lambda *args:calls.append(1))
++        with torch.no_grad():
++            visual(torch.ones(2),torch.tensor([1,1,2]));visual(torch.ones(2),torch.tensor([1,1,2]))
++        self.assertEqual(len(calls),2);self.assertEqual(visual.calls,2)
++        self.assertEqual(cache.stats['vision_bypass']['calls'],2)
++
++    def test_installed_transformers_video_packing_without_torchvision(self):
++        from transformers.models.qwen3_vl.video_processing_qwen3_vl import Qwen3VLVideoProcessor
++        from transformers.video_utils import VideoMetadata
++        # This CPU env lacks torchvision. Exercise native packing and metadata;
++        # the GPU kit must exercise production RGB conversion/resize/normalization.
++        target=Qwen3VLVideoProcessor(size={'shortest_edge':2048,'longest_edge':2048},
++                                    do_convert_rgb=False,do_resize=False,do_normalize=False)
++        proxy=VideoProcessorCache(target,ReadCache(1000000))
++        pixels=np.arange(2*32*32*3,dtype=np.uint8).reshape(2,32,32,3)
++        def kwargs():return dict(video_metadata=[VideoMetadata(total_num_frames=2,fps=1.,
++                                frames_indices=[0,1],height=32,width=32)],
++                                do_sample_frames=False,return_tensors='pt',return_metadata=True)
++        baseline=target([pixels],**kwargs())
++        first=proxy([pixels],**kwargs());second=proxy([pixels],**kwargs())
++        self.assertEqual(type(baseline),type(second))
++        self.assertEqual(digest(baseline),digest(first));self.assertEqual(digest(first),digest(second))
++        self.assertEqual(proxy.cache.stats['processor']['hits'],1)
++
++    def test_installed_transformers_tiny_vision_and_output_mutation(self):
++        from transformers.models.qwen3_5.configuration_qwen3_5 import Qwen3_5VisionConfig
++        from transformers.models.qwen3_5.modeling_qwen3_5 import Qwen3_5VisionModel as NativeVision
++        cfg=Qwen3_5VisionConfig(depth=1,hidden_size=16,intermediate_size=32,num_heads=2,
++                               out_hidden_size=16,num_position_embeddings=16,
++                               patch_size=16,spatial_merge_size=2,temporal_patch_size=2)
++        cfg._attn_implementation='eager'
++        torch.manual_seed(3)
++        visual=NativeVision(cfg).eval().requires_grad_(False)
++        pixels=torch.randn(8,3*2*16*16);grid=torch.tensor([[2,2,2]])
++        with torch.no_grad():baseline=visual(pixels,grid_thw=grid,return_dict=True)
++        cache=ReadCache(1000000)
++        install_vision_cache(types.SimpleNamespace(model=types.SimpleNamespace(visual=visual)),cache)
++        with torch.no_grad():
++            first=visual(pixels,grid_thw=grid,return_dict=True)
++            first.pooler_output=tuple(first.pooler_output.split(1))
++            second=visual(pixels,grid_thw=grid,return_dict=True)
++        self.assertEqual(type(baseline),type(second));self.assertEqual(digest(baseline),digest(second))
++        self.assertEqual(cache.stats['vision']['hits'],1)
++
++    def test_sam_caches_raw_values_but_recomputes_geometry(self):
++        from PIL import Image
++        tower=types.SimpleNamespace(device='cpu',precision='float32',image_batch_size=1,
++                                    native_image_batch=False,_owner=object(),_load=lambda:None,
++                                    _backend=types.SimpleNamespace(model=torch.nn.Linear(1,1).eval().requires_grad_(False)))
++        calls={'encode':0,'detect':0}
++        class ClipFeatures:
++            def __init__(self,frames,sizes,owner):self.frames,self.sizes,self.owner=frames,sizes,owner
++        def encode(images):
++            calls['encode']+=1
++            return ClipFeatures(({'f':torch.ones(1,1,1,1)},),((2,2),),tower._owner)
++        tower.encode=encode
++        def detect(t,features,name):
++            calls['detect']+=1
++            assert features.owner is tower._owner
++            return [[{'mask':np.ones((2,2),dtype=bool),'score':.5,'presence':.9}]]
++        class Stage:
++            def __init__(self,detect,head,geometry,rule):self.detect,self.geometry=detect,geometry
++            def propose(self,name):return {'raw':self.detect(name),'geometry':self.geometry}
++            def select(self,x):return 0
++        class Socket:
++            def __init__(self,propose,*args):self.propose=propose
++        module=types.ModuleType('student_pilot.sam3_tower');module.ClipFeatures=ClipFeatures
++        package=types.ModuleType('student_pilot');package.__path__=[]
++        artifact=types.SimpleNamespace(manifest={'components':{'sam3':{'files':[
++            {'rel':'w','sha256':'a'*64,'bytes':1}]}}})
++        frames={'native_frames':[Image.new('RGB',(2,2))], 'anchor_slots':[0],
++                'anchor_indices':[1], 'dense_indices':[1]}
++        cache=ReadCache(1000000)
++        from e2e_reader import grounding,geometry
++        with patch.dict(sys.modules,{'student_pilot':package,'student_pilot.sam3_tower':module}), \
++             patch.object(stage1,'StageOne',Stage),patch.object(stage1,'sam3_detect',detect), \
++             patch.object(grounding,'StageOneSocket',Socket),patch.object(geometry,'frame_count',return_value=1):
++            factory=stage1.stage1_factory(tower,None,lambda f:f['native_frames'],artifact=artifact,read_cache=cache)
++            a=factory(frames,'question-one').propose('Chair')
++            b=factory(frames,'question-two').propose(' chair ')
++            self.assertEqual(digest(a['raw']),digest(b['raw']))
++            self.assertNotEqual(a['geometry'],b['geometry'])
++            self.assertEqual(calls,{'encode':1,'detect':1})
++            factory(frames,'q3').propose('table')
++            self.assertEqual(calls,{'encode':1,'detect':2})
++            frames['native_frames'][0].putpixel((0,0),(1,0,0))
++            factory(frames,'q4').propose('chair')
++            self.assertEqual(calls,{'encode':2,'detect':3})
++            artifact.manifest['components']['sam3']['files'][0]['sha256']='b'*64
++            factory(frames,'q5').propose('chair')
++            self.assertEqual(calls,{'encode':3,'detect':4})
++            handle=tower._backend.model.register_forward_pre_hook(lambda *a:None)
++            factory(frames,'q8').propose('chair');factory(frames,'q9').propose('chair')
++            self.assertEqual(calls,{'encode':5,'detect':6})
++            self.assertEqual(cache.stats['sam_bypass']['calls'],2)
++            handle.remove()
++            handle=torch.nn.modules.module.register_module_forward_hook(lambda *a:None)
++            try:
++                factory(frames,'q10').propose('chair');factory(frames,'q11').propose('chair')
++            finally:handle.remove()
++            self.assertEqual(calls,{'encode':7,'detect':8})
++            self.assertEqual(cache.stats['sam_bypass']['calls'],4)
++            handle=tower._backend.model.register_forward_pre_hook(lambda *a:None)
++            try:
++                socket=factory(frames,'q12')
++                feature_hits=cache.stats['sam_features']['hits']
++                socket.propose('chair');handle.remove();socket.propose('table')
++                self.assertEqual(cache.stats['sam_features']['hits'],feature_hits)
++            finally:handle.remove()
++            self.assertEqual(calls,{'encode':8,'detect':10})
++            tower._backend.model.weight=torch.nn.Parameter(torch.tensor([[9.]]),requires_grad=False)
++            with self.assertRaises(ModelMutationError):factory(frames,'mutated').propose('chair')
++
++    def test_fifty_stub_reads_original_off_bytes_and_opt_in_cache_on(self):
++        from contextlib import ExitStack
++        from e2e_reader import parity,real
++        source=Path(os.environ['READ_INPUT_SRC'])/'b/e2e_reader/parity.py'
++        spec=importlib.util.spec_from_file_location('e2e_reader.reference_parity',source)
++        original=importlib.util.module_from_spec(spec);spec.loader.exec_module(original)
++        off_spec=importlib.util.spec_from_file_location('e2e_reader.reference_off',SRC/'b/e2e_reader/parity.py')
++        patched_off=importlib.util.module_from_spec(off_spec);off_spec.loader.exec_module(patched_off)
++        tasks=[dict(id=f'q{i}',room=f'room{i%5}',question_type='object_abs_distance',
++                    question=f'question {i}',pixels=i%5) for i in range(50)]
++        class Artifact:
++            def __init__(self,*a,**k):pass
++            def verify(self):return self
++        class Budget:
++            def __init__(self,*a,**k):pass
++            def receipt(self,n):return {'tokens':n}
++        def prompt(p,r):
++            value=p.video_processor([np.full((2,),r['pixels'],np.float32)])
++            return dict(pixels=value['pixels'],question=r['question'])
++        runtime=types.ModuleType('evalpath.runtime');runtime.prompt_batch=lambda p,r,*a:prompt(p,r)
++        package=types.ModuleType('evalpath');package.runtime=runtime
++        def generate(model,processor,batch,*a,**k):
++            with torch.no_grad():v=model.model.visual(batch['pixels'],torch.tensor([1,1,2]))
++            text=batch['question']+' </think> '+str(float(v.pooler_output))
++            return dict(text=text,tokens=list(text.encode()),finish='eos',calls={'records':[]},
++                        heads={'pose9':[float(v.pooler_output)]},scale=None,entries={'prefill':1,'steps':2})
++        settings=dict(arm='own_depth',frames_json={'captures':{}},dense_manifest={'captures':{}},
++                      perception_memo='off',perception_memo_modules=['g3t'],perception_memo_verify_ids=[])
++        all_results=[];hit_counts=[]
++        for module,enabled in ((original,False),(patched_off,False),(parity,True),(parity,'processor')):
++            visual=Qwen3_5VisionModel().eval().requires_grad_(False)
++            model=types.SimpleNamespace(model=types.SimpleNamespace(visual=visual))
++            processor=types.SimpleNamespace(video_processor=TinyVideoProcessor(),tokenizer=object(),
++                                            _routing_tokens={'ids':{'ground':1}})
++            cfg=dict(settings)
++            if enabled:cfg.update(read_processor_cache='on',read_vision_cache='on')
++            if enabled=='processor':cfg['read_processor_only']='on'
++            with ExitStack() as stack:
++                stack.enter_context(patch.object(module.time,'perf_counter',return_value=1.))
++                stack.enter_context(patch.dict(sys.modules,{'evalpath':package,'evalpath.runtime':runtime}))
++                stack.enter_context(patch.object(real,'real_perception',return_value=object()))
++                stack.enter_context(patch.object(real,'generate_real',side_effect=generate))
++                patches=dict(Artifact=Artifact,install=lambda *a:None,key=lambda t:t['id'],
++                    load_native=lambda *a,**k:(model,processor,{'config':{},'export':{'frame_layout':'spread'}}),
++                    install_hook=lambda m,h:h,CallHook=lambda *a:object(),
++                    policy=lambda:types.SimpleNamespace(ThinkingBudget=Budget,DECODE_BUDGET=16384),
++                    bind_item=lambda t,s:dict(id=t['id'],row=t,frames={}),score=lambda t,r:{'answer':1.})
++                for name,value in patches.items():stack.enter_context(patch.object(module,name,value))
++                gen=module.make_real('unused',dict(root='unused',name='x',sha256='a'*64),tasks,
++                                     settings=cfg,device='cpu')
++                if enabled=='processor':self.assertFalse(hasattr(gen,'weight_boundary'))
++                values=[gen(t) for t in tasks]
++                if enabled=='processor':
++                    self.assertEqual(values[-1]['read_cache']['enabled'],['read_processor_cache'])
++                    self.assertEqual(values[-1]['read_cache']['stats']['processor']['hits'],45)
++                if enabled is True:gen.weight_boundary()
++                # Original and OFF compare every field and every encoded byte.
++                # Only the explicit ON arm adds cache telemetry.
++                compared=[{k:v for k,v in r.items() if k!='read_cache'} for r in values] if enabled else values
++                all_results.append(json.dumps(compared,separators=(',',':')).encode())
++                hit_counts.append(visual.calls)
++        self.assertEqual(all_results[0],all_results[1]);self.assertEqual(all_results[1],all_results[2])
++        self.assertEqual(all_results[0],all_results[3])
++        self.assertEqual(hit_counts,[50,50,5,50])
++
++
++if __name__=='__main__': unittest.main(verbosity=2)
+--- /dev/null
++++ b/u0/tests/test_off.py
+@@ -0,0 +1,148 @@
++"""Original/default-OFF production launcher bytes, including real code hashes."""
++import hashlib
++import importlib.abc
++import io
++import json
++import os
++from pathlib import Path
++import subprocess
++import sys
++import types
++import unittest
++import uuid
++from contextlib import redirect_stdout
++from unittest.mock import patch
++
++SRC=Path(__file__).resolve().parents[2]
++L=SRC.parent.parent
++INPUT=Path(os.environ['READ_INPUT_SRC'])
++
++class RefuseExtensions(importlib.abc.MetaPathFinder):
++    def find_spec(self,fullname,path=None,target=None):
++        if ('read_cache' in fullname or fullname in tuple('a'+str(i) for i in range(20))+('u0',) or fullname.startswith('u0.')):
++            raise AssertionError('OFF attempted extension import: '+fullname)
++
++
++def generator_factory(export,artifact,items,**kwargs):
++    def generate(item):
++        return dict(text='</think> 1',tokens=[1],finish='eos',scale=None,
++                    heads={'pose9':[[0.]*9],'gravity':[[0.,0.,1.]]},
++                    calls={'records':[],'calls':{},'unserved':{}},scores={'answer':1.})
++    return generate
++
++
++def child(source,root):
++    sys.path[:0]=[str(source),str(source/'b'),str(INPUT/'tree'),str(INPUT)]
++    sys.meta_path.insert(0,RefuseExtensions())
++    import torch
++    torch.set_num_threads(8)
++    from e2e_reader import parity
++    from h1eval.h10 import launch
++    from h1eval.items import digest
++    from datetime import datetime,timezone
++    class Clock(datetime):
++        @classmethod
++        def now(cls,tz=None):return cls(2026,11,19,0,0,0,tzinfo=timezone.utc)
++    counter=iter(range(100000))
++    out=root/'output'
++    args=types.SimpleNamespace(items=str(root/'items.json'),shard='0/1',types=None,arms='tower',modes='none',
++          reader_root=str(SRC/'b'),reader_entry=launch.ENTRY,settings=str(root/'settings.json'),export=str(root/'export'),
++          artifact_manifest=str(root/'artifact.json'),export_pin=str(root/'pin.json'),out=str(out),device='cpu',
++          stop_at=None,finish_by=None,stop_file=None)
++    captured=io.StringIO()
++    with patch.object(launch.time,'perf_counter',side_effect=lambda:float(next(counter))), \
++         patch.object(launch,'datetime',Clock),redirect_stdout(captured):
++        result=launch.run(args,make_real=generator_factory)
++    files={str(p.relative_to(out)):p.read_bytes().hex() for p in sorted(out.rglob('*')) if p.is_file()}
++    env=json.loads((out/'environment.json').read_text())
++    expected_hashes=('reader_sha256','maker_sha256','evaluator_code_sha256','expected_calls_sha256','r0_code_sha256',
++                     'parity_code_sha256','settings_sha256','mapping_sha256')
++    assert all(len(env['binding'][k])==64 for k in expected_hashes)
++    assert not any('read_cache' in k or k=='a8' or k.startswith('u0') for k in sys.modules)
++    # Exercise the production make_real initializer with poisoned new settings.
++    # Any new import is rejected by RefuseExtensions in this fresh process.
++    from e2e_reader import parity
++    class PoisonSettings(dict):
++        def get(self,key,*args):
++            if key.startswith('read_'):raise AssertionError('OFF parsed new settings: '+key)
++            return super().get(key,*args)
++        def __getitem__(self,key):
++            if key.startswith('read_'):raise AssertionError('OFF parsed new settings: '+key)
++            return super().__getitem__(key)
++        def __contains__(self,key):
++            if key.startswith('read_'):raise AssertionError('OFF parsed new settings: '+key)
++            return super().__contains__(key)
++    class Artifact:
++        def __init__(self,*args,**kwargs):pass
++        def verify(self):return self
++    class Generator:
++        def __init__(self,*args,**kwargs):pass
++    runtime=types.ModuleType('evalpath.runtime');runtime.prompt_batch=lambda *args:None
++    package=types.ModuleType('evalpath');package.runtime=runtime
++    settings=PoisonSettings(arm='own_depth',frames_json={'captures':{}},dense_manifest={'captures':{}},
++              perception_memo='off',perception_memo_modules=['g3t'],perception_memo_verify_ids=[])
++    from contextlib import ExitStack
++    with ExitStack() as stack:
++        stack.enter_context(patch.dict(sys.modules,{'evalpath':package,'evalpath.runtime':runtime}))
++        replacements=dict(Artifact=Artifact,install=lambda *a:None,
++            load_native=lambda *a,**k:(object(),types.SimpleNamespace(tokenizer=object(),_routing_tokens={'ids':{}}),
++                                      {'config':{},'export':{'frame_layout':'spread'}}),
++            install_hook=lambda *a:object(),CallHook=lambda *a:object(),
++            ParityGenerator=Generator,policy=lambda:object())
++        for name,value in replacements.items():stack.enter_context(patch.object(parity,name,value))
++        parity.make_real('unused',{'root':'unused','name':'u0','sha256':'0'*64},[],
++                         perception_factory=lambda **kwargs:None,settings=settings)
++    assert not any('read_cache' in k or k=='a8' or k.startswith('u0') for k in sys.modules)
++    print(json.dumps(dict(files=files,stdout=captured.getvalue(),result=result,hashes={k:env['binding'][k] for k in expected_hashes}),sort_keys=True))
++
++
++class OffContractTests(unittest.TestCase):
++    def test_every_output_byte_and_source_hash_matches_original(self):
++        root=Path(os.environ['READ_TEST_TMP'])/uuid.uuid4().hex;root.mkdir(parents=True)
++        sys.path[:0]=[str(INPUT),str(INPUT/'tree')]
++        from h1eval.items import digest
++        sample=json.loads((SRC/'u0/tests/u0.json').read_text())
++        sample['items']=sample['items'][:3];sample['count']=3;sample['r0_check']['checked']=3
++        sample['item_set_sha256']=digest(sample['items'])
++        sample['r0_check']['pin']['path']=str(INPUT/'auth/R0_ROOMS.txt')
++        (root/'items.json').write_text(json.dumps(sample))
++        (root/'pin.json').write_text(json.dumps({'lineage':'SFT','step':600}))
++        artifact={'root':str(root/'export'),'name':'u0','sha256':'0'*64}
++        (root/'artifact.json').write_text(json.dumps(artifact))
++        (root/'export').mkdir();(root/'export/u0').write_bytes(b'fixture')
++        # Real reviewed binding/mapping uses tiny manifests and unopened frame paths.
++        (root/'tasks.jsonl').write_text(''.join(json.dumps(row)+'\n' for row in sample['items']))
++        captures={};dense={}
++        for row in sample['items']:
++            anchors=row.get('source_frame_indices',list(range(32)))
++            frames=[{'index':index,'path':str(number)+'.png','sha256':'0'*64}
++                    for number,index in enumerate(anchors)]
++            captures[row['native']]={'native':row['native'],'frames':frames,'anchor_indices':anchors,
++                'timestamps':list(range(32)),'fps':row.get('fps',1.),'total_num_frames':row.get('total_num_frames',32)}
++            dense[row['native']]={'native':row['native'],'frames':frames,'anchor_slots':list(range(32))}
++        (root/'frames.json').write_text(json.dumps({'captures':captures}))
++        (root/'dense.json').write_text(json.dumps({'captures':dense}))
++        settings={'export_dir':str(root/'export'),'artifact_manifest':str(root/'artifact.json'),
++                  'tasks':[str(root/'tasks.jsonl')],'frames_json':str(root/'frames.json'),
++                  'dense_manifest':str(root/'dense.json'),'frames_root':str(root/'pixels'),
++                  'perception_memo':'off','perception_memo_modules':['g3t'],'perception_memo_verify_ids':[],
++                  'stage1_select_rule':'null_argmax'}
++        (root/'settings.json').write_text(json.dumps(settings))
++        results=[]
++        for index,source in enumerate((INPUT,SRC)):
++            process=subprocess.run([sys.executable,'-I','-s','-B',__file__,'--child',str(source),str(root)],
++                                   stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
++            self.assertEqual(process.returncode,0,process.stderr)
++            results.append(process.stdout.encode())
++            (root/'output').rename(root/('saved'+str(index)))
++        self.assertEqual(results[0],results[1])
++        receipt=json.loads(results[0]);self.assertGreaterEqual(len(receipt['files']),3)
++        proof=json.dumps({'passed':True,'files':list(receipt['files']),
++              'source_hashes':receipt['hashes'],'exclusions':[],'clock':'controlled; no timing fields removed',
++              'production_launcher':True,'model_generation':'CPU fixture'},indent=2)+'\n'
++        (root/'byte_comparison.json').write_text(proof)
++        if os.environ.get('READ_OFF_RECEIPT'):Path(os.environ['READ_OFF_RECEIPT']).write_text(proof)
++
++if __name__=='__main__':
++    if len(sys.argv)>1 and sys.argv[1]=='--child':child(Path(sys.argv[2]),Path(sys.argv[3]))
++    else:unittest.main(verbosity=2)

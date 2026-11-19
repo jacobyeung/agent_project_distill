@@ -1,0 +1,1 @@
+{"bytes": 5842984, "encoding": "PACKREF1", "reference": "work/r3/after_tests/test_01_verify_without_ledger_and_polling/state/commands/place.sh", "sha256": "a3994f633e0aac45a524be9477b390487c75230ef38ca02a6ca377bb8f0742dd"}

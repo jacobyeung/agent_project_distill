@@ -1,0 +1,1 @@
+{"bytes": 5842641, "encoding": "PACKREF1", "reference": "work/r3/after_tests/test_01_verify_without_ledger_and_polling/state/commands/place0.py", "sha256": "8cc6ea03ed808271049cd044c1f1d6a679daa6b22a928276f71c8e630c0f0328"}

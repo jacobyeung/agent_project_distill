@@ -74,7 +74,7 @@
 +
 +The unavailable routed harnesses prevent a claim that *every* original source-harness assertion has been reproduced. Translated dry predicates cover the supported full-five, room and D distance families on the built bytes; unchanged native dryres_d.py adds its own resolution checks. dry2/dry2b have not run unchanged. Real full-reader/export/RGB checks also remain unrun because their production inputs are absent.
 +
-+The fill gate also checks the complete export binding against sealed fields and REVIEWED constants, every part size and their sum. Structural mode hashes real archives[1:] and all file pins against a pinned Orchard-proven reference before rebinding. Remote preflight checks the .done triple and all three preparation hashes before placement; ledger reservation is enforced before preflight. See NOTE_FOR_CONT_OPS.md and ORCHARD_ONLY_CHECKS.md for the exact visible-surface rule and live limits.
++The fill gate checks the complete export binding against sealed fields and REVIEWED constants, four part sizes and their sum, and parts[i].sha256. Structural mode compares all base fields except archives[0] and types against a pinned reference before rebinding. Detached verification authenticates the staged part bytes; preflight requires the verify receipt keyed by canonical absolute path, bytes and mtime_ns with SHA256 equal to the binding. It also checks the REVIEWED .done triple, three preparation hashes and normalized ordinary tar header. Metadata-only ctime/device/inode changes do not invalidate a completed receipt. In-process hashing still checks those fields for concurrent mutation. The operator reserves the token before verify; place enforces that reservation before preflight. See NOTE_FOR_CONT_OPS.md and ORCHARD_ONLY_CHECKS.md for visible-surface rules and live limits.
 --- /dev/null
 +++ b/out/DEFECT_MATRIX.md
 @@ -0,0 +1,55 @@
@@ -135,7 +135,7 @@
 +The login/fill probes still run several native steps inside one isolated 3.6.8 interpreter with the pack path on sys.path. Separating each step while preserving filesystem redirection and the sbatch stub requires more than the requested small INFO fix; live process isolation remains untested. The D scorer mismatch, budget_fits=false, absent full r10 build, B4 root cause, and trainer-rank USR1 remain open.
 --- /dev/null
 +++ b/out/FRAMEWORK_SOURCES.md
-@@ -0,0 +1,11 @@
+@@ -0,0 +1,15 @@
 +# Framework behavior used by local checks
 +
 +The installed CPU package reports torch 2.11.0+cpu at `/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/version.py:4`; line 7 records git version `70d99e998b4955e0049d13a98d77ae1b14db1f45`.
@@ -147,27 +147,34 @@
 +The native selector uses `no_grad` during selection. Its installed implementation documents disabling gradient calculation, its thread-local scope and decorator use at `torch/autograd/grad_mode.py:21`–37. Official documentation: https://docs.pytorch.org/docs/2.11/generated/torch.no_grad.html. These CPU stub checks establish packaging and selector plumbing; they do not measure GPU execution or production memory use.
 +
 +All relative torch paths above are under `/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/`. These installed lines and the versioned official documentation were checked for this review fix; no package was downloaded or installed.
++
++The export-header gate uses the installed login Python 3.6.8 implementation: `/usr/lib64/python3.6/tarfile.py:1025` requires a 512-byte buffer, line 1035 validates its checksum, and line 1082 reconstructs a ustar prefix. The gate rejects extension records and accepts only ordinary file/directory names equal to or below the sealed member_directory. [Official TarInfo.frombuf documentation](https://docs.python.org/3/library/tarfile.html#tarfile.TarInfo.frombuf) describes header parsing; actual 3.6.8 runtime tests establish compatibility. The archived 3.6 documentation URL was unavailable. No assumption about the live Orchard header layout is claimed.
++
++Receipt recovery uses fcntl.flock with LOCK_EX | LOCK_NB to serialize launchers; lock contention refuses without moving artifacts. [Official fcntl documentation](https://docs.python.org/3/library/fcntl.html#fcntl.flock) describes advisory locking and nonblocking mode. Python 3.6.8 regression tests exercise the actual lock; cross-client Orchard locking still needs confirmation. Canonical path checks use PurePosixPath lexical normalization; [official pathlib documentation](https://docs.python.org/3/library/pathlib.html#pure-paths) describes dot/slash collapse and preservation of parent/double-root components, which pack explicitly refuses.
 --- /dev/null
 +++ b/out/NOTE_FOR_CONT_OPS.md
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,57 @@
 +# Step-600 packaging
 +
-+1. Pin the builder, source delivery, items, step-600 binding and CPU/GPU scripts. Supply a current Trinity ledger and a coherent D source/embedded release. The supplied scorer mismatch blocks use. REQUIRED_INPUTS.json names unavailable inputs; check_required_inputs.py checks the production_build, r10 and routed_harness groups by name.
-+2. Supply export_binding_pin.path and .sha256 for the complete builder binding: the native D delivery omits parts[].bytes from its plan. Check compares that binding with every sealed binding field and the REVIEWED triple. Set remote_input_pins to its part sizes and the exact metadata sizes. Set dependency_reference to the pinned B5 a/0.json (Orchard-proven), and native_dry to pinned dryres_d.py. The example contains the available reference and harness pins; the step-600 binding remains required.
-+3. Use explicit fill_mode="structural" for tiny fill/resolver stand-ins. It checks real dependency layout first and reports production_archive_identity=false. Mirror mode defaults to a 1 GiB read budget and needs actual archives. The review reports 33,410,549,760 bytes of B5 inputs and estimates 155 GB of reads. Heavy Trinity IO needs permission; transfers above 30 GB need an admin plan.
-+4. Run build, then check, with pack.py --enable --config CONFIG and the explicit --token HEX at build. Use the specified CPU Python with -I -s -B. All production changes are opt-in; token adaptation requires --enable-token. BATCH requires umask 077; normalize_wrapper=true adds it. check_timeout defaults to 240 seconds per probe (300 in the example).
-+5. Have the Orchard lane stage parts 0..3, receipt 5 and preparation 7/8/9. Native place_fill_d.py documents REUSE_PARTS_FROM / PREP_FROM or a verified GCS pull; its whole driver owns place/fill too, so do not share that token with pack place. Pack does not fetch inputs. Reserve the built token and delivery SHA in the Trinity ledger before place. Pack enforces token presence but does not append the reservation. Thus all --execute-remote refuses until this separate reservation exists. Prefer separate build/check/place calls.
-+6. place --execute-remote runs read-only size, .done and preparation-hash preflight before place.attempt. If using printed scripts manually, run preflight.sh first; manual scripts do not enforce the local ledger check. Fill detaches, polls at 60-second intervals and writes a/1.txt last. Inspect a/f.log and a/f.exit. Calls time out at 300 seconds; fill_wait defaults to 1800 seconds. Never relaunch after an uncertain timeout.
-+7. submit and gpu require --yes --token HEX. Native CPU completion and CPU.json gate GPU submission; use gpu after a safe queue refusal without repeating CPU submission. CPU terminal failures include the tails of a/4.err and a/4.log. Reconcile persistent a/g.lock manually. job.stage verifies real archives. Local 3.6.8 tests include 8.py submit with stub sbatch; no live SSH or Slurm test runs here. Remote HOME=/tmp differs from native runs. D estimates 19,595 GPU-seconds and budget_fits=false for four hours.
++1. Pin coherent builder/embedded sources, delivery, items, binding and CPU/GPU scripts. REQUIRED_INPUTS.json names absent inputs. Supplied D score_d.py drift blocks release; D estimates 19,595 GPU-seconds with budget_fits=false. No production step-600 package is certified.
++2. Set export_binding_pin to the complete SHA-pinned binding with four parts[].bytes and parts[].sha256. Set remote_input_pins, dependency_reference and native_dry. Use canonical absolute paths for every staged part, .done and preparation file. With a builder, old_identities must contain actual source token/payload/plan hex identities; empty lists and placeholders refuse.
++3. Run build, then check with --enable --config CONFIG; build also needs --token HEX. The --enable-token adapter, normalize_wrapper=true and fill_mode="structural" are explicit opt-ins. Structural checks use small stand-ins and report production_archive_identity=false. Full mirror reads are estimated at 155 GB; heavy IO requires approval.
++4. Have the staging lane stage parts 0..3, .done 5 and preparation 7/8/9. Staging must hash every part against binding parts[i].sha256; finish every link and chmod before verify. place_fill_d.py documents REUSE_PARTS_FROM / PREP_FROM or GCS, but its whole driver owns placement and must not share pack's token. Pack does not fetch inputs.
++5. Reserve the built token and delivery SHA in the Trinity ledger before creating any Orchard verification directory. This ordering is an operator requirement; place enforces reservation in code. Build requires the token to be absent. Prefer separate actions for a new build: all cannot pause for ledger reservation. Once build and check are complete and the ledger is reserved, all can reuse that build and a valid separate verify; it reruns local checks before remote phases.
++6. Run `pack.py verify --enable --config CONFIG --yes --token HEX --execute-remote`. It detaches, hashes all four parts and writes only private v/* files; it creates no place.attempt, payload or fill lock. Receipt keys are path, bytes, mtime_ns and SHA256. Hard-link ctime, chmod and client device/inode values do not stale a completed receipt. A valid completed receipt is reused. An explicit verify on a stale completed receipt or recorded failure archives its artifacts under v/ and rehashes with the same token. Active/uncertain attempts refuse; never retry automatically after transport loss or a deadline. Inspect v/0.log, v/0.exit, v/0.json and v/0.txt. Polls are 60 seconds apart, calls time out within 300 seconds, and verify_wait defaults to 1800 seconds.
++7. Run place, fill, then submit with --enable --config CONFIG --yes --token HEX --execute-remote. Preflight checks sizes, REVIEWED .done, preparation hashes, the verify receipt and the first tar header before place.attempt. Missing/stale/wrong-part receipts refuse. place claims a/ exclusively in an empty or verify-only private root. Printed place commands include preflight; manually running scripts bypasses local authorization and ledger checks.
++8. Fill detaches; inspect a/f.log, a/f.exit and final a/1.txt. CPU completion plus CPU.json gate GPU submission. Use gpu after a safe queue refusal; reconcile a/g.lock after uncertainty. CPU failures include a/4.err/a/4.log tails. job.stage authenticates dependencies. Local coverage includes native 8.py submit with a stub; live Slurm, full-reader behavior, timing and trainer signals remain unverified.
++
++Orchard must confirm header layout on the staged m544 part 0, read-only. The 512-byte gate accepts ordinary m600 or ./m600 names and children. PAX/GNU extension-first, compressed and leading ./ directory-only layouts refuse. Freeze staged bytes after verify: size/mtime checks cannot detect deliberate same-size rewrites with restored mtime. Native fill rehashes the export. Different login hosts need a coherent shared view of paths, mtimes, receipts and advisory locks; no single-host/device-number pin is assumed.
 +
 +## Forbidden-word rule
 +
 +- (a) Job name: every sbatch job name fully matches `^a15_cot_ap[a-f][0-9a-f]{10,15}$`, and no `--comment` is passed.
-+- (b) Terms: native `orchard_h10/common.py` FORBIDDEN, plus pack's 9 extras (pack.py:7), plus `forbidden_extra`. Match case-insensitively, as substrings.
++- (b) Terms: native `orchard_h10/common.py` FORBIDDEN, plus pack's 9 extras (pack.py:9, TERMS), plus `forbidden_extra`. Match case-insensitively, as substrings.
 +- (c) Apply the terms to:
 +  - every sbatch argument and `#SBATCH` value;
 +  - the argv, cwd and env name=value of every login-node and job process (pack's phase-script words and fill argv, plus the native runtime guard);
-+  - every path component created or referenced on Orchard storage: the package dir, top-level and `a/*` names, fill outputs, staged inputs, pool, return, capture and log names.
++  - every path component created or referenced on Orchard storage: the package dir, top-level and `a/*` and `v/*` names, fill outputs, staged inputs, pool, return, capture and log names.
 +- (d) Exempt:
 +  - member names and bytes inside 0.tgz, the dependency and preparation archives, and the BATCH.sh bundle;
 +  - file contents;
@@ -181,90 +188,96 @@
 +
 +The listed utilities are `head tail sed awk cat wc df hostname nvidia-smi sacct squeue sbatch python3 bash env timeout`. The sealed shell may use `--job-name="${P##*/}"`; the planner binds P to the validated package name before execution. Substring matches such as `--noheader` and `unknown` still refuse, as the rule requires.
 +
++## Review round 4: finding -> fix -> test
++
++| Finding | Fix | Regression in test_review4.py |
++|---|---|---|
++| 1 MEDIUM: receipt stability and recovery | Persist path/bytes/mtime_ns/SHA256; ctime/device/inode guard only an active hash pass. Valid success is idempotent. Stale completed receipts are archived under v/ and rehashed under a launcher lock. Active/uncertain attempts refuse. | test_01_*: hard link, chmod, device/inode changes, success reuse, stale mtime and mismatched receipt path; Safety4 rejects changed bytes. |
++| 2 LOW: path aliases | Require canonical absolute POSIX paths for parts, .done and preparation before remote planning. | test_02_noncanonical_paths_refuse_check: duplicate slash, dot, trailing slash, relative, double-root and parent components. |
++| 3 LOW: nonexistent policy pin | Pin the native a3.tar full SHA256; record its 10,240-byte size. | test_03_policy_archive_is_sha_pinned rejects same-size wrong bytes. |
++| 4 INFO: scheduler variables | Reject SBATCH_ words and SLURM_ uses except plain SLURM_JOB_ID reads or a numeric default; reject --admin-com* options. | test_04_scheduler_variable_bypasses; Safety4 permits required job-ID reads. |
++| 5 INFO: tar layout | Normalize ./m600/ with PurePosixPath; document extension-first and leading-dot-only directory refusal. | test_05_dot_prefix_header_accepted; Safety4 retains wrong-step, traversal, PAX and dot-only refusal. |
++| 6 INFO: documentation and verify reuse | Correct TERMS reference, v/* scope, inventory and manifest; explain recorded-failure retry. all reuses an existing built delivery, reruns local checks and reuses valid verification through the idempotent launcher. | test_06_* (including all after separate verify) plus test_01_success_is_idempotent. |
++| 7 INFO: ledger and empty identities | Reserve the token before verify in the operator procedure. Require a nonempty old_identities list with a production builder and preserve it through structural probes. | test_07_* and native D structural fill; builder-free fixtures remain allowed. |
++
++## Review round 3: finding -> fix -> test
++
++The 22 test_review3.py methods cover part SHA pins, receipt/preflight refusal, detached verify and failure recovery, scheduler arguments, native forbidden terms, dependency fields, authorization, old-identity syntax and live-input documentation. Receipt persistence follows the round-4 fields above.
++
 +## Review round 2: finding -> fix -> test
 +
-+| Finding | Fix or remaining limit | Regression |
-+|---|---|---|
-+| 1 MEDIUM | Check each export part size against the binding and its sum against REVIEWED_ARCHIVE_BYTES. Preflight reads the REVIEWED .done triple and hashes all three preparation files before place.attempt. A missing complete binding requires export_binding_pin. | test_01_wrong_part_pins_at_check; test_01_wrong_part_sum; test_01_missing_binding_parts_names_input; test_01_wrong_done_before_place_attempt; test_01_wrong_preparation_before_place_attempt |
-+| 2 LOW | Hash the real dependency archives and dependency file pins against the pinned Orchard-proven B5 reference before substituting tiny archives. | test_02_dropped_real_dependency |
-+| 3 LOW | Require the built token in the Trinity ledger before even calling preflight. | test_03_unreserved_token_before_preflight |
-+| 4 LOW | Validate every --job-name / -J value; reject every --comment. | test_04_all_job_names_and_no_comments |
-+| 5 LOW | State the exact forbidden-word rule in NOTE and REPORT. | test_05_exact_forbidden_rule_documented |
-+| 6 LOW | Add check 6(a–e) rows and state that the third consecutive accounting error aborts. | test_06_five_rows_and_error_limit |
-+| 7 LOW | Poll tails 8192 bytes per CPU stderr/stdout file for terminal failures; the local exception includes that text. | test_07_failed_cpu_returns_log_text |
-+| 8 INFO | Execute the SHA-pinned native dryres_d.py unchanged under 3.6.8 on filled local inputs. dry2/dry2b predicates remain translated: their fixed production policy archive is absent. | test_08_pinned_native_harness_is_executed; positive fill results contain native_dry.result |
-+| 9 INFO | Pass the caller's HOME and SSH_AUTH_SOCK to the local transport. Remote HOME=/tmp remains a documented live-environment difference. | test_09_transport_uses_caller_identity |
-+| 10 INFO | bash -n validates the detached fill body; receipt reports its actual wrapper interpreter and its 3.6.8 predicate interpreter separately. Round-2 before-fix regressions fail on the defect, with no KeyError. The guard test observes the launched interpreter; the login test observes the SHA of the bytes passed to place. | test_10_fill_body_bash_syntax; test_10_receipt_interpreter_label; test_r6_login_runtime_guard_submit_pool; test_r11_login_exact_delivery; before.log and before_evidence.log |
-+
-+The login/fill probes still run several native steps inside one isolated 3.6.8 interpreter with the pack path on sys.path. Separating each step while preserving filesystem redirection and the sbatch stub requires more than the requested small INFO fix; live process isolation remains untested. The D scorer mismatch, budget_fits=false, absent full r10 build, B4 root cause, and trainer-rank USR1 remain open.
++The 15 test_review2.py methods cover part sizes/sum, REVIEWED .done, preparation hashes, dependencies, ledger enforcement, privacy, native dryres_d.py, transport identity, shell syntax and interpreter reporting.
 +
 +## Review round 1: finding -> fix -> test
 +
-+Detached fill, structural stand-ins, actual D checks, staged-input preflight, command-only utility exemptions, 3.6 execution, production module imports, GPU-only retry, Python-stdin heredoc restrictions and exact-delivery checks remain covered by test_review.py. Native scorer drift remains a refusal tested by test_native.py. The test suite also checks the Trinity ledger prerequisite and the operator inventory.
++The 12 test_review.py methods cover detached fill, structural stand-ins, D checks, preflight ordering, privacy exemptions, login Python, isolated imports, GPU-only retries and delivery identity. test_pack.py retains all six planted defect checks.
 --- /dev/null
 +++ b/out/ORCHARD_ONLY_CHECKS.md
-@@ -0,0 +1,44 @@
-+# Checks requiring Orchard or missing production inputs
+@@ -0,0 +1,49 @@
++# Orchard-only confirmations
 +
-+Structural mode checks the real dependency metadata against the pinned B5 reference, then substitutes tiny archives. CHECK.json reports production_archive_identity=false; its native dryres_d result covers those stand-ins. This does not authenticate staged production bytes.
++Local fixtures establish gate behavior. These rows require actual Orchard storage, scheduling or production bytes.
 +
-+| Check | Local coverage and remaining live requirement | Failure evidence |
++| Check | Required confirmation | Failure evidence and limit |
 +|---|---|---|
-+| 6(a): staged content identity | check binds part sizes to the complete pinned binding and REVIEWED_ARCHIVE_BYTES. Preflight checks all sizes, the .done triple and the three preparation SHA256s. Same-sized wrong export parts require native whole-export hashing; dependencies require job.stage. A valid receipt is not proof of part bytes. | Wrong .done/preparation refuses before place.attempt. Native fill records a/f.log and a/f.exit; CPU stage records a/4.err and a/4.log. A change after preflight remains possible. |
-+| 6(b): structural dependency layout | Real archives[1:] and dependency file pins must hash to the pinned Orchard-proven B5 reference before synthetic replacement. B5/D have five real dependency archives; the tiny resolver uses four synthetic groups. Actual archive members remain live-only. | Dropped, reordered or changed dependencies refuse on Trinity. Native job.stage verifies actual member ownership and hashes. |
-+| 6(c): ledger reservation | Build requires token absence; place requires presence in the current Trinity ledger before preflight. The operator records token and delivery SHA between these actions. The check enforces token presence only, not ledger locking or SHA format. | Missing reservation refuses without place.attempt. all --execute-remote cannot self-reserve. Atomic Orchard mkdir detects an already-used remote token. |
-+| 6(d): CPU failure text | The poll script tails 8192 bytes from each of a/4.err and a/4.log on a terminal non-COMPLETED state; execute includes stderr in its refusal and retains call JSON. | A failed CPU job exposes its state and captured failure text. Missing log files produce tail diagnostics; a total transport outage can prevent retrieval. |
-+| 6(e): transport and remote environments | Transport inherits caller HOME and SSH_AUTH_SOCK. The remote env -i shell and HEADER still set HOME=/tmp, with no inherited locale or agent socket. These settings reach --export=ALL jobs and native GPU submission. Live authentication and HOME-dependent behavior remain untested. | First live call is read-only preflight. Transport errors stop; inspect call_*.json. Guard/cache checks pass under the locally reproduced environment only. |
-+| Stage export, .done and preparation | Pack does not fetch inputs. place_fill_d.py documents REUSE_PARTS_FROM / PREP_FROM or GCS staging; its complete driver also owns placement and must not share pack's token. | Named remote-input size/content preflight refuses absent or inconsistent metadata. |
-+| Private modes and token uniqueness | Local place tests 0700 directories and 0600 files; only Orchard knows current directory state. | Atomic mkdir and the phase EXIT trap refuse or expose failures. |
-+| Fill duration | Production whole-export hashing duration is unmeasured. | Detached fill, a/f.log, a/f.exit and final a/1.txt; polls at least 60 seconds apart, call timeout at most 300 seconds, default fill_wait 1800 seconds. Expiration stops without relaunch. |
-+| Node storage, namespaces and bwrap | Allocation disk and mount policy require the real node. | Native CPU logs and CPU.json; no GPU submission without completion and receipt. |
-+| Real full-reader/export/RGB/environment | Actual bytes and job venv are unavailable; receipts here are synthetic. | Native FULL_READER, MEMORY and journals. Missing local inputs refuse by name. |
-+| Return-pool persistence | A temporary local pool cannot establish live permissions or quota. | Native guarded writes and pool refusal before the GPU lock. |
-+| CPU scheduling, sacct and queue state | Slurm remains live-only. Only explicit sacct-unavailable exit 75 is tolerated twice; the third consecutive error aborts. Transport errors stop immediately. | Short calls retain stdout, stderr and status; unknown terminal states refuse. |
-+| GPU submission ambiguity | Queue state can change; a connection can fail after sbatch accepts. | gpu rechecks COMPLETED and CPU.json; a/8.txt and a/g.lock block duplicate or uncertain submission. |
-+| Slurm USR1 and trainer ranks | Local BATCH/read-runner signals do not prove --signal=B:USR1@1800 delivery or trainer-rank cooperation. | BATCH EXIT capture preserves node, exit and the last 60 lines in a/x<job>; returned journals expose partial work. |
-+| Real GPU memory and performance | CPU checks cannot measure GPU behavior. | Production receipts and measurements are required. |
++| 6(a): staged content identity | Staging hashes every part against parts[i].sha256. Detached verify hashes the four parts; preflight requires a path/bytes/mtime_ns/SHA256 receipt, REVIEWED .done and preparation hashes. | Verify errors: v/0.log and v/0.exit. Missing/stale/wrong-SHA receipts refuse before place.attempt. Native fill rehashes; job.stage checks dependencies. |
++| Receipt stability across staging and hosts | Finish links/chmod before verify. Hard-link ctime and client device/inode numbers are excluded from persistent keys. Confirm shared path/mtime/receipt visibility and fcntl advisory-lock behavior across login hosts. | Local hard-link/chmod and simulated client-number tests pass; actual Orchard coherence is untested. Stale completed receipts can be reverified with the same token. |
++| 6(b): structural dependency layout | Compare all base fields except archives[0] and types with the pinned reference; authenticate real members on Orchard. | Changed layout refuses locally; job.stage checks real ownership and hashes. |
++| 6(c): ledger reservation | Reserve the built token and delivery SHA in the Trinity ledger before verify. Build checks absence; place checks presence. Verify deliberately remains independent of placement consumption. | Missing reservation refuses at place. Ledger locking and SHA-record format remain operator responsibilities. |
++| 6(d): CPU failure text | Read terminal a/4.err and a/4.log tails. | Poll retains up to 8192 bytes per file; transport failure may prevent retrieval. |
++| 6(e): transport and remote environments | Confirm caller HOME/SSH_AUTH_SOCK authentication and remote env -i HOME=/tmp behavior. | Transport failure stops without automatic retry. |
++| First tar header | confirm header layout on the staged m544 part 0, read-only. Read 512 bytes and check the sealed member_directory convention. Ordinary ./m544/ and ./m600/ prefixes normalize. | PAX/GNU extension-first, compressed, leading ./ directory-only, bad-checksum and wrong-step layouts refuse. No live header was read. |
++| Native dry2/dry2b policy input | Supply slot-4 a3.tar, 10,240 bytes, SHA256 05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae. REQUIRED_INPUTS.json pins that full SHA and records the size. | native_dry2 rejects missing or wrong-hash bytes. The bytes field documents expected size; SHA checking enforces content. Unchanged native dry2/dry2b cannot run without the archive. |
++| Stage parts, .done and preparation | Use REUSE_PARTS_FROM / PREP_FROM or GCS through the staging lane; avoid sharing its placement token. | Pack does not fetch. Canonical absolute paths and metadata pins refuse locally; actual availability is remote. |
++| Verify/fill duration and interruption | Measure production hashing time. Both phases detach, use a per-call timeout of at most 300 seconds, poll at least 60 seconds apart and default to an 1800-second wait. | Verify: v/0.log, v/0.exit, v/0.json, v/0.txt; fill: a/f.log, a/f.exit, a/1.txt. A completed verification can be reused or explicitly rehashed; active/uncertain attempts and post-placement verify refuse. |
++| Private modes and uniqueness | Confirm token-root ownership, 0700 directories, 0600 files and exclusive a/ creation. | v/0.lock serializes completed-attempt recovery; receipt archives use private hex directories under v/. |
++| Storage, namespaces, bwrap and pool | Confirm paths, permissions, quotas and policy. | Native CPU.json and pool gates refuse before GPU submission. |
++| Full reader/export/RGB/environment | Run with actual production bytes and job venv. | FULL_READER, MEMORY and native journals must establish the result. |
++| CPU scheduling/accounting | Check live Slurm state. Only sacct-unavailable exit 75 is tolerated twice; the third consecutive error aborts. | Short calls retain stdout/stderr; unknown terminal states and transport failures stop. |
++| GPU submission ambiguity | Reconcile queue state, a/8.txt and a/g.lock after an uncertain reply. | gpu rechecks COMPLETED and CPU.json. |
++| Slurm USR1 and trainer ranks | Test --signal=B:USR1@1800 delivery and trainer-rank cooperation separately. | BATCH EXIT capture and journals show partial work; local read-runner checks do not prove trainer behavior. |
++| GPU memory/performance | Measure on the production allocation. | D budget_fits=false remains an estimate. |
 +
-+Under real /usr/bin/python3 3.6.8, local tests execute generated place, preflight, native fill, 3.py check, guard/dispatch, 8.py submit with stub sbatch, pool predicates, native dryres_d.py and the receipt predicate. The receipt constructor and validator run under CPU Python 3.12 and report that interpreter separately. Login/fill still share an interpreter across native steps. No local test invokes Slurm. CPU/BATCH traps preserve failure text; the B4 root cause is unknown.
++Actual /usr/bin/python3 3.6.8 executes generated verify/preflight/place, native fill/check, guard, native 8.py submit with stub sbatch, pool predicates and dryres_d.py. Login/fill probes share an interpreter across native steps. Real process isolation, full r10 inputs, D scorer consistency, B4's early-failure cause and trainer-rank USR1 remain unresolved. No SSH or Slurm call ran here.
++
++## Review round 4: finding -> fix -> test
++
++| Finding | Fix | Regression in test_review4.py |
++|---|---|---|
++| 1 MEDIUM: receipt stability and recovery | Persist path/bytes/mtime_ns/SHA256; ctime/device/inode guard only an active hash pass. Valid success is idempotent. Stale completed receipts are archived under v/ and rehashed under a launcher lock. Active/uncertain attempts refuse. | test_01_*: hard link, chmod, device/inode changes, success reuse, stale mtime and mismatched receipt path; Safety4 rejects changed bytes. |
++| 2 LOW: path aliases | Require canonical absolute POSIX paths for parts, .done and preparation before remote planning. | test_02_noncanonical_paths_refuse_check: duplicate slash, dot, trailing slash, relative, double-root and parent components. |
++| 3 LOW: nonexistent policy pin | Pin the native a3.tar full SHA256; record its 10,240-byte size. | test_03_policy_archive_is_sha_pinned rejects same-size wrong bytes. |
++| 4 INFO: scheduler variables | Reject SBATCH_ words and SLURM_ uses except plain SLURM_JOB_ID reads or a numeric default; reject --admin-com* options. | test_04_scheduler_variable_bypasses; Safety4 permits required job-ID reads. |
++| 5 INFO: tar layout | Normalize ./m600/ with PurePosixPath; document extension-first and leading-dot-only directory refusal. | test_05_dot_prefix_header_accepted; Safety4 retains wrong-step, traversal, PAX and dot-only refusal. |
++| 6 INFO: documentation and verify reuse | Correct TERMS reference, v/* scope, inventory and manifest; explain recorded-failure retry. all reuses an existing built delivery, reruns local checks and reuses valid verification through the idempotent launcher. | test_06_* (including all after separate verify) plus test_01_success_is_idempotent. |
++| 7 INFO: ledger and empty identities | Reserve the token before verify in the operator procedure. Require a nonempty old_identities list with a production builder and preserve it through structural probes. | test_07_* and native D structural fill; builder-free fixtures remain allowed. |
++
++## Review round 3: finding -> fix -> test
++
++The 22 test_review3.py methods cover part SHA pins, receipt/preflight refusal, detached verify and failure recovery, scheduler arguments, native forbidden terms, dependency fields, authorization, old-identity syntax and live-input documentation. Receipt persistence follows the round-4 fields above.
 +
 +## Review round 2: finding -> fix -> test
 +
-+| Finding | Fix or remaining limit | Regression |
-+|---|---|---|
-+| 1 MEDIUM | Check each export part size against the binding and its sum against REVIEWED_ARCHIVE_BYTES. Preflight reads the REVIEWED .done triple and hashes all three preparation files before place.attempt. A missing complete binding requires export_binding_pin. | test_01_wrong_part_pins_at_check; test_01_wrong_part_sum; test_01_missing_binding_parts_names_input; test_01_wrong_done_before_place_attempt; test_01_wrong_preparation_before_place_attempt |
-+| 2 LOW | Hash the real dependency archives and dependency file pins against the pinned Orchard-proven B5 reference before substituting tiny archives. | test_02_dropped_real_dependency |
-+| 3 LOW | Require the built token in the Trinity ledger before even calling preflight. | test_03_unreserved_token_before_preflight |
-+| 4 LOW | Validate every --job-name / -J value; reject every --comment. | test_04_all_job_names_and_no_comments |
-+| 5 LOW | State the exact forbidden-word rule in NOTE and REPORT. | test_05_exact_forbidden_rule_documented |
-+| 6 LOW | Add check 6(a–e) rows and state that the third consecutive accounting error aborts. | test_06_five_rows_and_error_limit |
-+| 7 LOW | Poll tails 8192 bytes per CPU stderr/stdout file for terminal failures; the local exception includes that text. | test_07_failed_cpu_returns_log_text |
-+| 8 INFO | Execute the SHA-pinned native dryres_d.py unchanged under 3.6.8 on filled local inputs. dry2/dry2b predicates remain translated: their fixed production policy archive is absent. | test_08_pinned_native_harness_is_executed; positive fill results contain native_dry.result |
-+| 9 INFO | Pass the caller's HOME and SSH_AUTH_SOCK to the local transport. Remote HOME=/tmp remains a documented live-environment difference. | test_09_transport_uses_caller_identity |
-+| 10 INFO | bash -n validates the detached fill body; receipt reports its actual wrapper interpreter and its 3.6.8 predicate interpreter separately. Round-2 before-fix regressions fail on the defect, with no KeyError. The guard test observes the launched interpreter; the login test observes the SHA of the bytes passed to place. | test_10_fill_body_bash_syntax; test_10_receipt_interpreter_label; test_r6_login_runtime_guard_submit_pool; test_r11_login_exact_delivery; before.log and before_evidence.log |
-+
-+The login/fill probes still run several native steps inside one isolated 3.6.8 interpreter with the pack path on sys.path. Separating each step while preserving filesystem redirection and the sbatch stub requires more than the requested small INFO fix; live process isolation remains untested. The D scorer mismatch, budget_fits=false, absent full r10 build, B4 root cause, and trainer-rank USR1 remain open.
++The 15 test_review2.py methods cover part sizes/sum, REVIEWED .done, preparation hashes, dependencies, ledger enforcement, privacy, native dryres_d.py, transport identity, shell syntax and interpreter reporting.
 +
 +## Review round 1: finding -> fix -> test
 +
-+Detached fill, structural stand-ins, actual D checks, staged-input preflight, command-only utility exemptions, 3.6 execution, production module imports, GPU-only retry, Python-stdin heredoc restrictions and exact-delivery checks remain covered by test_review.py. Native scorer drift remains a refusal tested by test_native.py. The test suite also checks the Trinity ledger prerequisite and the operator inventory.
++The 12 test_review.py methods cover detached fill, structural stand-ins, D checks, preflight ordering, privacy exemptions, login Python, isolated imports, GPU-only retries and delivery identity. test_pack.py retains all six planted defect checks.
 --- /dev/null
 +++ b/out/PATCHES.md
-@@ -0,0 +1,11 @@
-+# Patch layout and verification
+@@ -0,0 +1,9 @@
++# Patch application and verification
 +
-+Apply both unified diffs with patch -p1 at a writable root corresponding to the input mirror. Patch 01 adds the packaging command, probes, regression tests and operator documents. Patch 02 adds pack_token.py and test_pack_token.py beside the native r10 and D builders. Neither patch changes a native source file or embedded script.
++Apply both diffs with patch -p1 at a writable root corresponding to the input mirror. Patch 01 adds the pack command, probes, tests and operator documents. Patch 02 adds pack_token.py and its test beside the native r10 and D builders. Native sources and embedded scripts remain unchanged.
 +
-+TOOL_SHA256.json names the canonical files. PATCH_VERIFIED.json records a fresh application, exact file equality, input-source hashes and test-log hashes. REPORT.md and TEST_RUNS.json contain exact commands, outputs and results. out_round1 preserves the reviewed deliverables. The current tested copy is work/r2/applied; final patch replay uses work/r2/applied_final. Runtime sources in both copies and the top-level delivery must be byte-identical.
++TOOL_SHA256.json defines canonical files. PATCH_VERIFIED.json records fresh application and equality with work/r4/src, the tested work/r4/applied_final tree and top-level delivery. out_round3 preserves the reviewed outputs. REPORT.md and TEST_RUNS.json retain exact commands/outputs; evidence manifests and REPORT are outside the patches.
 +
-+Run test_pack.py, test_native.py, test_review.py and test_review2.py under the specified CPU Python with -I -s -B. Pass the native RESULT.json to test_review.py as PACK_NATIVE_RESULT. The additive adapter tests and login probes use /usr/bin/python3 3.6.8. Tests use fresh output directories, CPU only, nice -n 10, eight thread/core limits and the dispatch environment; REPORT.md records the complete commands. Production paths in tests are redirected or stubbed; no SSH or Slurm call runs.
++Run test_pack.py, test_native.py and test_review.py through test_review4.py under CPU Python with -I -s -B and fresh output directories. Native RESULT.json feeds test_review.py. Both adapter suites and generated login code run under /usr/bin/python3 3.6.8; round-3 and round-4 suites also run there. Use nice -n 10, eight CPU threads/cores and CUDA_VISIBLE_DEVICES="". REPORT.md records commands and resource limits. Tests redirect or stub remote paths and transport.
 +
-+Production actions require --enable. The token adapter requires --enable-token; wrapper normalization requires normalize_wrapper=true; structural fill requires fill_mode=structural. All default OFF or retain the mirror path. Native D delivery equality is measured under fixed entropy; r10 source identity is checked but a full r10 build lacks inputs. The D scorer mismatch remains a source-release refusal.
-+
-+check requires export_binding_pin for a delivered plan without part pins, dependency_reference in structural mode and native_dry for the unchanged resolver. These are explicit SHA-pinned inputs. place requires a token reservation in the Trinity ledger. INFO limitations and missing inputs remain documented; no production certification is implied by passing fixture tests.
++Production requires --enable; token rewriting requires --enable-token; normalization and structural fill are explicit switches. Every remote action needs --yes and the exact built token. Record token/delivery SHA in the ledger before verify; place enforces reservation and checks the verify receipt before place.attempt. A valid success can be reused; completed stale or failed verification can be explicitly rehashed without consuming placement. Default-OFF D equality is measured by test_native.py; full r10 lacks inputs.
 --- /dev/null
 +++ b/out/REQUIRED_INPUTS.json
-@@ -0,0 +1,168 @@
+@@ -0,0 +1,170 @@
 +{
 +  "inputs": [
 +    {
@@ -351,7 +364,7 @@
 +      "group": "orchard",
 +      "location": "orchard",
 +      "name": "step-600 export parts",
-+      "reason": "Four actual production export parts and exact sizes"
++      "reason": "Four production export parts: exact binding sizes and SHA256s; detached verify receipt required before place"
 +    },
 +    {
 +      "config_key": "fill.done",
@@ -422,20 +435,22 @@
 +      "sha256": "e1981c7909b96006a9df9adaf2397c4a70210f7263f58ba484aff81923c225f2"
 +    },
 +    {
++      "bytes": 10240,
 +      "group": "native_dry2",
 +      "location": "local",
 +      "name": "native a3.tar policy archive for unchanged dry2/dry2b",
 +      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/a3.tar",
-+      "reason": "dry2/dry2b select its fixed 05dc8f79 SHA prefix; tiny synthetic policy bytes cannot satisfy that check"
++      "reason": "dry2/dry2b select its fixed 05dc8f79 SHA prefix; tiny synthetic policy bytes cannot satisfy that check",
++      "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
 +    }
 +  ],
 +  "local_check": "check_required_inputs.py --manifest out/REQUIRED_INPUTS.json --group production_build|r10|routed_harness",
 +  "production_ready": false,
-+  "remote_check": "place requires ledger reservation, then read-only size/.done/preparation preflight before place.attempt; fill and job.stage authenticate large live archives"
++  "remote_check": "Before verify, record the token and delivery SHA in the Trinity ledger; place enforces reservation and read-only sizes/.done/preparation/verify receipt preflight before place.attempt. Verify authenticates binding part SHA256s; fill and job.stage authenticate large live archives."
 +}
 --- /dev/null
 +++ b/out/config_step600.example.json
-@@ -0,0 +1,147 @@
+@@ -0,0 +1,148 @@
 +{
 +  "builder": {
 +    "argv": [
@@ -536,6 +551,7 @@
 +    },
 +    "ossh": "/REPLACE/ossh.sh",
 +    "timeout": 300,
++    "verify_wait": 1800,
 +    "walltime": "04:00:00"
 +  },
 +  "remote_input_pins": {
@@ -585,10 +601,12 @@
 +}
 --- /dev/null
 +++ b/pack.py
-@@ -0,0 +1,402 @@
+@@ -0,0 +1,473 @@
 +"""Opt-in read-package preflight and bounded Orchard planner. Python 3.6."""
 +import argparse, ast, base64, gzip, hashlib, io, json, os, re, resource, shlex, subprocess, sys, tarfile, time
 +from pathlib import Path, PurePosixPath
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++import pack_verify as V
 +PREFIX='a15_cot_ap'
 +ROOT='/project/community/jjyeung/okh7'
 +PYTHON='/scratch/jjyeung/envs/p1cpu/bin/python'
@@ -651,12 +669,15 @@
 +    for n,h in m['files'].items():need(n in f and digest(f[n])==h,'Package pin differs: '+n)
 +    need(digest(f['0.tgz'])==v['payload_sha256'] and len(f['0.tgz'])==v['payload_bytes'],'Payload pin differs')
 +    pay=untar(f['0.tgz']);plan=json.loads(pay['9.json'])
++    terms=[ast.literal_eval(n.value) for n in ast.parse(pay['orchard_h10/common.py']).body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='FORBIDDEN' for t in n.targets)]
++    need(len(terms)==1 and set(terms[0])<=set(TERMS),'Native FORBIDDEN differs; update checked terms')
 +    need(plan['token']==v['token'] and digest(canonical(plan))==v['plan_sha256'],'Plan differs')
 +    for n,pin in plan['payload_pins'].items():need(n in pay and digest(pay[n])==pin['sha256'] and len(pay[n])==pin['bytes'],'Payload member differs: '+n)
 +    b=bundle(f['BATCH.sh']);need(set(b)=={'0.py','0.json','7.py'},'Bundle inventory differs');need(json.loads(b['0.json'])==v,'Bundle descriptor differs');need(b['7.py']==f['a/6.py'],'Bundle operator differs')
 +    need(("'a'+j+%r"%v['token']).encode() in f['BATCH.sh'],'Temporary token differs')
++    need(not c.get('builder') or c.get('old_identities'),'Production builder requires at least one old identity')
 +    for old in c.get('old_identities',[]):
-+        need(old,'Empty identity')
++        need(isinstance(old,str) and re.fullmatch('[0-9a-f]{11,64}',old),'Invalid old identity: expected 11..64 lowercase hex characters')
 +        for n,data in list(f.items())+list(pay.items())+list(b.items()):
 +            need(old not in n and old.encode() not in data and old.encode().hex().encode() not in data,'Old identity in '+n)
 +    for n in f:opaque(n,c.get('forbidden_extra',()))
@@ -680,7 +701,11 @@
 +        try:words=shlex.split(line,comments=True)
 +        except ValueError:words=[line]
 +        for i,word in enumerate(words):
-+            need('--comment' not in word,'Slurm --comment is forbidden')
++            need('--com' not in word and '--admin-com' not in word,'Slurm --comment is forbidden')
++            reads=re.sub(r'\$SLURM_JOB_ID\b|\$\{SLURM_JOB_ID(?::-[0-9]*)?\}', '',word)
++            need('SBATCH_' not in word and 'SLURM_' not in reads,'Scheduler environment mutation or unsupported read forbidden')
++            need(not word.startswith('--job') or word=='--job-name' or word.startswith('--job-name='),'Abbreviated job name forbidden')
++            need(not (word.startswith('-') and not word.startswith('--') and 'J' in word[1:] and not word.startswith('-J')),'Clustered job name forbidden')
 +            value=None
 +            if word in ('--job-name','-J'):
 +                need(i+1<len(words),'Missing job name');value=words[i+1]
@@ -709,10 +734,15 @@
 +    need(b'umask 077\n' in f['BATCH.sh'],'Batch must set umask 077');need(b'mode=0o700' in f['BATCH.sh'],'Private job temporary directory missing')
 +    if '2.json' in f:
 +        receipt=json.loads(f['2.json'])
++        submit_privacy(receipt.get('argv',[]),v['token'])
 +        for arg in receipt.get('argv',[]):opaque(arg,extra)
 +        names=[x.split('=',1)[1] for x in receipt.get('argv',[]) if x.startswith('--job-name=')]
 +        need(names==[PREFIX+v['token']],'Checked job name differs')
 +    return dict(names=len(f),scope='visible surfaces; sealed archive bytes excluded')
++def submit_privacy(argv,tok):
++    shell_privacy(shell_join(argv))
++    need([x for x in argv if x.startswith('--job-name=')]==['--job-name='+PREFIX+tok],'Checked job name differs')
++    need(not any(x.startswith('-J') or (x.startswith('-') and not x.startswith('--') and 'J' in x) or (x.startswith('--job') and not x.startswith('--job-name=')) for x in argv),'Alternative job name forbidden')
 +def normalize_wrapper(f,enabled=False):
 +    out=dict(f)
 +    if not enabled:return out
@@ -731,7 +761,7 @@
 +    with Path(log).open('wb') as out:r=subprocess.run(['nice','-n','10']+list(argv),cwd=str(cwd),env=env or environment(Path(cwd)),stdout=out,stderr=subprocess.STDOUT,timeout=seconds)
 +    need(r.returncode==0,'Command failed (%s); see %s'%(r.returncode,log))
 +def fingerprint(f):return digest(canonical({n:digest(b) for n,b in f.items()}))
-+def source_fingerprint():return {n:file_digest(Path(__file__).parent/n) for n in ('pack.py','pack_checks.py','pack_structural.py')}
++def source_fingerprint():return {n:file_digest(Path(__file__).parent/n) for n in ('pack.py','pack_checks.py','pack_structural.py','pack_verify.py')}
 +def limits():
 +    resource.setrlimit(resource.RLIMIT_AS,(28*1024**3,28*1024**3))
 +    if hasattr(os,'sched_getaffinity'):os.sched_setaffinity(0,set(sorted(os.sched_getaffinity(0))[:8]))
@@ -805,7 +835,11 @@
 +os.umask(0o077)
 +p=Path(%r);raw=bytes.fromhex(%r)
 +assert hashlib.sha256(raw).hexdigest()==%r
-+p.mkdir(mode=0o700)
++if p.exists():
++    assert not p.is_symlink() and p.stat().st_uid==os.getuid() and not p.stat().st_mode & 0o077
++    assert {x.name for x in p.iterdir()}=={'v'} and (p/'v').is_dir() and not (p/'v').is_symlink(), 'Not a verify-only root'
++else:p.mkdir(mode=0o700)
++(p/'a').mkdir(mode=0o700)
 +with tarfile.open(fileobj=io.BytesIO(raw)) as t:
 +    seen=set()
 +    for m in t:
@@ -889,35 +923,81 @@
 +        need(binding[key]==constants.get(name),'Binding differs from '+name)
 +    need(all(c['fill'][k]==sealed[k] for k in ('object','step','lineage')),'Configured fill identity differs from sealed binding')
 +    parts=binding.get('parts',[]);paths=c['fill']['parts']
++    for path in paths+[c['fill'][k] for k in ('done','config','receipt','data_receipt')]:
++        need(isinstance(path,str) and PurePosixPath(path).is_absolute() and str(PurePosixPath(path))==path and not path.startswith('//') and '..' not in PurePosixPath(path).parts,'Staged input requires canonical absolute path: '+str(path))
 +    need(len(parts)==len(paths)==4 and len(set(paths))==4,'Binding requires four distinct export parts')
 +    for index,(part,path) in enumerate(zip(parts,paths)):
 +        size=part.get('bytes');actual=c.get('remote_input_pins',{}).get(path,{}).get('bytes')
 +        need(type(size) is int and size>0 and type(actual) is int and actual==size,'Export part size differs from binding: part %d (%s)'%(index,path))
++        need(isinstance(part.get('sha256'),str) and re.fullmatch('[0-9a-f]{64}',part['sha256']),'Required binding input missing: parts[].sha256')
++        for archive in json.loads(f['a/0.json'])['archives']:
++            for old in archive['parts']:need(old['path']!=path or old['sha256']==part['sha256'],'Export path has conflicting base sha256: '+path)
 +    need(sum(part['bytes'] for part in parts)==constants['REVIEWED_ARCHIVE_BYTES'],'Export part sum differs from REVIEWED_ARCHIVE_BYTES')
 +    prep=binding.get('preparation_sha256',{})
 +    for key in ('config','receipt','data_receipt'):need(isinstance(prep.get(key),str) and re.fullmatch('[0-9a-f]{64}',prep[key]),'Required binding input missing: preparation_sha256.'+key)
-+    return dict(done=[binding['object'],str(binding['archive_bytes']),binding['archive_sha256']],preparation={c['fill'][k]:prep[k] for k in ('config','receipt','data_receipt')})
++    member=binding['member_directory'];safe_name(member)
++    return dict(done=[binding['object'],str(binding['archive_bytes']),binding['archive_sha256']],preparation={c['fill'][k]:prep[k] for k in ('config','receipt','data_receipt')},parts=[dict(path=path,bytes=part['bytes'],sha256=part['sha256']) for path,part in zip(paths,parts)],member_directory=member)
 +
 +def remote_preflight(c,b):
 +    f,_,_,plan=structure(b['package']);identity=export_identity(c,f,plan)
-+    return python_block("from pathlib import Path\nimport hashlib\npins=%r\nfor name,size in pins.items():\n p=Path(name)\n if not p.is_file() or p.stat().st_size!=size:raise ValueError('Required staged input missing or size differs: '+name)\ndone=Path(%r)\nif done.stat().st_size>4096 or done.read_text().split()!=%r:raise ValueError('Reviewed whole-tar receipt differs: '+str(done))\nfor name,sha in %r.items():\n p=Path(name)\n if p.stat().st_size>1048576:raise ValueError('Preparation input exceeds metadata budget: '+name)\n if hashlib.sha256(p.read_bytes()).hexdigest()!=sha:raise ValueError('Reviewed preparation differs: '+name)\nprint('inputs ready')"%(remote_inputs(c,b),c['fill']['done'],identity['done'],identity['preparation']))
++    code=("from pathlib import Path\nimport hashlib\npins=%r\nfor name,size in pins.items():\n p=Path(name)\n if not p.is_file() or p.stat().st_size!=size:raise ValueError('Required staged input missing or size differs: '+name)\ndone=Path(%r)\nif done.stat().st_size>4096 or done.read_text().split()!=%r:raise ValueError('Reviewed whole-tar receipt differs: '+str(done))\nfor name,sha in %r.items():\n p=Path(name)\n if p.stat().st_size>1048576:raise ValueError('Preparation input exceeds metadata budget: '+name)\n if hashlib.sha256(p.read_bytes()).hexdigest()!=sha:raise ValueError('Reviewed preparation differs: '+name)"%(remote_inputs(c,b),c['fill']['done'],identity['done'],identity['preparation']))
++    return python_block(code+'\n'+V.preflight_code(remote_path(b),identity)+"print('inputs ready')\n")
 +
 +def detached_fill(body,p):
 +    # Exclusive launch directory survives transport loss and prevents duplicate hashing.
 +    code="from pathlib import Path\np=Path(%r)\n(p/'a/f.lock').mkdir(mode=0o700)\n(p/'a/f.sh').write_text(%r)"%(p,body)
 +    return HEADER+python_block(code)+'cd '+shlex.quote(p)+'\nsetsid nohup bash a/f.sh </dev/null >a/f.log 2>&1 &\n'
 +
++def detached_verify(body,p,identity=None):
++    code='''import os,fcntl
++from pathlib import Path
++p=Path(%r)
++p.mkdir(mode=0o700,exist_ok=True)
++assert not p.is_symlink() and p.stat().st_uid==os.getuid() and not p.stat().st_mode & 0o077
++assert {x.name for x in p.iterdir()}<={'v'}, 'Verify cannot run after placement'
++v=p/'v'
++try:v.mkdir(mode=0o700)
++except FileExistsError:
++ assert not v.is_symlink() and v.is_dir() and not v.stat().st_mode & 0o077
++ lock=v/'0.lock'
++ assert not lock.is_symlink()
++ held=lock.open('a');fcntl.flock(held,fcntl.LOCK_EX|fcntl.LOCK_NB)
++ failed=v/'0.exit'
++ completed=all((v/n).is_file() and not (v/n).is_symlink() for n in ('0.txt','0.json')) and (v/'0.txt').read_text()=='0\\n'
++ if completed:
++  assert %r is not None, 'Verification identity missing; do not relaunch'
++  try:exec(%r)
++  except (ValueError,OSError,KeyError,TypeError):pass
++  else:raise SystemExit(0)
++ else:
++  assert failed.is_file() and not failed.is_symlink() and failed.stat().st_size<16 and not (v/'0.txt').exists(), 'Verification active or uncertain; do not relaunch'
++  assert 0<int(failed.read_text())<256, 'Invalid verification failure receipt'
++ archive=v/os.urandom(8).hex();archive.mkdir(mode=0o700)
++ for name in ('0.txt','0.exit','0.sh','0.log','0.json'):
++  old=v/name
++  if old.exists():
++   assert not old.is_symlink() and old.is_file()
++   old.rename(archive/name)
++(v/'0.sh').write_text(%r)
++'''%(p,identity,V.preflight_code(p,identity) if identity is not None else '',body)
++    return HEADER+python_block(code)+'cd '+shlex.quote(p)+'\nif test -f v/0.txt; then exit 0; fi\nsetsid nohup bash v/0.sh </dev/null >v/0.log 2>&1 &\n'
++
 +def plan(c,b):
 +    p=remote_path(b);opaque(p,c.get('forbidden_extra',()));check=shell_join(['/usr/bin/python3','-I','-s','-B','3.py','check','--gpus','1','--time',c['remote']['walltime']])
 +    fill_body=HEADER+'cd '+shlex.quote(p)+'\ntrap \'rc=$?; if [ "$rc" != 0 ]; then printf "%s\\n" "$rc" >a/f.exit; fi\' EXIT\n'+shell_join(fill_argv(c,p))+'\n'+check+'\nprintf "0\\n" > a/1.txt\n'
 +    shell_privacy(fill_body,c.get('forbidden_extra',()))
-+    scripts=dict(preflight=HEADER+remote_preflight(c,b),place=HEADER+python_block(place_code(b)),fill=detached_fill(fill_body,p),cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
++    f,_,_,binding=structure(b['package']);identity=export_identity(c,f,binding)
++    verify_body=HEADER+'cd '+shlex.quote(p)+'\ntrap \'rc=$?; if [ "$rc" != 0 ]; then printf "%s\\n" "$rc" >v/0.exit; fi\' EXIT\n'+python_block(V.verify_code(p,identity))
++    scripts=dict(verify=detached_verify(verify_body,p,identity),preflight=HEADER+remote_preflight(c,b),place=HEADER+python_block(place_code(b)),fill=detached_fill(fill_body,p),cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
++    scripts['verify_poll']=HEADER+'cd '+shlex.quote(p)+'\nif test -f v/0.txt; then test "$(cat v/0.txt)" = 0; printf "complete\\n"; elif test -f v/0.exit; then tail -c 8192 v/0.log >&2; exit 1; else printf "wait\\n"; tail -c 8192 v/0.log >&2; fi\n'
 +    scripts['fill_poll']=HEADER+'cd '+shlex.quote(p)+'\nif test -f a/1.txt; then test "$(cat a/1.txt)" = 0; printf "complete\\n"; elif test -f a/f.exit; then tail -c 8192 a/f.log >&2; exit 1; else printf "wait\\n"; tail -c 8192 a/f.log >&2; fi\n'
 +    job='P='+p+'\nJ=$(cat "$P/a/4.txt")\n[[ "$J" =~ ^[0-9]+$ ]]\n'
 +    scripts['poll']=HEADER+job+'if ! S=$(sacct -n -X -j "$J" -o State --parsable2); then printf "accounting unavailable for %s\\n" "$J" >&2; exit 75; fi\nprintf "%s\\n" "$S"\ncase "${S%%|*}" in COMPLETED|PENDING|RUNNING|CONFIGURING|COMPLETING|\'\') ;; *) tail -c 8192 "$P/a/4.err" "$P/a/4.log" >&2 || true ;; esac\n'
 +    scripts['gpu']=HEADER+job+'S=$(sacct -n -X -j "$J" -o State --parsable2)\n[[ "${S%%|*}" = COMPLETED ]]\ntest -s "$P/a/c/CPU.json"\n'+adapted_script(c,'gpu',p,b['package'])
 +    w=state_root(c)/'commands';w.mkdir(exist_ok=True,mode=0o700)
 +    body=w/'fill_body.sh';body.write_text(fill_body);body.chmod(0o600);run(['bash','-n',str(body)],w,w/'fill_body.log')
++    body=w/'verify_body.sh';body.write_text(verify_body);body.chmod(0o600);shell_privacy(verify_body,c.get('forbidden_extra',()));run(['bash','-n',str(body)],w,w/'verify_body.log')
++    for code in heredocs(verify_body):run(['/usr/bin/python3','-I','-s','-B','-c','import sys;compile(sys.argv[1],"verify","exec")',code],w,w/'verify_python.log')
 +    for k,text in scripts.items():
 +        shell_privacy(text,c.get('forbidden_extra',()));f=w/(k+'.sh');f.write_text(text);f.chmod(0o600);run(['bash','-n',str(f)],w,w/(k+'.log'))
 +        for i,body in enumerate(heredocs(text)):
@@ -935,9 +1015,9 @@
 +    raise Rejected('CPU job ended: '+states[0])
 +def execute(c,scripts,phases,yes=False,explicit=None,call=None,sleeper=time.sleep):
 +    b=checked(c)
-+    if 'cpu' in phases or 'gpu' in phases:need(yes and explicit==b['token'],'Submit requires --yes and exact token')
++    need(yes and explicit==b['token'],'Remote action requires --yes and exact token')
 +    def actual(k):
-+        if k not in ('poll','fill_poll','preflight','gpu'):
++        if k not in ('poll','fill_poll','verify_poll','preflight','gpu','verify'):
 +            marker=state_root(c)/(k+'.attempt');need(not marker.exists(),'Already attempted '+k);marker.write_text(str(time.time()))
 +        cmd=command(c,scripts[k]);print(cmd,flush=True)
 +        log=state_root(c)/('call_'+k+'_'+str(time.time_ns() if hasattr(time,'time_ns') else int(time.time()*1000000))+'.json')
@@ -966,23 +1046,30 @@
 +                        sleeper(60);break
 +                sleeper(60)
 +        r=invoke(phase);need(r.returncode==0,'Remote '+phase+' failed: '+r.stderr.decode(errors='replace'))
-+        if phase=='fill':
-+            deadline=time.monotonic()+int(c['remote'].get('fill_wait',1800))
++        if phase in ('fill','verify'):
++            deadline=time.monotonic()+int(c['remote'].get(phase+'_wait',1800))
 +            while True:
-+                sleeper(60);need(time.monotonic()<deadline,'Fill wait deadline exceeded; inspect a/f.log; do not relaunch')
-+                r=invoke('fill_poll');need(r.returncode==0,'Fill poll failed; inspect a/f.log; do not relaunch: '+r.stderr.decode(errors='replace'))
-+                state=r.stdout.decode().strip();need(state in ('wait','complete'),'Unexpected fill receipt')
++                sleeper(60);need(time.monotonic()<deadline,phase+' wait deadline exceeded; inspect remote log; do not relaunch')
++                advice='recorded failure permits explicit verify retry; transport loss or uncertain state requires inspection' if phase=='verify' else 'inspect remote log; do not relaunch'
++                r=invoke(phase+'_poll');need(r.returncode==0,phase+' poll failed; '+advice+': '+r.stderr.decode(errors='replace'))
++                state=r.stdout.decode().strip();need(state in ('wait','complete'),'Unexpected '+phase+' receipt')
 +                if state=='complete':break
 +def main(argv=None):
-+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('build','check','place','fill','gpu','submit','all'));p.add_argument('--config',required=True);p.add_argument('--enable',action='store_true');p.add_argument('--token');p.add_argument('--yes',action='store_true');p.add_argument('--execute-remote',action='store_true');a=p.parse_args(argv);need(a.enable,'Default OFF: pass --enable')
++    p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('build','check','verify','place','fill','gpu','submit','all'));p.add_argument('--config',required=True);p.add_argument('--enable',action='store_true');p.add_argument('--token');p.add_argument('--yes',action='store_true');p.add_argument('--execute-remote',action='store_true');a=p.parse_args(argv);need(a.enable,'Default OFF: pass --enable')
 +    os.umask(0o077);limits();c=read(a.config);w=state_root(c)
-+    if a.action in ('build','all'):print(json.dumps(build(c,a.token),sort_keys=True))
++    if a.action in ('build','all'):
++        if a.action=='all' and (w/'BUILD.json').exists():
++            b=built(c);need(a.token==b['token'],'Build token differs from explicit token')
++        else:b=build(c,a.token)
++        print(json.dumps(b,sort_keys=True))
 +    if a.action in ('check','all'):
 +        b=built(c);r=local_check(c,b['package'],w/('c'+os.urandom(4).hex()));write(w/'CHECK.json',r);plan(c,b)
-+    if a.action in ('place','fill','gpu','submit','all'):
-+        b=checked(c);scripts=plan(c,b);phases={'place':['place'],'fill':['fill'],'gpu':['gpu'],'submit':['cpu','gpu'],'all':['place','fill','cpu','gpu']}[a.action]
-+        if a.action in ('gpu','submit','all'):need(a.yes and a.token==b['token'],'Submit requires --yes and exact token')
-+        for phase in phases:print(command(c,scripts[phase]))
++    if a.action in ('verify','place','fill','gpu','submit','all'):
++        b=checked(c);scripts=plan(c,b);phases={'verify':['verify'],'place':['place'],'fill':['fill'],'gpu':['gpu'],'submit':['cpu','gpu'],'all':['verify','place','fill','cpu','gpu']}[a.action]
++        if a.execute_remote or a.action in ('gpu','submit','all'):need(a.yes and a.token==b['token'],'Remote action requires --yes and exact token')
++        for phase in phases:
++            if phase=='place':print(command(c,scripts['preflight']))
++            print(command(c,scripts[phase]))
 +        if a.execute_remote:execute(c,scripts,phases,a.yes,a.token)
 +    return 0
 +if __name__=='__main__':
@@ -990,7 +1077,7 @@
 +    except (Rejected,KeyError,OSError,subprocess.TimeoutExpired) as e:print('REJECTED: '+str(e),file=sys.stderr);sys.exit(1)
 --- /dev/null
 +++ b/pack_checks.py
-@@ -0,0 +1,441 @@
+@@ -0,0 +1,442 @@
 +"""Isolated probes; this file never starts a remote command."""
 +import ast, builtins, copy, io, json, math, os, runpy, signal, subprocess, sys, tarfile, time
 +from pathlib import Path
@@ -1297,13 +1384,13 @@
 +
 +def fill(package,w,c):
 +    P.need(sys.version_info[:3]==(3,6,8),'Require actual login Python 3.6.8')
-+    original_files,_,_,original_plan=P.structure(package)
++    original_files,_,_,original_plan=P.structure(package,c)
 +    P.export_identity(c,original_files,original_plan)
 +    if c.get('fill_mode','mirrors')=='structural':
 +        import pack_structural as S
 +        reference=S.dependency_reference(json.loads(original_files['a/0.json']),c)
 +        original=P.fingerprint(P.package_files(package));target,small=S.rebind(w/'standins',package)
-+        cfg=dict(c,fill_mode='mirrors',mirrors=small['mirrors'],fill=small['fill'],remote_input_pins={k:dict(bytes=v['bytes']) for k,v in small['mirrors'].items()},old_identities=[],max_read_bytes=10*1024**2)
++        cfg=dict(c,fill_mode='mirrors',mirrors=small['mirrors'],fill=small['fill'],remote_input_pins={k:dict(bytes=v['bytes']) for k,v in small['mirrors'].items()},max_read_bytes=10*1024**2)
 +        result=fill(target,w,cfg);result.update(mode='structural',source_tree=original,dependency_reference=reference,standin_bytes=sum(x['bytes'] for x in small['mirrors'].values()),production_archive_identity=False)
 +        P.need(P.fingerprint(P.package_files(package))==original,'Structural probe changed delivery');return result
 +    P.need(c.get('fill_mode','mirrors')=='mirrors','Unknown fill mode')
@@ -1326,6 +1413,7 @@
 +            calls=[];original_run=subprocess.run
 +            def sbatch(argv,**kwargs):
 +                P.need(Path(argv[0]).name=='sbatch','Unexpected submit process')
++                P.submit_privacy(argv,pub['token'])
 +                P.need(kwargs['input']==f['BATCH.sh'],'Submit wrapper bytes differ')
 +                calls.append(argv);return subprocess.CompletedProcess(argv,0,b'123;local\n',b'')
 +            try:
@@ -1462,7 +1550,7 @@
 +    P.required_inputs(dict(required_inputs=[dict(pin,name='dependency_reference')]))
 +    P.need('sha256' in pin,'Required input pin missing: dependency_reference.sha256')
 +    def selected(v):
-+        return dict(archives=v['archives'][1:],files=v['files'])
++        return dict({k:x for k,x in v.items() if k not in ('archives','types')},archives=v['archives'][1:])
 +    expected=P.digest(P.canonical(selected(P.read(pin['path']))));actual=P.digest(P.canonical(selected(base)))
 +    P.need(actual==expected,'Dependency layout differs from pinned reference')
 +    return dict(sha256=actual,reference_sha256=pin['sha256'],real_dependency_archives=len(base['archives'])-1)
@@ -1552,8 +1640,67 @@
 +    exec(compile(text,str(source),'exec'),dict(__file__=str(source),__name__='__main__'))
 +if __name__=='__main__':main()
 --- /dev/null
++++ b/pack_verify.py
+@@ -0,0 +1,56 @@
++"""Generated Python 3.6 verification; receipts never authorize changed inputs."""
++COMMON = '''import hashlib,json,os,stat,tarfile
++from pathlib import Path,PurePosixPath
++def stamp(p):
++ s=p.stat()
++ if not stat.S_ISREG(s.st_mode):raise ValueError('Export part is not a regular file: '+str(p))
++ return dict(bytes=s.st_size,mtime_ns=s.st_mtime_ns)
++def snapshot(p):
++ s=p.stat()
++ return dict(stamp(p),ctime_ns=s.st_ctime_ns,device=s.st_dev,inode=s.st_ino)
++def header(path,member):
++ with Path(path).open('rb') as stream:raw=stream.read(512)
++ entry=tarfile.TarInfo.frombuf(raw,'utf-8','strict')
++ name=str(PurePosixPath(entry.name))
++ if name!=member and not name.startswith(member+'/'):raise ValueError('Export tar member differs: '+name)
++ if '..' in name.split('/') or entry.type not in (tarfile.REGTYPE,tarfile.AREGTYPE,tarfile.DIRTYPE):raise ValueError('Unsupported export tar header')
++'''
++
++def verify_code(root, identity):
++    return COMMON+'''os.umask(0o077)
++p=Path(%r)/'v';identity=%r
++header(identity['parts'][0]['path'],identity['member_directory'])
++rows=[]
++for pin in identity['parts']:
++ path=Path(pin['path']);before=snapshot(path)
++ if before['bytes']!=pin['bytes']:raise ValueError('Export part size differs: '+str(path))
++ h=hashlib.sha256()
++ with path.open('rb') as stream:
++  opened=os.fstat(stream.fileno())
++  if (opened.st_dev,opened.st_ino)!=(before['device'],before['inode']):raise ValueError('Export part changed before hashing')
++  for chunk in iter(lambda:stream.read(1024**2),b''):h.update(chunk)
++ if snapshot(path)!=before:raise ValueError('Export part changed during hashing: '+str(path))
++ if h.hexdigest()!=pin['sha256']:raise ValueError('Export part sha256 differs: '+str(path))
++ rows.append(dict(before,path=pin['path'],sha256=h.hexdigest()))
++for row in rows:
++ if any(row[k]!=v for k,v in snapshot(Path(row['path'])).items()):raise ValueError('Export part changed after hashing')
++receipt=dict(schema=1,parts=[{k:row[k] for k in ('path','bytes','mtime_ns','sha256')} for row in rows])
++with (p/'0.json').open('x') as stream:
++ json.dump(receipt,stream,sort_keys=True);stream.flush();os.fsync(stream.fileno())
++with (p/'0.txt').open('x') as stream:stream.write('0\\n')
++print('verified')
++''' % (root, identity)
++
++def preflight_code(root, identity):
++    # Keep a standalone snippet so no pack module is needed on Orchard.
++    return COMMON+'''p=Path(%r)/'v';identity=%r
++if not (p/'0.txt').is_file() or not (p/'0.json').is_file():raise ValueError('Export verification receipt missing; run verify before place')
++if (p/'0.txt').read_text()!='0\\n':raise ValueError('Export verification incomplete')
++if (p/'0.json').stat().st_size>16384:raise ValueError('Export verification receipt too large')
++receipt=json.loads((p/'0.json').read_text())
++if receipt.get('schema')!=1 or len(receipt.get('parts',[]))!=4:raise ValueError('Export verification receipt invalid')
++for row,pin in zip(receipt['parts'],identity['parts']):
++ if any(row.get(k)!=pin[k] for k in ('path','bytes','sha256')):raise ValueError('Export verification receipt differs from binding')
++ if any(row.get(k)!=v for k,v in stamp(Path(pin['path'])).items()):raise ValueError('Export verification receipt is stale: '+pin['path'])
++header(identity['parts'][0]['path'],identity['member_directory'])
++''' % (root, identity)
+--- /dev/null
 +++ b/test_native.py
-@@ -0,0 +1,81 @@
+@@ -0,0 +1,82 @@
 +"""Native D builds and release-check compatibility; all writes stay under --work."""
 +import argparse, ast, base64, gzip, json, os, subprocess, sys
 +from pathlib import Path
@@ -1605,6 +1752,7 @@
 +    P.run(['/usr/bin/python3','-I','-s','-B','-c',code,str(here),str(w)],w,w/'coherent_after.log')
 +    # Run the public pack build path against the actual native builder and items.
 +    cfg=dict(work=str(w/'pack_build'),ledger=str(w/'ledger.jsonl'),normalize_wrapper=True,python=P.PYTHON,builder=dict(path=str(adapter),sha256=P.file_digest(adapter),argv=['--kind','d','--source',str(T.D/'build_d.py'),'--enable-token','--token','{token}','--','{work}/stage',str(source),P.digest(raw),str(items),str(T.D/'bind_D200.json')],env={'KROOT':'{work}/k'},report='{work}/stage/BUILD.json',key='D',inputs=[dict(path=str(T.D/'build_d.py'),sha256=P.file_digest(T.D/'build_d.py'))]))
++    cfg['old_identities']=[P.read(T.B5/'0.json')['token']]
 +    (w/'ledger.jsonl').write_text('');P.write(w/'build_config.json',cfg)
 +    P.run([P.PYTHON,'-I','-s','-B',str(Path(__file__).with_name('pack.py')),'build','--config',str(w/'build_config.json'),'--enable','--token','b123456789abc'],w,w/'pack_build.log');built=P.built(cfg)
 +    try:P.source_preflight(cfg)
@@ -1614,7 +1762,7 @@
 +    P.need(P.source_preflight(coherent_cfg)['assets']==10,'Coherent native source failed')
 +    # Exercise every public local check on an actual pack-built D delivery.
 +    # Structural mode changes only a disposable probe copy and authenticates no live archives.
-+    fixture,small=T.fixture(w/'tiny');check_cfg=dict(small,work=cfg['work'],builder=coherent_cfg['builder'],fill_mode='structural')
++    fixture,small=T.fixture(w/'tiny');check_cfg=dict(small,work=cfg['work'],builder=coherent_cfg['builder'],old_identities=cfg['old_identities'],fill_mode='structural')
 +    binding=P.structure(built['package'])[3]['export_binding']
 +    binding_path=T.D/'bind_D200.json';full_binding=P.read(binding_path)
 +    check_cfg['export_binding_pin']=dict(path=str(binding_path),sha256=P.file_digest(binding_path))
@@ -1637,7 +1785,7 @@
 +if __name__=='__main__':main()
 --- /dev/null
 +++ b/test_pack.py
-@@ -0,0 +1,201 @@
+@@ -0,0 +1,202 @@
 +"""Regression tests never invoke ssh, scp, Slurm, GPUs or delete files."""
 +import copy, io, json, os, re, subprocess, sys, unittest
 +from pathlib import Path
@@ -1718,6 +1866,7 @@
 +        items=T.D/'evidence/items/dist580.json'
 +        c=dict(builder=dict(path=str(T.D/'build_d.py'),sha256=P.file_digest(T.D/'build_d.py'),argv=['stage','source','sha',str(items),'binding']))
 +        with self.assertRaisesRegex(P.Rejected,'score_d.py'):P.source_preflight(c)
++        c['old_identities']=['f'*64]  # Synthetic absent identity isolates the source-drift gate.
 +        with patch.object(P,'probe',side_effect=AssertionError('Probe ran before source preflight')):
 +            with self.assertRaisesRegex(P.Rejected,'score_d.py'):P.local_check(c,self.p,self.fresh('q'))
 +        here=self.fresh('coherent');here.mkdir();script=(T.D/'o_build_D.sh').read_bytes();(here/'o_build_D.sh').write_bytes(script);(here/'check_release_d.py').write_bytes((T.D/'check_release_d.py').read_bytes())
@@ -1830,7 +1979,7 @@
 +        r=P.probe('receipt',self.p,self.fresh('q'),self.c);self.assertTrue(r['full_reader_validator']);self.assertGreaterEqual(r['negative_cases'],19)
 +    def test_positive_all_local_checks_and_planning(self):
 +        c=copy.deepcopy(self.c);c['work']=str(self.fresh('s'));r=P.local_check(c,self.p,self.fresh('q'));self.assertGreater(r['checks']['logic']['rows_checked'],0)
-+        w=P.state_root(c);d=w/'1.tgz';d.write_bytes(P.tar_bytes(self.f));b=dict(token='b635a315de01e',package=str(self.p),delivery=str(d),sha256=P.file_digest(d),tree=P.fingerprint(self.f));P.write(w/'BUILD.json',b);P.write(w/'CHECK.json',r);scripts=P.plan(c,b);self.assertEqual(set(scripts),{'preflight','place','fill','fill_poll','cpu','poll','gpu'})
++        w=P.state_root(c);d=w/'1.tgz';d.write_bytes(P.tar_bytes(self.f));b=dict(token='b635a315de01e',package=str(self.p),delivery=str(d),sha256=P.file_digest(d),tree=P.fingerprint(self.f));P.write(w/'BUILD.json',b);P.write(w/'CHECK.json',r);scripts=P.plan(c,b);self.assertEqual(set(scripts),{'verify','verify_poll','preflight','place','fill','fill_poll','cpu','poll','gpu'})
 +        self.assertEqual(P.checked(c),b);P.write(self.w/'POSITIVE.json',dict(check=r,scripts=scripts,build=b,config=c))
 +
 +if __name__=='__main__':
@@ -1902,7 +2051,7 @@
 +        calls=[];waits=[]
 +        def call(k):
 +            calls.append(k);return subprocess.CompletedProcess([],0,b'wait\n' if len(calls)==2 else b'complete\n',b'')
-+        with patch.object(P,'checked',return_value=self.b):P.execute(self.c,{},['fill'],call=call,sleeper=waits.append)
++        with patch.object(P,'checked',return_value=self.b):P.execute(self.c,{},['fill'],True,self.b['token'],call=call,sleeper=waits.append)
 +        self.assertEqual(calls,['fill','fill_poll','fill_poll']);self.assertEqual(waits,[60,60])
 +    def test_r2_structural_without_archive_mirrors(self):
 +        c=dict(self.c,fill_mode='structural',mirrors={})
@@ -1918,7 +2067,7 @@
 +        scripts=P.plan(self.c,self.b);self.assertIn('preflight',scripts)
 +        code=P.heredocs(Path(scripts['preflight']).read_text())[0]
 +        import pack_checks as Q
-+        mapping={k:v['path'] for k,v in self.c['mirrors'].items()}
++        mapping={k:v['path'] for k,v in self.c['mirrors'].items()};mapping.update(T.verification_fixture(self.c,self.b,self.w))
 +        with Q.Mirrors(mapping):exec(compile(code,'preflight','exec'),{})
 +        bad=dict(mapping);name=self.c['fill']['done'];bad[name]=str(self.w/'absent')
 +        with Q.Mirrors(bad):
@@ -1926,7 +2075,7 @@
 +        calls=[]
 +        def call(k):calls.append(k);return subprocess.CompletedProcess([],1,b'',b'absent staged part')
 +        with patch.object(P,'checked',return_value=self.b):
-+            with self.assertRaisesRegex(P.Rejected,'before placement'):P.execute(self.c,scripts,['place'],call=call)
++            with self.assertRaisesRegex(P.Rejected,'before placement'):P.execute(self.c,scripts,['place'],True,self.b['token'],call=call)
 +        self.assertEqual(calls,['preflight']);self.assertFalse((Path(self.c['work'])/'place.attempt').exists())
 +    def test_r3_actual_D_integration(self):
 +        self.assertIn('PACK_NATIVE_RESULT',os.environ,'Required D integration result: run test_native.py first')
@@ -2049,7 +2198,7 @@
 +            with self.subTest(name=name):self.corrupt_preflight(name)
 +    def corrupt_preflight(self,key):
 +        scripts=P.plan(self.c,self.b);code=P.heredocs(Path(scripts['preflight']).read_text())[0]
-+        mapping={k:v['path'] for k,v in self.c['mirrors'].items()}
++        mapping={k:v['path'] for k,v in self.c['mirrors'].items()};mapping.update(T.verification_fixture(self.c,self.b,self.w/key))
 +        good=self.preflight(code,mapping,key+'good');self.assertEqual(good.returncode,0,good.stderr)
 +        path=self.c['fill'][key];raw=Path(mapping[path]).read_bytes();bad=self.w/(key+'.bad')
 +        if key=='done':raw=raw[:-2]+(b'0' if raw[-2:-1]!=b'0' else b'1')+raw[-1:]
@@ -2061,7 +2210,7 @@
 +            if phase=='preflight':return self.preflight(code,mapping,key+'bad')
 +            (P.state_root(c)/'place.attempt').write_text('spent');return subprocess.CompletedProcess([],0,b'',b'')
 +        with patch.object(P,'checked',return_value=self.b):
-+            with self.assertRaisesRegex(P.Rejected,'before placement'):P.execute(c,scripts,['place'],call=call)
++            with self.assertRaisesRegex(P.Rejected,'before placement'):P.execute(c,scripts,['place'],True,self.b['token'],call=call)
 +        self.assertEqual(calls,['preflight']);self.assertFalse((Path(c['work'])/'place.attempt').exists())
 +    def test_02_dropped_real_dependency(self):
 +        f=dict(self.f);base=json.loads(f['a/0.json']);base['archives'].pop(2);f['a/0.json']=T.jd(base);p=P.extract(T.seal(f),self.w/'p')
@@ -2072,7 +2221,7 @@
 +        Path(self.c['ledger']).write_text('');calls=[]
 +        def call(k):calls.append(k);return subprocess.CompletedProcess([],0,b'',b'')
 +        with patch.object(P,'checked',return_value=self.b):
-+            with self.assertRaisesRegex(P.Rejected,'reserve.*Trinity ledger'):P.execute(self.c,{},['place'],call=call)
++            with self.assertRaisesRegex(P.Rejected,'reserve.*Trinity ledger'):P.execute(self.c,{},['place'],True,self.b['token'],call=call)
 +        self.assertEqual(calls,[]);self.assertFalse((Path(self.c['work'])/'place.attempt').exists())
 +    def test_04_all_job_names_and_no_comments(self):
 +        for line in ('#SBATCH --job-name=other','#SBATCH --comment=ticket42','sbatch --job-name=xyz --comment=abc','sbatch -J xyz','sbatch -Jxyz','sbatch --job-name other','sbatch --comment abc'):
@@ -2110,7 +2259,7 @@
 +        captured=[]
 +        def call(argv,**kw):captured.append(kw['env']);return subprocess.CompletedProcess(argv,0,b'',b'')
 +        with patch.dict(os.environ,HOME='/tmp/caller_home',SSH_AUTH_SOCK='/tmp/caller_sock'),patch.object(P,'checked',return_value=self.b),patch.object(P.subprocess,'run',side_effect=call):
-+            P.execute(self.c,dict(preflight='/tmp/0',place='/tmp/1'),['place'])
++            P.execute(self.c,dict(preflight='/tmp/0',place='/tmp/1'),['place'],True,self.b['token'])
 +        self.assertEqual(len(captured),2)
 +        for env in captured:self.assertEqual(env.get('HOME'),'/tmp/caller_home');self.assertEqual(env.get('SSH_AUTH_SOCK'),'/tmp/caller_sock')
 +    def test_10_fill_body_bash_syntax(self):
@@ -2124,8 +2273,338 @@
 +
 +if __name__=='__main__':P.limits();unittest.main(verbosity=2)
 --- /dev/null
++++ b/test_review3.py
+@@ -0,0 +1,163 @@
++"""Defect-level before/after evidence; remote snippets run locally under 3.6.8."""
++import copy, io, json, os, subprocess, sys, tarfile, time, unittest
++from pathlib import Path
++from unittest.mock import patch
++from contextlib import redirect_stdout
++sys.path.insert(0,os.environ.get('PACK_SOURCE',str(Path(__file__).parent)))
++import pack as P
++import test_support as T
++
++class Review3(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.root=Path(os.environ['PACK_R3_WORK']);cls.root.mkdir()
++        fixture=Path(os.environ['PACK_R3_FIXTURE']);cls.p=fixture/'p';cls.config=P.read(fixture/'config.json')
++        cls.f=P.package_files(cls.p);cls.d=fixture/'1.tgz';cls.plan=P.structure(cls.p)[3]
++        cls.b=dict(token=P.read(cls.p/'0.json')['token'],package=str(cls.p),delivery=str(cls.d),sha256=P.file_digest(cls.d),tree=P.fingerprint(cls.f))
++    def setUp(self):
++        self.w=self.root/self._testMethodName;self.w.mkdir();self.c=copy.deepcopy(self.config)
++        self.c.update(work=str(self.w/'state'),ledger=str(self.w/'ledger'));Path(self.c['ledger']).write_text(self.b['token']+'\n')
++        self.mapping={k:v['path'] for k,v in self.c['mirrors'].items()}
++        self.remote=self.w/'r';self.mapping[P.remote_path(self.b)]=str(self.remote)
++    def snippet(self,code,label):
++        driver=self.w/(label+'.py');driver.write_text('import sys\nsys.path.insert(0,%r)\nimport pack_checks as Q\nwith Q.Mirrors(%r):exec(compile(%r,"remote","exec"),{})\n'%(str(Path(P.__file__).parent),self.mapping,code))
++        return subprocess.run(['/usr/bin/python3','-I','-s','-B',str(driver)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=P.environment(self.w))
++    def receipt(self):
++        (self.remote/'v').mkdir(parents=True,exist_ok=True,mode=0o700);self.remote.chmod(0o700)
++        rows=[]
++        for name in self.c['fill']['parts']:
++            p=Path(self.mapping[name]);s=p.stat()
++            rows.append(dict(path=name,bytes=s.st_size,mtime_ns=s.st_mtime_ns,ctime_ns=s.st_ctime_ns,device=s.st_dev,inode=s.st_ino,sha256=P.file_digest(p)))
++        P.write(self.remote/'v/0.json',dict(schema=1,parts=rows));(self.remote/'v/0.txt').write_text('0\n')
++    def preflight(self):return P.heredocs(P.remote_preflight(self.c,self.b))[0]
++    def refuse_before_place(self,needle=None):
++        code=self.preflight();calls=[]
++        def call(phase):
++            calls.append(phase)
++            if phase=='preflight':return self.snippet(code,'preflight')
++            (P.state_root(self.c)/'place.attempt').write_text('spent');return subprocess.CompletedProcess([],0,b'',b'')
++        with patch.object(P,'checked',return_value=self.b):
++            with self.assertRaisesRegex(P.Rejected,'before placement') as error:P.execute(self.c,{},['place'],True,self.b['token'],call=call)
++        if needle:self.assertIn(needle,str(error.exception))
++        self.assertEqual(calls,['preflight']);self.assertFalse((Path(self.c['work'])/'place.attempt').exists())
++    def test_01_base_path_conflicting_sha(self):
++        f=dict(self.f);base=json.loads(f['a/0.json']);base['archives'][0]['parts'][0].update(path=self.c['fill']['parts'][0],sha256='0'*64)
++        f['a/0.json']=T.jd(base)
++        with self.assertRaisesRegex(P.Rejected,'conflicting base sha256'):P.export_identity(self.c,f,self.plan)
++    def test_01_missing_part_sha(self):
++        plan=copy.deepcopy(self.plan);plan['export_binding']['parts'][0].pop('sha256')
++        with self.assertRaisesRegex(P.Rejected,r'parts\[\].sha256'):P.export_identity(self.c,self.f,plan)
++    def test_01_missing_receipt_before_place(self):self.refuse_before_place()
++    def test_01_same_size_wrong_part_before_place(self):
++        name=self.c['fill']['parts'][1];raw=Path(self.mapping[name]).read_bytes();bad=self.w/'bad';bad.write_bytes(bytes([raw[0]^1])+raw[1:]);self.mapping[name]=str(bad)
++        self.receipt();self.refuse_before_place('differs from binding')
++    def test_01_stale_receipt_before_place(self):
++        name=self.c['fill']['parts'][1];p=self.w/'part';p.write_bytes(Path(self.mapping[name]).read_bytes());self.mapping[name]=str(p)
++        self.receipt();s=p.stat();os.utime(str(p),ns=(s.st_atime_ns,s.st_mtime_ns+1000000000));self.refuse_before_place('stale')
++    def test_01_receipt_path_key_before_place(self):
++        self.receipt();p=self.remote/'v/0.json';v=P.read(p);v['parts'][0]['path']+='.other';P.write(p,v);self.refuse_before_place('differs from binding')
++    def test_01_wrong_step_tar_header_before_place(self):
++        name=self.c['fill']['parts'][0];raw=Path(self.mapping[name]).read_bytes()
++        member=tarfile.TarInfo.frombuf(raw[:512],'utf-8','strict');member.name=member.name.replace('m600','m544')
++        p=self.w/'part';p.write_bytes(member.tobuf()+raw[512:]);self.assertEqual(p.stat().st_size,len(raw));self.mapping[name]=str(p);self.receipt()
++        # Keep the receipt's expected SHA to isolate the independent header guard.
++        v=P.read(self.remote/'v/0.json');v['parts'][0]['sha256']=self.plan['export_binding']['parts'][0]['sha256'];P.write(self.remote/'v/0.json',v)
++        self.refuse_before_place('tar member differs')
++    def test_01_detached_verify_and_place(self):
++        scripts=P.plan(self.c,self.b);self.assertIn('verify',scripts,'No detached verify phase exists')
++        self.assertIn('verify_poll',scripts);body=(Path(self.c['work'])/'commands/verify_body.sh').read_text()
++        code=P.heredocs(body)[0];(self.remote/'v').mkdir(parents=True,mode=0o700);self.remote.chmod(0o700)
++        good=self.snippet(code,'verify');self.assertEqual(good.returncode,0,good.stderr)
++        receipt=P.read(self.remote/'v/0.json');self.assertEqual(len(receipt['parts']),4)
++        for row,pin in zip(receipt['parts'],self.plan['export_binding']['parts']):self.assertEqual(row['sha256'],pin['sha256']);self.assertIn('mtime_ns',row)
++        good=self.snippet(self.preflight(),'ready');self.assertEqual(good.returncode,0,good.stderr)
++        placed=self.snippet(P.place_code(self.b),'place');self.assertEqual(placed.returncode,0,placed.stderr)
++        self.assertTrue((self.remote/'0.json').is_file());self.assertTrue((self.remote/'v/0.json').is_file())
++        again=self.snippet(P.place_code(self.b),'place_again');self.assertNotEqual(again.returncode,0)
++        # Real detached shell, slow body, exclusive launch, private output containment.
++        root=self.w/'slow';body='#!/bin/bash\nset -eu\numask 077\nsleep 1\nprintf "0\\n" >v/0.txt\n'
++        launcher=P.detached_verify(body,str(root));script=self.w/'launch.sh';script.write_text(launcher)
++        start=time.monotonic();r=subprocess.run(['bash',str(script)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=.8)
++        self.assertEqual(r.returncode,0,r.stderr);self.assertLess(time.monotonic()-start,.8)
++        again=subprocess.run(['bash',str(script)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=1);self.assertNotEqual(again.returncode,0)
++        time.sleep(1.1);self.assertEqual((root/'v/0.txt').read_text(),'0\n');self.assertEqual({x.name for x in root.iterdir()},{'v'})
++        for p in root.rglob('*'):self.assertEqual(p.stat().st_mode & 0o777,0o700 if p.is_dir() else 0o600)
++    def test_01_verify_hash_failure_no_receipt(self):
++        scripts=P.plan(self.c,self.b);self.assertIn('verify',scripts,'No export hash verifier exists')
++        name=self.c['fill']['parts'][2];p=self.w/'bad';raw=Path(self.mapping[name]).read_bytes();p.write_bytes(bytes([raw[0]^1])+raw[1:]);self.mapping[name]=str(p)
++        (self.remote/'v').mkdir(parents=True,mode=0o700)
++        code=P.heredocs((Path(self.c['work'])/'commands/verify_body.sh').read_text())[0]
++        r=self.snippet(code,'verify');self.assertNotEqual(r.returncode,0);self.assertIn(b'sha256 differs',r.stderr)
++        self.assertFalse((self.remote/'v/0.json').exists());self.assertFalse((self.remote/'v/0.txt').exists());self.assertFalse((Path(self.c['work'])/'place.attempt').exists())
++    def test_01_verify_without_ledger_and_polling(self):
++        scripts=P.plan(self.c,self.b);self.assertIn('verify',scripts,'No token-independent verification exists')
++        self.c['ledger']=str(self.w/'absent');calls=[];waits=[]
++        def call(k):calls.append(k);return subprocess.CompletedProcess([],0,b'wait\n' if len(calls)==2 else b'complete\n',b'')
++        with patch.object(P,'checked',return_value=self.b):P.execute(self.c,scripts,['verify'],True,self.b['token'],call=call,sleeper=waits.append)
++        self.assertEqual(calls,['verify','verify_poll','verify_poll']);self.assertEqual(waits,[60,60]);self.assertFalse((Path(self.c['work'])/'place.attempt').exists())
++    def test_01_failed_verify_can_recheck_same_token(self):
++        self.assertTrue(hasattr(P,'detached_verify'),'No token-independent verifier exists')
++        root=self.w/'retry';first=self.w/'first.sh';second=self.w/'second.sh'
++        first.write_text(P.detached_verify('#!/bin/bash\numask 077\nprintf "9\\n" >v/0.exit\nexit 9\n',str(root)))
++        second.write_text(P.detached_verify('#!/bin/bash\numask 077\nsleep 1\nprintf "0\\n" >v/0.txt\n',str(root)))
++        r=subprocess.run(['bash',str(first)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=1);self.assertEqual(r.returncode,0,r.stderr)
++        end=time.monotonic()+2
++        while not (root/'v/0.exit').exists() and time.monotonic()<end:time.sleep(.02)
++        self.assertEqual((root/'v/0.exit').read_text(),'9\n')
++        r=subprocess.run(['bash',str(second)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=1);self.assertEqual(r.returncode,0,r.stderr)
++        again=subprocess.run(['bash',str(second)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=1);self.assertNotEqual(again.returncode,0)
++        time.sleep(1.1);self.assertEqual((root/'v/0.txt').read_text(),'0\n');self.assertFalse((root/'v/0.exit').exists())
++        archives=[p for p in (root/'v').iterdir() if p.is_dir()];self.assertEqual(len(archives),1);self.assertEqual((archives[0]/'0.exit').read_text(),'9\n')
++        self.assertEqual({p.name for p in root.iterdir()},{'v'});self.assertFalse((Path(self.c['work'])/'place.attempt').exists())
++    def test_02_shell_bypasses(self):
++        for line in ('sbatch --comm=abc x','sbatch --comme abc','sbatch --job-na=other','sbatch -vJ other','SBATCH_JOB_NAME=other sbatch x','export SBATCH_COMMENT=abc','SLURM_X=abc sbatch x'):
++            with self.subTest(line=line):
++                with self.assertRaises(P.Rejected):P.shell_privacy(line)
++    def test_02_submit_receipt_argv(self):
++        for n,args in enumerate((['--comm=abc'],['-J','other'],['--job-na=other'])):
++            f=dict(self.f);f['2.json']=T.jd(dict(argv=['sbatch','--job-name='+P.PREFIX+self.b['token']]+args));p=P.extract(f,self.w/str(n))
++            with self.subTest(args=args):
++                with self.assertRaises(P.Rejected):P.privacy(p,self.c)
++    def test_02_native_submit_stub_argv(self):
++        f=dict(self.f);pay=P.untar(f['0.tgz']);s=pay['orchard_h10/common.py'];self.assertIn(b"'--parsable'",s)
++        pay['orchard_h10/common.py']=s.replace(b"'--parsable'",b"'--parsable', '--comm=abc'",1)
++        p=P.extract(T.seal(f,pay),self.w/'p');w=self.w/'q'
++        with self.assertRaises(P.Rejected):P.probe('fill',p,w,self.c)
++        self.assertIn('Slurm --comment is forbidden',(w/'0.log').read_text())
++    def test_03_native_forbidden_addition(self):
++        pay=P.untar(self.f['0.tgz']);pay['orchard_h10/common.py']=pay['orchard_h10/common.py'].replace(b"FORBIDDEN = (",b"FORBIDDEN = ('zz_private_term',",1)
++        p=P.extract(T.seal(self.f,pay),self.w/'p')
++        with self.assertRaisesRegex(P.Rejected,'Native FORBIDDEN'):P.structure(p)
++    def test_04_all_dependency_fields(self):
++        import pack_structural as S
++        base=P.read(self.p/'a/0.json')
++        for key in ('python','frames_root','sam_source','policy','env_roots','policy_receipt','environment_receipt'):
++            with self.subTest(key=key):
++                changed=copy.deepcopy(base);changed[key]='wrong'
++                with self.assertRaisesRegex(P.Rejected,'Dependency layout differs'):S.dependency_reference(changed,self.c)
++    def test_05_every_remote_action_requires_yes(self):
++        for phase in ('verify','place','fill'):
++            for yes,tok in ((False,self.b['token']),(True,'a123456789ab')):
++                with self.subTest(phase=phase,yes=yes):
++                    with patch.object(P,'checked',return_value=self.b):
++                        with self.assertRaisesRegex(P.Rejected,'--yes.*token'):P.execute(self.c,{},[phase],yes,tok,call=lambda k:subprocess.CompletedProcess([],0,b'complete\n',b''),sleeper=lambda n:None)
++    def test_05_print_preflight_before_place(self):
++        cfg=self.w/'c.json';P.write(cfg,self.c);out=io.StringIO()
++        with patch.object(P,'checked',return_value=self.b),patch.object(P,'plan',return_value=dict(preflight='/tmp/preflight.sh',place='/tmp/place.sh')),redirect_stdout(out):P.main(['place','--enable','--config',str(cfg)])
++        text=out.getvalue();self.assertIn('/tmp/preflight.sh',text);self.assertLess(text.index('/tmp/preflight.sh'),text.index('/tmp/place.sh'))
++    def test_06_placeholder_identity(self):
++        for old in ('REPLACE_SOURCE_TOKEN','REPLACE_SOURCE_PAYLOAD_SHA','REPLACE_SOURCE_PLAN_SHA','f'*65,'X'*12):
++            with self.subTest(old=old):
++                with self.assertRaisesRegex(P.Rejected,'Invalid old identity'):P.structure(self.p,dict(old_identities=[old]))
++    def test_07_operator_docs(self):
++        docs=Path(os.environ['PACK_DOCS']);note=(docs/'NOTE_FOR_CONT_OPS.md').read_text();orchard=(docs/'ORCHARD_ONLY_CHECKS.md').read_text()
++        self.assertIn('parts[i].sha256',note);self.assertIn('pack.py verify',note)
++        for word in ('a3.tar','10,240','05dc8f79','confirm header layout on the staged m544 part 0, read-only','Review round 3: finding -> fix -> test'):self.assertIn(word,orchard)
++    def test_07_native_archive_documented(self):
++        text=(Path(os.environ['PACK_DOCS'])/'ORCHARD_ONLY_CHECKS.md').read_text()
++        for word in ('a3.tar','10,240','05dc8f79'):self.assertIn(word,text)
++    def test_07_header_confirmation_documented(self):
++        text=(Path(os.environ['PACK_DOCS'])/'ORCHARD_ONLY_CHECKS.md').read_text()
++        self.assertIn('confirm header layout on the staged m544 part 0, read-only',text)
++
++if __name__=='__main__':P.limits();unittest.main(verbosity=2)
+--- /dev/null
++++ b/test_review4.py
+@@ -0,0 +1,161 @@
++"""Round-4 defect regressions; generated remote code executes locally on Python 3.6.8."""
++import copy, io, json, os, subprocess, sys, tarfile, time, unittest
++from contextlib import redirect_stdout
++from pathlib import Path
++from unittest.mock import patch
++sys.path.insert(0,os.environ.get('PACK_SOURCE',str(Path(__file__).parent)))
++import pack as P
++import test_review3 as R3
++
++class Base(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.root=Path(os.environ['PACK_R4_WORK']);cls.root.mkdir(exist_ok=True)
++        fixture=Path(os.environ['PACK_R4_FIXTURE']);cls.p=fixture/'p';cls.config=P.read(fixture/'config.json')
++        cls.f=P.package_files(cls.p);cls.d=fixture/'1.tgz';cls.plan=P.structure(cls.p)[3]
++        cls.b=dict(token=P.read(cls.p/'0.json')['token'],package=str(cls.p),delivery=str(cls.d),sha256=P.file_digest(cls.d),tree=P.fingerprint(cls.f))
++    setUp=R3.Review3.setUp
++    snippet=R3.Review3.snippet
++    receipt=R3.Review3.receipt
++    preflight=R3.Review3.preflight
++    refuse_before_place=R3.Review3.refuse_before_place
++    def local_parts(self):
++        for index,name in enumerate(self.c['fill']['parts']):
++            p=self.w/str(index);p.write_bytes(Path(self.mapping[name]).read_bytes());self.mapping[name]=str(p)
++    def localize(self,text):
++        for old,new in sorted(self.mapping.items(),key=lambda kv:-len(kv[0])):text=text.replace(old,new)
++        return text
++    def launch(self,label):
++        # Placement bytes are unrelated to receipt recovery and are covered by test_review3.
++        with patch.object(P,'place_code',return_value="raise AssertionError('not a placement test')"):
++            scripts=P.plan(self.c,self.b)
++        p=self.w/(label+'.sh');p.write_text(self.localize(Path(scripts['verify']).read_text()))
++        r=subprocess.run(['nice','-n','10','bash',str(p)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=P.environment(self.w),timeout=5)
++        return r
++    def wait_receipt(self):
++        end=time.monotonic()+5
++        while time.monotonic()<end:
++            if (self.remote/'v/0.txt').exists() or (self.remote/'v/0.exit').exists():break
++            time.sleep(.02)
++        self.assertTrue((self.remote/'v/0.txt').is_file(),(self.remote/'v/0.log').read_text())
++    def ready(self):
++        code=self.localize(self.preflight());r=self.snippet(code,'ready')
++        self.assertEqual(r.returncode,0,r.stderr);self.assertFalse((Path(self.c['work'])/'place.attempt').exists());self.assertFalse((self.remote/'a').exists())
++    def verify(self):
++        self.local_parts();r=self.launch('first');self.assertEqual(r.returncode,0,r.stderr);self.wait_receipt();self.ready()
++
++class Review4(Base):
++    def test_01_hardlink_ctime_does_not_stale(self):
++        self.verify();p=Path(self.mapping[self.c['fill']['parts'][1]]);old=p.stat();os.link(str(p),str(self.w/'link'))
++        self.assertNotEqual(p.stat().st_ctime_ns,old.st_ctime_ns);self.ready()
++    def test_01_chmod_does_not_stale(self):
++        self.verify();p=Path(self.mapping[self.c['fill']['parts'][1]]);old=p.stat();p.chmod(0o400)
++        self.assertNotEqual(p.stat().st_ctime_ns,old.st_ctime_ns);self.ready()
++    def test_01_client_device_does_not_stale(self):
++        self.verify();p=self.remote/'v/0.json';v=P.read(p)
++        for row in v['parts']:row['device']=row.get('device',0)+123456
++        P.write(p,v);self.ready()
++    def test_01_inode_is_not_persistent_key(self):
++        self.verify();p=self.remote/'v/0.json';v=P.read(p)
++        for row in v['parts']:row['inode']=row.get('inode',0)+123456
++        P.write(p,v);self.ready()
++    def test_01_success_is_idempotent(self):
++        self.verify();p=self.remote/'v/0.json';before=p.read_bytes();r=self.launch('again')
++        self.assertEqual(r.returncode,0,r.stderr);self.assertEqual(p.read_bytes(),before);self.ready()
++        self.assertEqual([p for p in (self.remote/'v').iterdir() if p.is_dir()],[])
++    def test_01_stale_success_rehashes_same_token(self):
++        self.verify();p=Path(self.mapping[self.c['fill']['parts'][1]]);s=p.stat();os.utime(str(p),ns=(s.st_atime_ns,s.st_mtime_ns+1000000000))
++        r=self.snippet(self.localize(self.preflight()),'stale');self.assertNotEqual(r.returncode,0);self.assertIn(b'stale',r.stderr)
++        r=self.launch('again');self.assertEqual(r.returncode,0,r.stderr);self.wait_receipt();self.ready()
++        archives=[p for p in (self.remote/'v').iterdir() if p.is_dir()];self.assertEqual(len(archives),1)
++        self.assertTrue((archives[0]/'0.json').is_file());self.assertEqual((archives[0]/'0.txt').read_text(),'0\n')
++    def test_01_binding_key_mismatch_can_reverify(self):
++        self.verify();p=self.remote/'v/0.json';v=P.read(p);v['parts'][1]['path']+='.old';P.write(p,v)
++        r=self.launch('again');self.assertEqual(r.returncode,0,r.stderr);self.wait_receipt();self.ready()
++    def test_02_noncanonical_paths_refuse_check(self):
++        for key in ('parts','done','config','receipt','data_receipt'):
++            original=self.c['fill'][key][0] if key=='parts' else self.c['fill'][key]
++            for path in (original.replace('/okh7/','/okh7//'),original.replace('/okh7/','/okh7/./'),original+'/',original.lstrip('/'),'//'+original.lstrip('/'),original.replace('/okh7/','/okh7/x/../')):
++                with self.subTest(key=key,path=path):
++                    c=copy.deepcopy(self.c)
++                    if key=='parts':c['fill'][key][0]=path
++                    else:c['fill'][key]=path
++                    c['remote_input_pins'][path]=c['remote_input_pins'][original]
++                    with self.assertRaisesRegex(P.Rejected,'canonical absolute'):P.export_identity(c,self.f,self.plan)
++    def test_03_policy_archive_is_sha_pinned(self):
++        manifest=P.read(Path(os.environ['PACK_DOCS'])/'REQUIRED_INPUTS.json');pin=next(p for p in manifest['inputs'] if p['group']=='native_dry2')
++        bad=self.w/'a3.tar';bad.write_bytes(b'x'*10240);pin=dict(pin,path=str(bad))
++        with self.assertRaisesRegex(P.Rejected,'hash differs'):P.required_inputs(dict(required_inputs=[pin]))
++        self.assertEqual(pin.get('bytes'),10240);self.assertEqual(pin.get('sha256'),'05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae')
++    def test_04_scheduler_variable_bypasses(self):
++        for line in ('SBATCH_JOB_NAME+=other sbatch x','printf -v SBATCH_JOB_NAME other','export SBATCH_JOB_NAME','read SBATCH_JOB_NAME','declare -x SBATCH_COMMENT','for SBATCH_JOB_NAME in a; do true; done','sbatch --admin-comment=x','printf -v SLURM_JOB_ID 12','SLURM_JOB_ID+=1 sbatch x','echo $SLURM_JOB_NAME','echo ${SLURM_JOB_ID:=12}'):
++            with self.subTest(line=line):
++                with self.assertRaises(P.Rejected):P.shell_privacy(line)
++    def test_05_dot_prefix_header_accepted(self):
++        p=self.w/'part';entry=tarfile.TarInfo('./m600/');entry.type=tarfile.DIRTYPE;p.write_bytes(entry.tobuf())
++        r=self.snippet(P.V.COMMON+'header(%r,"m600")\n'%str(p),'header');self.assertEqual(r.returncode,0,r.stderr)
++    def test_06_operator_docs_current(self):
++        docs=Path(os.environ['PACK_DOCS'])
++        for name in ('NOTE_FOR_CONT_OPS.md','REPORT.md'):
++            text=(docs/name).read_text()
++            with self.subTest(name=name):
++                self.assertNotIn('pack.py:7',text);self.assertIn('v/*',text)
++        inventory=(docs/'CHECK_INVENTORY.md').read_text();self.assertIn('verify receipt',inventory);self.assertIn('parts[i].sha256',inventory)
++        self.assertNotIn('hashes real archives[1:]',inventory)
++        self.assertIn('verify receipt',P.read(docs/'REQUIRED_INPUTS.json')['remote_check'])
++    def test_06_verify_failure_advises_safe_retry(self):
++        calls=[]
++        def call(k):calls.append(k);return subprocess.CompletedProcess([],1 if k=='verify_poll' else 0,b'',b'recorded failure')
++        with patch.object(P,'checked',return_value=self.b):
++            with self.assertRaises(P.Rejected) as error:P.execute(self.c,{},['verify'],True,self.b['token'],call=call,sleeper=lambda n:None)
++        self.assertIn('recorded failure permits explicit verify retry',str(error.exception));self.assertEqual(calls,['verify','verify_poll'])
++    def test_06_all_reuses_verified_build(self):
++        self.verify();P.write(P.state_root(self.c)/'BUILD.json',self.b);cfg=self.w/'c.json';P.write(cfg,self.c);calls=[]
++        def execute(c,scripts,phases,*args):
++            calls.extend(phases);r=self.launch('all_verify');self.assertEqual(r.returncode,0,r.stderr);self.ready()
++        with patch.object(P,'checked',return_value=self.b),patch.object(P,'local_check',return_value={}),patch.object(P,'execute',side_effect=execute),patch.object(P,'place_code',return_value='pass'),redirect_stdout(io.StringIO()):
++            try:rc=P.main(['all','--config',str(cfg),'--enable','--yes','--token',self.b['token'],'--execute-remote'])
++            except P.Rejected as error:self.fail('all cannot reuse verified build: '+str(error))
++        self.assertEqual(rc,0);self.assertEqual(calls,['verify','place','fill','cpu','gpu'])
++    def test_07_production_needs_old_identity(self):
++        for identities in ([],None):
++            c=dict(builder={'path':'unused'})
++            if identities is not None:c['old_identities']=identities
++            with self.subTest(identities=identities):
++                with self.assertRaisesRegex(P.Rejected,'old identity'):P.structure(self.p,c)
++    def test_07_ledger_precedes_verify_in_note(self):
++        text=(Path(os.environ['PACK_DOCS'])/'NOTE_FOR_CONT_OPS.md').read_text()
++        self.assertLess(text.index('Reserve the built token'),text.index('pack.py verify'))
++        self.assertIn('finish every link and chmod',text)
++
++class Safety4(Base):
++    def test_recovery_lock_refuses_concurrent_launcher(self):
++        import fcntl
++        self.verify();p=Path(self.mapping[self.c['fill']['parts'][1]]);s=p.stat();os.utime(str(p),ns=(s.st_atime_ns,s.st_mtime_ns+1000000000))
++        before=(self.remote/'v/0.json').read_bytes()
++        with (self.remote/'v/0.lock').open('a') as lock:
++            fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB);r=self.launch('locked')
++            self.assertNotEqual(r.returncode,0);self.assertEqual((self.remote/'v/0.json').read_bytes(),before)
++        r=self.launch('unlocked');self.assertEqual(r.returncode,0,r.stderr);self.wait_receipt();self.ready()
++    def test_uncertain_and_placed_verify_refuse(self):
++        self.verify();(self.remote/'v/0.txt').write_text('partial')
++        r=self.launch('uncertain');self.assertNotEqual(r.returncode,0)
++        (self.remote/'v/0.txt').write_text('0\n');(self.remote/'a').mkdir()
++        r=self.launch('placed');self.assertNotEqual(r.returncode,0);self.assertIn(b'after placement',r.stderr)
++    def test_wrong_bytes_after_success_never_authorize_place(self):
++        self.verify();p=Path(self.mapping[self.c['fill']['parts'][1]]);raw=p.read_bytes();p.write_bytes(bytes([raw[0]^1])+raw[1:])
++        r=self.launch('again');self.assertEqual(r.returncode,0,r.stderr)
++        end=time.monotonic()+5
++        while not (self.remote/'v/0.exit').exists() and time.monotonic()<end:time.sleep(.02)
++        self.assertFalse((self.remote/'v/0.txt').exists());self.assertFalse((self.remote/'v/0.json').exists())
++        self.assertIn('sha256 differs',(self.remote/'v/0.log').read_text());self.assertFalse((Path(self.c['work'])/'place.attempt').exists())
++        r=self.snippet(self.localize(self.preflight()),'bad');self.assertNotEqual(r.returncode,0)
++    def test_only_job_id_reads_allowed(self):
++        for line in ('echo "$SLURM_JOB_ID"','echo "${SLURM_JOB_ID}"','J=${SLURM_JOB_ID:-0}'):P.shell_privacy(line)
++    def test_header_rejections_remain(self):
++        for i,name in enumerate(('./m544/','../m600/','././@PaxHeader','./')):
++            p=self.w/str(i);entry=tarfile.TarInfo(name);entry.type=tarfile.DIRTYPE;p.write_bytes(entry.tobuf())
++            r=self.snippet(P.V.COMMON+'header(%r,"m600")\n'%str(p),'bad'+str(i));self.assertNotEqual(r.returncode,0)
++    def test_builder_free_fixture_still_allowed(self):P.structure(self.p,dict(old_identities=[]))
++
++if __name__=='__main__':P.limits();unittest.main(verbosity=2)
+--- /dev/null
 +++ b/test_support.py
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,95 @@
 +"""Bounded fixtures derived from the authenticated supplied B5 package."""
 +import ast, io, json, re, tarfile
 +from pathlib import Path
@@ -2136,6 +2615,15 @@
 +D=INPUT/'cont_ops18/dbuild'
 +R=INPUT/'cont_ops17/work'
 +def jd(v):return (json.dumps(v,sort_keys=True,indent=2)+'\n').encode()
++def verification_fixture(c,b,w):
++    """A real hash receipt for tiny fixtures; never a production shortcut."""
++    root=Path(w)/'vroot';(root/'v').mkdir(parents=True,mode=0o700)
++    rows=[]
++    for name in c['fill']['parts']:
++        p=Path(c['mirrors'][name]['path']);s=p.stat()
++        rows.append(dict(path=name,bytes=s.st_size,mtime_ns=s.st_mtime_ns,ctime_ns=s.st_ctime_ns,device=s.st_dev,inode=s.st_ino,sha256=P.file_digest(p)))
++    P.write(root/'v/0.json',dict(schema=1,parts=rows));(root/'v/0.txt').write_text('0\n')
++    return {P.remote_path(b):str(root)}
 +def seal(f,pay=None):
 +    f=dict(f)
 +    if pay is not None:

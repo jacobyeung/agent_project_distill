@@ -11,7 +11,7 @@ from student_pilot.p3_provenance import load,file_pin
 class Absence22(unittest.TestCase):
  @classmethod
  def setUpClass(cls):
-  cls.cfg=load(D/'inputs/config.json');cls.cfg['r1_training']['not_present_slots']=list(A.PREFIXES)
+  cls.cfg=load(D/'inputs/config.json');cls.cfg['r1_training']['not_present_slots']=list(A.SLOT_CODES)
   cls.model=A.build(cls.cfg)
   p=D/'proofs/absence';p.mkdir(parents=True,exist_ok=True)
   cls.pin=file_pin(p/'heads.pt') if (p/'heads.pt').exists() else None
@@ -49,6 +49,27 @@ class Absence22(unittest.TestCase):
   self.assertTrue(hasattr(model.auxiliary_heads,'frame_embeddings'))
   with self.assertRaisesRegex(ValueError,'CONFIG_NAMES'):
    A.prove(cfg,model,model.state_dict(),'heads_frame_embeddings',self.pin)
+ def test_proof_authentication_mutations(self):
+  slot='heads_frame_embeddings'
+  with self.assertRaisesRegex(ValueError,'NATIVE_BUILDER_REQUIRED'):
+   A.prove(self.cfg,torch.nn.Identity(),self.state,slot,self.pin)
+  saved=self.model.geometry_online
+  try:
+   self.model.geometry_online={'unexpected':True}
+   with self.assertRaisesRegex(ValueError,'BUILDER_CONFIG_DIFFERS'):
+    A.prove(self.cfg,self.model,self.state,slot,self.pin)
+  finally:self.model.geometry_online=saved
+  with self.assertRaisesRegex(ValueError,'STATE_INVENTORY_REQUIRED'):A.evidence(self.cfg,{})
+  p=D/'proofs/absence/invalid_state.pt';torch.save([torch.zeros(1)],p)
+  with self.assertRaisesRegex(ValueError,'STATE_INVENTORY_INVALID'):A.evidence(self.cfg,{'heads':file_pin(p)})
+  cfg=deepcopy(self.cfg);cfg['r1_training']['not_present_slots']=[slot,slot]
+  with self.assertRaisesRegex(ValueError,'SLOT_FORBIDDEN'):A.evidence(cfg,{'heads':self.pin})
+  cfg['r1_training']['not_present_slots']=[];self.assertEqual(A.evidence(cfg,{}),{})
+  entry=A.evidence(self.cfg,{'heads':self.pin})[slot]
+  bad=deepcopy(entry);bad['record']['schema']='unverified'
+  with self.assertRaisesRegex(ValueError,'RECORD_INVALID'):A.verify(bad,self.cfg,slot)
+  cfg=deepcopy(self.cfg);cfg['geometry_connector']='unexpected'
+  with self.assertRaisesRegex(ValueError,'CONFIG_DIFFERS'):A.verify(entry,cfg,slot)
  def test_official_boundary_failing_before_and_current_tensor_refusal(self):
   import importlib.util
   from student_pilot import r2_policy as P

@@ -1,25 +1,39 @@
-VERDICT: DONE The five requested round-3 findings are fixed and CPU-verified; GPU adoption remains gated.
+VERDICT: DONE All requested round-5 fixes pass CPU validation; GPU adoption remains gated.
 
-Measured validation: **91 workspace tests and 88 fresh-application tests pass**. All report suites and failing baselines were rerun. Four patches apply exactly; ordinary OFF bytes remain unchanged. The backup is out_round3/.
+**Measured validation: 102 workspace tests and 21 fresh-application tests pass.** Five patches apply with zero fuzz; all original reader bytes and complete OFF output bytes remain unchanged. The round-5 regressions produce 11 expected assertion failures on the reviewed implementation.
 
-Measured CPU validation/cache overhead falls from **356.5 to 25.9 ms/call** on a 268M-parameter bf16 stub; **731.2 to 52.6 ms/call** on a 537M-parameter stub. These are not GPU speedups. Weights hash at install/type boundaries; calls check ids, pointers and counters. Persistent raw writes fail at boundaries. Raw writes restored between boundaries remain unsupported.
+**Adopt only after the exact package/profile passes the zero-difference GPU gate.** Step 600 uses A4's 636-item schedule, one card, caches only, general/no-requeue. The all-cache allowance is 12 GiB; processor-only uses 4 GiB and must pass its own gate. No GPU or production launch ran here.
 
-Measured distance time remains **23.60 s/item**. Estimated 580-item times, with no cache saving credited: **3 h 50 min** on one card; **1 h 56 min / 59 min** for ideal two/four shards. These estimates exclude queues, staging, preemption and scene imbalance.
+Set the roots and reviewed target binding using the [README](kit_parity50/README.md), then build:
 
-## Review round 3: finding -> fix -> test
+```bash
+CUDA_VISIBLE_DEVICES= nice -n 10 "$READ_PYTHON" -I -s -B "$EXT_SOURCE/u0/a19.py" \
+  --enable-extensions --base-operator "$LOCAL/a4" --source-root "$EXT_SOURCE" \
+  --manifest "$DELIVERY/patches/MANIFEST.json" --extension-pins "$DELIVERY/kit_parity50/EXTENSION_PINS.json" \
+  --export-binding "$STEP600_BINDING" --token "$PACKAGE_TOKEN" --out "$LOCAL/step600"
+```
 
-| Finding | Fix and evidence |
+Add `--processor-only` for that profile. The README supplies executable binding, delivery, placement, fill, dry-check, allocated-proof, GPU-gate, submit, fetch and unpack commands. `prep_paths` supplies paths; preparation_sha256 supplies pins. The synthetic test binding is not production evidence.
+
+The generated submit script requires CPU payload/plan/inputs/operator bindings, entry/bundle success, the exact cache allowance and fits=true, both dry checks, an empty general queue, and a return pool at most 75,000,000 bytes. The GPU gate binds A4 prepare output plus operator overrides. Require zero answer/trace byte differences, useful hits, lower total worker time and measured host/GPU headroom.
+
+**Forecast scope:** Package D is the 580-item distance read, a B5 fork with 03:30 walltime; it has **no ON route** in a19. Its one-card **estimate** is 13,813.069 s (3 h 50 min), based on measured 23.600 s/item. For the **636-item** A4 read that a19 builds, the **estimate** is **7,351.824 s (2 h 02 min 32 s; 11.559 s/item)**, carrying forward A4's supplied total with zero assumed saving. Neither is a measured step-600 result; queue/staging time and target-specific cache costs are excluded.
+
+A refused unpack leaves its tree behind. Scorers must use only unpack's **success output after exit status 0**; an existing directory proves nothing. The README's command chains that handoff with `&&`. Successful partial returns remain partial. Hard kills may require fresh journals.
+
+## Review round 5: finding -> fix -> test
+
+| Finding | Fix and test |
 |---|---|
-| 1. Weight cost | Install/boundary hashes and fatal mutation guards; no per-call weight reads. Processor-only settings/build switches. Mutation, journal/resume/public-merge, 50-item exact-byte and timed stub tests pass. |
-| 2. Operator path | Real bootstrap admission/preparation/dispatch and stub workers validate 636 items and the nested return. ON adds read_cache_bytes; OFF memory proof is equal. Both regressions fail before. |
-| 3. Base source | Both complete 927-file inventories authenticate against MANIFEST. Equal wrong bases and altered inventories fail before any arm. |
-| 4. Weak tests | Both behavioral deadline/lock tests fail against round-1-before a4 and pass after. Actual worker setup fails on the F16 baseline and passes after. |
-| 7. OFF guard | The guard lists a0–a18. All eight omitted modules fail before; OFF byte tests still pass. |
+| 1 MEDIUM | Exact wrap_batch output includes exclusion, EXIT log and USR1 forwarding; the built package passes a/5.py's bundle guard. |
+| 2 LOW | Pre-copy payload/operator/extension/alias pins; tampered inputs are refused before output. |
+| 3 LOW | Executable binding/delivery/place/fill/dry/CPU/submit/fetch/unpack steps; actual submit preflight refuses incomplete memory evidence and an oversized pool. |
+| 4 LOW | Gate derives and validates the built package's prepared per-read profile; both cache profiles pass, mismatches fail. |
+| 5 INFO | Package D and A4 forecasts are separately scoped estimates; documentation tests require both. |
+| 7 INFO | Refused trees remain unscoreable; documentation tests require the success-output handoff. |
 
-**Step 600 uses single-card ON with caches only**, after the GPU gates. Build with --enable-extensions --caches-only and the delivered A4 operator inputs. Add --processor-only to adopt only the processor cache; it disables both model caches and journal/shard extensions. Sharded reads need a multi-card operator, which is not delivered within the requested approximately 80-line limit. The two/four-shard estimates are conditional, not launch plans.
+All six findings have fail-before/pass-after regressions. GPU parity, real restore/storage/transport/requeue and a multi-card operator remain unrun or undelivered.
 
-Apply 01–03 from src and 04 from a separate A4 operator copy. Rebuild payload/operator/CPU-proof pins and bind the target item schedule; the supplied operator retains 636 items. The atomic merge uses metadata/reads/0/metadata/u0; cache-only adoption keeps ordinary journals. The host bound includes the 12 GiB SAM cache allowance; full-process memory remains unmeasured.
+The workspace briefly exceeded 3 GB. Sharing identical fixture files preserved every path and byte. The report retains the failed resource check and corrected size.
 
-Before adoption, run ORIGINAL/OFF/OFF_REPEAT/ON/journal/sharded GPU gates with every switch ON and **zero answer/trace byte differences**, positive hits, net time savings and memory/envelope headroom. Require real persistent-storage requeue before any preempt/sharded adoption. Unverified weight journals fail closed; graceful verified deadlines can resume. Source trees must stage as archives and the kit must use --public. Array approval stays false; no launch ran. Preserve step-400 deliveries.
-
-Exact commands, outputs, source citations and limits: [REPORT.md](REPORT.md). Build and gate commands: [README.md](kit_parity50/README.md). Patch/base pins: [MANIFEST.json](patches/MANIFEST.json).
+Exact commands, outputs and limitations: [REPORT](REPORT.md). Pins: [MANIFEST](patches/MANIFEST.json).

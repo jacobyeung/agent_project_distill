@@ -21,10 +21,10 @@ The delivered gains remain hypotheses until this kit produces production measure
 The smaller kit reads real staged rows and runs the real processor, without model/FSDP/optimizer work. It supports `--gpu-copy` and optional `--pin`; CPU is the default. ON arms require the OFF output and compare every encoded batch/target row SHA-256, including shape, dtype and raw tensor bytes. It also compares each ordered `row_draws` triple (stream, planned index, admitted candidate). The `all` arm tests prefetch plus decoded caching together. All arms also require unchanged global Python/NumPy/torch RNG state.
 
 ```bash
-python out/kit_timing/data_only.py --tree "$TREE" --receipt "$RECEIPT" \
+python out/kit_timing/data_only.py --tree "$TREE" --receipt "$AUDIT_DIR/prepared_receipt.json" \
   --manifest "$BASE_MANIFEST" --config "$CONFIG" --plan "$PLAN" \
   --out "$OUT/data_off.json" --arm off
-python out/kit_timing/data_only.py --tree "$TREE" --receipt "$RECEIPT" \
+python out/kit_timing/data_only.py --tree "$TREE" --receipt "$AUDIT_DIR/prepared_receipt.json" \
   --manifest "$BASE_MANIFEST" --config "$CONFIG" --plan "$PLAN" \
   --out "$OUT/data_all.json" --arm all --baseline "$OUT/data_off.json"
 ```
@@ -33,10 +33,26 @@ For continuation acceptance, first run `write_plan.py --tree "$TREE" --config "$
 
 Run `data_only.py --steps 10 --require-coverage` for four rank projections and OFF/prefetch arms, serially, in separate processes. The exact commands are in [NOTE_FOR_TREE_REBUILD.md](../NOTE_FOR_TREE_REBUILD.md). This audit costs about 42 minutes estimated from the supplied data timer; allow 45–60 minutes including startup and hashing. `--full-plan` audits every supplied plan; the acceptance plan contains 10 updates.
 
-The kit requires actual nonzero augmented pose calls, records worker thread names, and checks every emitted processor grid against `[32,20,26]`. It refuses missing augmented-pose coverage. Sidecars record the continuation step/pin, checked plans, grid and augmentation coverage, group tensor bytes including targets/audits, and Linux process `peak_rss_bytes`. RSS includes the worker's deep-copied receipt/processor and all startup allocations. The default 1-GiB group guard still applies; the audit keeps optional fallback OFF. `align_settings` follows the receipt so teacher-aligned pose targets receive the real validation.
+The kit requires actual nonzero augmented pose calls, records worker thread names, and checks positive emitted processor grids with `t <= 32` and `h*w <= 576` in either orientation. It refuses missing augmented-pose coverage. Sidecars record the continuation step/pin, checked plans, grid and augmentation coverage, group tensor bytes including targets/audits, and Linux process `peak_rss_bytes`. RSS includes the worker's deep-copied receipt/processor and all startup allocations. The default 1-GiB group guard still applies; the audit keeps optional fallback OFF. `align_settings` follows the receipt so teacher-aligned pose targets receive the real validation.
 
 This audit compares hashes and row draws, with unchanged Python/NumPy/torch RNG. It does not load a model or prove GPU loss/gradient equality. Hash time is included in wall time and reported separately. GPU-copy and simulated-consumer variants cannot establish a training speedup. Run on the actual production processor; the local CPU environment lacks torchvision.
 
-For a short numerical acceptance replay, use [kit_profile/replay.sh](../kit_profile/replay.sh), not the long precision experiment above. It runs OFF, OFF, ON, one update each from the same checkpoint and audited plan. `replay_compare.py` requires bitwise ON losses when OFF repeats agree, otherwise ON deviations no larger than the per-scalar OFF spread, with identical CPU inputs in either case. It also requires ON step provenance. Estimated wall time is 30–60 minutes total; each leg has a 60-minute limit and no automatic retry. This acceptance policy is separate from the long timing experiment's stricter bitwise parity gate.
+For a short numerical acceptance replay, use [kit_profile/replay.sh](../kit_profile/replay.sh), not the long precision experiment above. It runs OFF, OFF, ON, one update each from the same checkpoint and audited plan. `replay_compare.py` requires bitwise ON losses when OFF repeats agree, otherwise the maximum ON-to-either-OFF deviation across all four ranks is at most twice the maximum OFF-to-OFF deviation across all four ranks (fixed multiplier 2), with identical CPU inputs in either case. It also requires ON step provenance. Estimated wall time is 50–75 minutes total; each leg has a 60-minute limit and no automatic retry. This acceptance policy is separate from the long timing experiment's stricter bitwise parity gate.
 
 Both GPU kits refuse another compute process on a target or free memory below 76,699 MiB, the supplied production peak. The timing wrapper checks all visible targets before each arm; each rank checks its own target before `train()`. An unreadable GPU probe fails closed. These checks do not replace the existing allocation/admission requirement.
+
+The continuation plan writer calls the trainer’s `prepared(cfg)` and writes the private merged `prepared_receipt.json` beside the plan. Use that file for both arms. Grid coverage accepts `t <= 32` and `h*w <= 576` with positive dimensions in either orientation; `observed_max_grid` is an actual maximum-volume grid. The hand-over note defines the fixed pooled replay threshold and numeric continuation kill rules.
+
+`--manifest` must match the merged receipt's exact `model` path/SHA256 pin;
+the audit verifies it before processor construction. The spatial cap is derived
+from trainer `longest_edge` and installed `smart_resize`; the handover note gives
+both source locations, the arithmetic and simulation false-refusal rates.
+
+Use `continuation_check.py --replay-out "$REPLAY_OUT" --continuation
+"$CONTINUATION_METRICS" --first-only` for immediate pooled first-update losses.
+After update 21, replace `--first-only` with `--launch "$LAUNCH_METRICS"` to
+require the slowest-rank wall median ratio over updates 2–21 versus the launch's
+last 20 updates to be strictly below 1.00. Both commands are read-only and return
+nonzero on refusal. The complete executable commands and prerequisites are in
+the handover note. Per-rank acceptance fields are diagnostic; replay admission
+uses only the global pooled result.

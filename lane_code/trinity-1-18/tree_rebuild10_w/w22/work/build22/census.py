@@ -67,7 +67,7 @@ print('PASS full v7 census',dict(counts),flush=True)
 sources=load(pinned(value['row_sources']));chunk=O/'chunk';chunk.mkdir(exist_ok=True)
 memory=sqlite3.connect(':memory:');memory.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
 reader=Rows(dict(streams={},r1_training=value,extent_receipt=cfg['extent_receipt'],remove_files=cfg['remove_files']),None);reader.connections['routing']=memory
-slice_counts={}
+slice_counts={};refusal_examples={}
 for kind in C.source_names(sources):
  pin=sources[kind]['source'];n=Counter();errors=Counter();cell='coverage' if kind in C.PINS else kind
  with pinned(pin).open() as f:
@@ -82,6 +82,12 @@ for kind in C.source_names(sources):
    mp=envelope(chunk,normalized,'routing',kind);manifest=load(mp);manifest['extent_receipt']=cfg['extent_receipt'];write(mp,manifest)
    items,report=intake(mp);n['read']+=len(lines);n['intake_admitted']+=len(items)
    errors.update('intake:'+r['reason'] for r in report['refusals'])
+   for r in report['refusals']:
+    key=kind+':'+r['reason']
+    if key not in refusal_examples:
+     sample=next(x for x in normalized if x['qid']==r['qid'])
+     refusal_examples[key]=dict(refusal=r,row=sample)
+   write(O/'REFUSALS.json',refusal_examples)
    for item in items:
     row=item['row']
     if row.get('events') and not row.get('routing'):
@@ -100,7 +106,8 @@ for kind in C.source_names(sources):
 reader.close()
 previous=load(L/'work/build18/proofs/rooms/RESULT.json')['allocation']['eligible']
 eligible=dict(previous)
-for cell in load(L/'work/build16/proofs/census/CENSUS.json')['vqa']['eligible_by_cell']:eligible[cell]=counts[cell]
+for cell in load(I/'mix.json')['cells']:
+ if cell['stream']=='vqa':eligible[cell['type']]=counts[cell['type']]
 for name in ('recovery','absolute_distance','units','camera_wording'):eligible[name]=slice_counts[name]['counts'].get('eligible',0)
 eligible['coverage']=sum(slice_counts[name]['counts'].get('eligible',0) for name in C.PINS)
 card=load(I/'mix.json');allocation=r1_mix.allocate(card,eligible)

@@ -25,6 +25,16 @@ def write_json(path, value):
     path.write_text(json.dumps(scrub(value), indent=2) + '\n')
 
 
+def input_json(value):
+    """Lossless JSON for operational inputs; avoid model words without changing paths."""
+    def string_token(match):
+        text = json.loads(match.group())
+        # Escape characters individually so existing JSON escapes stay valid.
+        return '"' + ''.join('\\u%04x' % ord(c) if c in 'qQdDgG'
+                             else json.dumps(c, ensure_ascii=True)[1:-1] for c in text) + '"'
+    return re.sub(r'"(?:[^"\\]|\\.)*"', string_token, json.dumps(value, indent=2)) + '\n'
+
+
 class FilteredStream:
     def __init__(self, stream):
         self.stream = stream

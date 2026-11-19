@@ -1,30 +1,39 @@
 {
   "cwd": "/scratch/jjyeung/orch_n30/so_pack_a",
-  "note": "before.log ran the 14-method test file before test_01_wrong_part_sum was added; before_sum.log covers that method separately. Both use the same untouched reviewed runtime. before_evidence.log uses the preserved pre-round-1 runtime.",
   "runs": [
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before PACK_R2_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before_tests PACK_R2_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out_round1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/src/test_review2.py > work/r2/before.log 2>&1",
-      "expected_failure": true,
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before.log",
-      "name": "New defect regressions",
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/before PACK_R4_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/before PACK_R4_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out_round3 /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/run_test.py /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_final/test_review4.py Review4 > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/before.log 2>&1",
+      "expected_returncode": 1,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/before.log",
+      "name": "before",
       "returncode": 1,
-      "sha256": "397f94d5fd65f0c013acced36b2e77308bf6fb992c4caab3ca10cab443091526"
-    },
-    {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before PACK_R2_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before_sum PACK_R2_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out_round1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/src/test_review2.py Review2.test_01_wrong_part_sum > work/r2/before_sum.log 2>&1",
-      "expected_failure": true,
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before_sum.log",
-      "name": "Part-sum defect",
-      "returncode": 1,
-      "sha256": "bf210e2723a9501c200d716fdd05c8543fad3dda41b705c8f76838e139b0a642"
-    },
-    {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r1/baseline PACK_REVIEW_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before_evidence PACK_REVIEW_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/src/test_review.py Review.test_r6_login_runtime_guard_submit_pool Review.test_r11_login_exact_delivery > work/r2/before_evidence.log 2>&1",
-      "expected_failure": true,
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/before_evidence.log",
-      "name": "Guard interpreter and recorded-delivery defects",
-      "returncode": 1,
-      "sha256": "dc0d5704159828a824f8093fa0316ae4dedf56a05711278ec7d908f60c126495"
+      "sha256": "9f4e1aeeae634450654e480664a544dc725f805eee21999757d4018eaeaabbe8",
+      "started": "Thu Nov 19 14:30:09 UTC 2026",
+      "workspace_allocated_bytes": 2546561024
     }
-  ]
+  ],
+  "source": {
+    "check_required_inputs.py": "d87df6ae6a085af27d5c12f7e26bf840b9d3ea4806fe3ca54a2c6b2c8a0c4af0",
+    "out/CHECK_INVENTORY.md": "0e53517433085ce1eacaef1b9ede75af4f615c925306f22bcba0838cb81191a6",
+    "out/DEFECT_MATRIX.md": "b36603134bdb44cf49cd577456cab6cdae37de1c8d0f4fc2c0db78d04946613c",
+    "out/FRAMEWORK_SOURCES.md": "cd15be634184dfae31e3b477ad828842e8939187913d5c43708f182b95c9f806",
+    "out/NOTE_FOR_CONT_OPS.md": "284e6da3cbe8b7a3810b55106988ec420c5e8b283297b049c67e22c98c7ce04d",
+    "out/ORCHARD_ONLY_CHECKS.md": "c1378395a34ddbce9e3d66864aac707ab6d56960f5726f9084b57b3a66a836b6",
+    "out/PATCHES.md": "cf668875d9ced1086cfcabc2d1c3dd3ce1ac4f48375c113416838762eb7a81b1",
+    "out/REQUIRED_INPUTS.json": "c5b5b5c2c593c8a266ade27b8097172df2a903db7bb4272a60fabcf0eccc0587",
+    "out/config_step600.example.json": "e272d52ce39aa31eb3906dec0c90de4c7b1a837851e9c5fa638febb20f4d2347",
+    "pack.py": "ff758806306d37105870903233d9115eafdc93ee54bee399c2be4e9d032833eb",
+    "pack_checks.py": "302befc58cdc180135b4fd66001bd6bb8e90b1102c942509cfd5a22a621bfe36",
+    "pack_structural.py": "94742e45a8b13c28cd4ca17593a9cf1458e1195cf7f72bc7b6cbd1c32820ef56",
+    "pack_token.py": "02eb8ca5e98402343fcadea608c4e43f4890322d6c7a117e7d95e9b662637559",
+    "pack_verify.py": "6c9997484577039788cfab7621588b52dcafcbc9929940d6f713392c80c0ff52",
+    "test_native.py": "d0b1aa763b11623443cde2a14604a55569414790a25151a4fb8f97711aa2d4a6",
+    "test_pack.py": "5723067363615ebc8d4682b91b2815f3e55d2a75556760866afa6349ba071556",
+    "test_pack_token.py": "0e06c49f06420df001a13848781efa06528493a4238e2c787b487bbb2efb76da",
+    "test_review.py": "8f1d99d295804d07d6a72bc8e950eee717f8a8a53c2c64de8a06f2348e98ec1b",
+    "test_review2.py": "3c0863ba4fdf1e70e90b6b9c399bfca2e06aa9f8c1e8dcc904fefb3ab5e24c55",
+    "test_review3.py": "97297d57cec6b403f4a3cac10a17ca42253d85a524408347647424c3a2fd4fe6",
+    "test_support.py": "3715d4f22ee49788045fa2dd9e0b299bae9be8e6a2950eee0fca318abd4782f8"
+  },
+  "test_sha256": "60c85ce6a0ba726e1104b3c5f1b89648d2f55229b0d97d5786a14b7a4ff9550a"
 }

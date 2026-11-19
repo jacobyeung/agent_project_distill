@@ -1,0 +1,19 @@
+{
+  "cwd": "/scratch/jjyeung/orch_n30/so_pack_a",
+  "note": "All 22 methods fail on defect assertions, including subtests; there are no errors or KeyError failures. The separate runner path setup diagnostic is retained under work/r3/final/SETUP_DIAGNOSTIC.json and is not defect evidence.",
+  "runs": [
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_SOURCE=/scratch/jjyeung/orch_n30/so_pack_a/work/r3/before PACK_R3_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r3/final/before_final PACK_R3_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out_round2 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r3/applied_final/test_review3.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r3/final/before_final.log 2>&1",
+      "expected_returncode": 1,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r3/final/before_final.log",
+      "name": "before_final",
+      "returncode": 1,
+      "sha256": "18aa990d9dce9d6dd3a02a064005497cf44cbd930783e13b10dbf3d5ac13b7bd",
+      "started": "2026-11-19 13:30:15 UTC (enclosing date -u)"
+    }
+  ],
+  "source": "/scratch/jjyeung/orch_n30/so_pack_a/work/r3/before",
+  "source_matches": "out_round2/TOOL_SHA256.json",
+  "test_sha256": "97297d57cec6b403f4a3cac10a17ca42253d85a524408347647424c3a2fd4fe6",
+  "test_source": "/scratch/jjyeung/orch_n30/so_pack_a/work/r3/applied_final/test_review3.py"
+}

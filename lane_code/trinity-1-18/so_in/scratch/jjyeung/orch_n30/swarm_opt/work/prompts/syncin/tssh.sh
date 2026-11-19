@@ -1,0 +1,14 @@
+#!/bin/bash
+# Rate-limited ssh into a Trinity compute node for agents running on one host.
+# Usage: tssh.sh <node> [remote command...]   (stdin is passed through, e.g. 'bash -s' < script)
+# Holds a host-local lock so all callers on this host together make at most one ssh start per 35 s.
+set -u
+N=$1; shift
+case "$N" in trinity|trinity.vision.cs.cmu.edu|trinity-2-18*) echo "REFUSE $N" >&2; exit 2;; esac
+L=/scratch/jjyeung/.tssh_$(hostname -s); mkdir -p "$L"
+exec 9>"$L/lock"; flock 9
+last=$(cat "$L/last" 2>/dev/null || echo 0); now=$(date +%s); wait=$(( last + 35 - now ))
+(( wait > 0 )) && sleep "$wait"
+date +%s > "$L/last"; echo "$(date -u +%FT%TZ) $N $*" | cut -c1-200 >> "$L/log"
+flock -u 9
+exec timeout 900 ssh -o ConnectTimeout=20 -o BatchMode=yes "$N" "$@"

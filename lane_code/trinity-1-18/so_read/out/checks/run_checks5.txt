@@ -1,0 +1,28 @@
+cache: OK
+journal: OK
+off: OK
+public: OK
+round1: OK
+round2: OK
+round3: OK
+operator3: OK
+lock3: OK
+round4: CPU step-600 fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/cec5e6f9e5794ff197ad5f449345ec32
+round5: {"passed": true, "pool_bytes": 75000000}
+kit: OK
+kit_launch: OK
+PASS: all 8 round-1 regressions fail against the round-1 reviewed implementation.
+PASS: all 13 round-2 regressions fail against the round-2 reviewed implementation (14 failures including both CLI variants).
+PASS: round3_before reproduces FAILED (failures=15).
+PASS: operator3_before reproduces FAILED (failures=2).
+PASS: lock3_before reproduces FAILED (failures=2).
+PASS: round5_before reproduces FAILED (failures=11).
+PASS: round4_before reproduces FAILED (failures=7, skipped=1).
+PASS: node4_before reproduces FAILED (failures=1).
+PASS: f16_behavior_before reproduces FAILED (failures=1).
+PASS: Python syntax, shell syntax, and default-off execution guards.
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_read/work/run_checks.py", line 96, in <module>
+    assert report['workspace_bytes']<3_000_000_000
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

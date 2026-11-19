@@ -1,6 +1,12 @@
 """Observe the real processor and augmentation calls; do not substitute audit rows."""
 from contextlib import contextmanager
 import threading
+import math
+
+# batches.py:155 supplies 32*384*384 pixels; installed smart_resize:50-57
+# bounds 32*h_pixels*w_pixels; patch_size=16 gives 384**2 / 16**2 = 576.
+MAX_T = 32
+MAX_SPATIAL_AREA = (32 * 384 * 384) // (32 * 16 * 16)
 
 
 class Coverage:
@@ -9,6 +15,7 @@ class Coverage:
         self.augmentation_threads = set()
         self.max_grid = [0,0,0]
         self.grid_rows = 0
+        self.observed_grids = set()
 
     @contextmanager
     def augmentation(self, module):
@@ -30,9 +37,12 @@ class Coverage:
             if key not in batch:
                 continue
             for grid in batch[key].tolist():
-                if len(grid) != 3 or any(v <= 0 or v > cap for v,cap in zip(grid,(32,20,26))):
-                    raise ValueError('Processor output exceeds audited grid cap [32,20,26]')
-                self.max_grid = [max(a,b) for a,b in zip(self.max_grid,grid)]
+                if (len(grid) != 3 or any(v <= 0 for v in grid)
+                        or grid[0] > MAX_T or grid[1] * grid[2] > MAX_SPATIAL_AREA):
+                    raise ValueError('Processor output exceeds audited grid cap: t <= 32, h*w <= 576')
+                if math.prod(grid) > math.prod(self.max_grid):
+                    self.max_grid = list(grid)
+                self.observed_grids.add(tuple(grid))
                 self.grid_rows += 1
 
     def require(self, prefetch=False):

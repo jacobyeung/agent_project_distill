@@ -1,0 +1,1052 @@
+{
+  "b/f.sh": {
+    "bindings": [
+      {
+        "expression": "export CUDA_VISIBLE_DEVICES=\"\"",
+        "line": 4,
+        "names": [
+          "CUDA_VISIBLE_DEVICES"
+        ]
+      }
+    ],
+    "reason": "Fixed identifier assignments, exports, read targets and loop targets in this exact reviewed program; runtime path/input values are allowed only for these names. No computed environment key or indirect export occurs.",
+    "runtime_literal_names": [
+      "CUDA_VISIBLE_DEVICES"
+    ],
+    "sha256": "1889a144d85a2284b3301710055808f4e875f16e41a44ec72a608c877b83017c"
+  },
+  "b/q.sh": {
+    "bindings": [
+      {
+        "expression": "ROOT=\"$(dirname \"$(dirname \"$(readlink -f \"${BASH_SOURCE[0]}\")\")\")\"",
+        "line": 3,
+        "names": [
+          "ROOT"
+        ]
+      }
+    ],
+    "reason": "Fixed identifier assignments, exports, read targets and loop targets in this exact reviewed program; runtime path/input values are allowed only for these names. No computed environment key or indirect export occurs.",
+    "runtime_literal_names": [
+      "ROOT"
+    ],
+    "sha256": "44090a985fc235d2c5da74987d846ca48c1c5f063794683347cd8e4f1ceb7933"
+  },
+  "b/q1.sh": {
+    "bindings": [
+      {
+        "expression": "ROOT=\"$(dirname \"$(dirname \"$(readlink -f \"${BASH_SOURCE[0]}\")\")\")\"",
+        "line": 3,
+        "names": [
+          "ROOT"
+        ]
+      }
+    ],
+    "reason": "Fixed identifier assignments, exports, read targets and loop targets in this exact reviewed program; runtime path/input values are allowed only for these names. No computed environment key or indirect export occurs.",
+    "runtime_literal_names": [
+      "ROOT"
+    ],
+    "sha256": "44090a985fc235d2c5da74987d846ca48c1c5f063794683347cd8e4f1ceb7933"
+  },
+  "job.sh": {
+    "bindings": [
+      {
+        "expression": "#SBATCH --partition=general",
+        "line": 2,
+        "names": [
+          "partition"
+        ]
+      },
+      {
+        "expression": "#SBATCH --nodes=1",
+        "line": 3,
+        "names": [
+          "nodes"
+        ]
+      },
+      {
+        "expression": "#SBATCH --ntasks=1",
+        "line": 4,
+        "names": [
+          "ntasks"
+        ]
+      },
+      {
+        "expression": "#SBATCH --cpus-per-task=8",
+        "line": 5,
+        "names": [
+          "task"
+        ]
+      },
+      {
+        "expression": "#SBATCH --mem=192G",
+        "line": 6,
+        "names": [
+          "mem"
+        ]
+      },
+      {
+        "expression": "#SBATCH --time=12:00:00",
+        "line": 7,
+        "names": [
+          "time"
+        ]
+      },
+      {
+        "expression": "#SBATCH --gres=gpu:1",
+        "line": 8,
+        "names": [
+          "gres"
+        ]
+      },
+      {
+        "expression": "ROOT=\"$(dirname \"$(readlink -f \"${BASH_SOURCE[0]}\")\")\"",
+        "line": 12,
+        "names": [
+          "ROOT"
+        ]
+      },
+      {
+        "expression": "N=\"${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID:?}\"",
+        "line": 13,
+        "names": [
+          "N"
+        ]
+      },
+      {
+        "expression": "export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1",
+        "line": 14,
+        "names": [
+          "MKL_NUM_THREADS",
+          "OMP_NUM_THREADS",
+          "PYTHONDONTWRITEBYTECODE"
+        ]
+      }
+    ],
+    "reason": "Fixed identifier assignments, exports, read targets and loop targets in this exact reviewed program; runtime path/input values are allowed only for these names. No computed environment key or indirect export occurs.",
+    "runtime_literal_names": [
+      "MKL_NUM_THREADS",
+      "N",
+      "OMP_NUM_THREADS",
+      "PYTHONDONTWRITEBYTECODE",
+      "ROOT",
+      "gres",
+      "mem",
+      "nodes",
+      "ntasks",
+      "partition",
+      "task",
+      "time"
+    ],
+    "sha256": "846a613840b8652c318b865d7cdab0099769a61e438f39ff32b2889035d01e88"
+  },
+  "k/j.json": {
+    "bindings": [
+      {
+        "expression": "export PATH=/usr/local/bin:/usr/bin:/bin",
+        "line": 2,
+        "names": [
+          "PATH"
+        ]
+      },
+      {
+        "expression": "AS=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+        "line": 3,
+        "names": [
+          "AS"
+        ]
+      },
+      {
+        "expression": "AL=/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+        "line": 4,
+        "names": [
+          "AL"
+        ]
+      },
+      {
+        "expression": "K=8865619b",
+        "line": 5,
+        "names": [
+          "K"
+        ]
+      },
+      {
+        "expression": "X=$AS/ap/$K",
+        "line": 6,
+        "names": [
+          "X"
+        ]
+      },
+      {
+        "expression": "R=/project/community/jjyeung/okh7/l_94a76bda",
+        "line": 7,
+        "names": [
+          "R"
+        ]
+      },
+      {
+        "expression": "HX=\"${TK_KIT_HOME:?}\"",
+        "line": 8,
+        "names": [
+          "HX"
+        ]
+      },
+      {
+        "expression": "IN=$R/in",
+        "line": 9,
+        "names": [
+          "IN"
+        ]
+      },
+      {
+        "expression": "REV=c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "line": 10,
+        "names": [
+          "REV"
+        ]
+      },
+      {
+        "expression": "P=/project/community/jjyeung/c7d31ddd",
+        "line": 11,
+        "names": [
+          "P"
+        ]
+      },
+      {
+        "expression": "RR=runs/aws128p_20261025",
+        "line": 12,
+        "names": [
+          "RR"
+        ]
+      },
+      {
+        "expression": "EPOCHS=/home/jjyeung/6d00e578",
+        "line": 13,
+        "names": [
+          "EPOCHS"
+        ]
+      },
+      {
+        "expression": "S=\"$Q_ROOT/s\"",
+        "line": 14,
+        "names": [
+          "S"
+        ]
+      },
+      {
+        "expression": "U=$S/aws/u",
+        "line": 15,
+        "names": [
+          "U"
+        ]
+      },
+      {
+        "expression": "HM=$HX",
+        "line": 16,
+        "names": [
+          "HM"
+        ]
+      },
+      {
+        "expression": "NX=\"$Q_ROOT/x\"",
+        "line": 17,
+        "names": [
+          "NX"
+        ]
+      },
+      {
+        "expression": "NR=\"$Q_ROOT/rp\"",
+        "line": 18,
+        "names": [
+          "NR"
+        ]
+      },
+      {
+        "expression": "CUR=$HX/k/0.json",
+        "line": 19,
+        "names": [
+          "CUR"
+        ]
+      },
+      {
+        "expression": "COMMIT=$(/usr/bin/python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))[\"commit\"])' \"$CUR\")",
+        "line": 20,
+        "names": [
+          "COMMIT"
+        ]
+      },
+      {
+        "expression": "    local line",
+        "line": 22,
+        "names": [
+          "line"
+        ]
+      },
+      {
+        "expression": "    line=\"$(date -u +%FT%TZ) | $*\"",
+        "line": 23,
+        "names": [
+          "line"
+        ]
+      },
+      {
+        "expression": "CLOSURE_DIR=\"_jobs/cp4tk_$(tk_current closure | cut -d' ' -f2 | cut -c1-12)\"",
+        "line": 37,
+        "names": [
+          "CLOSURE_DIR"
+        ]
+      },
+      {
+        "expression": "    local key=\"$1\" dest=\"$2\" file sha",
+        "line": 39,
+        "names": [
+          "dest",
+          "key"
+        ]
+      },
+      {
+        "expression": "    read -r file sha < <(tk_current \"$key\")",
+        "line": 40,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    file=$(hp \"$file\")",
+        "line": 41,
+        "names": [
+          "file"
+        ]
+      },
+      {
+        "expression": "    local v=\"$S/c7d31ddd/venvs/rwtrain_torch211_cu129\" stamp",
+        "line": 51,
+        "names": [
+          "v"
+        ]
+      },
+      {
+        "expression": "    stamp=\"$S/.stamp/shebang.$(tk_current venv | cut -d' ' -f2)\"",
+        "line": 52,
+        "names": [
+          "stamp"
+        ]
+      },
+      {
+        "expression": "for name in sorted(os.listdir(bindir)):",
+        "line": 59,
+        "names": [
+          "name"
+        ]
+      },
+      {
+        "expression": "print('venv console scripts repointed:', changed, flush=True)",
+        "line": 73,
+        "names": [
+          "flush"
+        ]
+      },
+      {
+        "expression": "    local dest=\"$1\" sha=\"$2\"; shift 2",
+        "line": 79,
+        "names": [
+          "dest",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    local snap=\"$S/c7d31ddd/$RR/models/a32330d0/snapshots/$REV\" file sha",
+        "line": 95,
+        "names": [
+          "snap"
+        ]
+      },
+      {
+        "expression": "    read -r file sha < <(tk_current model)",
+        "line": 96,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    local sha stamp",
+        "line": 105,
+        "names": [
+          "sha",
+          "stamp"
+        ]
+      },
+      {
+        "expression": "    read -r _ sha < <(tk_current small)",
+        "line": 106,
+        "names": [
+          "_",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    stamp=\"$S/.stamp/small.$sha.$( { if [[ -d \"$HX/in_small\" ]]; then (cd \"$HX\" && find in_small -type f -printf '%P %s %T@\\n'); fi; } 2>/dev/null | sort | sha256sum | cut -c1-16)\"",
+        "line": 107,
+        "names": [
+          "stamp"
+        ]
+      },
+      {
+        "expression": "    local dest sha parts",
+        "line": 122,
+        "names": [
+          "dest",
+          "parts",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    while IFS=$'\\t' read -r dest sha parts; do",
+        "line": 123,
+        "names": [
+          "IFS",
+          "dest",
+          "parts",
+          "sha"
+        ]
+      },
+      {
+        "expression": "d=json.load(open(sys.argv[1]))",
+        "line": 127,
+        "names": [
+          "d"
+        ]
+      },
+      {
+        "expression": "for e in d.get(\"extra\", []) + [d[\"a1rows\"]]: print(e[\"dest\"], e[\"sha256\"], \" \".join(e[\"parts\"]), sep=\"\\t\")' \"$CUR\")",
+        "line": 128,
+        "names": [
+          "e",
+          "sep"
+        ]
+      },
+      {
+        "expression": "    local i n",
+        "line": 132,
+        "names": [
+          "i",
+          "n"
+        ]
+      },
+      {
+        "expression": "    n=$(/usr/bin/python3 -I -c 'import json,sys; print(len(json.load(open(sys.argv[1])).get(\"tars\", [])))' \"$CUR\")",
+        "line": 133,
+        "names": [
+          "n"
+        ]
+      },
+      {
+        "expression": "        local id parts",
+        "line": 135,
+        "names": [
+          "id",
+          "parts"
+        ]
+      },
+      {
+        "expression": "        id=$(/usr/bin/python3 -I -c 'import json,sys,hashlib; e=json.load(open(sys.argv[1]))[\"tars\"][int(sys.argv[2])]; print(hashlib.sha256(json.dumps(e,sort_keys=True).encode()).hexdigest()[:16])' \"$CUR\" \"$i\")",
+        "line": 136,
+        "names": [
+          "e",
+          "id",
+          "sort_keys"
+        ]
+      },
+      {
+        "expression": "        parts=$(/usr/bin/python3 -I -c 'import json,sys; print(\" \".join(json.load(open(sys.argv[1]))[\"tars\"][int(sys.argv[2])][\"parts\"]))' \"$CUR\" \"$i\")",
+        "line": 138,
+        "names": [
+          "parts"
+        ]
+      },
+      {
+        "expression": "        for block in iter(lambda: stream.read(8 << 20), b''):",
+        "line": 148,
+        "names": [
+          "block"
+        ]
+      },
+      {
+        "expression": "print('archive members verified:', len(entry['files']), flush=True)",
+        "line": 152,
+        "names": [
+          "flush"
+        ]
+      },
+      {
+        "expression": "    local file sha",
+        "line": 161,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    read -r file sha < <(tk_current fla)",
+        "line": 164,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    local key=\"$1\" file sha manifest manifest_sha stamp dest=\"$S/c7d31ddd/data2root\" store parts got",
+        "line": 172,
+        "names": [
+          "dest",
+          "key"
+        ]
+      },
+      {
+        "expression": "    read -r file sha < <(tk_current \"$key\")",
+        "line": 174,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    read -r manifest manifest_sha < <(tk_current \"${key}_manifest\")",
+        "line": 175,
+        "names": [
+          "manifest",
+          "manifest_sha"
+        ]
+      },
+      {
+        "expression": "    manifest=$(hp \"$manifest\")",
+        "line": 176,
+        "names": [
+          "manifest"
+        ]
+      },
+      {
+        "expression": "    if /usr/bin/python3 -I -c 'import json,sys; p=json.load(open(sys.argv[1])).get(\"staged_inputs\", {}); sys.exit(0 if sys.argv[2] in p.get(\"covered_bundles\", []) else 1)' \"$CUR\" \"$key\"; then",
+        "line": 178,
+        "names": [
+          "p"
+        ]
+      },
+      {
+        "expression": "        store=$(/usr/bin/python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[\"stores\"].get(sys.argv[2], \"\"))' \"$CUR\" \"$key\")",
+        "line": 179,
+        "names": [
+          "store"
+        ]
+      },
+      {
+        "expression": "    stamp=\"$S/.stamp/$key.$sha.$manifest_sha\"",
+        "line": 184,
+        "names": [
+          "stamp"
+        ]
+      },
+      {
+        "expression": "        parts=$(/usr/bin/python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(\" \".join(d.get(\"bundle_parts\", {}).get(sys.argv[2], d.get(\"f3_parts\") if sys.argv[2] == \"f3\" else [])))' \"$CUR\" \"$key\")",
+        "line": 187,
+        "names": [
+          "d",
+          "parts"
+        ]
+      },
+      {
+        "expression": "        [[ -n \"$parts\" ]] || parts=$(hp \"$file\")",
+        "line": 188,
+        "names": [
+          "parts"
+        ]
+      },
+      {
+        "expression": "            | tar --extract --directory=\"$dest\" --skip-old-files --no-same-owner --no-same-permissions",
+        "line": 191,
+        "names": [
+          "directory"
+        ]
+      },
+      {
+        "expression": "        for _ in $(seq 300); do [[ -s \"$S/.$key.sha\" ]] && break; sleep 1; done",
+        "line": 192,
+        "names": [
+          "_"
+        ]
+      },
+      {
+        "expression": "        got=$(cat \"$S/.$key.sha\")",
+        "line": 193,
+        "names": [
+          "got"
+        ]
+      },
+      {
+        "expression": "        store=$(/usr/bin/python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[\"stores\"].get(sys.argv[2], \"\"))' \"$CUR\" \"$key\")",
+        "line": 195,
+        "names": [
+          "store"
+        ]
+      },
+      {
+        "expression": "    local file sha dest",
+        "line": 203,
+        "names": [
+          "dest",
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    read -r file sha < <(tk_current init)",
+        "line": 205,
+        "names": [
+          "file",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    dest=\"$S/c7d31ddd/init/${sha:0:16}\"",
+        "line": 206,
+        "names": [
+          "dest"
+        ]
+      },
+      {
+        "expression": "        for block in iter(lambda: stream.read(8 << 20), b''):",
+        "line": 219,
+        "names": [
+          "block"
+        ]
+      },
+      {
+        "expression": "    for prefix in (aws, awl):",
+        "line": 223,
+        "names": [
+          "prefix"
+        ]
+      },
+      {
+        "expression": "pins = {spec['index']['name']: spec['index']['sha256'], **{f['name']: f['sha256'] for f in spec['files']}}",
+        "line": 238,
+        "names": [
+          "f"
+        ]
+      },
+      {
+        "expression": "    local mode=\"$1\"",
+        "line": 250,
+        "names": [
+          "mode"
+        ]
+      },
+      {
+        "expression": "    local sa_stamp",
+        "line": 261,
+        "names": [
+          "sa_stamp"
+        ]
+      },
+      {
+        "expression": "    sa_stamp=\"$S/.stamp/sitealias.${CLOSURE_DIR##*/}.$(cat \"$HX/b/sa/sitecustomize.py\" \"$HX/b/sa/prestage_hooks.py\" | sha256sum | cut -c1-16)\"",
+        "line": 262,
+        "names": [
+          "sa_stamp"
+        ]
+      },
+      {
+        "expression": "        local old_commit",
+        "line": 274,
+        "names": [
+          "old_commit"
+        ]
+      },
+      {
+        "expression": "        old_commit=$(/usr/bin/python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))[\"trainer_old_commit\"])' \"$CUR\")",
+        "line": 275,
+        "names": [
+          "old_commit"
+        ]
+      },
+      {
+        "expression": "    local rfile rsha",
+        "line": 281,
+        "names": [
+          "rfile",
+          "rsha"
+        ]
+      },
+      {
+        "expression": "    read -r rfile rsha < <(tk_current record)",
+        "line": 282,
+        "names": [
+          "rfile",
+          "rsha"
+        ]
+      },
+      {
+        "expression": "    R1_RUNTIME_RECORD=\"$P/anyhost/$rsha.json\"",
+        "line": 285,
+        "names": [
+          "R1_RUNTIME_RECORD"
+        ]
+      },
+      {
+        "expression": "    local import_mode=metadata",
+        "line": 304,
+        "names": [
+          "import_mode"
+        ]
+      },
+      {
+        "expression": "    if [[ \"$mode\" != reuse && -z \"${TK_LIGHT:-}\" ]]; then import_mode=full; fi",
+        "line": 305,
+        "names": [
+          "import_mode"
+        ]
+      },
+      {
+        "expression": "        local key",
+        "line": 308,
+        "names": [
+          "key"
+        ]
+      },
+      {
+        "expression": "        for key in f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14; do tk_stage_bundle \"$key\"; done",
+        "line": 309,
+        "names": [
+          "key"
+        ]
+      },
+      {
+        "expression": "    local bw sha",
+        "line": 319,
+        "names": [
+          "bw",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    read -r bw sha < <(tk_current bwrap)",
+        "line": 320,
+        "names": [
+          "bw",
+          "sha"
+        ]
+      },
+      {
+        "expression": "    BW=(\"$bw\")",
+        "line": 322,
+        "names": [
+          "BW"
+        ]
+      },
+      {
+        "expression": "    local entry",
+        "line": 323,
+        "names": [
+          "entry"
+        ]
+      },
+      {
+        "expression": "    for entry in /* /.[!.]* /..?*; do",
+        "line": 324,
+        "names": [
+          "entry"
+        ]
+      },
+      {
+        "expression": "    export R1_OPAQUE_LOGS=1",
+        "line": 346,
+        "names": [
+          "R1_OPAQUE_LOGS"
+        ]
+      },
+      {
+        "expression": "    export Q_E5=6d38613965 R1_MODEL_DIR=a32330d0",
+        "line": 347,
+        "names": [
+          "Q_E5",
+          "R1_MODEL_DIR"
+        ]
+      },
+      {
+        "expression": "    export R1_MOUNT=\"$X\" R1_TRAINER=\"$EPOCHS/$COMMIT\" TRAINER=\"$EPOCHS/$COMMIT\" ANYHOST_JOBS=\"$P/$CLOSURE_DIR\"",
+        "line": 348,
+        "names": [
+          "ANYHOST_JOBS",
+          "R1_MOUNT",
+          "R1_TRAINER",
+          "TRAINER"
+        ]
+      },
+      {
+        "expression": "    export R1_RUNTIME_RECORD ANYHOST_NEUTRAL_RUNTIME=\"$R1_RUNTIME_RECORD\"",
+        "line": 349,
+        "names": [
+          "ANYHOST_NEUTRAL_RUNTIME",
+          "R1_RUNTIME_RECORD"
+        ]
+      },
+      {
+        "expression": "    export PILOT_VENV=\"$P/venvs/rwtrain_torch211_cu129\"",
+        "line": 350,
+        "names": [
+          "PILOT_VENV"
+        ]
+      },
+      {
+        "expression": "    export PATH=\"$ANYHOST_JOBS/provenance_bin:$PILOT_VENV/bin:/usr/local/bin:/usr/bin:/bin\"",
+        "line": 351,
+        "names": [
+          "PATH"
+        ]
+      },
+      {
+        "expression": "    export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH=\"$ANYHOST_JOBS/site_alias\"",
+        "line": 352,
+        "names": [
+          "PYTHONDONTWRITEBYTECODE",
+          "PYTHONNOUSERSITE",
+          "PYTHONPATH"
+        ]
+      },
+      {
+        "expression": "    export Q_E1=1 Q_E2=orchard A_SITE_PROFILE=\"$X/b/profile.json\"",
+        "line": 353,
+        "names": [
+          "A_SITE_PROFILE",
+          "Q_E1",
+          "Q_E2"
+        ]
+      },
+      {
+        "expression": "    export Q_E3=\"$X/models\"",
+        "line": 354,
+        "names": [
+          "Q_E3"
+        ]
+      },
+      {
+        "expression": "    export Q_E4=\"{\\\"/data2\\\": \\\"$X/data2root\\\"}\"",
+        "line": 355,
+        "names": [
+          "Q_E4"
+        ]
+      },
+      {
+        "expression": "    export C1_INIT_LOCAL=\"$P/init\"",
+        "line": 356,
+        "names": [
+          "C1_INIT_LOCAL"
+        ]
+      },
+      {
+        "expression": "    export HF_HOME=\"$TK_JOBDIR/cache/hf\" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1",
+        "line": 357,
+        "names": [
+          "HF_HOME",
+          "HF_HUB_DISABLE_TELEMETRY",
+          "HF_HUB_OFFLINE",
+          "TRANSFORMERS_OFFLINE"
+        ]
+      },
+      {
+        "expression": "    export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 TOKENIZERS_PARALLELISM=false WANDB_DISABLED=true",
+        "line": 358,
+        "names": [
+          "MKL_NUM_THREADS",
+          "OMP_NUM_THREADS",
+          "OPENBLAS_NUM_THREADS",
+          "TOKENIZERS_PARALLELISM",
+          "WANDB_DISABLED"
+        ]
+      },
+      {
+        "expression": "    export Q_E6=1",
+        "line": 359,
+        "names": [
+          "Q_E6"
+        ]
+      },
+      {
+        "expression": "    export TMPDIR=\"$TK_JOBDIR/tmp\"",
+        "line": 360,
+        "names": [
+          "TMPDIR"
+        ]
+      },
+      {
+        "expression": "    export XDG_CACHE_HOME=\"$TK_JOBDIR/cache\" TORCH_HOME=\"$TK_JOBDIR/cache/torch\" TRITON_CACHE_DIR=\"$TK_JOBDIR/cache/triton\"",
+        "line": 361,
+        "names": [
+          "TORCH_HOME",
+          "TRITON_CACHE_DIR",
+          "XDG_CACHE_HOME"
+        ]
+      },
+      {
+        "expression": "    local mode=\"${1:?}\" fla_file fla_sha",
+        "line": 366,
+        "names": [
+          "mode"
+        ]
+      },
+      {
+        "expression": "    export PYTHONPATH=\"$X/b:$ANYHOST_JOBS:$ANYHOST_JOBS/site_alias\"",
+        "line": 367,
+        "names": [
+          "PYTHONPATH"
+        ]
+      },
+      {
+        "expression": "    if tk_has np; then export PYTHONPATH=\"$S/np226:$PYTHONPATH\"; tk_step \"numpy 2.2.6 overlay on\"; fi",
+        "line": 368,
+        "names": [
+          "PYTHONPATH"
+        ]
+      },
+      {
+        "expression": "    if [[ \"$mode\" =~ ^[ctu]$ ]] && read -r fla_file fla_sha < <(tk_current fla 2>/dev/null); then",
+        "line": 369,
+        "names": [
+          "fla_file",
+          "fla_sha"
+        ]
+      },
+      {
+        "expression": "        export PYTHONPATH=\"$(dirname \"$fla_file\")/p:$PYTHONPATH\" C1_EXPECT_FLA=1",
+        "line": 371,
+        "names": [
+          "C1_EXPECT_FLA",
+          "PYTHONPATH"
+        ]
+      },
+      {
+        "expression": "    rsync -rt --chmod=D700 \"$HX/b\" \"$HX/k\" \"$HX/ANON_OK.json\" \"$HX/SHA256SUMS.txt\" \"$NX/\"",
+        "line": 378,
+        "names": [
+          "chmod"
+        ]
+      },
+      {
+        "expression": "rc=${PIPESTATUS[0]}",
+        "line": 394,
+        "names": [
+          "rc"
+        ]
+      },
+      {
+        "expression": "rr=${PIPESTATUS[0]}",
+        "line": 396,
+        "names": [
+          "rr"
+        ]
+      }
+    ],
+    "reason": "Fixed identifier assignments, exports, read targets and loop targets in this exact reviewed program; runtime path/input values are allowed only for these names. No computed environment key or indirect export occurs.",
+    "runtime_literal_names": [
+      "AL",
+      "ANYHOST_JOBS",
+      "ANYHOST_NEUTRAL_RUNTIME",
+      "AS",
+      "A_SITE_PROFILE",
+      "BW",
+      "C1_EXPECT_FLA",
+      "C1_INIT_LOCAL",
+      "CLOSURE_DIR",
+      "COMMIT",
+      "CUR",
+      "EPOCHS",
+      "HF_HOME",
+      "HF_HUB_DISABLE_TELEMETRY",
+      "HF_HUB_OFFLINE",
+      "HM",
+      "HX",
+      "IFS",
+      "IN",
+      "K",
+      "MKL_NUM_THREADS",
+      "NR",
+      "NX",
+      "OMP_NUM_THREADS",
+      "OPENBLAS_NUM_THREADS",
+      "P",
+      "PATH",
+      "PILOT_VENV",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONNOUSERSITE",
+      "PYTHONPATH",
+      "Q_E1",
+      "Q_E2",
+      "Q_E3",
+      "Q_E4",
+      "Q_E5",
+      "Q_E6",
+      "R",
+      "R1_MODEL_DIR",
+      "R1_MOUNT",
+      "R1_OPAQUE_LOGS",
+      "R1_RUNTIME_RECORD",
+      "R1_TRAINER",
+      "REV",
+      "RR",
+      "S",
+      "TMPDIR",
+      "TOKENIZERS_PARALLELISM",
+      "TORCH_HOME",
+      "TRAINER",
+      "TRANSFORMERS_OFFLINE",
+      "TRITON_CACHE_DIR",
+      "U",
+      "WANDB_DISABLED",
+      "X",
+      "XDG_CACHE_HOME",
+      "_",
+      "block",
+      "bw",
+      "chmod",
+      "d",
+      "dest",
+      "directory",
+      "e",
+      "entry",
+      "f",
+      "file",
+      "fla_file",
+      "fla_sha",
+      "flush",
+      "got",
+      "i",
+      "id",
+      "import_mode",
+      "key",
+      "line",
+      "manifest",
+      "manifest_sha",
+      "mode",
+      "n",
+      "name",
+      "old_commit",
+      "p",
+      "parts",
+      "prefix",
+      "rc",
+      "rfile",
+      "rr",
+      "rsha",
+      "sa_stamp",
+      "sep",
+      "sha",
+      "snap",
+      "sort_keys",
+      "stamp",
+      "store",
+      "v"
+    ],
+    "sha256": "024d9d3d175f28f8c6940cea27532e9d17a17a70d4dfdd0e6fe7707d182e65aa"
+  }
+}

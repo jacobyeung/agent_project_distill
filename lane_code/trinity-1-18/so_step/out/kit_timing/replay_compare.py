@@ -17,24 +17,47 @@ def loss_acceptance(off1, off2, on):
     bits = lambda values: b''.join(struct.pack('!d', x) for x in values)
     stable = finite and bits(off1) == bits(off2)
     spread = [abs(a-b) for a,b in zip(off1,off2)]
-    accepted = finite and (bits(on) == bits(off1) if stable else all(
-        max(abs(c-a),abs(c-b)) <= delta for a,b,c,delta in zip(off1,off2,on,spread)))
+    # Fixed before observing ON: callers concatenate all four rank vectors.
+    # Two OFF draws cannot estimate a calibrated confidence interval.
+    off_max = max(spread, default=0.)
+    on_max = max((max(abs(c-a),abs(c-b)) for a,b,c in zip(off1,off2,on)), default=0.)
+    threshold = 2. * off_max
+    accepted = finite and (bits(on) == bits(off1) if stable else on_max <= threshold)
     return dict(accepted=accepted, off_repeats_bitwise=stable, off_spread=spread,
+                off_max_abs=off_max, on_max_abs=on_max, multiplier=2., threshold=threshold,
                 on_minus_off1=[c-a for a,c in zip(off1,on)],
-                rule='bitwise' if stable else 'both absolute ON-to-OFF differences <= the OFF-to-OFF spread')
+                rule='bitwise' if stable else 'pooled max ON-to-either-OFF <= 2 * max OFF-to-OFF')
 
 
-def losses(record):
+def losses(record, micro=True):
     result=[]
     for key in ('components','stream_means'):
         result.extend(record[key][k] for k in sorted(record[key]))
-    result.extend(record['first_step_micro_losses'])
+    if micro:
+        result.extend(record['first_step_micro_losses'])
     return result
+
+
+def pooled_loss_acceptance(off1, off2, on, micro=True):
+    if any(len(arm) != 4 for arm in (off1,off2,on)):
+        raise ValueError('Need all four ranks for pooled loss acceptance')
+    vectors = [[],[],[]]
+    for records in zip(off1,off2,on):
+        if any(r[key].keys() != records[0][key].keys()
+               for r in records[1:] for key in ('components','stream_means')):
+            raise ValueError('Loss field names differ')
+        values = [losses(r,micro=micro) for r in records]
+        if not values[0] or len({len(v) for v in values}) != 1:
+            raise ValueError('Loss count is empty or differs')
+        for vector,value in zip(vectors,values):
+            vector.extend(value)
+    return loss_acceptance(*vectors)
 
 
 def compare(output, audit_dir):
     from row_hash import compare_rows
     report = dict(accepted=True, order=[name for name,_ in replay_order()], ranks=[])
+    all_records = [[],[],[]]
     for rank in range(4):
         manifests=[]; records=[]
         for name,arm in replay_order():
@@ -75,6 +98,9 @@ def compare(output, audit_dir):
                     or data[0]['plan_sha256'] != records[0]['plan_sha256']
                     or meta['rank'] != rank or meta['world_size'] != 4 or meta['plans_checked'] != 10
                     or not meta['coverage_required'] or not meta['augmented_pose_rows']
+                    or not meta.get('grid_rows',0)
+                    or (arm == 'prefetch' and not any(n.startswith('c1-row-cpu')
+                        for n in meta.get('augmentation_threads',[])))
                     or meta['peak_group_tensor_bytes'] > meta['group_budget_bytes']
                     or not all(r['global_rng_unchanged'] for r in data)):
                 raise ValueError('CPU audit does not cover the admitted continuation')
@@ -84,10 +110,13 @@ def compare(output, audit_dir):
                 compare_rows(reference,data)
         result=loss_acceptance(*(losses(r) for r in records))
         report['ranks'].append(dict(rank=rank, **result))
-        report['accepted'] &= result['accepted']
+        for arm,record in zip(all_records,records):
+            arm.append(record)
+    report['pooled'] = pooled_loss_acceptance(*all_records)
+    report['accepted'] = report['pooled']['accepted']
     (output/'acceptance.json').write_text(json.dumps(report,indent=2)+'\n')
     if not report['accepted']:
-        raise ValueError('ON loss differs beyond the OFF repeat spread; keep prefetch OFF')
+        raise ValueError('ON loss exceeds the fixed replay bound; keep prefetch OFF')
     return report
 
 

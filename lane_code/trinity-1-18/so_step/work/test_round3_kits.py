@@ -65,7 +65,7 @@ class KitRound3(unittest.TestCase):
         self.assertEqual(coverage.augmented_pose_rows,1)
         self.assertEqual(coverage.max_grid,[32,20,26])
         with self.assertRaisesRegex(ValueError,'grid cap'):
-            coverage.observe({'video_grid_thw':torch.tensor([[32,22,26]])})
+            coverage.observe({'video_grid_thw':torch.tensor([[32,20,30]])})
         with self.assertRaisesRegex(ValueError,'augmented pose'):
             Coverage().require()
         coverage.require()
@@ -78,6 +78,9 @@ class KitRound3(unittest.TestCase):
                   ('plan.json',dict(start_step=200,world_size=1,plans=[plan()]))]
         for name,value in values:
             (directory/name).write_text(json.dumps(value))
+        receipt=json.loads((directory/'receipt.json').read_text())
+        receipt['model']=run.file_pin(directory/'manifest.json')
+        (directory/'receipt.json').write_text(json.dumps(receipt))
         args = ['data_only.py','--tree',os.environ.get('SO_TEST_TREE',str(ROOT/'work/b21_final/work/tree_r1')),
             '--receipt',str(directory/'receipt.json'),'--manifest',str(directory/'manifest.json'),
             '--config',str(directory/'config.json'),'--plan',str(directory/'plan.json'),
@@ -87,6 +90,7 @@ class KitRound3(unittest.TestCase):
             data_only.main()
         meta=json.loads((directory/'off.json.manifest.json').read_text())
         self.assertGreater(meta['peak_rss_bytes'], 0)
+        self.assertEqual(meta['grid_cap'],dict(max_t=32,max_spatial_area=576))
         self.assertEqual(meta['start_step'],200)
         self.assertEqual(json.loads((directory/'off.json').read_text())[0]['step'],201)
 
@@ -95,7 +99,8 @@ class KitRound3(unittest.TestCase):
         self.assertTrue(loss_acceptance([1.,2.],[1.,2.],[1.,2.])['accepted'])
         self.assertFalse(loss_acceptance([1.,2.],[1.,2.],[1.,2.000000001])['accepted'])
         self.assertTrue(loss_acceptance([1.,2.],[1.2,2.2],[1.1,2.1])['accepted'])
-        self.assertFalse(loss_acceptance([1.,2.],[1.2,2.2],[1.3,2.1])['accepted'])
+        self.assertTrue(loss_acceptance([1.,2.],[1.2,2.2],[1.3,2.1])['accepted'])
+        self.assertFalse(loss_acceptance([1.,2.],[1.2,2.2],[1.5,2.1])['accepted'])
         self.assertFalse(loss_acceptance([1.],[1.1],[float('nan')])['accepted'])
         self.assertFalse(loss_acceptance([0.],[0.],[-0.])['accepted'])
 
@@ -122,6 +127,7 @@ class KitRound3(unittest.TestCase):
                 path.write_text(json.dumps([record]*10))
                 meta=dict(start_step=200,resume={'pin':'same'},config_sha256='cfg',rank=rank,world_size=4,
                           plans_checked=10,coverage_required=True,augmented_pose_rows=1,
+                          grid_rows=1,augmentation_threads=['c1-row-cpu_0'] if arm == 'prefetch' else ['MainThread'],
                           peak_group_tensor_bytes=100,group_budget_bytes=1024)
                 Path(str(path)+'.manifest.json').write_text(json.dumps(meta))
         self.assertTrue(compare(directory,audit_dir)['accepted'])

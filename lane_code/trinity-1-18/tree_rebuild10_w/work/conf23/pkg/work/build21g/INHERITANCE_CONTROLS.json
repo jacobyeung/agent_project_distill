@@ -1,0 +1,122 @@
+[
+  {
+    "test": "naming_test21f.Naming21f.test_required_mutations",
+    "label": "nonliteral_after_spread",
+    "source": "key,value=(\"BeNcHmArK\",\"q\")\nenv={**os.environ}\nenv[key]=value\nsubprocess.run([\"true\"],env=env)",
+    "old": "PASS",
+    "old_checked_strings": 76332,
+    "new": "REFUSE",
+    "error": "ENV_UNRESOLVED:b/o.py:14:environment:environment key is not a literal string: env[key] = value",
+    "seconds": 13.215749369002879
+  },
+  {
+    "source": "env={**os.environ}\nenv[key]=\"q\"\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment key is not a literal string: env[key] = 'q'"
+  },
+  {
+    "source": "env=os.environ.copy()\nenv[key]=\"q\"\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment key is not a literal string: env[key] = 'q'"
+  },
+  {
+    "source": "env={**os.environ}\nenv[\"Q\"]=runtime\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:value for literal key 'Q' is unresolved: env['Q'] = runtime"
+  },
+  {
+    "source": "env={**os.environ}\nenv[\"Q\"]=\"BeNcHmArK\"\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:3:environment:BeNcHmArK"
+  },
+  {
+    "source": "env={**os.environ}\nenv[\"BeNcHmArK\"]=\"q\"\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:3:environment:BeNcHmArK"
+  },
+  {
+    "source": "env={**os.environ}\nalias=env\nalias[key]=\"q\"\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:inherited map escapes literal-key assignments and env=: env"
+  },
+  {
+    "source": "env={**os.environ}\nhelper(env)\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:inherited map escapes literal-key assignments and env=: env"
+  },
+  {
+    "source": "env={**os.environ}\nenv.update(runtime)\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:inherited map escapes literal-key assignments and env=: env"
+  },
+  {
+    "source": "env={**os.environ}\nfor key,value in pairs:\n env[key]=value\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:3:environment:inherited map escapes literal-key assignments and env=: env"
+  },
+  {
+    "source": "env={**os.environ}\nenv={**runtime}\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:inherited map escapes literal-key assignments and env=: env"
+  },
+  {
+    "source": "env={**os.environ}\nrun(env=env.copy())",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:inherited map escapes literal-key assignments and env=: env"
+  },
+  {
+    "source": "env={**os.environ}\ndef helper():\n env[key]=\"q\"\nhelper()\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:3:environment:inherited map reference crosses a scope: env"
+  },
+  {
+    "source": "os=helper()\nrun(env={**os.environ,\"Q\":\"q\"})",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment map is not a complete literal mapping: run(env={**os.environ, 'Q': 'q'})"
+  },
+  {
+    "source": "run(env={**os.environ.copy(),\"Q\":\"q\"})",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment map is not a complete literal mapping: run(env={**os.environ.copy(), 'Q': 'q'})"
+  },
+  {
+    "source": "run(env={**os.environ,\"Q\":make_value()})",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:value for literal key 'Q' is unresolved: run(env={**os.environ, 'Q': make_value()})"
+  },
+  {
+    "source": "run(env={**os.environ,make_key():\"q\"})",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment key is not a literal string: run(env={**os.environ, make_key(): 'q'})"
+  },
+  {
+    "source": "run(env=os.environ)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment map is not a complete literal mapping: run(env=os.environ)"
+  },
+  {
+    "source": "env=dict(os.environ)\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment capability escapes to a call: dict(os.environ)"
+  },
+  {
+    "source": "run(env={**os.environ,\"Q\":\"q\"})",
+    "result": "PASS"
+  },
+  {
+    "source": "env={**os.environ,\"Q\":\"q\"}\nrun(env=env)",
+    "result": "PASS"
+  },
+  {
+    "source": "env=os.environ.copy()\nenv[\"Q\"]=\"q\"\nrun(env=env)",
+    "result": "PASS"
+  },
+  {
+    "source": "def launch():\n env=os.environ.copy()\n env[\"Q\"]=\"q\"\n run(env=env)",
+    "result": "PASS"
+  },
+  {
+    "source": "def launch():\n env={**os.environ,\"Q\":\"q\"}\n run(env=env)",
+    "result": "PASS"
+  }
+]

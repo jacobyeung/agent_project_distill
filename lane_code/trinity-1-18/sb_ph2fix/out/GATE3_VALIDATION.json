@@ -1,0 +1,48 @@
+{
+  "status": "PASS",
+  "commands": {
+    "part2": "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 bash sb_mask_phrase/run.sh ../work/gate3_suites.py part2",
+    "launcher": "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 bash sb_mask_phrase/run.sh ../work/gate3_suites.py launcher",
+    "fixture": "env PART2_FIXTURE_DIR=work/part2_gate3_fixture OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 bash sb_mask_phrase/run.sh part2/price.py fixture-aggregate",
+    "archive": "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 python -B work/gate3_archive_check.py",
+    "validation": "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 python -B work/gate3_finish.py"
+  },
+  "tests": {
+    "part2": 31,
+    "launcher": 25
+  },
+  "fixture": {
+    "rows": 1012,
+    "captures": 204,
+    "both_good_rows": 442
+  },
+  "patch_files": [
+    "sb_mask_phrase/part2/test_part2.py",
+    "sb_mask_phrase/part2/gate.py"
+  ],
+  "archive_member_differences": [
+    "STATUS.md",
+    "sb_mask_phrase/part2/test_part2.py",
+    "sb_mask_phrase/part2/gate.py"
+  ],
+  "reviewer_only_gate_sha256": "6dc58b25432a97bc6bd1ab6e9cb3bb34b293831cc190b6b17129e5671f027ffb",
+  "final_gate_sha256": "c0d31da6634267c85c647898bd6370cea65d3cdd547a8738731a64d8f19daef0",
+  "gpu": "NOT RUN; reviewed archive remains the GPU payload",
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/work/gate3_finish.py": "85a501e3a0f68ae45bda802dffbcd16fc5d29a0b5678df398f9b9e8a5d088596",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/work/gate3_suites.py": "52d1d8d7f3557eed87fd7a2122173c1d4fbe23d2866df38c99145d4100c2107a",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/work/gate3_archive_check.py": "108770bc12a0772914056b01734d4f2f434277889636e2b6dcd72fa71a2e7d68",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/gate.py": "c0d31da6634267c85c647898bd6370cea65d3cdd547a8738731a64d8f19daef0",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/test_part2.py": "130abf4759017ddac0b26340021eac07d1012c42a684724479290fd823232d24",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/test_launcher.py": "f85921d090ba28aa75bcf691a592ebd24871e619e3eb9e6572621517c0132125",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/out/GATE3.patch": "a3d34c43dd5f6a45a14a89528941e97a7a913e217bf1466457674d8b4a56c5ab",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/out/gate3_review_fix.sha256": "7248f13f4f3e5f3584e9cecaf617d53bb7d07ba3f3a1b3d5aa651fce26f8e902",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/out/STAGING_PART2.json": "4cca5c88c7c3724e822b6c4f4ad1defb5cd03980b928c313ade40af18c86be38",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/out/gate3_part2.log": "e72a50ecc9b29e6b37ce53b37368c7a25dba9deb8159c0fad4d11c1372d8b24b",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/out/gate3_launcher.log": "ec179e4ad3763f44d30d01d14c01ae01f502c27a9dd5b65a32cebcaae771348a",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/work/part2_gate3_fixture/aggregate/DECISION_PART2.json": "3d8f7dfe150dbb02d486b0af539b26d604aea49a70d0f48d5f1ceee1b2868e3a",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/out/gate3_fixture_aggregate.log": "51ab299187cebe5b135f1fb72ac3b192b5045a39d684e1b1530b67ab1f3f85ef",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/out/gate3_archive_check.log": "056e5140bd136243b7ea0feb98531db171a890af0b8f22dfeb1840f1037fd651",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/out/sb_ph2fix2.tar": "3440a9ff995e6420a345f848f2bb9a0aee5c23ef04b6d31f57e6712e437e3b94"
+  }
+}

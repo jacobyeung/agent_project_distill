@@ -1,2 +1,2 @@
-2026-11-19 12:39:59 UTC
-DONE: 52 unittest tests, native D integration, both login-Python adapter suites, source compilation and named-input refusals passed. Nineteen canonical files and four adapter copies match the fresh patch replay. Round-1 deliverables are preserved. INFO and missing-production-input limits are explicit in REPORT.md. No remote, Git, GPU or deletion operation ran.
+2026-11-19 14:41:00 UTC
+Round 4 is complete. Findings 1–7 are fixed; 96 distinct main-suite methods and 140 executions pass. All 16 defect methods fail before on assertions. Fresh patch replay and default-OFF D byte identity pass. The final document checks pass. out/REPORT.md contains exact commands and outputs; live Orchard and missing-input prerequisites remain explicit.

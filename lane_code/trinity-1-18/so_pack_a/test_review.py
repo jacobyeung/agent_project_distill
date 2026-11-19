@@ -35,7 +35,7 @@ class Review(unittest.TestCase):
         calls=[];waits=[]
         def call(k):
             calls.append(k);return subprocess.CompletedProcess([],0,b'wait\n' if len(calls)==2 else b'complete\n',b'')
-        with patch.object(P,'checked',return_value=self.b):P.execute(self.c,{},['fill'],call=call,sleeper=waits.append)
+        with patch.object(P,'checked',return_value=self.b):P.execute(self.c,{},['fill'],True,self.b['token'],call=call,sleeper=waits.append)
         self.assertEqual(calls,['fill','fill_poll','fill_poll']);self.assertEqual(waits,[60,60])
     def test_r2_structural_without_archive_mirrors(self):
         c=dict(self.c,fill_mode='structural',mirrors={})
@@ -51,7 +51,7 @@ class Review(unittest.TestCase):
         scripts=P.plan(self.c,self.b);self.assertIn('preflight',scripts)
         code=P.heredocs(Path(scripts['preflight']).read_text())[0]
         import pack_checks as Q
-        mapping={k:v['path'] for k,v in self.c['mirrors'].items()}
+        mapping={k:v['path'] for k,v in self.c['mirrors'].items()};mapping.update(T.verification_fixture(self.c,self.b,self.w))
         with Q.Mirrors(mapping):exec(compile(code,'preflight','exec'),{})
         bad=dict(mapping);name=self.c['fill']['done'];bad[name]=str(self.w/'absent')
         with Q.Mirrors(bad):
@@ -59,7 +59,7 @@ class Review(unittest.TestCase):
         calls=[]
         def call(k):calls.append(k);return subprocess.CompletedProcess([],1,b'',b'absent staged part')
         with patch.object(P,'checked',return_value=self.b):
-            with self.assertRaisesRegex(P.Rejected,'before placement'):P.execute(self.c,scripts,['place'],call=call)
+            with self.assertRaisesRegex(P.Rejected,'before placement'):P.execute(self.c,scripts,['place'],True,self.b['token'],call=call)
         self.assertEqual(calls,['preflight']);self.assertFalse((Path(self.c['work'])/'place.attempt').exists())
     def test_r3_actual_D_integration(self):
         self.assertIn('PACK_NATIVE_RESULT',os.environ,'Required D integration result: run test_native.py first')

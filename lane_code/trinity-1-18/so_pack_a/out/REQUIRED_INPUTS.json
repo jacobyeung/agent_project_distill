@@ -84,7 +84,7 @@
       "group": "orchard",
       "location": "orchard",
       "name": "step-600 export parts",
-      "reason": "Four actual production export parts and exact sizes"
+      "reason": "Four production export parts: exact binding sizes and SHA256s; detached verify receipt required before place"
     },
     {
       "config_key": "fill.done",
@@ -155,14 +155,16 @@
       "sha256": "e1981c7909b96006a9df9adaf2397c4a70210f7263f58ba484aff81923c225f2"
     },
     {
+      "bytes": 10240,
       "group": "native_dry2",
       "location": "local",
       "name": "native a3.tar policy archive for unchanged dry2/dry2b",
       "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/a3.tar",
-      "reason": "dry2/dry2b select its fixed 05dc8f79 SHA prefix; tiny synthetic policy bytes cannot satisfy that check"
+      "reason": "dry2/dry2b select its fixed 05dc8f79 SHA prefix; tiny synthetic policy bytes cannot satisfy that check",
+      "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
     }
   ],
   "local_check": "check_required_inputs.py --manifest out/REQUIRED_INPUTS.json --group production_build|r10|routed_harness",
   "production_ready": false,
-  "remote_check": "place requires ledger reservation, then read-only size/.done/preparation preflight before place.attempt; fill and job.stage authenticate large live archives"
+  "remote_check": "Before verify, record the token and delivery SHA in the Trinity ledger; place enforces reservation and read-only sizes/.done/preparation/verify receipt preflight before place.attempt. Verify authenticates binding part SHA256s; fill and job.stage authenticate large live archives."
 }

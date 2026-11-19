@@ -26,16 +26,18 @@ class PlanCLI(unittest.TestCase):
         pin=run.file_pin(source)
         for name,value in (('config.json',cfg),('receipt.json',receipt),('pin.json',pin)):
             (directory/name).write_text(json.dumps(value))
+        cfg['preparation']=run.file_pin(directory/'receipt.json')
+        (directory/'config.json').write_text(json.dumps(cfg))
         args=['write_plan.py','--tree',str(ROOT/'work/b21_final/work/tree_r1'),
               '--config',str(directory/'config.json'),'--receipt',str(directory/'receipt.json'),
               '--resume-pin',str(directory/'pin.json'),'--steps','10','--out',str(directory/'plan.json')]
-        with patch.object(sys,'argv',args),patch.object(run,'recipe_for',return_value={'world_size':4,'mix':{'pose':1}}),patch.object(run.data,'mixed_indices',return_value=iter([plan(4)]*10)) as sample:
+        with patch.object(sys,'argv',args),patch.object(run,'prepared',return_value=(receipt,{})),patch.object(run,'recipe_for',return_value={'world_size':4,'mix':{'pose':1}}),patch.object(run.data,'mixed_indices',return_value=iter([plan(4)]*10)) as sample:
             write_plan.main()
         actual=json.loads((directory/'plan.json').read_text())
         self.assertEqual(actual['start_step'],200)
         self.assertEqual(sample.call_args.kwargs['start_step'],203)
         self.assertEqual(actual['resume'],scrub(pin))
         self.assertFalse(WORDS.search((directory/'plan.json').read_text()))
-        self.assertEqual(actual['receipt_sha256'],run.file_pin(directory/'receipt.json')['sha256'])
+        self.assertEqual(actual['receipt_sha256'],run.file_pin(directory/'prepared_receipt.json')['sha256'])
 
 if __name__=='__main__': unittest.main(verbosity=2)

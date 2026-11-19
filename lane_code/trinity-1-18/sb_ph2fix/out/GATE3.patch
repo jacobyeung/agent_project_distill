@@ -1,0 +1,105 @@
+--- a/sb_mask_phrase/part2/test_part2.py
++++ b/sb_mask_phrase/part2/test_part2.py
+@@ -212,11 +212,11 @@
+ 
+ 
+ class Admission(unittest.TestCase):
+-    def exercise(self, condition):
++    def exercise(self, condition, entries=None):
+         parent = K.WORK/'gate_tests'
+         parent.mkdir(exist_ok=True)
+         # Retain refusal fixtures for review; no deletion or temporary cleanup.
+-        for entry in ('launcher', 'capture', 'aggregate', 'step5', 'pass', 'run_relative', 'run_absolute', 'run_aggregate', 'run_option'):
++        for entry in entries or ('launcher', 'capture', 'aggregate', 'step5', 'pass', 'run_relative', 'run_absolute', 'run_aggregate', 'run_option'):
+             root = Path(tempfile.mkdtemp(prefix=condition+'_'+entry+'_', dir=parent))
+             (root/'part2').mkdir()
+             for name in ('gate.py', 'price.py', 'sam3_pass.py', 'launch_part2.sh'):
+@@ -238,19 +238,35 @@
+                     (folder/'linked').symlink_to(target, target_is_directory=True)
+                 else:
+                     (folder/('scores.JSON' if condition == 'upper_JSON' else 'scores.csv')).write_text('{}')
+-            if condition == 'capture_work':
++            if condition in ('decision_directory', 'decision_fifo'):
++                dest = root/'out/part2/DECISION_PART2.json'
++                dest.parent.mkdir(parents=True)
++                if condition == 'decision_directory':
++                    dest.mkdir()
++                else:
++                    os.mkfifo(dest)
++            if condition in ('capture_work', 'capture_directory'):
+                 dest = root/'work/part2_caps/example.json.gz'
+-                dest.parent.mkdir(parents=True); dest.write_bytes(b'planted')
++                dest.parent.mkdir(parents=True)
++                if condition == 'capture_directory':
++                    dest.mkdir()
++                else:
++                    dest.write_bytes(b'planted')
+                 if entry in ('aggregate', 'run_aggregate'):
+                     continue  # Capture files are aggregate inputs, not its destination.
++            if condition == 'running_without_pass':
++                dest = root/'out/pool_part2/RUNNING'
++                dest.parent.mkdir(parents=True); dest.write_text('running\n')
+             if condition == 'killed':
+                 dest = root/'out/pool_part2/KILLED.json'
+                 dest.parent.mkdir(parents=True); dest.write_text('{}\n')
+             def snapshot():
+-                return {str(p.relative_to(root)): (os.readlink(p) if p.is_symlink() else K.sha(p) if p.is_file() else 'DIRECTORY', p.lstat().st_mtime_ns)
++                return {str(p.relative_to(root)): (os.readlink(p) if p.is_symlink() else K.sha(p) if p.is_file() else p.lstat().st_mode, p.lstat().st_mtime_ns)
+                         for p in root.rglob('*')}
+             before = snapshot()
+-            if entry == 'launcher':
++            if entry == 'gate_capture':
++                cmd = [sys.executable, '-B', str(root/'part2/gate.py'), 'capture']
++            elif entry == 'launcher':
+                 cmd = ['bash', str(root/'part2/launch_part2.sh'), 'capture']
+             elif entry.startswith('run_'):
+                 script = str(root/'part2/price.py') if entry == 'run_absolute' else './part2/price.py'
+@@ -298,6 +314,35 @@
+     def test_killed_never_rerun(self):
+         self.exercise('killed')
+ 
++    def test_decision_directory_refused_without_writes(self):
++        self.exercise('decision_directory')
++
++    def test_decision_fifo_refused_without_writes(self):
++        self.exercise('decision_fifo')
++
++    def test_capture_directory_refused_without_writes(self):
++        self.exercise('capture_directory')
++
++    def test_capture_running_without_pass_refused_without_writes(self):
++        self.exercise('running_without_pass', ('gate_capture', 'launcher', 'capture', 'run_relative', 'run_absolute'))
++
++    def test_capture_completed_pool_and_aggregate_logs_admitted(self):
++        root = Path(tempfile.mkdtemp(prefix='completed_pool_', dir=K.WORK))
++        (root/'part2').mkdir()
++        (root/'part2/BARS_PART2.json').write_bytes(P.BARS2.read_bytes())
++        pool = root/'out/pool_part2'; pool.mkdir(parents=True)
++        (pool/'RUNNING').write_text('running\n')
++        (pool/'PASS_COMPLETE.json').write_text(json.dumps(dict(status='PASS', input_sha256={str(P.BARS2): K.sha(P.BARS2)})))
++        logs = root/'out/part2/logs'; logs.mkdir(parents=True)
++        (logs/'capture.log').write_text('log\n')
++        def snapshot():
++            return {str(p.relative_to(root)): (K.sha(p) if p.is_file() else 'DIRECTORY', p.stat().st_mtime_ns)
++                    for p in root.rglob('*')}
++        before = snapshot()
++        for mode in ('capture', 'aggregate'):
++            P.check(mode, root)
++        self.assertEqual(before, snapshot())
++
+ 
+ if __name__ == '__main__':
+     result = unittest.main(exit=False, verbosity=2).result
+--- a/sb_mask_phrase/part2/gate.py
++++ b/sb_mask_phrase/part2/gate.py
+@@ -52,8 +52,9 @@
+             # Only the suite receipt is allowed in a fresh aggregate destination.
+             if path == root / 'out/part2/TESTS_PART2.json':
+                 continue
+-            if path.is_file() and (any(s.lower() in ('.json', '.jsonl', '.csv', '.tsv', '.gz') for s in path.suffixes) or path.name.upper().startswith('PER_ITEM')):
++            if any(s.lower() in ('.json', '.jsonl', '.csv', '.tsv', '.gz') for s in path.suffixes) or path.name.upper().startswith('PER_ITEM'):
+                 raise SystemExit(f'REFUSED: existing part 2 scored output {path}')
++    if mode == 'capture' and (root / 'out/pool_part2/RUNNING').exists() and not (root / 'out/pool_part2/PASS_COMPLETE.json').exists(): raise SystemExit('REFUSED: RUNNING without PASS_COMPLETE.json; capture requires a completed pass')
+     for marker in ('STOP', 'STOP.json', 'KILLED', 'KILLED.json'):
+         path = root / 'out/pool_part2' / marker
+         if path.exists():

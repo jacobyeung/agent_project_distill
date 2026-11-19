@@ -37,7 +37,9 @@ class FixtureProcessor(PatchGridProcessor):
 def processor(root):
     p=FixtureProcessor(root);p._student_pilot_student='qwen35';return p
 
+external_project_reads=set()
 def retain_open(path,mode='r',*a,**kw):
+    if 'r' in mode and path.is_absolute() and path.is_relative_to(L.parent) and not path.is_relative_to(L):external_project_reads.add(str(path))
     return original_open(path,mode.replace('x','w') if path.is_relative_to(O) else mode,*a,**kw)
 original_open=Path.open
 original_mkdir=Path.mkdir
@@ -81,7 +83,7 @@ def host():
     prior=load(B/'inputs/config.json')
     for key in ('dev_scene_exclusions','benchmark_scene_exclusions','exclusions','remove_files','r2_identity','r2_all_stream_exclusions','r2_scene_rebuild','scene_coverage'):
         if key in prior:cfg[key]=prior[key]
-    cfg['r1_training']['not_present_slots']=['heads_gf1_connector','heads_frame_embeddings']
+    cfg['r1_training']['not_present_slots']=['0','1']
     cfg['r1_training'].update(room_authority=prior['r1_training']['room_authority'],registry=prior['r1_training']['registry'],component_rows=prior['r1_training']['component_rows'])
     cfg['remove_files']=load(L/'work/build21/inputs/config.json')['remove_files']
     cfg['recipe']=C.recipe_for(cfg)
@@ -293,6 +295,8 @@ def twins(request,cfg,mp,root):
     return records
 
 def main():
+    steps=tuple(int(x) for x in os.environ.get('CAPACITY_STEPS','600').split(','))
+    if 600 not in steps or len(set(steps))!=len(steps) or not set(steps)<={400,600}:raise ValueError('Invalid fixture milestones')
     summary=dict(status='INCOMPLETE',GO=False,stand_ins=['Synthetic RGB frame host and catalogs','Tiny native model dimensions',
         'PatchGridProcessor HF processor constructor','CPU local publication collectives'],milestones={})
     try:
@@ -303,8 +307,10 @@ def main():
             real_uname=os.uname();host_uname=os.uname_result((real_uname.sysname,'fixture-host',real_uname.release,real_uname.version,real_uname.machine))
             stack.enter_context(patch.object(os,'uname',return_value=host_uname))
             stack.enter_context(patch.dict(os.environ,STUDENT_R2_FRAME_HOST='1'))
+            staged={p.name:str(p) for p in (L/'work/build21/upload/u').glob('*') if p.is_file()}
+            stack.enter_context(P.scope(staged))
             guard('host');cfg,model,mp,camera,depth,room=host()
-            for step in (600,400):
+            for step in steps:
                 guard('milestone '+str(step));n=produce(cfg,model,mp,camera,depth,step);root=O/str(step)
                 config=write(root/'request_config.json',n)
                 staged=[config,room,mp]+[file_pin(p) for p in (O/'model').iterdir() if p.is_file()]
@@ -336,10 +342,11 @@ def main():
     except Exception as error:
         summary.update(refusal=type(error).__name__+':'+str(error),traceback=traceback.format_exc())
         print(summary['traceback'],flush=True)
-    summary['complete_native_fixture']=len(summary['milestones'])==2 and all(v['status']=='ADMIT' for v in summary['milestones'].values())
+    summary['requested_milestones']=list(steps)
+    summary['complete_native_fixture']=len(summary['milestones'])==len(steps) and all(v['status']=='ADMIT' for v in summary['milestones'].values())
     summary['twins_all_refuse']=all(v.get('status')=='REFUSE' for rows in summary.get('twins',{}).values() for v in rows.values())
     summary['status']='ADMIT' if summary['complete_native_fixture'] and summary['twins_all_refuse'] else 'REFUSE'
-    write(O/'RESULT.json',summary);m.save(O)
+    write(O/'RESULT.json',summary);write(O/'EXTERNAL_PROJECT_READS.json',sorted(external_project_reads));m.save(O)
     raise SystemExit(0 if summary['status']=='ADMIT' else 1)
 
 if __name__=='__main__':main()

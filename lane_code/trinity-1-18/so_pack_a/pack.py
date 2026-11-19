@@ -1,6 +1,8 @@
 """Opt-in read-package preflight and bounded Orchard planner. Python 3.6."""
 import argparse, ast, base64, gzip, hashlib, io, json, os, re, resource, shlex, subprocess, sys, tarfile, time
 from pathlib import Path, PurePosixPath
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+import pack_verify as V
 PREFIX='a15_cot_ap'
 ROOT='/project/community/jjyeung/okh7'
 PYTHON='/scratch/jjyeung/envs/p1cpu/bin/python'
@@ -63,12 +65,15 @@ def structure(package,c=None):
     for n,h in m['files'].items():need(n in f and digest(f[n])==h,'Package pin differs: '+n)
     need(digest(f['0.tgz'])==v['payload_sha256'] and len(f['0.tgz'])==v['payload_bytes'],'Payload pin differs')
     pay=untar(f['0.tgz']);plan=json.loads(pay['9.json'])
+    terms=[ast.literal_eval(n.value) for n in ast.parse(pay['orchard_h10/common.py']).body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='FORBIDDEN' for t in n.targets)]
+    need(len(terms)==1 and set(terms[0])<=set(TERMS),'Native FORBIDDEN differs; update checked terms')
     need(plan['token']==v['token'] and digest(canonical(plan))==v['plan_sha256'],'Plan differs')
     for n,pin in plan['payload_pins'].items():need(n in pay and digest(pay[n])==pin['sha256'] and len(pay[n])==pin['bytes'],'Payload member differs: '+n)
     b=bundle(f['BATCH.sh']);need(set(b)=={'0.py','0.json','7.py'},'Bundle inventory differs');need(json.loads(b['0.json'])==v,'Bundle descriptor differs');need(b['7.py']==f['a/6.py'],'Bundle operator differs')
     need(("'a'+j+%r"%v['token']).encode() in f['BATCH.sh'],'Temporary token differs')
+    need(not c.get('builder') or c.get('old_identities'),'Production builder requires at least one old identity')
     for old in c.get('old_identities',[]):
-        need(old,'Empty identity')
+        need(isinstance(old,str) and re.fullmatch('[0-9a-f]{11,64}',old),'Invalid old identity: expected 11..64 lowercase hex characters')
         for n,data in list(f.items())+list(pay.items())+list(b.items()):
             need(old not in n and old.encode() not in data and old.encode().hex().encode() not in data,'Old identity in '+n)
     for n in f:opaque(n,c.get('forbidden_extra',()))
@@ -92,7 +97,11 @@ def shell_privacy(text,extra=()):
         try:words=shlex.split(line,comments=True)
         except ValueError:words=[line]
         for i,word in enumerate(words):
-            need('--comment' not in word,'Slurm --comment is forbidden')
+            need('--com' not in word and '--admin-com' not in word,'Slurm --comment is forbidden')
+            reads=re.sub(r'\$SLURM_JOB_ID\b|\$\{SLURM_JOB_ID(?::-[0-9]*)?\}', '',word)
+            need('SBATCH_' not in word and 'SLURM_' not in reads,'Scheduler environment mutation or unsupported read forbidden')
+            need(not word.startswith('--job') or word=='--job-name' or word.startswith('--job-name='),'Abbreviated job name forbidden')
+            need(not (word.startswith('-') and not word.startswith('--') and 'J' in word[1:] and not word.startswith('-J')),'Clustered job name forbidden')
             value=None
             if word in ('--job-name','-J'):
                 need(i+1<len(words),'Missing job name');value=words[i+1]
@@ -121,10 +130,15 @@ def privacy(p,c):
     need(b'umask 077\n' in f['BATCH.sh'],'Batch must set umask 077');need(b'mode=0o700' in f['BATCH.sh'],'Private job temporary directory missing')
     if '2.json' in f:
         receipt=json.loads(f['2.json'])
+        submit_privacy(receipt.get('argv',[]),v['token'])
         for arg in receipt.get('argv',[]):opaque(arg,extra)
         names=[x.split('=',1)[1] for x in receipt.get('argv',[]) if x.startswith('--job-name=')]
         need(names==[PREFIX+v['token']],'Checked job name differs')
     return dict(names=len(f),scope='visible surfaces; sealed archive bytes excluded')
+def submit_privacy(argv,tok):
+    shell_privacy(shell_join(argv))
+    need([x for x in argv if x.startswith('--job-name=')]==['--job-name='+PREFIX+tok],'Checked job name differs')
+    need(not any(x.startswith('-J') or (x.startswith('-') and not x.startswith('--') and 'J' in x) or (x.startswith('--job') and not x.startswith('--job-name=')) for x in argv),'Alternative job name forbidden')
 def normalize_wrapper(f,enabled=False):
     out=dict(f)
     if not enabled:return out
@@ -143,7 +157,7 @@ def run(argv,cwd,log,env=None,seconds=180):
     with Path(log).open('wb') as out:r=subprocess.run(['nice','-n','10']+list(argv),cwd=str(cwd),env=env or environment(Path(cwd)),stdout=out,stderr=subprocess.STDOUT,timeout=seconds)
     need(r.returncode==0,'Command failed (%s); see %s'%(r.returncode,log))
 def fingerprint(f):return digest(canonical({n:digest(b) for n,b in f.items()}))
-def source_fingerprint():return {n:file_digest(Path(__file__).parent/n) for n in ('pack.py','pack_checks.py','pack_structural.py')}
+def source_fingerprint():return {n:file_digest(Path(__file__).parent/n) for n in ('pack.py','pack_checks.py','pack_structural.py','pack_verify.py')}
 def limits():
     resource.setrlimit(resource.RLIMIT_AS,(28*1024**3,28*1024**3))
     if hasattr(os,'sched_getaffinity'):os.sched_setaffinity(0,set(sorted(os.sched_getaffinity(0))[:8]))
@@ -217,7 +231,11 @@ from pathlib import Path
 os.umask(0o077)
 p=Path(%r);raw=bytes.fromhex(%r)
 assert hashlib.sha256(raw).hexdigest()==%r
-p.mkdir(mode=0o700)
+if p.exists():
+    assert not p.is_symlink() and p.stat().st_uid==os.getuid() and not p.stat().st_mode & 0o077
+    assert {x.name for x in p.iterdir()}=={'v'} and (p/'v').is_dir() and not (p/'v').is_symlink(), 'Not a verify-only root'
+else:p.mkdir(mode=0o700)
+(p/'a').mkdir(mode=0o700)
 with tarfile.open(fileobj=io.BytesIO(raw)) as t:
     seen=set()
     for m in t:
@@ -301,35 +319,81 @@ def export_identity(c,f,plan):
         need(binding[key]==constants.get(name),'Binding differs from '+name)
     need(all(c['fill'][k]==sealed[k] for k in ('object','step','lineage')),'Configured fill identity differs from sealed binding')
     parts=binding.get('parts',[]);paths=c['fill']['parts']
+    for path in paths+[c['fill'][k] for k in ('done','config','receipt','data_receipt')]:
+        need(isinstance(path,str) and PurePosixPath(path).is_absolute() and str(PurePosixPath(path))==path and not path.startswith('//') and '..' not in PurePosixPath(path).parts,'Staged input requires canonical absolute path: '+str(path))
     need(len(parts)==len(paths)==4 and len(set(paths))==4,'Binding requires four distinct export parts')
     for index,(part,path) in enumerate(zip(parts,paths)):
         size=part.get('bytes');actual=c.get('remote_input_pins',{}).get(path,{}).get('bytes')
         need(type(size) is int and size>0 and type(actual) is int and actual==size,'Export part size differs from binding: part %d (%s)'%(index,path))
+        need(isinstance(part.get('sha256'),str) and re.fullmatch('[0-9a-f]{64}',part['sha256']),'Required binding input missing: parts[].sha256')
+        for archive in json.loads(f['a/0.json'])['archives']:
+            for old in archive['parts']:need(old['path']!=path or old['sha256']==part['sha256'],'Export path has conflicting base sha256: '+path)
     need(sum(part['bytes'] for part in parts)==constants['REVIEWED_ARCHIVE_BYTES'],'Export part sum differs from REVIEWED_ARCHIVE_BYTES')
     prep=binding.get('preparation_sha256',{})
     for key in ('config','receipt','data_receipt'):need(isinstance(prep.get(key),str) and re.fullmatch('[0-9a-f]{64}',prep[key]),'Required binding input missing: preparation_sha256.'+key)
-    return dict(done=[binding['object'],str(binding['archive_bytes']),binding['archive_sha256']],preparation={c['fill'][k]:prep[k] for k in ('config','receipt','data_receipt')})
+    member=binding['member_directory'];safe_name(member)
+    return dict(done=[binding['object'],str(binding['archive_bytes']),binding['archive_sha256']],preparation={c['fill'][k]:prep[k] for k in ('config','receipt','data_receipt')},parts=[dict(path=path,bytes=part['bytes'],sha256=part['sha256']) for path,part in zip(paths,parts)],member_directory=member)
 
 def remote_preflight(c,b):
     f,_,_,plan=structure(b['package']);identity=export_identity(c,f,plan)
-    return python_block("from pathlib import Path\nimport hashlib\npins=%r\nfor name,size in pins.items():\n p=Path(name)\n if not p.is_file() or p.stat().st_size!=size:raise ValueError('Required staged input missing or size differs: '+name)\ndone=Path(%r)\nif done.stat().st_size>4096 or done.read_text().split()!=%r:raise ValueError('Reviewed whole-tar receipt differs: '+str(done))\nfor name,sha in %r.items():\n p=Path(name)\n if p.stat().st_size>1048576:raise ValueError('Preparation input exceeds metadata budget: '+name)\n if hashlib.sha256(p.read_bytes()).hexdigest()!=sha:raise ValueError('Reviewed preparation differs: '+name)\nprint('inputs ready')"%(remote_inputs(c,b),c['fill']['done'],identity['done'],identity['preparation']))
+    code=("from pathlib import Path\nimport hashlib\npins=%r\nfor name,size in pins.items():\n p=Path(name)\n if not p.is_file() or p.stat().st_size!=size:raise ValueError('Required staged input missing or size differs: '+name)\ndone=Path(%r)\nif done.stat().st_size>4096 or done.read_text().split()!=%r:raise ValueError('Reviewed whole-tar receipt differs: '+str(done))\nfor name,sha in %r.items():\n p=Path(name)\n if p.stat().st_size>1048576:raise ValueError('Preparation input exceeds metadata budget: '+name)\n if hashlib.sha256(p.read_bytes()).hexdigest()!=sha:raise ValueError('Reviewed preparation differs: '+name)"%(remote_inputs(c,b),c['fill']['done'],identity['done'],identity['preparation']))
+    return python_block(code+'\n'+V.preflight_code(remote_path(b),identity)+"print('inputs ready')\n")
 
 def detached_fill(body,p):
     # Exclusive launch directory survives transport loss and prevents duplicate hashing.
     code="from pathlib import Path\np=Path(%r)\n(p/'a/f.lock').mkdir(mode=0o700)\n(p/'a/f.sh').write_text(%r)"%(p,body)
     return HEADER+python_block(code)+'cd '+shlex.quote(p)+'\nsetsid nohup bash a/f.sh </dev/null >a/f.log 2>&1 &\n'
 
+def detached_verify(body,p,identity=None):
+    code='''import os,fcntl
+from pathlib import Path
+p=Path(%r)
+p.mkdir(mode=0o700,exist_ok=True)
+assert not p.is_symlink() and p.stat().st_uid==os.getuid() and not p.stat().st_mode & 0o077
+assert {x.name for x in p.iterdir()}<={'v'}, 'Verify cannot run after placement'
+v=p/'v'
+try:v.mkdir(mode=0o700)
+except FileExistsError:
+ assert not v.is_symlink() and v.is_dir() and not v.stat().st_mode & 0o077
+ lock=v/'0.lock'
+ assert not lock.is_symlink()
+ held=lock.open('a');fcntl.flock(held,fcntl.LOCK_EX|fcntl.LOCK_NB)
+ failed=v/'0.exit'
+ completed=all((v/n).is_file() and not (v/n).is_symlink() for n in ('0.txt','0.json')) and (v/'0.txt').read_text()=='0\\n'
+ if completed:
+  assert %r is not None, 'Verification identity missing; do not relaunch'
+  try:exec(%r)
+  except (ValueError,OSError,KeyError,TypeError):pass
+  else:raise SystemExit(0)
+ else:
+  assert failed.is_file() and not failed.is_symlink() and failed.stat().st_size<16 and not (v/'0.txt').exists(), 'Verification active or uncertain; do not relaunch'
+  assert 0<int(failed.read_text())<256, 'Invalid verification failure receipt'
+ archive=v/os.urandom(8).hex();archive.mkdir(mode=0o700)
+ for name in ('0.txt','0.exit','0.sh','0.log','0.json'):
+  old=v/name
+  if old.exists():
+   assert not old.is_symlink() and old.is_file()
+   old.rename(archive/name)
+(v/'0.sh').write_text(%r)
+'''%(p,identity,V.preflight_code(p,identity) if identity is not None else '',body)
+    return HEADER+python_block(code)+'cd '+shlex.quote(p)+'\nif test -f v/0.txt; then exit 0; fi\nsetsid nohup bash v/0.sh </dev/null >v/0.log 2>&1 &\n'
+
 def plan(c,b):
     p=remote_path(b);opaque(p,c.get('forbidden_extra',()));check=shell_join(['/usr/bin/python3','-I','-s','-B','3.py','check','--gpus','1','--time',c['remote']['walltime']])
     fill_body=HEADER+'cd '+shlex.quote(p)+'\ntrap \'rc=$?; if [ "$rc" != 0 ]; then printf "%s\\n" "$rc" >a/f.exit; fi\' EXIT\n'+shell_join(fill_argv(c,p))+'\n'+check+'\nprintf "0\\n" > a/1.txt\n'
     shell_privacy(fill_body,c.get('forbidden_extra',()))
-    scripts=dict(preflight=HEADER+remote_preflight(c,b),place=HEADER+python_block(place_code(b)),fill=detached_fill(fill_body,p),cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
+    f,_,_,binding=structure(b['package']);identity=export_identity(c,f,binding)
+    verify_body=HEADER+'cd '+shlex.quote(p)+'\ntrap \'rc=$?; if [ "$rc" != 0 ]; then printf "%s\\n" "$rc" >v/0.exit; fi\' EXIT\n'+python_block(V.verify_code(p,identity))
+    scripts=dict(verify=detached_verify(verify_body,p,identity),preflight=HEADER+remote_preflight(c,b),place=HEADER+python_block(place_code(b)),fill=detached_fill(fill_body,p),cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
+    scripts['verify_poll']=HEADER+'cd '+shlex.quote(p)+'\nif test -f v/0.txt; then test "$(cat v/0.txt)" = 0; printf "complete\\n"; elif test -f v/0.exit; then tail -c 8192 v/0.log >&2; exit 1; else printf "wait\\n"; tail -c 8192 v/0.log >&2; fi\n'
     scripts['fill_poll']=HEADER+'cd '+shlex.quote(p)+'\nif test -f a/1.txt; then test "$(cat a/1.txt)" = 0; printf "complete\\n"; elif test -f a/f.exit; then tail -c 8192 a/f.log >&2; exit 1; else printf "wait\\n"; tail -c 8192 a/f.log >&2; fi\n'
     job='P='+p+'\nJ=$(cat "$P/a/4.txt")\n[[ "$J" =~ ^[0-9]+$ ]]\n'
     scripts['poll']=HEADER+job+'if ! S=$(sacct -n -X -j "$J" -o State --parsable2); then printf "accounting unavailable for %s\\n" "$J" >&2; exit 75; fi\nprintf "%s\\n" "$S"\ncase "${S%%|*}" in COMPLETED|PENDING|RUNNING|CONFIGURING|COMPLETING|\'\') ;; *) tail -c 8192 "$P/a/4.err" "$P/a/4.log" >&2 || true ;; esac\n'
     scripts['gpu']=HEADER+job+'S=$(sacct -n -X -j "$J" -o State --parsable2)\n[[ "${S%%|*}" = COMPLETED ]]\ntest -s "$P/a/c/CPU.json"\n'+adapted_script(c,'gpu',p,b['package'])
     w=state_root(c)/'commands';w.mkdir(exist_ok=True,mode=0o700)
     body=w/'fill_body.sh';body.write_text(fill_body);body.chmod(0o600);run(['bash','-n',str(body)],w,w/'fill_body.log')
+    body=w/'verify_body.sh';body.write_text(verify_body);body.chmod(0o600);shell_privacy(verify_body,c.get('forbidden_extra',()));run(['bash','-n',str(body)],w,w/'verify_body.log')
+    for code in heredocs(verify_body):run(['/usr/bin/python3','-I','-s','-B','-c','import sys;compile(sys.argv[1],"verify","exec")',code],w,w/'verify_python.log')
     for k,text in scripts.items():
         shell_privacy(text,c.get('forbidden_extra',()));f=w/(k+'.sh');f.write_text(text);f.chmod(0o600);run(['bash','-n',str(f)],w,w/(k+'.log'))
         for i,body in enumerate(heredocs(text)):
@@ -347,9 +411,9 @@ def poll_state(text):
     raise Rejected('CPU job ended: '+states[0])
 def execute(c,scripts,phases,yes=False,explicit=None,call=None,sleeper=time.sleep):
     b=checked(c)
-    if 'cpu' in phases or 'gpu' in phases:need(yes and explicit==b['token'],'Submit requires --yes and exact token')
+    need(yes and explicit==b['token'],'Remote action requires --yes and exact token')
     def actual(k):
-        if k not in ('poll','fill_poll','preflight','gpu'):
+        if k not in ('poll','fill_poll','verify_poll','preflight','gpu','verify'):
             marker=state_root(c)/(k+'.attempt');need(not marker.exists(),'Already attempted '+k);marker.write_text(str(time.time()))
         cmd=command(c,scripts[k]);print(cmd,flush=True)
         log=state_root(c)/('call_'+k+'_'+str(time.time_ns() if hasattr(time,'time_ns') else int(time.time()*1000000))+'.json')
@@ -378,23 +442,30 @@ def execute(c,scripts,phases,yes=False,explicit=None,call=None,sleeper=time.slee
                         sleeper(60);break
                 sleeper(60)
         r=invoke(phase);need(r.returncode==0,'Remote '+phase+' failed: '+r.stderr.decode(errors='replace'))
-        if phase=='fill':
-            deadline=time.monotonic()+int(c['remote'].get('fill_wait',1800))
+        if phase in ('fill','verify'):
+            deadline=time.monotonic()+int(c['remote'].get(phase+'_wait',1800))
             while True:
-                sleeper(60);need(time.monotonic()<deadline,'Fill wait deadline exceeded; inspect a/f.log; do not relaunch')
-                r=invoke('fill_poll');need(r.returncode==0,'Fill poll failed; inspect a/f.log; do not relaunch: '+r.stderr.decode(errors='replace'))
-                state=r.stdout.decode().strip();need(state in ('wait','complete'),'Unexpected fill receipt')
+                sleeper(60);need(time.monotonic()<deadline,phase+' wait deadline exceeded; inspect remote log; do not relaunch')
+                advice='recorded failure permits explicit verify retry; transport loss or uncertain state requires inspection' if phase=='verify' else 'inspect remote log; do not relaunch'
+                r=invoke(phase+'_poll');need(r.returncode==0,phase+' poll failed; '+advice+': '+r.stderr.decode(errors='replace'))
+                state=r.stdout.decode().strip();need(state in ('wait','complete'),'Unexpected '+phase+' receipt')
                 if state=='complete':break
 def main(argv=None):
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('build','check','place','fill','gpu','submit','all'));p.add_argument('--config',required=True);p.add_argument('--enable',action='store_true');p.add_argument('--token');p.add_argument('--yes',action='store_true');p.add_argument('--execute-remote',action='store_true');a=p.parse_args(argv);need(a.enable,'Default OFF: pass --enable')
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('build','check','verify','place','fill','gpu','submit','all'));p.add_argument('--config',required=True);p.add_argument('--enable',action='store_true');p.add_argument('--token');p.add_argument('--yes',action='store_true');p.add_argument('--execute-remote',action='store_true');a=p.parse_args(argv);need(a.enable,'Default OFF: pass --enable')
     os.umask(0o077);limits();c=read(a.config);w=state_root(c)
-    if a.action in ('build','all'):print(json.dumps(build(c,a.token),sort_keys=True))
+    if a.action in ('build','all'):
+        if a.action=='all' and (w/'BUILD.json').exists():
+            b=built(c);need(a.token==b['token'],'Build token differs from explicit token')
+        else:b=build(c,a.token)
+        print(json.dumps(b,sort_keys=True))
     if a.action in ('check','all'):
         b=built(c);r=local_check(c,b['package'],w/('c'+os.urandom(4).hex()));write(w/'CHECK.json',r);plan(c,b)
-    if a.action in ('place','fill','gpu','submit','all'):
-        b=checked(c);scripts=plan(c,b);phases={'place':['place'],'fill':['fill'],'gpu':['gpu'],'submit':['cpu','gpu'],'all':['place','fill','cpu','gpu']}[a.action]
-        if a.action in ('gpu','submit','all'):need(a.yes and a.token==b['token'],'Submit requires --yes and exact token')
-        for phase in phases:print(command(c,scripts[phase]))
+    if a.action in ('verify','place','fill','gpu','submit','all'):
+        b=checked(c);scripts=plan(c,b);phases={'verify':['verify'],'place':['place'],'fill':['fill'],'gpu':['gpu'],'submit':['cpu','gpu'],'all':['verify','place','fill','cpu','gpu']}[a.action]
+        if a.execute_remote or a.action in ('gpu','submit','all'):need(a.yes and a.token==b['token'],'Remote action requires --yes and exact token')
+        for phase in phases:
+            if phase=='place':print(command(c,scripts['preflight']))
+            print(command(c,scripts[phase]))
         if a.execute_remote:execute(c,scripts,phases,a.yes,a.token)
     return 0
 if __name__=='__main__':

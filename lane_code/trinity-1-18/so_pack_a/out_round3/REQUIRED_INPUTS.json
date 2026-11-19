@@ -1,0 +1,168 @@
+{
+  "inputs": [
+    {
+      "group": "production_build",
+      "location": "local",
+      "name": "reviewed source delivery",
+      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/1.tgz",
+      "reason": "Actual reviewed step-600 source delivery and its SHA"
+    },
+    {
+      "group": "production_build",
+      "location": "local",
+      "name": "step-600 binding",
+      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/binding600.json",
+      "reason": "Object, four part pins, whole SHA, step, preparation pins"
+    },
+    {
+      "group": "production_build",
+      "location": "local",
+      "name": "coherent D embedded release",
+      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/o_build_D.sh",
+      "reason": "Regenerate the native embedded assets to match the current scorer"
+    },
+    {
+      "group": "r10",
+      "location": "local",
+      "name": "r10 original a15_cot_ap1f6dfa8874e49e1e",
+      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/r10/a15_cot_ap1f6dfa8874e49e1e/1.tgz",
+      "reason": "Native r10 verifies this exact delivery",
+      "sha256": "ca977dd2bc6feb1c14c7c03023eefe7b5e2b67b1cabe838d34effbafd003c765"
+    },
+    {
+      "group": "r10",
+      "location": "local",
+      "name": "r10 original a15_cot_ap5e8d1fa8216c469d",
+      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/r10/a15_cot_ap5e8d1fa8216c469d/1.tgz",
+      "reason": "Native r10 verifies this exact delivery",
+      "sha256": "be1f4dec0a2607e0590f0392ef1f7b6c44e3f60c34a06ad6b6a3f3cd551ea3ad"
+    },
+    {
+      "group": "routed_harness",
+      "location": "local",
+      "name": "routed test_sequence.py",
+      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_sequence.py",
+      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
+    },
+    {
+      "group": "routed_harness",
+      "location": "local",
+      "name": "routed test_operator_memory.py",
+      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_operator_memory.py",
+      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
+    },
+    {
+      "group": "routed_harness",
+      "location": "local",
+      "name": "routed test_fixes.py",
+      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_fixes.py",
+      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
+    },
+    {
+      "group": "routed_harness",
+      "location": "local",
+      "name": "routed test_cpu_helper.py",
+      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_cpu_helper.py",
+      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
+    },
+    {
+      "group": "routed_harness",
+      "location": "local",
+      "name": "routed test_room_pair.py",
+      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_room_pair.py",
+      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
+    },
+    {
+      "group": "routed_harness",
+      "location": "local",
+      "name": "routed test_room_pair_labels.py",
+      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_room_pair_labels.py",
+      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
+    },
+    {
+      "config_key": "fill.parts",
+      "group": "orchard",
+      "location": "orchard",
+      "name": "step-600 export parts",
+      "reason": "Four production export parts: exact binding sizes and SHA256s; detached verify receipt required before place"
+    },
+    {
+      "config_key": "fill.done",
+      "group": "orchard",
+      "location": "orchard",
+      "name": "whole-tar completion receipt",
+      "reason": "Upstream .done object/byte/SHA receipt"
+    },
+    {
+      "config_key": "fill.config, fill.receipt, fill.data_receipt",
+      "group": "orchard",
+      "location": "orchard",
+      "name": "preparation config/receipt/data receipt",
+      "reason": "Actual preparation files pinned by the sealed binding"
+    },
+    {
+      "config_key": "package a/0.json and ORCHARD_ASSETS.json",
+      "group": "orchard",
+      "location": "orchard",
+      "name": "dependency archives, template and bwrap",
+      "reason": "Real parts checked by remote preflight and native job.stage"
+    },
+    {
+      "config_key": "package input plan",
+      "group": "orchard",
+      "location": "orchard",
+      "name": "production reader environment and RGB inputs",
+      "reason": "Required for a real full-reader run"
+    },
+    {
+      "group": "r10",
+      "location": "local",
+      "name": "r10 original A base inputs",
+      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/r10/a15_cot_apd72cdcff1e22a/a/0.json",
+      "reason": "Native r10 reads this file after building selected deliveries"
+    },
+    {
+      "group": "r10",
+      "location": "local",
+      "name": "r10 original A filled inputs",
+      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/r10/a15_cot_apd72cdcff1e22a/a/1.json",
+      "reason": "Native r10 reads this file after building selected deliveries"
+    },
+    {
+      "config_key": "export_binding_pin.path and export_binding_pin.sha256",
+      "group": "pack_check",
+      "location": "local",
+      "name": "export_binding_pin (step-600 binding with parts[].bytes and archive_bytes)",
+      "path": "/REPLACE/binding600.json",
+      "reason": "Native builder omits part pins from the sealed plan; check authenticates this binding against sealed fields and REVIEWED constants"
+    },
+    {
+      "config_key": "dependency_reference",
+      "group": "pack_check",
+      "location": "local",
+      "name": "dependency_reference (Orchard-proven B5 base inputs)",
+      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/0.json",
+      "reason": "Structural mode compares real dependency metadata to this SHA-pinned reference",
+      "sha256": "206f81ec51f0ce38113b14289f9cf9896baded0e8a950e88ac6653764b24ac04"
+    },
+    {
+      "config_key": "native_dry",
+      "group": "pack_check",
+      "location": "local",
+      "name": "native_dry (unchanged native dryres_d.py)",
+      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/dryres_d.py",
+      "reason": "Execute native resolution predicates unchanged after local fill",
+      "sha256": "e1981c7909b96006a9df9adaf2397c4a70210f7263f58ba484aff81923c225f2"
+    },
+    {
+      "group": "native_dry2",
+      "location": "local",
+      "name": "native a3.tar policy archive for unchanged dry2/dry2b",
+      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/a3.tar",
+      "reason": "dry2/dry2b select its fixed 05dc8f79 SHA prefix; tiny synthetic policy bytes cannot satisfy that check"
+    }
+  ],
+  "local_check": "check_required_inputs.py --manifest out/REQUIRED_INPUTS.json --group production_build|r10|routed_harness",
+  "production_ready": false,
+  "remote_check": "place requires ledger reservation, then read-only size/.done/preparation preflight before place.attempt; fill and job.stage authenticate large live archives"
+}

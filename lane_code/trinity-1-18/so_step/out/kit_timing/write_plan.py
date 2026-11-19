@@ -25,10 +25,14 @@ def main():
     for name in ('tree','config','receipt','resume-pin','out'):
         p.add_argument('--'+name, required=True)
     p.add_argument('--steps',type=int,default=10)
+    p.add_argument('--receipt-out',help='Private operational receipt; default: beside the plan as prepared_receipt.json')
     args=p.parse_args()
     sys.path.insert(0,str(Path(args.tree).resolve()))
     from student_pilot import carrier_c1_run as run
-    cfg, receipt = run.load(args.config), run.load(args.receipt)
+    cfg = run.load(args.config)
+    if run.file_pin(args.receipt)['sha256'] != cfg['preparation']['sha256']:
+        raise ValueError('Raw receipt differs from the configuration preparation pin')
+    receipt, _ = run.prepared(cfg)
     checkpoint = run.load(run.pinned(run.load(args.resume_pin)))
     if checkpoint.get('schema') != 'c1-checkpoint-v1':
         raise ValueError('RESUME_PIN must pin a completed native checkpoint manifest')
@@ -36,10 +40,14 @@ def main():
         raise ValueError('Checkpoint and audit world sizes differ')
     # Pin all inputs in the audit plan; replay also checks the full native binding.
     result=build_plan(run,cfg,receipt,checkpoint['step'],args.steps)
-    result.update(config_sha256=run.identity(cfg), receipt_sha256=run.file_pin(args.receipt)['sha256'],
-                  resume=run.load(args.resume_pin))
+    receipt_path = Path(args.receipt_out) if args.receipt_out else Path(args.out).parent/'prepared_receipt.json'
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'kit_profile'))
-    from privacy import scrub
+    from privacy import scrub, input_json
+    # Redaction would corrupt this trainer input. JSON escaping preserves its values.
+    with receipt_path.open('x') as output:
+        output.write(input_json(receipt))
+    result.update(config_sha256=run.identity(cfg), receipt_sha256=run.file_pin(receipt_path)['sha256'],
+                  resume=run.load(args.resume_pin))
     with Path(args.out).open('x') as output:
         output.write(json.dumps(scrub(result),indent=2)+'\n')
     print(json.dumps(dict(start_step=result['start_step'], steps=args.steps, world_size=result['world_size'])))

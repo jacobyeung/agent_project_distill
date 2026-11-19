@@ -1,6 +1,8 @@
 """Mechanical absence proofs for the two configuration-dependent head slots."""
 from .p3_provenance import digest, load, pinned, file_pin
 
+SLOT_CODES = {'0':'heads_gf1_connector','1':'heads_frame_embeddings'}
+
 PREFIXES = {'heads_gf1_connector':('gf1.', 'pose.cam_token_connector.'),
             'heads_frame_embeddings':('frame_embeddings.',)}
 
@@ -67,9 +69,10 @@ def build(cfg):
 def evidence(cfg,artifact):
     """The persisted export pins the actual head payload; absence is never asserted from a list alone."""
     import torch
-    slots=cfg.get('r1_training',{}).get('not_present_slots',[])
-    if not slots:return {}
-    if set(slots)!=set(PREFIXES) or len(slots)!=2:raise ValueError('NOT_PRESENT_SLOT_FORBIDDEN')
+    codes=cfg.get('r1_training',{}).get('not_present_slots',[])
+    if not codes:return {}
+    if not isinstance(codes,list) or set(codes)!=set(SLOT_CODES) or len(codes)!=2:raise ValueError('NOT_PRESENT_SLOT_FORBIDDEN')
+    slots=[SLOT_CODES[code] for code in codes]
     for slot in slots:configuration(cfg,slot)
     pin=artifact.get('heads')
     if not pin:raise ValueError('NOT_PRESENT_STATE_INVENTORY_REQUIRED')
@@ -85,7 +88,7 @@ def verify(entry,cfg,slot):
     projected={**cfg,**record['configuration']}
     if any(k in cfg and cfg[k]!=v for k,v in record['configuration'].items()):
         raise ValueError('NOT_PRESENT_CONFIG_DIFFERS:'+slot)
-    projected['r1_training']={**cfg.get('r1_training',{}),'not_present_slots':list(PREFIXES)}
+    projected['r1_training']={**cfg.get('r1_training',{}),'not_present_slots':list(SLOT_CODES)}
     actual=evidence(projected,{'heads':record['inventory']})[slot]
     if actual!=entry:raise ValueError('NOT_PRESENT_PROOF_DIFFERS:'+slot)
     return entry

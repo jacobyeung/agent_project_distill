@@ -2,74 +2,168 @@
   "cwd": "/scratch/jjyeung/orch_n30/so_pack_a",
   "runs": [
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_TEST_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/pack PACK_TEST_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/applied/test_pack.py > work/r2/pack.log 2>&1",
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/pack.log",
-      "name": "Packaging suite",
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_R4_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review4 PACK_R4_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/run_test.py /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_final/test_review4.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review4.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review4.log",
+      "name": "review4",
       "returncode": 0,
-      "sha256": "e3fe2db754fb4ee48e00d9b7e1d69a8fe42090d314346dd71df73b54533e1006"
+      "sha256": "0d839b0d596af596622a3c89cac0a298ef574fe42d0443835dab69a22a5ccd81",
+      "started": "Thu Nov 19 14:30:33 UTC 2026",
+      "workspace_allocated_bytes": 2548830208
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/applied/test_native.py --work /scratch/jjyeung/orch_n30/so_pack_a/work/r2/native > work/r2/native.log 2>&1",
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/native.log",
-      "name": "Native D integration and default-OFF equality",
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_R4_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review4_login PACK_R4_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/run_test.py /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_final/test_review4.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review4_login.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review4_login.log",
+      "name": "review4_login",
       "returncode": 0,
-      "sha256": "945179a114476a287d85851e4e352ba8213f10060fdf02830160930ad93b2de4"
+      "sha256": "0c1e242c596913f0548fc65567fcf6e747382d82e1d900e8a7034039f77a3d2c",
+      "started": "Thu Nov 19 14:31:03 UTC 2026",
+      "workspace_allocated_bytes": 2551099392
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_REVIEW_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/review1 PACK_REVIEW_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_NATIVE_RESULT=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/native/RESULT.json /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/applied/test_review.py > work/r2/review1.log 2>&1",
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/review1.log",
-      "name": "Round-1 regressions",
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_R3_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review3 PACK_R3_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/run_test.py /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_final/test_review3.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review3.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review3.log",
+      "name": "review3",
       "returncode": 0,
-      "sha256": "22f20150ce7e2caea3b5d2e6e8be51a4b843a052f8f4f652ae89d4bccc475aa2"
+      "sha256": "c57243cde491440b5d8c0b5ec182103e7155ca214dd8f86002d4c4e0dc9377a1",
+      "started": "Thu Nov 19 14:31:40 UTC 2026",
+      "workspace_allocated_bytes": 2558599168
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_R2_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/review2 PACK_R2_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/applied/test_review2.py > work/r2/review2.log 2>&1",
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/review2.log",
-      "name": "Round-2 regressions",
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_R3_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review3_login PACK_R3_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/run_test.py /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_final/test_review3.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review3_login.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review3_login.log",
+      "name": "review3_login",
       "returncode": 0,
-      "sha256": "1c7fb14b1f52e445582a5d9fdafd4a6abdd483bf32e2fe010138a3f62e91ea76"
+      "sha256": "9c9cd72dde48ef3ee52c3c90fa8694c19e0caeeb737a949d95147f4598abc7e4",
+      "started": "Thu Nov 19 14:31:58 UTC 2026",
+      "workspace_allocated_bytes": 2571087872
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -I -s -B work/r2/applied_final/cont_ops17/work/test_pack_token.py > work/r2/adapter_r10.log 2>&1",
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/adapter_r10.log",
-      "name": "r10 adapter under login Python",
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_TEST_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/pack PACK_TEST_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/run_test.py /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_final/test_pack.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/pack.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/pack.log",
+      "name": "pack",
       "returncode": 0,
-      "sha256": "29af22b103f236777b0df09074cf2eee55af03d90548707fece7137e110c0c44"
+      "sha256": "a736c045b72a998660ecf2fa27e870388647cdcf210722d59867e20cb7e61643",
+      "started": "Thu Nov 19 14:32:18 UTC 2026",
+      "workspace_allocated_bytes": 2690572288
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -I -s -B work/r2/applied_final/cont_ops18/dbuild/test_pack_token.py > work/r2/adapter_d.log 2>&1",
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/adapter_d.log",
-      "name": "D adapter under login Python",
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_final/test_native.py --work /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/native > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/native.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/native.log",
+      "name": "native",
       "returncode": 0,
-      "sha256": "e003eacbeead39b09c7e2d615058ca9c3c82fe94465a769eb9568b65e943b11a"
+      "sha256": "0bb4c94d562e6a7fd81b6d5fa6821882cc15345def8f743359e71e431faea917",
+      "started": "Thu Nov 19 14:33:27 UTC 2026",
+      "workspace_allocated_bytes": 2906652672
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -I -s -B work/r2/validate_small.py > work/r2/small_checks.log 2>&1",
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/small_checks.log",
-      "name": "Python 3.6 compile and named-input refusals",
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_REVIEW_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review1 PACK_REVIEW_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_NATIVE_RESULT=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/native/RESULT.json PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/run_test.py /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_final/test_review.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review1.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review1.log",
+      "name": "review1",
       "returncode": 0,
-      "sha256": "e345c22f2111e823c8241332bcc42afaa660259b428700233d37dfc00a0994b0"
+      "sha256": "e395ea31b9f28794a8d74e4d72883b40f9a6744e8265626a15aec7bbab2dd278",
+      "started": "Thu Nov 19 14:34:02 UTC 2026",
+      "workspace_allocated_bytes": 2871980032
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/package.py applied_final > work/r2/package_final.log 2>&1",
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/package_final.log",
-      "name": "Fresh final patch application",
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_R2_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review2 PACK_R2_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/run_test.py /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_final/test_review2.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review2.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/review2.log",
+      "name": "review2",
       "returncode": 0,
-      "sha256": "c750531eb8d0baff25b907faf5fb5437c8a81af407d1fa167f89bb12f550695a"
+      "sha256": "bc17ae7d362a22e77c658dc906af4fcb586fe93ccac40426c1ae06ebde9024cd",
+      "started": "Thu Nov 19 14:34:26 UTC 2026",
+      "workspace_allocated_bytes": 2873499648
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_REVIEW_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/docs1 PACK_REVIEW_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/applied_final/test_review.py Review.test_r6_operational_inventory > work/r2/docs_round1.log 2>&1",
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/docs_round1.log",
-      "name": "Final round-1 document check",
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_final/cont_ops17/work/test_pack_token.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/adapter_r10.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/adapter_r10.log",
+      "name": "adapter_r10",
       "returncode": 0,
-      "sha256": "e6ec4d474931938376e6d92aaa1d17ebdeba1853e4fa11fecf525caa176a8696"
+      "sha256": "29af22b103f236777b0df09074cf2eee55af03d90548707fece7137e110c0c44",
+      "started": "Thu Nov 19 14:34:44 UTC 2026",
+      "workspace_allocated_bytes": 2873503744
     },
     {
-      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_R2_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/docs2 PACK_R2_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r2/applied_final/test_review2.py Review2.test_05_exact_forbidden_rule_documented Review2.test_06_five_rows_and_error_limit > work/r2/docs_round2.log 2>&1",
-      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r2/docs_round2.log",
-      "name": "Final round-2 document checks",
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_final/cont_ops18/dbuild/test_pack_token.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/adapter_d.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/adapter_d.log",
+      "name": "adapter_d",
       "returncode": 0,
-      "sha256": "165c031783cc9f546ff1fc956c2ee477a628c1dc110d4df1dc595f204ec7522b"
+      "sha256": "e003eacbeead39b09c7e2d615058ca9c3c82fe94465a769eb9568b65e943b11a",
+      "started": "Thu Nov 19 14:34:45 UTC 2026",
+      "workspace_allocated_bytes": 2873507840
+    },
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/validate_small.py > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/small_checks.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/small_checks.log",
+      "name": "small_checks",
+      "returncode": 0,
+      "sha256": "4b2d466b6fc90c6fa92c324d09a43db4577f830b798edb4457fa84cbc0460c21",
+      "started": "Thu Nov 19 14:34:45 UTC 2026",
+      "workspace_allocated_bytes": 2873524224
+    },
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r4/package.py applied_verified > work/r4/package_verified.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/package_verified.log",
+      "name": "fresh_patch_replay",
+      "returncode": 0,
+      "sha256": "45cc3447c1079c8e92fd5b1bea5f422f39a9f5c1ffc2c3a262e82be06001b622",
+      "started": "Thu Nov 19 14:36:23 UTC 2026"
+    },
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/r4/validate_storage.py > work/r4/storage_audit.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/storage_audit.log",
+      "name": "storage_integrity",
+      "returncode": 0,
+      "sha256": "ee016c17cbc1ec3b987c7d062d2042e09efcd98a5c0df6dbf39ad7bf0abb438e",
+      "started": "Thu Nov 19 14:36:23 UTC 2026"
+    },
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out PACK_REVIEW_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs1 PACK_REVIEW_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_verified/test_review.py Review.test_r6_operational_inventory > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs1.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs1.log",
+      "name": "docs1",
+      "returncode": 0,
+      "sha256": "08e999ea065adfd550b44c7d8cddbe54b1fbc26f901058eca64b995f38623d7a",
+      "started": "Thu Nov 19 14:39:03 UTC 2026"
+    },
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out PACK_R2_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs2 PACK_R2_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_verified/test_review2.py Review2.test_05_exact_forbidden_rule_documented Review2.test_06_five_rows_and_error_limit > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs2.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs2.log",
+      "name": "docs2",
+      "returncode": 0,
+      "sha256": "e3eeb43c24d68adf5b4af3dc0af6ce464cec9598c70a628444b2db79b8628dd0",
+      "started": "Thu Nov 19 14:39:03 UTC 2026"
+    },
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out PACK_R3_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs3 PACK_R3_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_verified/test_review3.py Review3.test_07_operator_docs Review3.test_07_native_archive_documented Review3.test_07_header_confirmation_documented > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs3.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs3.log",
+      "name": "docs3",
+      "returncode": 0,
+      "sha256": "aa131ece70bdd72673d7d15a5e365355111b0a21d99aa5fb1945b4720aa353f6",
+      "started": "Thu Nov 19 14:39:03 UTC 2026"
+    },
+    {
+      "command": "nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 PACK_DOCS=/scratch/jjyeung/orch_n30/so_pack_a/out PACK_R4_WORK=/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs4 PACK_R4_FIXTURE=/scratch/jjyeung/orch_n30/so_pack_a/work/r2/fixture /usr/bin/python3 -I -s -B /scratch/jjyeung/orch_n30/so_pack_a/work/r4/applied_verified/test_review4.py Review4.test_03_policy_archive_is_sha_pinned Review4.test_06_operator_docs_current Review4.test_07_ledger_precedes_verify_in_note > /scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs4.log 2>&1",
+      "expected_returncode": 0,
+      "log": "/scratch/jjyeung/orch_n30/so_pack_a/work/r4/final2/docs4.log",
+      "name": "docs4",
+      "returncode": 0,
+      "sha256": "84110d2b8167e93398007c5ef40a2978ac3cd1408670360ffd81b1f95f3ee1a1",
+      "started": "Thu Nov 19 14:39:03 UTC 2026"
     }
   ]
 }

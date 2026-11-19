@@ -8,6 +8,15 @@ A4=INPUT/'cont_ops16/work/c15/r1route/out3/A4/package'
 D=INPUT/'cont_ops18/dbuild'
 R=INPUT/'cont_ops17/work'
 def jd(v):return (json.dumps(v,sort_keys=True,indent=2)+'\n').encode()
+def verification_fixture(c,b,w):
+    """A real hash receipt for tiny fixtures; never a production shortcut."""
+    root=Path(w)/'vroot';(root/'v').mkdir(parents=True,mode=0o700)
+    rows=[]
+    for name in c['fill']['parts']:
+        p=Path(c['mirrors'][name]['path']);s=p.stat()
+        rows.append(dict(path=name,bytes=s.st_size,mtime_ns=s.st_mtime_ns,ctime_ns=s.st_ctime_ns,device=s.st_dev,inode=s.st_ino,sha256=P.file_digest(p)))
+    P.write(root/'v/0.json',dict(schema=1,parts=rows));(root/'v/0.txt').write_text('0\n')
+    return {P.remote_path(b):str(root)}
 def seal(f,pay=None):
     f=dict(f)
     if pay is not None:

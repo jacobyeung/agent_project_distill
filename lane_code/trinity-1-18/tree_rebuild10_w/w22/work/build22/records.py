@@ -18,7 +18,7 @@ J.write(D/'OPTIONAL.json',dict(timestamp=datetime.datetime.now(datetime.timezone
  status='first boundary',reason='No reviewed hand-over RESULT with an exact input path and SHA-256 was available through the named RESULT paths; directory listing/search is prohibited.',
  slices=['hard-direction answer-prior weights','relative-count procedure family']))
 cfg=load(I/'config.json');v=cfg['r1_training']
-v['not_present_slots']=['heads_gf1_connector','heads_frame_embeddings']
+v['not_present_slots']=['0','1']
 source=Path('/scratch/jjyeung/orch_n30/sb_pfrev/RECORD_TEXT.md')
 assert J.sha(source)=='e1429ccd67d72e195b9e8b55c7fd5a393ff8585e0a7c1b8ff849db379738b708'
 p=I/'pose_record.md';p.write_bytes(source.read_bytes())

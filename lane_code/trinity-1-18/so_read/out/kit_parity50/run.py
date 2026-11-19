@@ -62,6 +62,31 @@ def validate_roots(cfg):
 
 
 
+def validate_profile(cfg, settings):
+    import re
+    keys = ('stage1_select_rule','perception_memo','perception_memo_modules',
+            'perception_memo_verify_ids','save_own_depth','read_processor_only',
+            'read_processor_cache','read_vision_cache','read_sam_cache','read_cache_bytes')
+    expected = cfg.get('adoption_profile')
+    if not isinstance(expected,dict) or set(expected) != set(keys):
+        raise ValueError('Require the prepared adoption profile')
+    if not re.fullmatch('[0-9a-f]{64}',cfg.get('adoption_plan_sha256','')):
+        raise ValueError('Require the adopted package plan pin')
+    exact = lambda value:json.dumps(value,sort_keys=True,separators=(',',':'))
+    if exact({key:settings.get(key) for key in keys}) != exact(expected):
+        raise ValueError('Settings differ from adopted read profile')
+    slots = cfg.get('enable_caches')
+    if slots not in ([0],[0,1,2]) or any(type(i) is not int for i in slots):
+        raise ValueError('Unsupported adoption cache profile')
+    want = dict(stage1_select_rule='candidates_argmax',perception_memo='on',
+        perception_memo_modules=['g3t'],perception_memo_verify_ids=[],save_own_depth=False,
+        read_processor_only='on' if slots==[0] else 'off',read_processor_cache='on',
+        read_vision_cache='off' if slots==[0] else 'on',read_sam_cache='off' if slots==[0] else 'on',
+        read_cache_bytes=(4 if slots==[0] else 12)*1024**3)
+    if exact(expected) != exact(want) or type(cfg.get('read_cache_bytes')) is not int or cfg['read_cache_bytes'] != want['read_cache_bytes']:
+        raise ValueError('Gate cache switches/budget differ from adopted package')
+
+
 def worker(cfg,mode,out,enabled,shard='0/1',durable_scene=False):
     if not enabled:raise ValueError('GPU execution is OFF; pass --enable-gpu explicitly')
     if not os.environ.get('CUDA_VISIBLE_DEVICES'):raise ValueError('Assign one GPU on the intended GPU host first')
@@ -84,6 +109,7 @@ def worker(cfg,mode,out,enabled,shard='0/1',durable_scene=False):
     from h1eval.h10.parity_adapter import settings_for
     settings=settings_for(cfg['settings'],'devs1_routed')
     settings.pop('item_sets',None)
+    validate_profile(cfg,settings)
     active={CACHE_NAMES[i] for i in cfg.get('enable_caches',[0,1,2])} if mode=='ON' else set()
     if active-{'processor','vision','sam'}:raise ValueError('Unknown cache switch')
     if mode=='ON':
@@ -127,6 +153,8 @@ def worker(cfg,mode,out,enabled,shard='0/1',durable_scene=False):
     torch.cuda.synchronize()
     elapsed=time.perf_counter()-before
     record=dict(mode=mode,returncode=rc,worker_wall_seconds=elapsed,torch=torch.__version__,
+                adoption_plan_sha256=cfg['adoption_plan_sha256'],adoption_profile=cfg['adoption_profile'],
+                enable_caches=cfg['enable_caches'],read_cache_bytes=cfg['read_cache_bytes'],
                 transformers=transformers.__version__,cuda=torch.version.cuda,
                 device=torch.cuda.get_device_name(0),sample_sha256=identity['sample_sha256'],
                 kit_source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
@@ -163,6 +191,7 @@ def main():
     cfg=json.loads(Path(a.config).read_text())
     from a9 import validate_paths
     validate_paths(cfg);validate_paths(json.loads(Path(cfg['settings']).read_bytes()))
+    validate_profile(cfg,json.loads(Path(cfg['settings']).read_bytes()))
     if any(type(i) is not int or not 0<=i<3 for i in cfg.get('enable_caches',[0,1,2])):
         raise ValueError('Cache selectors must be numeric slots 0..2')
     wire=PublicJSON(Codec(json.loads(SAMPLE.read_text()),cfg))

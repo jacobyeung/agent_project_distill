@@ -1,5 +1,9 @@
 {
-  "activation": "u0/a8.py --enable-extensions; u0/a12.py --enable-extensions builds the production overlays (apply all three patches)",
+  "a4_payload_pin": {
+    "bytes": 5252958,
+    "sha256": "4498fca72a8e4b476b38f097ffdf3ff88b5aa20fc036bd196b18a5706e9fe46d"
+  },
+  "activation": "u0/a8.py --enable-extensions; u0/a19.py --enable-extensions builds the bound A4 cache-only package; a12 is the generic integration builder (apply reader patches 01-03 and A4 operator patches 04-05)",
   "application_checks": {
     "A4": "zero fuzz; all original files unchanged; added bytes exact",
     "A4_operator": "zero fuzz; explicit read_extensions default OFF; exact delivered bytes",
@@ -12,31 +16,8 @@
         "-I",
         "-s",
         "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_read_cache.py"
-      ],
-      "name": "read_cache",
-      "output": "applied_read_cache.txt",
-      "returncode": 0
-    },
-    {
-      "command": [
-        "/scratch/jjyeung/envs/p1cpu/bin/python",
-        "-I",
-        "-s",
-        "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_read_journal.py"
-      ],
-      "name": "read_journal",
-      "output": "applied_read_journal.txt",
-      "returncode": 0
-    },
-    {
-      "command": [
-        "/scratch/jjyeung/envs/p1cpu/bin/python",
-        "-I",
-        "-s",
-        "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_off.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round5/a2f354ad3b124ac7ab58b9fe4e4e04df/src/u0/tests/test_off.py"
       ],
       "name": "off",
       "output": "applied_off.txt",
@@ -48,10 +29,11 @@
         "-I",
         "-s",
         "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_public.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round5/a2f354ad3b124ac7ab58b9fe4e4e04df/src/u0/tests/test_round4.py"
       ],
-      "name": "public",
-      "output": "applied_public.txt",
+      "name": "round4",
+      "output": "applied_round4.txt",
       "returncode": 0
     },
     {
@@ -60,10 +42,11 @@
         "-I",
         "-s",
         "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_round1.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round5/a2f354ad3b124ac7ab58b9fe4e4e04df/src/u0/tests/test_round5.py"
       ],
-      "name": "round1",
-      "output": "applied_round1.txt",
+      "name": "round5",
+      "output": "applied_round5.txt",
       "returncode": 0
     },
     {
@@ -72,55 +55,8 @@
         "-I",
         "-s",
         "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_round2.py"
-      ],
-      "name": "round2",
-      "output": "applied_round2.txt",
-      "returncode": 0
-    },
-    {
-      "command": [
-        "/scratch/jjyeung/envs/p1cpu/bin/python",
-        "-I",
-        "-s",
-        "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_round3.py"
-      ],
-      "name": "round3",
-      "output": "applied_round3.txt",
-      "returncode": 0
-    },
-    {
-      "command": [
-        "/scratch/jjyeung/envs/p1cpu/bin/python",
-        "-I",
-        "-s",
-        "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_operator_round3.py"
-      ],
-      "name": "operator_round3",
-      "output": "applied_operator_round3.txt",
-      "returncode": 0
-    },
-    {
-      "command": [
-        "/scratch/jjyeung/envs/p1cpu/bin/python",
-        "-I",
-        "-s",
-        "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_lock_round3.py"
-      ],
-      "name": "lock_round3",
-      "output": "applied_lock_round3.txt",
-      "returncode": 0
-    },
-    {
-      "command": [
-        "/scratch/jjyeung/envs/p1cpu/bin/python",
-        "-I",
-        "-s",
-        "-B",
-        "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src/u0/tests/test_compare.py"
+        "/scratch/jjyeung/orch_n30/so_read/work/run_fixture5.py",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round5/a2f354ad3b124ac7ab58b9fe4e4e04df/src/u0/tests/test_compare.py"
       ],
       "name": "compare",
       "output": "applied_compare.txt",
@@ -131,7 +67,7 @@
   "authenticated_roots": {
     "files_per_root": 927,
     "original": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src",
-    "patched": "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8/src"
+    "patched": "/scratch/jjyeung/orch_n30/so_read/work/apply-round5/a2f354ad3b124ac7ab58b9fe4e4e04df/src"
   },
   "b5_base_archive_sha256": "ac2e259025d6a821aa5eb13e236f0635bd970313859086fc2f3ce3276647f2f0",
   "base": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src",
@@ -1069,20 +1005,20 @@
     },
     "sha256": "813fe4c57b2deed4bd731dd1e3493b6b0bed8d31e7bff92ff112cf5c9df823c3"
   },
-  "default_off": "all original files unchanged; no extension import/settings parse",
-  "generated_utc": "2026-11-19T12:32:38.509667+00:00",
+  "default_off": "all original reader files unchanged; no extension import/settings parse; operator additions conditional on read_extensions",
+  "generated_utc": "2026-11-19T14:20:11.132097+00:00",
   "kit_files": {
     "BASE_PIN.json": {
       "bytes": 102760,
       "sha256": "316e61597d3990161deec11b4795db8d074956f55aedd686be4939b9356c17ef"
     },
     "EXTENSION_PINS.json": {
-      "bytes": 2742,
-      "sha256": "ddb0d27f117c67104243da193bc1bcf265c76260657809e85c539bddd0fe091f"
+      "bytes": 3102,
+      "sha256": "c1b48826814a1dbdb55517ccc9d8f493026ad7f2ec90034e877dfe21fab36a38"
     },
     "README.md": {
-      "bytes": 15070,
-      "sha256": "b1468ec5a953bc00d4fbafac8fde635715c3b0439c4ecbbcc2be09149602b07e"
+      "bytes": 21221,
+      "sha256": "7d5dd06f1b51cce11996737de3d5ee85436246070628548896eb1a4030178ac5"
     },
     "SAMPLE_IDENTITY.json": {
       "bytes": 2677,
@@ -1109,8 +1045,8 @@
       "sha256": "c6c9ecc4bedadd8a4d874db49e202ca7373fd73c9f635b095689e62f66629802"
     },
     "run.py": {
-      "bytes": 13818,
-      "sha256": "1f74822448752d02d99eadf2f4f620c2f334318989f320238b58bd4ca87e6266"
+      "bytes": 15789,
+      "sha256": "2c411db2a2328fa61c7bd6dd163fdcd1f1675c222f02d2d1b316ecb73ec92a48"
     },
     "sample50.json": {
       "bytes": 108569,
@@ -1125,6 +1061,16 @@
       "sha256": "8e33d7e068bb3374322f4292fb485d84bae11e9a30245469250f524ea058c9b6"
     }
   },
+  "operations_files": {
+    "dry2.py": {
+      "bytes": 6600,
+      "sha256": "6b13ad2a691026d0c1c3e9d60849af7b7d1e5cf31b524cc682a3fdf8b24a6af1"
+    },
+    "dryres2.py": {
+      "bytes": 4865,
+      "sha256": "075d544f5100224f23d0c629b7b8d3a55005fd5d8cd8641d129828024d6538de"
+    }
+  },
   "operator_base_pin": {
     "batch_sha256": "cda29adeea5a245adb7a96c8e21c575953718b3bb1cda213d13cb52c92b6f64f",
     "bootstrap_source": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/BATCH.sh",
@@ -1137,9 +1083,17 @@
       "bytes": 2318,
       "sha256": "76036ed94db2dcb7b6ffb7997d855ac06f50fa5e59d9acc828c65fac1cbae2b3"
     },
+    "package/a/5.py": {
+      "bytes": 10234,
+      "sha256": "b81cf09469d5476333bf9e930c782bbdf4fa81f05259a49e7d57f2840d7f93d9"
+    },
     "tower_sequence.py": {
       "bytes": 7987,
       "sha256": "a16fc51927622ca449acf1b353e22fbc666d7e0188e48bf600b1bd9673746081"
+    },
+    "unpack_return.py": {
+      "bytes": 4185,
+      "sha256": "a075709aa5c8d3d8f4b62931a6be53f8b93bae821951debab12d4fb42d646c36"
     }
   },
   "patches": {
@@ -1167,7 +1121,7 @@
           "bytes": 14056
         },
         "u0/tests/test_off.py": {
-          "after_sha256": "70ad5b81be58c65dc1b8f023b0cd0fc1c3bc84362f2ac5f2bd6206c7447c666d",
+          "after_sha256": "fbb7a0935283ff6fb12d93e079655aeca7b47440b2cf0f80c397c02375a8b420",
           "before_sha256": null,
           "bytes": 8660
         },
@@ -1177,7 +1131,7 @@
           "bytes": 21510
         }
       },
-      "sha256": "0017649c826b8043f77174c26d33cd6d940018be9e03259d24c642f327c64f76"
+      "sha256": "369af9663fbc1008f9ecf5a32c5067ba4a5f4cd31412f07db8263b13b23fd4c3"
     },
     "02_atomic_scene_shards.diff": {
       "bytes": 218841,
@@ -1256,12 +1210,12 @@
       "sha256": "5f76cf79e29471138161e476daf3920ec2bcbf751586fc47528fbd7388530cfa"
     },
     "03_production_integration.diff": {
-      "bytes": 101172,
+      "bytes": 171470,
       "files": {
         "u0/a12.py": {
-          "after_sha256": "6d4c991f6b652e8b9a5751df7a15fdd9030bf169093b9b83903fc24f9534c05e",
+          "after_sha256": "7c3e43eae90f52681c0ac8168f2180ebd1feef28f819c7fdb6d4b45dbfe61d9c",
           "before_sha256": null,
-          "bytes": 12701
+          "bytes": 12689
         },
         "u0/a13.py": {
           "after_sha256": "623bf20e0e721e34cba27d38b9e2c8d056938a65cad18445121552a1f0643000",
@@ -1293,15 +1247,25 @@
           "before_sha256": null,
           "bytes": 5111
         },
+        "u0/a19.py": {
+          "after_sha256": "14e63106425653e5d4db205e86733dde4ee6e027871940d49656ec17e9b6478f",
+          "before_sha256": null,
+          "bytes": 13400
+        },
+        "u0/a20.py": {
+          "after_sha256": "c974bdb978edea803a6823ada0ba3e294772ffeb28762191d4fb72cf2f8b7a06",
+          "before_sha256": null,
+          "bytes": 12257
+        },
         "u0/tests/test_lock_round3.py": {
           "after_sha256": "373f9b897206caa0c324926299db6c35de6596293dd48fae568b63adeb91eacc",
           "before_sha256": null,
           "bytes": 2161
         },
         "u0/tests/test_operator_round3.py": {
-          "after_sha256": "bdcf51e4cd3d8a7cb563c3e009136248ccbc4e0c1cc3df625a627fc6f6633a56",
+          "after_sha256": "ad1af7780e685243eed32964224bbadc62379946d6fdf7f45c76024aa5aa9a7f",
           "before_sha256": null,
-          "bytes": 15707
+          "bytes": 15233
         },
         "u0/tests/test_round2.py": {
           "after_sha256": "b70d3a5a88ac2f0ab81ac64c6891c3c9abaf85d92f0ea179cf44afca7c7ab876",
@@ -1312,9 +1276,19 @@
           "after_sha256": "e9240cffead84fdd07bd05d1a5d7612f8cc23d7f746d048c6227a1526ed2a58f",
           "before_sha256": null,
           "bytes": 11489
+        },
+        "u0/tests/test_round4.py": {
+          "after_sha256": "dcc19ac7da8f15f7733a618712c3e4b6668dfb3658573abeab161048401430cd",
+          "before_sha256": null,
+          "bytes": 27291
+        },
+        "u0/tests/test_round5.py": {
+          "after_sha256": "0ec9b2e26e56adb3e642bcb88ac36c537e813ff428709e86fa2726809ee6299f",
+          "before_sha256": null,
+          "bytes": 16513
         }
       },
-      "sha256": "a2913f484a080e26a65514479754aee514e43d56fb22591addc362bb34cf7963"
+      "sha256": "f9345e2e537fcdfb80e3cf296d46b9691cf9e69bd252e7ccf1fc52362a57188b"
     },
     "04_operator_cache_bound.diff": {
       "apply_from": "fresh A4 operator directory, outside src",
@@ -1327,6 +1301,23 @@
         }
       },
       "sha256": "0d3bdc2d943554cd525627466d2d71f30881884e76df95204ede6c1accdb9061"
+    },
+    "05_operator_return_and_proof.diff": {
+      "apply_from": "fresh A4 operator directory, outside src, after patch 04",
+      "bytes": 3490,
+      "files": {
+        "package/a/5.py": {
+          "after_sha256": "b81cf09469d5476333bf9e930c782bbdf4fa81f05259a49e7d57f2840d7f93d9",
+          "before_sha256": "e4648e671c719e3b1cb56618a7442ea3ec97e549562add9492603c56ebe0776a",
+          "bytes": 10234
+        },
+        "unpack_return.py": {
+          "after_sha256": "a075709aa5c8d3d8f4b62931a6be53f8b93bae821951debab12d4fb42d646c36",
+          "before_sha256": "147415564913339b30eaf07fef6dde4ea8d992c31ccfe459cf5f4fb57f77c014",
+          "bytes": 4185
+        }
+      },
+      "sha256": "4e5a76f83eefc22505b8949ee6e83c920d8d3e2670ce669372e48b2041caf116"
     }
   },
   "strip": 1,
@@ -1352,5 +1343,5 @@
       "files": 22
     }
   },
-  "verification_root": "/scratch/jjyeung/orch_n30/so_read/work/apply-round3/038bb8a8dd8740039dd3064e9adb57b8"
+  "verification_root": "/scratch/jjyeung/orch_n30/so_read/work/apply-round5/a2f354ad3b124ac7ab58b9fe4e4e04df"
 }
