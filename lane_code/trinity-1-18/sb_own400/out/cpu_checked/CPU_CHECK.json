@@ -1,0 +1,42 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/cpu_stub.py": "75d6c5a202c6623c0b810bd8afc2913abe54f04abbf53da3efc6b487c865df32",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/core.py": "c111f63203ba13457333f2690c189df6a0246760ac07ab1f289e39252d37997d",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/worker.py": "cf3f5701b2be4e76272e77aef5f9ac001b3628f22ff7e00d313830f3c00952f5",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/runtime.py": "773bab5829a006382d41bfe826225e8094b3dc5e71dffd88031d2d3bf12e0523",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/inputs/TRAIN_CAPTURES.json": "7534fabfc7334af43b2f8cf2a472145d6d562bb6ad19525ee3ecef9462db750f",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/vendor/native_kit/boundaries.py": "5fbe3ae6ace471c8d8ec532cdde50b0bca4db687b5fc5f7c890c9b6ad44e620c",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/inputs/A10b_code.tgz": "de1c28cac23a1d0c4af8b76687c460f6e8963f513cfaad52c8bc191d80f670d6",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_checked/random_small_weights.pt": "639f6d5b81a11ffaa8a06ad61e1ab2f7f044b2041e2adfc00c23db526e02d342",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_checked/FIXTURE_CONFIG.json": "0251ed2382f8a22d36d38e9da4609bcf75c52c79d708d1de06b80d5c9402899b"
+  },
+  "status": "STUB PASS; real weights MISSING",
+  "capture": "arkitscenes/41048124",
+  "shape": [
+    32,
+    51,
+    51
+  ],
+  "first_run_captures": 1,
+  "resume_captures": 1,
+  "skip_receipt_unchanged": true,
+  "peak_rss_bytes": 399572992,
+  "seconds": 4.728779972996563,
+  "median_ratio_vs544": "MISSING: synthetic weights cannot measure checkpoint parity",
+  "OwnDepthScale_ratio_vs544": "MISSING",
+  "real_functions": [
+    "GPU.own",
+    "runtime.prompt_batch",
+    "_prepare_decode",
+    "closed_adapters",
+    "HeadState",
+    "depth_head.query invocation"
+  ],
+  "stubbed_primitives": [
+    "trainer prompt preprocessing (RGB mean)",
+    "native backbone",
+    "pose and depth weights",
+    "private-ViT feature extraction"
+  ],
+  "command": "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B kit/cpu_stub.py"
+}

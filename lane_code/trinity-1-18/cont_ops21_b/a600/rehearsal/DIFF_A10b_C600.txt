@@ -1,0 +1,1168 @@
+CHANGED delivery/0.json
+--- A10b/delivery/0.json
++++ C600/delivery/0.json
+@@ -1,6 +1,6 @@
+ {
+-  "payload_bytes": 5252970,
+-  "payload_sha256": "de1c28cac23a1d0c4af8b76687c460f6e8963f513cfaad52c8bc191d80f670d6",
+-  "plan_sha256": "a44d88c837053e42ab670a56c518eadff1221b54b134593126642945a86eaf18",
+-  "token": "dc76460c3a164"
++  "payload_bytes": 5252968,
++  "payload_sha256": "a464a287dc72042bc02105622c6a1e4c0d97798c3c4c0bd1ea3e2e0367855c28",
++  "plan_sha256": "992a4106eb94f8f6f3e3e3185978585e0710ad5ead09eacff13ea7ea9ed70df8",
++  "token": "eaa5371c1cc52"
+ }
+CHANGED delivery/0.tgz
+IDENTICAL delivery/3.py
+CHANGED delivery/BATCH.sh
+CHANGED delivery/CONFIG.json
+--- A10b/delivery/CONFIG.json
++++ C600/delivery/CONFIG.json
+@@ -1,6 +1,6 @@
+ {
+-  "payload_bytes": 5252970,
+-  "payload_sha256": "de1c28cac23a1d0c4af8b76687c460f6e8963f513cfaad52c8bc191d80f670d6",
+-  "plan_sha256": "a44d88c837053e42ab670a56c518eadff1221b54b134593126642945a86eaf18",
+-  "token": "dc76460c3a164"
++  "payload_bytes": 5252968,
++  "payload_sha256": "a464a287dc72042bc02105622c6a1e4c0d97798c3c4c0bd1ea3e2e0367855c28",
++  "plan_sha256": "992a4106eb94f8f6f3e3e3185978585e0710ad5ead09eacff13ea7ea9ed70df8",
++  "token": "eaa5371c1cc52"
+ }
+IDENTICAL delivery/INPUTS.example.json
+CHANGED delivery/PACKAGE.json
+--- A10b/delivery/PACKAGE.json
++++ C600/delivery/PACKAGE.json
+@@ -1,15 +1,15 @@
+ {
+   "files": {
+-    "0.json": "527e972ad11aa8f92cb6e6df01acf18b294e5661af9fb6706628e30817848636",
+-    "0.tgz": "de1c28cac23a1d0c4af8b76687c460f6e8963f513cfaad52c8bc191d80f670d6",
++    "0.json": "33465e3fc3e9c0f020c5f7c1a5b2be0d24350222ad8620565e8981ab02565b18",
++    "0.tgz": "a464a287dc72042bc02105622c6a1e4c0d97798c3c4c0bd1ea3e2e0367855c28",
+     "3.py": "7d0a373edbf56725b3d382264a5c2fbc709b253bbcd6966294e182ba7398eb74",
+-    "BATCH.sh": "a6c5e65cf5f8d80194baf3c9a71eeaab50e673c0004f984fd3ef00869bb66225",
+-    "CONFIG.json": "527e972ad11aa8f92cb6e6df01acf18b294e5661af9fb6706628e30817848636",
+-    "a/0.json": "025b4688121ac3df8d5ecf92798b1abadf6f4a8d055eb3980a606915ceea0207",
+-    "a/4.py": "be00bdcff0db7717bd7ac5188d55d28004dac5161352cd38a5fefa4044d97665",
++    "BATCH.sh": "b4c8efbfbef8e2da3199818fcabe440d91f940bc3f25b7828b755fb73ac15c9e",
++    "CONFIG.json": "33465e3fc3e9c0f020c5f7c1a5b2be0d24350222ad8620565e8981ab02565b18",
++    "a/0.json": "f9ba4eb57b634c02dff155337622611878d084bdd1d4784a9e2b8c703ce57d48",
++    "a/4.py": "cf2028193683c121273b315e08d205678475b75aa0551e0707d800c98239a874",
+     "a/5.py": "e4648e671c719e3b1cb56618a7442ea3ec97e549562add9492603c56ebe0776a",
+-    "a/6.py": "97c8e6dfe33e7fd2988dc44e740f7a3b19627259b8f86827598ed368e1659e22",
++    "a/6.py": "abbb3702b0bbd709314270debbc365fdf58a7f8513e7af3fbe9351154787c629",
+     "a/7.py": "5c3e3b897be6cb5383dc5a489a8aa1324cf745b9716ecea90f1e951b1c098011"
+   },
+-  "token": "dc76460c3a164"
++  "token": "eaa5371c1cc52"
+ }
+IDENTICAL delivery/SUBMIT.cmd
+CHANGED delivery/a/0.json
+--- A10b/delivery/a/0.json
++++ C600/delivery/a/0.json
+@@ -165,8 +165,6 @@
+   "types": [
+     "camera_displacement",
+     "camera_rotation",
+-    "camera_movement_direction",
+-    "object_abs_distance",
+-    "room_size_estimation"
++    "camera_movement_direction"
+   ]
+ }
+IDENTICAL delivery/a/1.json
+CHANGED delivery/a/4.py
+--- A10b/delivery/a/4.py
++++ C600/delivery/a/4.py
+@@ -8,9 +8,9 @@
+ import tarfile
+ 
+ LOGICAL = '/scratch/jjyeung/b01ec87a6f29b'
+-REVIEWED_OBJECT = 'q8/8865619b/6ed2c7aa_m400.tar'
++REVIEWED_OBJECT = 'q8/8865619b/6ed2c7aa_m600.tar'
+ REVIEWED_ARCHIVE_BYTES = 21583032320
+-REVIEWED_ARCHIVE_SHA256 = 'dcd49569e1555e18c403207f429de7b352f806bb11827fb57aa9973f4ceec7b5'
++REVIEWED_ARCHIVE_SHA256 = '673c147c46bd5a64a991e023307b6e2676f1c2cb96c564ca236ab7c914e2c430'
+ 
+ MEMBERS = dict(artifact='artifact.json', heads='heads.pt',
+                full_weights='full_weights/full_weights.json')
+IDENTICAL delivery/a/5.py
+CHANGED delivery/a/6.py
+--- A10b/delivery/a/6.py
++++ C600/delivery/a/6.py
+@@ -3,13 +3,13 @@
+ from pathlib import Path
+ 
+ RULES=('candidates_argmax',)
+-COUNTS=(150,150,150,150,36)
+-SCHEDULE=((0,3),(0,0),(0,1),(0,2),(0,4))
++COUNTS=(150,150,150,0,0)
++SCHEDULE=((0,0),(0,1),(0,2))
+ 
+ def descriptors(package):
+  return [dict(arm='tower',modes=['none'],stage1_select_rule='candidates_argmax',save_own_depth=False,
+               perception_memo='on',perception_memo_modules=['g3t'],perception_memo_verify_ids=[],
+-              types=[3,0,1,2,4],expected=636)]
++              types=[0,1,2],expected=450)]
+ 
+ def sealed_write(path,value):
+  from orchard_h10.common import write
+@@ -58,7 +58,7 @@
+   chosen=json.loads(Path(args[args.index('--settings')+1]).read_text())
+   assert chosen['perception_memo']=='on'
+   assert chosen['perception_memo_verify_ids']==descriptors(config['package'])[i]['perception_memo_verify_ids']
+-  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=636))
++  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=450))
+  # Exercise each selected rule through the real tower socket with stub weights.
+  from unittest.mock import patch
+  from types import SimpleNamespace
+@@ -89,11 +89,11 @@
+   if result['failure'] or not result['complete']:
+    failure=result['failure'];break
+  reads=[]
+- for i,n in ((0,636),):
++ for i,n in ((0,450),):
+   rows=[r for r in results if r['read']==i]
+   completed=sum(r['completed'] for r in rows)
+   reads.append(dict(read=i,completed=completed,expected=n,complete=completed==n))
+- summary=dict(completed=sum(r['completed'] for r in reads),expected=636,
++ summary=dict(completed=sum(r['completed'] for r in reads),expected=450,
+               complete=all(r['complete'] for r in reads),failure=failure,reads=reads,segments=results)
+  write(Path(config['output'])/'SUMMARY.json',summary)
+  return summary
+IDENTICAL delivery/a/7.py
+IDENTICAL delivery/a/export.json
+IDENTICAL payload/8.py
+CHANGED payload/9.json
+--- A10b/payload/9.json
++++ C600/payload/9.json
+@@ -6,15 +6,15 @@
+     "config_sha256": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4",
+     "frame_layout": "duplicate",
+     "lineage": "SFT",
+-    "member_directory": "m400",
+-    "object": "q8/8865619b/6ed2c7aa_m400.tar",
++    "member_directory": "m600",
++    "object": "q8/8865619b/6ed2c7aa_m600.tar",
+     "preparation_sha256": {
+       "config": "b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad",
+       "data_receipt": "03daaa0a051a72c30e147e20553376e196ad09a183889f243a64a0ab1a212f47",
+       "receipt": "a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda"
+     },
+     "run": "6ed2c7aa",
+-    "step": 400
++    "step": 600
+   },
+   "inputs_name": "1.json",
+   "logical": "/scratch/jjyeung/b01ec87a6f29b",
+@@ -3756,5 +3756,5 @@
+     "stdout_transfer.py": "85ad256cfa7836948ddba934ca82537486fc3c42cab06fa5442de86caef2e0f6",
+     "trace_runtime.py": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+   },
+-  "token": "dc76460c3a164"
++  "token": "eaa5371c1cc52"
+ }
+IDENTICAL payload/auth/R0_DEV_ROOMS.txt
+IDENTICAL payload/auth/R0_ROOMS.txt
+IDENTICAL payload/auth/d0_base.json
+IDENTICAL payload/auth/d0_override.txt
+IDENTICAL payload/b/e2e_reader/__init__.py
+IDENTICAL payload/b/e2e_reader/artifact.py
+IDENTICAL payload/b/e2e_reader/assemble.py
+IDENTICAL payload/b/e2e_reader/callhook.py
+IDENTICAL payload/b/e2e_reader/core.py
+IDENTICAL payload/b/e2e_reader/generate.py
+IDENTICAL payload/b/e2e_reader/geometry.py
+IDENTICAL payload/b/e2e_reader/grounding.py
+IDENTICAL payload/b/e2e_reader/parity.py
+IDENTICAL payload/b/e2e_reader/perception_memo.py
+IDENTICAL payload/b/e2e_reader/real.py
+IDENTICAL payload/b/e2e_reader/servers.py
+IDENTICAL payload/b/e2e_reader/stage1.py
+IDENTICAL payload/b/heads/scale/eval_heldout.py
+IDENTICAL payload/b/heads/scale/extract_features.py
+IDENTICAL payload/b/heads/scale/scale_head.py
+IDENTICAL payload/b/heads/scale/sh_heldout.py
+IDENTICAL payload/b/heads/scale/train_scale.py
+IDENTICAL payload/b/heads/selector/common.py
+IDENTICAL payload/b/heads/selector/eval_selector.py
+IDENTICAL payload/b/heads/selector/isolate_tables.py
+IDENTICAL payload/b/heads/selector/logistic.py
+IDENTICAL payload/b/heads/selector/logistic_cv.py
+IDENTICAL payload/b/heads/selector/retrain_final.py
+IDENTICAL payload/b/heads/selector/selector_head.py
+IDENTICAL payload/b/heads/selector/selector_inputs.py
+IDENTICAL payload/b/heads/selector/sl118/name_emb.py
+IDENTICAL payload/b/heads/selector/sl118/selector_inputs.py
+IDENTICAL payload/b/heads/selector/sl118/sl_tables.py
+IDENTICAL payload/b/heads/selector/sl118/sl_tables_v1.py
+IDENTICAL payload/b/heads/selector/train_selector.py
+IDENTICAL payload/b/parity_kit/__init__.py
+IDENTICAL payload/b/parity_kit/build_manifest.py
+IDENTICAL payload/b/parity_kit/common.py
+IDENTICAL payload/b/parity_kit/compare.py
+IDENTICAL payload/b/parity_kit/cpu_first_batch.py
+IDENTICAL payload/b/parity_kit/provenance.py
+IDENTICAL payload/b/parity_kit/pytest_scope.py
+IDENTICAL payload/b/parity_kit/run_parity.py
+IDENTICAL payload/b/parity_kit/sam3_probe.py
+IDENTICAL payload/b/parity_kit/stage_restore.py
+IDENTICAL payload/b/work/c8r/sj/orch_cd/evalx/work/milestone/native/out2/reader_policy.py
+IDENTICAL payload/b/work/meta/x/fsw/ap/8865619b/runs/469ddece/inputs/data_receipt.json
+IDENTICAL payload/b/work/meta/x/fsw/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/config.json
+IDENTICAL payload/b/work/meta/x/fsw/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/prepared/s1_receipt.json
+IDENTICAL payload/b/work/meta/x/sj/orch_cd/evalx/work/milestone/raw_g3t_20261114/admission/DENSE_MANIFEST.json
+IDENTICAL payload/b/work/meta/x/sj/orch_cd/legs1_reads/work/vendor/r3/FRAMES.json
+IDENTICAL payload/b/work/meta/x/sj/orch_cd/legs1_reads/work/vendor/r3/TASKS.jsonl
+IDENTICAL payload/b/work/meta/x/sj/orch_cd/legs1_routed/out2/CAMERA_TASKS.jsonl
+IDENTICAL payload/b/work/n13/ret/native/paired/request.json
+IDENTICAL payload/h1eval/__init__.py
+IDENTICAL payload/h1eval/cli.py
+IDENTICAL payload/h1eval/h10/RUN_H10.md
+IDENTICAL payload/h1eval/h10/__init__.py
+IDENTICAL payload/h1eval/h10/card_entry.sh
+IDENTICAL payload/h1eval/h10/cpu_first_batch.py
+IDENTICAL payload/h1eval/h10/depth_snapshot.py
+IDENTICAL payload/h1eval/h10/gpu_113.sh
+IDENTICAL payload/h1eval/h10/host_entry.py
+IDENTICAL payload/h1eval/h10/host_run.sh
+IDENTICAL payload/h1eval/h10/launch.py
+IDENTICAL payload/h1eval/h10/merge.py
+IDENTICAL payload/h1eval/h10/parity_adapter.py
+IDENTICAL payload/h1eval/h10/perception_own.py
+IDENTICAL payload/h1eval/h10/reserve_frames.py
+IDENTICAL payload/h1eval/h10/run_card.sh
+IDENTICAL payload/h1eval/items.py
+IDENTICAL payload/h1eval/modes.py
+IDENTICAL payload/h1eval/native.py
+IDENTICAL payload/h1eval/perception.py
+IDENTICAL payload/h1eval/reader_core/e2e_reader/__init__.py
+IDENTICAL payload/h1eval/reader_core/e2e_reader/artifact.py
+IDENTICAL payload/h1eval/reader_core/e2e_reader/assemble.py
+IDENTICAL payload/h1eval/reader_core/e2e_reader/callhook.py
+IDENTICAL payload/h1eval/reader_core/e2e_reader/core.py
+IDENTICAL payload/h1eval/reader_core/e2e_reader/generate.py
+IDENTICAL payload/h1eval/reader_core/e2e_reader/geometry.py
+IDENTICAL payload/h1eval/reader_core/e2e_reader/grounding.py
+IDENTICAL payload/h1eval/reader_core/e2e_reader/real.py
+IDENTICAL payload/h1eval/reader_core/e2e_reader/servers.py
+IDENTICAL payload/h1eval/reader_core/e2e_reader/stage1.py
+IDENTICAL payload/h1eval/reader_core/heads/scale/scale_head.py
+IDENTICAL payload/h1eval/reader_core/heads/selector/selector_head.py
+IDENTICAL payload/h1eval/reader_core/heads/selector/selector_inputs.py
+IDENTICAL payload/h1eval/reader_core/heads/selector/sl118/selector_inputs.py
+IDENTICAL payload/h1eval/runner.py
+IDENTICAL payload/h1eval/scorers.py
+IDENTICAL payload/h1eval/statistics.py
+IDENTICAL payload/inputs/r0dev/FRAMES_MANIFEST.json
+IDENTICAL payload/inputs/r0dev/R0_DEV_ROOMS.txt
+IDENTICAL payload/inputs/r0dev/R0_QUESTIONS_SUMMARY.json
+IDENTICAL payload/inputs/r0dev/R0_QUESTIONS_dev_f32.jsonl
+IDENTICAL payload/items/devs1_routed.json
+IDENTICAL payload/items/r0dev.json
+IDENTICAL payload/orchard_h10/__init__.py
+IDENTICAL payload/orchard_h10/build.py
+IDENTICAL payload/orchard_h10/common.py
+IDENTICAL payload/orchard_h10/entry.py
+IDENTICAL payload/orchard_h10/export_pins.py
+IDENTICAL payload/orchard_h10/inventory.py
+IDENTICAL payload/orchard_h10/job.py
+IDENTICAL payload/orchard_h10/operator.py
+IDENTICAL payload/orchard_h10/prepare.py
+IDENTICAL payload/orchard_h10/runner.py
+IDENTICAL payload/orchard_h10/vendor/MODELS.json
+IDENTICAL payload/orchard_h10/vendor/ORCHARD_ASSETS.json
+IDENTICAL payload/orchard_h10/vendor/TRANSPORT.json
+IDENTICAL payload/orchard_h10/vendor/chain_save.py
+IDENTICAL payload/orchard_h10/vendor/export_stage.py
+IDENTICAL payload/orchard_h10/vendor/orchard_job.py
+IDENTICAL payload/orchard_h10/vendor/orchard_launcher.py
+IDENTICAL payload/orchard_h10/vendor/orchard_results.py
+IDENTICAL payload/orchard_h10/vendor/orchard_stage.py
+IDENTICAL payload/orchard_h10/vendor/return_io.py
+IDENTICAL payload/orchard_h10/vendor/stdout_transfer.py
+IDENTICAL payload/orchard_h10/vendor/trace_runtime.py
+IDENTICAL payload/rows/__init__.py
+IDENTICAL payload/rows/a0_recovery.jsonl
+IDENTICAL payload/rows/a0_units.jsonl
+IDENTICAL payload/rows/camera_fixtures.jsonl
+IDENTICAL payload/rows/camera_generation.json
+IDENTICAL payload/rows/expected_calls.py
+IDENTICAL payload/rows/faithful_check.py
+IDENTICAL payload/rows/faithful_gate.py
+IDENTICAL payload/rows/ground_fixtures.jsonl
+IDENTICAL payload/rows/mix_h1.py
+IDENTICAL payload/tree/.gitignore
+IDENTICAL payload/tree/AGENTS.md
+IDENTICAL payload/tree/DESIGN.md
+IDENTICAL payload/tree/DESIGN_FULLFT_GXS.md
+IDENTICAL payload/tree/DESIGN_HEADCALL_FULLFT.md
+IDENTICAL payload/tree/FIXES.md
+IDENTICAL payload/tree/THREAT_MODEL.md
+IDENTICAL payload/tree/configs/E2E-1C.json
+IDENTICAL payload/tree/configs/E2E-1G.json
+IDENTICAL payload/tree/configs/gate_heldout_scenes_v1.json
+IDENTICAL payload/tree/configs/gf1_stage1.json
+IDENTICAL payload/tree/configs/gf1_stage2.json
+IDENTICAL payload/tree/configs/stageb_cp1rv_mdg_w4.json
+IDENTICAL payload/tree/configs/student_benchmark_eval_v1.json
+IDENTICAL payload/tree/development/EVAL_HARNESS_HANDOFF.md
+IDENTICAL payload/tree/docs/carrier_c1_memory_layout.md
+IDENTICAL payload/tree/docs/carrier_c1_resume.md
+IDENTICAL payload/tree/docs/carrier_c1_sweeps.md
+IDENTICAL payload/tree/docs/recording_pose.md
+IDENTICAL payload/tree/evalpath/SOURCE_PINS.json
+IDENTICAL payload/tree/evalpath/__init__.py
+IDENTICAL payload/tree/evalpath/heldout_loss.py
+IDENTICAL payload/tree/evalpath/items.py
+IDENTICAL payload/tree/evalpath/kit_inputs.py
+IDENTICAL payload/tree/evalpath/official.py
+IDENTICAL payload/tree/evalpath/parity.py
+IDENTICAL payload/tree/evalpath/pointing_candidates.py
+IDENTICAL payload/tree/evalpath/pointing_markers.py
+IDENTICAL payload/tree/evalpath/pose_override.py
+IDENTICAL payload/tree/evalpath/routed_dev.py
+IDENTICAL payload/tree/evalpath/routed_types.py
+IDENTICAL payload/tree/evalpath/run.py
+IDENTICAL payload/tree/evalpath/runtime.py
+IDENTICAL payload/tree/evalpath/sampling.py
+IDENTICAL payload/tree/evalpath/vqa_direct.py
+IDENTICAL payload/tree/evalpath/worker_errors.py
+IDENTICAL payload/tree/generator/V314_MANIFEST.json
+IDENTICAL payload/tree/generator/accept_v314.py
+IDENTICAL payload/tree/generator/derivgen_v7/GROUND_V312.md
+IDENTICAL payload/tree/generator/derivgen_v7/INTERFACE_BOX_PROVIDER.md
+IDENTICAL payload/tree/generator/derivgen_v7/SPEC_v3.12.1.md
+IDENTICAL payload/tree/generator/derivgen_v7/SPEC_v3.12.2.md
+IDENTICAL payload/tree/generator/derivgen_v7/SPEC_v3.12.md
+IDENTICAL payload/tree/generator/derivgen_v7/SPEC_v3.13.md
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/__init__.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/__main__.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/balance.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/bindings.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/box_v313.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/calculator.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/camera_policy.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/camera_rows.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/canon.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/canon_check.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/canon_native.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/canon_render.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/check_build.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/common.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/gaps_v314.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/generate_v313.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/geometry.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/goal_exclusions.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v312.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v312_balance.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v312_degenerate.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v312_input.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v312_io.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v312_pack.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v312_production.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v312_quality.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v312_tokens.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v313.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v313_distance.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v313_pack.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/ground_v313_tokens.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/instance_policy314.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/materialize.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/native.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/paraphrase.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/pipeline.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/plan_contract.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/program.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/programs_v314.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/provenance.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/replay.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/review.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/room_rows_v314.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/room_v314.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/scan_witness_v313.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/surface_rows_v313.py
+IDENTICAL payload/tree/generator/derivgen_v7/derivgen/trace.py
+IDENTICAL payload/tree/generator/derivgen_v7/fixture_v313.py
+IDENTICAL payload/tree/generator/derivgen_v7/fixture_v313_r3.py
+IDENTICAL payload/tree/generator/derivgen_v7/printed_replay_v313.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_render_gaps.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_scan_v313.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_v312_benchmark.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_v312_ground.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_v312_quality.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_v312_review.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_v313.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_v313_delivery.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_v313_r2.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_v313_r3.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_v314.py
+IDENTICAL payload/tree/generator/derivgen_v7/test_v7.py
+IDENTICAL payload/tree/generator/dose_t0.py
+IDENTICAL payload/tree/generator/ground_rows_out/build_orchard_ground.sh
+IDENTICAL payload/tree/generator/ground_rows_out/orchard_ground_adapter.py
+IDENTICAL payload/tree/generator/ground_rows_out/render_full.py
+IDENTICAL payload/tree/generator/ground_rows_out/render_full.sh
+IDENTICAL payload/tree/generator/ground_rows_out/render_gaps_v314.py
+IDENTICAL payload/tree/generator/ground_rows_out/render_programs_v314.py
+IDENTICAL payload/tree/generator/ground_rows_out/render_room_v314.py
+IDENTICAL payload/tree/generator/ground_rows_out/select_ground_rows.py
+IDENTICAL payload/tree/headcall/__init__.py
+IDENTICAL payload/tree/headcall/decode.py
+IDENTICAL payload/tree/headcall/derive.py
+IDENTICAL payload/tree/headcall/eval_hook.py
+IDENTICAL payload/tree/headcall/gate_eval.py
+IDENTICAL payload/tree/headcall/geometry.py
+IDENTICAL payload/tree/headcall/heads.py
+IDENTICAL payload/tree/headcall/phase1.py
+IDENTICAL payload/tree/headcall/protocol.py
+IDENTICAL payload/tree/headcall/rows.py
+IDENTICAL payload/tree/headcall/training.py
+IDENTICAL payload/tree/hrp/__init__.py
+IDENTICAL payload/tree/hrp/export.py
+IDENTICAL payload/tree/hrp/oracle.py
+IDENTICAL payload/tree/hrp/pointing.py
+IDENTICAL payload/tree/hrp/selector.py
+IDENTICAL payload/tree/hrp/sources.py
+IDENTICAL payload/tree/launch_s1/b/a.py
+IDENTICAL payload/tree/launch_s1/b/ab.py
+IDENTICAL payload/tree/launch_s1/b/b3900003.py
+IDENTICAL payload/tree/launch_s1/b/c.sh
+IDENTICAL payload/tree/launch_s1/b/d.py
+IDENTICAL payload/tree/launch_s1/b/f2.py
+IDENTICAL payload/tree/launch_s1/b/g.py
+IDENTICAL payload/tree/launch_s1/b/gcsput.py
+IDENTICAL payload/tree/launch_s1/b/h.py
+IDENTICAL payload/tree/launch_s1/b/i.py
+IDENTICAL payload/tree/launch_s1/b/jc1.sh
+IDENTICAL payload/tree/launch_s1/b/jp0.sh
+IDENTICAL payload/tree/launch_s1/b/jt8c.sh
+IDENTICAL payload/tree/launch_s1/b/kitx.py
+IDENTICAL payload/tree/launch_s1/b/opaque.py
+IDENTICAL payload/tree/launch_s1/b/p0.py
+IDENTICAL payload/tree/launch_s1/b/p0.sh
+IDENTICAL payload/tree/launch_s1/b/profile.json
+IDENTICAL payload/tree/launch_s1/b/q0.py
+IDENTICAL payload/tree/launch_s1/b/r.sh
+IDENTICAL payload/tree/launch_s1/b/r8.py
+IDENTICAL payload/tree/launch_s1/b/rd.py
+IDENTICAL payload/tree/launch_s1/b/s.py
+IDENTICAL payload/tree/launch_s1/b/sa/prestage_hooks.py
+IDENTICAL payload/tree/launch_s1/b/sa/sitecustomize.py
+IDENTICAL payload/tree/launch_s1/b/sg.py
+IDENTICAL payload/tree/launch_s1/b/v.py
+IDENTICAL payload/tree/launch_s1/b/w.py
+IDENTICAL payload/tree/launch_s1/b/wh.json
+IDENTICAL payload/tree/launch_s1/b/x.py
+IDENTICAL payload/tree/launch_s1/b/z.py
+IDENTICAL payload/tree/launch_s1/build.py
+IDENTICAL payload/tree/launch_s1/job.sh
+IDENTICAL payload/tree/launch_s1/job8.sh
+IDENTICAL payload/tree/launch_s1/rehearse.sh
+IDENTICAL payload/tree/ofs/__init__.py
+IDENTICAL payload/tree/ofs/core.py
+IDENTICAL payload/tree/ofs/hrp_reference.py
+IDENTICAL payload/tree/requirements.txt
+IDENTICAL payload/tree/rk/__init__.py
+IDENTICAL payload/tree/rk/anchors.py
+IDENTICAL payload/tree/rk/geom.py
+IDENTICAL payload/tree/rk/ground.py
+IDENTICAL payload/tree/rk/gtmask.py
+IDENTICAL payload/tree/rk/programs.py
+IDENTICAL payload/tree/rk/report.py
+IDENTICAL payload/tree/rk/resample.py
+IDENTICAL payload/tree/rk/revsi.py
+IDENTICAL payload/tree/rk/sam3mask.py
+IDENTICAL payload/tree/rk/scheme.py
+IDENTICAL payload/tree/rk/sets.py
+IDENTICAL payload/tree/scripts/acceptance_live_adapter.py
+IDENTICAL payload/tree/scripts/benchmark_own_vit_reread.py
+IDENTICAL payload/tree/scripts/diagnostic_ddp_gpu_batch.sh
+IDENTICAL payload/tree/scripts/diagnostic_gpu_batch.sh
+IDENTICAL payload/tree/scripts/gf1_stall_guard.py
+IDENTICAL payload/tree/scripts/gpu_batch.sh
+IDENTICAL payload/tree/scripts/gpu_native_selector.py
+IDENTICAL payload/tree/scripts/gpu_routed_batch.py
+IDENTICAL payload/tree/scripts/gxp_mix_cpu_tests.py
+IDENTICAL payload/tree/scripts/head_probe.py
+IDENTICAL payload/tree/scripts/launch_gf1_stage1.sh
+IDENTICAL payload/tree/scripts/launch_gf1_stage2.sh
+IDENTICAL payload/tree/scripts/mdg_env.sh
+IDENTICAL payload/tree/scripts/mdg_host_train.sh
+IDENTICAL payload/tree/scripts/orchard/cpu_startup.py
+IDENTICAL payload/tree/scripts/orchard/eval_job.py
+IDENTICAL payload/tree/scripts/orchard/gpu_idle_watchdog.py
+IDENTICAL payload/tree/scripts/orchard/train_job.py
+IDENTICAL payload/tree/scripts/reason_generate.py
+IDENTICAL payload/tree/scripts/run_clean_offline_tests.py
+IDENTICAL payload/tree/scripts/sam3_batch_probe.py
+IDENTICAL payload/tree/scripts/sam3_reference.py
+IDENTICAL payload/tree/scripts/sam3_validate.py
+IDENTICAL payload/tree/scripts/shakedown_batch.sh
+IDENTICAL payload/tree/scripts/shakedown_finalize.py
+IDENTICAL payload/tree/scripts/shakedown_monitor.py
+IDENTICAL payload/tree/scripts/student_benchmark_gpu.sh
+IDENTICAL payload/tree/scripts/tracecold_bare_prepare.py
+IDENTICAL payload/tree/scripts/tracecold_build_rows.py
+IDENTICAL payload/tree/scripts/tracecold_configure.py
+IDENTICAL payload/tree/scripts/tracecold_export.py
+IDENTICAL payload/tree/scripts/tracecold_prepare.py
+IDENTICAL payload/tree/scripts/tracecold_probe.py
+IDENTICAL payload/tree/scripts/tracecold_read_native.py
+IDENTICAL payload/tree/scripts/tracecold_resources.py
+IDENTICAL payload/tree/scripts/tracecold_seal.py
+IDENTICAL payload/tree/scripts/tracecold_step.py
+IDENTICAL payload/tree/scripts/tracecold_step0_prepare.py
+IDENTICAL payload/tree/scripts/tracecold_token_proof.py
+IDENTICAL payload/tree/scripts/tracecold_train.py
+IDENTICAL payload/tree/scripts/tracecold_transport.py
+IDENTICAL payload/tree/step0_runtime_v1/ddp_config.py
+IDENTICAL payload/tree/step0_runtime_v1/diag_admission.py
+IDENTICAL payload/tree/step0_runtime_v1/diag_common.py
+IDENTICAL payload/tree/step0_runtime_v1/diag_worker.py
+IDENTICAL payload/tree/step0_runtime_v1/eval_common.py
+IDENTICAL payload/tree/step0_runtime_v1/route_admission.py
+IDENTICAL payload/tree/step0_runtime_v1/route_generation_config.py
+IDENTICAL payload/tree/step0_runtime_v1/run_cell.py
+IDENTICAL payload/tree/student_pilot/__init__.py
+IDENTICAL payload/tree/student_pilot/_tower_native.py
+IDENTICAL payload/tree/student_pilot/a1_pipeline.py
+IDENTICAL payload/tree/student_pilot/a1_scan.py
+IDENTICAL payload/tree/student_pilot/acceptance_evidence.py
+IDENTICAL payload/tree/student_pilot/adapters.py
+IDENTICAL payload/tree/student_pilot/admission.py
+IDENTICAL payload/tree/student_pilot/all_frame_bank.py
+IDENTICAL payload/tree/student_pilot/all_frame_readout.py
+IDENTICAL payload/tree/student_pilot/assets/routed_policy_v1.json
+IDENTICAL payload/tree/student_pilot/assets/s1_version.json
+IDENTICAL payload/tree/student_pilot/auxiliary_config.py
+IDENTICAL payload/tree/student_pilot/auxiliary_losses.py
+IDENTICAL payload/tree/student_pilot/auxiliary_reason.py
+IDENTICAL payload/tree/student_pilot/auxiliary_targets.py
+IDENTICAL payload/tree/student_pilot/batches.py
+IDENTICAL payload/tree/student_pilot/benchmark_eval/__init__.py
+IDENTICAL payload/tree/student_pilot/benchmark_eval/__main__.py
+IDENTICAL payload/tree/student_pilot/benchmark_eval/answers.py
+IDENTICAL payload/tree/student_pilot/benchmark_eval/contracts.py
+IDENTICAL payload/tree/student_pilot/benchmark_eval/frames.py
+IDENTICAL payload/tree/student_pilot/benchmark_eval/generate.py
+IDENTICAL payload/tree/student_pilot/benchmark_eval/prepare.py
+IDENTICAL payload/tree/student_pilot/benchmark_eval/score.py
+IDENTICAL payload/tree/student_pilot/c1_pose_mix.py
+IDENTICAL payload/tree/student_pilot/c1r_align.py
+IDENTICAL payload/tree/student_pilot/c1r_clips.py
+IDENTICAL payload/tree/student_pilot/c1r_data.py
+IDENTICAL payload/tree/student_pilot/c1r_dense.py
+IDENTICAL payload/tree/student_pilot/c1r_ref.py
+IDENTICAL payload/tree/student_pilot/c1r_targets.py
+IDENTICAL payload/tree/student_pilot/camera_config.py
+IDENTICAL payload/tree/student_pilot/camera_gate.py
+IDENTICAL payload/tree/student_pilot/camera_head.py
+IDENTICAL payload/tree/student_pilot/camera_targets.py
+IDENTICAL payload/tree/student_pilot/candidate_policy.py
+IDENTICAL payload/tree/student_pilot/carrier_c1.py
+IDENTICAL payload/tree/student_pilot/carrier_c1_batch_benchmark.py
+IDENTICAL payload/tree/student_pilot/carrier_c1_batch_decode.py
+IDENTICAL payload/tree/student_pilot/carrier_c1_canary.py
+IDENTICAL payload/tree/student_pilot/carrier_c1_clip.py
+IDENTICAL payload/tree/student_pilot/carrier_c1_data.py
+IDENTICAL payload/tree/student_pilot/carrier_c1_decode.py
+IDENTICAL payload/tree/student_pilot/carrier_c1_routing.py
+IDENTICAL payload/tree/student_pilot/carrier_c1_run.py
+IDENTICAL payload/tree/student_pilot/carrier_c1_sweep.py
+IDENTICAL payload/tree/student_pilot/checkpoint_space.py
+IDENTICAL payload/tree/student_pilot/checks.py
+IDENTICAL payload/tree/student_pilot/clean_conversion.py
+IDENTICAL payload/tree/student_pilot/clean_media.py
+IDENTICAL payload/tree/student_pilot/clean_source.py
+IDENTICAL payload/tree/student_pilot/cli.py
+IDENTICAL payload/tree/student_pilot/common.py
+IDENTICAL payload/tree/student_pilot/compact_label_bank.py
+IDENTICAL payload/tree/student_pilot/conversion.py
+IDENTICAL payload/tree/student_pilot/conversion_dry_run.py
+IDENTICAL payload/tree/student_pilot/conversion_v2.py
+IDENTICAL payload/tree/student_pilot/ddp_admission.py
+IDENTICAL payload/tree/student_pilot/ddp_checkpoints.py
+IDENTICAL payload/tree/student_pilot/ddp_config.py
+IDENTICAL payload/tree/student_pilot/ddp_core.py
+IDENTICAL payload/tree/student_pilot/ddp_training.py
+IDENTICAL payload/tree/student_pilot/decode_parity.py
+IDENTICAL payload/tree/student_pilot/decoupled_resume.py
+IDENTICAL payload/tree/student_pilot/decoupled_v.py
+IDENTICAL payload/tree/student_pilot/decoupled_v_run.py
+IDENTICAL payload/tree/student_pilot/decoupled_vc.py
+IDENTICAL payload/tree/student_pilot/dense_eval.py
+IDENTICAL payload/tree/student_pilot/diagnostic.py
+IDENTICAL payload/tree/student_pilot/diagnostic_data.py
+IDENTICAL payload/tree/student_pilot/division.py
+IDENTICAL payload/tree/student_pilot/e2e_recipe.py
+IDENTICAL payload/tree/student_pilot/e2e_routing_rows.py
+IDENTICAL payload/tree/student_pilot/finetune_artifacts.py
+IDENTICAL payload/tree/student_pilot/finetune_lane.py
+IDENTICAL payload/tree/student_pilot/finetune_prepare.py
+IDENTICAL payload/tree/student_pilot/first_batch_progress.py
+IDENTICAL payload/tree/student_pilot/fsdp_training.py
+IDENTICAL payload/tree/student_pilot/full_ft.py
+IDENTICAL payload/tree/student_pilot/g3t_online.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/__init__.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/dependency/__init__.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/dependency/distortion.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/heads/__init__.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/heads/camera_head.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/heads/dpt_head.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/heads/head_act.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/heads/utils.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/layers/__init__.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/layers/attention.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/layers/block.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/layers/drop_path.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/layers/layer_scale.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/layers/mlp.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/layers/patch_embed.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/layers/rope.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/layers/swiglu_ffn.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/layers/vision_transformer.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/models/__init__.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/models/aggregator.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/models/g3t.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/utils/__init__.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/utils/geometry.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/utils/load_fn.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/utils/pose_enc.py
+IDENTICAL payload/tree/student_pilot/g3t_vendor/vggt/utils/rotation.py
+IDENTICAL payload/tree/student_pilot/gate_driver.py
+IDENTICAL payload/tree/student_pilot/gate_eval.py
+IDENTICAL payload/tree/student_pilot/geometry_input.py
+IDENTICAL payload/tree/student_pilot/geometry_profiles.py
+IDENTICAL payload/tree/student_pilot/gf1.py
+IDENTICAL payload/tree/student_pilot/gf1_config.py
+IDENTICAL payload/tree/student_pilot/gf1_memory.py
+IDENTICAL payload/tree/student_pilot/ground_admission.py
+IDENTICAL payload/tree/student_pilot/ground_context.py
+IDENTICAL payload/tree/student_pilot/ground_lifting.py
+IDENTICAL payload/tree/student_pilot/ground_profiles.py
+IDENTICAL payload/tree/student_pilot/ground_replay.py
+IDENTICAL payload/tree/student_pilot/ground_rows.py
+IDENTICAL payload/tree/student_pilot/ground_sources.py
+IDENTICAL payload/tree/student_pilot/ground_target_filter.py
+IDENTICAL payload/tree/student_pilot/ground_tokens.py
+IDENTICAL payload/tree/student_pilot/ground_v3.py
+IDENTICAL payload/tree/student_pilot/grounding_eval.py
+IDENTICAL payload/tree/student_pilot/grounding_features.py
+IDENTICAL payload/tree/student_pilot/grounding_head.py
+IDENTICAL payload/tree/student_pilot/grounding_targets.py
+IDENTICAL payload/tree/student_pilot/grounding_train.py
+IDENTICAL payload/tree/student_pilot/h1.py
+IDENTICAL payload/tree/student_pilot/h1_faithful.py
+IDENTICAL payload/tree/student_pilot/h1_r0.py
+IDENTICAL payload/tree/student_pilot/head_api.py
+IDENTICAL payload/tree/student_pilot/head_programs.py
+IDENTICAL payload/tree/student_pilot/hrp_reread.py
+IDENTICAL payload/tree/student_pilot/infrastructure_smoke.py
+IDENTICAL payload/tree/student_pilot/inspect_source.py
+IDENTICAL payload/tree/student_pilot/lease.py
+IDENTICAL payload/tree/student_pilot/live_instances314.py
+IDENTICAL payload/tree/student_pilot/live_parity_adapter.py
+IDENTICAL payload/tree/student_pilot/live_trace313.py
+IDENTICAL payload/tree/student_pilot/mask_grounding_head.py
+IDENTICAL payload/tree/student_pilot/mdg_decode.py
+IDENTICAL payload/tree/student_pilot/mdg_decode_attach.py
+IDENTICAL payload/tree/student_pilot/mdg_decode_tokens.py
+IDENTICAL payload/tree/student_pilot/mdg_eval.py
+IDENTICAL payload/tree/student_pilot/mdg_features.py
+IDENTICAL payload/tree/student_pilot/mdg_inputs.py
+IDENTICAL payload/tree/student_pilot/mdg_lora.py
+IDENTICAL payload/tree/student_pilot/mdg_parent.py
+IDENTICAL payload/tree/student_pilot/mdg_rasters.py
+IDENTICAL payload/tree/student_pilot/mdg_runtime.py
+IDENTICAL payload/tree/student_pilot/mdg_stream.py
+IDENTICAL payload/tree/student_pilot/mdg_targets.py
+IDENTICAL payload/tree/student_pilot/mdg_train.py
+IDENTICAL payload/tree/student_pilot/native_selection.py
+IDENTICAL payload/tree/student_pilot/next_gpu_check.py
+IDENTICAL payload/tree/student_pilot/object_memory.py
+IDENTICAL payload/tree/student_pilot/opaque_logs.py
+IDENTICAL payload/tree/student_pilot/orchard_admission.py
+IDENTICAL payload/tree/student_pilot/orchard_checkpoints.py
+IDENTICAL payload/tree/student_pilot/orchard_eval/__init__.py
+IDENTICAL payload/tree/student_pilot/orchard_eval/__main__.py
+IDENTICAL payload/tree/student_pilot/orchard_eval/answers.py
+IDENTICAL payload/tree/student_pilot/orchard_eval/contracts.py
+IDENTICAL payload/tree/student_pilot/orchard_eval/frames.py
+IDENTICAL payload/tree/student_pilot/orchard_eval/generate.py
+IDENTICAL payload/tree/student_pilot/orchard_eval/prepare.py
+IDENTICAL payload/tree/student_pilot/orchard_eval/score.py
+IDENTICAL payload/tree/student_pilot/orchard_eval/sharding.py
+IDENTICAL payload/tree/student_pilot/orchard_media.py
+IDENTICAL payload/tree/student_pilot/orchard_paths.py
+IDENTICAL payload/tree/student_pilot/p3_geometry.py
+IDENTICAL payload/tree/student_pilot/p3_grammar.py
+IDENTICAL payload/tree/student_pilot/p3_heads.py
+IDENTICAL payload/tree/student_pilot/p3_printed_calculator.py
+IDENTICAL payload/tree/student_pilot/p3_printed_calculator_v2.py
+IDENTICAL payload/tree/student_pilot/p3_provenance.py
+IDENTICAL payload/tree/student_pilot/point_depth_head.py
+IDENTICAL payload/tree/student_pilot/pose_overfit.py
+IDENTICAL payload/tree/student_pilot/pose_samples.py
+IDENTICAL payload/tree/student_pilot/pose_source_guard.py
+IDENTICAL payload/tree/student_pilot/precision_parity.py
+IDENTICAL payload/tree/student_pilot/probe_cache.py
+IDENTICAL payload/tree/student_pilot/provisional.py
+IDENTICAL payload/tree/student_pilot/provisional_cli.py
+IDENTICAL payload/tree/student_pilot/provisional_data.py
+IDENTICAL payload/tree/student_pilot/provisional_eval.py
+IDENTICAL payload/tree/student_pilot/readout_geometry.py
+IDENTICAL payload/tree/student_pilot/recording_pose.py
+IDENTICAL payload/tree/student_pilot/redecision.py
+IDENTICAL payload/tree/student_pilot/rehearsal.py
+IDENTICAL payload/tree/student_pilot/republish.py
+IDENTICAL payload/tree/student_pilot/reread.py
+IDENTICAL payload/tree/student_pilot/reread_isolation.py
+IDENTICAL payload/tree/student_pilot/routed_candidates.py
+IDENTICAL payload/tree/student_pilot/routed_features.py
+IDENTICAL payload/tree/student_pilot/row_removals.py
+IDENTICAL payload/tree/student_pilot/run_live_parity.py
+IDENTICAL payload/tree/student_pilot/runner.py
+IDENTICAL payload/tree/student_pilot/s1_admission.py
+IDENTICAL payload/tree/student_pilot/s1_exclusions.py
+IDENTICAL payload/tree/student_pilot/s1_first_step.py
+IDENTICAL payload/tree/student_pilot/s1_grounding.py
+IDENTICAL payload/tree/student_pilot/s1_pool.py
+IDENTICAL payload/tree/student_pilot/s1_pool_relocate.py
+IDENTICAL payload/tree/student_pilot/s1_route_policy.py
+IDENTICAL payload/tree/student_pilot/s1_routing.py
+IDENTICAL payload/tree/student_pilot/s1_scene_census.py
+IDENTICAL payload/tree/student_pilot/sam3_tower.py
+IDENTICAL payload/tree/student_pilot/scene_state.py
+IDENTICAL payload/tree/student_pilot/scripted_calls.py
+IDENTICAL payload/tree/student_pilot/shakedown.py
+IDENTICAL payload/tree/student_pilot/source_seal.py
+IDENTICAL payload/tree/student_pilot/spatial_pose.py
+IDENTICAL payload/tree/student_pilot/stageb_mdg.py
+IDENTICAL payload/tree/student_pilot/startup_receipt.py
+IDENTICAL payload/tree/student_pilot/storage.py
+IDENTICAL payload/tree/student_pilot/students.py
+IDENTICAL payload/tree/student_pilot/svp_stages.py
+IDENTICAL payload/tree/student_pilot/tower_errors.py
+IDENTICAL payload/tree/student_pilot/tower_read.py
+IDENTICAL payload/tree/student_pilot/tower_scale.py
+IDENTICAL payload/tree/student_pilot/tower_scale_rule.json
+IDENTICAL payload/tree/student_pilot/tower_scale_rule.py
+IDENTICAL payload/tree/student_pilot/trace_contract.py
+IDENTICAL payload/tree/student_pilot/trace_format313.py
+IDENTICAL payload/tree/student_pilot/trace_io.py
+IDENTICAL payload/tree/student_pilot/trace_readout.py
+IDENTICAL payload/tree/student_pilot/trace_statistics.py
+IDENTICAL payload/tree/student_pilot/trace_targets.py
+IDENTICAL payload/tree/student_pilot/trace_version.py
+IDENTICAL payload/tree/student_pilot/trained_groups.py
+IDENTICAL payload/tree/student_pilot/verify_pass.py
+IDENTICAL payload/tree/student_pilot/warmstart.py
+IDENTICAL payload/tree/tests/auxiliary_baseline.py
+IDENTICAL payload/tree/tests/auxiliary_toys.py
+IDENTICAL payload/tree/tests/batched_ground_rows.py
+IDENTICAL payload/tree/tests/clean_r1313_fixture.py
+IDENTICAL payload/tree/tests/cpu_stubs.py
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/dsibench/metadatas/hflip.csv
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse.csv
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/dsibench/metadatas/reverse_hflip.csv
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/dsibench/metadatas/std.csv
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/dsibench/official_repo/LICENSE
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/dsibench/official_repo/SOURCE.json
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/dsibench/official_repo/evaluate.py
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/frames/blue.ppm
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/frames/green.ppm
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/frames/red.ppm
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/vsibench/MEMBERSHIP_ANSWERABLE_500.json
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/vsibench/answerable500_gt_canonical.json
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/vstibench/vstibench_repr_450_v2.json
+IDENTICAL payload/tree/tests/fixtures/benchmark_eval/vstibench/vstibench_repr_450_v2.json.provenance
+IDENTICAL payload/tree/tests/fixtures/conversion_3919.json
+IDENTICAL payload/tree/tests/fixtures/g3t_reference/EXCERPT.md
+IDENTICAL payload/tree/tests/fixtures/pdg_v3/pdg_s1_config.json
+IDENTICAL payload/tree/tests/fixtures/pdg_v3/pdg_s2_v2_config.json
+IDENTICAL payload/tree/tests/fixtures/pdg_v3/smoke_pdg_s1_config.json
+IDENTICAL payload/tree/tests/fixtures/sharded_equivalence_entries.jsonl
+IDENTICAL payload/tree/tests/fixtures/v3122_open_vocabulary_calls.json
+IDENTICAL payload/tree/tests/fullft_eval_toys.py
+IDENTICAL payload/tree/tests/fullft_toys.py
+IDENTICAL payload/tree/tests/ground_backend_gt.py
+IDENTICAL payload/tree/tests/ground_backend_real.py
+IDENTICAL payload/tree/tests/ground_calibration_protocol.py
+IDENTICAL payload/tree/tests/ground_handcheck.py
+IDENTICAL payload/tree/tests/ground_no_call_logits.py
+IDENTICAL payload/tree/tests/ground_row_decode.py
+IDENTICAL payload/tree/tests/ground_shared_opener_rows.py
+IDENTICAL payload/tree/tests/headcall/common.py
+IDENTICAL payload/tree/tests/headcall/rows_fixture.py
+IDENTICAL payload/tree/tests/headcall/test_derive.py
+IDENTICAL payload/tree/tests/headcall/test_eval_hook.py
+IDENTICAL payload/tree/tests/headcall/test_gate.py
+IDENTICAL payload/tree/tests/headcall/test_gate_fullft.py
+IDENTICAL payload/tree/tests/headcall/test_geometry_headcall.py
+IDENTICAL payload/tree/tests/headcall/test_loop.py
+IDENTICAL payload/tree/tests/headcall/test_phase1_interface.py
+IDENTICAL payload/tree/tests/headcall/test_prefill.py
+IDENTICAL payload/tree/tests/headcall/test_protocol.py
+IDENTICAL payload/tree/tests/headcall/test_qwen.py
+IDENTICAL payload/tree/tests/headcall/test_training.py
+IDENTICAL payload/tree/tests/pd_toys.py
+IDENTICAL payload/tree/tests/retained_workers.py
+IDENTICAL payload/tree/tests/test_a1_decoder.py
+IDENTICAL payload/tree/tests/test_a1_pipeline.py
+IDENTICAL payload/tree/tests/test_acceptance_cpu_e2e_r13.py
+IDENTICAL payload/tree/tests/test_acceptance_parity_rules.py
+IDENTICAL payload/tree/tests/test_addressing_r15.py
+IDENTICAL payload/tree/tests/test_admission.py
+IDENTICAL payload/tree/tests/test_all_frame_overfit.py
+IDENTICAL payload/tree/tests/test_all_frame_recipe.py
+IDENTICAL payload/tree/tests/test_all_frames.py
+IDENTICAL payload/tree/tests/test_auxiliary.py
+IDENTICAL payload/tree/tests/test_auxiliary_multinode.py
+IDENTICAL payload/tree/tests/test_auxiliary_reason.py
+IDENTICAL payload/tree/tests/test_batch_options.py
+IDENTICAL payload/tree/tests/test_batched_routed_benchmark.py
+IDENTICAL payload/tree/tests/test_batched_routed_decode.py
+IDENTICAL payload/tree/tests/test_benchmark_eval.py
+IDENTICAL payload/tree/tests/test_c1_blockers.py
+IDENTICAL payload/tree/tests/test_c1_masked_uv.py
+IDENTICAL payload/tree/tests/test_c1_pose_mix_division.py
+IDENTICAL payload/tree/tests/test_c1_pose_warm.py
+IDENTICAL payload/tree/tests/test_c1_provenance.py
+IDENTICAL payload/tree/tests/test_c1_validation_slice.py
+IDENTICAL payload/tree/tests/test_camera.py
+IDENTICAL payload/tree/tests/test_camera_gate.py
+IDENTICAL payload/tree/tests/test_camera_windows.py
+IDENTICAL payload/tree/tests/test_carrier_c1.py
+IDENTICAL payload/tree/tests/test_carrier_c1_attention.py
+IDENTICAL payload/tree/tests/test_carrier_c1_clip.py
+IDENTICAL payload/tree/tests/test_carrier_c1_cp2.py
+IDENTICAL payload/tree/tests/test_carrier_c1_data.py
+IDENTICAL payload/tree/tests/test_carrier_c1_final.py
+IDENTICAL payload/tree/tests/test_carrier_c1_layout.py
+IDENTICAL payload/tree/tests/test_carrier_c1_memory.py
+IDENTICAL payload/tree/tests/test_carrier_c1_overfit.py
+IDENTICAL payload/tree/tests/test_carrier_c1_prefix.py
+IDENTICAL payload/tree/tests/test_carrier_c1_routing.py
+IDENTICAL payload/tree/tests/test_carrier_c1_run.py
+IDENTICAL payload/tree/tests/test_carrier_c1_single_image.py
+IDENTICAL payload/tree/tests/test_carrier_c1_sweep.py
+IDENTICAL payload/tree/tests/test_carrier_c1_t0.py
+IDENTICAL payload/tree/tests/test_clean_offline_runner.py
+IDENTICAL payload/tree/tests/test_clean_r1313.py
+IDENTICAL payload/tree/tests/test_clean_source_review.py
+IDENTICAL payload/tree/tests/test_conversion.py
+IDENTICAL payload/tree/tests/test_conversion_regressions.py
+IDENTICAL payload/tree/tests/test_conversion_v2.py
+IDENTICAL payload/tree/tests/test_conversion_v2_integration.py
+IDENTICAL payload/tree/tests/test_cpu_startup.py
+IDENTICAL payload/tree/tests/test_ddp.py
+IDENTICAL payload/tree/tests/test_ddp_admission.py
+IDENTICAL payload/tree/tests/test_ddp_checkpoints.py
+IDENTICAL payload/tree/tests/test_ddp_launch.py
+IDENTICAL payload/tree/tests/test_ddp_models.py
+IDENTICAL payload/tree/tests/test_ddp_pipeline.py
+IDENTICAL payload/tree/tests/test_ddp_preservation.py
+IDENTICAL payload/tree/tests/test_ddp_revision.py
+IDENTICAL payload/tree/tests/test_decode_parity_r9.py
+IDENTICAL payload/tree/tests/test_decoupled_overfit.py
+IDENTICAL payload/tree/tests/test_decoupled_pose_fix.py
+IDENTICAL payload/tree/tests/test_decoupled_prefetch.py
+IDENTICAL payload/tree/tests/test_decoupled_resume.py
+IDENTICAL payload/tree/tests/test_decoupled_schedule.py
+IDENTICAL payload/tree/tests/test_decoupled_startup.py
+IDENTICAL payload/tree/tests/test_decoupled_v.py
+IDENTICAL payload/tree/tests/test_decoupled_vc.py
+IDENTICAL payload/tree/tests/test_deploy_alias.py
+IDENTICAL payload/tree/tests/test_diagnostic.py
+IDENTICAL payload/tree/tests/test_division.py
+IDENTICAL payload/tree/tests/test_division_inheritance.py
+IDENTICAL payload/tree/tests/test_division_inheritance_protocol.py
+IDENTICAL payload/tree/tests/test_e2e_ground_tokens.py
+IDENTICAL payload/tree/tests/test_e2e_inputs.py
+IDENTICAL payload/tree/tests/test_e2e_merge.py
+IDENTICAL payload/tree/tests/test_e2e_open_vocabulary.py
+IDENTICAL payload/tree/tests/test_e2e_pose_source_guard.py
+IDENTICAL payload/tree/tests/test_e2e_routing_rows.py
+IDENTICAL payload/tree/tests/test_e2e_shared_rows.py
+IDENTICAL payload/tree/tests/test_finetune_lane.py
+IDENTICAL payload/tree/tests/test_finetune_prepare.py
+IDENTICAL payload/tree/tests/test_fsdp.py
+IDENTICAL payload/tree/tests/test_full_ft.py
+IDENTICAL payload/tree/tests/test_full_ft_eval.py
+IDENTICAL payload/tree/tests/test_g3t_camtoken.py
+IDENTICAL payload/tree/tests/test_g3t_patch_grid_store.py
+IDENTICAL payload/tree/tests/test_geometry_training.py
+IDENTICAL payload/tree/tests/test_gf1.py
+IDENTICAL payload/tree/tests/test_gf1_contracts.py
+IDENTICAL payload/tree/tests/test_gf1_review.py
+IDENTICAL payload/tree/tests/test_gf1_trainer.py
+IDENTICAL payload/tree/tests/test_gpu_idle_watchdog.py
+IDENTICAL payload/tree/tests/test_ground_backend.py
+IDENTICAL payload/tree/tests/test_ground_calibration_protocol.py
+IDENTICAL payload/tree/tests/test_ground_r2.py
+IDENTICAL payload/tree/tests/test_ground_r3.py
+IDENTICAL payload/tree/tests/test_ground_review_v2.py
+IDENTICAL payload/tree/tests/test_grounding_decode.py
+IDENTICAL payload/tree/tests/test_grounding_eval.py
+IDENTICAL payload/tree/tests/test_grounding_features.py
+IDENTICAL payload/tree/tests/test_grounding_head.py
+IDENTICAL payload/tree/tests/test_grounding_targets.py
+IDENTICAL payload/tree/tests/test_grounding_train.py
+IDENTICAL payload/tree/tests/test_gx_carrier.py
+IDENTICAL payload/tree/tests/test_gx_dense_binding.py
+IDENTICAL payload/tree/tests/test_gx_s6.py
+IDENTICAL payload/tree/tests/test_gx_s7.py
+IDENTICAL payload/tree/tests/test_gx_s8.py
+IDENTICAL payload/tree/tests/test_gxp_mix.py
+IDENTICAL payload/tree/tests/test_hc_v3.py
+IDENTICAL payload/tree/tests/test_head_probe.py
+IDENTICAL payload/tree/tests/test_headcall_eval.py
+IDENTICAL payload/tree/tests/test_headcall_fullft.py
+IDENTICAL payload/tree/tests/test_heads_only.py
+IDENTICAL payload/tree/tests/test_hrp_reread.py
+IDENTICAL payload/tree/tests/test_infrastructure_smoke.py
+IDENTICAL payload/tree/tests/test_inherited_record_validation.py
+IDENTICAL payload/tree/tests/test_integ_v314.py
+IDENTICAL payload/tree/tests/test_integ_v314_r2.py
+IDENTICAL payload/tree/tests/test_integrated_startup.py
+IDENTICAL payload/tree/tests/test_integration_r2.py
+IDENTICAL payload/tree/tests/test_landing.py
+IDENTICAL payload/tree/tests/test_live_adapter_r3.py
+IDENTICAL payload/tree/tests/test_mask_grounding_head.py
+IDENTICAL payload/tree/tests/test_mdg_eval.py
+IDENTICAL payload/tree/tests/test_mdg_features.py
+IDENTICAL payload/tree/tests/test_mdg_rasters.py
+IDENTICAL payload/tree/tests/test_mdg_runtime.py
+IDENTICAL payload/tree/tests/test_mdg_stream.py
+IDENTICAL payload/tree/tests/test_mdg_targets.py
+IDENTICAL payload/tree/tests/test_mdg_train.py
+IDENTICAL payload/tree/tests/test_multinode.py
+IDENTICAL payload/tree/tests/test_multinode_frames.py
+IDENTICAL payload/tree/tests/test_multinode_gloo.py
+IDENTICAL payload/tree/tests/test_multinode_launch.py
+IDENTICAL payload/tree/tests/test_native_selector84.py
+IDENTICAL payload/tree/tests/test_native_selector_profile.py
+IDENTICAL payload/tree/tests/test_orchard.py
+IDENTICAL payload/tree/tests/test_orchard_eval_qwen36_27b.py
+IDENTICAL payload/tree/tests/test_orchard_eval_wrapper.py
+IDENTICAL payload/tree/tests/test_orchard_step.py
+IDENTICAL payload/tree/tests/test_orchard_train_job.py
+IDENTICAL payload/tree/tests/test_orchard_w4.py
+IDENTICAL payload/tree/tests/test_own_vit_reread.py
+IDENTICAL payload/tree/tests/test_pd_build2.py
+IDENTICAL payload/tree/tests/test_pdg_v3.py
+IDENTICAL payload/tree/tests/test_phase3_terminator.py
+IDENTICAL payload/tree/tests/test_pose_samples.py
+IDENTICAL payload/tree/tests/test_precision_parity_r12.py
+IDENTICAL payload/tree/tests/test_probe_cache.py
+IDENTICAL payload/tree/tests/test_provisional.py
+IDENTICAL payload/tree/tests/test_provisional_pipeline.py
+IDENTICAL payload/tree/tests/test_qwen36_27b.py
+IDENTICAL payload/tree/tests/test_readout_geometry.py
+IDENTICAL payload/tree/tests/test_readout_rows.py
+IDENTICAL payload/tree/tests/test_reason_generate.py
+IDENTICAL payload/tree/tests/test_recording_pose.py
+IDENTICAL payload/tree/tests/test_recording_pose_sparse.py
+IDENTICAL payload/tree/tests/test_rehearsal_guards.py
+IDENTICAL payload/tree/tests/test_rescue_claims_r2.py
+IDENTICAL payload/tree/tests/test_review_r2_integration.py
+IDENTICAL payload/tree/tests/test_rg2p_policy.py
+IDENTICAL payload/tree/tests/test_room_v314.py
+IDENTICAL payload/tree/tests/test_run_control_republish.py
+IDENTICAL payload/tree/tests/test_s1_admission.py
+IDENTICAL payload/tree/tests/test_s1_call_interception.py
+IDENTICAL payload/tree/tests/test_s1_camera_answers.py
+IDENTICAL payload/tree/tests/test_s1_candidate_policy.py
+IDENTICAL payload/tree/tests/test_s1_checkpoint_buffers.py
+IDENTICAL payload/tree/tests/test_s1_first_batch_progress.py
+IDENTICAL payload/tree/tests/test_s1_first_step.py
+IDENTICAL payload/tree/tests/test_s1_grounding_runtime.py
+IDENTICAL payload/tree/tests/test_s1_in_job_gate.py
+IDENTICAL payload/tree/tests/test_s1_launch_kit.py
+IDENTICAL payload/tree/tests/test_s1_mdg_inputs.py
+IDENTICAL payload/tree/tests/test_s1_native_replay.py
+IDENTICAL payload/tree/tests/test_s1_persistent_resume.py
+IDENTICAL payload/tree/tests/test_s1_pool_admission.py
+IDENTICAL payload/tree/tests/test_s1_pool_rows.py
+IDENTICAL payload/tree/tests/test_s1_production_imports.py
+IDENTICAL payload/tree/tests/test_s1_remove_admission.py
+IDENTICAL payload/tree/tests/test_s1_room_format.py
+IDENTICAL payload/tree/tests/test_s1_routing.py
+IDENTICAL payload/tree/tests/test_s1_scene_exclusions.py
+IDENTICAL payload/tree/tests/test_s1_source_seal.py
+IDENTICAL payload/tree/tests/test_s1_staging.py
+IDENTICAL payload/tree/tests/test_s1_target_filter.py
+IDENTICAL payload/tree/tests/test_s1_trained_groups.py
+IDENTICAL payload/tree/tests/test_s1_world4.py
+IDENTICAL payload/tree/tests/test_sam3_reference_r10.py
+IDENTICAL payload/tree/tests/test_sam3_tower.py
+IDENTICAL payload/tree/tests/test_sam3_validate.py
+IDENTICAL payload/tree/tests/test_seed_config.py
+IDENTICAL payload/tree/tests/test_segment_loss.py
+IDENTICAL payload/tree/tests/test_sft_warmstart.py
+IDENTICAL payload/tree/tests/test_sft_warmstart_training.py
+IDENTICAL payload/tree/tests/test_sharded_equivalence_native.py
+IDENTICAL payload/tree/tests/test_sharded_targets.py
+IDENTICAL payload/tree/tests/test_source_receipt.py
+IDENTICAL payload/tree/tests/test_spatial_pose.py
+IDENTICAL payload/tree/tests/test_stageb_mdg.py
+IDENTICAL payload/tree/tests/test_stagefast.py
+IDENTICAL payload/tree/tests/test_startup_cache.py
+IDENTICAL payload/tree/tests/test_startup_controller.py
+IDENTICAL payload/tree/tests/test_startup_receipt.py
+IDENTICAL payload/tree/tests/test_startup_receipt_native.py
+IDENTICAL payload/tree/tests/test_startup_training.py
+IDENTICAL payload/tree/tests/test_startup_training_gloo.py
+IDENTICAL payload/tree/tests/test_storage.py
+IDENTICAL payload/tree/tests/test_supervised_logits.py
+IDENTICAL payload/tree/tests/test_svp_stages_r2.py
+IDENTICAL payload/tree/tests/test_tower_read.py
+IDENTICAL payload/tree/tests/test_tower_read_live_grids.py
+IDENTICAL payload/tree/tests/test_tower_read_v2.py
+IDENTICAL payload/tree/tests/test_trace_format313_decode.py
+IDENTICAL payload/tree/tests/test_tracecold.py
+IDENTICAL payload/tree/tests/test_tracecold_audit.py
+IDENTICAL payload/tree/tests/test_tracecold_native_readout.py
+IDENTICAL payload/tree/tests/test_tracecold_operator.py
+IDENTICAL payload/tree/tests/test_tracecold_statistics.py
+IDENTICAL payload/tree/tests/test_training.py
+IDENTICAL payload/tree/tests/test_verify_r2.py
+IDENTICAL payload/tree/tests/test_vision_frozen_targets.py
+IDENTICAL payload/tree/tests/tower_gt_check.py
+IDENTICAL payload/tree/tests/tower_live_grids.py
+IDENTICAL payload/tree/tests/tower_live_parity.py
+IDENTICAL payload/tree/tests/version_pin.py
+IDENTICAL payload/tree/tools/__init__.py
+IDENTICAL payload/tree/tools/build_pose_rows.py
+IDENTICAL payload/tree/tools/c1_mixed_gate_config.py
+IDENTICAL payload/tree/tools/dist9/__init__.py
+IDENTICAL payload/tree/tools/dist9/replay_text_audit.py
+IDENTICAL payload/tree/tools/e2e_cpu_first_batch.py
+IDENTICAL payload/tree/tools/e2e_real_parity_guard.py
+IDENTICAL payload/tree/tools/e2e_v312_first_batch.py
+IDENTICAL payload/tree/tools/extract_g3t_camera_sidecar.py
+IDENTICAL payload/tree/tools/fullft_arm_configs.py
+IDENTICAL payload/tree/tools/g3t_camera_sidecar_store.py
+IDENTICAL payload/tree/tools/g3t_patch_grid_store.py
+IDENTICAL payload/tree/tools/hc_v3.py
+IDENTICAL payload/tree/tools/hc_v3_decode_check.py
+IDENTICAL payload/tree/tools/hc_v3_launch_gate.py
+IDENTICAL payload/tree/tools/headcall_arm_configs.py
+IDENTICAL payload/tree/tools/headcall_eval_summary.py
+IDENTICAL payload/tree/tools/headcall_rows.py
+IDENTICAL payload/tree/tools/heads_only_configs.py
+IDENTICAL payload/tree/tools/label_bank_build.py
+IDENTICAL payload/tree/tools/migrate_camtoken_init.py
+IDENTICAL payload/tree/tools/pd_arm_configs.py
+IDENTICAL payload/tree/tools/pdg_v3.py
+IDENTICAL payload/tree/tools/pdg_v3_gate.py
+IDENTICAL payload/tree/tools/pdg_v3_gate_run.sh
+IDENTICAL payload/tree/tools/prep_hc_v3.py
+IDENTICAL payload/tree/tools/prep_pdg_v3.py
+IDENTICAL payload/tree/tools/publish_hc_v3.py
+IDENTICAL payload/tree/tools/run_gate_eval_pdg.py
+IDENTICAL payload/tree/tools/stage1_dev_metrics.py
+IDENTICAL payload/tree/trace_format/__init__.py
+IDENTICAL payload/tree/trace_format/box_v313.py
+IDENTICAL payload/tree/trace_format/calculator.py
+IDENTICAL payload/tree/trace_format/category_vocab.py
+IDENTICAL payload/tree/trace_format/ground_v312.py
+IDENTICAL payload/tree/trace_format/ground_v313.py
+IDENTICAL payload/tree/trace_format/instance_policy314.py
+IDENTICAL payload/tree/trace_format/program_errors.py
+IDENTICAL payload/tree/trace_format/room_v314.py
+IDENTICAL payload/tree/trace_format/vsi_scannet_vocab.json
+IDENTICAL payload/tree/vendor/evalx_pointing.py
+IDENTICAL payload/tree/verifykit/__init__.py
+IDENTICAL payload/tree/verifykit/adapt_e1.py
+IDENTICAL payload/tree/verifykit/audit_labels.py
+IDENTICAL payload/tree/verifykit/export.py
+IDENTICAL payload/tree/verifykit/gpu_suite.py
+IDENTICAL payload/tree/verifykit/io.py
+IDENTICAL payload/tree/verifykit/model.py
+IDENTICAL payload/tree/verifykit/prepare.py
+IDENTICAL payload/tree/verifykit/presence.py
+IDENTICAL payload/tree/verifykit/render.py
+IDENTICAL payload/tree/verifykit/run.py
+IDENTICAL payload/tree/verifykit/score.py
+IDENTICAL payload/tree/verifykit/splits.py
+CHANGED bundle/0.json
+--- A10b/bundle/0.json
++++ C600/bundle/0.json
+@@ -1,6 +1,6 @@
+ {
+-  "payload_bytes": 5252970,
+-  "payload_sha256": "de1c28cac23a1d0c4af8b76687c460f6e8963f513cfaad52c8bc191d80f670d6",
+-  "plan_sha256": "a44d88c837053e42ab670a56c518eadff1221b54b134593126642945a86eaf18",
+-  "token": "dc76460c3a164"
++  "payload_bytes": 5252968,
++  "payload_sha256": "a464a287dc72042bc02105622c6a1e4c0d97798c3c4c0bd1ea3e2e0367855c28",
++  "plan_sha256": "992a4106eb94f8f6f3e3e3185978585e0710ad5ead09eacff13ea7ea9ed70df8",
++  "token": "eaa5371c1cc52"
+ }
+IDENTICAL bundle/0.py
+CHANGED bundle/7.py
+--- A10b/bundle/7.py
++++ C600/bundle/7.py
+@@ -3,13 +3,13 @@
+ from pathlib import Path
+ 
+ RULES=('candidates_argmax',)
+-COUNTS=(150,150,150,150,36)
+-SCHEDULE=((0,3),(0,0),(0,1),(0,2),(0,4))
++COUNTS=(150,150,150,0,0)
++SCHEDULE=((0,0),(0,1),(0,2))
+ 
+ def descriptors(package):
+  return [dict(arm='tower',modes=['none'],stage1_select_rule='candidates_argmax',save_own_depth=False,
+               perception_memo='on',perception_memo_modules=['g3t'],perception_memo_verify_ids=[],
+-              types=[3,0,1,2,4],expected=636)]
++              types=[0,1,2],expected=450)]
+ 
+ def sealed_write(path,value):
+  from orchard_h10.common import write
+@@ -58,7 +58,7 @@
+   chosen=json.loads(Path(args[args.index('--settings')+1]).read_text())
+   assert chosen['perception_memo']=='on'
+   assert chosen['perception_memo_verify_ids']==descriptors(config['package'])[i]['perception_memo_verify_ids']
+-  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=636))
++  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=450))
+  # Exercise each selected rule through the real tower socket with stub weights.
+  from unittest.mock import patch
+  from types import SimpleNamespace
+@@ -89,11 +89,11 @@
+   if result['failure'] or not result['complete']:
+    failure=result['failure'];break
+  reads=[]
+- for i,n in ((0,636),):
++ for i,n in ((0,450),):
+   rows=[r for r in results if r['read']==i]
+   completed=sum(r['completed'] for r in rows)
+   reads.append(dict(read=i,completed=completed,expected=n,complete=completed==n))
+- summary=dict(completed=sum(r['completed'] for r in reads),expected=636,
++ summary=dict(completed=sum(r['completed'] for r in reads),expected=450,
+               complete=all(r['complete'] for r in reads),failure=failure,reads=reads,segments=results)
+  write(Path(config['output'])/'SUMMARY.json',summary)
+  return summary
+--- A10b/BATCH-shell
++++ C600/BATCH-shell
+@@ -1,7 +1,7 @@
+ #!/bin/bash
+ #SBATCH --exclude=orchard-community-2
+ set -uo pipefail
+-P=/project/community/jjyeung/okh7/a15_cot_apdc76460c3a164
++P=/project/community/jjyeung/okh7/a15_cot_apeaa5371c1cc52
+ L=/tmp/a${SLURM_JOB_ID:-0}.l
+ R=$P/a/x${SLURM_JOB_ID:-0}
+ fin(){ rc=$?; { head -n 1 "$L"; echo "exit $rc"; tail -n 60 "$L"; } > "$R" 2>/dev/null || true; exit $rc; }
+@@ -12,7 +12,7 @@
+ from pathlib import Path,PurePosixPath
+ j=os.environ.get('SLURM_JOB_ID','')
+ if not j.isdigit():raise ValueError('Allocation required')
+-r=Path('/tmp')/('a'+j+'dc76460c3a164')
++r=Path('/tmp')/('a'+j+'eaa5371c1cc52')
+ r.mkdir(mode=0o700)
+ with tarfile.open(fileobj=io.BytesIO(b)) as a:
+     for e in a:

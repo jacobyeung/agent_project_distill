@@ -24,19 +24,29 @@ import gpu228
 import observe228
 import compare228
 import return228
+import common228
+common228.VNICE=HERE/'evidence/q/vnice.sh'
+common228.TERMINATOR=HERE/'evidence/q/terminator.sh'
 
-WORK=Path('/scratch/jjyeung/orch_n30/so_reads228/work/tests')
+WORK=Path(os.environ.get('READ228_TEST_WORK','/scratch/jjyeung/orch_n30/so_reads228/work/tests_round1'))
 WORK.mkdir(parents=True,exist_ok=True)
 
 def directory():
     return Path(tempfile.mkdtemp(prefix='a',dir=WORK))
 
-def copy_reference():
+def copy_reference(*, local_provenance=True):
     dest=directory()
     for p in (HERE/'reference').rglob('*'):
         if p.is_file():
             target=dest/p.relative_to(HERE/'reference');target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copyfile(p,target)
+    if local_provenance:
+        write(dest/'metadata/LOCAL_RUN.json',dict(backend='trinity-local',host='trinity-2-28',mode='OFF',synthetic_cpu_fixture=True))
+        write(dest/'metadata/CARDS.json',dict(snapshot=dict(name='NVIDIA RTX 6000 Ada Generation')))
+        identity=read(dest/'metadata/RETURN_ID.json');identity['job']='314159265'
+        identity['token']=identity['token'][:-8]+format(314159265,'08x');write(dest/'metadata/RETURN_ID.json',identity)
+        for path in (dest/'metadata/reads').glob('*/metadata/journals/*/*/environment.json'):
+            value=read(path);value['host']='trinity-2-28';write(path,value)
     return dest
 
 def edit_rows(root, change):
@@ -47,20 +57,20 @@ def edit_rows(root, change):
 
 class PackageTests(unittest.TestCase):
     def test_effective_export_matches_sealed_plan(self):
-        root,cfg,inputs,export=deployment(HERE/'A4/package')
-        self.assertEqual(export['step'],200)
+        root,cfg,inputs,export=deployment(HERE/'A10b/package')
+        self.assertEqual(export['step'],400)
         self.assertEqual(export['member_directory'],cfg['export_binding']['member_directory'])
         self.assertEqual(inputs['archives'][0]['sha256'],export['archive_sha256'])
         self.assertIn('/m544/',read(root/'package/a/0.json')['files']['heads']['path'])
 
     def test_source_and_operator_remain_sealed(self):
-        pins=read(HERE/'A4_PINS.json');source_check(HERE/'A4/src',pins['source'])
-        for name,digest in read(HERE/'A4/package/PACKAGE.json')['files'].items():
-            self.assertEqual(sha(HERE/'A4/package'/name),digest)
-        self.assertEqual(sha(HERE/'A4/tower_sequence.py'),pins['operator_sha256'])
+        pins=read(HERE/'A10b_PINS.json');source_check(HERE/'A10b/src',pins['source'])
+        for name,digest in read(HERE/'A10b/package/PACKAGE.json')['files'].items():
+            self.assertEqual(sha(HERE/'A10b/package'/name),digest)
+        self.assertEqual(sha(HERE/'A10b/tower_sequence.py'),pins['operator_sha256'])
 
     def test_first50_is_original_schedule_prefix(self):
-        fixed=read(HERE/'FIRST50.json');items=read(HERE/'A4/src/items/devs1_routed.json')['items']
+        fixed=read(HERE/'FIRST50.json');items=read(HERE/'A10b/src/items/devs1_routed.json')['items']
         wanted=[r['id'] for r in items if r['question_type']=='object_abs_distance'][:50]
         self.assertEqual(wanted,[r['id'] for r in fixed['items']])
         self.assertEqual(len(fixed['full_order']),636)
@@ -68,15 +78,15 @@ class PackageTests(unittest.TestCase):
     def test_stage_budget_under_150gb(self):
         budget=read(HERE/'STAGE_PLAN.json')['budget']
         self.assertLess(budget['estimated_peak_bytes'],150_000_000_000)
-        self.assertEqual(budget['estimated_peak_bytes'],120716601141)
+        self.assertEqual(budget['estimated_peak_bytes'],124166664744)
 
     def test_path_map_preserves_pins_and_never_uses_project(self):
         plan=read(HERE/'STAGE_PLAN.json');mapping=stage228.archive_map(plan)
-        original=read(HERE/'A4/package/a/1.json');before=deepcopy(original)
+        original=read(HERE/'A10b/package/a/1.json');before=deepcopy(original)
         for group in original['archives']:
             for part in group['parts']:
                 mapped=stage228.mapped_part(part,mapping)
-                self.assertTrue(str(mapped).startswith('/scratch/jjyeung/a4228/archives/'))
+                self.assertTrue(str(mapped).startswith('/scratch/jjyeung/orch_n30/reads228/'))
                 self.assertNotIn('/project/',str(mapped))
         self.assertEqual(before,original)
 
@@ -99,24 +109,26 @@ class PackageTests(unittest.TestCase):
             with self.assertRaisesRegex(Refusal,'Wrong size'):checked(p,dict(bytes=9,sha256='0'*64))
 
     def test_shell_launch_refuses_wrong_node_without_gpu_query(self):
-        result=subprocess.run(['bash',str(HERE/'run228.sh'),str(HERE/'A4'),'0',str(directory()/'out')],
-                              text=True,capture_output=True)
+        result=subprocess.run(['bash',str(HERE/'run228.sh'),str(HERE/'A10b'),'0',str(directory()/'out')],
+                              env=dict(os.environ,READ228_CONTROL_PYTHON=sys.executable),text=True,capture_output=True)
         self.assertEqual(result.returncode,2)
         self.assertIn('restricted to trinity-2-28',result.stderr)
 
     def test_preparation_receipt_selects_exact_versions(self):
-        env=dict(versions=dict(torch='2.11.0+cu129',torchvision='example',transformers='5.12.1',scipy='example'),
-                 python='/scratch/jjyeung/envs/a4228/bin/python',cuda='12.9',prefix='/scratch/jjyeung/envs/a4228',
-                 base_prefix='/scratch/jjyeung/envs/a4228',module_paths={})
+        env=dict(versions=read(HERE/'STAGE_PLAN.json')['environment']['versions'],
+                 python='/scratch/jjyeung/orch_n30/reads228/runtime/m/ap/19252904/e/bin/python',cuda='13.0',
+                 prefix='/scratch/jjyeung/orch_n30/reads228/runtime/m/ap/19252904/e',
+                 base_prefix='/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu',module_paths={},
+                 python_version=[3,12,13],audit_roots=['/scratch/jjyeung/orch_n30/reads228/runtime/m/ap/19252904/e/lib/python3.12/site-packages'])
         result=types.SimpleNamespace(returncode=0,stdout=json.dumps(env),stderr='')
         with patch('stage228.subprocess.run',return_value=result):
-            self.assertEqual(stage228.versions('python',dict(versions=env['versions']),{}),env)
+            self.assertEqual(stage228.versions('python',dict(versions=env['versions']),{'TMPDIR':str(directory())})['versions'],env['versions'])
             with self.assertRaisesRegex(Refusal,'versions differ'):
-                stage228.versions('python',dict(versions={}),{})
+                stage228.versions('python',dict(versions={}),{'TMPDIR':str(directory())})
         env['cuda']=None;result.stdout=json.dumps(env)
         with patch('stage228.subprocess.run',return_value=result):
             with self.assertRaisesRegex(Refusal,'CUDA-enabled'):
-                stage228.versions('python',dict(versions=env['versions']),{})
+                stage228.versions('python',dict(versions=env['versions']),{'TMPDIR':str(directory())})
 
 class StreamTests(unittest.TestCase):
     def fixture(self, *, unsafe=False):
@@ -243,8 +255,9 @@ class ObservationTests(unittest.TestCase):
 class CompareTests(unittest.TestCase):
     def test_identical(self):
         result=compare228.compare(HERE/'reference',HERE/'reference')
-        self.assertEqual(result['verdict'],'SAME_INSTRUMENT')
-        self.assertEqual(result['identical']['answer'],50);self.assertEqual(result['identical']['call_placement'],50)
+        self.assertEqual(result['verdict'],'DIAGNOSTIC_ONLY')
+        self.assertFalse(result['eligible'])
+        self.assertIn('trinity: missing LOCAL_RUN.json',result['ineligibility_reasons'])
 
     def test_changed_orchard_baseline_cannot_establish_parity(self):
         dest=copy_reference()
@@ -317,13 +330,18 @@ class ReturnTests(unittest.TestCase):
         for p in (HERE/'reference').rglob('*'):
             if p.is_file():
                 target=ret/p.relative_to(HERE/'reference');target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,target)
-        public=read(HERE/'A4/package/0.json')
+        public=read(HERE/'A10b/package/0.json')
         return228.new_return_identity(out,public)
         summary=dict(completed=50,expected=636,complete=False,failure=None,reads=[dict(read=0,completed=50,expected=636,complete=False)])
         receipt=return228.package_return(out,public,summary,0)
         # The original unpacker requires its output under the operator workspace.
-        accepted=HERE/'test_returns'/out.name
-        command=[sys.executable,'-I','-s','-B',str(HERE/'unpack228.py'),'--operator',str(HERE/'A4'),
+        operator=out/'operator';operator.mkdir()
+        for name in ('tower_sequence.py','unpack_return.py','fetch_return.py'):
+            shutil.copyfile(HERE/'A10b'/name,operator/name)
+        (operator/'src').symlink_to(HERE/'A10b/src',target_is_directory=True)
+        (operator/'package').symlink_to(HERE/'A10b/package',target_is_directory=True)
+        accepted=out/'accepted'
+        command=[sys.executable,'-I','-s','-B',str(HERE/'unpack228.py'),'--operator',str(operator),
                  '--archive',receipt['archive'],'--exit',receipt['exit'],'--out',str(accepted)]
         result=subprocess.run(command,text=True,capture_output=True)
         self.assertEqual(result.returncode,0,result.stderr)
@@ -333,7 +351,7 @@ class ReturnTests(unittest.TestCase):
         (WORK/'unpack_success.json').write_text(json.dumps(dict(command=command,returncode=result.returncode,stdout=result.stdout,stderr=result.stderr),indent=2)+'\n')
 
     def test_no_complete_marker_on_oom(self):
-        out=directory();public=read(HERE/'A4/package/0.json');return228.new_return_identity(out,public)
+        out=directory();public=read(HERE/'A10b/package/0.json');return228.new_return_identity(out,public)
         result=return228.package_return(out,public,dict(completed=0,expected=636,complete=False),42,failure='OOM')
         self.assertFalse(result['complete']);self.assertFalse((out/'ret/COMPLETE.json').exists())
         self.assertEqual(read(result['exit'])['returncode'],42)
@@ -345,14 +363,14 @@ class IntegrationTests(unittest.TestCase):
 import sys,types,inspect
 sys.path.insert(0,sys.argv[1])
 from common228 import install_imports
-root=Path(sys.argv[1]);install_imports(root/'A4/src')
+root=Path(sys.argv[1]);install_imports(root/'A10b/src')
 from e2e_reader import parity
 from h1eval.h10 import launch,parity_adapter
 from observe228 import install
 original=parity.make_real
 state=install(parity,launch,None,None,None,None,enabled=True)
 for i in range(2):
-    result=launch.reader_factory(root/'A4/src/b')
+    result=launch.reader_factory(root/'A10b/src/b')
     assert result is parity_adapter.make_capped_real
     assert Path(inspect.getsourcefile(result)).name=='parity_adapter.py'
 assert parity.make_real is not original
@@ -368,9 +386,9 @@ print('sealed resolver and maker binding unchanged')
     def test_full_adapter_orchestration_with_cpu_worker_double(self):
         import runner228
         from contextlib import ExitStack
-        root,cfg,inputs,export=deployment(HERE/'A4');cfg=deepcopy(cfg)
+        root,cfg,inputs,export=deployment(HERE/'A10b');cfg=deepcopy(cfg)
         work=directory();logical=work/'logical';(logical/'d').mkdir(parents=True)
-        (logical/'p').symlink_to(HERE/'A4/src',target_is_directory=True)
+        (logical/'p').symlink_to(HERE/'A10b/src',target_is_directory=True)
         cfg['logical']=str(logical)
         settings={k:cfg[k] for k in ('stage1_select_rule','perception_memo','perception_memo_modules','perception_memo_verify_ids','save_own_depth')}
         write(logical/'d/settings.json',settings)
@@ -402,6 +420,8 @@ print('sealed resolver and maker binding unchanged')
             rc=runner228.run_one(types.SimpleNamespace(package=str(root),card='0',out=str(out),items=50,on=False))
         self.assertEqual(rc,0);self.assertEqual(len(commands),1)
         self.assertEqual(commands[0][:5],['nice','-n','10','bash',str(runner228.VNICE)])
+        self.assertTrue((out/'ret/metadata/reads/0/metadata/IDENTITY.json').is_file())
+        self.assertTrue((out/'ret/metadata/reads/0/metadata/projection.json').is_file())
         summary=read(out/'ret/SUMMARY.json');self.assertEqual(summary['completed'],50)
         self.assertEqual(summary['expected'],636);self.assertFalse(summary['complete'])
         args=read(out/'metadata/WORKER_ARGS.json')

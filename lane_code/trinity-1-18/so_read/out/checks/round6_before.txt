@@ -38,10 +38,10 @@ test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_i
 FAIL: test_f1_readme_unpack_subprocess (__main__.Round6Tests.test_f1_readme_unpack_subprocess)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 116, in test_f1_readme_unpack_subprocess
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 126, in test_f1_readme_unpack_subprocess
     self.assertEqual(result.returncode,0,result.stderr)
 AssertionError: 1 != 0 : Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/f92badda14ac4809b4b1942584bf22e7/step600/unpack_return.py", line 3, in <module>
+  File "/scratch/jjyeung/orch_n30/so_read/work/test-artifacts/9db12c62fbbe4f13a631c1f7aa6e01aa/step600/unpack_return.py", line 3, in <module>
     from fetch_return import digest as file_digest, validate_exit
 ModuleNotFoundError: No module named 'fetch_return'
 
@@ -50,7 +50,7 @@ ModuleNotFoundError: No module named 'fetch_return'
 FAIL: test_f2_detached_locked_fill_exit_success_and_failure (__main__.Round6Tests.test_f2_detached_locked_fill_exit_success_and_failure)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 128, in test_f2_detached_locked_fill_exit_success_and_failure
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 138, in test_f2_detached_locked_fill_exit_success_and_failure
     self.assertIn('nohup bash',text,'Pull/fill still runs in the foreground')
 AssertionError: 'nohup bash' not found in '#!/bin/bash\nset -euo pipefail\numask 077\nD=$(cd -- "$(dirname -- "$0")" && pwd)\nP=/project/community/jjyeung/okh7/a15_cot_apab0123456789\nexport TZ=UTC CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud CLOUDSDK_CORE_DISABLE_PROMPTS=1\nE=$P/a/e\ntest ! -e "$E"\nmkdir -m 700 "$E"\nOBJECT=q8/8865619b/673bc60f_m600.tar\ncp /project/community/jjyeung/okh7/abcdef/5 "$E/5"\ntest "$(cat "$E/5")" = \'q8/8865619b/673bc60f_m600.tar 4 2222222222222222222222222222222222222222222222222222222222222222\'\ncp /project/community/jjyeung/okh7/abcdef/7 "$E/7"\ntest "$(sha256sum "$E/7" | cut -d\' \' -f1)" = 3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1\ncp /project/community/jjyeung/okh7/abcdef/8 "$E/8"\ntest "$(sha256sum "$E/8" | cut -d\' \' -f1)" = 4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915\ncp /project/community/jjyeung/okh7/abcdef/9 "$E/9"\ntest "$(sha256sum "$E/9" | cut -d\' \' -f1)" = 7f654d2f0ae9f06083f2fc8fd793512c154b4d01ce8632fb733d4191205af770\nfor i in 0 1 2 3; do\n  test ! -e "$E/$i"\n  gsutil -o Boto:num_retries=0 -o Boto:metadata_service_num_attempts=1 -o GSUtil:parallel_process_count=1 -o GSUtil:parallel_thread_count=1 -o GSUtil:sliced_object_download_threshold=0 -o GSUtil:sliced_object_download_max_components=1 -q cp "gs://cmu-gpucloud-jjyeung/$OBJECT.part0$i-of-04" "$E/$i.partial"\n  mv "$E/$i.partial" "$E/$i"\ndone\n/usr/bin/python3 -I -s -B "$P/a/4.py" --parts "$E/0" "$E/1" "$E/2" "$E/3" --done "$E/5" --object "$OBJECT" --config "$E/7" --receipt "$E/8" --data-receipt "$E/9" --lineage SFT --step 600 --out "$P/a/export.json" --prep-tar "$P/a/6" --base-inputs "$P/a/0.json" --inputs-out "$P/a/1.json"\nPREP=$(sha256sum "$P/a/6" | cut -d\' \' -f1)\n/usr/bin/python3 -I -s -B "$D/d.py" "$P/a/1.json" "$P/a/0.json" "$PREP" > "$P/a/dry.json"\n(cd "$P" && CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 04:30:00)\n/usr/bin/python3 -I -s -B "$D/d2.py" "$P" "$P/a/w2" > "$P/a/dry2.json"\nprintf \'%s\\n\' 0 > "$P/a/1.txt"\n' : Pull/fill still runs in the foreground
 
@@ -58,7 +58,7 @@ AssertionError: 'nohup bash' not found in '#!/bin/bash\nset -euo pipefail\numask
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='bundle_guard.batch_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 
@@ -66,7 +66,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='bundle_guard.path')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: path
 
@@ -74,7 +74,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: path
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.events')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: events
 
@@ -82,7 +82,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: events
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.guard_target_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: guard_target_sha256
 
@@ -90,7 +90,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: guard_target_sha256
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.requested_argv')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: requested_argv
 
@@ -98,7 +98,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: requested_argv
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.dispatched_argv')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: dispatched_argv
 
@@ -106,7 +106,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: dispatched_argv
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='entry_sequence.batch_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 
@@ -114,7 +114,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: batch_sha256
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='memory.perception_memo_modules')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: perception_memo_modules
 
@@ -122,7 +122,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: perception_memo_modules
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks) (field='memory.sam_measurement_required')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 168, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 178, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'Unbound CPU receipt field: '+key)
 AssertionError: 0 == 0 : Unbound CPU receipt field: sam_measurement_required
 
@@ -130,7 +130,7 @@ AssertionError: 0 == 0 : Unbound CPU receipt field: sam_measurement_required
 FAIL: test_f3_full_cont_ops_receipt_checks (__main__.Round6Tests.test_f3_full_cont_ops_receipt_checks)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 170, in test_f3_full_cont_ops_receipt_checks
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 180, in test_f3_full_cont_ops_receipt_checks
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'MEMORY.json differs')
 AssertionError: 0 == 0 : MEMORY.json differs
 
@@ -138,7 +138,7 @@ AssertionError: 0 == 0 : MEMORY.json differs
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/BATCH.sh')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -147,7 +147,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/3.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -156,7 +156,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/a/0.json')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -165,7 +165,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/a/4.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -174,7 +174,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='package/a/7.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -183,7 +183,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output) (member='fetch_return.py')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 183, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 193, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'A4 member pin|A4 batch pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -192,7 +192,7 @@ AssertionError: ValueError not raised
 FAIL: test_f4_every_copied_a4_member_pinned_before_output (__main__.Round6Tests.test_f4_every_copied_a4_member_pinned_before_output)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 191, in test_f4_every_copied_a4_member_pinned_before_output
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 201, in test_f4_every_copied_a4_member_pinned_before_output
     with self.assertRaisesRegex(ValueError,'bootstrap pin'):
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -201,7 +201,7 @@ AssertionError: ValueError not raised
 FAIL: test_f5_checkpoint_binding_and_runtime_recheck (__main__.Round6Tests.test_f5_checkpoint_binding_and_runtime_recheck) (asset='RESTORE.json')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 211, in test_f5_checkpoint_binding_and_runtime_recheck
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 221, in test_f5_checkpoint_binding_and_runtime_recheck
     with self.assertRaises(ValueError):selected_gate(self.helper,args)
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -210,7 +210,7 @@ AssertionError: ValueError not raised
 FAIL: test_f5_checkpoint_binding_and_runtime_recheck (__main__.Round6Tests.test_f5_checkpoint_binding_and_runtime_recheck) (asset='binding.json')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 211, in test_f5_checkpoint_binding_and_runtime_recheck
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 221, in test_f5_checkpoint_binding_and_runtime_recheck
     with self.assertRaises(ValueError):selected_gate(self.helper,args)
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -219,7 +219,7 @@ AssertionError: ValueError not raised
 FAIL: test_f5_checkpoint_binding_and_runtime_recheck (__main__.Round6Tests.test_f5_checkpoint_binding_and_runtime_recheck)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 214, in test_f5_checkpoint_binding_and_runtime_recheck
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 224, in test_f5_checkpoint_binding_and_runtime_recheck
     with self.assertRaisesRegex(ValueError,'export identity|export pin'):selected_gate(self.helper,args)
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: ValueError not raised
@@ -228,7 +228,7 @@ AssertionError: ValueError not raised
 FAIL: test_f5_production_device_is_required (__main__.Round6Tests.test_f5_production_device_is_required)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 228, in test_f5_production_device_is_required
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 238, in test_f5_production_device_is_required
     self.assertTrue(hasattr(self.kit,'validate_device'),'GPU name is recorded but never required')
 AssertionError: False is not true : GPU name is recorded but never required
 
@@ -236,7 +236,7 @@ AssertionError: False is not true : GPU name is recorded but never required
 FAIL: test_f5_runtime_asset_recheck (__main__.Round6Tests.test_f5_runtime_asset_recheck)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 218, in test_f5_runtime_asset_recheck
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 228, in test_f5_runtime_asset_recheck
     self.assertTrue(hasattr(self.kit,'validate_assets'),'Gate lacks runtime asset authentication')
 AssertionError: False is not true : Gate lacks runtime asset authentication
 
@@ -244,7 +244,7 @@ AssertionError: False is not true : Gate lacks runtime asset authentication
 FAIL: test_info_done_whitespace (__main__.Round6Tests.test_info_done_whitespace)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 240, in test_info_done_whitespace
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 250, in test_info_done_whitespace
     self.assertNotIn('test "$(cat "$E/5")" =',text,'Whitespace-only receipt changes still refuse')
 AssertionError: 'test "$(cat "$E/5")" =' unexpectedly found in '#!/bin/bash\nset -euo pipefail\numask 077\nD=$(cd -- "$(dirname -- "$0")" && pwd)\nP=/project/community/jjyeung/okh7/a15_cot_apab0123456789\nexport TZ=UTC CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud CLOUDSDK_CORE_DISABLE_PROMPTS=1\nE=$P/a/e\ntest ! -e "$E"\nmkdir -m 700 "$E"\nOBJECT=q8/8865619b/673bc60f_m600.tar\ncp /project/community/jjyeung/okh7/abcdef/5 "$E/5"\ntest "$(cat "$E/5")" = \'q8/8865619b/673bc60f_m600.tar 4 2222222222222222222222222222222222222222222222222222222222222222\'\ncp /project/community/jjyeung/okh7/abcdef/7 "$E/7"\ntest "$(sha256sum "$E/7" | cut -d\' \' -f1)" = 3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1\ncp /project/community/jjyeung/okh7/abcdef/8 "$E/8"\ntest "$(sha256sum "$E/8" | cut -d\' \' -f1)" = 4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915\ncp /project/community/jjyeung/okh7/abcdef/9 "$E/9"\ntest "$(sha256sum "$E/9" | cut -d\' \' -f1)" = 7f654d2f0ae9f06083f2fc8fd793512c154b4d01ce8632fb733d4191205af770\nfor i in 0 1 2 3; do\n  test ! -e "$E/$i"\n  gsutil -o Boto:num_retries=0 -o Boto:metadata_service_num_attempts=1 -o GSUtil:parallel_process_count=1 -o GSUtil:parallel_thread_count=1 -o GSUtil:sliced_object_download_threshold=0 -o GSUtil:sliced_object_download_max_components=1 -q cp "gs://cmu-gpucloud-jjyeung/$OBJECT.part0$i-of-04" "$E/$i.partial"\n  mv "$E/$i.partial" "$E/$i"\ndone\n/usr/bin/python3 -I -s -B "$P/a/4.py" --parts "$E/0" "$E/1" "$E/2" "$E/3" --done "$E/5" --object "$OBJECT" --config "$E/7" --receipt "$E/8" --data-receipt "$E/9" --lineage SFT --step 600 --out "$P/a/export.json" --prep-tar "$P/a/6" --base-inputs "$P/a/0.json" --inputs-out "$P/a/1.json"\nPREP=$(sha256sum "$P/a/6" | cut -d\' \' -f1)\n/usr/bin/python3 -I -s -B "$D/d.py" "$P/a/1.json" "$P/a/0.json" "$PREP" > "$P/a/dry.json"\n(cd "$P" && CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 04:30:00)\n/usr/bin/python3 -I -s -B "$D/d2.py" "$P" "$P/a/w2" > "$P/a/dry2.json"\nprintf \'%s\\n\' 0 > "$P/a/1.txt"\n' : Whitespace-only receipt changes still refuse
 
@@ -252,7 +252,7 @@ AssertionError: 'test "$(cat "$E/5")" =' unexpectedly found in '#!/bin/bash\nset
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='passed')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 257, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 267, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -261,7 +261,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='adoption_plan_sha256')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 257, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 267, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -270,7 +270,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='required_device_type')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 257, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 267, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -279,7 +279,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='adoption_assets')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 257, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 267, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -288,7 +288,7 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate) (field='adoption_profile')
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 257, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 267, in test_info_submit_requires_successful_bound_gpu_gate
     with self.subTest(field=key):self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0,'GPU evidence ignored')
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: 0 == 0 : GPU evidence ignored
@@ -297,11 +297,11 @@ AssertionError: 0 == 0 : GPU evidence ignored
 FAIL: test_info_submit_requires_successful_bound_gpu_gate (__main__.Round6Tests.test_info_submit_requires_successful_bound_gpu_gate)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 259, in test_info_submit_requires_successful_bound_gpu_gate
+  File "/scratch/jjyeung/orch_n30/so_read/work/src/u0/tests/test_round6.py", line 269, in test_info_submit_requires_successful_bound_gpu_gate
     self.assertNotEqual(subprocess.run(command,capture_output=True).returncode,0)
 AssertionError: 0 == 0
 
 ----------------------------------------------------------------------
-Ran 9 tests in 39.597s
+Ran 9 tests in 38.393s
 
 FAILED (failures=31)

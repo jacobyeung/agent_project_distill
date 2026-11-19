@@ -81,3 +81,11 @@ exec "$PY" -B -s "$ROOT/b/u.py" "$@"
     sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"work/build24d"))
     from kit24d import upgrade
     upgrade(k)
+
+    sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"work/build24e"))
+    from patch24e import upgrade as upgrade24e
+    upgrade24e(k)
+
+    sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'work/build24f'))
+    from kit24f import upgrade as upgrade24f
+    upgrade24f(k)

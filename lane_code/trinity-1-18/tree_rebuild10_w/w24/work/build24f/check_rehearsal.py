@@ -1,0 +1,27 @@
+from pathlib import Path
+import json,math,sys
+D=Path(__file__).resolve().parent;R=D/'rehearsal'
+def read(p,default=None):
+    return json.loads(p.read_text()) if p.exists() else default
+stages=read(R/'STAGES.json',[])
+furthest=stages[-1]['stage'] if stages else 'NOT RUN (requires external localhost TCP)'
+rows=[]
+def emit(name,passed,detail):
+    rows.append(dict(path=name,passed=bool(passed),furthest=detail))
+    print(name+': '+('PASS' if passed else 'NOT PROVED')+' — '+detail)
+fresh=[read(R/f'fresh_rank{i}.json',{}) for i in range(4)]
+budget=[read(R/f'budget_rank{i}.json',{}) for i in range(4)]
+resume=[read(R/f'resume_rank{i}.json',{}) for i in range(4)]
+states=read(R/'states_fresh.json',[]);bstates=read(R/'states_budget.json',[])
+emit('clock inheritance',all(v.get('TK_JOB_START','').isdigit() for v in fresh),furthest)
+emit('fresh optimizer / counter zero',all(v.get('start_step')==0 and v.get('optimizer_state_entries_at_start')==0 for v in fresh),furthest)
+finite=lambda values:all(v.get('events') and all(all(math.isfinite(x) for x in e['info']['stream_means'].values()) for e in v['events']) for v in values)
+emit('finite losses on four ranks',finite(fresh) and finite(budget) and finite(resume),furthest)
+emit('step-1 checkpoint through milestone',any(v['kind']=='checkpoint' and v['step']==1 and v['passed'] for v in states),furthest)
+emit('timed checkpoint',any(v['kind']=='checkpoint' and v['step']==2 and v['passed'] for v in states),furthest)
+done=R/'target/o/rehearsal/live/gcs_m2.done'
+emit('milestone export / local receipt / kit copier',any(v['kind']=='export' and v['step']==2 for v in states) and done.exists(),str(done) if done.exists() else furthest)
+emit('TK_JOB_START budget self-stop',all(v.get('last_step')==4 and v.get('stop_reason')=='budget_or_signal' and v.get('elapsed_seconds',0)>=89900 for v in budget) and {v['kind'] for v in bstates if v['step']==4}=={'checkpoint','export'},furthest)
+emit('resume_pin latest / one further step',all(v.get('start_step')==4 and v.get('last_step')==5 and v.get('optimizer_state_entries_at_start',0)>0 for v in resume),furthest)
+if R.exists():(R/'CHECK.json').write_text(json.dumps(rows,indent=2)+'\n')
+raise SystemExit(0 if all(v['passed'] for v in rows) else 1)

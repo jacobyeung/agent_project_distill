@@ -1,216 +1,233 @@
-VERDICT: DONE The review fixes are implemented and tested on Python 3.6.8 and 3.12.13; the owner must install, calibrate, and enable them on trinity-3-30.
+VERDICT: DONE All requested round-three fixes pass on Python 3.6.8 and 3.12.13; production installation, calibration, activation, and first-run checks remain owner actions.
 
-The delivery contains replacement tools, four patches with tests, an atomic installer, a calibration helper, and checksums. `SHA256SUMS` covers the archive payload; the separate `.tar.gz.sha256` file covers the archive. Robust mode defaults to OFF. The preserved delivery is `../out_round1/`. Work began on trinity-1-18 at 2026-11-19T15:56:56Z; the deadline is 2026-11-19T17:11:56Z.
+Robust mode defaults to OFF. The delivery contains replacement tools, four unified patches with tests, saved owner scripts, checksums, and a bundle with one `so_syncfix/` top-level directory. Work started on trinity-1-18 at 2026-11-19T18:04:23Z; the deadline is 18:49:23Z. The preserved delivery is `../out_round3/`.
 
-## Measured results
+## Numbers and evidence
 
-| Check (measured) | Python 3.6.8 | Python 3.12.13 |
-| --- | ---: | ---: |
-| Complete functional suite | 55 passed, 0 skipped | 55 passed, 0 skipped |
-| Suite duration | 61.821 s | 54.502 s |
-| Large manifest lines | 750000 | 750000 |
-| Large manifest uncompressed bytes | 127500000 | 127500000 |
-| Large manifest gzip bytes | 58724873 | 58724873 |
-| Large manifest test duration | 10.333 s | 9.629 s |
-| Held-writer node duration (0.35 s + 0.15 s grace) | 0.595 s | 0.536 s |
-| Complete held-writer driver duration | 2.055 s | 1.797 s |
-| Partial source failure | 1 fake commit; 2 fake pushes; prior files preserved | 1 fake commit; 2 fake pushes; prior files preserved |
+| Measured local fixture result | Python 3.6.8 | Python 3.12.13 |
+|---|---:|---:|
+| Complete suite | 83 passed, 0 skipped | 83 passed, 0 skipped |
+| Suite duration | 75.539 s | 68.904 s |
+| Round-three methods against the preserved delivery | 11 failed methods, 22 failed assertions | 11 failed methods, 22 failed assertions |
+| Manifest records | 750,000 | 750,000 |
+| Manifest raw / gzip bytes | 127,500,000 / 58,724,873 | 127,500,000 / 58,724,873 |
+| Manifest test duration | 10.141 s | 9.408 s |
+| Held-writer node duration; configured limit 0.55 s plus 0.15 s grace | 0.739 s | 0.735 s |
+| Held-writer complete driver duration | 2.202 s | 2.037 s |
+| Five reused slots, first / fourth attempt, logical bytes | 174,572 / 174,572 | 174,602 / 174,602 |
+| Patch replay | 38 numbered-patch files; 7 tools-only files | 38 numbered-patch files; 7 tools-only files |
 
-The large test injects **750,000 synthetic duplicate lines** at the production manifest-writing boundary. It uses the default `LCS_FILE_SECONDS=3` and outer scan timeout of 120 seconds. It exercises the real join, encoding, gzip write, and rename. Its elapsed time includes fixture generation and validation startup; it does **not** measure a 750,000-file traversal. The synthetic payload has more entropy than the reviewer's real manifest, so these timings are not production calibration.
+These measurements use synthetic local fixtures and fake SSH/Git services. They are not production calibration. The manifest test injects duplicate records at the compression boundary, rather than traversing 750,000 files. The held-writer test verifies that the detached holder remains alive and the sync lock is free. Process startup and scheduling add overhead beyond the timeout plus grace.
 
-| Source slot | Accepted archive bytes (3.12 fixture) | Total slot bytes (3.6 fixture) | Total slot bytes (3.12 fixture) |
-| --- | ---: | ---: | ---: |
-| trinity-1-18 | 10240 | 25002 | 25008 |
-| trinity-2-28 | 10240 | 25002 | 25008 |
-| trinity-3-30 | 10240 | 24876 | 24882 |
-| orch_n30/tools | 51200 | 65767 | 65773 |
-| orch_n30/briefs | 10240 | 24811 | 24817 |
+The rollback probe measures legacy rc=0 in both cases. Flag-only disable republishes `stale-v1 (legacy stage before robust)`. The delivered disable script preserves the clone's `value = 'trinity-1-18'` after a fresh legacy run, even when the source's `good.py` was renamed to `good.bin`.
 
-The failed trinity-1-18 attempt retained `incoming=10240` and `accepted=10240` bytes on both interpreters. The two archive slots therefore held 20480 bytes in that failure fixture.
+The calibration tests supply stage=10, accept=100, and copy=300 seconds as **synthetic inputs**. COPY becomes 630 seconds. Timeout values, margins, and the 5% threshold are policy choices or estimates, not production measurements.
 
-Filesystem allocation in the Python 3.12 fixture measured 36,864 bytes for each node slot and the briefs slot, and 77,824 bytes for the tools slot, including each slot directory. [Exact per-slot measurements](evidence/slot_bytes.json)
+## Review round 3: finding -> fix -> test
 
-Slot bytes in the table are measured logical file sizes, including metadata, on the generated fixture. They are not measurements of production disk use. `incoming` and `accepted` are **tar files**, not directories. During a failed transfer, the fixture holds two archives; after success, rename leaves only `accepted`. A source can therefore hold at most its current incoming archive and its preceding accepted archive. Source removal does not accumulate files in either archive. The clone remains additive, as before.
+| Finding | Delivered fix | Regression evidence |
+|---|---|---|
+| MEDIUM 1: disabling republishes stale legacy files | `disable.sh`, invoked with `bash -eu`, holds `$S/.sync.lock`, moves the legacy stage to `stage.pre-robust-<stamp>` and the flag to `LCS_ROBUST_SYNC.off-<stamp>`, and prints the exact saved rollback invocation for the supplied install backup. `rollback.sh` retains the same lock, extracts on scratch, verifies PREIMAGE, restores complete files atomically with the driver last, and verifies the installed PREIMAGE again. | `test_disable_prevents_stale_legacy_republication` adapts the reviewer's rollback probe. `test_disable_holds_sync_lock_and_prints_exact_rollback` verifies lock refusal without mutation. `test_rollback_restores_exact_preimage_under_lock` exercises the saved rollback and verifies every restored hash. |
+| LOW 2: local missing roots silently SKIP | `robust_stages` passes `remote=1` only for remote stages. rc=66 is SKIP only for remote labels trinity-1-18 and trinity-2-28. Missing local roots fail and produce the normal BLOCKER/exit status. | `test_missing_local_roots_fail_and_emit_blocker` adapts the missing-briefs probe and covers trinity-3-30, tools, and briefs. `test_other_remote_root_does_not_skip` covers an unapproved remote label. Existing tests retain SKIP for both approved remote labels. |
+| LOW 3: zero exit can conceal no accepted data | After acceptance exits zero, `robust_finish` requires the exact `ACCEPTING $slot/accepted` line before adding the label to the copy list. Calibration requires one positive `SCAN scanned=N` record for every required label, rejects duplicate/incomplete records, and prints counts beside each label's last legacy STATS line. | `test_zero_exit_without_accept_marker_fails_before_copy` substitutes the installed old-layout scanner: no source reaches STAGED/copy, clone bytes remain intact, and a BLOCKER appears. `test_missing_or_zero_scan_counts_refused_per_required_label` covers all four labels. `test_prints_counts_beside_last_legacy_stats_and_margins` excludes robust STATS from the legacy comparison. |
+| INFO 4: failure counts cover only one node | The pre-enable check counts every explicit stage rc=4 per label and also counts `FAIL trinity-3-30 local stage` conservatively, because the legacy local message omits rc. It prints per-node counts/rates and applies the 5% threshold separately to each node. | `test_pre_enable_counts_every_node_and_local_failures` checks trinity-2-28, explicit trinity-3-30 rc=4, and the legacy local message. Existing tests retain the 1/20 pass and 2/20 refusal boundaries. |
+| INFO 5: margins are implicit | Calibration prints the numeric margins, kill grace, and tssh pre-sleep allowance. Runtime still checks ordering; manual overrides must preserve enough margin to avoid an outer timeout winning first. | `test_prints_calibrated_margins`; the budget formulas and limits remain covered by the existing calibration tests. |
+| INFO 7: nonzero calibration exits silently | `calibrate.sh` prints `CALIBRATION FAILED rc=<status>; see <S>/robust_calibration.log` to the terminal and exits 2 before deriving budgets. | `test_nonzero_sync_prints_terminal_failure_with_log_path` uses a malformed saved budget to trigger the real robust early exit; no proposed budgets or flag appear. |
+
+All 11 new regression methods fail against `out_round3/` on both interpreters and pass in the delivered suites. Subcases account for 22 failed assertions before the fixes. The INFO changes remain small: failure counting changes fewer than 20 lines, margin output adds one line, and terminal failure handling occupies three lines.
 
 ## Review round 1: finding -> fix -> test
 
-| Finding | Fix or decision | Regression evidence |
-|---|---|---|
-| HIGH 1: manifest exceeds the file deadline | Only the enclosing scan timeout bounds manifest construction. A same-directory temporary file is logged with `MANIFEST_PENDING` **before** creation, then renamed atomically. Exceptions also log `MANIFEST_LEFTOVER`; a process kill still leaves the prelogged name. | `test_750000_duplicate_manifest_default_budgets` fails with `ReadDeadline` against the preserved tools and passes with 750,000 lines. Exception and scan-timeout tests verify every leftover name is logged and the final manifest survives failure. |
-| MEDIUM 2: per-run copies grow forever | Reuse `$S/stage-robust/<label>/{incoming,accepted}`. The receiver locks `incoming.lock`; acceptance validates the complete tar before rename. Only labels accepted **in this invocation** enter the copy scan. `program.sh`, `run.log`, and `copy.flags` are overwritten. The aggregate flag list is `$S/flagged/flagged_robust.txt`. | Four-run slot test: stable paths/bytes, accepted hash preserved on failure, no failed-source scan, and no failure-only file leaked by a later success. Receiver-lock and large-log tests pass. |
-| MEDIUM 3: missing roots and optional host raise incidents | `rc=66` plus the exact SKIP line becomes `SKIP <label> (no source root)`, with exit 0 when other sources succeed. An unreachable/silent trinity-2-28 is SKIP; an unreachable trinity-1-18 remains FAIL + BLOCKER. | Missing-root and optional-unreachable tests fail before and pass after. The existing required-host failure test still verifies one commit, two pushes, retained clone files, and one BLOCKER. |
-| LOW 4: initialization exits omit BLOCKER | Missing/broken helper, invalid budget/configuration, or slot-root creation failure writes the same sync-failed BLOCKER text and exits 2. There is no fallback: enabling robust mode must not silently restore the unbounded path. | Initialization tests inject a missing helper, invalid budget, and failing mkdir. Each produces the BLOCKER. |
-| LOW 5: timed-out copy can publish a prefix | Robust copy writes the **already secret-scanned bytes** through `$R/.lcs-copy.pending`, outside every Git-add path, then uses atomic rename. It never opens the destination for truncating writes. Archive acceptance also rejects special entries before any copy scan. Default-off scanner code and behavior remain unchanged. | The timeout regression leaves `truncated` in the old implementation, but preserves the complete prior destination after the fix. Archive tests reject FIFO, symlink, hardlink, device, traversal, and truncated payloads without changing `accepted`. Default-off scanner bytes/stdout/flags match the input. |
-| LOW 6: root-cause explanation omits mux fd passing | The explanation below cites the installed protocol, local man page, and local SSH configuration. | The delivery audit fails against the preserved report and passes after correction; local evidence excerpts are included. |
-| LOW 7: owner cannot enable the running loop precisely | Enable when `LCS_ROBUST_SYNC=1` **or** `$S/LCS_ROBUST_SYNC` is a regular non-symlink file. A numeric budget file lets the existing tmux loop adopt calibration without restart. The header documents both. The archive has one `so_syncfix/` top-level directory. | Environment-only, file-only, env=0 plus file, default-off, and directory/FIFO/symlink flag tests pass. Installer and calibration tests pass; the archive/header/report audit fails before and passes after. |
-| INFO 9: tar exit 1 discards other files from that node | **Keep whole-source rejection.** Tar's “file changed as we read it” does not identify a trustworthy subset of the stream; accepting it could publish changed or incomplete bytes and contradict the failed-attempt isolation requirement. Other sources still publish. | The tar-exit-1 test sees `PIPE 0 1 0`, preserves that source, publishes healthy sources, and records the reason and BLOCKER. |
-| INFO 10: file-deadline ranges disagree | Both driver and filter accept only `0 < LCS_FILE_SECONDS <= 30`. Other budgets accept `0 < seconds <= 3600`; zero never disables a timeout. | `30.1` fails during initialization before fake SSH starts. A budget-file value of 30 succeeds. |
+| Requirement | Delivered behavior and retained tests |
+|---|---|
+| Bounded scanner and manifest | Nonblocking, no-follow opens, regular-file/inode checks, per-file deadlines, and counted skip reasons remain tested. The 750,000-line manifest uses the scan budget, with one fixed pending pathname per label. Failure logs the retained pathname. |
+| Bounded staging without deletion | Each label reuses incoming/accepted tar slots. Failed or changed tar streams cannot reach copy; other sources still publish. Tar exit 1 deliberately rejects the whole source because the stream does not identify a trustworthy subset. Slot-reuse tests measure equal first/fourth-attempt sizes. |
+| Activation and early failure | The environment switch or a regular, non-symlink flag enables robust mode. Initialization failures emit BLOCKERs and skip the queue. The ordinary queue block remains byte-identical. |
+| Atomic copy | Archive validation rejects special entries before acceptance. Clean files use a pending file and rename. Tests verify no truncated current file, mode preservation, and failed-source isolation. This is per-file atomicity, not a whole-source transaction. |
 
-Each label has one reused `run.log`, bounded at **65,536 bytes even during the command and after a detached writer survives**. `lane_code_log.py` gives the command a Linux anonymous regular file whose size is sealed by the kernel, waits only for the foreground timeout, and saves a finite snapshot into `run.log`. Later writes cannot alter that saved log or increase the anonymous file's size. Data/manifest writes have no log-size limit. Python 3.6 uses the libc `memfd_create` entry point; Python 3.12 uses `os.memfd_create`. Tests verify regular-file type, the hard byte cap, payload writes larger than the cap, append/reuse, and a detached late writer. The helper requires Linux 3.17+ and, for the Python 3.6 fallback, glibc 2.27+; both tested interpreters use it successfully on this node. [memfd_create(2)](https://man7.org/linux/man-pages/man2/memfd_create.2.html), [F_ADD_SEALS(2)](https://man7.org/linux/man-pages/man2/F_ADD_SEALS.2const.html)
+## Review round 2: finding -> fix -> test
 
-## Cause and verified local evidence
+| Requirement | Delivered behavior and retained tests |
+|---|---|
+| Installed scanfix | PREIMAGE remains scanner hash `f9460a5e3e23e5f2765e454824645d8970b333817518d626847a5e0cba46fabb`. Both paths share the installed uncapped credential pattern with only the scheme bounded. Installer protocol preflight refuses an old-layout scanner even if its POSTIMAGE was regenerated to match. |
+| Queue isolation | Robust scanner entry points require both `LCS_ROBUST_SYNC=1` and `LCS_COPY_TMP`. The symlink-parent queue regression compares exit status, output, and flags with legacy, including a 1,150-character synthetic password. |
+| Owner scripts and calibration | Saved scripts run with `bash -eu`. Calibration requires the latest hourly END to be at most 600 seconds old and performs exactly one `--stage-only` run: stage, accept, copy, no commit/push. Tests cover window boundaries, parent-shell survival, installed postimages, and no activation on failure. |
+| Budget and fixture bounds | COPY is at least twice the longest measured accept/copy interval, plus margin. Runtime requires SCAN < LEG < REMOTE < NODE. All new fixtures use `tmp_*` roots; existing fixtures remain untouched. |
 
-The supplied pre-hotfix filter can block in `open()` on a FIFO named like an allowed JSON file. The regression reproduces that block under a test timeout. The supplied hotfix skips the static FIFO; robust mode also checks the opened file descriptor, rejects replacement races, and bounds each file read.
+## Cause and evidence
 
-The legacy driver captures the SSH pipeline with `out=$(... 2>&1)`. A process holding a write descriptor for that pipe can keep command substitution waiting for EOF after the passenger client exits. The held-writer regression demonstrates the failure and verifies that the robust driver returns while the writer remains alive and the sync lock is free.
+The supplied pre-hotfix filter can block while opening an allowed-name FIFO. The robust filter rejects nonregular entries, opens relative to directory descriptors with `O_NONBLOCK|O_NOFOLLOW`, and checks the opened inode. Per-file deadlines bound reads, while the scan timeout bounds manifest compression.
 
-I verified `/usr/share/doc/openssh/PROTOCOL.mux` on this node: lines 24–29 describe passenger sessions and stdio descriptor passing; lines 84–86 specify that stdin, stdout, and stderr are passed through Unix-domain control messages; lines 99–111 describe the passenger waiting for session completion and handling signals. The master therefore receives the actual session descriptors, including a command-substitution pipe. This is descriptor passing, not merely descriptor inheritance. [Installed protocol excerpt](evidence/PROTOCOL.mux.txt)
+A command substitution waits for EOF on its pipe. A surviving process with the output descriptor can hold that wait after the passenger exits. `/usr/share/doc/openssh/PROTOCOL.mux:24–29,84–86,99–111`, read locally, describes stdio descriptor passing to the master and waiting for session completion. [Protocol excerpt](evidence/PROTOCOL.mux.txt). The locally read `man ssh_config` says ControlPersist expires after the master is “idle (with no client connections)”; it is not a command deadline. [Man-page excerpt](evidence/ssh_config_round3.txt).
 
-I also ran `man ssh_config` locally. Its ControlPersist section says the timed master exits after remaining “idle (with no client connections)” for the configured interval. ControlPersist is not a remote-command deadline. `/home/jjyeung/.ssh/config:27–30` sets `ControlMaster auto` and `ControlPersist 12h` for `trinity-*`; both trinity-1-18 and trinity-3-30.ib match. When a master exists, those legs use the passenger mechanism. [Local man-page excerpt](evidence/ssh_config.man.txt), [local configuration excerpt](evidence/local_ssh_config.txt)
+The particular historical descriptor holder remains an inference: no incident fd trace was supplied. The fixture directly reproduces a surviving writer. Robust staging gives SSH bounded regular descriptors, closes the inherited sync-lock descriptor, and waits on its own `setsid --wait timeout` child. The logger caps each log at 65,536 bytes, including detached late writers. No Torch or other framework is imported or relied upon; tests use the standard library and local shell tools.
 
-This mechanism fits the reported 45+ minute pipe wait while the remote scanner blocked on the FIFO. The docs establish fd ownership and session lifetime; they do not specify exactly which descriptors close when a passenger is killed. Attribution of the historical surviving descriptor to a particular master remains an inference because no historical fd trace was supplied. The robust driver avoids that dependency: SSH receives regular input/output/error files, the driver waits on its own `setsid --wait timeout --kill-after` process, and child fd 8 is closed.
-
-The local config's `Match exec` at line 21 invokes the rate gate. Its source admits fewer than two new connections per 62-second window; a live master passes immediately. The wrapper also has its own 35-second gate. Those waits consume node/leg budgets, so calibration margins must include them. The provided calibration helper includes explicit estimated margins. [Rate-gate excerpt, lines 2–4 and 13](evidence/ssh_rate_gate.txt)
+[The current byte audit](evidence/default_path_round3.txt) confirms the input copies match syncin, and the filter/scanner legacy bodies, scanner patterns, push-queue block, and health tool match those inputs. Robust OFF retains the legacy FIFO race and unbounded slow-read/legacy-stage scan risks. Installation alone does not supply the robust-mode bounds.
 
 ## Patches and exact test outputs
 
-All changes are against the installed-copy input tree named in the dispatch. `lane_code_scan.py` is now a modified tool and remains covered by both image manifests. `sync_health.py` stays unchanged.
-
 | Patch | Contents |
 |---|---|
-| [01_filter.diff](patches/01_filter.diff) | Robust filter and filter regressions/reference inputs. |
-| [02_stage_driver.diff](patches/02_stage_driver.diff) | Driver, staging and bounded-log helpers, fake-service harness, review regressions, driver tests, delivery audit. |
-| [03_tssh.diff](patches/03_tssh.diff) | Caller-owned timeout in robust mode and wrapper regressions. |
-| [04_atomic_scan.diff](patches/04_atomic_scan.diff) | Atomic scanner, archive/slot tests, installer/calibration helpers and tests, image manifests. |
-| [INSTALL_TOOLS.diff](INSTALL_TOOLS.diff) | Tools-only patch; full replacements are under `tools/`. |
+| [01_filter.diff](patches/01_filter.diff) | Robust filter, tests, and reference inputs. |
+| [02_stage_driver.diff](patches/02_stage_driver.diff) | Driver, stage/logger helpers, fake-service harness, and driver/review/log/delivery tests. |
+| [03_tssh.diff](patches/03_tssh.diff) | Caller-owned timeout and wrapper tests. |
+| [04_atomic_scan.diff](patches/04_atomic_scan.diff) | Scanner, archive tests, review regressions, all owner scripts including disable/rollback, installer, calibration, and image manifests. |
+| [INSTALL_TOOLS.diff](INSTALL_TOOLS.diff) | Tools-only patch against the unchanged installed preimage. |
 
-The numbered patches replay into a fresh scratch tree with `--fuzz=0`. Every resulting tool, test, input, installer, and manifest matches the delivery bytes. The tools-only patch also replays exactly; shell syntax and Python compilation pass. [Exact replay output](logs/package_check.txt)
-
-Run the complete suite with either interpreter; tests use only the standard library and import no Torch or other framework. Fake SSH/Git helpers and the robust production Python calls use `-I -s -B`. No real SSH, Git, GPU, or paid API runs in these tests.
+The exact executed commands use these shared settings. Tests invoke only fake SSH and Git. Both complete suites ran serially under nice priority 10; no GPU was used.
 
 ```bash
-cd /scratch/jjyeung/orch_n30/so_syncfix
-CHECK=$(< work/round1_patchcheck_path.txt)
+L=/scratch/jjyeung/orch_n30/so_syncfix
+cd "$L"
 export CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
 export TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1
-nice -n 10 env LCS_TEST_WORK="$PWD/work/reproduce_py36" /usr/bin/python3 -I -s -B "$CHECK/tests/run_tests.py"
-nice -n 10 env LCS_TEST_WORK="$PWD/work/reproduce_py312" /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$CHECK/tests/run_tests.py"
+nice -n 10 env LCS_TEST_WORK="$L/work/tmp_fix3_full36" /usr/bin/python3 -I -s -B out/tests/run_tests.py
+nice -n 10 env LCS_TEST_WORK="$L/work/tmp_fix3_full312" /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B out/tests/run_tests.py
 ```
 
-Python 3.6.8:
+Exact summaries, in interpreter order:
 
 ```text
-Ran 55 tests in 61.821s
+Ran 83 tests in 75.539s
 
 OK
 ```
 
-Python 3.12.13:
-
 ```text
-Ran 55 tests in 54.502s
+Ran 83 tests in 68.904s
 
 OK
 ```
 
-The complete, exact outputs are [Python 3.6.8](logs/py36_final.txt) and [Python 3.12.13](logs/py312_final.txt). After unpacking elsewhere, use `$PKG/tests/run_tests.py` and choose a fixture directory under `/scratch`.
-
-For before/after checks, run `test_review` with `LCS_TOOLS` set to the preserved tools; omit that variable to test the delivery:
+Full exact outputs: [Python 3.6.8](logs/round3_py36.txt), [Python 3.12.13](logs/round3_py312.txt).
 
 ```bash
-nice -n 10 env LCS_TOOLS="$PWD/out_round1/tools" LCS_TEST_WORK="$PWD/work/reproduce_before36" \
-  /usr/bin/python3 -I -s -B -c 'import sys,unittest; sys.path.insert(0,"out/tests"); r=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromName("test_review")); sys.exit(not r.wasSuccessful())'
+nice -n 10 env LCS_TOOLS="$L/out_round3/tools" LCS_ROUND3_PACKAGE="$L/out_round3" LCS_TEST_WORK="$L/work/tmp_fix3_before_final36" /usr/bin/python3 -I -s -B -c 'import sys,unittest; sys.path.insert(0,"out/tests"); r=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromName("test_round3")); sys.exit(not r.wasSuccessful())'
+nice -n 10 env LCS_TOOLS="$L/out_round3/tools" LCS_ROUND3_PACKAGE="$L/out_round3" LCS_TEST_WORK="$L/work/tmp_fix3_before_final312" /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -c 'import sys,unittest; sys.path.insert(0,"out/tests"); r=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromName("test_round3")); sys.exit(not r.wasSuccessful())'
 ```
 
-The same command with `/scratch/jjyeung/envs/p1cpu/bin/python` runs Python 3.12.13. Both before runs intentionally return 1: 12 test methods run, the default-off control passes, and 13 assertion failures cover the other 11 methods plus initialization subcases. [Exact before output, Python 3.6.8](logs/before_py36.txt), [Python 3.12.13](logs/before_py312.txt)
+Both commands intentionally exit 1. Exact outputs: [before, Python 3.6.8](logs/round3_before_py36.txt), [before, Python 3.12.13](logs/round3_before_py312.txt):
 
-Run the artifact audit after packaging:
+```text
+Ran 11 tests in 9.840s
+
+FAILED (failures=22)
+```
+
+```text
+Ran 11 tests in 8.551s
+
+FAILED (failures=22)
+```
 
 ```bash
-nice -n 10 /usr/bin/python3 -I -s -B "$PKG/tests/check_delivery.py"
-nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$PKG/tests/check_delivery.py"
+nice -n 10 env LCS_PATCH_WORK="$L/work/tmp_fix3_patch36" /usr/bin/python3 -I -s -B out/tests/check_patches.py
+nice -n 10 env LCS_PATCH_WORK="$L/work/tmp_fix3_patch312" /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B out/tests/check_patches.py
+nice -n 10 /usr/bin/python3 -I -s -B out/tests/check_delivery.py
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B out/tests/check_delivery.py
 ```
 
-Its three checks cover protocol citations, header/install/calibration instructions, and the archive's top-level directory plus every embedded checksum. All three fail on the preserved delivery. [Before, Python 3.6.8](logs/delivery_before_py36.txt), [before, Python 3.12.13](logs/delivery_before_py312.txt). The final audit outputs are [Python 3.6.8](logs/delivery_py36.txt) and [Python 3.12.13](logs/delivery_py312.txt).
+Both patch replays print exactly:
 
-## Exact owner installation steps
-
-These steps run **on trinity-3-30**. They do not restart tmux or stop an active sync. Stage the archive through the owner's existing approved transport, then unpack it on `/scratch`. The archive contains a `so_syncfix/` directory.
-
-```bash
-set -eu
-export CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
-export TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1
-export B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30
-export S=/scratch/jjyeung/distill_sync
-# Run in the scratch directory containing the delivered archive and its checksum.
-sha256sum -c so_syncfix_bundle.tar.gz.sha256
-DELIVERY=/scratch/jjyeung/lcs_syncfix_delivery
-mkdir -p "$DELIVERY"
-nice -n 10 tar xzf so_syncfix_bundle.tar.gz -C "$DELIVERY"
-export PKG="$DELIVERY/so_syncfix"
-(cd "$PKG" && sha256sum -c SHA256SUMS)
-(cd "$B" && sha256sum -c "$PKG/PREIMAGE.sha256")
-nice -n 10 /usr/bin/python3 -I -s -B "$PKG/install_tools.py" "$PKG" "$B" "$S"
-(cd "$B" && sha256sum -c "$PKG/POSTIMAGE.sha256")
+```text
+numbered: patches=4 files=38 bytes=identical syntax=OK fuzz=0 offsets=0
+tools-only: patches=1 files=7 bytes=identical syntax=OK fuzz=0 offsets=0
+PATCH REPLAY OK
 ```
 
-The installer takes `$S/.sync.lock` without waiting; a busy lock returns **3** and makes no installation changes. It requires robust mode OFF and the new helper path absent, checks all five preimages and seven package postimages, and stores **backup copies** in `$S/install-backups/<id>/preimage.tar` plus `PREIMAGE.sha256`. It verifies the bounded-log helper on the destination node before changing any installed file. It writes complete, fsynced temporary files beside the installed tools, validates syntax, repeats the preimage check, and uses `os.replace` (temp + atomic mv semantics) for each file, with the driver last. It then verifies all seven postimages. A failure reports every temporary/backup pathname; it performs no cleanup or deletion. Preimage mismatch means stop and reconcile the live edits.
+[Replay output, Python 3.6](logs/round3_patch_py36.txt), [Python 3.12](logs/round3_patch_py312.txt). Delivery checks validate the report, all payload checksums, bundle checksum, one top-level directory, and exact archive/live bytes. [Delivery output, Python 3.6](logs/round3_delivery_py36.txt), [Python 3.12](logs/round3_delivery_py312.txt). Both verify 80 payload members and pass all three checks. Their exact summaries are:
 
-Measured preimage hashes:
+```text
+Ran 3 tests in 0.022s
+
+OK
+```
+
+```text
+Ran 3 tests in 0.016s
+
+OK
+```
+
+## Owner sequence: install OFF, pre-enable check, calibration, enable, first robust run
+
+**Precondition: scanfix installed.** The live scanner must match PREIMAGE line 4 below. Never copy an old-layout lane_code_scan.py over the new one. The owner scripts run on trinity-3-30; this delivery did not change any live tool.
 
 ```text
 6ccfa27cf92af3fa20b6311e43be720d9140f43cbc7deed8f917355eae85c5d1  tools/lane_code_filter.py
 1096b99487c006ce2e2eb1ae5bb46aabce08ef27a0f1fea92c5c455d48c70ce7  tools/lane_code_sync.sh
 6bb3905a3280257e4463d86b1d5dff392dc4763daeda6aaa768880fb46472603  tools/tssh.sh
-3fa1b6aa702bd26144bd2d1edbb5ed2551001ac54dcb7aa7e7a2557f991cca4b  tools/lane_code_scan.py
+f9460a5e3e23e5f2765e454824645d8970b333817518d626847a5e0cba46fabb  tools/lane_code_scan.py
 f4b0cc8328e1044b9f3d26721891ce683fc9636a240e8a9d077ac26d5bcd4f54  tools/sync_health.py
 ```
 
-The runtime helpers `$B/tools/lane_code_stage.sh` and `$B/tools/lane_code_log.py` must be absent before this initial install, including as a dangling symlink. The installer enforces that condition. The new scanner's default-off path is byte-compatible with the supplied scanner, so installing with the flag absent preserves the existing loop's behavior.
+Place the bundle and its checksum on local scratch using an approved transfer. Extract only on scratch. The package includes [PREIMAGE.sha256](PREIMAGE.sha256), [POSTIMAGE.sha256](POSTIMAGE.sha256), and [SHA256SUMS](SHA256SUMS).
 
-## Calibrate once before enabling the running loop
+```bash
+nice -n 10 sha256sum -c so_syncfix_bundle.tar.gz.sha256
+nice -n 10 tar xzf so_syncfix_bundle.tar.gz
+export PKG="$PWD/so_syncfix"
+export B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30
+export S=/scratch/jjyeung/distill_sync
+```
 
-The hourly job is tmux session **`lane_sync` on trinity-3-30**, running this existing command:
+Run saved scripts with `bash -eu`; do not paste a top-level errexit setting into an interactive shell.
+
+1. **Install OFF:** `nice -n 10 bash -eu "$PKG/install.sh"`. Keep the flag absent and `LCS_ROBUST_SYNC` unset. The installer takes `.sync.lock` without waiting, verifies PREIMAGE/POSTIMAGE, exercises acceptance/copy and bounded logging, saves `$S/install-backups/<id>/preimage.tar` plus PREIMAGE, stages complete tools, and replaces them atomically with the driver last. It then verifies installed POSTIMAGE. Record the exact backup directory from the `BACKUP .../preimage.tar` output as `BACKUP`. A busy lock returns 3; an incompatible preimage/protocol refuses before installation. Re-running initial installation refuses because the preimage/helpers no longer match its initial-install preconditions.
+2. **Pre-enable:** `nice -n 10 bash -eu "$PKG/pre_enable.sh"`. It counts hourly `START dry=0 queue_only=0` lines across the supplied sync.log and prints stage failures per node. Above **5% for any node**, stay legacy and review source mutation. Explicit rc=4 lines count for every label. Legacy trinity-3-30 local-stage failures count conservatively regardless of their unreported rc. No hourly runs also refuses. The aggregate header counts failure lines; the threshold applies to the per-node rates.
+3. **Calibrate once:** immediately after an hourly END, run `nice -n 10 bash -eu "$PKG/calibrate.sh"`. The script checks installed postimages, the failure threshold, canonical S, and the latest hourly END age of 0–600 seconds. It performs one robust `--stage-only` run, which copies clean files into the clone but neither commits nor pushes. Review `$S/robust_calibration.log`, measured stage/accept/copy intervals, positive per-label SCAN counts, adjacent last legacy STATS, and printed budgets. Missing required measurements/counts, any FAIL, or a nonzero sync prevents budgets from being installed. A sync failure prints its status and log path. Do not automatically rerun a killed or failed calibration.
+4. **Enable after reviewing successful calibration:** `nice -n 10 bash -eu "$PKG/enable.sh"`. Under `.sync.lock`, it verifies installed tools, pre-enable rates, complete calibration including positive counts, and exact agreement with the saved budgets, then creates the regular `$S/LCS_ROBUST_SYNC` flag. No hourly-loop restart is needed.
+5. **Check the first real robust hourly run once after completion:** require the ROBUST budget line, STAGED/COPIED rc=0 and positive `[copy <label>] SCAN scanned=N` for trinity-1-18, trinity-3-30, orch_n30/tools, and orch_n30/briefs. Require successful optional trinity-2-28 staging/copy or explicit SKIP. Confirm `ACCEPTING <slot>/accepted` in each successful slot's run.log, `committed` or `no changes`, GitHub verification, no home-push FAIL, and END ok. Compare counts with calibration/legacy STATS and copy/accept intervals with COPY. Confirm the lock is free using `flock -n "$S/.sync.lock" true`. A missing required root may legitimately SKIP on remote trinity-1-18 at runtime, but it is insufficient evidence for calibration or these first-run acceptance checks.
+
+The existing hourly tmux session is `lane_sync` on trinity-3-30:
 
 ```bash
 while true; do bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/lane_code_sync.sh >> /scratch/jjyeung/distill_sync/sync.log 2>&1; sleep 3600; done
 ```
 
-Keep that loop running. Its next invocation reads the flag file; a flag change does not alter an invocation already in progress. Before creating the flag, perform **one** robust `--dry` run with generous provisional ceilings. These ceilings are configuration choices, not measured production durations. Dry mode scans and writes the duplicate manifests, but does not transfer archives, copy into the clone, commit, or push.
+The driver reads the regular, non-symlink flag at invocation start. `LCS_ROBUST_SYNC=1` also enables it. The saved disable script refuses when that environment switch remains 1; ensure it is unset in the hourly launch environment as well.
+
+## Disable / roll back
+
+Use the exact install-backup directory recorded during installation, for example `$S/install-backups/<id>`; do not guess or select an unrelated backup. Set `BACKUP` to that absolute directory before these commands.
 
 ```bash
-set -eu
-# B, S, PKG and the resource environment are set by the installation block.
-# Leave $S/LCS_ROBUST_SYNC absent throughout calibration.
-nice -n 10 env LCS_ROBUST_SYNC=1 LCS_FILE_SECONDS=3 \
-  LCS_SCAN_SECONDS=1800 LCS_COPY_SECONDS=1800 LCS_LEG_SECONDS=1900 \
-  LCS_REMOTE_SECONDS=2000 LCS_NODE_SECONDS=2200 LCS_KILL_SECONDS=5 \
-  bash "$B/tools/lane_code_sync.sh" --dry > "$S/robust_calibration.log" 2>&1
-nice -n 10 /usr/bin/python3 -I -s -B "$PKG/calibrate_budgets.py" \
-  "$S/robust_calibration.log" > "$S/LCS_ROBUST_BUDGETS.next"
-# The helper prints measured per-source durations and labels the budget estimates.
-cat "$S/LCS_ROBUST_BUDGETS.next"
-mv "$S/LCS_ROBUST_BUDGETS.next" "$S/LCS_ROBUST_BUDGETS"
-# Only after successful calibration and budget installation:
-: > "$S/LCS_ROBUST_SYNC.next"
-mv "$S/LCS_ROBUST_SYNC.next" "$S/LCS_ROBUST_SYNC"
+nice -n 10 bash -eu "$PKG/disable.sh" "$BACKUP"
 ```
 
-The calibrator pairs each `ROBUST stage <label>` timestamp with its `STAGED <label> rc=0` timestamp and requires all four required sources plus `DRY done`. It accepts the optional host's SKIP. It refuses any FAIL or incomplete log, because legacy-compatible dry mode can otherwise return 0 after a stage failure. `set -e` prevents flag creation if the helper refuses. A cluster-killed run is not retried; stop and report it.
+The script takes `.sync.lock` without waiting. Under that lock it retires stage to `stage.pre-robust-<UTC>-<pid>`, then moves the flag to `LCS_ROBUST_SYNC.off-<UTC>-<pid>`. Retiring stage first preserves robust activation if the stage move fails. The first legacy run creates a fresh stage. It preserves every retired file and prints the exact `B=... S=... bash -eu .../rollback.sh .../install-backups/<id>` invocation.
 
-The helper sets scan to `max(120, 2*d + 30)`, copy to `max(120, 3*d + 60)`, leg to `max(150, scan + 125)`, remote to `max(160, leg + 30)`, and node to `max(210, remote + 125)`, where `d` is the longest observed dry stage in seconds, with a one-second minimum for timestamp resolution. File and kill budgets remain 3 and 5. It refuses any derived budget above 3600. These are **estimates derived from measured dry durations**; the margins include rate-gate waits. Dry mode cannot measure transfer, archive validation, or copy, so compare the estimates with existing successful hourly durations and inspect the first scheduled robust run's `ROBUST accept`, `STAGED`, `ROBUST copy`, and `COPIED` timestamps before treating them as calibrated transfer/copy limits.
-
-`$S/LCS_ROBUST_BUDGETS` accepts only numeric `LCS_*_SECONDS=value` lines for the seven documented budgets. It is parsed, never sourced. Environment values take precedence. Without that file or environment overrides, defaults are file=3, scan=120, copy=120, leg=150, remote=160, node=210, kill=5 seconds. The file limit is at most 30 seconds; other limits are at most 3600.
-
-For the first scheduled robust run, verify the recorded budgets, required-source STAGED/COPIED lines, `committed` or `no changes`, the existing GitHub hash verification, and absence of a home-push failure. A failed required source still permits healthy-source publication and creates the normal BLOCKER; a missing root or silent optional host does not. Check the lock is released and the slots are reused. Do not immediately rerun a failed production sync.
-
-To disable file-enabled robust mode without deleting anything or restarting the loop:
+To restore the installed tools as well, run that printed command, equivalent to:
 
 ```bash
-mv "$S/LCS_ROBUST_SYNC" "$S/LCS_ROBUST_SYNC.disabled_$(date -u +%Y%m%dT%H%M%SZ)"
+nice -n 10 bash -eu "$PKG/rollback.sh" "$BACKUP"
 ```
 
-This disables future invocations of the supplied loop, which does not set `LCS_ROBUST_SYNC=1` in its environment. An explicit environment value of 1 still enables robust mode.
+`rollback.sh` sources the saved disable script and retains its lock through restoration. It also handles a direct rollback without a preceding disable. It prints and executes `tar xf "$BACKUP/preimage.tar" -C "$RESTORE"`, where RESTORE is a fresh `$S/tmp_rollback-*` directory on scratch. It runs `sha256sum -c "$BACKUP/PREIMAGE.sha256"` from RESTORE, stages each verified tool alongside its installed destination, atomically replaces the tools with the driver last, and runs the same checksum check from B. No archive is extracted into `/data*`. A successful run ends with `ROLLBACK OK`.
 
-## Limits and work not performed
+Rollback restores the tool preimage, not prior clone commits or pushed history. The unused robust helpers, slots, retired stage, backup, and scratch extraction remain in place. Nothing is deleted. A busy lock returns 3 without changes; do not stop another run to acquire it. If restoration is interrupted, keep the backup and logged pending paths and inspect the failure before another owner action. Initial-install preflight will refuse retained robust helpers after rollback; reinstalling requires an explicit reconciliation, not a blind rerun.
 
-- Production installation, calibration, actual SSH/mux behavior, real commits/pushes, and production slot sizes were not exercised. This dispatch permits local development only. No claim here substitutes fixture timing for production measurements.
-- Tar exit 1 intentionally rejects that whole source. Frequent source mutation can therefore delay its publication; `PIPE 0 1 0`, FAIL, and the BLOCKER identify that case. Healthy sources continue.
-- Timeouts depend on scheduling and interruptible kernel operations. They are not hard real-time guarantees. Detached processes may survive, but their descriptors cannot keep the driver's output substitution or sync lock open. A surviving receiver lock prevents overlapping writes to its slot.
-- A copy timeout can publish complete clean files processed before the timeout; it cannot publish a partial current file. The named pending file stays outside the committed paths and is overwritten by the next copy attempt. This is per-file atomicity, not a whole-clone transaction.
-- Manifest failures can leave one named, prelogged temporary file per failed attempt on the source. The delivery issues no deletion commands. Old stage-run directories from any earlier deployment and the preserved development fixtures are not automatically reclaimed.
-- Archive validation rejects unsafe paths and special entries. The private clone and slot directories remain trusted; these changes do not create a hostile-writer sandbox or an atomic snapshot of a changing source tree.
-- Existing commit, push, queue, GitHub verification, locking, and normal BLOCKER logic remain intact. Existing Git/queue operations do not acquire a new whole-run deadline.
+## Budgets and margins
 
-The review mapping is retained as the user's requested acceptance record. The report describes the delivered behavior and its evidence; interim development outputs remain under `work/`.
+The provisional calibration ceilings are file=3, scan=1800, copy=1800, leg=1900, remote=2000, node=2200, kill=5 seconds. These are estimates. Given maximum measured stage interval `d` and maximum acceptance/copy interval `c`, `calibrate_budgets.py` derives:
+
+- SCAN=`max(120, 2*d+30)`; COPY=`max(120, 2*c+30)`.
+- LEG=`max(150, SCAN+125)`; REMOTE=`max(160, LEG+30)`; NODE=`max(210, REMOTE+125)`.
+- FILE=3 and KILL=5 seconds; any derived budget above 3600 refuses.
+
+Thus the calibrated gaps are at least 125, 30, and 125 seconds. They exceed the 5-second kill grace, and NODE's margin allows the tssh pre-sleep of at most 35 seconds plus connection/startup overhead. Rate-lock contention itself has no separate finite margin; the outer NODE timeout bounds it. The measurements have one-second resolution; the 30-second arithmetic margin is an estimate, not a guarantee under arbitrary load.
+
+Runtime enforces only `SCAN < LEG < REMOTE < NODE`. Manual overrides with gaps smaller than the kill grace, pre-sleep, or connection overhead may cause an outer timeout to win first and report a false failure. The bound remains intact. The numeric budget file is never sourced; environment values take precedence. Uncalibrated defaults remain file=3, scan=120, copy=120, leg=150, remote=160, node=210, kill=5 seconds.
+
+## Risks, detection, and work not done
+
+- Production installation, failure-rate measurement, calibration, activation, real OpenSSH behavior, real Git/push verification, and the first hourly run remain owner work. No agent, service, or existing job was stopped. No GPU or paid API was used.
+- Robust OFF retains the legacy blocking risks. Disabling safely retires stale stage but does not make legacy reads bounded. Installing OFF is preparation; the requested bounds apply only when robust mode is ON.
+- Generous calibration ceilings can outlast the next hourly wakeup. The hourly invocation then returns 3 while calibration holds the lock. Inspect sync health and the logged result; do not retry work killed by the cluster.
+- Whole-source rejection can starve frequently changing trees. The per-node pre-enable ratio, runtime FAIL/BLOCKER, and scan-count comparison expose it. Missing or zero counts now refuse calibration even if timing lines appear successful.
+- The acceptance marker confirms the scanner protocol, not a hostile-writer security boundary. Logs are capped; a missing marker or final SCAN record fails safely. Trusted private clone/slot directories remain a precondition.
+- A copy timeout may retain complete files copied before timeout, but cannot publish a truncated current file. Failed staging preserves the source's clone files. Rollback does not undo already committed content.
+- `flagged_robust.txt` remains one overwritten list; FLAG lines remain in sync.log. No consumer requiring per-run lists was established or changed in this task. Real OpenSSH remains untested; local inherited-descriptor fixtures cover the claimed failure mechanism.
+- Existing fixtures and preserved deliveries remain. New fixtures are under `tmp_*` roots, which the scanner prunes. No deletion command was used.
+
+The review mappings and before/after comparisons are retained because the dispatch explicitly requests them. Other sections describe the delivered behavior and evidence.

@@ -1,0 +1,199 @@
+2026-11-19T17:31:36Z
+{"encoding": "base64-json", "sha256": "50c6de337f09279c9ffd195c2ceee43d055bb7a38d86c05af92dccda17dd4d34", "payload": "eyJHTyI6ZmFsc2UsImtpdF9zaGEyNTYiOiJiZmY2ZDQyY2Q1NTU1ODUzNGJlNTAzMDU2MDdmMDYzYjRmN2Y1YmYzN2ZlM2JlNjcwNzQ2YWE2MzJmOTkyNjk5IiwicmVzb3VyY2VfcmVxdWVzdCI6eyJjcHVzIjo4LCJncHVzIjo0LCJtZW1vcnlfZ2liIjoxOTIsIm1pbmltdW1fZ3B1X2dpYiI6NzUsInBhcnRpdGlvbiI6ImFkdmFuY2VkIiwicmFua3MiOjQsIndhbGxfaG91cnMiOjEyfSwic2l6aW5nIjoiR1VFU1M7IHJlYWwgbW9kZWwgZml0IGhhcyBub3QgYmVlbiBtZWFzdXJlZCIsInNvdXJjZV9zZWFsIjoiZTFlNjQ2NTIwODdjMmNkZTY4OTYyMGU0ZmI2ZWRjYTU3MTIzZmVjY2FlNzhjOGEwYTRiNzBjZThmN2IzNWMxMCJ9Cg=="}
+
+#!/bin/bash
+#SBATCH --partition=advanced
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=192G
+#SBATCH --time=12:00:00
+#SBATCH --gres=gpu:4
+#SBATCH --no-requeue
+#SBATCH --output=/tmp/q_%j.log
+#SBATCH --error=/tmp/q_%j.err
+export PYTHONDONTWRITEBYTECODE=1
+set -euo pipefail
+umask 077
+ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+N="${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID:?}"
+export TMPDIR="$N/tmp" XDG_CACHE_HOME="$N/cache"
+export HF_HOME="$N/cache/hf" TORCH_HOME="$N/cache/torch" TRITON_CACHE_DIR="$N/cache/triton"
+export CUDA_CACHE_PATH="$N/cache/cu" MPLCONFIGDIR="$N/cache/plot"
+mkdir -p "$TMPDIR" "$XDG_CACHE_HOME"
+cd "$N"
+export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1
+python3 -B -I -s -B "$ROOT/b/v.py" "$ROOT"
+python3 -B -I -s -B "$ROOT/b/x.py" "$ROOT" "${1:?}" "$N" 2>&1 | python3 -B -I -s -B "$ROOT/b/l.py" "$ROOT"
+
+b/a.py b/d.py b/e.sh b/f.sh b/g.py b/l.py b/m.py b/o.py b/q.sh b/q1.sh b/resolve.py b/s.py b/t.py b/u.py b/v.py b/w.py b/wh.json b/x.py b/z.py job.sh k/7.json k/8.json k/a.json k/c.json k/c0.json k/g.json k/h.json k/j.json k/l.json k/n.json k/p.json k/r.json k/s.json k/t_e047002134f979bd.tar 
+/project/community/jjyeung/okh7/x_22c714e1/n/b:
+total 108
+drwxr-xr-x 2 jjyeung users     0 Nov 19 16:52 .
+drwxr-xr-x 4 jjyeung users     0 Nov 19 16:52 ..
+-rw-r--r-- 1 jjyeung users  1908 Jan  1  1970 a.py
+-rw-r--r-- 1 jjyeung users   286 Jan  1  1970 d.py
+-rw-r--r-- 1 jjyeung users   172 Nov 19 16:37 e.sh
+-rw-r--r-- 1 jjyeung users   464 Nov 19 16:37 f.sh
+-rw-r--r-- 1 jjyeung users   758 Nov 19 16:06 g.py
+-rw-r--r-- 1 jjyeung users   259 Jan  1  1970 l.py
+-rw-r--r-- 1 jjyeung users   179 Jan  1  1970 m.py
+-rw-r--r-- 1 jjyeung users   838 Nov 19 16:37 o.py
+-rw-r--r-- 1 jjyeung users   156 Nov 19 16:37 q.sh
+-rw-r--r-- 1 jjyeung users   156 Nov 19 16:37 q1.sh
+-rw-r--r-- 1 jjyeung users   347 Nov 19 16:06 resolve.py
+-rw-r--r-- 1 jjyeung users   171 Jan  1  1970 s.py
+-rw-r--r-- 1 jjyeung users   562 Nov 19 16:37 t.py
+-rw-r--r-- 1 jjyeung users   794 Nov 19 16:06 u.py
+-rw-r--r-- 1 jjyeung users   136 Jan  1  1970 v.py
+-rw-r--r-- 1 jjyeung users    96 Jan  1  1970 w.py
+-rw-r--r-- 1 jjyeung users  3223 Jan  1  1970 wh.json
+-rw-r--r-- 1 jjyeung users   159 Jan  1  1970 x.py
+-rw-r--r-- 1 jjyeung users 35895 Nov 19 16:37 z.py
+
+/project/community/jjyeung/okh7/x_22c714e1/n/k:
+total 5508
+drwxr-xr-x 2 jjyeung users       0 Nov 19 16:52 .
+drwxr-xr-x 4 jjyeung users       0 Nov 19 16:52 ..
+-rw-r--r-- 1 jjyeung users  197989 Nov 19 16:06 7.json
+-rw-r--r-- 1 jjyeung users     277 Nov 19 15:25 8.json
+-rw-r--r-- 1 jjyeung users     461 Nov 19 16:06 a.json
+-rw-r--r-- 1 jjyeung users   33909 Nov 19 16:06 c.json
+-rw-r--r-- 1 jjyeung users  171503 Nov 19 16:06 c0.json
+-rw-r--r-- 1 jjyeung users     385 Jan  1  1970 g.json
+-rw-r--r-- 1 jjyeung users     969 Nov 19 15:25 h.json
+-rw-r--r-- 1 jjyeung users   24671 Nov 19 16:37 j.json
+-rw-r--r-- 1 jjyeung users 2223193 Jan  1  1970 l.json
+-rw-r--r-- 1 jjyeung users   38585 Nov 19 16:06 n.json
+-rw-r--r-- 1 jjyeung users  107009 Nov 19 16:06 p.json
+-rw-r--r-- 1 jjyeung users     653 Nov 19 16:06 r.json
+-rw-r--r-- 1 jjyeung users    9329 Nov 19 15:25 s.json
+-rw-r--r-- 1 jjyeung users 2790917 Nov 19 16:06 t_e047002134f979bd.tar
+==== l.py
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from z import load,screen
+k=Path(sys.argv[1]);w=load(k/'k/g.json');h=load(k/'b/wh.json')
+for line in sys.stdin:
+ sys.stdout.write(screen(line,w,h));sys.stdout.flush()
+==== x.py head
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from z import bootstrap
+raise SystemExit(bootstrap(*sys.argv[1:]))
+==== 172660 o
+total 2436
+drwx------ 2 jjyeung users      0 Nov 19 01:29 .
+drwx------ 7 jjyeung users      0 Nov 19 09:30 ..
+-rw------- 1 jjyeung users    144 Nov 19 01:29 172660.3.json
+-rw------- 1 jjyeung users 740288 Nov 19 17:11 172660.err
+-rw------- 1 jjyeung users   7799 Nov 19 16:52 172660.gpu
+-rw------- 1 jjyeung users   1366 Nov 18 22:21 172660.preflight.inputs.json
+-rw------- 1 jjyeung users   7517 Nov 18 22:20 172660.preflight.metadata.p.json
+-rw------- 1 jjyeung users 463362 Nov 18 22:21 172660.preflight.runtime.p.json
+-rw------- 1 jjyeung users 610964 Nov 18 22:21 172660.preflight.runtime.t.json
+-rw------- 1 jjyeung users 610964 Nov 18 22:21 172660.preflight.runtime.u.json
+-rw------- 1 jjyeung users   5064 Nov 19 16:56 172660.steps
+-rw------- 1 jjyeung users   4007 Nov 18 22:20 172660.vt.json
+-rw------- 1 jjyeung users    437 Nov 19 17:11 172660.w.steps
+-rw------- 1 jjyeung users    901 Nov 18 22:18 canary_delta.json
+-rw------- 1 jjyeung users    314 Nov 19 16:56 gcs.log
+-rw------- 1 jjyeung users    107 Nov 19 09:31 gcs_6ed2c7aa_m400.done
+-rw------- 1 jjyeung users    107 Nov 19 16:56 gcs_6ed2c7aa_m600.done
+==== 172660.steps
+2026-11-18T22:20:44Z | stage preflight on orchard-community-1: /tmp free 5916 GiB; mem 1842 GiB
+2026-11-18T22:21:35Z | fla overlay staged
+2026-11-18T22:21:35Z | stage preflight done
+2026-11-18T22:21:36Z | numpy 2.2.6 overlay on
+2026-11-18T22:21:41Z | numpy 2.2.6 overlay on
+2026-11-18T22:21:41Z | fla overlay on: 4e4a6ac51788
+2026-11-18T22:21:49Z | numpy 2.2.6 overlay on
+2026-11-18T22:21:50Z | fla overlay on: 4e4a6ac51788
+2026-11-18T22:21:57Z | production import preflight PASS seconds=73
+2026-11-18T22:33:12Z | stage prep on orchard-community-1: /tmp free 5802 GiB; mem 1842 GiB
+2026-11-18T22:34:38Z | model staged: 18876316 KiB
+2026-11-18T22:34:39Z | small inputs staged
+2026-11-18T22:34:39Z | joined receipt.json 724 B
+2026-11-18T22:34:48Z | joined rows.sqlite 1931452416 B
+2026-11-18T22:34:48Z | joined sources.json 585 B
+2026-11-18T22:34:48Z | joined receipt.json 8547 B
+2026-11-18T22:35:09Z | joined rows.sqlite 4891635712 B
+2026-11-18T22:35:09Z | joined division.json 143998 B
+2026-11-18T22:35:09Z | joined k.json 12169729 B
+2026-11-18T22:35:09Z | joined k3_109026.json 651169 B
+2026-11-18T22:35:09Z | joined k4_111337.json 1121761 B
+2026-11-18T22:35:09Z | joined k7_115066.json 229825 B
+2026-11-18T22:35:09Z | joined k.json 19469377 B
+2026-11-18T22:35:10Z | joined k.json 51519052 B
+2026-11-18T22:35:10Z | joined receipt.json 715 B
+2026-11-18T22:35:16Z | joined rows.sqlite 1297735680 B
+2026-11-18T22:35:16Z | joined sources.json 591 B
+2026-11-18T22:35:16Z | joined receipt.json 2211 B
+2026-11-18T22:36:53Z | joined rows.sqlite 21010542592 B
+2026-11-18T22:36:53Z | joined receipt.json 713 B
+2026-11-18T22:36:53Z | joined rows.sqlite 97079296 B
+2026-11-18T22:36:53Z | joined receipt.json 714 B
+2026-11-18T22:36:54Z | joined rows.sqlite 240427008 B
+2026-11-18T22:36:54Z | joined heads.json 3410 B
+2026-11-18T22:36:58Z | joined heads.safetensors 924151276 B
+2026-11-18T22:37:06Z | joined encoder.safetensors 1824074576 B
+2026-11-18T22:37:06Z | joined receipt.json 713 B
+2026-11-18T22:37:12Z | joined rows.sqlite 1298710528 B
+2026-11-18T22:37:12Z | joined patch.json 4231876 B
+2026-11-18T22:37:12Z | joined 30c516bf.json 229 B
+2026-11-18T22:37:12Z | joined 19c85a70.jsonl.gz 68141 B
+2026-11-18T22:37:12Z | joined 99e6eed6.json 52806 B
+2026-11-18T22:37:18Z | joined rows.sqlite 1251414016 B
+2026-11-18T22:37:18Z | joined receipt.json 731 B
+2026-11-18T22:37:19Z | joined d.db 1718255616 B
+2026-11-18T22:37:19Z | joined i.json 2880 B
+2026-11-18T22:37:19Z | joined m.json 47603 B
+2026-11-18T22:37:19Z | joined u.gz 1688862 B
+2026-11-18T22:37:19Z | joined c.json 120969 B
+2026-11-18T22:37:19Z | joined d.json 685 B
+2026-11-18T22:37:19Z | joined d_8091154cd499c474.json 712 B
+2026-11-18T22:37:20Z | joined j.json 20313 B
+2026-11-18T22:37:20Z | joined n.json 107499 B
+2026-11-18T22:37:20Z | joined r.json 1025 B
+2026-11-18T22:37:20Z | joined v.json 231 B
+2026-11-18T22:37:20Z | joined z.json 2982924 B
+2026-11-18T22:37:20Z | joined s.json 78196 B
+2026-11-18T22:38:47Z | joined rows.sqlite 21377871872 B
+2026-11-18T22:38:50Z | archive f7126b4ebc296a29 staged
+2026-11-18T22:38:53Z | archive 23cdc75ff24a9456 staged
+2026-11-18T22:38:57Z | archive 212cedd1d9b85117 staged
+2026-11-18T22:39:04Z | archive c4bfa546b73ec5a4 staged
+2026-11-18T22:39:10Z | archive c704a5b79ac8f441 staged
+2026-11-18T22:40:48Z | archive 5799225c899013f4 staged
+2026-11-18T22:58:32Z | frames f3 verified: 93be49e42701
+2026-11-18T22:58:50Z | frames f4 verified through pinned shards
+2026-11-18T23:01:05Z | frames f5 verified: 6780c14fd165
+2026-11-18T23:01:06Z | frames f6 verified through pinned shards
+2026-11-18T23:01:08Z | frames f7 verified through pinned shards
+2026-11-18T23:04:25Z | frames f8 verified: 14eae0b7d2fd
+2026-11-18T23:04:26Z | frames f9 verified through pinned shards
+2026-11-18T23:04:40Z | frames f14 verified: 47c9206e3ece
+2026-11-18T23:04:55Z | init mirror verified: 1d6eeb28f51688c4
+2026-11-18T23:04:55Z | stage prep done
+2026-11-18T23:04:55Z | numpy 2.2.6 overlay on
+2026-11-18T23:04:55Z | launch p 0 on orchard-community-1 gpus=4
+2026-11-19T01:25:29Z | exit rc=0
+2026-11-19T01:26:55Z | stage prep on orchard-community-1: /tmp free 5453 GiB; mem 1842 GiB
+2026-11-19T01:28:54Z | frames f3 verified: 93be49e42701
+2026-11-19T01:29:13Z | frames f4 verified through pinned shards
+2026-11-19T01:29:13Z | frames f5 verified: 6780c14fd165
+2026-11-19T01:29:14Z | frames f6 verified through pinned shards
+2026-11-19T01:29:16Z | frames f7 verified through pinned shards
+2026-11-19T01:29:17Z | frames f8 verified: 14eae0b7d2fd
+2026-11-19T01:29:17Z | frames f9 verified through pinned shards
+2026-11-19T01:29:17Z | frames f14 verified: 47c9206e3ece
+2026-11-19T01:29:17Z | init mirror present: 1d6eeb28f51688c4
+2026-11-19T01:29:17Z | stage prep done
+2026-11-19T01:29:17Z | numpy 2.2.6 overlay on
+2026-11-19T01:29:17Z | fla overlay on: 4e4a6ac51788
+2026-11-19T01:29:17Z | launch u 0 on orchard-community-1 gpus=4
+2026-11-19T09:31:36Z | export uploaded: q8/8865619b/6ed2c7aa_m400.tar
+2026-11-19T16:56:54Z | export uploaded: q8/8865619b/6ed2c7aa_m600.tar
+2026-11-19T16:56:54Z | exit rc=0

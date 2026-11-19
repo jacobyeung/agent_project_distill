@@ -7,6 +7,38 @@ import sys
 REQUIRED = {'trinity-1-18', 'trinity-3-30', 'orch_n30/tools', 'orch_n30/briefs'}
 
 
+def scan_counts(text):
+    counts = {}
+    for line in text.splitlines():
+        match = re.match(r'^\s*\[copy ([^\]]+)\] SCAN scanned=(\d+)\b', line)
+        if match:
+            label, count = match.group(1), int(match.group(2))
+            if label in counts or count <= 0:
+                raise ValueError('duplicate or empty SCAN count for ' + label)
+            counts[label] = count
+    if not REQUIRED.issubset(counts):
+        raise ValueError('missing positive SCAN count for ' + ', '.join(sorted(REQUIRED - set(counts))))
+    return counts
+
+
+def legacy_stats(stream):
+    """Retain only the last STATS per label from invocations without ROBUST."""
+    latest, pending, robust = {}, {}, False
+    for line in stream:
+        if re.match(r'^\S+ START ', line):
+            if not robust:
+                latest.update(pending)
+            pending, robust = {}, False
+        if re.match(r'^\S+ ROBUST ', line):
+            robust = True
+        match = re.search(r'\b(STATS (\S+) .*)', line)
+        if match:
+            pending[match.group(2)] = match.group(1).rstrip()
+    if not robust:
+        latest.update(pending)
+    return latest
+
+
 def derive(text):
     marks, durations, skipped = {}, {}, set()
     complete = False
@@ -53,6 +85,9 @@ def derive(text):
         raise ValueError('calibration lacks required stage, accept, copy measurements or STAGE-ONLY done')
     if skipped.intersection(durations) or set(marks) - set(durations) - skipped:
         raise ValueError('calibration contains incomplete source measurements')
+    counts = scan_counts(text)
+    if set(counts) != set(durations):
+        raise ValueError('SCAN labels do not match completed source measurements')
     longest_stage = max(value['stage'] for value in durations.values())
     longest_copy = max(max(value['accept'], value['copy']) for value in durations.values())
     scan = max(120, 2 * longest_stage + 30)
@@ -70,12 +105,20 @@ def derive(text):
 
 if __name__ == '__main__':
     try:
-        durations, budgets = derive(Path(sys.argv[1]).read_text())
+        text = Path(sys.argv[1]).read_text()
+        durations, budgets = derive(text)
+        counts, previous = scan_counts(text), {}
+        if len(sys.argv) > 2:
+            with open(sys.argv[2]) as stream:
+                previous = legacy_stats(stream)
         for label, measured in sorted(durations.items()):
+            print('COUNTS %s scanned=%d legacy=%s' %
+                  (label, counts[label], previous.get(label, 'unavailable')), file=sys.stderr)
             for event in ('stage', 'accept', 'copy'):
                 print('MEASURE %s_seconds %s=%d (one-second log resolution)' %
                       (event, label, measured[event]), file=sys.stderr)
         print('ESTIMATE budgets use twice the longest measured interval plus margins; COPY covers acceptance and copy.', file=sys.stderr)
+        print('MARGINS SCAN/COPY=2*maximum+30s (floors 120s); LEG-SCAN>=125s REMOTE-LEG>=30s NODE-REMOTE>=125s KILL=5s tssh_pre_sleep<=35s; lock contention is bounded only by NODE.', file=sys.stderr)
         for name, value in budgets:
             print('%s=%d' % (name, value))
     except Exception as error:

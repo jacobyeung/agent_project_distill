@@ -104,12 +104,13 @@ robust_program() {  # <source> <label> <manifest> <slot> <remote:0|1>
   echo 'rc=("${PIPESTATUS[@]}"); echo "PIPE ${rc[*]}"; for r in "${rc[@]}"; do [ "$r" = 0 ] || exit 4; done'
 }
 
-robust_finish() {  # <label> <status>
-  local label=$1 rc=$2 slot=$RUN/$1 expected='PIPE 0 0 0' snapshot
+robust_finish() {  # <label> <status> <remote:0|1>
+  local label=$1 rc=$2 remote=${3:-0} slot=$RUN/$1 expected='PIPE 0 0 0' snapshot
   [ "$DRY" = 1 ] && expected='PIPE 0'
   snapshot=$(robust_snapshot "$slot")
   printf '%s\n' "$snapshot" | sed "s|^|  [$label] |"
-  if [ "$rc" = 66 ] && grep -Fxq "SKIP $label no orch_n30/source" <<< "$snapshot"; then
+  if [ "$remote" = 1 ] && { [ "$label" = trinity-1-18 ] || [ "$label" = trinity-2-28 ]; } &&
+      [ "$rc" = 66 ] && grep -Fxq "SKIP $label no orch_n30/source" <<< "$snapshot"; then
     log "SKIP $label (no source root)"; return 0
   fi
   if [ "$label" = trinity-2-28 ] && { [ "$rc" = 255 ] || [ "$rc" = 124 ] || [ "$rc" = 137 ]; } &&
@@ -129,6 +130,9 @@ robust_finish() {  # <label> <status>
     if [ "$rc" != 0 ]; then
       robust_snapshot "$slot" | sed "s|^|  [$label] |"
       fail "$label accept stage rc=$rc (log $slot/run.log)"; return 0
+    fi
+    if ! grep -Fxq "ACCEPTING $slot/accepted" "$slot/run.log"; then
+      fail "$label accept protocol missing ACCEPTING $slot/accepted (log $slot/run.log)"; return 0
     fi
     ACCEPTED_LABELS="$ACCEPTED_LABELS $label"
   fi
@@ -161,7 +165,7 @@ robust_stages() {
       setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_NODE_SECONDS" \
       bash "$B/tools/tssh.sh" "$node" "$command" 8>&-
     rc=$?
-    robust_finish "$node" "$rc"
+    robust_finish "$node" "$rc" 1
   done
   for label in trinity-3-30 orch_n30/tools orch_n30/briefs; do
     case "$label" in
@@ -178,6 +182,6 @@ robust_stages() {
     python3 -I -s -B "$LOGGER" "$slot/run.log" - 0 \
       setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_REMOTE_SECONDS" bash "$slot/program.sh" 8>&-
     rc=$?
-    robust_finish "$label" "$rc"
+    robust_finish "$label" "$rc" 0
   done
 }

@@ -1,0 +1,30 @@
+cache: OK
+journal: OK
+off: OK
+public: OK
+round1: OK
+round2: OK
+round3: OK
+operator3: OK
+lock3: OK
+round4: CPU bound-export fixture: /scratch/jjyeung/orch_n30/so_read/work/test-artifacts/d18b78d68ff04ed89f95f8173c9ed0f8
+round5: All CPU receipt checks passed
+round6: Detached fill: success=0, failure=17, duplicate launch refused.
+round7: Only reviewed step-400 export passes; changed artifact and selectable-export API refuse.
+round8: Runtime torch/transformers/CUDA and environment SHA256 are exact; changed versions, bytes and CPU build refuse.
+kit: OK
+kit_launch: OK
+PASS: all 8 round-1 regressions fail against the round-1 reviewed implementation.
+PASS: all 13 round-2 regressions fail against the round-2 reviewed implementation (14 failures including both CLI variants).
+PASS: round3_before reproduces FAILED (failures=15).
+PASS: operator3_before reproduces FAILED (failures=2).
+PASS: lock3_before reproduces FAILED (failures=2).
+PASS: round5_before reproduces FAILED (failures=11).
+PASS: round6_before reproduces FAILED (failures=31).
+PASS: round7_before reproduces FAILED (failures=10).
+PASS: round8_before reproduces FAILED (failures=29).
+PASS: round4_before reproduces FAILED (failures=7, skipped=1).
+PASS: node4_before reproduces FAILED (failures=1).
+PASS: f16_behavior_before reproduces FAILED (failures=1).
+PASS: Python syntax, shell syntax, and default-off execution guards.
+{"cuda_visible_devices": "", "max_child_rss_bytes": 399253504, "torch": "2.11.0+cpu", "torch_threads": 8, "transformers": "5.12.1", "workspace_bytes": 2957955790}

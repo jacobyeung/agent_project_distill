@@ -1,0 +1,147 @@
+{
+  "arms": [
+    "tower"
+  ],
+  "commands": {
+    "cpu_pass_check": "/usr/bin/python3 -I -s -B - \"$P\" <<'PYCODE'\nimport hashlib,json,sys,tarfile\nfrom pathlib import Path\np=Path(sys.argv[1]);c=json.loads((p/'a/c/CPU.json').read_text());v=json.loads((p/'0.json').read_text())\nsha=lambda path:hashlib.sha256(path.read_bytes()).hexdigest()\nassert c['passed'] is True and c['bundle_guard_passed'] is True and c['entry_sequence_passed'] is True\nassert c['payload']==v['payload_sha256'] and c['plan']==v['plan_sha256']\nassert c['operator_sha256']==sha(p/'a/6.py') and c['inputs']==sha(p/'a/1.json')\ng=c['bundle_guard']\nassert g['passed'] is True and g['path']=='7.py' and g['guard_target']=='6.py' and g['action']=='test'\nassert g['operator_sha256']==sha(p/'a/6.py') and g['batch_sha256']==sha(p/'BATCH.sh')\ne=c['entry_sequence'];root=Path(c['root'])\nassert e['passed'] is True and e['entry_sequence_passed'] is True\nassert e['events']==['guard_installed','write_test','operator_dispatch']\nassert e['operator_sha256_before']==e['operator_sha256_after']==c['operator_sha256']\nassert e['path']=='7.py' and e['guard_target']=='6.py' and e['action']=='test'\nassert e['operator_sha256']==c['operator_sha256'] and e['batch_sha256']==sha(p/'BATCH.sh')\nassert e['pool']==str(root/'wpool') and e['token']==v['token']\nw=e['write_test']\nassert type(w['bytes']) is int and w['bytes']==4*1024**2\nassert isinstance(w['sha256'],str) and len(w['sha256'])==64 and all(ch in '0123456789abcdef' for ch in w['sha256'])\nwith tarfile.open(p/'0.tgz') as archive:\n    guard_sha=hashlib.sha256(archive.extractfile('orchard_h10/vendor/return_io.py').read()).hexdigest()\nassert e['guard_target_sha256']==guard_sha\nassert {k:v for k,v in e.items() if k!='entry_sequence_passed'}==g\nassert e['requested_argv'][-2:]==[str(root/'a/5.py'),str(root/'a/1.json')]\nassert e['dispatched_argv']==e['requested_argv'][:-2]+[str(root/'7.py'),str(root/'a/1.json')]\nm=c['memory']\nassert m==json.loads((p/'a/c/MEMORY.json').read_text())\nassert m['fits'] is True and m['basis']=='fixed_g3t_shapes'\nassert m['perception_memo_modules']==['g3t'] and m['sam_measurement_required'] is False\nprint('All CPU receipt checks passed')\nPYCODE",
+    "cpu_sbatch": "CPU_REPLY=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=\"$HOME\" USER=\"$USER\" CUDA_VISIBLE_DEVICES= \\\n  sbatch --parsable --account=mt01 --partition=preempt --nodes=1 --ntasks=1 \\\n  --job-name=a15_cot_apb9ef552934627 --cpus-per-task=8 --mem=200G \\\n  --time=04:00:00 --exclude='orchard-flame-[0-31]' --export=ALL --no-requeue \\\n  --chdir=/tmp --output=\"$P/a/4.log\" --error=\"$P/a/4.err\" \\\n  --wrap=\"exec /usr/bin/python3 -I -s -B $P/a/5.py --package $P --sequence $P/a/6.py --results $P/a/c\")\nCPU_JOB=${CPU_REPLY%%;*}\n[[ \"$CPU_JOB\" =~ ^[0-9]+$ ]]\nprintf '%s\\n' \"$CPU_JOB\" > \"$P/a/4.txt\"",
+    "fetch": "JOB=$(<\"$P/a/8.txt\")\nRET=$(/usr/bin/python3 -I -s -B - \"$JOB\" <<'PYCODE'\nimport sys\nprint('b9ef552934627'+format(int(sys.argv[1]),'08x'))\nPYCODE\n)\n/usr/bin/python3 -I -s -B 3.py fetch --return-token \"$RET\" --out \"$P/a/f\"",
+    "placement_and_metadata": "set -euo pipefail\numask 077\n: \"${D:?Set D to the existing opaque delivery directory}\"\nP=/project/community/jjyeung/b9ef552934627\nprintf '%s  %s\\n' 57d2a513b6770447680fc088a39fd02c00945491bdde46309e9ade0c84540f3e \"$D/1.tgz\" | sha256sum -c -\nmkdir -m 700 \"$P\"\ntar -xzf \"$D/1.tgz\" -C \"$P\"\nchmod 700 \"$P/a\"\ncd \"$P\"\nCUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 05:00:00",
+    "submit": "sinfo -N -h -p general -o '%G' > \"$P/a/7.txt\"\n/usr/bin/python3 -I -s -B - \"$P/a/7.txt\" <<'PYCODE'\nimport re,sys\nfrom pathlib import Path\nrows=[s.strip() for s in Path(sys.argv[1]).read_text().splitlines() if s.strip()]\ngpu=[g for row in rows for g in row.split(',') if g.startswith('gpu:')]\nassert rows and gpu\nassert all(re.fullmatch(r'gpu:[^:]*[Hh]100[^:]*:[0-9]+(?:\\([^)]*\\))?',g) for g in gpu)\nPYCODE\nsqueue -u \"$USER\" -h -o '%j %T' > \"$P/a/9.txt\"\n/usr/bin/python3 -I -s -B - \"$P/a/9.txt\" <<'PYCODE'\nimport sys\nfrom pathlib import Path\nrows=[s.split() for s in Path(sys.argv[1]).read_text().splitlines()]\nassert not any(len(r)>=2 and r[0].startswith('jjy_') and r[1] in ('PENDING','PD') for r in rows)\nPYCODE\nJOB_REPLY=$(/usr/bin/python3 -I -s -B 3.py submit --gpus 1 --time 05:00:00)\nJOB=${JOB_REPLY%%;*}\n[[ \"$JOB\" =~ ^[0-9]+$ ]]\nprintf '%s\\n' \"$JOB\" > \"$P/a/8.txt\"",
+    "unpack_and_score": "cd /scratch/jjyeung/orch_n30/reader_r1/work/fix7/b1\n/scratch/jjyeung/envs/p1cpu/bin/python -B unpack_return.py \\\n  --archive work/f/0.tgz --exit work/f/EXIT.json --out work/ret\n/scratch/jjyeung/envs/p1cpu/bin/python -B tower_pair.py \\\n  --package src \\\n  --own /scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/h10own/170631/items.jsonl /scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/h10own/170706/items.jsonl /scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/h10own/170694/items.jsonl \\\n  --tower-null work/ret/metadata/reads/0 \\\n  --tower-candidates work/ret/metadata/reads/1 \\\n  --out work/scores"
+  },
+  "cpu_check": {
+    "bootstrap_sha256": "1effa345d3a5e59474b43bd7a3bd2cd6990a6feb4392568c7356d0f77c0ce48a",
+    "cpus": 8,
+    "exclude": "orchard-flame-[0-31]",
+    "gpus": 0,
+    "helper_sha256": "a09deab25695cab459c0b882978746b657c12230c2ce5ee640dd4801304e5674",
+    "memory": "200G",
+    "partition": "preempt",
+    "required_flags": [
+      "passed",
+      "bundle_guard_passed",
+      "entry_sequence_passed"
+    ],
+    "results": "a/c/CPU.json",
+    "walltime": "04:00:00"
+  },
+  "expected": [
+    636,
+    150
+  ],
+  "memo_scope": "one worker per read",
+  "modes": [
+    "none"
+  ],
+  "operations_file": "OPERATIONS_TOWER.md",
+  "operator_path": "7.py",
+  "operator_sha256": "0cec6e0e91b8c7dab6d74e68bbca8e6a596e5df76e7f0e9166aec2231ecb3f38",
+  "plan_sha256": "2baa7a4bf190110204fc4a691a014c450b89346a4c7206697e93fe59d17550ac",
+  "read_settings": [
+    {
+      "arm": "tower",
+      "expected": 636,
+      "modes": [
+        "none"
+      ],
+      "perception_memo": "on",
+      "perception_memo_modules": [
+        "g3t"
+      ],
+      "perception_memo_verify_ids": [],
+      "save_own_depth": false,
+      "stage1_select_rule": "null_argmax",
+      "types": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "arm": "tower",
+      "expected": 150,
+      "modes": [
+        "none"
+      ],
+      "perception_memo": "verify",
+      "perception_memo_modules": [
+        "g3t"
+      ],
+      "perception_memo_verify_ids": [
+        "vsi590k_042574",
+        "vsi590k_042581",
+        "vsi590k_042584",
+        "vsi590k_042588",
+        "vsi590k_042597",
+        "vsi590k_042604",
+        "vsi590k_042608",
+        "vsi590k_042612",
+        "vsi590k_042613",
+        "vsi590k_042627",
+        "vsi590k_042632",
+        "vsi590k_042644",
+        "vsi590k_042645",
+        "vsi590k_042656",
+        "vsi590k_042674",
+        "vsi590k_042690",
+        "vsi590k_042715",
+        "vsi590k_042717",
+        "vsi590k_044593",
+        "vsi590k_044597",
+        "vsi590k_044622",
+        "vsi590k_045538",
+        "vsi590k_045546",
+        "vsi590k_045785",
+        "vsi590k_045786",
+        "vsi590k_046210",
+        "vsi590k_046212",
+        "vsi590k_047592",
+        "vsi590k_050188",
+        "vsi590k_050630"
+      ],
+      "save_own_depth": false,
+      "stage1_select_rule": "candidates_argmax",
+      "types": [
+        3
+      ]
+    }
+  ],
+  "return_margin": 1200,
+  "rules": [
+    "null_argmax",
+    "candidates_argmax"
+  ],
+  "save_own_depth": false,
+  "sequence": [
+    [
+      1,
+      3
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      4
+    ]
+  ],
+  "stop_margin": 1800,
+  "token": "b9ef552934627",
+  "walltime": "05:00:00"
+}

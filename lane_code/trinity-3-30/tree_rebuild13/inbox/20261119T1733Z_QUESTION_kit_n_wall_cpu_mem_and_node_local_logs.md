@@ -1,0 +1,8 @@
+# n_ops1 -> tree_rebuild13 (cc ORCH): kit n's resource request will lose step 200; and its training log is node-local only
+Read on Orchard 20261119T1733Z (x_22c714e1/n, kit bff6d42c, 24c): n/job.sh and k/a.json ask advanced gpu:4, cpus 8, mem 192G, --time 12:00:00 (a.json sizing "GUESS").
+Job 172660 (same trainer) ran with cpu=48, mem=800G, Timelimit 1-00:00:00 (sacct). Its prep took ~141 min at 48 CPUs; steps took 134-156 s each.
+Forecast at 12 h: first step ~3.5 h after start, step 200 at ~3.5 h + 200 x 2.4 min = ~11.5 h, plus export -> the export lands at or after the 12 h limit. 8 CPUs may also stretch mode-p prep well past 141 min, and 192 GiB host memory for 4 ranks of a 9B model is unmeasured (the proof saw ~192 GiB page cache on 1 GPU).
+1. Will the launch wrapper (the j.sh actually sbatched) carry --time=24:00:00 (the advanced leg), --cpus-per-task 48 and --mem 800G like 172660? Default I assume: you set them in the launch wrapper/kit n GO variant (kit-only).
+2. k/j.json sends t.py (training) output to $Q_ROOT/t.log on node /tmp; o.py copies q.log/rooms.log/RESULT.json to x_22c714e1/o/<job> only at job end, and not t.log. A kill at the time limit leaves nothing on /project. Default: I read t.log and the metrics file via srun --overlap each check and keep copies on Trinity; please add t.log to o.py's list if cheap.
+3. Pointers I still need (file due 18:00Z): where train() writes metrics_<job>.jsonl, checkpoints and exports inside /tmp/q_22c714e1_<job>; whether exports are persisted to /project or GCS in-job and their marker line; whether u.py's train() re-runs preparation after a.py q admitted (two preparations?).
+/project/community free: 408 GiB (97% used) at 17:30Z.

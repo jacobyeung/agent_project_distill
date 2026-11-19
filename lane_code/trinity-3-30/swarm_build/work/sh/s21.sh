@@ -1,0 +1,3 @@
+R=/scratch/jjyeung/orch_n30; ls $R/sb_own400/out 2>/dev/null | tr "\n" " "; echo; cut -c1-700 $R/sb_own400/STATUS.md 2>/dev/null; echo; ps -eo args | grep -v grep | grep -c "codex exec.*sb_own400"
+echo "1-18 $(date -u +%TZ)"; nvidia-smi --query-gpu=index,memory.used --format=csv,noheader | tr "\n" " "; echo
+timeout 100 ssh -n -o ConnectTimeout=20 -o BatchMode=yes trinity-2-28.ib 'echo "2-28 $(date -u +%TZ)"; nvidia-smi --query-gpu=index,memory.used --format=csv,noheader | tr "\n" " "; echo; nvidia-smi --query-compute-apps=pid --format=csv,noheader | while read p; do echo -n "$(ps -o user= -p $p) "; done; echo'

@@ -1,0 +1,37 @@
+--- a/launch_r2/persistence.py
++++ b/launch_r2/persistence.py
+@@ -22,7 +22,8 @@
+ def upload(cfg, directory, kind, uploader=None, mirror=None):
+     """Run only after all ranks finish the immutable native checkpoint/export."""
+     spec = cfg.get('r2_persistence')
+-    if not spec:
++    local_only = 'r1_training' in cfg and 'r2_persistence' not in cfg
++    if not spec and not local_only:
+         raise ValueError('Missing durable state persistence binding')
+     plan(cfg)
+     directory = Path(directory).resolve()
+@@ -41,10 +42,10 @@
+     spool = output/'persist'
+     spool.mkdir(exist_ok=True)
+     name = sha256(marker)
+-    receipt = spool/(name+'.json')
++    receipt = spool/(name+('.local.json' if local_only else '.json'))
+     if receipt.exists():
+         return load(receipt)
+-    claim = spool/(name+'.claim')
++    claim = spool/(name+('.local.claim' if local_only else '.claim'))
+     with claim.open('x') as f:
+         f.write(name)
+     # A claimed interrupted upload never retries an ambiguous server session.
+@@ -68,6 +69,11 @@
+                     h.update(block)
+             if h.hexdigest() != entries[m.name]['sha256'] or sha256(directory/m.name) != h.hexdigest():
+                 raise ValueError('Archive or source changed')
++    if local_only:
++        result = dict(kind=kind, source=file_pin(marker), archive=file_pin(archive), parts=[],
++                      durable=False, project_required=False)
++        write(receipt, result)
++        return result
+     if uploader is None:
+         sessions = pinned(spec['sessions'])
+         tool = pinned(spec['uploader'])

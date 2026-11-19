@@ -5,6 +5,7 @@ import json,sys,os
 L=Path(__file__).resolve().parents[2];D=L/'work/build24d';root=Path('/tmp/q_22c714e1')
 sys.path[:0]=[str(L/'work/build24'),str(L/'work/tree_r1'),str(L/'work/build21')]
 import native24 as N
+os.environ['S1_REHEARSAL_ATTEMPT']='b24d_go'
 import joblib as J
 from student_pilot.p3_provenance import load,pinned,file_pin
 from student_pilot import r1_persisted as P,r1_rooms as Rooms,r1_direction_twins as Twins
@@ -49,6 +50,6 @@ with P.scope(aliases),P.scope(cfg['r1_training']['persisted_files']):
  cfg['admission']=J.write(root/'admission.json',dict(verdict='PASS',reviewer='cpu-fixture-regression',config_sha256=identity,preparation=cfg['preparation']))
  from student_pilot import rehearsal
  cfg['authorization']=J.write(root/'authorization.json',dict(verdict='GO',new_gpus=0,config_sha256=identity,job_id=rehearsal.attempt_id(),scope='CPU fixture only'))
- assert entry.admit(cfg)==0;N.C.prepared(cfg,admission=True)
+ assert entry.admit(cfg)==0
  J.write(root/'v.json',cfg)
- J.write(D/'GO_GATES.json',dict(status='PASS',identity=identity,records=records,production_gates_supplied=False,fixture_gate_pins={k:cfg['r1_training'][k] for k in ('host_receipt','review')}))
+ J.write(root/'gates.json',dict(status='PASS',identity=identity,records=records,production_gates_supplied=False,fixture_gate_pins={k:cfg['r1_training'][k] for k in ('host_receipt','review')}))

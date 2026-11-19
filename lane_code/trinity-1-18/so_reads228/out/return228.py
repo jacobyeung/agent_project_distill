@@ -1,4 +1,4 @@
-"""Create the existing A4 return layout and authenticated local return envelope."""
+"""Create the existing A10b return layout and authenticated local return envelope."""
 from pathlib import Path
 import secrets
 import tarfile
@@ -23,14 +23,14 @@ def package_return(out, cfg, summary, rc, *, failure=None):
                 expanded+=p.stat().st_size
                 if expanded>512*1024**2:raise Refusal('Return expanded size exceeds unpack limit')
                 t.add(p,arcname=str(p.relative_to(ret)),recursive=False)
-    if archive.stat().st_size>=90_000_000:raise Refusal('Return archive exceeds A4 fetch limit')
+    if archive.stat().st_size>=90_000_000:raise Refusal('Return archive exceeds A10b fetch limit')
     digest=sha(archive)
     receipt=dict(schema='a3',archive=dict(name='result.tar.gz',bytes=archive.stat().st_size,sha256=digest),
         archive_bytes=archive.stat().st_size,archive_sha256=digest,archive_complete=True,
         complete=complete,conflicting_terminal_markers=False,job=identity['job'],
         token=identity['token'],plan_sha256=cfg['plan_sha256'],returncode=rc,
         status='COMPLETE' if complete else 'FAILED',mode='production',synthetic=False,
-        execution_backend='trinity-local',orchard_reference_job='172744')
+        execution_backend='trinity-local',orchard_reference_job='173060')
     write(deliver/'EXIT.json',receipt)
     # This is a local receipt, not a claim that a file was uploaded to Orchard's return pool.
     write(deliver/'LOCAL_RETURN.json',dict(archive=str(archive),exit=str(deliver/'EXIT.json'),
@@ -39,7 +39,9 @@ def package_return(out, cfg, summary, rc, *, failure=None):
                 completed=(summary or {}).get('completed',0),sha256=digest)
 
 def new_return_identity(out, cfg):
-    number=secrets.randbelow(2**32-1)+1
+    # Reserve the reference job ID so a local receipt cannot accidentally reuse it.
+    number=secrets.randbelow(2**32-2)+1
+    if number>=173060:number+=1
     identity=dict(token=cfg['token']+format(number,'08x'),job=str(number),
                   execution_backend='trinity-local',id_kind='random_local_run_id_not_scheduler_job')
     write(Path(out)/'ret/metadata/RETURN_ID.json',identity)

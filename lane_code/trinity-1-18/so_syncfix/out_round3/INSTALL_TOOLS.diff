@@ -1,0 +1,722 @@
+--- a/tools/lane_code_filter.py
++++ b/tools/lane_code_filter.py
+@@ -12,6 +12,232 @@
+ DIRRE = re.compile(r'^(tmp.*|retained_.*|rows_.*|slices_v\d+|.*proofs?|.*_proof|artifacts|r2_[a-z0-9_]{8}|rec_v\d.*'
+                    r'|.*_stale|.*_prev|cmp_.*|test_products|results|clone|mutation.*|mut|mut_.*|.*_mut|round_.*'
+                    r'|.*cache.*|scipy|numpy|torch|.*\.dist-info|.*\.egg-info|runs|evidence|transactions|env\d*|venv|\.venv)$')
++def robust_scan():
++    """Linux/Python 3.6: anchor traversal to directory fds and bound each read."""
++    import contextlib
++    import errno
++    import signal
++
++    class ReadDeadline(Exception):
++        pass
++
++    def alarm(signum, frame):
++        raise ReadDeadline()
++
++    seconds = float(os.environ.get('LCS_FILE_SECONDS', '3'))
++    if not 0 < seconds <= 30:
++        raise ValueError('LCS_FILE_SECONDS must be in (0, 30]')
++
++    @contextlib.contextmanager
++    def deadline():
++        signal.setitimer(signal.ITIMER_REAL, seconds)
++        try:
++            yield
++        finally:
++            signal.setitimer(signal.ITIMER_REAL, 0)
++
++    previous = signal.signal(signal.SIGALRM, alarm)
++    label = sys.argv[1] if len(sys.argv) > 1 else '?'
++    mdir = sys.argv[2] if len(sys.argv) > 2 else None
++    n = tot = big = 0
++    bigdirs, dups, seen = [], [], {}
++    skips = dict(nonregular=0, symlink=0, timeout=0, io=0, changed=0)
++    out = sys.stdout.buffer
++    flags = os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW
++
++    def safe_walk(path, dfd):
++        # Python 3.6 fwalk opens child directories without O_NOFOLLOW/O_NONBLOCK.
++        # Keep these flags on directory opens as well as on file opens.
++        try:
++            with deadline():
++                names = os.listdir(dfd)
++        except ReadDeadline:
++            skips['timeout'] += 1
++            return
++        except OSError:
++            skips['io'] += 1
++            return
++        dirs, files = [], []
++        for name in names:
++            try:
++                with deadline():
++                    mode = os.lstat(name, dir_fd=dfd).st_mode
++                if stat.S_ISDIR(mode):
++                    dirs.append(name)
++                elif stat.S_ISLNK(mode):
++                    skips['symlink'] += 1
++                else:
++                    files.append(name)
++            except ReadDeadline:
++                skips['timeout'] += 1
++            except OSError:
++                skips['io'] += 1
++        yield path, dirs, files, dfd
++        # The caller prunes and sorts dirs before recursion resumes.
++        for name in dirs:
++            child = None
++            try:
++                with deadline():
++                    mode = os.lstat(name, dir_fd=dfd).st_mode
++                    if not stat.S_ISDIR(mode):
++                        skips['symlink' if stat.S_ISLNK(mode) else 'nonregular'] += 1
++                        continue
++                    child = os.open(name, flags | os.O_DIRECTORY, dir_fd=dfd)
++                yield from safe_walk(os.path.join(path, name), child)
++            except ReadDeadline:
++                skips['timeout'] += 1
++            except OSError as error:
++                skips['changed' if error.errno == errno.ENOTDIR else 'io'] += 1
++            finally:
++                if child is not None:
++                    os.close(child)
++
++    rootfd = None
++    try:
++        rootfd = os.open('.', flags | os.O_DIRECTORY)
++        for d, dirs, files, dfd in safe_walk('.', rootfd):
++            p = '/' + d[2:] + '/' if d != '.' else '/'
++            keep = []
++            for x in dirs:
++                q = p + x + '/'
++                if x == '.git' or 'frames' in x or DIRRE.match(x) or any(s in q for s in SUBSTR):
++                    continue
++                fd = None
++                try:
++                    with deadline():
++                        st = os.lstat(x, dir_fd=dfd)
++                        if stat.S_ISLNK(st.st_mode):
++                            skips['symlink'] += 1
++                            continue
++                        if not stat.S_ISDIR(st.st_mode):
++                            skips['nonregular'] += 1
++                            continue
++                        fd = os.open(x, flags | os.O_DIRECTORY, dir_fd=dfd)
++                        if len(os.listdir(fd)) > MAXDIR:
++                            bigdirs.append(q[1:])
++                            continue
++                        keep.append(x)
++                except ReadDeadline:
++                    skips['timeout'] += 1
++                except OSError:
++                    skips['io'] += 1
++                finally:
++                    if fd is not None:
++                        os.close(fd)
++            dirs[:] = sorted(keep)
++            for f in sorted(files):
++                if not f.endswith(EXT) or f.endswith('.sqlite') or any(s in p + f for s in SUBSTR):
++                    continue
++                fd = None
++                try:
++                    with deadline():
++                        st = os.lstat(f, dir_fd=dfd)
++                        if not stat.S_ISREG(st.st_mode):
++                            skips['symlink' if stat.S_ISLNK(st.st_mode) else 'nonregular'] += 1
++                            continue
++                        limit = DATA_MAXB if f.endswith(('.json', '.jsonl')) else MAXB
++                        if st.st_size > limit:
++                            big += 1
++                            continue
++                        fd = os.open(f, flags, dir_fd=dfd)
++                        opened = os.fstat(fd)
++                        if not stat.S_ISREG(opened.st_mode):
++                            skips['nonregular'] += 1
++                            continue
++                        if (st.st_dev, st.st_ino) != (opened.st_dev, opened.st_ino):
++                            skips['changed'] += 1
++                            continue
++                        data = bytearray()
++                        while len(data) <= limit:
++                            chunk = os.read(fd, min(65536, limit + 1 - len(data)))
++                            if not chunk:
++                                break
++                            data.extend(chunk)
++                        if len(data) > limit:
++                            big += 1
++                            continue
++                        after = os.fstat(fd)
++                        if (opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns) != (
++                                after.st_size, after.st_mtime_ns, after.st_ctime_ns):
++                            skips['changed'] += 1
++                            continue
++                        h = hashlib.sha1(data).hexdigest()
++                        sz = opened.st_size
++                except ReadDeadline:
++                    skips['timeout'] += 1
++                    continue
++                except OSError as error:
++                    skips['symlink' if error.errno == errno.ELOOP else 'io'] += 1
++                    continue
++                finally:
++                    if fd is not None:
++                        os.close(fd)
++                rel = os.path.join(d, f)[2:]
++                if h in seen:
++                    dups.append(rel + '\t' + seen[h])
++                    continue
++                seen[h] = rel
++                n += 1
++                tot += sz
++                out.write(rel.encode('utf-8', 'surrogateescape') + b'\0')
++        if mdir:
++            # Refuse absolute/parent paths and links in the manifest destination.
++            parts = mdir.split('/')
++            if os.path.isabs(mdir) or '..' in parts:
++                raise ValueError('manifest directory must stay within the scan root')
++            dfd = os.open('.', flags | os.O_DIRECTORY)
++            try:
++                for part in parts:
++                    if part in ('', '.'):
++                        continue
++                    try:
++                        os.mkdir(part, dir_fd=dfd)
++                    except FileExistsError:
++                        pass
++                    nextfd = os.open(part, flags | os.O_DIRECTORY, dir_fd=dfd)
++                    os.close(dfd)
++                    dfd = nextfd
++                name = 'DEDUP_%s.tsv.gz' % label.replace('/', '_')
++                # The enclosing scan timeout bounds manifest construction/compression.
++                # Reuse one prelogged name per label, including after SIGKILL/ENOSPC.
++                # Validate the descriptor before truncating any pre-existing file.
++                tmp = '.dedup-%s.pending' % label.replace('/', '_')
++                try:
++                    sys.stderr.write('MANIFEST_PENDING %s\n' % os.path.join(mdir, tmp))
++                    sys.stderr.flush()
++                    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK,
++                                 0o600, dir_fd=dfd)
++                    with os.fdopen(fd, 'wb') as raw:
++                        info = os.fstat(raw.fileno())
++                        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
++                            raise ValueError('manifest temporary file must be regular with one link')
++                        os.ftruncate(raw.fileno(), 0)
++                        with gzip.GzipFile(filename=name, mode='wb', fileobj=raw) as g:
++                            g.write(''.join(x + '\n' for x in dups).encode('utf-8', 'surrogateescape'))
++                    os.rename(tmp, name, src_dir_fd=dfd, dst_dir_fd=dfd)
++                    tmp = None
++                finally:
++                    if tmp is not None:
++                        sys.stderr.write('MANIFEST_LEFTOVER %s\n' % os.path.join(mdir, tmp))
++                        sys.stderr.flush()
++                out.write(os.path.relpath(os.path.join(mdir, name)).encode('utf-8', 'surrogateescape') + b'\0')
++            finally:
++                os.close(dfd)
++    finally:
++        signal.setitimer(signal.ITIMER_REAL, 0)
++        if rootfd is not None:
++            os.close(rootfd)
++        signal.signal(signal.SIGALRM, previous)
++        sys.stderr.write('STATS %s files=%d bytes=%d dups=%d skipped_oversize=%d skipped_bigdirs=%d %s %s\n'
++                         % (label, n, tot, len(dups), big, len(bigdirs), ' '.join(bigdirs[:20]),
++                            ' '.join('skipped_%s=%d' % (k, skips[k]) for k in sorted(skips))))
++
++
++if os.environ.get('LCS_ROBUST_SYNC', '0') == '1':
++    robust_scan()
++    sys.exit(0)
++
++
+ label = sys.argv[1] if len(sys.argv) > 1 else '?'
+ mdir = sys.argv[2] if len(sys.argv) > 2 else None
+ n = 0; tot = 0; big = 0; bigdirs = []; dups = []; seen = {}; out = sys.stdout.buffer
+--- /dev/null
++++ b/tools/lane_code_log.py
+@@ -0,0 +1,63 @@
++# lane_code_log.py <log> <stdin-file|-> <append:0|1> <command...>
++# Linux: bounded regular descriptors for a command whose own timeout owns its lifetime.
++import ctypes
++import fcntl
++import os
++import subprocess
++import sys
++
++LIMIT = 65536
++
++
++def sealed_log():
++    # Python 3.6 lacks os.memfd_create; glibc 2.27+ exposes the same Linux call.
++    if hasattr(os, 'memfd_create'):
++        fd = os.memfd_create('lane-code-log', 3)  # CLOEXEC | ALLOW_SEALING
++    else:
++        libc = ctypes.CDLL(None, use_errno=True)
++        create = libc.memfd_create
++        create.argtypes = [ctypes.c_char_p, ctypes.c_uint]
++        create.restype = ctypes.c_int
++        fd = create(b'lane-code-log', 3)
++        if fd < 0:
++            number = ctypes.get_errno()
++            raise OSError(number, os.strerror(number))
++    try:
++        # Populate by writes, without any file-deletion or truncation operation.
++        remaining = LIMIT
++        while remaining:
++            remaining -= os.write(fd, b'\0' * remaining)
++        os.lseek(fd, 0, os.SEEK_SET)
++        # These Linux ABI values predate all supported cluster kernels.
++        fcntl.fcntl(fd, 1033, 7)  # F_ADD_SEALS: SEAL_SEAL | SEAL_SHRINK | SEAL_GROW
++        return fd
++    except BaseException:
++        os.close(fd)
++        raise
++
++
++def main():
++    path, input_path, append = sys.argv[1:4]
++    fd = sealed_log()
++    try:
++        if append == '1':
++            with open(path, 'rb') as previous:
++                os.write(fd, previous.read(LIMIT))
++        with open('/dev/null' if input_path == '-' else input_path, 'rb') as source:
++            # Do not read a pipe or wait for EOF. A master may retain this regular fd;
++            # the kernel enforces its size, and the foreground timeout still returns.
++            rc = subprocess.call(sys.argv[4:], stdin=source, stdout=fd, stderr=fd, close_fds=True)
++        snapshot = os.pread(fd, LIMIT, 0).rstrip(b'\0')
++        with open(path, 'wb') as target:
++            target.write(snapshot)
++        return rc if rc >= 0 else 128 - rc
++    finally:
++        os.close(fd)
++
++
++if __name__ == '__main__':
++    try:
++        sys.exit(main())
++    except Exception as error:
++        print('bounded log failed: %s' % error, file=sys.stderr)
++        sys.exit(70)
+--- a/tools/lane_code_scan.py
++++ b/tools/lane_code_scan.py
+@@ -1,6 +1,134 @@
+ # lane_code_scan.py <stage> <dest> <flag list>: secret-scan every staged file; copy clean, changed files
+ # to <dest> (same relative path); flagged files are never copied and are listed as "<path>\t<pattern>".
+ import os, re, sys, shutil
++
++def checked_archive(path):
++    """Read an uncompressed incoming tar completely before publishing its slot."""
++    import stat
++    import tarfile
++    flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
++    fd = os.open(path, flags)
++    raw = os.fdopen(fd, 'rb')
++    try:
++        info = os.fstat(raw.fileno())
++        if not stat.S_ISREG(info.st_mode):
++            raise ValueError('archive is not a regular file')
++        # Iteration reads all headers; require every payload to fit the received file.
++        with tarfile.open(fileobj=raw, mode='r:') as archive:
++            for member in archive:
++                parts = member.name.split('/')
++                if member.name.startswith('/') or '..' in parts or not member.name:
++                    raise ValueError('unsafe archive path: %r' % member.name)
++                if not (member.isfile() or member.isdir()):
++                    raise ValueError('nonregular archive entry: %r' % member.name)
++                if member.offset_data + member.size > info.st_size:
++                    raise ValueError('truncated archive entry: %r' % member.name)
++                if member.isfile():
++                    data = archive.extractfile(member)
++                    while data.read(65536):
++                        pass
++                    data.close()
++    finally:
++        raw.close()
++
++
++def atomic_clean_write(path, data, pending):
++    """Publish the bytes that passed the secret scan, outside the Git add paths."""
++    import stat
++    os.makedirs(os.path.dirname(path), exist_ok=True)
++    os.makedirs(os.path.dirname(pending), exist_ok=True)
++    try:
++        mode = stat.S_IMODE(os.stat(path, follow_symlinks=False).st_mode)
++    except FileNotFoundError:
++        mask = os.umask(0)
++        os.umask(mask)
++        mode = 0o666 & ~mask
++    fd = os.open(pending, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
++    with os.fdopen(fd, 'wb') as f:
++        if not stat.S_ISREG(os.fstat(f.fileno()).st_mode):
++            raise ValueError('copy temporary path is not regular')
++        os.fchmod(f.fileno(), mode)
++        f.write(data)
++    os.replace(pending, path)
++
++
++def robust_copy_scan(stage, dest, flagout):
++    import stat
++    import tarfile
++    flags = []
++    copied = same = scanned = 0
++    pending = os.environ.get('LCS_COPY_TMP', os.path.join(os.path.dirname(dest), '.lcs-copy.pending'))
++
++    # The fixed scratch name is outside every path passed to Git add.
++    sys.stderr.write('COPY_PENDING %s\n' % pending)
++    sys.stderr.flush()
++
++    def entries():
++        if os.path.isfile(stage):
++            # Acceptance already validates the entire archive; repeat before any copy.
++            checked_archive(stage)
++            with tarfile.open(stage, 'r:') as archive:
++                for member in archive:
++                    if member.isfile():
++                        with archive.extractfile(member) as source:
++                            yield member.name, source.read()
++        else:
++            # Explicit robust-copy fixtures may use directories instead of archives.
++            paths = []
++            for d, dirs, files in os.walk(stage, followlinks=False):
++                dirs.sort()
++                for name in dirs + sorted(files):
++                    path = os.path.join(d, name)
++                    mode = os.lstat(path).st_mode
++                    if not (stat.S_ISDIR(mode) or stat.S_ISREG(mode)):
++                        raise ValueError('nonregular staged entry: %r' % path)
++                    if stat.S_ISREG(mode):
++                        paths.append(path)
++            for path in paths:
++                fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++                with os.fdopen(fd, 'rb') as source:
++                    if not stat.S_ISREG(os.fstat(source.fileno()).st_mode):
++                        raise ValueError('changed staged entry: %r' % path)
++                    yield os.path.relpath(path, stage), source.read()
++
++    for rel, data in entries():
++        scanned += 1
++        hit = [n for n, p in PATS if p.search(data)] + (['env_secret_value'] if any(v in data for v in ENV_VALUES) else [])
++        if hit:
++            flags.append('%s\t%s' % (rel, ','.join(hit)))
++            continue
++        dp = os.path.join(dest, rel)
++        # Refuse links in the destination path. The clone is private and sync-locked.
++        parent = os.path.abspath(dp)
++        while parent != os.path.dirname(parent):
++            if os.path.islink(parent):
++                raise ValueError('symlink in copy destination: %r' % parent)
++            parent = os.path.dirname(parent)
++        try:
++            with open(dp, 'rb') as old:
++                if old.read() == data:
++                    same += 1
++                    continue
++        except OSError:
++            pass
++        atomic_clean_write(dp, data, pending)
++        copied += 1
++    os.makedirs(os.path.dirname(flagout), exist_ok=True)
++    with open(flagout, 'w') as f:
++        f.write(''.join(x + '\n' for x in flags))
++    print('SCAN scanned=%d copied=%d unchanged=%d flagged=%d list=%s' % (scanned, copied, same, len(flags), flagout))
++    for x in flags[:50]:
++        print('FLAG ' + x)
++
++
++if os.environ.get('LCS_ROBUST_SYNC', '0') == '1' and 'LCS_COPY_TMP' in os.environ and sys.argv[1:2] == ['--accept-archive']:
++    incoming, accepted = sys.argv[2:4]
++    checked_archive(incoming)
++    # Same-directory rename accepts the complete source in one operation.
++    print('ACCEPTING %s' % accepted, flush=True)
++    os.replace(incoming, accepted)
++    sys.exit(0)
++
+ stage, dest, flagout = sys.argv[1:4]
+ PATS = [
+     ('private_key_block', re.compile(rb'-----BEGIN [A-Z ]*PRIVATE KEY-----')),
+@@ -17,6 +145,10 @@
+ ]
+ ENV_VALUES = [os.environ[k].encode() for k in ('GEMINI_API_KEY', 'GOOGLE_API_KEY', 'HF_TOKEN', 'OPENROUTER_API_KEY',
+               'NV_API_KEY', 'NVIDIA_API_KEY', 'ANTHROPIC_API_KEY', 'OPENAI_API_KEY') if len(os.environ.get(k, '')) >= 16]
++if os.environ.get('LCS_ROBUST_SYNC', '0') == '1' and 'LCS_COPY_TMP' in os.environ:
++    robust_copy_scan(stage, dest, flagout)
++    sys.exit(0)
++
+ flags = []; copied = 0; same = 0; scanned = 0
+ for d, dirs, files in os.walk(stage):
+     dirs.sort()
+--- /dev/null
++++ b/tools/lane_code_stage.sh
+@@ -0,0 +1,183 @@
++#!/bin/bash
++# Sourced only in robust mode (environment switch or $S/LCS_ROBUST_SYNC file).
++# Each source reuses incoming/accepted tar slots; only complete archives reach SCAN.
++robust_config() {
++  export LCS_ROBUST_SYNC=1
++  # A regular configuration file lets the owner calibrate the existing tmux loop.
++  # Only numeric assignments to the listed budget names are accepted; never source it.
++  local v value extra maximum
++  if [ -f "$S/LCS_ROBUST_BUDGETS" ] && [ ! -L "$S/LCS_ROBUST_BUDGETS" ]; then
++    while IFS='=' read -r v value extra; do
++      [ -n "$v" ] || continue
++      case "$v" in
++        LCS_FILE_SECONDS|LCS_SCAN_SECONDS|LCS_COPY_SECONDS|LCS_LEG_SECONDS|LCS_REMOTE_SECONDS|LCS_NODE_SECONDS|LCS_KILL_SECONDS) ;;
++        *) fail "invalid budget name $v"; return 2 ;;
++      esac
++      [ -z "$extra" ] && [[ "$value" =~ ^[0-9]+([.][0-9]+)?$ ]] || {
++        fail "invalid budget assignment $v"; return 2;
++      }
++      [ -n "${!v:-}" ] || printf -v "$v" '%s' "$value"
++    done < "$S/LCS_ROBUST_BUDGETS"
++  fi
++  LCS_FILE_SECONDS=${LCS_FILE_SECONDS:-3}
++  LCS_SCAN_SECONDS=${LCS_SCAN_SECONDS:-120}
++  LCS_COPY_SECONDS=${LCS_COPY_SECONDS:-120}
++  LCS_LEG_SECONDS=${LCS_LEG_SECONDS:-150}
++  LCS_REMOTE_SECONDS=${LCS_REMOTE_SECONDS:-160}
++  LCS_NODE_SECONDS=${LCS_NODE_SECONDS:-210}
++  LCS_KILL_SECONDS=${LCS_KILL_SECONDS:-5}
++  export LCS_FILE_SECONDS LCS_NODE_SECONDS LCS_KILL_SECONDS
++  for v in LCS_FILE_SECONDS LCS_SCAN_SECONDS LCS_COPY_SECONDS LCS_LEG_SECONDS LCS_REMOTE_SECONDS LCS_NODE_SECONDS LCS_KILL_SECONDS; do
++    maximum=3600; [ "$v" != LCS_FILE_SECONDS ] || maximum=30
++    [[ ${!v} =~ ^[0-9]+([.][0-9]+)?$ ]] &&
++      awk -v n="${!v}" -v maximum="$maximum" 'BEGIN {exit !(n > 0 && n <= maximum)}' || {
++        fail "invalid $v=${!v}"; return 2;
++      }
++  done
++  awk -v scan="$LCS_SCAN_SECONDS" -v leg="$LCS_LEG_SECONDS" \
++      -v remote="$LCS_REMOTE_SECONDS" -v node="$LCS_NODE_SECONDS" \
++      'BEGIN {exit !(scan < leg && leg < remote && remote < node)}' || {
++    fail "budgets must satisfy SCAN < LEG < REMOTE < NODE"; return 2;
++  }
++  LOGGER=$B/tools/lane_code_log.py
++  [ -f "$LOGGER" ] || { fail "missing bounded-log helper"; return 2; }
++  RUN=$S/stage-robust
++  mkdir -p "$RUN" || return 2
++  ACCEPTED_LABELS=''
++  log "ROBUST slots=$RUN file_seconds=$LCS_FILE_SECONDS scan_seconds=$LCS_SCAN_SECONDS copy_seconds=$LCS_COPY_SECONDS leg_seconds=$LCS_LEG_SECONDS remote_seconds=$LCS_REMOTE_SECONDS node_seconds=$LCS_NODE_SECONDS kill_seconds=$LCS_KILL_SECONDS"
++}
++
++robust_snapshot() {  # Read a finite regular-file snapshot; retain one capped log per label.
++  local slot=$1 snapshot
++  snapshot=$(head -c 65535 "$slot/run.log")
++  printf '%s\n' "$snapshot" > "$slot/run.log"
++  printf '%s\n' "$snapshot"
++}
++
++robust_copy() {
++  local label slot rc flags=$S/flagged/flagged_robust.txt
++  mkdir -p "$S/flagged" || { fail "create flags directory"; return 0; }
++  printf '' > "$flags"
++  # This list belongs to this invocation; a preserved accepted slot is never enough.
++  for label in $ACCEPTED_LABELS; do
++    slot=$RUN/$label
++    printf '' > "$slot/copy.flags"
++    log "ROBUST copy $label"
++    LCS_COPY_TMP="$R/.lcs-copy.pending" python3 -I -s -B "$LOGGER" "$slot/run.log" - 1 \
++      setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_COPY_SECONDS" \
++      python3 -I -s -B "$SCAN" "$slot/accepted" "$R/lane_code/$label" "$slot/copy.flags" 8>&-
++    rc=$?
++    robust_snapshot "$slot" | sed "s|^|  [copy $label] |"
++    sed "s|^|$label/|" "$slot/copy.flags" >> "$flags"
++    [ "$rc" = 0 ] || fail "$label scan/copy rc=$rc (log $slot/run.log)"
++    log "COPIED $label rc=$rc"
++  done
++}
++
++robust_program() {  # <source> <label> <manifest> <slot> <remote:0|1>
++  local source=$1 label=$2 manifest=$3 slot=$4 remote=$5 receiver writer
++  echo 'set -u'
++  printf 'cd %q 2>/dev/null || { echo %q; exit 66; }\n' "$source" "SKIP $label no orch_n30/source"
++  if [ "$DRY" = 1 ]; then
++    printf 'timeout --kill-after=%q %q env LCS_ROBUST_SYNC=1 LCS_FILE_SECONDS=%q python3 -I -s -B - %q %q > /dev/null' \
++      "$LCS_KILL_SECONDS" "$LCS_SCAN_SECONDS" "$LCS_FILE_SECONDS" "$label" "$manifest"
++    echo " <<'LCS_FILTER_EOF'"
++  else
++    printf 'timeout --kill-after=%q %q env LCS_ROBUST_SYNC=1 LCS_FILE_SECONDS=%q python3 -I -s -B - %q %q' \
++      "$LCS_KILL_SECONDS" "$LCS_SCAN_SECONDS" "$LCS_FILE_SECONDS" "$label" "$manifest"
++    printf " <<'LCS_FILTER_EOF' | timeout --kill-after=%q %q tar --null -cf - -T - | " \
++      "$LCS_KILL_SECONDS" "$LCS_LEG_SECONDS"
++    # A receiver surviving a disconnected client retains this lock; another attempt
++    # cannot overwrite its incoming archive until it exits. No per-run copies.
++    printf -v writer 'cat > %q' "$slot/incoming"
++    printf -v receiver 'flock -n %q timeout --kill-after=%q %q bash -c %q' \
++      "$slot/incoming.lock" "$LCS_KILL_SECONDS" "$LCS_LEG_SECONDS" "$writer"
++    if [ "$remote" = 1 ]; then
++      printf 'timeout --kill-after=%q %q ssh -o ConnectTimeout=20 -o ConnectionAttempts=1 -o BatchMode=yes trinity-3-30.ib %q\n' \
++        "$LCS_KILL_SECONDS" "$LCS_LEG_SECONDS" "$receiver"
++    else
++      printf '%s\n' "$receiver"
++    fi
++  fi
++  cat "$FILTER" || return 2
++  echo 'LCS_FILTER_EOF'
++  echo 'rc=("${PIPESTATUS[@]}"); echo "PIPE ${rc[*]}"; for r in "${rc[@]}"; do [ "$r" = 0 ] || exit 4; done'
++}
++
++robust_finish() {  # <label> <status>
++  local label=$1 rc=$2 slot=$RUN/$1 expected='PIPE 0 0 0' snapshot
++  [ "$DRY" = 1 ] && expected='PIPE 0'
++  snapshot=$(robust_snapshot "$slot")
++  printf '%s\n' "$snapshot" | sed "s|^|  [$label] |"
++  if [ "$rc" = 66 ] && grep -Fxq "SKIP $label no orch_n30/source" <<< "$snapshot"; then
++    log "SKIP $label (no source root)"; return 0
++  fi
++  if [ "$label" = trinity-2-28 ] && { [ "$rc" = 255 ] || [ "$rc" = 124 ] || [ "$rc" = 137 ]; } &&
++      ! grep -Eq '^(STATS|PIPE) ' <<< "$snapshot"; then
++    log "SKIP $label (unreachable or silent; rc=$rc)"; return 0
++  fi
++  if [ "$rc" != 0 ] || ! grep -Fxq "$expected" <<< "$snapshot"; then
++    fail "$label stage rc=$rc (not published: archive may contain changed or incomplete files; log $slot/run.log)"
++    return 0
++  fi
++  if [ "$DRY" != 1 ]; then
++    log "ROBUST accept $label"
++    LCS_COPY_TMP="$R/.lcs-copy.pending" python3 -I -s -B "$LOGGER" "$slot/run.log" - 1 flock -n "$slot/incoming.lock" \
++      setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_COPY_SECONDS" \
++      python3 -I -s -B "$SCAN" --accept-archive "$slot/incoming" "$slot/accepted" 8>&-
++    rc=$?
++    if [ "$rc" != 0 ]; then
++      robust_snapshot "$slot" | sed "s|^|  [$label] |"
++      fail "$label accept stage rc=$rc (log $slot/run.log)"; return 0
++    fi
++    ACCEPTED_LABELS="$ACCEPTED_LABELS $label"
++  fi
++  log "STAGED $label rc=0"
++}
++
++robust_slot() {
++  local slot=$RUN/$1
++  mkdir -p "$slot" || return 2
++  # Keep stable names and overwrite metadata; do not retain per-invocation files.
++  printf '' > "$slot/run.log" && printf '' > "$slot/copy.flags"
++}
++
++robust_stages() {
++  robust_config || return $?
++  local node rc command source label manifest slot
++  REMOTE_NODES=${LCS_REMOTE_NODES:-"trinity-1-18 trinity-2-28"}
++  for node in $REMOTE_NODES; do
++    case "$node" in trinity-[0-9]-[0-9]|trinity-[0-9]-[0-9][0-9]) ;;
++      *) fail "invalid remote node $node"; continue ;; esac
++    slot=$RUN/$node
++    robust_slot "$node" || { fail "$node mkdir/log"; continue; }
++    log "ROBUST stage $node"
++    robust_program "$LANES_ROOT" "$node" code_sync/meta "$slot" 1 > "$slot/program.sh" || {
++      fail "$node generate script"; continue;
++    }
++    printf -v command 'timeout --kill-after=%q %q bash -s' "$LCS_KILL_SECONDS" "$LCS_REMOTE_SECONDS"
++    # SSH receives regular descriptors, and cannot inherit the driver's lock.
++    LCS_STAGE_TIMEOUT_OWNER=1 python3 -I -s -B "$LOGGER" "$slot/run.log" "$slot/program.sh" 0 \
++      setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_NODE_SECONDS" \
++      bash "$B/tools/tssh.sh" "$node" "$command" 8>&-
++    rc=$?
++    robust_finish "$node" "$rc"
++  done
++  for label in trinity-3-30 orch_n30/tools orch_n30/briefs; do
++    case "$label" in
++      trinity-3-30) source=$LANES_ROOT; manifest=code_sync/meta ;;
++      orch_n30/tools) source=$B/tools; manifest='' ;;
++      orch_n30/briefs) source=$B/briefs; manifest='' ;;
++    esac
++    slot=$RUN/$label
++    robust_slot "$label" || { fail "$label mkdir/log"; continue; }
++    log "ROBUST stage $label"
++    robust_program "$source" "$label" "$manifest" "$slot" 0 > "$slot/program.sh" || {
++      fail "$label generate script"; continue;
++    }
++    python3 -I -s -B "$LOGGER" "$slot/run.log" - 0 \
++      setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_REMOTE_SECONDS" bash "$slot/program.sh" 8>&-
++    rc=$?
++    robust_finish "$label" "$rc"
++  done
++}
+--- a/tools/lane_code_sync.sh
++++ b/tools/lane_code_sync.sh
+@@ -1,16 +1,22 @@
+ #!/bin/bash
+ # lane_code_sync.sh [--dry]: hourly sync of agent-written lane code to GitHub branch lane-code.
+ # Stages whitelisted source/records from /scratch/jjyeung/orch_n30/*/ on each lane node (InfiniBand tar
+-# stream into $S/stage/<node>/ on trinity-3-30), plus orch_n30 tools/ and briefs/, secret-scans them,
++# stream into legacy directories or robust tar slots on trinity-3-30), plus tools/ and briefs/, secret-scans them,
+ # copies clean files into $S/repo/lane_code/<node>/..., commits on lane-code, pushes to origin and to the
+ # /home repo as branch lane-code. Runs on trinity-3-30 only. --dry prints per-node counts and stops;
+ # --stage-only stages, scans and copies into the clone, then stops before git.
+ # A failed run writes one line to the log and one BLOCKER event; the next attempt is the next hourly run.
+ set -u
+ # --queue-only runs only the push-queue step (publish queued eff/* branches; see push_queue below).
+-# The LCS_* variables exist for tests only; production runs set none of them.
++# Robust mode is OFF unless LCS_ROBUST_SYNC=1 or the regular, non-symlink file
++# $S/LCS_ROBUST_SYNC exists. The running hourly tmux loop checks it every invocation.
++# Robust budgets may be set in $S/LCS_ROBUST_BUDGETS; environment values take precedence.
++# Other LCS_* path overrides support local tests.
+ B=${LCS_B:-/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30}
+ S=${LCS_S:-/scratch/jjyeung/distill_sync}
++if [ "${LCS_ROBUST_SYNC:-0}" = 1 ] || { [ -f "$S/LCS_ROBUST_SYNC" ] && [ ! -L "$S/LCS_ROBUST_SYNC" ]; }; then
++  export LCS_ROBUST_SYNC=1
++fi
+ R=${LCS_R:-$S/repo}
+ EV=${LCS_EV:-$B/events/code_sync}
+ FILTER=$B/tools/lane_code_filter.py
+@@ -105,6 +111,18 @@
+   log "QUEUE-ONLY END ok"; exit 0
+ fi
+ 
++STAGE_ROOT=$S/stage
++robust_early_exit() {
++  # Do not fall back to the unbounded path after the owner enabled robust mode.
++  STAMP=$(date -u +%Y%m%dT%H%MZ)
++  echo "$(ts) code_sync run failed${FAILS} (log $S/sync.log; next attempt next hour)" > "$EV/${STAMP}_BLOCKER_sync_failed.md"
++  log "END with failures"; exit 2
++}
++if [ "${LCS_ROBUST_SYNC:-0}" = 1 ]; then
++  # Keep the legacy path unchanged unless the coordinator explicitly enables this.
++  if ! . "$B/tools/lane_code_stage.sh"; then fail "load robust staging"; robust_early_exit; fi
++  robust_stages || { fail "initialize robust staging"; robust_early_exit; }
++else
+ # Remote script: filter on the lane node, then tar stream over InfiniBand into stage on trinity-3-30.
+ gen_remote() {
+   local node=$1
+@@ -137,16 +155,27 @@
+ stage_local /scratch/jjyeung/orch_n30 trinity-3-30 trinity-3-30 code_sync/meta || fail "trinity-3-30 local stage"
+ stage_local "$B/tools" orch_n30/tools orch_n30/tools || fail "orch_n30 tools stage"
+ stage_local "$B/briefs" orch_n30/briefs orch_n30/briefs || fail "orch_n30 briefs stage"
++fi
+ [ $DRY = 1 ] && { log "DRY done${FAILS}"; exit 0; }
+ 
+ # Secret scan + copy clean files into the clone.
+ STAMP=$(date -u +%Y%m%dT%H%MZ)
+-python3 "$SCAN" "$S/stage" "$R/lane_code" "$S/flagged/flagged_$STAMP.txt" || fail "scan/copy rc=$?"
++if [ "${LCS_ROBUST_SYNC:-0}" = 1 ]; then
++  robust_copy
++else
++  python3 "$SCAN" "$STAGE_ROOT" "$R/lane_code" "$S/flagged/flagged_$STAMP.txt" || fail "scan/copy rc=$?"
++fi
+ mkdir -p "$R/tools"
+ cp "$B/tools/lane_code_sync.sh" "$FILTER" "$SCAN" "$R/tools/" || fail "copy tools into clone"
++if [ "${LCS_ROBUST_SYNC:-0}" = 1 ]; then
++  cp "$B/tools/lane_code_stage.sh" "$B/tools/lane_code_log.py" "$R/tools/" || fail "copy robust helper into clone"
++fi
+ [ $STAGE_ONLY = 1 ] && { log "STAGE-ONLY done${FAILS}"; exit 0; }
+ 
+ git -C "$R" add -f -A lane_code tools/lane_code_sync.sh tools/lane_code_filter.py tools/lane_code_scan.py || fail "git add"
++if [ "${LCS_ROBUST_SYNC:-0}" = 1 ]; then
++  git -C "$R" add -f tools/lane_code_stage.sh tools/lane_code_log.py || fail "git add robust helper"
++fi
+ if git -C "$R" diff --cached --quiet; then
+   log "no changes"
+ else
+--- a/tools/tssh.sh
++++ b/tools/tssh.sh
+@@ -11,4 +11,9 @@
+ (( wait > 0 )) && sleep "$wait"
+ date +%s > "$L/last"; echo "$(date -u +%FT%TZ) $N $*" | cut -c1-200 >> "$L/log"
+ flock -u 9
++if [ "${LCS_ROBUST_SYNC:-0}" = 1 ] && [ "${LCS_STAGE_TIMEOUT_OWNER:-0}" = 1 ]; then
++  # The stage caller already owns the process group and TERM/KILL deadline.
++  # Exec SSH directly: a nested timeout can exit before its SSH child does.
++  exec ssh -o ConnectTimeout=20 -o ConnectionAttempts=1 -o BatchMode=yes "$N" "$@"
++fi
+ exec timeout 900 ssh -o ConnectTimeout=20 -o BatchMode=yes "$N" "$@"

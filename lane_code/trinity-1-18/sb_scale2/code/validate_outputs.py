@@ -55,7 +55,7 @@ def main():
             geometry_inputs.append(path)
             with np.load(path,allow_pickle=False) as z:
                 rawdepth=z['depth_grid']; rawC=z['camera_to_world']; sc=float(z['scale']); anchors=z['anchor_frame_indices']
-            try: geo=a.load_geometry(path,a.FrameMap(tuple(anchors)),'tower_scaled')
+            try: geo=a.load_geometry(path,a.FrameMap(tuple(map(int,anchors))),'tower_scaled')
             except ValueError: continue
             check(ds+'_scale_once',geo.depth_scale_count==1 and geo.pose_scale_count==1 and np.allclose(geo.depth_grid,rawdepth*sc) and np.allclose(geo.C[:,:3,3],rawC[:,:3,3]*sc))
             break

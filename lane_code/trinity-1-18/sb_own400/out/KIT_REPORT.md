@@ -1,0 +1,52 @@
+The kit is built, but GPU launch is blocked by the missing step-544 environment. No GPU code, SSH, network, Git, tmux operation, or process termination was run here. The host was trinity-1-18.
+
+The bars were written before scoring. `out/BARS_FROZEN.json` preserves sb_scale1 folds, strict ten-threshold all-pairs displacement MRA, the 0.1 m eligibility floor, and paired room bootstrap (10,000 draws, seed 17, 95%). Its inherited timestamp belongs to the source bars. The Q2 decision selects 544 only when the B-A upper bound is below zero in both folds and combined. The global factor is report-only.
+
+The synthetic test uses the actual 544 grids multiplied by 1.014. It selects donor 544 across 239 captures, 219 rooms, and 117,551 eligible pairs. Three absent GT archives remain excluded and are listed in the result. These are fixture results, not evidence about actual step-400 predictions.
+
+| Displacement contrast | B-A MRA points | 95% CI |
+|---|---:|---|
+| fold1 | -0.631301 | [-0.898968, -0.363348] |
+| fold2 | -0.658300 | [-0.938090, -0.374168] |
+| combined | -0.644739 | [-0.840045, -0.451843] |
+
+The chosen-donor global factors are 0.996785643 and 0.994332681, fitted only on each fold's fit rooms. Their MRA results are in `synthetic_smoke/SCORE_RESULT.json`.
+
+The additional full synthetic GT-mask routed-distance run is still running at nice 10 with eight threads. Its log is `out/synthetic_score_verified.log`; it will write `out/synthetic_score_verified/SCORE_RESULT.json`. The required displacement smoke check has passed. No completed routed-distance result is claimed. The delivered scorer defaults to the full distance guard; `--displacement-only` is a smoke-test option.
+
+The first-capture CPU fixture passed for `arkitscenes/41048124`: shape [32,51,51], 4.479 seconds including fixture setup and skip verification, and 399,925,248 bytes peak RSS. Its per-forward timing is in `out/cpu_receipted/TIMING_RECEIPT.json`. The second call skipped the committed capture without a forward. All 18 CPU tests passed.
+
+Real-weight CPU output, median depth ratio, and OwnDepthScale ratio are MISSING. The suggested local `cont_ops/work/r1route/out3/A10b` path is absent. The local 544 export has heads and a weight manifest but lacks all five backbone shards; `out/LOCAL_WEIGHTS.json` lists their exact paths and pins. The random-weight fixture exercises unchanged `GPU.own`, `_prepare_decode`, `HeadState`, and `closed_adapters`; it substitutes the backbone, private-ViT features, pose/depth weights, and trainer preprocessing. It proves orchestration and schema, not checkpoint parity.
+
+The step-544 producer is `.../kit_k1a/work/k1_phases.py` (SHA-256 `80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d`). The exact `GPU.own` method comes from `native_kit/boundaries.py` (`5fbe3ae6ace471c8d8ec532cdde50b0bca4db687b5fc5f7c890c9b6ad44e620c`). The kit compiles that method unchanged and supplies a preloaded step-400 model from the sealed A10b restore path. That loader localizes metadata and proves full private-depth overwrite. The original RGB-only model rows, 32 anchors, float32 grid, and no-generation call are preserved. `out/REUSED_FILES.json` records every copied file and all sealed archive-member hashes.
+
+The launcher checks one card twice, 300 seconds apart, requiring <100 MiB and no compute process of any user. It runs through `/data3/shared/scripts/vnice/vnice.sh`, sets `CUDA_VISIBLE_DEVICES`, and uses a 4,315-second TERM timeout plus a five-second kill allowance. It checks STOP between captures, commits NPZ/receipts atomically, and skips only matching completed captures. It logs capture seconds and peak GPU allocation and writes the first timing receipt before continuing. Signals, failure, timeout, and incomplete launch records require an explicitly ordered `--operator-resume`. A 39 GB host-RSS guard protects the 40 GB ceiling. All extracted assets, caches, and generated outputs stay under `out/gpu`; a write audit rejects escaping worker writes.
+
+`out/STAGE_228.txt` and `.json` list absolute target paths, bytes, and SHA-256. The kit/input files to copy total 28,101,470 bytes. The 7,744 anchor images total 2,122,383,130 bytes locally; their target presence and reads228/dl presence are coordinator-reported, not remotely verified. The launcher verifies them before its first forward. The g0 model is unused; no G3T or SAM forward is needed.
+
+MISSING environment: `/scratch/jjyeung/orch_n30/sb_own400/out/gpu/env/bin/python`. The 544 receipt names Torch 2.11.0+cu129, Transformers 5.12.1, and NumPy/SciPy/FLA overlays. That environment is absent under local `/scratch/jjyeung/envs`. Its full archive/file inventory and byte count are MISSING. `kit/inputs/ENV_REQUIRED.json` pins the recorded framework imports; the launcher refuses mismatches and does not silently use the A10b Torch 2.13 environment. The bootstrap Python 3.12 path is separately listed.
+
+Commands producing the reported numbers (run from this workspace):
+
+```bash
+env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B kit/cpu_stub.py --out out/cpu_receipted
+env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B kit/test_kit.py
+env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B kit/score_400.py --synthetic --displacement-only --out out/synthetic_smoke
+env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B kit/score_400.py --synthetic --out out/synthetic_score_verified
+python -B kit/finalize.py
+python -B kit/report.py
+```
+
+The full synthetic run uses the exact source snapshots in `out/execution_sources`; their hashes match that run’s frozen source pins. Existing scoring directories are refused; use fresh names to reproduce.
+
+Coordinator commands after staging the exact environment:
+
+```bash
+kit/launch_gpu.sh --card <i>
+# Only after an explicit coordinator resume order:
+kit/launch_gpu.sh --card <i> --operator-resume
+# Score returned capture outputs on 1-18 in a fresh directory:
+env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B kit/score_400.py --own-root out/gpu/captures --out out/real400_score
+```
+
+The no-archaeology skill governs this report. No borderline revision-history sentences were retained.

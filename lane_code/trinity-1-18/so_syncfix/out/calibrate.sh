@@ -19,9 +19,11 @@ nice -n 10 "$PYTHON" -I -s -B "$PKG/owner_checks.py" window "$S/sync.log"
 nice -n 10 env LCS_B="$B" LCS_S="$S" LCS_ROBUST_SYNC=1 LCS_FILE_SECONDS=3 \
   LCS_SCAN_SECONDS=1800 LCS_COPY_SECONDS=1800 LCS_LEG_SECONDS=1900 \
   LCS_REMOTE_SECONDS=2000 LCS_NODE_SECONDS=2200 LCS_KILL_SECONDS=5 \
-  bash "$B/tools/lane_code_sync.sh" --stage-only > "$S/robust_calibration.log" 2>&1
+  bash "$B/tools/lane_code_sync.sh" --stage-only > "$S/robust_calibration.log" 2>&1 || {
+    echo "CALIBRATION FAILED rc=$?; see $S/robust_calibration.log" >&2; exit 2;
+  }
 nice -n 10 "$PYTHON" -I -s -B "$PKG/calibrate_budgets.py" \
-  "$S/robust_calibration.log" > "$S/LCS_ROBUST_BUDGETS.next"
+  "$S/robust_calibration.log" "$S/sync.log" > "$S/LCS_ROBUST_BUDGETS.next"
 cat "$S/LCS_ROBUST_BUDGETS.next"
 mv "$S/LCS_ROBUST_BUDGETS.next" "$S/LCS_ROBUST_BUDGETS"
 echo 'CALIBRATION OK; robust mode remains OFF. Review the measurements before creating the flag.'

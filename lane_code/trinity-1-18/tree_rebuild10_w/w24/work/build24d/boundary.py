@@ -15,6 +15,7 @@ import student_pilot.decoupled_v_run as V
 V.processor_for=N.processor
 u=os.uname();os.uname=lambda:os.uname_result((u.sysname,'fixture-host',u.release,u.version,u.machine))
 os.environ['STUDENT_R2_FRAME_HOST']='1'
+os.environ['S1_REHEARSAL_ATTEMPT']='b24d_go'
 os.environ['OMP_NUM_THREADS']='2';os.environ['MKL_NUM_THREADS']='2';os.environ['OPENBLAS_NUM_THREADS']='2'
 aliases={p.name:str(p) for folder in ('build21','build22') for p in (L/'work'/folder/'upload/u').glob('*') if p.is_file()}
 helper=sys.argv[1];sys.argv=sys.argv[1:]

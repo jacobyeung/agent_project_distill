@@ -29,6 +29,10 @@ class Selection(unittest.TestCase):
    k=L/'work/build24/kits'/name;spec=deepcopy(original(k/'k/p.json'))
    with tarfile.open(f['m']/'s.tar') as t:spec['m4']['v']=hashlib.sha256(t.extractfile('MANIFEST.json').read()).hexdigest()
    marker=(f['pool']/spec['p_root']/'o/gcs_6ed2c7aa_m400.done').read_text().split();spec['m4'].update(t=marker[2],b=int(marker[1]))
+   old_load=old.load
+   with R.external_boundary(f,module=old),patch.object(old,'load',side_effect=lambda p:deepcopy(spec) if Path(p)==k/'k/p.json' else old_load(p)):
+    with self.assertRaisesRegex(KeyError,'checkpoint_000414.*complete.json') as before:old.resolve(k,f['pool'],f['listing'],O/('before_'+name+'.json'))
+   records['before_full_'+name]=str(before.exception)
    with R.external_boundary(f),patch.object(J,'load',side_effect=lambda p:deepcopy(spec) if Path(p)==k/'k/p.json' else original(p)):
     result=J.resolve(k,f['pool'],f['listing'],O/('resolved_'+name+'.json'))
    self.assertTrue(all('/checkpoint_' not in v['original'] for v in result['small_files'].values()))

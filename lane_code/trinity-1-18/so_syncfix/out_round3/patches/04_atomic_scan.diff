@@ -1,0 +1,1108 @@
+--- a/tools/lane_code_scan.py
++++ b/tools/lane_code_scan.py
+@@ -1,6 +1,134 @@
+ # lane_code_scan.py <stage> <dest> <flag list>: secret-scan every staged file; copy clean, changed files
+ # to <dest> (same relative path); flagged files are never copied and are listed as "<path>\t<pattern>".
+ import os, re, sys, shutil
++
++def checked_archive(path):
++    """Read an uncompressed incoming tar completely before publishing its slot."""
++    import stat
++    import tarfile
++    flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
++    fd = os.open(path, flags)
++    raw = os.fdopen(fd, 'rb')
++    try:
++        info = os.fstat(raw.fileno())
++        if not stat.S_ISREG(info.st_mode):
++            raise ValueError('archive is not a regular file')
++        # Iteration reads all headers; require every payload to fit the received file.
++        with tarfile.open(fileobj=raw, mode='r:') as archive:
++            for member in archive:
++                parts = member.name.split('/')
++                if member.name.startswith('/') or '..' in parts or not member.name:
++                    raise ValueError('unsafe archive path: %r' % member.name)
++                if not (member.isfile() or member.isdir()):
++                    raise ValueError('nonregular archive entry: %r' % member.name)
++                if member.offset_data + member.size > info.st_size:
++                    raise ValueError('truncated archive entry: %r' % member.name)
++                if member.isfile():
++                    data = archive.extractfile(member)
++                    while data.read(65536):
++                        pass
++                    data.close()
++    finally:
++        raw.close()
++
++
++def atomic_clean_write(path, data, pending):
++    """Publish the bytes that passed the secret scan, outside the Git add paths."""
++    import stat
++    os.makedirs(os.path.dirname(path), exist_ok=True)
++    os.makedirs(os.path.dirname(pending), exist_ok=True)
++    try:
++        mode = stat.S_IMODE(os.stat(path, follow_symlinks=False).st_mode)
++    except FileNotFoundError:
++        mask = os.umask(0)
++        os.umask(mask)
++        mode = 0o666 & ~mask
++    fd = os.open(pending, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
++    with os.fdopen(fd, 'wb') as f:
++        if not stat.S_ISREG(os.fstat(f.fileno()).st_mode):
++            raise ValueError('copy temporary path is not regular')
++        os.fchmod(f.fileno(), mode)
++        f.write(data)
++    os.replace(pending, path)
++
++
++def robust_copy_scan(stage, dest, flagout):
++    import stat
++    import tarfile
++    flags = []
++    copied = same = scanned = 0
++    pending = os.environ.get('LCS_COPY_TMP', os.path.join(os.path.dirname(dest), '.lcs-copy.pending'))
++
++    # The fixed scratch name is outside every path passed to Git add.
++    sys.stderr.write('COPY_PENDING %s\n' % pending)
++    sys.stderr.flush()
++
++    def entries():
++        if os.path.isfile(stage):
++            # Acceptance already validates the entire archive; repeat before any copy.
++            checked_archive(stage)
++            with tarfile.open(stage, 'r:') as archive:
++                for member in archive:
++                    if member.isfile():
++                        with archive.extractfile(member) as source:
++                            yield member.name, source.read()
++        else:
++            # Explicit robust-copy fixtures may use directories instead of archives.
++            paths = []
++            for d, dirs, files in os.walk(stage, followlinks=False):
++                dirs.sort()
++                for name in dirs + sorted(files):
++                    path = os.path.join(d, name)
++                    mode = os.lstat(path).st_mode
++                    if not (stat.S_ISDIR(mode) or stat.S_ISREG(mode)):
++                        raise ValueError('nonregular staged entry: %r' % path)
++                    if stat.S_ISREG(mode):
++                        paths.append(path)
++            for path in paths:
++                fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++                with os.fdopen(fd, 'rb') as source:
++                    if not stat.S_ISREG(os.fstat(source.fileno()).st_mode):
++                        raise ValueError('changed staged entry: %r' % path)
++                    yield os.path.relpath(path, stage), source.read()
++
++    for rel, data in entries():
++        scanned += 1
++        hit = [n for n, p in PATS if p.search(data)] + (['env_secret_value'] if any(v in data for v in ENV_VALUES) else [])
++        if hit:
++            flags.append('%s\t%s' % (rel, ','.join(hit)))
++            continue
++        dp = os.path.join(dest, rel)
++        # Refuse links in the destination path. The clone is private and sync-locked.
++        parent = os.path.abspath(dp)
++        while parent != os.path.dirname(parent):
++            if os.path.islink(parent):
++                raise ValueError('symlink in copy destination: %r' % parent)
++            parent = os.path.dirname(parent)
++        try:
++            with open(dp, 'rb') as old:
++                if old.read() == data:
++                    same += 1
++                    continue
++        except OSError:
++            pass
++        atomic_clean_write(dp, data, pending)
++        copied += 1
++    os.makedirs(os.path.dirname(flagout), exist_ok=True)
++    with open(flagout, 'w') as f:
++        f.write(''.join(x + '\n' for x in flags))
++    print('SCAN scanned=%d copied=%d unchanged=%d flagged=%d list=%s' % (scanned, copied, same, len(flags), flagout))
++    for x in flags[:50]:
++        print('FLAG ' + x)
++
++
++if os.environ.get('LCS_ROBUST_SYNC', '0') == '1' and 'LCS_COPY_TMP' in os.environ and sys.argv[1:2] == ['--accept-archive']:
++    incoming, accepted = sys.argv[2:4]
++    checked_archive(incoming)
++    # Same-directory rename accepts the complete source in one operation.
++    print('ACCEPTING %s' % accepted, flush=True)
++    os.replace(incoming, accepted)
++    sys.exit(0)
++
+ stage, dest, flagout = sys.argv[1:4]
+ PATS = [
+     ('private_key_block', re.compile(rb'-----BEGIN [A-Z ]*PRIVATE KEY-----')),
+@@ -17,6 +145,10 @@
+ ]
+ ENV_VALUES = [os.environ[k].encode() for k in ('GEMINI_API_KEY', 'GOOGLE_API_KEY', 'HF_TOKEN', 'OPENROUTER_API_KEY',
+               'NV_API_KEY', 'NVIDIA_API_KEY', 'ANTHROPIC_API_KEY', 'OPENAI_API_KEY') if len(os.environ.get(k, '')) >= 16]
++if os.environ.get('LCS_ROBUST_SYNC', '0') == '1' and 'LCS_COPY_TMP' in os.environ:
++    robust_copy_scan(stage, dest, flagout)
++    sys.exit(0)
++
+ flags = []; copied = 0; same = 0; scanned = 0
+ for d, dirs, files in os.walk(stage):
+     dirs.sort()
+--- /dev/null
++++ b/tests/test_slots.py
+@@ -0,0 +1,159 @@
++"""Slot validation, activation, and budget-file integration tests."""
++from support import *
++import io
++import tarfile
++
++
++class SlotDriverTests(DriverFixture):
++    def test_environment_alone_enables(self):
++        self.assertFalse((self.state / 'LCS_ROBUST_SYNC').exists())
++        result = self.run_driver(('--dry',))
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'ROBUST slots=', result.stdout)
++        self.assertIn(b'STAGED trinity-2-28 rc=0', result.stdout)
++
++    def test_flag_wins_over_environment_zero(self):
++        self.env['LCS_ROBUST_SYNC'] = '0'
++        write(self.state / 'LCS_ROBUST_SYNC', '')
++        result = self.run_driver(('--dry',))
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'ROBUST slots=', result.stdout)
++
++    def test_absent_directory_fifo_and_symlink_flags_stay_off(self):
++        self.env.pop('LCS_ROBUST_SYNC')
++        for kind in ('absent', 'directory', 'fifo', 'symlink'):
++            with self.subTest(kind=kind):
++                if kind != 'absent':
++                    flag = self.state / 'LCS_ROBUST_SYNC'
++                    if kind == 'directory': flag.mkdir()
++                    elif kind == 'fifo': os.mkfifo(str(flag))
++                    else:
++                        write(self.state / 'target', '')
++                        os.symlink(str(self.state / 'target'), str(flag))
++                result = self.run_driver(('--dry',))
++                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++                self.assertNotIn(b'ROBUST', result.stdout)
++                if kind != 'absent':
++                    os.rename(str(flag), str(self.state / ('disabled-' + kind)))
++
++    def test_budget_file_and_environment_precedence(self):
++        self.env.pop('LCS_SCAN_SECONDS')
++        write(self.state / 'LCS_ROBUST_BUDGETS', 'LCS_SCAN_SECONDS=0.6\nLCS_FILE_SECONDS=30\n')
++        result = self.run_driver(('--dry',))
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'scan_seconds=0.6', result.stdout)
++        self.assertIn(b'file_seconds=0.1', result.stdout)
++        self.env.pop('LCS_FILE_SECONDS')
++        result = self.run_driver(('--dry',))
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'file_seconds=30', result.stdout)
++
++    def test_budget_file_is_not_shell_code(self):
++        write(self.state / 'LCS_ROBUST_BUDGETS', 'LCS_SCAN_SECONDS=$(touch %s)\n' % (self.root / 'executed'))
++        result = self.run_driver()
++        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
++        self.assertFalse((self.root / 'executed').exists())
++        self.assertTrue(list((self.root / 'events').glob('*_BLOCKER_sync_failed.md')))
++
++    def test_old_receiver_lock_refuses_new_writer(self):
++        slot = self.state / 'stage-robust' / 'trinity-1-18'
++        write(slot / 'incoming', 'previous incomplete transfer')
++        import fcntl
++        with open(str(slot / 'incoming.lock'), 'w') as lock:
++            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
++            result = self.run_driver()
++        self.check_partial_success(result)
++        self.assertEqual((slot / 'incoming').read_text(), 'previous incomplete transfer')
++        self.assertFalse((slot / 'accepted').exists())
++
++    def test_large_log_is_capped_and_reused(self):
++        write(self.bin / 'tar', '#!/bin/bash\n'
++              'if [[ "$PWD" == */sources/trinity-1-18 ]] && [[ " $* " == *" -cf "* ]]; then\n'
++              '  head -c 90000 /dev/zero | tr "\\0" x >&2\n'
++              'fi\nexec /usr/bin/tar "$@"\n', True)
++        result = self.run_driver()
++        self.check_partial_success(result)
++        log = self.state / 'stage-robust' / 'trinity-1-18' / 'run.log'
++        self.assertLessEqual(log.stat().st_size, 65536)
++        write(self.bin / 'tar', '#!/bin/bash\nexec /usr/bin/tar "$@"\n', True)
++        result = self.run_driver()
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertLess(log.stat().st_size, 4096)
++
++
++class ArchiveTests(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='tmp_archive_', dir=str(FIXTURES)))
++
++    def accept(self, incoming, accepted):
++        return subprocess.run(PY + [str(TOOLS / 'lane_code_scan.py'), '--accept-archive', str(incoming), str(accepted)],
++                              env=dict(os.environ, LCS_ROBUST_SYNC='1', LCS_COPY_TMP=str(self.root / '.copy.pending')),
++                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=3)
++
++    def test_special_entries_and_truncated_archives_preserve_accepted(self):
++        for kind in ('fifo', 'symlink', 'hardlink', 'character', 'parent', 'absolute', 'truncated'):
++            with self.subTest(kind=kind):
++                incoming = self.root / ('incoming-' + kind)
++                accepted = self.root / ('accepted-' + kind)
++                accepted.write_bytes(b'prior accepted archive')
++                with tarfile.open(str(incoming), 'w') as archive:
++                    regular = tarfile.TarInfo('first.py'); regular.size = 4
++                    archive.addfile(regular, io.BytesIO(b'good'))
++                    member = tarfile.TarInfo('special.py')
++                    if kind == 'fifo': member.type = tarfile.FIFOTYPE
++                    elif kind == 'symlink': member.type = tarfile.SYMTYPE; member.linkname = '/outside'
++                    elif kind == 'hardlink': member.type = tarfile.LNKTYPE; member.linkname = 'first.py'
++                    elif kind == 'character': member.type = tarfile.CHRTYPE
++                    elif kind == 'parent': member.name = '../outside.py'
++                    elif kind == 'absolute': member.name = '/outside.py'
++                    else: member.size = 10000
++                    archive.addfile(member, io.BytesIO(b'x' * member.size))
++                if kind == 'truncated':
++                    content = incoming.read_bytes()
++                    incoming.write_bytes(content[:1800])
++                result = self.accept(incoming, accepted)
++                self.assertNotEqual(result.returncode, 0, result.stderr)
++                self.assertEqual(accepted.read_bytes(), b'prior accepted archive')
++                self.assertTrue(incoming.is_file())
++
++    def test_archive_copy_matches_directory_copy_bytes_and_flags(self):
++        source = self.root / 'source'
++        write(source / 'space name.md', 'one')
++        write(source / 'new\nline.py', 'two')
++        write(source / 'nonutf_\udcff.py', 'three')
++        write(source / 'secret.txt', 'ghp_' + 'x' * 32)
++        incoming = self.root / 'incoming'
++        with tarfile.open(str(incoming), 'w') as archive:
++            for path in sorted(source.iterdir()):
++                archive.add(str(path), arcname=path.name, recursive=False)
++        accepted = self.root / 'accepted'
++        result = self.accept(incoming, accepted)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        trees, flags = [], []
++        for name, stage, enabled in (('directory', source, '0'), ('archive', accepted, '1')):
++            dest = self.root / name
++            flag = self.root / (name + '.flags')
++            result = subprocess.run(PY + [str(TOOLS / 'lane_code_scan.py'), str(stage), str(dest), str(flag)],
++                                    env=dict(os.environ, LCS_ROBUST_SYNC=enabled, LCS_COPY_TMP=str(self.root / '.copy.pending')),
++                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=3)
++            self.assertEqual(result.returncode, 0, result.stderr)
++            trees.append({str(p.relative_to(dest)): p.read_bytes() for p in dest.rglob('*') if p.is_file()})
++            flags.append(flag.read_bytes())
++        self.assertEqual(trees[0], trees[1])
++        self.assertEqual(flags[0], flags[1])
++
++
++class CopyModeTests(unittest.TestCase):
++    def test_atomic_copy_preserves_existing_mode_and_respects_umask(self):
++        root = Path(tempfile.mkdtemp(prefix='tmp_copy_mode_', dir=str(FIXTURES)))
++        stage, dest = root / 'stage', root / 'dest'
++        write(stage / 'existing.sh', 'new executable content')
++        write(stage / 'new.py', 'new content')
++        write(dest / 'existing.sh', 'old', True)
++        source = TOOLS / 'lane_code_scan.py'
++        code = 'import os,sys; os.umask(0o027); sys.argv=%r; exec(compile(open(sys.argv[0]).read(),sys.argv[0],"exec"))' % [str(source),str(stage),str(dest),str(root / 'flags.txt')]
++        result = subprocess.run(PY + ['-c', code], env=dict(os.environ,LCS_ROBUST_SYNC='1', LCS_COPY_TMP=str(root / '.copy.pending')),
++                                stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=3)
++        self.assertEqual(result.returncode,0,result.stderr)
++        self.assertEqual(stat.S_IMODE((dest / 'existing.sh').stat().st_mode),0o755)
++        self.assertEqual(stat.S_IMODE((dest / 'new.py').stat().st_mode),0o640)
+--- /dev/null
++++ b/tests/test_install.py
+@@ -0,0 +1,78 @@
++from support import *
++import fcntl
++import tarfile
++
++
++class InstallTests(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='tmp_install_', dir=str(FIXTURES)))
++        self.base = self.root / 'base'
++        self.state = self.root / 'state'
++        self.state.mkdir()
++        self.bin = self.root / 'bin'
++        write(self.bin / 'hostname', '#!/bin/bash\necho trinity-3-30\n', True)
++        self.env = dict(os.environ, PATH=str(self.bin) + ':/usr/bin:/bin', LCS_ROBUST_SYNC='0')
++        source = Path(os.environ.get('LCS_INSTALLED_INPUT', str(INPUT)))
++        for line in (BASE / 'PREIMAGE.sha256').read_text().splitlines():
++            unused, name = line.split(None, 1)
++            path = self.base / name
++            path.parent.mkdir(parents=True, exist_ok=True)
++            path.write_bytes((source / Path(name).name).read_bytes())
++
++    def run_install(self):
++        return subprocess.run(PY + [str(BASE / 'install_tools.py'), str(BASE), str(self.base), str(self.state)],
++                              env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=5)
++
++    def test_install_preimages_backups_atomic_replacements_and_postimages(self):
++        before = {p.name: p.read_bytes() for p in (self.base / 'tools').iterdir()}
++        result = self.run_install()
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        for line in (BASE / 'POSTIMAGE.sha256').read_text().splitlines():
++            digest, name = line.split(None, 1)
++            self.assertEqual(hashlib.sha256((self.base / name).read_bytes()).hexdigest(), digest)
++        archives = list((self.state / 'install-backups').glob('*/preimage.tar'))
++        self.assertEqual(len(archives), 1)
++        with tarfile.open(str(archives[0])) as archive:
++            self.assertEqual({Path(m.name).name: archive.extractfile(m).read() for m in archive}, before)
++        self.assertFalse(list((self.base / 'tools').glob('.*.lcs-*')))
++        self.assertFalse((self.state / 'LCS_ROBUST_SYNC').exists())
++        self.assertIn(b'robust mode remains OFF', result.stdout)
++
++    def test_busy_lock_defers_without_writes(self):
++        with open(str(self.state / '.sync.lock'), 'w') as lock:
++            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
++            result = self.run_install()
++        self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
++        self.assertFalse((self.state / 'install-backups').exists())
++
++    def test_mismatched_preimage_stops_before_backup_or_install(self):
++        write(self.base / 'tools' / 'lane_code_scan.py', 'unexpected edit')
++        result = self.run_install()
++        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
++        self.assertIn(b'mismatch', result.stderr)
++        self.assertFalse((self.state / 'install-backups').exists())
++        self.assertFalse((self.base / 'tools' / 'lane_code_stage.sh').exists())
++
++
++class CalibrationTests(unittest.TestCase):
++    def test_derives_budgets_and_refuses_failure_or_incomplete_log(self):
++        import importlib.util
++        spec = importlib.util.spec_from_file_location('calibrate', str(BASE / 'calibrate_budgets.py'))
++        module = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(module)
++        lines = []
++        for label in ('trinity-1-18', 'trinity-3-30', 'orch_n30/tools', 'orch_n30/briefs'):
++            lines += ['2026-11-19T12:00:00Z ROBUST stage ' + label,
++                      '2026-11-19T12:02:00Z ROBUST accept ' + label,
++                      '2026-11-19T12:02:10Z STAGED ' + label + ' rc=0',
++                      '2026-11-19T12:02:11Z ROBUST copy ' + label,
++                      '2026-11-19T12:05:11Z COPIED ' + label + ' rc=0']
++        lines += ['2026-11-19T12:05:12Z STAGE-ONLY done']
++        text = '\n'.join(lines)
++        measured, budgets = module.derive(text)
++        self.assertTrue(all(value == {'stage': 120, 'accept': 10, 'copy': 180} for value in measured.values()))
++        self.assertEqual(dict(budgets), dict(LCS_FILE_SECONDS=3, LCS_SCAN_SECONDS=270, LCS_COPY_SECONDS=390,
++                                          LCS_LEG_SECONDS=395, LCS_REMOTE_SECONDS=425, LCS_NODE_SECONDS=550,
++                                          LCS_KILL_SECONDS=5))
++        for bad in (text + '\n2026-11-19T12:02:02Z FAIL source', '\n'.join(lines[:-1])):
++            with self.assertRaises(ValueError): module.derive(bad)
+--- /dev/null
++++ b/tests/test_round2.py
+@@ -0,0 +1,214 @@
++"""Second-review regressions; all fixtures and fake services stay under tmp_* roots."""
++from support import *
++import datetime
++import importlib.util
++import shutil
++
++PACKAGE = Path(os.environ.get('LCS_ROUND2_PACKAGE', str(BASE)))
++SCANFIX_SHA = 'f9460a5e3e23e5f2765e454824645d8970b333817518d626847a5e0cba46fabb'
++
++
++def module(name):
++    spec = importlib.util.spec_from_file_location(name, str(PACKAGE / (name + '.py')))
++    result = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(result)
++    return result
++
++
++def calibration_log():
++    lines = []
++    for i, label in enumerate(('trinity-1-18', 'trinity-3-30', 'orch_n30/tools', 'orch_n30/briefs')):
++        start = datetime.datetime(2026, 11, 19, 12) + datetime.timedelta(seconds=i * 1000)
++        for seconds, message in ((0, 'ROBUST stage ' + label), (10, 'ROBUST accept ' + label),
++                                 (110, 'STAGED ' + label + ' rc=0'), (120, 'ROBUST copy ' + label),
++                                 (420, 'COPIED ' + label + ' rc=0')):
++            lines.append((start + datetime.timedelta(seconds=seconds)).strftime('%Y-%m-%dT%H:%M:%SZ') + ' ' + message)
++    lines.append('2026-11-19T13:00:00Z STAGE-ONLY done')
++    return '\n'.join(lines)
++
++
++class RebaseTests(unittest.TestCase):
++    def test_installed_scanfix_is_preimage_and_pattern_in_both_paths(self):
++        self.assertEqual(hashlib.sha256((PACKAGE / 'inputs/lane_code_scan.py').read_bytes()).hexdigest(), SCANFIX_SHA)
++        self.assertEqual((PACKAGE / 'PREIMAGE.sha256').read_text().splitlines()[3], SCANFIX_SHA + '  tools/lane_code_scan.py')
++        pattern = next(line for line in (PACKAGE / 'inputs/lane_code_scan.py').read_text().splitlines() if "('url_credentials'," in line)
++        self.assertIn(pattern, (TOOLS / 'lane_code_scan.py').read_text().splitlines())
++        self.assertIn('{0,32}', pattern)
++        self.assertNotIn('512', pattern)
++
++    def test_installer_refuses_old_layout_even_with_matching_postimage(self):
++        root = Path(tempfile.mkdtemp(prefix='tmp_install_old_', dir=str(FIXTURES)))
++        package, base, state = root / 'package', root / 'base', root / 'state'
++        state.mkdir()
++        for name in ('tools', 'inputs'):
++            shutil.copytree(str(PACKAGE / name), str(package / name))
++        for name in ('PREIMAGE.sha256', 'POSTIMAGE.sha256', 'install_tools.py'):
++            shutil.copyfile(str(PACKAGE / name), str(package / name))
++        for line in (package / 'PREIMAGE.sha256').read_text().splitlines():
++            unused, name = line.split(None, 1)
++            path = base / name
++            path.parent.mkdir(parents=True, exist_ok=True)
++            path.write_bytes((package / 'inputs' / path.name).read_bytes())
++        old = (package / 'inputs/lane_code_scan.py').read_bytes()
++        (package / 'tools/lane_code_scan.py').write_bytes(old)
++        lines = (package / 'POSTIMAGE.sha256').read_text().splitlines()
++        (package / 'POSTIMAGE.sha256').write_text('\n'.join(
++            hashlib.sha256(old).hexdigest() + '  tools/lane_code_scan.py' if line.endswith('tools/lane_code_scan.py') else line
++            for line in lines) + '\n')
++        before = {p.name: p.read_bytes() for p in (base / 'tools').iterdir()}
++        write(root / 'bin/hostname', '#!/bin/bash\necho trinity-3-30\n', True)
++        result = subprocess.run(PY + [str(package / 'install_tools.py'), str(package), str(base), str(state)],
++                                env=dict(os.environ, PATH=str(root / 'bin') + ':/usr/bin:/bin', LCS_ROBUST_SYNC='0'),
++                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
++        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
++        self.assertIn(b'scanner protocol', result.stderr)
++        self.assertEqual({p.name: p.read_bytes() for p in (base / 'tools').iterdir()}, before)
++        self.assertFalse((state / 'install-backups').exists())
++
++
++class CalibrationRound2Tests(unittest.TestCase):
++    def test_stage_accept_copy_measured_and_budget_at_least_double(self):
++        try:
++            measured, budgets = module('calibrate_budgets').derive(calibration_log())
++        except ValueError as error:
++            self.fail(str(error))
++        self.assertEqual(measured['trinity-1-18'], {'stage': 10, 'accept': 100, 'copy': 300})
++        self.assertGreaterEqual(dict(budgets)['LCS_COPY_SECONDS'], 600)
++        root = Path(tempfile.mkdtemp(prefix='tmp_calibration_', dir=str(FIXTURES)))
++        write(root / 'log', calibration_log())
++        result = subprocess.run(PY + [str(PACKAGE / 'calibrate_budgets.py'), str(root / 'log')],
++                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=3)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertIn(b'LCS_COPY_SECONDS=', result.stdout)
++        self.assertIn(b'accept_seconds trinity-1-18=100', result.stderr)
++        self.assertIn(b'copy_seconds trinity-1-18=300', result.stderr)
++
++    def test_missing_accept_or_copy_measurement_refused(self):
++        derive = module('calibrate_budgets').derive
++        # A dry-only log must be refused even though every stage succeeded.
++        dry = '\n'.join(line for line in calibration_log().splitlines()
++                        if not any(word in line for word in ('ROBUST accept', 'ROBUST copy', 'COPIED')))
++        dry = dry.replace('STAGE-ONLY done', 'DRY done')
++        with self.assertRaises(ValueError):
++            derive(dry)
++        for omitted in ('ROBUST accept trinity-1-18', 'ROBUST copy trinity-1-18', 'COPIED trinity-1-18'):
++            with self.subTest(omitted=omitted), self.assertRaises(ValueError):
++                derive('\n'.join(line for line in calibration_log().splitlines() if omitted not in line))
++
++    def test_saved_scripts_and_window_guard(self):
++        for name in ('install.sh', 'calibrate.sh', 'pre_enable.sh', 'owner_checks.py'):
++            self.assertTrue((PACKAGE / name).is_file(), name)
++        text = (PACKAGE / 'calibrate.sh').read_text()
++        self.assertIn('--stage-only', text)
++        self.assertNotIn('--dry', text)
++        self.assertIn('window', text)
++        self.assertLess(text.index('window'), text.index('--stage-only'))
++        self.assertNotIn(': > "$S/LCS_ROBUST_SYNC', text)
++        checks = module('owner_checks')
++        now = datetime.datetime(2026, 11, 19, 13)
++        good = '2026-11-19T12:40:00Z START dry=0 queue_only=0\n2026-11-19T12:50:00Z END ok\n'
++        self.assertEqual(checks.window(good, now), 600)
++        for bad in (good.replace('12:50:00', '12:49:59'), good.replace('12:50:00', '13:00:01'),
++                    '', '2026-11-19T12:59:00Z QUEUE-ONLY END ok\n',
++                    good + '2026-11-19T12:59:00Z START dry=0 queue_only=0\n'):
++            with self.subTest(bad=bad), self.assertRaises(ValueError):
++                checks.window(bad, now)
++
++    def test_pre_enable_counts_failures_against_hourly_runs(self):
++        self.assertTrue((PACKAGE / 'owner_checks.py').is_file())
++        root = Path(tempfile.mkdtemp(prefix='tmp_pre_enable_', dir=str(FIXTURES)))
++        lines = ['2026-11-19T12:00:00Z START dry=0 queue_only=0'] * 20
++        lines += ['2026-11-19T12:00:00Z START dry=1 queue_only=0',
++                  '2026-11-19T12:00:00Z START dry=0 queue_only=1']
++        failure = '2026-11-19T12:01:00Z FAIL trinity-1-18 stage rc=4: PIPE 0 1 0'
++        for count, status, message in ((1, 0, b'within threshold'), (2, 2, b'STAY LEGACY')):
++            write(root / 'sync.log', '\n'.join(lines + [failure] * count))
++            result = subprocess.run(PY + [str(PACKAGE / 'owner_checks.py'), 'pre-enable', str(root / 'sync.log')],
++                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=3)
++            self.assertEqual(result.returncode, status, result.stdout + result.stderr)
++            self.assertIn(('runs=20 stage_rc4_lines=%d' % count).encode(), result.stdout)
++            self.assertIn(b'threshold=5.00%', result.stdout)
++            self.assertIn(message, result.stdout)
++
++
++class QueueRound2Tests(unittest.TestCase):
++    def test_queue_scan_through_symlinked_parent_is_legacy_identical(self):
++        root = Path(tempfile.mkdtemp(prefix='tmp_queue_', dir=str(FIXTURES)))
++        write(root / 'real/qscan/pkg/good.py', 'clean')
++        write(root / 'real/qscan/pkg/secret.txt', 'https://user:' + 'p' * 1150 + '@host')
++        os.symlink(str(root / 'real'), str(root / 'link'))
++        stage = root / 'link/qscan'
++        flags = root / 'flags'
++        outputs = []
++        for source, robust in ((INPUT / 'lane_code_scan.py', '0'), (TOOLS / 'lane_code_scan.py', '1')):
++            env = dict(os.environ, LCS_ROBUST_SYNC=robust)
++            env.pop('LCS_COPY_TMP', None)
++            result = subprocess.run(PY + [str(source), str(stage), str(stage), str(flags)], env=env,
++                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=3)
++            self.assertEqual(result.returncode, 0, result.stderr)
++            outputs.append((result.stdout, result.stderr, flags.read_bytes()))
++        self.assertEqual(outputs[0], outputs[1])
++        self.assertIn(b'url_credentials', outputs[1][2])
++
++
++class ManifestRound2Tests(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='tmp_manifest_', dir=str(FIXTURES)))
++        write(self.root / 'meta/DEDUP_fixture.tsv.gz', 'prior')
++
++    def run_filter(self, injection=''):
++        source = TOOLS / 'lane_code_filter.py'
++        code = 'import os,sys,gzip\n' + injection + '\nsys.argv=%r\nexec(compile(open(sys.argv[0]).read(),sys.argv[0],"exec"))' % [str(source), 'fixture', 'meta']
++        return subprocess.run(PY + ['-c', code], cwd=str(self.root), env=dict(os.environ, LCS_ROBUST_SYNC='1'),
++                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=3)
++
++    def test_repeated_failed_manifest_reuses_one_name(self):
++        for unused in range(3):
++            result = self.run_filter("def broken(self, data): raise OSError('injected write failure')\ngzip.GzipFile.write=broken")
++            self.assertNotEqual(result.returncode, 0)
++            self.assertIn(b'MANIFEST_PENDING', result.stderr)
++        self.assertEqual([p.name for p in (self.root / 'meta').glob('.dedup-*')], ['.dedup-fixture.pending'])
++        self.assertEqual((self.root / 'meta/DEDUP_fixture.tsv.gz').read_text(), 'prior')
++
++    def test_regular_manifest_slot_is_truncated_and_replaced(self):
++        slot = self.root / 'meta/.dedup-fixture.pending'
++        slot.write_bytes(b'leftover' * 10000)
++        result = self.run_filter()
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertFalse(slot.exists())
++        with gzip.open(str(self.root / 'meta/DEDUP_fixture.tsv.gz'), 'rb') as stream:
++            self.assertEqual(stream.read(), b'')
++
++    def test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation(self):
++        for kind in ('fifo', 'symlink', 'hardlink'):
++            with self.subTest(kind=kind):
++                self.setUp()
++                slot = self.root / 'meta/.dedup-fixture.pending'
++                target = self.root / 'target.bin'
++                target.write_bytes(b'unchanged target')
++                if kind == 'fifo': os.mkfifo(str(slot))
++                elif kind == 'symlink': os.symlink(str(target), str(slot))
++                else: os.link(str(target), str(slot))
++                result = self.run_filter()
++                self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
++                self.assertEqual(target.read_bytes(), b'unchanged target')
++                self.assertEqual((self.root / 'meta/DEDUP_fixture.tsv.gz').read_text(), 'prior')
++
++
++class BudgetRound2Tests(DriverFixture):
++    def test_unordered_budgets_refused_before_starting_sources(self):
++        for key, value in (('LCS_SCAN_SECONDS', '0.7'), ('LCS_LEG_SECONDS', '1.0'), ('LCS_REMOTE_SECONDS', '1.3')):
++            with self.subTest(key=key):
++                self.setUp()
++                self.env[key] = value
++                result = self.run_driver(('--dry',))
++                self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
++                self.assertIn(b'SCAN < LEG < REMOTE < NODE', result.stdout)
++                self.assertFalse((self.root / 'ssh.jsonl').exists())
++
++
++class FixtureRound2Tests(unittest.TestCase):
++    def test_default_fixture_root_is_pruned(self):
++        source = (PACKAGE / 'tests/run_tests.py').read_text()
++        self.assertIn("'tmp_test-work'", source)
++        self.assertNotIn("'test-work'", source)
+--- /dev/null
++++ b/tests/test_owner_scripts.py
+@@ -0,0 +1,102 @@
++"""Execute the saved owner scripts against private trees and fake services."""
++from support import *
++import datetime
++import shutil
++
++
++class OwnerScriptTests(DriverFixture):
++    def setUp(self):
++        super(OwnerScriptTests, self).setUp()
++        self.package = self.root / 'package'
++        self.package.mkdir()
++        for name in ('install.sh', 'pre_enable.sh', 'calibrate.sh', 'enable.sh', 'install_tools.py',
++                     'owner_checks.py', 'calibrate_budgets.py'):
++            shutil.copyfile(str(BASE / name), str(self.package / name))
++        shutil.copytree(str(BASE / 'tools'), str(self.package / 'tools'))
++        (self.package / 'PREIMAGE.sha256').write_bytes((BASE / 'PREIMAGE.sha256').read_bytes())
++        self.env.update(B=str(self.b), S=str(self.state), LCS_ROBUST_SYNC='0', LCS_OWNER_PYTHON=sys.executable)
++        self.image_manifest(self.b)
++        self.sync_log()
++
++    def image_manifest(self, root):
++        (self.package / 'POSTIMAGE.sha256').write_text(''.join(
++            hashlib.sha256((root / name).read_bytes()).hexdigest() + '  ' + name + '\n'
++            for name in [line.split(None, 1)[1] for line in (BASE / 'POSTIMAGE.sha256').read_text().splitlines()]
++            if (root / name).exists()))
++
++    def sync_log(self, age=1):
++        now = datetime.datetime.utcnow()
++        (self.state / 'sync.log').write_text(
++            (now - datetime.timedelta(seconds=1200)).strftime('%Y-%m-%dT%H:%M:%SZ') + ' START dry=0 queue_only=0\n' +
++            (now - datetime.timedelta(seconds=age)).strftime('%Y-%m-%dT%H:%M:%SZ') + ' END ok\n')
++
++    def run_script(self, name):
++        result = subprocess.run(['bash', '-eu', str(self.package / name)], env=self.env,
++                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=12)
++        (self.root / (name + '.stdout')).write_bytes(result.stdout)
++        (self.root / (name + '.stderr')).write_bytes(result.stderr)
++        return result
++
++    def test_saved_calibration_copies_once_without_git_or_enabling(self):
++        result = self.run_script('calibrate.sh')
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'CALIBRATION WINDOW OK', result.stdout)
++        self.assertIn(b'LCS_COPY_SECONDS=', result.stdout)
++        log = (self.state / 'robust_calibration.log').read_text()
++        self.assertEqual(log.count(' START '), 1)
++        self.assertIn('STAGE-ONLY done', log)
++        self.assertIn('ROBUST accept trinity-1-18', log)
++        self.assertIn('COPIED trinity-1-18 rc=0', log)
++        self.assertEqual((self.repo / 'lane_code/trinity-1-18/good.py').read_text(), "value = 'trinity-1-18'")
++        self.assertFalse((self.root / 'git.jsonl').exists())
++        self.assertFalse((self.state / 'LCS_ROBUST_SYNC').exists())
++        self.assertTrue((self.state / 'LCS_ROBUST_BUDGETS').is_file())
++
++    def test_stale_window_refuses_before_start_and_parent_shell_survives(self):
++        self.sync_log(age=601)
++        result = subprocess.run(['bash', '-c', 'bash -eu "$1"; rc=$?; echo "parent-alive rc=$rc"',
++                                 'fixture', str(self.package / 'calibrate.sh')], env=self.env,
++                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=5)
++        self.assertIn(b'parent-alive rc=2', result.stdout)
++        self.assertIn(b'OWNER CHECK REFUSED', result.stderr)
++        self.assertFalse((self.state / 'robust_calibration.log').exists())
++        self.assertFalse((self.root / 'ssh.jsonl').exists())
++
++    def test_failed_calibration_does_not_install_budgets_or_flag(self):
++        self.env['FAKE_trinity_1_18'] = 'unreachable'
++        result = self.run_script('calibrate.sh')
++        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
++        self.assertIn(b'CALIBRATION REFUSED', result.stderr)
++        self.assertFalse((self.state / 'LCS_ROBUST_BUDGETS').exists())
++        self.assertFalse((self.state / 'LCS_ROBUST_SYNC').exists())
++        self.assertFalse((self.root / 'git.jsonl').exists())
++
++    def test_enable_requires_complete_calibration_and_matching_budgets(self):
++        result = self.run_script('enable.sh')
++        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertFalse((self.state / 'LCS_ROBUST_SYNC').exists())
++        result = self.run_script('calibrate.sh')
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        result = self.run_script('enable.sh')
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        flag = self.state / 'LCS_ROBUST_SYNC'
++        self.assertTrue(flag.is_file())
++        self.assertFalse(flag.is_symlink())
++
++    def test_saved_install_keeps_robust_off(self):
++        base = self.root / 'preimage'
++        for line in (BASE / 'PREIMAGE.sha256').read_text().splitlines():
++            unused, name = line.split(None, 1)
++            target = base / name
++            target.parent.mkdir(parents=True, exist_ok=True)
++            target.write_bytes((INPUT / target.name).read_bytes())
++        self.env['B'] = str(base)
++        self.image_manifest(self.package)
++        (self.package / 'SHA256SUMS').write_text(''.join(
++            hashlib.sha256(path.read_bytes()).hexdigest() + '  ' + str(path.relative_to(self.package)) + '\n'
++            for path in sorted(self.package.rglob('*')) if path.is_file()))
++        result = self.run_script('install.sh')
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'PREFLIGHT scanner protocol: OK', result.stdout)
++        self.assertFalse((self.state / 'LCS_ROBUST_SYNC').exists())
++        self.assertEqual((base / 'tools/lane_code_scan.py').read_bytes(), (BASE / 'tools/lane_code_scan.py').read_bytes())
+--- /dev/null
++++ b/install_tools.py
+@@ -0,0 +1,121 @@
++"""Install validated tools under the existing lock; retain a preimage archive and log every temporary path."""
++import fcntl
++import hashlib
++import io
++import os
++from pathlib import Path
++import stat
++import subprocess
++import sys
++import tarfile
++import uuid
++
++
++def hashes(root, manifest):
++    result = {}
++    for line in manifest.read_text().splitlines():
++        expected, name = line.split(None, 1)
++        name = name.strip()
++        if not name.startswith('tools/') or len(Path(name).parts) != 2:
++            raise ValueError('unexpected manifest path: ' + name)
++        path = root / name
++        if path.is_symlink() or not path.is_file():
++            raise ValueError('not a regular non-symlink tool: ' + str(path))
++        actual = hashlib.sha256(path.read_bytes()).hexdigest()
++        if actual != expected:
++            raise ValueError('preimage/postimage mismatch: ' + str(path))
++        result[name] = expected
++        print(name + ': OK', flush=True)
++    return result
++
++
++def main():
++    package, base, state = [Path(p).resolve() for p in sys.argv[1:4]]
++    if subprocess.check_output(['hostname', '-s']).strip() != b'trinity-3-30':
++        raise ValueError('install only on trinity-3-30')
++    with open(str(state / '.sync.lock'), 'a') as lock:
++        try:
++            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
++        except BlockingIOError:
++            print('An existing sync holds the lock; installation deferred.', flush=True)
++            return 3
++        flag = state / 'LCS_ROBUST_SYNC'
++        if os.environ.get('LCS_ROBUST_SYNC') == '1' or (flag.is_file() and not flag.is_symlink()):
++            raise ValueError('robust mode must be OFF during initial installation')
++        pre = hashes(base, package / 'PREIMAGE.sha256')
++        hashes(package, package / 'POSTIMAGE.sha256')
++        scanner_preflight(package, state)
++        for name in ('lane_code_stage.sh', 'lane_code_log.py'):
++            helper = base / 'tools' / name
++            if helper.exists() or helper.is_symlink():
++                raise ValueError('new helper already exists; reconcile before installation: ' + name)
++        subprocess.check_call([sys.executable, '-I', '-s', '-B', str(package / 'tools' / 'lane_code_log.py'),
++                               str(state / 'install-preflight.log'), '-', '0', '/bin/true'])
++        print('PREFLIGHT bounded regular log: OK', flush=True)
++        token = uuid.uuid4().hex
++        backup = state / 'install-backups' / token
++        backup.mkdir(parents=True)
++        archive = backup / 'preimage.tar'
++        with tarfile.open(str(archive), 'w') as stream:
++            for name in sorted(pre):
++                stream.add(str(base / name), arcname=name, recursive=False)
++        (backup / 'PREIMAGE.sha256').write_bytes((package / 'PREIMAGE.sha256').read_bytes())
++        print('BACKUP ' + str(archive), flush=True)
++        # Stage every complete file before replacing any installed file. The driver is last.
++        names = ['lane_code_log.py', 'lane_code_filter.py', 'lane_code_scan.py', 'tssh.sh', 'lane_code_stage.sh', 'lane_code_sync.sh']
++        pending = []
++        for name in names:
++            destination = base / 'tools' / name
++            temporary = base / 'tools' / ('.' + name + '.lcs-' + token)
++            print('INSTALL_PENDING ' + str(temporary), flush=True)
++            mode = stat.S_IMODE(destination.stat().st_mode) if destination.exists() else 0o755
++            fd = os.open(str(temporary), os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, mode)
++            with os.fdopen(fd, 'wb') as target:
++                target.write((package / 'tools' / name).read_bytes())
++                target.flush()
++                os.fsync(target.fileno())
++            if name.endswith('.sh'):
++                subprocess.check_call(['bash', '-n', str(temporary)])
++            else:
++                compile(temporary.read_bytes(), str(temporary), 'exec')
++            pending.append((temporary, destination))
++        hashes(base, package / 'PREIMAGE.sha256')
++        for temporary, destination in pending:
++            os.replace(str(temporary), str(destination))
++            print('INSTALLED ' + str(destination), flush=True)
++        hashes(base, package / 'POSTIMAGE.sha256')
++        print('INSTALL OK; robust mode remains OFF. Calibrate before creating the flag.', flush=True)
++    return 0
++
++
++def scanner_preflight(package, state):
++    """An old-layout scanner exits zero on --accept-archive but destroys accepted."""
++    root = state / ('tmp_install_scan_' + uuid.uuid4().hex)
++    root.mkdir()
++    print('SCANNER_PREFLIGHT ' + str(root), flush=True)
++    incoming, accepted = root / 'incoming', root / 'accepted'
++    payload = b'synthetic scanner preflight\n'
++    with tarfile.open(str(incoming), 'w') as stream:
++        entry = tarfile.TarInfo('probe.py')
++        entry.size = len(payload)
++        stream.addfile(entry, io.BytesIO(payload))
++    expected = incoming.read_bytes()
++    accepted.write_bytes(b'prior accepted marker')
++    env = dict(os.environ, LCS_ROBUST_SYNC='1', LCS_COPY_TMP=str(root / '.copy.pending'))
++    command = [sys.executable, '-I', '-s', '-B', str(package / 'tools/lane_code_scan.py')]
++    subprocess.check_call(command + ['--accept-archive', str(incoming), str(accepted)], env=env, timeout=10)
++    if accepted.read_bytes() != expected or incoming.exists():
++        raise ValueError('scanner protocol refused: postimage is old-layout or cannot accept an archive')
++    destination, flags = root / 'destination', root / 'flags'
++    subprocess.check_call(command + [str(accepted), str(destination), str(flags)], env=env, timeout=10)
++    if not (destination / 'probe.py').is_file() or (destination / 'probe.py').read_bytes() != payload or flags.read_bytes():
++        raise ValueError('scanner protocol refused: postimage cannot scan/copy the accepted archive')
++    print('PREFLIGHT scanner protocol: OK', flush=True)
++
++
++if __name__ == '__main__':
++    try:
++        sys.exit(main())
++    except Exception as error:
++        print('INSTALL FAILED: %s; retain the logged backup and temporary paths.' % error, file=sys.stderr)
++        sys.exit(2)
+--- /dev/null
++++ b/calibrate_budgets.py
+@@ -0,0 +1,83 @@
++"""Derive budgets from one successful robust --stage-only log; never enable the flag."""
++import datetime
++from pathlib import Path
++import re
++import sys
++
++REQUIRED = {'trinity-1-18', 'trinity-3-30', 'orch_n30/tools', 'orch_n30/briefs'}
++
++
++def derive(text):
++    marks, durations, skipped = {}, {}, set()
++    complete = False
++    for line in text.splitlines():
++        if re.search(r'\bFAIL\b', line):
++            raise ValueError('calibration contains FAIL; do not enable or automatically rerun')
++        match = re.match(r'^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ) (.*)$', line)
++        if not match:
++            continue
++        timestamp = datetime.datetime.strptime(match.group(1), '%Y-%m-%dT%H:%M:%SZ')
++        message = match.group(2)
++        if message == 'STAGE-ONLY done':
++            if complete:
++                raise ValueError('multiple calibration completions')
++            complete = True
++            continue
++        event = None
++        for prefix, name in (('ROBUST stage ', 'stage'), ('ROBUST accept ', 'accept'),
++                             ('STAGED ', 'staged'), ('ROBUST copy ', 'copy'), ('COPIED ', 'copied')):
++            if message.startswith(prefix):
++                event, label = name, message[len(prefix):].split()[0]
++                if name in ('staged', 'copied') and not message.endswith(' rc=0'):
++                    raise ValueError('unsuccessful measurement: ' + message)
++                break
++        if message.startswith('SKIP trinity-2-28 '):
++            skipped.add('trinity-2-28')
++        if event is None:
++            continue
++        if complete:
++            raise ValueError('measurements after completion')
++        history = marks.setdefault(label, {})
++        order = ('stage', 'accept', 'staged', 'copy', 'copied')
++        if len(history) >= len(order) or order[len(history)] != event:
++            raise ValueError('missing, duplicate, or unordered measurement for ' + label + ': ' + event)
++        if history and timestamp < max(history.values()):
++            raise ValueError('negative interval for ' + label)
++        history[event] = timestamp
++        if event == 'copied':
++            durations[label] = {
++                'stage': int((history['accept'] - history['stage']).total_seconds()),
++                'accept': int((history['staged'] - history['accept']).total_seconds()),
++                'copy': int((history['copied'] - history['copy']).total_seconds())}
++    if not complete or not REQUIRED.issubset(durations):
++        raise ValueError('calibration lacks required stage, accept, copy measurements or STAGE-ONLY done')
++    if skipped.intersection(durations) or set(marks) - set(durations) - skipped:
++        raise ValueError('calibration contains incomplete source measurements')
++    longest_stage = max(value['stage'] for value in durations.values())
++    longest_copy = max(max(value['accept'], value['copy']) for value in durations.values())
++    scan = max(120, 2 * longest_stage + 30)
++    copy = max(120, 2 * longest_copy + 30)
++    leg = max(150, scan + 125)
++    remote = max(160, leg + 30)
++    node = max(210, remote + 125)
++    budgets = [('LCS_FILE_SECONDS', 3), ('LCS_SCAN_SECONDS', scan), ('LCS_COPY_SECONDS', copy),
++               ('LCS_LEG_SECONDS', leg), ('LCS_REMOTE_SECONDS', remote), ('LCS_NODE_SECONDS', node),
++               ('LCS_KILL_SECONDS', 5)]
++    if any(value > 3600 for name, value in budgets):
++        raise ValueError('derived budget exceeds 3600 seconds; owner must review before enabling')
++    return durations, budgets
++
++
++if __name__ == '__main__':
++    try:
++        durations, budgets = derive(Path(sys.argv[1]).read_text())
++        for label, measured in sorted(durations.items()):
++            for event in ('stage', 'accept', 'copy'):
++                print('MEASURE %s_seconds %s=%d (one-second log resolution)' %
++                      (event, label, measured[event]), file=sys.stderr)
++        print('ESTIMATE budgets use twice the longest measured interval plus margins; COPY covers acceptance and copy.', file=sys.stderr)
++        for name, value in budgets:
++            print('%s=%d' % (name, value))
++    except Exception as error:
++        print('CALIBRATION REFUSED: ' + str(error), file=sys.stderr)
++        sys.exit(2)
+--- /dev/null
++++ b/owner_checks.py
+@@ -0,0 +1,71 @@
++"""Read sync.log once for the owner; never start, stop, or retry a sync."""
++import datetime
++import re
++import sys
++
++STAMP = re.compile(r'^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ) (.*)$')
++THRESHOLD = 0.05  # Policy choice: whole-source rejection above 5% risks starvation.
++
++
++def lines(text):
++    return text.splitlines() if isinstance(text, str) else text
++
++
++def window(text, now=None):
++    """Require the latest hourly invocation to have ended within 600 seconds."""
++    now = now or datetime.datetime.utcnow()
++    hourly = False
++    ended = None
++    for line in lines(text):
++        match = STAMP.match(line.rstrip('\n'))
++        if not match:
++            continue
++        message = match.group(2)
++        if message.startswith('START '):
++            hourly = message == 'START dry=0 queue_only=0'
++            ended = None
++        elif hourly and (message == 'END ok' or message.startswith('END with failures')):
++            ended = datetime.datetime.strptime(match.group(1), '%Y-%m-%dT%H:%M:%SZ')
++    if ended is None:
++        raise ValueError('no completed latest hourly run with an END line')
++    age = (now - ended).total_seconds()
++    if not 0 <= age <= 600:
++        raise ValueError('latest hourly END is %.1f seconds old; require 0..600 seconds' % age)
++    return age
++
++
++def pre_enable(text):
++    runs = failures = 0
++    for line in lines(text):
++        if re.match(r'^\S+ START dry=0 queue_only=0\s*$', line):
++            runs += 1
++        if re.search(r'\btrinity-1-18 stage rc=4\b', line):
++            failures += 1
++    if runs == 0:
++        raise ValueError('no hourly runs in sync.log; STAY LEGACY until evidence is available')
++    rate = failures / float(runs)
++    print('PRE-ENABLE runs=%d stage_rc4_lines=%d rate=%.2f%% threshold=%.2f%% (entire supplied sync.log)' %
++          (runs, failures, 100 * rate, 100 * THRESHOLD))
++    if rate > THRESHOLD:
++        print('STAY LEGACY: whole-source rejection would exceed the 5% threshold; review source mutation before enabling.')
++        return 2
++    print('PRE-ENABLE within threshold; calibration is still required before enabling.')
++    return 0
++
++
++if __name__ == '__main__':
++    try:
++        mode, path = sys.argv[1:3]
++        with open(path) as stream:
++            if mode == 'window':
++                age = window(stream)
++                print('CALIBRATION WINDOW OK: latest hourly END age=%.1fs (maximum 600s)' % age)
++                rc = 0
++            elif mode == 'pre-enable':
++                rc = pre_enable(stream)
++            else:
++                raise ValueError('expected window or pre-enable')
++        sys.exit(rc)
++    except Exception as error:
++        print('OWNER CHECK REFUSED: ' + str(error), file=sys.stderr)
++        sys.exit(2)
+--- /dev/null
++++ b/install.sh
+@@ -0,0 +1,17 @@
++#!/bin/bash
++# Saved owner script. Invoke with: bash -eu /path/to/so_syncfix/install.sh
++date -u
++export CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
++export TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1
++B=${B:-/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30}
++S=${S:-/scratch/jjyeung/distill_sync}
++PYTHON=${LCS_OWNER_PYTHON:-/usr/bin/python3}
++PKG=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
++[ "$(hostname -s)" = trinity-3-30 ] || { echo 'INSTALL REFUSED: wrong host' >&2; exit 2; }
++cd "$PKG"
++nice -n 10 sha256sum -c SHA256SUMS
++# PREIMAGE requires the installed uncapped scanfix, including its exact scanner hash.
++(cd "$B" && nice -n 10 sha256sum -c "$PKG/PREIMAGE.sha256")
++nice -n 10 "$PYTHON" -I -s -B "$PKG/install_tools.py" "$PKG" "$B" "$S"
++(cd "$B" && nice -n 10 sha256sum -c "$PKG/POSTIMAGE.sha256")
++date -u
+--- /dev/null
++++ b/pre_enable.sh
+@@ -0,0 +1,11 @@
++#!/bin/bash
++# Saved owner script. Invoke with: bash -eu /path/to/so_syncfix/pre_enable.sh
++date -u
++export CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
++export TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1
++S=${S:-/scratch/jjyeung/distill_sync}
++PYTHON=${LCS_OWNER_PYTHON:-/usr/bin/python3}
++PKG=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
++[ "$(hostname -s)" = trinity-3-30 ] || { echo 'PRE-ENABLE REFUSED: wrong host' >&2; exit 2; }
++nice -n 10 "$PYTHON" -I -s -B "$PKG/owner_checks.py" pre-enable "$S/sync.log"
++date -u
+--- /dev/null
++++ b/calibrate.sh
+@@ -0,0 +1,28 @@
++#!/bin/bash
++# Saved owner script. Invoke with: bash -eu /path/to/so_syncfix/calibrate.sh
++date -u
++export CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
++export TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1
++B=${B:-/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30}
++S=${S:-/scratch/jjyeung/distill_sync}
++PYTHON=${LCS_OWNER_PYTHON:-/usr/bin/python3}
++PKG=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
++[ "$(hostname -s)" = trinity-3-30 ] || { echo 'CALIBRATION REFUSED: wrong host' >&2; exit 2; }
++[ "${LCS_ROBUST_SYNC:-0}" != 1 ] && [ ! -e "$S/LCS_ROBUST_SYNC" ] && [ ! -L "$S/LCS_ROBUST_SYNC" ] || {
++  echo 'CALIBRATION REFUSED: keep robust mode OFF in the hourly loop' >&2; exit 2;
++}
++[ "$(readlink -f "$S")" = "$S" ] || { echo 'CALIBRATION REFUSED: S has a symlinked ancestor' >&2; exit 2; }
++(cd "$B" && nice -n 10 sha256sum -c "$PKG/POSTIMAGE.sha256")
++nice -n 10 "$PYTHON" -I -s -B "$PKG/owner_checks.py" pre-enable "$S/sync.log"
++# Check immediately before the single run; a refusal never waits or retries.
++nice -n 10 "$PYTHON" -I -s -B "$PKG/owner_checks.py" window "$S/sync.log"
++nice -n 10 env LCS_B="$B" LCS_S="$S" LCS_ROBUST_SYNC=1 LCS_FILE_SECONDS=3 \
++  LCS_SCAN_SECONDS=1800 LCS_COPY_SECONDS=1800 LCS_LEG_SECONDS=1900 \
++  LCS_REMOTE_SECONDS=2000 LCS_NODE_SECONDS=2200 LCS_KILL_SECONDS=5 \
++  bash "$B/tools/lane_code_sync.sh" --stage-only > "$S/robust_calibration.log" 2>&1
++nice -n 10 "$PYTHON" -I -s -B "$PKG/calibrate_budgets.py" \
++  "$S/robust_calibration.log" > "$S/LCS_ROBUST_BUDGETS.next"
++cat "$S/LCS_ROBUST_BUDGETS.next"
++mv "$S/LCS_ROBUST_BUDGETS.next" "$S/LCS_ROBUST_BUDGETS"
++echo 'CALIBRATION OK; robust mode remains OFF. Review the measurements before creating the flag.'
++date -u
+--- /dev/null
++++ b/enable.sh
+@@ -0,0 +1,25 @@
++#!/bin/bash
++# Saved owner script. Invoke only after reviewing calibration: bash -eu /path/to/so_syncfix/enable.sh
++date -u
++export CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
++export TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1
++B=${B:-/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30}
++S=${S:-/scratch/jjyeung/distill_sync}
++PYTHON=${LCS_OWNER_PYTHON:-/usr/bin/python3}
++PKG=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
++[ "$(hostname -s)" = trinity-3-30 ] || { echo 'ENABLE REFUSED: wrong host' >&2; exit 2; }
++exec 8>"$S/.sync.lock"
++flock -n 8 || { echo 'ENABLE REFUSED: sync holds lock' >&2; exit 3; }
++(cd "$B" && nice -n 10 sha256sum -c "$PKG/POSTIMAGE.sha256")
++nice -n 10 "$PYTHON" -I -s -B "$PKG/owner_checks.py" pre-enable "$S/sync.log"
++nice -n 10 "$PYTHON" -I -s -B "$PKG/calibrate_budgets.py" "$S/robust_calibration.log" > "$S/LCS_ROBUST_BUDGETS.verify"
++cmp "$S/LCS_ROBUST_BUDGETS.verify" "$S/LCS_ROBUST_BUDGETS"
++[ ! -e "$S/LCS_ROBUST_SYNC" ] && [ ! -L "$S/LCS_ROBUST_SYNC" ] || { echo 'ENABLE REFUSED: flag already exists' >&2; exit 2; }
++[ ! -L "$S/LCS_ROBUST_SYNC.next" ] && { [ ! -e "$S/LCS_ROBUST_SYNC.next" ] || [ -f "$S/LCS_ROBUST_SYNC.next" ]; } || {
++  echo 'ENABLE REFUSED: pending flag is not regular' >&2; exit 2;
++}
++umask 077
++: > "$S/LCS_ROBUST_SYNC.next"
++mv "$S/LCS_ROBUST_SYNC.next" "$S/LCS_ROBUST_SYNC"
++echo 'ENABLED: the next hourly invocation reads the flag; check its STAGED, COPIED, push verification and END lines.'
++date -u
+--- /dev/null
++++ b/PREIMAGE.sha256
+@@ -0,0 +1,5 @@
++6ccfa27cf92af3fa20b6311e43be720d9140f43cbc7deed8f917355eae85c5d1  tools/lane_code_filter.py
++1096b99487c006ce2e2eb1ae5bb46aabce08ef27a0f1fea92c5c455d48c70ce7  tools/lane_code_sync.sh
++6bb3905a3280257e4463d86b1d5dff392dc4763daeda6aaa768880fb46472603  tools/tssh.sh
++f9460a5e3e23e5f2765e454824645d8970b333817518d626847a5e0cba46fabb  tools/lane_code_scan.py
++f4b0cc8328e1044b9f3d26721891ce683fc9636a240e8a9d077ac26d5bcd4f54  tools/sync_health.py
+--- /dev/null
++++ b/POSTIMAGE.sha256
+@@ -0,0 +1,7 @@
++1577615f6fd2465aca82d5e4de4e8e1d137501667e8b5006f9beec32e0156829  tools/lane_code_filter.py
++e9a784709dcdf4b6526315652d85223d85b53e26e9001c2cedc20432ec759bb8  tools/lane_code_sync.sh
++4d7669f4236e0dd17894a270f24d5054dccd6e30d99508c7b937accb9ea10a0f  tools/tssh.sh
++bcd91ff1db24842717418a511cfb4bdd66abe8a337717a66979348d725e732c2  tools/lane_code_scan.py
++f4b0cc8328e1044b9f3d26721891ce683fc9636a240e8a9d077ac26d5bcd4f54  tools/sync_health.py
++49456f3d13108e6168205659f6209d7f2c9315ee72da2bf43142313a3cffd796  tools/lane_code_stage.sh
++30651e79852825c9f934429fb31ea245355d04922130c25952cc83012941744d  tools/lane_code_log.py

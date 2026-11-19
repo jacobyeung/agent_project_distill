@@ -1,0 +1,85 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/cpu_stub.py": "5b2b93b2377e78d0e4d1d7751d1c95a3044c843a804c052f47b62eb13684a5d6",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/inputs/ENV_REQUIRED.json": "6d41e9b5c0dff97121d37bb2dbf07badee13f9cdcabf9c0d9b77e994f4833620",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/inputs/G3T_FOV.json": "4c9d4e9ba717cecfb06d8af618d18325afbdcb69940d265bd372c60a21e50eac",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/fov_variants.py": "4f66911b9de9989fe9054529dd2eca9af698a7642cbd6f6b6e28f678df89fd7a",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/core.py": "df1a2695b70b2f4517a07cdfb93195339e96819c6522768df03047389817b4df",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/worker.py": "ba529e6e4f697e5fa15466197195c6c44bcac98fc6984cbcdbdce89af62be8e4",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/runtime.py": "773bab5829a006382d41bfe826225e8094b3dc5e71dffd88031d2d3bf12e0523",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/inputs/TRAIN_CAPTURES.json": "7534fabfc7334af43b2f8cf2a472145d6d562bb6ad19525ee3ecef9462db750f",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/vendor/native_kit/boundaries.py": "5fbe3ae6ace471c8d8ec532cdde50b0bca4db687b5fc5f7c890c9b6ad44e620c",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/inputs/A10b_code.tgz": "de1c28cac23a1d0c4af8b76687c460f6e8963f513cfaad52c8bc191d80f670d6",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_b_final/random_small_weights.pt": "f81727e08cf85ab93c056c077c365d9edf7f11ca4bc37b1e33f732d7e1c38af8",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_b_final/FIXTURE_CONFIG.json": "81b15d6083589f2535ed5fe63850ac19dd3b155c4b699c3bcc207fc1d7992682",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_b_final/captures/dfece798227526fb/PHASE_COMPLETE.json": "7ee503407d74743f682fa35d2af877c219af1666334b80a5bacabdda5269b55b",
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/__init__.py": "0387d8b811b289287479c8bfdf4e1dac3a71b246f938d82da1331cf2dc8bf001",
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/numpy/__init__.py": "6ae17b070c0f70a8e3cad89a510a256942e5a1f37ea5feb120cec167ed2a6236",
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/PIL/__init__.py": "43828e12947b4bf5ec8f7d1fbceb2f47de311295f8294b15794c1a54fd5f53cd",
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/__init__.py": "135ddabaeed9a78e2a40f5fd5ec948361b59650c96ce9222cba011826ee17632",
+    "/scratch/jjyeung/envs/p1cpu/bin/python": "9544d2a29138833e6177d45dbc57468d37710b5080c901fbb579d53f251cdd6f"
+  },
+  "status": "STUB PASS; real weights MISSING",
+  "capture": "arkitscenes/41048124",
+  "shape": [
+    32,
+    51,
+    51
+  ],
+  "first_run_captures": 1,
+  "resume_captures": 1,
+  "skip_receipt_unchanged": true,
+  "peak_rss_bytes": 400203776,
+  "seconds": 4.0847546542063355,
+  "median_ratio_vs544": "MISSING: synthetic weights cannot measure checkpoint parity",
+  "OwnDepthScale_ratio_vs544": "MISSING",
+  "real_functions": [
+    "GPU.own",
+    "runtime.prompt_batch",
+    "_prepare_decode",
+    "closed_adapters",
+    "HeadState",
+    "depth_head.query invocation"
+  ],
+  "stubbed_primitives": [
+    "trainer prompt preprocessing (RGB mean)",
+    "native backbone",
+    "pose and depth weights",
+    "private-ViT feature extraction"
+  ],
+  "command": "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B kit/cpu_stub.py --out out/cpu_b_final",
+  "environment_required": {
+    "python": "/scratch/jjyeung/b01ec87a6f29b/d/v/py",
+    "modules": {
+      "scipy": {
+        "version": "1.14.1"
+      },
+      "torch": {
+        "version": "2.13.0+cu130"
+      },
+      "torchvision": {
+        "version": "0.28.0+cu130"
+      },
+      "transformers": {
+        "version": "5.19.0"
+      }
+    },
+    "archives": [
+      {
+        "path": "/scratch/jjyeung/orch_n30/reads228/dl/a2.tar",
+        "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9",
+        "bytes": 5257369600
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/reads228/dl/a4.tar",
+        "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea",
+        "bytes": 145274880
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/reads228/dl/a3.tar",
+        "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae",
+        "bytes": 10240
+      }
+    ]
+  }
+}

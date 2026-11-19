@@ -1,0 +1,33 @@
+{
+  "fixture_gate_pins": {
+    "host_receipt": {
+      "path": "/tmp/q_22c714e1/host.json",
+      "sha256": "2f050a1793d3825d5a23bc3236d6d71021d2e6f999dfc4e5ca8f569f23db986d"
+    },
+    "review": {
+      "path": "/tmp/q_22c714e1/review.json",
+      "sha256": "bb3eb2cac8e770c0c301e1bac861beb407a78608ab441e7b9e812ceeb39903e4"
+    }
+  },
+  "identity": "5ebf1a18103316fb4a718f5d36860a40b6a2343c5220320e4b2b488bdf07b0b5",
+  "production_gates_supplied": false,
+  "records": [
+    {
+      "refusal": "R1_HOST_ADMISSION_MISSING",
+      "stage": "u.py/entry.admit before fixture host"
+    },
+    {
+      "refusal": "INDEPENDENT_REVIEW_PENDING",
+      "stage": "u.py/entry.admit before fixture review"
+    },
+    {
+      "mutation": "host FAIL",
+      "refusal": "R1_HOST_ADMISSION_MISSING"
+    },
+    {
+      "mutation": "review FAIL",
+      "refusal": "INDEPENDENT_REVIEW_PENDING"
+    }
+  ],
+  "status": "PASS"
+}

@@ -1,0 +1,366 @@
+test_low5_failed_marker (__main__.ComparatorFindings.test_low5_failed_marker) ... FAIL
+test_low5_missing_summary (__main__.ComparatorFindings.test_low5_missing_summary) ... FAIL
+test_low5_summary_completed (__main__.ComparatorFindings.test_low5_summary_completed) ... FAIL
+test_low5_summary_failure (__main__.ComparatorFindings.test_low5_summary_failure) ... FAIL
+test_low6_first50_contains_all_reference_pins (__main__.ComparatorFindings.test_low6_first50_contains_all_reference_pins) ... FAIL
+test_low6_reference_environment_pin (__main__.ComparatorFindings.test_low6_reference_environment_pin) ... FAIL
+test_low6_reference_identity_pin (__main__.ComparatorFindings.test_low6_reference_identity_pin) ... FAIL
+test_medium2_missing_keys (__main__.ComparatorFindings.test_medium2_missing_keys) ... FAIL
+test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) ... 
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='settings_sha256') ... FAIL
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='artifact_manifest_sha256') ... FAIL
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='reader_entry') ... FAIL
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='maker_name') ... FAIL
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='device') ... FAIL
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='arms') ... FAIL
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='modes') ... FAIL
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='r0_pin') ... FAIL
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='schema') ... FAIL
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='ids') ... FAIL
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='count') ... FAIL
+  test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='new_key') ... FAIL
+test_medium2_whole_settings (__main__.ComparatorFindings.test_medium2_whole_settings) ... 
+  test_medium2_whole_settings (__main__.ComparatorFindings.test_medium2_whole_settings) (key='arm') ... FAIL
+  test_medium2_whole_settings (__main__.ComparatorFindings.test_medium2_whole_settings) (key='config') ... FAIL
+  test_medium2_whole_settings (__main__.ComparatorFindings.test_medium2_whole_settings) (key='frames_root') ... FAIL
+  test_medium2_whole_settings (__main__.ComparatorFindings.test_medium2_whole_settings) (key='new_key') ... FAIL
+test_positive_control (__main__.ComparatorFindings.test_positive_control) ... ok
+test_info10_coordinator_unpacks_for_ingest (__main__.LaunchFindings.test_info10_coordinator_unpacks_for_ingest) ... FAIL
+test_low7_no_settings_import_append (__main__.LaunchFindings.test_low7_no_settings_import_append) ... FAIL
+test_low8_all_wrapper_environments (__main__.LaunchFindings.test_low8_all_wrapper_environments) ... 
+  test_low8_all_wrapper_environments (__main__.LaunchFindings.test_low8_all_wrapper_environments) (script='run228.sh') ... FAIL
+  test_low8_all_wrapper_environments (__main__.LaunchFindings.test_low8_all_wrapper_environments) (script='read228.sh') ... FAIL
+  test_low8_all_wrapper_environments (__main__.LaunchFindings.test_low8_all_wrapper_environments) (script='compare228.sh') ... FAIL
+test_low9_cuda_oom_variants (__main__.LaunchFindings.test_low9_cuda_oom_variants) ... 
+  test_low9_cuda_oom_variants (__main__.LaunchFindings.test_low9_cuda_oom_variants) (message='CUDA error: out of memory') ... FAIL
+  test_low9_cuda_oom_variants (__main__.LaunchFindings.test_low9_cuda_oom_variants) (message='CUBLAS_STATUS_ALLOC_FAILED') ... FAIL
+test_low9_cuda_oom_variants_write_marker_and_stop (__main__.LaunchFindings.test_low9_cuda_oom_variants_write_marker_and_stop) ... 
+  test_low9_cuda_oom_variants_write_marker_and_stop (__main__.LaunchFindings.test_low9_cuda_oom_variants_write_marker_and_stop) (message='CUDA error: out of memory') ... FAIL
+  test_low9_cuda_oom_variants_write_marker_and_stop (__main__.LaunchFindings.test_low9_cuda_oom_variants_write_marker_and_stop) (message='CUBLAS_STATUS_ALLOC_FAILED') ... FAIL
+test_medium4_namespace_used_without_relocation (__main__.LaunchFindings.test_medium4_namespace_used_without_relocation) ... FAIL
+
+======================================================================
+FAIL: test_low5_failed_marker (__main__.ComparatorFindings.test_low5_failed_marker)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 72, in test_low5_failed_marker
+    self.assertFalse(result(root)['eligible'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_low5_missing_summary (__main__.ComparatorFindings.test_low5_missing_summary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 76, in test_low5_missing_summary
+    self.assertFalse(result(root)['eligible'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_low5_summary_completed (__main__.ComparatorFindings.test_low5_summary_completed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 68, in test_low5_summary_completed
+    self.assertFalse(result(root)['eligible'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_low5_summary_failure (__main__.ComparatorFindings.test_low5_summary_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 64, in test_low5_summary_failure
+    self.assertFalse(result(root)['eligible'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_low6_first50_contains_all_reference_pins (__main__.ComparatorFindings.test_low6_first50_contains_all_reference_pins)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 93, in test_low6_first50_contains_all_reference_pins
+    self.assertEqual(set(pins),set(wanted))
+AssertionError: Items in the second set but not the first:
+'metadata/reads/0/metadata/journals/3/0/environment.json'
+'metadata/IDENTITY.json'
+
+======================================================================
+FAIL: test_low6_reference_environment_pin (__main__.ComparatorFindings.test_low6_reference_environment_pin)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 87, in test_low6_reference_environment_pin
+    got=result(root,left);self.assertFalse(got['eligible'])
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_low6_reference_identity_pin (__main__.ComparatorFindings.test_low6_reference_identity_pin)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 81, in test_low6_reference_identity_pin
+    got=result(root,left);self.assertFalse(got['eligible'])
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_missing_keys (__main__.ComparatorFindings.test_medium2_missing_keys)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 60, in test_medium2_missing_keys
+    self.assertFalse(result(root)['eligible'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='settings_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='artifact_manifest_sha256')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='reader_entry')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='maker_name')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='device')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='arms')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='modes')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='r0_pin')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='schema')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='ids')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='count')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_binding (__main__.ComparatorFindings.test_medium2_whole_binding) (key='new_key')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 48, in test_medium2_whole_binding
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_settings (__main__.ComparatorFindings.test_medium2_whole_settings) (key='arm')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 55, in test_medium2_whole_settings
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_settings (__main__.ComparatorFindings.test_medium2_whole_settings) (key='config')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 55, in test_medium2_whole_settings
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_settings (__main__.ComparatorFindings.test_medium2_whole_settings) (key='frames_root')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 55, in test_medium2_whole_settings
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_medium2_whole_settings (__main__.ComparatorFindings.test_medium2_whole_settings) (key='new_key')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 55, in test_medium2_whole_settings
+    got=result(root);self.assertFalse(got['eligible'])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_info10_coordinator_unpacks_for_ingest (__main__.LaunchFindings.test_info10_coordinator_unpacks_for_ingest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 138, in test_info10_coordinator_unpacks_for_ingest
+    self.assertIn('unpack228.py',text);self.assertIn('ingest228.py',text)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'unpack228.py' not found in '#!/usr/bin/env bash\n# Run only after the coordinator supplies every MISSING.json target on local scratch.\nset -euo pipefail\nif [[ $# -ne 2 ]]; then\n  echo \'Usage: bash coordinator228.sh <idle-card-index-or-UUID> <fresh-local-run-directory>\' >&2\n  exit 2\nfi\ndate -u\nif [[ "$(hostname -s)" != trinity-2-28 ]]; then\n  echo \'REFUSED: coordinator228.sh is restricted to trinity-2-28\' >&2\n  exit 2\nfi\nkit_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"\nexport CUDA_VISIBLE_DEVICES=\'\' PYTHONDONTWRITEBYTECODE=1\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false\nexport HOME=/scratch/jjyeung/orch_n30/reads228/control_home\nexport XDG_CACHE_HOME=/scratch/jjyeung/orch_n30/reads228/control_cache\nexport CUDA_CACHE_PATH="$XDG_CACHE_HOME/nv" MPLCONFIGDIR="$XDG_CACHE_HOME/mpl"\nexport HF_HOME="$XDG_CACHE_HOME/hf" TRITON_CACHE_DIR="$XDG_CACHE_HOME/triton"\nexport USER=jjyeung LOGNAME=jjyeung PATH=/usr/local/bin:/usr/bin:/bin\nunset LD_LIBRARY_PATH\nmkdir -p "$HOME" "$XDG_CACHE_HOME" "$CUDA_CACHE_PATH" "$MPLCONFIGDIR" "$HF_HOME" "$TRITON_CACHE_DIR"\npackage="$kit_dir/A10b"\n# All extraction uses the target system Python 3.6.8; it imports no ML libraries.\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --extract-runtime\ndate -u\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --extract-inputs\ndate -u\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --relocate-runtime\ndate -u\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --install-code\ndate -u\n# Match the wrapper\'s Orchard invocation flags. No /envs/p1cpu is needed on 2-28.\nexport READ228_CONTROL_PYTHON=/scratch/jjyeung/b01ec87a6f29b/d/v/py\nnice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --prepare\ndate -u\nnice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --out /scratch/jjyeung/orch_n30/reads228/STAGE_CHECK.json\ndate -u\n# run228 performs stage_check(prepare=True), then the two >=300-second idle readings,\n# then exactly the requested first 50 commits. A busy card exits; there is no wait/retry loop.\nbash "$kit_dir/run228.sh" "$package" "$1" "$2" --items 50\ndate -u\nbash "$kit_dir/compare228.sh" "$2/ret" --orchard "$kit_dir/reference" --out "$2/COMPARE.json"\ndate -u\n'
+
+======================================================================
+FAIL: test_low7_no_settings_import_append (__main__.LaunchFindings.test_low7_no_settings_import_append)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 99, in test_low7_no_settings_import_append
+    self.assertNotIn("sys.argv.extend(['--settings'",text)
+AssertionError: "sys.argv.extend(['--settings'" unexpectedly found in '"""Execute the original A10b dispatch with explicit memory observation and optional so_read overlays."""\nimport argparse\nimport os\nfrom pathlib import Path\nimport resource\nimport runpy\nimport sys\nimport time\nimport traceback\nsys.path.insert(0,str(Path(__file__).resolve().parent))\nfrom common228 import *\nfrom observe228 import install,is_oom\n\ndef main():\n    ap=argparse.ArgumentParser();ap.add_argument(\'config\');ap.add_argument(\'--observe\',action=\'store_true\')\n    args=ap.parse_args()\n    if not args.observe:raise Refusal(\'Worker observation/launch requires explicit --observe\')\n    target_host()\n    cfg=read(args.config);out=Path(cfg[\'adapter\'][\'out\']);worker=cfg[\'worker\'];source=Path(worker[\'package\'])\n    install_imports(source)\n    settings=worker[\'config\'][\'settings\']\n    # h1eval chooses its native tree from this supported settings hook before import.\n    sys.argv.extend([\'--settings\',settings])\n    if cfg[\'adapter\'][\'on\']:\n        extension=Path(cfg[\'adapter\'][\'extensions\'])\n        sys.path.insert(0,str(extension/\'u0\'))\n        from a8 import activate\n        activate(enabled=True)\n    from e2e_reader import parity\n    from h1eval.h10 import launch\n    import torch,transformers\n    if not torch.cuda.is_available() or torch.cuda.device_count()!=1:raise Refusal(\'Worker requires exactly one visible CUDA device\')\n    prop=torch.cuda.get_device_properties(0)\n    if \'RTX 6000 Ada\' not in prop.name:raise Refusal(\'Worker GPU differs from occupancy evidence\')\n    state=install(parity,launch,torch,out,Path(worker[\'config\'][\'stop_file\']),cfg[\'adapter\'][\'items\'],enabled=True)\n    record=dict(utc=utc(),mode=\'ON\' if cfg[\'adapter\'][\'on\'] else \'OFF\',torch=torch.__version__,\n        transformers=transformers.__version__,cuda=torch.version.cuda,device=prop.name,total_memory=prop.total_memory,\n        capability=[prop.major,prop.minor],visible=os.environ[\'CUDA_VISIBLE_DEVICES\'],\n        deterministic_algorithms=torch.are_deterministic_algorithms_enabled(),\n        cudnn_deterministic=torch.backends.cudnn.deterministic,cudnn_benchmark=torch.backends.cudnn.benchmark,\n        matmul_allow_tf32=torch.backends.cuda.matmul.allow_tf32,cudnn_allow_tf32=torch.backends.cudnn.allow_tf32,\n        num_threads=torch.get_num_threads(),seed_action=\'none; preserve sealed A10b behavior\')\n    old_load=parity.load_native\n    def observed_load(*a,**kw):\n        result=old_load(*a,**kw);model=result[0]\n        record[\'attention_implementation\']=getattr(getattr(model.config,\'text_config\',model.config),\'_attn_implementation\',None)\n        kernels=set()\n        for module in model.modules():\n            for name in (\'chunk_gated_delta_rule\',\'recurrent_gated_delta_rule\'):\n                if hasattr(module,name):\n                    fn=getattr(module,name);kernels.add((name,getattr(fn,\'__module__\',\'unknown\'),getattr(fn,\'__name__\',type(fn).__name__)))\n        record[\'linear_attention_implementations\']=sorted(kernels)\n        write(out/\'telemetry/FRAMEWORK.json\',record)\n        return result\n    parity.load_native=observed_load\n    write(out/\'telemetry/FRAMEWORK.json\',record)\n    dispatch=out/\'metadata/worker_dispatch.json\';write(dispatch,worker)\n    rc=0;begin=time.monotonic()\n    try:\n        # Exact sealed orchard_h10.entry action 2 -> worker_args -> h1eval.h10.launch.main.\n        sys.argv=[str(source/\'orchard_h10/entry.py\'),str(dispatch)]\n        runpy.run_path(str(source/\'orchard_h10/entry.py\'),run_name=\'__main__\')\n    except SystemExit as error:rc=int(error.code or 0)\n    except BaseException as error:\n        rc=42 if is_oom(error,torch) else 1\n        failure=dict(phase=state[\'active\'][\'phase\'],item=state[\'active\'][\'item\'],\n                     error=str(error),exception=type(error).__name__,no_retry=True)\n        if rc==42:\n            failure.update(state[\'peaks\']());write(out/\'telemetry/OOM.json\',failure)\n        write(out/\'telemetry/WORKER_FAILURE.json\',failure)\n        Path(worker[\'config\'][\'stop_file\']).write_text(\'Worker failure: no retry\\n\')\n        traceback.print_exc()\n    finally:\n        if not cfg[\'adapter\'][\'on\'] and (\'a8\' in sys.modules or \'e2e_reader.read_cache\' in sys.modules):\n            rc=1;record[\'off_violation\']=\'Extension module imported\'\n        record.update(returncode=rc,worker_seconds=time.monotonic()-begin,\n            committed_items=len(state[\'committed\']),max_host_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024)\n        write(out/\'telemetry/FRAMEWORK.json\',record)\n        state[\'restore\']();parity.load_native=old_load\n    return rc\n\nif __name__==\'__main__\':\n    try:raise SystemExit(main())\n    except (Refusal,OSError,ValueError) as e:print(\'REFUSED: \'+str(e),file=sys.stderr);raise SystemExit(2)\n'
+
+======================================================================
+FAIL: test_low8_all_wrapper_environments (__main__.LaunchFindings.test_low8_all_wrapper_environments) (script='run228.sh')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 110, in test_low8_all_wrapper_environments
+    self.assertTrue(values.get(key,'').startswith(str(root/'control')+'/'),(key,values.get(key)))
+AssertionError: False is not true : ('HOME', '/home/forbidden')
+
+======================================================================
+FAIL: test_low8_all_wrapper_environments (__main__.LaunchFindings.test_low8_all_wrapper_environments) (script='read228.sh')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 110, in test_low8_all_wrapper_environments
+    self.assertTrue(values.get(key,'').startswith(str(root/'control')+'/'),(key,values.get(key)))
+AssertionError: False is not true : ('HOME', '/home/forbidden')
+
+======================================================================
+FAIL: test_low8_all_wrapper_environments (__main__.LaunchFindings.test_low8_all_wrapper_environments) (script='compare228.sh')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 110, in test_low8_all_wrapper_environments
+    self.assertTrue(values.get(key,'').startswith(str(root/'control')+'/'),(key,values.get(key)))
+AssertionError: False is not true : ('HOME', '/home/forbidden')
+
+======================================================================
+FAIL: test_low9_cuda_oom_variants (__main__.LaunchFindings.test_low9_cuda_oom_variants) (message='CUDA error: out of memory')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 115, in test_low9_cuda_oom_variants
+    with self.subTest(message=message):self.assertTrue(O.is_oom(RuntimeError(message),torch))
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_low9_cuda_oom_variants (__main__.LaunchFindings.test_low9_cuda_oom_variants) (message='CUBLAS_STATUS_ALLOC_FAILED')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 115, in test_low9_cuda_oom_variants
+    with self.subTest(message=message):self.assertTrue(O.is_oom(RuntimeError(message),torch))
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_low9_cuda_oom_variants_write_marker_and_stop (__main__.LaunchFindings.test_low9_cuda_oom_variants_write_marker_and_stop) (message='CUDA error: out of memory')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 133, in test_low9_cuda_oom_variants_write_marker_and_stop
+    self.assertTrue((out/'telemetry/OOM.json').is_file());self.assertTrue((out/'STOP').is_file())
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_low9_cuda_oom_variants_write_marker_and_stop (__main__.LaunchFindings.test_low9_cuda_oom_variants_write_marker_and_stop) (message='CUBLAS_STATUS_ALLOC_FAILED')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 133, in test_low9_cuda_oom_variants_write_marker_and_stop
+    self.assertTrue((out/'telemetry/OOM.json').is_file());self.assertTrue((out/'STOP').is_file())
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_medium4_namespace_used_without_relocation (__main__.LaunchFindings.test_medium4_namespace_used_without_relocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py", line 143, in test_medium4_namespace_used_without_relocation
+    self.assertNotIn('--relocate-runtime',text)
+AssertionError: '--relocate-runtime' unexpectedly found in '#!/usr/bin/env bash\n# Run only after the coordinator supplies every MISSING.json target on local scratch.\nset -euo pipefail\nif [[ $# -ne 2 ]]; then\n  echo \'Usage: bash coordinator228.sh <idle-card-index-or-UUID> <fresh-local-run-directory>\' >&2\n  exit 2\nfi\ndate -u\nif [[ "$(hostname -s)" != trinity-2-28 ]]; then\n  echo \'REFUSED: coordinator228.sh is restricted to trinity-2-28\' >&2\n  exit 2\nfi\nkit_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"\nexport CUDA_VISIBLE_DEVICES=\'\' PYTHONDONTWRITEBYTECODE=1\nexport OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false\nexport HOME=/scratch/jjyeung/orch_n30/reads228/control_home\nexport XDG_CACHE_HOME=/scratch/jjyeung/orch_n30/reads228/control_cache\nexport CUDA_CACHE_PATH="$XDG_CACHE_HOME/nv" MPLCONFIGDIR="$XDG_CACHE_HOME/mpl"\nexport HF_HOME="$XDG_CACHE_HOME/hf" TRITON_CACHE_DIR="$XDG_CACHE_HOME/triton"\nexport USER=jjyeung LOGNAME=jjyeung PATH=/usr/local/bin:/usr/bin:/bin\nunset LD_LIBRARY_PATH\nmkdir -p "$HOME" "$XDG_CACHE_HOME" "$CUDA_CACHE_PATH" "$MPLCONFIGDIR" "$HF_HOME" "$TRITON_CACHE_DIR"\npackage="$kit_dir/A10b"\n# All extraction uses the target system Python 3.6.8; it imports no ML libraries.\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --extract-runtime\ndate -u\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --extract-inputs\ndate -u\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --relocate-runtime\ndate -u\nnice -n 10 /usr/bin/python3 -I -s -B "$kit_dir/stage228.py" "$package" --install-code\ndate -u\n# Match the wrapper\'s Orchard invocation flags. No /envs/p1cpu is needed on 2-28.\nexport READ228_CONTROL_PYTHON=/scratch/jjyeung/b01ec87a6f29b/d/v/py\nnice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --prepare\ndate -u\nnice -n 10 "$READ228_CONTROL_PYTHON" -B -I "$kit_dir/stage228.py" "$package" --out /scratch/jjyeung/orch_n30/reads228/STAGE_CHECK.json\ndate -u\n# run228 performs stage_check(prepare=True), then the two >=300-second idle readings,\n# then exactly the requested first 50 commits. A busy card exits; there is no wait/retry loop.\nbash "$kit_dir/run228.sh" "$package" "$1" "$2" --items 50\ndate -u\nbash "$kit_dir/compare228.sh" "$2/ret" --orchard "$kit_dir/reference" --out "$2/COMPARE.json"\ndate -u\n'
+
+----------------------------------------------------------------------
+Ran 17 tests in 2.901s
+
+FAILED (failures=34)
+Command exited with non-zero status 1
+	Command being timed: "/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_review2.py"
+	User time (seconds): 2.85
+	System time (seconds): 0.10
+	Percent of CPU this job got: 98%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.99
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 34244
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 16811
+	Voluntary context switches: 346
+	Involuntary context switches: 16
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 59424
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1

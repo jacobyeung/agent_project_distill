@@ -1,0 +1,48 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/cpu_stub.py": "daf5881a7dc601b2d8614f821c205f074d08950840f39b82fb3c4fd81857b825",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/core.py": "c111f63203ba13457333f2690c189df6a0246760ac07ab1f289e39252d37997d",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/worker.py": "cf3f5701b2be4e76272e77aef5f9ac001b3628f22ff7e00d313830f3c00952f5",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/runtime.py": "773bab5829a006382d41bfe826225e8094b3dc5e71dffd88031d2d3bf12e0523",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/inputs/TRAIN_CAPTURES.json": "7534fabfc7334af43b2f8cf2a472145d6d562bb6ad19525ee3ecef9462db750f",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/vendor/native_kit/boundaries.py": "5fbe3ae6ace471c8d8ec532cdde50b0bca4db687b5fc5f7c890c9b6ad44e620c",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/inputs/A10b_code.tgz": "de1c28cac23a1d0c4af8b76687c460f6e8963f513cfaad52c8bc191d80f670d6",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_receipted/random_small_weights.pt": "639f6d5b81a11ffaa8a06ad61e1ab2f7f044b2041e2adfc00c23db526e02d342",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_receipted/FIXTURE_CONFIG.json": "fee8a56b65e1b7f21ece91e254837139db98f22d946575d4508c404152c090c7",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_receipted/captures/dfece798227526fb/PHASE_COMPLETE.json": "0792559601042b41cb0bc7c103a55fa20533ca474de3f30b46389a4ded97e3b8",
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/__init__.py": "0387d8b811b289287479c8bfdf4e1dac3a71b246f938d82da1331cf2dc8bf001",
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/numpy/__init__.py": "6ae17b070c0f70a8e3cad89a510a256942e5a1f37ea5feb120cec167ed2a6236",
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/PIL/__init__.py": "43828e12947b4bf5ec8f7d1fbceb2f47de311295f8294b15794c1a54fd5f53cd",
+    "/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/__init__.py": "135ddabaeed9a78e2a40f5fd5ec948361b59650c96ce9222cba011826ee17632",
+    "/scratch/jjyeung/envs/p1cpu/bin/python": "9544d2a29138833e6177d45dbc57468d37710b5080c901fbb579d53f251cdd6f"
+  },
+  "status": "STUB PASS; real weights MISSING",
+  "capture": "arkitscenes/41048124",
+  "shape": [
+    32,
+    51,
+    51
+  ],
+  "first_run_captures": 1,
+  "resume_captures": 1,
+  "skip_receipt_unchanged": true,
+  "peak_rss_bytes": 399925248,
+  "seconds": 4.478667724877596,
+  "median_ratio_vs544": "MISSING: synthetic weights cannot measure checkpoint parity",
+  "OwnDepthScale_ratio_vs544": "MISSING",
+  "real_functions": [
+    "GPU.own",
+    "runtime.prompt_batch",
+    "_prepare_decode",
+    "closed_adapters",
+    "HeadState",
+    "depth_head.query invocation"
+  ],
+  "stubbed_primitives": [
+    "trainer prompt preprocessing (RGB mean)",
+    "native backbone",
+    "pose and depth weights",
+    "private-ViT feature extraction"
+  ],
+  "command": "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B kit/cpu_stub.py --out out/cpu_receipted"
+}

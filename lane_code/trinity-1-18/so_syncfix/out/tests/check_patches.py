@@ -26,7 +26,7 @@ for mode in ('numbered', 'tools-only'):
     if mode == 'numbered':
         targets += list((package / 'tests').glob('*.py')) + list((package / 'inputs').glob('*'))
         targets += [package / name for name in ('install_tools.py', 'calibrate_budgets.py', 'owner_checks.py',
-                    'install.sh', 'pre_enable.sh', 'calibrate.sh', 'enable.sh', 'PREIMAGE.sha256', 'POSTIMAGE.sha256')]
+                    'install.sh', 'pre_enable.sh', 'calibrate.sh', 'enable.sh', 'disable.sh', 'rollback.sh', 'PREIMAGE.sha256', 'POSTIMAGE.sha256')]
     for source in targets:
         target = root / source.relative_to(package)
         assert source.read_bytes() == target.read_bytes(), str(source)

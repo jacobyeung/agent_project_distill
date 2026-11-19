@@ -1,4 +1,4 @@
-"""Install only the reviewed so_read additions; this never changes the sealed A4 tree."""
+"""Install only the reviewed so_read additions; this never changes the sealed A10b tree."""
 import argparse
 from pathlib import Path
 import subprocess

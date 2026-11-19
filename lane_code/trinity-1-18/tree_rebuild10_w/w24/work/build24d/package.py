@@ -35,6 +35,8 @@ for dirname in ('p','p2'):
  for label in ('q/RESULT.json','q/f.json','q/h/config.json','q/c.json','i/r.json'):add(D/'go'/dirname/label)
 for p in (D/'go/train').glob('*.json*'):add(p)
 for name in ('work/build24/joblib.py','work/build24c/runtime.py','attic/build24d/work/build24/joblib.py','attic/build24d/runtime.py'):add(L/name)
+for name in ('GO_TRAIN.json','go/stage2.log'):add(L/'attic/build24d/go_gates_first'/name)
+for name in ('GO_TRAIN.json','go/stage2.log'):add(L/'attic/build24d/go_gates_second'/name)
 for name in ('UPLOADS_24D.json','UPLOADS_24D.list','UPLOADS_24D_GO.json','TREE_SEAL.json'):add(L/'out'/name)
 # Freeze evidence that a still-running CPU proof may append while packaging.
 # Archive names remain the original workspace-relative paths.

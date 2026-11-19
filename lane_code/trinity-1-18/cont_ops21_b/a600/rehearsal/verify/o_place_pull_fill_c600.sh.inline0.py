@@ -1,0 +1,1 @@
+import json;b=json.load(open('$S/BUILD.json'));print(b['A']['package'],b['A']['delivery_dir'],b['A']['delivery_sha256'])

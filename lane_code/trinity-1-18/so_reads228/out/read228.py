@@ -1,5 +1,6 @@
-"""Cont_ops handoff: preflight, full OFF read, archive, and original unpack validation."""
+"""Cont_ops handoff: preflight, OFF prefix read, archive, and original unpack validation."""
 from pathlib import Path
+import argparse
 import json
 import secrets
 import subprocess
@@ -7,11 +8,15 @@ import sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from common228 import *
 
-def main():
-    if len(sys.argv)!=3:raise Refusal('Usage: read228.sh <package> <card>')
-    target_host();root=package_root(sys.argv[1]);card=sys.argv[2]
+def main(argv=None):
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('package');parser.add_argument('card')
+    parser.add_argument('--items',type=int,default=50)
+    a=parser.parse_args(argv)
+    if not 1<=a.items<=636:raise Refusal('--items must be in 1..636')
+    target_host();root=package_root(a.package);card=a.card
     out=root.parent/'runs'/('a'+secrets.token_hex(8))
-    command=['bash',str(HERE/'run228.sh'),str(root),card,str(out)]
+    command=['bash',str(HERE/'run228.sh'),str(root),card,str(out),'--items',str(a.items)]
     rc=subprocess.run(command).returncode
     # Even an OOM/partial return can be inspected by the original unpacker, if it has a started journal.
     result=out/'RESULT.json'

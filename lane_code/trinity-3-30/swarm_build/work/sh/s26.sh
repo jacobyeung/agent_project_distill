@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30; cut -c1-600 $R/sb_own400/STATUS.md; echo; ps -eo args | grep -v grep | grep -c "codex exec.*sb_own400"; ls $R/sb_kobj4 | tr "\n" " "; echo; ls $R/sb_kobj4/out 2>/dev/null | tr "\n" " "; echo; head -c 1500 $R/sb_kobj4/STATUS.md 2>/dev/null; ls -d $R/sb_kobj* $R/sb_ko* 2>/dev/null | tr "\n" " "

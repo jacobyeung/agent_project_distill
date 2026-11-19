@@ -12,7 +12,7 @@ exec 8>"$S/.sync.lock"
 flock -n 8 || { echo 'ENABLE REFUSED: sync holds lock' >&2; exit 3; }
 (cd "$B" && nice -n 10 sha256sum -c "$PKG/POSTIMAGE.sha256")
 nice -n 10 "$PYTHON" -I -s -B "$PKG/owner_checks.py" pre-enable "$S/sync.log"
-nice -n 10 "$PYTHON" -I -s -B "$PKG/calibrate_budgets.py" "$S/robust_calibration.log" > "$S/LCS_ROBUST_BUDGETS.verify"
+nice -n 10 "$PYTHON" -I -s -B "$PKG/calibrate_budgets.py" "$S/robust_calibration.log" "$S/sync.log" > "$S/LCS_ROBUST_BUDGETS.verify"
 cmp "$S/LCS_ROBUST_BUDGETS.verify" "$S/LCS_ROBUST_BUDGETS"
 [ ! -e "$S/LCS_ROBUST_SYNC" ] && [ ! -L "$S/LCS_ROBUST_SYNC" ] || { echo 'ENABLE REFUSED: flag already exists' >&2; exit 2; }
 [ ! -L "$S/LCS_ROBUST_SYNC.next" ] && { [ ! -e "$S/LCS_ROBUST_SYNC.next" ] || [ -f "$S/LCS_ROBUST_SYNC.next" ]; } || {

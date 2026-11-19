@@ -1,0 +1,3 @@
+cd /project/community/jjyeung/okh7
+for n in a37de5787ed a4cadd8934b b01ec87a6f29b00029a7c b01ec87a6f29b00029a87 b01ec87a6f29b00029ab2 b01ec87a6f29b00029ac6 b01ec87a6f29b00029ad2 b9ef55293462700029cf5 bf94a7976a7e900029b5e e09e45fda45db00029c87 f40065df28aa30002a1a8; do t=${n:0:13}; P=a15_cot_ap$t; echo "$n job=$(printf '%d' 0x${n:13} 2>/dev/null) pkg=$([ -d $P ] && echo y || echo n) 8txt=$(cat $P/a/8.txt 2>/dev/null) f=$(ls $P/a/f 2>/dev/null | tr '\n' ,) ret_in_f=$(ls -d $P/a/f/* 2>/dev/null | wc -l)"; done
+ls -la ae71c903_fetched | head -3; grep -l "ae71c903" /project/community/jjyeung/okh7/*.md 2>/dev/null | head

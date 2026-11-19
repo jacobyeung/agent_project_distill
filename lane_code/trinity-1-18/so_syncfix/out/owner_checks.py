@@ -36,17 +36,25 @@ def window(text, now=None):
 
 def pre_enable(text):
     runs = failures = 0
+    nodes = {}
     for line in lines(text):
         if re.match(r'^\S+ START dry=0 queue_only=0\s*$', line):
             runs += 1
-        if re.search(r'\btrinity-1-18 stage rc=4\b', line):
+        match = re.search(r'\bFAIL (\S+) stage rc=4\b', line)
+        local = re.search(r'\bFAIL (trinity-\d+-\d+) local stage\s*$', line)
+        if match or local:
             failures += 1
+            label = (match or local).group(1)
+            nodes[label] = nodes.get(label, 0) + 1
     if runs == 0:
         raise ValueError('no hourly runs in sync.log; STAY LEGACY until evidence is available')
     rate = failures / float(runs)
     print('PRE-ENABLE runs=%d stage_rc4_lines=%d rate=%.2f%% threshold=%.2f%% (entire supplied sync.log)' %
           (runs, failures, 100 * rate, 100 * THRESHOLD))
-    if rate > THRESHOLD:
+    for label, count in sorted(nodes.items()):
+        print('NODE %s failures=%d rate=%.2f%% (local stage failures conservatively included)' %
+              (label, count, 100 * count / float(runs)))
+    if any(count / float(runs) > THRESHOLD for count in nodes.values()):
         print('STAY LEGACY: whole-source rejection would exceed the 5% threshold; review source mutation before enabling.')
         return 2
     print('PRE-ENABLE within threshold; calibration is still required before enabling.')

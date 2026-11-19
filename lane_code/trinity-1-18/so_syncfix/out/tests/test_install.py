@@ -67,6 +67,8 @@ class CalibrationTests(unittest.TestCase):
                       '2026-11-19T12:02:10Z STAGED ' + label + ' rc=0',
                       '2026-11-19T12:02:11Z ROBUST copy ' + label,
                       '2026-11-19T12:05:11Z COPIED ' + label + ' rc=0']
+        lines += ['  [copy %s] SCAN scanned=1 copied=1 unchanged=0 flagged=0' % label
+                  for label in ('trinity-1-18', 'trinity-3-30', 'orch_n30/tools', 'orch_n30/briefs')]
         lines += ['2026-11-19T12:05:12Z STAGE-ONLY done']
         text = '\n'.join(lines)
         measured, budgets = module.derive(text)

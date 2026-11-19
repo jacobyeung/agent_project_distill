@@ -23,6 +23,8 @@ def calibration_log():
                                  (110, 'STAGED ' + label + ' rc=0'), (120, 'ROBUST copy ' + label),
                                  (420, 'COPIED ' + label + ' rc=0')):
             lines.append((start + datetime.timedelta(seconds=seconds)).strftime('%Y-%m-%dT%H:%M:%SZ') + ' ' + message)
+    lines.extend('  [copy %s] SCAN scanned=1 copied=1 unchanged=0 flagged=0' % label
+                 for label in ('trinity-1-18', 'trinity-3-30', 'orch_n30/tools', 'orch_n30/briefs'))
     lines.append('2026-11-19T13:00:00Z STAGE-ONLY done')
     return '\n'.join(lines)
 

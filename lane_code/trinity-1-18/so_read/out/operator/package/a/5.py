@@ -92,16 +92,32 @@ def dispatch_operator(root, proof, argv, original, **kwargs):
     return dict(**proof, entry_sequence_passed=True)
 
 
-def stage_gate_assets(root, cfg, J, destination, checked_run, env):
+GATE_ARCHIVE = """import os,sys
+from pathlib import Path
+root=Path(sys.argv[1]).resolve()
+def fail(error):raise error
+for base,dirs,files in os.walk(str(root),followlinks=False,onerror=fail):
+    for name in dirs+files:
+        path=Path(base)/name
+        if path.is_symlink():
+            try:target=path.resolve(strict=True)
+            except (OSError,RuntimeError) as error:raise ValueError('Invalid symlink: '+str(path)) from error
+            if target!=root and root not in target.parents:
+                raise ValueError('Symlink target leaves logical/d: '+str(path))
+os.execv('/bin/tar',['/bin/tar','-cf','-','-C',str(root),'.'])
+"""
+
+
+def stage_gate_assets(root, cfg, J, destination, checked_run, env, results=None):
     """Stream the live namespace to the shared staging path before CPU.json."""
     if cfg.get('read_extensions') is not True:
         return None
     from orchard_h10.common import sha
     destination = Path(destination)
     # Open outside bwrap: the shared pool need not be visible inside it.
-    with destination.open('xb') as stream:
-        checked_run(J.namespace(root)+['/bin/tar','-chf','-','-C',cfg['logical']+'/d','.'],
-                    env=env,stdout=stream,stderr=subprocess.PIPE,check=True)
+    with destination.open('xb') as stream, (Path(results) if results is not None else destination.parent).joinpath('4.err').open('wb') as errors:
+        checked_run(J.namespace(root)+['/usr/bin/python3','-I','-s','-B','-c',GATE_ARCHIVE,cfg['logical']+'/d'],
+                    env=env,stdout=stream,stderr=errors,check=True)
         stream.flush();os.fsync(stream.fileno())
     return dict(path=str(destination),sha256=sha(destination),
                 bytes=destination.stat().st_size,logical=cfg['logical'])
@@ -162,7 +178,7 @@ def main():
         (results/'SETTINGS.json').write_bytes(settings_path.read_bytes())
         (results/'1.json').write_bytes((package/'a/1.json').read_bytes())
         for source,name in (('e/RESTORE.json','RESTORE.json'),('binding.json','binding.json'),
-                            ('manifest.json','manifest.json'),('6.json','EXPORT_PIN.json')):
+                            ('manifest.json','manifest.json'),('6.json','EXPORT_PIN.json'),('ENVIRONMENT.json','ENVIRONMENT.json')):
             (results/name).write_bytes(J.physical(root,cfg['logical']+'/d/'+source).read_bytes())
     if (settings['stage1_select_rule']!='candidates_argmax' or settings['perception_memo']!='on'
         or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
@@ -184,7 +200,7 @@ def main():
     write(results/'MEMORY.json',memory)
     extra = {}
     if cfg.get('read_extensions') is True:
-        extra['gate_assets'] = stage_gate_assets(root,cfg,J,package/'a/4.tar',checked_run,env)
+        extra['gate_assets'] = stage_gate_assets(root,cfg,J,package/'a/4.tar',checked_run,env,results=results)
     write(results/'CPU.json',dict(passed=True,entry_sequence_passed=True,entry_sequence=entry_sequence,bundle_guard_passed=True,bundle_guard=bundle_guard,memory=memory,plan=cfg['plan_sha256'],inputs=sha(package/'a/1.json'),
                                  operator_sha256=sha(sequence),
                                  payload=cfg['payload_sha256'],storage=proof,ready=ready,root=str(root),**extra))

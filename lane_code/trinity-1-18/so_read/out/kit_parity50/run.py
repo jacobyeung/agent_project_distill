@@ -101,6 +101,19 @@ def validate_assets(cfg):
         raise ValueError('Artifact manifest differs from CPU-bound binding')
 
 
+def validate_environment(cfg):
+    import torch
+    import transformers
+    path=Path(cfg['environment_receipt'])
+    environment=json.loads(path.read_bytes())
+    expected=dict(sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+        torch=environment['versions']['torch'],transformers=environment['versions']['transformers'],cuda=environment['cuda'])
+    actual=dict(sha256=expected['sha256'],torch=torch.__version__,transformers=transformers.__version__,cuda=torch.version.cuda)
+    if not actual['cuda'] or actual!=expected or expected!=cfg.get('adoption_environment'):
+        raise ValueError('GPU environment versions/hash differ from CPU proof')
+    return actual
+
+
 def validate_device(cfg, torch):
     # torch/cuda/__init__.py:673-695 initializes CUDA and returns device properties.
     prop = torch.cuda.get_device_properties(0)
@@ -125,6 +138,7 @@ def write_gate_receipt(out, cfg, passed):
     validate_kit(cfg)
     record = {key:cfg[key] for key in ('adoption_plan_sha256','adoption_profile','adoption_assets','required_device_type')}
     record['adoption_kit'] = kit_hashes()
+    record['adoption_environment'] = validate_environment(cfg)
     record['passed'] = bool(passed)
     (Path(out)/'ue.json').write_text(json.dumps({'u0':pack(record)},sort_keys=True)+'\n')
 
@@ -132,6 +146,7 @@ def write_gate_receipt(out, cfg, passed):
 def worker(cfg,mode,out,enabled,shard='0/1',durable_scene=False):
     if not enabled:raise ValueError('GPU execution is OFF; pass --enable-gpu explicitly')
     if not os.environ.get('CUDA_VISIBLE_DEVICES'):raise ValueError('Assign one GPU on the intended GPU host first')
+    validate_environment(cfg)
     source=Path(cfg['original_source_root'] if mode=='ORIGINAL' else cfg['source_root']).resolve()
     sys.path[:0]=[str(source),str(source/'tree'),str(source/'b')]
     sys.argv.extend(['--settings',cfg['settings']])
@@ -150,6 +165,7 @@ def worker(cfg,mode,out,enabled,shard='0/1',durable_scene=False):
     validate_device(cfg,torch)
     validate_kit(cfg)
     validate_assets(cfg)
+    validate_environment(cfg)
     random.seed(17);np.random.seed(17);torch.manual_seed(17)
     from h1eval.h10.parity_adapter import settings_for
     settings=settings_for(cfg['settings'],'devs1_routed')
@@ -202,6 +218,7 @@ def worker(cfg,mode,out,enabled,shard='0/1',durable_scene=False):
                 enable_caches=cfg['enable_caches'],read_cache_bytes=cfg['read_cache_bytes'],
                 adoption_assets=cfg['adoption_assets'],required_device_type=cfg['required_device_type'],
                 transformers=transformers.__version__,cuda=torch.version.cuda,
+                adoption_environment=validate_environment(cfg),
                 device=torch.cuda.get_device_name(0),sample_sha256=identity['sample_sha256'],
                 kit_source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                 transport_sha256=hashlib.sha256((HERE/'a9.py').read_bytes()).hexdigest(),
@@ -239,6 +256,7 @@ def main():
     validate_paths(cfg);validate_paths(json.loads(Path(cfg['settings']).read_bytes()))
     validate_profile(cfg,json.loads(Path(cfg['settings']).read_bytes()))
     validate_assets(cfg)
+    validate_environment(cfg)
     validate_kit(cfg)
     if any(type(i) is not int or not 0<=i<3 for i in cfg.get('enable_caches',[0,1,2])):
         raise ValueError('Cache selectors must be numeric slots 0..2')

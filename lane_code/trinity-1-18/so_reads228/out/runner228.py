@@ -1,4 +1,4 @@
-"""One A4 read on one idle RTX 6000 Ada card; no transfers, scheduler, or retry."""
+"""One A10b read on one idle RTX 6000 Ada card; no transfers, scheduler, or retry."""
 import argparse
 import fcntl
 import os
@@ -32,7 +32,7 @@ def run_one(a):
     if out.exists():raise Refusal('Output exists; use a fresh directory, never rerun a killed job')
     ext=extensions() if a.on else None
     # Refuse missing or wrong weights before creating GPU contexts or waiting for a card.
-    proof=stage_check(root,cfg,inputs,export)
+    proof=stage_check(root,cfg,inputs,export,prepare=True)
     out.mkdir(parents=True,exist_ok=False);(out/'telemetry').mkdir();(out/'metadata').mkdir()
     write(out/'metadata/STAGE_CHECK.json',proof)
     lockroot=STAGE/'locks';lockroot.mkdir(parents=True,exist_ok=True)
@@ -46,10 +46,17 @@ def run_one(a):
         card=gpu['uuid']
         ret=out/'ret';(ret/'metadata').mkdir(parents=True)
         identity=new_return_identity(out,cfg)
+        (ret/'logs').mkdir()
+        prepare_log=STAGE/'prepare/prepare.log'
+        (ret/'logs/0.log').write_bytes(prepare_log.read_bytes() if prepare_log.is_file() else b'Local stage verification passed.\n')
+        (ret/'logs/1.log').write_text('Local sealed operator launch; worker output is reads/0/logs/30.log.\n')
+        from orchard_h10.common import template
+        _,storage,_,_,_=template()
+        write(ret/'metadata/STORAGE.json',dict(storage.storage_proof(out),job=identity['job'],execution_backend='trinity-local'))
         write(ret/'metadata/INPUTS.json',inputs);write(ret/'metadata/EXPORT_PIN.json',export)
         write(ret/'metadata/CARDS.json',dict(visible=[card],snapshot=gpu))
         write(ret/'metadata/LOCAL_RUN.json',dict(backend='trinity-local',host='trinity-2-28',mode='ON' if a.on else 'OFF',
-            requested_items=a.items,orchard_reference_job='172744',operator_sha256=sha(root/'tower_sequence.py'),
+            requested_items=a.items,orchard_reference_job='173060',operator_sha256=sha(root/'tower_sequence.py'),
             source_payload_sha256=cfg['payload_sha256'],adapter_sha256=sha(__file__),
             actual_python=inputs['python'],runtime_environment=proof['environment'],
             archive_path_map=str(HERE/'STAGE_PLAN.json'),utc=utc(),same_instrument=False))
@@ -73,34 +80,34 @@ def run_one(a):
         old={n:signal.signal(n,stop_requested) for n in (signal.SIGINT,signal.SIGTERM,signal.SIGUSR1)}
         failure=None;summary=None;worker_rc=None
         def execute(chosen,cards,deadline,*,prefix):
-            nonlocal worker_rc
-            runner.control(chosen)
-            config=dict(action=2,package=chosen['package'],config=chosen,type=3,index=0,cards=1,
-                        stop_at=deadline-1800,finish_by=deadline-1200)
-            # Validate the unchanged worker arguments now; the sealed entry builds them again.
-            argv=runner.worker_args(config)
-            write(out/'metadata/WORKER_ARGS.json',argv)
-            worker_file=out/'metadata/worker.json'
-            write(worker_file,dict(worker=config,adapter=dict(out=str(out),on=a.on,
-                items=a.items,extensions=str(ext) if ext else None)))
-            worker_env=clean_environment(out,card)
-            command=['nice','-n','10','bash',str(VNICE),inputs['python'],'-I','-s','-B',
-                     str(HERE/'worker228.py'),str(worker_file),'--observe']
-            write(out/'metadata/COMMAND.json',dict(argv=command,env=worker_env))
-            (ret/'metadata/reads/0/logs').mkdir(parents=True,exist_ok=True)
-            append(ret/'metadata/reads/0/STEPS.jsonl',dict(event='start',type=3,shard='0/1',utc=time.time(),argv=command))
-            with (ret/'metadata/reads/0/logs/30.log').open('xb') as log:
-                process=subprocess.Popen(command,env=worker_env,stdout=log,stderr=subprocess.STDOUT,cwd=out)
-                while process.poll() is None:
-                    if sampler.process.poll() is not None:
-                        stop.write_text('nvidia-smi telemetry stopped; no retry\n')
-                    time.sleep(1)
-                worker_rc=process.returncode
-            append(ret/'metadata/reads/0/STEPS.jsonl',dict(event='exit',type=3,shard='0/1',utc=time.time(),returncode=worker_rc))
-            result=runner.summarize(chosen,[card]);result.update(optional_admitted=False,stopped=not result['complete'],
-                failure=None if worker_rc in (0,75) else f'Worker exited {worker_rc}; no retry')
-            if sampler.process.poll() is not None:result['failure']='nvidia-smi telemetry failed; run is diagnostic-only'
-            write(Path(chosen['output'])/'SUMMARY.json',result)
+            def launch(argv,**kwargs):
+                config=read(Path(kwargs['cwd'])/argv[-1])
+                # The sealed runner wrote a/30.json and supplies the dispatch; keep it unchanged.
+                write(out/'metadata/WORKER_ARGS.json',runner.worker_args(config))
+                worker_file=out/'metadata/worker.json'
+                write(worker_file,dict(worker=config,adapter=dict(out=str(out),on=a.on,
+                    items=a.items,extensions=str(ext) if ext else None)))
+                worker_env=clean_environment(out,card)
+                command=['nice','-n','10','bash',str(VNICE),inputs['python'],'-B','-I',
+                         str(HERE/'worker228.py'),str(worker_file),'--observe']
+                write(out/'metadata/COMMAND.json',dict(argv=command,env=worker_env,start_new_session=True))
+                process=subprocess.Popen(command,env=worker_env,stdout=kwargs['stdout'],
+                    stderr=kwargs['stderr'],cwd=out,start_new_session=True)
+                class ObservedProcess:
+                    def wait(self):
+                        nonlocal worker_rc
+                        while process.poll() is None:
+                            if sampler.process.poll() is not None:
+                                stop.write_text('nvidia-smi telemetry stopped; no retry\n')
+                            time.sleep(1)
+                        worker_rc=process.returncode
+                        return worker_rc
+                return ObservedProcess()
+            with control_environment():
+                result=runner.run(chosen,cards,deadline,prefix=prefix,launcher=launch)
+            if sampler.process.poll() is not None:
+                result['failure']='nvidia-smi telemetry failed; run is diagnostic-only'
+                write(Path(chosen['output'])/'SUMMARY.json',result)
             return result
         try:
             with Sampler(card,out/'telemetry/nvidia-smi.csv') as sampler:
@@ -117,6 +124,7 @@ def run_one(a):
             summary=dict(completed=0,expected=636,complete=False,failure=failure or 'Worker did not run',reads=[])
         summary['requested_items']=a.items
         summary['requested_prefix_complete']=bool(requested_ok)
+        write(ret/'metadata/ALLOCATION.json',dict(end=end,plan=cfg['plan_sha256'],failure=failure,summary=summary))
         result=package_return(out,cfg,summary,rc,failure=failure)
         write(out/'RESULT.json',dict(**result,returncode=rc,mode='ON' if a.on else 'OFF',same_instrument=False,
              validation='Requires compare228 against the Orchard return; no hardware-parity claim is made by the launcher'))

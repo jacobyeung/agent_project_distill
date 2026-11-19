@@ -1,0 +1,51 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_b_final/source/tree/student_pilot/carrier_c1_decode.py": "e612a7c1874f2aeaedcf613421308efe978523edf0ec09db7886996378ae9a4d",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_b_final/source/tree/student_pilot/carrier_c1.py": "852f196d6fb83bf833f8fe28a28818372614ab590a52718b5fb9db1159805a62",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_b_final/source/tree/student_pilot/g3t_online.py": "aad0fb6d801b70abe2a1c9560ec3d6239e47045e55a25bc56fba10e637e2459d",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_b_final/source/tree/student_pilot/camera_targets.py": "59a9475e87c6eb49fc103e8077ec224746f06fcdbde9b0a1a38088cb1aed18a4",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_b_final/source/tree/student_pilot/point_depth_head.py": "8ea73228b59eae9484697af1ecdd94002bd85ccab2b239b61480a72046c40145",
+    "/scratch/jjyeung/orch_n30/sb_own400/out/cpu_b_final/source/tree/student_pilot/decoupled_vc.py": "a88c1e9727608698052477f3324d60c5d587491c810676d737fbe11dfa66d5f7",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/inputs/A10b_code.tgz": "de1c28cac23a1d0c4af8b76687c460f6e8963f513cfaad52c8bc191d80f670d6",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/fov_variants.py": "4f66911b9de9989fe9054529dd2eca9af698a7642cbd6f6b6e28f678df89fd7a",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/inputs/ENV_REQUIRED.json": "6d41e9b5c0dff97121d37bb2dbf07badee13f9cdcabf9c0d9b77e994f4833620"
+  },
+  "serving_switch": "carrier_c1_decode.HeadState requires depth_fov_source=pose_head",
+  "V1": "carrier_c1.PrivateDepth.forward: 1e-4+(pi-2e-4)*depth.fov(captured.states.float()).sigmoid()",
+  "V2": "g3t_online.pose9 already unpads FoV; tower cache raw_pose[anchor_slots,7:9] is vertical,horizontal radians",
+  "extension": "fov_variants.encode_grid_with_fov; unchanged source HeadState parity covered by tests",
+  "environment_required": {
+    "python": "/scratch/jjyeung/b01ec87a6f29b/d/v/py",
+    "modules": {
+      "scipy": {
+        "version": "1.14.1"
+      },
+      "torch": {
+        "version": "2.13.0+cu130"
+      },
+      "torchvision": {
+        "version": "0.28.0+cu130"
+      },
+      "transformers": {
+        "version": "5.19.0"
+      }
+    },
+    "archives": [
+      {
+        "path": "/scratch/jjyeung/orch_n30/reads228/dl/a2.tar",
+        "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9",
+        "bytes": 5257369600
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/reads228/dl/a4.tar",
+        "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea",
+        "bytes": 145274880
+      },
+      {
+        "path": "/scratch/jjyeung/orch_n30/reads228/dl/a3.tar",
+        "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae",
+        "bytes": 10240
+      }
+    ]
+  }
+}

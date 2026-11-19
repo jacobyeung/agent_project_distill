@@ -1,10 +1,9 @@
 {
-  "baseline": "/scratch/jjyeung/orch_n30/so_reads228/out/reference",
+  "baseline": "/scratch/jjyeung/orch_n30/so_reads228/work/round1/kit/reference",
   "baseline_rows": 50,
-  "candidate": "work/comparison_examples/one_call_moved",
+  "candidate": "/scratch/jjyeung/orch_n30/so_reads228/work/review_tests/ahnio40mz/ret",
   "candidate_rows": 50,
   "eligible": true,
-  "evidence_kind": "CPU regression fixture; not a Trinity GPU measurement",
   "identical": {
     "answer": 50,
     "call_placement": 49,
@@ -31,6 +30,7 @@
     "scores": 50,
     "seconds": 50,
     "stratum": 50,
+    "strict_no_answer": 1,
     "text": 50,
     "timings": 50,
     "tokens": 50
@@ -40,16 +40,28 @@
   "per_item": [
     {
       "answer_diff": [],
-      "call_placement_diff": [],
+      "call_placement_diff": [
+        {
+          "left": 27,
+          "path": "/0/4",
+          "right": 28
+        }
+      ],
       "id": "vsi590k_042574",
       "identical": {
         "answer": true,
-        "call_placement": true,
+        "call_placement": false,
         "text": true,
         "tokens": true,
-        "trace": true
+        "trace": false
       },
-      "trace_diff": []
+      "trace_diff": [
+        {
+          "left": 27,
+          "path": "/output/calls/records/0/at_token",
+          "right": 28
+        }
+      ]
     },
     {
       "answer_diff": [],
@@ -222,28 +234,16 @@
     },
     {
       "answer_diff": [],
-      "call_placement_diff": [
-        {
-          "left": 28,
-          "path": "/0/at_token",
-          "right": 29
-        }
-      ],
+      "call_placement_diff": [],
       "id": "vsi590k_042674",
       "identical": {
         "answer": true,
-        "call_placement": false,
+        "call_placement": true,
         "text": true,
         "tokens": true,
-        "trace": false
+        "trace": true
       },
-      "trace_diff": [
-        {
-          "left": 28,
-          "path": "/output/calls/records/0/at_token",
-          "right": 29
-        }
-      ]
+      "trace_diff": []
     },
     {
       "answer_diff": [],
@@ -701,7 +701,7 @@
       "trace_diff": []
     }
   ],
-  "rule": "49 or 50 identical extracted answers AND identical call placement on all 50; same A4 items/export and OFF required. Trace equality is reported, not an extra acceptance gate.",
+  "rule": "49 or 50 identical extracted answers AND identical call placement on all 50; same A10b items/export and OFF required. Trace equality is reported, not an extra acceptance gate.",
   "schema": "read228-comparison-v1",
   "trace_excluded_output_fields": [
     "seconds",

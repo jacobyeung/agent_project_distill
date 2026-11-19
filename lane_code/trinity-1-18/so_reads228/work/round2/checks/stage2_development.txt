@@ -1,0 +1,31 @@
+test_high1_runtime_inventory_records_all_names (__main__.StageFindings.test_high1_runtime_inventory_records_all_names) ... ok
+test_high1_runtime_members_must_supply_prepare (__main__.StageFindings.test_high1_runtime_members_must_supply_prepare) ... ok
+test_info10_ingest_uses_summary_despite_failed_exit_status (__main__.StageFindings.test_info10_ingest_uses_summary_despite_failed_exit_status) ... ok
+test_medium3_conflicts_list_all_and_preserve_other_lane (__main__.StageFindings.test_medium3_conflicts_list_all_and_preserve_other_lane) ... ok
+test_medium3_matching_member_is_skipped_without_metadata_change (__main__.StageFindings.test_medium3_matching_member_is_skipped_without_metadata_change) ... ERROR
+test_medium3_unexplained_files_refuse_with_list (__main__.StageFindings.test_medium3_unexplained_files_refuse_with_list) ... ok
+test_medium4_calls_sealed_namespace_and_records_both_bwrap_identities (__main__.StageFindings.test_medium4_calls_sealed_namespace_and_records_both_bwrap_identities) ... /scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/json/decoder.py:354: ResourceWarning: unclosed file <_io.FileIO name=7 mode='rb' closefd=True>
+  obj, end = self.scan_once(s, idx)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_medium4_no_relocation_of_authenticated_bytes (__main__.StageFindings.test_medium4_no_relocation_of_authenticated_bytes) ... ok
+test_medium4_runtime_absolute_link_bytes_preserved (__main__.StageFindings.test_medium4_runtime_absolute_link_bytes_preserved) ... ok
+
+======================================================================
+ERROR: test_medium3_matching_member_is_skipped_without_metadata_change (__main__.StageFindings.test_medium3_matching_member_is_skipped_without_metadata_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/tests/test_stage2.py", line 55, in test_medium3_matching_member_is_skipped_without_metadata_change
+    with patch.object(S.subprocess,'Popen',side_effect=launch):got=S.extract_group(group,mapping,dest)
+                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_reads228/work/round2/kit/stage228.py", line 105, in extract_group
+    if rc:raise Refusal('Input extraction failed; no retry: '+errors)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+common228.Refusal: Input extraction failed; no retry: tar: '--no-overwrite-dir' cannot be used with '--skip-old-files'
+Try 'tar --help' or 'tar --usage' for more information.
+
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.036s
+
+FAILED (errors=1)

@@ -1,0 +1,1023 @@
+--- a/tools/lane_code_sync.sh
++++ b/tools/lane_code_sync.sh
+@@ -1,16 +1,22 @@
+ #!/bin/bash
+ # lane_code_sync.sh [--dry]: hourly sync of agent-written lane code to GitHub branch lane-code.
+ # Stages whitelisted source/records from /scratch/jjyeung/orch_n30/*/ on each lane node (InfiniBand tar
+-# stream into $S/stage/<node>/ on trinity-3-30), plus orch_n30 tools/ and briefs/, secret-scans them,
++# stream into legacy directories or robust tar slots on trinity-3-30), plus tools/ and briefs/, secret-scans them,
+ # copies clean files into $S/repo/lane_code/<node>/..., commits on lane-code, pushes to origin and to the
+ # /home repo as branch lane-code. Runs on trinity-3-30 only. --dry prints per-node counts and stops;
+ # --stage-only stages, scans and copies into the clone, then stops before git.
+ # A failed run writes one line to the log and one BLOCKER event; the next attempt is the next hourly run.
+ set -u
+ # --queue-only runs only the push-queue step (publish queued eff/* branches; see push_queue below).
+-# The LCS_* variables exist for tests only; production runs set none of them.
++# Robust mode is OFF unless LCS_ROBUST_SYNC=1 or the regular, non-symlink file
++# $S/LCS_ROBUST_SYNC exists. The running hourly tmux loop checks it every invocation.
++# Robust budgets may be set in $S/LCS_ROBUST_BUDGETS; environment values take precedence.
++# Other LCS_* path overrides support local tests.
+ B=${LCS_B:-/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30}
+ S=${LCS_S:-/scratch/jjyeung/distill_sync}
++if [ "${LCS_ROBUST_SYNC:-0}" = 1 ] || { [ -f "$S/LCS_ROBUST_SYNC" ] && [ ! -L "$S/LCS_ROBUST_SYNC" ]; }; then
++  export LCS_ROBUST_SYNC=1
++fi
+ R=${LCS_R:-$S/repo}
+ EV=${LCS_EV:-$B/events/code_sync}
+ FILTER=$B/tools/lane_code_filter.py
+@@ -105,6 +111,18 @@
+   log "QUEUE-ONLY END ok"; exit 0
+ fi
+ 
++STAGE_ROOT=$S/stage
++robust_early_exit() {
++  # Do not fall back to the unbounded path after the owner enabled robust mode.
++  STAMP=$(date -u +%Y%m%dT%H%MZ)
++  echo "$(ts) code_sync run failed${FAILS} (log $S/sync.log; next attempt next hour)" > "$EV/${STAMP}_BLOCKER_sync_failed.md"
++  log "END with failures"; exit 2
++}
++if [ "${LCS_ROBUST_SYNC:-0}" = 1 ]; then
++  # Keep the legacy path unchanged unless the coordinator explicitly enables this.
++  if ! . "$B/tools/lane_code_stage.sh"; then fail "load robust staging"; robust_early_exit; fi
++  robust_stages || { fail "initialize robust staging"; robust_early_exit; }
++else
+ # Remote script: filter on the lane node, then tar stream over InfiniBand into stage on trinity-3-30.
+ gen_remote() {
+   local node=$1
+@@ -137,16 +155,27 @@
+ stage_local /scratch/jjyeung/orch_n30 trinity-3-30 trinity-3-30 code_sync/meta || fail "trinity-3-30 local stage"
+ stage_local "$B/tools" orch_n30/tools orch_n30/tools || fail "orch_n30 tools stage"
+ stage_local "$B/briefs" orch_n30/briefs orch_n30/briefs || fail "orch_n30 briefs stage"
++fi
+ [ $DRY = 1 ] && { log "DRY done${FAILS}"; exit 0; }
+ 
+ # Secret scan + copy clean files into the clone.
+ STAMP=$(date -u +%Y%m%dT%H%MZ)
+-python3 "$SCAN" "$S/stage" "$R/lane_code" "$S/flagged/flagged_$STAMP.txt" || fail "scan/copy rc=$?"
++if [ "${LCS_ROBUST_SYNC:-0}" = 1 ]; then
++  robust_copy
++else
++  python3 "$SCAN" "$STAGE_ROOT" "$R/lane_code" "$S/flagged/flagged_$STAMP.txt" || fail "scan/copy rc=$?"
++fi
+ mkdir -p "$R/tools"
+ cp "$B/tools/lane_code_sync.sh" "$FILTER" "$SCAN" "$R/tools/" || fail "copy tools into clone"
++if [ "${LCS_ROBUST_SYNC:-0}" = 1 ]; then
++  cp "$B/tools/lane_code_stage.sh" "$B/tools/lane_code_log.py" "$R/tools/" || fail "copy robust helper into clone"
++fi
+ [ $STAGE_ONLY = 1 ] && { log "STAGE-ONLY done${FAILS}"; exit 0; }
+ 
+ git -C "$R" add -f -A lane_code tools/lane_code_sync.sh tools/lane_code_filter.py tools/lane_code_scan.py || fail "git add"
++if [ "${LCS_ROBUST_SYNC:-0}" = 1 ]; then
++  git -C "$R" add -f tools/lane_code_stage.sh tools/lane_code_log.py || fail "git add robust helper"
++fi
+ if git -C "$R" diff --cached --quiet; then
+   log "no changes"
+ else
+--- /dev/null
++++ b/tools/lane_code_stage.sh
+@@ -0,0 +1,183 @@
++#!/bin/bash
++# Sourced only in robust mode (environment switch or $S/LCS_ROBUST_SYNC file).
++# Each source reuses incoming/accepted tar slots; only complete archives reach SCAN.
++robust_config() {
++  export LCS_ROBUST_SYNC=1
++  # A regular configuration file lets the owner calibrate the existing tmux loop.
++  # Only numeric assignments to the listed budget names are accepted; never source it.
++  local v value extra maximum
++  if [ -f "$S/LCS_ROBUST_BUDGETS" ] && [ ! -L "$S/LCS_ROBUST_BUDGETS" ]; then
++    while IFS='=' read -r v value extra; do
++      [ -n "$v" ] || continue
++      case "$v" in
++        LCS_FILE_SECONDS|LCS_SCAN_SECONDS|LCS_COPY_SECONDS|LCS_LEG_SECONDS|LCS_REMOTE_SECONDS|LCS_NODE_SECONDS|LCS_KILL_SECONDS) ;;
++        *) fail "invalid budget name $v"; return 2 ;;
++      esac
++      [ -z "$extra" ] && [[ "$value" =~ ^[0-9]+([.][0-9]+)?$ ]] || {
++        fail "invalid budget assignment $v"; return 2;
++      }
++      [ -n "${!v:-}" ] || printf -v "$v" '%s' "$value"
++    done < "$S/LCS_ROBUST_BUDGETS"
++  fi
++  LCS_FILE_SECONDS=${LCS_FILE_SECONDS:-3}
++  LCS_SCAN_SECONDS=${LCS_SCAN_SECONDS:-120}
++  LCS_COPY_SECONDS=${LCS_COPY_SECONDS:-120}
++  LCS_LEG_SECONDS=${LCS_LEG_SECONDS:-150}
++  LCS_REMOTE_SECONDS=${LCS_REMOTE_SECONDS:-160}
++  LCS_NODE_SECONDS=${LCS_NODE_SECONDS:-210}
++  LCS_KILL_SECONDS=${LCS_KILL_SECONDS:-5}
++  export LCS_FILE_SECONDS LCS_NODE_SECONDS LCS_KILL_SECONDS
++  for v in LCS_FILE_SECONDS LCS_SCAN_SECONDS LCS_COPY_SECONDS LCS_LEG_SECONDS LCS_REMOTE_SECONDS LCS_NODE_SECONDS LCS_KILL_SECONDS; do
++    maximum=3600; [ "$v" != LCS_FILE_SECONDS ] || maximum=30
++    [[ ${!v} =~ ^[0-9]+([.][0-9]+)?$ ]] &&
++      awk -v n="${!v}" -v maximum="$maximum" 'BEGIN {exit !(n > 0 && n <= maximum)}' || {
++        fail "invalid $v=${!v}"; return 2;
++      }
++  done
++  awk -v scan="$LCS_SCAN_SECONDS" -v leg="$LCS_LEG_SECONDS" \
++      -v remote="$LCS_REMOTE_SECONDS" -v node="$LCS_NODE_SECONDS" \
++      'BEGIN {exit !(scan < leg && leg < remote && remote < node)}' || {
++    fail "budgets must satisfy SCAN < LEG < REMOTE < NODE"; return 2;
++  }
++  LOGGER=$B/tools/lane_code_log.py
++  [ -f "$LOGGER" ] || { fail "missing bounded-log helper"; return 2; }
++  RUN=$S/stage-robust
++  mkdir -p "$RUN" || return 2
++  ACCEPTED_LABELS=''
++  log "ROBUST slots=$RUN file_seconds=$LCS_FILE_SECONDS scan_seconds=$LCS_SCAN_SECONDS copy_seconds=$LCS_COPY_SECONDS leg_seconds=$LCS_LEG_SECONDS remote_seconds=$LCS_REMOTE_SECONDS node_seconds=$LCS_NODE_SECONDS kill_seconds=$LCS_KILL_SECONDS"
++}
++
++robust_snapshot() {  # Read a finite regular-file snapshot; retain one capped log per label.
++  local slot=$1 snapshot
++  snapshot=$(head -c 65535 "$slot/run.log")
++  printf '%s\n' "$snapshot" > "$slot/run.log"
++  printf '%s\n' "$snapshot"
++}
++
++robust_copy() {
++  local label slot rc flags=$S/flagged/flagged_robust.txt
++  mkdir -p "$S/flagged" || { fail "create flags directory"; return 0; }
++  printf '' > "$flags"
++  # This list belongs to this invocation; a preserved accepted slot is never enough.
++  for label in $ACCEPTED_LABELS; do
++    slot=$RUN/$label
++    printf '' > "$slot/copy.flags"
++    log "ROBUST copy $label"
++    LCS_COPY_TMP="$R/.lcs-copy.pending" python3 -I -s -B "$LOGGER" "$slot/run.log" - 1 \
++      setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_COPY_SECONDS" \
++      python3 -I -s -B "$SCAN" "$slot/accepted" "$R/lane_code/$label" "$slot/copy.flags" 8>&-
++    rc=$?
++    robust_snapshot "$slot" | sed "s|^|  [copy $label] |"
++    sed "s|^|$label/|" "$slot/copy.flags" >> "$flags"
++    [ "$rc" = 0 ] || fail "$label scan/copy rc=$rc (log $slot/run.log)"
++    log "COPIED $label rc=$rc"
++  done
++}
++
++robust_program() {  # <source> <label> <manifest> <slot> <remote:0|1>
++  local source=$1 label=$2 manifest=$3 slot=$4 remote=$5 receiver writer
++  echo 'set -u'
++  printf 'cd %q 2>/dev/null || { echo %q; exit 66; }\n' "$source" "SKIP $label no orch_n30/source"
++  if [ "$DRY" = 1 ]; then
++    printf 'timeout --kill-after=%q %q env LCS_ROBUST_SYNC=1 LCS_FILE_SECONDS=%q python3 -I -s -B - %q %q > /dev/null' \
++      "$LCS_KILL_SECONDS" "$LCS_SCAN_SECONDS" "$LCS_FILE_SECONDS" "$label" "$manifest"
++    echo " <<'LCS_FILTER_EOF'"
++  else
++    printf 'timeout --kill-after=%q %q env LCS_ROBUST_SYNC=1 LCS_FILE_SECONDS=%q python3 -I -s -B - %q %q' \
++      "$LCS_KILL_SECONDS" "$LCS_SCAN_SECONDS" "$LCS_FILE_SECONDS" "$label" "$manifest"
++    printf " <<'LCS_FILTER_EOF' | timeout --kill-after=%q %q tar --null -cf - -T - | " \
++      "$LCS_KILL_SECONDS" "$LCS_LEG_SECONDS"
++    # A receiver surviving a disconnected client retains this lock; another attempt
++    # cannot overwrite its incoming archive until it exits. No per-run copies.
++    printf -v writer 'cat > %q' "$slot/incoming"
++    printf -v receiver 'flock -n %q timeout --kill-after=%q %q bash -c %q' \
++      "$slot/incoming.lock" "$LCS_KILL_SECONDS" "$LCS_LEG_SECONDS" "$writer"
++    if [ "$remote" = 1 ]; then
++      printf 'timeout --kill-after=%q %q ssh -o ConnectTimeout=20 -o ConnectionAttempts=1 -o BatchMode=yes trinity-3-30.ib %q\n' \
++        "$LCS_KILL_SECONDS" "$LCS_LEG_SECONDS" "$receiver"
++    else
++      printf '%s\n' "$receiver"
++    fi
++  fi
++  cat "$FILTER" || return 2
++  echo 'LCS_FILTER_EOF'
++  echo 'rc=("${PIPESTATUS[@]}"); echo "PIPE ${rc[*]}"; for r in "${rc[@]}"; do [ "$r" = 0 ] || exit 4; done'
++}
++
++robust_finish() {  # <label> <status>
++  local label=$1 rc=$2 slot=$RUN/$1 expected='PIPE 0 0 0' snapshot
++  [ "$DRY" = 1 ] && expected='PIPE 0'
++  snapshot=$(robust_snapshot "$slot")
++  printf '%s\n' "$snapshot" | sed "s|^|  [$label] |"
++  if [ "$rc" = 66 ] && grep -Fxq "SKIP $label no orch_n30/source" <<< "$snapshot"; then
++    log "SKIP $label (no source root)"; return 0
++  fi
++  if [ "$label" = trinity-2-28 ] && { [ "$rc" = 255 ] || [ "$rc" = 124 ] || [ "$rc" = 137 ]; } &&
++      ! grep -Eq '^(STATS|PIPE) ' <<< "$snapshot"; then
++    log "SKIP $label (unreachable or silent; rc=$rc)"; return 0
++  fi
++  if [ "$rc" != 0 ] || ! grep -Fxq "$expected" <<< "$snapshot"; then
++    fail "$label stage rc=$rc (not published: archive may contain changed or incomplete files; log $slot/run.log)"
++    return 0
++  fi
++  if [ "$DRY" != 1 ]; then
++    log "ROBUST accept $label"
++    LCS_COPY_TMP="$R/.lcs-copy.pending" python3 -I -s -B "$LOGGER" "$slot/run.log" - 1 flock -n "$slot/incoming.lock" \
++      setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_COPY_SECONDS" \
++      python3 -I -s -B "$SCAN" --accept-archive "$slot/incoming" "$slot/accepted" 8>&-
++    rc=$?
++    if [ "$rc" != 0 ]; then
++      robust_snapshot "$slot" | sed "s|^|  [$label] |"
++      fail "$label accept stage rc=$rc (log $slot/run.log)"; return 0
++    fi
++    ACCEPTED_LABELS="$ACCEPTED_LABELS $label"
++  fi
++  log "STAGED $label rc=0"
++}
++
++robust_slot() {
++  local slot=$RUN/$1
++  mkdir -p "$slot" || return 2
++  # Keep stable names and overwrite metadata; do not retain per-invocation files.
++  printf '' > "$slot/run.log" && printf '' > "$slot/copy.flags"
++}
++
++robust_stages() {
++  robust_config || return $?
++  local node rc command source label manifest slot
++  REMOTE_NODES=${LCS_REMOTE_NODES:-"trinity-1-18 trinity-2-28"}
++  for node in $REMOTE_NODES; do
++    case "$node" in trinity-[0-9]-[0-9]|trinity-[0-9]-[0-9][0-9]) ;;
++      *) fail "invalid remote node $node"; continue ;; esac
++    slot=$RUN/$node
++    robust_slot "$node" || { fail "$node mkdir/log"; continue; }
++    log "ROBUST stage $node"
++    robust_program "$LANES_ROOT" "$node" code_sync/meta "$slot" 1 > "$slot/program.sh" || {
++      fail "$node generate script"; continue;
++    }
++    printf -v command 'timeout --kill-after=%q %q bash -s' "$LCS_KILL_SECONDS" "$LCS_REMOTE_SECONDS"
++    # SSH receives regular descriptors, and cannot inherit the driver's lock.
++    LCS_STAGE_TIMEOUT_OWNER=1 python3 -I -s -B "$LOGGER" "$slot/run.log" "$slot/program.sh" 0 \
++      setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_NODE_SECONDS" \
++      bash "$B/tools/tssh.sh" "$node" "$command" 8>&-
++    rc=$?
++    robust_finish "$node" "$rc"
++  done
++  for label in trinity-3-30 orch_n30/tools orch_n30/briefs; do
++    case "$label" in
++      trinity-3-30) source=$LANES_ROOT; manifest=code_sync/meta ;;
++      orch_n30/tools) source=$B/tools; manifest='' ;;
++      orch_n30/briefs) source=$B/briefs; manifest='' ;;
++    esac
++    slot=$RUN/$label
++    robust_slot "$label" || { fail "$label mkdir/log"; continue; }
++    log "ROBUST stage $label"
++    robust_program "$source" "$label" "$manifest" "$slot" 0 > "$slot/program.sh" || {
++      fail "$label generate script"; continue;
++    }
++    python3 -I -s -B "$LOGGER" "$slot/run.log" - 0 \
++      setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_REMOTE_SECONDS" bash "$slot/program.sh" 8>&-
++    rc=$?
++    robust_finish "$label" "$rc"
++  done
++}
+--- /dev/null
++++ b/tools/lane_code_log.py
+@@ -0,0 +1,63 @@
++# lane_code_log.py <log> <stdin-file|-> <append:0|1> <command...>
++# Linux: bounded regular descriptors for a command whose own timeout owns its lifetime.
++import ctypes
++import fcntl
++import os
++import subprocess
++import sys
++
++LIMIT = 65536
++
++
++def sealed_log():
++    # Python 3.6 lacks os.memfd_create; glibc 2.27+ exposes the same Linux call.
++    if hasattr(os, 'memfd_create'):
++        fd = os.memfd_create('lane-code-log', 3)  # CLOEXEC | ALLOW_SEALING
++    else:
++        libc = ctypes.CDLL(None, use_errno=True)
++        create = libc.memfd_create
++        create.argtypes = [ctypes.c_char_p, ctypes.c_uint]
++        create.restype = ctypes.c_int
++        fd = create(b'lane-code-log', 3)
++        if fd < 0:
++            number = ctypes.get_errno()
++            raise OSError(number, os.strerror(number))
++    try:
++        # Populate by writes, without any file-deletion or truncation operation.
++        remaining = LIMIT
++        while remaining:
++            remaining -= os.write(fd, b'\0' * remaining)
++        os.lseek(fd, 0, os.SEEK_SET)
++        # These Linux ABI values predate all supported cluster kernels.
++        fcntl.fcntl(fd, 1033, 7)  # F_ADD_SEALS: SEAL_SEAL | SEAL_SHRINK | SEAL_GROW
++        return fd
++    except BaseException:
++        os.close(fd)
++        raise
++
++
++def main():
++    path, input_path, append = sys.argv[1:4]
++    fd = sealed_log()
++    try:
++        if append == '1':
++            with open(path, 'rb') as previous:
++                os.write(fd, previous.read(LIMIT))
++        with open('/dev/null' if input_path == '-' else input_path, 'rb') as source:
++            # Do not read a pipe or wait for EOF. A master may retain this regular fd;
++            # the kernel enforces its size, and the foreground timeout still returns.
++            rc = subprocess.call(sys.argv[4:], stdin=source, stdout=fd, stderr=fd, close_fds=True)
++        snapshot = os.pread(fd, LIMIT, 0).rstrip(b'\0')
++        with open(path, 'wb') as target:
++            target.write(snapshot)
++        return rc if rc >= 0 else 128 - rc
++    finally:
++        os.close(fd)
++
++
++if __name__ == '__main__':
++    try:
++        sys.exit(main())
++    except Exception as error:
++        print('bounded log failed: %s' % error, file=sys.stderr)
++        sys.exit(70)
+--- /dev/null
++++ b/tests/support.py
+@@ -0,0 +1,166 @@
++"""Local fixtures only: never invoke real SSH or Git; retain fixtures for review."""
++import gzip
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import shlex
++import stat
++import subprocess
++import sys
++import tempfile
++import time
++import unittest
++
++BASE = Path(__file__).resolve().parents[1]
++TOOLS = Path(os.environ.get('LCS_TOOLS', str(BASE / 'tools')))
++INPUT = Path(os.environ.get('LCS_INPUT', str(BASE / 'inputs')))
++FIXTURES = Path(os.environ['LCS_TEST_WORK'])
++FIXTURES.mkdir(parents=True, exist_ok=True)
++PY = [sys.executable, '-I', '-s', '-B']
++
++
++def write(path, text, executable=False):
++    path.parent.mkdir(parents=True, exist_ok=True)
++    path.write_text(text)
++    if executable:
++        path.chmod(0o755)
++
++
++
++
++FAKE_SSH = r'''import json, os, shlex, signal, subprocess, sys, time
++from pathlib import Path
++args = sys.argv[1:]
++with open(os.environ['FAKE_SSH_LOG'], 'a') as f: f.write(json.dumps(args) + '\n')
++while args and args[0] == '-o': args = args[2:]
++host, command = args[0], ' '.join(args[1:])
++root = Path(os.environ['FAKE_ROOT'])
++if host == 'trinity-3-30.ib':
++    if os.environ.get('FAKE_RECEIVER_HANG') == '1':
++        signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(5)
++    rc = subprocess.call(['bash', '-c', command])
++    if os.environ.get('FAKE_STAGE_FIFO') == '1' and os.environ.get('FAKE_ACTIVE_HOST') == 'trinity-1-18':
++        import tarfile
++        writer = shlex.split(command)[-1]
++        if writer.startswith('cat > '):
++            archive = shlex.split(writer)[-1]
++            with tarfile.open(archive, 'a') as stream:
++                member = tarfile.TarInfo('aaa_raced.json')
++                member.type = tarfile.FIFOTYPE
++                stream.addfile(member)
++        else:
++            dest = shlex.split(command)[-1]
++            os.mkfifo(str(Path(dest) / 'aaa_raced.json'))
++    sys.exit(rc)
++mode = os.environ.get('FAKE_' + host.replace('-', '_'), 'success')
++if mode == 'unreachable':
++    assert 'ConnectTimeout=20' in sys.argv
++    time.sleep(0.10)
++    print('ssh: connect to host ' + host + ': Connection timed out', flush=True)
++    sys.exit(255)
++if mode.startswith('held'):
++    (root / 'ssh.pid').write_text(str(os.getpid()))
++    code = ('import os,time; os.setsid(); '
++            'open(' + repr(str(root / 'holder.pid')) + ', "w").write(str(os.getpid())); '
++            'time.sleep(' + ('1.2' if mode == 'held_exit' else '4') + ')')
++    subprocess.Popen([sys.executable, '-I', '-s', '-B', '-c', code],
++                     stdin=subprocess.DEVNULL, close_fds=False)
++    print('held stdout fixture', flush=True)
++    if mode == 'held_exit': sys.exit(0)
++    signal.signal(signal.SIGTERM, signal.SIG_IGN)
++    time.sleep(5)
++    sys.exit(99)
++script = sys.stdin.read()
++source = str(root / 'sources' / host)
++if mode == 'missing': source += '_absent'
++script = script.replace(shlex.quote(os.environ['LCS_LANES_ROOT']), shlex.quote(source), 1)
++if mode == 'remote_hang': script = 'sleep 5\n' + script
++if mode == 'scanner_hang':
++    for token in ('python3 -I -s -B - ', 'python3 - '):
++        if token in script:
++            script = script.replace(token, 'python3 -I -s -B -c \"import time; time.sleep(5)\" ', 1)
++            break
++result = subprocess.run(['bash', '-c', command], input=script.encode(),
++                        env=dict(os.environ, FAKE_ACTIVE_HOST=host))
++sys.exit(23 if mode == 'partial' else result.returncode)
++'''
++
++FAKE_GIT = r'''import json, os, sys
++args = sys.argv[1:]
++with open(os.environ['FAKE_GIT_LOG'], 'a') as f: f.write(json.dumps(args) + '\n')
++if args[:1] == ['-C']: args = args[2:]
++if args[:3] == ['diff', '--cached', '--quiet']: sys.exit(1)
++if args[:3] == ['diff', '--cached', '--name-only']: print('lane_code/trinity-2-28/good.py')
++elif args[:1] == ['rev-parse']: print('a' * 40)
++elif args[:1] == ['ls-remote']: print('a' * 40 + '\trefs/heads/lane-code')
++elif args[:1] not in (['add'], ['commit'], ['push']):
++    raise SystemExit('unexpected fake Git call: ' + repr(args))
++'''
++
++
++
++class DriverFixture(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='tmp_driver_', dir=str(FIXTURES)))
++        self.bin = self.root / 'bin'
++        self.state = self.root / 'state'
++        self.repo = self.state / 'repo'
++        self.b = self.root / 'orchestrator'
++        self.local = self.root / 'sources' / 'trinity-3-30'
++        for p in (self.bin, self.repo, self.b / 'tools', self.b / 'briefs', self.root / 'events'):
++            p.mkdir(parents=True, exist_ok=True)
++        for name in ('lane_code_sync.sh', 'lane_code_filter.py', 'lane_code_stage.sh', 'lane_code_scan.py', 'lane_code_log.py'):
++            if not (TOOLS / name).exists():
++                continue
++            (self.b / 'tools' / name).write_text((TOOLS / name).read_text().replace(
++                '/scratch/jjyeung/orch_n30', str(self.local)) if name == 'lane_code_sync.sh'
++                else (TOOLS / name).read_text())
++        write(self.b / 'briefs' / 'brief.md', 'brief')
++        # Use the real wrapper, relocating its lock and removing only its 35 s rate delay.
++        wrapper = (TOOLS / 'tssh.sh').read_text()
++        wrapper = wrapper.replace('L=/scratch/jjyeung/.tssh_$(hostname -s)',
++                                  'L=' + shlex.quote(str(self.root / 'tssh')))
++        write(self.b / 'tools' / 'tssh.sh', wrapper.replace('last + 35', 'last + 0'))
++        write(self.bin / 'ssh_impl.py', FAKE_SSH)
++        write(self.bin / 'git_impl.py', FAKE_GIT)
++        for command in ('ssh', 'git'):
++            write(self.bin / command, '#!/bin/bash\nexec ' + shlex.quote(sys.executable) +
++                  ' -I -s -B ' + shlex.quote(str(self.bin / (command + '_impl.py'))) + ' \"$@\"\n', True)
++        write(self.bin / 'hostname', '#!/bin/bash\necho trinity-3-30\n', True)
++        write(self.bin / 'python3', '#!/bin/bash\nexec ' + shlex.quote(sys.executable) + ' -I -s -B "$@"\n', True)
++        for node in ('trinity-1-18', 'trinity-2-28', 'trinity-3-30'):
++            write(self.root / 'sources' / node / 'good.py', 'value = ' + repr(node))
++        write(self.repo / 'lane_code' / 'trinity-1-18' / 'prior.py', 'prior-clone')
++        write(self.repo / 'lane_code' / 'trinity-1-18' / 'good.py', 'prior-good')
++        write(self.state / 'stage' / 'trinity-1-18' / 'prior.py', 'prior-stage')
++        self.env = dict(os.environ, PATH=str(self.bin) + ':/usr/bin:/bin',
++                        LCS_ROBUST_SYNC='1', LCS_B=str(self.b), LCS_S=str(self.state),
++                        LCS_R=str(self.repo), LCS_EV=str(self.root / 'events'),
++                        LCS_LANES_ROOT=str(self.local), FAKE_ROOT=str(self.root),
++                        FAKE_GIT_LOG=str(self.root / 'git.jsonl'), FAKE_SSH_LOG=str(self.root / 'ssh.jsonl'),
++                        LCS_SCAN_SECONDS='0.4', LCS_COPY_SECONDS='0.4', LCS_LEG_SECONDS='0.7', LCS_REMOTE_SECONDS='1.0',
++                        LCS_NODE_SECONDS='1.3', LCS_KILL_SECONDS='0.15', LCS_FILE_SECONDS='0.1')
++
++    def run_driver(self, extra=()):
++        started = time.monotonic()
++        result = subprocess.run(['bash', str(self.b / 'tools' / 'lane_code_sync.sh')] + list(extra),
++                                env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=12)
++        self.elapsed = time.monotonic() - started
++        (self.root / 'driver.stdout').write_bytes(result.stdout)
++        (self.root / 'driver.stderr').write_bytes(result.stderr)
++        return result
++
++    def check_partial_success(self, result):
++        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
++        self.assertEqual((self.repo / 'lane_code' / 'trinity-1-18' / 'prior.py').read_text(), 'prior-clone')
++        self.assertEqual((self.repo / 'lane_code' / 'trinity-1-18' / 'good.py').read_text(), 'prior-good')
++        self.assertEqual((self.state / 'stage' / 'trinity-1-18' / 'prior.py').read_text(), 'prior-stage')
++        self.assertTrue((self.repo / 'lane_code' / 'trinity-2-28' / 'good.py').is_file())
++        self.assertTrue((self.repo / 'lane_code' / 'trinity-3-30' / 'good.py').is_file())
++        calls = [json.loads(line)[2:] for line in (self.root / 'git.jsonl').read_text().splitlines()]
++        self.assertEqual(sum(args[0] == 'commit' for args in calls), 1)
++        self.assertEqual(sum(args[0] == 'push' for args in calls), 2)
++        self.assertEqual(len(list((self.root / 'events').glob('*_BLOCKER_sync_failed.md'))), 1)
++        self.assertIn(b'PIPE 0 0 0', result.stdout)
+--- /dev/null
++++ b/tests/run_tests.py
+@@ -0,0 +1,11 @@
++"""Run all local regression fixtures; compatible with Python 3.6 and 3.12."""
++import os
++from pathlib import Path
++import sys
++import unittest
++here = Path(__file__).resolve().parent
++os.environ.setdefault('LCS_TEST_WORK', str(here.parent / 'tmp_test-work'))
++sys.path.insert(0, str(here))
++suite = unittest.defaultTestLoader.discover(str(here), pattern='test_*.py')
++result = unittest.TextTestRunner(verbosity=2).run(suite)
++sys.exit(0 if result.wasSuccessful() else 1)
+--- /dev/null
++++ b/tests/test_driver.py
+@@ -0,0 +1,127 @@
++from support import *
++
++class DriverTests(DriverFixture):
++    def test_all_sources_success_and_new_node(self):
++        result = self.run_driver()
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'STAGED trinity-2-28 rc=0', result.stdout)
++        self.assertIn(b'verified GitHub lane-code', result.stdout)
++        calls = [json.loads(line) for line in (self.root / 'ssh.jsonl').read_text().splitlines()]
++        receiver = [args for args in calls if 'trinity-3-30.ib' in args]
++        self.assertEqual(len(receiver), 2)
++        self.assertTrue(all('ConnectionAttempts=1' in args for args in receiver))
++
++    def test_partial_failed_node_cannot_overwrite_or_delete_previous(self):
++        self.env['FAKE_trinity_1_18'] = 'partial'
++        result = self.run_driver()
++        self.check_partial_success(result)
++        self.assertIn(b'trinity-1-18 stage rc=23', result.stdout)
++        print('MEASURE partial_failure_elapsed=%.3fs commit=1 pushes=2 preserved=1' % self.elapsed, flush=True)
++
++    def test_unreachable_skipped_other_sources_publish(self):
++        self.env['FAKE_trinity_1_18'] = 'unreachable'
++        result = self.run_driver()
++        self.check_partial_success(result)
++        self.assertIn(b'Connection timed out', result.stdout)
++        self.assertLess(self.elapsed, 3)
++
++    def test_missing_root_skipped_other_sources_publish(self):
++        self.env['FAKE_trinity_1_18'] = 'missing'
++        result = self.run_driver()
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'SKIP trinity-1-18 (no source root)', result.stdout)
++        self.assertNotIn(b'FAIL', result.stdout)
++        self.assertFalse(list((self.root / 'events').glob('*_BLOCKER*')))
++        self.assertTrue((self.repo / 'lane_code' / 'trinity-2-28' / 'good.py').is_file())
++
++    def test_legacy_substitution_reproduces_held_pipe(self):
++        self.env['FAKE_trinity_1_18'] = 'held_exit'
++        command = 'out=$(timeout --kill-after=0.1 0.2 ssh trinity-1-18 ignored 2>&1); echo finished'
++        started = time.monotonic()
++        result = subprocess.run(['bash', '-c', command], env=self.env, stdout=subprocess.PIPE,
++                                stderr=subprocess.PIPE, timeout=4)
++        elapsed = time.monotonic() - started
++        self.assertEqual(result.returncode, 0)
++        self.assertGreater(elapsed, 1)
++        print('MEASURE legacy_substitution_elapsed=%.3fs timeout=0.2s holder_lifetime=1.2s' % elapsed, flush=True)
++
++    def test_remote_scanner_timeout_reports_pipestatus(self):
++        self.env['FAKE_trinity_1_18'] = 'scanner_hang'
++        result = self.run_driver()
++        self.check_partial_success(result)
++        self.assertIn(b'PIPE 124 0 0', result.stdout)
++
++    def test_receiver_timeout_does_not_block_local_publish(self):
++        self.env['FAKE_RECEIVER_HANG'] = '1'
++        result = self.run_driver()
++        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
++        self.assertIn(b'PIPE 0 0 137', result.stdout)
++        self.assertTrue((self.repo / 'lane_code' / 'trinity-3-30' / 'good.py').is_file())
++        self.assertIn(b'committed', result.stdout)
++        self.assertLess(self.elapsed, 4)
++
++    def test_dry_mode_and_stage_only_keep_existing_semantics(self):
++        result = self.run_driver(('--dry',))
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'PIPE 0', result.stdout)
++        self.assertFalse((self.root / 'git.jsonl').exists())
++        result = self.run_driver(('--stage-only',))
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertTrue((self.repo / 'lane_code' / 'trinity-2-28' / 'good.py').is_file())
++        self.assertFalse((self.root / 'git.jsonl').exists())
++
++    def test_invalid_zero_timeout_refused(self):
++        self.env['LCS_NODE_SECONDS'] = '0'
++        result = self.run_driver()
++        self.assertEqual(result.returncode, 2)
++        self.assertIn(b'invalid LCS_NODE_SECONDS=0', result.stdout)
++        self.assertFalse((self.root / 'ssh.jsonl').exists())
++
++    def test_outer_remote_timeout(self):
++        self.env.update(FAKE_trinity_1_18='remote_hang')
++        result = self.run_driver()
++        self.check_partial_success(result)
++        self.assertIn(b'trinity-1-18 stage rc=124', result.stdout)
++        self.assertLess(self.elapsed, 3)
++
++    def test_copy_scanner_fifo_is_bounded_per_source(self):
++        self.env['FAKE_STAGE_FIFO'] = '1'
++        result = self.run_driver()
++        self.check_partial_success(result)
++        self.assertIn(b'trinity-1-18 accept stage rc=1', result.stdout)
++        self.assertIn(b'nonregular archive entry', result.stdout)
++        self.assertLess(self.elapsed, 3)
++
++    def test_tar_leg_kill_after_and_other_sources_publish(self):
++        write(self.bin / 'tar', '#!/bin/bash\n'
++              'if [[ "$PWD" == */sources/trinity-1-18 ]] && [[ " $* " == *" -cf "* ]]; then\n'
++              '  trap "" TERM; sleep 4\n'
++              'else exec /usr/bin/tar "$@"; fi\n', True)
++        self.env['LCS_LEG_SECONDS'] = '0.25'
++        self.env['LCS_SCAN_SECONDS'] = '0.2'
++        result = self.run_driver()
++        self.check_partial_success(result)
++        self.assertRegex(result.stdout.decode(), r'PIPE 0 137 (0|2|124|137)')
++        self.assertLess(self.elapsed, 3)
++
++    def test_default_off_driver_matches_input_behavior(self):
++        self.env['LCS_ROBUST_SYNC'] = '0'
++        # Rewrite only fixed source paths in fixture copies; neither driver can touch a real lane.
++        baseline = (INPUT / 'lane_code_sync.sh').read_text()
++        candidate = (TOOLS / 'lane_code_sync.sh').read_text()
++        outputs, trees = [], []
++        for name, text in (('baseline', baseline), ('candidate', candidate)):
++            script = self.root / (name + '.sh')
++            script.write_text(text.replace('/scratch/jjyeung/orch_n30', str(self.local)).replace('code_sync/meta', ''))
++            state = self.root / name
++            repo = state / 'repo'
++            repo.mkdir(parents=True)
++            env = dict(self.env, LCS_S=str(state), LCS_R=str(repo))
++            result = subprocess.run(['bash', str(script)], env=env, stdout=subprocess.PIPE,
++                                    stderr=subprocess.PIPE, timeout=5)
++            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++            normalized = result.stdout.decode().replace(str(state), '<STATE>')
++            outputs.append(re.sub(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ', '<UTC>', normalized))
++            trees.append({str(p.relative_to(repo)): p.read_bytes() for p in repo.rglob('*') if p.is_file()})
++        self.assertEqual(outputs[0], outputs[1])
++        self.assertEqual(trees[0], trees[1])
+--- /dev/null
++++ b/tests/test_review.py
+@@ -0,0 +1,231 @@
++"""Review regressions. All large manifests are synthetic; all network/Git calls are fake."""
++from support import *
++import tarfile
++import io
++
++
++class ReviewFilterTests(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='tmp_review_filter_', dir=str(FIXTURES)))
++
++    def run_filter(self, injection, limit='120'):
++        source = TOOLS / 'lane_code_filter.py'
++        code = ('import os, sys, gzip, time, hashlib\n' + injection + '\n'
++                'sys.argv = [%r, "fixture", "meta"]\n' % str(source) +
++                'exec(compile(open(sys.argv[0]).read(), sys.argv[0], "exec"))\n')
++        env = dict(os.environ, LCS_ROBUST_SYNC='1', LCS_FILE_SECONDS='3')
++        return subprocess.run(['timeout', '--kill-after=5', limit] + PY + ['-c', code],
++                              cwd=str(self.root), env=env, stdout=subprocess.PIPE,
++                              stderr=subprocess.PIPE, timeout=float(limit) + 8)
++
++    def test_750000_duplicate_manifest_default_budgets(self):
++        injection = '''
++source = %r
++lines = ["lane/fixture/" + hashlib.sha256(str(i).encode()).hexdigest() + "/record.json\\t"
++         + "lane/kept/" + hashlib.sha256(str(i %% 1700).encode()).hexdigest() + ".json"
++         for i in range(750000)]
++def trace(frame, event, arg):
++    if event == 'line' and frame.f_code.co_filename == source and frame.f_code.co_name == 'robust_scan':
++        if frame.f_lineno == manifest_line:
++            frame.f_locals['dups'].extend(lines)
++            sys.settrace(None)
++    return trace
++manifest_line = next(i for i, line in enumerate(open(source), 1) if line == '        if mdir:\\n')
++sys.settrace(trace)
++''' % str(TOOLS / 'lane_code_filter.py')
++        started = time.monotonic()
++        result = self.run_filter(injection)
++        elapsed = time.monotonic() - started
++        self.assertEqual(result.returncode, 0, result.stderr)
++        manifest = self.root / 'meta' / 'DEDUP_fixture.tsv.gz'
++        with gzip.open(str(manifest), 'rb') as f:
++            lines = 0
++            raw_bytes = 0
++            for line in f:
++                lines += 1
++                raw_bytes += len(line)
++        self.assertEqual(lines, 750000)
++        self.assertEqual(list((self.root / 'meta').glob('.dedup-*')), [])
++        print('MEASURE large_manifest lines=%d raw_bytes=%d gzip_bytes=%d elapsed=%.3fs file_budget=3 scan_budget=120' %
++              (lines, raw_bytes, manifest.stat().st_size, elapsed), flush=True)
++
++    def test_manifest_exception_logs_every_leftover_and_preserves_final(self):
++        write(self.root / 'meta' / 'DEDUP_fixture.tsv.gz', 'prior-manifest')
++        result = self.run_filter('''
++def broken_write(self, data):
++    raise OSError('injected manifest disk failure')
++gzip.GzipFile.write = broken_write
++''')
++        self.assertNotEqual(result.returncode, 0)
++        self.assertEqual((self.root / 'meta' / 'DEDUP_fixture.tsv.gz').read_text(), 'prior-manifest')
++        leftovers = list((self.root / 'meta').glob('.dedup-*'))
++        self.assertLessEqual(len(leftovers), 1)
++        self.assertEqual(len(leftovers), 1)
++        self.assertIn(str(leftovers[0].relative_to(self.root)).encode(), result.stderr)
++        self.assertIn(b'MANIFEST_PENDING', result.stderr)
++
++    def test_manifest_scan_timeout_logs_pending_name(self):
++        result = self.run_filter('''
++original_write = gzip.GzipFile.write
++def slow_write(self, data):
++    time.sleep(4)
++    return original_write(self, data)
++gzip.GzipFile.write = slow_write
++''', '0.2')
++        self.assertEqual(result.returncode, 124)
++        leftovers = list((self.root / 'meta').glob('.dedup-*'))
++        self.assertEqual(len(leftovers), 1)
++        self.assertIn(str(leftovers[0].relative_to(self.root)).encode(), result.stderr)
++
++
++class ReviewDriverTests(DriverFixture):
++    def test_slots_reused_and_failed_attempt_never_scanned(self):
++        result = self.run_driver()
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        slots = self.state / 'stage-robust'
++        self.assertTrue(slots.is_dir())
++        accepted = slots / 'trinity-1-18' / 'accepted'
++        old_hash = hashlib.sha256(accepted.read_bytes()).hexdigest()
++        names = sorted(str(p.relative_to(slots)) for p in slots.rglob('*'))
++        first_bytes = sum(p.stat().st_size for p in slots.rglob('*') if p.is_file())
++        write(self.root / 'sources' / 'trinity-1-18' / 'failure_only.py', 'never publish this')
++        self.env['FAKE_trinity_1_18'] = 'partial'
++        result = self.run_driver()
++        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
++        self.assertEqual(hashlib.sha256(accepted.read_bytes()).hexdigest(), old_hash)
++        incoming = accepted.parent / 'incoming'
++        self.assertTrue(incoming.is_file())
++        print('MEASURE failed_slot=trinity-1-18 incoming_bytes=%d accepted_bytes=%d' %
++              (incoming.stat().st_size, accepted.stat().st_size), flush=True)
++        self.assertFalse((self.repo / 'lane_code' / 'trinity-1-18' / 'failure_only.py').exists())
++        self.assertNotIn(b'[copy trinity-1-18]', result.stdout)
++        # Move the source fixture aside without deleting; the next success must not leak it.
++        os.rename(str(self.root / 'sources' / 'trinity-1-18' / 'failure_only.py'),
++                  str(self.root / 'sources' / 'trinity-1-18' / 'failure_only.bin'))
++        self.env['FAKE_trinity_1_18'] = 'success'
++        for unused in range(2):
++            result = self.run_driver()
++            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertFalse((self.repo / 'lane_code' / 'trinity-1-18' / 'failure_only.py').exists())
++        self.assertFalse((self.state / 'stage-runs').exists())
++        self.assertEqual(names, sorted(str(p.relative_to(slots)) for p in slots.rglob('*')))
++        total = 0
++        for label in ('trinity-1-18', 'trinity-2-28', 'trinity-3-30', 'orch_n30/tools', 'orch_n30/briefs'):
++            slot = slots / label
++            amounts = {p.name: p.stat().st_size for p in slot.iterdir() if p.is_file()}
++            total += sum(amounts.values())
++            print('MEASURE slot=%s bytes=%s total=%d' % (label, json.dumps(amounts, sort_keys=True), sum(amounts.values())), flush=True)
++        print('MEASURE slots_initial_bytes=%d slots_final_bytes=%d runs=4' % (first_bytes, total), flush=True)
++
++    def test_missing_root_has_no_fail_or_blocker(self):
++        self.env['FAKE_trinity_1_18'] = 'missing'
++        result = self.run_driver()
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'SKIP trinity-1-18 (no source root)', result.stdout)
++        self.assertNotIn(b'FAIL', result.stdout)
++        self.assertEqual(list((self.root / 'events').iterdir()), [])
++
++    def test_optional_unreachable_node_is_skip(self):
++        self.env['FAKE_trinity_2_28'] = 'unreachable'
++        result = self.run_driver()
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'SKIP trinity-2-28 (unreachable', result.stdout)
++        self.assertNotIn(b'FAIL', result.stdout)
++        self.assertEqual(list((self.root / 'events').iterdir()), [])
++
++    def test_initialization_errors_all_emit_blocker(self):
++        for failure in ('missing_helper', 'bad_budget', 'slot_mkdir'):
++            with self.subTest(failure=failure):
++                self.setUp()
++                helper = self.b / 'tools' / 'lane_code_stage.sh'
++                saved = helper.read_bytes()
++                if failure == 'missing_helper':
++                    os.rename(str(helper), str(helper) + '.saved')
++                elif failure == 'bad_budget':
++                    self.env['LCS_NODE_SECONDS'] = '0'
++                else:
++                    write(self.bin / 'mkdir', '#!/bin/bash\ncase \"$*\" in *stage-runs*|*stage-robust*) exit 1;; esac\nexec /usr/bin/mkdir \"$@\"\n', True)
++                result = self.run_driver()
++                self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
++                events = list((self.root / 'events').glob('*_BLOCKER_sync_failed.md'))
++                self.assertTrue(events, result.stdout + result.stderr)
++                self.assertIn('code_sync run failed', events[-1].read_text())
++                helper.write_bytes(saved)
++                self.env['LCS_NODE_SECONDS'] = '1.3'
++
++    def test_file_deadline_driver_and_filter_agree(self):
++        self.env['LCS_FILE_SECONDS'] = '30.1'
++        result = self.run_driver()
++        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
++        self.assertIn(b'invalid LCS_FILE_SECONDS=30.1', result.stdout)
++        self.assertFalse((self.root / 'ssh.jsonl').exists())
++
++    def test_regular_flag_enables_without_environment(self):
++        self.env.pop('LCS_ROBUST_SYNC')
++        write(self.state / 'LCS_ROBUST_SYNC', '')
++        result = self.run_driver(('--dry',))
++        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertIn(b'ROBUST', result.stdout)
++        self.assertIn(b'STAGED trinity-2-28', result.stdout)
++
++    def test_tar_exit_one_quarantines_node_but_publishes_other_sources(self):
++        write(self.bin / 'tar', '#!/bin/bash\n/usr/bin/tar "$@"\nrc=$?\n'
++              'if [[ "$PWD" == */sources/trinity-1-18 ]] && [[ " $* " == *" -cf "* ]]; then\n'
++              '  echo "tar: file changed as we read it" >&2; exit 1\n'
++              'fi\nexit "$rc"\n', True)
++        result = self.run_driver()
++        self.check_partial_success(result)
++        self.assertIn(b'PIPE 0 1 0', result.stdout)
++        self.assertIn(b'not published: archive may contain changed or incomplete files', result.stdout)
++
++
++class ReviewCopyTests(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='tmp_review_copy_', dir=str(FIXTURES)))
++
++    def test_copy_timeout_cannot_commit_a_truncated_file(self):
++        stage = self.root / 'stage'
++        dest = self.root / 'repo' / 'lane_code' / 'fixture'
++        write(stage / 'good.py', 'complete-new-file' * 1000)
++        write(dest / 'good.py', 'complete-prior-file')
++        source = TOOLS / 'lane_code_scan.py'
++        pending = self.root / 'repo' / '.lcs-copy.pending'
++        code = '''import os, sys, shutil, time
++original_replace = os.replace
++def slow_copy(source, dest):
++    with open(dest, 'wb') as f:
++        f.write(b'truncated'); f.flush(); time.sleep(5)
++def slow_replace(source, dest, *a, **kw):
++    time.sleep(5)
++    return original_replace(source, dest, *a, **kw)
++shutil.copyfile = slow_copy
++os.replace = slow_replace
++sys.argv = %r
++exec(compile(open(sys.argv[0]).read(), sys.argv[0], 'exec'))
++''' % [str(source), str(stage), str(dest), str(self.root / 'flags' / 'flags.txt')]
++        env = dict(os.environ, LCS_ROBUST_SYNC='1', LCS_COPY_TMP=str(pending))
++        result = subprocess.run(['timeout', '--kill-after=0.1', '1.0'] + PY + ['-c', code], env=env,
++                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=3)
++        self.assertEqual(result.returncode, 124, result.stderr)
++        self.assertEqual((dest / 'good.py').read_text(), 'complete-prior-file')
++        self.assertEqual(sorted(p.name for p in dest.iterdir()), ['good.py'])
++        self.assertTrue(pending.is_file())
++        self.assertIn(str(pending).encode(), result.stderr)
++
++    def test_default_off_copy_matches_input(self):
++        stage = self.root / 'stage'
++        write(stage / 'good.py', 'clean\n')
++        write(stage / 'secret.txt', 'ghp_' + 'a' * 32)
++        outputs = []
++        trees = []
++        for name, source in (('input', INPUT / 'lane_code_scan.py'), ('new', TOOLS / 'lane_code_scan.py')):
++            dest = self.root / name
++            flags = self.root / (name + '.flags')
++            result = subprocess.run(PY + [str(source), str(stage), str(dest), str(flags)],
++                                    env=dict(os.environ, LCS_ROBUST_SYNC='0'), stdout=subprocess.PIPE,
++                                    stderr=subprocess.PIPE, timeout=3)
++            self.assertEqual(result.returncode, 0, result.stderr)
++            outputs.append((result.stdout.replace(str(flags).encode(), b'<FLAGS>'), result.stderr, flags.read_bytes()))
++            trees.append({str(p.relative_to(dest)): p.read_bytes() for p in dest.rglob('*') if p.is_file()})
++        self.assertEqual(outputs[0], outputs[1])
++        self.assertEqual(trees[0], trees[1])
+--- /dev/null
++++ b/tests/test_log.py
+@@ -0,0 +1,47 @@
++from support import *
++
++
++class BoundedLogTests(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='tmp_log_', dir=str(FIXTURES)))
++        self.log = self.root / 'run.log'
++
++    def run_log(self, code, append='0'):
++        return subprocess.run(PY + [str(TOOLS / 'lane_code_log.py'), str(self.log), '-', append] +
++                              PY + ['-c', code], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=3)
++
++    def test_regular_fd_stays_capped_while_other_files_can_grow(self):
++        payload = self.root / 'payload'
++        code = '''import os, stat
++assert stat.S_ISREG(os.fstat(1).st_mode)
++with open(%r, 'wb') as f: f.write(b'z' * 200000)
++try:
++    for i in range(100): os.write(1, b'x' * 4096)
++except OSError:
++    pass
++assert os.fstat(1).st_size == 65536
++''' % str(payload)
++        result = self.run_log(code)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertEqual(self.log.stat().st_size, 65536)
++        self.assertEqual(payload.stat().st_size, 200000)
++
++    def test_append_and_reuse_are_bounded(self):
++        self.assertEqual(self.run_log('print("first")').returncode, 0)
++        self.assertEqual(self.run_log('print("second")', '1').returncode, 0)
++        self.assertEqual(self.log.read_bytes(), b'first\nsecond\n')
++        self.assertEqual(self.run_log('print("replacement")').returncode, 0)
++        self.assertEqual(self.log.read_bytes(), b'replacement\n')
++
++    def test_late_detached_writer_cannot_mutate_saved_log(self):
++        pid = self.root / 'holder.pid'
++        child = "import os,time;os.setsid();open(%r,'w').write(str(os.getpid()));time.sleep(0.5);os.write(1,b'late');time.sleep(1)" % str(pid)
++        code = 'import subprocess,sys; subprocess.Popen([sys.executable,"-I","-s","-B","-c",%r]); print("done")' % child
++        started = time.monotonic()
++        result = self.run_log(code)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertLess(time.monotonic() - started, 0.5)
++        self.assertEqual(self.log.read_bytes(), b'done\n')
++        time.sleep(0.6)
++        self.assertEqual(self.log.read_bytes(), b'done\n')
++        os.kill(int(pid.read_text()), 0)
+--- /dev/null
++++ b/tests/check_delivery.py
+@@ -0,0 +1,55 @@
++"""Explicit artifact regressions; run after packaging, or against the preserved delivery."""
++import hashlib
++import os
++from pathlib import Path
++import sys
++import tarfile
++import unittest
++
++PACKAGE = Path(os.environ.get('LCS_DELIVERY', str(Path(__file__).resolve().parents[1])))
++
++
++class DeliveryTests(unittest.TestCase):
++    def test_report_uses_verified_mux_protocol_and_controlpersist_citations(self):
++        report = (PACKAGE / 'REPORT.md').read_text()
++        self.assertIn('/usr/share/doc/openssh/PROTOCOL.mux', report)
++        self.assertIn('84', report)
++        self.assertIn('99', report)
++        self.assertIn('man ssh_config', report)
++        self.assertIn('idle (with no client connections)', report)
++        self.assertNotIn('stdfd_devnull', report)
++        self.assertNotIn('identity of the incident\'s pipe holder is **unverified**', report)
++
++    def test_header_install_backup_and_calibration_documentation(self):
++        report = (PACKAGE / 'REPORT.md').read_text()
++        header = (PACKAGE / 'tools' / 'lane_code_sync.sh').read_text().split('B=${', 1)[0]
++        self.assertIn('$S/LCS_ROBUST_SYNC', header)
++        self.assertIn('lane_sync', report)
++        self.assertIn('calibrate_budgets.py', report)
++        self.assertIn('--stage-only', report)
++        self.assertIn('PREIMAGE.sha256', report)
++        installer = (PACKAGE / 'install_tools.py').read_text()
++        self.assertIn('os.replace', installer)
++        self.assertIn('preimage.tar', installer)
++        self.assertIn('flock', installer)
++
++    def test_archive_has_one_top_level_and_exact_member_checksums(self):
++        expected = (PACKAGE / 'so_syncfix_bundle.tar.gz.sha256').read_text().split()[0]
++        self.assertEqual(hashlib.sha256((PACKAGE / 'so_syncfix_bundle.tar.gz').read_bytes()).hexdigest(), expected)
++        with tarfile.open(str(PACKAGE / 'so_syncfix_bundle.tar.gz'), 'r:gz') as archive:
++            self.assertEqual(set(member.name.split('/')[0] for member in archive), {'so_syncfix'})
++            manifest = archive.extractfile('so_syncfix/SHA256SUMS').read().decode()
++            self.assertEqual(manifest, (PACKAGE / 'SHA256SUMS').read_text())
++            count = 0
++            for line in manifest.splitlines():
++                digest, name = line.split(None, 1)
++                data = archive.extractfile('so_syncfix/' + name).read()
++                self.assertEqual(hashlib.sha256(data).hexdigest(), digest, name)
++                self.assertEqual(data, (PACKAGE / name).read_bytes(), name)
++                count += 1
++        print('MEASURE archive_verified_members=%d top_level=so_syncfix' % count, flush=True)
++
++
++if __name__ == '__main__':
++    result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(DeliveryTests))
++    sys.exit(0 if result.wasSuccessful() else 1)
+--- /dev/null
++++ b/tests/check_patches.py
+@@ -0,0 +1,38 @@
++"""Replay both patch deliveries on private tmp_* trees; never invoke Git or SSH."""
++import os
++from pathlib import Path
++import subprocess
++import sys
++import tempfile
++
++package = Path(__file__).resolve().parents[1]
++work = Path(os.environ['LCS_PATCH_WORK'])
++work.mkdir(parents=True, exist_ok=True)
++for mode in ('numbered', 'tools-only'):
++    root = Path(tempfile.mkdtemp(prefix='tmp_' + mode + '_', dir=str(work)))
++    (root / 'tools').mkdir()
++    for line in (package / 'PREIMAGE.sha256').read_text().splitlines():
++        unused, name = line.split(None, 1)
++        (root / name).write_bytes((package / 'inputs' / Path(name).name).read_bytes())
++    patches = sorted((package / 'patches').glob('*.diff')) if mode == 'numbered' else [package / 'INSTALL_TOOLS.diff']
++    for patch in patches:
++        result = subprocess.run(['patch', '--batch', '--fuzz=0', '--no-backup-if-mismatch', '-p1', '-i', str(patch)],
++                                cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
++        if result.returncode:
++            raise RuntimeError(result.stdout + result.stderr)
++        if b'fuzz' in result.stdout or b'offset' in result.stdout:
++            raise AssertionError(result.stdout)
++    targets = list((package / 'tools').glob('*'))
++    if mode == 'numbered':
++        targets += list((package / 'tests').glob('*.py')) + list((package / 'inputs').glob('*'))
++        targets += [package / name for name in ('install_tools.py', 'calibrate_budgets.py', 'owner_checks.py',
++                    'install.sh', 'pre_enable.sh', 'calibrate.sh', 'enable.sh', 'PREIMAGE.sha256', 'POSTIMAGE.sha256')]
++    for source in targets:
++        target = root / source.relative_to(package)
++        assert source.read_bytes() == target.read_bytes(), str(source)
++        if target.suffix == '.sh':
++            subprocess.check_call(['bash', '-n', str(target)])
++        elif target.suffix == '.py':
++            compile(target.read_bytes(), str(target), 'exec')
++    print('%s: patches=%d files=%d bytes=identical syntax=OK fuzz=0 offsets=0' % (mode, len(patches), len(targets)))
++print('PATCH REPLAY OK')

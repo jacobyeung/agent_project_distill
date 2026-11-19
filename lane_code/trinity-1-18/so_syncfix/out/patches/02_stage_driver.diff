@@ -75,7 +75,7 @@
  else
 --- /dev/null
 +++ b/tools/lane_code_stage.sh
-@@ -0,0 +1,183 @@
+@@ -0,0 +1,187 @@
 +#!/bin/bash
 +# Sourced only in robust mode (environment switch or $S/LCS_ROBUST_SYNC file).
 +# Each source reuses incoming/accepted tar slots; only complete archives reach SCAN.
@@ -182,12 +182,13 @@
 +  echo 'rc=("${PIPESTATUS[@]}"); echo "PIPE ${rc[*]}"; for r in "${rc[@]}"; do [ "$r" = 0 ] || exit 4; done'
 +}
 +
-+robust_finish() {  # <label> <status>
-+  local label=$1 rc=$2 slot=$RUN/$1 expected='PIPE 0 0 0' snapshot
++robust_finish() {  # <label> <status> <remote:0|1>
++  local label=$1 rc=$2 remote=${3:-0} slot=$RUN/$1 expected='PIPE 0 0 0' snapshot
 +  [ "$DRY" = 1 ] && expected='PIPE 0'
 +  snapshot=$(robust_snapshot "$slot")
 +  printf '%s\n' "$snapshot" | sed "s|^|  [$label] |"
-+  if [ "$rc" = 66 ] && grep -Fxq "SKIP $label no orch_n30/source" <<< "$snapshot"; then
++  if [ "$remote" = 1 ] && { [ "$label" = trinity-1-18 ] || [ "$label" = trinity-2-28 ]; } &&
++      [ "$rc" = 66 ] && grep -Fxq "SKIP $label no orch_n30/source" <<< "$snapshot"; then
 +    log "SKIP $label (no source root)"; return 0
 +  fi
 +  if [ "$label" = trinity-2-28 ] && { [ "$rc" = 255 ] || [ "$rc" = 124 ] || [ "$rc" = 137 ]; } &&
@@ -207,6 +208,9 @@
 +    if [ "$rc" != 0 ]; then
 +      robust_snapshot "$slot" | sed "s|^|  [$label] |"
 +      fail "$label accept stage rc=$rc (log $slot/run.log)"; return 0
++    fi
++    if ! grep -Fxq "ACCEPTING $slot/accepted" "$slot/run.log"; then
++      fail "$label accept protocol missing ACCEPTING $slot/accepted (log $slot/run.log)"; return 0
 +    fi
 +    ACCEPTED_LABELS="$ACCEPTED_LABELS $label"
 +  fi
@@ -239,7 +243,7 @@
 +      setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_NODE_SECONDS" \
 +      bash "$B/tools/tssh.sh" "$node" "$command" 8>&-
 +    rc=$?
-+    robust_finish "$node" "$rc"
++    robust_finish "$node" "$rc" 1
 +  done
 +  for label in trinity-3-30 orch_n30/tools orch_n30/briefs; do
 +    case "$label" in
@@ -256,7 +260,7 @@
 +    python3 -I -s -B "$LOGGER" "$slot/run.log" - 0 \
 +      setsid --wait timeout --kill-after="$LCS_KILL_SECONDS" "$LCS_REMOTE_SECONDS" bash "$slot/program.sh" 8>&-
 +    rc=$?
-+    robust_finish "$label" "$rc"
++    robust_finish "$label" "$rc" 0
 +  done
 +}
 --- /dev/null
@@ -924,7 +928,7 @@
 +        os.kill(int(pid.read_text()), 0)
 --- /dev/null
 +++ b/tests/check_delivery.py
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,55 @@
 +"""Explicit artifact regressions; run after packaging, or against the preserved delivery."""
 +import hashlib
 +import os
@@ -961,14 +965,18 @@
 +        self.assertIn('flock', installer)
 +
 +    def test_archive_has_one_top_level_and_exact_member_checksums(self):
++        expected = (PACKAGE / 'so_syncfix_bundle.tar.gz.sha256').read_text().split()[0]
++        self.assertEqual(hashlib.sha256((PACKAGE / 'so_syncfix_bundle.tar.gz').read_bytes()).hexdigest(), expected)
 +        with tarfile.open(str(PACKAGE / 'so_syncfix_bundle.tar.gz'), 'r:gz') as archive:
 +            self.assertEqual(set(member.name.split('/')[0] for member in archive), {'so_syncfix'})
 +            manifest = archive.extractfile('so_syncfix/SHA256SUMS').read().decode()
++            self.assertEqual(manifest, (PACKAGE / 'SHA256SUMS').read_text())
 +            count = 0
 +            for line in manifest.splitlines():
 +                digest, name = line.split(None, 1)
 +                data = archive.extractfile('so_syncfix/' + name).read()
 +                self.assertEqual(hashlib.sha256(data).hexdigest(), digest, name)
++                self.assertEqual(data, (PACKAGE / name).read_bytes(), name)
 +                count += 1
 +        print('MEASURE archive_verified_members=%d top_level=so_syncfix' % count, flush=True)
 +
@@ -1007,7 +1015,7 @@
 +    if mode == 'numbered':
 +        targets += list((package / 'tests').glob('*.py')) + list((package / 'inputs').glob('*'))
 +        targets += [package / name for name in ('install_tools.py', 'calibrate_budgets.py', 'owner_checks.py',
-+                    'install.sh', 'pre_enable.sh', 'calibrate.sh', 'enable.sh', 'PREIMAGE.sha256', 'POSTIMAGE.sha256')]
++                    'install.sh', 'pre_enable.sh', 'calibrate.sh', 'enable.sh', 'disable.sh', 'rollback.sh', 'PREIMAGE.sha256', 'POSTIMAGE.sha256')]
 +    for source in targets:
 +        target = root / source.relative_to(package)
 +        assert source.read_bytes() == target.read_bytes(), str(source)

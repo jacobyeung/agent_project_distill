@@ -1,4 +1,4 @@
-"""Verify or prepare node-local A4 assets; never transfer data or use a GPU."""
+"""Verify or prepare node-local A10b assets; never transfer data or use a GPU."""
 import argparse
 import hashlib
 import io
@@ -66,7 +66,7 @@ def extract_group(group, mapping, destination):
                 p=Path(m.name)
                 if p.is_absolute() or '..' in p.parts or str(p) in seen:raise Refusal('Unsafe/duplicate archive member')
                 seen.add(str(p));target=destination/p
-                if target.is_symlink() or not target.resolve().is_relative_to(destination.resolve()):
+                if target.is_symlink() or not beneath(target.resolve(),destination.resolve()):
                     raise Refusal('Archive member crosses a symlink')
                 if m.isdir():target.mkdir(parents=True,exist_ok=True);continue
                 if not m.isfile():raise Refusal('Input archive links require coordinator inspection: '+m.name)
@@ -99,7 +99,7 @@ def extract_group(group, mapping, destination):
 
 def code_install(root, cfg):
     dest=local(Path(cfg['logical'])/'p')
-    pins=read(HERE/'A4_PINS.json')['source']
+    pins=read(HERE/'A10b_PINS.json')['source']
     if dest.exists():source_check(dest,pins);return
     dest.mkdir(parents=True,exist_ok=False)
     with tarfile.open(root/'package/0.tgz') as t:
@@ -109,24 +109,29 @@ def code_install(root, cfg):
             p.write_bytes(t.extractfile(m).read());checked(p,pins[m.name])
     source_check(dest,pins)
 
-def versions(python, receipt, env):
+def versions(python, receipt, env, env_roots=()):
     # The pinned env receipt, not the CPU test environment, selects production versions.
-    probe=('import json,sys,torch,torchvision,transformers,scipy;'
+    probe=('import json,sys,sysconfig,torch,torchvision,transformers,scipy;'
            'print(json.dumps(dict(versions={m.__name__:m.__version__ for m in '
            '(torch,torchvision,transformers,scipy)},python=sys.executable,cuda=torch.version.cuda,'
-           'prefix=sys.prefix,base_prefix=sys.base_prefix,'
+           'prefix=sys.prefix,base_prefix=sys.base_prefix,python_version=list(sys.version_info[:3]),'
+           'audit_roots=[sysconfig.get_paths()[k] for k in ("stdlib","platstdlib","purelib","platlib")],'
            'module_paths={m.__name__:m.__file__ for m in (torch,torchvision,transformers,scipy)})))')
-    result=subprocess.run([str(python),'-I','-s','-B','-c',probe],env=env,text=True,capture_output=True,timeout=120)
+    probe_file=local(Path(env['TMPDIR'])/'version_probe.py');probe_file.write_text(probe+'\n')
+    result=subprocess.run([str(python),'-B','-I',str(probe_file)],env=env,text=True,capture_output=True,timeout=120)
     if result.returncode:raise Refusal('Environment probe failed: '+result.stderr[-2000:])
     got=json.loads(result.stdout.strip().splitlines()[-1])
     if got['versions']!=receipt.get('versions'):raise Refusal('Environment versions differ from pinned q/env.json')
     if not got['cuda']:raise Refusal('A CUDA-enabled torch build is required; CPU torch cannot run this reader')
-    if not Path(got['python']).resolve().is_relative_to('/scratch/jjyeung'):
-        raise Refusal('Interpreter resolves outside node-local scratch')
-    if not Path(got['prefix']).resolve().is_relative_to('/scratch/jjyeung/envs'):
-        raise Refusal('Stage the Python environment under /scratch/jjyeung/envs')
-    if any(not Path(p).resolve().is_relative_to('/scratch/jjyeung') for p in got['module_paths'].values()):
-        raise Refusal('A framework module resolves outside node-local scratch')
+    if got['python_version'][:2]!=[3,12]:raise Refusal('Require staged Python 3.12')
+    # The sealed reader trusts sysconfig library roots and settings.env_roots.
+    trusted=[local(p).resolve() for p in got['audit_roots']]+[local(p).resolve() for p in env_roots]
+    for key in ('python','prefix','base_prefix'):local(got[key])
+    for path in got['module_paths'].values():
+        path=local(path).resolve()
+        if not any(beneath(path,r) for r in trusted):raise Refusal('Framework module is outside reader audit roots')
+    got['env_roots']=list(env_roots)
+    got['audit_coverage_verified']=True
     return got
 
 def local_bytes(roots):
@@ -134,7 +139,7 @@ def local_bytes(roots):
     unique=sorted({local(p).resolve() for p in roots if Path(p).exists()},key=lambda p:len(p.parts))
     selected=[]
     for p in unique:
-        if not any(p==r or p.is_relative_to(r) for r in selected):selected.append(p)
+        if not any(p==r or beneath(p,r) for r in selected):selected.append(p)
     seen=set();total=0;files=0
     for root in selected:
         for base,dirs,names in os.walk(root,followlinks=False):
@@ -144,9 +149,31 @@ def local_bytes(roots):
                 if key not in seen:seen.add(key);total+=stat.st_size;files+=1
     return dict(bytes=total,files=files,roots=[str(p) for p in selected],basis='logical bytes, unique file inodes; directory symlinks require their target in the named roots')
 
+def staging_receipts(plan):
+    expected=sha(HERE/'STAGE_PLAN.json');extracted={}
+    for name in ('INPUT_EXTRACTION.json','RUNTIME_EXTRACTION.json'):
+        path=STAGE/name
+        if not path.is_file():raise Refusal('Missing completed local extraction receipt: '+str(path))
+        receipt=read(path)
+        if receipt.get('passed') is not True or receipt.get('plan_sha256')!=expected:
+            raise Refusal('Extraction receipt does not authenticate this stage plan')
+        extracted.update(receipt['files'])
+    path=STAGE/'RUNTIME_RELOCATION.json'
+    if not path.is_file():raise Refusal('Run explicit --relocate-runtime before preparation')
+    relocation=read(path)
+    if relocation.get('enabled') is not True:raise Refusal('Runtime relocation receipt is incomplete')
+    wanted={str(Path(plan['logical'])/'d/v/py'),str(Path(plan['logical'])/'d/v/boot.py'),
+            str(Path(plan['environment']['local_base_env'])/'pyvenv.cfg')}
+    if {row['path'] for row in relocation['files']}!=wanted:raise Refusal('Runtime relocation file set differs')
+    for row in relocation['files']:
+        if row['before']!=extracted.get(row['path']):raise Refusal('Runtime relocation input pin differs')
+        checked(local(row['original']),row['before']);checked(local(row['path']),row['after'])
+    return dict(extraction_plan_sha256=expected,relocation_sha256=sha(path))
+
 def stage_check(root, cfg, inputs, export, *, prepare=False, check_env=True):
     plan=read(HERE/'STAGE_PLAN.json');data=Path(cfg['logical'])/'d';p=Path(cfg['logical'])/'p'
-    source_check(p,read(HERE/'A4_PINS.json')['source'])
+    extraction=staging_receipts(plan)
+    source_check(p,read(HERE/'A10b_PINS.json')['source'])
     for spec in inputs['files'].values():checked(local(spec['path']),spec)
     for spec in export['preparation'].values():checked(data/spec['path'],spec)
     # Full export shard pins are reached only through the authenticated manifest.
@@ -160,19 +187,19 @@ def stage_check(root, cfg, inputs, export, *, prepare=False, check_env=True):
         if not local(inputs[name]).is_dir():raise Refusal('Missing directory: '+inputs[name])
     python=local(inputs['python'])
     if not python.is_file() or not os.access(python,os.X_OK):raise Refusal('Missing executable '+str(python))
-    if not VNICE.is_file():raise Refusal('Missing required vnice script: '+str(VNICE))
+    policy_check()
     env_info=None
+    env=clean_environment(STAGE/'prepare')
     if check_env:
-        env=clean_environment(STAGE/'prepare')
-        env_info=versions(python,read(inputs['files']['env']['path']),env)
-    if prepare:
+        env_info=versions(python,read(inputs['files']['env']['path']),env,inputs['env_roots'])
+    if prepare and not (data/'READY.json').exists():
         # The sealed preparation function creates the restore and verifies its tensor mapping.
         # No source patch or unchecked model/config rewrite is involved.
         dispatch=STAGE/'prepare/0.json'
         write(dispatch,dict(action=0,package=str(p),config=cfg,inputs={**inputs,'_export':export}))
         if (data/'e').exists():raise Refusal('Restore already exists; check it instead of rerunning preparation')
         with (STAGE/'prepare/prepare.log').open('xb') as log:
-            rc=subprocess.run(['nice','-n','10',str(python),'-I','-s','-B',str(p/'orchard_h10/entry.py'),str(dispatch)],
+            rc=subprocess.run(['nice','-n','10',str(python),'-B','-I',str(p/'orchard_h10/entry.py'),str(dispatch)],
                               env=env,stdout=log,stderr=subprocess.STDOUT).returncode
         if rc:raise Refusal('Sealed preparation failed; no retry. See '+str(STAGE/'prepare/prepare.log'))
     for name in ('READY.json','binding.json','manifest.json','settings.json','6.json'):
@@ -182,6 +209,7 @@ def stage_check(root, cfg, inputs, export, *, prepare=False, check_env=True):
         raise Refusal('Prepared restore receipt differs')
     if read(data/'6.json')!=export:raise Refusal('Prepared export identity differs')
     settings=read(data/'settings.json')
+    if settings.get('env_roots')!=inputs['env_roots']:raise Refusal('Prepared env_roots differ from package')
     for key in ('stage1_select_rule','perception_memo','perception_memo_modules','perception_memo_verify_ids','save_own_depth'):
         if settings[key]!=cfg[key]:raise Refusal('Prepared settings differ: '+key)
     if any(k.startswith('read_') for k in settings):raise Refusal('OFF settings contain extension switches')
@@ -193,14 +221,16 @@ def stage_check(root, cfg, inputs, export, *, prepare=False, check_env=True):
     if footprint['bytes']>plan['budget']['limit_bytes']-plan['budget']['code_returns_cache_allowance_bytes']:
         raise Refusal('Staged footprint leaves less than the 5 GB run allowance below 150 GB')
     return dict(passed=True,utc=utc(),mode='OFF',plan_sha256=cfg['plan_sha256'],step=export['step'],
-                environment=env_info,ready=ready,source_files=927,footprint=footprint)
+                environment=env_info,ready=ready,source_files=927,footprint=footprint,extraction=extraction)
 
 def main(argv=None):
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('package')
     mode=ap.add_mutually_exclusive_group();mode.add_argument('--install-code',action='store_true')
     mode.add_argument('--extract-inputs',action='store_true');mode.add_argument('--prepare',action='store_true')
+    mode.add_argument('--extract-runtime',action='store_true');mode.add_argument('--relocate-runtime',action='store_true')
     ap.add_argument('--out');a=ap.parse_args(argv)
     print(utc(),file=sys.stderr)
+    target_host()
     root,cfg,inputs,export=deployment(a.package)
     if a.install_code:
         code_install(root,cfg);result=dict(code_installed=True,logical=cfg['logical'])
@@ -209,15 +239,40 @@ def main(argv=None):
         need=sum(g['expanded_bytes'] for g in plan['input_archives'])
         if shutil.disk_usage(STAGE).free<need+plan['budget']['free_floor_bytes']:raise Refusal('Insufficient staging space')
         inventory={}
+        # Refuse missing local bytes before writing any archive member. Never fetch.
+        for group in plan['input_archives']:
+            for part in group['parts']:
+                path=mapped_part(part,mapping)
+                if not path.is_file() or path.stat().st_size!=part['bytes']:raise Refusal('Missing/wrong staged part: '+str(path))
         for group in plan['input_archives']:
             print(utc()+' extracting '+group['id'],file=sys.stderr)
             inventory.update(extract_group(group,mapping,group['destination']))
-        result=dict(utc=utc(),passed=True,files=inventory)
+        result=dict(utc=utc(),passed=True,plan_sha256=sha(HERE/'STAGE_PLAN.json'),files=inventory)
         write(STAGE/'INPUT_EXTRACTION.json',result)
+    elif a.extract_runtime:
+        from runtime228 import extract_runtime
+        plan=read(HERE/'STAGE_PLAN.json');mapping=archive_map(plan)
+        for group in plan['runtime_archives']:
+            for part in group['parts']:
+                path=mapped_part(part,mapping)
+                if not path.is_file() or path.stat().st_size!=part['bytes']:
+                    raise Refusal('Runtime bytes missing; coordinator must resolve MISSING.json: '+str(path))
+        limit=plan['budget']['runtime_expanded_allowance_bytes']
+        if shutil.disk_usage(STAGE).free<limit+plan['budget']['free_floor_bytes']:raise Refusal('Insufficient runtime staging space')
+        result=dict(files={},groups={});total=0
+        for group in plan['runtime_archives']:
+            print(utc()+' extracting '+group['id'],file=sys.stderr)
+            got=extract_runtime(group,mapping,limit=limit-total);total+=got['expanded_bytes']
+            result['files'].update(got['files']);result['groups'][group['id']]=got['archive_sha256']
+        result.update(expanded_bytes=total,passed=True,plan_sha256=sha(HERE/'STAGE_PLAN.json'))
+        write(STAGE/'RUNTIME_EXTRACTION.json',result)
+    elif a.relocate_runtime:
+        from runtime228 import relocate_runtime
+        result=relocate_runtime(read(HERE/'STAGE_PLAN.json'),enabled=True)
     else:
         target_host();result=stage_check(root,cfg,inputs,export,prepare=a.prepare)
-    if a.out:write(a.out,result)
-    print(json.dumps(result,sort_keys=True))
+    if a.out:write(local(a.out),result)
+    print(json.dumps({k:v for k,v in result.items() if k!='files'},sort_keys=True))
     return 0
 
 if __name__=='__main__':

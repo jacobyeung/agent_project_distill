@@ -1,4 +1,4 @@
-"""Execute the original A4 dispatch with explicit memory observation and optional so_read overlays."""
+"""Execute the original A10b dispatch with explicit memory observation and optional so_read overlays."""
 import argparse
 import os
 from pathlib import Path
@@ -26,8 +26,6 @@ def main():
         sys.path.insert(0,str(extension/'u0'))
         from a8 import activate
         activate(enabled=True)
-    else:
-        from e2e_reader import parity
     from e2e_reader import parity
     from h1eval.h10 import launch
     import torch,transformers
@@ -41,7 +39,7 @@ def main():
         deterministic_algorithms=torch.are_deterministic_algorithms_enabled(),
         cudnn_deterministic=torch.backends.cudnn.deterministic,cudnn_benchmark=torch.backends.cudnn.benchmark,
         matmul_allow_tf32=torch.backends.cuda.matmul.allow_tf32,cudnn_allow_tf32=torch.backends.cudnn.allow_tf32,
-        num_threads=torch.get_num_threads(),seed_action='none; preserve sealed A4 behavior')
+        num_threads=torch.get_num_threads(),seed_action='none; preserve sealed A10b behavior')
     old_load=parity.load_native
     def observed_load(*a,**kw):
         result=old_load(*a,**kw);model=result[0]

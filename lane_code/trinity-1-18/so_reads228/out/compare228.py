@@ -1,4 +1,4 @@
-"""Fixed first-50 A4 OFF comparison: >=49 identical answers and 50 identical call placements."""
+"""Fixed first-50 A10b OFF comparison: >=49 identical answers and 50 identical call placements."""
 import argparse
 from collections import Counter
 import json
@@ -15,7 +15,7 @@ BINDINGS=('export_sha256','item_set_sha256','items_sha256','reader_sha256','make
           'perception_memo_modules','perception_memo_verify_ids','save_own_depth')
 
 def answer(row):
-    # Exact A4 answer_text extraction; no numeric tolerance or punctuation normalization.
+    # Exact A10b answer_text extraction; no numeric tolerance or punctuation normalization.
     output=row['output']
     if output.get('finish')=='max_calls':return ''
     text=output['text'];matches=re.findall(r'<answer>\s*(.*?)\s*</answer>',text,re.S)
@@ -27,10 +27,10 @@ def calls(row):
     # Preserve record order, literal tool arguments, token position, and service placement.
     value=row['output']['calls']
     result=[]
-    for record in value['records']:
+    for index,record in enumerate(value['records']):
         if any(k not in record for k in ('call','family','served','at_token')):
             raise Refusal('Incomplete call placement trace')
-        result.append({k:v for k,v in record.items() if k not in ('response','forced_tokens','seconds','timings')})
+        result.append((index,record['family'],record['call'],record['served'],record['at_token']))
     return result
 
 def trace(row):
@@ -39,7 +39,7 @@ def trace(row):
 
 def rows(root):
     root=Path(root);journal=root/'metadata/reads/0/metadata/journals'
-    if not journal.is_dir():raise Refusal('Missing A4 metadata/reads/0/metadata/journals')
+    if not journal.is_dir():raise Refusal('Missing A10b metadata/reads/0/metadata/journals')
     result=[];bindings={};seen=set()
     for kind in SCHEDULE:
         directory=journal/str(kind)/'0';path=directory/'items.jsonl'
@@ -48,7 +48,7 @@ def rows(root):
         if binding.get('fixture') is not False:raise Refusal('Fixture or missing production binding')
         if binding.get('shard')!='0/1':raise Refusal('Require the original one-card shard')
         if any(k not in binding for k in BINDINGS):raise Refusal('Missing immutable environment binding')
-        bindings[kind]=binding
+        bindings[kind]=env
         with path.open() as stream:
             for line in stream:
                 if not line.endswith('\n'):raise Refusal('Torn journal')
@@ -78,7 +78,7 @@ def differences(a,b,path=''):
             elif key not in b:result.append(dict(path=sub,missing='right',left=a[key]))
             else:result.extend(differences(a[key],b[key],sub))
         return result
-    if isinstance(a,list):
+    if isinstance(a,(list,tuple)):
         if len(a)!=len(b):return [dict(path=path,left=a,right=b)]
         result=[]
         for i,(x,y) in enumerate(zip(a,b)):result.extend(differences(x,y,path+'/'+str(i)))
@@ -93,22 +93,39 @@ def compare(left,right,first50=None):
         loaded,env=rows(root);data.append(loaded);envs.append(env)
         if [r['id'] for r in loaded[:50]]!=expected:reasons.append(label+': first 50 IDs/order differ or are incomplete')
         if [r['id'] for r in loaded]!=fixed['full_order'][:len(loaded)] or len(loaded)>636:
-            reasons.append(label+': return is not a prefix of the sealed A4 schedule')
-        if read(root/'metadata/EXPORT_PIN.json')!=fixed['export']:reasons.append(label+': export differs from Orchard m200')
+            reasons.append(label+': return is not a prefix of the sealed A10b schedule')
+        if read(root/'metadata/EXPORT_PIN.json')!=fixed['export']:reasons.append(label+': export differs from Orchard m400')
         identity=read(root/'metadata/IDENTITY.json')
         if identity.get('plan')!=fixed['plan_sha256'] or identity.get('cards')!=1:reasons.append(label+': plan/cards differ')
-        if identity.get('operator_sha256')!=read(HERE/'A4_PINS.json')['operator_sha256']:reasons.append(label+': operator differs')
-        info=root/'metadata/LOCAL_RUN.json'
-        if info.exists() and read(info).get('mode')!='OFF':reasons.append(label+': comparison requires OFF')
-        if info.exists() and read(info).get('backend')!='trinity-local':reasons.append(label+': unrecognized execution backend')
+        if identity.get('operator_sha256')!=read(HERE/'A10b_PINS.json')['operator_sha256']:reasons.append(label+': operator differs')
+        for value in env.values():
+            settings=value.get('settings')
+            if not isinstance(settings,dict):reasons.append(label+': missing settings; OFF required')
+            elif any(k.startswith('read_') and v not in ('off',False,0,None,[]) for k,v in settings.items()):
+                reasons.append(label+': Extension-enabled settings; OFF required')
+        if label=='trinity':
+            info=root/'metadata/LOCAL_RUN.json'
+            if not info.is_file():reasons.append('trinity: missing LOCAL_RUN.json')
+            else:
+                local_run=read(info)
+                for key,wanted in (('backend','trinity-local'),('host','trinity-2-28'),('mode','OFF')):
+                    if local_run.get(key)!=wanted:reasons.append('trinity: LOCAL_RUN '+key+' must be '+wanted)
+            cards=root/'metadata/CARDS.json'
+            if not cards.is_file() or 'RTX 6000 Ada' not in str(read(cards).get('snapshot',{}).get('name','')):
+                reasons.append('trinity: CARDS snapshot must identify RTX 6000 Ada')
+            # Check every journal environment, including empty/unselected journal directories.
+            for path in sorted((root/'metadata/reads').glob('*/metadata/journals/*/*/environment.json')):
+                if not str(read(path).get('host','')).startswith('trinity-2-28'):
+                    reasons.append('trinity: journal host differs: '+str(path.relative_to(root)))
+            receipt=root/'metadata/RETURN_ID.json'
+            job=read(receipt).get('job') if receipt.is_file() else None
+            if job is None or str(job)==str(fixed.get('reference_job','173060')):
+                reasons.append('trinity: missing RETURN_ID or Orchard reference job reused')
     for kind in set(envs[0])&set(envs[1]):
         for key in BINDINGS:
-            if envs[0][kind][key]!=envs[1][kind][key]:reasons.append('binding differs: '+str(kind)+'.'+key)
-        for env in envs:
-            if any(k.startswith('read_') and v not in ('off',False,0,None,[]) for k,v in env[kind].items()):
-                reasons.append('Extension-enabled environment; OFF required')
+            if envs[0][kind]['binding'][key]!=envs[1][kind]['binding'][key]:reasons.append('binding differs: '+str(kind)+'.'+key)
     if canonical(data[0][:50])!=fixed['orchard_prefix_sha256']:
-        reasons.append('Orchard baseline bytes differ from the authenticated job 172744 prefix')
+        reasons.append('Orchard baseline bytes differ from the authenticated job 173060 prefix')
     # Return diagnostics for every expected ID even if the run is incomplete.
     indexed=[{r['id']:r for r in side} for side in data]
     count=Counter();per_item=[];field_counts=Counter();fields=set()
@@ -131,7 +148,7 @@ def compare(left,right,first50=None):
     same=eligible and count['answer']>=49 and count['call_placement']==50
     return dict(schema='read228-comparison-v1',verdict='SAME_INSTRUMENT' if same else 'DIAGNOSTIC_ONLY',
         items=50,eligible=eligible,ineligibility_reasons=sorted(set(reasons)),
-        rule='49 or 50 identical extracted answers AND identical call placement on all 50; same A4 items/export and OFF required. Trace equality is reported, not an extra acceptance gate.',
+        rule='49 or 50 identical extracted answers AND identical call placement on all 50; same A10b items/export and OFF required. Trace equality is reported, not an extra acceptance gate.',
         identical={k:count[k] for k in ('answer','call_placement','trace','text','tokens')},
         identical_output_fields={k:field_counts[k] for k in sorted(fields)},
         trace_excluded_output_fields=list(TRACE_EXCLUDE),per_item=per_item,
@@ -141,7 +158,8 @@ def main(argv=None):
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('trinity_return')
     ap.add_argument('--orchard',default=str(HERE/'reference'));ap.add_argument('--out',required=True)
     a=ap.parse_args(argv);print(utc(),file=sys.stderr)
-    result=compare(a.orchard,a.trinity_return);write(a.out,result)
+    destination=local(a.out)
+    result=compare(a.orchard,a.trinity_return);write(destination,result)
     print(json.dumps({k:v for k,v in result.items() if k!='per_item'},sort_keys=True))
     return 0 if result['verdict']=='SAME_INSTRUMENT' else 1
 

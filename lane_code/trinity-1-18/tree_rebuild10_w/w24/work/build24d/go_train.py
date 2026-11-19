@@ -9,5 +9,6 @@ steps=[('room audit',[sys.executable,'-B',str(k/'b/d.py'),ns+'/p2/s',ns+'/r2.jso
  ('t.py / u.py / native train',[sys.executable,'-B',str(D/'boundary.py'),str(k/'b/t.py'),ns+'/p2',ns+'/v.json'])]
 for i,(stage,cmd) in enumerate(steps):
  with (root/('stage'+str(i)+'.log')).open('w') as log:r=subprocess.run(args+cmd,stdout=log,stderr=subprocess.STDOUT)
+ if i==2 and r.returncode==0:J.write(D/'GO_GATES.json',J.load(root/'gates.json'))
  records.append(dict(stage=stage,returncode=r.returncode,log=str(root/('stage'+str(i)+'.log'))));J.write(D/'GO_TRAIN.json',records);print(stage,r.returncode,flush=True)
  if r.returncode:raise SystemExit(r.returncode)

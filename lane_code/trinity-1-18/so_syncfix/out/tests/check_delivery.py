@@ -34,14 +34,18 @@ class DeliveryTests(unittest.TestCase):
         self.assertIn('flock', installer)
 
     def test_archive_has_one_top_level_and_exact_member_checksums(self):
+        expected = (PACKAGE / 'so_syncfix_bundle.tar.gz.sha256').read_text().split()[0]
+        self.assertEqual(hashlib.sha256((PACKAGE / 'so_syncfix_bundle.tar.gz').read_bytes()).hexdigest(), expected)
         with tarfile.open(str(PACKAGE / 'so_syncfix_bundle.tar.gz'), 'r:gz') as archive:
             self.assertEqual(set(member.name.split('/')[0] for member in archive), {'so_syncfix'})
             manifest = archive.extractfile('so_syncfix/SHA256SUMS').read().decode()
+            self.assertEqual(manifest, (PACKAGE / 'SHA256SUMS').read_text())
             count = 0
             for line in manifest.splitlines():
                 digest, name = line.split(None, 1)
                 data = archive.extractfile('so_syncfix/' + name).read()
                 self.assertEqual(hashlib.sha256(data).hexdigest(), digest, name)
+                self.assertEqual(data, (PACKAGE / name).read_bytes(), name)
                 count += 1
         print('MEASURE archive_verified_members=%d top_level=so_syncfix' % count, flush=True)
 

@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/sb_scalerev; ls $W | tr "\n" " "; echo; wc -c $W/cursor.log; tmux has-session -t sb_scalerev 2>/dev/null && echo alive || echo ended; [ -f $W/REVIEW.md ] && { sha256sum $W/REVIEW.md | cut -c1-16; cat $W/REVIEW.md; }

@@ -1,0 +1,178 @@
+test_unordered_budgets_refused_before_starting_sources (test_round2.BudgetRound2Tests.test_unordered_budgets_refused_before_starting_sources) ... 
+  test_unordered_budgets_refused_before_starting_sources (test_round2.BudgetRound2Tests.test_unordered_budgets_refused_before_starting_sources) (key='LCS_SCAN_SECONDS') ... FAIL
+  test_unordered_budgets_refused_before_starting_sources (test_round2.BudgetRound2Tests.test_unordered_budgets_refused_before_starting_sources) (key='LCS_LEG_SECONDS') ... FAIL
+  test_unordered_budgets_refused_before_starting_sources (test_round2.BudgetRound2Tests.test_unordered_budgets_refused_before_starting_sources) (key='LCS_REMOTE_SECONDS') ... FAIL
+test_missing_accept_or_copy_measurement_refused (test_round2.CalibrationRound2Tests.test_missing_accept_or_copy_measurement_refused) ... FAIL
+test_pre_enable_counts_failures_against_hourly_runs (test_round2.CalibrationRound2Tests.test_pre_enable_counts_failures_against_hourly_runs) ... FAIL
+test_saved_scripts_and_window_guard (test_round2.CalibrationRound2Tests.test_saved_scripts_and_window_guard) ... FAIL
+test_stage_accept_copy_measured_and_budget_at_least_double (test_round2.CalibrationRound2Tests.test_stage_accept_copy_measured_and_budget_at_least_double) ... FAIL
+test_default_fixture_root_is_pruned (test_round2.FixtureRound2Tests.test_default_fixture_root_is_pruned) ... FAIL
+test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation (test_round2.ManifestRound2Tests.test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation) ... 
+  test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation (test_round2.ManifestRound2Tests.test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation) (kind='fifo') ... FAIL
+  test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation (test_round2.ManifestRound2Tests.test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation) (kind='symlink') ... FAIL
+  test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation (test_round2.ManifestRound2Tests.test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation) (kind='hardlink') ... FAIL
+test_regular_manifest_slot_is_truncated_and_replaced (test_round2.ManifestRound2Tests.test_regular_manifest_slot_is_truncated_and_replaced) ... FAIL
+test_repeated_failed_manifest_reuses_one_name (test_round2.ManifestRound2Tests.test_repeated_failed_manifest_reuses_one_name) ... FAIL
+test_queue_scan_through_symlinked_parent_is_legacy_identical (test_round2.QueueRound2Tests.test_queue_scan_through_symlinked_parent_is_legacy_identical) ... FAIL
+test_installed_scanfix_is_preimage_and_pattern_in_both_paths (test_round2.RebaseTests.test_installed_scanfix_is_preimage_and_pattern_in_both_paths) ... FAIL
+test_installer_refuses_old_layout_even_with_matching_postimage (test_round2.RebaseTests.test_installer_refuses_old_layout_even_with_matching_postimage) ... FAIL
+
+======================================================================
+FAIL: test_unordered_budgets_refused_before_starting_sources (test_round2.BudgetRound2Tests.test_unordered_budgets_refused_before_starting_sources) (key='LCS_SCAN_SECONDS')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 205, in test_unordered_budgets_refused_before_starting_sources
+    self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+AssertionError: 0 != 2 : b'2026-11-19T17:23:49Z START dry=1 queue_only=0\n2026-11-19T17:23:49Z ROBUST slots=/scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_driver_m17gm4nb/state/stage-robust file_seconds=0.1 scan_seconds=0.7 copy_seconds=0.4 leg_seconds=0.7 remote_seconds=1.0 node_seconds=1.3 kill_seconds=0.15\n2026-11-19T17:23:49Z ROBUST stage trinity-1-18\n  [trinity-1-18] MANIFEST_PENDING code_sync/meta/.dedup-fe085a47a54d4854b2b0ddf30343c1b0\n  [trinity-1-18] STATS trinity-1-18 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-1-18] PIPE 0\n2026-11-19T17:23:50Z STAGED trinity-1-18 rc=0\n2026-11-19T17:23:50Z ROBUST stage trinity-2-28\n  [trinity-2-28] MANIFEST_PENDING code_sync/meta/.dedup-1335514f4bfc4e068dc5fb47580639ac\n  [trinity-2-28] STATS trinity-2-28 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-2-28] PIPE 0\n2026-11-19T17:23:50Z STAGED trinity-2-28 rc=0\n2026-11-19T17:23:50Z ROBUST stage trinity-3-30\n  [trinity-3-30] MANIFEST_PENDING code_sync/meta/.dedup-2bda882ce6c4429ea689d3805cee49c0\n  [trinity-3-30] STATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-3-30] PIPE 0\n2026-11-19T17:23:50Z STAGED trinity-3-30 rc=0\n2026-11-19T17:23:50Z ROBUST stage orch_n30/tools\n  [orch_n30/tools] STATS orch_n30/tools files=6 bytes=45289 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/tools] PIPE 0\n2026-11-19T17:23:50Z STAGED orch_n30/tools rc=0\n2026-11-19T17:23:50Z ROBUST stage orch_n30/briefs\n  [orch_n30/briefs] STATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/briefs] PIPE 0\n2026-11-19T17:23:50Z STAGED orch_n30/briefs rc=0\n2026-11-19T17:23:50Z DRY done\n'
+
+======================================================================
+FAIL: test_unordered_budgets_refused_before_starting_sources (test_round2.BudgetRound2Tests.test_unordered_budgets_refused_before_starting_sources) (key='LCS_LEG_SECONDS')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 205, in test_unordered_budgets_refused_before_starting_sources
+    self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+AssertionError: 0 != 2 : b'2026-11-19T17:23:50Z START dry=1 queue_only=0\n2026-11-19T17:23:50Z ROBUST slots=/scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_driver_0qxdk2r4/state/stage-robust file_seconds=0.1 scan_seconds=0.4 copy_seconds=0.4 leg_seconds=1.0 remote_seconds=1.0 node_seconds=1.3 kill_seconds=0.15\n2026-11-19T17:23:50Z ROBUST stage trinity-1-18\n  [trinity-1-18] MANIFEST_PENDING code_sync/meta/.dedup-d8cb694299cd4cd6bbe667a168f46ad8\n  [trinity-1-18] STATS trinity-1-18 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-1-18] PIPE 0\n2026-11-19T17:23:50Z STAGED trinity-1-18 rc=0\n2026-11-19T17:23:50Z ROBUST stage trinity-2-28\n  [trinity-2-28] MANIFEST_PENDING code_sync/meta/.dedup-7f44ab8ff90a4217acf86bf28f7c36ae\n  [trinity-2-28] STATS trinity-2-28 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-2-28] PIPE 0\n2026-11-19T17:23:50Z STAGED trinity-2-28 rc=0\n2026-11-19T17:23:50Z ROBUST stage trinity-3-30\n  [trinity-3-30] MANIFEST_PENDING code_sync/meta/.dedup-a2cb9499c1bc4565a4b1bfc5680feecd\n  [trinity-3-30] STATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-3-30] PIPE 0\n2026-11-19T17:23:50Z STAGED trinity-3-30 rc=0\n2026-11-19T17:23:50Z ROBUST stage orch_n30/tools\n  [orch_n30/tools] STATS orch_n30/tools files=6 bytes=45289 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/tools] PIPE 0\n2026-11-19T17:23:50Z STAGED orch_n30/tools rc=0\n2026-11-19T17:23:50Z ROBUST stage orch_n30/briefs\n  [orch_n30/briefs] STATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/briefs] PIPE 0\n2026-11-19T17:23:51Z STAGED orch_n30/briefs rc=0\n2026-11-19T17:23:51Z DRY done\n'
+
+======================================================================
+FAIL: test_unordered_budgets_refused_before_starting_sources (test_round2.BudgetRound2Tests.test_unordered_budgets_refused_before_starting_sources) (key='LCS_REMOTE_SECONDS')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 205, in test_unordered_budgets_refused_before_starting_sources
+    self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+AssertionError: 0 != 2 : b'2026-11-19T17:23:51Z START dry=1 queue_only=0\n2026-11-19T17:23:51Z ROBUST slots=/scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_driver_bdun2tcm/state/stage-robust file_seconds=0.1 scan_seconds=0.4 copy_seconds=0.4 leg_seconds=0.7 remote_seconds=1.3 node_seconds=1.3 kill_seconds=0.15\n2026-11-19T17:23:51Z ROBUST stage trinity-1-18\n  [trinity-1-18] MANIFEST_PENDING code_sync/meta/.dedup-60d36764b5c448999f9b115d02cc222a\n  [trinity-1-18] STATS trinity-1-18 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-1-18] PIPE 0\n2026-11-19T17:23:51Z STAGED trinity-1-18 rc=0\n2026-11-19T17:23:51Z ROBUST stage trinity-2-28\n  [trinity-2-28] MANIFEST_PENDING code_sync/meta/.dedup-9f215335fcbe429791e91173f7ec9963\n  [trinity-2-28] STATS trinity-2-28 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-2-28] PIPE 0\n2026-11-19T17:23:51Z STAGED trinity-2-28 rc=0\n2026-11-19T17:23:51Z ROBUST stage trinity-3-30\n  [trinity-3-30] MANIFEST_PENDING code_sync/meta/.dedup-3fa748287f244fcdb3ea18931e3bea49\n  [trinity-3-30] STATS trinity-3-30 files=1 bytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [trinity-3-30] PIPE 0\n2026-11-19T17:23:51Z STAGED trinity-3-30 rc=0\n2026-11-19T17:23:51Z ROBUST stage orch_n30/tools\n  [orch_n30/tools] STATS orch_n30/tools files=6 bytes=45289 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/tools] PIPE 0\n2026-11-19T17:23:51Z STAGED orch_n30/tools rc=0\n2026-11-19T17:23:51Z ROBUST stage orch_n30/briefs\n  [orch_n30/briefs] STATS orch_n30/briefs files=1 bytes=5 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n  [orch_n30/briefs] PIPE 0\n2026-11-19T17:23:51Z STAGED orch_n30/briefs rc=0\n2026-11-19T17:23:51Z DRY done\n'
+
+======================================================================
+FAIL: test_missing_accept_or_copy_measurement_refused (test_round2.CalibrationRound2Tests.test_missing_accept_or_copy_measurement_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 92, in test_missing_accept_or_copy_measurement_refused
+    with self.assertRaises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_pre_enable_counts_failures_against_hourly_runs (test_round2.CalibrationRound2Tests.test_pre_enable_counts_failures_against_hourly_runs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 118, in test_pre_enable_counts_failures_against_hourly_runs
+    self.assertTrue((PACKAGE / 'owner_checks.py').is_file())
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_saved_scripts_and_window_guard (test_round2.CalibrationRound2Tests.test_saved_scripts_and_window_guard)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 100, in test_saved_scripts_and_window_guard
+    self.assertTrue((PACKAGE / name).is_file(), name)
+AssertionError: False is not true : install.sh
+
+======================================================================
+FAIL: test_stage_accept_copy_measured_and_budget_at_least_double (test_round2.CalibrationRound2Tests.test_stage_accept_copy_measured_and_budget_at_least_double)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 72, in test_stage_accept_copy_measured_and_budget_at_least_double
+    measured, budgets = module('calibrate_budgets').derive(calibration_log())
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out_round2/calibrate_budgets.py", line 31, in derive
+    raise ValueError('calibration lacks successful required stages or DRY done')
+ValueError: calibration lacks successful required stages or DRY done
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 74, in test_stage_accept_copy_measured_and_budget_at_least_double
+    self.fail(str(error))
+AssertionError: calibration lacks successful required stages or DRY done
+
+======================================================================
+FAIL: test_default_fixture_root_is_pruned (test_round2.FixtureRound2Tests.test_default_fixture_root_is_pruned)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 213, in test_default_fixture_root_is_pruned
+    self.assertIn("'tmp_test-work'", source)
+AssertionError: "'tmp_test-work'" not found in '"""Run all local regression fixtures; compatible with Python 3.6 and 3.12."""\nimport os\nfrom pathlib import Path\nimport sys\nimport unittest\nhere = Path(__file__).resolve().parent\nos.environ.setdefault(\'LCS_TEST_WORK\', str(here.parent / \'test-work\'))\nsys.path.insert(0, str(here))\nsuite = unittest.defaultTestLoader.discover(str(here), pattern=\'test_*.py\')\nresult = unittest.TextTestRunner(verbosity=2).run(suite)\nsys.exit(0 if result.wasSuccessful() else 1)\n'
+
+======================================================================
+FAIL: test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation (test_round2.ManifestRound2Tests.test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation) (kind='fifo')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 193, in test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation
+    self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 0 == 0 : b'meta/DEDUP_fixture.tsv.gz\x00MANIFEST_PENDING meta/.dedup-54eb322704ea4910ba8cee743add53a9\nSTATS fixture files=0 bytes=0 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n'
+
+======================================================================
+FAIL: test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation (test_round2.ManifestRound2Tests.test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation) (kind='symlink')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 193, in test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation
+    self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 0 == 0 : b'meta/DEDUP_fixture.tsv.gz\x00MANIFEST_PENDING meta/.dedup-1c065752c3d9445b93f4d76b28608bf8\nSTATS fixture files=0 bytes=0 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=1 skipped_timeout=0\n'
+
+======================================================================
+FAIL: test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation (test_round2.ManifestRound2Tests.test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation) (kind='hardlink')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 193, in test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation
+    self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 0 == 0 : b'meta/DEDUP_fixture.tsv.gz\x00MANIFEST_PENDING meta/.dedup-0701a655c2104d8a81f2eb8e127ae088\nSTATS fixture files=0 bytes=0 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=0 skipped_symlink=0 skipped_timeout=0\n'
+
+======================================================================
+FAIL: test_regular_manifest_slot_is_truncated_and_replaced (test_round2.ManifestRound2Tests.test_regular_manifest_slot_is_truncated_and_replaced)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 178, in test_regular_manifest_slot_is_truncated_and_replaced
+    self.assertFalse(slot.exists())
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_repeated_failed_manifest_reuses_one_name (test_round2.ManifestRound2Tests.test_repeated_failed_manifest_reuses_one_name)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 170, in test_repeated_failed_manifest_reuses_one_name
+    self.assertEqual([p.name for p in (self.root / 'meta').glob('.dedup-*')], ['.dedup-fixture.pending'])
+AssertionError: Lists differ: ['.dedup-377293b2e99947b5a3973a7affc81eb0', '.dedu[74 chars]f95'] != ['.dedup-fixture.pending']
+
+First differing element 0:
+'.dedup-377293b2e99947b5a3973a7affc81eb0'
+'.dedup-fixture.pending'
+
+First list contains 2 additional elements.
+First extra element 1:
+'.dedup-bd266d61ba154dd88f8643ae6ead9649'
+
++ ['.dedup-fixture.pending']
+- ['.dedup-377293b2e99947b5a3973a7affc81eb0',
+-  '.dedup-bd266d61ba154dd88f8643ae6ead9649',
+-  '.dedup-3b46299d2cdd48d9b716398ffbac6f95']
+
+======================================================================
+FAIL: test_queue_scan_through_symlinked_parent_is_legacy_identical (test_round2.QueueRound2Tests.test_queue_scan_through_symlinked_parent_is_legacy_identical)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 148, in test_queue_scan_through_symlinked_parent_is_legacy_identical
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 1 != 0 : b'COPY_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_queue_2vexodf5/link/.lcs-copy.pending\nTraceback (most recent call last):\n  File "/scratch/jjyeung/orch_n30/so_syncfix/out_round2/tools/lane_code_scan.py", line 149, in <module>\n    robust_copy_scan(stage, dest, flagout)\n  File "/scratch/jjyeung/orch_n30/so_syncfix/out_round2/tools/lane_code_scan.py", line 105, in robust_copy_scan\n    raise ValueError(\'symlink in copy destination: %r\' % parent)\nValueError: symlink in copy destination: \'/scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_queue_2vexodf5/link\'\n'
+
+======================================================================
+FAIL: test_installed_scanfix_is_preimage_and_pattern_in_both_paths (test_round2.RebaseTests.test_installed_scanfix_is_preimage_and_pattern_in_both_paths)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 32, in test_installed_scanfix_is_preimage_and_pattern_in_both_paths
+    self.assertEqual(hashlib.sha256((PACKAGE / 'inputs/lane_code_scan.py').read_bytes()).hexdigest(), SCANFIX_SHA)
+AssertionError: '3fa1b6aa702bd26144bd2d1edbb5ed2551001ac54dcb7aa7e7a2557f991cca4b' != 'f9460a5e3e23e5f2765e454824645d8970b333817518d626847a5e0cba46fabb'
+- 3fa1b6aa702bd26144bd2d1edbb5ed2551001ac54dcb7aa7e7a2557f991cca4b
++ f9460a5e3e23e5f2765e454824645d8970b333817518d626847a5e0cba46fabb
+
+
+======================================================================
+FAIL: test_installer_refuses_old_layout_even_with_matching_postimage (test_round2.RebaseTests.test_installer_refuses_old_layout_even_with_matching_postimage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_syncfix/out/tests/test_round2.py", line 63, in test_installer_refuses_old_layout_even_with_matching_postimage
+    self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+AssertionError: 0 != 2 : b'tools/lane_code_filter.py: OK\ntools/lane_code_sync.sh: OK\ntools/tssh.sh: OK\ntools/lane_code_scan.py: OK\ntools/sync_health.py: OK\ntools/lane_code_filter.py: OK\ntools/lane_code_sync.sh: OK\ntools/tssh.sh: OK\ntools/lane_code_scan.py: OK\ntools/sync_health.py: OK\ntools/lane_code_stage.sh: OK\ntools/lane_code_log.py: OK\nPREFLIGHT bounded regular log: OK\nBACKUP /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/state/install-backups/25af9c5d0764415189102bed0fd380da/preimage.tar\nINSTALL_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/.lane_code_log.py.lcs-25af9c5d0764415189102bed0fd380da\nINSTALL_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/.lane_code_filter.py.lcs-25af9c5d0764415189102bed0fd380da\nINSTALL_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/.lane_code_scan.py.lcs-25af9c5d0764415189102bed0fd380da\nINSTALL_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/.tssh.sh.lcs-25af9c5d0764415189102bed0fd380da\nINSTALL_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/.lane_code_stage.sh.lcs-25af9c5d0764415189102bed0fd380da\nINSTALL_PENDING /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/.lane_code_sync.sh.lcs-25af9c5d0764415189102bed0fd380da\ntools/lane_code_filter.py: OK\ntools/lane_code_sync.sh: OK\ntools/tssh.sh: OK\ntools/lane_code_scan.py: OK\ntools/sync_health.py: OK\nINSTALLED /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/lane_code_log.py\nINSTALLED /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/lane_code_filter.py\nINSTALLED /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/lane_code_scan.py\nINSTALLED /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/tssh.sh\nINSTALLED /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/lane_code_stage.sh\nINSTALLED /scratch/jjyeung/orch_n30/so_syncfix/work/tmp_fix2_before_final312/tmp_install_old_x5ryomsr/base/tools/lane_code_sync.sh\ntools/lane_code_filter.py: OK\ntools/lane_code_sync.sh: OK\ntools/tssh.sh: OK\ntools/lane_code_scan.py: OK\ntools/sync_health.py: OK\ntools/lane_code_stage.sh: OK\ntools/lane_code_log.py: OK\nINSTALL OK; robust mode remains OFF. Calibrate before creating the flag.\n'
+
+----------------------------------------------------------------------
+Ran 12 tests in 2.088s
+
+FAILED (failures=16)

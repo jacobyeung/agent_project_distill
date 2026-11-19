@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30/sb_own400; cut -c1-500 $R/STATUS.md; echo; ps -eo args | grep -v grep | grep -c "codex exec.*sb_own400"; wc -c $R/out/KIT_REPORT.md $R/out/STAGE_228.txt; cat $R/out/KIT_REPORT.md; echo =====; head -60 $R/out/STAGE_228.txt | cut -c1-300

@@ -1,15 +1,13 @@
-Thu Nov 19 16:33:44 UTC 2026
-Python 3.12.13
 test_all_sources_success_and_new_node (test_driver.DriverTests.test_all_sources_success_and_new_node) ... ok
 test_copy_scanner_fifo_is_bounded_per_source (test_driver.DriverTests.test_copy_scanner_fifo_is_bounded_per_source) ... ok
 test_default_off_driver_matches_input_behavior (test_driver.DriverTests.test_default_off_driver_matches_input_behavior) ... ok
 test_dry_mode_and_stage_only_keep_existing_semantics (test_driver.DriverTests.test_dry_mode_and_stage_only_keep_existing_semantics) ... ok
 test_invalid_zero_timeout_refused (test_driver.DriverTests.test_invalid_zero_timeout_refused) ... ok
-test_legacy_substitution_reproduces_held_pipe (test_driver.DriverTests.test_legacy_substitution_reproduces_held_pipe) ... MEASURE legacy_substitution_elapsed=1.241s timeout=0.2s holder_lifetime=1.2s
+test_legacy_substitution_reproduces_held_pipe (test_driver.DriverTests.test_legacy_substitution_reproduces_held_pipe) ... MEASURE legacy_substitution_elapsed=1.251s timeout=0.2s holder_lifetime=1.2s
 ok
 test_missing_root_skipped_other_sources_publish (test_driver.DriverTests.test_missing_root_skipped_other_sources_publish) ... ok
 test_outer_remote_timeout (test_driver.DriverTests.test_outer_remote_timeout) ... ok
-test_partial_failed_node_cannot_overwrite_or_delete_previous (test_driver.DriverTests.test_partial_failed_node_cannot_overwrite_or_delete_previous) ... MEASURE partial_failure_elapsed=1.324s commit=1 pushes=2 preserved=1
+test_partial_failed_node_cannot_overwrite_or_delete_previous (test_driver.DriverTests.test_partial_failed_node_cannot_overwrite_or_delete_previous) ... MEASURE partial_failure_elapsed=1.539s commit=1 pushes=2 preserved=1
 ok
 test_receiver_timeout_does_not_block_local_publish (test_driver.DriverTests.test_receiver_timeout_does_not_block_local_publish) ... ok
 test_remote_scanner_timeout_reports_pipestatus (test_driver.DriverTests.test_remote_scanner_timeout_reports_pipestatus) ... ok
@@ -27,7 +25,7 @@ test_regular_tree_byte_identical_and_default_off (test_filter.FilterTests.test_r
 ok
 test_replacement_fifo_is_nonblocking_and_fstat_rejected (test_filter.FilterTests.test_replacement_fifo_is_nonblocking_and_fstat_rejected) ... ok
 test_replacement_symlink_is_not_followed (test_filter.FilterTests.test_replacement_symlink_is_not_followed) ... ok
-test_slow_read_deadline_counts_and_continues (test_filter.FilterTests.test_slow_read_deadline_counts_and_continues) ... MEASURE slow_file_elapsed=0.081s deadline=0.05s
+test_slow_read_deadline_counts_and_continues (test_filter.FilterTests.test_slow_read_deadline_counts_and_continues) ... MEASURE slow_file_elapsed=0.080s deadline=0.05s
 ok
 test_derives_budgets_and_refuses_failure_or_incomplete_log (test_install.CalibrationTests.test_derives_budgets_and_refuses_failure_or_incomplete_log) ... ok
 test_busy_lock_defers_without_writes (test_install.InstallTests.test_busy_lock_defers_without_writes) ... ok
@@ -36,6 +34,11 @@ test_mismatched_preimage_stops_before_backup_or_install (test_install.InstallTes
 test_append_and_reuse_are_bounded (test_log.BoundedLogTests.test_append_and_reuse_are_bounded) ... ok
 test_late_detached_writer_cannot_mutate_saved_log (test_log.BoundedLogTests.test_late_detached_writer_cannot_mutate_saved_log) ... ok
 test_regular_fd_stays_capped_while_other_files_can_grow (test_log.BoundedLogTests.test_regular_fd_stays_capped_while_other_files_can_grow) ... ok
+test_enable_requires_complete_calibration_and_matching_budgets (test_owner_scripts.OwnerScriptTests.test_enable_requires_complete_calibration_and_matching_budgets) ... ok
+test_failed_calibration_does_not_install_budgets_or_flag (test_owner_scripts.OwnerScriptTests.test_failed_calibration_does_not_install_budgets_or_flag) ... ok
+test_saved_calibration_copies_once_without_git_or_enabling (test_owner_scripts.OwnerScriptTests.test_saved_calibration_copies_once_without_git_or_enabling) ... ok
+test_saved_install_keeps_robust_off (test_owner_scripts.OwnerScriptTests.test_saved_install_keeps_robust_off) ... ok
+test_stale_window_refuses_before_start_and_parent_shell_survives (test_owner_scripts.OwnerScriptTests.test_stale_window_refuses_before_start_and_parent_shell_survives) ... ok
 test_copy_timeout_cannot_commit_a_truncated_file (test_review.ReviewCopyTests.test_copy_timeout_cannot_commit_a_truncated_file) ... ok
 test_default_off_copy_matches_input (test_review.ReviewCopyTests.test_default_off_copy_matches_input) ... ok
 test_file_deadline_driver_and_filter_agree (test_review.ReviewDriverTests.test_file_deadline_driver_and_filter_agree) ... ok
@@ -44,18 +47,30 @@ test_missing_root_has_no_fail_or_blocker (test_review.ReviewDriverTests.test_mis
 test_optional_unreachable_node_is_skip (test_review.ReviewDriverTests.test_optional_unreachable_node_is_skip) ... ok
 test_regular_flag_enables_without_environment (test_review.ReviewDriverTests.test_regular_flag_enables_without_environment) ... ok
 test_slots_reused_and_failed_attempt_never_scanned (test_review.ReviewDriverTests.test_slots_reused_and_failed_attempt_never_scanned) ... MEASURE failed_slot=trinity-1-18 incoming_bytes=10240 accepted_bytes=10240
-MEASURE slot=trinity-1-18 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 14092, "run.log": 676} total=25008
-MEASURE slot=trinity-2-28 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 14092, "run.log": 676} total=25008
-MEASURE slot=trinity-3-30 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13966, "run.log": 676} total=24882
-MEASURE slot=orch_n30/tools bytes={"accepted": 51200, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13960, "run.log": 613} total=65773
-MEASURE slot=orch_n30/briefs bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13965, "run.log": 612} total=24817
-MEASURE slots_initial_bytes=165488 slots_final_bytes=165488 runs=4
+MEASURE slot=trinity-1-18 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13877, "run.log": 667} total=24784
+MEASURE slot=trinity-2-28 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13877, "run.log": 667} total=24784
+MEASURE slot=trinity-3-30 bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13751, "run.log": 667} total=24658
+MEASURE slot=orch_n30/tools bytes={"accepted": 51200, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13745, "run.log": 616} total=65561
+MEASURE slot=orch_n30/briefs bytes={"accepted": 10240, "copy.flags": 0, "incoming.lock": 0, "program.sh": 13750, "run.log": 615} total=24605
+MEASURE slots_initial_bytes=164392 slots_final_bytes=164392 runs=4
 ok
 test_tar_exit_one_quarantines_node_but_publishes_other_sources (test_review.ReviewDriverTests.test_tar_exit_one_quarantines_node_but_publishes_other_sources) ... ok
-test_750000_duplicate_manifest_default_budgets (test_review.ReviewFilterTests.test_750000_duplicate_manifest_default_budgets) ... MEASURE large_manifest lines=750000 raw_bytes=127500000 gzip_bytes=58724873 elapsed=9.629s file_budget=3 scan_budget=120
+test_750000_duplicate_manifest_default_budgets (test_review.ReviewFilterTests.test_750000_duplicate_manifest_default_budgets) ... MEASURE large_manifest lines=750000 raw_bytes=127500000 gzip_bytes=58724873 elapsed=9.839s file_budget=3 scan_budget=120
 ok
 test_manifest_exception_logs_every_leftover_and_preserves_final (test_review.ReviewFilterTests.test_manifest_exception_logs_every_leftover_and_preserves_final) ... ok
 test_manifest_scan_timeout_logs_pending_name (test_review.ReviewFilterTests.test_manifest_scan_timeout_logs_pending_name) ... ok
+test_unordered_budgets_refused_before_starting_sources (test_round2.BudgetRound2Tests.test_unordered_budgets_refused_before_starting_sources) ... ok
+test_missing_accept_or_copy_measurement_refused (test_round2.CalibrationRound2Tests.test_missing_accept_or_copy_measurement_refused) ... ok
+test_pre_enable_counts_failures_against_hourly_runs (test_round2.CalibrationRound2Tests.test_pre_enable_counts_failures_against_hourly_runs) ... ok
+test_saved_scripts_and_window_guard (test_round2.CalibrationRound2Tests.test_saved_scripts_and_window_guard) ... ok
+test_stage_accept_copy_measured_and_budget_at_least_double (test_round2.CalibrationRound2Tests.test_stage_accept_copy_measured_and_budget_at_least_double) ... ok
+test_default_fixture_root_is_pruned (test_round2.FixtureRound2Tests.test_default_fixture_root_is_pruned) ... ok
+test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation (test_round2.ManifestRound2Tests.test_fixed_manifest_slot_refuses_fifo_symlink_and_hardlink_before_truncation) ... ok
+test_regular_manifest_slot_is_truncated_and_replaced (test_round2.ManifestRound2Tests.test_regular_manifest_slot_is_truncated_and_replaced) ... ok
+test_repeated_failed_manifest_reuses_one_name (test_round2.ManifestRound2Tests.test_repeated_failed_manifest_reuses_one_name) ... ok
+test_queue_scan_through_symlinked_parent_is_legacy_identical (test_round2.QueueRound2Tests.test_queue_scan_through_symlinked_parent_is_legacy_identical) ... ok
+test_installed_scanfix_is_preimage_and_pattern_in_both_paths (test_round2.RebaseTests.test_installed_scanfix_is_preimage_and_pattern_in_both_paths) ... ok
+test_installer_refuses_old_layout_even_with_matching_postimage (test_round2.RebaseTests.test_installer_refuses_old_layout_even_with_matching_postimage) ... ok
 test_archive_copy_matches_directory_copy_bytes_and_flags (test_slots.ArchiveTests.test_archive_copy_matches_directory_copy_bytes_and_flags) ... ok
 test_special_entries_and_truncated_archives_preserve_accepted (test_slots.ArchiveTests.test_special_entries_and_truncated_archives_preserve_accepted) ... ok
 test_atomic_copy_preserves_existing_mode_and_respects_umask (test_slots.CopyModeTests.test_atomic_copy_preserves_existing_mode_and_respects_umask) ... ok
@@ -66,12 +81,12 @@ test_environment_alone_enables (test_slots.SlotDriverTests.test_environment_alon
 test_flag_wins_over_environment_zero (test_slots.SlotDriverTests.test_flag_wins_over_environment_zero) ... ok
 test_large_log_is_capped_and_reused (test_slots.SlotDriverTests.test_large_log_is_capped_and_reused) ... ok
 test_old_receiver_lock_refuses_new_writer (test_slots.SlotDriverTests.test_old_receiver_lock_refuses_new_writer) ... ok
-test_held_stdout_deadline_and_lock_release (test_wrapper.WrapperTests.test_held_stdout_deadline_and_lock_release) ... MEASURE held_stdout_driver_elapsed=1.797s node_limit=0.35s kill_after=0.15s holder_alive=1 lock_free=1
-MEASURE held_stdout_node_elapsed=0.536s
+test_held_stdout_deadline_and_lock_release (test_wrapper.WrapperTests.test_held_stdout_deadline_and_lock_release) ... MEASURE held_stdout_driver_elapsed=2.102s node_limit=0.55s kill_after=0.15s holder_alive=1 lock_free=1
+MEASURE held_stdout_node_elapsed=0.739s
 ok
 test_tssh_rate_lock_wait_is_also_bounded (test_wrapper.WrapperTests.test_tssh_rate_lock_wait_is_also_bounded) ... ok
 
 ----------------------------------------------------------------------
-Ran 55 tests in 54.502s
+Ran 72 tests in 63.940s
 
 OK
