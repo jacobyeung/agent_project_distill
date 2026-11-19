@@ -1,0 +1,1 @@
+K=/project/community/jjyeung/okh7/x_ee227714/runs/6ed2c7aa/inputs; cd $K && ls -la prepare_da5580b7d92f490bb3cfe8df447e7820/config.json data_receipt.json && sha256sum prepare_da5580b7d92f490bb3cfe8df447e7820/config.json data_receipt.json && echo B64BEGIN && tar czf - prepare_da5580b7d92f490bb3cfe8df447e7820/config.json data_receipt.json | base64 -w0 && echo && echo B64END

@@ -1,5 +1,5 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-19T00:00Z by tree_rebuild10 (Devin Opus high; session trinity-3-30, work trinity-1-18; started 23:50Z 11-18; rotate by 05:20Z). Predecessor tree_rebuild9 lost with trinity-1-3 (11:29Z); its last STATUS = W/work/STATUS_tree_rebuild9.md.
+Updated: 2026-11-19T02:15Z by tree_rebuild10 (Devin Opus high; session trinity-3-30, work trinity-1-18; started 23:50Z 11-18; rotate by 05:20Z). Predecessor tree_rebuild9 lost with trinity-1-3 (11:29Z); its last STATUS = W/work/STATUS_tree_rebuild9.md.
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (1.6 GB of 14). Symlink on trinity-1-18: /scratch/jjyeung/orch_n30/tree_rebuild_w -> W (old absolute paths in build 9-14 evidence resolve). Session folder trinity-3-30:/scratch/jjyeung/orch_n30/tree_rebuild10 (scripts, small bundles; 3-30 /scratch 106 GB free: write nothing big there).
 
 ## Inventory (step 1, 23:52-00:00Z)
@@ -15,10 +15,17 @@ W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (1.6 GB of 14). Syml
 - Handover file list RESULT to r1_ops6: events/r1_ops/20261119T0032Z_RESULT_tree_rebuild10_handover_file_list_m400_m600.md (default by 02:00Z: r1_ops6 does items 1-5 at m400 and m600). Watch events/r1_ops for its answer and its export RESULTs (ORDER 0014Z, to events/cont_ops).
 - Design record header Status + INDEX line updated to build 15.
 
+- Build 16 CONFIRMED 01:51Z (RESULT events/tree_rebuild/20261119T0151Z_RESULT_build16.md): W/w16b/out/tree_rebuild_b16_04e21e92.tar 137,324,476 B sha256 45c538b4a410850831b4a4ff8af0f543019800997e7253ced1c288d102444324; seal 04e21e92987325d6f1538ddeeeb4e01fc9cec180bb5db422be57c8717c1d1b00 (926 files). Confirmation W/work/conf16 (cf16.sh, batch.log, k1cmp.txt, rtr.py traces scan). Stopped first attempt W/w16 (00:29-00:41Z; ignore). Kits a2 f35e2727 / a0 73593552 / r1 9b406452 (GO=false). Mirror ops_mirror/tr10_b16_core_04e21e92.tgz efed25b5, tr10_scripts_b16.tar 1563fbcd.
+- K1/R0 full authority: W/ext/b12/{code/rooms.py e96c6905, work/auth/K1SPLIT_R0.json 27126674 (teacher_k1 4d4736cf), work/auth/arkit_3dod_metadata.csv 657020f2, work/d3_token_map.json} extracted from trinity-1-18:/scratch/jjyeung/n30_mirror/b12_cntapp/B12_MIRROR_20261116T1631Z.tar; R0 W/inputs/rooms/R0_ROOMS.txt bdb5d402 (from /data2 distill_design/R0_RESERVE_20261116); check W/work/k1check/K1R0_CHECK.json: recovery 21, units 262, distance 0 K1; R0 0; = s.json 283.
+- Events sent: events/r1_ops 0032Z (file list, ORCH RULING 0033Z accepted), 0042Z (receipt usage note), 0140Z (init needs P model manifest + tokenizer/config files); events/tree_rebuild 0051Z QUESTION K1 (answered ORCH 0053Z), 0151Z RESULT build16. ORCH 0034Z: build 15 accepted; copies >20 MB off 1-18 go IB to 3-30 (df >=105 GB) then governed from 3-30.
+
+- C' runtime config ADMITs (RESULT 0204Z): W/inputs/p_runtime/ (config b08fe50c identity 9459724f, data_receipt 03daaa0a, prepared receipt 888da8e2, s1_receipt a5bbef1b; A runtime 3b0051c4/620d5cf8 + s1 4c0dd9d6); script W/work/conf16/pkg/work/build16/rt16.py.
+- ORCH RULING 0209Z: step 400 has no checkpoint -> export-only binding (proof mode only, non-stop milestone); answered RESULT 0213Z (in build 17b).
+
 ## Running
-- Codex build 16 (gpt-6-astra high), tmux tr10_b16 on trinity-1-18, dispatched 00:29Z, prompt W/prompts/build16.md, workspace W/w16 (= b15 package), log W/work/build16_dispatch.log, receipt codex_runs/*_tree_rebuild16, status W/w16/work/build16/STATUS.md, report W/w16/out/BUILD16_REPORT.md. Poll every 10 min. Expected checks on end: census VQA ~185,9xx (203,806 minus z.json overlap), counting 2,617 procedure form, totals 0; slices recovery ~777, distance ~7,805, units ~8,067 minus K1 hits; card counting 10.46 / totals 0 / direction 36.69; 20 traces per family for me to read (proofs/traces/).
+- Codex build 17b (gpt-6-astra high), tmux tr10_b17b on trinity-1-18, dispatched 02:13Z, prompt W/prompts/build17.md (v1 stopped copy build17_v1_stopped.md; stopped attempt W/w17), workspace W/w17b (= b16 package), log W/work/build17b_dispatch.log, status W/w17b/work/build17/STATUS.md, report W/w17b/out/BUILD17_REPORT.md + EXPORT_RECEIPT_USAGE.md. Scope: room authority kit inputs; job sizing (CPU + 1 GPU); end-to-end mode-q CPU fixture (stand-in for torchvision-only processor constructors) ADMIT export-only@400 / checkpoint@600 + twins; P-side launch_r1.p_export_receipt; final operator packet.
 
 ## Next
-- Build 16 ends: seal, sha, mirror (core tgz <20 MB to ops_mirror), own rerun of its census/plan/guard/mutations + read 20 traces per family; RESULT build16.
+- Build 17b ends: seal, sha, mirror core tgz (+ post tree tgz and export-receipt usage note to events/r1_ops for r1_ops7 before m400 ~09:30Z), own rerun (focused, fixture, mutations, real); RESULT build17. Then step 6 review (Codex gpt-6-astra high review preset, read-only, final kit only) and step 5 QUESTION with packet (GO); upload route: IB tar pipe 1-18 -> 3-30 (<200 MB, df>=105) then governed upload from 3-30.
 - Step 5: proof QUESTION with packet (needs C' m400 files from r1_ops6, ~08:30Z). Step 6: one Codex review (gpt-6-astra high, review preset, read-only) on the final kit.
 - Rotate by 05:20Z (brief: 5.5 h after 23:50Z start).

@@ -14,7 +14,7 @@ def run(name,script,args=(),allowed=(0,),env=None):
     print(name,result.returncode,flush=True)
 run('seal',L/'work/n1fix2/seal.py')
 if (B/'kits').exists():
-    (B/'kits').rename(B/'retained_kits_attempt/before_final_binding')
+    (B/'kits').rename(B/'retained_kits_attempt/before_scope_binding')
 run('kits',B/'kits16.py')
 run('mutations',B/'mutations16.py')
 run('packet',B/'packet16.py',('tree','b16'),allowed=(0,1))
@@ -24,6 +24,7 @@ run('final_focused',B/'test16.py',('tests.test_r1_build16','tests.test_r1_build1
     'tests.test_r2_build12','tests.test_r1_build13','tests.test_r2_build3.Build3.test_opener_export_keep_and_reset'),
     env={'B16_PROOF':'final_focused'})
 run('edges',B/'test16.py',('edge_test16.Edges','stage_test16.Staging'),env={'B16_PROOF':'edges'})
+run('mode_unit',B/'test16.py',('mode_test16.Mode',),env={'B16_PROOF':'mode_unit'})
 run('preserve',B/'preserve16.py')
 run('operator',B/'operator16.py')
 run('coverage',B/'coverage16.py')

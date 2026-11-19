@@ -6,7 +6,7 @@
 #SBATCH --mem=800G
 #SBATCH --time=24:00:00
 #SBATCH --no-requeue
-#SBATCH --job-name=a15_cot_ap58e3757fa4d9
+#SBATCH --job-name=a15_cot_ap16a04725cbbc
 #SBATCH --output=o/%j.out
 #SBATCH --error=o/%j.err
 #SBATCH --signal=B:USR1@3600

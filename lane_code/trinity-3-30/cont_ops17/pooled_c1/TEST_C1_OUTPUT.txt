@@ -1,0 +1,23 @@
+PASS a.exit codes equal 0 0
+PASS a.stdout byte-identical 1494 bytes
+PASS a.stderr equal after normalizing the script path and line numbers /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/pooled_rule/pooled_harm_rule_v3.py:466: DeprecationWarning: datetime.dateti
+PASS a.json identical except script_sha256 
+PASS a.ledger: each tool appends two decision lines 2 2
+PASS a.ledger lines identical except utc/output 
+PASS a.json bytes identical after substituting script_sha256 7500 bytes
+     regression verdict line: verdict: SILENT
+PASS b.refuses 6ed2c7aa at 200 REFUSED: decision read is not of run 673bc60f at step 200
+PASS b.refuses 673bc60f at 400 REFUSED: decision read is not of run 6ed2c7aa at step 400
+PASS b.refuses deadbeef at 400 REFUSED: decision read is not of run 6ed2c7aa at step 400
+PASS b.refuses 6ed2c7aa m600 read decided as step 400 REFUSED: dev-S1: read is of step 600, not 400
+PASS c.c1 accepts 6ed2c7aa at 400 (decision mode)       293 items   -0.78 [  -3.77,   +2.22]
+mark (printed, stops nothing): loss on one set only, object_counting on dev-S1: -6.47 [-12.57, -0.93]
+verdict: SILENT
+PASS c.later-look levels {'H1': 0.9984375, 'H2': 0.9875}
+PASS c.run block names 6ed2c7aa m400 
+PASS c.ledger (copy) gets two decision lines 
+PASS c.registered tool refuses the same read 
+PASS d.runaway counter equals derived_v3 on m200 {'R0-dev': (62, 21), 'dev-S1': (28, 0)} | {'dev-S1': ('28/150', '0/0'), 'R0-dev': ('62/287', '21/98')}
+PASS d.repair runaway test fails at m200 (28/150, 62/287) 
+tools: registered 3c7661fe28589f8ef12003d4c0ade78f9ae12fbc0fe0514cfa2a508ecb84d880  c1 45f9999fedf35365d148ba66e5a4a0fd7a57036bd6ca14e7c5153478ed8d40f3  runaways 642a5850d55afcd829eea37ee4a8639025f93a2b578047e0d88b58815cf1b615
+RESULT: ALL PASS

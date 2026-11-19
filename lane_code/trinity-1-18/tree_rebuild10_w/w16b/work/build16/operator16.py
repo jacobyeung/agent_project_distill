@@ -11,7 +11,7 @@ def visit(v,depth=0):
             p=Path(v['path']);key=(str(p),v['sha256'])
             if key in seen:return
             seen.add(key)
-            allowed=p.is_relative_to(L) or p.is_relative_to(Path('/scratch/jjyeung/n30_mirror')) or p.is_relative_to(L.parent/'ext') or p.is_relative_to(L.parent/'inputs')
+            allowed=p.resolve().is_relative_to(L.parent) or p.is_relative_to(Path('/scratch/jjyeung/n30_mirror'))
             available=allowed and p.is_file()
             pins[str(p)]=dict(local_source=str(p),staged_name='u/'+hashlib.sha256(str(p).encode()).hexdigest(),sha256=v['sha256'],
                 bytes=p.stat().st_size if available else None,status='available' if available else 'not rerun: input absent ('+str(p)+')')
@@ -54,6 +54,7 @@ lines += ['','## P allocation persistence','',
 '## Required initialization evidence','',
 'The preserved build-15 keep-opener gate also requires a routing_vocabulary witness v.json bound to the export and lineage. P’s mandated persistence list does not include this witness. Reconstructing it requires the model manifest named by P’s preparation plus its pinned tokenizer/config metadata and the parent artifact. Those inputs are not all in h.json’s direct closure. Without independently available exact replicas, the full initialization must refuse; metadata handover admission does not waive this requirement. Native trainable-group verification also reads that model manifest and config.json. No real P export was supplied, so their existence outside P’s tmpfs was not checked.','',
 '## Invocation and outputs','',
+'The local kit input is not yet a host runtime config: r1_training.routing_inputs must contain the native routing manifests supplied by frame-host staging. launch_r1.entry.run normally binds those operator-provided manifests. The q request must point to the resulting pinned runtime config, including its s1_routing inputs. Missing manifests refuse with R1_PROOF_NATIVE_ROUTING_REQUIRED; their hashes and sizes cannot be invented here.','',
 'The operator resolves REQUEST_TEMPLATE.json with a pinned N runtime config, every staged pin, frame roots, and a complete room audit bound to the same row_sources and remove_files. The current local positive-hit subset is not a complete room audit. The request’s weights field enables the full CPU forward only after all export bytes verify. After native preparation and population binding, the mode derives a pinned handover_mapping and continuation identity from the authenticated donor and final N inputs; optimizer differences still refuse.','',
 'Run from the staged kit: `bash b/q.sh /tmp/<opaque-new-root> /tmp/<opaque-request>.json`. The supplied j.sh requests one general-partition CPU task, eight CPUs and 20 GiB allocation, with a 20 GiB process address-space ceiling. No GPU is requested. Full 9B CPU fit has not been measured; no GPU fallback has been justified or run.','',
 'Expected outputs: RESULT.json; p/ native admission outputs; b/ bound population/config/indices; a/ loader audit; h/ final continuation mapping, preparation receipt and config; and f.json with every rank’s first resumed batch, per-stream loss summaries and peak RSS when weights are supplied. Native routing build and composition run inside s1_admission before prepare. Named refusals leave status=REFUSE and GO=false.','',

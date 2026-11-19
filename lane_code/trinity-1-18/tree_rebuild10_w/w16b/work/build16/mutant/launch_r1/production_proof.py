@@ -96,11 +96,13 @@ def run(request, output):
                              memory_gib=19,prepare_only=True)
         result['steps'].extend(['s1_routing.build','r1_routing.compose_native','s1_admission.prepare'])
         from student_pilot.r1_population import bind_prepared
-        produced = bind_prepared(load(pinned(prepared['config'])),root/'b')
+        with scope(closure['paths']):
+            produced = bind_prepared(load(pinned(prepared['config'])),root/'b')
         cfg = load(pinned(produced));result['config']=produced
         result['steps'].append('r1_population.bind_prepared')
         from student_pilot.r1_loader import production_audit
-        result['audit']=production_audit(cfg,root/'a')
+        with scope(closure['paths']):
+            result['audit']=production_audit(cfg,root/'a')
         result['steps'].append('r1_loader.production_audit')
         from student_pilot.r1_persisted import admission, scope
         with scope(closure['paths']):

@@ -76,7 +76,7 @@ extra=L/'work/build16'
 for p in extra.rglob('*'):
     if not p.is_file() or p.is_symlink():continue
     rel=p.relative_to(extra)
-    if str(rel) in ('DELIVERY.json','proofs/integrity/RESULT.json'):continue
+    if str(rel) in ('DELIVERY.json','proofs/integrity/RESULT.json','delivery.log','integrity.log','finish.log'):continue
     if set(rel.parts)&{'mutant','frozen','base','kits','retained_kits_attempt'}:continue
     if p.suffix in ('.py','.sh','.json','.jsonl','.md','.log') and p.stat().st_size<30_000_000:members.append(p)
 
@@ -84,12 +84,23 @@ members.extend(p for p in (L/'out').glob('*.md'))
 members.extend(L/'out'/n for n in ('TREE_SEAL.json','TREE_FILES.sha256','TREE.diff'))
 members=list(dict.fromkeys(members))
 size=sum(p.stat().st_size for p in members)+sum(row['bytes'] for row in packet_inputs)
-assert size<600_000_000
+assert size<1_200_000_000
+print(json.dumps(dict(selected_member_bytes=size,selected_members=len(members))),flush=True)
 subprocess.run(['df','-BG','--output=avail','/scratch'],check=True)
 assert shutil.disk_usage('/scratch').free>=85*1024**3
-with tarfile.open(target,'w:gz') as tar:
-    for p in sorted(members):tar.add(p,arcname=str(p.relative_to(L)),recursive=False)
-    for row in packet_inputs:tar.add(L/row['source'],arcname=row['target'],recursive=False)
+workspace=sum(p.stat().st_size for p in L.rglob('*') if p.is_file() and not p.is_symlink())
+assert workspace+150_000_000<1_500_000_000
+class LimitedArchive:
+    def __init__(self,raw):self.raw=raw
+    def write(self,data):
+        if self.raw.tell()+len(data)>=150_000_000:
+            raise ValueError('Compressed archive would exceed 150 MB; stopped before writing that block')
+        return self.raw.write(data)
+    def __getattr__(self,name):return getattr(self.raw,name)
+with target.open('wb') as raw:
+    with tarfile.open(fileobj=LimitedArchive(raw),mode='w:gz') as tar:
+        for p in sorted(members):tar.add(p,arcname=str(p.relative_to(L)),recursive=False)
+        for row in packet_inputs:tar.add(L/row['source'],arcname=row['target'],recursive=False)
 assert target.stat().st_size<150_000_000
 h=hashlib.sha256()
 with target.open('rb') as f:

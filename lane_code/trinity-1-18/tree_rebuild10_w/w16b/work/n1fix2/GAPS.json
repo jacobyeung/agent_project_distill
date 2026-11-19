@@ -377,159 +377,43 @@
   ],
   "launch_r1/production_proof.py": [
     [
-      23,
-      "raise ValueError('R1_PROOF_FORWARD_NONFINITE')"
-    ],
-    [
-      50,
-      "for pin in room['authorities']:"
-    ],
-    [
-      51,
-      "pinned(pin)"
-    ],
-    [
-      52,
-      "import os"
-    ],
-    [
-      53,
-      "if os.uname().nodename.startswith('trinity'):"
-    ],
-    [
-      54,
-      "raise ValueError('R1_PROOF_FRAME_HOST_REQUIRED')"
-    ],
-    [
-      55,
-      "from student_pilot.r1_persisted import verify, scope"
-    ],
-    [
       56,
-      "value=cfg['r1_training']"
+      "receipt['source_seal'] = sealed"
     ],
     [
-      57,
-      "closure=verify(value.get('handover_receipt'),value.get('p_run',{}),"
-    ],
-    [
-      60,
-      "from student_pilot.s1_admission import admit"
-    ],
-    [
-      61,
-      "directory=root/'p';directory.mkdir(exist_ok=True)"
-    ],
-    [
-      62,
-      "with scope(closure['paths']):"
-    ],
-    [
-      63,
-      "prepared = admit(request['config'],directory,request['frame_roots'],threads=8,"
-    ],
-    [
-      65,
-      "result['steps'].extend(['s1_routing.build','r1_routing.compose_native','s1_admission.prepare'])"
-    ],
-    [
-      66,
-      "from student_pilot.r1_population import bind_prepared"
-    ],
-    [
-      67,
-      "produced = bind_prepared(load(pinned(prepared['config'])),root/'b')"
-    ],
-    [
-      68,
-      "cfg = load(pinned(produced));result['config']=produced"
-    ],
-    [
-      69,
-      "result['steps'].append('r1_population.bind_prepared')"
-    ],
-    [
-      70,
-      "from student_pilot.r1_loader import production_audit"
-    ],
-    [
-      71,
-      "result['audit']=production_audit(cfg,root/'a')"
-    ],
-    [
-      72,
-      "result['steps'].append('r1_loader.production_audit')"
-    ],
-    [
-      73,
-      "from student_pilot.r1_persisted import admission, scope"
-    ],
-    [
-      74,
-      "handover=admission(cfg,weights=bool(request.get('weights')))"
-    ],
-    [
-      75,
-      "result['handover']={k:v for k,v in handover.items() if k!='paths'}"
-    ],
-    [
-      76,
-      "result['absolute_resume_step']=handover['absolute_resume_step']"
-    ],
-    [
-      77,
-      "if result['absolute_resume_step'] not in (400,600):"
-    ],
-    [
-      78,
-      "raise ValueError('R1_PROOF_EXPORT_STEP_REQUIRED')"
-    ],
-    [
-      79,
-      "result['steps'].append('persisted_handover')"
-    ],
-    [
-      80,
-      "if request.get('weights'):"
-    ],
-    [
-      81,
+      118,
       "with scope(handover['paths']):"
     ],
     [
-      82,
+      119,
       "result['forward']=forward(cfg,root,result['absolute_resume_step'])"
     ],
     [
-      83,
+      120,
       "result['steps'].append('all_rank_full_forward')"
     ],
     [
-      84,
-      "result['status']='ADMIT'"
-    ],
-    [
-      92,
+      129,
       "parser=argparse.ArgumentParser()"
     ],
     [
-      93,
+      130,
       "parser.add_argument('request');parser.add_argument('output')"
     ],
     [
-      94,
+      131,
       "args=parser.parse_args(argv)"
     ],
     [
-      95,
+      132,
       "result=run(load(args.request),args.output)"
     ],
     [
-      96,
+      133,
       "return 0 if result['status']=='ADMIT' else 1"
     ],
     [
-      100,
+      137,
       "raise SystemExit(main())"
     ]
   ],
@@ -777,10 +661,6 @@
   ],
   "student_pilot/carrier_c1_run.py": [
     [
-      70,
-      "if 'r1_training' in cfg:"
-    ],
-    [
       71,
       "from .r1_training import validate as validate_r1"
     ],
@@ -789,208 +669,28 @@
       "validate_r1(cfg)"
     ],
     [
-      73,
-      "if 'b7_inputs' in cfg:"
-    ],
-    [
-      74,
-      "from .b7_inputs import validate as validate_inputs"
-    ],
-    [
-      75,
-      "validate_inputs(cfg['b7_inputs'], 'a2' if cfg.get('geometry_connector')=='gf1' else 'a0')"
-    ],
-    [
-      92,
-      "if budget.whole_leg and budget.policy != plan(cfg['recipe'], budget.policy['reserve_bytes'],"
-    ],
-    [
-      158,
-      "permitted_overrides = {'weight_focal', 'weight_scale'} if cfg.get('r1_training') else {'weight_focal'}"
-    ],
-    [
-      159,
-      "if (not isinstance(overrides, dict) or set(overrides) - permitted_overrides"
-    ],
-    [
-      173,
-      "if cfg.get('h1', {}).get('faithful_own_camera_rows') is not None:"
-    ],
-    [
-      174,
-      "from .h1_faithful import validate as validate_faithful"
-    ],
-    [
-      175,
-      "validate_faithful(cfg)"
-    ],
-    [
-      370,
-      "from .carrier_c1_routing import POLICIES"
-    ],
-    [
-      371,
-      "if row.get('question_type') in POLICIES['both-path-20261116']['both']:"
-    ],
-    [
-      372,
-      "return False"
-    ],
-    [
-      467,
-      "from .r2_contract import preparation"
-    ],
-    [
-      468,
-      "preparation(cfg)"
-    ],
-    [
-      509,
-      "r2_pose = bool(cfg.get('r2_membership') and cfg.get('r2') and pose.get('count', 0) > 0)"
-    ],
-    [
-      510,
-      "if ((mix is None and (pose.get('schema') != 'decoupled-v-preparation-v1' or (pose.get('count') != 321152 and not tiny_pose and not r2_pose)))"
-    ],
-    [
-      633,
-      "result.update({k: cfg[k] for k in ('frame_layout', 'frame_pair_gap_seconds', 'skip_unsupervised_lm',"
-    ],
-    [
-      654,
-      "if cfg.get('h1', {}).get('faithful_own_camera_rows'):"
-    ],
-    [
-      655,
-      "from .h1_faithful import prepare_identity"
-    ],
-    [
-      656,
-      "result = prepare_identity(result, cfg)"
-    ],
-    [
-      666,
-      "from .r2_contract import preparation"
-    ],
-    [
-      667,
-      "preparation(cfg)"
-    ],
-    [
-      671,
-      "if receipt.get('r1_training') != cfg.get('r1_training'):"
-    ],
-    [
       672,
       "raise ValueError('Preparation R1 inputs differ')"
-    ],
-    [
-      673,
-      "if 'r1_training' in cfg and receipt.get('r2_sampling') != cfg.get('r2_sampling'):"
     ],
     [
       674,
       "raise ValueError('Preparation R1 sampler differs')"
     ],
     [
-      675,
-      "if 'b7_inputs' in cfg:"
-    ],
-    [
-      676,
-      "from .b7_inputs import layout"
-    ],
-    [
-      677,
-      "if receipt.get('b7_inputs') != cfg['b7_inputs'] or layout(receipt['b7_inputs']) != layout(cfg['b7_inputs']):"
-    ],
-    [
-      678,
-      "raise ValueError('Preparation pinned kit inputs differ')"
-    ],
-    [
-      703,
-      "if cfg.get('h1', {}).get('faithful_own_camera_rows'):"
-    ],
-    [
-      704,
-      "from .h1_faithful import require_identity"
-    ],
-    [
-      705,
-      "require_identity(receipt, cfg)"
-    ],
-    [
-      711,
-      "receipt = {**receipt, 'align': cfg.get('align'), 'init_artifact': cfg.get('init_artifact'),"
-    ],
-    [
-      717,
-      "if 'h1' in cfg:"
-    ],
-    [
-      718,
-      "receipt = {**receipt, 'h1': cfg['h1']}"
-    ],
-    [
-      1127,
-      "self.r2_admission.check(value, stream, json.loads(row[1]))"
-    ],
-    [
-      1248,
-      "from .b7_inputs import layout"
-    ],
-    [
-      1249,
-      "processor._b7_layout = layout(receipt.get('b7_inputs') or receipt)"
-    ],
-    [
-      1261,
-      "if getattr(rows, 'h1', {}).get('faithful_own_camera_rows'):"
-    ],
-    [
-      1262,
-      "from .h1_faithful import own_values as faithful_own_values"
-    ],
-    [
-      1263,
-      "return faithful_own_values(model, rows, batch, audit, index, decision, device)"
-    ],
-    [
-      1269,
-      "uv, slots = routing.query_tensor(queries, frame_count=batch[\"aux_camera_positions\"].shape[1])"
-    ],
-    [
-      1274,
-      "uv = torch.full((batch[\"aux_camera_positions\"].shape[1], 1, 2), 500.)"
-    ],
-    [
       1405,
       "raise ValueError('R1 row failure forbids substituting the pinned row plan')"
     ],
     [
-      1708,
-      "recipe = recipe_for(cfg)"
+      2108,
+      "from .r1_training import boundary as r1_boundary"
     ],
     [
-      1709,
-      "counts = {k:v['count'] for k,v in receipt['streams'].items()}"
+      2109,
+      "write(directory/'artifact.json',dict(**version_metadata,schema='carrier-c1-artifact-v1',step=step,"
     ],
     [
-      1710,
-      "offset = cfg.get('row_start_step', 0)"
-    ],
-    [
-      1711,
-      "plan = next(data.mixed_indices(counts,offset+1,start_step=offset,training_mode=cfg.get('training_mode', 'mixed'),"
-    ],
-    [
-      1713,
-      "if encode_only:"
-    ],
-    [
-      1714,
-      "return encode_plan_rows(receipt, processor, [plan], list(range(recipe['world_size'])), report_path)"
+      2132,
+      "if 'b7_inputs' in cfg:"
     ],
     [
       2133,
@@ -1017,40 +717,12 @@
       "write_manifest(directory,model,cfg)"
     ],
     [
-      2314,
-      "from launch_r2.persistence import milestone"
-    ],
-    [
-      2315,
-      "if 'r2_identity' in cfg and not cfg.get('r2_sampling'):"
-    ],
-    [
-      2316,
-      "raise ValueError('Missing bound r2_sampling table')"
-    ],
-    [
-      2320,
-      "if 'r1_training' in cfg and cfg['r1_training'].get('stop_after_step') is not None:"
-    ],
-    [
       2321,
       "steps = min(steps, cfg['r1_training']['stop_after_step'])"
     ],
     [
       2348,
       "milestone(cfg, output/'m0', 'export', rank, distributed)"
-    ],
-    [
-      2374,
-      "for step,plan in enumerate(data.mixed_indices(counts,offset+steps,start_step=offset+start_step,"
-    ],
-    [
-      2424,
-      "from .stop_control import requested"
-    ],
-    [
-      2425,
-      "stop[0] = requested(stop[0], cfg, step)"
     ],
     [
       2435,
@@ -1061,80 +733,8 @@
       "milestone(cfg, Path(saved['path']).parent, 'checkpoint', rank, distributed)"
     ],
     [
-      2439,
-      "if not smoke_steps and (step in recipe['milestones'] or (stopping and (recipe.get('export_at_stop') or cfg.get('stop_after_step') is not None))):"
-    ],
-    [
       2446,
       "milestone(cfg, output/f'm{step}', 'export', rank, distributed)"
-    ],
-    [
-      3053,
-      "rows = Rows(receipt, processor)"
-    ],
-    [
-      3054,
-      "records = []"
-    ],
-    [
-      3055,
-      "try:"
-    ],
-    [
-      3056,
-      "for step, plan in enumerate(plans, 1):"
-    ],
-    [
-      3057,
-      "for stream, indices in plan:"
-    ],
-    [
-      3058,
-      "for rank in ranks:"
-    ],
-    [
-      3059,
-      "batch, _, _ = rows.get(stream, int(indices[rank]))"
-    ],
-    [
-      3060,
-      "if any(v.is_cuda for v in batch.values() if hasattr(v, 'is_cuda')):"
-    ],
-    [
-      3061,
-      "raise ValueError('Encoding-only admission requires CPU tensors')"
-    ],
-    [
-      3062,
-      "records.append(dict(step=step, rank=rank, stream=stream, index=int(indices[rank]),"
-    ],
-    [
-      3064,
-      "write(out_path, dict(schema='r2-encoded-first-batch-v1', records=records,"
-    ],
-    [
-      3066,
-      "return records"
-    ],
-    [
-      3068,
-      "rows.close()"
-    ],
-    [
-      3092,
-      "raise ValueError('R1_PROOF_RESUME_POSITION_INVALID')"
-    ],
-    [
-      3096,
-      "if device != 'cpu' or progress_dir is not None:"
-    ],
-    [
-      3097,
-      "raise ValueError('Encoding-only admission requires CPU and a fresh check')"
-    ],
-    [
-      3098,
-      "return encode_plan_rows(receipt, processor_for_receipt(manifest, receipt), plans, ranks, out_path)"
     ],
     [
       3217,
@@ -1191,22 +791,6 @@
     [
       3304,
       "model.readout_evaluation_config = native_cfg"
-    ],
-    [
-      3317,
-      "from student_pilot.r2_policy import unsupported_entry"
-    ],
-    [
-      3318,
-      "unsupported_entry('student_pilot/carrier_c1_run.py:probe')"
-    ],
-    [
-      3341,
-      "from student_pilot.r2_policy import unsupported_entry"
-    ],
-    [
-      3342,
-      "unsupported_entry('student_pilot/carrier_c1_run.py:evaluate')"
     ]
   ],
   "student_pilot/ground_lifting.py": [
@@ -1331,12 +915,6 @@
       "_require(all(type(k) is int and 1 <= k <= self.frame_count for k in (requested_frame, actual_frame)),"
     ]
   ],
-  "student_pilot/p3_provenance.py": [
-    [
-      39,
-      "raise ValueError('Capsule digest differs')"
-    ]
-  ],
   "student_pilot/phrases.py": [
     [
       180,
@@ -1355,12 +933,6 @@
     [
       23,
       "names.update(prefix+'/'+token for prefix in (d,ds))"
-    ]
-  ],
-  "student_pilot/r1_handover.py": [
-    [
-      234,
-      "raise ValueError('P_EXPORT_HANDOVER_ARTIFACT_MISMATCH')"
     ]
   ],
   "student_pilot/r1_loader.py": [
@@ -1641,44 +1213,8 @@
   ],
   "student_pilot/r1_persisted.py": [
     [
-      47,
-      "raise ValueError('P_EXPORT_HANDOVER_PIN_INVALID')"
-    ],
-    [
       55,
       "raise ValueError('P_EXPORT_HANDOVER_FILE_REQUIRED:'+label)"
-    ],
-    [
-      83,
-      "raise ValueError('P_EXPORT_HANDOVER_CHECKPOINT_FILES_REQUIRED')"
-    ],
-    [
-      86,
-      "raise ValueError('P_EXPORT_HANDOVER_PATH_ESCAPE:'+name)"
-    ],
-    [
-      94,
-      "raise ValueError('P_EXPORT_HANDOVER_FILE_MISMATCH:'+label)"
-    ],
-    [
-      102,
-      "raise ValueError('P_EXPORT_HANDOVER_STREAMS_MISMATCH')"
-    ],
-    [
-      106,
-      "raise ValueError('P_EXPORT_HANDOVER_STREAM_RECEIPT_MISMATCH:'+name)"
-    ],
-    [
-      109,
-      "label = 'indices/'+name; expected.add(label)"
-    ],
-    [
-      110,
-      "if pins.get(label) != stream['indices']:"
-    ],
-    [
-      111,
-      "raise ValueError('P_EXPORT_HANDOVER_CLOSURE_MISMATCH:'+label)"
     ],
     [
       112,
@@ -1687,26 +1223,6 @@
     [
       115,
       "raise ValueError('P_EXPORT_HANDOVER_EXPORT_FILES_REQUIRED')"
-    ],
-    [
-      118,
-      "raise ValueError('P_EXPORT_HANDOVER_CLOSURE_MISMATCH')"
-    ],
-    [
-      129,
-      "raise ValueError('P_EXPORT_HANDOVER_EXPORT_MANIFEST_MISMATCH')"
-    ],
-    [
-      133,
-      "raise ValueError('P_EXPORT_HANDOVER_PATH_ESCAPE:'+label)"
-    ],
-    [
-      135,
-      "raise ValueError('P_EXPORT_HANDOVER_CLOSURE_MISMATCH:'+label)"
-    ],
-    [
-      137,
-      "raise ValueError('P_EXPORT_HANDOVER_FILE_MISMATCH:'+label)"
     ]
   ],
   "student_pilot/r1_routing.py": [

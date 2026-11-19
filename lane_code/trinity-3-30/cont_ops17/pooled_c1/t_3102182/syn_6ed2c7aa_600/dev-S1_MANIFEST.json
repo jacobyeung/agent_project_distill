@@ -1,0 +1,174 @@
+{
+ "config": {
+  "arm": "direct",
+  "decoding": {
+   "budget": 2048,
+   "decoding": "greedy",
+   "engine_version": "0.32.0",
+   "frames": 32,
+   "layout": "duplicate",
+   "max_model_len": 49152,
+   "max_tokens": 16384,
+   "temperature": 0,
+   "thinking": true
+  },
+  "item_file_sha256": "a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e",
+  "reader_package": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa",
+  "rule_population": {
+   "object_counting": 150,
+   "object_rel_direction_easy": 150,
+   "object_rel_direction_hard": 150,
+   "object_rel_direction_medium": 150,
+   "object_rel_distance": 150,
+   "object_size_estimation": 150,
+   "route_planning": 150
+  },
+  "scale_rule": "none (direct arm)",
+  "selector_rule": "none (direct arm: no call is served)",
+  "tower_weights": "none (direct arm)"
+ },
+ "family": "main",
+ "read_file": {
+  "archive": {
+   "decode": "a7 and r0dev ids through ID_MAP.json (sha256 in ROOM_CROSSWALK.json sources.id_map)",
+   "member": "ITEMS.jsonl",
+   "path": "/scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/t_3102182/syn_6ed2c7aa_600/fetched/result.tar.gz",
+   "sha256": "8cbc1c827a22c57a9a32d8d09cce7add882b8690f6d24702de4224a2779a8110"
+  },
+  "fetch_status": "COMPLETE",
+  "path": "/scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/t_3102182/syn_6ed2c7aa_600/fetched/x/ITEMS.jsonl",
+  "sha256": "1dd77718346e0d2cf91d3505cd0c561ed3c1876d3cbb4071cef2e9e260d789df"
+ },
+ "receipts": [
+  {
+   "binds": [
+    [
+     "job",
+     "run.orchard_job"
+    ],
+    [
+     "token",
+     "run.read_token"
+    ],
+    [
+     "status",
+     "read_file.fetch_status"
+    ],
+    [
+     "archive.sha256",
+     "read_file.archive.sha256"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/t_3102182/syn_6ed2c7aa_600/fetched/FETCH.json",
+   "sha256": "85c019fcbafd2c4ee24b60501aa353a0f02dcc2dd044e3f0e8becf5a6d815de0"
+  },
+  {
+   "binds": [
+    [
+     "job",
+     "run.orchard_job"
+    ],
+    [
+     "token",
+     "run.read_token"
+    ],
+    [
+     "plan_sha256",
+     "run.plan_sha256"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/t_3102182/syn_6ed2c7aa_600/SUBMISSION.json",
+   "sha256": "7aa4a4b64f8198fe1e9da1a3a88a203187356bd9d5dd30e8ac783d225ca934eb"
+  },
+  {
+   "binds": [
+    [
+     "artifact.sha256",
+     "run.artifact_sha256"
+    ],
+    [
+     "artifact.path",
+     "run.artifact_path"
+    ],
+    [
+     "step",
+     "run.step"
+    ],
+    [
+     "scope",
+     "config.arm"
+    ],
+    [
+     "export_binding.run",
+     "run.run_id"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/t_3102182/syn_6ed2c7aa_600/fetched/x/SPEC.json",
+   "sha256": "8e3fc38273e80bc514b06346331dea9d52acee8a4c8721ec80b839fd1656ae04"
+  },
+  {
+   "binds": [
+    [
+     "plan_sha256",
+     "run.plan_sha256"
+    ],
+    [
+     "step",
+     "run.step"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/t_3102182/syn_6ed2c7aa_600/fetched/x/COMPLETE.json",
+   "sha256": "bd5fbb9d2019963b98b6a9b17e57484f1ca81f70d98299d049b6a5b0b3e925c3"
+  },
+  {
+   "binds": [
+    [
+     "source_sha256",
+     "config.reader_package"
+    ],
+    [
+     "datasets.0.rows.sha256",
+     "config.item_file_sha256"
+    ],
+    [
+     "max_tokens",
+     "config.decoding.max_tokens"
+    ],
+    [
+     "thinking",
+     "config.decoding.thinking"
+    ],
+    [
+     "temperature",
+     "config.decoding.temperature"
+    ],
+    [
+     "engine_version",
+     "config.decoding.engine_version"
+    ],
+    [
+     "cells.0.layout",
+     "config.decoding.layout"
+    ],
+    [
+     "cells.0.frames",
+     "config.decoding.frames"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/t_3102182/syn_6ed2c7aa_600/fetched/x/main/a0/request.json",
+   "sha256": "9f2dced3a027d6de1624c71609afad6063f5abe5bcef8b1add7754801930596d"
+  }
+ ],
+ "run": {
+  "artifact_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m600/artifact.json",
+  "artifact_sha256": "e1aa4e51880f926ee3de8351c3745923586fc9fc608ee661a9b5ae124f740849",
+  "orchard_job": 172646,
+  "plan_sha256": "9fc9d1f6cbe29421d87abe0a8f47c85c934900205adc21b7ccd21a6824423a54",
+  "read_token": "a8102c3207b",
+  "run_id": "6ed2c7aa",
+  "step": 600
+ },
+ "schema": "pooled-rule-read-manifest-v1",
+ "set": "dev-S1",
+ "type_filter": "direct"
+}

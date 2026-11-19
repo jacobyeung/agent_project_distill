@@ -7,6 +7,7 @@ def read(p):return json.loads((L/p).read_text())
 def local(p):return read('work/build16/'+p)
 c=local('proofs/census/CENSUS.json');p=local('proofs/census/PLAN_RUN.json')
 old=read('work/build14/proofs/census/CENSUS.json')
+oldplan=read('work/build14/proofs/census/PLAN_RUN.json')
 authority=local('INPUTS.json');classify=local('proofs/census/CLASSIFIER.json')
 card=local('inputs/mix.json');pins=local('proofs/operator/STAGING.json')
 delta=local('DELTA_COVERAGE.json');coverage=local('CHANGED_COVERAGE.json')
@@ -29,7 +30,11 @@ add('## Initialization and production blockers')
 add()
 add('N does not need P’s checkpoint state shards to initialize from the export. It does still need the build-15 `routing_vocabulary` witness (`v.json`). Reconstructing that witness needs the model manifest named by P’s preparation, pinned tokenizer/config metadata and P’s parent artifact. Native trainable-group verification also reads the model manifest and `config.json`. These files are outside the direct persistence closure produced by the unchanged P receipt producer. Their availability outside P’s step-400 tmpfs cannot be established without a real export. If they exist only there, N’s full initialization is blocked. No actual tmpfs-only filename has been established from supplied exports. Sources: `work/tree_r1/launch_r1/p_opener_witness.py`, `work/tree_r1/student_pilot/r1_handover.py:donor_meta_model`, `work/build16/proofs/operator/OPERATOR.md`.')
 add()
+add('The initialization-boundary fixture verifies this dependency: metadata handover admits the persisted export, while the native topology reader refuses with `P_EXPORT_TOPOLOGY_METADATA_UNVERIFIED` when P’s model manifest is unavailable on N. The manifest’s hash is absent from the unchanged receipt’s direct pin list. Source: `work/build16/proofs/init_boundary/b16/persisted_400/INIT_BOUNDARY.json`. This fixture proves the missing dependency; it does not prove a complete successful host job.')
+add()
 add('The complete K1 authority and alias maps are absent. The local audit removes known positives and refuses to certify unknown overlap. The production mode requires a complete pinned room audit; the local subset cannot satisfy that gate. Production frame stores, the operator’s real P export and its trusted ledger receipt were not supplied. Full-model CPU memory fit and BF16 parity were not measured. Sources: `work/build16/INPUTS.json`, `work/build16/proofs/operator/STAGING.json`, `work/tree_r1/launch_r1/production_proof.py`.')
+add()
+add('The mode invoked with the actual local N kit-input config returns `R1_PROOF_NATIVE_ROUTING_REQUIRED`: the frame host has not yet supplied the native routing manifests in its runtime config. The incomplete local room audit remains a further unmet prerequisite. The mode stops before reading production rows or loading weights. Source: `work/build16/proofs/init_boundary/b16/real_room_boundary/RESULT.json`.')
 add()
 add('## Changes and closure')
 add()
@@ -40,8 +45,8 @@ for row in [
 ('Procedure-only counting card and admission guard','Closed','inputs/CARD.md; inputs/mix.json; proofs/census/CLASSIFIER.json'),
 ('Real v7 and slice census, producer binding, allocation and resumed plans','Closed within declared frame-host substitution; full camera/pose/pointing census blocked','proofs/census/CENSUS.json; PLAN_RUN.json; host_boundary.json'),
 ('Native training text examples','Closed for available nonempty VQA/slice cells; camera traces blocked','proofs/traces/INDEX.json; proofs/traces/*.jsonl'),
-('Separate q mode and opaque CPU operator packet','Implemented; not production-qualified','proofs/operator/; KIT_RESULT.json; work/tree_r1/launch_r1/production_proof.py'),
-('One complete native production-mode CPU fixture','Open: component tests only; no successful end-to-end fixture','proofs/final_focused/TESTS.json; DELTA_COVERAGE.json'),
+('Separate q mode and opaque CPU operator packet','Blocked qualification; implementation and packet supplied','proofs/operator/; KIT_RESULT.json; work/tree_r1/launch_r1/production_proof.py'),
+('One complete native production-mode CPU fixture','Blocked qualification: component tests only; no successful end-to-end fixture','proofs/final_focused/TESTS.json; DELTA_COVERAGE.json'),
 ('Persisted-metadata handover at P milestones; absent state shards recorded','Closed in synthetic native export fixtures; real export blocked','proofs/final_focused/b16/; proofs/edges/TESTS.json'),
 ('Final N config/preparation handover mapping','Closed in boundary fixtures; full admission chain unproven','tests/test_r1_build16.py:test_final_preparation_handover_binding'),
 ('P receipt producer and collector unchanged','Closed: entire file byte-equal to build 15','proofs/operator/P_PRODUCER_EQUALITY.json'),
@@ -97,6 +102,13 @@ for k,v in p['cells'].items():
 add()
 add('Source for all entries: `work/build16/proofs/census/PLAN_RUN.json`; ceilings: `inputs/mix.json`. Camera displacement/movement/rotation, pose and pointing eligible counts are host substitutes, as above. All 1,000 steps draw 64 pose, 128 VQA, 64 routing and 32 pointing rows. The global largest repeat is 4. Resumed plans equal the corresponding uninterrupted suffixes; absolute step 400 and 600 have identical cell totals but different row-plan hashes, recorded in the plan receipt.')
 add()
+add('| Changed actual plan draws | Prior total | Current total | Difference |\n|---|---:|---:|---:|')
+for k in sorted(set(oldplan['draws'])|set(p['draws'])):
+    a,b=oldplan['draws'].get(k,0),p['draws'].get(k,0)
+    if a!=b:add(f'| {k} | {a} | {b} | {b-a:+d} |')
+add()
+add('Sources: the prior plan retained by build 15, `work/build14/proofs/census/PLAN_RUN.json`, and current `work/build16/proofs/census/PLAN_RUN.json`. The full distance pool removes the prior capacity cut, so distance now receives its entire requested quota and camera cells no longer receive that cut’s refill. The counting/totals changes transfer their freed draws to direction. All other actual plan draw totals are unchanged. Recovery and units retain their requested draws despite the known-K1 population reductions.')
+add()
 add('`work/build16/proofs/traces/<cell>.jsonl` contains 20 native reader outputs for every available nonempty VQA/slice cell, including zero-quota cells with eligible rows. Each record carries prompt, trace, target, cell, source and row key. Totals and camera-object absolute distance have no eligible rows; camera cells have no real host store. Their files are empty and `INDEX.json` explains why. These examples do not certify RGB grounding where the frame host is absent. Source: `work/build16/proofs/traces/INDEX.json`.')
 add()
 add('## Persisted handover and CPU proof limits')
@@ -119,6 +131,8 @@ add('`work/build16/proofs/operator/OPERATOR.md` gives the staging table, P persi
 add()
 add('The kit’s separate q mode verifies staged pins, invokes native routing build/composition and prepare through s1_admission, binds the native reader population, audits its production plan, derives the final N handover mapping, and reads P’s persisted handover. Optional weights enable every rank’s first resumed CPU batch and loss. One RESULT.json records admission/refusal, stage results, absolute step, losses and peak RSS. The job script requests one general-partition CPU task, eight CPUs and 20 GiB; admission caps address space at 19 GiB. No GPU fit was measured or GPU fallback justified. Sources: `work/tree_r1/launch_r1/production_proof.py`, `work/build16/proofs/operator/j.sh`.')
 add()
+add('The mode control-flow unit test verifies pin relocation remains active through preparation, population binding, audit and final handover. It replaces those three native preparation/audit phases, so its ADMIT result is not a native end-to-end proof. Source: `work/build16/proofs/mode_unit/TESTS.json`, `work/build16/mode_test16.py`.')
+add()
 add('All fresh kits pass the inherited opaque-name scanner and remain GO=false. The human-readable report and packet stay outside the job-visible kit. No scheduler, Orchard, GCS or network call was made. Source: `work/build16/KIT_RESULT.json`.')
 add()
 add('## Exact JSON and preserved behavior')
@@ -129,7 +143,7 @@ add('The native model forward, training loop, export/checkpoint, preparation, re
 add()
 add('## Tests, coverage and delivery')
 add()
-add(f"Focused tests: {focused['tests']} passed. Additional edge tests: {edge['tests']} passed. Frozen R2 group: {suite.get('tests')} tests, {suite.get('passed')} passed, {suite.get('failures')} failures, {suite.get('errors')} errors. Packet: {counts['passed']} passed and {counts['failed']} failed, with {len(new_failures)} newly failing packet cases versus build 15. Sources: `proofs/final_focused/TESTS.json`, `proofs/edges/TESTS.json`, `proofs/final/suite_tree/r2/results.json`, `proofs/final/packet/results.json`, all under `work/build16/`; comparison: `work/build15/proofs/final/packet/results.json`.")
+add(f"Focused tests: {focused['tests']} passed. Additional edge tests: {edge['tests']} passed. Frozen R2 group: {suite.get('tests')} tests, {len(suite['passed'])} passed, {len(suite['failures'])} failures, {len(suite['errors'])} errors. Packet: {counts['passed']} passed and {counts['failed']} failed, with {len(new_failures)} newly failing packet cases versus build 15. Sources: `proofs/final_focused/TESTS.json`, `proofs/edges/TESTS.json`, `proofs/final/suite_tree/r2/results.json`, `proofs/final/packet/results.json`, all under `work/build16/`; comparison: `work/build15/proofs/final/packet/results.json`.")
 add()
 add('The packet failures remain the exact floating serialization comparison and the absent attack_decode input. No observed regression was introduced in the executed suites. This does not assert zero regressions in unavailable groups; BF16 parity remains unchecked. All '+str(len(mutations))+' guard mutations are caught using one reused mutant tree. Source: `work/build16/proofs/mutations/RESULT.json`.')
 add()
