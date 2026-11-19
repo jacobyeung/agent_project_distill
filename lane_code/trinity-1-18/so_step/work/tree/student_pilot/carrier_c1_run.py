@@ -33,6 +33,7 @@ from .decoupled_resume import rng_state, restore_rng, run_lock
 from .p3_provenance import digest, file_pin, load, pinned, write, source_files, sha256, unique
 from . import carrier_c1_routing as routing
 from . import rehearsal
+from .c1_switches import get as performance_switch
 
 
 def identity(cfg):
@@ -1055,7 +1056,8 @@ def load_export_masters(model, directory):
 
 class Rows:
     def __init__(self, receipt, processor):
-        if os.environ.get('C1_CPU_PREFETCH', '0') == '1':
+        self._cpu_prefetch_enabled = performance_switch('C1_CPU_PREFETCH')
+        if self._cpu_prefetch_enabled == '1':
             self._cpu_prefetch_receipt = receipt
         from .r2_contract import Admission
         self.r2_admission = Admission(receipt['r2_membership']) if receipt.get('r2_membership') else None
@@ -1495,9 +1497,9 @@ def fetch_plan(rows, model, plan, rank, device=None, distributed=False):
     else:
         factor = nominal_slices(model.recipe, plan) if getattr(model, 'training_mode', None) == 'final' else 1
         groups = [plan[start:start + factor] for start in range(0, len(plan), factor)]
-    prefetch = os.environ.get('C1_CPU_PREFETCH', '0')
-    if prefetch not in ('0', '1'):
-        raise ValueError('C1_CPU_PREFETCH must be 0 or 1')
+    prefetch = getattr(rows, '_cpu_prefetch_enabled', None)
+    if prefetch is None:
+        prefetch = performance_switch('C1_CPU_PREFETCH')
     if prefetch == '1':
         from .c1_cpu_prefetch import fetch_groups
         yield from fetch_groups(rows, model, groups, rank, device, distributed)
@@ -1530,9 +1532,7 @@ def clip_groups(model, attached):
 def optimize_step(model, optimizer, rows, plan, rank, device, step, distributed=False, gates=None):
     """Rank-aligned microsteps (four in mixed/pose-only); FSDP reduces each (no large no_sync grads)."""
     started, waiting = time.perf_counter(), 0.
-    batch_metrics = os.environ.get('C1_BATCH_METRICS', '0')
-    if batch_metrics not in ('0', '1'):
-        raise ValueError('C1_BATCH_METRICS must be 0 or 1')
+    batch_metrics = performance_switch('C1_BATCH_METRICS')
     deferred_components = None
     if batch_metrics == '1':
         from .c1_batch_metrics import Components
@@ -1719,7 +1719,11 @@ def optimize_step(model, optimizer, rows, plan, rank, device, step, distributed=
     after_optimizer = memory_stats(device)
     if device.type == 'cuda':
         torch.cuda.synchronize(device)
-    return dict(step=step, **({'gf1_harm_screen': screen_metrics} if gf1_enabled else {}), wall_seconds=time.perf_counter()-started, data_seconds=waiting,
+    cache_record = {}
+    if performance_switch('C1_DECODED_CACHE_MIB') != '0':
+        from .c1_decoded_cache import stats
+        cache_record['decoded_cache'] = stats()
+    return dict(step=step, **cache_record, **({'gf1_harm_screen': screen_metrics} if gf1_enabled else {}), wall_seconds=time.perf_counter()-started, data_seconds=waiting,
                 skipped_microsteps=skipped, skip_totals=dict(SKIPPED),
                 component_normalization='components: sum over microsteps of each row-mean loss / len(plan); '
                                         'stream_means: row-mean loss of each stream over its own microsteps',
@@ -2893,6 +2897,8 @@ def train(cfg, smoke_steps=None, resume_pin=None, export_binding=None):
     # rank 0 hashes and loads assets, may wait longer (a separate gloo group, 60 min).
     dist.init_process_group('gloo' if cpu else 'nccl', timeout=datetime.timedelta(seconds=30 if cpu else 900))
     startup=dist.new_group(backend='gloo', timeout=datetime.timedelta(seconds=30 if cpu else 3600))
+    from .c1_switches import startup as performance_startup, accept as performance_accept
+    performance_values = performance_startup(cfg)
     started=time.monotonic()
     if os.environ.get('TK_JOB_START','').isdecimal():
         # The leg budget counts from the allocation start (kit staging included), so the trainer
@@ -2904,12 +2910,16 @@ def train(cfg, smoke_steps=None, resume_pin=None, export_binding=None):
     if rank==0:
         try:
             values[0]=prepared(cfg,admission=True)
+            if performance_values[0] != ('0', '0', '0'):
+                values[0] = (*values[0], performance_values[0])
         except Exception as exc:
             values[0]=dict(error=f'{type(exc).__name__}: {exc}')
     dist.broadcast_object_list(values,src=0,group=startup)
     if isinstance(values[0],dict):
         raise ValueError('Rank 0 preparation check failed: '+values[0]['error'][:400])
-    receipt,manifest=values[0]
+    receipt,manifest=values[0][:2]
+    performance_error = performance_accept(performance_values,
+        values[0][2] if len(values[0]) == 3 else ('0', '0', '0'))
     # All ranks authenticate the source, without repeatedly hashing large data.
     commit=authenticate(cfg)
     authorization=load(pinned(cfg['authorization'])) if cfg.get('authorization') else {}
@@ -2921,13 +2931,13 @@ def train(cfg, smoke_steps=None, resume_pin=None, export_binding=None):
     processor=processor_for_receipt(manifest,receipt)
     # Parent stages a single authenticated model on node-local storage. Hash once
     # in rank zero; every rank still loads the same immutable base manifest.
-    model, error = None, None
-    if rank==0:
+    model, error = None, performance_error
+    if rank==0 and error is None:
         try:
             model=load_model(manifest,receipt,processor)
         except Exception as exc:
             error=f'{type(exc).__name__}: {exc}'
-    agree(startup, error if rank==0 else None)
+    agree(startup, error)
     if rank!=0:
         try:
             model=load_model(manifest,receipt,processor,verify_assets=False)

@@ -1,5 +1,5 @@
 """Pinned dev authorization, completion validation, and one-look registration."""
-import fcntl, gzip, hashlib, json, os, time
+import fcntl, gzip, hashlib, json, os, re, time
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
 WORK=Path('/scratch/jjyeung/orch_n30/sb_cntfix')
@@ -34,7 +34,7 @@ def output(p):
 def pins():
  for p,h in read(HERE/'BACKEND_PINS.json')['inputs_sha256'].items():
   if sha(p)!=h:raise ValueError('backend source pin differs: '+p)
- return {str(p):sha(p) for p in sorted(HERE.glob('*.py'))}|{str(HERE/n):sha(HERE/n) for n in ('FROZEN_CONFIG.json','DEV_AUTHORIZATION.json','MRA_SOURCE.json','BACKEND_PINS.json','MRA_BOUNDARIES.json')}
+ return {str(p):sha(p) for p in sorted(HERE.glob('*.py'))}|{str(HERE/n):sha(HERE/n) for n in ('FROZEN_CONFIG.json','DEV_AUTHORIZATION.json','MRA_SOURCE.json','BACKEND_PINS.json','MRA_BOUNDARIES.json','launch_count.sh')}
 def config():
  if sha(HERE/'official_vsi_mra.py')!=MRA_SHA:raise ValueError('official metric source changed')
  c=read(HERE/'FROZEN_CONFIG.json')
@@ -42,6 +42,7 @@ def config():
  return c
 def items(p,setname='R0-dev'):
  p=scratch(p)
+ if p!=(HERE/'COUNT_ITEMS_535.jsonl').resolve():raise ValueError('only the bundled dev item path is readable')
  # Check authorization before parsing a caller-supplied item file.
  if sha(p)!=ITEM_SHA:raise ValueError('item file is not the pinned dev allowlist')
  if setname not in ('R0-dev','dev-S1'):raise ValueError('official items prohibited')
@@ -63,7 +64,10 @@ def binding(mp,settings,stub):
  return dict(evaluation_category='counting',set='R0-dev',item_ids=sorted(x['id'] for x in rows),captures=[c['canonical'] for c in m['captures']],manifest_sha256=sha(mp),items_sha256=sha(ip),config_sha256=sha(HERE/'FROZEN_CONFIG.json'),code_sha256=pins(),contract_sha256=digest(CONTRACT),settings_sha256=sha(settings) if settings else digest({'stub':True}),stub=bool(stub))
 def ledger(stub):
  LEDGER.mkdir(exist_ok=True)
- return LEDGER/('stub-counting.json' if stub else 'R0-dev-counting.json')
+ if not stub:return LEDGER/'R0-dev-counting.json'
+ namespace=os.environ.get('COUNT_STUB_NAMESPACE','default')
+ if not re.fullmatch(r'[a-zA-Z0-9_-]{1,64}',namespace):raise ValueError('invalid stub namespace')
+ return LEDGER/('stub-'+namespace+'-counting.json')
 def register(mp,settings,stub,deadline,budget):
  if not stub and config()['training_decision']!='ACCEPT_FOR_COMPARISON':raise ValueError('K1 training rejects this proposal; no real dev comparison authorized')
  if not (time.time()<deadline and 0<budget<=1800):raise ValueError('future absolute deadline and budget <=1800 seconds required')

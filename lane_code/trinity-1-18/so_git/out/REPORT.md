@@ -1,797 +1,313 @@
-VERDICT: DONE Findings 1–16 are addressed; fresh patches, owner suites, and real-Git proofs pass under Python 3.6.8 and 3.12.13.
+VERDICT: PARTIAL Findings 1–9 are addressed behind a default-OFF switch; all permitted tests pass, but this dispatch forbids the required real-Git reruns.
 
-The delivery provides strict archive-bound kit landing, persistent landing receipts, health-event delivery tracking, a resilient health loop, bounded dry counts, and the package override that still detects default collectors. The owner guide names who creates eff/* commits. Production changes remain opt-in.
+The fixed files are in `out/tools/`. Exactly three installed files change: `land_kit.py`,
+`sync_health.py`, and `dry_count.py`. Enable the fixes with `LCS_REVIEW2_FIXES=1` alongside
+the relevant `LCS_ENABLE_*` flag. The installed copies and `lane_code_sync.sh` remain unchanged.
+Finding 1 uses the review's minimal STOP-and-contact-the-user mitigation; it does not prevent
+a rejected commit from remaining on local lane-code. Finding 2 clears kit staging on a handled
+failure and verifies a clean index, without rewriting history or deleting working files.
 
-Validation ran on trinity-1-18. Every Git command targeted newly created throwaway repositories under this workspace's work/ directory; all remotes were local bare repositories. No production repository, network remote, service, or input file was changed. No SSH or GPU/framework computation ran.
+## Numbers
 
-## Measured results
+All results below are measured unless identified as configuration. No performance estimate is claimed.
 
 | Measurement | Result |
 |---|---|
-| Unique tests | 68 passed on each interpreter: 58 owner/optional-filter tests, including real Git, plus 10 package tests. |
-| Recorded test executions | 250 passed; no final test was skipped. Each interpreter ran patch 02 alone, patches 02+03, the standalone Git runner, and package tests. |
-| Interpreter versions | `/usr/bin/python3`: Python 3.6.8; `/scratch/jjyeung/envs/p1cpu/bin/python`: Python 3.12.13. |
-| Fresh validation commands | 29 returned zero, including all three patch applications with `--fuzz=0`. |
-| Real Git | Six isolated end-to-end runs passed, three per interpreter. Each verified origin and home and preserved HEAD:kits despite unstaged kit edits/removal. |
-| Frozen coverage | The 44-file snapshot selects 39 files / 105362 bytes by default and 41 files / 120931 bytes with optional shell copies. Default combined filter output matches the input byte for byte. |
-| Package checkout | Both plain unittest runs left its file names and bytes unchanged. |
-| Workspace snapshot | 222917598 bytes before report generation; 523067834368 bytes available on local scratch. [Exact measurement](evidence/round1_resources.json). |
+| Unique passing tests per interpreter | 93 after patches 01–03, including 26 round-2 tests; one real-Git test is skipped. |
+| Fresh-patch test executions | 720 pass; 16 skips across repeated configurations. Patch-02-only runs skip the two tests supplied by optional patch 03, as well as real Git. Combined runs skip only real Git. |
+| Regression contrast | The same 26-test suite fails on the pinned installed source on both interpreters, then passes on both fixed working copies and both fresh upgrade trees. Exact failure and success outputs are linked below. |
+| Fresh validation commands | 40 return their expected status; the two disabled real-Git runners intentionally return 2. Other commands return 0. |
+| Python versions | Python 3.6.8 and Python 3.12.13, read from the executed interpreters. |
+| Frozen coverage | 39 files / 105362 bytes by default; 41 files / 120931 bytes with optional shell copies. Original/default filter output is byte-identical. |
+| Workspace before final report | 544476927 bytes in 259170 local entries; 422634303488 bytes free on scratch. This includes retained fixtures. |
+| Limits (configuration) | Eight-thread environment limits; no CUDA devices; niceness 10 or lower priority; workspace cap 3 GB and memory cap 30 GB. Memory peak was not measured. |
+| Production access | Eight named files read and hashed: seven owner tools and the hourly script. No installed writes, live Git, SSH, service changes, or model calls. |
 
-These are measured values. No throughput or time-saving estimate is claimed. The configured monitor interval is 600 seconds and its stale threshold is 90 minutes; detection delay depends on a running loop and available local/event storage.
+Validation ran on trinity-1-18. Start: 2026-11-19 10:08:40 UTC. Deadline: 2026-11-19 12:08:40 UTC.
+Report time: Thu Nov 19 10:25:11 UTC 2026. These are stdlib tools/tests; no torch or other framework behavior is used.
 
-## Review round 1: finding -> fix -> test
+## Review round 2: finding -> fix -> test
 
-| Finding | Fix | Regression evidence |
+| Finding | Fix or decision | Test |
 |---|---|---|
-| 1 | Both tools and all owner/filter/real-Git tests use Python 3.6 APIs; the health path also avoids `is_relative_to`. | `test_shell_wrapper_default_system_python`, `test_dry_count_default_system_python`, and both complete interpreter runs pass. |
-| 2 | The first nonempty line must be an unindented supported `VERDICT:`. Any negative token refuses; a conditional review cannot upgrade itself. | `ReviewTests` covers supported forms, first-line placement, negative text anywhere, conditional/in-file GO, and unknown verdicts. |
-| 3 | A matching Seal/SHA256 or explicit owner `--bind-sha` is required. Required owner arguments supply distinct normalized identities; metadata records the checked binding. | `test_binding_required_and_all_present_fields_must_match`, `test_builder_and_reviewer_must_differ`, and each real-Git probe pass with a first-line-only review. |
-| 4 | Every omitted archive member prints as `SKIPPED`; landing requires `--allow-skips` and records the skipped list. Represented parent directories are preserved. | `test_size_and_name_filter_and_duplicate_paths`, `test_all_filter_exclusions_are_reported_and_require_opt_in`, `test_exact_size_caps_are_inclusive`, and the empty-directory test cover omissions and metadata. |
-| 5 | The guide schedules kit work just after `END ok` and explains the hourly nonblocking lock. Stale events quote the latest hourly lock skip. | `test_stale_event_quotes_hourly_lock_skip` checks the exact skip evidence. |
-| 6 | The journal marks successful delivery and replays only undelivered events. Delivered history does not stat/read event files; legacy journal entries migrate as delivered. | `test_delivered_event_moved_by_consumer_is_not_replayed`, `test_delivered_history_does_not_touch_event_storage`, `test_only_undelivered_events_are_replayed_after_write_error`, and the legacy-journal test pass. |
-| 7 | Package tests use `tempfile.mkdtemp()` outside the checkout, independent of its location. Fixtures remain under the standing no-deletion rule. | `test_default_temp_root_ignores_checkout`, both plain unittest runs, and both byte-for-byte checkout inventories pass. |
-| 8 | `DEFAULT_PKG` remains in the process matcher when the epoch override is enabled; existing candidate paths remain in the list. | `test_override_keeps_default_collectors_visible` and `test_override_reaches_process_matcher` pass. Both supplied copies contain only the same 34 lines; no additional callers were supplied. |
-| 9 | The real-Git test moves the tracked kit source away and edits KIT.json before the hourly add. It checks the unstaged kit paths and unchanged committed kits tree. | All six real-Git proofs pass; broad `-A .` would stage the deliberately changed kit paths and fail the test. |
-| 10 | The default owner-lock wait is 600 seconds. | `test_default_lock_wait_is_600_seconds` asserts the timeout passed to the real lock context. |
-| 11 | Every landing Git command disables automatic GC/maintenance. Children receive closed stdin and Git receives `GIT_TERMINAL_PROMPT=0`. | `FakeGit` asserts both config arguments on every command; `test_git_children_cannot_prompt` checks stdin and the environment. |
-| 12 | Production refuses `LCS_FILTER`, `LCS_SCAN`, and `LCS_B` overrides without `LCS_TEST_ROOT`. The new event override is guarded too. | `test_production_tool_overrides_refuse_before_tool_reads` checks each override before any tool resolution. |
-| 13 | dry_count accepts explicit existing folders below `/scratch/jjyeung/orch_n30/`; it refuses symlinked folders/ancestors and the whole orchestration root. | `test_dry_count_refuses_symlinked_and_outside_folders` covers links, ancestor links, `/data2`, `/tmp`, and the root. Valid-folder counts still pass on both interpreters. |
-| 14 | After both heads verify, landing appends `$S/KITS_LANDED.txt` and writes a kit RESULT event. Event timestamps include microseconds to separate receipts. | The landing/idempotence contract and every real-Git proof check both receipts; `test_failed_push_stops_without_retry` checks that a failed push writes neither. |
-| 15 | The loop logs ordinary check errors and continues at the next ten-minute tick. Signal exits stop for investigation under the cluster rule. | `test_transient_error_is_logged_and_next_tick_runs` executes two ticks; `test_signal_exit_stops_without_automatic_rerun` checks the signal exception. |
-| 16 | GIT_OWNER.md states the strict verdict/binding rules, owner identity arguments, clean tracked-worktree requirement, 600-second wait, receipts, and loop behavior. The designated Git owner makes eff/* commits in authorized scratch lane clones under the owner lock. | The applied guide matches out/ byte for byte. Exact command tests and the current real-Git outputs support its operational claims. |
+| 1 | Origin push failure prints a STOP notice requiring the user before the hourly run; it neither pushes home nor writes a receipt. This is the review's minimal mitigation; the local commit remains. | LandingFailures.test_f1_origin_rejection_requires_user_and_never_pushes_home |
+| 2 | Add/commit/copy errors reset only the kit path in the index and verify a clean index. The refusal explains how to inspect HEAD and move an untracked kit aside; failed cleanup requires the user before the hourly. | LandingFailures.test_f2_failed_commit_unstages_only_kit; test_f2_failed_add_unstages_only_kit; test_f2_partial_copy_explains_recovery_without_staging; test_f2_reset_failure_requires_user_before_hourly |
+| 3 | Resolved test destinations cannot overlap production state, clone, or local state events; a broad test root and a symlink cannot bypass the checks. | TestIsolation: four test_f3_* methods |
+| 4 | The binding parser recognizes bullets, quotes, bold labels, tables, backticks, and SHA-256. Every binding must match, even with owner --bind-sha; empty and conflicting fields refuse. | BindingAndVerdicts.test_f4_formatted_contradictory_hashes_cannot_hide_behind_owner_binding; test_f4_matching_formatted_bindings_authorize_and_conflicts_refuse |
+| 5 | Negative tokens are uppercase whole alphabetic words; later VERDICT labels are case-sensitive. Ordinary prose passes. Quoted uppercase NO-GO still refuses, preserving the required negative-token policy. | BindingAndVerdicts.test_f5_ordinary_prose_does_not_override_accepting_verdict; test_f5_explicit_negative_tokens_still_refuse_even_when_quoted |
+| 6 | Recovery event names include the observation time and recovered incident kinds, so split stale/failed recovery at one verified timestamp emits both events. | HealthRegressions.test_f6_split_stale_and_failed_recovery_emits_both_results |
+| 7 | Health checks last_failed_run before scanning hourly BLOCKERs and records either decision. A consumer moving a previously observed BLOCKER cannot cause a duplicate. | HealthRegressions.test_f7_own_blocker_is_read_once_even_after_consumer_moves_it; test_f7_absent_own_blocker_is_checked_once_per_failure |
+| 8 | dry_count checks every ancestor below the orchestration root, including multi-component substring exclusions and MAXDIR. | CoverageAndFixtureSafety.test_f8_nested_excluded_ancestor_has_no_hourly_coverage; existing CoverageTests |
+| 9 | Owner/filter tests use validated temporary roots under /scratch or /tmp and reject unsafe roots before writes. They never default to the installed checkout. Scratch-only integration tests skip when the temporary root is /tmp. | CoverageAndFixtureSafety: four test_f9_* methods; Documentation.test_f9_default_tmp_root_skips_scratch_integration_before_writes |
+| 10 (INFO) | The owner guide states installed status, node-local receipts, absolute queue paths and node scope, dry-run locking, and the implemented verdict rules. | Documentation.test_f10_guide_matches_installation_receipts_queue_and_dry_lock |
+| 11 (INFO) | Real-Git reruns are not executed: the current dispatch explicitly forbids Git and supersedes the earlier round's exception. The unchanged runner remains available for an authorized owner. | The runner's disabled guard is exercised under both interpreters; real-Git unittest is explicitly skipped. No current real-Git proof is claimed. |
+| 12 (INFO) | EOFError, zlib.error and LZMAError become REFUSED; non-object KIT.json refuses cleanly. The Python 3.6 surviving-grandchild timeout problem remains: changing process-tree termination exceeds the small error-handling fix and needs authorized integration validation. | MalformedInputs: three test_f12_* methods. The subprocess timeout/grandchild case is not tested or fixed. |
+| 13 (INFO) | The existing lock, archive/filter/scanner safeguards, branch/refspec constraints, receipts, package override and default filter behavior are rechecked by the permitted suites. Live remote and real-Git claims remain unverified this round. | Owner/package/filter suites on both interpreters; syntax, in-memory compilation, supplied-log health samples, patch/source equivalence and input hashes. |
 
-## Patches and owner handoff
+## Installed replacements
 
-| Patch | Contents and enablement |
+The base hashes were read from the installed files and match the reviewed delivery exactly.
+The final read-only check confirms that the installed files still have those base hashes.
+Paths and both hashes are recorded in [INSTALLED_CHANGES.json](INSTALLED_CHANGES.json).
+
+| Installed file under `orch_n30/tools/` | New SHA256 |
 |---|---|
-| [01_pkg_configurable.diff](patches/01_pkg_configurable.diff) | Applies to the distill tree. `R1315_PKG=/absolute/epoch/collector` enables the override; unset keeps the current default without new validation I/O. An override must contain collect.py. The test installs at the checkout root for plain `python3 -m unittest`. |
-| [02_owner_tools.diff](patches/02_owner_tools.diff) | Adds tools, owner tests, fixtures, and the [owner guide](GIT_OWNER.md). Commands require `LCS_ENABLE_KIT_LANDING=1`, `LCS_ENABLE_SYNC_HEALTH=1`, or `LCS_ENABLE_DRY_COUNT=1`; all default OFF. Existing hourly sync/filter/scanner inputs remain unchanged. |
-| [03_shell_copy_coverage_optional.diff](patches/03_shell_copy_coverage_optional.diff) | Adds only `.sh.copy` behind `LCS_INCLUDE_SHELL_COPIES=1`, default OFF. Its tests support both interpreters. It changes neither caps nor directory rules. |
+| [land_kit.py](tools/land_kit.py) | `1379a0d60704bf36b5bc31176181f5b03b95dab8dd516e9fc7386657de1700d9` |
+| [sync_health.py](tools/sync_health.py) | `f4b0cc8328e1044b9f3d26721891ce683fc9636a240e8a9d077ac26d5bcd4f54` |
+| [dry_count.py](tools/dry_count.py) | `36a5413f5ef67d82398d5a32d1b830e2578622f23fdebc5bfa6aec2e37535c4f` |
 
-[MANIFEST.json](MANIFEST.json) records patch/input/delivery hashes and validation status. The patch-applied tools, tests, and docs match out/ exactly: [source check](evidence/round1_source_equivalence.txt). The selected production epoch path is `/home/jjyeung/agent_project_distill_epochs/<commit>/collector`; this delivery launches no collector.
+The unchanged files are `land_kit.sh`, `sync_health.sh`, `sync_health_loop.sh`, `dry_count.sh`,
+and `lane_code_sync.sh`. The hourly script is not delivered as a changed production file.
+The four owner wrappers in `out/tools/` remain byte-identical to their installed copies.
+No deployment was performed. [HANDOVER.md](HANDOVER.md) identifies the remaining owner actions;
+[GIT_OWNER.md](GIT_OWNER.md) explains operation and recovery.
 
-Package tests retain temporary fixtures because the standing rule forbids deletion. Their default uses system temporary storage; these recorded runs set TMPDIR outside the checkout under work/ to confine all test writes. No cleanup command is needed to use the patches.
+## Patches and base pins
+
+Patches 01–03 apply to fresh copies of the named supplied inputs. Patch 04 is an alternative
+upgrade from the pinned reviewed package, including its tests/docs; do not apply it after the
+regenerated 02/03. Every patch was applied with `patch --batch --fuzz=0 -p1` after checking
+each preimage. Both owner package routes reproduce the delivered tools, tests, and guides exactly.
+
+Base pins are per-file SHA256 values plus a deterministic hash of each patch's preimage map.
+Absent files are recorded as null. No Git commit ID is claimed or queried.
+[PATCH_BASES.json](PATCH_BASES.json) contains every preimage/postimage and the pin calculation;
+[MANIFEST.json](MANIFEST.json) hashes the delivery and records current validation status.
+
+| Patch | Switch and scope | SHA256 | Base pin SHA256 |
+|---|---|---|---|
+| [01_pkg_configurable.diff](patches/01_pkg_configurable.diff) | `R1315_PKG`, unset preserves the supplied default; package tests included. | `154af7104da86b789c175db2153a896277b851a16e0f00e6bcb767141fd170fb` | `e8444dff9fd8ee50bc091b8eb9327493d778c28c53d7ec2d0cb06e5bd780ec55` |
+| [02_owner_tools.diff](patches/02_owner_tools.diff) | `LCS_ENABLE_*` and `LCS_REVIEW2_FIXES`, default OFF; cumulative tools/tests/guides. | `ddc3b5e62edfe6ed2f7608fd7d524df3c82baadb70a5ffddb3dc84c04e49a621` | `a8db3eecb984c75fe53da37ce1421aeb0538fd2b555c376788f06ba40c9786f8` |
+| [03_shell_copy_coverage_optional.diff](patches/03_shell_copy_coverage_optional.diff) | `LCS_INCLUDE_SHELL_COPIES`, default OFF; optional filter and tests. | `0745706bb680537fcd3cf1543acfe0d7016a11fffb71fb56f19f6ab2d7730350` | `b2ce5bb3d3373239a2fde4e47a0ccd9040dfb83d9faa50cdc081ca4c4e0d836d` |
+| [04_installed_owner_review2.diff](patches/04_installed_owner_review2.diff) | `LCS_REVIEW2_FIXES`, default OFF; alternative installed-package upgrade and tests. | `e6fdc64270ba7a1a2aa3acec0de2216f3e6aa22737a606da2ec8ad83f5bbfbc9` | `fd3df825ea1f26b7d3ec97dcc9c106c930f64507e00d7f445420e21d7ae31d74` |
+
+Default-OFF production branches retain the installed behavior. Default and enabled owner suites
+both pass; the optional filter's default output matches the supplied filter byte for byte.
+The input files, hourly fixture, wrappers, package source/test, and unchanged production files
+are pinned separately. New production behavior requires the explicit switch. Test-root safety
+changes apply unconditionally to tests so an ordinary test import cannot seed the installed tree.
 
 ## Exact commands and outputs
 
-The full command ledger records UTC time, argv, cwd, environment, exit code, and each exact combined stdout/stderr file: [round1_commands.json](evidence/round1_commands.json). The serial driver is `work/validate_round1.py`; the generator is `work/regenerate_round1.py`. It uses CUDA_VISIBLE_DEVICES='', PYTHONDONTWRITEBYTECODE=1, eight-thread limits, and niceness 10 or lower priority. No torch behavior is involved.
+The serial drivers are `work/run_round2_regressions.py` and `work/validate_round2.py`.
+The complete [command ledger](evidence/round2_commands.json) gives UTC time from `date -u`,
+argv, working directory, relevant environment, expected/actual exit status, and exact combined
+stdout/stderr for every command. Test runs set `LCS_TEST_WORK` and `TMPDIR` under this workspace.
+`LCS_RUN_REAL_GIT_TESTS=0` prevents Git integration, and a PATH guard records unexpected Git
+attempts; none occurred. No result from an earlier real-Git run is used as current proof.
 
-Fresh validation root: `/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3`.
+The test command for each interpreter is `nice -n 10 <python> -I -s -B -m unittest discover
+-s tests -v`, with default/enabled switch values recorded in the ledger. Package tests use
+`nice -n 10 <python> -I -s -B -m unittest -v`. The upgrade regression command adds
+`-p test_review_round2.py`. The same regression command runs against the pinned base for the
+failure demonstration. Each command uses the corresponding fresh patch tree as its cwd.
 
-| Command group | Exact output |
-|---|---|
-| `version_py36` | [round1_version_py36.txt](evidence/round1_version_py36.txt) |
-| `version_py312` | [round1_version_py312.txt](evidence/round1_version_py312.txt) |
-| `patch_apply_01` | [round1_patch_apply_01.txt](evidence/round1_patch_apply_01.txt) |
-| `patch_apply_02` | [round1_patch_apply_02.txt](evidence/round1_patch_apply_02.txt) |
-| `pkg_py36` | [round1_pkg_py36.txt](evidence/round1_pkg_py36.txt) |
-| `pkg_py312` | [round1_pkg_py312.txt](evidence/round1_pkg_py312.txt) |
-| `owner_py36` | [round1_owner_py36.txt](evidence/round1_owner_py36.txt) |
-| `owner_py312` | [round1_owner_py312.txt](evidence/round1_owner_py312.txt) |
-| `patch_apply_03` | [round1_patch_apply_03.txt](evidence/round1_patch_apply_03.txt) |
-| `owner_optional_py36` | [round1_owner_optional_py36.txt](evidence/round1_owner_optional_py36.txt) |
-| `realgit_runner_py36` | [round1_realgit_runner_py36.txt](evidence/round1_realgit_runner_py36.txt) |
-| `owner_optional_py312` | [round1_owner_optional_py312.txt](evidence/round1_owner_optional_py312.txt) |
-| `realgit_runner_py312` | [round1_realgit_runner_py312.txt](evidence/round1_realgit_runner_py312.txt) |
-| `syntax_dry_count.sh` | [round1_syntax_dry_count.sh.txt](evidence/round1_syntax_dry_count.sh.txt) |
-| `syntax_land_kit.sh` | [round1_syntax_land_kit.sh.txt](evidence/round1_syntax_land_kit.sh.txt) |
-| `syntax_lane_code_sync.sh` | [round1_syntax_lane_code_sync.sh.txt](evidence/round1_syntax_lane_code_sync.sh.txt) |
-| `syntax_sync_health.sh` | [round1_syntax_sync_health.sh.txt](evidence/round1_syntax_sync_health.sh.txt) |
-| `syntax_sync_health_loop.sh` | [round1_syntax_sync_health_loop.sh.txt](evidence/round1_syntax_sync_health_loop.sh.txt) |
-| `syntax_run_real_git_owner.sh` | [round1_syntax_run_real_git_owner.sh.txt](evidence/round1_syntax_run_real_git_owner.sh.txt) |
-| `compile_py36` | [round1_compile_py36.txt](evidence/round1_compile_py36.txt) |
-| `compile_py312` | [round1_compile_py312.txt](evidence/round1_compile_py312.txt) |
-| `filter_original` | [round1_filter_original.txt](evidence/round1_filter_original.txt) |
-| `filter_default` | [round1_filter_default.txt](evidence/round1_filter_default.txt) |
-| `filter_optional` | [round1_filter_optional.txt](evidence/round1_filter_optional.txt) |
-| `dry_count_py36` | [round1_dry_count_py36.txt](evidence/round1_dry_count_py36.txt) |
-| `dry_count_py312` | [round1_dry_count_py312.txt](evidence/round1_dry_count_py312.txt) |
-| `health_sample_0` | [round1_health_sample_0.txt](evidence/round1_health_sample_0.txt) |
-| `health_sample_1` | [round1_health_sample_1.txt](evidence/round1_health_sample_1.txt) |
-| `health_sample_2` | [round1_health_sample_2.txt](evidence/round1_health_sample_2.txt) |
+| Regression run | Exit | Exact combined output | Exact argv/environment |
+|---|---|---|---|
+| base_py36 | 1 | [output](evidence/round2_regressions_base_py36.txt) | [command](evidence/round2_regressions_base_py36.json) |
+| base_py312 | 1 | [output](evidence/round2_regressions_base_py312.txt) | [command](evidence/round2_regressions_base_py312.json) |
+| source_py36 | 0 | [output](evidence/round2_regressions_source_py36.txt) | [command](evidence/round2_regressions_source_py36.json) |
+| source_py312 | 0 | [output](evidence/round2_regressions_source_py312.txt) | [command](evidence/round2_regressions_source_py312.json) |
 
-### patch_apply_01
+Fresh validation root: `/scratch/jjyeung/orch_n30/so_git/work/round2_validation_nix5a90d`.
 
-UTC: Thu Nov 19 08:29:32 UTC 2026. Exit code: 0.
+| Command/check | Exit | Exact output |
+|---|---|---|
+| `version_py36` | 0 | [output](evidence/round2_version_py36.txt) |
+| `version_py312` | 0 | [output](evidence/round2_version_py312.txt) |
+| `patch_apply_01` | 0 | [output](evidence/round2_patch_apply_01.txt) |
+| `patch_apply_02` | 0 | [output](evidence/round2_patch_apply_02.txt) |
+| `pkg_py36` | 0 | [output](evidence/round2_pkg_py36.txt) |
+| `pkg_py312` | 0 | [output](evidence/round2_pkg_py312.txt) |
+| `owner_default_py36` | 0 | [output](evidence/round2_owner_default_py36.txt) |
+| `owner_enabled_py36` | 0 | [output](evidence/round2_owner_enabled_py36.txt) |
+| `owner_default_py312` | 0 | [output](evidence/round2_owner_default_py312.txt) |
+| `owner_enabled_py312` | 0 | [output](evidence/round2_owner_enabled_py312.txt) |
+| `patch_apply_03` | 0 | [output](evidence/round2_patch_apply_03.txt) |
+| `owner_optional_default_py36` | 0 | [output](evidence/round2_owner_optional_default_py36.txt) |
+| `owner_optional_enabled_py36` | 0 | [output](evidence/round2_owner_optional_enabled_py36.txt) |
+| `realgit_runner_disabled_py36` | 2 | [output](evidence/round2_realgit_runner_disabled_py36.txt) |
+| `owner_optional_default_py312` | 0 | [output](evidence/round2_owner_optional_default_py312.txt) |
+| `owner_optional_enabled_py312` | 0 | [output](evidence/round2_owner_optional_enabled_py312.txt) |
+| `realgit_runner_disabled_py312` | 2 | [output](evidence/round2_realgit_runner_disabled_py312.txt) |
+| `patch_apply_04` | 0 | [output](evidence/round2_patch_apply_04.txt) |
+| `upgrade_regressions_py36` | 0 | [output](evidence/round2_upgrade_regressions_py36.txt) |
+| `upgrade_regressions_py312` | 0 | [output](evidence/round2_upgrade_regressions_py312.txt) |
+| `syntax_dry_count.sh` | 0 | [output](evidence/round2_syntax_dry_count.sh.txt) |
+| `syntax_land_kit.sh` | 0 | [output](evidence/round2_syntax_land_kit.sh.txt) |
+| `syntax_lane_code_sync.sh` | 0 | [output](evidence/round2_syntax_lane_code_sync.sh.txt) |
+| `syntax_sync_health.sh` | 0 | [output](evidence/round2_syntax_sync_health.sh.txt) |
+| `syntax_sync_health_loop.sh` | 0 | [output](evidence/round2_syntax_sync_health_loop.sh.txt) |
+| `syntax_run_real_git_owner.sh` | 0 | [output](evidence/round2_syntax_run_real_git_owner.sh.txt) |
+| `compile_py36` | 0 | [output](evidence/round2_compile_py36.txt) |
+| `memory_smoke_py36` | 0 | [output](evidence/round2_memory_smoke_py36.txt) |
+| `compile_py312` | 0 | [output](evidence/round2_compile_py312.txt) |
+| `memory_smoke_py312` | 0 | [output](evidence/round2_memory_smoke_py312.txt) |
+| `filter_original` | 0 | [output](evidence/round2_filter_original.txt) |
+| `filter_default` | 0 | [output](evidence/round2_filter_default.txt) |
+| `filter_optional` | 0 | [output](evidence/round2_filter_optional.txt) |
+| `dry_count_default_py36` | 0 | [output](evidence/round2_dry_count_default_py36.txt) |
+| `dry_count_enabled_py36` | 0 | [output](evidence/round2_dry_count_enabled_py36.txt) |
+| `dry_count_default_py312` | 0 | [output](evidence/round2_dry_count_default_py312.txt) |
+| `dry_count_enabled_py312` | 0 | [output](evidence/round2_dry_count_enabled_py312.txt) |
+| `health_sample_0` | 0 | [output](evidence/round2_health_sample_0.txt) |
+| `health_sample_1` | 0 | [output](evidence/round2_health_sample_1.txt) |
+| `health_sample_2` | 0 | [output](evidence/round2_health_sample_2.txt) |
 
-```bash
-cd /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/distill
-env CUDA_VISIBLE_DEVICES='' MKL_NUM_THREADS=8 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/tmp TOKENIZERS_PARALLELISM=false patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_git/out/patches/01_pkg_configurable.diff
-```
+The exact unittest summary lines below are excerpts; each linked output above retains the
+full test-by-test output without truncation.
 
-Exact combined stdout/stderr:
-
-```text
-patching file tools/recover_boundary_remediation.py
-patching file test_recover_boundary_remediation.py
-```
-
-### patch_apply_02
-
-UTC: Thu Nov 19 08:29:32 UTC 2026. Exit code: 0.
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/owner
-env CUDA_VISIBLE_DEVICES='' MKL_NUM_THREADS=8 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/tmp TOKENIZERS_PARALLELISM=false patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_git/out/patches/02_owner_tools.diff
-```
-
-Exact combined stdout/stderr:
-
-```text
-patching file tools/dry_count.py
-patching file tools/dry_count.sh
-patching file tools/land_kit.py
-patching file tools/land_kit.sh
-patching file tools/sync_health.py
-patching file tools/sync_health.sh
-patching file tools/sync_health_loop.sh
-patching file tests/__init__.py
-patching file tests/test_owner_tools.py
-patching file tests/test_real_git_owner.py
-patching file tests/run_real_git_owner.sh
-patching file tests/fixtures/lane_code_sync.sh
-patching file docs/GIT_OWNER.md
-patching file docs/COVERAGE.md
-```
-
-### patch_apply_03
-
-UTC: Thu Nov 19 08:29:42 UTC 2026. Exit code: 0.
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/owner
-env CUDA_VISIBLE_DEVICES='' MKL_NUM_THREADS=8 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/tmp TOKENIZERS_PARALLELISM=false patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_git/out/patches/03_shell_copy_coverage_optional.diff
-```
-
-Exact combined stdout/stderr:
+`pkg_py36`:
 
 ```text
-patching file tools/lane_code_filter.py
-patching file tests/test_filter_shell_copies.py
-```
-
-### pkg_py36
-
-UTC: Thu Nov 19 08:29:32 UTC 2026. Exit code: 0.
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/distill
-env CUDA_VISIBLE_DEVICES='' MKL_NUM_THREADS=8 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/tmp TOKENIZERS_PARALLELISM=false nice -n 10 /usr/bin/python3 -m unittest -v
-```
-
-Exact combined stdout/stderr:
-
-```text
-test_absolute_epoch_package (test_recover_boundary_remediation.PackagePathTests) ... ok
-test_collect_must_be_a_file (test_recover_boundary_remediation.PackagePathTests) ... ok
-test_default_temp_root_ignores_checkout (test_recover_boundary_remediation.PackagePathTests) ... ok
-test_directory_without_collect_is_refused (test_recover_boundary_remediation.PackagePathTests) ... ok
-test_empty_path_is_refused (test_recover_boundary_remediation.PackagePathTests) ... ok
-test_missing_directory_is_refused (test_recover_boundary_remediation.PackagePathTests) ... ok
-test_override_keeps_default_collectors_visible (test_recover_boundary_remediation.PackagePathTests) ... ok
-test_override_reaches_process_matcher (test_recover_boundary_remediation.PackagePathTests) ... ok
-test_relative_path_is_refused (test_recover_boundary_remediation.PackagePathTests) ... ok
-test_unset_preserves_current_default (test_recover_boundary_remediation.PackagePathTests) ... ok
-
-----------------------------------------------------------------------
-Ran 10 tests in 0.025s
+Ran 10 tests in 0.028s
 
 OK
 ```
 
-### pkg_py312
-
-UTC: Thu Nov 19 08:29:32 UTC 2026. Exit code: 0.
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/distill
-env CUDA_VISIBLE_DEVICES='' MKL_NUM_THREADS=8 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/tmp TOKENIZERS_PARALLELISM=false nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -m unittest -v
-```
-
-Exact combined stdout/stderr:
+`pkg_py312`:
 
 ```text
-test_absolute_epoch_package (test_recover_boundary_remediation.PackagePathTests.test_absolute_epoch_package) ... ok
-test_collect_must_be_a_file (test_recover_boundary_remediation.PackagePathTests.test_collect_must_be_a_file) ... ok
-test_default_temp_root_ignores_checkout (test_recover_boundary_remediation.PackagePathTests.test_default_temp_root_ignores_checkout) ... ok
-test_directory_without_collect_is_refused (test_recover_boundary_remediation.PackagePathTests.test_directory_without_collect_is_refused) ... ok
-test_empty_path_is_refused (test_recover_boundary_remediation.PackagePathTests.test_empty_path_is_refused) ... ok
-test_missing_directory_is_refused (test_recover_boundary_remediation.PackagePathTests.test_missing_directory_is_refused) ... ok
-test_override_keeps_default_collectors_visible (test_recover_boundary_remediation.PackagePathTests.test_override_keeps_default_collectors_visible) ... ok
-test_override_reaches_process_matcher (test_recover_boundary_remediation.PackagePathTests.test_override_reaches_process_matcher) ... ok
-test_relative_path_is_refused (test_recover_boundary_remediation.PackagePathTests.test_relative_path_is_refused) ... ok
-test_unset_preserves_current_default (test_recover_boundary_remediation.PackagePathTests.test_unset_preserves_current_default) ... ok
-
-----------------------------------------------------------------------
-Ran 10 tests in 0.019s
+Ran 10 tests in 0.047s
 
 OK
 ```
 
-### owner_py36
-
-UTC: Thu Nov 19 08:29:32 UTC 2026. Exit code: 0.
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/owner
-env CUDA_VISIBLE_DEVICES='' LCS_PYTHON=/usr/bin/python3 LCS_REAL_GIT_WORK=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_owner_py36 LCS_RUN_REAL_GIT_TESTS=1 MKL_NUM_THREADS=8 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/tmp TOKENIZERS_PARALLELISM=false nice -n 10 /usr/bin/python3 -I -s -B -m unittest discover -s tests -v
-```
-
-Exact combined stdout/stderr:
+`owner_default_py36`:
 
 ```text
-test_current_hourly_add_is_scoped_away_from_kits (test_owner_tools.CoverageTests) ... ok
-test_directory_rules_include_and_exclude_named_examples (test_owner_tools.CoverageTests) ... ok
-test_dry_count_default_system_python (test_owner_tools.CoverageTests) ... ok
-test_dry_count_has_no_copy_and_reports_dedup (test_owner_tools.CoverageTests) ... ok
-test_dry_count_refuses_symlinked_and_outside_folders (test_owner_tools.CoverageTests) ... ok
-test_maxdir_prunes_code_and_root_gate_is_reported (test_owner_tools.CoverageTests) ... ok
-test_signal_exit_stops_without_automatic_rerun (test_owner_tools.HealthLoopTests) ... ok
-test_transient_error_is_logged_and_next_tick_runs (test_owner_tools.HealthLoopTests) ... ok
-test_delivered_event_moved_by_consumer_is_not_replayed (test_owner_tools.HealthTests) ... ok
-test_delivered_history_does_not_touch_event_storage (test_owner_tools.HealthTests) ... ok
-test_exact_stale_boundary_once_and_recovery (test_owner_tools.HealthTests) ... ok
-test_failed_with_own_blocker_is_suppressed (test_owner_tools.HealthTests) ... ok
-test_failed_without_own_blocker_once_and_recovery (test_owner_tools.HealthTests) ... ok
-test_fake_clock_cli_local_only (test_owner_tools.HealthTests) ... ok
-test_incomplete_new_run_does_not_make_failure (test_owner_tools.HealthTests) ... ok
-test_legacy_delivered_journal_is_not_replayed (test_owner_tools.HealthTests) ... ok
-test_missing_log_stale_once (test_owner_tools.HealthTests) ... ok
-test_new_good_push_with_failing_end_does_not_recover_failure (test_owner_tools.HealthTests) ... ok
-test_only_undelivered_events_are_replayed_after_write_error (test_owner_tools.HealthTests) ... ok
-test_queue_only_failure_and_hung_run (test_owner_tools.HealthTests) ... ok
-test_second_stale_incident_gets_new_event (test_owner_tools.HealthTests) ... ok
-test_stale_event_quotes_hourly_lock_skip (test_owner_tools.HealthTests) ... ok
-test_unrelated_own_blocker_does_not_suppress (test_owner_tools.HealthTests) ... ok
-test_conflicting_name_refuses_without_add (test_owner_tools.KitCommandTests) ... ok
-test_each_remote_must_verify (test_owner_tools.KitCommandTests) ... ok
-test_failed_push_stops_without_retry (test_owner_tools.KitCommandTests) ... ok
-test_landing_and_idempotence_command_contract (test_owner_tools.KitCommandTests) ... ok
-test_wrong_branch_and_dirty_index_refuse (test_owner_tools.KitCommandTests) ... ok
-test_all_filter_exclusions_are_reported_and_require_opt_in (test_owner_tools.KitValidationTests) ... ok
-test_any_secret_including_filtered_out_file_refuses (test_owner_tools.KitValidationTests) ... ok
-test_bad_hash_and_missing_review (test_owner_tools.KitValidationTests) ... ok
-test_bad_names (test_owner_tools.KitValidationTests) ... ok
-test_builder_and_reviewer_must_differ (test_owner_tools.KitValidationTests) ... ok
-test_default_lock_wait_is_600_seconds (test_owner_tools.KitValidationTests) ... ok
-test_disabled_has_no_writes (test_owner_tools.KitValidationTests) ... ok
-test_dry_uses_filter_and_scan_without_git (test_owner_tools.KitValidationTests) ... ok
-test_empty_archive_directory_is_reported_but_payload_parents_are_preserved (test_owner_tools.KitValidationTests) ... ok
-test_exact_size_caps_are_inclusive (test_owner_tools.KitValidationTests) ... ok
-test_git_children_cannot_prompt (test_owner_tools.KitValidationTests) ... ok
-test_inherited_git_selector_refused_before_spawn (test_owner_tools.KitValidationTests) ... ok
-test_production_tool_overrides_refuse_before_tool_reads (test_owner_tools.KitValidationTests) ... ok
-test_reserved_metadata_and_empty_filter (test_owner_tools.KitValidationTests) ... ok
-test_scanner_error_and_scanner_omission_refuse (test_owner_tools.KitValidationTests) ... ok
-test_shared_flock_timeout (test_owner_tools.KitValidationTests) ... ok
-test_shared_flock_wait_then_acquire (test_owner_tools.KitValidationTests) ... ok
-test_shell_wrapper_default_system_python (test_owner_tools.KitValidationTests) ... ok
-test_shell_wrapper_dry_path (test_owner_tools.KitValidationTests) ... ok
-test_size_and_name_filter_and_duplicate_paths (test_owner_tools.KitValidationTests) ... ok
-test_traversal_absolute_links_and_duplicates_refused (test_owner_tools.KitValidationTests) ... ok
-test_binding_required_and_all_present_fields_must_match (test_owner_tools.ReviewTests) ... ok
-test_conditional_even_with_later_same_file_go_is_refused (test_owner_tools.ReviewTests) ... ok
-test_first_nonempty_line_must_be_unindented_verdict (test_owner_tools.ReviewTests) ... ok
-test_negative_anywhere_is_refused (test_owner_tools.ReviewTests) ... ok
-test_supported_forms (test_owner_tools.ReviewTests) ... ok
-test_unknown_and_later_conditional_verdicts_are_refused (test_owner_tools.ReviewTests) ... ok
-test_land_probe_and_hourly_pathspec_preserves_kits (test_real_git_owner.RealGitOwnerTests) ... ok
+Ran 82 tests in 7.078s
 
-----------------------------------------------------------------------
-Ran 56 tests in 5.055s
-
-OK
-
-REAL_GIT_ROOT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_owner_py36/real_git_b2vo_8yc
-AUDIT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_owner_py36/real_git_b2vo_8yc/state/land_kit_uauyqpp3
-FILE "probe.py" bytes=13 sha256=54a86268b34591ff8cedfc34f598073d9cb106af20e7c7f091e6c1485e527a9e
-COUNT files=1 bytes=13 metadata_files=1
-2026-11-19T08:29:37Z verified GitHub lane-code = 5bc60582fd22c82fbb76c1f114a6a8f1d06a2bc9
-2026-11-19T08:29:37Z verified home lane-code = 5bc60582fd22c82fbb76c1f114a6a8f1d06a2bc9
-2026-11-19T08:29:37Z LANDED kits/_probe commit=5bc60582fd22c82fbb76c1f114a6a8f1d06a2bc9 sha256=467a3f4745864c0a9a05839c3881115fcfc2c0b1e8c63d54daf3a4049c9b7199
-COMMIT
-commit 5bc60582fd22c82fbb76c1f114a6a8f1d06a2bc9
-Author:     Owner tool test <owner-test@invalid>
-AuthorDate: Thu Nov 19 03:29:37 2026 -0500
-Commit:     Owner tool test <owner-test@invalid>
-CommitDate: Thu Nov 19 03:29:37 2026 -0500
-
-    Land kit _probe
-    
-    Seal: probe-seal
-    SHA256: 467a3f4745864c0a9a05839c3881115fcfc2c0b1e8c63d54daf3a4049c9b7199
-    Builder: test_builder
-    Reviewer: test_reviewer
-    Date: 2026-11-19T08:29:37Z
-TREE
-kits/_probe/KIT.json
-kits/_probe/probe.py
-lane_code/fake_node/module.py
-lane_code/fake_node/move_me.py
-tools/lane_code_filter.py
-tools/lane_code_scan.py
-tools/lane_code_sync.sh
-LS_REMOTE origin
-5bc60582fd22c82fbb76c1f114a6a8f1d06a2bc9	refs/heads/lane-code
-LS_REMOTE home
-5bc60582fd22c82fbb76c1f114a6a8f1d06a2bc9	refs/heads/lane-code
-HOURLY_KITS_TREE before=3933fca17c1e583f95946637a5a8ca434137266b after=3933fca17c1e583f95946637a5a8ca434137266b unchanged=true
-HOURLY_UNSTAGED_KITS
-kits/_probe/KIT.json
-kits/_probe/probe.py
+OK (skipped=3)
 ```
 
-### owner_py312
-
-UTC: Thu Nov 19 08:29:37 UTC 2026. Exit code: 0.
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/owner
-env CUDA_VISIBLE_DEVICES='' LCS_PYTHON=/scratch/jjyeung/envs/p1cpu/bin/python LCS_REAL_GIT_WORK=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_owner_py312 LCS_RUN_REAL_GIT_TESTS=1 MKL_NUM_THREADS=8 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/tmp TOKENIZERS_PARALLELISM=false nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -m unittest discover -s tests -v
-```
-
-Exact combined stdout/stderr:
+`owner_enabled_py36`:
 
 ```text
-test_current_hourly_add_is_scoped_away_from_kits (test_owner_tools.CoverageTests.test_current_hourly_add_is_scoped_away_from_kits) ... ok
-test_directory_rules_include_and_exclude_named_examples (test_owner_tools.CoverageTests.test_directory_rules_include_and_exclude_named_examples) ... ok
-test_dry_count_default_system_python (test_owner_tools.CoverageTests.test_dry_count_default_system_python) ... ok
-test_dry_count_has_no_copy_and_reports_dedup (test_owner_tools.CoverageTests.test_dry_count_has_no_copy_and_reports_dedup) ... ok
-test_dry_count_refuses_symlinked_and_outside_folders (test_owner_tools.CoverageTests.test_dry_count_refuses_symlinked_and_outside_folders) ... ok
-test_maxdir_prunes_code_and_root_gate_is_reported (test_owner_tools.CoverageTests.test_maxdir_prunes_code_and_root_gate_is_reported) ... ok
-test_signal_exit_stops_without_automatic_rerun (test_owner_tools.HealthLoopTests.test_signal_exit_stops_without_automatic_rerun) ... ok
-test_transient_error_is_logged_and_next_tick_runs (test_owner_tools.HealthLoopTests.test_transient_error_is_logged_and_next_tick_runs) ... ok
-test_delivered_event_moved_by_consumer_is_not_replayed (test_owner_tools.HealthTests.test_delivered_event_moved_by_consumer_is_not_replayed) ... ok
-test_delivered_history_does_not_touch_event_storage (test_owner_tools.HealthTests.test_delivered_history_does_not_touch_event_storage) ... ok
-test_exact_stale_boundary_once_and_recovery (test_owner_tools.HealthTests.test_exact_stale_boundary_once_and_recovery) ... ok
-test_failed_with_own_blocker_is_suppressed (test_owner_tools.HealthTests.test_failed_with_own_blocker_is_suppressed) ... ok
-test_failed_without_own_blocker_once_and_recovery (test_owner_tools.HealthTests.test_failed_without_own_blocker_once_and_recovery) ... ok
-test_fake_clock_cli_local_only (test_owner_tools.HealthTests.test_fake_clock_cli_local_only) ... ok
-test_incomplete_new_run_does_not_make_failure (test_owner_tools.HealthTests.test_incomplete_new_run_does_not_make_failure) ... ok
-test_legacy_delivered_journal_is_not_replayed (test_owner_tools.HealthTests.test_legacy_delivered_journal_is_not_replayed) ... ok
-test_missing_log_stale_once (test_owner_tools.HealthTests.test_missing_log_stale_once) ... ok
-test_new_good_push_with_failing_end_does_not_recover_failure (test_owner_tools.HealthTests.test_new_good_push_with_failing_end_does_not_recover_failure) ... ok
-test_only_undelivered_events_are_replayed_after_write_error (test_owner_tools.HealthTests.test_only_undelivered_events_are_replayed_after_write_error) ... ok
-test_queue_only_failure_and_hung_run (test_owner_tools.HealthTests.test_queue_only_failure_and_hung_run) ... ok
-test_second_stale_incident_gets_new_event (test_owner_tools.HealthTests.test_second_stale_incident_gets_new_event) ... ok
-test_stale_event_quotes_hourly_lock_skip (test_owner_tools.HealthTests.test_stale_event_quotes_hourly_lock_skip) ... ok
-test_unrelated_own_blocker_does_not_suppress (test_owner_tools.HealthTests.test_unrelated_own_blocker_does_not_suppress) ... ok
-test_conflicting_name_refuses_without_add (test_owner_tools.KitCommandTests.test_conflicting_name_refuses_without_add) ... ok
-test_each_remote_must_verify (test_owner_tools.KitCommandTests.test_each_remote_must_verify) ... ok
-test_failed_push_stops_without_retry (test_owner_tools.KitCommandTests.test_failed_push_stops_without_retry) ... ok
-test_landing_and_idempotence_command_contract (test_owner_tools.KitCommandTests.test_landing_and_idempotence_command_contract) ... ok
-test_wrong_branch_and_dirty_index_refuse (test_owner_tools.KitCommandTests.test_wrong_branch_and_dirty_index_refuse) ... ok
-test_all_filter_exclusions_are_reported_and_require_opt_in (test_owner_tools.KitValidationTests.test_all_filter_exclusions_are_reported_and_require_opt_in) ... ok
-test_any_secret_including_filtered_out_file_refuses (test_owner_tools.KitValidationTests.test_any_secret_including_filtered_out_file_refuses) ... ok
-test_bad_hash_and_missing_review (test_owner_tools.KitValidationTests.test_bad_hash_and_missing_review) ... ok
-test_bad_names (test_owner_tools.KitValidationTests.test_bad_names) ... ok
-test_builder_and_reviewer_must_differ (test_owner_tools.KitValidationTests.test_builder_and_reviewer_must_differ) ... ok
-test_default_lock_wait_is_600_seconds (test_owner_tools.KitValidationTests.test_default_lock_wait_is_600_seconds) ... ok
-test_disabled_has_no_writes (test_owner_tools.KitValidationTests.test_disabled_has_no_writes) ... ok
-test_dry_uses_filter_and_scan_without_git (test_owner_tools.KitValidationTests.test_dry_uses_filter_and_scan_without_git) ... ok
-test_empty_archive_directory_is_reported_but_payload_parents_are_preserved (test_owner_tools.KitValidationTests.test_empty_archive_directory_is_reported_but_payload_parents_are_preserved) ... ok
-test_exact_size_caps_are_inclusive (test_owner_tools.KitValidationTests.test_exact_size_caps_are_inclusive) ... ok
-test_git_children_cannot_prompt (test_owner_tools.KitValidationTests.test_git_children_cannot_prompt) ... ok
-test_inherited_git_selector_refused_before_spawn (test_owner_tools.KitValidationTests.test_inherited_git_selector_refused_before_spawn) ... ok
-test_production_tool_overrides_refuse_before_tool_reads (test_owner_tools.KitValidationTests.test_production_tool_overrides_refuse_before_tool_reads) ... ok
-test_reserved_metadata_and_empty_filter (test_owner_tools.KitValidationTests.test_reserved_metadata_and_empty_filter) ... ok
-test_scanner_error_and_scanner_omission_refuse (test_owner_tools.KitValidationTests.test_scanner_error_and_scanner_omission_refuse) ... ok
-test_shared_flock_timeout (test_owner_tools.KitValidationTests.test_shared_flock_timeout) ... ok
-test_shared_flock_wait_then_acquire (test_owner_tools.KitValidationTests.test_shared_flock_wait_then_acquire) ... ok
-test_shell_wrapper_default_system_python (test_owner_tools.KitValidationTests.test_shell_wrapper_default_system_python) ... ok
-test_shell_wrapper_dry_path (test_owner_tools.KitValidationTests.test_shell_wrapper_dry_path) ... ok
-test_size_and_name_filter_and_duplicate_paths (test_owner_tools.KitValidationTests.test_size_and_name_filter_and_duplicate_paths) ... ok
-test_traversal_absolute_links_and_duplicates_refused (test_owner_tools.KitValidationTests.test_traversal_absolute_links_and_duplicates_refused) ... ok
-test_binding_required_and_all_present_fields_must_match (test_owner_tools.ReviewTests.test_binding_required_and_all_present_fields_must_match) ... ok
-test_conditional_even_with_later_same_file_go_is_refused (test_owner_tools.ReviewTests.test_conditional_even_with_later_same_file_go_is_refused) ... ok
-test_first_nonempty_line_must_be_unindented_verdict (test_owner_tools.ReviewTests.test_first_nonempty_line_must_be_unindented_verdict) ... ok
-test_negative_anywhere_is_refused (test_owner_tools.ReviewTests.test_negative_anywhere_is_refused) ... ok
-test_supported_forms (test_owner_tools.ReviewTests.test_supported_forms) ... ok
-test_unknown_and_later_conditional_verdicts_are_refused (test_owner_tools.ReviewTests.test_unknown_and_later_conditional_verdicts_are_refused) ... ok
-test_land_probe_and_hourly_pathspec_preserves_kits (test_real_git_owner.RealGitOwnerTests.test_land_probe_and_hourly_pathspec_preserves_kits) ... ok
+Ran 82 tests in 7.514s
 
-----------------------------------------------------------------------
-Ran 56 tests in 4.522s
-
-OK
-
-REAL_GIT_ROOT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_owner_py312/real_git_jn97v67r
-AUDIT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_owner_py312/real_git_jn97v67r/state/land_kit_38hoau6e
-FILE "probe.py" bytes=13 sha256=54a86268b34591ff8cedfc34f598073d9cb106af20e7c7f091e6c1485e527a9e
-COUNT files=1 bytes=13 metadata_files=1
-2026-11-19T08:29:42Z verified GitHub lane-code = 6e128eae27d3eee81dca59b3c2d07ce008496584
-2026-11-19T08:29:42Z verified home lane-code = 6e128eae27d3eee81dca59b3c2d07ce008496584
-2026-11-19T08:29:42Z LANDED kits/_probe commit=6e128eae27d3eee81dca59b3c2d07ce008496584 sha256=ae5a1e9cb34d0696e4b4f4ab55b5b2bb44ff665222b16433b681fdff1d10e961
-COMMIT
-commit 6e128eae27d3eee81dca59b3c2d07ce008496584
-Author:     Owner tool test <owner-test@invalid>
-AuthorDate: Thu Nov 19 03:29:42 2026 -0500
-Commit:     Owner tool test <owner-test@invalid>
-CommitDate: Thu Nov 19 03:29:42 2026 -0500
-
-    Land kit _probe
-    
-    Seal: probe-seal
-    SHA256: ae5a1e9cb34d0696e4b4f4ab55b5b2bb44ff665222b16433b681fdff1d10e961
-    Builder: test_builder
-    Reviewer: test_reviewer
-    Date: 2026-11-19T08:29:42Z
-TREE
-kits/_probe/KIT.json
-kits/_probe/probe.py
-lane_code/fake_node/module.py
-lane_code/fake_node/move_me.py
-tools/lane_code_filter.py
-tools/lane_code_scan.py
-tools/lane_code_sync.sh
-LS_REMOTE origin
-6e128eae27d3eee81dca59b3c2d07ce008496584	refs/heads/lane-code
-LS_REMOTE home
-6e128eae27d3eee81dca59b3c2d07ce008496584	refs/heads/lane-code
-HOURLY_KITS_TREE before=4f05fcd9ba04eb281cc693e471fa3b4bb5c20a35 after=4f05fcd9ba04eb281cc693e471fa3b4bb5c20a35 unchanged=true
-HOURLY_UNSTAGED_KITS
-kits/_probe/KIT.json
-kits/_probe/probe.py
+OK (skipped=3)
 ```
 
-### owner_optional_py36
-
-UTC: Thu Nov 19 08:29:42 UTC 2026. Exit code: 0.
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/owner
-env CUDA_VISIBLE_DEVICES='' LCS_PYTHON=/usr/bin/python3 LCS_REAL_GIT_WORK=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_combined_py36 LCS_RUN_REAL_GIT_TESTS=1 MKL_NUM_THREADS=8 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/tmp TOKENIZERS_PARALLELISM=false nice -n 10 /usr/bin/python3 -I -s -B -m unittest discover -s tests -v
-```
-
-Exact combined stdout/stderr:
+`owner_default_py312`:
 
 ```text
-test_default_off (test_filter_shell_copies.ShellCopiesTests) ... ok
-test_opt_in_adds_only_small_shell_copies (test_filter_shell_copies.ShellCopiesTests) ... ok
-test_current_hourly_add_is_scoped_away_from_kits (test_owner_tools.CoverageTests) ... ok
-test_directory_rules_include_and_exclude_named_examples (test_owner_tools.CoverageTests) ... ok
-test_dry_count_default_system_python (test_owner_tools.CoverageTests) ... ok
-test_dry_count_has_no_copy_and_reports_dedup (test_owner_tools.CoverageTests) ... ok
-test_dry_count_refuses_symlinked_and_outside_folders (test_owner_tools.CoverageTests) ... ok
-test_maxdir_prunes_code_and_root_gate_is_reported (test_owner_tools.CoverageTests) ... ok
-test_signal_exit_stops_without_automatic_rerun (test_owner_tools.HealthLoopTests) ... ok
-test_transient_error_is_logged_and_next_tick_runs (test_owner_tools.HealthLoopTests) ... ok
-test_delivered_event_moved_by_consumer_is_not_replayed (test_owner_tools.HealthTests) ... ok
-test_delivered_history_does_not_touch_event_storage (test_owner_tools.HealthTests) ... ok
-test_exact_stale_boundary_once_and_recovery (test_owner_tools.HealthTests) ... ok
-test_failed_with_own_blocker_is_suppressed (test_owner_tools.HealthTests) ... ok
-test_failed_without_own_blocker_once_and_recovery (test_owner_tools.HealthTests) ... ok
-test_fake_clock_cli_local_only (test_owner_tools.HealthTests) ... ok
-test_incomplete_new_run_does_not_make_failure (test_owner_tools.HealthTests) ... ok
-test_legacy_delivered_journal_is_not_replayed (test_owner_tools.HealthTests) ... ok
-test_missing_log_stale_once (test_owner_tools.HealthTests) ... ok
-test_new_good_push_with_failing_end_does_not_recover_failure (test_owner_tools.HealthTests) ... ok
-test_only_undelivered_events_are_replayed_after_write_error (test_owner_tools.HealthTests) ... ok
-test_queue_only_failure_and_hung_run (test_owner_tools.HealthTests) ... ok
-test_second_stale_incident_gets_new_event (test_owner_tools.HealthTests) ... ok
-test_stale_event_quotes_hourly_lock_skip (test_owner_tools.HealthTests) ... ok
-test_unrelated_own_blocker_does_not_suppress (test_owner_tools.HealthTests) ... ok
-test_conflicting_name_refuses_without_add (test_owner_tools.KitCommandTests) ... ok
-test_each_remote_must_verify (test_owner_tools.KitCommandTests) ... ok
-test_failed_push_stops_without_retry (test_owner_tools.KitCommandTests) ... ok
-test_landing_and_idempotence_command_contract (test_owner_tools.KitCommandTests) ... ok
-test_wrong_branch_and_dirty_index_refuse (test_owner_tools.KitCommandTests) ... ok
-test_all_filter_exclusions_are_reported_and_require_opt_in (test_owner_tools.KitValidationTests) ... ok
-test_any_secret_including_filtered_out_file_refuses (test_owner_tools.KitValidationTests) ... ok
-test_bad_hash_and_missing_review (test_owner_tools.KitValidationTests) ... ok
-test_bad_names (test_owner_tools.KitValidationTests) ... ok
-test_builder_and_reviewer_must_differ (test_owner_tools.KitValidationTests) ... ok
-test_default_lock_wait_is_600_seconds (test_owner_tools.KitValidationTests) ... ok
-test_disabled_has_no_writes (test_owner_tools.KitValidationTests) ... ok
-test_dry_uses_filter_and_scan_without_git (test_owner_tools.KitValidationTests) ... ok
-test_empty_archive_directory_is_reported_but_payload_parents_are_preserved (test_owner_tools.KitValidationTests) ... ok
-test_exact_size_caps_are_inclusive (test_owner_tools.KitValidationTests) ... ok
-test_git_children_cannot_prompt (test_owner_tools.KitValidationTests) ... ok
-test_inherited_git_selector_refused_before_spawn (test_owner_tools.KitValidationTests) ... ok
-test_production_tool_overrides_refuse_before_tool_reads (test_owner_tools.KitValidationTests) ... ok
-test_reserved_metadata_and_empty_filter (test_owner_tools.KitValidationTests) ... ok
-test_scanner_error_and_scanner_omission_refuse (test_owner_tools.KitValidationTests) ... ok
-test_shared_flock_timeout (test_owner_tools.KitValidationTests) ... ok
-test_shared_flock_wait_then_acquire (test_owner_tools.KitValidationTests) ... ok
-test_shell_wrapper_default_system_python (test_owner_tools.KitValidationTests) ... ok
-test_shell_wrapper_dry_path (test_owner_tools.KitValidationTests) ... ok
-test_size_and_name_filter_and_duplicate_paths (test_owner_tools.KitValidationTests) ... ok
-test_traversal_absolute_links_and_duplicates_refused (test_owner_tools.KitValidationTests) ... ok
-test_binding_required_and_all_present_fields_must_match (test_owner_tools.ReviewTests) ... ok
-test_conditional_even_with_later_same_file_go_is_refused (test_owner_tools.ReviewTests) ... ok
-test_first_nonempty_line_must_be_unindented_verdict (test_owner_tools.ReviewTests) ... ok
-test_negative_anywhere_is_refused (test_owner_tools.ReviewTests) ... ok
-test_supported_forms (test_owner_tools.ReviewTests) ... ok
-test_unknown_and_later_conditional_verdicts_are_refused (test_owner_tools.ReviewTests) ... ok
-test_land_probe_and_hourly_pathspec_preserves_kits (test_real_git_owner.RealGitOwnerTests) ... ok
+Ran 82 tests in 7.595s
 
-----------------------------------------------------------------------
-Ran 58 tests in 5.135s
-
-OK
-
-REAL_GIT_ROOT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_combined_py36/real_git_qqsw0mk9
-AUDIT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_combined_py36/real_git_qqsw0mk9/state/land_kit_5cysgrns
-FILE "probe.py" bytes=13 sha256=54a86268b34591ff8cedfc34f598073d9cb106af20e7c7f091e6c1485e527a9e
-COUNT files=1 bytes=13 metadata_files=1
-2026-11-19T08:29:47Z verified GitHub lane-code = deacdeb128d483b5781756ebaccddb599ce4bb05
-2026-11-19T08:29:47Z verified home lane-code = deacdeb128d483b5781756ebaccddb599ce4bb05
-2026-11-19T08:29:47Z LANDED kits/_probe commit=deacdeb128d483b5781756ebaccddb599ce4bb05 sha256=467a3f4745864c0a9a05839c3881115fcfc2c0b1e8c63d54daf3a4049c9b7199
-COMMIT
-commit deacdeb128d483b5781756ebaccddb599ce4bb05
-Author:     Owner tool test <owner-test@invalid>
-AuthorDate: Thu Nov 19 03:29:47 2026 -0500
-Commit:     Owner tool test <owner-test@invalid>
-CommitDate: Thu Nov 19 03:29:47 2026 -0500
-
-    Land kit _probe
-    
-    Seal: probe-seal
-    SHA256: 467a3f4745864c0a9a05839c3881115fcfc2c0b1e8c63d54daf3a4049c9b7199
-    Builder: test_builder
-    Reviewer: test_reviewer
-    Date: 2026-11-19T08:29:47Z
-TREE
-kits/_probe/KIT.json
-kits/_probe/probe.py
-lane_code/fake_node/module.py
-lane_code/fake_node/move_me.py
-tools/lane_code_filter.py
-tools/lane_code_scan.py
-tools/lane_code_sync.sh
-LS_REMOTE origin
-deacdeb128d483b5781756ebaccddb599ce4bb05	refs/heads/lane-code
-LS_REMOTE home
-deacdeb128d483b5781756ebaccddb599ce4bb05	refs/heads/lane-code
-HOURLY_KITS_TREE before=bfca3860b3b29fe5e9144b6ee070140facc942df after=bfca3860b3b29fe5e9144b6ee070140facc942df unchanged=true
-HOURLY_UNSTAGED_KITS
-kits/_probe/KIT.json
-kits/_probe/probe.py
+OK (skipped=3)
 ```
 
-### owner_optional_py312
-
-UTC: Thu Nov 19 08:29:48 UTC 2026. Exit code: 0.
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/owner
-env CUDA_VISIBLE_DEVICES='' LCS_PYTHON=/scratch/jjyeung/envs/p1cpu/bin/python LCS_REAL_GIT_WORK=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_combined_py312 LCS_RUN_REAL_GIT_TESTS=1 MKL_NUM_THREADS=8 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/tmp TOKENIZERS_PARALLELISM=false nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -m unittest discover -s tests -v
-```
-
-Exact combined stdout/stderr:
+`owner_enabled_py312`:
 
 ```text
-test_default_off (test_filter_shell_copies.ShellCopiesTests.test_default_off) ... ok
-test_opt_in_adds_only_small_shell_copies (test_filter_shell_copies.ShellCopiesTests.test_opt_in_adds_only_small_shell_copies) ... ok
-test_current_hourly_add_is_scoped_away_from_kits (test_owner_tools.CoverageTests.test_current_hourly_add_is_scoped_away_from_kits) ... ok
-test_directory_rules_include_and_exclude_named_examples (test_owner_tools.CoverageTests.test_directory_rules_include_and_exclude_named_examples) ... ok
-test_dry_count_default_system_python (test_owner_tools.CoverageTests.test_dry_count_default_system_python) ... ok
-test_dry_count_has_no_copy_and_reports_dedup (test_owner_tools.CoverageTests.test_dry_count_has_no_copy_and_reports_dedup) ... ok
-test_dry_count_refuses_symlinked_and_outside_folders (test_owner_tools.CoverageTests.test_dry_count_refuses_symlinked_and_outside_folders) ... ok
-test_maxdir_prunes_code_and_root_gate_is_reported (test_owner_tools.CoverageTests.test_maxdir_prunes_code_and_root_gate_is_reported) ... ok
-test_signal_exit_stops_without_automatic_rerun (test_owner_tools.HealthLoopTests.test_signal_exit_stops_without_automatic_rerun) ... ok
-test_transient_error_is_logged_and_next_tick_runs (test_owner_tools.HealthLoopTests.test_transient_error_is_logged_and_next_tick_runs) ... ok
-test_delivered_event_moved_by_consumer_is_not_replayed (test_owner_tools.HealthTests.test_delivered_event_moved_by_consumer_is_not_replayed) ... ok
-test_delivered_history_does_not_touch_event_storage (test_owner_tools.HealthTests.test_delivered_history_does_not_touch_event_storage) ... ok
-test_exact_stale_boundary_once_and_recovery (test_owner_tools.HealthTests.test_exact_stale_boundary_once_and_recovery) ... ok
-test_failed_with_own_blocker_is_suppressed (test_owner_tools.HealthTests.test_failed_with_own_blocker_is_suppressed) ... ok
-test_failed_without_own_blocker_once_and_recovery (test_owner_tools.HealthTests.test_failed_without_own_blocker_once_and_recovery) ... ok
-test_fake_clock_cli_local_only (test_owner_tools.HealthTests.test_fake_clock_cli_local_only) ... ok
-test_incomplete_new_run_does_not_make_failure (test_owner_tools.HealthTests.test_incomplete_new_run_does_not_make_failure) ... ok
-test_legacy_delivered_journal_is_not_replayed (test_owner_tools.HealthTests.test_legacy_delivered_journal_is_not_replayed) ... ok
-test_missing_log_stale_once (test_owner_tools.HealthTests.test_missing_log_stale_once) ... ok
-test_new_good_push_with_failing_end_does_not_recover_failure (test_owner_tools.HealthTests.test_new_good_push_with_failing_end_does_not_recover_failure) ... ok
-test_only_undelivered_events_are_replayed_after_write_error (test_owner_tools.HealthTests.test_only_undelivered_events_are_replayed_after_write_error) ... ok
-test_queue_only_failure_and_hung_run (test_owner_tools.HealthTests.test_queue_only_failure_and_hung_run) ... ok
-test_second_stale_incident_gets_new_event (test_owner_tools.HealthTests.test_second_stale_incident_gets_new_event) ... ok
-test_stale_event_quotes_hourly_lock_skip (test_owner_tools.HealthTests.test_stale_event_quotes_hourly_lock_skip) ... ok
-test_unrelated_own_blocker_does_not_suppress (test_owner_tools.HealthTests.test_unrelated_own_blocker_does_not_suppress) ... ok
-test_conflicting_name_refuses_without_add (test_owner_tools.KitCommandTests.test_conflicting_name_refuses_without_add) ... ok
-test_each_remote_must_verify (test_owner_tools.KitCommandTests.test_each_remote_must_verify) ... ok
-test_failed_push_stops_without_retry (test_owner_tools.KitCommandTests.test_failed_push_stops_without_retry) ... ok
-test_landing_and_idempotence_command_contract (test_owner_tools.KitCommandTests.test_landing_and_idempotence_command_contract) ... ok
-test_wrong_branch_and_dirty_index_refuse (test_owner_tools.KitCommandTests.test_wrong_branch_and_dirty_index_refuse) ... ok
-test_all_filter_exclusions_are_reported_and_require_opt_in (test_owner_tools.KitValidationTests.test_all_filter_exclusions_are_reported_and_require_opt_in) ... ok
-test_any_secret_including_filtered_out_file_refuses (test_owner_tools.KitValidationTests.test_any_secret_including_filtered_out_file_refuses) ... ok
-test_bad_hash_and_missing_review (test_owner_tools.KitValidationTests.test_bad_hash_and_missing_review) ... ok
-test_bad_names (test_owner_tools.KitValidationTests.test_bad_names) ... ok
-test_builder_and_reviewer_must_differ (test_owner_tools.KitValidationTests.test_builder_and_reviewer_must_differ) ... ok
-test_default_lock_wait_is_600_seconds (test_owner_tools.KitValidationTests.test_default_lock_wait_is_600_seconds) ... ok
-test_disabled_has_no_writes (test_owner_tools.KitValidationTests.test_disabled_has_no_writes) ... ok
-test_dry_uses_filter_and_scan_without_git (test_owner_tools.KitValidationTests.test_dry_uses_filter_and_scan_without_git) ... ok
-test_empty_archive_directory_is_reported_but_payload_parents_are_preserved (test_owner_tools.KitValidationTests.test_empty_archive_directory_is_reported_but_payload_parents_are_preserved) ... ok
-test_exact_size_caps_are_inclusive (test_owner_tools.KitValidationTests.test_exact_size_caps_are_inclusive) ... ok
-test_git_children_cannot_prompt (test_owner_tools.KitValidationTests.test_git_children_cannot_prompt) ... ok
-test_inherited_git_selector_refused_before_spawn (test_owner_tools.KitValidationTests.test_inherited_git_selector_refused_before_spawn) ... ok
-test_production_tool_overrides_refuse_before_tool_reads (test_owner_tools.KitValidationTests.test_production_tool_overrides_refuse_before_tool_reads) ... ok
-test_reserved_metadata_and_empty_filter (test_owner_tools.KitValidationTests.test_reserved_metadata_and_empty_filter) ... ok
-test_scanner_error_and_scanner_omission_refuse (test_owner_tools.KitValidationTests.test_scanner_error_and_scanner_omission_refuse) ... ok
-test_shared_flock_timeout (test_owner_tools.KitValidationTests.test_shared_flock_timeout) ... ok
-test_shared_flock_wait_then_acquire (test_owner_tools.KitValidationTests.test_shared_flock_wait_then_acquire) ... ok
-test_shell_wrapper_default_system_python (test_owner_tools.KitValidationTests.test_shell_wrapper_default_system_python) ... ok
-test_shell_wrapper_dry_path (test_owner_tools.KitValidationTests.test_shell_wrapper_dry_path) ... ok
-test_size_and_name_filter_and_duplicate_paths (test_owner_tools.KitValidationTests.test_size_and_name_filter_and_duplicate_paths) ... ok
-test_traversal_absolute_links_and_duplicates_refused (test_owner_tools.KitValidationTests.test_traversal_absolute_links_and_duplicates_refused) ... ok
-test_binding_required_and_all_present_fields_must_match (test_owner_tools.ReviewTests.test_binding_required_and_all_present_fields_must_match) ... ok
-test_conditional_even_with_later_same_file_go_is_refused (test_owner_tools.ReviewTests.test_conditional_even_with_later_same_file_go_is_refused) ... ok
-test_first_nonempty_line_must_be_unindented_verdict (test_owner_tools.ReviewTests.test_first_nonempty_line_must_be_unindented_verdict) ... ok
-test_negative_anywhere_is_refused (test_owner_tools.ReviewTests.test_negative_anywhere_is_refused) ... ok
-test_supported_forms (test_owner_tools.ReviewTests.test_supported_forms) ... ok
-test_unknown_and_later_conditional_verdicts_are_refused (test_owner_tools.ReviewTests.test_unknown_and_later_conditional_verdicts_are_refused) ... ok
-test_land_probe_and_hourly_pathspec_preserves_kits (test_real_git_owner.RealGitOwnerTests.test_land_probe_and_hourly_pathspec_preserves_kits) ... ok
+Ran 82 tests in 7.937s
 
-----------------------------------------------------------------------
-Ran 58 tests in 4.593s
-
-OK
-
-REAL_GIT_ROOT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_combined_py312/real_git_g_20z8mp
-AUDIT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_combined_py312/real_git_g_20z8mp/state/land_kit_421bkyc4
-FILE "probe.py" bytes=13 sha256=54a86268b34591ff8cedfc34f598073d9cb106af20e7c7f091e6c1485e527a9e
-COUNT files=1 bytes=13 metadata_files=1
-2026-11-19T08:29:52Z verified GitHub lane-code = 07e4753e9077aea7ef867669feeb862f07602289
-2026-11-19T08:29:52Z verified home lane-code = 07e4753e9077aea7ef867669feeb862f07602289
-2026-11-19T08:29:52Z LANDED kits/_probe commit=07e4753e9077aea7ef867669feeb862f07602289 sha256=ae5a1e9cb34d0696e4b4f4ab55b5b2bb44ff665222b16433b681fdff1d10e961
-COMMIT
-commit 07e4753e9077aea7ef867669feeb862f07602289
-Author:     Owner tool test <owner-test@invalid>
-AuthorDate: Thu Nov 19 03:29:52 2026 -0500
-Commit:     Owner tool test <owner-test@invalid>
-CommitDate: Thu Nov 19 03:29:52 2026 -0500
-
-    Land kit _probe
-    
-    Seal: probe-seal
-    SHA256: ae5a1e9cb34d0696e4b4f4ab55b5b2bb44ff665222b16433b681fdff1d10e961
-    Builder: test_builder
-    Reviewer: test_reviewer
-    Date: 2026-11-19T08:29:52Z
-TREE
-kits/_probe/KIT.json
-kits/_probe/probe.py
-lane_code/fake_node/module.py
-lane_code/fake_node/move_me.py
-tools/lane_code_filter.py
-tools/lane_code_scan.py
-tools/lane_code_sync.sh
-LS_REMOTE origin
-07e4753e9077aea7ef867669feeb862f07602289	refs/heads/lane-code
-LS_REMOTE home
-07e4753e9077aea7ef867669feeb862f07602289	refs/heads/lane-code
-HOURLY_KITS_TREE before=f6923a6dea1f9a0d29e710dea419a9494899cb9c after=f6923a6dea1f9a0d29e710dea419a9494899cb9c unchanged=true
-HOURLY_UNSTAGED_KITS
-kits/_probe/KIT.json
-kits/_probe/probe.py
+OK (skipped=3)
 ```
 
-### realgit_runner_py36
-
-UTC: Thu Nov 19 08:29:47 UTC 2026. Exit code: 0.
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/owner
-env CUDA_VISIBLE_DEVICES='' LCS_PYTHON=/usr/bin/python3 LCS_REAL_GIT_WORK=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_runner_py36 LCS_RUN_REAL_GIT_TESTS=1 MKL_NUM_THREADS=8 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/tmp TOKENIZERS_PARALLELISM=false bash /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/owner/tests/run_real_git_owner.sh
-```
-
-Exact combined stdout/stderr:
+`owner_optional_default_py36`:
 
 ```text
-test_land_probe_and_hourly_pathspec_preserves_kits (test_real_git_owner.RealGitOwnerTests) ... ok
+Ran 84 tests in 8.449s
 
-----------------------------------------------------------------------
-Ran 1 test in 0.324s
-
-OK
-
-REAL_GIT_ROOT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_runner_py36/real_git_e9380yf7
-AUDIT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_runner_py36/real_git_e9380yf7/state/land_kit_5u31xxf2
-FILE "probe.py" bytes=13 sha256=54a86268b34591ff8cedfc34f598073d9cb106af20e7c7f091e6c1485e527a9e
-COUNT files=1 bytes=13 metadata_files=1
-2026-11-19T08:29:47Z verified GitHub lane-code = bbee7929daa27b93722273f63b258a59ac262707
-2026-11-19T08:29:47Z verified home lane-code = bbee7929daa27b93722273f63b258a59ac262707
-2026-11-19T08:29:48Z LANDED kits/_probe commit=bbee7929daa27b93722273f63b258a59ac262707 sha256=467a3f4745864c0a9a05839c3881115fcfc2c0b1e8c63d54daf3a4049c9b7199
-COMMIT
-commit bbee7929daa27b93722273f63b258a59ac262707
-Author:     Owner tool test <owner-test@invalid>
-AuthorDate: Thu Nov 19 03:29:48 2026 -0500
-Commit:     Owner tool test <owner-test@invalid>
-CommitDate: Thu Nov 19 03:29:48 2026 -0500
-
-    Land kit _probe
-    
-    Seal: probe-seal
-    SHA256: 467a3f4745864c0a9a05839c3881115fcfc2c0b1e8c63d54daf3a4049c9b7199
-    Builder: test_builder
-    Reviewer: test_reviewer
-    Date: 2026-11-19T08:29:47Z
-TREE
-kits/_probe/KIT.json
-kits/_probe/probe.py
-lane_code/fake_node/module.py
-lane_code/fake_node/move_me.py
-tools/lane_code_filter.py
-tools/lane_code_scan.py
-tools/lane_code_sync.sh
-LS_REMOTE origin
-bbee7929daa27b93722273f63b258a59ac262707	refs/heads/lane-code
-LS_REMOTE home
-bbee7929daa27b93722273f63b258a59ac262707	refs/heads/lane-code
-HOURLY_KITS_TREE before=6252262cb616a65ed0351096d08877ff99aaa9e3 after=6252262cb616a65ed0351096d08877ff99aaa9e3 unchanged=true
-HOURLY_UNSTAGED_KITS
-kits/_probe/KIT.json
-kits/_probe/probe.py
+OK (skipped=1)
 ```
 
-### realgit_runner_py312
-
-UTC: Thu Nov 19 08:29:52 UTC 2026. Exit code: 0.
-
-```bash
-cd /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/owner
-env CUDA_VISIBLE_DEVICES='' LCS_PYTHON=/scratch/jjyeung/envs/p1cpu/bin/python LCS_REAL_GIT_WORK=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_runner_py312 LCS_RUN_REAL_GIT_TESTS=1 MKL_NUM_THREADS=8 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/tmp TOKENIZERS_PARALLELISM=false bash /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/owner/tests/run_real_git_owner.sh
-```
-
-Exact combined stdout/stderr:
+`owner_optional_enabled_py36`:
 
 ```text
-test_land_probe_and_hourly_pathspec_preserves_kits (test_real_git_owner.RealGitOwnerTests.test_land_probe_and_hourly_pathspec_preserves_kits) ... ok
+Ran 84 tests in 8.443s
 
-----------------------------------------------------------------------
-Ran 1 test in 0.299s
-
-OK
-
-REAL_GIT_ROOT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_runner_py312/real_git_yy42d_58
-AUDIT /scratch/jjyeung/orch_n30/so_git/work/round1_validation_1518jcg3/realgit_runner_py312/real_git_yy42d_58/state/land_kit_224xduy9
-FILE "probe.py" bytes=13 sha256=54a86268b34591ff8cedfc34f598073d9cb106af20e7c7f091e6c1485e527a9e
-COUNT files=1 bytes=13 metadata_files=1
-2026-11-19T08:29:53Z verified GitHub lane-code = 5fd6c5556d8e6a4f00a0016c96325f522b4cb518
-2026-11-19T08:29:53Z verified home lane-code = 5fd6c5556d8e6a4f00a0016c96325f522b4cb518
-2026-11-19T08:29:53Z LANDED kits/_probe commit=5fd6c5556d8e6a4f00a0016c96325f522b4cb518 sha256=ae5a1e9cb34d0696e4b4f4ab55b5b2bb44ff665222b16433b681fdff1d10e961
-COMMIT
-commit 5fd6c5556d8e6a4f00a0016c96325f522b4cb518
-Author:     Owner tool test <owner-test@invalid>
-AuthorDate: Thu Nov 19 03:29:53 2026 -0500
-Commit:     Owner tool test <owner-test@invalid>
-CommitDate: Thu Nov 19 03:29:53 2026 -0500
-
-    Land kit _probe
-    
-    Seal: probe-seal
-    SHA256: ae5a1e9cb34d0696e4b4f4ab55b5b2bb44ff665222b16433b681fdff1d10e961
-    Builder: test_builder
-    Reviewer: test_reviewer
-    Date: 2026-11-19T08:29:53Z
-TREE
-kits/_probe/KIT.json
-kits/_probe/probe.py
-lane_code/fake_node/module.py
-lane_code/fake_node/move_me.py
-tools/lane_code_filter.py
-tools/lane_code_scan.py
-tools/lane_code_sync.sh
-LS_REMOTE origin
-5fd6c5556d8e6a4f00a0016c96325f522b4cb518	refs/heads/lane-code
-LS_REMOTE home
-5fd6c5556d8e6a4f00a0016c96325f522b4cb518	refs/heads/lane-code
-HOURLY_KITS_TREE before=8591990fe9401a6a9a8889e7907fbea4e9d6adf6 after=8591990fe9401a6a9a8889e7907fbea4e9d6adf6 unchanged=true
-HOURLY_UNSTAGED_KITS
-kits/_probe/KIT.json
-kits/_probe/probe.py
+OK (skipped=1)
 ```
 
-## Limits and remaining owner actions
+`owner_optional_default_py312`:
 
-- The owner still installs/enables the selected tools on trinity-3-30 and checks actual lane folders before expanding coverage. No trinity-3-30 session or production remote was tested here. The supplied mirror cannot establish actual sb/so inventories.
-- The hourly nonblocking lock can skip a run while a kit holds it. The guide recommends landing after END ok, and stale alerts include lock-skip evidence. The kit wait itself defaults to 600 seconds.
-- Pushes to two remotes and receipt writes are separate operations. A later failure can leave one or both remotes published; the command refuses, and the owner inspects the audit directory before an authorized identical rerun. Killed work is never automatically restarted.
-- Delivered health events stay delivered when consumers move them. If a process dies after writing an event but before saving its delivery acknowledgement, an undelivered journal entry can replay; moving the event during that narrow interruption window can duplicate delivery. Legacy string journal entries migrate as delivered to avoid resurrecting old incidents.
-- Ordinary monitoring errors remain in local health.log and the loop continues. Signal exits stop the loop for investigation. Missing/truncated logs can conservatively report stale; the reader bounds log input at 8 MiB.
-- Audit directories and temporary test fixtures consume scratch and are retained under the no-deletion rule. The measured workspace remains below the 3 GB cap.
-- Only the supplied 34-line recovery script and its identical mirrored copy were available. Tests cover both configured and default collector matches; no unsupplied continuation is claimed.
+```text
+Ran 84 tests in 7.815s
 
-All requested fixes and local validation are complete. Production installation, remote publication, live-node smoke checks, and real lane inventory counts remain owner actions outside this workspace task.
+OK (skipped=1)
+```
 
-The no-archaeology and summary skills govern this report. The requested review mapping is retained because it connects each finding to its fix and test; no superseded behavior is presented as current.
+`owner_optional_enabled_py312`:
 
-Report time: Thu Nov 19 08:33:59 UTC 2026. Deadline: 2026-11-19 09:40Z.
+```text
+Ran 84 tests in 7.673s
+
+OK (skipped=1)
+```
+
+`upgrade_regressions_py36`:
+
+```text
+Ran 26 tests in 1.418s
+
+OK
+```
+
+`upgrade_regressions_py312`:
+
+```text
+Ran 26 tests in 1.200s
+
+OK
+```
+
+## Verification of fixes relied on from round 1
+
+The existing tests recheck Python 3.6 APIs, strict first-line verdicts, independent identities,
+archive binding, every filter omission, exact size caps, deduplication, secret scanning, scanner
+omissions, malicious archive paths/types, metadata, flock wait/acquisition, the 600-second default,
+maintenance/prompt flags, inherited Git selectors, dirty-index refusals, both remote verifications,
+receipts, persistent health delivery and replay, legacy state migration, lock-skip evidence,
+coverage rules, and health-loop error/signal handling. Package tests recheck override validation,
+the unchanged default, default collectors under an override, and checkout cleanliness.
+The declared hourly add pathspec is checked against the unchanged fixture.
+
+These tests use real filesystem/filter/scanner/lock behavior and a command double for Git.
+Actual Git index semantics, remote publication, commit metadata, and the hourly committed-kits
+tree proof require the real-Git test; those claims are not reverified under this dispatch.
+
+## What could go wrong and how to notice
+
+- An origin content rejection still strands a local commit. The new STOP refusal includes its
+  SHA and requires the user before the hourly can repeat the failure and advance home. The tool
+  neither stops the hourly nor rewrites history. This deliberately implements the review's
+  minimal mitigation rather than the optional commit-tree redesign.
+- Index cleanup can fail, or a killed process can bypass cleanup. The handled failure prints
+  STOP and requires the user before the next hourly. A normal cleanup failure must never be
+  treated as a successful landing. There is no receipt until both remotes verify.
+- A timeout can occur after a commit or push completed. The owner must inspect HEAD and remotes
+  before moving any working directory or repeating an operation. No retry runs in the tool.
+- The Python 3.6 timeout handler kills only its immediate child and calls `communicate()` without
+  another timeout (`/usr/lib64/python3.6/subprocess.py:426–428`, read directly in this round).
+  A surviving grandchild holding pipes can hold the owner lock longer than 300 seconds. Repeated
+  hourly lock-skip messages or a stale event expose the symptom; this case remains unresolved.
+- A consumer that moves the hourly BLOCKER before health first observes it can still cause a
+  duplicate health BLOCKER. After the first decision, the recorded run key prevents rescanning
+  or duplication. The hourly script is unchanged, so this earlier window cannot be closed by
+  writing its own delivery journal here.
+- A process crash between writing an event and saving its delivery acknowledgement can still
+  replay an undelivered event. Delivered entries are not reread or recreated after consumers move them.
+- With `LCS_REVIEW2_FIXES` unset, installed behavior remains active, including the reported issues.
+  The owner must set the switch for each tool and the loop environment. The owning orchestrator
+  controls loop restarts. This task did not stop or replace any running service.
+- Audit and test fixtures remain on scratch under the no-deletion rule. The local size measurement
+  remains below 3 GB. Actual sb/so lane inventories and remote-stage shell-copy opt-in are not
+  established by the supplied mirror; the owner must check actual local lane folders.
+
+## What is not done
+
+The required current-tool real-Git reruns, including finding 11 and the real index/tree/remote
+proofs in the report, are not executed because the current dispatch explicitly says “No git”.
+That ruling controls this round; the earlier fix-round exception is not reused. The disabled
+runner is checked and its exact refusal is recorded. This is why the verdict is PARTIAL.
+
+The optional commit-tree redesign for finding 1 and the process-tree timeout redesign in
+finding 12 are not implemented. The report and handover state their remaining risks. No other
+LOW finding is deferred. Production installation, loop activation, live-node smoke tests and
+remote publication are owner actions outside this read-only production scope.
+
+The no-archaeology and summary skills guide this report. The requested finding mapping and
+before/after regression evidence are retained because they establish what each fix proves.
+Internal operational details are included because this is the requested owner handover.

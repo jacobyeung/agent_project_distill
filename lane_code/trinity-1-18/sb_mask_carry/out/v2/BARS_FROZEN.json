@@ -1,0 +1,79 @@
+{
+ "spec": "/scratch/jjyeung/orch_n30/sb_mask_carry/in/v2/KIT_SPEC_mask_carry_v2.md",
+ "spec_sha256": "a98f18f8730665444e8b5a44ee121023da8a324ed05d660461ae674e0dc93028",
+ "bars_section": "## Bars, written before any score\n- Decision arm: `S_A0` on `D64`, run first on all 209 captures. If `A32` also completes on all 209, the frame set is chosen per fold on the fit rooms (the ladder's five room folds) and priced on the held-out fold; otherwise it is `D64`. `S_PHR` has its own row of bars and never replaces `S_A0`'s.\n- Missing evidence: a bar whose arm did not complete on all 209 captures is MISSING, and MISSING counts as not passed. Dropped seed sets or frame sets are named in the report with the captures they reached.\n- `carry_precision`: the ladder's member precision at least 90% (72.49%, 73.32% and 73.05% for the stored merges at thresholds 0.25, 0.15 and 0.40).\n- `carry_fusion`: `C_fused` minus `A0` at least +2.0 type points, paired 95% lower bound above 0.\n- `size_screen` and `first_seen_screen`: unchanged from `KIT_SPEC_box_ladder_k1_v2.md`, applied to the carried track.\n- `carry_ceiling` (diagnostic): `S_GT` `C_fused` against the ladder's 78.62 for fused raster masks; frame recall on `S_GT`.\n- Decision: `carry_precision` and `carry_fusion` pass: the carried, fused track joins the stack (`CARRY_DECISION.json`). `carry_precision` fails: the object arms (size, appearance order, counting) stay closed and the record says so. A size or appearance pass only opens that category's registered R0-dev comparison; it decides no route.",
+ "bars": {
+  "decision_arm": {
+   "seed_set": "S_A0",
+   "frame_set": "D64",
+   "rule": "A32 replaces D64 per fold only if A32 completes on all 209 captures: fold k takes the frame set whose C_fused MRA is higher on the other four folds (ties D64)"
+  },
+  "missing": "a bar whose arm did not complete on all 209 captures is MISSING; MISSING counts as not passed",
+  "carry_precision": {
+   "test": "summarize_train.precision over the arm C_fused rows (diag from train_pricing.Objects.get on the injected carried track)",
+   "min": 0.9,
+   "reference": {
+    "t025": "390/538=0.724907",
+    "t015": "426/581",
+    "t040": "366/501"
+   }
+  },
+  "carry_fusion": {
+   "test": "summarize_train.contrast(C_fused, A0_deployed) on 1,037 rows",
+   "min_estimate": 2.0,
+   "lower_bound_above": 0.0
+  },
+  "size_screen": {
+   "test": "summarize_train.contrast(sizes(C_fused), sizes(A0_deployed))",
+   "min_estimate": 5.0,
+   "lower_bound_above": 0.0,
+   "source": "KIT_SPEC_box_ladder_k1_v2.md lines 88-89"
+  },
+  "first_seen_screen": {
+   "test": "summarize_train.appearance(C_fused) pair rate",
+   "min_rate": 0.9,
+   "deployed": 0.7656,
+   "source": "KIT_SPEC_box_ladder_k1_v2.md lines 88-89"
+  },
+  "carry_ceiling": {
+   "role": "diagnostic, no bar",
+   "test": "S_GT C_fused MRA against fused_cf 78.62; frame recall on S_GT"
+  },
+  "s_phr": "own row of bars, same tests; never replaces S_A0; runs only when PHRASE_FOLDS.json exists",
+  "decision": "carry_precision and carry_fusion pass: the carried fused track joins the stack. carry_precision fails: the object arms (size, appearance order, counting) stay closed. A size or appearance pass only opens that category's registered R0-dev comparison; it decides no route.",
+  "reported_without_bar": [
+   "iou member precision (predicted.member_precision, IoU > 0.5) for all seeds and seeds on target",
+   "mask IoU per visible operand-frame and at the priced frame (sb_maskfail stats)",
+   "frame recall (share > 1%, IoU >= 0.5) and false presence",
+   "C_best1 contrasts"
+  ]
+ },
+ "builder_resolutions": [
+  "carry_precision, size_screen and first_seen_screen read the decision arm C_fused rows; C_best1 and C_fused share one carried track per object, so member precision is identical on both.",
+  "carried anchor: tracker object score > 0 and a non-empty mask; a positive-score empty mask is counted (positive_empty) and is not a member, since an empty mask cannot be lifted.",
+  "an added member is a carried anchor other than the seed slot; masks enter majority() at 240 x 320 ([::2, ::2]).",
+  "S_PHR pair (w1, w2): w2 is called only when w1 leaves the object not seen (A0 refused or no lifted frame).",
+  "a seed set with no seed for an object (refused S_A0) gives the empty object and its rows refuse, as A0 does.",
+  "the five withheld-80 K1-train captures (25 rows) stay in every bar; a sensitivity row on the other 1,012 rows is reported beside the bars and decides nothing."
+ ],
+ "frozen_utc": "2026-11-19T10:34:03Z",
+ "note": "written before any priced number of this kit, dry-run stubs included",
+ "input_sha256": {
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/in/v2/KIT_SPEC_mask_carry_v2.md": "a98f18f8730665444e8b5a44ee121023da8a324ed05d660461ae674e0dc93028",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_bars.py": "7bd79f6c54815674b024fc17b87dce86f54a8bbf04060b41034824598b2f0f8b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_common.py": "e7e0c35aaec581eb259b71abe4effd6a58792caac1770035eac6483a4c4e50e7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_frames.py": "3f0bde9e1750319cfd64e658e8c0dc0ed93ab833022554beec9835640be4d12e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_ladder.py": "0a9581f335386ec03040f53d0f4b7762da40cd5c905f395cdcd27d957d6e641c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_measure.py": "e42b9c4c8b115575f9a0348726650ee6ae7082ced432d17a64067e583c199c97",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_phrase.py": "57eacb53d75e932aa5e7cea3cbfac9d8274e2299ce43b2aaabcdc02926b591e9",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_price.py": "8dedaac53e9f7069c02754374a4515b82b35c857e9de79ebe97c463ac2ce03a7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_probe_cpu.py": "a74565080a2675f977320be419ec2c09c635c9ccb0b3dfdc639ba3c650021474",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_seeds.py": "48e918e5d31b7feba8a19bdfd3e9b53a810de8338635d655c5343c0a6695c922",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_step0.py": "7fc795e37cce20e74775e552f36d225a762a3dcf4bf26af34001ff2a89b087d7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_stubs.py": "37201cf9483e26df7095ca62841f20dd46f90d205da71c4c4972e4f6f3c5cb8c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_track_io.py": "7e4909853a2e16b3b00554e689447ef9b2e0300d076503d82f1075439165bc21",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_track_pass.py": "1a7bc2aba461377552b63c2bc82341b00f74aca627ae8af1d4ace7a1f3b2f119",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_tracker.py": "f894d1466faa8c53737b1d707476567d04bff28f0f812e654227edc1195a0335",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/run_cpu.sh": "1400d0fa201fff2065e33ef800bd0bb5feb77342f71137d3d6e9b758c3e14c32"
+ }
+}

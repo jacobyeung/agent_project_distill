@@ -172,15 +172,16 @@ def augment(arrays, settings):
 
 
 def load_frames(inputs):
-    import os
+    from .c1_switches import get as performance_switch
+    cache_enabled = performance_switch('C1_DECODED_CACHE_MIB') != '0'
     from PIL import Image
     from .r2_frames import verify_frame
 
     images = []
     for frame in inputs["frames"]:
-        if os.environ.get('C1_DECODED_CACHE_MIB', '0') != '0':
+        if cache_enabled:
             from .c1_decoded_cache import read
-            images.append(read(verify_frame(frame), frame['path']))
+            images.append(read(verify_frame(frame), frame['path'], frame['sha256']))
             continue
         with Image.open(verify_frame(frame)) as image:
             if image.mode != "RGB":

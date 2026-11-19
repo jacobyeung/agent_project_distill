@@ -1,0 +1,12 @@
+{
+  "tests": 112,
+  "failures": [],
+  "errors": [
+    [
+      "test_export_witness_and_native_keep (tests.test_r1_build15.Build15.test_export_witness_and_native_keep)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/so_modep/work/tree/tests/test_r1_build15.py\", line 67, in test_export_witness_and_native_keep\n    parent['artifact']=file_pin(Path(__file__).resolve().parents[2]/'n1fix2/inputs/init_artifact.json')\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/so_modep/work/tree/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/so_modep/work/tree/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_modep/work/n1fix2/inputs/init_artifact.json'\n"
+    ]
+  ],
+  "skipped": [],
+  "successful": false
+}

@@ -33,6 +33,7 @@ for ((repeat=0; repeat<REPEATS; repeat++)); do
     plan=()
     if ((repeat != 0 || leg != 0)); then plan=(--plan "$OUT/r0_l0_off/rank0/plan.json"); fi
     nice -n 10 "${PYTHON:-python}" "$KIT/cache_state.py" "$OUT/${label}_cache_before.json"
+    nice -n 10 "${PYTHON:-python}" "$KIT/../kit_profile/gpu_guard.py"
     nice -n 10 timeout --signal=TERM --kill-after=10s "${ARM_SECONDS}s" \
       "${PYTHON:-python}" -m torch.distributed.run --standalone --nproc_per_node=4 \
       "$KIT/../kit_profile/launch.py" --tree "$TREE" --config "$CONFIG" --out "$OUT/$label" \

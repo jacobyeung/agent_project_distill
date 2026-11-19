@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/tools/dry_count.py
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,86 @@
 +"""Run the unmodified filter on explicit folders, without copying or writing manifests."""
 +import argparse
 +import ast
@@ -22,13 +22,21 @@
 +                constants[name] = ast.literal_eval(node.value)
 +            elif name == 'DIRRE':
 +                constants[name] = re.compile(ast.literal_eval(node.value.args[0]))
-+    name = folder.name
-+    if name == '.git' or 'frames' in name or constants['DIRRE'].match(name):
-+        return 'directory name excluded at hourly tree root'
-+    if any(s in '/' + name + '/' for s in constants['SUBSTR']):
-+        return 'path substring excluded at hourly tree root'
-+    if len(os.listdir(folder)) > constants['MAXDIR']:
-+        return f"directory exceeds MAXDIR={constants['MAXDIR']} at hourly tree root"
++    folders = [folder]
++    boundary = Path('/scratch/jjyeung/orch_n30')
++    if os.environ.get('LCS_REVIEW2_FIXES') == '1':
++        folders += list(folder.parents)[:list(folder.parents).index(boundary)]
++        folders.reverse()
++    for current in folders:
++        name = current.name
++        relative = (current.relative_to(boundary).as_posix()
++                    if os.environ.get('LCS_REVIEW2_FIXES') == '1' else name)
++        if name == '.git' or 'frames' in name or constants['DIRRE'].match(name):
++            return 'directory name excluded at hourly tree root'
++        if any(s in '/' + relative + '/' for s in constants['SUBSTR']):
++            return 'path substring excluded at hourly tree root'
++        if len(os.listdir(current)) > constants['MAXDIR']:
++            return f"directory exceeds MAXDIR={constants['MAXDIR']} at hourly tree root"
 +    return None
 +
 +
@@ -90,7 +98,7 @@
 +exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B "$(dirname -- "$0")/dry_count.py" "$@"
 --- /dev/null
 +++ b/tools/land_kit.py
-@@ -0,0 +1,369 @@
+@@ -0,0 +1,420 @@
 +"""Validate a reviewed archive and land it through the single sync owner."""
 +import argparse
 +from contextlib import contextmanager
@@ -99,6 +107,7 @@
 +import gzip
 +import hashlib
 +import json
++import lzma
 +import os
 +from pathlib import Path, PurePosixPath
 +import re
@@ -109,6 +118,11 @@
 +import tarfile
 +import tempfile
 +import time
++import zlib
++
++
++def review2_enabled():
++    return os.environ.get('LCS_REVIEW2_FIXES') == '1'
 +
 +
 +class Refusal(Exception):
@@ -137,7 +151,9 @@
 +
 +def review(raw, seal, sha, bind_sha=None):
 +    text = raw.decode('utf-8', errors='strict')
-+    require(not re.search(r'NO[- ]GO|REJECT', text, re.I),
++    negative = (re.search(r'(?<![A-Za-z])(NO[- ]GO|REJECT)(?![A-Za-z])', text)
++                if review2_enabled() else re.search(r'NO[- ]GO|REJECT', text, re.I))
++    require(not negative,
 +            'negative review requires a fresh accepting verdict file')
 +    lines = [line for line in text.splitlines() if line.strip()]
 +    accepted = ('GO', 'ACCEPT', 'ACCEPT WITH FINDINGS')
@@ -149,11 +165,22 @@
 +    fields = {}
 +    for line in lines:
 +        m = re.fullmatch(r'(Seal|SHA256)\s*:\s*(.+)', line, re.I)
++        if review2_enabled():
++            # Recognize Markdown bullets, quotes, bold labels, tables and code values.
++            m = re.match(r'^[\s>*|+-]*\**(Seal|SHA-?256)\**\s*[:|]\s*\**\s*(.*)$', line, re.I)
 +        if m:
-+            key = m[1].lower()
-+            require(key not in fields or fields[key] == m[2].strip(), f'ambiguous {key} metadata')
-+            fields[key] = m[2].strip()
-+        m = re.fullmatch(r'VERDICT: *(.*?)\s*', line, re.I)
++            key, value = m[1].lower().replace('-', ''), m[2].strip()
++            if review2_enabled():
++                value = value.split('|', 1)[0].strip()
++                if value.startswith('`'):
++                    require('`' in value[1:], f'unclosed {key} code value')
++                    value = value[1:].split('`', 1)[0]
++                if key == 'sha256':
++                    value = value.split()[0].lower() if value.split() else ''
++                require(bool(value), f'empty {key} metadata')
++            require(key not in fields or fields[key] == value, f'ambiguous {key} metadata')
++            fields[key] = value
++        m = re.fullmatch(r'VERDICT: *(.*?)\s*', line, 0 if review2_enabled() else re.I)
 +        if m:
 +            require(m[1].upper() in accepted, 'conflicting verdict requires a fresh review file')
 +    require(fields.get('seal', seal) == seal, 'review seal differs from supplied seal')
@@ -348,6 +375,8 @@
 +        require(target.is_dir() and (target / 'KIT.json').is_file(), 'existing name has no valid KIT.json')
 +        actual = inventory(target)
 +        old = json.loads((target / 'KIT.json').read_text())
++        if review2_enabled():
++            require(isinstance(old, dict), 'existing KIT.json must be a JSON object')
 +        require({k: v for k, v in old.items() if k != 'date'} ==
 +                {k: v for k, v in metadata.items() if k != 'date'}, 'kit name already exists with different content or provenance')
 +        actual.pop('KIT.json', None)
@@ -371,15 +400,40 @@
 +        print('IDENTICAL already landed; verifying and publishing current lane-code head')
 +    else:
 +        target.parent.mkdir(parents=True, exist_ok=True)
-+        shutil.copytree(payload, target)
-+        git('add', '-f', '--', f'kits/{args.name}')
 +        message = (f"Land kit {args.name}\n\nSeal: {metadata['seal']}\nSHA256: {metadata['sha256']}\n"
 +                   f"Builder: {metadata['builder']}\nReviewer: {metadata['reviewer']}\nDate: {metadata['date']}")
-+        git('commit', '-q', '-m', message)
++        if review2_enabled():
++            try:
++                shutil.copytree(payload, target)
++                git('add', '-f', '--', f'kits/{args.name}')
++                git('commit', '-q', '-m', message)
++            except (Refusal, OSError) as exc:
++                try:
++                    # Path-only reset changes the index, never HEAD or working files.
++                    git('reset', '-q', '--', f'kits/{args.name}')
++                    git('diff', '--cached', '--quiet')
++                except (Refusal, OSError) as cleanup:
++                    raise Refusal(f'STOP: index cleanup failed; contact the user before the next hourly '
++                                  f'run; inspect {target}. Original failure: {exc}; cleanup: {cleanup}') from None
++                raise Refusal(f'{exc}; kit staging cleared. Inspect HEAD first (a timed-out commit '
++                              f'may have completed); if the kit is untracked, move {target} aside before '
++                              'rerunning. Do not rerun killed work without the user.') from None
++        else:
++            shutil.copytree(payload, target)
++            git('add', '-f', '--', f'kits/{args.name}')
++            git('commit', '-q', '-m', message)
 +    head = git('rev-parse', 'HEAD')
 +    require(bool(re.fullmatch('[0-9a-f]{40}|[0-9a-f]{64}', head)), 'invalid HEAD returned by Git')
 +    for remote, label in (('origin', 'GitHub'), ('home', 'home')):
-+        git('push', '-q', remote, 'HEAD:refs/heads/lane-code')
++        try:
++            git('push', '-q', remote, 'HEAD:refs/heads/lane-code')
++        except (Refusal, OSError) as exc:
++            if review2_enabled() and remote == 'origin':
++                raise Refusal(f'STOP: origin push failed; contact the user before the next hourly run. '
++                              f'Local lane-code still contains {head}; a content rejection can block '
++                              'hourly origin pushes while home advances. No home push or receipt ran. '
++                              f'Do not retry, force, or rewrite history automatically. Cause: {exc}') from None
++            raise
 +        lines = git('ls-remote', remote, 'refs/heads/lane-code').splitlines()
 +        require(lines == [f'{head}\trefs/heads/lane-code'], f'{remote} lane-code verification failed')
 +        print(f"{metadata['date']} verified {label} lane-code = {head}")
@@ -429,6 +483,10 @@
 +        require(boundary != Path('/') and str(boundary).startswith('/scratch/'), 'test root must be on /scratch')
 +        events = Path(os.environ.get('LCS_EV', str(boundary / 'events'))).resolve()
 +        require(all(within(p, boundary) for p in (state, repo, events)), 'test writes must stay within test root')
++        if review2_enabled():
++            production = Path('/scratch/jjyeung/distill_sync').resolve()
++            require(not any(within(p, production) or within(production, p) for p in (state, repo, events)),
++                    'test targets must not overlap production state or clone')
 +    else:
 +        require(not any(k in os.environ for k in ('LCS_FILTER', 'LCS_SCAN', 'LCS_B', 'LCS_EV')),
 +                'production tool/event overrides require LCS_TEST_ROOT')
@@ -457,7 +515,8 @@
 +if __name__ == '__main__':
 +    try:
 +        sys.exit(main())
-+    except (Refusal, OSError, ValueError, tarfile.TarError, UnicodeError) as exc:
++    except ((Refusal, OSError, ValueError, tarfile.TarError, UnicodeError) +
++            ((EOFError, zlib.error, lzma.LZMAError) if review2_enabled() else ())) as exc:
 +        print(f'REFUSED: {exc}', file=sys.stderr)
 +        sys.exit(2)
 --- /dev/null
@@ -471,7 +530,7 @@
 +exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B "$(dirname -- "$0")/land_kit.py" "$@"
 --- /dev/null
 +++ b/tools/sync_health.py
-@@ -0,0 +1,209 @@
+@@ -0,0 +1,227 @@
 +"""Read only local sync evidence; emit one event per incident and recovery."""
 +from datetime import datetime, timedelta, timezone
 +import fcntl
@@ -484,6 +543,10 @@
 +import sys
 +
 +UTC = timezone.utc
++
++
++def review2_enabled():
++    return os.environ.get('LCS_REVIEW2_FIXES') == '1'
 +
 +
 +def within(path, boundary):
@@ -608,6 +671,8 @@
 +        if recovered:
 +            # Stable name makes event replay safe after process interruption.
 +            event = f'{stamp(verified)}_RESULT_code_sync_recovered.md'
++            if review2_enabled():
++                event = f'{stamp(now)}_RESULT_code_sync_recovered_{"_".join(sorted(recovered))}.md'
 +            data['events'].setdefault(event, f'{iso(now)} code_sync recovered: {", ".join(recovered)}; verified GitHub push {iso(verified)}\n')
 +        stale = verified is None or now - verified > timedelta(minutes=90)
 +        if stale and 'stale' not in active:
@@ -618,10 +683,18 @@
 +            if lock_skips:
 +                when, text = lock_skips[-1]
 +                data['events'][event] += f'Latest hourly lock skip: {iso(when)} {text}\n'
-+        if completed and completed['failed'] and 'failed' not in active and not own_blocker(events, completed):
++        if completed and completed['failed'] and 'failed' not in active:
 +            # Deduplicate a completed failure even after its incident has recovered.
 +            key = iso(completed['end'])
-+            if data.get('last_failed_run') != key:
++            if review2_enabled():
++                emit = data.get('last_failed_run') != key
++                if emit:
++                    emit = not own_blocker(events, completed)
++                    # Remember the decision even when the hourly supplied the event.
++                    data['last_failed_run'] = key
++            else:
++                emit = not own_blocker(events, completed) and data.get('last_failed_run') != key
++            if emit:
 +                event = f'{stamp(now)}_BLOCKER_code_sync_failed.md'
 +                active['failed'] = {'observed': iso(now), 'event': event, 'run': key}
 +                data['events'][event] = f'{iso(now)} code_sync failed: run ended {key} without its own BLOCKER; log {log}\n'
@@ -664,6 +737,10 @@
 +        boundary = Path(os.environ['LCS_TEST_ROOT']).resolve(strict=True)
 +        if not str(boundary).startswith('/scratch/') or not all(within(p, boundary) for p in (state, events)):
 +            raise ValueError('test writes must stay within /scratch test root')
++        if review2_enabled():
++            production = Path('/scratch/jjyeung/distill_sync').resolve()
++            if any(within(p, production) or within(production, p) for p in (state, events)):
++                raise ValueError('test targets must not overlap production state')
 +        if os.environ.get('LCS_HEALTH_NOW'):
 +            now = parse(os.environ['LCS_HEALTH_NOW'])
 +    else:
@@ -716,7 +793,7 @@
 +"""CPU-only owner-tool tests; real Git tests require a separate opt-in."""
 --- /dev/null
 +++ b/tests/test_owner_tools.py
-@@ -0,0 +1,701 @@
+@@ -0,0 +1,717 @@
 +from contextlib import redirect_stdout
 +from datetime import datetime, timedelta, timezone
 +import fcntl
@@ -735,8 +812,11 @@
 +
 +BASE = Path(__file__).resolve().parents[1]
 +TOOLS = BASE / 'tools'
-+FIXTURES = Path(os.environ.get('LCS_TEST_WORK', str(BASE / 'work' / 'test_runs')))
-+FIXTURES.mkdir(parents=True, exist_ok=True)
++FIXTURE_PARENT = Path(os.environ.get('LCS_TEST_WORK', tempfile.gettempdir())).resolve()
++if not str(FIXTURE_PARENT).startswith(('/scratch/', '/tmp/')) and FIXTURE_PARENT != Path('/tmp'):
++    raise ValueError('LCS_TEST_WORK and temporary storage must be under /scratch or /tmp')
++FIXTURE_PARENT.mkdir(parents=True, exist_ok=True)
++FIXTURES = Path(tempfile.mkdtemp(prefix='owner_tests_', dir=str(FIXTURE_PARENT)))
 +
 +
 +def load(name):
@@ -752,6 +832,8 @@
 +
 +class Fixture(unittest.TestCase):
 +    def setUp(self):
++        if not str(FIXTURES).startswith('/scratch/'):
++            self.skipTest('owner integration requires LCS_TEST_WORK under /scratch; temporary checkout stays untouched')
 +        self.root = Path(tempfile.mkdtemp(prefix=self.__class__.__name__ + '_', dir=FIXTURES))
 +        self.state = self.root / 'state'
 +        self.state.mkdir()
@@ -829,8 +911,13 @@
 +                         f'VERDICT: {word}\n## Accept',
 +                         f'VERDICT: {word}\n    VERDICT: GO',
 +                         f'VERDICT: GO\n```\n{word}\n```'):
-+                with self.subTest(text=text), self.assertRaises(kit.Refusal):
-+                    self.review(text)
++                with self.subTest(text=text):
++                    if (os.environ.get('LCS_REVIEW2_FIXES') == '1' and text.startswith('VERDICT: GO\n')
++                            and word in ('no-go', 'reject', 'REJECTED')):
++                        self.assertEqual(self.review(text)[0], 'GO')
++                    else:
++                        with self.assertRaises(kit.Refusal):
++                            self.review(text)
 +
 +    def test_unknown_and_later_conditional_verdicts_are_refused(self):
 +        for text in ('VERDICT: WAIT\nVERDICT: GO', 'VERDICT: GO\nVERDICT: WAIT',
@@ -1312,6 +1399,8 @@
 +            self.assertEqual(result.stdout, '')
 +
 +    def test_dry_count_default_system_python(self):
++        if not str(self.root).startswith('/scratch/jjyeung/orch_n30/'):
++            self.skipTest('dry-count integration requires LCS_TEST_WORK under /scratch/jjyeung/orch_n30')
 +        lane = self.root / 'sb_system'
 +        lane.mkdir()
 +        (lane / 'a.py').write_text('a=1\n')
@@ -1336,6 +1425,8 @@
 +                         {'in/source.py', 'out/source.py', 'work/tree/source.py', 'kit/source.py'})
 +
 +    def test_maxdir_prunes_code_and_root_gate_is_reported(self):
++        if not str(self.root).startswith('/scratch/jjyeung/orch_n30/'):
++            self.skipTest('dry-count integration requires LCS_TEST_WORK under /scratch/jjyeung/orch_n30')
 +        lane = self.root / 'so_proof'
 +        lane.mkdir()
 +        (lane / 'source.py').write_text('x=1\n')
@@ -1359,6 +1450,8 @@
 +        self.assertIn(b'skipped_bigdirs=1', result.stderr)
 +
 +    def test_dry_count_has_no_copy_and_reports_dedup(self):
++        if not str(self.root).startswith('/scratch/jjyeung/orch_n30/'):
++            self.skipTest('dry-count integration requires LCS_TEST_WORK under /scratch/jjyeung/orch_n30')
 +        lane = self.root / 'sb_example'
 +        lane.mkdir()
 +        (lane / 'a.py').write_text('a=1\n')
@@ -1539,6 +1632,339 @@
 +            self.assertEqual(run('git', '--git-dir=' + str(remote), 'for-each-ref', '--format=%(refname)', 'refs/heads'),
 +                             'refs/heads/lane-code')
 +        self.assertEqual(metadata['file_count'], 1)
++
++
++if __name__ == '__main__':
++    unittest.main()
+--- /dev/null
++++ b/tests/test_review_round2.py
+@@ -0,0 +1,330 @@
++"""Regression tests for review round 2; Git is replaced by command doubles."""
++from contextlib import redirect_stdout, redirect_stderr
++from datetime import timedelta
++import gzip
++import io
++import json
++import lzma
++import os
++from pathlib import Path
++import runpy
++import subprocess
++import sys
++import tarfile
++import tempfile
++import unittest
++import zlib
++from unittest.mock import patch
++
++import test_owner_tools as owner
++
++kit, health = owner.kit, owner.health
++
++
++class Round2Fixture(owner.Fixture):
++    def setUp(self):
++        super().setUp()
++        self.env['LCS_REVIEW2_FIXES'] = '1'
++        self.switch = patch.dict(os.environ, LCS_REVIEW2_FIXES='1')
++        self.switch.start()
++        self.addCleanup(self.switch.stop)
++
++
++class LandingFailures(Round2Fixture):
++    def test_f1_origin_rejection_requires_user_and_never_pushes_home(self):
++        fake = owner.FakeGit()
++        fake.fail = ['push', '-q', 'origin']
++        with patch.object(kit, 'run', side_effect=fake), self.assertRaisesRegex(
++                kit.Refusal, 'STOP.*user.*hourly'):
++            self.invoke(dry=False)
++        self.assertEqual([c for c in fake.calls if c[0] == 'push'],
++                         [['push', '-q', 'origin', 'HEAD:refs/heads/lane-code']])
++        self.assertFalse(any(c[0] == 'reset' for c in fake.calls))
++        self.assertFalse((self.state / 'KITS_LANDED.txt').exists())
++        self.assertEqual(list(self.events.iterdir()), [])
++
++    def test_f2_failed_commit_unstages_only_kit(self):
++        self.check_failed_stage(['commit'])
++
++    def test_f2_failed_add_unstages_only_kit(self):
++        self.check_failed_stage(['add'])
++
++    def check_failed_stage(self, failure):
++        fake = owner.FakeGit()
++        fake.fail = failure
++        with patch.object(kit, 'run', side_effect=fake), self.assertRaisesRegex(
++                kit.Refusal, 'move.*kits/_probe.*aside'):
++            self.invoke(dry=False)
++        self.assertEqual([c for c in fake.calls if c[0] == 'reset'],
++                         [['reset', '-q', '--', 'kits/_probe']])
++        self.assertEqual(fake.calls[-1], ['diff', '--cached', '--quiet'])
++        self.assertFalse(any(c[0] == 'push' for c in fake.calls))
++        self.assertTrue((self.repo / 'kits/_probe/KIT.json').is_file())
++
++    def test_f2_partial_copy_explains_recovery_without_staging(self):
++        fake = owner.FakeGit()
++        with patch.object(kit, 'run', side_effect=fake), \
++             patch.object(kit.shutil, 'copytree', side_effect=OSError('copy interrupted')), \
++             self.assertRaisesRegex(kit.Refusal, 'move.*kits/_probe.*aside'):
++            self.invoke(dry=False)
++        self.assertFalse(any(c[0] in ('add', 'commit', 'push') for c in fake.calls))
++
++    def test_f2_reset_failure_requires_user_before_hourly(self):
++        fake = owner.FakeGit()
++
++        def fail(argv, **kwargs):
++            if argv[0] == 'git' and argv[7] in ('commit', 'reset'):
++                fake.calls.append(argv[7:])
++                raise kit.Refusal('injected failure')
++            return fake(argv, **kwargs)
++
++        with patch.object(kit, 'run', side_effect=fail), self.assertRaisesRegex(
++                kit.Refusal, 'STOP.*index.*user.*hourly'):
++            self.invoke(dry=False)
++        self.assertFalse(any(c[0] == 'push' for c in fake.calls))
++
++
++class TestIsolation(Round2Fixture):
++    def test_f3_kit_test_mode_cannot_target_production_state(self):
++        self.env.update(LCS_TEST_ROOT='/scratch/jjyeung',
++                        LCS_S='/scratch/jjyeung/distill_sync',
++                        LCS_R='/scratch/jjyeung/distill_sync/repo')
++        with patch.object(kit, 'owner_lock', side_effect=AssertionError('must not lock production')), \
++             self.assertRaisesRegex(kit.Refusal, 'production'):
++            self.invoke()
++
++    def test_f3_kit_test_mode_cannot_target_production_repo_or_events(self):
++        self.env['LCS_TEST_ROOT'] = '/scratch/jjyeung'
++        for key, value in (('LCS_R', '/scratch/jjyeung/distill_sync/repo'),
++                           ('LCS_EV', '/scratch/jjyeung/distill_sync/health')):
++            with self.subTest(key=key), patch.dict(self.env, {key: value}), \
++                 patch.object(kit, 'owner_lock', side_effect=AssertionError('must not lock')), \
++                 self.assertRaisesRegex(kit.Refusal, 'production'):
++                self.invoke()
++
++    def test_f3_health_fake_clock_cannot_write_production(self):
++        env = dict(self.env, LCS_TEST_ROOT='/scratch/jjyeung',
++                   LCS_S='/scratch/jjyeung/distill_sync', LCS_HEALTH_NOW='2099-01-01T00:00:00Z')
++        with patch.dict(os.environ, env), patch.object(health, 'check') as check:
++            with self.assertRaisesRegex(ValueError, 'production'):
++                health.main()
++            check.assert_not_called()
++
++    def test_f3_resolved_symlink_to_production_is_refused(self):
++        alias = self.root / 'alias'
++        alias.symlink_to('/scratch/jjyeung/distill_sync', target_is_directory=True)
++        self.env.update(LCS_TEST_ROOT='/scratch/jjyeung', LCS_S=str(alias), LCS_R=str(alias / 'repo'))
++        with patch.object(kit, 'owner_lock', side_effect=AssertionError('must not lock')), \
++             self.assertRaisesRegex(kit.Refusal, 'production'):
++            self.invoke()
++
++
++class BindingAndVerdicts(unittest.TestCase):
++    def setUp(self):
++        switch = patch.dict(os.environ, LCS_REVIEW2_FIXES='1')
++        switch.start()
++        self.addCleanup(switch.stop)
++
++    def review(self, tail, bind=True):
++        return kit.review(('VERDICT: GO\n' + tail).encode(), 'seal value', 'a' * 64,
++                          'a' * 64 if bind else None)
++
++    def test_f4_formatted_contradictory_hashes_cannot_hide_behind_owner_binding(self):
++        for template in ('- SHA256: {}', '| SHA256 | {} |', '**SHA256:** {}',
++                         '> **SHA-256**: `{}`', '  * SHA256: {} (archive)'):
++            with self.subTest(template=template), self.assertRaises(kit.Refusal):
++                self.review(template.format('b' * 64))
++
++    def test_f4_matching_formatted_bindings_authorize_and_conflicts_refuse(self):
++        for template in ('- SHA256: {}', '| SHA256 | `{}` |', '**SHA256:** `{}`',
++                         '> **SHA-256**: {} (archive)'):
++            with self.subTest(template=template):
++                self.assertEqual(self.review(template.format('a' * 64), False)[1]['methods'], ['sha256'])
++        for tail in ('Seal: seal value\n- Seal: wrong', 'SHA256: ' + 'a' * 64 + '\n- SHA256: ' + 'b' * 64,
++                     '- SHA256:', '**Seal:** wrong'):
++            with self.subTest(tail=tail), self.assertRaises(kit.Refusal):
++                self.review(tail)
++        self.assertEqual(self.review('Seal: seal value', False)[1]['methods'], ['seal'])
++
++    def test_f5_ordinary_prose_does_not_override_accepting_verdict(self):
++        for tail in ('There is no good reason to block.', 'The tool rejects symlinks.',
++                     'Verdict: see above', 'REJECTION tests passed.', 'XREJECTY is a fixture.'):
++            with self.subTest(tail=tail):
++                self.assertEqual(self.review(tail)[0], 'GO')
++
++    def test_f5_explicit_negative_tokens_still_refuse_even_when_quoted(self):
++        for tail in ('NO-GO', 'NO GO', 'REJECT', '`GO AFTER FIXES` or `NO-GO`', 'VERDICT: WAIT'):
++            with self.subTest(tail=tail), self.assertRaises(kit.Refusal):
++                self.review(tail)
++
++
++class HealthRegressions(Round2Fixture):
++    T = owner.HealthTests.T
++    write_log = owner.HealthTests.write_log
++
++    def test_f6_split_stale_and_failed_recovery_emits_both_results(self):
++        self.write_log(failed=True)
++        self.check(self.T + timedelta(minutes=91))
++        verified = self.T + timedelta(minutes=92)
++        self.write_log(verified, end_ok=False)
++        self.check(verified)
++        with self.log.open('a') as f:
++            f.write(health.iso(verified + timedelta(seconds=1)) + ' END ok\n')
++        self.check(verified + timedelta(seconds=2))
++        results = sorted(self.events.glob('*RESULT*'))
++        self.assertEqual(len(results), 2)
++        self.assertEqual({p.read_text().split('recovered: ')[1].split(';')[0] for p in results},
++                         {'stale', 'failed'})
++        self.check(verified + timedelta(minutes=1))
++        self.assertEqual(sorted(self.events.glob('*RESULT*')), results)
++
++    def test_f7_own_blocker_is_read_once_even_after_consumer_moves_it(self):
++        self.write_log(failed=True)
++        blocker = self.events / '20261119T0100Z_BLOCKER_sync_failed.md'
++        blocker.write_text(health.iso(self.T + timedelta(seconds=1)) + ' code_sync run failed\n')
++        with patch.object(health, 'own_blocker', wraps=health.own_blocker) as read:
++            self.check(self.T + timedelta(minutes=1))
++            blocker.rename(self.root / 'consumed_blocker.md')
++            self.check(self.T + timedelta(minutes=2))
++            self.check(self.T + timedelta(minutes=3))
++        self.assertEqual(read.call_count, 1)
++        self.assertEqual(list(self.events.glob('*BLOCKER_code_sync_failed.md')), [])
++        state = json.loads((self.state / 'health/state.json').read_text())
++        self.assertEqual(state['last_failed_run'], health.iso(self.T + timedelta(seconds=1)))
++
++    def test_f7_absent_own_blocker_is_checked_once_per_failure(self):
++        self.write_log(failed=True)
++        with patch.object(health, 'own_blocker', wraps=health.own_blocker) as read:
++            self.check(self.T + timedelta(minutes=1))
++            self.write_log(self.T + timedelta(minutes=2))
++            self.check(self.T + timedelta(minutes=3))
++            # Re-reading the same completed failure must not scan event storage.
++            self.write_log(failed=True)
++            self.check(self.T + timedelta(minutes=4))
++        self.assertEqual(read.call_count, 1)
++
++
++class CoverageAndFixtureSafety(Round2Fixture):
++    def test_f8_nested_excluded_ancestor_has_no_hourly_coverage(self):
++        if not str(self.root).startswith('/scratch/jjyeung/orch_n30/'):
++            self.skipTest('set LCS_TEST_WORK under /scratch/jjyeung/orch_n30 for dry-count integration')
++        for name in ('allowed/sub', 'runs/sub', 'out/devin_traces/sub'):
++            folder = self.root / name
++            folder.mkdir(parents=True)
++            (folder / 'code.py').write_text('x=1\n')
++            result = subprocess.run([sys.executable, '-I', '-s', '-B', str(owner.TOOLS / 'dry_count.py'), str(folder)],
++                                    env=dict(os.environ, **self.env), stdout=subprocess.PIPE,
++                                    stderr=subprocess.PIPE, universal_newlines=True, timeout=10)
++            self.assertEqual(result.returncode, 0, result.stderr)
++            data = json.loads(result.stdout)
++            self.assertEqual(data['files'], 1)
++            if name == 'allowed/sub':
++                self.assertEqual(data['hourly_files'], 1)
++                self.assertIsNone(data['hourly_root_gate_reason'])
++            else:
++                self.assertEqual(data['hourly_files'], 0)
++                self.assertTrue(data['hourly_root_gate_reason'])
++
++    def test_f9_owner_default_temp_root_ignores_checkout(self):
++        with patch.dict(os.environ, {}, clear=True), patch.object(Path, 'mkdir') as mkdir, \
++             patch.object(tempfile, 'gettempdir', return_value=str(self.root)), \
++             patch.object(tempfile, 'mkdtemp', return_value=str(self.root / 'owner_temp')) as make:
++            module = runpy.run_path(str(owner.BASE / 'tests/test_owner_tools.py'))
++        self.assertEqual(module['FIXTURES'], self.root / 'owner_temp')
++        self.assertEqual(Path(make.call_args[1]['dir']), self.root)
++        self.assertFalse(any('work/test_runs' in str(c) for c in mkdir.call_args_list))
++
++    def test_f9_owner_rejects_unsafe_root_before_writes(self):
++        for root in ('/home/fake_test', '/data2/fake_test', '/scratch_evil/fake_test'):
++            with patch.dict(os.environ, LCS_TEST_WORK=root), patch.object(Path, 'mkdir') as mkdir, \
++                 patch.object(tempfile, 'mkdtemp') as make:
++                with self.subTest(root=root), self.assertRaisesRegex(ValueError, '/scratch or /tmp'):
++                    runpy.run_path(str(owner.BASE / 'tests/test_owner_tools.py'))
++                mkdir.assert_not_called()
++                make.assert_not_called()
++
++    def test_f9_filter_default_temp_root_ignores_checkout(self):
++        path = owner.BASE / 'tests/test_filter_shell_copies.py'
++        if not path.exists():
++            self.skipTest('optional filter tests are delivered in patch 03')
++        module = runpy.run_path(str(path))
++        fixture = module['ShellCopiesTests']()
++        with patch.dict(os.environ, {}, clear=True), patch.object(Path, 'mkdir') as mkdir, \
++             patch.object(Path, 'write_text'), patch.object(Path, 'write_bytes'), \
++             patch.object(tempfile, 'gettempdir', return_value=str(self.root)), \
++             patch.object(tempfile, 'mkdtemp', return_value=str(self.root / 'filter_temp')) as make:
++            fixture.setUp()
++        self.assertEqual(Path(make.call_args[1]['dir']), self.root)
++        self.assertFalse(any('work/filter_tests' in str(c) for c in mkdir.call_args_list))
++
++    def test_f9_filter_rejects_unsafe_root_before_writes(self):
++        path = owner.BASE / 'tests/test_filter_shell_copies.py'
++        if not path.exists():
++            self.skipTest('optional filter tests are delivered in patch 03')
++        fixture = runpy.run_path(str(path))['ShellCopiesTests']()
++        with patch.dict(os.environ, LCS_TEST_WORK='/data2/fake_test'), \
++             patch.object(Path, 'mkdir') as mkdir, patch.object(Path, 'write_text'), \
++             patch.object(Path, 'write_bytes'), patch.object(tempfile, 'mkdtemp', return_value=str(self.root)) as make:
++            with self.assertRaisesRegex(ValueError, '/scratch or /tmp'):
++                fixture.setUp()
++            mkdir.assert_not_called()
++            make.assert_not_called()
++
++
++class MalformedInputs(Round2Fixture):
++    def test_f12_decoder_errors_return_refused_without_traceback(self):
++        args = [str(owner.TOOLS / 'land_kit.py'), str(self.tar), 's', self.sha,
++                str(self.review), '_probe', '--builder', 'b', '--reviewer', 'r',
++                '--bind-sha', self.sha, '--dry']
++        for error in (zlib.error('bad deflate'), lzma.LZMAError('bad xz')):
++            with self.subTest(error=type(error).__name__), patch.dict(os.environ, self.env), \
++                 patch.object(sys, 'argv', args), patch.object(tarfile, 'open', side_effect=error), \
++                 redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()) as err:
++                with self.assertRaises(SystemExit) as result:
++                    runpy.run_path(str(owner.TOOLS / 'land_kit.py'), run_name='__main__')
++                self.assertEqual(result.exception.code, 2)
++                self.assertIn('REFUSED:', err.getvalue())
++                self.assertNotIn('Traceback', err.getvalue())
++
++    def test_f12_truncated_gzip_returns_refused_without_traceback(self):
++        self.tar.write_bytes(gzip.compress(self.tar.read_bytes())[:12])
++        self.sha = kit.digest(self.tar)
++        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(owner.TOOLS / 'land_kit.py'),
++                                 str(self.tar), 's', self.sha, str(self.review), '_probe',
++                                 '--builder', 'b', '--reviewer', 'r', '--bind-sha', self.sha, '--dry'],
++                                env=dict(os.environ, **self.env), stdout=subprocess.PIPE,
++                                stderr=subprocess.PIPE, universal_newlines=True, timeout=10)
++        self.assertEqual(result.returncode, 2, result.stderr)
++        self.assertIn('REFUSED:', result.stderr)
++        self.assertNotIn('Traceback', result.stderr)
++
++    def test_f12_nondict_kit_metadata_is_refused(self):
++        target = self.repo / 'kits/_probe'
++        target.mkdir(parents=True)
++        (target / 'KIT.json').write_text('[]')
++        with self.assertRaisesRegex(kit.Refusal, 'KIT.json.*object'):
++            self.invoke()
++
++
++class Documentation(unittest.TestCase):
++    def test_f9_default_tmp_root_skips_scratch_integration_before_writes(self):
++        with patch.object(owner, 'FIXTURES', Path('/tmp/synthetic_owner_tests')), \
++             patch.object(tempfile, 'mkdtemp', side_effect=AssertionError('no fixture writes')):
++            with self.assertRaises(unittest.SkipTest):
++                owner.Fixture().setUp()
++
++    def test_f10_guide_matches_installation_receipts_queue_and_dry_lock(self):
++        guide = owner.BASE / 'GIT_OWNER.md'
++        if not guide.exists():
++            guide = owner.BASE / 'docs/GIT_OWNER.md'
++        text = guide.read_text()
++        self.assertNotIn('have not been installed', text)
++        self.assertIn('installed', text)
++        self.assertIn('/scratch/jjyeung/orch_n30/<lane>/clone', text)
++        self.assertIn('trinity-3-30 only', text)
++        self.assertIn('local to trinity-3-30', text)
++        self.assertIn('`--dry` takes the same lock', text)
 +
 +
 +if __name__ == '__main__':
@@ -1730,7 +2156,7 @@
 +log "END ok"
 --- /dev/null
 +++ b/docs/GIT_OWNER.md
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,88 @@
 +# Getting lane code into Git
 +
 +The designated Git owner on **trinity-3-30** runs Git; lanes supply files and queue rows.
@@ -1744,59 +2170,81 @@
 +| Hourly snapshot | Source under `/scratch/jjyeung/orch_n30/<lane>/` | Runs hourly sync; checks `lane_code/<node>/<lane>/…` and `verified GitHub lane-code` in `sync.log` |
 +| `eff/*` queue | Queue row for an existing commit | Makes the commit, runs queue publisher; checks `$S/PUSH_DONE.txt` or `$S/PUSH_REFUSED.txt` |
 +
++The seven owner tools are installed; the health loop runs every ten minutes, as reported
++in the supplied review. This package is a replacement for selected installed files.
 +Set `T` to the installed `orch_n30/tools` directory. Python 3.6.8 and 3.12 are supported.
++The fixes below require `LCS_REVIEW2_FIXES=1`, default OFF, in each command or loop environment.
++With it unset, the installed behavior remains active, including its documented limitations.
 +The owner reads the review, confirms that it covers this archive, then runs:
 +
 +```bash
-+LCS_ENABLE_KIT_LANDING=1 bash "$T/land_kit.sh" kit.tar seal sha256 review.md name \
++LCS_REVIEW2_FIXES=1 LCS_ENABLE_KIT_LANDING=1 bash "$T/land_kit.sh" kit.tar seal sha256 review.md name \
 +  --builder lane_builder --reviewer independent_reviewer --bind-sha sha256
 +```
 +
 +Both identities are required and must differ. The review needs no identity lines.
 +Its first nonempty line must be `VERDICT: GO`, `VERDICT: ACCEPT`, or
 +`VERDICT: ACCEPT WITH FINDINGS`, without indentation or Markdown. Later unindented
-+`VERDICT:` lines must also use a supported value. Any `NO-GO`, `NO GO`, or `REJECT`
-+anywhere refuses the file. `GO AFTER FIXES` needs a separate later GO verdict file;
++`VERDICT:` lines must also use a supported value; this later-line label is case-sensitive.
++Standalone uppercase `NO-GO`, `NO GO`, or `REJECT` tokens anywhere, including quotes, refuse
++the file. Ordinary prose such as “rejects symlinks” does not. The first verdict remains
++case-insensitive. `GO AFTER FIXES` needs a separate later GO verdict file;
 +appending GO to the conditional file does not authorize landing.
 +
 +A matching `Seal:` or `SHA256:` line must bind the review, or the owner passes
 +`--bind-sha <archive-sha256>` after reading it. Every supplied binding must match.
++Bullets, quotes, bold labels, table rows, backticks, and `SHA-256` labels are recognized.
 +`KIT.json` records the binding, identities, verdict digest, per-file manifest, and skipped files.
-+`--dry` prints files/counts before Git. Every filtered file prints as `SKIPPED` and refuses
++`--dry` takes the same lock and creates an audit directory; it stops before Git or clone writes.
++Every filtered file prints as `SKIPPED` and refuses
 +unless the owner passes `--allow-skips`. Eligible duplicate paths are preserved.
 +
 +Wrong hashes, secrets in any member, links, unsafe paths, empty payloads, conflicting names,
 +another branch, a changed tracked worktree, or a dirty index refuse. Identical content and
 +provenance republish the current head. Git disables automatic maintenance and terminal prompts.
-+Production tool/path overrides require `LCS_TEST_ROOT`. Both remotes must verify before the
-+landing receipt and `<UTC>_RESULT_kit_<name>_landed.md` event are written; lanes read those files.
++Production tool/path overrides require an isolated `LCS_TEST_ROOT`; test destinations cannot
++overlap the production state or clone, even through resolved symlinks. Both remotes must verify
++before the landing receipt and `<UTC>_RESULT_kit_<name>_landed.md` event are written.
++`$S/KITS_LANDED.txt` is local to trinity-3-30; lanes on other nodes read the shared RESULT event.
 +
 +The lock waits **600 seconds** by default (`LCS_LOCK_TIMEOUT`, maximum 3600). The hourly
 +uses a nonblocking lock and skips overlapping starts. Land just after `END ok`; stale events
 +quote the latest lock skip. Audit directories remain under `$S/land_kit_*`. Investigate
 +failed/killed operations before restarting; remote pushes and receipt writes are separate.
++If origin refuses a push, stop and contact the user before the next hourly run: the local commit
++can block hourly origin pushes while home advances. No rollback, force, or automatic retry runs.
++On add/commit failure, the kit command resets only `kits/<name>` in the index and checks that
++the index is clean. Inspect HEAD first because a timeout may follow a completed commit. If the
++kit is untracked, move its directory aside before rerunning. Keep that directory and the audit.
++If cleanup fails, contact the user before the hourly can commit the staged kit. A killed process
++cannot clean its index; its recovery also requires the user. The command does not stop the hourly.
 +
 +The hourly excludes proof/run/evidence/cache directories, oversized files, and directories
 +with more than 2000 entries. `in`, `out`, `work/tree`, and `kit` qualify unless an ancestor
 +fails a rule. Before expanding coverage, the owner runs:
 +
 +```bash
-+LCS_ENABLE_DRY_COUNT=1 bash "$T/dry_count.sh" /scratch/jjyeung/orch_n30/swarm_opt
++LCS_REVIEW2_FIXES=1 LCS_ENABLE_DRY_COUNT=1 bash "$T/dry_count.sh" /scratch/jjyeung/orch_n30/swarm_opt
 +```
 +
 +Only existing nonsymlink folders under `/scratch/jjyeung/orch_n30/` qualify. Counts deduplicate
-+per folder; hourly deduplication spans a node tree. `COVERAGE.md` lists the rules.
++per folder; hourly deduplication spans a node tree. Ancestor exclusions and MAXDIR apply even
++to nested folders. `COVERAGE.md` lists the rules.
 +
-+Queue rows are `<UTC> eff/<slug> <40-hex-sha> [<lane>/clone|<lane>/repo]` in
-+`e_*/PUSH_QUEUE.txt` or `eff_*/PUSH_QUEUE.txt`. **The designated Git owner makes those commits**
++Queue rows are `<UTC> eff/<slug> <40-hex-sha> [<absolute-clone-path>]` in
++`e_*/PUSH_QUEUE.txt` or `eff_*/PUSH_QUEUE.txt` on trinity-3-30 only. An explicit clone path must
++be `/scratch/jjyeung/orch_n30/<lane>/clone` or `/scratch/jjyeung/orch_n30/<lane>/repo`; a relative
++path is permanently refused. An omitted fourth field selects the lane's clone/repo locally.
++**The designated Git owner makes those commits**
 +in an authorized scratch lane clone under the owner lock and supplies the SHA to the lane.
 +The publisher fetches, checks ancestry/secrets, and pushes the named commit to origin without force.
 +
-+The owner starts `LCS_ENABLE_SYNC_HEALTH=1 bash "$T/sync_health_loop.sh"` in tmux.
++The owner starts `LCS_REVIEW2_FIXES=1 LCS_ENABLE_SYNC_HEALTH=1 bash "$T/sync_health_loop.sh"` in tmux.
 +Every ten minutes it checks local evidence, emits one event per incident/recovery, and records
 +delivery in `$S/health/`. Consumers may move delivered events; only undelivered events replay.
 +Ordinary errors log to `$S/health.log` and the next tick runs. Signal exits stop for owner
-+investigation under cluster rules. These default-off tools have not been installed in production.
++investigation under cluster rules. The owning orchestrator must arrange any restart of the
++installed loop to load replacement files and the new environment switch.
 --- /dev/null
 +++ b/docs/COVERAGE.md
 @@ -0,0 +1,56 @@
@@ -1856,3 +2304,65 @@
 +is pushed. Running it on an empty or incomplete mirror cannot establish remote coverage.
 +Per-folder counts are upper bounds on additive hourly totals because hourly content deduplication
 +spans all lanes. Counts do not scan secrets or prove review acceptance; the landing path does.
+--- /dev/null
++++ b/docs/HANDOVER.md
+@@ -0,0 +1,59 @@
++# Owner handover
++
++The replacement tools address findings 1–9 behind `LCS_REVIEW2_FIXES=1`, default OFF.
++The required real-Git rerun remains blocked by this dispatch's explicit no-Git rule.
++Do not treat the mocked command tests as proof against a real index or remote.
++
++Replace only the three installed Python files listed in `INSTALLED_CHANGES.json` after checking
++their recorded base hashes. The four shell wrappers and `lane_code_sync.sh` remain byte-identical.
++This workspace has not installed files, stopped services, or published commits. The existing
++tools and ten-minute health loop are installed, as stated by the supplied review; the seven
++installed owner files and hourly script were independently compared with their pinned copies.
++
++Set `LCS_REVIEW2_FIXES=1` together with the relevant `LCS_ENABLE_*` flag. An unset switch retains
++the installed behavior and its limitations. The loop's owning orchestrator must arrange any
++restart needed to load the new environment. `GIT_OWNER.md` gives the invocation and recovery rules.
++
++An origin refusal leaves the local commit intact. The new STOP notice requires the user before
++the hourly can repeat the origin failure and advance home. The command does not pause the hourly
++or rewrite history. A failed kit commit clears only its staging; if cleanup fails or the process
++is killed, user intervention is still required before the hourly. No automatic rerun is safe.
++
++Patches 01–03 rebuild the package from the supplied input files. Patch 04 is an alternative
++upgrade from the pinned review package, including its tests/docs; do not apply it after the
++regenerated patch 02. `PATCH_BASES.json` pins each preimage by SHA256 and records absent files.
++The installed-file list is separate because only the three tool replacements affect production.
++
++## Review round 2: finding -> fix -> test
++
++| Finding | Fix or decision | Regression test or remaining check |
++|---|---|---|
++| 1 | Origin push failure prints a STOP notice requiring the user before the hourly run; it neither pushes home nor writes a receipt. This is the review's minimal mitigation; the local commit remains. | LandingFailures.test_f1_origin_rejection_requires_user_and_never_pushes_home |
++| 2 | Add/commit/copy errors reset only the kit path in the index and verify a clean index. The refusal explains how to inspect HEAD and move an untracked kit aside; failed cleanup requires the user before the hourly. | LandingFailures.test_f2_failed_commit_unstages_only_kit; test_f2_failed_add_unstages_only_kit; test_f2_partial_copy_explains_recovery_without_staging; test_f2_reset_failure_requires_user_before_hourly |
++| 3 | Resolved test destinations cannot overlap production state, clone, or local state events; a broad test root and a symlink cannot bypass the checks. | TestIsolation: four test_f3_* methods |
++| 4 | The binding parser recognizes bullets, quotes, bold labels, tables, backticks, and SHA-256. Every binding must match, even with owner --bind-sha; empty and conflicting fields refuse. | BindingAndVerdicts.test_f4_formatted_contradictory_hashes_cannot_hide_behind_owner_binding; test_f4_matching_formatted_bindings_authorize_and_conflicts_refuse |
++| 5 | Negative tokens are uppercase whole alphabetic words; later VERDICT labels are case-sensitive. Ordinary prose passes. Quoted uppercase NO-GO still refuses, preserving the required negative-token policy. | BindingAndVerdicts.test_f5_ordinary_prose_does_not_override_accepting_verdict; test_f5_explicit_negative_tokens_still_refuse_even_when_quoted |
++| 6 | Recovery event names include the observation time and recovered incident kinds, so split stale/failed recovery at one verified timestamp emits both events. | HealthRegressions.test_f6_split_stale_and_failed_recovery_emits_both_results |
++| 7 | Health checks last_failed_run before scanning hourly BLOCKERs and records either decision. A consumer moving a previously observed BLOCKER cannot cause a duplicate. | HealthRegressions.test_f7_own_blocker_is_read_once_even_after_consumer_moves_it; test_f7_absent_own_blocker_is_checked_once_per_failure |
++| 8 | dry_count checks every ancestor below the orchestration root, including multi-component substring exclusions and MAXDIR. | CoverageAndFixtureSafety.test_f8_nested_excluded_ancestor_has_no_hourly_coverage; existing CoverageTests |
++| 9 | Owner/filter tests use validated temporary roots under /scratch or /tmp and reject unsafe roots before writes. They never default to the installed checkout. Scratch-only integration tests skip when the temporary root is /tmp. | CoverageAndFixtureSafety: four test_f9_* methods; Documentation.test_f9_default_tmp_root_skips_scratch_integration_before_writes |
++| 10 (INFO) | The owner guide states installed status, node-local receipts, absolute queue paths and node scope, dry-run locking, and the implemented verdict rules. | Documentation.test_f10_guide_matches_installation_receipts_queue_and_dry_lock |
++| 11 (INFO) | Real-Git reruns are not executed: the current dispatch explicitly forbids Git and supersedes the earlier round's exception. The unchanged runner remains available for an authorized owner. | The runner's disabled guard is exercised under both interpreters; real-Git unittest is explicitly skipped. No current real-Git proof is claimed. |
++| 12 (INFO) | EOFError, zlib.error and LZMAError become REFUSED; non-object KIT.json refuses cleanly. The Python 3.6 surviving-grandchild timeout problem remains: changing process-tree termination exceeds the small error-handling fix and needs authorized integration validation. | MalformedInputs: three test_f12_* methods. The subprocess timeout/grandchild case is not tested or fixed. |
++| 13 (INFO) | The existing lock, archive/filter/scanner safeguards, branch/refspec constraints, receipts, package override and default filter behavior are rechecked by the permitted suites. Live remote and real-Git claims remain unverified this round. | Owner/package/filter suites on both interpreters; syntax, in-memory compilation, supplied-log health samples, patch/source equivalence and input hashes. |
++
++## Remaining checks and limits
++
++- An authorized owner must run `tests/run_real_git_owner.sh` with `LCS_RUN_REAL_GIT_TESTS=1`,
++  `LCS_REVIEW2_FIXES=1`, `LCS_REAL_GIT_WORK` under authorized scratch, and each supported
++  `LCS_PYTHON`. This round runs only its disabled guard; do not enable it under this dispatch.
++- The health monitor cannot identify an hourly BLOCKER moved before its first observation.
++  A consumer moving it in that window can still cause one duplicate health BLOCKER.
++- Python 3.6 can wait past a subprocess timeout if a surviving grandchild holds its pipes.
++  That process-tree issue remains; the small malformed-archive fixes do not solve it.
++- Audit/test directories are retained. Test commands in `REPORT.md` place all writes under
++  this workspace. With the default /tmp root, scratch-only owner integration tests skip;
++  set LCS_TEST_WORK to an authorized scratch directory to run them.
++
++The requested finding mapping is retained to connect decisions to evidence. Exact current
++outputs and the validation limits appear in `REPORT.md` and `evidence/round2_commands.json`.

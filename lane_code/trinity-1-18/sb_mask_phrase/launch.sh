@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# bash launch.sh MODE [ONLY]: MODE is capture or recall; 8 shard processes, each under run.sh (nice 10, 40 GB cap).
+set -euo pipefail
+cd /scratch/jjyeung/orch_n30/sb_mask_phrase
+mode=$1; only=${2:-}
+mkdir -p work/logs
+pids=()
+for s in 0 1 2 3 4 5 6 7; do
+  bash run.sh kit.py "$mode" "$s" 8 $only > "work/logs/${mode}_${s}.log" 2>&1 &
+  pids+=($!)
+done
+rc=0
+for p in "${pids[@]}"; do wait "$p" || rc=1; done
+echo "{\"mode\": \"$mode\", \"returncode\": $rc}" >> work/logs/stages.log
+exit $rc

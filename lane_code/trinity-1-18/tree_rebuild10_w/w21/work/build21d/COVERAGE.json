@@ -1,0 +1,823 @@
+{
+  "method": "Standard-library tracing of changed AST statement heads; only exact current source hashes count.",
+  "sha256": "a022c4e87a56e492d86e7907576fac1f74c762709a12c1dd223b7a4cc138cb1c",
+  "observed": 162,
+  "total": 162,
+  "statements": [
+    {
+      "line": 11,
+      "observed": true,
+      "text": "PROVENANCE_FIELDS={"
+    },
+    {
+      "line": 31,
+      "observed": true,
+      "text": "for _field in PROVENANCE_FIELDS.values():"
+    },
+    {
+      "line": 33,
+      "observed": true,
+      "text": "SOURCE_SEALS={"
+    },
+    {
+      "line": 41,
+      "observed": true,
+      "text": "INPUT_IDENTITIES={"
+    },
+    {
+      "line": 47,
+      "observed": true,
+      "text": "ROOM_RULE_PATH=('entries','u/a4509d8c159f71f81d0f82adad8e85ef8135d17363084e7281fadddea04c9c5c','@content','room_rule')"
+    },
+    {
+      "line": 48,
+      "observed": true,
+      "text": "ROOM_RULE='Only production-admitted traced rows can enter; initial cell zero until the loader audit binds them.'"
+    },
+    {
+      "line": 50,
+      "observed": true,
+      "text": "def scan_python_environment(tree,name,doc):"
+    },
+    {
+      "line": 32,
+      "observed": true,
+      "text": "    _field['use']='Authenticated file content only; never used as a wrapper name, path, argument, environment entry or log line.'"
+    },
+    {
+      "line": 57,
+      "observed": true,
+      "text": "    import ast"
+    },
+    {
+      "line": 58,
+      "observed": true,
+      "text": "    bindings={};os_names={'os'};env_names=set();putenv_names=set();sinks=[]"
+    },
+    {
+      "line": 58,
+      "observed": true,
+      "text": "    bindings={};os_names={'os'};env_names=set();putenv_names=set();sinks=[]"
+    },
+    {
+      "line": 58,
+      "observed": true,
+      "text": "    bindings={};os_names={'os'};env_names=set();putenv_names=set();sinks=[]"
+    },
+    {
+      "line": 58,
+      "observed": true,
+      "text": "    bindings={};os_names={'os'};env_names=set();putenv_names=set();sinks=[]"
+    },
+    {
+      "line": 58,
+      "observed": true,
+      "text": "    bindings={};os_names={'os'};env_names=set();putenv_names=set();sinks=[]"
+    },
+    {
+      "line": 59,
+      "observed": true,
+      "text": "    def bind(key,value):bindings.setdefault(key,[]).append(value)"
+    },
+    {
+      "line": 60,
+      "observed": true,
+      "text": "    for node in ast.walk(tree):"
+    },
+    {
+      "line": 78,
+      "observed": true,
+      "text": "    def environment(node):"
+    },
+    {
+      "line": 82,
+      "observed": true,
+      "text": "    for _ in range(len(bindings)+1):"
+    },
+    {
+      "line": 90,
+      "observed": true,
+      "text": "    def literal(node,seen=frozenset()):"
+    },
+    {
+      "line": 102,
+      "observed": true,
+      "text": "    def inspect(node,where,seen=frozenset()):"
+    },
+    {
+      "line": 109,
+      "observed": true,
+      "text": "    for node in ast.walk(tree):"
+    },
+    {
+      "line": 128,
+      "observed": true,
+      "text": "    return sinks"
+    },
+    {
+      "line": 148,
+      "observed": true,
+      "text": "    import ast,base64,shlex"
+    },
+    {
+      "line": 149,
+      "observed": true,
+      "text": "    from functools import lru_cache"
+    },
+    {
+      "line": 152,
+      "observed": true,
+      "text": "    maps=[];names=[];provenance=[];capsules=[];environments=[]"
+    },
+    {
+      "line": 152,
+      "observed": true,
+      "text": "    maps=[];names=[];provenance=[];capsules=[];environments=[]"
+    },
+    {
+      "line": 152,
+      "observed": true,
+      "text": "    maps=[];names=[];provenance=[];capsules=[];environments=[]"
+    },
+    {
+      "line": 152,
+      "observed": true,
+      "text": "    maps=[];names=[];provenance=[];capsules=[];environments=[]"
+    },
+    {
+      "line": 152,
+      "observed": true,
+      "text": "    maps=[];names=[];provenance=[];capsules=[];environments=[]"
+    },
+    {
+      "line": 155,
+      "observed": true,
+      "text": "    def forbidden(value):return bad_string(value,wh)"
+    },
+    {
+      "line": 156,
+      "observed": true,
+      "text": "    def name(value,where,exception=None):"
+    },
+    {
+      "line": 180,
+      "observed": true,
+      "text": "    def visit(v,doc,parts=(),inventory=False):"
+    },
+    {
+      "line": 221,
+      "observed": true,
+      "text": "    for p in [*sorted(kit.rglob('*.sh')),kit/'k/j.json']:"
+    },
+    {
+      "line": 245,
+      "observed": true,
+      "text": "    for p in sorted(kit.rglob('*.py')):"
+    },
+    {
+      "line": 59,
+      "observed": true,
+      "text": "    def bind(key,value):bindings.setdefault(key,[]).append(value)"
+    },
+    {
+      "line": 61,
+      "observed": true,
+      "text": "        if isinstance(node,ast.Import):"
+    },
+    {
+      "line": 79,
+      "observed": true,
+      "text": "        return (isinstance(node,ast.Name) and node.id in env_names or"
+    },
+    {
+      "line": 83,
+      "observed": true,
+      "text": "        added={key for key,values in bindings.items() if any(environment(v) for v in values)}-env_names"
+    },
+    {
+      "line": 84,
+      "observed": true,
+      "text": "        setters={key for key,values in bindings.items() if any("
+    },
+    {
+      "line": 87,
+      "observed": true,
+      "text": "        if not added and not setters:break"
+    },
+    {
+      "line": 88,
+      "observed": true,
+      "text": "        env_names.update(added)"
+    },
+    {
+      "line": 89,
+      "observed": true,
+      "text": "        putenv_names.update(setters)"
+    },
+    {
+      "line": 91,
+      "observed": true,
+      "text": "        if isinstance(node,ast.Constant) and isinstance(node.value,(str,bytes)):"
+    },
+    {
+      "line": 93,
+      "observed": true,
+      "text": "        if isinstance(node,ast.Name) and node.id not in seen and len(bindings.get(node.id,[]))==1:"
+    },
+    {
+      "line": 95,
+      "observed": true,
+      "text": "        if isinstance(node,ast.BinOp) and isinstance(node.op,ast.Add):"
+    },
+    {
+      "line": 98,
+      "observed": true,
+      "text": "        if isinstance(node,ast.JoinedStr):"
+    },
+    {
+      "line": 101,
+      "observed": true,
+      "text": "        return None"
+    },
+    {
+      "line": 103,
+      "observed": true,
+      "text": "        text=literal(node)"
+    },
+    {
+      "line": 104,
+      "observed": true,
+      "text": "        if text is not None:name(text,where)"
+    },
+    {
+      "line": 105,
+      "observed": true,
+      "text": "        if isinstance(node,ast.keyword) and node.arg is not None:name(node.arg,where+':key')"
+    },
+    {
+      "line": 106,
+      "observed": true,
+      "text": "        if isinstance(node,ast.Name) and node.id not in seen:"
+    },
+    {
+      "line": 108,
+      "observed": true,
+      "text": "        for child in ast.iter_child_nodes(node):inspect(child,where,seen)"
+    },
+    {
+      "line": 110,
+      "observed": true,
+      "text": "        values=[]"
+    },
+    {
+      "line": 111,
+      "observed": true,
+      "text": "        if isinstance(node,(ast.Assign,ast.AnnAssign,ast.AugAssign)):"
+    },
+    {
+      "line": 123,
+      "observed": true,
+      "text": "        if values:"
+    },
+    {
+      "line": 155,
+      "observed": true,
+      "text": "    def forbidden(value):return bad_string(value,wh)"
+    },
+    {
+      "line": 157,
+      "observed": true,
+      "text": "        if forbidden(value):"
+    },
+    {
+      "line": 173,
+      "observed": true,
+      "text": "        name(original,where,'input_identity')"
+    },
+    {
+      "line": 225,
+      "observed": true,
+      "text": "        shell_lines=[]"
+    },
+    {
+      "line": 226,
+      "observed": true,
+      "text": "        for n,line in enumerate(raw.decode().replace('\\\\\\n','').splitlines(),1):"
+    },
+    {
+      "line": 230,
+      "observed": true,
+      "text": "        for token in shlex.split('\\n'.join(shell_lines),comments=False):name(token,str(p.relative_to(kit))+':shell')"
+    },
+    {
+      "line": 246,
+      "observed": true,
+      "text": "        tree=ast.parse(p.read_text())"
+    },
+    {
+      "line": 247,
+      "observed": true,
+      "text": "        environments.extend(scan_python_environment(tree,name,str(p.relative_to(kit))))"
+    },
+    {
+      "line": 248,
+      "observed": true,
+      "text": "        for node in ast.walk(tree):"
+    },
+    {
+      "line": 62,
+      "observed": true,
+      "text": "            os_names.update(a.asname or a.name for a in node.names if a.name=='os')"
+    },
+    {
+      "line": 63,
+      "observed": true,
+      "text": "        elif isinstance(node,ast.ImportFrom) and node.module=='os':"
+    },
+    {
+      "line": 87,
+      "observed": true,
+      "text": "        if not added and not setters:break"
+    },
+    {
+      "line": 92,
+      "observed": true,
+      "text": "            return node.value.decode() if isinstance(node.value,bytes) else node.value"
+    },
+    {
+      "line": 94,
+      "observed": true,
+      "text": "            return literal(bindings[node.id][0],seen|{node.id})"
+    },
+    {
+      "line": 96,
+      "observed": true,
+      "text": "            a=literal(node.left,seen);b=literal(node.right,seen)"
+    },
+    {
+      "line": 96,
+      "observed": true,
+      "text": "            a=literal(node.left,seen);b=literal(node.right,seen)"
+    },
+    {
+      "line": 97,
+      "observed": true,
+      "text": "            if a is not None and b is not None:return a+b"
+    },
+    {
+      "line": 99,
+      "observed": true,
+      "text": "            values=[literal(x.value if isinstance(x,ast.FormattedValue) else x,seen) for x in node.values]"
+    },
+    {
+      "line": 100,
+      "observed": true,
+      "text": "            if all(v is not None for v in values):return ''.join(values)"
+    },
+    {
+      "line": 104,
+      "observed": true,
+      "text": "        if text is not None:name(text,where)"
+    },
+    {
+      "line": 105,
+      "observed": true,
+      "text": "        if isinstance(node,ast.keyword) and node.arg is not None:name(node.arg,where+':key')"
+    },
+    {
+      "line": 107,
+      "observed": true,
+      "text": "            for value in bindings.get(node.id,[]):inspect(value,where,seen|{node.id})"
+    },
+    {
+      "line": 108,
+      "observed": true,
+      "text": "        for child in ast.iter_child_nodes(node):inspect(child,where,seen)"
+    },
+    {
+      "line": 112,
+      "observed": true,
+      "text": "            for target in node.targets if isinstance(node,ast.Assign) else [node.target]:"
+    },
+    {
+      "line": 115,
+      "observed": true,
+      "text": "        elif isinstance(node,ast.Subscript) and environment(node.value):values.append(node.slice)"
+    },
+    {
+      "line": 124,
+      "observed": true,
+      "text": "            where=doc+':'+str(node.lineno)+':environment'"
+    },
+    {
+      "line": 125,
+      "observed": true,
+      "text": "            for value in values:"
+    },
+    {
+      "line": 127,
+      "observed": true,
+      "text": "            sinks.append(dict(location=where,expression=ast.unparse(node)))"
+    },
+    {
+      "line": 158,
+      "observed": true,
+      "text": "            if exception is None:raise ValueError('INPUT_NAME:'+where+':'+value)"
+    },
+    {
+      "line": 159,
+      "observed": true,
+      "text": "            provenance.append(dict(location=where,field=exception,value=value))"
+    },
+    {
+      "line": 228,
+      "observed": true,
+      "text": "            if forbidden(line):raise ValueError('EXECUTABLE_NAME:'+p.name+':'+str(n)+':'+line)"
+    },
+    {
+      "line": 229,
+      "observed": true,
+      "text": "            shell_lines.append(line)"
+    },
+    {
+      "line": 230,
+      "observed": true,
+      "text": "        for token in shlex.split('\\n'.join(shell_lines),comments=False):name(token,str(p.relative_to(kit))+':shell')"
+    },
+    {
+      "line": 241,
+      "observed": true,
+      "text": "            for key in value:name(key,relative+':key')"
+    },
+    {
+      "line": 242,
+      "observed": true,
+      "text": "            for word in json.loads(raw):name(word,relative,'refusal_vocabulary')"
+    },
+    {
+      "line": 243,
+      "observed": true,
+      "text": "            continue"
+    },
+    {
+      "line": 64,
+      "observed": true,
+      "text": "            env_names.update(a.asname or a.name for a in node.names if a.name in ('environ','environb'))"
+    },
+    {
+      "line": 65,
+      "observed": true,
+      "text": "            putenv_names.update(a.asname or a.name for a in node.names if a.name=='putenv')"
+    },
+    {
+      "line": 66,
+      "observed": true,
+      "text": "        elif isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)):"
+    },
+    {
+      "line": 97,
+      "observed": true,
+      "text": "            if a is not None and b is not None:return a+b"
+    },
+    {
+      "line": 100,
+      "observed": true,
+      "text": "            if all(v is not None for v in values):return ''.join(values)"
+    },
+    {
+      "line": 107,
+      "observed": true,
+      "text": "            for value in bindings.get(node.id,[]):inspect(value,where,seen|{node.id})"
+    },
+    {
+      "line": 113,
+      "observed": true,
+      "text": "                if isinstance(target,ast.Subscript) and environment(target.value):values.extend([target.slice,node.value])"
+    },
+    {
+      "line": 115,
+      "observed": true,
+      "text": "        elif isinstance(node,ast.Subscript) and environment(node.value):values.append(node.slice)"
+    },
+    {
+      "line": 116,
+      "observed": true,
+      "text": "        elif isinstance(node,ast.Call):"
+    },
+    {
+      "line": 126,
+      "observed": true,
+      "text": "                if value is not None:inspect(value,where)"
+    },
+    {
+      "line": 158,
+      "observed": true,
+      "text": "            if exception is None:raise ValueError('INPUT_NAME:'+where+':'+value)"
+    },
+    {
+      "line": 185,
+      "observed": true,
+      "text": "                for key in v:name(key,where+':key')"
+    },
+    {
+      "line": 186,
+      "observed": true,
+      "text": "                name(v['encoding'],where+'/encoding');name(v['sha256'],where+'/sha256')"
+    },
+    {
+      "line": 186,
+      "observed": true,
+      "text": "                name(v['encoding'],where+'/encoding');name(v['sha256'],where+'/sha256')"
+    },
+    {
+      "line": 187,
+      "observed": true,
+      "text": "                visit(json.loads(decode(v,where)),doc,parts);return"
+    },
+    {
+      "line": 187,
+      "observed": true,
+      "text": "                visit(json.loads(decode(v,where)),doc,parts);return"
+    },
+    {
+      "line": 189,
+      "observed": true,
+      "text": "                for key in v:name(key,where+':key')"
+    },
+    {
+      "line": 190,
+      "observed": true,
+      "text": "                name(v['sha256'],where+'/sha256')"
+    },
+    {
+      "line": 191,
+      "observed": true,
+      "text": "                visit(json.loads(decode(v,where)),doc,parts+('@content',));return"
+    },
+    {
+      "line": 191,
+      "observed": true,
+      "text": "                visit(json.loads(decode(v,where)),doc,parts+('@content',));return"
+    },
+    {
+      "line": 194,
+      "observed": true,
+      "text": "                if doc=='k/n.json' and isinstance(x,str) and forbidden(x):"
+    },
+    {
+      "line": 204,
+      "observed": true,
+      "text": "                source_seal=SOURCE_SEALS.get((doc,key)) if not parts else None"
+    },
+    {
+      "line": 205,
+      "observed": true,
+      "text": "                if source_seal:"
+    },
+    {
+      "line": 209,
+      "observed": true,
+      "text": "                exception=('staging_schema' if doc=='k/l.json' else 'config_schema') if schema_field else None"
+    },
+    {
+      "line": 210,
+      "observed": true,
+      "text": "                if inventory:exception='source_inventory'"
+    },
+    {
+      "line": 211,
+      "observed": true,
+      "text": "                name(key,where+':key',exception)"
+    },
+    {
+      "line": 212,
+      "observed": true,
+      "text": "                visit(x,doc,loc,bool(source_seal))"
+    },
+    {
+      "line": 214,
+      "observed": true,
+      "text": "            for i,x in enumerate(v):visit(x,doc,parts+(str(i),))"
+    },
+    {
+      "line": 228,
+      "observed": true,
+      "text": "            if forbidden(line):raise ValueError('EXECUTABLE_NAME:'+p.name+':'+str(n)+':'+line)"
+    },
+    {
+      "line": 241,
+      "observed": true,
+      "text": "            for key in value:name(key,relative+':key')"
+    },
+    {
+      "line": 242,
+      "observed": true,
+      "text": "            for word in json.loads(raw):name(word,relative,'refusal_vocabulary')"
+    },
+    {
+      "line": 67,
+      "observed": true,
+      "text": "            for result in ast.walk(node):"
+    },
+    {
+      "line": 69,
+      "observed": true,
+      "text": "        elif isinstance(node,(ast.Assign,ast.AnnAssign,ast.AugAssign)):"
+    },
+    {
+      "line": 113,
+      "observed": true,
+      "text": "                if isinstance(target,ast.Subscript) and environment(target.value):values.extend([target.slice,node.value])"
+    },
+    {
+      "line": 114,
+      "observed": true,
+      "text": "                elif environment(target):values.append(node.value)"
+    },
+    {
+      "line": 117,
+      "observed": true,
+      "text": "            values.extend(k.value for k in node.keywords if k.arg=='env')"
+    },
+    {
+      "line": 118,
+      "observed": true,
+      "text": "            func=node.func"
+    },
+    {
+      "line": 119,
+      "observed": true,
+      "text": "            setter=(isinstance(func,ast.Attribute) and (environment(func.value) or"
+    },
+    {
+      "line": 121,
+      "observed": true,
+      "text": "            setter |= isinstance(func,ast.Name) and func.id in putenv_names"
+    },
+    {
+      "line": 122,
+      "observed": true,
+      "text": "            if setter:values.extend([*node.args,*node.keywords])"
+    },
+    {
+      "line": 126,
+      "observed": true,
+      "text": "                if value is not None:inspect(value,where)"
+    },
+    {
+      "line": 185,
+      "observed": true,
+      "text": "                for key in v:name(key,where+':key')"
+    },
+    {
+      "line": 189,
+      "observed": true,
+      "text": "                for key in v:name(key,where+':key')"
+    },
+    {
+      "line": 195,
+      "observed": true,
+      "text": "                    identity=INPUT_IDENTITIES.get(loc)"
+    },
+    {
+      "line": 196,
+      "observed": true,
+      "text": "                    if identity:"
+    },
+    {
+      "line": 206,
+      "observed": true,
+      "text": "                    if (not isinstance(x,dict) or any(not isinstance(h,str) or not re.fullmatch('[0-9a-f]{64}',h) for h in x.values())"
+    },
+    {
+      "line": 210,
+      "observed": true,
+      "text": "                if inventory:exception='source_inventory'"
+    },
+    {
+      "line": 214,
+      "observed": true,
+      "text": "            for i,x in enumerate(v):visit(x,doc,parts+(str(i),))"
+    },
+    {
+      "line": 216,
+      "observed": true,
+      "text": "            exception='room_rule' if doc=='k/s.json' and parts==ROOM_RULE_PATH and v==ROOM_RULE else None"
+    },
+    {
+      "line": 217,
+      "observed": true,
+      "text": "            name(v,where,exception)"
+    },
+    {
+      "line": 68,
+      "observed": true,
+      "text": "                if isinstance(result,ast.Return) and result.value is not None:bind(node.name,result.value)"
+    },
+    {
+      "line": 70,
+      "observed": true,
+      "text": "            for target in node.targets if isinstance(node,ast.Assign) else [node.target]:"
+    },
+    {
+      "line": 75,
+      "observed": true,
+      "text": "        elif isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute):"
+    },
+    {
+      "line": 114,
+      "observed": true,
+      "text": "                elif environment(target):values.append(node.value)"
+    },
+    {
+      "line": 122,
+      "observed": true,
+      "text": "            if setter:values.extend([*node.args,*node.keywords])"
+    },
+    {
+      "line": 197,
+      "observed": true,
+      "text": "                        original,h=identity"
+    },
+    {
+      "line": 198,
+      "observed": true,
+      "text": "                        if x!=original or (key=='path' and (set(v)!={'path','sha256'} or v['sha256']!=h)):"
+    },
+    {
+      "line": 200,
+      "observed": true,
+      "text": "                        name(key,where+':key');pinned_name(x,h,where+'/'+key);continue"
+    },
+    {
+      "line": 200,
+      "observed": true,
+      "text": "                        name(key,where+':key');pinned_name(x,h,where+'/'+key);continue"
+    },
+    {
+      "line": 200,
+      "observed": true,
+      "text": "                        name(key,where+':key');pinned_name(x,h,where+'/'+key);continue"
+    },
+    {
+      "line": 68,
+      "observed": true,
+      "text": "                if isinstance(result,ast.Return) and result.value is not None:bind(node.name,result.value)"
+    },
+    {
+      "line": 71,
+      "observed": true,
+      "text": "                if isinstance(target,ast.Name) and node.value is not None:bind(target.id,node.value)"
+    },
+    {
+      "line": 76,
+      "observed": true,
+      "text": "            if isinstance(node.func.value,ast.Name) and node.func.attr in ('update','setdefault','__setitem__'):"
+    },
+    {
+      "line": 199,
+      "observed": true,
+      "text": "                            raise ValueError('INPUT_NAME_UNMAPPED:'+where+'/'+key+':'+x)"
+    },
+    {
+      "line": 71,
+      "observed": true,
+      "text": "                if isinstance(target,ast.Name) and node.value is not None:bind(target.id,node.value)"
+    },
+    {
+      "line": 72,
+      "observed": true,
+      "text": "                elif isinstance(target,ast.Subscript) and isinstance(target.value,ast.Name):"
+    },
+    {
+      "line": 77,
+      "observed": true,
+      "text": "                for arg in [*node.args,*node.keywords]:bind(node.func.value.id,arg)"
+    },
+    {
+      "line": 73,
+      "observed": true,
+      "text": "                    bind(target.value.id,target.slice)"
+    },
+    {
+      "line": 74,
+      "observed": true,
+      "text": "                    if node.value is not None:bind(target.value.id,node.value)"
+    },
+    {
+      "line": 77,
+      "observed": true,
+      "text": "                for arg in [*node.args,*node.keywords]:bind(node.func.value.id,arg)"
+    },
+    {
+      "line": 74,
+      "observed": true,
+      "text": "                    if node.value is not None:bind(target.value.id,node.value)"
+    }
+  ],
+  "evidence": [
+    "work/build21d/TRACE_guard.json",
+    "work/build21d/TRACE_naming21d.json",
+    "work/build21d/TRACE_scan.json"
+  ]
+}

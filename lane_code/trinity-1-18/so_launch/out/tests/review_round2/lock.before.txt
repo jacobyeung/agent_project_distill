@@ -1,0 +1,29 @@
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/round2-red-ok8cavrn/tests/test_prepared_cache_wrapper.py PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75 -v
+ENV: {}
+test_duplicate_training_or_resume_job_times_out_with_75 (__main__.PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75) ... 
+  test_duplicate_training_or_resume_job_times_out_with_75 (__main__.PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75) (mode='t', marker='1') ... FAIL
+  test_duplicate_training_or_resume_job_times_out_with_75 (__main__.PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75) (mode='u', marker='1') ... FAIL
+
+======================================================================
+FAIL: test_duplicate_training_or_resume_job_times_out_with_75 (__main__.PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75) (mode='t', marker='1')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/round2-red-ok8cavrn/tests/test_prepared_cache_wrapper.py", line 125, in test_duplicate_training_or_resume_job_times_out_with_75
+    self.assertEqual(result.returncode, 75, result.stderr)
+AssertionError: 1 != 75 : /scratch/jjyeung/orch_n30/so_launch/work/pc-wrapper-qh4u7cmh/b/r.sh: line 71: TK_PREPARED_CACHE_ROOT: set an absolute pool cache directory
+
+
+======================================================================
+FAIL: test_duplicate_training_or_resume_job_times_out_with_75 (__main__.PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75) (mode='u', marker='1')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_launch/work/round2-red-ok8cavrn/tests/test_prepared_cache_wrapper.py", line 125, in test_duplicate_training_or_resume_job_times_out_with_75
+    self.assertEqual(result.returncode, 75, result.stderr)
+AssertionError: 1 != 75 : /scratch/jjyeung/orch_n30/so_launch/work/pc-wrapper-qh4u7cmh/b/r.sh: line 71: TK_PREPARED_CACHE_ROOT: set an absolute pool cache directory
+
+
+----------------------------------------------------------------------
+Ran 1 test in 1.326s
+
+FAILED (failures=2)
+EXIT: 1

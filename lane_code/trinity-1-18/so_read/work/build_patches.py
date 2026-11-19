@@ -13,13 +13,14 @@ from datetime import datetime,timezone
 L=Path('/scratch/jjyeung/orch_n30/so_read')
 BASE=Path('/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3')
 A=BASE/'A4/src';W=L/'work/src';E=W/'u0'
-ROOTS=('b/e2e_reader','b/parity_kit','h1eval')
+ROOTS=('b/e2e_reader','b/parity_kit','h1eval','orchard_h10')
 groups={
  '01_bounded_read_caches.diff':['u0/a0.py','u0/a1.py','u0/a2.py','u0/a3.py',
     'u0/tests/test_read_cache.py','u0/tests/test_off.py'],
  '02_atomic_scene_shards.diff':[f'u0/a{i}.py' for i in range(4,12)]+[
     'u0/tests/test_read_journal.py','u0/tests/test_public.py','u0/tests/test_round1.py',
-    'u0/tests/test_compare.py','u0/tests/u0.json','u0/tests/u1.json']}
+    'u0/tests/test_compare.py','u0/tests/u0.json','u0/tests/u1.json'],
+ '03_production_integration.diff':[f'u0/a{i}.py' for i in range(12,19)]+['u0/tests/test_round2.py']}
 
 def sha(value):return hashlib.sha256(value).hexdigest()
 def files(root):
@@ -34,8 +35,12 @@ def copy_values(values,root):
 
 manifest=dict(base=str(A),strip=1,apply_from='fresh full staged src tree',
               default_off='all original files unchanged; no extension import/settings parse',
-              activation='u0/a8.py --enable-extensions (apply BOTH patches)',patches={},unchanged_roots={})
+              activation='u0/a8.py --enable-extensions; u0/a12.py --enable-extensions builds the production overlays (apply all three patches)',patches={},unchanged_roots={})
 original={}
+full_base=files(A)
+manifest['base_pin']=dict(algorithm='sha256 of compact sorted JSON [relative_path, sha256] pairs',
+                          sha256=tree_hash(full_base),files=len(full_base),
+                          inventory={k:sha(v) for k,v in sorted(full_base.items())})
 for rel in ROOTS:
  before=files(A/rel);after=files(W/rel)
  assert before==after,'Original hash tree changed: '+rel
@@ -54,7 +59,7 @@ for name,paths in groups.items():
  raw=''.join(parts).encode();(L/'out/patches'/name).write_bytes(raw)
  manifest['patches'][name]=dict(sha256=sha(raw),bytes=len(raw),files=pins)
 
-run=L/'work/apply-round1'/uuid.uuid4().hex
+run=L/'work/apply-round2'/uuid.uuid4().hex
 verify=run/'src';verify.mkdir(parents=True)
 copy_values(original,verify)
 
@@ -88,7 +93,7 @@ manifest['verification_root']=str(run)
 
 suite=[]
 env=dict(os.environ,READ_INPUT_SRC=str(A),READ_TEST_TMP=str(L/'work/test-artifacts'))
-for name in ('read_cache','read_journal','off','public','round1','compare'):
+for name in ('read_cache','read_journal','off','public','round1','round2','compare'):
  command=[sys.executable,'-I','-s','-B',str(verify/'u0/tests'/('test_'+name+'.py'))]
  result=subprocess.run(command,cwd=L,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
  output='applied_'+name+'.txt';(L/'out/checks'/output).write_text(result.stdout)
@@ -97,8 +102,14 @@ for name in ('read_cache','read_journal','off','public','round1','compare'):
 manifest['applied_cpu_suites']=suite
 manifest['kit_files']={str(p.relative_to(L/'out/kit_parity50')):dict(sha256=sha(p.read_bytes()),bytes=p.stat().st_size)
                        for p in sorted((L/'out/kit_parity50').iterdir()) if p.is_file()}
+pins={rel:sha((W/rel).read_bytes()) for rel in sorted(all_files)}
+assert pins==json.loads((L/'out/kit_parity50/EXTENSION_PINS.json').read_bytes())
+manifest['b5_base_archive_sha256']=sha((BASE/'B5/package/0.tgz').read_bytes())
 manifest['generated_utc']=datetime.now(timezone.utc).isoformat()
 (L/'out/patches/MANIFEST.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
-print('PASS: 2 additive unified diffs; '+str(len(all_files))+' files; zero-fuzz A4/B5 application; unchanged original hash trees.')
-print('PASS: all 6 CPU suites pass from the fresh applied A4 tree.')
+print('PASS: 3 additive unified diffs; '+str(len(all_files))+' files; zero-fuzz A4/B5 application; unchanged original hash trees.')
+print('PASS: all 7 CPU suites pass from the fresh applied A4 tree.')
 print('Applied verification root: '+str(run))
+
+with (L/'work/STATUS.md').open('a') as f:
+    f.write(subprocess.check_output(['date','-u'],text=True)+'Regenerated three additive diffs, full A4 base pin and B5 archive pin; zero-fuzz application and applied-tree suites passed.\n')

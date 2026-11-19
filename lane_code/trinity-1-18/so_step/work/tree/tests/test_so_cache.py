@@ -13,6 +13,10 @@ from tests.so_helpers import root, inputs, TinyProcessor, assert_nested
 
 
 class CacheTests(unittest.TestCase):
+    def setUp(self):
+        from tests.so_helpers import reset_switches
+        reset_switches(self)
+
     def test_same_encoded_rows_hits_invalidation_and_mutation_isolation(self):
         torch.set_num_threads(8)
         directory = root()
@@ -45,13 +49,13 @@ class CacheTests(unittest.TestCase):
         for i in range(3):
             path = directory/f'{i}.png'
             Image.new('RGB',(64,64),(i,0,0)).save(path)
-            cache.get(path,str(path))
+            cache.get(path,str(path),file_pin(path)['sha256'])
             self.assertLessEqual(cache.bytes,cache.capacity)
             self.assertEqual(len(cache.values),1)
         path = directory/'gray.png'
         Image.new('L',(32,32),10).save(path)
         with self.assertRaisesRegex(ValueError,'Source is not RGB'):
-            cache.get(path,str(path))
+            cache.get(path,str(path),file_pin(path)['sha256'])
 
 
 if __name__ == '__main__':

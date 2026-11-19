@@ -1,0 +1,185 @@
+--- sb_f64fix2/work/scripts/run_fix.sh	2026-11-19 04:55:20.040553328 -0500
++++ sb_f64fix3/work/scripts/run_fix.sh	2026-11-19 05:34:48.948530676 -0500
+@@ -1,8 +1,8 @@
+ #!/bin/bash
+-# CPU wrapper for sb_f64fix2: nice 10, 8 threads, 40 GB address-space cap, offline, every write under this workspace.
++# CPU wrapper for sb_f64fix3: nice 10, 8 threads, 40 GB address-space cap, offline, every write under this workspace.
+ # Reads the trainer tree, Qwen meta files, fixtures and reader package from sb_f64 (read-only).
+ set -eu
+-W=/scratch/jjyeung/orch_n30/sb_f64fix2
++W=/scratch/jjyeung/orch_n30/sb_f64fix3
+ S=/scratch/jjyeung/orch_n30/sb_f64
+ mkdir -p "$W/work/tmp" "$W/work/dryrun"
+ export TMPDIR="$W/work/tmp" CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
+--- sb_f64fix2/work/regress/run_regress.sh	2026-11-19 04:55:21.136551500 -0500
++++ sb_f64fix3/work/regress/run_regress.sh	2026-11-19 05:34:50.086528817 -0500
+@@ -1,7 +1,7 @@
+ #!/bin/bash
+ # The reviewer's run_cpu.sh environment, rooted here so every write stays under this workspace.
+ set -eu
+-cd /scratch/jjyeung/orch_n30/sb_f64fix2/work/regress
++cd /scratch/jjyeung/orch_n30/sb_f64fix3/work/regress
+ export CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+ export PYTHONDONTWRITEBYTECODE=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+ export TMPDIR="$PWD/tmp" HF_HOME="$PWD/tmp/hf" XDG_CACHE_HOME="$PWD/tmp/cache"
+--- sb_f64fix2/work/regress/regression_check.py	2026-11-19 03:08:34.456234214 -0500
++++ sb_f64fix3/work/regress/regression_check.py	2026-11-19 05:34:53.083523926 -0500
+@@ -1,5 +1,6 @@
+ """Review sb_f64rev's focused regression suite (regression_check.py), rerun with workspace-only outputs.
+-Usage: bash run_regress.sh regression_check.py baseline|patched; writes ../../out/<mode>_regression.json."""
++Usage: bash run_regress.sh regression_check.py baseline|patched; writes <F64_OUT>/<mode>_regression.json
++(default ../../out)."""
+ import hashlib
+ import json
+ import os
+@@ -73,4 +74,4 @@
+ value = dict(command='bash work/regress/run_regress.sh regression_check.py ' + mode, tree=str(tree), input_sha256=provenance,
+              tests=result.testsRun, failures=[(str(t), msg) for t, msg in result.failures],
+              errors=[(str(t), msg) for t, msg in result.errors], skipped=[(str(t), msg) for t, msg in result.skipped])
+-(ROOT / 'out' / (mode + '_regression.json')).write_text(json.dumps(value, indent=2) + '\n')
++(Path(os.environ.get('F64_OUT', ROOT / 'out')) / (mode + '_regression.json')).write_text(json.dumps(value, indent=2) + '\n')
+--- sb_f64rev3/run_cpu.sh	2026-11-19 05:24:18.482531319 -0500
++++ sb_f64fix3/work/review3/run_cpu.sh	2026-11-19 05:36:06.721403326 -0500
+@@ -1,17 +1,18 @@
+ #!/bin/bash
++# Review sb_f64rev3's run_cpu.sh, rooted in this directory and bound to this workspace's kit; outputs go to ../../out/fix3.
+ set -eu
+-cd /scratch/jjyeung/orch_n30/sb_f64rev3
++cd /scratch/jjyeung/orch_n30/sb_f64fix3/work/review3
+ export CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+ export PYTHONDONTWRITEBYTECODE=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+ export TMPDIR="$PWD/tmp" HF_HOME="$PWD/tmp/hf" XDG_CACHE_HOME="$PWD/tmp/cache"
+ export TORCH_HOME="$PWD/tmp/torch" TRITON_CACHE_DIR="$PWD/tmp/triton" MALLOC_ARENA_MAX=4
+ export PYTHONPATH=/scratch/jjyeung/orch_n30/sb_f64/work/pyext_tv
+-mkdir -p "$TMPDIR"
++mkdir -p "$TMPDIR" ../../out/fix3
+ ulimit -v 39062500
+ export F64_TREE=/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_f64
+-export F64_WORK="$PWD/tmp/dryrun" F64_CONFIG=/scratch/jjyeung/orch_n30/sb_f64fix2/kit/configs/r1_config_f64.json
++export F64_WORK="$PWD/tmp/dryrun" F64_CONFIG=/scratch/jjyeung/orch_n30/sb_f64fix3/kit/configs/r1_config_f64.json
+ export F64_META=/scratch/jjyeung/orch_n30/sb_f64/in/qwen35_9b_meta
+-export F64_READER_ROOT=/scratch/jjyeung/orch_n30/sb_f64fix2/work/reader_root
++export F64_READER_ROOT=/scratch/jjyeung/orch_n30/sb_f64fix3/work/reader_root
+ mkdir -p "$F64_WORK"
+-export PYTHONPATH="$PYTHONPATH:$F64_TREE:/scratch/jjyeung/orch_n30/sb_f64fix2/work/scripts"
++export PYTHONPATH="$PYTHONPATH:$F64_TREE:/scratch/jjyeung/orch_n30/sb_f64fix3/work/scripts"
+ exec nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -s -B "$@"
+--- sb_f64rev3/pilot_gate_matrix.py	2026-11-19 05:25:00.150460066 -0500
++++ sb_f64fix3/work/review3/pilot_gate_matrix.py	2026-11-19 05:35:38.286450155 -0500
+@@ -1,12 +1,12 @@
+ """Distinguish permitted calibration rows from row failures using retained synthetic audit records."""
+ import hashlib,json,os,sys
+ from pathlib import Path
+-ROOT=Path(__file__).resolve().parent;KIT=ROOT.parent/'sb_f64fix2/kit';CFG=KIT/'configs/r1_config_f64.json'
++ROOT=Path(__file__).resolve().parent;N30=Path('/scratch/jjyeung/orch_n30');KIT=N30/'sb_f64fix3/kit';OUT=N30/'sb_f64fix3/out/fix3';CFG=KIT/'configs/r1_config_f64.json'
+ sys.path[:0]=[str(KIT/'scripts'),os.environ['F64_TREE']]
+ import token_audit as T
+ import mem_pilot as P
+-paths=sorted((ROOT.parent/'sb_f64rev2/tmp/dryrun').glob('token_audit_*/complete_*.jsonl'));assert len(paths)==2
+-source={str(p):T.file_sha256(p) for p in [Path(__file__),ROOT/'run_cpu.sh',ROOT.parent/'sb_f64rev2/pilot_gate_matrix.py',CFG,KIT/'scripts/token_audit.py',KIT/'scripts/mem_pilot.py',*paths]}
++paths=sorted((N30/'sb_f64rev2/tmp/dryrun').glob('token_audit_*/complete_*.jsonl'));assert len(paths)==2
++source={str(p):T.file_sha256(p) for p in [Path(__file__),ROOT/'run_cpu.sh',N30/'sb_f64rev2/pilot_gate_matrix.py',N30/'sb_f64rev3/pilot_gate_matrix.py',CFG,KIT/'scripts/token_audit.py',KIT/'scripts/mem_pilot.py',*paths]}
+ records={p:[json.loads(x) for x in p.read_text().splitlines()] for p in paths}
+ values={}
+ for case in ['passing','tripwire_only','failed_check']:
+@@ -26,4 +26,4 @@
+     except ValueError as e:accepted=False;error=str(e)
+     values[case]=dict(pilot_accepted=accepted,launch_ready=summary['launch_ready'],errors=summary['errors'],failed_rows=sum(v['failed'] for v in summary['streams'].values()),tripwire_rows=sum(v['over_tripwire'] for v in summary['streams'].values()),longest_row_count=sum(len(v) for v in summary['longest'].values()),required_behavior='accept' if case!='failed_check' else 'refuse',error=error)
+ value=dict(command='bash run_cpu.sh pilot_gate_matrix.py',scope='Explicit synthetic controls from the retained real encode fixtures; no production admission or GPU execution.',input_sha256=source,cases=values)
+-(ROOT/'out/pilot_gate_matrix.json').write_text(json.dumps(value,indent=2)+'\n');print(json.dumps(values,indent=2))
++(OUT/'pilot_gate_matrix.json').write_text(json.dumps(value,indent=2)+'\n');print(json.dumps(values,indent=2))
+--- sb_f64rev3/builder_matrix.py	2026-11-19 05:26:47.262277032 -0500
++++ sb_f64fix3/work/review3/builder_matrix.py	2026-11-19 05:35:59.818414758 -0500
+@@ -5,14 +5,15 @@
+ from pathlib import Path
+ ROOT = Path(__file__).resolve().parent
+ REV = Path('/scratch/jjyeung/orch_n30/sb_f64rev2')
+-KIT = ROOT.parent / 'sb_f64fix2/kit'; CFG = KIT / 'configs/r1_config_f64.json'
++N30 = Path('/scratch/jjyeung/orch_n30'); OUT = N30 / 'sb_f64fix3/out/fix3'
++KIT = N30 / 'sb_f64fix3/kit'; CFG = KIT / 'configs/r1_config_f64.json'
+ sys.path[:0] = [str(KIT / 'scripts'), os.environ['F64_TREE']]
+ 
+ 
+ def guard(event, args):
+     if event == 'open' and isinstance(args[0], (str, bytes)) and (args[2] or 0) & (
+             os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND):
+-        if not Path(os.fsdecode(args[0])).absolute().is_relative_to(ROOT):
++        if not Path(os.fsdecode(args[0])).absolute().is_relative_to(N30 / 'sb_f64fix3'):
+             raise RuntimeError('write outside workspace: ' + os.fsdecode(args[0]))
+ 
+ 
+@@ -23,7 +24,7 @@
+                   'complete_1.jsonl': 'd596db36a37ca06f341bf34af8899840a428acc7c4c6d7aea376db92636f1e59'}
+ paths = sorted((REV / 'tmp/dryrun').glob('token_audit_*/complete_*.jsonl')); assert len(paths) == 2
+ assert {p.name: T.file_sha256(p) for p in paths} == FIXTURE_SHA256, 'reviewer fixtures changed'
+-source = {str(p): T.file_sha256(p) for p in [Path(__file__), ROOT / 'run_cpu.sh', REV / 'pilot_gate_matrix.py', ROOT.parent / 'sb_f64fix2/work/review2/pilot_gate_matrix.py',
++source = {str(p): T.file_sha256(p) for p in [Path(__file__), ROOT / 'run_cpu.sh', REV / 'pilot_gate_matrix.py', N30 / 'sb_f64fix2/work/review2/pilot_gate_matrix.py', N30 / 'sb_f64rev3/builder_matrix.py',
+                                              CFG, KIT / 'scripts/token_audit.py', KIT / 'scripts/mem_pilot.py', *paths]}
+ records = {p: [json.loads(x) for x in p.read_text().splitlines()] for p in paths}
+ vqa_first = min(r['index'] for lines in records.values() for r in lines[1:-1] if r['stream'] == 'vqa')
+@@ -57,5 +58,5 @@
+              scope='Reviewer sb_f64rev2 synthetic controls from its retained real encode fixtures, plus ceiling_violation; '
+                    'no production admission or GPU execution.',
+              input_sha256=source, cases=values, all_required_behaviors_met=all(v['met'] for v in values.values()))
+-(ROOT / 'out/builder_matrix.json').write_text(json.dumps(value, indent=2) + '\n'); print(json.dumps(values, indent=2))
++(OUT / 'builder_matrix.json').write_text(json.dumps(value, indent=2) + '\n'); print(json.dumps(values, indent=2))
+ sys.exit(0 if value['all_required_behaviors_met'] else 1)
+--- sb_f64rev3/mutation_check.py	2026-11-19 05:25:58.205360859 -0500
++++ sb_f64fix3/work/review3/mutation_check.py	2026-11-19 05:35:48.429433602 -0500
+@@ -2,7 +2,8 @@
+ import copy, hashlib, json, os, sys, types
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parent
+-KIT=ROOT.parent/'sb_f64fix2/kit'; CFG=KIT/'configs/r1_config_f64.json'
++N30=Path('/scratch/jjyeung/orch_n30'); OUT=N30/'sb_f64fix3/out/fix3'
++KIT=N30/'sb_f64fix3/kit'; CFG=KIT/'configs/r1_config_f64.json'
+ sys.path[:0]=[str(KIT/'scripts'),os.environ['F64_TREE']]
+ import token_audit as T
+ import mem_pilot as P
+@@ -10,10 +11,10 @@
+ def pin(p):
+     p=Path(p); inputs[str(p)]=T.file_sha256(p)
+     return p
+-for p in (Path(__file__),ROOT/'run_cpu.sh',CFG,KIT/'scripts/token_audit.py',KIT/'scripts/mem_pilot.py',
++for p in (Path(__file__),ROOT/'run_cpu.sh',N30/'sb_f64rev3/mutation_check.py',CFG,KIT/'scripts/token_audit.py',KIT/'scripts/mem_pilot.py',
+           Path(os.environ['F64_TREE'])/'student_pilot/carrier_c1_run.py'):
+     pin(p)
+-fixture=pin(ROOT.parent/'sb_f64rev2/tmp/dryrun/token_audit_8m70opiy/complete_0.jsonl')
++fixture=pin(N30/'sb_f64rev2/tmp/dryrun/token_audit_8m70opiy/complete_0.jsonl')
+ lines=[json.loads(s) for s in fixture.read_text().splitlines()]
+ base=next(r for r in lines[1:-1] if r['stream']=='pose')
+ identity=lines[0]['identity']
+@@ -93,5 +94,5 @@
+                                maximum=c['summary']['streams']['pose']['max_tokens']) for name,c in cases.items()},
+             baseline=baseline,mutations=results,mutants=len(results),kills=sum(v['killed'] for v in results.values()),
+             ceiling_reachability=reachability)
+-(ROOT/'out/mutation_review.json').write_text(json.dumps(result,indent=2)+'\n')
++(OUT/'mutation_review.json').write_text(json.dumps(result,indent=2)+'\n')
+ print(json.dumps(dict(baseline=baseline,kills={k:v['killing_cases'] for k,v in results.items()},real_audit_ceiling_cases=len(reachability)),indent=2))
+--- sb_f64rev3/kit_check.py	2026-11-19 05:24:18.482531319 -0500
++++ sb_f64fix3/work/review3/kit_check.py	2026-11-19 05:36:01.170412519 -0500
+@@ -1,7 +1,8 @@
+ import hashlib, importlib.util, json, os, sys, tempfile, unittest
+ from pathlib import Path
+ ROOT=Path(__file__).resolve().parent
+-KIT=ROOT.parent/'sb_f64fix2/kit'
++N30=Path('/scratch/jjyeung/orch_n30'); OUT=N30/'sb_f64fix3/out/fix3'
++KIT=N30/'sb_f64fix3/kit'
+ tempfile.tempdir=str(ROOT/'tmp')
+ sys.path[:0]=[os.environ['F64_TREE'], str(KIT/'scripts'),str(KIT/'read')]
+ reads={str(Path(__file__)),str(ROOT/'run_cpu.sh')}
+@@ -9,7 +10,7 @@
+     if event=='open' and isinstance(args[0],(str,bytes)):
+         p=Path(os.fsdecode(args[0])).absolute()
+         if (args[2] or 0)&(os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC|os.O_APPEND):
+-            if not p.is_relative_to(ROOT): raise RuntimeError('write outside workspace: '+str(p))
++            if not p.is_relative_to(N30/'sb_f64fix3'): raise RuntimeError('write outside workspace: '+str(p))
+         elif str(p).startswith('/scratch/jjyeung/orch_n30/'):
+             reads.add(str(p))
+     if event in ('os.remove','os.rmdir'):
+@@ -31,4 +32,4 @@
+ result=unittest.TextTestRunner(verbosity=2).run(suite)
+ provenance={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in sorted(reads) if Path(p).is_file() and not Path(p).is_relative_to(ROOT/'tmp')}
+ value=dict(command='bash run_cpu.sh kit_check.py',input_sha256=provenance,tests=result.testsRun,failures=[(str(t),m) for t,m in result.failures],errors=[(str(t),m) for t,m in result.errors],skipped=[(str(t),m) for t,m in result.skipped])
+-(ROOT/'out/kit_review.json').write_text(json.dumps(value,indent=2)+'\n')
++(OUT/'kit_review.json').write_text(json.dumps(value,indent=2)+'\n')

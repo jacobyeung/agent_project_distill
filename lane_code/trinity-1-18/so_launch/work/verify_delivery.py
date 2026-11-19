@@ -18,7 +18,6 @@ DEST.mkdir()
 ENV = dict(os.environ, CUDA_VISIBLE_DEVICES='', OMP_NUM_THREADS='8', MKL_NUM_THREADS='8',
            OPENBLAS_NUM_THREADS='8', TOKENIZERS_PARALLELISM='false', PYTHONDONTWRITEBYTECODE='1',
            TMPDIR=str(DEST), TEST_TMP_ROOT=str(DEST), LANE_TEST_OUTPUT=str(DEST))
-ENV['SO_NO_LOCAL_SOCKETS'] = '1'
 PYTHON = ['/scratch/jjyeung/envs/p1cpu/bin/python', '-I', '-s', '-B']
 TESTS = {
     '01_prepared_input_cache.diff': ['test_prepared_input_cache.py', 'test_prepared_cache_wrapper.py'],
@@ -51,7 +50,10 @@ for name in [*TESTS, 'recommended', 'combined']:
             payload = ROOT / 'out/patches' / patch
             assert hashlib.sha256(payload.read_bytes()).hexdigest() == manifest[patch]['sha256']
             assert payload.stat().st_size == manifest[patch]['bytes']
-            run(['patch', '--batch', '--fuzz=0', '-p1', '-i', str(payload)], tree, log)
+            run(['patch', '--batch', '--fuzz=0', '--no-backup-if-mismatch', '-p1', '-i', str(payload)], tree, log)
+        assert not list(tree.rglob('*.orig')), 'Patch application left inventory-visible backups'
+        assert not list(tree.rglob('*.rej')), 'Patch application left rejected hunks'
+        ENV['TIMING_INPUT_C'] = str(SOURCE / 'launch_s1/b/c.sh')
         for patch in patches:
             for test in TESTS[patch]:
                 run(PYTHON + [str(tree / 'tests' / test), '-v'], tree, log)

@@ -76,7 +76,7 @@ class Utilities(unittest.TestCase):
         self.assertTrue(result['prefetch']['wall']['resolved'])
         self.assertFalse(summary.precision([1,10,-7])['resolved'])
         self.assertIsNone(summary.precision([1,2])['minimum_detectable_difference_s'])
-        self.assertAlmostEqual(summary.precision([0,1,2])['minimum_detectable_difference_s'],5.145/(3**.5))
+        self.assertAlmostEqual(summary.precision([0,1,2])['minimum_detectable_difference_s'],5.364/(3**.5))
         path=directory/'r0_l5_metrics/rank3/steps.json'
         original=json.loads(path.read_text())
         broken=json.loads(path.read_text());broken[0]['plan_sha256']='wrong'

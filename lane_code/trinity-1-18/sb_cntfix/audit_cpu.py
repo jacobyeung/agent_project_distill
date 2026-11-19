@@ -60,5 +60,6 @@ summary['GPU_estimate']=dict(captures=len(done),names=names,seconds=secs,seconds
 summary['pilot_inputs_missing_from_kit']=[str(ROOT/'kit/work'/f) for f in ['K1_PAIRS.json.gz','K1_LIFT.npz','K1_NMS.npz','K1_LMERGE.json','K1_LEARN_EST.json'] if not (ROOT/'kit/work'/f).exists()]
 # Independently recompute the supplied summary's constant and identity oracle; never select a new rule.
 print(json.dumps(summary,indent=2))
+inputs.update(S.G.pins())
 summary['inputs_sha256']=inputs
 (ROOT/'out/CPU_AUDIT.json').write_text(json.dumps(summary,indent=2)+'\n')

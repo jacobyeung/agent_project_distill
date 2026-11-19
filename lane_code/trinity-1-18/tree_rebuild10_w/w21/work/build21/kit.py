@@ -79,8 +79,15 @@ for name,h in list(pfiles.items()):
         if sha256(path)!=h:raise ValueError('Staging input hash differs')
         uploads[h]=dict(local_path=str(path),opaque_name='u/'+h,sha256=h,bytes=path.stat().st_size)
         pfiles.pop(name);pfiles[opaque]=h;p_sources[opaque]='u/'+h
+real=L.parent/'ext/m400real'
+run=load(real/'r.json')
+assert run=={k:load(real/'e.json')['pins'][k] for k in ('config','binding','preparation')}
+for pin in run.values():assert sha256(real/('files'+pin['path']))==pin['sha256']
 spec=dict(pool=pool,n_root=nroot,p_root=proot,milestone='h_6ed2c7aa/m400',namespace=ns,
-    p_identity='774503e26f274a10c96ad06210d339c49ebc9a704ac254df81f389b0da4d98a1',
+    p_kit_identity='774503e26f274a10c96ad06210d339c49ebc9a704ac254df81f389b0da4d98a1',
+    p_runtime_identity='9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4',
+    p_kit_config=dict(path='/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/aacc34e6.json',sha256=sha256(E/'k/aacc34e6.json')),
+    p_run=run,
     p_files=pfiles,p_sources=p_sources,p_pins=file_pin(E/'k/0.json'),room_sha256=room['sha256'],code_sha256=hashlib.sha256(raw).hexdigest(),
     uploads=[{k:v for k,v in entry.items() if k!='local_path'} for entry in uploads.values()],
     frame_roots=load(E/'k/launch.json')['in_job_admission']['frame_roots'])

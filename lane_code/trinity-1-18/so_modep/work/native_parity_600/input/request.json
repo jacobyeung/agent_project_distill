@@ -1,0 +1,531 @@
+{
+  "all_frames": true,
+  "base_identity": "fixture",
+  "benchmark_scene_exclusions": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/benchmark_scene_exclusions.json",
+    "sha256": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970"
+  },
+  "camera_overrides": {
+    "weight_focal": 2.0,
+    "weight_scale": 0.04
+  },
+  "carrier_placement": "append_after_temporal_group_video_tokens_v1",
+  "code": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/code.json",
+    "sha256": "f9045b594b0e96c669cfc42d476e172411bcf5d5590db9efa5710d9f3a2a9e43"
+  },
+  "depth_enabled": true,
+  "depth_fov_source": "pose_head",
+  "dev_scene_exclusions": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/tree_r1/student_pilot/r2_dev_merged.json",
+    "sha256": "a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5"
+  },
+  "exclusions": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/dafa4a9c.json",
+    "sha256": "dafa4a9c8ffd1e063e0a98c5ae6087d911b74f864932e530f24d45b816cca6fb"
+  },
+  "first_step_admission": "all_rank_native_v1",
+  "frame_count": 32,
+  "frame_layout": "duplicate",
+  "frame_markers": true,
+  "gate_stop": false,
+  "geometry_connector": "none",
+  "ground_target_filter": true,
+  "grounding": true,
+  "heading_plane_min": 0.3,
+  "init": "base",
+  "init_artifact": {
+    "artifact": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/export/artifact.json",
+      "sha256": "ab629329f8f3daef53da62a8ce0b5451b823be20d3ddaa222c4c87c8337a5398"
+    },
+    "heads": [
+      "pose",
+      "depth",
+      "frame_embeddings"
+    ],
+    "lm": "full"
+  },
+  "lm_lr_scale": 0.6,
+  "max_pixels": 16,
+  "milestones": [
+    100,
+    200,
+    400,
+    600,
+    800,
+    1000
+  ],
+  "min_pixels": 16,
+  "mix": [
+    "pose",
+    "vqa",
+    "vqa",
+    "routing",
+    "pose",
+    "vqa",
+    "vqa",
+    "pointing",
+    "routing"
+  ],
+  "output": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/train",
+  "parallel": "fsdp",
+  "pointing_weights": {
+    "decision": 5.0,
+    "row_mean": 2.0
+  },
+  "pose_lr_scale": 0.6,
+  "preparation_output": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/prepare",
+  "r1_training": {
+    "component_rows": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/component_rows.json",
+      "sha256": "f7eaf7a7d8e4bd15ef8eae5a3c8478901ed7eb6a92e85723d201aaf5728ab22b"
+    },
+    "continuation_identity": "0b0791b4a184de0c850b408a414b9f75e2c594bfc51b20aae33fae65c4824c1a",
+    "donor_config_sha256": "c0ad1868f7e89dc10e5f31a8ab09044ef3f3966ea1c54ad569cbbd56206862dd",
+    "handover_mapping": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/handover.json",
+      "sha256": "f7146e214e7d4d6c237a7f1131944a45a18f14f1fb7540a0700eb59908675d87"
+    },
+    "handover_receipt": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/h.json",
+      "sha256": "a0a5c17d97fca9b27d112e038e0becb42dbb0463305799bdc3ef4640f89d3de5"
+    },
+    "mix": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/card.json",
+      "sha256": "e1ce6630eefef4e7f7f2c046e0ee89d2d5a510eb34a6d3261a9ab3e31f4cdc31"
+    },
+    "p_run": {
+      "binding": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/binding.json",
+        "sha256": "4f5705c7d2cb51dd2b42e81f6a28116130b74d83a76e8a4e0bdbe1753774a744"
+      },
+      "checkpoint": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/checkpoint/complete.json",
+        "sha256": "dc299647c4cef5779e35de2dd2d02f550ade91283497dc99ea7680304ec33014"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/config.json",
+        "sha256": "045077523d1f44face099bf91556892bcf4d8516cf7129a4b4778400e0088b6f"
+      },
+      "preparation": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/p_prepare/receipt.json",
+        "sha256": "1914132dd750b6ea9b20650711687fe926ebaead14445a1b99ff325f00d8c399"
+      }
+    },
+    "persisted_files": {
+      "00e861bc15f0962f0e4f63d2bc47175010dfb890e56e0215c83f6778df6d365c": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/00e861bc15f0962f0e4f63d2bc47175010dfb890e56e0215c83f6778df6d365c",
+      "045077523d1f44face099bf91556892bcf4d8516cf7129a4b4778400e0088b6f": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/045077523d1f44face099bf91556892bcf4d8516cf7129a4b4778400e0088b6f",
+      "096dda29292221d468913abf1fd56d4f377240e16c19d9069483dd1d75035edf": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/096dda29292221d468913abf1fd56d4f377240e16c19d9069483dd1d75035edf",
+      "1914132dd750b6ea9b20650711687fe926ebaead14445a1b99ff325f00d8c399": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/1914132dd750b6ea9b20650711687fe926ebaead14445a1b99ff325f00d8c399",
+      "26d534e47a738a6c97c55ee41897824950ec1434c3ca34fd0247d38a81a1ea06": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/heads.pt",
+      "3168bb35ee3ed31d0d76f952bb538330c3cd5581d0643ff75378ea2ca64d9281": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/3168bb35ee3ed31d0d76f952bb538330c3cd5581d0643ff75378ea2ca64d9281",
+      "3f217d740a47f08490c6203ceb3a5713536b66cb5e4af77b0c12160bfc04e8a2": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/absent/3f217d740a47f08490c6203ceb3a5713536b66cb5e4af77b0c12160bfc04e8a2",
+      "3f4878ec8b85018b0433d346c356643d3e27528406bc7e185834ed631a5e919d": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/e/full_weights.json",
+      "4046aff5fdabb6575afd3c223ab11f861bd1ff264af4efa4a58a4b9b61df9684": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/absent/4046aff5fdabb6575afd3c223ab11f861bd1ff264af4efa4a58a4b9b61df9684",
+      "4f5705c7d2cb51dd2b42e81f6a28116130b74d83a76e8a4e0bdbe1753774a744": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/4f5705c7d2cb51dd2b42e81f6a28116130b74d83a76e8a4e0bdbe1753774a744",
+      "611458f9a5a68f1c5a03e7cf38d6a2a4a97ea887097dc7fd45e411b51fabbb57": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/e/model-00001-of-00001.safetensors",
+      "94d6a966e70abd021dd7cd8d394d689cf96f076df23ad1ec7a58599ad9155276": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/94d6a966e70abd021dd7cd8d394d689cf96f076df23ad1ec7a58599ad9155276",
+      "ab629329f8f3daef53da62a8ce0b5451b823be20d3ddaa222c4c87c8337a5398": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/ab629329f8f3daef53da62a8ce0b5451b823be20d3ddaa222c4c87c8337a5398",
+      "c0d2c27fdbc439fdd7fad4f22c7abfbdbac4ddd8b1bb327b68f3d89754baaedd": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/c0d2c27fdbc439fdd7fad4f22c7abfbdbac4ddd8b1bb327b68f3d89754baaedd",
+      "c2b3d1c498c025e40f15b9656857d6e06abf2ed3cd93fcd2a5e4ce2b8462b09c": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/e/model.safetensors.index.json",
+      "c533defa961fcb689798f8e9d580ea7a36046a9322b72721c14d2b458bf2ae90": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/c533defa961fcb689798f8e9d580ea7a36046a9322b72721c14d2b458bf2ae90",
+      "dc299647c4cef5779e35de2dd2d02f550ade91283497dc99ea7680304ec33014": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/dc299647c4cef5779e35de2dd2d02f550ade91283497dc99ea7680304ec33014",
+      "ef89745291f6e5763f3783fda2548f34250a0145efb8aa3411fc191c3b40a249": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/600/persisted/ef89745291f6e5763f3783fda2548f34250a0145efb8aa3411fc191c3b40a249"
+    },
+    "proof_mode": "q",
+    "registry": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/registry.json",
+      "sha256": "169b2c23f23d6607564481edf45096343637fa794c97b6d9287673d1c08252f0"
+    },
+    "room_authority": {
+      "aliases": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b.json",
+        "sha256": "c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b"
+      },
+      "build": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1.json",
+        "sha256": "0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1"
+      },
+      "reserve": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3.json",
+        "sha256": "bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3"
+      },
+      "split": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390.json",
+        "sha256": "27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390"
+      },
+      "visits": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca.json",
+        "sha256": "657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca"
+      }
+    },
+    "routing_inputs": {
+      "absolute_distance": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/absolute_distance/MANIFEST.json",
+        "sha256": "3212ac582770c77c335ad6b4789494eba9aabb91df07e56de6860eeb190088a2"
+      },
+      "recovery": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/recovery/MANIFEST.json",
+        "sha256": "2344687ecb33787d283820117455f7b063517f6f7ab356542cba2bf222d16ee3"
+      },
+      "units": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/units/MANIFEST.json",
+        "sha256": "f452ae5fee3ab348291a38926e817168bf07b2bc1687538b7a05cace0eeb2b92"
+      }
+    },
+    "row_plan_sha256": "f486279f9d8929137549b6c7eb6f067257881e567f9e7641e0503784beeb474d",
+    "row_sources": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/row_sources.json",
+      "sha256": "e640b25f0a199699dd3e3c72c9fe5594b17f5fbd5e8dcb6384467b6ba75c81dd"
+    },
+    "s2": false,
+    "schema": "r1-training-v1",
+    "source_membership": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/catalog.json",
+      "sha256": "55c1b70d7a456dff0f364b873949cdfeb5f8120d1a71b4db76450e9ee2e0bf65"
+    },
+    "stop_after_step": null,
+    "store_hashes": {
+      "pointing": "0c18b008a0d78e5a4c9eb037761eca8cf529d712ef8996f80c9ca14b7d4f3126",
+      "pose": "0c6be24d1fc430ccd68175957d902ff60e08687e573a03a07b95de4300d48414",
+      "routing": "0f05734132d2bbd675333c4a4dd87d37a8e1b16ad394cbcd2d9a8d0f2c3aaebe",
+      "vqa": "abbcebd584d59f10a50950e8576b2e077f27d55ab2e1e6b1e3a8aee372d4abab"
+    },
+    "weight_scale": 0.04
+  },
+  "r2_all_stream_exclusions": true,
+  "r2_identity": {
+    "init": {
+      "artifact_sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef",
+      "parent_configuration_prefix": "84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb",
+      "parent_kit": "07ca49df",
+      "parent_run": "469ddece",
+      "parent_source_seal": "b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99",
+      "step": 544
+    }
+  },
+  "r2_sampling": {
+    "card": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/sampler/card.json",
+      "sha256": "dd8687ae175d65fa1be8aa174ed1f0cddf0104c3e1b9abfa36d02f7b975add7b"
+    },
+    "indices": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/sampler/indices.json",
+      "sha256": "338cc1593bedf531b4f28a700effa4b7adbcdd23ffaef32a90bc781f4f7f1d1d"
+    },
+    "population": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/sampler/population.json",
+      "sha256": "471d20443797b554bab9812abb2c3da7591740e3ab7785f8a180e9c6be332c15"
+    },
+    "schema": "r1-sampling-v1"
+  },
+  "r2_scene_rebuild": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/scene/2.json",
+    "sha256": "606f3611b366d4d5cf1ff8a9f448ce3afdad6ba862f5e4b39c8dd68d245a5192"
+  },
+  "readout": {
+    "bank": {
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/986ba20f.npz",
+      "sha256": "0471677f8c4346fc856ff39ad45c2cf824a6b5040b214ee3468e72af1dac3015"
+    },
+    "contiguous_clips": null,
+    "rows_inventory": {
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/544dcf9b/in/30c516bf.json",
+      "sha256": "d6d6a53add2ea60facaec4b67fd1d8becfcd4dc3183139eb1509b222e3d27491"
+    },
+    "training_scenes": {
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/eb035f92.json",
+      "sha256": "edaecb6c742495041784ea7cefe027bdbce08efc76cf427a7bc1f7ad5da9f6e4"
+    }
+  },
+  "recipe": {
+    "clip_norm": 1.0,
+    "encoder_learning_rate": 1e-05,
+    "export_at_stop": true,
+    "global_batch": 288,
+    "learning_rate": 0.0001,
+    "lm_learning_rate": 1e-05,
+    "milestones": [
+      100,
+      200,
+      400,
+      600,
+      800,
+      1000
+    ],
+    "mix": [
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing"
+    ],
+    "reference_world_size": 32,
+    "resume_every_seconds": 7200,
+    "scheduled_sampling": {
+      "depth_open_absrel": 0.25,
+      "ema_steps": 100,
+      "exposure_from_step": null,
+      "exposure_probability": 0.0,
+      "force_from_step": null,
+      "fov_open_deg": 2.0,
+      "max_own_probability": 0.0,
+      "pose_full_deg": 10.0,
+      "pose_open_deg": 20.0,
+      "seed": 17
+    },
+    "seed": 17,
+    "steps": 1000,
+    "stop_before_seconds": 3600,
+    "wall_seconds": 86400,
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.01,
+    "weights": {
+      "depth": 0.25,
+      "depth_fov": 0.05,
+      "pointing": 1.0,
+      "pose": 1.5,
+      "routing": 1.0,
+      "vqa": 1.0
+    },
+    "world_size": 4
+  },
+  "reference_world_size": 32,
+  "remove_files": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_0.jsonl",
+      "sha256": "62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_1.jsonl",
+      "sha256": "4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_2.jsonl",
+      "sha256": "6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc"
+    },
+    {
+      "defects": [
+        "identity",
+        "absent",
+        "merged"
+      ],
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_3.jsonl",
+      "sha256": "8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_4.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_5.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/build17/inputs/s.json",
+      "sha256": "6add0ad53515e14e6adb1e192ed002ec0ddd22b6c6bd112ccb756d1f8be48d8c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json",
+      "sha256": "43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "sha256": "1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/n.json",
+      "sha256": "02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/z.json",
+      "sha256": "caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad"
+    }
+  ],
+  "route_table": {
+    "camera_displacement": "route",
+    "object_abs_distance": "route"
+  },
+  "routing_opener_init": "keep",
+  "routing_vocabulary": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/opener.json",
+    "sha256": "dbfab239451a8b19e5c1ef54faf4843e3a4bef6ed2dd51ed4af56baeb9479323"
+  },
+  "s1_route_policy": null,
+  "s1_routing": {
+    "catalog": {},
+    "frame_map": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/frames.gz",
+      "sha256": "20ba78c9c6501636234ac847ce8877274f07dea44be62ea26520e33c58444373"
+    },
+    "frame_plan": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/plan.gz",
+      "sha256": "5df0c96a891bbb97f3d5232969f18ba03a3e3a3e37098be8b655b9e4a1a43dc1"
+    },
+    "schema": "s1-routing-inputs-v1",
+    "selection": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/selected/receipt.json",
+      "sha256": "d46c7d4b6986946af26edd60a1dd9f1c442409cb7f8b960981a5ea218b5e4f37"
+    }
+  },
+  "scene_coverage": {
+    "reference": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/scene/0.json",
+      "sha256": "7a92d44de4a6d3a118bba65c4ff59eed763b8bbaf4893eb5008d0b4dee71c01f"
+    },
+    "schema": "s1-scene-coverage-v1",
+    "source_map": {
+      "pointing": [
+        {
+          "source": "pointing"
+        }
+      ],
+      "pose": [
+        {
+          "source": "pose_a2v3"
+        },
+        {
+          "source": "pose_a3v2"
+        }
+      ],
+      "routing": [
+        {
+          "source": "camera"
+        },
+        {
+          "source": "pool"
+        }
+      ],
+      "vqa": [
+        {
+          "source": "vqa"
+        }
+      ]
+    }
+  },
+  "scene_division": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/division.json",
+    "sha256": "835e69413c0b01969f945ab047089d83fc16efa528e12dfe088ed6b60ae92300"
+  },
+  "schedule": {
+    "checkpoint_seconds": 600.0,
+    "export_seconds": 600.0,
+    "p95_step_seconds": 300.0,
+    "startup_seconds": 3600.0
+  },
+  "scheduled_sampling": {
+    "depth_open_absrel": 0.25,
+    "ema_steps": 100,
+    "exposure_from_step": null,
+    "exposure_probability": 0.0,
+    "force_from_step": null,
+    "fov_open_deg": 2.0,
+    "max_own_probability": 0.0,
+    "pose_full_deg": 10.0,
+    "pose_open_deg": 20.0,
+    "seed": 17
+  },
+  "schema": "carrier-c1-run-v1",
+  "skip_unsupervised_lm": false,
+  "stall_guard": {
+    "checkpoint_grace_seconds": 600,
+    "idle_seconds": 1200,
+    "poll_seconds": 10,
+    "startup_seconds": 3600
+  },
+  "steps": 1000,
+  "streams": {
+    "pointing": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/pointing/receipt.json",
+      "sha256": "c0d2c27fdbc439fdd7fad4f22c7abfbdbac4ddd8b1bb327b68f3d89754baaedd"
+    },
+    "pose": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/pose.json",
+      "sha256": "ef89745291f6e5763f3783fda2548f34250a0145efb8aa3411fc191c3b40a249"
+    },
+    "routing": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/routing19/receipt.json",
+      "sha256": "94d6a966e70abd021dd7cd8d394d689cf96f076df23ad1ec7a58599ad9155276"
+    },
+    "vqa": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_600/input/vqa/receipt.json",
+      "sha256": "096dda29292221d468913abf1fd56d4f377240e16c19d9069483dd1d75035edf"
+    }
+  },
+  "trace_program_version": "3.13",
+  "training_mode": "final",
+  "weights": {
+    "depth": 0.25,
+    "pointing": 1.0,
+    "pose": 1.5
+  },
+  "world_size": 4
+}

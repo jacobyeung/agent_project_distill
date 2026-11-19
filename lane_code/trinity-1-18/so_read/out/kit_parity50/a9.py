@@ -9,7 +9,44 @@ RAW_LOADS = _json.loads
 
 IDENTITIES = {'id','qid','example_id','key','room','room_key','native','scene','dataset',
               'name','question_type','type','item_id','reader_entry'}
-OPAQUE_PATH = re.compile(r'^/(?:scratch|project)/(?:u[0-9a-f]+/)*[u0-9a-f]+(?:\.[a-z0-9]+)?$')
+# Established staging roots; the remaining components must be neutral tokens.
+APPROVED_PREFIXES = ('/scratch/jjyeung', '/project/community/jjyeung/okh7',
+                     '/project/community/jjyeung', '/scratch', '/project')
+_SEGMENT = r'(?:u[0-9a-f]+|[a-z]?[0-9a-f]+|[a-z])(?:\.[a-z0-9]+)?'
+_TOKEN_PATH = re.compile(r'^'+_SEGMENT+r'(?:/'+_SEGMENT+r')*$')
+
+
+def opaque_path(value):
+    value = str(value)
+    # Use the production screen when available. The standalone public wire
+    # helper retains the identical screen for private staging without imports.
+    try:
+        from orchard_h10.common import opaque
+    except ImportError:
+        forbidden = ('split', 'revsi', 'vsibench', 'scannet', 'arkit', 'distill', 'qgen',
+                     'sam', 'qwen', 'h1', 'h10', 'head', 'routing', 'faithful', 'devs1',
+                     'g3t', 'camera', 'displacement', 'rotation', 'movement', 'distance',
+                     'r0', 'scannetpp', 'direction', 'own', 'room', 'selector', 'parity', 'benchmark', 'dataset', 'model')
+        def opaque(values):
+            if any(word in str(v).lower() for v in values for word in forbidden):
+                raise ValueError('Non-opaque staged path')
+    try:opaque([value])
+    except ValueError:return False
+    for prefix in APPROVED_PREFIXES:
+        if not value.startswith(prefix+'/'):continue
+        rest=value[len(prefix)+1:]
+        if prefix=='/project/community/jjyeung/okh7':
+            rest=re.sub(r'^a15_cot_ap[a-f][0-9a-f]{10,15}(?=/|$)', 'u0', rest)
+        if _TOKEN_PATH.fullmatch(rest):return True
+    return False
+
+
+class _PathGrammar:
+    @staticmethod
+    def fullmatch(value):return opaque_path(value)
+
+
+OPAQUE_PATH = _PathGrammar()
 
 
 def pack(value):

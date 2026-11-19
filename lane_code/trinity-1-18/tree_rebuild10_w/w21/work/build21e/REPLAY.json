@@ -1,0 +1,210 @@
+{
+  "GO": false,
+  "kit_identity": "774503e26f274a10c96ad06210d339c49ebc9a704ac254df81f389b0da4d98a1",
+  "limitations": [
+    "No production weights, base tokenizer metadata, databases or RGB are present.",
+    "init_from_artifact receives only model metadata attributes and stops at real missing tensor I/O; no forward is claimed.",
+    "N native preparation and population production are not replaced with fake success. Their absent outputs may refuse final binding."
+  ],
+  "real_receipt": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/e.json",
+    "sha256": "b467c32bc1cace47687cd5b6ef48c75a972901460e601c4954cf24ef81abafdf"
+  },
+  "real_run": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/r.json",
+    "sha256": "bd41c00d2aaf0697d94eac81f6470b41ee5af6391b4ad366c60354ca7fe8d0d8"
+  },
+  "rows": [
+    {
+      "reader": "p3_provenance.pinned/load: config",
+      "result": {
+        "export_identity": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4"
+      },
+      "status": "PASS"
+    },
+    {
+      "reader": "p3_provenance.pinned/load: artifact",
+      "result": {
+        "config_sha256": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4",
+        "step": 400
+      },
+      "status": "PASS"
+    },
+    {
+      "reader": "p3_provenance.pinned/load: preparation",
+      "result": {
+        "config_sha256": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4"
+      },
+      "status": "PASS"
+    },
+    {
+      "reader": "p3_provenance.pinned/load: binding",
+      "result": {
+        "config_sha256": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4",
+        "preparation": {
+          "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/s1_receipt.json",
+          "sha256": "a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda"
+        },
+        "trainer_commit": "sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b",
+        "world_size": 4
+      },
+      "status": "PASS"
+    },
+    {
+      "reader": "source_seal.check_binding:artifact",
+      "result": null,
+      "status": "PASS"
+    },
+    {
+      "reader": "source_seal.check_binding:preparation",
+      "result": null,
+      "status": "PASS"
+    },
+    {
+      "reader": "r1_persisted.verify: e.json/r.json",
+      "result": {
+        "absent": [
+          "export/model-00001-of-00005.safetensors",
+          "export/model-00002-of-00005.safetensors",
+          "export/model-00003-of-00005.safetensors",
+          "export/model-00004-of-00005.safetensors",
+          "export/model-00005-of-00005.safetensors",
+          "heads"
+        ],
+        "export_bytes_verified": false,
+        "verified": 13
+      },
+      "status": "PASS"
+    },
+    {
+      "reader": "r1_handover.donor",
+      "result": {
+        "continuation": {
+          "config_identity": "f85d2ea7a5e9e1245ac3115f661206b470f428602222ba3e14906b620fcf55e7",
+          "row_plan_sha256": "54071a08ec22e37c0f5923b2d10236e14b87d4ab269137b52120664d4ce9b3ee",
+          "stores": {
+            "pointing": "faa0cfc43bed88bf0f2dad6da57bc57c7dcfb8c3aba65cecc045a3de327cc85d",
+            "pose": "6d5914404ecbe3205263df6e2d885ecd586c63283e78070191f1588b02d1f2f0",
+            "routing": "4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84",
+            "vqa": "ff7c98eb176eabe38510a21681baa6c0eeb98262d24b706adfae048bac8d8689"
+          }
+        },
+        "runtime_identity": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4"
+      },
+      "status": "PASS"
+    },
+    {
+      "reader": "r1_handover.compare_configs",
+      "result": null,
+      "status": "PASS"
+    },
+    {
+      "reader": "r1_training.training_components",
+      "result": {
+        "data_rows_r2": "DEFERRED",
+        "depth_init_vc": "DEFERRED",
+        "geometry_tower": "DEFERRED",
+        "heads_depth": "DEFERRED",
+        "heads_frame_embeddings": "DEFERRED",
+        "heads_gf1_connector": "DEFERRED",
+        "heads_pose": "DEFERRED",
+        "init_m544": "DEFERRED",
+        "segmenter": "DEFERRED"
+      },
+      "status": "PASS"
+    },
+    {
+      "reader": "r1_handover.bind_target",
+      "result": {
+        "donor_config_sha256": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4"
+      },
+      "status": "PASS"
+    },
+    {
+      "error": "ValueError:Missing or changed pinned input: /project/community/jjyeung/c7d31ddd/runs/aws128p_20261025/models/a32330d0/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a/config.json",
+      "reader": "p_opener_witness.prepared_vocabulary",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 54, in <lambda>\n    call('p_opener_witness.prepared_vocabulary',lambda:W.prepared_vocabulary(source))\n                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/launch_r1/p_opener_witness.py\", line 17, in prepared_vocabulary\n    root = pinned(dict(path=str(Path(manifest['root'])/'config.json'),\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: /project/community/jjyeung/c7d31ddd/runs/aws128p_20261025/models/a32330d0/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a/config.json\n"
+    },
+    {
+      "error": "ValueError:Missing or changed pinned input: /project/community/jjyeung/c7d31ddd/runs/aws128p_20261025/models/a32330d0/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a/config.json",
+      "reader": "p_opener_witness.produce",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 55, in <lambda>\n    call('p_opener_witness.produce',lambda:W.produce(cfg,O/'v.json'))\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/launch_r1/p_opener_witness.py\", line 49, in produce\n    recorded = prepared_vocabulary(source)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/launch_r1/p_opener_witness.py\", line 17, in prepared_vocabulary\n    root = pinned(dict(path=str(Path(manifest['root'])/'config.json'),\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: /project/community/jjyeung/c7d31ddd/runs/aws128p_20261025/models/a32330d0/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a/config.json\n"
+    },
+    {
+      "reader": "r1_training.start",
+      "result": 400,
+      "status": "PASS"
+    },
+    {
+      "reader": "r1_persisted.admission(weights=False)",
+      "result": {
+        "status": "ADMIT",
+        "step": 400
+      },
+      "status": "PASS"
+    },
+    {
+      "error": "KeyError:'r2_sampling'",
+      "reader": "production_proof.bind_handover",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 59, in <lambda>\n    call('production_proof.bind_handover',lambda:Q.bind_handover(bound,O/'h'))\n                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/launch_r1/production_proof.py\", line 45, in bind_handover\n    value.update(store_hashes=target['stores'], row_plan_sha256=digest(cfg['r2_sampling']))\n                                                                       ~~~^^^^^^^^^^^^^^^\nKeyError: 'r2_sampling'\n"
+    },
+    {
+      "error": "ValueError:P_EXPORT_HANDOVER_FILE_REQUIRED:heads",
+      "reader": "r1_persisted.admission(weights=True)",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 60, in <lambda>\n    call('r1_persisted.admission(weights=True)',lambda:P.admission(bound or cfg,weights=True))\n                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_persisted.py\", line 172, in admission\n    result = verify(value.get('handover_receipt'),value.get('p_run',{}),cfg['init_artifact']['artifact'],\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_persisted.py\", line 150, in verify\n    read(label)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_persisted.py\", line 79, in read\n    raise ValueError('P_EXPORT_HANDOVER_FILE_REQUIRED:'+label)\nValueError: P_EXPORT_HANDOVER_FILE_REQUIRED:heads\n"
+    },
+    {
+      "error": "ValueError:P_EXPORT_TOPOLOGY_METADATA_UNVERIFIED",
+      "reader": "r1_handover.donor_meta_model",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_handover.py\", line 199, in donor_meta_model\n    model_config = load(pinned(dict(path=str(Path(manifest['root'])/'config.json'),\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: /project/community/jjyeung/c7d31ddd/runs/aws128p_20261025/models/a32330d0/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a/config.json\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 65, in <lambda>\n    call('r1_handover.donor_meta_model',lambda:H.donor_meta_model(source))\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_handover.py\", line 204, in donor_meta_model\n    raise ValueError('P_EXPORT_TOPOLOGY_METADATA_UNVERIFIED') from error\nValueError: P_EXPORT_TOPOLOGY_METADATA_UNVERIFIED\n"
+    },
+    {
+      "error": "ValueError:P_EXPORT_TOPOLOGY_METADATA_UNVERIFIED",
+      "reader": "r1_handover.verify_trainable_groups",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_handover.py\", line 199, in donor_meta_model\n    model_config = load(pinned(dict(path=str(Path(manifest['root'])/'config.json'),\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: /project/community/jjyeung/c7d31ddd/runs/aws128p_20261025/models/a32330d0/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a/config.json\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 66, in <lambda>\n    call('r1_handover.verify_trainable_groups',lambda:H.verify_trainable_groups(bound or cfg,model))\n                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_handover.py\", line 301, in verify_trainable_groups\n    tables = dict(source=trainable_group_table(source, donor_meta_model(source)),\n                                                       ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_handover.py\", line 204, in donor_meta_model\n    raise ValueError('P_EXPORT_TOPOLOGY_METADATA_UNVERIFIED') from error\nValueError: P_EXPORT_TOPOLOGY_METADATA_UNVERIFIED\n"
+    },
+    {
+      "error": "ValueError:Input requires an exact path/SHA256 pin",
+      "reader": "carrier_c1_run.prepared:N",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 67, in <lambda>\n    call('carrier_c1_run.prepared:N',lambda:C.prepared(bound or cfg,admission=True))\n                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/carrier_c1_run.py\", line 670, in prepared\n    preparation(cfg)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r2_contract.py\", line 70, in preparation\n    verify_scenes(cfg)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r2_scene_bindings.py\", line 205, in verify\n    value = load(pinned(cfg['r2_scene_rebuild']))\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/p3_provenance.py\", line 46, in pinned\n    raise ValueError('Input requires an exact path/SHA256 pin')\nValueError: Input requires an exact path/SHA256 pin\n"
+    },
+    {
+      "error": "FileNotFoundError:[Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/model.safetensors.index.json'",
+      "reader": "carrier_c1_run.init_from_artifact:lm",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 69, in <lambda>\n    call('carrier_c1_run.init_from_artifact:'+part,lambda part=part:C.init_from_artifact(model,cfg['init_artifact'],part=part))\n                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/carrier_c1_run.py\", line 965, in init_from_artifact\n    full_ft.read_export(directory)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/full_ft.py\", line 711, in read_export\n    if sha256_file(directory / index_pin[\"name\"]) != index_pin[\"sha256\"]:\n       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/full_ft.py\", line 698, in sha256_file\n    with open(path, \"rb\") as handle:\n         ^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/m400real/files/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/full_weights/model.safetensors.index.json'\n"
+    },
+    {
+      "error": "ValueError:Missing or changed pinned input: /scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21e/proofs/replay/absent/e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7",
+      "reader": "carrier_c1_run.init_from_artifact:heads",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 69, in <lambda>\n    call('carrier_c1_run.init_from_artifact:'+part,lambda part=part:C.init_from_artifact(model,cfg['init_artifact'],part=part))\n                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/carrier_c1_run.py\", line 975, in init_from_artifact\n    heads_path = local/'heads.pt' if local else (pinned(artifact['heads']) if verify else Path(artifact['heads']['path']))\n                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21e/proofs/replay/absent/e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7\n"
+    },
+    {
+      "error": "ValueError:Missing or changed pinned input: /scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21e/proofs/replay/absent/e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7",
+      "reader": "p_export_receipt.collect",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 70, in <lambda>\n    call('p_export_receipt.collect',lambda:X.collect(run,cfg['init_artifact']['artifact']))\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/launch_r1/p_export_receipt.py\", line 43, in collect\n    pinned(artifact[key]); closure[key] = artifact[key]\n    ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21e/proofs/replay/absent/e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7\n"
+    },
+    {
+      "error": "ValueError:P_EXPORT_CONFIG_MISMATCH",
+      "reader": "mutation: donor receives kit identity",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 74, in <lambda>\n    call('mutation: donor receives kit identity',lambda:H.donor(bad,artifact))\n                                                        ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_handover.py\", line 317, in donor\n    return _donor(cfg, artifact)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_handover.py\", line 342, in _donor\n    raise ValueError('P_EXPORT_CONFIG_MISMATCH')\nValueError: P_EXPORT_CONFIG_MISMATCH\n"
+    },
+    {
+      "error": "ValueError:P_EXPORT_ONLY_PROOF_MODE_Q_REQUIRED_TRAINING_REFUSED",
+      "reader": "mutation: unbound export-only mode",
+      "status": "REFUSE",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 33, in call\n    result=fn();row=dict(reader=name,status='PASS',result=summary(result))\n           ^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/replay21e.py\", line 76, in <lambda>\n    call('mutation: unbound export-only mode',lambda:P.verify(value['handover_receipt'],run,cfg['init_artifact']['artifact'],paths,proof_mode='train'))\n                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_persisted.py\", line 54, in verify\n    only = export_only(receipt, proof_mode)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/tree_r1/student_pilot/r1_persisted.py\", line 25, in export_only\n    raise ValueError('P_EXPORT_ONLY_PROOF_MODE_Q_REQUIRED_TRAINING_REFUSED')\nValueError: P_EXPORT_ONLY_PROOF_MODE_Q_REQUIRED_TRAINING_REFUSED\n"
+    }
+  ],
+  "runtime_identity": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4"
+}

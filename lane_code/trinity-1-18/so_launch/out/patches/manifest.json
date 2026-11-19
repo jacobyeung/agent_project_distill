@@ -1,7 +1,7 @@
 {
   "01_prepared_input_cache.diff": {
-    "bytes": 71778,
-    "sha256": "655234ca4a01ffb2aba1911b6abad2e2b6a1f1068b6bd8d10abf2a10bc70b093",
+    "bytes": 74827,
+    "sha256": "e623c669d71344a5297c25dda2114128024a6804102488b303018cd6640b2e41",
     "files": [
       "launch_s1/b/c.sh",
       "launch_s1/b/r.sh",
@@ -9,9 +9,19 @@
       "tests/test_prepared_input_cache.py",
       "tests/test_prepared_cache_wrapper.py"
     ],
-    "apply_method": "patch --batch --fuzz=0 -p1",
+    "apply_method": "patch --batch --fuzz=0 --no-backup-if-mismatch -p1",
     "input_root": "in/tree/work/tree_r1",
     "depends_on": [],
+    "base_tree_sha256": "780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278",
+    "base_tree_files": 934,
+    "base_tree_hash_format": "sha256(JSON {relative_file_path: file_sha256}, sorted keys, compact separators)",
+    "result_sha256": {
+      "launch_s1/b/c.sh": "e9bd2877fa7a3531671283c14c14e7f88cf4387c09041e051ddd9b24ff940b4c",
+      "launch_s1/b/r.sh": "c2cb16c3c0deacb427aa8c0a3e7705decc002602d5a94bc12858c1b10901e492",
+      "launch_s1/b/pc.py": "cd4fd57f7ca135ef0a84cc433c9449f955826c3cf1c8e269f54a990c25cb697f",
+      "tests/test_prepared_input_cache.py": "1d126d1b0f56e8f9d84868819c3b97f243ee4358657a14f13f259a1da037824b",
+      "tests/test_prepared_cache_wrapper.py": "9aab1bc9ed94a8e1a051d02cc2f8528bf013e7d72535175896e9d42eda302609"
+    },
     "deployment": "OFF: no useful production hit",
     "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
     "base_sha256": {
@@ -29,9 +39,16 @@
       "launch_s1/b/f2.py",
       "tests/test_parallel_frame_sha.py"
     ],
-    "apply_method": "patch --batch --fuzz=0 -p1",
+    "apply_method": "patch --batch --fuzz=0 --no-backup-if-mismatch -p1",
     "input_root": "in/tree/work/tree_r1",
     "depends_on": [],
+    "base_tree_sha256": "780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278",
+    "base_tree_files": 934,
+    "base_tree_hash_format": "sha256(JSON {relative_file_path: file_sha256}, sorted keys, compact separators)",
+    "result_sha256": {
+      "launch_s1/b/f2.py": "3ac676afe2792d5c1bd47c34e1b87341c240f39fb631dc2d5c1f816a331e09b9",
+      "tests/test_parallel_frame_sha.py": "0331928721e36e233b6e8e99356a54e9ed2416897e97a9b07f999760e6c8658e"
+    },
     "deployment": "default OFF; enable in order 03, 04, 02",
     "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
     "base_sha256": {
@@ -46,9 +63,16 @@
       "launch_s1/b/r8.py",
       "tests/test_checkpoint_verify_memo.py"
     ],
-    "apply_method": "patch --batch --fuzz=0 -p1",
+    "apply_method": "patch --batch --fuzz=0 --no-backup-if-mismatch -p1",
     "input_root": "in/tree/work/tree_r1",
     "depends_on": [],
+    "base_tree_sha256": "780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278",
+    "base_tree_files": 934,
+    "base_tree_hash_format": "sha256(JSON {relative_file_path: file_sha256}, sorted keys, compact separators)",
+    "result_sha256": {
+      "launch_s1/b/r8.py": "f6ee8d4e79d8a98e5712e333bf135ad899acb78c2b8e9af8b032e2c9d3da1ef6",
+      "tests/test_checkpoint_verify_memo.py": "d1cc77272b39fba099d1fcb44266ed4acf551f757b6ec16a27d23ab35e4be4c3"
+    },
     "deployment": "default OFF; enable in order 03, 04, 02",
     "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
     "base_sha256": {
@@ -57,17 +81,26 @@
     }
   },
   "04_launch_phase_timing.diff": {
-    "bytes": 8822,
-    "sha256": "e33d420cdbbc95b47bb6f350e6e338ceed22e8b5c0c8b07019c408330e0ed4f7",
+    "bytes": 11751,
+    "sha256": "c939f738090ac7ad78ce3aadf596ccbc5862945a1cd8fb55655f29141aa03120",
     "files": [
       "launch_s1/job.sh",
       "launch_s1/b/c.sh",
       "launch_s1/b/r.sh",
       "tests/test_launch_phase_timing.py"
     ],
-    "apply_method": "patch --batch --fuzz=0 -p1",
+    "apply_method": "patch --batch --fuzz=0 --no-backup-if-mismatch -p1",
     "input_root": "in/tree/work/tree_r1",
     "depends_on": [],
+    "base_tree_sha256": "780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278",
+    "base_tree_files": 934,
+    "base_tree_hash_format": "sha256(JSON {relative_file_path: file_sha256}, sorted keys, compact separators)",
+    "result_sha256": {
+      "launch_s1/job.sh": "9e4f143f30c63c87daa52ef23a4720459d36a0cb18709d14c84f9c8f547fc1ee",
+      "launch_s1/b/c.sh": "a8ff67c83b5e23d401ed5c2b67613ce4668ca91378215fde9330481b2ad698c0",
+      "launch_s1/b/r.sh": "a59b93196a11950c5c8e7112c1d12426c57ef65e1106230d1809d1ef275adb9d",
+      "tests/test_launch_phase_timing.py": "de91d8f492c1fec960636e282deddd7c3550b8bf2121e42a7d650219a4dd3dcc"
+    },
     "deployment": "default OFF; enable in order 03, 04, 02",
     "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
     "base_sha256": {

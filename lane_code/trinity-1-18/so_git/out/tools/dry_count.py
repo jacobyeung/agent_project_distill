@@ -19,13 +19,21 @@ def root_gate(script, folder):
                 constants[name] = ast.literal_eval(node.value)
             elif name == 'DIRRE':
                 constants[name] = re.compile(ast.literal_eval(node.value.args[0]))
-    name = folder.name
-    if name == '.git' or 'frames' in name or constants['DIRRE'].match(name):
-        return 'directory name excluded at hourly tree root'
-    if any(s in '/' + name + '/' for s in constants['SUBSTR']):
-        return 'path substring excluded at hourly tree root'
-    if len(os.listdir(folder)) > constants['MAXDIR']:
-        return f"directory exceeds MAXDIR={constants['MAXDIR']} at hourly tree root"
+    folders = [folder]
+    boundary = Path('/scratch/jjyeung/orch_n30')
+    if os.environ.get('LCS_REVIEW2_FIXES') == '1':
+        folders += list(folder.parents)[:list(folder.parents).index(boundary)]
+        folders.reverse()
+    for current in folders:
+        name = current.name
+        relative = (current.relative_to(boundary).as_posix()
+                    if os.environ.get('LCS_REVIEW2_FIXES') == '1' else name)
+        if name == '.git' or 'frames' in name or constants['DIRRE'].match(name):
+            return 'directory name excluded at hourly tree root'
+        if any(s in '/' + relative + '/' for s in constants['SUBSTR']):
+            return 'path substring excluded at hourly tree root'
+        if len(os.listdir(current)) > constants['MAXDIR']:
+            return f"directory exceeds MAXDIR={constants['MAXDIR']} at hourly tree root"
     return None
 
 

@@ -22,13 +22,14 @@ def main():
     parser.add_argument('--arm',choices=('off','prefetch','cache','all'),default='off')
     parser.add_argument('--baseline', help='OFF output JSON; required for every ON arm')
     parser.add_argument('--steps', type=int, default=10)
+    parser.add_argument('--full-plan', action='store_true', help='Audit every supplied epoch plan; no 100-step cap')
     parser.add_argument('--gpu-copy',action='store_true')
     parser.add_argument('--pin',action='store_true')
     parser.add_argument('--consumer-ms',type=float,default=0.,help='Optional simulated compute delay; NEVER a measured GPU speedup')
     args=parser.parse_args()
     if args.arm != 'off' and not args.baseline:
         parser.error('Every ON arm requires --baseline OFF.json')
-    if not 1 <= args.steps <= 100:
+    if not args.full_plan and not 1 <= args.steps <= 100:
         parser.error('--steps must be 1..100')
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from row_hash import encoded_hash, compare_rows
@@ -46,6 +47,10 @@ def main():
     if cfg.get('geometry_online') or cfg.get('mdg') or cfg.get('geometry_connector') == 'gf1':
         raise ValueError('This data-only descriptor covers the four-stream run A path, not geometry/MDG checks')
     frozen=run.load(args.plan)
+    if args.full_plan:
+        args.steps = len(frozen['plans'])
+        if not args.steps:
+            raise ValueError('Full plan is empty')
     if not 0 <= args.rank < frozen['world_size'] or len(frozen['plans']) < args.steps:
         raise ValueError('Need a valid rank and at least the requested step plans')
     rows=run.Rows(run.load(args.receipt),processor)
@@ -56,11 +61,24 @@ def main():
             tick=time.perf_counter()
             waiting=copy_seconds=hash_seconds=0.
             hashes=[]
+            from student_pilot.c1_cpu_prefetch import tensor_bytes, MAX_GROUP_TENSOR_BYTES
+            if 'stream_rows_per_step' in descriptor.recipe:
+                from student_pilot.e2e_recipe import plan_groups
+                lengths = [len(group) for group in plan_groups(descriptor.recipe, plan)]
+            else:
+                factor = run.nominal_slices(descriptor.recipe, plan)
+                lengths = [len(plan[i:i+factor]) for i in range(0, len(plan), factor)]
+            group_sizes, held, slot, group = [], 0, 0, 0
             iterator=run.fetch_plan(rows,descriptor,plan,args.rank,distributed=False)
             for _ in plan:
                 before=time.perf_counter()
-                batch,targets,_=next(iterator)
+                batch,targets,audit=next(iterator)
                 waiting+=time.perf_counter()-before
+                held += tensor_bytes((batch, targets, audit))
+                slot += 1
+                if slot == lengths[group]:
+                    group_sizes.append(held)
+                    held, slot, group = 0, 0, group + 1
                 hash_start=time.perf_counter()
                 hashes.append(encoded_hash((batch,targets)))
                 hash_seconds+=time.perf_counter()-hash_start
@@ -81,17 +99,23 @@ def main():
                        and np.array_equal(before_rng[1][1],after_rng[1][1])
                        and before_rng[1][2:]==after_rng[1][2:] and torch.equal(before_rng[2],after_rng[2]))
             result.append(dict(step=step,wall_seconds=time.perf_counter()-tick,data_seconds=waiting,
+                               max_group_tensor_bytes=max(group_sizes, default=0), group_tensor_bytes=group_sizes,
                                encoded_row_sha256=hashes, hash_seconds=hash_seconds,
                                copy_seconds=copy_seconds,simulated_consumer_ms=args.consumer_ms,
                                global_rng_unchanged=rng_equal))
     finally:
         rows.close()
     Path(args.out).write_text(json.dumps(result,indent=2)+'\n')
-    Path(args.out+'.manifest.json').write_text(json.dumps(dict(arm=args.arm,
+    peak = max(r['max_group_tensor_bytes'] for r in result)
+    Path(args.out+'.manifest.json').write_text(json.dumps(dict(arm=args.arm, full_plan=args.full_plan,
+        plans_checked=args.steps, plans_available=len(frozen['plans']), rank=args.rank, world_size=frozen['world_size'],
+        peak_group_tensor_bytes=peak, group_budget_bytes=MAX_GROUP_TENSOR_BYTES,
         intraop=torch.get_num_threads(), interop=torch.get_num_interop_threads(),
         environment={k:v for k,v in os.environ.items() if k.startswith(('OMP_', 'MKL_', 'OPENBLAS_', 'TOKENIZERS_'))}),indent=2)+'\n')
     if args.baseline:
         compare_rows(json.loads(Path(args.baseline).read_text()), result)
+    if peak > MAX_GROUP_TENSOR_BYTES:
+        raise ValueError('Full group tensor budget exceeded; keep prefetch OFF')
     if not all(r['global_rng_unchanged'] for r in result):
         raise ValueError('Actual row/processor path changed a global RNG; do not enable threaded prefetch')
     print(json.dumps(dict(arm=args.arm,steps=args.steps,encoded_rows_equal_to_off=True if args.baseline else None,median_wall_seconds=statistics.median(x['wall_seconds'] for x in result),

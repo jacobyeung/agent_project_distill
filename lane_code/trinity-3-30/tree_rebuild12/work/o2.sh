@@ -1,0 +1,1 @@
+cd /project/community/jjyeung/okh7/x_22c714e1 && find . -type f | wc -l && find . -type f -printf '%P\n' | sort | xargs -d '\n' sha256sum | sort -k2 > /tmp/x22.sum; cat /tmp/x22.sum; du -sb . | cut -f1

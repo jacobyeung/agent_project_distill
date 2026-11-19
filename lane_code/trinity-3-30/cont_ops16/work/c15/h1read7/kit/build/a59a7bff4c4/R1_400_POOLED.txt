@@ -1,0 +1,17 @@
+/scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/pooled_harm_rule_v3_c1.py:468: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  f.write(json.dumps(dict(e, utc=datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'), output=os.path.abspath(a.output)), sort_keys=True) + '\n')
+type                         dev-S1 delta [95%]         R0-dev delta [95%]           pooled  interval, H1 level   fires
+object_counting               +6.20 [  -0.70,  +12.39]  +13.22 [  +9.30,  +17.13]    +11.25  [  +5.52,  +16.31]   
+object_rel_direction_easy     +2.00 [  -2.69,   +7.41]   +9.90 [  +2.58,  +16.84]     +6.43  [  -0.88,  +13.83]   
+object_rel_direction_medium   +0.00 [  -2.94,   +2.50]  +15.98 [  +8.67,  +23.44]     +9.01  [  +2.14,  +16.29]   
+object_rel_direction_hard     -2.00 [  -5.78,   +2.08]  +11.98 [  +4.17,  +19.79]     +5.85  [  -2.15,  +14.06]   
+object_rel_distance           -3.33 [ -10.16,   +3.51]   +4.30 [  -0.36,   +9.32]     +1.63  [  -4.66,   +8.34]   
+object_size_estimation        +0.33 [  -2.89,   +3.70]   -0.99 [  -3.57,   +1.60]     -0.54  [  -3.97,   +2.75]   
+route_planning                +4.00 [  -1.52,   +9.71]  -                             +4.00  [  -5.67,  +13.23]   
+obj_appearance_order         -                           +3.25 [  -3.97,  +10.36]     +3.25  [  -8.57,  +14.13]   
+mean of eight (H2 level)                                                              +5.11  [  +2.92,   +7.26]   
+object size split (printed, stops nothing):
+  dev-S1 metric        72 items   +0.14 [  -3.51,   +4.34]
+  dev-S1 imperial      78 items   +0.51 [  -5.06,   +6.20]
+  R0-dev (cm)         293 items   -0.99 [  -3.57,   +1.60]
+verdict: SILENT

@@ -24,9 +24,12 @@ mp=OUT/'INPUTS.json';mp.write_text(json.dumps(manifest,indent=2)+'\n');mh=sha(mp
 # Fixtures are diagnostic outputs, not usable configuration/preparation artifacts. Retain their original payloads.
 fixture_inputs={str(mp):mh,str(Path(__file__).resolve()):sha(__file__)}
 for folder in [ROOT/'tmp',ROOT/'proofs']:
-    for p in folder.rglob('*.json'):
+    for p in list(folder.rglob('*.json')):
         try:v=json.loads(p.read_text())
-        except (ValueError,UnicodeError):continue
+        except (ValueError,UnicodeError):
+            sidecar=dict(command='bash run_cpu.sh finalize_review.py',scope='Intentionally malformed test fixture retained unchanged.',input_sha256={**fixture_inputs,str(p):sha(p)})
+            p.with_name(p.name+'.provenance.json').write_text(json.dumps(sidecar,indent=2)+'\n')
+            continue
         if not isinstance(v,dict):v=dict(fixture_payload=v)
         v['review_provenance']=dict(command='bash run_cpu.sh finalize_review.py',input_sha256=fixture_inputs,inputs_manifest=str(mp),scope='Synthetic test output; not a production input or proof.')
         if 'input_sha256' not in v:v['input_sha256']=fixture_inputs

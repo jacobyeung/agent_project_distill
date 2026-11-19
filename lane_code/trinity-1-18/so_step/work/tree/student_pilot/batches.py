@@ -56,7 +56,8 @@ def load_processor(student="onethinker"):
 
 
 def load_rgb(inputs):
-    import os
+    from .c1_switches import get as performance_switch
+    cache_enabled = performance_switch('C1_DECODED_CACHE_MIB') != '0'
     if set(inputs) != INPUT_FIELDS:
         raise ValueError(f"Student input contains unexpected or missing fields: {set(inputs) ^ INPUT_FIELDS}")
     indices, timestamps, frames = inputs["frame_indices"], inputs["timestamps"], inputs["frames"]
@@ -74,9 +75,9 @@ def load_rgb(inputs):
     images, sizes = [], []
     for frame in frames:
         binding(frame["path"], frame["sha256"])
-        if os.environ.get('C1_DECODED_CACHE_MIB', '0') != '0':
+        if cache_enabled:
             from .c1_decoded_cache import read
-            array = read(resolve_read(frame['path']), frame['path'])
+            array = read(resolve_read(frame['path']), frame['path'], frame['sha256'])
             sizes.append([array.shape[1], array.shape[0]])
             images.append(array)
             continue

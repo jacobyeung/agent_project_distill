@@ -4,7 +4,7 @@ M=/scratch/jjyeung/orch_n30/r1_ops6/work/mon; R=/scratch/jjyeung/orch_n30/r1_ops
 st=$(grep '^STEP' $M/node_last.txt | tail -1 | grep -o '"step": [0-9]*, "wall": [0-9]*' | tr -d '"')
 ev=$(python3 -c "import json;d=json.load(open('$M/node_early.json'));print(d['verdict'],len(d['problems']))")
 js=$(grep -E '^172660\|' $M/last.txt | head -1 | cut -d'|' -f4)
-oe=$(awk '/^172660.err/{f=1;next} /^172660.steps/{f=0} f' $M/last.txt | grep -v -c -E '_cgroup_procs_check|unable to read .*cgroup.procs|^th /sys|FutureWarning|set_state_dict_type\(')
+oe=$(awk '/^172660.err/{f=1;next} /^172660.steps/{f=0} f' $M/last.txt | grep -v -c -E '_cgroup_procs_check|unable to read .*cgroup.procs|^th /sys|FutureWarning|being deprecated|set_state_dict_type\(')
 rcs=$(grep -E 'srun rc|early rc' $M/node_last.txt | tr '\n' ' ')
 slow=$(grep -v '"step": 201' $M/node_last.txt | grep -o '"wall": [0-9]*' | awk '$2>300' | wc -l)
 ck=$(grep -o 'checkpoint_[0-9]*' $M/node_last.txt | sort -u | tail -1)

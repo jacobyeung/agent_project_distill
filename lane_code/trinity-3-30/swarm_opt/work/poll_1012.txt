@@ -1,0 +1,46 @@
+started cursor so_cr_step2
+my codex builds running: 3 (load 26 avail 441G)
+so_modep RUNNING
+so_read_fix2 RUNNING
+so_git_fix2 RUNNING
+so_launch_port21 QUEUED
+so_corpus_lost QUEUED
+so_corpus_fix2 QUEUED
+SO_GLOO_PROOF {"directory": "/scratch/jjyeung/orch_n30/so_step/work/test_runs/so_384pmumf", "ranks": 2, "comparisons": 16, "losses_and_every_gradient": "bitwise", "trainables": "identical", "row_draws": "identical", "collectives": "identical; main thread only", "failure_microstep": 2}
+Ran 16 tests in 1027.778s
+OK
+EXIT=0
+README.md
+cache_state.py
+data_only.py
+row_hash.py
+run.sh
+summarize.py
+== /scratch/jjyeung/orch_n30/so_step/out/kit_timing/README.md
+# Fixed-plan production timing
+
+Use the sealed patched checkout and a freshly admitted production configuration. Export `TREE`, `CONFIG`, a fresh `OUT`, and `PYTHON`; use the production thread environment unchanged. Export explicit scratch paths for `CUDA_CACHE_PATH`, `TRITON_CACHE_DIR`, and `TORCHINDUCTOR_CACHE_DIR` matching the production cache policy. Do not clear caches between arms. The profile README describes `RESUME_PIN` and optional `RESUME_CONFIG`; every arm restores the same checkpoint, or the same seeded initial state when both are omitted.
+
+```bash
+bash out/kit_timing/run.sh
+```
+
+The defaults are **three repeats, 20 discarded warm-up updates and 20 measured updates per arm**, with fixed row plans shared across all runs. Each repeat runs OFF/prefetch/OFF/cache/OFF/metrics/OFF; alternate repeats reverse the ON order. Every ON arm is compared with the average of its adjacent OFF arms at matching update indices. `REPEATS` accepts 3–30, `WARMUP` and `MEASURE` accept 10–100. Per-arm timeout is three hours (`ARM_SECONDS`, bounded to 60–43,200 seconds). A failure or timeout stops the entire script, without a retry. All runs are disposable and write only under `OUT`.
+
+This is a precision experiment, not a short smoke test. At the measured 133-second steady-state rate, the default 840 updates alone take about **31 hours**, plus cold-start excess and model loading. That is an estimate, not a measured kit runtime. Plan the production allocation accordingly; the separate profile kit retains its 15-minute bound. Twenty warm-up updates put the measured window at updates 21–40, matching the supplied log's stable-analysis cutoff. The shorter ten-update setting is allowed for diagnostics but needs the same precision gate.
+
+The summary uses the slowest rank for each update. It reports paired wall/data differences, forward/backward host time per microstep, first-step bitwise loss parity, and cache counters. Negative forward/backward host gains mean the producer slowed the training host work. It refuses mismatched plans, trainables, bindings, thread settings, or losses. `cache_before/after.json` inventories up to 4096 top-level cache entries with hashed names, size and mtime; it marks truncation and does not claim a recursive cache-content census.
+
+**Minimum detectable difference:** treat each repeat's mean paired gain as one sample, because neighboring updates are correlated. With repeat standard deviation `s`, `n` repeats, two-sided alpha 0.05 and approximate 80% power, the kit reports `MDD = (t(.975,n-1) + 0.842) * s / sqrt(n)`. It uses conservative Student-t critical values. With three repeats, MDD is **2.9705 × s**: repeat SD 1.0 s permits detecting about 2.97 s; SD 0.337 s permits about 1.0 s. These are planning calculations, not measured variance. No finite kit can guarantee detecting a zero gain. `resolved=false` forbids a positive speedup claim; `target_1s_resolved=false` means the 0–3-second metric estimate remains insufficiently res== /scratch/jjyeung/orch_n30/so_step/out/kit_timing/README.md
+# Fixed-plan production timing
+
+Use the sealed patched checkout and a freshly admitted production configuration. Export `TREE`, `CONFIG`, a fresh `OUT`, and `PYTHON`; use the production thread environment unchanged. Export explicit scratch paths for `CUDA_CACHE_PATH`, `TRITON_CACHE_DIR`, and `TORCHINDUCTOR_CACHE_DIR` matching the production cache policy. Do not clear caches between arms. The profile README describes `RESUME_PIN` and optional `RESUME_CONFIG`; every arm restores the same checkpoint, or the same seeded initial state when both are omitted.
+
+```bash
+bash out/kit_timing/run.sh
+```
+
+The defaults are **three repeats, 20 discarded warm-up updates and 20 measured updates per arm**, with fixed row plans shared across all runs. Each repeat runs OFF/prefetch/OFF/cache/OFF/metrics/OFF; alternate repeats reverse the ON order. Every ON arm is compared with the av102:There is **no positive lower bound on the prefetch gain**: it can save zero seconds or make training slower. The timing kit records per-microstep forward/backward host time for OFF and ON, effective intra-op/inter-op counts, and OMP/MKL/OpenBLAS/tokenizer settings. Keep prefetch OFF if training 
+110:Every cache-enabled step reports cumulative `decoded_cache.hits`, `misses`, `bytes`, and `capacity_bytes`; adjacent-record differences give step reuse. The timing kit retains those records. Cache savings and prefetch overlap and must not be added as independent gains.
+142:The [timing kit](kit_timing/README.md) compares all three switches after 20 warm-up updates, using 20 measured updates and three repeats with OFF/ON/OFF brackets. Defaults mean 840 optimizer updates: about **31 hours at 133 s/update**, plus startup, an estimated production budget. Per-arm timeou
+453:SHELL_SYNTAX_PASS: out/kit_timing/run.sh

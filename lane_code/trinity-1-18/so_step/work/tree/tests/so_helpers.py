@@ -18,6 +18,13 @@ from tests.so_processor import TinyProcessor
 from tests.test_carrier_c1_final import final_fixture
 
 
+def reset_switches(test):
+    """Isolate process-local startup state in tests that train or change switches."""
+    from student_pilot import c1_switches
+    c1_switches._frozen = None
+    test.addCleanup(setattr, c1_switches, '_frozen', None)
+
+
 def root():
     return Path(tempfile.mkdtemp(prefix='so_', dir=os.environ['LANE_TEST_OUTPUT']))
 

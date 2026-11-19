@@ -1,0 +1,284 @@
+--- a/student_pilot/orchard_paths.py
++++ b/student_pilot/orchard_paths.py
+@@ -12,9 +12,23 @@
+     return os.environ.get((env_key('STUDENT_ORCHARD'))) == '1'
+ 
+ 
++def _within(path, root):
++    """Lexical containment; resolution and filesystem checks remain at callers."""
++    if os.environ.get('S1_PREP_FAST_PATHS') != '1':
++        return path.is_relative_to(root)
++    # PosixPath.parts is normalized exactly as the parents used by is_relative_to.
++    # The anchor check also handles a relative root such as Path('.').
++    from pathlib import PurePosixPath
++    root = Path(root)
++    if not isinstance(path, PurePosixPath) or not isinstance(root, PurePosixPath):
++        return path.is_relative_to(root)
++    parts, prefix = path.parts, root.parts
++    return path.anchor == root.anchor and parts[:len(prefix)] == prefix
++
++
+ def owned(path, *, resolve=None):
+     path = (resolve or Path.resolve)(Path(path))
+-    return enabled() and any(path.is_relative_to(root) and path != root for root in (PROJECT, SCRATCH))
++    return enabled() and any(_within(path, root) and path != root for root in (PROJECT, SCRATCH))
+ 
+ 
+ def resolve_read(path, *, resolve=None):
+@@ -25,6 +39,8 @@
+         return path
+     if not enabled():
+         raise ValueError('Frame root mapping requires explicit STUDENT_ORCHARD=1')
++    if os.environ.get('S1_PREP_FAST_PATHS') == '1':
++        return _resolve_read_fast(path, mapping, resolve)
+     # JSON permits both the data root and the exact pinned guard/scorer source root.
+     pairs = json.loads(mapping) if mapping.startswith('{') else dict([mapping.__getattribute__("sp" "lit")('=', 1)])
+     allowed = {'/data2': PROJECT / 'data2root',
+@@ -60,3 +76,35 @@
+         raise ValueError('Orchard model root must be owned project or node-local storage')
+     original = spec['snapshot']
+     return root / spec.get('snapshot_dir', original.parent.parent.name) / 'snapshots' / original.name
++
++
++from functools import lru_cache
++
++
++@lru_cache(maxsize=32)
++def _mapping_items(mapping):
++    # Cache text parsing only. Never cache resolved paths, stat results or hashes.
++    pairs = json.loads(mapping) if mapping.startswith('{') else dict([mapping.split('=', 1)])
++    return tuple(pairs.items())
++
++
++def _resolve_read_fast(path, mapping, resolve):
++    allowed = {'/data2': PROJECT / 'data2root',
++               '/home/jjyeung/agent_project': PROJECT / 'source_home'}
++    for source, destination in _mapping_items(mapping):
++        if source not in allowed:
++            raise ValueError('Unsupported logical read root')
++        destination = Path(destination)
++        if not (destination == allowed[source] or _within(destination, SCRATCH)):
++            raise ValueError('Mapped inputs must stay in owned Orchard storage')
++        if '..' in destination.parts or not owned(destination, resolve=resolve):
++            raise ValueError('Mapped destination escapes owned storage')
++        source_path = Path(source)
++        if _within(path, source_path):
++            if '..' in path.parts:
++                raise ValueError('Read path traversal is forbidden')
++            result = destination.joinpath(*path.parts[len(source_path.parts):])
++            if not _within(resolve(result), resolve(destination)):
++                raise ValueError('Mapped input symlink escapes its root')
++            return result
++    return path
+--- a/student_pilot/s1_admission.py
++++ b/student_pilot/s1_admission.py
+@@ -40,7 +40,7 @@
+         self.counts(source)
+ 
+     def keep(self, row, source):
+-        from .orchard_paths import resolve_read
++        from .orchard_paths import resolve_read, _within
+         if source.startswith("mdg/"):
+             from .grounding_train import clip_row
+             row = clip_row(row)
+@@ -54,7 +54,7 @@
+                     or not isinstance(pin["sha256"], str) or not re.fullmatch("[0-9a-f]{64}", pin["sha256"])):
+                 raise ValueError("Frame requires an exact path/SHA256 pin")
+             path = resolve_read(pin["path"]).resolve()
+-            if not any(path.is_relative_to(root) for root in self.roots) or not path.is_file():
++            if not any(_within(path, root) for root in self.roots) or not path.is_file():
+                 raise ValueError(f"Retained RGB is absent or outside its frame store: {path}")
+             found = self.connection.execute("SELECT sha256 FROM frames WHERE path=?", (str(path),)).fetchone()
+             if found is not None and found[0] != pin["sha256"]:
+--- /dev/null
++++ b/tests/test_modep_fast_paths.py
+@@ -0,0 +1,120 @@
++"""Byte parity and unchanged filesystem checks for the opt-in path arithmetic."""
++import json
++import os
++from pathlib import Path
++import random
++import tempfile
++import unittest
++from unittest.mock import patch
++
++from student_pilot import orchard_paths as paths
++from student_pilot.p3_provenance import file_pin
++from student_pilot.s1_admission import FrameAudit, verify_frames
++
++
++class FastPaths(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='modep_paths_', dir=os.environ['TMPDIR']))
++        self.project = self.root / 'project'
++        self.frames = self.project / 'data2root/frames'
++        self.frames.mkdir(parents=True)
++        self.mapping = json.dumps({'/data2': str(self.project/'data2root')})
++        self.scope = patch.object(paths, 'PROJECT', self.project)
++        self.scope.start()
++        self.env = patch.dict(os.environ, {'STUDENT_ORCHARD': '1', 'Q_E1': '1',
++            'STUDENT_FRAME_ROOT_MAP': self.mapping, 'Q_E4': self.mapping})
++        self.env.start()
++        self.addCleanup(self.env.stop)
++        self.addCleanup(self.scope.stop)
++
++    def call(self, flag, value, mapping=None):
++        with patch.dict(os.environ, S1_PREP_FAST_PATHS=flag,
++                        Q_E4=self.mapping if mapping is None else mapping):
++            try:
++                return ('value', str(paths.resolve_read(value)))
++            except Exception as error:
++                return (type(error).__name__, str(error))
++
++    def test_lexical_containment_matches_pathlib(self):
++        rng = random.Random(17)
++        values = ['', '.', '..', '/', '//', '/a', '/a/b', '/a/../b', 'a/b', 'a/../b']
++        for _ in range(150):
++            values.append(rng.choice(['', '/', '//'])+'/'.join(rng.choices(['a', 'b', '.', '..'], k=5)))
++        with patch.dict(os.environ, S1_PREP_FAST_PATHS='1'):
++            for path in map(Path, values):
++                for root in map(Path, values):
++                    self.assertEqual(paths._within(path, root), path.is_relative_to(root), (path, root))
++
++    def test_mappings_aliases_and_refusals_match(self):
++        source = self.frames/'one';source.write_bytes(b'one')
++        outside = self.root/'outside';outside.write_bytes(b'outside')
++        (self.frames/'escape').symlink_to(outside)
++        (self.frames/'inside').symlink_to(source)
++        candidates = ['/data2/frames/one', '/data2/frames/missing', '/data2/frames/inside',
++                      '/data2/frames/escape', '/data2/../outside', '/other/file']
++        mappings = [self.mapping, '/data2='+str(self.project/'data2root'),
++                    json.dumps({'/unsupported': str(self.frames)}),
++                    json.dumps({'/data2': str(self.root/'outside')}),
++                    json.dumps({'/data2': str(self.project/'data2root'), '/ignored': None}),
++                    json.dumps({'/data2': str(self.project/'data2root/../data2root')}), '{broken']
++        for mapping in mappings:
++            for value in candidates:
++                self.assertEqual(self.call('0', value, mapping), self.call('1', value, mapping))
++
++    def test_every_resolution_is_repeated_and_mapping_changes_are_seen(self):
++        p = self.frames/'one';p.write_bytes(b'one')
++        sequences = []
++        real = Path.resolve
++        for flag in ('0', '1'):
++            calls = []
++            def resolve(path, **kw):
++                calls.append(str(path));return real(path, **kw)
++            with patch.dict(os.environ, S1_PREP_FAST_PATHS=flag), patch.object(Path, 'resolve', resolve):
++                paths.resolve_read('/data2/frames/one')
++                paths.resolve_read('/data2/frames/one')
++            sequences.append(calls)
++        self.assertEqual(sequences[0], sequences[1])
++        self.assertEqual(len(sequences[1]), 6)
++        self.assertEqual(self.call('1', '/data2/frames/one', '{"/bad":"/tmp/jjyeung/x"}')[0], 'ValueError')
++
++    def test_database_and_samples_are_byte_identical(self):
++        pins = []
++        for i in range(37):
++            p = self.frames/str(i);p.write_bytes(str(i).encode()*11)
++            pins.append(dict(path='/data2/frames/'+str(i), sha256=file_pin(p)['sha256']))
++        results = []
++        for flag in ('0', '1'):
++            out = self.root/('audit'+flag);out.mkdir()
++            with patch.dict(os.environ, S1_PREP_FAST_PATHS=flag):
++                audit = FrameAudit(out, [self.frames], sample_size=11)
++                try:
++                    for i in range(93):
++                        audit.keep(dict(student_input=dict(frames=[pins[(i+j)%37] for j in range(32)])), 's'+str(i%3))
++                    report = audit.finish()
++                finally:
++                    audit.close()
++                verify_frames(report)
++            results.append(report)
++        self.assertEqual((self.root/'audit0/frame_inventory.sqlite').read_bytes(),
++                         (self.root/'audit1/frame_inventory.sqlite').read_bytes())
++        for result in results:result['inventory']['path'] = 'same-inventory-path'
++        self.assertEqual(results[0], results[1])
++
++    def test_changed_symlink_and_missing_frame_still_refuse(self):
++        p = self.frames/'one';p.write_bytes(b'one')
++        pin = dict(path='/data2/frames/link', sha256=file_pin(p)['sha256'])
++        for flag in ('0', '1'):
++            link = self.frames/('link'+flag);link.symlink_to(p)
++            out = self.root/('mutation'+flag);out.mkdir()
++            with patch.dict(os.environ, S1_PREP_FAST_PATHS=flag):
++                audit = FrameAudit(out, [self.frames])
++                try:
++                    actual = dict(pin, path='/data2/frames/link'+flag)
++                    audit.keep(dict(student_input=dict(frames=[actual])), 'vqa')
++                    link.rename(self.frames/('retained-link'+flag))
++                    link.symlink_to(self.root/'absent')
++                    with self.assertRaises(ValueError):audit.keep(dict(student_input=dict(frames=[actual])), 'vqa')
++                finally:audit.close()
++
++
++if __name__ == '__main__':unittest.main()
+--- /dev/null
++++ b/tests/test_modep_gloo.py
+@@ -0,0 +1,66 @@
++"""Optional two-rank CPU/Gloo parity; run only where local sockets are available."""
++import hashlib
++import json
++import os
++from pathlib import Path
++import socket
++import tempfile
++import unittest
++
++
++def _worker(rank, root, port):
++    import torch
++    import torch.distributed as dist
++    from student_pilot import orchard_paths
++    from student_pilot.p3_provenance import file_pin
++    from student_pilot.s1_admission import FrameAudit, verify_frames
++    torch.set_num_threads(8)
++    root = Path(root)
++    project = root/'project'
++    frames = project/'data2root'
++    orchard_paths.PROJECT = project
++    os.environ.update(Q_E1='1', Q_E4=json.dumps({'/data2': str(frames)}))
++    dist.init_process_group('gloo', init_method=f'tcp://127.0.0.1:{port}', rank=rank, world_size=2)
++    try:
++        pins = [dict(path='/data2/'+str(i), sha256=file_pin(frames/str(i))['sha256']) for i in range(32)]
++        digests = []
++        for flag in ('0', '1'):
++            os.environ['S1_PREP_FAST_PATHS'] = flag
++            output = root/f'rank{rank}_{flag}'
++            output.mkdir()
++            audit = FrameAudit(output, [frames], sample_size=8)
++            try:
++                for i in range(16):
++                    audit.keep(dict(student_input=dict(frames=pins[i:]+pins[:i])), 'vqa')
++                report = audit.finish()
++            finally:
++                audit.close()
++            verify_frames(report)
++            digests.append(hashlib.sha256((output/'frame_inventory.sqlite').read_bytes()).hexdigest())
++        assert digests[0] == digests[1]
++        gathered = [None, None]
++        dist.all_gather_object(gathered, digests)
++        assert gathered[0] == gathered[1]
++        (root/f'rank{rank}.json').write_text(json.dumps({'inventory_sha256': digests, 'ranks_identical': True}))
++    finally:
++        dist.destroy_process_group()
++
++
++@unittest.skipUnless(os.environ.get('MODEP_RUN_GLOO') == '1', 'lane must run work/run_gloo.sh outside the socket sandbox')
++class GlooParity(unittest.TestCase):
++    def test_native_frame_inventory_matches_across_two_cpu_ranks(self):
++        import torch
++        import torch.multiprocessing as mp
++        torch.set_num_threads(8)
++        root = Path(tempfile.mkdtemp(prefix='modep_gloo_', dir=os.environ['TMPDIR']))
++        frames = root/'project/data2root'
++        frames.mkdir(parents=True)
++        for i in range(32):(frames/str(i)).write_bytes(bytes([i])*256)
++        with socket.socket() as sock:
++            sock.bind(('127.0.0.1', 0))
++            port = sock.getsockname()[1]
++        mp.spawn(_worker, args=(str(root), port), nprocs=2, join=True)
++        self.assertEqual(json.loads((root/'rank0.json').read_text()), json.loads((root/'rank1.json').read_text()))
++
++
++if __name__ == '__main__':unittest.main()

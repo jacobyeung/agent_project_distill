@@ -4,6 +4,10 @@ from student_pilot.c1_batch_metrics import Components
 
 
 class MetricsTests(unittest.TestCase):
+    def setUp(self):
+        from tests.so_helpers import reset_switches
+        reset_switches(self)
+
     def test_python_float_accumulation_order_and_mixed_dtypes(self):
         torch.set_num_threads(8)
         recorder = Components(72)

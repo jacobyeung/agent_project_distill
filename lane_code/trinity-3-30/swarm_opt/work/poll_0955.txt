@@ -1,0 +1,25 @@
+my codex builds running: 2 (load 29 avail 423G)
+so_pack_a RUNNING
+so_launch_fix2 RUNNING
+started so_modep (gpt-6-astra)
+so_read_fix2 QUEUED
+so_git_fix2 QUEUED
+so_corpus_lost QUEUED
+-- so_cr_step: verdict=VERDICT: GO AFTER FIXES running=n
+-- so_read: VERDICT: DONE All seven HIGH/MEDIUM findings have fixes and passing CPU regressions; production adoption remains NO-GO until the unrun GPU and persistent-storage gates pass.
+-- so_launch: VERDICT: DONE The review fixes are packaged with CPU regression evidence; patch 01 stays OFF.
+-- so_git: VERDICT: DONE Findings 1–16 are addressed; fresh patches, owner suites, and real-Git proofs pass under Python 3.6.8 and 3.12.13.
+VERDICT: DONE Findings 1–14 and arithmetic finding 15 are fixed and locally verified; revised two-rank gloo and production GPU checks are assigned to the coordinator.
+
+The delivery contains four ordered, default-OFF patches, the review tree, and both unrun GPU kits. **Patch 04 stays separate.** The series applies with zero fuzz and reproduces all 14 touched files; the other 931 files match the input. All **29 local tests pass**, plus patch replay, syntax and arith
+1:VERDICT: DONE Findings 1–14 and arithmetic finding 15 are fixed and locally verified; revised two-rank gloo and production GPU checks are assigned to the coordinator.
+5:The coordinator's [full-suite output](../work/full_suite_by_swarm_opt2.txt) establishes ten passing tests, including the two-rank gloo proofs, for the series reviewed before these fixes. The independent [review verdict](../../so_cr_step/REVIEW_VERDICT.md) reports a second ten-test pass. These are valid supplied evidence; the revised distributed tests have not run in this sandbox. No production s
+128:| 13. Late switch validation | Parse all three before model load, gather values/errors across ranks, then freeze settings for Rows/fetch/cache/metrics. | Invalid-value/rank-mismatch/frozen-setting tests; native startup test. Real rank-mismatch gloo case is assigned below. |
+148:## Coordinator command: revised two-rank gloo tests
+150:**To be run by the coordinator outside the sandbox.** No distributed test was attempted here. The exact command runs the full revised suite, including both two-rank tests and the new local regressions:
+157:  /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_cpu_tests.py \
+159:  > work/review1_full_suite_by_coordinator.txt 2>&1
+164:Supplied coordinator evidence for the reviewed series: `work/full_suite_by_swarm_opt2.txt` reports `Ran 10 tests in 1011.165s`, `OK`, `EXIT=0`; its `SO_GLOO_PROOF` records 16 comparisons, bitwise losses/gradients, identical trainables/draws, main-thread collectives and failure microstep 2. The independent reviewer reports ten tests in 1590.6 seconds with the same proof. The revised source need
+168:Keep prefetch OFF until production timing settles GIL/CPU contention and the real data-only hash/RNG checks pass. Check RSS separately from the prepared-tensor budget. A future processor that draws global RNG or mutates shared native state needs a new safety audit. A cache hit-rate near zero predicts near-zero cache benefit. CUDA determinism, stream elapsed measurements, memory fit and actual 
+249:### Trainer regressions: 14 pass; two gloo cases excluded
+254:$ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_cpu_tests.py --local-only tests.test_so_prefetch tests.test_so_cache tests.test_so_metrics tests.test_so_joint tests.test_so_review

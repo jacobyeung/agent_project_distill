@@ -1,0 +1,114 @@
+{
+  "01_prepared_input_cache.diff": {
+    "bytes": 74827,
+    "sha256": "e623c669d71344a5297c25dda2114128024a6804102488b303018cd6640b2e41",
+    "files": [
+      "launch_s1/b/c.sh",
+      "launch_s1/b/r.sh",
+      "launch_s1/b/pc.py",
+      "tests/test_prepared_input_cache.py",
+      "tests/test_prepared_cache_wrapper.py"
+    ],
+    "apply_method": "patch --batch --fuzz=0 --no-backup-if-mismatch -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "base_tree_sha256": "780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278",
+    "base_tree_files": 934,
+    "base_tree_hash_format": "sha256(JSON {relative_file_path: file_sha256}, sorted keys, compact separators)",
+    "result_sha256": {
+      "launch_s1/b/c.sh": "e9bd2877fa7a3531671283c14c14e7f88cf4387c09041e051ddd9b24ff940b4c",
+      "launch_s1/b/r.sh": "c2cb16c3c0deacb427aa8c0a3e7705decc002602d5a94bc12858c1b10901e492",
+      "launch_s1/b/pc.py": "cd4fd57f7ca135ef0a84cc433c9449f955826c3cf1c8e269f54a990c25cb697f",
+      "tests/test_prepared_input_cache.py": "1d126d1b0f56e8f9d84868819c3b97f243ee4358657a14f13f259a1da037824b",
+      "tests/test_prepared_cache_wrapper.py": "9aab1bc9ed94a8e1a051d02cc2f8528bf013e7d72535175896e9d42eda302609"
+    },
+    "deployment": "OFF: no useful production hit",
+    "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
+    "base_sha256": {
+      "launch_s1/b/c.sh": "33bca2644d25c649b66f64e78bd0079292791b9aceb75f998cb0df98f0508ce6",
+      "launch_s1/b/r.sh": "080b41bef2ff357248c6c0f6041b4dd63fc7264b5795758d1bc0c89e6fe9bf16",
+      "launch_s1/b/pc.py": null,
+      "tests/test_prepared_input_cache.py": null,
+      "tests/test_prepared_cache_wrapper.py": null
+    }
+  },
+  "02_parallel_frame_sha.diff": {
+    "bytes": 6324,
+    "sha256": "9f20e45be76d5ad356df185f6604c6e6ea822d6378286e1f8f3ed7df81158ea9",
+    "files": [
+      "launch_s1/b/f2.py",
+      "tests/test_parallel_frame_sha.py"
+    ],
+    "apply_method": "patch --batch --fuzz=0 --no-backup-if-mismatch -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "base_tree_sha256": "780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278",
+    "base_tree_files": 934,
+    "base_tree_hash_format": "sha256(JSON {relative_file_path: file_sha256}, sorted keys, compact separators)",
+    "result_sha256": {
+      "launch_s1/b/f2.py": "3ac676afe2792d5c1bd47c34e1b87341c240f39fb631dc2d5c1f816a331e09b9",
+      "tests/test_parallel_frame_sha.py": "0331928721e36e233b6e8e99356a54e9ed2416897e97a9b07f999760e6c8658e"
+    },
+    "deployment": "default OFF; enable in order 03, 04, 02",
+    "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
+    "base_sha256": {
+      "launch_s1/b/f2.py": "515c61e19baf0b189866a5145c19bfc96a671af0b24be49398034d40aaca7b67",
+      "tests/test_parallel_frame_sha.py": null
+    }
+  },
+  "03_checkpoint_verify_memo.diff": {
+    "bytes": 13638,
+    "sha256": "bf0ea4745a3e059fd0d0cdffc5fa7cd99ad646b7d70c7957df95f87b4f6c4e54",
+    "files": [
+      "launch_s1/b/r8.py",
+      "tests/test_checkpoint_verify_memo.py"
+    ],
+    "apply_method": "patch --batch --fuzz=0 --no-backup-if-mismatch -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "base_tree_sha256": "780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278",
+    "base_tree_files": 934,
+    "base_tree_hash_format": "sha256(JSON {relative_file_path: file_sha256}, sorted keys, compact separators)",
+    "result_sha256": {
+      "launch_s1/b/r8.py": "f6ee8d4e79d8a98e5712e333bf135ad899acb78c2b8e9af8b032e2c9d3da1ef6",
+      "tests/test_checkpoint_verify_memo.py": "d1cc77272b39fba099d1fcb44266ed4acf551f757b6ec16a27d23ab35e4be4c3"
+    },
+    "deployment": "default OFF; enable in order 03, 04, 02",
+    "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
+    "base_sha256": {
+      "launch_s1/b/r8.py": "d4046786d037168c6a2ee8f2266c9cf2c0049591e6f8d9a182f208a70bd06ef0",
+      "tests/test_checkpoint_verify_memo.py": null
+    }
+  },
+  "04_launch_phase_timing.diff": {
+    "bytes": 11751,
+    "sha256": "c939f738090ac7ad78ce3aadf596ccbc5862945a1cd8fb55655f29141aa03120",
+    "files": [
+      "launch_s1/job.sh",
+      "launch_s1/b/c.sh",
+      "launch_s1/b/r.sh",
+      "tests/test_launch_phase_timing.py"
+    ],
+    "apply_method": "patch --batch --fuzz=0 --no-backup-if-mismatch -p1",
+    "input_root": "in/tree/work/tree_r1",
+    "depends_on": [],
+    "base_tree_sha256": "780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278",
+    "base_tree_files": 934,
+    "base_tree_hash_format": "sha256(JSON {relative_file_path: file_sha256}, sorted keys, compact separators)",
+    "result_sha256": {
+      "launch_s1/job.sh": "9e4f143f30c63c87daa52ef23a4720459d36a0cb18709d14c84f9c8f547fc1ee",
+      "launch_s1/b/c.sh": "a8ff67c83b5e23d401ed5c2b67613ce4668ca91378215fde9330481b2ad698c0",
+      "launch_s1/b/r.sh": "a59b93196a11950c5c8e7112c1d12426c57ef65e1106230d1809d1ef275adb9d",
+      "tests/test_launch_phase_timing.py": "de91d8f492c1fec960636e282deddd7c3550b8bf2121e42a7d650219a4dd3dcc"
+    },
+    "deployment": "default OFF; enable in order 03, 04, 02",
+    "native_gate_sha256": "7bac567f656851bbff8be67981878a5f1dc02ecb5c70256be8ea67c8bdae680c",
+    "base_sha256": {
+      "launch_s1/job.sh": "737849b3c940b4b871e87c7db969e45c4afe1309f996f18c12550189b229e268",
+      "launch_s1/b/c.sh": "33bca2644d25c649b66f64e78bd0079292791b9aceb75f998cb0df98f0508ce6",
+      "launch_s1/b/r.sh": "080b41bef2ff357248c6c0f6041b4dd63fc7264b5795758d1bc0c89e6fe9bf16",
+      "tests/test_launch_phase_timing.py": null
+    }
+  }
+}
+PASS: only the 11 declared production/test paths differ from the input tree

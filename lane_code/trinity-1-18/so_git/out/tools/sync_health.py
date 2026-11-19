@@ -12,6 +12,10 @@ import sys
 UTC = timezone.utc
 
 
+def review2_enabled():
+    return os.environ.get('LCS_REVIEW2_FIXES') == '1'
+
+
 def within(path, boundary):
     try:
         path.relative_to(boundary)
@@ -134,6 +138,8 @@ def check(state_root, events, log, now):
         if recovered:
             # Stable name makes event replay safe after process interruption.
             event = f'{stamp(verified)}_RESULT_code_sync_recovered.md'
+            if review2_enabled():
+                event = f'{stamp(now)}_RESULT_code_sync_recovered_{"_".join(sorted(recovered))}.md'
             data['events'].setdefault(event, f'{iso(now)} code_sync recovered: {", ".join(recovered)}; verified GitHub push {iso(verified)}\n')
         stale = verified is None or now - verified > timedelta(minutes=90)
         if stale and 'stale' not in active:
@@ -144,10 +150,18 @@ def check(state_root, events, log, now):
             if lock_skips:
                 when, text = lock_skips[-1]
                 data['events'][event] += f'Latest hourly lock skip: {iso(when)} {text}\n'
-        if completed and completed['failed'] and 'failed' not in active and not own_blocker(events, completed):
+        if completed and completed['failed'] and 'failed' not in active:
             # Deduplicate a completed failure even after its incident has recovered.
             key = iso(completed['end'])
-            if data.get('last_failed_run') != key:
+            if review2_enabled():
+                emit = data.get('last_failed_run') != key
+                if emit:
+                    emit = not own_blocker(events, completed)
+                    # Remember the decision even when the hourly supplied the event.
+                    data['last_failed_run'] = key
+            else:
+                emit = not own_blocker(events, completed) and data.get('last_failed_run') != key
+            if emit:
                 event = f'{stamp(now)}_BLOCKER_code_sync_failed.md'
                 active['failed'] = {'observed': iso(now), 'event': event, 'run': key}
                 data['events'][event] = f'{iso(now)} code_sync failed: run ended {key} without its own BLOCKER; log {log}\n'
@@ -190,6 +204,10 @@ def main():
         boundary = Path(os.environ['LCS_TEST_ROOT']).resolve(strict=True)
         if not str(boundary).startswith('/scratch/') or not all(within(p, boundary) for p in (state, events)):
             raise ValueError('test writes must stay within /scratch test root')
+        if review2_enabled():
+            production = Path('/scratch/jjyeung/distill_sync').resolve()
+            if any(within(p, production) or within(production, p) for p in (state, events)):
+                raise ValueError('test targets must not overlap production state')
         if os.environ.get('LCS_HEALTH_NOW'):
             now = parse(os.environ['LCS_HEALTH_NOW'])
     else:

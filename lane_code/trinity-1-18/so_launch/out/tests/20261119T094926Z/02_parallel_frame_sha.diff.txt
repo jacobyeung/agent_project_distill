@@ -1,0 +1,24 @@
+$ date -u
+Thu Nov 19 09:49:33 UTC 2026
+EXIT: 0
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -i /scratch/jjyeung/orch_n30/so_launch/out/patches/02_parallel_frame_sha.diff
+patching file launch_s1/b/f2.py
+patching file tests/test_parallel_frame_sha.py
+EXIT: 0
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T094926Z/02_parallel_frame_sha/tests/test_parallel_frame_sha.py -v
+test_default_does_not_construct_a_thread_pool (__main__.FrameHashTests.test_default_does_not_construct_a_thread_pool) ... ok
+test_duplicate_and_wrong_path_refuse_both_modes (__main__.FrameHashTests.test_duplicate_and_wrong_path_refuse_both_modes) ... ok
+test_late_corrupt_file_refuses_both_modes (__main__.FrameHashTests.test_late_corrupt_file_refuses_both_modes) ... ok
+test_manifest_digest_refuses (__main__.FrameHashTests.test_manifest_digest_refuses) ... ok
+test_missing_and_symlinked_files_refuse (__main__.FrameHashTests.test_missing_and_symlinked_files_refuse) ... ok
+test_parallel_and_default_counts_match (__main__.FrameHashTests.test_parallel_and_default_counts_match) ... ok
+test_worker_cap (__main__.FrameHashTests.test_worker_cap) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.043s
+
+OK
+EXIT: 0
+$ date -u
+Thu Nov 19 09:49:34 UTC 2026
+EXIT: 0

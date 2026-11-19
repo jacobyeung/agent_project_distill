@@ -1,0 +1,14 @@
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -i /scratch/jjyeung/orch_n30/so_launch/out/patches_b21/03_checkpoint_verify_memo.diff
+patching file launch_s1/b/r8.py
+patching file tests/test_checkpoint_verify_memo.py
+EXIT: 0
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -i /scratch/jjyeung/orch_n30/so_launch/out/patches_b21/04_launch_phase_timing.diff
+patching file launch_s1/job.sh
+patching file launch_s1/b/c.sh
+patching file launch_s1/b/r.sh
+patching file tests/test_launch_phase_timing.py
+EXIT: 0
+$ patch --batch --fuzz=0 --no-backup-if-mismatch -p1 -i /scratch/jjyeung/orch_n30/so_launch/out/patches_b21/02_parallel_frame_sha.diff
+patching file launch_s1/b/f2.py
+patching file tests/test_parallel_frame_sha.py
+EXIT: 0

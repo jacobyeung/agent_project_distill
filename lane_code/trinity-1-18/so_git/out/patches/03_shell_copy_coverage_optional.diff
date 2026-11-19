@@ -12,7 +12,7 @@
  MAXDIR = 2000
 --- /dev/null
 +++ b/tests/test_filter_shell_copies.py
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,45 @@
 +import os
 +from pathlib import Path
 +import subprocess
@@ -25,7 +25,9 @@
 +
 +class ShellCopiesTests(unittest.TestCase):
 +    def setUp(self):
-+        parent = BASE / 'work' / 'filter_tests'
++        parent = Path(os.environ.get('LCS_TEST_WORK', tempfile.gettempdir())).resolve()
++        if not str(parent).startswith(('/scratch/', '/tmp/')) and parent != Path('/tmp'):
++            raise ValueError('LCS_TEST_WORK and temporary storage must be under /scratch or /tmp')
 +        parent.mkdir(parents=True, exist_ok=True)
 +        self.root = Path(tempfile.mkdtemp(prefix='copies_', dir=parent))
 +        (self.root / 'script.py').write_text('x=1\n')

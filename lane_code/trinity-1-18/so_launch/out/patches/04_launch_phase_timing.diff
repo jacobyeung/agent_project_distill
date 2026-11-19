@@ -61,7 +61,8 @@
  export TK_JOBDIR=/tmp/jjyeung/okit_$K/jobs/${SLURM_JOB_ID:?}.${1:-x}
 --- /dev/null
 +++ b/tests/test_launch_phase_timing.py
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,173 @@
++import json
 +import os
 +from pathlib import Path
 +import shutil
@@ -176,6 +177,60 @@
 +                    ['run_p_launch_guard_start'] if fail else [
 +                    'run_p_launch_guard_start', 'run_p_launch_guard_done',
 +                    'run_u_launch_guard_start', 'run_u_launch_guard_done'])
++
++    def test_real_stage_lock_timing_prep_and_preflight_on_off(self):
++        root = self.root
++        (root / 'b/sa').mkdir()
++        for name in ('sitecustomize.py', 'prestage_hooks.py'):
++            (root / 'b/sa' / name).write_text('# fixture\n')
++        record = root / 'record.json'
++        record.write_text('{}')
++        (root / 'k/0.json').write_text(json.dumps(dict(commit='fixture',
++            closure=dict(file='closure.tar', sha256='a'*64),
++            record=dict(file=str(record), sha256='b'*64))))
++        (root / 'b/s.py').write_text('pass\n')
++        source = Path(__file__).resolve().parents[1] / 'launch_s1/b/c.sh'
++        shell = '''source "$TK_KIT_HOME/b/c.sh"
++date() { if [[ "$1" == +%s ]]; then printf '2000000000\\n'; else printf 'fixed-time\\n'; fi; }
++hostname() { printf 'fixture-host\\n'; }
++df() { printf 'header\\ndisk 0 0 10485760\\n'; }
++free() { printf 'header\\nMem: 8\\n'; }
++tk_nx() { :; }
++tk_kitx() { mkdir -p "$2" "$S/.stamp"; if [[ "$1" == art ]]; then mkdir -p "$2/lb"; touch "$2/lb/51f013139e77.npz"; fi; }
++tk_venv_shebangs() { :; }
++tk_has() { return 1; }
++sha_is() { :; }
++tk_stage_model() { :; }
++tk_stage_small() { :; }
++tk_stage_extra() { :; }
++tk_stage_tars() { :; }
++tk_stage_fla() { :; }
++tk_stage_bundle() { :; }
++tk_stage_init() { :; }
++tk_stage "$STAGE_MODE"
++'''
++        def execute(path, mode, timing, job):
++            (root / 'b/c.sh').write_text(path.read_text().replace('/tmp/jjyeung', str(root / 'tmp')))
++            env = {**os.environ, 'TK_KIT_HOME':str(root), 'TK_JOBDIR':str(root / 'job'),
++                'SLURM_JOB_ID':job, 'TK_PREPARED_INPUT_CACHE':'0', 'STAGE_MODE':mode,
++                'TK_LAUNCH_TIMING':str(timing)}
++            env.pop('TK_LIGHT', None)
++            result = subprocess.run(['bash', '-euo', 'pipefail', '-c', shell], env=env,
++                                    capture_output=True, text=True, timeout=10)
++            self.assertEqual(result.returncode, 0, result.stderr)
++            self.assertEqual(result.stderr, '')
++            self.assertEqual((root / 'o' / (job + '.steps')).read_text(), result.stdout)
++            return result.stdout
++        for mode in ('prep', 'preflight'):
++            with self.subTest(mode=mode):
++                off = execute(source, mode, 0, 'off-' + mode)
++                on = execute(source, mode, 1, 'on-' + mode)
++                lock_lines = [line for line in on.splitlines(True) if ' lock ' in line]
++                self.assertEqual(lock_lines, [f'fixed-time | stage {mode} lock wait start\n',
++                    f'fixed-time | stage {mode} lock acquired wait_seconds=0\n'])
++                self.assertEqual(''.join(line for line in on.splitlines(True) if ' lock ' not in line), off)
++                if os.environ.get('TIMING_INPUT_C'):
++                    self.assertEqual(execute(Path(os.environ['TIMING_INPUT_C']), mode, 0, 'input-' + mode), off)
 +
 +
 +if __name__ == '__main__':

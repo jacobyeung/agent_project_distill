@@ -1,0 +1,109 @@
+started cursor so_cr_corpus
+09:43:21Z
+my codex builds running: 1 (load 29 avail 406G)
+so_xstore ENDED: VERDICT: PARTIAL CPU entry and store/recorder groundwork are tested on build 21b; native portable production, planning, GPU adoption and first-loss equivalence remain unimplemented
+so_pack_a RUNNING
+so_step_fix ENDED: VERDICT: DONE Findings 1–14 and arithmetic finding 15 are fixed and locally verified; revised two-rank gloo and production GPU checks are assigned to the coordinator.
+started so_launch_fix2 (gpt-6-astra)
+so_read_fix2 QUEUED
+so_git_fix2 QUEUED
+so_corpus_lost QUEUED
+so_read_fix ENDED
+so_launch_fix ENDED
+so_git_fix ENDED
+-- so_cr_git2: verdict=VERDICT: GO running=n
+-- so_cr_launch2: verdict=VERDICT: GO AFTER FIXES running=n
+-- so_cr_read2: verdict=VERDICT: GO AFTER FIXES running=n
+ 04:43:21 up 25 days,  4:46,  2 users,  load average: 29.82, 30.64, 25.82
+== so_xstore: admission argument, rebuild note, pinned patch, fresh-patch tests and final artifact audit delivered. Native full preparation depends on its selected export. Current estimated launch saving: 0 minutes. No existing source files changed; switches OFF. 
+== so_pack_a: xture passes. Freeze runtime sources now; build unified patches, apply them freshly and run replay validation. Production completeness remains PARTIAL because the raw D source and required production inputs/harnesses are unavailable or inconsistent. 
+== so_step: ed two-rank gloo tests are to be run by the coordinator outside the sandbox. GPU kits and production processor/timing checks remain unrun as requested. No production speedup is claimed. The workspace uses about 365 MB; local scratch has 429 GB free. 
+=== so_cr_launch2
+VERDICT: GO AFTER FIXES
+
+Scope of the GO. Patches 03, 04 and 02 can be applied now, with every switch OFF, and then enabled one at a time in the NOTE's order. Patch 01 may be applied with its switch OFF, but it must never be enabled. I found no path on which any patch trains on stale or changed bytes. The fixes below correct numbers in the report and gaps in the cross-run design. Findings 1 and 2 must be fixed before anyone plans work on that design. Findings 3 and 5 must be fixed before the NOTE is used. Finding 4 is optional.
+
+Paths are relative to `/scratch/jjyeung/orch_n30/so_launch/`.
+- `I` is the input tree `in/tree/work/tree_r1`.
+- `V` is the delivered verification directory `work/verify_20261119T082118Z` (standalone, `recommended` and `combined` trees).
+- `L1` is `/scratch/jjyeung/orch_n30/so_in/.../r1_ops6/work/mon/last.txt` (job 172660).
+- `L2` is `.../swarm_opt/work/o/look1.out` (job 171377).
+
+## Findings
+
+1. **MEDIUM: the design's 110–135 min saving assumes the frames half of mode p is cheap to adopt, but that work is tied to the node.**
+   - The frames phase audits this node's frame roots (`I/student_pilot/s1_admission.py:249-255`).
+   - Its inventory stores physical paths. On reuse, every retained frame is re-checked on the node (`s1_admission.py:103-117,258-259`).
+   - The native request binds the node's resolved frame roots and the frame-root map (`s1_admission.py:170-173`).
+   - The report itself marks the result-to-exit interval (70.20 and about 72.07 min) as inferred, not isolated (`out/REPORT.md:25`).
+   - The design gives a 10–30 min allowance for fetch, full SHA, adoption and remaining frame work (`out/CROSS_RUN_STORE_DESIGN.md:41`), and nothing measures it.
+   - If adoption must redo the frame audit on each node, the saving is about 70 min minus fetch and verification, not 110–135.
+   - Smallest fix:
+     - State the planning number as "about 70 min, the prepare half, until measured."
+     - Add one cheap CPU measurement: native mode p on a complete journal on one Orchard node. Both phases are reused, so this times the full `pinned()` rehash, `run.prepared` and `verify_frames`. That is the floor of any adoption cost.
+
+2. **MEDIUM: the design does not name the Orchard data path, so its store cannot be built as written.**
+   - The design calls for a store "readable by every Orchard node" with an uploader, costed at 1–2 days (`CROSS_RUN_STORE_DESIGN.md:5,29`).
+   - Today, inputs reach Orchard only through the login node, which fetches from GCS into the cache (`I/launch_s1/b/c.sh:4,11-13`).
+   - Staging must report `project_community_write_bytes == 0` (`I/launch_s1/b/g.py:110-113,134-137`).
+   - Job-side uploads go through GCS sessions minted outside the job, one per milestone name (`c.sh:404-435`).
+   - The design does not say which channel publishes a store root, or how a job gets that right. Its effort estimate leaves this out.
+   - Checkpoint bindings also pin the derived config identity and the preparation pin (`I/student_pilot/carrier_c1_run.py:2920`), and phase directories are `uuid4` (`I/student_pilot/first_batch_progress.py:40`). The design names this only abstractly (`CROSS_RUN_STORE_DESIGN.md:21`).
+   - Smallest fix:
+     - Name the channel, for example the existing GCS export, then a login-node fetch into a read-only store in the Orchard cache.
+     - Keep the zero-write staging invariant.
+     - Add content-derived phase directory names as a design item.
+     - Re-estimate the effort.
+
+3. **LOW: patch 03's upper bound of 10 min is not supported by the logs. The likely saving is about 4–5 min per resume launch.**
+   - Gap measurements:
+     - The 675-s gap covers three passes (`L1:162-163`).
+     - The 86-s gap covers one warm pass plus about 1 s of overhead. Job 171377, with no checkpoint, shows 1 s in both gaps (`L2:280-281,347-348`).
+   - The node has 1842 GiB of RAM (`L1:163`), so passes 2–3 read from page cache, as pass 4 did. The memo removes passes 2–4, which are the warm ones: about 3 × 85 s ≈ 255 s.
+   - The report's even split (`out/REPORT.md:75`) assigns about 190 s to pass 4, which was measured at 86 s.
+   - Even the largest value consistent with the logs (pass 1 at least as slow as passes 2–3) is 2 × 225 + 86 ≈ 536 s ≈ 9 min. That requires the page cache to drop the checkpoint between passes.
+   - Smallest fix:
+     - Change the claim at `out/REPORT.md:60,75` and `out/NOTE_FOR_TREE_REBUILD.md:19` to "about 4–5 min (inferred); up to about 9 only if the page cache does not keep the checkpoint."
+     - Measure the real figure with `TK_LAUNCH_TIMING=1` on the first resume job.
+
+4. **LOW: no test executes patch 04's `c.sh` stage-lock timing branch.**
+   - `TK_LAUNCH_TIMING` appears only in `tests/test_launch_phase_timing.py:33,102`, and both cases stub `c.sh`.
+   - `V/04_launch_phase_timing/launch_s1/b/c.sh:271-278` (`stage_wait_start`, `wait_seconds`) is therefore never run.
+   - I probed it with the real recommended `c.sh` and stubbed stagin
+=== so_cr_read2
+VERDICT: GO AFTER FIXES
+
+Scope: every file in `so_read/out/` and `so_read/work/src/u0/`, plus the originals they overlay in the A4 patch base. MANIFEST hashes match the workspace bytes. I ran the non-writing CPU tests with `nice -n 10`, 8 threads, no GPU and `-I -s -B`. I also ran the round-1 F1, F4 and F7 checks against both the pre-fix and the post-fix code. I did not run the suites that write files (`test_read_journal`, `test_off`, `test_public`, `test_compare`, round-1 F2), to honour "write nothing else". GPU parity and persistent-storage requeue remain unrun, as the report says.
+
+## Round-1 findings: disposition
+
+| Round 1 | Fix | Regression test |
+|---|---|---|
+| 1 Key collisions | Correct and complete. `digest` is typed and length-prefixed (`u0/a0.py:31-83`). | Behavioural. I verified it fails before and passes after (`tests/test_round1.py:35`). |
+| 2 Vacuous parity | Correct. It requires 50 unique equal ids, validates traces including scale, calls and served responses, and requires positive hits for every enabled cache (`compare.py`/`a10.py`). | Fails before by inspection, since the old comparator passed empty traces. It is weak: it accepts any `ValueError` (`test_round1.py:44`). |
+| 3 OFF not preserved | Correct by construction. The change is additive under `src/u0`, and the originals are byte-unchanged. `reader_sha256`, `code_hash` and `parity_code_sha256` do not cover `u0`. `build.py` does not pack it. | Structural only (`test_round1.py:57`). It fails before by inspection. |
+| 4 Model identity | Correct. Vision and SAM keys bind live id, `data_ptr`, version and full content, plus execution state, and SAM bypasses on hooks (`a0.py:302-332`, `a3.py:208-228`). | Behavioural. I verified it fails before and passes after (`test_round1.py:64`). |
+| 5 Recovery outside lock | Correct for atomic mode. `writer_guard` recovers under `writer.lock` and only with a matching binding (`a4.py:145-170`). | Textual only: it checks that the handler contains no `.recover()` (`test_round1.py:76-79`). A behavioural lock test exists in `test_read_journal`; I did not run it. |
+| 6 Opacity | Partly fixed. Config, IDs and logs are tokenized. Findings 2 and 3 cover the gaps. | A path regex only (`test_round1.py:81`). It does not exercise the real Orchard surface. |
+| 7 Memory bound | Correct. The reserve includes overhead, and the cache evicts before the snapshot and admits only `2*reserve` (`a0.py:206-261`). | Behavioural. I verified it fails before and passes after (`test_round1.py:88,94`). |
+
+## Findings
+
+1. **HIGH: the documented ON entrypoint fails under `-I`.** `a8.main` adds `src`, `src/tree` and `src/b` to `sys.path`, but not `u0` (`a8.py:54`). Under `-I` the script directory is not on `sys.path`. As a result, `a4.py:247` (`from a8 import source_hash`) raises `ModuleNotFoundError: a8`, and with `--opaque`, `a8.py:56` raises `ModuleNotFoundError: a9`. I reproduced both. REPORT:60, NOTE:25 and README:3 all document `u0/a8.py --enable-extensions`, and the production runner launches with `-B -I`. The kit (`run.py:41`) and the array template (`template:26`) insert `u0` themselves, so no test noticed. **Fix:** `sys.path[:0]=[str(ROOT), str(source), ...]` in `a8.main`, plus a subprocess `-I` test of `a8.py --enable-extensions` with and without `--opaque`.
+
+2. **MEDIUM: the opaque path grammar rejects every established Orchard layout.** `OPAQUE_PATH` (`a9.py:12`) allows only `/scratch|/project` followed by `u<hex>` segments. Production stages under `/scratch/jjyeung/<token>` and `/project/community/jjyeung/okh7/a15_cot_ap<token>` (`8.py:45`, `common.py:22`). Three call sites enforce the grammar:
+   - `validate_paths`/`seal_settings`, which every kit arm calls (`a9.py:36-50`, `run.py:63`).
+   - `validate_config`, which the array calls (`a9.py:148-155`, `a7.py:17`).
+   - The output check at `run.py:127`.
+
+   So the kit and the array cannot run on real staged assets unless top-level `/scratch/u…` and `/project/u…` directories exist and are writable on Orchard, which is unverified. **Fix:** accept an approved prefix list followed by opaque segments, and screen words with `orchard_h10.common.opaque` (FORBIDDEN, `common.py:18-21`).
+
+3. **MEDIUM: the array template departs from the approved Orchard submit surface.** The template (`array_preempt.template.sh:3-13`) differs from `submit_argv` (`common.py:71-82`) in six ways:
+   - The job name is `u0`, not `a15_cot_ap<token>`.
+   - There is no `--account=mt01` and no `--export=NONE`.
+   - Logs go to `/project/u0/u1/...` instead of `/dev/null`.
+   - It uses `preempt` with `--requeue` and a 2-day limit at `--array=0-3%4`, up to 192 GPU-h. `submit_argv` caps an allocation at 5 GPU-h (`common.py:74-75`).
+   - The stored batch script contains `from h1eval.h10.array_worker import main` (`template:30`); `h1` and `h10` are FORBIDDEN words.
+   - Exit 75 (`a7.py:55,59`) and the catch-all exit 2 (`template:35-37`) end the task FAILED; `--requeue` covers only preemption and node failure.
+
+   *

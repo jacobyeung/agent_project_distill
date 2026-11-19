@@ -1,0 +1,453 @@
+{
+  "reused": {
+    "NUMBERS": {
+      "all": {
+        "rows": 1037,
+        "A0": 56.7695274831244,
+        "A2": 73.97299903567985,
+        "contribution": 17.20347155255545
+      },
+      "groups": {
+        "good": {
+          "rows": 456,
+          "A0": 74.9780701754386,
+          "A2": 75.39473684210526,
+          "contribution": 0.18322082931533268
+        },
+        "wrong": {
+          "rows": 287,
+          "A0": 27.386759581881535,
+          "A2": 74.25087108013938,
+          "contribution": 12.970106075216972
+        },
+        "weak": {
+          "rows": 153,
+          "A0": 63.333333333333336,
+          "A2": 67.38562091503267,
+          "contribution": 0.5978784956605593
+        },
+        "poor_frame": {
+          "rows": 105,
+          "A0": 67.9047619047619,
+          "A2": 73.52380952380952,
+          "contribution": 0.5689488910318226
+        },
+        "refused": {
+          "rows": 36,
+          "A0": 0.0,
+          "A2": 83.05555555555556,
+          "contribution": 2.883317261330762
+        }
+      },
+      "operand_categories": {
+        "good": 1356,
+        "weak": 188,
+        "wrong": 319,
+        "poor_frame": 175,
+        "refused": 36
+      },
+      "proposal_partition": {
+        "no_pool": {
+          "rows": 175,
+          "A0": 18.857142857142858,
+          "A2": 77.2,
+          "contribution": 9.845708775313405
+        },
+        "has_pool": {
+          "rows": 148,
+          "A0": 30.81081081081081,
+          "A2": 72.9054054054054,
+          "contribution": 6.00771456123433
+        }
+      },
+      "datasets": {
+        "arkitscenes": {
+          "rows": 344,
+          "A0": 62.44186046511628,
+          "A2": 71.65697674418605,
+          "contribution": 3.0568948891031824
+        },
+        "scannet": {
+          "rows": 72,
+          "A0": 58.05555555555556,
+          "A2": 65.41666666666667,
+          "contribution": 0.5110896817743491
+        },
+        "scannetpp": {
+          "rows": 621,
+          "A0": 53.47826086956522,
+          "A2": 76.24798711755234,
+          "contribution": 13.635486981677918
+        }
+      },
+      "heater_wrong": {
+        "rows": 68,
+        "A0": 20.294117647058822,
+        "A2": 79.41176470588235,
+        "contribution": 3.8765670202507234
+      },
+      "pool_recall": 1804,
+      "visible": {
+        "n": 13793,
+        "served": 0.4418183136373523,
+        "pool": 0.5941419560646705
+      },
+      "above_one_percent": {
+        "n": 9263,
+        "served": 0.5789700960811832,
+        "pool": 0.747921839576811
+      },
+      "first": {
+        "served": 995,
+        "pool": 1326,
+        "denominator": 2074
+      },
+      "wrong_omitted": 665,
+      "wrong_priced_kinds": {
+        "wrong_class": 213,
+        "other_mask_error": 66,
+        "merged_instances": 29,
+        "no_proposal": 11
+      },
+      "false_presence": 976,
+      "category_definition": "refused > wrong (max IoU < .1 and max precision < .2) > weak (max IoU < .5) > poor priced frame > good"
+    },
+    "DATA_AUDIT": {
+      "captures": 239,
+      "datasets": {
+        "arkitscenes": 127,
+        "scannet": 41,
+        "scannetpp": 71
+      },
+      "train_list_equal": true,
+      "held_capture_overlap": [],
+      "held_row_overlap": [],
+      "held_room_overlap": [],
+      "nontrain": [],
+      "raster_missing": [],
+      "frame_missing": [],
+      "anchor_mismatch": [],
+      "structural": {
+        "tested": 2074,
+        "passes": 2074,
+        "failures": []
+      },
+      "samples": [
+        {
+          "capture": "arkitscenes/41048124",
+          "raster": "/scratch/jjyeung/orch_cd/dose_pool/out/arkit_gt/gt/41048124.npz",
+          "raster_hash_matches": true,
+          "frame": "/scratch/jjyeung/k1_frames/a9/a9dbf53eff9d929bc93a4efe3ea70e08f00f6dde848c2e3dcca09db76b020438.png",
+          "frame_hash_matches": true
+        },
+        {
+          "capture": "scannet/scene0150_01",
+          "raster": "/scratch/jjyeung/orch_cd/dose_pool/out/t1_gt/gt/scannet__scene0150_01.npz",
+          "raster_hash_matches": true,
+          "frame": "/scratch/jjyeung/k1_frames/0c/0c61f592f8b7d3b5db5ead3ded6b934e845ad3790e3cbe4c427b08e7f6cd5e8a.png",
+          "frame_hash_matches": true
+        },
+        {
+          "capture": "scannetpp/036bce3393",
+          "raster": "/scratch/jjyeung/orch_cd/dose_pool/out/t1_gt/gt/scannetppv2__036bce3393.npz",
+          "raster_hash_matches": true,
+          "frame": "/scratch/jjyeung/k1_frames/ff/ffea902cfebef130f1beccfa5c7d0b2ed56f06fdcd04c55ffc76bcef99479794.png",
+          "frame_hash_matches": true
+        }
+      ],
+      "split_metadata_overlaps": {
+        "tuning_scenes": [],
+        "legacy_read_scenes": [],
+        "room_disjoint_scenes": [],
+        "overlapping_read_scenes": [],
+        "overlapping_rooms": []
+      },
+      "R0_dev_capture_list": "MISSING: no authoritative R0-dev capture list is supplied in in/, K1_ROWSETS, or named split evidence",
+      "dense_frames": 15296,
+      "anchors": 7648
+    },
+    "CACHE_AUDIT": {
+      "row_weighted": {
+        "n": 2716,
+        "conditional_ge_half": 2511,
+        "conditional_ge_half_presence_lt_point2": 2511,
+        "presence_lt_point05": 2418,
+        "conditional_ge_half_joint_veto": 2511,
+        "max_conditional_joint_veto": 2511,
+        "raw_kept_mismatch": 0
+      },
+      "unique_frames": {
+        "n": 891,
+        "conditional_ge_half": 814,
+        "conditional_ge_half_presence_lt_point2": 814,
+        "presence_lt_point05": 789,
+        "conditional_ge_half_joint_veto": 814,
+        "max_conditional_joint_veto": 814,
+        "raw_kept_mismatch": 0
+      },
+      "examples": [
+        {
+          "capture": "arkitscenes/41048124",
+          "name": "fireplace",
+          "frame": 31,
+          "presence": 0.00116729736328125,
+          "max_conditional": 0.427734375,
+          "cache": "/scratch/jjyeung/k1/run_convert_2/dfece798227526fb/candidates.json"
+        },
+        {
+          "capture": "arkitscenes/41069076",
+          "name": "bathtub",
+          "frame": 8,
+          "presence": 0.00628662109375,
+          "max_conditional": 0.70703125,
+          "cache": "/scratch/jjyeung/k1/run_convert_2/54c1c9d606f2a398/candidates.json"
+        },
+        {
+          "capture": "arkitscenes/41098061",
+          "name": "bathtub",
+          "frame": 4,
+          "presence": 0.00225830078125,
+          "max_conditional": 0.5703125,
+          "cache": "/scratch/jjyeung/k1/run_convert_2/704a57b8c9075fed/candidates.json"
+        }
+      ],
+      "meaning": "Vetoed query masks are absent; conditional confidence does not establish target overlap."
+    },
+    "DETAILS": {
+      "first_seen_variants": {
+        "0": {
+          "n": 2074,
+          "served": 995,
+          "pool": 1326,
+          "served_percent": 47.974927675988425,
+          "pool_percent": 63.9344262295082
+        },
+        "0.002": {
+          "n": 2055,
+          "served": 1128,
+          "pool": 1442,
+          "served_percent": 54.89051094890511,
+          "pool_percent": 70.17031630170317
+        },
+        "0.01": {
+          "n": 1798,
+          "served": 1027,
+          "pool": 1264,
+          "served_percent": 57.11902113459399,
+          "pool_percent": 70.30033370411569
+        }
+      },
+      "heater_wrong_only": {
+        "rows": 54,
+        "A0": 25.555555555555557,
+        "A2": 80.0,
+        "contribution": 2.835101253616201
+      },
+      "mixed_presence_probe": {
+        "phrases": [
+          "chair"
+        ],
+        "frames": {
+          "0": {
+            "phrases": {
+              "chair": {
+                "presence": 0.1,
+                "instances": [
+                  {
+                    "score": 0.9,
+                    "mask": "maskA"
+                  },
+                  {
+                    "score": 0.8,
+                    "mask": "maskB"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "path_checks": {
+        "/scratch/jjyeung/n13_outage/sam3_ckpt": {
+          "exists": true,
+          "entries": []
+        },
+        "/scratch/jjyeung/qwen_port_1110/sam3_ckpt": {
+          "exists": true,
+          "entries": []
+        },
+        "optional_track": {
+          "path": "/scratch/jjyeung/orch_n30/sb_kobj4/out/object_route/K1_TRACK.json",
+          "exists": false
+        }
+      },
+      "checks_scope": "Path existence and direct directory entries; checkpoint bytes unavailable, no checkpoint content hash claimed.",
+      "ranking_half_transfer_ReVSI_per_GPUh": {
+        "retention": [
+          0.11904761904761904,
+          0.35714285714285715
+        ],
+        "carry": [
+          0.03571428571428571,
+          0.08928571428571429
+        ],
+        "finetune": [
+          0.02040816326530612,
+          0.061224489795918366
+        ]
+      },
+      "ranking_scope": "Arithmetic on declared scenarios and caps only; neither gains nor GPU throughput are measured in the supplied design/specs."
+    },
+    "ALIAS_AUDIT": {
+      "counts": {
+        "operands": 2074,
+        "raw30": 1804,
+        "alias30": 1883,
+        "alias_all": 1883,
+        "raw100": 1804,
+        "conditional_half_and_presence_lt05": 2238
+      },
+      "gained_by_name": {
+        "table": 1,
+        "chair": 4,
+        "heater": 63,
+        "coat hanger": 8,
+        "bookshelf": 3
+      },
+      "lost": [],
+      "names_with_alias_instances": [
+        "bathtub",
+        "bed",
+        "bookshelf",
+        "chair",
+        "coat hanger",
+        "couch",
+        "counter",
+        "heater",
+        "lamp",
+        "monitor",
+        "office chair",
+        "refrigerator",
+        "sofa",
+        "stool",
+        "table",
+        "trash can",
+        "tv",
+        "whiteboard"
+      ],
+      "method": "Exact cache retention; nearest-neighbor resize to 480x640 then stride 2; IoU >= .5 on valid visible anchors; row operands retain repeated weight."
+    }
+  },
+  "spec_exclusion_tokens": {
+    "KIT_SPEC_mask_carry_v2.md": {
+      "bdb5d402": true,
+      "969cdb56": true,
+      "3119aa4a": true,
+      "634820b4": true,
+      "4d4736cf": true,
+      "sb_auditfix2": true,
+      "planted-row": true
+    },
+    "KIT_SPEC_mask_phrase_v2.md": {
+      "bdb5d402": true,
+      "969cdb56": true,
+      "3119aa4a": true,
+      "634820b4": true,
+      "4d4736cf": true,
+      "sb_auditfix2": true,
+      "planted-row": true
+    },
+    "KIT_SPEC_mask_sam3ft_v2.md": {
+      "bdb5d402": true,
+      "969cdb56": true,
+      "3119aa4a": true,
+      "634820b4": true,
+      "4d4736cf": true,
+      "sb_auditfix2": true,
+      "planted-row": true
+    }
+  },
+  "checkpoint_sha256": "9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e",
+  "checkpoint_matches": true,
+  "receipt_source_hash_matches": {
+    "sam3/model_builder.py": true,
+    "sam3/model/sam3_image_processor.py": true,
+    "sam3/model/sam3_image.py": true,
+    "sam3/model/vl_combiner.py": true,
+    "sam3/model/box_ops.py": true,
+    "sam3/model/data_misc.py": true
+  },
+  "source_symbols": {
+    "sam3/model/sam3_tracking_predictor.py": [
+      "Sam3TrackerPredictor"
+    ],
+    "sam3/train/loss/sam3_loss.py": [
+      "DummyLoss",
+      "Sam3LossWrapper"
+    ],
+    "sam3/train/loss/loss_fns.py": [
+      "instance_masks_to_semantic_masks",
+      "accuracy",
+      "dice_loss",
+      "_dice_loss",
+      "sigmoid_focal_loss",
+      "iou_loss",
+      "_contrastive_align",
+      "_get_src_permutation_idx",
+      "LossWithWeights",
+      "IABCEMdetr",
+      "Boxes",
+      "Masks",
+      "segment_miou",
+      "SemanticSegCriterion",
+      "Det2TrkAssoc",
+      "TrackingByDetectionAssoc",
+      "_keep_only_trk_queries_in_match_inds"
+    ],
+    "sam3/train/matcher.py": [
+      "_do_matching",
+      "HungarianMatcher",
+      "BinaryHungarianMatcher",
+      "BinaryFocalHungarianMatcher",
+      "BinaryHungarianMatcherV2",
+      "BinaryOneToManyMatcher"
+    ]
+  },
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_mdrev/NUMBERS.json": "d473ae2cba0d5fa3e86ae639158f132cc40c60183d2bef7da338b61dba0efaac",
+    "/scratch/jjyeung/orch_n30/sb_mdrev/DATA_AUDIT.json": "d940045e83dc8b9b25fedd4c6260bbdb703d491a019f05e991803ea22360224b",
+    "/scratch/jjyeung/orch_n30/sb_mdrev/CACHE_AUDIT.json": "a4fc1241adffbdd9dec4e8f6e0ef5120f282ddb8e53aa6b77fe93d0369fcfbd4",
+    "/scratch/jjyeung/orch_n30/sb_mdrev/DETAILS.json": "054f034e95c594015a5607586452586bdcf6b23f0989280eca4b7ec2a1d43496",
+    "/scratch/jjyeung/orch_n30/sb_mdrev/ALIAS_AUDIT.json": "faa87949510fcfbdd435181e045375d74454dcc35b9416f54604abe58f0a6929",
+    "/scratch/jjyeung/orch_n30/sb_mdrev/REVIEW_VERDICT.md": "6d5b15bebb8908626704a2630afe9a1f53eadb4ab74ed47ecb7c3429f5ae8a17",
+    "/scratch/jjyeung/orch_n30/sb_mdrev/audit.py": "01244ace69e6a5e168fd13a6101ea2a587256d00de6cf26dbe826402ac733597",
+    "/scratch/jjyeung/orch_n30/sb_mdrev/run_review.sh": "03c0ef0b7296053be9b67f88849584fefa6cb6ce2e99358f04f0944f24505100",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/KIT_SPEC_mask_carry_v2.md": "199ac15d179fb7a2f3ce51f9daf3bcdc996e0c04152c25ab75989bd3154702a4",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/KIT_SPEC_mask_phrase_v2.md": "7e9deb2506977828f7f834ecda2b6e4e170a9e95a1b2c4e79594b0c2407654b6",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/KIT_SPEC_mask_sam3ft_v2.md": "738ec445c877cc10a952def5719720a2712994c094ee56c650165a139b878e86",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/MASK_QUALITY_DESIGN_20261119.md": "1bec804c812d2a219cc9f3c812e3f3f444f2ea103a209d36f5fd56559259fa81",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/ORCH_ANSWER_1010Z.md": "9aaaa1ec78508ee7d1b5ad71d1775b9a4fcc27c6f9be9eeeeedc753b57d253af",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/ORCH_RULING_0949Z.md": "1280bd396501305e69cf8b28f92f43c177a5c3808b5830d7f17953fff04e3445",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/REVIEW_RESPONSE_maskdesign.md": "1766afd119546428e6c090e71fad85167110540f2e25a98672e26e33b5ae554e",
+    "/scratch/jjyeung/b01ec87a6f29b/d/k/SAM3_RECEIPT.json": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/model_builder.py": "faba3d0099f3da6d63d3ca49a8bf945d4014657b813e76ad082602d3922d3ff6",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/model/sam3_image_processor.py": "cb52a75ff84d46e62fbf8d18cd080b77814ab54d9e99b44763676ad194246853",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/model/sam3_image.py": "c34ae59dba5ef5823da8fbaab66e7d4b78c7df2677efc6e8c9156e3ca80c9b81",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/model/vl_combiner.py": "5b14a8ce350922d1d62a86112193e5a96b3d438b778a7163a1e9662d53e7bb37",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/model/box_ops.py": "2d1a11337f1db93ccd87132319716cf68b215c59fa51e43416bdad7ab30c8151",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/model/data_misc.py": "f07db3864727a41b36d7e1168e29b0438c443b9ca690ab9171a120754ac192ee",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/model/sam3_tracking_predictor.py": "145df76a5c045605d4d15360456015adb4f987c4b18e82f4f4876a63e6a32345",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/train/loss/sam3_loss.py": "ea2f7667ba8d715cf74c8ae0b240aa3173450c8d538943484ed7927a7bcef801",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/train/loss/loss_fns.py": "72cfbc8750be577d3bcb11279e6c9d62f83db89dd446c08e1339e8e4a5944ee0",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/train/matcher.py": "31d8c49b773a229b558a229204111c7dab09a8a9ec09a070e74e92008c2c4a83",
+    "/scratch/jjyeung/orch_n30/sb_kbox4/train_pricing.py": "50c2ebf5e2db41c95f77ddc94efe3045197f1b7a33f16d389b63b8a41a112cfd",
+    "/scratch/jjyeung/orch_n30/sb_kbox4/summarize_train.py": "d417636ff3206fdb2a3f8889161ecb845dfdb70844c761416d994f6532e7a99e",
+    "/scratch/jjyeung/orch_n30/sb_kbox4/eligibility_report.py": "8915fe6259a5d4d121d8e8bb5c7dec92fa1d1838254ae6af8aa084e05cfb2548",
+    "/scratch/jjyeung/orch_n30/sb_kbox4/reader_src/e2e_reader/stage1.py": "b1a77424a2a014b12890805d8c72f1a83dd5e378cd54a2ff221887ccde1cafe1",
+    "/scratch/jjyeung/orch_n30/b04host3/tree_rebuild/work/base/tree_b01ce449/student_pilot/routed_features.py": "736c5a642fe28656c5508022210b050a87e49821381980a9c6f79007ef1fda13",
+    "/scratch/jjyeung/orch_n30/b04host3/tree_rebuild/work/base/tree_b01ce449/student_pilot/routed_candidates.py": "9a2004108d85f3c2a70ca5e4d66240748807d4f0c3ced8a2e0842fea4d78482f",
+    "/scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt": "9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/review_v2.py": "fb49aff76e03959a7522898dd7cbd3fe27f37c0a6b5771551438bef8964beff0"
+  },
+  "command": "bash run_review_v2.sh evidence"
+}

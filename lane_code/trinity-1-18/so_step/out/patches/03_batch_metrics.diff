@@ -1,6 +1,6 @@
 --- a/student_pilot/carrier_c1_run.py
 +++ b/student_pilot/carrier_c1_run.py
-@@ -1530,6 +1530,11 @@
+@@ -1532,6 +1532,11 @@
  def optimize_step(model, optimizer, rows, plan, rank, device, step, distributed=False, gates=None):
      """Rank-aligned microsteps (four in mixed/pose-only); FSDP reduces each (no large no_sync grads)."""
      started, waiting = time.perf_counter(), 0.
@@ -12,7 +12,7 @@
      unwrapped = model.module if distributed else model
      recipe = unwrapped.recipe
      if 'stream_rows_per_step' in recipe:
-@@ -1579,7 +1584,7 @@
+@@ -1581,7 +1586,7 @@
              batch, audit = own_values(model, rows, batch, audit, (audit or {}).get('index', indices[rank]),
                                        tuple(bool(x) for x in decisions[microstep].tolist()), device)
          batch, targets = move(batch, device), move(targets, device)
@@ -21,7 +21,7 @@
              torch.cuda.synchronize(device)
          if gf1_enabled and step == 1 and screen is None and stream == 'vqa':
              from .gf1 import screen_loss, harm_guard
-@@ -1607,10 +1612,13 @@
+@@ -1609,10 +1614,13 @@
          reserved_peaks.append(torch.cuda.max_memory_reserved(device) if device.type == 'cuda' else 0)
          phase_memory.append(dict(microbatch=len(phase_memory), stream=stream, **phases,
                                   peak_allocated_bytes=peaks[-1], peak_reserved_bytes=reserved_peaks[-1]))
@@ -39,7 +39,7 @@
          stream_counts[stream] = stream_counts.get(stream, 0) + 1
          for key in routing.Gates.METRICS:
              value = result.get('metrics', {}).get(key)
-@@ -1634,6 +1642,8 @@
+@@ -1636,6 +1644,8 @@
          if stream == 'pose':
              pose_batch = (batch,targets)
          del result
@@ -85,13 +85,17 @@
 +        return components, streams
 --- /dev/null
 +++ b/tests/test_so_metrics.py
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,27 @@
 +import unittest
 +import torch
 +from student_pilot.c1_batch_metrics import Components
 +
 +
 +class MetricsTests(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
 +    def test_python_float_accumulation_order_and_mixed_dtypes(self):
 +        torch.set_num_threads(8)
 +        recorder = Components(72)
@@ -111,7 +115,7 @@
 +    unittest.main()
 --- /dev/null
 +++ b/tests/test_so_joint.py
-@@ -0,0 +1,144 @@
+@@ -0,0 +1,168 @@
 +"""Two real FSDP1/gloo ranks: exact losses, all gradients, updates, draws and collectives."""
 +import copy
 +import datetime
@@ -158,6 +162,15 @@
 +        assert a == b,(label,a,b)
 +
 +
++def assert_on_paths(arm, threads, cache_misses, deferred_rows):
++    if arm in ('prefetch', 'all'):
++        assert threads and all(name.startswith('c1-row-cpu') for name in threads), threads
++    if arm in ('cache', 'all'):
++        assert cache_misses > 0, 'cache path did not miss'
++    if arm in ('metrics', 'all'):
++        assert deferred_rows > 0, 'metrics path did not defer'
++
++
 +def worker(rank, directory):
 +    torch.set_num_threads(8)
 +    directory = Path(directory)
@@ -175,10 +188,18 @@
 +                    wrapped = run.wrap_model(model,torch.device('cpu'),mixed_precision=False)
 +                    optimizer = torch.optim.AdamW(parameter_groups(wrapped),weight_decay=.01)
 +                    rows = run.Rows(receipt,compact_processor())
++                    from student_pilot import c1_decoded_cache, c1_batch_metrics
++                    c1_decoded_cache._cache = None
++                    threads, deferred = [], []
++                    original_add = c1_batch_metrics.Components.add
++                    def add(recorder, stream, components):
++                        deferred.append(stream)
++                        return original_add(recorder, stream, components)
 +                    draws, collectives, losses, grads = [], [], [], {}
 +                    main_thread = threading.get_ident()
 +                    original_get = run.Rows.get
 +                    def get(source,stream,index):
++                        threads.append(threading.current_thread().name)
 +                        draws.append((stream,index,index))
 +                        if failure and rank == 1 and stream == 'vqa' and index == 3:
 +                            raise ValueError('planted rank-1 row failure')
@@ -203,6 +224,7 @@
 +                    info = error = None
 +                    with ExitStack() as stack:
 +                        stack.enter_context(patch.object(run.Rows,'get',get))
++                        stack.enter_context(patch.object(c1_batch_metrics.Components,'add',add))
 +                        stack.enter_context(patch.object(run.full_ft,'clip_sharded',capture))
 +                        for name in ('all_reduce','all_gather','all_gather_into_tensor','reduce_scatter_tensor','broadcast'):
 +                            stack.enter_context(patch.object(dist,name,traced(name,getattr(dist,name))))
@@ -212,6 +234,7 @@
 +                            error = str(exc)
 +                        finally:
 +                            rows.close()
++                    assert_on_paths(arm, threads, c1_decoded_cache.stats()['misses'], len(deferred))
 +                    hook.remove()
 +                    names = [(n,p.numel()) for n,p in run.full_ft.named_trainable(wrapped)]
 +                    after = {n:p.detach().clone() for n,p in run.full_ft.named_trainable(wrapped)}
@@ -233,6 +256,7 @@
 +                    summaries.append(dict(arm=arm,failure=failure,rank=rank,losses=len(losses),
 +                        gradients=len(grads),trainable_tensors=len(names),local_trainable_elements=sum(n for _,n in names),
 +                        draws=draws,collective_count=len(collectives),status='BITWISE_EQUAL',
++                        positive_controls=dict(threads=sorted(set(threads)), cache_misses=c1_decoded_cache.stats()['misses'], deferred_rows=len(deferred)),
 +                        failure_microstep=2 if failure else None))
 +                    (directory/f'rank{rank}_progress.json').write_text(json.dumps(summaries,indent=2)+'\n')
 +                    del optimizer,wrapped,model,rows
@@ -242,6 +266,10 @@
 +
 +
 +class JointTests(unittest.TestCase):
++    def setUp(self):
++        from tests.so_helpers import reset_switches
++        reset_switches(self)
++
 +    def test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives(self):
 +        torch.set_num_threads(8)
 +        directory = root()

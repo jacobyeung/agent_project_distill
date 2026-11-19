@@ -157,12 +157,12 @@
 +            deadline.progress=dict(completed=0,expected=expected,stopped=True,initialized=False)
 +            env=out/'environment.json'
 +            # No unbound items.jsonl may be created during interrupted startup.
-+            if atomic and env.exists():
++            if env.exists():
 +                old=json.loads(env.read_text())
 +                if old.get('binding') != binding:
 +                    raise ValueError('Deadline recovery binding differs') from deadline
 +                from .atomic_journal import AtomicJournal, atomic_write
-+                rows=AtomicJournal(out).recover()
++                rows=AtomicJournal(out).recover() if atomic else read_records(out/'items.jsonl')
 +                allowed={(identifier,arm,mode_key(mode)) for identifier in binding['ids']
 +                         for arm in binding['arms'] for mode in binding['modes']}
 +                if any((r['id'],r['arm'],r['mode']) not in allowed for r in rows):
@@ -714,7 +714,7 @@
 +if __name__=='__main__':main()
 --- /dev/null
 +++ b/u0/a7.py
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,80 @@
 +"""Entry point for an explicitly enabled preempt array; never submits jobs."""
 +import argparse
 +import fcntl
@@ -724,12 +724,27 @@
 +import time
 +
 +
++def acquire(lock, timeout=60., *, clock=time.monotonic, sleep=time.sleep):
++    end=clock()+timeout;delay=.1
++    while True:
++        try:
++            fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
++            return True
++        except BlockingIOError:
++            remaining=end-clock()
++            if remaining<=0:return False
++            sleep(min(delay,remaining));delay=min(2.,delay*2)
++
++
 +def main():
-+    p=argparse.ArgumentParser();p.add_argument('config');p.add_argument('--enable-array',action='store_true')
++    p=argparse.ArgumentParser();p.add_argument('config');p.add_argument('--enable-array',action='store_true');p.add_argument('--config-sha256')
 +    a=p.parse_args()
 +    if not a.enable_array:p.error('Array execution is OFF; pass --enable-array explicitly')
 +    from a9 import read_wire
 +    cfg=read_wire(json.loads(Path(a.config).read_text()))
++    import hashlib
++    digest=hashlib.sha256(json.dumps(cfg,sort_keys=True,separators=(',',':')).encode()).hexdigest()
++    if a.config_sha256!=digest:raise ValueError('Array configuration differs from the approved script')
 +    from a9 import validate_config,install_wire_decoder
 +    validate_config(cfg)
 +    install_wire_decoder()
@@ -740,6 +755,8 @@
 +        raise ValueError('Scheduler array count differs from the fixed shard plan')
 +    if not os.environ.get('CUDA_VISIBLE_DEVICES'):
 +        raise ValueError('Array reads require an assigned GPU')
++    from a15 import validate_policy
++    validate_policy(cfg['policy'],count,cfg['attempt_seconds'])
 +    duration=cfg['attempt_seconds']
 +    if type(duration) is not int or not 1800<=duration<=172800:
 +        raise ValueError('attempt_seconds must fit the declared two-day partition limit')
@@ -758,7 +775,7 @@
 +          '--type-journals','--atomic-journal','--scene-shards','--opaque',
 +          '--stop-at',str(now+duration-900),'--finish-by',str(now+duration-300)]
 +    with (root/f'array-{index}.lock').open('a') as lock:
-+        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
++        if not acquire(lock):return 75
 +        rc=launch.main(args)
 +        if rc:return rc
 +        # A normal exit with an unfinished set must not masquerade as success.
@@ -834,7 +851,7 @@
 +    if not args.enable_extensions:
 +        parser.error('Extensions are OFF; pass --enable-extensions')
 +    source = ROOT.parent
-+    sys.path[:0] = [str(source), str(source/'tree'), str(source/'b')]
++    sys.path[:0] = [str(ROOT), str(source), str(source/'tree'), str(source/'b')]
 +    if '--opaque' in rest:
 +        from a9 import install_wire_decoder,PublicLog
 +        install_wire_decoder()
@@ -848,7 +865,7 @@
 +    raise SystemExit(main())
 --- /dev/null
 +++ b/u0/a9.py
-@@ -0,0 +1,199 @@
+@@ -0,0 +1,236 @@
 +"""Public identity boundary. Keep the reverse map on the private host."""
 +import hashlib
 +import json as _json
@@ -860,7 +877,44 @@
 +
 +IDENTITIES = {'id','qid','example_id','key','room','room_key','native','scene','dataset',
 +              'name','question_type','type','item_id','reader_entry'}
-+OPAQUE_PATH = re.compile(r'^/(?:scratch|project)/(?:u[0-9a-f]+/)*[u0-9a-f]+(?:\.[a-z0-9]+)?$')
++# Established staging roots; the remaining components must be neutral tokens.
++APPROVED_PREFIXES = ('/scratch/jjyeung', '/project/community/jjyeung/okh7',
++                     '/project/community/jjyeung', '/scratch', '/project')
++_SEGMENT = r'(?:u[0-9a-f]+|[a-z]?[0-9a-f]+|[a-z])(?:\.[a-z0-9]+)?'
++_TOKEN_PATH = re.compile(r'^'+_SEGMENT+r'(?:/'+_SEGMENT+r')*$')
++
++
++def opaque_path(value):
++    value = str(value)
++    # Use the production screen when available. The standalone public wire
++    # helper retains the identical screen for private staging without imports.
++    try:
++        from orchard_h10.common import opaque
++    except ImportError:
++        forbidden = ('split', 'revsi', 'vsibench', 'scannet', 'arkit', 'distill', 'qgen',
++                     'sam', 'qwen', 'h1', 'h10', 'head', 'routing', 'faithful', 'devs1',
++                     'g3t', 'camera', 'displacement', 'rotation', 'movement', 'distance',
++                     'r0', 'scannetpp', 'direction', 'own', 'room', 'selector', 'parity', 'benchmark', 'dataset', 'model')
++        def opaque(values):
++            if any(word in str(v).lower() for v in values for word in forbidden):
++                raise ValueError('Non-opaque staged path')
++    try:opaque([value])
++    except ValueError:return False
++    for prefix in APPROVED_PREFIXES:
++        if not value.startswith(prefix+'/'):continue
++        rest=value[len(prefix)+1:]
++        if prefix=='/project/community/jjyeung/okh7':
++            rest=re.sub(r'^a15_cot_ap[a-f][0-9a-f]{10,15}(?=/|$)', 'u0', rest)
++        if _TOKEN_PATH.fullmatch(rest):return True
++    return False
++
++
++class _PathGrammar:
++    @staticmethod
++    def fullmatch(value):return opaque_path(value)
++
++
++OPAQUE_PATH = _PathGrammar()
 +
 +
 +def pack(value):
@@ -1239,7 +1293,7 @@
 +if __name__=='__main__':raise SystemExit(main())
 --- /dev/null
 +++ b/u0/a11.py
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,57 @@
 +"""Private-host helpers for public settings and authenticated return restoration."""
 +import argparse
 +import json
@@ -1279,6 +1333,8 @@
 +        identity['logical_sample_sha256']=identity['sample_sha256']
 +        identity['sample_sha256']=hashlib.sha256((out/'u0.json').read_bytes()).hexdigest()
 +        (out/'u1.json').write_text(json.dumps({'u0':pack(identity)},sort_keys=True)+'\n')
++        pins=json.loads((incoming/'EXTENSION_PINS.json').read_bytes())
++        (out/'u3.json').write_text(json.dumps({'u0':pack(pins)},sort_keys=True)+'\n')
 +        config=json.loads(Path(args.config).read_bytes()) if args.config else json.loads((incoming/'config.example.json').read_bytes())
 +        seal_settings(config,out/'u2.json')
 +    elif args.action=='seal':
@@ -1622,7 +1678,7 @@
 +if __name__=='__main__':unittest.main(verbosity=2)
 --- /dev/null
 +++ b/u0/tests/test_round1.py
-@@ -0,0 +1,106 @@
+@@ -0,0 +1,118 @@
 +"""Independent review regressions; READ_REVIEW_BEFORE=1 selects reviewed code."""
 +import importlib.util
 +import json
@@ -1675,9 +1731,8 @@
 +                records=[dict(id=r['id'],type=r['question_type'],arm='tower',mode='none',complete=True,seconds=1.,
 +                              output=dict(text='',tokens=[],finish='eos',calls={'records':[]},heads={},scores={})) for r in sample['items']]
 +                (folder/'items.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in records))
-+            try:result=checker.compare(*roots,sample)
-+            except ValueError:return
-+            self.assertFalse(result['passed'])
++            with self.assertRaisesRegex(ValueError,'^Missing required trace field: scale$'):
++                checker.compare(*roots,sample)
 +
 +    def test_f3_original_files_and_hash_tree_have_no_off_changes(self):
 +        root=BASE if BEFORE else SRC
@@ -1706,9 +1761,11 @@
 +    def test_f6_public_configuration_has_no_descriptive_paths(self):
 +        path=BASE.parent/'kit/array_config.example.json' if BEFORE else E/'tests/u1.json'
 +        cfg=json.loads(path.read_text())
-+        for value in cfg.values():
-+            if isinstance(value,str) and '/' in value:
-+                self.assertRegex(value,r'^/(scratch|project)/(u[0-9a-f]+/)*[u0-9a-f.]+$')
++        import sys
++        sys.path.insert(0,str(E))
++        from a9 import validate_config
++        try:validate_config(cfg)
++        except ValueError as error:self.fail(str(error))
 +
 +    def test_f7_key_overhead_prevents_unbounded_retention(self):
 +        cache=C.ReadCache(1000000)
@@ -1727,6 +1784,17 @@
 +            cache.call('processor','second',lambda:np.zeros(30000,np.uint8))
 +        self.assertTrue(observed)
 +        self.assertEqual(observed[0],0)
++
++def load_tests(loader, tests, pattern):
++    if not BEFORE:
++        # Exercise bytes, public transport, and lock ownership in this suite.
++        journal=load('round1_journal_tests',E/'tests/test_read_journal.py')
++        public=load('round1_public_tests',E/'tests/test_public.py')
++        off=load('round1_off_tests',E/'tests/test_off.py')
++        tests.addTest(journal.RunnerTests('test_deadline_recovery_keeps_writer_lock'))
++        tests.addTests(loader.loadTestsFromTestCase(public.PublicTests))
++        tests.addTests(loader.loadTestsFromTestCase(off.OffContractTests))
++    return tests
 +
 +if __name__=='__main__':unittest.main(verbosity=2)
 --- /dev/null
@@ -1798,11 +1866,11 @@
 +            for row in changed:row['output']['read_cache']['stats'][name]['hits']=0
 +            b=self.write('zero'+str(index),changed)
 +            result=checker.compare(a,b,self.sample)
-+            self.assertFalse(result['passed']);self.assertTrue(result['cache_failures'])
++            self.assertFalse(result['passed']);self.assertEqual(result['cache_failures'],['right:'+name+':no_hits'])
 +        changed=copy.deepcopy(self.records)
 +        for row in changed:row['output'].pop('read_cache')
 +        b=self.write('none',changed)
-+        with self.assertRaises(ValueError):checker.compare(a,b,self.sample)
++        with self.assertRaisesRegex(ValueError,'Enabled cache declaration is missing or differs'):checker.compare(a,b,self.sample)
 +        self.assertTrue(checker.compare(a,b,self.sample,enabled_caches=())['passed'])
 +        self.assertTrue(checker.compare(a,a,self.sample,cache_sides=('left','right'))['passed'])
 +
@@ -5982,17 +6050,17 @@
 +}
 --- /dev/null
 +++ b/u0/tests/u1.json
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,25 @@
 +{
-+  "shards": 4,
-+  "attempt_seconds": 172800,
-+  "journal_root": "/project/u0/u0",
-+  "items": "/scratch/u0/u1",
-+  "export": "/scratch/u0/u2",
-+  "export_pin": "/scratch/u0/u3",
-+  "artifact_manifest": "/scratch/u0/u4",
-+  "reader_root": "/scratch/u0/u5",
-+  "settings": "/scratch/u0/u6",
++  "shards": 2,
++  "attempt_seconds": 3600,
++  "journal_root": "/project/community/jjyeung/okh7/a15_cot_apab0123456789/u0",
++  "items": "/scratch/jjyeung/ab0123456789/u1",
++  "export": "/scratch/jjyeung/ab0123456789/u2",
++  "export_pin": "/scratch/jjyeung/ab0123456789/u3",
++  "artifact_manifest": "/scratch/jjyeung/ab0123456789/u4",
++  "reader_root": "/scratch/jjyeung/ab0123456789/u5",
++  "settings": "/scratch/jjyeung/ab0123456789/u6",
 +  "types": [
 +    0,
 +    1,
@@ -6000,5 +6068,11 @@
 +    3,
 +    4
 +  ],
-+  "opaque": true
++  "opaque": true,
++  "policy": {
++    "approved": false,
++    "partition": "preempt",
++    "gpu_seconds": 18000,
++    "max_attempts": 2
++  }
 +}

@@ -1,0 +1,60 @@
+{
+  "kit_config": {
+    "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/aacc34e6.json",
+    "sha256": "aacc34e66919a7f275d1e05d4621af193f6b14e0e5920bb2e732752f939d0e13"
+  },
+  "kit_identity": "774503e26f274a10c96ad06210d339c49ebc9a704ac254df81f389b0da4d98a1",
+  "p_run": {
+    "binding": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/binding.json",
+      "sha256": "f6b636243f779d7eb58170491866aff3367306c130e791e365d2feeb0e42de40"
+    },
+    "config": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json",
+      "sha256": "b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad"
+    },
+    "preparation": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/prepared/s1_receipt.json",
+      "sha256": "a5bbef1b865fd98aa398ded3e31ab60ed40848917646299ffc0ccc15c283ccda"
+    }
+  },
+  "readers": [
+    {
+      "checks": "Pinned kit config, runtime config, e/r run pins, artifact, binding, preparation; project prepared streams/output back to kit identity.",
+      "identity": "both",
+      "reader": "joblib.identities"
+    },
+    {
+      "checks": "Artifact/binding/preparation against P runtime config.",
+      "identity": "runtime export_identity",
+      "reader": "launch_r1.p_export_receipt.collect"
+    },
+    {
+      "checks": "Real e/r closure, milestone and preparation; training start checks continuation.",
+      "identity": "runtime export_identity",
+      "reader": "student_pilot.r1_persisted.verify/admission"
+    },
+    {
+      "checks": "donor_config_sha256 equals runtime config and artifact; binding/preparation and prepared streams authenticate.",
+      "identity": "runtime export_identity",
+      "reader": "student_pilot.r1_handover._donor/donor"
+    },
+    {
+      "checks": "Donor reader authenticates P; each binder derives N target identity independently.",
+      "identity": "donor runtime; N target/continuation",
+      "reader": "student_pilot.r1_handover.bind_target/progress; launch_r1.production_proof.bind_handover"
+    },
+    {
+      "checks": "No p_identity or donor_config_sha256 comparison. Caller admission authenticates donor identity; full export and heads verify their own pins.",
+      "identity": "artifact content pin, topology, named tensor hashes",
+      "reader": "student_pilot.carrier_c1_run.init_from_artifact"
+    },
+    {
+      "checks": "N preparation uses the current contract identity; it must not replace historical P export_identity.",
+      "identity": "current N config",
+      "reader": "student_pilot.carrier_c1_run.identity/prepared"
+    }
+  ],
+  "runtime_identity": "9459724f1b925b7d750628ccb36d7a29f871e953751c0e1d2c9abaea67d567e4",
+  "sealed_tree_changed": false
+}

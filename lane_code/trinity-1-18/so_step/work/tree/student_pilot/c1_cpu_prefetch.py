@@ -5,6 +5,19 @@ import threading
 
 import torch
 
+MAX_GROUP_ROWS = 8
+MAX_GROUP_TENSOR_BYTES = 1 << 30
+
+
+def tensor_bytes(value):
+    if isinstance(value, torch.Tensor):
+        return value.untyped_storage().nbytes()
+    if isinstance(value, dict):
+        return sum(tensor_bytes(v) for v in value.values())
+    if isinstance(value, (list, tuple)):
+        return sum(tensor_bytes(v) for v in value)
+    return 0
+
 
 def _cpu_only(value):
     if isinstance(value, torch.Tensor):
@@ -34,14 +47,21 @@ class Producer:
             except Exception as exc:
                 return [(False, exc) for _ in indices]
         result = []
+        held_bytes = 0
         for index in indices:
             try:
                 item = self.rows.get(stream, index)
                 _cpu_only(item)
                 check(item[0], item[1], stream, model)
+                held_bytes += tensor_bytes(item)
+                if held_bytes > MAX_GROUP_TENSOR_BYTES:
+                    raise ValueError('C1 prefetch group exceeds 1 GiB encoded tensor budget')
                 result.append((True, item))
             except Exception as exc:
+                # Do not retain failed-row tensors through traceback frames.
+                exc.__traceback__ = None
                 result.append((False, exc))
+            item = None
         return result
 
     def close(self):
@@ -91,10 +111,10 @@ class Replay:
 
 def fetch_groups(rows, model, groups, rank, device, distributed):
     from .carrier_c1_run import check_row, fetch, fetch_nominal
-    if getattr(model, 'training_mode', None) != 'final':
-        raise ValueError('C1 CPU prefetch requires final-mode fail-without-substitution admission')
-    if any(stream == 'mdg' for group in groups for stream, _ in group):
-        raise ValueError('C1 CPU prefetch has not audited the MDG processor path')
+    from .c1_switches import prefetch_supported
+    prefetch_supported(model, [stream for group in groups for stream, _ in group])
+    if any(not 1 <= len(group) <= MAX_GROUP_ROWS for group in groups):
+        raise ValueError('C1 prefetch requires admission groups of 1..8 rows')
     producer = for_rows(rows)
 
     def submit(group):
@@ -115,6 +135,7 @@ def fetch_groups(rows, model, groups, rank, device, distributed):
                 admitted = [fetch(replay, stream, indices[0], model, device=device, distributed=distributed)]
             else:
                 admitted = fetch_nominal(replay, stream, indices, model, device=device, distributed=distributed)
+            replay.values = None
             # Do not speculate past an unadmitted group. A row failure therefore
             # makes precisely the same get calls as the synchronous path, even on
             # the healthy rank, and raises at the same nominal microstep boundary.
@@ -123,6 +144,7 @@ def fetch_groups(rows, model, groups, rank, device, distributed):
                 item = admitted[slot]
                 admitted[slot] = None
                 yield item
+                item = None
     finally:
         # Drain in-flight CPU work on early consumer exit; its exception is data,
         # not an exception raised on the worker or at an earlier microstep.
@@ -132,6 +154,9 @@ def fetch_groups(rows, model, groups, rank, device, distributed):
 
 def rows_factory(rows):
     from .carrier_c1_run import Rows
+    if any(not hasattr(source, 'conn') for mix in getattr(rows, 'mixes', {}).values()
+           for source in mix.sources):
+        raise ValueError('C1 CPU prefetch has not audited clip mix sources')
     receipt = copy.deepcopy(rows._cpu_prefetch_receipt)
     processor = copy.deepcopy(rows.processor)
     return lambda: Rows(receipt, processor)

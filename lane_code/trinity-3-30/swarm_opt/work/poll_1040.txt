@@ -1,0 +1,60 @@
+started cursor so_cr_modep
+started cursor so_cr_pack_a
+my codex builds running: 1 (load 30 avail 421G)
+so_launch_port21 RUNNING
+started so_step_fix2 (gpt-6-astra)
+so_corpus_lost QUEUED
+so_corpus_fix2 QUEUED
+VERDICT: PARTIAL Findings 1–9 are addressed behind a default-OFF switch; all permitted tests pass, but this dispatch forbids the required real-Git reruns.
+
+The fixed files are in `out/tools/`. Exactly three installed files change: `land_kit.py`,
+`sync_health.py`, and `dry_count.py`. Enable the fixes with `LCS_REVIEW2_FIXES=1` alongside
+the relevant `LCS_ENABLE_*` flag. The installed copies and `lane_code_sync.sh` remain unchanged.
+Finding 1 uses the review's minimal STOP-and-contact-the-user mitigation; it does not prevent
+a rejected commit from remaining on local lane-code. Finding 2 clears kit staging on a handled
+failure and verifies a clean index, without rewriting history or deleting working files.
+
+## Numbers
+
+All results below are measured unless identified as configuration. No performance estimate is claimed.
+
+| Measurement | Result |
+|---|---|
+| Unique passing tests per interpreter | 93 after patches 01–03, including 26 round-2 tests; one real-Git test is skipped. |
+| Fresh-patch test executions | 720 pass; 16 skips across repeated configurations. Patch-02-only runs skip the two tests supplied by optional patch 03, as well as real Git. Combined runs skip only real Git.
+1:VERDICT: PARTIAL Findings 1–9 are addressed behind a default-OFF switch; all permitted tests pass, but this dispatch forbids the required real-Git reruns.
+16:| Unique passing tests per interpreter | 93 after patches 01–03, including 26 round-2 tests; one real-Git test is skipped. |
+17:| Fresh-patch test executions | 720 pass; 16 skips across repeated configurations. Patch-02-only runs skip the two tests supplied by optional patch 03, as well as real Git. Combined runs skip only real Git. |
+19:| Fresh validation commands | 40 return their expected status; the two disabled real-Git runners intentionally return 2. Other commands return 0. |
+43:| 11 (INFO) | Real-Git reruns are not executed: the current dispatch explicitly forbids Git and supersedes the earlier round's exception. The unchanged runner remains available for an authorized owner. | The runner's disabled guard is exercised under both interpreters; real-Git unittest is explic
+45:| 13 (INFO) | The existing lock, archive/filter/scanner safeguards, branch/refspec constraints, receipts, package override and default filter behavior are rechecked by the permitted suites. Live remote and real-Git claims remain unverified this round. | Owner/package/filter suites on both interpr
+96:`LCS_RUN_REAL_GIT_TESTS=0` prevents Git integration, and a PATH guard records unexpected Git
+97:attempts; none occurred. No result from an earlier real-Git run is used as current proof.
+141:| `syntax_run_real_git_owner.sh` | 0 | [output](evidence/round2_syntax_run_real_git_owner.sh.txt) |
+269:tree proof require the real-Git test; those claims are not reverified under this dispatch.
+301:The required current-tool real-Git reruns, including finding 11 and the real index/tree/remote
+=== modep
+VERDICT: DONE Two independent default-OFF speedups are packaged against build 21 and preserve every mode-p output byte on the native CPU fixture; production savings await the lane's launch measurement.
+
+**Expected saving: 10–20 minutes per launch, estimated, from patch 01.** This assumes 40–70 minutes of production work resembles the path-heavy fixture, which measured 26.38% less elapsed time. No production ON launch was run, and the actual saving can be zero. Patch 02 receives **zero additional minutes in the planning estimate** until N's selections and launch timings demonstrate a benefit.
+
+| Quantity | Result | Evidence class |
+|---|---:|---|
+| Existing mode p, jobs 172660 / 171377 | 140.57 / 145.27 min | Measured launch-to-exit logs |
+| Revalidation and frame-audit envelope | 70.20 min | Inferred residual |
+| VQA rebuilding | 38.60 min | Inferred from completion mtimes |
+| Native preparation | 23.85 min | Inferred from completion mtimes |
+| Native frame fixture, 32,768 references | 9.795 s OFF; 7.211 s ON | Measured paired means; 26.38% reduction |
+| Sparse native SQL view, 820 / 82 of 8,192 rows | 3.09× / 5.56× throughput | Measured fixture; full pin hashes retained |
+| Dense SQL selection | 0.3543 s OFF; 0.3581 s ON | Measured fixture; original scan retained |
+
+[PROFILE.md](PROFILE.md) provides source file/line references, phase calculations, row/frame/byte denominators, thread behavior, uncertainty and fixture rates. The completion mtimes imply that the 38.6-minute interval belongs to VQA, and the 5.42-minute interval to pointing. N's configuration has no MDG block, so the parent-binding branch does not compute confusers. These facts change which phases deserve optimization.
+
+The patches are [01_fast_paths.diff](patches/01_fast_paths.diff) and [02_selected_sql.diff](patches/02_selected_sql.diff). [manifest.json](patches/manifest.json) records SHA256 values, individual base/patched file hashes and base seal `b262e7a7`. Both apply independently and together without offsets, fuzz or rejects; [patch_application.json](tests/patch_application.json) contains exact application output. The input seal was recomputed as `b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8`; [delivery_verification.json](tests/delivery_verification.json) confirms only the six listed files differ, including three new test files.
+
+| Patch | Enable switch | Work made cheaper | Default |
+|---|---|---|---|
+| 01 | `S1_PREP_FAST_PATHS=1` | Lexical path containment and repeated parsing of the same mapping text | OFF |
+| 02 | `S1_PREP_SELECT_SQL=1` | Reading sparse selected SQLite payloads in bounded ordered queries | OFF |
+
+Patch 01 replaces POSIX lexical ancestry checks with equivalent anchor/component-prefix comparisons and caches at most 32 mapping strings. Every native `resolve`, containment check, existence check, pin hash and SQL update remains. The cache stores parsed text only; changed mappings, symlinks and files are observed again. The OFF branch c

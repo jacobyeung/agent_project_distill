@@ -6,6 +6,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 import pack as P
 import test_support as T
 import pack_token as K
+import pack_checks as Q
 
 class Packaging(unittest.TestCase):
     @classmethod
@@ -35,7 +36,7 @@ class Packaging(unittest.TestCase):
         P.shell_privacy("# code comment model\n/usr/bin/python3 - <<'A'\nprint('dataset')\nA\n")
     def test_02_all_checks_precede_transport(self):
         cfg=self.fresh('cfg');P.write(cfg,self.c);called=[]
-        with patch.object(P,'build'),patch.object(P,'built',return_value={'package':str(self.p)}),patch.object(P,'local_check',return_value={}),patch.object(P,'plan',side_effect=P.Rejected('late submit script rejected')),patch.object(P,'execute',side_effect=lambda *a:called.append(a)):
+        with patch.object(P,'build',return_value={}),patch.object(P,'built',return_value={'package':str(self.p)}),patch.object(P,'local_check',return_value={}),patch.object(P,'plan',side_effect=P.Rejected('late submit script rejected')),patch.object(P,'execute',side_effect=lambda *a:called.append(a)):
             with self.assertRaisesRegex(P.Rejected,'late submit'):P.main(['all','--config',str(cfg),'--enable','--yes','--token','b635a315de01e','--execute-remote'])
         self.assertEqual(called,[])
     def test_03_timeout_short_calls_and_state_machine(self):
@@ -68,6 +69,19 @@ class Packaging(unittest.TestCase):
             raw=path.read_text();self.assertEqual(K.adapted(raw,kind,None,False),raw);self.assertNotEqual(K.adapted(raw,kind,'a123456789ab',True),raw)
         import ast,base64,gzip
         line=next(s for s in (T.D/'o_build_D.sh').read_text().splitlines() if s.startswith('assets = '));assets=ast.literal_eval(line.split('=',1)[1]);self.assertEqual(gzip.decompress(base64.b64decode(assets['b.py']['data'])),(T.D/'build_d.py').read_bytes())
+    def test_07b_native_source_drift_blocks_release(self):
+        import ast,base64,gzip
+        items=T.D/'evidence/items/dist580.json'
+        c=dict(builder=dict(path=str(T.D/'build_d.py'),sha256=P.file_digest(T.D/'build_d.py'),argv=['stage','source','sha',str(items),'binding']))
+        with self.assertRaisesRegex(P.Rejected,'score_d.py'):P.source_preflight(c)
+        with patch.object(P,'probe',side_effect=AssertionError('Probe ran before source preflight')):
+            with self.assertRaisesRegex(P.Rejected,'score_d.py'):P.local_check(c,self.p,self.fresh('q'))
+        here=self.fresh('coherent');here.mkdir();script=(T.D/'o_build_D.sh').read_bytes();(here/'o_build_D.sh').write_bytes(script);(here/'check_release_d.py').write_bytes((T.D/'check_release_d.py').read_bytes())
+        assets=ast.literal_eval(next(l for l in script.decode().splitlines() if l.startswith('assets = ')).split('=',1)[1])
+        for name,spec in assets.items():
+            if name=='items/dist580.json':continue
+            (here/('build_d.py' if name=='b.py' else name)).write_bytes(gzip.decompress(base64.b64decode(spec['data'])))
+        c['builder']['path']=str(here/'build_d.py');self.assertEqual(P.source_preflight(c)['assets'],10)
     def test_08_real_python36_place_and_fill(self):
         for mode in ('login','fill'):
             r=P.probe(mode,self.p,self.fresh('q'),self.c);self.assertTrue(r['passed']);self.assertTrue(r['python'].startswith('3.6.8'))
@@ -118,6 +132,36 @@ class Packaging(unittest.TestCase):
     def test_15_orchard_contract_inventory(self):
         text=(Path(__file__).parent/'out/ORCHARD_ONLY_CHECKS.md').read_text()
         for term in ('sacct','USR1','token','3.6.8','CPU.json','timeout'):self.assertIn(term,text)
+    def test_16_native_dry_settings_order_and_counts(self):
+        import runpy
+        for package,family in ((T.A4,'full'),(T.B5,'room')):
+            f,pay,v,plan=P.structure(package);base=json.loads(f['a/0.json']);op=runpy.run_path(str(package/'a/6.py'));desc=op['descriptors'](str(package));memory=op['memory_bound']()
+            self.assertEqual(Q.native_dry_predicates(base,plan,pay,op,desc,memory)['family'],family)
+            cases=[]
+            bad=copy.deepcopy(desc);bad[0]['expected']+=1;cases.append((base,plan,pay,op,bad,memory))
+            bad=copy.deepcopy(desc);bad[0]['types']=list(reversed(bad[0]['types'])) if family=='full' else [3];cases.append((base,plan,pay,op,bad,memory))
+            bad=dict(plan,perception_memo_verify_ids=['x']);cases.append((base,bad,pay,op,desc,memory))
+            bad=dict(op,RULES=());cases.append((base,plan,pay,bad,desc,memory))
+            bad=dict(base,types=list(reversed(plan['order'])));cases.append((bad,plan,pay,op,desc,memory))
+            bad=dict(pay);name='items/devs1_routed.json' if family=='full' else 'items/room134.json';items=json.loads(bad[name]);items['items']=items['items'][:-1];bad[name]=T.jd(items);cases.append((base,plan,bad,op,desc,memory))
+            for args in cases:
+                with self.assertRaises(P.Rejected):Q.native_dry_predicates(*args)
+        def mutate(pay):
+            items=json.loads(pay['items/room134.json']);items['items']=items['items'][:-1];pay['items/room134.json']=T.jd(items)
+        self.fails_probe('logic',self.mutated(mutate,True),'Dry per-type item counts')
+    def test_17_native_dry_binding_policy_slot(self):
+        w=self.fresh('q');r=P.probe('fill',self.p,w,self.c);self.assertEqual(r['resolution']['policy_archive_slot'],4)
+        p=w/(P.PREFIX+'b635a315de01e');inputs=P.read(p/'a/1.json');base=P.read(p/'a/0.json');pins=P.read(p/'a/export.json');plan=json.loads(P.untar((p/'0.tgz').read_bytes())['9.json']);helper=(p/'a/4.py').read_text()
+        self.assertEqual(Q.dry_fill_identity(inputs,base,plan,pins,helper),4)
+        for key in ('run','step','member_directory','lineage','object','archive_sha256'):
+            bad=copy.deepcopy(pins);bad[key]='invalid'
+            with self.assertRaises(P.Rejected):Q.dry_fill_identity(inputs,base,plan,bad,helper)
+        bad=copy.deepcopy(pins);next(iter(bad['preparation'].values()))['sha256']='0'*64
+        with self.assertRaises(P.Rejected):Q.dry_fill_identity(inputs,base,plan,bad,helper)
+        bad=copy.deepcopy(inputs);bad['archives'].append(copy.deepcopy(bad['archives'][4]))
+        with self.assertRaisesRegex(P.Rejected,'slot count'):Q.dry_fill_identity(bad,base,plan,pins,helper)
+        bad=copy.deepcopy(inputs);bad['archives'][4]['sha256']='0'*64
+        with self.assertRaisesRegex(P.Rejected,'slot count'):Q.dry_fill_identity(bad,base,plan,pins,helper)
     def test_defect4_encoded_descriptor_and_old_identity(self):
         f=dict(self.f);b=P.bundle(f['BATCH.sh']);v=json.loads(b['0.json']);v['token']='a123456789ab';b['0.json']=T.jd(v);line=next(l for l in f['BATCH.sh'].decode().splitlines() if l.startswith('b=bytes.fromhex('));f['BATCH.sh']=f['BATCH.sh'].replace(line.encode(),('b=bytes.fromhex(%r)'%P.tar_bytes(b).hex()).encode());m=json.loads(f['PACKAGE.json']);m['files']['BATCH.sh']=P.digest(f['BATCH.sh']);f['PACKAGE.json']=T.jd(m)
         with self.assertRaisesRegex(P.Rejected,'Bundle descriptor'):P.structure(P.extract(f,self.fresh('p')))

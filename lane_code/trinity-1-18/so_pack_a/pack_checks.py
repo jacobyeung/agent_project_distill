@@ -19,6 +19,42 @@ def rows(value):
             for x in value.values():
                 for r in rows(x):yield r
 
+def native_dry_predicates(base,plan,pay,op,desc,memory):
+    """Applicable dry2/dry2b predicates, with D's native 580-item contract."""
+    from collections import Counter
+    order=plan['order'];types=base.get('types',order)
+    P.need(not base.get('optional'),'Dry optional inputs')
+    if types==order:
+        family='full';name='items/devs1_routed.json';expected=636;indices=[3,0,1,2,4]
+        counts=dict(object_abs_distance=150,room_size_estimation=36,camera_displacement=150,camera_rotation=150,camera_movement_direction=150)
+    elif types==['room_size_estimation']:
+        family='room';name='items/room134.json';expected=134;indices=[4];counts={'room_size_estimation':134}
+    elif types==['object_abs_distance']:
+        family='distance';name='items/dist580.json';expected=580;indices=[3];counts={'object_abs_distance':580}
+    else:raise P.Rejected('Dry selected type order differs')
+    P.need(plan.get('stage1_select_rule')=='candidates_argmax' and plan.get('perception_memo')=='on' and plan.get('perception_memo_modules')==['g3t'] and plan.get('perception_memo_verify_ids',[])==[],'Dry settings differ')
+    P.need(plan['stage1_select_rule'] in op['RULES'],'Dry rule absent from RULES')
+    P.need(len(desc)==1 and desc[0]['types']==indices and desc[0]['expected']==expected,'Dry descriptor count/type order differs')
+    P.need(desc[0]['stage1_select_rule']=='candidates_argmax' and desc[0]['perception_memo']=='on','Dry descriptor settings differ')
+    P.need(memory['fits'] is True and memory['basis']=='fixed_g3t_shapes' and memory['sam_measurement_required'] is False,'Dry memory differs')
+    P.need(name in pay,'Dry full-reader manifest missing')
+    got=Counter(r['question_type'] for r in json.loads(pay[name])['items'])
+    P.need(sum(got.values())==expected and dict(got)==counts,'Dry per-type item counts differ')
+    return dict(family=family,expected=expected,types=indices,item_counts=dict(got))
+
+def dry_fill_identity(inputs,base,plan,pins,helper):
+    """Exact dry binding predicates and one authenticated policy archive slot."""
+    P.need(not inputs.get('optional') and inputs.get('types')==base.get('types'),'Dry filled selection differs')
+    binding=plan['export_binding']
+    P.need(all(pins.get(k)==binding[k] for k in ('run','step','member_directory','lineage','object')),'Dry export binding differs')
+    P.need(all(pins['preparation'][k]['sha256']==v for k,v in binding['preparation_sha256'].items()),'Dry preparation binding differs')
+    assignments={n.targets[0].id:ast.literal_eval(n.value) for n in ast.parse(helper).body if isinstance(n,ast.Assign) and len(n.targets)==1 and isinstance(n.targets[0],ast.Name) and n.targets[0].id=='REVIEWED_ARCHIVE_SHA256'}
+    P.need(pins.get('archive_sha256')==inputs['archives'][0]['sha256']==assignments['REVIEWED_ARCHIVE_SHA256'],'Dry archive0 differs')
+    # Full SHA equality is stronger than the dry harness's 05dc8f79 prefix.
+    # The authenticated base slot supplies the pin, including in rebound fixtures.
+    policy_sha=base['archives'][4]['sha256'];slots=[i for i,a in enumerate(inputs['archives']) if a['sha256']==policy_sha]
+    P.need(slots==[4],'Dry policy archive slot count differs');return 4
+
 def logic(package,w,c):
     f,pay,pub,plan,src=materialize(package,w)
     import torch
@@ -57,6 +93,7 @@ def logic(package,w,c):
     base=P.read(package/'a/0.json');types=base.get('types',list(ORDER))
     P.need(not base.get('optional'),'Unexpected optional input')
     P.need(set(ORDER[t] for d in desc for t in d['types'])==set(types),'Operator type mismatch')
+    dry=native_dry_predicates(base,plan,pay,op,desc,memory)
     for d in desc:
         for k in ('stage1_select_rule','perception_memo','perception_memo_modules'):P.need(d[k]==plan[k],'Operator setting differs: '+k)
     settings={k:plan[k] for k in ('stage1_select_rule','perception_memo','perception_memo_modules')};settings.update(perception_memo_verify_ids=plan.get('perception_memo_verify_ids',[]),save_own_depth=False,types=types)
@@ -71,7 +108,7 @@ def logic(package,w,c):
     for r in rehearsal:
         args=r['args'];m=load_manifest(args[args.index('--items')+1]);read_contract(m,args[args.index('--arms')+1].split(','),[{'name':x} for x in args[args.index('--modes')+1].split(',')],','.join(r['types']))
         P.need(sum(1 for x in m['items'] if x['question_type'] in r['types'])==r['expected'],'Selected item count differs')
-    return dict(rows_checked=count,isolated_entries=sorted(entries),memory=memory,manifests=manifests,rehearsal=rehearsal)
+    return dict(native_dry=dry,rows_checked=count,isolated_entries=sorted(entries),memory=memory,manifests=manifests,rehearsal=rehearsal)
 
 def guard(package,w,c):
     f,pay,pub,plan,src=materialize(package,w)
@@ -202,6 +239,7 @@ def resolve_inputs(inputs,base,cfg,c,mapping,remote,local):
     with Mirrors(dict(mapping,**{remote:str(local)})):
         check_inputs(inputs,cfg,package=Path(remote));pins=load(inputs,Path(remote))
     preserved(base,inputs)
+    policy_slot=dry_fill_identity(inputs,base,cfg,pins,(local/'a/4.py').read_text())
     owners={};total=0
     def mapped(path):
         if path.startswith(remote+'/'):return str(local)+path[len(remote):]
@@ -251,12 +289,14 @@ def resolve_inputs(inputs,base,cfg,c,mapping,remote,local):
         P.need(pin['path'] in owners,'Unresolved input '+name);size,h,_,_=owners[pin['path']];P.need(size==pin['bytes'] and h==pin['sha256'],'Input member differs '+name)
     for key in ('python','frames_root','sam_source'):
         target=inputs[key];P.need(target in owners or any(n.startswith(target+'/') for n in owners),'Unresolved '+key)
+    policy_paths=[inputs['files'][inputs[k]]['path'] for k in ('policy_receipt','environment_receipt')]+list(inputs['policy'].values())
+    P.need(all(owners[n][3]==policy_slot for n in policy_paths),'Policy/environment archive membership differs')
     policy=json.loads(owners[inputs['files'][inputs['policy_receipt']]['path']][2]);P.need(policy.get('authorized') is True and all(policy.get(k)==inputs['policy'][k] for k in ('vnice','terminator')),'Policy authorization differs')
     assets=json.loads(P.untar((local/'0.tgz').read_bytes())['orchard_h10/vendor/ORCHARD_ASSETS.json'])
     for key in ('vnice','terminator'):P.need(owners[inputs['policy'][key]][1]==assets[key+'_sha256'],'Policy executable differs')
     prep=P.untar((local/'a/6').read_bytes());want={v['path']:v for v in pins['preparation'].values()};P.need(set(prep)==set(want),'Preparation inventory differs')
     for n,s in want.items():P.need(P.digest(prep[n])==s['sha256'] and len(prep[n])==s['bytes'],'Preparation member differs')
-    return dict(archives=len(inputs['archives']),members=len(owners),environment_resolved=inputs['files'][inputs['environment_receipt']]['path'] in owners)
+    return dict(policy_archive_slot=policy_slot,dry_binding_passed=True,archives=len(inputs['archives']),members=len(owners),environment_resolved=inputs['files'][inputs['environment_receipt']]['path'] in owners)
 
 def fill(package,w,c):
     P.need(sys.version_info[:3]==(3,6,8),'Require actual login Python 3.6.8')
@@ -304,6 +344,19 @@ def receipt(package,w,c):
         if 'full_reader' in v:P.write(local/'a/c/FULL_READER.json',v['full_reader'])
         r=subprocess.run(['/usr/bin/python3','-I','-s','-B','-',str(local)],input=code.encode(),stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=P.environment(w),timeout=30)
         (w/(label+'.log')).write_bytes(r.stdout+r.stderr);P.need((r.returncode==0)==expect,'Native receipt predicate differs: '+label)
+    validator=next((n for n in cpu_tree.body if isinstance(n,ast.FunctionDef) and n.name=='validate_full_reader'),None)
+    validator_cases=0
+    if validator is not None:
+        ns={};exec(compile(ast.Module(body=[validator],type_ignores=[]),'<native full reader validator>','exec'),ns)
+        validate=ns['validate_full_reader'];P.need(validate([{'full_reader':full}])==full,'Native reader validator differs')
+        changes=[(['passed'],False),(['device'],'cuda'),(['records'],[]),(['records',0,'record','complete'],False),(['records',0,'record','type'],'invalid'),(['records',0,'record','output','finish'],'invalid'),(['records',0,'official_score','parse_failed'],True)]
+        for keys,new in changes:
+            bad=copy.deepcopy(full);d=bad
+            for key in keys[:-1]:d=d[key]
+            d[keys[-1]]=new
+            try:validate([{'full_reader':bad}])
+            except (ValueError,KeyError):validator_cases+=1
+            else:raise P.Rejected('Native full reader validator accepted corruption')
     check(value,'good',True)
     mutations=[(['passed'],False),(['bundle_guard_passed'],False),(['entry_sequence_passed'],False),(['payload'],'0'*64),(['plan'],'0'*64),(['operator_sha256'],'0'*64),(['inputs'],'0'*64),(['bundle_guard','batch_sha256'],'0'*64),(['entry_sequence','events'],[]),(['entry_sequence','guard_target_sha256'],'0'*64),(['entry_sequence','write_test','bytes'],1),(['entry_sequence','write_test','sha256'],'invalid'),(['entry_sequence','requested_argv'],[]),(['memory','fits'],False)]
     if 'full_reader' in value:mutations += [(['full_reader_passed'],False),(['full_reader','records',0,'set'],'invalid'),(['full_reader','records',0,'item'],'invalid'),(['full_reader','records',0,'frames'],[]),(['full_reader','records',0,'official_score','score'],.25)]
@@ -311,7 +364,7 @@ def receipt(package,w,c):
         v=copy.deepcopy(value);d=v
         for key in keys[:-1]:d=d[key]
         d[keys[-1]]=new;check(v,'bad'+str(i),False)
-    return dict(synthetic_receipt_only=True,negative_cases=len(mutations),full_reader_validator='full_reader' in value,python='3.6.8')
+    return dict(synthetic_receipt_only=True,negative_cases=len(mutations),full_reader_validator_cases=validator_cases,full_reader_validator=validator is not None,python='3.6.8')
 
 def main():
     mode,package,work,config=sys.argv[1:];os.umask(0o077);P.limits();w=Path(work);result=globals()[mode](Path(package),w,P.read(config));result['passed']=True;P.write(w/'1.json',result)

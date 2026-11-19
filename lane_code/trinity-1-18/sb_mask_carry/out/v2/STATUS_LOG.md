@@ -1,0 +1,11 @@
+- 2026-11-19T10:34:03Z Stage 0 (BARS_FROZEN.json, sha256 edff8724b273): bars frozen from the v2 spec before any priced number.
+- 2026-11-19T10:34:10Z Stage 1 (frame sets): PASS; 209 captures, 13376 unique PNG frames (3.42 GiB) hashed; frame-order failures 0. out/FRAME_SETS.json.
+- 2026-11-19T10:34:14Z Dry-run step 0 (STEP0_PRECISION.json): predicate equal on 18/18 object-taus; tau 0.25 3/3; reproduced=False.
+- 2026-11-19T10:35:54Z Dry-run step 0 (STEP0_PRECISION.json): predicate equal on 2310/2310 object-taus; tau 0.25 390/538; reproduced=True.
+- 2026-11-19T10:36:07Z Stage 2 (seeds, SEEDS_first5.json): check 1 13/13 objects, 5/5 captures; S_A0 {'ok': 13, 'refused': 0, 'unseen': 0, 'on_target': 10}, S_GT {'ok': 13, 'not_visible': 0}, S_PHR NOT_YET.
+- 2026-11-19T10:37:06Z Guard (GUARD.json): R0/dev-S1/BENCH v2/K1 held-out hits [0, 0, 0, 0]; withheld-80 hits 5 captures, 25 rows (default keep, question raised); k1_split train False; folds disjoint and equal to the ladder True; K1_TRACK reuse MISSING.
+- 2026-11-19T10:37:27Z Guard (GUARD.json): R0/dev-S1/BENCH v2/K1 held-out hits [0, 0, 0, 0]; withheld-80 hits 5 captures, 25 rows (default keep, question raised); k1_split train True; folds disjoint and equal to the ladder True; K1_TRACK reuse MISSING.
+- 2026-11-19T10:39:01Z Stage 2 (seeds, SEEDS.json): check 1 770/770 objects, 209/209 captures; S_A0 {'ok': 760, 'refused': 10, 'unseen': 0, 'on_target': 519}, S_GT {'ok': 770, 'not_visible': 0}, S_PHR NOT_YET.
+- 2026-11-19T10:42:04Z Dry-run step 4a (PREDICTOR_CPU.json): build_sam3_video_predictor FAILED RuntimeError: No CUDA GPUs are available; Sam3VideoPredictor FAILED RuntimeError: No CUDA GPUs are available
+- 2026-11-19T10:42:25Z Dry-run steps 1-2 (STUB_PARITY.json): step1 1037/1037; step2 1037/1037; step2 1037/1037; deployed frame recall 0.5815.
+- 2026-11-19T10:43:20Z Dry-run steps 1-2 (STUB_PARITY.json): step1 1037/1037; step2 1037/1037; step2 1037/1037; deployed frame recall 0.5790 (spec 57.9%).

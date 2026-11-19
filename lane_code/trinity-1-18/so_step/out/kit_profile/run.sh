@@ -13,6 +13,7 @@ if [[ -n ${RESUME_PIN:-} ]]; then args+=(--resume "$RESUME_PIN"); fi
 if [[ -n ${RESUME_CONFIG:-} ]]; then args+=(--resume-config "$RESUME_CONFIG"); fi
 # One instrumented step, no separate warmup. Heartbeats and partial phases survive
 # the deadline. Exit 124 means INCOMPLETE. Never retry a killed allocation.
+nice -n 10 "${PYTHON:-python}" "$KIT/gpu_guard.py"
 nice -n 10 timeout --signal=TERM --kill-after=5s 895s "${PYTHON:-python}" -m torch.distributed.run \
   --standalone --nproc_per_node=4 "$KIT/launch.py" "${args[@]}" 2>&1 | \
   "${PYTHON:-python}" "$KIT/privacy.py"

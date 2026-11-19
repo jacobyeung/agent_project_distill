@@ -1,0 +1,544 @@
+{
+  "command": "bash run_cpu.sh mutation_check.py",
+  "scope": "Synthetic gate controls derived from the reviewer's retained audit schema; no production claims.",
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/mutation_check.py": "0c4887b232eafb3bff21192189ca2b782e110e35f796d2cf1bb5836ef51568c1",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/run_cpu.sh": "4d87850c0b31c124bfe8a6a97d529966b10e9a5da1425cfee0fdba015ceab1bd",
+    "/scratch/jjyeung/orch_n30/sb_f64fix2/kit/configs/r1_config_f64.json": "cc811f9ad166cba19f8a3540ef9577a7379c8fc7c7cd972735a152434d884072",
+    "/scratch/jjyeung/orch_n30/sb_f64fix2/kit/scripts/token_audit.py": "08666df18288ac91b2b11a1d6566537d34c5301be717a32d4dc0f45507aa4359",
+    "/scratch/jjyeung/orch_n30/sb_f64fix2/kit/scripts/mem_pilot.py": "52e83fc014d686c6269c5f523c0377668baab4e39e78f73cd809cd425b568caf",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_f64/student_pilot/carrier_c1_run.py": "89c78a59aaa8dfabb9f93c6ed56266b73259831f9dafde31b2a78c152bdfcde2",
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/tmp/dryrun/token_audit_8m70opiy/complete_0.jsonl": "046f7985477bd6f808d3268aa8b31905b7b59af2baa2789b8fe21c548d38d4b5",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/passing/audit.jsonl": "7d953435b61fb150f80b0e0842776568991e5f3c2023b9f4d5764a6b20437675",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/passing/summary.json": "b3a172d0a387a838adc93be6f0f668660fe6874852cdaf146ba735c9070353bc",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/tripwire/audit.jsonl": "e51ecfbae9954cef6dc36626fb8cbb12a756693cb5952bb367f07d6a6ab36b0a",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/tripwire/summary.json": "8f4d2e8cad3df01e8ebfbd92f3e2129740a492c4ecfa0a266a2d7bef765e9a54",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/failed_beyond_longest/audit.jsonl": "2082bb9fdfa4b3ba1f0b462e95e920a68c3573df6a91fa81ff81f327406562bb",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/failed_beyond_longest/summary.json": "884572bc379fcbb4b3a95e276c41b511e7958b2c531f9fdf5710d0efeeb0d83c",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/failed_beyond_flagged/audit.jsonl": "9ed50cce89b15f0de67cea54c3892e5926cca3865e7da3f4880caac3ba6ef258",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/failed_beyond_flagged/summary.json": "8ddab6bd3c3ac7554edd176c78148a298e06e7e644ef1d992e35420c5b931367",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/failed_maximum/audit.jsonl": "2a4b601d5ad031259678aa093524858ef2f6120a177b65919e4cefb60d81390e",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/failed_maximum/summary.json": "d462409c1654d67123a4a03775399ed21ac7193cb7194d71ce337ac2442b401d",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/ceiling_flag_only/audit.jsonl": "b1381ec292bc1420ffb208c15d8ffeef20ffc706ab93f64c46253002f2f6de2c",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/ceiling_flag_only/summary.json": "8261349e111760d50e7d39f1614ab047251aee516b267004fe60113ba8a02ebe",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/failed_beyond_longest/forged_cached_counts.json": "e16fd545a2025cf712796e7b3892c2f24537f04b2c5ce8965059b564b3cd1b8d",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/drop_failed_count.py": "b9061f80c4a949cc1be7576c4c4e894bfc03ba1167a24adf46a823e41425ecab",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/drop_ceiling_count.py": "834093649d1cadde239d84d1b6b68864a3c6040cb0986dcc713e1d5b6c801242",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/reject_tripwire.py": "9d4912a43b79e7853378061a23df25cae0f4e5b1ba9afdd9ff4e84319f7826d1",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/disable_refusal.py": "cc92027613bd4253023cfcae7484840d3b411cee4557e76347d245fa4b5e716a",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/tmp/trust_cached_counts.py": "8e6014a7e1277a2a5059cac04ad492cba08290503e28b6d5de92b16bc5e6bb85"
+  },
+  "controls": {
+    "passing": {
+      "rows": 300,
+      "longest": 256,
+      "flagged": 0,
+      "failed": 0,
+      "maximum": 9300
+    },
+    "tripwire": {
+      "rows": 300,
+      "longest": 256,
+      "flagged": 200,
+      "failed": 0,
+      "maximum": 9300
+    },
+    "failed_beyond_longest": {
+      "rows": 301,
+      "longest": 256,
+      "flagged": 1,
+      "failed": 1,
+      "maximum": 9300
+    },
+    "failed_beyond_flagged": {
+      "rows": 301,
+      "longest": 256,
+      "flagged": 200,
+      "failed": 1,
+      "maximum": 9300
+    },
+    "failed_maximum": {
+      "rows": 301,
+      "longest": 256,
+      "flagged": 1,
+      "failed": 1,
+      "maximum": 9400
+    },
+    "ceiling_flag_only": {
+      "rows": 300,
+      "longest": 256,
+      "flagged": 0,
+      "failed": 0,
+      "maximum": 9300
+    },
+    "forged_cached_counts": {
+      "rows": 301,
+      "longest": 256,
+      "flagged": 1,
+      "failed": 0,
+      "maximum": 9300
+    }
+  },
+  "baseline": {
+    "passing": {
+      "accepted": true,
+      "expected_accept": true,
+      "met": true,
+      "error": null
+    },
+    "tripwire": {
+      "accepted": true,
+      "expected_accept": true,
+      "met": true,
+      "error": null
+    },
+    "failed_beyond_longest": {
+      "accepted": false,
+      "expected_accept": false,
+      "met": true,
+      "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+    },
+    "failed_beyond_flagged": {
+      "accepted": false,
+      "expected_accept": false,
+      "met": true,
+      "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+    },
+    "failed_maximum": {
+      "accepted": false,
+      "expected_accept": false,
+      "met": true,
+      "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9400, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+    },
+    "ceiling_flag_only": {
+      "accepted": false,
+      "expected_accept": false,
+      "met": true,
+      "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 0, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 1, \"rows\": 300}}"
+    },
+    "forged_cached_counts": {
+      "accepted": false,
+      "expected_accept": false,
+      "met": true,
+      "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+    }
+  },
+  "mutations": {
+    "drop_failed_count": {
+      "replacement": {
+        "old": "entry['failed'] or entry['over_ceiling']",
+        "new": "entry['over_ceiling']"
+      },
+      "killed": true,
+      "killing_cases": [
+        "failed_beyond_longest",
+        "failed_beyond_flagged",
+        "forged_cached_counts"
+      ],
+      "outcomes": {
+        "passing": {
+          "accepted": true,
+          "expected_accept": true,
+          "met": true,
+          "error": null
+        },
+        "tripwire": {
+          "accepted": true,
+          "expected_accept": true,
+          "met": true,
+          "error": null
+        },
+        "failed_beyond_longest": {
+          "accepted": true,
+          "expected_accept": false,
+          "met": false,
+          "error": null
+        },
+        "failed_beyond_flagged": {
+          "accepted": true,
+          "expected_accept": false,
+          "met": false,
+          "error": null
+        },
+        "failed_maximum": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9400, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        },
+        "ceiling_flag_only": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 0, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 1, \"rows\": 300}}"
+        },
+        "forged_cached_counts": {
+          "accepted": true,
+          "expected_accept": false,
+          "met": false,
+          "error": null
+        }
+      }
+    },
+    "drop_ceiling_count": {
+      "replacement": {
+        "old": "entry['failed'] or entry['over_ceiling']",
+        "new": "entry['failed']"
+      },
+      "killed": true,
+      "killing_cases": [
+        "ceiling_flag_only"
+      ],
+      "outcomes": {
+        "passing": {
+          "accepted": true,
+          "expected_accept": true,
+          "met": true,
+          "error": null
+        },
+        "tripwire": {
+          "accepted": true,
+          "expected_accept": true,
+          "met": true,
+          "error": null
+        },
+        "failed_beyond_longest": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        },
+        "failed_beyond_flagged": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        },
+        "failed_maximum": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9400, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        },
+        "ceiling_flag_only": {
+          "accepted": true,
+          "expected_accept": false,
+          "met": false,
+          "error": null
+        },
+        "forged_cached_counts": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        }
+      }
+    },
+    "reject_tripwire": {
+      "replacement": {
+        "old": "if entry['failed'] or",
+        "new": "if entry['over_tripwire'] or entry['failed'] or"
+      },
+      "killed": true,
+      "killing_cases": [
+        "tripwire"
+      ],
+      "outcomes": {
+        "passing": {
+          "accepted": true,
+          "expected_accept": true,
+          "met": true,
+          "error": null
+        },
+        "tripwire": {
+          "accepted": false,
+          "expected_accept": true,
+          "met": false,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 0, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 300}}"
+        },
+        "failed_beyond_longest": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        },
+        "failed_beyond_flagged": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        },
+        "failed_maximum": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9400, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        },
+        "ceiling_flag_only": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 0, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 1, \"rows\": 300}}"
+        },
+        "forged_cached_counts": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        }
+      }
+    },
+    "disable_refusal": {
+      "replacement": {
+        "old": "if refused:",
+        "new": "if False and refused:"
+      },
+      "killed": true,
+      "killing_cases": [
+        "failed_beyond_longest",
+        "failed_beyond_flagged",
+        "failed_maximum",
+        "ceiling_flag_only",
+        "forged_cached_counts"
+      ],
+      "outcomes": {
+        "passing": {
+          "accepted": true,
+          "expected_accept": true,
+          "met": true,
+          "error": null
+        },
+        "tripwire": {
+          "accepted": true,
+          "expected_accept": true,
+          "met": true,
+          "error": null
+        },
+        "failed_beyond_longest": {
+          "accepted": true,
+          "expected_accept": false,
+          "met": false,
+          "error": null
+        },
+        "failed_beyond_flagged": {
+          "accepted": true,
+          "expected_accept": false,
+          "met": false,
+          "error": null
+        },
+        "failed_maximum": {
+          "accepted": true,
+          "expected_accept": false,
+          "met": false,
+          "error": null
+        },
+        "ceiling_flag_only": {
+          "accepted": true,
+          "expected_accept": false,
+          "met": false,
+          "error": null
+        },
+        "forged_cached_counts": {
+          "accepted": true,
+          "expected_accept": false,
+          "met": false,
+          "error": null
+        }
+      }
+    },
+    "trust_cached_counts": {
+      "replacement": {
+        "old": "for stream, entry in sorted(again['streams'].items()):",
+        "new": "for stream, entry in sorted(summary['streams'].items()):"
+      },
+      "killed": true,
+      "killing_cases": [
+        "forged_cached_counts"
+      ],
+      "outcomes": {
+        "passing": {
+          "accepted": true,
+          "expected_accept": true,
+          "met": true,
+          "error": null
+        },
+        "tripwire": {
+          "accepted": true,
+          "expected_accept": true,
+          "met": true,
+          "error": null
+        },
+        "failed_beyond_longest": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        },
+        "failed_beyond_flagged": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        },
+        "failed_maximum": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 1, \"longest_tokens\": 9300, \"max_tokens\": 9400, \"omitted_from_longest\": 0, \"over_ceiling\": 0, \"rows\": 301}}"
+        },
+        "ceiling_flag_only": {
+          "accepted": false,
+          "expected_accept": false,
+          "met": true,
+          "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"pose\": {\"failed\": 0, \"longest_tokens\": 9300, \"max_tokens\": 9300, \"omitted_from_longest\": 0, \"over_ceiling\": 1, \"rows\": 300}}"
+        },
+        "forged_cached_counts": {
+          "accepted": true,
+          "expected_accept": false,
+          "met": false,
+          "error": null
+        }
+      }
+    }
+  },
+  "mutants": 5,
+  "kills": 5,
+  "ceiling_reachability": [
+    {
+      "recipe": {},
+      "record": {
+        "stream": "pose",
+        "index": 0,
+        "first_step": 0,
+        "rank": 0,
+        "tokens": 16385,
+        "qid": null,
+        "grid": null,
+        "over_ceiling": true,
+        "over_tripwire": true,
+        "check_row": "ValueError: 16385 tokens exceed 16384",
+        "seconds": 0.0
+      }
+    },
+    {
+      "recipe": {},
+      "record": {
+        "stream": "vqa",
+        "index": 0,
+        "first_step": 0,
+        "rank": 0,
+        "tokens": 16385,
+        "qid": null,
+        "grid": null,
+        "over_ceiling": true,
+        "over_tripwire": true,
+        "check_row": "ValueError: 16385 tokens exceed 16384",
+        "seconds": 0.0
+      }
+    },
+    {
+      "recipe": {},
+      "record": {
+        "stream": "routing",
+        "index": 0,
+        "first_step": 0,
+        "rank": 0,
+        "tokens": 16385,
+        "qid": null,
+        "grid": null,
+        "over_ceiling": true,
+        "over_tripwire": true,
+        "check_row": "ValueError: 16385 tokens exceed 16384",
+        "seconds": 0.0
+      }
+    },
+    {
+      "recipe": {},
+      "record": {
+        "stream": "pointing",
+        "index": 0,
+        "first_step": 0,
+        "rank": 0,
+        "tokens": 16385,
+        "qid": null,
+        "grid": null,
+        "over_ceiling": true,
+        "over_tripwire": true,
+        "check_row": "ValueError: 16385 tokens exceed 16384",
+        "seconds": 0.0
+      }
+    },
+    {
+      "recipe": {
+        "max_row_tokens": 9000
+      },
+      "record": {
+        "stream": "pose",
+        "index": 0,
+        "first_step": 0,
+        "rank": 0,
+        "tokens": 9001,
+        "qid": null,
+        "grid": null,
+        "over_ceiling": true,
+        "over_tripwire": false,
+        "check_row": "ValueError: 9001 tokens exceed 9000",
+        "seconds": 0.0
+      }
+    },
+    {
+      "recipe": {
+        "max_row_tokens": 9000
+      },
+      "record": {
+        "stream": "vqa",
+        "index": 0,
+        "first_step": 0,
+        "rank": 0,
+        "tokens": 9001,
+        "qid": null,
+        "grid": null,
+        "over_ceiling": true,
+        "over_tripwire": false,
+        "check_row": "ValueError: 9001 tokens exceed 9000",
+        "seconds": 0.0
+      }
+    },
+    {
+      "recipe": {
+        "max_row_tokens": 9000
+      },
+      "record": {
+        "stream": "routing",
+        "index": 0,
+        "first_step": 0,
+        "rank": 0,
+        "tokens": 9001,
+        "qid": null,
+        "grid": null,
+        "over_ceiling": true,
+        "over_tripwire": false,
+        "check_row": "ValueError: 9001 tokens exceed 9000",
+        "seconds": 0.0
+      }
+    },
+    {
+      "recipe": {
+        "max_row_tokens": 9000
+      },
+      "record": {
+        "stream": "pointing",
+        "index": 0,
+        "first_step": 0,
+        "rank": 0,
+        "tokens": 9001,
+        "qid": null,
+        "grid": null,
+        "over_ceiling": true,
+        "over_tripwire": false,
+        "check_row": "ValueError: 9001 tokens exceed 9000",
+        "seconds": 0.0
+      }
+    }
+  ]
+}

@@ -40,8 +40,12 @@ groups = {
     '04_launch_phase_timing.diff': ['launch_s1/job.sh', 'launch_s1/b/c.sh', 'launch_s1/b/r.sh', 'tests/test_launch_phase_timing.py'],
 }
 manifest = {}
+base_tree = {str(p.relative_to(original)): hashlib.sha256(p.read_bytes()).hexdigest()
+             for p in sorted(original.rglob('*')) if p.is_file()}
+base_tree_sha256 = hashlib.sha256(json.dumps(base_tree, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 for name, paths in groups.items():
     parts = []
+    result_sha256 = {}
     for relative in paths:
         prior = original / relative
         before = prior.read_text() if prior.exists() else ''
@@ -50,13 +54,17 @@ for name, paths in groups.items():
             after = cache_c if name.startswith('01') else timing_c
         if relative == 'launch_s1/b/r.sh':
             after = cache_r if name.startswith('01') else timing_r
+        result_sha256[relative] = hashlib.sha256(after.encode()).hexdigest()
         parts.extend(difflib.unified_diff(before.splitlines(True), after.splitlines(True),
                      fromfile='a/' + relative if prior.exists() else '/dev/null', tofile='b/' + relative))
     payload = ''.join(parts).encode()
     (out / name).write_bytes(payload)
     manifest[name] = dict(bytes=len(payload), sha256=hashlib.sha256(payload).hexdigest(), files=paths,
-        apply_method='patch --batch --fuzz=0 -p1',
+        apply_method='patch --batch --fuzz=0 --no-backup-if-mismatch -p1',
         input_root='in/tree/work/tree_r1', depends_on=[],
+        base_tree_sha256=base_tree_sha256, base_tree_files=len(base_tree),
+        base_tree_hash_format='sha256(JSON {relative_file_path: file_sha256}, sorted keys, compact separators)',
+        result_sha256=result_sha256,
         deployment='OFF: no useful production hit' if name.startswith('01') else 'default OFF; enable in order 03, 04, 02',
         native_gate_sha256=hashlib.sha256((root / 'work/run_native_regression.py').read_bytes()).hexdigest(),
         base_sha256={relative: hashlib.sha256((original / relative).read_bytes()).hexdigest()

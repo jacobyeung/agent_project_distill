@@ -1,0 +1,66 @@
+{
+  "base_seal": "b262e7a7",
+  "base_seal_full": "b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8",
+  "base_package_sha256": "fb9de190d0da8ed0727f2132d4c08ac4737a65a7aed3226d6ab4cbe1f65ebf59",
+  "base_tree": "/scratch/jjyeung/orch_n30/so_xstore/in/tree21b/work/tree_r1",
+  "patches": [
+    {
+      "file": "01_fast_paths.diff",
+      "sha256": "539ff2b171e2b33f81df03b81da0c2bd7296c3f66afe35455a189fe205ed2eab",
+      "bytes": 13525,
+      "switch": "S1_PREP_FAST_PATHS",
+      "enabled_value": "1",
+      "default": "OFF",
+      "files": [
+        {
+          "path": "student_pilot/orchard_paths.py",
+          "base_sha256": "bcb89ef09e2172164f4d396840048b5b3263e85a72419fa612897475073f125b",
+          "patched_sha256": "903c419dea3f2a402c1702bc272e9e8fc30d83cb3f0864088db70c868f96fa0b",
+          "bytes": 4888
+        },
+        {
+          "path": "student_pilot/s1_admission.py",
+          "base_sha256": "fb5faf1e3d5ebaa63c142c9764903de279dedfa9dd14585ce9d579a4cf64004a",
+          "patched_sha256": "2457b2f0be19f2b98656035b1e4e4aaf9a3f8add715a8d941c995bc3b8e1fe41",
+          "bytes": 24954
+        },
+        {
+          "path": "tests/test_modep_fast_paths.py",
+          "base_sha256": null,
+          "patched_sha256": "68372779a90a1dbf62486b0aec12a725d7324735ddbee4d6ffa5e7bc33908e65",
+          "bytes": 5988
+        },
+        {
+          "path": "tests/test_modep_gloo.py",
+          "base_sha256": null,
+          "patched_sha256": "1a372b72a746e8ba7cde2cfaa90094bd919cf3d97d6f0dfa2865eff99a4e97c7",
+          "bytes": 2739
+        }
+      ],
+      "independent": true
+    },
+    {
+      "file": "02_selected_sql.diff",
+      "sha256": "0c79e5ec0d675eb1a1bb7642d27af147dbd6008acd51673af4f3f4a98e52919c",
+      "bytes": 6033,
+      "switch": "S1_PREP_SELECT_SQL",
+      "enabled_value": "1",
+      "default": "OFF",
+      "files": [
+        {
+          "path": "student_pilot/s1_exclusions.py",
+          "base_sha256": "974d32a9a3c99fdfe3f74ab3a79d2d62c13623bfca9e190f8f47a54ca2e16c31",
+          "patched_sha256": "5a63dcf4eb3f13698b2d6dcef5d55fe8b7443c659ec763113838609f507f4ea9",
+          "bytes": 20348
+        },
+        {
+          "path": "tests/test_modep_select_sql.py",
+          "base_sha256": null,
+          "patched_sha256": "9142ba98dfa603317f6ec14daf48cd9b4ed9069707c402f515adda12bae401a2",
+          "bytes": 3955
+        }
+      ],
+      "independent": true
+    }
+  ]
+}

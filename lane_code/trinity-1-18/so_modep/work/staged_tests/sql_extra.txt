@@ -1,0 +1,10 @@
+    def test_dense_prefix_uses_native_scan_and_sparse_selection_uses_keyed_reads(self):
+        import student_pilot.s1_exclusions as native
+        path = self.database(True)
+        with patch.dict(os.environ, S1_PREP_SELECT_SQL='1'):
+            with patch.object(native, '_selected_rows', side_effect=AssertionError('dense keyed read')):
+                _database(file_pin(path), list(range(1100)), Rule(), 'dense')
+            with patch.object(native, '_selected_rows', wraps=native._selected_rows) as selected:
+                _database(file_pin(path), [1099, 2, 800], Rule(), 'sparse')
+                self.assertEqual(selected.call_count, 2)
+

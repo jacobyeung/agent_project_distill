@@ -1,0 +1,20 @@
+Thu Nov 19 10:40:16 UTC 2026
+CWD: /scratch/jjyeung/orch_n30/so_launch/work/port21/combined_diagnostic
+$ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/port21/combined_diagnostic/tests/test_prepared_cache_wrapper.py -v
+ENV: {"CUDA_VISIBLE_DEVICES": "", "LANE_TEST_OUTPUT": "/scratch/jjyeung/orch_n30/so_launch/work/port21/tmp", "MKL_NUM_THREADS": "8", "OMP_NUM_THREADS": "8", "OPENBLAS_NUM_THREADS": "8", "PYTHONDONTWRITEBYTECODE": "1", "SO_NO_LOCAL_SOCKETS": "1", "TEST_TMP_ROOT": "/scratch/jjyeung/orch_n30/so_launch/work/port21/tmp", "TIMING_INPUT_C": "/scratch/jjyeung/orch_n30/so_launch/work/port21/baseline/launch_s1/b/c.sh", "TMPDIR": "/scratch/jjyeung/orch_n30/so_launch/work/port21/tmp", "TOKENIZERS_PARALLELISM": "false"}
+test_default_off_uses_native_path_and_writes_no_cache (__main__.PreparedWrapperTests.test_default_off_uses_native_path_and_writes_no_cache) ... ok
+test_duplicate_training_or_resume_job_times_out_with_75 (__main__.PreparedWrapperTests.test_duplicate_training_or_resume_job_times_out_with_75) ... ok
+test_failed_native_preparation_is_not_published (__main__.PreparedWrapperTests.test_failed_native_preparation_is_not_published) ... ok
+test_hit_reuses_verified_phases_without_launching_native_builder (__main__.PreparedWrapperTests.test_hit_reuses_verified_phases_without_launching_native_builder) ... ok
+test_miss_runs_native_builder_then_publishes (__main__.PreparedWrapperTests.test_miss_runs_native_builder_then_publishes) ... ok
+test_recursive_resume_inherits_lock_and_still_launches_training (__main__.PreparedWrapperTests.test_recursive_resume_inherits_lock_and_still_launches_training) ... ok
+test_recursive_resume_with_symlinked_parent_inherits_lock (__main__.PreparedWrapperTests.test_recursive_resume_with_symlinked_parent_inherits_lock) ... ok
+test_two_jobs_for_one_run_serialize_native_preparation (__main__.PreparedWrapperTests.test_two_jobs_for_one_run_serialize_native_preparation) ... ok
+test_real_c_stage_hit_miss_error_and_missing_root (__main__.RealStageTests.test_real_c_stage_hit_miss_error_and_missing_root) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 3.665s
+
+OK
+EXIT: 0
+ELAPSED_SECONDS: 5.373654

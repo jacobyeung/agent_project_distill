@@ -1,0 +1,168 @@
+VERDICT: DONE The review fixes are packaged with CPU regression evidence; patch 01 stays OFF.
+
+Patch 03 ranks first. Enable candidates in order **03, 04, 02** after N's first proof and a rebuilt, rescanned kit. Every switch defaults OFF. **01 stays OFF: its prepared-input cache cannot hit in the production topology in a way that avoids native work.** Its estimated production saving is zero or worse. No production speedup was measured.
+
+Patch 01 preserves logical run paths and full native seals. The builder fixes `run_directory=/tmp/jjyeung/okit_8865619b/runs/<run_key>` (`in/tree/work/tree_r1/launch_s1/build.py:221`); `b/g.py:66` requires node-local run storage. For one logical run, source and destination are the same physical path. On another node the source is absent. On the original node, a complete-journal HIT repeats verification that native admission already reuses. A new logical run changes the key. The synthetic relocation tests exercise defensive copy handling; their two-physical-path topology cannot be produced by the builder. A and C' ran on different nodes and under different run keys, so they cannot hit.
+
+The [cross-run store design](CROSS_RUN_STORE_DESIGN.md) specifies the native changes required for useful reuse. It is a design with effort and runtime estimates, not an enabled cache or an admission approval.
+
+## Measured phases and preparation inputs
+
+Mode p measured **140.57 minutes in job 172660** and **145.27 minutes in job 171377**. The [interval arithmetic](phase_timing.json) retains timestamps and evidence labels; [numbered log excerpts](evidence/startup_log_excerpts.txt) retain the raw evidence. The source logs are `/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/r1_ops6/work/mon/last.txt` and `/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/o/look1.out`. Preparation mtimes and C' step duration also use the supplied `PROMPT.md`. Measured envelopes overlap where stated and must not be added blindly. Table source paths refer to the input tree; trainer code is unchanged.
+
+| Phase | 172660 minutes | 171377 minutes | Evidence | Reads and writes | Pure function of named inputs? |
+|---|---:|---:|---|---|---|
+| Submission to wrapper | 2.27 | unavailable | Supplied submission time and measured wrapper start | Allocation availability; starts wrapper | No; scheduler and host state. |
+| Wrapper to import stage | 0.17 | 0.03 | Measured timestamps | Staging inventory and export-session setup; wrapper log | No; filesystem/runtime state. |
+| Import preflight | 1.22 | 0.60 | Measured; logs report 73 and 36 seconds | `job.sh`, `b/p0.sh`, `b/p0.py`: sealed kit, venv, trainer, neutral runtime record, NumPy/FLA overlays; writes import reports for p/t/u | Import acceptance depends on these identities and runtime; report timing is not pure. |
+| Preflight PASS to first stage prep | 11.25 | 0.02 | Measured gap; hashing attribution inferred | Three full checkpoint checks through the guard, chooser and recursive preparation guard | No; checkpoint inventory, locks and I/O state. |
+| Model, store and archive staging before frames | 7.60 | 7.27 | Measured envelope | `b/c.sh`: venv/closure/trainer archives, base model, small metadata, receipt/database parts, extra archives, art assets; writes node-local union tree and stamps | Payloads are content-bound; execution and stamps depend on existing pool state. |
+| Frame-bundle staging and verification | 23.87 | 23.35 | Measured envelope, including extraction | `b/c.sh:184`, `b/f2.py`, `b/s.py`: frame archives, shard inventories, f3–f14 manifests/store mapping; writes RGB files, import receipts and stamps | Verified bytes depend on manifest/archive pins; extraction time and whether work runs are not pure. |
+| Init mirror | 0.25 | 0.25 | Measured envelope | `b/c.sh:217`: pinned init artifact and export member hashes; writes verified mirror | Payload yes; mirror location and completion marker depend on pool state. |
+| Native CPU preparation, entire mode p | **140.57** | **145.27** | Measured launch-p to exit | `b/w.py:34`, `student_pilot/s1_admission.py:132`: input config, all stream receipts and dependencies below; writes native phase journals, prepared stores/config and frame inventory | Semantic selections are input-bound. Receipt bytes also contain UUID paths, timings, resources and resolved paths. |
+| Within p: start to preparation result | 70.37 | approximately 73.20 | Inferred from supplied mtimes; A's completion time is approximate | Parent metadata/confusers, pointing/VQA rebuilds, routing materialization/composition, native preparation; writes `prepare_<uuid>/` | Same qualification as mode p. |
+| Within p: result to mode-p exit | 70.20 | approximately 72.07 | Inferred residual, not an isolated frame measurement | `run.prepared`, retained-row traversal, frame existence checks, SQLite inventory/ref counts and fixed SHA samples; writes `frames_<uuid>/` and `data_receipt.json` | Acceptance is input-bound; timing, SQLite artifacts and paths need not be byte-deterministic. |
+| Mode-p exit to second stage | 1.43 | 0.02 | Measured gap; hashing attribution inferred | Parent resume guard performs the fourth full checkpoint check | No. |
+| Second stage prep | 2.37 | 2.13 | Measured envelope | Repeats staging entrypoints; `b/s.py` checks existing packages/files/rasters and frame shards; init mirror usually present | Acceptance is content-bound; execution depends on pool state. |
+| Training launch to binding mirror | 10.93 | 9.10 | Measured timestamps; overlaps the beginning of the first optimizer step | Distributed startup, preparation authentication, processor/model/init loading, wrapping, optimizer creation/restoration, run binding; wrapper copies binding | No; includes hardware/runtime work and durable state. |
+| First actual optimizer step | approximately 7.22 | 7.34 | C': supplied 433 seconds. A: raw metric 440.3–440.4 seconds | Native rows/RGB/masks, model and optimizer; updates parameters/state and writes all-rank first-step admission | No; hardware and state matter. |
+| End-of-job slot copy, then destination verification | unavailable | 7.78 + 7.52 | Measured: 467 + 451 seconds for 113,540,341,760 bytes | External wrapper copies checkpoint to slot A, then verifies destination | Verified content is input-bound; elapsed time and publication state are not pure. |
+
+Patch 01's key contains the exact input config-file pin, the complete parsed config, stream receipts, all frame manifests, complete staging identity, trainer/wrapper/code identity, admission contract and relevant environment. It retains run paths deliberately; it is not a portable native preparation identity. The following audit explains coverage for this version, not a future general cache guarantee.
+
+| Preparation input or dependency | Reader | Key coverage and admission limit |
+|---|---|---|
+| Original configuration and every setting, including output/preparation paths, recipe, seed, world size, frame layout/markers, pixel/sequence settings, route table, filters and optional feature blocks | `s1_admission.admit`; `carrier_c1_run.validate/prepare` | Entire parsed configuration is `preparation_config`; its launch pin is checked before forming the key. No field is excluded to improve hit rate. |
+| Pose, pointing, VQA, routing and optional MDG source receipts | `s1_admission.py:181`; `carrier_c1_run.py:482` | `store_receipts=cfg.streams`, also contained in the full configuration. |
+| Original SQLite rows/targets, divisions and parent-division ancestry, source memberships, pose mix sources and clip/dense plans | `carrier_c1_data.build_stream`; `c1_pose_mix.prepare`; `r1_routing.compose_native` | Their SHA pins occur in the source receipts or in config. Hashing the parent receipt binds its nested expected hashes; a changed valid child requires a changed parent/key. Prepared local copies also enter the published file inventory. |
+| Pointing GT raster bytes and raster key, per-row geometry and shape/quality rules | `carrier_c1_data.py:513`; `ground_target_filter`; `build_stream` | Raster SHA/key are in pinned database rows; thresholds/filters are in config or the sealed preparation implementation. |
+| REMOVE lists and defect restrictions | `row_removals.Removals`; pointing/VQA/routing preparation | Config contains each path, SHA and restriction. Path-only REMOVE lists are refused by the cache and use native preparation. |
+| Dev/benchmark/pose/report exclusions, held-out QIDs/sources, scene-coverage reference and source mapping | `s1_exclusions.Exclusions/apply`; `carrier_c1_run.prepare` | Config pins/values and receipt ancestry bind every authority. Packaged reserve-scene data such as `r0_scenes.json` belongs to the trainer archive identity. |
+| Routing selection/manifest, eligible packed/row sources and selection indices, source exclusions, relocation catalog, candidate manifest | `s1_routing.py:202`; `s1_pool_relocate.relocate`; `s1_pool.selected_rows` | `cfg.s1_routing` and its pinned selection/manifest closure. Catalog destinations are also included, even when bytes match. |
+| Routing frame map/plan, FPS authority and frame counts; source-row scene/FPS metadata | `s1_routing.Frames`, legacy routing database traversal | Config pins bind map, plan and optional FPS authority; legacy database pins bind source metadata. |
+| Base-model manifest, architecture and tokenizer/processor metadata/files | `mdg_parent.bind`; `s1_routing`; `carrier_c1_run.prepare` | Pose-source receipt points to the base manifest, whose file hashes bind metadata. `staging` also contains model/runtime archive identities. |
+| Parent init artifact, full-weight manifest/index, selected embedding shard, parent heads and MDG init weights | `mdg_parent.py:23`; `carrier_c1_run.validate_init` | Config init pin plus artifact/export nested pins; current staging/init identity also enters the key. The no-MDG branch reads metadata without loading parent weight payloads. |
+| MDG clips and optional clip-source manifest, scene identity map, raster/frame manifests, per-clip raster hashes, vocabulary, confusers, stem weights, exclusions and init metadata/weights | `stageb_mdg.inputs/prepare`; `mdg_inputs`; `mdg_parent.bind` | Full MDG block and transitive manifests/payload pins. Cache admission requires pinned file inputs, `{root, manifest}` directories and pinned init members. Mutable path-only variants are refused. Literal exclusion lists are already part of config. |
+| Optional validation rows/slice, depth-init metadata and paired-layout partner pins | `carrier_c1_run.prepare_validation/prepare`; `carrier_c1_data.layout_inputs` | Config pins and pinned row/receipt closure. |
+| R1 registry/evidence, row-source catalog and membership, mixture/sampling bindings and hand-over/persisted-file mapping when used through S1 | `r1_training`; `r1_components`; `r1_routing`; `r1_handover` | Entire optional config blocks and their pinned nested records. This does not adapt `launch_r2`'s separate host-preparation receipt. |
+| All frame bytes reused by the cache, fN manifests, store mapping and archives | `b/pc.py`; native frame audit | `frame_manifests` plus entire `k/0.json` as `staging`. Publication requires every retained logical frame in the native SQLite inventory to be covered. Noncanonical/uncovered frames decline publication. Every reused RGB file is SHA256-checked. |
+| Trainer source, source seal/archive, wrapper and staging implementation, venv/overlays and packaged authorities | `run.authenticate`; `b/a.py`; `b/pc.py.Context` | Preparation code identity contains commit, trainer archive, config code pin and SHA256 of every kit `b/` file. Entire deployment identity also includes venv/closure/overlay pins. |
+| Preparation environment and logical-to-physical frame mapping | `b/c.sh:382`; `orchard_paths`; native admission request | Only pass-through rehearsal, CPU-count and hash-seed values enter `environment`; the removed names are not read on this preparation path. `tk_env`'s fixed mount, student ID, frame mapping, init mirror and CPU settings are bound by its wrapper hash. Contract frame roots are also keyed. |
+
+The native preparation path also has mutable journal state. Its `request.json` binds config/source/CPU/frame roots; `PhaseJournal` reuses completed phases, and admission refuses another request. A MISS leaves the destination intact, including a partial or foreign-config journal. Destination quarantine occurs only after a candidate copy fully verifies and immediately before its installation. A failed final rename restores the native destination. A report-write or uncertain-install error exits with a non-MISS status. Cached RGB corruption still invalidates the affected frame files/stamps through the existing staging repair path; it does not rename the native journal.
+
+A verified synthetic copy preserves native receipt bytes. The hit report records source job, paths, key/components, producer receipt pin and verified file/frame counts. A valid destination from another preparation generation remains native because retained checkpoints may bind its UUID paths. None of these checks grants training authorization or replaces actual all-rank first-step admission.
+
+## Launch wins, in priority order
+
+| Patch or candidate | Evidence | Expected saving and limit |
+|---|---|---|
+| **03: same-allocation checkpoint verification memo** | Four `complete()` calls each hash the 113.5-GB checkpoint. C' has measured 675-s and 86-s guard envelopes. | **Estimate: 4–10 min per resume launch**, inferred rather than benchmarked. The memo removes three repeated payload reads. The first check and every new allocation still hash fully. |
+| **04: phase and lock timing** | Existing logs combine several guards and waits. | Estimate: zero minutes directly. Boundaries in `job.sh` and both recursive/parent `r.sh` guards separate these costs. Logging failure cannot abort a job. |
+| **02: parallel frame SHA, optional** | Already-covered f2-only checks take a measured 1–19 s in C' (`last.txt:218–224,232–239`). The 23-minute cold envelope includes extraction. | No useful measured saving yet. Estimate: seconds on the supplied warm checks; storage contention can make it slower. Measure f2 alone on a warm Orchard node before enabling. Four workers by default, capped at eight, at most twice that many pending tasks, and all bytes still hash. |
+| **01: prepared-input cache — OFF** | Same node-local source/destination; different-node source absent; new-run key differs. | Estimate: zero minutes or worse. Misses add full publication hashing; same-path hits add hashes to native reuse and hold the stage lock during restore. |
+| Second-stage bypass, not built | Measured 142 s in C', 128 s in A. | Estimate: at most 2.13–2.37 min if a future proof removes the whole stage. Shared inputs and full staging closure still need verification. |
+| First-step change, not built | A's first step takes 440.3–440.4 s vs 133.14 s at step 200. | About 300–307 s is observed excess, not a demonstrated removable cost. No GPU trace supports changing RNG, sampler, optimizer or admission behavior. |
+| Slot-copy destination verification, not built | Measured 467-s write and 451-s verify for 113,540,341,760 B. | The entire verification envelope is 7.52 min; no delivered saving. The external copier is outside this source tree, and destination durability checks remain required. |
+
+The four checkpoint checks explain the **11-minute gap** as an inference supported by code and logs. In the input tree, they run through:
+
+1. `job.sh:16`: `g.py p` → `persistent_launch()` → `r8.main()` → `complete()`.
+2. `job.sh:18`: the direct `r8.py` chooser → `complete()`.
+3. `b/r.sh:40` in the **recursive** p child: `g.py p` → the same verifier.
+4. `b/r.sh:40` in the **parent** u leg: `g.py u` → the same verifier.
+
+C' spent **675 s** between preflight PASS and first stage prep, covering three checks, and **86 s** between p exit and second stage prep, covering one. A had no checkpoint and about one second in each gap. Using the warm 86-s pass gives about 258 s for three removable reads; allocating the combined 761-s envelope evenly gives about 571 s. Rounded for unisolated overhead, the saving estimate is 4–10 min per resume launch. The four-process CPU regression exercises the real `g.py.persistent_launch` dependency and direct chooser; it records `[false, true, true, true]` memo hits and refuses a subsequent corrupted payload. It does not measure checkpoint throughput.
+
+Patch 03 binds a memo to job ID, allocation start, host, checkpoint path, binding and validator SHA. It checks marker SHA and dev/inode/size/mtime_ns/ctime_ns for the marker and every payload. New jobs, clock changes, inode replacement, restored-mtime writes, marker/binding changes, purge and malformed memo force full verification or refusal. This assumes cooperating writers keep completed checkpoints immutable; it does not authenticate against a same-user forger or prove immediate ctime updates for arbitrary mmap writes.
+
+## Review round 1: finding -> fix -> test
+
+| Finding | Fix | Regression evidence |
+|---|---|---|
+| 1: unusable production cache and unsupported saving | State the production path constraint and keep 01 OFF; deliver the separate cross-run design and cost estimates. | Delivery claim/design test fails before and passes after. The same-path fixture verifies that native phases already reuse, a purge misses, and no production copy occurs. |
+| 2: MISS renames native journals | Remove destination quarantine from MISS; quarantine only for a fully verified install and roll back a failed rename. | Partial prepare survives and native `PhaseJournal` reuses it; a foreign config survives and native binding validation refuses it. Corrupt source, copy failure, install failure and report-write failure are covered. |
+| 3: memo benefit and quiet gap | Rank 03 first and state the four call sites and estimated 4–10 min saving. | The report contract fails before and passes after. Real guard/chooser subprocess coverage passes on both versions: the memo implementation already works. |
+| 4: inherited lock deadlock and unbounded duplicate wait | Export/check `TK_PC_LOCK_HELD=1`; acquire with `flock -w 600 7 || exit 75`. | Symlinked-parent resume exits 124 before and 0 after. Duplicate t/u jobs exit 1 before and 75 after in a real contention test whose wait is scaled to 0.1 s; it asserts the exact production 600-s request. Concurrent native preparations still serialize. |
+| 5: wrapper stubs hide the real staging branches | Source the whole real `c.sh`; stub only staging dependencies. | The delivery coverage test fails before and passes after. The real `tk_stage` matrix validates restore exit 0/1/7, bundle skip on HIT, ordinary bundles on MISS/OFF, and missing-root refusal; these existing branches pass on both code versions. |
+| 6: timing aborts without `o/`; guard costs omitted | Guard output directories, tolerate write errors, and bracket both `r.sh` `g.py` calls. | Missing/unwritable output fails before and passes after. Recursive/parent start/done events appear after; a failed guard retains exit 7 and no done event. |
+| 7: native gate omits relevant modules | Select the full launch-kit, production-import and checkpoint-buffer modules. | Selection regression fails before and passes after. The expanded native run reports every test and explicit environment skips; shell syntax and world-4 resume checks execute. |
+| 8: irrelevant names leak into JSON keys | Drop the three unused environment names; scan every written cache report/index/receipt filename and nested field name. | Irrelevant environment changes affect the key before and do not after. Generic-name and packaged-regression assertions fail before and pass after. |
+
+Before/after logs live in [tests/review_round1](tests/review_round1/INDEX.md). Coverage and report defects use delivery contracts as their failing regressions; correctly implemented branches are not represented as behavior bugs.
+
+## Risks and unfinished work
+
+Patch 01 remains OFF. Its index is self-hashed rather than authenticated, and it must not be enabled against a cache root writable by another user. Restore still hashes under the node stage lock. No cross-run store, portable receipt migration, R2 adapter, two-node production determinism proof or new independent admission review is implemented. The [design](CROSS_RUN_STORE_DESIGN.md) describes those prerequisites and their estimated cost.
+
+All code changes remain behind default-OFF switches. CPU tests cannot establish production throughput, GPU behavior or a useful cache HIT. Do not enable patches against a sealed kit without rebuilding its archive, executable inventory, source/config seals and scan certificate. Preserve native review, authorization, frame, parent, checkpoint and all-rank first-step gates.
+
+The native `test_s1_in_job_gate` fixture still has four assertion failures and one error on both the input and patched trees. Its inconsistent stream/config fixture is outside this fix. The comparison logs identify the same five cases. The selected gate includes the complete checkpoint-buffer module, but its ten tests require a real Gloo process group and are explicitly skipped with `SO_NO_LOCAL_SOCKETS=1`. One additional native test requires an unstaged authenticated pool receipt. Re-run those eleven tests in the supported environment before deployment.
+
+No GPU, socket, SSH, Git, production job or heavy I/O ran. Tests hide CUDA, set Torch intra-op threads to eight, cap OMP/MKL/OpenBLAS at eight, and inherit nice level 10. Inputs are unchanged. No other agent's work was stopped.
+
+## Exact commands and results
+
+Final fresh-patch verification: 20261119T082118Z. Report assembled at 2026-11-19T08:26:35Z.
+
+All four patches apply independently with `patch --batch --fuzz=0 -p1`. The recommended set applies in order 03, 04, 02; the all-four set adds 01 last with its switch OFF. The all-four application reports only expected line offsets where timing moves later hunks. No fuzz or failed hunk occurs, and every declared final file must match `work/tree` byte for byte. The manifest records patch bytes, SHA256, input base pins and the native gate SHA256.
+
+| Application | Exact test summaries | Full command/output log |
+|---|---|---|
+| 01_prepared_input_cache.diff | `Ran 31 tests in 0.864s`; `OK`; `Ran 9 tests in 2.927s`; `OK` | [exact output](tests/20261119T082118Z/01_prepared_input_cache.diff.txt) |
+| 02_parallel_frame_sha.diff | `Ran 7 tests in 0.042s`; `OK` | [exact output](tests/20261119T082118Z/02_parallel_frame_sha.diff.txt) |
+| 03_checkpoint_verify_memo.diff | `Ran 10 tests in 0.277s`; `OK` | [exact output](tests/20261119T082118Z/03_checkpoint_verify_memo.diff.txt) |
+| 04_launch_phase_timing.diff | `Ran 6 tests in 0.872s`; `OK` | [exact output](tests/20261119T082118Z/04_launch_phase_timing.diff.txt) |
+| recommended | `Ran 10 tests in 0.240s`; `OK`; `Ran 6 tests in 0.892s`; `OK`; `Ran 7 tests in 0.052s`; `OK`; `Ran 86 tests in 2.842s`; `OK (skipped=11)` | [exact output](tests/20261119T082118Z/recommended.txt) |
+| combined | `Ran 10 tests in 0.285s`; `OK`; `Ran 6 tests in 0.875s`; `OK`; `Ran 7 tests in 0.062s`; `OK`; `Ran 31 tests in 0.937s`; `OK`; `Ran 9 tests in 2.946s`; `OK`; `Ran 86 tests in 2.641s`; `OK (skipped=11)` | [exact output](tests/20261119T082118Z/combined.txt) |
+
+The all-four run registers **149 tests: 138 pass and 11 skip** (63 patch tests plus 86 native tests). Six delivery contracts pass separately. The recommended set registers 109 tests, with the same eleven explicit native skips. The native gate selects the full `test_s1_launch_kit`, `test_s1_production_imports` and `test_s1_checkpoint_buffers` modules, in addition to the existing native modules. It executes world-4 guard/resume tests and the shell syntax checks. No skipped test is counted as passed.
+
+The fresh-patch command was:
+
+```bash
+nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 SO_NO_LOCAL_SOCKETS=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/verify_delivery.py
+```
+
+The runner creates owned scratch directories and sets `TEST_TMP_ROOT`, `TMPDIR` and `LANE_TEST_OUTPUT` to them. Child tests inherit the CPU limits and nice level. The exact combined test commands were:
+
+```text
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/tests/test_checkpoint_verify_memo.py -v
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/tests/test_launch_phase_timing.py -v
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/tests/test_parallel_frame_sha.py -v
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/tests/test_prepared_input_cache.py -v
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/tests/test_prepared_cache_wrapper.py -v
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/run_native_regression.py /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined
+```
+
+The corrected before/after regression evidence is indexed in [review_round1/INDEX.md](tests/review_round1/INDEX.md). The two boundary coverage tests and reporting checks supplement the behavior tests; they do not pretend that the working memo or staging branches were broken.
+
+The stale-fixture comparison used:
+
+```bash
+nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 SO_NO_LOCAL_SOCKETS=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/verify_known_failures.py /scratch/jjyeung/orch_n30/so_launch/out/tests/20261119T082118Z
+```
+
+Its exact comparison output is:
+
+```text
+PASS: the same five native admission-fixture failures reproduce on input and patched trees
+ERROR: test_reviewed_derivation_loads_from_a_restaged_host_directory (tests.test_s1_in_job_gate.InJobGateTests.test_reviewed_derivation_loads_from_a_restaged_host_directory)
+FAIL: test_changed_proof_payload_and_foreign_parent_are_rejected (tests.test_s1_in_job_gate.InJobGateTests.test_changed_proof_payload_and_foreign_parent_are_rejected)
+FAIL: test_fixture_evidence_does_not_authorize_real_training (tests.test_s1_in_job_gate.InJobGateTests.test_fixture_evidence_does_not_authorize_real_training)
+FAIL: test_scene_coverage_cannot_be_omitted_or_rebound (tests.test_s1_in_job_gate.InJobGateTests.test_scene_coverage_cannot_be_omitted_or_rebound)
+FAIL: test_self_consistent_unreviewed_configuration_change_is_rejected (tests.test_s1_in_job_gate.InJobGateTests.test_self_consistent_unreviewed_configuration_change_is_rejected)
+```
+
+Both [input](tests/20261119T082118Z/known_native_failures_input.txt) and [patched](tests/20261119T082118Z/known_native_failures_patched.txt) runs register 92 tests and exit 1 with `FAILED (failures=4, errors=1, skipped=11)`. The five failure identities match. The supported gate passes on the input tree as well as both delivered patch sets; the extra six-test admission module is isolated in this comparison.
+
+Patch inventory:
+
+| Patch | Bytes | SHA256 |
+|---|---:|---|
+| [01_prepared_input_cache.diff](patches/01_prepared_input_cache.diff) | 71778 | `655234ca4a01ffb2aba1911b6abad2e2b6a1f1068b6bd8d10abf2a10bc70b093` |
+| [02_parallel_frame_sha.diff](patches/02_parallel_frame_sha.diff) | 6324 | `9f20e45be76d5ad356df185f6604c6e6ea822d6378286e1f8f3ed7df81158ea9` |
+| [03_checkpoint_verify_memo.diff](patches/03_checkpoint_verify_memo.diff) | 13638 | `bf0ea4745a3e059fd0d0cdffc5fa7cd99ad646b7d70c7957df95f87b4f6c4e54` |
+| [04_launch_phase_timing.diff](patches/04_launch_phase_timing.diff) | 8822 | `e33d420cdbbc95b47bb6f350e6e338ceed22e8b5c0c8b07019c408330e0ed4f7` |
+
+The artifact audit checks source/base pins, standalone and combined application, syntax, test counts and skips, before/after production source identity, live guidance, links, scratch capacity and output checksums. Its exact output is [final_artifact_audit.txt](tests/final_artifact_audit.txt). The cross-run design and hand-over note are covered by the delivery contracts.

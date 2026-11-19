@@ -39,10 +39,10 @@
 +    mkdir -p "$(dirname "$pc_lock")"
 +    # Hold this through training as well as preparation. The recursive p leg
 +    # inherits the same open file description, so it must not reopen the lock.
-+    if [[ "${TK_PC_LOCK_HELD:-0}" != 1 ]]; then
++    if [[ "${TK_PC_LOCK_HELD:-0}" != "$PPID" ]]; then
 +        exec 7>"$pc_lock"
 +        flock -w 600 7 || exit 75
-+        export TK_PC_LOCK_HELD=1
++        export TK_PC_LOCK_HELD="$$"
 +    fi
 +fi
  if [[ "${1:-}" == t || "${1:-}" == u ]] && /usr/bin/python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("in_job_admission") else 1)' "$HX/k/launch.json"; then
@@ -86,7 +86,7 @@
  exit "$rc"
 --- /dev/null
 +++ b/launch_s1/b/pc.py
-@@ -0,0 +1,487 @@
+@@ -0,0 +1,493 @@
 +"""Opt-in, byte-preserving admission cache. No training or authorization shortcuts.
 +
 +The complete configuration (including logical paths) is deliberately in the key.
@@ -108,7 +108,7 @@
 +import uuid
 +
 +
-+SCHEMA = "s1-prepared-input-cache-v1"
++SCHEMA = "s1-prepared-input-cache-v2"
 +AS = "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung"
 +AL = "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung"
 +X = AS + "/ap/8865619b"
@@ -215,26 +215,26 @@
 +    if "mdg" in cfg:
 +        mdg = cfg["mdg"]
 +        if not isinstance(mdg, dict):
-+            raise ValueError("cache requires content-pinned MDG inputs")
++            raise ValueError("cache requires content-pinned optional inputs")
 +        for name in ("clips_jsonl", "confusers", "vocab", "stem_weights"):
 +            if not content_pin(mdg.get(name)):
-+                raise ValueError("cache requires content-pinned MDG " + name)
++                raise ValueError("cache requires content-pinned optional inputs")
 +        for name in ("frame_root", "rasters"):
 +            value = mdg.get(name)
 +            if (not isinstance(value, dict) or set(value) != {"root", "manifest"}
 +                    or not isinstance(value["root"], str) or not Path(value["root"]).is_absolute()
 +                    or ".." in Path(value["root"]).parts or not content_pin(value["manifest"])):
-+                raise ValueError("cache requires content-pinned MDG " + name)
++                raise ValueError("cache requires content-pinned optional inputs")
 +        excluded = mdg.get("exclude_scenes")
 +        if not (isinstance(excluded, list) and all(isinstance(name, str) for name in excluded)
 +                or content_pin(excluded)):
-+            raise ValueError("cache requires content-pinned MDG exclude_scenes")
++            raise ValueError("cache requires content-pinned optional inputs")
 +        if "init_artifact" in mdg:
 +            value = mdg["init_artifact"]
 +            if (not isinstance(value, dict) or not {"mdg.json", "mdg.pt"} <= set(value)
 +                    or set(value) - {"mdg.json", "mdg.pt", "lora.pt"}
 +                    or not all(content_pin(pin) for pin in value.values())):
-+                raise ValueError("cache requires content-pinned MDG init_artifact")
++                raise ValueError("cache requires content-pinned optional inputs")
 +    components = dict(schema=SCHEMA, input_config=input_config,
 +                store_receipts=cfg["streams"], preparation_config=cfg,
 +                frame_manifests=frames, preparation_code_identity=dict(
@@ -276,6 +276,7 @@
 +        self.components = key_components(self.cfg, self.current, self.contract, implementation, os.environ,
 +                                         input_config=self.launch["config"])
 +        self.key = digest(self.components)
++        self.component_sha256 = {name: digest(value) for name, value in self.components.items()}
 +        self.report = self.kit / "o" / (self.job + ".prepared-cache.json")
 +
 +    def host(self, path):
@@ -288,7 +289,7 @@
 +
 +    def result(self, status, **fields):
 +        value = dict(schema=SCHEMA, job=self.job, status=status, key=self.key,
-+                     key_components=self.components, target_inputs=str(self.destination),
++                     component_sha256=self.component_sha256, target_inputs=str(self.destination),
 +                     target_frames=str(self.frame_root), recorded_unix=time.time(),
 +                     production_authorized=False, gpu_first_step_pending=True, **fields)
 +        atomic(self.report, value)
@@ -473,7 +474,7 @@
 +                raise ValueError("cache receipt hash differs")
 +            receipt = read(receipt_path)
 +            if (receipt.get("schema") != SCHEMA or receipt.get("key") != ctx.key
-+                    or receipt.get("key_components") != ctx.components):
++                    or receipt.get("component_sha256") != ctx.component_sha256):
 +                raise ValueError("cache key or preparation code identity differs")
 +            source = Path(receipt["source_inputs"])
 +            verify_files(source, receipt["files"])
@@ -535,7 +536,7 @@
 +    files = admission_files(ctx, ctx.destination)
 +    frames = frame_files(ctx)
 +    covered_frames(ctx, frames)
-+    receipt = dict(schema=SCHEMA, key=ctx.key, key_components=ctx.components,
++    receipt = dict(schema=SCHEMA, key=ctx.key, component_sha256=ctx.component_sha256,
 +                   source_job=ctx.job, source_inputs=str(ctx.destination), source_frames=str(ctx.frame_root),
 +                   files=files, frames=frames)
 +    with locked(ctx.cache, ctx.key):
@@ -560,7 +561,12 @@
 +    args = parser.parse_args()
 +    if os.environ.get("TK_PREPARED_INPUT_CACHE", "0") != "1":
 +        return 1
-+    ctx = Context(args.kit, args.node, args.cache, args.job)
++    try:
++        ctx = Context(args.kit, args.node, args.cache, args.job)
++    except (OSError, ValueError, KeyError, TypeError, AttributeError):
++        # No restore has started, so declining this context is a safe MISS.
++        print("prepared input cache context refused", file=sys.stderr)
++        return 1
 +    if args.operation == "restore":
 +        try:
 +            return 0 if restore(ctx) else 1
@@ -576,7 +582,7 @@
 +    raise SystemExit(main())
 --- /dev/null
 +++ b/tests/test_prepared_input_cache.py
-@@ -0,0 +1,599 @@
+@@ -0,0 +1,637 @@
 +"""CPU fixtures; set TEST_TMP_ROOT to keep all retained test files in scratch."""
 +import copy
 +from concurrent.futures import ThreadPoolExecutor
@@ -603,7 +609,7 @@
 +
 +
 +class Fixture:
-+    def __init__(self, same_path=False):
++    def __init__(self, same_path=False, extra_config=None):
 +        self.root = Path(tempfile.mkdtemp(prefix="pc-test-", dir=os.environ["TEST_TMP_ROOT"]))
 +        self.kit, self.node, self.cache = (self.root / name for name in ("kit", "node", "cache"))
 +        self.source, self.target = self.root / "old-run/inputs", self.root / "new-run/inputs"
@@ -630,6 +636,7 @@
 +                        code=dict(path="/logical/k/code.json", sha256="a"*64),
 +                        init_artifact=dict(artifact=dict(path="/parent/artifact.json", sha256="b"*64)),
 +                        world_size=4, remove_files=[], training_mode="final")
++        self.cfg.update(extra_config or {})
 +        config = self.kit / "k/config.json"
 +        pc.atomic(config, self.cfg)
 +        self.current = dict(commit="sha256:" + "c"*64,
@@ -829,7 +836,7 @@
 +            "preparation_code_identity": lambda v: v.update(commit="sha256:"+"3"*64),
 +            "staging": lambda v: v["venv"].update(sha256="4"*64),
 +            "admission_contract": lambda v: v.update(frame_roots=["/different"]),
-+            "environment": lambda v: v.update(STUDENT_R2_FRAME_HOST="changed"),
++            "environment": lambda v: v.update(SLURM_CPUS_PER_TASK="changed"),
 +        }
 +        for component, change in mutations.items():
 +            with self.subTest(component=component):
@@ -838,6 +845,7 @@
 +                change(value[component])
 +                self.assertEqual([k for k in value if value[k] != base[k]], [component])
 +                ctx.components, ctx.key = value, pc.digest(value)
++                ctx.component_sha256 = {k: pc.digest(v) for k, v in value.items()}
 +                self.assertNotEqual(ctx.key, f.key)
 +                self.assertFalse(pc.restore(ctx))
 +                self.assertEqual(pc.read(ctx.report)["status"], "MISS")
@@ -884,7 +892,7 @@
 +        index = pc.read(index_path)
 +        path = f.cache / index["receipt"]
 +        value = pc.read(path)
-+        value["key_components"]["preparation_code_identity"]["commit"] = "foreign"
++        value["component_sha256"]["preparation_code_identity"] = pc.digest("foreign")
 +        pc.atomic(path, value)
 +        pc.atomic(index_path, {**index, "sha256": pc.sha(path)})
 +        ctx = f.consumer()
@@ -910,7 +918,7 @@
 +        for name in mdg:
 +            with self.subTest(field=name):
 +                cfg = {**f.cfg, 'mdg':{**mdg, name:'/mutable/' + name}}
-+                with self.assertRaisesRegex(ValueError, 'content-pinned MDG'):
++                with self.assertRaisesRegex(ValueError, 'content-pinned optional inputs'):
 +                    pc.key_components(cfg, f.current, f.launch['in_job_admission'], {}, {})
 +        cfg = {**f.cfg, 'mdg':mdg}
 +        self.assertIn('mdg', pc.key_components(cfg, f.current, f.launch['in_job_admission'], {}, {})['preparation_config'])
@@ -1068,6 +1076,42 @@
 +        f.source.rename(f.source.with_name("purged-fixture"))
 +        self.assertFalse(pc.restore(f.consumer()))
 +
++    def test_reports_and_receipts_store_only_component_digests(self):
++        pin = dict(path='/inputs/pinned', sha256='a' * 64)
++        mdg = {name: pin for name in ('clips_jsonl', 'confusers', 'vocab', 'stem_weights')}
++        mdg.update(frame_root=dict(root='/frames', manifest=pin),
++                   rasters=dict(root='/rasters', manifest=pin), exclude_scenes=[])
++        f = Fixture(extra_config={'mdg': mdg, 'private_model': 'qwen-fixture'})
++        source = f.publish()
++        self.assertTrue(pc.restore(f.consumer()))
++        expected = {name: pc.digest(value) for name, value in source.components.items()}
++        for path in [*f.cache.glob('*.receipt.json'), *(f.kit / 'o').glob('*.json')]:
++            record = pc.read(path)
++            self.assertNotIn('key_components', record)
++            self.assertEqual(record['component_sha256'], expected)
++            self.assertEqual(record['key'], pc.digest(source.components))
++            self.assertNotRegex(path.read_text().lower(), r'mdg|qwen|private_model')
++        index = pc.read(f.cache / (source.key + '.json'))
++        receipt_path = f.cache / index['receipt']
++        receipt = pc.read(receipt_path)
++        receipt['component_sha256']['preparation_config'] = '0' * 64
++        pc.atomic(receipt_path, receipt)
++        index['sha256'] = pc.sha(receipt_path)
++        pc.atomic(f.cache / (source.key + '.json'), index)
++        self.assertFalse(pc.restore(f.consumer('changed-digest')))
++
++    def test_unpinned_optional_input_cli_refuses_without_method_or_traceback(self):
++        f = Fixture(extra_config={'mdg': {'clips_jsonl': '/unpinned/private'}})
++        result = subprocess.run([sys.executable, '-I', '-s', '-B',
++            str(TREE / 'launch_s1/b/pc.py'), 'restore', str(f.kit), str(f.node), str(f.cache), 'refused'],
++            env={**os.environ, 'TK_PREPARED_INPUT_CACHE': '1'}, capture_output=True, text=True, timeout=10)
++        self.assertEqual(result.returncode, 1)
++        self.assertIn('cache context refused', result.stderr)
++        self.assertNotRegex(result.stdout + result.stderr, r'(?i)mdg|traceback|clips_jsonl')
++        self.assertFalse(f.cache.exists())
++        with self.assertRaisesRegex(ValueError, '^cache requires content-pinned optional inputs$'):
++            f.context()
++
 +    def test_partial_prepared_directory_is_never_published(self):
 +        f = self.f
 +        (f.source / f.prep / "pointing/rows.sqlite").rename(f.root / "missing.sqlite")
@@ -1178,7 +1222,7 @@
 +    unittest.main(verbosity=2)
 --- /dev/null
 +++ b/tests/test_prepared_cache_wrapper.py
-@@ -0,0 +1,227 @@
+@@ -0,0 +1,229 @@
 +"""Exercise r.sh's real control flow with CPU stubs; no cluster or GPU commands."""
 +import json
 +import fcntl
@@ -1293,12 +1337,14 @@
 +''')
 +        with (locks / 'run.lock').open('a+b') as held:
 +            fcntl.flock(held, fcntl.LOCK_EX)
-+            for mode in ('t', 'u'):
-+                with self.subTest(mode=mode):
-+                    trace = self.root / ('duplicate-' + mode)
++            for mode, marker in ((m, k) for m in ('t', 'u') for k in ('unset', '1', '99999999')):
++                with self.subTest(mode=mode, marker=marker):
++                    trace = self.root / ('duplicate-' + mode + '-' + marker)
 +                    env = {**os.environ, 'SLURM_JOB_ID':'23459', 'TRACE':str(trace),
 +                           'TK_PREPARED_INPUT_CACHE':'1', 'BASH_ENV':str(hook)}
 +                    env.pop('TK_PC_LOCK_HELD', None)
++                    if marker != 'unset':
++                        env['TK_PC_LOCK_HELD'] = marker
 +                    result = subprocess.run(['bash', str(self.root / 'b/r.sh'), mode, '0'],
 +                                            env=env, capture_output=True, text=True, timeout=5)
 +                    self.assertEqual(result.returncode, 75, result.stderr)

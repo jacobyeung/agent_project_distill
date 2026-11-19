@@ -34,15 +34,19 @@ class Job20(unittest.TestCase):
         config_file=record('base_config.json',{})
         model=record('model.json',dict(root='/opaque/model',files={'config.json':config_file['sha256']}))
         cls.spec['room_sha256']=model['sha256']
-        prep=record('prep.json',dict(model=model))
-        cfg=record('config.json',dict(preparation=prep,streams={},s1_routing={}))
-        binding=record('binding.json',{})
+        source=dict(streams={},s1_routing={},preparation_output='/opaque/p')
+        cls.spec['p_kit_config']=record('kit.json',source)
+        cls.spec['p_kit_identity']=cls.spec['p_runtime_identity']=J.export_identity(source)
+        prep=record('prep.json',dict(model=model,streams={},config_sha256=cls.spec['p_runtime_identity']))
+        cfg=record('config.json',dict(source,preparation=prep))
+        binding=record('binding.json',dict(preparation=prep,config_sha256=cls.spec['p_runtime_identity']))
         weights=b'weight';wh=hashlib.sha256(weights).hexdigest();heads=b'head';hh=hashlib.sha256(heads).hexdigest()
         index=record('model.safetensors.index.json',dict(weight_map={'a':'w.bin'}))
         from student_pilot.full_ft import EXPORT_SCHEMA
         full=record('full.json',dict(schema=EXPORT_SCHEMA,dtype='bfloat16',tensor_count=1,index=dict(name='model.safetensors.index.json',sha256=index['sha256']),files=[dict(name='w.bin',bytes=len(weights),sha256=wh)]))
-        artifact=record('artifact.json',dict(step=400,config_sha256=cls.spec['p_identity'],full_weights=full,heads=dict(path='/opaque/h.pt',sha256=hh)))
+        artifact=record('artifact.json',dict(step=400,config_sha256=cls.spec['p_runtime_identity'],full_weights=full,heads=dict(path='/opaque/h.pt',sha256=hh)))
         cls.run_pins=dict(config=cfg,binding=binding,preparation=prep)
+        cls.spec['p_run']=cls.run_pins
         cls.receipt=dict(schema='p-export-only-v1',step=400,pins=dict(cls.run_pins,artifact=artifact,full_weights=full,heads=dict(path='/opaque/h.pt',sha256=hh),**{'export/w.bin':dict(path='/opaque/w.bin',sha256=wh)}))
         m=cls.pool/cls.spec['milestone'];m.mkdir(parents=True,exist_ok=True)
         J.write(m/'e.json',cls.receipt);J.write(m/'r.json',cls.run_pins);J.write(m/'DONE.json',dict(step=400,ok=1,checkpoint_overlap='no'))
@@ -83,7 +87,7 @@ class Job20(unittest.TestCase):
             if case=='done':altered(m/'DONE.json',b'{"ok":0}')
             if case=='small':altered(m/'s.tar',b'bad')
             if case=='artifact':
-                bad=deepcopy(self.spec);bad['p_identity']='0'*64;altered(self.kit/'k/p.json',capsule_json(bad));reseal(self.kit)
+                bad=deepcopy(self.spec);bad['p_runtime_identity']='0'*64;altered(self.kit/'k/p.json',capsule_json(bad));reseal(self.kit)
             if case=='run':altered(m/'r.json',b'{}')
             if case=='seal':altered(self.kit/'b/v.py',b'changed')
             J.write(self.listing,dict(objects=listing))

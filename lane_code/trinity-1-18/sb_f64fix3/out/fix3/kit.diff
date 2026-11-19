@@ -1,0 +1,141 @@
+diff -ru sb_f64fix2/kit/SHA256SUMS sb_f64fix3/kit/SHA256SUMS
+--- sb_f64fix2/kit/SHA256SUMS	2026-11-19 04:59:23.853142238 -0500
++++ sb_f64fix3/kit/SHA256SUMS	2026-11-19 05:39:49.440036563 -0500
+@@ -29,17 +29,17 @@
+ e3296f65789353667caa1779d71b7c67d1d63a5247e5aa6a9b102bad0bf53a90  ./scripts/f64_dryrun.py
+ dc1d38fd0f574daed6400954b5202609b87d3a07b3f3467fed7e526b88e1cd4e  ./scripts/f64_rows.py
+ fa940e27c7ee36888d1e4018cf96b2cfd138633162431649e5460ddba2b0e4c0  ./scripts/make_configs.py
+-52e83fc014d686c6269c5f523c0377668baab4e39e78f73cd809cd425b568caf  ./scripts/mem_pilot.py
++ec8dc8fad70f29b816762f0c5a41bdea1d4270fffc7d9dae92695fe98f0854a4  ./scripts/mem_pilot.py
+ 2847e1295ab0ba5cb7f5501ac33c14af6691a431c8e827b065b31da2b4404673  ./scripts/nest_store.py
+ bd6084175cc71a284cc13674ca8671d5c21aa742574c4a6cb0077147e8de8921  ./scripts/run_cpu.sh
+ 8d21a757a95893afc28c145cc817e370c54bc08edd3d99aad87d3638304fb76e  ./scripts/run_focused.sh
+ b7caed20efe978c10ab59af5c97fd88874d938300a502a0bd54b4dc8d07af9fa  ./scripts/run_stage2.sh
+ c271852618b89e5ea2558317205c7e73e36e0a4c5ed866e2819e6b979effe9b7  ./scripts/run_stage2b.sh
+ aff342c78fa41ae2e11860ff706e28f2e8f3a4a55e6bd6d4db38a6a6c8cfea9b  ./scripts/run_stage2c.sh
+-08666df18288ac91b2b11a1d6566537d34c5301be717a32d4dc0f45507aa4359  ./scripts/token_audit.py
++34602a6c046e39d5abb4027b48a84dd6ca2c9fd5e5016c8dbe792672ab518d0c  ./scripts/token_audit.py
+ 0d620be88204dd639e470aeab2e77499b40543570f1667503f43d5d698776084  ./scripts/wait_then_2b.sh
+ 34dabbc1a4d3e86816fde70fd39f74b2bc3184a9650a76e40e19c6b48cca3e07  ./tests/test_f64_fix.py
+ 1e0e797f7ae54344dbe9cc986117a5527c9c05f2e9d8394a1a7f69c85e60ae77  ./tests/test_f64_layout.py
+ 963e8df5ffbdb89185c1822672df514896df8963ac5e197a53dc3eb04ce6e644  ./tests/test_nest_store.py
+-5758d665c717b11ceef18d0d325ea59ebd7bfa78367d04e09c2341af31c2d1cb  ./tests/test_pilot_gate.py
++7a5b5e0c393312351af3325efc3f1212db373843d3a9ad021ce3b7088c9fa64d  ./tests/test_pilot_gate.py
+ fadb98cd8732efbdb801f2f048e687a8549c72f3b87ab6600ab5073c885c7db9  ./tests/test_token_audit.py
+diff -ru sb_f64fix2/kit/scripts/mem_pilot.py sb_f64fix3/kit/scripts/mem_pilot.py
+--- sb_f64fix2/kit/scripts/mem_pilot.py	2026-11-19 04:55:33.714530528 -0500
++++ sb_f64fix3/kit/scripts/mem_pilot.py	2026-11-19 05:34:00.162610299 -0500
+@@ -57,8 +57,9 @@
+ 
+ def check_audit(summary_path, config_path):
+     """The summary must re-derive from its own shard files and cover this config's whole run, and no audited row
+-    may fail check_row or exceed the ceiling, since the trainer aborts on such a row and the longest-row plan would
+-    omit it. Rows over the tripwire alone pass: they are the rows this pilot calibrates memory on."""
++    may fail check_row or exceed the ceiling, since the trainer aborts on such a row; a failed row ranks among the
++    longest rows when its encode gave a token count. Rows over the tripwire alone pass: they are the rows this pilot
++    calibrates memory on."""
+     import token_audit
+     summary = json.loads(Path(summary_path).read_text())
+     files = summary.get('shard_files') or {}
+diff -ru sb_f64fix2/kit/scripts/token_audit.py sb_f64fix3/kit/scripts/token_audit.py
+--- sb_f64fix2/kit/scripts/token_audit.py	2026-11-19 03:05:45.568550776 -0500
++++ sb_f64fix3/kit/scripts/token_audit.py	2026-11-19 05:33:58.244613429 -0500
+@@ -311,9 +311,9 @@
+         entry['over_ceiling'] += bool(record.get('over_ceiling'))
+         entry['over_tripwire'] += bool(record.get('over_tripwire'))
+         entry['failed'] += record['check_row'] != 'ok'
+-        if record['check_row'] == 'ok' and not fields_missing(record):
++        if type(record.get('tokens')) is int and not fields_missing(record):
+             longest.setdefault(record['stream'], []).append(
+-                {k: record.get(k) for k in ('index', 'tokens', 'suffix_tokens', 'first_step', 'rank', 'qid')})
++                {k: record.get(k) for k in ('index', 'tokens', 'suffix_tokens', 'first_step', 'rank', 'qid', 'check_row')})
+     for stream, values in longest.items():
+         longest[stream] = sorted(values, key=lambda r: (-r['tokens'], r['index']))[:LONGEST]
+     failures = [r for r in records if r['check_row'] != 'ok' or r.get('over_tripwire')]
+diff -ru sb_f64fix2/kit/tests/test_pilot_gate.py sb_f64fix3/kit/tests/test_pilot_gate.py
+--- sb_f64fix2/kit/tests/test_pilot_gate.py	2026-11-19 04:56:38.887421858 -0500
++++ sb_f64fix3/kit/tests/test_pilot_gate.py	2026-11-19 05:34:38.211548200 -0500
+@@ -1,6 +1,7 @@
+ """mem_pilot.check_audit over complete audits of the dry run's 16 planned rows, encoded for real: a passing audit
+ and one whose rows exceed only the tripwire feed the pilot every row, while one check_row failure or one ceiling
+-violation refuses it, counted per stream over every audited row (review sb_f64rev2 finding 4).
++violation refuses it, counted per stream over every audited row (review sb_f64rev2 finding 4). A failed row with a
++known token count ranks among the longest rows, and a tokenless fetch failure cannot.
+ F64_WORK names a scratch directory these tests may write; they never write anywhere else."""
+ import json
+ import os
+@@ -62,6 +63,9 @@
+     def first(self, stream):
+         return min(key for key, _ in self.items if key[0] == stream)
+ 
++    def last(self, stream):
++        return max(key for key, _ in self.items if key[0] == stream)
++
+     def refused(self, path):
+         with self.assertRaisesRegex(ValueError, 'trainer refuses') as caught:
+             mem_pilot.check_audit(path, CONFIG)
+@@ -84,21 +88,44 @@
+         self.assertEqual(sum(len(v) for v in audit['longest'].values()), len(self.items))
+         self.assertGreater(max(r['tokens'] for v in audit['longest'].values() for r in v), TRIPWIRE)
+ 
+-    def test_failed_row_refuses_although_the_longest_rows_omit_it(self):
++    def test_failed_rows_rank_by_known_tokens_and_refuse(self):
++        injected = 'ValueError: injected failure (synthetic control)'
+         fetch_fields = ('stream', 'index', 'first_step', 'rank', 'seconds')
+-        cases = (('check_row', 'routing', lambda r: dict(r, check_row='ValueError: injected failure (synthetic control)')),
+-                 ('fetch', 'pose', lambda r: dict({k: r[k] for k in fetch_fields}, check_row='FileNotFoundError: frame')))
+-        for name, stream, fail in cases:
++
++        def tokenless(r):
++            return dict({k: r[k] for k in fetch_fields}, check_row='FileNotFoundError: frame')
++        # Every dry-run row of a stream has the same length, so the maximum case lengthens its stream's last row.
++        cases = (('check_row', self.first('routing'), lambda r: dict(r, check_row=injected), True),
++                 ('check_row_maximum', self.last('vqa'), lambda r: dict(r, check_row=injected, tokens=r['tokens'] + 100),
++                  True),
++                 ('fetch', self.first('pose'), tokenless, False))
++        for name, key, fail, ranked in cases:
+             with self.subTest(name):
+-                key = self.first(stream)
++                stream = key[0]
+                 summary, path = self.gate('failed_' + name, lambda r: fail(r) if (r['stream'], r['index']) == key else r)
+                 self.assertEqual(summary['errors'], [])
+-                self.assertEqual(summary['streams'][stream]['failed'], 1)
+-                self.assertNotIn(key[1], [r['index'] for r in summary['longest'][stream]])
++                self.assertFalse(summary['launch_ready'])
++                entry = summary['streams'][stream]
++                self.assertEqual(entry['failed'], 1)
++                candidates = summary['longest'][stream]
++                self.assertEqual(candidates[0]['tokens'], entry['max_tokens'])
++                failed = [r for r in candidates if r['index'] == key[1]]
++                if ranked:
++                    self.assertEqual(len(candidates), entry['rows'])
++                    self.assertEqual([r['check_row'] for r in failed], [injected])
++                    self.assertEqual(failed[0]['tokens'], fail(self.records[key])['tokens'])
++                else:
++                    self.assertEqual(len(candidates), entry['rows'] - 1)
++                    self.assertEqual(failed, [])
++                if name == 'check_row_maximum':
++                    self.assertEqual(candidates[0]['index'], key[1])
++                    self.assertEqual(entry['max_tokens'], max(r['tokens'] for v in summary['longest'].values() for r in v))
++                    self.assertGreater(entry['max_tokens'], self.records[key]['tokens'])
+                 refused = self.refused(path)
+                 self.assertEqual(list(refused), [stream])
+                 self.assertEqual(refused[stream]['failed'], 1)
+-                self.assertEqual(refused[stream]['omitted_from_longest'], 1)
++                self.assertEqual(refused[stream]['omitted_from_longest'], 0 if ranked else 1)
++                self.assertEqual(refused[stream]['longest_tokens'], entry['max_tokens'])
+ 
+     def test_ceiling_violation_refuses(self):
+         key = self.first('vqa')
+@@ -113,9 +140,11 @@
+             with self.subTest(name):
+                 summary, path = self.gate('ceiling_' + name, lambda r: edit(r) if (r['stream'], r['index']) == target else r)
+                 self.assertEqual(summary['errors'], [])
++                self.assertIn(target[1], [r['index'] for r in summary['longest'][target[0]]])
+                 refused = self.refused(path)
+                 self.assertEqual(list(refused), [target[0]])
+                 self.assertEqual(refused[target[0]]['over_ceiling'], 1)
++                self.assertEqual(refused[target[0]]['omitted_from_longest'], 0)
+ 
+ 
+ if __name__ == '__main__':

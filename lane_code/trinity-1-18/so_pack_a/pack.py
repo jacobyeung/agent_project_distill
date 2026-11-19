@@ -1,5 +1,5 @@
 """Opt-in read-package preflight and bounded Orchard planner. Python 3.6."""
-import argparse, ast, gzip, hashlib, io, json, os, re, resource, shlex, subprocess, sys, tarfile, time
+import argparse, ast, base64, gzip, hashlib, io, json, os, re, resource, shlex, subprocess, sys, tarfile, time
 from pathlib import Path, PurePosixPath
 PREFIX='a15_cot_ap'
 ROOT='/project/community/jjyeung/okh7'
@@ -122,8 +122,29 @@ def probe(mode,p,w,c):
     w=Path(w);w.mkdir(parents=True,exist_ok=False,mode=0o700);write(w/'0.json',c)
     py='/usr/bin/python3' if mode in ('login','fill') else c.get('python',PYTHON)
     run([py,'-I','-s','-B',str(Path(__file__).with_name('pack_checks.py')),mode,str(p),str(w),str(w/'0.json')],w,w/'0.log',seconds=c.get('check_timeout',240));return read(w/'1.json')
+def source_preflight(c):
+    """Apply the native D embedded-asset equality before any release operation."""
+    spec=c.get('builder')
+    if not spec:return {'fixture_only':True}
+    argv=spec['argv'];source=Path(argv[argv.index('--source')+1]) if '--source' in argv else Path(spec['path'])
+    pins={str(source):file_digest(source)}
+    for pin in spec.get('inputs',[]):
+        need(file_digest(pin['path'])==pin['sha256'],'Builder input differs');pins[pin['path']]=pin['sha256']
+    need(file_digest(spec['path'])==spec['sha256'],'Builder hash differs')
+    if source.name=='build_d.py':
+        here=source.parent;script=here/'o_build_D.sh';checker=here/'check_release_d.py'
+        pins[str(script)]=file_digest(script);pins[str(checker)]=file_digest(checker)
+        assets=ast.literal_eval(next(l for l in script.read_text().splitlines() if l.startswith('assets = ')).split('=',1)[1])
+        native=argv[argv.index('--')+1:] if '--' in argv else argv
+        need(len(native)>=5,'Native D inputs absent');items=Path(native[3])
+        for name,asset in assets.items():
+            raw=gzip.decompress(base64.b64decode(asset['data']));need(digest(raw)==asset['sha256'],'Native embedded hash differs: '+name)
+            path=items if name=='items/dist580.json' else here/('build_d.py' if name=='b.py' else name)
+            need(raw==path.read_bytes(),'Native source differs from embedded asset: '+name);pins[str(path)]=file_digest(path)
+        return dict(kind='d',assets=len(assets),pins=pins)
+    return dict(kind=source.name,pins=pins)
 def local_check(c,p,w):
-    w=Path(w);w.mkdir(parents=True,exist_ok=False,mode=0o700);f,_,v,_=structure(p,c);r={'privacy':privacy(p,c)}
+    w=Path(w);w.mkdir(parents=True,exist_ok=False,mode=0o700);f,_,v,_=structure(p,c);r={'source':source_preflight(c),'privacy':privacy(p,c)}
     for mode in ('logic','guard','trap','stop','login','fill','receipt'):r[mode]=probe(mode,p,w/mode,c)
     result=dict(passed=True,token=v['token'],tree=fingerprint(f),checker=source_fingerprint(),config=digest(canonical(c)),checks=r);write(w/'CHECK.json',result);return result
 def ledger_check(c,tok):
@@ -142,7 +163,7 @@ def build(c,explicit):
 def built(c):
     b=read(state_root(c)/'BUILD.json');token(b['token']);need(file_digest(b['delivery'])==b['sha256'] and fingerprint(package_files(b['package']))==b['tree'],'Built bytes changed');need(untar(Path(b['delivery']).read_bytes())==package_files(b['package']),'Delivery differs from tested tree');return b
 def checked(c):
-    b=built(c);v=read(state_root(c)/'CHECK.json');need(v['passed'] and v['tree']==b['tree'] and v['checker']==source_fingerprint() and v['config']==digest(canonical(c)),'Stale or missing local checks');return b
+    b=built(c);v=read(state_root(c)/'CHECK.json');need(v['checks']['source']==source_preflight(c),'Native source context changed');need(v['passed'] and v['tree']==b['tree'] and v['checker']==source_fingerprint() and v['config']==digest(canonical(c)),'Stale or missing local checks');return b
 HEADER='''#!/bin/bash
 set -euo pipefail
 umask 077

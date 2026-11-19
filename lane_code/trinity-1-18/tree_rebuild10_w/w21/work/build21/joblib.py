@@ -9,7 +9,8 @@ def sha(path):
     return h.hexdigest()
 
 def load(path):
-    v=json.loads(Path(path).read_text())
+    try:v=json.loads(Path(path).read_text())
+    except (ValueError,UnicodeError) as error:raise ValueError('E50:'+str(path)) from error
     if isinstance(v,dict) and v.get('encoding') in ('base64','base64-json'):
         raw=base64.b64decode(v['payload'],validate=True)
         if hashlib.sha256(raw).hexdigest()!=v['sha256']:raise ValueError('E01')
@@ -51,7 +52,8 @@ def small_archive(path):
     with tarfile.open(path,'r:*') as t:
         members=t.getmembers()
         if len({m.name for m in members})!=len(members):raise ValueError('E14')
-        manifest=json.load(t.extractfile('MANIFEST.json'))
+        try:manifest=json.load(t.extractfile('MANIFEST.json'))
+        except (ValueError,UnicodeError) as error:raise ValueError('E50:MANIFEST.json') from error
         if manifest['schema']!='r7-handover-small-files-v1' or manifest['run']!='6ed2c7aa' or manifest['step']!=400:
             raise ValueError('E15')
         expected={'MANIFEST.json'}
@@ -64,9 +66,59 @@ def small_archive(path):
             h=hashlib.sha256(raw).hexdigest()
             if h!=item['sha256'] or item.get('pin') not in (None,h):raise ValueError('E17')
             values[h]=dict(member=name,original=item['path'],bytes=len(raw),sha256=h)
-            if item['path'].endswith('.json'):metadata[h]=json.loads(raw)
+            if item['path'].endswith('.json'):
+                try:metadata[h]=json.loads(raw)
+                except (ValueError,UnicodeError):pass
         if {m.name for m in members if m.isfile()}!=expected:raise ValueError('E18')
     return values,metadata
+
+def metadata_at(values,metadata,pin):
+    h=pin['sha256']
+    if h not in metadata:raise ValueError('E50:'+values.get(h,{}).get('member',pin['path']))
+    return metadata[h]
+
+def metadata_closure(values,metadata,roots):
+    seen=set()
+    line_pins={('remove_files','*'),('removals','*','file'),('vqa_removals','*','file'),
+        ('pointing_targets','removals','*','file'),('pointing_targets','settings','removals','*'),
+        ('target_filter','removals','*','file'),('target_filter','settings','removals','*')}
+    def visit(value,parts=()):
+        if isinstance(value,dict):
+            h=value.get('sha256');path=value.get('path')
+            if (parts not in line_pins and isinstance(path,str) and path.endswith('.json')
+                    and h in values and h not in seen):
+                seen.add(h);visit(metadata_at(values,metadata,value))
+            for key,item in value.items():
+                visit(item,parts+(key,))
+        elif isinstance(value,list):
+            for item in value:visit(item,parts+('*',))
+    for root in roots:visit(root)
+
+def export_identity(value):
+    value={k:v for k,v in value.items() if k not in ('preparation','admission','authorization','milestone_gate')}
+    if 'readout' in value:value['readout']={k:v for k,v in value['readout'].items() if k!='contiguous_clips'}
+    if value.get('frame_layout')=='spread':value.pop('frame_layout')
+    return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
+
+def identities(spec,run,pins,values,metadata):
+    artifact=metadata_at(values,metadata,pins['artifact'])
+    runtime=metadata_at(values,metadata,pins['config'])
+    bound=metadata_at(values,metadata,pins['binding'])
+    prep=metadata_at(values,metadata,pins['preparation'])
+    source=metadata_at(values,metadata,spec['p_kit_config'])
+    if artifact.get('step')!=400 or artifact.get('config_sha256')!=spec['p_runtime_identity']:raise ValueError('E23')
+    if run!=spec['p_run'] or any(pins[k]!=v for k,v in spec['p_run'].items()):raise ValueError('E51')
+    if export_identity(source)!=spec['p_kit_identity'] or export_identity(runtime)!=spec['p_runtime_identity']:
+        raise ValueError('E52')
+    if (runtime.get('preparation')!=run['preparation'] or bound.get('preparation')!=run['preparation']
+            or bound.get('config_sha256')!=spec['p_runtime_identity']
+            or prep.get('config_sha256')!=spec['p_runtime_identity']):raise ValueError('E25')
+    projected=dict(runtime,streams=source['streams'],preparation_output=source['preparation_output'])
+    if export_identity(projected)!=spec['p_kit_identity']:raise ValueError('E53')
+    if set(prep['streams'])!=set(runtime['streams']) or any(prep['streams'][k]['receipt']!=v for k,v in runtime['streams'].items()):
+        raise ValueError('E54')
+    metadata_closure(values,metadata,[pins,source,runtime,prep,artifact])
+    return runtime,prep
 
 def resolve(kit,pool,listing,output):
     kit=Path(kit);pool=Path(pool).resolve();output=Path(output).resolve();seal(kit)
@@ -82,10 +134,9 @@ def resolve(kit,pool,listing,output):
     for key,pin in run.items():
         if receipt['pins'].get(key)!=pin:raise ValueError('E22')
     values,metadata=small_archive(milestone/'s.tar')
-    pins=receipt['pins'];artifact=metadata[pins['artifact']['sha256']]
-    if artifact.get('step')!=400 or artifact.get('config_sha256')!=spec['p_identity']:raise ValueError('E23')
+    pins=receipt['pins']
+    runtime,preparation=identities(spec,run,pins,values,metadata)
     if any(pins[k]['sha256'] not in values for k in ('artifact','config','binding','preparation','full_weights')):raise ValueError('E24')
-    if metadata[pins['config']['sha256']]['preparation']!=run['preparation']:raise ValueError('E25')
     tokens=(root/'o/gcs_6ed2c7aa_m400.done').read_text().split()
     if len(tokens)!=3 or '6ed2c7aa_m400' not in tokens[0]:raise ValueError('E26')
     listing_value=load(listing);parts=listing_value['objects'];expected=[f'q8/8865619b/6ed2c7aa_m400.tar.part{i:02d}-of-04' for i in range(4)]
@@ -98,13 +149,14 @@ def resolve(kit,pool,listing,output):
         if n!=entry['bytes'] or entry.get('sha256',h.hexdigest())!=h.hexdigest():raise ValueError('E28')
         total+=n;verified.append(dict(path=str(path),sha256=h.hexdigest(),bytes=n,name=entry['name']))
     if total!=int(tokens[1]) or combined.hexdigest()!=tokens[2]:raise ValueError('E29')
-    cfg=load(kit/'k/n.json');runtime=metadata[pins['config']['sha256']]
+    cfg=load(kit/'k/n.json')
+    metadata_closure(values,metadata,[cfg])
     ns=spec['namespace'];paths={h:ns+'/u/'+h for h in values}
     cfg['streams']=runtime['streams'];cfg['s1_routing']=runtime['s1_routing']
     cfg['init_artifact']['artifact']=pins['artifact'];cfg['routing_opener_init']='keep'
     cfg['r1_training'].update(p_run=run,handover_receipt=dict(path=ns+'/e.json',sha256=sha(milestone/'e.json')),
         persisted_files={p['sha256']:paths.get(p['sha256'],ns+'/u/'+p['sha256']) for p in pins.values()},
-        proof_mode='q',donor_config_sha256=spec['p_identity'])
+        proof_mode='q',donor_config_sha256=spec['p_runtime_identity'])
     cfg.update(output=ns+'/r',preparation_output=ns+'/p0',code=dict(path=ns+'/c.json',sha256=spec['code_sha256']))
     uploads=spec['uploads'];expected_paths={x['sha256']:ns+'/u/'+x['sha256'] for x in uploads}
     if spec['pin_paths']!=expected_paths:raise ValueError('E49')
@@ -117,23 +169,26 @@ def resolve(kit,pool,listing,output):
         archive=dict(path=str(milestone/'s.tar'),sha256=sha(milestone/'s.tar'),bytes=(milestone/'s.tar').stat().st_size),
         receipt=dict(path=str(milestone/'e.json'),sha256=sha(milestone/'e.json'),bytes=(milestone/'e.json').stat().st_size),
         small_files=values,parts=verified,tar_sha256=combined.hexdigest(),tar_bytes=total,
-        model_manifest=metadata[pins['preparation']['sha256']]['model'],
+        model_manifest=preparation['model'],
         placeholders_resolved=['artifact','e.json','r.json','s.tar','model_manifest','tokenizer_config','gcs_parts'])
     result['receipt_inventory']={}
     for name in ('h.json','RP.json','e.json','r.json'):
         path=pool_file(pool,milestone/name)
         result['receipt_inventory'][name]=(dict(path=str(path),sha256=sha(path),bytes=path.stat().st_size,
             used_for_admission=name in ('e.json','r.json')) if path.is_file() else dict(present=False,used_for_admission=False))
-    if result['model_manifest']['sha256'] not in metadata:raise ValueError('E30')
-    model=metadata[result['model_manifest']['sha256']]
+    model=metadata_at(values,metadata,result['model_manifest'])
     result['model_files']=model['files'];result['model_root']=model['root']
     if 'config.json' not in model['files']:raise ValueError('E31')
     supplied={entry['sha256']:entry for entry in listing_value.get('metadata',[])}
     result['external_metadata']=[]
     for name,h in model['files'].items():
+        if name.endswith('.json') and h in values:metadata_at(values,metadata,dict(path=name,sha256=h))
         if name.endswith(('.json','.txt','.jinja','.model')) and h not in values:
             if h not in supplied:raise ValueError('E41:'+name+':'+h)
             entry=supplied[h];path=pool_file(pool,entry['pool_path']);checked(path,h,entry['bytes'])
+            if name.endswith('.json'):
+                try:load(path)
+                except (ValueError,UnicodeError) as error:raise ValueError('E50:'+name) from error
             result['external_metadata'].append(dict(path=str(path),sha256=h,bytes=entry['bytes']))
             paths[h]=ns+'/u/'+h
             request['staged_pins'].append(dict(path=paths[h],sha256=h))

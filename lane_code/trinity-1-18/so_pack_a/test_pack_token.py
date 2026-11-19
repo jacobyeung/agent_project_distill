@@ -15,6 +15,6 @@ def main():
         else:raise AssertionError('Accepted invalid token')
     result=dict(passed=True,kind=kind,default_off_source_identical=True,native_sha256=hashlib.sha256(source.read_bytes()).hexdigest())
     if kind=='d':
-        script=(here/'o_build_D.sh').read_text();assets=ast.literal_eval(next(l for l in script.splitlines() if l.startswith('assets = ')).split('=',1)[1]);embedded=gzip.decompress(base64.b64decode(assets['b.py']['data']));assert embedded==source.read_bytes();result['embedded_builder_unchanged']=True
+        script=(here/'o_build_D.sh').read_text();assets=ast.literal_eval(next(l for l in script.splitlines() if l.startswith('assets = ')).split('=',1)[1].strip());embedded=gzip.decompress(base64.b64decode(assets['b.py']['data']));assert embedded==source.read_bytes();result['embedded_builder_unchanged']=True
     print(json.dumps(result,sort_keys=True))
 if __name__=='__main__':main()

@@ -1,0 +1,5 @@
+export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
+export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
+export TMPDIR=/scratch/jjyeung/orch_n30/so_launch/work
+export TEST_TMP_ROOT="$TMPDIR" LANE_TEST_OUTPUT="$TMPDIR"
+PY=/scratch/jjyeung/envs/p1cpu/bin/python

@@ -1,0 +1,21 @@
+Thu Nov 19 10:39:45 UTC 2026
+CWD: /scratch/jjyeung/orch_n30/so_launch/work/port21/03_checkpoint_verify_memo
+$ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/port21/03_checkpoint_verify_memo/tests/test_checkpoint_verify_memo.py -v
+ENV: {"CUDA_VISIBLE_DEVICES": "", "LANE_TEST_OUTPUT": "/scratch/jjyeung/orch_n30/so_launch/work/port21/tmp", "MKL_NUM_THREADS": "8", "OMP_NUM_THREADS": "8", "OPENBLAS_NUM_THREADS": "8", "PYTHONDONTWRITEBYTECODE": "1", "SO_NO_LOCAL_SOCKETS": "1", "TEST_TMP_ROOT": "/scratch/jjyeung/orch_n30/so_launch/work/port21/tmp", "TIMING_INPUT_C": "/scratch/jjyeung/orch_n30/so_launch/work/port21/baseline/launch_s1/b/c.sh", "TMPDIR": "/scratch/jjyeung/orch_n30/so_launch/work/port21/tmp", "TOKENIZERS_PARALLELISM": "false"}
+test_another_job_or_allocation_clock_rehashes (__main__.CheckpointMemoTests.test_another_job_or_allocation_clock_rehashes) ... ok
+test_corrupt_memo_falls_back_to_full_hash (__main__.CheckpointMemoTests.test_corrupt_memo_falls_back_to_full_hash) ... ok
+test_default_off_rehashes_and_writes_no_memo (__main__.CheckpointMemoTests.test_default_off_rehashes_and_writes_no_memo) ... ok
+test_four_resume_verifications_through_real_guard_and_chooser_processes (__main__.CheckpointMemoTests.test_four_resume_verifications_through_real_guard_and_chooser_processes) ... ok
+test_inode_replacement_even_with_same_size_and_mtime_refuses (__main__.CheckpointMemoTests.test_inode_replacement_even_with_same_size_and_mtime_refuses) ... ok
+test_marker_or_binding_change_cannot_hit (__main__.CheckpointMemoTests.test_marker_or_binding_change_cannot_hit) ... ok
+test_missing_allocation_identity_disables_memo (__main__.CheckpointMemoTests.test_missing_allocation_identity_disables_memo) ... ok
+test_only_first_same_job_check_reads_payloads (__main__.CheckpointMemoTests.test_only_first_same_job_check_reads_payloads) ... ok
+test_purged_payload_refuses_resume (__main__.CheckpointMemoTests.test_purged_payload_refuses_resume) ... ok
+test_same_size_corruption_with_restored_mtime_refuses (__main__.CheckpointMemoTests.test_same_size_corruption_with_restored_mtime_refuses) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.292s
+
+OK
+EXIT: 0
+ELAPSED_SECONDS: 1.967705

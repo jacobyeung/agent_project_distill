@@ -27,51 +27,67 @@ def admission_worker(rank, directory):
     dist.init_process_group('gloo',init_method='file://'+str(directory/'admission'),rank=rank,world_size=2,
                             timeout=datetime.timedelta(seconds=60))
     try:
+        from student_pilot import c1_switches
+        with patch.object(c1_switches, '_frozen', None), patch.dict(os.environ,
+                C1_CPU_PREFETCH=str(rank), C1_DECODED_CACHE_MIB='0', C1_BATCH_METRICS='0'):
+            try:
+                local = c1_switches.startup({'training_mode':'final'})
+                values = [local[0] if rank == 0 else None]
+                dist.broadcast_object_list(values, src=0)
+                run.agree(dist.group.WORLD, c1_switches.accept(local, values[0]))
+                raise AssertionError('rank mismatch was admitted')
+            except ValueError as exc:
+                assert 'differ across ranks' in str(exc)
         proof=[]
         for factor in (1,2):
-            model=SimpleNamespace(recipe={'world_size':2,'reference_world_size':2*factor},
-                                  training_mode='final',r1_training=True,frame_count=32)
-            compared=[]
-            for enabled in ('0','1'):
-                draws,collectives=[],[]
-                original_get,original_reduce=run.Rows.get,dist.all_reduce
-                def get(rows,stream,index):
-                    draws.append((stream,index,index))
-                    if rank==1 and stream=='vqa' and index==2*(factor-1)+rank:
-                        raise ValueError('planted admission failure')
-                    return original_get(rows,stream,index)
-                def reduce(flag,*a,**kw):
-                    assert threading.current_thread() is threading.main_thread()
-                    collectives.append((str(kw.get('op')),flag.tolist()))
-                    return original_reduce(flag,*a,**kw)
-                with patch.dict(os.environ,C1_CPU_PREFETCH=enabled),patch.object(run.Rows,'get',get),patch.object(dist,'all_reduce',reduce):
-                    rows=run.Rows(receipt,TinyProcessor())
-                    iterator=run.fetch_plan(rows,model,plan(2,factor),rank,distributed=True)
-                    yielded=0
-                    try:
-                        for _ in iterator:
-                            yielded+=1
-                        raise AssertionError('Missing shared row failure')
-                    except ValueError as exc:
-                        error=str(exc)
-                    finally:
-                        iterator.close()
-                        rows.close()
-                assert yielded==factor,(rank,factor,yielded)
-                compared.append((draws,collectives,error,yielded))
-            assert compared[0]==compared[1],compared
-            proof.append(dict(factor=factor,failure_microstep=factor,draws=compared[0][0],collectives=len(compared[0][1])))
+            for failure_stream, failure_group in (('pose',0),('vqa',1),('pointing',3)):
+                model=SimpleNamespace(recipe={'world_size':2,'reference_world_size':2*factor},
+                                      training_mode='final',r1_training=True,frame_count=32)
+                compared=[]
+                for enabled in ('0','1'):
+                    draws,collectives=[],[]
+                    original_get,original_reduce=run.Rows.get,dist.all_reduce
+                    def get(rows,stream,index):
+                        draws.append((stream,index,index))
+                        if rank==1 and stream==failure_stream and index==2*(factor-1)+rank:
+                            raise ValueError('planted admission failure')
+                        return original_get(rows,stream,index)
+                    def reduce(flag,*a,**kw):
+                        assert threading.current_thread() is threading.main_thread()
+                        collectives.append((str(kw.get('op')),flag.tolist()))
+                        return original_reduce(flag,*a,**kw)
+                    with patch.dict(os.environ,C1_CPU_PREFETCH=enabled),patch.object(run.Rows,'get',get),patch.object(dist,'all_reduce',reduce):
+                        rows=run.Rows(receipt,TinyProcessor())
+                        iterator=run.fetch_plan(rows,model,plan(2,factor),rank,distributed=True)
+                        yielded=0
+                        try:
+                            for _ in iterator:
+                                yielded+=1
+                            raise AssertionError('Missing shared row failure')
+                        except ValueError as exc:
+                            error=str(exc)
+                        finally:
+                            iterator.close()
+                            rows.close()
+                    assert yielded==factor*failure_group,(rank,factor,failure_group,yielded)
+                    compared.append((draws,collectives,error,yielded))
+                assert compared[0]==compared[1],compared
+                proof.append(dict(factor=factor,failure_microstep=factor*failure_group,draws=compared[0][0],collectives=len(compared[0][1])))
         (directory/f'admission_rank{rank}.json').write_text(json.dumps(proof,indent=2)+'\n')
     finally:
         dist.destroy_process_group()
 
 
 class PrefetchTests(unittest.TestCase):
+    def setUp(self):
+        from tests.so_helpers import reset_switches
+        reset_switches(self)
+
     def test_two_rank_admission_failure_for_single_and_nominal_groups(self):
         directory=root()
         (directory/'receipt.json').write_text(json.dumps(inputs(directory)))
         mp.spawn(admission_worker,args=(str(directory),),nprocs=2,join=True)
-        print('SO_ADMISSION_PROOF '+str(directory)+' factors=1,2; both ranks raise at microsteps=1,2',flush=True)
+        print('SO_ADMISSION_PROOF '+str(directory)+' factors=1,2; both ranks raise in first/middle/last groups',flush=True)
 
     def test_processor_copy_failure_reaches_original_admission(self):
         receipt=inputs(root())

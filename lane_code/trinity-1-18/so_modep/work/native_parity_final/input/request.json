@@ -1,0 +1,536 @@
+{
+  "all_frames": true,
+  "base_identity": "fixture",
+  "benchmark_scene_exclusions": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/benchmark_scene_exclusions.json",
+    "sha256": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970"
+  },
+  "camera_overrides": {
+    "weight_focal": 2.0,
+    "weight_scale": 0.04
+  },
+  "carrier_placement": "append_after_temporal_group_video_tokens_v1",
+  "code": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/code.json",
+    "sha256": "8ce18762d2a1dc2ba3b6be75e0d2ccf366eed2864a9efa732aded53df9ece11b"
+  },
+  "depth_enabled": true,
+  "depth_fov_source": "pose_head",
+  "dev_scene_exclusions": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/tree_r1/student_pilot/r2_dev_merged.json",
+    "sha256": "a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5"
+  },
+  "exclude_qids": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/held_qids.json",
+    "sha256": "924fb44df7974d9fb1775731282716cea7380f29d894e98bb94ad8044976a23e"
+  },
+  "exclusions": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/dafa4a9c.json",
+    "sha256": "dafa4a9c8ffd1e063e0a98c5ae6087d911b74f864932e530f24d45b816cca6fb"
+  },
+  "first_step_admission": "all_rank_native_v1",
+  "frame_count": 32,
+  "frame_layout": "duplicate",
+  "frame_markers": true,
+  "gate_stop": false,
+  "geometry_connector": "none",
+  "ground_target_filter": true,
+  "grounding": true,
+  "heading_plane_min": 0.3,
+  "init": "base",
+  "init_artifact": {
+    "artifact": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/export/artifact.json",
+      "sha256": "68ef67ab4df18e6f63d5e4752fdb0fc085e86e5c59cc9aaf064a8476b63148f1"
+    },
+    "heads": [
+      "pose",
+      "depth",
+      "frame_embeddings"
+    ],
+    "lm": "full"
+  },
+  "lm_lr_scale": 0.6,
+  "max_pixels": 16,
+  "milestones": [
+    100,
+    200,
+    400,
+    600,
+    800,
+    1000
+  ],
+  "min_pixels": 16,
+  "mix": [
+    "pose",
+    "vqa",
+    "vqa",
+    "routing",
+    "pose",
+    "vqa",
+    "vqa",
+    "pointing",
+    "routing"
+  ],
+  "output": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/train",
+  "parallel": "fsdp",
+  "pointing_weights": {
+    "decision": 5.0,
+    "row_mean": 2.0
+  },
+  "pose_lr_scale": 0.6,
+  "preparation_output": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/prepare",
+  "r1_training": {
+    "component_rows": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/component_rows.json",
+      "sha256": "f7eaf7a7d8e4bd15ef8eae5a3c8478901ed7eb6a92e85723d201aaf5728ab22b"
+    },
+    "continuation_identity": "0288243c122e1327ede15856f34b969c55f062e3d40a3346fc0e8e01fd37ad71",
+    "donor_config_sha256": "89d8a1db100c6ac56e2a3d9c76a420a37e7ec7bf2fa988bc0203926f8065f2cb",
+    "handover_mapping": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/handover.json",
+      "sha256": "ce8d6cc33dade156a03212a0106ef71222e040c6b6b30fa7139917997ee05368"
+    },
+    "handover_receipt": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/h.json",
+      "sha256": "8f3caadb5877c8edc0da73240dd5748dccb4a73136997de432ca8859aa3960e9"
+    },
+    "mix": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/card.json",
+      "sha256": "e1ce6630eefef4e7f7f2c046e0ee89d2d5a510eb34a6d3261a9ab3e31f4cdc31"
+    },
+    "p_run": {
+      "binding": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/binding.json",
+        "sha256": "a0d2feb42c8c2425ed32a263ccb57f19afb2bd9b147bc051fcbdc3a05e633eeb"
+      },
+      "checkpoint": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/checkpoint/complete.json",
+        "sha256": "aa732358b10e593bb393a57f24d11c89a9b701fae412b95025e6c07b4fa8de02"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/config.json",
+        "sha256": "f98a991e0bdf59ab06ca734338292cbb9194a11681088f71efe1a36bf538335f"
+      },
+      "preparation": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/p_prepare/receipt.json",
+        "sha256": "54cde96149dcc1b30cf9deb6b9c7d4e593a331f451901675e79d27d7d7204d19"
+      }
+    },
+    "persisted_files": {
+      "00e861bc15f0962f0e4f63d2bc47175010dfb890e56e0215c83f6778df6d365c": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/00e861bc15f0962f0e4f63d2bc47175010dfb890e56e0215c83f6778df6d365c",
+      "0f1de616ebbe979f4b4bcf71859f1badfbf857a7b29f12627cbe0bfe3caac3d7": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/0f1de616ebbe979f4b4bcf71859f1badfbf857a7b29f12627cbe0bfe3caac3d7",
+      "26d534e47a738a6c97c55ee41897824950ec1434c3ca34fd0247d38a81a1ea06": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/heads.pt",
+      "3168bb35ee3ed31d0d76f952bb538330c3cd5581d0643ff75378ea2ca64d9281": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/3168bb35ee3ed31d0d76f952bb538330c3cd5581d0643ff75378ea2ca64d9281",
+      "3f217d740a47f08490c6203ceb3a5713536b66cb5e4af77b0c12160bfc04e8a2": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/absent/3f217d740a47f08490c6203ceb3a5713536b66cb5e4af77b0c12160bfc04e8a2",
+      "3f4878ec8b85018b0433d346c356643d3e27528406bc7e185834ed631a5e919d": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/e/full_weights.json",
+      "4046aff5fdabb6575afd3c223ab11f861bd1ff264af4efa4a58a4b9b61df9684": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/absent/4046aff5fdabb6575afd3c223ab11f861bd1ff264af4efa4a58a4b9b61df9684",
+      "54cde96149dcc1b30cf9deb6b9c7d4e593a331f451901675e79d27d7d7204d19": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/54cde96149dcc1b30cf9deb6b9c7d4e593a331f451901675e79d27d7d7204d19",
+      "611458f9a5a68f1c5a03e7cf38d6a2a4a97ea887097dc7fd45e411b51fabbb57": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/e/model-00001-of-00001.safetensors",
+      "653082227fbf8cf96d1ef6700ab23d71b28742939da00ba4ae0630a099513257": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/653082227fbf8cf96d1ef6700ab23d71b28742939da00ba4ae0630a099513257",
+      "68ef67ab4df18e6f63d5e4752fdb0fc085e86e5c59cc9aaf064a8476b63148f1": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/68ef67ab4df18e6f63d5e4752fdb0fc085e86e5c59cc9aaf064a8476b63148f1",
+      "80e2c006a39ec732567768ba99af13494f1c9e3489f17a353d51d399643393c6": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/80e2c006a39ec732567768ba99af13494f1c9e3489f17a353d51d399643393c6",
+      "a0d2feb42c8c2425ed32a263ccb57f19afb2bd9b147bc051fcbdc3a05e633eeb": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/a0d2feb42c8c2425ed32a263ccb57f19afb2bd9b147bc051fcbdc3a05e633eeb",
+      "aa732358b10e593bb393a57f24d11c89a9b701fae412b95025e6c07b4fa8de02": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/aa732358b10e593bb393a57f24d11c89a9b701fae412b95025e6c07b4fa8de02",
+      "b007a74f29961b6ddc9713ac50938ad55ff78c2b10a536368090852bba89ef36": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/b007a74f29961b6ddc9713ac50938ad55ff78c2b10a536368090852bba89ef36",
+      "c2b3d1c498c025e40f15b9656857d6e06abf2ed3cd93fcd2a5e4ce2b8462b09c": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/e/model.safetensors.index.json",
+      "d3fbf595cc57306dfcfe2f52140d050b42ae2bef84d9c927e41b1feab3ac6d39": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/d3fbf595cc57306dfcfe2f52140d050b42ae2bef84d9c927e41b1feab3ac6d39",
+      "e90b7c9fd737907387c946d01f83d7d7f877c7e339b900560b393e62bc568d79": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/e90b7c9fd737907387c946d01f83d7d7f877c7e339b900560b393e62bc568d79",
+      "f98a991e0bdf59ab06ca734338292cbb9194a11681088f71efe1a36bf538335f": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/600/persisted/f98a991e0bdf59ab06ca734338292cbb9194a11681088f71efe1a36bf538335f"
+    },
+    "proof_mode": "q",
+    "registry": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/registry.json",
+      "sha256": "169b2c23f23d6607564481edf45096343637fa794c97b6d9287673d1c08252f0"
+    },
+    "room_authority": {
+      "aliases": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b.json",
+        "sha256": "c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b"
+      },
+      "build": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1.json",
+        "sha256": "0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1"
+      },
+      "reserve": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3.json",
+        "sha256": "bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3"
+      },
+      "split": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390.json",
+        "sha256": "27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390"
+      },
+      "visits": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca.json",
+        "sha256": "657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca"
+      }
+    },
+    "routing_inputs": {
+      "absolute_distance": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/absolute_distance/MANIFEST.json",
+        "sha256": "5d383eb7f2dad418547cd9cb588f0f9c26854313f6c1e106ba3ddd9490c79ff8"
+      },
+      "recovery": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/recovery/MANIFEST.json",
+        "sha256": "74630db7d00fe861f7d62fc21f2b8883a49842bdd2beef61d3b0630a82c850ca"
+      },
+      "units": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/units/MANIFEST.json",
+        "sha256": "0ae738f5d75bddbfb0ba0e47c175a1945006da8fbbd21ccc9f7223867da0d917"
+      }
+    },
+    "row_plan_sha256": "ee2c3e655ad24775b2c8b08461054972304cab2e6f477cbd2d86e07b4e373ffd",
+    "row_sources": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/row_sources.json",
+      "sha256": "73fb1800017ae6e59ffa87bffb5c80841ecc652a81923fa67c5d7a3509434526"
+    },
+    "s2": false,
+    "schema": "r1-training-v1",
+    "source_membership": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/catalog.json",
+      "sha256": "ed10acdbb412161c706d8e07a88c10e5a42fce50644ea92b451b252fb76a1123"
+    },
+    "stop_after_step": null,
+    "store_hashes": {
+      "pointing": "8ccebe737eda8fc4abdaf25348c453760f4e09898ba33ee6970bdd604e780af1",
+      "pose": "79332d151b6a930ca5121197cea5c6318167ac9c5f6a070cf6d3301c0b04b6f0",
+      "routing": "8a2d7f92146bc60a63aef1497864c082b0c8738c5def45d48a1f7de9ab79adde",
+      "vqa": "abbcebd584d59f10a50950e8576b2e077f27d55ab2e1e6b1e3a8aee372d4abab"
+    },
+    "weight_scale": 0.04
+  },
+  "r2_all_stream_exclusions": true,
+  "r2_identity": {
+    "init": {
+      "artifact_sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef",
+      "parent_configuration_prefix": "84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb",
+      "parent_kit": "07ca49df",
+      "parent_run": "469ddece",
+      "parent_source_seal": "b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99",
+      "step": 544
+    }
+  },
+  "r2_sampling": {
+    "card": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/sampler/card.json",
+      "sha256": "dd8687ae175d65fa1be8aa174ed1f0cddf0104c3e1b9abfa36d02f7b975add7b"
+    },
+    "indices": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/sampler/indices.json",
+      "sha256": "083ae02d25b5b117c2223bcd5c586d5e404b5ced7235e11882ab9dded86222ab"
+    },
+    "population": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/sampler/population.json",
+      "sha256": "7fbf4c4ea6749f52d2fbfa98986acf8f350fa13cede988b81a6165d334899199"
+    },
+    "schema": "r1-sampling-v1"
+  },
+  "r2_scene_rebuild": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/scene/2.json",
+    "sha256": "1b0872ebfd75c6f5418d78d06ffe2f092f3286762e570b980e8d3f5f75c8d6c2"
+  },
+  "readout": {
+    "bank": {
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/986ba20f.npz",
+      "sha256": "0471677f8c4346fc856ff39ad45c2cf824a6b5040b214ee3468e72af1dac3015"
+    },
+    "contiguous_clips": null,
+    "rows_inventory": {
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/544dcf9b/in/30c516bf.json",
+      "sha256": "d6d6a53add2ea60facaec4b67fd1d8becfcd4dc3183139eb1509b222e3d27491"
+    },
+    "training_scenes": {
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/eb035f92.json",
+      "sha256": "edaecb6c742495041784ea7cefe027bdbce08efc76cf427a7bc1f7ad5da9f6e4"
+    }
+  },
+  "recipe": {
+    "clip_norm": 1.0,
+    "encoder_learning_rate": 1e-05,
+    "export_at_stop": true,
+    "global_batch": 288,
+    "learning_rate": 0.0001,
+    "lm_learning_rate": 1e-05,
+    "milestones": [
+      100,
+      200,
+      400,
+      600,
+      800,
+      1000
+    ],
+    "mix": [
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing"
+    ],
+    "reference_world_size": 32,
+    "resume_every_seconds": 7200,
+    "scheduled_sampling": {
+      "depth_open_absrel": 0.25,
+      "ema_steps": 100,
+      "exposure_from_step": null,
+      "exposure_probability": 0.0,
+      "force_from_step": null,
+      "fov_open_deg": 2.0,
+      "max_own_probability": 0.0,
+      "pose_full_deg": 10.0,
+      "pose_open_deg": 20.0,
+      "seed": 17
+    },
+    "seed": 17,
+    "steps": 1000,
+    "stop_before_seconds": 3600,
+    "wall_seconds": 86400,
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.01,
+    "weights": {
+      "depth": 0.25,
+      "depth_fov": 0.05,
+      "pointing": 1.0,
+      "pose": 1.5,
+      "routing": 1.0,
+      "vqa": 1.0
+    },
+    "world_size": 4
+  },
+  "reference_world_size": 32,
+  "remove_files": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_0.jsonl",
+      "sha256": "62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_1.jsonl",
+      "sha256": "4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_2.jsonl",
+      "sha256": "6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc"
+    },
+    {
+      "defects": [
+        "identity",
+        "absent",
+        "merged"
+      ],
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_3.jsonl",
+      "sha256": "8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_4.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_5.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/build17/inputs/s.json",
+      "sha256": "6add0ad53515e14e6adb1e192ed002ec0ddd22b6c6bd112ccb756d1f8be48d8c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json",
+      "sha256": "43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "sha256": "1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/n.json",
+      "sha256": "02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/z.json",
+      "sha256": "caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad"
+    }
+  ],
+  "route_table": {
+    "camera_displacement": "route",
+    "object_abs_distance": "route"
+  },
+  "routing_opener_init": "keep",
+  "routing_vocabulary": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/opener.json",
+    "sha256": "6cc561a2cea163719f0992aa16837cec3c734693fb0115ee5122ce195fb05412"
+  },
+  "s1_route_policy": null,
+  "s1_routing": {
+    "catalog": {},
+    "frame_map": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/frames.gz",
+      "sha256": "492733439b568294c59eac61438ab0d01e3ca480686065043b0f4bb31bd7d3f8"
+    },
+    "frame_plan": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/plan.gz",
+      "sha256": "887ab5ab58851781029931119139bb6e201dea43f3b68f505badd8c1dbd49cc7"
+    },
+    "schema": "s1-routing-inputs-v1",
+    "selection": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/selected/receipt.json",
+      "sha256": "fd84b0bca879d16f7ad6dbcc6ce25e101903e53f086503644584dde15a2d4950"
+    }
+  },
+  "scene_coverage": {
+    "reference": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/scene/0.json",
+      "sha256": "8efacabc1661d9bad8d8b53a991268b779ab45363a0bca95d6547d645c5fce1a"
+    },
+    "schema": "s1-scene-coverage-v1",
+    "source_map": {
+      "pointing": [
+        {
+          "source": "pointing"
+        }
+      ],
+      "pose": [
+        {
+          "source": "pose_a2v3"
+        },
+        {
+          "source": "pose_a3v2"
+        }
+      ],
+      "routing": [
+        {
+          "source": "camera"
+        },
+        {
+          "source": "pool"
+        }
+      ],
+      "vqa": [
+        {
+          "source": "vqa"
+        }
+      ]
+    }
+  },
+  "scene_division": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/division.json",
+    "sha256": "835e69413c0b01969f945ab047089d83fc16efa528e12dfe088ed6b60ae92300"
+  },
+  "schedule": {
+    "checkpoint_seconds": 600.0,
+    "export_seconds": 600.0,
+    "p95_step_seconds": 300.0,
+    "startup_seconds": 3600.0
+  },
+  "scheduled_sampling": {
+    "depth_open_absrel": 0.25,
+    "ema_steps": 100,
+    "exposure_from_step": null,
+    "exposure_probability": 0.0,
+    "force_from_step": null,
+    "fov_open_deg": 2.0,
+    "max_own_probability": 0.0,
+    "pose_full_deg": 10.0,
+    "pose_open_deg": 20.0,
+    "seed": 17
+  },
+  "schema": "carrier-c1-run-v1",
+  "skip_unsupervised_lm": false,
+  "stall_guard": {
+    "checkpoint_grace_seconds": 600,
+    "idle_seconds": 1200,
+    "poll_seconds": 10,
+    "startup_seconds": 3600
+  },
+  "steps": 1000,
+  "streams": {
+    "pointing": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/pointing/receipt.json",
+      "sha256": "80e2c006a39ec732567768ba99af13494f1c9e3489f17a353d51d399643393c6"
+    },
+    "pose": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/pose.json",
+      "sha256": "0f1de616ebbe979f4b4bcf71859f1badfbf857a7b29f12627cbe0bfe3caac3d7"
+    },
+    "routing": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/routing19/receipt.json",
+      "sha256": "653082227fbf8cf96d1ef6700ab23d71b28742939da00ba4ae0630a099513257"
+    },
+    "vqa": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/native_parity_final/input/vqa/receipt.json",
+      "sha256": "d3fbf595cc57306dfcfe2f52140d050b42ae2bef84d9c927e41b1feab3ac6d39"
+    }
+  },
+  "trace_program_version": "3.13",
+  "training_mode": "final",
+  "weights": {
+    "depth": 0.25,
+    "pointing": 1.0,
+    "pose": 1.5
+  },
+  "world_size": 4
+}

@@ -1,0 +1,12 @@
+from pathlib import Path
+root=Path.cwd();out=root/'out/fix_validation';out.mkdir(exist_ok=True)
+review=Path('/scratch/jjyeung/orch_n30/sb_ktrev/work')
+s=(review/'mutate.py').read_text().replace("K = Path('/scratch/jjyeung/orch_n30/sb_ktrev/work/kitcopy')",'K = Path(__file__).resolve().parents[1]')
+s=s.replace("Path('/scratch/jjyeung/orch_n30/sb_ktrev/work/mutations.json').write_text(json.dumps(res, indent=1))", "import sys\nsys.path.insert(0,str(K/'code'))\nfrom common import sha,write_json,code_pins\nsha(__file__);sha(K/'work/reviewer_mutate_original.py');code_pins()\nwrite_json(K/'out/fix_validation/mutations.json',dict(results=res,killed=sum(x['killed'] for x in res),total=len(res)))")
+s=s.replace("    finally:\n", "        (K/'out/fix_validation'/('mutation_'+name.split()[0]+'.log')).write_text(r.stdout+r.stderr)\n    finally:\n")
+(root/'work/reviewer_mutate_original.py').write_text((review/'mutate.py').read_text());(root/'work/mutate.py').write_text(s)
+s=(review/'a0_rerun.py').read_text().replace("'/scratch/jjyeung/orch_n30/sb_ktow3/code'", "str(__import__('pathlib').Path(__file__).resolve().parents[1]/'code')")
+s=s.replace("Path('/scratch/jjyeung/orch_n30/sb_ktrev/work/a0_rerun.jsonl')", "ROOT/'out/fix_validation/a0_rerun.jsonl'")
+s=s.replace("Path('/scratch/jjyeung/orch_n30/sb_ktrev/work/a0_rerun_summary.json').write_text(json.dumps(clean(tot), indent=1))", "sha(__file__);code_pins()\nwrite_json(ROOT/'out/fix_validation/a0_rerun_summary.json',tot)\nassert tot['rows']==tot['equal']==1037 and tot['set_equal']==209 and not tot['fail_rows']")
+s=s.replace("dict(n=len(res.get('rows', [])), n_equal=sum(bool(r['equal']) for r in res.get('rows', [])))", "dict(n=len(res.get('rows', [])), n_equal=sum(bool(r['equal']) for r in res.get('rows', [])),input_sha256=dict(INPUTS))")
+(root/'work/a0_rerun.py').write_text(s)

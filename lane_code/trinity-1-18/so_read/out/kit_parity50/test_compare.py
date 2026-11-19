@@ -64,11 +64,11 @@ class CompareTests(unittest.TestCase):
             for row in changed:row['output']['read_cache']['stats'][name]['hits']=0
             b=self.write('zero'+str(index),changed)
             result=checker.compare(a,b,self.sample)
-            self.assertFalse(result['passed']);self.assertTrue(result['cache_failures'])
+            self.assertFalse(result['passed']);self.assertEqual(result['cache_failures'],['right:'+name+':no_hits'])
         changed=copy.deepcopy(self.records)
         for row in changed:row['output'].pop('read_cache')
         b=self.write('none',changed)
-        with self.assertRaises(ValueError):checker.compare(a,b,self.sample)
+        with self.assertRaisesRegex(ValueError,'Enabled cache declaration is missing or differs'):checker.compare(a,b,self.sample)
         self.assertTrue(checker.compare(a,b,self.sample,enabled_caches=())['passed'])
         self.assertTrue(checker.compare(a,a,self.sample,cache_sides=('left','right'))['passed'])
 

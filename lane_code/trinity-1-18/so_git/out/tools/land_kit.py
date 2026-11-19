@@ -6,6 +6,7 @@ import fcntl
 import gzip
 import hashlib
 import json
+import lzma
 import os
 from pathlib import Path, PurePosixPath
 import re
@@ -16,6 +17,11 @@ import sys
 import tarfile
 import tempfile
 import time
+import zlib
+
+
+def review2_enabled():
+    return os.environ.get('LCS_REVIEW2_FIXES') == '1'
 
 
 class Refusal(Exception):
@@ -44,7 +50,9 @@ def safe_text(value, field):
 
 def review(raw, seal, sha, bind_sha=None):
     text = raw.decode('utf-8', errors='strict')
-    require(not re.search(r'NO[- ]GO|REJECT', text, re.I),
+    negative = (re.search(r'(?<![A-Za-z])(NO[- ]GO|REJECT)(?![A-Za-z])', text)
+                if review2_enabled() else re.search(r'NO[- ]GO|REJECT', text, re.I))
+    require(not negative,
             'negative review requires a fresh accepting verdict file')
     lines = [line for line in text.splitlines() if line.strip()]
     accepted = ('GO', 'ACCEPT', 'ACCEPT WITH FINDINGS')
@@ -56,11 +64,22 @@ def review(raw, seal, sha, bind_sha=None):
     fields = {}
     for line in lines:
         m = re.fullmatch(r'(Seal|SHA256)\s*:\s*(.+)', line, re.I)
+        if review2_enabled():
+            # Recognize Markdown bullets, quotes, bold labels, tables and code values.
+            m = re.match(r'^[\s>*|+-]*\**(Seal|SHA-?256)\**\s*[:|]\s*\**\s*(.*)$', line, re.I)
         if m:
-            key = m[1].lower()
-            require(key not in fields or fields[key] == m[2].strip(), f'ambiguous {key} metadata')
-            fields[key] = m[2].strip()
-        m = re.fullmatch(r'VERDICT: *(.*?)\s*', line, re.I)
+            key, value = m[1].lower().replace('-', ''), m[2].strip()
+            if review2_enabled():
+                value = value.split('|', 1)[0].strip()
+                if value.startswith('`'):
+                    require('`' in value[1:], f'unclosed {key} code value')
+                    value = value[1:].split('`', 1)[0]
+                if key == 'sha256':
+                    value = value.split()[0].lower() if value.split() else ''
+                require(bool(value), f'empty {key} metadata')
+            require(key not in fields or fields[key] == value, f'ambiguous {key} metadata')
+            fields[key] = value
+        m = re.fullmatch(r'VERDICT: *(.*?)\s*', line, 0 if review2_enabled() else re.I)
         if m:
             require(m[1].upper() in accepted, 'conflicting verdict requires a fresh review file')
     require(fields.get('seal', seal) == seal, 'review seal differs from supplied seal')
@@ -255,6 +274,8 @@ def check_target(args, repo, metadata):
         require(target.is_dir() and (target / 'KIT.json').is_file(), 'existing name has no valid KIT.json')
         actual = inventory(target)
         old = json.loads((target / 'KIT.json').read_text())
+        if review2_enabled():
+            require(isinstance(old, dict), 'existing KIT.json must be a JSON object')
         require({k: v for k, v in old.items() if k != 'date'} ==
                 {k: v for k, v in metadata.items() if k != 'date'}, 'kit name already exists with different content or provenance')
         actual.pop('KIT.json', None)
@@ -278,15 +299,40 @@ def land(args, state, repo, payload, metadata):
         print('IDENTICAL already landed; verifying and publishing current lane-code head')
     else:
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(payload, target)
-        git('add', '-f', '--', f'kits/{args.name}')
         message = (f"Land kit {args.name}\n\nSeal: {metadata['seal']}\nSHA256: {metadata['sha256']}\n"
                    f"Builder: {metadata['builder']}\nReviewer: {metadata['reviewer']}\nDate: {metadata['date']}")
-        git('commit', '-q', '-m', message)
+        if review2_enabled():
+            try:
+                shutil.copytree(payload, target)
+                git('add', '-f', '--', f'kits/{args.name}')
+                git('commit', '-q', '-m', message)
+            except (Refusal, OSError) as exc:
+                try:
+                    # Path-only reset changes the index, never HEAD or working files.
+                    git('reset', '-q', '--', f'kits/{args.name}')
+                    git('diff', '--cached', '--quiet')
+                except (Refusal, OSError) as cleanup:
+                    raise Refusal(f'STOP: index cleanup failed; contact the user before the next hourly '
+                                  f'run; inspect {target}. Original failure: {exc}; cleanup: {cleanup}') from None
+                raise Refusal(f'{exc}; kit staging cleared. Inspect HEAD first (a timed-out commit '
+                              f'may have completed); if the kit is untracked, move {target} aside before '
+                              'rerunning. Do not rerun killed work without the user.') from None
+        else:
+            shutil.copytree(payload, target)
+            git('add', '-f', '--', f'kits/{args.name}')
+            git('commit', '-q', '-m', message)
     head = git('rev-parse', 'HEAD')
     require(bool(re.fullmatch('[0-9a-f]{40}|[0-9a-f]{64}', head)), 'invalid HEAD returned by Git')
     for remote, label in (('origin', 'GitHub'), ('home', 'home')):
-        git('push', '-q', remote, 'HEAD:refs/heads/lane-code')
+        try:
+            git('push', '-q', remote, 'HEAD:refs/heads/lane-code')
+        except (Refusal, OSError) as exc:
+            if review2_enabled() and remote == 'origin':
+                raise Refusal(f'STOP: origin push failed; contact the user before the next hourly run. '
+                              f'Local lane-code still contains {head}; a content rejection can block '
+                              'hourly origin pushes while home advances. No home push or receipt ran. '
+                              f'Do not retry, force, or rewrite history automatically. Cause: {exc}') from None
+            raise
         lines = git('ls-remote', remote, 'refs/heads/lane-code').splitlines()
         require(lines == [f'{head}\trefs/heads/lane-code'], f'{remote} lane-code verification failed')
         print(f"{metadata['date']} verified {label} lane-code = {head}")
@@ -336,6 +382,10 @@ def main(argv=None):
         require(boundary != Path('/') and str(boundary).startswith('/scratch/'), 'test root must be on /scratch')
         events = Path(os.environ.get('LCS_EV', str(boundary / 'events'))).resolve()
         require(all(within(p, boundary) for p in (state, repo, events)), 'test writes must stay within test root')
+        if review2_enabled():
+            production = Path('/scratch/jjyeung/distill_sync').resolve()
+            require(not any(within(p, production) or within(production, p) for p in (state, repo, events)),
+                    'test targets must not overlap production state or clone')
     else:
         require(not any(k in os.environ for k in ('LCS_FILTER', 'LCS_SCAN', 'LCS_B', 'LCS_EV')),
                 'production tool/event overrides require LCS_TEST_ROOT')
@@ -364,6 +414,7 @@ def main(argv=None):
 if __name__ == '__main__':
     try:
         sys.exit(main())
-    except (Refusal, OSError, ValueError, tarfile.TarError, UnicodeError) as exc:
+    except ((Refusal, OSError, ValueError, tarfile.TarError, UnicodeError) +
+            ((EOFError, zlib.error, lzma.LZMAError) if review2_enabled() else ())) as exc:
         print(f'REFUSED: {exc}', file=sys.stderr)
         sys.exit(2)

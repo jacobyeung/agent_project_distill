@@ -1,20 +1,15 @@
-$ date -u
-Thu Nov 19 08:27:26 UTC 2026
-EXIT: 0
-PASS: four patch hashes/base pins and native gate SHA match; all 11 combined files match the delivered source
-PASS: every pre-fix production file matches the exact tree inspected by the independent review
-$ bash -n /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/launch_s1/job.sh /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/launch_s1/b/r.sh /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/launch_s1/b/c.sh
-EXIT: 0
-PASS: changed Python files parse and changed shell files pass bash -n
-PASS: 63 patch tests; 86 native tests (75 pass, 11 explicit skips); independent, recommended and all-four applications pass
-PASS: the same five stale admission-fixture failures reproduce on input and patched trees
-PASS: six delivery regression contracts on the freshly patched tree
-PASS: active claims, finding-to-fix mapping, one-page note, two-page design and local links are consistent
-$ du -sb /scratch/jjyeung/orch_n30/so_launch
-491454378	/scratch/jjyeung/orch_n30/so_launch
-EXIT: 0
-workspace_bytes=491454378 (limit 3000000000)
-scratch_free_bytes=532774191104 (floor 150 GiB)
-$ date -u
-Thu Nov 19 08:27:27 UTC 2026
-EXIT: 0
+Thu Nov 19 09:57:17 UTC 2026
+PASS: four patch hashes, complete base-tree pin, per-file base/result pins and native gate hash match
+PASS: all 11 combined files match work/tree; reviewed snapshots match the exact prior combined tree
+PASS: every changed Python file parses; each changed shell file separately passes bash -n
+PASS: every fresh standalone/recommended/combined tree has no .orig or .rej files
+PASS: combined 152 tests = 141 pass + 11 skips; recommended 110 = 99 pass + 11 skips
+PASS: input baseline and recommended switches-ON gate pass with the same explicit skips
+PASS: identical five known admission-fixture failures; five supplemental review probes pass
+PASS: 26 timestamp rows agree with raw logs; memo estimates distinguish measured envelopes from inference
+PASS: every round-2 finding has a failing prior contract/behavior and a passing final regression
+PASS: current guidance, finding maps, document links and pending Orchard measurement are consistent
+PASS: unexecuted Orchard procedure passes shell/Python syntax checks (not a runtime measurement)
+MEASURED workspace_bytes=685130767 (limit 3000000000)
+MEASURED scratch_free_bytes=443778088960 (floor 150 GiB)
+Thu Nov 19 09:57:17 UTC 2026

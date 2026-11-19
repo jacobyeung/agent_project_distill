@@ -1,0 +1,209 @@
+--- /scratch/jjyeung/orch_n30/sb_f64fix/kit/SHA256SUMS
++++ /scratch/jjyeung/orch_n30/sb_f64fix2/kit/SHA256SUMS
+@@ -29,7 +29,7 @@
+ e3296f65789353667caa1779d71b7c67d1d63a5247e5aa6a9b102bad0bf53a90  ./scripts/f64_dryrun.py
+ dc1d38fd0f574daed6400954b5202609b87d3a07b3f3467fed7e526b88e1cd4e  ./scripts/f64_rows.py
+ fa940e27c7ee36888d1e4018cf96b2cfd138633162431649e5460ddba2b0e4c0  ./scripts/make_configs.py
+-651ffafb2f611588d93f4ce8819a1e41dcbce3c05f3f0a63e45e25cd4824314f  ./scripts/mem_pilot.py
++52e83fc014d686c6269c5f523c0377668baab4e39e78f73cd809cd425b568caf  ./scripts/mem_pilot.py
+ 2847e1295ab0ba5cb7f5501ac33c14af6691a431c8e827b065b31da2b4404673  ./scripts/nest_store.py
+ bd6084175cc71a284cc13674ca8671d5c21aa742574c4a6cb0077147e8de8921  ./scripts/run_cpu.sh
+ 8d21a757a95893afc28c145cc817e370c54bc08edd3d99aad87d3638304fb76e  ./scripts/run_focused.sh
+@@ -41,4 +41,5 @@
+ 34dabbc1a4d3e86816fde70fd39f74b2bc3184a9650a76e40e19c6b48cca3e07  ./tests/test_f64_fix.py
+ 1e0e797f7ae54344dbe9cc986117a5527c9c05f2e9d8394a1a7f69c85e60ae77  ./tests/test_f64_layout.py
+ 963e8df5ffbdb89185c1822672df514896df8963ac5e197a53dc3eb04ce6e644  ./tests/test_nest_store.py
++5758d665c717b11ceef18d0d325ea59ebd7bfa78367d04e09c2341af31c2d1cb  ./tests/test_pilot_gate.py
+ fadb98cd8732efbdb801f2f048e687a8549c72f3b87ab6600ab5073c885c7db9  ./tests/test_token_audit.py
+--- /scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/mem_pilot.py
++++ /scratch/jjyeung/orch_n30/sb_f64fix2/kit/scripts/mem_pilot.py
+@@ -16,7 +16,8 @@
+ The audit's shard files must sit at the paths its summary records, and BOUND_CFG.json must be the audited file.
+ It refuses before loading weights when the world size differs from the recipe's, when any GPU has less
+ than 79 GiB and C1_FSDP_CPU_OFFLOAD is not 1 (48-GB cards are unsupported for the non-offloaded config),
+-when the audit summary is not complete coverage of this config's run, or when R1 admission refuses the
++when the audit summary is not complete coverage of this config's run, when any audited row fails check_row
++or exceeds the ceiling (rows over the tripwire alone pass, for calibration), or when R1 admission refuses the
+ config (missing r2_sampling, preparation, code, admission or depth-init pins). Rank 0 writes
+ DIR/PILOT.json: per rank and step, the allocated and reserved peaks of every microstep, the memory after
+ the optimizer step, the Adam state bytes, the checkpoint peak, step seconds, the plan with its tokens,
+@@ -55,7 +56,9 @@
+ 
+ 
+ def check_audit(summary_path, config_path):
+-    """The summary must re-derive from its own shard files and cover this config's whole run."""
++    """The summary must re-derive from its own shard files and cover this config's whole run, and no audited row
++    may fail check_row or exceed the ceiling, since the trainer aborts on such a row and the longest-row plan would
++    omit it. Rows over the tripwire alone pass: they are the rows this pilot calibrates memory on."""
+     import token_audit
+     summary = json.loads(Path(summary_path).read_text())
+     files = summary.get('shard_files') or {}
+@@ -67,6 +70,19 @@
+         raise ValueError('audit summary differs from its shards')
+     if again['errors']:
+         raise ValueError('audit is not complete coverage of this run: ' + '; '.join(again['errors'][:4]))
++    if sum(entry['rows'] for entry in again['streams'].values()) != again['coverage']['planned']:
++        raise ValueError('audit stream counts do not cover the plan')
++    refused = {}
++    for stream, entry in sorted(again['streams'].items()):
++        ranked = again['longest'].get(stream, [])
++        omitted = min(entry['rows'], token_audit.LONGEST) - len(ranked)
++        top = ranked[0]['tokens'] if ranked else 0
++        if entry['failed'] or entry['over_ceiling'] or omitted or top != entry['max_tokens']:
++            refused[stream] = dict(failed=entry['failed'], over_ceiling=entry['over_ceiling'], rows=entry['rows'],
++                                   omitted_from_longest=omitted, longest_tokens=top, max_tokens=entry['max_tokens'])
++    if refused:
++        raise ValueError('audit has rows the trainer refuses (check_row failure or over the ceiling): '
++                         + json.dumps(refused, sort_keys=True))
+     return again
+ 
+ 
+--- /scratch/jjyeung/orch_n30/sb_f64fix/kit/tests/test_pilot_gate.py
++++ /scratch/jjyeung/orch_n30/sb_f64fix2/kit/tests/test_pilot_gate.py
+@@ -0,0 +1,122 @@
++"""mem_pilot.check_audit over complete audits of the dry run's 16 planned rows, encoded for real: a passing audit
++and one whose rows exceed only the tripwire feed the pilot every row, while one check_row failure or one ceiling
++violation refuses it, counted per stream over every audited row (review sb_f64rev2 finding 4).
++F64_WORK names a scratch directory these tests may write; they never write anywhere else."""
++import json
++import os
++import sys
++import tempfile
++import unittest
++from pathlib import Path
++
++KIT = Path(__file__).resolve().parents[1]
++WORK = Path(os.environ['F64_WORK'])
++sys.path[:0] = [str(KIT / 'scripts')]
++CONFIG = KIT / 'configs' / 'r1_config_f64.json'
++
++import f64_dryrun  # noqa: E402
++import mem_pilot  # noqa: E402
++import token_audit  # noqa: E402
++from student_pilot.p3_provenance import file_pin  # noqa: E402
++
++TRIPWIRE = 9200  # between the dry run's pose (9,127) and routing (9,303) rows
++
++
++class PilotGate(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.cfg, setups = f64_dryrun.setup(CONFIG, ['a43'])
++        cls.receipt, cls.processor, cls.rows = setups['a43']
++        # The dry run has no bound r2_sampling table (f64_dryrun.STAND_INS); plan with the native sampler.
++        cls.unbound = {k: v for k, v in cls.cfg.items() if k not in ('r2_identity', 'r2_sampling')}
++        cls.recipe = cls.cfg['recipe']
++        cls.items = token_audit.planned_rows(cls.unbound, cls.receipt, cls.recipe, 0, 1)
++        cls.config_sha256 = token_audit.file_sha256(CONFIG)
++        cls.preparation = file_pin(f64_dryrun.PREP)
++        cls.tmp = Path(tempfile.mkdtemp(prefix='pilot_gate_', dir=WORK))
++        records = []
++        token_audit.audit(cls.rows, cls.recipe, cls.receipt, cls.items, records.append)
++        cls.records = {(r['stream'], r['index']): r for r in records}
++
++    @classmethod
++    def tearDownClass(cls):
++        cls.rows.close()
++
++    def gate(self, name, edit=None, tripwire=token_audit.TRIPWIRE_TOKENS):
++        """Summary and summary path of two complete shards of the cached real records, each passed through edit."""
++        identity = token_audit.identity_for(self.config_sha256, self.unbound, self.receipt, self.recipe, self.items,
++                                            0, 1, 1, 16384, tripwire, 2, self.preparation)
++        folder = Path(tempfile.mkdtemp(prefix=name + '_', dir=self.tmp))
++        paths = [str(folder / f'shard_{k}.jsonl') for k in range(2)]
++        for k, path in enumerate(paths):
++            def emit(part, sink):
++                for key, _ in part:
++                    record = dict(self.records[key])
++                    sink(edit(record) if edit else record)
++            token_audit.write_shard(path, identity, k, self.items[k::2], emit)
++        summary = token_audit.summarize(paths, self.config_sha256)
++        path = folder / 'summary.json'
++        path.write_text(json.dumps(summary))
++        return summary, path
++
++    def first(self, stream):
++        return min(key for key, _ in self.items if key[0] == stream)
++
++    def refused(self, path):
++        with self.assertRaisesRegex(ValueError, 'trainer refuses') as caught:
++            mem_pilot.check_audit(path, CONFIG)
++        message = str(caught.exception)
++        return json.loads(message[message.index('{'):])
++
++    def test_passing_audit_feeds_every_row_to_the_pilot(self):
++        summary, path = self.gate('passing')
++        self.assertTrue(summary['launch_ready'], summary['errors'])
++        audit = mem_pilot.check_audit(path, CONFIG)
++        self.assertEqual(sum(len(v) for v in audit['longest'].values()), len(self.items))
++
++    def test_tripwire_only_rows_feed_the_pilot(self):
++        summary, path = self.gate('tripwire_only', lambda r: dict(r, over_tripwire=r['tokens'] > TRIPWIRE), TRIPWIRE)
++        tripped = sum(v['over_tripwire'] for v in summary['streams'].values())
++        self.assertTrue(0 < tripped < len(self.items), tripped)
++        self.assertFalse(summary['launch_ready'])
++        self.assertEqual(summary['errors'], [])
++        audit = mem_pilot.check_audit(path, CONFIG)
++        self.assertEqual(sum(len(v) for v in audit['longest'].values()), len(self.items))
++        self.assertGreater(max(r['tokens'] for v in audit['longest'].values() for r in v), TRIPWIRE)
++
++    def test_failed_row_refuses_although_the_longest_rows_omit_it(self):
++        fetch_fields = ('stream', 'index', 'first_step', 'rank', 'seconds')
++        cases = (('check_row', 'routing', lambda r: dict(r, check_row='ValueError: injected failure (synthetic control)')),
++                 ('fetch', 'pose', lambda r: dict({k: r[k] for k in fetch_fields}, check_row='FileNotFoundError: frame')))
++        for name, stream, fail in cases:
++            with self.subTest(name):
++                key = self.first(stream)
++                summary, path = self.gate('failed_' + name, lambda r: fail(r) if (r['stream'], r['index']) == key else r)
++                self.assertEqual(summary['errors'], [])
++                self.assertEqual(summary['streams'][stream]['failed'], 1)
++                self.assertNotIn(key[1], [r['index'] for r in summary['longest'][stream]])
++                refused = self.refused(path)
++                self.assertEqual(list(refused), [stream])
++                self.assertEqual(refused[stream]['failed'], 1)
++                self.assertEqual(refused[stream]['omitted_from_longest'], 1)
++
++    def test_ceiling_violation_refuses(self):
++        key = self.first('vqa')
++        lowered = []
++        token_audit.audit(self.rows, {**self.recipe, 'max_row_tokens': 9000}, self.receipt,
++                          [item for item in self.items if item[0] == key], lowered.append)
++        self.assertTrue(lowered[0]['over_ceiling'])
++        self.assertIn('exceed 9000', lowered[0]['check_row'])
++        flag_key = self.first('pointing')
++        cases = (('encoded', key, lambda r: lowered[0]), ('flag_only', flag_key, lambda r: dict(r, over_ceiling=True)))
++        for name, target, edit in cases:
++            with self.subTest(name):
++                summary, path = self.gate('ceiling_' + name, lambda r: edit(r) if (r['stream'], r['index']) == target else r)
++                self.assertEqual(summary['errors'], [])
++                refused = self.refused(path)
++                self.assertEqual(list(refused), [target[0]])
++                self.assertEqual(refused[target[0]]['over_ceiling'], 1)
++
++
++if __name__ == '__main__':
++    unittest.main()
+--- /scratch/jjyeung/orch_n30/sb_f64fix/work/scripts/run_fix.sh
++++ /scratch/jjyeung/orch_n30/sb_f64fix2/work/scripts/run_fix.sh
+@@ -1,8 +1,8 @@
+ #!/bin/bash
+-# CPU wrapper for sb_f64fix: nice 10, 8 threads, 40 GB address-space cap, offline, every write under this workspace.
++# CPU wrapper for sb_f64fix2: nice 10, 8 threads, 40 GB address-space cap, offline, every write under this workspace.
+ # Reads the trainer tree, Qwen meta files, fixtures and reader package from sb_f64 (read-only).
+ set -eu
+-W=/scratch/jjyeung/orch_n30/sb_f64fix
++W=/scratch/jjyeung/orch_n30/sb_f64fix2
+ S=/scratch/jjyeung/orch_n30/sb_f64
+ mkdir -p "$W/work/tmp" "$W/work/dryrun"
+ export TMPDIR="$W/work/tmp" CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
+--- /scratch/jjyeung/orch_n30/sb_f64fix/work/regress/run_regress.sh
++++ /scratch/jjyeung/orch_n30/sb_f64fix2/work/regress/run_regress.sh
+@@ -1,7 +1,7 @@
+ #!/bin/bash
+ # The reviewer's run_cpu.sh environment, rooted here so every write stays under this workspace.
+ set -eu
+-cd /scratch/jjyeung/orch_n30/sb_f64fix/work/regress
++cd /scratch/jjyeung/orch_n30/sb_f64fix2/work/regress
+ export CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+ export PYTHONDONTWRITEBYTECODE=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+ export TMPDIR="$PWD/tmp" HF_HOME="$PWD/tmp/hf" XDG_CACHE_HOME="$PWD/tmp/cache"

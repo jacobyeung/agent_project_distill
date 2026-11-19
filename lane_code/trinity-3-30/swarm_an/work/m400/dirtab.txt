@@ -1,0 +1,84 @@
+== forward (toward) twins
+ forward toward easy
+    544: n50 wrong 1 [lr_wrong 1] back-ans 0/true 0
+    200: n50 wrong 1 [lr_wrong 1] back-ans 0/true 0
+    400: n50 wrong 3 [lr_wrong 3] back-ans 0/true 0
+ forward toward medium
+    544: n50 wrong 3 [lr_wrong 1, missed_back 1, unparsed 1] back-ans 0/true 2
+    200: n50 wrong 2 [lr_wrong 1, missed_back 1] back-ans 1/true 2
+    400: n50 wrong 1 [lr_wrong 1] back-ans 2/true 2
+ forward toward hard
+    544: n50 wrong 4 [both_wrong 1, fb_wrong 2, lr_wrong 1] back-ans 14/true 17
+    200: n50 wrong 7 [both_wrong 2, fb_wrong 4, lr_wrong 1] back-ans 11/true 17
+    400: n50 wrong 9 [both_wrong 2, fb_wrong 6, lr_wrong 1] back-ans 9/true 17
+== direct sets, toward questions
+ dev-S1 toward easy
+    544: n150 wrong 13 [lr_wrong 13] back-ans 0/true 0
+    100: n150 wrong 12 [lr_wrong 12] back-ans 0/true 0
+    200: n150 wrong 10 [lr_wrong 10] back-ans 0/true 0
+    400: n150 wrong 10 [lr_wrong 10] back-ans 0/true 0
+ dev-S1 toward medium
+    544: n150 wrong 16 [lr_wrong 8, missed_back 7, unparsed 1] back-ans 0/true 9
+    100: n150 wrong 18 [lr_wrong 8, missed_back 4, spurious_back 6] back-ans 11/true 9
+    200: n150 wrong 18 [lr_wrong 10, missed_back 7, spurious_back 1] back-ans 3/true 9
+    400: n150 wrong 16 [lr_wrong 9, missed_back 6, spurious_back 1] back-ans 4/true 9
+ dev-S1 toward hard
+    544: n150 wrong 24 [both_wrong 4, fb_wrong 11, lr_wrong 9] back-ans 29/true 40
+    100: n150 wrong 33 [both_wrong 3, fb_wrong 16, lr_wrong 14] back-ans 23/true 40
+    200: n150 wrong 26 [both_wrong 1, fb_wrong 14, lr_wrong 11] back-ans 29/true 40
+    400: n150 wrong 27 [both_wrong 2, fb_wrong 15, lr_wrong 10] back-ans 25/true 40
+ R0-dev toward easy
+    544: n126 wrong 34 [lr_wrong 34] back-ans 0/true 0
+    100: n126 wrong 28 [lr_wrong 28] back-ans 0/true 0
+    200: n126 wrong 28 [lr_wrong 28] back-ans 0/true 0
+    400: n126 wrong 30 [lr_wrong 30] back-ans 0/true 0
+ R0-dev toward medium
+    544: n129 wrong 46 [lr_wrong 33, missed_back 12, unparsed 1] back-ans 0/true 17
+    100: n129 wrong 37 [lr_wrong 22, missed_back 7, spurious_back 8] back-ans 18/true 17
+    200: n129 wrong 41 [lr_wrong 26, missed_back 11, spurious_back 4] back-ans 10/true 17
+    400: n129 wrong 41 [lr_wrong 25, missed_back 12, spurious_back 4] back-ans 9/true 17
+ R0-dev toward hard
+    544: n121 wrong 43 [both_wrong 5, fb_wrong 17, lr_wrong 21] back-ans 25/true 23
+    100: n121 wrong 41 [both_wrong 7, fb_wrong 12, lr_wrong 22] back-ans 12/true 23
+    200: n121 wrong 46 [both_wrong 5, fb_wrong 16, lr_wrong 25] back-ans 14/true 23
+    400: n121 wrong 48 [both_wrong 5, fb_wrong 19, lr_wrong 24] back-ans 21/true 23
+== away questions
+ R0-dev away easy
+    544: n66 wrong 32 [lr_wrong 32] back-ans 0/true 0
+    100: n66 wrong 20 [lr_wrong 19, turn_omitted 1] back-ans 0/true 0
+    200: n66 wrong 13 [lr_wrong 8, turn_omitted 5] back-ans 0/true 0
+    400: n66 wrong 17 [lr_wrong 11, turn_omitted 6] back-ans 0/true 0
+ R0-dev away medium
+    544: n65 wrong 53 [lr_wrong 15, missed_back 38] back-ans 0/true 39
+    100: n65 wrong 23 [lr_wrong 5, missed_back 13, spurious_back 5] back-ans 31/true 39
+    200: n65 wrong 27 [lr_wrong 5, missed_back 15, spurious_back 2, turn_omitted 5] back-ans 22/true 39
+    400: n65 wrong 27 [lr_wrong 1, missed_back 9, spurious_back 5, turn_omitted 12] back-ans 26/true 39
+ R0-dev away hard
+    544: n71 wrong 61 [both_wrong 27, fb_wrong 22, lr_wrong 12] back-ans 14/true 61
+    100: n71 wrong 25 [both_wrong 3, fb_wrong 3, lr_wrong 9, turn_omitted 10] back-ans 53/true 61
+    200: n71 wrong 35 [fb_wrong 6, lr_wrong 8, turn_omitted 21] back-ans 46/true 61
+    400: n71 wrong 33 [fb_wrong 6, lr_wrong 8, turn_omitted 19] back-ans 50/true 61
+ away away easy
+    544: n50 wrong 31 [lr_wrong 31] back-ans 0/true 0
+    200: n50 wrong 3 [lr_wrong 3] back-ans 0/true 0
+    400: n50 wrong 3 [lr_wrong 3] back-ans 0/true 0
+ away away medium
+    544: n50 wrong 40 [lr_wrong 23, missed_back 17] back-ans 0/true 18
+    200: n50 wrong 5 [lr_wrong 1, missed_back 2, spurious_back 2] back-ans 18/true 18
+    400: n50 wrong 3 [lr_wrong 1, spurious_back 2] back-ans 20/true 18
+ away away hard
+    544: n50 wrong 47 [both_wrong 16, fb_wrong 20, lr_wrong 11] back-ans 5/true 33
+    200: n50 wrong 9 [both_wrong 2, fb_wrong 5, lr_wrong 2] back-ans 40/true 33
+    400: n50 wrong 10 [both_wrong 1, fb_wrong 7, lr_wrong 2] back-ans 41/true 33
+== opening x outcome, toward questions
+  forward 544 easy/Step1:locate n50 wr1; hard/Step1:locate n50 wr4; medium/Step1:locate n50 wr3
+  forward 200 easy/Seen: n34 wr1; easy/Step1:find n12 wr0; easy/Step1:find-then n4 wr0; hard/Seen: n18 wr3; hard/Step1:find n17 wr2; hard/Step1:find-then n15 wr2; medium/Seen: n32 wr1; medium/Step1:find n10 wr0; medium/Step1:find-then n8 wr1
+  forward 400 easy/Seen: n43 wr3; easy/Step1:find n7 wr0; hard/Seen: n31 wr4; hard/Step1:find n19 wr5; medium/Seen: n40 wr0; medium/Step1:find n9 wr1; medium/Step1:find-then n1 wr0
+  dev-S1 544 easy/Step1:locate n150 wr13; hard/Step1:locate n150 wr24; medium/Step1:locate n150 wr16
+  dev-S1 100 easy/Seen: n1 wr0; easy/Step1:find n4 wr0; easy/Step1:find-then n6 wr2; easy/Step1:locate n139 wr10; hard/Step1:find n10 wr3; hard/Step1:find-then n8 wr1; hard/Step1:locate n132 wr29; medium/Step1:find n11 wr2; medium/Step1:find-then n17 wr3; medium/Step1:locate n122 wr13
+  dev-S1 200 easy/Step1:find n114 wr9; easy/Step1:find-then n31 wr1; easy/Step1:locate n5 wr0; hard/Step1:find n93 wr17; hard/Step1:find-then n51 wr6; hard/Step1:locate n6 wr3; medium/Step1:find n102 wr13; medium/Step1:find-then n42 wr5; medium/Step1:locate n6 wr0
+  dev-S1 400 easy/Step1:find n136 wr9; easy/Step1:find-then n14 wr1; hard/Step1:find n134 wr23; hard/Step1:find-then n16 wr4; medium/Step1:find n133 wr14; medium/Step1:find-then n17 wr2
+  R0-dev 544 easy/Step1:locate n126 wr34; hard/Step1:locate n121 wr43; medium/Step1:locate n129 wr46
+  R0-dev 100 easy/Seen: n12 wr0; easy/Step1:find-then n1 wr1; easy/Step1:locate n113 wr27; hard/Seen: n3 wr1; hard/Step1:find n1 wr1; hard/Step1:locate n117 wr39; medium/Seen: n23 wr5; medium/Step1:locate n106 wr32
+  R0-dev 200 easy/Seen: n23 wr5; easy/Step1:find n89 wr22; easy/Step1:find-then n14 wr1; hard/Seen: n7 wr1; hard/Step1:find n71 wr28; hard/Step1:find-then n40 wr17; hard/Step1:locate n3 wr0; medium/Seen: n15 wr1; medium/Step1:find n76 wr30; medium/Step1:find-then n34 wr9; medium/Step1:locate n4 wr1
+  R0-dev 400 easy/Seen: n20 wr5; easy/Step1:find n93 wr23; easy/Step1:find-then n13 wr2; hard/Seen: n12 wr3; hard/Step1:find n88 wr38; hard/Step1:find-then n21 wr7; medium/Seen: n14 wr2; medium/Step1:find n90 wr30; medium/Step1:find-then n25 wr9

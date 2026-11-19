@@ -1,0 +1,37 @@
+{
+ "kit": "sb_mask_phrase part 1 (CPU): written phrases priced on stored K1 stage-1 pools through the unchanged sb_kbox4 ladder",
+ "written_utc": "2026-11-19T10:12:21Z",
+ "written_before_any_score": true,
+ "governing_sha256": {
+  "PROMPT.md": "8d5f2f2adf2295dab16e81b18817ba410235f74c7479a92ecb25066bee2b6cbf",
+  "in/v2/KIT_SPEC_mask_phrase.md": "5f099b8314cb2199ccb24c17bf99fd1a1333022765f393b9c65c7384f5cea872",
+  "in/v2/MASK_QUALITY_DESIGN_20261119.md": "86177ba6a1bea8683c685b81e2d88cc7c28e4cab52212d02d440e939cf51b629",
+  "in/ORCH_RULING_0949Z.md": "1280bd396501305e69cf8b28f92f43c177a5c3808b5830d7f17953fff04e3445"
+ },
+ "population": "K1 training captures only (k1_split == train): the 1,037 distance rows of K1_TRAIN_1037.txt, 209 captures, 192 rooms, 2,074 row operands; refusals score 0. Held-out, R0-dev, dev-S1 and official items are never opened, and nothing is chosen from dev-S1 outcomes.",
+ "contrast": "sb_kbox4 summarize_train.contrast: arm minus A0_deployed in distance MRA type points, paired by row, 95% percentile interval over 10,000 room-cluster draws, seed 20261119.",
+ "bars": {
+  "parity": "P0 equals A0_deployed (sb_kbox4 out/box_ladder/PER_ITEM.jsonl, sha256 3bc7f87f...) on 1,037 of 1,037 predictions. Any miss writes BLOCKER.md and the kit stops before any arm is reported.",
+  "phrase_worth": "arm minus A0 estimate >= +1.5 type points and 95% lower bound > 0.",
+  "phrase_safe": "on the rows whose two operands are both good under A0, arm minus A0 95% lower bound > -1.0. An operand is good when its served track has IoU >= 0.5 with the raster at the track's priced frame (largest-area lifted frame, 240 x 320 canvas). The set is recomputed from P0 and its size reported (design record: 456 rows)."
+ },
+ "arms_read_by_bars": ["W1", "W2", "W2c"],
+ "arms": {
+  "P0": "raw name; sb_kbox4 predicted.cache_detect (source_prompt == name, score x presence >= 0.05, score-sorted, cap 30). Parity arm.",
+  "P_cap100": "raw name, cap 100. Diagnostic.",
+  "W1": "per name ONE phrase w in {raw name} + its variantlib ALIASES, the phrase the model writes in its ground call. Pool = stored instances of the name's record with source_prompt == w, each with its own source_presence, score x presence >= 0.05, score-sorted, cap 30; the reader runs with w as the call's name. Fold-chosen.",
+  "W2": "raw call first; in each anchor frame where the raw pool is empty, the frame takes the fold-chosen alias a's pool (stored instances with source_prompt == a, same retention); the reader runs with the raw name over the composed pool. Fold-chosen a, or the raw name alone.",
+  "W2c": "raw call; when it returns not seen (no lifted object served), the object takes the call with the fold-chosen alias a (the W1 pool of a, reader name a). Fold-chosen a, or the raw name alone. This is the spec's ordered-pair policy.",
+  "P_all": "raw plus every stored alias instance in one pool. NOT PRICED: its frames mix presences and routed_features.cache_for keeps only the first instance's presence (sb_mdrev finding 9). Offline pool recall only.",
+  "P_cf": "per name, P_all or raw, chosen per fold on the other four folds by the count of fit objects whose pool holds an IoU >= 0.5 mask in a valid visible anchor at the lifting floor (score >= 0.3, as well as score x presence >= 0.05); same tie and five-object rules. NOT PRICED (same reason); offline held-out pool recall only; reported as the ceiling."
+ },
+ "fold_rule": "math_v2.folds over the 192 rooms (seed 20261119, five folds). For held-out fold k, fit objects are the distinct (capture, name) objects of the other four folds. Each candidate policy is scored by the number of fit objects whose served track (selector run_iso, rule candidates_argmax, on that policy's pool) is on target at its priced frame (IoU >= 0.5 with the raster, 240 x 320). The name takes the policy with the largest count; it leaves the raw name only on a strictly larger count; ties between aliases go to the first in sorted order; a name with fewer than five fit objects keeps the raw name. Rows of fold k are priced with fold k's policies. No distance label enters the choice. The frozen PHRASE_SET refits on all 192 rooms by the same rule.",
+ "guards": [
+  "every priced pool has one presence per anchor frame; a mixed frame raises and the pool is not priced",
+  "every alias instance carries its own source_presence; a missing one raises",
+  "per-proposal score and presence after routed_features.cache_for and routed_candidates.lift equal the pool entry's values, checked for every priced pool",
+  "candidate identities come from a fresh StageOne/link run on each changed pool; selector labels for each changed pool are rebuilt with the table producer's label function, and no A0 serving-table label is read for a changed pool"
+ ],
+ "decision": "If at least one of W1, W2, W2c passes phrase_worth and phrase_safe, the passing arm with the highest MRA is chosen (ties in the order W1, W2, W2c), its policies are refit on all training rooms and frozen as PHRASE_SET.json. Otherwise the model keeps writing the raw name. P_cf is reported as the ceiling and reads no bar.",
+ "rows_to_rewrite": "For the chosen arm (and each shippable arm as a diagnostic): the names whose all-room policy differs from the raw name, and the K1 training rows (K1_TRAIN_1037.txt) that name them, by name; rows needing a second call (W2c: the raw call returns not seen in that capture; W2: the alias fills at least one frame). Names whose in-sample best policy differs but that have fewer than five objects are listed with their counts and stay raw. Routed training rows of N are not on this node: MISSING, owner tree_rebuild."
+}

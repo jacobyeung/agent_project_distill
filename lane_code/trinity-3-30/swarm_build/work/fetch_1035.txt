@@ -1,0 +1,85 @@
+10:30:03Z
+2026-11-19T10:08:27Z launched sb_mffix in sb_mffix (running before: 1, avail 439)
+2026-11-19T10:23:28Z launched sb_f64rev3 in sb_f64rev3 (running before: 1, avail 415)
+2026-11-19T10:27:28Z launched sb_mdrev2 in sb_mdrev2 (running before: 1, avail 441)
+Q:
+===RL
+# sb_rlfix3: sb_rlrev3 findings 1-9 CLOSED on CPU
+
+All nine fixes are in place. The suite (`bash scripts/run_tests.sh`) runs 75 tests with 0 failures and 0 errors, and the reruns kill all 23 of the reviewer's mutants. The CPU decoder proof is bit-identical to the review: every non-timing field of `CPU_PROOF.json` and the sidecar equals `sb_rlrev3/runs/cpu_proof`, including gradient L1 4253.670143, update L1 1.966011, ratio error 0.010976 and both token lists, at 108.5 s and 14.627 GiB peak RSS. The GPU replay remains unrun, and production bindings remain MISSING (finding 8).
+
+Test names below omit the `tests/` prefix. FX is `test_fix3.py`, SL is `test_step_loop.py`, and TB is `test_binding.py`.
+
+1. CLOSED. `replay.py:13-15` adds four gap-call items and two budget-fired items to the selection, 26 items in all. `replay.py:24` and `replay.py:60` refuse any selected journal item that does not exercise its group. `serving.py:169` requires `counts==COUNTS`, and `serving.py:175` requires the exact gap and budget_fired ids. The replay also compares call families and budget firing (`greedy_replay.py:80`).
+   Tests: TB `test_replay_selects_types_gap_calls_and_forced_close`; FX `ReplayGate.test_gap_and_forced_close_items_are_required`.
+2. CLOSED. `train.py:22-32` loads with `e2e_reader.parity.load_native` inside `reader_runtime()`. `train.py:35-46` prompts with A4's `evalpath.runtime.prompt_batch`, `train.py:149` takes `info['config']`, and `train.py:182` prompts with it. The replay calls the same functions (`greedy_replay.py:65,76`). `serving.py:181` requires the replay's export identity to match the export training loads.
+   A4's loader cannot read N exports. `n_export_check.py` found that A4's `identity()` differs from N's on 2 of 2 N configs, so `parity.py:147` raises (`out/N_EXPORT_CHECK.json`). This is written as MISSING `n_export_journal` for the orchestrator (`make_configs.py:30`).
+   Tests: FX `Loader.test_load_export_calls_a4_load_native`, `Loader.test_prompt_inputs_use_a4_prompt_batch`, `ReplayHelpers.test_replay_uses_the_training_loader`, `GreedyReplayRun.*`; SL `test_run_with_one_refusing_rank` asserts that the loader's config reaches every prompt.
+3. CLOSED. `serving.py:17` pins `INPUTS.json` (`5e3416d9…`). `serving.py:102-118` requires each g3t, sam3 and selector_head file to equal `files.{g3t,sam,selector}_*.sha256`, which `serving.py:149` checks right after `Artifact.verify()`. A4's local staged manifest passes this check.
+   Tests: FX `Perception.*`, five tests including `test_build_reader_refuses_other_perception_bytes` and `test_local_a4_staging_carries_inputs_bytes`.
+4. CLOSED. `rollout.py:92` catches `ValueError` around `generate_real` only, and `align` stays outside. `train.py:207` all-reduces the refusal count, and `train.py:213` stops every rank before the optimizer step above 25%. A4's prompt path types only `TowerError` as a refusal (`train.py:45`). Its other ValueErrors raise.
+   Tests: FX `Sampling.test_reader_value_errors_refuse_but_alignment_errors_raise`; SL `test_refusals_above_limit_stop_every_rank`. In that test, 3 of 8 draws refused stops all four ranks with no gradient reduce, no checkpoint and adapters unchanged. 2 of 8 continues.
+5. CLOSED. `train.py:226` saves cursor, order, rng and config identity. `train.py:107-122` verifies the JSON pin, schema, config identity and step, then restores adapters, optimizer, step, cursor, order and rng. `--resume` is defined at `train.py:238` and applied at `train.py:166`.
+   Test: SL `test_resume_equals_uninterrupted`. A 1+1-step resume equals a straight 2-step run in adapters, optimizer state, cursor, order, rng and rewards. A foreign config, a finished checkpoint, a flipped checkpoint byte and a v1 schema are each refused.
+6. CLOSED. `run_greedy_replay.sh` takes a numeric card (line 5), refuses more than 1,024 MiB used (line 13) and requires `RL_PYTHON` and the kit under `/scratch` (line 15). It runs `timeout 2h` through vnice on Trinity at nice 10 (lines 30-31). `greedy_replay.py` checks the interpreter (line 33), `/scratch` inputs and artifact roots (lines 34 and 42), and the card name NVIDIA H100 80GB HBM3 (line 48). It also keeps a per-item JSONL resume (lines 61 and 88).
+   Tests: FX `Launcher.test_refusals` and `Launcher.test_idle_card_runs_niced_under_timeout` use a fake nvidia-smi, hostname and vnice. FX `ReplayHelpers.test_card_scratch_and_interpreter` and `test_item_journal_resume` cover the helpers. FX `GreedyReplayRun.test_interrupted_replay_resumes_and_passes_the_training_gate` interrupts after 10 items. The rerun decodes only the remaining 16, and `require_replay` accepts the PASS receipt.
+7. CLOSED. These tests cover the listed cases:
+   - FAIL receipt: FX `ReplayGate.test_failed_status_refuses` and `test_listed_mismatch_refuses`.
+   - 3-per-type receipt: `test_three_per_type_refuses`.
+   - Unbound `greedy_replay`: SL `test_unbound_replay_refuses_before_loading`.
+   - One tampered payload byte: FX `Payload.test_one_flipped_payload_byte_refuses`.
+   - `max_calls` with a correct answer: FX `Rewards.test_correct_answer_after_max_calls_scores_zero`.
+   - Centred advantages: SL `test_run_with_one_refusing_rank`.
+   - Untempered log-probs and the reserve and withheld layers: FX `Sampling.test_behaviour_logp_is_tempered` and `GateLayers.*`.
+   The mutant rerun (`runs/mut/mutate.py` on a private kit copy) killed 23 of 23 (`runs/mut/mutants.json`). Two search strings follow lines that the fixes moved, while removing the same checks: `train.py:144` for `train_skip_require_replay` and `serving.py:169-170` for `replay_gate_accepts_fail`.
+8. CLOSED. Each binding is listed with its expected path and hash source in `make_configs.py:17-31`, in `configs/h100_{4,8}.json:1004` (`missing_bindings`) and in `out/REPORT.md:25-31`. The bindings are `export_restore` (the m200 restore, formerly `artifact`), `export_config` (`d/p0/config.json`, `3b0051c4…`, formerly `source_config`), `pool`, `pool_config` (init_m544 record null), `grounding.artifact_manifest`, `greedy_replay` and `n_export_journal`.
+9. CLOSED. `out/RL_ON_N_REPORT.md:1` is marked SUPERSEDED. `out/REPORT.md:5` now states only what has run: `build_reader` has run on CPU through `Artifact.verify` and the INPUTS gate, with autospec stand-ins for its A4 calls. Real perception, SAM 3 and selector loading remain unrun (FX `Perception.test_build_reader_binds_a4_signatures`). `serving_check.py:14` derives `own_heads` from the perception object `real_perception` builds.
+
+Delivery: `out/sb_rlfix3.tar`, sha256 `e7f36c456d133ba4c22c17025be3ae5139ce38e7184de7354131cd82a15a0c91` (`out/SHA256SUMS`). The archive has 984 members, and `out/DELIVERY_CHECK.json` passes 9,338 dependency hash checks. This report sits outside the tar.
+All commands used `/scratch/jjyeung/envs/p1cpu/bin/python` at nice 10 with OMP, MKL and OPENBLAS threads set to 8. No GPU, ssh, Git, tmux change or process kill was used, and all writes stayed in this workspace.
+2468 /scratch/jjyeung/orch_n30/sb_rlfix3/cursor.log
+===F64
+# GO AFTER FIXES
+
+The CPU gate rejects the required bad audits, but the literal failed-row inclusion requirement and exact-path/owner handoff remain incomplete. Production inputs are still MISSING.
+
+1. **Core gate fix passes.** `mem_pilot.py:72-85` re-derives complete stream counts, refuses every failure/ceiling violation, and accepts tripwire-only rows. Failures beyond both capped lists and forged cached counts also refuse.
+2. **Required edit — longest list.** `kit/scripts/token_audit.py:314` still excludes every failed row from `longest`; only `max_tokens` includes their known token counts. No failed audit is accepted, but this does not satisfy the task’s literal “longest-row selection includes failed rows.”
+   Include failed records with known token counts in the ranked candidates; continue refusing tokenless fetch failures and all failed audits. Update `kit/tests/test_pilot_gate.py:89-105` to test failed-candidate inclusion and refusal, including a maximum-length failed row. Regenerate checksums/archive after code edits. Owner: kit builder.
+3. **Required edit — handoff table.** In `out/FIX2_REPORT.md`, assign the pool producer and exact output paths/operators for items 4 and 8. Those assignments are MISSING; the orchestrator must supply them. Expand each path and owner in the table; `OPEN_ITEMS.md` lists verified input locations and unassigned fields.
+   Change “all null” to “absent or null”: `r2_sampling`, `preparation`, and three stream-hash keys are absent. Owner: report author.
+
+**Independent results** (commands run from `/scratch/jjyeung/orch_n30/sb_f64rev3`):
+- `bash run_cpu.sh static_check.py`: archive SHA256 `472d7775378a82ee365f11aa531f25b065129e339be1a3157abe1b85d24c6f89`; all 58 archive files match disk and all 45 checksum entries pass. `out/static_review.json` binds inputs.
+- The complete kit diff changes only `scripts/mem_pilot.py`, new `tests/test_pilot_gate.py`, and `SHA256SUMS`. Outside the kit, only the two reviewed wrapper paths change; regression code is identical. See `out/tree.diff`.
+- `bash run_cpu.sh kit_check.py`: 49 tests pass, with no skips (`out/kit_review.json`).
+- `bash run_cpu.sh regression_check.py baseline` and `bash run_cpu.sh regression_check.py patched`: each runs 109 tests, zero failures, one error for MISSING `/scratch/jjyeung/orch_cd/derivgen/review_pool/POOL.jsonl`; neither suite is fully passing.
+- `bash run_cpu.sh pilot_gate_matrix.py`: all three reviewer controls pass; passing/tripwire audits accept and a failed-check audit refuses (`out/pilot_gate_matrix.json`).
+- `bash run_cpu.sh builder_matrix.py`: all four builder controls pass, including flag-only ceiling refusal (`out/builder_matrix.json`).
+- `bash run_cpu.sh mutation_check.py`: 5/5 mutants killed: remove failed counts, remove ceiling counts, reject tripwires, disable refusal, and trust cached counts. Seven independent controls pass on the unmutated gate (`out/mutation_review.json`).
+- The same command exercises eight real-auditor ceiling cases; all refuse. `token_audit.audit:119,128-130` and trainer `check_row:1326-1330` use the same ceiling, before stream-specific returns. For normal two-dimensional batches, a real audit cannot emit `over_ceiling=true` with `check_row=ok`.
+- `summarize` does mark the synthetic flag-only record launch-ready, but the pilot gate rejects it. This is not a real-audit bypass.
+
+No reviewed files were edited. `out/OPEN_ITEMS.md` preserves exact production input paths and known owners; unassigned evidence paths/owners remain MISSING. Actual first batches, full token audit, GPU pilot, and reader evidence remain prerequisites for launch.
+`bash run_cpu.sh finalize_review.py` validates these results and writes `out/REVIEW_INPUTS.json`; every review evidence JSON carries input SHA256s. `out/REVIEW_METHOD.md` records test scope and adaptations.
+# GO AFTER FIXES
+
+The CPU gate rejects the required bad audits, but the literal failed-row inclusion requirement and exact-path/owner handoff remain incomplete. Production inputs are still MISSING.
+
+1. **Core gate fix passes.** `mem_pilot.py:72-85` re-derives complete stream counts, refuses every failure/ceiling violation, and accepts tripwire-only rows. Failures beyond both capped lists and forged cached counts also refuse.
+2. **Required edit — longest list.** `kit/scripts/token_audit.py:314` still excludes every failed row from `longest`; only `max_tokens` includes their known token counts. No failed audit is accepted, but this does not satisfy the task’s literal “longest-row selection includes failed rows.”
+   Include failed records with known token counts in the ranked candidates; continue refusing tokenless fetch failures and all failed audits. Update `kit/tests/test_pilot_gate.py:89-105` to test failed-candidate inclusion and refusal, including a maximum-length failed row. Regenerate checksums/archive after code edits. Owner: kit builder.
+3. **Required edit — handoff table.** In `out/FIX2_REPORT.md`, assign the pool producer and exact output paths/operators for items 4 and 8. Those assignments are MISSING; the orchestrator must supply them. Expand each path and owner in the table; `OPEN_ITEMS.md` lists verified input locations and unassigned fields.
+   Change “all null” to “absent or null”: `r2_sampling`, `preparation`, and three stream-hash keys are absent. Owner: report author.
+
+**Independent results** (commands run from `/scratch/jjyeung/orch_n30/sb_f64rev3`):
+- `bash run_cpu.sh static_check.py`: archive SHA256 `472d7775378a82ee365f11aa531f25b065129e339be1a3157abe1b85d24c6f89`; all 58 archive files match disk and all 45 checksum entries pass. `out/static_review.json` binds inputs.
+===MF
+# Review corrections
+
+All six reporting corrections are applied. Candidate availability matches the reviewer at all three IoU thresholds. The additional track-majority diagnostic differs from F1; both counts and the missing reviewer recipe are disclosed below. No rule, threshold, pricing function, or endpoint changed.
+
+- F1: Marked wrong_instance structurally empty and reported the reviewer’s 140 wrong-object tracks / 803 selected-track-absent frames. The kit pooled-pixel majority helper yields 107 / 677. It pools nonnegative GT IDs across selected proposal pixels; the reviewer’s counting recipe is MISSING from the supplied compare.py and rerun.py, so this discrepancy remains unresolved (F1_COMPARISON.json). `out/FIRST_TABLE.md:14`.
+- F2: Recomputed candidate availability through Objects.load and routed_candidates.lift at floor 0.3: 1,487 accepted-track frames, 156 passing the floor outside accepted tracks, and 458 below the floor. Only 1,487 count as selection failures; 614 need proposal-filter changes. `out/MASKFAIL_REPORT.md:60`.
+- F3: Stated beside the teacher column that its pool is a subset of the deployed pool. Item 5 uses deployed candidates alone; retained threshold-0.7 mask discrepancies are not independent proposal evidence. `out/MASKFAIL_REPORT.md:58`.
+- F4: Renamed the displayed category selected track absent and reported candidate availability: 963 absent, 275 outside accepted tracks, and 1,155 selectable. The intervention remains an upper bound. `out/FIRST_9376b36c6d670ced76fb6079b45182f116e1e3f6a4641d56b6332bd062b24571  sb_mffix.tar

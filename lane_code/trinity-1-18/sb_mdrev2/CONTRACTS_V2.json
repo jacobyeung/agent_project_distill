@@ -1,0 +1,51 @@
+{
+  "cpu_constructor_probe": {
+    "calls": [
+      {
+        "shape": [
+          1,
+          1,
+          288,
+          288
+        ],
+        "device": "cuda"
+      },
+      {
+        "shape": [
+          1,
+          1,
+          288,
+          288
+        ],
+        "device": "cuda"
+      }
+    ],
+    "errors": {
+      "64": "CPU-only probe intercepted allocation: cuda",
+      "256": "CPU-only probe intercepted allocation: cuda"
+    },
+    "no_cuda_calls_executed": true
+  },
+  "tracker": "build_tracker calls maskmem PositionEmbeddingSine(precompute_resolution=1008); default with_backbone=False and no checkpoint loader in this function.",
+  "detector": "build_sam3_image_model calls _create_vision_backbone, which precomputes PositionEmbeddingSine at 1008 before moving the model to its requested device.",
+  "loss": "The spec leaves the exact YAML unspecified. IABCEMdetr has no per-prediction ignore-region input; unmatched predictions get negative BCE (with whole-query nonexhaustive masking only). No dry-run gradient proof of the specified small-instance ignore exists in supplied inputs.",
+  "input_sha256": {
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/model/position_encoding.py": "6ec4e053bad5d17035f9ea8f60a032f60c51ba5ce5a5a174b4b2fe0de62749f6",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/model_builder.py": "faba3d0099f3da6d63d3ca49a8bf945d4014657b813e76ad082602d3922d3ff6",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/model/sam3_tracking_predictor.py": "145df76a5c045605d4d15360456015adb4f987c4b18e82f4f4876a63e6a32345",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/train/loss/sam3_loss.py": "ea2f7667ba8d715cf74c8ae0b240aa3173450c8d538943484ed7927a7bcef801",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/train/loss/loss_fns.py": "72cfbc8750be577d3bcb11279e6c9d62f83db89dd446c08e1339e8e4a5944ee0",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/train/matcher.py": "31d8c49b773a229b558a229204111c7dab09a8a9ec09a070e74e92008c2c4a83",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/train/configs/odinw13/odinw_text_only_train.yaml": "099d435cdc759c71284afa09480ac0a6396e9505a1b76ce55976768508bd0839",
+    "/scratch/jjyeung/b01ec87a6f29b/d/s/sam3/train/configs/roboflow_v100/roboflow_v100_full_ft_100_images.yaml": "9de90a95529669a6a01d3366ed660b6776522a0ddabcd65d6cbeddeefc3b193e",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/KIT_SPEC_mask_carry_v2.md": "199ac15d179fb7a2f3ce51f9daf3bcdc996e0c04152c25ab75989bd3154702a4",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/KIT_SPEC_mask_phrase_v2.md": "7e9deb2506977828f7f834ecda2b6e4e170a9e95a1b2c4e79594b0c2407654b6",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/KIT_SPEC_mask_sam3ft_v2.md": "738ec445c877cc10a952def5719720a2712994c094ee56c650165a139b878e86",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/MASK_QUALITY_DESIGN_20261119.md": "1bec804c812d2a219cc9f3c812e3f3f444f2ea103a209d36f5fd56559259fa81",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/ORCH_ANSWER_1010Z.md": "9aaaa1ec78508ee7d1b5ad71d1775b9a4fcc27c6f9be9eeeeedc753b57d253af",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/ORCH_RULING_0949Z.md": "1280bd396501305e69cf8b28f92f43c177a5c3808b5830d7f17953fff04e3445",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/in/REVIEW_RESPONSE_maskdesign.md": "1766afd119546428e6c090e71fad85167110540f2e25a98672e26e33b5ae554e",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/review_v2.py": "3be57ad11f49fa6f76b55b6adeb4aecad59bff9a439b449556cfa53416da4327"
+  },
+  "command": "bash run_review_v2.sh contracts"
+}

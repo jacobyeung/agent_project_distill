@@ -1,0 +1,27 @@
+Working directory: /scratch/jjyeung/orch_n30/so_launch
+source work/fix2_env.sh
+
+# Fresh standalone, recommended and combined trees; exit 0.
+SO_NO_LOCAL_SOCKETS=1 nice -n 10 "$PY" -I -s -B work/verify_delivery.py
+# Exact expanded subprocess commands and exit codes are in each application log.
+
+# Known admission fixture comparison; wrapper exit 0; native children each exit 1.
+nice -n 10 env SO_NO_LOCAL_SOCKETS=1 "$PY" -I -s -B work/verify_known_failures.py "/scratch/jjyeung/orch_n30/so_launch/out/tests/20261119T094926Z"
+# Native baseline; exit 0.
+nice -n 10 env SO_NO_LOCAL_SOCKETS=1 "$PY" -I -s -B work/run_native_regression.py "/scratch/jjyeung/orch_n30/so_launch/in/tree/work/tree_r1"
+# Native recommended switches ON; exit 0.
+nice -n 10 env SO_NO_LOCAL_SOCKETS=1 TK_CHECKPOINT_VERIFY_MEMO=1 TK_LAUNCH_TIMING=1 TK_PARALLEL_FRAME_SHA=1 "$PY" -I -s -B work/run_native_regression.py "/scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T094926Z/recommended"
+# Phase generation and raw-evidence checks; each exits 0.
+nice -n 10 "$PY" -I -s -B work/analyze_startup.py
+nice -n 10 "$PY" -I -s -B work/check_phase_evidence_round2.py
+# Review metadata/frame probes; exit 0.
+nice -n 10 "$PY" -I -s -B work/review_round2_extra_probes.py "/scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T094926Z/combined"
+# Delivery contracts; each exits 0.
+nice -n 10 "$PY" -I -s -B work/test_review_round1_delivery.py -v
+nice -n 10 "$PY" -I -s -B work/test_review_round2_delivery.py -v
+# Replay final regression tests against reviewed source; exit 0 iff children fail as expected.
+nice -n 10 "$PY" -I -s -B work/replay_round2_before.py
+# Local behavior regressions after fixes; each exits 0.
+nice -n 10 "$PY" -I -s -B work/tree/tests/test_prepared_input_cache.py -v
+nice -n 10 "$PY" -I -s -B work/tree/tests/test_prepared_cache_wrapper.py -v
+TIMING_INPUT_C="/scratch/jjyeung/orch_n30/so_launch/in/tree/work/tree_r1/launch_s1/b/c.sh" nice -n 10 "$PY" -I -s -B work/tree/tests/test_launch_phase_timing.py -v

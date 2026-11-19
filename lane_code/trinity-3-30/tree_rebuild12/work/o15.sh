@@ -1,0 +1,1 @@
+export TZ=UTC; cat /tmp/n22c/listing.json; echo; ls -la /tmp/n22c; squeue -p preempt -h -t PD | wc -l; squeue -p general -o '%.10i %.12u %.22j %.8T %.10M %R' | head; ls /project/community/jjyeung/okh7/x_22c714e1/w/t

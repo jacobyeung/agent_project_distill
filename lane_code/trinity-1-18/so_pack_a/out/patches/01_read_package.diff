@@ -1,0 +1,1309 @@
+--- /dev/null
++++ b/out/CHECK_INVENTORY.md
+@@ -0,0 +1,53 @@
++# CPU and release check inventory
++
++The wrapper runs the implemented per-delivery gates below before it prints an executable release plan. The source harness and production-data gaps are listed explicitly; this delivery is not a complete production release certification. A missing local input fails this gate; it never moves that check to after placement. Local mirrors authenticate the same archive bytes and preserve the remote names through a path adapter. Fixture results establish the checker, not the availability of a production export.
++
++| Native source and check | Trinity, same bytes and inputs | Orchard dependency |
++|---|---|---|
++| `o_cpu_A3/A4/B4/B5.sh`, `o_cpu_D.sh`: fill status, no previous CPU receipt, `3.py check` | Run exact `3.py` under real `/usr/bin/python3` 3.6.8 with authenticated path mirrors; verify filled inputs | Actual package permissions, absence of prior job, part sizes and token directory must be rechecked on Orchard |
++| `3.py`, payload `8.py`, common/job: public/payload/plan/member hashes, registered dependency pins, export binding, input schema/types, time/GPU contract and opaque sbatch arguments | Yes; exact helpers plus independent archive checks | Actual `sbatch` submission |
++| `a/5.py` before staging: payload and member hashes, sequence bytes | Yes | Slurm job ID, node-local `/tmp` space and storage proof |
++| `job.stage`: authenticated archive parts, safe tar members, destination resolution, payload pins, all input file pins/sizes, env receipt, vnice/terminator pins and policy receipt | Yes when all bytes are mirrored locally; missing mirrors block release | Real staging/extraction into the allocated namespace, filesystem capacity and namespace support |
++| `a/5.py check_bundle_guard`: 3 bundle members, descriptor equality, operator equality, guarded 4 MiB pool write, operator unchanged | Yes; actual helper and process guard on local storage | Real return-pool access, quota and persistence |
++| `a/5.py dispatch_operator`: guard installed before write test before bootstrap/operator dispatch; guard target bytes, argv rewrite and operator hash | Yes, actual helper with a recording terminal dispatcher | Actual namespaced operator process in the staged job environment |
++| `a/6.py`: descriptors, item/type counts, settings, native preparation, worker arguments and selector rehearsal | Yes, exact payload and native CPU stub rehearsal; tensor threads capped at 8 | Real export restore, actual RGB files and installed job packages |
++| `a/6.py memory_bound`: fixed shapes, capture counts, allocation fit and too-small allocation rejection | Yes | Real resident memory during full staged reader |
++| `a/5.py validate_full_reader`: CPU read count, set/item/type, 32 frames, completion/EOS and score agreement | Exact validator and malformed synthetic receipt fixtures run locally; actual full-reader execution was not run | Producing the real FULL_READER receipt needs the export/RGBs/job venv, unavailable here; this could run on Trinity if identical inputs and environment were staged |
++| `o_sub_A4/B5/D.sh`: CPU receipt hashes, bundle/entry event order, 4 MiB evidence hash, memory equality, FULL_READER equality and per-package identities | Pure receipt predicates and script sealing run locally; generated receipt tests exercise conditions | Successful actual CPU allocation/receipt, sacct terminal state, general queue empty, actual return pool <=75 MB, duplicate submit marker |
++| `dry2.py`, `dry2b.py`: payload/member/bundle checks, export pins, prep members/hashes, binding, archive0, policy and environment resolution, settings/operator/types/items/memory, submit job name | Yes; covered by structure, fill, archive resolver, logic and guard gates | None beyond availability of authenticated mirrors |
++| `dryres.py`, `dryres2.py`, `dryres_d.py`: ordered parts, tar headers, unique regular member resolution, sizes, policy authorization, preserved base slots and appended prep tar | Yes; resolver checks stronger full file hashes as well | No extra dependency |
++| `check_release_d.py`: embedded assets equal source, 200/544 deliveries/pins, metadata, compile, walltime rejection, dry header fixture, wrong reused part rejection | Source/embedded equality is a required per-delivery gate. The complete unchanged checker runs separately with W redirected locally; raw input fails, coherent fixture passes | None |
++| `run_release_gates.py`: release package, bundle guard, operator sequence, memory, return/stop, CPU helper and room pair/labels | Package helper assertions run separately. Referenced test_sequence, test_operator_memory, test_fixes, test_cpu_helper, test_room_pair and test_room_pair_labels harness files were not supplied at the referenced release paths; their complete assertions are unverified | Full staged reader subset as above |
++| `BATCH.sh` EXIT capture and USR1 forwarding, `runner.run` stop marker/partial summary | Yes; execute exact wrapper with bounded failing child and exact native runner with a cooperative tiny child | Slurm delivering `--signal=B:USR1@1800`, scheduler teardown and real trainer-rank cooperation |
++| `o_cpu_B5.sh` extra trap-test submission | Shell block inventoried; reject its digit-leading job token and extra submission rather than silently use it | Separate five-minute Slurm job; not part of wrapper CPU submit |
++
++Inputs: `cont_ops17/work/o_cpu_*.sh`, `dry*.py`, `build_r5..r10.py`, `bundle0_*.py`; `cont_ops18/dbuild/check_release_d.py`, `o_cpu_D.sh`, `o_sub_D.sh`, `place_fill_d.py`; routed package `a/5.py`, `a/6.py`, payload `8.py` and `orchard_h10/{common,job,runner}.py`. The six event files were read by their supplied names. The B4 three-second root cause is unknown: the regression verifies readable failure capture, not a speculative repair. The trainer USR1 event is outside the read runner; the local signal test does not establish trainer-rank behavior.
++
++## Scope of the wrapper and source-regression evidence
++
++`pack.py check` invokes `logic`, `guard`, `trap`, `stop`, `login`, `fill` and `receipt` on the built package, then validates every generated phase script. The source release harnesses `check_release_d.py` and `run_release_gates.py` are not launched by that per-delivery command. The probes cover the listed package hash, bundle, sequence, memory, input-selection, return/stop and CPU-receipt predicates. The missing routed harness tests are not claimed equivalent to those probes. D embedded/source equality is additionally required before local checks and before consuming a check receipt. The standalone `test_native.py` executes the exact D checker with its workspace redirected under this task directory.
++
++The raw supplied D source tree fails `check_release_d.py` because `score_d.py` differs from the copy embedded in `o_build_D.sh`. The additive token adapter preserves that same failure. A separately labelled coherent snapshot of the authenticated embedded assets passes the unchanged checker before and after adding the adapter. Thus raw-source release consistency remains a production prerequisite, and the wrapper rejects this supplied source before remote release. The tests do not claim that a synthetic export is the same input as a production export; production preflight requires authenticated mirrors of all actual bytes and fails when they are unavailable.
++
++## Predicate detail and limits
++
++All rows below are CPU predicates and can run on Trinity with the identical inputs. They do not intrinsically need Orchard. The native sources name them in `cont_ops17/work/dry2.py:16–96` and `dry2b.py:16–98`.
++
++| Predicate | Implemented gate or remaining limit |
++|---|---|
++| Payload SHA, every package file SHA, sequence equals a/6, plan SHA, every payload pin | `structure` |
++| Native export pin load and export binding run/step/member_directory/lineage/object | Native `a/4.py` and `3.py check` during isolated fill |
++| No optional inputs; selected type membership | `logic`; exact full-five and single-type order is required |
++| Preparation member set, every preparation hash/size, binding preparation hashes | Native fill plus `resolver` |
++| Archive0 equals authenticated export and REVIEWED_ARCHIVE_SHA256 | Native fill and entry check |
++| Exactly one a3 slot with vnice/terminator SHA, authorized policy and policy paths | Resolver requires exactly one full-SHA match to authenticated base policy slot 4, and policy/environment/scripts must resolve to that slot; full SHA equality strengthens the legacy prefix test |
++| Environment receipt presence and version report | Resolver proves presence and pins; installed job-version compatibility is deferred for missing environment |
++| Bundle inventory, descriptor, operator and temporary token | `structure` and exact native `check_bundle_guard` |
++| Selection rule, memo enabled/modules/verify IDs, rule in operator RULES | Exact applicable dry settings, empty verify IDs, rule membership and native rehearsal |
++| Descriptor count 636 for full-five or 134 for room package; item counts 150/36/150/150/150; selected type order | Exact native full-five (636), room (134) and D distance (580) constants, per-type counts, descriptor count and selected order; native rehearsal and manifest contract also run |
++| Fixed shape memory fits, basis and no SAM measurement | Native memory bound, too-small rejection and sealed submit receipt predicates |
++| Exact token in 2.json job argv | `privacy` after native entry check |
++
++The D submit receipt predicates (`cont_ops18/dbuild/o_sub_D.sh:16–50`) check: overall/bundle/entry pass flags; payload/plan/operator/input hashes; guard path/target/action; operator and batch hashes; entry events and unchanged operator; pool and token; integer 4 MiB size and 64 hexadecimal SHA; guard-target SHA; equality of guard and entry evidence; requested/dispatched argv; MEMORY file equality, fit, basis, module list and measurement flag; FULL_READER pass, native validator, exact item pairs/types, native memory equality, and FULL_READER file equality. `receipt` executes the selected native submit Python body on synthetic positive and corrupt receipts. That proves predicate wiring, not a real CPU run.
++
++The unavailable routed harnesses prevent a claim that *every* original source-harness assertion has been reproduced. All listed dry predicates applicable to the supported full-five, room and D distance families now run on the built bytes. Real full-reader/export/RGB checks also remain unrun because their production inputs are absent.
+--- /dev/null
++++ b/out/DEFECT_MATRIX.md
+@@ -0,0 +1,20 @@
++# Review and defect regression map
++
++| Review finding | Regression | Outcome |
++|---|---|---|
++| 1 | test_01_surface_scope_and_argv | Visible surfaces only; planted name, argv and environment rejected. Optional trap normalization removes literal head. |
++| 2 | test_02_all_checks_precede_transport; test_07b_native_source_drift_blocks_release | Implemented local gates and all phase scripts precede transport; raw D source drift blocks release. Native dry settings/order/counts and binding/policy-slot predicates have planted regressions in tests 16 and 17; missing harness inputs remain listed in the inventory. |
++| 3 | test_03_timeout_short_calls_and_state_machine | Every call is bounded; CPU submit and polling use separate calls. |
++| 4 | test_04_delivery_is_tested_tree; patch replay | Manifest binds the canonical tested sources and delivery bytes. |
++| 5 | test_05_adapt_cpu_identity_everywhere | Old job token disappears everywhere; foreign path/token and walltime rejected. |
++| 6 | test_06_defect1_real_rows_null | Nonzero real-package rows; null top-level frame count fails the actual probe. |
++| 7 | test_07_adapter_leaves_native_files_unchanged; test_native.py | Additive patch preserves sources. Raw native checker fails before and after on supplied scorer drift; coherent fixture passes both. Literal raw-tree pass remains unmet. |
++| 8 | test_08_real_python36_place_and_fill | Place, native fill and entry check run under real Python 3.6.8. |
++| 9 | test_09_defect2_isolated_import_gate; test_09b_defect3_fill_drops_env | Planted sibling import and native fill slot replacement fail their actual isolated probes. |
++| 10 | test_10_terminal_states_and_transport_failure | Failure states and transport failure stop; exactly three consecutive accounting errors stop. |
++| 11 | test_11_extra_terms_reach_path_argv_env | Extra terms reach paths, fill argv and native environment. |
++| 12 | test_12_transport_limit | Local transport stub receives stdin through pv 8,000,000 bytes/s; timeout kills a bounded stub without SSH. |
++| 13 | test_13_ledger_reuse_before_builder | Ledger reuse rejected before native builder call. |
++| 15 | test_15_orchard_contract_inventory | Live queue, pool, token, state, private-mode and signal limits documented. |
++
++Recorded defect 4 is planted into the encoded batch descriptor and detected by structure/old-identity gates. Defect 5 removes the EXIT trap and fails the exact shell-trap probe. Defect 6 breaks USR1 forwarding and the native read-runner stop handler and fails both probes. The B4 failure cause remains unknown, and the trainer-rank USR1 incident is not repaired by a read-runner test.
+--- /dev/null
++++ b/out/FRAMEWORK_SOURCES.md
+@@ -0,0 +1,11 @@
++# Framework behavior used by local checks
++
++The installed CPU package reports torch 2.11.0+cpu at `/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/version.py:4`; line 7 records git version `70d99e998b4955e0049d13a98d77ae1b14db1f45`.
++
++The wrapper sets eight CPU intraop threads before native tensor work. The installed definition documents this behavior at `torch/_torch_docs.py:9815` and the requirement to call it before eager/JIT/autograd work at line 9823. Official documentation: https://docs.pytorch.org/docs/2.11/generated/torch.set_num_threads.html.
++
++The native selector rehearsal creates a tensor of scores and zero-valued input, then asserts the selected index. It relies on `torch.tensor` copying supplied values (`torch/_torch_docs.py:9231`), `torch.zeros` returning zeros of the requested shape (`torch/_torch_docs.py:12145`), and `torch.argmax` returning the index of the maximum (`torch/_torch_docs.py:6787`; ties use the first maximum at line 6796). Official documentation: https://docs.pytorch.org/docs/2.11/generated/torch.tensor.html, https://docs.pytorch.org/docs/2.11/generated/torch.zeros.html, https://docs.pytorch.org/docs/2.11/generated/torch.argmax.html.
++
++The native selector uses `no_grad` during selection. Its installed implementation documents disabling gradient calculation, its thread-local scope and decorator use at `torch/autograd/grad_mode.py:21`–37. Official documentation: https://docs.pytorch.org/docs/2.11/generated/torch.no_grad.html. These CPU stub checks establish packaging and selector plumbing; they do not measure GPU execution or production memory use.
++
++All relative torch paths above are under `/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/`. The parent reviewer read these exact installed lines and checked the versioned official documentation during this task; no package was downloaded or installed.
+--- /dev/null
++++ b/out/NOTE_FOR_CONT_OPS.md
+@@ -0,0 +1,13 @@
++# Step-600 packaging
++
++`pack.py` calls the existing r10 or D builder, checks the resulting bytes on Trinity, and prints exact throttled, timeout-bounded ossh commands. Every action defaults OFF; pass `--enable`. Nothing here is armed or submitted.
++
++1. Copy the required native build inputs into a new local workspace. Pin the builder, every input and CPU/GPU script by SHA256 in the configuration. Provide a current read-only Trinity token ledger. For r10, KROOT must contain the original authenticated A/B deliveries and old A filled/base input files; the supplied mirror does not contain those original delivery archives. For D, use the actual items, binding and timing inputs. Use `pack_token.py --kind d|r10 --source ... --enable-token --token {token} -- ...` as the configured builder. The adapter calls native builder code and changes only the token mint when explicitly enabled.
++2. Supply step-600 export/preparation pins and local mirrors for every remote part, dependency archive, template group and bwrap file. Each mirror has `path`, `bytes` and `sha256`; remote names remain unchanged during the isolated dry fill. Set `max_read_bytes` to an explicitly authorized budget. The default is 1 GiB, so large inputs fail before unapproved reads. Obtain permission under the cluster IO rules before copying or checking large shared-storage inputs. Do not use fixture pins for a release.
++3. Set `normalize_wrapper: true` explicitly for r10/D batch wrappers. The native trap invokes `head`, which conflicts with the adopted literal argv substring rule. This switch changes only that invocation to `sed -n '1p'`, adds `umask 077` after Slurm directives, and reseals the manifest. Default OFF preserves the native delivery bytes. Source comments, stdin bodies and nested archive contents are not name-list surfaces; job comments, argv, environment values, workdirs and created paths are.
++4. Run `python -I -s -B pack.py build --enable --config CONFIG --token HEX`, then `check --enable --config CONFIG`. The check runs real login Python 3.6.8 place/fill/3.py paths, imports under isolation, nonzero frame-row checks, native planning/guard/receipt predicates, archive resolution, EXIT capture and USR1 tests. It also seals and checks all remote phase scripts before placement. A missing mirror, stale source hash, D embedded/source mismatch or changed package fails closed.
++5. `place` and `fill` print commands; `submit` additionally requires `--yes --token HEX`. `all --enable --config CONFIG --yes --token HEX` builds, checks and plans everything first. Add `--execute-remote` only in an authorized operational session. CPU submit returns promptly; Trinity polls at least 60 seconds apart. Every remote call has a maximum 300-second timeout and its stdin is throttled to 8,000,000 bytes/s. Three consecutive accounting errors stop polling; a transport failure stops immediately. Attempt markers forbid automatic retries after remote side effects.
++
++The example schema is `config_step600.example.json`; placeholders deliberately fail until replaced with reviewed paths and hashes. Local logs and BUILD/CHECK JSON files bind the delivery, exact tested file tree, configuration and checker source. Preserve them with the patch/source manifest. Refresh the ledger before each new build; Orchard also rejects an existing token directory atomically.
++
++The absent routed release-harness tests and production full-reader inputs remain unverified; complete those checks before treating a release as ready. This tool does not establish real GPU behavior, production memory, scheduler signal delivery, trainer-rank USR1 handling, queue priority or step-600 export availability. B4's unknown early-failure cause remains unknown; the trap makes a repeat readable. Native D reports a 19,595-second read budget and `budget_fits=false` for its four-hour fixture; the tool preserves that native result. The supplied D tree also contains a pre-existing scorer/embedded-script mismatch: run the native source generator in a reviewed workspace to create a coherent release before relying on `check_release_d.py`. Patch 02 adds files and does not alter that scorer or any native builder.
+--- /dev/null
++++ b/out/ORCHARD_ONLY_CHECKS.md
+@@ -0,0 +1,18 @@
++# Checks that still require Orchard
++
++The implemented local gates, including complete script planning and receipt predicates, must pass before place or fill can execute. Production readiness remains incomplete for the missing source harnesses and production inputs listed in CHECK_INVENTORY.md. A missing authenticated local mirror fails preflight. The wrapper does not substitute a CPU fixture for missing production bytes.
++
++| Check | Why Orchard is required | Failure evidence |
++|---|---|---|
++| Fresh token directory and real package modes | The Trinity ledger cannot establish Orchard storage state; atomic mkdir rejects a spent token | Bounded place call captures stderr and its exit code; no automatic retry |
++| Allocated node ID, node-local free space, filesystem/namespace and bwrap support | These depend on the allocated node and its mount policy | CPU stdout/stderr in a/4.log and a/4.err; local per-call logs retain the job ID |
++| Real node staging and namespace admission | These use allocated-node mounts and policy | Native CPU checks run before GPU submission; CPU.json is required |
++| Real pool write, quota and persistence | The local 4 MiB write test proves guard behavior, not community pool access | Native guard/entry receipt and pool errors; GPU BATCH capture |
++| CPU scheduling and sacct accounting | Trinity cannot emulate scheduler state or actual CPU completion | Submit and polling use separate timeout-bounded calls; logs preserve stdout/stderr. Only sacct exit 75 is retried, at most three consecutive errors, at least 60 seconds apart. Transport timeout/drop stops immediately |
++| General queue availability, duplicate GPU submission, real return-pool contents | These are live shared state | Native sealed GPU script checks them and fails before submission |
++| Slurm delivery of --signal=B:USR1@1800 to the batch shell | Local signals exercise the real wrapper and read runner, but not Slurm signal routing or scheduler teardown | BATCH EXIT trap preserves node line, exit status and last 60 log lines in a/x<job> |
++| Real GPU execution and production trainer-rank stop cooperation | No GPU or training task is run here; the read runner fixture does not prove trainer ranks honor a stop file | Native CPU receipts precede GPU work; returned journals and BATCH capture expose partial/failing runs |
++
++Python 3.6.8 is a Trinity check: the wrapper executes generated place code, the native fill helper and the native 3.py check under this node's real /usr/bin/python3 -I -s -B. Every generated Python body also compiles there. The production 3.12 job environment is unavailable here. Full-reader CPU execution, export restore and RGB validation could run on Trinity with the identical staged bytes and compatible environment. They are deferred for missing inputs, not intrinsically Orchard-only; synthetic receipts do not prove them.
++
++Every remote command includes timeout (maximum 300 seconds). CPU submission ends immediately; Trinity polls in short calls. The final GPU call checks COMPLETED and a nonempty CPU.json again after a 60-second interval, then runs all native receipt/queue/pool checks. No ssh session is held for the CPU wait. Local per-call JSON logs retain return code, stdout and stderr. A remote shell EXIT trap prints the phase exit code and source line; the GPU batch trap preserves the underlying failure text even before a result archive exists. The unexplained three-second B4 failure has no claimed root-cause repair.
+--- /dev/null
++++ b/out/PATCHES.md
+@@ -0,0 +1,9 @@
++# Patch layout and canonical source
++
++Apply both patches with `patch -p1` at the root corresponding to the read-only input mirror `/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30`, using a writable copy. Patch 01 adds the wrapper, probes, fixtures, regression runners and documentation. Patch 02 adds `pack_token.py` and its regression test beside each native r10/D builder. Neither patch edits a native source file or an embedded Orchard script.
++
++The top-level files in this delivery are canonical. The adapter copies in patch 02 have exactly the same bytes as the top-level adapter. `TOOL_SHA256.json` and `PATCH_VERIFIED.json` bind the delivered source set to a fresh patch application and the final test logs. Do not combine files from another package or revision.
++
++Run the tool tests under the specified CPU Python with `-I -s -B`. Run each additive adapter test under real `/usr/bin/python3 -I -s -B` from its applied native directory. `test_native.py --work FRESH_LOCAL_DIRECTORY` runs actual D builds, default-OFF byte equality and the unchanged native checker. The raw supplied D tree's pre-existing scorer mismatch is recorded explicitly; only the documented coherent embedded-assets fixture passes that checker. The adapter does not change this source mismatch.
++
++Production behavior requires `pack.py --enable`. Explicit tokens require the adapter's `--enable-token`. Wrapper normalization requires configuration `normalize_wrapper: true`. Their defaults preserve native code and archive bytes. The patches do not enable any running lane, arm an automatic submitter, change scheduler state or repair trainer signal handling.
+--- /dev/null
++++ b/out/config_step600.example.json
+@@ -0,0 +1,95 @@
++{
++  "builder": {
++    "argv": [
++      "--kind",
++      "d",
++      "--source",
++      "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/build_d.py",
++      "--enable-token",
++      "--token",
++      "{token}",
++      "--",
++      "{work}/stage",
++      "/REPLACE/1.tgz",
++      "REPLACE_SOURCE_SHA256",
++      "/REPLACE/items.json",
++      "/REPLACE/binding600.json",
++      "--timing",
++      "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/TIMING_D.json",
++      "--time",
++      "04:00:00"
++    ],
++    "env": {
++      "KROOT": "{work}/k"
++    },
++    "inputs": [
++      {
++        "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/build_d.py",
++        "sha256": "d7de5d78e21f5c2db45136cb0bad0b432c30dc22ccd098953903fcbc4b8c525d"
++      },
++      {
++        "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/build_support.py",
++        "sha256": "e9134b1a6bc20e36dea3afe23a7d5852bc32c24a97a8d44e513b8dbe75d08f7e"
++      },
++      {
++        "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/make_items_d.py",
++        "sha256": "d262861cbddd05a093425c26138ff89217f86a3bde68e5875e5bfb7ee463184b"
++      },
++      {
++        "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/TIMING_D.json",
++        "sha256": "8fd16b19f7558b93a29c8f5cd63f0440bb6e4886306ef7378ea2c95db0cdf74b"
++      }
++    ],
++    "key": "D",
++    "path": "/scratch/jjyeung/orch_n30/so_pack_a/pack_token.py",
++    "report": "{work}/stage/BUILD.json",
++    "sha256": "02eb8ca5e98402343fcadea608c4e43f4890322d6c7a117e7d95e9b662637559"
++  },
++  "fill": {
++    "config": "/project/community/jjyeung/okh7/eabcdef012345/7",
++    "data_receipt": "/project/community/jjyeung/okh7/eabcdef012345/9",
++    "done": "/project/community/jjyeung/okh7/eabcdef012345/5",
++    "lineage": "SFT",
++    "object": "q8/REPLACE_OPAQUE/REPLACE_OPAQUE_m600.tar",
++    "parts": [
++      "/project/community/jjyeung/okh7/eabcdef012345/0",
++      "/project/community/jjyeung/okh7/eabcdef012345/1",
++      "/project/community/jjyeung/okh7/eabcdef012345/2",
++      "/project/community/jjyeung/okh7/eabcdef012345/3"
++    ],
++    "receipt": "/project/community/jjyeung/okh7/eabcdef012345/8",
++    "step": 600
++  },
++  "forbidden_extra": [],
++  "ledger": "/REPLACE/CURRENT_TRINITY_LEDGER.jsonl",
++  "max_read_bytes": 1073741824,
++  "mirrors": {
++    "/REPLACE/REMOTE/PART": {
++      "bytes": 1,
++      "path": "/REPLACE/LOCAL/PART",
++      "sha256": "REPLACE_SHA256"
++    }
++  },
++  "normalize_wrapper": true,
++  "old_identities": [
++    "REPLACE_SOURCE_TOKEN",
++    "REPLACE_SOURCE_PAYLOAD_SHA",
++    "REPLACE_SOURCE_PLAN_SHA"
++  ],
++  "python": "/scratch/jjyeung/envs/p1cpu/bin/python",
++  "remote": {
++    "cpu": {
++      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu_D.sh",
++      "sha256": "94442c644c25bd021bb8671a7b5dd8701e3716d8f848a0a6ea5c127bec856016"
++    },
++    "cpu_wait": 14400,
++    "gpu": {
++      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_sub_D.sh",
++      "sha256": "7a31956dd113bd298d1a8e5d99ae8f0079d58534b4ddea43ff8e206d4cb933d8"
++    },
++    "ossh": "/REPLACE/ossh.sh",
++    "timeout": 300,
++    "walltime": "04:00:00"
++  },
++  "work": "/scratch/jjyeung/orch_n30/so_pack_a/work/REPLACE_FRESH_RUN"
++}
+--- /dev/null
++++ b/pack.py
+@@ -0,0 +1,293 @@
++"""Opt-in read-package preflight and bounded Orchard planner. Python 3.6."""
++import argparse, ast, base64, gzip, hashlib, io, json, os, re, resource, shlex, subprocess, sys, tarfile, time
++from pathlib import Path, PurePosixPath
++PREFIX='a15_cot_ap'
++ROOT='/project/community/jjyeung/okh7'
++PYTHON='/scratch/jjyeung/envs/p1cpu/bin/python'
++TERMS=tuple('split revsi vsibench scannet arkit distill qgen sam qwen h1 h10 head routing faithful devs1 g3t camera displacement rotation movement distance r0 scannetpp direction own room selector parity benchmark dataset model student_pilot e2e_reader evalpath carrier leg-s1 dev-s1 tower candidates_argmax perception_memo'.split())
++class Rejected(ValueError):pass
++def need(ok,msg):
++    if not ok:raise Rejected(msg)
++def digest(b):return hashlib.sha256(b).hexdigest()
++def canonical(v):return json.dumps(v,sort_keys=True,separators=(',',':')).encode()
++def read(p):return json.loads(Path(p).read_text())
++def write(p,v):
++    p=Path(p);p.parent.mkdir(parents=True,exist_ok=True,mode=0o700);p.write_text(json.dumps(v,sort_keys=True,indent=2)+'\n');p.chmod(0o600)
++def file_digest(p):
++    h=hashlib.sha256()
++    with Path(p).open('rb') as f:
++        for b in iter(lambda:f.read(1024**2),b''):h.update(b)
++    return h.hexdigest()
++def token(v):
++    need(isinstance(v,str) and re.fullmatch('[a-f][0-9a-f]{10,15}',v),'Invalid explicit token');return v
++def opaque(v,extra=()):
++    hits=[w for w in TERMS+tuple(extra) if w.lower() in str(v).lower()]
++    need(not hits,'Non-opaque surface %r: %s'%(v,','.join(hits)))
++def safe_name(n):
++    p=PurePosixPath(n);need(n and not p.is_absolute() and '..' not in p.parts and str(p)==n,'Unsafe member '+n)
++def untar(raw):
++    out={};total=0
++    with tarfile.open(fileobj=io.BytesIO(raw),mode='r:*') as t:
++        for m in t:
++            safe_name(m.name);need(m.isfile() and m.name not in out,'Unsafe/duplicate member '+m.name)
++            total+=m.size;need(total<=128*1024**2,'Metadata archive too large');out[m.name]=t.extractfile(m).read()
++    return out
++def tar_bytes(files):
++    buf=io.BytesIO()
++    with gzip.GzipFile(fileobj=buf,mode='wb',mtime=0) as gz:
++        with tarfile.open(fileobj=gz,mode='w') as t:
++            for n,b in sorted(files.items()):
++                safe_name(n);m=tarfile.TarInfo(n);m.size=len(b);m.mode=0o600;t.addfile(m,io.BytesIO(b))
++    return buf.getvalue()
++def extract(files,root):
++    root=Path(root);root.mkdir(parents=True,exist_ok=False,mode=0o700)
++    for n,b in files.items():
++        safe_name(n);p=root/n;p.parent.mkdir(parents=True,exist_ok=True,mode=0o700);p.write_bytes(b);p.chmod(0o600)
++    return root
++def package_files(p):
++    p=Path(p)
++    if p.is_file():return untar(p.read_bytes())
++    out={}
++    for f in sorted(p.rglob('*')):
++        need(not f.is_symlink(),'Package symlink')
++        if f.is_file():out[str(f.relative_to(p))]=f.read_bytes()
++    return out
++def bundle(batch):
++    lines=[s for s in batch.decode().splitlines() if s.startswith('b=bytes.fromhex(')]
++    need(len(lines)==1,'Expected one batch bundle');v=ast.parse(lines[0]).body[0].value
++    need(isinstance(v,ast.Call) and isinstance(v.func,ast.Attribute) and isinstance(v.func.value,ast.Name) and v.func.value.id=='bytes' and v.func.attr=='fromhex' and len(v.args)==1 and not v.keywords,'Invalid bundle encoding')
++    return untar(bytes.fromhex(ast.literal_eval(v.args[0])))
++def structure(package,c=None):
++    c=c or {};f=package_files(package);v=json.loads(f['0.json']);token(v['token']);m=json.loads(f['PACKAGE.json'])
++    need(f['CONFIG.json']==f['0.json'] and m['token']==v['token'],'Descriptor/token differs')
++    for n,h in m['files'].items():need(n in f and digest(f[n])==h,'Package pin differs: '+n)
++    need(digest(f['0.tgz'])==v['payload_sha256'] and len(f['0.tgz'])==v['payload_bytes'],'Payload pin differs')
++    pay=untar(f['0.tgz']);plan=json.loads(pay['9.json'])
++    need(plan['token']==v['token'] and digest(canonical(plan))==v['plan_sha256'],'Plan differs')
++    for n,pin in plan['payload_pins'].items():need(n in pay and digest(pay[n])==pin['sha256'] and len(pay[n])==pin['bytes'],'Payload member differs: '+n)
++    b=bundle(f['BATCH.sh']);need(set(b)=={'0.py','0.json','7.py'},'Bundle inventory differs');need(json.loads(b['0.json'])==v,'Bundle descriptor differs');need(b['7.py']==f['a/6.py'],'Bundle operator differs')
++    need(("'a'+j+%r"%v['token']).encode() in f['BATCH.sh'],'Temporary token differs')
++    for old in c.get('old_identities',[]):
++        need(old,'Empty identity')
++        for n,data in list(f.items())+list(pay.items())+list(b.items()):
++            need(old not in n and old.encode() not in data and old.encode().hex().encode() not in data,'Old identity in '+n)
++    for n in f:opaque(n,c.get('forbidden_extra',()))
++    return f,pay,v,plan
++def shell_lines(text):
++    until=None
++    for line in text.splitlines():
++        if until:
++            if line.strip()==until:until=None
++            continue
++        if line.lstrip().startswith('#') and not line.lstrip().startswith('#SBATCH'):continue
++        yield line
++        m=re.search(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z_0-9]*)['\"]?",line)
++        if m:until=m.group(1)
++    need(until is None,'Unterminated heredoc')
++def shell_privacy(text,extra=()):
++    for line in shell_lines(text):
++        line=line.replace('#SBATCH','')
++        try:words=shlex.split(line,comments=True)
++        except ValueError:words=[line]
++        for word in words:opaque(word,extra)
++        for name in re.findall(r'a15_cot_ap[0-9a-z]+',line):need(re.fullmatch(PREFIX+'[a-f][0-9a-f]{10,15}',name),'Invalid job name '+name)
++def privacy(p,c):
++    f,pay,v,plan=structure(p,c);extra=c.get('forbidden_extra',());shell_privacy(f['BATCH.sh'].decode(),extra)
++    opaque(ROOT+'/'+PREFIX+v['token'],extra);opaque(plan['pool'],extra)
++    need(b'umask 077\n' in f['BATCH.sh'],'Batch must set umask 077');need(b'mode=0o700' in f['BATCH.sh'],'Private job temporary directory missing')
++    if '2.json' in f:
++        receipt=json.loads(f['2.json'])
++        for arg in receipt.get('argv',[]):opaque(arg,extra)
++        names=[x.split('=',1)[1] for x in receipt.get('argv',[]) if x.startswith('--job-name=')]
++        need(names==[PREFIX+v['token']],'Checked job name differs')
++    return dict(names=len(f),scope='visible surfaces; sealed archive bytes excluded')
++def normalize_wrapper(f,enabled=False):
++    out=dict(f)
++    if not enabled:return out
++    t=out['BATCH.sh'].decode();need(t.count('head -n 1 "$L"')==1,'Unrecognized EXIT capture')
++    t=t.replace('head -n 1 "$L"',"sed -n '1p' \"$L\"")
++    if 'umask 077\n' not in t:t=t.replace('set -uo pipefail\n','set -uo pipefail\numask 077\n',1)
++    out['BATCH.sh']=t.encode();m=json.loads(out['PACKAGE.json']);m['files']['BATCH.sh']=digest(out['BATCH.sh']);out['PACKAGE.json']=(json.dumps(m,sort_keys=True,indent=2)+'\n').encode();return out
++def environment(root):
++    return dict(PATH='/usr/local/bin:/usr/bin:/bin',HOME=str(root),USER='jjyeung',CUDA_VISIBLE_DEVICES='',PYTHONDONTWRITEBYTECODE='1',OMP_NUM_THREADS='8',MKL_NUM_THREADS='8',OPENBLAS_NUM_THREADS='8',TOKENIZERS_PARALLELISM='false',TMPDIR=str(root),XDG_CACHE_HOME=str(root/'0'))
++def run(argv,cwd,log,env=None,seconds=180):
++    with Path(log).open('wb') as out:r=subprocess.run(['nice','-n','10']+list(argv),cwd=str(cwd),env=env or environment(Path(cwd)),stdout=out,stderr=subprocess.STDOUT,timeout=seconds)
++    need(r.returncode==0,'Command failed (%s); see %s'%(r.returncode,log))
++def fingerprint(f):return digest(canonical({n:digest(b) for n,b in f.items()}))
++def source_fingerprint():return {n:file_digest(Path(__file__).parent/n) for n in ('pack.py','pack_checks.py')}
++def limits():
++    resource.setrlimit(resource.RLIMIT_AS,(28*1024**3,28*1024**3))
++    if hasattr(os,'sched_getaffinity'):os.sched_setaffinity(0,set(sorted(os.sched_getaffinity(0))[:8]))
++def probe(mode,p,w,c):
++    w=Path(w);w.mkdir(parents=True,exist_ok=False,mode=0o700);write(w/'0.json',c)
++    py='/usr/bin/python3' if mode in ('login','fill') else c.get('python',PYTHON)
++    run([py,'-I','-s','-B',str(Path(__file__).with_name('pack_checks.py')),mode,str(p),str(w),str(w/'0.json')],w,w/'0.log',seconds=c.get('check_timeout',240));return read(w/'1.json')
++def source_preflight(c):
++    """Apply the native D embedded-asset equality before any release operation."""
++    spec=c.get('builder')
++    if not spec:return {'fixture_only':True}
++    argv=spec['argv'];source=Path(argv[argv.index('--source')+1]) if '--source' in argv else Path(spec['path'])
++    pins={str(source):file_digest(source)}
++    for pin in spec.get('inputs',[]):
++        need(file_digest(pin['path'])==pin['sha256'],'Builder input differs');pins[pin['path']]=pin['sha256']
++    need(file_digest(spec['path'])==spec['sha256'],'Builder hash differs')
++    if source.name=='build_d.py':
++        here=source.parent;script=here/'o_build_D.sh';checker=here/'check_release_d.py'
++        pins[str(script)]=file_digest(script);pins[str(checker)]=file_digest(checker)
++        assets=ast.literal_eval(next(l for l in script.read_text().splitlines() if l.startswith('assets = ')).split('=',1)[1])
++        native=argv[argv.index('--')+1:] if '--' in argv else argv
++        need(len(native)>=5,'Native D inputs absent');items=Path(native[3])
++        for name,asset in assets.items():
++            raw=gzip.decompress(base64.b64decode(asset['data']));need(digest(raw)==asset['sha256'],'Native embedded hash differs: '+name)
++            path=items if name=='items/dist580.json' else here/('build_d.py' if name=='b.py' else name)
++            need(raw==path.read_bytes(),'Native source differs from embedded asset: '+name);pins[str(path)]=file_digest(path)
++        return dict(kind='d',assets=len(assets),pins=pins)
++    return dict(kind=source.name,pins=pins)
++def local_check(c,p,w):
++    w=Path(w);w.mkdir(parents=True,exist_ok=False,mode=0o700);f,_,v,_=structure(p,c);r={'source':source_preflight(c),'privacy':privacy(p,c)}
++    for mode in ('logic','guard','trap','stop','login','fill','receipt'):r[mode]=probe(mode,p,w/mode,c)
++    result=dict(passed=True,token=v['token'],tree=fingerprint(f),checker=source_fingerprint(),config=digest(canonical(c)),checks=r);write(w/'CHECK.json',result);return result
++def ledger_check(c,tok):
++    token(tok);p=Path(c['ledger']);need(p.is_file(),'Trinity token ledger missing');need(tok not in p.read_text(),'Token already appears in Trinity ledger');return file_digest(p)
++def state_root(c):
++    p=Path(c['work']).resolve();p.mkdir(parents=True,exist_ok=True,mode=0o700);return p
++def build(c,explicit):
++    tok=token(explicit);ledger=ledger_check(c,tok);w=state_root(c);need(not (w/'BUILD.json').exists(),'Build state exists');s=c['builder'];path=Path(s['path']);need(file_digest(path)==s['sha256'],'Builder hash differs')
++    for pin in s.get('inputs',[]):need(file_digest(pin['path'])==pin['sha256'],'Builder input differs')
++    cwd=w/'b';cwd.mkdir(mode=0o700);env=environment(cwd);env.update({k:str(v).replace('{work}',str(cwd)) for k,v in s.get('env',{}).items()});env.pop('SO_PACK_EXPLICIT_TOKEN',None);env.pop('SO_PACK_TOKEN',None)
++    args=[str(x).replace('{work}',str(cwd)).replace('{token}',tok) for x in s['argv']]
++    run([c.get('python',PYTHON),'-I','-s','-B',str(path)]+args,cwd,w/'build.log',env,c.get('build_timeout',300))
++    r=read(s['report'].replace('{work}',str(cwd)))[s.get('key','D')];need(r['token']==tok,'Builder token differs');d=Path(r['delivery_dir'])/'1.tgz';need(file_digest(d)==r['delivery_sha256'],'Builder delivery differs')
++    original=d.read_bytes();f=normalize_wrapper(untar(original),c.get('normalize_wrapper',False));p=extract(f,w/'p');structure(p,c);d=w/'1.tgz';d.write_bytes(tar_bytes(f) if c.get('normalize_wrapper',False) else original);d.chmod(0o600)
++    b=dict(token=tok,package=str(p),delivery=str(d),sha256=file_digest(d),tree=fingerprint(f),ledger_sha256=ledger,native_report=str(Path(s['report'].replace('{work}',str(cwd)))),native_budget_fits=r.get('budget_fits'),native_budget_gpu_seconds=r.get('budget_gpu_seconds'));write(w/'BUILD.json',b);return b
++def built(c):
++    b=read(state_root(c)/'BUILD.json');token(b['token']);need(file_digest(b['delivery'])==b['sha256'] and fingerprint(package_files(b['package']))==b['tree'],'Built bytes changed');need(untar(Path(b['delivery']).read_bytes())==package_files(b['package']),'Delivery differs from tested tree');return b
++def checked(c):
++    b=built(c);v=read(state_root(c)/'CHECK.json');need(v['checks']['source']==source_preflight(c),'Native source context changed');need(v['passed'] and v['tree']==b['tree'] and v['checker']==source_fingerprint() and v['config']==digest(canonical(c)),'Stale or missing local checks');return b
++HEADER='''#!/bin/bash
++set -euo pipefail
++umask 077
++export PATH=/usr/local/bin:/usr/bin:/bin HOME=/tmp USER=jjyeung CUDA_VISIBLE_DEVICES=
++trap 'rc=$?; if [ "$rc" != 0 ]; then printf "phase exit %s line %s\\n" "$rc" "$LINENO" >&2; fi' EXIT
++'''
++def python_block(code):return "/usr/bin/python3 -I -s -B - <<'PYCODE'\n"+code+"\nPYCODE\n"
++def remote_path(b):return ROOT+'/'+PREFIX+token(b['token'])
++def place_code(b):
++    return '''import hashlib,io,os,tarfile
++from pathlib import Path
++os.umask(0o077)
++p=Path(%r);raw=bytes.fromhex(%r)
++assert hashlib.sha256(raw).hexdigest()==%r
++p.mkdir(mode=0o700)
++with tarfile.open(fileobj=io.BytesIO(raw)) as t:
++    seen=set()
++    for m in t:
++        q=Path(m.name)
++        assert m.isfile() and not q.is_absolute() and '..' not in q.parts and m.name not in seen
++        seen.add(m.name);f=p/q;f.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
++        with f.open('xb') as out:out.write(t.extractfile(m).read())
++        f.chmod(0o600)
++(p/'a').chmod(0o700)
++print('placed')
++'''%(remote_path(b),Path(b['delivery']).read_bytes().hex(),b['sha256'])
++def fill_argv(c,p):
++    f=c['fill'];argv=['/usr/bin/python3','-I','-s','-B',p+'/a/4.py','--parts']+f['parts']
++    for k in ('done','object','config','receipt','data_receipt','lineage','step'):argv+=['--'+k.replace('_','-'),str(f[k])]
++    for k,n in (('out','a/export.json'),('prep-tar','a/6'),('base-inputs','a/0.json'),('inputs-out','a/1.json')):argv+=['--'+k,p+'/'+n]
++    for arg in argv:opaque(arg,c.get('forbidden_extra',()))
++    return argv
++def shell_join(a):return ' '.join(shlex.quote(str(x)) for x in a)
++def adapted_script(c,key,p,package=None):
++    s=c['remote'][key];path=Path(s['path']);need(file_digest(path)==s['sha256'],'Sealed script hash differs: '+key);text=path.read_text();old=s.get('old_token')
++    if old:
++        token(old);need(s.get('adapt_token') is True,'Explicit adaptation required');text=text.replace(PREFIX+old,Path(p).name);need(old not in text,'Old script token survived')
++    need(all(x.strip('"\'')==p for x in re.findall(r'^(?:export )?P=([^;\n]+)',text,re.M)),'Fixed package path differs')
++    for literal in re.findall(PREFIX+r'([a-f0-9]{11,16})(?![a-f0-9])',text):need(literal==Path(p).name[len(PREFIX):],'Foreign job/package token in script')
++    text='P='+shlex.quote(p)+'\nT='+shlex.quote(c['remote']['walltime'])+'\n'+text;shell_privacy(text,c.get('forbidden_extra',()))
++    need('3.py check' in text,'Native entry check absent')
++    for line in shell_lines(text):
++        if '3.py check' in line or '3.py submit' in line:
++            need('--gpus 1' in line,'Native GPU count differs')
++            times=re.findall(r'--time\s+["\']?([0-9]{2}:[0-9]{2}:[0-9]{2}|\$T)',line)
++            need(times and all(t in ('$T',c['remote']['walltime']) for t in times),'Native walltime differs')
++    if key=='cpu':need(text.count('sbatch --parsable')==1 and 'a/5.py' in text and 'a/4.txt' in text,'CPU script differs')
++    else:
++        for m in ('bundle_guard_passed','entry_sequence_passed','MEMORY.json','3.py submit','a/8.txt'):need(m in text,'Native GPU gate absent: '+m)
++        if package and b'def validate_full_reader' in (Path(package)/'a/5.py').read_bytes():need('full_reader_passed' in text,'Native full reader gate absent')
++    return text
++def heredocs(text):
++    out=[];end=None;lines=[];python=False
++    for line in text.splitlines():
++        if end:
++            if line.strip()==end:
++                if python:out.append('\n'.join(lines)+'\n')
++                end=None;lines=[]
++            else:lines.append(line)
++        else:
++            m=re.search(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z_0-9]*)['\"]?",line)
++            if m:end=m.group(1);python='python' in line
++    return out
++def plan(c,b):
++    p=remote_path(b);opaque(p,c.get('forbidden_extra',()));check=shell_join(['/usr/bin/python3','-I','-s','-B','3.py','check','--gpus','1','--time',c['remote']['walltime']])
++    scripts=dict(place=HEADER+python_block(place_code(b)),fill=HEADER+shell_join(fill_argv(c,p))+'\ncd '+shlex.quote(p)+'\n'+check+'\nprintf "0\\n" > a/1.txt\n',cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
++    job='P='+p+'\nJ=$(cat "$P/a/4.txt")\n[[ "$J" =~ ^[0-9]+$ ]]\n'
++    scripts['poll']=HEADER+job+'if ! sacct -n -X -j "$J" -o State --parsable2; then printf "accounting unavailable for %s\\n" "$J" >&2; exit 75; fi\n'
++    scripts['gpu']=HEADER+job+'S=$(sacct -n -X -j "$J" -o State --parsable2)\n[[ "${S%%|*}" = COMPLETED ]]\ntest -s "$P/a/c/CPU.json"\n'+adapted_script(c,'gpu',p,b['package'])
++    w=state_root(c)/'commands';w.mkdir(exist_ok=True,mode=0o700)
++    for k,text in scripts.items():
++        shell_privacy(text,c.get('forbidden_extra',()));f=w/(k+'.sh');f.write_text(text);f.chmod(0o600);run(['bash','-n',str(f)],w,w/(k+'.log'))
++        for i,body in enumerate(heredocs(text)):
++            src=w/(k+str(i)+'.py');src.write_text(body);run(['/usr/bin/python3','-I','-s','-B','-c','import sys;compile(open(sys.argv[1],"rb").read(),sys.argv[1],"exec")',str(src)],w,w/(k+str(i)+'.log'))
++    return {k:str(w/(k+'.sh')) for k in scripts}
++def command(c,script):
++    secs=int(c['remote'].get('timeout',300));need(1<=secs<=300,'Remote timeout must be 1..300');ossh=c['remote']['ossh'];need(Path(ossh).is_absolute(),'ossh must be absolute')
++    return 'pv -q -L 8000000 '+shlex.quote(script)+' | timeout '+str(secs)+' bash '+shlex.quote(ossh)+' '+shlex.quote('env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=/tmp USER=jjyeung bash -s')
++def poll_state(text):
++    states=[s.strip().split('|')[0].split()[0].split('+')[0] for s in text.splitlines() if s.strip()]
++    if not states:return 'wait'
++    need(len(states)==1,'Ambiguous accounting state')
++    if states[0]=='COMPLETED':return 'complete'
++    if states[0] in ('PENDING','RUNNING','CONFIGURING','COMPLETING'):return 'wait'
++    raise Rejected('CPU job ended: '+states[0])
++def execute(c,scripts,phases,yes=False,explicit=None,call=None,sleeper=time.sleep):
++    b=checked(c)
++    if 'cpu' in phases or 'gpu' in phases:need(yes and explicit==b['token'],'Submit requires --yes and exact token')
++    def actual(k):
++        if k!='poll':
++            marker=state_root(c)/(k+'.attempt');need(not marker.exists(),'Already attempted '+k);marker.write_text(str(time.time()))
++        cmd=command(c,scripts[k]);print(cmd,flush=True)
++        log=state_root(c)/('call_'+k+'_'+str(time.time_ns() if hasattr(time,'time_ns') else int(time.time()*1000000))+'.json')
++        try:r=subprocess.run(['nice','-n','10','bash','-o','pipefail','-c',cmd],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=310,env=environment(state_root(c)))
++        except subprocess.TimeoutExpired as e:
++            write(log,dict(phase=k,timeout=True,stdout=(e.stdout or b'').decode(errors='replace'),stderr=(e.stderr or b'').decode(errors='replace')));raise
++        write(log,dict(phase=k,returncode=r.returncode,stdout=r.stdout.decode(errors='replace'),stderr=r.stderr.decode(errors='replace')));return r
++    invoke=call or actual
++    for phase in phases:
++        if phase=='gpu':
++            errors=0;deadline=time.monotonic()+int(c['remote'].get('cpu_wait',14400))
++            while True:
++                need(time.monotonic()<deadline,'CPU wait deadline exceeded');r=invoke('poll')
++                if r.returncode:
++                    need(r.returncode==75,'Poll transport failed; do not retry: '+r.stderr.decode(errors='replace'))
++                    errors+=1;need(errors<3,'Repeated sacct error: '+r.stderr.decode(errors='replace'))
++                else:
++                    errors=0
++                    if poll_state(r.stdout.decode())=='complete':
++                        sleeper(60);break
++                sleeper(60)
++        r=invoke(phase);need(r.returncode==0,'Remote '+phase+' failed: '+r.stderr.decode(errors='replace'))
++def main(argv=None):
++    p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('build','check','place','fill','submit','all'));p.add_argument('--config',required=True);p.add_argument('--enable',action='store_true');p.add_argument('--token');p.add_argument('--yes',action='store_true');p.add_argument('--execute-remote',action='store_true');a=p.parse_args(argv);need(a.enable,'Default OFF: pass --enable')
++    os.umask(0o077);limits();c=read(a.config);w=state_root(c)
++    if a.action in ('build','all'):print(json.dumps(build(c,a.token),sort_keys=True))
++    if a.action in ('check','all'):
++        b=built(c);r=local_check(c,b['package'],w/('c'+os.urandom(4).hex()));write(w/'CHECK.json',r);plan(c,b)
++    if a.action in ('place','fill','submit','all'):
++        b=checked(c);scripts=plan(c,b);phases={'place':['place'],'fill':['fill'],'submit':['cpu','gpu'],'all':['place','fill','cpu','gpu']}[a.action]
++        if a.action in ('submit','all'):need(a.yes and a.token==b['token'],'Submit requires --yes and exact token')
++        for phase in phases:print(command(c,scripts[phase]))
++        if a.execute_remote:execute(c,scripts,phases,a.yes,a.token)
++    return 0
++if __name__=='__main__':
++    try:sys.exit(main())
++    except (Rejected,KeyError,OSError,subprocess.TimeoutExpired) as e:print('REJECTED: '+str(e),file=sys.stderr);sys.exit(1)
+--- /dev/null
++++ b/pack_checks.py
+@@ -0,0 +1,371 @@
++"""Isolated probes; this file never starts a remote command."""
++import ast, builtins, copy, io, json, math, os, runpy, signal, subprocess, sys, tarfile, time
++from pathlib import Path
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++import pack as P
++
++def materialize(package,work):
++    f,pay,pub,plan=P.structure(package)
++    src=P.extract(pay,work/'s');sys.path[:0]=[str(src/'b'),str(src/'tree'),str(src)]
++    return f,pay,pub,plan,src
++
++def rows(value):
++    if isinstance(value,list):
++        for x in value:
++            for r in rows(x):yield r
++    elif isinstance(value,dict):
++        if 'student_input' in value or 'source_frame_indices' in value or ('frame_indices' in value and any(k in value for k in ('total_num_frames','fps','num_frames'))):yield value
++        else:
++            for x in value.values():
++                for r in rows(x):yield r
++
++def native_dry_predicates(base,plan,pay,op,desc,memory):
++    """Applicable dry2/dry2b predicates, with D's native 580-item contract."""
++    from collections import Counter
++    order=plan['order'];types=base.get('types',order)
++    P.need(not base.get('optional'),'Dry optional inputs')
++    if types==order:
++        family='full';name='items/devs1_routed.json';expected=636;indices=[3,0,1,2,4]
++        counts=dict(object_abs_distance=150,room_size_estimation=36,camera_displacement=150,camera_rotation=150,camera_movement_direction=150)
++    elif types==['room_size_estimation']:
++        family='room';name='items/room134.json';expected=134;indices=[4];counts={'room_size_estimation':134}
++    elif types==['object_abs_distance']:
++        family='distance';name='items/dist580.json';expected=580;indices=[3];counts={'object_abs_distance':580}
++    else:raise P.Rejected('Dry selected type order differs')
++    P.need(plan.get('stage1_select_rule')=='candidates_argmax' and plan.get('perception_memo')=='on' and plan.get('perception_memo_modules')==['g3t'] and plan.get('perception_memo_verify_ids',[])==[],'Dry settings differ')
++    P.need(plan['stage1_select_rule'] in op['RULES'],'Dry rule absent from RULES')
++    P.need(len(desc)==1 and desc[0]['types']==indices and desc[0]['expected']==expected,'Dry descriptor count/type order differs')
++    P.need(desc[0]['stage1_select_rule']=='candidates_argmax' and desc[0]['perception_memo']=='on','Dry descriptor settings differ')
++    P.need(memory['fits'] is True and memory['basis']=='fixed_g3t_shapes' and memory['sam_measurement_required'] is False,'Dry memory differs')
++    P.need(name in pay,'Dry full-reader manifest missing')
++    got=Counter(r['question_type'] for r in json.loads(pay[name])['items'])
++    P.need(sum(got.values())==expected and dict(got)==counts,'Dry per-type item counts differ')
++    return dict(family=family,expected=expected,types=indices,item_counts=dict(got))
++
++def dry_fill_identity(inputs,base,plan,pins,helper):
++    """Exact dry binding predicates and one authenticated policy archive slot."""
++    P.need(not inputs.get('optional') and inputs.get('types')==base.get('types'),'Dry filled selection differs')
++    binding=plan['export_binding']
++    P.need(all(pins.get(k)==binding[k] for k in ('run','step','member_directory','lineage','object')),'Dry export binding differs')
++    P.need(all(pins['preparation'][k]['sha256']==v for k,v in binding['preparation_sha256'].items()),'Dry preparation binding differs')
++    assignments={n.targets[0].id:ast.literal_eval(n.value) for n in ast.parse(helper).body if isinstance(n,ast.Assign) and len(n.targets)==1 and isinstance(n.targets[0],ast.Name) and n.targets[0].id=='REVIEWED_ARCHIVE_SHA256'}
++    P.need(pins.get('archive_sha256')==inputs['archives'][0]['sha256']==assignments['REVIEWED_ARCHIVE_SHA256'],'Dry archive0 differs')
++    # Full SHA equality is stronger than the dry harness's 05dc8f79 prefix.
++    # The authenticated base slot supplies the pin, including in rebound fixtures.
++    policy_sha=base['archives'][4]['sha256'];slots=[i for i,a in enumerate(inputs['archives']) if a['sha256']==policy_sha]
++    P.need(slots==[4],'Dry policy archive slot count differs');return 4
++
++def logic(package,w,c):
++    f,pay,pub,plan,src=materialize(package,w)
++    import torch
++    torch.set_num_threads(8)
++    data=[]
++    for n,b in pay.items():
++        if n.endswith('.json'):data.extend(rows(json.loads(b)))
++        if n.endswith('.jsonl'):
++            for line in b.decode().splitlines():
++                if line.strip():data.extend(rows(json.loads(line)))
++    for pin in c.get('row_files',[]):
++        P.need(P.file_digest(pin['path'])==pin['sha256'],'External rows differ')
++        for line in Path(pin['path']).read_text().splitlines():
++            if line.strip():data.extend(rows(json.loads(line)))
++    count=0
++    for r in data:
++        v=r.get('student_input',r);n=v.get('total_num_frames');fps=v.get('fps')
++        P.need(type(n) is int and n>0,'Frame row total_num_frames must be positive integer')
++        P.need(type(fps) in (float,int) and math.isfinite(fps) and fps>0,'Frame row fps must be positive finite')
++        indices=v.get('source_frame_indices',v.get('frame_indices'))
++        if indices is not None:P.need(indices and all(type(i) is int and 0<=i<n for i in indices),'Frame row indices differ')
++        if 'student_input' in r:
++            from student_pilot.carrier_c1_data import layout_inputs
++            layout_inputs(r,layout=plan.get('export_binding',{}).get('frame_layout','duplicate'))
++        count+=1
++    P.need(count>0 or c.get('no_rows') is True,'Zero frame rows checked; supply pinned row_files or explicit no_rows')
++    entries={'h1eval/h10/launch.py'}|set(c.get('isolated_entries',[]))
++    entries|={n for n in pay if Path(n).name=='worker.py' and '/tests/' not in '/'+n and not n.startswith('tree/')}
++    for i,n in enumerate(sorted(entries)):
++        P.safe_name(n);P.need(n in pay,'Missing isolated entry '+n)
++        code='import runpy,sys,torch;torch.set_num_threads(8);sys.path[:0]=sys.argv[2:];runpy.run_path(sys.argv[1],run_name="preflight_import")'
++        P.run([c.get('python',P.PYTHON),'-I','-s','-B','-c',code,str(src/n),str(src/'b'),str(src/'tree'),str(src)],w,w/('i%d.log'%i))
++    op=runpy.run_path(str(package/'a/6.py'));desc=op['descriptors'](str(src));memory=op['memory_bound']()
++    P.need(memory['fits'] and not op['memory_bound'](allocation_bytes=1)['fits'],'Memory bound differs')
++    from orchard_h10.common import ORDER
++    base=P.read(package/'a/0.json');types=base.get('types',list(ORDER))
++    P.need(not base.get('optional'),'Unexpected optional input')
++    P.need(set(ORDER[t] for d in desc for t in d['types'])==set(types),'Operator type mismatch')
++    dry=native_dry_predicates(base,plan,pay,op,desc,memory)
++    for d in desc:
++        for k in ('stage1_select_rule','perception_memo','perception_memo_modules'):P.need(d[k]==plan[k],'Operator setting differs: '+k)
++    settings={k:plan[k] for k in ('stage1_select_rule','perception_memo','perception_memo_modules')};settings.update(perception_memo_verify_ids=plan.get('perception_memo_verify_ids',[]),save_own_depth=False,types=types)
++    P.write(w/'2.json',settings)
++    cfg=dict(package=str(src),output=str(w/'r'),settings=str(w/'2.json'),plan_sha256=pub['plan_sha256'],inputs_sha256='0'*64,operator_sha256=P.digest(f['a/6.py']),python=sys.executable,export=str(w/'e'),binding=str(w/'b.json'),export_pin=str(w/'p.json'),device='cpu',prefix=[])
++    rehearsal=op['rehearsal'](cfg)
++    P.need(len(rehearsal)==len(desc) and all(r['expected']==desc[i]['expected'] for i,r in enumerate(rehearsal)),'Rehearsal counts differ')
++    from h1eval.items import load_manifest,read_contract
++    manifests=[]
++    for n,b in pay.items():
++        if n.startswith('items/') and n.endswith('.json') and json.loads(b).get('schema')=='h1-items-v1':load_manifest(src/n);manifests.append(n)
++    for r in rehearsal:
++        args=r['args'];m=load_manifest(args[args.index('--items')+1]);read_contract(m,args[args.index('--arms')+1].split(','),[{'name':x} for x in args[args.index('--modes')+1].split(',')],','.join(r['types']))
++        P.need(sum(1 for x in m['items'] if x['question_type'] in r['types'])==r['expected'],'Selected item count differs')
++    return dict(native_dry=dry,rows_checked=count,isolated_entries=sorted(entries),memory=memory,manifests=manifests,rehearsal=rehearsal)
++
++def guard(package,w,c):
++    f,pay,pub,plan,src=materialize(package,w)
++    from orchard_h10.common import install_process_guard, template
++    root=w/'a';root.mkdir(mode=0o700);(root/'a').mkdir(mode=0o700)
++    op=runpy.run_path(str(package/'a/5.py'))
++    # Execute the exact CPU helper environment assignments, including its
++    # removal of the template's forbidden sampler variable.
++    J=template()[1];os.environ['SLURM_JOB_ID']='123'
++    main_node=next(n for n in ast.parse(f['a/5.py']).body if isinstance(n,ast.FunctionDef) and n.name=='main')
++    env_nodes=[];collect=False
++    for n in main_node.body:
++        if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='env' for x in n.targets):collect=True;env_nodes.append(n)
++        elif collect and isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Attribute) and isinstance(n.value.func.value,ast.Name) and n.value.func.value.id=='env':env_nodes.append(n)
++        elif collect:break
++    P.need(env_nodes,'Native CPU environment assignments absent')
++    ns=dict(J=J,root=root,os=os);exec(compile(ast.Module(body=env_nodes,type_ignores=[]),'<native environment>','exec'),ns)
++    virtual='/tmp/a123'+pub['token']
++    for k,v in ns['env'].items():P.opaque(k+'='+str(v).replace(str(root),virtual),c.get('forbidden_extra',()))
++    for arg in J.namespace(root):P.opaque(str(arg).replace(str(root),virtual),c.get('forbidden_extra',()))
++    install_process_guard(root)
++    proof=op['check_bundle_guard'](package,root)
++    P.write(root/'a/1.json',dict(action=1,config={}))
++    calls=[]
++    def terminal(argv,**kw):calls.append(argv)
++    proof=op['dispatch_operator'](root,proof,[sys.executable,'-I','-s','-B',str(root/'a/5.py'),str(root/'a/1.json')],terminal)
++    P.need(len(calls)==1 and proof['events']==['guard_installed','write_test','operator_dispatch'],'Guard/dispatch order differs')
++    # Native guard must reject literal argv, environment values and cwd.
++    for args,kw in [(['/bin/echo','model'],{}),(['/bin/true'],{'env':{'A':'dataset'}}),(['/bin/true'],{'cwd':'/tmp/benchmark'})]:
++        try:subprocess.run(args,**kw)
++        except ValueError:pass
++        else:raise P.Rejected('Native guard accepted a forbidden surface')
++    return proof
++
++def trap(package,w,c):
++    text=(package/'BATCH.sh').read_text();P.need("<<'A' &\n" in text and '\nA\n' in text,'Missing background batch wrapper')
++    front,rest=text.split("<<'A' &\n",1);body,back=rest.rsplit('\nA\n',1)
++    P.need('trap fin EXIT' in front and 'USR1' in back,'Missing EXIT/USR1 trap')
++    remote=P.ROOT+'/'+P.PREFIX+P.read(package/'0.json')['token']
++    # Substitute only paths and the Python body; execute the actual shell traps.
++    front=front.replace(remote,str(w/'p')).replace('/tmp/a${SLURM_JOB_ID:-0}.l',str(w/'0.log'))
++    front=front.replace('$(nvidia-smi -L 2>/dev/null | wc -l)','0')
++    (w/'p/a').mkdir(parents=True,mode=0o700)
++    for label,child,expected,send in [('failure',"print('fixture traceback',flush=True)\nraise SystemExit(23)",23,False),('signal',"import signal,time\nfrom pathlib import Path\ndef stop(*a):\n Path(%r).write_text('slot');raise SystemExit(0)\nsignal.signal(signal.SIGUSR1,stop)\nPath(%r).write_text('ready')\ntime.sleep(10)"%(str(w/'slot'),str(w/'ready')),0,True)]:
++        script=w/(label+'.sh');script.write_text(front+"<<'A' &\n"+child+'\nA\n'+back)
++        env=P.environment(w);env['SLURM_JOB_ID']='123';p=subprocess.Popen(['bash',str(script)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
++        if send:
++            end=time.monotonic()+5
++            while not (w/'ready').exists() and p.poll() is None and time.monotonic()<end:time.sleep(.02)
++            P.need((w/'ready').exists(),'Signal child never ready');p.send_signal(signal.SIGUSR1)
++        out,err=p.communicate(timeout=15);P.need(p.returncode==expected,'Batch exit status differs')
++        capture=(w/'p/a/x123').read_text();P.need('node ' in capture and ('exit '+str(expected)) in capture,'EXIT diagnostics absent')
++        if not send:P.need('fixture traceback' in capture,'Traceback tail missing')
++        else:P.need((w/'slot').exists(),'USR1 not forwarded')
++    return dict(exit_status=23,diagnostics=True,usr1_forwarded=True)
++
++def stop(package,w,c):
++    f,pay,pub,plan,src=materialize(package,w)
++    import torch
++    torch.set_num_threads(8)
++    from orchard_h10 import runner
++    op=runpy.run_path(str(package/'a/6.py'));settings={k:plan[k] for k in ('stage1_select_rule','perception_memo','perception_memo_modules')};settings.update(perception_memo_verify_ids=[],save_own_depth=False);P.write(w/'2.json',settings)
++    cfg=dict(package=str(src),output=str(w/'r'),settings=str(w/'2.json'),plan_sha256=pub['plan_sha256'],inputs_sha256='0'*64,operator_sha256=P.digest(f['a/6.py']),python=sys.executable,export=str(w/'e'),binding=str(w/'b.json'),export_pin=str(w/'p.json'),device='cpu',prefix=[])
++    cfg=op['prepare'](cfg)[0];cfg.update(stop_margin=0,return_margin=0)
++    child=w/'1.py';child.write_text("import sys,time\nfrom pathlib import Path\ns=Path(sys.argv[1]);end=time.time()+3\nwhile not s.exists() and time.time()<end:time.sleep(.01)\nif s.exists():Path(sys.argv[2]).write_text('slot')\nraise SystemExit(0 if s.exists() else 9)\n")
++    def launch(argv,**kw):
++        # Only the decoder child is replaced; native commands, handlers and summary run.
++        p=subprocess.Popen([sys.executable,'-I','-s','-B',str(child),cfg['stop_file'],str(w/'slot')],**kw)
++        os.kill(os.getpid(),signal.SIGUSR1);return p
++    result=runner.run(cfg,['0'],time.time()+10,launcher=launch)
++    P.need((w/'slot').exists() and Path(cfg['stop_file']).exists() and result['stopped'] and not result['failure'],'Native stop handshake failed')
++    return dict(slot=True,summary=result,scope='read runner with cooperative tiny CPU child; trainer ranks not covered')
++
++class Mirrors:
++    """Map only declared absolute prefixes; keep virtual paths in native metadata."""
++    def __init__(self,mapping):self.mapping=sorted(((str(k),str(v)) for k,v in mapping.items()),key=lambda x:-len(x[0]));self.saved=[]
++    def path(self,p):
++        if isinstance(p,int):return p
++        s=os.fsdecode(p)
++        for old,new in self.mapping:
++            if s==old or s.startswith(old+'/'):return new+s[len(old):]
++        return p
++    def patch(self,obj,name):
++        original=getattr(obj,name)
++        def wrapped(path,*args,**kw):return original(self.path(path),*args,**kw)
++        self.saved.append((obj,name,original));setattr(obj,name,wrapped)
++    def __enter__(self):
++        for obj,name in [(builtins,'open'),(io,'open'),(tarfile,'bltn_open')]+[(os,n) for n in ('stat','lstat','mkdir','chmod','access','readlink','listdir','scandir')]:self.patch(obj,name)
++        # Python 3.6 pathlib binds os functions at import time.
++        if hasattr(Path,'_accessor'):
++            acc=Path()._accessor
++            for n in ('open','stat','lstat','mkdir','chmod','readlink','listdir','scandir'):
++                if hasattr(acc,n):self.patch(acc,n)
++        return self
++    def __exit__(self,*args):
++        for obj,name,value in reversed(self.saved):setattr(obj,name,value)
++
++def validate_mirrors(c):
++    total=0;mapping={}
++    for remote,spec in c.get('mirrors',{}).items():
++        P.opaque(remote,c.get('forbidden_extra',()));path=Path(spec['path']);P.need(path.is_file(),'Missing mirror: '+remote);size=path.stat().st_size;total+=size
++        P.need(total<=c.get('max_read_bytes',1024**3),'Mirrors exceed explicitly authorized read budget')
++        P.need(size==spec['bytes'] and P.file_digest(path)==spec['sha256'],'Mirror hash/size differs: '+remote);mapping[remote]=str(path)
++    return mapping
++
++def login(package,w,c):
++    P.need(sys.version_info[:3]==(3,6,8),'Require actual login Python 3.6.8')
++    f,pay,pub,plan=P.structure(package);sources={n:b for n,b in f.items() if n.endswith('.py')}
++    sources.update({n:b for n,b in pay.items() if n.startswith('orchard_h10/') and n.endswith('.py')});sources.update(P.bundle(f['BATCH.sh']))
++    for n,b in sources.items():
++        if n.endswith('.py'):compile(b,n,'exec')
++    raw=w/'1.tgz';raw.write_bytes(P.tar_bytes(f));b=dict(token=pub['token'],delivery=str(raw),sha256=P.file_digest(raw))
++    remote=P.remote_path(b);local=w/P.PREFIX if False else w/(P.PREFIX+pub['token'])
++    with Mirrors({remote:str(local)}):exec(compile(P.place_code(b),'place','exec'),{})
++    P.need(P.package_files(local)==f,'Generated place altered bytes')
++    P.need(local.stat().st_mode&0o777==0o700 and (local/'a').stat().st_mode&0o777==0o700,'Place directory modes differ')
++    P.need(all(x.stat().st_mode&0o777==0o600 for x in local.rglob('*') if x.is_file()),'Place file modes differ')
++    return dict(python=sys.version,generated_place_executed=True,compiled_sources=len(sources))
++
++def preserved(base,filled):
++    P.need(len(filled['archives'])==len(base['archives'])+1,'Fill must append preparation archive')
++    P.need(filled['archives'][1:-1]==base['archives'][1:],'Fill dropped or changed dependency/env archive')
++    P.need(filled.get('types')==base.get('types') and not filled.get('optional'),'Fill changed type/optional selection')
++
++def resolve_inputs(inputs,base,cfg,c,mapping,remote,local):
++    from orchard_h10.job import check_inputs
++    from orchard_h10.export_pins import load
++    with Mirrors(dict(mapping,**{remote:str(local)})):
++        check_inputs(inputs,cfg,package=Path(remote));pins=load(inputs,Path(remote))
++    preserved(base,inputs)
++    policy_slot=dry_fill_identity(inputs,base,cfg,pins,(local/'a/4.py').read_text())
++    owners={};total=0
++    def mapped(path):
++        if path.startswith(remote+'/'):return str(local)+path[len(remote):]
++        P.need(path in mapping,'Missing archive mirror '+path);return mapping[path]
++    for index,a in enumerate(inputs['archives']):
++        parts=[];h=__import__('hashlib').sha256()
++        for spec in a['parts']:
++            path=mapped(spec['path']);P.need(Path(path).stat().st_size==spec['bytes'] and P.file_digest(path)==spec['sha256'],'Archive part pin differs')
++            with open(path,'rb') as stream:
++                for block in iter(lambda:stream.read(1024**2),b''):h.update(block)
++            parts.append(path)
++        P.need(h.hexdigest()==a['sha256'],'Whole archive pin differs')
++        # Sequential multipart reader uses bounded reads and no joined disk copy.
++        class Stream:
++            def __init__(self):self.i=0;self.f=open(parts[0],'rb')
++            def read(self,n):
++                out=[]
++                while n and self.i<len(parts):
++                    b=self.f.read(n);out.append(b);n-=len(b)
++                    if not b:
++                        self.f.close();self.i+=1
++                        if self.i<len(parts):self.f=open(parts[self.i],'rb')
++                return b''.join(out)
++            def close(self):self.f.close()
++        stream=Stream()
++        try:
++            with tarfile.open(fileobj=stream,mode='r|*') as t:
++                seen=set()
++                for m in t:
++                    name=m.name
++                    while name.startswith('./'):name=name[2:]
++                    name=name.rstrip('/')
++                    if not name:continue
++                    P.safe_name(name);P.need(name not in seen,'Duplicate archive member');seen.add(name)
++                    P.need(m.isfile() or m.isdir(),'Archive link/special member')
++                    if m.isdir():continue
++                    logical=str(Path('/scratch/jjyeung')/Path(a['destination']).relative_to('sj')/name)
++                    P.need(logical not in owners,'Duplicate logical member '+logical)
++                    hh=__import__('hashlib').sha256();small=[]
++                    with t.extractfile(m) as f:
++                        for block in iter(lambda:f.read(1024**2),b''):
++                            hh.update(block)
++                            if m.size<=4*1024**2:small.append(block)
++                    owners[logical]=(m.size,hh.hexdigest(),b''.join(small),index)
++        finally:stream.close()
++    for name,pin in inputs['files'].items():
++        P.need(pin['path'] in owners,'Unresolved input '+name);size,h,_,_=owners[pin['path']];P.need(size==pin['bytes'] and h==pin['sha256'],'Input member differs '+name)
++    for key in ('python','frames_root','sam_source'):
++        target=inputs[key];P.need(target in owners or any(n.startswith(target+'/') for n in owners),'Unresolved '+key)
++    policy_paths=[inputs['files'][inputs[k]]['path'] for k in ('policy_receipt','environment_receipt')]+list(inputs['policy'].values())
++    P.need(all(owners[n][3]==policy_slot for n in policy_paths),'Policy/environment archive membership differs')
++    policy=json.loads(owners[inputs['files'][inputs['policy_receipt']]['path']][2]);P.need(policy.get('authorized') is True and all(policy.get(k)==inputs['policy'][k] for k in ('vnice','terminator')),'Policy authorization differs')
++    assets=json.loads(P.untar((local/'0.tgz').read_bytes())['orchard_h10/vendor/ORCHARD_ASSETS.json'])
++    for key in ('vnice','terminator'):P.need(owners[inputs['policy'][key]][1]==assets[key+'_sha256'],'Policy executable differs')
++    prep=P.untar((local/'a/6').read_bytes());want={v['path']:v for v in pins['preparation'].values()};P.need(set(prep)==set(want),'Preparation inventory differs')
++    for n,s in want.items():P.need(P.digest(prep[n])==s['sha256'] and len(prep[n])==s['bytes'],'Preparation member differs')
++    return dict(policy_archive_slot=policy_slot,dry_binding_passed=True,archives=len(inputs['archives']),members=len(owners),environment_resolved=inputs['files'][inputs['environment_receipt']]['path'] in owners)
++
++def fill(package,w,c):
++    P.need(sys.version_info[:3]==(3,6,8),'Require actual login Python 3.6.8')
++    mapping=validate_mirrors(c);f,pay,pub,plan=P.structure(package);remote=P.ROOT+'/'+P.PREFIX+pub['token'];local=P.extract(f,w/(P.PREFIX+pub['token']))
++    assets=json.loads(pay['orchard_h10/vendor/ORCHARD_ASSETS.json'])
++    required=[dict(path=p,bytes=n,sha256=h) for group in assets['groups'] for p,n,h in group]+[assets['bwrap_pin']]
++    for pin in required:
++        P.need(pin['path'] in mapping,'Missing template/bwrap mirror '+pin['path'])
++        P.need(c['mirrors'][pin['path']]['sha256']==pin['sha256'] and c['mirrors'][pin['path']]['bytes']==pin['bytes'],'Template/bwrap pin differs')
++    argv=P.fill_argv(c,remote);saved=sys.argv[:]
++    try:
++        with Mirrors(dict(mapping,**{remote:str(local)})):
++            sys.argv=argv[4:];runpy.run_path(remote+'/a/4.py',run_name='__main__')
++            filled=P.read(local/'a/1.json');base=P.read(local/'a/0.json');preserved(base,filled)
++            sys.argv=[remote+'/3.py','check','--gpus','1','--time',c['remote']['walltime']]
++            runpy.run_path(remote+'/3.py',run_name='__main__')
++            from orchard_h10.common import read_config
++            cfg=read_config(local)
++        resolution=resolve_inputs(filled,base,cfg,c,mapping,remote,local)
++    finally:sys.argv=saved
++    P.privacy(local,c)
++    return dict(python=sys.version,fill_executed=True,entry_check_executed=True,resolution=resolution)
++
++def receipt(package,w,c):
++    """Run the sealed submit receipt predicate on exact native CPU writer output."""
++    f,pay,pub,plan=P.structure(package);local=P.extract(f,w/'p');root=w/'a';root.mkdir(mode=0o700)
++    script=P.adapted_script(c,'gpu',P.ROOT+'/'+P.PREFIX+pub['token'],package)
++    code=P.heredocs(script)[0];tree=ast.parse(code)
++    pairs=[]
++    for n in ast.walk(tree):
++        if isinstance(n,ast.Compare) and isinstance(n.left,ast.ListComp):
++            try:value=ast.literal_eval(n.comparators[0])
++            except (ValueError,TypeError):continue
++            if isinstance(value,list) and value and isinstance(value[0],tuple):pairs=value
++    types=P.read(package/'a/0.json').get('types',[])
++    records=[dict(passed=True,set=name,item=item,frames=['0'*64]*32,record=dict(id=item,complete=True,type=types[0],output=dict(finish='eos',scores=dict(answer=.5))),official_score=dict(parse_failed=False,score=.5)) for name,item in pairs]
++    full=dict(passed=True,device='cpu',records=records)
++    requested=['/usr/bin/python3','-I',str(root/'a/5.py'),str(root/'a/1.json')]
++    g=dict(passed=True,operator_sha256=P.digest(f['a/6.py']),operator_sha256_before=P.digest(f['a/6.py']),operator_sha256_after=P.digest(f['a/6.py']),write_test=dict(bytes=4*1024**2,sha256=P.digest(b'fixture')),pool=str(root/'wpool'),token=pub['token'],guard_target_sha256=P.digest(pay['orchard_h10/vendor/return_io.py']),batch_sha256=P.digest(f['BATCH.sh']),path='7.py',guard_target='6.py',action='test',events=['guard_installed','write_test','operator_dispatch'],requested_argv=requested,dispatched_argv=requested[:-2]+[str(root/'7.py'),str(root/'a/1.json')])
++    memory=runpy.run_path(str(package/'a/6.py'))['memory_bound']()
++    cpu_tree=ast.parse(f['a/5.py']);node=next(n for n in ast.walk(cpu_tree) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='write' and n.args and isinstance(n.args[0],ast.BinOp) and isinstance(n.args[0].right,ast.Constant) and n.args[0].right.value=='CPU.json')
++    value=eval(compile(ast.Expression(node.args[1]),'<native CPU receipt>','eval'),dict(entry_sequence=dict(g,entry_sequence_passed=True),bundle_guard=g,full=full,memory=memory,cfg=pub,sha=P.file_digest,package=local,sequence=local/'a/6.py',proof={'fixture':True},ready={'fixture':True},root=root))
++    def check(v,label,expect):
++        P.write(local/'a/c/CPU.json',v);P.write(local/'a/c/MEMORY.json',v['memory'])
++        if 'full_reader' in v:P.write(local/'a/c/FULL_READER.json',v['full_reader'])
++        r=subprocess.run(['/usr/bin/python3','-I','-s','-B','-',str(local)],input=code.encode(),stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=P.environment(w),timeout=30)
++        (w/(label+'.log')).write_bytes(r.stdout+r.stderr);P.need((r.returncode==0)==expect,'Native receipt predicate differs: '+label)
++    validator=next((n for n in cpu_tree.body if isinstance(n,ast.FunctionDef) and n.name=='validate_full_reader'),None)
++    validator_cases=0
++    if validator is not None:
++        ns={};exec(compile(ast.Module(body=[validator],type_ignores=[]),'<native full reader validator>','exec'),ns)
++        validate=ns['validate_full_reader'];P.need(validate([{'full_reader':full}])==full,'Native reader validator differs')
++        changes=[(['passed'],False),(['device'],'cuda'),(['records'],[]),(['records',0,'record','complete'],False),(['records',0,'record','type'],'invalid'),(['records',0,'record','output','finish'],'invalid'),(['records',0,'official_score','parse_failed'],True)]
++        for keys,new in changes:
++            bad=copy.deepcopy(full);d=bad
++            for key in keys[:-1]:d=d[key]
++            d[keys[-1]]=new
++            try:validate([{'full_reader':bad}])
++            except (ValueError,KeyError):validator_cases+=1
++            else:raise P.Rejected('Native full reader validator accepted corruption')
++    check(value,'good',True)
++    mutations=[(['passed'],False),(['bundle_guard_passed'],False),(['entry_sequence_passed'],False),(['payload'],'0'*64),(['plan'],'0'*64),(['operator_sha256'],'0'*64),(['inputs'],'0'*64),(['bundle_guard','batch_sha256'],'0'*64),(['entry_sequence','events'],[]),(['entry_sequence','guard_target_sha256'],'0'*64),(['entry_sequence','write_test','bytes'],1),(['entry_sequence','write_test','sha256'],'invalid'),(['entry_sequence','requested_argv'],[]),(['memory','fits'],False)]
++    if 'full_reader' in value:mutations += [(['full_reader_passed'],False),(['full_reader','records',0,'set'],'invalid'),(['full_reader','records',0,'item'],'invalid'),(['full_reader','records',0,'frames'],[]),(['full_reader','records',0,'official_score','score'],.25)]
++    for i,(keys,new) in enumerate(mutations):
++        v=copy.deepcopy(value);d=v
++        for key in keys[:-1]:d=d[key]
++        d[keys[-1]]=new;check(v,'bad'+str(i),False)
++    return dict(synthetic_receipt_only=True,negative_cases=len(mutations),full_reader_validator_cases=validator_cases,full_reader_validator=validator is not None,python='3.6.8')
++
++def main():
++    mode,package,work,config=sys.argv[1:];os.umask(0o077);P.limits();w=Path(work);result=globals()[mode](Path(package),w,P.read(config));result['passed']=True;P.write(w/'1.json',result)
++if __name__=='__main__':main()
+--- /dev/null
++++ b/pack_token.py
+@@ -0,0 +1,23 @@
++"""Call an unchanged native builder; explicit-token override defaults OFF."""
++import argparse, os, re, runpy, sys
++from pathlib import Path
++
++def adapted(source,kind,tok,enabled=False):
++    if not enabled:return source
++    if not re.fullmatch('[a-f][0-9a-f]{10,15}',tok or ''):raise ValueError('Invalid explicit token')
++    if kind=='d':
++        old="token='d'+os.urandom(6).hex();assert not (k/('a15_cot_ap'+token)).exists()"
++        new="token=%r;assert not (k/('a15_cot_ap'+token)).exists()"%tok
++    else:
++        old="    while True:\n        tok = os.urandom(7).hex()[:13]\n        if not (K/('a15_cot_ap'+tok)).exists() and re.fullmatch('[a-f][0-9a-f]{10,15}', tok): break"
++        new="    tok = %r\n    assert not (K/('a15_cot_ap'+tok)).exists()"%tok
++    if source.count(old)!=1:raise ValueError('Native token mint changed; review adapter')
++    return source.replace(old,new)
++
++def main():
++    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--enable-token',action='store_true');p.add_argument('--token');p.add_argument('--kind',choices=('d','r10'),required=True);p.add_argument('--source',required=True);p.add_argument('args',nargs=argparse.REMAINDER);a=p.parse_args()
++    source=Path(a.source).resolve();sys.path.insert(0,str(source.parent));args=a.args[1:] if a.args[:1]==['--'] else a.args;sys.argv=[str(source)]+args
++    if not a.enable_token:return runpy.run_path(str(source),run_name='__main__')
++    text=adapted(source.read_text(),a.kind,a.token,True)
++    exec(compile(text,str(source),'exec'),dict(__file__=str(source),__name__='__main__'))
++if __name__=='__main__':main()
+--- /dev/null
++++ b/test_native.py
+@@ -0,0 +1,62 @@
++"""Native D builds and release-check compatibility; all writes stay under --work."""
++import argparse, ast, base64, gzip, json, os, subprocess, sys
++from pathlib import Path
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++import pack as P
++import test_support as T
++import pack_token as K
++import pack_checks as Q
++
++def main():
++    parser=argparse.ArgumentParser();parser.add_argument('--work',required=True);a=parser.parse_args();w=Path(a.work).resolve();w.mkdir(parents=True,exist_ok=False,mode=0o700);P.limits()
++    names=['build_d.py','build_support.py','make_items_d.py','place_fill_d.py','dryres_d.py','score_d.py','check_release_d.py','o_build_D.sh','bind_D200.json','bind_D544.json','TIMING_D.json','o_cpu_D.sh','o_sub_D.sh']
++    before={n:P.file_digest(T.D/n) for n in names};rawtree=w/'supplied';rawtree.mkdir()
++    for n in names:(rawtree/n).write_bytes((T.D/n).read_bytes())
++    code='import runpy,sys;from pathlib import Path;sys.path.insert(0,sys.argv[1]);ns=runpy.run_path(sys.argv[1]+"/check_release_d.py");ns["main"].__globals__["W"]=Path(sys.argv[2]);ns["main"]()'
++    def baseline(label):
++        r=subprocess.run(['/usr/bin/python3','-I','-s','-B','-c',code,str(rawtree),str(w)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=P.environment(w),timeout=30)
++        (w/(label+'.log')).write_bytes(r.stdout+r.stderr);P.need(r.returncode!=0 and b'AssertionError: score_d.py' in r.stderr,'Supplied drift baseline changed');return r.stderr.decode()
++    baseline('raw_before');adapter=Path(__file__).with_name('pack_token.py');(rawtree/'pack_token.py').write_bytes(adapter.read_bytes());(rawtree/'test_pack_token.py').write_bytes(Path(__file__).with_name('test_pack_token.py').read_bytes());baseline('raw_after')
++    P.need(before=={n:P.file_digest(rawtree/n) for n in names},'Additive adapter changed native sources')
++    # Coherent test snapshot uses the pinned scorer already sealed in o_build_D.sh.
++    # The newer loose scorer is never changed or downgraded in the supplied tree.
++    here=w/'coherent';here.mkdir()
++    for n in names:(here/n).write_bytes((T.D/n).read_bytes())
++    assets=ast.literal_eval(next(l for l in (here/'o_build_D.sh').read_text().splitlines() if l.startswith('assets = ')).split('=',1)[1])
++    score=gzip.decompress(base64.b64decode(assets['score_d.py']['data']));P.need(P.digest(score)==assets['score_d.py']['sha256'],'Embedded scorer pin differs');(here/'score_d.py').write_bytes(score)
++    raw=P.tar_bytes(P.package_files(T.B5));source=w/'1.tgz';source.write_bytes(raw);items=w/'items/dist580.json';items.parent.mkdir();items.write_bytes((T.D/'evidence/items/dist580.json').read_bytes())
++    runner=w/'0.py';runner.write_text('''import os,runpy,sys
++root,stage,source,sha,items,binding,kind,adapter=sys.argv[1:]
++sys.path.insert(0,root);os.urandom=lambda n:bytes([17])*n
++sys.argv=[root+'/build_d.py',stage,source,sha,items,binding]
++if kind=='native':runpy.run_path(root+'/build_d.py',run_name='__main__')
++else:
++ sys.argv=[adapter,'--kind','d','--source',root+'/build_d.py']+(['--enable-token','--token',kind] if kind!='default' else [])+['--']+sys.argv[1:]
++ runpy.run_path(adapter,run_name='__main__')
++''')
++    reports={}
++    for label,step,kind in [('actual200',200,'native'),('default200',200,'default'),('actual544',544,'a123456789abc')]:
++        stage=w/label;stage.mkdir();binding=stage/'binding.json';binding.write_bytes((here/('bind_D'+str(step)+'.json')).read_bytes());env=P.environment(w);env['KROOT']=str(w/('k'+label))
++        P.run(['/usr/bin/python3','-I','-s','-B',str(runner),str(here),str(stage),str(source),P.digest(raw),str(items),str(binding),kind,str(adapter)],w,w/(label+'.log'),env);reports[label]=P.read(stage/'BUILD.json')['D']
++    import runpy
++    native_dry={}
++    for label in ('actual200','actual544'):
++        files=P.untar((Path(reports[label]['delivery_dir'])/'1.tgz').read_bytes());payload=P.untar(files['0.tgz']);plan=json.loads(payload['9.json']);op_path=w/(label+'_operator.py');op_path.write_bytes(files['a/6.py']);op=runpy.run_path(str(op_path))
++        native_dry[label]=Q.native_dry_predicates(json.loads(files['a/0.json']),plan,payload,op,op['descriptors']('unused'),op['memory_bound']())
++    first=Path(reports['actual200']['delivery_dir'])/'1.tgz';second=Path(reports['default200']['delivery_dir'])/'1.tgz';P.need(first.read_bytes()==second.read_bytes(),'Default-OFF native delivery differs')
++    P.run(['/usr/bin/python3','-I','-s','-B','-c',code,str(here),str(w)],w,w/'coherent_before.log')
++    (here/'pack_token.py').write_bytes(adapter.read_bytes());(here/'test_pack_token.py').write_bytes(Path(__file__).with_name('test_pack_token.py').read_bytes())
++    P.run(['/usr/bin/python3','-I','-s','-B','-c',code,str(here),str(w)],w,w/'coherent_after.log')
++    # Run the public pack build path against the actual native builder and items.
++    cfg=dict(work=str(w/'pack_build'),ledger=str(w/'ledger.jsonl'),normalize_wrapper=True,python=P.PYTHON,builder=dict(path=str(adapter),sha256=P.file_digest(adapter),argv=['--kind','d','--source',str(T.D/'build_d.py'),'--enable-token','--token','{token}','--','{work}/stage',str(source),P.digest(raw),str(items),str(T.D/'bind_D200.json')],env={'KROOT':'{work}/k'},report='{work}/stage/BUILD.json',key='D',inputs=[dict(path=str(T.D/'build_d.py'),sha256=P.file_digest(T.D/'build_d.py'))]))
++    (w/'ledger.jsonl').write_text('');P.write(w/'build_config.json',cfg)
++    P.run([P.PYTHON,'-I','-s','-B',str(Path(__file__).with_name('pack.py')),'build','--config',str(w/'build_config.json'),'--enable','--token','b123456789abc'],w,w/'pack_build.log');built=P.built(cfg)
++    try:P.source_preflight(cfg)
++    except P.Rejected as error:P.need('score_d.py' in str(error),'Wrong native source rejection')
++    else:raise AssertionError('Raw source release was accepted')
++    coherent_cfg=dict(builder=dict(path=str(here/'build_d.py'),sha256=P.file_digest(here/'build_d.py'),argv=['stage','source','sha',str(items),'binding']))
++    P.need(P.source_preflight(coherent_cfg)['assets']==10,'Coherent native source failed')
++    r10=(T.R/'build_r10.py').read_text();P.need(K.adapted(r10,'r10',None,False)==r10,'r10 default differs');compile(K.adapted(r10,'r10','c123456789abc',True),'r10-adapter','exec')
++    result=dict(passed=True,native_dry=native_dry,default_off_delivery_bytes=first.stat().st_size,default_off_delivery_sha256=P.file_digest(first),native_checker=P.read(w/'RELEASE_RESULTS.json'),raw_checker_before_after='same pre-existing score_d.py mismatch',raw_sources_unchanged=True,raw_release_preflight_rejected=True,coherent_release_preflight_passed=True,coherent_checker_before_after=True,embedded_score_sha256=P.digest(score),loose_score_sha256=before['score_d.py'],r10_default_source_identical=True,r10_full_build=False,reason='Authenticated original A/B delivery archives required by r10 are absent',pack_build=built)
++    P.write(w/'RESULT.json',result);print(json.dumps(result,sort_keys=True))
++if __name__=='__main__':main()
+--- /dev/null
++++ b/test_pack.py
+@@ -0,0 +1,197 @@
++"""Regression tests never invoke ssh, scp, Slurm, GPUs or delete files."""
++import copy, io, json, os, re, subprocess, sys, unittest
++from pathlib import Path
++from unittest.mock import patch
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++import pack as P
++import test_support as T
++import pack_token as K
++import pack_checks as Q
++
++class Packaging(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.w=Path(os.environ.get('PACK_TEST_WORK',str(Path(__file__).parent/'work'/('t'+os.urandom(5).hex()))));cls.p,cls.c=T.fixture(cls.w)
++        cls.f=P.package_files(cls.p);cls.counter=0
++    def fresh(self,label):
++        type(self).counter+=1;return self.w/(label+str(self.counter))
++    def mutated(self,change,payload=False):
++        f=dict(self.f);pay=P.untar(f['0.tgz']) if payload else None
++        change(pay if payload else f)
++        return P.extract(T.seal(f,pay),self.fresh('p'))
++    def fails_probe(self,mode,p,needle,c=None):
++        w=self.fresh('q')
++        with self.assertRaises(P.Rejected):P.probe(mode,p,w,c or self.c)
++        self.assertIn(needle,(w/'0.log').read_text())
++    def test_01_surface_scope_and_argv(self):
++        for package in (T.A4,T.B5):
++            f,pay,v,plan=P.structure(package)
++            for name in f:P.opaque(name)
++            self.assertTrue(any(b'model' in b for b in pay.values()))
++        self.assertEqual(P.privacy(self.p,self.c)['names'],15)
++        for text in ('#SBATCH --comment=model','/usr/bin/python3 /tmp/dataset.py','A=benchmark /bin/true','head -n 1 /tmp/0'):
++            with self.assertRaises(P.Rejected):P.shell_privacy(text)
++        f=dict(self.f);f['model.log']=b'x'
++        with self.assertRaises(P.Rejected):P.structure(P.extract(f,self.fresh('p')))
++        P.shell_privacy("# code comment model\n/usr/bin/python3 - <<'A'\nprint('dataset')\nA\n")
++    def test_02_all_checks_precede_transport(self):
++        cfg=self.fresh('cfg');P.write(cfg,self.c);called=[]
++        with patch.object(P,'build',return_value={}),patch.object(P,'built',return_value={'package':str(self.p)}),patch.object(P,'local_check',return_value={}),patch.object(P,'plan',side_effect=P.Rejected('late submit script rejected')),patch.object(P,'execute',side_effect=lambda *a:called.append(a)):
++            with self.assertRaisesRegex(P.Rejected,'late submit'):P.main(['all','--config',str(cfg),'--enable','--yes','--token','b635a315de01e','--execute-remote'])
++        self.assertEqual(called,[])
++    def test_03_timeout_short_calls_and_state_machine(self):
++        c=copy.deepcopy(self.c);c['work']=str(self.fresh('s'));calls=[];sleeps=[]
++        results=[(0,b'123\n'),(75,b''),(0,b'RUNNING|\n'),(0,b'COMPLETED|\n'),(0,b'456\n')]
++        def call(k):
++            calls.append(k);rc,out=results.pop(0);return subprocess.CompletedProcess([],rc,out,b'accounting fixture')
++        with patch.object(P,'checked',return_value={'token':'b635a315de01e'}):P.execute(c,{},['cpu','gpu'],True,'b635a315de01e',call,sleeps.append)
++        self.assertEqual(calls,['cpu','poll','poll','poll','gpu']);self.assertEqual(sleeps,[60,60,60])
++        for name in ('place','fill','cpu','poll','gpu'):
++            command=P.command(c,'/tmp/'+name);self.assertIn('| timeout 300 bash ',command)
++        self.assertNotIn('while',P.command(c,'/tmp/0'))
++    def test_04_delivery_is_tested_tree(self):
++        w=self.fresh('s');w.mkdir();f=dict(self.f);d=w/'1.tgz';d.write_bytes(P.tar_bytes(f));b=dict(token='b635a315de01e',package=str(self.p),delivery=str(d),sha256=P.file_digest(d),tree=P.fingerprint(f));P.write(w/'BUILD.json',b);c=dict(self.c,work=str(w));self.assertEqual(P.built(c),b)
++        d.write_bytes(P.tar_bytes(dict(f,**{'8.log':b'changed'})))
++        with self.assertRaises(P.Rejected):P.built(c)
++    def test_05_adapt_cpu_identity_everywhere(self):
++        p=P.ROOT+'/a15_cot_apa123456789ab';text=P.adapted_script(self.c,'cpu',p,self.p)
++        self.assertNotIn('d50ba921ef1f4',text);self.assertIn('--job-name=a15_cot_apa123456789ab',text)
++        path=self.fresh('script');path.write_text(text+'\nexport P='+P.ROOT+'/a15_cot_apb123456789ab\n');c=copy.deepcopy(self.c);c['remote']['cpu']=dict(path=str(path),sha256=P.file_digest(path))
++        with self.assertRaises(P.Rejected):P.adapted_script(c,'cpu',p,self.p)
++        c=copy.deepcopy(self.c);c['remote']['walltime']='01:00:00'
++        with self.assertRaisesRegex(P.Rejected,'walltime'):P.adapted_script(c,'cpu',p,self.p)
++    def test_06_defect1_real_rows_null(self):
++        def mutate(pay):
++            n='inputs/r0dev/R0_QUESTIONS_dev_f32.jsonl';values=[json.loads(x) for x in pay[n].decode().splitlines()];self.assertTrue(values and 'total_num_frames' in values[0]);values[0]['total_num_frames']=None;pay[n]=('\n'.join(json.dumps(v) for v in values)+'\n').encode()
++        self.fails_probe('logic',self.mutated(mutate,True),'total_num_frames')
++    def test_07_adapter_leaves_native_files_unchanged(self):
++        for path,kind in ((T.D/'build_d.py','d'),(T.R/'build_r10.py','r10')):
++            raw=path.read_text();self.assertEqual(K.adapted(raw,kind,None,False),raw);self.assertNotEqual(K.adapted(raw,kind,'a123456789ab',True),raw)
++        import ast,base64,gzip
++        line=next(s for s in (T.D/'o_build_D.sh').read_text().splitlines() if s.startswith('assets = '));assets=ast.literal_eval(line.split('=',1)[1]);self.assertEqual(gzip.decompress(base64.b64decode(assets['b.py']['data'])),(T.D/'build_d.py').read_bytes())
++    def test_07b_native_source_drift_blocks_release(self):
++        import ast,base64,gzip
++        items=T.D/'evidence/items/dist580.json'
++        c=dict(builder=dict(path=str(T.D/'build_d.py'),sha256=P.file_digest(T.D/'build_d.py'),argv=['stage','source','sha',str(items),'binding']))
++        with self.assertRaisesRegex(P.Rejected,'score_d.py'):P.source_preflight(c)
++        with patch.object(P,'probe',side_effect=AssertionError('Probe ran before source preflight')):
++            with self.assertRaisesRegex(P.Rejected,'score_d.py'):P.local_check(c,self.p,self.fresh('q'))
++        here=self.fresh('coherent');here.mkdir();script=(T.D/'o_build_D.sh').read_bytes();(here/'o_build_D.sh').write_bytes(script);(here/'check_release_d.py').write_bytes((T.D/'check_release_d.py').read_bytes())
++        assets=ast.literal_eval(next(l for l in script.decode().splitlines() if l.startswith('assets = ')).split('=',1)[1])
++        for name,spec in assets.items():
++            if name=='items/dist580.json':continue
++            (here/('build_d.py' if name=='b.py' else name)).write_bytes(gzip.decompress(base64.b64decode(spec['data'])))
++        c['builder']['path']=str(here/'build_d.py');self.assertEqual(P.source_preflight(c)['assets'],10)
++    def test_08_real_python36_place_and_fill(self):
++        for mode in ('login','fill'):
++            r=P.probe(mode,self.p,self.fresh('q'),self.c);self.assertTrue(r['passed']);self.assertTrue(r['python'].startswith('3.6.8'))
++        self.assertTrue(r['entry_check_executed']);self.assertTrue(r['resolution']['environment_resolved']);self.assertEqual(r['resolution']['archives'],6)
++    def test_09_defect2_isolated_import_gate(self):
++        def mutate(pay):
++            name='h1eval/h10/launch.py';pay[name]=b'import aa_pack_sibling\n'+pay[name];pay['h1eval/h10/aa_pack_sibling.py']=b'VALUE=1\n'
++        p=self.mutated(mutate,True);w=self.fresh('q')
++        with self.assertRaises(P.Rejected):P.probe('logic',p,w,self.c)
++        logs='\n'.join(x.read_text() for x in w.glob('i*.log'));self.assertIn('ModuleNotFoundError',logs);self.assertIn('aa_pack_sibling',logs)
++    def test_09b_defect3_fill_drops_env(self):
++        def mutate(f):
++            a=b"inputs['archives'].append(dict(destination=archive['destination'],parts=[prep_archive],\n                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values()))))"
++            b=b"inputs['archives'][4]=dict(destination=archive['destination'],parts=[prep_archive],\n                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values())))"
++            self.assertEqual(f['a/4.py'].count(a),1);f['a/4.py']=f['a/4.py'].replace(a,b)
++        self.fails_probe('fill',self.mutated(mutate),'Fill must append')
++    def test_10_terminal_states_and_transport_failure(self):
++        for s in ('BOOT_FAIL','DEADLINE','REVOKED','CANCELLED','FAILED','OUT_OF_MEMORY','TIMEOUT','NODE_FAIL'):
++            with self.assertRaises(P.Rejected):P.poll_state(s+'|\n')
++        calls=[]
++        def call(k):calls.append(k);return subprocess.CompletedProcess([],124,b'',b'timeout')
++        with patch.object(P,'checked',return_value={'token':'b635a315de01e'}):
++            with self.assertRaisesRegex(P.Rejected,'do not retry'):P.execute(self.c,{},['gpu'],True,'b635a315de01e',call,lambda n:None)
++        self.assertEqual(calls,['poll'])
++        calls=[]
++        def accounting(k):calls.append(k);return subprocess.CompletedProcess([],75,b'',b'accounting unavailable')
++        with patch.object(P,'checked',return_value={'token':'b635a315de01e'}):
++            with self.assertRaisesRegex(P.Rejected,'Repeated sacct'):P.execute(self.c,{},['gpu'],True,'b635a315de01e',accounting,lambda n:None)
++        self.assertEqual(calls,['poll','poll','poll'])
++    def test_11_extra_terms_reach_path_argv_env(self):
++        c=copy.deepcopy(self.c);c['forbidden_extra']=['eabcdef012345']
++        with self.assertRaises(P.Rejected):P.fill_argv(c,P.ROOT+'/a15_cot_apb635a315de01e')
++        c['forbidden_extra']=['b635a315de01e']
++        with self.assertRaises(P.Rejected):P.privacy(self.p,c)
++        with self.assertRaises(P.Rejected):P.shell_privacy('A=customword /bin/true',['customword'])
++    def test_12_transport_limit(self):
++        command=P.command(self.c,'/tmp/0.sh');self.assertIn('pv -q -L 8000000 ',command);self.assertIn('timeout',command)
++        w=self.fresh('transport');w.mkdir();stub=w/'0.sh';stub.write_text('#!/bin/bash\ncat\n');payload=w/'1.sh';payload.write_text('opaque fixture bytes\n');c=copy.deepcopy(self.c);c['remote']['ossh']=str(stub)
++        r=subprocess.run(['bash','-o','pipefail','-c',P.command(c,str(payload))],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=5,env=P.environment(w))
++        self.assertEqual(r.returncode,0);self.assertEqual(r.stdout,payload.read_bytes())
++        stub.write_text('#!/bin/bash\ncat >/dev/null\nsleep 3\n');c['remote']['timeout']=1
++        r=subprocess.run(['bash','-o','pipefail','-c',P.command(c,str(payload))],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=5,env=P.environment(w));self.assertEqual(r.returncode,124)
++    def test_13_ledger_reuse_before_builder(self):
++        path=self.fresh('ledger');path.write_text('{"token":"a123456789ab"}\n');c=dict(self.c,ledger=str(path))
++        with patch.object(P,'run') as run:
++            with self.assertRaisesRegex(P.Rejected,'ledger'):P.build(c,'a123456789ab')
++            run.assert_not_called()
++    def test_15_orchard_contract_inventory(self):
++        text=(Path(__file__).parent/'out/ORCHARD_ONLY_CHECKS.md').read_text()
++        for term in ('sacct','USR1','token','3.6.8','CPU.json','timeout'):self.assertIn(term,text)
++    def test_16_native_dry_settings_order_and_counts(self):
++        import runpy
++        for package,family in ((T.A4,'full'),(T.B5,'room')):
++            f,pay,v,plan=P.structure(package);base=json.loads(f['a/0.json']);op=runpy.run_path(str(package/'a/6.py'));desc=op['descriptors'](str(package));memory=op['memory_bound']()
++            self.assertEqual(Q.native_dry_predicates(base,plan,pay,op,desc,memory)['family'],family)
++            cases=[]
++            bad=copy.deepcopy(desc);bad[0]['expected']+=1;cases.append((base,plan,pay,op,bad,memory))
++            bad=copy.deepcopy(desc);bad[0]['types']=list(reversed(bad[0]['types'])) if family=='full' else [3];cases.append((base,plan,pay,op,bad,memory))
++            bad=dict(plan,perception_memo_verify_ids=['x']);cases.append((base,bad,pay,op,desc,memory))
++            bad=dict(op,RULES=());cases.append((base,plan,pay,bad,desc,memory))
++            bad=dict(base,types=list(reversed(plan['order'])));cases.append((bad,plan,pay,op,desc,memory))
++            bad=dict(pay);name='items/devs1_routed.json' if family=='full' else 'items/room134.json';items=json.loads(bad[name]);items['items']=items['items'][:-1];bad[name]=T.jd(items);cases.append((base,plan,bad,op,desc,memory))
++            for args in cases:
++                with self.assertRaises(P.Rejected):Q.native_dry_predicates(*args)
++        def mutate(pay):
++            items=json.loads(pay['items/room134.json']);items['items']=items['items'][:-1];pay['items/room134.json']=T.jd(items)
++        self.fails_probe('logic',self.mutated(mutate,True),'Dry per-type item counts')
++    def test_17_native_dry_binding_policy_slot(self):
++        w=self.fresh('q');r=P.probe('fill',self.p,w,self.c);self.assertEqual(r['resolution']['policy_archive_slot'],4)
++        p=w/(P.PREFIX+'b635a315de01e');inputs=P.read(p/'a/1.json');base=P.read(p/'a/0.json');pins=P.read(p/'a/export.json');plan=json.loads(P.untar((p/'0.tgz').read_bytes())['9.json']);helper=(p/'a/4.py').read_text()
++        self.assertEqual(Q.dry_fill_identity(inputs,base,plan,pins,helper),4)
++        for key in ('run','step','member_directory','lineage','object','archive_sha256'):
++            bad=copy.deepcopy(pins);bad[key]='invalid'
++            with self.assertRaises(P.Rejected):Q.dry_fill_identity(inputs,base,plan,bad,helper)
++        bad=copy.deepcopy(pins);next(iter(bad['preparation'].values()))['sha256']='0'*64
++        with self.assertRaises(P.Rejected):Q.dry_fill_identity(inputs,base,plan,bad,helper)
++        bad=copy.deepcopy(inputs);bad['archives'].append(copy.deepcopy(bad['archives'][4]))
++        with self.assertRaisesRegex(P.Rejected,'slot count'):Q.dry_fill_identity(bad,base,plan,pins,helper)
++        bad=copy.deepcopy(inputs);bad['archives'][4]['sha256']='0'*64
++        with self.assertRaisesRegex(P.Rejected,'slot count'):Q.dry_fill_identity(bad,base,plan,pins,helper)
++    def test_defect4_encoded_descriptor_and_old_identity(self):
++        f=dict(self.f);b=P.bundle(f['BATCH.sh']);v=json.loads(b['0.json']);v['token']='a123456789ab';b['0.json']=T.jd(v);line=next(l for l in f['BATCH.sh'].decode().splitlines() if l.startswith('b=bytes.fromhex('));f['BATCH.sh']=f['BATCH.sh'].replace(line.encode(),('b=bytes.fromhex(%r)'%P.tar_bytes(b).hex()).encode());m=json.loads(f['PACKAGE.json']);m['files']['BATCH.sh']=P.digest(f['BATCH.sh']);f['PACKAGE.json']=T.jd(m)
++        with self.assertRaisesRegex(P.Rejected,'Bundle descriptor'):P.structure(P.extract(f,self.fresh('p')))
++        with self.assertRaisesRegex(P.Rejected,'Old identity'):P.structure(self.p,dict(old_identities=['b635a315de01e']))
++    def test_defect5_exit_capture(self):
++        def mutate(f):f['BATCH.sh']=f['BATCH.sh'].replace(b'trap fin EXIT',b': # disabled EXIT')
++        self.fails_probe('trap',self.mutated(mutate),'Missing EXIT')
++    def test_defect6_usr1_forward_and_native_stop(self):
++        def mutate(f):f['BATCH.sh']=f['BATCH.sh'].replace(b'trap \'kill -USR1 $PID 2>/dev/null\' USR1',b"trap ':' USR1")
++        self.fails_probe('trap',self.mutated(mutate),'USR1 not forwarded')
++        def mutate_stop(pay):pay['orchard_h10/runner.py']=pay['orchard_h10/runner.py'].replace(b"marker.write_text(str(number)+'\\n')",b'pass')
++        self.fails_probe('stop',self.mutated(mutate_stop,True),'Native stop handshake')
++    def test_normalization_default_off_and_directive_order(self):
++        raw=P.package_files(T.B5);self.assertEqual(P.normalize_wrapper(raw),raw);f=P.normalize_wrapper(raw,True);t=f['BATCH.sh'].decode();self.assertLess(t.index('#SBATCH'),t.index('umask 077'));self.assertNotIn('head -n 1',t);self.assertEqual(set(n for n in raw if raw[n]!=f[n]),{'BATCH.sh','PACKAGE.json'})
++    def test_submit_authorization_and_default_off(self):
++        config=self.fresh('cfg');P.write(config,self.c)
++        with self.assertRaisesRegex(P.Rejected,'Default OFF'):P.main(['check','--config',str(config)])
++        with patch.object(P,'checked',return_value={'token':'b635a315de01e'}):
++            for yes,tok in ((False,'b635a315de01e'),(True,'a123456789ab')):
++                with self.assertRaises(P.Rejected):P.execute(self.c,{},['cpu'],yes,tok,lambda k:self.fail('unexpected call'))
++    def test_native_receipt_predicates(self):
++        r=P.probe('receipt',self.p,self.fresh('q'),self.c);self.assertTrue(r['full_reader_validator']);self.assertGreaterEqual(r['negative_cases'],19)
++    def test_positive_all_local_checks_and_planning(self):
++        c=copy.deepcopy(self.c);c['work']=str(self.fresh('s'));r=P.local_check(c,self.p,self.fresh('q'));self.assertGreater(r['checks']['logic']['rows_checked'],0)
++        w=P.state_root(c);d=w/'1.tgz';d.write_bytes(P.tar_bytes(self.f));b=dict(token='b635a315de01e',package=str(self.p),delivery=str(d),sha256=P.file_digest(d),tree=P.fingerprint(self.f));P.write(w/'BUILD.json',b);P.write(w/'CHECK.json',r);scripts=P.plan(c,b);self.assertEqual(set(scripts),{'place','fill','cpu','poll','gpu'})
++        self.assertEqual(P.checked(c),b);P.write(self.w/'POSITIVE.json',dict(check=r,scripts=scripts,build=b,config=c))
++
++if __name__=='__main__':
++    # Torch's documented intraop thread setting precedes native tensor work.
++    P.limits()
++    import torch
++    torch.set_num_threads(8)
++    unittest.main(verbosity=2)
+--- /dev/null
++++ b/test_pack_token.py
+@@ -0,0 +1,20 @@
++"""Additive adapter regression; execute beside native build_d.py or build_r10.py."""
++import ast, base64, gzip, hashlib, json, sys
++from pathlib import Path
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++import pack_token
++
++def main():
++    here=Path(__file__).resolve().parent
++    kind='d' if (here/'build_d.py').is_file() else 'r10';source=here/('build_d.py' if kind=='d' else 'build_r10.py');raw=source.read_text()
++    assert pack_token.adapted(raw,kind,None,False)==raw
++    changed=pack_token.adapted(raw,kind,'a123456789abc',True);compile(changed,str(source),'exec');assert changed!=raw
++    for bad in ('0123456789ab','MODEL','a123'):
++        try:pack_token.adapted(raw,kind,bad,True)
++        except ValueError:pass
++        else:raise AssertionError('Accepted invalid token')
++    result=dict(passed=True,kind=kind,default_off_source_identical=True,native_sha256=hashlib.sha256(source.read_bytes()).hexdigest())
++    if kind=='d':
++        script=(here/'o_build_D.sh').read_text();assets=ast.literal_eval(next(l for l in script.splitlines() if l.startswith('assets = ')).split('=',1)[1].strip());embedded=gzip.decompress(base64.b64decode(assets['b.py']['data']));assert embedded==source.read_bytes();result['embedded_builder_unchanged']=True
++    print(json.dumps(result,sort_keys=True))
++if __name__=='__main__':main()
+--- /dev/null
++++ b/test_support.py
+@@ -0,0 +1,82 @@
++"""Bounded fixtures derived from the authenticated supplied B5 package."""
++import ast, io, json, re, tarfile
++from pathlib import Path
++import pack as P
++INPUT=Path('/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30')
++B5=INPUT/'cont_ops16/work/c15/r1route/out3/B5/package'
++A4=INPUT/'cont_ops16/work/c15/r1route/out3/A4/package'
++D=INPUT/'cont_ops18/dbuild'
++R=INPUT/'cont_ops17/work'
++def jd(v):return (json.dumps(v,sort_keys=True,indent=2)+'\n').encode()
++def seal(f,pay=None):
++    f=dict(f)
++    if pay is not None:
++        pay=dict(pay);plan=json.loads(pay['9.json'])
++        for n in plan['payload_pins']:plan['payload_pins'][n]=dict(bytes=len(pay[n]),sha256=P.digest(pay[n]))
++        pay['9.json']=json.dumps(plan,sort_keys=True).encode();f['0.tgz']=P.tar_bytes(pay)
++        v=json.loads(f['0.json']);v.update(payload_sha256=P.digest(f['0.tgz']),payload_bytes=len(f['0.tgz']),plan_sha256=P.digest(P.canonical(plan)));f['0.json']=f['CONFIG.json']=jd(v)
++    b=P.bundle(f['BATCH.sh']);b['0.json']=f['0.json'];b['7.py']=f['a/6.py'];line=next(l for l in f['BATCH.sh'].decode().splitlines() if l.startswith('b=bytes.fromhex('));f['BATCH.sh']=f['BATCH.sh'].replace(line.encode(),('b=bytes.fromhex(%r)'%P.tar_bytes(b).hex()).encode())
++    m=json.loads(f['PACKAGE.json']);m['token']=json.loads(f['0.json'])['token'];m['files']={n:P.digest(f[n]) for n in m['files']};f['PACKAGE.json']=jd(m);return f
++
++def archive(files):
++    out=io.BytesIO()
++    with tarfile.open(fileobj=out,mode='w') as t:
++        for n,b in files.items():m=tarfile.TarInfo(n);m.size=len(b);m.mode=0o600;t.addfile(m,io.BytesIO(b))
++    return out.getvalue()
++
++def fixture(w):
++    """Keep native read code; bind fill to tiny explicit fixture data and pins."""
++    w=Path(w);w.mkdir(parents=True,exist_ok=False,mode=0o700);f,pay,pub,plan=P.structure(B5);f=P.normalize_wrapper(f,True);pay=dict(pay)
++    base=json.loads(f['a/0.json']);logical=plan['logical']+'/d';remote=P.ROOT+'/eabcdef012345';mapping={};counter=[0]
++    def mirrored(raw,name=None):
++        i=counter[0];counter[0]+=1;local=w/('m'+str(i));local.write_bytes(raw);r=remote+'/'+(name or str(i));mapping[r]=dict(path=str(local),bytes=len(raw),sha256=P.digest(raw));return dict(path=r,bytes=len(raw),sha256=P.digest(raw))
++    # All fixture dependency files retain their logical paths; only bytes/pins differ.
++    deps={}
++    for name,spec in base['files'].items():
++        if name in ('artifact','heads','full_weights'):continue
++        rel=str(Path(spec['path']).relative_to(logical));raw=('fixture '+name+'\n').encode();deps[rel]=raw
++    for k in ('python','frames_root','sam_source'):
++        rel=str(Path(base[k]).relative_to(logical));deps[rel if k=='python' else rel+'/0']=b'x\n'
++    for k in ('vnice','terminator'):deps[str(Path(base['policy'][k]).relative_to(logical))]=b'#!/bin/sh\nexit 0\n'
++    policy=dict(authorized=True,**base['policy']);deps[str(Path(base['files'][base['policy_receipt']]['path']).relative_to(logical))]=jd(policy)
++    deps[str(Path(base['files'][base['environment_receipt']]['path']).relative_to(logical))]=jd(dict(versions={'python':'fixture'}))
++    for name,spec in base['files'].items():
++        if name in ('artifact','heads','full_weights'):continue
++        b=deps[str(Path(spec['path']).relative_to(logical))];spec.update(bytes=len(b),sha256=P.digest(b))
++    job=pay['orchard_h10/job.py'].decode()
++    original=json.loads(f['a/0.json'])
++    for n in ('sam_checkpoint','selector_weights'):job=job.replace(original['files'][n]['sha256'],base['files'][n]['sha256'])
++    for n,prefix in [('g3t_weights','d460957b'),('g3t_config','5aeb2acd'),('sam_checkpoint','9999e234')]:job=job.replace("'"+prefix+"'","'"+base['files'][n]['sha256'][:8]+"'")
++    pay['orchard_h10/job.py']=job.encode()
++    assets=json.loads(pay['orchard_h10/vendor/ORCHARD_ASSETS.json'])
++    for k in ('vnice','terminator'):assets[k+'_sha256']=P.digest(deps[str(Path(base['policy'][k]).relative_to(logical))])
++    assets['groups']=[];assets['bwrap_pin']=mirrored(b'fixture bwrap\n');pay['orchard_h10/vendor/ORCHARD_ASSETS.json']=jd(assets)
++    # Keep the env/policy archive in slot four to exercise the actual drop defect.
++    groups=[{}, {}, {}, {}]
++    envpaths={str(Path(base['files'][base[k]]['path']).relative_to(logical)) for k in ('policy_receipt','environment_receipt')}
++    envpaths|={str(Path(v).relative_to(logical)) for v in base['policy'].values()}
++    for n,b in deps.items():groups[3 if n in envpaths else 0][n]=b
++    for i,g in enumerate(groups):
++        if not g:g['z'+str(i)]=b'x'
++    archives=[]
++    for g in groups:
++        raw=archive(g);pin=mirrored(raw);archives.append(dict(destination=base['archives'][0]['destination'],parts=[pin],sha256=pin['sha256'],expanded_bytes=sum(map(len,g.values()))))
++    # Preparation and export identity are self-consistent, unlike mocked fill scans.
++    binding=dict(plan['export_binding']);binding.update(run='abcdef01',step=600,member_directory='m600',object='q8/abcdef01/abcdef01_m600.tar',config_sha256='c'*64)
++    rec=jd(dict(config_sha256=binding['config_sha256'],frame_layout='duplicate'))
++    cfg=jd(dict(base_identity=binding['base_identity'],frame_layout='duplicate',preparation=dict(path='/scratch/jjyeung/a/r.json',sha256=P.digest(rec))))
++    data=jd(dict(status='PREPARED',schema='s1-in-job-data-v1',real_frames_verified=True,rehearsal=False,config=dict(path='/scratch/jjyeung/a/c.json',sha256=P.digest(cfg)),preparation=json.loads(cfg)['preparation']))
++    prep={'config':cfg,'receipt':rec,'data_receipt':data};binding['preparation_sha256']={k:P.digest(b) for k,b in prep.items()}
++    full=jd(dict(schema='full-ft-export-v1',dtype='bfloat16',files=[dict(name='0.bin',bytes=1,sha256=P.digest(b'x'))],index=dict(name='0.json',bytes=2,sha256=P.digest(b'{}'))))
++    heads=b'fixture weights';artifact=jd(dict(step=600,config_sha256=binding['config_sha256'],base_identity=binding['base_identity'],frame_layout='duplicate',geometry_online=False,heads=dict(path='/scratch/jjyeung/'+binding['run']+'/m600/heads.pt',sha256=P.digest(heads)),full_weights=dict(path='/scratch/jjyeung/'+binding['run']+'/m600/full_weights/full_weights.json',sha256=P.digest(full))))
++    raw=archive({'m600/artifact.json':artifact,'m600/heads.pt':heads,'m600/full_weights/full_weights.json':full,'m600/full_weights/0.bin':b'x','m600/full_weights/0.json':b'{}'})
++    size=len(raw)//4;parts=[mirrored(raw[i*size:(i+1)*size] if i<3 else raw[i*size:]) for i in range(4)]
++    done=mirrored(('%s %d %s\n'%(binding['object'],len(raw),P.digest(raw))).encode())
++    prep_paths={k:mirrored(b)['path'] for k,b in prep.items()}
++    base['archives']=[dict(base['archives'][0])]+archives;f['a/0.json']=jd(base)
++    fill=f['a/4.py'].decode()
++    for n,v in [('REVIEWED_OBJECT',repr(binding['object'])),('REVIEWED_ARCHIVE_BYTES',str(len(raw))),('REVIEWED_ARCHIVE_SHA256',repr(P.digest(raw)))]:fill=re.sub(r'^'+n+r' = .*$',n+' = '+v,fill,flags=re.M)
++    f['a/4.py']=fill.encode();plan['export_binding']=binding;pay['9.json']=json.dumps(plan,sort_keys=True).encode();f=seal(f,pay);p=P.extract(f,w/'p')
++    c=dict(python=P.PYTHON,work=str(w/'state'),ledger=str(w/'ledger.jsonl'),normalize_wrapper=True,max_read_bytes=10*1024**2,mirrors=mapping,fill=dict(parts=[x['path'] for x in parts],done=done['path'],object=binding['object'],lineage='SFT',step=600,**prep_paths),remote=dict(ossh='/unavailable/ossh.sh',walltime='02:30:00',cpu=dict(path=str(R/'o_cpu_B4.sh'),sha256=P.file_digest(R/'o_cpu_B4.sh'),old_token='d50ba921ef1f4',adapt_token=True),gpu=dict(path=str(R/'o_sub_B5.sh'),sha256=P.file_digest(R/'o_sub_B5.sh'),old_token='b635a315de01e',adapt_token=True)))
++    c['remote']['gpu'].pop('old_token');c['remote']['gpu'].pop('adapt_token')
++    (w/'ledger.jsonl').write_text('');P.write(w/'config.json',c);return p,c

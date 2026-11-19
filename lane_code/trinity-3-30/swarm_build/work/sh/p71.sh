@@ -1,0 +1,1 @@
+sed -n 1,35p /scratch/jjyeung/orch_n30/sb_ktfix/code/runner.py; echo; sed -n 65,132p /scratch/jjyeung/orch_n30/sb_ktfix/code/runner.py; cat /scratch/jjyeung/orch_n30/sb_ktfix/configs/kit.json | head -c 1500

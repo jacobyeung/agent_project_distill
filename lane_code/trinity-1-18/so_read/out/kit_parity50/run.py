@@ -31,12 +31,27 @@ def launch_args(cfg,source,settings_path,out,sample,mode,shard,durable_scene):
     return args
 
 
+def validate_roots(cfg):
+    original=Path(cfg['original_source_root']).resolve()
+    source=Path(cfg['source_root']).resolve()
+    if original==source:raise ValueError('Original and patched source roots must differ')
+    pin_path=HERE/'u3.json' if (HERE/'u3.json').is_file() else HERE/'EXTENSION_PINS.json'
+    from a9 import read_wire
+    pins=read_wire(json.loads(pin_path.read_bytes()))
+    if not pins:raise ValueError('Extension inventory is empty')
+    actual={str(p.relative_to(source)):p for p in (source/'u0').rglob('*') if p.is_file()}
+    if set(actual)!=set(pins):raise ValueError('Extension inventory differs from MANIFEST')
+    if any(p.is_symlink() or hashlib.sha256(p.read_bytes()).hexdigest()!=pins[n] for n,p in actual.items()):
+        raise ValueError('Extension hash differs from MANIFEST')
+    if (original/'u0').exists():raise ValueError('Original source contains extensions')
+
+
 def worker(cfg,mode,out,enabled,shard='0/1',durable_scene=False):
     if not enabled:raise ValueError('GPU execution is OFF; pass --enable-gpu explicitly')
     if not os.environ.get('CUDA_VISIBLE_DEVICES'):raise ValueError('Assign one GPU on the intended GPU host first')
     source=Path(cfg['original_source_root'] if mode=='ORIGINAL' else cfg['source_root']).resolve()
     sys.path[:0]=[str(source),str(source/'tree'),str(source/'b')]
-    os.environ['H10_SETTINGS']=cfg['settings']
+    sys.argv.extend(['--settings',cfg['settings']])
     if mode=='ON':
         sys.path.insert(0,str(source/'u0'))
         from a8 import activate
@@ -57,7 +72,7 @@ def worker(cfg,mode,out,enabled,shard='0/1',durable_scene=False):
     if active-{'processor','vision','sam'}:raise ValueError('Unknown cache switch')
     if mode=='ON':
         for name in ('processor','vision','sam'):settings['read_'+name+'_cache']='on' if name in active else 'off'
-        settings['read_cache_bytes']=cfg.get('read_cache_bytes',4*1024**3)
+        settings['read_cache_bytes']=cfg.get('read_cache_bytes',12*1024**3 if 'sam' in active else 4*1024**3)
     out=Path(out);out.mkdir(parents=True,exist_ok=False)
     from a9 import seal_settings,Codec,PublicJSON
     settings_path=out/'settings.json';seal_settings(settings,settings_path)
@@ -136,6 +151,7 @@ def main():
         raise ValueError('Cache selectors must be numeric slots 0..2')
     wire=PublicJSON(Codec(json.loads(SAMPLE.read_text()),cfg))
     if not 0<=a.shards<=16:p.error('--shards must be in [0,16]')
+    validate_roots(cfg)
     if a.worker:return worker(cfg,a.worker,a.out,a.enable_gpu,a.shard,a.durable_scene)
     out=Path(a.out);out.mkdir(parents=True,exist_ok=False)
     env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',OMP_NUM_THREADS='8',MKL_NUM_THREADS='8',

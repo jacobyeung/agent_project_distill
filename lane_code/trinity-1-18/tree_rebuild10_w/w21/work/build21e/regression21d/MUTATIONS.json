@@ -1,0 +1,282 @@
+[
+  {
+    "document": "k/s.json",
+    "error": "INPUT_NAME:k/s.json:entries/u/a4509d8c159f71f81d0f82adad8e85ef8135d17363084e7281fadddea04c9c5c/@content/room_rule:BeNcHmArK",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_allowlisted_annotation_is_exact"
+  },
+  {
+    "document": "k/s.json",
+    "error": "INPUT_NAME:k/s.json:entries/u/a4509d8c159f71f81d0f82adad8e85ef8135d17363084e7281fadddea04c9c5c/@content/other/room_rule:Only production-admitted traced rows can enter; initial cell zero until the loader audit binds them.",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_allowlisted_annotation_is_location_bound"
+  },
+  {
+    "document": "b/o.py",
+    "error": "INPUT_NAME:b/o.py:12:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "old": "PASS",
+    "old_checked_strings": 66527,
+    "test": "naming_test21d.Naming21d.test_env_dict_key_failing_before"
+  },
+  {
+    "document": "b/o.py",
+    "error": "INPUT_NAME:b/o.py:12:environment:DaTaSeT",
+    "new": "REFUSE",
+    "old": "PASS",
+    "old_checked_strings": 66527,
+    "test": "naming_test21d.Naming21d.test_environment_values_no_path"
+  },
+  {
+    "document": "k/a.py",
+    "error": "INPUT_NAME:k/a.py:1:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_executable_inventory_is_recursive"
+  },
+  {
+    "document": "k/a.sh",
+    "error": "EXECUTABLE_NAME:a.sh:1:export BeNcHmArK=1",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_executable_inventory_is_recursive"
+  },
+  {
+    "document": "k/c.json",
+    "error": "INPUT_NAME:k/c.json:geometry_connector:BeNcHmArK",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_known_schema_key_does_not_exempt_value"
+  },
+  {
+    "document": "k/s.json",
+    "error": "INPUT_NAME:k/s.json:entries/u/a4509d8c159f71f81d0f82adad8e85ef8135d17363084e7281fadddea04c9c5c/@content/neutral/more/0:DaTaSeT",
+    "new": "REFUSE",
+    "old": "PASS",
+    "old_checked_strings": 66527,
+    "test": "naming_test21d.Naming21d.test_nested_value_failing_before"
+  },
+  {
+    "document": "k/n.json",
+    "error": "INPUT_NAME:k/n.json:s1_routing/catalog/0000000000000000000000000000000000000000000000000000000000000000:BeNcHmArK",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_new_hash_key_cannot_exempt_identity"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "os.environ.update({\"BeNcHmArK\":\"1\"})",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT",
+    "new": "REFUSE",
+    "source": "os.environ.update(Q=\"DaTaSeT\")",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:key:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "os.environ.update(BeNcHmArK=\"1\")",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT",
+    "new": "REFUSE",
+    "source": "os.environ.update([(\"Q\", \"DaTaSeT\")])",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "os.environ.setdefault(\"BeNcHmArK\", \"1\")",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "os.putenv(\"BeNcHmArK\", \"1\")",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT",
+    "new": "REFUSE",
+    "source": "os.putenv(\"Q\", \"DaTaSeT\")",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:2:environment:DaTaSeT",
+    "new": "REFUSE",
+    "source": "from os import putenv as p\np(\"Q\", \"DaTaSeT\")",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:2:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "import os as x\nx.environ[\"BeNcHmArK\"]=\"1\"",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:2:environment:DaTaSeT",
+    "new": "REFUSE",
+    "source": "from os import environ as e\ne[\"Q\"]=\"DaTaSeT\"",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:2:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "e=os.environ\ne.update({\"BeNcHmArK\":\"1\"})",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:2:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "env={\"BeNcHmArK\":\"1\"}\nrun(env=env)",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:3:environment:key:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "env={}\nenv.update(BeNcHmArK=\"1\")\nrun(env=env)",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:3:environment:DaTaSeT",
+    "new": "REFUSE",
+    "source": "env={}\nenv[\"Q\"]=\"DaTaSeT\"\nrun(env=env)",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:key:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "run(env=dict(BeNcHmArK=\"1\"))",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT",
+    "new": "REFUSE",
+    "source": "run(env={\"Q\":\"DaTaSeT\"})",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "run(env={\"Q\":\"BeNcH\"+\"mArK\"})",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:3:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "a=\"BeNcH\"\nb=\"mArK\"\nos.environ[a+b]=\"1\"",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:2:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "a=\"BeNcHmArK\"\nos.environ[f\"{a}\"]=\"1\"",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "os.environb[b\"BeNcHmArK\"]=b\"1\"",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "os.environ={\"BeNcHmArK\":\"1\"}",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT",
+    "new": "REFUSE",
+    "source": "os.environ[\"Q\"]:str=\"DaTaSeT\"",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT",
+    "new": "REFUSE",
+    "source": "os.environ[\"Q\"]+=\"DaTaSeT\"",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:2:environment:key:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "setenv=os.environ.update\nsetenv(BeNcHmArK=\"1\")",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:3:environment:DaTaSeT",
+    "new": "REFUSE",
+    "source": "from os import putenv\np=putenv\np(\"Q\",\"DaTaSeT\")",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "error": "ENV_NAME:fixture.py:3:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "source": "def make_env():\n return {\"BeNcHmArK\":\"1\"}\nrun(env=make_env())",
+    "test": "naming_test21d.Naming21d.test_python_environment_forms"
+  },
+  {
+    "document": "b/o.py",
+    "error": "INPUT_NAME:b/o.py:12:environment:BeNcHmArK",
+    "new": "REFUSE",
+    "old": "PASS",
+    "old_checked_strings": 66527,
+    "test": "naming_test21d.Naming21d.test_reviewer_environment_name_failing_before"
+  },
+  {
+    "document": "k/s.json",
+    "error": "INPUT_NAME:k/s.json:entries/u/a4509d8c159f71f81d0f82adad8e85ef8135d17363084e7281fadddea04c9c5c/@content:key:BeNcHmArK",
+    "new": "REFUSE",
+    "old": "PASS",
+    "old_checked_strings": 66527,
+    "test": "naming_test21d.Naming21d.test_reviewer_nested_key_failing_before"
+  },
+  {
+    "document": "b/f.sh",
+    "error": "EXECUTABLE_NAME:f.sh:7:Q=DaTaSeT true",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_shell_environment_forms"
+  },
+  {
+    "document": "b/f.sh",
+    "error": "EXECUTABLE_NAME:f.sh:7:srun --export=ALL,BeNcHmArK=1 true",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_shell_environment_forms"
+  },
+  {
+    "document": "b/f.sh",
+    "error": "EXECUTABLE_NAME:f.sh:7:sbatch --export=Q=DaTaSeT q.sh",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_shell_environment_forms"
+  },
+  {
+    "document": "b/f.sh",
+    "error": "INPUT_NAME:b/f.sh:shell:BeNcHmArK=1",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_shell_environment_forms"
+  },
+  {
+    "document": "b/f.sh",
+    "error": "EXECUTABLE_NAME:f.sh:7:export BeNcHmArK=1",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_shell_environment_forms"
+  },
+  {
+    "document": "b/f.sh",
+    "error": "EXECUTABLE_NAME:f.sh:7:export BeNcHmArK=1",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_shell_export"
+  },
+  {
+    "document": "k/7.json",
+    "error": "SOURCE_INVENTORY:k/7.json:/",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_source_inventory_is_frozen"
+  },
+  {
+    "document": "k/s.json",
+    "error": "INPUT_NAME:k/s.json:entries/u/a4509d8c159f71f81d0f82adad8e85ef8135d17363084e7281fadddea04c9c5c/@content/extra/0:key:Teacher",
+    "new": "REFUSE",
+    "test": "naming_test21d.Naming21d.test_unknown_nested_key"
+  }
+]

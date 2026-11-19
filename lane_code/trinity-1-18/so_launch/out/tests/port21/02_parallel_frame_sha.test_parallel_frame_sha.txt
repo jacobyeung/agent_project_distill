@@ -1,0 +1,18 @@
+Thu Nov 19 10:39:50 UTC 2026
+CWD: /scratch/jjyeung/orch_n30/so_launch/work/port21/02_parallel_frame_sha
+$ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/port21/02_parallel_frame_sha/tests/test_parallel_frame_sha.py -v
+ENV: {"CUDA_VISIBLE_DEVICES": "", "LANE_TEST_OUTPUT": "/scratch/jjyeung/orch_n30/so_launch/work/port21/tmp", "MKL_NUM_THREADS": "8", "OMP_NUM_THREADS": "8", "OPENBLAS_NUM_THREADS": "8", "PYTHONDONTWRITEBYTECODE": "1", "SO_NO_LOCAL_SOCKETS": "1", "TEST_TMP_ROOT": "/scratch/jjyeung/orch_n30/so_launch/work/port21/tmp", "TIMING_INPUT_C": "/scratch/jjyeung/orch_n30/so_launch/work/port21/baseline/launch_s1/b/c.sh", "TMPDIR": "/scratch/jjyeung/orch_n30/so_launch/work/port21/tmp", "TOKENIZERS_PARALLELISM": "false"}
+test_default_does_not_construct_a_thread_pool (__main__.FrameHashTests.test_default_does_not_construct_a_thread_pool) ... ok
+test_duplicate_and_wrong_path_refuse_both_modes (__main__.FrameHashTests.test_duplicate_and_wrong_path_refuse_both_modes) ... ok
+test_late_corrupt_file_refuses_both_modes (__main__.FrameHashTests.test_late_corrupt_file_refuses_both_modes) ... ok
+test_manifest_digest_refuses (__main__.FrameHashTests.test_manifest_digest_refuses) ... ok
+test_missing_and_symlinked_files_refuse (__main__.FrameHashTests.test_missing_and_symlinked_files_refuse) ... ok
+test_parallel_and_default_counts_match (__main__.FrameHashTests.test_parallel_and_default_counts_match) ... ok
+test_worker_cap (__main__.FrameHashTests.test_worker_cap) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.044s
+
+OK
+EXIT: 0
+ELAPSED_SECONDS: 1.567114

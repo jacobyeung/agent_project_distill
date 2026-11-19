@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/u0/a0.py
-@@ -0,0 +1,359 @@
+@@ -0,0 +1,367 @@
 +"""Bounded, generator-owned caches for immutable evaluation inputs.
 +
 +No language-model state, prompt tokens, geometry, scale, or tool response is cached.
@@ -29,6 +29,10 @@
 +    if any(v not in ('off', 'on') for v in result.values()):
 +        raise ValueError('read cache switches must be off or on')
 +    return result
++
++
++def cache_bytes(settings):
++    return settings.get('read_cache_bytes',12*1024**3 if switches(settings)['read_sam_cache']=='on' else 4*1024**3)
 +
 +
 +def digest(value):
@@ -279,7 +283,11 @@
 +            for name,value in cls.__dict__.items():
 +                if callable(value):methods.update(digest((cls.__module__,cls.__qualname__,name,id(value))).encode())
 +        try:key = digest((id(self.target),methods.hexdigest(),config,args,kwargs,execution_state(),str(torch.get_default_dtype())))
-+        except (TypeError,RecursionError):return self.target(*args,**kwargs)
++        except (TypeError,RecursionError):
++            info=self.cache.stats.setdefault('processor',dict(hits=0,misses=0,evictions=0,
++                                                oversized=0,fresh_s=0.,hit_s=0.))
++            info['bypasses']=info.get('bypasses',0)+1
++            return self.target(*args,**kwargs)
 +        return self.cache.call('processor', key, lambda:self.target(*args, **kwargs))
 +
 +
@@ -559,14 +567,14 @@
 +                        required_roles=('checkpoint', 'tokenizer', 'g3t') +
 +                        (('scale_head',) if arm == 'scale_head' else ())).verify()
 +    model, processor, info = load_native(export_dir, device=device, settings=settings, artifact=artifact)
-+    from .read_cache import switches
++    from .read_cache import switches, cache_bytes
 +    cache_switches = switches(settings)
 +    if cache_switches['read_sam_cache']=='on' and 'sam3' in settings['perception_memo_modules']:
 +        raise ValueError('Use one SAM cache policy; the bounded cache must not bypass SAM memo verification')
 +    read_cache = None
 +    if 'on' in cache_switches.values():
 +        from .read_cache import ReadCache, VideoProcessorCache, install_vision_cache
-+        read_cache = ReadCache(settings.get('read_cache_bytes', 4*1024**3))
++        read_cache = ReadCache(cache_bytes(settings))
 +        if cache_switches['read_processor_cache'] == 'on':
 +            processor.video_processor = VideoProcessorCache(processor.video_processor, read_cache)
 +        if cache_switches['read_vision_cache'] == 'on':

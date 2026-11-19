@@ -1,10 +1,99 @@
-VERDICT: DONE The review fixes are packaged with CPU regression evidence; patch 01 stays OFF.
+VERDICT: DONE Build-21 patches 03, 04 and 02 apply with zero fuzz and pass OFF-identity, patch and native CPU checks; ten Gloo tests and one pool-fixture test remain for the lane.
 
-Patch 03 ranks first. Enable candidates in order **03, 04, 02** after N's first proof and a rebuilt, rescanned kit. Every switch defaults OFF. **01 stays OFF: its prepared-input cache cannot hit in the production topology in a way that avoids native work.** Its estimated production saving is zero or worse. No production speedup was measured.
+## Build 21 port
 
-Patch 01 preserves logical run paths and full native seals. The builder fixes `run_directory=/tmp/jjyeung/okit_8865619b/runs/<run_key>` (`in/tree/work/tree_r1/launch_s1/build.py:221`); `b/g.py:66` requires node-local run storage. For one logical run, source and destination are the same physical path. On another node the source is absent. On the original node, a complete-journal HIT repeats verification that native admission already reuses. A new logical run changes the key. The synthetic relocation tests exercise defensive copy handling; their two-physical-path topology cannot be produced by the builder. A and C' ran on different nodes and under different run keys, so they cannot hit.
+The delivery is [patches_b21/manifest.json](patches_b21/manifest.json), in order **03, 04, 02**, against seal `b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8` (936 files, measured and verified). Each patch applies independently and in that order with `patch --batch --fuzz=0 --no-backup-if-mismatch -p1`. The [handover](NOTE_FOR_TREE_REBUILD.md) has the exact commands and switch table. Every switch defaults OFF. **01 stays OFF**: it cannot hit in the production topology in a way that avoids native work; it is excluded from this delivery.
 
-The [cross-run store design](CROSS_RUN_STORE_DESIGN.md) specifies the native changes required for useful reuse. It is a design with effort and runtime estimates, not an enabled cache or an admission approval.
+No hunk moved or failed. Build 21 preserves all five production files touched by these patches, so the three regenerated diffs are byte-identical to the reviewed build-20 diffs. The manifest pins build 21 rather than build 20. The recommended tree differs in exactly five production files and three added test scripts; no `.orig` or `.rej` files remain. Input bytes remain unchanged.
+
+| Patch | Production hunks moved / failed | Bytes | SHA256 |
+|---|---|---:|---|
+| [03_checkpoint_verify_memo.diff](patches_b21/03_checkpoint_verify_memo.diff) | 0 / 0 | 13638 | `bf0ea4745a3e059fd0d0cdffc5fa7cd99ad646b7d70c7957df95f87b4f6c4e54` |
+| [04_launch_phase_timing.diff](patches_b21/04_launch_phase_timing.diff) | 0 / 0 | 11751 | `c939f738090ac7ad78ce3aadf596ccbc5862945a1cd8fb55655f29141aa03120` |
+| [02_parallel_frame_sha.diff](patches_b21/02_parallel_frame_sha.diff) | 0 / 0 | 6324 | `9f20e45be76d5ad356df185f6604c6e6ea822d6378286e1f8f3ed7df81158ea9` |
+
+Started Thu Nov 19 10:36:04 UTC 2026 on `trinity-1-18`; deadline 11:51:04 UTC. This report was assembled at Thu Nov 19 10:44:04 UTC 2026. The artifact audit measured workspace size **841,561,605 bytes** and scratch free space **409,521,963,008 bytes**. No production speedup was measured. Patch 03's estimate is **about 4–5 min (inferred)** per resume launch; up to about 9 only if the page cache does not keep the checkpoint. Patch 04 saves no time directly; patch 02 needs an isolated warm-storage measurement.
+
+## Exact build-21 commands and results
+
+The five OFF checks ran first. They compare baseline and patched checkpoint/frame verdicts and fixture bytes, job and recursive-run command traces and stdout/stderr, and real `c.sh` stage output/steps bytes. The job and run checks cover successful dispatch and an exit-7 guard failure with switches unset and explicitly zero. The dedicated stage check runs OFF only. Its exact result is `Ran 5 tests in 2.809s`, `OK` ([output](tests/port21/off_identity.txt)).
+
+```bash
+source work/fix2_env.sh
+export TMPDIR="$L/work/port21/tmp" TEST_TMP_ROOT="$L/work/port21/tmp" LANE_TEST_OUTPUT="$L/work/port21/tmp"
+nice -n 10 "$PY" -I -s -B work/port21/check_off.py work/port21/recommended
+nice -n 10 "$PY" -I -s -B work/port21/run_suites.py
+nice -n 10 "$PY" -I -s -B work/port21/check_known_failures.py out/tests/port21
+nice -n 10 "$PY" -I -s -B work/port21/audit_delivery.py
+```
+
+`PY=/scratch/jjyeung/envs/p1cpu/bin/python`. The runner sets CUDA empty, bytecode disabled, OMP/MKL/OpenBLAS threads to eight, tokenizer parallelism false, all test/cache paths inside this workspace, and `SO_NO_LOCAL_SOCKETS=1`. Torch tests set `torch.set_num_threads(8)` before test work. Tests execute serially under nice 10. Every log below contains the exact command, working directory, environment, stdout/stderr and exit code. [INDEX.md](tests/port21/INDEX.md) also links application and audit evidence.
+
+| Tree / script | Exact output summary | Full command and output |
+|---|---|---|
+| `03_checkpoint_verify_memo.test_checkpoint_verify_memo` | `Ran 10 tests in 0.292s`; `OK` | [log](tests/port21/03_checkpoint_verify_memo.test_checkpoint_verify_memo.txt) |
+| `04_launch_phase_timing.test_launch_phase_timing` | `Ran 7 tests in 1.642s`; `OK` | [log](tests/port21/04_launch_phase_timing.test_launch_phase_timing.txt) |
+| `02_parallel_frame_sha.test_parallel_frame_sha` | `Ran 7 tests in 0.044s`; `OK` | [log](tests/port21/02_parallel_frame_sha.test_parallel_frame_sha.txt) |
+| `01_diagnostic.test_prepared_input_cache` | `Ran 33 tests in 1.077s`; `OK` | [log](tests/port21/01_diagnostic.test_prepared_input_cache.txt) |
+| `01_diagnostic.test_prepared_cache_wrapper` | `Ran 9 tests in 4.381s`; `OK` | [log](tests/port21/01_diagnostic.test_prepared_cache_wrapper.txt) |
+| `recommended.test_checkpoint_verify_memo` | `Ran 10 tests in 0.268s`; `OK` | [log](tests/port21/recommended.test_checkpoint_verify_memo.txt) |
+| `recommended.test_launch_phase_timing` | `Ran 7 tests in 1.536s`; `OK` | [log](tests/port21/recommended.test_launch_phase_timing.txt) |
+| `recommended.test_parallel_frame_sha` | `Ran 7 tests in 0.046s`; `OK` | [log](tests/port21/recommended.test_parallel_frame_sha.txt) |
+| `combined_diagnostic.test_checkpoint_verify_memo` | `Ran 10 tests in 0.285s`; `OK` | [log](tests/port21/combined_diagnostic.test_checkpoint_verify_memo.txt) |
+| `combined_diagnostic.test_launch_phase_timing` | `Ran 7 tests in 1.469s`; `OK` | [log](tests/port21/combined_diagnostic.test_launch_phase_timing.txt) |
+| `combined_diagnostic.test_parallel_frame_sha` | `Ran 7 tests in 0.044s`; `OK` | [log](tests/port21/combined_diagnostic.test_parallel_frame_sha.txt) |
+| `combined_diagnostic.test_prepared_input_cache` | `Ran 33 tests in 1.065s`; `OK` | [log](tests/port21/combined_diagnostic.test_prepared_input_cache.txt) |
+| `combined_diagnostic.test_prepared_cache_wrapper` | `Ran 9 tests in 3.665s`; `OK` | [log](tests/port21/combined_diagnostic.test_prepared_cache_wrapper.txt) |
+| `native_baseline` | `Ran 86 tests in 2.783s`; `OK (skipped=11)` | [log](tests/port21/native_baseline.txt) |
+| `native_recommended` | `Ran 86 tests in 2.909s`; `OK (skipped=11)` | [log](tests/port21/native_recommended.txt) |
+| `native_combined_diagnostic` | `Ran 86 tests in 2.819s`; `OK (skipped=11)` | [log](tests/port21/native_combined_diagnostic.txt) |
+| `native_recommended_on` | `Ran 86 tests in 2.886s`; `OK (skipped=11)` | [log](tests/port21/native_recommended_on.txt) |
+| `extra_probes` | `Ran 5 tests in 0.128s`; `OK` | [log](tests/port21/extra_probes.txt) |
+
+The delivered set has **24 patch tests + 86 native tests: 99 pass, 11 skip**. The diagnostic combined tree also applies the unchanged patch 01 solely to rerun its two scripts: **66 patch tests + 86 native tests: 141 pass, 11 skip**. Patch 01's tests do not establish a production cache benefit. The five OFF comparisons and five extra probes pass separately. Repeated baseline/ON/standalone runs are shown individually rather than counted as new test coverage.
+
+The additional native admission-fixture comparison reproduces the same four failures and one error on baseline and patched build 21. Both 92-test attempts exit 1; the comparison exits 0. Exact outputs: [baseline](tests/port21/known_native_failures_input.txt), [patched](tests/port21/known_native_failures_patched.txt), [matching identities](tests/port21/known_failure_comparison.txt). These fixture failures remain outside the supported 86-test gate; they are not counted as passes.
+
+The retained [OFF harness error](tests/port21/off_identity.harness_error.txt) records two Python indentation errors in extracted fixture methods. The corrected harness passes before any ON suite runs. No production code changed to address these errors.
+
+## Lane tests and remaining work
+
+Sockets are unavailable by dispatch; this run does not attempt them. The native runner explicitly skips the whole `tests.test_s1_checkpoint_buffers.CheckpointBufferTests` class because its `setUpClass` starts a real TCP/Gloo process group. The lane still needs these ten tests:
+
+- `test_buffers_are_rank_private`
+- `test_checkpoint_restore_preserves_running_statistics`
+- `test_default_stall_budget_covers_native_startup`
+- `test_disk_headroom_is_checked_before_any_checkpoint_payload`
+- `test_export_disk_guard_precedes_publication_and_payloads`
+- `test_legacy_shard_cannot_initialize_mutable_buffers`
+- `test_startup_stop_exports_with_optimizer_and_shared_leg_budget`
+- `test_two_hour_plan_counts_early_signal_and_weight_exports`
+- `test_whole_leg_budget_counts_measured_states_and_exports`
+- `test_whole_leg_guard_does_not_admit_space_for_only_one_state`
+
+The eleventh skip is `tests.test_s1_launch_kit.LaunchKitTests.test_packaged_templates_validate_but_do_not_authorize_execution`: its authenticated pool selection is not staged. With sockets and the authenticated fixtures available, rerun the same gate without the sandbox skip:
+
+```bash
+SO_NO_LOCAL_SOCKETS=0 nice -n 10 "$PY" -I -s -B "$L/work/run_native_regression.py" "$L/work/port21/recommended"
+```
+
+READY names `work/base/tree_b01ce449`, `work/build15/inputs` and `work/build_n1/inputs` for the lane's separate focused suites. The exact read-only source paths are recorded and linked under `work/port21/fixtures/work` ([mapping](tests/port21/fixture_links.json)). The bounded 86-test native gate does not consume those links. This run does not claim to reproduce READY's separate 112-test proof.
+
+The lane must rebuild/rescan and reseal the kit, run its socket/pool tests and preserve all native training gates before launch. No Orchard job, GPU validation or production launch timing ran here. The Orchard complete-journal reuse-floor measurement in [MEASURE_NATIVE_REUSE.md](MEASURE_NATIVE_REUSE.md) remains unrun; the separate cross-run store implementation, two-node checks and admission review are outside this port. These pending production checks do not change the completed build-21 port result.
+
+## Risks and detection
+
+Patch 03 assumes completed checkpoints remain immutable under cooperating writers. Stat metadata is not authentication against a same-user forger or a guarantee of immediate timestamps for arbitrary mmap writes. The extra probes force rehashing after chmod, refuse writes during hashing and disable hits under symlinked parents. Check `.checkpoint-verification/<job>.events.jsonl`; missing events mean no demonstrated memo benefit. Native loaders still verify SHA256 before loading shards, replicated data and RNG (`work/port21/baseline/student_pilot/full_ft.py:563,603,618`; `carrier_c1_run.py:2069`).
+
+Patch 02 hashes every byte, caps workers at eight and pending work at twice the worker count; storage contention can make it slower. Fault and bounded-work probes pass. Measure f2 alone before enabling it. Patch 04 writes timing only; missing or unwritable logs cannot abort a launch. OFF behavior is verified on synthetic fixtures, not a full Orchard run. The five native admission-fixture failures require fixture repair and a lane rerun, not relaxed production checks.
+
+No Git, SSH, Slurm, GPU, paid API, production job, file deletion or external write ran. All source copies and test outputs remain in this workspace; READY fixture targets remain read-only. No other agent's work was stopped.
+
+## Framework evidence
+
+The installed Torch version is `2.11.0+cpu` (`/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/version.py:4`). CPU intra-op thread control and its required placement before test work are documented at `torch/_torch_docs.py:9814–9824` in that installation and in the [official PyTorch 2.11 set_num_threads documentation](https://docs.pytorch.org/docs/2.11/generated/torch.set_num_threads.html).
+
+The skipped fixture opens a local socket and calls `init_process_group('gloo', init_method='tcp://…')` (`work/port21/baseline/tests/test_s1_checkpoint_buffers.py:28–35`). Installed `torch/distributed/rendezvous.py:190–207,210–237` constructs its TCPStore. The [official TCP initialization documentation](https://docs.pytorch.org/docs/2.11/distributed.html#tcp-initialization) describes the network rendezvous. No socket-dependent test is counted as passed.
 
 ## Measured phases and preparation inputs
 
@@ -49,6 +138,8 @@ Patch 01's key contains the exact input config-file pin, the complete parsed con
 | Trainer source, source seal/archive, wrapper and staging implementation, venv/overlays and packaged authorities | `run.authenticate`; `b/a.py`; `b/pc.py.Context` | Preparation code identity contains commit, trainer archive, config code pin and SHA256 of every kit `b/` file. Entire deployment identity also includes venv/closure/overlay pins. |
 | Preparation environment and logical-to-physical frame mapping | `b/c.sh:382`; `orchard_paths`; native admission request | Only pass-through rehearsal, CPU-count and hash-seed values enter `environment`; the removed names are not read on this preparation path. `tk_env`'s fixed mount, student ID, frame mapping, init mirror and CPU settings are bound by its wrapper hash. Contract frame roots are also keyed. |
 
+Cache metadata uses a key and per-component SHA256 digests; full components remain in memory for key construction. Schema v2 refuses v1 cache entries. Native prepared/config files remain byte-preserved.
+
 The native preparation path also has mutable journal state. Its `request.json` binds config/source/CPU/frame roots; `PhaseJournal` reuses completed phases, and admission refuses another request. A MISS leaves the destination intact, including a partial or foreign-config journal. Destination quarantine occurs only after a candidate copy fully verifies and immediately before its installation. A failed final rename restores the native destination. A report-write or uncertain-install error exits with a non-MISS status. Cached RGB corruption still invalidates the affected frame files/stamps through the existing staging repair path; it does not rename the native journal.
 
 A verified synthetic copy preserves native receipt bytes. The hit report records source job, paths, key/components, producer receipt pin and verified file/frame counts. A valid destination from another preparation generation remains native because retained checkpoints may bind its UUID paths. None of these checks grants training authorization or replaces actual all-rank first-step admission.
@@ -57,7 +148,7 @@ A verified synthetic copy preserves native receipt bytes. The hit report records
 
 | Patch or candidate | Evidence | Expected saving and limit |
 |---|---|---|
-| **03: same-allocation checkpoint verification memo** | Four `complete()` calls each hash the 113.5-GB checkpoint. C' has measured 675-s and 86-s guard envelopes. | **Estimate: 4–10 min per resume launch**, inferred rather than benchmarked. The memo removes three repeated payload reads. The first check and every new allocation still hash fully. |
+| **03: same-allocation checkpoint verification memo** | Four `complete()` calls each hash the 113.5-GB checkpoint. C' has measured 675-s and 86-s guard envelopes. | **Estimate: about 4–5 min (inferred); up to about 9 only if the page cache does not keep the checkpoint**. The memo removes three repeated payload reads. The first check and every new allocation still hash fully. |
 | **04: phase and lock timing** | Existing logs combine several guards and waits. | Estimate: zero minutes directly. Boundaries in `job.sh` and both recursive/parent `r.sh` guards separate these costs. Logging failure cannot abort a job. |
 | **02: parallel frame SHA, optional** | Already-covered f2-only checks take a measured 1–19 s in C' (`last.txt:218–224,232–239`). The 23-minute cold envelope includes extraction. | No useful measured saving yet. Estimate: seconds on the supplied warm checks; storage contention can make it slower. Measure f2 alone on a warm Orchard node before enabling. Four workers by default, capped at eight, at most twice that many pending tasks, and all bytes still hash. |
 | **01: prepared-input cache — OFF** | Same node-local source/destination; different-node source absent; new-run key differs. | Estimate: zero minutes or worse. Misses add full publication hashing; same-path hits add hashes to native reuse and hold the stage lock during restore. |
@@ -72,97 +163,38 @@ The four checkpoint checks explain the **11-minute gap** as an inference support
 3. `b/r.sh:40` in the **recursive** p child: `g.py p` → the same verifier.
 4. `b/r.sh:40` in the **parent** u leg: `g.py u` → the same verifier.
 
-C' spent **675 s** between preflight PASS and first stage prep, covering three checks, and **86 s** between p exit and second stage prep, covering one. A had no checkpoint and about one second in each gap. Using the warm 86-s pass gives about 258 s for three removable reads; allocating the combined 761-s envelope evenly gives about 571 s. Rounded for unisolated overhead, the saving estimate is 4–10 min per resume launch. The four-process CPU regression exercises the real `g.py.persistent_launch` dependency and direct chooser; it records `[false, true, true, true]` memo hits and refuses a subsequent corrupted payload. It does not measure checkpoint throughput.
+C' spent **675 s** between preflight PASS and first stage prep, covering three checks, and **86 s** between p exit and second stage prep, covering one. A had no checkpoint and one second in each gap (`look1.out:280–281,347–348`). The node reports 1842 GiB RAM (`last.txt:163`), which makes page-cache retention plausible but does not measure cache residency. Subtracting that one-second baseline gives an inferred warm pass of about 85 s. Removing three warm passes saves about 255 s, or **about 4–5 min (inferred); up to about 9 only if the page cache does not keep the checkpoint**. The conditional upper estimate is 2 × (675 / 3) + 86 = 536 s, assuming the first pass is at least as slow as each later pass. It is not a throughput measurement.
+
+Set `TK_LAUNCH_TIMING=1` on the **first resume** job and retain the four guard envelopes and `.checkpoint-verification/<job>.events.jsonl`. The four-process CPU regression exercises real `g.py.persistent_launch` and the direct chooser; it records `[false, true, true, true]` memo hits and refuses a subsequently corrupted payload. Its tiny fixtures do not measure checkpoint throughput.
 
 Patch 03 binds a memo to job ID, allocation start, host, checkpoint path, binding and validator SHA. It checks marker SHA and dev/inode/size/mtime_ns/ctime_ns for the marker and every payload. New jobs, clock changes, inode replacement, restored-mtime writes, marker/binding changes, purge and malformed memo force full verification or refusal. This assumes cooperating writers keep completed checkpoints immutable; it does not authenticate against a same-user forger or prove immediate ctime updates for arbitrary mmap writes.
 
-## Review round 1: finding -> fix -> test
+## Review round 2: finding -> fix -> test
 
 | Finding | Fix | Regression evidence |
 |---|---|---|
-| 1: unusable production cache and unsupported saving | State the production path constraint and keep 01 OFF; deliver the separate cross-run design and cost estimates. | Delivery claim/design test fails before and passes after. The same-path fixture verifies that native phases already reuse, a purge misses, and no production copy occurs. |
-| 2: MISS renames native journals | Remove destination quarantine from MISS; quarantine only for a fully verified install and roll back a failed rename. | Partial prepare survives and native `PhaseJournal` reuses it; a foreign config survives and native binding validation refuses it. Corrupt source, copy failure, install failure and report-write failure are covered. |
-| 3: memo benefit and quiet gap | Rank 03 first and state the four call sites and estimated 4–10 min saving. | The report contract fails before and passes after. Real guard/chooser subprocess coverage passes on both versions: the memo implementation already works. |
-| 4: inherited lock deadlock and unbounded duplicate wait | Export/check `TK_PC_LOCK_HELD=1`; acquire with `flock -w 600 7 || exit 75`. | Symlinked-parent resume exits 124 before and 0 after. Duplicate t/u jobs exit 1 before and 75 after in a real contention test whose wait is scaled to 0.1 s; it asserts the exact production 600-s request. Concurrent native preparations still serialize. |
-| 5: wrapper stubs hide the real staging branches | Source the whole real `c.sh`; stub only staging dependencies. | The delivery coverage test fails before and passes after. The real `tk_stage` matrix validates restore exit 0/1/7, bundle skip on HIT, ordinary bundles on MISS/OFF, and missing-root refusal; these existing branches pass on both code versions. |
-| 6: timing aborts without `o/`; guard costs omitted | Guard output directories, tolerate write errors, and bracket both `r.sh` `g.py` calls. | Missing/unwritable output fails before and passes after. Recursive/parent start/done events appear after; a failed guard retains exit 7 and no done event. |
-| 7: native gate omits relevant modules | Select the full launch-kit, production-import and checkpoint-buffer modules. | Selection regression fails before and passes after. The expanded native run reports every test and explicit environment skips; shell syntax and world-4 resume checks execute. |
-| 8: irrelevant names leak into JSON keys | Drop the three unused environment names; scan every written cache report/index/receipt filename and nested field name. | Irrelevant environment changes affect the key before and do not after. Generic-name and packaged-regression assertions fail before and pass after. |
+| 1 MEDIUM: unsupported adoption saving | Budget only the prepare half; explicitly retain node-local frame audit and the unmeasured complete-journal floor. | Planning/design contract fails on the reviewed text and passes now. [Native measurement procedure](MEASURE_NATIVE_REUSE.md) is delivered but **not run**: no Orchard access or production journal is authorized here. |
+| 2 MEDIUM: missing Orchard data channel and identity work | Specify external GCS session issuance, candidate verification/root publication, login-node read-only cache, zero-write job staging, content-derived phase names and exact config/preparation binding; re-estimate effort. | Transport/identity design contract fails before and passes after. This checks design requirements, not a store implementation. |
+| 3 LOW: unsupported memo range | Infer three warm passes from the 86-s envelope and 1-s no-checkpoint baseline; state the conditional 536-s upper estimate. | Report/note contract fails before and passes after; four-process guard/chooser regression passes. Production timing remains pending. |
+| 4 LOW: real stage-lock timing untested | Execute whole real `c.sh` under `bash -euo pipefail`, with only staging dependencies stubbed. | Coverage contract fails on the reviewed tests and passes now. Prep/preflight ON emit exactly two lock lines and exit 0; OFF output equals input byte for byte. The implementation already worked; the defect was coverage. |
+| 5 LOW: offset hunks leave inventory-visible backups | Apply with `--no-backup-if-mismatch` in the note, manifest and verifier. | The documented all-four application leaves `.orig` files before; the same order leaves no `.orig` or `.rej` after. Fresh standalone, recommended and combined trees pass. |
+| 6 LOW: inherited `TK_PC_LOCK_HELD=1` skips lock | Export `TK_PC_LOCK_HELD="$$"`; a child accepts it only when it equals `$PPID`. Keep `flock -w 600 7 || exit 75`. | Inherited `1` bypasses contention before; t/u with unset, `1` or stale-PID markers exit 75 after. Recursive and symlink-parent runs still succeed; concurrent preparation remains serialized. |
+| 7 LOW: full config copies and method-bearing refusal | Store only key/component digests; compare them on restore. Use generic optional-input errors and catch context refusal before restore starts. | Two new tests fail before and pass after: a method-bearing valid config publishes/restores without copying its fields, changed component digest refuses, and the CLI safely misses without method text or traceback. |
 
-Before/after logs live in [tests/review_round1](tests/review_round1/INDEX.md). Coverage and report defects use delivery contracts as their failing regressions; correctly implemented branches are not represented as behavior bugs.
+Exact before/after outputs and commands are indexed in [review_round2/INDEX.md](tests/review_round2/INDEX.md). The full final suites include every earlier behavior regression. Documentation and coverage contracts are explicitly distinguished from runtime failures.
 
-## Risks and unfinished work
+## Review round 1: finding -> fix -> test
 
-Patch 01 remains OFF. Its index is self-hashed rather than authenticated, and it must not be enabled against a cache root writable by another user. Restore still hashes under the node stage lock. No cross-run store, portable receipt migration, R2 adapter, two-node production determinism proof or new independent admission review is implemented. The [design](CROSS_RUN_STORE_DESIGN.md) describes those prerequisites and their estimated cost.
+| Finding | Current invariant and rerun evidence |
+|---|---|
+| 1 | 01 OFF; production-path/design contract and same-path/purge tests pass. |
+| 2 | MISS leaves partial/foreign journals untouched; native reuse/refusal, copy/install failure and report-error tests pass. |
+| 3 | 03 first; all four real guard/chooser calls pass with one full verification. |
+| 4 | Parent-bound lock marker and 600-s request; symlink, duplicate t/u and concurrent-job tests pass. |
+| 5 | Whole real `c.sh` HIT/MISS/error/missing-root matrix passes. |
+| 6 | Missing/unwritable timing logs cannot abort; recursive/parent guard events and exit-7 behavior pass. |
+| 7 | Full launch-kit, production-import and checkpoint-buffer modules are selected; explicit environment skips appear below. |
+| 8 | Unused environment names do not change the key; written cache metadata uses generic component names and digests. |
 
-All code changes remain behind default-OFF switches. CPU tests cannot establish production throughput, GPU behavior or a useful cache HIT. Do not enable patches against a sealed kit without rebuilding its archive, executable inventory, source/config seals and scan certificate. Preserve native review, authorization, frame, parent, checkpoint and all-rank first-step gates.
 
-The native `test_s1_in_job_gate` fixture still has four assertion failures and one error on both the input and patched trees. Its inconsistent stream/config fixture is outside this fix. The comparison logs identify the same five cases. The selected gate includes the complete checkpoint-buffer module, but its ten tests require a real Gloo process group and are explicitly skipped with `SO_NO_LOCAL_SOCKETS=1`. One additional native test requires an unstaged authenticated pool receipt. Re-run those eleven tests in the supported environment before deployment.
-
-No GPU, socket, SSH, Git, production job or heavy I/O ran. Tests hide CUDA, set Torch intra-op threads to eight, cap OMP/MKL/OpenBLAS at eight, and inherit nice level 10. Inputs are unchanged. No other agent's work was stopped.
-
-## Exact commands and results
-
-Final fresh-patch verification: 20261119T082118Z. Report assembled at 2026-11-19T08:26:35Z.
-
-All four patches apply independently with `patch --batch --fuzz=0 -p1`. The recommended set applies in order 03, 04, 02; the all-four set adds 01 last with its switch OFF. The all-four application reports only expected line offsets where timing moves later hunks. No fuzz or failed hunk occurs, and every declared final file must match `work/tree` byte for byte. The manifest records patch bytes, SHA256, input base pins and the native gate SHA256.
-
-| Application | Exact test summaries | Full command/output log |
-|---|---|---|
-| 01_prepared_input_cache.diff | `Ran 31 tests in 0.864s`; `OK`; `Ran 9 tests in 2.927s`; `OK` | [exact output](tests/20261119T082118Z/01_prepared_input_cache.diff.txt) |
-| 02_parallel_frame_sha.diff | `Ran 7 tests in 0.042s`; `OK` | [exact output](tests/20261119T082118Z/02_parallel_frame_sha.diff.txt) |
-| 03_checkpoint_verify_memo.diff | `Ran 10 tests in 0.277s`; `OK` | [exact output](tests/20261119T082118Z/03_checkpoint_verify_memo.diff.txt) |
-| 04_launch_phase_timing.diff | `Ran 6 tests in 0.872s`; `OK` | [exact output](tests/20261119T082118Z/04_launch_phase_timing.diff.txt) |
-| recommended | `Ran 10 tests in 0.240s`; `OK`; `Ran 6 tests in 0.892s`; `OK`; `Ran 7 tests in 0.052s`; `OK`; `Ran 86 tests in 2.842s`; `OK (skipped=11)` | [exact output](tests/20261119T082118Z/recommended.txt) |
-| combined | `Ran 10 tests in 0.285s`; `OK`; `Ran 6 tests in 0.875s`; `OK`; `Ran 7 tests in 0.062s`; `OK`; `Ran 31 tests in 0.937s`; `OK`; `Ran 9 tests in 2.946s`; `OK`; `Ran 86 tests in 2.641s`; `OK (skipped=11)` | [exact output](tests/20261119T082118Z/combined.txt) |
-
-The all-four run registers **149 tests: 138 pass and 11 skip** (63 patch tests plus 86 native tests). Six delivery contracts pass separately. The recommended set registers 109 tests, with the same eleven explicit native skips. The native gate selects the full `test_s1_launch_kit`, `test_s1_production_imports` and `test_s1_checkpoint_buffers` modules, in addition to the existing native modules. It executes world-4 guard/resume tests and the shell syntax checks. No skipped test is counted as passed.
-
-The fresh-patch command was:
-
-```bash
-nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 SO_NO_LOCAL_SOCKETS=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/verify_delivery.py
-```
-
-The runner creates owned scratch directories and sets `TEST_TMP_ROOT`, `TMPDIR` and `LANE_TEST_OUTPUT` to them. Child tests inherit the CPU limits and nice level. The exact combined test commands were:
-
-```text
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/tests/test_checkpoint_verify_memo.py -v
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/tests/test_launch_phase_timing.py -v
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/tests/test_parallel_frame_sha.py -v
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/tests/test_prepared_input_cache.py -v
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined/tests/test_prepared_cache_wrapper.py -v
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/run_native_regression.py /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T082118Z/combined
-```
-
-The corrected before/after regression evidence is indexed in [review_round1/INDEX.md](tests/review_round1/INDEX.md). The two boundary coverage tests and reporting checks supplement the behavior tests; they do not pretend that the working memo or staging branches were broken.
-
-The stale-fixture comparison used:
-
-```bash
-nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 SO_NO_LOCAL_SOCKETS=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/verify_known_failures.py /scratch/jjyeung/orch_n30/so_launch/out/tests/20261119T082118Z
-```
-
-Its exact comparison output is:
-
-```text
-PASS: the same five native admission-fixture failures reproduce on input and patched trees
-ERROR: test_reviewed_derivation_loads_from_a_restaged_host_directory (tests.test_s1_in_job_gate.InJobGateTests.test_reviewed_derivation_loads_from_a_restaged_host_directory)
-FAIL: test_changed_proof_payload_and_foreign_parent_are_rejected (tests.test_s1_in_job_gate.InJobGateTests.test_changed_proof_payload_and_foreign_parent_are_rejected)
-FAIL: test_fixture_evidence_does_not_authorize_real_training (tests.test_s1_in_job_gate.InJobGateTests.test_fixture_evidence_does_not_authorize_real_training)
-FAIL: test_scene_coverage_cannot_be_omitted_or_rebound (tests.test_s1_in_job_gate.InJobGateTests.test_scene_coverage_cannot_be_omitted_or_rebound)
-FAIL: test_self_consistent_unreviewed_configuration_change_is_rejected (tests.test_s1_in_job_gate.InJobGateTests.test_self_consistent_unreviewed_configuration_change_is_rejected)
-```
-
-Both [input](tests/20261119T082118Z/known_native_failures_input.txt) and [patched](tests/20261119T082118Z/known_native_failures_patched.txt) runs register 92 tests and exit 1 with `FAILED (failures=4, errors=1, skipped=11)`. The five failure identities match. The supported gate passes on the input tree as well as both delivered patch sets; the extra six-test admission module is isolated in this comparison.
-
-Patch inventory:
-
-| Patch | Bytes | SHA256 |
-|---|---:|---|
-| [01_prepared_input_cache.diff](patches/01_prepared_input_cache.diff) | 71778 | `655234ca4a01ffb2aba1911b6abad2e2b6a1f1068b6bd8d10abf2a10bc70b093` |
-| [02_parallel_frame_sha.diff](patches/02_parallel_frame_sha.diff) | 6324 | `9f20e45be76d5ad356df185f6604c6e6ea822d6378286e1f8f3ed7df81158ea9` |
-| [03_checkpoint_verify_memo.diff](patches/03_checkpoint_verify_memo.diff) | 13638 | `bf0ea4745a3e059fd0d0cdffc5fa7cd99ad646b7d70c7957df95f87b4f6c4e54` |
-| [04_launch_phase_timing.diff](patches/04_launch_phase_timing.diff) | 8822 | `e33d420cdbbc95b47bb6f350e6e338ceed22e8b5c0c8b07019c408330e0ed4f7` |
-
-The artifact audit checks source/base pins, standalone and combined application, syntax, test counts and skips, before/after production source identity, live guidance, links, scratch capacity and output checksums. Its exact output is [final_artifact_audit.txt](tests/final_artifact_audit.txt). The cross-run design and hand-over note are covered by the delivery contracts.
+The requested review-round mappings and the harness-error disclosure are retained as audit evidence; these are deliberate exceptions to the no-archaeology writing rule.

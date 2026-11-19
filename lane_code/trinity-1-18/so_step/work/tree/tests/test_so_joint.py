@@ -44,6 +44,15 @@ def exact(a,b, label):
         assert a == b,(label,a,b)
 
 
+def assert_on_paths(arm, threads, cache_misses, deferred_rows):
+    if arm in ('prefetch', 'all'):
+        assert threads and all(name.startswith('c1-row-cpu') for name in threads), threads
+    if arm in ('cache', 'all'):
+        assert cache_misses > 0, 'cache path did not miss'
+    if arm in ('metrics', 'all'):
+        assert deferred_rows > 0, 'metrics path did not defer'
+
+
 def worker(rank, directory):
     torch.set_num_threads(8)
     directory = Path(directory)
@@ -61,10 +70,18 @@ def worker(rank, directory):
                     wrapped = run.wrap_model(model,torch.device('cpu'),mixed_precision=False)
                     optimizer = torch.optim.AdamW(parameter_groups(wrapped),weight_decay=.01)
                     rows = run.Rows(receipt,compact_processor())
+                    from student_pilot import c1_decoded_cache, c1_batch_metrics
+                    c1_decoded_cache._cache = None
+                    threads, deferred = [], []
+                    original_add = c1_batch_metrics.Components.add
+                    def add(recorder, stream, components):
+                        deferred.append(stream)
+                        return original_add(recorder, stream, components)
                     draws, collectives, losses, grads = [], [], [], {}
                     main_thread = threading.get_ident()
                     original_get = run.Rows.get
                     def get(source,stream,index):
+                        threads.append(threading.current_thread().name)
                         draws.append((stream,index,index))
                         if failure and rank == 1 and stream == 'vqa' and index == 3:
                             raise ValueError('planted rank-1 row failure')
@@ -89,6 +106,7 @@ def worker(rank, directory):
                     info = error = None
                     with ExitStack() as stack:
                         stack.enter_context(patch.object(run.Rows,'get',get))
+                        stack.enter_context(patch.object(c1_batch_metrics.Components,'add',add))
                         stack.enter_context(patch.object(run.full_ft,'clip_sharded',capture))
                         for name in ('all_reduce','all_gather','all_gather_into_tensor','reduce_scatter_tensor','broadcast'):
                             stack.enter_context(patch.object(dist,name,traced(name,getattr(dist,name))))
@@ -98,6 +116,7 @@ def worker(rank, directory):
                             error = str(exc)
                         finally:
                             rows.close()
+                    assert_on_paths(arm, threads, c1_decoded_cache.stats()['misses'], len(deferred))
                     hook.remove()
                     names = [(n,p.numel()) for n,p in run.full_ft.named_trainable(wrapped)]
                     after = {n:p.detach().clone() for n,p in run.full_ft.named_trainable(wrapped)}
@@ -119,6 +138,7 @@ def worker(rank, directory):
                     summaries.append(dict(arm=arm,failure=failure,rank=rank,losses=len(losses),
                         gradients=len(grads),trainable_tensors=len(names),local_trainable_elements=sum(n for _,n in names),
                         draws=draws,collective_count=len(collectives),status='BITWISE_EQUAL',
+                        positive_controls=dict(threads=sorted(set(threads)), cache_misses=c1_decoded_cache.stats()['misses'], deferred_rows=len(deferred)),
                         failure_microstep=2 if failure else None))
                     (directory/f'rank{rank}_progress.json').write_text(json.dumps(summaries,indent=2)+'\n')
                     del optimizer,wrapped,model,rows
@@ -128,6 +148,10 @@ def worker(rank, directory):
 
 
 class JointTests(unittest.TestCase):
+    def setUp(self):
+        from tests.so_helpers import reset_switches
+        reset_switches(self)
+
     def test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives(self):
         torch.set_num_threads(8)
         directory = root()

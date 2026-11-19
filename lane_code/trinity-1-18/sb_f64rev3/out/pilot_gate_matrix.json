@@ -1,0 +1,46 @@
+{
+  "command": "bash run_cpu.sh pilot_gate_matrix.py",
+  "scope": "Explicit synthetic controls from the retained real encode fixtures; no production admission or GPU execution.",
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/pilot_gate_matrix.py": "b548888f1495f7aabcf3a8c0c900ade5eb2f45e0185b8c4d24482ae9bfa6ac40",
+    "/scratch/jjyeung/orch_n30/sb_f64rev3/run_cpu.sh": "4d87850c0b31c124bfe8a6a97d529966b10e9a5da1425cfee0fdba015ceab1bd",
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/pilot_gate_matrix.py": "6054126cf7814f1ddef2f0eb8749c666d494efe2d014d162599e5afef9fa3d07",
+    "/scratch/jjyeung/orch_n30/sb_f64fix2/kit/configs/r1_config_f64.json": "cc811f9ad166cba19f8a3540ef9577a7379c8fc7c7cd972735a152434d884072",
+    "/scratch/jjyeung/orch_n30/sb_f64fix2/kit/scripts/token_audit.py": "08666df18288ac91b2b11a1d6566537d34c5301be717a32d4dc0f45507aa4359",
+    "/scratch/jjyeung/orch_n30/sb_f64fix2/kit/scripts/mem_pilot.py": "52e83fc014d686c6269c5f523c0377668baab4e39e78f73cd809cd425b568caf",
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/tmp/dryrun/token_audit_8m70opiy/complete_0.jsonl": "046f7985477bd6f808d3268aa8b31905b7b59af2baa2789b8fe21c548d38d4b5",
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/tmp/dryrun/token_audit_8m70opiy/complete_1.jsonl": "d596db36a37ca06f341bf34af8899840a428acc7c4c6d7aea376db92636f1e59"
+  },
+  "cases": {
+    "passing": {
+      "pilot_accepted": true,
+      "launch_ready": true,
+      "errors": [],
+      "failed_rows": 0,
+      "tripwire_rows": 0,
+      "longest_row_count": 16,
+      "required_behavior": "accept",
+      "error": null
+    },
+    "tripwire_only": {
+      "pilot_accepted": true,
+      "launch_ready": false,
+      "errors": [],
+      "failed_rows": 0,
+      "tripwire_rows": 8,
+      "longest_row_count": 16,
+      "required_behavior": "accept",
+      "error": null
+    },
+    "failed_check": {
+      "pilot_accepted": false,
+      "launch_ready": false,
+      "errors": [],
+      "failed_rows": 1,
+      "tripwire_rows": 0,
+      "longest_row_count": 15,
+      "required_behavior": "refuse",
+      "error": "audit has rows the trainer refuses (check_row failure or over the ceiling): {\"routing\": {\"failed\": 1, \"longest_tokens\": 9303, \"max_tokens\": 9303, \"omitted_from_longest\": 1, \"over_ceiling\": 0, \"rows\": 4}}"
+    }
+  }
+}

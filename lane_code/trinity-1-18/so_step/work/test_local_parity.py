@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import threading
 import unittest
 from unittest.mock import patch
 
@@ -19,7 +20,7 @@ torch.set_num_threads(8)
 from student_pilot import carrier_c1_run as run
 from student_pilot.carrier_c1 import parameter_groups
 from tests.so_helpers import root, inputs, native, compact_processor, plan
-from tests.test_so_joint import ARMS, exact
+from tests.test_so_joint import ARMS, exact, assert_on_paths
 
 
 class LocalParity(unittest.TestCase):
@@ -39,9 +40,17 @@ class LocalParity(unittest.TestCase):
                     model = native()
                     optimizer = torch.optim.AdamW(parameter_groups(model), weight_decay=.01)
                     rows = run.Rows(receipt, compact_processor())
+                    from student_pilot import c1_decoded_cache, c1_batch_metrics
+                    c1_decoded_cache._cache = None
+                    threads, deferred = [], []
+                    original_add = c1_batch_metrics.Components.add
+                    def add(recorder, stream, components):
+                        deferred.append(stream)
+                        return original_add(recorder, stream, components)
                     draws, losses = [], []
                     original_get = run.Rows.get
                     def get(source, stream, index):
+                        threads.append(threading.current_thread().name)
                         draws.append((stream, index, index))
                         if failure and stream == 'vqa' and index == 1:
                             raise ValueError('planted local row failure')
@@ -49,13 +58,14 @@ class LocalParity(unittest.TestCase):
                     hook = model.register_forward_hook(lambda m, a, o: losses.append(o['loss'].detach().clone()))
                     info = error = None
                     try:
-                        with patch.object(run.Rows, 'get', get):
+                        with patch.object(run.Rows, 'get', get), patch.object(c1_batch_metrics.Components, 'add', add):
                             info, _ = run.optimize_step(model, optimizer, rows, plan(), 0, torch.device('cpu'), 1)
                     except ValueError as exc:
                         error = str(exc)
                     finally:
                         rows.close()
                         hook.remove()
+                    assert_on_paths(arm, threads, c1_decoded_cache.stats()['misses'], len(deferred))
                     state = dict(losses=losses, draws=draws, error=error,
                         trainables=[(n, p.numel()) for n, p in model.named_parameters() if p.requires_grad],
                         tensors={n: (p.detach().clone(), None if p.grad is None else p.grad.detach().clone())
@@ -70,7 +80,7 @@ class LocalParity(unittest.TestCase):
                     else:
                         exact(reference[failure], state, f'{arm}/failure={failure}')
                     summaries.append(dict(arm=arm, failure=failure, losses=len(losses), draws=draws,
-                                          trainable_tensors=len(state['trainables']), status='BITWISE_EQUAL'))
+                                          trainable_tensors=len(state['trainables']), positive_controls=dict(threads=sorted(set(threads)), cache_misses=c1_decoded_cache.stats()['misses'], deferred_rows=len(deferred)), status='BITWISE_EQUAL'))
                     del model, optimizer, rows
         (directory/'local_parity.json').write_text(json.dumps(summaries, indent=2)+'\n')
         print('SO_LOCAL_PROOF '+json.dumps(dict(directory=str(directory), arms=5, comparisons=8,

@@ -210,6 +210,8 @@ def main():
     total = args.warmup + args.measure if args.mode == 'timing' else 1
     train = measurement_train(run, output.parent / 'trainer', resume_check=resume_check,
                               max_steps=total, redact=scrub)
+    from gpu_guard import check as gpu_check
+    write_json(output/'gpu_guard.json', gpu_check(local_rank=int(os.environ.get('LOCAL_RANK', '0'))))
     train(cfg, smoke_steps=total, resume_pin=resume_pin)
     progress['stage'] = 'complete'
     done.set()

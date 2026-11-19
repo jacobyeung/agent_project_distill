@@ -1,0 +1,139 @@
+=================== sb_mfrev/REVIEW_VERDICT.md
+# Review of sb_maskfail (served-mask failure analysis, K1 training captures)
+
+**Verdict: ACCEPT WITH FINDINGS.** Every number I reran reproduces exactly. The findings correct labels and interpretation; one of them (F2) shrinks the selection share in item 5.
+
+## Reproduction (checks 3, 4, 6, 2)
+- `rerun.py` rescored all 209 training captures and 1,037 rows through sb_kbox4's unchanged geometry, Objects (A0), lifted (A2) and session_distance pricing, with my own RULES.md classifier and frame replacement. A0 scores 56.7695 (36 refusals) and A2 scores 73.9730 (0 refusals); neither arm has a single prediction mismatch against PER_ITEM. sb_kbox4's `summarize_train.contrast` (10,000 room draws, seed 20261119, refusal scores zero) gives a gap of +17.2035 [13.5395, 20.8920].
+- Seven arms at t = 0.5 match the kit row for row, with identical intervals and refusal counts. Independent: no_proposal +8.1774, omitted +3.7801, wrong_class −1.7358. Cumulative: through omitted +11.1186, through wrong_class +15.1398, through other +18.0810, through correct = A2 exactly. Each arm replaces only frames of the named kinds (GT-absent frames of those kinds included) and keeps A0 masks elsewhere.
+- My classifier, written from RULES.md, disagrees with the kit on 0 of 24,640 unique object-frames at 0.3, 0.5 and 0.7, and the IoU difference is 0.
+- The hand check of 20 object-frames (`spotcheck.py`) decodes raw RLE from candidates.json and the GT npz and resizes them with my own center-aligned code; it covers both orientations, including the 61 portrait ARKit rasters. IoU is within 0.043 of the kit and frame share matches exactly. The kit's top-left `[::2,::2]` subsample flips 1 of 20 frames at the 0.5 boundary (chair 0.492 vs 0.505). The kit uses the right raster instance and resolution.
+- RULES.md (04:10:42) predates the full measurement (04:11:05), and its precedence order makes the kinds mutually exclusive. The executed measurement.py counted teacher overlap in no_proposal; analyze.py was corrected to the deployed-only rule of RULES.md before classify.py produced any count. All 209 provenance hash pointers in MASKFAIL.json are current.
+
+## Findings and corrections
+- **F1. wrong_instance = 0 is structural.** In all 209 GT rasters, every one of the 770 training targets is the only instance with its exact label in its capture, so the exact-label rule can never fire.
+  - Same-class confusion appears instead as wrong_class with synonym or hyponym labels (64 of 924 frames: chair→rolling chair 20, heater→electric/portable heater 27, shoes→shoe 12). It also appears in 46 no_proposal frames whose served mask lies ≥ 50% on another instance.
+  - omitted_selection cannot hide it frame by frame, because the served mask there is empty. Still, 803 of its 2,393 frames belong to the 140 of 770 objects whose selected track lies mostly on another instance.
+  - Correction: mark the row "structurally empty" in FIRST_TABLE.md and the report, and report the 140 wrong-object tracks beside it.
+- **F2. Item 5 overstates selection failure.** The 2,101 of 7,699 "correct deployed proposal" frames come from the raw pool (joint score ≥ 0.05, cap 30). StageOne tracks, however, admit only proposals with score ≥ 0.3 (`routed_candidates.lift`, floor 0.3) that join an accepted track.
+  - Only 1,487 frames (19.3%, not 27.3%) have a correct candidate inside an accepted track. Another 156 pass the floor but sit in no accepted track, and 458 fall below the 0.3 floor.
+  - Correction: report the three layers, and count only the 1,487 as selection failures and the other 614 as proposal-filter failures.
+- **F3. The teacher adds no independent evidence.** Its pool is a subset of the deployed pool: in 12 sampled captures, all 594 teacher instances have a deployed mask with IoU ≥ 0.8 (teacher floor 0.2, cap 10; deployed floor 0.05, cap 30). "Teacher-only correct 0" is therefore true by construction, item 5 rests on the deployed pool alone, and "no proposal" means none recorded at joint score ≥ 0.05. Correction: state this beside the teacher columns.
+- **F4. omitted_selection is not a selection class.** Of its frames, 963 of 2,393 (40%) have no correct candidate anywhere, 275 have one only outside accepted tracks, and only 1,155 (48%) are selectable. Its gain of +3.78 independent or +2.94 in order is thus an upper bound for a selector or track-coverage fix. Correction: split the class by candidate availability, or rename it "selected track absent".
+- **F5. Refusals drive two headline effects, and the report leaves them in ATTRIBUTION.json.** The independent wrong_class loss of −1.74 comes from 119 new refusals (−2.69 points), created when 588 GT-absent wrong-class frames are emptied. The independent no_proposal gain of +8.18 includes +2.85 from the 36 rows that A0 refuses. Correction: print refusal counts and these point effects beside the first table.
+- **F6. Minor.** SPLITS.md leaves the Rows column blank ("—") for the dataset and frame-share groups. Correction: fill in the distinct-row counts.
+- **Delivery (check 1).** Items 1–5, the MASKFAIL.json fields, FIRST_TABLE.md, and the tar with its sha256 (714e1769…, verified) are all delivered; the gaps are F1, F6 and F2. The failure splits at 0.3 and 0.7 appear only in SPLITS.json.
+- **Unbacked claims (check 7).** Two claims lack file backing: "selection/track-retention failure" (F2) and the implied teacher evidence (F3).
+
+## What the findings change for the mask-design decision
+- **Proposal recall (no_proposal) stays the first lever and survives every check.** Alone it gains +8.18 [5.64, 10.77], and first in order it carries 47.5% of the gap.
+  - Most of its frames (2,716 of 3,200) have no raw-name proposal at all.
+  - It concentrates on objects under 0.5% of the frame, where 54.5% of frames are no_proposal, and on names such as heater, where 93% are.
+  - The work is proposal recall: prompt vocabulary and small objects. About 2.85 of its points come from turning 36 refusals into answers, and the stored pools cannot show whether a lower SAM 3 floor would help.
+- **Selection is second and smaller than the report implies.** A selector can reach at most 1,487 wrong frames (19.3%), so the omitted gain of +2.9 to +3.8 points is its ceiling. Another 614 frames need floor or track-acceptance changes, which is proposal-filter work. Removing wrong-object masks (wrong_class) gains +4.02 only after the missing masks are supplied; on its own it loses 1.74 through refusals.
+- **Mask-shape work comes last.** Partial, merged, other and the boundary residual of correct frames add up to +2.06 in order (12% of the gap), and every one of their independent intervals includes zero.
+
+Files (this workspace): REVIEW_NUMBERS.json (`compare.py`), SPOTCHECK_20.json (`spotcheck.py`), rerun.py and its per-capture outputs in tmp/rr/.
+=================== sb_rlrev3/REVIEW_VERDICT.md
+# sb_rlfix2 re-review verdict: GO AFTER FIXES (fixes 1, 2 and 6 gate the GPU replay; 3 to 5 gate training)
+
+The kit now decodes through A4's sealed reader, and its reward equals N's `score_item`. I reproduced the binding, the CPU proof, the parity and the 43 tests. Two problems remain. The GPU replay as written could pass without exercising grounding or the forced close, and it would certify a different model loader from the one training uses. Training also crashes on ordinary reader errors and cannot resume. Evidence is under `runs/`. `runs/kit` is an extract of `sb_rlfix2.tar` (sha256 `d227cc2d…` checks), whose 977 members equal the workspace byte for byte.
+
+## sb_rlrev2 findings
+- Findings 1-3 and 5-11 stay CLOSED. My reruns: 43/43 tests in 3.8 s; 7 pinned room lists, 0 admitted; 233 controls admitted with 0 physical overlaps; 38,013 REMOVE keys refused (`runs/kit/out/`).
+- Finding 4 and edit A are CLOSED for the reader. Rollouts call A4's `generate_real` with `real_perception(candidates_argmax, G3T memo, Sam3Tower, selector_head)` and the capped hook. All 927 staged files equal `A4/package/0.tgz`, with no extras, and all four pins match (`runs/a4cmp/cmp.out`). `pose_source`, `tower_state`, `attach_tower` and `prepare_tower` are gone. Fixes 2 and 3 below are what remains.
+- Finding 12 is CLOSED: the README states that own gravity and own depth for scale belong to the claimed arm. Fix 9 covers a stale report.
+- Edits B, D, E and F are CLOSED. The budget is A4's unchanged `ThinkingBudget` (2,048 thinking, 64 answer, 96 deferral), caps come from `PER_READ_CALL_CAP` (distance 6, room 2), and mutants of each edit are caught. Edit C is PARTLY OPEN (fixes 1, 2, 6 and 7).
+
+## Checks reproduced
+- Decoder proof (check 2): the rerun passes bit-identically in 107.1 s at 14.628 GiB peak RSS, with gradient L1 4253.670143, update L1 1.966011, ratio error 0.010976 and identical tokens (`runs/cpu_proof/`). Its scope is narrow: 4 of 32 text layers, synthetic G3T, gravity and scale, and two sampled tokens per draw.
+- Reward parity (check 3): 0 mismatches in 1,236 evaluations (206 formats times 6 endings: closed, unclosed, double close, budget-forced, `max_new_tokens`, `max_calls`). `score_item` is AST-identical in N's and A4's trees (`runs/parity/parity.out`).
+
+## Findings and exact edits
+1. The replay skips the paths the fix was about. Its items are the first four per type, and none of the 20 calls ground/gap or fires the budget; across A4's 636 journal reads, 88 do one and 10 the other (`runs/replay/coverage.out`). A PASS would never run SAM 3, the selector or the forced close. Edit: in `replay.selection` add four tower/none items whose calls include a gap (`vsi590k_042674`, `_042690`, `_042715`, `_042717`) and two budget-fired items (`vsi590k_044622`, `vsi590k_161806`), and require them in `require_replay`'s counts.
+2. The replay certifies a different loader from training. `greedy_replay.py:41` loads m200 with A4's `load_native`, and line 55 prompts with A4's config. Training instead builds N's `CarrierC1` through N's `carrier_c1_run` (`train.py:16-45`) and prompts with N's source config (`train.py:150`). The two trees differ in 134 shared files, including `carrier_c1.py` (50 changed lines) and `carrier_c1_run.py` (378) (`runs/treecmp/cmp.out`). Inside `reader_runtime`, the N model's lazy `student_pilot` imports also resolve to A4's package. Edit: in `train.load_export`, load the policy with `e2e_reader.parity.load_native` inside `reader_runtime()`, exactly as `greedy_replay.py:38-41` does, and prompt with that loader's `info['config']`. If RL must start from an N export that A4's loader cannot read, the orchestrator must name a deployed-reader journal of that export for the replay.
+3. The frozen perception bytes are unpinned. `serving.py:128-131` checks only that the SAM 3, selector and G3T paths appear in whatever manifest is supplied. A4's `ret/metadata/INPUTS.json` (sha256 `5e3416d9…`) pins all six files, and the local copies in `/scratch/jjyeung/b01ec87a6f29b/d/{g,h,k}` match (`runs/replay/local_assets.txt`). Edit: add `INPUTS.json` to `PINS`, and after `Artifact.verify()` require each component's sha256 to equal `files.{g3t,sam,selector}_*.sha256`.
+4. Ordinary reader errors kill training. A4's perception build raises plain `ValueError`s such as `no_scale_points` (`stage1.py:66-72`) and `GeometryError`, outside the guard at `servers.py:29`, which covers only ground/gap calls. Both escape `sample()` and `train.py:163`, so one rank dies while its peers block in `all_reduce` (`runs/probes/uncaught.out`). Edit: in `rollout._sample`, wrap only the `generate_real` call in `except ValueError as exc: return refused(exc)`, keeping `align` outside so kit bugs still raise. Then make `train.run` stop on every rank when the all-reduced refusal count exceeds 25% of a step's draws.
+5. Training cannot resume: `train.run` always starts at step 0, and no code loads `checkpoint_*.pt`. Edit: add `--resume` that verifies the checkpoint's JSON pin, loads adapters and optimizer, and restores step, cursor and `rng` state (save the last two in `save_checkpoint`).
+6. The replay launcher (check 5) has no `vnice`, occupancy check, card-model check, wall-clock stop or resume. `greedy_replay.py:31` checks only `device_count()==1`. A4's tokens came from an NVIDIA H100 80GB HBM3 on orchard-community-4 (`CARDS.json`), and greedy bf16 tokens need not match on another card. Reads of the export, config and binding stay on `/scratch` because `P.sha` refuses `/home` and `/data*`, but nothing checks the artifact component roots or `RL_PYTHON`. Edit: copy `run_card.sh:7-14` (numeric card index; refuse more than 1,024 MiB used), wrap as `exec timeout 2h /data3/shared/scripts/vnice/vnice.sh nice -n 10 …` on Trinity, assert the device name above, assert both paths are under `/scratch`, and append each item to a JSONL so a rerun skips matched items.
+7. Some gate code is untested (check 4). The tests catch 15 of my 23 mutants (`runs/mut/mutants.out`). Every reward mutant but one is caught, as are the dev/bench and REMOVE gates, prompt equality, gradient averaging, caps, budget kinds and payload tampering. The survivors are: `require_replay` accepting a FAIL receipt; `train.run` without `require_replay`; a skipped archive byte check; no zero-reward guard for `max_calls`; `scale_std` restored at `train.py:169`; untempered old log-probs (only the CPU proof catches this); and the reserve and withheld gate layers, which `Rooms` duplicates. Edit: add tests for a FAIL receipt and a 3-per-type receipt, for an unbound `greedy_replay` in `train.run`, for one tampered payload byte, for a correct answer in a `max_calls` record (expect 0), and asserting that step-loop advantages equal the centred rewards.
+8. MISSING bindings (check 6). These are named with paths: the m200 restore, the `init_m544` evidence (`sb_f64/pkg/work/n1fix2/inputs/registry.json`) and the pool (`out/PROMPT_POOL.json`). These are not: the m200 config, also absent from A4's recorded `/scratch/jjyeung/b01ec87a6f29b/d/p0/config.json` (sha256 `3b0051c4…`), and `source_config`, `pool_config`, `artifact`, `grounding.artifact_manifest` and `greedy_replay` (which defaults to `out/GREEDY_REPLAY.json`). Edit: list each with its expected path and hash source in `REPORT.md` and both configs.
+9. Some claims lack files behind them (check 7). `out/RL_ON_N_REPORT.md` is the stale sb_rlfix report: it still describes tower pose, `max_calls=200`, the claimed arm as MISSING, 34 tests and `sb_rlfix.tar`. Edit: mark it superseded. REPORT's claim that the kit "builds `real_perception` … through A4's actual APIs" rests on code alone, since `build_reader` has never run (the CPU proof injects a synthetic `Perception`, `cpu_proof.py:71`). `serving_check.py` hard-codes `own_heads`.
+
+## GPU need
+After fixes 1, 2 and 6: one NVIDIA H100 80GB HBM3 for at most 2 h, on Orchard where A4 read m200, so the m200 restore and p0 config must be staged there first. That covers the 26-item replay (A4 measured about 11 s per read, so roughly 8 min of decoding plus loading), followed by the two-step one-GPU dry run. Request no 4- or 8-GPU block until both pass and the dry run replaces the assumed rates (planning case: 110 GPU-h, 27 wall-hours on 4 H100s). Ask the main orchestrator first.
+=================== sb_f64rev2/out/REVIEW_VERDICT.md
+# GO AFTER FIXES
+
+CPU-side readiness requires the pilot preflight fix below. GPU training and reading remain blocked by real inputs and measurements.
+Reviewed archive: `da6405ae0f0095414deecf3727a7aa88937686bfcbfa2dcf09e5aa8b1678a4bb`; its kit files, checksums and installed tree patch match (`static_review.json`).
+
+1. **CLOSED — store conversion.** Missing pins refuse all four source rows and publish nothing; tests preserve sparse indices, targets and row count. Reversed anchors refuse at converter/reader entry points. The raw `nest_row` helper still sorts; its increasing-anchor precondition is enforced by those callers (`behavior_review.json`, `anchor_order_review.json`, `kit_review.json`).
+
+2. **CLOSED — token-audit counterexamples.** Empty, single-row and duplicate-partial shards all give `launch_ready=false`. The complete synthetic audit passes; partial, mixed-run, altered and missing-field cases refuse (`resume_review.json`, `kit_review.json`).
+
+3. **OPEN — actual first batches.** Preparation, `r2_sampling`, row-plan/host/review bindings, three stream hashes, code/admission pins and the reader manifest remain MISSING. `static_review.json:missing_inputs` gives exact paths and owners: W, orchestrator, independent reviewer and reader lane. The staged depth-init JSON matches, but its configured in-job path is absent.
+   The independent full-depth rerun passes four synthetic pose ranks with finite losses and 9,127 tokens each; peak RSS is 23.45 GiB (`forward_review.json`). It does not establish actual planned-batch readiness.
+
+4. **OPEN — GPU evidence and pilot gate.** The pilot uses trainer FSDP FULL_SHARD, FP32 masters, AdamW updates, non-reentrant LM checkpointing, full accumulation and a sharded checkpoint. GPU peaks and timing are unmeasured. Its preflight nevertheless accepts a complete audit with a failed row and omits that row from its longest-row selection (`pilot_review.json`).
+
+5. **CLOSED — export helper.** Missing, null, different and invalid nested declarations refuse; matching declarations pass. Reader anchor checks also pass (`kit_review.json`). Filled reader pins remain MISSING under finding 3.
+
+6. **CLOSED — anchor evidence and installation.** The 12 layout tests pass; the nine-file tree delta matches the supplied patch, with no scoring/room-rule edits. `src/b/f64_read.py` resolves correctly and the reader config pins its exact bytes (`behavior_review.json`, `static_review.json`).
+
+7. **OPEN — baseline completeness.** Each suite runs 109 tests, with zero assertion failures and the same one error: MISSING `/scratch/jjyeung/orch_cd/derivgen/review_pool/POOL.jsonl`. The kit does not identify its owner; the orchestrator must route it to the pool producer (`baseline_regression.json`, `patched_regression.json`).
+
+8. **OPEN — readiness closure.** The builder must fix the pilot gate and add failure-versus-tripwire tests. Production owners must then bind real inputs, pass actual all-rank CPU first batches and the complete token audit, and obtain the authorized four-rank GPU pilot. Reading also needs its manifest and memory evidence.
+
+**Required code fix:** `kit/scripts/mem_pilot.py:68` checks only structural `errors`. Reject any audited `check_row` failure or ceiling violation using complete per-stream counts; allow tripwire-only rows for memory calibration. The injected fixture is explicitly synthetic, and the token summary correctly remains non-ready.
+**Evidence limits:** 45 kit tests pass, but the pilot API test checks attribute existence, not a training execution. Historical CPU/analytic JSONs lack generating-input hashes; H100 calibration logs and GPU measurements are absent. The claimed 3,733 missing PNGs rely on an unverified reuse count, not supplied filled pins. No launch claim is supported.
+
+Commands below ran from `/scratch/jjyeung/orch_n30/sb_f64rev2`; each JSON binds its inputs by SHA256, directly or through `INPUTS.json`.
+
+- `bash run_cpu.sh static_check.py` produced archive/patch/pin checks, exact missing paths, staged depth-init verification and reader-plan counts.
+- `bash run_cpu.sh behavior_check.py` and `bash run_cpu.sh anchor_order_check.py` produced store/export/anchor counterexamples and the 12 layout-test results.
+- `bash run_cpu.sh kit_check.py` produced the 45-test result; `bash run_cpu.sh regression_check.py baseline` and `bash run_cpu.sh regression_check.py patched` produced both 109-test results.
+- `bash run_cpu.sh resume_audit.py` reproduced token counterexamples and checked saved evidence; `bash run_cpu.sh forward_check.py` produced full-depth CPU records.
+- `bash run_cpu.sh pilot_check.py` produced unbound-input refusals and the failed-row pilot counterexample; `bash run_cpu.sh pilot_gate_matrix.py` checked passing, tripwire-only and failed-row controls; `bash run_cpu.sh finalize_review.py` bound retained JSONs and wrote this verdict.
+
+The review used CPU only, no network or Git, and wrote only in this workspace. `REVIEW_METHOD.md` documents script adaptations and the scope of the pilot check.
+=================== sb_cntfix/out/FIX_REPORT.md
+# Counting kit: CPU controls pass; GPU launch rejected on training
+The frozen K1-training decision is `REJECT_ON_TRAINING`; requested GPU time is zero.
+No real R0-dev registration or look was consumed. No official item file was opened.
+
+- `bash cpu.sh kit/files/freeze_training.py`: 24 rules, 202 train captures, 1,960 pairs, 196 large pairs.
+- Training selects raw per-frame maximum, joint ≥0.35, and constant 6. MRA is 45.0 versus 53.877551; paired difference CI is [−15.674157, −2.425743]. The same command produces these values.
+- Rules, thresholds, the decision, response, and row filter are frozen in `kit/files/FROZEN_CONFIG.json`. Training rejection disables the response and rows.
+- `bash cpu.sh kit/files/score_count_pricing.py --selftest --items kit/files/COUNT_ITEMS_535.jsonl`: all 1,605 stored scores and 60 boundary cases pass. N's upstream function pin matches exactly (`MRA_PIN_VERIFICATION.json`).
+- `bash cpu.sh audit_cpu.py`: zero stored-score mismatches; constant6=55.236220 and identity oracle=80.748031 on the 254-pair diagnostic overlap; GT frame maximum=48.300654 on all 306 large pairs. These diagnostics do not affect selection.
+- `bash cpu.sh recompute_k1_references.py`: `K1_REFERENCE_RECOMPUTE.json` gives the corrected per-bin reference table and verifies that the training freeze did not change.
+- The manifest command in `COMMANDS.md` verifies 3,136 frame hashes, 98 captures, and 464 prompts against the pinned allowlist.
+- The full stub command in `COMMANDS.md` completes all 98 captures. `bash cpu.sh run_stub_score.py` verifies 385/385 items and rejects a second output path; scores remain `STUB_ONLY`.
+- `STUB_SCORE_CATEGORY_ERRORS.json` reports category zero counts and item under/over errors. Multi-category items do not provide category-specific truth.
+- `bash cpu.sh test_controls.py`: 34 checks pass, including atomic one-look races, unauthorized captures/paths, stale DONE fields, payload coverage, stub/real separation, and unrounded decisions.
+- `bash cpu.sh test_runtime.py`: six checks pass for expired deadlines, cumulative budgets, abnormal restarts, changed bindings, and clean resumes.
+- `bash cpu.sh test_deadline.py`: the in-flight CPU deadline exits with `time_cap`; no other process receives a signal.
+- `bash cpu.sh audit_controls.py`: 98 invalid DONE markers produce a nonzero exit and zero teacher payloads. Both reviewer audits were rerun; their originals are retained under `review/`.
+
+The ledger uses a fixed absolute path keyed by evaluation category, binds IDs/config/code/settings/manifest hashes before inference, and consumes the look before teacher results are opened. The real namespace is independent of output directories and synthetic namespaces.
+The runner validates checksums, contract/settings hashes, full frame/category coverage, and non-stub provenance. It retains vnice launch requirements, nice 10, scratch caches, eight threads, a fixed deadline, cumulative accounting, and explicit clean resumes. It prohibits automatic relaunch after abnormal termination.
+GPU availability and vnice were not checked. A native GPU call can delay Python's alarm; this kit does not claim an external GPU watchdog.
+
+`bash cpu.sh inspect_missing.py` finds no matching fixture frames in the local K1 archive. `MISSING_INPUTS.json` lists all 64 exact paths and the five absent pilot files: `K1_PAIRS.json.gz`, `K1_LIFT.npz`, `K1_NMS.npz`, `K1_LMERGE.json`, and `K1_LEARN_EST.json`, expected under `kit/work/`. The full learned/geometry pilot table remains MISSING. Raw K1 labels and teacher outputs are packaged.
+The active spec and design permit one preregistered R0-dev comparison only; dev-S1 remains diagnostic and its frame authority is MISSING. No count-form, floor, or future-head gate can select a release on dev.
+Every generated evidence JSON records its input hashes. `COMMANDS.md` gives exact commands; `PACKAGE_PROVENANCE.json` hashes packaged files. The delivery is `sb_cntfix.tar` with `sb_cntfix.tar.sha256`.
+No borderline prose-history sentence was retained; the explicit source/audit disclosures identify provenance.
+9145f27f46c59ccf0486b94794c248f20071bb8d0c179f1edd9e2dffc555d1c6  sb_cntfix.tar
+{
+  "CPU_only": true,
+  "constant_training_MRA": 53.87755102040816,
+  "decision": "REJECT_ON_TRAINING",
+  "frozen_constant": 6,
+  "gpu_needed": false,
+  "inputs_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_cntfix/build_delivery.py": "0ef7c4fe02705de3ceb95ed6125e78f09ddea28efb05501d2595bb81202c29d4",
+    "/scratch/jjyeung/orch_n30/sb_cntfix/kit/files/FROZEN_CONFIG.json": "c0bbd1624b0fc42986df65ff110f0440c4fd21fd2785346b14cb17b42b743286",
+    "/scratch/jjyeung/orch_n30/sb_cntfix/out/CONTROL_AUDIT.json": "b91a5e74f80ab22579beecd108664540094ac741783a6a4ecaba643abf17a11f",
+    "/scratch/jjyeung/orch_n30/sb_cntfix/out/CONTROL_TESTS.json": "ea270affd1e2da26b3fc1154e56e44423ff41c67cb789f6ca706756688d796e2",
+    "/scratch/jjyeung/orch_n30/sb_cntfix/out/CPU_AUDIT.json": "0f424b1b141b00098f3f3885f832

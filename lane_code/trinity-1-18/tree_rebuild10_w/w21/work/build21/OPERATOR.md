@@ -15,11 +15,61 @@ The upload inventory is `UPLOADS.json`. Its entries specify every local file, op
 python3 work/build21/upload.py "$PWD" /project/community/jjyeung/okh7/x_22c714e1
 ```
 
-The resolver requires the verified four-part export listing and pinned external tokenizer metadata. It checks P's export-only receipt, small-file archive, part lengths, individual hashes and combined hash. Native export files are staged together under their original manifest sibling names.
+The resolver reads a JSON object with two arrays. `objects` contains exactly four entries in part order,
+each with `name`, an absolute `pool_path` inside the pool, and integer `bytes`; an individual `sha256`
+is optional. The names are exactly `q8/8865619b/6ed2c7aa_m400.tar.part00-of-04` through
+`q8/8865619b/6ed2c7aa_m400.tar.part03-of-04`. It checks each length and the combined SHA-256
+and length against P's completion marker.
+
+`metadata` contains one entry for each base-model metadata file absent from P's small archive,
+with `name`, `sha256`, an absolute `pool_path` inside the pool, and integer `bytes`.
+Use the names and hashes from the pinned model manifest, including JSON/TXT/Jinja files and
+`model.safetensors.index.json` (and `.model` tokenizer files if listed). These are base-model
+metadata, distinct from the trained export index. All metadata files remain content-hash verified.
+The production step-400 input requires eight such entries. `../build21e/LISTING_TEMPLATE.json`
+contains their exact names and hashes and the four exact object names; replace every `null`
+with the actual staged path or byte count. For example, one completed entry has this shape:
+
+```json
+{"name":"config.json","sha256":"<64 hex from the pinned model manifest>","pool_path":"/project/community/jjyeung/okh7/m/<sha256>","bytes":1234}
+```
+
+The displayed hash/path and 1234 bytes are examples, not production values. To fill the template
+without estimating sizes, stage the parts as `p0` through `p3` and the eight metadata files as
+`m/<sha256>` under the pool, then run this on the login host:
+
+```python
+import json
+from pathlib import Path
+pool = Path('/project/community/jjyeung/okh7')
+listing = json.loads(Path('work/build21e/LISTING_TEMPLATE.json').read_text())
+for i, entry in enumerate(listing['objects']):
+    path = pool / f'p{i}'
+    entry.update(pool_path=str(path), bytes=path.stat().st_size)
+for entry in listing['metadata']:
+    path = pool / 'm' / entry['sha256']
+    entry.update(pool_path=str(path), bytes=path.stat().st_size)
+(pool / 'x_22c714e1' / 'l.json').write_text(json.dumps(listing, indent=2) + '\n')
+```
+
+Resolve the staged input with the uploaded kit:
+
+```bash
+python3 -I -s -B /project/community/jjyeung/okh7/x_22c714e1/q/b/resolve.py \
+  --pool /project/community/jjyeung/okh7 \
+  --listing /project/community/jjyeung/okh7/x_22c714e1/l.json \
+  --output /project/community/jjyeung/okh7/x_22c714e1/r.json
+```
+
+The kit pins P's kit identity `774503e2…`, runtime identity `9459724f…`, original kit config,
+and the config/binding/preparation pins shared by `e.json` and `r.json`. The resolver authenticates
+their relation and gives `donor_config_sha256` the runtime identity. JSONL removal files remain
+hash-verified data; required metadata must parse as one JSON document and refuses by member name.
+Native export files stage together under their manifest sibling names.
 
 Mode q also requires authenticated host envelopes for all bound routing slices, with exact row membership, RGB joins, scene coverage and extent receipt. A missing input must remain a refusal. `proofs/receipts/RESULT.json` lists absent dependencies by SHA-256 and original path. The local capacity proof does not supply production RGB, model shards or host envelopes.
 
-The scanner checks every decoded operational map key and value, including `k/p.json` and its `p_files` inventory, nested staging payload paths, shell arguments, Python path literals and result archive member names. The job checks dynamic export and snapshot member names before writing them, and checks each authenticated directory map before staging it. Sealed source inventories and input-data schema fields retain their authenticated identities. The exact scanner inventory and runtime-only map pins are in `../build21c/SCAN.json`.
+The scanner checks every decoded key and string value, including nested payloads, and every literal contribution to Python and shell environment assignments and passed environment maps. Exact authenticated content exceptions, their reasons and use restrictions are listed in `../build21d/ALLOWLIST.json`; no nested payload is exempt. The final scan is in `../build21e/SCAN.json`; `../build21e/UPLOAD_DIFF.json` identifies changed uploads. The job checks dynamic staging and archive names. Runtime-supplied arguments and inherited environment values are not evaluated by the static scanner.
 
 The result archive contains the proof result and a separate room census. The census cannot admit a failed proof.
 
@@ -28,7 +78,7 @@ The exclusion payload stages as `k/3119aa4a.json`. Its SHA-256 remains
 The authenticated `p_sources` map reads the same bytes from N's `u/<sha256>` upload.
 Configuration pins and hash-keyed catalogs use the pinned opaque map. P's original files remain unchanged.
 
-Upload total: 137103557 bytes in 164 files (source: `UPLOADS.json`).
+Upload total: 137108099 bytes in 164 files (source: `UPLOADS.json`).
 
 The focused test fixture closure would add 202336662 bytes.
 The delivery includes 22066639 bytes of smaller fixture inputs; the remaining prerequisites,

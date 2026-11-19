@@ -1,0 +1,25 @@
+# Lane swarm_an6 (Devin Opus high, trinity-3-30): step-400 rerun of the trace analysis, with two questions that decide what vehicle N binds
+
+First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Events: B/events/swarm_an. Lane folder: /scratch/jjyeung/orch_n30/swarm_an (the kit, verify scripts and STATUS.md of your predecessors are there; STATUS.md holds the exact step-400 rerun commands; kit tar B/events/swarm_an/san_kit_s5.tar). Record to extend: /data2/jjyeung/agent_project_data/distill_design/R1_M200_TRACE_ANALYSIS_20261119.md (add a dated section "Step 400"; do not rewrite earlier sections).
+
+## Goal
+A ~9B spatial VLM whose chain of thought calls heads inside its own checkpoint and answers from what they print (ReVSI first). Leg R1's continuation exported step 400. The registered rule is silent and the counting repair passed (B/events/cont_ops/20261119T1008Z_RESULT_r1_m400_direct_decision_SILENT_repair_PASS.md), the facing gate passes, and two things moved the wrong way (B/events/cont_ops/20261119T1022Z_RESULT_facing_gate_m400_PASS_toward_holds_not.md): toward-facing hard items fell 10.0 (92 to 82; interval wholly below zero at the registered level; step 200: -6.0) while "back" is over-used on away-hard items by 16 points, and relative size fell 4.0 (91.3 to 87.3) after -1.3 at step 200.
+
+## Returns (read in place; lane cont_ops19 owns them; also in the trace corpus /data2/jjyeung/agent_project_data/distill_trace_corpus/)
+- step-400 direct: /scratch/jjyeung/orch_n30/cont_ops16/work/c15/h1read7/kit/build/a59a7bff4c4/fetched/x (the path cont_ops19 names as cont_ops/work/h1read7/...; resolve the symlink once);
+- step-400 facing: .../h1face7/kit/build/afdfd5caac6/fetched/x; step-400 VSTI: read 173046, posted by cont_ops19 when fetched;
+- steps 544 and 200: as in the kit's roots.json.
+
+## Questions, in order. The first two are due by 12:00Z in one RESULT, because lane tree_rebuild12 binds vehicle N's rows for its launch kit then.
+1. Toward-hard. On the 150 toward twins and on the direction items of the decision read: what do the wrong traces at step 400 write that step 544's did not? Count, per difficulty band, traces that apply a half turn or a "back" relation on a toward question, traces that open with which skeleton, and answers that follow the trace. Is the loss a spurious turn (a row-form effect that the away rows cause) or a wrong forward relation (perception)? Follow the dose: steps 100, 200, 400.
+2. Will the direction twins help or hurt? swarm_build3 built 7,971 away twins of toward rows with the "Step 1: find" opening and an explicit half-turn step (trinity-1-18 /scratch/jjyeung/orch_n30/sb_rowD7f/out/NEW_ROWS.jsonl; review B/events/swarm_build/ops_mirror/reviews_0845Z/sb_drev8_REVIEW_VERDICT.md). Read 60 of them beside 60 toward rows. Given your answer to question 1, say whether adding them is expected to reduce the spurious turns on toward questions (because the opening no longer predicts the clause) or to add to the "back" prior, and what the row set would need to be safe (for example an equal number of toward twins with the "Seen:" opening that state "the heading is kept"). Give a recommendation: bind as is, bind with a named change, or hold.
+3. Relative size: which items flipped between 544, 200 and 400, what the traces write, and whether any row family that R1 added can be the cause (R1 trains no size rows).
+4. Counting after the repair: by true count (2, 3, 4, 5 or more) on both sets at 544, 200 and 400, what the procedure-form traces write, and how often the answer is 2. One paragraph.
+5. Rerun the per-type analysts on the step-400 direct return against step 200 (Codex Astra, read-only, `bash B/tools/codex_local.sh review <dir> <prompt> --model gpt-6-astra --effort high --label san_m400_<id> --skip-git-check`, at most 3 at a time), only for the types whose pooled value moved by more than 3 points between 200 and 400 or whose protected outcome did not hold; verify each report (recount two numbers, open three items) before using it.
+6. VSTI at step 400 when its return is posted: gate value by subtask against 544 and 200, and whether template capture stays at zero.
+
+## Limits
+- No Devin worker sessions; you and Codex only. Devin economy: poll running dispatches every 10 minutes and do nothing else meanwhile; when the questions are answered, end without a successor. Hard end 13:30Z.
+- trinity-3-30: under 200 MB of new files, nothing above 5 MB; no copies of returns. Before each wave read line 4 of /data3/jjyeung/orch_n13_20261026/io_governor/STATE.md (above 10 MB/s weighted: wait).
+- No official item is read. No ssh except `bash B/tools/tssh.sh trinity-1-18 'bash -s' < script` for the twin rows (one batched call). No GPU, no Orchard job, no Git, no deletion.
+- Events: results, questions, blockers; 20 lines at most. STATUS.md current; copy to B/events/swarm_an/STATUS.md.

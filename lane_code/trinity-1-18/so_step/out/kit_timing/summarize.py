@@ -15,9 +15,10 @@ def precision(values):
                     minimum_detectable_difference_s=None, resolved=False)
     # Conservative two-sided Student-t 95% critical values (round df down).
     df = n - 1
-    critical = next(t for d,t in [(29,2.046),(19,2.094),(9,2.263),(5,2.571),(4,2.777),(3,3.183),(2,4.303)] if df >= d)
+    critical, power = next((t,p) for d,t,p in [(29,2.046,.855),(19,2.094,.861),(9,2.263,.884),
+        (5,2.571,.920),(4,2.777,.942),(3,3.183,.979),(2,4.303,1.061)] if df >= d)
     se = statistics.stdev(values) / math.sqrt(n)
-    mdd = (critical + .842) * se  # approximate 80% power, two-sided alpha=.05
+    mdd = (critical + power) * se  # t(.975,df) + t(.80,df); approximate power
     return dict(repeats=n, mean_gain_s=mean, ci95_halfwidth_s=critical*se,
                 minimum_detectable_difference_s=mdd,
                 resolved=mean > max(mdd, critical*se),
@@ -34,8 +35,9 @@ def summarize(root):
     reference = root/'r0_l0_off'
     baseline = [json.loads((reference/f'rank{r}/steps.json').read_text()) for r in range(4)]
     bm = [json.loads((reference/f'rank{r}/manifest.json').read_text()) for r in range(4)]
-    arms = {}
-    for path in paths:
+    arms, mismatches = {}, []
+    # Diagnose OFF reproducibility before attributing a difference to a switch.
+    for path in sorted(paths, key=lambda p: (not p.name.endswith('_off'), p.name)):
         runs = [json.loads((path/f'rank{r}/steps.json').read_text()) for r in range(4)]
         for rank, (base, trial) in enumerate(zip(baseline,runs)):
             tm = json.loads((path/f'rank{rank}/manifest.json').read_text())
@@ -52,7 +54,7 @@ def summarize(root):
             if not all(isinstance(v,(int,float)) and math.isfinite(v) for v in expected+actual):
                 raise ValueError('Loss parity requires finite scalar losses')
             if [struct.pack('d',v) for v in expected] != [struct.pack('d',v) for v in actual]:
-                raise SystemExit('FAIL: loss differed; no tolerance was silently substituted')
+                mismatches.append(dict(arm=path.name, rank=rank))
         warmup = bm[0]['warmup']
         count = bm[0]['measured_steps']
         if warmup < 10 or count < 10:
@@ -85,9 +87,22 @@ def summarize(root):
         results[arm] = dict(wall=precision(deltas['wall_seconds']),
                             data=precision(deltas['data_seconds']),
                             host={key:precision(deltas[key]) for key in deltas if key not in ('wall_seconds','data_seconds')},
-                            paired=paired, first_step_loss_bitwise=True)
-        print('SO_TIMING ' + json.dumps(dict(arm=arm, **results[arm]['wall'])), flush=True)
+                            paired=paired, first_step_loss_bitwise=not any(m['arm'].endswith('_'+arm) for m in mismatches))
+    off_equal = not any(m['arm'].endswith('_off') for m in mismatches)
+    for arm, result in results.items():
+        result['parity_valid'] = off_equal and result['first_step_loss_bitwise']
+        if not result['parity_valid']:
+            result['wall']['resolved'] = result['data']['resolved'] = False
+            for value in result['host'].values():
+                value['resolved'] = False
+        print('SO_TIMING ' + json.dumps(dict(arm=arm, **result['wall'])), flush=True)
+    results['_parity'] = dict(off_brackets_bitwise=off_equal, mismatches=mismatches,
+                             switch_attribution_valid=off_equal)
     (root/'comparison.json').write_text(json.dumps(results,indent=2)+'\n')
+    if not off_equal:
+        raise SystemExit('FAIL: OFF brackets loss differed; switch attribution is invalid; see comparison.json')
+    if mismatches:
+        raise SystemExit('FAIL: loss differed; see comparison.json; no tolerance was silently substituted')
     return results
 
 

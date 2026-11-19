@@ -1,0 +1,22 @@
+# S1k2 preregistered selection rule
+
+Written before computing any S1k2 score. Scope: the 110 K1 training captures named in out/S1K_REGISTRATION.json. Membership comes from that registration; its scores and legacy labels are not selection inputs. No held-out capture data, R0-dev, dev-S1 or official items may be opened.
+
+Labels must be metric room areas from the scan's GT room annotation or segmented GT floor mesh with an authenticated capture-to-room mapping. For an annotated floor mesh, sum the horizontal projected areas of its floor triangles, without fitting any candidate footprint rule. Use the supplied area directly when the annotation provides one. A depth raster, legacy gt_value, or output of room_v314 is not an independent room-area label. Exclude and list every capture lacking such a source. If none qualifies, write BLOCKER.md and stop selection and rebind; report MISSING scores, never invented values.
+
+All candidates use the same stored dense-64 DA3 prediction, its 32 anchors, kit metric conversion and z-up coordinates. No inference runs. Round areas to 0.01 m² before scoring. Fewer than 100 finite points, degenerate polygons, or grids above 4,000,000 cells cause refusal. Invalid camera orientation follows the kit refusal. Refusals score zero.
+
+Families, in tie-break order, with ascending Cartesian grids:
+
+1. Legacy percentile cut and frame voting: use vendor/room_kernel.py exactly, including hole filling. Margin {0.05, 0.10} m below height percentile 1; cell {0.05, 0.10} m; distinct-frame votes {1, 2}; closing disk radius {0.10, 0.20} m. 16 points.
+2. Floor-band occupancy and closing: retain heights within band {0.10, 0.20, 0.30} m above height percentile {2, 5}; occupy xy cells {0.08, 0.16} m with at least one point; close with disk radius {0.16, 0.32} m and fill enclosed holes. No frame voting. Area is occupied-cell count times cell area. 24 points; no constants inherited from the legacy grid.
+3. Floor-point convex hull: retain heights between percentile {1, 3, 5} and that height plus band {0.10, 0.20, 0.40} m; remove the farthest radial fraction {0, 0.02} from the median xy; compute the planar convex hull area. 18 points.
+4. Plane-fit floor polygon: seed from the lowest {10, 20, 30}% of heights; fit z=ax+by+c using 128 deterministic RANSAC triples with seed 20261119 and residual tolerance {0.03, 0.06, 0.12} m. Reject normals tilted more than {10, 20} degrees from vertical. Maximize inlier count, ties choose the first triple; least-squares refit its inliers once. Collect all points within the tolerance of that plane, take their xy convex hull, and use its horizontal area. 18 points.
+
+Use room identities from authenticated K1 training metadata; never infer a room mapping. Assign sorted unique eligible rooms with Python random.Random(20261119).shuffle and round-robin to five outer folds. All captures of a room stay together. If fewer than five eligible rooms remain, report a blocker rather than silently changing folds.
+
+For each outer fold and each family, assign the remaining rooms to four inner folds with the same sorted/shuffled procedure and seed. Select constants by the highest pooled inner validation room-mean MRA; each candidate is fixed geometry math with no fitting across captures. Evaluate those constants on the untouched outer rooms. Pool the outer predictions and select the family with highest mean of per-room mean MRA. This outer selection is model selection, not an unbiased estimate of the selected winner. After selecting the family, choose its deployment constants by five-fold cross-fit on all eligible rooms using the same metric.
+
+Per-capture MRA is 100 times the fraction of relative-error thresholds {0.05, 0.10, ..., 0.50} met, using absolute error divided by positive GT area and inclusive thresholds. Average captures within each room, then average rooms equally. For each family's fixed outer predictions, resample eligible rooms with replacement 10,000 times using random.Random(20261119), average the sampled room scores, sort, and report draws at zero-based indices 250 and 9750 as the 95% interval. These intervals do not refit selection.
+
+Ties within 1e-12 choose the earlier family, then earlier Cartesian tuple. Report all families, intervals, fold assignments, selected constants by fold, excluded captures, winner, and whether the legacy family wins. Every JSON binds its actual inputs by SHA256. Freeze only a completed, independently labelled selection; authorization remains pending orchestrator. Old provenance files remain untouched.

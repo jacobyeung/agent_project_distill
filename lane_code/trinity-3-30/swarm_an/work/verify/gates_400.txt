@@ -1,0 +1,119 @@
+== G0 scores by type (B2048), steps ['544', '200', '400']
+  dev-S1 object_counting (150)                               544: 62.8 | 200: 56.3 | 400: 69.0
+  dev-S1 object_rel_direction_easy (150)                     544: 91.3 | 200: 93.3 | 400: 93.3
+  dev-S1 object_rel_direction_hard (150)                     544: 84.0 | 200: 82.7 | 400: 82.0
+  dev-S1 object_rel_direction_medium (150)                   544: 89.3 | 200: 88.0 | 400: 89.3
+  dev-S1 object_rel_distance (150)                           544: 70.7 | 200: 73.3 | 400: 67.3
+  dev-S1 object_size_estimation (150)                        544: 68.7 | 200: 69.4 | 400: 69.1
+  dev-S1 relative_count (139)                                544: 61.9 | 200: 64.7 | 400: 38.1
+  dev-S1 relative_size_object (150)                          544: 91.3 | 200: 90.0 | 400: 87.3
+  dev-S1 route_planning (150)                                544: 78.7 | 200: 80.7 | 400: 82.7
+  R0-dev obj_appearance_order (246)                          544: 56.5 | 200: 62.2 | 400: 59.8
+  R0-dev object_counting/multiple (98)                       544: 31.4 | 200: 43.0 | 400: 60.2
+  R0-dev object_counting/single (287)                        544: 57.4 | 200: 57.4 | 400: 65.3
+  R0-dev object_rel_direction_easy/away (66)                 544: 51.5 | 200: 80.3 | 400: 74.2
+  R0-dev object_rel_direction_easy/toward (126)              544: 73.0 | 200: 77.8 | 400: 76.2
+  R0-dev object_rel_direction_hard/away (71)                 544: 14.1 | 200: 50.7 | 400: 53.5
+  R0-dev object_rel_direction_hard/toward (121)              544: 64.5 | 200: 62.0 | 400: 60.3
+  R0-dev object_rel_direction_medium/away (65)               544: 18.5 | 200: 58.5 | 400: 58.5
+  R0-dev object_rel_direction_medium/toward (129)            544: 64.3 | 200: 68.2 | 400: 68.2
+  R0-dev object_rel_distance/closest (186)                   544: 64.5 | 200: 68.3 | 400: 69.4
+  R0-dev object_rel_distance/farthest (93)                   544: 65.6 | 200: 65.6 | 400: 68.8
+  R0-dev object_size_estimation (293)                        544: 59.1 | 200: 58.3 | 400: 58.1
+== G1 force-closed (runaway) items
+  dev-S1 counting                                            544: 2 of 150 | 200: 28 of 150 | 400: 0 of 150
+  R0-dev counting, all                                       544: 10 of 385 | 200: 83 of 385 | 400: 0 of 385
+  R0-dev counting, single                                    544: 8 of 287 | 200: 62 of 287 | 400: 0 of 287
+  R0-dev counting, multiple                                  544: 2 of 98 | 200: 21 of 98 | 400: 0 of 98
+  dev-S1 relative count                                      544: 5 of 139 | 200: 65 of 139 | 400: 0 of 139
+  every other type, both sets                                544: 163 of 2632 | 200: 1 of 2446 | 400: 1 of 2446
+== G2 single-category counting outside the loops (each step on its own non-looping items)
+  dev-S1 items, non-looping                                  544: 150, 148 | 200: 150, 122 | 400: 150, 150
+  dev-S1 MRA all items                                       544: 62.8 | 200: 56.3 | 400: 69.0
+  dev-S1 MRA non-looping against a constant 2                544: 63.6 against 62.7 | 200: 68.3 against 71.3 | 400: 69.0 against 61.9
+  dev-S1 non-looping answers equal to 2                      544: 86 of 148 | 200: 82 of 122 | 400: 90 of 150
+  dev-S1 trace form, non-looping                             544: match-544 148 | 200: list 122 | 400: procedure 150
+  dev-S1 procedure-only traces: n, MRA                       544: 0, - | 200: 0, - | 400: 150, 69.0
+  dev-S1 truth 2: right of non-looping                       544: 63 of 81 | 200: 61 of 76 | 400: 66 of 81
+  dev-S1 truth 3: undercounts of non-looping                 544: 14 of 26 | 200: 16 of 25 | 400: 18 of 26
+  dev-S1 truth 5 or more: MRA all items (n)                  544: 36.6 (29) | 200: 17.2 (29) | 400: 45.5 (29)
+  dev-S1 fixed items, non-looping at 200 and at 400          200: 68.3 | 400: 73.8 (n 122)
+  dev-S1 items that looped at 200                            n 28 | at 400 still looping 0 | MRA 544 25.0, 200 4.3, 400 48.2
+  R0-dev items, non-looping                                  544: 287, 279 | 200: 287, 225 | 400: 287, 287
+  R0-dev MRA all items                                       544: 57.4 | 200: 57.4 | 400: 65.3
+  R0-dev MRA non-looping against a constant 2                544: 59.0 against 65.7 | 200: 72.0 against 73.5 | 400: 65.3 against 64.9
+  R0-dev non-looping answers equal to 2                      544: 181 of 279 | 200: 177 of 225 | 400: 195 of 287
+  R0-dev trace form, non-looping                             544: match-544 279 | 200: list 219, procedure 6 | 400: procedure 287
+  R0-dev procedure-only traces: n, MRA                       544: 0, - | 200: 6, 66.7 | 400: 287, 65.3
+  R0-dev truth 2: right of non-looping                       544: 124 of 159 | 200: 126 of 145 | 400: 135 of 161
+  R0-dev truth 3: undercounts of non-looping                 544: 37 of 56 | 200: 33 of 47 | 400: 39 of 58
+  R0-dev truth 5 or more: MRA all items (n)                  544: 24.0 (47) | 200: 9.4 (47) | 400: 28.5 (47)
+  R0-dev fixed items, non-looping at 200 and at 400          200: 72.0 | 400: 71.9 (n 225)
+  R0-dev items that looped at 200                            n 62 | at 400 still looping 0 | MRA 544 27.9, 200 4.7, 400 41.5
+== G3 R0-dev multiple-category counting at a truth of 2
+  R0-dev multiple                                            544: truth 2: 47, non-looping 46, right 10, over 36 | 200: truth 2: 47, non-looping 44, right 20, over 24 | 400: truth 2: 47, non-looping 47, right 42, over 4
+== G4 R0-dev away direction (202 items)
+  opening "Step 1: find"                                     544: 0 of 202 | 200: 43 of 202 | 400: 46 of 202
+  opening "Seen:"                                            544: 0 | 200: 159 | 400: 156
+  half turn omitted (wrong among them)                       544: 202 (146) | 200: 42 (31) | 400: 44 (33)
+  away easy right                                            544: 34 of 66 | 200: 53 of 66 | 400: 49 of 66
+  away medium right                                          544: 12 of 65 | 200: 38 of 65 | 400: 38 of 65
+  away hard right                                            544: 10 of 71 | 200: 36 of 71 | 400: 38 of 71
+  turn lost since 200: 14 (right now 1, right at 200 13) | turn regained: 12 (right now 7, right at 200 1)
+== G5 R0-dev toward direction (376 items)
+  wrong                                                      544: 123 of 376 | 200: 115 of 376 | 400: 119 of 376
+  toward easy wrong                                          544: 34 of 126 | 200: 28 of 126 | 400: 30 of 126
+  toward medium wrong                                        544: 46 of 129 | 200: 41 of 129 | 400: 41 of 129
+  toward hard wrong                                          544: 43 of 121 | 200: 46 of 121 | 400: 48 of 121
+  wrong at 544, 100 and 200: 69; same option at 544 and 200: 66
+  of those 69 at 400: still wrong 59, same option as at 200 56, now right 10
+  dev-S1 direction (450) wrong                               544: 53 | 200: 54 | 400: 53
+== G6 traces that cite a frame above 32
+  R0-dev appearance order                                    544: 100 of 246 | 200: 100 of 246 | 400: 89 of 246
+  R0-dev counting                                            544: 374 of 385 | 200: 82 of 385 | 400: 0 of 385
+  R0-dev direction                                           544: 0 of 578 | 200: 174 of 578 | 400: 160 of 578
+  R0-dev relative distance                                   544: 4 of 279 | 200: 37 of 279 | 400: 45 of 279
+== G7 appearance order: the answer against the stated first-seen frames (step 544 states no such list in this form)
+  544: parsed 246 of 246; decoder equals the answer 222, the truth 136; truly-first cited at frame 1 or 2: wrong 35 of 107, right 105 of 139
+  200: parsed 246 of 246; decoder equals the answer 230, the truth 148; truly-first cited at frame 1 or 2: wrong 28 of 93, right 112 of 153
+  400: parsed 246 of 246; decoder equals the answer 231, the truth 141; truly-first cited at frame 1 or 2: wrong 32 of 99, right 116 of 147
+== G8 object size
+  dev-S1 ScanNet (32)                                        544: 54.4 | 200: 56.6 | 400: 57.2
+  dev-S1 ScanNet++ (42)                                      544: 65.5 | 200: 65.0 | 400: 67.6
+  dev-S1 ARKitScenes (76)                                    544: 76.6 | 200: 77.2 | 400: 74.9
+  R0-dev answer over truth, truth under 30 cm                544: median 1.23, MRA 46.5 (n 88) | 200: median 1.19, MRA 48.0 (n 88) | 400: median 1.24, MRA 46.3 (n 88)
+  R0-dev answer over truth, truth 30 to 60 cm                544: median 0.99, MRA 60.7 (n 72) | 200: median 1.00, MRA 61.8 (n 72) | 400: median 1.00, MRA 60.8 (n 72)
+  R0-dev answer over truth, truth 60 to 120 cm               544: median 1.00, MRA 69.6 (n 53) | 200: median 1.03, MRA 65.5 (n 53) | 400: median 1.01, MRA 64.9 (n 53)
+  R0-dev answer over truth, truth 120 to 250 cm              544: median 0.97, MRA 69.5 (n 61) | 200: median 0.98, MRA 67.9 (n 61) | 400: median 0.98, MRA 70.7 (n 61)
+  R0-dev answer over truth, truth 250 or more cm             544: median 0.75, MRA 48.4 (n 19) | 200: median 0.70, MRA 42.1 (n 19) | 400: median 0.71, MRA 43.2 (n 19)
+== G9 relative distance by the margin of step 544 between its two endpoint candidates (both sets, 429 items)
+  margin under 1.25 (101)                                    544: 47 right | 200: 48 right | 400: 52 right
+  margin 1.25 to 2 (142)                                     544: 94 right | 200: 94 right | 400: 92 right
+  margin 2 or more (186)                                     544: 146 right | 200: 156 right | 400: 150 right
+  no margin parsed (0)                                       544: 0 right | 200: 0 right | 400: 0 right
+  R0-dev closest right                                       544: 120 of 186 | 200: 127 of 186 | 400: 129 of 186
+  R0-dev farthest right                                      544: 61 of 93 | 200: 61 of 93 | 400: 64 of 93
+== G10 facing twins
+  away twins easy right                                      544: 19 of 50 | 200: 47 of 50 | 400: 47 of 50
+  away twins medium right                                    544: 10 of 50 | 200: 45 of 50 | 400: 47 of 50
+  away twins hard right                                      544: 3 of 50 | 200: 41 of 50 | 400: 40 of 50
+  away twins: half turn omitted (wrong among them)           544: 150 (118) | 200: 0 (0) | 400: 0 (0)
+  away twins: "back" answers on hard                         544: 5 of 50 | 200: 40 of 50 | 400: 41 of 50
+  away twins citing a frame above 32                         544: 0 of 150 | 200: 121 of 150 | 400: 113 of 150
+  forward twins easy right                                   544: 49 of 50 | 200: 49 of 50 | 400: 47 of 50
+  forward twins medium right                                 544: 47 of 50 | 200: 48 of 50 | 400: 49 of 50
+  forward twins hard right                                   544: 46 of 50 | 200: 43 of 50 | 400: 41 of 50
+== G11 VSTI relative dev set
+  [not loaded: vsti ('R1', 400) (): ('R1', 400)]
+  camera_obj_rel_dist_v1 (150)                               544: 24.7 | 200: 38.0 | 400: n/a
+  camera_obj_rel_dist_v2 (150)                               544: 32.0 | 200: 37.3 | 400: n/a
+  camera_obj_rel_dist_v3 (150)                               544: 55.3 | 200: 59.3 | 400: n/a
+  obj_obj_relative_pos_lr (150)                              544: 54.0 | 200: 70.0 | 400: n/a
+  obj_obj_relative_pos_nf (150)                              544: 51.3 | 200: 62.7 | 400: n/a
+  obj_obj_relative_pos_ud (150)                              544: 59.3 | 200: 82.7 | 400: n/a
+  VSTI traces citing a frame above 32                        544: 64 of 900 | 200: 373 of 900 | 400: n/a
+  camera_obj_rel_dist_v1 last option                         544: 46 chosen, 37 true | 200: 54 chosen, 37 true | 400: n/a
+  camera_obj_rel_dist_v2 last option                         544: 63 chosen, 50 true | 200: 64 chosen, 50 true | 400: n/a
+  camera_obj_rel_dist_v3 last option                         544: 84 chosen, 75 true | 200: 100 chosen, 75 true | 400: n/a
+  camera items with an in-view or out-of-view line at k      544: 0 of 450 | 200: 0 of 450 | 400: n/a
+sources read: 29

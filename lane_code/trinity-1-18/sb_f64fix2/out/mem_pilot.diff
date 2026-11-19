@@ -1,0 +1,43 @@
+--- /scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/mem_pilot.py	2026-11-19 03:12:56.225749812 -0500
++++ kit/scripts/mem_pilot.py	2026-11-19 04:55:33.714530528 -0500
+@@ -16,7 +16,8 @@
+ The audit's shard files must sit at the paths its summary records, and BOUND_CFG.json must be the audited file.
+ It refuses before loading weights when the world size differs from the recipe's, when any GPU has less
+ than 79 GiB and C1_FSDP_CPU_OFFLOAD is not 1 (48-GB cards are unsupported for the non-offloaded config),
+-when the audit summary is not complete coverage of this config's run, or when R1 admission refuses the
++when the audit summary is not complete coverage of this config's run, when any audited row fails check_row
++or exceeds the ceiling (rows over the tripwire alone pass, for calibration), or when R1 admission refuses the
+ config (missing r2_sampling, preparation, code, admission or depth-init pins). Rank 0 writes
+ DIR/PILOT.json: per rank and step, the allocated and reserved peaks of every microstep, the memory after
+ the optimizer step, the Adam state bytes, the checkpoint peak, step seconds, the plan with its tokens,
+@@ -55,7 +56,9 @@
+ 
+ 
+ def check_audit(summary_path, config_path):
+-    """The summary must re-derive from its own shard files and cover this config's whole run."""
++    """The summary must re-derive from its own shard files and cover this config's whole run, and no audited row
++    may fail check_row or exceed the ceiling, since the trainer aborts on such a row and the longest-row plan would
++    omit it. Rows over the tripwire alone pass: they are the rows this pilot calibrates memory on."""
+     import token_audit
+     summary = json.loads(Path(summary_path).read_text())
+     files = summary.get('shard_files') or {}
+@@ -67,6 +70,19 @@
+         raise ValueError('audit summary differs from its shards')
+     if again['errors']:
+         raise ValueError('audit is not complete coverage of this run: ' + '; '.join(again['errors'][:4]))
++    if sum(entry['rows'] for entry in again['streams'].values()) != again['coverage']['planned']:
++        raise ValueError('audit stream counts do not cover the plan')
++    refused = {}
++    for stream, entry in sorted(again['streams'].items()):
++        ranked = again['longest'].get(stream, [])
++        omitted = min(entry['rows'], token_audit.LONGEST) - len(ranked)
++        top = ranked[0]['tokens'] if ranked else 0
++        if entry['failed'] or entry['over_ceiling'] or omitted or top != entry['max_tokens']:
++            refused[stream] = dict(failed=entry['failed'], over_ceiling=entry['over_ceiling'], rows=entry['rows'],
++                                   omitted_from_longest=omitted, longest_tokens=top, max_tokens=entry['max_tokens'])
++    if refused:
++        raise ValueError('audit has rows the trainer refuses (check_row failure or over the ceiling): '
++                         + json.dumps(refused, sort_keys=True))
+     return again
+ 
+ 

@@ -30,7 +30,7 @@ class ReviewDeliveryTests(unittest.TestCase):
     def test_finding_3_resume_estimate_and_four_call_sites(self):
         for name in ('REPORT.md', 'NOTE_FOR_TREE_REBUILD.md'):
             text = (OUT / name).read_text()
-            self.assertTrue(re.search(r'(?i)estimate[^\n]*4[–-]10 min', text), name + ': resume saving estimate missing')
+            self.assertIn('about 4–5 min (inferred)', text, name + ': resume saving estimate missing')
             self.assertIn('03, 04, 02', text)
             self.assertIn('four', text)
         report = (OUT / 'REPORT.md').read_text()

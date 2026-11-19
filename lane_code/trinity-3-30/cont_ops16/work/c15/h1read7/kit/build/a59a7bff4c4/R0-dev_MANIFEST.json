@@ -1,0 +1,174 @@
+{
+ "config": {
+  "arm": "direct",
+  "decoding": {
+   "budget": 2048,
+   "decoding": "greedy",
+   "engine_version": "0.32.0",
+   "frames": 32,
+   "layout": "duplicate",
+   "max_model_len": 49152,
+   "max_tokens": 16384,
+   "temperature": 0,
+   "thinking": true
+  },
+  "item_file_sha256": "1d8b29a7f7bb5c4e486f430b1128b9fa249de24ae7a3905b9bb0ccdd778c892b",
+  "reader_package": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa",
+  "rule_population": {
+   "obj_appearance_order": 246,
+   "object_counting": 385,
+   "object_rel_direction_easy": 192,
+   "object_rel_direction_hard": 192,
+   "object_rel_direction_medium": 194,
+   "object_rel_distance": 279,
+   "object_size_estimation": 293
+  },
+  "scale_rule": "none (direct arm)",
+  "selector_rule": "none (direct arm: no call is served)",
+  "tower_weights": "none (direct arm)"
+ },
+ "family": "a7",
+ "read_file": {
+  "archive": {
+   "decode": "a7 and r0dev ids through ID_MAP.json (sha256 in ROOM_CROSSWALK.json sources.id_map)",
+   "member": "ITEMS.jsonl",
+   "path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/fetched/result.tar.gz",
+   "sha256": "548f4f20f266e4d765f3accf69a7bd28ac4a62b94f504b437d68044b2e3881b5"
+  },
+  "fetch_status": "COMPLETE",
+  "path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/fetched/x/ITEMS.jsonl",
+  "sha256": "7936cd7695118d5b7d3a64f64072094d607150dbbf8ba4747e053f77878d1834"
+ },
+ "receipts": [
+  {
+   "binds": [
+    [
+     "job",
+     "run.orchard_job"
+    ],
+    [
+     "token",
+     "run.read_token"
+    ],
+    [
+     "status",
+     "read_file.fetch_status"
+    ],
+    [
+     "archive.sha256",
+     "read_file.archive.sha256"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/fetched/FETCH.json",
+   "sha256": "153649dd74652fc61040a2e1edf124a5026b887358de569986adba4e21fb0934"
+  },
+  {
+   "binds": [
+    [
+     "job",
+     "run.orchard_job"
+    ],
+    [
+     "token",
+     "run.read_token"
+    ],
+    [
+     "plan_sha256",
+     "run.plan_sha256"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/SUBMISSION.json",
+   "sha256": "204d18bda4c02205d09d5186b64f564884ed425ebc1095175f093ed1e443b69d"
+  },
+  {
+   "binds": [
+    [
+     "artifact.sha256",
+     "run.artifact_sha256"
+    ],
+    [
+     "artifact.path",
+     "run.artifact_path"
+    ],
+    [
+     "step",
+     "run.step"
+    ],
+    [
+     "scope",
+     "config.arm"
+    ],
+    [
+     "export_binding.run",
+     "run.run_id"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/fetched/x/SPEC.json",
+   "sha256": "9651379ee27af4922d421f717e90e1f252c9eac02b38020efb8c1f3d663c78a7"
+  },
+  {
+   "binds": [
+    [
+     "plan_sha256",
+     "run.plan_sha256"
+    ],
+    [
+     "step",
+     "run.step"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/fetched/x/COMPLETE.json",
+   "sha256": "7a523595b02d5c9161640cb93080e2ea74505535a416e9ab873f5b8e16e13ff5"
+  },
+  {
+   "binds": [
+    [
+     "source_sha256",
+     "config.reader_package"
+    ],
+    [
+     "items_sha256",
+     "config.item_file_sha256"
+    ],
+    [
+     "max_tokens",
+     "config.decoding.max_tokens"
+    ],
+    [
+     "thinking",
+     "config.decoding.thinking"
+    ],
+    [
+     "temperature",
+     "config.decoding.temperature"
+    ],
+    [
+     "engine_version",
+     "config.decoding.engine_version"
+    ],
+    [
+     "cells.0.layout",
+     "config.decoding.layout"
+    ],
+    [
+     "cells.0.frames",
+     "config.decoding.frames"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/fetched/x/a7/a0/request.json",
+   "sha256": "9997bbe13a45c97fe8c5a110080d6bcd9b213b39ca3f779173dffd5cae1b0a15"
+  }
+ ],
+ "run": {
+  "artifact_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m400/artifact.json",
+  "artifact_sha256": "5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd",
+  "orchard_job": 173038,
+  "plan_sha256": "95bc509937b4254f32c6ce4d6fb51bcc9c90e6f7bb52c69da5e3dd3b02ef9696",
+  "read_token": "a59a7bff4c4",
+  "run_id": "6ed2c7aa",
+  "step": 400
+ },
+ "schema": "pooled-rule-read-manifest-v1",
+ "set": "R0-dev",
+ "type_filter": "direct"
+}

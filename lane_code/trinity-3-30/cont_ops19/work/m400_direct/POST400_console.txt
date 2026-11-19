@@ -1,0 +1,115 @@
+== 10:08:26Z fetch
+{"archive": {"path": "/scratch/jjyeung/orch_n30/cont_ops16/work/c15/h1read7/kit/build/a59a7bff4c4/fetched/result.tar.gz", "sha256": "548f4f20f266e4d765f3accf69a7bd28ac4a62b94f504b437d68044b2e3881b5"}, "channel": "pool", "fallback_errors": {}, "job": 173038, "no_files_removed": true, "status": "COMPLETE", "token": "a59a7bff4c4", "trace": "archive snapshot"}
+548f4f20f266e4d765f3accf69a7bd28ac4a62b94f504b437d68044b2e3881b5  /scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/fetched/result.tar.gz
+{
+  "archive": {
+    "bytes": 10453356,
+    "name": "result.tar.gz",
+    "sha256": "548f4f20f266e4d765f3accf69a7bd28ac4a62b94f504b437d68044b2e3881b5"
+  },
+  "archive_bytes": 10453356,
+  "archive_complete": true,
+  "archive_sha256": "548f4f20f266e4d765f3accf69a7bd28ac4a62b94f504b437d68044b2e3881b5",
+  "complete": true,
+  "conflicting_terminal_markers": false,
+  "job": "173038",
+  "mode": "production",
+  "plan_sha256": "95bc509937b4254f32c6ce4d6fb51bcc9c90e6f7bb52c69da5e3dd3b02ef9696",
+  "returncode": 0,
+  "schema": "a3",
+  "status": "COMPLETE",
+  "synthetic": false,
+  "token": "a59a7bff4c4"
+}
+
+== unpack
+/scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/fetched/x
+== pool move
+moved a59a7bff4c4
+a24ea1a1936
+a2e46c0504e
+a35f73e87f0
+a59a7bff4c4
+a5d2d909067
+a5f07824bb3
+a8102c3207b
+acb2faedd41
+adff67f7ae9
+ae470417b41
+aed15a8b7cb
+af35386aa3e
+b635a315de01e0002a33a
+d60a20ec012960002a2c8
+pool bytes 78370915
+== registered rule (decision mode, ledger)
+/scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/R0-dev_MANIFEST.json b4a950ad4e3ba6086cd06b00513276475a0d96ac269f922277f0b598e65daa4c
+/scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/dev-S1_MANIFEST.json 4ebab6315a50ba852378ec69f3c6cc2d6adb3404373b759d7ea59fc8bb49211a
+/scratch/jjyeung/orch_n30/cont_ops17/pooled_c1/pooled_harm_rule_v3_c1.py:468: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  f.write(json.dumps(dict(e, utc=datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'), output=os.path.abspath(a.output)), sort_keys=True) + '\n')
+type                         dev-S1 delta [95%]         R0-dev delta [95%]           pooled  interval, H1 level   fires
+object_counting               +6.20 [  -0.70,  +12.39]  +13.22 [  +9.30,  +17.13]    +11.25  [  +5.52,  +16.31]   
+object_rel_direction_easy     +2.00 [  -2.69,   +7.41]   +9.90 [  +2.58,  +16.84]     +6.43  [  -0.88,  +13.83]   
+object_rel_direction_medium   +0.00 [  -2.94,   +2.50]  +15.98 [  +8.67,  +23.44]     +9.01  [  +2.14,  +16.29]   
+object_rel_direction_hard     -2.00 [  -5.78,   +2.08]  +11.98 [  +4.17,  +19.79]     +5.85  [  -2.15,  +14.06]   
+object_rel_distance           -3.33 [ -10.16,   +3.51]   +4.30 [  -0.36,   +9.32]     +1.63  [  -4.66,   +8.34]   
+object_size_estimation        +0.33 [  -2.89,   +3.70]   -0.99 [  -3.57,   +1.60]     -0.54  [  -3.97,   +2.75]   
+route_planning                +4.00 [  -1.52,   +9.71]  -                             +4.00  [  -5.67,  +13.23]   
+obj_appearance_order         -                           +3.25 [  -3.97,  +10.36]     +3.25  [  -8.57,  +14.13]   
+mean of eight (H2 level)                                                              +5.11  [  +2.92,   +7.26]   
+object size split (printed, stops nothing):
+  dev-S1 metric        72 items   +0.14 [  -3.51,   +4.34]
+  dev-S1 imperial      78 items   +0.51 [  -5.06,   +6.20]
+  R0-dev (cm)         293 items   -0.99 [  -3.57,   +1.60]
+verdict: SILENT
+group                              n      B%  R1m400 - B                  
+ALL_items                       1781    56.0    +7.9 [ +5.8,+10.1] *
+obj_appearance_order             246    56.5    +3.3 [ -4.0,+10.1]  
+object_counting                  385    50.8   +13.2 [ +9.3,+17.2] *
+object_rel_direction_easy        192    65.6    +9.9 [ +2.6,+17.2] *
+object_rel_direction_hard        192    45.8   +12.0 [ +4.2,+19.8] *
+object_rel_direction_medium      194    49.0   +16.0 [ +8.8,+23.2] *
+object_rel_distance              279    64.9    +4.3 [ -0.4, +9.3]  
+object_size_estimation           293    59.1    -1.0 [ -3.5, +1.5]  
+size_metric                      293    59.1    -1.0 [ -3.5, +1.5]  
+== runaway repair test (single counts, bounds 2/150 and 8/287)
+dev-S1  single runaways   0/150 (bound 2) within | multi 0/0
+R0-dev  single runaways   0/287 (bound 8) within | multi 0/98
+runaway part of the repair test: PASSES (the pooled counting interval at the later-look level is the counting row of pooled_harm_rule_v3_c1.py)
+== DERIVED rule (amendment 1108Z)
+DERIVED rule (runaways scored as step 544); runaways: {"dev-S1": {"runaways": 0, "single": "0/150", "multi": "0/0", "rescored_as_544": 0}, "R0-dev": {"runaways": 0, "single": "0/287", "multi": "0/98", "rescored_as_544": 0}}
+object_counting               +6.20 [  -0.70,  +12.39]  +13.22 [  +9.30,  +17.13]    +11.25  [  +5.52,  +16.31]   
+object_rel_direction_easy     +2.00 [  -2.69,   +7.41]   +9.90 [  +2.58,  +16.84]     +6.43  [  -0.88,  +13.83]   
+object_rel_direction_medium   +0.00 [  -2.94,   +2.50]  +15.98 [  +8.67,  +23.44]     +9.01  [  +2.14,  +16.29]   
+object_rel_direction_hard     -2.00 [  -5.78,   +2.08]  +11.98 [  +4.17,  +19.79]     +5.85  [  -2.15,  +14.06]   
+object_rel_distance           -3.33 [ -10.16,   +3.51]   +4.30 [  -0.36,   +9.32]     +1.63  [  -4.66,   +8.34]   
+object_size_estimation        +0.33 [  -2.89,   +3.70]   -0.99 [  -3.57,   +1.60]     -0.54  [  -3.97,   +2.75]   
+route_planning                +4.00 [  -1.52,   +9.71]  -                             +4.00  [  -5.67,  +13.23]   
+obj_appearance_order         -                           +3.25 [  -3.97,  +10.36]     +3.25  [  -8.57,  +14.13]   
+mean of eight (H2 level)                                                              +5.11  [  +2.92,   +7.26]   
+derived H1 fires on: [] | H2 fires: False
+== split
+dev-S1  object_counting       all               n 150 r 49  544  62.80  R1m400  69.00  d  +6.20 [-0.51,+12.32]
+dev-S1  object_counting       dataset=arkitscenes n  47 r 16  544  69.57  R1m400  69.79  d  +0.21 [-13.21,+10.00]
+dev-S1  object_counting       dataset=scannet   n  53 r 13  544  58.68  R1m400  71.70  d +13.02 [+2.50,+21.18]
+dev-S1  object_counting       dataset=scannetppv2 n  50 r 20  544  60.80  R1m400  65.40  d  +4.60 [-6.60,+15.79]
+dev-S1  object_counting       true=10-14        n   2 r  2  544  75.00  R1m400 100.00  d +25.00 [+0.00,+50.00]
+dev-S1  object_counting       true=15+          n   9 r  6  544  33.33  R1m400  54.44  d +21.11 [-3.75,+42.50]
+dev-S1  object_counting       true=2            n  81 r 37  544  78.89  R1m400  82.47  d  +3.58 [-6.54,+13.46]
+dev-S1  object_counting       true=3            n  26 r 19  544  57.69  R1m400  50.00  d  -7.69 [-16.80,+2.22]
+dev-S1  object_counting       true=4            n  14 r 10  544  33.57  R1m400  75.00  d +41.43 [+20.00,+70.00]
+dev-S1  object_counting       true=5            n   8 r  8  544  20.00  R1m400  43.75  d +23.75 [-3.75,+53.75]
+dev-S1  object_counting       true=6-9          n  10 r  7  544  45.00  R1m400  28.00  d -17.00 [-37.00,+1.82]
+dev-S1  relative_size_object  all               n 150 r 53  544  91.33  R1m400  87.33  d  -4.00 [-9.55,+1.01]
+R0-dev  object_counting       all               n 385 r 98  544  50.78  R1m400  64.00  d +13.22 [+9.24,+17.15]
+R0-dev  object_counting       true=10-14        n  12 r 11  544  38.33  R1m400  30.00  d  -8.33 [-29.17,+12.50]
+R0-dev  object_counting       true=15+          n   1 r  1  544   0.00  R1m400   0.00  d  +0.00 [+0.00,+0.00]
+R0-dev  object_counting       true=2            n 208 r 92  544  65.38  R1m400  85.82  d +20.43 [+15.12,+25.81]
+R0-dev  object_counting       true=3            n  79 r 57  544  39.24  R1m400  48.35  d  +9.11 [+3.38,+15.25]
+R0-dev  object_counting       true=4            n  34 r 28  544  36.18  R1m400  39.12  d  +2.94 [-17.50,+23.55]
+R0-dev  object_counting       true=5            n  19 r 17  544  32.11  R1m400  28.42  d  -3.68 [-24.50,+16.19]
+R0-dev  object_counting       true=6-9          n  32 r 27  544  17.19  R1m400  23.12  d  +5.94 [-7.81,+19.00]
+== relative size
+{"items": 150, "rooms": 53, "base": 91.33, "export": 87.33, "delta": -4.0, "ci95": [-9.55, 1.03], "level": 0.99375, "ci_level": [-11.72, 2.53], "holds": false}
+== artifact
+5083243cfedd2a389dfca579c5452e7d0c73b03a58e1cb7d204292ddd10e67cd  /scratch/jjyeung/orch_n30/cont_ops/work/h1read7/kit/build/a59a7bff4c4/runs/6ed2c7aa/m400/artifact.json
+== done 10:08:43Z
