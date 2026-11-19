@@ -3,7 +3,7 @@
 final: out/v2/price/<seed set>_<frame set> -> CARRY_REPORT.md, CARRY_DECISION.json, K1_CARRY.json, PER_ITEM.jsonl (out/v2)
 dry  : out/v2/dry/price stub arms -> dry-run steps 1 and 2 (STUB_PARITY.json) and the same report code on the stubs
        (out/v2/dry/CARRY_REPORT_STUB.md), labelled as stubs.
-Usage: python mc_summary.py final|dry   (p1cpu interpreter)
+Usage: python mc_summary.py final [price_root dest] | dry   (p1cpu interpreter; final with arguments is a code test)
 """
 import json, sys, time
 from pathlib import Path
@@ -111,8 +111,9 @@ def fmt(m, v, frozen_tag):
     f, p, s, a = m['C_fused'], m['member_precision'], m['size'], m['first_seen']
     ci = lambda x: f"{x['estimate']:+.2f} [{x['ci95'][0]:+.2f}, {x['ci95'][1]:+.2f}]" if x else 'n/a'
     prec = f"{p['precision']:.4f} ({p['correct']}/{p['added']})" if p['precision'] is not None else f"n/a (0 added)"
-    return (f"| {frozen_tag} | {m['C_best1']['mra']:.2f} | {f['mra']:.2f} | {ci(f['vs_A0'])} | {prec} | {ci(s)} | "
-            f"{a['rate']:.4f} | {m['frame_recall']['rate']:.4f} | {v['carry_precision']}/{v['carry_fusion']}/{v['size_screen']}/{v['first_seen_screen']} |")
+    num = lambda x, d: 'n/a' if x is None else f'{x:.{d}f}'
+    return (f"| {frozen_tag} | {num(m['C_best1']['mra'], 2)} | {num(f['mra'], 2)} | {ci(f['vs_A0'])} | {prec} | {ci(s)} | "
+            f"{num(a['rate'], 4)} | {num(m['frame_recall']['rate'], 4)} | {v['carry_precision']}/{v['carry_fusion']}/{v['size_screen']}/{v['first_seen_screen']} |")
 
 
 def report(arms, results, decision, dest, title, extra):
@@ -178,14 +179,15 @@ def dry():
              f"; deployed frame recall {deployed['frame_recall']['rate']:.4f} (spec 57.9%).")
 
 
-def final():
+def final(price_root=None, dest=None):
+    price_root, dest = Path(price_root or C.OUT/'price'), Path(dest or C.OUT)
     t0 = time.monotonic()
     S = L.S()
     bars = C.read_json(C.OUT/'BARS_FROZEN.json')
     pub = published()
     a0 = sorted(pub['A0_deployed'], key=lambda r: r['row_id'])
     a0_sizes = S.sizes(a0)
-    arms = {t: a for t in TAGS if (a := load_arm(C.OUT/'price', t)) is not None}
+    arms = {t: a for t in TAGS if (a := load_arm(price_root, t)) is not None}
     results, choices = {}, {}
     for t in TAGS:
         a = arms.get(t)
@@ -224,26 +226,27 @@ def final():
     dropped = {t: dict(captures_reached=a['reached'] if (a := arms.get(t)) else 0) for t in TAGS if not (arms.get(t) or {}).get('complete')}
     decision['missing_or_dropped'] = dropped
     C.code_pins()
-    C.write_json(C.OUT/'CARRY_DECISION.json', dict(decision, bars_frozen_sha256=C.sha256_file(C.OUT/'BARS_FROZEN.json'),
+    C.write_json(dest/'CARRY_DECISION.json', dict(decision, bars_frozen_sha256=C.sha256_file(C.OUT/'BARS_FROZEN.json'),
                                                    spec_sha256=bars['spec_sha256'], results=results))
-    with (C.OUT/'PER_ITEM.jsonl').open('w') as f:
+    with (dest/'PER_ITEM.jsonl').open('w') as f:
         for t, a in arms.items():
             for kind, rows in a['rows'].items():
                 for r in rows:
                     f.write(json.dumps(C.clean(r))+'\n')
     carry = [dict(arm=t, **row) for t, a in arms.items() if not t.endswith('/cf') for v in a['captures'].values() for row in v['table']]
-    C.write_json(C.OUT/'K1_CARRY.json', dict(fields='per object and anchor: seed, carried flag, tracker score, area, IoU, raster share',
+    C.write_json(dest/'K1_CARRY.json', dict(fields='per object and anchor: seed, carried flag, tracker score, area, IoU, raster share',
                                              masks='RLE per capture in out/v2/track/<seed set>_<frame set>/<capture>.json.gz',
                                              anchors=carry))
     extra = [f'- carry_ceiling ({decide("S_GT")}): C_fused {decision["carry_ceiling"]["C_fused_mra"]} against fused_cf 78.62 (diagnostic)',
              f'- withheld-80 sensitivity: {json.dumps(C.clean(sens))[:300] if sens else "MISSING"}',
              f'- missing or dropped arms: {json.dumps(dropped)}']
     report(arms, results, {k: decision[k] for k in ('decision_arm', 'bars', 'carried_fused_track_joins_stack', 'object_arms')},
-           C.OUT/'CARRY_REPORT.md', 'Mask carry: SAM 3 tracker carries the best mask', extra)
+           dest/'CARRY_REPORT.md', 'Mask carry: SAM 3 tracker carries the best mask' + ('' if dest == C.OUT else ' (CODE TEST, not results)'), extra)
     print(json.dumps(dict(decision={k: decision[k] for k in ('decision_arm', 'bars', 'carried_fused_track_joins_stack')},
                           seconds=time.monotonic()-t0), default=str), flush=True)
-    C.status(f"Summary (CARRY_REPORT.md, CARRY_DECISION.json): decision arm {decide('S_A0')} bars {a0row}; joins stack {joins}.")
+    if dest == C.OUT:
+        C.status(f"Summary (CARRY_REPORT.md, CARRY_DECISION.json): decision arm {decide('S_A0')} bars {a0row}; joins stack {joins}.")
 
 
 if __name__ == '__main__':
-    {'dry': dry, 'final': final}[sys.argv[1]]()
+    {'dry': dry, 'final': final}[sys.argv[1]](*sys.argv[2:])

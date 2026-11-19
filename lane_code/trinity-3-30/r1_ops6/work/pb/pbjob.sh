@@ -232,7 +232,12 @@ def main():
                         pick(t,matches[-1],dst); require(sha(dst)==p['sha256'],'PIN_SHA')
         with phase('view'):
             for d in ('x','u','v','w'): (nl/d).mkdir(exist_ok=True)
-            ns=[BW,'--die-with-parent','--unshare-net','--ro-bind','/','/','--dev','/dev','--proc','/proc',
+            (nl/'u/ap/8865619b').mkdir(parents=True,exist_ok=True); (nl/'x/runs').mkdir(parents=True,exist_ok=True)
+            root_args=[]
+            for entry in sorted(Path('/').iterdir()):
+                if entry.name in {'home','dev','proc','scratch','lustre','w'}: continue
+                root_args+=['--symlink',os.readlink(entry),str(entry)] if entry.is_symlink() else ['--ro-bind',str(entry),str(entry)]
+            ns=[BW,'--die-with-parent','--unshare-net',*root_args,'--dev','/dev','--proc','/proc',
                 '--tmpfs','/home','--ro-bind',nl/'u',AS,'--ro-bind',nl/'u',AL,
                 '--ro-bind',nl/'x',X,'--ro-bind',nl/'runs',X+'/runs',
                 '--ro-bind',nl/'v',P+'/c7d31ddd','--bind',nl/'w','/w',
@@ -246,13 +251,15 @@ def main():
             require(cfg['preparation']==b['preparation'],'PREPARATION_BINDING')
             wrapper="""import json,runpy,sys,time
 from student_pilot import p3_provenance as p
-elapsed=0.; count=0; original=p.sha256
-def measured(path):
- global elapsed,count
- t=time.monotonic()
- try:return original(path)
- finally:elapsed+=time.monotonic()-t;count+=1
-p.sha256=measured
+elapsed=0.; count=0
+def timed(fn):
+ def measured(*a,**k):
+  global elapsed,count
+  t=time.monotonic()
+  try:return fn(*a,**k)
+  finally:elapsed+=time.monotonic()-t;count+=1
+ return measured
+p.sha256=timed(p.sha256); p.digest=timed(p.digest)
 try:runpy.run_module('launch_r1.p_handover_receipt',run_name='__main__')
 finally:
  with open('/w/h_time.json','x') as f:json.dump(dict(seconds=elapsed,calls=count),f)
@@ -270,7 +277,7 @@ finally:
         signal.signal(signal.SIGALRM,signal.SIG_DFL)
         signal.alarm(max(1,int(limit-(time.monotonic()-started))))
         report['elapsed_seconds']=time.monotonic()-started
-        report['stage_minutes']=sum(report['phases'].get(k,{}).get('minutes',0) for k in ('stage','closure'))
+        report['stage_minutes']=sum(report['phases'].get(k,{}).get('minutes',0) for k in ('preflight','stage','verify','extract','closure','view'))
         if (nl/'w/h_time.json').exists():
             report['hash_seconds']=load(nl/'w/h_time.json')['seconds']
             report['hash_minutes']=report['hash_seconds']/60

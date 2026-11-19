@@ -22,3 +22,26 @@ Base state: /scratch/jjyeung/orch_n30/cont_ops18/STATUS.md (09:10Z section). Bri
 - ORCH RULING 1018Z: direct accepted; owed facing + VSTI rereads, then (after vehicle N proof) routed with H3 + call rates (dist_gate.py, sb_callrate_v3). Step 600: print relative size again on the same items; print counting split by true count (2,3,4,5+) on both sets.
 - FACING 400 DONE: RESULT *_RESULT_facing_gate_m400_PASS_toward_holds_not.md (gate PASS +68.0; toward -3.33 not holding; toward-hard -10.0 H1 wholly below zero, mark). Corpus 6ed2c7aa_s400_facing_direct_afdfd5caac6. Files files_m400/FACE_m400.*.
 - VSTI 173046 (a4525db2f6a) running since ~10:20Z.
+## 10:50Z
+- VSTI 400 DONE: RESULT *_1034Z_RESULT_vsti_gate_m400_PASS.md (pooled +15.33). Corpus read file published by hand after my timeout killed add_read's verify wait (sha checked); index/orphans/INDEX publish in tmux c19pub (log work/pub_vsti400.log) - check it ended.
+- Step-400 chain finished; general holds no job of mine. Waiting for tree_rebuild12's post in events/cont_ops (vehicle N proof elsewhere or released slot) before routed A/B (ORDER 0949Z).
+- Pool ae71c903: moved a4525db2f6a, afdfd5caac6, d00c03dcc685e0002a39d to ae71c903_fetched; pool now 66.4 MB (<75 MB submit check).
+- ORCH RULING 1041Z item 4: print relative count (dev-S1, 139 items, with count of numeric answers to letter questions) at step 600 and at every vehicle-N read.
+## 10:55Z
+- ORCH ANSWER 1047Z: fill general shortest first with graceful yield to the proof: routed B (submitted 173052, tmux monR_173052, monitor work/monR.sh, log work/monR_173052.log), then D@544 remainder. Routed A waits for the proof unless tree_rebuild12 posts it runs on preempt. Report B room (MRA, split dev-S1/R0-dev, call rate) as soon as scored.
+- Corpus VSTI: c19pub publishes index/orphans (governor waiting); NOT rerunning add_read.sh (read file exists -> its pub step would fail FileExistsError and skip the index).
+## 11:25Z
+- ROUTED B 400 DONE: RESULT *_RESULT_r1_m400_routed_B_room.md (MRA 66.42, +59.85; R0-dev 67.04, dev-S1 64.72; 0/134 calls). Workspace r1route/out3/B10 (package, src, ret), scoring r1route/out4s (score_r5_400.py, room134_400.py, A/src temporarily -> out3/A4/src for imports; replace with A10's src when A lands). Corpus 6ed2c7aa_s400_room134_routed_B10 publishing (add_B400.log).
+- D@544 remainder 173053 submitted 11:17Z on general; tmux monR_173053 (log work/monR_173053.log). After: fetch (dresume RESUME_D.md / o_fetch), merge-score dresume/score_d.py --spec, corpus.
+- Corpus VSTI index published (pub_vsti400.log done).
+## 11:35Z
+- ORCH ORDER 1125Z: proof runs on preempt (173050/173051); D@544 remainder 173053 stopped gracefully (USR1 11:30Z, COMPLETED 0:0 after 11.6 min, partial: fetch + make a second remainder later). Routed A 173054 RUNNING on general since 11:33Z (tmux monR_173054).
+- After A: D@544 remainder (partial of 173053 + rest), D@200, E, H@544, H@200, own-arm. A's RESULT: H3 per camera type + call counts; distance call rate by unit and wording group (dist_gate.py sets a, c; sb_callrate_v3); capped; distance MRA split calling/non-calling; vs 544 and 200.
+- Corpus B published (add_B400.log rc=0).
+## 11:36Z
+- D@544 remainder 173053 partial: 3 of 102 done (return d09f959256d870002a3fd f5033bbf, fetched to Orchard pkg a/f; pool entry moved; local copy cont_ops19/work/drem1/pkg.tar excl a/e).
+- Second remainder BUILT: a15_cot_apd5b7ea08426cd (99 items = 580 - 478 (172957) - 3 (173053); items REM544_2.json 37180266 via cont_ops19/work/drem2/make_rem2.py; code upload 813f42db/r544ccode (dresume with fixed build_d.py); stage 813f42db/r544c; DIFF vs r544b only token/count/hash lines). place_fill running on Orchard (nohup, log r544c/pf.log, REUSE_PARTS_FROM d09f959256d87/a/e). Next: CPU check (P=... T=01:30:00 bash r544c/o_cpu_D.sh), then GPU after A.
+- Merge score later: dresume/score_d.py --spec with three segments (d544ret, 173053 partial, rem2 return).
+- Routed A 173054 running (monR_173054).
+## 11:45Z
+- Rem2 a15_cot_apd5b7ea08426cd filled + dry pass (r544c/pf.log); CPU check 173055 on preempt (submitted 11:44Z). GPU submit after A: P=/project/community/jjyeung/okh7/a15_cot_apd5b7ea08426cd T=01:30:00 bash /project/community/jjyeung/okh7/813f42db/r544c/o_sub_D.sh, then monR (J, P, LB=D544rem2).

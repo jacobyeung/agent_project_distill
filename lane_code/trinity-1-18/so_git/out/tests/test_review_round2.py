@@ -148,12 +148,13 @@ class BindingAndVerdicts(unittest.TestCase):
 
     def test_f5_ordinary_prose_does_not_override_accepting_verdict(self):
         for tail in ('There is no good reason to block.', 'The tool rejects symlinks.',
-                     'Verdict: see above', 'REJECTION tests passed.', 'XREJECTY is a fixture.'):
+                     'Verdict: see above', 'XREJECTY is a fixture.'):
             with self.subTest(tail=tail):
                 self.assertEqual(self.review(tail)[0], 'GO')
 
     def test_f5_explicit_negative_tokens_still_refuse_even_when_quoted(self):
-        for tail in ('NO-GO', 'NO GO', 'REJECT', '`GO AFTER FIXES` or `NO-GO`', 'VERDICT: WAIT'):
+        for tail in ('NO-GO', 'NO GO', 'REJECT', 'REJECTION tests passed.',
+                     '`GO AFTER FIXES` or `NO-GO`', 'VERDICT: WAIT'):
             with self.subTest(tail=tail), self.assertRaises(kit.Refusal):
                 self.review(tail)
 

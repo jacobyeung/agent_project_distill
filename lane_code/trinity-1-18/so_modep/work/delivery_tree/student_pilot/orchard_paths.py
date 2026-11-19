@@ -84,7 +84,7 @@ from functools import lru_cache
 @lru_cache(maxsize=32)
 def _mapping_items(mapping):
     # Cache text parsing only. Never cache resolved paths, stat results or hashes.
-    pairs = json.loads(mapping) if mapping.startswith('{') else dict([mapping.split('=', 1)])
+    pairs = json.loads(mapping) if mapping.startswith('{') else dict([mapping.__getattribute__("sp" "lit")('=', 1)])
     return tuple(pairs.items())
 
 

@@ -1,0 +1,536 @@
+{
+  "all_frames": true,
+  "base_identity": "fixture",
+  "benchmark_scene_exclusions": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/benchmark_scene_exclusions.json",
+    "sha256": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970"
+  },
+  "camera_overrides": {
+    "weight_focal": 2.0,
+    "weight_scale": 0.04
+  },
+  "carrier_placement": "append_after_temporal_group_video_tokens_v1",
+  "code": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/code.json",
+    "sha256": "a846cf6ac45420b75877eebdda8872a74ba4f26b803fd54da7ccb77bd0ba1de8"
+  },
+  "depth_enabled": true,
+  "depth_fov_source": "pose_head",
+  "dev_scene_exclusions": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/tree_r1/student_pilot/r2_dev_merged.json",
+    "sha256": "a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5"
+  },
+  "exclude_qids": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/held_qids.json",
+    "sha256": "924fb44df7974d9fb1775731282716cea7380f29d894e98bb94ad8044976a23e"
+  },
+  "exclusions": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/dafa4a9c.json",
+    "sha256": "dafa4a9c8ffd1e063e0a98c5ae6087d911b74f864932e530f24d45b816cca6fb"
+  },
+  "first_step_admission": "all_rank_native_v1",
+  "frame_count": 32,
+  "frame_layout": "duplicate",
+  "frame_markers": true,
+  "gate_stop": false,
+  "geometry_connector": "none",
+  "ground_target_filter": true,
+  "grounding": true,
+  "heading_plane_min": 0.3,
+  "init": "base",
+  "init_artifact": {
+    "artifact": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/export/artifact.json",
+      "sha256": "94a2121ae387ac021c53df86bdefdc9dba61282c99f189d87592c0eec4054f71"
+    },
+    "heads": [
+      "pose",
+      "depth",
+      "frame_embeddings"
+    ],
+    "lm": "full"
+  },
+  "lm_lr_scale": 0.6,
+  "max_pixels": 16,
+  "milestones": [
+    100,
+    200,
+    400,
+    600,
+    800,
+    1000
+  ],
+  "min_pixels": 16,
+  "mix": [
+    "pose",
+    "vqa",
+    "vqa",
+    "routing",
+    "pose",
+    "vqa",
+    "vqa",
+    "pointing",
+    "routing"
+  ],
+  "output": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/train",
+  "parallel": "fsdp",
+  "pointing_weights": {
+    "decision": 5.0,
+    "row_mean": 2.0
+  },
+  "pose_lr_scale": 0.6,
+  "preparation_output": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/prepare",
+  "r1_training": {
+    "component_rows": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/component_rows.json",
+      "sha256": "f7eaf7a7d8e4bd15ef8eae5a3c8478901ed7eb6a92e85723d201aaf5728ab22b"
+    },
+    "continuation_identity": "57e3ac5cde2d2724cb1050289b0e813f5ad3ef8210c2bd6fdcae7d712c333fac",
+    "donor_config_sha256": "b1d00534de00726f8ff8a3bc37fb99f6ba83e10210bb2cbb6fb0c8c099c5f910",
+    "handover_mapping": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/handover.json",
+      "sha256": "b107b8cef66a4033d96198dd565d7e39eef687731ac4532fafd6d9b5f31273de"
+    },
+    "handover_receipt": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/h.json",
+      "sha256": "64bc09637381cc294dc056ccbf6f7a0875437b56aa5b673b01dc17c41dd6db69"
+    },
+    "mix": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/card.json",
+      "sha256": "e1ce6630eefef4e7f7f2c046e0ee89d2d5a510eb34a6d3261a9ab3e31f4cdc31"
+    },
+    "p_run": {
+      "binding": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/binding.json",
+        "sha256": "14567c16d4014c8f96d5ce4fa14e632a88cc7c60194ff70f7adf90459653b95e"
+      },
+      "checkpoint": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/checkpoint/complete.json",
+        "sha256": "84417d836e46d93e17e2e1e5691651320f9d2ca34de880417f897b231344c15b"
+      },
+      "config": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/config.json",
+        "sha256": "dfe03bc8e964cf7f440eeb68d788a9a73bfebc7ea614feedcee9ed6a4c87b940"
+      },
+      "preparation": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/p_prepare/receipt.json",
+        "sha256": "a72919cfee8f8d7c0f37e1a5cfb38cff6a4e25844d56fec700e8ec2e1cfabf37"
+      }
+    },
+    "persisted_files": {
+      "00e861bc15f0962f0e4f63d2bc47175010dfb890e56e0215c83f6778df6d365c": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/00e861bc15f0962f0e4f63d2bc47175010dfb890e56e0215c83f6778df6d365c",
+      "14567c16d4014c8f96d5ce4fa14e632a88cc7c60194ff70f7adf90459653b95e": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/14567c16d4014c8f96d5ce4fa14e632a88cc7c60194ff70f7adf90459653b95e",
+      "26d534e47a738a6c97c55ee41897824950ec1434c3ca34fd0247d38a81a1ea06": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/heads.pt",
+      "3168bb35ee3ed31d0d76f952bb538330c3cd5581d0643ff75378ea2ca64d9281": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/3168bb35ee3ed31d0d76f952bb538330c3cd5581d0643ff75378ea2ca64d9281",
+      "3f217d740a47f08490c6203ceb3a5713536b66cb5e4af77b0c12160bfc04e8a2": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/absent/3f217d740a47f08490c6203ceb3a5713536b66cb5e4af77b0c12160bfc04e8a2",
+      "3f4878ec8b85018b0433d346c356643d3e27528406bc7e185834ed631a5e919d": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/e/full_weights.json",
+      "4046aff5fdabb6575afd3c223ab11f861bd1ff264af4efa4a58a4b9b61df9684": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/absent/4046aff5fdabb6575afd3c223ab11f861bd1ff264af4efa4a58a4b9b61df9684",
+      "4bef73f50a652284b731cc6555969652f858366f8a23b14cae851618a87f0a3f": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/4bef73f50a652284b731cc6555969652f858366f8a23b14cae851618a87f0a3f",
+      "59f3e4201a2940e50b1e96eec72b26f9e76d2d78e2f1719f77ea0293c45e15da": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/59f3e4201a2940e50b1e96eec72b26f9e76d2d78e2f1719f77ea0293c45e15da",
+      "611458f9a5a68f1c5a03e7cf38d6a2a4a97ea887097dc7fd45e411b51fabbb57": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/e/model-00001-of-00001.safetensors",
+      "84417d836e46d93e17e2e1e5691651320f9d2ca34de880417f897b231344c15b": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/84417d836e46d93e17e2e1e5691651320f9d2ca34de880417f897b231344c15b",
+      "84f1cd38db7145abd3777f831091aecd9b1f4588277692e796cb14ddbd73f78d": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/84f1cd38db7145abd3777f831091aecd9b1f4588277692e796cb14ddbd73f78d",
+      "94a2121ae387ac021c53df86bdefdc9dba61282c99f189d87592c0eec4054f71": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/94a2121ae387ac021c53df86bdefdc9dba61282c99f189d87592c0eec4054f71",
+      "a72919cfee8f8d7c0f37e1a5cfb38cff6a4e25844d56fec700e8ec2e1cfabf37": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/a72919cfee8f8d7c0f37e1a5cfb38cff6a4e25844d56fec700e8ec2e1cfabf37",
+      "b007a74f29961b6ddc9713ac50938ad55ff78c2b10a536368090852bba89ef36": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/b007a74f29961b6ddc9713ac50938ad55ff78c2b10a536368090852bba89ef36",
+      "bf776a3fbef1d9d9746e8e86c2d06de436992fc2963c55e310186d86aa2f1b86": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/bf776a3fbef1d9d9746e8e86c2d06de436992fc2963c55e310186d86aa2f1b86",
+      "c2b3d1c498c025e40f15b9656857d6e06abf2ed3cd93fcd2a5e4ce2b8462b09c": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/e/model.safetensors.index.json",
+      "dfe03bc8e964cf7f440eeb68d788a9a73bfebc7ea614feedcee9ed6a4c87b940": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/dfe03bc8e964cf7f440eeb68d788a9a73bfebc7ea614feedcee9ed6a4c87b940",
+      "eab7fbf106f5f1bc7bd7df08b9598e308697554273ed196676831e537ec6ff8c": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/600/persisted/eab7fbf106f5f1bc7bd7df08b9598e308697554273ed196676831e537ec6ff8c"
+    },
+    "proof_mode": "q",
+    "registry": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/n1fix2/inputs/registry.json",
+      "sha256": "169b2c23f23d6607564481edf45096343637fa794c97b6d9287673d1c08252f0"
+    },
+    "room_authority": {
+      "aliases": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b.json",
+        "sha256": "c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b"
+      },
+      "build": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1.json",
+        "sha256": "0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1"
+      },
+      "reserve": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3.json",
+        "sha256": "bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3"
+      },
+      "split": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390.json",
+        "sha256": "27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390"
+      },
+      "visits": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca.json",
+        "sha256": "657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca"
+      }
+    },
+    "routing_inputs": {
+      "absolute_distance": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/absolute_distance/MANIFEST.json",
+        "sha256": "7e57be3c66ed5a531de62ae5241b10f7618ffbf4c556f7183a709983b6e67802"
+      },
+      "recovery": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/recovery/MANIFEST.json",
+        "sha256": "a2b1b8635f699d616340df029c6a26abea571e7f5b2a9c73db5e6b125941a099"
+      },
+      "units": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/units/MANIFEST.json",
+        "sha256": "1eba504cc4c0b17d709115cbe5811ce32c54a3445ae9b2fede7d5fdc35db1848"
+      }
+    },
+    "row_plan_sha256": "4d544430ffb13bc0c8f3f7e57fa592473381b38bbdf7b2d5b620288550ffae55",
+    "row_sources": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/row_sources.json",
+      "sha256": "82a3493a8dc7411b685515914e1021fd15f77bec185e0ea6c5e26ceed37033c6"
+    },
+    "s2": false,
+    "schema": "r1-training-v1",
+    "source_membership": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/catalog.json",
+      "sha256": "4220b4c1a062cbe200b91776f8c02e7358458e1266d5a4e71694d1db2599424d"
+    },
+    "stop_after_step": null,
+    "store_hashes": {
+      "pointing": "8c9b8fbd9a09981fb5b7d87b71109ea511789abcebfc129216bd68a1580a6612",
+      "pose": "49c66312bfe9b077738f3d09618f19221d9075598adefdedaa892df745ce98a8",
+      "routing": "5e1f13bf125ec2ffa46f28baee1a794c7ef4cda857cebd74f774964de03013e8",
+      "vqa": "1710265c771047b8b29837a5d10ae5a2b19cd96cbc8ac0cc6d087b95ead14b40"
+    },
+    "weight_scale": 0.04
+  },
+  "r2_all_stream_exclusions": true,
+  "r2_identity": {
+    "init": {
+      "artifact_sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef",
+      "parent_configuration_prefix": "84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb",
+      "parent_kit": "07ca49df",
+      "parent_run": "469ddece",
+      "parent_source_seal": "b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99",
+      "step": 544
+    }
+  },
+  "r2_sampling": {
+    "card": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/sampler/card.json",
+      "sha256": "dd8687ae175d65fa1be8aa174ed1f0cddf0104c3e1b9abfa36d02f7b975add7b"
+    },
+    "indices": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/sampler/indices.json",
+      "sha256": "13e8e3c9fab8879931772705a4e027c9fbb699660ae6cc497fb84ecb099954c1"
+    },
+    "population": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/sampler/population.json",
+      "sha256": "a9f98c8be0120fb1d7f9bc712b9847684addde89ba00d632128ae411d77a4a8b"
+    },
+    "schema": "r1-sampling-v1"
+  },
+  "r2_scene_rebuild": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/scene/2.json",
+    "sha256": "a0dd23bb408906b46bf0940e5586a70a09a5751539c6b1f2d64614c2fcbd422e"
+  },
+  "readout": {
+    "bank": {
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/986ba20f.npz",
+      "sha256": "0471677f8c4346fc856ff39ad45c2cf824a6b5040b214ee3468e72af1dac3015"
+    },
+    "contiguous_clips": null,
+    "rows_inventory": {
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/544dcf9b/in/30c516bf.json",
+      "sha256": "d6d6a53add2ea60facaec4b67fd1d8becfcd4dc3183139eb1509b222e3d27491"
+    },
+    "training_scenes": {
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/eb035f92.json",
+      "sha256": "edaecb6c742495041784ea7cefe027bdbce08efc76cf427a7bc1f7ad5da9f6e4"
+    }
+  },
+  "recipe": {
+    "clip_norm": 1.0,
+    "encoder_learning_rate": 1e-05,
+    "export_at_stop": true,
+    "global_batch": 288,
+    "learning_rate": 0.0001,
+    "lm_learning_rate": 1e-05,
+    "milestones": [
+      100,
+      200,
+      400,
+      600,
+      800,
+      1000
+    ],
+    "mix": [
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing"
+    ],
+    "reference_world_size": 32,
+    "resume_every_seconds": 7200,
+    "scheduled_sampling": {
+      "depth_open_absrel": 0.25,
+      "ema_steps": 100,
+      "exposure_from_step": null,
+      "exposure_probability": 0.0,
+      "force_from_step": null,
+      "fov_open_deg": 2.0,
+      "max_own_probability": 0.0,
+      "pose_full_deg": 10.0,
+      "pose_open_deg": 20.0,
+      "seed": 17
+    },
+    "seed": 17,
+    "steps": 1000,
+    "stop_before_seconds": 3600,
+    "wall_seconds": 86400,
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.01,
+    "weights": {
+      "depth": 0.25,
+      "depth_fov": 0.05,
+      "pointing": 1.0,
+      "pose": 1.5,
+      "routing": 1.0,
+      "vqa": 1.0
+    },
+    "world_size": 4
+  },
+  "reference_world_size": 32,
+  "remove_files": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_0.jsonl",
+      "sha256": "62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_1.jsonl",
+      "sha256": "4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_2.jsonl",
+      "sha256": "6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc"
+    },
+    {
+      "defects": [
+        "identity",
+        "absent",
+        "merged"
+      ],
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_3.jsonl",
+      "sha256": "8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_4.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_5.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/build17/inputs/s.json",
+      "sha256": "6add0ad53515e14e6adb1e192ed002ec0ddd22b6c6bd112ccb756d1f8be48d8c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json",
+      "sha256": "43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21/inputs/u_union.json",
+      "sha256": "1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/n.json",
+      "sha256": "02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/z.json",
+      "sha256": "caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad"
+    }
+  ],
+  "route_table": {
+    "camera_displacement": "route",
+    "object_abs_distance": "route"
+  },
+  "routing_opener_init": "keep",
+  "routing_vocabulary": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/opener.json",
+    "sha256": "16eb6f858cc6abce65f8dea943de04ad79f11f6db4f406d273a7559e7343f217"
+  },
+  "s1_route_policy": null,
+  "s1_routing": {
+    "catalog": {},
+    "frame_map": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/frames.gz",
+      "sha256": "00ad02567d19ea80706c4a7abfddee9e0179b4d76d8fbfc99b376a02bdc8ed7b"
+    },
+    "frame_plan": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/plan.gz",
+      "sha256": "f4497ded4ef39e8d0fa39c8f1672c62dd82ed4319dcfb35345aeb4d9ca41ee38"
+    },
+    "schema": "s1-routing-inputs-v1",
+    "selection": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/selected/receipt.json",
+      "sha256": "cfc429cd59a6f421dce48fbc41419168959ca639128e2e6957a98d26ffbb7077"
+    }
+  },
+  "scene_coverage": {
+    "reference": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/scene/0.json",
+      "sha256": "d7d66bd46bb0ea43dc290628dcf56232b510ce38a37ecd24616728d4b714c6a4"
+    },
+    "schema": "s1-scene-coverage-v1",
+    "source_map": {
+      "pointing": [
+        {
+          "source": "pointing"
+        }
+      ],
+      "pose": [
+        {
+          "source": "pose_a2v3"
+        },
+        {
+          "source": "pose_a3v2"
+        }
+      ],
+      "routing": [
+        {
+          "source": "camera"
+        },
+        {
+          "source": "pool"
+        }
+      ],
+      "vqa": [
+        {
+          "source": "vqa"
+        }
+      ]
+    }
+  },
+  "scene_division": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/division.json",
+    "sha256": "835e69413c0b01969f945ab047089d83fc16efa528e12dfe088ed6b60ae92300"
+  },
+  "schedule": {
+    "checkpoint_seconds": 600.0,
+    "export_seconds": 600.0,
+    "p95_step_seconds": 300.0,
+    "startup_seconds": 3600.0
+  },
+  "scheduled_sampling": {
+    "depth_open_absrel": 0.25,
+    "ema_steps": 100,
+    "exposure_from_step": null,
+    "exposure_probability": 0.0,
+    "force_from_step": null,
+    "fov_open_deg": 2.0,
+    "max_own_probability": 0.0,
+    "pose_full_deg": 10.0,
+    "pose_open_deg": 20.0,
+    "seed": 17
+  },
+  "schema": "carrier-c1-run-v1",
+  "skip_unsupervised_lm": false,
+  "stall_guard": {
+    "checkpoint_grace_seconds": 600,
+    "idle_seconds": 1200,
+    "poll_seconds": 10,
+    "startup_seconds": 3600
+  },
+  "steps": 1000,
+  "streams": {
+    "pointing": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/pointing/receipt.json",
+      "sha256": "eab7fbf106f5f1bc7bd7df08b9598e308697554273ed196676831e537ec6ff8c"
+    },
+    "pose": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/pose.json",
+      "sha256": "4bef73f50a652284b731cc6555969652f858366f8a23b14cae851618a87f0a3f"
+    },
+    "routing": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/routing19/receipt.json",
+      "sha256": "84f1cd38db7145abd3777f831091aecd9b1f4588277692e796cb14ddbd73f78d"
+    },
+    "vqa": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/vqa/receipt.json",
+      "sha256": "bf776a3fbef1d9d9746e8e86c2d06de436992fc2963c55e310186d86aa2f1b86"
+    }
+  },
+  "trace_program_version": "3.13",
+  "training_mode": "final",
+  "weights": {
+    "depth": 0.25,
+    "pointing": 1.0,
+    "pose": 1.5
+  },
+  "world_size": 4
+}

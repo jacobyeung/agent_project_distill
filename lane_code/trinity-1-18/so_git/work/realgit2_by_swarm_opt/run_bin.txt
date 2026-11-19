@@ -1,0 +1,21 @@
+test_land_probe_and_hourly_pathspec_preserves_kits (test_real_git_owner.RealGitOwnerTests.test_land_probe_and_hourly_pathspec_preserves_kits) ... ERROR
+
+======================================================================
+ERROR: test_land_probe_and_hourly_pathspec_preserves_kits (test_real_git_owner.RealGitOwnerTests.test_land_probe_and_hourly_pathspec_preserves_kits)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_git/work/round2_validation_nix5a90d/owner/tests/test_real_git_owner.py", line 21, in test_land_probe_and_hourly_pathspec_preserves_kits
+    parent = Path(os.environ['LCS_REAL_GIT_WORK']).resolve(strict=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1240, in resolve
+    s = self._flavour.realpath(self, strict=strict)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 424, in realpath
+  File "<frozen posixpath>", line 468, in _joinrealpath
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/so_git/work/realgit2_by_swarm_opt/bin'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (errors=1)
+rc=1

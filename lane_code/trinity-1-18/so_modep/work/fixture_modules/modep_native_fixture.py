@@ -20,7 +20,12 @@ def guard(stage):
 def population(path,row,stream,check):
     counts={'pose':32,'vqa':32,'routing':32,'pointing':8}
     with path.open('w') as f:
-        for i in range(counts[stream]):f.write(json.dumps(dict(row,qid=stream+str(i)))+'\n')
+        for i in range(counts[stream]):
+            value=deepcopy(row)
+            if stream=='vqa':
+                frames=value['student_input']['frames']
+                value['student_input']['frames']=frames[i%len(frames):]+frames[:i%len(frames)]
+            f.write(json.dumps(dict(value,qid=stream+str(i)))+'\n')
 
 def pose_manifests(root,row,make):
     return [make(root/('pose_source'+str(group)),
@@ -69,11 +74,16 @@ def host():
     draw.rectangle((2,10,10,20),fill='red');draw.rectangle((20,10,28,20),fill='blue');im.save(O/'f.png')
     (O/'data2root').mkdir(exist_ok=True);im.save(O/'data2root/f.png')
     fp=dict(file_pin(O/'data2root/f.png'),path='/data2/f.png')
+    frame_pins=[fp]
+    for i in range(1,32):
+        path=O/'data2root'/('f'+str(i)+'.png')
+        distinct=im.copy();distinct.putpixel((0,0),(i,0,0));distinct.save(path)
+        frame_pins.append(dict(file_pin(path),path='/data2/'+path.name))
     row=dict(qid='v0',dataset='d1',scene='scene9997_00',canonical='scannet/scene9997_00',
         question_type='object_rel_direction_easy',answer='A',
         target='<think>\nLocate: the red square is seen in frame 1.\nLocate: the blue square is seen in frame 2.\nRelate: the red square is left of the blue square.\n</think>\n\nA',
         student_input=dict(question='Is the red square left or right of the blue square?',options=['A. left','B. right'],
-            frames=[fp]*32,frame_indices=list(range(32)),timestamps=[i/10 for i in range(32)],fps=10,total_num_frames=32))
+            frames=frame_pins,frame_indices=list(range(32)),timestamps=[i/10 for i in range(32)],fps=10,total_num_frames=32))
     division=write(O/'division.json',dict(schema='diagnostic-whole-scene-division-v1',training_only=True,
         train_scenes=['d1/scene9997_00'],heldout_scenes=['d1/scene9998_00']))
     camera=dict(embed_dim=16,num_heads=2,trunk_depth=1,refine_iterations=1,weight_gravity=.05,
@@ -146,7 +156,7 @@ def host():
         events=events,tool_output_spans=spans,answer=answer,gt_answer='0.24',target=text,question_type='camera_displacement',
         question='How far in meters did the camera move from frame 1 to frame 25?',
         provenance=dict(canonical=row['canonical'],alias='d1/scene9997_00',source_row_sha256=digest(row),frame_indices=list(range(32))))
-    rgb=write(O/'rgb.json',dict(frames=[dict(fp,source_index=i) for i in range(32)],fps=10,total_num_frames=32))
+    rgb=write(O/'rgb.json',dict(frames=[dict(frame_pins[i],source_index=i) for i in range(32)],fps=10,total_num_frames=32))
     rr['provenance']['rgb_manifest']=rgb
     population(O/'routing.jsonl',rr,'routing',guard)
     index=write(O/'rgb_index.json',dict(manifests={rgb['sha256']:rgb['path']}))
@@ -190,9 +200,14 @@ def host():
     scene=rebuild(scene_spec,cfg,O/'scene')
     cfg.update(r2_scene_rebuild=file_pin(O/'scene/2.json'),scene_coverage=scene['scene_coverage'])
     with gzip.open(O/'frames.gz','wt') as f:
-        for i in range(32):f.write(json.dumps(dict(d='d1',s='scene9997_00',i=i,sha256=fp['sha256'],path='/data2/k6tk/'+fp['sha256'][:2]+'/'+fp['sha256']+'.png'))+'\n')
-        for i in needed['i']:f.write(json.dumps(dict(d=needed['d'],s=needed['s'],i=i,sha256=fp['sha256'],path='/data2/k6tk/'+fp['sha256'][:2]+'/'+fp['sha256']+'.png'))+'\n')
-    image_path=O/'data2root/k6tk'/fp['sha256'][:2]/(fp['sha256']+'.png');image_path.parent.mkdir(parents=True,exist_ok=True);im.save(image_path)
+        for dataset,scene,indices in [('d1','scene9997_00',range(32)),(needed['d'],needed['s'],needed['i'])]:
+            for i in indices:
+                pin=frame_pins[i%32]
+                f.write(json.dumps(dict(d=dataset,s=scene,i=i,sha256=pin['sha256'],path='/data2/k6tk/'+pin['sha256'][:2]+'/'+pin['sha256']+'.png'))+'\n')
+    for pin in frame_pins:
+        image_path=O/'data2root/k6tk'/pin['sha256'][:2]/(pin['sha256']+'.png')
+        image_path.parent.mkdir(parents=True,exist_ok=True)
+        image_path.write_bytes((O/'data2root'/Path(pin['path']).name).read_bytes())
     with gzip.open(O/'plan.gz','wt') as f:json.dump(dict(v={'scene9997_00':dict(g='d1',raw_n=32),needed['s']:dict(g=needed['d'],raw_n=max(needed['i'])+1)}),f)
     cfg['s1_routing']=dict(schema='s1-routing-inputs-v1',selection=file_pin(O/'selected/receipt.json'),catalog={},
         frame_map=file_pin(O/'frames.gz'),frame_plan=file_pin(O/'plan.gz'))

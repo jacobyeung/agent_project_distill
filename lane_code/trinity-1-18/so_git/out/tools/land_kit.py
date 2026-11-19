@@ -50,7 +50,7 @@ def safe_text(value, field):
 
 def review(raw, seal, sha, bind_sha=None):
     text = raw.decode('utf-8', errors='strict')
-    negative = (re.search(r'(?<![A-Za-z])(NO[- ]GO|REJECT)(?![A-Za-z])', text)
+    negative = (re.search(r'(?<![A-Za-z])(NO[- ]GO|REJECT)(?![a-z])', text)
                 if review2_enabled() else re.search(r'NO[- ]GO|REJECT', text, re.I))
     require(not negative,
             'negative review requires a fresh accepting verdict file')
@@ -65,8 +65,9 @@ def review(raw, seal, sha, bind_sha=None):
     for line in lines:
         m = re.fullmatch(r'(Seal|SHA256)\s*:\s*(.+)', line, re.I)
         if review2_enabled():
-            # Recognize Markdown bullets, quotes, bold labels, tables and code values.
-            m = re.match(r'^[\s>*|+-]*\**(Seal|SHA-?256)\**\s*[:|]\s*\**\s*(.*)$', line, re.I)
+            # Recognize Markdown labels with up to two descriptive words.
+            m = re.match(r'^[\s>*|+#\d.)-]*[*`_]*(?:[\w-]+\s+){0,2}'
+                         r'(Seal|SHA-?256)[*`_]*\s*[:|=]\s*[*_]*\s*(.*)$', line, re.I)
         if m:
             key, value = m[1].lower().replace('-', ''), m[2].strip()
             if review2_enabled():
@@ -79,6 +80,9 @@ def review(raw, seal, sha, bind_sha=None):
                 require(bool(value), f'empty {key} metadata')
             require(key not in fields or fields[key] == value, f'ambiguous {key} metadata')
             fields[key] = value
+        if review2_enabled():
+            require(not re.match(r'^verdict:.*AFTER FIXES', line, re.I),
+                    'conditional verdict requires a fresh review file')
         m = re.fullmatch(r'VERDICT: *(.*?)\s*', line, 0 if review2_enabled() else re.I)
         if m:
             require(m[1].upper() in accepted, 'conflicting verdict requires a fresh review file')
@@ -288,6 +292,15 @@ def land(args, state, repo, payload, metadata):
     def git(*argv):
         return run(['git', '-c', 'gc.auto=0', '-c', 'maintenance.auto=false',
                     '-C', str(repo), *argv]).decode().strip()
+    if review2_enabled() and os.environ.get('LCS_TEST_ROOT'):
+        boundary = Path(os.environ['LCS_TEST_ROOT']).resolve(strict=True)
+        for remote in ('origin', 'home'):
+            for mode in ((), ('--push',)):
+                urls = git('remote', 'get-url', *mode, '--all', remote).splitlines()
+                require(bool(urls), f'test remote {remote} has no URL')
+                for url in urls:
+                    require(':' not in url and within((repo / url).resolve(), boundary),
+                            f'test remote {remote} must resolve to a local path within test root')
     require(git('symbolic-ref', '--quiet', '--short', 'HEAD') == 'lane-code', 'owner clone must already be on lane-code')
     git('diff', '--quiet')
     git('diff', '--cached', '--quiet')

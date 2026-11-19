@@ -1,7 +1,3 @@
-All three tasks are complete as of Thu Nov 19 08:56:45 UTC 2026 (date -u).
+Thu Nov 19 11:05:40 UTC 2026
 
-The final patch is out/patches/01_ingest_review2.diff; the report is out/REPORT.md. The patch applies cleanly and passes 43 synthetic tests. All 20 existing synthetic tests also pass with the checks enabled. Seven default compatibility fixtures preserve read/orphan bytes; index tool_version records the new source hash.
-
-The static audit recommends no re-ingest for the 18 published reads. Six kit decisions and the native decision are explicitly inferred; the report documents the missing per-item evidence and does not claim a real-byte replay. Nine mirrored native task files match indexed hashes, and all 636 matched tasks have compatible supplied identity fields.
-
-tests/test_real_returns.py was not run because its real returns are unavailable. The existing no-leftovers test skipped for the same reason. No publication, re-ingest, SSH, Git, GPU work, or deletion ran.
+All six required review findings are fixed. The cumulative patch applies cleanly and reproduces all 20 delivered tool files. The patch-applied suite passes 60 tests and skips one absent-real-return test; the enabled existing suite passes 20. Thirteen default compatibility fixtures preserve compressed read/orphan bytes and every index field except tool_version. REPORT.md is PARTIAL solely because enabled-mode published impact for seven reads cannot be certified without absent source returns. Their IDs, exact owner replay/new-ID commands, metadata, test outputs and hashes are delivered. The published index was read only; no published payload or input tree was edited.

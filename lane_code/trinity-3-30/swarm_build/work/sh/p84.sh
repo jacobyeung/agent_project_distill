@@ -1,0 +1,2 @@
+R=/scratch/jjyeung/orch_n30; cd $R
+tar cf - sb_cachefix/out/cachefix.patch sb_cachefix/out/CACHEFIX_REPORT.md sb_cachefix/out/sb_cachefix.tar.sha256 sb_cachefix/work/test_cachefix.py sb_cfrev/REVIEW_VERDICT.md sb_k1012/out/K1012_REPORT.md sb_phrev/REVIEW_VERDICT.md sb_carev/REVIEW_VERDICT.md sb_ktrev2/REVIEW_VERDICT.md sb_ktrev2/out/STAGE_TOTALS.json sb_mdrev2/REVIEW_VERDICT.md sb_rlrev4/REVIEW_VERDICT.md sb_mask_phrase/out/PHRASE_REPORT.md sb_mask_phrase/out/sb_mask_phrase.tar.sha256 2>/dev/null

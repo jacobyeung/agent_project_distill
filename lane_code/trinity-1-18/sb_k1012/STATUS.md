@@ -1,0 +1,1 @@
+Complete: On the 1,012 rows one bar verdict changes: selector_worth goes PASS → FAIL (oracle selection A1 − A0 on the table rows, bar ≥ +4: +4.10 → +3.91 [+1.88, +6.05] on 868 rows). Every other bar and every frozen choice keeps its 1,037 verdict. Report out/K1012_REPORT.md; details out/K1012.json; archive out/sb_k1012.tar with out/sb_k1012.tar.sha256.

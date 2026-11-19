@@ -1,0 +1,182 @@
+[
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/H1_0_NOT_SEEN_DIAGNOSIS_20261117.md",
+    "line": 3,
+    "text": "Lane notseen_diag (Devin, trinity-1-3, CPU only). `DD` = `/data2/jjyeung/agent_project_data/distill_design/`, `EV` = `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/`, `L` = `trinity-1-3:/scratch/jjyeung/orch_n30/notseen_diag`, `PKG` = the H1-0 package payload `p446` (Orchard `okh7/e6fc152498/p446`, partial copy at `L/work/f3/p446`). The counts cover the dev-S1 routed distance reads of job 170706 (step 544, own arm): 150 baseline reads, 46 rooms, 60 captures. Intervals come from a room bootstrap with 10,000 draws and seed 20261115."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/H1_0_NOT_SEEN_DIAGNOSIS_20261117.md",
+    "line": 26,
+    "text": "   - The only candidates for true absence are the 7 pairs that SAM 3 or the raster lose, all on ScanNet++: paper bag (3 items, one capture, presence 0.024), shoe rack (3, presence 0.006 and 0.078) and slippers (1, lost to the raster). No GT instance masks for dev-S1 were reachable, because they sat with the 2-18 lanes."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/ROUTED_READ_PARITY_PROBE_169501_20261114.md",
+    "line": 1,
+    "text": "# Native pilot 169501: why the parity probe made no camera call"
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/ROUTED_READ_FIRST_ITEMS_169605_20261114.md",
+    "line": 1,
+    "text": "# Routed pilot 169605: distance refusals, runaway decode, room unit"
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/ROUTED_READ_GEOMETRY_GUARD_169670_20261115.md",
+    "line": 1,
+    "text": "# Geometry refusal on d3/41069053 (pilot 169670): cause and handling"
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/VSTI_NATIVE_CAMERA_READ_STEP544_20261116.md",
+    "line": 9,
+    "text": "Yes for the camera types and the primary; no for the other seven types. On VSTI-450 with only camera calls served (Orchard job 170294, all 450 items), the step-544 student scores a VSTI primary of 73.89 [71.04, 76.79], above f17 (66.95; paired +6.9 [2.2, 11.7]) and P1 m200 (68.71; +5.2 [0.8, 9.6]) and level with the closed models (73.73 / 72.65). Camera displacement 86.2 [81.2, 91.0] and camera movement direction 100.0 lead the direct-answer models by 34 to 50 points; every camera item made a served camera call. The seven non-camera types made no calls (except camera_obj_abs_dist, where 33 of 50 items called ground or gap and were refused) and trail both direct-answer models by 2 to 46 points, so the nine-type mean is 70.5 against 77.0 / 77.6 (closed models 83.33 / 82.29). The refused calls cost nothing measurable: the 33 refused items score 51.2 against 49.4 for the other 17. The in-job dev-S1 proof reproduced job 170056 token for token (10/10). Report: `work/ret4/report_v1d/report/REPORT.md` in the lane folder; event `EV/native_r4/20261116T1610Z_RESULT_full_read.md`."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/VSTI_NATIVE_CAMERA_READ_STEP544_20261116.md",
+    "line": 37,
+    "text": "DONE, 2026-11-16T16:12Z. Job 170294 (kit V1g, code 6a3192ac) completed in 1 h 11 min; return `okh7/n2r/d627d31523064791d2ce3456/result.tar.gz` (sha 9971853f, 89,790,245 B; GCS copy q8/n2r/ same token). Three earlier jobs read no item: 170209 (frames tar held hard links), 170228 (publisher rejected a digit-leading token, hiding its failure) and 170254 (student checkpoint not bound in the read namespace); V1f and V1g fixed each and the packet now rejects linked tar members. Open: the scale rule and the depth-head lineage before step 544 are unaudited; why the student answers the non-camera types worse than the direct-answer models is not analysed."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/H1_GT_HEAD_ROUTING_SFT_20261116.md",
+    "line": 48,
+    "text": "9. **One evaluator for SFT and RL; R0 stays out.** The evaluator is a standalone tool with pinned item sets (the 600 routed and 1,525 direct dev-S1 items, ReVSI official999, and R0-dev once its items exist), fixed perturbations and seeds, and one curve record per checkpoint, so b09_rlkit reads RL checkpoints with the same tool and the SFT and RL curves pair (`EV/h1_headsft/20261116T1257Z_ORCH_NOTE_evaluator_reused_in_rl.md`). No H1 row, frame or cache uses a room of `R0_ROOMS.txt` (bdb5d402; 372 rooms). b10's check found no overlap with D0 v5's VQA scenes, the kit07 frame map, division A3, dev-S1 or ReVSI (`EV/b10_reserve/R0_REGISTRATION_NOTE.md` item 5), so H1-1 removes 0 rows there; the kit's admission check refuses any R0 room in the pose and pointing streams and reports that count at kit preparation."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/H1_GT_HEAD_ROUTING_SFT_20261116.md",
+    "line": 86,
+    "text": "Item sets are pinned by sha256 in the kit (`L/kit/items/`): dev-S1 routed (636 items: 150 per camera type, 150 distance, 36 room), dev-S1 direct (the D0 stop-rule set), ReVSI official999. R0-dev f32 (2,169 items in 98 held-out rooms, b10 `R0_QUESTIONS_dev_f32` b4e278f2, frames manifest 450e4125) is the held-out set for mid-leg ranking. Statistics: per-type paired differences on shared items, percentile 95% intervals from a bootstrap over physical rooms, 10,000 draws, seed 20261115. Task accuracy is the answer's benchmark score (b04's journaled per-item score where the read carries it; ORCH 2023Z); an unserved or error call does not change it and is reported as a separate per-type rate; a refusal or non-answer scores 0 and stays in the denominator."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/H1_GT_HEAD_ROUTING_SFT_20261116.md",
+    "line": 96,
+    "text": "Trace ruling Answer item 6 gives every type that a head inside the artifact can inform both forms. H1-2 extends H1-1's head routes to relative distance and object size through own depth and grounding (`<ground>` per named object, then a fixed-math comparison or the longest box edge), and counting through instance grounding: one `<ground>` per category that returns an instance list, then the model's own count (b11's presence probe cannot count; it answers whether, not how many). Rows: about 2,000 head-form rows per type in hindsight assignment (b08's rule), GT-valued in training. Reads: the H1 evaluator with these types' expected sequences added. Price: rows on CPU (b08's renderer and a training-item response cache, 20 to 32 A6000-hours for the cache, `DD/NEXT_QUEUE_20261116.md` section 4); a 200-step leg like H1-1, about 38 H100-hours; reads about 6 H100-hours per checkpoint, because grounding calls add 2 to 7 s per name. Benchmark points at stake on ReVSI: counting, relative distance and size are three of seven categories (0.143 points per task point each); with GT masks the head path beat direct by +29.0 (counting) and +2.1 (relative distance) and lost 1.6 on size on dev-S1 (`DD/NEXT_QUEUE_20261116.md` section 4 table), so the gain depends on grounding quality, which b05's own head targets."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/RECOVERY_MAP_2_18_OUTAGE_20261115.md",
+    "line": 3,
+    "text": "Status: complete 2026-11-15 ~17:30Z (lane recover_map2, trinity-3-30). Listings only; no rebuild started, no copy made except a 49 MB read of the Devin sessions database into the lane folder."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/RECOVERY_MAP_2_18_OUTAGE_20261115.md",
+    "line": 29,
+    "text": "`restart now` = every input verified on a reachable host. `rebuild` = a base survives and the item can be regenerated. `only on 2-18` = no copy and no practical rebuild before 2-18 returns. \"(unverified)\" marks a line I did not check myself."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/RECOVERY_MAP_2_18_OUTAGE_20261115.md",
+    "line": 31,
+    "text": "| # | item | needed inputs | surviving copy (host, path, size) | verdict | cheapest rebuild route, base, rough effort | lost if 2-18 never returns |"
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/RECOVERY_MAP_2_18_OUTAGE_20261115.md",
+    "line": 33,
+    "text": "| 1a | Official VSI-Bench direct read of step 544 (kit 90c2c742, six direct tasks, 4,008 items) | step-544 export; reader b8ebab38 (direct.py d16b64b9, common.py, evaluator kit); vLLM and p1cpu runtimes; base model; 288 videos; official questions; official scorer; chain runner | GCS `q8/8865619b/469ddece_mstop.tar.part00..03-of-04` 4 x 5,395,758,080 B (verified 16:55Z); Orchard runtime_2 `bd8ae51c/p/d59945c1/371be2e2.00` 409 MB, runtime_1 8.47 GB, runtime_0 1.62 GB, camera package 5e297c41.tar, alias f3069074.tar 19.33 GB, aliases 3e0e8a36 and 8b677689 (VCHECK 0 missing), `cp4tk_eval/official/meta_5130.jsonl` (sha d69dfb86), scorer copies (per evalx27) | restart now (kit rebuilt) | evalx27 rebuilds the kit on trinity-1-3 from the Orchard reader and the GCS launcher core, with a new chain runner in place of the lost chain.py; 3 to 4 h build plus review; GPU about 1.2 H100-h on Orchard | kit 90c2c742 and its incremental review; chain.py, execute_chain.py, layout_check.py, release_check.py, SCOPED_REVIEW_REQUEST_GATES.json |"
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/RECOVERY_MAP_2_18_OUTAGE_20261115.md",
+    "line": 42,
+    "text": "| 5b | Rows `rs_rows/out/rows_r3` (208,318 rows) and `rs_rows/work/trace_grammar.py` | row sources (teacher traces, pools), the grammar | no copy anywhere searched; inputs: Mind batch 4 (streams2, mixdata, derivgen) and the training pools on Orchard (unverified which) | rebuild | rebuild after 5a from the trace ruling's specification; the grammar must be re-written and re-reviewed; about a day | rows_r3, the grammar, the 100-frame Locate check |"
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/RECOVERY_MAP_2_18_OUTAGE_20261115.md",
+    "line": 44,
+    "text": "| 5d | Pool revision 2 patch; label_247 outputs | patch; label rows and REMOVE lists | record POOL_R2_MIXTURE_CONTRACT_TOTALCOUNT_20261112.md; label_247 RGB frames came from /data2 (09:24Z read) | rebuild | patch from the record inside 5a; label_247 rerun is paid Gemini work (Argon/Carbon), so it needs the key holder's word; its job-1 REMOVE list (493 rows) is lost | label_247 labels and REMOVE lists |"
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/RECOVERY_MAP_2_18_OUTAGE_20261115.md",
+    "line": 52,
+    "text": "| 9 | Evidence with sole copies on 2-18 | accepted read packets, reviews, 11-13 official routed read | Orchard returns `okit/evalx_results/` (17 returns; e193c2a3c step 544 `result.tar.gz` 39,743,652 B sha ea97204a, e3da9a577 step 400, per evalx27; b719d20dd and bffa0d6ef unverified) contain plans, specs, code pins, prompts, results jsonl and reports; numbers in records and memory | rebuild (packets from the returns); reviews only on 2-18 | regenerate each packet's SUMMARY from its return's results jsonl with the evaluator kit inside `merged/*/kit/source.tar`; under 1 h CPU each | `leg_s1_review/` (four LEG-S1 verdicts, native and geometry reviews, DEBUG files, CONTINUATION_FACTS, BATCH4_SOURCE_REFERENCES), `official_reads/` working files |"
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/RECOVERY_MAP_2_18_OUTAGE_20261115.md",
+    "line": 58,
+    "text": "- Re-registering K1_RULES.json under a new hash. Not needed: the kit's own writer on trinity-1-18 (`kit_k1a/work/preregister.py`, serializing `k1_report.RULES`) regenerates the file byte for byte, sha256 cb0aadee89c86e3db41c33d450eee6d7f58558d63f56d3d189e744277ad23269 (815 bytes), equal to the pre-registration's pin; lanes k1_ops3 and k1_rules confirmed it independently on 2026-11-15 (`distillation_orchestrator_20260918/orch_n30/events/k1_rules/`). RUNCARD_K1.md and PROOFS.md are not hash-pinned; only their existence is checked."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/NATIVE_ROUTED_READ_DEVS1_STEP544_20261115.md",
+    "line": 63,
+    "text": "- The read is not independent: the parents saw the dev-S1 scenes. Training responses came from ground-truth instances, and the wider candidate universe changes candidate competition. No training row shows a failed ground. Routing rows hold no ARKitScenes scenes in a 400-row sample, so the analysis report's line 606 overstates this caveat (review_an2 N2)."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/OFFICIAL_VSI_DIRECT_STEP544_20261115.md",
+    "line": 27,
+    "text": "**Evidence.** Orchard job 170008 (`a15_cot_apa8acc277397`, general, orchard-community-2, 19:55:55Z to 20:31:01Z, COMPLETED 0:0); kit f42aa1a4 (review_o6 GO, verdict sha 53c1a3e5...; proof 169991 passed all L1 checks); EXIT.json status COMPLETE, mode production, synthetic false, plan b6cafbd7. Return archive result.tar.gz sha256 4609adde0bb8a9ee734abacd29ac4df03766d4c48bf0bf0fa90552627500065f (6,076,496 B), fetched from the pool. Copies: trinity-1-3 `/scratch/jjyeung/orch_n30/evalx27/work/kit/build/a8acc277397/`; trinity-1-13 `/scratch/jjyeung/n30_mirror/evalx27/a8acc277397/` (sha equal); `orch_n30/events/evalx27/prod_a8acc277397/` (archive, report/B*.json, ANALYSIS.txt). All numbers come from report/{B2048,ON16k,B4096}.json, never from summary_a0.json. Answer-letter histograms match the ground-truth histograms on every multiple-choice task (no position bias)."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/REVSI_DIRECT_STEP544_20261115.md",
+    "line": 20,
+    "text": "**Protocol differences from the parent (review_rv R4).** The checkpoint differs (step-544 export 1d6eeb28, against CP1 m200 c1a42588). Engine batching differs (max_seqs 32 and inflight 16, against 128 and 64). The cohort differs (679 co-batched items, against 999). Greedy outputs depend on batching, so small per-category differences are not attributable to the model. The comparison is unpaired because the parent's per-item answers are lost."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/REVSI_DIRECT_STEP544_20261115.md",
+    "line": 24,
+    "text": "**Evidence.** The proof ran as Orchard 170035 (`a15_cot_appb906babb42`, 21:14-21:23Z, COMPLETED). It verified 261 videos and 261 frame plans, matched prompt bytes on 20/20 with the processor checked, and passed CHECKS. Production ran as 170037 (`a15_cot_apa348bc58686`, general, 21:23:55-21:36:39Z, COMPLETED 0:0, afterok on 170035); EXIT reads COMPLETE, production, synthetic false, plan 401f9c6d. The kit is ea1a1b2d (review_rv verdict sha 256ec41b..., F1 applied, orchestrator ACK at 21:09Z). The media sit at Orchard /project/community/jjyeung/okh7/313db5a47f11ff0c/ (261 files, verified on Orchard; tar sha ad3635ff). The return archive has sha256 785a097ff750fc3d82a5ffd18cb299527fbe1e207d5166c86326edddd21c2036 (1.6 MB). It is stored at trinity-1-3 `/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/a348bc58686/`, mirrored at trinity-1-13 `/scratch/jjyeung/n30_mirror/evalx27/revsi/` (sha equal), and copied to `orch_n30/events/evalx27/prod_a348bc58686/`. Every number comes from report/*.json."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/REVSI_DIRECT_STEP544_20261115.md",
+    "line": 26,
+    "text": "**Options rejected.** A seven-category value with zeros for the two routed categories: it would count a reader gap as a model failure. A paired comparison with the parent: its per-item file is lost."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/E2E_READER_B04_20261116.md",
+    "line": 23,
+    "text": "**What might not work.** The in-call tower's proposal ranks may differ from the filtered alias cache (measure on one capture on GPU). The interim read locates the distance loss in the lifting (inflated boxes), not in scale or selection; lost small objects cost little because the model then answers directly. A box rule without tuned constants that resists mask-edge pixels, or the own-encoder head of brief 05, is the fix to test. 157 held-out objects make top-1 noisy. The scale head never saw 32-dense G3T output. Trinity envs lack fla, so the parity read's camera numbers can differ from job 170056 within numerical noise."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/K1_KILL_TEST_RUN_20261116.md",
+    "line": 95,
+    "text": "- setlib d9271cc9 is a vendored copy. The original setlib and the sklearn bundle were lost with trinity-2-18."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_DECISION_20261117.md",
+    "line": 13,
+    "text": "1. **Camera calls are served by frozen G3T inside the checkpoint, scaled by the own depth head; the own pose head keeps training and serves no call.** The scale is fixed math, median(own depth / G3T depth), the layer behind job 170056's 82.3 / 94.7 / 75.7 on dev-S1 displacement, movement direction and rotation. The learned scale head lost 9.3 points of displacement to it, so it stays a parallel build that starts from the rule and must beat it. Lifting uses G3T depth times that scale, and the ground call takes the selector's best candidate whenever candidates exist, once lane reader_r1's check passes. Room has no call."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_DECISION_20261117.md",
+    "line": 36,
+    "text": "  **What the scale head needs:** (a) fit and serving on the same tower layout (it never saw G3T run on the 32 viewpoints); (b) a trajectory-scale target, the least-squares ratio of GT to G3T translations per clip, because displacement is where it lost; (c) clips in the tens of thousands from the leg's pose rows (194,987 rows carry `gt_pose9`), which needs G3T outputs on those clips; (d) a residual form, log s = log s_rule + f(features) with f zero at init, so it equals the rule until it learns; (e) inputs from inside the checkpoint only: G3T camera tokens, the own depth grid, and the pose head's scale token, which the new tree already trains (weight 1.0, a guess; `W/out/BUILD7_REPORT.md` lines 21, 97-99); (f) a bar priced on CPU with calls fixed: dev-S1 displacement lower bound above 0 against the rule and K1 held-out distance at least the rule's (`tests/price_devs1.py` in b04 reproduces 634 of 634 job scores)."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_DECISION_20261117.md",
+    "line": 37,
+    "text": "- **Own depth or tower depth for lifting: tower depth times the scale.** On K1 held-out with GT masks, G3T depth x own-depth scale with `bestspread` scores 65.7 against 66.3 for the deployed path (-0.6 [-3.1, +1.5]; b04 record). The own arm (own depth and own pose lifting) gives a gap error of 0.726 m (relative 0.436) and a `not seen` response on 42% of reads (Orchard 170706), against 14 of 98 boxes lost in b04's interim tower-arm read (51 keys, before `bestspread`; unpaired). Geometry explains little of that 42%: of the read's 73 not-seen pairs, 7 also fail on the tower arm of job 170056, the selector's null slot adds 47 on G3T geometry, own pose 16 and own depth 3 (`EV/notseen_diag/20261117T1431Z_RESULT_notseen_diagnosis.md`). The own depth head enters only through the median, where one clip-level number absorbs its per-pixel error. Unverified: the per-scene depth-adoption outcome behind the rule file; the tower-arm read of section 4 settles the choice on paired items."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_DECISION_20261117.md",
+    "line": 50,
+    "text": "| U2 | The 11-16 ruling names a \"learned scale\"; the scale here is fixed math between the own depth head and the tower, with its three constants held as registered buffers | Fixed math now, because the learned head lost 9.3 points; the residual head replaces it when it passes its bar |"
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_DECISION_20261117.md",
+    "line": 77,
+    "text": "   - **Protected outcomes: toward-facing accuracy and relative size.** Each is tested at H1's level: the 150 toward twins (33 rooms; step 544 answers 142) and the 150 relative-size items (53 rooms; step 544 answers 137). An interval wholly below zero is a HOLD the first time and a STOP the second. D0 m200 lost 4.0 points on the first and 12.67 on the second. Object size is printed split into its 72 metric and 78 imperial items, with relative size beside it."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_DECISION_20261117.md",
+    "line": 158,
+    "text": "| 14 evidence records | P: carried inside kit 07ca49df. N: all 14 missing; both kits refuse at `init_m544`; no lane owns them | `W/out/RECORDS_TO_REGENERATE.md`; `W/work/build9/CARRIED_BLOCKERS.json` | none (brief 02) | P 0; N 6 to 10 | parent receipts, some lost with trinity-2-18; five records describe parts the claimed reader removes |"
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_DECISION_20261117.md",
+    "line": 159,
+    "text": "| Rows store and admission | v6 admitted and mirrored (0608dd98, 195,471 rows) and uploaded to Orchard (`okh7/s_8805de22/d.db`, sha equal). P's sealed tree admits all 195,471 rows in 16 types under its structural and exclusion predicates; that is a row census, not a production preparation. Store v7 = v6 + 431 traced room rows + 8,511 away rows in ReVSI's wording is built and mirrored (204,413 rows, sha256 210b2534), with the size family as a parameter, and its review admits it with conditions (`EV/rows_r1/REVIEW_VERDICT_V7.md`). Owed: the orchestrator's ruling on the conditions, upload and kit binding. N: binding D3 missing; the mix table has no cell for VSTI relative or first-seen rows | `RP/ADMISSION_BY_TYPE.json`, `RP/REPORT.md`; `EV/r1_ops/20261117T1429Z_RESULT_admission_partial_and_store_v6_uploaded.md`; `EV/rows_r1/STATUS.md`; `W/out/MIX_A0.md` | rows_r1, r1_ops, tree_rebuild | 3 to 4 | the ruling on v7's conditions |"
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_DECISION_20261117.md",
+    "line": 194,
+    "text": "H1-1 lost about nine hours to five defects that fixture rehearsals could not see: the disk plan against the recipe's milestones (job 170527), the routing-selection pin, a pre-made `/tmp/jjyeung` (proof 170656), a hard-coded `/usr/bin/bwrap` (170662), and directory modes (`EV/cont_ops/STATUS.md`, cont_ops9 entries). R1 rehearses as follows."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_DECISION_20261117.md",
+    "line": 259,
+    "text": "6. **Pins per boundary and exposure.** The card carries one row per boundary (launch, 200, 400, 600, 800). Each row pins, for training: vehicle and tree sha, config identity, store sha256 per stream, every family's entry step and cell, the mix table's sha, the auxiliary losses (pose 1.5, depth 0.25, gravity 1.0; the scale token on N only) and S2. For serving it pins the reader build, the selector variant (best candidate once lane reader_r1's check passes, null slot kept until then), the scale rule file, the G3T and SAM 3 weights and the arm. A pin changes only at a boundary and is written on the card before that boundary's export is read. The leg launches on vehicle P and stays on it; vehicle N takes over only at a boundary where its continuation proof has passed, with P's export as init and the absolute step, the LR schedule position and the row plans kept. Both arms of a paired comparison are read with the same serving pins, so a serving pin that changes forces a new, registered read of step 544. Read kits pin their item sets: the e193 direct items (1,525 main, 150 away, 150 toward), `DISTANCE_LIST_DEVS1_150.jsonl` (028273ec), the 36 room and 450 camera items, R0-dev `dev_f32` (b4e278f2), and `vsti_rel_dev_r0` (b5853845). Every boundary report prints, per arm and per item set, two counts: the rooms the arm's lineage trained on, and the exact items it trained on. Known today: the parents of step 544 saw dev-S1's scenes (count unverified); the 80 withheld rooms belong to step 544's pool; R1's stores hold no dev-S1, benchmark or R0 scene (0 exclusion hits in the v6 census, the v7 gates and the row reviews); store v6 holds 6,159 rows on 92 K1 held-out rooms, so no report prints a number of an R1-lineage checkpoint on K1 held-out rooms without a contamination flag, and no number registered on the card uses those rooms (condition C2 of v7's review); no arm has trained on an R0-dev room. Exact-item exposure of step 544's parents on dev-S1 is unverified. The report also prints the tower arm's clip-level scale statistic at each boundary, because the depth head that sets it keeps training."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/TRACE_DIAGNOSIS_CP1_DEVS1_REVSI_20261112.md",
+    "line": 11,
+    "text": "- `per_item_causes.jsonl` records the exclusive primary cause, cause family, rule/reading basis, secondary flags, trace details, reading status and per-type/overall lost points. Its SHA256 is adjacent."
+  },
+  {
+    "path": "/data2/jjyeung/agent_project_data/distill_design/GUARD_READ_KIT_D0_20261116.md",
+    "line": 7,
+    "text": "**Evidence.** Kit on trinity-3-30 `/scratch/jjyeung/orch_n30/b01_d0guard/` (index `out/GUARD_KIT_READY.md`), mirror trinity-1-18 `/scratch/jjyeung/n30_mirror/b01_d0guard/` (sha256 equal). After the review fixes: code_g2.tar 6024aa2b\u2026, inputs_g2.tar 3be24165\u2026, FAMILY 23cadfce\u2026, guard_read.py 5424e41c\u2026; 158 checks and 31/31 report mutants pass. D0 m50 real metadata passes C8r's unchanged restoration checks (config identity 4bc5442c, trainer tree b01ce449, trained groups chained to m544). Whole-worker rehearsal: all ten steps pass; the mismatch variant refuses at the identity proof."
+  }
+]

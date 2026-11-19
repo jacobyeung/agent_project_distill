@@ -1,0 +1,68 @@
+11:01:12Z
+sb_carev sb_codexq sb_phrev 
+2026-11-19T10:31:28Z launched sb_rlrev4 in sb_rlrev4 (running before: 1, avail 418)
+2026-11-19T10:55:28Z launched sb_phrev in sb_phrev (running before: 0, avail 446)
+2026-11-19T10:56:28Z launched sb_carev in sb_carev (running before: 1, avail 445)
+**GO AFTER FIXES.** The CPU proof passes, but replay validation still permits false PASS receipts. Production bindings remain MISSING; this is not approval to launch RL.
+
+All paths below are relative to this workspace; source line numbers refer to `runs/kit`. Python checks used nice 10, eight OMP/MKL/OpenBLAS threads, CPU only, and no network. Reviewed files outside this workspace were unchanged.
+`nice -n 10 python -B runs/audit.py` verifies archive SHA256 `e7f36c456d133ba4c22c17025be3ae5139ce38e7184de7354131cd82a15a0c91`, all 984 members, and 9,338 delivery dependency hashes, with zero mismatches (`runs/AUDIT.json`).
+`bash runs/testkit/scripts/run_tests.sh` passes 75/75 tests, with zero failures, errors or skips (`runs/testkit/out/TEST_RESULTS.json`).
+`bash runs/kit/scripts/run_cpu.sh --out "$PWD/runs/cpu_proof/CPU_PROOF.json"` reproduces gradient L1 **4253.670143**, update L1 **1.966011**, and ratio error 0.0109763145 in 112.973 s at 14.595 GiB peak RSS. The audit finds zero non-timing differences from sb_rlrev3, including tokens and sidecar.
+`nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B runs/parity/parity.py` produces **0/1,236 mismatches**: 206 formats × six endings; N/A4 `score_item` is AST-identical. Capped/strict-no-answer records intentionally score zero (`runs/parity/PARITY.json`).
+
+1. **OPEN:** `replay.py:13-60` selects the required 26 reads, but `serving.py:169-177` trusts declared counts. The gate accepts 20 duplicate camera-rotation rows plus the six required special rows while declaring four per type (`runs/PROBES.json`).
+2. **CLOSED for the A4 m200 path:** `train.py:22-46,144-149,182` and `greedy_replay.py:65,76` share A4's loader and prompt config; `serving.py:181` checks export identity. N-export startup remains unsupported, as detailed below.
+3. **CLOSED:** `serving.py:17,102-118,148-149` pins INPUTS and checks all six perception files after artifact verification. Wrong and duplicate perception bytes are refused; real weight loading remains untested.
+4. **CLOSED:** `rollout.py:89-96` catches reader ValueErrors without swallowing alignment bugs. `train.py:206-217` reduces refusals and stops every rank above 25%; CPU tests verify no optimizer update or checkpoint.
+5. **CLOSED:** `train.py:96-122,166-169,226-228` verifies checkpoint bytes/config and restores adapters, optimizer, step, cursor, order and RNG. The resumed CPU run equals uninterrupted training; both new resume mutants are killed.
+6. **OPEN:** the launcher implements numeric/idle-card checks, timeout 2h, nice/vnice, scratch checks and H100-model checks. However, `greedy_replay.py:59-62` omits reference-journal hashes from the cache key; `replay.py:124` trusts cached `match`. Changing one reference token still yields PASS with zero new decodes, and training accepts it.
+7. **OPEN:** the delivered tests cover the previously requested cases but miss the two counterexamples above and duplicate perception entries. Eight of nine new mutants die in the delivered tests; my additional duplicate-pin regression kills the survivor.
+8. **CLOSED as disclosure:** `scripts/make_configs.py:17-31`, both configs and REPORT name seven missing bindings with expected locations/hash sources. They do not supply production inputs.
+9. **CLOSED for the cited claims:** the stale report is visibly superseded; REPORT distinguishes mocked API binding from real perception inference; `serving_check.py:14-15` derives own gravity/depth from the constructed perception. The blanket claim that all nine findings are closed is not supported by this review.
+
+Edit A: in `serving.require_replay`, recompute group counts from results, require unique IDs and the exact selected `(id, group, type)` set, and check each result against its pinned reference. Do not certify coverage from summary fields or `match` alone.
+Edit B: include the selected-reference digest and journal SHA256 values in `greedy_replay`'s cache key; validate cached row identity/reference fields before reuse. A changed journal must invalidate the affected cached matches.
+Edit C: add regressions for contradictory counts/duplicate IDs, changed-reference resume, and duplicate perception entries. `runs/probes.py` reproduces both gate failures through CPU fixtures with mocked CUDA/weights; `runs/mut/duplicate_probe.py` supplies the extra pin check.
+`nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B runs/mut/mutate.py` tests nine NEW mutants: foreign export and wrong coverage IDs; raised refusal threshold and local-only refusal count; reset resume cursor and optimizer; ignored SAM pins, accepted duplicate pins, and foreign replay-cache key. Every baseline passes; only accepted duplicate pins survives (8/9 killed; `runs/mut/MUTANTS.json`).
+`nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B runs/mut/kill_duplicate.py` kills that survivor with the independent regression. `nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B runs/probes.py` produces the gate counterexamples. Receipts record input SHA256 values.
+
+N-export limitation: `scripts/n_export_check.py` reproduces incompatible identities on both checked N configs; it does not load weights. A4's loader rejects that mismatch at `in/claimed_reader/b/e2e_reader/parity.py:147`. This limitation is stated honestly.
+**MISSING `n_export_journal`:** no concrete path/hash is supplied. The orchestrator must name the exact export's deployed-reader journal, export/config/weight identities, sealed compatible loader and arm/perception pins, item/frame pins, card, and token/finish/call/budget evidence establishing replay coverage (`runs/N_EXPORT_REQUIREMENTS.md`).
+A journal alone is insufficient: `n_export_journal` is documentation-only; replay selection/export checks remain hard-coded to m200. N-export startup needs a reviewed compatible loader/journal binding in code, then a matching GPU replay. Do not bypass the identity check.
+**MISSING `export_restore` / `export_config`:** A4's m200 `/scratch/jjyeung/b01ec87a6f29b/d/e/RESTORE.json` and `d/p0/config.json` on orchard-community-4; the local restore identifies m544. Config SHA256 must be `3b0051c4…` from A4 EXPORT_PIN; the original export hashes must also match it.
+**MISSING `grounding.artifact_manifest` / `greedy_replay`:** `/scratch/jjyeung/orch_n30/sb_rlfix3/out/ARTIFACT_BINDING.json` and `out/GREEDY_REPLAY.json`, with verified perception/code bindings and an authentic PASS receipt.
+**MISSING `pool` / `pool_config`:** an ADMITTED `/scratch/jjyeung/orch_n30/sb_rlfix3/out/PROMPT_POOL.json` and its qualified N config. `sb_f64/pkg/work/n1fix2/inputs/registry.json:init_m544` has a null record and `overlap_outside_claim_scope`; no qualifying config path is supplied.
+The CPU proof uses four random text layers and synthetic perception, with two sampled tokens per draw. Production weights, SAM 3/selector inference, GPU fit, real NCCL and training quality remain unproved; GPU estimates are assumptions.
+After edits A–C and real bindings, request through the main orchestrator **one NVIDIA H100 80GB HBM3 for at most two hours**, preferably on Orchard where A4 ran, for the 26-item m200 replay and two-step dry run. Request no four/eight-GPU training block until both pass and measured timing replaces the estimates.
+===KT
+# REVIEW_VERDICT sb_ktrev2: fix build sb_ktfix against review sb_ktrev (read-only, CPU only)
+**Verdict: GO AFTER FIXES.** All five required edits and the three optional items are closed. Parts A–C can launch on a card of at least 48 GB once the three inbox files exist. One new defect must be fixed first, because the GO binds the code hash: `heldout_once` consumes the one held-out look before it reads `sb_kbox2/heldout_labels.json`, which does not exist, so the look would be spent and no report written.
+Evidence is in `work/` (`tests_rerun.log`, `dryrun_rerun.log`, `mutations.json`, `a0_sample_summary.json`, `trace/trace_{A,B,C}.json`, `stage_list.py`). Nothing was written outside this workspace.
+## Required edit (then rerun test_kit.py, dryrun.py and finalize_v3.py, and bind GPU_GO.json to the new code hash)
+`code/evaluate_v2.py` line 126: before `consume_heldout()`, insert `p=Path('/scratch/jjyeung/orch_n30/sb_kbox2/heldout_labels.json')` and `if not p.is_file():raise FileNotFoundError('MISSING '+str(p)+'; held-out look not consumed')`. Add a test that this path leaves `out/looks/HELDOUT_once.json` unwritten. Today `labels('heldout')` raises at run_a line 45, outside the per-capture `try`, after `consume_once` has written that receipt. The box kit must also produce the held-out label file, because `sb_kbox2/prepare.py` writes only `train_labels.json`.
+## Checks
+- Edit 1 CLOSED: `scale_record` returns NO_CONVERT_EXPORT for the two train captures without geometry.npz (evaluate_v2.py:32), and run_a asserts each exported relative error is at most 1e-4 (line 67).
+- Edit 2 CLOSED: `update()` drops the MISSING placeholder (line 23); run_b stores added_frame_gain with PASS only when `low>0` (line 118); finalize_v3 writes no placeholder, and `out/tower_frames` holds no stale output.
+- Edits 3 and 4 CLOSED: preflight for Part C requires a standalone GO line in `inbox/DA3_GO.txt` (runner.py:18), and `reader_C64_licensed` now equals `context_pays_pose` (metrics.py:70).
+- Edit 5 CLOSED: 10 new tests. My probe kills 21 of 21 mutations: my 12 originals (the old suite killed 6) and 9 aimed at the new edits.
+- Optional items CLOSED: HALTED is checked before `admit()`, `NOT_ADMITTED_<part>.json` is written, and `kbox_hook.compare` asserts row-set equality. The runner exits 0 when not admitted, so the operator must watch for the receipt rather than the exit code.
+- Reruns: 28 of 28 tests pass; the dry run passes (296 captures, 9,472 numbering hashes, 57 s); an A0 sample of 52 of 209 captures matches kbox4 on 197 of 197 rows and 52 of 52 row sets. The delivered tree hashes to code_sha256 53ea9d60…8988, which DRYRUN.json binds.
+- GPU_NEED.json `launch_blockers` is true and complete for the GPU passes: GPU_GO.json, SHARED_GPU_RESERVATION.json (its `ledger_path` must exist under /scratch on the run node) and DA3_GO.txt for Part C. The missing held-out labels fall outside its scope.
+- Against sb_ktow3, only the listed edits changed (README, evaluate_v2, metrics, runner, kbox_hook, test_kit, finalize_v3), plus relocation (scripts, and path-only changes in the winning-box rule, frame joins and V2 sources).
+## Staging (out/STAGE_LIST.tsv, 24,297 rows; each directory row carries the sha256 of a sha256sum manifest in out/manifests/, all 81 verified on disk)
+CPU audit-hook traces of each part's load and pricing paths opened nothing on /home or /data* and nothing outside the list. Part C's 3,264 traced dev-S1 frames equal the listed set. Every path is absolute, so stage to the same /scratch/jjyeung paths.
+| Part | Bytes | Largest items (GB) |
+|---|---|---|
+| A | 22.24 GB | Python environment 7.93, G3T 5.63, K1 frames 5.21 (18,944), K1 caches 2.34, GT 1.11 |
+| B | 26.01 GB | A's set, plus SAM 3 3.45 and held-out candidates.json 0.31 |
+| C | 21.17 GB | Python environment 7.93, DA3 6.76, G3T 5.63, dev-S1 frames 0.82 |
+| H | 0.82 GB | held-out caches and GT; also needs A's and B's outputs and the missing label file |
+| All | 33.99 GB | union of the rows above |
+Only 27 MB of the 7.62 GB capretry overlay is reachable, because geo_bakeoff runtime/site precedes it on sys.path. trin_vl/pyextra holds only a shadowed scipy, so it need not be staged. B's CPU pricing reads A's outputs, so run B after A and copy A's `out/` if they run on different nodes. The code hash does not cover geo_bakeoff, the DA3 and SAM 3 sources or the environments, so verify staged copies against the manifests.
+## 24 GB cards
+Every part should fit, but the code refuses any card under 48e9 bytes at runner.py:94, and for Part C also at geo_bakeoff backends.py:142, outside the code hash. Edits: lower both checks to 24_000_000_000; vendor geo_bakeoff into `code/vendor` and point gpu_models.py:63 at it so the code hash covers the change; rerun the tests and dry run; rebind the GO. The 40 GB fraction and peak caps clamp harmlessly. bf16 requires an Ampere or newer card.
+- A (G3T, 32 frames): fp32 weights 5.63 GB (frozen, so autocast caches no bf16 copies); 43,968 tokens; 4 retained 2,048-channel layers 0.7–1.4 GB; block transients about 1 GB; heads in chunks of 8 add 2–3 GB. Total 9–11 GB. Fits; confidence 95%.
+- B (G3T, 64 frames, unmeasured): 87,936 tokens; retained layers 1.4–2.9 GB; block transients about 2 GB with fused attention (a dense-attention fallback would need about 250 GB and fail on 48 GB too); heads 2–4 GB; context about 1 GB. Total 11–15 GB. Fits; 85%. SAM 3 (batch 1, bf16, 1008 px, features offloaded to CPU): 3.45 GB weights plus 2–3 GB, 5–7 GB in total; 90%.
+- C: G32 and G64 as above. DA3 at 64 views of 378×504: fp32 weights 6.76 GB plus up to 3.4 GB of autocast bf16 copies (its weights are not frozen); 62,272 tokens × 1,536; 4 retained 3,072-channel layers 1.5 GB; DualDPT in chunks of 8. Total 13–17 GB. Fits; 75%.
+Each pass records `max_memory_allocated` per capture, so the first 64-frame capture settles each estimate.

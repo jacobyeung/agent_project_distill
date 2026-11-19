@@ -1,6 +1,6 @@
 --- a/tests/test_so_joint.py
 +++ b/tests/test_so_joint.py
-@@ -97,7 +97,7 @@
+@@ -101,7 +101,7 @@
                              assert threading.get_ident() == main_thread, 'collective on CPU worker'
                              tensors = [x for x in a if isinstance(x,torch.Tensor)]
                              source = a[1] if name in ('all_gather','all_gather_into_tensor','reduce_scatter_tensor') else a[0]

@@ -1,0 +1,1092 @@
+{
+ "step": "dry-run steps 1 and 2 (stub trackers)",
+ "checks": {
+  "step1_seed_stub_C_best1_vs_A0_deployed": {
+   "rows": 1037,
+   "equal": 1037,
+   "mra": 56.769527483124406,
+   "reference_mra": 56.769527483124406,
+   "first_differences": [],
+   "passed": true
+  },
+  "step2_raster_stub_C_best1_vs_A2_gt_masks": {
+   "rows": 1037,
+   "equal": 1037,
+   "mra": 73.97299903567985,
+   "reference_mra": 73.97299903567985,
+   "first_differences": [],
+   "passed": true
+  },
+  "step2_raster_stub_C_fused_vs_fused_cf": {
+   "rows": 1037,
+   "equal": 1037,
+   "mra": 78.62102217936355,
+   "reference_mra": 78.62102217936354,
+   "first_differences": [],
+   "passed": true
+  }
+ },
+ "deployed_reference": {
+  "frame_recall": {
+   "frames": 9263,
+   "hits": 5363,
+   "rate": 0.5789700960811832
+  },
+  "frame_recall_unique_object_frames": {
+   "frames": 3976,
+   "hits": 2312,
+   "rate": 0.5814889336016097
+  },
+  "false_presence": {
+   "absent_frames": 52575,
+   "with_mask": 976
+  },
+  "reference": "spec: deployed frame recall 57.9% (per operand-frame records)"
+ },
+ "stub_metrics": {
+  "S_A0/STUBSEED": {
+   "metrics": {
+    "C_best1": {
+     "rows": 1037,
+     "mra": 56.769527483124406,
+     "refusals": 36,
+     "vs_A0": {
+      "rows": 1037,
+      "rooms": 192,
+      "left_mra": 56.769527483124406,
+      "right_mra": 56.769527483124406,
+      "estimate": 0.0,
+      "ci95": [
+       0.0,
+       0.0
+      ],
+      "draws": 10000,
+      "seed": 20261119,
+      "both_answered": {
+       "rows": 1001,
+       "left_mra": 58.81118881118882,
+       "right_mra": 58.81118881118882,
+       "role": "diagnostic only; never a bar"
+      }
+     }
+    },
+    "C_fused": {
+     "rows": 1037,
+     "mra": 56.769527483124406,
+     "refusals": 36,
+     "vs_A0": {
+      "rows": 1037,
+      "rooms": 192,
+      "left_mra": 56.769527483124406,
+      "right_mra": 56.769527483124406,
+      "estimate": 0.0,
+      "ci95": [
+       0.0,
+       0.0
+      ],
+      "draws": 10000,
+      "seed": 20261119,
+      "both_answered": {
+       "rows": 1001,
+       "left_mra": 58.81118881118882,
+       "right_mra": 58.81118881118882,
+       "role": "diagnostic only; never a bar"
+      }
+     }
+    },
+    "member_precision": {
+     "added": 0,
+     "correct": 0,
+     "precision": null
+    },
+    "iou_member_precision": {
+     "all_seeds": {
+      "objects": 760,
+      "members": 0,
+      "correct": 0,
+      "precision": null
+     },
+     "on_target_seeds": {
+      "objects": 519,
+      "members": 0,
+      "correct": 0,
+      "precision": null
+     }
+    },
+    "size": {
+     "rows": 770,
+     "rooms": 192,
+     "left_mra": 52.36363636363636,
+     "right_mra": 52.36363636363637,
+     "estimate": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "draws": 10000,
+     "seed": 20261119,
+     "both_answered": {
+      "rows": 760,
+      "left_mra": 53.05263157894737,
+      "right_mra": 53.05263157894737,
+      "role": "diagnostic only; never a bar"
+     }
+    },
+    "first_seen": {
+     "pairs": 1314,
+     "correct": 811,
+     "rate": 0.617199391171994,
+     "objects": 770,
+     "exact": 0.14025974025974025,
+     "within_one": 0.21818181818181817
+    },
+    "mask_iou": {
+     "total_records": 66368,
+     "visible_valid": 13793,
+     "absent": 52575,
+     "invalid": 0,
+     "object_frame": {
+      "n": 13793,
+      "mean": 0.0842482654655545,
+      "quantiles": {
+       "min": 0.0,
+       "p10": 0.0,
+       "p25": 0.0,
+       "p50": 0.0,
+       "p75": 0.0,
+       "p90": 0.47668393782383417,
+       "max": 0.9938643953711135
+      },
+      "rates": {
+       "0.3": 0.11012832596244472,
+       "0.5": 0.09831073733052997,
+       "0.7": 0.0727180453853404
+      }
+     },
+     "all_evaluable_object_frame": {
+      "n": 14072,
+      "mean": 0.08257790829778236,
+      "quantiles": {
+       "min": 0.0,
+       "p10": 0.0,
+       "p25": 0.0,
+       "p50": 0.0,
+       "p75": 0.0,
+       "p90": 0.46372997711670483,
+       "max": 0.9938643953711135
+      },
+      "rates": {
+       "0.3": 0.10794485503126777,
+       "0.5": 0.09636156907333712,
+       "0.7": 0.07127629334849346
+      }
+     },
+     "object_best_frame": {
+      "n": 2074,
+      "mean": 0.5602875243810962,
+      "quantiles": {
+       "min": 0.0,
+       "p10": 0.0,
+       "p25": 0.260578579260815,
+       "p50": 0.6928214652186417,
+       "p75": 0.8453346449445726,
+       "p90": 0.9248490357712644,
+       "max": 0.9938643953711135
+      },
+      "rates": {
+       "0.3": 0.7324011571841852,
+       "0.5": 0.6538090646094503,
+       "0.7": 0.48360655737704916
+      }
+     },
+     "pricing_best_frame_iou": {
+      "n": 2074,
+      "mean": 0.5602875243810962,
+      "quantiles": {
+       "min": 0.0,
+       "p10": 0.0,
+       "p25": 0.260578579260815,
+       "p50": 0.6928214652186417,
+       "p75": 0.8453346449445726,
+       "p90": 0.9248490357712644,
+       "max": 0.9938643953711135
+      },
+      "rates": {
+       "0.3": 0.7324011571841852,
+       "0.5": 0.6538090646094503,
+       "0.7": 0.48360655737704916
+      }
+     },
+     "unique_object_frame": {
+      "n": 5452,
+      "mean": 0.0819243829399674,
+      "quantiles": {
+       "min": 0.0,
+       "p10": 0.0,
+       "p25": 0.0,
+       "p50": 0.0,
+       "p75": 0.0,
+       "p90": 0.454130408687512,
+       "max": 0.9938643953711135
+      },
+      "rates": {
+       "0.3": 0.10674981658107116,
+       "0.5": 0.09519442406456347,
+       "0.7": 0.07116654438738078
+      }
+     },
+     "unique_object_best_frame": {
+      "n": 770,
+      "mean": 0.5800671893359769,
+      "quantiles": {
+       "min": 0.0,
+       "p10": 0.0,
+       "p25": 0.3249994276342134,
+       "p50": 0.7027632679648543,
+       "p75": 0.8569399308973729,
+       "p90": 0.9286412657266571,
+       "max": 0.9938643953711135
+      },
+      "rates": {
+       "0.3": 0.7558441558441559,
+       "0.5": 0.674025974025974,
+       "0.7": 0.5038961038961038
+      }
+     },
+     "failure": {
+      "0.3": {
+       "omitted_selection": 8850,
+       "correct": 1519,
+       "no_proposal": 3200,
+       "other_mask_error": 89,
+       "merged_instances": 44,
+       "partial_mask": 19,
+       "wrong_class": 72
+      },
+      "0.5": {
+       "omitted_selection": 8850,
+       "correct": 1356,
+       "no_proposal": 3200,
+       "partial_mask": 59,
+       "other_mask_error": 175,
+       "merged_instances": 81,
+       "wrong_class": 72
+      },
+      "0.7": {
+       "omitted_selection": 8850,
+       "other_mask_error": 313,
+       "correct": 1003,
+       "no_proposal": 3200,
+       "partial_mask": 241,
+       "merged_instances": 114,
+       "wrong_class": 72
+      }
+     },
+     "availability": {
+      "0.3": {
+       "wrong": 12274,
+       "deployed_correct": 8036,
+       "teacher_correct": 6636,
+       "teacher_only_correct": 0,
+       "neither_correct": 4165,
+       "teacher_missing": 377,
+       "unknown_teacher_without_deployed": 73
+      },
+      "0.5": {
+       "wrong": 12437,
+       "deployed_correct": 6839,
+       "teacher_correct": 5602,
+       "teacher_only_correct": 0,
+       "neither_correct": 5509,
+       "teacher_missing": 383,
+       "unknown_teacher_without_deployed": 89
+      },
+      "0.7": {
+       "wrong": 12790,
+       "deployed_correct": 4661,
+       "teacher_correct": 3857,
+       "teacher_only_correct": 4,
+       "neither_correct": 7921,
+       "teacher_missing": 391,
+       "unknown_teacher_without_deployed": 204
+      }
+     },
+     "all_frame_failure": {
+      "0.3": {
+       "omitted_selection": 8850,
+       "absent_both": 52296,
+       "correct": 1519,
+       "no_proposal": 3200,
+       "wrong_class": 250,
+       "other_mask_error": 166,
+       "merged_instances": 68,
+       "partial_mask": 19
+      },
+      "0.5": {
+       "omitted_selection": 8850,
+       "absent_both": 52296,
+       "correct": 1356,
+       "no_proposal": 3200,
+       "wrong_class": 250,
+       "partial_mask": 59,
+       "other_mask_error": 252,
+       "merged_instances": 105
+      },
+      "0.7": {
+       "omitted_selection": 8850,
+       "absent_both": 52296,
+       "other_mask_error": 390,
+       "correct": 1003,
+       "no_proposal": 3200,
+       "wrong_class": 250,
+       "partial_mask": 241,
+       "merged_instances": 138
+      }
+     }
+    },
+    "frame_recall": {
+     "frames": 9263,
+     "hits": 1238,
+     "rate": 0.1336500053978193
+    },
+    "false_presence": {
+     "absent_frames": 52575,
+     "with_mask": 279
+    },
+    "positive_empty": 0
+   },
+   "verdicts": {
+    "carry_precision": "FAIL",
+    "carry_fusion": "FAIL",
+    "size_screen": "FAIL",
+    "first_seen_screen": "FAIL"
+   }
+  },
+  "S_GT/STUBRASTER": {
+   "metrics": {
+    "C_best1": {
+     "rows": 1037,
+     "mra": 73.97299903567985,
+     "refusals": 0,
+     "vs_A0": {
+      "rows": 1037,
+      "rooms": 192,
+      "left_mra": 73.97299903567985,
+      "right_mra": 56.769527483124406,
+      "estimate": 17.203471552555445,
+      "ci95": [
+       13.539482987818156,
+       20.892020684176398
+      ],
+      "draws": 10000,
+      "seed": 20261119,
+      "both_answered": {
+       "rows": 1001,
+       "left_mra": 73.64635364635365,
+       "right_mra": 58.81118881118882,
+       "role": "diagnostic only; never a bar"
+      }
+     }
+    },
+    "C_fused": {
+     "rows": 1037,
+     "mra": 78.62102217936355,
+     "refusals": 0,
+     "vs_A0": {
+      "rows": 1037,
+      "rooms": 192,
+      "left_mra": 78.62102217936355,
+      "right_mra": 56.769527483124406,
+      "estimate": 21.851494696239154,
+      "ci95": [
+       17.822912089399626,
+       25.996281902123986
+      ],
+      "draws": 10000,
+      "seed": 20261119,
+      "both_answered": {
+       "rows": 1001,
+       "left_mra": 78.35164835164836,
+       "right_mra": 58.81118881118882,
+       "role": "diagnostic only; never a bar"
+      }
+     }
+    },
+    "member_precision": {
+     "added": 4682,
+     "correct": 4675,
+     "precision": 0.9985049124305853
+    },
+    "iou_member_precision": {
+     "all_seeds": {
+      "objects": 770,
+      "members": 4682,
+      "correct": 4682,
+      "precision": 1.0
+     },
+     "on_target_seeds": {
+      "objects": 770,
+      "members": 4682,
+      "correct": 4682,
+      "precision": 1.0
+     }
+    },
+    "size": {
+     "rows": 770,
+     "rooms": 192,
+     "left_mra": 71.58441558441557,
+     "right_mra": 52.36363636363637,
+     "estimate": 19.22077922077922,
+     "ci95": [
+      16.348532564072894,
+      22.107984569343824
+     ],
+     "draws": 10000,
+     "seed": 20261119,
+     "both_answered": {
+      "rows": 760,
+      "left_mra": 71.67105263157896,
+      "right_mra": 53.05263157894737,
+      "role": "diagnostic only; never a bar"
+     }
+    },
+    "first_seen": {
+     "pairs": 1314,
+     "correct": 1123,
+     "rate": 0.8546423135464232,
+     "objects": 770,
+     "exact": 0.8090909090909091,
+     "within_one": 0.8701298701298701
+    },
+    "mask_iou": {
+     "total_records": 66368,
+     "visible_valid": 13793,
+     "absent": 52575,
+     "invalid": 0,
+     "object_frame": {
+      "n": 13793,
+      "mean": 1.0,
+      "quantiles": {
+       "min": 1.0,
+       "p10": 1.0,
+       "p25": 1.0,
+       "p50": 1.0,
+       "p75": 1.0,
+       "p90": 1.0,
+       "max": 1.0
+      },
+      "rates": {
+       "0.3": 1.0,
+       "0.5": 1.0,
+       "0.7": 1.0
+      }
+     },
+     "all_evaluable_object_frame": {
+      "n": 13793,
+      "mean": 1.0,
+      "quantiles": {
+       "min": 1.0,
+       "p10": 1.0,
+       "p25": 1.0,
+       "p50": 1.0,
+       "p75": 1.0,
+       "p90": 1.0,
+       "max": 1.0
+      },
+      "rates": {
+       "0.3": 1.0,
+       "0.5": 1.0,
+       "0.7": 1.0
+      }
+     },
+     "object_best_frame": {
+      "n": 2074,
+      "mean": 1.0,
+      "quantiles": {
+       "min": 1.0,
+       "p10": 1.0,
+       "p25": 1.0,
+       "p50": 1.0,
+       "p75": 1.0,
+       "p90": 1.0,
+       "max": 1.0
+      },
+      "rates": {
+       "0.3": 1.0,
+       "0.5": 1.0,
+       "0.7": 1.0
+      }
+     },
+     "pricing_best_frame_iou": {
+      "n": 2074,
+      "mean": 1.0,
+      "quantiles": {
+       "min": 1.0,
+       "p10": 1.0,
+       "p25": 1.0,
+       "p50": 1.0,
+       "p75": 1.0,
+       "p90": 1.0,
+       "max": 1.0
+      },
+      "rates": {
+       "0.3": 1.0,
+       "0.5": 1.0,
+       "0.7": 1.0
+      }
+     },
+     "unique_object_frame": {
+      "n": 5452,
+      "mean": 1.0,
+      "quantiles": {
+       "min": 1.0,
+       "p10": 1.0,
+       "p25": 1.0,
+       "p50": 1.0,
+       "p75": 1.0,
+       "p90": 1.0,
+       "max": 1.0
+      },
+      "rates": {
+       "0.3": 1.0,
+       "0.5": 1.0,
+       "0.7": 1.0
+      }
+     },
+     "unique_object_best_frame": {
+      "n": 770,
+      "mean": 1.0,
+      "quantiles": {
+       "min": 1.0,
+       "p10": 1.0,
+       "p25": 1.0,
+       "p50": 1.0,
+       "p75": 1.0,
+       "p90": 1.0,
+       "max": 1.0
+      },
+      "rates": {
+       "0.3": 1.0,
+       "0.5": 1.0,
+       "0.7": 1.0
+      }
+     },
+     "failure": {
+      "0.3": {
+       "correct": 13793
+      },
+      "0.5": {
+       "correct": 13793
+      },
+      "0.7": {
+       "correct": 13793
+      }
+     },
+     "availability": {
+      "0.3": {
+       "wrong": 0,
+       "deployed_correct": 0,
+       "teacher_correct": 0,
+       "teacher_only_correct": 0,
+       "neither_correct": 0,
+       "teacher_missing": 0,
+       "unknown_teacher_without_deployed": 0
+      },
+      "0.5": {
+       "wrong": 0,
+       "deployed_correct": 0,
+       "teacher_correct": 0,
+       "teacher_only_correct": 0,
+       "neither_correct": 0,
+       "teacher_missing": 0,
+       "unknown_teacher_without_deployed": 0
+      },
+      "0.7": {
+       "wrong": 0,
+       "deployed_correct": 0,
+       "teacher_correct": 0,
+       "teacher_only_correct": 0,
+       "neither_correct": 0,
+       "teacher_missing": 0,
+       "unknown_teacher_without_deployed": 0
+      }
+     },
+     "all_frame_failure": {
+      "0.3": {
+       "correct": 13793,
+       "absent_both": 52575
+      },
+      "0.5": {
+       "correct": 13793,
+       "absent_both": 52575
+      },
+      "0.7": {
+       "correct": 13793,
+       "absent_both": 52575
+      }
+     }
+    },
+    "frame_recall": {
+     "frames": 9263,
+     "hits": 9263,
+     "rate": 1.0
+    },
+    "false_presence": {
+     "absent_frames": 52575,
+     "with_mask": 0
+    },
+    "positive_empty": 0
+   },
+   "verdicts": {
+    "carry_precision": "PASS",
+    "carry_fusion": "PASS",
+    "size_screen": "PASS",
+    "first_seen_screen": "FAIL"
+   }
+  }
+ },
+ "seconds": 5.954766924958676,
+ "input_sha256": {
+  "/scratch/jjyeung/orch_n30/sb_kbox4/out/box_ladder/PER_ITEM.jsonl": "3bc7f87f8fcd764f74df79852367d501140d0d5870a997347d7db84d82f48b3b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_bars.py": "7bd79f6c54815674b024fc17b87dce86f54a8bbf04060b41034824598b2f0f8b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_common.py": "e7e0c35aaec581eb259b71abe4effd6a58792caac1770035eac6483a4c4e50e7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_frames.py": "3f0bde9e1750319cfd64e658e8c0dc0ed93ab833022554beec9835640be4d12e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_guard.py": "65f9b3cef22eac5e99eee66adc238e36a697af24da1da5434a97153e6b810074",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_ladder.py": "0a9581f335386ec03040f53d0f4b7762da40cd5c905f395cdcd27d957d6e641c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_measure.py": "e42b9c4c8b115575f9a0348726650ee6ae7082ced432d17a64067e583c199c97",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_phrase.py": "57eacb53d75e932aa5e7cea3cbfac9d8274e2299ce43b2aaabcdc02926b591e9",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_price.py": "f5f48ca3442e4dba534936fc671fd505c3a49eb30cc58569370666aa48e5ebf1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_probe_cpu.py": "a74565080a2675f977320be419ec2c09c635c9ccb0b3dfdc639ba3c650021474",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_probe_predictor.py": "676b8ba1f3ae8bda33885e125dff65a496b00fc7c569e3a6a2f3339281aa5cb5",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_seeds.py": "48e918e5d31b7feba8a19bdfd3e9b53a810de8338635d655c5343c0a6695c922",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_step0.py": "7fc795e37cce20e74775e552f36d225a762a3dcf4bf26af34001ff2a89b087d7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_stubs.py": "37201cf9483e26df7095ca62841f20dd46f90d205da71c4c4972e4f6f3c5cb8c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_summary.py": "b79869a7758fad97a72c73d2a7acf420d4c6643025518f84edc24da848c18d1d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_track_io.py": "4713f061e0b6d1ccd4d6610cedd99aceb1d688282eca44283415d981b9e42a90",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_track_pass.py": "eed3bf9becc214e453e8a5dcc8cfc9264c860c45e007d45c622674518d74f1f8",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_tracker.py": "cf2ff59a9d8b786b9c5972861ab286cebb18f49edbf32b193a4fbf6a98c598e4",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/run_cpu.sh": "1400d0fa201fff2065e33ef800bd0bb5feb77342f71137d3d6e9b758c3e14c32",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/PRICE_INDEX.json": "3fc21458510abcac6a10fa857498c06eb3ee70fe948fc25f494d48d3c8c4de4e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41048124.json.gz": "2cf235c663081a1e4260ba4c5c28f894504e66b864598429ffed3c829fb111e6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41069076.json.gz": "a6f8c0ec457fdd699d974b83fd36479cbf278808acc1fccc92def002fe4bef88",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41098061.json.gz": "eb5937a3e8f6764c52a8d941e5a397ad7b119e275060ae347179a4bec0c0c4e2",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41098085.json.gz": "c8f95d3190d584263826985baceec5b0d29fbc9138d004488c7b6ff2b287d164",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41098191.json.gz": "452b822ceac532a311987556f4e864d3613131ff1e4386a2ba8256f7ba8848eb",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41125564.json.gz": "ab1ae3e3d9bf792ad5eda35deeb6919a095563d83a26cafa246520c03e24e79b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41125837.json.gz": "42d31cdef20f0c1bd21d121cd2a5642b8daf19da4e98fd23a63a0b3d3bc835bc",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41126367.json.gz": "6c7449c1203255fdbd50d801f4421560886c9d7005a8298a126ba59998ffbf39",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41126453.json.gz": "0c567e9bb34cff8c65335a62f53f4a492db35c878ddf1a3f7b3aad496011da3d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41126744.json.gz": "201a7b472c0547486bda5186e86744fe91212781ac3b5de59cb9f1ba5c930317",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41126757.json.gz": "5bd08a3907a8d0790fcd1ff40aa03878c7ca1d7ec6c528da2b50ad6babba6752",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41126783.json.gz": "7c7badf0573a18b85772b66225f0e5a305471aede1df425ffebdda22df677d76",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41126996.json.gz": "33977456cce3a05d88660c20efabf5af795b0b911d30a8850034c819123ea687",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41127027.json.gz": "0a174c342d0301fc28a48a721b24014081eb5986e74beb644862c6afbe001e36",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41159381.json.gz": "1c291777607258098a95a0a5df0488b97fd5969dabfa146dfd0452f67e0ac99e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41159425.json.gz": "23bd065356e3b1a6ee1d3cf3bd4285037e2dfa34e17cf35f5e98bf882780ba9c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41159653.json.gz": "d4c9fe09759ae33b931243134b8a888a6e16d9bd1722d768e743ccd32e28ef06",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41159675.json.gz": "0ed91cf6f6f1820c553910d2a3008e5d060e237a70b41025e2631ef14578880f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__41159723.json.gz": "ac4ac56a2c24c25ad8ce4aabaadcd81bf5f340fbf970a695196bcf594c514ab6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42444513.json.gz": "9d90257606d5e456e03dd203e84fe61d9f5c6e6cf14c5c9c24be4411754da239",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42444814.json.gz": "ecd1a55d31b36603702de9da901f0bc4d91d4c9a5447160c76d2bf084c05559d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42444887.json.gz": "7364f919f453d4678262b19803a19bb7e770b671ee310bdb6d61fe112c0c9f7d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42444907.json.gz": "02ed92231d225fa663ca1399986c24347a63c3e2684dc8eaf7842c3fd944908c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42445056.json.gz": "99a2a24c8d3cfc0c4b02f76b00ff5e4d2aedf8685d94e958adaf0a224214d25f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42445092.json.gz": "ec859e441dd4994b38688f4043a88dd7b3aa1d676a222e3681ff724190d34918",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42445454.json.gz": "e9da5641eab93ebf189db20bde02373199586753748f7257bf0ac8770256c4ac",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42445474.json.gz": "416ae00c607d4ce9ea103834e9e8f25b1293cb117a3fd3607357503dfa783b97",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42445924.json.gz": "fbc6c5a6379be3d24626e88eb23f0c0ce2a28cf32994b752328819f276cc7060",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42446074.json.gz": "01a436a67e3136cc08d1eba66e7202335d899af33d0b7bef2ddfad0e25d03947",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42446080.json.gz": "d00aad82545833885afbbd22c12ed487b9ffd19a3ca9bde5c2427617c1c1c1be",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42897467.json.gz": "701c2924210a3a97889ed120a683e5a0f6dd1a1db8dda704612ed45fe0ec8462",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42897480.json.gz": "d2ab6dd752749da92ea638ba8a55176ff174b583b749f00e625e7700139b9778",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42897512.json.gz": "ca141a1ac1d555d1c6e99554a88006dc20df6af5e3c22a772231d1187863de63",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42897607.json.gz": "4a0e36aa0d2522b78b2dab50503c706058acf665e0f712faf72f3edc9c6c437d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42897622.json.gz": "ddaa8945b36d6865ed13aadd22ccbb23820271f83dab72652e20ad5eb2cfa644",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42897668.json.gz": "3478b5c626d0d936d9a58b12215be1241af75e0e5e9550d7415aae356a5ad224",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42897783.json.gz": "1df1f9f73835c26b15202e0f5177e97fa30990231115f645d893e4f6379bf3b9",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42897784.json.gz": "b4f891f39190ed07cc7bbc0133006fc3eaae6d6ed34bd3909d441961f1ddc27d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42897955.json.gz": "a7c6a80d45c3a9489992901afa19f62f9ba959c39156247a8f127e1e558410bc",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42897967.json.gz": "1b64797b5bbea1fa3dc8bc88832731f023a906fe3d8437f918e62287daffb62d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898109.json.gz": "c6739feb0267f19a1a0f2f07ab2f83fcbd4e75d0c011db649532c88161334963",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898141.json.gz": "cd5f74e7c736e67a32a7d7057cdc1a9d25d90a475b674083b795a678ee5300db",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898213.json.gz": "da59e3f70afc5411824da12558bc93f9d3c00406958bb0ee896fc42dbfdcda99",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898236.json.gz": "d86ebdfba7fde01860b8d383b685d04b574a6f54a34cc8c9150e3dc6e825cd4b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898405.json.gz": "eab36a4dcdff17a942847d0485c04f2318ff87957ba8bfc24dd981a9514802a6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898477.json.gz": "0fa4202ecc34207b320f0faf8c20b1ea2840b3cfc944493d65cef53c3778a24d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898715.json.gz": "10301a389ee986c4d561f5632a8c125ffd6065eba4e429b14a0843ed85765d0f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898740.json.gz": "e2f24e462c5c6c830b2e4901d749bd2f6f18ac6009a21bc01220823f62c96dcd",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898745.json.gz": "bd6d1624d67935c6a5195cf97a5896f747c183400bdc0394c6a9e8d6a6f3ad36",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898786.json.gz": "1e1418aee9e5b2221e53b6ad6129445a73ac9b650734929204581437cb7ea584",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898792.json.gz": "8268bddbb70724c53490d814fbe5310f50a9639f093f71ab2f29573cc9195e27",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898983.json.gz": "8b052eedc520e5c511abc55f7f7ae9b65a835657bbe8ff56a614ad70da251915",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42898990.json.gz": "6ae014b4ee1e65b1689e3b5d8d0d776affa406ce2cbf4da9845246a0323ef34c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42899003.json.gz": "644512bfac746694b628aedf6b0e59622d864e933eeeda432158a99cb9bf00f6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42899285.json.gz": "e493f92f95f30e50965937802b8116a0ec116b4d1cb07645997e538ab2ecb747",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42899559.json.gz": "48a720d59524d0f578bd528cceabfc32b95567334b2d78e31f5ee9e2006e57cf",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42899851.json.gz": "b8507a337b9452b357d90a2edc9f2deaf98913673300548be5ac12305925bf9f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__42899906.json.gz": "1aaabd2c97da6c3a8315fb88cf30a73e5a9469973afca7f9e3db57b6fc666bb8",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43649382.json.gz": "697befd3514dc9421dc66266d543e3d213cc5c5ab96d7e714e1788990c0504dd",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43649403.json.gz": "027ce4b86cb0990a4869be3f7ed7d8614de7fd9dc6ff5884928fa1b45eaaa3ef",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43649474.json.gz": "ce07e4a5f0b2b3cda3036e5c3026c54fba2321f9a5a771fb0f9d0b5d52bd1270",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43649681.json.gz": "4420d7933d16a37742f79c976845cb05e9cdb5d514a5894184e99e25b2dc6a42",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43649714.json.gz": "eb55c6a0039177292ad0d6e718dd2def064901c3dca6e93dbc50ad2611a056ab",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43828507.json.gz": "7dd12bb7267456b53aa86064546c92be0ed0e421527a7b19f0821ce37ebf3b97",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43828554.json.gz": "41effccb599e24d4ba0753b0e895280382cbbad2898b1bb5f66eb250349816b8",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43828583.json.gz": "531c22fc84728537cb6e1abf0fc160e971346c28116748401c54e8130d8ac506",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43896055.json.gz": "ffd7034c83e9f68ee5c7983f18840a02747fc76e3a5ecccb9b5a1f6963da787f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43896365.json.gz": "a5745becb178efa70e52fdffd799ae434e2d04387de036cd27b9af6badb51317",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43896469.json.gz": "ad821e87218b16b0217595136af0ed71d0fd4e5045948d72b0a839bb11e035d9",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__43896478.json.gz": "b65696d0502530a7635bdf8fe3c5aaac6648a287899275af57b2828ae5792327",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44358118.json.gz": "50a150ce32a085da8f05026f4436612d4a9cd57f77a37b05d6be752fdf288a0f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44358426.json.gz": "34d0ba608f624adc2de5e593443e05aff7c087efd79a7e55b9e7437229b1118e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44358557.json.gz": "c88df0fe2dd4757ebd01bfdaff46a3411c4d46fc6a8f4c93488e150cca266d74",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44358593.json.gz": "9da28f82c5bbf4cce6c692fc8ae0830fb5d4ecb1fe334708740c41127807b51f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44796221.json.gz": "4ee564af896ba549856a58a84a7786ba29e3438207389f9671cf9ac114e0b0a3",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44796297.json.gz": "78313b1c121867c339cdd2d64f8a758666c12eb5933359cf7c9575b173fe969a",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44796304.json.gz": "3ff452b15acbf2635f4c386b8252e7aed205dd85505a1ff80f2ace6924f5bf4e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44796324.json.gz": "eeabbba0fdc966160d1fea816b603934c7438ba9543e36d433f0194f1d2a37f6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44796332.json.gz": "ba264f87bb7330d64f6af171b32922451da2d0ba5a743ff46651051166b95353",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44796349.json.gz": "9a134fb52a66df1fde1de72dbe18a7712bc78915c71959278945907f823eec7d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44796392.json.gz": "453e692d52aa05592ecd89daed723a725f456a1379b7250e3214857d2a9bb341",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__44796450.json.gz": "8cc3dad9185a871f008fa068d5591a6870695152170f8b38d66832b4aaed4454",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__45260873.json.gz": "1bfb2b962cfec47e24cbc53caaacf8ec0592be28d6c0dcde664d0bd10a4aa2e6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__45261397.json.gz": "1deaea2fedc30533edb7dc1c42dd6d9640f22559ad1ddc2d97b69372b62eee8e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__45662791.json.gz": "7c719e4feb8dd0c6822b7885bd31fad8ced1b5e06a4c7dd05bd26fab69189cfa",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__45662816.json.gz": "dbc5e0d5f2e6a8a469f318929a0d50f6ed01a6f9659d551ac55f8b6efd8a0fe9",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__45662959.json.gz": "40e02ffabe331511dc5fb278a03353a8e91eab7c66b621ff34b599f92fc2f05b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__45663064.json.gz": "3ce75238fbf22e6edb12b30138a37579fd6fed66d99206e096a529885c8e9b35",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47115174.json.gz": "1bf77840c1a56835cefe591c2d4240514f8409447238da23ee3679934e197464",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47115350.json.gz": "642fb3b0a1df3b05332ac6b20dad573d98cefc1be0f85adf7a0f914d0934fb9f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47115412.json.gz": "14740d474e72709ef1339f26659a5ac671030c261045fa30c0db4b18008739dd",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47115415.json.gz": "cde354b48a8ccbb4d6261522bcaeb01dced9736af15b566ab9b903aa86646cbb",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47204274.json.gz": "a38a7152f9fbcc5756a194eafcdc17b871bbd0bde3e186084a7e2b6678a20b1a",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47204392.json.gz": "2a7dc5d7ec0ae263b681a61827aa93deda8d465199e86fd55a0e802715c0759a",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47204407.json.gz": "9516d4908719dc12b4556e1f46ea474adccda2952977fd3e6fed29003c6f961e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47204482.json.gz": "8cf830436a660f1f4da66aa6d8e6e29c685641971ec46737488c82bb1488c03d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47204517.json.gz": "20dd8a289f4c77330e5c72c71cc15fca96d90b886b4818654dcec9f54a880e48",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47204813.json.gz": "94a46bca4f7d27101778b4e49953f264f195e647f6b79ee57c6ffad5adc9ff47",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47204836.json.gz": "bac360f2f1fd0df05409fbe120080c0ad9382bac0efb3a4df62c947197320a27",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47330995.json.gz": "a7a78ec39a21ee24b466694f091c7616f4ae9f543b307545e9b4b821b64ae127",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331154.json.gz": "242554a0408e15d1dc9c08dd772ee0575aab71934c2028d4b690225237d98311",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331188.json.gz": "c58ba89b13c05ec3798d9800b45392d4ce2482d7fb3a419da25f2052d5d79c85",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331189.json.gz": "cd38c5e0a19cef2a2b9a751d6c9f84ed62f9853c9d6208cc68a1f914446630c0",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331294.json.gz": "4d6f284f7dc7af08f9a67d1d796833eb9c69634219eb9558e491c6902bd4f6d3",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331479.json.gz": "65ab56f56f02318fdb99b1ca70b7fae6c40a8ac44d9f1259ef7229feb930610d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331557.json.gz": "0ec50c5237f0033229e7c2ed7c5c2dd15c961574c6e1e2917abf12b70e0b515f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331606.json.gz": "5e3cdcffba83f3e80e487637999146a39ade5301d334722b8bf58cdb224d7b22",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331711.json.gz": "ac21065992e3b2545233c9b83de8ae5f05bba3e773951f99a800fff9336a8de4",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331771.json.gz": "d5b3c87e84af8f84ab1e71302f8de5f84bd27fdb38409c4ad2c7a5fce9df6992",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331815.json.gz": "96c6b3083306c29cb111c89badd92bca63166dd62b5b188d17977b76d37da1f0",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331878.json.gz": "a248d7fafde4b7fe546915653ba11eebbaf07319fb078ee8fb4425f18cfc0344",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331880.json.gz": "6d7a32b3ad24f1a688528f0cc99698da8b787f9bd8276df26aec1e74beeb5267",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331928.json.gz": "077e5998c8ace74b376c74ba8ab801ff93a27f8d7cfc25bb8dc71b2cea67f423",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47331946.json.gz": "5729b5002dd7649061d94dee3b047157d84f752a1a5e054ca77576c1c92ebc0d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332026.json.gz": "407e77ceca40afab21cacee458dd480312f5e8fb1d5ef7afe5c5c9520d4ee273",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332044.json.gz": "63df34ae3de4c27c964a94bbdc13016c7031535da4534154fa46f628f3bb77cc",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332125.json.gz": "7d1343c1394db00f917539f558d690f1f14305955ade1688ee56eead34aa1fb6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332192.json.gz": "e596ffcb8a1681a9c64d1033618d6628d682384b9eac3f31c169494cbc0caa50",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332204.json.gz": "88d6c300871bf91dbbc6063018aa5a991c584b65a6483e765715076413caef4f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332383.json.gz": "240e40e5e7b139d4e80f9349f4e511848d57449b16efab3721abbfb010cbc365",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332400.json.gz": "d99bbf847f827b7d17e9466d065293b566c8200a1e33e6d41b5c159e14c01721",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332430.json.gz": "b5a74331c8598f3d56f5ed1e175c10b4ecad6a620b1b0cf7eed6241f403818ad",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332581.json.gz": "abebe68ceabea039e979bf42f68279f2b1c0fa7101201d96180308d21b3bcac8",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332592.json.gz": "370394a21b8e3ae68c151081077a756ec8f02d3c3f7d601aa38952e68b4cc32e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332704.json.gz": "99e396765514a6a5b3aa02a901ed87309644abc141c9c91327dc6be015719384",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332705.json.gz": "2275430ab51cb0e160c985a4c1fbf8a8f59931db169b311c1a874e7b0a75f1d7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/arkitscenes__47332710.json.gz": "58892d67ee9829f0f6aeec84ee2818f7aba5cabeb60a810e37d4ebf4b12bfae1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0201_02.json.gz": "867871e50bc5f2863c2b3a81359e610cbb3669e3ae447228990e5e14851fa4ce",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0204_00.json.gz": "616028bc4a8061ed65638cfd95ed5f60840552b4ad7599dc40f0d8d4764ce6a1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0232_02.json.gz": "4fbdf4fe16a670bd5e6d1094250e629d8354a6587092529e0d9ad56eed6ac128",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0242_02.json.gz": "175f05cd0802809c5f58ae80d1231c742c6eb806a0516469b42d210a45e9d47c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0348_01.json.gz": "a7f8e5b44146f03e199a39e937d46de74edc23ba5afe3a91e3fe7a94d6f133f1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0350_00.json.gz": "3a948bee978750d592541ccd813a8cf5c2b93610fb8f7109a2c98017248d74b8",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0370_01.json.gz": "287c26dfac104d9eaef677a3790cec342aa549bca5678c414c588174477cf7b5",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0388_00.json.gz": "8bad89eadb6484615c0f57a6ae794ae4a3f0342de5f81940cbb0042bf45c6f08",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0452_02.json.gz": "29803213b7027cfc52fb6c0c684898e9843da66ea5e055819273e1a0f45362d5",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0478_00.json.gz": "dbaf89f3efed780348209f1a2b7db2cbd22fffe1c3445a28c301c16ef03d3050",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0478_01.json.gz": "02a5dd4abfdc23d9e0641889873360dac65c060ecd5e11fb23f809db3f48a7fe",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0479_01.json.gz": "6a53809476bcb03c6225489e98d3229ea5bf05b155068df6e892ba341d2968bb",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0479_02.json.gz": "a3db48a9292a853b7f2b0395cef2ce713f3f9e4ecb9e8342016efa3ffd16196c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0480_00.json.gz": "dd1981c74cea5debd6502bd55fcc25de12c55e7f1ad742e724e534477f305aef",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0480_01.json.gz": "58da70787c9523c080978e14781db96ca9eaca6c6ab9f40e0f6bdd88e231e5f9",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0505_01.json.gz": "52298c08d038c92a772b79c9a2003d68b74126abfa853960bfb77cbca9025504",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0505_04.json.gz": "9d10ff0e70c940a40148f00c7d37068ef403c0c8ec77a053ac6f1dde5d14c418",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0540_02.json.gz": "9f2f96fda4ec705eef7696a1cf95039f7ac90177b144b6c10878c04dfbf6d26a",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0614_02.json.gz": "984efcd8540ffc8e9bf735bf35387e78a3c57c1af008e898dd90e705101863a4",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0676_00.json.gz": "eaf225288c2b5516beedd63cb585f01f68c7fb8eb47be9046c82d72ba4d54ae3",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0676_01.json.gz": "5fa42574577498d11d42aa953db9c06bf38c53a0f299501160a210a55b091aab",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannet__scene0692_03.json.gz": "bd85e0bd974e60cc2e610083b708da85be08031ec0cde2ae97225fbad26fc653",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__036bce3393.json.gz": "6568f2859632717e3047119edc1e804d86e152a53404e1051cb4669f32c0b8c9",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__067e2e4e61.json.gz": "e87051075956864ed815cbc9fdaa00a0afb1ab2eb0aec8976a4a9c505c5ddf96",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__07b8312ea9.json.gz": "0e64af309229c5385948e50054e3173b3089125c27d6442e0f62b0f5aef470d6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__07ff1c45bb.json.gz": "20602059d0a7dbc7a0b5a28433ebcfcb0c2e9832b57f61d68fb33938d8508ee7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__0f69aefe3d.json.gz": "f67f6a01ff5760fa170a28333b59ce38ce738a3703c3e0f300c6fb0628d76d8a",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__10c8ab99f4.json.gz": "7fe161e00a058bbd772faa4c3abedd9d94466e3b76ca022e89ba4aff534dc574",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__116456116b.json.gz": "0c40b680c4f1178cd32bde73131311965883ba5d2767851deaad8301ea541607",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__126d03d821.json.gz": "e7fff01b0f9d9c575abaf5d5d849c7d3b84c6d6284ae5673c06767af2ee17aa8",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__1a8e0d78c0.json.gz": "170f9956dfd38b30b6f524749d102dd968bedb8cb670e2edda8b0ec0b0089e56",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__1b75758486.json.gz": "6cd7f8c08d4c7fbb7f46f3d7e7c516d5ea00f8b4f753e0b0265b6ebabd04e503",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__1d003b07bd.json.gz": "c1c9e81903f7a6f39c2a9eb3bd34ca54907ee1d32aa7dbcce61e56faa3037be6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__2150596d57.json.gz": "dea02b1a14a3fee3759a951224cc47d02c3c5ab24fb49a33913601ddbec5c312",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__260fa55d50.json.gz": "e1f5f6762b5dd0651575a176514610af70be213b97b4c124f8352255b3fdd1df",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__268513240f.json.gz": "bb4a6386bf64cb2a753f3d2c223e0260a24df10d5137627e16152c55a77f764d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__2a496183e1.json.gz": "862918c2ef181fea639690f23be960736e8650ec9937a1ef6be2e7290df4d887",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__2c7c10379b.json.gz": "dca447701d15db607077e6b2acb9149369c376c7ac6b319d15d5cad8fdb5721a",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__2ebbca3e57.json.gz": "1170e080ad36ee6b2d5177458367649377ad7b8e1012d05d6359bd5fdd25e941",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__2f5996ff01.json.gz": "9decd5539167794d34d3787a57b9345e54d83e60f39c927882a2e03df7141f24",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__302a7f6b67.json.gz": "a35959326a3957353374d274d1b54ee5d6d25fbfff71165cccaead7ea3ff4b34",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__35f2120068.json.gz": "c3d6ca249e751bf4a3b31aea0f384ad9534b8a3f88dd68f2256a743ff5e2bee6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__3928249b53.json.gz": "e4d44c26a9096435d37d7e57a258283f6546c1fda6dfa603cdf0d7592bc8b384",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__3a520af32a.json.gz": "a38cef681d31de83ac3cddb78731f866fcdbd50087b2545269ca84ccf98abeaf",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__3b753d9ae8.json.gz": "086642d75f876419bb3633f777912852abdabbe41af8d92acb2f094a645082ef",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__3caf4324fd.json.gz": "b032380268b9aae9222f5c845cafd80f58c882d8e323d6e20b850de0c10436f5",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__4117a4f02c.json.gz": "f1466ec58ed166b0feff538b9c00a316caf5393b9a84327fe054836cd073cbb9",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__4291be3b44.json.gz": "4ece666f4d7f0fb84e881f0573d206915afc088b385ac86c75382cd7f60ad204",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__469f112e38.json.gz": "241f6d2cfd56b2edfed52fc18e877c913a260b545f2d6fead7d2cdebeccf4cfc",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__4a1a3a7dc5.json.gz": "ee78a516effffec15d1edf7b34aff592fa6da1eced91ae67356463ed23258409",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__4e2db5058c.json.gz": "4ff71b7912a490f4c16e72dfc15ae4d6497fe5fe34e35e415f1b10f55cdbd800",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__58960ff105.json.gz": "e7aabfcafd3d909681ef37b3e3bbe5d9604d5d6f41d455d230ec7d7cc370ff62",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__66c98f4a9b.json.gz": "777ff56cc4375ef3aa12c001fbb67c4881ac738536d9ed1f90b9e6d9f31382a6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__67ab69f888.json.gz": "c50cc8680ac9214badea02117e5fe5944731e317bd3cafe1fde84afbcb6f8a47",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__689fec23d7.json.gz": "f0c7192a96743eb1b3ad96844e054e642a9ed77cda3316fc49de9a6bdb89a80e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__698c3bf2bb.json.gz": "63916983797b9d807927672fbcc73a3af40f313b122bb0d84885f76a0208c11f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__6ad6cef000.json.gz": "08127bee874994051a59f234f1d6a5db27052d49d00a6084c7460f02e0ab4ed3",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__6b40d1a939.json.gz": "bc77bed8f84c7a64d1053c7405f291153426d947b60ab251d0c4e6a2d90e46f6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__6cc2231b9c.json.gz": "834f401451beeb4489d5b359a4c72ef9efff9fc4490d5807957fb423a6667148",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__72f527a47c.json.gz": "3def14bdf588cf7ee66fc9ad21bdab48b37a722213f1b4dbc9b2d659886ad1d3",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__778769dad8.json.gz": "7ad9485360b6c5255de1f52686d7e03ea6b90c8cea8ea3f6220ddbe74fc5a071",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__77fe971eba.json.gz": "c9b45500e42cfc750425ed86b7692a8db0682975eef56538206ec00aa208a44e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__79eb3fbc63.json.gz": "ab34414780c1eebb330dabe7cf3821fb754bca6866ee7e165719c232ae7abf16",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__7b4a316aea.json.gz": "50a0f3e7ae5ab4bd0fa386446e131c07d80870fa9e3fa11aba6235d915623f8b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__867d97cf3d.json.gz": "de05a1606985596e98bce13f39a64b9b259c072571e87c53b3b61ade8397c2a4",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__872268d1bf.json.gz": "5e8c30472f9a964e1dc9c617d74637d4b2880c0b2f06538bd6b143d8b291b6ff",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__8a20d62ac0.json.gz": "ec3b514e1872a3f343decaf5b1926aa85b3e86c4f8ae3d37b6de5529fd29136d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__9c7b4394af.json.gz": "7f4f3fb501b527fea20048ff36965dbc9357ae70dc7da35fcb1514af9b806f69",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__a9e4791c7e.json.gz": "4e8e99e11999577bdb594f8ff3207f8ea89c0b29b66598c0cfdd1a8108e47d41",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__abb6639ceb.json.gz": "78436d0f4223007169a2bb45c78971681541b41c4ce9db249f905cadcb5c0e57",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__acd69a1746.json.gz": "fd5f6571deb9d9fba20bef472c0f97fc3e08d65019884d69f3f46d200a2bd81b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__ad2d07fd11.json.gz": "6b0bd91c6ff296746345ded1212e83ec60c01b30ff73ce77161671d0de237b22",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__bb87c292ad.json.gz": "1c9bd0a6705ad3b2959b2b7ea44d17b0fe769bd5eabfc5ff9454cda670725dc8",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__c178491bc5.json.gz": "deef4b374c404ac0b329a27cd730918e4fef73f50691875145952622c86cc13d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__c31ebd4b22.json.gz": "d06a15a403c78f00a99b46f6698433e6c0759a80fc5ef5dc0de8efd11e9e953e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__d7abfc4b17.json.gz": "7fd266c29a959d8ddfb4aa915a1a943f3e3b758f578feef32fae8fd5815d28de",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__d82aaa88dc.json.gz": "5116c3fd103fd023d8568f2cc883a1b0f8b9e862ae3ef99fb4c700bd807ae693",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__dc5f00843f.json.gz": "30ec699a6debc58459cc6536e321011eb55ff104fe90f693e25c5a45c0f459ab",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__dfa70fb232.json.gz": "76dce47626a6bcb3b42974d2a8aac996cabb9a31fed1643f0a99d787c2fc4c60",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__e51b753e48.json.gz": "496f27b023f8161f58cdb4d36a18dbedafd6c07a0eb5cc565bd3b9d78e81b007",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__edced53026.json.gz": "649ebdd0dd82121596ad2d6ad80b6a65e7100bc21799e36b96492825908cb610",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_A0_STUBSEED/scannetpp__f8e13ab4ae.json.gz": "80334d0c02d8a8d6cc54eac10c950aeb030c842bb2411314cbe227ca7be0723f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/PRICE_INDEX.json": "2a2f748f5dc1de64d834d11b1a911bd6e953f14ecd822deeca1bfa1d32febe78",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41048124.json.gz": "c80ad72d7effcb7f653c10905cb07ea852ea3d5f00abc3fe1f73196008ddecd9",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41069076.json.gz": "ca7e1c3d31210bea4df1004004d08d7d763d88b57f95e84ad948564a2ddc7266",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41098061.json.gz": "691b928af6754df6ff4f09d1018e469670392bb3030c8c9584bfcf5cf7675a3c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41098085.json.gz": "bdcf7d3b1c72504e1c03cf092bef0dae137783e92669abecfe737184b1477f30",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41098191.json.gz": "f40ec077c4e1ee3ea4f3a1253d7ac931e8048bd7611d1e856818caecd799e2ef",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41125564.json.gz": "ca590594fe4cfe79f228f8d00c3cce9a74de1a71b0650a54f5f9a9e007c62304",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41125837.json.gz": "0330a00da727475cc9a734078e9ba490a243c7b6ef2d0fc9864e9a3edb2b9996",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41126367.json.gz": "0d5fd594af4d27c94ef1ee778c7b8186ea6b010bdfe22f3e5c6320c37a26f212",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41126453.json.gz": "aaffb603eda25cd05a3fd53d3cbebccdc27c1da9cb71101a885f0948f3fc7664",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41126744.json.gz": "6d5cc47710849f11e9bd8dd6d89d43fdaa66ec723dfed6a25faa420f864ca903",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41126757.json.gz": "a9e231ed2736588004bec0878381bc4a0cf8a4b84d69525e91237ad93164826f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41126783.json.gz": "34992c317d926a4a2091a543febff8783ec17c4f7d04ea6ae29c6322c7a54630",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41126996.json.gz": "3d2576894fcc29a4e0321e127ae34b08f6a3bf84abb466cd2dc2e455fe3df21f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41127027.json.gz": "74cbb255ea36baf42d80c9f1a9fab4540b2f8edc7826411ee928fa21d9c66cff",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41159381.json.gz": "e9648d2f5b5daa2382ceaa376e6c726225995fcc19d21141e571898021030549",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41159425.json.gz": "4f53c02eb6000b6ecde7969136bf294a6e8157e95fccdab72f0c8c11dede5f77",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41159653.json.gz": "6b9233c907ce3f77b609e239471a7ca0af31d6a9596798ebb5ed17dafd1423f2",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41159675.json.gz": "aa0face40b828b8535422b3b0c204be3eb7c5da87ec8d49fb719a870ee1363c8",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__41159723.json.gz": "a21ccfbd042b7dc9b8409ea5b1b4f1ee5ed669e7b92ffc4664660fc4972eafbf",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42444513.json.gz": "c7f8d8fdf8c0ec5511055e49de52c9deab8ba618bbdbe66fdfa3e1676708d96f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42444814.json.gz": "c5f60268a892b4f76a3a0446940e51f05c3908aa8a33fcf043ab9f3185ddacd1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42444887.json.gz": "b6bbd2e7c149d418b378e34c53d6e061dd8a38cafa8f900d2f2dc34e5647b128",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42444907.json.gz": "917f589824a983c5b0c7cae4089c57baa0e154c91f2994e98835d065132525e0",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42445056.json.gz": "9e596501372f95964ee4cd292b7aca8cc4cc51ba3b664361c3c291202ea0bca1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42445092.json.gz": "66fb6d03e3e3663a0700159f94108bd4de2eb974352e8f899653c55f925292cf",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42445454.json.gz": "454158371a80e688f3b986c5c4e9a88d184ae15d5ed248dbed897c363e99df75",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42445474.json.gz": "d1bb24dc178228b4af1952f96973e9a071c779e57b29a196dd5e73caa52cc215",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42445924.json.gz": "27683f561784dbddef4ad5d5daf7053a0f04aaf35e558860b194577673b433b1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42446074.json.gz": "787c8c566db5fa6951fc5f680e429554397d4847aafd2269ef0c3ae343b5a115",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42446080.json.gz": "5bdb0c7aefffac4b4217d8d824eda90efaa272de2ed01f94e978b7fb76c5d572",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42897467.json.gz": "9d42488b676038452dcd890dcb8e950d771733149e213c69110b3695287cf8b5",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42897480.json.gz": "5176ceb0df280b6ade4901d3172aa47be2d313b8ee6b238ebd64cfe2d982e8ba",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42897512.json.gz": "2b4618493dab2282915dc5b379ada990d910196b777958c045864b9011fb5de8",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42897607.json.gz": "6eef4c92123118a92771999cb58988f5b34950e91fd6cd090155cae89b1a5ced",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42897622.json.gz": "e3bd19ccfd12dcfcbe0016086b34ad4e5570cdd99c15b5801eeaa80ec17ed212",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42897668.json.gz": "9cc4623c5181fffa348ba2a787e09dfa9a3c8db0411cbfad68fff8e2647bfeca",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42897783.json.gz": "e44074068f043155875c68a449f9e632195e27d761be5ca4e24978203c43bb38",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42897784.json.gz": "f9dcb15039218fdbb96dfe0a2500a99060291907aa9d84007ac16595a9640f6f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42897955.json.gz": "fd2f2b106add5bb0095e402f7b1f99ff8199217bcf01a1d1bf90c4fa961e1789",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42897967.json.gz": "f77b0d8d1898a7395a3ae45c7717601b6ed011188f779a966803b320cadea8ee",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898109.json.gz": "f1750fd735161f99bc52a2931135e0086aecc0fba29ecc562214afebeb64ddbe",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898141.json.gz": "a8e20b7770511355feb20975efd6b7571ef70ce6a2451360b8ab43ed2f68ae77",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898213.json.gz": "0ffde78fef2eaaffef800478163bf8ec0c573994f9a7757d7a9fac8b66a32bab",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898236.json.gz": "5eed606620942a9f4a9fdc83eae4f4597ce41dc7926d3f7f32a33a38f512c0a3",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898405.json.gz": "87a26578176f3de22a30bc0f08c354cdbfba3a18e0a07b5355103c1ed4972cc3",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898477.json.gz": "b4f0422a5dd4d67c60306c172a962a2139d608673270e7e66dd982d2b6e39ac4",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898715.json.gz": "8e3d118b21191cff97d96826c2418ad53caee10bf3af8cc8d5d55c243076ed7c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898740.json.gz": "e282b161dee189df908b140fed48ac498e47e84eff793c3e8bcb392b2aa59e78",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898745.json.gz": "1c4656ed88f454d0ec4cb4f3ae210fc208232a6f90b06784222e13620cda9551",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898786.json.gz": "d17c766a4aa677c597db2a5e8f9df9acead4caf488f67fcecafde7ff572752a7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898792.json.gz": "546c6c83445d5b925bc803ab3f6b797b09f4dd2c67bef7b4ebaef5a4a4702c34",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898983.json.gz": "97204211d04f3e0aa73b32808115e9e040f56288973cdec5e6368ca5455b044c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42898990.json.gz": "1232db4a7d281400123f2ae522a09516eaede16552e4fa3995d52ec2bda80ab3",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42899003.json.gz": "add756dcbb7b07d24fb8ad67afeeafc4386964f927ded2d3f956deab6f28011c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42899285.json.gz": "ecf3328cae8e445db05fbd26e6a86d21dfac21cf1db3a10e89604b005b42afe4",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42899559.json.gz": "e807bdfc4a5dca10aa716949df113e663a673c0bdf178d5c479bcb3975b820ea",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42899851.json.gz": "8a0bbe288015258c44225da710267e0a13a1dd928def56e6373e8ac5f3c3b27f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__42899906.json.gz": "b73841ad1f74bb33a60ff74fc7395c56311029ac3936d69e57d261be9633ad1a",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43649382.json.gz": "b1bcadbd65b03e463e0c542fbf78d529e37d45643fe62a7dea12affe97eb5b46",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43649403.json.gz": "afd8f420fc0c322eb5d2248379dbc323e46e1c1a8ff97c8d0d01ea1338e9aea7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43649474.json.gz": "b6fdb5c3585f60f000a31f652f74158b0c49a7f18573455b5cbb1356ea572bd0",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43649681.json.gz": "0c2430b80dd471c6e9ba2d59005a38e9419654c0f6843c01adc7fef7668ea5a1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43649714.json.gz": "90a95e79d1bfb99fadadd02ceceda5ed0a5c3c0a8b76d793439e98a407f541fa",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43828507.json.gz": "edcb08b9c6765d353d82daf550a139ce3bedc57f95957532f07f0ab4aec99980",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43828554.json.gz": "2835fb1eb80d95950ffee164f0a55efa08f0a4983bceea37bf64f5ff76e4ce32",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43828583.json.gz": "daf2caa08ba683717083ce97a8165943afa24b024ea943f5217254e4a0552f94",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43896055.json.gz": "805b6209d3185fb5ff187f79f891263e50b1d5122d2674d014c497278b6a7b86",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43896365.json.gz": "3155c1759248812045371e0e4e979fa993c762ee7721d5a64ecffdc7f624910d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43896469.json.gz": "f90ef9bb0ab74228f17c566e115dbf94b5c8695a09db5b36724b3284346876f1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__43896478.json.gz": "5ef290b376dfb4745f12bcb611360dab2ea49dc40a4814b391fd2411526e7dc9",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44358118.json.gz": "13181a320f1ff41e69adf74436207630028fc845104ac2693fd2b7fc7be6a1c8",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44358426.json.gz": "f38d029a375419269fc383e387217f0678120666b885929102f3361e5924c338",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44358557.json.gz": "d906c2d9c4412f83436a9641e3a8c4511f0293fcf1bb6e4c71762e8913bd6845",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44358593.json.gz": "839cf931818a183d1d6fcb547d602b9238893ea41eb6a624345e0bd3d7bc1644",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44796221.json.gz": "8740d1d99bdecc5ba2ad146762ee8348ae8aea36d81bd8331b342494abd63c95",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44796297.json.gz": "d87e7a221510efa7a2f0d4c7157f13057db8a4c7b97e6bbf7a25b31f6e46d05c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44796304.json.gz": "b82382e0cb82ab1b82f2777cff2a69c60ed81dac3aaab3b6f96d6da2bd2d5271",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44796324.json.gz": "b6b8093bbd20bc11baf88e624e3b46c3652c2eacae1ef17505faf806268886ed",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44796332.json.gz": "362561b7d4be2910b15ee0740be39539d687ab1bb2db9e74092cef844e53a1de",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44796349.json.gz": "c59dd65107b19c6f12fad938837027265d1d0a7096e804b3a959e06b457e6478",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44796392.json.gz": "005268c3a6db39f18f82520a888d32d41613f704f45bbaf4d60b217ac3a787eb",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__44796450.json.gz": "26899f05b2fe13c5a085ad1b792e0e0f8c3238e1bced7f813a45adb5df775118",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__45260873.json.gz": "b631b518da915461094498927ebb073aaa0b88f1bae20c7d2f850c4906bbc5da",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__45261397.json.gz": "aad37ea2cf9ab8a2268a705ac385d553a890540cd8d3e78d897d25a641629432",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__45662791.json.gz": "f3b517452d2b83e19633608542769c6bca6c1317eb44764894137092651af681",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__45662816.json.gz": "0d573991e3e609fbf3b6ba12a79cfe1cefa0fdb07fbe2a5487118cee8284130a",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__45662959.json.gz": "7df02e2ff989676e026730ddf12e7a9d66ab7854d459602568c654f5a313d412",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__45663064.json.gz": "65b62f31009158e8371a85c1c931118f3dc09aebaa750ceac3bf6aa1d03485c5",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47115174.json.gz": "a713d665a532ca53c9cd18b82817a316f4a0c6c4517fcbe40e91dacd5d9a05bd",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47115350.json.gz": "8ccc8c63f06700c8ab7e5e8fa675baebae6e18b827087723be74e800cf53f2bc",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47115412.json.gz": "3ce51e493ee58920bcad60eb304d5d17637505a0bfef93b91a3c350e6d84e9f5",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47115415.json.gz": "b8f9a97a84396ba0766d826e6a05855e43c24831038b9ce1cab22d7b3ce3ad89",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47204274.json.gz": "b1059061ff84f850b6131c36138e8ccdf86aca96c82c72f21c3798df6bf62b20",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47204392.json.gz": "bc275dfdd43a245d8375654218a77ec17cdb4a2f53fc842da9977cba01fba8e6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47204407.json.gz": "d47bccfc35a6648aa92175ee368998fe7628d0d2f2b243a52f84a43838e0375d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47204482.json.gz": "f00104aaa3a5f564abf7ccd22328f03bfc12abe0b3d06b2a3545efe146d5e598",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47204517.json.gz": "bcd1b06d3afb40c6b87467b27904419d4ba605544b4c12a31d28e4ccf08d5e87",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47204813.json.gz": "6b106166d4ffb568c35fe2d22749da6c0153789e7ae25582faac34e81456169f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47204836.json.gz": "a73cdf49eee0bf0fbfa82fd175b0c7bfa31e02d4e0da749032a8edde6e6f5456",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47330995.json.gz": "8da58d2ee9428465265f94cc61f9f0ca8ed00acd57b4d7d97ff2a343bb7d8376",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331154.json.gz": "b6f2f567734e7325c9527714eec0eed7520be0d8d1b682021d4255dc6cbace5d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331188.json.gz": "b20f2957132a2cb76d8c9390a1c0e25faeb3ee23c86767537985c8b131dfc95b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331189.json.gz": "38c80776f515836f8b9cd8a6006dddb099c3f487ca9cf0cc69c4e8d60f54fc7f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331294.json.gz": "e58853960cd57ea4e2fa3f4cb22539d7760b779c35533144a6a7c5cef5c90b22",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331479.json.gz": "62ef7a3046948d597c30933d2a0dc62f8b99e93e4779fa1cf7af37e38caf3a2b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331557.json.gz": "1af81f53cd12e91e5a5a46a3ade168ed4c082101961d4b8a39656c2ff6409901",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331606.json.gz": "216d924f9314f1c0e416419eaa3914a3c90e58e3b9c153ade3febb5a57091664",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331711.json.gz": "7e68aa5f009642f48723798aa7b9f42358501cd9c1e46a1eeb4a2be0ae40e70f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331771.json.gz": "e2cbe8034f29558777495f42b7e5877eb3799d61f72d2321662ba71ed6c17e32",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331815.json.gz": "a34689183234eace518a08565296fd00651738086efeb32f9fa3359284023571",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331878.json.gz": "f26468c2b6846f27d67e975e106bb4fb1249b728de46d2089f5d969914cab917",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331880.json.gz": "6fc38b3f24d51452a81954de0e68035eeea2497fa1471adad6e218792db38487",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331928.json.gz": "068dd0b988c5b7fc85b111bee0178fcf9d2bcaa9f6665b2c1dd7b0a936a91485",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47331946.json.gz": "c804060cc9f16ce67990d5d449cb13ff3d0193e802eba017e928d42de213c925",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332026.json.gz": "ae3502fb6f5fd8c5182425e4cff4f7d1af9f234f7861f9a9f8cd4400acc0c835",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332044.json.gz": "9edf10204b9b60992373457b6c587b459dd376f85b69c54ff4d6d0f95106be8c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332125.json.gz": "b5bfadbaf3f1c909c5e70b6e0ac01eb34f6c34f0c0af541242703cfa874be403",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332192.json.gz": "80255bc8ff4c1e9e40f8dc9dbd8e541e0f0a6a15e2c492620ace91f0a2556de6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332204.json.gz": "3843c88662ed5176f8222cc72404ebceedf346b52938ea5fa01b89413bad3e61",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332383.json.gz": "2b547501f04ecc42e5ea328e271b05203ff24944701913a30cf25fae825e802f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332400.json.gz": "5b32bb781a0f24161bfce8d4feb260050c5ddd987cf2ce86517facc7c942dc3a",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332430.json.gz": "342e82d776f597ae3ea5483700489de1c9ad59f587425e4394e43d7a9b747cb2",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332581.json.gz": "36df9ac60681daef0c7ba6935f69433343cecdc873b170acff1b8e51d3d4d6e1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332592.json.gz": "6c29ecd510e87bed1b85b5b22d8d9e1b2ccf61b5f05f38c792e1ab4cbf881230",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332704.json.gz": "642031c7ad6bda6a9ff9de295b74e10e35983d014668487aca555d76783b3852",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332705.json.gz": "19b526ff799e5ddb2a8cc73add53074d0f020e22caa0c3fbb80fd3c53010bdaa",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/arkitscenes__47332710.json.gz": "4c240347ab3e78385b2c12fe6cb15a3abcdcec00d088906ef28e6903123c3c41",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0201_02.json.gz": "98ee2335224b08a84521dd7b2cbad3d096b7f5a665402176af19bce0b0046195",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0204_00.json.gz": "07f9ed28f7d9c3e492fd6409791d1ddf6ac746f938b00ff04d62fe1ad55ebe6e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0232_02.json.gz": "a927d4cdbffa4e53b10c0884370a7d9be1731ed1ef16adecc87183f2aba0f9ce",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0242_02.json.gz": "1d423c2076e7963b0bc8aebce54516ad1a19cb7c15aa24d4af925ae10117cefa",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0348_01.json.gz": "821109e7eab27c3bc1c27ca90721d02b1512adc4a06e249eda0efcc2269b8d7a",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0350_00.json.gz": "9aeeb37cf0f4b00aec336ee56e6bfa71143261b853bf20bb336132d114c44e6e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0370_01.json.gz": "25a8866b4dc7a8c446094806b57a66526b809174c74a162b751312845b7fc029",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0388_00.json.gz": "ba0f1266324ffdc61012e31f1243945247fc31d405d5734f3d26065f33222403",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0452_02.json.gz": "037425494584b509dccf9561ee4ce9aa5d29b92f248e050beb3a5cb37d234eb1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0478_00.json.gz": "41efcc0e94471288b08942e5f47159690b93371853eb1fc80f33474600e12b6f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0478_01.json.gz": "e1063d5cb667e2620142e1643aa2995be7fa0d8ad20974c67cd6336487870b14",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0479_01.json.gz": "a17903f04f56c2f2e5a7cf418ef9141622e2b79b1ff857f83a519aee9d4f90d9",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0479_02.json.gz": "9cada3ae51c376f9fce958769d36bf7a6fadf1a77015a4e0850e6da8bb63b497",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0480_00.json.gz": "481e8281e6a4416af132d18f00350170cac4b91b1622a79f4c581550414742e7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0480_01.json.gz": "c52b41b18940ac78517521a1b9c7ea086f9c4ea1f7c06a2870700b9d64290c64",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0505_01.json.gz": "0081016209a1ba67d4eaf4472de205a65de43279ec67f2afc0fb4bcbd55f5e12",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0505_04.json.gz": "8fbc0ef807dcddfb625f9e89689ea13d86b65c35cb7d56153325a010bfde421d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0540_02.json.gz": "99798c3240fc1b9cca2a053b05e6331c5a882e1032ab5f1b60c10a7bc887fa67",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0614_02.json.gz": "f9e0b82d64eb769669f36d62e2fe5ef10a42e96cbd6194845ee1489c6a7c55b7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0676_00.json.gz": "4631a16028d58267354b7e6a2870afb420948c15080a36b6f5f8a930c5ddf626",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0676_01.json.gz": "a9ad217c0fc8233954b2933635910d967f44231974aa88daee59389645001190",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannet__scene0692_03.json.gz": "c2afcf018748991fa95cd412310059e075ccdf0e5e8fe59663cf6d1fe1305a7c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__036bce3393.json.gz": "90bd0190f32e6fbd179217daf4db7c0907bed4277d3cac4187bb09d9be400fa5",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__067e2e4e61.json.gz": "8adcc911b730add9184a1996e3a4a84686747d56c0cea75d11c721455153f7ff",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__07b8312ea9.json.gz": "f13b5f685ff1f50f203a38b067ba0c3ed1eb71b4fffbf0d3ac57a712bfe9b49d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__07ff1c45bb.json.gz": "f3dfa3c066dd37dc3b7a5d628ae3107eb5c2438ce62e40b8bb4a1867d917d4bd",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__0f69aefe3d.json.gz": "1fb18c1344c7e71f56af7e0f1121aaa1663e6f0abbafeb28d747441f611901e7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__10c8ab99f4.json.gz": "380d0a48ba03afec91cc8f0ea0421947b4e7b6fa6545937b35d9ef0ebc1178e6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__116456116b.json.gz": "98ea28e28b40928f05f0f1904f3167b7a26c4296389d16e511080cac32e8f87b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__126d03d821.json.gz": "7440f72915ff30014fff054d80ee315850a5c618413f5cf04985766c1b8d0355",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__1a8e0d78c0.json.gz": "295dba34f4867ab6898b7f4e74b428a9bae012fc29ec09f2fecedeef1b36cd3f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__1b75758486.json.gz": "dcf743eeb70c56d2484f21c86ee1bfa90d45e22211c5f1dbdd263a57b62a2763",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__1d003b07bd.json.gz": "057d242c3ab083c6d277734a522c789fc409b5c9903ed60ba41ce3b03ae05ac2",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__2150596d57.json.gz": "8fd5b639911a4a6738687d2da4dfe21a6ce3d8008d49cb6b557c14f844f48052",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__260fa55d50.json.gz": "2837f8dfd75316c08ca8460911ab107d1e00839299d693286a03aa5445e33734",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__268513240f.json.gz": "5658a84ee842edb7f050def6dca87fe031ad429ebd051d99f798bb66ac2d8dab",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__2a496183e1.json.gz": "f275d46370af3c598c71487fe091383388f85165cc63130d4e9c467b9aa8f395",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__2c7c10379b.json.gz": "c7710f906039baa8e0b66810ec79c4d59d9fbcf40eab93124987a5aef06f7b10",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__2ebbca3e57.json.gz": "084c8d00950d1c31b7b0838668a71d8ac93b9bb5a2d4132a7321d4bf08a26626",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__2f5996ff01.json.gz": "cc15cfb899316e279c2a542e85559938820537917745c8654e59abfbcc155598",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__302a7f6b67.json.gz": "41fd9ea2e1d6cb21cce95c8444719571df289e19900ffe3d0b9c201a8b2c46f5",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__35f2120068.json.gz": "d4e94c456717a3e87867d480be77ef69ef5191335cdc0f1d06debcdd0396bcc7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__3928249b53.json.gz": "043008e4533d22fca52f282285e60948e7c5149b44633d7c71852e195fca7422",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__3a520af32a.json.gz": "ebed14df2178f6926d41d9030a52232b0be8f9f03f10119c260f29fe12b6ae27",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__3b753d9ae8.json.gz": "cfa2485cecbd6d0a33b4939aa38e39684e889029261f2eba53df17e63d76d5bf",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__3caf4324fd.json.gz": "b5e95fd91857e4e578892acc79220113a172a24d794a9a808a5292776d6a705a",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__4117a4f02c.json.gz": "3749eaa5f86300d3d33638c1ff8b323de4070b142572cfd552cf113f5c670fcb",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__4291be3b44.json.gz": "4cc61f12635528cb9f7ab725016f55d5c311aee12d4776c7bf8a1c72d121c6f3",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__469f112e38.json.gz": "439c692a3fd0d976dc2296be35a7988381b0d40004546e3f6817dc10c4f08447",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__4a1a3a7dc5.json.gz": "ded4c5a5265e645248463181777fdef7ba907e8c6568c5103e344188ae5df614",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__4e2db5058c.json.gz": "c209d0c130328bae7bb09ca68c2727adc8a9526fded6ead4b38741e4f6b9f513",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__58960ff105.json.gz": "2c72df7da08ad8e9a4bba80507c00cb41356c6a2c8ea46b3bb534106a43a818b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__66c98f4a9b.json.gz": "c62bf9062ea19fd8121c79ee4d6b2ff2c2e64b63c62ebc50e1f1b198048adae7",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__67ab69f888.json.gz": "a34dc0010298a4838f756b679e666cd1d03fade201c66649be787283dee303f6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__689fec23d7.json.gz": "27328bd3b2fe69229e0d2df23bf1a261060e73644fa7e143b55b2e9cb515085b",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__698c3bf2bb.json.gz": "fa85ffa7e7e710f99e791cd6783f5577b30f237767ab09ef4001c4aebf3692e5",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__6ad6cef000.json.gz": "ff2afbff9de8e5beb422d33da8d2671be729da7acd05b25494717bdeee2c6ebb",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__6b40d1a939.json.gz": "576753285eecf9eeff15aae62b5db4e310e61b89b2d1c8be53e9bb5954d05785",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__6cc2231b9c.json.gz": "556dd9b854335e819bdcf71c61ed3e86b054b3241b191f5282300a1e5f4def06",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__72f527a47c.json.gz": "8b2ac3178e201381a2fde0499e673b0e3fcec95ce504babeb6ef7383184e4d50",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__778769dad8.json.gz": "c597bd448c34598ece466bcab3daaf8536a5320de98547bb210848e445f83098",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__77fe971eba.json.gz": "d630cf46e257fed3d26cc0a871aab8fd37cc2441c237d3c3607c39194bdafbaf",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__79eb3fbc63.json.gz": "ded96250b4da6d888a172c316288887de94dec67383cd676a500f9efd3309571",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__7b4a316aea.json.gz": "a2ba6f52786e73e980989a285b683256cdec5fbb29dbecedf67357132cb29835",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__867d97cf3d.json.gz": "03e7450e32db75a23d79d0be92edd7f6535aa811753b7603d3dd700f449b0489",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__872268d1bf.json.gz": "8bb99f901848e4c9be38eb21f61dbf78348abd4bdbcb1b26671c4d4e4ee5c409",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__8a20d62ac0.json.gz": "b5c44539fcc4b9c7e53f35275c762883fca58169d0e3abada155b801e26570c1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__9c7b4394af.json.gz": "bba4dcf1eccb71e7278cb7900d2b41d5164c6efc2461d4327e7375b1d55ec0a4",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__a9e4791c7e.json.gz": "1c1677984a25628a8119a876daad49db1603be0dc170b7db0e45836bd9552a7e",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__abb6639ceb.json.gz": "bb6728e2dffe3d3d3a7f13239dbdee4b3d7996cd98c0be5f8f9ac28140657a73",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__acd69a1746.json.gz": "6d0463b2367310dc13132dd4e1c863f0637abd199b4428eb8b89a14a15c49ebd",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__ad2d07fd11.json.gz": "bb426f6734434b69669dc35a3f38fd58628191bfa6e04d30862f1c4dc2a69937",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__bb87c292ad.json.gz": "4f2059c93f7b845acba3960100cb39167801286a87e4f760ae2451a9c93390f1",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__c178491bc5.json.gz": "de767ddb5271627b755116038b4c1ccf42c2f427e7f01f3907229deb8308f36f",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__c31ebd4b22.json.gz": "8f979c0de1976e8f744670ec4c3f23d4e0cd6f7f0bd4a487a16ab61824e4e068",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__d7abfc4b17.json.gz": "34d5869fa1deaf06562fb64d0d4ff69543543d6545ed43ff43fc08f7761514b6",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__d82aaa88dc.json.gz": "8f93852a38e6108665b4500f1a474837462a5b53183af17e28b7e1f1e260326d",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__dc5f00843f.json.gz": "8ebe64d1b87d382d0c07f1c105cfa823087dceeac84e61da9a7ce68ec5702156",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__dfa70fb232.json.gz": "00c5819f4932b23a10284040ed1e4fb68eb2752a4ee067d3e149cc1ef7a96748",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__e51b753e48.json.gz": "bba71b04fd0c2cf57be3929c18c20090768c9460a2a004b749008665bdabca14",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__edced53026.json.gz": "844b7bf14566dd3cacc99d47871554a3c28372fb6499d4a8df4bbdeeaea3e55c",
+  "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/dry/price/S_GT_STUBRASTER/scannetpp__f8e13ab4ae.json.gz": "a8fb45477014d0ad6cfea17a1ffa684c76d8020a0953c6f64e1d89844bbc03f6",
+  "/scratch/jjyeung/orch_n30/sb_maskfail/analyze.py": "f58a63b6f7f7a60d1aeb2ef8701adb38f6d0996750f57d5e5af83263636c4d80",
+  "/scratch/jjyeung/orch_n30/sb_maskfail/out/MASKFAIL.json": "01a654357b9439b7ed8c07b3027c726a6218d448de9c88ce3fa6ae63c1f27096"
+ }
+}

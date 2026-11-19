@@ -85,7 +85,7 @@ def logic(package,w,c):
     entries|={n for n in pay if Path(n).name=='worker.py' and '/tests/' not in '/'+n and not n.startswith('tree/')}
     for i,n in enumerate(sorted(entries)):
         P.safe_name(n);P.need(n in pay,'Missing isolated entry '+n)
-        code='import runpy,sys,torch;torch.set_num_threads(8);sys.path[:0]=sys.argv[2:];runpy.run_path(sys.argv[1],run_name="preflight_import")'
+        code='import runpy,sys,torch;torch.set_num_threads(8);sys.path[:0]=sys.argv[2:];'+('import h1eval.h10.launch' if n=='h1eval/h10/launch.py' else 'runpy.run_path(sys.argv[1],run_name="preflight_import")')
         P.run([c.get('python',P.PYTHON),'-I','-s','-B','-c',code,str(src/n),str(src/'b'),str(src/'tree'),str(src)],w,w/('i%d.log'%i))
     op=runpy.run_path(str(package/'a/6.py'));desc=op['descriptors'](str(src));memory=op['memory_bound']()
     P.need(memory['fits'] and not op['memory_bound'](allocation_bytes=1)['fits'],'Memory bound differs')
@@ -125,7 +125,7 @@ def guard(package,w,c):
         elif collect and isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Attribute) and isinstance(n.value.func.value,ast.Name) and n.value.func.value.id=='env':env_nodes.append(n)
         elif collect:break
     P.need(env_nodes,'Native CPU environment assignments absent')
-    ns=dict(J=J,root=root,os=os);exec(compile(ast.Module(body=env_nodes,type_ignores=[]),'<native environment>','exec'),ns)
+    ns=dict(J=J,root=root,os=os);exec(compile(ast.Module(body=env_nodes),'<native environment>','exec'),ns)
     virtual='/tmp/a123'+pub['token']
     for k,v in ns['env'].items():P.opaque(k+'='+str(v).replace(str(root),virtual),c.get('forbidden_extra',()))
     for arg in J.namespace(root):P.opaque(str(arg).replace(str(root),virtual),c.get('forbidden_extra',()))
@@ -141,7 +141,7 @@ def guard(package,w,c):
         try:subprocess.run(args,**kw)
         except ValueError:pass
         else:raise P.Rejected('Native guard accepted a forbidden surface')
-    return proof
+    proof['python']=sys.version;return proof
 
 def trap(package,w,c):
     text=(package/'BATCH.sh').read_text();P.need("<<'A' &\n" in text and '\nA\n' in text,'Missing background batch wrapper')
@@ -220,13 +220,17 @@ def login(package,w,c):
     sources.update({n:b for n,b in pay.items() if n.startswith('orchard_h10/') and n.endswith('.py')});sources.update(P.bundle(f['BATCH.sh']))
     for n,b in sources.items():
         if n.endswith('.py'):compile(b,n,'exec')
-    raw=w/'1.tgz';raw.write_bytes(P.tar_bytes(f));b=dict(token=pub['token'],delivery=str(raw),sha256=P.file_digest(raw))
+    state=Path(c['work'])/'BUILD.json'
+    if state.is_file():
+        b=P.built(c);P.need(P.untar(Path(b['delivery']).read_bytes())==f,'Login probe delivery differs')
+    else:
+        raw=w/'1.tgz';raw.write_bytes(P.tar_bytes(f));b=dict(token=pub['token'],delivery=str(raw),sha256=P.file_digest(raw))
     remote=P.remote_path(b);local=w/P.PREFIX if False else w/(P.PREFIX+pub['token'])
     with Mirrors({remote:str(local)}):exec(compile(P.place_code(b),'place','exec'),{})
     P.need(P.package_files(local)==f,'Generated place altered bytes')
     P.need(local.stat().st_mode&0o777==0o700 and (local/'a').stat().st_mode&0o777==0o700,'Place directory modes differ')
     P.need(all(x.stat().st_mode&0o777==0o600 for x in local.rglob('*') if x.is_file()),'Place file modes differ')
-    return dict(python=sys.version,generated_place_executed=True,compiled_sources=len(sources))
+    return dict(python=sys.version,generated_place_executed=True,compiled_sources=len(sources),delivery_sha256=b['sha256'],recorded_delivery=state.is_file())
 
 def preserved(base,filled):
     P.need(len(filled['archives'])==len(base['archives'])+1,'Fill must append preparation archive')
@@ -300,6 +304,18 @@ def resolve_inputs(inputs,base,cfg,c,mapping,remote,local):
 
 def fill(package,w,c):
     P.need(sys.version_info[:3]==(3,6,8),'Require actual login Python 3.6.8')
+    if c.get('fill_mode','mirrors')=='structural':
+        import pack_structural as S
+        original_files,_,_,original_plan=P.structure(package)
+        binding=original_plan['export_binding']
+        P.need(all(c['fill'][k]==binding[k] for k in ('object','step','lineage')),'Configured fill identity differs from sealed binding')
+        constants={n.targets[0].id:ast.literal_eval(n.value) for n in ast.parse(original_files['a/4.py']).body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id.startswith('REVIEWED_')}
+        P.need(constants['REVIEWED_OBJECT']==binding['object'],'Sealed helper object differs from binding')
+        original=P.fingerprint(P.package_files(package));target,small=S.rebind(w/'standins',package)
+        cfg=dict(c,fill_mode='mirrors',mirrors=small['mirrors'],fill=small['fill'],old_identities=[],max_read_bytes=10*1024**2)
+        result=fill(target,w,cfg);result.update(mode='structural',source_tree=original,standin_bytes=sum(x['bytes'] for x in small['mirrors'].values()),production_archive_identity=False)
+        P.need(P.fingerprint(P.package_files(package))==original,'Structural probe changed delivery');return result
+    P.need(c.get('fill_mode','mirrors')=='mirrors','Unknown fill mode')
     mapping=validate_mirrors(c);f,pay,pub,plan=P.structure(package);remote=P.ROOT+'/'+P.PREFIX+pub['token'];local=P.extract(f,w/(P.PREFIX+pub['token']))
     assets=json.loads(pay['orchard_h10/vendor/ORCHARD_ASSETS.json'])
     required=[dict(path=p,bytes=n,sha256=h) for group in assets['groups'] for p,n,h in group]+[assets['bwrap_pin']]
@@ -315,10 +331,47 @@ def fill(package,w,c):
             runpy.run_path(remote+'/3.py',run_name='__main__')
             from orchard_h10.common import read_config
             cfg=read_config(local)
+            # Execute the delivered submit entry under 3.6; only sbatch is replaced.
+            calls=[];original_run=subprocess.run
+            def sbatch(argv,**kwargs):
+                P.need(Path(argv[0]).name=='sbatch','Unexpected submit process')
+                P.need(kwargs['input']==f['BATCH.sh'],'Submit wrapper bytes differ')
+                calls.append(argv);return subprocess.CompletedProcess(argv,0,b'123;local\n',b'')
+            try:
+                subprocess.run=sbatch
+                sys.argv=[remote+'/3.py','submit','--gpus','1','--time',c['remote']['walltime']]
+                try:runpy.run_path(remote+'/3.py',run_name='__main__')
+                except SystemExit as e:P.need(e.code==0,'Native submit failed')
+            finally:subprocess.run=original_run
+            P.need(len(calls)==1,'Native submit did not call stub sbatch')
         resolution=resolve_inputs(filled,base,cfg,c,mapping,remote,local)
     finally:sys.argv=saved
     P.privacy(local,c)
-    return dict(python=sys.version,fill_executed=True,entry_check_executed=True,resolution=resolution)
+    return dict(python=sys.version,fill_executed=True,entry_check_executed=True,submit_executed=True,pool=pool_probe(package,w,c),resolution=resolution)
+
+def pool_probe(package,w,c):
+    script=P.adapted_script(c,'gpu',P.ROOT+'/'+P.PREFIX+P.read(package/'0.json')['token'],package)
+    bodies=P.heredocs(script);P.need(len(bodies)==2,'Expected receipt and pool predicates')
+    body=bodies[1];tree=ast.parse(body)
+    root=next(ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='root' for t in n.targets))
+    pool=w/'pool';pool.mkdir(mode=0o700);(pool/'0').write_bytes(b'x')
+    def check(expected):
+        try:
+            with Mirrors({root:str(pool)}):exec(compile(body,'native pool','exec'),{})
+        except ValueError:
+            P.need(not expected,'Valid pool rejected')
+        else:P.need(expected,'Invalid pool accepted')
+    check(True)
+    # Inject only the stat size for the boundary case; walk the real temporary pool.
+    original_stat=os.stat
+    def large(path,*args,**kwargs):
+        value=original_stat(path,*args,**kwargs)
+        if str(path) in (root+'/0',str(pool/'0')):
+            fields=list(value);fields[6]=75000001;return os.stat_result(fields)
+        return value
+    try:os.stat=large;check(False)
+    finally:os.stat=original_stat
+    return dict(python=sys.version,positive=True,oversize_rejected=True,synthetic_size=True)
 
 def receipt(package,w,c):
     """Run the sealed submit receipt predicate on exact native CPU writer output."""

@@ -1,0 +1,35 @@
+test_composite_pose_connections_are_created_on_the_worker (tests.test_so_prefetch.PrefetchTests.test_composite_pose_connections_are_created_on_the_worker) ... [transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+ok
+test_native_tokenizer_and_video_processor_are_private_and_deterministic (tests.test_so_prefetch.PrefetchTests.test_native_tokenizer_and_video_processor_are_private_and_deterministic) ... ok
+test_one_group_lookahead_and_exception_deferred_to_its_boundary (tests.test_so_prefetch.PrefetchTests.test_one_group_lookahead_and_exception_deferred_to_its_boundary) ... ok
+test_processor_copy_failure_reaches_original_admission (tests.test_so_prefetch.PrefetchTests.test_processor_copy_failure_reaches_original_admission) ... ok
+test_real_rows_cpu_rng_sqlite_processor_ownership_and_exact_bytes (tests.test_so_prefetch.PrefetchTests.test_real_rows_cpu_rng_sqlite_processor_ownership_and_exact_bytes) ... ok
+test_two_rank_admission_failure_for_single_and_nominal_groups (tests.test_so_prefetch.PrefetchTests.test_two_rank_admission_failure_for_single_and_nominal_groups) ... SO_ADMISSION_PROOF /scratch/jjyeung/orch_n30/so_step/work/test_runs/so_pheui274 factors=1,2; both ranks raise in first/middle/last groups
+ok
+test_bounded_cache_and_non_rgb_errors (tests.test_so_cache.CacheTests.test_bounded_cache_and_non_rgb_errors) ... ok
+test_same_encoded_rows_hits_invalidation_and_mutation_isolation (tests.test_so_cache.CacheTests.test_same_encoded_rows_hits_invalidation_and_mutation_isolation) ... ok
+test_python_float_accumulation_order_and_mixed_dtypes (tests.test_so_metrics.MetricsTests.test_python_float_accumulation_order_and_mixed_dtypes) ... ok
+test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives (tests.test_so_joint.JointTests.test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives) ... [transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+[transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+SO_GLOO_PROOF {"directory": "/scratch/jjyeung/orch_n30/so_step/work/test_runs/so_i73omf5l", "ranks": 2, "comparisons": 16, "losses_and_every_gradient": "bitwise", "trainables": "identical", "row_draws": "identical", "collectives": "identical; main thread only", "failure_microstep": 2}
+ok
+test_first_and_last_group_failure_and_combined_cache_at_1_4_8_threads (tests.test_so_review.ReviewTests.test_first_and_last_group_failure_and_combined_cache_at_1_4_8_threads) ... ok
+test_group_tensor_budget_error_is_deferred (tests.test_so_review.ReviewTests.test_group_tensor_budget_error_is_deferred) ... ok
+test_nonowner_close_refused_and_owner_closes (tests.test_so_review.ReviewTests.test_nonowner_close_refused_and_owner_closes) ... ok
+test_refusal_list_and_group_cap (tests.test_so_review.ReviewTests.test_refusal_list_and_group_cap) ... ok
+test_replay_releases_consumed_rows_and_consumer_failure_drains_future (tests.test_so_review.ReviewTests.test_replay_releases_consumed_rows_and_consumer_failure_drains_future) ... ok
+test_startup_values_errors_cross_rank_and_frozen_settings (tests.test_so_review.ReviewTests.test_startup_values_errors_cross_rank_and_frozen_settings) ... ok
+test_cache_miss_hashes_the_bytes_that_are_decoded (tests.test_so_round2.Round2.test_cache_miss_hashes_the_bytes_that_are_decoded) ... ok
+test_fetch_uses_captured_switch_without_eager_environment_parse (tests.test_so_round2.Round2.test_fetch_uses_captured_switch_without_eager_environment_parse) ... ok
+test_fixture_resets_frozen_switches_before_and_after_case (tests.test_so_round2.Round2.test_fixture_resets_frozen_switches_before_and_after_case) ... ok
+test_joint_positive_controls_refuse_silent_off (tests.test_so_round2.Round2.test_joint_positive_controls_refuse_silent_off) ... ok
+test_pinned_cache_caller_rejects_rewrite_after_verification (tests.test_so_round2.Round2.test_pinned_cache_caller_rejects_rewrite_after_verification) ... ok
+test_prefetch_refuses_clip_mix_before_starting_worker (tests.test_so_round2.Round2.test_prefetch_refuses_clip_mix_before_starting_worker) ... ok
+test_startup_has_no_collective_and_agrees_with_root (tests.test_so_round2.Round2.test_startup_has_no_collective_and_agrees_with_root) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 1016.666s
+
+OK
+
+EXIT=0

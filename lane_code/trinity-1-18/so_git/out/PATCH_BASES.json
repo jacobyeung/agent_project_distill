@@ -19,8 +19,8 @@
     "patch_sha256": "154af7104da86b789c175db2153a896277b851a16e0f00e6bcb767141fd170fb"
   },
   "02_owner_tools.diff": {
-    "base": "supplied owner input; all added paths absent",
-    "base_pin_sha256": "a8db3eecb984c75fe53da37ce1421aeb0538fd2b555c376788f06ba40c9786f8",
+    "base": "supplied owner inputs; all added paths absent",
+    "base_pin_sha256": "aacdb37a0dd75f23354ebd99f4fd33bbbeacd3e204c17ce2855876c8a7fe4b7b",
     "files": {
       "docs/COVERAGE.md": {
         "after_bytes": 4278,
@@ -29,14 +29,14 @@
         "before_sha256": null
       },
       "docs/GIT_OWNER.md": {
-        "after_bytes": 6303,
-        "after_sha256": "14d88b0e5d7976cdbc064ada9d93e4a94836f9e2969634a085832c0eedbcaac2",
+        "after_bytes": 6987,
+        "after_sha256": "a708fd5fa7da7f22451346469cd3f820d2261dcca2cd664e5d294759d38ec7a9",
         "before_bytes": 0,
         "before_sha256": null
       },
       "docs/HANDOVER.md": {
-        "after_bytes": 7179,
-        "after_sha256": "3f8b9d9e2b16439846b62f243123cd0cc370056bccf42c953c539a220ff957d7",
+        "after_bytes": 8131,
+        "after_sha256": "a22232c53d7fcfe5df5c0274664baf5bd61bb1dd570ac34ac164c82e39a9f552",
         "before_bytes": 0,
         "before_sha256": null
       },
@@ -53,32 +53,38 @@
         "before_sha256": null
       },
       "tests/run_real_git_owner.sh": {
-        "after_bytes": 608,
-        "after_sha256": "92f588a96309d610251ac7430ce96ea075e6490824230e65714fab8a2425a3f7",
+        "after_bytes": 671,
+        "after_sha256": "43d3e1628b5b8cf46714384ba790fc15f4835fe34f17cf4534f122960379e7a9",
         "before_bytes": 0,
         "before_sha256": null
       },
       "tests/test_owner_tools.py": {
-        "after_bytes": 36548,
-        "after_sha256": "0d553b7365b8b0cd412d3c6706b455be2b4acbd8022c6a5d446bfaaa2200046c",
+        "after_bytes": 36674,
+        "after_sha256": "92634352e0e9fca868dfe52e66f78c8a58a5c537b0c0b5a39fa0bf634c47317f",
         "before_bytes": 0,
         "before_sha256": null
       },
       "tests/test_real_git_owner.py": {
-        "after_bytes": 7069,
-        "after_sha256": "a5f8ed9875d55b4731b7fce1241458ea2e38e75d5c5b65c1f188a5eb97219b3d",
+        "after_bytes": 10103,
+        "after_sha256": "1193730383cf18be9960d0adfeb6420598d456ad8d3cd58805a67db5728b6b80",
         "before_bytes": 0,
         "before_sha256": null
       },
       "tests/test_review_round2.py": {
-        "after_bytes": 17052,
-        "after_sha256": "220404eb0f439c48226005f3a81a28f0f2bb80e642c7e7d45a5bb0bbd79229f3",
+        "after_bytes": 17073,
+        "after_sha256": "877060cf8c86ae57a21fc1db41b1f32a05fd2bbfe3bfe3d193697295abf9663d",
+        "before_bytes": 0,
+        "before_sha256": null
+      },
+      "tests/test_review_round3.py": {
+        "after_bytes": 7494,
+        "after_sha256": "5268f23a8046375a43fc7f37936d9f555d311c87a3914b34d8f7ca9f8912e1d9",
         "before_bytes": 0,
         "before_sha256": null
       },
       "tools/dry_count.py": {
-        "after_bytes": 4509,
-        "after_sha256": "36a5413f5ef67d82398d5a32d1b830e2578622f23fdebc5bfa6aec2e37535c4f",
+        "after_bytes": 5106,
+        "after_sha256": "fa7a5772cb88747fc64689993371d249b17cd23c5acfe7316133f0e2013c556f",
         "before_bytes": 0,
         "before_sha256": null
       },
@@ -89,8 +95,8 @@
         "before_sha256": null
       },
       "tools/land_kit.py": {
-        "after_bytes": 21013,
-        "after_sha256": "1379a0d60704bf36b5bc31176181f5b03b95dab8dd516e9fc7386657de1700d9",
+        "after_bytes": 21832,
+        "after_sha256": "c7b80359e75be1943b4ecbc52688e8243adabcd7f626d567a2e598468417076c",
         "before_bytes": 0,
         "before_sha256": null
       },
@@ -119,7 +125,7 @@
         "before_sha256": null
       }
     },
-    "patch_sha256": "ddc3b5e62edfe6ed2f7608fd7d524df3c82baadb70a5ffddb3dc84c04e49a621"
+    "patch_sha256": "ebd2b5108454b31b3cb2cef8f40e9b9380bfb79ded64f244001dd3600efdb33f"
   },
   "03_shell_copy_coverage_optional.diff": {
     "base": "supplied filter input; optional test absent",
@@ -141,20 +147,26 @@
     "patch_sha256": "0745706bb680537fcd3cf1543acfe0d7016a11fffb71fb56f19f6ab2d7730350"
   },
   "04_installed_owner_review2.diff": {
-    "base": "pinned reviewed package (round-1 patches 02+03), including tests/docs; alternative to regenerated 02+03",
-    "base_pin_sha256": "fd3df825ea1f26b7d3ec97dcc9c106c930f64507e00d7f445420e21d7ae31d74",
+    "base": "pinned installed package and tests/docs; alternative to cumulative 02+03",
+    "base_pin_sha256": "9786e234548a9bd9f87d9acbd38f4bdbd2ce1efc4f0b92ee1dfa6e66d6533c46",
     "files": {
       "docs/GIT_OWNER.md": {
-        "after_bytes": 6303,
-        "after_sha256": "14d88b0e5d7976cdbc064ada9d93e4a94836f9e2969634a085832c0eedbcaac2",
+        "after_bytes": 6987,
+        "after_sha256": "a708fd5fa7da7f22451346469cd3f820d2261dcca2cd664e5d294759d38ec7a9",
         "before_bytes": 4330,
         "before_sha256": "1d79d5e2793648c108f6d6956c6b3ed0b461a57c5d97d5f3bf5478b4f8a810db"
       },
       "docs/HANDOVER.md": {
-        "after_bytes": 7179,
-        "after_sha256": "3f8b9d9e2b16439846b62f243123cd0cc370056bccf42c953c539a220ff957d7",
+        "after_bytes": 8131,
+        "after_sha256": "a22232c53d7fcfe5df5c0274664baf5bd61bb1dd570ac34ac164c82e39a9f552",
         "before_bytes": 0,
         "before_sha256": null
+      },
+      "tests/run_real_git_owner.sh": {
+        "after_bytes": 671,
+        "after_sha256": "43d3e1628b5b8cf46714384ba790fc15f4835fe34f17cf4534f122960379e7a9",
+        "before_bytes": 608,
+        "before_sha256": "92f588a96309d610251ac7430ce96ea075e6490824230e65714fab8a2425a3f7"
       },
       "tests/test_filter_shell_copies.py": {
         "after_bytes": 1879,
@@ -163,26 +175,38 @@
         "before_sha256": "86309baa7f76af63061a2edafed745a5c1982d49f0164fdb4e4d0e2bb6bf4b35"
       },
       "tests/test_owner_tools.py": {
-        "after_bytes": 36548,
-        "after_sha256": "0d553b7365b8b0cd412d3c6706b455be2b4acbd8022c6a5d446bfaaa2200046c",
+        "after_bytes": 36674,
+        "after_sha256": "92634352e0e9fca868dfe52e66f78c8a58a5c537b0c0b5a39fa0bf634c47317f",
         "before_bytes": 35247,
         "before_sha256": "b9fdaeeb48755e7d780a46a6dc518483e9d5b760952030fd3708a60ac374881c"
       },
+      "tests/test_real_git_owner.py": {
+        "after_bytes": 10103,
+        "after_sha256": "1193730383cf18be9960d0adfeb6420598d456ad8d3cd58805a67db5728b6b80",
+        "before_bytes": 7069,
+        "before_sha256": "a5f8ed9875d55b4731b7fce1241458ea2e38e75d5c5b65c1f188a5eb97219b3d"
+      },
       "tests/test_review_round2.py": {
-        "after_bytes": 17052,
-        "after_sha256": "220404eb0f439c48226005f3a81a28f0f2bb80e642c7e7d45a5bb0bbd79229f3",
+        "after_bytes": 17073,
+        "after_sha256": "877060cf8c86ae57a21fc1db41b1f32a05fd2bbfe3bfe3d193697295abf9663d",
+        "before_bytes": 17052,
+        "before_sha256": "220404eb0f439c48226005f3a81a28f0f2bb80e642c7e7d45a5bb0bbd79229f3"
+      },
+      "tests/test_review_round3.py": {
+        "after_bytes": 7494,
+        "after_sha256": "5268f23a8046375a43fc7f37936d9f555d311c87a3914b34d8f7ca9f8912e1d9",
         "before_bytes": 0,
         "before_sha256": null
       },
       "tools/dry_count.py": {
-        "after_bytes": 4509,
-        "after_sha256": "36a5413f5ef67d82398d5a32d1b830e2578622f23fdebc5bfa6aec2e37535c4f",
+        "after_bytes": 5106,
+        "after_sha256": "fa7a5772cb88747fc64689993371d249b17cd23c5acfe7316133f0e2013c556f",
         "before_bytes": 4081,
         "before_sha256": "131979ae6bf4640e7700ab9bdf9ebbe4f0a6fbddff17fa079e7bd1c5695df8da"
       },
       "tools/land_kit.py": {
-        "after_bytes": 21013,
-        "after_sha256": "1379a0d60704bf36b5bc31176181f5b03b95dab8dd516e9fc7386657de1700d9",
+        "after_bytes": 21832,
+        "after_sha256": "c7b80359e75be1943b4ecbc52688e8243adabcd7f626d567a2e598468417076c",
         "before_bytes": 17940,
         "before_sha256": "d2cd585b219626b9caea8871b55e1e1f669f3f3a4a811708970260d7ca04cd8f"
       },
@@ -193,6 +217,67 @@
         "before_sha256": "c0d1489efb735318ac82bd19f22238c997dc4a7678e02216b74091288fcc0099"
       }
     },
-    "patch_sha256": "e6fdc64270ba7a1a2aa3acec0de2216f3e6aa22737a606da2ec8ad83f5bbfbc9"
+    "patch_sha256": "989946a2f5c9dea677fed5f435f3a97167846e3f88f0c13d862839b36b3d211e"
+  },
+  "05_reviewed_owner_round3.diff": {
+    "base": "pinned reviewed round-2 delivery; alternative incremental upgrade",
+    "base_pin_sha256": "4bf1da4cb1eac46ed0d346d16fd18a4e3f8adc4d01391a6a0485b01128b56b86",
+    "files": {
+      "docs/GIT_OWNER.md": {
+        "after_bytes": 6987,
+        "after_sha256": "a708fd5fa7da7f22451346469cd3f820d2261dcca2cd664e5d294759d38ec7a9",
+        "before_bytes": 6303,
+        "before_sha256": "14d88b0e5d7976cdbc064ada9d93e4a94836f9e2969634a085832c0eedbcaac2"
+      },
+      "docs/HANDOVER.md": {
+        "after_bytes": 8131,
+        "after_sha256": "a22232c53d7fcfe5df5c0274664baf5bd61bb1dd570ac34ac164c82e39a9f552",
+        "before_bytes": 7179,
+        "before_sha256": "3f8b9d9e2b16439846b62f243123cd0cc370056bccf42c953c539a220ff957d7"
+      },
+      "tests/run_real_git_owner.sh": {
+        "after_bytes": 671,
+        "after_sha256": "43d3e1628b5b8cf46714384ba790fc15f4835fe34f17cf4534f122960379e7a9",
+        "before_bytes": 608,
+        "before_sha256": "92f588a96309d610251ac7430ce96ea075e6490824230e65714fab8a2425a3f7"
+      },
+      "tests/test_owner_tools.py": {
+        "after_bytes": 36674,
+        "after_sha256": "92634352e0e9fca868dfe52e66f78c8a58a5c537b0c0b5a39fa0bf634c47317f",
+        "before_bytes": 36548,
+        "before_sha256": "0d553b7365b8b0cd412d3c6706b455be2b4acbd8022c6a5d446bfaaa2200046c"
+      },
+      "tests/test_real_git_owner.py": {
+        "after_bytes": 10103,
+        "after_sha256": "1193730383cf18be9960d0adfeb6420598d456ad8d3cd58805a67db5728b6b80",
+        "before_bytes": 7069,
+        "before_sha256": "a5f8ed9875d55b4731b7fce1241458ea2e38e75d5c5b65c1f188a5eb97219b3d"
+      },
+      "tests/test_review_round2.py": {
+        "after_bytes": 17073,
+        "after_sha256": "877060cf8c86ae57a21fc1db41b1f32a05fd2bbfe3bfe3d193697295abf9663d",
+        "before_bytes": 17052,
+        "before_sha256": "220404eb0f439c48226005f3a81a28f0f2bb80e642c7e7d45a5bb0bbd79229f3"
+      },
+      "tests/test_review_round3.py": {
+        "after_bytes": 7494,
+        "after_sha256": "5268f23a8046375a43fc7f37936d9f555d311c87a3914b34d8f7ca9f8912e1d9",
+        "before_bytes": 0,
+        "before_sha256": null
+      },
+      "tools/dry_count.py": {
+        "after_bytes": 5106,
+        "after_sha256": "fa7a5772cb88747fc64689993371d249b17cd23c5acfe7316133f0e2013c556f",
+        "before_bytes": 4509,
+        "before_sha256": "36a5413f5ef67d82398d5a32d1b830e2578622f23fdebc5bfa6aec2e37535c4f"
+      },
+      "tools/land_kit.py": {
+        "after_bytes": 21832,
+        "after_sha256": "c7b80359e75be1943b4ecbc52688e8243adabcd7f626d567a2e598468417076c",
+        "before_bytes": 21013,
+        "before_sha256": "1379a0d60704bf36b5bc31176181f5b03b95dab8dd516e9fc7386657de1700d9"
+      }
+    },
+    "patch_sha256": "98de9d4b51152ef9131b48f2dc9eb5ca9e1b79fa30b520c375f163f6410f47d6"
   }
 }

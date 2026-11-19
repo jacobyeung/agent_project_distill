@@ -1,0 +1,12 @@
+{
+  "tests": 1,
+  "failures": [
+    [
+      "test_mapping_parser_preserves_source_spelling (tests.test_modep_fast_paths.FastPaths.test_mapping_parser_preserves_source_spelling)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/so_modep/work/delivery_tree/tests/test_modep_fast_paths.py\", line 57, in test_mapping_parser_preserves_source_spelling\n    self.assertNotIn('.' + 'sp' + 'lit(', inspect.getsource(paths._mapping_items))\nAssertionError: '.split(' unexpectedly found in \"@lru_cache(maxsize=32)\\ndef _mapping_items(mapping):\\n    # Cache text parsing only. Never cache resolved paths, stat results or hashes.\\n    pairs = json.loads(mapping) if mapping.startswith('{') else dict([mapping.split('=', 1)])\\n    return tuple(pairs.items())\\n\"\n"
+    ]
+  ],
+  "errors": [],
+  "skipped": [],
+  "successful": false
+}

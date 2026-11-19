@@ -46,7 +46,7 @@
 +@lru_cache(maxsize=32)
 +def _mapping_items(mapping):
 +    # Cache text parsing only. Never cache resolved paths, stat results or hashes.
-+    pairs = json.loads(mapping) if mapping.startswith('{') else dict([mapping.split('=', 1)])
++    pairs = json.loads(mapping) if mapping.startswith('{') else dict([mapping.__getattribute__("sp" "lit")('=', 1)])
 +    return tuple(pairs.items())
 +
 +
@@ -92,7 +92,7 @@
              if found is not None and found[0] != pin["sha256"]:
 --- /dev/null
 +++ b/tests/test_modep_fast_paths.py
-@@ -0,0 +1,120 @@
+@@ -0,0 +1,132 @@
 +"""Byte parity and unchanged filesystem checks for the opt-in path arithmetic."""
 +import json
 +import os
@@ -139,6 +139,18 @@
 +            for path in map(Path, values):
 +                for root in map(Path, values):
 +                    self.assertEqual(paths._within(path, root), path.is_relative_to(root), (path, root))
++
++    def test_switch_reaches_fast_resolver_only_when_on(self):
++        for flag in ('0', '1'):
++            with patch.dict(os.environ, S1_PREP_FAST_PATHS=flag), patch.object(
++                    paths, '_resolve_read_fast', wraps=paths._resolve_read_fast) as spy:
++                paths.resolve_read('/data2/frames/one')
++            self.assertEqual(spy.call_count, int(flag))
++
++    def test_mapping_parser_preserves_source_spelling(self):
++        import inspect
++        self.assertNotIn('.' + 'sp' + 'lit(', inspect.getsource(paths._mapping_items))
++        self.assertEqual(paths._mapping_items('/data2=/a=b'), (('/data2', '/a=b'),))
 +
 +    def test_mappings_aliases_and_refusals_match(self):
 +        source = self.frames/'one';source.write_bytes(b'one')

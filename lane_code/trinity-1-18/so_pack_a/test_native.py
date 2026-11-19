@@ -56,7 +56,21 @@ else:
     else:raise AssertionError('Raw source release was accepted')
     coherent_cfg=dict(builder=dict(path=str(here/'build_d.py'),sha256=P.file_digest(here/'build_d.py'),argv=['stage','source','sha',str(items),'binding']))
     P.need(P.source_preflight(coherent_cfg)['assets']==10,'Coherent native source failed')
+    # Exercise every public local check on an actual pack-built D delivery.
+    # Structural mode changes only a disposable probe copy and authenticates no live archives.
+    fixture,small=T.fixture(w/'tiny');check_cfg=dict(small,work=cfg['work'],builder=coherent_cfg['builder'],fill_mode='structural')
+    binding=P.structure(built['package'])[3]['export_binding']
+    check_cfg['fill']=dict(small['fill'],**{k:binding[k] for k in ('object','step','lineage')})
+    check_cfg['remote']=dict(small['remote'],walltime='04:00:00')
+    for key,name in [('cpu','o_cpu_D.sh'),('gpu','o_sub_D.sh')]:
+        check_cfg['remote'][key]=dict(path=str(T.D/name),sha256=P.file_digest(T.D/name))
+    checked=P.local_check(check_cfg,built['package'],w/'dcheck');scripts=P.plan(check_cfg,built)
+    P.need(set(checked['checks'])=={'source','privacy','logic','guard','trap','stop','login','fill','receipt'},'D local check coverage differs')
+    P.need(checked['checks']['logic']['native_dry']['family']=='distance','D family not checked')
+    P.need(checked['checks']['guard']['python'].startswith('3.6.8'),'D guard did not use login Python')
+    P.write(w/'D_CHECK.json',dict(check=checked,scripts=scripts))
     r10=(T.R/'build_r10.py').read_text();P.need(K.adapted(r10,'r10',None,False)==r10,'r10 default differs');compile(K.adapted(r10,'r10','c123456789abc',True),'r10-adapter','exec')
     result=dict(passed=True,native_dry=native_dry,default_off_delivery_bytes=first.stat().st_size,default_off_delivery_sha256=P.file_digest(first),native_checker=P.read(w/'RELEASE_RESULTS.json'),raw_checker_before_after='same pre-existing score_d.py mismatch',raw_sources_unchanged=True,raw_release_preflight_rejected=True,coherent_release_preflight_passed=True,coherent_checker_before_after=True,embedded_score_sha256=P.digest(score),loose_score_sha256=before['score_d.py'],r10_default_source_identical=True,r10_full_build=False,reason='Authenticated original A/B delivery archives required by r10 are absent',pack_build=built)
+    result['d_all_checks_passed']=checked['passed'];result['d_check_file']=str(w/'D_CHECK.json')
     P.write(w/'RESULT.json',result);print(json.dumps(result,sort_keys=True))
 if __name__=='__main__':main()

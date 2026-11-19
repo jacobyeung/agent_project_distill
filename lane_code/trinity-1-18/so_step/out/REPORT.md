@@ -1,8 +1,6 @@
-VERDICT: DONE Findings 1–14 and arithmetic finding 15 are fixed and locally verified; revised two-rank gloo and production GPU checks are assigned to the coordinator.
+VERDICT: DONE All eight review fixes and the build-21 port are delivered with no new local test failures; lane gloo and production acceptance remain pending.
 
-The delivery contains four ordered, default-OFF patches, the review tree, and both unrun GPU kits. **Patch 04 stays separate.** The series applies with zero fuzz and reproduces all 14 touched files; the other 931 files match the input. All **29 local tests pass**, plus patch replay, syntax and arithmetic checks. Exact commands and outputs appear below.
-
-The coordinator's [full-suite output](../work/full_suite_by_swarm_opt2.txt) establishes ten passing tests, including the two-rank gloo proofs, for the series reviewed before these fixes. The independent [review verdict](../../so_cr_step/REVIEW_VERDICT.md) reports a second ten-test pass. These are valid supplied evidence; the revised distributed tests have not run in this sandbox. No production speedup, CUDA event measurement or production-processor result is invented.
+Both builds pass the dedicated 53-case gate: **52 pass and one socket-dependent test is skipped**. Broader gates reproduce the same six reported baseline failures and two additional baseline export-test failures; their causes appear below. The build-21 base has 936 verified files, and the four delivered patches replay with zero fuzz and zero offsets. No production speedup is claimed.
 
 ## Numbers: what the 133 seconds contains
 
@@ -73,7 +71,15 @@ These are **estimated individual steady-state gains**, not measurements and not 
 | FSDP forward prefetch | 0–2 | Requires static forward order; stream-specific heads and own-value forwards make that assumption suspect. Keep OFF unless traced. |
 | `torch.compile` | negative during compilation; perhaps 0–10 after warmup | Graph breaks/dynamic token shapes/FSDP/checkpoint hooks and scalar reads can limit benefit. Compilation can change floating-point fusion and memory use. `use_orig_params=True` satisfies one FSDP requirement, not the whole compatibility proof. |
 
-The prefetch ceiling is concrete: nine admission groups expose about `31.7/9 = 3.52 s` each. A perfect one-group lookahead hides at most eight groups, about **28.2 s**, while roughly 11 seconds of current-group compute gives the producer time to prepare the next group. Admission waits and preprocessing contention reduce that ceiling. At a representative grid `[32,20,26]`, FP32 processed pixels occupy `32*20*26*(3*2*16*16)*4 ≈ 102 MB/row`; one group of eight rows uses about **0.82 GB/rank**. The current group and next group can coexist: **16 rows, about 1.64 GB/rank**, before other allocations. The implementation releases replay references after admission and each consumed yield, rejects groups larger than eight, and rejects prepared groups exceeding **1 GiB of encoded tensor storage** through the original admission boundary. Thus accepted library-held prepared tensors occupy at most **2 GiB/rank** across both groups; this is not a total-RSS bound. In-progress decoding/encoding temporaries, Python metadata, processor copies, cache payload/copies and caller-retained rows are additional. Shared tensor storage is conservatively counted for each occurrence. A budget error remains a row failure at that group's admission, and all ranks must refuse it.
+The prefetch ceiling is concrete: nine admission groups expose about `31.7/9 = 3.52 s` each. A perfect one-group lookahead hides at most eight groups, about **28.2 s**, while roughly 11 seconds of current-group compute gives the producer time to prepare the next group. Admission waits and preprocessing contention reduce that ceiling.
+
+As an illustrative estimate, at a representative grid `[32,20,26]`, FP32 processed pixels occupy `32*20*26*(3*2*16*16)*4 ≈ 102 MB/row`; one group of eight rows uses about **0.82 GB/rank**. The current group and next group can coexist: **16 rows, about 1.64 GB/rank**, before other allocations.
+
+The implementation releases replay references after admission and each consumed yield, rejects groups larger than eight, and rejects prepared groups exceeding **1 GiB of encoded tensor storage** through the original admission boundary.
+
+Thus accepted library-held prepared tensors occupy at most **2 GiB/rank** across both groups; this is not a total-RSS bound. In-progress decoding/encoding temporaries, Python metadata, processor copies, cache payload/copies and caller-retained rows are additional. Shared tensor storage is conservatively counted for each occurrence. A budget error remains a row failure at that group's admission, and all ranks must refuse it.
+
+This grid does not establish that the largest production group fits. Before any prefetch ON run, `data_only.py --full-plan` must audit a complete epoch plan on every rank, including targets and auxiliary tensors, and record its peak below the unchanged guard. No production peak group size has been measured here.
 
 A decoded cache stores original RGB, before seeded pose augmentation or frame duplication. For an illustrative 32×320×416 RGB clip, that is **12.8 MB**, so the kit's 512-MiB per-rank cache holds about **42 such clips**. It does not cache tokenization or resized model tensors. Four ranks reserve at most 2 GiB of decoded payload, plus copies and queued batches.
 
@@ -83,10 +89,10 @@ Changing reduce dtype to BF16, accumulating under FSDP `no_sync`, dropping super
 
 ## Delivered patch behavior
 
-The patch series is in `out/patches/`; the combined review tree is `work/tree/`. Inputs remain untouched. Every production change has an explicit OFF default:
+The build-20 series is in `patches/`; the build-21 series is in `patches_b21/`. Their tested trees are `work/tree/` and `work/b21_final/work/tree_r1/` under this workspace. Inputs remain untouched. Every production change has an explicit OFF default:
 
-1. `C1_CPU_PREFETCH=0` → `1`: one persistent worker per `Rows`, its own deep-copied processor and worker-created SQLite connections. `check_same_thread=True` stays intact. The worker executes only row preparation and CPU validation. Prepared values/exceptions pass through unchanged `fetch`/`fetch_nominal`, including a repeated cheap validation on the main thread. It starts the next group only after the current group is admitted. A failed future group is raised at that group's original microstep boundary, after all current-group slices finish. It never speculates past an unadmitted group. `Rows.close()` drains and closes the worker on its owning thread. The ON path refuses non-final mode, MDG, geometry_online and gf1 because those paths are outside this worker-safety audit. It also refuses admission groups above eight rows.
-2. `C1_DECODED_CACHE_MIB=0` → an explicit 1–4096 MiB capacity: LRU cache in RAM, shared safely by the process's readers. The original hash/pin verification still executes on every read. Cache identity includes mapped path, inode/device, size, mtime and ctime. Each consumer gets its own array copy. Decoding failures are not cached. The patch covers `pose_samples.load_frames` and `batches.load_rgb`; compressed C1-r cache records are not silently intercepted.
+1. `C1_CPU_PREFETCH=0` → `1`: one persistent worker per `Rows`, its own deep-copied processor and worker-created SQLite connections. `check_same_thread=True` stays intact. The worker executes only row preparation and CPU validation. Prepared values/exceptions pass through unchanged `fetch`/`fetch_nominal`, including a repeated cheap validation on the main thread. It starts the next group only after the current group is admitted. A failed future group is raised at that group's original microstep boundary, after all current-group slices finish. It never speculates past an unadmitted group. `Rows.close()` drains and closes the worker on its owning thread. The ON path refuses non-final mode, MDG, geometry_online and gf1 because those paths are outside this worker-safety audit. It also refuses admission groups above eight rows and any mix source without a SQLite `conn`, including unaudited C1-r clip readers.
+2. `C1_DECODED_CACHE_MIB=0` → an explicit 1–4096 MiB capacity: LRU cache in RAM, shared safely by the process's readers. The original hash/pin verification still executes on every read. Cache identity is the pinned SHA-256. A miss reads the encoded file once, hashes those exact bytes against the pin, and decodes the verified in-memory bytes. A pin/decode rewrite cannot poison a persistent cache entry. Each consumer gets its own array copy. Decoding failures are not cached. The patch covers `pose_samples.load_frames` and `batches.load_rgb`; compressed C1-r cache records are not silently intercepted.
 3. `C1_BATCH_METRICS=0` → `1`: retains detached component scalars until the update tail, transfers them in dtype/device groups, then performs the original Python divisions/additions in original row/key order. It removes only the explicit pre-forward device-wide synchronize. Loss finiteness, model-side metrics, optimizer, clipping, tensor math and final sync remain. It retains only scalar tensors, not autograd graphs.
 
 The prefetch RNG argument is specific: sampler draws happen outside `Rows.get`; augmentation uses `random.Random(settings['seed'])` (`T/student_pilot/pose_samples.py:151–171`); frame duplication and deterministic tensor/processor transforms do not sample global RNG. Main-thread scheduled-sampling decisions keep their original place. Tests compare Python, NumPy and torch CPU RNG states around actual row decoding/encoding for all four streams. They also compare cloned native fast-tokenizer and native video patch-packing output across threads. The local env lacks torchvision, so its native RGB conversion/resize/normalization operations are not executed by that fixture; the production timing/data kit is still needed for those exact processor assets. No worker calls `torch.set_num_threads`; the local tests use at most eight threads and eight CPU cores, including explicit 1/4/8-thread combined-cache regressions.
@@ -109,360 +115,157 @@ A 512-MiB cache holds about 42 illustrative 12.8-MB clips. Under independent uni
 
 Every cache-enabled step reports cumulative `decoded_cache.hits`, `misses`, `bytes`, and `capacity_bytes`; adjacent-record differences give step reuse. The timing kit retains those records. Cache savings and prefetch overlap and must not be added as independent gains.
 
-## Review round 1: finding -> fix -> test
+## Review round 2: finding -> fix -> test
 
-| Finding | Fix | Test / evidence |
+No HIGH finding was reported. Every MEDIUM and LOW finding is addressed; none is deferred as too large. The failing-before logs are [trainer regressions](evidence/round2_before.txt), [kit regressions](evidence/round2_kits_before.txt), and [row-draw comparison](evidence/round2_draws_before.txt). The corresponding final tests pass on both builds.
+
+| Finding | Fix | Regression and evidence |
 |---|---|---|
-| 1. Backward CUDA attribution | Events run on autograd workers' current streams; all-gather uses its explicit stream; shared backward state/graph-task ID labels recompute; producer remains CPU only. | `test_autograd_worker_events_and_recompute_and_producer_exclusion`; native CPU profile/default parity. Real CUDA elapsed values remain unrun. |
-| 2. GIL/oversubscription | Analysis above and SOURCE_NOTES cite installed torch; timing records every forward/backward host duration and runtime thread policy. No positive gain floor. | Native instrumentation preserves exact math; combined prefetch/cache rows match at 1/4/8 threads. Production contention still requires timing. |
-| 3. Silent profile timeout | One immediately instrumented step; imports/startup heartbeat; per-microstep partial tables; TERM/INT status; 895+5-second shell bound. | Partial-table/no-sync regression and a real subprocess SIGTERM test; shell syntax checks. |
-| 4. Production RESUME_PIN | Read-only source-only bridge accepts the production config and checkpoint, checks old/current identity and equal data before loading, retains original restore binding, and still requires fresh native admission. | Matching-seal and cross-seal fixtures; changed config/data/world refused; native setup asserts preflight before model load and old binding at restore. |
-| 5. Lookahead memory | Release replay and consumed-item references; enforce at most eight rows and 1 GiB encoded tensor storage per group. Two groups can coexist: 16 rows/~1.64 GB in the example, at most 2 GiB retained prepared tensor storage. | Weak-reference release test, overlarge-group refusal and deferred tensor-budget failure. Transient decode and other RSS are explicitly excluded. |
-| 6. Timing resolution | Default 20 discarded + 20 measured steps, three repeat blocks, adjacent OFF brackets, reverse arm order, bounded per-arm runtime and cache-state records. Report repeat-level CI and MDD. | Synthetic slowest-rank/bracket statistics, insufficient-precision and MDD formula checks; shell limits/cache snapshot regression. |
-| 7. Stale manifest/report | Four current patch hashes/paths, exact replay, current report and evidence. 04 remains separate. | `review1_patch_verify.txt`; final artifact inventory. Supplied ten-test distributed pass cited with its source scope. |
-| 8. Unsupported cache gain | Approximately zero under low reuse; conditional upper bound only. Emit hits/misses/bytes/capacity per enabled step. | Cache tests and combined-thread counter/capacity checks; native local step parity. |
-| 9. Imposed eight threads | Production kits inherit settings and record effective intra/inter-op plus environment. | Thread-setting regression and script inspection; local tests retain the dispatch's eight-core cap. |
-| 10. Model words in outputs | Opaque parameter/class/module/function identifiers; `lin_attn/*` ranges; filtered logs/receipts/JSON; raw trace held in memory until scrubbed. | Output scrubber/hash regression, native profile path, and kit syntax checks. |
-| 11. Encoded-row parity | Hash every batch/target tensor row, shape/dtype/bytes, and require OFF equality for prefetch/cache/all arms. | Forty real fixture plans across four arms; mismatch, scalar, signed-zero and shape regressions. Actual production assets remain pending. |
-| 12. Incomplete refusals | Reject non-final, MDG, geometry_online and gf1 at startup/fetch. | Refusal-list regression; native admission tests continue to pass. |
-| 13. Late switch validation | Parse all three before model load, gather values/errors across ranks, then freeze settings for Rows/fetch/cache/metrics. | Invalid-value/rank-mismatch/frozen-setting tests; native startup test. Real rank-mismatch gloo case is assigned below. |
-| 14. Missing lifecycle/failure tests | Consumer error with future in flight; first/last group errors; non-owner close; prefetch+cache at 1/4/8 threads. | All four local cases pass; two-rank admission fixture now covers first/middle/last groups and startup mismatch. |
-| 15. Token arithmetic | `16×3208 + 32×4842 + 16×4955 + 8×4796 = 323,920`, about 4499 tokens/row. | Arithmetic corrected above; logged wall/data medians independently rechecked. |
+| 1 MEDIUM: extra OFF startup collective | Parse locally; carry ON settings in the existing preparation broadcast and propagate mismatches/errors through existing `agree()`. All-OFF preserves the original two-item broadcast payload and collective sequence. | `Round2.test_startup_has_no_collective_and_agrees_with_root`; the existing GX rebind test fails before and passes after. All six requested existing modules are in the gate; their six baseline failures are diagnosed below. |
+| 2 LOW: frozen settings leak between tests | `so_helpers.reset_switches` clears `_frozen` before each relevant case and registers cleanup. All `so_*` classes and existing carrier-train callers use it. | `Round2.test_fixture_resets_frozen_switches_before_and_after_case` fails before and passes after. The combined gate runs the existing train tests before the ON suites without vacuous OFF comparisons. |
+| 3 LOW: ON proofs lack positive controls | Joint and local proofs record row-reader thread names, reset/check cache misses, and count `Components.add` calls. They compare every non-timing/non-allocator logged field, in addition to losses/gradients/updates. Scalar floats also compare bytewise. | `Round2.test_joint_positive_controls_refuse_silent_off`; the local five-arm native proof passes with real ON controls. Updated two-rank controls are packaged but await the lane command. |
+| 4 LOW: unproven 1-GiB group budget | Keep the bounded guard; add `--full-plan`, every-group byte counts, target/audit inclusion, per-step maxima and a peak/coverage sidecar. Require a complete epoch plan on every rank before production ON. | `KitRound2.test_full_plan_memory_includes_every_group_and_targets` fails before and passes after: 101 synthetic plans, 64 bytes per two-row group including targets. This synthetic measurement is not a production sizing result. |
+| 5 LOW: cache key does not bind decoded bytes | Hash one encoded-byte read against the frame pin, decode that buffer, and key the cache by pinned SHA-256. Preserve caller pin checks and copy-on-hit. | `Round2.test_cache_miss_hashes_the_bytes_that_are_decoded` fails before and passes after; `test_pinned_cache_caller_rejects_rewrite_after_verification` plants a rewrite between verification and decode. Existing invalidation, non-RGB and capacity tests pass. |
+| 6 LOW: clip readers are unaudited | `rows_factory` refuses any mix source without `conn`, before copying/starting the private reader. Factory failures still reach the original admission boundary. | `Round2.test_prefetch_refuses_clip_mix_before_starting_worker` fails before and passes after; the SQLite composite-reader and factory-error regressions pass. |
+| 7 LOW: GPU kits lack a co-location/free-memory guard | Each rank probes its target before `train()` and refuses another compute PID or less than the observed production peak, **76,699 MiB**, free. The timing wrapper also probes all visible targets before each arm. Probe failure refuses. | `KitRound2.test_gpu_guard_refuses_busy_low_memory_and_unreadable_probe` fails before and passes after using mocked probes. No GPU was queried here. Allocation/admission remain prerequisites; a point-in-time check cannot prevent a later tenant race. |
+| 8 LOW: MDD and OFF nondeterminism | Use `t(.80,df)` in the power term. Compare OFF brackets first, write `comparison.json` before rejecting loss mismatches, and mark timing gains unresolved when parity is invalid. | `KitRound2.test_t_power_and_off_drift_persist_comparison_before_refusal` fails before and passes after; the existing slowest-rank/statistics regression passes with the corrected coefficient. |
+| 9 INFO: eager reads/imports | Use a lazy `getattr` fallback, hoist loader switch reads/imports outside frame loops, and remove unused `os` imports. | `Round2.test_fetch_uses_captured_switch_without_eager_environment_parse`; combined cache/prefetch suites. Cache capacity validation remains defensive inside `read()`. |
+| 10 INFO: stale distributed status | Cite the supplied 16-test coordinator pass with its actual source scope. | Exact supplied lines below; the modified build-21 suite is separately marked pending. |
+| 11 INFO: model class names in kit source | Retain class names needed for instrumentation; outputs remain scrubbed. They already occur in the input tree. | Existing output-scrubber and opaque-identifier tests pass. No additional source-name rewrite is needed. |
+| 12 INFO: real CUDA attribution unrun | Preserve the explicit limitation. GPU use is prohibited in this dispatch. | Mocked-stream attribution and real CPU profile tests pass; no real CUDA elapsed-time claim is made. |
 
-Finding 16's FSDP stream-wait citation is included in SOURCE_NOTES (`_runtime_utils.py:1099–1104`). The cache description uses “mapped path,” matching finding 17. The requested review mapping and the supplied distributed evidence are intentional provenance details needed to judge the current validation scope.
+The CPU kit also rejects different `row_draws` even if encoded bytes happen to be identical (`KitRound2.test_row_draw_difference_fails_even_when_encoded_bytes_match`). This makes the hand-over's row-draw kill rule checkable before training.
 
-## Current patch and kit contract
+## Existing-suite failures: causes and scope
 
-Apply `01_cpu_prefetch.diff`, `02_decoded_rgb_cache.diff`, `03_batch_metrics.diff`, then `04_test_joint_hash_0dim.diff` to the input tree. These are an **ordered series**, not four independent patches. Startup validation lives in 01; cache step counters in 02; batching in 03; the scalar collective hash fix stays in 04. [manifest.json](patches/manifest.json) lists every SHA-256 and touched path. Inputs are unchanged. Numerical/row behavior is unchanged with all switches OFF; startup now has the explicitly requested common all-gather of switch settings/errors before model loading.
+[Input existing-suite output](evidence/round2_baseline_existing.txt), [patched build-20 output](evidence/round2_patched_existing.txt), and [patched build-21 output](evidence/round2_final_b21_existing.txt) have the same six failure entries. Each runs 91 local cases; two additional two-rank GX cases are excluded for unavailable sockets. The two skipped local cases need a missing review pool.
 
-The [profile kit](kit_profile/README.md) measures the first optimizer step with no separate warm-up. The supplied first step took 440.3 seconds; startup and instrumentation are additional. A slow startup may exhaust the 15-minute cap, but progress and partial tables remain. The profile does not claim steady state. Nested/overlapping CUDA scope times are not additive.
+| Existing test failure | Cause; why it is not changed here |
+|---|---|
+| `GXTests.test_native_layout_matches_vendor_on_augmented_viewpoints`, duplicate layout | `pose_samples.augment` imports unavailable `torchvision.transforms.v2`. This environment dependency is absent on the input tree too. |
+| Same test, paired layout | Same missing torchvision dependency; this is the second subtest error. |
+| `GXTests.test_student_frames_real_processor_and_square_padding` | Transformers' `pil_torch_interpolation_mapping` is `None` without torchvision, so native resize raises `TypeError`. No fallback processor was substituted. |
+| `GXTests.test_production_meta_header_and_strict_safetensors` | Hard-coded `/scratch/jjyeung/orch_cd/gx_build/work/aws_probe/g3t_header.json` is absent. |
+| `GXTests.test_vendor_bytes_digest_and_import_origin` | Hard-coded `/scratch/jjyeung/orch_cd/c1r/work/D/g3t_src/vggt/__init__.py` is absent. |
+| `CachedBank.test_parity_cached_vs_online` | Existing GF1 BF16 feature-cache gradient `norms.2.weight` differs by **1.5396857634186745e-05** absolute, **0.017092852841054485** relative, above its **0.015625** tolerance. The input and patched trees report the same values. This is a different cache from 02; its tolerance was not weakened. |
 
-A production checkpoint can be supplied through `RESUME_PIN` plus its original `RESUME_CONFIG` when the patched source seal differs. Only a source/provenance change is accepted. The original checkpoint, shards, data and production output remain read-only; new tree admission is mandatory. This is a disposable kit adapter, not a production trainer resume-policy change. CPU tests mock hardware/admission/loading and exercise binding checks; they do not prove a real four-GPU launch.
+The expanded caller gate runs another 55 cases. [Input output](evidence/round2_baseline_related.txt) and both patched outputs show two additional pre-existing failures: `ExportLeg.test_export_leg_needs_a_resume_pin_and_no_smoke` supplies an empty config and encounters `trace_program_version_missing` before its expected export-leg refusal; `ExportLeg.test_export_resume_state_reuses_an_existing_export` expects an old call signature without the existing `optimizer=None, disk_guard=None` keywords.
 
-The [timing kit](kit_timing/README.md) compares all three switches after 20 warm-up updates, using 20 measured updates and three repeats with OFF/ON/OFF brackets. Defaults mean 840 optimizer updates: about **31 hours at 133 s/update**, plus startup, an estimated production budget. Per-arm timeout is three hours. Each repeat uses the same checkpoint/plan and records cache state. There is no automatic retry or promotion of an underpowered result.
+Seven other cases skip absent processor/config/bank fixtures. These tests exercise unrelated export/version expectations and remain unchanged apart from switch-state isolation.
 
-The minimum detectable difference is `MDD = (t(.975,n-1)+0.842) * s_repeat / sqrt(n)` for approximate 80% power at two-sided 5% significance. For three repeats, MDD is **2.9705×s_repeat**: an assumed 1-second repeat SD resolves about 2.97 seconds; an assumed 0.337-second SD resolves about one second. These are planning values, not observed production variability. The kit prints the observed MDD and marks a gain unresolved unless it clears the statistical threshold. A 0–3-second hypothesis does not justify a claim below that measured resolution; zero cannot be guaranteed detectable. Steps within a repeat are not counted as independent replicates.
+The broad suites are **not clean passes**; the gate verifies that the performance patches introduce no additional failures.
 
-The data-only variant supports CPU or optional copies on one 48-GB GPU. It verifies real production encoding when supplied real assets, but local tests use synthetic processor fixtures and native tokenizer/patch-packing tests. It cannot establish model loss/gradient parity, inter-rank collectives, full-model memory fit, or end-to-end speedup. Hashing time is separately reported and included in its wall timer.
+## Patch delivery and build-21 pin
 
-## Coordinator command: revised two-rank gloo tests
+[patches/manifest.json](patches/manifest.json) pins build 20 to `780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278` (934 input files). [patches_b21/manifest.json](patches_b21/manifest.json) pins build 21 to `b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8` (936 input files), plus the supplied package SHA-256 `fb9de190d0da8ed0727f2132d4c08ac4737a65a7aed3226d6ab4cbe1f65ebf59` from READY.
 
-**To be run by the coordinator outside the sandbox.** No distributed test was attempted here. The exact command runs the full revised suite, including both two-rank tests and the new local regressions:
+All 936 build-21 file hashes and the canonical source digest were verified locally; the package archive itself was not rehashed because the supplied input is its untarred tree.
+
+Apply **01, 02, 03, then 04** using `patch --batch --fuzz=0 -p1 -i <absolute-diff-path>`. They are an ordered series. 01 includes shared validation and test-state isolation; 02 carries the content-bound RGB cache; 03 carries batching and positive controls; 04 retains the scalar collective-hash repair and round-2 regressions. Each manifest records byte counts, SHA-256s, touched paths and base pins. Tests run after all four patches.
+
+The [build-20 replay](evidence/round2_replay_b20_final.txt) reproduces every touched file. The [build-21 port/replay](evidence/round2_port_b21_final.txt) verifies all **21 touched files**, no fuzz or offsets in the delivered build-21 replay, and unchanged remaining input files. The porting pass from build-20 hunks uses offsets; the delivered build-21 diffs have exact build-21 context.
+
+The tested build-21 candidate has **948 files** and canonical source digest `40644d6bdd68912ac23b36d8cb98b83421b11c2e05a5e5e4ff0dd9eb19dc8a7c`. The orchestrator must seal/admit its final rebuilt tree.
+
+READY's `base/tree_b01ce449`, `build15/inputs` and `build_n1/inputs` are linked from `/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work` beside the tested tree, outside its sealed source. The input trees and fixtures were not edited.
+
+## Kits and acceptance
+
+The profile kit retains its single-step 895-second limit plus five-second termination grace, heartbeat, partial tables, stream-aware CUDA events and read-only source-only resume bridge. Its CPU/stream tests pass; full GPU execution is unrun.
+
+The timing kit uses 20 discarded + 20 measured updates per arm, three OFF/ON/OFF repeat blocks, inherited production thread settings, explicit cache-state records and a three-hour per-arm timeout.
+
+Its 840 updates cost an **estimated 31 hours** at 133 s/update, plus startup. No killed job is automatically retried.
+
+For approximate 80% power and two-sided alpha 0.05, `MDD = (t(.975,n-1) + t(.80,n-1)) * s_repeat / sqrt(n)`. At three repeats this is **3.0969 × s_repeat**: an assumed 1.0-s repeat SD resolves about 3.10 s; an assumed 0.323-s SD resolves about 1 s. These are planning calculations, not measured production variability. `comparison.json` retains OFF reproducibility separately from switch parity and invalidates speedup attribution on a parity failure.
+
+[NOTE_FOR_TREE_REBUILD.md](NOTE_FOR_TREE_REBUILD.md) specifies the orchestrator's acceptance plan: N launches with 01 and 02 OFF; 03 may be ON only after review and build-21 tests prove numerical parity. The first continuation tests 01 ON after the complete epoch-plan CPU check. r1_ops compares matched-plan data wait and first-step loss at identical checkpoint/RNG state; any loss or row-draw difference turns 01 OFF. 02 stays OFF until measured.
+
+Read `ranks[].data_seconds`, `ranks[].components` and `ranks[].stream_means` in `metrics_<attempt>.jsonl`; exact total microstep losses are the disposable kit's `rank*/steps.json[0].first_step_micro_losses`.
+
+The trainer has no invented top-level `loss` metric. The note names the CPU commands and matched-state replay requirement.
+
+## Coordinator command
+
+**Pending lane execution outside the sandbox, on the final build-21 tree.** No socket suite was attempted here. Run:
+
+```bash
+cd /scratch/jjyeung/orch_n30/so_step
+nice -n 10 taskset -c 0-7 env CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
+  OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false \
+  SO_TEST_TREE=/scratch/jjyeung/orch_n30/so_step/work/b21_final/work/tree_r1 \
+  /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_cpu_tests.py \
+  tests.test_so_prefetch tests.test_so_cache tests.test_so_metrics \
+  tests.test_so_joint tests.test_so_review tests.test_so_round2 \
+  > work/round2_b21_gloo_by_coordinator.txt 2>&1
+result=$?
+printf '\nEXIT=%s\n' "$result" >> work/round2_b21_gloo_by_coordinator.txt
+exit "$result"
+```
+
+Require `SO_ADMISSION_PROOF`, `SO_GLOO_PROOF`, `OK` and `EXIT=0`, including positive controls for the ON arms. The admission test covers both ranks at factors 1 and 2 and failures in first/middle/last groups. The joint proof compares every loss/gradient/update, numerical log field, trainable, row draw and collective payload/order.
+
+Supplied evidence for the input reviewed in round 2 is `work/review1_full_suite_by_coordinator.txt`, whose exact lines are:
+
+```text
+SO_ADMISSION_PROOF /scratch/jjyeung/orch_n30/so_step/work/test_runs/so_453pbecg factors=1,2; both ranks raise in first/middle/last groups
+SO_GLOO_PROOF {"directory": "/scratch/jjyeung/orch_n30/so_step/work/test_runs/so_384pmumf", "ranks": 2, "comparisons": 16, "losses_and_every_gradient": "bitwise", "trainables": "identical", "row_draws": "identical", "collectives": "identical; main thread only", "failure_microstep": 2}
+Ran 16 tests in 1027.778s
+OK
+EXIT=0
+```
+
+That supplied pass is not a rerun of the modified build-21 series. The command above is still required.
+
+## Exact local commands and outputs
+
+The serial driver runs on at most eight cores, with torch intra-op threads set to eight in every test entrypoint. It writes complete stdout/stderr and exact per-suite commands to the linked logs, including nonzero exits for declared baseline failures:
 
 ```bash
 cd /scratch/jjyeung/orch_n30/so_step
 nice -n 10 env CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
   OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false \
-  SO_TEST_TREE=/scratch/jjyeung/orch_n30/so_step/work/tree \
-  /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_cpu_tests.py \
-  tests.test_so_prefetch tests.test_so_cache tests.test_so_metrics tests.test_so_joint tests.test_so_review \
-  > work/review1_full_suite_by_coordinator.txt 2>&1
+  /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_round2_final.py \
+  > out/evidence/round2_final_driver_completed.txt 2>&1
 ```
 
-The two distributed test IDs are `tests.test_so_prefetch.PrefetchTests.test_two_rank_admission_failure_for_single_and_nominal_groups` and `tests.test_so_joint.JointTests.test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives`. The admission case includes first/middle/last groups at factors 1 and 2 and real cross-rank startup mismatch. The joint case compares losses, every gradient, updates, trainables, row draws and collective payload/order.
+Exact driver result: `ALL_LOCAL_GATES_PASS_WITH_EIGHT_DECLARED_BASELINE_FAILURES`.
+The [machine-readable gate record](evidence/round2_final_checks.json) preserves each exit status. Its exception list is derived from actual input-tree failures, not from blanket skips.
 
-Supplied coordinator evidence for the reviewed series: `work/full_suite_by_swarm_opt2.txt` reports `Ran 10 tests in 1011.165s`, `OK`, `EXIT=0`; its `SO_GLOO_PROOF` records 16 comparisons, bitwise losses/gradients, identical trainables/draws, main-thread collectives and failure microstep 2. The independent reviewer reports ten tests in 1590.6 seconds with the same proof. The revised source needs the command above; those supplied passes are not mislabeled as a rerun of these fixes.
+| Build / suite | Exact unittest output | Complete command/output |
+|---|---|---|
+| b20 / units | `Ran 34 tests in 7.075s; OK (skipped=1); EXIT=0` | [round2_final_b20_units.txt](evidence/round2_final_b20_units.txt) |
+| b20 / related | `Ran 55 tests in 2.452s; FAILED (failures=2, skipped=7); EXIT=1` | [round2_final_b20_related.txt](evidence/round2_final_b20_related.txt) |
+| b20 / parity | `Ran 2 tests in 11.674s; OK; EXIT=0` | [round2_final_b20_parity.txt](evidence/round2_final_b20_parity.txt) |
+| b20 / kits | `Ran 4 tests in 9.324s; OK; EXIT=0` | [round2_final_b20_kits.txt](evidence/round2_final_b20_kits.txt) |
+| b20 / review_kits | `Ran 7 tests in 0.371s; OK; EXIT=0` | [round2_final_b20_review_kits.txt](evidence/round2_final_b20_review_kits.txt) |
+| b20 / utilities | `Ran 2 tests in 5.794s; OK; EXIT=0` | [round2_final_b20_utilities.txt](evidence/round2_final_b20_utilities.txt) |
+| b20 / round2_kits | `Ran 4 tests in 2.247s; OK; EXIT=0` | [round2_final_b20_round2_kits.txt](evidence/round2_final_b20_round2_kits.txt) |
+| b21 / units | `Ran 34 tests in 7.622s; OK (skipped=1); EXIT=0` | [round2_final_b21_units.txt](evidence/round2_final_b21_units.txt) |
+| b21 / existing | `Ran 91 tests in 90.056s; FAILED (failures=1, errors=5, skipped=2); EXIT=1` | [round2_final_b21_existing.txt](evidence/round2_final_b21_existing.txt) |
+| b21 / related | `Ran 55 tests in 3.377s; FAILED (failures=2, skipped=7); EXIT=1` | [round2_final_b21_related.txt](evidence/round2_final_b21_related.txt) |
+| b21 / parity | `Ran 2 tests in 14.705s; OK; EXIT=0` | [round2_final_b21_parity.txt](evidence/round2_final_b21_parity.txt) |
+| b21 / kits | `Ran 4 tests in 9.510s; OK; EXIT=0` | [round2_final_b21_kits.txt](evidence/round2_final_b21_kits.txt) |
+| b21 / review_kits | `Ran 7 tests in 0.387s; OK; EXIT=0` | [round2_final_b21_review_kits.txt](evidence/round2_final_b21_review_kits.txt) |
+| b21 / utilities | `Ran 2 tests in 6.435s; OK; EXIT=0` | [round2_final_b21_utilities.txt](evidence/round2_final_b21_utilities.txt) |
+| b21 / round2_kits | `Ran 4 tests in 2.323s; OK; EXIT=0` | [round2_final_b21_round2_kits.txt](evidence/round2_final_b21_round2_kits.txt) |
 
-## Risks and remaining validation
+Build-20's separate six-module gate reports `Ran 91 tests in 99.350s`, `FAILED (failures=1, errors=5, skipped=2)`; the input gate reports `Ran 91 tests in 107.410s` with the same failure/skip counts. The specifically regressed GX rebind test passes on both patched builds.
 
-Keep prefetch OFF until production timing settles GIL/CPU contention and the real data-only hash/RNG checks pass. Check RSS separately from the prepared-tensor budget. A future processor that draws global RNG or mutates shared native state needs a new safety audit. A cache hit-rate near zero predicts near-zero cache benefit. CUDA determinism, stream elapsed measurements, memory fit and actual kernel dispatch remain unmeasured here. The revised gloo run is pending with the coordinator. No GPU, SSH, Git, deletion, remote job change or production write occurred in this fix round.
+Patch replay commands, run with the same `nice`/CPU-only environment and interpreter, are `work/verify_review_patches.py round2_final_patch_check` and `work/port_b21.py`. Their exact output is linked above. `work/recheck_measurements.py` recomputes the retained production-log arithmetic in [round2_measurements.txt](evidence/round2_measurements.txt). Numbered installed-source excerpts for startup broadcast, storage accounting and FSDP ordering are in [round2_framework_sources.txt](evidence/round2_framework_sources.txt), with source hashes and official documentation links in [SOURCE_NOTES.md](SOURCE_NOTES.md).
 
-## Exact verification commands and outputs
+## Review round 1: finding -> fix -> test
 
-Commands ran from `/scratch/jjyeung/orch_n30/so_step` on `trinity-1-18`, with CUDA hidden and at most eight CPU cores. Patch generation uses `nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/regenerate_review_patches.py`; bounded replay uses the same Python prefix with `work/verify_review_patches.py review1_patch_check`. The serial driver `work/run_review_checks.py` set `OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1` and selected `work/tree`. Each log includes its exact command and exit status. CPU phase and fixture timing numbers below are local test output, not production measurements.
+The delivery retains the required round-1 fixes: stream-aware backward/recompute event attribution; GIL/thread analysis; bounded profile execution with partial output; source-only resume binding; lookahead release/bounds; repeated bracketed timing; complete manifests; cache counters; inherited production threads; scrubbed outputs; encoded-row/RNG checks; unsupported-path refusals; startup validation; lifecycle/boundary failures; and the 323,920-token arithmetic. The current regression gates include `test_review_kits.py`, `test_kit_utilities.py`, `test_local_parity.py`, `test_so_review.py` and the admission/joint tests. CUDA elapsed measurements remain unrun. The round-2 table states the current implementations where those findings overlap.
 
-```bash
-nice -n 10 env CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 \
-  OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false \
-  /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_review_checks.py
-```
+## What could go wrong, detection, and work not done
 
-### Patch generation
+Prefetch can lose time through GIL or OpenMP contention: compare both `data_seconds` and `wall_seconds` on matched plans and inspect per-microstep forward/backward host time. Full-plan tensor accounting can reject a large group before ON admission; RSS still includes processor/decoder temporaries and must be observed on the host. Clip/geometry/gf1/MDG paths remain refused for prefetch. Cache reuse may be negligible; 02 stays OFF until its counters and timing establish benefit. An OFF loss mismatch invalidates switch attribution, and any ON loss/draw mismatch invokes the hand-over's OFF kill rule.
 
-[review1_patch_generate.txt](evidence/review1_patch_generate.txt)
+The eight pre-existing suite failures above are not fixed.
 
-```text
-01_cpu_prefetch.diff 37120 422e2e0c4697524474a76496c86240e4902aad143bb2d1d25a62d449903debed
-02_decoded_rgb_cache.diff 7928 99ddb776f2eaa4fec46abf2f547fc8d43259220c30f056d6d66d5db3feb0e9f7
-03_batch_metrics.diff 13329 f49858ac9a510612b6bae41b79d8821fb390213daa321f04f31f28e9e8927aeb
-04_test_joint_hash_0dim.diff 907 4b6328fa30de31a2efcdf66c16ec793264c0ba372e5cde773aa0cfb6a6d49913
-SERIES_GENERATED: four ordered patches; final touched files match work/tree
-```
+The build-21 gloo run, real production processor/full-epoch byte audit, real CUDA event validation, production numerical acceptance, co-location probe and speed measurements have not run here. They require the lane/production host, not an inferred pass from tiny fixtures.
 
-### Zero-fuzz patch replay and syntax
+No Git, SSH, GPU work, deletion, production write, external job launch or paid API was used. The required review mappings and named supplied coordinator logs are retained because they define the evidence scope.
 
-[review1_patch_verify.txt](evidence/review1_patch_verify.txt)
-
-```text
-$ patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_step/out/patches/01_cpu_prefetch.diff
-patching file student_pilot/carrier_c1_run.py
-patching file student_pilot/c1_cpu_prefetch.py
-patching file student_pilot/c1_switches.py
-patching file tests/so_helpers.py
-patching file tests/so_processor.py
-patching file tests/test_so_prefetch.py
-patching file tests/test_so_review.py
-EXIT=0
-$ patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_step/out/patches/02_decoded_rgb_cache.diff
-patching file student_pilot/carrier_c1_run.py
-patching file student_pilot/c1_decoded_cache.py
-patching file student_pilot/pose_samples.py
-patching file student_pilot/batches.py
-patching file tests/test_so_cache.py
-EXIT=0
-$ patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_step/out/patches/03_batch_metrics.diff
-patching file student_pilot/carrier_c1_run.py
-patching file student_pilot/c1_batch_metrics.py
-patching file tests/test_so_metrics.py
-patching file tests/test_so_joint.py
-EXIT=0
-$ patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_step/out/patches/04_test_joint_hash_0dim.diff
-patching file tests/test_so_joint.py
-EXIT=0
-PATCH_PROOF: four ordered patches apply without fuzz; all 14 touched files match work/tree exactly
-UNCHANGED_PROOF: remaining 931 files equal input; no input files missing
-KIT_SYNTAX: all Python and shell files pass
-```
-
-### Serial local check driver
-
-[review1_final_checks.txt](evidence/review1_final_checks.txt)
-
-```text
-2026-11-19T09:33:41.040560+00:00 START review1_final_units.txt
-review1_final_units.txt EXIT=0
-2026-11-19T09:33:47.678197+00:00 START review1_final_parity.txt
-review1_final_parity.txt EXIT=0
-2026-11-19T09:34:06.608103+00:00 START review1_final_kits.txt
-review1_final_kits.txt EXIT=0
-2026-11-19T09:34:19.309304+00:00 START review1_final_kit_regressions.txt
-review1_final_kit_regressions.txt EXIT=0
-2026-11-19T09:34:21.425354+00:00 START review1_final_utilities.txt
-review1_final_utilities.txt EXIT=0
-2026-11-19T09:34:29.306956+00:00 START review1_final_measurements.txt
-review1_final_measurements.txt EXIT=0
-2026-11-19T09:34:29.344767+00:00 START review1_final_source_audit.txt
-review1_final_source_audit.txt EXIT=0
-ALL_LOCAL_CHECKS_PASS
-```
-
-### Trainer regressions: 14 pass; two gloo cases excluded
-
-[review1_final_units.txt](evidence/review1_final_units.txt)
-
-```text
-$ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_cpu_tests.py --local-only tests.test_so_prefetch tests.test_so_cache tests.test_so_metrics tests.test_so_joint tests.test_so_review
-NOT_RUN_SOCKET_REQUIRED: tests.test_so_prefetch.PrefetchTests.test_two_rank_admission_failure_for_single_and_nominal_groups
-NOT_RUN_SOCKET_REQUIRED: tests.test_so_joint.JointTests.test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives
-test_composite_pose_connections_are_created_on_the_worker (tests.test_so_prefetch.PrefetchTests.test_composite_pose_connections_are_created_on_the_worker) ... [transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
-ok
-test_native_tokenizer_and_video_processor_are_private_and_deterministic (tests.test_so_prefetch.PrefetchTests.test_native_tokenizer_and_video_processor_are_private_and_deterministic) ... ok
-test_one_group_lookahead_and_exception_deferred_to_its_boundary (tests.test_so_prefetch.PrefetchTests.test_one_group_lookahead_and_exception_deferred_to_its_boundary) ... ok
-test_processor_copy_failure_reaches_original_admission (tests.test_so_prefetch.PrefetchTests.test_processor_copy_failure_reaches_original_admission) ... ok
-test_real_rows_cpu_rng_sqlite_processor_ownership_and_exact_bytes (tests.test_so_prefetch.PrefetchTests.test_real_rows_cpu_rng_sqlite_processor_ownership_and_exact_bytes) ... ok
-test_bounded_cache_and_non_rgb_errors (tests.test_so_cache.CacheTests.test_bounded_cache_and_non_rgb_errors) ... ok
-test_same_encoded_rows_hits_invalidation_and_mutation_isolation (tests.test_so_cache.CacheTests.test_same_encoded_rows_hits_invalidation_and_mutation_isolation) ... ok
-test_python_float_accumulation_order_and_mixed_dtypes (tests.test_so_metrics.MetricsTests.test_python_float_accumulation_order_and_mixed_dtypes) ... ok
-test_first_and_last_group_failure_and_combined_cache_at_1_4_8_threads (tests.test_so_review.ReviewTests.test_first_and_last_group_failure_and_combined_cache_at_1_4_8_threads) ... ok
-test_group_tensor_budget_error_is_deferred (tests.test_so_review.ReviewTests.test_group_tensor_budget_error_is_deferred) ... ok
-test_nonowner_close_refused_and_owner_closes (tests.test_so_review.ReviewTests.test_nonowner_close_refused_and_owner_closes) ... ok
-test_refusal_list_and_group_cap (tests.test_so_review.ReviewTests.test_refusal_list_and_group_cap) ... ok
-test_replay_releases_consumed_rows_and_consumer_failure_drains_future (tests.test_so_review.ReviewTests.test_replay_releases_consumed_rows_and_consumer_failure_drains_future) ... ok
-test_startup_values_errors_cross_rank_and_frozen_settings (tests.test_so_review.ReviewTests.test_startup_values_errors_cross_rank_and_frozen_settings) ... ok
-
-----------------------------------------------------------------------
-Ran 14 tests in 4.673s
-
-OK
-
-EXIT=0
-```
-
-### Native loss/gradient/update/optimizer parity: 2 pass
-
-[review1_final_parity.txt](evidence/review1_final_parity.txt)
-
-```text
-$ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/test_local_parity.py
-test_all_switches_native_loss_every_gradient_update_trainables_and_rows (__main__.LocalParity.test_all_switches_native_loss_every_gradient_update_trainables_and_rows) ... [transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
-SO_LOCAL_PROOF {"directory": "/scratch/jjyeung/orch_n30/so_step/work/test_runs/so_ueg8069n", "arms": 5, "comparisons": 8, "loss_gradients_updates_optimizer": "bitwise", "trainables": "identical", "row_draws": "identical", "failure_microstep": 2, "distributed": false, "full_fsdp_proof": false}
-ok
-test_exact_comparator_rejects_signed_zero (__main__.LocalParity.test_exact_comparator_rejects_signed_zero) ... ok
-
-----------------------------------------------------------------------
-Ran 2 tests in 16.791s
-
-OK
-
-EXIT=0
-```
-
-### Native profile/setup: 4 pass
-
-[review1_final_kits.txt](evidence/review1_final_kits.txt)
-
-```text
-$ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/test_kits.py
-test_disposable_native_train_preserves_config_resume_and_step_guard (__main__.KitTests.test_disposable_native_train_preserves_config_resume_and_step_guard) ... ok
-test_instrumented_native_step_and_unmodified_input_default_are_exact (__main__.KitTests.test_instrumented_native_step_and_unmodified_input_default_are_exact) ... [transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
-/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/profiler/profiler.py:224: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.
-  _warn_once(
-PROFILE_TABLE [{"name": "so/data_wait_including_admission", "count": 3, "host_total_seconds": 0.00343180699999998, "host_self_seconds": 0.0030304739999996626, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/host_to_device", "count": 3, "host_total_seconds": 0.0002104559999999601, "host_self_seconds": 9.768600000004152e-05, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/move", "count": 6, "host_total_seconds": 0.00011276999999991858, "host_self_seconds": 0.00010571899999982247, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/explicit_preforward_sync", "count": 3, "host_total_seconds": 2.3906000000029962e-05, "host_self_seconds": 2.3906000000029962e-05, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/forward_total", "count": 3, "host_total_seconds": 0.295319321, "host_self_seconds": 0.01545854200000102, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "aten::_local_scalar_dense", "count": 362, "host_total_seconds": 7.80669999996544e-05, "host_self_seconds": 7.80669999996544e-05, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/base_vision", "count": 3, "host_total_seconds": 0.023729602999999988, "host_self_seconds": 0.004194771000000361, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/lm_layer_forward", "count": 6, "host_total_seconds": 0.15340561899999994, "host_self_seconds": 0.0027993099999988336, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/lin_attn/torch_depthwise_conv", "count": 6, "host_total_seconds": 0.007180440999999948, "host_self_seconds": 0.0003204900000000307, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/lin_attn/chunk", "count": 6, "host_total_seconds": 0.1563886329999999, "host_self_seconds": 0.00912954699999895, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/lin_attn/gated_norm", "count": 6, "host_total_seconds": 0.0012680009999999674, "host_self_seconds": 0.0004529800000000032, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/head/pose_loss", "count": 1, "host_total_seconds": 0.032364284, "host_self_seconds": 0.0009400020000000513, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/head/pose_predict_all", "count": 1, "host_total_seconds": 0.029830423999999998, "host_self_seconds": 0.002895224999999904, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/head/PrivateDepth", "count": 1, "host_total_seconds": 0.04510754900000001, "host_self_seconds": 0.003184764000000359, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/private_vision", "count": 2, "host_total_seconds": 0.07260143900000002, "host_self_seconds": 0.006161962999999873, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/memory_stats", "count": 7, "host_total_seconds": 0.00022224299999984215, "host_self_seconds": 0.00022224299999984215, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/backward_including_recompute_and_fsdp", "count": 3, "host_total_seconds": 0.3056680730000001, "host_self_seconds": 0.045669707999999545, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/lm_layer_recompute", "count": 6, "host_total_seconds": 0.052786717000000004, "host_self_seconds": 0.003255386999999464, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/metrics_and_shapes", "count": 3, "host_total_seconds": 0.004204717000000063, "host_self_seconds": 0.0040823210000000545, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/gradient_reduce_norm_clip_and_lr", "count": 1, "host_total_seconds": 0.009564155999999959, "host_self_seconds": 0.004860420000000391, "device_total_seconds": 0.0, "device_self_seconds": 0.0}, {"name": "so/optimizer", "count": 1, "host_total_seconds": 0.020371756000000053, "host_self_seconds": 4.7050999999977646e-05, "device_total_seconds": 0.0, "device_self_seconds": 0.0}]
-phase	calls	host_s	CUDA_stream_elapsed_s
-backward_including_recompute_and_fsdp	3	0.305728	0.000000
-base_vision	3	0.023798	0.000000
-data_wait_including_admission	3	0.003481	0.000000
-explicit_preforward_sync	3	0.000037	0.000000
-forward_total	3	0.295347	0.000000
-gradient_reduce_norm_clip_and_lr	1	0.009588	0.000000
-head/PrivateDepth	1	0.045131	0.000000
-head/pose_loss	1	0.032386	0.000000
-head/pose_predict_all	1	0.029855	0.000000
-host_to_device	3	0.000244	0.000000
-lin_attn/chunk	6	0.156598	0.000000
-lin_attn/gated_norm	6	0.001440	0.000000
-lin_attn/torch_depthwise_conv	6	0.007324	0.000000
-lm_layer_forward	6	0.153566	0.000000
-lm_layer_recompute	6	0.053031	0.000000
-memory_stats	7	0.000402	0.000000
-metrics_and_shapes	3	0.004242	0.000000
-move	6	0.000145	0.000000
-optimizer	1	0.020394	0.000000
-private_vision	2	0.072662	0.000000
-SO_DEFAULT_AND_PROFILE: input/default/instrumented losses, gradients, updates and metadata bitwise equal
-ok
-test_interval_union (__main__.KitTests.test_interval_union) ... ok
-test_real_native_setup_restores_checkpoint_and_redirects_receipts (__main__.KitTests.test_real_native_setup_restores_checkpoint_and_redirects_receipts) ... ok
-
-----------------------------------------------------------------------
-Ran 4 tests in 10.156s
-
-OK
-
-EXIT=0
-```
-
-### Kit review regressions: 7 pass
-
-[review1_final_kit_regressions.txt](evidence/review1_final_kit_regressions.txt)
-
-```text
-$ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/test_review_kits.py
-test_autograd_worker_events_and_recompute_and_producer_exclusion (__main__.ReviewKits.test_autograd_worker_events_and_recompute_and_producer_exclusion) ... ok
-test_bounded_cache_snapshot_and_shell_limits (__main__.ReviewKits.test_bounded_cache_snapshot_and_shell_limits) ... ok
-test_hash_signed_zero_scalar_structure_and_cross_arm_failure (__main__.ReviewKits.test_hash_signed_zero_scalar_structure_and_cross_arm_failure) ... ok
-test_output_scrubber_and_opaque_identifiers (__main__.ReviewKits.test_output_scrubber_and_opaque_identifiers) ... ok
-test_partial_signal_output_without_cuda_synchronize (__main__.ReviewKits.test_partial_signal_output_without_cuda_synchronize) ... SO_INCOMPLETE signal=15
-ok
-test_real_term_writes_incomplete_status (__main__.ReviewKits.test_real_term_writes_incomplete_status) ... ok
-test_source_only_production_resume_bridge_and_early_refusals (__main__.ReviewKits.test_source_only_production_resume_bridge_and_early_refusals) ... ok
-
-----------------------------------------------------------------------
-Ran 7 tests in 0.394s
-
-OK
-
-EXIT=0
-```
-
-### Encoded rows and timing statistics: 2 pass
-
-[review1_final_utilities.txt](evidence/review1_final_utilities.txt)
-
-```text
-$ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/test_kit_utilities.py
-test_real_cpu_rows_all_data_arms_and_rng (__main__.Utilities.test_real_cpu_rows_all_data_arms_and_rng) ... [transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
-{
-  "arm": "off",
-  "steps": 10,
-  "encoded_rows_equal_to_off": null,
-  "median_wall_seconds": 0.10355882230214775,
-  "median_data_seconds": 0.10194263653829694,
-  "loss_parity": "not measured: no model",
-  "scope": "actual encoding/copies; no LM, heads, FSDP, optimizer or inter-rank admission"
-}
-{
-  "arm": "prefetch",
-  "steps": 10,
-  "encoded_rows_equal_to_off": true,
-  "median_wall_seconds": 0.09853582736104727,
-  "median_data_seconds": 0.08895979938097298,
-  "loss_parity": "not measured: no model",
-  "scope": "actual encoding/copies; no LM, heads, FSDP, optimizer or inter-rank admission"
-}
-{
-  "arm": "cache",
-  "steps": 10,
-  "encoded_rows_equal_to_off": true,
-  "median_wall_seconds": 0.07903850311413407,
-  "median_data_seconds": 0.07754939305596054,
-  "loss_parity": "not measured: no model",
-  "scope": "actual encoding/copies; no LM, heads, FSDP, optimizer or inter-rank admission"
-}
-{
-  "arm": "all",
-  "steps": 10,
-  "encoded_rows_equal_to_off": true,
-  "median_wall_seconds": 0.07832321990281343,
-  "median_data_seconds": 0.06617423240095377,
-  "loss_parity": "not measured: no model",
-  "scope": "actual encoding/copies; no LM, heads, FSDP, optimizer or inter-rank admission"
-}
-SO_DATA_KIT: ten real SQLite/RGB/encoding plans per arm; OFF/prefetch/cache/all encoded SHA256 equal and RNG unchanged; CPU only
-ok
-test_summary_slowest_rank_and_parity_failures (__main__.Utilities.test_summary_slowest_rank_and_parity_failures) ... SO_TIMING {"arm": "prefetch", "repeats": 3, "mean_gain_s": 2.0, "ci95_halfwidth_s": 0.0, "minimum_detectable_difference_s": 0.0, "resolved": true, "target_1s_resolved": true, "samples": "independent repeat means; steps within a repeat are not independent samples"}
-SO_TIMING {"arm": "cache", "repeats": 3, "mean_gain_s": 2.0, "ci95_halfwidth_s": 0.0, "minimum_detectable_difference_s": 0.0, "resolved": true, "target_1s_resolved": true, "samples": "independent repeat means; steps within a repeat are not independent samples"}
-SO_TIMING {"arm": "metrics", "repeats": 3, "mean_gain_s": 2.0, "ci95_halfwidth_s": 0.0, "minimum_detectable_difference_s": 0.0, "resolved": true, "target_1s_resolved": true, "samples": "independent repeat means; steps within a repeat are not independent samples"}
-SO_SUMMARY_KIT: slowest-rank bracketed repeat MDD verified; changed rows/trainables/losses and NaN rejected
-ok
-
-----------------------------------------------------------------------
-Ran 2 tests in 6.020s
-
-OK
-
-EXIT=0
-```
-
-### Production-log arithmetic
-
-[review1_final_measurements.txt](evidence/review1_final_measurements.txt)
-
-```text
-$ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/recheck_measurements.py
-rank0: wall median=132.6s mean=133.145556s; data median=31.70s mean=31.691667s
-rank1: wall median=132.6s mean=133.150556s; data median=31.65s mean=31.692778s
-rank2: wall median=132.6s mean=133.146111s; data median=31.70s mean=31.743333s
-rank3: wall median=132.6s mean=133.153889s; data median=31.60s mean=31.628333s
-PASS: 200 measured records; 180 stable records; lines 417-596; rank0 paired wall-data median=100.8s
-
-EXIT=0
-```
-
-### Delivery hashes and source syntax
-
-[review1_delivery_integrity.txt](evidence/review1_delivery_integrity.txt)
-
-```text
-01_cpu_prefetch.diff: 37120 bytes; SHA256 422e2e0c4697524474a76496c86240e4902aad143bb2d1d25a62d449903debed; clean-copy contents match
-02_decoded_rgb_cache.diff: 7928 bytes; SHA256 99ddb776f2eaa4fec46abf2f547fc8d43259220c30f056d6d66d5db3feb0e9f7; clean-copy contents match
-03_batch_metrics.diff: 13329 bytes; SHA256 f49858ac9a510612b6bae41b79d8821fb390213daa321f04f31f28e9e8927aeb; clean-copy contents match
-04_test_joint_hash_0dim.diff: 907 bytes; SHA256 4b6328fa30de31a2efcdf66c16ec793264c0ba372e5cde773aa0cfb6a6d49913; clean-copy contents match
-SHELL_SYNTAX_PASS: out/kit_profile/probe.sh
-SHELL_SYNTAX_PASS: out/kit_profile/run.sh
-SHELL_SYNTAX_PASS: out/kit_timing/run.sh
-PYTHON_SYNTAX_PASS: 27 patch/kit file checks
-SOURCE_AUDIT_PASS: 10 installed files; numbered excerpts and SHA256 retained
-```
-
-### Installed framework source audit
-
-[review1_final_source_audit.txt](evidence/review1_final_source_audit.txt)
-
-```text
-$ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/audit_review_sources.py
-SOURCE_AUDIT_PASS: 11 installed source files; numbered excerpts and SHA256 retained
-
-EXIT=0
-```
-
+Final [delivery audit](evidence/round2_delivery_audit.txt): `FINAL_DELIVERY_AUDIT_PASS`. All patch hashes and tested/replayed bytes match; source identity, local links and syntax pass. Workspace usage measured 1,225,974,942 bytes (about 1.23 GB) at 11:02 UTC, below the 3-GB limit. [ARTIFACTS.json](ARTIFACTS.json) inventories the delivery files.

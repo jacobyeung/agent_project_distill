@@ -9,7 +9,7 @@ Submit the rehearsal with an unused opaque token. These commands submit the scri
 
 ```bash
 token=81a60d2f
-job=$(bash "$OSSH" "sbatch --parsable --job-name=a15_cot_ap${token} --time=04:00:00 /dev/stdin 673bc60f 200 /project/community/jjyeung/okh7/pb_${token} 13800")
+job=$(bash "$OSSH" "sbatch --parsable --job-name=a15_cot_ap${token} --time=04:00:00 /dev/stdin 673bc60f 200 /project/community/jjyeung/okh7/pb_${token} 13800" < pbjob.sh)
 job=${job%%;*}
 [[ $job =~ ^[0-9]+$ ]] || exit 1
 printf '{"token":"%s","job":"%s","run":"673bc60f","step":200,"purpose":"pb200","utc":"%s"}\n' "$token" "$job" "$(date -u +%FT%TZ)" >> /scratch/jjyeung/orch_n30/r1_ops6/work/ORCHARD_LEDGER.jsonl
@@ -21,7 +21,7 @@ After job 172660 leaves the queue, if `/project/community/jjyeung/okh7/h_6ed2c7a
 
 ```bash
 token=9c31e4a7
-job=$(bash "$OSSH" "test ! -e /project/community/jjyeung/okh7/h_6ed2c7aa/m600/DONE.json && sbatch --parsable --job-name=a15_cot_ap${token} --time=04:00:00 /dev/stdin 6ed2c7aa 600 /project/community/jjyeung/okh7/pb_${token} 13800")
+job=$(bash "$OSSH" "test ! -e /project/community/jjyeung/okh7/h_6ed2c7aa/m600/DONE.json && sbatch --parsable --job-name=a15_cot_ap${token} --time=04:00:00 /dev/stdin 6ed2c7aa 600 /project/community/jjyeung/okh7/pb_${token} 13800" < pbjob.sh)
 job=${job%%;*}
 [[ $job =~ ^[0-9]+$ ]] || exit 1
 printf '{"token":"%s","job":"%s","run":"6ed2c7aa","step":600,"purpose":"pb600","utc":"%s"}\n' "$token" "$job" "$(date -u +%FT%TZ)" >> /scratch/jjyeung/orch_n30/r1_ops6/work/ORCHARD_LEDGER.jsonl

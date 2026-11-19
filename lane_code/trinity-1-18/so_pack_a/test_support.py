@@ -79,4 +79,5 @@ def fixture(w):
     f['a/4.py']=fill.encode();plan['export_binding']=binding;pay['9.json']=json.dumps(plan,sort_keys=True).encode();f=seal(f,pay);p=P.extract(f,w/'p')
     c=dict(python=P.PYTHON,work=str(w/'state'),ledger=str(w/'ledger.jsonl'),normalize_wrapper=True,max_read_bytes=10*1024**2,mirrors=mapping,fill=dict(parts=[x['path'] for x in parts],done=done['path'],object=binding['object'],lineage='SFT',step=600,**prep_paths),remote=dict(ossh='/unavailable/ossh.sh',walltime='02:30:00',cpu=dict(path=str(R/'o_cpu_B4.sh'),sha256=P.file_digest(R/'o_cpu_B4.sh'),old_token='d50ba921ef1f4',adapt_token=True),gpu=dict(path=str(R/'o_sub_B5.sh'),sha256=P.file_digest(R/'o_sub_B5.sh'),old_token='b635a315de01e',adapt_token=True)))
     c['remote']['gpu'].pop('old_token');c['remote']['gpu'].pop('adapt_token')
+    c['remote_input_pins']={k:dict(bytes=v['bytes']) for k,v in mapping.items()}
     (w/'ledger.jsonl').write_text('');P.write(w/'config.json',c);return p,c

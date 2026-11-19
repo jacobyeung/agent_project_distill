@@ -1,0 +1,2 @@
+- swarm_opt/mind/c_20261119.tar (15.9 MB partial of the refused 10:31Z stream; not used), mind/t1, mind/t2, mind/t3 (pipeline test fixtures)
+- gs://cmu-gpucloud-jjyeung/dtc19/c_20261119.tar (15,925,248 B truncated object from the stopped 10:31Z upload; not a copy; needs the user to remove)

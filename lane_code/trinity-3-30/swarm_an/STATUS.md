@@ -7,5 +7,8 @@ Previous session's STATUS (pilot, kit, commands): work/m400/STATUS_s5.md.
 - Q1+Q2 (direction, twins): RESULT events/swarm_an/*_RESULT_m400_toward_hard_and_direction_twins_bind_as_is.md; record section "Step 400" S400.1, S400.2 appended to distill_design/R1_M200_TRACE_ANALYSIS_20261119.md. Scripts work/m400/{dircls,dirtab,pairs,open_turn,v7dir,srcs}.py, twins_118.sh (one tssh call done; twins_118.out holds the tallies and 60 sampled twins).
 - Q3 (S400.3) and Q4 (S400.4, incl. relative count format failure; RESULT *_RESULT_m400_relative_count_falls_26_points_format_failure.md) appended to the record.
 - Q5 analysts running (tmux san_q9, MAXJ=2): m400b_count, m400b_size (prompts in events/swarm_an/prompts; receipts codex_local/.../codex_runs/20261119T1036*_san_m400b_*). Verify each: kit/verify_report.py RECEIPT/final_message.md 20, recount two numbers, open three items.
-## Next
-- Q3 relative size flips 544/200/400; Q4 counting by true count; Q5 analysts (Codex Astra review, max 3 at once) for types moved > 3 points 200->400 or protected outcome not held; Q6 VSTI when posted.
+- Q5 done: both analysts verified (S400.5 in the record); INDEX line extended.
+- Q6 done (S400.6; kit/roots.json now has direct, facing and vsti at R1,400). Final RESULT *_RESULT_m400_analysis_complete_lane_end.md.
+- Off-node copy: events/swarm_an/san_m400_s6.tar (sha256 86372d8319ffe7fc72ceb36b88be1a5b261fdcedeaf1d9db335ce5394421f64c): work/m400, gates_400*.txt, roots.json.
+## State
+Lane ended (all six questions answered). Nothing runs in tmux for this lane (san_q9 queue drained). No successor.

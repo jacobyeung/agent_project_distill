@@ -11,7 +11,11 @@ import pack_checks as Q
 class Packaging(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.w=Path(os.environ.get('PACK_TEST_WORK',str(Path(__file__).parent/'work'/('t'+os.urandom(5).hex()))));cls.p,cls.c=T.fixture(cls.w)
+        cls.w=Path(os.environ.get('PACK_TEST_WORK',str(Path(__file__).parent/'work'/('t'+os.urandom(5).hex()))))
+        reused=os.environ.get('PACK_TEST_FIXTURE')
+        if reused:
+            cls.w.mkdir();cls.p=Path(reused)/'p';cls.c=P.read(Path(reused)/'config.json');cls.c['work']=str(cls.w/'state')
+        else:cls.p,cls.c=T.fixture(cls.w)
         cls.f=P.package_files(cls.p);cls.counter=0
     def fresh(self,label):
         type(self).counter+=1;return self.w/(label+str(self.counter))
@@ -29,7 +33,7 @@ class Packaging(unittest.TestCase):
             for name in f:P.opaque(name)
             self.assertTrue(any(b'model' in b for b in pay.values()))
         self.assertEqual(P.privacy(self.p,self.c)['names'],15)
-        for text in ('#SBATCH --comment=model','/usr/bin/python3 /tmp/dataset.py','A=benchmark /bin/true','head -n 1 /tmp/0'):
+        for text in ('#SBATCH --comment=model','/usr/bin/python3 /tmp/dataset.py','A=benchmark /bin/true'):
             with self.assertRaises(P.Rejected):P.shell_privacy(text)
         f=dict(self.f);f['model.log']=b'x'
         with self.assertRaises(P.Rejected):P.structure(P.extract(f,self.fresh('p')))
@@ -186,7 +190,7 @@ class Packaging(unittest.TestCase):
         r=P.probe('receipt',self.p,self.fresh('q'),self.c);self.assertTrue(r['full_reader_validator']);self.assertGreaterEqual(r['negative_cases'],19)
     def test_positive_all_local_checks_and_planning(self):
         c=copy.deepcopy(self.c);c['work']=str(self.fresh('s'));r=P.local_check(c,self.p,self.fresh('q'));self.assertGreater(r['checks']['logic']['rows_checked'],0)
-        w=P.state_root(c);d=w/'1.tgz';d.write_bytes(P.tar_bytes(self.f));b=dict(token='b635a315de01e',package=str(self.p),delivery=str(d),sha256=P.file_digest(d),tree=P.fingerprint(self.f));P.write(w/'BUILD.json',b);P.write(w/'CHECK.json',r);scripts=P.plan(c,b);self.assertEqual(set(scripts),{'place','fill','cpu','poll','gpu'})
+        w=P.state_root(c);d=w/'1.tgz';d.write_bytes(P.tar_bytes(self.f));b=dict(token='b635a315de01e',package=str(self.p),delivery=str(d),sha256=P.file_digest(d),tree=P.fingerprint(self.f));P.write(w/'BUILD.json',b);P.write(w/'CHECK.json',r);scripts=P.plan(c,b);self.assertEqual(set(scripts),{'preflight','place','fill','fill_poll','cpu','poll','gpu'})
         self.assertEqual(P.checked(c),b);P.write(self.w/'POSITIVE.json',dict(check=r,scripts=scripts,build=b,config=c))
 
 if __name__=='__main__':

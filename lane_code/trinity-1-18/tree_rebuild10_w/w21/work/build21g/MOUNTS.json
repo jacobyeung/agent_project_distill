@@ -1,0 +1,389 @@
+{
+  "job_example": "173051: N=/tmp/q_22c714e1_173051 only if SLURM_TMPDIR is unset; its actual production value is unavailable here.",
+  "mode": "q",
+  "production": [
+    {
+      "availability": "exists on host by -e/-L guard; bwrap starts with writable empty root",
+      "destination": "/* /.[!.]* /..?* except /home,/dev,/proc",
+      "evidence": "P b/c.sh:343-347; concrete Trinity entries below",
+      "name": "host top-level entries",
+      "source": "same host entry or readlink target"
+    },
+    {
+      "availability": "exists from top-level ro bind; writable private parent after overlay",
+      "destination": "/tmp",
+      "evidence": "kit.py generated tk_bwrap; MOUNT_REDUCTION.json",
+      "name": "/tmp (overlay)",
+      "source": "tmpfs"
+    },
+    {
+      "availability": "host created by bootstrap; creatable in /tmp tmpfs or already exists at SLURM_TMPDIR",
+      "destination": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}",
+      "evidence": "b/z.py bootstrap; tk_stage before tk_bwrap; restored before child binds",
+      "name": "Q_ROOT",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}"
+    },
+    {
+      "availability": "special dev-bind; parent is namespace root",
+      "destination": "/dev",
+      "evidence": "P tk_bwrap",
+      "name": "/dev",
+      "source": "/dev"
+    },
+    {
+      "availability": "special proc mount; parent is namespace root",
+      "destination": "/proc",
+      "evidence": "P tk_bwrap",
+      "name": "/proc",
+      "source": "procfs"
+    },
+    {
+      "availability": "creatable at namespace root; remounted read-only last",
+      "destination": "/home",
+      "evidence": "P tk_bwrap",
+      "name": "/home",
+      "source": "tmpfs"
+    },
+    {
+      "availability": "creatable inside preceding /home tmpfs",
+      "destination": "/home/jjyeung",
+      "evidence": "P tk_bwrap",
+      "name": "/home/jjyeung",
+      "source": "--dir"
+    },
+    {
+      "availability": "read-only host /scratch ancestor; already exists on production host (inferred)",
+      "destination": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+      "evidence": "Orchard job 173051 reached Q_NS after this bind; absent elsewhere would require an operator-provided host path",
+      "name": "AS",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/s/aws/u"
+    },
+    {
+      "availability": "read-only host /lustre ancestor; already exists on production host (inferred)",
+      "destination": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+      "evidence": "Orchard job 173051 reached Q_NS after this bind; absent elsewhere would require an operator-provided host path",
+      "name": "AL",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/s/aws/u"
+    },
+    {
+      "availability": "inside earlier read-only AS bind; target exists in U/ap/8865619b",
+      "destination": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b",
+      "evidence": "tk_stage creates U/ap/K before tk_bwrap; this bind makes X writable",
+      "name": "X",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/x"
+    },
+    {
+      "availability": "inside earlier writable X; also created in NX/runs",
+      "destination": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs",
+      "evidence": "tk_nx creates NX/runs",
+      "name": "X/runs",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/rp"
+    },
+    {
+      "availability": "inside earlier writable X; also created in NX/u",
+      "destination": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u",
+      "evidence": "tk_stage creates NX/u and source U/ap/K/u",
+      "name": "X/u",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/s/aws/u/ap/8865619b/u"
+    },
+    {
+      "availability": "inside earlier writable X; also created in NX/data2root",
+      "destination": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/data2root",
+      "evidence": "tk_nx and tk_stage",
+      "name": "X/data2root",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/s/c7d31ddd/data2root"
+    },
+    {
+      "availability": "inside earlier writable X; also created in NX/models",
+      "destination": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/models",
+      "evidence": "tk_nx and tk_stage_model",
+      "name": "X/models",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/s/c7d31ddd/runs/aws128p_20261025/models"
+    },
+    {
+      "availability": "read-only host /project ancestor; already exists on production host (inferred)",
+      "destination": "/project/community/jjyeung/c7d31ddd",
+      "evidence": "Orchard job 173051 reached Q_NS after this bind; no pool directory is created by the fix",
+      "name": "P",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/s/c7d31ddd"
+    },
+    {
+      "availability": "creatable inside earlier /home tmpfs",
+      "destination": "/home/jjyeung/6d00e578",
+      "evidence": "P tk_bwrap; /home remount-ro follows this bind",
+      "name": "EPOCHS",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/s/epochs"
+    },
+    {
+      "availability": "host created by tk_stage; inside restored writable Q_ROOT",
+      "destination": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/j",
+      "evidence": "tk_stage and tk_env create jobdir/tmp before tk_bwrap",
+      "name": "TK_JOBDIR",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}/j"
+    },
+    {
+      "availability": "absent host destination under read-only /tmp before fix; creatable in private tmpfs after fix",
+      "destination": "/tmp/q_22c714e1",
+      "evidence": "MOUNT_REDUCTION.json and VIEW.json reproduce failure and success",
+      "name": "Q_NS",
+      "source": "${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID}"
+    }
+  ],
+  "qualifications": "No Orchard host inspection was performed. AS/AL/P host existence follows from the reported ordered bwrap failure, not a new stat on Orchard. The stand-in test creates only prefixed AS/AL/P host targets under L.",
+  "source": "ext/pwrap/b/c.sh:339-366; decoded kits/q/k/j.json; supplied Orchard job 173051 failure",
+  "trinity_argument_order": [
+    {
+      "destination": "/bin",
+      "operation": "--symlink",
+      "order": 1,
+      "source": "usr/bin"
+    },
+    {
+      "destination": "/boot",
+      "operation": "--ro-bind",
+      "order": 2,
+      "source": "/boot"
+    },
+    {
+      "destination": "/compute",
+      "operation": "--ro-bind",
+      "order": 3,
+      "source": "/compute"
+    },
+    {
+      "destination": "/data",
+      "operation": "--ro-bind",
+      "order": 4,
+      "source": "/data"
+    },
+    {
+      "destination": "/data2",
+      "operation": "--ro-bind",
+      "order": 5,
+      "source": "/data2"
+    },
+    {
+      "destination": "/data3",
+      "operation": "--ro-bind",
+      "order": 6,
+      "source": "/data3"
+    },
+    {
+      "destination": "/data4",
+      "operation": "--ro-bind",
+      "order": 7,
+      "source": "/data4"
+    },
+    {
+      "destination": "/etc",
+      "operation": "--ro-bind",
+      "order": 8,
+      "source": "/etc"
+    },
+    {
+      "destination": "/lib",
+      "operation": "--symlink",
+      "order": 9,
+      "source": "usr/lib"
+    },
+    {
+      "destination": "/lib64",
+      "operation": "--symlink",
+      "order": 10,
+      "source": "usr/lib64"
+    },
+    {
+      "destination": "/lost+found",
+      "operation": "--ro-bind",
+      "order": 11,
+      "source": "/lost+found"
+    },
+    {
+      "destination": "/media",
+      "operation": "--ro-bind",
+      "order": 12,
+      "source": "/media"
+    },
+    {
+      "destination": "/mnt",
+      "operation": "--ro-bind",
+      "order": 13,
+      "source": "/mnt"
+    },
+    {
+      "destination": "/opt",
+      "operation": "--ro-bind",
+      "order": 14,
+      "source": "/opt"
+    },
+    {
+      "destination": "/root",
+      "operation": "--ro-bind",
+      "order": 15,
+      "source": "/root"
+    },
+    {
+      "destination": "/run",
+      "operation": "--ro-bind",
+      "order": 16,
+      "source": "/run"
+    },
+    {
+      "destination": "/sbin",
+      "operation": "--symlink",
+      "order": 17,
+      "source": "usr/sbin"
+    },
+    {
+      "destination": "/scratch",
+      "operation": "--ro-bind",
+      "order": 18,
+      "source": "/scratch"
+    },
+    {
+      "destination": "/srv",
+      "operation": "--ro-bind",
+      "order": 19,
+      "source": "/srv"
+    },
+    {
+      "destination": "/ssd0",
+      "operation": "--ro-bind",
+      "order": 20,
+      "source": "/ssd0"
+    },
+    {
+      "destination": "/ssd1",
+      "operation": "--ro-bind",
+      "order": 21,
+      "source": "/ssd1"
+    },
+    {
+      "destination": "/sys",
+      "operation": "--ro-bind",
+      "order": 22,
+      "source": "/sys"
+    },
+    {
+      "destination": "/tmp",
+      "operation": "--ro-bind",
+      "order": 23,
+      "source": "/tmp"
+    },
+    {
+      "destination": "/usr",
+      "operation": "--ro-bind",
+      "order": 24,
+      "source": "/usr"
+    },
+    {
+      "destination": "/var",
+      "operation": "--ro-bind",
+      "order": 25,
+      "source": "/var"
+    },
+    {
+      "destination": "/tmp",
+      "operation": "--tmpfs",
+      "order": 26
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node",
+      "operation": "--bind",
+      "order": 27,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node"
+    },
+    {
+      "destination": "/dev",
+      "operation": "--dev-bind",
+      "order": 28,
+      "source": "/dev"
+    },
+    {
+      "destination": "/proc",
+      "operation": "--proc",
+      "order": 29
+    },
+    {
+      "destination": "/home",
+      "operation": "--tmpfs",
+      "order": 30
+    },
+    {
+      "destination": "/home/jjyeung",
+      "operation": "--dir",
+      "order": 31
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+      "operation": "--ro-bind",
+      "order": 32,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node/s/aws/u"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/dest/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung",
+      "operation": "--ro-bind",
+      "order": 33,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node/s/aws/u"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b",
+      "operation": "--bind",
+      "order": 34,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node/x"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs",
+      "operation": "--bind",
+      "order": 35,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node/rp"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u",
+      "operation": "--ro-bind",
+      "order": 36,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node/s/aws/u/ap/8865619b/u"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/data2root",
+      "operation": "--ro-bind",
+      "order": 37,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node/s/c7d31ddd/data2root"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/dest/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/models",
+      "operation": "--ro-bind",
+      "order": 38,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node/s/c7d31ddd/runs/aws128p_20261025/models"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/dest/project/community/jjyeung/c7d31ddd",
+      "operation": "--ro-bind",
+      "order": 39,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node/s/c7d31ddd"
+    },
+    {
+      "destination": "/home/jjyeung/6d00e578",
+      "operation": "--ro-bind",
+      "order": 40,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node/s/epochs"
+    },
+    {
+      "destination": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node/j",
+      "operation": "--bind",
+      "order": 41,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node/j"
+    },
+    {
+      "destination": "/home",
+      "operation": "--remount-ro",
+      "order": 42
+    },
+    {
+      "destination": "/tmp/q_22c714e1",
+      "operation": "--bind",
+      "order": 43,
+      "source": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/view/node"
+    }
+  ]
+}

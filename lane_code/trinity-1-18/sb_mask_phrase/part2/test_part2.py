@@ -154,6 +154,16 @@ class Fixture(unittest.TestCase):
         self.assertEqual(f['input_sha256'][str(P.PART2/'price.py')], K.sha(P.PART2/'price.py'))
         self.assertTrue(all(c['rc_pairs_priced'] > 0 and c['rc_distinct_from_base'] > 0 for c in f['captures']))
 
+    def test_full_fixture_reproduces_part1(self):
+        """Reruns identical to the stored pools must price W_exact exactly as part 1 priced W1."""
+        d = json.loads((K.WORK/'part2_fixture/aggregate/DECISION_PART2.json').read_text())
+        self.assertIn('FIXTURE', d)
+        self.assertEqual(d['w_exact_rows_equal_w_cf'], 1037)
+        self.assertEqual(d['arms']['W_exact']['mra'], d['w_cf_mra'])
+        self.assertEqual(d['input_sha256'][str(P.PART2/'price.py')], K.sha(P.PART2/'price.py'))
+        self.assertEqual(set(d['arms']), {'W_exact', 'W_new', 'R_cond'})
+        self.assertTrue(all(d['arms'][a]['rows'] == 1037 for a in d['arms']))
+
 
 if __name__ == '__main__':
     result = unittest.main(exit=False, verbosity=2).result

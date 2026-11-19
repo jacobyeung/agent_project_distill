@@ -15,7 +15,7 @@ os.environ.update(CUDA_VISIBLE_DEVICES='',PYTHONDONTWRITEBYTECODE='1',OMP_NUM_TH
                   LANE_TEST_OUTPUT=str(ROOT/'work/test_runs'),TMPDIR=str(ROOT/'work/test_runs'))
 if hasattr(os,'sched_getaffinity'):
     os.sched_setaffinity(0, sorted(os.sched_getaffinity(0))[:8])
-sys.path[:0]=[str(ROOT/'out/kit_profile'),str(ROOT/'out/kit_timing'),str(ROOT/'work/tree')]
+sys.path[:0]=[str(ROOT/'out/kit_profile'),str(ROOT/'out/kit_timing'),os.environ.get('SO_TEST_TREE',str(ROOT/'work/tree'))]
 import torch
 torch.set_num_threads(8)
 from instrument import Phases, hooks

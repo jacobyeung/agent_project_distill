@@ -1,0 +1,862 @@
+[
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "os.environ.update({\"BeNcHmArK\":\"1\"})",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "os.environ.update(Q=\"DaTaSeT\")",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "os.environ.update(BeNcHmArK=\"1\")",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:key:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "os.environ.update([(\"Q\", \"DaTaSeT\")])",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "os.environ.setdefault(\"BeNcHmArK\", \"1\")",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "os.putenv(\"BeNcHmArK\", \"1\")",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "os.putenv(\"Q\", \"DaTaSeT\")",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "from os import putenv as p\np(\"Q\", \"DaTaSeT\")",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:2:environment:DaTaSeT"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "import os as x\nx.environ[\"BeNcHmArK\"]=\"1\"",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:2:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "from os import environ as e\ne[\"Q\"]=\"DaTaSeT\"",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:2:environment:DaTaSeT"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "e=os.environ\ne.update({\"BeNcHmArK\":\"1\"})",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:2:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "env={\"BeNcHmArK\":\"1\"}\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:2:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "env={}\nenv.update(BeNcHmArK=\"1\")\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:3:environment:key:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "env={}\nenv[\"Q\"]=\"DaTaSeT\"\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:3:environment:DaTaSeT"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "run(env=dict(BeNcHmArK=\"1\"))",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:key:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "run(env={\"Q\":\"DaTaSeT\"})",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "run(env={\"Q\":\"BeNcH\"+\"mArK\"})",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "a=\"BeNcH\"\nb=\"mArK\"\nos.environ[a+b]=\"1\"",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:3:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "a=\"BeNcHmArK\"\nos.environ[f\"{a}\"]=\"1\"",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:2:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "os.environb[b\"BeNcHmArK\"]=b\"1\"",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "os.environ={\"BeNcHmArK\":\"1\"}",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "os.environ[\"Q\"]:str=\"DaTaSeT\"",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "os.environ[\"Q\"]+=\"DaTaSeT\"",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:DaTaSeT"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "setenv=os.environ.update\nsetenv(BeNcHmArK=\"1\")",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:2:environment:key:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "from os import putenv\np=putenv\np(\"Q\",\"DaTaSeT\")",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:3:environment:DaTaSeT"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_21d_python_negative_controls",
+    "source": "def make_env():\n return {\"BeNcHmArK\":\"1\"}\nrun(env=make_env())",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:3:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_allowlist_requires_literal_key",
+    "source": "os.environ[runtime]=\"q\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment key is not a literal string: os.environ[runtime] = 'q'"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_allowlist_requires_literal_key",
+    "source": "os.environ[\"Q\"]=\"BeNcHmArK\"",
+    "result": "REFUSE",
+    "error": "ENV_NAME:fixture.py:1:environment:BeNcHmArK"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "os.environ[\"Q\"]=\"q\"",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "key=\"Q\"\nvalue=\"q\"\nos.environ[key]=value",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "os.putenv(\"Q\",\"q\")",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "p=os.putenv\np(\"Q\",\"q\")",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "os.environ.setdefault(\"Q\",\"q\")",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "os.environ.update({\"Q\":\"q\"})",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "os.environ.update([(\"Q\",\"q\")])",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "os.environ.update(Q=\"q\")",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "getattr(os,\"putenv\")(\"Q\",\"q\")",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "env={\"Q\":\"q\"}\nrun(env=env)",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "run(env={\"Q\":\"q\"})",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "run(env={**os.environ,\"Q\":\"q\"})",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "env=os.environ.copy()\nrun(env=env)",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "run(**{\"env\":{\"Q\":\"q\"}})",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "os.execve(\"/bin/true\",[],{\"Q\":\"q\"})",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_literal_python_forms",
+    "source": "value=os.environ[\"Q\"]",
+    "result": "PASS"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_required_mutations",
+    "label": "reviewer_tuple",
+    "source": "key, value = (\"BeNcHmArK\", \"q\")\nos.environ[key] = value",
+    "old": "PASS",
+    "old_checked_strings": 76256,
+    "new": "REFUSE",
+    "error": "ENV_UNRESOLVED:b/o.py:13:environment:environment key is not a literal string: os.environ[key] = value",
+    "seconds": 25.74821356497705
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_required_mutations",
+    "label": "putenv",
+    "source": "key, value = (\"BeNcHmArK\", \"q\")\nos.putenv(key, value)",
+    "old": "PASS",
+    "old_checked_strings": 76256,
+    "new": "REFUSE",
+    "error": "ENV_UNRESOLVED:b/o.py:13:environment:environment key is not a literal string: os.putenv(key, value)",
+    "seconds": 26.146566786803305
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_required_mutations",
+    "label": "setdefault",
+    "source": "key, value = (\"BeNcHmArK\", \"q\")\nos.environ.setdefault(key, value)",
+    "old": "PASS",
+    "old_checked_strings": 76256,
+    "new": "REFUSE",
+    "error": "ENV_UNRESOLVED:b/o.py:13:environment:environment key is not a literal string: os.environ.setdefault(key, value)",
+    "seconds": 26.131042981985956
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_required_mutations",
+    "label": "loop_pairs",
+    "source": "for key, value in [(\"BeNcHmArK\", \"q\")]:\n os.environ[key] = value",
+    "old": "PASS",
+    "old_checked_strings": 76256,
+    "new": "REFUSE",
+    "error": "ENV_UNRESOLVED:b/o.py:13:environment:environment key is not a literal string: os.environ[key] = value",
+    "seconds": 26.034024271182716
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_required_mutations",
+    "label": "fstring",
+    "source": "key, value = (\"BeNcHmArK\", \"q\")\nos.environ[f\"{key}\"] = value",
+    "old": "PASS",
+    "old_checked_strings": 76256,
+    "new": "REFUSE",
+    "error": "ENV_UNRESOLVED:b/o.py:13:environment:environment key is not a literal string: os.environ[f'{key}'] = value",
+    "seconds": 26.319173314142972
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_required_mutations",
+    "label": "helper_map",
+    "source": "def make_env():\n key, value = (\"BeNcHmArK\", \"q\")\n return {key:value}\nsubprocess.run([\"true\"], env=make_env())",
+    "old": "PASS",
+    "old_checked_strings": 76256,
+    "new": "REFUSE",
+    "error": "ENV_UNRESOLVED:b/o.py:15:environment:environment map is not a complete literal mapping: subprocess.run(['true'], env=make_env())",
+    "seconds": 26.145175721030682
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "export Q=\"$runtime\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:value for literal key 'Q' is unresolved: export Q=\"$runtime\""
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "export \"${key}\"=q",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:environment key is not a literal name: export \"${key}\"=q"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "env \"${key}=q\" true",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:environment key is not a literal name: env \"${key}=q\" true"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "Q=\"$runtime\" true",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:value for literal key 'Q' is unresolved: Q=\"$runtime\" true"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "Q=\"$runtime\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:value for literal key 'Q' is unresolved: Q=\"$runtime\""
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "Q=$(helper)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:value for literal key 'Q' is unresolved: Q=$(helper)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "export Q",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:environment entry has no literal value: export Q"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "eval \"$runtime\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:shell indirection or dynamic assignment: eval \"$runtime\""
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "source \"$runtime\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:shell indirection or dynamic assignment: source \"$runtime\""
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": ". \"$runtime\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:computed shell command: . \"$runtime\""
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "export \"${!key}\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:shell indirection or dynamic assignment: export \"${!key}\""
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "declare -x \"$runtime\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:shell indirection or dynamic assignment: declare -x \"$runtime\""
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "printf -v \"$key\" q",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:shell indirection or dynamic assignment: printf -v \"$key\" q"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "srun --export=Q=$runtime true",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:value for literal key 'Q' is unresolved: srun --export=Q=$runtime true"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "#SBATCH --export=ALL",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:environment entry has no literal value: #SBATCH --export=ALL"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "env -S \"$runtime\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:dynamic env command or options: env -S \"$runtime\""
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "bash -c \"$runtime\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:dynamic shell program: bash -c \"$runtime\""
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "for key in Q; do export \"$key=q\"; done",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:shell indirection or dynamic assignment: for key in Q; do export \"$key=q\"; done"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "read Q",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:shell indirection or dynamic assignment: read Q"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "alias e=export; e \"$runtime\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:shell indirection or dynamic assignment: alias e=export; e \"$runtime\""
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "Q=q;export \"$runtime\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:environment entry has no literal value: Q=q;export \"$runtime\""
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "Q+=q",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:shell indirection or dynamic assignment: Q+=q"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_shell_forms",
+    "source": "local -n Q=R",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.sh:1:environment:shell indirection or dynamic assignment: local -n Q=R"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "key,*rest=(\"Q\",\"q\")\nos.environ[key]=rest[0]",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment key is not a literal string: os.environ[key] = rest[0]"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "key=next(iter(keys))\nos.environ[key]=\"q\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment key is not a literal string: os.environ[key] = 'q'"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.environ[\"Q\"]=make_value()",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:value for literal key 'Q' is unresolved: os.environ['Q'] = make_value()"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.environ[\"Q\"]=f\"{runtime}\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:value for literal key 'Q' is unresolved: os.environ['Q'] = f'{runtime}'"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.environ.update(runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment map is not a complete literal mapping: os.environ.update(runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.environ.update(**runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:keyword expansion may pass an unresolved environment map: os.environ.update(**runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.environ.setdefault(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment key is not a literal string: os.environ.setdefault(runtime, 'q')"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.putenv(\"Q\",runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:value for literal key 'Q' is unresolved: os.putenv('Q', runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "getattr(os,\"putenv\")(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment key is not a literal string: getattr(os, 'putenv')(runtime, 'q')"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "getattr(os.environ,\"setdefault\")(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment key is not a literal string: getattr(os.environ, 'setdefault')(runtime, 'q')"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "getattr(os,runtime)(\"Q\",\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:dynamic attribute lookup may hide an environment capability: getattr(os, runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "g=getattr\ng(os,runtime)(\"Q\",\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:dynamic attribute lookup may hide an environment capability: g(os, runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "g=getattr\ng(os,\"putenv\")(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment key is not a literal string: g(os, 'putenv')(runtime, 'q')"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "setattr(os,\"environ\",runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:dynamic environment capability lookup or replacement: setattr(os, 'environ', runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "setenv=os.environ.__setitem__\nsetenv(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment key is not a literal string: setenv(runtime, 'q')"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "from os import environ as e\ne[runtime]=\"q\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment key is not a literal string: e[runtime] = 'q'"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "from os import putenv as p\np(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment key is not a literal string: p(runtime, 'q')"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "e,other=(os.environ,0)\ne[runtime]=\"q\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment key is not a literal string: e[runtime] = 'q'"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.environ[\"Q\"],other=(runtime,0)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:unpacked environment write: os.environ['Q'], other = (runtime, 0)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.environ[\"Q\"]+=runtime",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:value for literal key 'Q' is unresolved: os.environ['Q'] += runtime"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "del os.environ[runtime]",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:unsupported environment removal: del os.environ[runtime]"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.environ.pop(runtime,None)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:unsupported environment operation pop: os.environ.pop(runtime, None)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "run(env={runtime:\"q\"})",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment key is not a literal string: run(env={runtime: 'q'})"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "run(env={\"Q\":runtime})",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:value for literal key 'Q' is unresolved: run(env={'Q': runtime})"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "run(env={**runtime,\"Q\":\"q\"})",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment map is not a complete literal mapping: run(env={**runtime, 'Q': 'q'})"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "env={\"Q\":\"q\"}\nenv.update(runtime)\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:3:environment:environment map is not a complete literal mapping: run(env=env)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "env={\"Q\":\"q\"}\na=env\na[runtime]=\"q\"\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:4:environment:environment map is not a complete literal mapping: run(env=env)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "env={\"Q\":\"q\"}\nhelper(env)\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:3:environment:environment map is not a complete literal mapping: run(env=env)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "def make_env():\n return {\"Q\":\"q\"}\nrun(env=make_env())",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:3:environment:environment map is not a complete literal mapping: run(env=make_env())"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "def launch(env):\n run(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment map is not a complete literal mapping: run(env=env)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "subprocess.run([\"true\"],**runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:keyword expansion may pass an unresolved environment map: subprocess.run(['true'], **runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "run(**{\"env\":runtime})",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment map is not a complete literal mapping: run(**{'env': runtime})"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "subprocess.Popen(*runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:positional expansion may pass an environment map: subprocess.Popen(*runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "from subprocess import run as r\nr(*runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:positional expansion may pass an environment map: r(*runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.execve(\"/bin/true\",[],runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment map is not a complete literal mapping: os.execve('/bin/true', [], runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.spawnve(0,\"/bin/true\",[],runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment map is not a complete literal mapping: os.spawnve(0, '/bin/true', [], runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "helper(os.environ)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment capability escapes to a call: helper(os.environ)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "exec(runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:dynamic execution or namespace access may hide an environment write: exec(runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "f=exec\nf(runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:dynamic execution or namespace access may hide an environment write: f(runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.__dict__[runtime](\"Q\",\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:reflective access to an environment capability: os.__dict__"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "from os import *",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:wildcard import may hide an environment capability: from os import *"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "box={\"e\":os.environ}\nbox[\"e\"][runtime]=\"q\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment capability escapes supported literal operations: os.environ"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "box=[os.environ]\nbox[0][runtime]=\"q\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment capability escapes supported literal operations: os.environ"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "helper(os.putenv)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment capability escapes supported literal operations: os.putenv"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "env=os.environ if flag else {}\nenv[runtime]=\"q\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment capability escapes supported literal operations: os.environ"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "def get_env():\n return os.environ\nget_env()[runtime]=\"q\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:3:environment:environment key is not a literal string: get_env()[runtime] = 'q'"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "key=\"Q\"\nmatch runtime:\n case key:\n  os.environ[key]=\"q\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:4:environment:environment key is not a literal string: os.environ[key] = 'q'"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "def other():\n key=\"Q\"\nos.environ[key]=\"q\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:3:environment:environment key is not a literal string: os.environ[key] = 'q'"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "import sys\no=sys.modules[\"os\"]\no.putenv(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:3:environment:environment key is not a literal string: o.putenv(runtime, 'q')"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "from importlib import import_module as load\no=load(\"os\")\no.putenv(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:dynamic execution or namespace access may hide an environment write: load('os')"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "def dict(**kwargs):\n return runtime\nrun(env=dict(Q=\"q\"))",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:3:environment:environment map is not a complete literal mapping: run(env=dict(Q='q'))"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "def dict(**kwargs):\n pass\nrun(env=dict(Q=\"q\"))",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:3:environment:environment map is not a complete literal mapping: run(env=dict(Q='q'))"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "class dict:\n def __new__(cls,**kwargs):\n  return runtime\nrun(env=dict(Q=\"q\"))",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:4:environment:environment map is not a complete literal mapping: run(env=dict(Q='q'))"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "run(env=dict(Q=\"q\"))",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment map is not a complete literal mapping: run(env=dict(Q='q'))"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "def env():\n return {\"Q\":\"q\"}\nrun(env=env)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:3:environment:environment map is not a complete literal mapping: run(env=env)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.putenv.__call__(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment capability escapes supported literal operations: os.putenv"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.environ.update.__call__(runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment capability escapes supported literal operations: os.environ.update"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "subprocess.Popen.__call__(\"true\",0,None,None,None,None,None,True,False,None,runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment capability escapes supported literal operations: subprocess.Popen"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "getattr(os.putenv,\"__call__\")(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment capability escapes supported literal operations: os.putenv"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.environ.update=helper",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment or process method replacement: os.environ.update = helper"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "os.putenv=helper",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment or process method replacement: os.putenv = helper"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "getattr(unknown,runtime)(\"Q\",\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:dynamic attribute lookup may hide an environment capability: getattr(unknown, runtime)"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "get_module().environ[runtime]=\"q\"",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment key is not a literal string: get_module().environ[runtime] = 'q'"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "get_module().putenv(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:environment key is not a literal string: get_module().putenv(runtime, 'q')"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "import posix\nposix.putenv(runtime,\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:environment key is not a literal string: posix.putenv(runtime, 'q')"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "getattr=helper\ngetattr(os,\"putenv\")(\"Q\",\"q\")",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:2:environment:shadowed reflection builtin: getattr(os, 'putenv')"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "import builtins as b\nb.exec(runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:dynamic builtin namespace access: import builtins as b"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "from builtins import exec as e\ne(runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:dynamic builtin namespace access: from builtins import exec as e"
+  },
+  {
+    "test": "naming_test21f.Naming21f.test_unresolved_python_forms",
+    "source": "__builtins__[\"exec\"](runtime)",
+    "result": "REFUSE",
+    "error": "ENV_UNRESOLVED:fixture.py:1:environment:dynamic builtin namespace access: __builtins__"
+  }
+]

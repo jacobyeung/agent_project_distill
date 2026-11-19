@@ -40,7 +40,7 @@ for kind in ('kit', 'routed', 'offread'):
         for filename in ('items_a0', 'budget_2048', 'budget_4096'):
             fixture.write('a0/results/0/' + filename + '.jsonl',
                           [dict(id='q', question='Q', answer='A', score=0.5)], True)
-    cases.append((kind, pathlib.Path(fixture.root), fixture.source))
+    cases.append((kind, pathlib.Path(fixture.root), fixture.source, []))
 
 for kind in ('native', 'kit_bad_alias', 'native_missing_arm', 'native_conflicting_tasks'):
     fixture = review.Review2Tests()
@@ -53,15 +53,46 @@ for kind in ('native', 'kit_bad_alias', 'native_missing_arm', 'native_conflictin
             for name, scene in [('a', 'one'), ('b', 'two')]:
                 fixture.store.record('native/' + name + '.jsonl', dict(id='q', question='Q', answer='A', scene=scene))
     root, source = fixture.source()
-    cases.append((kind, pathlib.Path(root), source))
+    cases.append((kind, pathlib.Path(root), source, []))
     fixture.doCleanups()
 
-for kind, root, source in cases:
+for kind in ('kit_duplicate_exact', 'kit_duplicate_alias', 'native_unlabeled_report',
+             'native_row_task_conflict', 'native_missing_input', 'native_empty_inputs'):
+    fixture = review.Review2Tests()
+    fixture.setUp()
+    if kind.startswith('kit_'):
+        field, key = ('id', 'q') if kind.endswith('exact') else ('key', 'devrows:q')
+        fixture.kit([{field: key, 'scores': {'answer': x}} for x in (0.25, 0.75)])
+    else:
+        fixture.native()
+        if kind == 'native_unlabeled_report':
+            for seq, data in list(fixture.store.db.execute("SELECT seq,data FROM records WHERE path='native/R1.json'")):
+                row = json.loads(data)
+                row.pop('arm')
+                fixture.store.db.execute('UPDATE records SET data=? WHERE seq=?', (fixed.dumps(row), seq))
+        if kind == 'native_row_task_conflict':
+            fixture.store.record('native/tasks.jsonl', dict(id='q', question='Q', room='r1'))
+            for seq, data in list(fixture.store.db.execute('SELECT seq,data FROM records WHERE path IN (?,?)',
+                    ('native/R1.json', 'native/paired/results/items.jsonl'))):
+                row = dict(json.loads(data), room='r2')
+                fixture.store.db.execute('UPDATE records SET data=? WHERE seq=?', (fixed.dumps(row), seq))
+        if kind == 'native_missing_input':
+            fixture.store.record('inputs/tasks.jsonl', dict(id='other', question='Q'))
+    root, source = fixture.source()
+    flags = []
+    if kind in ('native_missing_input', 'native_empty_inputs'):
+        inputs = os.path.join(source, 'inputs')
+        os.makedirs(inputs, exist_ok=True)
+        flags = ['--inputs', inputs]
+    cases.append((kind, pathlib.Path(root), source, flags))
+    fixture.doCleanups()
+
+for kind, root, source, flags in cases:
     outputs = []
     for name, module in [('input', original), ('fixed_default', fixed)]:
         out = root / name
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()) as err:
-            code = module.main(['ingest', '--source', source, '--read-id', 'compat', '--out', str(out)])
+            code = module.main(['ingest', '--source', source, '--read-id', 'compat', '--out', str(out)] + flags)
         assert code == 0, (kind, name, code, err.getvalue())
         outputs.append(out)
     files = sorted(p.relative_to(outputs[0]) for sub in ('reads', 'index')
@@ -74,4 +105,4 @@ for kind, root, source in cases:
             assert b.pop('tool_version') == fixed.fingerprint(fixed.__file__)['sha256']
         assert a == b, (kind, str(filename))
     print('%s: identical read/orphan bytes; identical index except tool_version (%d files)' % (kind, len(files)))
-print('PASS: 7 fixtures; default behavior preserved, including the three opt-in defects')
+print('PASS: %d fixtures; default read/orphan bytes preserved, including review-three branches' % len(cases))

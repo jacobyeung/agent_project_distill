@@ -60,7 +60,7 @@ def main():
             before_rng=(random.getstate(),np.random.get_state(),torch.get_rng_state().clone())
             tick=time.perf_counter()
             waiting=copy_seconds=hash_seconds=0.
-            hashes=[]
+            hashes, draws=[], []
             from student_pilot.c1_cpu_prefetch import tensor_bytes, MAX_GROUP_TENSOR_BYTES
             if 'stream_rows_per_step' in descriptor.recipe:
                 from student_pilot.e2e_recipe import plan_groups
@@ -70,10 +70,11 @@ def main():
                 lengths = [len(plan[i:i+factor]) for i in range(0, len(plan), factor)]
             group_sizes, held, slot, group = [], 0, 0, 0
             iterator=run.fetch_plan(rows,descriptor,plan,args.rank,distributed=False)
-            for _ in plan:
+            for stream, indices in plan:
                 before=time.perf_counter()
                 batch,targets,audit=next(iterator)
                 waiting+=time.perf_counter()-before
+                draws.append([stream, int(indices[args.rank]), int(audit['index'])])
                 held += tensor_bytes((batch, targets, audit))
                 slot += 1
                 if slot == lengths[group]:
@@ -100,7 +101,7 @@ def main():
                        and before_rng[1][2:]==after_rng[1][2:] and torch.equal(before_rng[2],after_rng[2]))
             result.append(dict(step=step,wall_seconds=time.perf_counter()-tick,data_seconds=waiting,
                                max_group_tensor_bytes=max(group_sizes, default=0), group_tensor_bytes=group_sizes,
-                               encoded_row_sha256=hashes, hash_seconds=hash_seconds,
+                               encoded_row_sha256=hashes, row_draws=draws, hash_seconds=hash_seconds,
                                copy_seconds=copy_seconds,simulated_consumer_ms=args.consumer_ms,
                                global_rng_unchanged=rng_equal))
     finally:

@@ -1,0 +1,82 @@
+{
+  "count": 16,
+  "database": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/pose_store0/pose.sqlite",
+    "sha256": "dbe7415304ac6e546f1f62c746213fc6d0d90c468d8359898e4618e48afb1c06"
+  },
+  "inputs": {
+    "division": {
+      "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/division.json",
+      "sha256": "835e69413c0b01969f945ab047089d83fc16efa528e12dfe088ed6b60ae92300"
+    }
+  },
+  "model": {
+    "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/model.json",
+    "sha256": "b6e9caf71c5ee4f7129cfff19f1524bf5b4e75a559130948afdf348ddb710664"
+  },
+  "rehearsal": true,
+  "schema": "decoupled-v-preparation-v1",
+  "settings": {
+    "anchors": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32
+    ],
+    "camera": {
+      "embed_dim": 16,
+      "num_heads": 2,
+      "point_depth": {
+        "context_depth": 1,
+        "d_proj": 16,
+        "mlp_hidden": 16,
+        "num_heads": 2,
+        "num_points_per_frame": 1,
+        "vit_layers": [
+          1,
+          2,
+          3
+        ],
+        "weight": 0.05
+      },
+      "refine_iterations": 1,
+      "supervision": {
+        "path": "/scratch/jjyeung/orch_n30/so_modep/work/review1_parity/input/division.json",
+        "sha256": "d17450e9d35b354130cf8d68b6010b74dbdcb67d09bea3084aa8779f20dcfc3a"
+      },
+      "trunk_depth": 1,
+      "weight_focal": 2.0,
+      "weight_gravity": 0.05,
+      "weight_scale": 0.04
+    },
+    "temporal_grouping": "fused_pairs_all_frames"
+  }
+}

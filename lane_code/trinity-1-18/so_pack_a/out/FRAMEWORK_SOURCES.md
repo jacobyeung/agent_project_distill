@@ -8,4 +8,4 @@ The native selector rehearsal creates a tensor of scores and zero-valued input, 
 
 The native selector uses `no_grad` during selection. Its installed implementation documents disabling gradient calculation, its thread-local scope and decorator use at `torch/autograd/grad_mode.py:21`–37. Official documentation: https://docs.pytorch.org/docs/2.11/generated/torch.no_grad.html. These CPU stub checks establish packaging and selector plumbing; they do not measure GPU execution or production memory use.
 
-All relative torch paths above are under `/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/`. The parent reviewer read these exact installed lines and checked the versioned official documentation during this task; no package was downloaded or installed.
+All relative torch paths above are under `/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/`. These installed lines and the versioned official documentation were checked for this review fix; no package was downloaded or installed.

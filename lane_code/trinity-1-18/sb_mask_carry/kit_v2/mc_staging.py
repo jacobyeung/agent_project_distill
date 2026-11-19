@@ -24,7 +24,7 @@ def main():
     fs = C.read_json(C.OUT/'FRAME_SETS.json')
     frames = sorted({d['path'] for c in fs['captures'] for d in c['dense']})
     frame_bytes = sum(os.path.getsize(p) for p in frames)
-    roots = sorted({str(Path(p).parents[2]) for p in frames})
+    roots = [os.path.commonpath(frames)]
     (C.OUT/'STAGING_FRAMES.txt').write_text('\n'.join(frames)+'\n')
     items = []
     for kind, path in [('sam3 checkpoint', C.CHECKPOINT), ('sam3 source', C.SAM3_ROOT), ('sam3 receipt', C.RECEIPT),

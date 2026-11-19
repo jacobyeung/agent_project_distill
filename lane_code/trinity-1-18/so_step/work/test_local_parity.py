@@ -27,6 +27,8 @@ class LocalParity(unittest.TestCase):
     def test_exact_comparator_rejects_signed_zero(self):
         with self.assertRaises(AssertionError):
             exact(torch.tensor(0.),torch.tensor(-0.),'signed zero')
+        with self.assertRaises(AssertionError):
+            exact(0., -0., 'signed zero scalar')
 
     def test_all_switches_native_loss_every_gradient_update_trainables_and_rows(self):
         directory = root()
@@ -39,6 +41,7 @@ class LocalParity(unittest.TestCase):
                         ('C1_CPU_PREFETCH', 'C1_DECODED_CACHE_MIB', 'C1_BATCH_METRICS'), switches))):
                     model = native()
                     optimizer = torch.optim.AdamW(parameter_groups(model), weight_decay=.01)
+                    run.SKIPPED.update(skipped=0, total=0)
                     rows = run.Rows(receipt, compact_processor())
                     from student_pilot import c1_decoded_cache, c1_batch_metrics
                     c1_decoded_cache._cache = None
@@ -73,6 +76,9 @@ class LocalParity(unittest.TestCase):
                         optimizer=copy.deepcopy(optimizer.state_dict()),
                         components=None if info is None else info['components'],
                         streams=None if info is None else info['stream_means'])
+                    state['logged_numbers'] = None if info is None else {k:v for k,v in info.items()
+                        if k not in ('wall_seconds','data_seconds','memory','peak_allocated_bytes',
+                                     'peak_reserved_bytes','decoded_cache')}
                     self.assertEqual(len(losses), 2 if failure else 8)
                     self.assertEqual(error is not None, failure)
                     if arm == 'off':

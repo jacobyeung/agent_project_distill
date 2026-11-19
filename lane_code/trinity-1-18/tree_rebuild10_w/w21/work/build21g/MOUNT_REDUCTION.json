@@ -1,0 +1,36 @@
+{
+  "before": {
+    "label": "read_only_parent",
+    "args": [
+      "/usr/bin/bwrap",
+      "--ro-bind",
+      "/",
+      "/",
+      "--bind",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/mount/source",
+      "/tmp/q_22c714e1",
+      "/usr/bin/true"
+    ],
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "bwrap: Can't mkdir /tmp/q_22c714e1: Read-only file system\n"
+  },
+  "after": {
+    "label": "writable_parent",
+    "args": [
+      "/usr/bin/bwrap",
+      "--ro-bind",
+      "/",
+      "/",
+      "--tmpfs",
+      "/tmp",
+      "--bind",
+      "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w21/work/build21g/proofs/mount/source",
+      "/tmp/q_22c714e1",
+      "/usr/bin/true"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+}

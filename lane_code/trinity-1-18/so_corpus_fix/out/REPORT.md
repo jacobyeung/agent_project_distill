@@ -1,72 +1,385 @@
-VERDICT: DONE Three opt-in fixes pass synthetic validation; the static published-read audit indicates no re-ingest.
+VERDICT: PARTIAL All six required findings are fixed and tested; enabled-mode byte impact for seven published reads requires absent source returns.
 
-The tool copy is `work/tool/`. Enable the fixes with `ingest --review2-checks`; the switch defaults off. Only `ingest_read.py` and the new `tests/test_review2.py` are in the patch. The delivered scope is LEFTOVER item 1. Completion time from `date -u`: Thu Nov 19 08:56:45 UTC 2026.
+**Published bytes:** no changed read payload has been confirmed. Default read/orphan output is unchanged relative to the input tool. With `--review2-checks`, the following published read IDs remain unverified:
 
-All counts and resource values below are measured locally or read from the named index snapshot; publication-impact conclusions marked “inferred” are static decisions, not measured byte comparisons.
+- `17c4ffa4_s100_devS1R0facing_direct_a24ea1a1936`
+- `359fcc3c_s100_devS1R0facing_direct_af35386aa3e`
+- `359fcc3c_s200_devS1facing_direct_a4cadd8934b`
+- `469ddece_s544_devS1_native_b07a20b364`
+- `673bc60f_s100_devS1R0_direct_a5d2d909067`
+- `673bc60f_s200_devS1R0_direct_a8102c3207b`
+- `673bc60f_s200_facing_direct_a2e46c0504e`
+
+**Index bytes:** regenerating any of the 18 published entries would change `tool_version`; all 18 IDs appear in the table below. The published corpus was never edited. Do not interpret an unverified enabled-mode read as certified unchanged.
+
+All counts and resource values in this report are measured locally or read from the named index. The byte-impact classifications are code/index conclusions, not real-return replay measurements. Completion timestamp from `date -u`: Thu Nov 19 11:05:40 UTC 2026.
 
 | Evidence | Measured or recorded result |
 |---|---|
-| Requested regressions against input | 3 tests, 3 failures, exit 1 |
-| Final patch applied to a fresh input copy | 43 tests passed: 23 new and 20 existing; exit 0 |
-| Existing synthetic suite with checks enabled | 20 tests passed; exit 0 |
-| Final patch test process | 227928 KiB peak RSS; 1.41 seconds elapsed; unittest body 0.165 seconds |
-| Default compatibility | 7 fixtures; identical read/orphan bytes; indexes differ only in tool_version |
-| Existing real-return-dependent leftover test | 1 skipped: real return absent |
-| Published index snapshot | 18 reads: 10 kit, 5 routed, 2 offread, 1 native |
-| Native input identity audit | 9 source files match indexed hashes; 636 matching task IDs; 0 conflicting supplied fields |
-| Workspace before writing this report | 15379002 bytes, measured by summing local file sizes |
-| Patch | 24153 bytes; unified diff with a/ and b/ paths |
+| Required findings | 2 MEDIUM and 4 LOW fixed; no HIGH findings in the verdict |
+| Round-three baseline | 17 tests; 27 failing assertions/subtests across 14 test methods; all 6 findings reproduced |
+| Immutable-input regressions | 3 tests; 3 failures |
+| Patch-applied full suite | 61 tests: 60 passed, 1 skipped because its real return is absent |
+| Existing synthetic suite | 20 passed on input; 20 passed with checks enabled on the patch-applied tool |
+| Default compatibility | 13 fixtures; identical read/orphan bytes; indexes differ only in tool_version |
+| Patch application | 20 delivered files match; 15 input files unchanged, 3 modified, 2 new test files |
+| Test process | 227804 KiB peak RSS; 2.63 seconds elapsed |
+| Published index | 18 entries; 14,323,288 bytes; read-only copy throttled to at most 8 MiB/s |
+| Native evidence | 9 hash-verified input files; 6,967 input rows; 636 keys with exactly 2 compatible candidates each |
+| Workspace before final report/manifest write | 30981420 bytes; below 3 GB |
+| Cumulative patch | 44066 bytes |
 
-The fixes have these effects:
+## Review round 3: finding -> fix -> test
 
-1. Kit keeps exact report-ID lookup first. Alias lookup accepts only key-only records and skips actual-ID records, including when a valid key-only alias follows one. Rejected evidence remains in the orphan sidecar.
-2. Native retains empty arm-array declarations without changing raw metadata. It checks required arms, report array labels, exact request/report key declarations, and each observed arm’s key set. A declared population contradiction returns exit 2 even with `--archive-partial`. Existing completion-count checks remain in force.
-3. Native compares every supplied task field, including options, scene, video, room, room_key, truth, arbitrary identity fields, and nested values. It also compares the effective ground_truth/answer and units/unit aliases. Missing fields can add evidence; conflicting supplied values refuse the join. This distinction preserves the valid additive room_key evidence in all 636 indexed native tasks. The selected task and emitted payload are not rewritten.
+| Finding | Fix | Regression evidence |
+|---|---|---|
+| 1 MEDIUM: partial native populations refuse even with archive-partial | Missing arms and key subsets append partial issues. Extra arms/keys and conflicting declarations still refuse. Without a declared key list, validation uses the union of observed populations to identify missing keys. | `test_f1_missing_arm_can_be_archived_partial`, `test_f1_subset_keys_can_be_archived_partial`: baseline exits 2 with archive-partial; fixed exits 0 and both read/index mark partial. Without archive-partial, fixed exits 2. Existing extra-key/arm and declaration tests still pass. |
+| 2 MEDIUM: new reads omit the switch | HOWTO’s new-read command explicitly passes `--review2-checks`; SCHEMA documents aliases, partials, contradictions and joins. `add_read.sh` remains byte-identical and forwards the explicit flag. This resolves the dispatch’s default-off constraint without silently changing callers. | `test_f2_documented_new_read_command_enables_checks`: baseline recipe fails; fixed recipe passes, and an isolated execution of the wrapper’s ingest line proves flag and quoted input-path forwarding. Publication commands never execute in the test. |
+| 3 LOW: duplicate eligible kit scores silently select first | Compare scores across every eligible exact row, or every eligible key-only alias if no exact row exists; refuse differences even when inline scores exist. Exact-ID precedence remains unchanged. | `test_f3_conflicting_key_only_scores_refused`, `test_f3_conflicting_exact_scores_refused`, `test_f3_conflict_cannot_be_archived_partial` fail before and pass after; identical duplicates and exact precedence pass. |
+| 4 LOW: unlabeled native report rows skip contradiction checks | Resolve a missing report arm from `arms.X`, compare duplicates with the resolved label, and normalize report-only arms. Preserve original rows in raw fields. Malformed arm-array rows refuse. | `test_f4_unlabeled_report_contradiction_refused`, `test_f4_unlabeled_contradiction_cannot_be_archived_partial`, `test_f4_unlabeled_report_only_arm_is_preserved` fail before and pass after; the latter checks unmodified raw rows. |
+| 5 LOW: native row fields override task identity | Compare shared question/options/room/room_key/scene/video/type/stratum/truth/scorer/unit/released-answer fields against all compatible task-candidate evidence before normalization. Native `answer` remains a prediction. | `test_f5_row_task_room_conflict_refused` plus 14 field subtests and an additive-candidate test fail before and pass after. Matching fields and differing predictions remain accepted. |
+| 6 LOW: inputs supplied but task absent yields complete nulls | Track explicit input loading, including empty directories; refuse a native key without a candidate when inputs are supplied or input paths exist. No-input null behavior remains supported. | `test_f6_missing_input_task_refused`, `test_f6_empty_explicit_inputs_cannot_archive_null_task` fail before and pass after; the no-input control passes. |
 
-The patch is [01_ingest_review2.diff](patches/01_ingest_review2.diff). Its SHA256 is `a828ca380ea87258c6401d53e0096e3eac7a9201e2be67450af7ed5cacb1fa0d`. The input ingest SHA256 is `97bb63d8a6809977e4aa994f27452a6cf3f667fc12ad7cf5efa16aa5c58f69d0`; the fixed ingest SHA256 is `43a8b4727c46d582696c63afda7ff8ff2f3a8150337102f10a1aff172fefa77a`. All 17 other input files remain byte-identical in the work copy. The applied patch matches both delivered changed files byte for byte.
+Every LOW fix is small and implemented. No required finding was deferred. Findings 7 and 8 are informational: finding 7 requires the publication qualifications below; finding 8 retains the documented orphan-sidecar contract. All 636 selected native tasks lack `room_key`; compatible evidence with that field stays in the sidecar. The checks do not merge it into `raw.input` or normalized fields. Changing that contract would change bytes and needs new read IDs.
 
-Default compatibility means identical read payloads and orphan payloads. The index’s `tool_version` is the SHA256 of the executing script, so a newly generated index necessarily records the changed source hash. This provenance difference is explicit; no claim is made that newly generated index JSON is byte-identical to the input tool’s index. The on-disk published indexes were not modified. Their recorded tool version is `ebd8c6d004788ac0a25152ccf4841524b72938be9c1f9654f15f186510b0b340`, which differs from the supplied input script; this audit isolates the delivered fixes rather than claiming a full reproduction of an older publisher.
+The two review-two tests that expected hard refusal for a missing arm now check partial issues and CLI exit semantics. The exact-population refusal regression now uses an undeclared key, so it continues to test a hard contradiction.
 
-The publication decision uses `/data2/jjyeung/agent_project_data/distill_trace_corpus/INDEX.jsonl`, snapshotted at `work/evidence/INDEX.jsonl` (14323288 bytes; SHA256 `bdf2d9cef181e5d8ca33775bf2793ef8ced115d97b0dd25fae8495c3bd93944c`). The published schema is snapshotted at `work/evidence/PUBLISHED_SCHEMA.md`; lines 25 and 27–35 define alias handling and index evidence. The complete machine-readable audit, including each published output SHA256, is `work/evidence/published_audit.json`.
+## Patch and default behavior
 
-Each “unchanged” decision below applies to `reads/<read_id>.jsonl.gz` for the same read ID, source and metadata. The default-off path is unchanged for every entry. With checks enabled, the basis is: A, unchanged adapter code; B, no family report sources, so the changed kit lookup cannot affect this read; C, inferred unchanged from zero published orphans and the absence of the review’s wrong-alias signature; D, inferred unchanged because native only adds validation, both arm counts and the union count are 636, the request/report declare the same 636 keys, and all hash-verified task identities are compatible. Item counts and arms in the table are recorded INDEX values.
+Apply only [01_ingest_review2.diff](patches/01_ingest_review2.diff) to the immutable input tree. Despite its retained filename, this is the complete cumulative patch, including both review rounds, documentation and tests. Its SHA256 is `338cf9e077e9cc5a63cdbcfa59b8dbdf62bd28c048ad057d6bc9f587a3045145`. The input ingest SHA256 is `97bb63d8a6809977e4aa994f27452a6cf3f667fc12ad7cf5efa16aa5c58f69d0`; the fixed ingest SHA256 is `eb0b207c6e4c9d18b258cf579c83c3427ba85d29ebdc0c1043d3566a67e1e94c`.
 
-| Published read_id | Format | Items | Arms | Decision | Basis |
-|---|---|---:|---|---|---|
-| `17c4ffa4_s100_devS1R0facing_direct_a24ea1a1936` | kit | 3994 | B2048, B4096, full | unchanged | C (inferred) |
-| `359fcc3c_s100_devS1R0facing_direct_af35386aa3e` | kit | 3994 | B2048, B4096, full | unchanged | C (inferred) |
-| `359fcc3c_s200_R0_direct_ae470417b41` | kit | 2169 | B2048, B4096, full | unchanged | B |
-| `359fcc3c_s200_devS1facing_direct_a4cadd8934b` | kit | 1825 | B2048, B4096, full | unchanged | C (inferred) |
-| `469ddece_s544_devS1R0_direct_adff67f7ae9` | kit | 1781 | B2048, B4096, full | unchanged | B |
-| `469ddece_s544_devS1_native_b07a20b364` | native | 636 | scripted, unflagged | unchanged | D (inferred) |
-| `469ddece_s544_devS1_routed_b1.r0` | routed | 636 | tower | unchanged | A |
-| `469ddece_s544_devS1_routed_b1.r1` | routed | 150 | tower | unchanged | A |
-| `469ddece_s544_revsi_official_direct_a348bc58686` | offread | 679 | B2048, B4096, full | unchanged | A |
-| `469ddece_s544_room134_routed_b2` | routed | 134 | tower | unchanged | A |
-| `469ddece_s544_vsibench_official_direct_a8acc277397` | offread | 4008 | B2048, B4096, full | unchanged | A |
-| `469ddece_s544_vsti_direct_acb2faedd41` | kit | 900 | B2048, B4096, full | unchanged | B |
-| `673bc60f_s100_devS1R0_direct_a5d2d909067` | kit | 3120 | B2048, B4096, full | unchanged | C (inferred) |
-| `673bc60f_s200_devS1R0_direct_a8102c3207b` | kit | 3120 | B2048, B4096, full | unchanged | C (inferred) |
-| `673bc60f_s200_devS1_routed_A4` | routed | 636 | tower | unchanged | A |
-| `673bc60f_s200_facing_direct_a2e46c0504e` | kit | 300 | B2048, B4096, full | unchanged | C (inferred) |
-| `673bc60f_s200_room134_routed_B5` | routed | 134 | tower | unchanged | A |
-| `673bc60f_s200_vsti_direct_a35f73e87f0` | kit | 900 | B2048, B4096, full | unchanged | B |
+All production behavior changes require `--review2-checks`, whose default is off. The wrapper, scorer, publisher, routed adapter, offread adapter and emission logic are unchanged. The default compatibility checks compare compressed read files and orphan sidecars byte for byte, and compare all index fields except `tool_version`. The index stores the executing script hash, so changed code necessarily changes that provenance field when generating a new index. Existing published entries retain their original bytes.
 
-No read is classified “would change,” so no re-ingest commands or new read IDs are required by this decision. No re-ingest or publication ran.
+## Published-read impact
 
-The six C decisions are inferences, not proofs: INDEX does not retain the streamed per-item report IDs. Zero orphans rules out the review’s isolated bad-alias example but cannot exclude a separate generated item whose actual ID is the same devrows-prefixed ID. The native index likewise omits the actual per-arm key lists; equal per-arm and union counts prove equal arm populations but do not alone prove membership in the declared key set. The supplied review’s real-output losslessness and score-exactness findings support the decision; they are prior evidence, not tests rerun here. A source-row audit on trinity-3-30 would be needed to turn these inferences into byte-level certification.
+The read-only published INDEX was re-read at 10:57:13 UTC into `work/evidence/INDEX_round3.jsonl`. Its SHA256 is `bdf2d9cef181e5d8ca33775bf2793ef8ced115d97b0dd25fae8495c3bd93944c`, identical to the supplied task’s saved snapshot. The published tool version is `ebd8c6d004788ac0a25152ccf4841524b72938be9c1f9654f15f186510b0b340`, which differs from the immutable input version. “Unchanged” below means that these fixes introduce no default-path payload difference relative to that input; it does not claim to reproduce a different publisher version.
 
-What could go wrong and how to notice: without `--review2-checks`, the three defects remain enabled by the required compatibility policy. With the switch on, legitimate but conflicting task annotations can trigger `Ambiguous native task`; inspect the candidate tasks rather than suppressing the refusal. A hidden kit namespace collision would appear as an actual-ID report row supplying another item’s scores and would change its normalized scores when the switch is enabled. A native declaration mismatch produces a native arm/key refusal before emission. If a source audit reveals a changed read, the owner must use a new read ID and preserve the published read.
+| Published read_id | Format | Items | Arms | Default payload | Enabled payload | Regenerated index |
+|---|---|---:|---|---|---|---|
+| `17c4ffa4_s100_devS1R0facing_direct_a24ea1a1936` | kit | 3994 | B2048, B4096, full | unchanged | unverified: source-row replay required | would change tool_version |
+| `359fcc3c_s100_devS1R0facing_direct_af35386aa3e` | kit | 3994 | B2048, B4096, full | unchanged | unverified: source-row replay required | would change tool_version |
+| `359fcc3c_s200_R0_direct_ae470417b41` | kit | 2169 | B2048, B4096, full | unchanged | unchanged by code/index | would change tool_version |
+| `359fcc3c_s200_devS1facing_direct_a4cadd8934b` | kit | 1825 | B2048, B4096, full | unchanged | unverified: source-row replay required | would change tool_version |
+| `469ddece_s544_devS1R0_direct_adff67f7ae9` | kit | 1781 | B2048, B4096, full | unchanged | unchanged by code/index | would change tool_version |
+| `469ddece_s544_devS1_native_b07a20b364` | native | 636 | scripted, unflagged | unchanged | unverified: source-row replay required | would change tool_version |
+| `469ddece_s544_devS1_routed_b1.r0` | routed | 636 | tower | unchanged | unchanged by code/index | would change tool_version |
+| `469ddece_s544_devS1_routed_b1.r1` | routed | 150 | tower | unchanged | unchanged by code/index | would change tool_version |
+| `469ddece_s544_revsi_official_direct_a348bc58686` | offread | 679 | B2048, B4096, full | unchanged | unchanged by code/index | would change tool_version |
+| `469ddece_s544_room134_routed_b2` | routed | 134 | tower | unchanged | unchanged by code/index | would change tool_version |
+| `469ddece_s544_vsibench_official_direct_a8acc277397` | offread | 4008 | B2048, B4096, full | unchanged | unchanged by code/index | would change tool_version |
+| `469ddece_s544_vsti_direct_acb2faedd41` | kit | 900 | B2048, B4096, full | unchanged | unchanged by code/index | would change tool_version |
+| `673bc60f_s100_devS1R0_direct_a5d2d909067` | kit | 3120 | B2048, B4096, full | unchanged | unverified: source-row replay required | would change tool_version |
+| `673bc60f_s200_devS1R0_direct_a8102c3207b` | kit | 3120 | B2048, B4096, full | unchanged | unverified: source-row replay required | would change tool_version |
+| `673bc60f_s200_devS1_routed_A4` | routed | 636 | tower | unchanged | unchanged by code/index | would change tool_version |
+| `673bc60f_s200_facing_direct_a2e46c0504e` | kit | 300 | B2048, B4096, full | unchanged | unverified: source-row replay required | would change tool_version |
+| `673bc60f_s200_room134_routed_B5` | routed | 134 | tower | unchanged | unchanged by code/index | would change tool_version |
+| `673bc60f_s200_vsti_direct_a35f73e87f0` | kit | 900 | B2048, B4096, full | unchanged | unchanged by code/index | would change tool_version |
 
-Not done: `tests/test_real_returns.py` was neither imported nor executed because its real returns are absent on this node. No direct comparison against the published read gzip bytes was performed. No files in the published corpus or input mirror were written. LEFTOVER items other than item 1 were not performed.
+The 7 routed/offread reads use unchanged adapters. The 4 kit reads without report sources cannot enter the changed report-score path. The other 6 kit indexes omit per-item report IDs and duplicate scores. Their zero orphan counts do not exclude an exact-ID namespace collision or conflicting eligible scores. Their source archives are absent from this node’s mirror, so neither alias safety nor new score checks can be certified from INDEX alone.
 
-The tests use the required CPU environment and `torch.set_num_threads(8)` before test execution. The relevant installed behavior is documented at `/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/_torch_docs.py:9819` (CPU intra-op thread limit; call before eager/JIT/autograd work at line 9822), and in the [official PyTorch 2.11 documentation](https://docs.pytorch.org/docs/2.11/generated/torch.set_num_threads.html). The production ingest code uses the Python standard library and relies on no tensor or training behavior.
+For native, the request and report declare the same 636 keys; each indexed arm has 636 items. The 9 input files match their published hashes and contain 6,967 rows, exactly the orphan count. The remaining 2,544 consumed rows equal 4 × 636 and cannot contribute bare-ID task candidates through the native benchmark-key path. Each key has exactly 2 compatible task candidates, so the missing-task check does not affect this published read. However, INDEX lacks the native per-row labels, score duplicates and row/task fields needed to evaluate the other checks. The native return archive is absent, so enabled-mode emission or refusal remains unverified.
 
-The following commands ran from `/scratch/jjyeung/orch_n30/so_corpus_fix`; each step was preceded by `date -u`. Code blocks contain exact captured process output. The test runner is `work/run_tests.py`; it imports only the named modules and places all fixtures under this workspace. Input/fixed comparisons are retained because the dispatch explicitly requires failure evidence and compatibility checks.
+No published read payload is classified as confirmed “would change.” The 7 unverified IDs are not cleared for re-ingest under their existing names. [OWNER_REPLAY.md](OWNER_REPLAY.md) gives exact scratch-only commands for default/enabled comparisons and conditional new `.review3` IDs, with metadata derived from INDEX. These commands were not run. An enabled-mode refusal requires investigation; `--archive-partial` does not override an integrity contradiction.
 
-The requested three regressions against the immutable input (08:49:32 UTC):
+## Exact validation commands and outputs
+
+Commands ran from `/scratch/jjyeung/orch_n30/so_corpus_fix`. Each execution step began with `date -u`. Output blocks below contain the captured combined stdout/stderr verbatim; exit codes are recorded separately. The baseline failures are intentional evidence, not unexplained failures in the patched suite. `work/run_tests.py` confines fixtures to the workspace and imports only the listed test modules. The packaging command created a fresh `work/patchcheck_round3`; to repeat it, choose another unused scratch directory rather than deleting the delivered evidence.
+
+Round-three regressions against the saved pre-fix tool:
 
 ```bash
+date -u
+nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/pre_round3 test_review3
+```
+
+```text
+test_f1_missing_arm_can_be_archived_partial (test_review3.Review3Tests.test_f1_missing_arm_can_be_archived_partial) ... FAIL
+test_f1_subset_keys_can_be_archived_partial (test_review3.Review3Tests.test_f1_subset_keys_can_be_archived_partial) ... FAIL
+test_f2_documented_new_read_command_enables_checks (test_review3.Review3Tests.test_f2_documented_new_read_command_enables_checks) ... FAIL
+test_f3_conflict_cannot_be_archived_partial (test_review3.Review3Tests.test_f3_conflict_cannot_be_archived_partial) ... FAIL
+test_f3_conflicting_exact_scores_refused (test_review3.Review3Tests.test_f3_conflicting_exact_scores_refused) ... FAIL
+test_f3_conflicting_key_only_scores_refused (test_review3.Review3Tests.test_f3_conflicting_key_only_scores_refused) ... FAIL
+test_f3_identical_scores_and_exact_precedence_accepted (test_review3.Review3Tests.test_f3_identical_scores_and_exact_precedence_accepted) ... ok
+test_f4_unlabeled_contradiction_cannot_be_archived_partial (test_review3.Review3Tests.test_f4_unlabeled_contradiction_cannot_be_archived_partial) ... FAIL
+test_f4_unlabeled_report_contradiction_refused (test_review3.Review3Tests.test_f4_unlabeled_report_contradiction_refused) ... FAIL
+test_f4_unlabeled_report_only_arm_is_preserved (test_review3.Review3Tests.test_f4_unlabeled_report_only_arm_is_preserved) ... FAIL
+test_f5_additive_candidate_field_is_also_checked (test_review3.Review3Tests.test_f5_additive_candidate_field_is_also_checked) ... FAIL
+test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) ... 
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='question') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='options') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='room') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='room_key') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='scene') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='video') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='question_type') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='stratum') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='ground_truth') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='scorer') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='units') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='unit') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='released_answer') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='released_answer_in_options') ... FAIL
+test_f5_matching_fields_and_prediction_are_accepted (test_review3.Review3Tests.test_f5_matching_fields_and_prediction_are_accepted) ... ok
+test_f5_row_task_room_conflict_refused (test_review3.Review3Tests.test_f5_row_task_room_conflict_refused) ... FAIL
+test_f6_empty_explicit_inputs_cannot_archive_null_task (test_review3.Review3Tests.test_f6_empty_explicit_inputs_cannot_archive_null_task) ... FAIL
+test_f6_missing_input_task_refused (test_review3.Review3Tests.test_f6_missing_input_task_refused) ... FAIL
+test_f6_no_inputs_still_allows_null_task (test_review3.Review3Tests.test_f6_no_inputs_still_allows_null_task) ... ok
+
+======================================================================
+FAIL: test_f1_missing_arm_can_be_archived_partial (test_review3.Review3Tests.test_f1_missing_arm_can_be_archived_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 52, in test_f1_missing_arm_can_be_archived_partial
+    self.partial_cli()
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 42, in partial_cli
+    self.assertEqual(code, 0, err)
+AssertionError: 2 != 0 : Mismatched native arms: expected ['scripted', 'unflagged'], observed ['unflagged']
+
+
+======================================================================
+FAIL: test_f1_subset_keys_can_be_archived_partial (test_review3.Review3Tests.test_f1_subset_keys_can_be_archived_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 55, in test_f1_subset_keys_can_be_archived_partial
+    self.partial_cli(subset=True)
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 42, in partial_cli
+    self.assertEqual(code, 0, err)
+AssertionError: 2 != 0 : Mismatched native keys for arm scripted
+
+
+======================================================================
+FAIL: test_f2_documented_new_read_command_enables_checks (test_review3.Review3Tests.test_f2_documented_new_read_command_enables_checks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 61, in test_f2_documented_new_read_command_enables_checks
+    self.assertIn('--review2-checks', shlex.split(command))
+AssertionError: '--review2-checks' not found in ['cd', '/scratch/jjyeung/orch_n30/corpus', '&&', 'bash', 'tool/add_read.sh', '<return', 'dir', 'or', 'result.tar.gz>', '<read_id>', '<set>', '<vehicle>', '<job', 'id>', '<purpose>', '<RESULT', 'event', 'path>', '[--inputs', '<package', 'dir>]', '[--official]']
+
+======================================================================
+FAIL: test_f3_conflict_cannot_be_archived_partial (test_review3.Review3Tests.test_f3_conflict_cannot_be_archived_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 98, in test_f3_conflict_cannot_be_archived_partial
+    self.assertEqual(code, 2, err)
+AssertionError: 0 != 2 : 
+
+======================================================================
+FAIL: test_f3_conflicting_exact_scores_refused (test_review3.Review3Tests.test_f3_conflicting_exact_scores_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 85, in test_f3_conflicting_exact_scores_refused
+    with self.assertRaisesRegex(ingest.Refusal, 'Conflicting kit report scores'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f3_conflicting_key_only_scores_refused (test_review3.Review3Tests.test_f3_conflicting_key_only_scores_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 80, in test_f3_conflicting_key_only_scores_refused
+    with self.assertRaisesRegex(ingest.Refusal, 'Conflicting kit report scores'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f4_unlabeled_contradiction_cannot_be_archived_partial (test_review3.Review3Tests.test_f4_unlabeled_contradiction_cannot_be_archived_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 133, in test_f4_unlabeled_contradiction_cannot_be_archived_partial
+    self.assertEqual(code, 2, err)
+AssertionError: 0 != 2 : 
+
+======================================================================
+FAIL: test_f4_unlabeled_report_contradiction_refused (test_review3.Review3Tests.test_f4_unlabeled_report_contradiction_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 115, in test_f4_unlabeled_report_contradiction_refused
+    with self.assertRaisesRegex(ingest.Refusal, 'Contradictory native journal/report row'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f4_unlabeled_report_only_arm_is_preserved (test_review3.Review3Tests.test_f4_unlabeled_report_only_arm_is_preserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 122, in test_f4_unlabeled_report_only_arm_is_preserved
+    self.assertEqual(code, 0, err)
+AssertionError: 2 != 0 : Mismatched native arms: expected ['scripted', 'unflagged'], observed ['unflagged']
+
+
+======================================================================
+FAIL: test_f5_additive_candidate_field_is_also_checked (test_review3.Review3Tests.test_f5_additive_candidate_field_is_also_checked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 168, in test_f5_additive_candidate_field_is_also_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict.*room'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='question')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='options')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='room')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='room_key')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='scene')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='video')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='question_type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='stratum')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='ground_truth')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='scorer')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='units')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='unit')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='released_answer')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='released_answer_in_options')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_row_task_room_conflict_refused (test_review3.Review3Tests.test_f5_row_task_room_conflict_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 141, in test_f5_row_task_room_conflict_refused
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict.*room'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f6_empty_explicit_inputs_cannot_archive_null_task (test_review3.Review3Tests.test_f6_empty_explicit_inputs_cannot_archive_null_task)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 195, in test_f6_empty_explicit_inputs_cannot_archive_null_task
+    self.assertEqual(code, 2, err)
+AssertionError: 0 != 2 : 
+
+======================================================================
+FAIL: test_f6_missing_input_task_refused (test_review3.Review3Tests.test_f6_missing_input_task_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 185, in test_f6_missing_input_task_refused
+    with self.assertRaisesRegex(ingest.Refusal, 'Missing native task'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.059s
+
+FAILED (failures=27)
+```
+
+Measured exit code: 1.
+
+Round-two regressions against the immutable input:
+
+```bash
+date -u
 nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool /scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/corpusin --case Review2Tests.test_kit_alias_rejects_actual_id --case Review2Tests.test_native_requires_exact_arm_populations --case Review2Tests.test_native_rejects_full_task_identity_conflict test_review2
 ```
 
@@ -102,35 +415,80 @@ Traceback (most recent call last):
 AssertionError: Refusal not raised
 
 ----------------------------------------------------------------------
-Ran 3 tests in 0.003s
+Ran 3 tests in 0.005s
 
 FAILED (failures=3)
 ```
 
-Measured process exit code: 1.
+Measured exit code: 1.
 
-The final patch applied to a fresh copy of the input (08:53:57 UTC):
+Existing synthetic tests against the immutable input:
 
 ```bash
-nice -n 10 patch --batch --forward --no-backup-if-mismatch -p1 -d work/patchcheck_final < out/patches/01_ingest_review2.diff
+date -u
+nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool /scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/corpusin test_synthetic
 ```
 
 ```text
-patching file ingest_read.py
-patching file tests/test_review2.py
+test_bad_row_status (test_synthetic.CorpusTests.test_bad_row_status) ... ok
+test_duplicate_rows_refused (test_synthetic.CorpusTests.test_duplicate_rows_refused) ... ok
+test_false_completion (test_synthetic.CorpusTests.test_false_completion) ... ok
+test_index_sorts_ids_with_corpus_prefix (test_synthetic.CorpusTests.test_index_sorts_ids_with_corpus_prefix) ... ok
+test_input_tar_and_intervention_identity (test_synthetic.CorpusTests.test_input_tar_and_intervention_identity) ... ok
+test_kit_lossless_and_idempotent (test_synthetic.CorpusTests.test_kit_lossless_and_idempotent) ... ok
+test_lost_and_index (test_synthetic.CorpusTests.test_lost_and_index) ... ok
+test_metadata_precedence (test_synthetic.CorpusTests.test_metadata_precedence) ... ok
+test_missing_completion (test_synthetic.CorpusTests.test_missing_completion) ... ok
+test_missing_inputs_refused (test_synthetic.CorpusTests.test_missing_inputs_refused) ... ok
+test_partial_and_truncated (test_synthetic.CorpusTests.test_partial_and_truncated) ... ok
+test_read_selection (test_synthetic.CorpusTests.test_read_selection) ... ok
+test_routed_gzip_multiread (test_synthetic.CorpusTests.test_routed_gzip_multiread) ... ok
+test_score_and_percent (test_synthetic.CorpusTests.test_score_and_percent) ... ok
+test_source_hashes_and_raw_reports (test_synthetic.CorpusTests.test_source_hashes_and_raw_reports) ... ok
+test_stream_arrays_cross_chunks (test_synthetic.CorpusTests.test_stream_arrays_cross_chunks) ... ok
+test_tar_equivalence (test_synthetic.CorpusTests.test_tar_equivalence) ... ok
+test_tar_preference_and_archive_hash (test_synthetic.CorpusTests.test_tar_preference_and_archive_hash) ... ok
+test_torn_line_preserved (test_synthetic.CorpusTests.test_torn_line_preserved) ... ok
+test_unsafe_id (test_synthetic.CorpusTests.test_unsafe_id) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.133s
+
+OK
 ```
 
-Measured process exit code: 0.
+Measured exit code: 0.
 
-The full synthetic suite using the final patch-applied implementation (08:53:57 UTC):
+Cumulative patch generation and fresh application:
 
 ```bash
-nice -n 10 /usr/bin/time -f 'MEASURED_MAX_RSS_KIB=%M\nMEASURED_ELAPSED_SECONDS=%e\nEXIT_CODE=%x' env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool /scratch/jjyeung/orch_n30/so_corpus_fix/work/patchcheck_final test_review2 test_synthetic
+date -u
+nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/package_round3.py
+```
+
+```text
+patching file HOWTO.md
+patching file SCHEMA.md
+patching file ingest_read.py
+patching file tests/test_review2.py
+patching file tests/test_review3.py
+PATCH: 44066 bytes; SHA256=338cf9e077e9cc5a63cdbcfa59b8dbdf62bd28c048ad057d6bc9f587a3045145
+INPUT: 18 files; 3 changed existing files; 15 unchanged; 2 new test files
+APPLIED: all 20 delivered files match the work tool byte for byte
+```
+
+Measured exit code: 0.
+
+All available tests from the patch-applied tree:
+
+```bash
+date -u
+nice -n 10 /usr/bin/time -f 'MEASURED_MAX_RSS_KIB=%M\nMEASURED_ELAPSED_SECONDS=%e\nEXIT_CODE=%x' env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/patchcheck_round3 --tests work/patchcheck_round3/tests test_review2 test_review3 test_synthetic test_no_leftovers
 ```
 
 ```text
 test_cli_bad_alias_stays_orphan_and_does_not_supply_scores (test_review2.Review2Tests.test_cli_bad_alias_stays_orphan_and_does_not_supply_scores) ... ok
-test_cli_switch_defaults_off_and_refuses_missing_arm_even_with_partial (test_review2.Review2Tests.test_cli_switch_defaults_off_and_refuses_missing_arm_even_with_partial) ... ok
+test_cli_switch_defaults_off_and_missing_arm_is_partial (test_review2.Review2Tests.test_cli_switch_defaults_off_and_missing_arm_is_partial) ... ok
 test_cli_task_contradiction_cannot_be_archived_partial (test_review2.Review2Tests.test_cli_task_contradiction_cannot_be_archived_partial) ... ok
 test_kit_alias_rejects_actual_id (test_review2.Review2Tests.test_kit_alias_rejects_actual_id) ... ok
 test_kit_colon_id_is_exact (test_review2.Review2Tests.test_kit_colon_id_is_exact) ... ok
@@ -152,6 +510,23 @@ test_native_truth_aliases_cannot_hide_contradictions (test_review2.Review2Tests.
 test_native_unexpected_arm_refused (test_review2.Review2Tests.test_native_unexpected_arm_refused) ... ok
 test_native_unit_aliases_cannot_hide_contradictions (test_review2.Review2Tests.test_native_unit_aliases_cannot_hide_contradictions) ... ok
 test_valid_native_outputs_byte_identical_with_switch (test_review2.Review2Tests.test_valid_native_outputs_byte_identical_with_switch) ... ok
+test_f1_missing_arm_can_be_archived_partial (test_review3.Review3Tests.test_f1_missing_arm_can_be_archived_partial) ... ok
+test_f1_subset_keys_can_be_archived_partial (test_review3.Review3Tests.test_f1_subset_keys_can_be_archived_partial) ... ok
+test_f2_documented_new_read_command_enables_checks (test_review3.Review3Tests.test_f2_documented_new_read_command_enables_checks) ... ok
+test_f3_conflict_cannot_be_archived_partial (test_review3.Review3Tests.test_f3_conflict_cannot_be_archived_partial) ... ok
+test_f3_conflicting_exact_scores_refused (test_review3.Review3Tests.test_f3_conflicting_exact_scores_refused) ... ok
+test_f3_conflicting_key_only_scores_refused (test_review3.Review3Tests.test_f3_conflicting_key_only_scores_refused) ... ok
+test_f3_identical_scores_and_exact_precedence_accepted (test_review3.Review3Tests.test_f3_identical_scores_and_exact_precedence_accepted) ... ok
+test_f4_unlabeled_contradiction_cannot_be_archived_partial (test_review3.Review3Tests.test_f4_unlabeled_contradiction_cannot_be_archived_partial) ... ok
+test_f4_unlabeled_report_contradiction_refused (test_review3.Review3Tests.test_f4_unlabeled_report_contradiction_refused) ... ok
+test_f4_unlabeled_report_only_arm_is_preserved (test_review3.Review3Tests.test_f4_unlabeled_report_only_arm_is_preserved) ... ok
+test_f5_additive_candidate_field_is_also_checked (test_review3.Review3Tests.test_f5_additive_candidate_field_is_also_checked) ... ok
+test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) ... ok
+test_f5_matching_fields_and_prediction_are_accepted (test_review3.Review3Tests.test_f5_matching_fields_and_prediction_are_accepted) ... ok
+test_f5_row_task_room_conflict_refused (test_review3.Review3Tests.test_f5_row_task_room_conflict_refused) ... ok
+test_f6_empty_explicit_inputs_cannot_archive_null_task (test_review3.Review3Tests.test_f6_empty_explicit_inputs_cannot_archive_null_task) ... ok
+test_f6_missing_input_task_refused (test_review3.Review3Tests.test_f6_missing_input_task_refused) ... ok
+test_f6_no_inputs_still_allows_null_task (test_review3.Review3Tests.test_f6_no_inputs_still_allows_null_task) ... ok
 test_bad_row_status (test_synthetic.CorpusTests.test_bad_row_status) ... ok
 test_duplicate_rows_refused (test_synthetic.CorpusTests.test_duplicate_rows_refused) ... ok
 test_false_completion (test_synthetic.CorpusTests.test_false_completion) ... ok
@@ -172,20 +547,24 @@ test_tar_equivalence (test_synthetic.CorpusTests.test_tar_equivalence) ... ok
 test_tar_preference_and_archive_hash (test_synthetic.CorpusTests.test_tar_preference_and_archive_hash) ... ok
 test_torn_line_preserved (test_synthetic.CorpusTests.test_torn_line_preserved) ... ok
 test_unsafe_id (test_synthetic.CorpusTests.test_unsafe_id) ... ok
+test_full_ingest_leaves_only_outputs (test_no_leftovers.NoLeftovers.test_full_ingest_leaves_only_outputs) ... skipped 'real return absent'
 
 ----------------------------------------------------------------------
-Ran 43 tests in 0.165s
+Ran 61 tests in 0.294s
 
-OK
-MEASURED_MAX_RSS_KIB=227928
-MEASURED_ELAPSED_SECONDS=1.41
+OK (skipped=1)
+MEASURED_MAX_RSS_KIB=227804
+MEASURED_ELAPSED_SECONDS=2.63
 EXIT_CODE=0
 ```
 
-All existing synthetic tests with the checks enabled (08:49:34 UTC):
+Measured exit code: 0.
+
+Existing synthetic tests with checks enabled on the patch-applied tree:
 
 ```bash
-nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --enable-review2 test_synthetic
+date -u
+nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py --tool work/patchcheck_round3 --tests work/patchcheck_round3/tests --enable-review2 test_synthetic
 ```
 
 ```text
@@ -211,16 +590,17 @@ test_torn_line_preserved (test_synthetic.CorpusTests.test_torn_line_preserved) .
 test_unsafe_id (test_synthetic.CorpusTests.test_unsafe_id) ... ok
 
 ----------------------------------------------------------------------
-Ran 20 tests in 0.116s
+Ran 20 tests in 0.205s
 
 OK
 ```
 
-Measured process exit code: 0.
+Measured exit code: 0.
 
-Input/fixed default-output compatibility, including all three defect fixtures (08:54:21 UTC):
+Default compatibility against immutable input, including every changed branch:
 
 ```bash
+date -u
 nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/check_default_compat.py
 ```
 
@@ -232,26 +612,62 @@ native: identical read/orphan bytes; identical index except tool_version (3 file
 kit_bad_alias: identical read/orphan bytes; identical index except tool_version (3 files)
 native_missing_arm: identical read/orphan bytes; identical index except tool_version (3 files)
 native_conflicting_tasks: identical read/orphan bytes; identical index except tool_version (3 files)
-PASS: 7 fixtures; default behavior preserved, including the three opt-in defects
+kit_duplicate_exact: identical read/orphan bytes; identical index except tool_version (3 files)
+kit_duplicate_alias: identical read/orphan bytes; identical index except tool_version (3 files)
+native_unlabeled_report: identical read/orphan bytes; identical index except tool_version (3 files)
+native_row_task_conflict: identical read/orphan bytes; identical index except tool_version (3 files)
+native_missing_input: identical read/orphan bytes; identical index except tool_version (3 files)
+native_empty_inputs: identical read/orphan bytes; identical index except tool_version (3 files)
+PASS: 13 fixtures; default read/orphan bytes preserved, including review-three branches
 ```
 
-Measured process exit code: 0.
+Measured exit code: 0.
 
-The existing leftover test skips without invoking a real ingest (08:52:49 UTC):
+Published index and mirrored input audit:
 
 ```bash
-nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/run_tests.py test_no_leftovers
+date -u
+nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/audit_round3.py
 ```
 
 ```text
-test_full_ingest_leaves_only_outputs (test_no_leftovers.NoLeftovers.test_full_ingest_leaves_only_outputs) ... skipped 'real return absent'
-
-----------------------------------------------------------------------
-Ran 1 test in 0.000s
-
-OK (skipped=1)
+INDEX: 14323288 bytes; SHA256=bdf2d9cef181e5d8ca33775bf2793ef8ced115d97b0dd25fae8495c3bd93944c
+READS: 18; formats={"kit": 10, "native": 1, "offread": 2, "routed": 5}
+NATIVE: 636 declared keys; 636 items in each arm; 9 hash-verified input files; 6967 input rows; 2544 return rows
+NATIVE: 636 keys with exactly 2 compatible candidates; 0 identity conflicts; 636 selected tasks lack additive room_key
+17c4ffa4_s100_devS1R0facing_direct_a24ea1a1936 | kit | default: unchanged | checks enabled: unverified: source-row replay required | mirrored return available: False
+359fcc3c_s100_devS1R0facing_direct_af35386aa3e | kit | default: unchanged | checks enabled: unverified: source-row replay required | mirrored return available: False
+359fcc3c_s200_R0_direct_ae470417b41 | kit | default: unchanged | checks enabled: unchanged by code/index | mirrored return available: False
+359fcc3c_s200_devS1facing_direct_a4cadd8934b | kit | default: unchanged | checks enabled: unverified: source-row replay required | mirrored return available: False
+469ddece_s544_devS1R0_direct_adff67f7ae9 | kit | default: unchanged | checks enabled: unchanged by code/index | mirrored return available: False
+469ddece_s544_devS1_native_b07a20b364 | native | default: unchanged | checks enabled: unverified: source-row replay required | mirrored return available: False
+469ddece_s544_devS1_routed_b1.r0 | routed | default: unchanged | checks enabled: unchanged by code/index | mirrored return available: False
+469ddece_s544_devS1_routed_b1.r1 | routed | default: unchanged | checks enabled: unchanged by code/index | mirrored return available: False
+469ddece_s544_revsi_official_direct_a348bc58686 | offread | default: unchanged | checks enabled: unchanged by code/index | mirrored return available: False
+469ddece_s544_room134_routed_b2 | routed | default: unchanged | checks enabled: unchanged by code/index | mirrored return available: False
+469ddece_s544_vsibench_official_direct_a8acc277397 | offread | default: unchanged | checks enabled: unchanged by code/index | mirrored return available: False
+469ddece_s544_vsti_direct_acb2faedd41 | kit | default: unchanged | checks enabled: unchanged by code/index | mirrored return available: False
+673bc60f_s100_devS1R0_direct_a5d2d909067 | kit | default: unchanged | checks enabled: unverified: source-row replay required | mirrored return available: False
+673bc60f_s200_devS1R0_direct_a8102c3207b | kit | default: unchanged | checks enabled: unverified: source-row replay required | mirrored return available: False
+673bc60f_s200_devS1_routed_A4 | routed | default: unchanged | checks enabled: unchanged by code/index | mirrored return available: True
+673bc60f_s200_facing_direct_a2e46c0504e | kit | default: unchanged | checks enabled: unverified: source-row replay required | mirrored return available: False
+673bc60f_s200_room134_routed_B5 | routed | default: unchanged | checks enabled: unchanged by code/index | mirrored return available: True
+673bc60f_s200_vsti_direct_a35f73e87f0 | kit | default: unchanged | checks enabled: unchanged by code/index | mirrored return available: False
+Confirmed changed read payload IDs: none; enabled impact unresolved for 7 IDs. Regenerated index tool_version changes for all 18 IDs.
+No published read or index was modified. No published read gzip or real return was loaded.
 ```
 
-Measured process exit code: 0.
+Measured exit code: 0.
 
-The static audit command was `nice -n 10 env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/audit_published.py` (08:54:23 UTC, exit 0). Its complete exact output is `work/evidence/published_audit_final.log`.
+## Risks, detection, and remaining work
+
+- Operators who omit `--review2-checks` retain legacy behavior by dispatch requirement. Use the documented new-read command; the wrapper-forwarding regression guards that recipe.
+- Exact identity comparisons can reject contradictory annotations, including JSON-type differences. The refusal names the native key/field or report path. Inspect the raw source evidence; do not disable the switch to publish the read.
+- A final incomplete native return emits only available evidence with `partial=true` under `--archive-partial`. Extra keys, label conflicts, conflicting scores and missing task joins still return exit 2 before emission.
+- Report-only native rows without labels can add an arm with checks enabled. Tests verify raw preservation. Published impact for the native read remains unverified until its source archive is available.
+- `tests/test_real_returns.py` was neither imported nor executed, as required by the prompt. `test_no_leftovers` skipped because its real return is absent. No real-output replay, publication, owner command, SSH, Git, GPU work, paid API call or deletion ran.
+- The enabled-mode audit of the 7 listed reads remains incomplete. The concrete owner commands and metadata are delivered; the report stays PARTIAL until those missing-source checks establish payload equivalence or identify new read IDs.
+
+The ingest tool uses only the Python standard library; no tensor or training behavior is involved. Tests call `torch.set_num_threads(8)` before execution. The installed behavior is documented at `/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/_torch_docs.py:9819` (CPU intra-op thread limit) and `:9822` (call before eager/JIT/autograd work), corroborated by the [official PyTorch 2.11 documentation](https://docs.pytorch.org/docs/2.11/generated/torch.set_num_threads.html), read during this task.
+
+Writing rule applied: `no-archaeology`. The before/after test evidence and the required review-round section are retained because the user explicitly requires them; no revision-history narrative is needed to interpret the delivered behavior.

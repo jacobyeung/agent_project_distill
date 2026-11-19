@@ -45,6 +45,7 @@
     "report": "{work}/stage/BUILD.json",
     "sha256": "02eb8ca5e98402343fcadea608c4e43f4890322d6c7a117e7d95e9b662637559"
   },
+  "check_timeout": 300,
   "fill": {
     "config": "/project/community/jjyeung/okh7/eabcdef012345/7",
     "data_receipt": "/project/community/jjyeung/okh7/eabcdef012345/9",
@@ -60,16 +61,11 @@
     "receipt": "/project/community/jjyeung/okh7/eabcdef012345/8",
     "step": 600
   },
+  "fill_mode": "structural",
   "forbidden_extra": [],
   "ledger": "/REPLACE/CURRENT_TRINITY_LEDGER.jsonl",
   "max_read_bytes": 1073741824,
-  "mirrors": {
-    "/REPLACE/REMOTE/PART": {
-      "bytes": 1,
-      "path": "/REPLACE/LOCAL/PART",
-      "sha256": "REPLACE_SHA256"
-    }
-  },
+  "mirrors": {},
   "normalize_wrapper": true,
   "old_identities": [
     "REPLACE_SOURCE_TOKEN",
@@ -83,6 +79,7 @@
       "sha256": "94442c644c25bd021bb8671a7b5dd8701e3716d8f848a0a6ea5c127bec856016"
     },
     "cpu_wait": 14400,
+    "fill_wait": 1800,
     "gpu": {
       "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_sub_D.sh",
       "sha256": "7a31956dd113bd298d1a8e5d99ae8f0079d58534b4ddea43ff8e206d4cb933d8"
@@ -91,5 +88,48 @@
     "timeout": 300,
     "walltime": "04:00:00"
   },
+  "remote_input_pins": {
+    "/project/community/jjyeung/okh7/eabcdef012345/0": {
+      "bytes": 0
+    },
+    "/project/community/jjyeung/okh7/eabcdef012345/1": {
+      "bytes": 0
+    },
+    "/project/community/jjyeung/okh7/eabcdef012345/2": {
+      "bytes": 0
+    },
+    "/project/community/jjyeung/okh7/eabcdef012345/3": {
+      "bytes": 0
+    },
+    "/project/community/jjyeung/okh7/eabcdef012345/5": {
+      "bytes": 0
+    },
+    "/project/community/jjyeung/okh7/eabcdef012345/7": {
+      "bytes": 0
+    },
+    "/project/community/jjyeung/okh7/eabcdef012345/8": {
+      "bytes": 0
+    },
+    "/project/community/jjyeung/okh7/eabcdef012345/9": {
+      "bytes": 0
+    }
+  },
+  "required_inputs": [
+    {
+      "name": "reviewed source delivery",
+      "path": "/REPLACE/1.tgz",
+      "sha256": "REPLACE_SOURCE_SHA256"
+    },
+    {
+      "name": "step-600 binding",
+      "path": "/REPLACE/binding600.json",
+      "sha256": "REPLACE_BINDING_SHA256"
+    },
+    {
+      "name": "D item manifest",
+      "path": "/REPLACE/items.json",
+      "sha256": "REPLACE_ITEMS_SHA256"
+    }
+  ],
   "work": "/scratch/jjyeung/orch_n30/so_pack_a/work/REPLACE_FRESH_RUN"
 }

@@ -1,0 +1,279 @@
+test_f1_missing_arm_can_be_archived_partial (test_review3.Review3Tests.test_f1_missing_arm_can_be_archived_partial) ... FAIL
+test_f1_subset_keys_can_be_archived_partial (test_review3.Review3Tests.test_f1_subset_keys_can_be_archived_partial) ... FAIL
+test_f2_documented_new_read_command_enables_checks (test_review3.Review3Tests.test_f2_documented_new_read_command_enables_checks) ... FAIL
+test_f3_conflict_cannot_be_archived_partial (test_review3.Review3Tests.test_f3_conflict_cannot_be_archived_partial) ... FAIL
+test_f3_conflicting_exact_scores_refused (test_review3.Review3Tests.test_f3_conflicting_exact_scores_refused) ... FAIL
+test_f3_conflicting_key_only_scores_refused (test_review3.Review3Tests.test_f3_conflicting_key_only_scores_refused) ... FAIL
+test_f3_identical_scores_and_exact_precedence_accepted (test_review3.Review3Tests.test_f3_identical_scores_and_exact_precedence_accepted) ... ok
+test_f4_unlabeled_contradiction_cannot_be_archived_partial (test_review3.Review3Tests.test_f4_unlabeled_contradiction_cannot_be_archived_partial) ... FAIL
+test_f4_unlabeled_report_contradiction_refused (test_review3.Review3Tests.test_f4_unlabeled_report_contradiction_refused) ... FAIL
+test_f4_unlabeled_report_only_arm_is_preserved (test_review3.Review3Tests.test_f4_unlabeled_report_only_arm_is_preserved) ... FAIL
+test_f5_additive_candidate_field_is_also_checked (test_review3.Review3Tests.test_f5_additive_candidate_field_is_also_checked) ... FAIL
+test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) ... 
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='question') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='options') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='room') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='room_key') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='scene') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='video') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='question_type') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='stratum') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='ground_truth') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='scorer') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='units') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='unit') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='released_answer') ... FAIL
+  test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='released_answer_in_options') ... FAIL
+test_f5_matching_fields_and_prediction_are_accepted (test_review3.Review3Tests.test_f5_matching_fields_and_prediction_are_accepted) ... ok
+test_f5_row_task_room_conflict_refused (test_review3.Review3Tests.test_f5_row_task_room_conflict_refused) ... FAIL
+test_f6_empty_explicit_inputs_cannot_archive_null_task (test_review3.Review3Tests.test_f6_empty_explicit_inputs_cannot_archive_null_task) ... FAIL
+test_f6_missing_input_task_refused (test_review3.Review3Tests.test_f6_missing_input_task_refused) ... FAIL
+test_f6_no_inputs_still_allows_null_task (test_review3.Review3Tests.test_f6_no_inputs_still_allows_null_task) ... ok
+
+======================================================================
+FAIL: test_f1_missing_arm_can_be_archived_partial (test_review3.Review3Tests.test_f1_missing_arm_can_be_archived_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 52, in test_f1_missing_arm_can_be_archived_partial
+    self.partial_cli()
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 42, in partial_cli
+    self.assertEqual(code, 0, err)
+AssertionError: 2 != 0 : Mismatched native arms: expected ['scripted', 'unflagged'], observed ['unflagged']
+
+
+======================================================================
+FAIL: test_f1_subset_keys_can_be_archived_partial (test_review3.Review3Tests.test_f1_subset_keys_can_be_archived_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 55, in test_f1_subset_keys_can_be_archived_partial
+    self.partial_cli(subset=True)
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 42, in partial_cli
+    self.assertEqual(code, 0, err)
+AssertionError: 2 != 0 : Mismatched native keys for arm scripted
+
+
+======================================================================
+FAIL: test_f2_documented_new_read_command_enables_checks (test_review3.Review3Tests.test_f2_documented_new_read_command_enables_checks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 61, in test_f2_documented_new_read_command_enables_checks
+    self.assertIn('--review2-checks', shlex.split(command))
+AssertionError: '--review2-checks' not found in ['cd', '/scratch/jjyeung/orch_n30/corpus', '&&', 'bash', 'tool/add_read.sh', '<return', 'dir', 'or', 'result.tar.gz>', '<read_id>', '<set>', '<vehicle>', '<job', 'id>', '<purpose>', '<RESULT', 'event', 'path>', '[--inputs', '<package', 'dir>]', '[--official]']
+
+======================================================================
+FAIL: test_f3_conflict_cannot_be_archived_partial (test_review3.Review3Tests.test_f3_conflict_cannot_be_archived_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 98, in test_f3_conflict_cannot_be_archived_partial
+    self.assertEqual(code, 2, err)
+AssertionError: 0 != 2 : 
+
+======================================================================
+FAIL: test_f3_conflicting_exact_scores_refused (test_review3.Review3Tests.test_f3_conflicting_exact_scores_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 85, in test_f3_conflicting_exact_scores_refused
+    with self.assertRaisesRegex(ingest.Refusal, 'Conflicting kit report scores'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f3_conflicting_key_only_scores_refused (test_review3.Review3Tests.test_f3_conflicting_key_only_scores_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 80, in test_f3_conflicting_key_only_scores_refused
+    with self.assertRaisesRegex(ingest.Refusal, 'Conflicting kit report scores'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f4_unlabeled_contradiction_cannot_be_archived_partial (test_review3.Review3Tests.test_f4_unlabeled_contradiction_cannot_be_archived_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 133, in test_f4_unlabeled_contradiction_cannot_be_archived_partial
+    self.assertEqual(code, 2, err)
+AssertionError: 0 != 2 : 
+
+======================================================================
+FAIL: test_f4_unlabeled_report_contradiction_refused (test_review3.Review3Tests.test_f4_unlabeled_report_contradiction_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 115, in test_f4_unlabeled_report_contradiction_refused
+    with self.assertRaisesRegex(ingest.Refusal, 'Contradictory native journal/report row'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f4_unlabeled_report_only_arm_is_preserved (test_review3.Review3Tests.test_f4_unlabeled_report_only_arm_is_preserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 122, in test_f4_unlabeled_report_only_arm_is_preserved
+    self.assertEqual(code, 0, err)
+AssertionError: 2 != 0 : Mismatched native arms: expected ['scripted', 'unflagged'], observed ['unflagged']
+
+
+======================================================================
+FAIL: test_f5_additive_candidate_field_is_also_checked (test_review3.Review3Tests.test_f5_additive_candidate_field_is_also_checked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 168, in test_f5_additive_candidate_field_is_also_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict.*room'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='question')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='options')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='room')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='room_key')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='scene')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='video')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='question_type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='stratum')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='ground_truth')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='scorer')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='units')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='unit')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='released_answer')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_each_shared_identity_field_checked (test_review3.Review3Tests.test_f5_each_shared_identity_field_checked) (field='released_answer_in_options')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 159, in test_f5_each_shared_identity_field_checked
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f5_row_task_room_conflict_refused (test_review3.Review3Tests.test_f5_row_task_room_conflict_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 141, in test_f5_row_task_room_conflict_refused
+    with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict.*room'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+======================================================================
+FAIL: test_f6_empty_explicit_inputs_cannot_archive_null_task (test_review3.Review3Tests.test_f6_empty_explicit_inputs_cannot_archive_null_task)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 195, in test_f6_empty_explicit_inputs_cannot_archive_null_task
+    self.assertEqual(code, 2, err)
+AssertionError: 0 != 2 : 
+
+======================================================================
+FAIL: test_f6_missing_input_task_refused (test_review3.Review3Tests.test_f6_missing_input_task_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_corpus_fix/work/tool/tests/test_review3.py", line 185, in test_f6_missing_input_task_refused
+    with self.assertRaisesRegex(ingest.Refusal, 'Missing native task'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.059s
+
+FAILED (failures=27)

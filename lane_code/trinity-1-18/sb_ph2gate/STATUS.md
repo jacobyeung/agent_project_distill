@@ -1,0 +1,1 @@
+Stage 3 complete: part 1 passed 26/26 and CPU dry-run steps 1–4 passed. A fresh two-capture part 2 fixture passed with the guarded scorer. The exact GPU payload inventory verified every file and frozen hash; default and all-aliases plans contain 1,540 and 2,004 calls. Final guard tests, fresh fixture aggregation and the CPU-only STEP5 refusal are being checked.

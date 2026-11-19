@@ -115,7 +115,7 @@
 +    unittest.main()
 --- /dev/null
 +++ b/tests/test_so_joint.py
-@@ -0,0 +1,168 @@
+@@ -0,0 +1,175 @@
 +"""Two real FSDP1/gloo ranks: exact losses, all gradients, updates, draws and collectives."""
 +import copy
 +import datetime
@@ -124,6 +124,7 @@
 +import os
 +from pathlib import Path
 +import threading
++import struct
 +import unittest
 +from unittest.mock import patch
 +
@@ -158,6 +159,8 @@
 +        assert len(a) == len(b),label
 +        for i,(x,y) in enumerate(zip(a,b)):
 +            exact(x,y,label+'/'+str(i))
++    elif isinstance(a, float):
++        assert isinstance(b, float) and struct.pack('!d', a) == struct.pack('!d', b), label
 +    else:
 +        assert a == b,(label,a,b)
 +
@@ -187,6 +190,7 @@
 +                    model = native(world=2)
 +                    wrapped = run.wrap_model(model,torch.device('cpu'),mixed_precision=False)
 +                    optimizer = torch.optim.AdamW(parameter_groups(wrapped),weight_decay=.01)
++                    run.SKIPPED.update(skipped=0, total=0)
 +                    rows = run.Rows(receipt,compact_processor())
 +                    from student_pilot import c1_decoded_cache, c1_batch_metrics
 +                    c1_decoded_cache._cache = None
@@ -241,6 +245,9 @@
 +                    state = dict(losses=losses,grads=grads,after=after,names=names,draws=draws,collectives=collectives,
 +                                 error=error,components=None if info is None else info['components'],
 +                                 stream_means=None if info is None else info['stream_means'])
++                    state['logged_numbers'] = None if info is None else {k:v for k,v in info.items()
++                        if k not in ('wall_seconds','data_seconds','memory','peak_allocated_bytes',
++                                     'peak_reserved_bytes','decoded_cache')}
 +                    if failure:
 +                        assert error and 'Final-mode row failure' in error,error
 +                        assert len(losses) == 2,('wrong failure microstep',len(losses))

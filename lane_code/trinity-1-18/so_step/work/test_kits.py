@@ -116,7 +116,7 @@ class KitTests(unittest.TestCase):
         self.assertTrue(callable(measurement_train(run,ROOT/'work/kit_native_probe')))
 
     def test_instrumented_native_step_and_unmodified_input_default_are_exact(self):
-        spec=importlib.util.spec_from_file_location('student_pilot._so_input',ROOT/'in/tree/work/tree_r1/student_pilot/carrier_c1_run.py')
+        spec=importlib.util.spec_from_file_location('student_pilot._so_input',Path(os.environ.get('SO_TEST_BASE',str(ROOT/'in/tree/work/tree_r1')))/'student_pilot/carrier_c1_run.py')
         baseline=importlib.util.module_from_spec(spec)
         spec.loader.exec_module(baseline)
         outcomes=[]

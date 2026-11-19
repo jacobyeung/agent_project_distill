@@ -1,0 +1,2 @@
+export TZ=UTC; date -u +%TZ
+timeout 60 srun --jobid=173051 --overlap -n1 --mem=0 bash -c 'cg=$(cat /proc/self/cgroup | head -1 | cut -d: -f3); J=/sys/fs/cgroup$(dirname $(dirname $(dirname $cg))); ls $J; for d in $J $J/step_batch; do echo $d; grep -E "^(anon|file|shmem|file_dirty) " $d/memory.stat; cat $d/memory.current $d/memory.max; done; for p in $(cat $J/step_batch/cgroup.procs $J/step_batch/*/cgroup.procs $J/step_batch/*/*/cgroup.procs 2>/dev/null | sort -u); do ps -o rss=,etime=,args= -p $p 2>/dev/null | cut -c1-160; done | sort -rn | head -6' 2>&1 | head -40

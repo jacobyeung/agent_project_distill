@@ -54,6 +54,8 @@ The delivered set has **24 patch tests + 86 native tests: 99 pass, 11 skip**. Th
 
 The additional native admission-fixture comparison reproduces the same four failures and one error on baseline and patched build 21. Both 92-test attempts exit 1; the comparison exits 0. Exact outputs: [baseline](tests/port21/known_native_failures_input.txt), [patched](tests/port21/known_native_failures_patched.txt), [matching identities](tests/port21/known_failure_comparison.txt). These fixture failures remain outside the supported 86-test gate; they are not counted as passes.
 
+The report, design and delivery contracts also pass against the diagnostic build-21 tree: `Ran 6 tests in 0.009s`, `OK` ([round 1](tests/port21/review_round1_contracts.txt)); `Ran 5 tests in 0.022s`, `OK` ([round 2](tests/port21/review_round2_contracts.txt)). Their application contract checks the unchanged patch text against its original build-20 fixture; the separate build-21 application and artifact audits above verify the new base.
+
 The retained [OFF harness error](tests/port21/off_identity.harness_error.txt) records two Python indentation errors in extracted fixture methods. The corrected harness passes before any ON suite runs. No production code changed to address these errors.
 
 ## Lane tests and remaining work
@@ -96,6 +98,8 @@ The installed Torch version is `2.11.0+cpu` (`/scratch/jjyeung/envs/p1cpu/lib/py
 The skipped fixture opens a local socket and calls `init_process_group('gloo', init_method='tcp://…')` (`work/port21/baseline/tests/test_s1_checkpoint_buffers.py:28–35`). Installed `torch/distributed/rendezvous.py:190–207,210–237` constructs its TCPStore. The [official TCP initialization documentation](https://docs.pytorch.org/docs/2.11/distributed.html#tcp-initialization) describes the network rendezvous. No socket-dependent test is counted as passed.
 
 ## Measured phases and preparation inputs
+
+The production timings below come from the named job logs. The input/code analysis in this section refers to archived build 20 at `in/tree/work/tree_r1`; the launch patches do not edit the trainer implementation. Patch 01 remains excluded from the build-21 delivery.
 
 Mode p measured **140.57 minutes in job 172660** and **145.27 minutes in job 171377**. The [interval arithmetic](phase_timing.json) retains timestamps and evidence labels; [numbered log excerpts](evidence/startup_log_excerpts.txt) retain the raw evidence. The source logs are `/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/r1_ops6/work/mon/last.txt` and `/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/swarm_opt/work/o/look1.out`. Preparation mtimes and C' step duration also use the supplied `PROMPT.md`. Measured envelopes overlap where stated and must not be added blindly. Table source paths refer to the input tree; trainer code is unchanged.
 

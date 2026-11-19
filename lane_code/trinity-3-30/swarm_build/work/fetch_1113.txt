@@ -1,0 +1,63 @@
+REJECT — the cached W1 result reproduces, but the required pre-score registration failed.
+
+1. Registration: BARS.json self-dates 10:12:21Z and has mtime 10:12:42.900718Z; stale PER_ITEM scores have mtime 10:11:28.513851Z. HANDOFF_STOPPED_SESSION.md corroborates that scores existed without the bars file. The bars hash 150d16a232b42d86… matches DECISION.json, and the governing spec already contained the numeric thresholds.
+
+Correction: set `written_before_any_score` to false, remove the pre-score-freeze certification, and label the results diagnostic. The claim that the replacement session had not read scores is unverified. A subsequent hash check cannot establish prospective registration.
+
+2. Rerun: P0 matches A0 on 1,037/1,037 predictions, boxes, member-frame lists and refusal codes. W1 also matches its published output on every row: 60.5014 versus 56.7695, +3.7319 [2.0462, 5.4778]. Its safe contrast is +0.4605 [0, 1.2160] on 456 rows. Both numeric bars pass as written: gain ≥1.5 with lower bound >0; safe lower bound >−1.
+
+All gain comes from the 84 heater rows across 20 captures; ScanNet++ gains +6.2319 [3.6442, 9.2039], and the other datasets gain zero. These numbers use 10,000 room draws, seed 20261119.
+
+3. Reader contract: the rerun checks 1,471 priced pools with zero score/presence mismatches, identity failures or reader exceptions. Every priced frame has one presence. Mixed P_all/P_cf pools remain unpriced. Changed pools rebuild links, candidate identities, selector inputs and labels; all 770 raw label sets match the reference. An independent radiator probe also reproduces rebuilt selector vectors.
+
+W1 represents one written prompt; W2c represents separate calls with object-level fallback. W2 combines raw and alias frames and needs tool support absent from the current call syntax. Correction: remove W2 from `shippable_passing` and label it a tool-change diagnostic. W2's +3.5873 passes numerically; W2c's +1.0897 fails phrase_worth. W1 remains the chosen eligible arm.
+
+4. Fold rule: independent selection reproduces every saved W1/W2/W2c policy. Each fit excludes its held-out room fold, counts distinct capture/name objects using priced-frame raster IoU, and reads no distance label. The minimum-five and raw-on-tie rules hold. All five W1 folds and the all-room refit choose heater → radiator; coat hanger stays raw.
+
+5. Cache provenance: all 209 caches are non-stub `dense_aliases`; their hashes match DECISION, conversion receipts and upstream tower receipts. The pinned producer preserves 1,066 radiator proposals across 20 captures, each with `source_query` and `source_presence`; none is tiled. The alias producer actually calls the radiator prompt, so these are retained radiator-call proposals.
+
+Correction: replace “W1 understates the alias called alone” with “W1 prices a deduplicated subset; the exact serving score is unverified.” IoU >0.95 deduplication removes proposals against earlier retained instances. Restoring them can change linking and selection in either direction. Exact standalone rerun evidence is MISSING at the spec's `out/pool_part2/<key>/candidates.json`; CPU part 1 does not establish that result.
+
+6. Withheld rooms: scene0201_02, scene0478_00, scene0478_01, scene0614_02 and scene0692_03 contribute 25 rows, with zero heater rows. Excluding those captures from both scoring and phrase fitting, while retaining the registered fold assignments, changes no policy. On the remaining 1,012 rows, W1 scores 60.7510 versus 56.9269, +3.8241 [2.1629, 5.6281]; safety is +0.4751 [0, 1.2269] on 442 rows. Both bars still pass.
+
+Correction: disclose this overlap and sensitivity result in PHRASE_REPORT/DECISION; K1 train membership alone does not certify downstream teaching eligibility. The routed training-row rewrite count remains MISSING, owned by tree_rebuild.
+
+7. Tests and package: all 24 shipped tests and two independent probes pass. The shipped suite exercises real cache_for/lift behavior and synthetic pool/fold decisions; its output-parity tests compare saved files, which this review supplements with a full rerun. The freeze test checks hash equality, not chronology. Archive SHA256 6e5dd8f48e653f97… matches the requested package; all 504 archived files match the source tree.
+
+Reproduction, from this workspace:
+
+`bash run_review.sh audit_static.py` produces STATIC_AUDIT.json: chronology, hashes, archive and cache-provenance counts.
+
+`bash run_review.sh rerun.py` rebuilds all 209 captures from source caches into rerun_caps/; `bash run_review.sh analyze_rerun.py` produces RERUN_AUDIT.json: parity, contracts, policies, scores and exclusions above.
+
+`bash run_review.sh check_tests.py` produces TEST_AUDIT.json: the 26 behavioral-test results. Every evidence JSON records input SHA256 hashes.
+
+Scope: CPU only on trinity-1-18, at most eight CPU affinity slots for the four rerun workers; source lanes stayed read-only. No GPU, network, SSH, Git, process termination or deletion. Registration chronology is retained because check (1) explicitly requires it.
+=====CA
+NO-GO — the final v2 kit reproduces its CPU checks, but requires the fixes below before GPU launch or stack selection.
+
+Scope: kit_v2/ and out/v2/ only, read-only; trinity-1-18, CPU only, eight threads/workers maximum. All review writes are in sb_carev. No GPU, network, SSH, Git, or process termination was used.
+Evidence: REVIEW_EVIDENCE.json, STATIC_AUDIT.json, CONTRACT_AUDIT.json and MODEL_AUDIT.json record commands and input SHA256 hashes. Commands below run from /scratch/jjyeung/orch_n30/sb_carev.
+
+- Reproduction: `bash reproduce.sh` passes steps 0–3. Precision is 390/538 = 72.4907%; all 2,310 object-threshold cases match the ladder. Seed-stub predictions match A0 on 1,037/1,037 rows (56.7695); raster-stub predictions match A2 and fused_cf on every row (73.9730 and 78.6210). Frame checks pass on 209 captures and 13,376 files.
+- Tests: `bash review_run.sh p1cpu tests_run.py` passes all 23 shipped tests. These tests do not cover the producer’s actual phrase schema or forbid the killed-pass override.
+- Freeze/package: `bash review_run.sh p1cpu audit_static.py` verifies BARS_FROZEN SHA256 edff8724b27328f6874b4adb0dd93727cc70fdfd4ddf2fb301cf572a46ceaaf4, the spec hash and verbatim bars. Its saved timestamp, 10:34:03Z, precedes the earliest saved priced file, 10:41:09Z. The numeric thresholds and MISSING-as-not-passed behavior match; the empty-mask exception below does not.
+- The same audit verifies all 240 manifest entries and tar SHA256 6f6ffd97d381f03d587d36b9dee3614cb76386fce2ba27c47633dbb04ea871e1. The archive contains no superseded kit/tests/output members; only its two status files differ from live copies. Inspected imports do not target superseded code.
+
+- N2 checkpoint binding passes: `bash review_run.sh sam3 model_audit.py` strictly loads checkpoint 9999e234…3cf8c9e into Sam3VideoInferenceWithInstanceInteractivity: 1,465 keys, including 759 detector-backbone and 309 tracker keys, with no missing/unexpected keys. This is not a bare tracker.
+- CPU and GPU call the same build_sam3_video_model with strict loading and no HF download. CPU redirects CUDA devices and uses the pinned float32 MLP adaptation; GPU uses the tracker’s persistent bf16 autocast. GPU execution remains untested. The CPU run imports no modules outside /scratch or from superseded kit/tests paths.
+- The same command reproduces all saved anchor masks in 174.9 s, at 7.41 GiB peak RSS. Each of the four combinations carries two non-seed anchor masks that differ from the seed. This is one object on an eight-dense-frame window (four anchors); tv is skipped. Label it a partial smoke test and complete the spec’s full-capture CPU check before claiming step 4 complete.
+
+Required edits:
+1. In mc_track_io.object_record, remove mask.any() from the score-positive carry gate. In mc_price.price_capture, retain positive-score empty added members in the ladder denominator, where they count as incorrect. The current frozen resolution and test explicitly exclude them, contrary to the spec’s “no other threshold.” Preserve Objects.get/summarize_train.precision over all seeded objects; update the fixture and register corrected semantics before pricing.
+2. In mc_phrase.parse, read each producer row’s phrases field before its policy label. The static audit finds all 320 rows misread: raw becomes the literal phrase “raw,” and q:radiator becomes “q:radiator.” The seed rebuild produces S_PHR=PRESENT with zero usable seeds. Validate the producer’s arm, passing decision and bars hash; fix raw-name fallback in mc_seeds.one to restore the A0 seed on a second raw call. Add actual-schema/fallback tests, then rebuild seeds and the manifest.
+3. PHRASE_FOLDS.json is PRESENT at /scratch/jjyeung/orch_n30/sb_mask_phrase/out/PHRASE_FOLDS.json; KIT_REPORT’s NOT_YET claim is stale. `bash review_run.sh sam3 /scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_preflight.py` currently refuses the old NOT_YET seeds. Make preflight compare the fold-file hash with seed provenance, not just existence/status, and stage that dependency consistently.
+4. In launch_gpu.sh and mc_track_pass.main, reject KILLED unconditionally; MC_RESUME_AFTER_STOP/--resume-after-stop currently bypass it. `bash review_run.sh p1cpu contract_audit.py` proves this with a synthetic ledger, without killing or launching a tracker. Save elapsed budget on exceptional exits and bind resumed work to the approved population and seed metadata as well as mask bytes.
+5. Enforce the spec’s global arm order: finish S_A0/D64 before trailing arms. mc_track_pass currently runs all sets within each capture. Retain the first-ten-capture timing receipt, projection-based drops and cumulative two-hour stop; account for any repeated embeddings introduced by changing execution order.
+6. Preserve the launcher’s two production readings 300 s apart, rejection above 1,024 MiB, vnice invocation and timeout at the remaining budget. Shipped tests and the synthetic second-reading probe pass those checks. Move GPU caches from work/v2 into out/v2/track and stop timing_receipt from also writing out/v2/TIMING_RECEIPT.json; the “writes only track” claim is currently false.
+7. Complete the staging contract. The declared scratch items sum to 14,921,428,889 bytes, but STAGING.json’s items omit its own control file and STAGING_FRAMES.txt, which preflight reads. The report names them, but the machine list is not self-contained. Stage a pinned local vnice wrapper and required dependencies: launch_gpu.sh explicitly reads /data3/shared/scripts/vnice/vnice.sh, so “nothing reads /data*” is false. The wrapper’s contents were not read in this review.
+8. Resolve N1 before selection. The guard rerun confirms scannet/{scene0201_02,scene0478_00,scene0478_01,scene0614_02,scene0692_03}: five captures, four rooms, 25 rows; other exclusion hits are zero. --exclude-withheld leaves 204 captures/1,012 rows, while completeness remains hard-coded to 209/1,037. Pin the orchestrator-approved population, carry it through tracking/pricing/summary, reject incompatible resumes and ignore excluded old files. Do not silently change the registered denominator or treat “fits nothing” as population approval.
+9. Add the required per-dataset measurements and frame-spacing report in mc_summary. Its current metrics are aggregate only. Rebuild the report, manifest, staging receipt and archive after validation; do not describe the kit as launch-ready while these checks fail.
+
+GPU need: one card with at least 48e9 bytes, under vnice and the two-hour cumulative cap, after fixes and placement approval. `audit_static.py` verifies the estimate (60 + 13,376×0.12 + 146,880×0.025)/3,600 = 1.48253 GPU-h; the decision-arm estimate is 0.80031 h. These are assumed rates for four sets, exclude S_PHR, and are not measured GPU throughput. The first-ten-capture receipt must replace them before continuing.
+GPU evidence remains MISSING at sb_mask_carry/out/v2/{TIMING_RECEIPT.json,CARRY_REPORT.md,CARRY_DECISION.json,K1_CARRY.json,PER_ITEM.jsonl}; all real carry bars remain MISSING. The partial CPU receipt under dry/track_cpu does not establish full-capture or GPU performance.

@@ -19,6 +19,8 @@ frames=read(paths['frames']/'frames.json')
 results['retained_sources']={k:{n:v[n] for n in ('rows','frame_references','unique_frames')} for k,v in frames['sources'].items()}
 results['sum_frame_references']=sum(v['frame_references'] for v in frames['sources'].values())
 results['fixed_samples']=sum(len(v['hash_sample']) for v in frames['sources'].values())
+results['estimated_path_saving_seconds']=0.264*results['frames']['resources']['seconds']
+results['estimate_basis']='0.264 times OFF phase_resources.frames.seconds; fixture extrapolation, possibly zero in production'
 results['artifact_mtimes_utc']={}
 for name in ('parent_grounding.json','pointing/receipt.json','vqa/receipt.json','routing/receipt.json','composed/receipt.json','prepared/receipt.json','config.json','result.json'):
  path=paths['prepare']/name

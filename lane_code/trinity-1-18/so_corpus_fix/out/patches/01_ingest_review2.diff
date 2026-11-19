@@ -1,3 +1,57 @@
+--- a/HOWTO.md
++++ b/HOWTO.md
+@@ -4,12 +4,14 @@
+ 
+ ## After each fetched, complete return (one command, CPU, seconds)
+ ```
+-cd /scratch/jjyeung/orch_n30/corpus && bash tool/add_read.sh <return dir or result.tar.gz> <read_id> <set> <vehicle> <job id> "<purpose>" <RESULT event path> [--inputs <package dir>] [--official]
++cd /scratch/jjyeung/orch_n30/corpus && bash tool/add_read.sh <return dir or result.tar.gz> <read_id> <set> <vehicle> <job id> "<purpose>" <RESULT event path> --review2-checks [--inputs <package dir>] [--official]
+ ```
+ - `read_id`: `<run>_s<step>_<set>_<vehicle>_<token>`, e.g. `6ed2c7aa_s400_devS1R0_direct_a59a7bff4c4`.
+-- `--inputs`: routed packages only (the package folder holding `package/0.tgz`, e.g. `r1route/out3/A4`).
++- `--review2-checks`: explicitly enable the ingest checks for every new read ID, including D@544 and step-400/600 reads. The wrapper forwards this flag; both the wrapper and direct ingest default to checks off for compatibility. Do not use an existing published read ID to activate the checks.
++- `--inputs`: routed or native task inputs (for example, the routed package folder holding `package/0.tgz`, `r1route/out3/A4`). With checks enabled, every native result must resolve a task when inputs are supplied, including an empty input directory.
+ - The script runs `ingest_read.py ingest` into `stage2/`, prints item count, sha256 and the per-arm mean scores, then publishes the read file and its index line with `copy_archive.py` (governed, 4 MB/s) and rebuilds `INDEX.jsonl` in staging. Exit 2 means a partial or failed return: nothing is published; fix the fetch or rerun with `--archive-partial` only for a return that is final and known partial.
+ - Check the printed means against your RESULT before you post it (or run `python3 tool/corpus_score.py stage2/reads/<read_id>.jsonl.gz --arm B2048 --by question_type`).
++- With checks enabled, missing native arms or declared keys can be archived with `--archive-partial`; the read and index record `partial=true`. Conflicting scores, task identities, declarations, unexpected arms/keys, and missing input tasks always refuse ingestion, even with `--archive-partial`.
+ 
+ ## Rules
+ - Run on trinity-3-30 only; never point `--out` at /home or /data*.
+--- a/SCHEMA.md
++++ b/SCHEMA.md
+@@ -40,6 +40,17 @@
+ bytes return exit 3. Publication uses a lock and atomic rename. Existing index
+ provenance stays immutable on `SAME`. Scratch databases and abandoned temporary
+ files remain under `t/` or the chosen output root; no deletion commands run.
++
++For new read IDs, pass `--review2-checks` explicitly, including through
++`add_read.sh`. The switch defaults off to preserve the legacy output path.
++With this switch, native validates declared arm names and key sets. Missing arms
++and subsets of declared keys produce partial issues (exit 2 unless
++`--archive-partial`, then `partial=true`). Undeclared arms, extra keys, invalid
++or contradictory declarations, and conflicting labels always refuse ingestion.
++Kit report lookup prefers exact IDs, then key-only `devrows:<id>` aliases;
++actual-ID rows cannot supply alias scores. All eligible report rows at the
++selected precedence must agree on `scores`, or ingestion refuses even with
++`--archive-partial`. Original rows remain in raw records or the orphan sidecar.
+ 
+ `lost --meta FILE` records only reported evidence with status `lost` or
+ `orchard_only`; it creates no read. `index --out ROOT` rebuilds `INDEX.jsonl`,
+@@ -91,6 +102,14 @@
+ no external task paths are followed automatically. COMPLETE supplies step/artifact
+ SHA256; ORCHARD_NATIVE supplies job/date; request fields describe serving.
+ 
++With `--review2-checks`, native compares all supplied task-candidate fields and
++shared row/task identity fields before joining. An unresolved key with explicit
++`--inputs` always refuses, even with `--archive-partial`. Report rows in `arms.X`
++without an `arm` field use X for validation and normalization; their original raw
++rows remain unchanged. Conflicting journal/report duplicates always refuse.
++Compatible additive fields in unselected tasks remain in the orphan sidecar;
++they are not merged into `raw.input` or normalized fields.
++
+ `--mean-of-types` averages question-type means within each `--by` group, then
+ averages those group means. Original item-weighted means remain in
+ `item_mean_score`. Both official headlines use
 --- a/ingest_read.py
 +++ b/ingest_read.py
 @@ -80,9 +80,10 @@
@@ -21,18 +75,19 @@
                          for row in self.array():
                              callback(key, row)
                      elif key == 'arms' and self.peek() == '{':
-@@ -164,7 +167,9 @@
+@@ -164,7 +167,10 @@
  
  
  class Store:
 -    def __init__(self):
 +    def __init__(self, review2_checks=False):
 +        self.review2_checks = review2_checks
++        self.inputs_loaded = False
 +        self.array_fields = collections.defaultdict(set)
          # Working database in memory only, so no ingest leaves a file behind.
          self.path = ':memory:'
          self.db = sqlite3.connect(':memory:')
-@@ -223,7 +228,8 @@
+@@ -223,13 +229,16 @@
                              self.errors.append('Malformed JSONL in ' + path)
                              self.record(path + ':unparsed', {'text': line})
              else:
@@ -42,7 +97,15 @@
                  self.db.execute('INSERT INTO docs VALUES (?,?)', (path, dumps(value)))
          finally:
              text.detach()
-@@ -354,6 +360,7 @@
+ 
+     def load(self, source, inputs=False):
+         source = readable(source)
++        if self.review2_checks and inputs:
++            self.inputs_loaded = True
+         # Submission roots can expose their packaged source through a src symlink.
+         if inputs and os.path.isdir(os.path.join(source, 'src')):
+             source = readable(os.path.join(source, 'src'))
+@@ -354,6 +363,7 @@
  
      def __init__(self, store):
          self.store, self.issues = store, list(store.errors)
@@ -50,20 +113,58 @@
          self.paths = store.paths()
          if 'COMPLETE.json' not in self.paths:
              self.issues.append('Missing COMPLETE.json')
-@@ -418,8 +425,10 @@
-                 report_row = self.store.db.execute('SELECT data FROM records WHERE path=? AND id=?',
-                                                    (report_path, str(row.get('id')))).fetchone()
+@@ -415,11 +425,18 @@
+                 value = base_item(row)
+                 value.update(arm=kit_arm(row), raw=row, source_file=path, original_arm=directory)
+                 report_path = family + '/report/' + ('ON16k' if arm == 'full' else arm) + '.json'
+-                report_row = self.store.db.execute('SELECT data FROM records WHERE path=? AND id=?',
+-                                                   (report_path, str(row.get('id')))).fetchone()
++                report_rows = self.store.db.execute('SELECT data FROM records WHERE path=? AND id=?',
++                                                    (report_path, str(row.get('id'))))
++                report_row = next(report_rows, None)
                  if not report_row:
 -                    report_row = self.store.db.execute('SELECT data FROM records WHERE path=? AND id=?',
 -                                                       (report_path, 'devrows:' + str(row.get('id')))).fetchone()
 +                    aliases = self.store.db.execute('SELECT data FROM records WHERE path=? AND id=?',
 +                                                    (report_path, 'devrows:' + str(row.get('id'))))
-+                    report_row = next((r for r in aliases if not self.review2_checks or
-+                                       'id' not in json.loads(r[0])), None)
++                    report_rows = (r for r in aliases if not self.review2_checks or 'id' not in json.loads(r[0]))
++                    report_row = next(report_rows, None)
++                if self.review2_checks and report_row:
++                    scores = dumps(json.loads(report_row[0]).get('scores'))
++                    if any(dumps(json.loads(r[0]).get('scores')) != scores for r in report_rows):
++                        raise Refusal('Conflicting kit report scores: ' + report_path + '/' + str(row.get('id')))
                  if report_row and value['arm']['scores'] is None:
                      value['arm']['scores'] = json.loads(report_row[0]).get('scores')
                  self.put('', family, row.get('id', row.get('example_id', row.get('key'))), arm, value)
-@@ -643,8 +652,25 @@
+@@ -627,15 +644,25 @@
+ 
+     def prepare(self):
+         counts = collections.Counter()
++        has_inputs = self.store.inputs_loaded or any(p.startswith('inputs/') for p in self.paths)
+         for path in ('native/paired/results/items.jsonl', 'native/R1.json'):
+-            for row in self.store.rows(path):
++            for data, field in self.store.db.execute('SELECT data,field FROM records WHERE path=? ORDER BY seq', (path,)):
++                original = row = json.loads(data)
++                if self.review2_checks and path == 'native/R1.json' and field and field.startswith('arms.'):
++                    if not isinstance(row, dict) or 'key' not in row:
++                        raise Refusal('Invalid native report row: ' + field)
++                    if 'arm' not in row:
++                        row = dict(row, arm=field[len('arms.'):])
+                 if not isinstance(row, dict) or 'key' not in row or 'arm' not in row:
+                     continue
+                 key, arm = str(row['key']), str(row['arm'])
+                 previous = self.store.db.execute('SELECT data FROM normalized WHERE read=? AND family=? AND id=? AND arm=?',
+                                                  ('', '', key, arm)).fetchone()
+                 if previous:
+-                    if json.loads(previous[0])['raw'] != row:
++                    previous_row = json.loads(previous[0])['raw']
++                    if self.review2_checks and 'arm' not in previous_row:
++                        previous_row = dict(previous_row, arm=arm)
++                    if previous_row != row:
+                         raise Refusal('Contradictory native journal/report row: ' + key + '/' + arm)
+                     continue
+                 # Native benchmark keys explicitly use devrows:<task id>.
+@@ -643,8 +670,34 @@
                  candidates = [(json.loads(data), source) for data, source in self.store.db.execute(
                      'SELECT data,path FROM tasks WHERE id=? ORDER BY path', (task_id,))]
                  task, task_path = candidates[0] if candidates else ({}, None)
@@ -73,6 +174,8 @@
 +                                (task.get('question'), task.get('ground_truth', task.get('answer')))
 +                                for t, p in candidates[1:])
 +                if self.review2_checks:
++                    if has_inputs and not candidates:
++                        raise Refusal('Missing native task: ' + key)
 +                    # Missing fields add evidence, not contradictions. Compare every
 +                    # supplied field across all candidates, including video/room_key
 +                    # and nested values; keep the original selected task verbatim.
@@ -87,12 +190,23 @@
 +                            if field in identity and identity[field] != encoded:
 +                                ambiguous = True
 +                            identity[field] = encoded
++                    # Native answer is a prediction; compare only task identity fields.
++                    for field in ('question', 'options', 'room', 'room_key', 'scene', 'video',
++                                  'question_type', 'stratum', 'ground_truth', 'scorer', 'units', 'unit',
++                                  'released_answer', 'released_answer_in_options'):
++                        task_field = 'units' if field == 'unit' else field
++                        if field in row and task_field in identity and dumps(row[field]) != identity[task_field]:
++                            raise Refusal('Native row/task identity conflict: ' + key + '/' + field)
 +                if ambiguous:
                      raise Refusal('Ambiguous native task: ' + key)
                  value = base_item(task)
                  value['question_type'] = row.get('question_type', value['question_type'])
-@@ -658,6 +684,8 @@
-                 value.update(arm=normalized, raw=row, source_file=path, input=task or None, input_file=task_path)
+@@ -655,9 +708,11 @@
+                 normalized = routed_arm(dict(row, output=out))
+                 normalized.update(hit_cap=row.get('capped'), parse_failed=row.get('no_answer'),
+                                   output_tokens=decode.get('generated_tokens', row.get('total_tokens', normalized['output_tokens'])))
+-                value.update(arm=normalized, raw=row, source_file=path, input=task or None, input_file=task_path)
++                value.update(arm=normalized, raw=original, source_file=path, input=task or None, input_file=task_path)
                  self.put('', '', key, arm, value)
                  counts[arm] += 1
 +        if self.review2_checks:
@@ -100,7 +214,7 @@
          expected = self.store.doc('native/paired/results/COMPLETE.json').get('items')
          if 'native/paired/results/COMPLETE.json' not in self.paths:
              self.issues.append('Missing native/paired/results/COMPLETE.json')
-@@ -665,6 +693,41 @@
+@@ -665,6 +720,46 @@
              if expected is not None and count != expected:
                  self.issues.append('%s: %s != expected %s' % (arm, count, expected))
          return ['']
@@ -123,9 +237,11 @@
 +        populations = collections.defaultdict(set)
 +        for arm, key in self.store.db.execute('SELECT arm,id FROM normalized'):
 +            populations[arm].add(key)
-+        if set(populations) != required:
++        if set(populations) - required:
 +            raise Refusal('Mismatched native arms: expected %s, observed %s' %
 +                          (sorted(required), sorted(populations)))
++        if required - set(populations):
++            self.issues.append('Missing native arms: ' + ', '.join(sorted(required - set(populations))))
 +        declarations = []
 +        for doc, field in ((request, 'keys'), (report, 'expected_keys')):
 +            if field in doc:
@@ -133,25 +249,28 @@
 +                if not isinstance(keys, list) or any(not isinstance(k, str) for k in keys) or len(set(keys)) != len(keys):
 +                    raise Refusal('Invalid native keys declaration: ' + field)
 +                declarations.append(set(keys))
-+        expected = declarations[0] if declarations else populations[sorted(required)[0]]
++        expected = declarations[0] if declarations else set().union(*populations.values())
 +        if any(keys != expected for keys in declarations[1:]):
 +            raise Refusal('Contradictory native keys declarations')
 +        for arm in sorted(required):
-+            if populations[arm] != expected:
++            if populations[arm] - expected:
 +                raise Refusal('Mismatched native keys for arm ' + arm)
++            if expected - populations[arm]:
++                self.issues.append('Missing native keys for arm %s: %s != expected %s' %
++                                   (arm, len(populations[arm]), len(expected)))
  
  
  ADAPTERS = [KitAdapter, RoutedAdapter, OffreadAdapter, NativeAdapter]
-@@ -833,6 +896,8 @@
+@@ -833,6 +928,8 @@
      ing.add_argument('--format', choices=['auto'] + [a.name for a in ADAPTERS], default='auto')
      ing.add_argument('--inputs')
      ing.add_argument('--archive-partial', action='store_true')
 +    ing.add_argument('--review2-checks', action='store_true',
-+                     help='restrict kit aliases and validate native arm populations and full task identity (default: off)')
++                     help='validate kit report aliases/scores and native populations, rows and task joins (default: off)')
      ing.add_argument('--read-index')
      for flag in ('set', 'vehicle', 'purpose', 'reported-by', 'job-id'):
          ing.add_argument('--' + flag)
-@@ -892,7 +957,7 @@
+@@ -892,7 +989,7 @@
                  write_json(path, entry)
              print(dumps(dict(result='INDEX', read_id=read_id, status=entry['status'])))
              return 0
@@ -162,7 +281,7 @@
              if args.inputs:
 --- /dev/null
 +++ b/tests/test_review2.py
-@@ -0,0 +1,275 @@
+@@ -0,0 +1,279 @@
 +"""Synthetic regressions for the opt-in review-two ingest checks."""
 +import contextlib
 +import gzip
@@ -217,7 +336,7 @@
 +        self.assertIsNone(value['arm']['scores'])
 +
 +    def test_native_requires_exact_arm_populations(self):
-+        self.native(scripted=None)
++        self.native(scripted='devrows:undeclared')
 +        with self.assertRaisesRegex(ingest.Refusal, 'native.*(arm|keys|population)'):
 +            ingest.NativeAdapter(self.store).prepare()
 +
@@ -283,8 +402,9 @@
 +        self.native(scripted=None)
 +        self.store.db.execute('UPDATE docs SET data=? WHERE path=?',
 +                              ('{}', 'native/paired/request.json'))
-+        with self.assertRaisesRegex(ingest.Refusal, 'Mismatched native arms'):
-+            ingest.NativeAdapter(self.store).prepare()
++        adapter = ingest.NativeAdapter(self.store)
++        adapter.prepare()
++        self.assertTrue(any('Missing native arms: scripted' in issue for issue in adapter.issues))
 +
 +    def test_native_unexpected_arm_refused(self):
 +        self.native()
@@ -397,15 +517,18 @@
 +                                '--out', os.path.join(root, name)] + list(flags))
 +        return code, stderr.getvalue()
 +
-+    def test_cli_switch_defaults_off_and_refuses_missing_arm_even_with_partial(self):
++    def test_cli_switch_defaults_off_and_missing_arm_is_partial(self):
 +        self.native(scripted=None)
 +        root, source = self.source()
 +        self.assertEqual(self.cli(root, source, 'default')[0], 0)
-+        for flags in [('--review2-checks',), ('--review2-checks', '--archive-partial')]:
-+            code, err = self.cli(root, source, 'strict', *flags)
-+            self.assertEqual(code, 2, err)
-+            self.assertIn('Mismatched native arms', err)
-+            self.assertFalse(os.path.exists(os.path.join(root, 'strict', 'reads')))
++        code, err = self.cli(root, source, 'strict', '--review2-checks')
++        self.assertEqual(code, 2, err)
++        self.assertIn('Missing native arms', err)
++        self.assertFalse(os.path.exists(os.path.join(root, 'strict', 'reads')))
++        code, err = self.cli(root, source, 'partial', '--review2-checks', '--archive-partial')
++        self.assertEqual(code, 0, err)
++        with open(os.path.join(root, 'partial/index/review2.json')) as f:
++            self.assertTrue(json.load(f)['partial'])
 +
 +    def test_cli_task_contradiction_cannot_be_archived_partial(self):
 +        self.native()
@@ -438,3 +561,209 @@
 +        self.assertIsNone(row['arms']['B2048']['scores'])
 +        with gzip.open(os.path.join(root, 'strict/index/review2.orphans.jsonl.gz'), 'rt') as f:
 +            self.assertIn(bad, [json.loads(line)['row'] for line in f])
+--- /dev/null
++++ b/tests/test_review3.py
+@@ -0,0 +1,203 @@
++"""Regression cases for the opt-in corpus review findings."""
++import gzip
++import json
++import os
++from pathlib import Path
++import shlex
++import subprocess
++import unittest
++
++import ingest_read as ingest
++try:
++    from . import test_review2 as fixtures
++except ImportError:
++    import test_review2 as fixtures
++
++
++class Review3Tests(unittest.TestCase):
++    def setUp(self):
++        self.fixture = fixtures.Review2Tests()
++        self.fixture.setUp()
++        self.addCleanup(self.fixture.doCleanups)
++        self.store = self.fixture.store
++
++    def update_rows(self, path, change):
++        for seq, data in list(self.store.db.execute(
++                'SELECT seq,data FROM records WHERE path=?', (path,))):
++            row = change(json.loads(data))
++            self.store.db.execute('UPDATE records SET data=? WHERE seq=?', (ingest.dumps(row), seq))
++
++    def partial_cli(self, subset=False):
++        self.fixture.native(scripted='devrows:q' if subset else None)
++        if subset:
++            for path, field in [('native/paired/request.json', 'keys'), ('native/R1.json', 'expected_keys')]:
++                doc = self.store.doc(path)
++                doc[field].append('devrows:missing')
++                self.store.db.execute('UPDATE docs SET data=? WHERE path=?', (ingest.dumps(doc), path))
++        root, source = self.fixture.source()
++        code, err = self.fixture.cli(root, source, 'strict', '--review2-checks')
++        self.assertEqual(code, 2, err)
++        self.assertFalse(os.path.exists(os.path.join(root, 'strict', 'reads')))
++        code, err = self.fixture.cli(root, source, 'partial', '--review2-checks', '--archive-partial')
++        self.assertEqual(code, 0, err)
++        with open(os.path.join(root, 'partial/index/review2.json')) as f:
++            entry = json.load(f)
++        self.assertEqual(entry['status'], 'partial')
++        self.assertTrue(entry['partial'])
++        self.assertTrue(entry['partial_reasons'])
++        with gzip.open(os.path.join(root, 'partial/reads/review2.jsonl.gz'), 'rt') as f:
++            self.assertTrue(all(json.loads(line)['partial'] for line in f))
++
++    def test_f1_missing_arm_can_be_archived_partial(self):
++        self.partial_cli()
++
++    def test_f1_subset_keys_can_be_archived_partial(self):
++        self.partial_cli(subset=True)
++
++    def test_f2_documented_new_read_command_enables_checks(self):
++        tool = Path(ingest.__file__).parent
++        howto = (tool / 'HOWTO.md').read_text()
++        command = next(line for line in howto.splitlines() if 'bash tool/add_read.sh ' in line)
++        self.assertIn('--review2-checks', shlex.split(command))
++        schema = (tool / 'SCHEMA.md').read_text()
++        self.assertIn('--review2-checks', schema)
++        # Execute only the wrapper's ingest line, with all commands mocked.
++        # No staging, publication, hostname spoofing or external writes occur.
++        line = next(line for line in (tool / 'add_read.sh').read_text().splitlines()
++                    if line.startswith('python3 tool/ingest_read.py ingest '))
++        script = '''python3() { printf '%s\\n' "$@"; }
++tee() { cat; }
++SRC=fixture RID=new_id M=metadata
++set -- --review2-checks --inputs 'input package'
++''' + line
++        result = subprocess.run(['bash', '-c', script], text=True, capture_output=True, check=True)
++        args = result.stdout.splitlines()
++        self.assertEqual(args.count('--review2-checks'), 1)
++        self.assertEqual(args[-2:], ['--inputs', 'input package'])
++
++    def test_f3_conflicting_key_only_scores_refused(self):
++        self.fixture.kit([dict(key='devrows:q', scores={'answer': x}) for x in (0.25, 0.75)])
++        with self.assertRaisesRegex(ingest.Refusal, 'Conflicting kit report scores'):
++            ingest.KitAdapter(self.store).prepare()
++
++    def test_f3_conflicting_exact_scores_refused(self):
++        self.fixture.kit([dict(id='q', scores={'answer': x}) for x in (0.25, 0.75)])
++        with self.assertRaisesRegex(ingest.Refusal, 'Conflicting kit report scores'):
++            ingest.KitAdapter(self.store).prepare()
++
++    def test_f3_identical_scores_and_exact_precedence_accepted(self):
++        self.fixture.kit([dict(id='q', scores={'answer': 0.75})] * 2 +
++                         [dict(key='devrows:q', scores={'answer': x}) for x in (0.1, 0.2)])
++        ingest.KitAdapter(self.store).prepare()
++        self.assertEqual(self.fixture.normalized('B2048')['arm']['scores'], {'answer': 0.75})
++
++    def test_f3_conflict_cannot_be_archived_partial(self):
++        self.fixture.kit([dict(id='q', scores={'answer': x}) for x in (0.25, 0.75)])
++        root, source = self.fixture.source()
++        code, err = self.fixture.cli(root, source, 'strict', '--review2-checks', '--archive-partial')
++        self.assertEqual(code, 2, err)
++        self.assertIn('Conflicting kit report scores', err)
++
++    def unlabeled_report(self, conflict=False):
++        self.fixture.native()
++        if conflict:
++            self.store.record('native/paired/results/items.jsonl',
++                              dict(key='devrows:q', arm='scripted', scores={'answer': 1.0}))
++        def change(row):
++            row.pop('arm')
++            if conflict:
++                row['scores']['answer'] = 0.0
++            return row
++        self.update_rows('native/R1.json', change)
++
++    def test_f4_unlabeled_report_contradiction_refused(self):
++        self.unlabeled_report(conflict=True)
++        with self.assertRaisesRegex(ingest.Refusal, 'Contradictory native journal/report row'):
++            ingest.NativeAdapter(self.store).prepare()
++
++    def test_f4_unlabeled_report_only_arm_is_preserved(self):
++        self.unlabeled_report()
++        root, source = self.fixture.source()
++        code, err = self.fixture.cli(root, source, 'strict', '--review2-checks')
++        self.assertEqual(code, 0, err)
++        with gzip.open(os.path.join(root, 'strict/reads/review2.jsonl.gz'), 'rt') as f:
++            row = json.loads(next(f))
++        self.assertEqual(set(row['arms']), {'scripted', 'unflagged'})
++        self.assertNotIn('arm', row['raw']['arms']['scripted'])
++        self.assertTrue(all('arm' not in r for r in row['raw']['records']['native/R1.json']))
++
++    def test_f4_unlabeled_contradiction_cannot_be_archived_partial(self):
++        self.unlabeled_report(conflict=True)
++        root, source = self.fixture.source()
++        code, err = self.fixture.cli(root, source, 'strict', '--review2-checks', '--archive-partial')
++        self.assertEqual(code, 2, err)
++        self.assertIn('Contradictory native journal/report row', err)
++
++    def test_f5_row_task_room_conflict_refused(self):
++        self.fixture.native()
++        self.store.record('inputs/tasks.jsonl', dict(id='q', question='Q', room='r1'))
++        for path in ('native/paired/results/items.jsonl', 'native/R1.json'):
++            self.update_rows(path, lambda row: dict(row, room='r2'))
++        with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict.*room'):
++            ingest.NativeAdapter(self.store).prepare()
++
++    def test_f5_each_shared_identity_field_checked(self):
++        fields = dict(question='Q', options=['A'], room='r1', room_key='rk', scene='s', video='v',
++                      question_type='t', stratum='primary', ground_truth='A', scorer='exact',
++                      units='m', unit='m', released_answer='A', released_answer_in_options=True)
++        for field, value in fields.items():
++            with self.subTest(field=field):
++                fixture = fixtures.Review2Tests()
++                fixture.setUp()
++                self.addCleanup(fixture.doCleanups)
++                fixture.native()
++                fixture.store.record('inputs/tasks.jsonl', dict(id='q', **fields))
++                for seq, data in list(fixture.store.db.execute(
++                        "SELECT seq,data FROM records WHERE path IN ('native/paired/results/items.jsonl', 'native/R1.json')")):
++                    row = dict(json.loads(data), **{field: ['different'] if isinstance(value, list) else 'different'})
++                    fixture.store.db.execute('UPDATE records SET data=? WHERE seq=?', (ingest.dumps(row), seq))
++                with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict'):
++                    ingest.NativeAdapter(fixture.store).prepare()
++
++    def test_f5_additive_candidate_field_is_also_checked(self):
++        self.fixture.native()
++        self.store.record('inputs/a.jsonl', dict(id='q', question='Q'))
++        self.store.record('inputs/b.jsonl', dict(id='q', question='Q', room='r1'))
++        for path in ('native/paired/results/items.jsonl', 'native/R1.json'):
++            self.update_rows(path, lambda row: dict(row, room='r2'))
++        with self.assertRaisesRegex(ingest.Refusal, 'Native row/task identity conflict.*room'):
++            ingest.NativeAdapter(self.store).prepare()
++
++    def test_f5_matching_fields_and_prediction_are_accepted(self):
++        self.fixture.native()
++        task = dict(id='q', question='Q', room='r1', answer='truth')
++        self.store.record('inputs/a.jsonl', task)
++        for path in ('native/paired/results/items.jsonl', 'native/R1.json'):
++            self.update_rows(path, lambda row: dict(row, room='r1', answer='prediction'))
++        adapter = ingest.NativeAdapter(self.store)
++        adapter.prepare()
++        self.assertEqual(adapter.issues, [])
++        self.assertEqual(self.fixture.normalized('unflagged')['truth']['scored'], 'truth')
++
++    def test_f6_missing_input_task_refused(self):
++        self.fixture.native()
++        self.store.record('inputs/tasks.jsonl', dict(id='other', question='Q', answer='A'))
++        with self.assertRaisesRegex(ingest.Refusal, 'Missing native task'):
++            ingest.NativeAdapter(self.store).prepare()
++
++    def test_f6_empty_explicit_inputs_cannot_archive_null_task(self):
++        self.fixture.native()
++        root, source = self.fixture.source()
++        inputs = os.path.join(root, 'empty_inputs')
++        os.makedirs(inputs)
++        code, err = self.fixture.cli(root, source, 'strict', '--review2-checks', '--archive-partial',
++                                    '--inputs', inputs)
++        self.assertEqual(code, 2, err)
++        self.assertIn('Missing native task', err)
++
++    def test_f6_no_inputs_still_allows_null_task(self):
++        self.fixture.native()
++        adapter = ingest.NativeAdapter(self.store)
++        adapter.prepare()
++        self.assertEqual(adapter.issues, [])
++        self.assertIsNone(self.fixture.normalized('scripted')['input'])

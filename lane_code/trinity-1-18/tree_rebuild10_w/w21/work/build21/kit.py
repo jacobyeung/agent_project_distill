@@ -149,6 +149,10 @@ shell=shell[:shell.index('tk_persist_small()')]
 from naming21 import neutral_shell
 shell=neutral_shell(shell)
 shell=shell.replace('"$HX/b/s.py"', '"$Q_KIT/b/s.py" "$Q_KIT"')
+# A private /tmp lets bwrap create the namespace destination. Restore the
+# job root before later binds so its staging paths and overlays stay visible.
+shell=shell.replace('BW+=(--dev-bind /dev /dev --proc /proc',
+    'BW+=(--tmpfs /tmp --bind "$Q_ROOT" "$Q_ROOT" --dev-bind /dev /dev --proc /proc')
 shell+='''
 tk_stage full
 tk_env

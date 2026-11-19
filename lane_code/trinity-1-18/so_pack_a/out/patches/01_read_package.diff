@@ -1,23 +1,42 @@
 --- /dev/null
++++ b/check_required_inputs.py
+@@ -0,0 +1,16 @@
++"""Refuse missing local build/harness inputs by name. Never stages data."""
++import argparse, json, sys
++from pathlib import Path
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++import pack as P
++
++def check(manifest,group):
++    items=[x for x in manifest['inputs'] if x['group']==group]
++    P.need(items,'Unknown required-input group: '+group)
++    P.need(all(x.get('location')=='local' for x in items),'Use the read-only remote preflight and native CPU stage for Orchard inputs')
++    return P.required_inputs(dict(required_inputs=items))
++
++if __name__=='__main__':
++    p=argparse.ArgumentParser();p.add_argument('--manifest',required=True);p.add_argument('--group',required=True);a=p.parse_args()
++    try:print(json.dumps(check(P.read(a.manifest),a.group),sort_keys=True))
++    except (P.Rejected,OSError,KeyError) as e:print('REJECTED: '+str(e),file=sys.stderr);sys.exit(1)
+--- /dev/null
 +++ b/out/CHECK_INVENTORY.md
 @@ -0,0 +1,53 @@
 +# CPU and release check inventory
 +
-+The wrapper runs the implemented per-delivery gates below before it prints an executable release plan. The source harness and production-data gaps are listed explicitly; this delivery is not a complete production release certification. A missing local input fails this gate; it never moves that check to after placement. Local mirrors authenticate the same archive bytes and preserve the remote names through a path adapter. Fixture results establish the checker, not the availability of a production export.
++The wrapper runs the implemented per-delivery gates below before it prints an executable release plan. The source harness and production-data gaps are listed explicitly; this delivery is not a complete production release certification. A missing local input fails this gate; it never moves that check to after placement. Mirror mode authenticates the same archive bytes; explicit structural mode substitutes tiny pinned stand-ins and defers live identity to native fill and job.stage. Fixture results establish the checker, not the availability of a production export.
 +
 +| Native source and check | Trinity, same bytes and inputs | Orchard dependency |
 +|---|---|---|
 +| `o_cpu_A3/A4/B4/B5.sh`, `o_cpu_D.sh`: fill status, no previous CPU receipt, `3.py check` | Run exact `3.py` under real `/usr/bin/python3` 3.6.8 with authenticated path mirrors; verify filled inputs | Actual package permissions, absence of prior job, part sizes and token directory must be rechecked on Orchard |
 +| `3.py`, payload `8.py`, common/job: public/payload/plan/member hashes, registered dependency pins, export binding, input schema/types, time/GPU contract and opaque sbatch arguments | Yes; exact helpers plus independent archive checks | Actual `sbatch` submission |
 +| `a/5.py` before staging: payload and member hashes, sequence bytes | Yes | Slurm job ID, node-local `/tmp` space and storage proof |
-+| `job.stage`: authenticated archive parts, safe tar members, destination resolution, payload pins, all input file pins/sizes, env receipt, vnice/terminator pins and policy receipt | Yes when all bytes are mirrored locally; missing mirrors block release | Real staging/extraction into the allocated namespace, filesystem capacity and namespace support |
++| `job.stage`: authenticated archive parts, safe tar members, destination resolution, payload pins, all input file pins/sizes, env receipt, vnice/terminator pins and policy receipt | Mirror mode requires every byte locally; structural mode exercises required member paths and preserved slots with stand-ins | Real staging/extraction into the allocated namespace, filesystem capacity and namespace support |
 +| `a/5.py check_bundle_guard`: 3 bundle members, descriptor equality, operator equality, guarded 4 MiB pool write, operator unchanged | Yes; actual helper and process guard on local storage | Real return-pool access, quota and persistence |
 +| `a/5.py dispatch_operator`: guard installed before write test before bootstrap/operator dispatch; guard target bytes, argv rewrite and operator hash | Yes, actual helper with a recording terminal dispatcher | Actual namespaced operator process in the staged job environment |
 +| `a/6.py`: descriptors, item/type counts, settings, native preparation, worker arguments and selector rehearsal | Yes, exact payload and native CPU stub rehearsal; tensor threads capped at 8 | Real export restore, actual RGB files and installed job packages |
 +| `a/6.py memory_bound`: fixed shapes, capture counts, allocation fit and too-small allocation rejection | Yes | Real resident memory during full staged reader |
 +| `a/5.py validate_full_reader`: CPU read count, set/item/type, 32 frames, completion/EOS and score agreement | Exact validator and malformed synthetic receipt fixtures run locally; actual full-reader execution was not run | Producing the real FULL_READER receipt needs the export/RGBs/job venv, unavailable here; this could run on Trinity if identical inputs and environment were staged |
-+| `o_sub_A4/B5/D.sh`: CPU receipt hashes, bundle/entry event order, 4 MiB evidence hash, memory equality, FULL_READER equality and per-package identities | Pure receipt predicates and script sealing run locally; generated receipt tests exercise conditions | Successful actual CPU allocation/receipt, sacct terminal state, general queue empty, actual return pool <=75 MB, duplicate submit marker |
-+| `dry2.py`, `dry2b.py`: payload/member/bundle checks, export pins, prep members/hashes, binding, archive0, policy and environment resolution, settings/operator/types/items/memory, submit job name | Yes; covered by structure, fill, archive resolver, logic and guard gates | None beyond availability of authenticated mirrors |
++| `o_sub_A4/B5/D.sh`: CPU receipt hashes, bundle/entry event order, 4 MiB evidence hash, memory equality, FULL_READER equality and per-package identities | Receipt predicates, script sealing, native 8.py submit with stub sbatch, and the temporary pool walk run locally under 3.6.8 | Successful actual CPU allocation/receipt, sacct terminal state, general queue empty, actual return pool <=75 MB, duplicate submit marker |
++| `dry2.py`, `dry2b.py`: payload/member/bundle checks, export pins, prep members/hashes, binding, archive0, policy and environment resolution, settings/operator/types/items/memory, submit job name | Yes; covered by structure, fill, archive resolver, logic and guard gates | Mirror mode needs authenticated mirrors; structural mode proves the predicates on stand-ins |
 +| `dryres.py`, `dryres2.py`, `dryres_d.py`: ordered parts, tar headers, unique regular member resolution, sizes, policy authorization, preserved base slots and appended prep tar | Yes; resolver checks stronger full file hashes as well | No extra dependency |
 +| `check_release_d.py`: embedded assets equal source, 200/544 deliveries/pins, metadata, compile, walltime rejection, dry header fixture, wrong reused part rejection | Source/embedded equality is a required per-delivery gate. The complete unchanged checker runs separately with W redirected locally; raw input fails, coherent fixture passes | None |
 +| `run_release_gates.py`: release package, bundle guard, operator sequence, memory, return/stop, CPU helper and room pair/labels | Package helper assertions run separately. Referenced test_sequence, test_operator_memory, test_fixes, test_cpu_helper, test_room_pair and test_room_pair_labels harness files were not supplied at the referenced release paths; their complete assertions are unverified | Full staged reader subset as above |
@@ -30,7 +49,7 @@
 +
 +`pack.py check` invokes `logic`, `guard`, `trap`, `stop`, `login`, `fill` and `receipt` on the built package, then validates every generated phase script. The source release harnesses `check_release_d.py` and `run_release_gates.py` are not launched by that per-delivery command. The probes cover the listed package hash, bundle, sequence, memory, input-selection, return/stop and CPU-receipt predicates. The missing routed harness tests are not claimed equivalent to those probes. D embedded/source equality is additionally required before local checks and before consuming a check receipt. The standalone `test_native.py` executes the exact D checker with its workspace redirected under this task directory.
 +
-+The raw supplied D source tree fails `check_release_d.py` because `score_d.py` differs from the copy embedded in `o_build_D.sh`. The additive token adapter preserves that same failure. A separately labelled coherent snapshot of the authenticated embedded assets passes the unchanged checker before and after adding the adapter. Thus raw-source release consistency remains a production prerequisite, and the wrapper rejects this supplied source before remote release. The tests do not claim that a synthetic export is the same input as a production export; production preflight requires authenticated mirrors of all actual bytes and fails when they are unavailable.
++The raw supplied D source tree fails `check_release_d.py` because `score_d.py` differs from the copy embedded in `o_build_D.sh`. The additive token adapter preserves that same failure. A separately labelled coherent snapshot of the authenticated embedded assets passes the unchanged checker before and after adding the adapter. Thus raw-source release consistency remains a production prerequisite, and the wrapper rejects this supplied source before remote release. The tests do not claim that a synthetic export is the same input as a production export; structural preflight explicitly does not authenticate production archive bytes. Native Orchard fill and job.stage must establish live identity.
 +
 +## Predicate detail and limits
 +
@@ -56,12 +75,12 @@
 +The unavailable routed harnesses prevent a claim that *every* original source-harness assertion has been reproduced. All listed dry predicates applicable to the supported full-five, room and D distance families now run on the built bytes. Real full-reader/export/RGB checks also remain unrun because their production inputs are absent.
 --- /dev/null
 +++ b/out/DEFECT_MATRIX.md
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,38 @@
 +# Review and defect regression map
 +
 +| Review finding | Regression | Outcome |
 +|---|---|---|
-+| 1 | test_01_surface_scope_and_argv | Visible surfaces only; planted name, argv and environment rejected. Optional trap normalization removes literal head. |
++| 1 | test_01_surface_scope_and_argv | Visible surfaces only; planted name, argv and environment rejected. System utility command words are exempt; arguments remain scanned. |
 +| 2 | test_02_all_checks_precede_transport; test_07b_native_source_drift_blocks_release | Implemented local gates and all phase scripts precede transport; raw D source drift blocks release. Native dry settings/order/counts and binding/policy-slot predicates have planted regressions in tests 16 and 17; missing harness inputs remain listed in the inventory. |
 +| 3 | test_03_timeout_short_calls_and_state_machine | Every call is bounded; CPU submit and polling use separate calls. |
 +| 4 | test_04_delivery_is_tested_tree; patch replay | Manifest binds the canonical tested sources and delivery bytes. |
@@ -77,6 +96,24 @@
 +| 15 | test_15_orchard_contract_inventory | Live queue, pool, token, state, private-mode and signal limits documented. |
 +
 +Recorded defect 4 is planted into the encoded batch descriptor and detected by structure/old-identity gates. Defect 5 removes the EXIT trap and fails the exact shell-trap probe. Defect 6 breaks USR1 forwarding and the native read-runner stop handler and fails both probes. The B4 failure cause remains unknown, and the trainer-rank USR1 incident is not repaired by a read-runner test.
++
++## Review round 1: finding -> fix -> test
++
++| Finding | Fix | Regression evidence |
++|---|---|---|
++| 1: fill can outlive its foreground call | Detach with setsid/nohup; exclusive launch lock; write a/1.txt last; poll a/f.log and status at 60-second intervals | test_r1_detached_slow_fill |
++| 2: local archives exceed practical defaults | Explicit structural fill uses tiny pinned stand-ins; live identity remains a native Orchard gate | test_r2_structural_without_archive_mirrors, including a planted dropped environment slot |
++| 3: D had no complete check | Run every probe on the actual pack-built D delivery and plan its D scripts at 04:00:00 | test_native.py and test_r3_actual_D_integration |
++| 4: absent staged inputs spend a token | Read-only size preflight runs before place and its attempt marker | test_r4_readonly_preflight_precedes_place |
++| 5: system head rejected | Exempt listed utilities only in command position; scan arguments and retain umask 077 | test_r5_system_command_only |
++| 6: operational and Python gaps | Document staging, fill timing and live hashes; execute guard, 8.py submit with stub sbatch, and the pool walk under 3.6.8 | test_r6_login_runtime_guard_submit_pool and test_r6_operational_inventory |
++| 7: isolated import differs | Import h1eval.h10.launch as a module with production path roots | test_r7_production_module_import uses a relative import |
++| 8: GPU refusal strands passed CPU work | gpu action rechecks completion and receipts; native a/8.txt and an exclusive pre-submit lock prevent duplicate submission | test_r8_gpu_only_retry |
++| 9: arbitrary heredoc bypass | Permit only Python stdin heredocs | test_r9_only_python_stdin_heredocs |
++| 10: native scorer drift | Keep the native source-consistency refusal; require a coherent generated release | test_native.py and test_07b_native_source_drift_blocks_release |
++| 11: login delivery and ledger gaps | Place the recorded BUILD delivery in the login probe; require an operator ledger reservation before place | test_r11_login_exact_delivery and test_r6_operational_inventory |
++
++No HIGH, MEDIUM or LOW finding is deferred. Missing production data and routed harness files are named in REQUIRED_INPUTS.json; check_required_inputs.py refuses absent local groups by name. A structural result does not certify production archive identity or a real full-reader run.
 --- /dev/null
 +++ b/out/FRAMEWORK_SOURCES.md
 @@ -0,0 +1,11 @@
@@ -90,59 +127,229 @@
 +
 +The native selector uses `no_grad` during selection. Its installed implementation documents disabling gradient calculation, its thread-local scope and decorator use at `torch/autograd/grad_mode.py:21`–37. Official documentation: https://docs.pytorch.org/docs/2.11/generated/torch.no_grad.html. These CPU stub checks establish packaging and selector plumbing; they do not measure GPU execution or production memory use.
 +
-+All relative torch paths above are under `/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/`. The parent reviewer read these exact installed lines and checked the versioned official documentation during this task; no package was downloaded or installed.
++All relative torch paths above are under `/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/`. These installed lines and the versioned official documentation were checked for this review fix; no package was downloaded or installed.
 --- /dev/null
 +++ b/out/NOTE_FOR_CONT_OPS.md
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,24 @@
 +# Step-600 packaging
 +
-+`pack.py` calls the existing r10 or D builder, checks the resulting bytes on Trinity, and prints exact throttled, timeout-bounded ossh commands. Every action defaults OFF; pass `--enable`. Nothing here is armed or submitted.
++1. Pin the native builder, source delivery, items, step-600 binding and CPU/GPU scripts. Supply a current Trinity ledger and a coherent D source/embedded release; the supplied scorer mismatch remains blocked. For r10, supply both original deliveries and A's base/filled inputs. `REQUIRED_INPUTS.json` names missing inputs. `check_required_inputs.py --manifest out/REQUIRED_INPUTS.json --group production_build` checks availability; use `r10` or `routed_harness` for those groups. Availability does not certify the missing suites.
++2. Set `fill_mode: "structural"` to check native fill/resolution with tiny pinned stand-ins. Production identity remains with native fill and `job.stage`. Default mirror mode requires actual bytes: the review's B5 inventory totals **33,410,549,760 bytes**, with about **155 GB of reads estimated by the review**. Its default read budget is 1 GiB; `check_timeout` defaults to 240 seconds per probe (the example explicitly sets 300). Large Trinity IO needs authorization; transfers above 30 GB need an admin plan.
++3. Run `pack.py build --enable --config CONFIG --token HEX`, then `pack.py check --enable --config CONFIG`, using the specified CPU Python with `-I -s -B`. Token adaptation requires `--enable-token`. BATCH must set `umask 077`; optional `normalize_wrapper: true` adds it and retains head-to-sed normalization. The scanner accepts system `head` without normalization. All switches default OFF. Guard, place, fill, entry check, `8.py submit` with stub sbatch, and pool predicates execute locally under `/usr/bin/python3` 3.6.8.
++4. Have the Orchard lane independently stage the actual parts `0..3`, `.done` receipt `5`, and preparation `7/8/9`; configure their exact sizes in `remote_input_pins`. Native `place_fill_d.py:66–108` documents `REUSE_PARTS_FROM`, `PREP_FROM`, and verified GCS pull. Its whole driver also places/fills: **do not combine it with pack place for the same token**. Pack does not fetch inputs. Its read-only size preflight runs before placement; when running printed commands manually, run `commands/preflight.sh` first.
++5. Reserve the built token and delivery SHA in the **Trinity ledger before place**; pack does not append it. `place`/`fill` require `--execute-remote` to execute. Fill detaches, polls at least 60 seconds apart, and writes `a/1.txt` last. Inspect `a/f.log` and `a/f.exit`; call timeout is at most 300 seconds and `fill_wait` defaults to 1800. Never relaunch after an uncertain timeout.
++6. `submit` requires `--yes --token HEX`; it waits for CPU completion before GPU gates. After a refusal before submission, use `gpu` with the same flags to recheck COMPLETED and CPU.json. Native `a/8.txt` and persistent `a/g.lock` prevent duplicate/uncertain submission. Reconcile an existing lock manually. No remote test ran here. Production archive/RGB/environment checks, missing harnesses, GPU behavior and trainer USR1 remain unverified; see ORCHARD_ONLY_CHECKS.md. D's native fixture estimates 19,595 seconds and reports `budget_fits=false` for four hours.
 +
-+1. Copy the required native build inputs into a new local workspace. Pin the builder, every input and CPU/GPU script by SHA256 in the configuration. Provide a current read-only Trinity token ledger. For r10, KROOT must contain the original authenticated A/B deliveries and old A filled/base input files; the supplied mirror does not contain those original delivery archives. For D, use the actual items, binding and timing inputs. Use `pack_token.py --kind d|r10 --source ... --enable-token --token {token} -- ...` as the configured builder. The adapter calls native builder code and changes only the token mint when explicitly enabled.
-+2. Supply step-600 export/preparation pins and local mirrors for every remote part, dependency archive, template group and bwrap file. Each mirror has `path`, `bytes` and `sha256`; remote names remain unchanged during the isolated dry fill. Set `max_read_bytes` to an explicitly authorized budget. The default is 1 GiB, so large inputs fail before unapproved reads. Obtain permission under the cluster IO rules before copying or checking large shared-storage inputs. Do not use fixture pins for a release.
-+3. Set `normalize_wrapper: true` explicitly for r10/D batch wrappers. The native trap invokes `head`, which conflicts with the adopted literal argv substring rule. This switch changes only that invocation to `sed -n '1p'`, adds `umask 077` after Slurm directives, and reseals the manifest. Default OFF preserves the native delivery bytes. Source comments, stdin bodies and nested archive contents are not name-list surfaces; job comments, argv, environment values, workdirs and created paths are.
-+4. Run `python -I -s -B pack.py build --enable --config CONFIG --token HEX`, then `check --enable --config CONFIG`. The check runs real login Python 3.6.8 place/fill/3.py paths, imports under isolation, nonzero frame-row checks, native planning/guard/receipt predicates, archive resolution, EXIT capture and USR1 tests. It also seals and checks all remote phase scripts before placement. A missing mirror, stale source hash, D embedded/source mismatch or changed package fails closed.
-+5. `place` and `fill` print commands; `submit` additionally requires `--yes --token HEX`. `all --enable --config CONFIG --yes --token HEX` builds, checks and plans everything first. Add `--execute-remote` only in an authorized operational session. CPU submit returns promptly; Trinity polls at least 60 seconds apart. Every remote call has a maximum 300-second timeout and its stdin is throttled to 8,000,000 bytes/s. Three consecutive accounting errors stop polling; a transport failure stops immediately. Attempt markers forbid automatic retries after remote side effects.
++## Review round 1: finding -> fix -> test
 +
-+The example schema is `config_step600.example.json`; placeholders deliberately fail until replaced with reviewed paths and hashes. Local logs and BUILD/CHECK JSON files bind the delivery, exact tested file tree, configuration and checker source. Preserve them with the patch/source manifest. Refresh the ledger before each new build; Orchard also rejects an existing token directory atomically.
-+
-+The absent routed release-harness tests and production full-reader inputs remain unverified; complete those checks before treating a release as ready. This tool does not establish real GPU behavior, production memory, scheduler signal delivery, trainer-rank USR1 handling, queue priority or step-600 export availability. B4's unknown early-failure cause remains unknown; the trap makes a repeat readable. Native D reports a 19,595-second read budget and `budget_fits=false` for its four-hour fixture; the tool preserves that native result. The supplied D tree also contains a pre-existing scorer/embedded-script mismatch: run the native source generator in a reviewed workspace to create a coherent release before relying on `check_release_d.py`. Patch 02 adds files and does not alter that scorer or any native builder.
++| Finding | Fix | Test |
++|---|---|---|
++| 1 | Detached fill and polling | test_r1_detached_slow_fill |
++| 2 | Structural stand-ins | test_r2_structural_without_archive_mirrors |
++| 3 | Actual D build, seven probes and D scripts | test_native.py; test_r3_actual_D_integration |
++| 4 | Size preflight before placement | test_r4_readonly_preflight_precedes_place |
++| 5 | Command-only utility exemption | test_r5_system_command_only |
++| 6 | Staging/hash documentation and 3.6 execution | test_r6_login_runtime_guard_submit_pool; test_r6_operational_inventory |
++| 7 | Production module import | test_r7_production_module_import |
++| 8 | GPU-only guarded retry | test_r8_gpu_only_retry |
++| 9 | Python-stdin heredocs only | test_r9_only_python_stdin_heredocs |
++| 10 | Keep native source-drift refusal | test_native.py |
++| 11 | Exact delivery and ledger prerequisite | test_r11_login_exact_delivery; test_r6_operational_inventory |
 --- /dev/null
 +++ b/out/ORCHARD_ONLY_CHECKS.md
-@@ -0,0 +1,18 @@
-+# Checks that still require Orchard
+@@ -0,0 +1,39 @@
++# Checks requiring Orchard or missing production inputs
 +
-+The implemented local gates, including complete script planning and receipt predicates, must pass before place or fill can execute. Production readiness remains incomplete for the missing source harnesses and production inputs listed in CHECK_INVENTORY.md. A missing authenticated local mirror fails preflight. The wrapper does not substitute a CPU fixture for missing production bytes.
++The local structural check tests packaging logic without authenticating large production archives. CHECK.json records `production_archive_identity: false`. Default mirror mode still requires every pinned local archive. Both modes leave the delivery intact and require all phase scripts to validate before transport.
 +
-+| Check | Why Orchard is required | Failure evidence |
++| Live check | Why it remains live | Failure evidence |
 +|---|---|---|
-+| Fresh token directory and real package modes | The Trinity ledger cannot establish Orchard storage state; atomic mkdir rejects a spent token | Bounded place call captures stderr and its exit code; no automatic retry |
-+| Allocated node ID, node-local free space, filesystem/namespace and bwrap support | These depend on the allocated node and its mount policy | CPU stdout/stderr in a/4.log and a/4.err; local per-call logs retain the job ID |
-+| Real node staging and namespace admission | These use allocated-node mounts and policy | Native CPU checks run before GPU submission; CPU.json is required |
-+| Real pool write, quota and persistence | The local 4 MiB write test proves guard behavior, not community pool access | Native guard/entry receipt and pool errors; GPU BATCH capture |
-+| CPU scheduling and sacct accounting | Trinity cannot emulate scheduler state or actual CPU completion | Submit and polling use separate timeout-bounded calls; logs preserve stdout/stderr. Only sacct exit 75 is retried, at most three consecutive errors, at least 60 seconds apart. Transport timeout/drop stops immediately |
-+| General queue availability, duplicate GPU submission, real return-pool contents | These are live shared state | Native sealed GPU script checks them and fails before submission |
-+| Slurm delivery of --signal=B:USR1@1800 to the batch shell | Local signals exercise the real wrapper and read runner, but not Slurm signal routing or scheduler teardown | BATCH EXIT trap preserves node line, exit status and last 60 log lines in a/x<job> |
-+| Real GPU execution and production trainer-rank stop cooperation | No GPU or training task is run here; the read runner fixture does not prove trainer ranks honor a stop file | Native CPU receipts precede GPU work; returned journals and BATCH capture expose partial/failing runs |
++| Stage export parts, `.done`, preparation and dependency archives | The packaging command does not fetch them. The native place_fill_d.py uses REUSE_PARTS_FROM / PREP_FROM or a GCS pull; its whole driver owns placement too and must not share a token with pack place | Read-only remote size preflight refuses a missing or wrong-sized input before place; remote_input_pins must name every fill input |
++| Fresh token and private modes | The Trinity ledger cannot prove Orchard directory state | Reserve the token in the Trinity ledger before place; atomic package mkdir rejects a used token |
++| Fill duration and real export identity | Native a/4.py streams and hashes all export bytes; production duration is unmeasured here | Detached fill, a/f.log, a/f.exit, and final a/1.txt; short calls at least 60 seconds apart, 300-second call timeout, explicit 1800-second default fill_wait. Expiration stops without relaunch |
++| Live dependency-archive hashes | Login 3.py check compares sizes only. Matching stand-ins or mirrors do not prove Orchard copies match | Native job.stage checks part, archive and member hashes in the CPU job before GPU submission; inspect a/4.log, a/4.err and CPU.json |
++| Allocated node storage, namespace and bwrap support | Mount policy, free disk and real node environment depend on the allocation | Native CPU failure and readable stdout/stderr; no GPU submission without completion and CPU.json |
++| Real full-reader/export/RGB/environment checks | Identical production bytes and job environment are absent here; these could run on Trinity if supplied and authorized | Native FULL_READER and MEMORY receipts plus journal; synthetic receipt tests prove predicates only |
++| Real return-pool access and persistence | A local temporary pool cannot prove shared storage permissions or quota | Native guarded write and pool refusal before the GPU lock |
++| CPU scheduling, sacct and general queue | These are live scheduler state | Short CPU submission/poll/GPU calls. Only explicit sacct-unavailable status 75 is tolerated, at most three consecutive errors; transport errors stop |
++| GPU submission and retry ambiguity | Another lane may occupy general; transport can fail after sbatch accepts | gpu action rechecks COMPLETED and CPU.json without resubmitting CPU. Native a/8.txt plus a/g.lock block duplicate or uncertain submission |
++| Slurm USR1 delivery and production ranks | Local shell and read-runner signals do not prove --signal=B:USR1@1800 delivery, teardown or trainer-rank cooperation | BATCH EXIT capture stores node, exit status and last 60 lines in a/x<job>; returned journals show partial work |
++| Real GPU compute and memory | Tests use CPU only | Production CPU/GPU receipts and measured memory; no timing or GPU-memory claim from stand-ins |
 +
-+Python 3.6.8 is a Trinity check: the wrapper executes generated place code, the native fill helper and the native 3.py check under this node's real /usr/bin/python3 -I -s -B. Every generated Python body also compiles there. The production 3.12 job environment is unavailable here. Full-reader CPU execution, export restore and RGB validation could run on Trinity with the identical staged bytes and compatible environment. They are deferred for missing inputs, not intrinsically Orchard-only; synthetic receipts do not prove them.
++The following checks run on Trinity under the actual `/usr/bin/python3` **3.6.8**: generated place, native fill, `3.py check`, the native CPU guard/dispatch helper, `8.py submit` with a stub `sbatch`, and the native pool-walk heredoc over a temporary pool. The pool test includes a positive directory and an injected oversized stat result. Submit uses the delivered BATCH bytes and records a synthetic job receipt. None of these tests calls Slurm. The full CPU job's model environment remains untested.
 +
-+Every remote command includes timeout (maximum 300 seconds). CPU submission ends immediately; Trinity polls in short calls. The final GPU call checks COMPLETED and a nonempty CPU.json again after a 60-second interval, then runs all native receipt/queue/pool checks. No ssh session is held for the CPU wait. Local per-call JSON logs retain return code, stdout and stderr. A remote shell EXIT trap prints the phase exit code and source line; the GPU batch trap preserves the underlying failure text even before a result archive exists. The unexplained three-second B4 failure has no claimed root-cause repair.
++All calls retain stdout, stderr and exit status locally. The remote phase EXIT trap exposes the failing line; BATCH's EXIT trap preserves failure text even before a result archive exists. The B4 three-second cause and trainer-rank USR1 defect have no claimed repair.
++
++## Review round 1: finding -> fix -> test
++
++| Finding | Fix | Regression evidence |
++|---|---|---|
++| 1: fill can outlive its foreground call | Detach with setsid/nohup; exclusive launch lock; write a/1.txt last; poll a/f.log and status at 60-second intervals | test_r1_detached_slow_fill |
++| 2: local archives exceed practical defaults | Explicit structural fill uses tiny pinned stand-ins; live identity remains a native Orchard gate | test_r2_structural_without_archive_mirrors, including a planted dropped environment slot |
++| 3: D had no complete check | Run every probe on the actual pack-built D delivery and plan its D scripts at 04:00:00 | test_native.py and test_r3_actual_D_integration |
++| 4: absent staged inputs spend a token | Read-only size preflight runs before place and its attempt marker | test_r4_readonly_preflight_precedes_place |
++| 5: system head rejected | Exempt listed utilities only in command position; scan arguments and retain umask 077 | test_r5_system_command_only |
++| 6: operational and Python gaps | Document staging, fill timing and live hashes; execute guard, 8.py submit with stub sbatch, and the pool walk under 3.6.8 | test_r6_login_runtime_guard_submit_pool and test_r6_operational_inventory |
++| 7: isolated import differs | Import h1eval.h10.launch as a module with production path roots | test_r7_production_module_import uses a relative import |
++| 8: GPU refusal strands passed CPU work | gpu action rechecks completion and receipts; native a/8.txt and an exclusive pre-submit lock prevent duplicate submission | test_r8_gpu_only_retry |
++| 9: arbitrary heredoc bypass | Permit only Python stdin heredocs | test_r9_only_python_stdin_heredocs |
++| 10: native scorer drift | Keep the native source-consistency refusal; require a coherent generated release | test_native.py and test_07b_native_source_drift_blocks_release |
++| 11: login delivery and ledger gaps | Place the recorded BUILD delivery in the login probe; require an operator ledger reservation before place | test_r11_login_exact_delivery and test_r6_operational_inventory |
++
++No HIGH, MEDIUM or LOW finding is deferred. Missing production data and routed harness files are named in REQUIRED_INPUTS.json; check_required_inputs.py refuses absent local groups by name. A structural result does not certify production archive identity or a real full-reader run.
 --- /dev/null
 +++ b/out/PATCHES.md
 @@ -0,0 +1,9 @@
-+# Patch layout and canonical source
++# Patch layout and verification
 +
-+Apply both patches with `patch -p1` at the root corresponding to the read-only input mirror `/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30`, using a writable copy. Patch 01 adds the wrapper, probes, fixtures, regression runners and documentation. Patch 02 adds `pack_token.py` and its regression test beside each native r10/D builder. Neither patch edits a native source file or an embedded Orchard script.
++Apply `patch -p1` for both patches at a writable root corresponding to the supplied input mirror. Patch 01 adds the packaging command, structural probe generator, regression tests, input refusal tool and handoff documents. Patch 02 adds only pack_token.py and test_pack_token.py beside the native r10 and D builders. Neither patch edits native source or embedded scripts.
 +
-+The top-level files in this delivery are canonical. The adapter copies in patch 02 have exactly the same bytes as the top-level adapter. `TOOL_SHA256.json` and `PATCH_VERIFIED.json` bind the delivered source set to a fresh patch application and the final test logs. Do not combine files from another package or revision.
++The top-level delivered files are canonical. TOOL_SHA256.json records their hashes. PATCH_VERIFIED.json records a fresh patch application, exact reconstructed-file equality, adapter-copy equality, source-input hashes and test log hashes. REPORT.md contains exact commands and outputs. Test output directories must be fresh; tests do not delete prior evidence.
 +
-+Run the tool tests under the specified CPU Python with `-I -s -B`. Run each additive adapter test under real `/usr/bin/python3 -I -s -B` from its applied native directory. `test_native.py --work FRESH_LOCAL_DIRECTORY` runs actual D builds, default-OFF byte equality and the unchanged native checker. The raw supplied D tree's pre-existing scorer mismatch is recorded explicitly; only the documented coherent embedded-assets fixture passes that checker. The adapter does not change this source mismatch.
++Run test_native.py first, then pass its RESULT.json as PACK_NATIVE_RESULT to test_review.py. Run test_pack.py under the specified CPU Python and both additive adapter tests under /usr/bin/python3 3.6.8. Set CUDA_VISIBLE_DEVICES empty, OMP_NUM_THREADS=8, MKL_NUM_THREADS=8, OPENBLAS_NUM_THREADS=8, TOKENIZERS_PARALLELISM=false and PYTHONDONTWRITEBYTECODE=1; prefix commands with nice -n 10. The logged commands in REPORT.md include those settings.
 +
-+Production behavior requires `pack.py --enable`. Explicit tokens require the adapter's `--enable-token`. Wrapper normalization requires configuration `normalize_wrapper: true`. Their defaults preserve native code and archive bytes. The patches do not enable any running lane, arm an automatic submitter, change scheduler state or repair trainer signal handling.
++Production actions require --enable. Token override requires --enable-token; wrapper normalization requires normalize_wrapper=true; structural fill requires fill_mode=structural. All default OFF or retain the original mirror path. Native D default-OFF delivery equality is measured. r10 default source equality is measured; its full build refuses missing original inputs. The raw D scorer mismatch remains a release blocker.
+--- /dev/null
++++ b/out/REQUIRED_INPUTS.json
+@@ -0,0 +1,135 @@
++{
++  "inputs": [
++    {
++      "group": "production_build",
++      "location": "local",
++      "name": "reviewed source delivery",
++      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/1.tgz",
++      "reason": "Actual reviewed step-600 source delivery and its SHA"
++    },
++    {
++      "group": "production_build",
++      "location": "local",
++      "name": "step-600 binding",
++      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/binding600.json",
++      "reason": "Object, four part pins, whole SHA, step, preparation pins"
++    },
++    {
++      "group": "production_build",
++      "location": "local",
++      "name": "coherent D embedded release",
++      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/o_build_D.sh",
++      "reason": "Regenerate the native embedded assets to match the current scorer"
++    },
++    {
++      "group": "r10",
++      "location": "local",
++      "name": "r10 original a15_cot_ap1f6dfa8874e49e1e",
++      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/r10/a15_cot_ap1f6dfa8874e49e1e/1.tgz",
++      "reason": "Native r10 verifies this exact delivery",
++      "sha256": "ca977dd2bc6feb1c14c7c03023eefe7b5e2b67b1cabe838d34effbafd003c765"
++    },
++    {
++      "group": "r10",
++      "location": "local",
++      "name": "r10 original a15_cot_ap5e8d1fa8216c469d",
++      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/r10/a15_cot_ap5e8d1fa8216c469d/1.tgz",
++      "reason": "Native r10 verifies this exact delivery",
++      "sha256": "be1f4dec0a2607e0590f0392ef1f7b6c44e3f60c34a06ad6b6a3f3cd551ea3ad"
++    },
++    {
++      "group": "routed_harness",
++      "location": "local",
++      "name": "routed test_sequence.py",
++      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_sequence.py",
++      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
++    },
++    {
++      "group": "routed_harness",
++      "location": "local",
++      "name": "routed test_operator_memory.py",
++      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_operator_memory.py",
++      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
++    },
++    {
++      "group": "routed_harness",
++      "location": "local",
++      "name": "routed test_fixes.py",
++      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_fixes.py",
++      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
++    },
++    {
++      "group": "routed_harness",
++      "location": "local",
++      "name": "routed test_cpu_helper.py",
++      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_cpu_helper.py",
++      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
++    },
++    {
++      "group": "routed_harness",
++      "location": "local",
++      "name": "routed test_room_pair.py",
++      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_room_pair.py",
++      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
++    },
++    {
++      "group": "routed_harness",
++      "location": "local",
++      "name": "routed test_room_pair_labels.py",
++      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/release/b2/work/test_room_pair_labels.py",
++      "reason": "Referenced by run_release_gates.py; full harness assertions cannot run without this file"
++    },
++    {
++      "config_key": "fill.parts",
++      "group": "orchard",
++      "location": "orchard",
++      "name": "step-600 export parts",
++      "reason": "Four actual production export parts and exact sizes"
++    },
++    {
++      "config_key": "fill.done",
++      "group": "orchard",
++      "location": "orchard",
++      "name": "whole-tar completion receipt",
++      "reason": "Upstream .done object/byte/SHA receipt"
++    },
++    {
++      "config_key": "fill.config, fill.receipt, fill.data_receipt",
++      "group": "orchard",
++      "location": "orchard",
++      "name": "preparation config/receipt/data receipt",
++      "reason": "Actual preparation files pinned by the sealed binding"
++    },
++    {
++      "config_key": "package a/0.json and ORCHARD_ASSETS.json",
++      "group": "orchard",
++      "location": "orchard",
++      "name": "dependency archives, template and bwrap",
++      "reason": "Real parts checked by remote preflight and native job.stage"
++    },
++    {
++      "config_key": "package input plan",
++      "group": "orchard",
++      "location": "orchard",
++      "name": "production reader environment and RGB inputs",
++      "reason": "Required for a real full-reader run"
++    },
++    {
++      "group": "r10",
++      "location": "local",
++      "name": "r10 original A base inputs",
++      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/r10/a15_cot_apd72cdcff1e22a/a/0.json",
++      "reason": "Native r10 reads this file after building selected deliveries"
++    },
++    {
++      "group": "r10",
++      "location": "local",
++      "name": "r10 original A filled inputs",
++      "path": "/scratch/jjyeung/orch_n30/so_pack_a/in/required/r10/a15_cot_apd72cdcff1e22a/a/1.json",
++      "reason": "Native r10 reads this file after building selected deliveries"
++    }
++  ],
++  "local_check": "check_required_inputs.py --manifest out/REQUIRED_INPUTS.json --group production_build|r10|routed_harness",
++  "production_ready": false,
++  "remote_check": "pack place executes a read-only preflight before its placement marker; fill and job.stage verify live identity"
++}
 --- /dev/null
 +++ b/out/config_step600.example.json
-@@ -0,0 +1,95 @@
+@@ -0,0 +1,135 @@
 +{
 +  "builder": {
 +    "argv": [
@@ -190,6 +397,7 @@
 +    "report": "{work}/stage/BUILD.json",
 +    "sha256": "02eb8ca5e98402343fcadea608c4e43f4890322d6c7a117e7d95e9b662637559"
 +  },
++  "check_timeout": 300,
 +  "fill": {
 +    "config": "/project/community/jjyeung/okh7/eabcdef012345/7",
 +    "data_receipt": "/project/community/jjyeung/okh7/eabcdef012345/9",
@@ -205,16 +413,11 @@
 +    "receipt": "/project/community/jjyeung/okh7/eabcdef012345/8",
 +    "step": 600
 +  },
++  "fill_mode": "structural",
 +  "forbidden_extra": [],
 +  "ledger": "/REPLACE/CURRENT_TRINITY_LEDGER.jsonl",
 +  "max_read_bytes": 1073741824,
-+  "mirrors": {
-+    "/REPLACE/REMOTE/PART": {
-+      "bytes": 1,
-+      "path": "/REPLACE/LOCAL/PART",
-+      "sha256": "REPLACE_SHA256"
-+    }
-+  },
++  "mirrors": {},
 +  "normalize_wrapper": true,
 +  "old_identities": [
 +    "REPLACE_SOURCE_TOKEN",
@@ -228,6 +431,7 @@
 +      "sha256": "94442c644c25bd021bb8671a7b5dd8701e3716d8f848a0a6ea5c127bec856016"
 +    },
 +    "cpu_wait": 14400,
++    "fill_wait": 1800,
 +    "gpu": {
 +      "path": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_sub_D.sh",
 +      "sha256": "7a31956dd113bd298d1a8e5d99ae8f0079d58534b4ddea43ff8e206d4cb933d8"
@@ -236,11 +440,54 @@
 +    "timeout": 300,
 +    "walltime": "04:00:00"
 +  },
++  "remote_input_pins": {
++    "/project/community/jjyeung/okh7/eabcdef012345/0": {
++      "bytes": 0
++    },
++    "/project/community/jjyeung/okh7/eabcdef012345/1": {
++      "bytes": 0
++    },
++    "/project/community/jjyeung/okh7/eabcdef012345/2": {
++      "bytes": 0
++    },
++    "/project/community/jjyeung/okh7/eabcdef012345/3": {
++      "bytes": 0
++    },
++    "/project/community/jjyeung/okh7/eabcdef012345/5": {
++      "bytes": 0
++    },
++    "/project/community/jjyeung/okh7/eabcdef012345/7": {
++      "bytes": 0
++    },
++    "/project/community/jjyeung/okh7/eabcdef012345/8": {
++      "bytes": 0
++    },
++    "/project/community/jjyeung/okh7/eabcdef012345/9": {
++      "bytes": 0
++    }
++  },
++  "required_inputs": [
++    {
++      "name": "reviewed source delivery",
++      "path": "/REPLACE/1.tgz",
++      "sha256": "REPLACE_SOURCE_SHA256"
++    },
++    {
++      "name": "step-600 binding",
++      "path": "/REPLACE/binding600.json",
++      "sha256": "REPLACE_BINDING_SHA256"
++    },
++    {
++      "name": "D item manifest",
++      "path": "/REPLACE/items.json",
++      "sha256": "REPLACE_ITEMS_SHA256"
++    }
++  ],
 +  "work": "/scratch/jjyeung/orch_n30/so_pack_a/work/REPLACE_FRESH_RUN"
 +}
 --- /dev/null
 +++ b/pack.py
-@@ -0,0 +1,293 @@
+@@ -0,0 +1,357 @@
 +"""Opt-in read-package preflight and bounded Orchard planner. Python 3.6."""
 +import argparse, ast, base64, gzip, hashlib, io, json, os, re, resource, shlex, subprocess, sys, tarfile, time
 +from pathlib import Path, PurePosixPath
@@ -325,14 +572,28 @@
 +        if line.lstrip().startswith('#') and not line.lstrip().startswith('#SBATCH'):continue
 +        yield line
 +        m=re.search(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z_0-9]*)['\"]?",line)
-+        if m:until=m.group(1)
++        if m:
++            need(re.match(r'^\s*(?:exec\s+)?(?:/usr/bin/)?python3(?:\s+-[IsB])*\s+-(?:\s|$)',line), 'Only Python stdin heredocs are allowed')
++            until=m.group(1)
 +    need(until is None,'Unterminated heredoc')
 +def shell_privacy(text,extra=()):
 +    for line in shell_lines(text):
 +        line=line.replace('#SBATCH','')
 +        try:words=shlex.split(line,comments=True)
 +        except ValueError:words=[line]
-+        for word in words:opaque(word,extra)
++        # Parse shell punctuation so utility exemptions apply only at command position.
++        lex=shlex.shlex(line,posix=True,punctuation_chars=';&|()');lex.whitespace_split=True;lex.commenters='#'
++        try:tokens=list(lex)
++        except ValueError:tokens=words
++        start=True
++        utilities=set('head tail sed awk cat wc df hostname nvidia-smi sacct squeue sbatch python3 bash env timeout'.split())
++        for word in tokens:
++            if word in (';', '&&', '||', '|', '&', '(', ')'):start=True;continue
++            if start and word in ('if','then','else','do','!','{','}'):continue
++            assignment=bool(re.match(r'^[A-Za-z_][A-Za-z_0-9]*=',word))
++            system=word in utilities or (str(Path(word).parent) in ('/bin','/usr/bin') and Path(word).name in utilities)
++            if not (start and system):opaque(word,extra)
++            if not assignment:start=False
 +        for name in re.findall(r'a15_cot_ap[0-9a-z]+',line):need(re.fullmatch(PREFIX+'[a-f][0-9a-f]{10,15}',name),'Invalid job name '+name)
 +def privacy(p,c):
 +    f,pay,v,plan=structure(p,c);extra=c.get('forbidden_extra',());shell_privacy(f['BATCH.sh'].decode(),extra)
@@ -357,16 +618,17 @@
 +    with Path(log).open('wb') as out:r=subprocess.run(['nice','-n','10']+list(argv),cwd=str(cwd),env=env or environment(Path(cwd)),stdout=out,stderr=subprocess.STDOUT,timeout=seconds)
 +    need(r.returncode==0,'Command failed (%s); see %s'%(r.returncode,log))
 +def fingerprint(f):return digest(canonical({n:digest(b) for n,b in f.items()}))
-+def source_fingerprint():return {n:file_digest(Path(__file__).parent/n) for n in ('pack.py','pack_checks.py')}
++def source_fingerprint():return {n:file_digest(Path(__file__).parent/n) for n in ('pack.py','pack_checks.py','pack_structural.py')}
 +def limits():
 +    resource.setrlimit(resource.RLIMIT_AS,(28*1024**3,28*1024**3))
 +    if hasattr(os,'sched_getaffinity'):os.sched_setaffinity(0,set(sorted(os.sched_getaffinity(0))[:8]))
 +def probe(mode,p,w,c):
 +    w=Path(w);w.mkdir(parents=True,exist_ok=False,mode=0o700);write(w/'0.json',c)
-+    py='/usr/bin/python3' if mode in ('login','fill') else c.get('python',PYTHON)
++    py='/usr/bin/python3' if mode in ('login','fill','guard') else c.get('python',PYTHON)
 +    run([py,'-I','-s','-B',str(Path(__file__).with_name('pack_checks.py')),mode,str(p),str(w),str(w/'0.json')],w,w/'0.log',seconds=c.get('check_timeout',240));return read(w/'1.json')
 +def source_preflight(c):
 +    """Apply the native D embedded-asset equality before any release operation."""
++    required_inputs(c)
 +    spec=c.get('builder')
 +    if not spec:return {'fixture_only':True}
 +    argv=spec['argv'];source=Path(argv[argv.index('--source')+1]) if '--source' in argv else Path(spec['path'])
@@ -392,11 +654,20 @@
 +    result=dict(passed=True,token=v['token'],tree=fingerprint(f),checker=source_fingerprint(),config=digest(canonical(c)),checks=r);write(w/'CHECK.json',result);return result
 +def ledger_check(c,tok):
 +    token(tok);p=Path(c['ledger']);need(p.is_file(),'Trinity token ledger missing');need(tok not in p.read_text(),'Token already appears in Trinity ledger');return file_digest(p)
++def required_inputs(c):
++    for pin in c.get('required_inputs',[]):
++        name=pin.get('name',pin.get('path','unnamed'));path=Path(pin['path'])
++        need(path.is_file(),'Required input missing: '+name+' ('+str(path)+')')
++        need(path.stat().st_size<=c.get('max_required_input_bytes',128*1024**2),'Required input exceeds local metadata budget: '+name)
++        if 'sha256' in pin:need(file_digest(path)==pin['sha256'],'Required input hash differs: '+name)
++    return {'passed':True,'inputs':len(c.get('required_inputs',[]))}
 +def state_root(c):
 +    p=Path(c['work']).resolve();p.mkdir(parents=True,exist_ok=True,mode=0o700);return p
 +def build(c,explicit):
++    required_inputs(c)
 +    tok=token(explicit);ledger=ledger_check(c,tok);w=state_root(c);need(not (w/'BUILD.json').exists(),'Build state exists');s=c['builder'];path=Path(s['path']);need(file_digest(path)==s['sha256'],'Builder hash differs')
-+    for pin in s.get('inputs',[]):need(file_digest(pin['path'])==pin['sha256'],'Builder input differs')
++    for pin in s.get('inputs',[]):
++        need(Path(pin['path']).is_file(),'Required builder input missing: '+pin['path']);need(file_digest(pin['path'])==pin['sha256'],'Builder input differs')
 +    cwd=w/'b';cwd.mkdir(mode=0o700);env=environment(cwd);env.update({k:str(v).replace('{work}',str(cwd)) for k,v in s.get('env',{}).items()});env.pop('SO_PACK_EXPLICIT_TOKEN',None);env.pop('SO_PACK_TOKEN',None)
 +    args=[str(x).replace('{work}',str(cwd)).replace('{token}',tok) for x in s['argv']]
 +    run([c.get('python',PYTHON),'-I','-s','-B',str(path)]+args,cwd,w/'build.log',env,c.get('build_timeout',300))
@@ -457,6 +728,8 @@
 +    else:
 +        for m in ('bundle_guard_passed','entry_sequence_passed','MEMORY.json','3.py submit','a/8.txt'):need(m in text,'Native GPU gate absent: '+m)
 +        if package and b'def validate_full_reader' in (Path(package)/'a/5.py').read_bytes():need('full_reader_passed' in text,'Native full reader gate absent')
++        need(text.count('JOB_REPLY=$(')==1,'Native submission boundary absent')
++        text=text.replace('JOB_REPLY=$(', 'mkdir "$P/a/g.lock"\nJOB_REPLY=$(',1)
 +    return text
 +def heredocs(text):
 +    out=[];end=None;lines=[];python=False
@@ -470,9 +743,38 @@
 +            m=re.search(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z_0-9]*)['\"]?",line)
 +            if m:end=m.group(1);python='python' in line
 +    return out
++def remote_inputs(c,b):
++    f,pay,_,_=structure(b['package']);base=json.loads(f['a/0.json'])
++    pins={}
++    def add(pin):
++        path=pin['path'];opaque(path,c.get('forbidden_extra',()))
++        need(type(pin.get('bytes')) is int and pin['bytes']>0,'Required input size missing: '+path)
++        need(path not in pins or pins[path]==pin['bytes'],'Conflicting input size: '+path);pins[path]=pin['bytes']
++    for archive in base['archives'][1:]:
++        for pin in archive['parts']:add(pin)
++    assets=json.loads(pay['orchard_h10/vendor/ORCHARD_ASSETS.json'])
++    for group in assets['groups']:
++        for path,size,sha in group:add(dict(path=path,bytes=size))
++    add(assets['bwrap_pin'])
++    for path in c['fill']['parts']+[c['fill'][k] for k in ('done','config','receipt','data_receipt')]:
++        pin=c.get('remote_input_pins',{}).get(path)
++        need(pin is not None,'Required remote input pin missing: '+path);add(dict(pin,path=path))
++    return pins
++
++def remote_preflight(c,b):
++    return python_block("from pathlib import Path\npins=%r\nfor name,size in pins.items():\n p=Path(name)\n if not p.is_file() or p.stat().st_size!=size:raise ValueError('Required staged input missing or size differs: '+name)\nprint('inputs ready')"%remote_inputs(c,b))
++
++def detached_fill(body,p):
++    # Exclusive launch directory survives transport loss and prevents duplicate hashing.
++    code="from pathlib import Path\np=Path(%r)\n(p/'a/f.lock').mkdir(mode=0o700)\n(p/'a/f.sh').write_text(%r)"%(p,body)
++    return HEADER+python_block(code)+'cd '+shlex.quote(p)+'\nsetsid nohup bash a/f.sh </dev/null >a/f.log 2>&1 &\n'
++
 +def plan(c,b):
 +    p=remote_path(b);opaque(p,c.get('forbidden_extra',()));check=shell_join(['/usr/bin/python3','-I','-s','-B','3.py','check','--gpus','1','--time',c['remote']['walltime']])
-+    scripts=dict(place=HEADER+python_block(place_code(b)),fill=HEADER+shell_join(fill_argv(c,p))+'\ncd '+shlex.quote(p)+'\n'+check+'\nprintf "0\\n" > a/1.txt\n',cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
++    fill_body=HEADER+'cd '+shlex.quote(p)+'\ntrap \'rc=$?; if [ "$rc" != 0 ]; then printf "%s\\n" "$rc" >a/f.exit; fi\' EXIT\n'+shell_join(fill_argv(c,p))+'\n'+check+'\nprintf "0\\n" > a/1.txt\n'
++    shell_privacy(fill_body,c.get('forbidden_extra',()))
++    scripts=dict(preflight=HEADER+remote_preflight(c,b),place=HEADER+python_block(place_code(b)),fill=detached_fill(fill_body,p),cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
++    scripts['fill_poll']=HEADER+'cd '+shlex.quote(p)+'\nif test -f a/1.txt; then test "$(cat a/1.txt)" = 0; printf "complete\\n"; elif test -f a/f.exit; then tail -c 8192 a/f.log >&2; exit 1; else printf "wait\\n"; tail -c 8192 a/f.log >&2; fi\n'
 +    job='P='+p+'\nJ=$(cat "$P/a/4.txt")\n[[ "$J" =~ ^[0-9]+$ ]]\n'
 +    scripts['poll']=HEADER+job+'if ! sacct -n -X -j "$J" -o State --parsable2; then printf "accounting unavailable for %s\\n" "$J" >&2; exit 75; fi\n'
 +    scripts['gpu']=HEADER+job+'S=$(sacct -n -X -j "$J" -o State --parsable2)\n[[ "${S%%|*}" = COMPLETED ]]\ntest -s "$P/a/c/CPU.json"\n'+adapted_script(c,'gpu',p,b['package'])
@@ -496,7 +798,7 @@
 +    b=checked(c)
 +    if 'cpu' in phases or 'gpu' in phases:need(yes and explicit==b['token'],'Submit requires --yes and exact token')
 +    def actual(k):
-+        if k!='poll':
++        if k not in ('poll','fill_poll','preflight','gpu'):
 +            marker=state_root(c)/(k+'.attempt');need(not marker.exists(),'Already attempted '+k);marker.write_text(str(time.time()))
 +        cmd=command(c,scripts[k]);print(cmd,flush=True)
 +        log=state_root(c)/('call_'+k+'_'+str(time.time_ns() if hasattr(time,'time_ns') else int(time.time()*1000000))+'.json')
@@ -506,6 +808,8 @@
 +        write(log,dict(phase=k,returncode=r.returncode,stdout=r.stdout.decode(errors='replace'),stderr=r.stderr.decode(errors='replace')));return r
 +    invoke=call or actual
 +    for phase in phases:
++        if phase=='place':
++            r=invoke('preflight');need(r.returncode==0,'Remote input preflight failed before placement: '+r.stderr.decode(errors='replace'))
 +        if phase=='gpu':
 +            errors=0;deadline=time.monotonic()+int(c['remote'].get('cpu_wait',14400))
 +            while True:
@@ -519,15 +823,22 @@
 +                        sleeper(60);break
 +                sleeper(60)
 +        r=invoke(phase);need(r.returncode==0,'Remote '+phase+' failed: '+r.stderr.decode(errors='replace'))
++        if phase=='fill':
++            deadline=time.monotonic()+int(c['remote'].get('fill_wait',1800))
++            while True:
++                sleeper(60);need(time.monotonic()<deadline,'Fill wait deadline exceeded; inspect a/f.log; do not relaunch')
++                r=invoke('fill_poll');need(r.returncode==0,'Fill poll failed; inspect a/f.log; do not relaunch: '+r.stderr.decode(errors='replace'))
++                state=r.stdout.decode().strip();need(state in ('wait','complete'),'Unexpected fill receipt')
++                if state=='complete':break
 +def main(argv=None):
-+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('build','check','place','fill','submit','all'));p.add_argument('--config',required=True);p.add_argument('--enable',action='store_true');p.add_argument('--token');p.add_argument('--yes',action='store_true');p.add_argument('--execute-remote',action='store_true');a=p.parse_args(argv);need(a.enable,'Default OFF: pass --enable')
++    p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('build','check','place','fill','gpu','submit','all'));p.add_argument('--config',required=True);p.add_argument('--enable',action='store_true');p.add_argument('--token');p.add_argument('--yes',action='store_true');p.add_argument('--execute-remote',action='store_true');a=p.parse_args(argv);need(a.enable,'Default OFF: pass --enable')
 +    os.umask(0o077);limits();c=read(a.config);w=state_root(c)
 +    if a.action in ('build','all'):print(json.dumps(build(c,a.token),sort_keys=True))
 +    if a.action in ('check','all'):
 +        b=built(c);r=local_check(c,b['package'],w/('c'+os.urandom(4).hex()));write(w/'CHECK.json',r);plan(c,b)
-+    if a.action in ('place','fill','submit','all'):
-+        b=checked(c);scripts=plan(c,b);phases={'place':['place'],'fill':['fill'],'submit':['cpu','gpu'],'all':['place','fill','cpu','gpu']}[a.action]
-+        if a.action in ('submit','all'):need(a.yes and a.token==b['token'],'Submit requires --yes and exact token')
++    if a.action in ('place','fill','gpu','submit','all'):
++        b=checked(c);scripts=plan(c,b);phases={'place':['place'],'fill':['fill'],'gpu':['gpu'],'submit':['cpu','gpu'],'all':['place','fill','cpu','gpu']}[a.action]
++        if a.action in ('gpu','submit','all'):need(a.yes and a.token==b['token'],'Submit requires --yes and exact token')
 +        for phase in phases:print(command(c,scripts[phase]))
 +        if a.execute_remote:execute(c,scripts,phases,a.yes,a.token)
 +    return 0
@@ -536,7 +847,7 @@
 +    except (Rejected,KeyError,OSError,subprocess.TimeoutExpired) as e:print('REJECTED: '+str(e),file=sys.stderr);sys.exit(1)
 --- /dev/null
 +++ b/pack_checks.py
-@@ -0,0 +1,371 @@
+@@ -0,0 +1,424 @@
 +"""Isolated probes; this file never starts a remote command."""
 +import ast, builtins, copy, io, json, math, os, runpy, signal, subprocess, sys, tarfile, time
 +from pathlib import Path
@@ -624,7 +935,7 @@
 +    entries|={n for n in pay if Path(n).name=='worker.py' and '/tests/' not in '/'+n and not n.startswith('tree/')}
 +    for i,n in enumerate(sorted(entries)):
 +        P.safe_name(n);P.need(n in pay,'Missing isolated entry '+n)
-+        code='import runpy,sys,torch;torch.set_num_threads(8);sys.path[:0]=sys.argv[2:];runpy.run_path(sys.argv[1],run_name="preflight_import")'
++        code='import runpy,sys,torch;torch.set_num_threads(8);sys.path[:0]=sys.argv[2:];'+('import h1eval.h10.launch' if n=='h1eval/h10/launch.py' else 'runpy.run_path(sys.argv[1],run_name="preflight_import")')
 +        P.run([c.get('python',P.PYTHON),'-I','-s','-B','-c',code,str(src/n),str(src/'b'),str(src/'tree'),str(src)],w,w/('i%d.log'%i))
 +    op=runpy.run_path(str(package/'a/6.py'));desc=op['descriptors'](str(src));memory=op['memory_bound']()
 +    P.need(memory['fits'] and not op['memory_bound'](allocation_bytes=1)['fits'],'Memory bound differs')
@@ -664,7 +975,7 @@
 +        elif collect and isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Attribute) and isinstance(n.value.func.value,ast.Name) and n.value.func.value.id=='env':env_nodes.append(n)
 +        elif collect:break
 +    P.need(env_nodes,'Native CPU environment assignments absent')
-+    ns=dict(J=J,root=root,os=os);exec(compile(ast.Module(body=env_nodes,type_ignores=[]),'<native environment>','exec'),ns)
++    ns=dict(J=J,root=root,os=os);exec(compile(ast.Module(body=env_nodes),'<native environment>','exec'),ns)
 +    virtual='/tmp/a123'+pub['token']
 +    for k,v in ns['env'].items():P.opaque(k+'='+str(v).replace(str(root),virtual),c.get('forbidden_extra',()))
 +    for arg in J.namespace(root):P.opaque(str(arg).replace(str(root),virtual),c.get('forbidden_extra',()))
@@ -680,7 +991,7 @@
 +        try:subprocess.run(args,**kw)
 +        except ValueError:pass
 +        else:raise P.Rejected('Native guard accepted a forbidden surface')
-+    return proof
++    proof['python']=sys.version;return proof
 +
 +def trap(package,w,c):
 +    text=(package/'BATCH.sh').read_text();P.need("<<'A' &\n" in text and '\nA\n' in text,'Missing background batch wrapper')
@@ -759,13 +1070,17 @@
 +    sources.update({n:b for n,b in pay.items() if n.startswith('orchard_h10/') and n.endswith('.py')});sources.update(P.bundle(f['BATCH.sh']))
 +    for n,b in sources.items():
 +        if n.endswith('.py'):compile(b,n,'exec')
-+    raw=w/'1.tgz';raw.write_bytes(P.tar_bytes(f));b=dict(token=pub['token'],delivery=str(raw),sha256=P.file_digest(raw))
++    state=Path(c['work'])/'BUILD.json'
++    if state.is_file():
++        b=P.built(c);P.need(P.untar(Path(b['delivery']).read_bytes())==f,'Login probe delivery differs')
++    else:
++        raw=w/'1.tgz';raw.write_bytes(P.tar_bytes(f));b=dict(token=pub['token'],delivery=str(raw),sha256=P.file_digest(raw))
 +    remote=P.remote_path(b);local=w/P.PREFIX if False else w/(P.PREFIX+pub['token'])
 +    with Mirrors({remote:str(local)}):exec(compile(P.place_code(b),'place','exec'),{})
 +    P.need(P.package_files(local)==f,'Generated place altered bytes')
 +    P.need(local.stat().st_mode&0o777==0o700 and (local/'a').stat().st_mode&0o777==0o700,'Place directory modes differ')
 +    P.need(all(x.stat().st_mode&0o777==0o600 for x in local.rglob('*') if x.is_file()),'Place file modes differ')
-+    return dict(python=sys.version,generated_place_executed=True,compiled_sources=len(sources))
++    return dict(python=sys.version,generated_place_executed=True,compiled_sources=len(sources),delivery_sha256=b['sha256'],recorded_delivery=state.is_file())
 +
 +def preserved(base,filled):
 +    P.need(len(filled['archives'])==len(base['archives'])+1,'Fill must append preparation archive')
@@ -839,6 +1154,18 @@
 +
 +def fill(package,w,c):
 +    P.need(sys.version_info[:3]==(3,6,8),'Require actual login Python 3.6.8')
++    if c.get('fill_mode','mirrors')=='structural':
++        import pack_structural as S
++        original_files,_,_,original_plan=P.structure(package)
++        binding=original_plan['export_binding']
++        P.need(all(c['fill'][k]==binding[k] for k in ('object','step','lineage')),'Configured fill identity differs from sealed binding')
++        constants={n.targets[0].id:ast.literal_eval(n.value) for n in ast.parse(original_files['a/4.py']).body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id.startswith('REVIEWED_')}
++        P.need(constants['REVIEWED_OBJECT']==binding['object'],'Sealed helper object differs from binding')
++        original=P.fingerprint(P.package_files(package));target,small=S.rebind(w/'standins',package)
++        cfg=dict(c,fill_mode='mirrors',mirrors=small['mirrors'],fill=small['fill'],old_identities=[],max_read_bytes=10*1024**2)
++        result=fill(target,w,cfg);result.update(mode='structural',source_tree=original,standin_bytes=sum(x['bytes'] for x in small['mirrors'].values()),production_archive_identity=False)
++        P.need(P.fingerprint(P.package_files(package))==original,'Structural probe changed delivery');return result
++    P.need(c.get('fill_mode','mirrors')=='mirrors','Unknown fill mode')
 +    mapping=validate_mirrors(c);f,pay,pub,plan=P.structure(package);remote=P.ROOT+'/'+P.PREFIX+pub['token'];local=P.extract(f,w/(P.PREFIX+pub['token']))
 +    assets=json.loads(pay['orchard_h10/vendor/ORCHARD_ASSETS.json'])
 +    required=[dict(path=p,bytes=n,sha256=h) for group in assets['groups'] for p,n,h in group]+[assets['bwrap_pin']]
@@ -854,10 +1181,47 @@
 +            runpy.run_path(remote+'/3.py',run_name='__main__')
 +            from orchard_h10.common import read_config
 +            cfg=read_config(local)
++            # Execute the delivered submit entry under 3.6; only sbatch is replaced.
++            calls=[];original_run=subprocess.run
++            def sbatch(argv,**kwargs):
++                P.need(Path(argv[0]).name=='sbatch','Unexpected submit process')
++                P.need(kwargs['input']==f['BATCH.sh'],'Submit wrapper bytes differ')
++                calls.append(argv);return subprocess.CompletedProcess(argv,0,b'123;local\n',b'')
++            try:
++                subprocess.run=sbatch
++                sys.argv=[remote+'/3.py','submit','--gpus','1','--time',c['remote']['walltime']]
++                try:runpy.run_path(remote+'/3.py',run_name='__main__')
++                except SystemExit as e:P.need(e.code==0,'Native submit failed')
++            finally:subprocess.run=original_run
++            P.need(len(calls)==1,'Native submit did not call stub sbatch')
 +        resolution=resolve_inputs(filled,base,cfg,c,mapping,remote,local)
 +    finally:sys.argv=saved
 +    P.privacy(local,c)
-+    return dict(python=sys.version,fill_executed=True,entry_check_executed=True,resolution=resolution)
++    return dict(python=sys.version,fill_executed=True,entry_check_executed=True,submit_executed=True,pool=pool_probe(package,w,c),resolution=resolution)
++
++def pool_probe(package,w,c):
++    script=P.adapted_script(c,'gpu',P.ROOT+'/'+P.PREFIX+P.read(package/'0.json')['token'],package)
++    bodies=P.heredocs(script);P.need(len(bodies)==2,'Expected receipt and pool predicates')
++    body=bodies[1];tree=ast.parse(body)
++    root=next(ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='root' for t in n.targets))
++    pool=w/'pool';pool.mkdir(mode=0o700);(pool/'0').write_bytes(b'x')
++    def check(expected):
++        try:
++            with Mirrors({root:str(pool)}):exec(compile(body,'native pool','exec'),{})
++        except ValueError:
++            P.need(not expected,'Valid pool rejected')
++        else:P.need(expected,'Invalid pool accepted')
++    check(True)
++    # Inject only the stat size for the boundary case; walk the real temporary pool.
++    original_stat=os.stat
++    def large(path,*args,**kwargs):
++        value=original_stat(path,*args,**kwargs)
++        if str(path) in (root+'/0',str(pool/'0')):
++            fields=list(value);fields[6]=75000001;return os.stat_result(fields)
++        return value
++    try:os.stat=large;check(False)
++    finally:os.stat=original_stat
++    return dict(python=sys.version,positive=True,oversize_rejected=True,synthetic_size=True)
 +
 +def receipt(package,w,c):
 +    """Run the sealed submit receipt predicate on exact native CPU writer output."""
@@ -909,6 +1273,87 @@
 +    mode,package,work,config=sys.argv[1:];os.umask(0o077);P.limits();w=Path(work);result=globals()[mode](Path(package),w,P.read(config));result['passed']=True;P.write(w/'1.json',result)
 +if __name__=='__main__':main()
 --- /dev/null
++++ b/pack_structural.py
+@@ -0,0 +1,78 @@
++"""Tiny structural stand-ins; never production identity evidence."""
++import ast, io, json, re, tarfile
++from pathlib import Path
++import pack as P
++def jd(v):return (json.dumps(v,sort_keys=True,indent=2)+'\n').encode()
++def seal(f,pay=None):
++    f=dict(f)
++    if pay is not None:
++        pay=dict(pay);plan=json.loads(pay['9.json'])
++        for n in plan['payload_pins']:plan['payload_pins'][n]=dict(bytes=len(pay[n]),sha256=P.digest(pay[n]))
++        pay['9.json']=json.dumps(plan,sort_keys=True).encode();f['0.tgz']=P.tar_bytes(pay)
++        v=json.loads(f['0.json']);v.update(payload_sha256=P.digest(f['0.tgz']),payload_bytes=len(f['0.tgz']),plan_sha256=P.digest(P.canonical(plan)));f['0.json']=f['CONFIG.json']=jd(v)
++    b=P.bundle(f['BATCH.sh']);b['0.json']=f['0.json'];b['7.py']=f['a/6.py'];line=next(l for l in f['BATCH.sh'].decode().splitlines() if l.startswith('b=bytes.fromhex('));f['BATCH.sh']=f['BATCH.sh'].replace(line.encode(),('b=bytes.fromhex(%r)'%P.tar_bytes(b).hex()).encode())
++    m=json.loads(f['PACKAGE.json']);m['token']=json.loads(f['0.json'])['token'];m['files']={n:P.digest(f[n]) for n in m['files']};f['PACKAGE.json']=jd(m);return f
++
++def archive(files):
++    out=io.BytesIO()
++    with tarfile.open(fileobj=out,mode='w') as t:
++        for n,b in files.items():m=tarfile.TarInfo(n);m.size=len(b);m.mode=0o600;t.addfile(m,io.BytesIO(b))
++    return out.getvalue()
++
++def rebind(w,package):
++    """Keep native read code; bind fill to tiny explicit fixture data and pins."""
++    w=Path(w);w.mkdir(parents=True,exist_ok=False,mode=0o700);f,pay,pub,plan=P.structure(package);pay=dict(pay)
++    base=json.loads(f['a/0.json']);logical=plan['logical']+'/d';remote=P.ROOT+'/eabcdef012345';mapping={};counter=[0]
++    def mirrored(raw,name=None):
++        i=counter[0];counter[0]+=1;local=w/('m'+str(i));local.write_bytes(raw);r=remote+'/'+(name or str(i));mapping[r]=dict(path=str(local),bytes=len(raw),sha256=P.digest(raw));return dict(path=r,bytes=len(raw),sha256=P.digest(raw))
++    # All fixture dependency files retain their logical paths; only bytes/pins differ.
++    deps={}
++    for name,spec in base['files'].items():
++        if name in ('artifact','heads','full_weights'):continue
++        rel=str(Path(spec['path']).relative_to(logical));raw=('fixture '+name+'\n').encode();deps[rel]=raw
++    for k in ('python','frames_root','sam_source'):
++        rel=str(Path(base[k]).relative_to(logical));deps[rel if k=='python' else rel+'/0']=b'x\n'
++    for k in ('vnice','terminator'):deps[str(Path(base['policy'][k]).relative_to(logical))]=b'#!/bin/sh\nexit 0\n'
++    policy=dict(authorized=True,**base['policy']);deps[str(Path(base['files'][base['policy_receipt']]['path']).relative_to(logical))]=jd(policy)
++    deps[str(Path(base['files'][base['environment_receipt']]['path']).relative_to(logical))]=jd(dict(versions={'python':'fixture'}))
++    for name,spec in base['files'].items():
++        if name in ('artifact','heads','full_weights'):continue
++        b=deps[str(Path(spec['path']).relative_to(logical))];spec.update(bytes=len(b),sha256=P.digest(b))
++    job=pay['orchard_h10/job.py'].decode()
++    original=json.loads(f['a/0.json'])
++    for n in ('sam_checkpoint','selector_weights'):job=job.replace(original['files'][n]['sha256'],base['files'][n]['sha256'])
++    for n,prefix in [('g3t_weights','d460957b'),('g3t_config','5aeb2acd'),('sam_checkpoint','9999e234')]:job=job.replace("'"+prefix+"'","'"+base['files'][n]['sha256'][:8]+"'")
++    pay['orchard_h10/job.py']=job.encode()
++    assets=json.loads(pay['orchard_h10/vendor/ORCHARD_ASSETS.json'])
++    for k in ('vnice','terminator'):assets[k+'_sha256']=P.digest(deps[str(Path(base['policy'][k]).relative_to(logical))])
++    assets['groups']=[];assets['bwrap_pin']=mirrored(b'fixture bwrap\n');pay['orchard_h10/vendor/ORCHARD_ASSETS.json']=jd(assets)
++    # Keep the env/policy archive in slot four to exercise the actual drop defect.
++    groups=[{}, {}, {}, {}]
++    envpaths={str(Path(base['files'][base[k]]['path']).relative_to(logical)) for k in ('policy_receipt','environment_receipt')}
++    envpaths|={str(Path(v).relative_to(logical)) for v in base['policy'].values()}
++    for n,b in deps.items():groups[3 if n in envpaths else 0][n]=b
++    for i,g in enumerate(groups):
++        if not g:g['z'+str(i)]=b'x'
++    archives=[]
++    for g in groups:
++        raw=archive(g);pin=mirrored(raw);archives.append(dict(destination=base['archives'][0]['destination'],parts=[pin],sha256=pin['sha256'],expanded_bytes=sum(map(len,g.values()))))
++    # Preparation and export identity are self-consistent, unlike mocked fill scans.
++    binding=dict(plan['export_binding']);member=binding['member_directory']
++    rec=jd(dict(config_sha256=binding['config_sha256'],frame_layout='duplicate'))
++    cfg=jd(dict(base_identity=binding['base_identity'],frame_layout='duplicate',preparation=dict(path='/scratch/jjyeung/a/r.json',sha256=P.digest(rec))))
++    data=jd(dict(status='PREPARED',schema='s1-in-job-data-v1',real_frames_verified=True,rehearsal=False,config=dict(path='/scratch/jjyeung/a/c.json',sha256=P.digest(cfg)),preparation=json.loads(cfg)['preparation']))
++    prep={'config':cfg,'receipt':rec,'data_receipt':data};binding['preparation_sha256']={k:P.digest(b) for k,b in prep.items()}
++    full=jd(dict(schema='full-ft-export-v1',dtype='bfloat16',files=[dict(name='0.bin',bytes=1,sha256=P.digest(b'x'))],index=dict(name='0.json',bytes=2,sha256=P.digest(b'{}'))))
++    heads=b'fixture weights';artifact=jd(dict(step=binding['step'],config_sha256=binding['config_sha256'],base_identity=binding['base_identity'],frame_layout='duplicate',geometry_online=False,heads=dict(path='/scratch/jjyeung/'+binding['run']+'/'+member+'/heads.pt',sha256=P.digest(heads)),full_weights=dict(path='/scratch/jjyeung/'+binding['run']+'/'+member+'/full_weights/full_weights.json',sha256=P.digest(full))))
++    raw=archive({member+'/artifact.json':artifact,member+'/heads.pt':heads,member+'/full_weights/full_weights.json':full,member+'/full_weights/0.bin':b'x',member+'/full_weights/0.json':b'{}'})
++    for key,value in [('archive_bytes',len(raw)),('archive_sha256',P.digest(raw))]:
++        if key in binding:binding[key]=value
++    size=len(raw)//4;parts=[mirrored(raw[i*size:(i+1)*size] if i<3 else raw[i*size:]) for i in range(4)]
++    done=mirrored(('%s %d %s\n'%(binding['object'],len(raw),P.digest(raw))).encode())
++    prep_paths={k:mirrored(b)['path'] for k,b in prep.items()}
++    base['archives']=[dict(base['archives'][0])]+archives;f['a/0.json']=jd(base)
++    fill=f['a/4.py'].decode()
++    for n,v in [('REVIEWED_OBJECT',repr(binding['object'])),('REVIEWED_ARCHIVE_BYTES',str(len(raw))),('REVIEWED_ARCHIVE_SHA256',repr(P.digest(raw)))]:fill=re.sub(r'^'+n+r' = .*$',n+' = '+v,fill,flags=re.M)
++    f['a/4.py']=fill.encode();plan['export_binding']=binding;pay['9.json']=json.dumps(plan,sort_keys=True).encode();f=seal(f,pay);p=P.extract(f,w/'p')
++    c=dict(mirrors=mapping,fill=dict(parts=[x['path'] for x in parts],done=done['path'],object=binding['object'],lineage=binding['lineage'],step=binding['step'],**prep_paths))
++    return p,c
+--- /dev/null
 +++ b/pack_token.py
 @@ -0,0 +1,23 @@
 +"""Call an unchanged native builder; explicit-token override defaults OFF."""
@@ -936,7 +1381,7 @@
 +if __name__=='__main__':main()
 --- /dev/null
 +++ b/test_native.py
-@@ -0,0 +1,62 @@
+@@ -0,0 +1,76 @@
 +"""Native D builds and release-check compatibility; all writes stay under --work."""
 +import argparse, ast, base64, gzip, json, os, subprocess, sys
 +from pathlib import Path
@@ -995,13 +1440,27 @@
 +    else:raise AssertionError('Raw source release was accepted')
 +    coherent_cfg=dict(builder=dict(path=str(here/'build_d.py'),sha256=P.file_digest(here/'build_d.py'),argv=['stage','source','sha',str(items),'binding']))
 +    P.need(P.source_preflight(coherent_cfg)['assets']==10,'Coherent native source failed')
++    # Exercise every public local check on an actual pack-built D delivery.
++    # Structural mode changes only a disposable probe copy and authenticates no live archives.
++    fixture,small=T.fixture(w/'tiny');check_cfg=dict(small,work=cfg['work'],builder=coherent_cfg['builder'],fill_mode='structural')
++    binding=P.structure(built['package'])[3]['export_binding']
++    check_cfg['fill']=dict(small['fill'],**{k:binding[k] for k in ('object','step','lineage')})
++    check_cfg['remote']=dict(small['remote'],walltime='04:00:00')
++    for key,name in [('cpu','o_cpu_D.sh'),('gpu','o_sub_D.sh')]:
++        check_cfg['remote'][key]=dict(path=str(T.D/name),sha256=P.file_digest(T.D/name))
++    checked=P.local_check(check_cfg,built['package'],w/'dcheck');scripts=P.plan(check_cfg,built)
++    P.need(set(checked['checks'])=={'source','privacy','logic','guard','trap','stop','login','fill','receipt'},'D local check coverage differs')
++    P.need(checked['checks']['logic']['native_dry']['family']=='distance','D family not checked')
++    P.need(checked['checks']['guard']['python'].startswith('3.6.8'),'D guard did not use login Python')
++    P.write(w/'D_CHECK.json',dict(check=checked,scripts=scripts))
 +    r10=(T.R/'build_r10.py').read_text();P.need(K.adapted(r10,'r10',None,False)==r10,'r10 default differs');compile(K.adapted(r10,'r10','c123456789abc',True),'r10-adapter','exec')
 +    result=dict(passed=True,native_dry=native_dry,default_off_delivery_bytes=first.stat().st_size,default_off_delivery_sha256=P.file_digest(first),native_checker=P.read(w/'RELEASE_RESULTS.json'),raw_checker_before_after='same pre-existing score_d.py mismatch',raw_sources_unchanged=True,raw_release_preflight_rejected=True,coherent_release_preflight_passed=True,coherent_checker_before_after=True,embedded_score_sha256=P.digest(score),loose_score_sha256=before['score_d.py'],r10_default_source_identical=True,r10_full_build=False,reason='Authenticated original A/B delivery archives required by r10 are absent',pack_build=built)
++    result['d_all_checks_passed']=checked['passed'];result['d_check_file']=str(w/'D_CHECK.json')
 +    P.write(w/'RESULT.json',result);print(json.dumps(result,sort_keys=True))
 +if __name__=='__main__':main()
 --- /dev/null
 +++ b/test_pack.py
-@@ -0,0 +1,197 @@
+@@ -0,0 +1,201 @@
 +"""Regression tests never invoke ssh, scp, Slurm, GPUs or delete files."""
 +import copy, io, json, os, re, subprocess, sys, unittest
 +from pathlib import Path
@@ -1015,7 +1474,11 @@
 +class Packaging(unittest.TestCase):
 +    @classmethod
 +    def setUpClass(cls):
-+        cls.w=Path(os.environ.get('PACK_TEST_WORK',str(Path(__file__).parent/'work'/('t'+os.urandom(5).hex()))));cls.p,cls.c=T.fixture(cls.w)
++        cls.w=Path(os.environ.get('PACK_TEST_WORK',str(Path(__file__).parent/'work'/('t'+os.urandom(5).hex()))))
++        reused=os.environ.get('PACK_TEST_FIXTURE')
++        if reused:
++            cls.w.mkdir();cls.p=Path(reused)/'p';cls.c=P.read(Path(reused)/'config.json');cls.c['work']=str(cls.w/'state')
++        else:cls.p,cls.c=T.fixture(cls.w)
 +        cls.f=P.package_files(cls.p);cls.counter=0
 +    def fresh(self,label):
 +        type(self).counter+=1;return self.w/(label+str(self.counter))
@@ -1033,7 +1496,7 @@
 +            for name in f:P.opaque(name)
 +            self.assertTrue(any(b'model' in b for b in pay.values()))
 +        self.assertEqual(P.privacy(self.p,self.c)['names'],15)
-+        for text in ('#SBATCH --comment=model','/usr/bin/python3 /tmp/dataset.py','A=benchmark /bin/true','head -n 1 /tmp/0'):
++        for text in ('#SBATCH --comment=model','/usr/bin/python3 /tmp/dataset.py','A=benchmark /bin/true'):
 +            with self.assertRaises(P.Rejected):P.shell_privacy(text)
 +        f=dict(self.f);f['model.log']=b'x'
 +        with self.assertRaises(P.Rejected):P.structure(P.extract(f,self.fresh('p')))
@@ -1190,7 +1653,7 @@
 +        r=P.probe('receipt',self.p,self.fresh('q'),self.c);self.assertTrue(r['full_reader_validator']);self.assertGreaterEqual(r['negative_cases'],19)
 +    def test_positive_all_local_checks_and_planning(self):
 +        c=copy.deepcopy(self.c);c['work']=str(self.fresh('s'));r=P.local_check(c,self.p,self.fresh('q'));self.assertGreater(r['checks']['logic']['rows_checked'],0)
-+        w=P.state_root(c);d=w/'1.tgz';d.write_bytes(P.tar_bytes(self.f));b=dict(token='b635a315de01e',package=str(self.p),delivery=str(d),sha256=P.file_digest(d),tree=P.fingerprint(self.f));P.write(w/'BUILD.json',b);P.write(w/'CHECK.json',r);scripts=P.plan(c,b);self.assertEqual(set(scripts),{'place','fill','cpu','poll','gpu'})
++        w=P.state_root(c);d=w/'1.tgz';d.write_bytes(P.tar_bytes(self.f));b=dict(token='b635a315de01e',package=str(self.p),delivery=str(d),sha256=P.file_digest(d),tree=P.fingerprint(self.f));P.write(w/'BUILD.json',b);P.write(w/'CHECK.json',r);scripts=P.plan(c,b);self.assertEqual(set(scripts),{'preflight','place','fill','fill_poll','cpu','poll','gpu'})
 +        self.assertEqual(P.checked(c),b);P.write(self.w/'POSITIVE.json',dict(check=r,scripts=scripts,build=b,config=c))
 +
 +if __name__=='__main__':
@@ -1223,8 +1686,134 @@
 +    print(json.dumps(result,sort_keys=True))
 +if __name__=='__main__':main()
 --- /dev/null
++++ b/test_review.py
+@@ -0,0 +1,123 @@
++"""Review round 1 regressions; selectable source root supports before/after proof."""
++import copy, json, os, subprocess, sys, time, unittest
++from pathlib import Path
++from unittest.mock import patch
++sys.path.insert(0,os.environ.get('PACK_SOURCE',str(Path(__file__).parent)))
++import pack as P
++import test_support as T
++
++class Review(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.w=Path(os.environ['PACK_REVIEW_WORK'])
++        reused=os.environ.get('PACK_REVIEW_FIXTURE')
++        if reused:
++            cls.w.mkdir();fixture=Path(reused);cls.p=fixture/'p';cls.c=P.read(fixture/'config.json');cls.c['work']=str(cls.w/'state')
++        else:cls.p,cls.c=T.fixture(cls.w)
++        # Also permit the before tree to reach tests of remote planning.
++        cls.c['remote_input_pins']={k:dict(bytes=v['bytes']) for k,v in cls.c['mirrors'].items()}
++        cls.f=P.package_files(cls.p);cls.n=0
++        d=Path(reused)/'1.tgz' if reused else cls.w/'1.tgz'
++        if not reused:d.write_bytes(P.tar_bytes(cls.f))
++        cls.b=dict(token=P.read(cls.p/'0.json')['token'],package=str(cls.p),delivery=str(d),sha256=P.file_digest(d),tree=P.fingerprint(cls.f))
++    def fresh(self,n):
++        type(self).n+=1;return self.w/(n+str(self.n))
++    def test_r1_detached_slow_fill(self):
++        scripts=P.plan(self.c,self.b);text=Path(scripts['fill']).read_text()
++        self.assertIn('setsid nohup',text)
++        p=self.fresh('a');(p/'a').mkdir(parents=True)
++        body='#!/bin/bash\nset -eu\numask 077\nsleep 1\nprintf "0\\n" > a/1.txt\n'
++        shell=P.detached_fill(body,str(p));script=self.fresh('f.sh');script.write_text(shell)
++        start=time.monotonic();r=subprocess.run(['bash',str(script)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=.8)
++        self.assertEqual(r.returncode,0,r.stderr);self.assertLess(time.monotonic()-start,.8);self.assertFalse((p/'a/1.txt').exists())
++        time.sleep(1.2);self.assertEqual((p/'a/1.txt').read_text(),'0\n')
++        again=subprocess.run(['bash',str(script)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=1);self.assertNotEqual(again.returncode,0)
++        calls=[];waits=[]
++        def call(k):
++            calls.append(k);return subprocess.CompletedProcess([],0,b'wait\n' if len(calls)==2 else b'complete\n',b'')
++        with patch.object(P,'checked',return_value=self.b):P.execute(self.c,{},['fill'],call=call,sleeper=waits.append)
++        self.assertEqual(calls,['fill','fill_poll','fill_poll']);self.assertEqual(waits,[60,60])
++    def test_r2_structural_without_archive_mirrors(self):
++        c=dict(self.c,fill_mode='structural',mirrors={})
++        r=P.probe('fill',self.p,self.fresh('q'),c)
++        self.assertEqual(r['mode'],'structural');self.assertFalse(r['production_archive_identity']);self.assertLess(r['standin_bytes'],1048576)
++        self.assertTrue(r['resolution']['environment_resolved'])
++        f=dict(self.f);f['a/4.py']=f['a/4.py'].replace(b"inputs['archives'].append(",b"inputs['archives'].__setitem__(4,")
++        bad=P.extract(T.seal(f),self.fresh('bad'));w=self.fresh('q')
++        with self.assertRaises(P.Rejected):P.probe('fill',bad,w,c)
++        self.assertIn('Fill must append',(w/'0.log').read_text())
++    def test_r4_readonly_preflight_precedes_place(self):
++        scripts=P.plan(self.c,self.b);self.assertIn('preflight',scripts)
++        code=P.heredocs(Path(scripts['preflight']).read_text())[0]
++        import pack_checks as Q
++        mapping={k:v['path'] for k,v in self.c['mirrors'].items()}
++        with Q.Mirrors(mapping):exec(compile(code,'preflight','exec'),{})
++        bad=dict(mapping);name=self.c['fill']['done'];bad[name]=str(self.w/'absent')
++        with Q.Mirrors(bad):
++            with self.assertRaisesRegex(ValueError,'Required staged input'):exec(compile(code,'preflight','exec'),{})
++        calls=[]
++        def call(k):calls.append(k);return subprocess.CompletedProcess([],1,b'',b'absent staged part')
++        with patch.object(P,'checked',return_value=self.b):
++            with self.assertRaisesRegex(P.Rejected,'before placement'):P.execute(self.c,scripts,['place'],call=call)
++        self.assertEqual(calls,['preflight']);self.assertFalse((Path(self.c['work'])/'place.attempt').exists())
++    def test_r3_actual_D_integration(self):
++        self.assertIn('PACK_NATIVE_RESULT',os.environ,'Required D integration result: run test_native.py first')
++        result=P.read(os.environ['PACK_NATIVE_RESULT']);self.assertTrue(result['d_all_checks_passed'])
++        evidence=P.read(result['d_check_file']);self.assertEqual(evidence['check']['checker'],P.source_fingerprint())
++        checks=evidence['check']['checks'];self.assertEqual(checks['logic']['native_dry']['family'],'distance')
++        for mode in ('logic','guard','trap','stop','login','fill','receipt'):self.assertTrue(checks[mode]['passed'])
++        for key in ('cpu','gpu'):self.assertIn('04:00:00',Path(evidence['scripts'][key]).read_text())
++    def test_r5_system_command_only(self):
++        P.shell_privacy('head -n 1 /tmp/0')
++        P.shell_privacy('fin(){ rc=$?; { head -n 1 "$L"; tail -n 60 "$L"; }; }')
++        for text in ('echo head','head /tmp/model','head /tmp/head','A=head /bin/true'):
++            with self.assertRaises(P.Rejected):P.shell_privacy(text)
++        f=P.package_files(T.B5);f['BATCH.sh']=f['BATCH.sh'].replace(b'set -uo pipefail\n',b'set -uo pipefail\numask 077\n');p=P.extract(T.seal(f),self.fresh('native'))
++        self.assertEqual(P.privacy(p,{})['names'],15)
++        with self.assertRaisesRegex(P.Rejected,'umask'):P.privacy(T.B5,{})
++    def test_r6_login_runtime_guard_submit_pool(self):
++        guard=P.probe('guard',self.p,self.fresh('q'),self.c);self.assertTrue(guard['python'].startswith('3.6.8'))
++        r=P.probe('fill',self.p,self.fresh('q'),self.c)
++        self.assertTrue(r['submit_executed']);self.assertTrue(r['pool']['positive']);self.assertTrue(r['pool']['oversize_rejected'])
++    def test_r6_operational_inventory(self):
++        docs=Path(os.environ.get('PACK_DOCS',str(Path(P.__file__).parent/'out')))
++        for name in ('NOTE_FOR_CONT_OPS.md','ORCHARD_ONLY_CHECKS.md'):
++            text=(docs/name).read_text()
++            for term in ('Review round 1: finding -> fix -> test','REUSE_PARTS_FROM','PREP_FROM','a/f.log','job.stage','8.py submit','Trinity ledger'):
++                self.assertIn(term,text)
++    def test_r7_production_module_import(self):
++        f=dict(self.f);pay=P.untar(f['0.tgz'])
++        pay['h1eval/h10/launch.py']=b'from . import aa_pack_relative\nassert aa_pack_relative.VALUE==1\n'
++        pay['h1eval/h10/aa_pack_relative.py']=b'VALUE=1\n'
++        p=P.extract(T.seal(f,pay),self.fresh('relative'));w=self.fresh('q')
++        self.assertTrue(P.probe('logic',p,w,self.c)['passed'])
++    def test_r8_gpu_only_retry(self):
++        config=self.fresh('cfg');P.write(config,self.c);called=[]
++        with patch.object(P,'checked',return_value=self.b),patch.object(P,'plan',return_value={'gpu':'/tmp/0'}),patch.object(P,'execute',side_effect=lambda c,s,ph,*args:called.append(ph)):
++            P.main(['gpu','--config',str(config),'--enable','--execute-remote','--yes','--token',self.b['token']])
++        self.assertEqual(called,[['gpu']])
++        scripts=P.plan(self.c,self.b);text=Path(scripts['gpu']).read_text()
++        for word in ('COMPLETED','CPU.json','test ! -e','a/8.txt','mkdir "$P/a/g.lock"'):self.assertIn(word,text)
++        self.assertLess(text.index('test ! -s'),text.index('mkdir "$P/a/g.lock"'))
++        c=dict(self.c,work=str(self.fresh('retry')));P.state_root(c)
++        (Path(c['work'])/'cpu.attempt').write_text('123')
++        results=[subprocess.CompletedProcess([],0,b'COMPLETED|\n',b''),subprocess.CompletedProcess([],1,b'',b'queue busy'),subprocess.CompletedProcess([],0,b'COMPLETED|\n',b''),subprocess.CompletedProcess([],0,b'456\n',b'')]
++        with patch.object(P,'checked',return_value=self.b),patch.object(P.subprocess,'run',side_effect=results):
++            with self.assertRaisesRegex(P.Rejected,'queue busy'):P.execute(c,scripts,['gpu'],True,self.b['token'],sleeper=lambda n:None)
++            P.execute(c,scripts,['gpu'],True,self.b['token'],sleeper=lambda n:None)
++    def test_r9_only_python_stdin_heredocs(self):
++        P.shell_privacy("/usr/bin/python3 -I -s -B - <<'A'\nprint('model')\nA\n")
++        for text in ("cat >a/0 <<'A'\nmodel /tmp/0\nA\nbash a/0", "bash <<'A'\nmodel\nA", "cat <<'A' # python3 -\nmodel\nA"):
++            with self.assertRaisesRegex(P.Rejected,'Only Python stdin'):P.shell_privacy(text)
++    def test_r11_login_exact_delivery(self):
++        c=dict(self.c,work=str(self.fresh('state')));P.write(Path(c['work'])/'BUILD.json',self.b)
++        r=P.probe('login',self.p,self.fresh('q'),c)
++        self.assertTrue(r['recorded_delivery']);self.assertEqual(r['delivery_sha256'],self.b['sha256'])
++    def test_required_inputs_refuse_by_name(self):
++        c=dict(required_inputs=[dict(name='step-600 binding',path=str(self.w/'absent'))])
++        with self.assertRaisesRegex(P.Rejected,'Required input missing: step-600 binding'):P.required_inputs(c)
++        pin=dict(name='routed test_sequence.py',path=str(self.w/'absent'))
++        with self.assertRaisesRegex(P.Rejected,'routed test_sequence'):P.required_inputs(dict(required_inputs=[pin]))
++
++if __name__=='__main__':
++    P.limits();unittest.main(verbosity=2)
+--- /dev/null
 +++ b/test_support.py
-@@ -0,0 +1,82 @@
+@@ -0,0 +1,83 @@
 +"""Bounded fixtures derived from the authenticated supplied B5 package."""
 +import ast, io, json, re, tarfile
 +from pathlib import Path
@@ -1306,4 +1895,5 @@
 +    f['a/4.py']=fill.encode();plan['export_binding']=binding;pay['9.json']=json.dumps(plan,sort_keys=True).encode();f=seal(f,pay);p=P.extract(f,w/'p')
 +    c=dict(python=P.PYTHON,work=str(w/'state'),ledger=str(w/'ledger.jsonl'),normalize_wrapper=True,max_read_bytes=10*1024**2,mirrors=mapping,fill=dict(parts=[x['path'] for x in parts],done=done['path'],object=binding['object'],lineage='SFT',step=600,**prep_paths),remote=dict(ossh='/unavailable/ossh.sh',walltime='02:30:00',cpu=dict(path=str(R/'o_cpu_B4.sh'),sha256=P.file_digest(R/'o_cpu_B4.sh'),old_token='d50ba921ef1f4',adapt_token=True),gpu=dict(path=str(R/'o_sub_B5.sh'),sha256=P.file_digest(R/'o_sub_B5.sh'),old_token='b635a315de01e',adapt_token=True)))
 +    c['remote']['gpu'].pop('old_token');c['remote']['gpu'].pop('adapt_token')
++    c['remote_input_pins']={k:dict(bytes=v['bytes']) for k,v in mapping.items()}
 +    (w/'ledger.jsonl').write_text('');P.write(w/'config.json',c);return p,c

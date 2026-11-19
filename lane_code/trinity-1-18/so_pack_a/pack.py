@@ -82,14 +82,28 @@ def shell_lines(text):
         if line.lstrip().startswith('#') and not line.lstrip().startswith('#SBATCH'):continue
         yield line
         m=re.search(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z_0-9]*)['\"]?",line)
-        if m:until=m.group(1)
+        if m:
+            need(re.match(r'^\s*(?:exec\s+)?(?:/usr/bin/)?python3(?:\s+-[IsB])*\s+-(?:\s|$)',line), 'Only Python stdin heredocs are allowed')
+            until=m.group(1)
     need(until is None,'Unterminated heredoc')
 def shell_privacy(text,extra=()):
     for line in shell_lines(text):
         line=line.replace('#SBATCH','')
         try:words=shlex.split(line,comments=True)
         except ValueError:words=[line]
-        for word in words:opaque(word,extra)
+        # Parse shell punctuation so utility exemptions apply only at command position.
+        lex=shlex.shlex(line,posix=True,punctuation_chars=';&|()');lex.whitespace_split=True;lex.commenters='#'
+        try:tokens=list(lex)
+        except ValueError:tokens=words
+        start=True
+        utilities=set('head tail sed awk cat wc df hostname nvidia-smi sacct squeue sbatch python3 bash env timeout'.split())
+        for word in tokens:
+            if word in (';', '&&', '||', '|', '&', '(', ')'):start=True;continue
+            if start and word in ('if','then','else','do','!','{','}'):continue
+            assignment=bool(re.match(r'^[A-Za-z_][A-Za-z_0-9]*=',word))
+            system=word in utilities or (str(Path(word).parent) in ('/bin','/usr/bin') and Path(word).name in utilities)
+            if not (start and system):opaque(word,extra)
+            if not assignment:start=False
         for name in re.findall(r'a15_cot_ap[0-9a-z]+',line):need(re.fullmatch(PREFIX+'[a-f][0-9a-f]{10,15}',name),'Invalid job name '+name)
 def privacy(p,c):
     f,pay,v,plan=structure(p,c);extra=c.get('forbidden_extra',());shell_privacy(f['BATCH.sh'].decode(),extra)
@@ -114,16 +128,17 @@ def run(argv,cwd,log,env=None,seconds=180):
     with Path(log).open('wb') as out:r=subprocess.run(['nice','-n','10']+list(argv),cwd=str(cwd),env=env or environment(Path(cwd)),stdout=out,stderr=subprocess.STDOUT,timeout=seconds)
     need(r.returncode==0,'Command failed (%s); see %s'%(r.returncode,log))
 def fingerprint(f):return digest(canonical({n:digest(b) for n,b in f.items()}))
-def source_fingerprint():return {n:file_digest(Path(__file__).parent/n) for n in ('pack.py','pack_checks.py')}
+def source_fingerprint():return {n:file_digest(Path(__file__).parent/n) for n in ('pack.py','pack_checks.py','pack_structural.py')}
 def limits():
     resource.setrlimit(resource.RLIMIT_AS,(28*1024**3,28*1024**3))
     if hasattr(os,'sched_getaffinity'):os.sched_setaffinity(0,set(sorted(os.sched_getaffinity(0))[:8]))
 def probe(mode,p,w,c):
     w=Path(w);w.mkdir(parents=True,exist_ok=False,mode=0o700);write(w/'0.json',c)
-    py='/usr/bin/python3' if mode in ('login','fill') else c.get('python',PYTHON)
+    py='/usr/bin/python3' if mode in ('login','fill','guard') else c.get('python',PYTHON)
     run([py,'-I','-s','-B',str(Path(__file__).with_name('pack_checks.py')),mode,str(p),str(w),str(w/'0.json')],w,w/'0.log',seconds=c.get('check_timeout',240));return read(w/'1.json')
 def source_preflight(c):
     """Apply the native D embedded-asset equality before any release operation."""
+    required_inputs(c)
     spec=c.get('builder')
     if not spec:return {'fixture_only':True}
     argv=spec['argv'];source=Path(argv[argv.index('--source')+1]) if '--source' in argv else Path(spec['path'])
@@ -149,11 +164,20 @@ def local_check(c,p,w):
     result=dict(passed=True,token=v['token'],tree=fingerprint(f),checker=source_fingerprint(),config=digest(canonical(c)),checks=r);write(w/'CHECK.json',result);return result
 def ledger_check(c,tok):
     token(tok);p=Path(c['ledger']);need(p.is_file(),'Trinity token ledger missing');need(tok not in p.read_text(),'Token already appears in Trinity ledger');return file_digest(p)
+def required_inputs(c):
+    for pin in c.get('required_inputs',[]):
+        name=pin.get('name',pin.get('path','unnamed'));path=Path(pin['path'])
+        need(path.is_file(),'Required input missing: '+name+' ('+str(path)+')')
+        need(path.stat().st_size<=c.get('max_required_input_bytes',128*1024**2),'Required input exceeds local metadata budget: '+name)
+        if 'sha256' in pin:need(file_digest(path)==pin['sha256'],'Required input hash differs: '+name)
+    return {'passed':True,'inputs':len(c.get('required_inputs',[]))}
 def state_root(c):
     p=Path(c['work']).resolve();p.mkdir(parents=True,exist_ok=True,mode=0o700);return p
 def build(c,explicit):
+    required_inputs(c)
     tok=token(explicit);ledger=ledger_check(c,tok);w=state_root(c);need(not (w/'BUILD.json').exists(),'Build state exists');s=c['builder'];path=Path(s['path']);need(file_digest(path)==s['sha256'],'Builder hash differs')
-    for pin in s.get('inputs',[]):need(file_digest(pin['path'])==pin['sha256'],'Builder input differs')
+    for pin in s.get('inputs',[]):
+        need(Path(pin['path']).is_file(),'Required builder input missing: '+pin['path']);need(file_digest(pin['path'])==pin['sha256'],'Builder input differs')
     cwd=w/'b';cwd.mkdir(mode=0o700);env=environment(cwd);env.update({k:str(v).replace('{work}',str(cwd)) for k,v in s.get('env',{}).items()});env.pop('SO_PACK_EXPLICIT_TOKEN',None);env.pop('SO_PACK_TOKEN',None)
     args=[str(x).replace('{work}',str(cwd)).replace('{token}',tok) for x in s['argv']]
     run([c.get('python',PYTHON),'-I','-s','-B',str(path)]+args,cwd,w/'build.log',env,c.get('build_timeout',300))
@@ -214,6 +238,8 @@ def adapted_script(c,key,p,package=None):
     else:
         for m in ('bundle_guard_passed','entry_sequence_passed','MEMORY.json','3.py submit','a/8.txt'):need(m in text,'Native GPU gate absent: '+m)
         if package and b'def validate_full_reader' in (Path(package)/'a/5.py').read_bytes():need('full_reader_passed' in text,'Native full reader gate absent')
+        need(text.count('JOB_REPLY=$(')==1,'Native submission boundary absent')
+        text=text.replace('JOB_REPLY=$(', 'mkdir "$P/a/g.lock"\nJOB_REPLY=$(',1)
     return text
 def heredocs(text):
     out=[];end=None;lines=[];python=False
@@ -227,9 +253,38 @@ def heredocs(text):
             m=re.search(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z_0-9]*)['\"]?",line)
             if m:end=m.group(1);python='python' in line
     return out
+def remote_inputs(c,b):
+    f,pay,_,_=structure(b['package']);base=json.loads(f['a/0.json'])
+    pins={}
+    def add(pin):
+        path=pin['path'];opaque(path,c.get('forbidden_extra',()))
+        need(type(pin.get('bytes')) is int and pin['bytes']>0,'Required input size missing: '+path)
+        need(path not in pins or pins[path]==pin['bytes'],'Conflicting input size: '+path);pins[path]=pin['bytes']
+    for archive in base['archives'][1:]:
+        for pin in archive['parts']:add(pin)
+    assets=json.loads(pay['orchard_h10/vendor/ORCHARD_ASSETS.json'])
+    for group in assets['groups']:
+        for path,size,sha in group:add(dict(path=path,bytes=size))
+    add(assets['bwrap_pin'])
+    for path in c['fill']['parts']+[c['fill'][k] for k in ('done','config','receipt','data_receipt')]:
+        pin=c.get('remote_input_pins',{}).get(path)
+        need(pin is not None,'Required remote input pin missing: '+path);add(dict(pin,path=path))
+    return pins
+
+def remote_preflight(c,b):
+    return python_block("from pathlib import Path\npins=%r\nfor name,size in pins.items():\n p=Path(name)\n if not p.is_file() or p.stat().st_size!=size:raise ValueError('Required staged input missing or size differs: '+name)\nprint('inputs ready')"%remote_inputs(c,b))
+
+def detached_fill(body,p):
+    # Exclusive launch directory survives transport loss and prevents duplicate hashing.
+    code="from pathlib import Path\np=Path(%r)\n(p/'a/f.lock').mkdir(mode=0o700)\n(p/'a/f.sh').write_text(%r)"%(p,body)
+    return HEADER+python_block(code)+'cd '+shlex.quote(p)+'\nsetsid nohup bash a/f.sh </dev/null >a/f.log 2>&1 &\n'
+
 def plan(c,b):
     p=remote_path(b);opaque(p,c.get('forbidden_extra',()));check=shell_join(['/usr/bin/python3','-I','-s','-B','3.py','check','--gpus','1','--time',c['remote']['walltime']])
-    scripts=dict(place=HEADER+python_block(place_code(b)),fill=HEADER+shell_join(fill_argv(c,p))+'\ncd '+shlex.quote(p)+'\n'+check+'\nprintf "0\\n" > a/1.txt\n',cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
+    fill_body=HEADER+'cd '+shlex.quote(p)+'\ntrap \'rc=$?; if [ "$rc" != 0 ]; then printf "%s\\n" "$rc" >a/f.exit; fi\' EXIT\n'+shell_join(fill_argv(c,p))+'\n'+check+'\nprintf "0\\n" > a/1.txt\n'
+    shell_privacy(fill_body,c.get('forbidden_extra',()))
+    scripts=dict(preflight=HEADER+remote_preflight(c,b),place=HEADER+python_block(place_code(b)),fill=detached_fill(fill_body,p),cpu=HEADER+adapted_script(c,'cpu',p,b['package']))
+    scripts['fill_poll']=HEADER+'cd '+shlex.quote(p)+'\nif test -f a/1.txt; then test "$(cat a/1.txt)" = 0; printf "complete\\n"; elif test -f a/f.exit; then tail -c 8192 a/f.log >&2; exit 1; else printf "wait\\n"; tail -c 8192 a/f.log >&2; fi\n'
     job='P='+p+'\nJ=$(cat "$P/a/4.txt")\n[[ "$J" =~ ^[0-9]+$ ]]\n'
     scripts['poll']=HEADER+job+'if ! sacct -n -X -j "$J" -o State --parsable2; then printf "accounting unavailable for %s\\n" "$J" >&2; exit 75; fi\n'
     scripts['gpu']=HEADER+job+'S=$(sacct -n -X -j "$J" -o State --parsable2)\n[[ "${S%%|*}" = COMPLETED ]]\ntest -s "$P/a/c/CPU.json"\n'+adapted_script(c,'gpu',p,b['package'])
@@ -253,7 +308,7 @@ def execute(c,scripts,phases,yes=False,explicit=None,call=None,sleeper=time.slee
     b=checked(c)
     if 'cpu' in phases or 'gpu' in phases:need(yes and explicit==b['token'],'Submit requires --yes and exact token')
     def actual(k):
-        if k!='poll':
+        if k not in ('poll','fill_poll','preflight','gpu'):
             marker=state_root(c)/(k+'.attempt');need(not marker.exists(),'Already attempted '+k);marker.write_text(str(time.time()))
         cmd=command(c,scripts[k]);print(cmd,flush=True)
         log=state_root(c)/('call_'+k+'_'+str(time.time_ns() if hasattr(time,'time_ns') else int(time.time()*1000000))+'.json')
@@ -263,6 +318,8 @@ def execute(c,scripts,phases,yes=False,explicit=None,call=None,sleeper=time.slee
         write(log,dict(phase=k,returncode=r.returncode,stdout=r.stdout.decode(errors='replace'),stderr=r.stderr.decode(errors='replace')));return r
     invoke=call or actual
     for phase in phases:
+        if phase=='place':
+            r=invoke('preflight');need(r.returncode==0,'Remote input preflight failed before placement: '+r.stderr.decode(errors='replace'))
         if phase=='gpu':
             errors=0;deadline=time.monotonic()+int(c['remote'].get('cpu_wait',14400))
             while True:
@@ -276,15 +333,22 @@ def execute(c,scripts,phases,yes=False,explicit=None,call=None,sleeper=time.slee
                         sleeper(60);break
                 sleeper(60)
         r=invoke(phase);need(r.returncode==0,'Remote '+phase+' failed: '+r.stderr.decode(errors='replace'))
+        if phase=='fill':
+            deadline=time.monotonic()+int(c['remote'].get('fill_wait',1800))
+            while True:
+                sleeper(60);need(time.monotonic()<deadline,'Fill wait deadline exceeded; inspect a/f.log; do not relaunch')
+                r=invoke('fill_poll');need(r.returncode==0,'Fill poll failed; inspect a/f.log; do not relaunch: '+r.stderr.decode(errors='replace'))
+                state=r.stdout.decode().strip();need(state in ('wait','complete'),'Unexpected fill receipt')
+                if state=='complete':break
 def main(argv=None):
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('build','check','place','fill','submit','all'));p.add_argument('--config',required=True);p.add_argument('--enable',action='store_true');p.add_argument('--token');p.add_argument('--yes',action='store_true');p.add_argument('--execute-remote',action='store_true');a=p.parse_args(argv);need(a.enable,'Default OFF: pass --enable')
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('action',choices=('build','check','place','fill','gpu','submit','all'));p.add_argument('--config',required=True);p.add_argument('--enable',action='store_true');p.add_argument('--token');p.add_argument('--yes',action='store_true');p.add_argument('--execute-remote',action='store_true');a=p.parse_args(argv);need(a.enable,'Default OFF: pass --enable')
     os.umask(0o077);limits();c=read(a.config);w=state_root(c)
     if a.action in ('build','all'):print(json.dumps(build(c,a.token),sort_keys=True))
     if a.action in ('check','all'):
         b=built(c);r=local_check(c,b['package'],w/('c'+os.urandom(4).hex()));write(w/'CHECK.json',r);plan(c,b)
-    if a.action in ('place','fill','submit','all'):
-        b=checked(c);scripts=plan(c,b);phases={'place':['place'],'fill':['fill'],'submit':['cpu','gpu'],'all':['place','fill','cpu','gpu']}[a.action]
-        if a.action in ('submit','all'):need(a.yes and a.token==b['token'],'Submit requires --yes and exact token')
+    if a.action in ('place','fill','gpu','submit','all'):
+        b=checked(c);scripts=plan(c,b);phases={'place':['place'],'fill':['fill'],'gpu':['gpu'],'submit':['cpu','gpu'],'all':['place','fill','cpu','gpu']}[a.action]
+        if a.action in ('gpu','submit','all'):need(a.yes and a.token==b['token'],'Submit requires --yes and exact token')
         for phase in phases:print(command(c,scripts[phase]))
         if a.execute_remote:execute(c,scripts,phases,a.yes,a.token)
     return 0

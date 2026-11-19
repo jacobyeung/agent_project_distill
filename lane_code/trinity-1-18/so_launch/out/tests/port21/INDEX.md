@@ -31,3 +31,13 @@ All paths below contain exact output, not inferred results. Tests use build 21 s
 - [native_combined_diagnostic](native_combined_diagnostic.txt), exit 0.
 - [native_recommended_on](native_recommended_on.txt), exit 0.
 - [extra_probes](extra_probes.txt), exit 0.
+
+- [Round 1 delivery contracts](review_round1_contracts.txt): six tests, OK.
+- [Round 2 delivery contracts](review_round2_contracts.txt): five tests, OK.
+
+Contract commands, after `source work/fix2_env.sh` and setting `TEST_TMP_ROOT`, `TMPDIR`, and `LANE_TEST_OUTPUT` to `$L/work/port21/tmp`:
+
+```bash
+REVIEW_TREE="$L/work/port21/combined_diagnostic" nice -n 10 "$PY" -I -s -B work/test_review_round1_delivery.py
+REVIEW_TREE="$L/work/port21/combined_diagnostic" nice -n 10 "$PY" -I -s -B work/test_review_round2_delivery.py
+```

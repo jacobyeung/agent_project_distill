@@ -1,7 +1,7 @@
 #!/bin/bash
 # GPU tracker pass launcher. Run it by hand on the GPU node, inside tmux; it never relaunches anything.
 #   bash kit_v2/launch_gpu.sh [--exclude-withheld]
-# Checks, in order: compute node other than trinity-0-13; kit bytes equal out/KIT_MANIFEST.sha256; the ledger records
+# Checks, in order: compute node other than trinity-0-13; kit bytes equal out/v2/KIT_MANIFEST.sha256; the ledger records
 # no stop or kill; the CPU preflight finds every staged input; two nvidia-smi readings 300 s apart show a card with
 # >= 48e9 bytes total and <= 1024 MiB used in both. Then: setsid --wait -> vnice.sh -> gpu_inner.sh -> timeout -> python.
 # Test hooks (MC_DRY_LAUNCH=1 only): MC_NVIDIA_SMI, MC_WAIT_SECONDS, MC_HOST, MC_TEST_OUT, MC_SKIP_PREFLIGHT.
@@ -80,7 +80,7 @@ for line in $R1; do
   fi
 done
 [ -n "$PICK" ] || refuse no_card_with_48e9_bytes_and_at_most_1024MiB_used_in_both_readings
-launch_event LAUNCH "gpu=$PICK" "reading1=$(echo $R1 | tr ' ' ';')" "reading2=$(echo $R2 | tr ' ' ';')" \
+launch_event LAUNCH "gpu=$PICK" "pass_args=${PASS_ARGS// /_}" "reading1=$(echo $R1 | tr ' ' ';')" "reading2=$(echo $R2 | tr ' ' ';')" \
   "timeout_seconds=$REMAIN" "spent_seconds=$SPENT" "resume_after_stop=$RESUME" \
   "manifest_sha256=$(sha256sum "$ROOT/out/v2/KIT_MANIFEST.sha256" | cut -c1-64)"
 

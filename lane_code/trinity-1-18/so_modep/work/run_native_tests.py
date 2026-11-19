@@ -30,6 +30,10 @@ def guard(event,args):
 sys.addaudithook(guard)
 import torch
 torch.set_num_threads(8);torch.set_num_interop_threads(1)
+if os.environ.get('MODEP_MUTATION'):
+ sys.path.insert(0,str(L/'work'))
+ from review_mutations import install
+ install(os.environ['MODEP_MUTATION'])
 modules=sys.argv[1:] or ['tests.test_r1_build20','tests.test_r1_build19','tests.test_r1_build18','tests.test_r1_build17','tests.test_r1_export17','tests.test_r1_build16','tests.test_r1_build15','tests.test_r1_build14','tests.test_r2_build_n1','tests.test_r2_n1fix','tests.test_r2_n1fix3','tests.test_r2_build12','tests.test_r1_build13','tests.test_r2_build3.Build3.test_opener_export_keep_and_reset','export_mutation17.HashTwin.test_same_size_shard_refuses']
 suite=unittest.defaultTestLoader.loadTestsFromNames(modules)
 r=unittest.TextTestRunner(verbosity=2).run(suite)

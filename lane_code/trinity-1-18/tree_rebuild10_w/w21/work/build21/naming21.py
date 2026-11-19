@@ -47,7 +47,7 @@ INPUT_IDENTITIES={
 ROOM_RULE_PATH=('entries','u/a4509d8c159f71f81d0f82adad8e85ef8135d17363084e7281fadddea04c9c5c','@content','room_rule')
 ROOM_RULE='Only production-admitted traced rows can enter; initial cell zero until the loader audit binds them.'
 
-def scan_python_environment(tree,name,doc):
+def scan_python_environment_literals(tree,name,doc):
     """Check every literal contribution to environment sinks, including aliases.
 
     Name bindings and mapping mutations are followed conservatively across scopes.
@@ -126,6 +126,13 @@ def scan_python_environment(tree,name,doc):
                 if value is not None:inspect(value,where)
             sinks.append(dict(location=where,expression=ast.unparse(node)))
     return sinks
+
+def scan_python_environment(tree,name,doc):
+    from environment21f import scan_python
+    sinks=scan_python_environment_literals(tree,name,doc)
+    scan_python(tree,name,doc)
+    return sinks
+
 def neutral_map(value):
     def visit(v):
         if isinstance(v,dict):return {k:visit(x) for k,x in v.items()}
@@ -150,6 +157,7 @@ def scan_decoded(kit):
     from launch_r2.build import bad_string,WORDS
     kit=Path(kit);wh=json.loads((kit/'b/wh.json').read_text());checked=[]
     maps=[];names=[];provenance=[];capsules=[];environments=[]
+    python_sources=[];shell_sources=[]
     # Repeat identities still count as visited; memoize only the pure word test.
     @lru_cache(maxsize=None)
     def forbidden(value):return bad_string(value,wh)
@@ -228,6 +236,7 @@ def scan_decoded(kit):
             if forbidden(line):raise ValueError('EXECUTABLE_NAME:'+p.name+':'+str(n)+':'+line)
             shell_lines.append(line)
         for token in shlex.split('\n'.join(shell_lines),comments=False):name(token,str(p.relative_to(kit))+':shell')
+        shell_sources.append((str(p.relative_to(kit)),raw.decode()))
         checked.append(str(p.relative_to(kit)))
     # Check p_files first so the reviewed defect is reported directly, before ancillary metadata.
     paths=sorted(kit.rglob('*.json'),key=lambda p:(str(p.relative_to(kit))!='k/p.json',str(p.relative_to(kit))))
@@ -244,13 +253,18 @@ def scan_decoded(kit):
         visit(value,relative);maps.append(relative)
     for p in sorted(kit.rglob('*.py')):
         tree=ast.parse(p.read_text())
-        environments.extend(scan_python_environment(tree,name,str(p.relative_to(kit))))
+        environments.extend(scan_python_environment_literals(tree,name,str(p.relative_to(kit))))
+        python_sources.append((str(p.relative_to(kit)),tree))
         for node in ast.walk(tree):
             if isinstance(node,ast.Constant) and isinstance(node.value,str):
                 s=node.value
                 if s and not any(c.isspace() for c in s) and pathlike(s):
                     name(s,str(p.relative_to(kit))+':'+str(node.lineno))
         checked.append(str(p.relative_to(kit)))
+    # Preserve every named 21d refusal before checking completeness of the proof.
+    from environment21f import scan_python,scan_shell,ENVIRONMENT_VALUE_ALLOWLIST
+    for relative,tree in python_sources:scan_python(tree,name,relative)
+    for relative,source in shell_sources:environments.extend(scan_shell(source,name,relative))
     # These pinned maps are supplied by P on the job host. The runtime scanner checks
     # their complete decoded keys/values after P's byte authentication, before publication.
     operational=json.loads(decode(json.loads((kit/'k/l.json').read_text()),'k/l.json'))
@@ -258,8 +272,11 @@ def scan_decoded(kit):
     return dict(status='PASS',executables=checked,decoded_maps=maps,checked_strings=len(names),
         capsule_hashes_checked=capsules,provenance=provenance,names=names,runtime_maps=runtime_maps,
         provenance_allowlist=PROVENANCE_FIELDS,environment_sinks=environments,
+        environment_value_allowlist=sorted(ENVIRONMENT_VALUE_ALLOWLIST),
         scope='All kit paths and every decoded map key/string value, including every nested payload. '
               'Only exact, named authenticated content identifiers are allowed; no subtree is skipped. '
-              'Shell tokens, Python path literals and literal contributions to environment names/values '
-              '(assignments, update, putenv and env dictionaries, including aliases) are checked. '
-              'Runtime-provided paths and inherited environment are runtime inputs, not statically evaluated.')
+              'Shell tokens, Python path literals and environment names/values are checked. '
+              'Unresolved environment writes and maps refuse; only explicitly allowlisted literal '
+              'keys may have runtime values. Only an unmodified whole-environment spread/copy '
+              'may inherit names; added keys and values are checked. Complex shell requires '
+              'an exact reviewed source hash and a per-program literal-name runtime allowlist.')

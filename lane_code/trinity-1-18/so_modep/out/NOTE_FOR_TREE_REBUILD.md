@@ -1,30 +1,57 @@
-Apply these patches after N's first proof, in a fresh rebuild of build 21 (`b262e7a7`). Keep both switches OFF for the initial rebuilt proof. The two patches apply independently; their file lists do not overlap. The manifest binds each patch and each changed file.
+Both switches OFF on N's first launch. ON from the next launch only after one production launch shows parity on real stores. Synthetic fixture parity does not satisfy this adoption gate. Keep either switch OFF while its production parity evidence is missing.
+
+Apply the independent patches to a fresh build-21 tree, base seal `b262e7a7`, and rebuild the authenticated source archive, tree/configuration seals, executable inventory, scan certificate and kit through N's normal process. Never reuse the input seal for changed source. The manifest records patch hashes and every base/patched file hash.
 
 ```bash
-cd <fresh-build-21-native-tree>
 patch --batch --fuzz=0 --no-backup-if-mismatch -p1 < /scratch/jjyeung/orch_n30/so_modep/out/patches/01_fast_paths.diff
 patch --batch --fuzz=0 --no-backup-if-mismatch -p1 < /scratch/jjyeung/orch_n30/so_modep/out/patches/02_selected_sql.diff
 ```
 
-Rebuild the source archive, tree/configuration seals, executable inventory, scan certificate and launch kit through N's normal process. Run its normal proof and review gates. Changing authenticated source necessarily changes its source seal; never reuse the old seal. No configuration field, receipt schema, frame identity, RNG draw, selection rule or authentication check is removed by these patches.
+`S1_PREP_FAST_PATHS=1` enables equivalent lexical path arithmetic and a bounded cache of parsed mapping text. It caches no resolved path, file status or hash. `S1_PREP_SELECT_SQL=1` enables ordered sparse SQLite queries, at most 256 keys each; dense prefixes retain the native full scan. Unset, `0`, and every value other than `1` leave each switch OFF. Every pin hash, filesystem check, selection rule and refusal remains active.
 
-`S1_PREP_FAST_PATHS=1` enables patch 01. Every other value, including unset, keeps the original path operations. The switch replaces lexical path ancestry walks and repeated JSON mapping parsing with equivalent component comparisons and a bounded text-parsing cache. It caches no resolved path, file status or SHA. Every original resolution, containment check and file check still runs. The source map remains dynamic, including `Q_E1`/`Q_E4` aliases.
+Both switches have process-wide scope. The training and resume legs inherit them: `launch_s1/b/r.sh:29-40` starts mode p as a child, then continues with the same environment. Patch 01 can therefore affect training-time `resolve_read`, and patch 02 can affect prepared-store validation outside mode p. This delivery proves CPU preparation parity; it does not prove full production training behavior.
 
-`S1_PREP_SELECT_SQL=1` enables patch 02. Every other value keeps the original scans. For a selected-index set with density below one quarter of its zero-based prefix, SQLite reads selected payloads in ascending index order using at most 256 bindings per query. Dense selections keep the original scan. All source pin hashes, expected-population checks, retained-row checks, missing-index checks and final original-index ordering remain. No write pragma or output database layout changes.
-
-Enable patch 01 alone on the first timed launch of the rebuilt kit. The wrapper does not unset either switch (`launch_s1/b/r.sh:6-8,56`), and `tk_env` does not overwrite them. Record their values and the actual worker Python version in the operator's launch record. Leave production OMP/MKL/OpenBLAS settings, Torch thread settings, input paths and all admission controls unchanged.
-
-Use the existing phase journals for timing. `resources.seconds` measures the prepare action and the frame-audit action. The full mode-p launch/exit timestamps measure total elapsed time. Their difference includes revalidation, hashing and publication outside those actions. Copy only the small receipts/logs through the lane's existing approved channel; this patch adds no transfer. The delivered read-only helper prints these fields, retained source denominators and receipt mtimes:
+Set the switches in the generated `<kit>/b/r.sh`, immediately after `export PATH=/usr/local/bin:/usr/bin:/bin` (input line 4), before `export TK_JOB_START`. Its source template is `launch_s1/b/r.sh`. Use these exact two lines for N's first launch:
 
 ```bash
-nice -n 10 <native-python> -I -s -B /path/to/measure_modep.py <native-admission-directory> \
-  --launch-utc <launch-p-UTC> --exit-utc <exit-rc0-UTC>
+export S1_PREP_FAST_PATHS=0
+export S1_PREP_SELECT_SQL=0
 ```
 
-The helper is delivered at `/scratch/jjyeung/orch_n30/so_modep/work/measure_modep.py`. Keep its stdout outside the authenticated native output tree. Receipt mtimes can estimate pointing/VQA/routing boundaries, but they are not isolated CPU timers. Compare frame time per retained frame reference, prepare time with matched row counts, and total mode-p time against an OFF launch with the same inputs, node storage class and Python build. A single ON launch cannot establish causal savings; do not rerun production preparation merely to fill a timing table without the lane's authorization.
+Only after the real-store parity gate passes may the next launch change each approved line to `export S1_PREP_FAST_PATHS=1` / `export S1_PREP_SELECT_SQL=1`. Regenerate the kit's inventory and content-scan certificate after any shell edit; do not edit an authenticated deployed kit in place. The switch names pass the build-21 naming scanner.
 
-For patch 02, first inspect the retained index files already named by the prepared receipt. Its benefit applies to sparse selections; dense selections deliberately retain the native scan. Enable it alone on a comparable subsequent launch, then compare native preparation, the post-prepare residual, frame time and row denominators. Do not add the two estimated savings: both touch work inside the same phase envelopes. Leave patch 02 OFF if the selected sets are dense or the timed launch does not improve.
+The operator must record both values beside the job ID in `<kit>/o/modep_switches.jsonl`, the launch ledger. Each row must contain `job_id`, `S1_PREP_FAST_PATHS`, `S1_PREP_SELECT_SQL`, the rebuilt source seal, worker Python version, UTC time, and paths to the OFF baseline and real-store parity evidence. Existing native receipts do not record these switches. Keep the ledger outside the authenticated admission output directory.
 
-Watch the existing refusal messages, phase completion markers, source counts, scene exclusion reports, frame reference/unique counts and fixed samples. Any missing or changed input must still refuse. Check the real worker Python version: the measured path improvement comes from Python 3.12, and a runtime with different pathlib internals may save less. If either switch regresses latency or produces a mismatch, return that switch to OFF and retain the failed artifacts for review. Never adopt a partial phase or relaunch a cluster-killed job automatically.
+The first production launch must publish its native OFF outputs. Before enabling either switch for a later launch, the orchestrator must validate OFF/ON parity against that launch's actual retained stores and physical frames in an isolated shadow check. The shadow check may enable a switch inside its comparison process; the first production job's launch environment remains OFF. The check must preserve source bytes, selections, physical paths, rebuilt code and request identity. It must exercise the enabled functions and compare full ordered row payloads, not merely final index counts. A second OFF run or synthetic fixture alone is insufficient. This lane has not run the shadow check or authorized extra production preparation.
 
-CPU fixture parity compares every mode-p file at identical paths and UUIDs, with only native elapsed-time and peak-RSS telemetry fixed by the test harness. These fixture controls are not production changes. The focused CPU suites run with CUDA hidden, eight-thread limits and affinity to eight CPUs. `work/run_gloo.sh` runs the delivered two-rank frame parity test and native checkpoint-buffer tests on a lane where sockets work; it has not run in this sandbox. Production throughput and GPU training remain unmeasured.
+Compare all mode-p files, including these named files beneath the native admission directory (UUID components vary):
+
+- `prepare_<uuid>/pointing/rows.sqlite`, `vqa/rows.sqlite`, `routing/rows.sqlite`, and `composed/rows.sqlite`, together with each adjacent `receipt.json`.
+- `prepare_<uuid>/prepared/vqa_indices.json`, `vqa_scene_indices.json`, `pointing_scene_indices.json`, `routing_scene_indices.json`, `pose_mix_order.json`, `pose_scene_order.json`, `receipt.json`, and `s1_receipt.json`.
+- `prepare_<uuid>/config.json`, `handover.json`, `parent_grounding.json`, `result.json`, routing materialization/pool files, and composed membership/intake files.
+- `frames_<uuid>/frame_inventory.sqlite`, `frames.json`, and `result.json`: compare inventory bytes, per-source rows/reference/unique counts, and every fixed-sample path and hash.
+- `request.json`, `data_receipt.json`, `phase_prepare.complete.json`, `phase_frames.complete.json`, and their UUID publication copies.
+
+`out/tests/review1_file_parity.json` lists every fixture filename and digest as a checklist; production may add files. Compare the complete production file set. For exact byte comparison, the isolated check must replay the same paths and identities as the baseline without overwriting production outputs. Fix only the native telemetry `resources.seconds` and `resources.peak_rss_kib` in the comparison harness, as the delivered CPU harness does. Dependent hashes must be recomputed by native publication, not discarded by the comparator. If the orchestrator cannot preserve identities or account for an authenticated difference, parity remains unproved and the switches remain OFF.
+
+Read native phase timing through `phase_prepare.complete.json` and `phase_frames.complete.json` into their `result.json` payloads; `data_receipt.json` also exposes `phase_resources.frames.seconds`. Use `work/measure_modep.py` on the OFF launch's admission directory:
+
+```bash
+nice -n 10 <native-python> -I -s -B /path/to/measure_modep.py <OFF-admission-directory> --launch-utc <UTC> --exit-utc <UTC>
+```
+
+The helper reports `estimated_path_saving_seconds = 0.264 * OFF phase_resources.frames.seconds`. This is a fixture extrapolation, not a measured saving. Planning bound: **≤18.5 min, estimated (possibly 0)**. The 40–70 minute path-heavy share is unmeasured, and warm 256-byte local files do not reproduce Orchard storage latency. Patch 02 contributes zero additional minutes to the estimate. On a later approved ON launch, compare actual frame seconds per reference, matched preparation time, the post-prepare residual, and total mode-p time against the OFF baseline. Do not count the estimate as an observed reduction or add overlapping phase estimates.
+
+Any byte, row-order, count, sample, pin or refusal mismatch blocks adoption. A latency regression returns the affected switch to OFF. Preserve failed artifacts. Never relaunch a cluster-killed job automatically.
+
+## Review round 1: finding -> fix -> test
+
+| Finding | Fix | Regression and deliberately broken variant |
+|---|---|---|
+| 1 MEDIUM: sparse chunks lacked ordered parity | Select 820 of 4,096 rows; four chunks per pass, table and view; compare full ordered events and native inventory bytes | `test_multichunk_sparse_events_and_order_sensitive_output` and `test_multichunk_frame_inventory_bytes_are_order_sensitive` pass. Reversing chunk traversal fails both; reversing rows fails the ordered test. |
+| 2 LOW: no positive path proof; degenerate frames | Count both fast helpers; assert zero calls OFF and positive calls ON; use 32 physical frames per native source | `test_switch_reaches_fast_resolver_only_when_on`, the sparse spy assertions, and `work/native_parity.py` pass. Ignoring either ON switch fails its test; the one-frame fixture fails the native harness. |
+| 3 LOW: parser source spelling | Reuse `mapping.__getattribute__("sp" "lit")` | `test_mapping_parser_preserves_source_spelling` passes; restoring the literal attribute spelling fails it. |
+| 4 LOW: savings claim exceeded evidence | State the bounded estimate and compute it from OFF frame telemetry | `work/test_review_contracts.py` checks the claim, arithmetic and helper output; an inflated headline and changed multiplier each fail. |
+| 5 LOW: scope/provenance undocumented | Name process-wide inheritance, the exact kit lines and the per-job ledger | The document contracts pass; removing scope, a switch line, or the ledger requirement fails. |
+
+Run `work/validate_matrix.py` with `work/env.sh` to include the new tests in all four configurations; N's focused list alone does not include them. `TMPDIR` must point to retained scratch fixtures. `work/run_gloo.sh` remains a socket-enabled lane follow-up; it checks CPU inventory digests across ranks, not a distributed fast path. Production real-store parity, production timing and H100 training remain outstanding.

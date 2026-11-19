@@ -84,17 +84,23 @@ if PART in ('A', 'B'):
         f = c['dense_frames'][1]; assert sha(f['path']) == f['sha256']
         with Image.open(local(f['path'])) as im: img = im.convert('RGB')
         tower = Sam3Tower(dict(device='cpu', checkpoint_path=m['sam_checkpoint']['path'], receipt_path=m['sam_receipt']['path'], source_root=str(source), precision='float32'))
-        # Trace-only shim: upstream position encoding precomputes on device="cuda".
-        _zeros = torch.zeros
-        def zeros_cpu(*a, **k):
-            if str(k.get('device', '')).startswith('cuda'): k['device'] = 'cpu'
-            return _zeros(*a, **k)
-        torch.zeros = zeros_cpu
-        try: tower._load()
-        finally: torch.zeros = _zeros
-        feats = tower.encode([img])
-        name = sorted({n.strip().lower() for r in c['rows'] for n in r.get('operands', [])})[0]
-        dets = sam3_detect(tower, feats, name)
+        # Trace-only shim: upstream SAM 3 builders allocate with a literal device="cuda".
+        saved = {n: getattr(torch, n) for n in ('zeros', 'ones', 'arange', 'empty', 'full', 'tensor', 'linspace', 'randn', 'rand')}
+        def to_cpu(fn):
+            def wrapped(*a, **k):
+                if str(k.get('device', '')).startswith('cuda'): k['device'] = 'cpu'
+                return fn(*a, **k)
+            return wrapped
+        for n, fn in saved.items(): setattr(torch, n, to_cpu(fn))
+        _pin = torch.Tensor.pin_memory; torch.Tensor.pin_memory = lambda self, *a, **k: self
+        try:
+            tower._load()
+            feats = tower.encode([img])
+            name = sorted({n.strip().lower() for r in c['rows'] for n in r.get('operands', [])})[0]
+            dets = sam3_detect(tower, feats, name)
+        finally:
+            for n, fn in saved.items(): setattr(torch, n, fn)
+            torch.Tensor.pin_memory = _pin
         print('sam3 detections', len(dets), len(dets[0]), flush=True)
         del tower, feats; gc.collect()
     phase('cpu_pricing')

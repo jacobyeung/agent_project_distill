@@ -117,7 +117,7 @@ class ReviewTests(unittest.TestCase):
                          f'VERDICT: GO\n```\n{word}\n```'):
                 with self.subTest(text=text):
                     if (os.environ.get('LCS_REVIEW2_FIXES') == '1' and text.startswith('VERDICT: GO\n')
-                            and word in ('no-go', 'reject', 'REJECTED')):
+                            and word in ('no-go', 'reject')):
                         self.assertEqual(self.review(text)[0], 'GO')
                     else:
                         with self.assertRaises(kit.Refusal):
@@ -361,6 +361,8 @@ class FakeGit:
             raise kit.Refusal('simulated command failure')
         if args[0] == 'symbolic-ref':
             return self.branch
+        if args[:2] == ['remote', 'get-url']:
+            return (str(Path(argv[6]).parent.parent / (args[-1] + '.git')) + '\n').encode()
         if args[:2] == ['rev-parse', 'HEAD']:
             return (self.head + '\n').encode()
         if args[0] == 'ls-remote':

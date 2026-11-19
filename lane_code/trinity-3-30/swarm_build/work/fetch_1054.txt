@@ -1,0 +1,297 @@
+=====STAGE
+{
+ "by_group": {
+  "A": {
+   "gt_rasters": 1104720171,
+   "k1_frames": 5205994469,
+   "k1_per_capture": 2344038329,
+   "kit_folder": 27372734,
+   "other": 562356,
+   "python_env": 7925596991,
+   "weights": 5627166200
+  },
+  "B": {
+   "gt_rasters": 1104720171,
+   "k1_frames": 5205994469,
+   "k1_per_capture": 2652245424,
+   "kit_folder": 27372734,
+   "other": 6354482,
+   "python_env": 7936394449,
+   "weights": 9077228441
+  },
+  "C": {
+   "devs1_frames": 822710679,
+   "kit_folder": 28640408,
+   "other": 3084037,
+   "python_env": 7925596991,
+   "weights": 12386724300
+  },
+  "H": {
+   "gt_rasters": 249952650,
+   "k1_per_capture": 543332005,
+   "kit_folder": 22734125,
+   "other": 213869
+  }
+ },
+ "missing": [
+  "/scratch/jjyeung/orch_n30/sb_kbox2/heldout_labels.json"
+ ],
+ "rows": 24303,
+ "seconds": 10.060248374938965,
+ "totals": {
+  "A": {
+   "bytes": 22235451250,
+   "entries": 20528
+  },
+  "B": {
+   "bytes": 26010310170,
+   "entries": 20358
+  },
+  "C": {
+   "bytes": 21166756415,
+   "entries": 3566
+  },
+  "H": {
+   "bytes": 816232649,
+   "entries": 352
+  },
+  "union": {
+   "bytes": 33986703045,
+   "entries": 24297
+  }
+ },
+ "trace_check": {
+  "A": {
+   "traced_data_files": 215,
+   "unlisted": [
+    "/scratch/jjyeung/k1/own_170235/native/probe/48f3924ccb5dd8b6/own.npz",
+    "/scratch/jjyeung/k1/run_convert_2/48f3924ccb5dd8b6/candidates.json",
+    "/scratch/jjyeung/k1/run_convert_2/48f3924ccb5dd8b6/geometry.npz",
+    "/scratch/jjyeung/k1/run_tower_sam_2/48f3924ccb5dd8b6/PHASE_COMPLETE.json",
+    "/scratch/jjyeung/orch_cd/dose_pool/out/arkit_gt/gt/41069175.npz"
+   ]
+  },
+  "B": {
+   "traced_data_files": 215,
+   "unlisted": [
+    "/scratch/jjyeung/k1/own_170235/native/probe/48f3924ccb5dd8b6/own.npz",
+    "/scratch/jjyeung/k1/run_convert_2/48f3924ccb5dd8b6/geometry.npz",
+    "/scratch/jjyeung/k1/run_tower_sam_2/48f3924ccb5dd8b6/PHASE_COMPLETE.json",
+    "/scratch/jjyeung/orch_cd/dose_pool/out/arkit_gt/gt/41069175.npz"
+   ]
+  },
+  "C": {
+   "devs1_equal": true,
+   "devs1_listed": 3264,
+   "devs1_traced": 3264,
+   "traced_data_files": 3473,
+   "unlisted": []
+  }
+ }
+}
+=====PHRASE
+# Mask phrase kit, part 1: written phrases on stored SAM 3 pools, K1 training captures
+
+K1 training captures only: 1,037 distance rows, 209 captures, 192 rooms, 2,074 row operands; refusals score 0; A0 (deployed) = 56.77. Contrasts are paired against A0 over 10,000 room draws (seed 20261119). Safe rows: the 456 rows whose two operands are good under A0. Bars were frozen in BARS.json (sha256 150d16a232b42d86...) before any score. W arms choose each name's phrase on the other four folds' captures.
+
+| Arm | The ground call | MRA [95% CI] | minus A0 [95% CI] | Refusals | Safe rows minus A0 [95% CI] | Pool recall of 2,074: floor / lift | phrase_worth | phrase_safe |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| P0 | raw name (deployed) | 56.77 [52.48, 61.04] | +0.00 [+0.00, +0.00] | 36 | +0.00 [+0.00, +0.00] | 1,804 / 1,757 | parity PASS 1,037/1,037 | - |
+| P_all | raw + every stored alias, one pool | not priced | not priced | - | - | 1,883 / 1,856 (in-sample) | - | - |
+| P_cf | P_all or raw per name, fold-chosen | not priced | not priced | - | - | 1,867 / 1,844 (ceiling, held-out) | - | - |
+| P_cap100 | raw name, cap 100 | 56.77 [52.48, 61.04] | +0.00 [+0.00, +0.00] | 36 | +0.00 [+0.00, +0.00] | 1,804 / 1,757 | FAIL (diag.) | PASS (diag.) |
+| W1 | one written phrase, fold-chosen | 60.50 [56.02, 64.81] | +3.73 [+2.05, +5.48] | 22 | +0.46 [+0.00, +1.22] | 1,867 / 1,820 | PASS | PASS |
+| W2 | raw; alias fills empty frames | 60.36 [55.87, 64.67] | +3.59 [+1.91, +5.35] | 22 | +0.42 [+0.00, +1.17] | 1,860 / 1,813 | PASS | PASS |
+| W2c | raw; second call if not seen | 57.86 [53.34, 62.32] | +1.09 [+0.04, +2.40] | 22 | +0.00 [+0.00, +0.00] | 1,818 / 1,771 | FAIL | PASS |
+
+**Decision.** W1 passes phrase_worth and phrase_safe; its all-room policies are frozen in PHRASE_SET.json for the model to write in its ground call. Shippable arms passing both bars: W1, W2; the passing arm with the highest MRA is chosen. The ceiling P_cf puts 1,844 of 2,074 operands in reach at the lifting floor (W1: 1,820; P0: 1,757). P_all and P_cf are not priced: their frames mix presences, and routed_features.cache_for keeps only the first instance's presence, so they appear as pool recall only (floor: score x presence >= 0.05; lift: score >= 0.3 as well).
+
+## Phrases that carry it
+
+Frozen phrase set (PHRASE_SET.json, arm W1, refit on all rooms): heater -> radiator.
+
+| Name | Objects | All-room policy W1 / W2 / W2c | W1 folds 0-4 | W1 on target, all rooms: best alias / raw | W1 held-out on target, fold policy / raw | Rows | Paired gain of its rows W1 / W2 / W2c |
+|---|---:|---|---|---:|---:|---:|---|
+| heater | 20 | radiator / then radiator / then radiator | radiator,radiator,radiator,radiator,radiator | radiator 16 / 4 of 20 | 16 / 4 of 20 | 84 | +46.07 [+33.92, +58.26] / +44.29 [+30.80, +57.39] / +13.45 [+0.56, +29.26] |
+| coat hanger | 3 | raw / raw / raw | raw,raw,raw,raw,raw | coat rack 1 / 0 of 3 | 0 / 0 of 3 | 8 | - / - / - |
+
+Paired gain: arm minus A0 on every row that names the object, 10,000 room draws. Fit counts are all-room; held-out counts use each fold's own choice. Every name, arm and fold: DECISION.json by_name.
+
+## Rows to rewrite
+
+| Arm | Names whose phrase changes | K1 training rows that name them (of 1,037) | By name | Rows needing the second call |
+|---|---|---:|---|---:|
+| W1 (chosen) | heater -> radiator | 84 | heater 84 | - |
+| W2 | heater -> heater then radiator | 84 | heater 84 | 84 |
+| W2c | heater -> heater then radiator | 84 | heater 84 | 14 |
+
+Names whose in-sample best policy differs but that have fewer than five objects stay raw: coat hanger (3 objects, 8 operands; best W1 coat rack, W2 then coat rack, W2c then coat rack). K1 rows naming heater or coat hanger: 91 (design lane: 91). Routed training rows of N: MISSING (owner tree_rebuild; expected: N's routed training rows (rows carrying <ground obj=...> calls), held by tree_rebuild; not on trinity-1-18). Not opened: sb_ktow3 routed file with sha256 prefix 8855c81e (a dev-S1 return set): the binding brief keeps it closed; /scratch/jjyeung/n30_mirror/rows_r1 (store v7 and its slices): unrouted store rows; its STATUS.md records rows on K1 held-out rooms in the store family (v6), so the kit did not open it.
+
+## Operands and served masks (2,074 row operands)
+
+| Arm | Good | Wrong object | Weak | Poor priced frame | Refused | Served IoU >= 0.5, visible frames | Priced-frame IoU mean | Masks on raster-absent frames |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| P0 | 1356 | 319 | 188 | 175 | 36 | 44.2% of 13,793 | 0.560 | 976 |
+| P_cap100 | 1356 | 319 | 188 | 175 | 36 | 44.2% of 13,793 | 0.560 | 976 |
+| W1 | 1408 | 270 | 188 | 186 | 22 | 46.7% of 13,793 | 0.582 | 901 |
+| W2 | 1396 | 272 | 193 | 191 | 22 | 46.8% of 13,793 | 0.580 | 913 |
+| W2c | 1369 | 319 | 188 | 176 | 22 | 44.7% of 13,793 | 0.565 | 976 |
+
+## Merge member precision and first-seen order (bars 90%), contrasts by dataset
+
+| Arm | Member precision tau 0.25 / 0.15 / 0.40 | First-seen pair rate | arkitscenes minus A0 (344 rows) | scannet minus A0 (72 rows) | scannetpp minus A0 (621 rows) |
+|---|---:|---:|---:|---:|---:|
+| P0 | 72.5% / 73.3% / 73.1% | 76.6% | +0.00 [+0.00, +0.00] | +0.00 [+0.00, +0.00] | +0.00 [+0.00, +0.00] |
+| P_cap100 | 72.5% / 73.3% / 73.1% | 76.6% | +0.00 [+0.00, +0.00] | +0.00 [+0.00, +0.00] | +0.00 [+0.00, +0.00] |
+| W1 | 72.2% / 73.1% / 73.0% | 78.9% | +0.00 [+0.00, +0.00] | +0.00 [+0.00, +0.00] | +6.23 [+3.64, +9.20] |
+| W2 | 72.5% / 73.3% / 73.2% | 78.6% | +0.00 [+0.00, +0.00] | +0.00 [+0.00, +0.00] | +5.99 [+3.41, +8.99] |
+| W2c | 72.5% / 73.3% / 73.1% | 77.5% | +0.00 [+0.00, +0.00] | +0.00 [+0.00, +0.00] | +1.82 [+0.07, +4.16] |
+
+Arms reaching 90% member precision at some threshold: none; reaching 90% first-seen pair order: none. Member precision is the ladder's test (added members whose majority raster instance equals the seed's).
+
+## Checks and caveats
+6e5dd8f48e653f97959a956cdf355e6529d14c5a21ec657d466e4a69f4f064e9  sb_mask_phrase.tar
+=====MDREV2
+REJECT — the attribution largely reproduces, but v2 has an exclusion conflict and mandatory CPU checks that cannot run unchanged. Escalate open items to the orchestrator; no third rewrite.
+
+Q1. Are the numbers right? A0 56.7695, A2 73.9730 and +17.2035 on 1,037 rows reproduce. The proposal partition is 9.8457088 + 6.0077146 = 15.8534233; REVIEW_RESPONSE line 6 must not assert the rounded equality “15.85 = 9.85 + 6.01”. New lifting-floor counts reproduce: raw 1,757, single phrase 1,828, pooled 1,856; 11 rows contribute 0.2796528 and 137 contribute 5.7280617. The rewrite screen counts 91 K1 rows; that is not the routed-store rewrite count.
+Q2. Is anything counted twice? No, in the disjoint attribution partitions. Candidate gains and frame interventions overlap; the +4.1 oracle comparison is not additive. V2 states this and requires stack pricing. Repeated row operands are weights, not distinct objects.
+Q3. Does anything select outside K1 training captures? No outside-K1 selection is prescribed; dev-S1-based tile rejection is removed. However, K1-train membership does not establish legality: six training captures occupy five withheld-80 rooms, and five of those captures supply 25 priced rows. R0, dev-S1, BENCH v2 and K1-held-out intersections are zero under the specified checker. See N1.
+
+Original findings, retaining their numbers:
+1. OPEN — the primary numbers and corrected partition round correctly, but REVIEW_RESPONSE:6 asserts a false rounded equality. Print the unrounded partition above or mark the components as independently rounded.
+2. CLOSED — design:10,13 explicitly prohibit adding the oracle gain or candidate ranks; the saved NUMBERS.json confirms disjoint row counts.
+3. CLOSED — design:58 removes dev-S1 selection; all specs identify R0 and the checker. LEGALITY_V2.json verifies zero R0 overlap; N1 is the newly verified withheld conflict.
+4. CLOSED — DATA_AUDIT.json verifies one matching label/instance on all 2,074 operands; the design preserves the limitation on same-name discrimination.
+5. CLOSED — design:11,38 disclose row-weighted versus distinct veto counts and missing vetoed masks; CACHE_AUDIT.json and ALIAS_AUDIT.json support the claims. ALIASES_V2.json verifies the new lifting-floor counts.
+6. OPEN — the intervention and first-anchor corrections are valid, including 995/2,074 and 1,326/2,074; the 0.1% variant reproduces 1,076/2,074 and 1,416/2,074. But design:11 still says misses are “not a cut-off”. Replace that claim with “presence veto and vocabulary are measured; lowering the joint floor remains untested,” consistent with design:57.
+7. CLOSED — original DATA_AUDIT.json verifies raster/frame coverage; design:20,48 marks the non-K1 expansion MISSING and prohibits use without manifests and exclusions. Training eligibility is separately blocked by N1.
+8. CLOSED — design:3,13,40 labels gains/times as estimates; all specs require timing receipts, and fine-tune:41 budgets the final fit separately. The teacher arithmetic is 0.0635174 GPU-seconds per prompt-frame, not a measured tracker/adapter rate.
+9. CLOSED — phrase:21–24,33,38,43 specify single-prompt calls or fallback calls, per-proposal presence checks, rebuilt identities, fold policies and rewrite counts. Cached alias deduplication is disclosed; standalone reruns remain necessary evidence before shipping. The served-read question remains open below.
+10. CLOSED — carry:26–27,35–36 restores dominant-instance agreement over all seeded objects, separates target-IoU diagnostics, uses fold-specific phrases and makes missing evidence fail. Source train_pricing.majority and summarize_train.precision support the specified predicate; N2 blocks its CPU dry run.
+11. OPEN — checkpoints, modules, fold vocabularies and reporting language are specified, but fine-tune:12 leaves the loss YAML/fully resolved configuration unspecified. Its small-instance “no loss” rule at line 20 has no demonstrated implementation in IABCEMdetr: unmatched queries receive negative BCE. Pin the exact loss configuration and an ignore implementation with a zero-gradient probe; retain the optimizer/resume test. N1/N2 also block execution.
+12. CLOSED — the new sam3.pt exists and hashes to 9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e; all six receipt source hashes match. The tracker, loss and matcher classes exist locally. K1_TRACK.json remains optional/MISSING and carry explicitly runs its own tracker.
+13. CLOSED — each spec requires BARS_FROZEN.json before pricing; the design requires the stack/bar registration before R0-dev. All five pins are present in all three specs. Fine-tune:49,60 explicitly mandates sb_auditfix2 and a planted R0 test before training; its zero-overlap precondition currently fails under N1.
+
+NEW blocking defects:
+N1. The fine-tune contract requires all 239 captures and zero exclusion hits simultaneously. Fixed sb_auditfix2 prepare/resolve finds withheld captures scannet/{scene0201_02,scene0255_01,scene0478_00,scene0478_01,scene0614_02,scene0692_03}; their five rooms are explicitly in pin 634820b4. Exclude these captures from adapter/head training and the final fit; obtain an orchestrator ruling on their use in phrase/fusion selection and the 25 priced rows, then freeze the approved populations and denominators. Do not manufacture a zero-hit receipt or silently redefine 239/1,037. LEGALITY_V2.json lists every affected row. The planted R0 row resolves correctly and hits R0 once, with zero hits in the other four sets.
+N2. The pinned source cannot satisfy the required real-model CPU dry runs unchanged. Both builders reach PositionEmbeddingSine(precompute_resolution=1008), whose constructor requests device="cuda" (position_encoding.py:55); a constructor probe intercepted this without executing CUDA. Provide a hashed CPU adaptation for precomputation and tracker state (init_state otherwise defaults storage to CUDA). Carry must also bind the pretrained backbone/tracker weights explicitly: build_tracker defaults to no backbone and does not load the checkpoint. These are source contracts, not missing source files.
+
+Per-spec verdicts:
+- Phrase: BUILDABLE AS WRITTEN for the authorized CPU part 1; report the actual five excluded captures/25 rows rather than assuming zero. This authorizes a diagnostic, not training on those rooms or shipping from approximate cached pools. Part 2 retains its placement GO and exact-rerun checks; downstream teaching rows require exclusion-compliant provenance.
+- Carry: BUILDABLE AFTER the N2 CPU/device and pretrained-weight bindings are explicit and tested; report the actual exclusion counts and obtain the N1 population ruling before selecting a stack.
+- Fine-tune: BLOCKED by N1, N2 and finding 11. The orchestrator must resolve the population, CPU adaptation and exact loss/ignore contract before any training, including its optimizer dry run and all-room fit.
+
+Served-reader escalation (ANSWER 1010Z item 2): mixed-presence inputs can be corrupted by cache_for/lift. The inspected live stage1.sam3_detect emits one prompt and one shared presence per frame, so this path does not trigger that defect. The supplied inputs do not bind steps 544, 200 or 400 to that exact path; impact on each is UNVERIFIED, not cleared. REVIEW_RESPONSE supplies neither that assessment nor a reviewed patch/handoff. The orchestrator should give cont_ops19 the step-specific provenance check and a reviewed per-proposal-presence fix for a later boundary; this read-only lane changed no served code.
+
+Reproduction: from this workspace, `bash run_review_v2.sh evidence` → EVIDENCE_V2.json (original five audits reused, spec pins, checkpoint/source hashes); `numbers` → NEW_NUMBERS.json (first-anchor variants, 91 rows, timing/spacing); `aliases` → ALIASES_V2.json (new recalls and 11/137 partition); `legality` → LEGALITY_V2.json (fixed checker, exact captures and planted row); `contracts` → CONTRACTS_V2.json (CPU constructor probe and loss/source evidence).
+Original attribution/coverage commands remain `/scratch/jjyeung/orch_n30/sb_mdrev/run_review.sh {numbers,data,cache,details,aliases}`; this review reused their saved outputs instead of writing there. Current MASKFAIL.json and PER_ITEM.jsonl hashes match the original attribution inputs. All new evidence JSONs record input SHA256 hashes and commands.
+Scope: trinity-1-18, CPU only, nice 10, at most eight threads and 39 GB address-space limit; workspace writes only. No GPU execution, network, SSH, Git, process termination or official-question access. Finding numbers are retained solely for the requested closure audit.
+=====CACHE
+# sb_cachefix: mixed-presence collapse in cache_for/lift
+
+No served read at steps 200 or 544 was affected, and the K1 ladder is unchanged: 0 of 770 selections and 0 of 1,037 printed gaps differ, so the paired gain is +0.00 [+0.00, +0.00]. The defect is latent. It bites only when alias or tile instances share one name's pool. The patch below fixes that case and leaves every single-presence output unchanged. Step 400 is MISSING. An independent review (`review/REVIEW.md`) approves the patch.
+
+## Code path (A4 bundle `src/`)
+- `b/e2e_reader/stage1.py:76-106` `sam3_detect` sends one raw-name prompt (`name_key`, :24, :82), computes one presence scalar per frame (:96) and stamps it on every kept instance (:104).
+- `stage1.py:134` passes those frames to `tree/student_pilot/routed_features.py:78-82` `cache_for`, which writes `values[0]["presence"]` as frame presence (:80) and drops it from instances. `tree/student_pilot/routed_candidates.py:87-116` `lift` then gives every instance `record['presence']` (:112), which feeds `link`'s joint ordering, `peak` and the selector's `presence_min/max`.
+- `b/e2e_reader` is byte-identical (13 files) in A4, `sb_headacc2/pack/r1_src/b` and `sb_kbox4/reader_src`. `routed_features.py` (736c5a64) and `routed_candidates.py` (9a200410) match in A4, `r1_src/tree`, the b04host3 tree that sb_mdrev probed and sb_kbox4 imports, and every out3 package (A, B, B4, B5, b1, b2). A4 also ships an older `h1eval/reader_core/e2e_reader` (cap 100, cross-name pools); the served read did not use it, since its journal carries diagnostics only `b/` writes.
+
+## When a pool mixes presences
+- Served reader: never. A call makes one prompt with no aliases, tiles or cache merges, and the perception memo caches encoder features only.
+- K1 kit caches with alias or tile contracts (`variantlib.py:12-16`; the stored K1 caches are `dense_aliases`): `variant_cache.py:19-32` `merge_record` keeps the raw prompt's record presence, tags raw instances with it (:21) and gives each alias or tile instance its own `source_presence` (:23). The IoU > 0.95 rule (:27) drops alias duplicates, so it removes mixing rather than creating it. "Multi-prompt" here means these merges.
+- sb_kbox4's `cache_detect` keeps only raw-name entries (`predicted.py:18`) and raises on mismatched presences (:20-21). Only a consumer that pools every entry, such as the mask-phrase spec's mixed-pool pricing, reaches the defect.
+- The patch leaves a related defect in place. `routed_features.detections` (:66, :73) stamps the record presence on every instance of a stored cache and ignores `source_presence`. No served read calls it, but `build_tables.extract` does, so a merged-pool experiment built that way would collapse again; fix it before running one.
+
+## Affected reads: frames where another instance's presence differs from the first by more than 1e-6
+| Read | Step | Pools | Frames with detections (≥2) | Mixed frames | Mixed names |
+|---|---:|---:|---:|---:|---:|
+| K1 stored caches, raw-name pool (served) | 544 | 209 captures | 8,553 (7,061) | 0 | 0/770 |
+| K1 stored caches, alias-merged pool (not served) | 544 | 209 captures | 9,307 (7,826) | 2,842; 1,218 at score ≥ 0.3 | 392/770 |
+| A4 read 0 | 200 | 176 | 1,602 (1,258) | 0 | 0 |
+| b1 read 0 / read 1 | 544 | 346 / 298 | 3,352 / 2,836 | 0 / 0 | 0 / 0 |
+| B5 read 0, b2 read 0 (room size only) | 200, 544 | 0 | 0 | 0 | 0 |
+| Step 400 | 400 | MISSING: `/scratch/jjyeung/step400/ret` (sb_callrate README); no step-400 package or journal under A4 `ret/` or out3 | | | |
+- Served journals record no per-instance presences, so the zeros rest on the code (`stage1.py:96, :104`) and on a vector check. In all 6,487 journaled candidates the raw-side `sam_presence_members` lies within lift's `[presence_min, presence_max]`, and it equals both exactly in all 4,434 single-member candidates.
+- In the K1 caches, raw-instance `source_presence` equals record presence in every frame (0 mismatches). In the merged pool, 19,064 instances would take another instance's presence.
+
+## K1 diagnostic (sb_kbox4 A0, 209 captures, 1,037 rows, 192 rooms, 10,000 room draws, seed 20261119)
+- Rerunning today's bytes reproduces sb_kbox4's published `A0_deployed` on 1,037/1,037 rows (prediction, box, refusal, member frames).
+- With the patch and per-instance presence, 0/770 selections, accepted lists, selector vectors and lifted proposals change, and so do 0/1,037 gaps and boxes. The paired MRA difference is +0.00 [+0.00, +0.00].
+- On alias-merged pools (diagnostic only, because the head was trained on raw-only tables), today's code leaves 1,227 of 9,834 candidates with raw presence outside lift's range; the patch leaves 0 of 9,826. The patch changes 39/770 selections and 74/1,037 rows, including 61 printed gaps. Patched minus today is −0.07 [−0.86, +0.70]. Both alias arms sit near +2.4 MRA above A0 on train; this is not a bar.
+
+## Patch and tests
+- `out/cachefix.patch` (+5/−2, two files): `cache_for` stores each instance's `presence`, and `lift` uses `instance.get('presence', record['presence'])`. None of the 145,161 stored K1 instances carries a `presence` key, so the fallback cannot pick up a field with another meaning. `cache_for` now requires `presence` on every entry rather than only the first; every producer, both `stage1.py` copies included, supplies it.
+- The other `lift` callers are unaffected because they run separate copies: `live_parity_adapter.py:133` and `ground_sources.py:116, :165` call `tree/ofs/core.py:87`, and `price_masks.py:21` calls the K1 kit's own `lift`.
+- It applies with `patch -p1` from the A4 bundle root; I verified this on copies only and edited no file outside this workspace.
+- `work/test_cachefix.py` (29 pass) covers:
+  - the A4 bytes are pinned, and unpatched code collapses 0.1/0.9 to 0.1/0.1;
+  - patched code keeps 0.1/0.9, with joints 0.09/0.72;
+  - 20 random single-presence pools are identical in `cache_for` (apart from the new key) and in every `Proposal` field;
+  - random mixed pools carry each instance's presence;
+  - real K1 caches lifted directly are identical.
+- The existing `tree/tests/test_s1_candidate_policy.py` passes 5/5 on unpatched and patched tree copies. The `work/k1compare.py` gates (parity, identity, single-presence) all pass.
+- Review: 29/29 tests pass on rerun. A probe of the full `StageOne.features` chain gives identical results on single-presence data, including float32 presences, 0-d tensor presences and tied scores. On mixed frames, 78 of 156 candidates fall outside lift's presence range before the patch and none after.
+- Landing: A4 `src/9.json` pins both modules' SHA-256, so a patched A4 cannot run in place. Land it at an epoch boundary with a new sealed package and bind, as `AGENTS.md` Provenance requires.
+
+Reproduce from this folder (CPU, nice 10, eight threads, under 39 GB): `./run.sh work/scan_mixing.py`; run `./run.sh work/k1diag.py {today,fixed,alias_today,alias_fixed} SHARD 2` on 8 single-threaded workers; then `./run.sh work/k1compare.py`; then `./run.sh -m pytest -q -p no:cacheprovider work/test_cachefix.py`.
+ebbd8d42bb7de829d8debbad027d658e9e9f2d0647bfa8c0bc79a7510a179279  out/sb_cachefix.tar
+=====CARRY
+# Two agent sessions share this workspace (written 2026-11-19T10:27Z by the new session, pid 635713)
+
+The orchestrator stopped the session that started at about 09:55Z (pid 562823) at 10:06Z, and started a new session at 10:16Z with a new `PROMPT.md` that builds from `in/v2/` only. Process 562823 is still alive and still writing `kit/` and `out/` against the superseded spec (`PHRASE_SET.json`, the old checkpoint and source paths).
+
+To session 562823: please stop writing here and exit. The new session leaves `kit/`, `out/FRAME_SETS.json`, `out/seeds/`, `out/dry/` and `work/` untouched, and builds the v2 kit in `kit_v2/`, `out/v2/` and `work/v2/`. It will not kill your process.
+
+To the orchestrator: the v2 deliverables are `out/KIT_REPORT.md`, `out/sb_mask_carry.tar` and `out/sb_mask_carry.tar.sha256`, built from `kit_v2/` and `out/v2/`, with authoritative copies at `out/v2/KIT_REPORT.md`, `out/v2/sb_mask_carry.tar` and `out/v2/sb_mask_carry.tar.sha256` (the stopped session may overwrite the `out/` copies). Files in `kit/`, `tests/` and the other `out/` paths come from the stopped session and are not part of the v2 kit.
+/scratch/jjyeung/orch_n30/sb_mask_carry/out: FRAME_SETS.json KIT_MANIFEST.sha256 KIT_REPORT.md QUESTIONS.md STAGING.json STAGING_FRAMES.txt dry sb_mask_carry.tar sb_mask_carry.tar.sha256 seeds v2  /scratch/jjyeung/orch_n30/sb_mask_carry/out/v2: BARS_FROZEN.json DRYRUN.json FRAME_SETS.json GUARD.json KIT_MANIFEST.sha256 KIT_REPORT.md QUESTIONS.md STAGING.json STAGING_FRAMES.txt STATUS_LOG.md dry sb_mask_carry.tar sb_mask_carry.tar.sha256 seeds 
+# Mask carry kit (v2): KIT_REPORT
+
+The v2 kit is built, and its CPU dry run passes steps 0 to 3; step 4 ran the real SAM 3 tracker end to end on one capture with 8 frames. No GPU was used. The GPU pass needs one 48 GB card for about 1.5 h, with a hard stop at 2.0 h. The bars were frozen at 10:34:03Z (`out/v2/BARS_FROZEN.json`, sha256 edff8724…), before any priced number.
+
+The code is in `kit_v2/`, the outputs in `out/v2/` and the logs in `work/v2/logs/`. The session stopped at 10:06Z (pid 562823) kept running and kept writing `kit/` and other `out/` paths against the superseded spec, so none of those files belong to this kit (`NOTICE_TWO_SESSIONS.md`). Where `out/KIT_REPORT.md` or `out/sb_mask_carry.tar` differ from their copies in `out/v2/`, the `out/v2/` copies are authoritative.
+
+## What is built (`kit_v2/`)
+- Seeds (`mc_seeds.py`): S_A0 is the A0 track's served mask on its largest frame; S_GT is the raster instance at its largest visible anchor; S_PHR reads fold-specific policies from `PHRASE_FOLDS.json` (`mc_phrase.py`: one phrase, or a pair whose second call runs only when the first leaves the object not seen) through the phrase kit's own pool functions.
+- Frame sets (`mc_frames.py`): D64 (64 dense frames) and A32 (the 32 anchors), with the frame-order check.
+- Tracker (`mc_tracker.py`, `mc_track_pass.py`): `build_sam3_video_model` with strict loading of the pinned checkpoint and source (both receipts checked), and its `Sam3TrackerPredictor`. Each capture's 64 frames are embedded once, then each seed propagates forward and backward; an anchor carries when the object score is positive. The pass resumes per (seed set, frame set, capture) under a code contract and per-set seed digests, keeps a cumulative budget ledger, writes `TIMING_RECEIPT.json` after the first 10 captures, drops trailing sets in the registered order while the projection exceeds 2.0 h, and records SIGTERM as KILLED, never rerun.
+- Pricing (`mc_price.py`): the carried track through `train_pricing.lifted`, `C_best1` and `C_fused` (each fold's `FREEZE.json` rule) through `train_pricing.evaluate`. Member precision comes from the ladder's own `Objects.get` run on the injected carried track and aggregated by `summarize_train.precision`; IoU member precision, mask IoU, frame recall and false presence are reported beside it without a bar.
+- Bars and report (`mc_bars.py`, `mc_summary.py`): the spec's bars verbatim; MISSING counts as not passed; the A32 per-fold cross-fit applies only when A32 completes on all 209 captures; S_PHR has its own row. The summary writes `CARRY_REPORT.md`, `CARRY_DECISION.json`, `K1_CARRY.json` and `PER_ITEM.jsonl`; carried masks stay as RLE per capture in `out/v2/track/<set>/`.
+- Guard (`mc_guard.py`), staging (`mc_staging.py`, `manifest.sh`), GPU launcher (`launch_gpu.sh`, `gpu_inner.sh`, `mc_preflight.py`), `post_gpu.sh`, `dryrun.sh`, and tests (`kit_v2/tests/test_kit.py`).
+
+## Dry run (CPU: `bash kit_v2/run_cpu.sh <p1cpu|sam3> <script>`; whole sequence `bash kit_v2/dryrun.sh`; outputs under `out/v2/`)
+| step | result | command, output |
+|---|---|---|
+| 0 precision predicate | PASS: 390/538 = 72.49% at 0.25, 426/581 at 0.15, 366/501 at 0.40, every other-four-folds row equal; the injected path equals `Objects.get` on 2,310/2,310 object-taus | `p1cpu mc_step0.py all`, `dry/STEP0_PRECISION.json` |
+| seeds vs A0 served masks | PASS: 13/13 objects on 5 captures, then 770/770 on 209; S_A0 760 seeds (10 refused), S_GT 770; the raw-phrase path equals S_A0 on 770/770 | `p1cpu mc_seeds.py 5`, `mc_seeds.py all --phr-parity`, `seeds/SEEDS.json` |
+| 1 seed stub | PASS: `C_best1` = `A0_deployed` on 1,037/1,037 (56.77) | `mc_stubs.py seed`, `mc_price.py`, `mc_summary.py dry`, `dry/STUB_PARITY.json` |
+| 2 raster stub | PASS: `C_best1` = `A2_gt_masks` on 1,037/1,037 (73.97); `C_fused` = `fused_cf` on 1,037/1,037 (78.62) | `mc_stubs.py raster`, same |
+| 3 frame order | PASS: 209 captures, 13,376 frames hashed, 0 failures | `p1cpu mc_frames.py`, `FRAME_SETS.json` |
+| 4a predictor on CPU | Fails, as recorded: `build_sam3_video_predictor` and `Sam3VideoPredictor` raise `RuntimeError: No CUDA GPUs are available` (sam3_video_predictor.py:104; position_encoding.py:55 inside build_tracker). The kit builds the same model directly. | `sam3 mc_probe_predictor.py`, `dry/PREDICTOR_CPU.json` |
+| 4b real tracker, 1 capture, 8 frames | PASS: arkitscenes/41048124, 4 sets carried and priced in 153 s (load about 14 s, embedding 108 s, tracking 3 to 13 s per set); peak RSS 7.3 GiB | `sam3 mc_track_pass.py --device cpu --max-frames 8 …`, `dry/track_cpu`, `dry/price_cpu` |
+| guard | R0, dev-S1, BENCH v2 and K1 held-out: 0 hits; withheld-80: 5 hits (below); k1_split is train on all 209 (teacher_k1: 204 train, 5 refused); folds of 39/39/38/38/38 rooms, disjoint and equal to the ladder's | `p1cpu mc_guard.py`, `GUARD.json` |
+| tests | 23 passed: RLE, phrase-policy parser, anchor records, drop plan, seed digests, bars, timing receipt, launcher card and host checks | `python -m pytest -q kit_v2/tests` |
+
+The stub numbers in `dry/CARRY_REPORT_STUB.md` test the pricing and report code only; they are not carry results.
+
+## GPU need
+The pass needs one card with at least 48e9 bytes, run under `vnice.sh` on a node other than trinity-0-13. The launcher refuses a card with more than 1,024 MiB used in either of two readings taken 300 s apart; it also checks the kit manifest and the preflight, then runs `timeout` at the remaining budget. The work is 13,376 frames embedded once, plus 48,640 object-frames for S_A0 and 49,280 for S_GT on D64, and half those counts on A32. On an A6000-class card, assuming 0.12 s per frame for the backbone and 25 ms per object-frame for the tracker, the derived estimate is 1.48 GPU-h for all four sets and 0.80 h for the decision arm (embedding plus S_A0/D64); the hard stop is 2.0 h. Measured on CPU with 8 threads, embedding takes 13.6 s per frame and tracking 1.6 s per object-frame. The 10-capture `TIMING_RECEIPT.json` replaces the derived rates. The S_PHR sets run only after `PHRASE_FOLDS.json` exists and the seeds are rebuilt.
+To run: stage the paths below, run `bash kit_v2/launch_gpu.sh` in tmux on the GPU node, then run `bash kit_v2/post_gpu.sh` on CPU to price and report.
+
+## Paths the GPU pass reads (stage at the same absolute paths; 14.92 GB in total, listed in `out/v2/STAGING.json`)
+- /scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt (3,450,062,241 B) and /scratch/jjyeung/b01ec87a6f29b/d/k/SAM3_RECEIPT.json (1,123 B)
+- /scratch/jjyeung/b01ec87a6f29b/d/s (SAM 3 source, 251 files, 5,812,794 B)
+- /scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/vendor/SAM3_RECEIPT.json (1,123 B)
+- /scratch/jjyeung/envs/sam3_capretry_native_v1 (interpreter, 31,270 files, 7,779,340,795 B)
+- /scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2 (133,893 B)
+- /scratch/jjyeung/orch_n30/sb_mask_carry/out/v2: FRAME_SETS.json (6,293,953 B), seeds/ (211 files, 2,285,680 B), GUARD.json, BARS_FROZEN.json, KIT_MANIFEST.sha256, STAGING.json and STAGING_FRAMES.txt (1.4 MB together)
+- /scratch/jjyeung/k1_frames: the 13,376 PNGs listed in out/v2/STAGING_FRAMES.txt (3,677,449,924 B)
+
+The pass writes only to out/v2/track; `vnice.sh` is read from /data3/shared/scripts/vnice on the node.
+
+## MISSING and open
+- `PHRASE_FOLDS.json` is NOT_YET. S_PHR's reader, seeds and bars row are built and wait for it; when it lands, rerun `mc_seeds.py all` and `manifest.sh`.
+- `K1_TRACK.json` (sb_kobj4) is MISSING on this node (its directory is absent), so the kit runs the tracker itself.
+- The withheld-80 assertion fails. Five K1-train captures sit in four withheld rooms: scannet scene0201_02, 0478_00, 0478_01, 0614_02 and 0692_03, covering 25 of the 1,037 rows; teacher_k1 marks them refused. Question: should the carry pass drop them? The default in force keeps them, because the kit fits nothing and the ladder it reproduces priced them. The report adds a sensitivity row on the other 1,012 rows, and `launch_gpu.sh --exclude-withheld` drops the five if the orchestrator rules so.
+- No GPU pass has run, so `TIMING_RECEIPT.json`, `CARRY_REPORT.md`, `CARRY_DECISION.json`, `K1_CARRY.json` and `PER_ITEM.jsonl` do not exist yet, and every bar stays MISSING until the pass runs.
+- Tarball: `out/sb_mask_carry.tar`, with a copy at `out/v2/sb_mask_carry.tar`; each has its sha256 in a `.sha256` file beside it.

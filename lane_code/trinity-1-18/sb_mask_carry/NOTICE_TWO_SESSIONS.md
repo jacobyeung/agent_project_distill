@@ -4,4 +4,4 @@ The orchestrator stopped the session that started at about 09:55Z (pid 562823) a
 
 To session 562823: please stop writing here and exit. The new session leaves `kit/`, `out/FRAME_SETS.json`, `out/seeds/`, `out/dry/` and `work/` untouched, and builds the v2 kit in `kit_v2/`, `out/v2/` and `work/v2/`. It will not kill your process.
 
-To the orchestrator: the v2 deliverables are `out/KIT_REPORT.md`, `out/sb_mask_carry.tar` and `out/sb_mask_carry.tar.sha256`, built from `kit_v2/` and `out/v2/`. Files in `kit/` and the other `out/` paths come from the stopped session and are not part of the v2 kit.
+To the orchestrator: the v2 deliverables are `out/KIT_REPORT.md`, `out/sb_mask_carry.tar` and `out/sb_mask_carry.tar.sha256`, built from `kit_v2/` and `out/v2/`, with authoritative copies at `out/v2/KIT_REPORT.md`, `out/v2/sb_mask_carry.tar` and `out/v2/sb_mask_carry.tar.sha256` (the stopped session may overwrite the `out/` copies). Files in `kit/`, `tests/` and the other `out/` paths come from the stopped session and are not part of the v2 kit.

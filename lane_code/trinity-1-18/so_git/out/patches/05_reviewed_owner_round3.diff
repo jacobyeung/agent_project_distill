@@ -1,0 +1,582 @@
+--- a/tools/dry_count.py
++++ b/tools/dry_count.py
+@@ -9,7 +9,7 @@
+ import sys
+ 
+ 
+-def root_gate(script, folder):
++def filter_constants(script):
+     # Read constants without importing the filter, whose top level walks the current tree.
+     constants = {}
+     for node in ast.parse(script.read_text()).body:
+@@ -19,6 +19,11 @@
+                 constants[name] = ast.literal_eval(node.value)
+             elif name == 'DIRRE':
+                 constants[name] = re.compile(ast.literal_eval(node.value.args[0]))
++    return constants
++
++
++def root_gate(script, folder):
++    constants = filter_constants(script)
+     folders = [folder]
+     boundary = Path('/scratch/jjyeung/orch_n30')
+     if os.environ.get('LCS_REVIEW2_FIXES') == '1':
+@@ -73,9 +78,16 @@
+             if not match or (int(match[1]), int(match[2])) != (len(paths), nbytes):
+                 raise ValueError('filter stats disagree with selected files; tree may be changing')
+             gate = root_gate(script, folder)
++            hourly_paths = paths
++            if os.environ.get('LCS_REVIEW2_FIXES') == '1':
++                relative = folder.relative_to('/scratch/jjyeung/orch_n30')
++                substrings = filter_constants(script)['SUBSTR']
++                hourly_paths = [p for p in paths if not any(
++                    s in '/' + (relative / p).as_posix() for s in substrings)]
++            hourly_bytes = sum((folder / p).stat().st_size for p in hourly_paths) if hourly_paths != paths else nbytes
+             print(json.dumps(dict(folder=str(folder), files=len(paths), bytes=nbytes, filter_stats=stats,
+-                                  hourly_root_gate_reason=gate, hourly_files=0 if gate else len(paths),
+-                                  hourly_bytes=0 if gate else nbytes), sort_keys=True))
++                                  hourly_root_gate_reason=gate, hourly_files=0 if gate else len(hourly_paths),
++                                  hourly_bytes=0 if gate else hourly_bytes), sort_keys=True))
+         except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
+             print(f'REFUSED {folder}: {exc}', file=sys.stderr)
+             failures += 1
+--- a/tools/land_kit.py
++++ b/tools/land_kit.py
+@@ -50,7 +50,7 @@
+ 
+ def review(raw, seal, sha, bind_sha=None):
+     text = raw.decode('utf-8', errors='strict')
+-    negative = (re.search(r'(?<![A-Za-z])(NO[- ]GO|REJECT)(?![A-Za-z])', text)
++    negative = (re.search(r'(?<![A-Za-z])(NO[- ]GO|REJECT)(?![a-z])', text)
+                 if review2_enabled() else re.search(r'NO[- ]GO|REJECT', text, re.I))
+     require(not negative,
+             'negative review requires a fresh accepting verdict file')
+@@ -65,8 +65,9 @@
+     for line in lines:
+         m = re.fullmatch(r'(Seal|SHA256)\s*:\s*(.+)', line, re.I)
+         if review2_enabled():
+-            # Recognize Markdown bullets, quotes, bold labels, tables and code values.
+-            m = re.match(r'^[\s>*|+-]*\**(Seal|SHA-?256)\**\s*[:|]\s*\**\s*(.*)$', line, re.I)
++            # Recognize Markdown labels with up to two descriptive words.
++            m = re.match(r'^[\s>*|+#\d.)-]*[*`_]*(?:[\w-]+\s+){0,2}'
++                         r'(Seal|SHA-?256)[*`_]*\s*[:|=]\s*[*_]*\s*(.*)$', line, re.I)
+         if m:
+             key, value = m[1].lower().replace('-', ''), m[2].strip()
+             if review2_enabled():
+@@ -79,6 +80,9 @@
+                 require(bool(value), f'empty {key} metadata')
+             require(key not in fields or fields[key] == value, f'ambiguous {key} metadata')
+             fields[key] = value
++        if review2_enabled():
++            require(not re.match(r'^verdict:.*AFTER FIXES', line, re.I),
++                    'conditional verdict requires a fresh review file')
+         m = re.fullmatch(r'VERDICT: *(.*?)\s*', line, 0 if review2_enabled() else re.I)
+         if m:
+             require(m[1].upper() in accepted, 'conflicting verdict requires a fresh review file')
+@@ -288,6 +292,15 @@
+     def git(*argv):
+         return run(['git', '-c', 'gc.auto=0', '-c', 'maintenance.auto=false',
+                     '-C', str(repo), *argv]).decode().strip()
++    if review2_enabled() and os.environ.get('LCS_TEST_ROOT'):
++        boundary = Path(os.environ['LCS_TEST_ROOT']).resolve(strict=True)
++        for remote in ('origin', 'home'):
++            for mode in ((), ('--push',)):
++                urls = git('remote', 'get-url', *mode, '--all', remote).splitlines()
++                require(bool(urls), f'test remote {remote} has no URL')
++                for url in urls:
++                    require(':' not in url and within((repo / url).resolve(), boundary),
++                            f'test remote {remote} must resolve to a local path within test root')
+     require(git('symbolic-ref', '--quiet', '--short', 'HEAD') == 'lane-code', 'owner clone must already be on lane-code')
+     git('diff', '--quiet')
+     git('diff', '--cached', '--quiet')
+--- a/tests/test_owner_tools.py
++++ b/tests/test_owner_tools.py
+@@ -117,7 +117,7 @@
+                          f'VERDICT: GO\n```\n{word}\n```'):
+                 with self.subTest(text=text):
+                     if (os.environ.get('LCS_REVIEW2_FIXES') == '1' and text.startswith('VERDICT: GO\n')
+-                            and word in ('no-go', 'reject', 'REJECTED')):
++                            and word in ('no-go', 'reject')):
+                         self.assertEqual(self.review(text)[0], 'GO')
+                     else:
+                         with self.assertRaises(kit.Refusal):
+@@ -361,6 +361,8 @@
+             raise kit.Refusal('simulated command failure')
+         if args[0] == 'symbolic-ref':
+             return self.branch
++        if args[:2] == ['remote', 'get-url']:
++            return (str(Path(argv[6]).parent.parent / (args[-1] + '.git')) + '\n').encode()
+         if args[:2] == ['rev-parse', 'HEAD']:
+             return (self.head + '\n').encode()
+         if args[0] == 'ls-remote':
+--- a/tests/test_real_git_owner.py
++++ b/tests/test_real_git_owner.py
+@@ -17,7 +17,7 @@
+ @unittest.skipUnless(os.environ.get('LCS_RUN_REAL_GIT_TESTS') == '1',
+                      'owner must explicitly enable real Git in a throwaway directory')
+ class RealGitOwnerTests(unittest.TestCase):
+-    def test_land_probe_and_hourly_pathspec_preserves_kits(self):
++    def setUp(self):
+         parent = Path(os.environ['LCS_REAL_GIT_WORK']).resolve(strict=True)
+         self.assertTrue(str(parent).startswith('/scratch/'))
+         root = Path(tempfile.mkdtemp(prefix='real_git_', dir=parent))
+@@ -25,6 +25,7 @@
+         state.mkdir()
+         origin, home, seed, repo = (root / 'origin.git', root / 'home.git', root / 'seed', state / 'repo')
+         env = dict(os.environ, GIT_CONFIG_GLOBAL='/dev/null', GIT_CONFIG_NOSYSTEM='1',
++                   GIT_ALLOW_PROTOCOL='file',
+                    GIT_TERMINAL_PROMPT='0', GIT_AUTHOR_NAME='Owner tool test', GIT_AUTHOR_EMAIL='owner-test@invalid',
+                    GIT_COMMITTER_NAME='Owner tool test', GIT_COMMITTER_EMAIL='owner-test@invalid')
+         # Ignore inherited repository/worktree selectors, so no command can target a production repo.
+@@ -32,11 +33,11 @@
+                     'GIT_ALTERNATE_OBJECT_DIRECTORIES', 'GIT_CONFIG', 'GIT_CONFIG_COUNT'):
+             env.pop(key, None)
+ 
+-        def run(*args, cwd=None, extra=None):
++        def run(*args, cwd=None, extra=None, expected=0):
+             result = subprocess.run(args, cwd=cwd, env=dict(env, **(extra or {})),
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
+-            self.assertEqual(result.returncode, 0, f'{args}: {result.stdout}\n{result.stderr}')
+-            return result.stdout.strip()
++            self.assertEqual(result.returncode, expected, f'{args}: {result.stdout}\n{result.stderr}')
++            return (result.stdout + (result.stderr if expected else '')).strip()
+ 
+         def git(*args):
+             return run('git', '-C', str(repo), *args)
+@@ -53,6 +54,7 @@
+         run('git', '-C', str(seed), 'add', '--', 'lane_code', 'tools')
+         run('git', '-C', str(seed), 'commit', '-q', '-m', 'Seed local owner fixture')
+         run('git', '-C', str(seed), 'push', '-q', str(origin), 'lane-code:refs/heads/lane-code')
++        run('git', '-C', str(seed), 'push', '-q', str(home), 'lane-code:refs/heads/lane-code')
+         run('git', 'clone', '-q', '--branch', 'lane-code', str(origin), str(repo))
+         git('remote', 'add', 'home', str(home))
+         kitfile = root / 'kit.tar'
+@@ -65,12 +67,24 @@
+         review = root / 'review.md'
+         review.write_text('VERDICT: GO\n')
+         extra = dict(LCS_ENABLE_KIT_LANDING='1', LCS_TEST_ROOT=str(root), LCS_S=str(state), LCS_R=str(repo),
++                     LCS_EV=str(root / 'events'),
+                      LCS_FILTER=str(BASE / 'tools' / 'lane_code_filter.py'),
+                      LCS_SCAN=str(BASE / 'tools' / 'lane_code_scan.py'), LCS_PYTHON=sys.executable)
+-        output = run('bash', str(BASE / 'tools' / 'land_kit.sh'), str(kitfile), 'probe-seal', sha,
+-                     str(review), '_probe', '--builder', 'test_builder', '--reviewer', 'test_reviewer',
+-                     '--bind-sha', sha, extra=extra)
++        self.command = ('bash', str(BASE / 'tools' / 'land_kit.sh'), str(kitfile), 'probe-seal', sha,
++                        str(review), '_probe', '--builder', 'test_builder', '--reviewer', 'test_reviewer',
++                        '--bind-sha', sha)
++        self.run_command, self.git, self.extra = run, git, extra
++        self.root, self.state, self.repo = root, state, repo
++        self.origin, self.home = origin, home
+         print('\nREAL_GIT_ROOT', root)
++
++    def land(self, expected=0):
++        return self.run_command(*self.command, extra=self.extra, expected=expected)
++
++    def test_land_probe_and_hourly_pathspec_preserves_kits(self):
++        root, state, repo, origin, home = self.root, self.state, self.repo, self.origin, self.home
++        run, git = self.run_command, self.git
++        output = self.land()
+         print(output)
+         head = git('rev-parse', 'HEAD')
+         print('COMMIT\n' + git('show', '--no-patch', '--format=fuller', head))
+@@ -117,6 +131,44 @@
+                              'refs/heads/lane-code')
+         self.assertEqual(metadata['file_count'], 1)
+ 
++    @unittest.skipUnless(os.environ.get('LCS_REVIEW2_FIXES') == '1', 'requires LCS_REVIEW2_FIXES=1')
++    def test_failed_commit_clears_staging_without_moving_head(self):
++        hooks = self.root / 'commit_hooks'
++        hooks.mkdir()
++        hook = hooks / 'pre-commit'
++        hook.write_text('#!/bin/sh\nexit 1\n')
++        hook.chmod(0o755)
++        self.git('config', 'core.hooksPath', str(hooks))
++        head = self.git('rev-parse', 'HEAD')
++        output = self.land(expected=2)
++        self.assertIn('kit staging cleared', output)
++        self.git('diff', '--cached', '--quiet')
++        self.assertEqual(self.git('rev-parse', 'HEAD'), head)
++        self.assertEqual(self.git('ls-files', '--', 'kits/_probe'), '')
++        self.assertEqual(set(self.git('ls-files', '--others', '--exclude-standard', '--', 'kits/_probe').splitlines()),
++                         {'kits/_probe/KIT.json', 'kits/_probe/probe.py'})
++        self.assertIn('not fully tracked', self.land(expected=2))
++        self.assertFalse((self.state / 'KITS_LANDED.txt').exists())
++        self.assertEqual(list((self.root / 'events').glob('*RESULT*')), [])
++        print('FAILED_COMMIT staging_cleared=true head_unchanged=true kit_untracked=true rerun_refused=true')
++
++    @unittest.skipUnless(os.environ.get('LCS_REVIEW2_FIXES') == '1', 'requires LCS_REVIEW2_FIXES=1')
++    def test_origin_rejection_stops_before_home_and_receipts(self):
++        hook = self.origin / 'hooks/pre-receive'
++        hook.write_text('#!/bin/sh\nexit 1\n')
++        hook.chmod(0o755)
++        before = {r: self.git('ls-remote', r, 'refs/heads/lane-code') for r in ('origin', 'home')}
++        head = self.git('rev-parse', 'HEAD')
++        output = self.land(expected=2)
++        self.assertIn('STOP: origin push failed', output)
++        self.assertIn('contact the user before the next hourly run', output)
++        self.assertNotEqual(self.git('rev-parse', 'HEAD'), head)
++        for remote in ('origin', 'home'):
++            self.assertEqual(self.git('ls-remote', remote, 'refs/heads/lane-code'), before[remote])
++        self.assertFalse((self.state / 'KITS_LANDED.txt').exists())
++        self.assertEqual(list((self.root / 'events').glob('*RESULT*')), [])
++        print('ORIGIN_REJECTION stop=true home_unchanged=true origin_unchanged=true receipt_absent=true')
++
+ 
+ if __name__ == '__main__':
+     unittest.main()
+--- a/tests/test_review_round2.py
++++ b/tests/test_review_round2.py
+@@ -148,12 +148,13 @@
+ 
+     def test_f5_ordinary_prose_does_not_override_accepting_verdict(self):
+         for tail in ('There is no good reason to block.', 'The tool rejects symlinks.',
+-                     'Verdict: see above', 'REJECTION tests passed.', 'XREJECTY is a fixture.'):
++                     'Verdict: see above', 'XREJECTY is a fixture.'):
+             with self.subTest(tail=tail):
+                 self.assertEqual(self.review(tail)[0], 'GO')
+ 
+     def test_f5_explicit_negative_tokens_still_refuse_even_when_quoted(self):
+-        for tail in ('NO-GO', 'NO GO', 'REJECT', '`GO AFTER FIXES` or `NO-GO`', 'VERDICT: WAIT'):
++        for tail in ('NO-GO', 'NO GO', 'REJECT', 'REJECTION tests passed.',
++                     '`GO AFTER FIXES` or `NO-GO`', 'VERDICT: WAIT'):
+             with self.subTest(tail=tail), self.assertRaises(kit.Refusal):
+                 self.review(tail)
+ 
+--- /dev/null
++++ b/tests/test_review_round3.py
+@@ -0,0 +1,151 @@
++"""Round-3 regressions; all Git commands use doubles unless separately opted in."""
++import json
++import os
++from pathlib import Path
++import subprocess
++import sys
++import unittest
++from unittest.mock import patch
++
++import test_owner_tools as owner
++
++kit = owner.kit
++
++
++class VerdictAndBindingTests(unittest.TestCase):
++    def setUp(self):
++        switch = patch.dict(os.environ, LCS_REVIEW2_FIXES='1')
++        switch.start()
++        self.addCleanup(switch.stop)
++
++    def review(self, tail, bind=True):
++        return kit.review(('VERDICT: GO\n' + tail).encode(), 'seal value', 'a' * 64,
++                          'a' * 64 if bind else None)
++
++    def test_f1_negative_suffixes_refuse(self):
++        for tail in ('REJECTED', 'Status: REJECTED', 'REJECTION', 'NO-GOOD',
++                     'Verdict: REJECTED', 'REJECTION tests passed.'):
++            with self.subTest(tail=tail), self.assertRaisesRegex(kit.Refusal, 'negative review'):
++                self.review(tail)
++
++    def test_f1_mixed_case_conditional_verdict_refuses(self):
++        for label in ('Verdict', 'verdict', 'VeRdIcT'):
++            with self.subTest(label=label), self.assertRaises(kit.Refusal):
++                self.review(label + ': GO AFTER FIXES')
++
++    TEMPLATES = ('- **Archive SHA256:** {}', 'Archive SHA256: {}', '1. SHA256: {}',
++                 '## SHA256: {}', '`SHA256`: {}', '_SHA256_: {}', 'SHA256 = {}',
++                 '> - **Reviewed archive SHA-256** = `{}`', '| _Archive SHA256_ | {} |')
++
++    def test_f2_formatted_conflicting_hashes_refuse_with_owner_binding(self):
++        for template in self.TEMPLATES:
++            with self.subTest(template=template), self.assertRaisesRegex(kit.Refusal, 'SHA256 differs'):
++                self.review(template.format('b' * 64))
++
++    def test_f2_matching_hashes_bind_without_owner_override(self):
++        for template in self.TEMPLATES:
++            with self.subTest(template=template):
++                self.assertEqual(self.review(template.format('a' * 64), False)[1]['methods'], ['sha256'])
++
++    def test_f2_duplicate_conflicting_hashes_refuse(self):
++        with self.assertRaisesRegex(kit.Refusal, 'ambiguous sha256'):
++            self.review('SHA256: ' + 'a' * 64 + '\n- **Archive SHA256:** ' + 'b' * 64)
++
++
++class RunnerEvidenceTests(unittest.TestCase):
++    def test_f3_disabled_runner_records_switch_without_git(self):
++        for value in (None, '', '0', '1'):
++            env = dict(os.environ, LCS_RUN_REAL_GIT_TESTS='0')
++            env.pop('LCS_REVIEW2_FIXES', None)
++            if value is not None:
++                env['LCS_REVIEW2_FIXES'] = value
++            result = subprocess.run(['bash', str(owner.BASE / 'tests/run_real_git_owner.sh')],
++                                    env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
++                                    universal_newlines=True, timeout=10)
++            with self.subTest(value=value):
++                self.assertEqual(result.returncode, 2)
++                self.assertIn('LCS_REVIEW2_FIXES=' + ('<unset>' if value is None else value) + '\n',
++                              result.stdout)
++                self.assertIn('REFUSED: set LCS_RUN_REAL_GIT_TESTS=1', result.stderr)
++
++
++class RemoteBoundaryTests(owner.Fixture):
++    def setUp(self):
++        super().setUp()
++        self.env['LCS_REVIEW2_FIXES'] = '1'
++
++    def remote_double(self, remote, push, urls):
++        fake = owner.FakeGit()
++
++        def run(argv, **kwargs):
++            if argv[0] == 'git' and argv[7:9] == ['remote', 'get-url']:
++                fake.calls.append(argv[7:])
++                if argv[-1] == remote and ('--push' in argv) == push:
++                    return ('\n'.join(urls) + '\n').encode()
++                return (str(self.root / (argv[-1] + '.git')) + '\n').encode()
++            return fake(argv, **kwargs)
++        return fake, run
++
++    def test_f4_external_fetch_and_push_remotes_refuse_before_mutation(self):
++        outside = self.root.parent / 'outside_remote.git'
++        alias = self.root / 'remote_alias'
++        alias.symlink_to(outside, target_is_directory=True)
++        for remote in ('origin', 'home'):
++            for push in (False, True):
++                for value in ('https://example.invalid/repo', 'owner@example.invalid:repo',
++                              'file://' + str(self.root / 'origin.git'), str(outside),
++                              str(alias), '../../../outside_remote.git'):
++                    fake, run = self.remote_double(remote, push, [value])
++                    with self.subTest(remote=remote, push=push, value=value), \
++                         patch.object(kit, 'run', side_effect=run), \
++                         self.assertRaisesRegex(kit.Refusal, 'test remote'):
++                        self.invoke(dry=False)
++                    self.assertFalse(any(c[0] in ('add', 'commit', 'push') for c in fake.calls))
++                    self.assertFalse((self.repo / 'kits/_probe').exists())
++
++    def test_f4_second_push_destination_outside_boundary_refuses(self):
++        fake, run = self.remote_double('origin', True,
++                                      [str(self.root / 'origin.git'), str(self.root.parent / 'outside.git')])
++        with patch.object(kit, 'run', side_effect=run), self.assertRaisesRegex(kit.Refusal, 'test remote'):
++            self.invoke(dry=False)
++        self.assertFalse(any(c[0] in ('add', 'commit', 'push') for c in fake.calls))
++
++    def test_f4_relative_local_remotes_are_allowed(self):
++        fake, run = self.remote_double('origin', True, ['../../origin.git'])
++        with patch.object(kit, 'run', side_effect=run):
++            self.assertEqual(self.invoke(dry=False)[0], 0)
++        self.assertEqual(sum(c[0] == 'push' for c in fake.calls), 2)
++
++    def test_f4_dry_run_still_calls_no_git(self):
++        fake = owner.FakeGit()
++        with patch.object(kit, 'run', side_effect=fake):
++            self.assertEqual(self.invoke()[0], 0)
++        self.assertEqual(fake.calls, [])
++
++
++class NestedCoverageTests(owner.Fixture):
++    def test_f5_exclusion_spanning_folder_boundary_matches_whole_tree(self):
++        folder = self.root / 'out'
++        (folder / 'devin_traces').mkdir(parents=True)
++        (folder / 'devin_traces/trace.py').write_text('TRACE = 1\n')
++        (folder / 'keep.py').write_text('KEEP = 1\n')
++        env = dict(os.environ, **self.env)
++        env['LCS_REVIEW2_FIXES'] = '1'
++        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(owner.TOOLS / 'dry_count.py'), str(folder)],
++                                env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
++                                universal_newlines=True, timeout=10)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        counts = json.loads(result.stdout)
++        whole = subprocess.run([sys.executable, '-I', '-s', '-B', str(owner.TOOLS / 'lane_code_filter.py'), 'whole'],
++                               cwd=str(self.root), env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
++                               timeout=10)
++        self.assertEqual(whole.returncode, 0, whole.stderr)
++        selected = [os.fsdecode(p) for p in whole.stdout.split(b'\0') if p.startswith(b'out/')]
++        self.assertEqual(selected, ['out/keep.py'])
++        self.assertEqual(counts['hourly_files'], len(selected))
++        self.assertEqual(counts['hourly_bytes'], sum((self.root / p).stat().st_size for p in selected))
++        self.assertEqual(counts['files'], 2)  # Raw filter statistics remain observable.
++
++
++if __name__ == '__main__':
++    unittest.main()
+--- a/tests/run_real_git_owner.sh
++++ b/tests/run_real_git_owner.sh
+@@ -1,6 +1,7 @@
+ #!/bin/bash
+ # Owner runs this only when real local Git is authorized; no production repo/network is used.
+ set -euo pipefail
++printf 'LCS_REVIEW2_FIXES=%s\n' "${LCS_REVIEW2_FIXES-<unset>}"
+ [ "${LCS_RUN_REAL_GIT_TESTS:-0}" = 1 ] || { echo 'REFUSED: set LCS_RUN_REAL_GIT_TESTS=1' >&2; exit 2; }
+ : "${LCS_REAL_GIT_WORK:?Set LCS_REAL_GIT_WORK to an existing throwaway /scratch directory}"
+ export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
+--- a/docs/GIT_OWNER.md
++++ b/docs/GIT_OWNER.md
+@@ -27,14 +27,18 @@
+ Its first nonempty line must be `VERDICT: GO`, `VERDICT: ACCEPT`, or
+ `VERDICT: ACCEPT WITH FINDINGS`, without indentation or Markdown. Later unindented
+ `VERDICT:` lines must also use a supported value; this later-line label is case-sensitive.
+-Standalone uppercase `NO-GO`, `NO GO`, or `REJECT` tokens anywhere, including quotes, refuse
+-the file. Ordinary prose such as “rejects symlinks” does not. The first verdict remains
+-case-insensitive. `GO AFTER FIXES` needs a separate later GO verdict file;
++Uppercase `NO-GO`, `NO GO`, or `REJECT` tokens and uppercase continuations such as
++`NO-GOOD`, `REJECTED`, and `REJECTION` anywhere, including quotes, refuse the file.
++Ordinary prose such as “rejects symlinks” does not. The first verdict remains
++case-insensitive. Any unindented `verdict:` label containing `AFTER FIXES` refuses regardless
++of case. `GO AFTER FIXES` needs a separate later GO verdict file;
+ appending GO to the conditional file does not authorize landing.
+ 
+ A matching `Seal:` or `SHA256:` line must bind the review, or the owner passes
+ `--bind-sha <archive-sha256>` after reading it. Every supplied binding must match.
+-Bullets, quotes, bold labels, table rows, backticks, and `SHA-256` labels are recognized.
++Bullets, numbered lists, headings, quotes, table rows, and labels wrapped in bold,
++backticks, or underscores are recognized. Labels can include up to two leading words
++(for example `Archive SHA256`); `SHA-256` and `=` separators also qualify.
+ `KIT.json` records the binding, identities, verdict digest, per-file manifest, and skipped files.
+ `--dry` takes the same lock and creates an audit directory; it stops before Git or clone writes.
+ Every filtered file prints as `SKIPPED` and refuses
+@@ -44,7 +48,10 @@
+ another branch, a changed tracked worktree, or a dirty index refuse. Identical content and
+ provenance republish the current head. Git disables automatic maintenance and terminal prompts.
+ Production tool/path overrides require an isolated `LCS_TEST_ROOT`; test destinations cannot
+-overlap the production state or clone, even through resolved symlinks. Both remotes must verify
++overlap the production state or clone, even through resolved symlinks. Before any clone mutation,
++test mode checks every fetch and push URL for both remotes: each must resolve to a filesystem
++path inside the test root. Network, SCP-style, and `file://` URLs refuse; relative local paths qualify.
++Both remotes must verify
+ before the landing receipt and `<UTC>_RESULT_kit_<name>_landed.md` event are written.
+ `$S/KITS_LANDED.txt` is local to trinity-3-30; lanes on other nodes read the shared RESULT event.
+ 
+@@ -69,8 +76,9 @@
+ ```
+ 
+ Only existing nonsymlink folders under `/scratch/jjyeung/orch_n30/` qualify. Counts deduplicate
+-per folder; hourly deduplication spans a node tree. Ancestor exclusions and MAXDIR apply even
+-to nested folders. `COVERAGE.md` lists the rules.
++per folder; hourly deduplication spans a node tree. `files` and `bytes` retain the raw filter totals;
++`hourly_files` and `hourly_bytes` apply ancestor exclusions, MAXDIR, and substring exclusions
++across the folder boundary (including `out/devin_traces`). `COVERAGE.md` lists the rules.
+ 
+ Queue rows are `<UTC> eff/<slug> <40-hex-sha> [<absolute-clone-path>]` in
+ `e_*/PUSH_QUEUE.txt` or `eff_*/PUSH_QUEUE.txt` on trinity-3-30 only. An explicit clone path must
+@@ -84,5 +92,5 @@
+ Every ten minutes it checks local evidence, emits one event per incident/recovery, and records
+ delivery in `$S/health/`. Consumers may move delivered events; only undelivered events replay.
+ Ordinary errors log to `$S/health.log` and the next tick runs. Signal exits stop for owner
+-investigation under cluster rules. The owning orchestrator must arrange any restart of the
+-installed loop to load replacement files and the new environment switch.
++investigation under cluster rules. Replacement Python files load on the next tick.
++The owning orchestrator must arrange a restart only when the loop's environment switch changes.
+--- a/docs/HANDOVER.md
++++ b/docs/HANDOVER.md
+@@ -1,59 +1,76 @@
+ # Owner handover
+ 
+-The replacement tools address findings 1–9 behind `LCS_REVIEW2_FIXES=1`, default OFF.
+-The required real-Git rerun remains blocked by this dispatch's explicit no-Git rule.
+-Do not treat the mocked command tests as proof against a real index or remote.
++The delivery fixes review-round-3 findings 1–5 behind `LCS_REVIEW2_FIXES=1`, default OFF.
++Only `land_kit.py`, `sync_health.py`, and `dry_count.py` differ from the installed base.
++`INSTALLED_CHANGES.json` gives the exact installed paths and base/new SHA256 values.
++The installed copies, wrappers, hourly script and running services have not been changed here.
+ 
+-Replace only the three installed Python files listed in `INSTALLED_CHANGES.json` after checking
+-their recorded base hashes. The four shell wrappers and `lane_code_sync.sh` remain byte-identical.
+-This workspace has not installed files, stopped services, or published commits. The existing
+-tools and ten-minute health loop are installed, as stated by the supplied review; the seven
+-installed owner files and hourly script were independently compared with their pinned copies.
++Before installation, the authorized lane must run the real-Git command below on both interpreters.
++The suite covers a successful landing, hourly pathspec isolation, a failed commit, and origin rejection.
++The coordinator's available happy-path evidence is recorded in `REPORT.md`; it does not prove
++the two new failure cases. This dispatch forbids Git, so their execution remains pending.
+ 
+-Set `LCS_REVIEW2_FIXES=1` together with the relevant `LCS_ENABLE_*` flag. An unset switch retains
+-the installed behavior and its limitations. The loop's owning orchestrator must arrange any
+-restart needed to load the new environment. `GIT_OWNER.md` gives the invocation and recovery rules.
++```bash
++L=/scratch/jjyeung/orch_n30/so_git
++mkdir -p "$L/work/realgit_round3_lane"
++for PY in /usr/bin/python3 /scratch/jjyeung/envs/p1cpu/bin/python; do
++  LCS_RUN_REAL_GIT_TESTS=1 LCS_REVIEW2_FIXES=1 \
++    LCS_REAL_GIT_WORK="$L/work/realgit_round3_lane" LCS_PYTHON="$PY" \
++    bash "$L/work/review_round3_source/tests/run_real_git_owner.sh" || break
++done
++```
+ 
+-An origin refusal leaves the local commit intact. The new STOP notice requires the user before
+-the hourly can repeat the origin failure and advance home. The command does not pause the hourly
+-or rewrite history. A failed kit commit clears only its staging; if cleanup fails or the process
+-is killed, user intervention is still required before the hourly. No automatic rerun is safe.
++Expect three tests, no skips, and `LCS_REVIEW2_FIXES=1` in the runner output. Stop on any
++failure; do not retry killed work. The command uses only throwaway local bare remotes.
+ 
+-Patches 01–03 rebuild the package from the supplied input files. Patch 04 is an alternative
+-upgrade from the pinned review package, including its tests/docs; do not apply it after the
+-regenerated patch 02. `PATCH_BASES.json` pins each preimage by SHA256 and records absent files.
+-The installed-file list is separate because only the three tool replacements affect production.
++Check each installed preimage hash, stage each replacement as a temporary file in the same
++directory, then rename it atomically over the target. Only the lane owner installs.
++Replacement Python files load on the next health tick. The owning orchestrator must arrange
++a restart only to change the loop environment to include `LCS_REVIEW2_FIXES=1`.
++Keep the relevant `LCS_ENABLE_*` flag enabled as described in `GIT_OWNER.md`.
++
++On an origin refusal, the local commit remains: contact the user before the hourly can push it.
++On a handled add/commit failure, the tool clears only kit staging and checks the index.
++Inspect HEAD before moving an untracked kit aside. A killed process or failed cleanup needs
++the user before the hourly. The tool neither stops services nor rewrites history.
++
++Patches 01–03 rebuild the full package from supplied inputs. Patch 04 independently upgrades
++the pinned installed package and its tests/docs to the same delivery. Patch 05 independently
++upgrades the reviewed round-2 delivery to this delivery. Choose one owner upgrade route;
++do not apply patches 04 or 05 after the cumulative patch 02. `PATCH_BASES.json` pins all inputs.
++
++## Review round 3: finding -> fix -> test
++
++| Finding | Fix | Test or remaining validation |
++|---|---|---|
++| 1 | Refuse REJECTED, REJECTION and NO-GOOD; restore the round-1 REJECTED assertion. Mixed-case conditional verdict labels also refuse. | VerdictAndBindingTests.test_f1_*; ReviewTests.test_negative_anywhere_is_refused |
++| 2 | Recognize numbered lists, headings, underscore/backtick labels, up to two leading words and equals separators; contradictory bindings always refuse. | VerdictAndBindingTests.test_f2_* |
++| 3 | Record the switch value, including unset/empty. Add isolated pre-commit and pre-receive hook cases for failed staging and origin rejection. | RunnerEvidenceTests.test_f3_* passes without Git. RealGitOwnerTests.test_failed_commit_* and test_origin_rejection_* await authorized Git execution. |
++| 4 | Check all fetch and push URLs for origin/home before clone mutation; resolve local paths and symlinks inside the test boundary. | RemoteBoundaryTests.test_f4_* covers external URLs, symlink escape, relative paths, multiple push destinations and no-Git dry runs. |
++| 5 | Apply SUBSTR to full orchestration-relative paths for hourly totals; retain raw filter counts. | NestedCoverageTests.test_f5_* compares nested out/ counts with whole-tree filter selection. |
+ 
+ ## Review round 2: finding -> fix -> test
+ 
+-| Finding | Fix or decision | Regression test or remaining check |
++| Finding | Current behavior | Test or limit |
+ |---|---|---|
+ | 1 | Origin push failure prints a STOP notice requiring the user before the hourly run; it neither pushes home nor writes a receipt. This is the review's minimal mitigation; the local commit remains. | LandingFailures.test_f1_origin_rejection_requires_user_and_never_pushes_home |
+ | 2 | Add/commit/copy errors reset only the kit path in the index and verify a clean index. The refusal explains how to inspect HEAD and move an untracked kit aside; failed cleanup requires the user before the hourly. | LandingFailures.test_f2_failed_commit_unstages_only_kit; test_f2_failed_add_unstages_only_kit; test_f2_partial_copy_explains_recovery_without_staging; test_f2_reset_failure_requires_user_before_hourly |
+ | 3 | Resolved test destinations cannot overlap production state, clone, or local state events; a broad test root and a symlink cannot bypass the checks. | TestIsolation: four test_f3_* methods |
+-| 4 | The binding parser recognizes bullets, quotes, bold labels, tables, backticks, and SHA-256. Every binding must match, even with owner --bind-sha; empty and conflicting fields refuse. | BindingAndVerdicts.test_f4_formatted_contradictory_hashes_cannot_hide_behind_owner_binding; test_f4_matching_formatted_bindings_authorize_and_conflicts_refuse |
+-| 5 | Negative tokens are uppercase whole alphabetic words; later VERDICT labels are case-sensitive. Ordinary prose passes. Quoted uppercase NO-GO still refuses, preserving the required negative-token policy. | BindingAndVerdicts.test_f5_ordinary_prose_does_not_override_accepting_verdict; test_f5_explicit_negative_tokens_still_refuse_even_when_quoted |
++| 4 | Formatted Seal/SHA256 metadata must match, including extended labels and separators. | BindingAndVerdicts.test_f4_formatted_contradictory_hashes_cannot_hide_behind_owner_binding; test_f4_matching_formatted_bindings_authorize_and_conflicts_refuse |
++| 5 | Ordinary lowercase prose passes; uppercase negative tokens and uppercase continuations refuse. Conditional verdict labels refuse in any case. | BindingAndVerdicts.test_f5_ordinary_prose_does_not_override_accepting_verdict; test_f5_explicit_negative_tokens_still_refuse_even_when_quoted |
+ | 6 | Recovery event names include the observation time and recovered incident kinds, so split stale/failed recovery at one verified timestamp emits both events. | HealthRegressions.test_f6_split_stale_and_failed_recovery_emits_both_results |
+ | 7 | Health checks last_failed_run before scanning hourly BLOCKERs and records either decision. A consumer moving a previously observed BLOCKER cannot cause a duplicate. | HealthRegressions.test_f7_own_blocker_is_read_once_even_after_consumer_moves_it; test_f7_absent_own_blocker_is_checked_once_per_failure |
+-| 8 | dry_count checks every ancestor below the orchestration root, including multi-component substring exclusions and MAXDIR. | CoverageAndFixtureSafety.test_f8_nested_excluded_ancestor_has_no_hourly_coverage; existing CoverageTests |
++| 8 | Ancestor/MAXDIR gates and full-path SUBSTR checks determine hourly counts for nested folders. | CoverageAndFixtureSafety.test_f8_nested_excluded_ancestor_has_no_hourly_coverage; existing CoverageTests |
+ | 9 | Owner/filter tests use validated temporary roots under /scratch or /tmp and reject unsafe roots before writes. They never default to the installed checkout. Scratch-only integration tests skip when the temporary root is /tmp. | CoverageAndFixtureSafety: four test_f9_* methods; Documentation.test_f9_default_tmp_root_skips_scratch_integration_before_writes |
+ | 10 (INFO) | The owner guide states installed status, node-local receipts, absolute queue paths and node scope, dry-run locking, and the implemented verdict rules. | Documentation.test_f10_guide_matches_installation_receipts_queue_and_dry_lock |
+-| 11 (INFO) | Real-Git reruns are not executed: the current dispatch explicitly forbids Git and supersedes the earlier round's exception. The unchanged runner remains available for an authorized owner. | The runner's disabled guard is exercised under both interpreters; real-Git unittest is explicitly skipped. No current real-Git proof is claimed. |
++| 11 (INFO) | Real-Git failure cases are delivered for the authorized lane; this dispatch executes no Git. | Disabled-runner guard and switch logging pass; the Git-dependent tests remain skipped. |
+ | 12 (INFO) | EOFError, zlib.error and LZMAError become REFUSED; non-object KIT.json refuses cleanly. The Python 3.6 surviving-grandchild timeout problem remains: changing process-tree termination exceeds the small error-handling fix and needs authorized integration validation. | MalformedInputs: three test_f12_* methods. The subprocess timeout/grandchild case is not tested or fixed. |
+ | 13 (INFO) | The existing lock, archive/filter/scanner safeguards, branch/refspec constraints, receipts, package override and default filter behavior are rechecked by the permitted suites. Live remote and real-Git claims remain unverified this round. | Owner/package/filter suites on both interpreters; syntax, in-memory compilation, supplied-log health samples, patch/source equivalence and input hashes. |
+ 
+-## Remaining checks and limits
++## Remaining limits
+ 
+-- An authorized owner must run `tests/run_real_git_owner.sh` with `LCS_RUN_REAL_GIT_TESTS=1`,
+-  `LCS_REVIEW2_FIXES=1`, `LCS_REAL_GIT_WORK` under authorized scratch, and each supported
+-  `LCS_PYTHON`. This round runs only its disabled guard; do not enable it under this dispatch.
+-- The health monitor cannot identify an hourly BLOCKER moved before its first observation.
+-  A consumer moving it in that window can still cause one duplicate health BLOCKER.
+-- Python 3.6 can wait past a subprocess timeout if a surviving grandchild holds its pipes.
+-  That process-tree issue remains; the small malformed-archive fixes do not solve it.
+-- Audit/test directories are retained. Test commands in `REPORT.md` place all writes under
+-  this workspace. With the default /tmp root, scratch-only owner integration tests skip;
+-  set LCS_TEST_WORK to an authorized scratch directory to run them.
+-
+-The requested finding mapping is retained to connect decisions to evidence. Exact current
+-outputs and the validation limits appear in `REPORT.md` and `evidence/round2_commands.json`.
++The health monitor cannot recognize an hourly BLOCKER consumed before its first observation.
++Python 3.6 subprocess timeouts may wait on a surviving grandchild's pipes. Both supported
++interpreters provide `_lzma`; the unconditional lzma import still requires it in any other
++production interpreter. No framework behavior is used by these stdlib tools.
++The explicit round-by-round mapping is retained because the dispatch requires it.

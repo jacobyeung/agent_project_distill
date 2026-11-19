@@ -266,7 +266,9 @@ def aggregate(fixture=False):
                     new_choices={k: {n: v for n, (v, ev) in c.items() if v != 'raw'} for k, c in new_choice.items()},
                     new_evidence={k: {n: ev for n, (v, ev) in c.items()} for k, c in new_choice.items()},
                     checks=dict(pools=len(checks), survival_failed=0, identities_failed=0, reader_refused=0), rules=rules,
-                    input_sha256=dict(T.PINS, **{d['_file']: K.sha(d['_file']) for d in data}), heldout_opened=False, devs1_opened=False)
+                    input_sha256=dict(T.PINS, **{d['_file']: K.sha(d['_file']) for d in data},
+                                      **{str(p): K.sha(p) for p in (PART2/'price.py', PART2/'sam3_pass.py', HERE/'kit.py', HERE/'aggregate.py')}),
+                    heldout_opened=False, devs1_opened=False)
     if fixture:
         decision = dict(FIXTURE='synthetic reruns copied from the stored cache: a CPU dry run of this aggregate; every number is meaningless', **decision)
     (out_dir/'DECISION_PART2.json').write_text(json.dumps(T.clean(decision), indent=1, allow_nan=False))

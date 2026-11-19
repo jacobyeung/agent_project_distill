@@ -1,0 +1,299 @@
+{
+  "command": "bash review_run.sh p1cpu final_evidence.py",
+  "commands": {
+    "dry_steps": "bash reproduce.sh",
+    "tests": "bash review_run.sh p1cpu tests_run.py",
+    "model": "bash review_run.sh sam3 model_audit.py",
+    "static": "bash review_run.sh p1cpu audit_static.py",
+    "contracts": "bash review_run.sh p1cpu contract_audit.py",
+    "preflight": "bash review_run.sh sam3 /scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_preflight.py"
+  },
+  "step0": {
+    "captures": 209,
+    "object_taus": 2310,
+    "predicate_equal": 2310,
+    "reproduced": true,
+    "tau_025": {
+      "added": 538,
+      "correct": 390,
+      "precision": 0.724907063197026
+    }
+  },
+  "stub_parity": {
+    "step1_seed_stub_C_best1_vs_A0_deployed": {
+      "rows": 1037,
+      "equal": 1037,
+      "mra": 56.769527483124406,
+      "reference_mra": 56.769527483124406,
+      "first_differences": [],
+      "passed": true
+    },
+    "step2_raster_stub_C_best1_vs_A2_gt_masks": {
+      "rows": 1037,
+      "equal": 1037,
+      "mra": 73.97299903567985,
+      "reference_mra": 73.97299903567985,
+      "first_differences": [],
+      "passed": true
+    },
+    "step2_raster_stub_C_fused_vs_fused_cf": {
+      "rows": 1037,
+      "equal": 1037,
+      "mra": 78.62102217936355,
+      "reference_mra": 78.62102217936354,
+      "first_differences": [],
+      "passed": true
+    }
+  },
+  "frame_order": {
+    "captures": 209,
+    "frames": 13376,
+    "status": "PASS",
+    "failures": [],
+    "sha_mismatches": []
+  },
+  "seeds": {
+    "check": {
+      "objects": 770,
+      "passed": 770,
+      "captures_passed": 209,
+      "captures": 209
+    },
+    "summary": {
+      "objects": 770,
+      "S_A0": {
+        "ok": 760,
+        "refused": 10,
+        "unseen": 0,
+        "on_target": 519
+      },
+      "S_GT": {
+        "ok": 770,
+        "not_visible": 0
+      },
+      "S_PHR": {
+        "status": "PRESENT",
+        "ok": 0,
+        "on_target": 0,
+        "differs_from_S_A0": 760,
+        "second_calls": 0,
+        "policies": [
+          "q:radiator",
+          "raw"
+        ]
+      }
+    }
+  },
+  "tests": "23 passed in 0.33s",
+  "preflight": {
+    "passed": false,
+    "fails": [
+      "PHRASE_FOLDS.json now exists but SEEDS.json has S_PHR NOT_YET: rerun mc_seeds.py all (CPU) first"
+    ],
+    "frames": 13376,
+    "S_PHR": "NOT_YET"
+  },
+  "model_summary": {
+    "command": "bash review_run.sh sam3 model_audit.py",
+    "device": "cpu",
+    "threads": 8,
+    "checkpoint_sha256": "9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e",
+    "load_state_dict_calls": [
+      {
+        "class_name": "Sam3VideoInferenceWithInstanceInteractivity",
+        "strict": true,
+        "keys": 1465,
+        "backbone_keys": 759,
+        "tracker_keys": 309,
+        "missing": [],
+        "unexpected": []
+      }
+    ],
+    "model": "Sam3VideoInferenceWithInstanceInteractivity",
+    "tracker": "Sam3TrackerPredictor",
+    "shims": [
+      "TorchFunctionMode CpuRedirect: device cuda -> cpu, Tensor.cuda and Tensor.pin_memory -> identity, Tensor.to(cuda) -> cpu",
+      "sam3.model.vitdet.addmm_act -> sam3_tower._addmm_act_float32 (fp32 MLP)"
+    ],
+    "load_seconds": 14.502877874765545,
+    "embed_seconds": 122.47781977290288,
+    "seconds": 174.88765491591766,
+    "peak_rss_gib": 7.405895233154297,
+    "modules_outside_scratch": [],
+    "superseded_imports": []
+  },
+  "model_tracks": [
+    {
+      "tag": "S_A0/D64",
+      "name": "fireplace",
+      "frames": 8,
+      "seconds": 16.18090807599947,
+      "added": 2,
+      "changed_from_seed": 2,
+      "all_anchor_masks_equal_original": true
+    },
+    {
+      "tag": "S_GT/D64",
+      "name": "fireplace",
+      "frames": 8,
+      "seconds": 12.958221091888845,
+      "added": 2,
+      "changed_from_seed": 2,
+      "all_anchor_masks_equal_original": true
+    },
+    {
+      "tag": "S_A0/A32",
+      "name": "fireplace",
+      "frames": 4,
+      "seconds": 4.659990892279893,
+      "added": 2,
+      "changed_from_seed": 2,
+      "all_anchor_masks_equal_original": true
+    },
+    {
+      "tag": "S_GT/A32",
+      "name": "fireplace",
+      "frames": 4,
+      "seconds": 3.569511828944087,
+      "added": 2,
+      "changed_from_seed": 2,
+      "all_anchor_masks_equal_original": true
+    }
+  ],
+  "builder_calls": [
+    {
+      "line": 116,
+      "keywords": {
+        "checkpoint_path": "str(C.CHECKPOINT)",
+        "load_from_HF": "False",
+        "device": "str(self.device)",
+        "strict_state_dict_loading": "True"
+      }
+    }
+  ],
+  "positive_empty_synthetic_fixture": {
+    "slot": 2,
+    "seed": false,
+    "carried": false,
+    "score": 1.0,
+    "rle": null,
+    "positive_empty": true
+  },
+  "staging_control_files_missing_from_items": [
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/STAGING.json",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/STAGING_FRAMES.txt"
+  ],
+  "phrase_producer_bar_evidence": {
+    "phrase_worth": {
+      "verdict": "PASS",
+      "estimate": 3.73191899710704,
+      "ci95": [
+        2.046248531308938,
+        5.477847132296759
+      ]
+    },
+    "phrase_safe": {
+      "verdict": "PASS",
+      "rows": 456,
+      "estimate": 0.46052631578947373,
+      "ci95": [
+        0.0,
+        1.2159967760689174
+      ]
+    },
+    "role": "bar"
+  },
+  "freeze": {
+    "sha256": "edff8724b27328f6874b4adb0dd93727cc70fdfd4ddf2fb301cf572a46ceaaf4",
+    "frozen_utc": "2026-11-19T10:34:03Z",
+    "spec_matches": true,
+    "verbatim_bars": true,
+    "freeze_mtime_utc": "2026-11-19T10:34:03.660604+00:00",
+    "earliest_priced_mtime_utc": "2026-11-19T10:41:09.798918+00:00"
+  },
+  "archive": {
+    "sha256": "6f6ffd97d381f03d587d36b9dee3614cb76386fce2ba27c47633dbb04ea871e1",
+    "checksum_matches": true,
+    "members": 1130,
+    "mismatches": [
+      [
+        "STATUS.md",
+        "live bytes differ"
+      ],
+      [
+        "out/v2/STATUS_LOG.md",
+        "live bytes differ"
+      ]
+    ],
+    "superseded_members": []
+  },
+  "withheld": {
+    "path": "/scratch/jjyeung/orch_n30/sb_cntrev/k1/auth/WITHHELD_ROOMS_80.json",
+    "sha256": "634820b44927b1a50c18db9b90246b4b99f8954b0d7f5f2893e547f1c92879ed",
+    "pin": "634820b4",
+    "names": 720,
+    "hit_captures": [
+      "scannet/scene0201_02",
+      "scannet/scene0478_00",
+      "scannet/scene0478_01",
+      "scannet/scene0614_02",
+      "scannet/scene0692_03"
+    ],
+    "hit_rooms": [
+      "scannet/scene0201",
+      "scannet/scene0478",
+      "scannet/scene0614",
+      "scannet/scene0692"
+    ],
+    "hit_rows": 25,
+    "passed": false
+  },
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_carev/final_evidence.py": "46aa0487df5ef3dcfd67423257e86f0838bdc88707b5b49e43f53db9b5affaa9",
+    "/scratch/jjyeung/orch_n30/sb_carev/STATIC_AUDIT.json": "2e72ded32c18e407e502d80c9bfe65c17d96d184eab4952a15d5521e76999dd8",
+    "/scratch/jjyeung/orch_n30/sb_carev/CONTRACT_AUDIT.json": "1012e412c8a0d64a73f76f1f75980391f795ea5312bd87a69a36b6f58f2a0b6b",
+    "/scratch/jjyeung/orch_n30/sb_carev/MODEL_AUDIT.json": "57a5bab8b915de2a45da6dc4f0771051dd9f02c7e7cdead4a0e9908db6476368",
+    "/scratch/jjyeung/orch_n30/sb_carev/out/v2/dry/STEP0_PRECISION.json": "25e6003c068c9417be39618a79c9d82dcaf9f8a8743af8330c3064d27593a955",
+    "/scratch/jjyeung/orch_n30/sb_carev/out/v2/dry/STUB_PARITY.json": "364ddd62e4ad5157bca9320bca0863bb146e2e50bba83f76bc64b930de30392a",
+    "/scratch/jjyeung/orch_n30/sb_carev/out/v2/FRAME_SETS.json": "ca718c85b26ed2b42cc72e4f8f3d2aebe0229ea77ce43cffe81701b36e2b04f1",
+    "/scratch/jjyeung/orch_n30/sb_carev/out/v2/seeds/SEEDS.json": "3dd3fbb563311e5824f2d6ecf067cc5cc0b29a8f80b70f38dbeb2e9ae4d30303",
+    "/scratch/jjyeung/orch_n30/sb_carev/out/v2/GUARD.json": "57a36b44f777925c25ed0b0475281a5a89bd7d7171b4a0dd668b0e6305fefd4e",
+    "/scratch/jjyeung/orch_n30/sb_carev/logs/tests.log": "4777d7a6cc4a0c9bbb7a77bf54aad7db770c10895a536fb84a874ff9e7c93063",
+    "/scratch/jjyeung/orch_n30/sb_carev/logs/preflight.log": "82eac1ed045bb3a7b5d4037991b37db91fe71a5662b1b63380f80e633a17fcfe",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_tracker.py": "cf2ff59a9d8b786b9c5972861ab286cebb18f49edbf32b193a4fbf6a98c598e4",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_bars.py": "7bd79f6c54815674b024fc17b87dce86f54a8bbf04060b41034824598b2f0f8b",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_seeds.py": "48e918e5d31b7feba8a19bdfd3e9b53a810de8338635d655c5343c0a6695c922",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/launch_gpu.sh": "5658d157957d8049d110d6002f9f8510dc0a97764520215086bb4dd5606775eb",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_price.py": "f5f48ca3442e4dba534936fc671fd505c3a49eb30cc58569370666aa48e5ebf1",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/gpu_inner.sh": "709e4e0577d7c571d0e66b1b9fcdca63a2f72d3e93acfb9bd2737efe3596eab9",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_probe_predictor.py": "676b8ba1f3ae8bda33885e125dff65a496b00fc7c569e3a6a2f3339281aa5cb5",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/post_gpu.sh": "f75d9d06d42e6588e373c0aa22229059005c97c3591208cd9a611ce429860460",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_phrase.py": "57eacb53d75e932aa5e7cea3cbfac9d8274e2299ce43b2aaabcdc02926b591e9",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/run_cpu.sh": "1400d0fa201fff2065e33ef800bd0bb5feb77342f71137d3d6e9b758c3e14c32",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_dryrun_report.py": "1aaedd42990b48df6810e414753fa469e5c9915f3590d25e8af240e2e30ec2d7",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_summary.py": "33327396f2374fc17918e852e1fa90fba9dfdedaca5a03c46f99f264ae5e65d5",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_guard.py": "65f9b3cef22eac5e99eee66adc238e36a697af24da1da5434a97153e6b810074",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_stubs.py": "37201cf9483e26df7095ca62841f20dd46f90d205da71c4c4972e4f6f3c5cb8c",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_measure.py": "e42b9c4c8b115575f9a0348726650ee6ae7082ced432d17a64067e583c199c97",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_frames.py": "3f0bde9e1750319cfd64e658e8c0dc0ed93ab833022554beec9835640be4d12e",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_common.py": "e7e0c35aaec581eb259b71abe4effd6a58792caac1770035eac6483a4c4e50e7",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_track_io.py": "4713f061e0b6d1ccd4d6610cedd99aceb1d688282eca44283415d981b9e42a90",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/dryrun.sh": "49a148969b7195f30435b6dcf39e10c8141a55b35571857edc59c0b0105c4b39",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_probe_cpu.py": "a74565080a2675f977320be419ec2c09c635c9ccb0b3dfdc639ba3c650021474",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/manifest.sh": "eb3fba16dcd7d288b828e993fa5bde95cf7e3684ca947d407f9a01a5c22e306d",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_step0.py": "7fc795e37cce20e74775e552f36d225a762a3dcf4bf26af34001ff2a89b087d7",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_track_pass.py": "eed3bf9becc214e453e8a5dcc8cfc9264c860c45e007d45c622674518d74f1f8",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_ladder.py": "0a9581f335386ec03040f53d0f4b7762da40cd5c905f395cdcd27d957d6e641c",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_staging.py": "06b00e02a4f6c026dadf6b3e31c1ac0f16c1265841cf2065a919bce351a1b8a3",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/mc_preflight.py": "8bbbdb70aef210e9429c2dd6e1638e7654bcf030597b032885a57c1b91b8c0e8",
+    "/scratch/jjyeung/orch_n30/sb_carev/review_run.py": "60202a381da5aa0d2674020f0af515bec3e399acb77b0134b905537397bcefad",
+    "/scratch/jjyeung/orch_n30/sb_carev/review_run.sh": "3b1f9e92c0e91e7ca3960fd6179958ffe97c6e37b25c2ea3b7b449ed4ab4805e",
+    "/scratch/jjyeung/orch_n30/sb_carev/reproduce.sh": "1f21cf3c04c1dd9d6f60f1507f04424b595d446d3b1434fc4940125485d8e749",
+    "/scratch/jjyeung/orch_n30/sb_carev/tests_run.py": "86f3daa92ab2ef4565d0e3dfaf33539401f4d6f648f788e6ef34d2738d037e4d",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/kit_v2/tests/test_kit.py": "6b2df1d9460eb566fb680e7648b836190754a5ddafe5df8f89e27a676f583040",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/in/v2/KIT_SPEC_mask_carry_v2.md": "a98f18f8730665444e8b5a44ee121023da8a324ed05d660461ae674e0dc93028",
+    "/scratch/jjyeung/orch_n30/sb_mdrev2/REVIEW_VERDICT.md": "13a5c4dcf407b98da32fccb73265fc88b3cef34c9762eeb5f6add0e15d14cf82",
+    "/scratch/jjyeung/orch_n30/sb_mask_phrase/out/DECISION.json": "2dac01fcbba7a6fde09d6ae81ab609de70e3149b04423325f24e44047d4e1a4e",
+    "/scratch/jjyeung/orch_n30/sb_mask_carry/out/v2/STAGING.json": "1782d8036dd41880f5ff43f180dc079469b0ea200d56c1cf230b90342f6cdec1"
+  }
+}

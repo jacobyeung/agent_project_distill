@@ -1,0 +1,24 @@
+{
+ "written_utc": "2026-11-19T10:35:00Z",
+ "status": "written before any part 2 pool or score exists; part 2 has not run",
+ "source": "in/v3/KIT_SPEC_mask_phrase_v2.md (Bars, Part 2; GPU budget and stops) and in/v2/KIT_SPEC_mask_phrase.md (the same three bars)",
+ "contrast": "summarize_train.contrast: paired row MRA difference, 10,000 room-cluster draws, seed 20261119, 95% percentile interval",
+ "arms": {
+  "W_cf": "part 1 arm W1 as priced in out/PER_ITEM.jsonl (stored alias pools); the chosen part 1 arm",
+  "W_exact": "part 1 W1 fold policies unchanged; each non-raw phrase's pool is its SAM 3 rerun alone (out/pool_part2), raw-name pools stay the stored ones (parity)",
+  "W_new": "candidate phrases per name = rerun dictionary aliases plus NEW_PHRASES.json phrases (sha256 in part2/NEW_PHRASES.sha256), each pool its rerun alone; the part 1 fold rule (strictly more fit objects on target, ties to sorted phrase order, at least five fit objects) picks one phrase per name per fold",
+  "R_cond": "on top of the best of W_exact and W_new by MRA (ties to W_exact): in an anchor frame where the policy's phrase keeps no candidate, keep that call's queries with conditional score >= 0.5, at most 5, all with the call's one presence for that frame"
+ },
+ "bars": {
+  "exact_holds": "W_exact minus W_cf: 95% lower bound above -1.0",
+  "new_worth": "W_new minus W_exact at least +1.0 type points with lower bound above 0, and phrase_safe holds for W_new (W_new minus A0 on the both-good rows: lower bound above -1.0); MISSING (counts as not passed) when the new-phrase pass is dropped",
+  "retention_worth": "R_cond minus the best W arm at least +1.0 with lower bound above 0, and phrase_safe holds for R_cond; adoption needs a seal review in addition"
+ },
+ "both_good_rows": "the rows whose two operands are both good under A0 (part 1 recomputed 456)",
+ "gpu": {"card": "one 48 GB card placed by swarm_build3, two empty nvidia-smi readings 5 minutes apart, under vnice.sh, off trinity-0-13",
+         "projection": "after the first 10 captures out/TIMING_RECEIPT.json projects the whole pass; above 1.2 GPU-h the new phrases are dropped for the remaining captures (new_worth MISSING); still above 1.2 the pass stops",
+         "hard_stop_gpu_h": 1.2, "kill": "reported, not rerun"},
+ "gate": "dry-run step 5 (out/pool_part2/STEP5.json PASS) before any part 2 pool is trusted",
+ "never": ["choosing anything from dev-S1, held-out, R0-dev or official outcomes", "pricing a pool whose anchor frame mixes presences", "reusing A0 candidate ids or labels"]
+}
+ 

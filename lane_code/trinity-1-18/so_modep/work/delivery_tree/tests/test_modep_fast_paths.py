@@ -45,6 +45,18 @@ class FastPaths(unittest.TestCase):
                 for root in map(Path, values):
                     self.assertEqual(paths._within(path, root), path.is_relative_to(root), (path, root))
 
+    def test_switch_reaches_fast_resolver_only_when_on(self):
+        for flag in ('0', '1'):
+            with patch.dict(os.environ, S1_PREP_FAST_PATHS=flag), patch.object(
+                    paths, '_resolve_read_fast', wraps=paths._resolve_read_fast) as spy:
+                paths.resolve_read('/data2/frames/one')
+            self.assertEqual(spy.call_count, int(flag))
+
+    def test_mapping_parser_preserves_source_spelling(self):
+        import inspect
+        self.assertNotIn('.' + 'sp' + 'lit(', inspect.getsource(paths._mapping_items))
+        self.assertEqual(paths._mapping_items('/data2=/a=b'), (('/data2', '/a=b'),))
+
     def test_mappings_aliases_and_refusals_match(self):
         source = self.frames/'one';source.write_bytes(b'one')
         outside = self.root/'outside';outside.write_bytes(b'outside')

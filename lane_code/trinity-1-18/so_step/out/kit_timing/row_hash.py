@@ -27,6 +27,9 @@ def encoded_hash(value):
 
 
 def compare_rows(reference, trial):
+    if any('row_draws' in record for record in reference + trial):
+        if [record.get('row_draws') for record in reference] != [record.get('row_draws') for record in trial]:
+            raise ValueError('Row draws differ from OFF')
     expected = [record['encoded_row_sha256'] for record in reference]
     actual = [record['encoded_row_sha256'] for record in trial]
     if not expected or expected != actual:

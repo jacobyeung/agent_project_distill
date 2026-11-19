@@ -9,3 +9,10 @@
 - 2026-11-19T10:42:04Z Dry-run step 4a (PREDICTOR_CPU.json): build_sam3_video_predictor FAILED RuntimeError: No CUDA GPUs are available; Sam3VideoPredictor FAILED RuntimeError: No CUDA GPUs are available
 - 2026-11-19T10:42:25Z Dry-run steps 1-2 (STUB_PARITY.json): step1 1037/1037; step2 1037/1037; step2 1037/1037; deployed frame recall 0.5815.
 - 2026-11-19T10:43:20Z Dry-run steps 1-2 (STUB_PARITY.json): step1 1037/1037; step2 1037/1037; step2 1037/1037; deployed frame recall 0.5790 (spec 57.9%).
+- 2026-11-19T10:46:29Z Staging (STAGING.json): 12 items, 13.90 GiB, 13376 frames.
+- 2026-11-19T10:46:49Z Staging (STAGING.json): 12 items, 13.90 GiB, 13376 frames.
+- 2026-11-19T10:47:18Z Dry-run collation (DRYRUN.json): steps 0-3 pass, 4a FAILED_AS_RECORDED, 4b done {'S_A0/D64': 1, 'S_GT/D64': 1, 'S_A0/A32': 1, 'S_GT/A32': 1, 'S_PHR/D64': 0, 'S_PHR/A32': 0}; tests 23 passed in 0.26s; GPU estimate 1.48 h (decision arm 0.80 h), hard stop 2.0 h.
+- 2026-11-19T10:48:22Z Staging (STAGING.json): 12 items, 13.90 GiB, 13376 frames.
+- 2026-11-19T10:48:23Z Dry-run collation (DRYRUN.json): steps 0-3 pass, 4a FAILED_AS_RECORDED, 4b done {'S_A0/D64': 1, 'S_GT/D64': 1, 'S_A0/A32': 1, 'S_GT/A32': 1, 'S_PHR/D64': 0, 'S_PHR/A32': 0}; tests 23 passed in 0.24s; GPU estimate 1.48 h (decision arm 0.80 h), hard stop 2.0 h.
+- 2026-11-19T10:50:09Z KIT_REPORT.md written (out/v2/KIT_REPORT.md, copy out/KIT_REPORT.md); tarball next. Every bar MISSING until the GPU pass; PHRASE_FOLDS NOT_YET; K1_TRACK MISSING; withheld-80 question open (default keep).
+- 2026-11-19T10:50:20Z Tarball out/v2/sb_mask_carry.tar (copy out/sb_mask_carry.tar) sha256 6f6ffd97d381f03d587d36b9dee3614cb76386fce2ba27c47633dbb04ea871e1; kit ready for staging and the GPU pass.

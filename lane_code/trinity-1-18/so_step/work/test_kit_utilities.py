@@ -39,7 +39,7 @@ class Utilities(unittest.TestCase):
         replay=module('so_data_only',ROOT/'out/kit_timing/data_only.py')
         for arm in ('off','prefetch','cache','all'):
             destination=directory/(arm+'.json')
-            args=['data_only.py','--tree',str(ROOT/'work/tree'),
+            args=['data_only.py','--tree',os.environ.get('SO_TEST_TREE',str(ROOT/'work/tree')),
                   '--receipt',str(directory/'receipt.json'),'--manifest',str(directory/'manifest.json'),
                   '--config',str(directory/'config.json'),'--plan',str(directory/'plan.json'),
                   '--out',str(destination),'--arm',arm]

@@ -30,8 +30,10 @@ def guard(event,args):
  if event=='open' and target is not None and active_writes is not None:active_writes.add(str(Path(target).resolve()))
  if target is not None and not Path(target).resolve().is_relative_to(L):raise RuntimeError('Fixture write outside lane: '+str(target))
 sys.addaudithook(guard)
-import modep_native_fixture as f
+import importlib
+f=importlib.import_module(os.environ.get('MODEP_FIXTURE_MODULE','modep_native_fixture'))
 from student_pilot import s1_admission as admission,first_batch_progress as journal
+from student_pilot import orchard_paths, s1_exclusions
 from student_pilot.p3_provenance import file_pin,load
 from student_pilot.r1_persisted import scope,verify
 from launch_r1.p_opener_witness import produce as opener
@@ -77,19 +79,26 @@ with ExitStack() as stack:
   active_writes=set()
   started=real_clock()
   with scope(closure['paths']),patch.dict(os.environ,S1_PREP_FAST_PATHS=fast,S1_PREP_SELECT_SQL=sql),\
+       patch.object(orchard_paths,'_resolve_read_fast',wraps=orchard_paths._resolve_read_fast) as path_spy,\
+       patch.object(s1_exclusions,'_selected_rows',wraps=s1_exclusions._selected_rows) as sql_spy,\
        patch.object(uuid,'uuid4',side_effect=lambda:uuid.UUID(int=next(ids))),\
        patch.object(time,'perf_counter',side_effect=lambda:float(next(ticks))),\
        patch.object(resource,'getrusage',return_value=SimpleNamespace(ru_maxrss=12345)):
    report=admission.admit(pin,destination,[str(O/'input')],threads=8,memory_gib=16,sample_size=8,prepare_only=True,attempt='a'*32)
+  calls=dict(paths=path_spy.call_count,sql=sql_spy.call_count)
+  assert bool(calls['paths']) == (fast=='1'), calls
+  assert bool(calls['sql']) == (sql=='1'), calls
+  frame_report=load(next(destination.glob('frames_*/frames.json')))
+  assert all(value['unique_frames'] > 1 for value in frame_report['sources'].values()), frame_report
   written=sorted(active_writes);active_writes=None
   assert all(Path(name).is_relative_to(destination) for name in written),written
   files={str(p.relative_to(destination)):file_pin(p)['sha256'] for p in sorted(destination.rglob('*')) if p.is_file()}
-  result=dict(label=label,native_python_writes=written,files=files,seconds=real_clock()-started,status=report['status'],phase_times=list(phase_times),observed_peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+  result=dict(label=label,path_calls=calls,frame_sources=frame_report['sources'],native_python_writes=written,files=files,seconds=real_clock()-started,status=report['status'],phase_times=list(phase_times),observed_peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
   if results:assert files==results[0]['files'],[(k,v,results[0]['files'].get(k)) for k,v in files.items() if v!=results[0]['files'].get(k)]
   if results:
    for name in files:assert (destination/name).read_bytes()==(O/'retained_off'/name).read_bytes(),name
   result['byte_compared']=bool(results)
   results.append(result)
   destination.rename(O/('retained_'+label))
-  print('MODEP_PARITY '+json.dumps(dict(label=label,files=len(files),seconds=result['seconds'],identical=True)),flush=True)
+  print('MODEP_PARITY '+json.dumps(dict(label=label,files=len(files),seconds=result['seconds'],identical=True,path_calls=calls,unique_frames={k:v['unique_frames'] for k,v in frame_report['sources'].items()})),flush=True)
  (O/'RESULT.json').write_text(json.dumps(dict(results=results,telemetry_fixed=['resources.seconds','resources.peak_rss_kib'],uuid_fixed=True,paths_fixed=True),indent=2)+'\n')

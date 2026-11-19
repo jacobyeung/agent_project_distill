@@ -21,6 +21,12 @@ from student_pilot import carrier_c1_run as run
 
 
 class KitRound2(unittest.TestCase):
+    def test_row_draw_difference_fails_even_when_encoded_bytes_match(self):
+        from row_hash import compare_rows
+        with self.assertRaisesRegex(ValueError, 'Row draws'):
+            compare_rows([dict(encoded_row_sha256=['same'], row_draws=[['vqa',0,0]])],
+                         [dict(encoded_row_sha256=['same'], row_draws=[['vqa',1,1]])])
+
     def test_full_plan_memory_includes_every_group_and_targets(self):
         import data_only
         directory = root()
