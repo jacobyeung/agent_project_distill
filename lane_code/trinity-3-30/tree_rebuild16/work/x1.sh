@@ -1,0 +1,1 @@
+R=/scratch/jjyeung/orch_n30/tr15_rev24l3; date -u +%TZ; tmux ls | grep -E 'tr15|tr16'; ls -la $R; test -f $R/VERDICT.md && head -c 3000 $R/VERDICT.md || tail -c 600 $R/cursor.log | tr -cd "[:print:]\n" | tail -4 | cut -c1-300

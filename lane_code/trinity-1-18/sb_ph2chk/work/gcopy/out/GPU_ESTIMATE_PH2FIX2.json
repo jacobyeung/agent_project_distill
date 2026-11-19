@@ -1,0 +1,53 @@
+{
+ "status": "ESTIMATE",
+ "command": "bash sb_mask_phrase/run.sh ../work/estimate_ph2fix2.py",
+ "encode_detect_ratio": 6.5,
+ "k1_prompts_per_capture_approx": 19.0,
+ "k1_amortized_prompt_frame_s": 0.064,
+ "detect_frame_s": 0.04768627450980392,
+ "formula": "detect_frame_s = 0.064 / (1 + 6.5 / 19); total_s = 32 * detect_frame_s * (6.5 * captures + calls)",
+ "limitation": "Ratio extrapolation, not a GPU measurement. Excludes loading and STEP5; the hard 4320 s timeout includes them. Ten-capture projection keeps the new-phrase work already spent.",
+ "estimates": {
+  "default": {
+   "encode_s_per_capture": 9.918745098039214,
+   "s_per_call": 1.5259607843137255,
+   "s_per_prompt_frame": 0.04768627450980392,
+   "projected_gpu_h": 1.2286103703703701,
+   "projected_gpu_h_without_new": 0.9217227015250543,
+   "drop_new": true,
+   "stop": false,
+   "captures": 209,
+   "calls": 1540,
+   "calls_without_new": 790,
+   "captures_timed": 10,
+   "calls_in_first_ten": 54,
+   "fits_default_stop": false,
+   "consequence": "W_new MISSING; retain raw/chosen phrases and R_cond"
+  },
+  "all_aliases": {
+   "encode_s_per_capture": 9.918745098039214,
+   "s_per_call": 1.5259607843137257,
+   "s_per_prompt_frame": 0.04768627450980393,
+   "projected_gpu_h": 1.425289760348584,
+   "projected_gpu_h_without_new": 1.118402091503268,
+   "drop_new": true,
+   "stop": false,
+   "captures": 209,
+   "calls": 2004,
+   "calls_without_new": 1254,
+   "captures_timed": 10,
+   "calls_in_first_ten": 70,
+   "fits_default_stop": false,
+   "consequence": "W_new MISSING; retain raw/chosen phrases and R_cond"
+  }
+ },
+ "input_sha256": {
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/../work/estimate_ph2fix2.py": "ef8245fb05b02cb38c15e2f4a5eba46dbbf7a1719ed16f8725f1bd845c0cd39f",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/sam3_pass.py": "92d187e8918f82b61f2c774a0337d8ae23c2a048ac1e3329f3a1a6d64d04681a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/NEW_PHRASES.json": "9625e86fb5261fe1c8cd1997d191113c78a12ecbfce2354730ea2436bf84b130",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/in/v3/KIT_SPEC_mask_phrase_v2.md": "7504242eb527b4c676330f413cda081748da20680352f33ed0e8972c9d8932d3",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/work/ph2rev_probes/REVIEW_VERDICT.md": "1e6bd2d480da50c4605c1c1d1fa937581f4240769bd27af703c3322d2f3c1bcf",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/work/ph2rev_probes/plan_counts.json": "b24c60b668f0c766dfe8661ae5369cde7b2b742c3b34cf027807e9d9204f67c0",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/work/ph2rev_probes/cpu_first_batch.jsonl": "3cfcafe5e6df556ec1d9945f22ae3021866dc6412406a6bad310dedd7d2a2af3"
+ }
+}

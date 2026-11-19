@@ -1,0 +1,3 @@
+cd /scratch/jjyeung/orch_n30/sb_own400 && date -u +%TZ && ls out/real400_score 2>&1 | head -2; sha256sum out/BARS_FROZEN.json kit/score_400.py | cut -c1-16,65-; ls in/own_400/native/probe | wc -l
+[ -e out/real400_score ] || tmux new-session -d -s fbp3_score400 "env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 CUDA_VISIBLE_DEVICES= nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B kit/score_400.py --own-root in/own_400/native/probe --out out/real400_score > out/real400_score.log 2>&1; echo EXIT \$? >> out/real400_score.log" </dev/null >/dev/null 2>&1
+sleep 45; tmux ls | grep fbp3; tail -20 out/real400_score.log; ls out/real400_score 2>&1 | head

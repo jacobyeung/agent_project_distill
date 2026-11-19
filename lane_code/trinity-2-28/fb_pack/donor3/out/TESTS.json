@@ -1,0 +1,316 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/code/summarize.py": "ee4d2329443e094860880d188f90aab0a0e3341eb71e62e755f227ab317852b1",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/RUNS.json": "ff19050b351df66b1144d00c9eaba752471c5001a923bb7ea92eb9487449eda8",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/unit_new.log": "fa60aafa474d8fab89ef6ee82a1fcb5133924a4a57c3c3d34d501d26c6b27167",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/unit_live.log": "74940f6dc3850b7e23aef1e2f4b88931230f480106940639efbd6f090d803f3a",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/FOCUSED_BASE.json": "db527a7bac280b7c21cfbbfb55dbe88c1a405a2f1f06db3ddce76e7db02a7c15",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/FOCUSED_NEW.json": "78a3adb1c4db349afecf2c441a5e81a4a324d1371534646ccc1c578986269970",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/FOCUSED_LIVE_BASE.json": "a2fb07c758bec4b2acdc1653526f42ac36d8724ab193986c0f306a94cfabbe69",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/FOCUSED_LIVE.json": "441739eaa6dc56528062e15cda00ffcedfd3f841913184cd6a3189c51b20474f",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/PARITY_base.json": "33a33c7fc8dbcf1fabf9b84d1e57740d0c898a4ecd2275f8f90b5a2c59abb5a3",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/PARITY_new.json": "4aa5911eea337d14f8f8128dc6cc438fe2063c8c0bc8d4bfa56ad8c055464374",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/PARITY_live_base.json": "99fb1ba5e1064fe8c39225a79679c7c2df2bd51e7e1bfa1670b83c19c1d5837f",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/PARITY_live.json": "6267eb09b511ee7f31ad477669c7149583e70fa68223796cb5befe8ec0374a51",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/FILES_TOUCHED.json": "cae4ecc1edeffdaeba1c6d7b669716080a084176db1561e0cd05156f46635490",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/RECIPE_CHECK.json": "b75d9f25c0f82246d2c8e05fa40a12c8745e69c15f4587461f6c87c6c600d34f",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/STAGING.json": "fa85cd25850398bcb5e8b25e2a400067dedd54ad0b1e24ffdb01b5eee7e8f4dc",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/READER_REQUEST.md": "70c9613ff4973714f25a95a5dec37232a8574fd61840eb8af18279c60e7c5e70",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/out/READER_REQUEST.md": "23872d44be0fe120b0955ece5fc394934c1c44234544386e3eea1542a2ab636b",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/REAL_WEIGHT_COMMAND.sh": "244dfa28469a3e8e8a43dfa6fa71c035549f5cd72b3d2fdd8807964c1adea8d3",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor2/out/REAL_WEIGHT_COMMAND.sh": "d8f4401abb6f7a4e1d97bf21240735f0d6b5125377bf0bf3c5203c40e597c318"
+  },
+  "status": "PASS",
+  "command": "python -B code/summarize.py",
+  "unit_tests": {
+    "unit_new": {
+      "tests": 11,
+      "status": "PASS",
+      "command": "env DONOR_TREE=new nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_unit.py"
+    },
+    "unit_live": {
+      "tests": 11,
+      "status": "PASS",
+      "command": "env DONOR_TREE=live nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_unit.py"
+    }
+  },
+  "focused_suites": {
+    "base": {
+      "tests": 129,
+      "failures": 1,
+      "errors": 12,
+      "skips": 6,
+      "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_focused.py base"
+    },
+    "new": {
+      "tests": 140,
+      "failures": 1,
+      "errors": 12,
+      "skips": 6,
+      "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_focused.py new"
+    },
+    "live_base": {
+      "tests": 144,
+      "failures": 1,
+      "errors": 12,
+      "skips": 7,
+      "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_focused.py live_base"
+    },
+    "live": {
+      "tests": 155,
+      "failures": 1,
+      "errors": 12,
+      "skips": 7,
+      "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_focused.py live"
+    }
+  },
+  "focused_comparisons": {
+    "base_new": {
+      "status": "PASS",
+      "new_failure_signatures": [],
+      "preexisting": [
+        {
+          "test": "tests.test_c1_blockers.BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule",
+          "kind": "errors",
+          "cause": "TypeError: BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule.<locals>.publish() got an unexpected keyword argument 'optimizer'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_c1_blockers.py\", line 178, in test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule\n    expected_report = run.run_steps(reference, reference, optimizer, rows, {'pose': 37},\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/carrier_c1_run.py\", line 2462, in run_steps\n    export(output/f'm{step}',wrapped,model,cfg,step,optimizer=optimizer,disk_guard=disk_budget)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1204, in _execute_mock_call\n    result = effect(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule.<locals>.publish() got an unexpected keyword argument 'optimizer'\n"
+        },
+        {
+          "test": "tests.test_c1_blockers.BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows",
+          "kind": "errors",
+          "cause": "TypeError: BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_c1_blockers.py\", line 227, in test_allocations_reach_all_gates_without_repeating_dense_rows\n    report = run.run_steps(None, None, None, None, {'pose': 37}, root, cfg, {},\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/carrier_c1_run.py\", line 2462, in run_steps\n    export(output/f'm{step}',wrapped,model,cfg,step,optimizer=optimizer,disk_guard=disk_budget)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1204, in _execute_mock_call\n    result = effect(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'\n"
+        },
+        {
+          "test": "tests.test_decode_parity_r9.Diagnostics.test_real_stage_saves_failure_and_runs_b1_twice",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/scripts/gpu_routed_batch.py'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_decode_parity_r9.py\", line 80, in test_real_stage_saves_failure_and_runs_b1_twice\n    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)\n                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap_external>\", line 995, in exec_module\n  File \"<frozen importlib._bootstrap_external>\", line 1132, in get_code\n  File \"<frozen importlib._bootstrap_external>\", line 1190, in get_data\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/scripts/gpu_routed_batch.py'\n"
+        },
+        {
+          "test": "tests.test_decoupled_resume.GlooResumeTests.test_two_ranks_resume_matches_uninterrupted",
+          "kind": "errors",
+          "cause": "PermissionError: Task guard refuses child process launch",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_decoupled_resume.py\", line 179, in test_two_ranks_resume_matches_uninterrupted\n    mp.start_processes(worker, args=(str(root),), nprocs=2, start_method='fork', join=True)\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 280, in start_processes\n    idx, process, tf_name = start_process(i)\n                            ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 275, in start_process\n    process.start()\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 19, in refuse_worker_start\n    raise PermissionError('Task guard refuses child process launch')\nPermissionError: Task guard refuses child process launch\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build14.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r1_build14.py\", line 8, in <module>\n    from tests.test_r2_build_n1 import configuration, write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build15.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r1_build15.py\", line 12, in <module>\n    from tests.test_r2_n1fix import handover_fixture\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_n1fix.py\", line 10, in <module>\n    from tests.test_r2_build_n1 import configuration, sampling, write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build16.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r1_build16.py\", line 10, in <module>\n    from tests.test_r2_n1fix import handover_fixture\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_n1fix.py\", line 10, in <module>\n    from tests.test_r2_build_n1 import configuration, sampling, write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build17.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r1_build17.py\", line 9, in <module>\n    from tests.test_r2_build_n1 import write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build19.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r1_build19.py\", line 7, in <module>\n    from tests.test_r2_build_n1 import write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build20.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r1_build20.py\", line 8, in <module>\n    from tests.test_r2_build_n1 import write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_export17.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r1_export17.py\", line 9, in <module>\n    from tests.test_r2_build_n1 import write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "tests.test_s1_trained_groups.TrainedGroupTests.test_native_fsdp_restore_updates_the_published_module",
+          "kind": "errors",
+          "cause": "torch.distributed.DistNetworkError: The server socket has failed to bind. port: 0, useIpv6: 0, code: -1, name: EPERM, message: operation not permitted",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_s1_trained_groups.py\", line 83, in test_native_fsdp_restore_updates_the_published_module\n    store = dist.TCPStore(\"127.0.0.1\", 0, 1, True, timeout=timedelta(seconds=20))\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntorch.distributed.DistNetworkError: The server socket has failed to bind. port: 0, useIpv6: 0, code: -1, name: EPERM, message: operation not permitted\n"
+        },
+        {
+          "test": "tests.test_c1_blockers.BlockerTests.test_exhausted_resume_saves_the_same_step_under_each_attempt",
+          "kind": "failures",
+          "cause": "AssertionError: False is not true",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/base/tests/test_c1_blockers.py\", line 298, in test_exhausted_resume_saves_the_same_step_under_each_attempt\n    self.assertTrue(all(call.kwargs == {'rotate': True} for call in save.call_args_list))\nAssertionError: False is not true\n"
+        }
+      ]
+    },
+    "live_base_live": {
+      "status": "PASS",
+      "new_failure_signatures": [],
+      "preexisting": [
+        {
+          "test": "tests.test_c1_blockers.BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule",
+          "kind": "errors",
+          "cause": "TypeError: BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule.<locals>.publish() got an unexpected keyword argument 'optimizer'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_c1_blockers.py\", line 178, in test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule\n    expected_report = run.run_steps(reference, reference, optimizer, rows, {'pose': 37},\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/carrier_c1_run.py\", line 2462, in run_steps\n    export(output/f'm{step}',wrapped,model,cfg,step,optimizer=optimizer,disk_guard=disk_budget)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1204, in _execute_mock_call\n    result = effect(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule.<locals>.publish() got an unexpected keyword argument 'optimizer'\n"
+        },
+        {
+          "test": "tests.test_c1_blockers.BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows",
+          "kind": "errors",
+          "cause": "TypeError: BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_c1_blockers.py\", line 227, in test_allocations_reach_all_gates_without_repeating_dense_rows\n    report = run.run_steps(None, None, None, None, {'pose': 37}, root, cfg, {},\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/carrier_c1_run.py\", line 2462, in run_steps\n    export(output/f'm{step}',wrapped,model,cfg,step,optimizer=optimizer,disk_guard=disk_budget)\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1139, in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1143, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/mock.py\", line 1204, in _execute_mock_call\n    result = effect(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'\n"
+        },
+        {
+          "test": "tests.test_decode_parity_r9.Diagnostics.test_real_stage_saves_failure_and_runs_b1_twice",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/scripts/gpu_routed_batch.py'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_decode_parity_r9.py\", line 80, in test_real_stage_saves_failure_and_runs_b1_twice\n    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)\n                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap_external>\", line 995, in exec_module\n  File \"<frozen importlib._bootstrap_external>\", line 1132, in get_code\n  File \"<frozen importlib._bootstrap_external>\", line 1190, in get_data\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/scripts/gpu_routed_batch.py'\n"
+        },
+        {
+          "test": "tests.test_decoupled_resume.GlooResumeTests.test_two_ranks_resume_matches_uninterrupted",
+          "kind": "errors",
+          "cause": "PermissionError: Task guard refuses child process launch",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_decoupled_resume.py\", line 179, in test_two_ranks_resume_matches_uninterrupted\n    mp.start_processes(worker, args=(str(root),), nprocs=2, start_method='fork', join=True)\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 280, in start_processes\n    idx, process, tf_name = start_process(i)\n                            ^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/torch/multiprocessing/spawn.py\", line 275, in start_process\n    process.start()\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 19, in refuse_worker_start\n    raise PermissionError('Task guard refuses child process launch')\nPermissionError: Task guard refuses child process launch\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build14.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r1_build14.py\", line 8, in <module>\n    from tests.test_r2_build_n1 import configuration, write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build15.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r1_build15.py\", line 12, in <module>\n    from tests.test_r2_n1fix import handover_fixture\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_n1fix.py\", line 10, in <module>\n    from tests.test_r2_build_n1 import configuration, sampling, write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build16.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r1_build16.py\", line 10, in <module>\n    from tests.test_r2_n1fix import handover_fixture\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_n1fix.py\", line 10, in <module>\n    from tests.test_r2_build_n1 import configuration, sampling, write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build17.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r1_build17.py\", line 9, in <module>\n    from tests.test_r2_build_n1 import write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build19.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r1_build19.py\", line 7, in <module>\n    from tests.test_r2_build_n1 import write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_build20.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r1_build20.py\", line 8, in <module>\n    from tests.test_r2_build_n1 import write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "collection:tests.test_r1_export17.py",
+          "kind": "errors",
+          "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 58, in failed\n    def failed(message=message):raise RuntimeError(message)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/code/run_focused.py\", line 54, in <module>\n    suite.addTests(unittest.defaultTestLoader.loadTestsFromName(name))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r1_export17.py\", line 9, in <module>\n    from tests.test_r2_build_n1 import write\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_build_n1.py\", line 11, in <module>\n    from tests.test_r2_data_path import PROOFS,LANE\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_r2_data_path.py\", line 358, in <module>\n    from tests.r2_init_fixture import INIT\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/r2_init_fixture.py\", line 5, in <module>\n    PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/donor3/fixtures/work/build6/INIT_INPUT.json'\n\n"
+        },
+        {
+          "test": "tests.test_s1_trained_groups.TrainedGroupTests.test_native_fsdp_restore_updates_the_published_module",
+          "kind": "errors",
+          "cause": "torch.distributed.DistNetworkError: The server socket has failed to bind. port: 0, useIpv6: 0, code: -1, name: EPERM, message: operation not permitted",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_s1_trained_groups.py\", line 83, in test_native_fsdp_restore_updates_the_published_module\n    store = dist.TCPStore(\"127.0.0.1\", 0, 1, True, timeout=timedelta(seconds=20))\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntorch.distributed.DistNetworkError: The server socket has failed to bind. port: 0, useIpv6: 0, code: -1, name: EPERM, message: operation not permitted\n"
+        },
+        {
+          "test": "tests.test_c1_blockers.BlockerTests.test_exhausted_resume_saves_the_same_step_under_each_attempt",
+          "kind": "failures",
+          "cause": "AssertionError: False is not true",
+          "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/fb_pack/donor3/work/live_base/tests/test_c1_blockers.py\", line 298, in test_exhausted_resume_saves_the_same_step_under_each_attempt\n    self.assertTrue(all(call.kwargs == {'rotate': True} for call in save.call_args_list))\nAssertionError: False is not true\n"
+        }
+      ]
+    }
+  },
+  "field_absent": {
+    "base_new": {
+      "status": "PASS",
+      "byte_identical": true,
+      "fields": 11,
+      "state_tensors": 275,
+      "optimizer_tensors": 525,
+      "exported_head_tensors": 202,
+      "commands": [
+        "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/parity_full.py base",
+        "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/parity_full.py new"
+      ]
+    },
+    "live_base_live": {
+      "status": "PASS",
+      "byte_identical": true,
+      "fields": 11,
+      "state_tensors": 275,
+      "optimizer_tensors": 525,
+      "exported_head_tensors": 202,
+      "commands": [
+        "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/parity_full.py live_base",
+        "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/parity_full.py live"
+      ]
+    }
+  },
+  "patch_applications": [
+    {
+      "tree": "apply_base",
+      "status": "PASS",
+      "command": "cd /scratch/jjyeung/orch_n30/fb_pack/donor3/work/apply_base && patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/fb_pack/donor3/out/PATCH_DONOR3.patch",
+      "files": 942,
+      "zero_fuzz": true,
+      "zero_offset": true
+    },
+    {
+      "tree": "apply_delta",
+      "status": "PASS",
+      "command": "cd /scratch/jjyeung/orch_n30/fb_pack/donor3/work/apply_delta && patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/fb_pack/donor3/out/PATCH_DONOR3_DELTA.patch",
+      "files": 942,
+      "zero_fuzz": true,
+      "zero_offset": true
+    },
+    {
+      "tree": "live",
+      "status": "PASS",
+      "command": "cd /scratch/jjyeung/orch_n30/fb_pack/donor3/work/live && patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/fb_pack/donor3/out/PATCH_DONOR3.patch",
+      "files": 943,
+      "zero_fuzz": true,
+      "zero_offset": true
+    }
+  ],
+  "runtime": {
+    "status": "PASS",
+    "constructor": "real CarrierC1 called by the actual load_runtime function body",
+    "base_load": "real full_ft.load_export",
+    "adapter": "test-only insertion at the strict head-load site",
+    "positive": "all exported head tensor bytes equal after native two-step export reload",
+    "negative_cases": [
+      "attach before visual load/freeze",
+      "freeze only",
+      "load only",
+      "tampered visual",
+      "missing visual key",
+      "unpopped metadata",
+      "inconsistent metadata",
+      "tampered donor tensor"
+    ],
+    "documented_sequence_matches_test_exactly": true
+  },
+  "training_code_changed_from_donor2": false,
+  "real_weights": {
+    "status": "MISSING",
+    "step400_heads": "/scratch/jjyeung/b01ec87a6f29b/d/m400/heads.pt",
+    "expected_sha256": "e72208ac55e342a3ac7972383f63740be323eba28d6c3bd293da1ad47743d4a7",
+    "step544_heads": "MISSING: location not supplied",
+    "note": "Availability limitation carried from supplied donor2 reader request; no unlisted location was searched."
+  },
+  "limitations": "CPU tiny native weights; mocked bundle/processor/token boundaries and legacy reader guard; no installed production reader adapter, full production weights, GPU, network or distributed transport validation."
+}

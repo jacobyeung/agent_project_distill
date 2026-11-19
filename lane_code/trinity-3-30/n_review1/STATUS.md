@@ -1,5 +1,5 @@
 # n_review1 STATUS
-Updated: 2026-11-19T19:33:33Z. Lane n_review1 (Devin Opus high, trinity-3-30; session /scratch/jjyeung/orch_n30/n_review1; 1-18 folder /scratch/jjyeung/orch_n30/n_review). Brief B/briefs/n_review1.md. Process per ORCH RULING 1911Z (B): pre-submission review now; in-job review by n_review2 (brief B/briefs/n_review2.md, written).
+Updated: 2026-11-19T22:12:48Z. ROTATED to n_review1b (brief B/briefs/n_review1b.md).
 - Posted: QUESTION 1918Z (24i row samples; ORCH yes 1919Z), QUESTION 1928Z (24i BENCH/dev counts), RESULT 20261119T1933Z FAIL first pass (items 7, 8 pending 24h/24i, reviews, rehearsal; naming finding).
 - Report: B/events/n_review/N_REVIEW_REPORT.md; evidence B/events/n_review/evidence and n_review1/evidence.
 - Key hashes: tree 57a1f14d; c.json payload ae4aa06d identity ac733e02; expected store_hashes pose 6d591440, routing 4e8e6c04, pointing c09bb5ca, vqa 210b2534.
@@ -13,3 +13,14 @@ Updated: 2026-11-19T19:33:33Z. Lane n_review1 (Devin Opus high, trinity-3-30; se
 - Lane end: brief says end after 5 h (~00:00Z) if verdict not posted; launch QUESTION forecast 23:30-00:00Z.
 - 20:47Z: Cursor review of 24j GO AFTER FIXES (2 MUST: host scene check before twins augment; routing pin digest hashes absolute paths) -> tree build 24l + kit 24m; 24fr3 says export mismatch fixture-only (rehearsal run4 20:44Z). Launch QUESTION forecast 00:15-00:45Z; final verdict will need 24l seal (item 1 re-check), 24m kit read, reviews, rehearsal4, routing digest.
 - 21:28Z: BLOCKER P_EXPORT_RUN_BINDING_MISMATCH -> tree 24n (compare preparation pin by sha). Routing CPU job being submitted (mode r, namespace /tmp/q_22c714e1/p/q/selection). Launch QUESTION ~01:00-01:30Z (after my 5 h).
+- 22:05Z: launch QUESTION now forecast 03:00-04:00Z (discovery run + routing selection ~23:30-02:30Z); 24l2 tree e17fc130 (r1_handover 24n) on trinity-2-28 only (not authorized for me). My lane ends ~00:00Z (5 h): final pre-submission verdict will be owed by a successor reviewer.
+- 22:10Z QUESTION lane window (default: stay to check routing digest, max 01:30Z, then end; final verdict to successor).
+## Final pre-submission RESULT must re-check (successor checklist)
+1. Item 1 on final tree seal (e17fc130 = 24l+24n, or 24l3) recomputed; identity of new kit's pre-prep config in hidden view (ident.py pattern, n_review1/work/r20.sh).
+2. Read changed comparisons: r1_handover (24n: preparation pin by sha256), entry.py/production_proof.py (24j host receipt in q path; 24l host scene after twins; 24l3 stager=hook record). Confirm admit(), identity(), r1_coverage, r1_rooms, carrier_c1*.py unchanged (hashes in evidence/tree57_file_hashes.txt).
+3. 24m2 kit: job.sh (advanced, 48 CPU, 800G, 24:00:00, gpu:4, TERM@600), pc.sh trap waits workload, pc.py copier after verify and destination checks, h.py pins q host receipt, rv.py evidence + review wait (scoped answer-only refusal to VQA/routing; samples strip frame fields incl pointing.frame), naming on /project+GCS paths.
+4. Reviews: Cursor re-review of final tree GO (scanner/diagnostic only); Astra kit review of 24g-24m2 GO.
+5. Rehearsal on final kit through native receipt path: step-1 ckpt, milestone export + copier, timed ckpt, self-stop, resume PASS.
+6. Routing digest vs ca0616db (db 4e8e6c04, 47,898, types 14,020/12,260/9,143/12,475, materialization 0c38bc96).
+7. fb_pack2 pointing room audit (expected 24,700 admitted / 320 K1 dropped?) -> n_review2 brief item 6 expectations; scene-evidence investigation (r2_scene_rebuild) outcome.
+8. Then: RESULT PASS with audited store hashes + pre-prep config hash; update n_review2 brief with final kit seal.

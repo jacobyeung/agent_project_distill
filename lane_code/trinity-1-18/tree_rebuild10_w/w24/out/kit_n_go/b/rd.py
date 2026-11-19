@@ -10,21 +10,21 @@ from z import load, screen
 
 def publish(kit, root, job, returncode):
     kit, root = Path(kit).resolve(), Path(root).resolve()
-    if not job.isascii() or not job.isdigit():
+    if not job or any(c not in '0123456789' for c in job):
         raise ValueError('R1_ROUTING_JOB_ID_REQUIRED')
     target = Path(load(kit/'k/p.json')['n_root'])/'o'/job
     if not target.is_absolute() or '..' in target.parts:
         raise ValueError('R1_ROUTING_DESTINATION_INVALID')
     if any(p.is_symlink() for p in (target, *target.parents)):
         raise ValueError('R1_ROUTING_DESTINATION_INVALID')
-    if any(target.resolve().is_relative_to(p) for p in (kit, root)):
+    if any(target.resolve() == p or p in target.resolve().parents for p in (kit, root)):
         raise ValueError('R1_ROUTING_DESTINATION_INVALID')
     target.mkdir(mode=0o700, parents=True, exist_ok=True)
     records = {}
     for name, source, limit in (
-        ('routing_selection.json', root/'p/routing_selection.json', 2_000_000),
-        ('r0.json', root/'p/r0.json', 500_000),
         ('q.log', root/'q.log', 2_000_000),
+        ('r0.json', root/'p/r0.json', 500_000),
+        ('routing_selection.json', root/'p/routing_selection.json', 2_000_000),
     ):
         if not source.exists():
             continue

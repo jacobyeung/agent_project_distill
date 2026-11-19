@@ -1,0 +1,111 @@
+    def test_mdg_runtime_strict_load_requires_reader_metadata_steps(self):
+        import inspect
+        from types import SimpleNamespace
+        from transformers import Qwen3_5ForConditionalGeneration
+        from student_pilot import mdg_runtime as runtime, full_ft
+        from student_pilot.carrier_c1 import CarrierC1
+        model, batch, targets = fixture(); root = self.root()
+        cfg = settings(model, source(model, root/'source'), 'V1')
+        D.attach(model, cfg)
+        train_two(model, batch, targets)
+        pin = native_export(model, root/'export')
+        artifact = json.loads(Path(pin['path']).read_text())
+        raw = torch.load(root/'export/heads.pt', weights_only=True)
+        receipt = dict(camera=model.auxiliary_heads.pose.settings,
+                       depth=model.auxiliary_heads.depth.auxiliary_heads.camera.point_depth.settings,
+                       carrier_placement=model.carrier_placement, training_mode='final',
+                       depth_enabled=True, recipe=model.recipe, depth_fov_source='pose_head',
+                       depth_init={'path': '/unused-depth-init', 'sha256': '0'*64})
+        processor = SimpleNamespace(tokenizer=None, _routing_tokens={})
+        # Exercise a proposed reader adapter at the exact strict-load site. The
+        # shipped runtime stays guarded; its real CarrierC1 constructor and
+        # full_ft.load_export run unchanged. Only bundle/processor boundaries
+        # and the tiny, deliberately different empty base are substituted.
+        original = '    model.auxiliary_heads.load_state_dict(heads, strict=True)'
+        runtime_source = inspect.getsource(runtime.load_runtime)
+        self.assertEqual(runtime_source.count(original), 1)
+        reader_steps = '''
+visual = model.auxiliary_heads.depth.model.visual
+prefix = "depth.model.visual."
+visual.load_state_dict({key[len(prefix):]: value for key, value in heads.items()
+                        if key.startswith(prefix)}, strict=True)
+visual.requires_grad_(False)
+scale_donor.attach(model, binding)
+metadata = heads.pop("_scale_donor", None)
+if metadata != artifact.get("scale_donor"):
+    raise ValueError("Scale donor artifact/head metadata differs")
+scale_donor.verify_export(model, heads, metadata)
+model.auxiliary_heads.load_state_dict(heads, strict=True)
+'''
+        def execute(mode='documented'):
+            checked = []
+            def empty_base(_):
+                torch.manual_seed(1234)
+                return Qwen3_5ForConditionalGeneration(copy.deepcopy(model.config)).float()
+            def reader_load(fresh, heads, header):
+                self.assertIs(type(fresh), CarrierC1)
+                self.assertFalse(hasattr(fresh.auxiliary_heads, 'scale_donor'))
+                visual = fresh.auxiliary_heads.depth.model.visual
+                self.assertTrue(any(p.requires_grad for p in visual.parameters()))
+                self.assertNotEqual(D.visual_identity(visual), cfg['visual_sha256'])
+                steps = reader_steps
+                if mode == 'old_order':
+                    D.attach(fresh, cfg)
+                elif mode == 'freeze_only':
+                    visual.requires_grad_(False)
+                    D.attach(fresh, cfg)
+                elif mode == 'load_only':
+                    steps = steps.replace('visual.requires_grad_(False)\n', '')
+                elif mode == 'no_metadata_pop':
+                    steps = steps.replace('metadata = heads.pop("_scale_donor", None)',
+                                          'metadata = heads.get("_scale_donor")')
+                elif mode in ('tampered_visual', 'missing_visual'):
+                    key = next(k for k in heads if k.startswith('depth.model.visual.'))
+                    if mode == 'tampered_visual':
+                        heads[key].reshape(-1)[0] += 1
+                    else:
+                        heads.pop(key)
+                elif mode == 'bad_metadata':
+                    heads['_scale_donor'] = {}
+                elif mode == 'tampered_donor':
+                    key = next(k for k in heads if k.startswith('scale_donor.point_depth.'))
+                    heads[key].reshape(-1)[0] += 1
+                exec(compile(steps, '<documented-reader-sequence>', 'exec'),
+                     dict(model=fresh, heads=heads, artifact=header, binding=cfg, scale_donor=D))
+                self.assertFalse(any(p.requires_grad for p in visual.parameters()))
+                self.assertEqual(D.visual_identity(visual), cfg['visual_sha256'])
+                checked.append(True)
+            namespace = dict(runtime.__dict__, _reader_load=reader_load)
+            exec(compile(runtime_source.replace(original, '    _reader_load(model, heads, artifact)'),
+                         '<runtime-with-reader-adapter>', 'exec'), namespace)
+            with ExitStack() as stack:
+                stack.enter_context(mock.patch('student_pilot.r2_policy.unsupported_entry'))
+                stack.enter_context(mock.patch.object(runtime, '_bundle', return_value=(root,root/'export',{},receipt,{},artifact,'fixture')))
+                stack.enter_context(mock.patch.object(runtime, '_empty_base', side_effect=empty_base))
+                # The copied function globals must use these boundary substitutes.
+                namespace.update(_bundle=runtime._bundle, _empty_base=runtime._empty_base)
+                stack.enter_context(mock.patch.object(run, 'processor_for_receipt', return_value=processor))
+                stack.enter_context(mock.patch('student_pilot.camera_targets.carrier_id', return_value=5))
+                stack.enter_context(mock.patch.object(run.routing, 'init_routing_embeddings'))
+                load_base = stack.enter_context(mock.patch.object(full_ft, 'load_export', wraps=full_ft.load_export))
+                loaded, _, _ = namespace['load_runtime']({'bundle': 'fixture'}, torch.device('cpu'))
+                self.assertEqual(load_base.call_count, 1)
+            self.assertEqual(checked, [True])
+            expected = {k:v for k,v in raw.items() if isinstance(v, torch.Tensor)}
+            self.assertEqual(D.tensor_pins(loaded.auxiliary_heads.state_dict()), D.tensor_pins(expected))
+            self.assertEqual(loaded.auxiliary_heads.scale_donor.initial_pins,
+                             model.auxiliary_heads.scale_donor.initial_pins)
+            self.assertIn('depth_init', loaded.mdg_runtime_report['skipped'])
+        execute()
+        for mode, error, message in (
+                ('old_order', ValueError, 'already frozen'),
+                ('freeze_only', ValueError, 'shared visual pin differs'),
+                ('load_only', ValueError, 'already frozen'),
+                ('tampered_visual', ValueError, 'shared visual pin differs'),
+                ('missing_visual', RuntimeError, 'Missing key'),
+                ('no_metadata_pop', RuntimeError, '_scale_donor'),
+                ('bad_metadata', ValueError, 'metadata differs'),
+                ('tampered_donor', ValueError, 'changed since initialization')):
+            with self.subTest(mode=mode):
+                with self.assertRaisesRegex(error, message):execute(mode)
+

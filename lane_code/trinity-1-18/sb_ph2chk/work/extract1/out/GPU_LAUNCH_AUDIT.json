@@ -1,0 +1,73 @@
+{
+ "status": "CPU_VERIFIED_LAUNCH_READY",
+ "gpu": "NOT RUN",
+ "method": "CPU fake-device and fake-pass tests plus staged import/plan smoke; no process termination tested",
+ "checks": [
+  {
+   "check": "placement and one 48 GB card off trinity-0-13",
+   "status": "PASS",
+   "evidence": "sb_mask_phrase/part2/launch_gpu.py:54; small-card, placement and identity tests"
+  },
+  {
+   "check": "two empty nvidia-smi readings 300 seconds apart",
+   "status": "PASS",
+   "evidence": "sb_mask_phrase/part2/launch_gpu.py:144; fake nvidia-smi: busy first/second, graphics process, 1024 MiB boundary; wait argument 300"
+  },
+  {
+   "check": "vnice",
+   "status": "PASS",
+   "evidence": "sb_mask_phrase/part2/launch_gpu.py:161; command vector and tampered-vendor tests; local vnice and monitor pinned"
+  },
+  {
+   "check": "timeout at remaining budget",
+   "status": "PASS",
+   "evidence": "sb_mask_phrase/part2/launch_gpu.py:152; fake pass: 4320 s then 4308 s; clean resume subtracts 12 s"
+  },
+  {
+   "check": "1.2 GPU-hour hard stop",
+   "status": "PASS",
+   "evidence": "sb_mask_phrase/part2/watchdog.py:9; stalled-call and remaining-budget tests; outer SIGKILL timeout bounds native stalls without a grace period"
+  },
+  {
+   "check": "KILLED never rerun",
+   "status": "PASS",
+   "evidence": "sb_mask_phrase/part2/launch_gpu.py:35; RUNNING, STOP, KILLED, unmarked partial and nonzero-exit tests; clean-end receipt precedes marker rename"
+  },
+  {
+   "check": "writes only under GPU output directory",
+   "status": "PASS",
+   "evidence": "sb_mask_phrase/part2/launch_gpu.py:85; fake pass write-tree check; TIMING_RECEIPT, logs, caches and vnice control stay in pool_part2"
+  },
+  {
+   "check": "bars-first and existing score refusal",
+   "status": "PASS",
+   "evidence": "sb_mask_phrase/part2/launch_gpu.py:125; missing/altered bars and planted score tests; gate.py and BARS bytes unchanged"
+  },
+  {
+   "check": "STEP5 gates the pool pass",
+   "status": "PASS",
+   "evidence": "sb_mask_phrase/part2/sam3_pass.py:292; part 2 suite and expected CPU CUDA refusal; default launcher runs STEP5 then pass under one budget"
+  }
+ ],
+ "input_sha256": {
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/CPU_VALIDATION.json": "83920253acbfe6b85044c38cdf9e3b56c090852ff1c49c81b1545c8a1eff3ea5",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/STAGING_PART2.json": "ee6cf56a94c57e10ac397e91728e62129dc4bfb170472447db93f8b22ff059d2",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/LAUNCHER_TESTS.json": "a78ed4d1dbc95225148b26881e6fdb484d9584f5ecd9fe417bb0e739729ab456",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/STAGED_SMOKE.json": "14ebac2bdd4dda1c36157665e66461eaeb3037cdee569196dfcbb09cf9bc5ae0",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/gate.py": "f40b93d12e79768eea1ee6b2b2911695fcc64b4f935e9c4589bcd8b20a5a8368",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_gpu.py": "03ff08f672d4c48cb8e9644b8f3969a99704fac8e276ea3dcb2e88d99de6834e",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/price.py": "18bc1047dface717948f12f6116f2bdc86bbed099868e5ccb986b1e22bc91fb7",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/sam3_pass.py": "92d187e8918f82b61f2c774a0337d8ae23c2a048ac1e3329f3a1a6d64d04681a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/staged_paths.py": "3ba66ee8cba8ad6f7a774ab061afc18e0aa5c8bb87f06ac38ef797dd6eb4cd7d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/staging.py": "028edd3e02926c4260bcbd1e19711289a5ae11d54618273bca446f8cb4f4c4c2",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/test_launcher.py": "7cb7da725de28a5c941ea53f888d20f7047a7f9c87314020360be1cabdaa93f6",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/test_part2.py": "9d927282769f4701fc833251459766a115f8686ab25c7f12dd323d4f4dd06deb",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/watchdog.py": "0c3392e6ab7a4c98c628d29c968365d897655339b4b7f7ad07524b46fc4a9c0a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_gpu.sh": "554d5b40c0b035246d82a759bf80e83208705d037f077c5b1d7a7247b5a0049d",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/gpu_inner.sh": "3e9db90d6790ad5c5a4fe77be87315f2e7ef79c5a1bc3447f8eb299331850049",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/vendor/vnice.sh": "3ab2b542726f32dbecdbe30104f903aa2bef3526a9257013fd5f8bcc99461c6b",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/vendor/terminator.sh": "87cec06f3f53c105557014137caf863409d3afe4e04cc4f5dbe4d7e6998181a0",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/vendor/PINS.json": "24df068b0a8b2da10551563279c9f0cf13263684a8bcbbbeb9969e597375cd4c",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/write_report.py": "dffeabff15d8f774154dab02900232ea9dc94bd2c9e41443afbf848318fc882d"
+ }
+}

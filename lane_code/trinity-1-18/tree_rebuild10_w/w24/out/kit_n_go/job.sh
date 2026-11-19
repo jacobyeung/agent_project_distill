@@ -23,9 +23,9 @@ export HF_HOME="$N/cache/hf" TORCH_HOME="$N/cache/torch" TRITON_CACHE_DIR="$N/ca
 export CUDA_CACHE_PATH="$N/cache/cu" MPLCONFIGDIR="$N/cache/plot"
 mkdir -p "$TMPDIR" "$XDG_CACHE_HOME"
 cd "$N"
-source "$ROOT/b/pc.sh"
 export OMP_NUM_THREADS=48 MKL_NUM_THREADS=48 OPENBLAS_NUM_THREADS=48 PYTHONDONTWRITEBYTECODE=1
 python3 -B -I -s -B "$ROOT/b/v.py" "$ROOT"
-python3 -B -I -s -B "$ROOT/b/x.py" "$ROOT" "$R" "$N" 2>&1 | python3 -B -I -s -B "$ROOT/b/l.py" "$ROOT" &
+source "$ROOT/b/pc.sh"
+( set +e; python3 -B -I -s -B "$ROOT/b/x.py" "$ROOT" "$R" "$N" 2>&1 | python3 -B -I -s -B "$ROOT/b/l.py" "$ROOT"; exit "${PIPESTATUS[0]}" ) &
 TK_WORK_PID=$!
 wait "$TK_WORK_PID"

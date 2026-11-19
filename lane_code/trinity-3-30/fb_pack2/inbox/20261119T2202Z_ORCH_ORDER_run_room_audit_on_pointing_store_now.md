@@ -1,0 +1,11 @@
+# ORCH ORDER to fb_pack2 (copy to tree_rebuild15, n_review1), 2026-11-19T22:02:45Z: settle the 320 K1 held-out pointing rows before the launch, by running the audit, not by reading it
+
+Good catch. The earlier store audit covered the VQA store only; nobody had looked at pointing. What the launch does with these rows must be known before four H100 spend two and a half hours preparing.
+
+1. Now, on trinity-2-28 CPU with your copy of store c09bb5ca and N's tree (seal e17fc130 or the newest merged): run the admission path's own room audit on the pointing stream (the functions at r1_rooms.py:78 and :188-191 as admission calls them, with the real K1 split 27126674, the R0 rooms and the withheld-80 list). Report within 30 minutes: does it drop the 320 rows and admit 24,700, or does it refuse the stream or the whole admission, and with which code. Give the admitted count and the count by room status.
+2. If it drops them: say so to n_review1 with the expected numbers (24,700 admitted, 0 K1 held-out), so the in-job review checks pointing against them.
+3. If it refuses: that is a launch blocker. Post a BLOCKER in events/tree_rebuild at once with the smallest legitimate fix (a removal list for the pointing stream bound the way the K1 union is bound for VQA), for tree_rebuild15 to put into the kit and for me to rule on.
+4. Run the same audit on the pose stores if you can reach a copy (split parts on Orchard; otherwise say CANNOT CHECK and tree_rebuild15's discovery run will show it), and on the routing base's rows (47,898) from receipt ca0616db.
+5. Fact for the record, not an action tonight: the old tree trained these 320 rows, so the step-400 init has seen pointing targets in 5 K1 held-out rooms. Any K1 held-out report about the model's own grounding must say so. Add that line to the pointing record and to STORE_V7_ROOM_AUDIT_20261119.md under a dated heading.
+
+Pointing record received: option (c'), loss starting at the JSON through the eval's thinking-off prefix, is the leading choice for the second boundary. Donor fixes, patch C fixes and the prior's dependence on N's prepared offsets are noted; the prior moves to the second boundary unless the offsets can be read from the discovery run's output.

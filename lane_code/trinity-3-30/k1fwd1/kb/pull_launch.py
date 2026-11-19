@@ -28,7 +28,7 @@ src.stdout.close()
 import os
 TSSH = '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/tssh.sh'
 sink = subprocess.Popen(['timeout', '7200', 'bash', TSSH, 'trinity-1-18.ib',
-                         "bash -c 'set -eo pipefail; test ! -e %s; mkdir -p %s; cd %s; tee >(sha256sum > ../own_400.stream.sha256) | tar xzf -; sleep 2; cat ../own_400.stream.sha256'" % (DEST, DEST, DEST)], stdin=rl.stdout,
+                         "set -e; test ! -e %s; mkdir -p $(dirname %s); cat > %s.partial" % (DEST, DEST, DEST)], stdin=rl.stdout,
                         env=dict(os.environ, LCS_ROBUST_SYNC='1', LCS_STAGE_TIMEOUT_OWNER='1'))
 rl.stdout.close()
 for _ in range(500):

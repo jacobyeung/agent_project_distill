@@ -28,7 +28,7 @@ def main():
         import hashlib
         from a9 import pack
         incoming=Path(args.input);out=Path(args.out);out.mkdir(parents=True,exist_ok=False)
-        for old,new in (('run.py','u0.py'),('compare.py','u1.py')):
+        for old,new in (('run.py','u0.py'),('compare.py','u1.py'),('host.py','u2.py'),('u5.py','u5.py')):
             (out/new).write_bytes((incoming/old).read_bytes())
         (out/'a9.py').write_bytes((source/'u0/a9.py').read_bytes())
         sample=json.loads((incoming/'sample50.json').read_bytes())
@@ -37,6 +37,10 @@ def main():
         identity['logical_sample_sha256']=identity['sample_sha256']
         identity['sample_sha256']=hashlib.sha256((out/'u0.json').read_bytes()).hexdigest()
         (out/'u1.json').write_text(json.dumps({'u0':pack(identity)},sort_keys=True)+'\n')
+        pins=json.loads((incoming/'EXTENSION_PINS.json').read_bytes())
+        (out/'u3.json').write_text(json.dumps({'u0':pack(pins)},sort_keys=True)+'\n')
+        base=json.loads((incoming/'BASE_PIN.json').read_bytes())
+        (out/'u4.json').write_text(json.dumps({'u0':pack(base)},sort_keys=True)+'\n')
         config=json.loads(Path(args.config).read_bytes()) if args.config else json.loads((incoming/'config.example.json').read_bytes())
         seal_settings(config,out/'u2.json')
     elif args.action=='seal':

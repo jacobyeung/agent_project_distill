@@ -1,0 +1,62 @@
+{
+ "tree": "mut_pose_head_fov",
+ "status": "FAIL",
+ "failures": [
+  "V1 arkitscenes/41048124: tower scale drifted over two steps",
+  "V1 arkitscenes/41048124: decode-path scale != direct donor scale",
+  "V1 arkitscenes/41069076: decode-path scale != direct donor scale",
+  "V1: tower scale reads a live FoV/query source",
+  "V2 arkitscenes/41048124: tower scale drifted over two steps",
+  "V2 arkitscenes/41048124: decode-path scale != direct donor scale",
+  "V2 arkitscenes/41069076: decode-path scale != direct donor scale",
+  "V2: tower scale reads a live FoV/query source",
+  "V1 and V2 scales coincide"
+ ],
+ "variants": [
+  {
+   "variant": "V1",
+   "captures": [
+    {
+     "capture": "arkitscenes/41048124",
+     "scale_before": 0.7387489192134584,
+     "scale_after": 0.7387489632498505,
+     "direct_scale": 0.7387491173771855,
+     "own_fov_moved": 0.048444151878356934
+    },
+    {
+     "capture": "arkitscenes/41069076",
+     "scale_before": 0.7421872644082599,
+     "scale_after": 0.7421872644082599,
+     "direct_scale": 0.7421874192427775,
+     "own_fov_moved": 0.02058243751525879
+    }
+   ],
+   "tower_fov_dependency": false
+  },
+  {
+   "variant": "V2",
+   "captures": [
+    {
+     "capture": "arkitscenes/41048124",
+     "scale_before": 0.7387489192134584,
+     "scale_after": 0.7387489632498505,
+     "direct_scale": 0.7387473118852619,
+     "own_fov_moved": 0.048444151878356934
+    },
+    {
+     "capture": "arkitscenes/41069076",
+     "scale_before": 0.7421872644082599,
+     "scale_after": 0.7421872644082599,
+     "direct_scale": 0.7421856718034734,
+     "own_fov_moved": 0.02058243751525879
+    }
+   ],
+   "tower_fov_dependency": true
+  }
+ ],
+ "inputs": {
+  "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/k1_check.py": "73ac1bde327bb56bf05114c18649beeebafb2833f469da24e654340f8e3febc5",
+  "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/mut_pose_head_fov/student_pilot/scale_donor.py": "45ae4a5fa485c97bea16237da9f8a56dfb29b9f339a7d21c4131940c31dfa19a",
+  "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/mut_pose_head_fov/student_pilot/tower_read.py": "3a79ca71e71a659fbaca65c17d2acc0163bfb6f774d7906cf2bcc59d2a4131bf"
+ }
+}

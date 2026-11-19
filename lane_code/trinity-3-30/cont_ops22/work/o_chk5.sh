@@ -1,0 +1,1 @@
+P=/project/community/jjyeung/okh7/a15_cot_apdd982cd5c4b25; cat $P/2.json; echo; cat /project/community/jjyeung/okh7/a15_cot_apdc863c3e6b41d/a/10.json; echo; cat /project/community/jjyeung/okh7/a15_cot_apdc863c3e6b41d/2.json

@@ -1,0 +1,691 @@
+{
+  "all_prior2b_checker_tests": "PASS: duplicate, missing, hash, incomplete, fixture_as_real",
+  "commands": {
+    "cli": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python scripts/test_checker.py",
+    "host_wrapper": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python scripts/test_host_wrapper.py",
+    "integration": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python scripts/test_integration.py",
+    "offsets": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python scripts/test_offsets.py",
+    "trees": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python scripts/verify_trees.py"
+  },
+  "failed": 0,
+  "fixture_cells": 31,
+  "fixture_draws": 288000,
+  "fixture_plan_sha256": {
+    "absent": "2c0ba89b9627ae8191cfa41369c7316709611219e952d8bf7f3078eefcd986b8",
+    "base": "2c0ba89b9627ae8191cfa41369c7316709611219e952d8bf7f3078eefcd986b8",
+    "enabled": "c2a3a96f6bd79c64ad161f86a1f55370b2b1f2c7d9d4ab2625084495067d100f"
+  },
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/scripts/finalize.py",
+      "sha256": "b8b9022e51ff9e8cee07f9898a5e919b06b8e66c9fc3596aacc0e1740e47bd31"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/HOST_INPUTS.json",
+      "sha256": "1e5c20d5ea833d9568f1eefd940233f15026e706652a259e54d90f375b342843"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/N_LAUNCH_CONFIG.json",
+      "sha256": "0e78d7f86f85cf6090db94bb4916fbd1c57b9fa2aff04dd0a8428a414a4a5f5f"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/priorrev/REVIEW_VERDICT.md",
+      "sha256": "e2f69e36443abe92faae039ce03817d7018154a271304f465382feb2a58a1797"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py",
+      "sha256": "c4dcf830ad4aa118613fa3f059d18d16b6495bcea9fb8b978b965c913ee9ab47"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/run_on_host.py",
+      "sha256": "67611513c533f6f6bd7a91dacb56ff76209a28cf26a0d6568d0a5e5f8b78c2b5"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/TOWARD_HARD_WEIGHTS.json",
+      "sha256": "9baef120ad2a0b5435a7bd6a60b75314809dbf517abe863fd03d79738c758d05"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/PATCH_PRIOR.patch",
+      "sha256": "b5cece7d3dc0103043e9174887b6096497eafec9e9017b3767387fa420fc0210"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new/student_pilot/r1_population.py",
+      "sha256": "83136841ef809f189d4aecda9804fddd73d280be404e78e5776cc86a3681c6e0"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new/student_pilot/r1_training.py",
+      "sha256": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new/launch_r1/production_proof.py",
+      "sha256": "c31b0460a16338987fa0dcb585444c8a5f330aab30d5b503304b96a2e5e98b3e"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new/launch_r1/entry.py",
+      "sha256": "d74a82ffd617f9eaf542dc88339208448eea57487ecd5f1ba79b088617a05b66"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/HOST_INPUTS.json",
+      "sha256": "b57d1ca8f2cb561b8cb26e3aaa563abcb0378b23dacefd568053e20157b76639"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/CLI_TESTS.json",
+      "sha256": "ca30b3b742e375bd3cb23d92c7cf1febf6aca46db7e7ec3800d40dd687ebce55"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/OFFSET_TESTS.json",
+      "sha256": "2b491bed91f3a132d5cd32253d75403fec45f33f839f47fa02b4c0bf8d9b5808"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/TREE_PROVENANCE.json",
+      "sha256": "53a7fc012f6b6b97ec93a304e43bff7003947ec2e1b999d55ba0095e10c91d8c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/HOST_WRAPPER_TESTS.json",
+      "sha256": "afa982855f0dbcbe8015ee3d0cc44fd65fe64b8e5bbd5fe2a5905f914e25088d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/INTEGRATION_TESTS.json",
+      "sha256": "8cf53fef8c2c2e13e7138fef20b4bd4e79ee0dae92db38cc5af5f012d8df6b97"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/scripts/test_checker.py",
+      "sha256": "6316eaf362460dac63ad413094538dd4e238f75e42d109019171cd64496992e2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/scripts/test_host_wrapper.py",
+      "sha256": "d97fd276466e77c60856fa7b8439fdad6a2fc9b39d82ed4ecabb0bfa41bcd9da"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/scripts/test_integration.py",
+      "sha256": "ea1c397fae273d8e438f91020b989568bad18fbfa39aa8439381b17f247c28b1"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/scripts/test_offsets.py",
+      "sha256": "3d7923472de836d8bc0bffa99acb58c3df5b497b996947a4700ea204bc86f3d3"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/scripts/verify_trees.py",
+      "sha256": "e5719506d116359445c3bbe1a5768f332a4a9483bef3b64b4e1709f931f333bf"
+    }
+  ],
+  "passed": 58,
+  "production_gate": "MISSING",
+  "records": [
+    {
+      "actual_error": "ValueError:DUPLICATE_SOURCE_OFFSET:pointing",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --fixture /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/duplicate/FIXTURE.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/prior2b_duplicate/result",
+      "expected_error": "DUPLICATE_SOURCE_OFFSET",
+      "group": "cli",
+      "name": "prior2b_duplicate",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/prior2b_duplicate/result/RESULT.json",
+        "sha256": "f42fe4c03aaec0c0d305c502ff790a2d004b167f5f49647bec64e0d62fdb557a"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "FileNotFoundError:MISSING:/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/missing/MISSING_routing_indices.json; sha256=370199140318a8c3434e208d9136efa3ad625475141192ac88321525348f47db",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --fixture /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/missing/FIXTURE.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/prior2b_missing/result",
+      "expected_error": "MISSING_routing_indices.json",
+      "group": "cli",
+      "name": "prior2b_missing",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/prior2b_missing/result/RESULT.json",
+        "sha256": "b49b2ac7877a216ddf9423f6fbfc7a600e06ab085aabd9df82c4eaf5e4d9b7f1"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:HASH_MISMATCH:/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/hash/changed_indices.json",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --fixture /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/hash/FIXTURE.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/prior2b_hash/result",
+      "expected_error": "HASH_MISMATCH",
+      "group": "cli",
+      "name": "prior2b_hash",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/prior2b_hash/result/RESULT.json",
+        "sha256": "bf6108ce3b686b6dfc0a5e805bf3820a40daee8856ebdfe81a2d18a42fea52d2"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:R1_COMPLETE_FILTERED_POPULATION_REQUIRED",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --fixture /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/checker_negative/incomplete/FIXTURE.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/prior2b_incomplete/result",
+      "expected_error": "R1_COMPLETE_FILTERED_POPULATION_REQUIRED",
+      "group": "cli",
+      "name": "prior2b_incomplete",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/prior2b_incomplete/result/RESULT.json",
+        "sha256": "8ae06ac3eb7eb883049b22d8c6c334b01c80e5b979396a8856a969b29931269b"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:FIXTURE_CANNOT_BE_USED_AS_REAL_PREPARATION",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --config /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/config.json --prepared-receipt /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/receipt.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/prior2b_fixture_as_real/result",
+      "expected_error": "FIXTURE_CANNOT_BE_USED_AS_REAL_PREPARATION",
+      "group": "cli",
+      "name": "prior2b_fixture_as_real",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/prior2b_fixture_as_real/result/RESULT.json",
+        "sha256": "af91181d41639d8ad888db0347edb4d4c221cdf13579d8e12bbd788e77015803"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_LAUNCH_STORE_HASHES_MISMATCH:vqa",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --config /scratch/jjyeung/orch_n30/fb_pack/priorrev/work/s6/config.json --prepared-receipt /scratch/jjyeung/orch_n30/fb_pack/priorrev/work/s6/receipt.json --receipt pointing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/pointing_receipt.json --receipt pose=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/pose_receipt.json --receipt routing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/routing_receipt.json --receipt vqa=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/vqa_receipt.json --offset-table pointing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/pointing_indices.json --offset-table pose=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/pose_order.json --offset-table routing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/routing_indices.json --offset-table vqa=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/vqa_indices.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/review_unlabelled_fixture/result",
+      "expected_error": "REAL_LAUNCH_STORE_HASHES_MISMATCH:vqa",
+      "group": "cli",
+      "name": "review_unlabelled_fixture",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/review_unlabelled_fixture/result/RESULT.json",
+        "sha256": "d25712c485577e8e5768d9d0db50dd560b9c9d50c7a51bfa07a60fab27ba32e0"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_LAUNCH_PIN_MISMATCH:r1_training.store_parameter",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --config /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/spoof_vqa_identity/config.json --prepared-receipt /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/spoof_vqa_identity/receipt.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/spoof_vqa_identity/result",
+      "expected_error": "REAL_LAUNCH_PIN_MISMATCH:r1_training.store_parameter",
+      "group": "cli",
+      "name": "spoof_vqa_identity",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/spoof_vqa_identity/result/RESULT.json",
+        "sha256": "a6d35281b5ae8dacfabb2dc24b2bd54986183f993f5ca65f177f29787ba245b8"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_PATCHED_TREE_PIN_MISMATCH:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/empty_tree --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --config /scratch/jjyeung/orch_n30/fb_pack/priorrev/work/s6/config.json --prepared-receipt /scratch/jjyeung/orch_n30/fb_pack/priorrev/work/s6/receipt.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/unsealed_tree/result",
+      "expected_error": "REAL_PATCHED_TREE_PIN_MISMATCH",
+      "group": "cli",
+      "name": "unsealed_tree",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/unsealed_tree/result/RESULT.json",
+        "sha256": "2267ff589037e836245964dc9fcc100da66002029319b87c343f8faf8edf444b"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "FileNotFoundError:MISSING:/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/MISSING_config.json",
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --config /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/MISSING_config.json --prepared-receipt /scratch/jjyeung/orch_n30/fb_pack/priorrev/work/s6/receipt.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/missing_config/result",
+      "expected_error": "MISSING:/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/MISSING_config.json",
+      "group": "cli",
+      "name": "missing_config",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/checker_tests/missing_config/result/RESULT.json",
+        "sha256": "d4edc9cd2d76f8074a2724f8c03750be42947168faf0f69443ac0013d1a098b7"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": null,
+      "expected_error": null,
+      "group": "offsets",
+      "name": "genuine_recomputed_offsets",
+      "status": "PASS"
+    },
+    {
+      "actual_error": null,
+      "expected_error": null,
+      "group": "offsets",
+      "name": "genuine_prior_config",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "group": "offsets",
+      "name": "review_swap",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "group": "offsets",
+      "name": "review_nontarget",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:card_sha256",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:card_sha256",
+      "group": "offsets",
+      "name": "review_card",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:population_sha256",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:population_sha256",
+      "group": "offsets",
+      "name": "review_pop",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "group": "offsets",
+      "name": "review_drop",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "group": "offsets",
+      "name": "review_dup",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "group": "offsets",
+      "name": "review_outside",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:policy.sha256",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:policy.sha256",
+      "group": "offsets",
+      "name": "review_policy",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:policy.sha256",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:policy.sha256",
+      "group": "offsets",
+      "name": "review_policysha",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:HASH_MISMATCH:/scratch/jjyeung/orch_n30/fb_pack/priorrev/work/s5/new_enabled_r2/tamper_bytes.json",
+      "expected_error": "HASH_MISMATCH",
+      "group": "offsets",
+      "name": "review_bytes_changed_pin_kept",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:indices_sha256",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:indices_sha256",
+      "group": "offsets",
+      "name": "indices_sha256",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:schema",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:schema",
+      "group": "offsets",
+      "name": "schema",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:MISSING:r1_training.direction_prior",
+      "expected_error": "MISSING:r1_training.direction_prior",
+      "group": "offsets",
+      "name": "missing_training_field",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:MISSING:r2_sampling.direction_prior",
+      "expected_error": "MISSING:r2_sampling.direction_prior",
+      "group": "offsets",
+      "name": "missing_sampling_field",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_WEIGHTS_MISMATCH",
+      "expected_error": "PRODUCTION_PRIOR_WEIGHTS_MISMATCH",
+      "group": "offsets",
+      "name": "config_weight_sha_mismatch",
+      "status": "PASS"
+    },
+    {
+      "actual_error": null,
+      "expected_error": null,
+      "group": "offsets",
+      "name": "identical_policy_bytes_relocated",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "expected_error": "PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "group": "offsets",
+      "name": "offset_order_changed",
+      "status": "PASS"
+    },
+    {
+      "actual_error": null,
+      "expected_error": null,
+      "group": "offsets",
+      "name": "native_accepts_review_swap",
+      "status": "PASS"
+    },
+    {
+      "actual_error": null,
+      "expected_error": null,
+      "group": "offsets",
+      "name": "native_accepts_review_nontarget",
+      "status": "PASS"
+    },
+    {
+      "actual_error": null,
+      "expected_error": null,
+      "group": "offsets",
+      "name": "launch_metadata_positive",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_LAUNCH_STORE_HASHES_MISMATCH:vqa",
+      "expected_error": "REAL_LAUNCH_",
+      "group": "offsets",
+      "name": "launch_missing_store_hashes",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_LAUNCH_PIN_MISMATCH:r1_training.store_parameter",
+      "expected_error": "REAL_LAUNCH_",
+      "group": "offsets",
+      "name": "launch_missing_store_parameter",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_LAUNCH_PIN_MISMATCH:r1_training.mix",
+      "expected_error": "REAL_LAUNCH_",
+      "group": "offsets",
+      "name": "launch_missing_mix",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_LAUNCH_PIN_MISMATCH:r1_training.v7_k1_removal",
+      "expected_error": "REAL_LAUNCH_",
+      "group": "offsets",
+      "name": "launch_missing_v7_k1_removal",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_LAUNCH_PIN_MISMATCH:room_authority",
+      "expected_error": "REAL_LAUNCH_",
+      "group": "offsets",
+      "name": "launch_missing_room_authority",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_LAUNCH_PIN_MISMATCH:direction_twins.source_database",
+      "expected_error": "REAL_LAUNCH_",
+      "group": "offsets",
+      "name": "launch_missing_direction_twins",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_SOURCE_DATABASE_MISMATCH:pointing",
+      "expected_error": "REAL_SOURCE_DATABASE_MISMATCH:pointing",
+      "group": "offsets",
+      "name": "synthetic_databases_with_launch_metadata",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_SOURCE_DATABASE_MISMATCH:pose",
+      "expected_error": "REAL_SOURCE_DATABASE_MISMATCH:pose",
+      "group": "offsets",
+      "name": "synthetic_pose_database",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_SOURCE_DATABASE_MISMATCH:routing",
+      "expected_error": "REAL_SOURCE_DATABASE_MISMATCH:routing",
+      "group": "offsets",
+      "name": "synthetic_routing_database",
+      "status": "PASS"
+    },
+    {
+      "base_files": 940,
+      "base_tree_sha256": "189df6ac590caf7622354c3bd1f991e599776494ced635a23f0c93eb1b567710",
+      "command": "patch --batch --fuzz=0 -p1 -d /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/tree_verification/host -i /scratch/jjyeung/orch_n30/fb_pack/prior2/out/PATCH_PRIOR.patch",
+      "group": "trees",
+      "name": "host",
+      "patched_files": 942,
+      "patched_tree_sha256": "35a4753f97906fcf7d84d3e9dea4d2f837f5bfa5a274e261aa7c7530f9597f25",
+      "returncode": 0,
+      "status": "PASS"
+    },
+    {
+      "base_files": 939,
+      "base_tree_sha256": "57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7",
+      "command": "patch --batch --fuzz=0 -p1 -d /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/tree_verification/review -i /scratch/jjyeung/orch_n30/fb_pack/prior2/out/PATCH_PRIOR.patch",
+      "group": "trees",
+      "name": "review",
+      "patched_files": 941,
+      "patched_tree_sha256": "31c8f6b8c28c8213ff78a65df6f0fce23a99c24f56945359dade50d394a6236c",
+      "returncode": 0,
+      "status": "PASS"
+    },
+    {
+      "actual_error": null,
+      "expected_error": null,
+      "group": "trees",
+      "name": "sealed_metadata_positive",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:MISSING:config.code",
+      "expected_error": "MISSING:config.code",
+      "group": "trees",
+      "name": "missing_code_seal",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_PREPARATION_SOURCE_SEAL_MISMATCH",
+      "expected_error": "REAL_PREPARATION_SOURCE_SEAL_MISMATCH",
+      "group": "trees",
+      "name": "receipt_tree_rewritten",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_PREPARATION_CONFIG_IDENTITY_MISMATCH",
+      "expected_error": "REAL_PREPARATION_CONFIG_IDENTITY_MISMATCH",
+      "group": "trees",
+      "name": "config_identity_changed",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_PATCHED_SOURCE_SEAL_MISMATCH",
+      "expected_error": "REAL_PATCHED_SOURCE_SEAL_MISMATCH",
+      "group": "trees",
+      "name": "config_tree_rewritten",
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_PATCHED_SOURCE_SEAL_MISMATCH",
+      "expected_error": "REAL_PATCHED_SOURCE_SEAL_MISMATCH",
+      "group": "trees",
+      "name": "unlisted_code_changed",
+      "status": "PASS"
+    },
+    {
+      "checks": {
+        "correct_stage_config": true,
+        "correct_stage_receipt": true,
+        "exit_refuses": true,
+        "named_fixture_refusal": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/run_on_host.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --proof-root /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/proof_root --stage b --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/b_result",
+      "group": "host_wrapper",
+      "name": "b",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/b_result/HOST_COMMAND.json",
+        "sha256": "302cb882104373d463fa749ddca1961480d1763d3f1e35087ec79914063693da"
+      },
+      "status": "PASS"
+    },
+    {
+      "checks": {
+        "correct_stage_config": true,
+        "correct_stage_receipt": true,
+        "exit_refuses": true,
+        "named_fixture_refusal": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/run_on_host.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --proof-root /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/proof_root --stage h --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/h_result",
+      "group": "host_wrapper",
+      "name": "h",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/h_result/HOST_COMMAND.json",
+        "sha256": "cdcd30f82f9e379e74c6c825da4961ea2924a25049c41730224b9a155d91b825"
+      },
+      "status": "PASS"
+    },
+    {
+      "checks": {
+        "correct_stage_config": true,
+        "correct_stage_receipt": true,
+        "exit_refuses": true,
+        "named_fixture_refusal": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/run_on_host.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --proof-root /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/proof_root --stage population --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/population_result",
+      "group": "host_wrapper",
+      "name": "population",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/population_result/HOST_COMMAND.json",
+        "sha256": "a59eb57a074a8b2dbc16014413f9f1c46623f1f5409814882ae4ad67065e0e6b"
+      },
+      "status": "PASS"
+    },
+    {
+      "checks": {
+        "exit_refuses": true,
+        "missing_status": true,
+        "named_path": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/run_on_host.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --proof-root /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/MISSING_PROOF_ROOT --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/missing_result",
+      "group": "host_wrapper",
+      "name": "missing",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/missing_result/HOST_COMMAND.json",
+        "sha256": "fe1b1a55e7ca6e51b6e6cc9088a2ff740b710f46e4ed7420eebd36d345ff7353"
+      },
+      "status": "PASS"
+    },
+    {
+      "actual_error": null,
+      "checks": {
+        "audits_unchanged": true,
+        "cells_unchanged": true,
+        "expected_exit": true,
+        "no_production_pass": true,
+        "plans_unchanged": true,
+        "scope": true,
+        "status_pass": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --fixture /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/FIXTURE.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/labelled_fixture_unchanged/result",
+      "group": "integration",
+      "name": "labelled_fixture_unchanged",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/labelled_fixture_unchanged/result/RESULT.json",
+        "sha256": "baa7596f2cdd017238f7508392e8e6c104f9f068c15688cd116074ebdd6f4e93"
+      },
+      "returncode": 0,
+      "status": "PASS"
+    },
+    {
+      "actual_error": null,
+      "checks": {
+        "audits_unchanged": true,
+        "cells_unchanged": true,
+        "expected_exit": true,
+        "no_production_pass": true,
+        "plans_unchanged": true,
+        "production_plan_source": true,
+        "scope": true,
+        "status_pass": true,
+        "supplied_binding_used": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --fixture /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/enabled/FIXTURE.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/labelled_enabled/result",
+      "group": "integration",
+      "name": "labelled_enabled",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/labelled_enabled/result/RESULT.json",
+        "sha256": "9129fdf3882ceea5d458c6bdc4c95928ef5072118f61a67f52aa2a88dc90469c"
+      },
+      "returncode": 0,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "checks": {
+        "expected_exit": true,
+        "named_error": true,
+        "no_production_pass": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --fixture /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/facing_sides_swapped/FIXTURE.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/facing_sides_swapped/result",
+      "group": "integration",
+      "name": "facing_sides_swapped",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/facing_sides_swapped/result/RESULT.json",
+        "sha256": "8bfac646784714f5c6b70a3a1a0e67fefeb0ab548579fe27a3a49533e949b21b"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_LAUNCH_STORE_HASHES_MISMATCH:vqa",
+      "checks": {
+        "expected_exit": true,
+        "named_error": true,
+        "no_production_pass": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --config /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/facing_sides_swapped_unlabelled/config.json --prepared-receipt /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/facing_sides_swapped_unlabelled/receipt.json --receipt pointing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/pointing_receipt.json --receipt pose=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/pose_receipt.json --receipt routing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/routing_receipt.json --receipt vqa=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/vqa_receipt.json --offset-table pointing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/pointing_indices.json --offset-table pose=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/pose_order.json --offset-table routing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/routing_indices.json --offset-table vqa=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/vqa_indices.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/facing_sides_swapped_as_real/result",
+      "group": "integration",
+      "name": "facing_sides_swapped_as_real",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/facing_sides_swapped_as_real/result/RESULT.json",
+        "sha256": "88270ed1cd4fe24146756ed568a54d2a2201a28b6f866436b67fe0c3df73273c"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:PRODUCTION_PRIOR_OFFSETS_MISMATCH:cells",
+      "checks": {
+        "expected_exit": true,
+        "named_error": true,
+        "no_production_pass": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --fixture /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/non_target_in_toward_hard/FIXTURE.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/non_target_in_toward_hard/result",
+      "group": "integration",
+      "name": "non_target_in_toward_hard",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/non_target_in_toward_hard/result/RESULT.json",
+        "sha256": "ac2791ae67994d9b19481d6b17d1a84d302f1235be4d600ce607bc499eb94ffc"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    },
+    {
+      "actual_error": "ValueError:REAL_LAUNCH_STORE_HASHES_MISMATCH:vqa",
+      "checks": {
+        "expected_exit": true,
+        "named_error": true,
+        "no_production_pass": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --weights /scratch/jjyeung/orch_n30/fb_pack/prior2/out/TOWARD_HARD_WEIGHTS.json --config /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/non_target_in_toward_hard_unlabelled/config.json --prepared-receipt /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/non_target_in_toward_hard_unlabelled/receipt.json --receipt pointing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/pointing_receipt.json --receipt pose=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/pose_receipt.json --receipt routing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/routing_receipt.json --receipt vqa=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/vqa_receipt.json --offset-table pointing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/pointing_indices.json --offset-table pose=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/pose_order.json --offset-table routing=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/routing_indices.json --offset-table vqa=/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/native_fixture/vqa_indices.json --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/non_target_in_toward_hard_as_real/result",
+      "group": "integration",
+      "name": "non_target_in_toward_hard_as_real",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/integration_tests/non_target_in_toward_hard_as_real/result/RESULT.json",
+        "sha256": "d446a7b3e5c4b79295009530e0344d99e965044664f235f97404064c82eab41f"
+      },
+      "returncode": 1,
+      "status": "PASS"
+    }
+  ],
+  "status": "PASS",
+  "tests": 58
+}

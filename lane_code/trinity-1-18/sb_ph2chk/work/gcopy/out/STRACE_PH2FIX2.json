@@ -1,0 +1,51 @@
+{
+ "status": "MISSING_FRESH_STRACE",
+ "fresh_trace": {
+  "status": "MISSING",
+  "expected": "/scratch/jjyeung/orch_n30/sb_ph2fix/work/ph2rev_probes/strace_fixed/imports.strace",
+  "reason": "Sandbox denies PTRACE_TRACEME: Operation not permitted",
+  "attempt_log": "/scratch/jjyeung/orch_n30/sb_ph2fix/out/strace_ph2fix2.log"
+ },
+ "reviewer_trace": {
+  "status": "PASS",
+  "path": "/scratch/jjyeung/orch_n30/sb_ph2fix/work/ph2rev_probes/strace_opensslfix.txt",
+  "nfs_touches": 0,
+  "scope": "Supplied reviewer evidence, not a fresh trace of this build"
+ },
+ "untraced_runs": {
+  "imports": {
+   "command": [
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/bin/python",
+    "-B",
+    "-c",
+    "import ssl,hashlib,torch; torch.set_num_threads(8); print(ssl.OPENSSL_VERSION, hashlib.sha256(b\"probe\").hexdigest(), torch.__version__)"
+   ],
+   "returncode": 0,
+   "stdout": "OpenSSL 3.6.3 9 Jun 2026 ba9c736f19e7f60b7f6764adb0b7908c0a2b394e09b6c09863528c7f2bc86095 2.10.0+cu128\n"
+  },
+  "launcher_bootstrap": {
+   "command": [
+    "bash",
+    "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_gpu.sh",
+    "--help"
+   ],
+   "returncode": 0,
+   "stdout": "usage: launch_gpu.py [-h] --node-local NODE_LOCAL [--mode {both,step5,pass}]\n                     [--all-aliases]\n\nOne-card launch admission and cumulative 1.2 GPU-hour budget. No automatic\nretry.\n\noptions:\n  -h, --help            show this help message and exit\n  --node-local NODE_LOCAL\n  --mode {both,step5,pass}\n  --all-aliases\n"
+  }
+ },
+ "environment": {
+  "OPENSSL_CONF": "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/ssl/openssl.cnf",
+  "PATH": "/usr/bin:/bin",
+  "CUDA_VISIBLE_DEVICES": ""
+ },
+ "input_sha256": {
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/work/strace_evidence_ph2fix2.py": "fcd7f6a87c94056c0d7e9a94f2122ae1618c098cb5bd32b2c830b10c24a8655e",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/work/strace_ph2fix2.py": "1308b41a815e68983c9033c798e2a99951e88ae7a301829d8e9a801af96ecde1",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/out/strace_ph2fix2.log": "08dd0db69f5661c6dcfb203583c0ebb0f50b6087afabb4837ca85a9a35c54cef",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/work/ph2rev_probes/strace_opensslfix.txt": "337d79c4c9430be071536aad8a796b7bd552e1686c1b5a33672a07609ce88430",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_gpu.py": "a07d66f042ac22a011cbec1dad58b83effffb1c2fafc5f6d011d2c90ac198d2e",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/sb_mask_phrase/part2/launch_gpu.sh": "cf7720bc3bce889e60b9e2da21446a88ad9b27abf60b7fdea7a5aea2357e6aa4",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/bin/python": "50062f7f4c601dcbe96fe18a2eba00185a5ad75496ab075a3940c6cf62ea894a",
+  "/scratch/jjyeung/orch_n30/sb_ph2fix/payload/environment/ssl/openssl.cnf": "a65a2cb9f4ee8ffdc7ef4f0ac600c0bdafb95b7b1ab457188ac610a62f5ad6b3"
+ }
+}

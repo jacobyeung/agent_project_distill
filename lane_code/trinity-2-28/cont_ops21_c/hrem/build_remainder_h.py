@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from build_support import read_tar, write_tar
 from build_h_base import make_batch, added, jd
-from make_items_remainder_h import select
+from make_items_remainder_h import select, remaining_ids
 from return_tools_h import require, read, TYPES, canonical, package_info
 
 HERE=Path(__file__).resolve().parent
@@ -37,6 +37,14 @@ def build(parent,archive,exit_path,receipt,stage,items=None):
     spec=dict(package=str(parent),archive=str(archive),exit=str(exit_path),receipt=str(receipt))
     m,rows,meta,info=select(spec,stage/'parent_return')
     if items:require(read(items)==m,'Edited subset differs from authenticated partial')
+    saved=stage/'parent_publication';saved.mkdir()
+    for key,name in [('archive','0.tgz'),('exit','EXIT.json'),('receipt','RETURN_RECEIPT.json')]:
+        (saved/name).write_bytes(Path(spec[key]).read_bytes())
+        spec[key]=str((saved/name).resolve())
+    from fetch_validation import validate_exit, validate_receipt
+    validate_exit(meta['publication'],spec['archive'],info['plan'],meta['publication']['token'])
+    validate_receipt(read(spec['receipt']),meta['publication'],spec['exit'],spec['archive'],info['plan'],meta['publication']['token'])
+    spec['package']=str(Path(parent).resolve())
     parent=Path(parent);plan=copy.deepcopy(info['plan_value']);pf=dict(info['payload'])
     fullraw=pf['items/HELDOUT_CAMERA_ITEMS.json']
     pf['items/H_FULL.json']=fullraw
@@ -79,6 +87,7 @@ def build(parent,archive,exit_path,receipt,stage,items=None):
         counts=counts,schedule=schedule,partial=spec,settings=meta['settings'],
         binding_sha256=sha(jd(info['binding'])),operator_sha256=sha(nf['a/6.py']))
     (stage/'BUILD.json').write_bytes(jd({'H':report}));(stage/'binding.json').write_bytes(jd(info['binding']))
+    (stage/'REMAINING_IDS.json').write_bytes(jd(remaining_ids(m)))
     (stage/'items.json').write_bytes(jd(m));(stage/'PARENT_SPEC.json').write_bytes(jd(spec))
     return report
 

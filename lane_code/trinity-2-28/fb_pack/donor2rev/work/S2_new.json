@@ -1,0 +1,111 @@
+{
+ "verified": {
+  "hashed": [
+   "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/src/artifact.json",
+   "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/src/heads.pt"
+  ],
+  "loads": [
+   {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/src/heads.pt",
+    "mmap": true
+   }
+  ]
+ },
+ "follower": {
+  "hashed": [
+   "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/src/artifact.json"
+  ],
+  "loads": [
+   {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/src/heads.pt",
+    "mmap": true
+   }
+  ]
+ },
+ "relocated": {
+  "verified_hashed": [
+   "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/src/artifact.json",
+   "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/replica.pt"
+  ],
+  "verified_loads": [
+   {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/replica.pt",
+    "mmap": true
+   }
+  ],
+  "follower_hashed": [
+   "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/src/artifact.json"
+  ],
+  "follower_loads": [
+   {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/replica.pt",
+    "mmap": true
+   }
+  ]
+ },
+ "cases": {
+  "feature_contract_pin": {
+   "verified": {
+    "accepted": false,
+    "error": "ValueError: Scale donor preprocessing/architecture pin differs"
+   },
+   "follower": {
+    "accepted": false,
+    "error": "ValueError: Scale donor preprocessing/architecture pin differs"
+   }
+  },
+  "visual_pin": {
+   "verified": {
+    "accepted": false,
+    "error": "ValueError: Scale donor shared visual pin differs from checkpoint or live copy"
+   },
+   "follower": {
+    "accepted": false,
+    "error": "ValueError: Scale donor shared visual pin differs from checkpoint or live copy"
+   }
+  },
+  "live_visual_changed": {
+   "verified": {
+    "accepted": false,
+    "error": "ValueError: Scale donor shared visual pin differs from checkpoint or live copy"
+   },
+   "follower": {
+    "accepted": false,
+    "error": "ValueError: Scale donor shared visual pin differs from checkpoint or live copy"
+   }
+  },
+  "heads_visual_tampered": {
+   "verified": {
+    "accepted": false,
+    "error": "ValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/hv/heads.pt"
+   },
+   "follower": {
+    "accepted": false,
+    "error": "ValueError: Scale donor shared visual pin differs from checkpoint or live copy"
+   }
+  },
+  "artifact_pin_wrong": {
+   "verified": {
+    "accepted": false,
+    "error": "ValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/ap/artifact.json"
+   },
+   "follower": {
+    "accepted": false,
+    "error": "ValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/ap/artifact.json"
+   }
+  },
+  "heads_point_depth_tampered": {
+   "verified": {
+    "accepted": false,
+    "error": "ValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/s2_new_x4j_j5t8/hp/heads.pt"
+   },
+   "follower": {
+    "accepted": true,
+    "pins": "c24eeec30d864cc1d17e6dc511c152506364292ed123416b2ba28daf7bb33ee4"
+   }
+  }
+ },
+ "follower_accepts_unhashed_point_depth_change": true,
+ "status": "PASS",
+ "failures": []
+}

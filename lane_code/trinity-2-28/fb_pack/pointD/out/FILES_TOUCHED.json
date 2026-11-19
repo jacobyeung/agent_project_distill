@@ -1,0 +1,62 @@
+{
+  "command": "bash code/run.sh package",
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/SETUP.json": "6099cc42fb26fbbda26bc4276dc021c5174c901456405cd7be2eb321fb986b05",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/code/package.py": "1ec4e08b62b62c08499d94455286c24e68431e3962062e4b398d8c279d383a46",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/PATCH_POINT.patch": "13b8a54b0942a923a769ab30531f63fcb59aa7e2d2ffed994a58bf2c8cc5e654",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/carrier_c1_data.py": "a850316c930b2cb2ec38e660fd378220b8bce4c03535e70cce7d7204b66ba769",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/base/student_pilot/carrier_c1_data.py": "9ccee823404c8dc225c6f7d73a9f1c31d5b18cc40cd77a79c331c9021174b701",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/carrier_c1_run.py": "1db15d102f511143f529609aebe9a99f6a4e569e813b2503a041ef659838fbcb",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/base/student_pilot/carrier_c1_run.py": "7de02b4630d59d05c7d57a6f4d51677727f05139a1a75b4a9c6943984ed7aee2",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/s1_admission.py": "219e74c15ac829f6acaa068de1ed3d282eac380ee535466b3fb359e3319e6551",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/base/student_pilot/s1_admission.py": "ff718a8d063627a359d5ab6d7715f2b23156dc9805cb2f5f2e8756de56b129a8",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/pointing_locate.py": "daaaaa81257a8b41b12575f469fe6abacfad9f53f273aa6581ec48e373dfad09",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/tests/test_pointing_locate.py": "1a7555ddf41c00b2f1a1c526029339c5293b92e2c336c3fa798b90ff6216bafe"
+  },
+  "base_tree_sha256": "57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7",
+  "base_plus_patchA_tree_sha256": "290e2119232da4eb3d55df805e069b4a2d9f5e167368db30d2ef2e013ee6e0f9",
+  "overlay_tree_sha256": "5e6bb1105193213bd00f948e07f6cfc27edac2b6c510bfb7cfe91d58fe7cfc65",
+  "files": [
+    {
+      "path": "student_pilot/carrier_c1_data.py",
+      "base_sha256": "9ccee823404c8dc225c6f7d73a9f1c31d5b18cc40cd77a79c331c9021174b701",
+      "new_sha256": "a850316c930b2cb2ec38e660fd378220b8bce4c03535e70cce7d7204b66ba769",
+      "bytes": 39843
+    },
+    {
+      "path": "student_pilot/carrier_c1_run.py",
+      "base_sha256": "7de02b4630d59d05c7d57a6f4d51677727f05139a1a75b4a9c6943984ed7aee2",
+      "new_sha256": "1db15d102f511143f529609aebe9a99f6a4e569e813b2503a041ef659838fbcb",
+      "bytes": 202768
+    },
+    {
+      "path": "student_pilot/pointing_locate.py",
+      "base_sha256": null,
+      "new_sha256": "daaaaa81257a8b41b12575f469fe6abacfad9f53f273aa6581ec48e373dfad09",
+      "bytes": 3957
+    },
+    {
+      "path": "student_pilot/s1_admission.py",
+      "base_sha256": "ff718a8d063627a359d5ab6d7715f2b23156dc9805cb2f5f2e8756de56b129a8",
+      "new_sha256": "219e74c15ac829f6acaa068de1ed3d282eac380ee535466b3fb359e3319e6551",
+      "bytes": 25207
+    },
+    {
+      "path": "tests/test_pointing_locate.py",
+      "base_sha256": null,
+      "new_sha256": "1a7555ddf41c00b2f1a1c526029339c5293b92e2c336c3fa798b90ff6216bafe",
+      "bytes": 12106
+    }
+  ],
+  "overlap": {
+    "donor": [
+      "student_pilot/carrier_c1_run.py"
+    ],
+    "prior2": [],
+    "camform": []
+  },
+  "overlap_reason": "carrier_c1_run.py must carry the config pin through validation, preparation receipts and Rows.get loss weighting; donor changes must be merged at these narrow hunks.",
+  "patch_sha256": "13b8a54b0942a923a769ab30531f63fcb59aa7e2d2ffed994a58bf2c8cc5e654",
+  "apply_verified": true,
+  "verified_files": 942
+}

@@ -61,6 +61,7 @@ def run(stage,parent):
         seen.add(m.name);p=package/n;p.parent.mkdir(parents=True,exist_ok=True)
         with p.open('xb') as f:f.write(data)
         p.chmod(m.mode)
+    (package/'a').chmod(0o700)
     info=package_info(package)
     require(info['plan']==r['plan_sha256'] and info['items_sha256']==r['items_sha256'],'Placed package differs')
     bundle=dict((m.name,d) for m,d in read_tar(bundle_of((package/'BATCH.sh').read_bytes())[1]))

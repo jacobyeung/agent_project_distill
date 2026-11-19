@@ -20,4 +20,7 @@ export TMPDIR="$N/tmp" XDG_CACHE_HOME="$N/cache" HF_HOME="$N/cache/hf"
 mkdir -p "$TMPDIR" "$XDG_CACHE_HOME"
 cd "$N"
 nice -n 10 python3 -B -I -s "$ROOT/b/v.py" "$ROOT"
-nice -n 10 python3 -B -I -s "$ROOT/b/x.py" "$ROOT" "$R" "$N"
+source "$ROOT/b/ep.sh"
+setsid bash -c 'set -o pipefail; nice -n 10 python3 -B -I -s "$1/b/x.py" "$1" "$2" "$3" 2>&1 | python3 -B -I -s "$1/b/l.py" "$1"' bash "$ROOT" "$R" "$N" &
+TK_WORK_PID=$!
+wait "$TK_WORK_PID"

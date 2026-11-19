@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import random
+import resource
 import signal
 import stat
 import sys
@@ -54,7 +55,7 @@ def location(kit, root, job):
         raise ValueError("R1_REVIEW_FILE_UNUSABLE")
     live = target / "o" / job / "live"
     review = target / "n_r" / "review.json"
-    for p in (live, review.parent):
+    for p in (live,):
         if any(v.is_symlink() for v in (p, *p.parents)):
             raise ValueError("R1_REVIEW_FILE_UNUSABLE")
         if any(p.resolve().is_relative_to(v.resolve()) for v in (kit, root / "kit", root / "h")):
@@ -65,6 +66,8 @@ def location(kit, root, job):
 
 def receipt_bytes(path):
     """Open the owner-private directory and leaf without following symlinks."""
+    if any(p.is_symlink() for p in (path.parent, *path.parent.parents)):
+        raise ValueError("R1_REVIEW_FILE_UNUSABLE")
     try:
         fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     except FileNotFoundError:
@@ -126,6 +129,10 @@ def form(row):
 def evidence(cfg, rooms, live):
     from student_pilot.carrier_c1_run import Rows
     from student_pilot.p3_provenance import pinned
+    import torch
+    torch.set_num_threads(8)
+    if torch.get_num_interop_threads() != 1:
+        torch.set_num_interop_threads(1)
     receipt = load(pinned(cfg["preparation"]))
     reader = Rows(receipt, None)
     payloads = {}
@@ -136,7 +143,7 @@ def evidence(cfg, rooms, live):
             total = reader.count(stream)
             if stream in reader.mixes:
                 ids = [tuple(v) for v in reader.mixes[stream].order]
-                connections = {str(k): v.conn for k, v in reader.mixes[stream].sources.items()}
+                connections = {str(k): v.conn for k, v in enumerate(reader.mixes[stream].sources)}
             else:
                 ids = list(reader.indices.get(stream, range(total)))
                 connections = {"0": reader.connections[stream]}
@@ -253,6 +260,10 @@ def run(kit, root, config, job, *, interval=30):
 
 
 def main():
+    os.environ['CUDA_VISIBLE_DEVICES'] = ''
+    soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+    limit = min(v for v in (soft, hard, 19_000_000_000) if v > 0)
+    resource.setrlimit(resource.RLIMIT_AS, (limit, hard))
     kit = Path(__file__).resolve().parents[1]
     seal(kit)
     if len(sys.argv) == 4 and sys.argv[1] == "--live":

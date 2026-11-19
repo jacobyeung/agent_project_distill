@@ -1,0 +1,31 @@
+{
+  "boundaries": "Pinned P documents and producer/refresh calls are controlled unit-test inputs; SQLite comparison uses retained native reader fixtures. Production P equality is not claimed.",
+  "cases": [
+    {
+      "case": "before",
+      "refresh_calls": 0,
+      "refusal": "P_REFRESH_NOT_APPLIED"
+    },
+    {
+      "case": "after",
+      "refresh_calls": 1,
+      "refusal": null
+    },
+    {
+      "case": "p_pin",
+      "refresh_calls": 0,
+      "refusal": "P_TRAINED_ROUTING_PIN_DIFFERS"
+    },
+    {
+      "case": "db_pin",
+      "refresh_calls": 0,
+      "refusal": "P_TRAINED_ROUTING_DATABASE_DIFFERS"
+    },
+    {
+      "case": "rows",
+      "refresh_calls": 1,
+      "refusal": "P_TRAINED_SELECTED_ROW_BYTES_OR_ORDER_DIFFER:0"
+    }
+  ],
+  "status": "PASS"
+}

@@ -2,7 +2,7 @@
 import argparse
 import json
 from pathlib import Path
-from return_tools_h import segment, subset, require
+from return_tools_h import segment, subset, require, TYPES
 from fetch_validation import digest
 
 def select(spec,work):
@@ -15,10 +15,15 @@ def select(spec,work):
     done=[i['id'] for i in full['items'] if i['id'] in rows]
     return subset(full,done,provenance),rows,meta,info
 
+def remaining_ids(m):
+    return {k:[i["id"] for i in m["items"] if i["question_type"]==k] for k in TYPES}
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     for n in ('package','archive','exit','receipt','work','out'):p.add_argument('--'+n,required=True)
     a=p.parse_args();m,rows,meta,info=select(vars(a),a.work)
     with Path(a.out).open('x') as f:json.dump(m,f,indent=2,sort_keys=True);f.write('\n')
+    id_path=Path(a.out).with_name(Path(a.out).stem+"_IDS.json")
+    with id_path.open("x") as f:json.dump(remaining_ids(m),f,indent=2,sort_keys=True);f.write("\n")
     print(json.dumps(dict(completed=len(rows),remaining=m['count'],per_type=m['per_type'],items_sha256=digest(a.out))))
 if __name__=='__main__':main()

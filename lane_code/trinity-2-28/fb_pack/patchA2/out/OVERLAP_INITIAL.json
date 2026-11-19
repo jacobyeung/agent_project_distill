@@ -1,0 +1,85 @@
+{
+  "inputs_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/out/FILES_TOUCHED.json": "19b2886e973bb16e4a49ce6cbd31c80704fa1f612b5db2b3caac9c6a424b7dc7",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/code/run.sh": "0df512286dbbeab505cb9b313d612a5e36983771de0c8590970570d679b2ab09",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/code/run_tests.py": "9d15894c8134432629510f2b349fa849c75d58b7c6b22c66fd93d81de75f8b2b",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/code/setup.py": "2e1c15fb3db0f484e262df08dcbda87a310e9d324c58ae159322c90a178310d7",
+    "/scratch/jjyeung/orch_n30/fb_pack/donor/out/FILES_TOUCHED.json": "6533c0e26e37e2ea7d63cb4b4686e4c99dff0416e227ed5f62217cc58ad769e4",
+    "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/FILES_TOUCHED.json": "21178de93262333b536a6817f47374079c18ec772d1a8851129194c1fbda931a",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/out/PATCH_CAMFORM.patch": "2167d5d9116e8088bd15c4207ab9fcfd4d562115f79a1c180d0f6a658f898e3b",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/PATCH_A2.patch": "3ecd924f91594dc018b46bfcdc631b867e3164c67eb0b9e9dd58706ccd8eacbd",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/build_patch.py": "89ab8499f835935a7143a5760d2a644ce92342f4eedb981c7e1a0998fa02ac23"
+  },
+  "lanes": {
+    "camform": {
+      "status": "MANIFEST",
+      "overlap": [
+        "student_pilot/r1_routing.py"
+      ],
+      "files": [
+        "configs/r1_camera_trace_form_v1.json",
+        "student_pilot/r1_camera_trace_form.py",
+        "student_pilot/r1_routing.py",
+        "tests/test_r1_camera_trace_form.py"
+      ],
+      "manifest": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/FILES_TOUCHED.json"
+    },
+    "pointD": {
+      "status": "MISSING_MANIFEST",
+      "expected": "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/FILES_TOUCHED.json",
+      "code_files": [
+        "/scratch/jjyeung/orch_n30/fb_pack/pointD/code/run.sh",
+        "/scratch/jjyeung/orch_n30/fb_pack/pointD/code/run_tests.py",
+        "/scratch/jjyeung/orch_n30/fb_pack/pointD/code/setup.py"
+      ],
+      "literal_mentions": [],
+      "overlap": "MISSING: final touched-file inventory"
+    },
+    "donor": {
+      "status": "MANIFEST",
+      "overlap": [],
+      "files": [
+        "student_pilot/carrier_c1.py",
+        "student_pilot/carrier_c1_decode.py",
+        "student_pilot/carrier_c1_run.py",
+        "student_pilot/r1_handover.py",
+        "student_pilot/scale_donor.py",
+        "student_pilot/scale_donor_check.py",
+        "student_pilot/tower_read.py",
+        "tests/test_scale_donor.py"
+      ],
+      "manifest": "/scratch/jjyeung/orch_n30/fb_pack/donor/out/FILES_TOUCHED.json"
+    },
+    "prior2": {
+      "status": "MANIFEST",
+      "overlap": [
+        "student_pilot/r1_population.py"
+      ],
+      "files": [
+        "student_pilot/r1_direction_prior.py",
+        "student_pilot/r1_direction_twins.py",
+        "student_pilot/r1_loader.py",
+        "student_pilot/r1_mix.py",
+        "student_pilot/r1_population.py",
+        "tests/test_r1_direction_prior.py"
+      ],
+      "manifest": "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/FILES_TOUCHED.json"
+    }
+  },
+  "camform": {
+    "status": "PASS",
+    "command": [
+      "patch",
+      "--batch",
+      "--fuzz=0",
+      "--no-backup-if-mismatch",
+      "-p1",
+      "-d",
+      "/scratch/jjyeung/orch_n30/fb_pack/patchA2/work/new_camform"
+    ],
+    "returncode": 0,
+    "without_fuzz": true,
+    "log": "patching file configs/r1_camera_trace_form_v1.json\npatching file student_pilot/r1_camera_trace_form.py\npatching file student_pilot/r1_routing.py\npatching file tests/test_r1_camera_trace_form.py\n"
+  },
+  "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B work/build_patch.py"
+}

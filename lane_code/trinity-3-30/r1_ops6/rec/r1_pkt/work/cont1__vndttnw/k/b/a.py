@@ -1,0 +1,1 @@
+def main(k):pass

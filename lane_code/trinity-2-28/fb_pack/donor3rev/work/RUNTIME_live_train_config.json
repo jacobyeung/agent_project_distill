@@ -1,0 +1,133 @@
+{
+ "tree": "live",
+ "export": "/scratch/jjyeung/orch_n30/fb_pack/donor3rev/work/resume_live_8iq8jl74/run_donor/m3",
+ "heads_sha256": "a523b1319e143e6c5213f0e2b870d9d9b63b99d315fa8bb297db06352c5a13be",
+ "empty_base": "train_config",
+ "status": "PASS",
+ "failures": [],
+ "cases": {
+  "documented": {
+   "mode": "documented",
+   "ok": true,
+   "block_ran": true,
+   "head_keys_equal": true,
+   "n_heads": 268,
+   "heads_bytes_equal": true,
+   "heads_torch_equal": true,
+   "visual_identity_matches_binding": true,
+   "donor_metadata_equals_artifact": true,
+   "trainable_after": 0,
+   "depth_init_skipped": true,
+   "head_tensors_report": 268,
+   "type_is_CarrierC1": true,
+   "donor_before": false,
+   "visual_trainable_before": true,
+   "visual_dtype": "torch.float32",
+   "base_dtype": "torch.bfloat16"
+  },
+  "old_order": {
+   "mode": "old_order",
+   "ok": false,
+   "block_ran": false,
+   "error": "ValueError",
+   "message": "Scale donor requires an already frozen private visual copy",
+   "type_is_CarrierC1": true,
+   "donor_before": false,
+   "visual_trainable_before": true,
+   "visual_dtype": "torch.float32",
+   "base_dtype": "torch.bfloat16"
+  },
+  "freeze_only": {
+   "mode": "freeze_only",
+   "ok": false,
+   "block_ran": false,
+   "error": "ValueError",
+   "message": "Scale donor shared visual pin differs from checkpoint or live copy",
+   "type_is_CarrierC1": true,
+   "donor_before": false,
+   "visual_trainable_before": true,
+   "visual_dtype": "torch.float32",
+   "base_dtype": "torch.bfloat16"
+  },
+  "load_only": {
+   "mode": "load_only",
+   "ok": false,
+   "block_ran": false,
+   "error": "ValueError",
+   "message": "Scale donor requires an already frozen private visual copy",
+   "type_is_CarrierC1": true,
+   "donor_before": false,
+   "visual_trainable_before": true,
+   "visual_dtype": "torch.float32",
+   "base_dtype": "torch.bfloat16"
+  },
+  "tampered_visual": {
+   "mode": "tampered_visual",
+   "ok": false,
+   "block_ran": false,
+   "error": "ValueError",
+   "message": "Scale donor shared visual pin differs from checkpoint or live copy",
+   "type_is_CarrierC1": true,
+   "donor_before": false,
+   "visual_trainable_before": true,
+   "visual_dtype": "torch.float32",
+   "base_dtype": "torch.bfloat16"
+  },
+  "missing_visual": {
+   "mode": "missing_visual",
+   "ok": false,
+   "block_ran": false,
+   "error": "RuntimeError",
+   "message": "Error(s) in loading state_dict for Qwen3_5VisionModel:\n\tMissing key(s) in state_dict: \"patch_embed.proj.weight\". ",
+   "type_is_CarrierC1": true,
+   "donor_before": false,
+   "visual_trainable_before": true,
+   "visual_dtype": "torch.float32",
+   "base_dtype": "torch.bfloat16"
+  },
+  "non_strict_visual": {
+   "mode": "non_strict_visual",
+   "ok": false,
+   "block_ran": false,
+   "error": "ValueError",
+   "message": "Scale donor shared visual pin differs from checkpoint or live copy",
+   "type_is_CarrierC1": true,
+   "donor_before": false,
+   "visual_trainable_before": true,
+   "visual_dtype": "torch.float32",
+   "base_dtype": "torch.bfloat16"
+  },
+  "tampered_donor": {
+   "mode": "tampered_donor",
+   "ok": false,
+   "block_ran": false,
+   "error": "ValueError",
+   "message": "Scale donor tensor changed since initialization",
+   "type_is_CarrierC1": true,
+   "donor_before": false,
+   "visual_trainable_before": true,
+   "visual_dtype": "torch.float32",
+   "base_dtype": "torch.bfloat16"
+  },
+  "unmodified_runtime": {
+   "mode": "unmodified_runtime",
+   "ok": false,
+   "block_ran": false,
+   "error": "RuntimeError",
+   "message": "Error(s) in loading state_dict for Module:\n\tUnexpected key(s) in state_dict: \"scale_donor.frame_queries\", \"scale_donor.point_depth.group_embed\", \"scale_donor.point_depth.vit_norms.0.weight\", \"scale_donor.point_depth.vit_",
+   "type_is_CarrierC1": true,
+   "donor_before": false,
+   "visual_trainable_before": true,
+   "visual_dtype": "torch.float32",
+   "base_dtype": "torch.bfloat16"
+  }
+ },
+ "new_block": "from student_pilot import scale_donor\n\nheads = torch.load(heads_path, map_location=\"cpu\", weights_only=True)\nvisual = model.auxiliary_heads.depth.model.visual\nprefix = \"depth.model.visual.\"\nvisual.load_state_dict({key[len(prefix):]: value for key, value in heads.items()\n                        if key.startswith(prefix)}, strict=True)\nvisual.requires_grad_(False)\nscale_donor.attach(model, binding)\nmetadata = heads.pop(\"_scale_donor\", None)\nif metadata != artifact.get(\"scale_donor\"):\n    raise ValueError(\"Scale donor artifact/head metadata differs\")\nscale_donor.verify_export(model, heads, metadata)\nmodel.auxiliary_heads.load_state_dict(heads, strict=True)\n",
+ "old_block": "from student_pilot import scale_donor\nscale_donor.attach(model, binding)\nheads = torch.load(heads_path, map_location=\"cpu\", weights_only=True)\nmetadata = heads.pop(\"_scale_donor\", None)\nif metadata != artifact.get(\"scale_donor\"):\n    raise ValueError(\"Scale donor artifact/head metadata differs\")\nscale_donor.verify_export(model, heads, metadata)\nmodel.auxiliary_heads.load_state_dict(heads, strict=True)\n",
+ "inputs": {
+  "/scratch/jjyeung/orch_n30/fb_pack/donor3rev/work/reader_runtime_check.py": "a57e162a752a383868674b78ac0efb7871b64a876be98fbe1054f7c301f5e046",
+  "/scratch/jjyeung/orch_n30/fb_pack/donor3rev/work/live/student_pilot/mdg_runtime.py": "ca18771403faddec2ffb1aabc89bda45825dca8c2afcc0b29243c026b257821b",
+  "/scratch/jjyeung/orch_n30/fb_pack/donor3rev/work/live/student_pilot/scale_donor.py": "1fca29c9211e19f91a04e72c41a77652a56f3dea363e58fdd71817fe7229a134",
+  "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/READER_REQUEST.md": "70c9613ff4973714f25a95a5dec37232a8574fd61840eb8af18279c60e7c5e70"
+ }
+}

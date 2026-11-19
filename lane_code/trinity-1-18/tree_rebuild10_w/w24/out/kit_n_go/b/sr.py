@@ -40,7 +40,9 @@ def forward(pid, sent):
             args=Path('/proc',str(child),'cmdline').read_bytes().split(b'\0')
             env=Path('/proc',str(child),'environ').read_bytes().split(b'\0')
             # Elastic's agent has no worker RANK and must never receive SIGUSR1.
-            if any(v.endswith(b'/b/u.py') for v in args) and any(v.startswith(b'RANK=') for v in env) and any(v.startswith(b'LOCAL_RANK=') for v in env):
+            if any(v.endswith(b'/b/rv.py') for v in args):
+                os.kill(child,signal.SIGUSR1);newly.append(child)
+            elif any(v.endswith(b'/b/u.py') for v in args) and any(v.startswith(b'RANK=') for v in env) and any(v.startswith(b'LOCAL_RANK=') for v in env):
                 os.kill(child,signal.SIGUSR1);newly.append(child)
         except (OSError,ProcessLookupError):
             continue

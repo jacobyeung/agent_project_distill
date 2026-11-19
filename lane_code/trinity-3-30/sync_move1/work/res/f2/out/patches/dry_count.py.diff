@@ -1,0 +1,40 @@
+--- a/tools/dry_count.py
++++ b/tools/dry_count.py
+@@ -17,25 +17,29 @@
+             name = node.targets[0].id
+             if name in ('MAXDIR', 'SUBSTR'):
+                 constants[name] = ast.literal_eval(node.value)
+-            elif name == 'DIRRE':
++            elif name in ('DIRRE', 'PATHRE', 'KEEPDIRRE'):
+                 constants[name] = re.compile(ast.literal_eval(node.value.args[0]))
+     return constants
+ 
+ 
+ def root_gate(script, folder):
+     constants = filter_constants(script)
+-    folders = [folder]
+     boundary = Path('/scratch/jjyeung/orch_n30')
+-    if os.environ.get('LCS_REVIEW2_FIXES') == '1':
+-        folders += list(folder.parents)[:list(folder.parents).index(boundary)]
+-        folders.reverse()
++    # Match the hourly traversal, including ancestor gates, in both review modes.
++    folders = [folder] + list(folder.parents)[:list(folder.parents).index(boundary)]
++    folders.reverse()
+     for current in folders:
+         name = current.name
+-        relative = (current.relative_to(boundary).as_posix()
+-                    if os.environ.get('LCS_REVIEW2_FIXES') == '1' else name)
++        relative = current.relative_to(boundary).as_posix()
++        path = '/' + relative + '/'
++        protected = (name != '.git' and (path.count('/') == 2 or constants['KEEPDIRRE'].match(name)
++                     or path.rsplit('/', 2)[0].endswith('/codex_runs')
++                     or path.endswith(('/work/prompts/', '/work/tree/'))))
++        if protected:
++            continue
+         if name == '.git' or 'frames' in name or constants['DIRRE'].match(name):
+             return 'directory name excluded at hourly tree root'
+-        if any(s in '/' + relative + '/' for s in constants['SUBSTR']):
++        if any(s in path for s in constants['SUBSTR']) or constants['PATHRE'].search(path):
+             return 'path substring excluded at hourly tree root'
+         if len(os.listdir(current)) > constants['MAXDIR']:
+             return f"directory exceeds MAXDIR={constants['MAXDIR']} at hourly tree root"

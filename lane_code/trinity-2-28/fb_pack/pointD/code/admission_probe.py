@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 ROOT=Path(__file__).resolve().parents[1]
-TREE=ROOT/'work/new'
+TREE=ROOT/'work/final'
 sys.path.insert(0,str(TREE))
 resource.setrlimit(resource.RLIMIT_AS,(38*1024**3,38*1024**3))
 import torch
@@ -16,7 +16,7 @@ from student_pilot import mdg_parent, r1_coverage, pointing_locate as locate
 from student_pilot.p3_provenance import file_pin, write, sha256
 from tests.test_pointing_locate import fixture, saved
 
-root=ROOT/'work/admission_probe'; root.mkdir()
+root=ROOT/'work/admission_probe_final'; root.mkdir()
 rows,source,division=fixture(root)
 original=data.build_stream(source,division,root/'source','pointing')
 write(root/'dev.json',dict(schema='dev_s1_withhold_v1',natives=['d1/held'],rooms=[],physical_groups=[],canonical={},aliases={}))

@@ -1,5 +1,5 @@
 from pathlib import Path
-import ast,base64,hashlib,importlib.util,json,re,sys
+import ast,base64,hashlib,importlib.util,json,re,sys,gzip
 from unittest.mock import patch
 L=Path(__file__).resolve().parents[2];D=L/'work/build24m1'
 sys.path[:0]=[str(L/'work/build24'),str(L/'work/build21'),str(L/'work/tree_r1')]
@@ -36,6 +36,8 @@ for name in ('q','n','n_go'):
  p=D/('naming24m1_'+name+'.py');p.write_text(source)
  spec=importlib.util.spec_from_file_location('naming24m1_'+name,p);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
  with patch.object(E,'__file__',str(certdir/'environment21f.py')):result=module.scan_decoded(k)
- result['kit_seal']=verify(k);J.write(D/('SCAN_'+name+'.json'),result)
+ result['kit_seal']=verify(k)
+ raw=json.dumps(result,sort_keys=True).encode();packed=D/('SCAN_'+name+'.json.gz');packed.write_bytes(gzip.compress(raw,mtime=0))
+ J.write(D/('SCAN_'+name+'.json'),dict(status=result['status'],kit_seal=result['kit_seal'],full_report=str(packed.relative_to(L)),uncompressed_sha256=hashlib.sha256(raw).hexdigest()))
  J.write(D/('STARTS_'+name+'.json'),starts)
  print(name,result['status'],len(starts),'guarded shell Python starts',flush=True)

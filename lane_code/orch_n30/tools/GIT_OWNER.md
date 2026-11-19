@@ -1,8 +1,8 @@
 # Getting lane code into Git
 
-The designated Git owner on **trinity-3-30** runs Git; lanes supply files and queue rows.
-The hourly sync, kit command, and manual owner Git work share `$S/.sync.lock`, where
-`S=/scratch/jjyeung/distill_sync`. The kit clone is `$S/repo`, already on `lane-code`.
+The designated Git owner runs Git on the sync host `LCS_HOST` (now **trinity-2-28**; tools default to trinity-3-30,
+so set `LCS_HOST` in every owner command there); lanes supply files and queue rows. The hourly sync, kit command,
+and manual owner Git work share that host's `$S/.sync.lock`, where `S=/scratch/jjyeung/distill_sync`. The kit clone is `$S/repo`, on `lane-code`.
 Never rewrite history, force a push, or push to main.
 
 | Route | Lane supplies | Owner action and evidence |
@@ -62,7 +62,7 @@ path inside the test root. Network, SCP-style, `file://`, and leading `~` URLs r
 relative local paths such as `./~repo.git` qualify.
 Both remotes must verify
 before the landing receipt and `<UTC>_RESULT_kit_<name>_landed.md` event are written.
-`$S/KITS_LANDED.txt` is local to trinity-3-30; lanes on other nodes read the shared RESULT event.
+`$S/KITS_LANDED.txt` is local to the sync host; lanes on other nodes read the shared RESULT event.
 
 The lock waits **600 seconds** by default (`LCS_LOCK_TIMEOUT`, maximum 3600). The hourly
 uses a nonblocking lock and skips overlapping starts. Land just after `END ok`; stale events
@@ -79,7 +79,7 @@ The coordinator's `work/realgit4_by_swarm_opt/` logs prove the successful landin
 kit preservation, failed-commit cleanup, and origin-rejection STOP paths on both interpreters
 (3 tests, 0 skips each). The current package's real-Git rerun command is in `HANDOVER.md`.
 
-The hourly excludes proof/run/evidence/cache directories, oversized files, and directories
+The hourly excludes proof/run/evidence/cache directories, build by-products (test-run and test-output trees, temporary and 32-hex run directories, payload interpreters, nested lane copies, extracted archives, rehearsals and attics; rules in `lane_code_filter.py`), oversized files, and directories
 with more than 2000 entries. `in`, `out`, `work/tree`, and `kit` qualify unless an ancestor
 fails a rule. Before expanding coverage, the owner runs:
 
@@ -96,18 +96,26 @@ pass the containing lane root instead. It does not test whether the pruned path 
 `COVERAGE.md` lists the rules.
 
 Queue rows are `<UTC> eff/<slug> <40-hex-sha> [<absolute-clone-path>]` in
-`e_*/PUSH_QUEUE.txt` or `eff_*/PUSH_QUEUE.txt` on trinity-3-30 only. An explicit clone path must
+`e_*/PUSH_QUEUE.txt` or `eff_*/PUSH_QUEUE.txt` under `/scratch/jjyeung/orch_n30` on the sync host only. An explicit clone path must
 be `/scratch/jjyeung/orch_n30/<lane>/clone` or `/scratch/jjyeung/orch_n30/<lane>/repo`; a relative
 path is permanently refused. An omitted fourth field selects the lane's clone/repo locally.
 **The designated Git owner makes those commits**
 in an authorized scratch lane clone under the owner lock and supplies the SHA to the lane.
 The publisher fetches, checks ancestry/secrets, and pushes the named commit to origin without force.
 
-The owner starts `LCS_REVIEW2_FIXES=1 LCS_ENABLE_SYNC_HEALTH=1 bash "$T/sync_health_loop.sh"` in tmux.
-Every ten minutes it checks local evidence, emits one event per incident/recovery, and records
-delivery in `$S/health/`. Consumers may move delivered events; only undelivered events replay.
+The hourly loop runs on trinity-2-28 in tmux `lane_sync`: `LCS_HOST=trinity-2-28 LCS_HEARTBEAT=$B/code_sync_heartbeat/HEARTBEAT.log
+nice -n 10 bash $T/lane_code_sync_loop.sh`; each run rewrites that small shared heartbeat (START, verified push, END, HOST lines).
+The health loop stays on trinity-3-30 in tmux `sync_health`: `LCS_LOG=$B/code_sync_heartbeat/HEARTBEAT.log LCS_REVIEW2_FIXES=1
+LCS_ENABLE_SYNC_HEALTH=1 bash "$T/sync_health_loop.sh"`. Every ten minutes it reads the heartbeat, emits one event per
+incident/recovery, and records delivery in its local `$S/health/`. Consumers may move delivered events; only undelivered events replay.
 Ordinary errors log to `$S/health.log` and the next tick runs. Signal exits stop for owner
 investigation under cluster rules. Replacement Python files load on the next tick.
 The owning orchestrator must arrange a restart only when the loop's environment switch changes.
 Before installing, run `python3 -I -c 'import lzma'` in the owner's interpreter environment
 (or use the configured `LCS_PYTHON`); the unconditional import requires `_lzma` even with the switch off.
+
+
+### If the sync host fails
+1. Copy a surviving clone to an allowed lane node over InfiniBand (`git bundle create - --all` piped through `tools/tssh.sh <new>.ib`, `git clone --branch lane-code` from it, old `.git/config` restored, `refs/remotes/origin/main` set); clone from GitHub only if no clone survives and the user approves a throttled download, without `--single-branch`.
+2. Put `LCS_ROBUST_SYNC`, `LCS_ROBUST_BUDGETS`, `KITS_LANDED.txt` and `PUSH_*.txt` into the new `$S`, check `ssh -o BatchMode=yes <new>.ib true` once from each source node, and require `LCS_HOST=<new> bash $T/lane_code_sync.sh --dry` to succeed.
+3. Start `LCS_HOST=<new> LCS_HEARTBEAT=$B/code_sync_heartbeat/HEARTBEAT.log bash $T/lane_code_sync_loop.sh` in tmux, verify its first push with `ls-remote`, then stop any old loop; exact commands and the non-fast-forward recovery are in `SYNC_HOST_MOVE.md`.

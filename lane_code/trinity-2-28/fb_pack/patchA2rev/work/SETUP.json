@@ -1,0 +1,359 @@
+{
+  "inputs_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/out/TREE_FILES.sha256": "c527ad4b49b01fd1f1a1a907fa891de7955daeedcf55b56ced0e8bc6cfd717fe",
+    "/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/out24j/TREE24J_SEAL.json": "5976f7ddb2fd28512fc93f85504938500bfe7da7ea5182d712f2567a1181ae3d",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/PATCH_A.patch": "b95c1c618659a17b123b0d4d079fdf9ad53667f715e7362f43df0078bf6de477",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/PATCH_A2.patch": "3ecd924f91594dc018b46bfcdc631b867e3164c67eb0b9e9dd58706ccd8eacbd",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/PATCH_A2_DELTA.patch": "a848718c19df003df13e3cd76fdefa9cf26611e2e9cd9a7ad25bd3b155049ba2",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform/out/PATCH_CAMFORM.patch": "2167d5d9116e8088bd15c4207ab9fcfd4d562115f79a1c180d0f6a658f898e3b",
+    "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/FILES_TOUCHED.json": "6d9b92f206235304ab1c10020e8fb376fbcb07756dfbd142ac265d2636976047"
+  },
+  "base": {
+    "files": 939,
+    "digest": "57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7",
+    "equals_list": true
+  },
+  "live_base": {
+    "files": 940,
+    "digest": "189df6ac590caf7622354c3bd1f991e599776494ced635a23f0c93eb1b567710",
+    "equals_seal_files": true,
+    "seal_digest_of_files": "189df6ac590caf7622354c3bd1f991e599776494ced635a23f0c93eb1b567710",
+    "differs_from_base": {
+      "launch_r1/entry.py": [
+        "14f5730f8c95c0b13f779f1d9a477693aafe464d3e87db3bf4766a68654d8ffb",
+        "d74a82ffd617f9eaf542dc88339208448eea57487ecd5f1ba79b088617a05b66"
+      ],
+      "launch_r1/production_proof.py": [
+        "9d54354e20758296cc2c826b7f651297d20574192736c1779aecf0ad7c09bc17",
+        "c31b0460a16338987fa0dcb585444c8a5f330aab30d5b503304b96a2e5e98b3e"
+      ],
+      "tests/test_host24j.py": [
+        null,
+        "0f1d15ff42b201a96756e2181535f9e1dfdbeb04d48fc1f5a9dc9b3129b36526"
+      ]
+    }
+  },
+  "apply": [
+    {
+      "name": "a",
+      "patch": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/PATCH_A.patch",
+      "tree": "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/a",
+      "returncode": 0,
+      "stdout": "patching file launch_r2/distributed.py\npatching file launch_r2/host.py\npatching file launch_r2/runtime.py\npatching file student_pilot/job_env.py\npatching file student_pilot/r1_coverage.py\npatching file student_pilot/r1_population.py\npatching file student_pilot/r1_routing.py\npatching file student_pilot/r2_intake.py\npatching file student_pilot/r2_materialize.py\npatching file tests/test_r1_subset.py\n",
+      "stderr": "",
+      "fuzz": false,
+      "offset": false
+    },
+    {
+      "name": "a2",
+      "patch": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/PATCH_A2.patch",
+      "tree": "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/a2",
+      "returncode": 0,
+      "stdout": "patching file launch_r2/distributed.py\npatching file launch_r2/host.py\npatching file launch_r2/runtime.py\npatching file student_pilot/job_env.py\npatching file student_pilot/r1_coverage.py\npatching file student_pilot/r1_population.py\npatching file student_pilot/r1_routing.py\npatching file student_pilot/r2_intake.py\npatching file student_pilot/r2_materialize.py\npatching file tests/test_r1_patch_a2.py\npatching file tests/test_r1_subset.py\n",
+      "stderr": "",
+      "fuzz": false,
+      "offset": false
+    },
+    {
+      "name": "ad",
+      "patch": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/PATCH_A.patch",
+      "tree": "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/ad",
+      "returncode": 0,
+      "stdout": "patching file launch_r2/distributed.py\npatching file launch_r2/host.py\npatching file launch_r2/runtime.py\npatching file student_pilot/job_env.py\npatching file student_pilot/r1_coverage.py\npatching file student_pilot/r1_population.py\npatching file student_pilot/r1_routing.py\npatching file student_pilot/r2_intake.py\npatching file student_pilot/r2_materialize.py\npatching file tests/test_r1_subset.py\n",
+      "stderr": "",
+      "fuzz": false,
+      "offset": false
+    },
+    {
+      "name": "ad",
+      "patch": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/PATCH_A2_DELTA.patch",
+      "tree": "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/ad",
+      "returncode": 0,
+      "stdout": "patching file student_pilot/r1_coverage.py\npatching file student_pilot/r1_routing.py\npatching file tests/test_r1_patch_a2.py\n",
+      "stderr": "",
+      "fuzz": false,
+      "offset": false
+    },
+    {
+      "name": "live_a2",
+      "patch": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/PATCH_A2.patch",
+      "tree": "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/live_a2",
+      "returncode": 0,
+      "stdout": "patching file launch_r2/distributed.py\npatching file launch_r2/host.py\npatching file launch_r2/runtime.py\npatching file student_pilot/job_env.py\npatching file student_pilot/r1_coverage.py\npatching file student_pilot/r1_population.py\npatching file student_pilot/r1_routing.py\npatching file student_pilot/r2_intake.py\npatching file student_pilot/r2_materialize.py\npatching file tests/test_r1_patch_a2.py\npatching file tests/test_r1_subset.py\n",
+      "stderr": "",
+      "fuzz": false,
+      "offset": false
+    },
+    {
+      "name": "a2_camform",
+      "patch": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/PATCH_A2.patch",
+      "tree": "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/a2_camform",
+      "returncode": 0,
+      "stdout": "patching file launch_r2/distributed.py\npatching file launch_r2/host.py\npatching file launch_r2/runtime.py\npatching file student_pilot/job_env.py\npatching file student_pilot/r1_coverage.py\npatching file student_pilot/r1_population.py\npatching file student_pilot/r1_routing.py\npatching file student_pilot/r2_intake.py\npatching file student_pilot/r2_materialize.py\npatching file tests/test_r1_patch_a2.py\npatching file tests/test_r1_subset.py\n",
+      "stderr": "",
+      "fuzz": false,
+      "offset": false
+    },
+    {
+      "name": "a2_camform",
+      "patch": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/PATCH_CAMFORM.patch",
+      "tree": "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/a2_camform",
+      "returncode": 0,
+      "stdout": "patching file configs/r1_camera_trace_form_v1.json\npatching file student_pilot/r1_camera_trace_form.py\npatching file student_pilot/r1_routing.py\npatching file tests/test_r1_camera_trace_form.py\n",
+      "stderr": "",
+      "fuzz": false,
+      "offset": false
+    },
+    {
+      "name": "a_camform",
+      "patch": "/scratch/jjyeung/orch_n30/fb_pack/patchA/out/PATCH_A.patch",
+      "tree": "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/a_camform",
+      "returncode": 0,
+      "stdout": "patching file launch_r2/distributed.py\npatching file launch_r2/host.py\npatching file launch_r2/runtime.py\npatching file student_pilot/job_env.py\npatching file student_pilot/r1_coverage.py\npatching file student_pilot/r1_population.py\npatching file student_pilot/r1_routing.py\npatching file student_pilot/r2_intake.py\npatching file student_pilot/r2_materialize.py\npatching file tests/test_r1_subset.py\n",
+      "stderr": "",
+      "fuzz": false,
+      "offset": false
+    },
+    {
+      "name": "a_camform",
+      "patch": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/PATCH_CAMFORM.patch",
+      "tree": "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/a_camform",
+      "returncode": 0,
+      "stdout": "patching file configs/r1_camera_trace_form_v1.json\npatching file student_pilot/r1_camera_trace_form.py\npatching file student_pilot/r1_routing.py\npatching file tests/test_r1_camera_trace_form.py\n",
+      "stderr": "",
+      "fuzz": false,
+      "offset": false
+    },
+    {
+      "name": "live_a2_camform",
+      "patch": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/PATCH_A2.patch",
+      "tree": "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/live_a2_camform",
+      "returncode": 0,
+      "stdout": "patching file launch_r2/distributed.py\npatching file launch_r2/host.py\npatching file launch_r2/runtime.py\npatching file student_pilot/job_env.py\npatching file student_pilot/r1_coverage.py\npatching file student_pilot/r1_population.py\npatching file student_pilot/r1_routing.py\npatching file student_pilot/r2_intake.py\npatching file student_pilot/r2_materialize.py\npatching file tests/test_r1_patch_a2.py\npatching file tests/test_r1_subset.py\n",
+      "stderr": "",
+      "fuzz": false,
+      "offset": false
+    },
+    {
+      "name": "live_a2_camform",
+      "patch": "/scratch/jjyeung/orch_n30/fb_pack/camform/out/PATCH_CAMFORM.patch",
+      "tree": "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/live_a2_camform",
+      "returncode": 0,
+      "stdout": "patching file configs/r1_camera_trace_form_v1.json\npatching file student_pilot/r1_camera_trace_form.py\npatching file student_pilot/r1_routing.py\npatching file tests/test_r1_camera_trace_form.py\n",
+      "stderr": "",
+      "fuzz": false,
+      "offset": false
+    }
+  ],
+  "digests": {
+    "base": {
+      "files": 939,
+      "digest": "57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7"
+    },
+    "live_base": {
+      "files": 940,
+      "digest": "189df6ac590caf7622354c3bd1f991e599776494ced635a23f0c93eb1b567710"
+    },
+    "a": {
+      "files": 940,
+      "digest": "290e2119232da4eb3d55df805e069b4a2d9f5e167368db30d2ef2e013ee6e0f9"
+    },
+    "a2": {
+      "files": 941,
+      "digest": "db3c96e927a0bafffefae7a5d6424b520baa74531aa55759c212c498d57ac464"
+    },
+    "ad": {
+      "files": 941,
+      "digest": "db3c96e927a0bafffefae7a5d6424b520baa74531aa55759c212c498d57ac464"
+    },
+    "live_a2": {
+      "files": 942,
+      "digest": "c46b33a7cf055732aef79bd4b8b73dfbd85bc4b0458978d96b0975410d276aed"
+    },
+    "a2_camform": {
+      "files": 944,
+      "digest": "f00617569c7e1da928b4bc93ba86eb0626605012a4d848fa9e81c4650b4f42e7"
+    },
+    "a_camform": {
+      "files": 943,
+      "digest": "ae61e77da66fc5323f109d9eb16f97670fa3b7445ba144af46cb9bf22ecbbf7d"
+    },
+    "live_a2_camform": {
+      "files": 945,
+      "digest": "4aa5ed83a809c59a1a3a88282c1ca52a1f09696917a36325d2504a626eb08067"
+    }
+  },
+  "a2_vs_base": {
+    "launch_r2/distributed.py": [
+      "9fec5743ecf8b69c74a7c9debc0fa610ccda182397959eed21d87a05642cc01d",
+      "fa4221a306269a38e04d1b844ec78d60cc11778d85f4177d58d6e8471ca17d91"
+    ],
+    "launch_r2/host.py": [
+      "3ca2cdff76593a50b3d78ce4ccfbbaa09ea6349f4320fea9be5a8dd297a8a843",
+      "3587742802c7cb14f39aa0c4feb94cbd6cadaba6fc9e5c5f43655215d5185bed"
+    ],
+    "launch_r2/runtime.py": [
+      "e23656c8f3016a32bae1d0322f43fad67f6207a62c554af94a92f979091d76f1",
+      "5be49d551a9bf94887fb9b7c20a3b338fe76658b377ad30321e6407e8fadf7b7"
+    ],
+    "student_pilot/job_env.py": [
+      "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+      "217ff0c7b8a6ea721ae1e833e21421e98b581e0c8e56708f64e4f78ae6459a88"
+    ],
+    "student_pilot/r1_coverage.py": [
+      "63eb1982e6696d740c0818ad20dbc35924f9ab009cfe732f0c36ed67ce2217c3",
+      "9c2a72dad56e384e3c6f3ec75aa9ee5dbe29ec0cee5b347e244af9309574dee7"
+    ],
+    "student_pilot/r1_population.py": [
+      "063ed256bc4b6d797bd99c99bdaf4f11c8fe045a2606645a1dfbcef548c6c76a",
+      "bb9ccc296837690b48046481ac082fddbcbfe7889062335b0104e4dc9dd21460"
+    ],
+    "student_pilot/r1_routing.py": [
+      "07c8751ffd2c0c3fbca6a251a5a6fad8d60c259592e2a6cf0621ee5f3a2bd538",
+      "57b866c5175536e77fe2f2d512269ea2497b7e95f78bd921b6db385e37564763"
+    ],
+    "student_pilot/r2_intake.py": [
+      "fc968e85827dc56686c6b11814a02b3274f52fb3ca6281758111e1612a3e1c48",
+      "2e96e97d9306f3d08c56cc3e189a8b0fcc5a9462bee68a168f451df52448bbb1"
+    ],
+    "student_pilot/r2_materialize.py": [
+      "47a362bb95cfafcd0b007fd955eb5990d7755ebabd2615d91a9fafe5c47bf0a3",
+      "0c2a7bc1b140571dfb6ed9a27a909f00c09c852413ec3c09d6c5cfa5cc499f98"
+    ],
+    "tests/test_r1_patch_a2.py": [
+      null,
+      "fd4d4bccee67fecfa35b4e7a21d2d99b590ca08f90c4ef9cdfb6ddb4b5c572f0"
+    ],
+    "tests/test_r1_subset.py": [
+      null,
+      "bc0f2525fde7926ee0452a90a4535cf8f17ea32aee108d064b0a8209de55406e"
+    ]
+  },
+  "a2_equals_files_touched": true,
+  "files_touched_extra_keys": [
+    "base_tree_sha256",
+    "command",
+    "delta_files",
+    "delta_sha256",
+    "patch_sha256",
+    "status"
+  ],
+  "ad_equals_a2": true,
+  "a_vs_a2": {
+    "student_pilot/r1_coverage.py": [
+      "aca68904351907af1ce046a79123725851969f08744eea629167ffdbc18eeb84",
+      "9c2a72dad56e384e3c6f3ec75aa9ee5dbe29ec0cee5b347e244af9309574dee7"
+    ],
+    "student_pilot/r1_routing.py": [
+      "7975ea825a4dc7f7a4471e950a9ba87c1d68365e9cbb34f044e9652ab6252f18",
+      "57b866c5175536e77fe2f2d512269ea2497b7e95f78bd921b6db385e37564763"
+    ],
+    "tests/test_r1_patch_a2.py": [
+      null,
+      "fd4d4bccee67fecfa35b4e7a21d2d99b590ca08f90c4ef9cdfb6ddb4b5c572f0"
+    ]
+  },
+  "a_vs_base": {
+    "launch_r2/distributed.py": [
+      "9fec5743ecf8b69c74a7c9debc0fa610ccda182397959eed21d87a05642cc01d",
+      "fa4221a306269a38e04d1b844ec78d60cc11778d85f4177d58d6e8471ca17d91"
+    ],
+    "launch_r2/host.py": [
+      "3ca2cdff76593a50b3d78ce4ccfbbaa09ea6349f4320fea9be5a8dd297a8a843",
+      "3587742802c7cb14f39aa0c4feb94cbd6cadaba6fc9e5c5f43655215d5185bed"
+    ],
+    "launch_r2/runtime.py": [
+      "e23656c8f3016a32bae1d0322f43fad67f6207a62c554af94a92f979091d76f1",
+      "5be49d551a9bf94887fb9b7c20a3b338fe76658b377ad30321e6407e8fadf7b7"
+    ],
+    "student_pilot/job_env.py": [
+      "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+      "217ff0c7b8a6ea721ae1e833e21421e98b581e0c8e56708f64e4f78ae6459a88"
+    ],
+    "student_pilot/r1_coverage.py": [
+      "63eb1982e6696d740c0818ad20dbc35924f9ab009cfe732f0c36ed67ce2217c3",
+      "aca68904351907af1ce046a79123725851969f08744eea629167ffdbc18eeb84"
+    ],
+    "student_pilot/r1_population.py": [
+      "063ed256bc4b6d797bd99c99bdaf4f11c8fe045a2606645a1dfbcef548c6c76a",
+      "bb9ccc296837690b48046481ac082fddbcbfe7889062335b0104e4dc9dd21460"
+    ],
+    "student_pilot/r1_routing.py": [
+      "07c8751ffd2c0c3fbca6a251a5a6fad8d60c259592e2a6cf0621ee5f3a2bd538",
+      "7975ea825a4dc7f7a4471e950a9ba87c1d68365e9cbb34f044e9652ab6252f18"
+    ],
+    "student_pilot/r2_intake.py": [
+      "fc968e85827dc56686c6b11814a02b3274f52fb3ca6281758111e1612a3e1c48",
+      "2e96e97d9306f3d08c56cc3e189a8b0fcc5a9462bee68a168f451df52448bbb1"
+    ],
+    "student_pilot/r2_materialize.py": [
+      "47a362bb95cfafcd0b007fd955eb5990d7755ebabd2615d91a9fafe5c47bf0a3",
+      "0c2a7bc1b140571dfb6ed9a27a909f00c09c852413ec3c09d6c5cfa5cc499f98"
+    ],
+    "tests/test_r1_subset.py": [
+      null,
+      "bc0f2525fde7926ee0452a90a4535cf8f17ea32aee108d064b0a8209de55406e"
+    ]
+  },
+  "live_a2_vs_live_base": {
+    "launch_r2/distributed.py": [
+      "9fec5743ecf8b69c74a7c9debc0fa610ccda182397959eed21d87a05642cc01d",
+      "fa4221a306269a38e04d1b844ec78d60cc11778d85f4177d58d6e8471ca17d91"
+    ],
+    "launch_r2/host.py": [
+      "3ca2cdff76593a50b3d78ce4ccfbbaa09ea6349f4320fea9be5a8dd297a8a843",
+      "3587742802c7cb14f39aa0c4feb94cbd6cadaba6fc9e5c5f43655215d5185bed"
+    ],
+    "launch_r2/runtime.py": [
+      "e23656c8f3016a32bae1d0322f43fad67f6207a62c554af94a92f979091d76f1",
+      "5be49d551a9bf94887fb9b7c20a3b338fe76658b377ad30321e6407e8fadf7b7"
+    ],
+    "student_pilot/job_env.py": [
+      "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+      "217ff0c7b8a6ea721ae1e833e21421e98b581e0c8e56708f64e4f78ae6459a88"
+    ],
+    "student_pilot/r1_coverage.py": [
+      "63eb1982e6696d740c0818ad20dbc35924f9ab009cfe732f0c36ed67ce2217c3",
+      "9c2a72dad56e384e3c6f3ec75aa9ee5dbe29ec0cee5b347e244af9309574dee7"
+    ],
+    "student_pilot/r1_population.py": [
+      "063ed256bc4b6d797bd99c99bdaf4f11c8fe045a2606645a1dfbcef548c6c76a",
+      "bb9ccc296837690b48046481ac082fddbcbfe7889062335b0104e4dc9dd21460"
+    ],
+    "student_pilot/r1_routing.py": [
+      "07c8751ffd2c0c3fbca6a251a5a6fad8d60c259592e2a6cf0621ee5f3a2bd538",
+      "57b866c5175536e77fe2f2d512269ea2497b7e95f78bd921b6db385e37564763"
+    ],
+    "student_pilot/r2_intake.py": [
+      "fc968e85827dc56686c6b11814a02b3274f52fb3ca6281758111e1612a3e1c48",
+      "2e96e97d9306f3d08c56cc3e189a8b0fcc5a9462bee68a168f451df52448bbb1"
+    ],
+    "student_pilot/r2_materialize.py": [
+      "47a362bb95cfafcd0b007fd955eb5990d7755ebabd2615d91a9fafe5c47bf0a3",
+      "0c2a7bc1b140571dfb6ed9a27a909f00c09c852413ec3c09d6c5cfa5cc499f98"
+    ],
+    "tests/test_r1_patch_a2.py": [
+      null,
+      "fd4d4bccee67fecfa35b4e7a21d2d99b590ca08f90c4ef9cdfb6ddb4b5c572f0"
+    ],
+    "tests/test_r1_subset.py": [
+      null,
+      "bc0f2525fde7926ee0452a90a4535cf8f17ea32aee108d064b0a8209de55406e"
+    ]
+  },
+  "live_patch_effect_equals_base_patch_effect": true,
+  "a2_camform_vs_a_camform": {
+    "student_pilot/r1_coverage.py": [
+      "aca68904351907af1ce046a79123725851969f08744eea629167ffdbc18eeb84",
+      "9c2a72dad56e384e3c6f3ec75aa9ee5dbe29ec0cee5b347e244af9309574dee7"
+    ],
+    "student_pilot/r1_routing.py": [
+      "835815f7a9c8650d1a34d1e5bbfcdd3a32086b934ef33227c940e5e066b834c8",
+      "9850f1d0fe70bdafb1348c71d112045272a43274e2f363b32e3c56b085bcd1e0"
+    ],
+    "tests/test_r1_patch_a2.py": [
+      null,
+      "fd4d4bccee67fecfa35b4e7a21d2d99b590ca08f90c4ef9cdfb6ddb4b5c572f0"
+    ]
+  }
+}

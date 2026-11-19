@@ -1,0 +1,25 @@
+--- a/src/tree/student_pilot/routed_candidates.py
++++ b/src/tree/student_pilot/routed_candidates.py
+@@ -109,7 +109,9 @@
+                 rejected.append(dict(frame=frame, index=index, reason='no_eligible_pixels'))
+                 continue
+             center = np.median(points, axis=0)
+-            out.append(Proposal(frame, index, float(instance['score']), float(record['presence']),
++            # Stage-1 caches carry one presence per frame; cache_for pools carry one per instance.
++            out.append(Proposal(frame, index, float(instance['score']),
++                       float(instance.get('presence', record['presence'])),
+                        mask, points, center, float(np.quantile(np.linalg.norm(points-center, axis=1), .9)),
+                        float(np.mean(depth[ok])), voxel_set(points),
+                        float(prior[frame-1]) if prior is not None else 1.))
+--- a/src/tree/student_pilot/routed_features.py
++++ b/src/tree/student_pilot/routed_features.py
+@@ -78,7 +78,8 @@
+ def cache_for(name, frames):
+     return dict(phrases=[name], frames={str(k): dict(phrases={name: dict(
+         presence=values[0]["presence"] if values else 0.,
+-        instances=[dict(score=value["score"], mask=rle(value["mask"])) for value in values])})
++        instances=[dict(score=value["score"], presence=value["presence"], mask=rle(value["mask"]))
++                   for value in values])})
+         for k, values in enumerate(frames)})
+ 
+ 

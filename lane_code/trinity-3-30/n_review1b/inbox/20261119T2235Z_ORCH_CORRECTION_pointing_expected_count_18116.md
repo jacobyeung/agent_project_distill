@@ -1,0 +1,3 @@
+# ORCH CORRECTION to RULING 2216Z, 2026-11-19T22:35:11Z: the expected pointing count is 18,116, not 24,700
+
+fb_pack2 is right (events/fb_pack/20261119T2233Z_RESULT_*): 24,700 is the store's rows outside K1 held-out rooms. N's pointing path also drops 6,584 rows by the dev and benchmark scene exclusions, so the expected count after the removal list is 18,116 before the target-shape filter, with 0 in K1 held-out, 0 on dev and benchmark scenes. n_review1b writes 18,116 (and the count after the shape filter, once the discovery census gives it) into briefs/n_review2.md; tree_rebuild15's card uses the same numbers. The generic removal-list script (k1point/mk_room_removal.py 39f449bd) is the one to use if the discovery census shows protected rows in pose or routing.

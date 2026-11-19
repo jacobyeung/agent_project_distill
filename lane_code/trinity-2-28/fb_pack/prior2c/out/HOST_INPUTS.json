@@ -1,0 +1,350 @@
+{
+  "checker": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py",
+    "sha256": "c4dcf830ad4aa118613fa3f059d18d16b6495bcea9fb8b978b965c913ee9ab47"
+  },
+  "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python scripts/finalize.py --host-inputs",
+  "command_inputs": {
+    "BASE_TREE": "Exact sealed base matching one admitted pair",
+    "CHECK_OUTPUT": "A new writable checker output directory",
+    "PATCHED_TREE": "Exact PATCH_PRIOR tree matching that pair, including its authenticated source seal/archive",
+    "PROOF_ROOT": "MISSING: actual native proof directory",
+    "PY": "Training-host Python with the native CPU dependencies; this node uses /scratch/jjyeung/envs/p1cpu/bin/python"
+  },
+  "command_notes": "Use --stage h for the handover config or --stage population for entry.frame_host. The wrapper reads the selected receipt\u2019s stream receipt and post-filter table pins, prints the complete checker command, and saves HOST_COMMAND.json. Add --pin SHA256=PATH only for identical relocated bytes.",
+  "config": {
+    "path": "<proof root>/b/config.json",
+    "required_fields": [
+      "preparation",
+      "r2_sampling",
+      "r2_sampling.direction_prior",
+      "r1_training.direction_prior",
+      "r1_training.row_plan_sha256",
+      "r1_training.store_hashes",
+      "code"
+    ],
+    "sha256": "MISSING"
+  },
+  "indices": {
+    "path": "<proof root>/b/indices.json",
+    "required_field": "config.r2_sampling.indices",
+    "sha256": "MISSING"
+  },
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/scripts/finalize.py",
+      "sha256": "b8b9022e51ff9e8cee07f9898a5e919b06b8e66c9fc3596aacc0e1740e47bd31"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/out/HOST_INPUTS.json",
+      "sha256": "1e5c20d5ea833d9568f1eefd940233f15026e706652a259e54d90f375b342843"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/N_LAUNCH_CONFIG.json",
+      "sha256": "0e78d7f86f85cf6090db94bb4916fbd1c57b9fa2aff04dd0a8428a414a4a5f5f"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/priorrev/REVIEW_VERDICT.md",
+      "sha256": "e2f69e36443abe92faae039ce03817d7018154a271304f465382feb2a58a1797"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py",
+      "sha256": "c4dcf830ad4aa118613fa3f059d18d16b6495bcea9fb8b978b965c913ee9ab47"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/run_on_host.py",
+      "sha256": "67611513c533f6f6bd7a91dacb56ff76209a28cf26a0d6568d0a5e5f8b78c2b5"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/TOWARD_HARD_WEIGHTS.json",
+      "sha256": "9baef120ad2a0b5435a7bd6a60b75314809dbf517abe863fd03d79738c758d05"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/PATCH_PRIOR.patch",
+      "sha256": "b5cece7d3dc0103043e9174887b6096497eafec9e9017b3767387fa420fc0210"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new/student_pilot/r1_population.py",
+      "sha256": "83136841ef809f189d4aecda9804fddd73d280be404e78e5776cc86a3681c6e0"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new/student_pilot/r1_training.py",
+      "sha256": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new/launch_r1/production_proof.py",
+      "sha256": "c31b0460a16338987fa0dcb585444c8a5f330aab30d5b503304b96a2e5e98b3e"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new/launch_r1/entry.py",
+      "sha256": "d74a82ffd617f9eaf542dc88339208448eea57487ecd5f1ba79b088617a05b66"
+    }
+  ],
+  "launch": {
+    "direction_twins": {
+      "aliases": {
+        "path": "/scratch/jjyeung/orch_n30/sb_rowD2/alias_inputs/out/TIERED_ALIAS_MAP.json",
+        "sha256": "7f50287bae46792d1de25b33344d62d6a6484688887c5294bdd1d1f67f76623b"
+      },
+      "binding": {
+        "path": "/scratch/jjyeung/orch_n30/sb_d7bind/BINDING.jsonl",
+        "sha256": "d8c3837019d29e9c8b7916a7e8b3c3d595890b6cad32c7dc72ba5f871a0a5108"
+      },
+      "rows": {
+        "path": "/scratch/jjyeung/orch_n30/sb_rowD7f/out/NEW_ROWS.jsonl",
+        "sha256": "7b3d696d580386f9e8af3240fa142e2ad50eebb277a8718c97e2db497dcc925e"
+      },
+      "source_database": {
+        "path": "/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite",
+        "sha256": "210b25349b23af5b38a5b5d90caa97be2bb296dbabd8773d54e658e0aad22443"
+      },
+      "source_map": {
+        "path": "/scratch/jjyeung/orch_n30/sb_rowD7f/out/SOURCE_MAP.jsonl",
+        "sha256": "5b584f1d863ae9c679624f8ee596a9e9ea7e94603200dc81903ae4d205dea17f"
+      }
+    },
+    "expected_sha256": "0e78d7f86f85cf6090db94bb4916fbd1c57b9fa2aff04dd0a8428a414a4a5f5f",
+    "pin": {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/N_LAUNCH_CONFIG.json",
+      "sha256": "0e78d7f86f85cf6090db94bb4916fbd1c57b9fa2aff04dd0a8428a414a4a5f5f"
+    },
+    "store_hashes": {
+      "vqa": "210b25349b23af5b38a5b5d90caa97be2bb296dbabd8773d54e658e0aad22443"
+    },
+    "store_parameter": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/v7_receipt.json",
+      "sha256": "e3ee51daa46af30fa8e84a05c12448d7fc3dc9cade05284707f9df322bbe44d0"
+    },
+    "store_parameter_local_status": "MISSING: exact e3ee51da launch receipt bytes are not supplied here"
+  },
+  "population": {
+    "path": "<proof root>/b/population.json",
+    "required_field": "config.r2_sampling.population",
+    "sha256": "MISSING"
+  },
+  "post_filter_tables": {
+    "pointing": {
+      "path": "<proof root>/b/pointing_indices.json",
+      "required_field": "receipt.streams.pointing.indices",
+      "sha256": "MISSING"
+    },
+    "pose": {
+      "path": "<proof root>/b/pose_order.json",
+      "required_field": "receipt.streams.pose.order",
+      "sha256": "MISSING"
+    },
+    "routing": {
+      "path": "<proof root>/b/routing_indices.json",
+      "required_field": "receipt.streams.routing.indices",
+      "sha256": "MISSING"
+    },
+    "vqa": {
+      "path": "<proof root>/b/vqa_indices.json",
+      "required_field": "receipt.streams.vqa.indices",
+      "sha256": "MISSING"
+    }
+  },
+  "preparation": {
+    "path": "<proof root>/b/receipt.json",
+    "required_fields": [
+      "streams",
+      "r2_sampling",
+      "r1_training",
+      "config_sha256",
+      "source_seal"
+    ],
+    "sha256": "MISSING"
+  },
+  "preparation_variants": {
+    "b": {
+      "config": "<proof root>/b/config.json",
+      "producer": "launch_r1.production_proof._run -> r1_population.bind_prepared",
+      "reads": {
+        "code": "config.code; receipt.source_seal and receipt.config_sha256",
+        "preparation": "config.preparation.sha256 equals receipt bytes",
+        "prior_offsets": "config.r2_sampling.direction_prior; receipt.r2_sampling must equal config.r2_sampling",
+        "prior_policy": "config.r1_training.direction_prior.sha256 equals --weights",
+        "row_plan": "config.r1_training.row_plan_sha256 equals digest(config.r2_sampling)",
+        "source_identity": "receipt.streams.* databases and receipts; receipt.r1_training equals config.r1_training"
+      },
+      "receipt": "<proof root>/b/receipt.json"
+    },
+    "h": {
+      "config": "<proof root>/h/config.json",
+      "producer": "launch_r1.production_proof.bind_handover",
+      "reads": {
+        "base_vqa": "store_parameter and direction_twins.source_database remain anchored to N v7 210b2534",
+        "preparation": "config.preparation and receipt fields as for b",
+        "sampling": "r2_sampling remains the b binding; offsets/population/indices are read from their pins",
+        "store_hashes": "config.r1_training.store_hashes equals native target_identity(config).stores"
+      },
+      "receipt": "<proof root>/h/receipt.json"
+    },
+    "population": {
+      "config": "<proof root>/population/config.json",
+      "producer": "launch_r1.entry.frame_host -> r1_population.bind_prepared",
+      "reads": {
+        "preparation": "config.preparation and receipt fields as for b",
+        "sampling": "config.r2_sampling points to files under population/"
+      },
+      "receipt": "<proof root>/population/receipt.json"
+    }
+  },
+  "prior_offsets": {
+    "compared_fields": [
+      "schema",
+      "cells (ordered offsets by cell and side)",
+      "policy.sha256",
+      "card_sha256",
+      "population_sha256",
+      "indices_sha256"
+    ],
+    "path": "<proof root>/b/direction_prior.json",
+    "required_field": "config.r2_sampling.direction_prior",
+    "sha256": "MISSING"
+  },
+  "prior_preparation": "Before native bind_prepared, set r1_training.direction_prior to the exact path/SHA256 pin of the packaged weights. Native produce emits r2_sampling.direction_prior in the final config and receipt.",
+  "production_gate": "MISSING",
+  "proof_root": {
+    "path": "MISSING: actual training-host proof root was not supplied",
+    "status": "MISSING"
+  },
+  "sealed_patched_tree": {
+    "admitted_pairs": [
+      {
+        "base": "189df6ac590caf7622354c3bd1f991e599776494ced635a23f0c93eb1b567710",
+        "patched": "35a4753f97906fcf7d84d3e9dea4d2f837f5bfa5a274e261aa7c7530f9597f25"
+      },
+      {
+        "base": "57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7",
+        "patched": "31c8f6b8c28c8213ff78a65df6f0fce23a99c24f56945359dade50d394a6236c"
+      }
+    ],
+    "note": "Seal the exact patched tree before producing the final config/receipt. A seal naming the unpatched tree fails.",
+    "required_fields": [
+      "config.code (sealed file inventory and archive)",
+      "receipt.source_seal",
+      "receipt.config_sha256"
+    ],
+    "status": "MISSING: final config.code and receipt.source_seal were not supplied"
+  },
+  "source_stores_missing": [
+    {
+      "cell": "pointing",
+      "checked_fields": "receipt.streams.pointing.database; also source_receipt.database",
+      "error": "MISSING:/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/rows.sqlite; expected_mirror_path=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/rows.sqlite; sha256=c09bb5ca44158df467449f3c5fed865d81eb5520fb704785b19e73abc5536938",
+      "expected_location": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/rows.sqlite",
+      "field": "stream.database",
+      "kind": "native_source_input",
+      "pin": {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/rows.sqlite",
+        "sha256": "c09bb5ca44158df467449f3c5fed865d81eb5520fb704785b19e73abc5536938"
+      },
+      "sha256": "c09bb5ca44158df467449f3c5fed865d81eb5520fb704785b19e73abc5536938",
+      "status": "MISSING"
+    },
+    {
+      "cell": "pose",
+      "checked_fields": "receipt.streams.pose.sources[*].database in launch order; also each child receipt.database",
+      "error": "MISSING:/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a2v3/rows.sqlite; expected_mirror_path=/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a2v3/rows.sqlite; sha256=b32359ce256a567912d6436fac95dcab78bcef3bb2e1154cabdca57bacdc5320",
+      "expected_location": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a2v3/rows.sqlite",
+      "field": "pose.source.database",
+      "kind": "native_source_input",
+      "pin": {
+        "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a2v3/rows.sqlite",
+        "sha256": "b32359ce256a567912d6436fac95dcab78bcef3bb2e1154cabdca57bacdc5320"
+      },
+      "sha256": "b32359ce256a567912d6436fac95dcab78bcef3bb2e1154cabdca57bacdc5320",
+      "status": "MISSING"
+    },
+    {
+      "cell": "pose",
+      "checked_fields": "receipt.streams.pose.sources[*].database in launch order; also each child receipt.database",
+      "error": "MISSING:/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a3v2/rows.sqlite; expected_mirror_path=/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a3v2/rows.sqlite; sha256=0b95850a2dec57ec6702ca72cd198eb5afdcdcdd5f711a76a878104e30ec3571",
+      "expected_location": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a3v2/rows.sqlite",
+      "field": "pose.source.database",
+      "kind": "native_source_input",
+      "pin": {
+        "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a3v2/rows.sqlite",
+        "sha256": "0b95850a2dec57ec6702ca72cd198eb5afdcdcdd5f711a76a878104e30ec3571"
+      },
+      "sha256": "0b95850a2dec57ec6702ca72cd198eb5afdcdcdd5f711a76a878104e30ec3571",
+      "status": "MISSING"
+    },
+    {
+      "cell": "routing_base",
+      "checked_fields": "receipt.streams.routing.database; source receipt.source_scene_exclusions.expected.r16.population.database",
+      "error": "MISSING:/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/rows.sqlite; expected_mirror_path=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/rows.sqlite; sha256=4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84",
+      "expected_location": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/rows.sqlite",
+      "field": "stream.database",
+      "kind": "native_source_input",
+      "pin": {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/rows.sqlite",
+        "sha256": "4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84"
+      },
+      "sha256": "4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84",
+      "status": "MISSING"
+    },
+    {
+      "cell": "routing_base",
+      "checked_fields": "receipt.streams.routing.database; source receipt.source_scene_exclusions.expected.r16.population.database",
+      "error": "MISSING:/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/rows.sqlite; expected_mirror_path=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/rows.sqlite; sha256=3d1d2d05bc8d3fed3048618da0c25b330f693e6394c6e2564c3007d64c050001",
+      "expected_location": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/rows.sqlite",
+      "field": "stream.source_scene_exclusions.expected.r16.population.database",
+      "kind": "native_source_input",
+      "pin": {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/rows.sqlite",
+        "sha256": "3d1d2d05bc8d3fed3048618da0c25b330f693e6394c6e2564c3007d64c050001"
+      },
+      "sha256": "3d1d2d05bc8d3fed3048618da0c25b330f693e6394c6e2564c3007d64c050001",
+      "status": "MISSING"
+    }
+  ],
+  "status": "MISSING_REAL_PREPARATION",
+  "stream_receipts": {
+    "pointing": {
+      "launch_receipt": {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/receipt.json",
+        "sha256": "93b21a3aeeda01efab90d9f818eff78a6ca182c18c964534279008e4af91733a"
+      },
+      "note": "Use the receipt pinned by the final preparation; it may be a rebuilt receipt.",
+      "required_final_path_field": "receipt.streams.pointing.receipt.path"
+    },
+    "pose": {
+      "launch_receipt": {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json",
+        "sha256": "8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f"
+      },
+      "note": "Use the receipt pinned by the final preparation; it may be a rebuilt receipt.",
+      "required_final_path_field": "receipt.streams.pose.receipt.path"
+    },
+    "routing": {
+      "launch_receipt": {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json",
+        "sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984"
+      },
+      "note": "Use the receipt pinned by the final preparation; it may be a rebuilt receipt.",
+      "required_final_path_field": "receipt.streams.routing.receipt.path"
+    },
+    "vqa": {
+      "launch_receipt": {
+        "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/v7_receipt.json",
+        "sha256": "e3ee51daa46af30fa8e84a05c12448d7fc3dc9cade05284707f9df322bbe44d0"
+      },
+      "note": "Use the receipt pinned by the final preparation; it may be a rebuilt receipt.",
+      "required_final_path_field": "receipt.streams.vqa.receipt.path"
+    }
+  },
+  "training_host_command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 PYTHONDONTWRITEBYTECODE=1 \"$PY\" out/run_on_host.py --proof-root \"$PROOF_ROOT\" --stage b --base-tree \"$BASE_TREE\" --patched-tree \"$PATCHED_TREE\" --weights out/TOWARD_HARD_WEIGHTS.json --output-dir \"$CHECK_OUTPUT\"",
+  "transitive_inputs": "Every pinned receipt, database, index/order table, membership file, weight file, source archive and imported source file opened by the checker appears with SHA256 in RESULT.json.",
+  "vqa_augmentation": {
+    "check": "Native verify_augmented compares every base row and appended twin against pinned launch sources.",
+    "database": "<proof root>/twins/rows.sqlite",
+    "receipt": "<proof root>/twins/augmentation.json",
+    "status": "MISSING"
+  },
+  "weights": {
+    "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/TOWARD_HARD_WEIGHTS.json",
+    "sha256": "9baef120ad2a0b5435a7bd6a60b75314809dbf517abe863fd03d79738c758d05"
+  }
+}

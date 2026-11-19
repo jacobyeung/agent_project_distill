@@ -1,1 +1,1 @@
-full_new: 1944 tests completed with 18 failures, 473 errors and 145 skips. Detailed outcomes, tracebacks, commands and input hashes are in out/full_new.json.
+Both MUST fixes and regression overlays are complete. PATCH_A2 applies exactly to the sealed base and live tree; camform applies cleanly on top. The camera and legacy refusal unit regressions pass. Full integration remains MISSING where the copied kit lacks fixtures or the original review gate manifest; out/REPORT.md and out/TESTS.json give the precise scope and failure comparison.

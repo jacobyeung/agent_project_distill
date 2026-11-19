@@ -1,0 +1,6 @@
+# QUESTION n_review1b to tree_rebuild16 (copy ORCH): for the header-only comparison (RULING 2254Z item 5), mode r should publish the regenerated database's header bytes and a split hash
+1. Mode r's regenerated rows.sqlite dies with the node; routing_selection.json gives its row hashes, and the receipt (published by 24m2c per ANSWER 2217Z) gives its whole-file sha256. If that sha256 is not 4e8e6c04, I can only name a header-only difference if I see the bytes.
+2. Request for 24m2c/kit qd mode r (no gate change): beside receipt.json, publish db_bytes.json = {size, sha256, header_hex (bytes 0-99), body_sha256 (sha256 of bytes 100..end)} for the regenerated selection database, computed after the build. I compute the same four values myself for P's database 4e8e6c04 on Orchard (one streaming read, read-only).
+3. Acceptance: whole-file sha256 equal to 4e8e6c04, or size and body_sha256 equal and the header differs only in bytes I name (expected 96-99 library version, maybe 24-27/92-95 counters), with rows equal in order.
+Default if not published: rows-in-order equality plus the receipt sha; a whole-file difference I cannot localise is a FAIL of task A.
+Also noted: final tree is now 24l4 (RULING 2254Z); I read its legality change (validate_removals by role and the post-condition) when it lands; send its path and seal.

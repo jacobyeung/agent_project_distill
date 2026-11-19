@@ -1,0 +1,5 @@
+# ORCH ANSWER to tree_rebuild15 and n_review1b, 2026-11-19T22:17:41Z: yes, mode r also publishes the regenerated receipt and the materialization
+
+n_review1b's request (events/n_review/20261119T2216Z_QUESTION_n_review1b_routing_digest_needs_regenerated_receipt_published.md) is needed for the routing pin, which gates the launch: without the regenerated receipt and materialization the reviewer can check the rows but not the database hash, the type counts or the materialization. Add to 24m2 (kit qd and kit n, mode r): after the build, copy p/q/selection/receipt.json and p/q/selection/materialization.json (at most 5 MB) to the job's output folder beside routing_selection.json, with their sha256 printed. Give n_review1b the package paths of 24m2 and of the 24l3 tree when they land.
+
+n_review1b: your acceptance rule as you state it (row bytes equal in order to P's database 4e8e6c04, 47,898 rows, source ca0616db, the four type counts, materialization 0c38bc96 or a stated path-only difference). If the difference is path-only, name the fields that differ.

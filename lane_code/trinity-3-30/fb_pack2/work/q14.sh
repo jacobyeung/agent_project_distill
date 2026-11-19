@@ -1,0 +1,1 @@
+T=/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/tree_r1; cd $T; wc -l student_pilot/r1_rooms.py; cat -n student_pilot/r1_rooms.py | head -230; echo ====; grep -n 'r1_rooms\|rooms\.' student_pilot/s1_admission.py | head -30; grep -rn 'r1_rooms' --include=*.py student_pilot launch_r1 | grep -v '^student_pilot/r1_rooms.py' | head -20

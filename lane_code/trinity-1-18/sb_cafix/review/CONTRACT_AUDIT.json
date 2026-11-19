@@ -1,0 +1,86 @@
+{
+  "command": "bash review_run.sh p1cpu contract_audit.py",
+  "synthetic_probes": true,
+  "killed": {
+    "default_exit": 3,
+    "override_reaches_tracker_inputs": false,
+    "events": [
+      {
+        "event": "REFUSED",
+        "reason": "ledger records KILLED (synthetic review fixture); a killed pass is reported, never resumed"
+      },
+      {
+        "event": "REFUSED",
+        "reason": "ledger records KILLED (synthetic review fixture); a killed pass is reported, never resumed"
+      }
+    ]
+  },
+  "second_reading": {
+    "exit": 1,
+    "events": [
+      {
+        "time": "2026-11-19T12:21:52Z",
+        "event": "LAUNCH_REFUSED",
+        "host": "trinity-1-18",
+        "launcher_pid": 2304171,
+        "reason": "no_card_with_24e9_bytes_bf16_and_at_most_1024MiB_used_in_both_readings"
+      }
+    ],
+    "stdout": "2026-11-19T12:21:52Z reading 1: 0,49140,0\n2026-11-19T12:21:52Z reading 2: 0,49140,1025\n2026-11-19T12:21:52Z LAUNCH_REFUSED reason=no_card_with_24e9_bytes_bf16_and_at_most_1024MiB_used_in_both_readings\n"
+  },
+  "phrase": {
+    "rows": 320,
+    "mismatches": 0,
+    "bars_passed_field_present": false
+  },
+  "exclude_withheld": {
+    "original": 209,
+    "included": 204,
+    "excluded": [
+      "scannet/scene0201_02",
+      "scannet/scene0478_00",
+      "scannet/scene0478_01",
+      "scannet/scene0614_02",
+      "scannet/scene0692_03"
+    ],
+    "summary_required_captures": 209,
+    "summary_required_rows": 1037
+  },
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/dryrun.sh": "a0cb5568136221062c046e35f040c34d50ac9db5e0b57e850de61d04682aeb7a",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/gpu_inner.sh": "f616e8c8a93a700d78030838bc0d1dde4be794f944c32833a9dd306f67486f29",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/launch_gpu.sh": "1de42e08d90c0abfd1e8acb53205df23b97d21a14c0044466e14fd4ac1d81e09",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/manifest.sh": "677c577686235797e5f0db766a28625bd1d00e7fba7af1be7df45cb42eac6d34",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_bars.py": "38d6eff01ad7b85c5afcac39400bf4578a44561915d1e0539a3aa28fced53acf",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_common.py": "d945d070ae4a298fcc364db913700f0728082cd4f9db852828d4de173e6185ca",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_dryrun_report.py": "138bef721cd6268042cc693c2a648abe2ff5d9c75aa8bea382bcf6639f12ff2c",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_frames.py": "3f0bde9e1750319cfd64e658e8c0dc0ed93ab833022554beec9835640be4d12e",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_guard.py": "65f9b3cef22eac5e99eee66adc238e36a697af24da1da5434a97153e6b810074",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_ladder.py": "0a9581f335386ec03040f53d0f4b7762da40cd5c905f395cdcd27d957d6e641c",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_measure.py": "e42b9c4c8b115575f9a0348726650ee6ae7082ced432d17a64067e583c199c97",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_phrase.py": "6753f76e5618772665a5e49b74b7f1fcd61080dd6c772df9efd889365ce67b4e",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_population.py": "e3304aba95ad9dcb8fed58596a11c65c707f58a57cf5851822aacd7bf83f33fb",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_preflight.py": "55b04a9489214a7841e92070d6770823c07936dcc98bb2618e12b7d3c560b21b",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_price.py": "41c03670ece93787b857bbb619974e7f143e617affbf07045485ff7191111535",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_probe_cpu.py": "a74565080a2675f977320be419ec2c09c635c9ccb0b3dfdc639ba3c650021474",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_probe_predictor.py": "676b8ba1f3ae8bda33885e125dff65a496b00fc7c569e3a6a2f3339281aa5cb5",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_seeds.py": "2cd992fbb95667e32f3884cd68a9a749a23f8a7649dfbd46717b15278d9cb7c7",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_staging.py": "95ac31cace6eca6a7b1c8096a4ccdf1a05d3f3b0ed37f3fcd0740fdd0d0630cd",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_step0.py": "7fc795e37cce20e74775e552f36d225a762a3dcf4bf26af34001ff2a89b087d7",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_stubs.py": "f9c4ba41c557bd4455352bf1e3025b61dfcbfa0931a9fd72c1394462f9ec156d",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_summary.py": "06ee35966d0d567e909facd58bd50b80d940ae0aa16ee0d20892d4e76220c88f",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_track_io.py": "33f5b841c88faabff2bc53a8a019a3efcd52da814dc4bbf831e05e5fd21667fb",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_track_pass.py": "a540ab24f01b13bc94ff6bc8d9b65b829edb0a1c1fbba5ce68d748838c110000",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/mc_tracker.py": "cf2ff59a9d8b786b9c5972861ab286cebb18f49edbf32b193a4fbf6a98c598e4",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/post_gpu.sh": "f75d9d06d42e6588e373c0aa22229059005c97c3591208cd9a611ce429860460",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/run_cpu.sh": "9910fd8349619afc4d9ecd180cbfaaa3d6aa5945b345a42dfbe06b2439d716ef",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/vendor/terminator.sh": "19727987d5517c0e2549e1205e55f4bcc87f34dafe66c96bdf90233305942e5d",
+    "/scratch/jjyeung/orch_n30/sb_cafix/kit_v2/vendor/vnice.sh": "3ab2b542726f32dbecdbe30104f903aa2bef3526a9257013fd5f8bcc99461c6b",
+    "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/GUARD.json": "b541a92018863f4b41aa724c20254501876b72ef52025694454c19837e9c4531",
+    "/scratch/jjyeung/orch_n30/sb_cafix/out/v2/seeds/SEEDS.json": "7a1aa239a36fb21b831a2ee7ef7d83386cde0252150df92a7c2bb3856ee9906a",
+    "/scratch/jjyeung/orch_n30/sb_cafix/review/contract_audit.py": "1fed0733a3a6cf726774529d11b1acc786d33d539bb023bd362ac77752abcb22",
+    "/scratch/jjyeung/orch_n30/sb_mask_phrase/out/BARS.json": "150d16a232b42d86b33c6df792133f3a001d92f7b3b723c96dfc3391f0f17bc6",
+    "/scratch/jjyeung/orch_n30/sb_mask_phrase/out/DECISION.json": "2dac01fcbba7a6fde09d6ae81ab609de70e3149b04423325f24e44047d4e1a4e",
+    "/scratch/jjyeung/orch_n30/sb_mask_phrase/out/PHRASE_FOLDS.json": "5af09f4b670382bcbb0253690ba109e4002f849b53b7bd3e2e8cd599375f2285"
+  }
+}

@@ -169,7 +169,7 @@ def check_host_runtime(cfg, request, result):
 
 
 def verify_host_staging(entries, root):
-    """Recheck a hook's output with the native staging hash and inventory checks."""
+    """Recheck native staging output with its hash and inventory checks."""
     from launch_r2.staging import checked
     root = Path(root).resolve()
     archives = set()
@@ -220,10 +220,11 @@ def stage_host(cfg, root, request, job_tmp, *, stage=None, result=None):
     temporary_paths(staging, job_tmp)
     validate_plan(cfg, staging['entries'])
     (stage_inputs if stage is None else stage)(staging['entries'], root)
-    if stage is not None:
+    if stage is None:
         verify_host_staging(staging['entries'], root)
     if result is not None:
         result['stager'] = 'native' if stage is None else 'hook'
+        result['staging_plan_sha256'] = request['staging']['sha256']
     def localize(value):
         if isinstance(value, dict):
             return {k:localize(v) for k,v in value.items()}

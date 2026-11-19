@@ -1,0 +1,19 @@
+3ecd924f91594dc018b46bfcdc631b867e3164c67eb0b9e9dd58706ccd8eacbd  patchA2/out/PATCH_A2.patch
+a848718c19df003df13e3cd76fdefa9cf26611e2e9cd9a7ad25bd3b155049ba2  patchA2/out/PATCH_A2_DELTA.patch
+b76709467ed6b434c000bba2c43ec822b3442b49ffa26059d4c4adb2874dfa20  patchA2/out/fbp_patchA2.tar
+7e7ae484d15ea0209eaca09faef483794e309c8f1141a8b059be1cb971a91dff  camform2/out/PATCH_CAMFORM2.patch
+8be168b5d3f0ff9898503a7e20dff67df9c8efde2dad8819cda1f2c68a5ea46f  camform2/out/fbp_camform2.tar
+4253fbd109895d893d4249be2978e889fdb84801759a6fb56dd357ffdce4eb1f  donor3/out/PATCH_DONOR3.patch
+e150dd321670594d71491dd9bedb367f3afc1b3f8f84d0e50047f24eaaca30ba  donor3/out/PATCH_DONOR3_DELTA.patch
+495cadce2b747abd1cf937f77b1867f86d5136e8e86d6f725950be86f105e132  donor3/out/fbp_donor3.tar
+70c9613ff4973714f25a95a5dec37232a8574fd61840eb8af18279c60e7c5e70  donor3/out/READER_REQUEST.md
+244dfa28469a3e8e8a43dfa6fa71c035549f5cd72b3d2fdd8807964c1adea8d3  donor3/out/REAL_WEIGHT_COMMAND.sh
+b5cece7d3dc0103043e9174887b6096497eafec9e9017b3767387fa420fc0210  prior2/out/PATCH_PRIOR.patch
+13b8a54b0942a923a769ab30531f63fcb59aa7e2d2ffed994a58bf2c8cc5e654  pointD/out/PATCH_POINT.patch
+d21e374f39048c0e142680e0d3b26e5b2b774138747610c1fc4a00da0ec580e1  k1point/REMOVE_POINTING_K1_HELDOUT.jsonl
+3:Bind the tower arm to `auxiliary_heads.scale_donor`. The own arm keeps the live point-depth and pose heads.
+5:The N kit must include an explicit `scale_donor` block with these exact fields:
+10:- `visual_sha256`: `scale_donor.visual_identity(model.auxiliary_heads.depth.model.visual)`.
+11:- `feature_contract_sha256`: `p3_provenance.digest(scale_donor.feature_contract(model.auxiliary_heads.depth))`.
+17:For an N export, construct and warm-start the native model, call `scale_donor.attach(model, binding)`, then call `carrier_c1_run.load_artifact`. The trainer's `load_model` attaches the donor from i
+routing_slice_declaration

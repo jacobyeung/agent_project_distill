@@ -14,7 +14,8 @@
     "/scratch/jjyeung/orch_n30/fb_pack/camform2/work/new/tests/test_r1_camera_trace_form2.py": "c3a1cb819181c237b6423deef33cb07515f744fce52e1dda00abf587cf3b64ef",
     "/scratch/jjyeung/orch_n30/fb_pack/camform2/work/base/student_pilot/r1_coverage.py": "aca68904351907af1ce046a79123725851969f08744eea629167ffdbc18eeb84",
     "/scratch/jjyeung/orch_n30/fb_pack/camform2/work/base/student_pilot/r1_routing.py": "7975ea825a4dc7f7a4471e950a9ba87c1d68365e9cbb34f044e9652ab6252f18",
-    "/scratch/jjyeung/orch_n30/fb_pack/camform2/work/base/student_pilot/r1_training.py": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019"
+    "/scratch/jjyeung/orch_n30/fb_pack/camform2/work/base/student_pilot/r1_training.py": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019",
+    "/scratch/jjyeung/orch_n30/fb_pack/camform2/out/A2_PACKAGING.json": "92e2c0d9641c638ffab02c1d33440fa1dc069fd05dc17e4fc41ccf4ab000d587"
   },
   "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/package_patch.py",
   "files": [
@@ -57,5 +58,58 @@
   "file_count": 7,
   "applies_with_fuzz_zero": true,
   "verified_result_files": 944,
-  "A2": "PENDING packaging-time SHA256 availability check"
+  "A2": {
+    "checked_at_utc": "2026-11-19T22:21:47.610655+00:00",
+    "command": "nice -n 10 env OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 /scratch/jjyeung/envs/p1cpu/bin/python -B code/package_A2.py",
+    "status": "PASS",
+    "authentication": {
+      "mode": "sha256_sealed_archive_and_exact_patch_member",
+      "archive": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/fbp_patchA2.tar",
+      "archive_sha256": "b76709467ed6b434c000bba2c43ec822b3442b49ffa26059d4c4adb2874dfa20",
+      "sha256_file": "/scratch/jjyeung/orch_n30/fb_pack/patchA2/out/fbp_patchA2.tar.sha256",
+      "member": "out/PATCH_A2.patch",
+      "patch_sha256": "3ecd924f91594dc018b46bfcdc631b867e3164c67eb0b9e9dd58706ccd8eacbd"
+    },
+    "files": [
+      {
+        "path": "configs/r1_camera_trace_form_v1.json",
+        "base_sha256": null,
+        "new_sha256": "169c439a1ac1bf11d66ee7b725277ef8ee07a706807324bed2696b9d99efaace"
+      },
+      {
+        "path": "student_pilot/r1_camera_trace_form.py",
+        "base_sha256": null,
+        "new_sha256": "8889f08b627f0db1b8178851e03e9b378d0dab76bf475efa1dda90b89f517ab9"
+      },
+      {
+        "path": "student_pilot/r1_coverage.py",
+        "base_sha256": "9c2a72dad56e384e3c6f3ec75aa9ee5dbe29ec0cee5b347e244af9309574dee7",
+        "new_sha256": "0d75affc2349fe945ea6f8384a4cd7045ac500e344d7abe14e8b41eff8d79aca"
+      },
+      {
+        "path": "student_pilot/r1_routing.py",
+        "base_sha256": "57b866c5175536e77fe2f2d512269ea2497b7e95f78bd921b6db385e37564763",
+        "new_sha256": "0b4f03f464f9875186bd347194b339669eaa2bb04a315a010f825ab6098ddd78"
+      },
+      {
+        "path": "student_pilot/r1_training.py",
+        "base_sha256": "b05f17046ad109b0ee2f6c810b47c9e3bc100e4676e35c40a7ac02cdc449d019",
+        "new_sha256": "d05df07e997129650221ad4b6083447e5be64492048aeb22719f31a5cd99784c"
+      },
+      {
+        "path": "tests/test_r1_camera_trace_form.py",
+        "base_sha256": null,
+        "new_sha256": "7ee9838ae8d360f22c6d917e28922c8cb1a45344ac2e1e4452d8d70ada95667a"
+      },
+      {
+        "path": "tests/test_r1_camera_trace_form2.py",
+        "base_sha256": null,
+        "new_sha256": "c3a1cb819181c237b6423deef33cb07515f744fce52e1dda00abf587cf3b64ef"
+      }
+    ],
+    "applies_with_fuzz_zero": true,
+    "verified_result_files": 945,
+    "patch_sha256": "3ecd924f91594dc018b46bfcdc631b867e3164c67eb0b9e9dd58706ccd8eacbd",
+    "overlay_sha256": "7e7ae484d15ea0209eaca09faef483794e309c8f1141a8b059be1cb971a91dff"
+  }
 }

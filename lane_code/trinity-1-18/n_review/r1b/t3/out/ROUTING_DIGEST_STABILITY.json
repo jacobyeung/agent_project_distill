@@ -1,0 +1,61 @@
+{
+  "additional_dependencies": "The receipt embeds input pin paths, including fixture inputs outside the output root, and the pool implementation source hashes. These must be identical too. No time/PID/hostname field is added by build/relocate; the fixture tests process/time variation, not different machines or library versions.",
+  "audit_only": false,
+  "changed_top_level_fields": [
+    "database",
+    "materialization",
+    "source_scene_exclusions"
+  ],
+  "database_hash_equal": true,
+  "executed": "native s1_routing.build(cfg, root/selection, division, model) in three independent Python processes; each root renamed away before reuse",
+  "fixture_standins": [
+    "tiny canonical calculator program uses routing.check_row as the packed-source validator",
+    "fixed processor token IDs and deterministic character suffix tokenizer",
+    "synthetic frame addresses; no RGB reads or model weights"
+  ],
+  "independent_production_review_required": true,
+  "input_file_hashes": {
+    "bench.json": "2cdf2b51ff1a1db1ddb397852321e73f1aede74f7d0377e78a075ddc4f83d0d5",
+    "dev.json": "ebf78888253ab2ca03323e4ee8d65d093229ea66d637f8e898cd992a7745d62d",
+    "division.json": "78d5e10e61c86d56d11e6cdbd5adeb2359d5aa3633809fc33971b1dc8204db0b",
+    "empty.tsv": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "frame_plan.gz": "8e5c28be5a8ebadbb9a76d524a28ff5a330031a017fdbe9890fbc990393aba18",
+    "frames.gz": "b04e060d4463b9545e6db3db235dc69fa9db26c8f57ec86c43daf2ded517ec7d",
+    "legacy.json": "1bed435d3df76f3515a2c2e48770c41d01b98718b91af23c2cfac856aac3576b",
+    "legacy.sqlite": "7d4d072ef12cf82e0e72b2419f9e0c189b1d0a49745b0e8a0a8edf783eaf5451",
+    "manifest.json": "bb71eb50475a26b5511c6451c97d811ad7aeb569d17cf08110c762b66bdf54fd",
+    "model.json": "d966bf00660425749efaa2f38691707f3640a53cd99c92e17798a9ef9366edac",
+    "model/tokenizer.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+    "pool/PROGRAM.json": "c14196f132c1e9be0508ae80ab52fcb3e1d3fc05880415f3dc980971df207c9e",
+    "pool/receipt.json": "d3756e33962bec9399e73d219e6ff71641440608da38901c0aa531a9601a2eb0",
+    "rows.gz": "9ea4bb216a002113af787510fc317469d6c9f407f2e55fc987bf9529e5001f18"
+  },
+  "interpretation": "Same paths, staged input bytes and source implementation reproduced the digest in separate processes. Another output root changes receipt paths and transitive metadata hashes, while the row database bytes stay equal.",
+  "other_path_equal": false,
+  "production_P_row_equality_executed": false,
+  "production_selection_pin": null,
+  "rows_per_build": 1,
+  "runs": [
+    {
+      "digest": "26aeaee5b8c90da4e8a7ddff0f2f89335a8cb83d09d052184f92143c5f17187d",
+      "pid": 5,
+      "root": "/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/validation/routing24ln/job"
+    },
+    {
+      "digest": "26aeaee5b8c90da4e8a7ddff0f2f89335a8cb83d09d052184f92143c5f17187d",
+      "pid": 6,
+      "root": "/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/validation/routing24ln/job"
+    },
+    {
+      "digest": "ed51e9f4054f33ca88b830346462c781d145719e2925524490cda160de9522c5",
+      "pid": 7,
+      "root": "/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/validation/routing24ln/other_job"
+    }
+  ],
+  "same_path_fresh_roots_equal": true,
+  "script": "work/validation/routing_stability24ln.py",
+  "script_sha256": "b34e9dd12abe617cd4324251160f5893b5bdaa9ce88f2086a9d82b9cbbf7bd3f",
+  "source_implementation_sha256": "4637c8882d0147c7fbec53d37955081b7da6a19c60933f26b3f751c2ee7ee132",
+  "source_tree_sha256": "e17fc130870963170e6bc5f4f536ca0c36a7afa272725908afdcaa7ad5dc26eb",
+  "status": "MEASURED_CPU_FIXTURE"
+}

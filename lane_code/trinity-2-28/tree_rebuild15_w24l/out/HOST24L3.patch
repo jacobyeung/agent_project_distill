@@ -1,0 +1,205 @@
+--- a/launch_r1/entry.py
++++ b/launch_r1/entry.py
+@@ -169,7 +169,7 @@
+ 
+ 
+ def verify_host_staging(entries, root):
+-    """Recheck a hook's output with the native staging hash and inventory checks."""
++    """Recheck native staging output with its hash and inventory checks."""
+     from launch_r2.staging import checked
+     root = Path(root).resolve()
+     archives = set()
+@@ -220,10 +220,11 @@
+     temporary_paths(staging, job_tmp)
+     validate_plan(cfg, staging['entries'])
+     (stage_inputs if stage is None else stage)(staging['entries'], root)
+-    if stage is not None:
++    if stage is None:
+         verify_host_staging(staging['entries'], root)
+     if result is not None:
+         result['stager'] = 'native' if stage is None else 'hook'
++        result['staging_plan_sha256'] = request['staging']['sha256']
+     def localize(value):
+         if isinstance(value, dict):
+             return {k:localize(v) for k,v in value.items()}
+--- a/tests/test_host24l.py
++++ b/tests/test_host24l.py
+@@ -146,15 +146,23 @@
+         with self.dependencies():
+             return proof.run(request, self.root, stage=stage)
+ 
++    def run_native(self, request, corrupt):
++        from launch_r2.staging import stage_inputs
++        def stage(entries, root):
++            stage_inputs(entries, root)
++            corrupt(root)
++        with self.dependencies(), patch('launch_r2.staging.stage_inputs', side_effect=stage):
++            return proof.run(request, self.root)
++
+     def test_hook_stager_recorded(self):
+         _, request = self.fixture()
+         self.assertEqual(self.host(self.run_hook(request))['stager'], 'hook')
+ 
+-    def test_hook_wrong_unreferenced_byte_refuses(self):
++    def test_native_wrong_unreferenced_byte_refuses(self):
+         cfg, request = self.fixture()
+         self.pin('unreferenced.txt', b'right byte', stage=True)
+         self.repin(cfg, request)
+-        result = self.run_hook(request, lambda root: (root/'u/unreferenced.txt').write_bytes(b'wrong byte'))
++        result = self.run_native(request, lambda root: (root/'u/unreferenced.txt').write_bytes(b'wrong byte'))
+         self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/unreferenced.txt')
+ 
+     def archive_fixture(self, *, inventory_only=False):
+@@ -180,17 +188,17 @@
+         request, _ = self.archive_fixture()
+         self.assertEqual(self.host(self.run_hook(request))['stager'], 'hook')
+ 
+-    def test_hook_archive_inventory_catches_unreferenced_byte(self):
++    def test_native_archive_inventory_catches_unreferenced_byte(self):
+         request, key = self.archive_fixture(inventory_only=True)
+-        result = self.run_hook(request, lambda root: (root/'x'/key/'payload/unreferenced.txt').write_bytes(b'wrong'))
++        result = self.run_native(request, lambda root: (root/'x'/key/'payload/unreferenced.txt').write_bytes(b'wrong'))
+         self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/archive.txt')
+ 
+-    def test_hook_archive_hash_catches_wrong_archive_byte(self):
++    def test_native_archive_hash_catches_wrong_archive_byte(self):
+         request, key = self.archive_fixture()
+-        result = self.run_hook(request, lambda root: (root/'a'/key).write_bytes(b'wrong'))
++        result = self.run_native(request, lambda root: (root/'a'/key).write_bytes(b'wrong'))
+         self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/archive.txt')
+ 
+-    def test_hook_archive_target_catches_wrong_byte(self):
++    def test_native_archive_target_catches_wrong_byte(self):
+         request, _ = self.archive_fixture()
+-        result = self.run_hook(request, lambda root: (root/'u/archive.txt').write_bytes(b'wrong'))
++        result = self.run_native(request, lambda root: (root/'u/archive.txt').write_bytes(b'wrong'))
+         self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/archive.txt')
+--- /dev/null
++++ b/tests/test_host24l3.py
+@@ -0,0 +1,126 @@
++"""CPU staging branch fixtures; the kit archive descriptor uses synthetic hashes."""
++import base64
++from copy import deepcopy
++import hashlib
++from pathlib import Path
++import unittest
++from unittest.mock import patch
++
++from launch_r1 import entry, production_proof as proof
++from student_pilot.p3_provenance import digest, encoded, load, pinned, sha256
++from student_pilot.r1_persisted import scope
++from tests import test_host24l as previous
++
++
++class StagerBranches(unittest.TestCase):
++    setUp = previous.Host24L.setUp
++    pin = previous.Host24L.pin
++    fixture = previous.Host24L.fixture
++    dependencies = previous.Host24L.dependencies
++    run_q = previous.Host24L.run_q
++    host = previous.Host24L.host
++    refused = previous.Host24L.refused
++    repin = previous.Host24L.repin
++    archive_fixture = previous.Host24L.archive_fixture
++
++    def assert_plan_hash(self, host, request):
++        with scope(self.paths):
++            expected = sha256(pinned(request['staging']))
++        self.assertEqual(host['staging_plan_sha256'], expected)
++        self.assertEqual(expected, request['staging']['sha256'])
++
++    def kit_fixture(self):
++        cfg, request = self.fixture()
++        # Match pl.py's direct-file parts and e archive/receipt-label inventory.
++        copies = {}
++        for name, item in self.entries.items():
++            raw = base64.b64decode(item['payload'])
++            copies[name] = raw
++            self.entries[name] = dict(sha256=item['sha256'], parts=[str(self.root/name)], bytes=len(raw))
++        for name, raw in [('n.json', b'{}\n'), ('source_code.json', b'{}\n'), ('f/weights.bin', b'fixture')]:
++            copies[name] = raw
++            self.entries[name] = dict(sha256=hashlib.sha256(raw).hexdigest(),
++                                      parts=[str(self.root/name)], bytes=len(raw))
++        self.entries['e'] = dict(archive=dict(sha256='0'*64, bytes=1,
++            parts=[dict(sha256='1'*64, bytes=1)]), inventory={'artifact': '2'*64})
++        plan = dict(entries=self.entries)
++        # The outer capsule hash differs from the decoded plan digest.
++        raw = encoded(plan).encode()
++        capsule = dict(encoding='base64-json', payload=base64.b64encode(raw).decode(),
++                       sha256=hashlib.sha256(raw).hexdigest())
++        request['staging'] = self.pin('kit_stage.json', capsule)
++        expected_entries = deepcopy(self.entries)
++        calls = []
++        def stage(entries, root):
++            self.assertEqual(entries, expected_entries)
++            calls.append(root)
++            for name, payload in copies.items():
++                target = root/name
++                target.parent.mkdir(parents=True, exist_ok=True)
++                target.write_bytes(payload)
++        return cfg, request, stage, calls
++
++    def test_native_receipt_records_pinned_plan_hash(self):
++        _, request = self.fixture()
++        with patch.object(entry, 'verify_host_staging', wraps=entry.verify_host_staging) as verify:
++            host = self.host(self.run_q(request))
++        self.assertEqual(verify.call_count, 1)
++        self.assertEqual(host['stager'], 'native')
++        self.assert_plan_hash(host, request)
++
++    def test_native_archive_and_directory_pass(self):
++        request, _ = self.archive_fixture()
++        host = self.host(self.run_q(request))
++        self.assertEqual(host['stager'], 'native')
++        self.assert_plan_hash(host, request)
++
++    def test_native_input_wrong_bytes_refuse(self):
++        cfg, request = self.fixture()
++        self.pin('unreferenced.txt', b'right', stage=True)
++        self.entries['u/unreferenced.txt']['payload'] = base64.b64encode(b'wrong').decode()
++        self.repin(cfg, request)
++        self.refused(self.run_q(request), 'Staging digest differs')
++
++    def test_kit_hook_passes_stage_host_and_records_plan_hash(self):
++        cfg, request, stage, calls = self.kit_fixture()
++        with self.dependencies(), patch.object(entry, 'verify_host_staging') as verify:
++            root, job, receipt = entry.begin_host(cfg, self.root, request)
++            with entry.host_environment(job):
++                entry.stage_host(cfg, root, request, job, stage=stage, result=receipt)
++        verify.assert_not_called()
++        self.assertEqual(calls, [self.root])
++        self.assertEqual(receipt['stager'], 'hook')
++        self.assert_plan_hash(receipt, request)
++        with scope(self.paths):
++            self.assertNotEqual(receipt['staging_plan_sha256'], digest(load(pinned(request['staging']))))
++
++    def test_kit_hook_writes_host_json_with_plan_hash(self):
++        _, request, stage, calls = self.kit_fixture()
++        with self.dependencies(), patch.object(entry, 'verify_host_staging') as verify:
++            host = self.host(proof.run(request, self.root, stage=stage))
++        verify.assert_not_called()
++        self.assertEqual(calls, [self.root])
++        self.assertEqual(host['stager'], 'hook')
++        self.assert_plan_hash(host, request)
++        self.assertEqual(load(self.root/'host.json'), host)
++
++    def test_hook_unreferenced_bytes_are_not_native_reverified(self):
++        cfg, request = self.fixture()
++        self.pin('unreferenced.txt', b'right', stage=True)
++        self.repin(cfg, request)
++        from launch_r2.staging import stage_inputs
++        def stage(entries, root):
++            stage_inputs(entries, root)
++            (root/'u/unreferenced.txt').write_bytes(b'hook-owned bytes')
++        with self.dependencies():
++            host = self.host(proof.run(request, self.root, stage=stage))
++        self.assertEqual(host['stager'], 'hook')
++        self.assert_plan_hash(host, request)
++
++    def test_hook_plan_wrong_bytes_refuse_before_hook(self):
++        _, request, stage, calls = self.kit_fixture()
++        (self.area/'bootstrap/kit_stage.json').write_bytes(b'{}')
++        with self.dependencies():
++            result = proof.run(request, self.root, stage=stage)
++        self.refused(result, 'Missing or changed pinned input:')
++        self.assertEqual(calls, [])

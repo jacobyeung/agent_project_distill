@@ -1,0 +1,31 @@
+{
+ "tree": "new",
+ "export": "/scratch/jjyeung/orch_n30/fb_pack/donor2rev/work/resume_new_mv08jzq3/run_donor/m3",
+ "cases": {
+  "literal_doc": {
+   "visual_requires_grad": true,
+   "ok": false,
+   "error": "ValueError",
+   "message": "Scale donor requires an already frozen private visual copy"
+  },
+  "frozen_only": {
+   "visual_requires_grad": true,
+   "ok": false,
+   "error": "ValueError",
+   "message": "Scale donor shared visual pin differs from checkpoint or live copy"
+  },
+  "visual_from_heads_unfrozen": {
+   "visual_requires_grad": true,
+   "ok": false,
+   "error": "ValueError",
+   "message": "Scale donor requires an already frozen private visual copy"
+  },
+  "visual_from_heads_frozen": {
+   "visual_requires_grad": true,
+   "ok": true,
+   "heads_equal": true,
+   "n": 268
+  }
+ },
+ "finding": "documented order fails unless the private visual is loaded from heads.pt and frozen before attach"
+}

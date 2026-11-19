@@ -1,7 +1,7 @@
 """Run the real routing mode in the read-only project view; reuse retained inputs."""
 from pathlib import Path
-import sys, os, json, base64, hashlib, shutil, subprocess, shlex
-L=Path(__file__).resolve().parents[2];D=L/'work/build24m1';F=D/'mode_r_v7';F.mkdir();node=F/'node';node.mkdir();(node/'tmp').mkdir()
+import sys, os, json, base64, hashlib, shutil, subprocess, shlex, time, signal
+L=Path(__file__).resolve().parents[2];D=L/'work/build24m1';F=D/'mode_r_v9';F.mkdir();node=F/'node';node.mkdir();(node/'tmp').mkdir()
 sys.path[:0]=[str(L/'work/build24'),str(L/'work/build24f'),str(L/'work/tree_r1')]
 import joblib as J
 from kit24f import reseal
@@ -72,9 +72,10 @@ def planned(*args,**kwargs):
  def wrapped(entries,directory):
   # Pre-bind large authenticated inputs to their retained bytes, without copies.
   plan=z.load(Path(directory).parent/'plan.json')
+  stage_vars=dict(zip(stage.__code__.co_freevars,[c.cell_contents for c in stage.__closure__]))
   for name,e in entries.items():
    if 'sha256' not in e or e.get('bytes',0)<=100000:continue
-   h=e['sha256'];source=paths.get(h)
+   h=e['sha256'];source=stage_vars['copies'].get(name) or paths.get(h)
    if source and Path(source).is_file():
     dst=Path(directory)/name;dst.parent.mkdir(parents=True,exist_ok=True)
     if not dst.exists():os.link(inode_map.get(str(Path(source).stat().st_ino),source),dst)
@@ -98,7 +99,12 @@ tail=decoded[start:end].replace('/usr/bin/python3',shlex.quote(sys.executable)).
 prefix='set -uo pipefail\nBW=('+shlex.join(inner)+')\nPILOT_VENV='+shlex.quote(str(Path(sys.executable).parent.parent))+'\nQ_KIT='+shlex.quote(str(kit))+'\nQ_ROOT='+shlex.quote(str(node))+'\nQ_NS=/tmp/q_22c714e1\nexport Q_MODE=r SLURM_JOB_ID=94\n'
 script=F/'run.sh';script.write_text(prefix+tail+'\n')
 with (F/'shell.log').open('w') as log:
-    p=subprocess.run(outer+['/bin/bash',str(script)],env={**os.environ,'TMPDIR':str(node/'tmp')},stdout=log,stderr=subprocess.STDOUT)
+    p=subprocess.Popen(outer+['/bin/bash',str(script)],env={**os.environ,'TMPDIR':str(node/'tmp')},stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+    while p.poll() is None:
+        allocated=sum(x.stat().st_blocks*512 for x in D.rglob('*') if x.is_file() and not x.is_symlink() and x.stat().st_nlink==1)
+        if allocated>175_000_000:
+            os.killpg(p.pid,signal.SIGTERM);p.wait();raise RuntimeError('TEST_SPACE_GUARD:'+str(allocated))
+        time.sleep(.5)
 assert p.returncode==0,(p.returncode,(node/'q.log').read_text()[-4000:],(F/'shell.log').read_text())
 value=J.load(node/'p/routing_selection.json');assert value==J.load(target/'o/94/routing_selection.json')
 assert (target/'o/94/q.log').read_bytes()==(node/'q.log').read_bytes()

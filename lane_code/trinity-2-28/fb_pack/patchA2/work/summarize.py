@@ -15,7 +15,7 @@ def put(name,obj):
     (OUT/(name+'.json')).write_text(json.dumps(obj,indent=2)+'\n')
 labels=['must_final_'+t for t in ('base','patch_a','new','live')]
 labels += [g+'_'+t for g in ('subset','focused','integration','real_declared') for t in ('base','new','live')]
-labels += ['host_live_base','host_live','camform_regression','full_base','full_new','full_live']
+labels += ['host_live_base','host_live','host_ref_live_base','host_ref_live','camform_regression','full_base','full_new','full_live']
 runs={n:read(n) for n in labels}
 inputs={str(OUT/(n+'.json')):sha(OUT/(n+'.json')) for n in labels}
 BAD={'FAIL','ERROR','SUBTEST_FAILURE','UNEXPECTED_SUCCESS'}
@@ -49,7 +49,7 @@ def harness_core(run):
     inputs[str(p)]=h
     source=re.sub(r'^# OPTIONAL_LIVE_BASE_BEGIN\n.*?^# OPTIONAL_LIVE_BASE_END\n','',p.read_text(),flags=re.M|re.S)
     return hashlib.sha256(source.encode()).hexdigest()
-pairs=[('focused_base','focused_new'),('focused_base','focused_live'),('integration_base','integration_new'),('integration_base','integration_live'),('full_base','full_new'),('full_base','full_live'),('host_live_base','host_live')]
+pairs=[('focused_base','focused_new'),('focused_base','focused_live'),('integration_base','integration_new'),('integration_base','integration_live'),('full_base','full_new'),('full_base','full_live'),('host_live_base','host_live'),('host_ref_live_base','host_ref_live')]
 for a,b in pairs:
     old=collections.defaultdict(list);new=collections.defaultdict(list)
     for x in failures(runs[a]):old[(key(x),x['status'])].append(cause(x))
@@ -94,7 +94,17 @@ for n,r in runs.items():
     status='PASS' if r['successful'] else 'MISSING' if any(cause(x)['category'] in ('MISSING','MISSING_OR_CHANGED_PIN') for x in bad) else 'FAIL'
     summaries[n]=dict(status=status,**{k:r[k] for k in ('tests','failures','errors','skipped','command')},report=str(OUT/(n+'.json')),report_sha256=sha(OUT/(n+'.json')),module_or_selector_count=len(r['names']))
 gates={n:dict(request='full tree discovery',modules=runs[n]['names'],module_count=len(runs[n]['names'])) for n in ('full_base','full_new','full_live')}
+host_coverage={}
+for tree,initial,reference in (('live_base','host_live_base','host_ref_live_base'),('live','host_live','host_ref_live')):
+    outcomes={x['test']:x for x in runs[initial]['outcomes']}
+    for x in runs[reference]['outcomes']:
+        assert x['test'] in outcomes and outcomes[x['test']]['status']=='SKIP'
+        outcomes[x['test']]=x
+    host_coverage[tree]=dict(distinct_tests=len(outcomes),statuses=dict(collections.Counter(x['status'] for x in outcomes.values())),
+        commands=[runs[n]['command'] for n in (initial,reference)],reports=[str(OUT/(n+'.json')) for n in (initial,reference)],
+        scope='Union of host suite and its separate sealed-base byte comparison; each test identity is counted once')
 put('TESTS',dict(status='MISSING_INTEGRATION_INPUTS',inputs_sha256={**inputs,str(OUT/'PATCH_VALIDATION.json'):sha(OUT/'PATCH_VALIDATION.json')},runs=summaries,comparisons=comparisons,full_discovery=gates,
+    host_coverage=host_coverage,
     must_unit_pass=all(runs['must_final_'+t]['successful'] for t in ('new','live')),
     source_names_matrix_cases=1280,coverage_authentication_scope='Six-family camera unit tests isolate only the two missing coverage-file pinned() calls; camera bytes and SHA256 authentication run unchanged. Camera-only tests use no mocks. Full six-family validation is MISSING.',
     limits='CPU only; no network, process workers, NFS reads, outside writes or deletion. Thread pools are capped at 16 for final MUST and full runs.'))

@@ -150,6 +150,7 @@ def protected_rooms(cfg):
         payloads[name]=raw
     def matches(row):
         canonical,_=authority.canonical(row)
+        if not canonical:canonical=(row.get('provenance') or {}).get('canonical_scene')
         if not canonical:raise ValueError('R1_PROTECTED_ROOM_UNRESOLVED')
         values=keys(canonical)
         return {label:bool(values & item['names']) for label,item in lists.items()}

@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack; ls $F/donor2rev; tail -c 400 $F/donor2rev/cursor.log; echo; sed -n '1,/^## Verified/p' $F/donor2rev/REVIEW_VERDICT.md 2>/dev/null | head -40; echo ====A2; head -c 3500 $F/patchA2/out/REPORT.md; cat $F/patchA2/out/*.sha256 2>/dev/null; sha256sum $F/patchA2/out/PATCH_A2.patch $F/patchA2/out/PATCH_A2_DELTA.patch

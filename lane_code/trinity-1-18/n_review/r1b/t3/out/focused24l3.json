@@ -1,0 +1,75 @@
+{
+  "tree": "/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1",
+  "modules": [
+    "tests.test_host24j",
+    "tests.test_host24l",
+    "tests.test_host24n",
+    "tests.test_host24l3"
+  ],
+  "tests_run": 44,
+  "passed": [
+    "tests.test_host24j.HostReceipt.test_directory_modes_mutation",
+    "tests.test_host24j.HostReceipt.test_disk_plan_mutation",
+    "tests.test_host24j.HostReceipt.test_empty_root_mutation",
+    "tests.test_host24j.HostReceipt.test_environment_restored",
+    "tests.test_host24j.HostReceipt.test_final_config_receipt_and_audit",
+    "tests.test_host24j.HostReceipt.test_incomplete_loader_audit_refused",
+    "tests.test_host24j.HostReceipt.test_job_tmp_mutation",
+    "tests.test_host24j.HostReceipt.test_kit_stager_runs_after_freshness",
+    "tests.test_host24j.HostReceipt.test_mode_p_bytes_match_base",
+    "tests.test_host24j.HostReceipt.test_no_receipt_before_handover",
+    "tests.test_host24j.HostReceipt.test_routing_selection_mutation",
+    "tests.test_host24j.HostReceipt.test_runtime_binaries_empty_mutation",
+    "tests.test_host24j.HostReceipt.test_runtime_binaries_mutation",
+    "tests.test_host24j.HostReceipt.test_scene_division_mutation",
+    "tests.test_host24j.NativeAdmission.test_native_export_bind_audit_and_admit",
+    "tests.test_host24l.Host24L.test_cross_division_twin_refuses_by_name",
+    "tests.test_host24l.Host24L.test_hook_archive_and_directory_pass",
+    "tests.test_host24l.Host24L.test_hook_stager_recorded",
+    "tests.test_host24l.Host24L.test_minimal_routing_records_only_routing_substitution",
+    "tests.test_host24l.Host24L.test_native_archive_hash_catches_wrong_archive_byte",
+    "tests.test_host24l.Host24L.test_native_archive_inventory_catches_unreferenced_byte",
+    "tests.test_host24l.Host24L.test_native_archive_target_catches_wrong_byte",
+    "tests.test_host24l.Host24L.test_native_wrong_unreferenced_byte_refuses",
+    "tests.test_host24l.Host24L.test_pre_twin_scene_refusal_remains",
+    "tests.test_host24l.Host24L.test_scene_receipt_certifies_native_twin_store",
+    "tests.test_host24l.Host24L.test_selection_pin_digest_and_native_stager_recorded",
+    "tests.test_host24l.Host24L.test_substituted_routing_and_inputs_recorded_without_refusal",
+    "tests.test_host24n.DonorPins.test_binding_and_preparation_identity_still_refuse",
+    "tests.test_host24n.DonorPins.test_binding_preparation_comparison",
+    "tests.test_host24n.DonorPins.test_native_persisted_donor_accepts_relocation",
+    "tests.test_host24n.DonorPins.test_native_persisted_donor_refuses_corrupt_local_bytes",
+    "tests.test_host24n.DonorPins.test_native_persisted_donor_refuses_other_hash",
+    "tests.test_host24n.DonorPins.test_non_path_pin_fields_still_refuse",
+    "tests.test_host24n.DonorPins.test_schema_still_refuses",
+    "tests.test_host24n.DonorPins.test_source_preparation_comparison",
+    "tests.test_host24n.LocalizedQ.test_q_fresh_training_reaches_past_native_handover",
+    "tests.test_host24n.LocalizedQ.test_q_reaches_past_native_handover",
+    "tests.test_host24l3.StagerBranches.test_hook_plan_wrong_bytes_refuse_before_hook",
+    "tests.test_host24l3.StagerBranches.test_native_input_wrong_bytes_refuse"
+  ],
+  "errors": [
+    {
+      "test": "tests.test_host24l3.StagerBranches.test_hook_unreferenced_bytes_are_not_native_reverified",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/tests/test_host24l3.py\", line 115, in test_hook_unreferenced_bytes_are_not_native_reverified\n    self.assert_plan_hash(host, request)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/tests/test_host24l3.py\", line 26, in assert_plan_hash\n    expected = sha256(pinned(request['staging']))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/validation/focused24l3/host24j_uww8dumm/job/q/u/stage24l.json\n"
+    },
+    {
+      "test": "tests.test_host24l3.StagerBranches.test_kit_hook_passes_stage_host_and_records_plan_hash",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/tests/test_host24l3.py\", line 91, in test_kit_hook_passes_stage_host_and_records_plan_hash\n    self.assert_plan_hash(receipt, request)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/tests/test_host24l3.py\", line 26, in assert_plan_hash\n    expected = sha256(pinned(request['staging']))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/validation/focused24l3/host24j_ksn0tbrw/job/q/u/kit_stage.json\n"
+    },
+    {
+      "test": "tests.test_host24l3.StagerBranches.test_kit_hook_writes_host_json_with_plan_hash",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/tests/test_host24l3.py\", line 101, in test_kit_hook_writes_host_json_with_plan_hash\n    self.assert_plan_hash(host, request)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/tests/test_host24l3.py\", line 26, in assert_plan_hash\n    expected = sha256(pinned(request['staging']))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/validation/focused24l3/host24j_m8sxpwj8/job/q/u/kit_stage.json\n"
+    },
+    {
+      "test": "tests.test_host24l3.StagerBranches.test_native_archive_and_directory_pass",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/tests/test_host24l3.py\", line 73, in test_native_archive_and_directory_pass\n    self.assert_plan_hash(host, request)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/tests/test_host24l3.py\", line 26, in assert_plan_hash\n    expected = sha256(pinned(request['staging']))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/validation/focused24l3/host24j_sklv6h76/job/q/u/stage24l.json\n"
+    },
+    {
+      "test": "tests.test_host24l3.StagerBranches.test_native_receipt_records_pinned_plan_hash",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/tests/test_host24l3.py\", line 67, in test_native_receipt_records_pinned_plan_hash\n    self.assert_plan_hash(host, request)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/tests/test_host24l3.py\", line 26, in assert_plan_hash\n    expected = sha256(pinned(request['staging']))\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1/student_pilot/p3_provenance.py\", line 50, in pinned\n    raise ValueError('Missing or changed pinned input: ' + str(path))\nValueError: Missing or changed pinned input: /scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/validation/focused24l3/host24j_cn16afnc/job/q/u/stage.json\n"
+    }
+  ],
+  "failures": [],
+  "skipped": []
+}

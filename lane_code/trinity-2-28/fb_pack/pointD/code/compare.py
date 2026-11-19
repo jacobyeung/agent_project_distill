@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PACK = ROOT.parent
-TREE = ROOT/'work/new'
+TREE = ROOT/'work/final'
 sys.path.insert(0, str(TREE))
 resource.setrlimit(resource.RLIMIT_AS, (38*1024**3, 38*1024**3))
 def sha(path):
@@ -62,7 +62,7 @@ with connect(source) as a, connect(target) as b:
                 normalized_decision_weight=float(weights[0,k]),
                 supervised_mean=float(weights[labels!=-100].mean()))
 assert counts['rows']==25020
-root=ROOT/'work/comparison'; root.mkdir()
+root=ROOT/'work/comparison_final'; root.mkdir()
 rows, fixture_source, division=fixture(root)
 inputs[fixture_source['path']]=fixture_source['sha256'];inputs[division['path']]=division['sha256']
 for pin in [rows[0]['pointing']['mask'],*rows[0]['student_input']['frames']]:inputs[pin['path']]=pin['sha256']

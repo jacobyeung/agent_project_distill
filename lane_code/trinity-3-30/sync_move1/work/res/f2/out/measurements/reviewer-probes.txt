@@ -1,0 +1,20 @@
+CONTEXT old robust=0 hourly=8 dry_count_view=8 extra_in_dry=[]
+CONTEXT old robust=1 hourly=8 dry_count_view=8 extra_in_dry=[]
+CONTEXT new robust=0 hourly=3 dry_count_view=3 extra_in_dry=[]
+CONTEXT new robust=1 hourly=3 dry_count_view=3 extra_in_dry=[]
+MANIFEST old robust=0 header_mtime=1970ff6a FNAME=True stdout_equal=True bytes_equal=True
+MANIFEST old robust=1 header_mtime=1970ff6a FNAME=True stdout_equal=True bytes_equal=True
+MANIFEST new robust=0 header_mtime=00000000 FNAME=False stdout_equal=True bytes_equal=True
+MANIFEST new robust=1 header_mtime=00000000 FNAME=False stdout_equal=True bytes_equal=True
+MANIFEST old-vs-new robust: stdout_equal=True content_equal=True
+MANIFEST old-vs-new legacy: stdout_equal=True content_equal=True
+MANIFEST new robust-vs-legacy: bytes_equal=True
+MANIFEST content: b'lane/dup.py\tlane/a.py\nlane2/dup2.py\tlane/a.py\nlane2/bad\xff/name.py\tlane/a.py\n'
+MANIFEST gzip -t rc=0
+HEREDOC LCS_FILTER_EOF rc=0 done=True equal_to_direct=True
+HEREDOC PYEOF rc=0 done=True equal_to_direct=True
+SPECIAL legacy==robust=True list=['lane/a.py', 'lane/out/r.md']
+SPECIAL robust stats: ytes=22 dups=0 skipped_oversize=0 skipped_bigdirs=0  skipped_changed=0 skipped_io=0 skipped_nonregular=2 skipped_symlink=2 skipped_timeout=0
+KIT old legacy: ['README.md', 'kit_parity50/run.py', 'src/fixtures/attic/old.py', 'src/lib/python_compat.py', 'src/sandbox/s.py', 'tests_v2/t.py']
+KIT new legacy: ['README.md', 'kit_parity50/run.py', 'src/lib/python_compat.py', 'tests_v2/t.py']
+fixtures in /scratch/jjyeung/orch_n30/sm_filter/work/tmp_review/rt_lv40a08u

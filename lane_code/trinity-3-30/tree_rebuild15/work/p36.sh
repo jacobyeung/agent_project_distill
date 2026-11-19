@@ -1,0 +1,2 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls | grep -E 'tr15'; free -g | sed -n 2p; df -BG --output=avail /scratch | tail -1
+for l in tree_rebuild24m1 tree_rebuild24kr3 tree_rebuild_qscene; do d=$(ls -dt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*_$l | head -1); echo "== $l"; grep -c "Selected model is at capacity" $d/transcript.log; test -f $d/final_message.md && head -c 4000 $d/final_message.md || tail -c 500 $d/transcript.log | tr -cd "[:print:]\n" | tail -2 | cut -c1-250; echo; done

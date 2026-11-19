@@ -1,0 +1,115 @@
+{
+  "command": "scripts/test_host_wrapper.py",
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/scripts/test_host_wrapper.py",
+      "sha256": "d97fd276466e77c60856fa7b8439fdad6a2fc9b39d82ed4ecabb0bfa41bcd9da"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/run_on_host.py",
+      "sha256": "67611513c533f6f6bd7a91dacb56ff76209a28cf26a0d6568d0a5e5f8b78c2b5"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/out/prove_on_prepared.py",
+      "sha256": "c4dcf830ad4aa118613fa3f059d18d16b6495bcea9fb8b978b965c913ee9ab47"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/config.json",
+      "sha256": "9ea8b212215be2daf68782371cd94630355cc363b553ac2b04e45439ff4e324d"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2b/work/mix_fixture/receipt.json",
+      "sha256": "41f55170ffaabd72129842fcacf9cb2046546de91a4a39b83ac9d6b775659008"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/b_result/HOST_COMMAND.json",
+      "sha256": "302cb882104373d463fa749ddca1961480d1763d3f1e35087ec79914063693da"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/b_result/proof/RESULT.json",
+      "sha256": "9008f679a69641b9c13e6e3c1a637e9e124b4bd7655b0d5bef2b08b5d42bcb9b"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/h_result/HOST_COMMAND.json",
+      "sha256": "cdcd30f82f9e379e74c6c825da4961ea2924a25049c41730224b9a155d91b825"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/h_result/proof/RESULT.json",
+      "sha256": "224574d810055345c17055f3d342fd2f1e3b1a81d822d3dda837352893fbe7ba"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/population_result/HOST_COMMAND.json",
+      "sha256": "a59eb57a074a8b2dbc16014413f9f1c46623f1f5409814882ae4ad67065e0e6b"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/population_result/proof/RESULT.json",
+      "sha256": "bf2959e082efd90906381ee067b4ca3d29a3d37ca811eba311b78ded884f353b"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/missing_result/HOST_COMMAND.json",
+      "sha256": "fe1b1a55e7ca6e51b6e6cc9088a2ff740b710f46e4ed7420eebd36d345ff7353"
+    }
+  ],
+  "records": [
+    {
+      "checks": {
+        "correct_stage_config": true,
+        "correct_stage_receipt": true,
+        "exit_refuses": true,
+        "named_fixture_refusal": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/run_on_host.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --proof-root /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/proof_root --stage b --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/b_result",
+      "name": "b",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/b_result/HOST_COMMAND.json",
+        "sha256": "302cb882104373d463fa749ddca1961480d1763d3f1e35087ec79914063693da"
+      },
+      "status": "PASS"
+    },
+    {
+      "checks": {
+        "correct_stage_config": true,
+        "correct_stage_receipt": true,
+        "exit_refuses": true,
+        "named_fixture_refusal": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/run_on_host.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --proof-root /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/proof_root --stage h --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/h_result",
+      "name": "h",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/h_result/HOST_COMMAND.json",
+        "sha256": "cdcd30f82f9e379e74c6c825da4961ea2924a25049c41730224b9a155d91b825"
+      },
+      "status": "PASS"
+    },
+    {
+      "checks": {
+        "correct_stage_config": true,
+        "correct_stage_receipt": true,
+        "exit_refuses": true,
+        "named_fixture_refusal": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/run_on_host.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --proof-root /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/proof_root --stage population --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/population_result",
+      "name": "population",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/population_result/HOST_COMMAND.json",
+        "sha256": "a59eb57a074a8b2dbc16014413f9f1c46623f1f5409814882ae4ad67065e0e6b"
+      },
+      "status": "PASS"
+    },
+    {
+      "checks": {
+        "exit_refuses": true,
+        "missing_status": true,
+        "named_path": true
+      },
+      "command": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/fb_pack/prior2c/out/run_on_host.py --base-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_base --patched-tree /scratch/jjyeung/orch_n30/fb_pack/prior2b/work/sealed_new --proof-root /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/MISSING_PROOF_ROOT --output-dir /scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/missing_result",
+      "name": "missing",
+      "result": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2c/work/host_wrapper_tests/missing_result/HOST_COMMAND.json",
+        "sha256": "fe1b1a55e7ca6e51b6e6cc9088a2ff740b710f46e4ed7420eebd36d345ff7353"
+      },
+      "status": "PASS"
+    }
+  ],
+  "status": "PASS"
+}

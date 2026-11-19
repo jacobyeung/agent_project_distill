@@ -22,3 +22,5 @@ Brief: B/briefs/k1fwd1.md. Events B/events/k1fwd. Session /scratch/jjyeung/orch_
 - P400 173346 RUNNING since ~21:11Z on community-1; model loaded, captures committing (21:20Z). Expected end ~22:36Z. Final return will be okh7/a15_cot_ap90eaf12c47ba5/f67f0b1118da0677/173346/a<token>/result.tar.gz.
 - Return plan: kb/pull_launch.py ORCHARD_FILE BYTES /scratch/jjyeung/orch_n30/sb_own400/in/own_400/own_400_<job>.result.tar.gz 3 (runs on 3-30, streams Orchard -> ratelimit -> ssh trinity-1-18.ib; nothing stored on 3-30; registered tier 3 priority 3, io-weight 1). Then on 1-18: verify sha, rename .partial, extract in own_400/ (layout = native/probe/<dir>/own.npz + PHASE_COMPLETE.json, COMPLETE.json, logs, metadata).
 - Yield: on launch GO scancel 173346 and rerun on general.
+## DONE (20261119T2246Z)
+- P400 173346 COMPLETED 22:29:42Z, 300/300. Archive b531fefc (97,932,195 B) on Orchard (package dir) and on trinity-1-18 sb_own400/in/own_400/; 242 scored captures extracted there (162 MB), checked 242/242. RESULT 20261119T2246Z_RESULT_own400_grids_in_place_on_1_18.md in events/k1fwd, fb_pack, swarm_build. fb_pack2 scores. Lane ended; no successor.

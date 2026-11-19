@@ -1,0 +1,97 @@
+{
+ "base": {
+  "files": 939,
+  "digest": "57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7",
+  "seal": "57a1f14df5ab60e5783a4baa76e714476770d2bd29f5d98c514a14be6412c6f7",
+  "match_seal": true
+ },
+ "apply_full": {
+  "patch": "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/PATCH_DONOR3.patch",
+  "patch_sha256": "4253fbd109895d893d4249be2978e889fdb84801759a6fb56dd357ffdce4eb1f",
+  "rc": 0,
+  "stdout": "patching file student_pilot/carrier_c1.py\npatching file student_pilot/carrier_c1_decode.py\npatching file student_pilot/carrier_c1_run.py\npatching file student_pilot/r1_handover.py\npatching file student_pilot/scale_donor.py\npatching file student_pilot/scale_donor_check.py\npatching file student_pilot/tower_read.py\npatching file tests/test_scale_donor.py\n",
+  "stderr": "",
+  "fuzz": false,
+  "offset": false,
+  "rej": false,
+  "orig": false
+ },
+ "new_vs_base": [
+  "student_pilot/carrier_c1.py",
+  "student_pilot/carrier_c1_decode.py",
+  "student_pilot/carrier_c1_run.py",
+  "student_pilot/r1_handover.py",
+  "student_pilot/scale_donor.py",
+  "student_pilot/scale_donor_check.py",
+  "student_pilot/tower_read.py",
+  "tests/test_scale_donor.py"
+ ],
+ "donor2_new_vs_base": [
+  "student_pilot/carrier_c1.py",
+  "student_pilot/carrier_c1_decode.py",
+  "student_pilot/carrier_c1_run.py",
+  "student_pilot/r1_handover.py",
+  "student_pilot/scale_donor.py",
+  "student_pilot/scale_donor_check.py",
+  "student_pilot/tower_read.py",
+  "tests/test_scale_donor.py"
+ ],
+ "new_vs_donor2_new": [
+  "tests/test_scale_donor.py"
+ ],
+ "apply_donor2": {
+  "patch": "/scratch/jjyeung/orch_n30/fb_pack/donor2/out/PATCH_DONOR2.patch",
+  "patch_sha256": "70a3e7dc4cfcfa97afdf8e63f83f4ba2849d060e42bea87c820bc56e14f658e1",
+  "rc": 0,
+  "stdout": "patching file student_pilot/carrier_c1.py\npatching file student_pilot/carrier_c1_decode.py\npatching file student_pilot/carrier_c1_run.py\npatching file student_pilot/r1_handover.py\npatching file student_pilot/scale_donor.py\npatching file student_pilot/scale_donor_check.py\npatching file student_pilot/tower_read.py\npatching file tests/test_scale_donor.py\n",
+  "stderr": "",
+  "fuzz": false,
+  "offset": false,
+  "rej": false,
+  "orig": false
+ },
+ "delta_after_donor2_equals_donor2_new": true,
+ "apply_delta3": {
+  "patch": "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/PATCH_DONOR3_DELTA.patch",
+  "patch_sha256": "e150dd321670594d71491dd9bedb367f3afc1b3f8f84d0e50047f24eaaca30ba",
+  "rc": 0,
+  "stdout": "patching file tests/test_scale_donor.py\n",
+  "stderr": "",
+  "fuzz": false,
+  "offset": false,
+  "rej": false,
+  "orig": false
+ },
+ "delta_equals_new": true,
+ "live": {
+  "files": 940,
+  "seal": "189df6ac590caf7622354c3bd1f991e599776494ced635a23f0c93eb1b567710"
+ },
+ "live_vs_base": [
+  "launch_r1/entry.py",
+  "launch_r1/production_proof.py",
+  "tests/test_host24j.py"
+ ],
+ "apply_live": {
+  "patch": "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/PATCH_DONOR3.patch",
+  "patch_sha256": "4253fbd109895d893d4249be2978e889fdb84801759a6fb56dd357ffdce4eb1f",
+  "rc": 0,
+  "stdout": "patching file student_pilot/carrier_c1.py\npatching file student_pilot/carrier_c1_decode.py\npatching file student_pilot/carrier_c1_run.py\npatching file student_pilot/r1_handover.py\npatching file student_pilot/scale_donor.py\npatching file student_pilot/scale_donor_check.py\npatching file student_pilot/tower_read.py\npatching file tests/test_scale_donor.py\n",
+  "stderr": "",
+  "fuzz": false,
+  "offset": false,
+  "rej": false,
+  "orig": false
+ },
+ "live_matches_expected": true,
+ "live_mismatch": [],
+ "inputs": {
+  "/scratch/jjyeung/orch_n30/fb_pack/donor2/out/PATCH_DONOR2.patch": "70a3e7dc4cfcfa97afdf8e63f83f4ba2849d060e42bea87c820bc56e14f658e1",
+  "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/PATCH_DONOR3.patch": "4253fbd109895d893d4249be2978e889fdb84801759a6fb56dd357ffdce4eb1f",
+  "/scratch/jjyeung/orch_n30/fb_pack/donor3/out/PATCH_DONOR3_DELTA.patch": "e150dd321670594d71491dd9bedb367f3afc1b3f8f84d0e50047f24eaaca30ba",
+  "/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/out/TREE_SEAL.json": "2d8ff9682bf515f3a0b65bca5ee6e730474a037ccb6351dc3f2a91524ff32a17",
+  "/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/out24j/TREE24J_SEAL.json": "5976f7ddb2fd28512fc93f85504938500bfe7da7ea5182d712f2567a1181ae3d",
+  "/scratch/jjyeung/orch_n30/fb_pack/donor3rev/work/setup_trees.py": "ba5e308e6ef7d4750f782954183b8d31c50909a4512ecfefbeb395eddc5f74a2"
+ },
+ "status": "PASS"
+}

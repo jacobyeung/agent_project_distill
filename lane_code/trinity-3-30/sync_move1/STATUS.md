@@ -1,19 +1,23 @@
 # sync_move1 STATUS (Devin Opus, trinity-3-30; started 21:08Z 2026-11-19; hard end 02:08Z)
 Session /scratch/jjyeung/orch_n30/sync_move1 (3-30, files <5 MB). Events B/events/sync_move. B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Brief: B/briefs/sync_move1.md.
+
+## State now
+- Hourly sync runs on **trinity-2-28**, tmux `lane_sync`: `cd /scratch/jjyeung/distill_sync && LCS_HOST=trinity-2-28 LCS_HEARTBEAT=$B/code_sync_heartbeat/HEARTBEAT.log nice -n 10 bash $B/tools/lane_code_sync_loop.sh`. Clone /scratch/jjyeung/distill_sync/repo (lane-code; config copied from the 3-30 clone; refs/remotes/origin/main a38bc5b3). Sources: local trinity-2-28, remote trinity-1-18 and trinity-3-30 (tar over IB to trinity-2-28.ib), orch_n30/tools, orch_n30/briefs.
+- First 2-28 run 22:01:38-22:05:49Z: committed 6,331 files, verified GitHub lane-code = 5bb86699 (ls-remote from 3-30 agrees). Next run ~23:05:49Z.
+- Old loop on 3-30 STOPPED 22:06Z (tmux lane_sync, bash 4081722 + sleep 772551). Health loop on 3-30 restarted 22:06Z in tmux `sync_health` with LCS_LOG=$B/code_sync_heartbeat/HEARTBEAT.log (first tick last_verified=22:05:49Z, active=none). STOP_NOTICES.md line written.
+- Installed tools (on shared B/tools): move package 21:52Z (lane_code_sync.sh 34cee9b8, lane_code_stage.sh 5ae794e4, land_kit.py bd78e8c9, new lane_code_sync_loop.sh 70adaf82; backup on 3-30 $S/install-backups/865b5f7be25646e18086d6b4d2df27fc; package copy work/res/sm_move/out, rollback.sh there). Filter package 22:07Z (lane_code_filter.py, dry_count.py; backup $S/install-backups/a4a09f009fb24708bed4099521896bfb; package work/res/f2/out). GIT_OWNER.md updated + B/tools/SYNC_HOST_MOVE.md.
+- Reviews (Cursor Opus, on 2-28): sm_cr_move GO AFTER FIXES -> Codex fix1 DONE; sm_cr_filter GO AFTER FIXES (HIGH suffix rule, MEDIUM root gate) -> Codex fix1 DONE (as reviewer specified). Verdicts copied to work/res/sm_cr_*/.
+
 ## Measured
-- Last 8 hourly commits added 793 MB raw (45-232 MB each; 20:45Z commit 232 MB, mostly trinity-2-28/fb_pack/{prior2,patchA,donor} test-run trees). Lists: ship/in/commits/*.gz.
-- Dry run, old -> new filter (files / bytes staged per run): trinity-1-18 76,849 / 888,532,674 -> 57,978 / 657,919,147 (work/dry118.log, 21:35Z); trinity-2-28 43,722 / 357,375,373 -> 3,537 / 38,301,342 (Codex, sm_filter/out/measurements); trinity-3-30 28,123 / 227,580,310 -> 21,612 / 188,383,555 (work/before_3_30.txt, after_3_30.txt).
-- Simulated hourly commit under the new filter (path rules on the last 8 commits): 22-53 MB per commit, was 45-232 MB (work/res/sm_filter/out/measurements/totals.tsv). About 11 MB of it is the DEDUP manifests, now deterministic gzip.
-- Both Codex builds DONE 21:28Z / 21:31Z; packages fetched to work/res/sm_{filter,move}/out. Cursor Opus reviews sm_cr_move (started 21:28Z) and sm_cr_filter (21:31Z) on 2-28, verdicts /scratch/jjyeung/orch_n30/sm_cr_*/REVIEW_VERDICT.md there.
-- Clone on trinity-2-28 DONE 21:21Z: /scratch/jjyeung/distill_sync/repo from bundle (sha256 fb432d9c..., 457 MB, /scratch/jjyeung/distill_sync_init/), HEAD 060e5381 = GitHub; config copied from the 3-30 clone; LCS_ROBUST_SYNC, LCS_ROBUST_BUDGETS, PUSH_*.txt, KITS_LANDED.txt copied. Heartbeat dir B/code_sync_heartbeat/.
-## In flight
-1. Codex Astra syncmove_filter (tmux syncmove_filter on trinity-2-28, workspace /scratch/jjyeung/orch_n30/sm_filter, prompt ship/syncmove_filter.md): exclusion rules + deterministic DEDUP gzip + simulation + package install.sh/rollback.sh. Started 21:14Z.
-2. Codex Astra syncmove_host (tmux syncmove_move on 2-28, /scratch/jjyeung/orch_n30/sm_move, prompt ship/syncmove_host.md): LCS_HOST parameter, LCS_HEARTBEAT, lane_code_sync_loop.sh, GIT_OWNER patch. Started 21:14Z.
-3. Bundle of lane-code (head 060e5381) streaming 3-30 -> trinity-2-28.ib:/scratch/jjyeung/distill_sync_init/lane-code.bundle (tmux sm_bundle on 3-30, log work/bundle.log, holds .sync.lock).
+- Dry run old -> new filter, files / bytes staged: trinity-1-18 76,849 / 888,532,674 -> 58,903 / 666,148,479 (work/dry118.log, dry118b.log); trinity-2-28 61,543 / 466,857,790 -> 5,431 / 47,199,894 (sm_filter measurements); trinity-3-30 28,123 / 227,580,310 -> 21,905 / 190,384,552 (work/before_3_30.txt, after2_3_30.txt).
+- Hourly commit replay on the last 8 commits: 45-232 MB raw before, 22-53 MB after (work/res/f2/out/measurements/totals.tsv).
+
 ## Next
-- Cursor Opus review of each package on 2-28 (cursor_start pattern from swarm_opt/work/prompts/cursor_start.sh).
-- Install filter package on 3-30 (install.sh, lock), RESULT step 1 by 22:15Z.
-- Clone from bundle on 2-28 into /scratch/jjyeung/distill_sync, origin=GitHub, home=/home repo, fetch origin; copy LCS_ROBUST_SYNC, LCS_ROBUST_BUDGETS; install host package; start loop tmux lane_sync with LCS_HOST=trinity-2-28 LCS_HEARTBEAT=B/code_sync_heartbeat/HEARTBEAT.log; after first verified push (ls-remote), stop 3-30 tmux lane_sync (pane pid 4081722) and restart 3-30 sync_health loop with LCS_LOG=heartbeat.
-## Removal candidates
-- /tmp/sm_*.txt on trinity-3-30 (25 MB, my commit lists; the guard refuses agent deletions).
-- The guard queued two commands of mine in /home/jjyeung/agent_project/agent/PENDING_USER_COMMANDS.md by mistake (21:13Z cleanup of /tmp/sm_*.txt; 21:17Z a STATUS heredoc that only mentioned the guard). Neither needs running except the /tmp cleanup.
+1. ~23:06Z: check HEARTBEAT.log for the second verified push (first under the new filter); compare the commit's added bytes. ls-remote to verify.
+2. Then write B/events/sync_move/REMOVAL_CANDIDATES.md (old 3-30 working copy: repo, stage, stage-robust; plus the items below) and a final RESULT; end without successor.
+
+## Removal candidates (for the list)
+- trinity-3-30: /scratch/jjyeung/distill_sync/{repo,stage,stage-robust} after the second push; /tmp/sm_*.txt (25 MB) and /tmp/sm_move_out.tar (my temp files; the guard refuses agent deletions).
+- trinity-2-28: /scratch/jjyeung/distill_sync_init (lane-code.bundle 457 MB, inc1.bundle 28 MB), /scratch/jjyeung/orch_n30/{sm_ship,sm_ship2,sm_filter,sm_move,sm_cr_filter,sm_cr_move} (build/review workspaces, finished).
+- trinity-1-18: /tmp/sm1 (filter copies for dry runs, <100 KB).
+- The guard queued two commands of mine in /home/jjyeung/agent_project/agent/PENDING_USER_COMMANDS.md (21:13Z cleanup of /tmp/sm_*.txt; 21:17Z a STATUS heredoc that only mentioned the guard; the second needs no action).

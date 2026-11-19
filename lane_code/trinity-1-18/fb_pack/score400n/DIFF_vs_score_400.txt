@@ -1,0 +1,8 @@
+7a8
+> sys.path.insert(0,'/scratch/jjyeung/orch_n30/sb_own400/kit')
+66,67c67,68
+<     assert np.array_equal(z['frame_indices'],c['anchor_indices'])
+<     assert np.array_equal(z['grid_uv'],np.linspace(0,1000,51,dtype=np.float32))
+---
+>     # Native layout (job 173346): same keys and producer as the accepted step-544 arm A; anchors bound by capture_sha256 above.
+>     assert sorted(z.files)==['depth','gravity'] and rec['producer_sha256']==read(r['own544']['receipt'])['producer_sha256']

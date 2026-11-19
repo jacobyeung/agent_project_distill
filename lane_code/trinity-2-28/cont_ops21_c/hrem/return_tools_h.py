@@ -41,7 +41,12 @@ def package_info(package):
     base.EXPORTS[binding['step']]={k:binding[k] for k in ('run','step','member_directory','object','lineage','archive_sha256')}
     expected=base.package_identity(p)
     evaluator=canonical([(n[7:],hashlib.sha256(pf[n]).hexdigest()) for n in sorted(pf) if n.startswith('h1eval/') and '__pycache__' not in n and not n.endswith('.pyc')])
-    require(evaluator==plan['serving_pins']['evaluator_code_sha256'],'Evaluator pin differs')
+    actual=dict(evaluator_code_sha256=evaluator,
+        reader_sha256=canonical([(n[len('b/e2e_reader/'):],hashlib.sha256(pf[n]).hexdigest()) for n in sorted(pf) if n.startswith('b/e2e_reader/')]),
+        parity_code_sha256=canonical([(n[len('b/parity_kit/'):],hashlib.sha256(pf[n]).hexdigest()) for n in sorted(pf) if n.startswith('b/parity_kit/') and n.count('/')==2 and n.endswith('.py')]),
+        maker_sha256=hashlib.sha256(pf['h1eval/h10/parity_adapter.py']).hexdigest(),
+        expected_calls_sha256=hashlib.sha256(pf['rows/expected_calls.py']).hexdigest())
+    require(actual==plan['serving_pins'] and evaluator==plan['evaluator_code_sha256'],'Serving payload pins differ')
     for n in ITEM_NAMES[1:]:require(hashlib.sha256(pf['items/'+n]).hexdigest()==PINS[n], 'Frozen twins/tasks differ')
     raw=pf['items/'+ITEM_NAMES[0]];m=json.loads(raw)
     if 'remainder' not in m:
@@ -112,6 +117,8 @@ def load(root,package,info=None):
         for key in ('export_sha256','artifact_manifest_sha256'):
             require(env['binding'][key]==meta['binding'][key],'Mixed serving identity')
     require(settings and all(v==settings[0] for v in settings),'Mixed settings')
+    if 'remainder' in info['manifest']:
+        require(canonical(settings[0])==info['plan_value']['remainder']['settings_sha256'],'Settings differ from parent seal')
     meta['settings']=settings[0];meta['export_binding']=info['export_binding']
     return rows,meta
 

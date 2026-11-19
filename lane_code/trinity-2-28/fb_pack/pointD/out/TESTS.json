@@ -1,0 +1,546 @@
+{
+  "command": "bash code/run.sh package",
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/SETUP.json": "6099cc42fb26fbbda26bc4276dc021c5174c901456405cd7be2eb321fb986b05",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/code/package.py": "1ec4e08b62b62c08499d94455286c24e68431e3962062e4b398d8c279d383a46",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/PATCH_POINT.patch": "13b8a54b0942a923a769ab30531f63fcb59aa7e2d2ffed994a58bf2c8cc5e654",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/carrier_c1_data.py": "a850316c930b2cb2ec38e660fd378220b8bce4c03535e70cce7d7204b66ba769",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/base/student_pilot/carrier_c1_data.py": "9ccee823404c8dc225c6f7d73a9f1c31d5b18cc40cd77a79c331c9021174b701",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/carrier_c1_run.py": "1db15d102f511143f529609aebe9a99f6a4e569e813b2503a041ef659838fbcb",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/base/student_pilot/carrier_c1_run.py": "7de02b4630d59d05c7d57a6f4d51677727f05139a1a75b4a9c6943984ed7aee2",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/s1_admission.py": "219e74c15ac829f6acaa068de1ed3d282eac380ee535466b3fb359e3319e6551",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/base/student_pilot/s1_admission.py": "ff718a8d063627a359d5ab6d7715f2b23156dc9805cb2f5f2e8756de56b129a8",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/pointing_locate.py": "daaaaa81257a8b41b12575f469fe6abacfad9f53f273aa6581ec48e373dfad09",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/tests/test_pointing_locate.py": "1a7555ddf41c00b2f1a1c526029339c5293b92e2c336c3fa798b90ff6216bafe",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/focused_final.json": "72713fa1bfa672d6d8891a0b402208b2b7145ac2b5119b5ba0bf7e8ee304ffdc",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/COMPARE.json": "06b2d58038c77b7d567fb6b5072d9adfbd58483f225a664d8c58369940b8c8de",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/ADMISSION_PROBE.json": "5a0e0c823df214722c934b46a7886d2074930b0d8153783dd6244478b7ae9c69",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/TRAINING_BOUNDARY.json": "15db85d6a96a8ad77658d60c4b66dbc308db0dbfd7d831277a1e94617964f669",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/full_base.json": "a657db4cb638114eb844d504edcf936bdcb6c6e5ee0cbef3c5a077f4629e2ac9",
+    "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/full_final.json": "3981139848c5bb86271e721ef0829220e5911fd965d98fb9f58194d46e88ba6d"
+  },
+  "status": "PASS_WITH_MISSING_REAL_MASK_REBUILD",
+  "full_suite_scope": "CPU suite; worker processes, sockets, NFS reads, deletion and writes outside the workspace denied; fixtures retained. Existing failures are not claimed as passing.",
+  "full_suite": {
+    "base_plus_PATCH_A": {
+      "tests": 1941,
+      "failures": 18,
+      "errors": 473,
+      "skipped": 145,
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_tests.py base full_base full"
+    },
+    "new": {
+      "tests": 1951,
+      "failures": 18,
+      "errors": 473,
+      "skipped": 145,
+      "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_tests.py final full_final full"
+    }
+  },
+  "no_new_full_suite_failures": true,
+  "new_failures": [],
+  "resolved": [],
+  "fixture_path_normalization": [
+    {
+      "normalized_test": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='<production-import-fixture>/empty')",
+      "base": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='/scratch/jjyeung/orch_n30/fb_pack/pointD/work/test_runs/full_base/production_import_m6pam5eg/empty')",
+      "new": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='/scratch/jjyeung/orch_n30/fb_pack/pointD/work/test_runs/full_final/production_import_vdyw85k_/empty')",
+      "identical_exception": "PermissionError: FORBIDDEN:subprocess.Popen"
+    },
+    {
+      "normalized_test": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='<production-import-fixture>/kit')",
+      "base": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='/scratch/jjyeung/orch_n30/fb_pack/pointD/work/test_runs/full_base/production_import_m6pam5eg/kit')",
+      "new": "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='/scratch/jjyeung/orch_n30/fb_pack/pointD/work/test_runs/full_final/production_import_vdyw85k_/kit')",
+      "identical_exception": "PermissionError: FORBIDDEN:subprocess.Popen"
+    }
+  ],
+  "focused": {
+    "tests": 23,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "command": "env PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=16 MKL_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B code/run_tests.py final focused_final tests.test_pointing_locate tests.test_carrier_c1_data tests.test_s1_admission tests.test_s1_target_filter tests.test_carrier_c1_t0.PointingDecisionWeight"
+  },
+  "real_stored_targets": {
+    "status": "PASS",
+    "counts": {
+      "rows": 25020,
+      "null": 8758,
+      "answer_bytes_identical": 25020,
+      "targets_equal_reference": 25020,
+      "decision_position_checked": 25020,
+      "visible": 16262
+    },
+    "samples": {
+      "null": {
+        "i": 0,
+        "qid": "p0040243788099f042e59d16b",
+        "target": "<think>\nLocate the lamp in frame 18: it is not visible in that frame.\n</think>\n\n{\"point_2d\": null}",
+        "tokenizer": "deterministic character fixture; not the production tokenizer",
+        "chosen_token": ":",
+        "token_index_in_labels": 36,
+        "normalized_decision_weight": 9.607843399047852,
+        "supervised_mean": 2.0
+      },
+      "visible": {
+        "i": 3,
+        "qid": "p013c37e85d07c574981aa948",
+        "target": "<think>\nLocate the book in frame 8.\n</think>\n\n{\"point_2d\": [778, 480]}",
+        "tokenizer": "deterministic character fixture; not the production tokenizer",
+        "chosen_token": ".",
+        "token_index_in_labels": 35,
+        "normalized_decision_weight": 9.45945930480957,
+        "supervised_mean": 1.999999761581421
+      }
+    },
+    "scope": "All real rows: exact target transform and decision position; GT masks were not recomputed."
+  },
+  "native_build_stream_fixtures": {
+    "status": "PASS",
+    "runs": [
+      {
+        "ground_target_filter": false,
+        "rows": 4,
+        "absent_rule_database_sha256": "0946e91c84a87408fcec539236c637e5c3db4188444391cd8c6d2c16232438e9",
+        "field_absent_byte_identical": true,
+        "field_present_targets_equal_reference": true,
+        "mask_json_bytes_unchanged": true,
+        "receipt": {
+          "schema": "c1-stream-v1",
+          "stream": "pointing",
+          "count": 4,
+          "scenes": 1,
+          "source": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/comparison_final/rows.jsonl",
+            "sha256": "97e23c056452649f2eea19b39c2091714ff1053368281c27e684c21b763c8e23"
+          },
+          "division": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/comparison_final/division.json",
+            "sha256": "f4cc15286390abb060c86e19959b7642c0ff5e1e5e62541f1b890ca4be1c661b"
+          },
+          "database": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/comparison_final/locate_False/rows.sqlite",
+            "sha256": "34d08358356fda7042e8529c8f9d7d16a14b27b0240e403bea343ef055e71ab5"
+          },
+          "gt_masks_only": true,
+          "heldout_overlap": 0,
+          "pointing_locate": {
+            "rule_id": "pointing-locate-v1",
+            "sha256": "5cf88c67b7fce075cfba754e5bad6e895dca6621c251f10d2f2d7aaf098d2c20"
+          }
+        }
+      },
+      {
+        "ground_target_filter": true,
+        "rows": 3,
+        "absent_rule_database_sha256": "a09e892be7072ec655157dfc24af28acadb28e8f5af629a7125fadc05fd8bf72",
+        "field_absent_byte_identical": true,
+        "field_present_targets_equal_reference": true,
+        "mask_json_bytes_unchanged": true,
+        "receipt": {
+          "schema": "c1-stream-v1",
+          "stream": "pointing",
+          "count": 3,
+          "scenes": 1,
+          "source": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/comparison_final/rows.jsonl",
+            "sha256": "97e23c056452649f2eea19b39c2091714ff1053368281c27e684c21b763c8e23"
+          },
+          "division": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/comparison_final/division.json",
+            "sha256": "f4cc15286390abb060c86e19959b7642c0ff5e1e5e62541f1b890ca4be1c661b"
+          },
+          "database": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/comparison_final/locate_True/rows.sqlite",
+            "sha256": "b9b2ef3c5c59a8e086c6eca3f967fd240af076356c445a60e07e879fb9b19fe9"
+          },
+          "gt_masks_only": true,
+          "heldout_overlap": 0,
+          "target_filter": {
+            "settings": {
+              "schema": "s1-ground-target-filter-v1",
+              "removals": [],
+              "shape_filter": true,
+              "reference_min_mask_px": 154,
+              "reference_shape": [
+                240,
+                320
+              ],
+              "min_largest_component_fraction": 0.6,
+              "connectivity": 4
+            },
+            "removals": [],
+            "by_source": {
+              "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/comparison_final/rows.jsonl": {
+                "targets_checked": 3,
+                "removed_by_list": 0,
+                "removed_by_shape": 1,
+                "targets_dropped": 1,
+                "area_below_runtime_floor": 1
+              }
+            },
+            "unique_dropped_row_keys": 1,
+            "extent_only_candidates": 0,
+            "extent_only_caught_by_shape": 0
+          },
+          "pointing_locate": {
+            "rule_id": "pointing-locate-v1",
+            "sha256": "5cf88c67b7fce075cfba754e5bad6e895dca6621c251f10d2f2d7aaf098d2c20"
+          }
+        }
+      }
+    ],
+    "source_receipt_rebuild": {
+      "rows": 3,
+      "field_absent_byte_identical": true,
+      "sha256": "a09e892be7072ec655157dfc24af28acadb28e8f5af629a7125fadc05fd8bf72"
+    }
+  },
+  "real_build_stream": {
+    "status": "MISSING",
+    "first_required_inputs": [
+      {
+        "input": {
+          "path": "/data2/p5x9/d1/v002f7d9ced14/f18.npz",
+          "sha256": "8dd7035cd867e7ec6a0107d39d01e7d1e1bbb3be13ae9657b89b06c2778fe499"
+        },
+        "expected_location": "/data2/p5x9/d1/v002f7d9ced14/f18.npz",
+        "status": "MISSING",
+        "reason": "No local GT-mask staging map or asset is supplied; NFS access prohibited."
+      },
+      {
+        "input": {
+          "path": "/data2/k6tk/f2/f25faedce4622416aed654d13ed347ed2a3b1ea0928a5674a80169324c6888cc.png",
+          "sha256": "f25faedce4622416aed654d13ed347ed2a3b1ea0928a5674a80169324c6888cc"
+        },
+        "expected_location": "/data2/k6tk/f2/f25faedce4622416aed654d13ed347ed2a3b1ea0928a5674a80169324c6888cc.png",
+        "status": "MISSING",
+        "reason": "No supplied local match; exact basename absent under /scratch/jjyeung/k1_frames and the named ext copy."
+      }
+    ],
+    "scope": "No real source row claimed as rebuilt. The native sample consists of four synthetic rows, three after shape filtering."
+  },
+  "production_tokenizer": {
+    "status": "MISSING",
+    "expected_location": "No production tokenizer path supplied",
+    "scope": "Tests cover character tokens, separate punctuation and merged frame/punctuation tokens."
+  },
+  "admission_probe": {
+    "command": "bash code/run.sh admission_probe",
+    "input_sha256": {
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/code/admission_probe.py": "6183969ab15f7c80d4ffec5cde2f4bceb1239dcc2464fcd49783326bce49899d",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/SETUP.json": "6099cc42fb26fbbda26bc4276dc021c5174c901456405cd7be2eb321fb986b05",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/config.json": "ccf24c1a3a046265d089c0dca3234eb09e336206b74d8d2a6574cc20729510ec",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/source/receipt.json": "f29321670374f7857cf3e81f2ded6e74a96c1b9ce48b098ff3e6f0583dfe3b2a",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/source/rows.sqlite": "4d20e89aaa45c6038d19197adbd9a91386bf776bd36bcb622484c90656f6fe1d",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/division.json": "f4cc15286390abb060c86e19959b7642c0ff5e1e5e62541f1b890ca4be1c661b",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/dev.json": "58a21054552449c6a091fe061ec506bad6a2e6d4cb5a65433c0e63a6161251f9",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/benchmark.json": "c4addec1816baa01e11848308855814e4de0bc523b6c097e2fdc8429eaed6452",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/remove.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/masks.npz": "aa21b901322a216ab4b8980071c8050f13f567a0aa4824ebb41a971cf960e326",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/rgb.png": "f98eb293eb56310829eb146858345d216d535afaf2b7787b634ee44dab607f5a",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/job_env.py": "217ff0c7b8a6ea721ae1e833e21421e98b581e0c8e56708f64e4f78ae6459a88",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/p3_provenance.py": "afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/s1_admission.py": "219e74c15ac829f6acaa068de1ed3d282eac380ee535466b3fb359e3319e6551",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/camera_config.py": "c143d4514363d3f27d2a081147266f020114372183a4256a6c8bb56c767f3019",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/camera_targets.py": "59a9475e87c6eb49fc103e8077ec224746f06fcdbde9b0a1a38088cb1aed18a4",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/geometry_input.py": "f0faffeed8d100dfb63d98872808aaf98945bba754078ea3d927b3a187259631",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/point_depth_head.py": "960a4334fb50f39d394fafe59bda71a80abf6dc5fd42dc4ea1b17c2e16e5eb69",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/camera_head.py": "f345803093d762ace1ffcef763aca8e66c806b209e0a68cb5dade43fb897a3fc",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/auxiliary_reason.py": "7b16e6e1c8f458722e2927c2db5424aeb92bab65142ebcfc0f50d171d9444753",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/auxiliary_config.py": "70a8bca46ad72d48885b3df23f35199e87b00b8e96d8d8b8de8eac04a9191dde",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/auxiliary_losses.py": "d3889816c067d88887bc412576064686302385e39c14b5ff685b365c46e7c0aa",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/head_programs.py": "571bea4d1a09270282a6f93f2e80977111d4ff9b8ee0f8b76a2a530d8e1342f0",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/p3_grammar.py": "324fff572d07b90b74aebff7f6eebbad7e09c8328fc5420ce67f303024822a2f",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/p3_geometry.py": "7e8fd71bf1132216bdb0e2e424b64b6dfe841ba9ac71b825789ccaebc02bdcdd",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/p3_heads.py": "ef6c96dccd7389ffadecf465d18873cdbda57fa884e67ef26e20e3b331288f9d",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/readout_geometry.py": "7aebaa14d41e66d33b25a1b8d9be84aa577dd6494badc18885d5952aae5b28ac",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/decoupled_v.py": "5f249ed8cf10949d64718012ff47d8af59aa5787a2867bd1fcff6e1198a74d49",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/decoupled_vc.py": "a88c1e9727608698052477f3324d60c5d587491c810676d737fbe11dfa66d5f7",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/next_gpu_check.py": "17ff653b662231c310a0bf743aed42f56da86dc79ede7db54c3abca515b4079d",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/decoupled_resume.py": "0935b5e81ec2fa05c0a89d41cebd68d6ea8390011c5b5997bb9c583f9a9b14f5",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/decoupled_v_run.py": "3847d98e6f19ad1cd5950f1cbe23859bbee75d9a81a991b56bcde3c80cbbbbb1",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/carrier_c1_data.py": "a850316c930b2cb2ec38e660fd378220b8bce4c03535e70cce7d7204b66ba769",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/full_ft.py": "cd6f494b19bd8de38d09fb04b8b9a51d343373fe1dddfe3b1c1931cd7b292279",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/carrier_c1.py": "3eaae0dd75fac3eebc5ccfaeaacf3e265e294fe4288fb2aaeb0dd7740f352a13",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/carrier_c1_sweep.py": "bd64b6a1560500af3892c8cd154df4f2d3992a0299171b09531195e57459a173",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/trace_format/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/trace_format/calculator.py": "23e5804145d6f5b81ed266ea36b15e4d6a25a6e7453ff8d369fee305f9a15b52",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/p3_printed_calculator_v2.py": "9d63fc8af00beab117cd06ff51f4e2ccb87c6238af2dfb8ce71f48ea3985820d",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/ground_rows.py": "6c525f744aa20fa1b50d990233e120285e741b2b65c682316fe183d699db1c6e",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/carrier_c1_routing.py": "9ad354d548a80473de4399407f27054101c8e4707657ee7c349181f7e638d3e2",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/launch_s1/b/q0.py": "ae087f2b8b0540e0b913fb810388fc882ade79bb0b5440f834eb4231f2c67c62",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/rehearsal.py": "b1aac9a6e2f1d73e9e2ba9982d4cb47a16895f25116eac0edd3c0c6f58356baf",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/carrier_c1_run.py": "1db15d102f511143f529609aebe9a99f6a4e569e813b2503a041ef659838fbcb",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/mdg_parent.py": "4d216af0200f00ea29bb427b044af6b2c97ab8ed3c299076ec23eb0b6f2dd782",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/r1_coverage.py": "aca68904351907af1ce046a79123725851969f08744eea629167ffdbc18eeb84",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/pointing_locate.py": "daaaaa81257a8b41b12575f469fe6abacfad9f53f273aa6581ec48e373dfad09",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/tests/test_pointing_locate.py": "1a7555ddf41c00b2f1a1c526029339c5293b92e2c336c3fa798b90ff6216bafe",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/orchard_paths.py": "bcb89ef09e2172164f4d396840048b5b3263e85a72419fa612897475073f125b",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/common.py": "dc087343291b18607235a85d1bdcdfe2b66b1b8f02d3963bb96a5530607621d2",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/row_removals.py": "440810bd0377f8f72b24040e1f2bbe4a7686feb86c29ba537f5e31ac1f64c800",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/trace_format/instance_policy314.py": "4369d5b950aeba98991cc636419500a69fc610f6623b5ad197ea30f4a2718de4",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/ground_target_filter.py": "ff005eae4b03ebf7db9b8a6752718694ce043a8131e0c53b050bd4e7853ca72f",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/r1_persisted.py": "33d1615f17c2928009e7b32bce2fc2ef180f880e449c220b7613e0e332b53287",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/first_batch_progress.py": "5f4d1f762cdcfc7f80a9685b07caa9e0d9cda861f605798298ea95dcd237e6c3",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/s1_scene_census.py": "34d30e3fccd6444b804d82132e8c4b38d336fdaaa75682b678d9b4b3348ff3ea",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/s1_exclusions.py": "974d32a9a3c99fdfe3f74ab3a79d2d62c13623bfca9e190f8f47a54ca2e16c31",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/r1_launch22.py": "ab841ac02648467c947ae072a866b7889bc2b9b8508520bc028d4dfdb2cfdc75"
+    },
+    "status": "PASS",
+    "admitted_pointing_rebuild_rows": 3,
+    "forwarded_rule": {
+      "rule_id": "pointing-locate-v1",
+      "sha256": "5cf88c67b7fce075cfba754e5bad6e895dca6621c251f10d2f2d7aaf098d2c20"
+    },
+    "receipt": {
+      "schema": "c1-stream-v1",
+      "stream": "pointing",
+      "count": 3,
+      "scenes": 1,
+      "source": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/source/receipt.json",
+        "sha256": "f29321670374f7857cf3e81f2ded6e74a96c1b9ce48b098ff3e6f0583dfe3b2a"
+      },
+      "division": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/division.json",
+        "sha256": "f4cc15286390abb060c86e19959b7642c0ff5e1e5e62541f1b890ca4be1c661b"
+      },
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/admission/prepare_75d10c5e10544359ba52c98aa0eab83c/pointing/rows.sqlite",
+        "sha256": "b7d5bfc243b9762666ab1c647a0a087e48b28534eb9ba7eaec0765bd805adae8"
+      },
+      "gt_masks_only": true,
+      "heldout_overlap": 0,
+      "removals": [
+        {
+          "file": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/remove.jsonl",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "source_listed": 0,
+          "listed": 0,
+          "removed": 0,
+          "matched": 0,
+          "matched_unique_keys": 0,
+          "unmatched_listed_keys": 0,
+          "retained_by_filter": 0
+        }
+      ],
+      "target_filter": {
+        "settings": {
+          "schema": "s1-ground-target-filter-v1",
+          "removals": [
+            {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/remove.jsonl",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "shape_filter": true,
+          "reference_min_mask_px": 154,
+          "reference_shape": [
+            240,
+            320
+          ],
+          "min_largest_component_fraction": 0.6,
+          "connectivity": 4
+        },
+        "removals": [
+          {
+            "file": {
+              "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/remove.jsonl",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "source_listed": 0,
+            "listed": 0,
+            "removed": 0,
+            "matched": 0,
+            "matched_unique_keys": 0,
+            "unmatched_listed_keys": 0,
+            "retained_by_filter": 0
+          }
+        ],
+        "by_source": {
+          "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/source/receipt.json": {
+            "targets_checked": 3,
+            "removed_by_list": 0,
+            "removed_by_shape": 1,
+            "targets_dropped": 1,
+            "area_below_runtime_floor": 1
+          }
+        },
+        "unique_dropped_row_keys": 1,
+        "extent_only_candidates": 0,
+        "extent_only_caught_by_shape": 0
+      },
+      "source_receipt": {
+        "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/source/receipt.json",
+        "sha256": "f29321670374f7857cf3e81f2ded6e74a96c1b9ce48b098ff3e6f0583dfe3b2a"
+      },
+      "pointing_locate": {
+        "rule_id": "pointing-locate-v1",
+        "sha256": "5cf88c67b7fce075cfba754e5bad6e895dca6621c251f10d2f2d7aaf098d2c20"
+      },
+      "source_scene_exclusions": {
+        "schema": "s1-scene-filter-v1",
+        "files": {
+          "dev": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/dev.json",
+            "sha256": "58a21054552449c6a091fe061ec506bad6a2e6d4cb5a65433c0e63a6161251f9"
+          },
+          "benchmark": {
+            "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/benchmark.json",
+            "sha256": "c4addec1816baa01e11848308855814e4de0bc523b6c097e2fdc8429eaed6452"
+          }
+        },
+        "sources": {
+          "pointing": {
+            "seen": 4,
+            "removed": 0,
+            "retained": 4,
+            "dev_matches": 0,
+            "benchmark_matches": 0,
+            "overlap_matches": 0
+          }
+        },
+        "expected": {
+          "pointing": {
+            "schema": "s1-scene-census-v1",
+            "method": "pre-filter-distinct-scene-intersection",
+            "files": {
+              "dev": {
+                "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/dev.json",
+                "sha256": "58a21054552449c6a091fe061ec506bad6a2e6d4cb5a65433c0e63a6161251f9"
+              },
+              "benchmark": {
+                "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/benchmark.json",
+                "sha256": "c4addec1816baa01e11848308855814e4de0bc523b6c097e2fdc8429eaed6452"
+              }
+            },
+            "rows": 4,
+            "distinct_scene_ids": 1,
+            "scene_ids_sha256": "cc1bc2d1e00b02b6e630f25ec9ffe57f6ddf8eff9c67e0aa5354791a97dafe44",
+            "population": {
+              "source": {
+                "path": "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/admission_probe_final/source/receipt.json",
+                "sha256": "f29321670374f7857cf3e81f2ded6e74a96c1b9ce48b098ff3e6f0583dfe3b2a"
+              },
+              "source_receipt": true
+            },
+            "counts": {
+              "dev_matches": 0,
+              "benchmark_matches": 0,
+              "overlap_matches": 0
+            }
+          }
+        },
+        "comparisons": {
+          "pointing": "PASS"
+        },
+        "datasets": {
+          "pointing": [
+            "d1"
+          ]
+        }
+      }
+    },
+    "scope": "Synthetic CPU fixture: actual s1_admission.admit prepare closure, source_receipt reader, mask builder, target filter and scene exclusions.",
+    "limitations": "Stopped via a test sentinel after pointing build. No host admission, parent-model binding, VQA build, training or full N launch was asserted.",
+    "stubs": [
+      "carrier_c1_run.validate",
+      "carrier_c1_run.authenticate",
+      "r1_coverage.deferred",
+      "mdg_parent.bind"
+    ]
+  },
+  "training_boundary": {
+    "command": "bash code/run.sh boundary_probe",
+    "input_sha256": {
+      "/scratch/jjyeung/orch_n30/fb_pack/in/pointing/rows_c09bb5ca.sqlite": "c09bb5ca44158df467449f3c5fed865d81eb5520fb704785b19e73abc5536938",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/out/COMPARE.json": "06b2d58038c77b7d567fb6b5072d9adfbd58483f225a664d8c58369940b8c8de",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/code/boundary_probe.py": "157d947a6526bf86b87e5eb28bc3777a52a4f92d04f876a4b544fb64e86173de",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/job_env.py": "217ff0c7b8a6ea721ae1e833e21421e98b581e0c8e56708f64e4f78ae6459a88",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/orchard_paths.py": "bcb89ef09e2172164f4d396840048b5b3263e85a72419fa612897475073f125b",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/common.py": "dc087343291b18607235a85d1bdcdfe2b66b1b8f02d3963bb96a5530607621d2",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/students.py": "d8c38ec234b41fe2c34bbe7d54265dc97aba8438f02bdcef0f7eae526b36ad09",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/batches.py": "fde1ef381084d6f865cf89b57973c9058aa2a5c413be28021bb5835291775291",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/camera_config.py": "c143d4514363d3f27d2a081147266f020114372183a4256a6c8bb56c767f3019",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/camera_targets.py": "59a9475e87c6eb49fc103e8077ec224746f06fcdbde9b0a1a38088cb1aed18a4",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/geometry_input.py": "f0faffeed8d100dfb63d98872808aaf98945bba754078ea3d927b3a187259631",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/point_depth_head.py": "960a4334fb50f39d394fafe59bda71a80abf6dc5fd42dc4ea1b17c2e16e5eb69",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/camera_head.py": "f345803093d762ace1ffcef763aca8e66c806b209e0a68cb5dade43fb897a3fc",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/auxiliary_reason.py": "7b16e6e1c8f458722e2927c2db5424aeb92bab65142ebcfc0f50d171d9444753",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/auxiliary_config.py": "70a8bca46ad72d48885b3df23f35199e87b00b8e96d8d8b8de8eac04a9191dde",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/auxiliary_losses.py": "d3889816c067d88887bc412576064686302385e39c14b5ff685b365c46e7c0aa",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/head_programs.py": "571bea4d1a09270282a6f93f2e80977111d4ff9b8ee0f8b76a2a530d8e1342f0",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/p3_grammar.py": "324fff572d07b90b74aebff7f6eebbad7e09c8328fc5420ce67f303024822a2f",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/p3_geometry.py": "7e8fd71bf1132216bdb0e2e424b64b6dfe841ba9ac71b825789ccaebc02bdcdd",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/p3_heads.py": "ef6c96dccd7389ffadecf465d18873cdbda57fa884e67ef26e20e3b331288f9d",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/readout_geometry.py": "7aebaa14d41e66d33b25a1b8d9be84aa577dd6494badc18885d5952aae5b28ac",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/p3_provenance.py": "afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/decoupled_v.py": "5f249ed8cf10949d64718012ff47d8af59aa5787a2867bd1fcff6e1198a74d49",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/decoupled_vc.py": "a88c1e9727608698052477f3324d60c5d587491c810676d737fbe11dfa66d5f7",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/next_gpu_check.py": "17ff653b662231c310a0bf743aed42f56da86dc79ede7db54c3abca515b4079d",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/decoupled_resume.py": "0935b5e81ec2fa05c0a89d41cebd68d6ea8390011c5b5997bb9c583f9a9b14f5",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/decoupled_v_run.py": "3847d98e6f19ad1cd5950f1cbe23859bbee75d9a81a991b56bcde3c80cbbbbb1",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/carrier_c1_data.py": "a850316c930b2cb2ec38e660fd378220b8bce4c03535e70cce7d7204b66ba769",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/pointing_locate.py": "daaaaa81257a8b41b12575f469fe6abacfad9f53f273aa6581ec48e373dfad09",
+      "/scratch/jjyeung/orch_n30/fb_pack/pointD/work/final/student_pilot/trace_contract.py": "168ab315af0d8974def3f17f4c00f95d7bb68eb3579d2571767122f10c457c33"
+    },
+    "status": "PASS",
+    "cases": [
+      {
+        "kind": "null",
+        "source_i": 0,
+        "qid": "p0040243788099f042e59d16b",
+        "opening_think_in_masked_prompt": false,
+        "first_supervised_characters": "<think>\nLocate the lamp in frame",
+        "weighted_token": ":",
+        "label_index": 36,
+        "normalized_decision_weight": 9.642857551574707,
+        "supervised_mean": 1.9999998807907104
+      },
+      {
+        "kind": "null",
+        "source_i": 0,
+        "qid": "p0040243788099f042e59d16b",
+        "opening_think_in_masked_prompt": true,
+        "first_supervised_characters": "Locate the lamp in frame 18: it ",
+        "weighted_token": ":",
+        "label_index": 28,
+        "normalized_decision_weight": 9.615384101867676,
+        "supervised_mean": 1.9999998807907104
+      },
+      {
+        "kind": "visible",
+        "source_i": 3,
+        "qid": "p013c37e85d07c574981aa948",
+        "opening_think_in_masked_prompt": false,
+        "first_supervised_characters": "<think>\nLocate the book in frame",
+        "weighted_token": ".",
+        "label_index": 35,
+        "normalized_decision_weight": 9.523809432983398,
+        "supervised_mean": 2.000000238418579
+      },
+      {
+        "kind": "visible",
+        "source_i": 3,
+        "qid": "p013c37e85d07c574981aa948",
+        "opening_think_in_masked_prompt": true,
+        "first_supervised_characters": "Locate the book in frame 8.\n</th",
+        "weighted_token": ".",
+        "label_index": 27,
+        "normalized_decision_weight": 9.473684310913086,
+        "supervised_mean": 1.999999761581421
+      }
+    ],
+    "scope": "Real visible/null stored targets through native training_text and pointing_token_weights; synthetic chat-template/character-tokenizer fixtures cover both opening-think boundaries. No production tokenizer claim."
+  },
+  "patch_replay": {
+    "status": "PASS",
+    "files": 942,
+    "tree_sha256": "5e6bb1105193213bd00f948e07f6cfc27edac2b6c510bfb7cfe91d58fe7cfc65"
+  }
+}

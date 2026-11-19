@@ -1,0 +1,1 @@
+T=/scratch/jjyeung/orch_n30/fb_pack/ro/orch_n30/tree_rebuild10_w/w24/work/tree_r1; cd $T; cat -n student_pilot/s1_admission.py | sed -n '150,260p'; echo ====RM; cat -n student_pilot/row_removals.py | head -80; echo ====BS; grep -n 'def build_stream\|Exclusions\|remov\|def keep\|exclusions' student_pilot/carrier_c1_data.py | head -30

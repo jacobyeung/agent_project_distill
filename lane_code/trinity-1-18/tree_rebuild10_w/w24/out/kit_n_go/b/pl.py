@@ -70,19 +70,19 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
         remember(Path(spec['n_root'])/'u'/item['sha256'],item['sha256'],item['bytes'])
     for item in resolved.get('external_metadata',[]):
         remember(item['path'],item['sha256'],item['bytes'])
-    for h,p in spec.get('host_paths',{}).items():
-        remember(p,h)
+    from px import resolver
+    need=resolver(kit,root,sources)
     cfg=deepcopy(resolved['config'])
     # Native stream readers follow pinned child receipts and databases. Preserve
     # their bytes while adding their authenticated closure to the copy plan.
     seen=set()
-    def closure(value):
+    def closure(value, field='config.streams'):
         if isinstance(value,dict):
             if set(value)=={'path','sha256'}:
                 h=value['sha256']
                 if h in seen:return
                 seen.add(h)
-                if h not in sources:remember(value['path'],h)
+                if h not in sources:need(h,field)
                 p=Path(sources[h])
                 if p.stat().st_size<=50_000_000:
                     with p.open('rb') as f:head=f.read(1)
@@ -92,33 +92,34 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
                         # Follow the native stream-reader closure, not historical
                         # provenance that the readers deliberately leave unopened.
                         if isinstance(child,dict):
-                            for field in ('database','model','division','dense_indices'):
-                                if field in child:closure(child[field])
-                            for source in child.get('sources',[]):
-                                for field in ('receipt','model','dense_plan','teacher','clips_plan'):
-                                    if field in source:closure(source[field])
+                            for key in ('database','model','division','dense_indices'):
+                                if key in child:closure(child[key],field+'.'+key)
+                            for i,source in enumerate(child.get('sources',[])):
+                                if not isinstance(source,dict):continue
+                                for key in ('receipt','model','dense_plan','teacher','clips_plan'):
+                                    if key in source:closure(source[key],field+'.sources.'+str(i)+'.'+key)
                 return
-            for v in value.values():closure(v)
+            for key,v in value.items():closure(v,field+'.'+str(key))
         elif isinstance(value,list):
-            for v in value:closure(v)
+            for i,v in enumerate(value):closure(v,field+'.'+str(i))
     closure(cfg.get('streams',{}))
     # P's regeneration recipe additionally consumes its materialization receipt.
     # Authenticate that recipe and its inputs before the native hook copies bytes.
     if regeneration and cfg.get('streams',{}).get('routing',{}).get('sha256')=='ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984':
-        closure(cfg['r1_training']['p_run']['config'])
+        closure(cfg['r1_training']['p_run']['config'],'config.r1_training.p_run.config')
         with scope(sources):
             p_config=load(pinned(cfg['r1_training']['p_run']['config']))
             p_receipt=load(pinned(p_config['streams']['routing']))
-            closure(p_receipt['materialization'])
+            closure(p_receipt['materialization'],'P.routing.materialization')
             recipe=load(sources[p_receipt['materialization']['sha256']])
         for field in ('remove_files','dev_scene_exclusions','benchmark_scene_exclusions'):
-            closure(p_config[field])
-        for field in ('inputs','legacy','division','base_model'):closure(recipe[field])
+            closure(p_config[field],'P.config.'+field)
+        for field in ('inputs','legacy','division','base_model'):closure(recipe[field],'P.materialization.'+field)
         for h,p in recipe['inputs'].get('catalog',{}).items():
-            if h not in sources:remember(p,h)
+            if h not in sources:need(h,'P.materialization.inputs.catalog.'+h)
     # Catalog keys authenticate the producer's row, removal and tokenizer inputs.
     for h,p in cfg.get('s1_routing',{}).get('catalog',{}).items():
-        if h not in sources: remember(p,h)
+        if h not in sources:need(h,'config.s1_routing.catalog.'+h)
     code=base64.b64decode(json.loads((kit/'k/c0.json').read_text())['payload'])
     if hashlib.sha256(code).hexdigest()!=spec['code_sha256']:raise ValueError('E34')
     codepath=metadata/'source_code.json'; codepath.write_bytes(code); remember(codepath,spec['code_sha256'])
@@ -147,7 +148,7 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
         if isinstance(value,dict):
             if 'path' in value and 'sha256' in value:
                 h=value['sha256']; p=value['path']
-                if h not in sources and h not in paths and Path(p).is_absolute():remember(p,h)
+                if h not in sources and h not in paths:need(h,'config.pin')
                 return {k:(paths.get(h,str(q/'u'/h)) if k=='path' else localize(v)) for k,v in value.items()}
             return {k:localize(v) for k,v in value.items()}
         if isinstance(value,list):return [localize(v) for v in value]

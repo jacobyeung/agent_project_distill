@@ -13,7 +13,7 @@ root=Path(sys.argv[2]).resolve()
 if root==Path('/tmp') or not root.is_relative_to(Path('/tmp')):raise ValueError('E06')
 if root.exists() and any(root.iterdir()):raise ValueError('E04')
 root.mkdir(parents=True,mode=0o700,exist_ok=True)
-if sys.argv[1]=='r':
+if sys.argv[1] in ('q','r'):
  import os
  sys.path.insert(0,str(kit/'b'))
  from z import screen,write,load
@@ -44,6 +44,10 @@ if sys.argv[1] in ('q','r'):
    if mode=='q':
     from launch_r1.production_proof import run
     r=run(request,root/'q',stage=stage)
+    if r['status']=='ADMIT':
+     from sv import publish
+     from student_pilot.p3_provenance import pinned
+     publish(kit,root.parent,load(pinned(r['config'])),os.environ['SLURM_JOB_ID'])
    else:
     import os,shutil
     from launch_r1.entry import begin_host,host_environment,check_host_runtime,stage_host,check_host_scene

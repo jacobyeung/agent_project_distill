@@ -12,6 +12,7 @@ def sha(p):
 def read(n):return json.loads((OUT/(n+'.json')).read_text())
 tests=read('TESTS');files=read('FILES_TOUCHED');base=read('BASE_VERIFICATION');live=read('LIVE_VERIFICATION');overlap=read('OVERLAP')
 assert tests['must_unit_pass']
+assert all(v['statuses']=={'PASS':v['distinct_tests']} for v in tests['host_coverage'].values())
 assert all(sha(ROOT/'work/base'/p)==h for p,h in base['results']['base']['input_files_sha256'].items())
 assert all(sha(ROOT/'work/new'/f['path'])==f['new_sha256'] for f in files['files'])
 assert all(sha(ROOT/'work/live'/f['path'])==f['new_sha256'] for f in files['files'])
@@ -37,12 +38,14 @@ f"PATCH_A2.patch replaces PATCH_A against the base ({len(files['files'])} touche
 'Those six-family unit tests isolate only the two absent coverage-file reads. Camera-only authentication runs without mocks; wording and other production gates remain required.',
 '',
 'Counts below are tests/failures/errors/skips. Expected failures on base/PATCH_A demonstrate the fixes; subtest failures can exceed test counts.',
+'Missing imports count as unittest loader errors; they do not establish that the affected test classes ran.',
 f"MUST regressions: base {count('must_final_base')}; PATCH_A {count('must_final_patch_a')}; new {count('must_final_new')}; live {count('must_final_live')}.",
 f"The differential matrix checks {matrix['legacy_source_names']:,} source_names cases, {matrix['legacy_validate_binding']} validate_binding cases and {matrix['legacy_membership_and_cell']} Membership/cell cases against base.",
 f"Subset declarations: base {count('subset_base')}; new {count('subset_new')}; live {count('subset_live')}.",
 f"Focused: base {count('focused_base')}; new {count('focused_new')}; live {count('focused_live')}.",
 f"Integration plus host: base {count('integration_base')}; new {count('integration_new')}; live {count('integration_live')}.",
-f"Live-specific host suite: unpatched {count('host_live_base')}; patched {count('host_live')}.",
+f"Live host coverage: {tests['host_coverage']['live_base']['distinct_tests']} distinct tests pass on the unpatched live tree and {tests['host_coverage']['live']['distinct_tests']} on the patched live tree; no host case remains skipped.",
+f"Mode-p byte comparison with the sealed-base sibling reference: unpatched {count('host_ref_live_base')}; patched {count('host_ref_live')}.",
 f"Real-envelope declaration checks: base {count('real_declared_base')}; new {count('real_declared_new')}; live {count('real_declared_live')}.",
 f"Full discovery: base {count('full_base')}; new {count('full_new')}; live {count('full_live')}.",
 ('Focused, integration, host and full comparisons have identical pre-existing failure text and multiplicity after temporary-path normalization; no new failure was observed.' if clean else 'BASE_FAILURES.json lists changed failure signatures; inspect TESTS.json before treating the full comparison as clean.'),
@@ -54,16 +57,19 @@ f"Full discovery: base {count('full_base')}; new {count('full_new')}; live {coun
 'Project LOCALIZED_ROW_SOURCES.json exactly as: {k: v for k, v in raw.items() if k in set(bound) | {"room", "room_programs_excluded"}}.',
 'This preserves the original family pins and removes command/inputs metadata. Re-pin the projected document; declared_names still refuses a missing bound family.',
 'Known difference retained: declared six-family composition places recovery fifth; legacy composition places recovery first.',
-'Overlap: camform shares student_pilot/r1_routing.py; prior2 shares student_pilot/r1_population.py; donor shares no file.',
-'pointD/out/FILES_TOUCHED.json is MISSING; its available code/ files name no overlapping source edit. OVERLAP.json records the checked hashes.',
+'Overlap: camform shares student_pilot/r1_routing.py; prior2 shares student_pilot/r1_population.py; donor and pointD share no file.',
+'OVERLAP.json records all four authenticated manifests and the camform application check.',
 f"Camform's PATCH_CAMFORM.patch applies on top with --fuzz=0; its combined regression suite is {count('camform_regression')}.",
 '',
 'Commands for all numbers (run from this workspace; prefix each Python invocation below with the exact prefix on the next line):',
 '`'+PREFIX.rstrip()+'`',
 '`work/verify_base.py` verifies the base inventory; `work/setup.py` verifies PATCH_A, the live inventory and camera hashes.',
 '`work/build_patch.py` builds both overlays, verifies each application, inventories overlaps and applies camform.',
+'`work/refresh_overlap.py` authenticates the final neighboring manifests and verifies that the tested camform patch is unchanged.',
 '`work/run_matrix.py` serially runs subset, focused, integration, live-host, camform and full suites; RUN_MATRIX.json gives each expanded command.',
 '`work/run_supplement.py` runs final MUST comparisons and real-envelope declarations; SUPPLEMENT.json gives each expanded command.',
+'`work/enable_host_reference.py` supplies the sealed-base sibling path.',
+'`work/run_tests.py live_base host_ref_live_base tests.test_host24j.HostReceipt.test_mode_p_bytes_match_base` and `work/run_tests.py live host_ref_live tests.test_host24j.HostReceipt.test_mode_p_bytes_match_base` run the byte comparisons.',
 '`work/summarize.py` computes failure comparisons and counts; `work/package.py` checks source hashes and produces this report, tar and SHA256 sidecar.',
 'The harness is CPU-only, retains fixtures, denies network/subprocess workers/NFS reads/deletion/outside writes, and caps final-run thread pools at 16.',
 'Delivery: PATCH_A2.patch, PATCH_A2_DELTA.patch, FILES_TOUCHED.json, TESTS.json, fbp_patchA2.tar and fbp_patchA2.tar.sha256. The tree owner must merge and reseal.'
@@ -71,7 +77,7 @@ f"Camform's PATCH_CAMFORM.patch applies on top with --fuzz=0; its combined regre
 assert len(lines)<=60
 (OUT/'REPORT.md').write_text('\n'.join(lines)+'\n')
 (ROOT/'STATUS.md').write_text('Both MUST fixes and regression overlays are complete. PATCH_A2 applies exactly to the sealed base and live tree; camform applies cleanly on top. The camera and legacy refusal unit regressions pass. Full integration remains MISSING where the copied kit lacks fixtures or the original review gate manifest; out/REPORT.md and out/TESTS.json give the precise scope and failure comparison.\n')
-names=['REPORT.md','PATCH_A2.patch','PATCH_A2_DELTA.patch','FILES_TOUCHED.json','TESTS.json','BASE_FAILURES.json','MISSING_INPUTS.json','BASE_VERIFICATION.json','LIVE_VERIFICATION.json','PATCH_A_INPUT.json','CAMERA_INPUT.json','PATCH_VALIDATION.json','OVERLAP.json','RUN_MATRIX.json','SUPPLEMENT.json']
+names=['REPORT.md','PATCH_A2.patch','PATCH_A2_DELTA.patch','FILES_TOUCHED.json','TESTS.json','BASE_FAILURES.json','MISSING_INPUTS.json','BASE_VERIFICATION.json','LIVE_VERIFICATION.json','PATCH_A_INPUT.json','CAMERA_INPUT.json','PATCH_VALIDATION.json','OVERLAP.json','OVERLAP_INITIAL.json','HOST_REFERENCE.json','RUN_MATRIX.json','SUPPLEMENT.json']
 for label in tests['runs']:
     names += [label+'.json',label+'.log']
 names += [p.name for p in OUT.glob('apply_*.log')]+['camform_apply.log']

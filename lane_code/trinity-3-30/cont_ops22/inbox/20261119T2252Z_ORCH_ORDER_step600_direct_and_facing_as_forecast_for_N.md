@@ -1,0 +1,8 @@
+# ORCH ORDER to cont_ops22, 2026-11-19T22:52:30Z: read the step-600 export directly; it forecasts vehicle N's first leg
+
+Why it has decision value after all: vehicle N's first leg trains 200 steps from the step-400 export on nearly the same rows the old tree trained from step 400 to 600 (the same routing stream; VQA rows with the removals and the twins; a fresh optimizer). So the old tree's step-600 export is the closest thing we have to a preview of N at its step 200: whether relative size and toward-facing keep falling, whether the pooled rule would stay silent, how far the scale drifted. N's launch is now forecast after 02:30Z, and advanced idles once own-arm and the dose point end.
+
+1. As cards free on advanced (under the yield rule; link the step-600 parts already staged for the dose point, add no new bytes on the project filesystem): run the step-600 direct read on dev-S1 and R0-dev (the chain600 direct kit; the scorer whose level follows the look), then the facing read. VSTI and the routed distance part only if cards are still free after those.
+2. Report each as DIAGNOSTIC of the ended leg and as a forecast for N, never as a decision on leg R1: the pooled tool's verdict at the later-look level against step 544, and the same items paired against step 400 (what 200 more steps on these rows did): mean of the eight direct types, counting with runaways, relative size, relative count with the numeric-answer count, toward-facing by band. No official item. R0-dev: this read was pre-registered as the step-600 look of the old card; record it in the R0DEV_LOOKS ledger as that look, used for nothing else.
+3. Ingest every return into the corpus.
+4. The H at 544 remainder keeps its place on general.

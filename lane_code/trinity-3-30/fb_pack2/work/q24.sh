@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack; ls -la $F/MANIFEST_N_BOUNDARY1.json; head -c 2500 $F/route/out/CONFIG_HANDOFF.json; echo; echo ==CAMS2; ls $F/cam/out/intake | head; grep -o "S2[^.]*\." $F/camrev/REVIEW_VERDICT.md | head -3

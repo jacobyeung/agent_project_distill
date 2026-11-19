@@ -27,7 +27,7 @@ with tarfile.open(archive,'r') as tf:
             assert hashlib.sha256(raw).hexdigest()==manifest['input_sha256'][str(ROOT/p.name)]
 report=OUT/'REPORT.md'
 assert len(report.read_text().splitlines())<=80
-used=sum(p.stat().st_size for p in ROOT.rglob('*') if p.is_file())
+used=sum(p.stat().st_size for p in ROOT.rglob('*') if not p.is_symlink() and p.is_file())
 assert used<10_000_000_000,used
 result=dict(command='bash code/run.sh check_delivery',
     input_sha256={str(p):sha(p) for p in (archive,sidecar,OUT/'PACKAGE.json',report,Path(__file__))},

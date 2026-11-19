@@ -1,0 +1,1 @@
+J=/scratch/jjyeung/orch_n30/tree_rebuild15_w24l; date -u +%TZ; tmux ls | grep tr15; d=$(ls -dt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*_tree_rebuild24l3 | head -1); test -f $d/final_message.md && head -c 2500 $d/final_message.md || tail -c 500 $d/transcript.log | tr -cd "[:print:]\n" | tail -2 | cut -c1-250

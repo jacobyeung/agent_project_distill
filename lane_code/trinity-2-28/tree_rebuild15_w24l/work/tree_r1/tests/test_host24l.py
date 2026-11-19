@@ -146,15 +146,23 @@ class Host24L(unittest.TestCase):
         with self.dependencies():
             return proof.run(request, self.root, stage=stage)
 
+    def run_native(self, request, corrupt):
+        from launch_r2.staging import stage_inputs
+        def stage(entries, root):
+            stage_inputs(entries, root)
+            corrupt(root)
+        with self.dependencies(), patch('launch_r2.staging.stage_inputs', side_effect=stage):
+            return proof.run(request, self.root)
+
     def test_hook_stager_recorded(self):
         _, request = self.fixture()
         self.assertEqual(self.host(self.run_hook(request))['stager'], 'hook')
 
-    def test_hook_wrong_unreferenced_byte_refuses(self):
+    def test_native_wrong_unreferenced_byte_refuses(self):
         cfg, request = self.fixture()
         self.pin('unreferenced.txt', b'right byte', stage=True)
         self.repin(cfg, request)
-        result = self.run_hook(request, lambda root: (root/'u/unreferenced.txt').write_bytes(b'wrong byte'))
+        result = self.run_native(request, lambda root: (root/'u/unreferenced.txt').write_bytes(b'wrong byte'))
         self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/unreferenced.txt')
 
     def archive_fixture(self, *, inventory_only=False):
@@ -180,17 +188,17 @@ class Host24L(unittest.TestCase):
         request, _ = self.archive_fixture()
         self.assertEqual(self.host(self.run_hook(request))['stager'], 'hook')
 
-    def test_hook_archive_inventory_catches_unreferenced_byte(self):
+    def test_native_archive_inventory_catches_unreferenced_byte(self):
         request, key = self.archive_fixture(inventory_only=True)
-        result = self.run_hook(request, lambda root: (root/'x'/key/'payload/unreferenced.txt').write_bytes(b'wrong'))
+        result = self.run_native(request, lambda root: (root/'x'/key/'payload/unreferenced.txt').write_bytes(b'wrong'))
         self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/archive.txt')
 
-    def test_hook_archive_hash_catches_wrong_archive_byte(self):
+    def test_native_archive_hash_catches_wrong_archive_byte(self):
         request, key = self.archive_fixture()
-        result = self.run_hook(request, lambda root: (root/'a'/key).write_bytes(b'wrong'))
+        result = self.run_native(request, lambda root: (root/'a'/key).write_bytes(b'wrong'))
         self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/archive.txt')
 
-    def test_hook_archive_target_catches_wrong_byte(self):
+    def test_native_archive_target_catches_wrong_byte(self):
         request, _ = self.archive_fixture()
-        result = self.run_hook(request, lambda root: (root/'u/archive.txt').write_bytes(b'wrong'))
+        result = self.run_native(request, lambda root: (root/'u/archive.txt').write_bytes(b'wrong'))
         self.refused(result, 'R1_HOST_STAGING_DIFFERS:u/archive.txt')
