@@ -12,19 +12,23 @@ import torch
 
 
 class Phases:
-    def __init__(self, device):
+    def __init__(self, device, cuda_events=True):
         self.device = device
         self.records = []
-        self.local = threading.local()
+        self.backward_active = False
+        self.cuda_events = cuda_events
 
     @contextlib.contextmanager
     def scope(self, name, stream=None):
-        old = getattr(self.local, 'phase', '')
-        self.local.phase = name
+        backward = name == 'backward_including_recompute_and_fsdp'
+        if backward:
+            self.backward_active = True
         tick = time.perf_counter()
         begin = end = None
-        # Only main-thread ranges use CUDA events. CPU prefetch must stay CPU-only.
-        if self.device.type == 'cuda' and threading.current_thread() is threading.main_thread():
+        # Autograd device workers own backward streams; the row producer is CPU only.
+        if (self.cuda_events and self.device.type == 'cuda'
+                and not threading.current_thread().name.startswith('c1-row-cpu')):
+            stream = stream if stream is not None else torch.cuda.current_stream(self.device)
             begin, end = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
             begin.record(stream)
         try:
@@ -34,21 +38,24 @@ class Phases:
             if end is not None:
                 end.record(stream)
             self.records.append((name, time.perf_counter() - tick, begin, end))
-            self.local.phase = old
+            if backward:
+                self.backward_active = False
 
-    def table(self, destination):
-        if self.device.type == 'cuda':
+    def table(self, destination, partial=False):
+        if self.device.type == 'cuda' and not partial:
             torch.cuda.synchronize(self.device)
         sums = {}
-        for name, wall, begin, end in self.records:
+        for name, wall, begin, end in list(self.records):
             row = sums.setdefault(name, dict(calls=0, host_seconds=0., stream_elapsed_seconds=0.))
             row['calls'] += 1
             row['host_seconds'] += wall
-            row['stream_elapsed_seconds'] += begin.elapsed_time(end) / 1000 if begin else 0.
+            ready = begin is not None and (not partial or end.query())
+            row['stream_elapsed_seconds'] += begin.elapsed_time(end) / 1000 if ready else 0.
         Path(destination).write_text(json.dumps(sums, indent=2) + '\n')
-        print('phase\tcalls\thost_s\tCUDA_stream_elapsed_s', flush=True)
-        for name, row in sorted(sums.items()):
-            print(f"{name}\t{row['calls']}\t{row['host_seconds']:.6f}\t{row['stream_elapsed_seconds']:.6f}", flush=True)
+        if not partial:
+            print('phase\tcalls\thost_s\tCUDA_stream_elapsed_s', flush=True)
+            for name, row in sorted(sums.items()):
+                print(f"{name}\t{row['calls']}\t{row['host_seconds']:.6f}\t{row['stream_elapsed_seconds']:.6f}", flush=True)
         return sums
 
 
@@ -107,8 +114,8 @@ def hooks(run, model, phases):
         def call(*args, **kwargs):
             name_now = label
             if label == 'lm_layer':
-                name_now += ('_recompute' if getattr(phases.local, 'phase', '') ==
-                             'backward_including_recompute_and_fsdp' else '_forward')
+                name_now += ('_recompute' if phases.backward_active or
+                             torch._C._current_graph_task_id() != -1 else '_forward')
             stream = args[2] if label == 'fsdp/_unshard' and phases.device.type == 'cuda' else None
             with phases.scope(name_now, stream=stream):
                 return original(*args, **kwargs)
@@ -132,9 +139,11 @@ def hooks(run, model, phases):
             for method in ('causal_conv1d_fn', 'causal_conv1d_update', 'chunk_gated_delta_rule',
                            'recurrent_gated_delta_rule'):
                 if getattr(module, method, None) is not None:
-                    wrap(module, method, 'deltanet/' + method)
-            wrap(module.norm, 'forward', 'deltanet/gated_norm')
-            wrap(module.conv1d, 'forward', 'deltanet/torch_depthwise_conv')
+                    wrap(module, method, 'lin_attn/' + {'causal_conv1d_fn':'conv',
+                         'causal_conv1d_update':'conv_update', 'chunk_gated_delta_rule':'chunk',
+                         'recurrent_gated_delta_rule':'recurrent'}[method])
+            wrap(module.norm, 'forward', 'lin_attn/gated_norm')
+            wrap(module.conv1d, 'forward', 'lin_attn/torch_depthwise_conv')
     for name in ('check_row', 'move', 'memory_stats', 'own_values'):
         wrap(run, name, name)
     from torch.distributed.fsdp import _runtime_utils as runtime
@@ -148,6 +157,7 @@ def hooks(run, model, phases):
 
 
 def profiler_table(profiler, path):
+    from privacy import scrub, write_json
     rows = []
     for event in profiler.key_averages():
         if event.key.startswith('so/') or any(s in event.key.lower() for s in ('nccl', 'memcpy', 'synchronize', '_local_scalar_dense')):
@@ -156,5 +166,5 @@ def profiler_table(profiler, path):
                              host_self_seconds=event.self_cpu_time_total / 1e6,
                              device_total_seconds=event.device_time_total / 1e6,
                              device_self_seconds=event.self_device_time_total / 1e6))
-    Path(path).write_text(json.dumps(rows, indent=2) + '\n')
-    print('PROFILE_TABLE ' + json.dumps(rows), flush=True)
+    write_json(Path(path), rows)
+    print('PROFILE_TABLE ' + json.dumps(scrub(rows)), flush=True)

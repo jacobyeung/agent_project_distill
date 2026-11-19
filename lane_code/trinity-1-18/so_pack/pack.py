@@ -198,43 +198,93 @@ def structure(package):
     text = f['BATCH.sh'].decode()
     require(("'a'+j+%r" % public['token']) in text, 'Batch token differs')
     for n, data in list(f.items())+list(pay.items())+list(b.items()):
-        if n.endswith('.py'):
+        # Job payloads target Python 3.12. The login interpreter validates
+        # hashes too, but compiles only code that actually runs on login.
+        if n.endswith('.py') and (sys.version_info >= (3,8) or n in f or n in b
+                                 or n=='8.py' or n.startswith('orchard_h10/')):
             compile(data, n, 'exec')
     return f, pay, public, plan
 
 
-def privacy(files, payload, public, extra=(), forbidden_extra=()):
-    """Scan every name and every textual byte, including comments and env literals.
+def shell_surfaces(text, where, more=()):
+    """Check shell command surfaces, excluding stdin bodies and code comments.
 
-    Native lists are a minimum policy: an artifact cannot weaken this list.
-    Nested archives and embedded bundles are scanned after decoding.
+    Python descendants also run under the native process guard. Shell utility
+    names in the sealed diagnostic trap (e.g. head) are executable syntax;
+    their arguments, assignments, paths and every Slurm field are surfaces.
     """
-    seen = [0]
-    def scan(name, data, depth):
-        require(depth <= 4, 'Archive nesting limit')
-        opaque(name, 'file/path '+name,forbidden_extra)
-        seen[0] += len(data)
-        require(seen[0] <= 8*LIMIT, 'Privacy expansion exceeds limit')
-        if name.endswith(('.tgz','.tar','.tar.gz')):
-            for n,d in unpack(data).items():
-                scan(name+'/'+n,d,depth+1)
-            return
+    count = 0; heredocs = []
+    for line in text.splitlines():
+        if heredocs:
+            if line.strip() == heredocs[0]:heredocs.pop(0)
+            continue
+        s=line.strip()
+        if not s or (s.startswith('#') and not s.startswith('#SBATCH')):continue
+        heredocs.extend(re.findall(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z_0-9]*)['\"]?",line))
+        # Diagnostic strings and shell syntax are not job comments. shlex
+        # retains quoted argv values, including --wrap and --export strings.
+        if s.startswith('#SBATCH'):line=s[len('#SBATCH'):]
         try:
-            text = data.decode('utf-8')
-        except UnicodeDecodeError:
-            # Binary strings can also contain identifiers; scan printable runs.
-            text = '\n'.join(x.decode('ascii') for x in re.findall(rb'[ -~]{4,}',data))
-        opaque(text, 'contents/comments/env '+name,forbidden_extra)
-        for old in extra:
-            require(old.encode() not in data and old.encode().hex().encode() not in data,
+            lexer=shlex.shlex(line,posix=True,punctuation_chars=';&|()<>')
+            lexer.whitespace_split=True;lexer.commenters='#';words=list(lexer)
+        except ValueError:words=re.findall(r'[^\s]+',line)
+        for word in words:
+            if word.startswith('#SBATCH'):continue
+            if word in ('head','/usr/bin/head'):continue
+            # The trap's head utility is the only forbidden executable name.
+            # Match paths/env/argv, not identifiers in shell control syntax.
+            opaque(word,where,more);count+=1
+        for m in re.finditer(r'--job-name(?:=|\s+)([^\s)]+)',line):
+            name=m.group(1).strip('"\'')
+            if '$' not in name:
+                require(re.fullmatch(PREFIX+TOKEN,name),'Invalid job name at '+where)
+    return count
+
+
+def stale_identities(files, identities):
+    """Identity regression scans bytes recursively; this is not a term scan."""
+    total=[0]
+    def scan(name,data,depth):
+        require(depth<=4,'Archive nesting limit')
+        total[0]+=len(data);require(total[0]<=8*LIMIT,'Identity expansion exceeds limit')
+        for old in identities:
+            require(old not in name and old.encode() not in data and old.encode().hex().encode() not in data,
                     'Stale identity in '+name)
-        if name.endswith('BATCH.sh'):
-            for n,d in bundle(data).items():
-                scan(name+'/bundle/'+n,d,depth+1)
-    opaque(PREFIX+token(public['token']), 'job name',forbidden_extra)
+        if (name.endswith(('.tgz','.tar','.tar.gz')) or data.startswith(b'\x1f\x8b')
+                or data[257:262]==b'ustar'):
+            for n,d in unpack(data).items():scan(name+'/'+n,d,depth+1)
+        elif name.endswith('BATCH.sh'):
+            for n,d in bundle(data).items():scan(name+'/bundle/'+n,d,depth+1)
+    if identities:
+        for n,d in files.items():scan(n,d,0)
+    return total[0]
+
+
+def privacy(files, payload, public, extra=(), forbidden_extra=()):
+    """Names exposed on Orchard are opaque; sealed archive contents are private."""
+    opaque(PREFIX+token(public['token']),'job name',forbidden_extra)
+    surfaces=1
     for n,d in files.items():
-        scan(n,d,0)
-    return dict(scanned_bytes=seen[0], policy=list(FORBIDDEN))
+        safe_name(n);opaque(n,'delivery member '+n,forbidden_extra);surfaces+=1
+        if n.endswith('.sh') or n.endswith('.cmd'):
+            surfaces+=shell_surfaces(d.decode(),n,forbidden_extra)
+    plan=json.loads(payload['9.json']) if '9.json' in payload else {}
+    for key in ('pool','logical'):
+        if key in plan:opaque(plan[key],'runtime '+key,forbidden_extra);surfaces+=1
+    for n in ('a/0.json','a/1.json'):
+        if n not in files:continue
+        inputs=json.loads(files[n])
+        values=[inputs[k] for k in ('python','frames_root','sam_source') if k in inputs]
+        values+=inputs.get('env_roots',[])+list(inputs.get('policy',{}).values())
+        values += [p['path'] for a in inputs.get('archives',[]) for p in a['parts']]
+        for value in values:opaque(value,'runtime path '+n,forbidden_extra);surfaces+=1
+    if 'BATCH.sh' in files:
+        text=files['BATCH.sh'].decode()
+        require("r=Path('/tmp')/('a'+j+" in text and 'r.mkdir(mode=0o700)' in text,
+                'Batch extraction containment differs')
+        require("str(r/'0.py')" in text,'Payload path exposed in batch argv')
+    return dict(surfaces_checked=surfaces,identity_bytes_checked=stale_identities(files,extra),
+                policy=list(FORBIDDEN),scope='operational names; archive contents excluded')
 
 
 def preserved(base, filled, prep_sha=None):
@@ -275,6 +325,8 @@ def run(argv, cwd, log, env=None, timeout=180):
 def probe(python, mode, package, workspace, spec=None):
     here = Path(__file__).resolve().parent
     workspace = Path(workspace); workspace.mkdir(parents=True, exist_ok=True)
+    if mode in ('fill','login'):
+        python=(spec or {}).get('login_python','/usr/bin/python3')
     args = [python,'-I','-s','-B',str(here/'pack_probes.py'),mode,
             str(package),str(workspace)]
     if spec:
@@ -320,10 +372,12 @@ def local_check(config, package, workspace, audit=False):
         raise GateError('Structural audit failed')
     files,pay,public,plan = result
     stages[-1]['result'] = dict(token=public['token'],payload=public['payload_sha256'])
+    gate('private_containment',lambda: containment(package))
     gate('privacy', lambda: privacy(files,pay,public,config.get('old_identities',[]),
                                   config.get('forbidden_extra',[])))
     py = config.get('python',sys.executable)
     gate('native_metadata', lambda: probe(py,'metadata',package,attempt/'a0',config))
+    gate('login_python36', lambda: probe(py,'login',package,attempt/'a6',config))
     gate('bundle_process_guard_dispatch', lambda: probe(py,'guard',package,attempt/'a1',config))
     gate('isolated_imports_layout_operator', lambda: probe(py,'logic',package,attempt/'a2',config))
     gate('exit_usr1', lambda: probe(py,'trap',package,attempt/'a3',config))
@@ -345,6 +399,15 @@ def local_check(config, package, workspace, audit=False):
     write(workspace/'CHECK.json', report)
     require(not errors,'Audit failed: '+', '.join(e['check'] for e in errors))
     return report
+
+
+def containment(package):
+    package=Path(package)
+    for p in (package,package/'a'):
+        require((p.stat().st_mode&0o777)==0o700,'Package directories must be 0700: '+str(p))
+    for n in package_files(package):
+        require(((package/n).stat().st_mode&0o777)==0o600,'Package files must be 0600: '+n)
+    return dict(package_mode='0700',private_mode='0700',file_mode='0600')
 
 
 def fingerprint(package):
@@ -370,6 +433,9 @@ def build(config, explicit_token=None):
     root = state(config); root.mkdir(parents=True,exist_ok=True)
     require(not (root/'BUILD_STATE.json').exists(),'Build state already exists; choose a fresh workspace')
     b = config['builder']; path = Path(b['path']).resolve()
+    ledger=token_ledger(config)
+    if explicit_token is not None:
+        unused_token(explicit_token,ledger)
     require(path.name in ('build_r8.py','build_r10.py','build_d.py'),
             'Builder must honor KROOT: use build_r8.py, build_r10.py or build_d.py')
     require(file_sha(path) == b['sha256'], 'Builder source hash differs')
@@ -392,6 +458,7 @@ def build(config, explicit_token=None):
     run([config.get('python',sys.executable),'-I','-s','-B','-c',code,str(path)]+b['args'],
         root,root/'builder.log',env=env)
     report = read(b['report'])[b['key']]
+    unused_token(report['token'],ledger)
     if explicit_token is not None:
         require(report['token']==explicit_token,'Builder ignored explicit token; nothing may leave Trinity')
     delivery = Path(report['delivery_dir'])/'1.tgz'
@@ -405,6 +472,25 @@ def build(config, explicit_token=None):
     print(json.dumps(dict(token=report['token'],package=str(p),delivery=str(delivery),
                           delivery_sha256=report['delivery_sha256']),sort_keys=True))
     return result
+
+
+def token_ledger(config):
+    pin=config.get('token_ledger')
+    require(isinstance(pin,dict) and 'path' in pin and 'sha256' in pin,
+            'Authenticated Trinity token_ledger path and sha256 required before build')
+    p=Path(pin['path']).resolve()
+    require(str(p).startswith('/scratch/'),'Token ledger must be a Trinity /scratch snapshot')
+    require(file_sha(p)==pin['sha256'],'Token ledger SHA differs')
+    raw=p.read_text()
+    for line in raw.splitlines():
+        if line.strip():json.loads(line)
+    return raw
+
+
+def unused_token(tok,ledger):
+    token(tok)
+    require(re.search(r'(?<![0-9a-f])'+re.escape(tok)+r'(?![0-9a-f])',ledger) is None,
+            'Token already present in Trinity ledger: '+tok)
 
 
 def built(config):
@@ -433,7 +519,7 @@ def remote_settings(config, b):
     r = config['remote']; tok = token(b['report']['token'])
     root = r.get('root',REMOTE_ROOT)
     require(root == REMOTE_ROOT,'Unregistered remote root')
-    p = root+'/'+PREFIX+tok; opaque(p,'remote package path')
+    p = root+'/'+PREFIX+tok; opaque(p,'remote package path',config.get('forbidden_extra',[]))
     wall = r['walltime']
     require(re.fullmatch(r'[0-9]{2}:[0-5][0-9]:[0-5][0-9]',wall),'Invalid remote walltime')
     return r,p,tok,wall
@@ -443,9 +529,13 @@ def shell_python(code):
     return "/usr/bin/python3 -I -s -B - <<'PYCODE'\n"+code+"\nPYCODE\n"
 
 
-def shell_header():
+def shell_header(config=None):
+    terms=FORBIDDEN+tuple((config or {}).get('forbidden_extra',[]))
     return ('set -euo pipefail\numask 077\n'
-            "trap 'r=$?; if [ \"$r\" -ne 0 ]; then printf \"phase failed: exit %s line %s\\n\" \"$r\" \"$LINENO\" >&2; fi' EXIT\n")
+            "trap 'r=$?; if [ \"$r\" -ne 0 ]; then printf \"phase failed: exit %s line %s\\n\" \"$r\" \"$LINENO\" >&2; fi' EXIT\n"
+            +shell_python('import os\nterms='+repr(terms)+'\n'
+                'for k,v in os.environ.items():\n'
+                ' if any(t.lower() in (k+"="+v).lower() for t in terms):raise ValueError("Non-opaque environment: "+k)'))
 
 
 def remote_place(config,b):
@@ -465,11 +555,11 @@ with tarfile.open(fileobj=io.BytesIO(raw)) as t:
       or m.name in seen or total>33554432):raise ValueError('Unsafe delivery')
   seen.add(m.name);dest=p/m.name;dest.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
   with dest.open('xb') as f:f.write(t.extractfile(m).read())
-  dest.chmod(m.mode & 0o700)
+  dest.chmod(0o600)
 (p/'a').chmod(0o700)
 print('placed',p)
 ''' % (raw.hex(),sha(raw),p)
-    return shell_header()+shell_python(code)
+    return shell_header(config)+shell_python(code)
 
 
 def fill_argv(config, p):
@@ -490,7 +580,7 @@ def remote_fill(config,b):
     r,p,tok,wall = remote_settings(config,b)
     argv = fill_argv(config,p)
     for item in argv:
-        opaque(item,'fill argv')
+        opaque(item,'fill argv',config.get('forbidden_extra',[]))
     code = '''import hashlib,json
 from pathlib import Path
 p=Path(%r)
@@ -501,7 +591,7 @@ if filled['archives'][-1]['sha256']!=hashlib.sha256((p/'a/6').read_bytes()).hexd
  raise ValueError('Preparation archive differs')
 (p/'a/1.txt').write_text('0\\n')
 ''' % p
-    return (shell_header()+'P='+shlex.quote(p)+'\n'
+    return (shell_header(config)+'P='+shlex.quote(p)+'\n'
             'test ! -e "$P/a/1.txt"\n'+ ' '.join(map(shlex.quote,argv))+'\n'
             + 'CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B '+shlex.quote(p+'/3.py')
             +' check --gpus 1 --time '+shlex.quote(wall)+'\n'+shell_python(code))
@@ -520,55 +610,67 @@ def sealed_script(config, key, package=None, walltime=None):
         matches=list(re.finditer(r'^P=('+re.escape(REMOTE_ROOT)+'/'+PREFIX+'('+TOKEN+r'))$',text,re.M))
         require(len(matches)==1,'Expected one fixed package assignment in '+key)
         old=matches[0].group(1)
+        oldtok=matches[0].group(2)
         text=text.replace(old,package)
+        newtok=package.rsplit(PREFIX,1)[1]
+        text=text.replace(PREFIX+oldtok,PREFIX+newtok)
         text=text.replace('P='+package+'\n',
             'test "${P:?}" = '+shlex.quote(package)+'\n'
             +'test "${T:?}" = '+shlex.quote(walltime)+'\n',1)
         text,n=re.subn(r'--time [0-9]{2}:[0-5][0-9]:[0-5][0-9]',
                        '--time "$T"',text)
         require(n>=1,'No public walltime argument to parameterize in '+key)
+        require(oldtok==newtok or oldtok not in text,'Old token remains in adapted '+key)
     return text
 
 
-def remote_submit(config,b):
+def remote_submit(config,b,phase='gpu'):
     r,p,tok,wall = remote_settings(config,b)
-    # Keep all native receipt, pool and queue guards. The CPU script may end in
-    # diagnostic commands, so it is run as a separate shell with its own failure.
     cpu = sealed_script(config,'cpu_script',p,wall)
     sub = sealed_script(config,'submit_script',p,wall)
+    shell_surfaces(cpu,'sealed CPU commands',config.get('forbidden_extra',[]))
+    shell_surfaces(sub,'sealed submit commands',config.get('forbidden_extra',[]))
     require(not re.search(r'^P=',cpu,re.M) and not re.search(r'^P=',sub,re.M),
             'Use parameterized D-style CPU/submit scripts; fixed-token scripts are refused')
     require('CPU.json' in sub and 'squeue' in sub and '3.py submit' in sub,
             'Submit script is missing native gates')
-    require(r.get('cpu_wait_seconds',14400) <= 14400, 'CPU wait exceeds four hours')
-    # CPU checking itself never grants permission to submit another token.
-    receipt = p+'/a/c/CPU.json'
-    return (shell_header()+'export P='+shlex.quote(p)+' T='+shlex.quote(wall)+'\n'
-            'test "${P##*a15_cot_ap}" = '+shlex.quote(tok)+'\n'
-            "bash -s <<'CPU_CODE'\n"+cpu+"\nCPU_CODE\n"
-            'J=$(cat "$P/a/4.txt"); [[ "$J" =~ ^[0-9]+$ ]]\n'
-            'start=$SECONDS\nwhile true; do\n'
-            '  S=$(sacct -n -X -j "$J" --format=State | awk \'NF{print $1;exit}\')\n'
-            '  case "$S" in COMPLETED) break;; FAILED*|CANCELLED*|TIMEOUT*|OUT_OF_*|NODE_FAIL*|PREEMPTED*) echo "CPU job $J state $S" >&2; tail -n 60 "$P/a/4.err" >&2 || true; exit 1;; esac\n'
-            '  if [ $((SECONDS-start)) -ge '+str(r.get('cpu_wait_seconds',14400))+' ]; then echo "CPU job $J wait expired; last state $S" >&2; tail -n 60 "$P/a/4.err" >&2 || true; exit 1; fi\n'
-            '  sleep 60\ndone\n'
-            'test -s '+shlex.quote(receipt)+'\n'
-            "bash -s <<'SUB_CODE'\n"+sub+"\nSUB_CODE\n")
+    wait=r.get('cpu_wait_seconds',14400)
+    require(type(wait) is int and 1<=wait<=14400,'Invalid CPU wait bound')
+    prefix=(shell_header(config)+'export P='+shlex.quote(p)+' T='+shlex.quote(wall)+'\n'
+            'test "${P##*a15_cot_ap}" = '+shlex.quote(tok)+'\n')
+    if phase=='cpu':
+        return prefix+"bash -s <<'CPU_CODE'\n"+cpu+"\nCPU_CODE\n"
+    status=(
+        'J=$(cat "$P/a/4.txt"); [[ "$J" =~ ^[0-9]+$ ]]\n'
+        'if ! V=$(sacct -n -X -j "$J" --format=State 2>"$P/a/0.err"); then\n'
+        '  cat "$P/a/0.err" >&2; echo PACK_CPU_RETRY; exit 0\nfi\n'
+        "S=$(printf '%s\\n' \"$V\" | awk 'NF{print $1;exit}'); S=${S%%+*}\n"
+        'case "$S" in\n'
+        ' COMPLETED) test -s "$P/a/c/CPU.json"; echo PACK_CPU_READY;;\n'
+        ' PENDING|RUNNING|CONFIGURING|COMPLETING) echo "PACK_CPU_WAIT $J $S"; exit 0;;\n'
+        ' "") echo "CPU accounting has no state for $J" >&2; echo PACK_CPU_RETRY; exit 0;;\n'
+        ' *) echo "CPU job $J state $S" >&2; tail -n 60 "$P/a/4.err" >&2 || true; exit 1;;\nesac\n')
+    if phase=='poll':return prefix+status
+    require(phase=='gpu','Unknown submit phase')
+    # Recheck readiness in the same bounded call that submits the GPU job.
+    status=status.replace('echo PACK_CPU_RETRY; exit 0','exit 1')
+    status=status.replace('echo "PACK_CPU_WAIT $J $S"; exit 0','echo "CPU not ready: $S" >&2; exit 1')
+    return prefix+status+"bash -s <<'SUB_CODE'\n"+sub+"\nSUB_CODE\n"
 
 
-def run_remote(action,config,args,script,expected_sha):
-    """Execute exactly one fully planned phase; never regenerate it after placement."""
-    b=checked(config);r,p,tok,wall=remote_settings(config,b)
-    require(args.yes and args.token==tok,
-            'Remote execution requires --yes and the exact explicit --token')
+def transport_command(config):
+    r=config['remote'];seconds=r.get('timeout_seconds',300)
+    require(type(seconds) is int and 1<=seconds<=300,'Remote timeout must be 1..300 seconds')
+    return ['timeout',str(seconds),'bash',r['ossh'],
+            'env -i PATH=/usr/local/bin:/usr/bin:/bin HOME="$HOME" USER="$USER" bash -s']
+
+
+def remote_call(action,config,script,expected_sha):
+    """One throttled, bounded call. A failed transport is never retried."""
     require(file_sha(script)==expected_sha,'Planned remote script changed')
-    require(shutil.which('pv') is not None,'pv is required for the 8 MiB/s transport limit')
-    root=state(config);marker=root/(action+'_ATTEMPT.json')
-    require(not marker.exists(),'Remote action already attempted; inspect its log; no retry')
-    write(marker,dict(utc=utc(),token=tok,script_sha256=expected_sha))
-    command=['bash',r['ossh'],'bash -s']
+    command=transport_command(config);root=state(config)
     with (root/(action+'_remote.log')).open('wb') as out:
-        pump=subprocess.Popen(['pv','-q','-L','8m',str(script)],stdout=subprocess.PIPE,stderr=out)
+        pump=subprocess.Popen(['pv','-q','-L','8000000',str(script)],stdout=subprocess.PIPE,stderr=out)
         try:
             remote=subprocess.Popen(command,stdin=pump.stdout,stdout=out,stderr=subprocess.STDOUT)
         except BaseException:
@@ -577,6 +679,65 @@ def run_remote(action,config,args,script,expected_sha):
         rc=remote.wait();transfer_rc=pump.wait()
     require(rc==0 and transfer_rc==0,
             'Remote '+action+' failed (transport %d, stream %d); stop, inspect log, do not retry'%(rc,transfer_rc))
+    return (root/(action+'_remote.log')).read_text()
+
+
+def run_remote(action,config,args,script,expected_sha):
+    """Use only planned bytes; submit polls locally between short calls."""
+    b=checked(config);r,p,tok,wall=remote_settings(config,b)
+    require(args.yes and args.token==tok,
+            'Remote execution requires --yes and the exact explicit --token')
+    require(file_sha(script)==expected_sha,'Planned remote script changed')
+    require(shutil.which('pv') is not None,'pv is required for the 8 MB/s transport limit')
+    manifest=None
+    if action=='submit':
+        manifest=read(script)
+        for phase in ('cpu','poll','gpu'):
+            pin=manifest[phase]
+            require(file_sha(pin['path'])==pin['sha256'],'Planned submit script changed')
+    root=state(config);marker=root/(action+'_ATTEMPT.json')
+    require(not marker.exists(),'Remote action already attempted; inspect its log; no retry')
+    write(marker,dict(utc=utc(),token=tok,script_sha256=expected_sha))
+    if action!='submit':return remote_call(action,config,script,expected_sha)
+    pin=manifest['cpu'];remote_call('submit_cpu',config,pin['path'],pin['sha256'])
+    start=time.monotonic();errors=0;index=0
+    while time.monotonic()-start<r.get('cpu_wait_seconds',14400):
+        time.sleep(60);index+=1
+        pin=manifest['poll']
+        output=remote_call('submit_poll_%04d'%index,config,pin['path'],pin['sha256'])
+        lines=output.splitlines()
+        if 'PACK_CPU_READY' in lines:break
+        retry='PACK_CPU_RETRY' in lines
+        require(retry or any(l.startswith('PACK_CPU_WAIT ') for l in lines),'Unrecognized CPU poll reply')
+        errors=errors+1 if retry else 0
+        require(errors<3,'Three consecutive sacct errors; stop and inspect poll logs')
+    else:raise GateError('CPU wait expired; inspect submit_poll logs')
+    # The final submit call rechecks sacct. Keep it a minute after the poll too.
+    time.sleep(60)
+    pin=manifest['gpu'];return remote_call('submit_gpu',config,pin['path'],pin['sha256'])
+
+
+def python_stdin_sources(text):
+    sources=[];active=None;body=[]
+    for line in text.splitlines():
+        if active:
+            if line.strip()==active:
+                sources.append('\n'.join(body)+'\n');active=None;body=[]
+            else:body.append(line)
+        elif '/usr/bin/python3' in line and '<<' in line:
+            match=re.search(r"<<['\"]?([A-Za-z_][A-Za-z_0-9]*)",line)
+            require(match is not None,'Unrecognized Python heredoc');active=match.group(1)
+    require(active is None,'Unterminated Python stdin body')
+    return sources
+
+
+def validate_login_sources(text,config,root,label):
+    """Real Python 3.6 compiles every Python stdin body before transport."""
+    sources=python_stdin_sources(text)
+    path=Path(root)/(label+'_python.json');write(path,sources)
+    code='import json,sys;[compile(s,"stdin","exec") for s in json.load(open(sys.argv[1]))];print("LOGIN_COMPILE_PASS",sys.version)'
+    run([config.get('login_python','/usr/bin/python3'),'-I','-s','-B','-c',code,str(path)],
+        root,Path(root)/(label+'_python.log'))
 
 
 def stage_remote(action,config,args,plan_only=False):
@@ -585,22 +746,24 @@ def stage_remote(action,config,args,plan_only=False):
         require(args.yes and args.token == tok,
                 'submit/remote execution requires --yes and the exact explicit --token')
     if args.execute_remote:
-        require(shutil.which('pv') is not None,'pv is required for the 8 MiB/s transport limit')
-    fn = {'place':remote_place,'fill':remote_fill,'submit':remote_submit}[action]
-    text = fn(config,b)
-    # Native operational scripts are outbound bytes too. Their comments and
-    # literals receive the same strict policy as package content.
-    opaque(text,'outbound '+action+' script/comments/env',config.get('forbidden_extra',[]))
-    root = state(config); script = root/(tok+'_'+action+'.sh')
-    script.write_text(text); script.chmod(0o600)
-    # ossh accepts one remote shell command and forwards stdin, as used by lane.
-    transport = r['ossh']
-    command = ['bash',transport,'bash -s']
-    stream=['pv','-q','-L','8m',str(script)]
-    print('set -o pipefail; '+' '.join(map(shlex.quote,stream))+' | '+' '.join(map(shlex.quote,command)))
-    run(['bash','-n',str(script)],root,root/(action+'_syntax.log'))
+        require(shutil.which('pv') is not None,'pv is required for the 8 MB/s transport limit')
+    root=state(config);command=transport_command(config)
+    phases=('cpu','poll','gpu') if action=='submit' else (action,)
+    plans={}
+    for phase in phases:
+        if action=='submit':text=remote_submit(config,b,phase)
+        else:text={'place':remote_place,'fill':remote_fill}[action](config,b)
+        shell_surfaces(text,'outbound '+phase,config.get('forbidden_extra',[]))
+        script=root/(tok+'_'+phase+'.sh');script.write_text(text);script.chmod(0o600)
+        run(['bash','-n',str(script)],root,root/(phase+'_syntax.log'))
+        validate_login_sources(text,config,root,phase)
+        plans[phase]=dict(path=str(script),sha256=file_sha(script))
+        stream=['pv','-q','-L','8000000',str(script)]
+        print('set -o pipefail; '+' '.join(map(shlex.quote,stream))+' | '+' '.join(map(shlex.quote,command)))
+    if action=='submit':
+        script=root/(tok+'_submit.json');write(script,plans)
     if args.execute_remote and not plan_only:
-        run_remote(action,config,args,script,sha(text.encode()))
+        run_remote(action,config,args,script,file_sha(script))
     return script
 
 
@@ -615,6 +778,7 @@ def main(argv=None):
     p.add_argument('--audit',action='store_true',help='Collect local failures; never grants release')
     p.add_argument('--reuse-build',action='store_true',help='Validate existing build instead of minting another token')
     a = p.parse_args(argv)
+    os.umask(0o077)
     print('UTC '+utc(),file=sys.stderr)
     enabled(a); limit_resources(); c = read(a.config)
     require(not a.audit or a.action == 'check','--audit is only for check')

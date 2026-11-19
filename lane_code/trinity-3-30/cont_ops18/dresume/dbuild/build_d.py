@@ -34,7 +34,8 @@ def operator(raw, manifest):
         assert old in text, old
         text = text.replace(old,new)
     n = manifest['count']
-    text = text.replace('580', str(n))
+    # Keep the payload item file name (items/dist580.json); only the counts change.
+    text = text.replace('dist580', '\x00DISTNAME\x00').replace('580', str(n)).replace('\x00DISTNAME\x00', 'dist580')
     names = [s for s in make_items_d.SETS if manifest['sets'][s]]
     text = text.replace("('R0-dev-reworded','R0-dev-twin')", repr(tuple(names)))
     captures = len({r['room_key'] for r in manifest['items']})

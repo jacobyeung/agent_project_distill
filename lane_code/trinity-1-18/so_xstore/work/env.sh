@@ -1,0 +1,9 @@
+#!/bin/bash
+export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
+export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
+export TOKENIZERS_PARALLELISM=false HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+export TMPDIR=/scratch/jjyeung/orch_n30/so_xstore/work/tmp
+export LANE_TEST_OUTPUT="$TMPDIR" TEST_TMP_ROOT="$TMPDIR"
+export XDG_CACHE_HOME="$TMPDIR/cache" HF_HOME="$TMPDIR/hf"
+export TORCH_HOME="$TMPDIR/torch" TRITON_CACHE_DIR="$TMPDIR/triton"
+export XSTORE_PYTHON=/scratch/jjyeung/envs/p1cpu/bin/python

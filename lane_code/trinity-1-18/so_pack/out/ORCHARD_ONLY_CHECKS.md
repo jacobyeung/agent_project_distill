@@ -1,28 +1,42 @@
 # Checks that require Orchard
 
-`pack.py check` produces a local packaging receipt. It never creates `a/c/CPU.json`, fabricates `SLURM_JOB_ID`, or grants the GPU entrypoint a substitute for the native CPU proof.
+All Trinity-runnable checks and operational-script preflights finish before any transport. Missing authenticated mirrors are local prerequisites, never Orchard-only exemptions. Local receipts do not replace `a/c/CPU.json`.
 
-| Remaining check | Why it needs Orchard | Where its failure appears |
+| Remaining check | Orchard dependency | Failure evidence |
 |---|---|---|
-| Exact registered package location, private directory mode, actual pool archive presence/sizes, fill/duplicate markers | Only the Orchard filesystem establishes these facts at `/project/community/jjyeung/okh7/a15_cot_ap<hex>`. Local mirrors establish bytes, not remote presence. | Login helper traceback; generated phase EXIT message; production transport's local `*_remote.log`. |
-| Allocated numeric job ID and node-local disk/storage proof | Needs an actual Slurm allocation and the selected node's `/tmp` capacity and permissions. | CPU job `a/4.err` and `a/4.log`; no success receipt on failure. |
-| Native staging of template groups, bwrap binary, dependency/env archives and namespace mounts | Needs pool paths, installed template assets, filesystem/mount permissions and the job namespace. | Native CPU helper logs above, plus staged `STAGING.json` only when written successfully. |
-| Real job Python and torch/torchvision/transformers/scipy versions against pinned environment receipt | The Trinity CPU environment cannot attest the Orchard job venv or CUDA libraries. | CPU prepare log `a/c/0.log` when created; otherwise `a/4.err`. |
-| Exact export restore and prepared READY/settings/binding/manifest/RESTORE hashes | Requires the pinned full export, dependency archives, source assets and actual namespace. CPU stubs do not establish restore. | CPU prepare log and native exception; no `CPU.json` on failure. |
-| B5/D full-reader rehearsal with staged RGB hashes/PNG decode and real mapping/reader/scorer control flow | The supplied mirror lacks the actual staged RGBs, restore and job venv. The native rehearsal itself uses model stubs, which must remain explicit in its receipt. | `a/c/1.log`, `FULL_READER.json` only after success, and the bound native CPU receipt. |
-| Real return-pool permissions, symlink policy and capacity; general queue availability; duplicate submission guard | These facts can change after local checking and belong to the live Orchard pool and scheduler. | Native submit script stderr; generated phase EXIT message. The wrapper does not retry a failed attempt. |
-| Assigned GPU count/UUIDs, CUDA libraries, H100 memory/kernels, real decode and node-specific bootstrap | These facts require the GPU allocation. The CPU proof checks package/runtime control flow before submission. | Existing batch EXIT trap writes node context, original exit code and last 60 log lines to `$P/a/x${SLURM_JOB_ID}` even before the return-pool write. Later failures also enter native return metadata/logs. |
+| Exact package location, directory permissions, actual pool/archive presence and sizes, fill and duplicate markers | Live Orchard filesystem | Login traceback, phase EXIT message and local `*_remote.log`. Placement uses mkdir without exist_ok, so a live collision stops the attempt. |
+| Token uniqueness | The Trinity ledger snapshot is checked locally; only Orchard mkdir proves live uniqueness | Existing directory causes placement to fail. A stale snapshot cannot authorize overwriting it. |
+| Numeric allocated job ID, node disk capacity, template/bwrap assets, namespace mounts and staging policy | Slurm allocation and node filesystem | CPU `a/4.err`, `a/4.log` and staging receipts when available; no success receipt on failure. |
+| Job Python, torch/torchvision/transformers/scipy versions and CUDA libraries | Actual job venv | CPU prepare logs and native version checks. Real Python 3.6.8 login execution is already a Trinity check. |
+| Full export restore, READY/settings/binding/manifest/RESTORE hashes and full-reader RGB hashes/PNG decode | Authenticated full inputs and the allocated namespace | `a/c/0.log`, `a/c/1.log`, `FULL_READER.json` and the bound native CPU receipt. Local tiny stubs do not establish restore. |
+| Return pool permissions/capacity, symlink policy, general queue availability and duplicate GPU submission | Live pool and scheduler | Sealed submit stderr and the phase EXIT message. |
+| sacct availability, scheduler state spelling and CPU completion | Live Slurm accounting | Each bounded poll retains its stdout/stderr. Missing/error replies tolerate at most two consecutive errors. Unknown or terminal failure states print the job ID, state and available CPU stderr tail. |
+| Slurm delivery of `--signal=B:USR1@1800` to the batch shell | Scheduler signal delivery | The batch trap and stop markers show whether the signal arrived. Local trap/runner tests cover forwarding and handling, not Slurm delivery or trainer-rank exports. |
+| GPU assignment/UUIDs, H100 memory/kernels, CUDA execution and node-specific bootstrap | GPU allocation | Batch EXIT capture at `a/x<job>` preserves node context, exit code and the last 60 log lines when the package directory is writable. Later failures also enter return metadata. |
 
-The generated submit script starts the native CPU job, polls its terminal state at 60-second intervals, and requires `COMPLETED` plus the native receipt before invoking the sealed GPU submit script. A terminal CPU failure prints its stderr tail and stops. The GPU submit script retains plan/payload/input/operator/guard/dispatch/memory/full-reader, queue, pool and duplicate-submit gates. It does not retry a failed submission.
+Every remote call uses timeout, at most 300 seconds; no ssh session spans the CPU job. Trinity waits at least 60 seconds between sacct calls, including the final completion recheck. The overall CPU wait is at most four hours, followed by the bounded final submission call. Transport uses 8,000,000 bytes/s. Timeout or transport failure stops the attempt without retry. Three consecutive accounting errors stop polling; PENDING, RUNNING, CONFIGURING and COMPLETING are the only waiting states. COMPLETED also requires a nonempty native CPU receipt.
 
-Local checks verify the exact batch trap/tail with redirected fixture I/O. They inject an early exception and check the retained nonzero exit and traceback; they also signal a running child. A separate probe exercises the genuine read runner's stop handler, worker arguments and summary with a tiny CPU decoder. Neither probe establishes trainer-rank checkpoint/export behavior.
+A4 and B5 pass the operational-name policy. Archive members inside `0.tgz`, preparation/dependency archives and decoded bundles are private; their names and contents are excluded from forbidden-term scanning. Stale identities remain a separate recursive byte check. Generated login process environments are cleared to PATH/HOME/USER and audited; native job guards check Python descendants. The native diagnostic `head` utility is shell executable syntax; its arguments and paths are audited. Code comments and log contents are not Slurm comments or log names.
 
-## Missing local inputs are not Orchard-only exemptions
+Exact login placement, fill and public checks run locally under Python 3.6.8. Full-size fill/resolution remains blocked by absent authenticated export/dependency mirrors. The resolver refuses nonregular dependency members, including links; this conservative gate needs authenticated native-link handling before such an input can pass. The original r10 source deliveries and a fresh Trinity ledger are also absent. No remote place/fill, Slurm submission, GPU execution or trainer-rank export proof ran during this task.
 
-Export scanning, base/env archive preservation, tar header/file resolution, policy authorization, package/bundle/payload pins, item validation, isolated imports, layout metadata, operator planning/rehearsal, memory bounds, process guard/write proof and dispatch predicates can run on Trinity with authenticated input mirrors. Missing mirrors cause a local failure. This dispatch does not have the large export/dependency archives or the original SHA-pinned r10 source deliveries. The 3 GB workspace cap also prevents staging a complete production export here.
+If the batch cannot write its capture file, a failed terminal state without logs indicates a filesystem/bootstrap failure. It never counts as a successful empty return.
 
-The local dependency resolver currently refuses nonregular archive members, including links that the native staging policy might permit. It therefore fails closed on such archives; support for authenticated native link semantics is not established. Full-size fill/resolution and actual login-runtime compatibility remain unvalidated.
+## Review round 1: finding -> fix -> test
 
-The supplied package names, payload comments and native operational scripts violate the requested strict forbidden-word policy. The wrapper rejects them before transport, including when `--yes` is supplied. There is no policy bypass. Generated remote commands received syntax checks only; no remote placement, fill, CPU job or GPU submission ran during this task.
-
-If the compute node cannot write the package directory, the batch trap cannot retain its tail there. A failed terminal state without `a/x<job>` or CPU logs is therefore a filesystem/bootstrap diagnostic, not a successful empty return. The submit wrapper prints the CPU job ID, terminal state or wait expiry, and any available stderr tail before stopping.
+| Finding | Fix | Regression test |
+|---|---|---|
+| 1 | Audit operational names; keep private bytes separate; check containment and stale identities. | `test_F01_*` |
+| 2 | Plan every phase before the first transfer. | `test_F02_real_submit_preflight_fails_before_place`, `test_all_plans_every_phase_before_any_remote_execution` |
+| 3 | Bound every ossh call with timeout; submit CPU, poll locally, then submit GPU. | `test_F03_short_calls_and_F10_accounting_error_budget`, local transport stub |
+| 4 | Apply both patches and compare every delivered source hash. | `test_delivery.py`: `F04_PATCH_EQUALS_TESTED_SOURCE_PASS` |
+| 5 | Replace the old CPU job name as well as its package path; reject residual old tokens. | `test_fixed_token_operational_adapter_is_explicit` |
+| 6 | Check top-level read metadata and reject a duplicate-layout zero-row gate. | `test_F06_*` |
+| 7 | Add token-enabled builders in `so_pack_builders/`; preserve native originals. | `test_delivery.py` and native `check_release_d.py` fixture |
+| 8 | Execute login placement, exact fill and public check with real Python 3.6.8. | `test_F08_real_python36_login_runtime`, `test_F09_dropped_env_through_real_python36_fill_probe` |
+| 9 | Plant import and archive defects through probe wiring. | `test_F09_*` |
+| 10 | Reject every non-running terminal state; tolerate fewer than three consecutive accounting errors. | `test_F10_*`, `test_F03_*` |
+| 11 | Apply extra terms to the remote package path and fill argv. | `test_F11_custom_terms_cover_remote_path_and_fill_argv` |
+| 12 | Cap the complete transport stream at 8,000,000 bytes/s. | `test_transport_stream_with_local_copy_stub_and_no_retry` |
+| 13 | Check a SHA-pinned Trinity ledger before an explicit-token build. | `test_F13_ledger_reuse_rejected_before_builder` |
+| 15 | State remote dependencies and signal-delivery limits explicitly. | `test_delivery.py`: `F15_DOCUMENTED_REMOTE_CONTRACT_PASS` |

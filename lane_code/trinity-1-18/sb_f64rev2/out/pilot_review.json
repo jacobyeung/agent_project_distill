@@ -1,0 +1,92 @@
+{
+  "command": "bash run_cpu.sh pilot_check.py",
+  "scope": "CPU preflight plus explicitly injected failure in synthetic audited fixtures; no GPU measurement or production plan.",
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/pilot_check.py": "2cd40946f615f6be3d69ecefe134da32aa2da5fa6d74ae84cfc25ddfc112aca8",
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/run_cpu.sh": "7424b7e16b9f4124ddb70af8c4ea9c4cc206f66249318fbeaf061870c9226675",
+    "/scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/token_audit.py": "08666df18288ac91b2b11a1d6566537d34c5301be717a32d4dc0f45507aa4359",
+    "/scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/mem_pilot.py": "651ffafb2f611588d93f4ce8819a1e41dcbce3c05f3f0a63e45e25cd4824314f",
+    "/scratch/jjyeung/orch_n30/sb_f64fix/kit/configs/r1_config_f64.json": "cc811f9ad166cba19f8a3540ef9577a7379c8fc7c7cd972735a152434d884072",
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/tmp/dryrun/token_audit_8m70opiy/complete_0.jsonl": "046f7985477bd6f808d3268aa8b31905b7b59af2baa2789b8fe21c548d38d4b5",
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/tmp/dryrun/token_audit_8m70opiy/complete_1.jsonl": "d596db36a37ca06f341bf34af8899840a428acc7c4c6d7aea376db92636f1e59",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_f64/student_pilot/carrier_c1_run.py": "89c78a59aaa8dfabb9f93c6ed56266b73259831f9dafde31b2a78c152bdfcde2",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_f64/student_pilot/carrier_c1.py": "3eaae0dd75fac3eebc5ccfaeaacf3e265e294fe4288fb2aaeb0dd7740f352a13",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_f64/student_pilot/full_ft.py": "cd6f494b19bd8de38d09fb04b8b9a51d343373fe1dddfe3b1c1931cd7b292279",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_f64/student_pilot/r1_training.py": "b3da36b7328a0acaf55b91aa774d6a613bf49ae7303fa707f04544ff684af82e",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_f64/launch_r1/entry.py": "7e2262557be59803c97ec158658881dc9cd05b86f4034b3bc5565456dd4543ee"
+  },
+  "unbound_commands": [
+    {
+      "argv": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-B",
+        "/scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/token_audit.py",
+        "run",
+        "--config",
+        "/scratch/jjyeung/orch_n30/sb_f64fix/kit/configs/r1_config_f64.json",
+        "--out",
+        "/scratch/jjyeung/orch_n30/sb_f64rev2/tmp/unbound_shard.jsonl"
+      ],
+      "returncode": 1,
+      "stderr": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/token_audit.py\", line 352, in <module>\n    main()\n  File \"/scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/token_audit.py\", line 343, in main\n    run(args)\n  File \"/scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/token_audit.py\", line 165, in run\n    cfg = {**cfg, 'preparation': file_pin(Path(cfg['preparation_output']) / 'receipt.json')}\n                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_f64/student_pilot/p3_provenance.py\", line 62, in file_pin\n    return {'path': str(Path(path).resolve()), 'sha256': sha256(path)}\n                                                         ^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_f64/student_pilot/p3_provenance.py\", line 9, in sha256\n    with Path(path).open('rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/469ddece/receipt.json'\n",
+      "stdout": ""
+    },
+    {
+      "argv": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-B",
+        "/scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/mem_pilot.py",
+        "--config",
+        "/scratch/jjyeung/orch_n30/sb_f64fix/kit/configs/r1_config_f64.json",
+        "--audit",
+        "/scratch/jjyeung/orch_n30/sb_f64rev2/tmp/MISSING_summary.json",
+        "--out",
+        "/scratch/jjyeung/orch_n30/sb_f64rev2/tmp/unbound_pilot"
+      ],
+      "returncode": 1,
+      "stderr": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/mem_pilot.py\", line 232, in <module>\n    main()\n  File \"/scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/mem_pilot.py\", line 110, in main\n    admit(cfg)\n  File \"/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_f64/launch_r1/entry.py\", line 74, in admit\n    raise ValueError('R1_ALL_STREAM_IDENTITIES_REQUIRED')\nValueError: R1_ALL_STREAM_IDENTITIES_REQUIRED\n",
+      "stdout": ""
+    }
+  ],
+  "failed_row_control": {
+    "pilot_accepted": true,
+    "launch_ready": false,
+    "errors": [],
+    "flagged": [
+      {
+        "check_row": "ValueError: injected stale-frame failure (review fixture)",
+        "first_step": 1,
+        "grid": [
+          [
+            64,
+            20,
+            26
+          ]
+        ],
+        "index": 0,
+        "kind": "row",
+        "over_ceiling": false,
+        "over_tripwire": false,
+        "qid": "dry_routing_a43_0",
+        "rank": 2,
+        "seconds": 0.92,
+        "stream": "routing",
+        "suffix_tokens": 162,
+        "tokens": 9303
+      }
+    ],
+    "failed_key": [
+      "routing",
+      0
+    ],
+    "failed_row_in_longest": false
+  },
+  "static_assessment": {
+    "fsdp": "wrap_model -> FULL_SHARD, use_orig_params, BF16 compute, FP32 reduce",
+    "masters": "prepare_model casts base to FP32; pilot checks trainable base dtypes; wrap_full_model checks every base parameter",
+    "adam": "trainer parameter_groups and AdamW; optimize_step performs optimizer.step; pilot records state bytes",
+    "checkpointing": "carrier_c1.py enables use_reentrant=False; pilot checks enabled and writes rank-sharded checkpoint",
+    "accumulation": "same first-step stream schedule; len(plan)*world == global_batch; substitutes longest rows per stream",
+    "gap": "check_audit permits check_row failures and excludes failed rows from longest; reject non-tripwire failures before a pilot"
+  }
+}

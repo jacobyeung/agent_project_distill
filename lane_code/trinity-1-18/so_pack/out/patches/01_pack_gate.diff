@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/pack.py
-@@ -0,0 +1,620 @@
+@@ -0,0 +1,821 @@
 +#!/usr/bin/env python3
 +"""Opt-in read-package release gate. Python 3.6 standard library on login.
 +
@@ -19,6 +19,7 @@
 +from pathlib import Path, PurePosixPath
 +import re
 +import shlex
++import shutil
 +import subprocess
 +import sys
 +import tarfile
@@ -200,43 +201,93 @@
 +    text = f['BATCH.sh'].decode()
 +    require(("'a'+j+%r" % public['token']) in text, 'Batch token differs')
 +    for n, data in list(f.items())+list(pay.items())+list(b.items()):
-+        if n.endswith('.py'):
++        # Job payloads target Python 3.12. The login interpreter validates
++        # hashes too, but compiles only code that actually runs on login.
++        if n.endswith('.py') and (sys.version_info >= (3,8) or n in f or n in b
++                                 or n=='8.py' or n.startswith('orchard_h10/')):
 +            compile(data, n, 'exec')
 +    return f, pay, public, plan
 +
 +
-+def privacy(files, payload, public, extra=(), forbidden_extra=()):
-+    """Scan every name and every textual byte, including comments and env literals.
++def shell_surfaces(text, where, more=()):
++    """Check shell command surfaces, excluding stdin bodies and code comments.
 +
-+    Native lists are a minimum policy: an artifact cannot weaken this list.
-+    Nested archives and embedded bundles are scanned after decoding.
++    Python descendants also run under the native process guard. Shell utility
++    names in the sealed diagnostic trap (e.g. head) are executable syntax;
++    their arguments, assignments, paths and every Slurm field are surfaces.
 +    """
-+    seen = [0]
-+    def scan(name, data, depth):
-+        require(depth <= 4, 'Archive nesting limit')
-+        opaque(name, 'file/path '+name,forbidden_extra)
-+        seen[0] += len(data)
-+        require(seen[0] <= 8*LIMIT, 'Privacy expansion exceeds limit')
-+        if name.endswith(('.tgz','.tar','.tar.gz')):
-+            for n,d in unpack(data).items():
-+                scan(name+'/'+n,d,depth+1)
-+            return
++    count = 0; heredocs = []
++    for line in text.splitlines():
++        if heredocs:
++            if line.strip() == heredocs[0]:heredocs.pop(0)
++            continue
++        s=line.strip()
++        if not s or (s.startswith('#') and not s.startswith('#SBATCH')):continue
++        heredocs.extend(re.findall(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z_0-9]*)['\"]?",line))
++        # Diagnostic strings and shell syntax are not job comments. shlex
++        # retains quoted argv values, including --wrap and --export strings.
++        if s.startswith('#SBATCH'):line=s[len('#SBATCH'):]
 +        try:
-+            text = data.decode('utf-8')
-+        except UnicodeDecodeError:
-+            # Binary strings can also contain identifiers; scan printable runs.
-+            text = '\n'.join(x.decode('ascii') for x in re.findall(rb'[ -~]{4,}',data))
-+        opaque(text, 'contents/comments/env '+name,forbidden_extra)
-+        for old in extra:
-+            require(old.encode() not in data and old.encode().hex().encode() not in data,
++            lexer=shlex.shlex(line,posix=True,punctuation_chars=';&|()<>')
++            lexer.whitespace_split=True;lexer.commenters='#';words=list(lexer)
++        except ValueError:words=re.findall(r'[^\s]+',line)
++        for word in words:
++            if word.startswith('#SBATCH'):continue
++            if word in ('head','/usr/bin/head'):continue
++            # The trap's head utility is the only forbidden executable name.
++            # Match paths/env/argv, not identifiers in shell control syntax.
++            opaque(word,where,more);count+=1
++        for m in re.finditer(r'--job-name(?:=|\s+)([^\s)]+)',line):
++            name=m.group(1).strip('"\'')
++            if '$' not in name:
++                require(re.fullmatch(PREFIX+TOKEN,name),'Invalid job name at '+where)
++    return count
++
++
++def stale_identities(files, identities):
++    """Identity regression scans bytes recursively; this is not a term scan."""
++    total=[0]
++    def scan(name,data,depth):
++        require(depth<=4,'Archive nesting limit')
++        total[0]+=len(data);require(total[0]<=8*LIMIT,'Identity expansion exceeds limit')
++        for old in identities:
++            require(old not in name and old.encode() not in data and old.encode().hex().encode() not in data,
 +                    'Stale identity in '+name)
-+        if name.endswith('BATCH.sh'):
-+            for n,d in bundle(data).items():
-+                scan(name+'/bundle/'+n,d,depth+1)
-+    opaque(PREFIX+token(public['token']), 'job name',forbidden_extra)
++        if (name.endswith(('.tgz','.tar','.tar.gz')) or data.startswith(b'\x1f\x8b')
++                or data[257:262]==b'ustar'):
++            for n,d in unpack(data).items():scan(name+'/'+n,d,depth+1)
++        elif name.endswith('BATCH.sh'):
++            for n,d in bundle(data).items():scan(name+'/bundle/'+n,d,depth+1)
++    if identities:
++        for n,d in files.items():scan(n,d,0)
++    return total[0]
++
++
++def privacy(files, payload, public, extra=(), forbidden_extra=()):
++    """Names exposed on Orchard are opaque; sealed archive contents are private."""
++    opaque(PREFIX+token(public['token']),'job name',forbidden_extra)
++    surfaces=1
 +    for n,d in files.items():
-+        scan(n,d,0)
-+    return dict(scanned_bytes=seen[0], policy=list(FORBIDDEN))
++        safe_name(n);opaque(n,'delivery member '+n,forbidden_extra);surfaces+=1
++        if n.endswith('.sh') or n.endswith('.cmd'):
++            surfaces+=shell_surfaces(d.decode(),n,forbidden_extra)
++    plan=json.loads(payload['9.json']) if '9.json' in payload else {}
++    for key in ('pool','logical'):
++        if key in plan:opaque(plan[key],'runtime '+key,forbidden_extra);surfaces+=1
++    for n in ('a/0.json','a/1.json'):
++        if n not in files:continue
++        inputs=json.loads(files[n])
++        values=[inputs[k] for k in ('python','frames_root','sam_source') if k in inputs]
++        values+=inputs.get('env_roots',[])+list(inputs.get('policy',{}).values())
++        values += [p['path'] for a in inputs.get('archives',[]) for p in a['parts']]
++        for value in values:opaque(value,'runtime path '+n,forbidden_extra);surfaces+=1
++    if 'BATCH.sh' in files:
++        text=files['BATCH.sh'].decode()
++        require("r=Path('/tmp')/('a'+j+" in text and 'r.mkdir(mode=0o700)' in text,
++                'Batch extraction containment differs')
++        require("str(r/'0.py')" in text,'Payload path exposed in batch argv')
++    return dict(surfaces_checked=surfaces,identity_bytes_checked=stale_identities(files,extra),
++                policy=list(FORBIDDEN),scope='operational names; archive contents excluded')
 +
 +
 +def preserved(base, filled, prep_sha=None):
@@ -277,6 +328,8 @@
 +def probe(python, mode, package, workspace, spec=None):
 +    here = Path(__file__).resolve().parent
 +    workspace = Path(workspace); workspace.mkdir(parents=True, exist_ok=True)
++    if mode in ('fill','login'):
++        python=(spec or {}).get('login_python','/usr/bin/python3')
 +    args = [python,'-I','-s','-B',str(here/'pack_probes.py'),mode,
 +            str(package),str(workspace)]
 +    if spec:
@@ -322,10 +375,12 @@
 +        raise GateError('Structural audit failed')
 +    files,pay,public,plan = result
 +    stages[-1]['result'] = dict(token=public['token'],payload=public['payload_sha256'])
++    gate('private_containment',lambda: containment(package))
 +    gate('privacy', lambda: privacy(files,pay,public,config.get('old_identities',[]),
 +                                  config.get('forbidden_extra',[])))
 +    py = config.get('python',sys.executable)
 +    gate('native_metadata', lambda: probe(py,'metadata',package,attempt/'a0',config))
++    gate('login_python36', lambda: probe(py,'login',package,attempt/'a6',config))
 +    gate('bundle_process_guard_dispatch', lambda: probe(py,'guard',package,attempt/'a1',config))
 +    gate('isolated_imports_layout_operator', lambda: probe(py,'logic',package,attempt/'a2',config))
 +    gate('exit_usr1', lambda: probe(py,'trap',package,attempt/'a3',config))
@@ -341,6 +396,7 @@
 +    else:
 +        gate('isolated_real_fill',lambda: require(False,'No authenticated fill inputs/mirrors configured'))
 +    report = dict(schema='so_pack-local-v1',passed=not errors,checks=stages,errors=errors,
++                  checker_sha256=checker_fingerprint(),
 +                  utc=utc(),token=public['token'],package_fingerprint=fingerprint(package),
 +                  config_sha256=canonical(config),scope='local packaging; no allocated CPU proof')
 +    write(workspace/'CHECK.json', report)
@@ -348,8 +404,22 @@
 +    return report
 +
 +
++def containment(package):
++    package=Path(package)
++    for p in (package,package/'a'):
++        require((p.stat().st_mode&0o777)==0o700,'Package directories must be 0700: '+str(p))
++    for n in package_files(package):
++        require(((package/n).stat().st_mode&0o777)==0o600,'Package files must be 0600: '+n)
++    return dict(package_mode='0700',private_mode='0700',file_mode='0600')
++
++
 +def fingerprint(package):
 +    return canonical({n:sha(d) for n,d in package_files(package).items()})
++
++
++def checker_fingerprint():
++    here=Path(__file__).resolve().parent
++    return {n:file_sha(here/n) for n in ('pack.py','pack_probes.py')}
 +
 +
 +def enabled(args):
@@ -366,6 +436,9 @@
 +    root = state(config); root.mkdir(parents=True,exist_ok=True)
 +    require(not (root/'BUILD_STATE.json').exists(),'Build state already exists; choose a fresh workspace')
 +    b = config['builder']; path = Path(b['path']).resolve()
++    ledger=token_ledger(config)
++    if explicit_token is not None:
++        unused_token(explicit_token,ledger)
 +    require(path.name in ('build_r8.py','build_r10.py','build_d.py'),
 +            'Builder must honor KROOT: use build_r8.py, build_r10.py or build_d.py')
 +    require(file_sha(path) == b['sha256'], 'Builder source hash differs')
@@ -388,6 +461,7 @@
 +    run([config.get('python',sys.executable),'-I','-s','-B','-c',code,str(path)]+b['args'],
 +        root,root/'builder.log',env=env)
 +    report = read(b['report'])[b['key']]
++    unused_token(report['token'],ledger)
 +    if explicit_token is not None:
 +        require(report['token']==explicit_token,'Builder ignored explicit token; nothing may leave Trinity')
 +    delivery = Path(report['delivery_dir'])/'1.tgz'
@@ -403,6 +477,25 @@
 +    return result
 +
 +
++def token_ledger(config):
++    pin=config.get('token_ledger')
++    require(isinstance(pin,dict) and 'path' in pin and 'sha256' in pin,
++            'Authenticated Trinity token_ledger path and sha256 required before build')
++    p=Path(pin['path']).resolve()
++    require(str(p).startswith('/scratch/'),'Token ledger must be a Trinity /scratch snapshot')
++    require(file_sha(p)==pin['sha256'],'Token ledger SHA differs')
++    raw=p.read_text()
++    for line in raw.splitlines():
++        if line.strip():json.loads(line)
++    return raw
++
++
++def unused_token(tok,ledger):
++    token(tok)
++    require(re.search(r'(?<![0-9a-f])'+re.escape(tok)+r'(?![0-9a-f])',ledger) is None,
++            'Token already present in Trinity ledger: '+tok)
++
++
 +def built(config):
 +    return read(state(config)/'BUILD_STATE.json')
 +
@@ -412,6 +505,8 @@
 +    c = read(root/'checks/CHECK.json')
 +    require(c.get('schema') == 'so_pack-local-v1' and c.get('passed') is True,
 +            'No passing local packaging receipt')
++    require(c.get('checker_sha256')==checker_fingerprint(),
++            'Checker source changed; run the local check with the current tool')
 +    require(c['package_fingerprint'] == fingerprint(b['package']), 'Package changed after check')
 +    require(c['config_sha256'] == canonical(config),'Config changed after check')
 +    require(file_sha(b['delivery']) == b['report']['delivery_sha256'],'Delivery changed after check')
@@ -427,7 +522,7 @@
 +    r = config['remote']; tok = token(b['report']['token'])
 +    root = r.get('root',REMOTE_ROOT)
 +    require(root == REMOTE_ROOT,'Unregistered remote root')
-+    p = root+'/'+PREFIX+tok; opaque(p,'remote package path')
++    p = root+'/'+PREFIX+tok; opaque(p,'remote package path',config.get('forbidden_extra',[]))
 +    wall = r['walltime']
 +    require(re.fullmatch(r'[0-9]{2}:[0-5][0-9]:[0-5][0-9]',wall),'Invalid remote walltime')
 +    return r,p,tok,wall
@@ -437,9 +532,13 @@
 +    return "/usr/bin/python3 -I -s -B - <<'PYCODE'\n"+code+"\nPYCODE\n"
 +
 +
-+def shell_header():
++def shell_header(config=None):
++    terms=FORBIDDEN+tuple((config or {}).get('forbidden_extra',[]))
 +    return ('set -euo pipefail\numask 077\n'
-+            "trap 'r=$?; if [ \"$r\" -ne 0 ]; then printf \"phase failed: exit %s line %s\\n\" \"$r\" \"$LINENO\" >&2; fi' EXIT\n")
++            "trap 'r=$?; if [ \"$r\" -ne 0 ]; then printf \"phase failed: exit %s line %s\\n\" \"$r\" \"$LINENO\" >&2; fi' EXIT\n"
++            +shell_python('import os\nterms='+repr(terms)+'\n'
++                'for k,v in os.environ.items():\n'
++                ' if any(t.lower() in (k+"="+v).lower() for t in terms):raise ValueError("Non-opaque environment: "+k)'))
 +
 +
 +def remote_place(config,b):
@@ -459,11 +558,11 @@
 +      or m.name in seen or total>33554432):raise ValueError('Unsafe delivery')
 +  seen.add(m.name);dest=p/m.name;dest.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
 +  with dest.open('xb') as f:f.write(t.extractfile(m).read())
-+  dest.chmod(m.mode & 0o700)
++  dest.chmod(0o600)
 +(p/'a').chmod(0o700)
 +print('placed',p)
 +''' % (raw.hex(),sha(raw),p)
-+    return shell_header()+shell_python(code)
++    return shell_header(config)+shell_python(code)
 +
 +
 +def fill_argv(config, p):
@@ -484,7 +583,7 @@
 +    r,p,tok,wall = remote_settings(config,b)
 +    argv = fill_argv(config,p)
 +    for item in argv:
-+        opaque(item,'fill argv')
++        opaque(item,'fill argv',config.get('forbidden_extra',[]))
 +    code = '''import hashlib,json
 +from pathlib import Path
 +p=Path(%r)
@@ -495,7 +594,7 @@
 + raise ValueError('Preparation archive differs')
 +(p/'a/1.txt').write_text('0\\n')
 +''' % p
-+    return (shell_header()+'P='+shlex.quote(p)+'\n'
++    return (shell_header(config)+'P='+shlex.quote(p)+'\n'
 +            'test ! -e "$P/a/1.txt"\n'+ ' '.join(map(shlex.quote,argv))+'\n'
 +            + 'CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B '+shlex.quote(p+'/3.py')
 +            +' check --gpus 1 --time '+shlex.quote(wall)+'\n'+shell_python(code))
@@ -514,66 +613,158 @@
 +        matches=list(re.finditer(r'^P=('+re.escape(REMOTE_ROOT)+'/'+PREFIX+'('+TOKEN+r'))$',text,re.M))
 +        require(len(matches)==1,'Expected one fixed package assignment in '+key)
 +        old=matches[0].group(1)
++        oldtok=matches[0].group(2)
 +        text=text.replace(old,package)
++        newtok=package.rsplit(PREFIX,1)[1]
++        text=text.replace(PREFIX+oldtok,PREFIX+newtok)
 +        text=text.replace('P='+package+'\n',
 +            'test "${P:?}" = '+shlex.quote(package)+'\n'
 +            +'test "${T:?}" = '+shlex.quote(walltime)+'\n',1)
 +        text,n=re.subn(r'--time [0-9]{2}:[0-5][0-9]:[0-5][0-9]',
 +                       '--time "$T"',text)
 +        require(n>=1,'No public walltime argument to parameterize in '+key)
++        require(oldtok==newtok or oldtok not in text,'Old token remains in adapted '+key)
 +    return text
 +
 +
-+def remote_submit(config,b):
++def remote_submit(config,b,phase='gpu'):
 +    r,p,tok,wall = remote_settings(config,b)
-+    # Keep all native receipt, pool and queue guards. The CPU script may end in
-+    # diagnostic commands, so it is run as a separate shell with its own failure.
 +    cpu = sealed_script(config,'cpu_script',p,wall)
 +    sub = sealed_script(config,'submit_script',p,wall)
 +    require(not re.search(r'^P=',cpu,re.M) and not re.search(r'^P=',sub,re.M),
 +            'Use parameterized D-style CPU/submit scripts; fixed-token scripts are refused')
 +    require('CPU.json' in sub and 'squeue' in sub and '3.py submit' in sub,
 +            'Submit script is missing native gates')
-+    require(r.get('cpu_wait_seconds',14400) <= 14400, 'CPU wait exceeds four hours')
-+    # CPU checking itself never grants permission to submit another token.
-+    receipt = p+'/a/c/CPU.json'
-+    return (shell_header()+'export P='+shlex.quote(p)+' T='+shlex.quote(wall)+'\n'
-+            'test "${P##*a15_cot_ap}" = '+shlex.quote(tok)+'\n'
-+            "bash -s <<'CPU_CODE'\n"+cpu+"\nCPU_CODE\n"
-+            'J=$(cat "$P/a/4.txt"); [[ "$J" =~ ^[0-9]+$ ]]\n'
-+            'start=$SECONDS\nwhile true; do\n'
-+            '  S=$(sacct -n -X -j "$J" --format=State | awk \'NF{print $1;exit}\')\n'
-+            '  case "$S" in COMPLETED) break;; FAILED*|CANCELLED*|TIMEOUT*|OUT_OF_*|NODE_FAIL*|PREEMPTED*) echo "CPU job $J state $S" >&2; tail -n 60 "$P/a/4.err" >&2 || true; exit 1;; esac\n'
-+            '  if [ $((SECONDS-start)) -ge '+str(r.get('cpu_wait_seconds',14400))+' ]; then echo "CPU job $J wait expired; last state $S" >&2; tail -n 60 "$P/a/4.err" >&2 || true; exit 1; fi\n'
-+            '  sleep 60\ndone\n'
-+            'test -s '+shlex.quote(receipt)+'\n'
-+            "bash -s <<'SUB_CODE'\n"+sub+"\nSUB_CODE\n")
++    wait=r.get('cpu_wait_seconds',14400)
++    require(type(wait) is int and 1<=wait<=14400,'Invalid CPU wait bound')
++    prefix=(shell_header(config)+'export P='+shlex.quote(p)+' T='+shlex.quote(wall)+'\n'
++            'test "${P##*a15_cot_ap}" = '+shlex.quote(tok)+'\n')
++    if phase=='cpu':
++        return prefix+"bash -s <<'CPU_CODE'\n"+cpu+"\nCPU_CODE\n"
++    status=(
++        'J=$(cat "$P/a/4.txt"); [[ "$J" =~ ^[0-9]+$ ]]\n'
++        'if ! V=$(sacct -n -X -j "$J" --format=State 2>"$P/a/0.err"); then\n'
++        '  cat "$P/a/0.err" >&2; echo PACK_CPU_RETRY; exit 0\nfi\n'
++        "S=$(printf '%s\\n' \"$V\" | awk 'NF{print $1;exit}'); S=${S%%+*}\n"
++        'case "$S" in\n'
++        ' COMPLETED) test -s "$P/a/c/CPU.json"; echo PACK_CPU_READY;;\n'
++        ' PENDING|RUNNING|CONFIGURING|COMPLETING) echo "PACK_CPU_WAIT $J $S"; exit 0;;\n'
++        ' "") echo "CPU accounting has no state for $J" >&2; echo PACK_CPU_RETRY; exit 0;;\n'
++        ' *) echo "CPU job $J state $S" >&2; tail -n 60 "$P/a/4.err" >&2 || true; exit 1;;\nesac\n')
++    if phase=='poll':return prefix+status
++    require(phase=='gpu','Unknown submit phase')
++    # Recheck readiness in the same bounded call that submits the GPU job.
++    status=status.replace('echo PACK_CPU_RETRY; exit 0','exit 1')
++    status=status.replace('echo "PACK_CPU_WAIT $J $S"; exit 0','echo "CPU not ready: $S" >&2; exit 1')
++    return prefix+status+"bash -s <<'SUB_CODE'\n"+sub+"\nSUB_CODE\n"
 +
 +
-+def stage_remote(action,config,args):
++def transport_command(config):
++    r=config['remote'];seconds=r.get('timeout_seconds',300)
++    require(type(seconds) is int and 1<=seconds<=300,'Remote timeout must be 1..300 seconds')
++    return ['timeout',str(seconds),'bash',r['ossh'],
++            'env -i PATH=/usr/local/bin:/usr/bin:/bin HOME="$HOME" USER="$USER" bash -s']
++
++
++def remote_call(action,config,script,expected_sha):
++    """One throttled, bounded call. A failed transport is never retried."""
++    require(file_sha(script)==expected_sha,'Planned remote script changed')
++    command=transport_command(config);root=state(config)
++    with (root/(action+'_remote.log')).open('wb') as out:
++        pump=subprocess.Popen(['pv','-q','-L','8000000',str(script)],stdout=subprocess.PIPE,stderr=out)
++        try:
++            remote=subprocess.Popen(command,stdin=pump.stdout,stdout=out,stderr=subprocess.STDOUT)
++        except BaseException:
++            pump.stdout.close();pump.wait();raise
++        pump.stdout.close()
++        rc=remote.wait();transfer_rc=pump.wait()
++    require(rc==0 and transfer_rc==0,
++            'Remote '+action+' failed (transport %d, stream %d); stop, inspect log, do not retry'%(rc,transfer_rc))
++    return (root/(action+'_remote.log')).read_text()
++
++
++def run_remote(action,config,args,script,expected_sha):
++    """Use only planned bytes; submit polls locally between short calls."""
++    b=checked(config);r,p,tok,wall=remote_settings(config,b)
++    require(args.yes and args.token==tok,
++            'Remote execution requires --yes and the exact explicit --token')
++    require(file_sha(script)==expected_sha,'Planned remote script changed')
++    require(shutil.which('pv') is not None,'pv is required for the 8 MB/s transport limit')
++    manifest=None
++    if action=='submit':
++        manifest=read(script)
++        for phase in ('cpu','poll','gpu'):
++            pin=manifest[phase]
++            require(file_sha(pin['path'])==pin['sha256'],'Planned submit script changed')
++    root=state(config);marker=root/(action+'_ATTEMPT.json')
++    require(not marker.exists(),'Remote action already attempted; inspect its log; no retry')
++    write(marker,dict(utc=utc(),token=tok,script_sha256=expected_sha))
++    if action!='submit':return remote_call(action,config,script,expected_sha)
++    pin=manifest['cpu'];remote_call('submit_cpu',config,pin['path'],pin['sha256'])
++    start=time.monotonic();errors=0;index=0
++    while time.monotonic()-start<r.get('cpu_wait_seconds',14400):
++        time.sleep(60);index+=1
++        pin=manifest['poll']
++        output=remote_call('submit_poll_%04d'%index,config,pin['path'],pin['sha256'])
++        lines=output.splitlines()
++        if 'PACK_CPU_READY' in lines:break
++        retry='PACK_CPU_RETRY' in lines
++        require(retry or any(l.startswith('PACK_CPU_WAIT ') for l in lines),'Unrecognized CPU poll reply')
++        errors=errors+1 if retry else 0
++        require(errors<3,'Three consecutive sacct errors; stop and inspect poll logs')
++    else:raise GateError('CPU wait expired; inspect submit_poll logs')
++    # The final submit call rechecks sacct. Keep it a minute after the poll too.
++    time.sleep(60)
++    pin=manifest['gpu'];return remote_call('submit_gpu',config,pin['path'],pin['sha256'])
++
++
++def python_stdin_sources(text):
++    sources=[];active=None;body=[]
++    for line in text.splitlines():
++        if active:
++            if line.strip()==active:
++                sources.append('\n'.join(body)+'\n');active=None;body=[]
++            else:body.append(line)
++        elif '/usr/bin/python3' in line and '<<' in line:
++            match=re.search(r"<<['\"]?([A-Za-z_][A-Za-z_0-9]*)",line)
++            require(match is not None,'Unrecognized Python heredoc');active=match.group(1)
++    require(active is None,'Unterminated Python stdin body')
++    return sources
++
++
++def validate_login_sources(text,config,root,label):
++    """Real Python 3.6 compiles every Python stdin body before transport."""
++    sources=python_stdin_sources(text)
++    path=Path(root)/(label+'_python.json');write(path,sources)
++    code='import json,sys;[compile(s,"stdin","exec") for s in json.load(open(sys.argv[1]))];print("LOGIN_COMPILE_PASS",sys.version)'
++    run([config.get('login_python','/usr/bin/python3'),'-I','-s','-B','-c',code,str(path)],
++        root,Path(root)/(label+'_python.log'))
++
++
++def stage_remote(action,config,args,plan_only=False):
 +    b = checked(config); r,p,tok,wall = remote_settings(config,b)
 +    if action == 'submit' or args.execute_remote:
 +        require(args.yes and args.token == tok,
 +                'submit/remote execution requires --yes and the exact explicit --token')
-+    fn = {'place':remote_place,'fill':remote_fill,'submit':remote_submit}[action]
-+    text = fn(config,b)
-+    # Native operational scripts are outbound bytes too. Their comments and
-+    # literals receive the same strict policy as package content.
-+    opaque(text,'outbound '+action+' script/comments/env',config.get('forbidden_extra',[]))
-+    root = state(config); script = root/(tok+'_'+action+'.sh')
-+    script.write_text(text); script.chmod(0o600)
-+    # ossh accepts one remote shell command and forwards stdin, as used by lane.
-+    transport = r['ossh']
-+    command = ['bash',transport,'bash -s']
-+    print(' '.join(map(shlex.quote,command))+' < '+shlex.quote(str(script)))
-+    run(['bash','-n',str(script)],root,root/(action+'_syntax.log'))
 +    if args.execute_remote:
-+        marker = root/(action+'_ATTEMPT.json')
-+        require(not marker.exists(),'Remote action already attempted; inspect its log; no retry')
-+        write(marker,dict(utc=utc(),token=tok,script_sha256=sha(text.encode())))
-+        with script.open('rb') as inp, (root/(action+'_remote.log')).open('wb') as out:
-+            result = subprocess.run(command,stdin=inp,stdout=out,stderr=subprocess.STDOUT)
-+        require(result.returncode == 0,'Remote '+action+' failed; stop, inspect log, do not retry')
++        require(shutil.which('pv') is not None,'pv is required for the 8 MB/s transport limit')
++    root=state(config);command=transport_command(config)
++    phases=('cpu','poll','gpu') if action=='submit' else (action,)
++    plans={}
++    for phase in phases:
++        if action=='submit':text=remote_submit(config,b,phase)
++        else:text={'place':remote_place,'fill':remote_fill}[action](config,b)
++        shell_surfaces(text,'outbound '+phase,config.get('forbidden_extra',[]))
++        script=root/(tok+'_'+phase+'.sh');script.write_text(text);script.chmod(0o600)
++        run(['bash','-n',str(script)],root,root/(phase+'_syntax.log'))
++        validate_login_sources(text,config,root,phase)
++        plans[phase]=dict(path=str(script),sha256=file_sha(script))
++        stream=['pv','-q','-L','8000000',str(script)]
++        print('set -o pipefail; '+' '.join(map(shlex.quote,stream))+' | '+' '.join(map(shlex.quote,command)))
++    if action=='submit':
++        script=root/(tok+'_submit.json');write(script,plans)
++    if args.execute_remote and not plan_only:
++        run_remote(action,config,args,script,file_sha(script))
 +    return script
 +
 +
@@ -588,6 +779,7 @@
 +    p.add_argument('--audit',action='store_true',help='Collect local failures; never grants release')
 +    p.add_argument('--reuse-build',action='store_true',help='Validate existing build instead of minting another token')
 +    a = p.parse_args(argv)
++    os.umask(0o077)
 +    print('UTC '+utc(),file=sys.stderr)
 +    enabled(a); limit_resources(); c = read(a.config)
 +    require(not a.audit or a.action == 'check','--audit is only for check')
@@ -610,9 +802,18 @@
 +        b = built(c)
 +        local_check(c,b['package'],state(c)/'checks',audit=a.audit)
 +        print('LOCAL_PACKAGING_PASS (allocated CPU proof still required)')
-+    for action in ('place','fill','submit'):
-+        if a.action in (action,'all'):
-+            stage_remote(action,c,a)
++    if a.action=='all':
++        plans=[]
++        for action in ('place','fill','submit'):
++            script=stage_remote(action,c,a,plan_only=True)
++            plans.append((action,script,file_sha(script)))
++        # Every package and operational-script check has passed before any
++        # remote process starts. Execution uses the exact planned bytes.
++        if a.execute_remote:
++            for action,script,digest in plans:
++                run_remote(action,c,a,script,digest)
++    elif a.action in ('place','fill','submit'):
++        stage_remote(a.action,c,a)
 +
 +
 +if __name__ == '__main__':
@@ -623,7 +824,7 @@
 +        sys.exit(2)
 --- /dev/null
 +++ b/pack_probes.py
-@@ -0,0 +1,483 @@
+@@ -0,0 +1,580 @@
 +#!/usr/bin/env python3
 +"""Isolated local probes of the exact delivered helper bytes. Python 3.6."""
 +from __future__ import print_function
@@ -667,12 +868,23 @@
 +    verify_config(cfg);valid_token(pub['token'])
 +    wall=config.get('remote',{}).get('walltime','02:30:00')
 +    argv=submit_argv(pub['token'],1,wall);opaque(argv)
-+    for n in ('3.py','a/4.py','a/5.py','a/6.py'):
-+        # Python 3.12 parser can check 3.6 grammar; this does not attest APIs.
-+        if sys.version_info >= (3,8):
-+            ast.parse(f[n].decode(),filename=n,feature_version=(3,6))
++    public_guards=[]
++    if 'items/dist580.json' in pay:
++        cases=[(['--gpus','2','--time',wall],b'D requires --gpus 1'),
++               (['--gpus','1','--time','99:00:00'],b'D requires --time ')]
++        for i,(flags,expected) in enumerate(cases):
++            # check never submits. If a guard is absent, the native login
++            # checker also rejects this local placement before any job call.
++            r=subprocess.run(['nice','-n','10',sys.executable,'-I','-s','-B',
++                str(package/'3.py'),'check']+flags,cwd=str(work),env=P.clean_env(work),
++                stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=30)
++            (work/('public_guard%d.log'%i)).write_bytes(r.stdout+r.stderr)
++            P.require(r.returncode!=0 and expected in r.stderr,
++                      'D public resource guard did not reject before placement')
++            public_guards.append(dict(flags=flags,rejected=True))
 +    P.write(work/'result.json',dict(passed=True,native_load_helpers=True,
-+        native_verify_config=True,submit_argv=argv,grammar_only_python36=True))
++        native_verify_config=True,submit_argv=argv,
++        public_resource_guards=public_guards))
 +
 +
 +def guard(package,work,config):
@@ -713,7 +925,9 @@
 +
 +def rows_in(value):
 +    if isinstance(value,dict):
-+        if 'student_input' in value:
++        if ('student_input' in value or 'source_frame_indices' in value or
++                ('frame_indices' in value and
++                 any(k in value for k in ('fps','total_num_frames','num_frames')))):
 +            yield value
 +        else:
 +            for item in value.values():
@@ -746,9 +960,21 @@
 +        p=Path(spec['path']);P.require(P.file_sha(p)==spec['sha256'],'Rows SHA differs')
 +        for line in p.read_text().splitlines():
 +            if line.strip():rows.extend(rows_in(json.loads(line)))
-+    count=check_rows(src,rows,plan.get('export_binding',{}).get('frame_layout','duplicate'))
-+    # A read package need not carry training rows. Its native read mappers and
-+    # the staged restore are checked separately; report the actual row count.
++    layout=plan.get('export_binding',{}).get('frame_layout','duplicate')
++    count=check_rows(src,rows,layout)
++    for row in rows:
++        if 'student_input' in row:continue
++        fps=row.get('fps');total=row.get('total_num_frames')
++        P.require(type(total) is int and total>0,'Read row total_num_frames must be positive integer')
++        P.require(type(fps) in (int,float) and math.isfinite(fps) and fps>0,
++                  'Read row fps must be positive finite')
++        indices=row.get('frame_indices',row.get('source_frame_indices'))
++        P.require(indices and all(type(i) is int and 0<=i<total for i in indices),
++                  'Read row frame indices differ')
++        count+=1
++    if layout=='duplicate':
++        P.require(count>0 or config.get('no_rows') is True,
++                  'Duplicate frame layout checked zero rows; provide row_files or explicit no_rows=true')
 +    entries=set(config.get('isolated_entries',[]))
 +    entries.add('h1eval/h10/launch.py')
 +    for n in pay:
@@ -787,16 +1013,24 @@
 +              for i,r in enumerate(rehearsal)),'Operator rehearsal differs')
 +    P.require(op['memory_bound'](allocation_bytes=1)['fits'] is False,
 +              'Memory bound accepted an insufficient allocation')
-+    from h1eval.items import load_manifest
++    from h1eval.items import load_manifest,read_contract
 +    manifests=[]
 +    for n,d in pay.items():
 +        if n.startswith('items/') and n.endswith('.json'):
 +            value=json.loads(d)
 +            if isinstance(value,dict) and value.get('schema')=='h1-items-v1':
 +                load_manifest(src/n);manifests.append(n)
++    contracts=[]
++    for r in rehearsal:
++        args=r['args'];path=Path(args[args.index('--items')+1])
++        manifest=load_manifest(path)
++        arms=args[args.index('--arms')+1].split(',')
++        modes=args[args.index('--modes')+1].split(',')
++        read_contract(manifest,arms,[{'name':name} for name in modes],','.join(r['types']))
++        contracts.append(dict(manifest=manifest['name'],arms=arms,modes=modes,types=r['types']))
 +    P.write(work/'result.json',dict(passed=True,rows_checked=count,
 +        isolated_entries=sorted(entries),memory=memory,descriptors=desc,
-+        manifests=manifests,rehearsal=rehearsal,
++        manifests=manifests,rehearsal=rehearsal,read_contracts=contracts,
 +        scope='imports/layout/native stub rehearsal/planning; no full staged reader or restore'))
 +
 +
@@ -978,14 +1212,33 @@
 +        os.mkdir=lambda p,*a,**k:mkdir(self.translate(p,True),*a,**k)
 +        os.chmod=lambda p,*a,**k:chmod(self.translate(p,True),*a,**k)
 +        Path.resolve=mapped_resolve
++        # Python 3.6 pathlib captures os functions in a singleton accessor.
++        self.accessor=getattr(Path('.'),'_accessor',None)
++        self.accessor_saved={}
++        if self.accessor is not None:
++            for name,writing in (('stat',False),('lstat',False),('open',True),
++                                 ('mkdir',True),('chmod',True)):
++                old=getattr(self.accessor,name)
++                self.accessor_saved[name]=(name in vars(self.accessor),old)
++                def mapped(path,*a,_old=old,_write=writing,_name=name,**k):
++                    write=_write
++                    if _name=='open':
++                        flags=a[0] if a else k.get('flags',0)
++                        write=bool(flags & (os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC))
++                    return _old(self.translate(path,write),*a,**k)
++                setattr(self.accessor,name,mapped)
 +        return self
 +
 +    def __exit__(self,*args):
++        for name,(owned,old) in self.accessor_saved.items():
++            if owned:setattr(self.accessor,name,old)
++            else:delattr(self.accessor,name)
 +        builtins.open,io.open,os.stat,os.mkdir,os.chmod,Path.resolve,tarfile.bltn_open,open_code=self.saved
 +        if open_code is not None:io.open_code=open_code
 +
 +
 +def real_fill(package,work,config):
++    P.require(sys.version_info[:2]==(3,6),'Fill must run under real login Python 3.6')
 +    files,pay,pub,plan=P.structure(package)
 +    root=work/('a'+os.urandom(5).hex());root.mkdir()
 +    local=root/(P.PREFIX+pub['token']);local.mkdir(mode=0o700)
@@ -1014,9 +1267,53 @@
 +        check_inputs(filled,cfg,package=Path(remote))
 +    sys.argv=saved
 +    resolved=resolve_archives(base,filled,config['mirrors'],remote,local)
++    # Filled metadata and preparation bytes are outbound package surfaces too.
++    P.privacy(P.package_files(local),pay,pub,config.get('old_identities',[]),
++              config.get('forbidden_extra',[]))
 +    P.write(work/'result.json',dict(passed=True,inputs=P.file_sha(local/'a/1.json'),
 +        prep=P.file_sha(local/'a/6'),resolved=resolved,
++        python=sys.version,
 +        scope='exact fill and login checks through authenticated path mirrors'))
++
++
++def login(package,work,config):
++    """Execute exact login helpers and generated place code under real 3.6."""
++    P.require(sys.version_info[:2]==(3,6),'Login probe requires real Python 3.6')
++    f,pay,pub,plan=P.structure(package)
++    sources={n:d for n,d in f.items() if n.endswith('.py')}
++    sources.update({n:d for n,d in pay.items() if n.startswith('orchard_h10/') and n.endswith('.py')})
++    sources.update({'bundle/'+n:d for n,d in P.bundle(f['BATCH.sh']).items() if n.endswith('.py')})
++    for name in ('pack.py','pack_probes.py'):
++        sources['tool/'+name]=(Path(__file__).parent/name).read_bytes()
++    if 'builder' in config:
++        sources['builder']=Path(config['builder']['path']).read_bytes()
++    for n,d in sources.items():compile(d,n,'exec')
++    # A real run exercises the 3.6 filesystem APIs, not only its parser.
++    raw=io.BytesIO()
++    with tarfile.open(fileobj=raw,mode='w') as t:
++        for n,d in f.items():
++            m=tarfile.TarInfo(n);m.size=len(d);m.mode=0o600;t.addfile(m,io.BytesIO(d))
++    delivery=work/'1.tgz';delivery.write_bytes(raw.getvalue())
++    b=dict(delivery=str(delivery),report={'token':pub['token']})
++    cfg=dict(config);cfg['remote']=dict(config.get('remote',{}),walltime=config.get('remote',{}).get('walltime','02:30:00'))
++    text=P.remote_place(cfg,b)
++    remote=P.REMOTE_ROOT+'/'+P.PREFIX+pub['token'];local=work/(P.PREFIX+pub['token'])
++    with Mirrors({},remote,local):
++        for code in P.python_stdin_sources(text):exec(compile(code,'place_stdin','exec'),{})
++    P.require(P.package_files(local)==f,'3.6 place bytes differ')
++    P.require((local.stat().st_mode&0o777)==0o700 and
++              ((local/'a').stat().st_mode&0o777)==0o700 and
++              all((p.stat().st_mode&0o777)==0o600 for p in local.rglob('*') if p.is_file()),
++              'Place containment differs')
++    # --help runs the exact fill argument parser without unavailable exports.
++    argv=sys.argv[:]
++    try:
++        sys.argv=[str(local/'a/4.py'),'--help']
++        try:runpy.run_path(str(local/'a/4.py'),run_name='__main__')
++        except SystemExit as e:P.require(e.code==0,'Login fill parser failed')
++    finally:sys.argv=argv
++    P.write(work/'result.json',dict(passed=True,python=sys.version,compiled_sources=len(sources),
++        generated_place_executed=True,fill_parser_executed=True,private_modes=True))
 +
 +
 +def module_payload_helpers(package):
@@ -1096,11 +1393,12 @@
 +
 +def main():
 +    P.limit_resources()
++    os.umask(0o077)
 +    mode=sys.argv[1];package=Path(sys.argv[2]).resolve();work=Path(sys.argv[3]).resolve()
 +    config=P.read(sys.argv[4]) if len(sys.argv)>4 else {}
 +    work.mkdir(parents=True,exist_ok=True)
 +    env=P.clean_env(work);os.environ.clear();os.environ.update(env)
-+    funcs={'metadata':metadata,'guard':guard,'logic':logic,'trap':trap,'stop':native_stop,'fill':real_fill}
++    funcs={'metadata':metadata,'guard':guard,'logic':logic,'trap':trap,'stop':native_stop,'fill':real_fill,'login':login}
 +    funcs[mode](package,work,config)
 +    print('PROBE_PASS '+mode)
 +
@@ -1109,7 +1407,7 @@
 +    main()
 --- /dev/null
 +++ b/test_pack.py
-@@ -0,0 +1,376 @@
+@@ -0,0 +1,633 @@
 +"""Mutation tests using supplied package helpers. Outputs stay under --work."""
 +import argparse
 +import ast
@@ -1229,6 +1527,19 @@
 +    return package,cfg
 +
 +
++def repin_payload(package,pay):
++    plan=json.loads(pay['9.json'])
++    for n in plan['payload_pins']:
++        plan['payload_pins'][n]=dict(bytes=len(pay[n]),sha256=P.sha(pay[n]))
++    pay['9.json']=json.dumps(plan,sort_keys=True).encode()
++    (package/'0.tgz').write_bytes(tarbytes(pay,True));reseal(package)
++
++
++def empty_ledger(root):
++    p=root/'ledger.jsonl';p.write_text('')
++    return dict(path=str(p),sha256=P.file_sha(p))
++
++
 +def execute_fixture_fill(package,cfg):
 +    pub=P.read(package/'0.json');remote=P.REMOTE_ROOT+'/'+P.PREFIX+pub['token']
 +    args=P.fill_argv(cfg,remote)
@@ -1284,6 +1595,52 @@
 +        self.assertEqual(filled['archives'][4],base['archives'][4])
 +        self.assertEqual(len(filled['archives']),len(base['archives'])+1)
 +
++    def test_F06_real_rows_nonzero_and_null_through_logic_probe(self):
++        P.probe(CPU,'logic',ROUTE/'B5/package',self.w/'good',{'python':CPU})
++        self.assertGreater(P.read(self.w/'good/result.json')['rows_checked'],0)
++        for field,suffix in (('total_num_frames','R0_QUESTIONS_dev_f32.jsonl'),
++                             ('fps','/r3/TASKS.jsonl')):
++            package=copy_package(self.w/field)
++            pay=P.unpack((package/'0.tgz').read_bytes())
++            name=next(n for n in pay if n.endswith(suffix))
++            lines=pay[name].decode().splitlines();row=json.loads(lines[0]);row[field]=None
++            lines[0]=json.dumps(row);pay[name]=('\n'.join(lines)+'\n').encode()
++            repin_payload(package,pay)
++            with self.assertRaises(P.GateError):P.probe(CPU,'logic',package,self.w/(field+'bad'),{'python':CPU})
++            self.assertIn(field,(self.w/(field+'bad/probe.log')).read_text())
++
++    def test_F06_zero_rows_fail_closed(self):
++        package=copy_package(self.w/'p');pay=P.unpack((package/'0.tgz').read_bytes())
++        for n in list(pay):
++            if n.endswith(('.json','.jsonl')) and n!='9.json':
++                # Preserve non-row metadata; remove only actual row sources.
++                try:
++                    values=[json.loads(l) for l in pay[n].decode().splitlines() if l.strip()] if n.endswith('.jsonl') else [json.loads(pay[n])]
++                    if any(list(Q.rows_in(v)) for v in values):pay[n]=b'' if n.endswith('.jsonl') else b'[]'
++                except ValueError:pass
++        repin_payload(package,pay)
++        with self.assertRaises(P.GateError):P.probe(CPU,'logic',package,self.w/'bad',{'python':CPU})
++        self.assertIn('zero rows',(self.w/'bad/probe.log').read_text())
++
++    def test_F09_import_order_through_logic_probe(self):
++        package=copy_package(self.w/'p');pay=P.unpack((package/'0.tgz').read_bytes())
++        pay['z/read_filter.py']=b'VALUE=3\n'
++        pay['z/worker.py']=b'import read_filter\nfrom pathlib import Path\nimport sys\nsys.path.insert(0,str(Path(__file__).parent))\n'
++        repin_payload(package,pay)
++        with self.assertRaises(P.GateError):P.probe(CPU,'logic',package,self.w/'bad',{'python':CPU})
++        logs=list((self.w/'bad').glob('import*.log'))
++        self.assertTrue(any('ModuleNotFoundError' in p.read_text() for p in logs))
++        pay['z/worker.py']=b'from pathlib import Path\nimport sys\nsys.path.insert(0,str(Path(__file__).parent))\nimport read_filter\n'
++        repin_payload(package,pay)
++        P.probe(CPU,'logic',package,self.w/'good',{'python':CPU})
++
++    def test_F09_dropped_env_through_real_python36_fill_probe(self):
++        package,cfg=fill_fixture(self.w,drop_env=True)
++        with self.assertRaises(P.GateError):P.probe(CPU,'fill',package,self.w/'bad',cfg)
++        text=(self.w/'bad/probe.log').read_text()
++        self.assertIn('Fill must append preparation archive',text)
++        self.assertNotIn('Traceback (most recent call last):\n  File',text.split('Fill must append')[1])
++
 +    def test_04_stale_bundle_descriptor_defect(self):
 +        p=copy_package(self.w/'p');f=(p/'BATCH.sh').read_text();bm=P.bundle(f.encode())
 +        pub=json.loads(bm['0.json']);pub['token']='a01234567890';bm['0.json']=json.dumps(pub).encode()
@@ -1321,21 +1678,29 @@
 +        self.assertTrue(logs)
 +        self.assertIn('stop/end proof failed',logs[0].read_text())
 +
-+    def test_every_privacy_surface_including_nested_bundle(self):
++    def test_F01_name_argv_env_and_stale_identity_boundaries(self):
 +        public={'token':'a01234567890'}
-+        P.privacy({'0.txt':b'ok'},{},public)
-+        for name,raw in [('model.txt',b'ok'),('0.py',b'# dataset\n'),
-+                         ('0.json',b'{"PATH":"/tmp/qwen"}'),
-+                         ('0.sh',b'export V=benchmark'),('0.txt',b'/tmp/scannet')]:
++        P.privacy({'0.txt':b'dataset same sample shutdown split'},{},public)
++        for name,raw in [('model.txt',b'ok'),('0.sh',b'python3 /tmp/dataset.py'),
++                         ('0.sh',b'export V=benchmark'),('0.sh',b'#SBATCH --comment=model'),
++                         ('0.sh',b'env MODEL=x true'),('0.sh',b'python3 --x qwen')]:
 +            with self.subTest(name=name,raw=raw):
 +                with self.assertRaises(P.GateError):P.privacy({name:raw},{},public)
-+        bm={'0.py':b'# dataset','0.json':b'{}','7.py':b'pass'}
-+        batch=('b=bytes.fromhex(%r)\n'%tarbytes(bm,True).hex()).encode()
-+        with self.assertRaises(P.GateError):P.privacy({'BATCH.sh':batch},{},public)
++        # Archive names and bytes remain private; stale identities do not.
++        archive=tarbytes({'model.py':b'# dataset old123'},True)
++        P.privacy({'0.tgz':archive},{},public)
++        with self.assertRaisesRegex(P.GateError,'Stale identity'):
++            P.privacy({'0.tgz':archive},{},public,extra=['old123'])
++        p=copy_package(self.w/'p');batch=(p/'BATCH.sh').read_bytes()
++        bm=P.bundle(batch);bm['0.py']+=b'\n# old456\n'
++        line=next(l for l in batch.decode().splitlines() if l.startswith('b=bytes.fromhex('))
++        batch=batch.decode().replace(line,'b=bytes.fromhex(%r)'%tarbytes(bm,True).hex()).encode()
++        with self.assertRaisesRegex(P.GateError,'Stale identity'):
++            P.privacy({'BATCH.sh':batch},{},P.read(p/'0.json'),extra=['old456'])
 +        for tok in ('camera','123456789abc','a1;echo bad','a01234567890\n'):
 +            with self.assertRaises(P.GateError):P.token(tok)
 +        with self.assertRaises(P.GateError):
-+            P.privacy({'0.txt':b'customstudy'},{},public,forbidden_extra=['customstudy'])
++            P.privacy({'customstudy.txt':b'ok'},{},public,forbidden_extra=['customstudy'])
 +
 +    def test_symlink_duplicate_and_traversal_archives(self):
 +        for name in ('../bad','/tmp/bad','a/../b','./a'):
@@ -1394,11 +1759,162 @@
 +            r=subprocess.run(['nice','-n','10','bash','-n',str(path)],
 +                             stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 +            self.assertEqual(r.returncode,0,r.stderr.decode())
-+            if n!='submit':P.opaque(text,'outbound '+n)
-+        with self.assertRaisesRegex(P.GateError,'Forbidden word'):
-+            P.opaque(scripts['submit'],'outbound submit')
++            P.shell_surfaces(text,'outbound '+n)
 +        self.assertIn('sacct',scripts['submit']);self.assertIn('CPU.json',scripts['submit'])
-+        self.assertIn('squeue',scripts['submit']);self.assertIn('sleep 60',scripts['submit'])
++        self.assertIn('squeue',scripts['submit']);self.assertNotIn('sleep 60',scripts['submit'])
++
++    def test_all_plans_every_phase_before_any_remote_execution(self):
++        cfg=self.w/'c.json';P.write(cfg,{'workspace':str(self.w)})
++        events=[]
++        def plan(action,c,args,plan_only=False):
++            self.assertTrue(plan_only);events.append('plan '+action)
++            p=self.w/(action+'.sh');p.write_text('true\n');return p
++        def execute(action,*args):events.append('execute '+action)
++        args=['all','--enable','--yes','--execute-remote','--token','a0123456789ab','--config',str(cfg)]
++        with patch.object(P,'build',return_value={}),patch.object(P,'built',return_value={'package':'x'}), \
++             patch.object(P,'local_check',return_value={}),patch.object(P,'stage_remote',side_effect=plan), \
++             patch.object(P,'run_remote',side_effect=execute):P.main(args)
++        self.assertEqual(events,['plan place','plan fill','plan submit',
++                                 'execute place','execute fill','execute submit'])
++        events.clear()
++        def bad_plan(action,c,args,plan_only=False):
++            if action=='submit':raise P.GateError('planted operational privacy failure')
++            return plan(action,c,args,plan_only)
++        with patch.object(P,'build',return_value={}),patch.object(P,'built',return_value={'package':'x'}), \
++             patch.object(P,'local_check',return_value={}),patch.object(P,'stage_remote',side_effect=bad_plan), \
++             patch.object(P,'run_remote') as remote:
++            with self.assertRaisesRegex(P.GateError,'operational privacy'):
++                P.main(args)
++            remote.assert_not_called()
++
++    def test_F02_real_submit_preflight_fails_before_place(self):
++        package,cfg=fill_fixture(self.w)
++        tok=P.read(package/'0.json')['token'];delivery=self.w/'1.tgz'
++        delivery.write_bytes(tarbytes(P.package_files(package),True))
++        b=dict(package=str(package),delivery=str(delivery),report={'token':tok})
++        cfg.update(workspace=str(self.w))
++        cfg['remote'].update(ossh='/unavailable/ossh.sh',
++            cpu_script=dict(path=str(DB/'o_cpu_D.sh'),sha256=P.file_sha(DB/'o_cpu_D.sh')),
++            submit_script=dict(path=str(DB/'o_sub_D.sh'),sha256='0'*64))
++        path=self.w/'cfg.json';P.write(path,cfg)
++        with patch.object(P,'build',return_value=b),patch.object(P,'built',return_value=b), \
++             patch.object(P,'checked',return_value=b),patch.object(P,'local_check',return_value={}), \
++             patch.object(P,'run_remote') as remote:
++            with self.assertRaisesRegex(P.GateError,'Remote script source hash differs: submit_script'):
++                P.main(['all','--enable','--yes','--execute-remote','--token',tok,'--config',str(path)])
++            remote.assert_not_called()
++
++    def test_F01_containment_and_login_environment(self):
++        package=copy_package(self.w/'p');P.containment(package)
++        (package/'a/4.py').chmod(0o644)
++        with self.assertRaisesRegex(P.GateError,'0600'):P.containment(package)
++        path=self.w/'0.sh';path.write_text(P.shell_header())
++        env=dict(os.environ,OPAQUE='dataset')
++        r=subprocess.run(['bash',str(path)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=5)
++        self.assertNotEqual(r.returncode,0);self.assertIn(b'Non-opaque environment: OPAQUE',r.stderr)
++
++    def test_transport_stream_with_local_copy_stub_and_no_retry(self):
++        # This stub only copies stdin into this test folder. It never calls SSH.
++        tok='a0123456789ab';received=self.w/'0.received';stub=self.w/'0.sh'
++        stub.write_text('set -euo pipefail\ncat > '+P.shlex.quote(str(received))+"\necho LOCAL_STUB_OK\n")
++        script=self.w/'1.sh';script.write_text('true\n')
++        c={'workspace':str(self.w),'remote':{'root':P.REMOTE_ROOT,'walltime':'04:00:00','ossh':str(stub)}}
++        from types import SimpleNamespace
++        args=SimpleNamespace(yes=True,token=tok,execute_remote=True)
++        from contextlib import redirect_stdout
++        capture=io.StringIO()
++        dry=SimpleNamespace(yes=True,token=tok,execute_remote=False)
++        with patch.object(P,'checked',return_value={'report':{'token':tok}}), \
++             patch.object(P,'remote_place',return_value='true\n'),redirect_stdout(capture):
++            P.stage_remote('place',c,dry)
++        self.assertIn('set -o pipefail; pv -q -L 8000000 ',capture.getvalue())
++        self.assertIn('| timeout 300 bash ',capture.getvalue())
++        with patch.object(P,'checked',return_value={'report':{'token':tok}}):
++            with self.assertRaisesRegex(P.GateError,'Planned remote script changed'):
++                P.run_remote('place',c,args,script,'0'*64)
++            self.assertFalse(received.exists())
++            P.run_remote('place',c,args,script,P.file_sha(script))
++            self.assertEqual(received.read_bytes(),script.read_bytes())
++            self.assertIn('LOCAL_STUB_OK',(self.w/'place_remote.log').read_text())
++            with self.assertRaisesRegex(P.GateError,'already attempted'):
++                P.run_remote('place',c,args,script,P.file_sha(script))
++
++    def test_F03_short_calls_and_F10_accounting_error_budget(self):
++        from types import SimpleNamespace
++        args=SimpleNamespace(yes=True,token='a0123456789ab',execute_remote=True)
++        manifest={}
++        for phase in ('cpu','poll','gpu'):
++            p=self.w/(phase+'.sh');p.write_text('true\n')
++            manifest[phase]=dict(path=str(p),sha256=P.file_sha(p))
++        script=self.w/'submit.json';P.write(script,manifest)
++        cfg=dict(workspace=str(self.w),remote=dict(walltime='04:00:00',ossh='/unavailable'))
++        calls=[]
++        def reply(action,*unused):
++            calls.append(action)
++            if 'poll' not in action:return ''
++            return ['PACK_CPU_RETRY\n','PACK_CPU_WAIT 1 RUNNING\n','PACK_CPU_READY\n'][sum('poll' in x for x in calls)-1]
++        with patch.object(P,'checked',return_value={'report':{'token':args.token}}), \
++             patch.object(P,'remote_call',side_effect=reply),patch.object(P.time,'sleep') as sleep:
++            P.run_remote('submit',cfg,args,script,P.file_sha(script))
++        self.assertEqual(calls,['submit_cpu','submit_poll_0001','submit_poll_0002','submit_poll_0003','submit_gpu'])
++        self.assertEqual([c.args for c in sleep.call_args_list],[(60,)]*4)
++        self.assertEqual(P.transport_command(cfg)[:2],['timeout','300'])
++        cfg['remote']['timeout_seconds']=301
++        with self.assertRaises(P.GateError):P.transport_command(cfg)
++        cfg['remote'].pop('timeout_seconds');other=self.w/'other';other.mkdir();cfg['workspace']=str(other)
++        def broken(action,*unused):return 'PACK_CPU_RETRY\n'
++        with patch.object(P,'checked',return_value={'report':{'token':args.token}}), \
++             patch.object(P,'remote_call',side_effect=broken) as call,patch.object(P.time,'sleep'):
++            with self.assertRaisesRegex(P.GateError,'Three consecutive sacct errors'):
++                P.run_remote('submit',cfg,args,script,P.file_sha(script))
++            self.assertFalse(any(c.args[0]=='submit_gpu' for c in call.call_args_list))
++        expired=self.w/'expired';expired.mkdir();cfg['workspace']=str(expired)
++        with patch.object(P,'checked',return_value={'report':{'token':args.token}}), \
++             patch.object(P,'remote_call',return_value='PACK_CPU_WAIT 1 RUNNING\n') as call, \
++             patch.object(P.time,'sleep'),patch.object(P.time,'monotonic',side_effect=[0,1,14401]):
++            with self.assertRaisesRegex(P.GateError,'CPU wait expired'):
++                P.run_remote('submit',cfg,args,script,P.file_sha(script))
++            self.assertFalse(any(c.args[0]=='submit_gpu' for c in call.call_args_list))
++
++    def test_F10_all_nonrunning_states_stop_with_diagnostics(self):
++        b={'report':{'token':'a0123456789ab'}}
++        cfg={'remote':{'walltime':'04:00:00',
++            'cpu_script':dict(path=str(DB/'o_cpu_D.sh'),sha256=P.file_sha(DB/'o_cpu_D.sh')),
++            'submit_script':dict(path=str(DB/'o_sub_D.sh'),sha256=P.file_sha(DB/'o_sub_D.sh'))}}
++        local=self.w/(P.PREFIX+b['report']['token']);(local/'a/c').mkdir(parents=True)
++        (local/'a/4.txt').write_text('123\n');(local/'a/4.err').write_text('CPU_FIXTURE_DIAGNOSTIC\n')
++        (local/'a/c/CPU.json').write_text('{}')
++        script=self.w/'poll.sh'
++        text=P.remote_submit(cfg,b,'poll').replace(P.REMOTE_ROOT+'/'+P.PREFIX+b['report']['token'],str(local))
++        script.write_text(text);stub=self.w/'sacct'
++        env=dict(os.environ,PATH=str(self.w)+':'+os.environ['PATH'])
++        for state in ('BOOT_FAIL','DEADLINE','REVOKED','UNKNOWN','FAILED','CANCELLED+','PENDING','RUNNING','CONFIGURING','COMPLETING','COMPLETED'):
++            stub.write_text('#!/bin/bash\necho '+state+'\n');stub.chmod(0o700)
++            r=subprocess.run(['bash',str(script)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=5)
++            running=state in ('PENDING','RUNNING','CONFIGURING','COMPLETING')
++            self.assertEqual(r.returncode==0,running or state=='COMPLETED',state)
++            if r.returncode:self.assertIn(b'CPU_FIXTURE_DIAGNOSTIC',r.stderr)
++        stub.write_text('#!/bin/bash\necho ACCOUNTING_UNAVAILABLE >&2\nexit 1\n')
++        r=subprocess.run(['bash',str(script)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=5)
++        self.assertEqual(r.returncode,0);self.assertIn(b'PACK_CPU_RETRY',r.stdout)
++        self.assertIn(b'ACCOUNTING_UNAVAILABLE',r.stderr)
++
++    def test_F11_custom_terms_cover_remote_path_and_fill_argv(self):
++        b={'report':{'token':'a0123456789ab'}}
++        cfg={'remote':{'walltime':'04:00:00'},'forbidden_extra':['okh7']}
++        with self.assertRaisesRegex(P.GateError,'remote package path'):P.remote_settings(cfg,b)
++        package,cfg=fill_fixture(self.w);cfg['forbidden_extra']=['sft']
++        with self.assertRaisesRegex(P.GateError,'fill argv'):P.remote_fill(cfg,b)
++
++    def test_F13_ledger_reuse_rejected_before_builder(self):
++        ledger=self.w/'ledger.jsonl';ledger.write_text('{"job":"a15_cot_apa0123456789ab"}\n')
++        cfg={'workspace':str(self.w),'token_ledger':dict(path=str(ledger),sha256=P.file_sha(ledger)),
++             'builder':{'path':str(DB/'build_d.py')}}
++        with patch.object(P,'run') as builder:
++            with self.assertRaisesRegex(P.GateError,'Trinity ledger'):P.build(cfg,'a0123456789ab')
++            builder.assert_not_called()
++        cfg['token_ledger']['sha256']='0'*64
++        with self.assertRaisesRegex(P.GateError,'ledger SHA'):P.build(cfg,'b0123456789ab')
 +
 +    def test_fixed_token_operational_adapter_is_explicit(self):
 +        root=MIRROR/'cont_ops17/work';pub=P.read(ROUTE/'A4/package/0.json')
@@ -1411,7 +1927,8 @@
 +        with self.assertRaisesRegex(P.GateError,'parameterized'):
 +            P.remote_submit(cfg,b)
 +        for key in ('cpu_script','submit_script'):cfg['remote'][key]['parameterize']=True
-+        text=P.remote_submit(cfg,b)
++        text=P.remote_submit(cfg,b,'cpu')+P.remote_submit(cfg,b)
++        self.assertNotIn('d50ba921ef1f4',text)
 +        self.assertIn('test "${P:?}" = '+P.REMOTE_ROOT+'/'+P.PREFIX+pub['token'],text)
 +        self.assertIn('--time "$T"',text)
 +        self.assertIn('--time=04:00:00',text)
@@ -1424,18 +1941,46 @@
 +        for mode in ('metadata','guard','logic'):
 +            P.probe(CPU,mode,ROUTE/'B5/package',self.w/mode,{'python':CPU})
 +
-+    def test_supplied_packages_are_not_privacy_releases(self):
++    def test_F01_supplied_packages_pass_name_privacy(self):
 +        for name in ('A4','B5'):
 +            f,p,pub,plan=P.structure(ROUTE/name/'package')
-+            with self.assertRaises(P.GateError):P.privacy(f,p,pub)
++            self.assertGreater(P.privacy(f,p,pub)['surfaces_checked'],0)
 +
-+    def test_python36_grammar(self):
++    def test_F08_real_python36_login_runtime(self):
 +        import warnings,re
 +        with warnings.catch_warnings():
 +            warnings.simplefilter('error')
 +            self.assertRegex(P.utc(),r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
++        P.probe(CPU,'login',ROUTE/'B5/package',self.w/'login',{'python':CPU})
++        result=P.read(self.w/'login/result.json')
++        self.assertIn('3.6.8',result['python'])
++        self.assertTrue(result['generated_place_executed'])
 +        for n in ('pack.py','pack_probes.py'):
-+            ast.parse((HERE/n).read_text(),filename=n,feature_version=(3,6))
++            r=subprocess.run(['/usr/bin/python3','-I','-s','-B','-c',
++                'import sys;compile(open(sys.argv[1],"rb").read(),sys.argv[1],"exec")',str(HERE/n)],
++                stdout=subprocess.PIPE,stderr=subprocess.PIPE)
++            self.assertEqual(r.returncode,0,r.stderr.decode())
++        fixture=self.w/'fixture';fixture.mkdir();package,cfg=fill_fixture(fixture)
++        # Tiny archive metadata exercises login APIs; dependency resolution is
++        # deliberately separate and is never granted by this fixture.
++        base=P.read(package/'a/0.json');tiny=fixture/'0';tiny.write_bytes(b'x')
++        for archive in base['archives'][1:]:
++            for pin in archive['parts']:
++                cfg['mirrors'][pin['path']]=dict(local=str(tiny),bytes=1,sha256=P.file_sha(tiny))
++                pin.update(bytes=1,sha256=P.file_sha(tiny))
++        P.write(package/'a/0.json',base);reseal(package)
++        P.write(fixture/'cfg.json',cfg)
++        code=('import sys,runpy,json;from pathlib import Path;'
++              'sys.path.insert(0,'+repr(str(HERE))+');import pack as P,pack_probes as Q;'
++              'ns=runpy.run_path('+repr(str(HERE/'test_pack.py'))+');'
++              'p=Path('+repr(str(package))+');c=P.read('+repr(str(fixture/'cfg.json'))+');'
++              'ns["execute_fixture_fill"](p,c);'
++              'remote=P.REMOTE_ROOT+"/"+P.PREFIX+P.read(p/"0.json")["token"];'
++              'sys.argv=[remote+"/3.py","check","--gpus","1","--time","02:30:00"];'
++              '\nwith Q.Mirrors(c["mirrors"],remote,p):runpy.run_path(remote+"/3.py",run_name="__main__")\n'
++              'assert P.read(p/"2.json")["passed"] is True\nprint("REAL_36_FILL_AND_PUBLIC_CHECK_PASS",sys.version)')
++        P.run(['/usr/bin/python3','-I','-s','-B','-c',code],fixture,fixture/'runtime.log')
++        self.assertIn('REAL_36_FILL_AND_PUBLIC_CHECK_PASS',(fixture/'runtime.log').read_text())
 +
 +    def test_mirror_hashes_and_write_refusal(self):
 +        f=self.w/'0';f.write_bytes(b'abc')
@@ -1447,6 +1992,13 @@
 +        mirrors['/project/0']['sha256']='0'*64
 +        with self.assertRaises(P.GateError):P.validate_mirrors(mirrors,100)
 +
++    def test_local_receipt_rejects_a_changed_checker(self):
++        P.write(self.w/'checks/CHECK.json',{'schema':'so_pack-local-v1','passed':True,
++                                         'checker_sha256':{'pack.py':'0'*64}})
++        with patch.object(P,'built',return_value={'package':'not-needed'}):
++            with self.assertRaisesRegex(P.GateError,'Checker source changed'):
++                P.checked({'workspace':str(self.w)})
++
 +    def test_existing_D_builder_is_called_and_preserved(self):
 +        sys.path.insert(0,str(DB));from build_support import write_tar
 +        source=self.w/'source.tgz';parts=[];b5=ROUTE/'B5/package'
@@ -1455,7 +2007,7 @@
 +        for n in names:
 +            m=tarfile.TarInfo(n);m.mode=(b5/n).stat().st_mode&0o777;parts.append((m,(b5/n).read_bytes()))
 +        source.write_bytes(write_tar(parts));stage=self.w/'stage'
-+        cfg=dict(workspace=str(self.w),python=CPU,builder=dict(path=str(DB/'build_d.py'),
++        cfg=dict(workspace=str(self.w),python=CPU,token_ledger=empty_ledger(self.w),builder=dict(path=str(DB/'build_d.py'),
 +            sha256=P.file_sha(DB/'build_d.py'),args=[str(stage),str(source),P.file_sha(source),
 +            str(DB/'evidence/items/dist580.json'),str(DB/'bind_D200.json'),
 +            '--timing',str(DB/'TIMING_D.json')],report=str(stage/'BUILD.json'),key='D',
@@ -1464,14 +2016,17 @@
 +        b=P.build(cfg);P.structure(b['package'])
 +        self.assertEqual(before,{n:P.file_sha(DB/n) for n in before})
 +        self.assertEqual(b['report']['export_binding']['step'],200)
++        checkcfg=dict(cfg,remote={'walltime':'04:00:00'})
++        P.probe(CPU,'metadata',b['package'],self.w/'d_metadata',checkcfg)
++        P.probe(CPU,'logic',b['package'],self.w/'d_logic',checkcfg)
 +        P.write(ROOT/'D_BUILD_CONFIG.json',cfg);P.write(ROOT/'D_BUILD_STATE.json',b)
 +
 +
 +def main():
 +    global ROOT
-+    P.limit_resources()
++    P.limit_resources();os.umask(0o077)
 +    p=argparse.ArgumentParser();p.add_argument('--work',required=True);a=p.parse_args()
-+    ROOT=Path(a.work).resolve();P.require(str(ROOT).startswith(str(HERE.parent.resolve())+'/'),
++    ROOT=Path(a.work).resolve();P.require(P.inside(ROOT,'/scratch/jjyeung/orch_n30/so_pack'),
 +                                         'Test writes must stay under so_pack')
 +    ROOT.mkdir(parents=True,exist_ok=False)
 +    env=P.clean_env(ROOT);os.environ.clear();os.environ.update(env)
@@ -1483,6 +2038,84 @@
 +                         'stale bundle descriptor','silent early batch failure','USR1 without end slot'],
 +        scope='native packaging helpers plus synthetic export and cooperative signal fixtures'))
 +    raise SystemExit(0 if result.wasSuccessful() else 1)
++
++
++if __name__=='__main__':main()
+--- /dev/null
++++ b/test_delivery.py
+@@ -0,0 +1,75 @@
++"""Apply the delivered patches and verify the tested byte set; no Git or SSH."""
++import argparse
++import json
++import os
++from pathlib import Path
++import subprocess
++import sys
++
++HERE=Path(__file__).resolve().parent
++sys.path.insert(0,str(HERE))
++import pack as P
++
++INPUT=Path('/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30')
++
++
++def sources():
++    result={name:HERE/name for name in
++            ('pack.py','pack_probes.py','test_pack.py','test_delivery.py','test_builder_tokens.py')}
++    for rel,local in (
++        ('cont_ops17/work/so_pack_builders/build_r10.py','routed/build_r10.py'),
++        ('cont_ops18/dbuild/so_pack_builders/build_d.py','d/build_d.py'),
++        ('cont_ops18/dbuild/so_pack_builders/build_support.py','d/build_support.py'),
++        ('cont_ops18/dbuild/so_pack_builders/make_items_d.py','d/make_items_d.py')):
++        result[rel]=HERE/rel if (HERE/rel).exists() else HERE/'work/builders'/local
++    return result
++
++
++def main():
++    a=argparse.ArgumentParser();a.add_argument('--work',required=True)
++    a.add_argument('--artifacts',default=str(HERE/'out'));a=a.parse_args()
++    P.limit_resources();os.umask(0o077)
++    root=Path(a.work).resolve()
++    P.require(P.inside(root,'/scratch/jjyeung/orch_n30/so_pack'),'Test writes must stay under so_pack')
++    root.mkdir(parents=True,exist_ok=False)
++    artifacts=Path(a.artifacts).resolve()
++    # Only the small native checker inputs are copied, never a repository tree.
++    native=['build_d.py','build_support.py','make_items_d.py','check_release_d.py',
++            'place_fill_d.py','dryres_d.py','score_d.py','o_build_D.sh','bind_D200.json',
++            'bind_D544.json','TIMING_D.json','evidence/items/dist580.json']
++    unchanged={}
++    for rel in ['cont_ops17/work/build_r10.py','cont_ops17/work/gen400b.py']+[
++            'cont_ops18/dbuild/'+n for n in native]:
++        p=root/rel;p.parent.mkdir(parents=True,exist_ok=True)
++        p.write_bytes((INPUT/rel).read_bytes());unchanged[rel]=P.file_sha(p)
++    for name in ('01_pack_gate.diff','02_explicit_builder_tokens.diff'):
++        with (artifacts/'patches'/name).open('rb') as source:
++            r=subprocess.run(['nice','-n','10','patch','-p1','--batch','--forward',
++                '--reject-file='+str(root/(name+'.rej'))],cwd=str(root),stdin=source,
++                stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=30)
++        (root/(name+'.log')).write_bytes(r.stdout)
++        P.require(r.returncode==0,'Patch failed: '+name)
++    expected=sources()
++    delivered={n:P.file_sha(root/n) for n in expected}
++    P.require(delivered=={n:P.file_sha(p) for n,p in expected.items()},
++              'F04 applied patch bytes differ from authoritative source')
++    P.require(unchanged=={n:P.file_sha(root/n) for n in unchanged},
++              'F07 patch modified native sources or embedded assets')
++    P.require(delivered==P.read(artifacts/'TOOL_SHA256.json'),
++              'F04 TOOL_SHA256 does not describe the delivered tree')
++    for name in ('REPORT.md','NOTE_FOR_CONT_OPS.md','ORCHARD_ONLY_CHECKS.md'):
++        text=(artifacts/name).read_text()
++        P.require('Review round 1: finding -> fix -> test' in text,'F15 missing review mapping: '+name)
++    orchard=(artifacts/'ORCHARD_ONLY_CHECKS.md').read_text()
++    for phrase in ('sacct','60 seconds','300 seconds','USR1@1800','Trinity ledger',
++                   '3.6.8','before any transport'):
++        P.require(phrase in orchard,'F15 missing operational contract: '+phrase)
++    P.write(root/'PATCH_VERIFIED.json',dict(passed=True,utc=P.utc(),files=delivered,
++        native_sources_unchanged=unchanged,patches={n:P.file_sha(artifacts/'patches'/n)
++        for n in ('01_pack_gate.diff','02_explicit_builder_tokens.diff')}))
++    print('F04_PATCH_EQUALS_TESTED_SOURCE_PASS files='+str(len(delivered)))
++    print('F07_NATIVE_BUILDER_AND_EMBEDDED_ASSETS_UNCHANGED_PASS files='+str(len(unchanged)))
++    print('F15_DOCUMENTED_REMOTE_CONTRACT_PASS')
 +
 +
 +if __name__=='__main__':main()

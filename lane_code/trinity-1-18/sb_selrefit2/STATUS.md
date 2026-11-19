@@ -1,0 +1,1 @@
+Complete: no win; primary mean fold gain -0.025352, 2 x fold SD 0.109730. Both arms were fitted out of fold on 215 shared captures; the report also covers all 239 training captures. Validation passed. Deliverables are out/REPORT.md, out/SELREFIT2.json, out/sb_selrefit2.tar, and its SHA-256 sidecar. No held-out data was read.

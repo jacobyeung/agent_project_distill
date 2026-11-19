@@ -10,6 +10,14 @@ from serving_reference import ROOT,OUT,PINS,read,write,clean,F,G,StageOne,cache_
 import math_v2 as M
 import pricing
 pricing.fusion_box=M.fusion_box
+_reviewed=None
+
+def challenger_loader():
+    global _reviewed
+    if _reviewed is None:
+        from adapters import reviewed_loader
+        _reviewed=reviewed_loader()
+    return _reviewed
 
 def setup():
     torch.set_num_threads(8)
@@ -199,9 +207,8 @@ def one(c,labels,rowids,tableids,folds,truth,head,phase,decision=None,choices=No
             pred('A5_obj_oracle_seed','A1',tau,rule,trows)
             pred('A8_nonull_obj','A8',tau,rule,trows)
         # Report the entire registered rowset, including explicit missing/refused geometry as zero.
-        from adapters import reviewed_loader
         from student_pilot.scene_state import FrameMap
-        loader,guard,_=reviewed_loader()
+        loader,guard,_=challenger_loader()
         for name in ('da3','pi3x'):
             path=Path('/scratch/jjyeung/orch_n30/geo_k1/geom')/(name+'_native')/(c['canonical'].replace('/','__')+'.npz')
             try:

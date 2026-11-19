@@ -1,0 +1,159 @@
+CHECKS.json FILTER.json FILTER_REPORT.md FILTER_ROWS.json LEAK_TEST.json NEW_ROWS.jsonl NO_RASTER_QIDS.jsonl RASTER_INDEX.json READ30.md READ30_TEXT.md SOURCE_MAP.jsonl TEACHING_SET.json VERIFY_FILTERED.json leak_test_filtered.log sb_rowD7f.tar sb_rowD7f.tar.sha256 verify_filtered.log 
+7b3d696d580386f9e8af3240fa142e2ad50eebb277a8718c97e2db497dcc925e  /scratch/jjyeung/orch_n30/sb_rowD7f/out/NEW_ROWS.jsonl
+ce02b01397399f5860cae596bbcdadc6ef33f6e48fafcc6c26ceef3b0a5cc6f2  /scratch/jjyeung/orch_n30/sb_rowD7f/out/NO_RASTER_QIDS.jsonl
+5b584f1d863ae9c679624f8ee596a9e9ea7e94603200dc81903ae4d205dea17f  /scratch/jjyeung/orch_n30/sb_rowD7f/out/SOURCE_MAP.jsonl
+a0381ea08a018ef97ef0193b8817f45cc82a680f3b940164e605a484e237d186  /scratch/jjyeung/orch_n30/sb_rowD7f/out/sb_rowD7f.tar
+d8c3837019d29e9c8b7916a7e8b3c3d595890b6cad32c7dc72ba5f871a0a5108  /scratch/jjyeung/orch_n30/sb_d7bind/BINDING.jsonl
+ffe298e4f47ca5282f74c087b923b5e442b74b863e0eb37cc09776f39167539d  /scratch/jjyeung/orch_n30/sb_d7bind/BINDING_CHECKS.json
+=====VERDICT
+# Independent review: sb_rowD7f and sb_d7bind
+**ACCEPT WITH FINDINGS. No BLOCKER found in the rows or binding record.**
+The binding supplies the per-twin evidence required by path (b); this verdict does not certify an augmented database or N's build-22 admission implementation.
+
+1. **minor — Raster coverage is partial.** Of 7,971 retained twins, 695 pass all named-object raster checks; 7,231 lack local rasters and 45 have unmatched raster labels. Both unchecked groups are explicitly listed, without inferred mappings. Do not describe all rows as visually certified.
+2. **minor — N must still enforce path (b).** Strict Rooms resolves 229 source/twin pairs and leaves 7,742 unresolved. The binding discloses the pinned tiered map used for those rooms. N must pin the augmented hash and binding, reject missing/mismatched sources or rooms, and run `unremoved_hits` with `u_union` through source keys. The record alone does not implement these checks.
+3. **minor — The balance guarantee has a defined scope.** Clause-masked question features and Step-1 forms score 50% on the teaching subset. Raw question length scores 65.18% by scene because it includes the edited clause; the full admitted Step-1 population remains 80.7% toward. Both limits are disclosed in the delivered evidence.
+
+Commands below run from `/scratch/jjyeung/orch_n30/sb_drev8`.
+`P = nice -n 10 env OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python`
+Every evidence JSON records its input SHA256 hashes and exact command. Local adaptations of the six prior scripts are recorded in `work/SCRIPT_ADAPTATIONS.diff`; no builder code is imported.
+
+`P run_review.py rev_census.py`: v7 contains 204,413 unique qids and 93,370 direction rows. The 5,846 easy/hard opposite pairs and 12,023 easy/hard away pairs have zero half-turn disagreements. No medium twin is delivered.
+`P run_review.py rev_verify7.py`: all 7,971 answers match the half turn and unique option mapping, including 300 random twins (seed 20261119). Source trace relations independently give the same labels.
+The same command confirms exact source Steps 1 and 2, exact final-line form with only its label replaced, and the required Step-3 half turn. Options and frames are unchanged; no `facing` field exists.
+N's r2_contract, trace_grammar, r2_grammar and direct_row packer pass on every twin and source. The 20 imported modules and packer file match the sealed tree. scene_division_gate admits 7,971/7,971 in each population; all removal and lineage checks pass.
+Qids and candidate_ids are unique and new; N's candidate formula reproduces every ID. Field differences are exactly qid, pool, answer, question and target, plus candidate_id, label_row_keys and provenance.sb_rowD7. Each source is used once.
+`P run_review.py rev_fixcheck7.py`: all 7,971 fixed rows still pass native validation and occupy `direction`.
+
+`P run_review.py rev_rooms7.py`: N's family function assigns every source and twin to `direction`. Build-20 allocates 36,690 draws across 56,411 direction rows: 0.6504 per row and 5,184 expected draws per teaching clause.
+The same command finds matching tiered rooms and zero K1/R0/withheld-80/dev-S1/BENCH-v2 hits. The unmodified N audit accepts v7 and rejects the deliberately hypothetical augmented unresolved-store fixture; fixtures are tests, not certification records.
+`P run_review.py rev_leak7.py`: on 15,942 teaching rows, Step-1/final forms and clause-masked templates, names, role triples, dataset and combined inputs score exactly 50% in-sample and when held out by pair or scene. Input-only logistic regressions also score 50%; sampling-weighted features score 50%.
+All 36 templates, 4,045 name sets and 1,024 names balance exactly. Predictors that include answer outputs are not question-input leak tests.
+`P run_review.py rev_wording7.py`: zero normalized edit-distance hits at <=0.10 among 7,852 distinct questions against 927 reference wordings.
+
+`P run_review.py rev_pilot8.py`: all 367 indexed raster pins reproduce and the bounded directory inventory matches. R1 removes zero pairs. R2 has zero frame citations; every trace occurrence of “frame” belongs to an object name.
+For 769 pairs on 98 raster-backed captures, independent integer-pixel counts reproduce R3: 16 pairs have zero pixels and 13 have only sub-0.2% slivers. Exactly these 29 pairs are dropped. The no-raster list covers all 7,231 rows on 802 captures; the 45 unmatched-name rows are separately listed.
+`P run_review.py rev_binding8.py`: all 7,971 records reproduce N's row keys and parsed-row digests; every source occurs once in v7 `210b25349b23af5b38a5b5d90caa97be2bb296dbabd8773d54e658e0aad22443`. Source indices, raw source hashes, rooms and authority tags agree.
+The same command finds zero source-key or twin-key hits in u_union/u/n/z (4,959/2,637/601/17,879 keys), zero twin-key collisions with v7, and zero hits across all build-20 removal files. The tiered census finds 4,959 held-out v7 rows, all removed; the augmented population has zero unremoved hits.
+Strict census counts reproduce audit dd60517b. All 15 current out/ archive members checked match their files, and every binding input pin reproduces. N's digest differs from raw JSONL-line hashing for 100 Unicode-bearing twins, as the binding report states.
+`P run_review.py rev_claims8.py`: no checked claim or producer input-pin mismatch. Teaching references match exactly; the family survey covers all v7 direction rows, with 1,096 names and zero placeholder-name rows.
+`P run_review.py finalize_review8.py`: consolidates these checks in `out/FINAL_CHECKS.json`, including explicit zero unremoved counts and the 100 digest-encoding differences.
+
+Recomputed delivery SHA256: `a0381ea08a018ef97ef0193b8817f45cc82a680f3b940164e605a484e237d186`.
+Recomputed binding SHA256: `d8c3837019d29e9c8b7916a7e8b3c3d595890b6cad32c7dc72ba5f871a0a5108`.
+=====KBOX
+K1 training pricing is complete. Serving-reference replay passes 149/149 choices across 45 captures (100.00%; bar 95%).
+The reference rebuild covers 239 training captures; three manifest GT rasters are MISSING and already excluded from the registered pricing set.
+A0 uses R1 own-depth median_ratio scale, float32 exp(log(scale)), and checkpoint gravity under the serving guard.
+Both convert-refused captures are accepted and marked: scannetpp/0f69aefe3d and scannetpp/2c7c10379b; direct R1 socket parity is 12/12, with 11 answers.
+The replay uses stored step-544 own tensors; it does not rerun a model prefill or claim step-200 numeric equivalence.
+All labels were rebuilt from GT rasters with the table producer; isolated features use its unchanged runtime producers. No S4/G1 candidate label was transferred.
+
+| Dataset | Replay choices | Matched | Exact features |
+|---|---:|---:|---:|
+| arkitscenes | 39 | 39 | 39 |
+| scannet | 40 | 40 | 40 |
+| scannetpp | 70 | 70 | 70 |
+
+Every primary comparison contains 1,037 train rows / 192 physical rooms; oracle and selector comparisons use the pinned 883 table rows.
+Every refusal scores zero. Paired intervals use 10,000 room-bootstrap draws, seed 20261119.
+
+| Arm | Train MRA | Rows | Refusals |
+|---|---:|---:|---:|
+| A0_deployed | 56.77 | 1037 | 36 |
+| A1_oracle_select | 61.65 | 883 | 36 |
+| A2_gt_masks | 73.97 | 1037 | 0 |
+| obj_cf | 56.77 | 1037 | 36 |
+| fused_cf | 78.62 | 1037 | 0 |
+| A8_nonull_best1 | 53.74 | 883 | 36 |
+| A7_da3_best1 | 77.81 | 1037 | 18 |
+| A7_pi3x_best1 | 77.71 | 1037 | 13 |
+| A9_s4_today | 52.99 | 1037 | 72 |
+
+| Paired contrast | Gain [95% CI] |
+|---|---:|
+| object_cf_minus_A0 | +0.00 [+0.00, +0.00] |
+| fused_cf_minus_A2 | +4.65 [+3.04, +6.44] |
+| A1_minus_A0_tables | +4.10 [+2.06, +6.22] |
+| A2_minus_A0 | +17.20 [+13.54, +20.89] |
+| A8_nonull_minus_A0_tables | -3.82 [-5.84, -1.83] |
+| size_obj_cf_minus_A0 | +0.00 [+0.00, +0.00] |
+| A9_today_minus_A0 | -3.78 [-5.99, -1.72] |
+
+| Bar | Verdict |
+|---|---|
+| replace_box | FAIL |
+| fused_path | PASS |
+| merge_safe | NA |
+| selector_worth | PASS |
+| selector_adopt | FAIL |
+| size_screen | FAIL |
+| first_seen_screen | FAIL |
+| tower_challenger | SKIPPED |
+
+| All-train merge eligibility | Precision | Added members |
+|---|---:|---:|
+| tau=0.25 (requires 90%) | 72.49% | 538 |
+| tau=0.15 (requires 90%) | 73.32% | 581 |
+| tau=0.40 (requires 90%) | 73.05% | 501 |
+
+Frozen object variant: NONE; dependent object arms skipped. The replace_box verdict covers part 1 only; tower_frames part 2 remains required.
+Object/fusion gains and merge precision use room-cross-fitted predictions. Non-null selection uses five room-held-out fits with the fixed run_iso config and seed 20261116.
+The appearance bar uses OOF threshold choices to satisfy the task’s cross-fit requirement; the spec’s all-train frozen-threshold rate remains diagnostic. No source is deployed here.
+Dry checks reproduce the copied-reader A0 socket, stored-label S4 predictions, corrected-label scorer targets, one-frame fusion, and tau=1.01 identity. Six math tests pass.
+Dry pricing covers A0–A4 and A9; the train pass adds A7 best1 and A8 best1. A5 and frozen-object-dependent arms are skipped because no variant qualifies.
+First-seen ordering is correct for 1006/1314 linker pairs (76.56%; requires 90%); no object threshold qualifies.
+A6 and held-out remain deferred by order 0654Z. The archive remains local under the task’s no-network rule.
+LADDER_TRAIN.txt prints all 33 object variants, ten GT fusion variants, paired contrasts, and both-answered diagnostics. SUMMARY_TRAIN.json includes truth/dataset/frame bands.
+OBJECT_DIAGNOSTICS.json gives fixed GT full extents, size ratios/MRA, first-seen diagnostics, counts, and added-member precision (GT pixel plurality).
+SOURCE_AUDIT.json confirms the active reader/dependencies match the R1 manifest. Unused inherited vendor/stage1.py and grounding.py differ; auxiliary vendor files lack R1 entries.
+SCALE_PROVENANCE.md identifies served versus S4/G1 prices; source attribution for the design’s record-only pipeline/selector quotations remains explicitly unverified.
+
+Commands producing the numbers (logs are in out/):
+`bash run.sh prepare.py`; `bash run.sh prepare_pinned.py` — pinned train labels and rowsets.
+`bash run.sh serving_reference.py` — rebuilt labels, geometry receipts, and replay.
+`bash run.sh run_training_stages.py dry`; `bash run.sh confirm_dry.py` — dry pricing, parity checks and saved-gate verification.
+`bash run.sh run_training_stages.py base` — four train shards and cross-fitted FREEZE.json.
+`bash run.sh verify_restored.py` — direct R1 socket parity on both convert-refused captures.
+`bash run.sh run_training_stages.py extras` — five selector fits, dependent arms, tables and DECISION.json.
+`bash run.sh audit_sources.py`; `bash run.sh provenance_v2.py`; `bash run.sh finalize_v2.py` — source audit, provenance, verification and archive.
+All Python jobs use p1cpu, nice priority, at most eight cores per job, and a virtual-memory limit below 40 GB; the four pricing shards share eight CPU cores.
+No GPU, network, SSH, Git, process termination, tmux change, external write, or deletion ran. No K1 held-out or GT-geometry arm was evaluated.
+Every JSON carries input SHA256 values; per-item hashes link to per-capture receipts containing the complete input chain.
+Archive: out/sb_kbox4.tar; checksum: out/sb_kbox4.tar.sha256. OUTPUT_STATUS.json records the exact missing input paths and deferred outputs.
+=====GUARD
+DRYRUN.json
+DRY_CONFIRMATION.json
+REPORT.md
+SCALE_PROVENANCE.md
+SHA256SUMS
+base_0.log
+base_1.log
+base_2.log
+base_3.log
+base_table.log
+box_ladder
+dry_confirmation.log
+dry_pricing.log
+dry_validation.log
+eligibility.log
+executed_sources
+extras_0.log
+extras_1.log
+extras_2.log
+extras_3.log
+freeze.log
+nonull.log
+preserve_diagnostics.log
+provenance.log
+reference_rebuild.log
+restored_parity.log
+sb_kbox4.tar
+sb_kbox4.tar.sha256
+source_audit.log
+stages_base.log
+stages_dry.log
+stages_extras.log
+stages_extras_resume.log
+summary.log
+test_v2.log

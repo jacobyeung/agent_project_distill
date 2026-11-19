@@ -19,7 +19,7 @@ if not K.exists():build(B/'inputs/kit_config.json',L/'work/n1fix2/inputs',K)
 else:
     assert (B/'KIT_Q_INITIAL.json').exists(),'The initial kit must be staged from empty.'
 if not (B/'KIT_Q_INITIAL.json').exists():(B/'KIT_Q_INITIAL.json').write_text(json.dumps(dict(initial_empty=True,base_seal=verify(K))))
-ns='/tmp/q_90a20c41';pool='/project/community/jjyeung/okh7';nroot=pool+'/x_90a20c41';proot='x_ee227714'
+ns='/tmp/q_22c714e1';pool='/project/community/jjyeung/okh7';nroot=pool+'/x_22c714e1';proot='x_ee227714'
 cfg=load(B/'inputs/config.json');uploads={};missing={};seen=set()
 receipt_index=load(B/'proofs/receipts/INDEX.json') if (B/'proofs/receipts/INDEX.json').exists() else {}
 def local(path):
@@ -39,7 +39,7 @@ def visit(value,depth=0):
             if path is None and h in receipt_index:path=Path(receipt_index[h])
             if h not in seen:
                 seen.add(h)
-                if path and path.suffix not in ('.db','.sqlite','.pt','.safetensors','.bin','.png','.npz') and path.stat().st_size<30_000_000:
+                if path and path.suffix not in ('.db','.sqlite','.pt','.safetensors','.bin','.png','.npz') and (path.stat().st_size<30_000_000 or h in ('8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82','15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022')):
                     if sha256(path)!=h:raise ValueError('Static pin mismatch '+str(path))
                     uploads[h]=dict(local_path=str(path),opaque_name='u/'+h,sha256=h,bytes=path.stat().st_size)
                     if path.suffix=='.json' and depth<8:
@@ -56,7 +56,7 @@ if (B/'proofs/receipts/RESULT.json').exists():
     for row in real['fetched']:visit(row)
     for row in real['receipts']:visit(row['pin'])
     for row in real['prepared']:visit(row['preparation'])
-room=file_pin(L/'work/build18/inputs/room_audit.json');visit(room)
+room=file_pin(B/'inputs/room_audit.json');visit(room)
 withheld=file_pin(L/'fixtures/work/shared/WITHHELD_ROOMS_80.json');visit(withheld)
 source=load(K/'k/a.json')['source'];archive=K/source['path']
 staging=load(K/'k/s.json');bound=load(K/'k/c.json')['r1_training']['mix']['path']
@@ -69,16 +69,28 @@ pfiles={n:h for h,n in (line.split('  ',1) for line in (E/'SHA256SUMS.txt').read
 pfiles={n:h for n,h in pfiles.items() if n.startswith(('b/','k/','in_small/')) or n in ('ANON_OK.json',)}
 pfiles['ANON_OK.json']=sha256(E/'ANON_OK.json')
 pfiles['SHA256SUMS.txt']=sha256(E/'SHA256SUMS.txt')
+from launch_r2.build import bad_string
+hashes=load(K/'b/wh.json');p_sources={}
+for name,h in list(pfiles.items()):
+    if bad_string(name,hashes):
+        opaque='k/'+h[:8]+Path(name).suffix
+        if opaque in pfiles:raise ValueError('Opaque staging collision')
+        path=Path(uploads[h]['local_path']) if h in uploads else E/name
+        if sha256(path)!=h:raise ValueError('Staging input hash differs')
+        uploads[h]=dict(local_path=str(path),opaque_name='u/'+h,sha256=h,bytes=path.stat().st_size)
+        pfiles.pop(name);pfiles[opaque]=h;p_sources[opaque]='u/'+h
 spec=dict(pool=pool,n_root=nroot,p_root=proot,milestone='h_6ed2c7aa/m400',namespace=ns,
     p_identity='774503e26f274a10c96ad06210d339c49ebc9a704ac254df81f389b0da4d98a1',
-    p_files=pfiles,p_pins=file_pin(E/'k/0.json'),room_sha256=room['sha256'],code_sha256=hashlib.sha256(raw).hexdigest(),
-    uploads=list(uploads.values()),frame_roots=load(E/'k/launch.json')['in_job_admission']['frame_roots'])
+    p_files=pfiles,p_sources=p_sources,p_pins=file_pin(E/'k/0.json'),room_sha256=room['sha256'],code_sha256=hashlib.sha256(raw).hexdigest(),
+    uploads=[{k:v for k,v in entry.items() if k!='local_path'} for entry in uploads.values()],
+    frame_roots=load(E/'k/launch.json')['in_job_admission']['frame_roots'])
 from naming21 import neutral_map
 neutral,links=neutral_map(load(E/'k/0.json'))
 cap('k/l.json',neutral)
 spec.update(local_map='k/l.json',link_checks=links)
-cap('k/p.json',spec);cap('k/n.json',cfg);cap('k/r.json',load(L/'work/build17/proofs/operator/REQUEST_TEMPLATE.json'))
+spec['pin_paths']={h:ns+'/u/'+h for h in uploads}
 cap('k/g.json',list(WORDS))
+cap('k/p.json',spec);cap('k/n.json',cfg);cap('k/r.json',load(L/'work/build17/proofs/operator/REQUEST_TEMPLATE.json'))
 (K/'b/z.py').write_bytes((B/'joblib.py').read_bytes())
 (K/'b/resolve.py').write_text('''import argparse,sys
 from pathlib import Path
@@ -129,6 +141,7 @@ shell=shell.replace('NX=/tmp/jjyeung/a_6ed2c7aa/x_${SLURM_JOB_ID:-local}','NX="$
 shell=shell[:shell.index('tk_persist_small()')]
 from naming21 import neutral_shell
 shell=neutral_shell(shell)
+shell=shell.replace('"$HX/b/s.py"', '"$Q_KIT/b/s.py" "$Q_KIT"')
 shell+='''
 tk_stage full
 tk_env
@@ -149,16 +162,18 @@ rr=${PIPESTATUS[0]}
 exit "$rc"
 '''
 (K/'k/j.json').write_bytes(capraw(shell.encode()))
-(K/'b/m.py').write_text('import sys\nfrom pathlib import Path\nsys.path.insert(0,str(Path(__file__).resolve().parent))\nfrom z import snapshot\nsnapshot(*sys.argv[1:])\n')
+(K/'b/m.py').write_text('import sys\nfrom pathlib import Path\nsys.path.insert(0,str(Path(__file__).resolve().parent))\nfrom z import snapshot\nsnapshot(*sys.argv[1:],kit=Path(__file__).resolve().parents[1])\n')
 (K/'b/w.py').write_text('import json,sys\nfrom pathlib import Path\nPath(sys.argv[1]).write_text(json.dumps(sys.argv[2:]))\n')
+(K/'b/s.py').write_text('import json,sys\nfrom pathlib import Path\nsys.path.insert(0,str(Path(__file__).resolve().parent))\nfrom z import stage_inputs\nprint(json.dumps(stage_inputs(*sys.argv[1:])))\n')
 (K/'b/o.py').write_text('''import json,sys,tarfile,os
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from z import load,write
+from z import load,write,name_guard
 k=Path(__file__).resolve().parents[1];s=load(k/'k/p.json');r=Path(sys.argv[1]);out=Path(s['n_root'])/'o'/os.environ['SLURM_JOB_ID'];out.mkdir(parents=True,exist_ok=True)
+safe=name_guard(k)
 files=[r/n for n in ('q.log','rooms.log','rooms.json','p/q/RESULT.json','p/q/f.json') if (r/n).is_file()]
 with tarfile.open(out/'o.tar','w:gz') as t:
- for p in files:t.add(p,arcname=str(p.relative_to(r)),recursive=False)
+ for p in files:t.add(p,arcname=safe(str(p.relative_to(r))),recursive=False)
 write(out/'RESULT.json',dict(proof_rc=int(sys.argv[2]),rooms_rc=int(sys.argv[3]),GO=False,submitted_by_build=False))
 ''')
 (K/'job.sh').write_text('''#!/bin/bash
@@ -173,7 +188,7 @@ write(out/'RESULT.json',dict(proof_rc=int(sys.argv[2]),rooms_rc=int(sys.argv[3])
 set -euo pipefail
 umask 077
 ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-N="${SLURM_TMPDIR:-/tmp}/q_90a20c41_${SLURM_JOB_ID:?}"
+N="${SLURM_TMPDIR:-/tmp}/q_22c714e1_${SLURM_JOB_ID:?}"
 export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 PYTHONDONTWRITEBYTECODE=1
 python3 -I -s -B "$ROOT/b/v.py" "$ROOT"
 python3 -I -s -B "$ROOT/b/x.py" "$ROOT" "${1:?}" "$N" 2>&1 | python3 -I -s -B "$ROOT/b/l.py" "$ROOT"

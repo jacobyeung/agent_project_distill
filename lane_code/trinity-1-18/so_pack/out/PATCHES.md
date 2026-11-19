@@ -1,16 +1,16 @@
-# Patch bases and switches
+# Patch bases, switches and validation
 
-Apply both diffs with `patch -p1` relative to the mirrored `orch_n30` root, which contains `cont_ops17/` and `cont_ops18/`. This dispatch never modifies that read-only root. Tested working copies live under `so_pack/work`.
+Apply both unified diffs with `patch -p1` relative to the mirrored `orch_n30` root containing `cont_ops17/` and `cont_ops18/`. The patches add files only. Never replace native `build_d.py` or `build_r10.py` with the optional copies.
 
-| Patch | Effect | Default |
+| Patch | Added files | Switch |
 |---|---|---|
-| `patches/01_pack_gate.diff` | Adds `pack.py`, `pack_probes.py`, and mutation/integration tests at the root. Existing builders are called as subprocesses. `all` preflights every phase before transfer; execution streams through `pv -L 8m`. | No action without `--enable`. Remote phases only print commands unless `--execute-remote`; submit also needs `--yes` and an explicit matching token. Fixed-token operational adaptation requires each source pin's `parameterize: true`. |
-| `patches/02_explicit_builder_tokens.diff` | Adds the optional token branch to `cont_ops17/work/build_r10.py` and `cont_ops18/dbuild/build_d.py`, plus `test_builder_tokens.py`. | Original random-token behavior unless `SO_PACK_EXPLICIT_TOKEN=1`; token then comes from `SO_PACK_TOKEN`. The wrapper sets these only with an explicit token and `builder.explicit_token_switch: true`. r10 accepts exactly one of A/B in this mode. |
+| `patches/01_pack_gate.diff` | Root `pack.py`, `pack_probes.py`, `test_pack.py`, `test_delivery.py` | Every action requires `--enable`; transport also requires `--execute-remote`, `--yes` and the matching explicit token. Planning submit requires `--yes` and the token too. |
+| `patches/02_explicit_builder_tokens.diff` | Root `test_builder_tokens.py`; `cont_ops17/work/so_pack_builders/build_r10.py`; `cont_ops18/dbuild/so_pack_builders/{build_d.py,build_support.py,make_items_d.py}` | Builders retain random-token behavior unless `SO_PACK_EXPLICIT_TOKEN=1`. Pack enables it only with `--token` and `builder.explicit_token_switch: true`. |
 
-The D default-path test compares complete delivery bytes under identical deterministic fixture entropy. Both outputs match. The explicit D case runs a full build and validates all package descriptors. r10's unchanged default mint loop is compared as an AST, and its explicit mint branch is exercised with valid, invalid, and multi-package cases. A full r10 build is not claimed because the original SHA-pinned deliveries are absent.
+Set `builder.path` to the added builder file and pin its SHA256. D's adjacent support files are identical to the native inputs. `gen400b.py`, native builders, `o_build_D.sh` and `check_release_d.py` retain their original bytes, so adding patch 02 does not invalidate embedded-builder equality.
 
-Local receipts bind both package bytes and the checker sources. The `all` command validates all remote scripts before starting any transport, then executes exactly those planned bytes. A bad later script prevents every transfer; each attempted phase retains a no-retry marker. The copy-only transport test uses a local stub and does not contact Orchard.
+`TOOL_SHA256.json` identifies the one delivered code set. `test_delivery.py` applies both patches to a minimal input fixture and compares all nine delivered files against that set. The final unit and builder suites run from the applied tree. Root sources, the `out/tool` alias and applied sources must agree; output paths are recorded in `REPORT.md`.
 
-Local builder copies are `work/builders/routed/build_r10.py` and `work/builders/d/build_d.py`. D's adjacent support files are byte-identical copies. `TOOL_SHA256.json` identifies delivered code. `work/patch_verified` contains a minimal input-tree copy on which both patches are applied and compared with the tested files.
+D's default full delivery is compared byte for byte under identical deterministic entropy, and its explicit-token path receives a full build. The native release checker runs under real Python 3.6.8 with its scratch fixture redirected inside L. Its asset fixture uses the exact authenticated bytes embedded in `o_build_D.sh`; the supplied mirror's pre-existing `score_d.py` mismatch is reported separately. r10 receives default-loop AST and explicit mint/rejection tests; its absent authenticated source archives prevent a full build.
 
-Tests use Python 3.12 here. Production wrapper, probe and optional builder sources pass Python 3.6 grammar checks; no actual Python 3.6 runtime was invoked. The generated login script uses the Python 3.6 standard library. Remote scripts receive `bash -n` checks. A local copy-only transport stub tests stream integrity and the no-retry marker without SSH or remote execution.
+The exact commands, measured results, complete raw logs and review mapping are in `REPORT.md`. Tests use local stubs for transport and scheduler replies. They never call ssh or Slurm.

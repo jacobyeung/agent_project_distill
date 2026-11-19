@@ -1,0 +1,1179 @@
+--- /dev/null
++++ b/student_pilot/preparation_cpu.py
+@@ -0,0 +1,125 @@
++"""Explicit CPU entry for existing native admission, with separate telemetry.
++
++This entry produces the existing path-bound native journal. It does not publish
++a portable store and must not be described as cross-run adoption.
++"""
++import argparse
++import fcntl
++import json
++import os
++from pathlib import Path
++import resource
++import signal
++import time
++import uuid
++
++
++def resources(threads, memory_gib, max_seconds):
++    if os.environ.get("TK_NATIVE_CPU_PREPARE") != "1":
++        raise ValueError("TK_NATIVE_CPU_PREPARE=1 is required")
++    if os.environ.get("CUDA_VISIBLE_DEVICES") != "":
++        raise ValueError("CPU preparation requires explicitly empty CUDA_VISIBLE_DEVICES")
++    for name in ("SLURM_GPUS_ON_NODE", "SLURM_GPUS", "SLURM_GPUS_PER_NODE"):
++        if os.environ.get(name, "") not in ("", "0"):
++            raise ValueError("CPU preparation refuses a GPU allocation: " + name)
++    # These variables contain device indices: "0" names an allocated GPU.
++    for name in ("SLURM_JOB_GPUS", "SLURM_STEP_GPUS"):
++        if os.environ.get(name, ""):
++            raise ValueError("CPU preparation refuses a GPU allocation: " + name)
++    if type(threads) is not int or not 1 <= threads <= 8:
++        raise ValueError("CPU preparation supports one to eight threads")
++    if type(memory_gib) is not int or not 8 <= memory_gib <= 512:
++        raise ValueError("Invalid native memory ceiling")
++    if type(max_seconds) is not int or not 1 <= max_seconds <= 86400:
++        raise ValueError("Invalid wall limit")
++    for name in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
++        os.environ[name] = str(threads)
++    os.environ["TOKENIZERS_PARALLELISM"] = "false"
++    os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
++
++
++def prepare(config, config_sha256, output, roots, *, threads=8, memory_gib=30,
++            sample_size=64, max_seconds=21600, resume=False):
++    resources(threads, memory_gib, max_seconds)
++    if type(sample_size) is not int or sample_size < 1:
++        raise ValueError("A nonempty native frame sample is required")
++    # Imports follow CPU resource configuration; no GPU probe is performed.
++    from .p3_provenance import file_pin
++    from .s1_admission import admit
++    pin = file_pin(config)
++    if pin["sha256"] != config_sha256:
++        raise ValueError("Input configuration differs from the explicit pin")
++    output = Path(output).absolute()
++    if (not any(output.is_relative_to(root) and output != root
++                for root in (Path("/scratch"), Path("/tmp/jjyeung")))
++            or ".." in output.parts
++            or any(p.is_symlink() for p in (output, *output.parents))):
++        raise ValueError("Native output must be unlinked node-local scratch")
++    if resume:
++        if not output.is_dir():
++            raise ValueError("Native resume directory is absent")
++    else:
++        output.mkdir(mode=0o700, exist_ok=False)
++    fd = os.open(output / "admission.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
++    started = time.monotonic()
++    attempt = uuid.uuid4().hex
++    telemetry = {"schema": "native-cpu-prepare-telemetry-v1", "attempt": attempt,
++                 "config_sha256": pin["sha256"], "threads": threads, "memory_limit_gib": memory_gib,
++                 "store_published": False, "cross_run_adoptable": False, "production_authorized": False}
++    previous = None
++    timer = None
++    owns_lock = False
++    try:
++        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
++        owns_lock = True
++
++        def timeout(*_):
++            raise TimeoutError("Native CPU preparation exceeded its wall limit")
++
++        previous = signal.signal(signal.SIGALRM, timeout)
++        timer = signal.setitimer(signal.ITIMER_REAL, max_seconds)
++        result = admit(pin, output, roots, threads=threads, memory_gib=memory_gib,
++                       sample_size=sample_size, max_seconds=max_seconds,
++                       attempt=attempt, prepare_only=True)
++        telemetry["status"] = "PREPARED"
++        telemetry["native_data_receipt_sha256"] = file_pin(output / "data_receipt.json")["sha256"]
++        return result
++    except BaseException as error:
++        telemetry.update(status="REFUSED", reason=type(error).__name__ + ": " + str(error))
++        raise
++    finally:
++        if previous is not None:
++            signal.setitimer(signal.ITIMER_REAL, 0)
++            signal.signal(signal.SIGALRM, previous)
++            if timer and timer[0]:
++                signal.setitimer(signal.ITIMER_REAL, max(0.001, timer[0] - (time.monotonic() - started)), timer[1])
++        if owns_lock:
++            telemetry.update(elapsed_seconds=time.monotonic() - started,
++                             peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
++            path = output / ("cpu_telemetry_" + attempt + ".json")
++            with path.open("x") as handle:
++                json.dump(telemetry, handle, sort_keys=True, allow_nan=False)
++                handle.write("\n")
++        os.close(fd)
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--config", required=True)
++    parser.add_argument("--config-sha256", required=True)
++    parser.add_argument("--output", required=True)
++    parser.add_argument("--frame-root", action="append", required=True)
++    parser.add_argument("--threads", type=int, default=8)
++    parser.add_argument("--memory-gib", type=int, default=30)
++    parser.add_argument("--max-seconds", type=int, default=21600)
++    parser.add_argument("--sample-size", type=int, default=64)
++    parser.add_argument("--resume", action="store_true")
++    args = parser.parse_args(argv)
++    prepare(args.config, args.config_sha256, args.output, args.frame_root,
++            threads=args.threads, memory_gib=args.memory_gib, max_seconds=args.max_seconds,
++            sample_size=args.sample_size, resume=args.resume)
++    print(json.dumps({"status": "PREPARED", "store_published": False, "cross_run_adoptable": False}))
++
++
++if __name__ == "__main__":
++    main()
+--- /dev/null
++++ b/student_pilot/preparation_reads.py
+@@ -0,0 +1,187 @@
++"""Experimental dependency recorder; not wired into native preparation.
++
++Callers must use these views for every semantic input. The Python I/O guard is
++a development tripwire, not a sandbox for C extensions or captured references.
++No production planner or admission authority is implemented by this module.
++"""
++from collections.abc import Mapping, Sequence
++from contextlib import contextmanager
++from contextvars import ContextVar
++import hashlib
++import json
++import os
++from pathlib import Path
++import stat
++import sys
++
++
++EXCLUDED = frozenset(("output", "run_key", "preparation_output"))
++_guard = ContextVar("preparation_read_guard", default=None)
++_internal = ContextVar("preparation_read_internal", default=False)
++_installed = False
++
++
++class UnkeyedRead(ValueError):
++    pass
++
++
++def canonical(value):
++    return json.dumps(value, sort_keys=True, separators=(",", ":"),
++                      ensure_ascii=True, allow_nan=False).encode("ascii")
++
++
++def digest(value):
++    return hashlib.sha256(canonical(value)).hexdigest()
++
++
++def _audit(event, args):
++    if _guard.get() is None or _internal.get():
++        return
++    if event in ("open", "sqlite3.connect", "os.listdir", "os.scandir",
++                 "subprocess.Popen", "os.system", "ctypes.dlopen") or event.startswith("socket."):
++        raise UnkeyedRead("Raw I/O outside the recorded interface: " + event)
++
++
++class Recorder:
++    """Record actual accesses, then reject any new or changed replay access.
++
++    File names are logical roles. Paths stay outside the key; complete file
++    bytes enter it. Config file pins must therefore be supplied as file roles,
++    not raw absolute path strings in the content configuration.
++    """
++    def __init__(self, config, *, files=None, environment=None, expected=None):
++        if os.environ.get("TK_XSTORE_EXPERIMENT") != "1":
++            raise ValueError("TK_XSTORE_EXPERIMENT=1 is required")
++        self._config = json.loads(canonical(config))
++        self._files = {k: Path(v) for k, v in (files or {}).items()}
++        self._environment = dict(environment or {})
++        self._expected = None if expected is None else json.loads(canonical(expected))
++        self._reads = {}
++        self.config = ConfigView(self, self._config, ())
++
++    def _record(self, kind, path, value):
++        if kind == "config" and path and path[0] in EXCLUDED:
++            raise UnkeyedRead("Run-specific content read: " + str(path[0]))
++        tag = canonical([kind, list(path)]).decode("ascii")
++        item = json.loads(canonical(value))
++        if self._expected is not None and (tag not in self._expected or self._expected[tag] != item):
++            raise UnkeyedRead("Unkeyed or changed read: " + tag)
++        if tag in self._reads and self._reads[tag] != item:
++            raise UnkeyedRead("Input changed during execution: " + tag)
++        self._reads[tag] = item
++
++    def _wrap(self, value, path):
++        if isinstance(value, dict):
++            return ConfigView(self, value, path)
++        if isinstance(value, list):
++            return ListView(self, value, path)
++        self._record("config", path, {"value": value})
++        return value
++
++    def environment(self, name):
++        if name not in self._environment:
++            raise UnkeyedRead("Undeclared environment input: " + name)
++        value = self._environment[name]
++        if value is not None and not isinstance(value, str):
++            raise TypeError("Environment values must be strings or explicit absence")
++        self._record("environment", (name,), value)
++        return value
++
++    def read_file(self, role):
++        if role not in self._files:
++            raise UnkeyedRead("Undeclared file role: " + role)
++        token = _internal.set(True)
++        try:
++            # O_NOFOLLOW prevents silently changing the declared input into a link.
++            fd = os.open(self._files[role], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++            with os.fdopen(fd, "rb") as handle:
++                before = os.fstat(handle.fileno())
++                if not stat.S_ISREG(before.st_mode):
++                    raise UnkeyedRead("File role is not regular: " + role)
++                if before.st_size > 64 << 20:
++                    raise UnkeyedRead("Prototype file reader is bounded to 64 MiB: " + role)
++                raw = handle.read()
++                after = os.fstat(handle.fileno())
++                if (before.st_size, before.st_mtime_ns, before.st_ctime_ns) != (
++                        after.st_size, after.st_mtime_ns, after.st_ctime_ns):
++                    raise UnkeyedRead("File changed while reading: " + role)
++        finally:
++            _internal.reset(token)
++        self._record("file", (role,), {"sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)})
++        return raw
++
++    def finish(self):
++        if self._expected is not None and self._reads != self._expected:
++            raise UnkeyedRead("Execution did not consume the exact planned read set")
++        return json.loads(canonical(self._reads))
++
++    @property
++    def key(self):
++        return digest({"schema": "preparation-read-set-v1", "reads": self.finish()})
++
++    @contextmanager
++    def python_io_guard(self):
++        global _installed
++        if not _installed:
++            sys.addaudithook(_audit)
++            _installed = True
++        token = _guard.set(self)
++        try:
++            yield self
++        finally:
++            _guard.reset(token)
++
++
++class ConfigView(Mapping):
++    def __init__(self, recorder, value, path):
++        self._recorder, self._value, self._path = recorder, value, path
++
++    def __getitem__(self, key):
++        path = (*self._path, key)
++        if key not in self._value:
++            self._recorder._record("config", path, {"present": False})
++            raise KeyError(key)
++        value = self._value[key]
++        if isinstance(value, (dict, list)):
++            self._recorder._record("config", path, {"type": type(value).__name__})
++        return self._recorder._wrap(value, path)
++
++    def __contains__(self, key):
++        present = key in self._value
++        self._recorder._record("config", (*self._path, key, "@present"), present)
++        return present
++
++    def __iter__(self):
++        # Enumeration itself consumes the key set. Refuse excluded names before
++        # yielding even one key, including dict(view) and {**view} callers.
++        keys = list(self._value)
++        if not self._path and EXCLUDED.intersection(keys):
++            raise UnkeyedRead("Run-specific content read through config iteration")
++        self._recorder._record("config", (*self._path, "@keys"), keys)
++        return iter(keys)
++
++    def __len__(self):
++        if not self._path and EXCLUDED.intersection(self._value):
++            raise UnkeyedRead("Run-specific content read through config length")
++        self._recorder._record("config", (*self._path, "@length"), len(self._value))
++        return len(self._value)
++
++
++class ListView(Sequence):
++    def __init__(self, recorder, value, path):
++        self._recorder, self._value, self._path = recorder, value, path
++
++    def __getitem__(self, index):
++        if isinstance(index, slice):
++            return [self[i] for i in range(*index.indices(len(self)))]
++        # Bind length for negative indexing and exhausted iteration alike.
++        length = len(self)
++        if index < 0:
++            index += length
++        if not 0 <= index < length:
++            raise IndexError(index)
++        return self._recorder._wrap(self._value[index], (*self._path, index))
++
++    def __len__(self):
++        self._recorder._record("config", (*self._path, "@length"), len(self._value))
++        return len(self._value)
+--- /dev/null
++++ b/student_pilot/preparation_store.py
+@@ -0,0 +1,322 @@
++"""Opt-in content-store primitives. These objects do not authorize training.
++
++There is deliberately no native prepare/adopt adapter: current native receipts
++contain run paths and their native key consumes excluded fields. A matching key
++and self-consistent hashes do not prove that an arbitrary producer ran the code.
++"""
++from contextlib import contextmanager
++import fcntl
++import hashlib
++import json
++import os
++from pathlib import Path, PurePosixPath
++import re
++import stat
++import time
++import uuid
++
++from .preparation_reads import canonical
++
++
++SCHEMA = "preparation-object-graph-v1"
++HEX = re.compile(r"[0-9a-f]{64}\Z")
++MAX_ROOT = 16 << 20
++MAX_OBJECTS = 100_000
++BLOCK = 1 << 20
++
++
++class StoreRefused(ValueError):
++    pass
++
++
++def _hex(value):
++    if not isinstance(value, str) or not HEX.fullmatch(value):
++        raise StoreRefused("invalid_digest")
++    return value
++
++
++def _name(value):
++    if (not isinstance(value, str) or not value or "\\" in value or "\x00" in value
++            or str(PurePosixPath(value)) != value or PurePosixPath(value).is_absolute()
++            or any(p in (".", "..") for p in value.split("/"))):
++        raise StoreRefused("invalid_object_name")
++    if PurePosixPath(value).name in ("request.json", "data_receipt.json") or PurePosixPath(value).name.startswith("phase_"):
++        raise StoreRefused("native_admission_name_refused")
++    return value
++
++
++def _unique(pairs):
++    result = {}
++    for key, value in pairs:
++        if key in result:
++            raise StoreRefused("duplicate_json_key")
++        result[key] = value
++    return result
++
++
++def _json(raw):
++    try:
++        value = json.loads(raw, object_pairs_hook=_unique,
++                           parse_constant=lambda x: (_ for _ in ()).throw(StoreRefused("nonfinite_json")))
++        if canonical(value) != raw:
++            raise StoreRefused("noncanonical_json")
++        return value
++    except (TypeError, UnicodeError, json.JSONDecodeError) as error:
++        raise StoreRefused("invalid_json") from error
++
++
++def receipt(value):
++    """Accept explicitly portable receipt values; do not rewrite native receipts.
++
++    References are {"object": SHA256}. Logical names must be relative. This
++    format has no execution telemetry. Native SQLite/path migration is absent.
++    """
++    forbidden = {"path", "resolved", "roots", "hostname", "host", "timestamp",
++                 "uuid", "resources", "seconds", "run_key", "output", "preparation_output"}
++
++    def check(item):
++        if isinstance(item, dict):
++            if any(k in forbidden for k in item):
++                raise StoreRefused("nonportable_receipt_field")
++            if "object" in item:
++                if set(item) != {"object"}:
++                    raise StoreRefused("malformed_object_reference")
++                _hex(item["object"])
++            for part in item.values():
++                check(part)
++        elif isinstance(item, list):
++            for part in item:
++                check(part)
++        elif isinstance(item, str):
++            if item.startswith("/") or "\\" in item or "\x00" in item or ".." in item.split("/"):
++                raise StoreRefused("nonportable_receipt_value")
++        elif item is not None and type(item) not in (int, bool):
++            raise StoreRefused("unsupported_receipt_value")
++
++    check(value)
++    return canonical(value)
++
++
++def _references(value):
++    if isinstance(value, dict):
++        if set(value) == {"object"}:
++            yield value["object"]
++        for part in value.values():
++            yield from _references(part)
++    elif isinstance(value, list):
++        for part in value:
++            yield from _references(part)
++
++
++@contextmanager
++def _regular(path):
++    try:
++        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++    except OSError as error:
++        raise StoreRefused("missing_or_linked_object") from error
++    with os.fdopen(fd, "rb") as handle:
++        info = os.fstat(handle.fileno())
++        if not stat.S_ISREG(info.st_mode):
++            raise StoreRefused("nonregular_object")
++        yield handle
++
++
++def _fsync(directory):
++    fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
++    try:
++        os.fsync(fd)
++    finally:
++        os.close(fd)
++
++
++def _safe_directory(path):
++    path = Path(path).absolute()
++    # Reject linked ancestors too. Same-user concurrent malicious mutation is
++    # outside this primitive's trust model; native adoption is not exposed.
++    for part in reversed((path, *path.parents)):
++        if part.is_symlink():
++            raise StoreRefused("linked_directory")
++    info = path.stat()
++    if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o022:
++        raise StoreRefused("untrusted_store_directory")
++    return path
++
++
++class Store:
++    def __init__(self, path, *, create=False):
++        if os.environ.get("TK_XSTORE_EXPERIMENT") != "1":
++            raise StoreRefused("switch_off")
++        path = Path(path).absolute()
++        if create:
++            path.mkdir(mode=0o700, exist_ok=False)
++            (path / "objects").mkdir(mode=0o700)
++            (path / "roots").mkdir(mode=0o700)
++            (path / "temporary").mkdir(mode=0o700)
++        self.path = _safe_directory(path)
++        for name in ("objects", "roots", "temporary"):
++            _safe_directory(path / name)
++
++    @contextmanager
++    def _locked(self):
++        fd = os.open(self.path / "publish.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
++        try:
++            # A duplicate publisher fails promptly; it does not idle an allocation.
++            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
++            yield
++        finally:
++            os.close(fd)
++
++    def put_bytes(self, raw, *, kind="bytes"):
++        if not isinstance(raw, bytes):
++            raise TypeError("Object payload must be bytes")
++        if kind not in ("bytes", "receipt"):
++            raise StoreRefused("unknown_object_kind")
++        if kind == "receipt":
++            receipt(_json(raw))
++        digest = hashlib.sha256(raw).hexdigest()
++        temporary = self.path / "temporary" / uuid.uuid4().hex
++        with temporary.open("xb") as handle:
++            handle.write(raw)
++            handle.flush()
++            os.fsync(handle.fileno())
++        with self._locked():
++            target = self.path / "objects" / digest
++            if target.exists() or target.is_symlink():
++                self._verify_object({"sha256": digest, "bytes": len(raw), "kind": kind})
++            else:
++                os.rename(temporary, target)
++                _fsync(target.parent)
++        # Duplicate and failed temporaries remain for operator inspection.
++        return {"sha256": digest, "bytes": len(raw), "kind": kind}
++
++    def _verify_object(self, entry, *, copy_to=None):
++        digest = hashlib.sha256()
++        total = 0
++        chunks = [] if entry["kind"] == "receipt" else None
++        with _regular(self.path / "objects" / entry["sha256"]) as handle:
++            if os.fstat(handle.fileno()).st_size != entry["bytes"]:
++                raise StoreRefused("object_size_mismatch")
++            while block := handle.read(BLOCK):
++                total += len(block)
++                if total > entry["bytes"]:
++                    raise StoreRefused("object_size_mismatch")
++                digest.update(block)
++                if chunks is not None:
++                    if total > MAX_ROOT:
++                        raise StoreRefused("receipt_too_large")
++                    chunks.append(block)
++                if copy_to is not None:
++                    copy_to.write(block)
++        if total != entry["bytes"] or digest.hexdigest() != entry["sha256"]:
++            raise StoreRefused("object_hash_mismatch")
++        if chunks is not None:
++            value = _json(b"".join(chunks))
++            receipt(value)
++            return set(_references(value))
++        return set()
++
++    @staticmethod
++    def _validate_root(root):
++        if not isinstance(root, dict) or set(root) != {"schema", "key", "objects"} or root["schema"] != SCHEMA:
++            raise StoreRefused("invalid_root_schema")
++        _hex(root["key"])
++        entries = root["objects"]
++        if not isinstance(entries, list) or not 1 <= len(entries) <= MAX_OBJECTS:
++            raise StoreRefused("invalid_object_count")
++        names = []
++        digests = {}
++        for entry in entries:
++            if not isinstance(entry, dict) or set(entry) != {"name", "sha256", "bytes", "kind"}:
++                raise StoreRefused("invalid_object_entry")
++            names.append(_name(entry["name"]))
++            _hex(entry["sha256"])
++            if type(entry["bytes"]) is not int or entry["bytes"] < 0 or entry["kind"] not in ("bytes", "receipt"):
++                raise StoreRefused("invalid_object_entry")
++            if entry["sha256"] in digests and digests[entry["sha256"]] != (entry["bytes"], entry["kind"]):
++                raise StoreRefused("inconsistent_object_entry")
++            digests[entry["sha256"]] = (entry["bytes"], entry["kind"])
++        if names != sorted(set(names)):
++            raise StoreRefused("duplicate_or_unsorted_names")
++        name_set = set(names)
++        if any(str(parent) in name_set for name in names for parent in PurePosixPath(name).parents):
++            raise StoreRefused("object_name_prefix_collision")
++
++    def _graph(self, root):
++        self._validate_root(root)
++        present = {entry["sha256"] for entry in root["objects"]}
++        references = set()
++        for entry in root["objects"]:
++            references.update(self._verify_object(entry))
++        if not references <= present:
++            raise StoreRefused("incomplete_object_graph")
++
++    def publish(self, key, objects):
++        root = {"schema": SCHEMA, "key": _hex(key),
++                "objects": sorted(objects, key=lambda entry: entry["name"])}
++        raw = canonical(root)
++        if len(raw) > MAX_ROOT:
++            raise StoreRefused("root_too_large")
++        digest = hashlib.sha256(raw).hexdigest()
++        with self._locked():
++            # The root is never published before the complete graph verifies.
++            self._graph(root)
++            temporary = self.path / "temporary" / (uuid.uuid4().hex + ".root")
++            with temporary.open("xb") as handle:
++                handle.write(raw)
++                handle.flush()
++                os.fsync(handle.fileno())
++            target = self.path / "roots" / (digest + ".json")
++            if target.exists() or target.is_symlink():
++                self.verify(digest, expected_key=key)
++            else:
++                os.rename(temporary, target)
++                _fsync(target.parent)
++        return digest
++
++    def verify(self, root_digest, *, expected_key):
++        started = time.monotonic()
++        _hex(root_digest)
++        _hex(expected_key)
++        with _regular(self.path / "roots" / (root_digest + ".json")) as handle:
++            raw = handle.read(MAX_ROOT + 1)
++        if len(raw) > MAX_ROOT:
++            raise StoreRefused("root_too_large")
++        if hashlib.sha256(raw).hexdigest() != root_digest:
++            raise StoreRefused("root_hash_mismatch")
++        root = _json(raw)
++        self._validate_root(root)
++        if root["key"] != expected_key:
++            raise StoreRefused("foreign_key")
++        self._graph(root)
++        return root, {"root_digest": root_digest, "key": expected_key,
++                      "object_count": len(root["objects"]),
++                      "verify_seconds": time.monotonic() - started, "reason": "verified_objects_only"}
++
++    def materialize_private(self, root_digest, *, expected_key, directory):
++        """Write a new private artifact directory, never a training destination."""
++        root, telemetry = self.verify(root_digest, expected_key=expected_key)
++        directory = Path(directory).absolute()
++        _safe_directory(directory.parent)
++        directory.mkdir(mode=0o700, exist_ok=False)
++        for entry in root["objects"]:
++            target = directory / entry["name"]
++            target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
++            with target.open("xb") as handle:
++                self._verify_object(entry, copy_to=handle)
++                handle.flush()
++                os.fsync(handle.fileno())
++        # No admission or completion marker is synthesized here.
++        return telemetry
++
++
++def compare(left, left_digest, right, right_digest, *, key):
++    """Compare independently supplied roots without normalizing any difference."""
++    a, _ = left.verify(left_digest, expected_key=key)
++    b, _ = right.verify(right_digest, expected_key=key)
++    if a != b or left_digest != right_digest:
++        aa = {e["name"]: e for e in a["objects"]}
++        bb = {e["name"]: e for e in b["objects"]}
++        changed = sorted(k for k in aa.keys() | bb.keys() if aa.get(k) != bb.get(k))
++        raise StoreRefused("determinism_difference:" + ",".join(changed))
++    return {"status": "IDENTICAL", "root_digest": left_digest, "key": key,
++            "object_count": len(a["objects"])}
+--- /dev/null
++++ b/scripts/preparation_cpu.py
+@@ -0,0 +1,9 @@
++"""Isolated-interpreter entry; imports only this exact source tree."""
++from pathlib import Path
++import sys
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
++from student_pilot.preparation_cpu import main
++
++if __name__ == "__main__":
++    main()
+--- /dev/null
++++ b/scripts/compare_preparation_stores.py
+@@ -0,0 +1,24 @@
++"""Compare two supplied cold stores, without changing or normalizing bytes."""
++import argparse
++import json
++from pathlib import Path
++import sys
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
++from student_pilot.preparation_store import Store, compare
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--left", required=True)
++    parser.add_argument("--left-root", required=True)
++    parser.add_argument("--right", required=True)
++    parser.add_argument("--right-root", required=True)
++    parser.add_argument("--key", required=True)
++    args = parser.parse_args()
++    result = compare(Store(args.left), args.left_root, Store(args.right), args.right_root, key=args.key)
++    print(json.dumps(result, sort_keys=True))
++
++
++if __name__ == "__main__":
++    main()
+--- /dev/null
++++ b/tests/test_preparation_native_boundary.py
+@@ -0,0 +1,181 @@
++"""Native dependency/format evidence and CPU-entry tests, not an adoption proof."""
++import copy
++import fcntl
++import json
++import os
++from pathlib import Path
++import sys
++import tempfile
++import unittest
++from unittest.mock import patch
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
++import torch
++torch.set_num_threads(8)
++from student_pilot import carrier_c1_run as run
++from student_pilot import mdg_parent, preparation_cpu
++from student_pilot.p3_provenance import file_pin, load, write
++from student_pilot.preparation_reads import Recorder, UnkeyedRead
++from student_pilot.s1_admission import FrameAudit
++
++
++class NativeBoundaryTests(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix="native_boundary_", dir=os.environ["LANE_TEST_OUTPUT"]))
++        env = patch.dict(os.environ, {"TK_XSTORE_EXPERIMENT": "1", "TK_NATIVE_CPU_PREPARE": "1",
++                         "CUDA_VISIBLE_DEVICES": "", "C1_INIT_LOCAL": "", "STUDENT_FRAME_ROOT_MAP": "",
++                         "SLURM_GPUS_ON_NODE": "", "SLURM_GPUS": "", "SLURM_JOB_GPUS": "",
++                         "SLURM_GPUS_PER_NODE": "", "SLURM_STEP_GPUS": "", "Q_E4": ""})
++        env.start()
++        self.addCleanup(env.stop)
++
++    def put(self, name, value):
++        path = self.root / name
++        write(path, value)
++        return file_pin(path)
++
++    def parent(self):
++        architecture = self.put("model/config.json", {"text_config": {"hidden_size": 4}})
++        base = self.put("base.json", {"root": str(self.root / "model"), "base_identity": "tiny",
++                        "files": {"config.json": architecture["sha256"]}})
++        pose = self.put("pose.json", {"model": base})
++        index = self.put("weights/model.safetensors.index.json",
++                         {"weight_map": {"model.embed_tokens.weight": "missing-shard.safetensors"}})
++        weights = self.put("weights/manifest.json", {"schema": run.full_ft.EXPORT_SCHEMA,
++                           "index": {"name": "model.safetensors.index.json", "sha256": index["sha256"]},
++                           "files": [{"name": "missing-shard.safetensors", "sha256": "a" * 64, "bytes": 8}]})
++        parent = self.put("artifact.json", {"schema": "carrier-c1-artifact-v1", "base_identity": "tiny",
++                          "full_weights": weights, "heads": {"path": "/not-read/heads.json", "sha256": "b" * 64}})
++        cfg = {"streams": {"pose": pose}, "base_identity": "tiny", "init_artifact": {"lm": "full", "artifact": parent}}
++        return cfg
++
++    def test_no_mdg_native_parent_still_requires_export_artifact(self):
++        cfg = self.parent()
++        cfg["init_artifact"]["artifact"] = {"path": str(self.root / "future-step-600.json"), "sha256": "c" * 64}
++        with self.assertRaisesRegex(ValueError, "Missing or changed pinned input"):
++            mdg_parent.bind(cfg, self.root / "out")
++
++    def test_no_mdg_native_parent_still_requires_export_manifest(self):
++        cfg = self.parent()
++        (self.root / "weights/manifest.json").rename(self.root / "retained-manifest.json")
++        with self.assertRaisesRegex(ValueError, "Missing or changed pinned input"):
++            mdg_parent.bind(cfg, self.root / "out")
++
++    def test_no_mdg_native_parent_still_requires_export_index(self):
++        cfg = self.parent()
++        (self.root / "weights/model.safetensors.index.json").rename(self.root / "retained-index.json")
++        with self.assertRaisesRegex(ValueError, "Missing or changed pinned input"):
++            mdg_parent.bind(cfg, self.root / "out")
++
++    def test_no_mdg_native_parent_reads_metadata_without_weight_payload(self):
++        cfg = self.parent()
++        with patch.object(torch.cuda, "_lazy_init", side_effect=AssertionError("CUDA initialization forbidden")):
++            proof = mdg_parent.bind(cfg, self.root / "out")
++        self.assertEqual(proof["mdg"], "absent")
++        self.assertFalse(proof["parent_weight_payloads_verified"])
++        self.assertFalse((self.root / "weights/missing-shard.safetensors").exists())
++
++    def test_native_identity_changes_with_output_and_preparation_output(self):
++        cfg = {"output": "/run/a", "preparation_output": "/run/a/prep", "seed": 17}
++        baseline = run.identity(cfg)
++        for key in ("output", "preparation_output"):
++            value = {**cfg, key: "/run/b"}
++            self.assertNotEqual(baseline, run.identity(value))
++
++    def test_actual_native_identity_refuses_excluded_reads_under_recorder(self):
++        cfg = Recorder({"output": "/run/a", "preparation_output": "/run/a/prep", "seed": 17})
++        with self.assertRaisesRegex(UnkeyedRead, "Run-specific"):
++            run.identity(cfg.config)
++
++    def test_native_frame_audit_contains_physical_paths_and_differs_between_dirs(self):
++        outputs = []
++        for name in ("a", "b"):
++            root = self.root / name
++            root.mkdir()
++            frame = root / "frame.bin"
++            frame.write_bytes(b"same frame")
++            output = root / "audit"
++            output.mkdir()
++            audit = FrameAudit(output, [root], sample_size=1)
++            try:
++                audit.keep({"student_input": {"frames": [file_pin(frame)]}}, "vqa")
++                outputs.append(audit.finish())
++            finally:
++                audit.close()
++        self.assertNotEqual(outputs[0]["inventory"]["sha256"], outputs[1]["inventory"]["sha256"])
++        self.assertNotEqual(outputs[0]["roots"], outputs[1]["roots"])
++
++    def test_cpu_entry_defaults_off_and_rejects_allocated_gpus(self):
++        with patch.dict(os.environ, {"TK_NATIVE_CPU_PREPARE": "0"}):
++            with self.assertRaisesRegex(ValueError, "TK_NATIVE_CPU_PREPARE"):
++                preparation_cpu.resources(8, 30, 60)
++        for name in ("SLURM_GPUS_ON_NODE", "SLURM_GPUS", "SLURM_JOB_GPUS", "SLURM_GPUS_PER_NODE"):
++            with patch.dict(os.environ, {name: "4"}):
++                with self.assertRaisesRegex(ValueError, "GPU allocation"):
++                    preparation_cpu.resources(8, 30, 60)
++        for name in ("SLURM_JOB_GPUS", "SLURM_STEP_GPUS"):
++            with patch.dict(os.environ, {name: "0"}):
++                with self.assertRaisesRegex(ValueError, "GPU allocation"):
++                    preparation_cpu.resources(8, 30, 60)
++
++    def test_cpu_entry_wrong_config_pin_creates_no_output(self):
++        pin = self.put("config.json", {})
++        out = self.root / "untouched"
++        with self.assertRaisesRegex(ValueError, "explicit pin"):
++            preparation_cpu.prepare(pin["path"], "f" * 64, out, [str(self.root)])
++        self.assertFalse(out.exists())
++
++    def test_cpu_entry_duplicate_fails_without_touching_journal(self):
++        pin = self.put("config.json", {})
++        out = self.root / "busy"
++        out.mkdir()
++        with (out / "admission.lock").open("a") as handle:
++            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
++            with self.assertRaises(BlockingIOError):
++                preparation_cpu.prepare(pin["path"], pin["sha256"], out, [str(self.root)], resume=True)
++        self.assertEqual(list(out.glob("cpu_telemetry_*.json")), [])
++
++    def test_cpu_entry_refuses_thread_overcommit(self):
++        with self.assertRaisesRegex(ValueError, "eight threads"):
++            preparation_cpu.resources(9, 30, 60)
++
++    def test_cpu_entry_forwards_exact_native_arguments_and_separates_telemetry(self):
++        from student_pilot import s1_admission
++        pin = self.put("config.json", {"output": "native-output"})
++        out = self.root / "native"
++        result = {"schema": "test-native-return", "status": "PREPARED"}
++        def native(config, output, roots, **kwargs):
++            self.assertEqual(config, pin)
++            self.assertEqual(roots, [str(self.root)])
++            self.assertTrue(kwargs["prepare_only"])
++            self.assertEqual(kwargs["threads"], 8)
++            self.assertEqual(kwargs["memory_gib"], 30)
++            write(output / "data_receipt.json", result)
++            return result
++        # This spy tests forwarding, not a native end-to-end preparation proof.
++        with patch.object(s1_admission, "admit", side_effect=native) as called:
++            got = preparation_cpu.prepare(pin["path"], pin["sha256"], out, [str(self.root)], max_seconds=60)
++        called.assert_called_once()
++        self.assertEqual(got, result)
++        self.assertEqual(load(out / "data_receipt.json"), result)
++        telemetry = load(next(out.glob("cpu_telemetry_*.json")))
++        self.assertFalse(telemetry["cross_run_adoptable"])
++        self.assertFalse(telemetry["store_published"])
++        self.assertEqual(telemetry["status"], "PREPARED")
++
++    def test_cpu_entry_keeps_native_failure_and_partial_journal(self):
++        from student_pilot import s1_admission
++        pin = self.put("config.json", {})
++        out = self.root / "partial"
++        out.mkdir()
++        marker = out / "phase_prepare.complete.json"
++        marker.write_bytes(b"existing native journal")
++        with patch.object(s1_admission, "admit", side_effect=ValueError("native refusal")):
++            with self.assertRaisesRegex(ValueError, "native refusal"):
++                preparation_cpu.prepare(pin["path"], pin["sha256"], out, [str(self.root)], resume=True)
++        self.assertEqual(marker.read_bytes(), b"existing native journal")
++        self.assertEqual(load(next(out.glob("cpu_telemetry_*.json")))["status"], "REFUSED")
++
++
++if __name__ == "__main__":
++    unittest.main()
+--- /dev/null
++++ b/tests/test_preparation_store.py
+@@ -0,0 +1,310 @@
++"""Store/recorder unit tests. These are not native adoption/loss proofs."""
++import copy
++import hashlib
++import json
++import os
++from pathlib import Path
++import sqlite3
++import sys
++import tempfile
++import unittest
++from unittest.mock import patch
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
++from student_pilot.preparation_reads import Recorder, UnkeyedRead, canonical, digest
++from student_pilot.preparation_store import Store, StoreRefused, compare, receipt, SCHEMA
++
++
++class ScratchTest(unittest.TestCase):
++    def setUp(self):
++        self.env = patch.dict(os.environ, {"TK_XSTORE_EXPERIMENT": "1"})
++        self.env.start()
++        self.addCleanup(self.env.stop)
++        self.root = Path(tempfile.mkdtemp(prefix="store_", dir=os.environ["LANE_TEST_OUTPUT"]))
++
++    def store(self, name="store"):
++        return Store(self.root / name, create=True)
++
++    def build(self, name="store", raw=b"native-shaped fixture rows", key=None):
++        store = self.store(name)
++        payload = store.put_bytes(raw)
++        meta = store.put_bytes(receipt({"schema": "fixture-content-v1", "rows": {"object": payload["sha256"]}}), kind="receipt")
++        key = key or digest({"fixture_input": "same"})
++        root = store.publish(key, [{"name": "rows.bin", **payload}, {"name": "receipt.json", **meta}])
++        return store, root, key
++
++
++class RecorderTests(ScratchTest):
++    def test_nested_get_membership_iteration_lists_and_absence_are_recorded(self):
++        def read(r):
++            c = r.config
++            return (c["seed"], c.get("nested")["x"], "optional" in c,
++                    c.get("missing", 4), list(c["sequence"]), list(c["nested"].items()))
++        cfg = {"seed": 17, "nested": {"x": 2}, "sequence": [1, 2]}
++        first = Recorder(cfg)
++        a = read(first)
++        second = Recorder(cfg, expected=first.finish())
++        self.assertEqual(a, read(second))
++        self.assertEqual(first.key, second.key)
++
++    def test_injected_unkeyed_config_read_is_refused(self):
++        first = Recorder({"seed": 17, "injected": 3})
++        self.assertEqual(first.config["seed"], 17)
++        second = Recorder({"seed": 17, "injected": 3}, expected=first.finish())
++        self.assertEqual(second.config["seed"], 17)
++        with self.assertRaisesRegex(UnkeyedRead, "Unkeyed"):
++            second.config["injected"]
++
++    def test_consumed_field_change_refuses_replay(self):
++        first = Recorder({"filter": {"minimum": 1}})
++        first.config["filter"]["minimum"]
++        second = Recorder({"filter": {"minimum": 2}}, expected=first.finish())
++        with self.assertRaisesRegex(UnkeyedRead, "changed read"):
++            second.config["filter"]["minimum"]
++
++    def test_unused_field_does_not_enter_key(self):
++        keys = []
++        for value in (1, 2):
++            r = Recorder({"seed": 17, "unused": value})
++            r.config["seed"]
++            keys.append(r.key)
++        self.assertEqual(*keys)
++
++    def test_excluded_fields_refuse_get_contains_iteration_and_unpacking(self):
++        for key in ("output", "run_key", "preparation_output"):
++            for read in (lambda c, k: c[k], lambda c, k: c.get(k),
++                         lambda c, k: k in c, lambda c, k: list(c),
++                         lambda c, k: dict(c), lambda c, k: {**c}):
++                with self.subTest(key=key, read=read), self.assertRaises(UnkeyedRead):
++                    read(Recorder({key: "run-specific"}).config, key)
++
++    def test_absent_read_becoming_present_refuses(self):
++        a = Recorder({})
++        self.assertFalse("optional" in a.config)
++        b = Recorder({"optional": 1}, expected=a.finish())
++        with self.assertRaises(UnkeyedRead):
++            "optional" in b.config
++
++    def test_unconsumed_planned_read_refuses(self):
++        a = Recorder({"seed": 17})
++        a.config["seed"]
++        with self.assertRaisesRegex(UnkeyedRead, "exact planned read set"):
++            Recorder({"seed": 17}, expected=a.finish()).finish()
++
++    def test_file_byte_change_and_undeclared_file_refuse(self):
++        path = self.root / "input"
++        path.write_bytes(b"A")
++        a = Recorder({}, files={"rows": path})
++        self.assertEqual(a.read_file("rows"), b"A")
++        path.write_bytes(b"B")
++        with self.assertRaises(UnkeyedRead):
++            Recorder({}, files={"rows": path}, expected=a.finish()).read_file("rows")
++        with self.assertRaises(UnkeyedRead):
++            Recorder({}).read_file("injected")
++
++    def test_file_locations_are_not_keyed(self):
++        a, b = self.root / "a", self.root / "b"
++        a.write_bytes(b"same")
++        b.write_bytes(b"same")
++        keys = []
++        for path in (a, b):
++            r = Recorder({}, files={"input": path})
++            r.read_file("input")
++            keys.append(r.key)
++        self.assertEqual(*keys)
++
++    def test_declared_environment_change_and_unknown_environment_refuse(self):
++        a = Recorder({}, environment={"SEED": "17"})
++        a.environment("SEED")
++        with self.assertRaises(UnkeyedRead):
++            Recorder({}, environment={"SEED": "18"}, expected=a.finish()).environment("SEED")
++        with self.assertRaises(UnkeyedRead):
++            Recorder({}).environment("INJECTED")
++
++    def test_raw_python_file_read_is_refused(self):
++        path = self.root / "input"
++        path.write_bytes(b"key me")
++        r = Recorder({}, files={"rows": path})
++        with r.python_io_guard():
++            self.assertEqual(r.read_file("rows"), b"key me")
++            with self.assertRaisesRegex(UnkeyedRead, "Raw I/O"):
++                path.read_bytes()
++
++    def test_raw_sqlite_connection_is_refused(self):
++        with Recorder({}).python_io_guard():
++            with self.assertRaisesRegex(UnkeyedRead, "sqlite3.connect"):
++                sqlite3.connect(":memory:")
++
++    def test_source_file_change_changes_key(self):
++        p = self.root / "producer.py"
++        keys = []
++        for body in (b"x=1", b"x=2"):
++            p.write_bytes(body)
++            r = Recorder({}, files={"code/producer.py": p})
++            r.read_file("code/producer.py")
++            keys.append(r.key)
++        self.assertNotEqual(*keys)
++
++    def test_default_switch_is_off(self):
++        with patch.dict(os.environ, {"TK_XSTORE_EXPERIMENT": "0"}):
++            with self.assertRaises(ValueError):
++                Recorder({})
++
++
++class ObjectStoreTests(ScratchTest):
++    def test_full_graph_verifies_and_materializes_privately(self):
++        s, root, key = self.build()
++        value, telemetry = s.verify(root, expected_key=key)
++        self.assertEqual(telemetry["object_count"], 2)
++        self.assertEqual(value["key"], key)
++        s.materialize_private(root, expected_key=key, directory=self.root / "private")
++        self.assertEqual((self.root / "private/rows.bin").read_bytes(), b"native-shaped fixture rows")
++        self.assertFalse((self.root / "private/data_receipt.json").exists())
++
++    def test_corrupted_prepared_object_refuses(self):
++        s, root, key = self.build()
++        value, _ = s.verify(root, expected_key=key)
++        obj = next(e for e in value["objects"] if e["kind"] == "bytes")
++        (s.path / "objects" / obj["sha256"]).write_bytes(b"X" * obj["bytes"])
++        with self.assertRaisesRegex(StoreRefused, "object_hash_mismatch"):
++            s.verify(root, expected_key=key)
++
++    def test_missing_object_refuses(self):
++        s, root, key = self.build()
++        value, _ = s.verify(root, expected_key=key)
++        path = s.path / "objects" / value["objects"][0]["sha256"]
++        path.rename(s.path / "temporary/retained-missing-object")
++        with self.assertRaisesRegex(StoreRefused, "missing_or_linked_object"):
++            s.verify(root, expected_key=key)
++
++    def test_partial_root_refuses(self):
++        s, root, key = self.build()
++        (s.path / "roots" / (root + ".json")).write_bytes(b'{"schema":')
++        with self.assertRaisesRegex(StoreRefused, "root_hash_mismatch"):
++            s.verify(root, expected_key=key)
++
++    def test_foreign_key_refuses(self):
++        s, root, _ = self.build()
++        with self.assertRaisesRegex(StoreRefused, "foreign_key"):
++            s.verify(root, expected_key=digest({"different_input": True}))
++
++    def test_incomplete_graph_cannot_publish_root(self):
++        s = self.store()
++        obj = s.put_bytes(receipt({"child": {"object": "a" * 64}}), kind="receipt")
++        with self.assertRaisesRegex(StoreRefused, "incomplete_object_graph"):
++            s.publish("b" * 64, [{"name": "receipt.json", **obj}])
++        self.assertEqual(list((s.path / "roots").iterdir()), [])
++
++    def test_missing_payload_cannot_publish_root(self):
++        s = self.store()
++        with self.assertRaises(StoreRefused):
++            s.publish("b" * 64, [{"name": "rows", "sha256": "a" * 64, "bytes": 10, "kind": "bytes"}])
++        self.assertEqual(list((s.path / "roots").iterdir()), [])
++
++    def test_interrupted_root_rename_does_not_publish(self):
++        s = self.store()
++        obj = s.put_bytes(b"rows")
++        with patch("student_pilot.preparation_store.os.rename", side_effect=OSError("interrupted")):
++            with self.assertRaises(OSError):
++                s.publish("b" * 64, [{"name": "rows", **obj}])
++        self.assertEqual(list((s.path / "roots").iterdir()), [])
++
++    def test_object_symlink_refuses(self):
++        s, root, key = self.build()
++        value, _ = s.verify(root, expected_key=key)
++        p = s.path / "objects" / value["objects"][0]["sha256"]
++        saved = s.path / "temporary/retained-link-target"
++        p.rename(saved)
++        p.symlink_to(saved)
++        with self.assertRaises(StoreRefused):
++            s.verify(root, expected_key=key)
++
++    def test_linked_store_directory_refuses(self):
++        s, _, _ = self.build()
++        alias = self.root / "alias"
++        alias.symlink_to(s.path, target_is_directory=True)
++        with self.assertRaisesRegex(StoreRefused, "linked_directory"):
++            Store(alias)
++
++    def test_shared_writable_store_refuses(self):
++        s, _, _ = self.build()
++        s.path.chmod(0o770)
++        with self.assertRaisesRegex(StoreRefused, "untrusted_store_directory"):
++            Store(s.path)
++
++    def test_duplicate_and_traversal_names_refuse(self):
++        s = self.store()
++        obj = s.put_bytes(b"rows")
++        for names in (("../escape",), ("/absolute",), ("a//b",), ("a/./b",), ("x", "x"), ("x", "x/y")):
++            with self.subTest(names=names), self.assertRaises(StoreRefused):
++                s.publish("b" * 64, [{"name": name, **obj} for name in names])
++
++    def test_native_receipts_are_rejected_instead_of_normalized(self):
++        for value in ({"path": "/run/abc"}, {"inventory": "/run/abc"}, {"resources": {}},
++                      {"host": "node-a"}, {"timestamp": "today"}, {"uuid": "abc"}, {"seconds": 1}):
++            with self.subTest(value=value), self.assertRaises(StoreRefused):
++                receipt(value)
++
++    def test_native_admission_objects_cannot_be_published(self):
++        s = self.store()
++        obj = s.put_bytes(b"foreign admission")
++        for name in ("request.json", "data_receipt.json", "nested/data_receipt.json", "phase_prepare.complete.json"):
++            with self.subTest(name=name), self.assertRaisesRegex(StoreRefused, "native_admission_name_refused"):
++                s.publish("b" * 64, [{"name": name, **obj}])
++        self.assertEqual(list((s.path / "roots").iterdir()), [])
++
++    def test_materialization_preserves_existing_native_destination(self):
++        s, root, key = self.build()
++        directory = self.root / "native"
++        directory.mkdir(mode=0o700)
++        marker = directory / "phase_prepare.complete.json"
++        marker.write_bytes(b"native journal")
++        with self.assertRaises(FileExistsError):
++            s.materialize_private(root, expected_key=key, directory=directory)
++        self.assertEqual(marker.read_bytes(), b"native journal")
++
++    def test_materialization_rehashes_bytes_after_verify(self):
++        s, root, key = self.build()
++        real = s.verify
++        def changed(*a, **kw):
++            value, meta = real(*a, **kw)
++            e = value["objects"][0]
++            (s.path / "objects" / e["sha256"]).write_bytes(b"X" * e["bytes"])
++            return value, meta
++        with patch.object(s, "verify", side_effect=changed):
++            with self.assertRaisesRegex(StoreRefused, "object_hash_mismatch"):
++                s.materialize_private(root, expected_key=key, directory=self.root / "partial")
++        self.assertFalse((self.root / "partial/data_receipt.json").exists())
++
++    def test_determinism_compares_every_entry_without_normalization(self):
++        a, ar, key = self.build("a")
++        b, br, _ = self.build("b")
++        self.assertEqual(compare(a, ar, b, br, key=key)["status"], "IDENTICAL")
++        c, cr, _ = self.build("c", raw=b"different rows", key=key)
++        with self.assertRaisesRegex(StoreRefused, "determinism_difference"):
++            compare(a, ar, c, cr, key=key)
++
++    def test_host_and_tmpdir_do_not_enter_fixture_root(self):
++        with patch.dict(os.environ, {"HOSTNAME": "node-a", "TMPDIR": str(self.root / "tmp-a")}):
++            _, a, _ = self.build("a")
++        with patch.dict(os.environ, {"HOSTNAME": "node-b", "TMPDIR": str(self.root / "tmp-b")}):
++            _, b, _ = self.build("b")
++        self.assertEqual(a, b)
++
++    def test_hashes_alone_are_not_producer_authentication(self):
++        # This is a negative admission result, not an adopter acceptance test.
++        a, ar, key = self.build("a")
++        b, br, _ = self.build("forged", raw=b"not produced by native code", key=key)
++        a.verify(ar, expected_key=key)
++        b.verify(br, expected_key=key)
++        self.assertNotEqual(ar, br)
++
++    def test_default_switch_is_off(self):
++        with patch.dict(os.environ, {"TK_XSTORE_EXPERIMENT": "0"}):
++            with self.assertRaisesRegex(StoreRefused, "switch_off"):
++                Store(self.root / "off", create=True)
++        self.assertFalse((self.root / "off").exists())
++
++
++if __name__ == "__main__":
++    unittest.main()

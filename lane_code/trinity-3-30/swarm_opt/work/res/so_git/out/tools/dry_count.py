@@ -40,10 +40,22 @@ def main():
     failures = 0
     for folder in args.folders:
         try:
+            # Check the lexical path before resolve: hourly os.walk never enters symlinked lanes.
+            folder = Path(os.path.abspath(str(folder)))
+            try:
+                folder.relative_to('/scratch/jjyeung/orch_n30')
+            except ValueError:
+                raise ValueError('folders must be under /scratch/jjyeung/orch_n30/')
+            if folder == Path('/scratch/jjyeung/orch_n30'):
+                raise ValueError('pass explicit lane folders, not the whole orchestration root')
+            if any(p.is_symlink() for p in (folder,) + tuple(folder.parents)):
+                raise ValueError('symlinked folders or ancestors are refused')
             folder = folder.resolve(strict=True)
+            if not folder.is_dir():
+                raise ValueError('folder must be an existing directory')
             # No manifest argument: the filter makes no output files.
             result = subprocess.run([sys.executable, '-I', '-s', '-B', str(script), folder.name],
-                                    cwd=folder, capture_output=True, timeout=120)
+                                    cwd=folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
             if result.returncode:
                 raise ValueError(f'filter exit {result.returncode}: {result.stderr.decode(errors="replace")}')
             paths = [os.fsdecode(x) for x in result.stdout.split(b'\0') if x]

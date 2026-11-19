@@ -64,6 +64,8 @@ class KitTests(unittest.TestCase):
             self.assertEqual(args[10],2)
             self.assertEqual(args[11],10)
         with ExitStack() as stack:
+            from student_pilot import c1_switches
+            stack.enter_context(patch.object(c1_switches, '_frozen', None))
             stack.enter_context(patch.dict(os.environ,WORLD_SIZE='8',RANK='0',LOCAL_RANK='0'))
             stack.enter_context(patch.object(run.rehearsal,'enabled',return_value=False))
             stack.enter_context(patch.object(run.rehearsal,'attempt_id',return_value='kit_fixture'))
@@ -80,11 +82,17 @@ class KitTests(unittest.TestCase):
                 checks[name]=stack.enter_context(patch.object(run,name,return_value=value))
             stack.enter_context(patch.object(run,'Rows',return_value=SimpleNamespace(close=lambda:None)))
             stack.enter_context(patch.object(run,'run_steps',side_effect=loop))
-            operation=measurement_train(run,disposable_output)
+            restored_binding = {'fixture': 'original production binding'}
+            def early_resume_check(config, commit, resume):
+                checks['load_model'].assert_not_called()
+                self.assertIs(resume,pin)
+                return restored_binding
+            operation=measurement_train(run,disposable_output,resume_check=early_resume_check)
             operation(cfg,smoke_steps=10,resume_pin=pin)
             for name in ('validate','prepared','authenticate','load_model','wrap_model','restore'):
                 checks[name].assert_called_once()
             self.assertIs(checks['restore'].call_args.args[0],pin)
+            self.assertIs(checks['restore'].call_args.args[3],restored_binding)
         self.assertEqual(len(observed),1)
         self.assertFalse(original_output.exists())
         self.assertTrue((disposable_output/'smoke/kit_fixture/attempt_kit_fixture.json').is_file())

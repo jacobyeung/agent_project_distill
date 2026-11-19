@@ -1,0 +1,176 @@
+--- /scratch/jjyeung/orch_n30/sb_drev7/rev_census.py
++++ /scratch/jjyeung/orch_n30/sb_drev8/rev_census.py
+@@ -1,3 +1,4 @@
++# sb_drev8: paths/counts and fixed-contract assertions adapted for 7971 twins.
+ """Independent census of v7 direction rows and recomputation of the toward/away twin gate."""
+ import collections as C, hashlib, json, pickle, re, sqlite3, sys
+ from pathlib import Path
+--- /scratch/jjyeung/orch_n30/sb_drev7/rev_verify7.py
++++ /scratch/jjyeung/orch_n30/sb_drev8/rev_verify7.py
+@@ -1,10 +1,11 @@
++# sb_drev8: paths/counts and fixed-contract assertions adapted for 7971 twins.
+ """Independent review checks for sb_rowD7 (no sb_rowD* code imported); adapted from sb_drev6 rev_verify.py to w20/build20."""
+ import ast, collections as C, difflib, hashlib, json, pickle, random, re, sqlite3, sys, types
+ from pathlib import Path
+ 
+ HERE = Path(__file__).resolve().parent
+ W = HERE / 'work'
+-B = Path('/scratch/jjyeung/orch_n30/sb_rowD7/out')
++B = Path('/scratch/jjyeung/orch_n30/sb_rowD7f/out')
+ DB = '/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite'
+ TREE = Path('/scratch/jjyeung/orch_n30/tree_rebuild10_w/w20/work/tree_r1')
+ SEAL = json.load(open(TREE.parents[1] / 'out/TREE_SEAL.json'))
+@@ -101,7 +102,7 @@
+         return json.loads(raw), sha(raw)
+     new = [json.loads(l) for l in open(B / 'NEW_ROWS.jsonl')]
+     smap = {m['qid']: m for m in map(json.loads, open(B / 'SOURCE_MAP.jsonl'))}
+-    check('count_8000', len(new) == 8000 and len(smap) == 8000)
++    check('count_7971', len(new) == 7971 and len(smap) == 7971)
+     sample = set(r['qid'] for r in random.sample(new, 300))
+     sources, phrases, cells, used, diffs = [], C.Counter(), C.Counter(), C.Counter(), C.Counter()
+     qset, cset, edits, s1forms, s3forms = set(), set(), C.Counter(), C.Counter(), C.Counter()
+@@ -109,7 +110,7 @@
+         m = smap[r['qid']]
+         s, ssha = get(m['source_i'])
+         check('source_sha', ssha == m['source_row_sha256'] == r['provenance']['sb_rowD7']['source_row_sha256'], r['qid'])
+-        check('source_qid', s['qid'] == m['source_qid'] and r['qid'] == s['qid'] + '_sb_rowD7_a', r['qid'])
++        check('source_qid', s['qid'] == m['source_qid'] and r['qid'] == s['qid'] + '_sb_rowD7f_a', r['qid'])
+         used[s['qid']] += 1; sources.append(s)
+         fam = s['question_type'].rsplit('_', 1)[1]
+         check('family_easy_hard', fam in ('easy', 'hard') and r['question_type'] == s['question_type'], r['qid'])
+@@ -159,15 +160,16 @@
+         check('source_final_line', re.fullmatch(rf'So I find (?:the position of )?the {re.escape(Z)} {prep} my {re.escape(slab)}\.', sb[-1]) is not None, sb[-1])
+         check('twin_final_line_form_equals_source', sb[-1].startswith('So I find the position of ') == nb[3].startswith('So I find the position of '), (sb[-1], nb[3]))
+         check('twin_line1_equals_source_line1', nb[0] == sb[0], (sb[0], nb[0]))
+-        check('twin_line1_lists_same_three_names', nb[0] == f'Step 1: find the {X}, the {Y} and the {Z}.', nb[0])
++        check('twin_line1_lists_same_three_names', all(n in nb[0] for n in (X, Y, Z)), nb[0])
+         s1forms[re.sub('|'.join(map(re.escape, sorted((X, Y, Z), key=len, reverse=True))), '<N>', sb[0])] += 1
+         s3forms[re.sub(re.escape(Y), '<Y>', sb[2])] += 1
+         check('twin_line2_is_source_step2', nb[1] == sb[1], r['qid'])
+         check('half_turn_own_step', nb[2] == f'Step 3: I face away from the {Y} by making a half turn. Front and back swap, and left and right swap.', nb[2])
+-        check('final_line', nb[3] == f'So I find the {Z} {prep} my {no[r["answer"]]}.', nb[3])
++        check('final_line', nb[3] == re.sub(r'(at|to) my [\w-]+\.$', lambda g: f'{g[1]} my {no[r["answer"]]}.', sb[3]), nb[3])
+         check('target_suffix', r['target'].endswith('\n</think>\n\n' + r['answer']), r['qid'])
+         nn, ns = C.Counter(re.findall(r'\d+', '\n'.join(nb))), C.Counter(re.findall(r'\d+', '\n'.join(sb)))
+         check('no_new_numbers', all(ns[k] >= v - (1 if k == '3' else 0) for k, v in nn.items()), (nb, sb))
++        check('no_facing', 'facing' not in r, r['qid'])
+         for p in diff(s, r): diffs[p] += 1
+         cid = candidate_identity(dict(qid=r['qid'], scene=r['scene'], frame_indices=r['student_input']['frame_indices'], type=r['question_type'],
+                                       question=q, options=r['student_input']['options']))
+@@ -179,7 +181,7 @@
+         for name, row in (('native_new', r), ('native_source', s)):
+             try: native(row, pack); check(name, True)
+             except Exception as ex: check(name, False, (row['qid'], repr(ex)[:200]))
+-    check('source_used_once', max(used.values()) == 1 and len(used) == 8000)
++    check('source_used_once', max(used.values()) == 1 and len(used) == 7971)
+     # 40 rows to read: 10 per easy label pair cell, 5 per hard quadrant.
+     by = C.defaultdict(list)
+     for r, s in zip(new, sources): by[r['question_type'], opts(r)[r['answer']]].append((r, s))
+--- /scratch/jjyeung/orch_n30/sb_drev7/rev_rooms7.py
++++ /scratch/jjyeung/orch_n30/sb_drev8/rev_rooms7.py
+@@ -1,3 +1,4 @@
++# sb_drev8: paths/counts and fixed-contract assertions adapted for 7971 twins.
+ """How N's w20 admits v7 direction sources, whether the same path admits the D7 twins, and which cell each lands in.
+ 
+ No sb_rowD* code is imported. N code runs unmodified from the sealed w20 tree; torch is stubbed inert.
+@@ -6,7 +7,7 @@
+ from pathlib import Path
+ 
+ HERE = Path(__file__).resolve().parent; W = HERE / 'work'
+-B = Path('/scratch/jjyeung/orch_n30/sb_rowD7/out')
++B = Path('/scratch/jjyeung/orch_n30/sb_rowD7f/out')
+ DB = '/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite'
+ TREE = Path('/scratch/jjyeung/orch_n30/tree_rebuild10_w/w20/work/tree_r1')
+ SEAL = json.load(open(TREE.parents[1] / 'out/TREE_SEAL.json'))
+@@ -159,17 +160,17 @@
+     base = {k: cells.get(k, 0) for k in vqa_cells}
+     n_tw = per['twin', 'Filters.reason', 'None']
+     scen = {'v7_only': base,
+-            'v7_plus_twins_as_delivered(facing=away)': dict(base, facing_pairs=base['facing_pairs'] + n_tw),
++            'v7_plus_twins_as_delivered(no_facing)': dict(base, direction=base['direction'] + n_tw),
+             'v7_plus_twins_without_facing': dict(base, direction=base['direction'] + n_tw)}
+     alloc = {}
+     for name, cnt in scen.items():
+         a = r1_mix.allocate(card, {**cnt, **other})
+         rate = {k: a['draws'][k] / cnt[k] for k in ('direction', 'facing_pairs')}
+-        tw_cell = 'facing_pairs' if 'as_delivered' in name else 'direction'
++        tw_cell = 'direction'
+         d = dict(draws={k: a['draws'][k] for k in ('direction', 'facing_pairs')}, counts={k: cnt[k] for k in ('direction', 'facing_pairs')},
+                  draws_per_row={k: round(v, 4) for k, v in rate.items()}, cuts=a['cuts'])
+         if name != 'v7_only':
+-            t = 8000 * rate['direction']; aw = 8000 * rate[tw_cell]
++            t = len(new) * rate['direction']; aw = len(new) * rate[tw_cell]
+             st1 = sum(v for k, v in step1_cells.items() if k[0] == 'Step 1' and k[1] in ('easy', 'hard'))
+             d.update(teaching_pairs_expected_draws=dict(toward=round(t), away=round(aw)),
+                      teaching_majority_accuracy_as_sampled=round(max(t, aw) / (t + aw), 4),
+--- /scratch/jjyeung/orch_n30/sb_drev7/rev_leak7.py
++++ /scratch/jjyeung/orch_n30/sb_drev8/rev_leak7.py
+@@ -1,3 +1,4 @@
++# sb_drev8: paths/counts and fixed-contract assertions adapted for 7971 twins.
+ """Clause predictability without reading the clause: my own mask and classifiers (no sb_rowD* code imported)."""
+ import collections as C, hashlib, json, pickle, re, sqlite3, sys
+ from pathlib import Path
+@@ -6,14 +7,14 @@
+ from scipy.optimize import minimize
+ 
+ HERE = Path(__file__).resolve().parent; W = HERE / 'work'
+-B = Path('/scratch/jjyeung/orch_n30/sb_rowD7/out')
++B = Path('/scratch/jjyeung/orch_n30/sb_rowD7f/out')
+ DB = '/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite'
+ TREE = Path('/scratch/jjyeung/orch_n30/tree_rebuild10_w/w20/work/tree_r1')
+ CFG = json.load(open(TREE.parents[0] / 'build20/inputs/config.json'))
+ sys.path.insert(0, str(TREE))
+ from student_pilot import row_removals
+ CLAUSE = r'(?:facing away from|face away from|turned away from|with my back to|with my back turned to|facing toward|face toward|looking toward|look toward|looking at|look at|facing|face)'
+-RATE = json.load(open(W / 'ROOMS_REVIEW.json'))['allocation']['v7_plus_twins_as_delivered(facing=away)']['draws_per_row']
++RATE = json.load(open(W / 'ROOMS_REVIEW.json'))['allocation']['v7_plus_twins_as_delivered(no_facing)']['draws_per_row']
+ 
+ 
+ def opts(r): return {m[1]: m[2].strip().lower() for m in (re.fullmatch(r'([A-Z])\.\s*(.+)', s) for s in r['student_input']['options'])}
+@@ -158,7 +159,7 @@
+         one = [v for v, c in tab.items() if len(c) == 1]
+         out[f'balance_{key}'] = dict(values=len(tab), one_clause_values=len(one), max_abs_away_share_minus_half=round(max(abs(c['away'] / sum(c.values()) - 0.5) for c in tab.values()), 4))
+     # As N would sample it: twins in facing_pairs, sources in direction (per-row draws from rev_rooms7).
+-    w = [RATE['direction'] if t['cl'] == 'toward' else RATE['facing_pairs'] for t in teach]
++    w = [RATE['direction'] if t['cl'] == 'toward' else RATE['direction'] for t in teach]
+     out['as_sampled_by_N'] = dict(rates=RATE, **{k: bayes(teach, sets[k], w)[0] for k in ('template', 'name_set', 'template+name_set', 'dataset')})
+     # Full Step-1 easy/hard store (v7 rows that pass N's build20 removal lists and division) plus the twins.
+     rem = row_removals.Removals(CFG['remove_files']); div = json.load(open(CFG['scene_division']['path'])); train = set(div['train_scenes'])
+--- /scratch/jjyeung/orch_n30/sb_drev7/rev_wording7.py
++++ /scratch/jjyeung/orch_n30/sb_drev8/rev_wording7.py
+@@ -1,8 +1,9 @@
++# sb_drev8: paths/counts and fixed-contract assertions adapted for 7971 twins.
+ """Recheck normalized edit distance of every new question against the pinned local dev/benchmark wordings."""
+ import collections as C, json, unicodedata
+ from pathlib import Path
+ 
+-B = Path('/scratch/jjyeung/orch_n30/sb_rowD7/out')
++B = Path('/scratch/jjyeung/orch_n30/sb_rowD7f/out')
+ T = 0.10
+ 
+ 
+@@ -29,7 +30,7 @@
+ 
+ 
+ def main():
+-    words = sorted({norm(w['text']) for w in json.load(open(B / 'WORDING_CORPUS.json'))['wordings']})
++    words = sorted({norm(w['text']) for w in json.load(open(Path('/scratch/jjyeung/orch_n30/sb_rowD7f/d7/out/WORDING_CORPUS.json')))['wordings']})
+     bags = [(w, len(w), C.Counter(w)) for w in words]
+     qs = sorted({norm(json.loads(l)['student_input']['question']) for l in open(B / 'NEW_ROWS.jsonl')})
+     best, hits, dp = 1.0, [], 0
+--- /scratch/jjyeung/orch_n30/sb_drev7/rev_fixcheck7.py
++++ /scratch/jjyeung/orch_n30/sb_drev8/rev_fixcheck7.py
+@@ -1,3 +1,4 @@
++# sb_drev8: paths/counts and fixed-contract assertions adapted for 7971 twins.
+ """Validate the two proposed fixes in memory: drop `facing`; copy the source's Step-1 line and final-line form."""
+ import collections as C, copy, json, re, sqlite3, sys
+ from pathlib import Path
+@@ -13,7 +14,7 @@
+     s = json.loads(con.execute('select row from rows where i=?', (m['source_i'],)).fetchone()[0])
+     sb, nb = V.body(s), V.body(r); X, Y, Z = m['objects']; lab = V.opts(r)[r['answer']]
+     final = re.sub(r'(at|to) my [\w-]+\.$', lambda g: f'{g[1]} my {lab}.', sb[3])
+-    fixed = copy.deepcopy(r); fixed.pop('facing')
++    fixed = copy.deepcopy(r); fixed.pop('facing', None)
+     fixed['target'] = '<think>\n' + '\n'.join([sb[0], sb[1], nb[2], final]) + '\n</think>\n\n' + r['answer']
+     try:
+         V.native(fixed, pack); R['native_PASS'] += 1

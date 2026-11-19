@@ -9,7 +9,7 @@ Paths below are relative to the supplied `cont_ops16/work/c15/r1route/out3/A4/sr
 | Fill exit status; package path/walltime syntax; no prior CPU marker/results (`o_cpu_*.sh`) | Partly | Syntax is local. Actual placement, fill status, collision markers and allocation remain remote. |
 | Payload SHA; canonical plan SHA; helper pins (`8.py:load_helpers`, `common.py:read_config`, `job.py:verify_config`) | Yes | Execute exact bundled helpers on built archive. |
 | Every package file SHA; sequence equals `a/6.py`; config/public/plan token consistency (`8.py:check`, `a/5.py:main`) | Yes | Hash shipped bytes, not builder workspace. |
-| Token grammar, opaque argv/env/cwd, time/card/GPU-hour bounds (`common.py:valid_token`, `opaque`, `submit_argv`, `install_process_guard`) | Yes for values | Dynamic Slurm environment must be checked remotely too. Scan archived names and text locally. |
+| Token grammar, opaque argv/env/cwd, time/card/GPU-hour bounds (`common.py:valid_token`, `opaque`, `submit_argv`, `install_process_guard`) | Yes for values | Dynamic Slurm environment must be checked remotely too. Scan delivery names and operational argv/env/cwd; private archive contents are excluded. |
 | Registered placement path, private mode, actual archive-part sizes (`8.py:check`) | Metadata yes; actual location no | Local mirrors establish bytes; login check repeats at exact destination. |
 | Export schema, step/lineage, canonical paths, positive sizes/full hashes, distinct preparation paths (`export_pins.py:validate/load`) | Yes | Use exact filled inputs and export receipt. |
 | Reviewed run/step/member/object/lineage/config/preparation/whole-archive identity; heads/full-weight pins (`export_pins.py:admit`) | Yes | Execute native helper after real fill. |
@@ -35,4 +35,4 @@ Paths below are relative to the supplied `cont_ops16/work/c15/r1route/out3/A4/sr
 
 `run_release_gates.py` names package, bundle/process-guard, sequence, memory, return/stop, CPU helper, room-pair and room-label suites. It expects missing `release/b1,b2` fixture trees. `check_release_d.py` expects missing `/dev/shm/c18d` trees. `test_fix7.py` needs direct/facing/VSTI roots and `offline_guard`, which are not supplied. These are developer tests, not extra commands in `o_cpu_*.sh`.
 
-Missing same-input checks must prevent release. Supplied payload names violate the requested all-files forbidden-word rule. A remote launch requires an upstream opaque package and authenticated local inputs; the wrapper offers no privacy allowlist.
+Missing same-input checks prevent release. A4 and B5 pass the operational-name rule. The login probe executes generated placement under real Python 3.6.8; the fill probe uses that same interpreter. Authenticated full export/dependency mirrors and the Trinity token ledger remain required.

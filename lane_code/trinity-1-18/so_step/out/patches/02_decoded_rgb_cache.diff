@@ -1,6 +1,21 @@
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -1707,7 +1707,11 @@
+     after_optimizer = memory_stats(device)
+     if device.type == 'cuda':
+         torch.cuda.synchronize(device)
+-    return dict(step=step, **({'gf1_harm_screen': screen_metrics} if gf1_enabled else {}), wall_seconds=time.perf_counter()-started, data_seconds=waiting,
++    cache_record = {}
++    if performance_switch('C1_DECODED_CACHE_MIB') != '0':
++        from .c1_decoded_cache import stats
++        cache_record['decoded_cache'] = stats()
++    return dict(step=step, **cache_record, **({'gf1_harm_screen': screen_metrics} if gf1_enabled else {}), wall_seconds=time.perf_counter()-started, data_seconds=waiting,
+                 skipped_microsteps=skipped, skip_totals=dict(SKIPPED),
+                 component_normalization='components: sum over microsteps of each row-mean loss / len(plan); '
+                                         'stream_means: row-mean loss of each stream over its own microsteps',
 --- /dev/null
 +++ b/student_pilot/c1_decoded_cache.py
-@@ -0,0 +1,62 @@
+@@ -0,0 +1,73 @@
 +"""Bounded in-memory RGB cache after the original per-read frame verification."""
 +from collections import OrderedDict
 +import os
@@ -55,7 +70,8 @@
 +
 +def read(path, logical_path):
 +    global _cache
-+    mib = int(os.environ['C1_DECODED_CACHE_MIB'])
++    from .c1_switches import get
++    mib = int(get('C1_DECODED_CACHE_MIB'))
 +    if not 1 <= mib <= 4096:
 +        raise ValueError('C1_DECODED_CACHE_MIB must be 0 (OFF) or 1..4096')
 +    with _lock:
@@ -63,9 +79,19 @@
 +            _cache = DecodedRGB(mib * (1 << 20))
 +        cache = _cache
 +    return cache.get(path, logical_path)
++
++
++def stats():
++    """Cumulative counters; step differences give hits/misses during that update."""
++    with _lock:
++        if _cache is None:
++            return dict(hits=0, misses=0, bytes=0, capacity_bytes=0)
++        with _cache.lock:
++            return dict(hits=_cache.hits, misses=_cache.misses, bytes=_cache.bytes,
++                        capacity_bytes=_cache.capacity)
 --- a/student_pilot/pose_samples.py
 +++ b/student_pilot/pose_samples.py
-@@ -172,11 +172,16 @@
+@@ -172,11 +172,17 @@
  
  
  def load_frames(inputs):
@@ -75,7 +101,8 @@
  
      images = []
      for frame in inputs["frames"]:
-+        if os.environ.get('C1_DECODED_CACHE_MIB', '0') != '0':
++        from .c1_switches import get as performance_switch
++        if performance_switch('C1_DECODED_CACHE_MIB') != '0':
 +            from .c1_decoded_cache import read
 +            images.append(read(verify_frame(frame), frame['path']))
 +            continue
@@ -92,11 +119,12 @@
      if set(inputs) != INPUT_FIELDS:
          raise ValueError(f"Student input contains unexpected or missing fields: {set(inputs) ^ INPUT_FIELDS}")
      indices, timestamps, frames = inputs["frame_indices"], inputs["timestamps"], inputs["frames"]
-@@ -73,6 +74,12 @@
+@@ -73,6 +74,13 @@
      images, sizes = [], []
      for frame in frames:
          binding(frame["path"], frame["sha256"])
-+        if os.environ.get('C1_DECODED_CACHE_MIB', '0') != '0':
++        from .c1_switches import get as performance_switch
++        if performance_switch('C1_DECODED_CACHE_MIB') != '0':
 +            from .c1_decoded_cache import read
 +            array = read(resolve_read(frame['path']), frame['path'])
 +            sizes.append([array.shape[1], array.shape[0]])

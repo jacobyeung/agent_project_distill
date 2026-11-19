@@ -1,0 +1,10 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; C=$W/work/conf21/pkg; WB=$W/w21/work/build21
+grep -n "R2_TREE\|B21_PROOF" $WB/test21.py | head
+M="tests.test_r1_build20 tests.test_r1_build19 tests.test_r1_build18 tests.test_r1_build17 tests.test_r1_export17 tests.test_r1_build16 tests.test_r1_build15 tests.test_r1_build14 tests.test_r2_build_n1 tests.test_r2_n1fix tests.test_r2_n1fix3 tests.test_r2_build12 tests.test_r1_build13 tests.test_r2_build3.Build3.test_opener_export_keep_and_reset export_mutation17.HashTwin.test_same_size_shard_refuses"
+cat > $W/work/conf21/ff2.sh <<EOS
+export R2_TREE=$C/work/tree_r1
+B21_PROOF=conf21_focused nice -n 10 bash $WB/run.sh $WB/test21.py $M > $W/work/conf21/ff2_focused.log 2>&1; echo focused \$? >> $W/work/conf21/ff2_rc
+B21_PROOF=conf21_edges nice -n 10 bash $WB/run.sh $WB/test21.py edge_test16.Edges stage_test16.Staging > $W/work/conf21/ff2_edges.log 2>&1; echo edges \$? >> $W/work/conf21/ff2_rc
+B21_PROOF=conf21_pedges nice -n 10 bash $WB/run.sh $WB/test21.py export_edges17.ProducerEdges > $W/work/conf21/ff2_pedges.log 2>&1; echo pedges \$? >> $W/work/conf21/ff2_rc
+EOS
+tmux new -d -s tr12_ff2 "bash $W/work/conf21/ff2.sh"; sleep 45; tail -c 400 $W/work/conf21/ff2_focused.log; tail -2 $W/work/review21_dispatch.log

@@ -1,5 +1,5 @@
 """Run registered CPU stages with all children confined to eight local CPU cores."""
-import json,os,subprocess,sys,time
+import hashlib,json,os,subprocess,sys,time
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parent
@@ -34,7 +34,17 @@ def main():
     elif stage=='base':
         shards('base');run(['summarize_train.py','freeze'],'freeze.log')
     elif stage=='extras':
-        run(['train_nonull_v2.py'],'nonull.log');shards('extras');run(['summarize_train.py','final'],'summary.log')
+        saved=ROOT/'out/box_ladder/nonull/TRAIN_OOF.json'
+        if saved.exists():
+            meta=json.loads(saved.read_text());assert len(meta['records'])==5
+            for name in ['train_nonull_v2.py','selector_nonull.py']:
+                p=ROOT/name;assert meta['input_sha256'][str(p)]==hashlib.sha256(p.read_bytes()).hexdigest()
+            for k in range(5):
+                p=saved.parent/f'fold_{k}.safetensors'
+                assert meta['input_sha256'][str(p)]==hashlib.sha256(p.read_bytes()).hexdigest()
+            print('Verified and reused all five completed selector folds',flush=True)
+        else:run(['train_nonull_v2.py'],'nonull.log')
+        shards('extras');run(['summarize_train.py','final'],'summary.log')
     else:raise ValueError(stage)
 
 if __name__=='__main__':main()

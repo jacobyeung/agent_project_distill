@@ -1,22 +1,34 @@
-# Using so_pack for step 600
+# Step-600 release procedure
 
-`pack.py` is an opt-in local release gate with `build`, `check`, `place`, `fill`, `submit`, and `all`. Keep `pack_probes.py` beside it. The supplied packages **do not pass the strict all-files privacy policy**. Original r10 source deliveries and authenticated local fill/dependency mirrors are also absent. Nothing is placed or submitted until these prerequisites pass; there is no privacy bypass.
+Use the root `pack.py` with its sibling `pack_probes.py`. Apply the two patches as described in `PATCHES.md`. Patch 02 adds builder copies under `so_pack_builders/`; it leaves native builders and their embedded operational assets byte-identical.
 
-Set `L=/scratch/jjyeung/orch_n30/so_pack` and `PY=/scratch/jjyeung/envs/p1cpu/bin/python` for the commands below.
-
-Prepare one JSON config using `config_step600.example.json`. Pin the existing `build_r10.py`, its complete step-600 binding, source deliveries under its `KROOT`, and ordered export/preparation/dependency mirrors. Each mirror records its logical path, local `/scratch` path, byte count and SHA256. Keep builder stage/report/output paths inside the workspace. The wrapper calls the builder unchanged; it does not reconstruct missing source archives. `build_r8.py` and `build_d.py` also have adapters. Older hardcoded-root builders are refused. For fixed-token A/B operational scripts, `parameterize: true` explicitly adapts package/job-name and public walltime arguments while retaining native guards. That adapter defaults off; D scripts already accept P/T.
-
-Set `CUDA_VISIBLE_DEVICES=""`, `OMP_NUM_THREADS=8`, `MKL_NUM_THREADS=8`, `OPENBLAS_NUM_THREADS=8`, `TOKENIZERS_PARALLELISM=false`, and `PYTHONDONTWRITEBYTECODE=1`. Use `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B`, prefixed with `nice -n 10`.
-
-For a fresh one-command build, select the optional token-patched builder copy and set `builder.explicit_token_switch: true`. Choose an unused token with 11–16 lowercase hex characters starting a–f. The wrapper enables the builder's token switch only when `--token` is supplied:
+Fill `config_step600.example.json` with authenticated source deliveries, the complete step-600 binding, ordered export/preparation/dependency mirrors, source-script SHA256 values and a fresh SHA-pinned Trinity ledger snapshot. Keep the workspace and mirrors on `/scratch`. Point `builder.path` at the optional builder copy and enable `builder.explicit_token_switch` for a token chosen in advance. Its environment switch defaults off.
 
 ```sh
-nice -n 10 "$PY" -I -s -B "$L/pack.py" all --enable \
-  --config "$L/work/600.json" --yes --token TOKEN
+nice -n 10 env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B "$L/pack.py" all --enable --config "$L/work/600.json" --yes --token TOKEN
 ```
 
-The default prints exact ossh commands. `all` validates every remote script before any transfer. Production execution also requires `--execute-remote`; it uses ossh once per phase through `pv -L 8m` and stops at the first failure. Submit requires `--yes` and the exact token. Both adapters default off, and input trees remain untouched. Without the token patch, run `build` first, read its token, then run `all --reuse-build --yes --token TOKEN`. Inspect any failed attempt before proceeding; the tool never retries it.
+This command builds, checks and prints the planned ossh commands. Production execution additionally requires `--execute-remote`. Every local check and every script preflight finishes before placement. Transport uses `pv -L 8000000` and `timeout 300`. CPU submission returns promptly; Trinity polls through short calls at intervals of at least 60 seconds. GPU submission requires COMPLETED, the native CPU receipt and all sealed submit guards. Failed transport and submission attempts are never retried automatically.
 
-Local checks cover shipped-byte hashes, bundle equality, isolated imports and real fill through authenticated path mirrors, preserved env/policy archives, header/member/policy resolution, native planning/stub rehearsal/memory bounds, duplicate-layout row metadata, process guard/write/dispatch, early-error capture, and native read-runner stop/end behavior. Missing mirrors fail locally. `check --audit` gathers failures but cannot grant release. Extend `forbidden_extra` for additional project/model/method terms; the built-in policy cannot be reduced. Default mirror-read budget is 256 MiB; large local reads need separate authorization and a suitable workspace.
+Choose a token matching `[a-f][0-9a-f]{10,15}` that is absent from the Trinity ledger. The job name is `a15_cot_apTOKEN`. Operational names, paths, argv, environment values and Slurm comments must be opaque. Private archive contents and code comments are excluded from term scanning; stale identities are checked in every decoded archive and bundle. Placement creates 0700 directories and 0600 files; every phase sets umask 077.
 
-The tool does not certify the Orchard namespace, job venv, real export restore/RGB rehearsal, live queue/pool, CUDA/H100 execution, training-rank shutdown/export, model quality, or scores. Native Orchard CPU checks still run before GPU submission. Direct/facing/VSTI kit builders were not supplied. See `ORCHARD_ONLY_CHECKS.md`, `CHECK_INVENTORY.md`, and `DEFECT_MATRIX.md` for exact scope. No remote operation was tested in this dispatch.
+The login path uses `/usr/bin/python3` 3.6.8. The job payload uses Python 3.12. Local checks do not create the allocated `a/c/CPU.json`. Missing authenticated inputs block release. This delivery does not certify the live Slurm environment, full restore/RGB staging, H100 execution or trainer-rank checkpoint/export behavior. The supplied native mirror also has a pre-existing `score_d.py`/embedded-asset mismatch; the sealed-asset checker fixture is documented in `REPORT.md`.
+
+## Review round 1: finding -> fix -> test
+
+| Finding | Fix | Regression test |
+|---|---|---|
+| 1 | Audit operational names; keep private bytes separate; check containment and stale identities. | `test_F01_*` |
+| 2 | Plan every phase before the first transfer. | `test_F02_real_submit_preflight_fails_before_place`, `test_all_plans_every_phase_before_any_remote_execution` |
+| 3 | Bound every ossh call with timeout; submit CPU, poll locally, then submit GPU. | `test_F03_short_calls_and_F10_accounting_error_budget`, local transport stub |
+| 4 | Apply both patches and compare every delivered source hash. | `test_delivery.py`: `F04_PATCH_EQUALS_TESTED_SOURCE_PASS` |
+| 5 | Replace the old CPU job name as well as its package path; reject residual old tokens. | `test_fixed_token_operational_adapter_is_explicit` |
+| 6 | Check top-level read metadata and reject a duplicate-layout zero-row gate. | `test_F06_*` |
+| 7 | Add token-enabled builders in `so_pack_builders/`; preserve native originals. | `test_delivery.py` and native `check_release_d.py` fixture |
+| 8 | Execute login placement, exact fill and public check with real Python 3.6.8. | `test_F08_real_python36_login_runtime`, `test_F09_dropped_env_through_real_python36_fill_probe` |
+| 9 | Plant import and archive defects through probe wiring. | `test_F09_*` |
+| 10 | Reject every non-running terminal state; tolerate fewer than three consecutive accounting errors. | `test_F10_*`, `test_F03_*` |
+| 11 | Apply extra terms to the remote package path and fill argv. | `test_F11_custom_terms_cover_remote_path_and_fill_argv` |
+| 12 | Cap the complete transport stream at 8,000,000 bytes/s. | `test_transport_stream_with_local_copy_stub_and_no_retry` |
+| 13 | Check a SHA-pinned Trinity ledger before an explicit-token build. | `test_F13_ledger_reuse_rejected_before_builder` |
+| 15 | State remote dependencies and signal-delivery limits explicitly. | `test_delivery.py`: `F15_DOCUMENTED_REMOTE_CONTRACT_PASS` |

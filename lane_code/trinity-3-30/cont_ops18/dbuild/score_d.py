@@ -110,7 +110,8 @@ def authenticate_journals(meta, identity):
     for key in ('export_sha256', 'artifact_manifest_sha256') + SERVING_KEYS:
         checked_sha(binding[key], key)
     for key in ('read_identity', 'reader_identity'):
-        if identity[key]['settings_sha256'] != binding['settings_sha256']:
+        # The journal's settings add allocation-local frame bindings to the read settings (0.json).
+        if identity[key]['settings_sha256'] != meta.get('read_settings_sha256'):
             raise ValueError('Read settings differ')
 
 
@@ -132,6 +133,7 @@ def bootstrap(pairs):
 
 
 def load(root, manifest, items_path):
+    seen_read_settings={}
     root=Path(root); items={r['id']:r for r in manifest['items']}; rows={}; sources=[]; shared=None; seen=set()
     journal=root/'metadata/reads/0/metadata/journals'
     for started in journal.glob('*/*/STARTED.json'):
@@ -147,6 +149,8 @@ def load(root, manifest, items_path):
         for k,v in expected.items():
             if b.get(k)!=v: raise ValueError('Journal binding differs: '+k)
         if b['settings_sha256']!=canonical(env['settings']): raise ValueError('Settings hash differs')
+        read_settings=canonical({k:v for k,v in env['settings'].items() if k not in ('frames_json','dense_manifest','require_dense64')})
+        if seen_read_settings.setdefault('v',read_settings)!=read_settings: raise ValueError('Mixed read settings')
         for k in ('stage1_select_rule','perception_memo','perception_memo_modules','perception_memo_verify_ids','save_own_depth'):
             if env['settings'].get(k)!=expected[k]: raise ValueError('Settings differ: '+k)
         if env['settings'].get('types')!=['object_abs_distance']: raise ValueError('Settings type differs')
@@ -170,7 +174,7 @@ def load(root, manifest, items_path):
                     raise ValueError('Invalid sealed score: '+metric)
             rows[k]=r
         sources.append(dict(path=str(path),sha256=digest(path)))
-    return rows, dict(step=shared['step'],binding=shared,sources=sources)
+    return rows, dict(step=shared['step'],binding=shared,sources=sources,read_settings_sha256=seen_read_settings.get('v'))
 
 
 def scores(rows, keys, metric):

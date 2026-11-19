@@ -1,0 +1,21 @@
+usage: pack.py [-h] --config CONFIG [--enable] [--yes] [--token TOKEN]
+               [--execute-remote] [--audit] [--reuse-build]
+               {build,check,place,fill,submit,all}
+
+Opt-in read-package release gate. Python 3.6 standard library on login. No
+builder or package source is rewritten. Local paths and remote logical paths
+are connected by an explicit, hash-checked mirror table during the dry fill.
+
+positional arguments:
+  {build,check,place,fill,submit,all}
+
+options:
+  -h, --help            show this help message and exit
+  --config CONFIG
+  --enable              Opt in; default executes nothing
+  --yes
+  --token TOKEN         Explicit package token for production submission
+  --execute-remote      Use ossh once per stage; otherwise print commands
+  --audit               Collect local failures; never grants release
+  --reuse-build         Validate existing build instead of minting another
+                        token

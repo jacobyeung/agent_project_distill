@@ -1,0 +1,73 @@
+test_01_null_frame_metadata_defect (__main__.PackTests.test_01_null_frame_metadata_defect) ... ok
+test_02_isolated_import_defect (__main__.PackTests.test_02_isolated_import_defect) ... ok
+test_03_fill_drops_environment_archive_defect (__main__.PackTests.test_03_fill_drops_environment_archive_defect) ... ok
+test_03b_exact_fill_preserves_env_control (__main__.PackTests.test_03b_exact_fill_preserves_env_control) ... ok
+test_04_stale_bundle_descriptor_defect (__main__.PackTests.test_04_stale_bundle_descriptor_defect) ... ok
+test_05_silent_early_batch_failure_defect (__main__.PackTests.test_05_silent_early_batch_failure_defect) ... ok
+test_06_usr1_without_end_slot_defect (__main__.PackTests.test_06_usr1_without_end_slot_defect) ... ok
+test_06b_native_runner_stop_handler_defect (__main__.PackTests.test_06b_native_runner_stop_handler_defect) ... ok
+test_F01_name_argv_env_and_stale_identity_boundaries (__main__.PackTests.test_F01_name_argv_env_and_stale_identity_boundaries) ... ok
+test_F01_supplied_packages_pass_name_privacy (__main__.PackTests.test_F01_supplied_packages_pass_name_privacy) ... ok
+test_F03_short_calls_and_F10_accounting_error_budget (__main__.PackTests.test_F03_short_calls_and_F10_accounting_error_budget) ... ok
+test_F06_real_rows_nonzero_and_null_through_logic_probe (__main__.PackTests.test_F06_real_rows_nonzero_and_null_through_logic_probe) ... ok
+test_F06_zero_rows_fail_closed (__main__.PackTests.test_F06_zero_rows_fail_closed) ... ok
+test_F08_real_python36_login_runtime (__main__.PackTests.test_F08_real_python36_login_runtime) ... ERROR
+test_F09_dropped_env_through_real_python36_fill_probe (__main__.PackTests.test_F09_dropped_env_through_real_python36_fill_probe) ... FAIL
+test_F09_import_order_through_logic_probe (__main__.PackTests.test_F09_import_order_through_logic_probe) ... ok
+test_F10_all_nonrunning_states_stop_with_diagnostics (__main__.PackTests.test_F10_all_nonrunning_states_stop_with_diagnostics) ... FAIL
+test_F11_custom_terms_cover_remote_path_and_fill_argv (__main__.PackTests.test_F11_custom_terms_cover_remote_path_and_fill_argv) ... ok
+test_F13_ledger_reuse_rejected_before_builder (__main__.PackTests.test_F13_ledger_reuse_rejected_before_builder) ... ok
+test_all_plans_every_phase_before_any_remote_execution (__main__.PackTests.test_all_plans_every_phase_before_any_remote_execution) ... UTC 2026-11-19T08:45:15Z
+UTC 2026-11-19T08:45:15Z
+ok
+test_default_off_and_fail_fast_all_never_transports (__main__.PackTests.test_default_off_and_fail_fast_all_never_transports) ... UTC 2026-11-19T08:45:15Z
+UTC 2026-11-19T08:45:15Z
+ok
+test_existing_D_builder_is_called_and_preserved (__main__.PackTests.test_existing_D_builder_is_called_and_preserved) ... ok
+test_fixed_token_operational_adapter_is_explicit (__main__.PackTests.test_fixed_token_operational_adapter_is_explicit) ... ok
+test_local_receipt_rejects_a_changed_checker (__main__.PackTests.test_local_receipt_rejects_a_changed_checker) ... ok
+test_mirror_hashes_and_write_refusal (__main__.PackTests.test_mirror_hashes_and_write_refusal) ... ok
+test_real_native_metadata_guard_and_logic (__main__.PackTests.test_real_native_metadata_guard_and_logic) ... ok
+test_submission_authorization_and_remote_script_syntax (__main__.PackTests.test_submission_authorization_and_remote_script_syntax) ... ok
+test_symlink_duplicate_and_traversal_archives (__main__.PackTests.test_symlink_duplicate_and_traversal_archives) ... ok
+test_transport_stream_with_local_copy_stub_and_no_retry (__main__.PackTests.test_transport_stream_with_local_copy_stub_and_no_retry) ... ok
+
+======================================================================
+ERROR: test_F08_real_python36_login_runtime (__main__.PackTests.test_F08_real_python36_login_runtime)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_pack/test_pack.py", line 510, in test_F08_real_python36_login_runtime
+    P.probe(CPU,'login',ROUTE/'B5/package',self.w/'login',{'python':CPU})
+  File "/scratch/jjyeung/orch_n30/so_pack/pack.py", line 322, in probe
+    return run(args,workspace,workspace/'probe.log',timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_pack/pack.py", line 307, in run
+    require(result.returncode == 0, 'Command failed (%d); see %s' % (result.returncode,log))
+  File "/scratch/jjyeung/orch_n30/so_pack/pack.py", line 45, in require
+    raise GateError(message)
+pack.GateError: Command failed (1); see /scratch/jjyeung/orch_n30/so_pack/work/review1_dev01/abd93565449e2/login/probe.log
+
+======================================================================
+FAIL: test_F09_dropped_env_through_real_python36_fill_probe (__main__.PackTests.test_F09_dropped_env_through_real_python36_fill_probe)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_pack/test_pack.py", line 230, in test_F09_dropped_env_through_real_python36_fill_probe
+    self.assertIn('Fill must append preparation archive',text)
+AssertionError: 'Fill must append preparation archive' not found in 'Traceback (most recent call last):\n  File "/scratch/jjyeung/orch_n30/so_pack/pack_probes.py", line 578, in <module>\n    main()\n  File "/scratch/jjyeung/orch_n30/so_pack/pack_probes.py", line 573, in main\n    funcs[mode](package,work,config)\n  File "/scratch/jjyeung/orch_n30/so_pack/pack_probes.py", line 418, in real_fill\n    files,pay,pub,plan=P.structure(package)\n  File "/scratch/jjyeung/orch_n30/so_pack/pack.py", line 202, in structure\n    compile(data, n, \'exec\')\n  File "b/e2e_reader/servers.py", line 39\n    if kind == \'ground\' and (match := boxes.GROUND.fullmatch(call)):\n                                   ^\nSyntaxError: invalid syntax\n'
+
+======================================================================
+FAIL: test_F10_all_nonrunning_states_stop_with_diagnostics (__main__.PackTests.test_F10_all_nonrunning_states_stop_with_diagnostics)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_pack/test_pack.py", line 452, in test_F10_all_nonrunning_states_stop_with_diagnostics
+    if r.returncode:self.assertIn(b'CPU_FIXTURE_DIAGNOSTIC',r.stderr)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'CPU_FIXTURE_DIAGNOSTIC' not found in b'phase failed: exit 1 line 1\n'
+
+----------------------------------------------------------------------
+Ran 29 tests in 89.848s
+
+FAILED (failures=2, errors=1)
+LOCAL_PACKAGING_PASS (allocated CPU proof still required)
+LOCAL_PACKAGING_PASS (allocated CPU proof still required)
+{"delivery": "/scratch/jjyeung/orch_n30/so_pack/work/review1_dev01/a2a6796c89cb9/k/a15_cot_ap0450bfad0605d761/1.tgz", "delivery_sha256": "c862baff5840ef333bcf5374cee52ecc3307267459da12aa0fc96075fc360740", "package": "/scratch/jjyeung/orch_n30/so_pack/work/review1_dev01/a2a6796c89cb9/a15_cot_apd8c1951807768", "token": "d8c1951807768"}

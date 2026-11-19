@@ -1,60 +1,28 @@
-VERDICT: PARTIAL The default-off wrapper and regression tests are delivered, but strict privacy violations and missing authenticated build/fill inputs prevent a production release.
+VERDICT: PARTIAL Requested fixes are implemented; final frozen-tree validation is pending workspace-cap approval.
 
-`pack.py` calls existing builders, checks built bytes locally, and generates place/fill/CPU-then-GPU-submit commands. The optional builder patch lets a fresh `all --yes --token …` use a token chosen in advance. No SSH, Slurm, GPU, Git, deletion, or paid model API operation ran. Task writes stayed under `/scratch/jjyeung/orch_n30/so_pack`.
+The wrapper audits opaque operational names, checks real package rows and executes login placement/fill/public checks under Python 3.6.8. It plans all phases before transport, limits each call with timeout, throttles the stream to 8,000,000 bytes/s and polls CPU completion locally. Optional token builders are added files and preserve native sources.
 
-Measured results at 2026-11-19T07:57:49Z:
+Measured development results: three targeted Python 3.6/state regressions passed; D default deliveries matched all 5,272,526 bytes; the explicit D full build and native sealed-asset release checker passed. The supplied native mirror has a pre-existing `score_d.py` mismatch against its embedded copy. Full native-checker validation uses a coherent fixture of the authenticated embedded assets.
 
-| Result | Evidence |
-|---|---|
-| 18 unit tests passed; the requested six incident classes have planted failures. | `logs/final_tests_time.txt`, `DEFECT_MATRIX.md` |
-| The final suite took 1:59.87; GNU time reported maximum RSS 319,876 kbytes. This is its reported field, not an aggregate live RAM trace. | `logs/final_tests_time.txt` |
-| D's default-path deliveries matched across all 5,272,526 bytes. Its explicit-token full build passed. | `logs/final_token_tests.txt` |
-| r10's default mint-loop AST and explicit mint/rejection cases passed; its full build is unvalidated. | `work/final_token_tests/RESULTS.json` |
-| The inventory indexes 347 source predicates. The D200 audit passed six local gate groups and failed two prerequisites. | `CHECK_PREDICATES.json`, `D200_AUDIT_RESULT.json` |
-| A4/B5 contain 498/499 payload filenames matching the strict term list. These are name matches, not counts of semantic defects. | `PRIVACY_FINDINGS.json` |
-| The workspace occupied 1,833,693,716 bytes, below the requested 3 GB cap. | `MEASUREMENTS.json`; `logs/disk.txt` records free disk space. |
+The workspace measured 3,486,240,768 allocated bytes and 3,278,898,187 apparent bytes before final validation. Lossless fixture compression awaits the user answer required by the Trinity heavy-I/O rule. Final tests and patch hashes will replace this pending report after validation.
 
-The configured local limits are eight CPU affinities and 28 GiB virtual address space per process, with CPU library threads capped. The D builder's 19,595 GPU-second budget is an **estimate** from the supplied timing file; its report says the budget does not fit. No GPU time or full-restore memory was measured here.
+No ssh, Slurm, GPU, Git, deletion or paid model API operation ran. Authenticated full r10 source deliveries, step-600 export/dependency mirrors and a fresh Trinity token ledger remain absent. Live Orchard staging, restore/RGB rehearsal, GPU execution and trainer-rank stop/checkpoint/export proofs remain unvalidated.
 
-`patches/01_pack_gate.diff` adds the wrapper, isolated native probes and mutation tests. Its switch defaults off. This exact command ran from `/scratch/jjyeung/orch_n30/so_pack`; choose a fresh work path to rerun it:
+## Review round 1: finding -> fix -> test
 
-```sh
-nice -n 10 /usr/bin/time -v env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/final_check/test_pack.py --work /scratch/jjyeung/orch_n30/so_pack/work/final_tests > out/logs/final_tests.txt 2> out/logs/final_tests_time.txt
-```
-
-Exact summary output follows; the linked raw log contains every test result and resource field:
-
-```text
-Ran 18 tests in 119.253s
-
-OK
-```
-
-`patches/02_explicit_builder_tokens.diff` adds default-off token branches to working copies of r10 and D, plus their tests. The D test compares complete default delivery bytes. The r10 test covers its mint branch only, because its authenticated source archives are absent.
-
-```sh
-nice -n 10 /usr/bin/time -v env CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/final_check/test_builder_tokens.py --work /scratch/jjyeung/orch_n30/so_pack/work/final_token_tests --baseline-config work/final_tests/D_BUILD_CONFIG.json --patched-d work/builders/d/build_d.py --original-r10 /scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/build_r10.py --patched-r10 work/builders/routed/build_r10.py > out/logs/final_token_tests.txt 2> out/logs/final_token_tests_time.txt
-```
-
-Exact assertion output follows; `logs/final_token_tests.txt` also contains the full build receipt:
-
-```text
-D_DEFAULT_BYTES_IDENTICAL_PASS sha256=71af4fa4a4c329266b5879c0ca6dc58c86fb3556eb11bd62e44144ff3bc08f6d bytes=5272526
-D_EXPLICIT_TOKEN_PASS a0123456789ab
-R10_DEFAULT_LOOP_AST_IDENTICAL_PASS
-R10_EXPLICIT_MINT_AND_REJECTIONS_PASS (full source archives absent)
-```
-
-Both patches applied to a local input-tree copy. The resulting six files match the delivered/tested copies byte for byte (`PATCH_VERIFIED.json`). The production sources pass Python 3.6 grammar checks; no actual Python 3.6 runtime ran here. Remote scripts passed `bash -n`; none executed remotely. `PATCHES.md` states the patch base, switches and test scope. `FRAMEWORK_EVIDENCE.md` cites installed torch source and official versioned documentation.
-
-The supplied D200 audit fails on forbidden text and absent authenticated fill inputs. A fresh explicit-token `all` test builds the requested token and stops at privacy before transport. `CHECK.json` records local failures, probe logs retain tracebacks, and native CPU logs/receipts remain separate. The batch trap preserves early failures and signal termination; the submit wrapper reports a failed CPU state or wait expiry before stopping.
-
-What could go wrong and how it is detected:
-
-- A package or config can change after checking. Fingerprints, file/plan/payload hashes, bundle equality and pinned operational-script hashes reject the changed bytes.
-- Strict substring scans and the dependency resolver can conservatively reject native-admissible input. The resolver currently refuses dependency links; its local error names the offending member. Extend `forbidden_extra` for aliases outside the finite built-in list.
-- Orchard can fail on allocation, pool permissions, namespace setup, venv versions, restore/RGB staging or GPU bootstrap. Native CPU checks still precede GPU submission. Error tails and the batch capture file make available diagnostics readable; an unwritable package path can also prevent capture.
-
-Not done: a real step-600 build/fill/release; a full r10 build; full-size same-input fill/resolution; authenticated dependency-link handling; actual login-runtime and remote transport validation; real restored/RGB CPU rehearsal; CUDA/H100 execution; and the trainer's four-rank stop/checkpoint/export proof. The isolated-import regression uses a sibling-import fixture because the direct-read worker is absent. The B4 regression catches missing diagnostics, not its unproven node/bootstrap cause. The native USR1 proof covers the read runner with a tiny CPU decoder, not the trainer.
-
-`REQUIRED_INPUTS.json` names the missing authenticated inputs. `NOTE_FOR_CONT_OPS.md` gives the one-page step-600 procedure, and `ORCHARD_ONLY_CHECKS.md` separates remote facts from missing local prerequisites. Input references and event filenames are retained to identify authenticated bytes and the requested regressions, not to narrate revisions.
+| Finding | Fix | Regression test |
+|---|---|---|
+| 1 | Audit operational names; keep private bytes separate; check containment and stale identities. | `test_F01_*` |
+| 2 | Plan every phase before the first transfer. | `test_F02_real_submit_preflight_fails_before_place`, `test_all_plans_every_phase_before_any_remote_execution` |
+| 3 | Bound every ossh call with timeout; submit CPU, poll locally, then submit GPU. | `test_F03_short_calls_and_F10_accounting_error_budget`, local transport stub |
+| 4 | Apply both patches and compare every delivered source hash. | `test_delivery.py`: `F04_PATCH_EQUALS_TESTED_SOURCE_PASS` |
+| 5 | Replace the old CPU job name as well as its package path; reject residual old tokens. | `test_fixed_token_operational_adapter_is_explicit` |
+| 6 | Check top-level read metadata and reject a duplicate-layout zero-row gate. | `test_F06_*` |
+| 7 | Add token-enabled builders in `so_pack_builders/`; preserve native originals. | `test_delivery.py` and native `check_release_d.py` fixture |
+| 8 | Execute login placement, exact fill and public check with real Python 3.6.8. | `test_F08_real_python36_login_runtime`, `test_F09_dropped_env_through_real_python36_fill_probe` |
+| 9 | Plant import and archive defects through probe wiring. | `test_F09_*` |
+| 10 | Reject every non-running terminal state; tolerate fewer than three consecutive accounting errors. | `test_F10_*`, `test_F03_*` |
+| 11 | Apply extra terms to the remote package path and fill argv. | `test_F11_custom_terms_cover_remote_path_and_fill_argv` |
+| 12 | Cap the complete transport stream at 8,000,000 bytes/s. | `test_transport_stream_with_local_copy_stub_and_no_retry` |
+| 13 | Check a SHA-pinned Trinity ledger before an explicit-token build. | `test_F13_ledger_reuse_rejected_before_builder` |
+| 15 | State remote dependencies and signal-delivery limits explicitly. | `test_delivery.py`: `F15_DOCUMENTED_REMOTE_CONTRACT_PASS` |

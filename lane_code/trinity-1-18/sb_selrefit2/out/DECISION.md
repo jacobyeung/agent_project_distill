@@ -1,0 +1,3 @@
+serving labels win if V - S mean paired gap-MRA gain on K1 train exceeds 2 x fold SD of the paired gain
+
+Primary contrast excludes captures without an S4/G1 table from both training arms and scoring. The secondary contrast scores the same fold models on all K1 training captures, including missing-table captures. Fold SD is the sample SD (ddof=1) across the five equally weighted fold gains. Both arms use seed 20261116 and identical physical-room folds, architecture, optimizer, epochs, and batch size. Bootstrap resamples physical rooms with replacement, uses 10,000 draws and seed 20261119, and reports pooled row-weighted paired metrics and percentile 95% intervals. Held-out inputs and results must not be read.

@@ -3,6 +3,7 @@ import hashlib
 import json as _json
 from pathlib import Path
 import re
+import platform
 
 RAW_LOADS = _json.loads
 
@@ -156,6 +157,8 @@ def validate_config(config):
 
 def restore(source, destination, private_sources):
     """Run on Trinity after return; never copy this reverse map to Orchard."""
+    if not re.fullmatch(r'trinity-[0-9]+-[0-9]+',platform.node().split('.')[0]):
+        raise ValueError('Private restoration requires a Trinity compute node')
     codec=Codec(*private_sources)
     source=Path(source);destination=Path(destination)
     destination.mkdir(parents=True,exist_ok=False)

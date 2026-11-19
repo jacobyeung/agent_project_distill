@@ -1,0 +1,1 @@
+Complete: 1,037 training rows, 66,368 operand-frame records, 209 captures, 192 rooms. A0 and A2 reproduce exactly; all cumulative interventions close to A2. MASKFAIL_REPORT.md has 60 lines. FIRST_TABLE.md, split tables, provenance, counterfactual scores, and sb_maskfail.tar with SHA256 are ready.

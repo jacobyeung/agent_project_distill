@@ -1,0 +1,327 @@
+--- build21/joblib.py
++++ build21c/joblib.py
+@@ -106,7 +106,9 @@
+         persisted_files={p['sha256']:paths.get(p['sha256'],ns+'/u/'+p['sha256']) for p in pins.values()},
+         proof_mode='q',donor_config_sha256=spec['p_identity'])
+     cfg.update(output=ns+'/r',preparation_output=ns+'/p0',code=dict(path=ns+'/c.json',sha256=spec['code_sha256']))
+-    uploads=spec['uploads'];paths.update({x['sha256']:ns+'/u/'+x['sha256'] for x in uploads})
++    uploads=spec['uploads'];expected_paths={x['sha256']:ns+'/u/'+x['sha256'] for x in uploads}
++    if spec['pin_paths']!=expected_paths:raise ValueError('E49')
++    paths.update(spec['pin_paths'])
+     request=load(kit/'k/r.json')
+     request.update(config=None,staged_pins=[dict(path=v,sha256=h) for h,v in paths.items()],
+         room_audit=dict(path=paths[spec['room_sha256']],sha256=spec['room_sha256']),
+@@ -155,6 +157,7 @@
+ def stage_payload(kit,resolved,root):
+     kit=Path(kit);root=Path(root);spec=load(kit/'k/p.json')
+     if resolved['kit_sha256']!=seal(kit):raise ValueError('E32')
++    safe=name_guard(kit)
+     root.mkdir(parents=True,exist_ok=True);u=root/'u';u.mkdir(exist_ok=True)
+     record=resolved['archive'];path=checked(record['path'],record['sha256'],record['bytes'])
+     with tarfile.open(path) as t:
+@@ -180,6 +183,7 @@
+             if not member.isfile() or member.issym() or member.islnk():
+                 if member.isdir():continue
+                 raise ValueError('E35')
++            safe(member.name)
+             path=inside(export,member.name);path.parent.mkdir(parents=True,exist_ok=True)
+             with t.extractfile(member) as a,path.open('wb') as b:shutil.copyfileobj(a,b,8<<20)
+     while stream.read(8<<20):pass
+@@ -198,6 +202,7 @@
+     names={'full_weights.json':mp['sha256'],manifest['index']['name']:manifest['index']['sha256']}
+     names.update({item['name']:item['sha256'] for item in manifest['files']})
+     for name,h in names.items():
++        safe(name)
+         if PurePosixPath(name).name!=name or name in ('.','..'):raise ValueError('E43')
+         source=checked(u/h,h);target=inside(native,name)
+         if target.exists():checked(target,h)
+@@ -227,12 +232,58 @@
+         return 'x_'+digest(token) if bad else token
+     return re.sub(r'[^\s"\x27<>]+',replace,line)
+ 
++def name_guard(kit):
++    words=load(Path(kit)/'k/g.json');hashes=load(Path(kit)/'b/wh.json')
++    def check(name):
++        if not isinstance(name,str) or screen(name,words,hashes)!=name:raise ValueError('E48')
++        return name
++    return check
++
++def scan_staging_map(value,safe,parts=()):
++    if isinstance(value,dict):
++        for key,item in value.items():
++            field=(key=='destination' and len(parts)>=2 and parts[-2] in ('files','archives','packages','directories')
++                   and parts[-1].isdigit())
++            if not field:safe(key)
++            scan_staging_map(item,safe,parts+(key,))
++    elif isinstance(value,list):
++        for i,item in enumerate(value):scan_staging_map(item,safe,parts+(str(i),))
++    elif isinstance(value,str):safe(value)
++
++def stage_inputs(kit,current,host,node,mode):
++    import importlib.util
++    safe=name_guard(kit)
++    source=Path(host)/'b/s.py'
++    module_spec=importlib.util.spec_from_file_location('q_stage',source)
++    module=importlib.util.module_from_spec(module_spec);module_spec.loader.exec_module(module)
++    original_destination=module.Stage.destination;original_metadata=module.Stage.metadata
++    def destination(self,value):return original_destination(self,safe(value))
++    def metadata(self,pin):
++        safe(pin['file']);value=original_metadata(self,pin)
++        scan_staging_map(value,safe)
++        return value
++    module.Stage.destination=destination;module.Stage.metadata=metadata
++    value=load(current)
++    if 'staged_inputs' in value:
++        scan_staging_map(value['staged_inputs'],safe)
++        return module.Stage(host,node).run(value['staged_inputs'],frames=mode=='full')
++
+ def bootstrap(kit,resolved_path,node):
+     kit=Path(kit).resolve();node=Path(node).resolve();spec=load(kit/'k/p.json');seal(kit)
++    safe=name_guard(kit)
++    sources=spec.get('p_sources',{})
++    if set(sources)-set(spec['p_files']):raise ValueError('E49')
++    # Check the complete name inventory before creating any staging file.
++    for name,h in spec['p_files'].items():
++        safe(name)
++        if name in sources:
++            safe(sources[name])
++            if sources[name]!='u/'+h:raise ValueError('E49')
+     resolved=load(resolved_path);node.mkdir(parents=True,exist_ok=True)
+     hx=node/'h';hx.mkdir(exist_ok=True)
+     for name,h in spec['p_files'].items():
+-        src=Path(spec['pool'])/spec['p_root']/name
++        src=(inside(spec['n_root'],sources[name]) if name in sources
++             else Path(spec['pool'])/spec['p_root']/name)
+         target=inside(hx,name);target.parent.mkdir(parents=True,exist_ok=True)
+         checked(src,h);shutil.copyfile(src,target)
+     if 'ANON_OK.json' not in spec['p_files']:raise ValueError('E44')
+@@ -247,8 +298,9 @@
+     env={**os.environ,'Q_ROOT':str(node),'Q_KIT':str(kit),'Q_NS':spec['namespace'],'TK_KIT_HOME':str(hx),'TK_JOBDIR':str(node/'j')}
+     return subprocess.run(['/bin/bash',str(node/'j.sh')],env=env).returncode
+ 
+-def snapshot(path,expected,root,revision):
++def snapshot(path,expected,root,revision,kit=None):
+     checked(path,expected);root=Path(root);root.mkdir(parents=True,exist_ok=True)
++    safe=name_guard(kit) if kit is not None else lambda name:name
+     marker='/snapshots/'+revision+'/';found=set()
+     with tarfile.open(path,'r|*') as archive:
+         for member in archive:
+@@ -257,6 +309,7 @@
+                 raise ValueError('E45')
+             if marker not in member.name:continue
+             name=member.name.partition(marker)[2]
++            safe(name)
+             target=inside(root,name)
+             if name in found:raise ValueError('E46')
+             found.add(name);target.parent.mkdir(parents=True,exist_ok=True)
+--- build21/naming21.py
++++ build21c/naming21.py
+@@ -24,25 +24,100 @@
+     shell='\n'.join(line for line in shell.splitlines() if not line.lstrip().startswith('#'))+'\n'
+     return shell
+ def scan_decoded(kit):
+-    import base64,sys
+-    from launch_r2.build import bad_string
++    import ast,base64
++    from launch_r2.build import bad_string,WORDS
+     kit=Path(kit);wh=json.loads((kit/'b/wh.json').read_text());checked=[]
++    maps=[];names=[];provenance=[];capsules=[]
++    def name(value,where):
++        if bad_string(value,wh):raise ValueError('INPUT_NAME:'+where+':'+value)
++        names.append(dict(location=where,value=value))
++    def decode(value,where):
++        raw=base64.b64decode(value['payload'],validate=True)
++        if hashlib.sha256(raw).hexdigest()!=value['sha256']:raise ValueError('CAPSULE_HASH:'+where)
++        capsules.append(where)
++        return raw
++    spec=json.loads(decode(json.loads((kit/'k/p.json').read_text()),'k/p.json'))
++    pin_paths=spec.get('pin_paths',{})
++    def pinned_name(original,h,where):
++        expected=spec['namespace']+'/u/'+h
++        if pin_paths.get(h)!=expected or not any(x['sha256']==h for x in spec['uploads']):
++            raise ValueError('INPUT_NAME_UNMAPPED:'+where+':'+original)
++        name(expected,where+':resolved')
++        provenance.append(dict(location=where,kind='authenticated input identity resolved by pinned hash map',sha256=h,original=original))
++    # These are data-schema fields, never filenames. Match their complete locations.
++    config_fields={('benchmark_scene_exclusions',),('geometry_connector',),('trace_program_version',),
++        ('r1_training','room_authority','split'),('route_table','object_size_estimation'),
++        ('route_table','room_size_estimation')}
++    path_fields={'path','file','name','source','destination','dest','member','root','output','directory',
++        'parts','files','entries','links','staged_pins','p_files','p_sources','opaque_name'}
++    def pathlike(s):
++        return '/' in s or bool(re.search(r'\.(?:jsonl?|txt|log|tar|gz|py|sh|bin|pt|safetensors|sqlite|png)$',s))
++    def visit(v,doc,parts=(),data=False):
++        where=doc+':'+('/'.join(parts) or '/')
++        if isinstance(v,dict):
++            if v.get('encoding') in ('base64','base64-json'):
++                if set(v)!={'encoding','payload','sha256'}:raise ValueError('CAPSULE_FIELDS:'+where)
++                visit(json.loads(decode(v,where)),doc,parts,data);return
++            if set(v)=={'payload','sha256'}:
++                # Embedded staging payloads are authenticated input content, not name maps.
++                visit(json.loads(decode(v,where)),doc,parts+('@content',),True);return
++            for key,x in v.items():
++                loc=parts+(key,)
++                if doc=='k/n.json' and isinstance(x,str) and bad_string(x,wh):
++                    if key=='path' and set(v)=={'path','sha256'} and re.fullmatch('[0-9a-f]{64}',str(v['sha256'])):
++                        pinned_name(x,v['sha256'],where+'/path');continue
++                    if re.fullmatch('[0-9a-f]{64}',key):
++                        pinned_name(x,key,where+'/'+key);continue
++                schema_field=(doc in ('k/c.json','k/n.json') and loc in config_fields)
++                schema_field |= (doc=='k/l.json' and len(loc)==4 and loc[0]=='staged_inputs'
++                    and loc[1] in ('archives','files','packages','directories') and loc[-1]=='destination')
++                if doc in ('k/7.json','k/c0.json') and not parts and key in ('files','sources','operation_sources'):
++                    # These are the authenticated sealed-source inventories, not staging maps.
++                    if not isinstance(x,dict) or any(not re.fullmatch('[0-9a-f]{64}',h) for h in x.values()):
++                        raise ValueError('SOURCE_INVENTORY:'+where)
++                    provenance.append(dict(location=where+key,entries=len(x)));continue
++                if not schema_field and (not data or pathlike(key) or (parts and parts[-1] in path_fields)):
++                    name(key,where+':key')
++                visit(x,doc,loc,data)
++        elif isinstance(v,list):
++            for i,x in enumerate(v):visit(x,doc,parts+(str(i),),data)
++        elif isinstance(v,str):
++            if not data or pathlike(v) or any(p in path_fields for p in parts[-2:]):name(v,where)
++    for p in sorted(kit.rglob('*')):
++        relative=str(p.relative_to(kit));name(relative,'kit inventory')
++        if p.is_symlink():raise ValueError('KIT_LINK:'+relative)
+     for p in [kit/'job.sh',*sorted((kit/'b').glob('*.sh')),kit/'k/j.json']:
+         raw=p.read_bytes()
+         if p.suffix=='.json':
+-            value=json.loads(raw);raw=base64.b64decode(value['payload'],validate=True)
+-            if hashlib.sha256(raw).hexdigest()!=value['sha256']:raise ValueError('CAPSULE_HASH')
++            value=json.loads(raw);raw=decode(value,str(p.relative_to(kit)))
+         for n,line in enumerate(raw.decode().splitlines(),1):
+             if line.lstrip().startswith('#') and not line.startswith('#SBATCH'):continue
+             if bad_string(line,wh):raise ValueError('EXECUTABLE_NAME:'+p.name+':'+str(n))
+         checked.append(str(p.relative_to(kit)))
+-    value=json.loads((kit/'k/l.json').read_text());raw=base64.b64decode(value['payload'],validate=True)
+-    if hashlib.sha256(raw).hexdigest()!=value['sha256']:raise ValueError('CAPSULE_HASH')
+-    def visit(v):
+-        if isinstance(v,dict):
+-            for x in v.values():visit(x)
+-        elif isinstance(v,list):
+-            for x in v:visit(x)
+-        elif isinstance(v,str) and v.startswith('/') and bad_string(v,wh):raise ValueError('INPUT_NAME')
+-    visit(json.loads(raw))
+-    return dict(status='PASS',executables=checked,decoded_input_map='k/l.json',scope='Executable shell, arguments, environment names/values, staged names and decoded operational input paths; sealed source code and provenance records retain their original identities.')
++    # Check p_files first so the reviewed defect is reported directly, before ancillary metadata.
++    paths=sorted(kit.rglob('*.json'),key=lambda p:(str(p.relative_to(kit))!='k/p.json',str(p.relative_to(kit))))
++    for p in paths:
++        relative=str(p.relative_to(kit))
++        if relative=='k/j.json':continue
++        value=json.loads(p.read_text())
++        if relative=='k/g.json':
++            raw=decode(value,relative)
++            if json.loads(raw)!=list(WORDS):raise ValueError('WORD_LIST_DIFFERS')
++            provenance.append(dict(location=relative,kind='bound refusal vocabulary'));continue
++        visit(value,relative);maps.append(relative)
++    for p in sorted((kit/'b').glob('*.py')):
++        for node in ast.walk(ast.parse(p.read_text())):
++            if isinstance(node,ast.Constant) and isinstance(node.value,str):
++                s=node.value
++                if s and not any(c.isspace() for c in s) and pathlike(s):
++                    name(s,str(p.relative_to(kit))+':'+str(node.lineno))
++        checked.append(str(p.relative_to(kit)))
++    # These pinned maps are supplied by P on the job host. The runtime scanner checks
++    # their complete decoded keys/values after P's byte authentication, before publication.
++    operational=json.loads(decode(json.loads((kit/'k/l.json').read_text()),'k/l.json'))
++    runtime_maps=[entry['manifest'] for entry in operational.get('staged_inputs',{}).get('directories',[])]
++    return dict(status='PASS',executables=checked,decoded_maps=maps,checked_strings=len(names),
++        capsule_hashes_checked=capsules,provenance=provenance,names=names,runtime_maps=runtime_maps,
++        scope='All kit paths, decoded operational map keys and values, nested staging payload paths, '
++              'shell arguments and Python path literals. Authenticated source inventories and input data '
++              'retain semantic identifiers; runtime guards check dynamic staging and archive names.')
+--- build21/kit.py
++++ build21c/kit.py
+@@ -69,16 +69,28 @@
+ pfiles={n:h for n,h in pfiles.items() if n.startswith(('b/','k/','in_small/')) or n in ('ANON_OK.json',)}
+ pfiles['ANON_OK.json']=sha256(E/'ANON_OK.json')
+ pfiles['SHA256SUMS.txt']=sha256(E/'SHA256SUMS.txt')
++from launch_r2.build import bad_string
++hashes=load(K/'b/wh.json');p_sources={}
++for name,h in list(pfiles.items()):
++    if bad_string(name,hashes):
++        opaque='k/'+h[:8]+Path(name).suffix
++        if opaque in pfiles:raise ValueError('Opaque staging collision')
++        path=Path(uploads[h]['local_path']) if h in uploads else E/name
++        if sha256(path)!=h:raise ValueError('Staging input hash differs')
++        uploads[h]=dict(local_path=str(path),opaque_name='u/'+h,sha256=h,bytes=path.stat().st_size)
++        pfiles.pop(name);pfiles[opaque]=h;p_sources[opaque]='u/'+h
+ spec=dict(pool=pool,n_root=nroot,p_root=proot,milestone='h_6ed2c7aa/m400',namespace=ns,
+     p_identity='774503e26f274a10c96ad06210d339c49ebc9a704ac254df81f389b0da4d98a1',
+-    p_files=pfiles,p_pins=file_pin(E/'k/0.json'),room_sha256=room['sha256'],code_sha256=hashlib.sha256(raw).hexdigest(),
+-    uploads=list(uploads.values()),frame_roots=load(E/'k/launch.json')['in_job_admission']['frame_roots'])
++    p_files=pfiles,p_sources=p_sources,p_pins=file_pin(E/'k/0.json'),room_sha256=room['sha256'],code_sha256=hashlib.sha256(raw).hexdigest(),
++    uploads=[{k:v for k,v in entry.items() if k!='local_path'} for entry in uploads.values()],
++    frame_roots=load(E/'k/launch.json')['in_job_admission']['frame_roots'])
+ from naming21 import neutral_map
+ neutral,links=neutral_map(load(E/'k/0.json'))
+ cap('k/l.json',neutral)
+ spec.update(local_map='k/l.json',link_checks=links)
++spec['pin_paths']={h:ns+'/u/'+h for h in uploads}
++cap('k/g.json',list(WORDS))
+ cap('k/p.json',spec);cap('k/n.json',cfg);cap('k/r.json',load(L/'work/build17/proofs/operator/REQUEST_TEMPLATE.json'))
+-cap('k/g.json',list(WORDS))
+ (K/'b/z.py').write_bytes((B/'joblib.py').read_bytes())
+ (K/'b/resolve.py').write_text('''import argparse,sys
+ from pathlib import Path
+@@ -129,6 +141,7 @@
+ shell=shell[:shell.index('tk_persist_small()')]
+ from naming21 import neutral_shell
+ shell=neutral_shell(shell)
++shell=shell.replace('"$HX/b/s.py"', '"$Q_KIT/b/s.py" "$Q_KIT"')
+ shell+='''
+ tk_stage full
+ tk_env
+@@ -149,16 +162,18 @@
+ exit "$rc"
+ '''
+ (K/'k/j.json').write_bytes(capraw(shell.encode()))
+-(K/'b/m.py').write_text('import sys\nfrom pathlib import Path\nsys.path.insert(0,str(Path(__file__).resolve().parent))\nfrom z import snapshot\nsnapshot(*sys.argv[1:])\n')
++(K/'b/m.py').write_text('import sys\nfrom pathlib import Path\nsys.path.insert(0,str(Path(__file__).resolve().parent))\nfrom z import snapshot\nsnapshot(*sys.argv[1:],kit=Path(__file__).resolve().parents[1])\n')
+ (K/'b/w.py').write_text('import json,sys\nfrom pathlib import Path\nPath(sys.argv[1]).write_text(json.dumps(sys.argv[2:]))\n')
++(K/'b/s.py').write_text('import json,sys\nfrom pathlib import Path\nsys.path.insert(0,str(Path(__file__).resolve().parent))\nfrom z import stage_inputs\nprint(json.dumps(stage_inputs(*sys.argv[1:])))\n')
+ (K/'b/o.py').write_text('''import json,sys,tarfile,os
+ from pathlib import Path
+ sys.path.insert(0,str(Path(__file__).resolve().parent))
+-from z import load,write
++from z import load,write,name_guard
+ k=Path(__file__).resolve().parents[1];s=load(k/'k/p.json');r=Path(sys.argv[1]);out=Path(s['n_root'])/'o'/os.environ['SLURM_JOB_ID'];out.mkdir(parents=True,exist_ok=True)
++safe=name_guard(k)
+ files=[r/n for n in ('q.log','rooms.log','rooms.json','p/q/RESULT.json','p/q/f.json') if (r/n).is_file()]
+ with tarfile.open(out/'o.tar','w:gz') as t:
+- for p in files:t.add(p,arcname=str(p.relative_to(r)),recursive=False)
++ for p in files:t.add(p,arcname=safe(str(p.relative_to(r))),recursive=False)
+ write(out/'RESULT.json',dict(proof_rc=int(sys.argv[2]),rooms_rc=int(sys.argv[3]),GO=False,submitted_by_build=False))
+ ''')
+ (K/'job.sh').write_text('''#!/bin/bash
+--- build21/test21.py
++++ build21c/test21.py
+@@ -3,6 +3,8 @@
+ L=Path(__file__).resolve().parents[2];B=L/'work/build21';T=Path(os.environ.get('R2_TREE',L/'work/tree_r1'))
+ O=B/'proofs'/os.environ.get('B21_PROOF','tests');O.mkdir(parents=True,exist_ok=True)
+ sys.path[:0]=[str(T),str(L/'work/n1fix2'),str(B),str(L/'work/build16'),str(L/'work/build17'),str(L/'work/build18'),str(L/'work/build19'),str(L/'work/build20')]
++import portable21c
++portable21c.install()
+ os.environ.update(R2_FIXTURES=str(L/'fixtures'),R2_PROOFS=str(O))
+ os.environ['R2_LANE_ROOT']=str(L)
+ os.environ.update(LANE_TEST_OUTPUT=str(L/'work/tmp'),HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',
+@@ -31,6 +33,7 @@
+         n=sum(p.stat().st_size for p in (L/'work/tmp').rglob('*') if p.is_file());assert n<=200_000_000
+         self.sizes.append(dict(test=str(t),phase='after',bytes=n));super().stopTest(t)
+ r=unittest.TextTestRunner(verbosity=2,resultclass=Result).run(suite)
++portable21c.save(O)
+ m.save(O)
+ (O/'TESTS.json').write_text(json.dumps(dict(tests=r.testsRun,failures=r.failures,errors=r.errors,
+     successful=r.wasSuccessful(),storage=r.sizes),default=str,indent=2))
+--- build21/jobtest.py
++++ build21c/jobtest.py
+@@ -25,7 +25,7 @@
+         cls.root=L/'work/build21/proofs/job';cls.root.mkdir(exist_ok=True)
+         cls.kit=cls.root/'kit';shutil.copytree(B/'kits/q',cls.kit,dirs_exist_ok=True)
+         cls.pool=cls.root/'pool';cls.pool.mkdir(exist_ok=True)
+-        cls.spec=J.load(cls.kit/'k/p.json');cls.spec.update(pool=str(cls.pool),n_root=str(cls.pool/'x_22c714e1'),p_files={})
++        cls.spec=J.load(cls.kit/'k/p.json');cls.spec.update(pool=str(cls.pool),n_root=str(cls.pool/'x_22c714e1'),p_files={},p_sources={},pin_paths={})
+         cls.spec['uploads']=[];cls.spec.pop('local_map',None)
+         cls.records={}
+         def record(name,value):

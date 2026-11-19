@@ -15,7 +15,7 @@ for name,item in manifest.items():
     assert len(payload)==item['bytes']
     assert hashlib.sha256(payload).hexdigest()==item['sha256']
     for relative in item['paths']:
-        path=ROOT/'work/verified_delivery/combined'/relative
+        path=ROOT/'work/review1_patch_check'/relative
         assert path.read_bytes()==(ROOT/'work/tree'/relative).read_bytes()
         if path.suffix=='.py':
             ast.parse(path.read_text(),filename=str(path))

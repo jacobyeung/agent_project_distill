@@ -1,10 +1,9 @@
-# Release-gate decisions
+# Release contract
 
-- The privacy rule covers delivery members, nested payloads, decoded bundles, comments and environment literals. The native forbidden list is a minimum; additional known aliases can extend it. The task explicitly requires every package surface, so the tool offers no exemption for descriptive payload internals.
-- Missing authenticated mirrors fail local checking. A synthetic export, isolated-import fixture or tiny decoder proves its stated control flow and cannot establish a real restore, complete worker import coverage or trainer export.
-- Every remote script must pass planning, privacy and syntax checks before `all` starts a transfer. Execution uses those exact planned bytes, streams at the configured `pv -L 8m` cap and records each attempt without retrying it.
-- A local receipt binds the package, config and checker source hashes. This prevents an older checker receipt from silently granting a new release.
-- All production adaptations require explicit switches whose defaults are off. The read-only input trees remain unchanged; optional builder and operational-script adaptations use working copies.
-- The dependency resolver rejects links rather than guessing their authorized native semantics. This conservative limitation remains a release prerequisite.
-- Python 3.6 grammar and shell syntax are checked locally. The supplied interpreter is Python 3.12, so actual login-runtime behavior and the live Orchard transport remain unvalidated.
-- Authenticated source archives and a complete step-600 binding must be supplied. A candidate that fails its pinned SHA is not admitted, and no search or transfer outside the authorized inputs substitutes for those bytes.
+- The forbidden-word rule covers operational names, Slurm fields, argv, environment values, workdirs, delivery members and runtime paths. It excludes private archive contents, decoded bundles, code comments, stdin bodies and log contents. Stale identities are checked recursively in all bytes.
+- Every generated phase uses umask 077. Placement creates 0700 directories and 0600 files. The batch extracts only under its 0700 /tmp allocation directory; the native process guard checks job descendants.
+- All local gates and all operational-script preflights finish before transport. Submission uses timeout-bounded calls, local polling at intervals of at least 60 seconds and an 8,000,000-byte/s stream cap. Failed transport is never retried.
+- The explicit-token builders are added files under so_pack_builders. Native builders and embedded operational assets retain their input bytes. Their token switches default off.
+- A SHA-pinned Trinity token ledger is mandatory. Explicit tokens are checked before the builder starts; random tokens are checked immediately after the builder returns. Orchard mkdir remains the live collision guard.
+- Login placement and fill run under /usr/bin/python3 3.6.8. The job payload targets Python 3.12. Local receipts cannot replace the allocated native CPU proof.
+- Missing authenticated source/export/dependency mirrors block release. A model stub establishes only its stated rehearsal scope.

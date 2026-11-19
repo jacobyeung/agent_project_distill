@@ -1,174 +1,159 @@
+# Generate the report from captured measurements and verification artifacts.
 import json
 from pathlib import Path
+import re
+from datetime import datetime,timezone
+L=Path('/scratch/jjyeung/orch_n30/so_read');O=L/'out'
+P=json.loads((O/'profile.json').read_text())
+C=json.loads((O/'checks/RESULTS.json').read_text())
+M=json.loads((O/'patches/MANIFEST.json').read_text())
+B=json.loads((O/'checks/OFF_BYTES.json').read_text())
+H=json.loads((O/'checks/MEMORY.json').read_text())
+assert all(r['returncode']==0 for r in C['results']+M['applied_cpu_suites'])
+assert B['passed'] and B['exclusions']==[]
+def count(file):return int(re.search(r'Ran (\d+) tests?',(O/'checks'/file).read_text()).group(1))
+n=sum(count(r['output']) for r in C['results']);a=sum(count(r['output']) for r in M['applied_cpu_suites'])
+rows=['| Package/type | Items | Mean s/item | Median | p90 | Tokens/item: total / ordinary | Calls/item | G3T s/item | Factory load s |','|---|---:|---:|---:|---:|---:|---:|---:|---:|']
+for package,data in P['packages'].items():
+ for kind,d in data['types'].items():
+  g=d['timings'].get('g3t_s',{}).get('mean')
+  rows.append('| '+' | '.join([package+'/'+kind,str(d['items']),f"{d['seconds']['mean']:.3f}",f"{d['seconds']['median']:.3f}",f"{d['seconds']['p90']:.3f}",f"{d['tokens_including_forced']['mean']:.2f} / {d['ordinary_sampled_tokens']['mean']:.2f}",f"{d['calls']['mean']:.2f}",'0 (no call)' if g is None else f'{g:.3f}',f"{d['factory_load_s']:.3f}" if d['factory_load_s']>.01 else '0 (reused)'])+' |')
+fixes=[
+('1. Mapping collision','Typed mapping lengths delimit every nesting level.','Distinct nested dictionaries hash differently and cannot return stale processor output.'),
+('2. Vacuous parity','Require enabled-cache declarations, positive hits, valid memory receipts, full production output fields, scale even when null, and nested served responses.','Empty/all-miss/incomplete traces, wrong membership, and changed text/tokens/responses fail even when scores agree.'),
+('3. Default OFF','Both diffs add files under src/u0, outside original source-hash trees. Ordinary entrypoints import no extension and parse no new setting.','Complete output files/stdout and real source hashes match the original under controlled clocks without dropping fields; the 50-read fixture also compares complete original/OFF records. GPU ORIGINAL/OFF selects separate source roots and original journal/shard defaults.'),
+('4. Lifetime','Keys bind tensor identity, pointer, version/content, module/configuration/attention options, backend flags, and processor implementation. SAM checks root/child/global hooks; unsafe dispatch bypasses.','Parameter replacement, raw .data writes, live option/autocast changes, returned-value mutation, and SAM root/global hooks pass.'),
+('5. Deadline recovery','The writer guard repairs only a matching established environment, while holding writer.lock. Interrupted unbound startup creates no item projection.','A second file descriptor cannot acquire the lock during recovery; interruptions before/after environment creation resume without unbound or duplicate rows.'),
+('6. Orchard opacity','Use neutral public names/paths, numeric selectors, token-only JSON, hashed identities, and hashed arbitrary logs. Keep reverse maps private.','Staging, legacy log contexts, requeue, authenticated Trinity restoration and public/private canonical row/archive equality pass. Every GPU arm uses the same separately hashed explicit public transport wrapper.'),
+('7. Cache memory','Charge keys/containers/payloads, reserve snapshot/restore copies, and evict before allocating. Stream keys; bypass unsupported constructors/layouts and require the owning thread.','Oversized keys/containers never snapshot, eviction precedes snapshot allocation, cross-thread calls fail, and the 2,000,000-byte fixture stays below its cap.')]
+review='| Finding | Fix | Test |\n|---|---|---|\n'+'\n'.join('| '+' | '.join(row)+' |' for row in fixes)
+r=f'''VERDICT: DONE All seven HIGH/MEDIUM findings have fixes and passing CPU regressions; production adoption remains NO-GO until the unrun GPU and persistent-storage gates pass.
 
-L=Path('/scratch/jjyeung/orch_n30/so_read')
-A=Path('/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src')
-P=Path('/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages')
-p=json.loads((L/'out/profile.json').read_text())
-checks=json.loads((L/'out/checks/RESULTS.json').read_text())
+**Measured:** {n} CPU tests pass; {a} also pass from a fresh application of the regenerated patches. Eight targeted checks fail against the reviewed implementation and pass against the delivered implementation. Both additive diffs apply with zero fuzz to A4/B5; every original reader/evaluator hash-tree byte remains unchanged.
 
-def link(label,path,line=None):return f'[{label}]({path}{":"+str(line) if line else ""})'
-
-rows=['| Package/type | N | Mean s/item | Median | p90 | Tokens: total / ordinary mean | Tool calls/item | G3T s/item | Factory load s |',
-      '|---|---:|---:|---:|---:|---:|---:|---:|---:|']
-for package,data in p['packages'].items():
-    for kind,d in data['types'].items():
-        t=d['timings'].get('g3t_s',{}).get('mean')
-        load=f"{d['factory_load_s']:.3f}" if d['factory_load_s']>.01 else '0 (reused)'
-        rows.append('| '+ ' | '.join([package+'/'+kind,str(d['items']),f"{d['seconds']['mean']:.3f}",
-                    f"{d['seconds']['median']:.3f}",f"{d['seconds']['p90']:.3f}",
-                    f"{d['tokens_including_forced']['mean']:.2f} / {d['ordinary_sampled_tokens']['mean']:.2f}",
-                    f"{d['calls']['mean']:.2f}",'0 (no call)' if t is None else f'{t:.3f}',load])+' |')
-
-report='''VERDICT: DONE The measured profile, default-off patches, CPU checks, and unrun GPU parity kit are delivered; production speed and GPU parity remain unmeasured.
-
-The measured distance mean is **23.600 s/item**, which predicts about **3 h 50 min for 580 items** including the observed load/startup allowance. Four balanced, simultaneous scene shards predict about **59 min** without reducing per-item compute. Cache savings receive no credit until the GPU kit measures them. Step 600 is the earliest adoption point.
-
-All production measurements below come from the supplied step-200 returns, not from new GPU runs. The workspace ran only CPU fixtures on trinity-1-18, with CUDA hidden, nice 10, and eight torch/BLAS threads.
+**Estimated:** Budget 23.60 seconds per distance item and 3 h 50 min per 580-item read. Ideal simultaneous two/four-shard reads estimate 1 h 56 min / 59 min. No cache saving receives credit; live content hashing and copying may cost more than they save. Step 600 remains the earliest adoption point.
 
 ## Measured profile
 
 '''+ '\n'.join(rows)+'''
 
-“Total” counts every returned token, including injected tool responses and budget-forced tokens. “Ordinary” is the existing `decode_budget.ordinary_sampled_tokens` field. Distance averages 115.00 injected tool tokens/item and 0.20 budget-forced tokens/item. Counts, mean, median, and p90 for total, ordinary, injected, prompt, and non-tool tokens are retained in `profile.json`; p90 interpolates at `(N−1)×0.9`.
-
-The G3T column measures the existing `g3t_s` wrapper, including cache lookup/restore or a fresh tower call. It is **not total tower time**: SAM encoding/detection and scale/geometry have no independent timers. Room's zero comes from its no-call traces and the lazy source path; there is no room `g3t_s` timer. The factory-load window includes processor/model restoration and setup. It excludes deferred G3T/SAM loading inside item generation. A4 reuses one generator across types; the recorded reused-load durations are below 2 microseconds, not fresh model loads.
+These are supplied step-200 measurements, not new GPU runs. Total tokens include forced tool responses and budget tokens; ordinary tokens use the existing ordinary_sampled_tokens field. The factory window includes processor/model restore/setup, but not deferred tower loading. A4 loads once and reuses its generator across all five types. G3T seconds include lookup/restore or a fresh call; they do not measure SAM, scale, or total tower work. SAM has no independent timer.
 
 '''
-for package,data in p['packages'].items():
-    report+=f"{package} sources: "+', '.join(link(kind,Path(d['source']),1) for kind,d in data['types'].items())+'. Each adjacent `timings.jsonl` supplies the factory-load window.\n\n'
-report+='''A4 takes **7351.824 s** from worker start to exit. Its item windows sum to **7224.888 s**, its initial factory load takes **75.446 s**, and **1.729 s** remains inside the type timers for journaling/control. Another **49.761 s** lies outside those timers. B5 takes **645.735 s**, with **528.164 s** in items, **78.961 s** in factory loading, **5.593 s** inside the journal window, and **33.017 s** outside it. These residuals are measured wall-time accounting, not measured GPU idle time.
+for package,data in P['packages'].items():
+ r+=package+' measured sources: '+', '.join(f"[{kind}]({d['source']})" for kind,d in data['types'].items())+'. Adjacent timings.jsonl files supply factory-load windows.\n\n'
+r+='''A4 records 7,351.824 seconds from start to exit: 7,224.888 seconds in items, 75.446 in initial loading, 1.729 in journal/control windows, and 49.761 outside type timers. B5 records 645.735 seconds, including 528.164 in items and 78.961 in loading. These residuals do not establish GPU idle time.
 
-One distance item, `vsi590k_042644`, takes **648.397 s** for 2056 tokens, including **647.465 s** in `total_s`. Nine other distance items with at least 2000 tokens have a **72.502 s median**. Ten such long items consume **1308.680 s**, or about 37% of distance item time. The mean without the largest outlier is **19.406 s/item**, but the forecast retains the observed outlier. The logs do not distinguish scheduling pauses, throttling, kernel stalls, or actual GPU work; no cause or idle percentage is assigned.
+One distance item takes 648.397 seconds for 2,056 tokens; its cause is unknown and the forecast retains it. Distance has 88 routed items with two served ground calls and one served gap call each, plus 62 direct items. Source inspection implies 88 SAM encodes and 176 raw-name detections for those routed reads; these counts are inferred. Every camera read serves one move/turn call; room reads serve none.
 
-Distance has 88 routed items with exactly two served ground calls and one served gap call each, and 62 items with no tool calls. The respective mean item times are **21.997 s** and **25.875 s**; the latter group's median is only **4.997 s**. The long direct traces explain why its mean is much higher. Every camera item serves one move/turn call; rooms serve none.
+A4 already reuses G3T: 461 hits and 77 misses over 538 accesses, with 128,553,354 retained payload bytes. That gain cannot be counted again. The supplied old memo configuration lists G3T only. Every read still computes own-prefill scale, geometry, selector work and tool responses. The new cache stores no whole prompt, language prefill, recurrent/KV state, own-depth scale, or complete response.
 
-## Reuse, batching, and parity decisions
+## Review round 1: finding -> fix -> test
 
-'''
-memo=['| Type | G3T accesses | Fresh misses | Reused hits | Mean prefill s | Outer item minus core s |',
-      '|---|---:|---:|---:|---:|---:|']
-for kind,d in p['packages']['A4']['types'].items():
-    memo.append(f"| {kind} | {d['timed_g3t_accesses']} | {d['memo']['misses']} | {d['memo']['hits']} | {d['timings']['prefill_s']['mean']:.3f} | {d['outer_minus_core_s']['mean']:.3f} |")
-report+='\n'.join(memo)+'''
+'''+review+f'''
 
-A4 already enables G3T memoization: **461 hits and 77 misses over 538 accesses**, ending at **128,553,354 retained payload bytes**. That gain cannot be counted again. The source permits one G3T access per routed item regardless of its number of tool calls. It also retains SAM image features and raw detections within each individual item, but not across items under the supplied `perception_memo_modules=['g3t']` setting. From the 88 served distance traces and the source, **88 SAM clip encodes and 176 raw-name detections are inferred**, not independently measured.
+INFO 8–10: fsync/rename, ownership checks and deterministic merging remain covered; forecast arithmetic remains unchanged. Framework CPU tests pass with writable local caches. Real persistent-storage requeue and GPU work remain release gates.
 
-The new caches retain only these functions, within one immutable model/processor lifetime:
+## OFF contract, purity and memory
 
-| Component | Inputs that determine the cached value | What still runs per item |
-|---|---|---|
-| Existing G3T memo | Pinned weights/config, device, precision, depth chunk size, ordered decoded pixel bytes/modes/sizes, dense indices, anchor indices and slots | Own-prefill scale/gravity, geometry construction, response formatting |
-| New video processor cache | Complete ordered video arrays, metadata including FPS/frame indices, processor configuration and every call kwarg | Prompt text, tokenization, carriers, masks, positions, frame-file reads |
-| New Qwen vision cache | Actual processed pixels and grids/kwargs, vision configuration, parameter/buffer versions, device/dtype and autocast state | Every language-model prefill/decode, heads and tools; inner/global hooks force a fresh vision call |
-| New SAM feature cache | Pinned SAM files, ordered pixels and frame indices/slots, device/precision and native image batching settings | Geometry-dependent lifting, linking, selector logits and responses |
-| New SAM raw detections | SAM feature identity plus normalized object name and retention thresholds | The current read's downstream geometry and selector work |
+The launcher hashes entire original source directories. Additive files inside those directories would change OFF provenance even without an import. All delivered additions therefore live in src/u0. No original hash is forged or replaced with a baseline constant. Explicit ON execution records extension_code_sha256 alongside baseline hashes.
 
-The processor/vision/SAM caches share a bounded host LRU, defaulting to 4 GiB only when a cache is enabled. Hits return independent storage. Oversized values are not retained. The cache lifetime ends with the generator/process; forked processes reset it. It never keys by a scene name alone and never caches a whole prompt, recurrent/KV state, own-depth scale, or a tool response. The new SAM cache refuses simultaneous use of the existing SAM memo policy so it cannot bypass that policy's verification.
+The production-launcher CPU comparison uses a model fixture and controlled clocks. Every byte of {', '.join(B['files'])} and stdout matches the original; no timing/provenance field is removed and source hashes are real. A fresh-process guard rejects extension imports and new-setting lookups. The 50-read CPU fixture stubs model compute and compares complete original/OFF outputs. These are correctness fixtures, not real-model GPU measurements. Receipt: [OFF_BYTES.json]({O/'checks/OFF_BYTES.json'}).
 
-'''
-report+='Purity/source evidence: '+', '.join([
-    link('G3T key and frozen execution',A/'b/e2e_reader/real.py',32),
-    link('pixel/index identity',A/'b/e2e_reader/perception_memo.py',186),
-    link('current-prefill scale',A/'b/e2e_reader/stage1.py',45),
-    link('SAM name-dependent detection',A/'b/e2e_reader/stage1.py',83),
-    link('SAM image encoding',A/'tree/student_pilot/sam3_tower.py',196),
-    link('video processor boundary',P/'transformers/processing_utils.py',769),
-    link('Qwen vision forward',P/'transformers/models/qwen3_5/modeling_qwen3_5.py',1078)])+'.\n\n'
-report+='''**Batching is not an accepted byte-preserving optimization.** Sorting by prompt length can reduce KV padding, but does not establish bit equality. The deployed hook reader accepts one row, and consumes forced response tokens one at a time. The separate trainer batch decoder serializes video prefills, left-pads full-attention KV, and concatenates recurrent states; it is not wired to this reader's per-item hook/server lifecycle. Batched matrix operations and SDPA backend selection need not reproduce unbatched bits. Qwen's linear attention also dispatches differently for cached single-token and chunked input, with explicit padding-mask handling.
+Processor keys bind ordered input arrays, frame metadata, kwargs, configuration, implementation identity and execution settings. Vision keys also bind live parameter/buffer identity, storage, versions/content, attention implementation and backend controls. SAM keys bind pinned files, ordered RGB pixels, frame indices/slots, live model identity/content, precision/batching settings, backend identity/options, object name and retention contract. Child/global hooks and unsafe dispatch take fresh paths. PID changes reset the generator-owned serial cache. Hits return independent supported values. The new SAM policy rejects simultaneous use of the old SAM memo policy.
 
-No nonzero answer or trace tolerance is accepted. Near-tied logits can turn a small floating-point difference into a different greedy token, then a different tool call and answer. A numerical logit tolerance alone cannot bound that change. A future batched implementation must pass the same exact trace gate; it is not included in these patches. Local torch/transformers file:line evidence and official documentation links are in `FRAMEWORK_EVIDENCE.md`.
+The hard cache bound includes cache-owned live payload, keys, containers, allocator allowances and current snapshot/hit-copy transients. B=262,144 bytes reserves bookkeeping/key scratch. Admission evicts until B+held+2R fits before allocating a snapshot; hits reserve their restore copy. R includes payload and conservative key/container allowances. Budgets below 256 KiB are rejected. Unsupported constructors, subclasses/layouts and excessive nesting bypass caching. The bound excludes model working memory, the old G3T memo and outputs the caller continues to own; it is not a whole-process RSS cap.
 
-The scorer extracts the text after `</think>`, normalizes its answer, and uses exact choice matching or numeric MRA. A changed number may remain in the same MRA bins, so equal scores cannot certify unchanged answers. The parity comparator therefore compares raw generated text and all token/call/response/head/scale/finish/score values, not only the aggregate score. See `tree/evalpath/run.py:70` and `tree/evalpath/official.py:269` in A4/src.
+**Measured memory fixture:** cap {H['cap_bytes']:,} bytes; Python allocation peak {H['peak_python_bytes']:,}; maximum reserved cache peak {H['peak_reserved_bytes']:,}. It exercises hit copying and eviction before the next snapshot. Receipt: [MEMORY.json]({O/'checks/MEMORY.json'}). Full item/wall timings include hashing and copies; internal hit_s counters exclude key construction. Production host/GPU peaks remain unmeasured.
 
-## Patches and CPU validation
+Batched greedy decoding is not included. Padding, batch shape, SDPA and recurrent/chunk kernels cannot receive a bit-equality guarantee; see the installed-source citations in [FRAMEWORK_EVIDENCE.md]({O/'FRAMEWORK_EVIDENCE.md'}) and the official [PyTorch numerical-accuracy note](https://docs.pytorch.org/docs/2.11/notes/numerical_accuracy.html). Equal scores can hide changed answers. The gate compares text, token IDs, calls/responses, heads, scale, finish, scores, budgets and all remaining semantic fields with zero tolerance.
 
-Apply from a fresh copy of **A4/src**, with `patch --batch --fuzz=0 -p1`. `patches/MANIFEST.json` gives before/after hashes. Both diffs also applied without fuzz to the corresponding files extracted from B5's package. B5 has the same reader files but an extra launcher type-binding field; that field remains intact.
+## Patches, test commands and exact outputs
 
-| Patch | Explicit opt-in | Default behavior |
-|---|---|---|
-| `patches/01_bounded_read_caches.diff` | Settings `read_processor_cache`, `read_vision_cache`, `read_sam_cache`: `on` | Each defaults to `off`; original component calls and serial decode remain |
-| `patches/02_atomic_scene_shards.diff` | `--atomic-journal`, `--scene-shards`; array worker also requires `--enable-array` | Existing JSONL journal and modulo item sharding remain |
-
-**24 CPU tests pass:** eleven cache tests, nine journal tests, and four comparator tests. The 50-read stub test compares the original reader, patched default-OFF reader, and cache-ON reader byte for byte after removing clock/cache telemetry; vision executions fall from 50 to five in that fixture. A tiny randomly initialized instance of the installed Qwen vision model also passes exact CPU caching comparison. These are correctness fixtures, not production speed measurements. The CPU environment lacks torchvision v2, so its native video-processor test covers packing/metadata with resize/RGB conversion/normalization disabled; the GPU kit must cover the unchanged production preprocessing.
-
-All tests use the requested interpreter, isolated mode, CUDA hidden, nice 10, and eight threads. Reproduce the complete check with:
+Apply BOTH diffs from a fresh full staged src tree with patch --batch --fuzz=0 -p1. [MANIFEST.json]({O/'patches/MANIFEST.json'}) pins all {sum(len(x['files']) for x in M['patches'].values())} added files and kit assets, proves unchanged original roots, and records fresh-application commands. Ordinary entrypoints remain OFF. Explicit ON uses u0/a8.py --enable-extensions; read_*_cache switches still default off. Atomic journaling and scene sharding additionally require --atomic-journal and --scene-shards; the array requires --enable-array.
 
 ```bash
-cd /scratch/jjyeung/orch_n30/so_read
 bash work/cpu.sh work/run_checks.py
 ```
 
-The individual commands below inherit those settings from `work/cpu.sh`. Their exact captured outputs follow.
+Exact captured output:
+
+```text
+'''+(O/'checks/final_cpu_run.txt').read_text()+'''```
+
+```bash
+bash work/cpu.sh work/build_patches.py
+```
+
+Exact captured output:
+
+```text
+'''+(O/'checks/final_patch_run.txt').read_text()+'''```
+
+The individual commands below inherit nice 10, CUDA hidden, eight threads and local writable caches from work/cpu.sh.
 
 '''
-for result in checks['results']:
-    path=result['command'][-1]
-    command=(f"READ_INPUT_SRC={A} " if result['name']!='kit' else f"READ_TEST_TMP={L}/work/test-artifacts ")+f"bash {L}/work/cpu.sh {path}"
-    report+='```bash\n'+command+'\n```\n\n```text\n'+(L/'out/checks'/result['output']).read_text()+'```\n\n'
-report+=f'''The syntax/default-off checks and zero-fuzz patch application also pass. `checks/RESULTS.json` records torch **{checks['torch']}**, transformers **{checks['transformers']}**, an empty `CUDA_VISIBLE_DEVICES`, and eight torch threads. The measured maximum child RSS is **{checks['max_child_rss_bytes']:,} bytes**; the workspace occupies **{checks['workspace_bytes']:,} bytes** at validation, before these reports. No GPU job or model API ran.
+for label,results in [('Workspace suites',C['results']),('Fresh-application suites',M['applied_cpu_suites'])]:
+ r+='### '+label+'\n\n'
+ for result in results:r+='```text\n'+' '.join(result['command'])+'\n```\n\nExact output:\n\n```text\n'+(O/'checks'/result['output']).read_text()+'```\n\n'
+r+=f'''The eight expected before-fix failures are retained in [round1_before.txt]({O/'checks/round1_before.txt'}); exact patch-tool output is [patch_application.txt]({O/'checks/patch_application.txt'}). Tests used torch {C['torch']}, transformers {C['transformers']}, eight torch threads and CUDA_VISIBLE_DEVICES="". Measured maximum child RSS: {C['max_child_rss_bytes']:,} bytes; workspace size at CPU verification: {C['workspace_bytes']:,} bytes, below 3 GB.
 
-## Requeue and return contract
+## Requeue, opacity and return checks
 
-The original reader skips completed `(id, arm, mode)` tuples but rejects an incomplete JSONL tail. The opt-in journal writes a checksummed item file, fsyncs it, atomically renames it, and fsyncs the directory **before** appending the ordinary JSONL projection. A requeued task acquires the same writer lock, validates the same export/source/settings/item/shard binding, reads the committed set, preserves divergent JSONL bytes, and rebuilds the projection. Interrupted temporary files never count as committed items. A kill before commit can repeat that item's computation; a kill after commit cannot duplicate its output. The CPU test interrupts between the durable commit and JSONL completion and confirms that all five items appear exactly once, with only the three uncommitted items generated on resume.
+Commits fsync before rename and directory fsync. The JSONL file is a recoverable projection. Recovery validates an established matching environment and executes under writer.lock. An interrupted computation may repeat; a committed answer cannot duplicate. Whole-room assignment preserves disjoint complete membership and manifest order. The merger rejects foreign, missing, duplicate or differently bound rows. Actual persistent-filesystem power-loss/requeue behavior remains untested.
 
-Whole-scene assignment sorts physical rooms by descending item count and assigns each to the least-loaded shard. Membership is disjoint and complete, and order within each shard follows the manifest. Keep the count fixed across requeues. Empty type shards are supported. Count balancing is not latency balancing; long traces can still produce stragglers.
+Public staging uses opaque job/log/asset paths, numeric selectors, token-only JSON, hashed IDs and hashed arbitrary logs. The staged kit has neutral filenames and pins its transport wrapper separately. It refuses raw public metadata or descriptive absolute config paths. Private restoration on Trinity authenticates public commits before rebuilding private-ID checksums/filenames. CPU fixtures compare restored-public and private canonical archives byte for byte, and compare decoded public canonical rows exactly. Full payload staging/authentication and real storage/return transport still need orchestrator integration.
 
-`h1eval.h10.merge_read` checks the complete expected ID set, per-shard ownership, type/room, checksums, export/source/settings bindings and duplicates. It emits manifest-ordered canonical semantic records and a deterministic gzip/tar archive. CPU single-shard and three-shard archives match byte for byte. The optional `--shards 4` GPU kit checks the same property on real outputs without submitting jobs.
+GPU ORIGINAL/OFF/OFF_REPEAT use separate source roots and original journal/shard defaults. Cache ON runs separately from journal/shard ON passes. The same explicit public transport wrapper protects every arm; this wrapper belongs to the opt-in experiment, while the ordinary OFF reader imports none of the extensions. Every enabled cache must show positive hits and valid memory receipts; SAM needs both feature and detection hits. Empty/all-miss/incomplete runs fail. ORIGINAL/OFF also compares all production source-hash fields. Raw clock/provenance evidence remains present in token form. Canonical answer/trace returns exclude telemetry; independent real-clock transport envelopes cannot match byte for byte.
 
-The equality contract excludes timing, runtime audit paths/counters, and cache telemetry; audit violations still fail. Those fields and environment bindings remain in the raw journals and `PROVENANCE.json`. **A raw Orchard transport archive or raw JSONL line containing timestamps and timings cannot be byte-identical across executions.** The deterministic answer/trace return is explicitly a new content artifact, not a claim that the original transport envelopes are identical.
+## Forecast, failure detection and work not run
 
-`kit_parity50/array_preempt.template.sh` requests the user-specified preempt partition, REQUEUE, a two-day limit, one GPU per task and four tasks. It is an unsubmitted template. Persistent shared journals, stable staged input paths, real filesystem fsync/locking behavior, allocation policy, and final Orchard publishing need an orchestrator integration check. Status 75 denotes incomplete work; the template has no retry loop.
+**Estimated:** 580 × 23.599762 / shards + 75.446133 + 49.761372 seconds gives **13,813.069 / 6,969.138 / 3,547.173 seconds** for one/two/four shards. This assumes simultaneous balanced execution and excludes queue time, staging, preemptions/reloads and stragglers. Keep 23.60 seconds/item for planning until a representative GPU read establishes a net gain. The fixed 50-item sample stresses reuse, not representative throughput.
 
-## Forecast and adoption checks
-
-**Estimated, not measured for package D or step 600:** `580 × 23.599762 + 75.446133 + 49.761372 = 13813.070 s`, or **3 h 50 min 13 s**. This exceeds a 3 h 30 min request even before its stop/return margins. The user-provided 12-hour general limit is distinct from that shorter request, and general is reserved for the step-400 work.
-
-With the same per-item cost and perfectly balanced, simultaneous starts, two scene shards estimate **6969.139 s (1 h 56 min 9 s)**; four estimate **3547.173 s (59 min 7 s)**. These estimates charge each task the observed load/startup allowance and exclude queue delay, staging variation, preemption/reloads, and imbalance. They are elapsed-read estimates, not per-GPU compute savings.
-
-For processor/vision caching, **1.596 s/distance item is an optimistic exposed-window ceiling**, equal to all outer-minus-core time plus all prefill time. It is not a predicted saving: file reads, tokenization, language prefill, hashing and copies remain. Even eliminating that entire window would leave about **22.004 s/item** before any SAM gain. SAM's separate cost and reusable-name frequency across the full 580-item set are unmeasured. The scheduling budget therefore remains **23.60 s/item** until the parity kit demonstrates a net gain beyond OFF/OFF timing variation.
-
-Adopt at **step 600 at the earliest**: first the atomic whole-scene preempt split after persistence/requeue/merge checks; then only caches that pass zero-byte-difference OFF/OFF, OFF/ON and single/sharded gates on the fixed 50-item sample and show useful hits, bounded memory, and lower item time. Keep greedy decoding, dtype, frame layout, sampling/stop rules, and response formatting unchanged. Do not alter step-400 deliveries.
-
-## Failure detection and work not run
-
-| Risk | Detection/action |
+| Risk | Detection and release action |
 |---|---|
-| Cache omits a dependency or GPU fresh calls are not deterministic | Exact text/token/call/head comparison; repeat OFF first; leave the affected switch OFF |
-| Cache hashing/copying costs more than recomputation, or entries churn | Item time, hit/miss/eviction/oversize counters and host/GPU memory receipts; give no speed credit |
-| Geometry injection or intermediate feature hooks would be skipped | Vision cache bypasses child/global hooks; the current read computes geometry/scale/selector work |
-| Wrong checkpoint, settings, membership or shard count on requeue | Existing immutable binding comparison refuses resume |
-| Partial item write or partial JSONL projection | Incomplete temporary file is ignored; committed checksum is verified; torn projection is preserved and rebuilt |
-| Missing/duplicate shard output or corrupted committed record | Merger rejects the return |
-| Shared filesystem lacks the assumed durability or journals live on a lost node | Run a real persistent-storage preemption test before array adoption; this was not simulated as a power-loss test |
-| Source patch applied to a sealed package without rebuilding pins | Package dry checks reject hashes; rebuild payload/pins and rerun `dry2`/`dryres2` for the actual deployment |
+| Missing dependency or nondeterministic GPU output | Require ORIGINAL/OFF/OFF-repeat/ON exact text/token/call/head gates; keep a failing cache OFF |
+| Hashing, copies or churn exceed saved work | Check full item/wall time, useful hits, eviction/oversize counters and host/GPU memory; credit no speedup |
+| Partial/unbound/overlapping journal writes | Validate lock/binding/checksums/membership, then test one real persistent-storage preemption/requeue |
+| Public naming/configuration/log leak | Require neutral staging, token metadata, public log wrapper and authenticated private restoration |
+| Stale payload/artifact/code pins | Rebuild and dry-check the approved deployment; rebinding alone cannot install source additions |
+| CPU fixtures miss GPU preprocessing/FLA/layout behavior | Pass the actual H100/CUDA kit before step 600; no numeric tolerance waiver |
 
-GPU OFF/ON and multi-shard parity, H100/CUDA timings, production preprocessing, actual preemption, and production host-memory fit are **not run**, as required. There is no batch-generation patch, no numerical tolerance waiver, no modified checkpoint, no edited input tree, and no submitted or published Orchard job/return. The existing archive builders were reviewed but not executed: they depend on Orchard inputs and rebinding alone cannot install a source change. No skill requested an approval gate; no borderline revision-history sentence is retained.
+**Not run:** GPU original/OFF/ON and sharded parity, H100/CUDA speed/memory, production RGB/resize preprocessing, real preemption/persistent storage, deployment package dry checks and return publication. The tiny installed processor CPU fixture disables unavailable torchvision RGB/resize/normalization and checks native packing/metadata; the installed tiny vision fixture uses CPU/eager attention. No GPU, Git, SSH, Slurm, paid API, upload or input-tree edit ran.
+
+**Sockets:** no delivered CPU suite or single-GPU parity pass opens a local OS socket. StageOneSocket is a Python callback. Socket-backed transport/distributed rendezvous integration would require socket access and remains unrun; the sandbox limitation skips no delivered CPU test.
 '''
-(L/'out/REPORT.md').write_text(report)
+(O/'REPORT.md').write_text(r)
+note=f'''Keep adoption NO-GO until GPU and persistent-storage gates pass. Step 600 is the earliest candidate; preserve step-400 deliveries. All seven code findings have fixes. {n} CPU tests pass, and {a} pass again from fresh patches; both diffs apply exactly to A4/B5.
 
-note='''At step 600, prioritize a preempt array with durable per-item journals. Enable component caches only after the unrun GPU parity kit passes. Keep step-400 deliveries unchanged.
+Measured distance time is **23.60 s/item** (median 18.28; p90 29.18), including an unexplained 648.40-second outlier. A4 loads once in 75.45 seconds and already reuses G3T. SAM time is not isolated. Cache savings receive no credit; live hashing may outweigh them.
 
-**Measured step-200 baseline:** distance averages **23.60 s/item** (median **18.28**, p90 **29.18**). A4 loads one generator in **75.45 s**, already reuses it across all five types, and already caches G3T. G3T contributes **2.00 s/distance item**; SAM has no separate timer. One 2056-token item takes **648.40 s**. Its cause is unknown, so the forecast retains it.
+| Estimated 580-item read | Elapsed time |
+|---|---:|
+| One GPU | 3 h 50 min |
+| Two balanced simultaneous shards | 1 h 56 min |
+| Four balanced simultaneous shards | 59 min |
 
-| Scenario | Expected distance s/item for budgeting | Estimated 580-item elapsed read |
-|---|---:|---:|
-| One GPU, existing path | 23.60 | 3 h 50 min |
-| Two concurrent, balanced scene shards | 23.60 per GPU | 1 h 56 min |
-| Four concurrent, balanced scene shards | 23.60 per GPU | 59 min |
-| Processor/vision/SAM caches | Keep 23.60 until measured | No saving credited yet |
+The formula is 580 × 23.599762 / shards + 75.446133 + 49.761372 seconds. It excludes queues, staging, preemptions/reloads and imbalance. Budget **23.60 s/item per GPU**.
 
-The estimates use `580 × 23.599762 / shards + 75.446133 + 49.761372`. They exclude queue delay, staging changes, preemptions/reloads, and imbalance. A 3 h 30 min request is too short at this mean, even before stop margins. The partition limits and general-partition reservation are the dispatch's supplied constraints.
+## Review round 1: finding -> fix -> test
 
-Two default-off patches are ready in `out/patches/`. The cache patch reuses video-processor outputs, frozen Qwen vision outputs, SAM image features and raw name-conditioned detections. It preserves serial decoding and recomputes each read's geometry, scale, selectors and tool responses. Its shared host cache defaults to a 4 GiB cap when enabled. The journal patch adds atomic item commits, disjoint whole-scene shards, and checked deterministic merging. Both patches apply without fuzz to A4 and B5; **24 CPU tests pass**.
+| Finding | Fix | Test |
+|---|---|---|
+| 1. Key collision | Delimit mappings by length. | Collision/stale-processor regressions pass. |
+| 2. Vacuous parity | Require hits, schemas, scale and responses. | Empty/all-miss/incomplete traces fail. |
+| 3. Default OFF | Add files outside original hash trees. | Complete files/stdout and actual hashes match the original under controlled clocks, with no exclusions. |
+| 4. Lifetime | Bind live identities/content/options; bypass hooks. | Replacement, raw edits, option changes and SAM hooks pass. |
+| 5. Deadline | Recover under the bound writer lock. | Lock/startup interruption tests pass. |
+| 6. Opacity | Use neutral names, token JSON/IDs and hashed logs. | Staging, requeue and authenticated Trinity restoration pass. |
+| 7. Memory | Reserve keys, containers and transient copies. | {H['peak_python_bytes']:,}-byte Python peak stays below a 2,000,000-byte fixture cap. |
 
-The fixed `out/kit_parity50/` sample contains ten items per type and twelve native captures. On an assigned Orchard GPU, run OFF/OFF-repeat/ON and the optional four-shard check using its README. Require identical generated text, tokens, calls/responses, heads, scale, finish, scores and merged answer/trace archive bytes. Check useful cache hits, lower item time beyond baseline variation, and host/GPU memory. The sample stresses reuse; it does not establish representative 580-item throughput.
+Ordinary OFF imports no extension and parses no new setting. Apply both patches; explicit ON uses u0/a8.py --enable-extensions. The 4 GiB cap covers cache-owned live storage/copies, not model working memory or caller-owned outputs. Unsupported values bypass.
 
-Before using preempt, prove that persistent journals survive a real requeue, then verify all expected IDs occur exactly once. An unfinished item may recompute; a committed item must not. Keep the shard count, checkpoint, source and settings fixed. The array template does not submit or publish anything; the orchestrator must integrate approved staging, resource policy and the return transport.
+Create the token-only GPU kit on Trinity using its README; keep private maps/fixtures/reports there. Public staging needs approved opaque paths and rebuilt pins. Require ORIGINAL/OFF/OFF-repeat/ON and separate journal/shard checks, identical answers/tokens/calls/responses/heads/scale/scores, matching source hashes, useful hits, lower total item time, memory headroom and canonical return equality. Then prove a real persistent-storage requeue returns every expected ID exactly once.
 
-Runtime timings, audit paths and cache counters remain separate from the deterministic answer/trace return. Full raw transport archives cannot match across runs. Batched greedy decoding has no bit-equality guarantee and is not included. **GPU parity, GPU speedups, real requeue behavior and production memory fit remain unmeasured.** Rebuild package pins and run the supplied package dry checks before step-600 deployment.
-
-Details and exact test outputs: `out/REPORT.md`; measured data: `out/profile.csv` and `out/profile.json`.
+GPU parity/speed, production memory fit, persistent requeue and deployment dry checks remain **unrun**. No delivered CPU or single-GPU test needs a local socket; socket-backed transport/distributed integration remains unrun. Commands, exact outputs and limits: out/REPORT.md. Pins: out/patches/MANIFEST.json.
 '''
-(L/'out/NOTE_FOR_CONT_OPS.md').write_text(note)
-print('Wrote REPORT.md and NOTE_FOR_CONT_OPS.md; note words:',len(note.split()))
+(O/'NOTE_FOR_CONT_OPS.md').write_text(note)
+(L/'work/STATUS.md').write_text(datetime.now(timezone.utc).isoformat()+f'\nReview round 1 complete: {n} CPU tests pass; {a} fresh-application tests pass. Eight reviewed-code failures reproduced. Patches/MANIFEST regenerated; original hash trees unchanged; A4/B5 zero-fuzz application verified. Reports rewritten. GPU/persistent-storage/deployment checks remain unrun release gates. No socket-dependent CPU test was skipped.\n')
+print(f'PASS: reports rewritten; {n} CPU tests and {a} fresh-application tests pass.')

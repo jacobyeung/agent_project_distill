@@ -25,7 +25,7 @@ class Job20(unittest.TestCase):
         cls.root=L/'work/build21/proofs/job';cls.root.mkdir(exist_ok=True)
         cls.kit=cls.root/'kit';shutil.copytree(B/'kits/q',cls.kit,dirs_exist_ok=True)
         cls.pool=cls.root/'pool';cls.pool.mkdir(exist_ok=True)
-        cls.spec=J.load(cls.kit/'k/p.json');cls.spec.update(pool=str(cls.pool),n_root=str(cls.pool/'x_90a20c41'),p_files={})
+        cls.spec=J.load(cls.kit/'k/p.json');cls.spec.update(pool=str(cls.pool),n_root=str(cls.pool/'x_22c714e1'),p_files={},p_sources={},pin_paths={})
         cls.spec['uploads']=[];cls.spec.pop('local_map',None)
         cls.records={}
         def record(name,value):
@@ -149,7 +149,7 @@ class Job20(unittest.TestCase):
         with (B/'proofs/operator/shell.log').open('w') as log:
             r=subprocess.run(['/bin/bash',str(self.kit/'job.sh'),str(self.root/'r.json')],env=env,stdout=log,stderr=subprocess.STDOUT)
         self.assertEqual(r.returncode,0,'See proofs/operator/shell.log')
-        node=self.root/'q_90a20c41_20';args=J.load(node/'args.json')
+        node=self.root/'q_22c714e1_20';args=J.load(node/'args.json')
         self.assertIn(AS,args);self.assertIn(AL,args);self.assertIn(self.spec['namespace'],args)
         self.assertEqual(J.sha(node/'s/c7d31ddd/data2root'/name),h)
         J.write(B/'proofs/operator/NAMESPACE.json',dict(arguments=args,stand_ins=['Slurm allocation environment','bwrap invocation captured after genuine staging'],frame_hash=h))

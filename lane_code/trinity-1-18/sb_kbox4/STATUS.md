@@ -1,1 +1,1 @@
-Five non-null selector fits and OOF choices are complete on rebuilt serving labels. No fold trained on a test room. No deployed export was created. Dependent training arms remain; held-out and A6 stay deferred.
+COMPLETE: serving-reference replay 149/149 across 45 training captures; CPU pricing covers the pinned 1037/883 train rowsets. Decisions and paired intervals are frozen in out/box_ladder/DECISION.json. Held-out and A6 remain deferred. out/REPORT.md, out/SCALE_PROVENANCE.md, out/DRYRUN.json and out/sb_kbox4.tar with SHA256 contain the deliverables.

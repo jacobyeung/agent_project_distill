@@ -12,6 +12,14 @@ import sys
 UTC = timezone.utc
 
 
+def within(path, boundary):
+    try:
+        path.relative_to(boundary)
+        return True
+    except ValueError:
+        return False
+
+
 def iso(value):
     return value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -101,10 +109,17 @@ def check(state_root, events, log, now):
         fcntl.flock(lock, fcntl.LOCK_EX)
         path = health / 'state.json'
         data = json.loads(path.read_text()) if path.exists() else {'active': {}, 'events': {}, 'first_seen': iso(now)}
+        # Legacy journal strings describe events the old monitor already emitted.
+        for name, entry in list(data['events'].items()):
+            if isinstance(entry, str):
+                data['events'][name] = dict(content=entry, delivered=True)
         previous = parse(data.get('checked', data['first_seen']))
         if now < previous:
             raise ValueError('clock moved backwards; state unchanged')
-        verified, completed = evidence(read_log(log))
+        lines = read_log(log)
+        verified, completed = evidence(lines)
+        lock_skips = [(when, text) for when, text in lines
+                      if text == 'FAIL previous run still holds the lock']
         active = data['active']
         recovered = []
         for kind, incident in list(active.items()):
@@ -126,6 +141,9 @@ def check(state_root, events, log, now):
             active['stale'] = {'observed': iso(now), 'event': event}
             last = iso(verified) if verified else 'no verified GitHub lane-code line in available log'
             data['events'][event] = f'{iso(now)} code_sync stale: last success {last}; limit 90 minutes; log {log}\n'
+            if lock_skips:
+                when, text = lock_skips[-1]
+                data['events'][event] += f'Latest hourly lock skip: {iso(when)} {text}\n'
         if completed and completed['failed'] and 'failed' not in active and not own_blocker(events, completed):
             # Deduplicate a completed failure even after its incident has recovered.
             key = iso(completed['end'])
@@ -135,17 +153,28 @@ def check(state_root, events, log, now):
                 data['events'][event] = f'{iso(now)} code_sync failed: run ended {key} without its own BLOCKER; log {log}\n'
                 data['last_failed_run'] = key
         data['checked'] = iso(now)
-        # Persist the event journal first; a later invocation replays any missing event.
+        # Newly queued strings have not been delivered yet.
+        for name, entry in list(data['events'].items()):
+            if isinstance(entry, str):
+                data['events'][name] = dict(content=entry, delivered=False)
+        # Persist pending events before writing; acknowledge each successful delivery locally.
         save(path, data)
-        for name, content in data['events'].items():
+        for name, entry in data['events'].items():
+            if entry['delivered']:
+                continue
+            content = entry['content']
             dest = events / name
             if dest.exists():
                 if dest.is_symlink() or dest.read_text() != content:
                     raise ValueError(f'event collision: {dest}')
-                continue
-            with dest.open('x') as f:
-                f.write(content)
-            print(f'EVENT {dest}')
+            else:
+                with dest.open('x') as f:
+                    f.write(content)
+                    f.flush()
+                    os.fsync(f.fileno())
+                print(f'EVENT {dest}')
+            entry['delivered'] = True
+            save(path, data)
         print(f'HEALTH last_verified={iso(verified) if verified else "none"} active={",".join(sorted(active)) or "none"}')
 
 
@@ -159,7 +188,7 @@ def main():
     now = datetime.now(UTC).replace(microsecond=0)
     if os.environ.get('LCS_TEST_ROOT'):
         boundary = Path(os.environ['LCS_TEST_ROOT']).resolve(strict=True)
-        if not str(boundary).startswith('/scratch/') or not all(p.is_relative_to(boundary) for p in (state, events)):
+        if not str(boundary).startswith('/scratch/') or not all(within(p, boundary) for p in (state, events)):
             raise ValueError('test writes must stay within /scratch test root')
         if os.environ.get('LCS_HEALTH_NOW'):
             now = parse(os.environ['LCS_HEALTH_NOW'])

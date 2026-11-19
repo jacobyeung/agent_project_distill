@@ -106,7 +106,9 @@ def resolve(kit,pool,listing,output):
         persisted_files={p['sha256']:paths.get(p['sha256'],ns+'/u/'+p['sha256']) for p in pins.values()},
         proof_mode='q',donor_config_sha256=spec['p_identity'])
     cfg.update(output=ns+'/r',preparation_output=ns+'/p0',code=dict(path=ns+'/c.json',sha256=spec['code_sha256']))
-    uploads=spec['uploads'];paths.update({x['sha256']:ns+'/u/'+x['sha256'] for x in uploads})
+    uploads=spec['uploads'];expected_paths={x['sha256']:ns+'/u/'+x['sha256'] for x in uploads}
+    if spec['pin_paths']!=expected_paths:raise ValueError('E49')
+    paths.update(spec['pin_paths'])
     request=load(kit/'k/r.json')
     request.update(config=None,staged_pins=[dict(path=v,sha256=h) for h,v in paths.items()],
         room_audit=dict(path=paths[spec['room_sha256']],sha256=spec['room_sha256']),
@@ -155,6 +157,7 @@ class Joined:
 def stage_payload(kit,resolved,root):
     kit=Path(kit);root=Path(root);spec=load(kit/'k/p.json')
     if resolved['kit_sha256']!=seal(kit):raise ValueError('E32')
+    safe=name_guard(kit)
     root.mkdir(parents=True,exist_ok=True);u=root/'u';u.mkdir(exist_ok=True)
     record=resolved['archive'];path=checked(record['path'],record['sha256'],record['bytes'])
     with tarfile.open(path) as t:
@@ -180,6 +183,7 @@ def stage_payload(kit,resolved,root):
             if not member.isfile() or member.issym() or member.islnk():
                 if member.isdir():continue
                 raise ValueError('E35')
+            safe(member.name)
             path=inside(export,member.name);path.parent.mkdir(parents=True,exist_ok=True)
             with t.extractfile(member) as a,path.open('wb') as b:shutil.copyfileobj(a,b,8<<20)
     while stream.read(8<<20):pass
@@ -198,6 +202,7 @@ def stage_payload(kit,resolved,root):
     names={'full_weights.json':mp['sha256'],manifest['index']['name']:manifest['index']['sha256']}
     names.update({item['name']:item['sha256'] for item in manifest['files']})
     for name,h in names.items():
+        safe(name)
         if PurePosixPath(name).name!=name or name in ('.','..'):raise ValueError('E43')
         source=checked(u/h,h);target=inside(native,name)
         if target.exists():checked(target,h)
@@ -227,12 +232,58 @@ def screen(line,words,hashes):
         return 'x_'+digest(token) if bad else token
     return re.sub(r'[^\s"\x27<>]+',replace,line)
 
+def name_guard(kit):
+    words=load(Path(kit)/'k/g.json');hashes=load(Path(kit)/'b/wh.json')
+    def check(name):
+        if not isinstance(name,str) or screen(name,words,hashes)!=name:raise ValueError('E48')
+        return name
+    return check
+
+def scan_staging_map(value,safe,parts=()):
+    if isinstance(value,dict):
+        for key,item in value.items():
+            field=(key=='destination' and len(parts)>=2 and parts[-2] in ('files','archives','packages','directories')
+                   and parts[-1].isdigit())
+            if not field:safe(key)
+            scan_staging_map(item,safe,parts+(key,))
+    elif isinstance(value,list):
+        for i,item in enumerate(value):scan_staging_map(item,safe,parts+(str(i),))
+    elif isinstance(value,str):safe(value)
+
+def stage_inputs(kit,current,host,node,mode):
+    import importlib.util
+    safe=name_guard(kit)
+    source=Path(host)/'b/s.py'
+    module_spec=importlib.util.spec_from_file_location('q_stage',source)
+    module=importlib.util.module_from_spec(module_spec);module_spec.loader.exec_module(module)
+    original_destination=module.Stage.destination;original_metadata=module.Stage.metadata
+    def destination(self,value):return original_destination(self,safe(value))
+    def metadata(self,pin):
+        safe(pin['file']);value=original_metadata(self,pin)
+        scan_staging_map(value,safe)
+        return value
+    module.Stage.destination=destination;module.Stage.metadata=metadata
+    value=load(current)
+    if 'staged_inputs' in value:
+        scan_staging_map(value['staged_inputs'],safe)
+        return module.Stage(host,node).run(value['staged_inputs'],frames=mode=='full')
+
 def bootstrap(kit,resolved_path,node):
     kit=Path(kit).resolve();node=Path(node).resolve();spec=load(kit/'k/p.json');seal(kit)
+    safe=name_guard(kit)
+    sources=spec.get('p_sources',{})
+    if set(sources)-set(spec['p_files']):raise ValueError('E49')
+    # Check the complete name inventory before creating any staging file.
+    for name,h in spec['p_files'].items():
+        safe(name)
+        if name in sources:
+            safe(sources[name])
+            if sources[name]!='u/'+h:raise ValueError('E49')
     resolved=load(resolved_path);node.mkdir(parents=True,exist_ok=True)
     hx=node/'h';hx.mkdir(exist_ok=True)
     for name,h in spec['p_files'].items():
-        src=Path(spec['pool'])/spec['p_root']/name
+        src=(inside(spec['n_root'],sources[name]) if name in sources
+             else Path(spec['pool'])/spec['p_root']/name)
         target=inside(hx,name);target.parent.mkdir(parents=True,exist_ok=True)
         checked(src,h);shutil.copyfile(src,target)
     if 'ANON_OK.json' not in spec['p_files']:raise ValueError('E44')
@@ -247,8 +298,9 @@ def bootstrap(kit,resolved_path,node):
     env={**os.environ,'Q_ROOT':str(node),'Q_KIT':str(kit),'Q_NS':spec['namespace'],'TK_KIT_HOME':str(hx),'TK_JOBDIR':str(node/'j')}
     return subprocess.run(['/bin/bash',str(node/'j.sh')],env=env).returncode
 
-def snapshot(path,expected,root,revision):
+def snapshot(path,expected,root,revision,kit=None):
     checked(path,expected);root=Path(root);root.mkdir(parents=True,exist_ok=True)
+    safe=name_guard(kit) if kit is not None else lambda name:name
     marker='/snapshots/'+revision+'/';found=set()
     with tarfile.open(path,'r|*') as archive:
         for member in archive:
@@ -257,6 +309,7 @@ def snapshot(path,expected,root,revision):
                 raise ValueError('E45')
             if marker not in member.name:continue
             name=member.name.partition(marker)[2]
+            safe(name)
             target=inside(root,name)
             if name in found:raise ValueError('E46')
             found.add(name);target.parent.mkdir(parents=True,exist_ok=True)

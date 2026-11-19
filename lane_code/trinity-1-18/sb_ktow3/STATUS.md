@@ -1,0 +1,1 @@
+The tower-frames section-8 CPU dry run is PASS, with 10 exact box A0 row matches, all 450 camera items bound for parity, and 431 bound for dense camera arms. The remaining dense manifests are named in out/BLOCKERS.json. All 18 regression tests pass. The report, GPU request and SHA256-verified archive are delivered; no GPU or network work ran.

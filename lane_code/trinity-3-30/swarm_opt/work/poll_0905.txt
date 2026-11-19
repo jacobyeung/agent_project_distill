@@ -1,0 +1,34 @@
+09:03:24Z
+stopped so_pack_fix (Sol) 09:03:24Z
+/scratch/jjyeung/orch_n30/so_corpus_fix/work/dispatch_so_corpus_fix.log |  | 2026-11-19 03:42
+/scratch/jjyeung/orch_n30/so_git/work/dispatch.log |  | 2026-11-19 02:29
+/scratch/jjyeung/orch_n30/so_git/work/dispatch_fix1.log |  | 2026-11-19 03:18
+/scratch/jjyeung/orch_n30/so_launch/work/dispatch.log |  | 2026-11-19 01:20
+/scratch/jjyeung/orch_n30/so_launch/work/dispatch_c.log |  | 2026-11-19 02:02
+/scratch/jjyeung/orch_n30/so_launch/work/dispatch_fix1.log |  | 2026-11-19 03:06
+/scratch/jjyeung/orch_n30/so_pack/work/dispatch.log |  | 2026-11-19 02:02
+/scratch/jjyeung/orch_n30/so_pack/work/dispatch_so_pack_fix.log |  | 2026-11-19 03:36
+/scratch/jjyeung/orch_n30/so_read/work/dispatch.log |  | 2026-11-19 01:20
+/scratch/jjyeung/orch_n30/so_read/work/dispatch_fix1.log |  | 2026-11-19 02:35
+/scratch/jjyeung/orch_n30/so_step/work/dispatch.log |  | 2026-11-19 01:20
+/scratch/jjyeung/orch_n30/so_step/work/dispatch_c.log |  | 2026-11-19 02:02
+my codex builds running: 0 (load 13 avail 462G)
+started so_xstore (gpt-6-astra)
+so_corpus_fix ENDED: VERDICT: DONE Three opt-in fixes pass synthetic validation; the static published-read audit indicates no re-ingest.
+so_pack_a QUEUED
+so_step_fix QUEUED
+so_corpus_lost QUEUED
+so_read_fix ENDED
+so_launch_fix ENDED
+so_git_fix ENDED
+-- so_cr_step: verdict=VERDICT: GO AFTER FIXES running=n
+-- so_read: VERDICT: DONE All seven HIGH/MEDIUM findings have fixes and passing CPU regressions; production adoption remains NO-GO until the unrun GPU and persistent-storage gates pass.
+-- so_launch: VERDICT: DONE The review fixes are packaged with CPU regression evidence; patch 01 stays OFF.
+-- so_git: VERDICT: DONE Findings 1–16 are addressed; fresh patches, owner suites, and real-Git proofs pass under Python 3.6.8 and 3.12.13.
+started cursor so_cr_git2
+started cursor so_cr_launch2
+started cursor so_cr_read2
+-- so_cr_git2: verdict= running=y
+-- so_cr_launch2: verdict= running=y
+-- so_cr_read2: verdict= running=y
+ 04:03:24 up 25 days,  4:06,  0 users,  load average: 13.15, 12.59, 14.39

@@ -54,7 +54,7 @@ def start_context(receipt):
     if not isinstance(cfg, dict):
         raise ValueError('R1_OPENER_START_CONFIG_REQUIRED')
     from .carrier_c1_run import identity
-    if (False
+    if (identity(cfg) != receipt.get('config_sha256')
             or any(cfg.get(k) != receipt.get(k) for k in ('r1_training','init_artifact','routing_opener_init','routing_vocabulary'))
             or cfg.get('streams') != {k:v['receipt'] for k,v in receipt.get('streams',{}).items()}):
         raise ValueError('R1_OPENER_START_CONFIG_MISMATCH')
@@ -71,7 +71,7 @@ def initialize(model, processor, receipt):
             or report.get('r2_lineage') == bound_init(receipt)['artifact_sha256'])
     if receipt.get('r1_training') and selected == 'keep':
         from .r1_training import start
-        start(start_context(receipt))
+        start(receipt)
         same = warm
     if selected == 'keep' and not (warm and same):
         raise ValueError('Keep requires a full warm start in the bound lineage')

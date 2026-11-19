@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_pack_a/test_native.py", line 47, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_pack_a/test_native.py", line 40, in main
+    P.run(['/usr/bin/python3','-I','-s','-B','-c',code,str(here),str(w)],w,w/'native_release.log')
+  File "/scratch/jjyeung/orch_n30/so_pack_a/pack.py", line 109, in run
+    need(r.returncode==0,'Command failed (%s); see %s'%(r.returncode,log))
+  File "/scratch/jjyeung/orch_n30/so_pack_a/pack.py", line 10, in need
+    if not ok:raise Rejected(msg)
+              ^^^^^^^^^^^^^^^^^^^
+pack.Rejected: Command failed (1); see /scratch/jjyeung/orch_n30/so_pack_a/work/native1/native_release.log

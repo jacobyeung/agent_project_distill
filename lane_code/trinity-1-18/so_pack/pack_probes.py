@@ -41,10 +41,6 @@ def metadata(package, work, config):
     verify_config(cfg);valid_token(pub['token'])
     wall=config.get('remote',{}).get('walltime','02:30:00')
     argv=submit_argv(pub['token'],1,wall);opaque(argv)
-    for n in ('3.py','a/4.py','a/5.py','a/6.py'):
-        # Python 3.12 parser can check 3.6 grammar; this does not attest APIs.
-        if sys.version_info >= (3,8):
-            ast.parse(f[n].decode(),filename=n,feature_version=(3,6))
     public_guards=[]
     if 'items/dist580.json' in pay:
         cases=[(['--gpus','2','--time',wall],b'D requires --gpus 1'),
@@ -60,7 +56,7 @@ def metadata(package, work, config):
                       'D public resource guard did not reject before placement')
             public_guards.append(dict(flags=flags,rejected=True))
     P.write(work/'result.json',dict(passed=True,native_load_helpers=True,
-        native_verify_config=True,submit_argv=argv,grammar_only_python36=True,
+        native_verify_config=True,submit_argv=argv,
         public_resource_guards=public_guards))
 
 
@@ -102,7 +98,9 @@ def check_rows(src, rows, layout='duplicate'):
 
 def rows_in(value):
     if isinstance(value,dict):
-        if 'student_input' in value:
+        if ('student_input' in value or 'source_frame_indices' in value or
+                ('frame_indices' in value and
+                 any(k in value for k in ('fps','total_num_frames','num_frames')))):
             yield value
         else:
             for item in value.values():
@@ -135,9 +133,21 @@ def logic(package,work,config):
         p=Path(spec['path']);P.require(P.file_sha(p)==spec['sha256'],'Rows SHA differs')
         for line in p.read_text().splitlines():
             if line.strip():rows.extend(rows_in(json.loads(line)))
-    count=check_rows(src,rows,plan.get('export_binding',{}).get('frame_layout','duplicate'))
-    # A read package need not carry training rows. Its native read mappers and
-    # the staged restore are checked separately; report the actual row count.
+    layout=plan.get('export_binding',{}).get('frame_layout','duplicate')
+    count=check_rows(src,rows,layout)
+    for row in rows:
+        if 'student_input' in row:continue
+        fps=row.get('fps');total=row.get('total_num_frames')
+        P.require(type(total) is int and total>0,'Read row total_num_frames must be positive integer')
+        P.require(type(fps) in (int,float) and math.isfinite(fps) and fps>0,
+                  'Read row fps must be positive finite')
+        indices=row.get('frame_indices',row.get('source_frame_indices'))
+        P.require(indices and all(type(i) is int and 0<=i<total for i in indices),
+                  'Read row frame indices differ')
+        count+=1
+    if layout=='duplicate':
+        P.require(count>0 or config.get('no_rows') is True,
+                  'Duplicate frame layout checked zero rows; provide row_files or explicit no_rows=true')
     entries=set(config.get('isolated_entries',[]))
     entries.add('h1eval/h10/launch.py')
     for n in pay:
@@ -375,14 +385,33 @@ class Mirrors:
         os.mkdir=lambda p,*a,**k:mkdir(self.translate(p,True),*a,**k)
         os.chmod=lambda p,*a,**k:chmod(self.translate(p,True),*a,**k)
         Path.resolve=mapped_resolve
+        # Python 3.6 pathlib captures os functions in a singleton accessor.
+        self.accessor=getattr(Path('.'),'_accessor',None)
+        self.accessor_saved={}
+        if self.accessor is not None:
+            for name,writing in (('stat',False),('lstat',False),('open',True),
+                                 ('mkdir',True),('chmod',True)):
+                old=getattr(self.accessor,name)
+                self.accessor_saved[name]=(name in vars(self.accessor),old)
+                def mapped(path,*a,_old=old,_write=writing,_name=name,**k):
+                    write=_write
+                    if _name=='open':
+                        flags=a[0] if a else k.get('flags',0)
+                        write=bool(flags & (os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC))
+                    return _old(self.translate(path,write),*a,**k)
+                setattr(self.accessor,name,mapped)
         return self
 
     def __exit__(self,*args):
+        for name,(owned,old) in self.accessor_saved.items():
+            if owned:setattr(self.accessor,name,old)
+            else:delattr(self.accessor,name)
         builtins.open,io.open,os.stat,os.mkdir,os.chmod,Path.resolve,tarfile.bltn_open,open_code=self.saved
         if open_code is not None:io.open_code=open_code
 
 
 def real_fill(package,work,config):
+    P.require(sys.version_info[:2]==(3,6),'Fill must run under real login Python 3.6')
     files,pay,pub,plan=P.structure(package)
     root=work/('a'+os.urandom(5).hex());root.mkdir()
     local=root/(P.PREFIX+pub['token']);local.mkdir(mode=0o700)
@@ -416,7 +445,50 @@ def real_fill(package,work,config):
               config.get('forbidden_extra',[]))
     P.write(work/'result.json',dict(passed=True,inputs=P.file_sha(local/'a/1.json'),
         prep=P.file_sha(local/'a/6'),resolved=resolved,
+        python=sys.version,
         scope='exact fill and login checks through authenticated path mirrors'))
+
+
+def login(package,work,config):
+    """Execute exact login helpers and generated place code under real 3.6."""
+    P.require(sys.version_info[:2]==(3,6),'Login probe requires real Python 3.6')
+    f,pay,pub,plan=P.structure(package)
+    sources={n:d for n,d in f.items() if n.endswith('.py')}
+    sources.update({n:d for n,d in pay.items() if n.startswith('orchard_h10/') and n.endswith('.py')})
+    sources.update({'bundle/'+n:d for n,d in P.bundle(f['BATCH.sh']).items() if n.endswith('.py')})
+    for i,code in enumerate(P.python_stdin_sources(f['BATCH.sh'].decode())):
+        sources['batch_stdin%d'%i]=code
+    for name in ('pack.py','pack_probes.py'):
+        sources['tool/'+name]=(Path(__file__).parent/name).read_bytes()
+    if 'builder' in config:
+        sources['builder']=Path(config['builder']['path']).read_bytes()
+    for n,d in sources.items():compile(d,n,'exec')
+    # A real run exercises the 3.6 filesystem APIs, not only its parser.
+    raw=io.BytesIO()
+    with tarfile.open(fileobj=raw,mode='w') as t:
+        for n,d in f.items():
+            m=tarfile.TarInfo(n);m.size=len(d);m.mode=0o600;t.addfile(m,io.BytesIO(d))
+    delivery=work/'1.tgz';delivery.write_bytes(raw.getvalue())
+    b=dict(delivery=str(delivery),report={'token':pub['token']})
+    cfg=dict(config);cfg['remote']=dict(config.get('remote',{}),walltime=config.get('remote',{}).get('walltime','02:30:00'))
+    text=P.remote_place(cfg,b)
+    remote=P.REMOTE_ROOT+'/'+P.PREFIX+pub['token'];local=work/(P.PREFIX+pub['token'])
+    with Mirrors({},remote,local):
+        for code in P.python_stdin_sources(text):exec(compile(code,'place_stdin','exec'),{})
+    P.require(P.package_files(local)==f,'3.6 place bytes differ')
+    P.require((local.stat().st_mode&0o777)==0o700 and
+              ((local/'a').stat().st_mode&0o777)==0o700 and
+              all((p.stat().st_mode&0o777)==0o600 for p in local.rglob('*') if p.is_file()),
+              'Place containment differs')
+    # --help runs the exact fill argument parser without unavailable exports.
+    argv=sys.argv[:]
+    try:
+        sys.argv=[str(local/'a/4.py'),'--help']
+        try:runpy.run_path(str(local/'a/4.py'),run_name='__main__')
+        except SystemExit as e:P.require(e.code==0,'Login fill parser failed')
+    finally:sys.argv=argv
+    P.write(work/'result.json',dict(passed=True,python=sys.version,compiled_sources=len(sources),
+        generated_place_executed=True,fill_parser_executed=True,private_modes=True))
 
 
 def module_payload_helpers(package):
@@ -496,11 +568,12 @@ def resolve_archives(base,filled,mirrors,remote,local):
 
 def main():
     P.limit_resources()
+    os.umask(0o077)
     mode=sys.argv[1];package=Path(sys.argv[2]).resolve();work=Path(sys.argv[3]).resolve()
     config=P.read(sys.argv[4]) if len(sys.argv)>4 else {}
     work.mkdir(parents=True,exist_ok=True)
     env=P.clean_env(work);os.environ.clear();os.environ.update(env)
-    funcs={'metadata':metadata,'guard':guard,'logic':logic,'trap':trap,'stop':native_stop,'fill':real_fill}
+    funcs={'metadata':metadata,'guard':guard,'logic':logic,'trap':trap,'stop':native_stop,'fill':real_fill,'login':login}
     funcs[mode](package,work,config)
     print('PROBE_PASS '+mode)
 

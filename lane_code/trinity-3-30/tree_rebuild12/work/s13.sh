@@ -1,0 +1,2 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; C=$W/work/conf21/pkg; mkdir -p $W/mirror
+cd $C && nice -n 10 tar czf $W/mirror/tr12_b21_core_b262e7a7.tgz --exclude=work/build21/upload --exclude=work/build21/proofs --exclude=work/build21/kits --exclude=work/build21/inputs --exclude='*.tar' work/tree_r1 work/build21 $(ls -d out 2>/dev/null) && stat -c %s $W/mirror/tr12_b21_core_b262e7a7.tgz && sha256sum $W/mirror/tr12_b21_core_b262e7a7.tgz; ls $C

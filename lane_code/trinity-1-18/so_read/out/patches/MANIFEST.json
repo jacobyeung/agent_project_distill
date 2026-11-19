@@ -1,71 +1,264 @@
 {
+  "activation": "u0/a8.py --enable-extensions (apply BOTH patches)",
   "application_checks": {
-    "A4": "exact output bytes, zero fuzz",
-    "B5": "zero fuzz; original types binding retained"
+    "A4": "zero fuzz; all original files unchanged; added bytes exact",
+    "B5": "zero fuzz; every extracted original file unchanged; added bytes exact"
   },
-  "apply_from": "A4/src (or a fresh copy)",
+  "applied_cpu_suites": [
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round1/182139fac022474ab5d80423d683a00f/src/u0/tests/test_read_cache.py"
+      ],
+      "name": "read_cache",
+      "output": "applied_read_cache.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round1/182139fac022474ab5d80423d683a00f/src/u0/tests/test_read_journal.py"
+      ],
+      "name": "read_journal",
+      "output": "applied_read_journal.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round1/182139fac022474ab5d80423d683a00f/src/u0/tests/test_off.py"
+      ],
+      "name": "off",
+      "output": "applied_off.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round1/182139fac022474ab5d80423d683a00f/src/u0/tests/test_public.py"
+      ],
+      "name": "public",
+      "output": "applied_public.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round1/182139fac022474ab5d80423d683a00f/src/u0/tests/test_round1.py"
+      ],
+      "name": "round1",
+      "output": "applied_round1.txt",
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/so_read/work/apply-round1/182139fac022474ab5d80423d683a00f/src/u0/tests/test_compare.py"
+      ],
+      "name": "compare",
+      "output": "applied_compare.txt",
+      "returncode": 0
+    }
+  ],
+  "apply_from": "fresh full staged src tree",
   "base": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src",
+  "default_off": "all original files unchanged; no extension import/settings parse",
+  "generated_utc": "2026-11-19T08:45:21.285701+00:00",
+  "kit_files": {
+    "README.md": {
+      "bytes": 6481,
+      "sha256": "4d05a6d664069acc78874a1fdd21cd10d780b1cc2bb9ef0da36ead7aee2329d8"
+    },
+    "SAMPLE_IDENTITY.json": {
+      "bytes": 2677,
+      "sha256": "8119f37824a1af8a35ab73c168b5535a14c508feedb7f9ae6fdf4460760e6eec"
+    },
+    "a9.py": {
+      "bytes": 8740,
+      "sha256": "63f417ec9383f0c3382da956bc290bf6b4024dd1da0472593821db47c058ed3f"
+    },
+    "array_config.example.json": {
+      "bytes": 354,
+      "sha256": "f45c40f5583727abbd6b5284f4f3d1b711c2000bb95f728de9a3ff4c4f4a7ec0"
+    },
+    "array_preempt.template.sh": {
+      "bytes": 1462,
+      "sha256": "790a5ee2bdcd421297cdb0e46fb9ace66b7510fd3c7949d61973d06dec69e440"
+    },
+    "compare.py": {
+      "bytes": 11036,
+      "sha256": "d801122b4a68583abac6010cd2cee6fbe57266a649a13bfb864c42907dd4471e"
+    },
+    "config.example.json": {
+      "bytes": 299,
+      "sha256": "b70065f6639b21ef03b3b275dd904beecbf3bc5a42f7127d0b037ce86d173969"
+    },
+    "run.py": {
+      "bytes": 11792,
+      "sha256": "933d8e853ea58428825d9ff8d54b02f5c9dca2b8b97e9878b42baac28f2088ca"
+    },
+    "sample50.json": {
+      "bytes": 108569,
+      "sha256": "6a7885b6ea579d5e4a647ac408e79bec500e18cce574409b0a30c921a41e8707"
+    },
+    "test_compare.py": {
+      "bytes": 8081,
+      "sha256": "8d2a02ac1b136e96fc66c3301c9b4d993f2e921dde7a22b0327e0aba6502e79f"
+    },
+    "test_run.py": {
+      "bytes": 2969,
+      "sha256": "4fd06d71bb1963c72df03cf3ef32156c6490f7876c98a49f007a407fd54a0f75"
+    }
+  },
   "patches": {
     "01_bounded_read_caches.diff": {
+      "bytes": 86569,
       "files": {
-        "b/e2e_reader/parity.py": {
-          "after_sha256": "fd2a26a848d5d4f5123e13d5226ea6e9bf21d242a03a795352c19d3b26c2c18d",
-          "before_sha256": "d948af4264381ca523dfe1c311e537f9bdd2aebc27c43d2412dbfe3755161dd1",
-          "bytes": 15063
-        },
-        "b/e2e_reader/read_cache.py": {
-          "after_sha256": "0cef12cab69d7f4767f82849a193d036f3532f2ae5d165ac97076c50a2147cce",
+        "u0/a0.py": {
+          "after_sha256": "530862e0cdce9a4d4bff6d65857a6225625bd48ad802e81a62f8d3bdfee077a8",
           "before_sha256": null,
-          "bytes": 8135
+          "bytes": 17993
         },
-        "b/e2e_reader/real.py": {
+        "u0/a1.py": {
+          "after_sha256": "a91fd62c904619e09f314a785f048af0eca0d62795a0a526881b5a51d6602f36",
+          "before_sha256": null,
+          "bytes": 15194
+        },
+        "u0/a2.py": {
           "after_sha256": "c0b9b8d51deb37ebfaa2a11c80d6486dc2432a99129e1776b64cbeaec4c75fe8",
-          "before_sha256": "d69be37f4787e268ca11ff22ff334aa3b41752f6bb6f2bf7bf3dc52e1d4e2e6e",
+          "before_sha256": null,
           "bytes": 7791
         },
-        "b/e2e_reader/stage1.py": {
-          "after_sha256": "d61ee2be9e14dac43aec6bea6f0738bbdc12653f64c9c895fc1d3040c4085c0c",
-          "before_sha256": "b1a77424a2a014b12890805d8c72f1a83dd5e378cd54a2ff221887ccde1cafe1",
-          "bytes": 11998
-        },
-        "b/tests/test_read_cache.py": {
-          "after_sha256": "53348ead4136cd01a07c022d2123b8e675e86308e2e6619d99826ca7c9e03ed9",
+        "u0/a3.py": {
+          "after_sha256": "116f09319072aa946d3a0d776e5285b42b726100b13a872809449e0106656b57",
           "before_sha256": null,
-          "bytes": 15119
+          "bytes": 13829
+        },
+        "u0/tests/test_off.py": {
+          "after_sha256": "93557962932a998e5679960d93a40828717e4305a344c9da32571cd7d24eb6ae",
+          "before_sha256": null,
+          "bytes": 8660
+        },
+        "u0/tests/test_read_cache.py": {
+          "after_sha256": "037dd0552f37a63f28fa1bebed6415f28763488d891afce1c304f161acfbe3ae",
+          "before_sha256": null,
+          "bytes": 21258
         }
       },
-      "sha256": "706da49b44f94c7522a11615e8344519c6383129cdbf9c99c6c705f3c0f346bb"
+      "sha256": "f550739852930aab216e68292afbf4515feaecdbb936018edef11339d81250fc"
     },
     "02_atomic_scene_shards.diff": {
+      "bytes": 213563,
       "files": {
-        "h1eval/h10/array_worker.py": {
-          "after_sha256": "9a359135ed525fe13a611affb347af55aa3bd238285991a5352686d3b56d2c76",
+        "u0/a10.py": {
+          "after_sha256": "d801122b4a68583abac6010cd2cee6fbe57266a649a13bfb864c42907dd4471e",
           "before_sha256": null,
-          "bytes": 2957
+          "bytes": 11036
         },
-        "h1eval/h10/atomic_journal.py": {
+        "u0/a11.py": {
+          "after_sha256": "360f1c0e07b3209d7a35587a98b8e9cd5b1dd175f9dceb086350b8a452cd22be",
+          "before_sha256": null,
+          "bytes": 2808
+        },
+        "u0/a4.py": {
+          "after_sha256": "9dcc4b4b6a08ddcf8bcdab1a1c335c7768a8a9405faf245c6a2cb8f95216f161",
+          "before_sha256": null,
+          "bytes": 27812
+        },
+        "u0/a5.py": {
           "after_sha256": "ec6621ccf9bfe6b5bf9c8af88288602b20ce73970169da692e65b680879aed97",
           "before_sha256": null,
           "bytes": 4419
         },
-        "h1eval/h10/launch.py": {
-          "after_sha256": "6cfe8f2c954876eb3cf0e53966572c34403998e8c7af303bff8505756619a94a",
-          "before_sha256": "eeeaae976a5bda8445a9b50975de96a6fbdcdefc0a25fd29a34b74cd89bd5f9c",
-          "bytes": 25338
-        },
-        "h1eval/h10/merge_read.py": {
-          "after_sha256": "d23bd4fa113a5f8997b901eedc54b0b489b70b30465de41212c5ee8c380b1a57",
+        "u0/a6.py": {
+          "after_sha256": "720827e1004ab1c7e2ac6b7c3bfb3410113544eb427683bd756ed93544648250",
           "before_sha256": null,
-          "bytes": 5663
+          "bytes": 6289
         },
-        "h1eval/tests/test_read_journal.py": {
-          "after_sha256": "a943de9aadb04b68d1770db264e1e419153aa4a7d573c1ff9bd72db974737ec9",
+        "u0/a7.py": {
+          "after_sha256": "9da7bd1e2b4d0b7ae295293cb085f1acba68dafd0b1c49a0c66334cb8ae19979",
           "before_sha256": null,
-          "bytes": 9377
+          "bytes": 3136
+        },
+        "u0/a8.py": {
+          "after_sha256": "1ef49bba56e32150f8d374128d183dee0036b3f3fcfcb8f65c91847d760780ec",
+          "before_sha256": null,
+          "bytes": 2056
+        },
+        "u0/a9.py": {
+          "after_sha256": "63f417ec9383f0c3382da956bc290bf6b4024dd1da0472593821db47c058ed3f",
+          "before_sha256": null,
+          "bytes": 8740
+        },
+        "u0/tests/test_compare.py": {
+          "after_sha256": "8d2a02ac1b136e96fc66c3301c9b4d993f2e921dde7a22b0327e0aba6502e79f",
+          "before_sha256": null,
+          "bytes": 8081
+        },
+        "u0/tests/test_public.py": {
+          "after_sha256": "9e9a1df2a2bcd1c11f9eede27ca4b3b119697f38fb4982934391144b9f7e0482",
+          "before_sha256": null,
+          "bytes": 4374
+        },
+        "u0/tests/test_read_journal.py": {
+          "after_sha256": "de87a073dd49eb8c9012ddcfd8b38434925bcd6d45b2f36b2920bed40457ebaa",
+          "before_sha256": null,
+          "bytes": 14058
+        },
+        "u0/tests/test_round1.py": {
+          "after_sha256": "f487dc621faab003d96183b5c46dffa763b3ecd1772b5bee3f21b2f44de6dfac",
+          "before_sha256": null,
+          "bytes": 5130
+        },
+        "u0/tests/u0.json": {
+          "after_sha256": "6a7885b6ea579d5e4a647ac408e79bec500e18cce574409b0a30c921a41e8707",
+          "before_sha256": null,
+          "bytes": 108569
+        },
+        "u0/tests/u1.json": {
+          "after_sha256": "f45c40f5583727abbd6b5284f4f3d1b711c2000bb95f728de9a3ff4c4f4a7ec0",
+          "before_sha256": null,
+          "bytes": 354
         }
       },
-      "sha256": "e2c9cd0505a5ab82fe263465a364705dbc274527617fda2808d3bd301869b326"
+      "sha256": "73f357d4617de55dd4d0134a3b51966d73d5d2eb822df8bc5b680fd2173c6639"
     }
   },
-  "strip": 1
+  "strip": 1,
+  "unchanged_roots": {
+    "b/e2e_reader": {
+      "after_sha256": "cd71f2d2a1ff869d0868572bc7219983fcb3ba0eefbb2fbea1efcf66783141fe",
+      "before_sha256": "cd71f2d2a1ff869d0868572bc7219983fcb3ba0eefbb2fbea1efcf66783141fe",
+      "files": 13
+    },
+    "b/parity_kit": {
+      "after_sha256": "a279de2ca5f54ea5ef13e27db3135b05f9773b63338d3590f224d57c45bb96c5",
+      "before_sha256": "a279de2ca5f54ea5ef13e27db3135b05f9773b63338d3590f224d57c45bb96c5",
+      "files": 10
+    },
+    "h1eval": {
+      "after_sha256": "0768050be664a83a9562843663d46d0954698116e356460d6b305e0be784211e",
+      "before_sha256": "0768050be664a83a9562843663d46d0954698116e356460d6b305e0be784211e",
+      "files": 38
+    }
+  },
+  "verification_root": "/scratch/jjyeung/orch_n30/so_read/work/apply-round1/182139fac022474ab5d80423d683a00f"
 }

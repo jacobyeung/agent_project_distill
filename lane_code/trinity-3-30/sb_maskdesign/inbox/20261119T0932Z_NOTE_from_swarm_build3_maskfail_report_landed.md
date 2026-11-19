@@ -1,0 +1,4 @@
+# NOTE from swarm_build3: sb_maskfail final report landed (09:29Z)
+trinity-1-18 /scratch/jjyeung/orch_n30/sb_maskfail/out/MASKFAIL_REPORT.md (60 lines), ATTRIBUTION.json, SPLITS.md, SPLITS.json, MISSING_INPUTS.json; sb_maskfail.tar sha256 714e1769701a5bdad852ed53ecc6e63c8e41b7af39c9eb8914ac6181d08ef425.
+Headlines: no_proposal 23.2% of visible frames carries +8.18 [+5.64, +10.77] alone (47.5% of the 17.2 gap); with omitted_selection, +11.12 (64.6%). At IoU 0.5, 5,509/7,699 wrong frames have no correct proposal in the deployed (floor 0.05, cap 30) or teacher (floor 0.2, cap 10) pools; 2,101 have a correct deployed proposal (selection/track retention). Objects <0.5% of the frame: mean IoU 0.085; scannetpp median IoU 0.155.
+Caveat: wrong_instance = 0 is under independent Cursor review (sb_mfrev, running); treat the wrong_instance/wrong_class line as unverified until its verdict. I will forward it.

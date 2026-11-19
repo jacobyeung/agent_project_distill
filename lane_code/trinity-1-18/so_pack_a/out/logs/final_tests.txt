@@ -1,0 +1,50 @@
+test_01_surface_scope_and_argv (__main__.Packaging.test_01_surface_scope_and_argv) ... ok
+test_02_all_checks_precede_transport (__main__.Packaging.test_02_all_checks_precede_transport) ... ERROR
+test_03_timeout_short_calls_and_state_machine (__main__.Packaging.test_03_timeout_short_calls_and_state_machine) ... ok
+test_04_delivery_is_tested_tree (__main__.Packaging.test_04_delivery_is_tested_tree) ... ok
+test_05_adapt_cpu_identity_everywhere (__main__.Packaging.test_05_adapt_cpu_identity_everywhere) ... ok
+test_06_defect1_real_rows_null (__main__.Packaging.test_06_defect1_real_rows_null) ... ok
+test_07_adapter_leaves_native_files_unchanged (__main__.Packaging.test_07_adapter_leaves_native_files_unchanged) ... ok
+test_08_real_python36_place_and_fill (__main__.Packaging.test_08_real_python36_place_and_fill) ... ok
+test_09_defect2_isolated_import_gate (__main__.Packaging.test_09_defect2_isolated_import_gate) ... ok
+test_09b_defect3_fill_drops_env (__main__.Packaging.test_09b_defect3_fill_drops_env) ... ok
+test_10_terminal_states_and_transport_failure (__main__.Packaging.test_10_terminal_states_and_transport_failure) ... ok
+test_11_extra_terms_reach_path_argv_env (__main__.Packaging.test_11_extra_terms_reach_path_argv_env) ... ok
+test_12_transport_limit (__main__.Packaging.test_12_transport_limit) ... ok
+test_13_ledger_reuse_before_builder (__main__.Packaging.test_13_ledger_reuse_before_builder) ... ok
+test_15_orchard_contract_inventory (__main__.Packaging.test_15_orchard_contract_inventory) ... ok
+test_defect4_encoded_descriptor_and_old_identity (__main__.Packaging.test_defect4_encoded_descriptor_and_old_identity) ... ok
+test_defect5_exit_capture (__main__.Packaging.test_defect5_exit_capture) ... ok
+test_defect6_usr1_forward_and_native_stop (__main__.Packaging.test_defect6_usr1_forward_and_native_stop) ... ok
+test_native_receipt_predicates (__main__.Packaging.test_native_receipt_predicates) ... ok
+test_normalization_default_off_and_directive_order (__main__.Packaging.test_normalization_default_off_and_directive_order) ... ok
+test_positive_all_local_checks_and_planning (__main__.Packaging.test_positive_all_local_checks_and_planning) ... ok
+test_submit_authorization_and_default_off (__main__.Packaging.test_submit_authorization_and_default_off) ... ok
+
+======================================================================
+ERROR: test_02_all_checks_precede_transport (__main__.Packaging.test_02_all_checks_precede_transport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_pack_a/test_pack.py", line 39, in test_02_all_checks_precede_transport
+    with self.assertRaisesRegex(P.Rejected,'late submit'):P.main(['all','--config',str(cfg),'--enable','--yes','--token','b635a315de01e','--execute-remote'])
+                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_pack_a/pack.py", line 261, in main
+    if a.action in ('build','all'):print(json.dumps(build(c,a.token),sort_keys=True))
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/json/__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type MagicMock is not JSON serializable
+
+----------------------------------------------------------------------
+Ran 22 tests in 44.609s
+
+FAILED (errors=1)

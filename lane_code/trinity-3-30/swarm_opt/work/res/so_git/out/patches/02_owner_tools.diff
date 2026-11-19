@@ -1,15 +1,96 @@
 --- /dev/null
-+++ b/tools/land_kit.sh
++++ b/tools/dry_count.py
+@@ -0,0 +1,78 @@
++"""Run the unmodified filter on explicit folders, without copying or writing manifests."""
++import argparse
++import ast
++import json
++import os
++from pathlib import Path
++import re
++import subprocess
++import sys
++
++
++def root_gate(script, folder):
++    # Read constants without importing the filter, whose top level walks the current tree.
++    constants = {}
++    for node in ast.parse(script.read_text()).body:
++        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
++            name = node.targets[0].id
++            if name in ('MAXDIR', 'SUBSTR'):
++                constants[name] = ast.literal_eval(node.value)
++            elif name == 'DIRRE':
++                constants[name] = re.compile(ast.literal_eval(node.value.args[0]))
++    name = folder.name
++    if name == '.git' or 'frames' in name or constants['DIRRE'].match(name):
++        return 'directory name excluded at hourly tree root'
++    if any(s in '/' + name + '/' for s in constants['SUBSTR']):
++        return 'path substring excluded at hourly tree root'
++    if len(os.listdir(folder)) > constants['MAXDIR']:
++        return f"directory exceeds MAXDIR={constants['MAXDIR']} at hourly tree root"
++    return None
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('folders', nargs='+', type=Path)
++    args = parser.parse_args()
++    if os.environ.get('LCS_ENABLE_DRY_COUNT') != '1':
++        parser.error('disabled; set LCS_ENABLE_DRY_COUNT=1')
++    base = Path(os.environ.get('LCS_B', '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30'))
++    script = Path(os.environ.get('LCS_FILTER', str(base / 'tools' / 'lane_code_filter.py'))).resolve(strict=True)
++    failures = 0
++    for folder in args.folders:
++        try:
++            # Check the lexical path before resolve: hourly os.walk never enters symlinked lanes.
++            folder = Path(os.path.abspath(str(folder)))
++            try:
++                folder.relative_to('/scratch/jjyeung/orch_n30')
++            except ValueError:
++                raise ValueError('folders must be under /scratch/jjyeung/orch_n30/')
++            if folder == Path('/scratch/jjyeung/orch_n30'):
++                raise ValueError('pass explicit lane folders, not the whole orchestration root')
++            if any(p.is_symlink() for p in (folder,) + tuple(folder.parents)):
++                raise ValueError('symlinked folders or ancestors are refused')
++            folder = folder.resolve(strict=True)
++            if not folder.is_dir():
++                raise ValueError('folder must be an existing directory')
++            # No manifest argument: the filter makes no output files.
++            result = subprocess.run([sys.executable, '-I', '-s', '-B', str(script), folder.name],
++                                    cwd=folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
++            if result.returncode:
++                raise ValueError(f'filter exit {result.returncode}: {result.stderr.decode(errors="replace")}')
++            paths = [os.fsdecode(x) for x in result.stdout.split(b'\0') if x]
++            stats = result.stderr.decode(errors='replace').strip()
++            nbytes = sum((folder / p).stat().st_size for p in paths)
++            match = re.search(r'files=(\d+) bytes=(\d+)', stats)
++            if not match or (int(match[1]), int(match[2])) != (len(paths), nbytes):
++                raise ValueError('filter stats disagree with selected files; tree may be changing')
++            gate = root_gate(script, folder)
++            print(json.dumps(dict(folder=str(folder), files=len(paths), bytes=nbytes, filter_stats=stats,
++                                  hourly_root_gate_reason=gate, hourly_files=0 if gate else len(paths),
++                                  hourly_bytes=0 if gate else nbytes), sort_keys=True))
++        except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
++            print(f'REFUSED {folder}: {exc}', file=sys.stderr)
++            failures += 1
++    return 1 if failures else 0
++
++
++if __name__ == '__main__':
++    sys.exit(main())
+--- /dev/null
++++ b/tools/dry_count.sh
 @@ -0,0 +1,6 @@
 +#!/bin/bash
-+# Owner only. LCS_ENABLE_KIT_LANDING=1 enables this command; default OFF.
++# Read-only counts. LCS_ENABLE_DRY_COUNT=1 enables this command; default OFF.
 +set -euo pipefail
 +export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
 +export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
-+exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B "$(dirname -- "$0")/land_kit.py" "$@"
++exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B "$(dirname -- "$0")/dry_count.py" "$@"
 --- /dev/null
 +++ b/tools/land_kit.py
-@@ -0,0 +1,326 @@
+@@ -0,0 +1,369 @@
 +"""Validate a reviewed archive and land it through the single sync owner."""
 +import argparse
 +from contextlib import contextmanager
@@ -54,41 +135,44 @@
 +    return value
 +
 +
-+def review(raw, seal, sha):
++def review(raw, seal, sha, bind_sha=None):
 +    text = raw.decode('utf-8', errors='strict')
++    require(not re.search(r'NO[- ]GO|REJECT', text, re.I),
++            'negative review requires a fresh accepting verdict file')
++    lines = [line for line in text.splitlines() if line.strip()]
++    accepted = ('GO', 'ACCEPT', 'ACCEPT WITH FINDINGS')
++    first = re.fullmatch(r'VERDICT: *(.+?)\s*', lines[0], re.I) if lines else None
++    require(first is not None and first[1].upper() in accepted,
++            'first non-empty line must be VERDICT: GO, ACCEPT, or ACCEPT WITH FINDINGS; '
++            'GO AFTER FIXES needs a separate later GO file')
++    verdict = first[1].upper()
 +    fields = {}
-+    verdicts = []
-+    fenced = False
-+    known = {'GO', 'ACCEPT', 'GO AFTER FIXES', 'NO-GO', 'NO GO', 'REJECT', 'HOLD'}
-+    for line in text.splitlines():
-+        line = line.strip()
-+        if line.startswith(('```', '~~~')):
-+            fenced = not fenced
-+            continue
-+        if fenced or line.startswith('>'):
-+            continue
-+        line = re.sub(r'^#{1,6}\s+', '', line).replace('**', '').strip()
-+        m = re.fullmatch(r'(Builder|Reviewer|Seal|SHA256)\s*:\s*(.+)', line, re.I)
++    for line in lines:
++        m = re.fullmatch(r'(Seal|SHA256)\s*:\s*(.+)', line, re.I)
 +        if m:
 +            key = m[1].lower()
 +            require(key not in fields or fields[key] == m[2].strip(), f'ambiguous {key} metadata')
 +            fields[key] = m[2].strip()
-+        m = re.fullmatch(r'VERDICT\s*:\s*(.*)', line, re.I)
++        m = re.fullmatch(r'VERDICT: *(.*?)\s*', line, re.I)
 +        if m:
-+            verdicts.append(m[1].strip().upper())
-+        elif line.upper() in known:
-+            verdicts.append(line.upper())
-+    require(bool(verdicts), 'review has no explicit verdict')
-+    require(verdicts[-1] in ('GO', 'ACCEPT'), f'latest verdict is not accepting: {verdicts[-1]}')
-+    if 'GO AFTER FIXES' in verdicts:
-+        last_conditional = max(i for i, v in enumerate(verdicts) if v == 'GO AFTER FIXES')
-+        require('GO' in verdicts[last_conditional + 1:], 'GO AFTER FIXES requires a later unconditional GO')
-+    for field in ('builder', 'reviewer'):
-+        require(field in fields, f'review must record {field.title()}: <identity>')
-+        safe_text(fields[field], field)
++            require(m[1].upper() in accepted, 'conflicting verdict requires a fresh review file')
 +    require(fields.get('seal', seal) == seal, 'review seal differs from supplied seal')
 +    require(fields.get('sha256', sha).lower() == sha, 'review SHA256 differs from supplied SHA256')
-+    return fields['builder'], fields['reviewer'], verdicts[-1]
++    if bind_sha is not None:
++        require(bind_sha.lower() == sha, '--bind-sha differs from supplied SHA256')
++    methods = [key for key in ('seal', 'sha256') if key in fields]
++    if bind_sha is not None:
++        methods.append('owner_bind_sha256')
++    require(bool(methods), 'review needs matching Seal/SHA256 or owner --bind-sha after reading it')
++    return verdict, dict(checked=True, methods=methods, sha256=sha)
++
++
++def within(path, boundary):
++    try:
++        path.relative_to(boundary)
++        return True
++    except ValueError:
++        return False
 +
 +
 +@contextmanager
@@ -112,12 +196,14 @@
 +def run(args, *, cwd=None, timeout=300):
 +    env = None
 +    if args[0] == 'git':
++        env = dict(os.environ, GIT_TERMINAL_PROMPT='0')
 +        selectors = ('GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR',
 +                     'GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES')
 +        require(not any(k in os.environ for k in selectors),
 +                'inherited Git repository/index selector refused; use a clean owner environment')
 +    try:
-+        result = subprocess.run(args, cwd=cwd, capture_output=True, timeout=timeout, env=env)
++        result = subprocess.run(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
++                                stdin=subprocess.DEVNULL, timeout=timeout, env=env)
 +    except subprocess.TimeoutExpired:
 +        raise Refusal(f'command timed out; stopped without retry: {args[0]}') from None
 +    require(result.returncode == 0,
@@ -160,6 +246,7 @@
 +                shutil.copyfileobj(source, out, 64 * 1024)
 +            require(target.stat().st_size == member.size, f'truncated archive member {rel}')
 +            target.chmod(0o755 if member.mode & 0o111 else 0o644)
++    return seen
 +
 +
 +def inventory(root):
@@ -193,7 +280,10 @@
 +            'archive must be a regular file no larger than 64 MiB')
 +    total = 0
 +    with args.archive.open('rb') as source, archive.open('xb') as snapshot:
-+        while chunk := source.read(1024 * 1024):
++        while True:
++            chunk = source.read(1024 * 1024)
++            if not chunk:
++                break
 +            total += len(chunk)
 +            require(total <= 64 * 1024 * 1024, 'archive grew beyond 64 MiB while snapshotting')
 +            snapshot.write(chunk)
@@ -202,8 +292,8 @@
 +    require(verdict_path.is_file() and verdict_path.stat().st_size <= 512 * 1024,
 +            'review must be a regular file no larger than 512 KiB')
 +    verdict_bytes = verdict_path.read_bytes()
-+    builder, reviewer, verdict = review(verdict_bytes, args.seal, args.sha256)
-+    unpack(archive, raw)
++    verdict, binding = review(verdict_bytes, args.seal, args.sha256, args.bind_sha)
++    members = unpack(archive, raw)
 +    scanned = root / 'scanned'
 +    scanned.mkdir()
 +    secret_scan(scan_script, raw, scanned, root / 'raw_flags.txt')
@@ -217,6 +307,13 @@
 +            duplicate, kept = line.rstrip('\n').split('\t')
 +            require(kept in paths, 'invalid dedup manifest')
 +            paths.add(duplicate)
++    represented = set(paths)
++    for rel in paths:
++        represented.update(str(p) for p in PurePosixPath(rel).parents if str(p) != '.')
++    skipped = sorted(members - represented)
++    for rel in skipped:
++        print('SKIPPED ' + json.dumps(rel))
++    require(not skipped or args.allow_skips, 'filter skipped files; inspect SKIPPED and pass --allow-skips explicitly')
 +    require(bool(paths), 'filter admitted no files')
 +    payload = root / 'payload'
 +    payload.mkdir()
@@ -229,7 +326,8 @@
 +        shutil.copyfile(source, dest)
 +        dest.chmod(0o755 if source.stat().st_mode & 0o111 else 0o644)
 +    files = inventory(payload)
-+    metadata = dict(seal=args.seal, sha256=args.sha256, builder=builder, reviewer=reviewer,
++    metadata = dict(seal=args.seal, sha256=args.sha256, builder=args.builder, reviewer=args.reviewer,
++                    binding=binding, skipped=skipped,
 +                    verdict_path=str(verdict_path), verdict_sha256=hashlib.sha256(verdict_bytes).hexdigest(),
 +                    verdict=verdict, date=datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
 +                    file_count=len(files), files=files)
@@ -260,7 +358,8 @@
 +
 +def land(args, state, repo, payload, metadata):
 +    def git(*argv):
-+        return run(['git', '-C', str(repo), *argv]).decode().strip()
++        return run(['git', '-c', 'gc.auto=0', '-c', 'maintenance.auto=false',
++                    '-C', str(repo), *argv]).decode().strip()
 +    require(git('symbolic-ref', '--quiet', '--short', 'HEAD') == 'lane-code', 'owner clone must already be on lane-code')
 +    git('diff', '--quiet')
 +    git('diff', '--cached', '--quiet')
@@ -284,7 +383,21 @@
 +        lines = git('ls-remote', remote, 'refs/heads/lane-code').splitlines()
 +        require(lines == [f'{head}\trefs/heads/lane-code'], f'{remote} lane-code verification failed')
 +        print(f"{metadata['date']} verified {label} lane-code = {head}")
-+    print(f'LANDED kits/{args.name} commit={head}')
++    landed_at = datetime.now(timezone.utc)
++    landed = (f"{landed_at.strftime('%Y-%m-%dT%H:%M:%SZ')} LANDED kits/{args.name} "
++              f"commit={head} sha256={metadata['sha256']}")
++    with (state / 'KITS_LANDED.txt').open('a') as f:
++        f.write(landed + '\n')
++    events = args.events
++    events.mkdir(parents=True, exist_ok=True)
++    event = events / (landed_at.strftime('%Y%m%dT%H%M%S%fZ') +
++                      f'_RESULT_kit_{args.name}_landed.md')
++    if event.exists():
++        require(not event.is_symlink() and event.read_text() == landed + '\n', 'kit event collision')
++    else:
++        with event.open('x') as f:
++            f.write(landed + '\n')
++    print(landed)
 +
 +
 +def main(argv=None):
@@ -295,29 +408,40 @@
 +    parser.add_argument('verdict', type=Path)
 +    parser.add_argument('name')
 +    parser.add_argument('--dry', action='store_true')
++    parser.add_argument('--builder', required=True)
++    parser.add_argument('--reviewer', required=True)
++    parser.add_argument('--bind-sha', help='owner confirms this SHA256 after reading the verdict')
++    parser.add_argument('--allow-skips', action='store_true')
 +    args = parser.parse_args(argv)
 +    require(os.environ.get('LCS_ENABLE_KIT_LANDING') == '1', 'disabled; owner must set LCS_ENABLE_KIT_LANDING=1')
 +    require(bool(re.fullmatch('[a-z0-9_]+', args.name)), 'invalid kit name; use [a-z0-9_]+')
 +    safe_text(args.seal, 'seal')
++    args.builder = safe_text(args.builder.strip(), 'builder')
++    args.reviewer = safe_text(args.reviewer.strip(), 'reviewer')
++    require(args.builder.casefold() != args.reviewer.casefold(), 'builder and reviewer must differ')
 +    require(bool(re.fullmatch('[0-9a-fA-F]{64}', args.sha256)), 'SHA256 must be 64 hex digits')
 +    args.sha256 = args.sha256.lower()
 +    state = Path(os.environ.get('LCS_S', '/scratch/jjyeung/distill_sync')).resolve()
 +    repo = Path(os.environ.get('LCS_R', str(state / 'repo'))).resolve()
-+    tools = Path(os.environ.get('LCS_B', '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30')) / 'tools'
-+    filter_script = Path(os.environ.get('LCS_FILTER', str(tools / 'lane_code_filter.py'))).resolve(strict=True)
-+    scan_script = Path(os.environ.get('LCS_SCAN', str(tools / 'lane_code_scan.py'))).resolve(strict=True)
 +    test_root = os.environ.get('LCS_TEST_ROOT')
 +    if test_root:
 +        boundary = Path(test_root).resolve(strict=True)
 +        require(boundary != Path('/') and str(boundary).startswith('/scratch/'), 'test root must be on /scratch')
-+        require(state.is_relative_to(boundary) and repo.is_relative_to(boundary), 'test writes must stay within test root')
++        events = Path(os.environ.get('LCS_EV', str(boundary / 'events'))).resolve()
++        require(all(within(p, boundary) for p in (state, repo, events)), 'test writes must stay within test root')
 +    else:
++        require(not any(k in os.environ for k in ('LCS_FILTER', 'LCS_SCAN', 'LCS_B', 'LCS_EV')),
++                'production tool/event overrides require LCS_TEST_ROOT')
 +        require(socket.gethostname().split('.')[0] == 'trinity-3-30', 'owner runs only on trinity-3-30')
 +        require(state == Path('/scratch/jjyeung/distill_sync') and repo == state / 'repo',
 +                'production must use the hourly owner state, clone, and lock; overrides require LCS_TEST_ROOT')
++    tools = Path(os.environ.get('LCS_B', '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30')) / 'tools'
++    args.events = events if test_root else tools.parent / 'events' / 'code_sync'
++    filter_script = Path(os.environ.get('LCS_FILTER', str(tools / 'lane_code_filter.py'))).resolve(strict=True)
++    scan_script = Path(os.environ.get('LCS_SCAN', str(tools / 'lane_code_scan.py'))).resolve(strict=True)
 +    require(state.is_dir(), f'owner state does not exist: {state}')
 +    require(not (state / '.sync.lock').is_symlink(), 'owner lock must not be a symlink')
-+    with owner_lock(state / '.sync.lock', float(os.environ.get('LCS_LOCK_TIMEOUT', '120'))):
++    with owner_lock(state / '.sync.lock', float(os.environ.get('LCS_LOCK_TIMEOUT', '600'))):
 +        root = Path(tempfile.mkdtemp(prefix='land_kit_', dir=state))
 +        print(f'AUDIT {root}')
 +        payload, metadata = prepare(args, root, filter_script, scan_script)
@@ -337,17 +461,17 @@
 +        print(f'REFUSED: {exc}', file=sys.stderr)
 +        sys.exit(2)
 --- /dev/null
-+++ b/tools/sync_health.sh
++++ b/tools/land_kit.sh
 @@ -0,0 +1,6 @@
 +#!/bin/bash
-+# Local owner monitor. LCS_ENABLE_SYNC_HEALTH=1 enables it; default OFF.
++# Owner only. LCS_ENABLE_KIT_LANDING=1 enables this command; default OFF.
 +set -euo pipefail
 +export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
 +export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
-+exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B "$(dirname -- "$0")/sync_health.py" "$@"
++exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B "$(dirname -- "$0")/land_kit.py" "$@"
 --- /dev/null
 +++ b/tools/sync_health.py
-@@ -0,0 +1,180 @@
+@@ -0,0 +1,209 @@
 +"""Read only local sync evidence; emit one event per incident and recovery."""
 +from datetime import datetime, timedelta, timezone
 +import fcntl
@@ -360,6 +484,14 @@
 +import sys
 +
 +UTC = timezone.utc
++
++
++def within(path, boundary):
++    try:
++        path.relative_to(boundary)
++        return True
++    except ValueError:
++        return False
 +
 +
 +def iso(value):
@@ -451,10 +583,17 @@
 +        fcntl.flock(lock, fcntl.LOCK_EX)
 +        path = health / 'state.json'
 +        data = json.loads(path.read_text()) if path.exists() else {'active': {}, 'events': {}, 'first_seen': iso(now)}
++        # Legacy journal strings describe events the old monitor already emitted.
++        for name, entry in list(data['events'].items()):
++            if isinstance(entry, str):
++                data['events'][name] = dict(content=entry, delivered=True)
 +        previous = parse(data.get('checked', data['first_seen']))
 +        if now < previous:
 +            raise ValueError('clock moved backwards; state unchanged')
-+        verified, completed = evidence(read_log(log))
++        lines = read_log(log)
++        verified, completed = evidence(lines)
++        lock_skips = [(when, text) for when, text in lines
++                      if text == 'FAIL previous run still holds the lock']
 +        active = data['active']
 +        recovered = []
 +        for kind, incident in list(active.items()):
@@ -476,6 +615,9 @@
 +            active['stale'] = {'observed': iso(now), 'event': event}
 +            last = iso(verified) if verified else 'no verified GitHub lane-code line in available log'
 +            data['events'][event] = f'{iso(now)} code_sync stale: last success {last}; limit 90 minutes; log {log}\n'
++            if lock_skips:
++                when, text = lock_skips[-1]
++                data['events'][event] += f'Latest hourly lock skip: {iso(when)} {text}\n'
 +        if completed and completed['failed'] and 'failed' not in active and not own_blocker(events, completed):
 +            # Deduplicate a completed failure even after its incident has recovered.
 +            key = iso(completed['end'])
@@ -485,17 +627,28 @@
 +                data['events'][event] = f'{iso(now)} code_sync failed: run ended {key} without its own BLOCKER; log {log}\n'
 +                data['last_failed_run'] = key
 +        data['checked'] = iso(now)
-+        # Persist the event journal first; a later invocation replays any missing event.
++        # Newly queued strings have not been delivered yet.
++        for name, entry in list(data['events'].items()):
++            if isinstance(entry, str):
++                data['events'][name] = dict(content=entry, delivered=False)
++        # Persist pending events before writing; acknowledge each successful delivery locally.
 +        save(path, data)
-+        for name, content in data['events'].items():
++        for name, entry in data['events'].items():
++            if entry['delivered']:
++                continue
++            content = entry['content']
 +            dest = events / name
 +            if dest.exists():
 +                if dest.is_symlink() or dest.read_text() != content:
 +                    raise ValueError(f'event collision: {dest}')
-+                continue
-+            with dest.open('x') as f:
-+                f.write(content)
-+            print(f'EVENT {dest}')
++            else:
++                with dest.open('x') as f:
++                    f.write(content)
++                    f.flush()
++                    os.fsync(f.fileno())
++                print(f'EVENT {dest}')
++            entry['delivered'] = True
++            save(path, data)
 +        print(f'HEALTH last_verified={iso(verified) if verified else "none"} active={",".join(sorted(active)) or "none"}')
 +
 +
@@ -509,7 +662,7 @@
 +    now = datetime.now(UTC).replace(microsecond=0)
 +    if os.environ.get('LCS_TEST_ROOT'):
 +        boundary = Path(os.environ['LCS_TEST_ROOT']).resolve(strict=True)
-+        if not str(boundary).startswith('/scratch/') or not all(p.is_relative_to(boundary) for p in (state, events)):
++        if not str(boundary).startswith('/scratch/') or not all(within(p, boundary) for p in (state, events)):
 +            raise ValueError('test writes must stay within /scratch test root')
 +        if os.environ.get('LCS_HEALTH_NOW'):
 +            now = parse(os.environ['LCS_HEALTH_NOW'])
@@ -529,103 +682,41 @@
 +        print(f'REFUSED: {exc}', file=sys.stderr)
 +        sys.exit(2)
 --- /dev/null
++++ b/tools/sync_health.sh
+@@ -0,0 +1,6 @@
++#!/bin/bash
++# Local owner monitor. LCS_ENABLE_SYNC_HEALTH=1 enables it; default OFF.
++set -euo pipefail
++export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
++export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
++exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B "$(dirname -- "$0")/sync_health.py" "$@"
+--- /dev/null
 +++ b/tools/sync_health_loop.sh
-@@ -0,0 +1,10 @@
+@@ -0,0 +1,17 @@
 +#!/bin/bash
 +# Start only on trinity-3-30, in tmux, with LCS_ENABLE_SYNC_HEALTH=1.
-+# A failed/killed monitor stops this loop; the owner investigates before restarting.
++# Ordinary check errors are logged; a signal exit stops for owner investigation.
 +set -euo pipefail
 +[ "${LCS_ENABLE_SYNC_HEALTH:-0}" = 1 ] || { echo 'REFUSED: set LCS_ENABLE_SYNC_HEALTH=1' >&2; exit 2; }
 +[ "$(hostname -s)" = trinity-3-30 ] || { echo 'REFUSED: health loop runs only on trinity-3-30' >&2; exit 2; }
 +while true; do
-+    bash "$(dirname -- "$0")/sync_health.sh" >> "${LCS_S:-/scratch/jjyeung/distill_sync}/health.log" 2>&1
++    if bash "$(dirname -- "$0")/sync_health.sh" >> "${LCS_S:-/scratch/jjyeung/distill_sync}/health.log" 2>&1; then
++        :
++    else
++        rc=$?
++        echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) health check failed exit=$rc" >> "${LCS_S:-/scratch/jjyeung/distill_sync}/health.log"
++        # Cluster rules forbid rerunning a killed process without the user's answer.
++        [ "$rc" -lt 128 ] || exit "$rc"
++    fi
 +    sleep 600
 +done
---- /dev/null
-+++ b/tools/dry_count.sh
-@@ -0,0 +1,6 @@
-+#!/bin/bash
-+# Read-only counts. LCS_ENABLE_DRY_COUNT=1 enables this command; default OFF.
-+set -euo pipefail
-+export CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1
-+export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 TOKENIZERS_PARALLELISM=false
-+exec nice -n 10 "${LCS_PYTHON:-python3}" -I -s -B "$(dirname -- "$0")/dry_count.py" "$@"
---- /dev/null
-+++ b/tools/dry_count.py
-@@ -0,0 +1,66 @@
-+"""Run the unmodified filter on explicit folders, without copying or writing manifests."""
-+import argparse
-+import ast
-+import json
-+import os
-+from pathlib import Path
-+import re
-+import subprocess
-+import sys
-+
-+
-+def root_gate(script, folder):
-+    # Read constants without importing the filter, whose top level walks the current tree.
-+    constants = {}
-+    for node in ast.parse(script.read_text()).body:
-+        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
-+            name = node.targets[0].id
-+            if name in ('MAXDIR', 'SUBSTR'):
-+                constants[name] = ast.literal_eval(node.value)
-+            elif name == 'DIRRE':
-+                constants[name] = re.compile(ast.literal_eval(node.value.args[0]))
-+    name = folder.name
-+    if name == '.git' or 'frames' in name or constants['DIRRE'].match(name):
-+        return 'directory name excluded at hourly tree root'
-+    if any(s in '/' + name + '/' for s in constants['SUBSTR']):
-+        return 'path substring excluded at hourly tree root'
-+    if len(os.listdir(folder)) > constants['MAXDIR']:
-+        return f"directory exceeds MAXDIR={constants['MAXDIR']} at hourly tree root"
-+    return None
-+
-+
-+def main():
-+    parser = argparse.ArgumentParser(description=__doc__)
-+    parser.add_argument('folders', nargs='+', type=Path)
-+    args = parser.parse_args()
-+    if os.environ.get('LCS_ENABLE_DRY_COUNT') != '1':
-+        parser.error('disabled; set LCS_ENABLE_DRY_COUNT=1')
-+    base = Path(os.environ.get('LCS_B', '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30'))
-+    script = Path(os.environ.get('LCS_FILTER', str(base / 'tools' / 'lane_code_filter.py'))).resolve(strict=True)
-+    failures = 0
-+    for folder in args.folders:
-+        try:
-+            folder = folder.resolve(strict=True)
-+            # No manifest argument: the filter makes no output files.
-+            result = subprocess.run([sys.executable, '-I', '-s', '-B', str(script), folder.name],
-+                                    cwd=folder, capture_output=True, timeout=120)
-+            if result.returncode:
-+                raise ValueError(f'filter exit {result.returncode}: {result.stderr.decode(errors="replace")}')
-+            paths = [os.fsdecode(x) for x in result.stdout.split(b'\0') if x]
-+            stats = result.stderr.decode(errors='replace').strip()
-+            nbytes = sum((folder / p).stat().st_size for p in paths)
-+            match = re.search(r'files=(\d+) bytes=(\d+)', stats)
-+            if not match or (int(match[1]), int(match[2])) != (len(paths), nbytes):
-+                raise ValueError('filter stats disagree with selected files; tree may be changing')
-+            gate = root_gate(script, folder)
-+            print(json.dumps(dict(folder=str(folder), files=len(paths), bytes=nbytes, filter_stats=stats,
-+                                  hourly_root_gate_reason=gate, hourly_files=0 if gate else len(paths),
-+                                  hourly_bytes=0 if gate else nbytes), sort_keys=True))
-+        except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
-+            print(f'REFUSED {folder}: {exc}', file=sys.stderr)
-+            failures += 1
-+    return 1 if failures else 0
-+
-+
-+if __name__ == '__main__':
-+    sys.exit(main())
 --- /dev/null
 +++ b/tests/__init__.py
 @@ -0,0 +1 @@
 +"""CPU-only owner-tool tests; real Git tests require a separate opt-in."""
 --- /dev/null
 +++ b/tests/test_owner_tools.py
-@@ -0,0 +1,489 @@
+@@ -0,0 +1,701 @@
 +from contextlib import redirect_stdout
 +from datetime import datetime, timedelta, timezone
 +import fcntl
@@ -670,7 +761,7 @@
 +        self.events.mkdir()
 +        self.log = self.state / 'sync.log'
 +        self.review = self.root / 'review.md'
-+        self.review.write_text('Builder: lane_builder\nReviewer: lane_reviewer\nVERDICT: GO\n')
++        self.review.write_text('VERDICT: GO\n')
 +        self.env = dict(LCS_ENABLE_KIT_LANDING='1', LCS_ENABLE_SYNC_HEALTH='1',
 +                        LCS_ENABLE_DRY_COUNT='1', LCS_S=str(self.state), LCS_R=str(self.repo),
 +                        LCS_EV=str(self.events), LCS_FILTER=str(TOOLS / 'lane_code_filter.py'),
@@ -692,8 +783,11 @@
 +        self.sha = hashlib.sha256(p.read_bytes()).hexdigest()
 +        return p
 +
-+    def invoke(self, dry=True, sha=None, name='_probe'):
-+        argv = [str(self.tar), 'seal-test', sha or self.sha, str(self.review), name]
++    def invoke(self, dry=True, sha=None, name='_probe', extra=()):
++
++        argv = [str(self.tar), 'seal-test', sha or self.sha, str(self.review), name,
++                '--builder', 'lane_builder', '--reviewer', 'lane_reviewer', '--bind-sha', self.sha]
++        argv.extend(extra)
 +        if dry:
 +            argv.append('--dry')
 +        with patch.dict(os.environ, self.env), redirect_stdout(io.StringIO()) as out:
@@ -706,37 +800,54 @@
 +
 +
 +class ReviewTests(unittest.TestCase):
-+    def review(self, text):
-+        return kit.review(('Builder: b\nReviewer: r\n' + text).encode(), 's', 'a' * 64)
++    def review(self, text, bind_sha='a' * 64):
++        return kit.review(text.encode(), 's', 'a' * 64, bind_sha)
 +
 +    def test_supported_forms(self):
-+        for text in ('GO', 'ACCEPT', 'VERDICT: GO', '**VERDICT: ACCEPT**', '# VERDICT: GO'):
++        for text in ('VERDICT: GO', 'VERDICT: ACCEPT', 'VERDICT: ACCEPT WITH FINDINGS',
++                     '\n\nVERDICT: GO\nFindings: none'):
 +            with self.subTest(text=text):
-+                self.assertIn(self.review(text)[2], ('GO', 'ACCEPT'))
++                self.assertTrue(self.review(text)[1]['checked'])
 +
-+    def test_conditional_even_with_fixes_is_refused(self):
-+        for text in ('GO AFTER FIXES\nFixes recorded: all done', 'GO AFTER FIXES\nACCEPT'):
++    def test_first_nonempty_line_must_be_unindented_verdict(self):
++        for text in ('GO', 'ACCEPT', '**VERDICT: ACCEPT**', '# VERDICT: GO',
++                     'Builder: b\nVERDICT: GO', '    VERDICT: GO', 'We should GO',
++                     '> VERDICT: GO', '```\nVERDICT: GO\n```', ''):
 +            with self.subTest(text=text), self.assertRaises(kit.Refusal):
 +                self.review(text)
 +
-+    def test_later_go_resolves_conditional(self):
-+        self.assertEqual(self.review('GO AFTER FIXES\nFixes: done\nVERDICT: GO')[2], 'GO')
-+
-+    def test_later_negative_or_unknown_wins(self):
-+        for tail in ('NO-GO', 'VERDICT: WAIT', 'GO AFTER FIXES'):
++    def test_conditional_even_with_later_same_file_go_is_refused(self):
++        for tail in ('Fixes recorded: all done', 'VERDICT: GO', 'VERDICT: ACCEPT'):
 +            with self.subTest(tail=tail), self.assertRaises(kit.Refusal):
-+                self.review('VERDICT: GO\n' + tail)
++                self.review('VERDICT: GO AFTER FIXES\n' + tail)
++        # The owner supplies a separate, later unconditional verdict file.
++        self.assertEqual(self.review('VERDICT: GO')[0], 'GO')
 +
-+    def test_prose_quotes_and_code_are_not_verdicts(self):
-+        for text in ('We should GO', '> GO', '```\nVERDICT: GO\n```'):
++    def test_negative_anywhere_is_refused(self):
++        for word in ('NO-GO', 'NO GO', 'REJECT', 'no-go', 'reject', 'REJECTED'):
++            for text in (f'VERDICT: {word}\nVERDICT: GO',
++                         f'VERDICT: {word}\n## Accept',
++                         f'VERDICT: {word}\n    VERDICT: GO',
++                         f'VERDICT: GO\n```\n{word}\n```'):
++                with self.subTest(text=text), self.assertRaises(kit.Refusal):
++                    self.review(text)
++
++    def test_unknown_and_later_conditional_verdicts_are_refused(self):
++        for text in ('VERDICT: WAIT\nVERDICT: GO', 'VERDICT: GO\nVERDICT: WAIT',
++                     'VERDICT: GO\nVERDICT: GO AFTER FIXES'):
 +            with self.subTest(text=text), self.assertRaises(kit.Refusal):
 +                self.review(text)
 +
-+    def test_metadata_required_and_bound_if_present(self):
-+        for raw in (b'GO', b'Builder: b\nGO', b'Builder: b\nReviewer: r\nSeal: wrong\nGO',
-+                    b'Builder: b\nReviewer: r\nSHA256: 123\nGO'):
-+            with self.subTest(raw=raw), self.assertRaises(kit.Refusal):
-+                kit.review(raw, 's', 'a' * 64)
++    def test_binding_required_and_all_present_fields_must_match(self):
++        self.assertEqual(self.review('VERDICT: GO\nSeal: s', None)[1]['methods'], ['seal'])
++        self.assertEqual(self.review('VERDICT: GO\nSHA256: ' + 'a' * 64, None)[1]['methods'], ['sha256'])
++        self.assertEqual(self.review('VERDICT: GO')[1]['methods'], ['owner_bind_sha256'])
++        for text, bind in (('VERDICT: GO', None), ('VERDICT: GO', 'b' * 64),
++                           ('VERDICT: GO\nSeal: wrong', 'a' * 64),
++                           ('VERDICT: GO\nSHA256: 123', 'a' * 64),
++                           ('VERDICT: GO\nSeal: s\nSeal: other', None)):
++            with self.subTest(text=text, bind=bind), self.assertRaises(kit.Refusal):
++                self.review(text, bind)
 +
 +
 +class KitValidationTests(Fixture):
@@ -753,6 +864,26 @@
 +        with self.assertRaisesRegex(kit.Refusal, 'disabled'):
 +            self.invoke()
 +        self.assertFalse((self.state / '.sync.lock').exists())
++
++    def test_builder_and_reviewer_must_differ(self):
++        for builder in ('LANE_REVIEWER', ' lane_reviewer '):
++            with self.subTest(builder=builder), self.assertRaisesRegex(kit.Refusal, 'must differ'):
++                self.invoke(extra=['--builder', builder])
++        with self.assertRaisesRegex(kit.Refusal, 'builder must be nonempty'):
++            self.invoke(extra=['--builder', ' '])
++
++    def test_production_tool_overrides_refuse_before_tool_reads(self):
++        for key in ('LCS_FILTER', 'LCS_SCAN', 'LCS_B', 'LCS_EV'):
++            self.env = {'LCS_ENABLE_KIT_LANDING': '1', key: '/nonexistent'}
++            with self.subTest(key=key), patch.dict(os.environ, {}, clear=True), \
++                 self.assertRaisesRegex(kit.Refusal, 'overrides require LCS_TEST_ROOT'):
++                self.invoke()
++
++    def test_default_lock_wait_is_600_seconds(self):
++        self.env.pop('LCS_LOCK_TIMEOUT')
++        with patch.object(kit, 'owner_lock', wraps=kit.owner_lock) as lock:
++            self.invoke()
++        self.assertEqual(lock.call_args[0][1], 600)
 +
 +    def test_bad_hash_and_missing_review(self):
 +        with self.assertRaisesRegex(kit.Refusal, 'SHA256 mismatch'):
@@ -788,35 +919,87 @@
 +        with self.assertRaisesRegex(kit.Refusal, 'reserved'):
 +            self.invoke()
 +        self.archive({'image.bin': b'not source'})
-+        with self.assertRaisesRegex(kit.Refusal, 'no files'):
++        with self.assertRaisesRegex(kit.Refusal, 'skipped files'):
 +            self.invoke()
 +
 +    def test_size_and_name_filter_and_duplicate_paths(self):
 +        self.archive({'small.py': b'x=1\n', 'same.py': b'x=1\n', 'runs/skip.py': b'run=1\n',
 +                      'big.py': b'#' * (512 * 1024 + 1), 'big.json': b' ' * (256 * 1024 + 1),
 +                      'kit/ok.py': b'k=1\n', 'work/tree/ok.sh': b'echo ok\n'})
-+        _, out = self.invoke()
++        with self.assertRaisesRegex(kit.Refusal, 'skipped files'):
++            self.invoke()
++        _, out = self.invoke(extra=['--allow-skips'])
 +        self.assertIn('COUNT files=4', out)
 +        self.assertIn('"same.py"', out)
-+        self.assertNotIn('"runs/skip.py"', out)
-+        self.assertNotIn('"big.py"', out)
++        self.assertIn('SKIPPED "runs/skip.py"', out)
++        self.assertIn('SKIPPED "big.py"', out)
++        audit = Path(out.splitlines()[0].split(' ', 1)[1])
++        metadata = json.loads((audit / 'payload' / 'KIT.json').read_text())
++        self.assertEqual(metadata['skipped'], ['big.json', 'big.py', 'runs/skip.py'])
++
++    def test_all_filter_exclusions_are_reported_and_require_opt_in(self):
++        excluded = {'Makefile': b'all:', 'x.c': b'int x;', 'x.js': b'let x;',
++                    'kv_cache/source.py': b'cache=1', 'frames/source.py': b'frames=1',
++                    'torch/source.py': b'torch=1', 'root/source.py': b'root=1',
++                    'evidence/source.py': b'evidence=1'}
++        # MAXDIR pruning must report even otherwise eligible code within the directory.
++        excluded.update({f'crowded/{i}.py': b'x=1' for i in range(2001)})
++        self.archive(dict(excluded, **{'ok.py': b'ok=1'}))
++        with self.assertRaisesRegex(kit.Refusal, 'skipped files'):
++            self.invoke()
++        _, out = self.invoke(extra=['--allow-skips'])
++        observed = {json.loads(line[len('SKIPPED '):]) for line in out.splitlines()
++                    if line.startswith('SKIPPED ')}
++        self.assertEqual(observed, set(excluded))
++
++    def test_empty_archive_directory_is_reported_but_payload_parents_are_preserved(self):
++        empty = tarfile.TarInfo('empty')
++        empty.type = tarfile.DIRTYPE
++        parent = tarfile.TarInfo('package')
++        parent.type = tarfile.DIRTYPE
++        self.archive({'package/source.py': b'x=1'}, members=[empty, parent])
++        with self.assertRaisesRegex(kit.Refusal, 'skipped files'):
++            self.invoke()
++        _, out = self.invoke(extra=['--allow-skips'])
++        self.assertIn('SKIPPED "empty"', out)
++        self.assertNotIn('SKIPPED "package"', out)
++
++    def test_git_children_cannot_prompt(self):
++        result = subprocess.CompletedProcess(['git'], 0, stdout=b'ok', stderr=b'')
++        with patch.object(subprocess, 'run', return_value=result) as spawn:
++            self.assertEqual(kit.run(['git', '--version']), b'ok')
++        options = spawn.call_args[1]
++        self.assertEqual(options['stdin'], subprocess.DEVNULL)
++        self.assertEqual(options['env']['GIT_TERMINAL_PROMPT'], '0')
 +
 +    def test_exact_size_caps_are_inclusive(self):
 +        self.archive({'at_limit.py': b'#' * (512 * 1024), 'at_limit.json': b' ' * (256 * 1024),
 +                      'over.py': b'#' * (512 * 1024 + 1), 'over.jsonl': b' ' * (256 * 1024 + 1)})
-+        _, out = self.invoke()
++        _, out = self.invoke(extra=['--allow-skips'])
 +        self.assertIn('COUNT files=2 bytes=786432', out)
-+        self.assertNotIn('"over.py"', out)
-+        self.assertNotIn('"over.jsonl"', out)
++        self.assertIn('SKIPPED "over.py"', out)
++        self.assertIn('SKIPPED "over.jsonl"', out)
 +
 +    def test_shell_wrapper_dry_path(self):
 +        result = subprocess.run(['bash', str(TOOLS / 'land_kit.sh'), str(self.tar), 'seal-test', self.sha,
-+                                 str(self.review), '_probe', '--dry'],
++                                 str(self.review), '_probe', '--dry', '--builder', 'b', '--reviewer', 'r', '--bind-sha', self.sha],
 +                                env=dict(os.environ, **self.env, LCS_PYTHON=sys.executable),
-+                                capture_output=True, text=True, timeout=10)
++                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=10)
 +        self.assertEqual(result.returncode, 0, result.stderr)
 +        self.assertIn('DRY validated', result.stdout)
 +        self.assertEqual(list(self.repo.iterdir()), [])
++
++    def test_shell_wrapper_default_system_python(self):
++        env = dict(os.environ, **self.env)
++        env.pop('LCS_PYTHON', None)
++        env['PATH'] = '/usr/bin:/bin'
++        result = subprocess.run(['bash', str(TOOLS / 'land_kit.sh'), str(self.tar), 'seal-test', self.sha,
++                                 str(self.review), '_probe', '--dry', '--builder', 'b',
++                                 '--reviewer', 'r', '--bind-sha', self.sha], env=env,
++                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
++                                universal_newlines=True, timeout=10)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertIn('DRY validated', result.stdout)
 +
 +    def test_inherited_git_selector_refused_before_spawn(self):
 +        with patch.dict(os.environ, GIT_DIR='/not/a/repository'), \
@@ -878,7 +1061,10 @@
 +    def __call__(self, argv, **kw):
 +        if argv[0] != 'git':
 +            return self.original(argv, **kw)
-+        args = argv[3:]
++        self_test_prefix = ['git', '-c', 'gc.auto=0', '-c', 'maintenance.auto=false', '-C']
++        if argv[:6] != self_test_prefix:
++            raise AssertionError('Git must disable detached maintenance')
++        args = argv[7:]
 +        self.calls.append(args)
 +        if self.fail and args[:len(self.fail)] == self.fail:
 +            raise kit.Refusal('simulated command failure')
@@ -890,7 +1076,7 @@
 +            head = 'b' * 40 if args[1] == self.bad_remote else self.head
 +            return (head + '\trefs/heads/lane-code\n').encode()
 +        if args[0] == 'ls-files':
-+            repo = Path(argv[2])
++            repo = Path(argv[6])
 +            return b''.join(str(p.relative_to(repo)).encode() + b'\0' for p in sorted((repo / args[-1]).rglob('*')) if p.is_file())
 +        return b''
 +
@@ -914,6 +1100,12 @@
 +            self.assertNotIn('main', call)
 +        self.assertIn(['push', '-q', 'origin', 'HEAD:refs/heads/lane-code'], fake.calls)
 +        self.assertIn(['push', '-q', 'home', 'HEAD:refs/heads/lane-code'], fake.calls)
++        receipts = (self.state / 'KITS_LANDED.txt').read_text().splitlines()
++        self.assertEqual(len(receipts), 2)
++        self.assertTrue(all('commit=' + fake.head in line for line in receipts))
++        events = list(self.events.glob('*_RESULT_kit__probe_landed.md'))
++        self.assertTrue(events)
++        self.assertIn('commit=' + fake.head, events[0].read_text())
 +
 +    def test_conflicting_name_refuses_without_add(self):
 +        with patch.object(kit, 'run', side_effect=FakeGit()):
@@ -948,6 +1140,8 @@
 +        with patch.object(kit, 'run', side_effect=fake), self.assertRaises(kit.Refusal):
 +            self.invoke(dry=False)
 +        self.assertEqual(sum(call[0] == 'push' for call in fake.calls), 1)
++        self.assertFalse((self.state / 'KITS_LANDED.txt').exists())
++        self.assertEqual(list(self.events.glob('*kit*')), [])
 +
 +
 +class HealthTests(Fixture):
@@ -1027,13 +1221,64 @@
 +        self.check(self.T + timedelta(minutes=3))
 +        self.assertEqual(self.files('*BLOCKER*'), [])
 +
-+    def test_restart_replays_missing_event(self):
++    def test_delivered_event_moved_by_consumer_is_not_replayed(self):
 +        self.check(self.T)
 +        event = self.files('*BLOCKER*')[0]
 +        event.rename(self.root / 'held_event.md')
 +        self.check(self.T + timedelta(minutes=1))
-+        self.assertTrue(event.exists())
-+        self.assertEqual(event.read_text(), (self.root / 'held_event.md').read_text())
++        self.assertFalse(event.exists())
++        data = json.loads((self.state / 'health' / 'state.json').read_text())
++        self.assertTrue(data['events'][event.name]['delivered'])
++
++    def test_only_undelivered_events_are_replayed_after_write_error(self):
++        original = Path.open
++
++        def fail_event(path, mode='r', *args, **kwargs):
++            if path.parent == self.events and mode == 'x':
++                raise OSError('temporary event storage error')
++            return original(path, mode, *args, **kwargs)
++
++        with patch.object(Path, 'open', fail_event), self.assertRaises(OSError):
++            self.check(self.T)
++        state = json.loads((self.state / 'health/state.json').read_text())
++        self.assertFalse(next(iter(state['events'].values()))['delivered'])
++        self.check(self.T + timedelta(minutes=1))
++        self.assertEqual(len(self.files('*BLOCKER*')), 1)
++        state = json.loads((self.state / 'health/state.json').read_text())
++        self.assertTrue(next(iter(state['events'].values()))['delivered'])
++
++    def test_delivered_history_does_not_touch_event_storage(self):
++        self.check(self.T)
++        # A later tick must not stat/read any previously delivered event.
++        original = Path.exists
++
++        def no_event_stat(path):
++            if path.parent == self.events:
++                raise AssertionError('delivered history touched event storage')
++            return original(path)
++
++        with patch.object(Path, 'exists', no_event_stat):
++            self.check(self.T + timedelta(minutes=1))
++
++    def test_legacy_delivered_journal_is_not_replayed(self):
++        self.check(self.T)
++        path = self.state / 'health/state.json'
++        state = json.loads(path.read_text())
++        for name, entry in state['events'].items():
++            state['events'][name] = entry['content']
++        path.write_text(json.dumps(state))
++        event = self.files('*BLOCKER*')[0]
++        event.rename(self.root / 'legacy_consumed.md')
++        self.check(self.T + timedelta(minutes=1))
++        self.assertFalse(event.exists())
++
++    def test_stale_event_quotes_hourly_lock_skip(self):
++        self.write_log()
++        with self.log.open('a') as f:
++            f.write('2026-11-19T02:00:00Z FAIL previous run still holds the lock\n')
++        self.check(self.T + timedelta(minutes=91))
++        event, = self.files('*BLOCKER_code_sync_stale.md')
++        self.assertIn('2026-11-19T02:00:00Z FAIL previous run still holds the lock', event.read_text())
 +
 +    def test_second_stale_incident_gets_new_event(self):
 +        self.write_log()
@@ -1047,19 +1292,45 @@
 +        self.write_log()
 +        env = dict(os.environ, **self.env, LCS_HEALTH_NOW='2026-11-19T03:00:00Z')
 +        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(TOOLS / 'sync_health.py')],
-+                                env=env, capture_output=True, text=True, timeout=10)
++                                env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=10)
 +        self.assertEqual(result.returncode, 0, result.stderr)
 +        self.assertIn('active=stale', result.stdout)
 +
 +
 +class CoverageTests(Fixture):
++    def test_dry_count_refuses_symlinked_and_outside_folders(self):
++        (self.root / 'lane').mkdir()
++        (self.root / 'link').symlink_to(self.root / 'lane', target_is_directory=True)
++        (self.root / 'lane' / 'nested').mkdir()
++        for folder in (self.root / 'link', self.root / 'link/nested', Path('/data2'), Path('/tmp'),
++                       Path('/scratch/jjyeung/orch_n30')):
++            result = subprocess.run([sys.executable, '-I', '-s', '-B', str(TOOLS / 'dry_count.py'), str(folder)],
++                                    env=dict(os.environ, **self.env), stdout=subprocess.PIPE,
++                                    stderr=subprocess.PIPE, universal_newlines=True, timeout=10)
++            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
++            self.assertIn('REFUSED', result.stderr)
++            self.assertEqual(result.stdout, '')
++
++    def test_dry_count_default_system_python(self):
++        lane = self.root / 'sb_system'
++        lane.mkdir()
++        (lane / 'a.py').write_text('a=1\n')
++        env = dict(os.environ, **self.env)
++        env.pop('LCS_PYTHON', None)
++        env['PATH'] = '/usr/bin:/bin'
++        result = subprocess.run(['bash', str(TOOLS / 'dry_count.sh'), str(lane)], env=env,
++                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
++                                universal_newlines=True, timeout=10)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertEqual(json.loads(result.stdout)['files'], 1)
++
 +    def test_directory_rules_include_and_exclude_named_examples(self):
 +        for name in ('in', 'out', 'work/tree', 'kit', 'unit_proof', 'proofs', 'runs', 'evidence'):
 +            p = self.root / 'lane' / name
 +            p.mkdir(parents=True, exist_ok=True)
 +            (p / 'source.py').write_text(repr(name))
 +        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(TOOLS / 'lane_code_filter.py'), 'test'],
-+                                cwd=self.root / 'lane', capture_output=True, timeout=10)
++                                cwd=self.root / 'lane', stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
 +        self.assertEqual(result.returncode, 0, result.stderr)
 +        self.assertEqual({x.decode() for x in result.stdout.split(b'\0') if x},
 +                         {'in/source.py', 'out/source.py', 'work/tree/source.py', 'kit/source.py'})
@@ -1069,7 +1340,7 @@
 +        lane.mkdir()
 +        (lane / 'source.py').write_text('x=1\n')
 +        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(TOOLS / 'dry_count.py'), str(lane)],
-+                                env=dict(os.environ, **self.env), capture_output=True, text=True, timeout=10)
++                                env=dict(os.environ, **self.env), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=10)
 +        self.assertEqual(result.returncode, 0, result.stderr)
 +        report = json.loads(result.stdout)
 +        self.assertEqual(report['files'], 1)
@@ -1082,7 +1353,7 @@
 +            (big / f'{i}.bin').touch()
 +        (big / 'source.py').write_text('code=1\n')
 +        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(TOOLS / 'lane_code_filter.py'), 'test'],
-+                                cwd=self.root, capture_output=True, timeout=10)
++                                cwd=self.root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
 +        self.assertEqual(result.returncode, 0, result.stderr)
 +        self.assertNotIn(b'big/source.py', result.stdout)
 +        self.assertIn(b'skipped_bigdirs=1', result.stderr)
@@ -1096,7 +1367,7 @@
 +        (lane / 'runs' / 'skip.py').write_text('skip=1\n')
 +        before = kit.inventory(lane)
 +        result = subprocess.run([sys.executable, '-I', '-s', '-B', str(TOOLS / 'dry_count.py'), str(lane)],
-+                                env=dict(os.environ, **self.env), capture_output=True, text=True, timeout=10)
++                                env=dict(os.environ, **self.env), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=10)
 +        self.assertEqual(result.returncode, 0, result.stderr)
 +        report = json.loads(result.stdout)
 +        self.assertEqual((report['files'], report['bytes']), (1, 4))
@@ -1113,12 +1384,44 @@
 +        self.assertNotIn('kits', adds[0])
 +
 +
++class HealthLoopTests(Fixture):
++    def run_loop(self, first_exit):
++        scripts = self.root / 'loop'
++        scripts.mkdir()
++        (scripts / 'sync_health_loop.sh').write_text((TOOLS / 'sync_health_loop.sh').read_text())
++        (scripts / 'sync_health.sh').write_text(
++            'if [ ! -e "$LCS_S/first_check" ]; then\n'
++            f'  echo first > "$LCS_S/first_check"; exit {first_exit}\n'
++            'fi\necho second > "$LCS_S/second_check"\n')
++        bin_ = self.root / 'bin'
++        bin_.mkdir()
++        (bin_ / 'hostname').write_text('#!/bin/bash\necho trinity-3-30\n')
++        (bin_ / 'sleep').write_text(
++            '#!/bin/bash\n[ "$1" = 600 ] || exit 3\n'
++            'if [ -e "$LCS_S/second_check" ]; then exit 1; fi\n')
++        for script in bin_.iterdir():
++            script.chmod(0o755)
++        return subprocess.run(['bash', str(scripts / 'sync_health_loop.sh')],
++                              env=dict(os.environ, **self.env, PATH=str(bin_) + ':/usr/bin:/bin'),
++                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
++
++    def test_transient_error_is_logged_and_next_tick_runs(self):
++        self.assertEqual(self.run_loop(2).returncode, 1)  # Test sleep ends after two checks.
++        self.assertTrue((self.state / 'second_check').exists())
++        self.assertIn('health check failed exit=2', (self.state / 'health.log').read_text())
++
++    def test_signal_exit_stops_without_automatic_rerun(self):
++        self.assertEqual(self.run_loop(137).returncode, 137)
++        self.assertFalse((self.state / 'second_check').exists())
++        self.assertIn('health check failed exit=137', (self.state / 'health.log').read_text())
++
++
 +if __name__ == '__main__':
 +    unittest.main()
 --- /dev/null
 +++ b/tests/test_real_git_owner.py
-@@ -0,0 +1,109 @@
-+"""Owner-run real Git proof. Disabled locally by the dispatch's explicit no-git rule."""
+@@ -0,0 +1,122 @@
++"""Opt-in real Git proof using two local bare remotes and a throwaway clone."""
 +import hashlib
 +import io
 +import json
@@ -1135,7 +1438,7 @@
 +
 +
 +@unittest.skipUnless(os.environ.get('LCS_RUN_REAL_GIT_TESTS') == '1',
-+                     'owner must explicitly enable real Git; dispatch forbids it on this lane')
++                     'owner must explicitly enable real Git in a throwaway directory')
 +class RealGitOwnerTests(unittest.TestCase):
 +    def test_land_probe_and_hourly_pathspec_preserves_kits(self):
 +        parent = Path(os.environ['LCS_REAL_GIT_WORK']).resolve(strict=True)
@@ -1154,7 +1457,7 @@
 +
 +        def run(*args, cwd=None, extra=None):
 +            result = subprocess.run(args, cwd=cwd, env=dict(env, **(extra or {})),
-+                                    capture_output=True, text=True, timeout=30)
++                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
 +            self.assertEqual(result.returncode, 0, f'{args}: {result.stdout}\n{result.stderr}')
 +            return result.stdout.strip()
 +
@@ -1183,11 +1486,13 @@
 +            tf.addfile(info, io.BytesIO(data))
 +        sha = hashlib.sha256(kitfile.read_bytes()).hexdigest()
 +        review = root / 'review.md'
-+        review.write_text(f'Builder: test_builder\nReviewer: test_reviewer\nSeal: probe-seal\nSHA256: {sha}\nVERDICT: GO\n')
++        review.write_text('VERDICT: GO\n')
 +        extra = dict(LCS_ENABLE_KIT_LANDING='1', LCS_TEST_ROOT=str(root), LCS_S=str(state), LCS_R=str(repo),
 +                     LCS_FILTER=str(BASE / 'tools' / 'lane_code_filter.py'),
 +                     LCS_SCAN=str(BASE / 'tools' / 'lane_code_scan.py'), LCS_PYTHON=sys.executable)
-+        output = run('bash', str(BASE / 'tools' / 'land_kit.sh'), str(kitfile), 'probe-seal', sha, str(review), '_probe', extra=extra)
++        output = run('bash', str(BASE / 'tools' / 'land_kit.sh'), str(kitfile), 'probe-seal', sha,
++                     str(review), '_probe', '--builder', 'test_builder', '--reviewer', 'test_reviewer',
++                     '--bind-sha', sha, extra=extra)
 +        print('\nREAL_GIT_ROOT', root)
 +        print(output)
 +        head = git('rev-parse', 'HEAD')
@@ -1198,6 +1503,17 @@
 +            print(f'LS_REMOTE {remote}\n{observed}')
 +            self.assertEqual(observed, head + '\trefs/heads/lane-code')
 +        before = git('rev-parse', 'HEAD:kits')
++        metadata = json.loads((repo / 'kits' / '_probe' / 'KIT.json').read_text())
++        self.assertEqual(metadata['binding']['methods'], ['owner_bind_sha256'])
++        self.assertIn('commit=' + head, (state / 'KITS_LANDED.txt').read_text())
++        receipt, = (root / 'events').glob('*_RESULT_kit__probe_landed.md')
++        self.assertIn('commit=' + head, receipt.read_text())
++        # Deliberately dirty kits: a broad -A . pathspec would stage both changes.
++        (repo / 'kits' / '_probe' / 'probe.py').rename(root / 'saved_probe.py')
++        changed_metadata = dict(metadata, reviewer='unstaged local edit')
++        (repo / 'kits' / '_probe' / 'KIT.json').write_text(json.dumps(changed_metadata))
++        self.assertEqual(set(git('diff', '--name-only', '--', 'kits').splitlines()),
++                         {'kits/_probe/probe.py', 'kits/_probe/KIT.json'})
 +        (repo / 'lane_code' / 'fake_node' / 'module.py').write_text('new = 2\n')
 +        # Move out a tracked lane file to exercise the -A removal case without a deletion command.
 +        (repo / 'lane_code' / 'fake_node' / 'move_me.py').rename(root / 'saved_move_me.py')
@@ -1214,6 +1530,7 @@
 +        after = git('rev-parse', 'HEAD:kits')
 +        self.assertEqual(before, after)
 +        print(f'HOURLY_KITS_TREE before={before} after={after} unchanged=true')
++        print('HOURLY_UNSTAGED_KITS\n' + git('diff', '--name-only', '--', 'kits'))
 +        # Publish the fixture's simulated hourly commit, using the same two isolated bare remotes.
 +        for remote in ('origin', 'home'):
 +            git('push', '-q', remote, 'HEAD:refs/heads/lane-code')
@@ -1221,7 +1538,6 @@
 +        for remote in (origin, home):
 +            self.assertEqual(run('git', '--git-dir=' + str(remote), 'for-each-ref', '--format=%(refname)', 'refs/heads'),
 +                             'refs/heads/lane-code')
-+        metadata = json.loads((repo / 'kits' / '_probe' / 'KIT.json').read_text())
 +        self.assertEqual(metadata['file_count'], 1)
 +
 +
@@ -1414,61 +1730,73 @@
 +log "END ok"
 --- /dev/null
 +++ b/docs/GIT_OWNER.md
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,66 @@
 +# Getting lane code into Git
 +
-+The owner on **trinity-3-30** runs all Git commands in `/scratch/jjyeung/distill_sync/repo`.
-+Lanes run no Git. The hourly sync and kit command share `/scratch/jjyeung/distill_sync/.sync.lock`.
-+Nobody checks out another branch, rewrites history, forces a push, or pushes to main.
++The designated Git owner on **trinity-3-30** runs Git; lanes supply files and queue rows.
++The hourly sync, kit command, and manual owner Git work share `$S/.sync.lock`, where
++`S=/scratch/jjyeung/distill_sync`. The kit clone is `$S/repo`, already on `lane-code`.
++Never rewrite history, force a push, or push to main.
 +
-+| Route | Lane supplies | Owner runs | Landing evidence |
-+|---|---|---|---|
-+| Reviewed kit | Archive, seal, archive SHA256, review path, unused name | Command below | `kits/<name>/KIT.json`, printed commit, matching origin and home heads |
-+| Hourly lane snapshot | Source under `/scratch/jjyeung/orch_n30/<lane>/` | Existing `lane_code_sync.sh` loop | `lane_code/<node>/<lane>/…`, `verified GitHub lane-code` in `sync.log` |
-+| Existing `eff/*` branch | Queue row in `e_*/PUSH_QUEUE.txt` or `eff_*/PUSH_QUEUE.txt` | Existing owner's push-queue step | `$S/PUSH_DONE.txt`; refusal reasons in `$S/PUSH_REFUSED.txt` |
++| Route | Lane supplies | Owner action and evidence |
++|---|---|---|
++| Reviewed kit | Archive, seal, SHA256, review path, unused name, identities | Runs kit command; checks `$S/KITS_LANDED.txt`, kit RESULT event, and `kits/<name>/KIT.json` |
++| Hourly snapshot | Source under `/scratch/jjyeung/orch_n30/<lane>/` | Runs hourly sync; checks `lane_code/<node>/<lane>/…` and `verified GitHub lane-code` in `sync.log` |
++| `eff/*` queue | Queue row for an existing commit | Makes the commit, runs queue publisher; checks `$S/PUSH_DONE.txt` or `$S/PUSH_REFUSED.txt` |
 +
-+Set `T` to the installed `orch_n30/tools` directory. The owner lands a kit with one command:
++Set `T` to the installed `orch_n30/tools` directory. Python 3.6.8 and 3.12 are supported.
++The owner reads the review, confirms that it covers this archive, then runs:
 +
 +```bash
-+LCS_ENABLE_KIT_LANDING=1 bash "$T/land_kit.sh" kit.tar seal sha256 review.md name
++LCS_ENABLE_KIT_LANDING=1 bash "$T/land_kit.sh" kit.tar seal sha256 review.md name \
++  --builder lane_builder --reviewer independent_reviewer --bind-sha sha256
 +```
 +
-+Add `--dry` to validate, print the eligible file list and counts, and stop before Git or clone writes.
-+The review records `Builder: <identity>` and `Reviewer: <identity>`. Accepted verdict lines are
-+`GO`, `ACCEPT`, `VERDICT: GO`, and `VERDICT: ACCEPT`; Markdown headings/bold are accepted.
-+The last explicit verdict wins. `GO AFTER FIXES`, even with recorded fixes, requires a later
-+unconditional `GO`. Unknown explicit verdicts, missing reviews, wrong hashes, secrets in any
-+archive member, links, unsafe paths, an empty filtered kit, a dirty index/worktree, another branch,
-+or a conflicting name cause refusal. Optional review `Seal:` and `SHA256:` fields must match.
-+Identical content and provenance reuse the name and reverify/publish the current head.
++Both identities are required and must differ. The review needs no identity lines.
++Its first nonempty line must be `VERDICT: GO`, `VERDICT: ACCEPT`, or
++`VERDICT: ACCEPT WITH FINDINGS`, without indentation or Markdown. Later unindented
++`VERDICT:` lines must also use a supported value. Any `NO-GO`, `NO GO`, or `REJECT`
++anywhere refuses the file. `GO AFTER FIXES` needs a separate later GO verdict file;
++appending GO to the conditional file does not authorize landing.
 +
-+The kit command applies the current filter caps and exclusions. It restores eligible duplicate
-+paths from the filter's manifest to preserve imports. `KIT.json` counts payload files separately
-+from itself. It records the review digest and a per-file SHA256/size/mode manifest. Both remote
-+heads must match the printed commit. The lock waits up to 120 seconds; `LCS_LOCK_TIMEOUT` can
-+set a timeout up to 3600 seconds. Audit directories stay under `$S/land_kit_*`; investigate a
-+failed/killed command before any restart. No automatic reset, cleanup, rollback, or retry runs.
++A matching `Seal:` or `SHA256:` line must bind the review, or the owner passes
++`--bind-sha <archive-sha256>` after reading it. Every supplied binding must match.
++`KIT.json` records the binding, identities, verdict digest, per-file manifest, and skipped files.
++`--dry` prints files/counts before Git. Every filtered file prints as `SKIPPED` and refuses
++unless the owner passes `--allow-skips`. Eligible duplicate paths are preserved.
 +
-+The hourly route excludes `*_proof`, `runs`, `evidence`, caches, oversized files, and directories
-+with more than 2000 entries. `in`, `out`, `work/tree`, and `kit` are eligible unless an ancestor
-+is excluded. The owner checks explicit folders before expanding coverage:
++Wrong hashes, secrets in any member, links, unsafe paths, empty payloads, conflicting names,
++another branch, a changed tracked worktree, or a dirty index refuse. Identical content and
++provenance republish the current head. Git disables automatic maintenance and terminal prompts.
++Production tool/path overrides require `LCS_TEST_ROOT`. Both remotes must verify before the
++landing receipt and `<UTC>_RESULT_kit_<name>_landed.md` event are written; lanes read those files.
++
++The lock waits **600 seconds** by default (`LCS_LOCK_TIMEOUT`, maximum 3600). The hourly
++uses a nonblocking lock and skips overlapping starts. Land just after `END ok`; stale events
++quote the latest lock skip. Audit directories remain under `$S/land_kit_*`. Investigate
++failed/killed operations before restarting; remote pushes and receipt writes are separate.
++
++The hourly excludes proof/run/evidence/cache directories, oversized files, and directories
++with more than 2000 entries. `in`, `out`, `work/tree`, and `kit` qualify unless an ancestor
++fails a rule. Before expanding coverage, the owner runs:
 +
 +```bash
 +LCS_ENABLE_DRY_COUNT=1 bash "$T/dry_count.sh" /scratch/jjyeung/orch_n30/swarm_opt
 +```
 +
-+Counts deduplicate within each folder; hourly deduplication spans its whole node tree. Root gates
-+appear separately as `hourly_*` fields. See `COVERAGE.md` for the optional shell-copy extension.
++Only existing nonsymlink folders under `/scratch/jjyeung/orch_n30/` qualify. Counts deduplicate
++per folder; hourly deduplication spans a node tree. `COVERAGE.md` lists the rules.
 +
-+A push-queue row is `<UTC> eff/<slug> <40-hex-sha> [<lane>/clone|<lane>/repo]`.
-+Only `e_`/`eff_` lane directories qualify. The owner fetches an already committed branch,
-+checks ancestry and changed-file secrets, then pushes the named commit to origin without force.
-+This route does not grant lanes permission to create commits; use a kit for uncommitted code.
++Queue rows are `<UTC> eff/<slug> <40-hex-sha> [<lane>/clone|<lane>/repo]` in
++`e_*/PUSH_QUEUE.txt` or `eff_*/PUSH_QUEUE.txt`. **The designated Git owner makes those commits**
++in an authorized scratch lane clone under the owner lock and supplies the SHA to the lane.
++The publisher fetches, checks ancestry/secrets, and pushes the named commit to origin without force.
 +
-+The owner starts `LCS_ENABLE_SYNC_HEALTH=1 bash "$T/sync_health_loop.sh"` in tmux for a local
-+check every ten minutes. It writes one stale/failure event per incident and a recovery RESULT;
-+state lives under `$S/health/`. It makes no SSH or Git calls. A failed monitor stops the loop.
-+These tools are delivered for owner installation; no production loop was started by this lane.
++The owner starts `LCS_ENABLE_SYNC_HEALTH=1 bash "$T/sync_health_loop.sh"` in tmux.
++Every ten minutes it checks local evidence, emits one event per incident/recovery, and records
++delivery in `$S/health/`. Consumers may move delivered events; only undelivered events replay.
++Ordinary errors log to `$S/health.log` and the next tick runs. Signal exits stop for owner
++investigation under cluster rules. These default-off tools have not been installed in production.
 --- /dev/null
 +++ b/docs/COVERAGE.md
 @@ -0,0 +1,56 @@

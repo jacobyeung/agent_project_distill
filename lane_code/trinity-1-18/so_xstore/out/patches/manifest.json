@@ -1,0 +1,39 @@
+{
+  "01_native_cpu_and_store_groundwork.diff": {
+    "apply_method": "patch --batch --fuzz=0 -p1",
+    "base": {
+      "build": "21b",
+      "ready21b": true,
+      "root": "/scratch/jjyeung/orch_n30/so_xstore/in/tree21b/work/tree_r1",
+      "source_seal": "b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8"
+    },
+    "base_file_count": 936,
+    "base_sha256": {
+      "scripts/compare_preparation_stores.py": null,
+      "scripts/preparation_cpu.py": null,
+      "student_pilot/preparation_cpu.py": null,
+      "student_pilot/preparation_reads.py": null,
+      "student_pilot/preparation_store.py": null,
+      "tests/test_preparation_native_boundary.py": null,
+      "tests/test_preparation_store.py": null
+    },
+    "base_tree_sha256": "b262e7a757d93e2485a523765916507b2bf3305fe3213cffca100007d19f2ce8",
+    "bytes": 52630,
+    "default_path": "All existing source files byte-identical; no existing importer or wrapper changed.",
+    "files": {
+      "scripts/compare_preparation_stores.py": "e29a3d136d87353e2e35f3d1fee9511d520a0971ad97fe2b0435d4b22b42aa30",
+      "scripts/preparation_cpu.py": "b7f21357fadfb7cc5cdba40ae775e10748b72f373f5447aa10f018193d42401c",
+      "student_pilot/preparation_cpu.py": "670e02deeb0266e721649a0813542c9274bb1e670686a7b2404478efdc22cce2",
+      "student_pilot/preparation_reads.py": "bef6e374bf32846966686555df591b776a6de48e204480eb15fe9ec5870f906b",
+      "student_pilot/preparation_store.py": "6c0f51d5a805c59c5803639c89ba5bc8e0b7031f3f8ee10a2bf65b5dea6f051e",
+      "tests/test_preparation_native_boundary.py": "9225af8231b6c702b44db69e5d509e993833d02439391786025be13b0f6a6a6f",
+      "tests/test_preparation_store.py": "b64a6b64a3c3a543e307d9ca9a8c5c19b68a885dbc927e793a4ce3b3c46a7071"
+    },
+    "sha256": "a817c3b47ec7678016b95e6c1851890962b037326f62925f453dc339a2147455",
+    "status": "PARTIAL: no native planner, native portable producer, or GPU adopter",
+    "switches": {
+      "TK_NATIVE_CPU_PREPARE": "OFF",
+      "TK_XSTORE_EXPERIMENT": "OFF"
+    }
+  }
+}

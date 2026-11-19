@@ -13,7 +13,7 @@ os.environ.update(CUDA_VISIBLE_DEVICES='', PYTHONDONTWRITEBYTECODE='1', OMP_NUM_
                   LANE_TEST_OUTPUT=str(ROOT/'work/test_runs'), TMPDIR=str(ROOT/'work/test_runs'))
 if hasattr(os, 'sched_getaffinity'):
     os.sched_setaffinity(0, sorted(os.sched_getaffinity(0))[:8])
-sys.path.insert(0, os.environ.get('SO_TEST_TREE',str(ROOT/'work/verified_release/combined')))
+sys.path.insert(0, os.environ.get('SO_TEST_TREE',str(ROOT/'work/tree')))
 import torch
 torch.set_num_threads(8)
 from student_pilot import carrier_c1_run as run

@@ -1,0 +1,1086 @@
+{
+  "method": "Standard-library line tracing; changed AST statement heads against saved build-21 files; only exact current file hashes count.",
+  "total": 179,
+  "observed": 179,
+  "statements": [
+    {
+      "file": "joblib.py",
+      "line": 235,
+      "observed": true,
+      "text": "def name_guard(kit):"
+    },
+    {
+      "file": "joblib.py",
+      "line": 242,
+      "observed": true,
+      "text": "def scan_staging_map(value,safe,parts=()):"
+    },
+    {
+      "file": "joblib.py",
+      "line": 253,
+      "observed": true,
+      "text": "def stage_inputs(kit,current,host,node,mode):"
+    },
+    {
+      "file": "joblib.py",
+      "line": 301,
+      "observed": true,
+      "text": "def snapshot(path,expected,root,revision,kit=None):"
+    },
+    {
+      "file": "joblib.py",
+      "line": 109,
+      "observed": true,
+      "text": "    uploads=spec['uploads'];expected_paths={x['sha256']:ns+'/u/'+x['sha256'] for x in uploads}"
+    },
+    {
+      "file": "joblib.py",
+      "line": 109,
+      "observed": true,
+      "text": "    uploads=spec['uploads'];expected_paths={x['sha256']:ns+'/u/'+x['sha256'] for x in uploads}"
+    },
+    {
+      "file": "joblib.py",
+      "line": 110,
+      "observed": true,
+      "text": "    if spec['pin_paths']!=expected_paths:raise ValueError('E49')"
+    },
+    {
+      "file": "joblib.py",
+      "line": 111,
+      "observed": true,
+      "text": "    paths.update(spec['pin_paths'])"
+    },
+    {
+      "file": "joblib.py",
+      "line": 160,
+      "observed": true,
+      "text": "    safe=name_guard(kit)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 236,
+      "observed": true,
+      "text": "    words=load(Path(kit)/'k/g.json');hashes=load(Path(kit)/'b/wh.json')"
+    },
+    {
+      "file": "joblib.py",
+      "line": 236,
+      "observed": true,
+      "text": "    words=load(Path(kit)/'k/g.json');hashes=load(Path(kit)/'b/wh.json')"
+    },
+    {
+      "file": "joblib.py",
+      "line": 237,
+      "observed": true,
+      "text": "    def check(name):"
+    },
+    {
+      "file": "joblib.py",
+      "line": 240,
+      "observed": true,
+      "text": "    return check"
+    },
+    {
+      "file": "joblib.py",
+      "line": 243,
+      "observed": true,
+      "text": "    if isinstance(value,dict):"
+    },
+    {
+      "file": "joblib.py",
+      "line": 254,
+      "observed": true,
+      "text": "    import importlib.util"
+    },
+    {
+      "file": "joblib.py",
+      "line": 255,
+      "observed": true,
+      "text": "    safe=name_guard(kit)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 256,
+      "observed": true,
+      "text": "    source=Path(host)/'b/s.py'"
+    },
+    {
+      "file": "joblib.py",
+      "line": 257,
+      "observed": true,
+      "text": "    module_spec=importlib.util.spec_from_file_location('q_stage',source)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 258,
+      "observed": true,
+      "text": "    module=importlib.util.module_from_spec(module_spec);module_spec.loader.exec_module(module)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 258,
+      "observed": true,
+      "text": "    module=importlib.util.module_from_spec(module_spec);module_spec.loader.exec_module(module)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 259,
+      "observed": true,
+      "text": "    original_destination=module.Stage.destination;original_metadata=module.Stage.metadata"
+    },
+    {
+      "file": "joblib.py",
+      "line": 259,
+      "observed": true,
+      "text": "    original_destination=module.Stage.destination;original_metadata=module.Stage.metadata"
+    },
+    {
+      "file": "joblib.py",
+      "line": 260,
+      "observed": true,
+      "text": "    def destination(self,value):return original_destination(self,safe(value))"
+    },
+    {
+      "file": "joblib.py",
+      "line": 261,
+      "observed": true,
+      "text": "    def metadata(self,pin):"
+    },
+    {
+      "file": "joblib.py",
+      "line": 265,
+      "observed": true,
+      "text": "    module.Stage.destination=destination;module.Stage.metadata=metadata"
+    },
+    {
+      "file": "joblib.py",
+      "line": 265,
+      "observed": true,
+      "text": "    module.Stage.destination=destination;module.Stage.metadata=metadata"
+    },
+    {
+      "file": "joblib.py",
+      "line": 266,
+      "observed": true,
+      "text": "    value=load(current)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 267,
+      "observed": true,
+      "text": "    if 'staged_inputs' in value:"
+    },
+    {
+      "file": "joblib.py",
+      "line": 273,
+      "observed": true,
+      "text": "    safe=name_guard(kit)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 274,
+      "observed": true,
+      "text": "    sources=spec.get('p_sources',{})"
+    },
+    {
+      "file": "joblib.py",
+      "line": 275,
+      "observed": true,
+      "text": "    if set(sources)-set(spec['p_files']):raise ValueError('E49')"
+    },
+    {
+      "file": "joblib.py",
+      "line": 277,
+      "observed": true,
+      "text": "    for name,h in spec['p_files'].items():"
+    },
+    {
+      "file": "joblib.py",
+      "line": 303,
+      "observed": true,
+      "text": "    safe=name_guard(kit) if kit is not None else lambda name:name"
+    },
+    {
+      "file": "joblib.py",
+      "line": 110,
+      "observed": true,
+      "text": "    if spec['pin_paths']!=expected_paths:raise ValueError('E49')"
+    },
+    {
+      "file": "joblib.py",
+      "line": 205,
+      "observed": true,
+      "text": "        safe(name)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 238,
+      "observed": true,
+      "text": "        if not isinstance(name,str) or screen(name,words,hashes)!=name:raise ValueError('E48')"
+    },
+    {
+      "file": "joblib.py",
+      "line": 239,
+      "observed": true,
+      "text": "        return name"
+    },
+    {
+      "file": "joblib.py",
+      "line": 244,
+      "observed": true,
+      "text": "        for key,item in value.items():"
+    },
+    {
+      "file": "joblib.py",
+      "line": 249,
+      "observed": true,
+      "text": "    elif isinstance(value,list):"
+    },
+    {
+      "file": "joblib.py",
+      "line": 260,
+      "observed": true,
+      "text": "    def destination(self,value):return original_destination(self,safe(value))"
+    },
+    {
+      "file": "joblib.py",
+      "line": 262,
+      "observed": true,
+      "text": "        safe(pin['file']);value=original_metadata(self,pin)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 262,
+      "observed": true,
+      "text": "        safe(pin['file']);value=original_metadata(self,pin)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 263,
+      "observed": true,
+      "text": "        scan_staging_map(value,safe)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 264,
+      "observed": true,
+      "text": "        return value"
+    },
+    {
+      "file": "joblib.py",
+      "line": 268,
+      "observed": true,
+      "text": "        scan_staging_map(value['staged_inputs'],safe)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 269,
+      "observed": true,
+      "text": "        return module.Stage(host,node).run(value['staged_inputs'],frames=mode=='full')"
+    },
+    {
+      "file": "joblib.py",
+      "line": 275,
+      "observed": true,
+      "text": "    if set(sources)-set(spec['p_files']):raise ValueError('E49')"
+    },
+    {
+      "file": "joblib.py",
+      "line": 278,
+      "observed": true,
+      "text": "        safe(name)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 279,
+      "observed": true,
+      "text": "        if name in sources:"
+    },
+    {
+      "file": "joblib.py",
+      "line": 285,
+      "observed": true,
+      "text": "        src=(inside(spec['n_root'],sources[name]) if name in sources"
+    },
+    {
+      "file": "joblib.py",
+      "line": 186,
+      "observed": true,
+      "text": "            safe(member.name)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 238,
+      "observed": true,
+      "text": "        if not isinstance(name,str) or screen(name,words,hashes)!=name:raise ValueError('E48')"
+    },
+    {
+      "file": "joblib.py",
+      "line": 245,
+      "observed": true,
+      "text": "            field=(key=='destination' and len(parts)>=2 and parts[-2] in ('files','archives','packages','directories')"
+    },
+    {
+      "file": "joblib.py",
+      "line": 247,
+      "observed": true,
+      "text": "            if not field:safe(key)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 248,
+      "observed": true,
+      "text": "            scan_staging_map(item,safe,parts+(key,))"
+    },
+    {
+      "file": "joblib.py",
+      "line": 250,
+      "observed": true,
+      "text": "        for i,item in enumerate(value):scan_staging_map(item,safe,parts+(str(i),))"
+    },
+    {
+      "file": "joblib.py",
+      "line": 251,
+      "observed": true,
+      "text": "    elif isinstance(value,str):safe(value)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 280,
+      "observed": true,
+      "text": "            safe(sources[name])"
+    },
+    {
+      "file": "joblib.py",
+      "line": 281,
+      "observed": true,
+      "text": "            if sources[name]!='u/'+h:raise ValueError('E49')"
+    },
+    {
+      "file": "joblib.py",
+      "line": 312,
+      "observed": true,
+      "text": "            safe(name)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 247,
+      "observed": true,
+      "text": "            if not field:safe(key)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 250,
+      "observed": true,
+      "text": "        for i,item in enumerate(value):scan_staging_map(item,safe,parts+(str(i),))"
+    },
+    {
+      "file": "joblib.py",
+      "line": 251,
+      "observed": true,
+      "text": "    elif isinstance(value,str):safe(value)"
+    },
+    {
+      "file": "joblib.py",
+      "line": 281,
+      "observed": true,
+      "text": "            if sources[name]!='u/'+h:raise ValueError('E49')"
+    },
+    {
+      "file": "naming21.py",
+      "line": 27,
+      "observed": true,
+      "text": "    import ast,base64"
+    },
+    {
+      "file": "naming21.py",
+      "line": 28,
+      "observed": true,
+      "text": "    from launch_r2.build import bad_string,WORDS"
+    },
+    {
+      "file": "naming21.py",
+      "line": 30,
+      "observed": true,
+      "text": "    maps=[];names=[];provenance=[];capsules=[]"
+    },
+    {
+      "file": "naming21.py",
+      "line": 30,
+      "observed": true,
+      "text": "    maps=[];names=[];provenance=[];capsules=[]"
+    },
+    {
+      "file": "naming21.py",
+      "line": 30,
+      "observed": true,
+      "text": "    maps=[];names=[];provenance=[];capsules=[]"
+    },
+    {
+      "file": "naming21.py",
+      "line": 30,
+      "observed": true,
+      "text": "    maps=[];names=[];provenance=[];capsules=[]"
+    },
+    {
+      "file": "naming21.py",
+      "line": 31,
+      "observed": true,
+      "text": "    def name(value,where):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 34,
+      "observed": true,
+      "text": "    def decode(value,where):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 39,
+      "observed": true,
+      "text": "    spec=json.loads(decode(json.loads((kit/'k/p.json').read_text()),'k/p.json'))"
+    },
+    {
+      "file": "naming21.py",
+      "line": 40,
+      "observed": true,
+      "text": "    pin_paths=spec.get('pin_paths',{})"
+    },
+    {
+      "file": "naming21.py",
+      "line": 41,
+      "observed": true,
+      "text": "    def pinned_name(original,h,where):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 48,
+      "observed": true,
+      "text": "    config_fields={('benchmark_scene_exclusions',),('geometry_connector',),('trace_program_version',),"
+    },
+    {
+      "file": "naming21.py",
+      "line": 51,
+      "observed": true,
+      "text": "    path_fields={'path','file','name','source','destination','dest','member','root','output','directory',"
+    },
+    {
+      "file": "naming21.py",
+      "line": 53,
+      "observed": true,
+      "text": "    def pathlike(s):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 55,
+      "observed": true,
+      "text": "    def visit(v,doc,parts=(),data=False):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 86,
+      "observed": true,
+      "text": "    for p in sorted(kit.rglob('*')):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 98,
+      "observed": true,
+      "text": "    paths=sorted(kit.rglob('*.json'),key=lambda p:(str(p.relative_to(kit))!='k/p.json',str(p.relative_to(kit))))"
+    },
+    {
+      "file": "naming21.py",
+      "line": 99,
+      "observed": true,
+      "text": "    for p in paths:"
+    },
+    {
+      "file": "naming21.py",
+      "line": 108,
+      "observed": true,
+      "text": "    for p in sorted((kit/'b').glob('*.py')):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 117,
+      "observed": true,
+      "text": "    operational=json.loads(decode(json.loads((kit/'k/l.json').read_text()),'k/l.json'))"
+    },
+    {
+      "file": "naming21.py",
+      "line": 118,
+      "observed": true,
+      "text": "    runtime_maps=[entry['manifest'] for entry in operational.get('staged_inputs',{}).get('directories',[])]"
+    },
+    {
+      "file": "naming21.py",
+      "line": 119,
+      "observed": true,
+      "text": "    return dict(status='PASS',executables=checked,decoded_maps=maps,checked_strings=len(names),"
+    },
+    {
+      "file": "naming21.py",
+      "line": 32,
+      "observed": true,
+      "text": "        if bad_string(value,wh):raise ValueError('INPUT_NAME:'+where+':'+value)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 33,
+      "observed": true,
+      "text": "        names.append(dict(location=where,value=value))"
+    },
+    {
+      "file": "naming21.py",
+      "line": 35,
+      "observed": true,
+      "text": "        raw=base64.b64decode(value['payload'],validate=True)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 36,
+      "observed": true,
+      "text": "        if hashlib.sha256(raw).hexdigest()!=value['sha256']:raise ValueError('CAPSULE_HASH:'+where)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 37,
+      "observed": true,
+      "text": "        capsules.append(where)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 38,
+      "observed": true,
+      "text": "        return raw"
+    },
+    {
+      "file": "naming21.py",
+      "line": 42,
+      "observed": true,
+      "text": "        expected=spec['namespace']+'/u/'+h"
+    },
+    {
+      "file": "naming21.py",
+      "line": 43,
+      "observed": true,
+      "text": "        if pin_paths.get(h)!=expected or not any(x['sha256']==h for x in spec['uploads']):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 45,
+      "observed": true,
+      "text": "        name(expected,where+':resolved')"
+    },
+    {
+      "file": "naming21.py",
+      "line": 46,
+      "observed": true,
+      "text": "        provenance.append(dict(location=where,kind='authenticated input identity resolved by pinned hash map',sha256=h,original=original))"
+    },
+    {
+      "file": "naming21.py",
+      "line": 54,
+      "observed": true,
+      "text": "        return '/' in s or bool(re.search(r'\\.(?:jsonl?|txt|log|tar|gz|py|sh|bin|pt|safetensors|sqlite|png)$',s))"
+    },
+    {
+      "file": "naming21.py",
+      "line": 56,
+      "observed": true,
+      "text": "        where=doc+':'+('/'.join(parts) or '/')"
+    },
+    {
+      "file": "naming21.py",
+      "line": 57,
+      "observed": true,
+      "text": "        if isinstance(v,dict):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 87,
+      "observed": true,
+      "text": "        relative=str(p.relative_to(kit));name(relative,'kit inventory')"
+    },
+    {
+      "file": "naming21.py",
+      "line": 87,
+      "observed": true,
+      "text": "        relative=str(p.relative_to(kit));name(relative,'kit inventory')"
+    },
+    {
+      "file": "naming21.py",
+      "line": 88,
+      "observed": true,
+      "text": "        if p.is_symlink():raise ValueError('KIT_LINK:'+relative)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 100,
+      "observed": true,
+      "text": "        relative=str(p.relative_to(kit))"
+    },
+    {
+      "file": "naming21.py",
+      "line": 101,
+      "observed": true,
+      "text": "        if relative=='k/j.json':continue"
+    },
+    {
+      "file": "naming21.py",
+      "line": 102,
+      "observed": true,
+      "text": "        value=json.loads(p.read_text())"
+    },
+    {
+      "file": "naming21.py",
+      "line": 103,
+      "observed": true,
+      "text": "        if relative=='k/g.json':"
+    },
+    {
+      "file": "naming21.py",
+      "line": 107,
+      "observed": true,
+      "text": "        visit(value,relative);maps.append(relative)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 107,
+      "observed": true,
+      "text": "        visit(value,relative);maps.append(relative)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 109,
+      "observed": true,
+      "text": "        for node in ast.walk(ast.parse(p.read_text())):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 114,
+      "observed": true,
+      "text": "        checked.append(str(p.relative_to(kit)))"
+    },
+    {
+      "file": "naming21.py",
+      "line": 32,
+      "observed": true,
+      "text": "        if bad_string(value,wh):raise ValueError('INPUT_NAME:'+where+':'+value)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 36,
+      "observed": true,
+      "text": "        if hashlib.sha256(raw).hexdigest()!=value['sha256']:raise ValueError('CAPSULE_HASH:'+where)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 44,
+      "observed": true,
+      "text": "            raise ValueError('INPUT_NAME_UNMAPPED:'+where+':'+original)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 58,
+      "observed": true,
+      "text": "            if v.get('encoding') in ('base64','base64-json'):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 61,
+      "observed": true,
+      "text": "            if set(v)=={'payload','sha256'}:"
+    },
+    {
+      "file": "naming21.py",
+      "line": 64,
+      "observed": true,
+      "text": "            for key,x in v.items():"
+    },
+    {
+      "file": "naming21.py",
+      "line": 82,
+      "observed": true,
+      "text": "        elif isinstance(v,list):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 88,
+      "observed": true,
+      "text": "        if p.is_symlink():raise ValueError('KIT_LINK:'+relative)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 92,
+      "observed": true,
+      "text": "            value=json.loads(raw);raw=decode(value,str(p.relative_to(kit)))"
+    },
+    {
+      "file": "naming21.py",
+      "line": 92,
+      "observed": true,
+      "text": "            value=json.loads(raw);raw=decode(value,str(p.relative_to(kit)))"
+    },
+    {
+      "file": "naming21.py",
+      "line": 101,
+      "observed": true,
+      "text": "        if relative=='k/j.json':continue"
+    },
+    {
+      "file": "naming21.py",
+      "line": 104,
+      "observed": true,
+      "text": "            raw=decode(value,relative)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 105,
+      "observed": true,
+      "text": "            if json.loads(raw)!=list(WORDS):raise ValueError('WORD_LIST_DIFFERS')"
+    },
+    {
+      "file": "naming21.py",
+      "line": 106,
+      "observed": true,
+      "text": "            provenance.append(dict(location=relative,kind='bound refusal vocabulary'));continue"
+    },
+    {
+      "file": "naming21.py",
+      "line": 106,
+      "observed": true,
+      "text": "            provenance.append(dict(location=relative,kind='bound refusal vocabulary'));continue"
+    },
+    {
+      "file": "naming21.py",
+      "line": 110,
+      "observed": true,
+      "text": "            if isinstance(node,ast.Constant) and isinstance(node.value,str):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 59,
+      "observed": true,
+      "text": "                if set(v)!={'encoding','payload','sha256'}:raise ValueError('CAPSULE_FIELDS:'+where)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 60,
+      "observed": true,
+      "text": "                visit(json.loads(decode(v,where)),doc,parts,data);return"
+    },
+    {
+      "file": "naming21.py",
+      "line": 60,
+      "observed": true,
+      "text": "                visit(json.loads(decode(v,where)),doc,parts,data);return"
+    },
+    {
+      "file": "naming21.py",
+      "line": 63,
+      "observed": true,
+      "text": "                visit(json.loads(decode(v,where)),doc,parts+('@content',),True);return"
+    },
+    {
+      "file": "naming21.py",
+      "line": 63,
+      "observed": true,
+      "text": "                visit(json.loads(decode(v,where)),doc,parts+('@content',),True);return"
+    },
+    {
+      "file": "naming21.py",
+      "line": 65,
+      "observed": true,
+      "text": "                loc=parts+(key,)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 66,
+      "observed": true,
+      "text": "                if doc=='k/n.json' and isinstance(x,str) and bad_string(x,wh):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 71,
+      "observed": true,
+      "text": "                schema_field=(doc in ('k/c.json','k/n.json') and loc in config_fields)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 72,
+      "observed": true,
+      "text": "                schema_field |= (doc=='k/l.json' and len(loc)==4 and loc[0]=='staged_inputs'"
+    },
+    {
+      "file": "naming21.py",
+      "line": 74,
+      "observed": true,
+      "text": "                if doc in ('k/7.json','k/c0.json') and not parts and key in ('files','sources','operation_sources'):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 79,
+      "observed": true,
+      "text": "                if not schema_field and (not data or pathlike(key) or (parts and parts[-1] in path_fields)):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 81,
+      "observed": true,
+      "text": "                visit(x,doc,loc,data)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 83,
+      "observed": true,
+      "text": "            for i,x in enumerate(v):visit(x,doc,parts+(str(i),),data)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 84,
+      "observed": true,
+      "text": "        elif isinstance(v,str):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 105,
+      "observed": true,
+      "text": "            if json.loads(raw)!=list(WORDS):raise ValueError('WORD_LIST_DIFFERS')"
+    },
+    {
+      "file": "naming21.py",
+      "line": 111,
+      "observed": true,
+      "text": "                s=node.value"
+    },
+    {
+      "file": "naming21.py",
+      "line": 112,
+      "observed": true,
+      "text": "                if s and not any(c.isspace() for c in s) and pathlike(s):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 59,
+      "observed": true,
+      "text": "                if set(v)!={'encoding','payload','sha256'}:raise ValueError('CAPSULE_FIELDS:'+where)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 67,
+      "observed": true,
+      "text": "                    if key=='path' and set(v)=={'path','sha256'} and re.fullmatch('[0-9a-f]{64}',str(v['sha256'])):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 69,
+      "observed": true,
+      "text": "                    if re.fullmatch('[0-9a-f]{64}',key):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 76,
+      "observed": true,
+      "text": "                    if not isinstance(x,dict) or any(not re.fullmatch('[0-9a-f]{64}',h) for h in x.values()):"
+    },
+    {
+      "file": "naming21.py",
+      "line": 78,
+      "observed": true,
+      "text": "                    provenance.append(dict(location=where+key,entries=len(x)));continue"
+    },
+    {
+      "file": "naming21.py",
+      "line": 78,
+      "observed": true,
+      "text": "                    provenance.append(dict(location=where+key,entries=len(x)));continue"
+    },
+    {
+      "file": "naming21.py",
+      "line": 80,
+      "observed": true,
+      "text": "                    name(key,where+':key')"
+    },
+    {
+      "file": "naming21.py",
+      "line": 83,
+      "observed": true,
+      "text": "            for i,x in enumerate(v):visit(x,doc,parts+(str(i),),data)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 85,
+      "observed": true,
+      "text": "            if not data or pathlike(v) or any(p in path_fields for p in parts[-2:]):name(v,where)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 113,
+      "observed": true,
+      "text": "                    name(s,str(p.relative_to(kit))+':'+str(node.lineno))"
+    },
+    {
+      "file": "naming21.py",
+      "line": 68,
+      "observed": true,
+      "text": "                        pinned_name(x,v['sha256'],where+'/path');continue"
+    },
+    {
+      "file": "naming21.py",
+      "line": 68,
+      "observed": true,
+      "text": "                        pinned_name(x,v['sha256'],where+'/path');continue"
+    },
+    {
+      "file": "naming21.py",
+      "line": 70,
+      "observed": true,
+      "text": "                        pinned_name(x,key,where+'/'+key);continue"
+    },
+    {
+      "file": "naming21.py",
+      "line": 70,
+      "observed": true,
+      "text": "                        pinned_name(x,key,where+'/'+key);continue"
+    },
+    {
+      "file": "naming21.py",
+      "line": 77,
+      "observed": true,
+      "text": "                        raise ValueError('SOURCE_INVENTORY:'+where)"
+    },
+    {
+      "file": "naming21.py",
+      "line": 85,
+      "observed": true,
+      "text": "            if not data or pathlike(v) or any(p in path_fields for p in parts[-2:]):name(v,where)"
+    },
+    {
+      "file": "kit.py",
+      "line": 72,
+      "observed": true,
+      "text": "from launch_r2.build import bad_string"
+    },
+    {
+      "file": "kit.py",
+      "line": 73,
+      "observed": true,
+      "text": "hashes=load(K/'b/wh.json');p_sources={}"
+    },
+    {
+      "file": "kit.py",
+      "line": 73,
+      "observed": true,
+      "text": "hashes=load(K/'b/wh.json');p_sources={}"
+    },
+    {
+      "file": "kit.py",
+      "line": 74,
+      "observed": true,
+      "text": "for name,h in list(pfiles.items()):"
+    },
+    {
+      "file": "kit.py",
+      "line": 91,
+      "observed": true,
+      "text": "spec['pin_paths']={h:ns+'/u/'+h for h in uploads}"
+    },
+    {
+      "file": "kit.py",
+      "line": 92,
+      "observed": true,
+      "text": "cap('k/g.json',list(WORDS))"
+    },
+    {
+      "file": "kit.py",
+      "line": 144,
+      "observed": true,
+      "text": "shell=shell.replace('\"$HX/b/s.py\"', '\"$Q_KIT/b/s.py\" \"$Q_KIT\"')"
+    },
+    {
+      "file": "kit.py",
+      "line": 165,
+      "observed": true,
+      "text": "(K/'b/m.py').write_text('import sys\\nfrom pathlib import Path\\nsys.path.insert(0,str(Path(__file__).resolve().parent))\\nfrom z import snapshot\\nsnapshot(*sys.argv[1:],kit=Path(__file__).resolve().parents[1])\\n')"
+    },
+    {
+      "file": "kit.py",
+      "line": 167,
+      "observed": true,
+      "text": "(K/'b/s.py').write_text('import json,sys\\nfrom pathlib import Path\\nsys.path.insert(0,str(Path(__file__).resolve().parent))\\nfrom z import stage_inputs\\nprint(json.dumps(stage_inputs(*sys.argv[1:])))\\n')"
+    },
+    {
+      "file": "kit.py",
+      "line": 75,
+      "observed": true,
+      "text": "    if bad_string(name,hashes):"
+    },
+    {
+      "file": "kit.py",
+      "line": 76,
+      "observed": true,
+      "text": "        opaque='k/'+h[:8]+Path(name).suffix"
+    },
+    {
+      "file": "kit.py",
+      "line": 77,
+      "observed": true,
+      "text": "        if opaque in pfiles:raise ValueError('Opaque staging collision')"
+    },
+    {
+      "file": "kit.py",
+      "line": 78,
+      "observed": true,
+      "text": "        path=Path(uploads[h]['local_path']) if h in uploads else E/name"
+    },
+    {
+      "file": "kit.py",
+      "line": 79,
+      "observed": true,
+      "text": "        if sha256(path)!=h:raise ValueError('Staging input hash differs')"
+    },
+    {
+      "file": "kit.py",
+      "line": 80,
+      "observed": true,
+      "text": "        uploads[h]=dict(local_path=str(path),opaque_name='u/'+h,sha256=h,bytes=path.stat().st_size)"
+    },
+    {
+      "file": "kit.py",
+      "line": 81,
+      "observed": true,
+      "text": "        pfiles.pop(name);pfiles[opaque]=h;p_sources[opaque]='u/'+h"
+    },
+    {
+      "file": "kit.py",
+      "line": 81,
+      "observed": true,
+      "text": "        pfiles.pop(name);pfiles[opaque]=h;p_sources[opaque]='u/'+h"
+    },
+    {
+      "file": "kit.py",
+      "line": 81,
+      "observed": true,
+      "text": "        pfiles.pop(name);pfiles[opaque]=h;p_sources[opaque]='u/'+h"
+    },
+    {
+      "file": "kit.py",
+      "line": 77,
+      "observed": true,
+      "text": "        if opaque in pfiles:raise ValueError('Opaque staging collision')"
+    },
+    {
+      "file": "kit.py",
+      "line": 79,
+      "observed": true,
+      "text": "        if sha256(path)!=h:raise ValueError('Staging input hash differs')"
+    }
+  ],
+  "evidence": [
+    "work/build21c/TRACE_builder.json",
+    "work/build21c/TRACE_tests.json",
+    "work/build21c/TRACE_extra.json"
+  ]
+}

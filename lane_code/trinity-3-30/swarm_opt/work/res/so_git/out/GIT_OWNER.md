@@ -1,54 +1,66 @@
 # Getting lane code into Git
 
-The owner on **trinity-3-30** runs all Git commands in `/scratch/jjyeung/distill_sync/repo`.
-Lanes run no Git. The hourly sync and kit command share `/scratch/jjyeung/distill_sync/.sync.lock`.
-Nobody checks out another branch, rewrites history, forces a push, or pushes to main.
+The designated Git owner on **trinity-3-30** runs Git; lanes supply files and queue rows.
+The hourly sync, kit command, and manual owner Git work share `$S/.sync.lock`, where
+`S=/scratch/jjyeung/distill_sync`. The kit clone is `$S/repo`, already on `lane-code`.
+Never rewrite history, force a push, or push to main.
 
-| Route | Lane supplies | Owner runs | Landing evidence |
-|---|---|---|---|
-| Reviewed kit | Archive, seal, archive SHA256, review path, unused name | Command below | `kits/<name>/KIT.json`, printed commit, matching origin and home heads |
-| Hourly lane snapshot | Source under `/scratch/jjyeung/orch_n30/<lane>/` | Existing `lane_code_sync.sh` loop | `lane_code/<node>/<lane>/…`, `verified GitHub lane-code` in `sync.log` |
-| Existing `eff/*` branch | Queue row in `e_*/PUSH_QUEUE.txt` or `eff_*/PUSH_QUEUE.txt` | Existing owner's push-queue step | `$S/PUSH_DONE.txt`; refusal reasons in `$S/PUSH_REFUSED.txt` |
+| Route | Lane supplies | Owner action and evidence |
+|---|---|---|
+| Reviewed kit | Archive, seal, SHA256, review path, unused name, identities | Runs kit command; checks `$S/KITS_LANDED.txt`, kit RESULT event, and `kits/<name>/KIT.json` |
+| Hourly snapshot | Source under `/scratch/jjyeung/orch_n30/<lane>/` | Runs hourly sync; checks `lane_code/<node>/<lane>/…` and `verified GitHub lane-code` in `sync.log` |
+| `eff/*` queue | Queue row for an existing commit | Makes the commit, runs queue publisher; checks `$S/PUSH_DONE.txt` or `$S/PUSH_REFUSED.txt` |
 
-Set `T` to the installed `orch_n30/tools` directory. The owner lands a kit with one command:
+Set `T` to the installed `orch_n30/tools` directory. Python 3.6.8 and 3.12 are supported.
+The owner reads the review, confirms that it covers this archive, then runs:
 
 ```bash
-LCS_ENABLE_KIT_LANDING=1 bash "$T/land_kit.sh" kit.tar seal sha256 review.md name
+LCS_ENABLE_KIT_LANDING=1 bash "$T/land_kit.sh" kit.tar seal sha256 review.md name \
+  --builder lane_builder --reviewer independent_reviewer --bind-sha sha256
 ```
 
-Add `--dry` to validate, print the eligible file list and counts, and stop before Git or clone writes.
-The review records `Builder: <identity>` and `Reviewer: <identity>`. Accepted verdict lines are
-`GO`, `ACCEPT`, `VERDICT: GO`, and `VERDICT: ACCEPT`; Markdown headings/bold are accepted.
-The last explicit verdict wins. `GO AFTER FIXES`, even with recorded fixes, requires a later
-unconditional `GO`. Unknown explicit verdicts, missing reviews, wrong hashes, secrets in any
-archive member, links, unsafe paths, an empty filtered kit, a dirty index/worktree, another branch,
-or a conflicting name cause refusal. Optional review `Seal:` and `SHA256:` fields must match.
-Identical content and provenance reuse the name and reverify/publish the current head.
+Both identities are required and must differ. The review needs no identity lines.
+Its first nonempty line must be `VERDICT: GO`, `VERDICT: ACCEPT`, or
+`VERDICT: ACCEPT WITH FINDINGS`, without indentation or Markdown. Later unindented
+`VERDICT:` lines must also use a supported value. Any `NO-GO`, `NO GO`, or `REJECT`
+anywhere refuses the file. `GO AFTER FIXES` needs a separate later GO verdict file;
+appending GO to the conditional file does not authorize landing.
 
-The kit command applies the current filter caps and exclusions. It restores eligible duplicate
-paths from the filter's manifest to preserve imports. `KIT.json` counts payload files separately
-from itself. It records the review digest and a per-file SHA256/size/mode manifest. Both remote
-heads must match the printed commit. The lock waits up to 120 seconds; `LCS_LOCK_TIMEOUT` can
-set a timeout up to 3600 seconds. Audit directories stay under `$S/land_kit_*`; investigate a
-failed/killed command before any restart. No automatic reset, cleanup, rollback, or retry runs.
+A matching `Seal:` or `SHA256:` line must bind the review, or the owner passes
+`--bind-sha <archive-sha256>` after reading it. Every supplied binding must match.
+`KIT.json` records the binding, identities, verdict digest, per-file manifest, and skipped files.
+`--dry` prints files/counts before Git. Every filtered file prints as `SKIPPED` and refuses
+unless the owner passes `--allow-skips`. Eligible duplicate paths are preserved.
 
-The hourly route excludes `*_proof`, `runs`, `evidence`, caches, oversized files, and directories
-with more than 2000 entries. `in`, `out`, `work/tree`, and `kit` are eligible unless an ancestor
-is excluded. The owner checks explicit folders before expanding coverage:
+Wrong hashes, secrets in any member, links, unsafe paths, empty payloads, conflicting names,
+another branch, a changed tracked worktree, or a dirty index refuse. Identical content and
+provenance republish the current head. Git disables automatic maintenance and terminal prompts.
+Production tool/path overrides require `LCS_TEST_ROOT`. Both remotes must verify before the
+landing receipt and `<UTC>_RESULT_kit_<name>_landed.md` event are written; lanes read those files.
+
+The lock waits **600 seconds** by default (`LCS_LOCK_TIMEOUT`, maximum 3600). The hourly
+uses a nonblocking lock and skips overlapping starts. Land just after `END ok`; stale events
+quote the latest lock skip. Audit directories remain under `$S/land_kit_*`. Investigate
+failed/killed operations before restarting; remote pushes and receipt writes are separate.
+
+The hourly excludes proof/run/evidence/cache directories, oversized files, and directories
+with more than 2000 entries. `in`, `out`, `work/tree`, and `kit` qualify unless an ancestor
+fails a rule. Before expanding coverage, the owner runs:
 
 ```bash
 LCS_ENABLE_DRY_COUNT=1 bash "$T/dry_count.sh" /scratch/jjyeung/orch_n30/swarm_opt
 ```
 
-Counts deduplicate within each folder; hourly deduplication spans its whole node tree. Root gates
-appear separately as `hourly_*` fields. See `COVERAGE.md` for the optional shell-copy extension.
+Only existing nonsymlink folders under `/scratch/jjyeung/orch_n30/` qualify. Counts deduplicate
+per folder; hourly deduplication spans a node tree. `COVERAGE.md` lists the rules.
 
-A push-queue row is `<UTC> eff/<slug> <40-hex-sha> [<lane>/clone|<lane>/repo]`.
-Only `e_`/`eff_` lane directories qualify. The owner fetches an already committed branch,
-checks ancestry and changed-file secrets, then pushes the named commit to origin without force.
-This route does not grant lanes permission to create commits; use a kit for uncommitted code.
+Queue rows are `<UTC> eff/<slug> <40-hex-sha> [<lane>/clone|<lane>/repo]` in
+`e_*/PUSH_QUEUE.txt` or `eff_*/PUSH_QUEUE.txt`. **The designated Git owner makes those commits**
+in an authorized scratch lane clone under the owner lock and supplies the SHA to the lane.
+The publisher fetches, checks ancestry/secrets, and pushes the named commit to origin without force.
 
-The owner starts `LCS_ENABLE_SYNC_HEALTH=1 bash "$T/sync_health_loop.sh"` in tmux for a local
-check every ten minutes. It writes one stale/failure event per incident and a recovery RESULT;
-state lives under `$S/health/`. It makes no SSH or Git calls. A failed monitor stops the loop.
-These tools are delivered for owner installation; no production loop was started by this lane.
+The owner starts `LCS_ENABLE_SYNC_HEALTH=1 bash "$T/sync_health_loop.sh"` in tmux.
+Every ten minutes it checks local evidence, emits one event per incident/recovery, and records
+delivery in `$S/health/`. Consumers may move delivered events; only undelivered events replay.
+Ordinary errors log to `$S/health.log` and the next tick runs. Signal exits stop for owner
+investigation under cluster rules. These default-off tools have not been installed in production.

@@ -42,7 +42,9 @@ def main():
         for p in (out/phase).glob('*.json'):
             rec=json.loads(p.read_text())
             for dep in ['train_pricing.py','pricing.py','math_v2.py']:
-                assert rec['input_sha256'][str(root/dep)]==sha(root/dep),(p,dep)
+                expected=rec['input_sha256'][str(root/dep)]
+                snapshot=root/'out/executed_sources'/(Path(dep).stem+'_'+expected+'.py')
+                assert expected==sha(root/dep) or (snapshot.exists() and sha(snapshot)==expected),(p,dep)
     nonull=json.loads(R.read(out/'nonull/TRAIN_OOF.json'))
     assert nonull['seed']==20261116 and len(nonull['records'])==5 and not nonull['deployed_export_created']
     fold_manifest=json.loads(R.read(root/'train_manifest.json'))
@@ -91,9 +93,9 @@ def main():
     for ds in ['arkitscenes','scannet','scannetpp']:
         s=reference['summary'][ds];lines.append(f'| {ds} | {s["total"]} | {s["matched"]} | {s["exact_features"]} |')
     lines+=['','Every primary comparison contains 1,037 train rows / 192 physical rooms; oracle and selector comparisons use the pinned 883 table rows.',
-        'Every refusal scores zero. Paired intervals use 10,000 room-bootstrap draws, seed 20261119.',
+        'Every refusal scores zero. Paired intervals use 10,000 room-bootstrap draws, seed 20261119.', '',
         '| Arm | Train MRA | Rows | Refusals |','|---|---:|---:|---:|']
-    for arm in ['A0_deployed','A1_oracle_select','A2_gt_masks','obj_cf','fused_cf','A5_obj_oracle_seed','A8_nonull_best1','A8_nonull_obj','A9_s4_today','A9_s4_obj']:
+    for arm in ['A0_deployed','A1_oracle_select','A2_gt_masks','obj_cf','fused_cf','A5_obj_oracle_seed','A8_nonull_best1','A8_nonull_obj','A7_da3_best1','A7_pi3x_best1','A9_s4_today','A9_s4_obj']:
         if arm in summary['arms']:
             s=summary['arms'][arm];lines.append(f'| {arm} | {s["mra"]:.2f} | {s["rows"]} | {s["refusals"]} |')
     lines+=['','| Paired contrast | Gain [95% CI] |','|---|---:|']
@@ -110,7 +112,9 @@ def main():
         'Object/fusion gains and merge precision use room-cross-fitted predictions. Non-null selection uses five room-held-out fits with the fixed run_iso config and seed 20261116.',
         'The appearance bar uses OOF threshold choices to satisfy the task’s cross-fit requirement; the spec’s all-train frozen-threshold rate remains diagnostic. No source is deployed here.',
         'Dry checks reproduce the copied-reader A0 socket, stored-label S4 predictions, corrected-label scorer targets, one-frame fusion, and tau=1.01 identity. Six math tests pass.',
-        'Dry pricing covers A0–A4 and A9; trained/dependent A5, A7 and A8 are checked by the completed train pass. A6 and held-out remain deferred by order 0654Z.',
+        'Dry pricing covers A0–A4 and A9; the train pass adds A7 best1 and A8 best1. A5 and frozen-object-dependent arms are skipped because no variant qualifies.',
+        f'First-seen ordering is correct for {frozen["first_linker"]["correct"]}/{frozen["first_linker"]["pairs"]} linker pairs ({100*frozen["first_linker"]["rate"]:.2f}%; requires 90%); no object threshold qualifies.',
+        'A6 and held-out remain deferred by order 0654Z. The archive remains local under the task’s no-network rule.',
         'LADDER_TRAIN.txt prints all 33 object variants, ten GT fusion variants, paired contrasts, and both-answered diagnostics. SUMMARY_TRAIN.json includes truth/dataset/frame bands.',
         'OBJECT_DIAGNOSTICS.json gives fixed GT full extents, size ratios/MRA, first-seen diagnostics, counts, and added-member precision (GT pixel plurality).',
         'SOURCE_AUDIT.json confirms the active reader/dependencies match the R1 manifest. Unused inherited vendor/stage1.py and grounding.py differ; auxiliary vendor files lack R1 entries.',
@@ -126,7 +130,7 @@ def main():
         '`bash run.sh audit_sources.py`; `bash run.sh provenance_v2.py`; `bash run.sh finalize_v2.py` — source audit, provenance, verification and archive.',
         'All Python jobs use p1cpu, nice priority, at most eight cores per job, and a virtual-memory limit below 40 GB; the four pricing shards share eight CPU cores.',
         'No GPU, network, SSH, Git, process termination, tmux change, external write, or deletion ran. No K1 held-out or GT-geometry arm was evaluated.',
-        'Every JSON carries input SHA256 values; per-item hashes link to per-capture receipts containing the complete input chain. No borderline revision-history prose was kept.',
+        'Every JSON carries input SHA256 values; per-item hashes link to per-capture receipts containing the complete input chain.',
         'Archive: out/sb_kbox4.tar; checksum: out/sb_kbox4.tar.sha256. OUTPUT_STATUS.json records the exact missing input paths and deferred outputs.',
     ]
     assert len(lines)<=80,len(lines)

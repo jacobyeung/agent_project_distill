@@ -1,19 +1,32 @@
-This GPU kit is delivered unrun. Run `bash run.sh` in a separately admitted four-H100 production allocation with `TREE`, `CONFIG`, fresh scratch `OUT`, production `PYTHON`, and an optional explicit `RESUME_PIN`. It runs exactly ten optimizer steps per arm: all OFF, prefetch only, decoded cache only, batched metrics only. The baseline emits ten native sampler plans; every ON arm reloads those exact plans and the same checkpoint/base initialization in a fresh process. The launcher preserves the real trainer's admission, model, optimizer, learning rates, gate replay and FSDP wrapper. It does not checkpoint, export, or evaluate these disposable updates.
+# Fixed-plan production timing
 
-The shared `kit_profile/disposable.py` adapter permits checkpoint restoration with the bounded smoke loop and redirects native smoke receipts and locks to each arm's `OUT/trainer` directory. It preserves the configuration and admission checks and refuses a changed source pattern. `RESUME_PIN` names a JSON checkpoint pin; its loaded content is retained in each manifest and compared across arms.
-
-`summarize.py OUT` prints slowest-rank wall time, data time, all ten step times and first-measured-step loss parity for every microstep and rank. It also checks plan hashes, trainable names/counts, configuration, checkpoint and binding. The tolerance for these scheduling/cache patches is zero; any nonzero difference fails and is printed as `max_abs_loss_error`. GPU nondeterminism can also fail this check; investigate with an explicitly authorized repeated OFF arm rather than silently relaxing the tolerance. CPU tests check every gradient and optimizer update; this GPU kit checks losses and timing, not full GPU gradient parity.
-
-The report includes the median across all ten steps and steps 2–10. Neither is automatically steady state: run A's fresh-process wall time settles over about 20 steps. Compilation caches, filesystem warmth, allocator initialization and thermal variation can bias an OFF-first comparison. Use the same known kernel-cache state in each arm and record it. A cache hit is part of the decoded-cache feature; unrelated kernel cache warming is not. The first native update and its RNG/optimizer state remain matched. These gains are individual, not additive. The combined arm is supported by `launch.py --arm all` for a separately authorized follow-up.
-
-The real model need not fit a single 48 GB GPU to test the data path. `data_only.py` reads the actual prepared receipt and processor, replays one rank of all ten plans, and optionally transfers one encoded microbatch at a time:
+Use the sealed patched checkout and a freshly admitted production configuration. Export `TREE`, `CONFIG`, a fresh `OUT`, and `PYTHON`; use the production thread environment unchanged. Export explicit scratch paths for `CUDA_CACHE_PATH`, `TRITON_CACHE_DIR`, and `TORCHINDUCTOR_CACHE_DIR` matching the production cache policy. Do not clear caches between arms. The profile README describes `RESUME_PIN` and optional `RESUME_CONFIG`; every arm restores the same checkpoint, or the same seeded initial state when both are omitted.
 
 ```bash
-nice -n 10 "$PYTHON" data_only.py --tree "$TREE" --config "$CONFIG" \
-  --receipt "$PREPARED_RECEIPT" --manifest "$BASE_MANIFEST" \
-  --plan "$OUT/off/rank0/plan.json" --out "$SMALL_OUT" --arm prefetch
+bash out/kit_timing/run.sh
 ```
 
-Use a fresh output and `--arm off`, `prefetch` or `cache` for each data comparison. Add `--gpu-copy` for actual copies on an explicitly allocated single GPU, and `--pin` for pinning plus nonblocking copies. The copy timer includes pinning and the final wait. The default performs no GPU work. `--consumer-ms 1400` simulates a consumer to test queue overlap; report that delay as simulated, never as a measured training speedup. Without a consumer, prefetch has little work to overlap.
+The defaults are **three repeats, 20 discarded warm-up updates and 20 measured updates per arm**, with fixed row plans shared across all runs. Each repeat runs OFF/prefetch/OFF/cache/OFF/metrics/OFF; alternate repeats reverse the ON order. Every ON arm is compared with the average of its adjacent OFF arms at matching update indices. `REPEATS` accepts 3–30, `WARMUP` and `MEASURE` accept 10–100. Per-arm timeout is three hours (`ARM_SECONDS`, bounded to 60–43,200 seconds). A failure or timeout stops the entire script, without a retry. All runs are disposable and write only under `OUT`.
 
-This smaller variant measures real decoding, encoding, cache reuse and copy latency. It also checks Python, NumPy and torch CPU RNG state with the actual production processor and rejects an RNG-consuming path. It cannot show full-model loss/gradient parity, H100 compute speed, FSDP communication, activation-memory fit, or four-rank stragglers. All frames, caches and outputs must be on scratch. Preserve the host's CPU/IO limits and obtain the required approval before a substantial dataset replay.
+This is a precision experiment, not a short smoke test. At the measured 133-second steady-state rate, the default 840 updates alone take about **31 hours**, plus cold-start excess and model loading. That is an estimate, not a measured kit runtime. Plan the production allocation accordingly; the separate profile kit retains its 15-minute bound. Twenty warm-up updates put the measured window at updates 21–40, matching the supplied log's stable-analysis cutoff. The shorter ten-update setting is allowed for diagnostics but needs the same precision gate.
+
+The summary uses the slowest rank for each update. It reports paired wall/data differences, forward/backward host time per microstep, first-step bitwise loss parity, and cache counters. Negative forward/backward host gains mean the producer slowed the training host work. It refuses mismatched plans, trainables, bindings, thread settings, or losses. `cache_before/after.json` inventories up to 4096 top-level cache entries with hashed names, size and mtime; it marks truncation and does not claim a recursive cache-content census.
+
+**Minimum detectable difference:** treat each repeat's mean paired gain as one sample, because neighboring updates are correlated. With repeat standard deviation `s`, `n` repeats, two-sided alpha 0.05 and approximate 80% power, the kit reports `MDD = (t(.975,n-1) + 0.842) * s / sqrt(n)`. It uses conservative Student-t critical values. With three repeats, MDD is **2.9705 × s**: repeat SD 1.0 s permits detecting about 2.97 s; SD 0.337 s permits about 1.0 s. These are planning calculations, not measured variance. No finite kit can guarantee detecting a zero gain. `resolved=false` forbids a positive speedup claim; `target_1s_resolved=false` means the 0–3-second metric estimate remains insufficiently resolved unless the observed effect exceeds its reported MDD. Increase the preplanned repeats/steps for a fresh authorized experiment if needed; do not silently claim a small gain or relaunch a killed run. Reports with fewer than three repeats explicitly have no MDD or resolved result.
+
+The delivered gains remain hypotheses until this kit produces production measurements. The decoded cache is expected to save approximately zero seconds under low reuse. Its cumulative hit/miss/byte counters are recorded per step; use differences between consecutive records for hit rate and decode reuse. Cache and prefetch savings overlap.
+
+## Data-only variant for one 48 GB GPU or CPU
+
+The smaller kit reads real staged rows and runs the real processor, without model/FSDP/optimizer work. It supports `--gpu-copy` and optional `--pin`; CPU is the default. ON arms require the OFF output and compare every encoded batch/target row SHA-256, including shape, dtype and raw tensor bytes. The `all` arm tests prefetch plus decoded caching together. All arms also require unchanged global Python/NumPy/torch RNG state.
+
+```bash
+python out/kit_timing/data_only.py --tree "$TREE" --receipt "$RECEIPT" \
+  --manifest "$BASE_MANIFEST" --config "$CONFIG" --plan "$PLAN" \
+  --out "$OUT/data_off.json" --arm off
+python out/kit_timing/data_only.py --tree "$TREE" --receipt "$RECEIPT" \
+  --manifest "$BASE_MANIFEST" --config "$CONFIG" --plan "$PLAN" \
+  --out "$OUT/data_all.json" --arm all --baseline "$OUT/data_off.json"
+```
+
+`PLAN` can be `r0_l0_off/rank0/plan.json`. The default consumes its first ten plans; `--steps` accepts 1–100 within the available plan length. Repeat the ON command with `--arm prefetch` and `--arm cache` for individual comparisons. The sidecar manifest records effective thread settings. Hashing cost is reported separately and included in wall time; it is a parity test, not a training speedup measurement. `--consumer-ms` introduces only a simulated delay. This variant cannot establish loss/gradient parity, inter-rank admission, FSDP overlap, model-memory fit or end-to-end GPU gains. Run it with the actual production processor assets before enabling threaded prefetch.

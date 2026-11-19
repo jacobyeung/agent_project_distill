@@ -1,0 +1,1 @@
+The root pack.py and sibling pack_probes.py define the delivered source set. out/tool contains byte-identical aliases. TOOL_SHA256.json records every delivered source, and test_delivery.py compares those bytes with both applied patches. REPORT.md states the completed validation and its limits.

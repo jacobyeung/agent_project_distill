@@ -1,0 +1,167 @@
+09:27:45Z
+my codex builds running: 3 (load 32 avail 426G)
+so_xstore RUNNING
+so_corpus_fix ENDED: VERDICT: DONE Three opt-in fixes pass synthetic validation; the static published-read audit indicates no re-ingest.
+so_pack_a RUNNING
+so_step_fix RUNNING
+so_corpus_lost QUEUED
+so_read_fix ENDED
+so_launch_fix ENDED
+so_git_fix ENDED
+-- so_cr_git2: verdict=VERDICT: GO running=n
+-- so_cr_launch2: verdict=VERDICT: GO AFTER FIXES running=n
+-- so_cr_read2: verdict=VERDICT: GO AFTER FIXES running=n
+ 04:27:45 up 25 days,  4:31,  2 users,  load average: 32.11, 23.74, 19.79
+== so_xstore: parator and protocol fixture supplied; native two-node proof NOT run. Task 4: native boundary tests pass; actual prepare/adopt every-rank first-loss twins NOT implemented. Tasks 5–6: admission limitations written; package verification in progress. 
+== so_pack_a: s ran. Decision: literal argv rule includes the shell executable head. An explicit default-OFF wrapper normalization changes that invocation to sed and adds umask 077, then reseals the manifest. Archive contents remain excluded from name-list scans. 
+== so_step: Work stayed on trinity-1-18, with hidden CUDA, eight-core affinity for tests and eight-thread libraries. No Git, SSH, GPU use, external writes, deletions or stopped production work. Workspace size at 07:18Z: 343 MiB (measured du output), below 3 GB. 
+=== cr_git2 verdict
+VERDICT: GO
+
+Scope: `/scratch/jjyeung/orch_n30/so_git/`; paths below are relative to it unless absolute. I read every file under review myself.
+
+My checks:
+- Compiled all three tools under `/usr/bin/python3` (3.6.8, this node trinity-1-18) and the 3.12.13 env, and called `review()`, `read_log()` and `evidence()` in memory under both.
+- Compared patch bodies with `out/`, and sha256 of the production copies on `/data2/.../orch_n30/tools/`.
+- Read the real distill file `tools/recover_boundary_remediation.py` and the distill `.gitignore`.
+- Ran no git, ssh or tests, and wrote nothing except this file.
+
+None of the hard rules is broken. Nothing forces a push, rewrites history, checks out a branch, or names or pushes main. Every Git command for a kit runs under the hourly's lock, and every refusal path I traced fails closed. No finding below can damage `lane-code`, the remotes or the hourly sync in normal operation. Findings 1–4 are worth fixing before the first real kit, but none blocks.
+
+## Findings
+
+1. **LOW — A content rejection by origin strands the kit commit and blocks every later hourly push.**
+   - `out/tools/land_kit.py:283-289` commits on local `lane-code` before pushing to origin.
+   - If GitHub refuses the content (for example push protection or a server hook), the commit stays local.
+   - The hourly then fails `push origin lane-code` every hour (`in/lane_code_sync.sh:158`). Meanwhile it keeps pushing home (`:159`), so the two remotes diverge.
+   - The only way out is rewriting unpushed local history, which needs the user. `GIT_OWNER.md:43-44` says only "investigate".
+   - The hourly has the same exposure for lane code, so the added risk is small.
+   - Smallest fix: on a push refusal from origin, print a stop-and-ask-the-user notice, and add one line on this case to `GIT_OWNER.md`.
+   - Robust fix: build the commit with `git commit-tree` on a temporary index in the audit directory, push `<sha>:refs/heads/lane-code` to origin first, and only then move local `lane-code` forward with `git merge --ff-only <sha>`.
+
+2. **LOW — A failed `git commit` leaves the kit staged, and the next hourly commits it under its own message.**
+   - `land_kit.py:282` stages `kits/<name>`. If the commit at `:285` fails (missing identity in the owner's shell, a hook, or a timeout), the index keeps the kit.
+   - The hourly's `git diff --cached --quiet` (`in/lane_code_sync.sh:150`) then sees it and commits it as `lane-code sync ...`. The kit then lands without the Seal/SHA256/Builder/Reviewer message and without a receipt.
+   - A rerun repairs the receipt through the IDENTICAL path, but never the message.
+   - A failure between `copytree` and `add` (`:281-282`) instead leaves an untracked `kits/<name>`. That makes every rerun refuse (`:277`), and the guide gives no recovery step.
+   - Smallest fix: wrap add and commit in one `try` block. On failure, run `git reset -q -- kits/<name>` (index only, no history change) and print "move `kits/<name>` aside before rerunning".
+
+3. **LOW — Setting `LCS_TEST_ROOT` to an ancestor of the production state turns off the production guards while still targeting the real clone and remotes.**
+   - `land_kit.py:333-338` only requires the test root to be on `/scratch` and to contain `state`, `repo` and `events`. Production checks at `:339-344` are then skipped: the override refusal, the hostname check and the state/repo pinning.
+   - Example: with `LCS_TEST_ROOT=/scratch/jjyeung`, the defaults resolve to the real `$S/repo` and its real `origin`/`home`, and `LCS_SCAN` or `LCS_FILTER` overrides are honoured. A fake scanner could then push unscanned content to GitHub.
+   - `sync_health.py:189-193` has the same pattern. A fake `LCS_HEALTH_NOW` in the future written into the production `state.json` would make every later tick refuse with "clock moved backwards" (`:117-118`).
+   - This needs two leftover variables, so it is unlikely.
+   - Smallest fix: in test mode, refuse when `state` resolves to `/scratch/jjyeung/distill_sync`, or when `repo` is inside it.
+
+4. **LOW — The binding parser ignores formatted hash lines, so a review that names a different archive can still authorize this one.**
+   - `land_kit.py:58` recognises only lines that start exactly with `Seal:` or `SHA256:`.
+   - Checked in memory: `VERDICT: GO` followed by `- SHA256: <different sha>` is accepted with `--bind-sha` (methods `['owner_bind_sha256']`). The same holds for table rows, `**SHA256:**` and similar forms.
+   - The opposite case refuses (fail-closed): `SHA256: <sha> (archive)` and a backticked value.
+   - `--bind-sha` is the owner's attestation by design (`PROMPT_FIX1.md`), but here a contradiction that sits in the file goes undetected.
+   - Smallest fix: treat any line matching `^[\s>*|-]*\**(Seal|SHA-?256)\**\s*[:|]\s*`?([^`\s|]+)` as a binding field, so that every such value must match.
+
+5. **LOW — The negative-verdict match is far broader than documented, so ordinary accepting reviews will be refused.**
+   - `land_kit.py:47` uses a case-insensitive substring search `NO[- ]GO|REJECT`. `:63` applies a case-insensitive `VERDICT:` match to every line.
+   - Checked in memory, each of these refuses a `VERDICT: GO` file:
+     - "There is no good reason …"
+     - "The tool rejects symlinks."
+     - quoting the reviewer scale "`GO AFTER FIXES` or `NO-GO`"
+     - a prose line starting "Verdict: see above"
+   - Reviews of validation kits routinely describe what the code rejects.
+   - `GIT_OWNER.md:23-26` lists only the tokens `NO-GO`, `NO GO`, `REJECT` and `VERDICT:` lines.
+   - It fails closed, but it pushes owners toward editing review files.
+   - Smallest fix: make the match case-sensitive and bounded, `(?<![A-Za-z])(NO[- ]GO|REJECT)(?![a-z])`, and make the later-line match at `:63` case-sensitive.
+
+6. **LOW — Health can drop the RESULT for a `failed` recovery.**
+   - The RESULT name is `stamp(verified)` written with `setdefault` (`sync_health.py:134-137`).
+   - Scenario, with `stale` and `failed` both active:
+     - A tick lands between a run's `verified` line and its `END ok`. `stale` recovers and writes `<V>_RESULT_code_sync_recovered.md`.
+     - On the next tick `failed` recovers with the same `V`. `setdefault` keeps the delivered entry, so no RESULT for `failed` is ever written.
+   - The state is right; only the event is lost. The window is short; in `in/sync.log.tail` `verified` and `END` are 0–1 s apart.
+   - Smallest fix: name the event `f'{stamp(now)}_RESULT_code_sync_recovered_{"_".join(recovered)}.md'`. The journal is saved before delivery, so replay stays safe.
+
+7. **LOW — Health rereads the sync's BLOCKERs on `/data2` every tick, and can duplicate one that a consumer has moved.**
+   - At `sync_health.py:147`, `own_blocker()` (a glob plus a read of every `*_BLOCKER_sync_failed.md`, `:77-91`) runs before the cheap `last_failed_run` check at `:150`.
+   - It therefore repeats on every tick (about 6) until the next run completes, over a list that only grows.
+   - If a consumer moves the sync's own BLOCKER before the first tick sees it, health emits a duplicate `code_sync_failed`.
+   - Smallest fix: test `data.get('last_failed_run') != key` first, and record `key` after a single `own_blocker()` decision, whatever the result.
+
+8. **LOW — `dry_count` misreports hourly coverage for nested folders.**
+   - `dry_count.py:44-53` accepts any folder under `/scratch/jjyeung/orch_n30/`, but `root_gate()` (`:12-29`, applied at `:67`) checks only the folder's own name.
+   - Example: for `<lane>/runs/sub` it reports `hourly_files > 0`, but the hourly prunes `runs` first and takes nothing.
+   - `GIT_OWNER.md:53` invites such paths.
+   - Smallest fix: require `folder.parent == Path('/scratch/jjyeung/orch_n30')`, or apply `root_gate` to every path component below that root.
+
+9. **LOW — The owner and filter tests write fixtures into whatever tree they are installed in.**
+   - `out/tests/test_owner_tools.py:19-20` defaults to `<tree>/work/test_runs`, creates it at import, and has no `/scratch` guard. The MAXDIR test then writes 2000 files there (`:630-634`).
+   - `out/tests/test_filter_shell_copies.py:13-15` does the same under `<tree>/work/filter_tests`.
+   - If patch 02 or 03 is applied to the `/data2` `orch_n30` tree (where the filter lives) or to a `/home` checkout, a plain unittest run writes thousands of small files to nebby. Those files are kept under the no-deletion rule.
+   - Smallest fix: default to `tempfile.mkdtemp()` and refuse roots outside `/scratch` or `/tmp`, as patch 01 now does.
+
+10. **INFO — Places where `GIT_OWNER.md` contradicts the code or the current state.**
+    - `:66` says the tools "have not been installed in production". They are installed, and the health loop runs every 10 min. The sha256 of all seven `/data2` copies equals `out/tools`.
+    - `:38-39` says "lanes read those files". `$S/KITS_LANDED.txt` is on trinity-3-30's local `/scratch`, so lanes on trinity-1-18 can read only the `/data2` RESULT event.
+    - `:57-58` gives the queue row path as `<lane>/clone`.
+      - The sync compares the 4th field with the absolute `$LANES_ROOT/<lane>/clone` (`in/lane_code_sync.sh:62-64`), so a relative path is refused permanently.
+      - The sync scans only trinity-3-30's own `LANES_ROOT` (`:51`). The guide mentions neither point.
+    - `:32` says `--dry` stops "before Git". It still takes the sync lock and creates `$S/land_kit_*` (`land_kit.py:351-352`), so a dry run at the top of the hour also skips the hourly.
+    - `:22-30`: the verdict and binding rules are narrower than the code (see findings 4 and 5).
+
+11. **INFO — The coordinator's real-Git run tested the pre-fix tool.**
+    - `work/realgit_by_swarm_opt/run.txt` (02:51) prints `LANDED kits/_probe commit=…` with no timestamp and no `sha256=`. The current code prints both (`land_kit.py:294-295`).
+    - The real-Git proofs for the current code are the builder's own: `out/evidence/round1_realgit_runner_py36.txt` and `round1_realgit_runner_py312.txt`. They are consistent with the code.
+    - Smallest fix: run `tests/run_real_git_owner.sh` once more, with the current tools, before the first real kit.
+
+12. **INFO — Some error paths end in a traceback instead of `REFUSED`; one can hold the lock past the timeout.**
+    - `land_kit.py:366` does not catch `EOFError`. Checked in memory: a truncated `.tar.gz` raises it from `tarfile` under both interpreters. `zlib.error`, `lzma.LZMAError`, and an `AttributeError` from a malformed existing `KIT.json` (`:256-258`) are also uncaught.
+    - These still fail closed with exit 1, and the lock is released when the process exits.
+    - Under Python 3.6, `subprocess.run` calls `communicate()` without a timeout after killing a timed-out child (`/usr/lib64/python3.6/subprocess.py:426-428`). A surviving grandchild holding the pipes can therefore keep the lock past 300 s.
+    - Smallest fix: add `EOFError`, `zlib.error` and `lzma.LZMAError` to the caught exceptions.
+
+13. **INFO — Checked and correct.**
+    - **Lock:**
+      - `fcntl.flock` on `$S/.sync.lock` and the hourly's util-linux `flock -n 8` (`in/lane_code_sync.sh:28`) are the same flock(2) lock on the same inode.
+      - The Python fd is non-inheritable and `close_fds` is the default, so no child of `land_kit` holds the lock.
+      - The audit directory is created only after the lock is acquired (`land_kit.py:351-352`).
+      - Health takes only `$S/health/.lock` and `dry_count` takes no lock, so no lock is nested and nothing can deadlock. Neither runs Git.
+    - **When the hourly holds the lock:**
+      - `land_kit` polls for up to 600 s, then refuses with "no Git ran" before writing anything.
+      - Normal runs take 2–4 min (`in/sync.log.tail` lines 10→23 and 189→200).
+      - The 6h51m hang (lines 66→79) would produce a clean refusal.
+    - **When `land_kit` holds the lock:** the hourly logs `FAIL previous run still holds the lock` and skips the hour. This is documented, and the stale event quotes the skip.
+    - **Refusals:**
+      - a bad SHA256 format (before the lock) or a mismatch on the snapshot copy
+      - a missing verdict, or one that is not first-line `VERDICT: GO|ACCEPT|ACCEPT WITH FINDINGS`, including first-line `GO AFTER FIXES`
+      - builder equal to reviewer
+      - a name that exists with different content or provenance
+      - any scanner flag, including in raw members the filter drops, plus a final scan of the payload together with `KIT.json`
+      - a scanner that omits a file
+      - absolute paths, `..`, backslashes and control characters
+      - symlinks, hardlinks, devices and FIFOs
+      - duplicate paths, including `./x`
+      - a root `KIT.json`
+      - more than 64 MiB or 10000 members
+      - files the filter skips, unless `--allow-skips` is given
+      - another branch, a changed tracked worktree, a dirty index, or inherited `GIT_DIR`-style variables
+    - **`KIT.json` and commit message:** both carry seal, sha256, builder, reviewer and date. `KIT.json` also records the verdict path and digest, the binding, `skipped`, `file_count` and a per-file manifest.
+    - **Pushes:**
+      - The refspec is `HEAD:refs/heads/lane-code` with no force, and ls-remote must equal HEAD exactly on each remote.
+      - If either push fails, the command stops with no receipt.
+      - An identical rerun republishes, and the hourly also pushes the local commit.
+    - **Hourly pathspec:**
+      - `git add -f -A lane_code tools/…` (`in/lane_code_sync.sh:149`) cannot stage anything under `kits/`.
+      - The fixture equals the production script (sha256 `1096b994…`).
+      - The real-Git test dirties `kits/` and shows that `HEAD:kits` is unchanged.
+    - **Health:**
+      - `stale` fires when the newest verified push is more than 90 min old, once per incident.
+      - `failed` fires only when the newest completed run failed and no BLOCKER of its own falls in [start, end+2 s]. It is deduplicated per run.
+      - Recovery requires a newer verified push, plus `END ok` for `failed`.
+      - Delivery is journalled, and legacy journal strings migrate as delivered. The pre-fix state schema (`work/build/tools/sync_health.py`) is compatible.
+      - On the real log tail: newest verified push 2026-11-19T05:26:57Z, last run `END ok`, no lock skips.
+    - **dry_count:** it runs the filter without a manifest argument, so the filter writes nothing; dry_count itself writes and copies nothing. It refuses symlinks and paths outside `/scratch/jjyeung/orch_n30/`.
+    - **Patch 01:**
+      - With `R1315_PKG` unset, `PKG == DEFAULT_PKG`; the list gains a duplicate entry and the matcher result is unchanged.
+      - When the variable is set, it is validated and the default collectors stay visible.
+      - The real distill file is identical to `in/` (sha256 `ead23ea8…`, 34 lines, definitions only), so the `runpy` test executes nothing.
+      - The distill `.gitignore` ignores `__pycache__/`.
+    - **Patches 02 and 03:** patch 02's bodies equal `out/` byte for byte, and both test files equal their patch bodies. Patch 03 is off by default, and the report states that it does not reach the remote stage.

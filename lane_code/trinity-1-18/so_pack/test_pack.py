@@ -117,6 +117,19 @@ def fill_fixture(root,drop_env=False):
     return package,cfg
 
 
+def repin_payload(package,pay):
+    plan=json.loads(pay['9.json'])
+    for n in plan['payload_pins']:
+        plan['payload_pins'][n]=dict(bytes=len(pay[n]),sha256=P.sha(pay[n]))
+    pay['9.json']=json.dumps(plan,sort_keys=True).encode()
+    (package/'0.tgz').write_bytes(tarbytes(pay,True));reseal(package)
+
+
+def empty_ledger(root):
+    p=root/'ledger.jsonl';p.write_text('')
+    return dict(path=str(p),sha256=P.file_sha(p))
+
+
 def execute_fixture_fill(package,cfg):
     pub=P.read(package/'0.json');remote=P.REMOTE_ROOT+'/'+P.PREFIX+pub['token']
     args=P.fill_argv(cfg,remote)
@@ -172,6 +185,52 @@ class PackTests(unittest.TestCase):
         self.assertEqual(filled['archives'][4],base['archives'][4])
         self.assertEqual(len(filled['archives']),len(base['archives'])+1)
 
+    def test_F06_real_rows_nonzero_and_null_through_logic_probe(self):
+        P.probe(CPU,'logic',ROUTE/'B5/package',self.w/'good',{'python':CPU})
+        self.assertGreater(P.read(self.w/'good/result.json')['rows_checked'],0)
+        for field,suffix in (('total_num_frames','R0_QUESTIONS_dev_f32.jsonl'),
+                             ('fps','/r3/TASKS.jsonl')):
+            package=copy_package(self.w/field)
+            pay=P.unpack((package/'0.tgz').read_bytes())
+            name=next(n for n in pay if n.endswith(suffix))
+            lines=pay[name].decode().splitlines();row=json.loads(lines[0]);row[field]=None
+            lines[0]=json.dumps(row);pay[name]=('\n'.join(lines)+'\n').encode()
+            repin_payload(package,pay)
+            with self.assertRaises(P.GateError):P.probe(CPU,'logic',package,self.w/(field+'bad'),{'python':CPU})
+            self.assertIn(field,(self.w/(field+'bad/probe.log')).read_text())
+
+    def test_F06_zero_rows_fail_closed(self):
+        package=copy_package(self.w/'p');pay=P.unpack((package/'0.tgz').read_bytes())
+        for n in list(pay):
+            if n.endswith(('.json','.jsonl')) and n!='9.json':
+                # Preserve non-row metadata; remove only actual row sources.
+                try:
+                    values=[json.loads(l) for l in pay[n].decode().splitlines() if l.strip()] if n.endswith('.jsonl') else [json.loads(pay[n])]
+                    if any(list(Q.rows_in(v)) for v in values):pay[n]=b'' if n.endswith('.jsonl') else b'[]'
+                except ValueError:pass
+        repin_payload(package,pay)
+        with self.assertRaises(P.GateError):P.probe(CPU,'logic',package,self.w/'bad',{'python':CPU})
+        self.assertIn('zero rows',(self.w/'bad/probe.log').read_text())
+
+    def test_F09_import_order_through_logic_probe(self):
+        package=copy_package(self.w/'p');pay=P.unpack((package/'0.tgz').read_bytes())
+        pay['z/read_filter.py']=b'VALUE=3\n'
+        pay['z/worker.py']=b'import read_filter\nfrom pathlib import Path\nimport sys\nsys.path.insert(0,str(Path(__file__).parent))\n'
+        repin_payload(package,pay)
+        with self.assertRaises(P.GateError):P.probe(CPU,'logic',package,self.w/'bad',{'python':CPU})
+        logs=list((self.w/'bad').glob('import*.log'))
+        self.assertTrue(any('ModuleNotFoundError' in p.read_text() for p in logs))
+        pay['z/worker.py']=b'from pathlib import Path\nimport sys\nsys.path.insert(0,str(Path(__file__).parent))\nimport read_filter\n'
+        repin_payload(package,pay)
+        P.probe(CPU,'logic',package,self.w/'good',{'python':CPU})
+
+    def test_F09_dropped_env_through_real_python36_fill_probe(self):
+        package,cfg=fill_fixture(self.w,drop_env=True)
+        with self.assertRaises(P.GateError):P.probe(CPU,'fill',package,self.w/'bad',cfg)
+        text=(self.w/'bad/probe.log').read_text()
+        self.assertIn('Fill must append preparation archive',text)
+        self.assertNotIn('Traceback (most recent call last):\n  File',text.split('Fill must append')[1])
+
     def test_04_stale_bundle_descriptor_defect(self):
         p=copy_package(self.w/'p');f=(p/'BATCH.sh').read_text();bm=P.bundle(f.encode())
         pub=json.loads(bm['0.json']);pub['token']='a01234567890';bm['0.json']=json.dumps(pub).encode()
@@ -209,21 +268,29 @@ class PackTests(unittest.TestCase):
         self.assertTrue(logs)
         self.assertIn('stop/end proof failed',logs[0].read_text())
 
-    def test_every_privacy_surface_including_nested_bundle(self):
+    def test_F01_name_argv_env_and_stale_identity_boundaries(self):
         public={'token':'a01234567890'}
-        P.privacy({'0.txt':b'ok'},{},public)
-        for name,raw in [('model.txt',b'ok'),('0.py',b'# dataset\n'),
-                         ('0.json',b'{"PATH":"/tmp/qwen"}'),
-                         ('0.sh',b'export V=benchmark'),('0.txt',b'/tmp/scannet')]:
+        P.privacy({'0.txt':b'dataset same sample shutdown split'},{},public)
+        for name,raw in [('model.txt',b'ok'),('0.sh',b'python3 /tmp/dataset.py'),
+                         ('0.sh',b'export V=benchmark'),('0.sh',b'#SBATCH --comment=model'),
+                         ('0.sh',b'env MODEL=x true'),('0.sh',b'python3 --x qwen')]:
             with self.subTest(name=name,raw=raw):
                 with self.assertRaises(P.GateError):P.privacy({name:raw},{},public)
-        bm={'0.py':b'# dataset','0.json':b'{}','7.py':b'pass'}
-        batch=('b=bytes.fromhex(%r)\n'%tarbytes(bm,True).hex()).encode()
-        with self.assertRaises(P.GateError):P.privacy({'BATCH.sh':batch},{},public)
+        # Archive names and bytes remain private; stale identities do not.
+        archive=tarbytes({'model.py':b'# dataset old123'},True)
+        P.privacy({'0.tgz':archive},{},public)
+        with self.assertRaisesRegex(P.GateError,'Stale identity'):
+            P.privacy({'0.tgz':archive},{},public,extra=['old123'])
+        p=copy_package(self.w/'p');batch=(p/'BATCH.sh').read_bytes()
+        bm=P.bundle(batch);bm['0.py']+=b'\n# old456\n'
+        line=next(l for l in batch.decode().splitlines() if l.startswith('b=bytes.fromhex('))
+        batch=batch.decode().replace(line,'b=bytes.fromhex(%r)'%tarbytes(bm,True).hex()).encode()
+        with self.assertRaisesRegex(P.GateError,'Stale identity'):
+            P.privacy({'BATCH.sh':batch},{},P.read(p/'0.json'),extra=['old456'])
         for tok in ('camera','123456789abc','a1;echo bad','a01234567890\n'):
             with self.assertRaises(P.GateError):P.token(tok)
         with self.assertRaises(P.GateError):
-            P.privacy({'0.txt':b'customstudy'},{},public,forbidden_extra=['customstudy'])
+            P.privacy({'customstudy.txt':b'ok'},{},public,forbidden_extra=['customstudy'])
 
     def test_symlink_duplicate_and_traversal_archives(self):
         for name in ('../bad','/tmp/bad','a/../b','./a'):
@@ -282,11 +349,9 @@ class PackTests(unittest.TestCase):
             r=subprocess.run(['nice','-n','10','bash','-n',str(path)],
                              stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             self.assertEqual(r.returncode,0,r.stderr.decode())
-            if n!='submit':P.opaque(text,'outbound '+n)
-        with self.assertRaisesRegex(P.GateError,'Forbidden word'):
-            P.opaque(scripts['submit'],'outbound submit')
+            P.shell_surfaces(text,'outbound '+n)
         self.assertIn('sacct',scripts['submit']);self.assertIn('CPU.json',scripts['submit'])
-        self.assertIn('squeue',scripts['submit']);self.assertIn('sleep 60',scripts['submit'])
+        self.assertIn('squeue',scripts['submit']);self.assertNotIn('sleep 60',scripts['submit'])
 
     def test_all_plans_every_phase_before_any_remote_execution(self):
         cfg=self.w/'c.json';P.write(cfg,{'workspace':str(self.w)})
@@ -312,6 +377,32 @@ class PackTests(unittest.TestCase):
                 P.main(args)
             remote.assert_not_called()
 
+    def test_F02_real_submit_preflight_fails_before_place(self):
+        package,cfg=fill_fixture(self.w)
+        tok=P.read(package/'0.json')['token'];delivery=self.w/'1.tgz'
+        delivery.write_bytes(tarbytes(P.package_files(package),True))
+        b=dict(package=str(package),delivery=str(delivery),report={'token':tok})
+        cfg.update(workspace=str(self.w))
+        cfg['remote'].update(ossh='/unavailable/ossh.sh',
+            cpu_script=dict(path=str(DB/'o_cpu_D.sh'),sha256=P.file_sha(DB/'o_cpu_D.sh')),
+            submit_script=dict(path=str(DB/'o_sub_D.sh'),sha256='0'*64))
+        path=self.w/'cfg.json';P.write(path,cfg)
+        with patch.object(P,'build',return_value=b),patch.object(P,'built',return_value=b), \
+             patch.object(P,'checked',return_value=b),patch.object(P,'local_check',return_value={}), \
+             patch.object(P,'run_remote') as remote:
+            with self.assertRaisesRegex(P.GateError,'Remote script source hash differs: submit_script'):
+                P.main(['all','--enable','--yes','--execute-remote','--token',tok,'--config',str(path)])
+            remote.assert_not_called()
+
+    def test_F01_containment_and_login_environment(self):
+        package=copy_package(self.w/'p');P.containment(package)
+        (package/'a/4.py').chmod(0o644)
+        with self.assertRaisesRegex(P.GateError,'0600'):P.containment(package)
+        path=self.w/'0.sh';path.write_text(P.shell_header())
+        env=dict(os.environ,OPAQUE='dataset')
+        r=subprocess.run(['bash',str(path)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=5)
+        self.assertNotEqual(r.returncode,0);self.assertIn(b'Non-opaque environment: OPAQUE',r.stderr)
+
     def test_transport_stream_with_local_copy_stub_and_no_retry(self):
         # This stub only copies stdin into this test folder. It never calls SSH.
         tok='a0123456789ab';received=self.w/'0.received';stub=self.w/'0.sh'
@@ -326,7 +417,8 @@ class PackTests(unittest.TestCase):
         with patch.object(P,'checked',return_value={'report':{'token':tok}}), \
              patch.object(P,'remote_place',return_value='true\n'),redirect_stdout(capture):
             P.stage_remote('place',c,dry)
-        self.assertIn('set -o pipefail; pv -q -L 8m ',capture.getvalue())
+        self.assertIn('set -o pipefail; pv -q -L 8000000 ',capture.getvalue())
+        self.assertIn('| timeout 300 bash ',capture.getvalue())
         with patch.object(P,'checked',return_value={'report':{'token':tok}}):
             with self.assertRaisesRegex(P.GateError,'Planned remote script changed'):
                 P.run_remote('place',c,args,script,'0'*64)
@@ -336,6 +428,91 @@ class PackTests(unittest.TestCase):
             self.assertIn('LOCAL_STUB_OK',(self.w/'place_remote.log').read_text())
             with self.assertRaisesRegex(P.GateError,'already attempted'):
                 P.run_remote('place',c,args,script,P.file_sha(script))
+
+    def test_F03_short_calls_and_F10_accounting_error_budget(self):
+        from types import SimpleNamespace
+        args=SimpleNamespace(yes=True,token='a0123456789ab',execute_remote=True)
+        manifest={}
+        for phase in ('cpu','poll','gpu'):
+            p=self.w/(phase+'.sh');p.write_text('true\n')
+            manifest[phase]=dict(path=str(p),sha256=P.file_sha(p))
+        script=self.w/'submit.json';P.write(script,manifest)
+        cfg=dict(workspace=str(self.w),remote=dict(walltime='04:00:00',ossh='/unavailable'))
+        calls=[]
+        def reply(action,*unused):
+            calls.append(action)
+            if 'poll' not in action:return ''
+            return ['PACK_CPU_RETRY\n','PACK_CPU_WAIT 1 RUNNING\n','PACK_CPU_READY\n'][sum('poll' in x for x in calls)-1]
+        with patch.object(P,'checked',return_value={'report':{'token':args.token}}), \
+             patch.object(P,'remote_call',side_effect=reply),patch.object(P.time,'sleep') as sleep:
+            P.run_remote('submit',cfg,args,script,P.file_sha(script))
+        self.assertEqual(calls,['submit_cpu','submit_poll_0001','submit_poll_0002','submit_poll_0003','submit_gpu'])
+        self.assertEqual([c.args for c in sleep.call_args_list],[(60,)]*4)
+        self.assertEqual(P.transport_command(cfg)[:2],['timeout','300'])
+        cfg['remote']['timeout_seconds']=301
+        with self.assertRaises(P.GateError):P.transport_command(cfg)
+        cfg['remote'].pop('timeout_seconds');other=self.w/'other';other.mkdir();cfg['workspace']=str(other)
+        def broken(action,*unused):return 'PACK_CPU_RETRY\n'
+        with patch.object(P,'checked',return_value={'report':{'token':args.token}}), \
+             patch.object(P,'remote_call',side_effect=broken) as call,patch.object(P.time,'sleep'):
+            with self.assertRaisesRegex(P.GateError,'Three consecutive sacct errors'):
+                P.run_remote('submit',cfg,args,script,P.file_sha(script))
+            self.assertFalse(any(c.args[0]=='submit_gpu' for c in call.call_args_list))
+        expired=self.w/'expired';expired.mkdir();cfg['workspace']=str(expired)
+        with patch.object(P,'checked',return_value={'report':{'token':args.token}}), \
+             patch.object(P,'remote_call',return_value='PACK_CPU_WAIT 1 RUNNING\n') as call, \
+             patch.object(P.time,'sleep'),patch.object(P.time,'monotonic',side_effect=[0,1,14401]):
+            with self.assertRaisesRegex(P.GateError,'CPU wait expired'):
+                P.run_remote('submit',cfg,args,script,P.file_sha(script))
+            self.assertFalse(any(c.args[0]=='submit_gpu' for c in call.call_args_list))
+
+    def test_F10_all_nonrunning_states_stop_with_diagnostics(self):
+        b={'report':{'token':'a0123456789ab'}}
+        cfg={'remote':{'walltime':'04:00:00',
+            'cpu_script':dict(path=str(DB/'o_cpu_D.sh'),sha256=P.file_sha(DB/'o_cpu_D.sh')),
+            'submit_script':dict(path=str(DB/'o_sub_D.sh'),sha256=P.file_sha(DB/'o_sub_D.sh'))}}
+        local=self.w/(P.PREFIX+b['report']['token']);(local/'a/c').mkdir(parents=True)
+        (local/'a/4.txt').write_text('123\n');(local/'a/4.err').write_text('CPU_FIXTURE_DIAGNOSTIC\n')
+        (local/'a/c/CPU.json').write_text('{}')
+        script=self.w/'poll.sh'
+        text=P.remote_submit(cfg,b,'poll').replace(P.REMOTE_ROOT+'/'+P.PREFIX+b['report']['token'],str(local))
+        script.write_text(text);stub=self.w/'sacct'
+        env=dict(os.environ,PATH=str(self.w)+':'+os.environ['PATH'])
+        for state in ('BOOT_FAIL','DEADLINE','REVOKED','UNKNOWN','FAILED','CANCELLED+','PENDING','RUNNING','CONFIGURING','COMPLETING','COMPLETED'):
+            stub.write_text('#!/bin/bash\necho '+state+'\n');stub.chmod(0o700)
+            r=subprocess.run(['bash',str(script)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=5)
+            running=state in ('PENDING','RUNNING','CONFIGURING','COMPLETING')
+            self.assertEqual(r.returncode==0,running or state=='COMPLETED',state)
+            if r.returncode:self.assertIn(b'CPU_FIXTURE_DIAGNOSTIC',r.stderr)
+        stub.write_text('#!/bin/bash\necho ACCOUNTING_UNAVAILABLE >&2\nexit 1\n')
+        r=subprocess.run(['bash',str(script)],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=5)
+        self.assertEqual(r.returncode,0);self.assertIn(b'PACK_CPU_RETRY',r.stdout)
+        self.assertIn(b'ACCOUNTING_UNAVAILABLE',r.stderr)
+
+    def test_F11_custom_terms_cover_remote_path_and_fill_argv(self):
+        b={'report':{'token':'a0123456789ab'}}
+        cfg={'remote':{'walltime':'04:00:00'},'forbidden_extra':['okh7']}
+        with self.assertRaisesRegex(P.GateError,'remote package path'):P.remote_settings(cfg,b)
+        package,cfg=fill_fixture(self.w);cfg['forbidden_extra']=['sft']
+        with self.assertRaisesRegex(P.GateError,'fill argv'):P.remote_fill(cfg,b)
+
+    def test_F01_sealed_shell_commands_are_scanned_before_wrapping(self):
+        cpu=self.w/'0.sh';cpu.write_text((DB/'o_cpu_D.sh').read_text()+'\nexport A=dataset\n')
+        cfg={'remote':{'walltime':'04:00:00',
+            'cpu_script':dict(path=str(cpu),sha256=P.file_sha(cpu)),
+            'submit_script':dict(path=str(DB/'o_sub_D.sh'),sha256=P.file_sha(DB/'o_sub_D.sh'))}}
+        with self.assertRaisesRegex(P.GateError,'sealed CPU commands'):
+            P.remote_submit(cfg,{'report':{'token':'a0123456789ab'}})
+
+    def test_F13_ledger_reuse_rejected_before_builder(self):
+        ledger=self.w/'ledger.jsonl';ledger.write_text('{"job":"a15_cot_apa0123456789ab"}\n')
+        cfg={'workspace':str(self.w),'token_ledger':dict(path=str(ledger),sha256=P.file_sha(ledger)),
+             'builder':{'path':str(DB/'build_d.py')}}
+        with patch.object(P,'run') as builder:
+            with self.assertRaisesRegex(P.GateError,'Trinity ledger'):P.build(cfg,'a0123456789ab')
+            builder.assert_not_called()
+        cfg['token_ledger']['sha256']='0'*64
+        with self.assertRaisesRegex(P.GateError,'ledger SHA'):P.build(cfg,'b0123456789ab')
 
     def test_fixed_token_operational_adapter_is_explicit(self):
         root=MIRROR/'cont_ops17/work';pub=P.read(ROUTE/'A4/package/0.json')
@@ -348,7 +525,8 @@ class PackTests(unittest.TestCase):
         with self.assertRaisesRegex(P.GateError,'parameterized'):
             P.remote_submit(cfg,b)
         for key in ('cpu_script','submit_script'):cfg['remote'][key]['parameterize']=True
-        text=P.remote_submit(cfg,b)
+        text=P.remote_submit(cfg,b,'cpu')+P.remote_submit(cfg,b)
+        self.assertNotIn('d50ba921ef1f4',text)
         self.assertIn('test "${P:?}" = '+P.REMOTE_ROOT+'/'+P.PREFIX+pub['token'],text)
         self.assertIn('--time "$T"',text)
         self.assertIn('--time=04:00:00',text)
@@ -361,18 +539,49 @@ class PackTests(unittest.TestCase):
         for mode in ('metadata','guard','logic'):
             P.probe(CPU,mode,ROUTE/'B5/package',self.w/mode,{'python':CPU})
 
-    def test_supplied_packages_are_not_privacy_releases(self):
+    def test_F01_supplied_packages_pass_name_privacy(self):
         for name in ('A4','B5'):
             f,p,pub,plan=P.structure(ROUTE/name/'package')
-            with self.assertRaises(P.GateError):P.privacy(f,p,pub)
+            self.assertGreater(P.privacy(f,p,pub)['surfaces_checked'],0)
 
-    def test_python36_grammar(self):
+    def test_F08_real_python36_login_runtime(self):
         import warnings,re
         with warnings.catch_warnings():
             warnings.simplefilter('error')
             self.assertRegex(P.utc(),r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
+        P.probe(CPU,'login',ROUTE/'B5/package',self.w/'login',{'python':CPU})
+        result=P.read(self.w/'login/result.json')
+        self.assertIn('3.6.8',result['python'])
+        self.assertTrue(result['generated_place_executed'])
         for n in ('pack.py','pack_probes.py'):
-            ast.parse((HERE/n).read_text(),filename=n,feature_version=(3,6))
+            r=subprocess.run(['/usr/bin/python3','-I','-s','-B','-c',
+                'import sys;compile(open(sys.argv[1],"rb").read(),sys.argv[1],"exec")',str(HERE/n)],
+                stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            self.assertEqual(r.returncode,0,r.stderr.decode())
+        fixture=self.w/'fixture';fixture.mkdir();package,cfg=fill_fixture(fixture)
+        # Tiny archive metadata exercises login APIs; dependency resolution is
+        # deliberately separate and is never granted by this fixture.
+        base=P.read(package/'a/0.json');tiny=fixture/'0';tiny.write_bytes(b'x')
+        for archive in base['archives'][1:]:
+            for pin in archive['parts']:
+                cfg['mirrors'][pin['path']]=dict(local=str(tiny),bytes=1,sha256=P.file_sha(tiny))
+                pin.update(bytes=1,sha256=P.file_sha(tiny))
+        P.write(package/'a/0.json',base);reseal(package)
+        P.write(fixture/'cfg.json',cfg)
+        code=('import sys,runpy,json;from pathlib import Path;'
+              'sys.path.insert(0,'+repr(str(HERE))+');import pack as P,pack_probes as Q;'
+              'ns=runpy.run_path('+repr(str(HERE/'test_pack.py'))+');'
+              'p=Path('+repr(str(package))+');c=P.read('+repr(str(fixture/'cfg.json'))+');'
+              'ns["execute_fixture_fill"](p,c);'
+              'remote=P.REMOTE_ROOT+"/"+P.PREFIX+P.read(p/"0.json")["token"];'
+              'sys.argv=[remote+"/3.py","check","--gpus","1","--time","02:30:00"];'
+              '\nwith Q.Mirrors(c["mirrors"],remote,p):\n'
+              ' runpy.run_path(remote+"/3.py",run_name="__main__")\n'
+              ' for source in P.python_stdin_sources(P.remote_fill(c,{"report":{"token":P.read(p/"0.json")["token"]}})):\n'
+              '  exec(compile(source,"fill_stdin","exec"),{})\n'
+              'assert P.read(p/"2.json")["passed"] is True\nprint("REAL_36_FILL_AND_PUBLIC_CHECK_PASS",sys.version)')
+        P.run(['/usr/bin/python3','-I','-s','-B','-c',code],fixture,fixture/'runtime.log')
+        self.assertIn('REAL_36_FILL_AND_PUBLIC_CHECK_PASS',(fixture/'runtime.log').read_text())
 
     def test_mirror_hashes_and_write_refusal(self):
         f=self.w/'0';f.write_bytes(b'abc')
@@ -399,7 +608,7 @@ class PackTests(unittest.TestCase):
         for n in names:
             m=tarfile.TarInfo(n);m.mode=(b5/n).stat().st_mode&0o777;parts.append((m,(b5/n).read_bytes()))
         source.write_bytes(write_tar(parts));stage=self.w/'stage'
-        cfg=dict(workspace=str(self.w),python=CPU,builder=dict(path=str(DB/'build_d.py'),
+        cfg=dict(workspace=str(self.w),python=CPU,token_ledger=empty_ledger(self.w),builder=dict(path=str(DB/'build_d.py'),
             sha256=P.file_sha(DB/'build_d.py'),args=[str(stage),str(source),P.file_sha(source),
             str(DB/'evidence/items/dist580.json'),str(DB/'bind_D200.json'),
             '--timing',str(DB/'TIMING_D.json')],report=str(stage/'BUILD.json'),key='D',
@@ -416,9 +625,9 @@ class PackTests(unittest.TestCase):
 
 def main():
     global ROOT
-    P.limit_resources()
+    P.limit_resources();os.umask(0o077)
     p=argparse.ArgumentParser();p.add_argument('--work',required=True);a=p.parse_args()
-    ROOT=Path(a.work).resolve();P.require(str(ROOT).startswith(str(HERE.parent.resolve())+'/'),
+    ROOT=Path(a.work).resolve();P.require(P.inside(ROOT,'/scratch/jjyeung/orch_n30/so_pack'),
                                          'Test writes must stay under so_pack')
     ROOT.mkdir(parents=True,exist_ok=False)
     env=P.clean_env(ROOT);os.environ.clear();os.environ.update(env)

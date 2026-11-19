@@ -1,0 +1,2383 @@
+{
+  "method": "Changed AST statement heads against saved build-20 bytes. Only current SHA-256 and matching compiled-code fingerprints count.",
+  "total": 171,
+  "observed": 164,
+  "statements": [
+    {
+      "file": "work/tree_r1/launch_r1/build.py",
+      "line": 43,
+      "text": "    from student_pilot.r1_coverage import source_names",
+      "sha256": "39359b77182ad39c4c2151b4c0dc970612594d035dcd8176d0b9c340b37e993d",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/launch_r1/build.py",
+      "line": 44,
+      "text": "    cfg['r1_training']['row_slice_inputs']={k:row_sources[k]['source'] for k in source_names(row_sources)}",
+      "sha256": "39359b77182ad39c4c2151b4c0dc970612594d035dcd8176d0b9c340b37e993d",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/launch_r1/production_proof.py",
+      "line": 96,
+      "text": "        from student_pilot.r1_training import training_components",
+      "sha256": "52c68325d10bb6897d9ebcc8408aeea8f0de432fb42bb256d20ca68f1db7a01b",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/launch_r1/production_proof.py",
+      "line": 97,
+      "text": "        with scope(closure['paths']):",
+      "sha256": "52c68325d10bb6897d9ebcc8408aeea8f0de432fb42bb256d20ca68f1db7a01b",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/launch_r1/production_proof.py",
+      "line": 99,
+      "text": "        result['steps'].append('training_components')",
+      "sha256": "52c68325d10bb6897d9ebcc8408aeea8f0de432fb42bb256d20ca68f1db7a01b",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/launch_r1/production_proof.py",
+      "line": 98,
+      "text": "            training_components(cfg['r1_training']['registry'], cfg)",
+      "sha256": "52c68325d10bb6897d9ebcc8408aeea8f0de432fb42bb256d20ca68f1db7a01b",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/carrier_c1_run.py",
+      "line": 797,
+      "text": "    if cfg.get('r1_training'):",
+      "sha256": "e26eddaaeb2f609b1eb8f5279f50df5d79dd8c438c2efbe4a9c845f5aa996273",
+      "observed": false
+    },
+    {
+      "file": "work/tree_r1/student_pilot/carrier_c1_run.py",
+      "line": 798,
+      "text": "        receipt = {**receipt, '_r1_start_config': copy.deepcopy(cfg)}",
+      "sha256": "e26eddaaeb2f609b1eb8f5279f50df5d79dd8c438c2efbe4a9c845f5aa996273",
+      "observed": false
+    },
+    {
+      "file": "work/tree_r1/student_pilot/carrier_c1_run.py",
+      "line": 1067,
+      "text": "        from .r1_coverage import validate_binding",
+      "sha256": "e26eddaaeb2f609b1eb8f5279f50df5d79dd8c438c2efbe4a9c845f5aa996273",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/carrier_c1_run.py",
+      "line": 1068,
+      "text": "        self.wording_exclusion = validate_binding(receipt)",
+      "sha256": "e26eddaaeb2f609b1eb8f5279f50df5d79dd8c438c2efbe4a9c845f5aa996273",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/carrier_c1_run.py",
+      "line": 1123,
+      "text": "        if getattr(self, 'wording_exclusion', None) is not None:",
+      "sha256": "e26eddaaeb2f609b1eb8f5279f50df5d79dd8c438c2efbe4a9c845f5aa996273",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/carrier_c1_run.py",
+      "line": 1124,
+      "text": "            self.wording_exclusion.check(value)",
+      "sha256": "e26eddaaeb2f609b1eb8f5279f50df5d79dd8c438c2efbe4a9c845f5aa996273",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/grounding_train.py",
+      "line": 2,
+      "text": "from .job_env import key as env_key",
+      "sha256": "0151f65378ad0facc8b6940fab908a8c3a29a2117b90236ba9d9f6ffc12c92f6",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/grounding_train.py",
+      "line": 28,
+      "text": "        existing = os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))",
+      "sha256": "0151f65378ad0facc8b6940fab908a8c3a29a2117b90236ba9d9f6ffc12c92f6",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/grounding_train.py",
+      "line": 36,
+      "text": "        os.environ[env_key('STUDENT_FRAME_ROOT_MAP')] = json.dumps(pairs)",
+      "sha256": "0151f65378ad0facc8b6940fab908a8c3a29a2117b90236ba9d9f6ffc12c92f6",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/job_env.py",
+      "line": 2,
+      "text": "import os",
+      "sha256": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/job_env.py",
+      "line": 3,
+      "text": "ALIASES = {'STUDENT_ORCHARD': 'Q_E1', 'STUDENT_SLURM_SITE': 'Q_E2', 'STUDENT_MODEL_ROOT': 'Q_E3', 'STUDENT_FRAME_ROOT_MAP': 'Q_E4', 'R1_STUDENT_HEX': 'Q_E5'}",
+      "sha256": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/job_env.py",
+      "line": 4,
+      "text": "def key(name):",
+      "sha256": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/job_env.py",
+      "line": 5,
+      "text": "    alias=ALIASES.get(name)",
+      "sha256": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/job_env.py",
+      "line": 6,
+      "text": "    return alias if alias is not None and alias in os.environ else name",
+      "sha256": "05def1cad6ccf0adcfa678982d701a9378a3e5615b7ccf5df08aa617f57a03b3",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/orchard_admission.py",
+      "line": 2,
+      "text": "from .job_env import key as env_key",
+      "sha256": "403b41d6c6bf2143e0647efabdff2407d400f28d97b26d949a60318569bd0141",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/orchard_admission.py",
+      "line": 98,
+      "text": "    site = os.environ.get((env_key('STUDENT_SLURM_SITE')), 'orchard')",
+      "sha256": "403b41d6c6bf2143e0647efabdff2407d400f28d97b26d949a60318569bd0141",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/orchard_paths.py",
+      "line": 2,
+      "text": "from .job_env import key as env_key",
+      "sha256": "bcb89ef09e2172164f4d396840048b5b3263e85a72419fa612897475073f125b",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/orchard_paths.py",
+      "line": 12,
+      "text": "    return os.environ.get((env_key('STUDENT_ORCHARD'))) == '1'",
+      "sha256": "bcb89ef09e2172164f4d396840048b5b3263e85a72419fa612897475073f125b",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/orchard_paths.py",
+      "line": 23,
+      "text": "    mapping = os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))",
+      "sha256": "bcb89ef09e2172164f4d396840048b5b3263e85a72419fa612897475073f125b",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/orchard_paths.py",
+      "line": 58,
+      "text": "    root = Path(os.environ[env_key('STUDENT_MODEL_ROOT')]).resolve()",
+      "sha256": "bcb89ef09e2172164f4d396840048b5b3263e85a72419fa612897475073f125b",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/provisional_data.py",
+      "line": 1,
+      "text": "from .job_env import key as env_key",
+      "sha256": "789a1d1963bca20168b8fc4e3122a75d9d9beff83719967d0e88098b10c5585c",
+      "observed": false
+    },
+    {
+      "file": "work/tree_r1/student_pilot/provisional_data.py",
+      "line": 77,
+      "text": "        protocol[\"orchard_path_map\"] = os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')))",
+      "sha256": "789a1d1963bca20168b8fc4e3122a75d9d9beff83719967d0e88098b10c5585c",
+      "observed": false
+    },
+    {
+      "file": "work/tree_r1/student_pilot/provisional_data.py",
+      "line": 123,
+      "text": "        if protocol.get(\"orchard_path_map\") != os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP'))):",
+      "sha256": "789a1d1963bca20168b8fc4e3122a75d9d9beff83719967d0e88098b10c5585c",
+      "observed": false
+    },
+    {
+      "file": "work/tree_r1/student_pilot/provisional_data.py",
+      "line": 135,
+      "text": "        if protocol.get(\"orchard_path_map\") != os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP'))):",
+      "sha256": "789a1d1963bca20168b8fc4e3122a75d9d9beff83719967d0e88098b10c5585c",
+      "observed": false
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 2,
+      "text": "import json,re,unicodedata",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 3,
+      "text": "from .p3_provenance import load,pinned,digest",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 5,
+      "text": "SPLIT = '2463193d00fabda5c62d07027527f57a5943dd52ee2b346a215576e55d1abf19'",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 6,
+      "text": "PINS = {'coverage_units':'8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82',",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 9,
+      "text": "def source_names(sources):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 15,
+      "text": "def normalize(text):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 18,
+      "text": "class WordingExclusion:",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 38,
+      "text": "def validate_binding(cfg):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 50,
+      "text": "def rewording(child,parent):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 68,
+      "text": "def union_rows(base,extra):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 80,
+      "text": "def read_list(pin):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 83,
+      "text": "def verify_union(value,removals,base_hash,n_hash):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 10,
+      "text": "    from .r1_population import SLICE_CELLS",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 11,
+      "text": "    extra=set(sources)&set(PINS)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 12,
+      "text": "    if extra and extra!=set(PINS):raise ValueError('R1_COVERAGE_SOURCES_INCOMPLETE')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 13,
+      "text": "    return (*SLICE_CELLS,*sorted(extra))",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 16,
+      "text": "    return ' '.join(unicodedata.normalize('NFKC',text).casefold().split())",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 19,
+      "text": "    def __init__(self,pin):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 28,
+      "text": "    def check(self,row):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 39,
+      "text": "    value=cfg.get('r1_training') or {};pin=value.get('wording_exclusion')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 39,
+      "text": "    value=cfg.get('r1_training') or {};pin=value.get('wording_exclusion')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 40,
+      "text": "    sources=load(pinned(value['row_sources'])) if value.get('row_sources') else {}",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 41,
+      "text": "    extra=set(PINS)&set(sources)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 42,
+      "text": "    if extra:",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 48,
+      "text": "    return WordingExclusion(pin) if pin else None",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 52,
+      "text": "    from copy import deepcopy",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 53,
+      "text": "    a,b=deepcopy(child),deepcopy(parent)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 54,
+      "text": "    units='ground_record' in a",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 55,
+      "text": "    p=a['provenance']",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 56,
+      "text": "    edit=p.get('details',{}).pop('question_edit',None) if units else p.pop('dist_diag_question_edit',None)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 57,
+      "text": "    if (not edit or edit.get('reworded_from')!=b['qid'] or edit.get('before')!=b['question']",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 60,
+      "text": "    keys=('qid','question','candidate_id') if units else ('qid','question','question_identity','candidate_id')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 61,
+      "text": "    for row in (a,b):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 65,
+      "text": "    if a!=b:raise ValueError('R1_COVERAGE_NON_WORDING_CHANGE')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 66,
+      "text": "    return parent['qid']",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 69,
+      "text": "    values={}",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 70,
+      "text": "    for rows in (base,extra):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 78,
+      "text": "    return [values[k] for k in sorted(values)]",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 81,
+      "text": "    with pinned(pin).open() as f:return [json.loads(line) for line in f if line.strip()]",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 84,
+      "text": "    spec=value.get('v7_k1_union');pin=value.get('v7_k1_removal',{})",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 84,
+      "text": "    spec=value.get('v7_k1_union');pin=value.get('v7_k1_removal',{})",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 85,
+      "text": "    if not spec:return False",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 86,
+      "text": "    if set(spec)!={'base','extra','union'} or spec['base'].get('sha256')!=base_hash or spec['union']!=pin:",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 88,
+      "text": "    expected=union_rows(read_list(spec['base']),read_list(spec['extra']))",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 89,
+      "text": "    if read_list(pin)!=expected:raise ValueError('R1_K1_UNION_CONTENT')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 90,
+      "text": "    hashes=[p['sha256'] for p in removals]",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 91,
+      "text": "    if (hashes.count(base_hash)!=1 or hashes.count(pin['sha256'])!=1 or n_hash not in hashes",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 94,
+      "text": "    return True",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 12,
+      "text": "    if extra and extra!=set(PINS):raise ValueError('R1_COVERAGE_SOURCES_INCOMPLETE')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 20,
+      "text": "        if pin.get('sha256')!=SPLIT:raise ValueError('R1_WORDING_EXCLUSION_PIN')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 21,
+      "text": "        value=load(pinned(pin));self.patterns=[]",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 21,
+      "text": "        value=load(pinned(pin));self.patterns=[]",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 22,
+      "text": "        if len(value.get('held_out',[]))!=8:raise ValueError('R1_WORDING_EXCLUSION_COUNT')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 23,
+      "text": "        for template in value['held_out']:",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 29,
+      "text": "        for value in (row,row.get('student_input',{}),row.get('routing',{}),row.get('ground_record',{})):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 36,
+      "text": "        return row",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 43,
+      "text": "        source_names(sources)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 44,
+      "text": "        if pin is None:raise ValueError('R1_WORDING_EXCLUSION_REQUIRED')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 45,
+      "text": "        for name,h in PINS.items():",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 59,
+      "text": "            or a['candidate_id']==b['candidate_id']):raise ValueError('R1_COVERAGE_PARENT_IDENTITY')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 62,
+      "text": "        for key in keys:row.pop(key,None)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 63,
+      "text": "        if units:",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 65,
+      "text": "    if a!=b:raise ValueError('R1_COVERAGE_NON_WORDING_CHANGE')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 71,
+      "text": "        for row in rows:",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 81,
+      "text": "    with pinned(pin).open() as f:return [json.loads(line) for line in f if line.strip()]",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 85,
+      "text": "    if not spec:return False",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 87,
+      "text": "        raise ValueError('R1_K1_UNION_BINDING')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 89,
+      "text": "    if read_list(pin)!=expected:raise ValueError('R1_K1_UNION_CONTENT')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 93,
+      "text": "        raise ValueError('R1_K1_UNION_ORDER')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 20,
+      "text": "        if pin.get('sha256')!=SPLIT:raise ValueError('R1_WORDING_EXCLUSION_PIN')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 22,
+      "text": "        if len(value.get('held_out',[]))!=8:raise ValueError('R1_WORDING_EXCLUSION_COUNT')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 24,
+      "text": "            expression=re.escape(normalize(template))",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 25,
+      "text": "            for name in ('a','b','u'):expression=expression.replace(re.escape('{'+name+'}'),'.+?')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 26,
+      "text": "            self.patterns.append((template,re.compile('^'+expression+'$')))",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 30,
+      "text": "            if not isinstance(value,dict):continue",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 31,
+      "text": "            question=value.get('question')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 32,
+      "text": "            if isinstance(question,str):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 44,
+      "text": "        if pin is None:raise ValueError('R1_WORDING_EXCLUSION_REQUIRED')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 46,
+      "text": "            if sources[name]['source']['sha256']!=h:raise ValueError('R1_COVERAGE_SOURCE_PIN:'+name)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 47,
+      "text": "            pinned(sources[name]['source'])",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 62,
+      "text": "        for key in keys:row.pop(key,None)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 64,
+      "text": "            for key in ('qid','question','question_identity','candidate_id'):row['ground_record'].pop(key,None)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 72,
+      "text": "            if (set(row)!={'row_key','canonical','reason'} or row.get('reason')!='k1_heldout_v7'",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 76,
+      "text": "            if row['row_key'] in values and values[row['row_key']]!=row:raise ValueError('R1_K1_UNION_CONFLICT')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 77,
+      "text": "            values[row['row_key']]=row",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 25,
+      "text": "            for name in ('a','b','u'):expression=expression.replace(re.escape('{'+name+'}'),'.+?')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 30,
+      "text": "            if not isinstance(value,dict):continue",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 33,
+      "text": "                for name,pattern in self.patterns:",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 46,
+      "text": "            if sources[name]['source']['sha256']!=h:raise ValueError('R1_COVERAGE_SOURCE_PIN:'+name)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 64,
+      "text": "            for key in ('qid','question','question_identity','candidate_id'):row['ground_record'].pop(key,None)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 75,
+      "text": "                raise ValueError('R1_K1_UNION_ROW_INVALID')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 76,
+      "text": "            if row['row_key'] in values and values[row['row_key']]!=row:raise ValueError('R1_K1_UNION_CONFLICT')",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 34,
+      "text": "                    if pattern.fullmatch(normalize(question)):",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_coverage.py",
+      "line": 35,
+      "text": "                        raise ValueError('R1_HELD_OUT_WORDING:'+name)",
+      "sha256": "9cff1885818efd18f75afb199369e4a8186f91fea5dd427c8a4b567dbe276e12",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_population.py",
+      "line": 64,
+      "text": "        from .r1_coverage import PINS, source_names",
+      "sha256": "c2c92411748776feb14351adda850d2dddd206481c3b5c8f0d9d60cc20017b52",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_population.py",
+      "line": 65,
+      "text": "        source_names(self.sources)",
+      "sha256": "c2c92411748776feb14351adda850d2dddd206481c3b5c8f0d9d60cc20017b52",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_population.py",
+      "line": 88,
+      "text": "        return 'coverage' if kind in ('coverage_units','coverage_distance') else kind",
+      "sha256": "c2c92411748776feb14351adda850d2dddd206481c3b5c8f0d9d60cc20017b52",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_population.py",
+      "line": 67,
+      "text": "            if kind not in (*SLICE_CELLS,*PINS):",
+      "sha256": "c2c92411748776feb14351adda850d2dddd206481c3b5c8f0d9d60cc20017b52",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 99,
+      "text": "    from .r1_coverage import source_names",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 100,
+      "text": "    for kind in source_names(sources):",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 140,
+      "text": "    from .r1_coverage import validate_binding",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 141,
+      "text": "    wording = validate_binding(cfg)",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 144,
+      "text": "    from .r1_coverage import source_names",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 145,
+      "text": "    for kind in source_names(sources):",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 119,
+      "text": "        from .r1_coverage import verify_union",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 120,
+      "text": "        union = verify_union(value, cfg['remove_files'], V7_K1_LIST, N_LIST)",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 121,
+      "text": "        if ((not union and pin.get('sha256') != V7_K1_LIST) or hashes.count(V7_K1_LIST) != 1",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 164,
+      "text": "            row = json.loads(raw)",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 165,
+      "text": "            if wording is not None:wording.check(row)",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 166,
+      "text": "            status, canonical, how = rooms.status(row)",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 150,
+      "text": "                if wording is not None:wording.check(row)",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 165,
+      "text": "            if wording is not None:wording.check(row)",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_rooms.py",
+      "line": 150,
+      "text": "                if wording is not None:wording.check(row)",
+      "sha256": "a305fa07d51fbf36c63f4575c206dd435fc00d68aeb3b1678b83bf3d2dd1af23",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_routing.py",
+      "line": 68,
+      "text": "    from .r1_coverage import source_names",
+      "sha256": "72a0cea9a4c1d55ec9ba06589e3a2f9c0bf8fd5344e23433242a7bf7445f6f85",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_routing.py",
+      "line": 69,
+      "text": "    if set(sources) != set(source_names(sources)):",
+      "sha256": "72a0cea9a4c1d55ec9ba06589e3a2f9c0bf8fd5344e23433242a7bf7445f6f85",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_routing.py",
+      "line": 165,
+      "text": "    from .r1_coverage import source_names, validate_binding",
+      "sha256": "72a0cea9a4c1d55ec9ba06589e3a2f9c0bf8fd5344e23433242a7bf7445f6f85",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_routing.py",
+      "line": 166,
+      "text": "    validate_binding(cfg)",
+      "sha256": "72a0cea9a4c1d55ec9ba06589e3a2f9c0bf8fd5344e23433242a7bf7445f6f85",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_routing.py",
+      "line": 167,
+      "text": "    names = source_names(specs)",
+      "sha256": "72a0cea9a4c1d55ec9ba06589e3a2f9c0bf8fd5344e23433242a7bf7445f6f85",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_routing.py",
+      "line": 168,
+      "text": "    sources = {k:specs[k]['source'] for k in names}",
+      "sha256": "72a0cea9a4c1d55ec9ba06589e3a2f9c0bf8fd5344e23433242a7bf7445f6f85",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_routing.py",
+      "line": 182,
+      "text": "        for kind in names:",
+      "sha256": "72a0cea9a4c1d55ec9ba06589e3a2f9c0bf8fd5344e23433242a7bf7445f6f85",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_training.py",
+      "line": 68,
+      "text": "    from .r1_coverage import validate_binding",
+      "sha256": "abdb56e6d290987a8e906eb77f4bc27bddefb3967409f1a40303987406fc7cd5",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r1_training.py",
+      "line": 69,
+      "text": "    validate_binding(cfg)",
+      "sha256": "abdb56e6d290987a8e906eb77f4bc27bddefb3967409f1a40303987406fc7cd5",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_frames.py",
+      "line": 2,
+      "text": "from .job_env import key as env_key",
+      "sha256": "4bb363d49f730b332ed59aca2f0d721458e0cf10a616a29f7e5076fe5467a053",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_frames.py",
+      "line": 19,
+      "text": "    mapping = json.loads(os.environ.get((env_key('STUDENT_FRAME_ROOT_MAP')), '{}'))",
+      "sha256": "4bb363d49f730b332ed59aca2f0d721458e0cf10a616a29f7e5076fe5467a053",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 47,
+      "text": "def start_context(receipt):",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 49,
+      "text": "    from .r1_training import PARENT",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 50,
+      "text": "    if (receipt.get('schema') != 'c1-preparation-v1'",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 53,
+      "text": "    cfg = receipt.get('_r1_start_config')",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 54,
+      "text": "    if not isinstance(cfg, dict):",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 56,
+      "text": "    from .carrier_c1_run import identity",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 57,
+      "text": "    if (identity(cfg) != receipt.get('config_sha256')",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 61,
+      "text": "    return cfg",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 52,
+      "text": "        return receipt",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 55,
+      "text": "        raise ValueError('R1_OPENER_START_CONFIG_REQUIRED')",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 60,
+      "text": "        raise ValueError('R1_OPENER_START_CONFIG_MISMATCH')",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/r2_openers.py",
+      "line": 74,
+      "text": "        start(start_context(receipt))",
+      "sha256": "739395dfddce68c8a4a16ea56b6fac8b0065d45d36f12182405def2a023062e1",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/s1_admission.py",
+      "line": 1,
+      "text": "from .job_env import key as env_key",
+      "sha256": "fb5faf1e3d5ebaa63c142c9764903de279dedfa9dd14585ce9d579a4cf64004a",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/startup_receipt.py",
+      "line": 1,
+      "text": "from .job_env import key as env_key",
+      "sha256": "fc545ba9cfa50333907a447ffd3ec4612e8003a884875be7ce3661e8a81083da",
+      "observed": false
+    },
+    {
+      "file": "work/tree_r1/student_pilot/storage.py",
+      "line": 1,
+      "text": "from .job_env import key as env_key",
+      "sha256": "881b64889fab8f2fabeaa85dfa5510798ad55555f5a270127077742a2d527936",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/students.py",
+      "line": 1,
+      "text": "from .job_env import key as env_key",
+      "sha256": "d8c38ec234b41fe2c34bbe7d54265dc97aba8438f02bdcef0f7eae526b36ad09",
+      "observed": true
+    },
+    {
+      "file": "work/tree_r1/student_pilot/students.py",
+      "line": 55,
+      "text": "    value = os.environ.get((env_key('R1_STUDENT_HEX')))",
+      "sha256": "d8c38ec234b41fe2c34bbe7d54265dc97aba8438f02bdcef0f7eae526b36ad09",
+      "observed": true
+    }
+  ],
+  "kit": {
+    "total": 164,
+    "observed": 164,
+    "statements": [
+      {
+        "file": "work/build21/joblib.py",
+        "line": 216,
+        "text": "def screen(line,words,hashes):",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 250,
+        "text": "def snapshot(path,expected,root,revision):",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 194,
+        "text": "    ns=spec['namespace']",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 196,
+        "text": "    mp=receipt['pins']['full_weights'];manifest=load(checked(u/mp['sha256'],mp['sha256']))",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 196,
+        "text": "    mp=receipt['pins']['full_weights'];manifest=load(checked(u/mp['sha256'],mp['sha256']))",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 197,
+        "text": "    native=root/'w';native.mkdir(exist_ok=True)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 197,
+        "text": "    native=root/'w';native.mkdir(exist_ok=True)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 198,
+        "text": "    names={'full_weights.json':mp['sha256'],manifest['index']['name']:manifest['index']['sha256']}",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 199,
+        "text": "    names.update({item['name']:item['sha256'] for item in manifest['files']})",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 200,
+        "text": "    for name,h in names.items():",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 207,
+        "text": "    cfgpin=write(root/'n.json',resolved['config'])",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 217,
+        "text": "    import re",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 218,
+        "text": "    def replace(match):",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 228,
+        "text": "    return re.sub(r'[^\\s\"\\x27<>]+',replace,line)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 238,
+        "text": "    if 'ANON_OK.json' not in spec['p_files']:raise ValueError('E44')",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 239,
+        "text": "    if spec.get('local_map'):",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 251,
+        "text": "    checked(path,expected);root=Path(root);root.mkdir(parents=True,exist_ok=True)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 251,
+        "text": "    checked(path,expected);root=Path(root);root.mkdir(parents=True,exist_ok=True)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 251,
+        "text": "    checked(path,expected);root=Path(root);root.mkdir(parents=True,exist_ok=True)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 252,
+        "text": "    marker='/snapshots/'+revision+'/';found=set()",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 252,
+        "text": "    marker='/snapshots/'+revision+'/';found=set()",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 253,
+        "text": "    with tarfile.open(path,'r|*') as archive:",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 264,
+        "text": "    if 'config.json' not in found:raise ValueError('E47')",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 201,
+        "text": "        if PurePosixPath(name).name!=name or name in ('.','..'):raise ValueError('E43')",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 202,
+        "text": "        source=checked(u/h,h);target=inside(native,name)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 202,
+        "text": "        source=checked(u/h,h);target=inside(native,name)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 203,
+        "text": "        if target.exists():checked(target,h)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 205,
+        "text": "        resolved['paths'][h]=ns+'/w/'+name",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 206,
+        "text": "        resolved['config']['r1_training']['persisted_files'][h]=ns+'/w/'+name",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 219,
+        "text": "        token=match.group();lower=token.lower()",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 219,
+        "text": "        token=match.group();lower=token.lower()",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 220,
+        "text": "        digest=lambda text:hashlib.sha256(text.encode()).hexdigest()",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 221,
+        "text": "        bad=any(word in lower for word in words)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 222,
+        "text": "        for part in re.findall(r'[a-z0-9_]+',lower):",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 227,
+        "text": "        return 'x_'+digest(token) if bad else token",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 238,
+        "text": "    if 'ANON_OK.json' not in spec['p_files']:raise ValueError('E44')",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 240,
+        "text": "        value=load(kit/spec['local_map'])",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 241,
+        "text": "        for item in spec['link_checks']:checked(item['path'],item['sha256'])",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 242,
+        "text": "        write(hx/'k/0.json',value)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 254,
+        "text": "        for member in archive:",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 264,
+        "text": "    if 'config.json' not in found:raise ValueError('E47')",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 201,
+        "text": "        if PurePosixPath(name).name!=name or name in ('.','..'):raise ValueError('E43')",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 203,
+        "text": "        if target.exists():checked(target,h)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 204,
+        "text": "        else:os.link(source,target)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 223,
+        "text": "            bad=bad or digest(part) in hashes['word']",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 224,
+        "text": "            for width,values in hashes['substr'].items():",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 241,
+        "text": "        for item in spec['link_checks']:checked(item['path'],item['sha256'])",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 255,
+        "text": "            if not member.isfile():",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 258,
+        "text": "            if marker not in member.name:continue",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 259,
+        "text": "            name=member.name.partition(marker)[2]",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 260,
+        "text": "            target=inside(root,name)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 261,
+        "text": "            if name in found:raise ValueError('E46')",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 262,
+        "text": "            found.add(name);target.parent.mkdir(parents=True,exist_ok=True)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 262,
+        "text": "            found.add(name);target.parent.mkdir(parents=True,exist_ok=True)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 263,
+        "text": "            with archive.extractfile(member) as a,target.open('wb') as b:shutil.copyfileobj(a,b,8<<20)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 225,
+        "text": "                n=int(width)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 226,
+        "text": "                bad=bad or any(digest(part[i:i+n]) in values for i in range(len(part)-n+1))",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 256,
+        "text": "                if member.isdir():continue",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 257,
+        "text": "                raise ValueError('E45')",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 258,
+        "text": "            if marker not in member.name:continue",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 261,
+        "text": "            if name in found:raise ValueError('E46')",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 263,
+        "text": "            with archive.extractfile(member) as a,target.open('wb') as b:shutil.copyfileobj(a,b,8<<20)",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/joblib.py",
+        "line": 256,
+        "text": "                if member.isdir():continue",
+        "sha256": "c61d80705a847a2ab17b742efba01ad5ecebe4a7656ee3e70e9aeffe2d0c2b6b",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 3,
+        "text": "L=Path(__file__).resolve().parents[2];B=L/'work/build21';T=L/'work/tree_r1';E=L.parent/'ext/pwrap';K=B/'kits/q';O=B/'proofs/operator'",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 3,
+        "text": "L=Path(__file__).resolve().parents[2];B=L/'work/build21';T=L/'work/tree_r1';E=L.parent/'ext/pwrap';K=B/'kits/q';O=B/'proofs/operator'",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 3,
+        "text": "L=Path(__file__).resolve().parents[2];B=L/'work/build21';T=L/'work/tree_r1';E=L.parent/'ext/pwrap';K=B/'kits/q';O=B/'proofs/operator'",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 3,
+        "text": "L=Path(__file__).resolve().parents[2];B=L/'work/build21';T=L/'work/tree_r1';E=L.parent/'ext/pwrap';K=B/'kits/q';O=B/'proofs/operator'",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 3,
+        "text": "L=Path(__file__).resolve().parents[2];B=L/'work/build21';T=L/'work/tree_r1';E=L.parent/'ext/pwrap';K=B/'kits/q';O=B/'proofs/operator'",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 3,
+        "text": "L=Path(__file__).resolve().parents[2];B=L/'work/build21';T=L/'work/tree_r1';E=L.parent/'ext/pwrap';K=B/'kits/q';O=B/'proofs/operator'",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 4,
+        "text": "O.mkdir(parents=True,exist_ok=True);sys.path[:0]=[str(T),str(B)]",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 4,
+        "text": "O.mkdir(parents=True,exist_ok=True);sys.path[:0]=[str(T),str(B)]",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 8,
+        "text": "from launch_r2.build import capsule_json,scan,WORDS",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 22,
+        "text": "ns='/tmp/q_22c714e1';pool='/project/community/jjyeung/okh7';nroot=pool+'/x_22c714e1';proot='x_ee227714'",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 22,
+        "text": "ns='/tmp/q_22c714e1';pool='/project/community/jjyeung/okh7';nroot=pool+'/x_22c714e1';proot='x_ee227714'",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 22,
+        "text": "ns='/tmp/q_22c714e1';pool='/project/community/jjyeung/okh7';nroot=pool+'/x_22c714e1';proot='x_ee227714'",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 22,
+        "text": "ns='/tmp/q_22c714e1';pool='/project/community/jjyeung/okh7';nroot=pool+'/x_22c714e1';proot='x_ee227714'",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 24,
+        "text": "receipt_index=load(B/'proofs/receipts/INDEX.json') if (B/'proofs/receipts/INDEX.json').exists() else {}",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 54,
+        "text": "if (B/'proofs/receipts/RESULT.json').exists():",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 59,
+        "text": "room=file_pin(B/'inputs/room_audit.json');visit(room)",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 59,
+        "text": "room=file_pin(B/'inputs/room_audit.json');visit(room)",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 70,
+        "text": "pfiles['ANON_OK.json']=sha256(E/'ANON_OK.json')",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 76,
+        "text": "from naming21 import neutral_map",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 77,
+        "text": "neutral,links=neutral_map(load(E/'k/0.json'))",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 78,
+        "text": "cap('k/l.json',neutral)",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 79,
+        "text": "spec.update(local_map='k/l.json',link_checks=links)",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 81,
+        "text": "cap('k/g.json',list(WORDS))",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 102,
+        "text": "(K/'b/l.py').write_text('''import sys",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 130,
+        "text": "from naming21 import neutral_shell",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 131,
+        "text": "shell=neutral_shell(shell)",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 152,
+        "text": "(K/'b/m.py').write_text('import sys\\nfrom pathlib import Path\\nsys.path.insert(0,str(Path(__file__).resolve().parent))\\nfrom z import snapshot\\nsnapshot(*sys.argv[1:])\\n')",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 55,
+        "text": "    real=load(B/'proofs/receipts/RESULT.json')",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 56,
+        "text": "    for row in real['fetched']:visit(row)",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 57,
+        "text": "    for row in real['receipts']:visit(row['pin'])",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 58,
+        "text": "    for row in real['prepared']:visit(row['preparation'])",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 56,
+        "text": "    for row in real['fetched']:visit(row)",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 57,
+        "text": "    for row in real['receipts']:visit(row['pin'])",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 58,
+        "text": "    for row in real['prepared']:visit(row['preparation'])",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 39,
+        "text": "            if path is None and h in receipt_index:path=Path(receipt_index[h])",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 39,
+        "text": "            if path is None and h in receipt_index:path=Path(receipt_index[h])",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/kit.py",
+        "line": 42,
+        "text": "                if path and path.suffix not in ('.db','.sqlite','.pt','.safetensors','.bin','.png','.npz') and (path.stat().st_size<30_000_000 or h in ('8ec1efd2c1851fb856caa3631653390d76796f8c31cd8366d54df52916c7de82','15387646fd4ac47b43c107129db3109545a981c1bd45a3910ac038d8c5432022')):",
+        "sha256": "3e1e8da6d513e9401d248cb1192d2a14ec422afa7e515dda186e0ac4ca537fed",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 1,
+        "text": "from pathlib import Path",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 2,
+        "text": "import hashlib,json,re",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 3,
+        "text": "POOL='/project/community/jjyeung/okh7'",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 4,
+        "text": "OLD='/project/community/jjyeung/distill/okit'",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 5,
+        "text": "MODEL='/project/community/jjyeung/cp4tk_rt/kit/model_qwen35_9b_c2022362.tar'",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 6,
+        "text": "ALIASES={OLD:POOL+'/l_94a76bda',MODEL:POOL+'/l_3d48eea0'}",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 7,
+        "text": "ENV={'STUDENT_ORCHARD':'Q_E1','STUDENT_SLURM_SITE':'Q_E2','STUDENT_MODEL_ROOT':'Q_E3','STUDENT_FRAME_ROOT_MAP':'Q_E4','R1_STUDENT_HEX':'Q_E5','STUDENT_PRESERVE_CHECKPOINTS':'Q_E6'}",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 8,
+        "text": "def neutral_map(value):",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 19,
+        "text": "def neutral_shell(shell):",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 26,
+        "text": "def scan_decoded(kit):",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 9,
+        "text": "    def visit(v):",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 16,
+        "text": "    neutral=visit(value)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 17,
+        "text": "    checks=[dict(path=neutral['small']['file'],sha256=value['small']['sha256']),dict(path=neutral['model']['file'],sha256=value['model']['sha256'])]",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 18,
+        "text": "    return neutral,checks",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 20,
+        "text": "    shell=shell.replace(OLD,ALIASES[OLD])",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 21,
+        "text": "    for old,new in ENV.items():shell=shell.replace(old,new)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 22,
+        "text": "    a=shell.index('    local tmp=\"$S/.model.$$\"');b=shell.index('    tk_readonly_files \"$snap\"',a)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 22,
+        "text": "    a=shell.index('    local tmp=\"$S/.model.$$\"');b=shell.index('    tk_readonly_files \"$snap\"',a)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 23,
+        "text": "    shell=shell[:a]+'    /usr/bin/python3 -I \"$Q_KIT/b/m.py\" \"$file\" \"$sha\" \"$snap\" \"$REV\"\\n'+shell[b:]",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 24,
+        "text": "    shell='\\n'.join(line for line in shell.splitlines() if not line.lstrip().startswith('#'))+'\\n'",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 25,
+        "text": "    return shell",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 27,
+        "text": "    import base64,sys",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 28,
+        "text": "    from launch_r2.build import bad_string",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 29,
+        "text": "    kit=Path(kit);wh=json.loads((kit/'b/wh.json').read_text());checked=[]",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 29,
+        "text": "    kit=Path(kit);wh=json.loads((kit/'b/wh.json').read_text());checked=[]",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 29,
+        "text": "    kit=Path(kit);wh=json.loads((kit/'b/wh.json').read_text());checked=[]",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 30,
+        "text": "    for p in [kit/'job.sh',*sorted((kit/'b').glob('*.sh')),kit/'k/j.json']:",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 39,
+        "text": "    value=json.loads((kit/'k/l.json').read_text());raw=base64.b64decode(value['payload'],validate=True)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 39,
+        "text": "    value=json.loads((kit/'k/l.json').read_text());raw=base64.b64decode(value['payload'],validate=True)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 40,
+        "text": "    if hashlib.sha256(raw).hexdigest()!=value['sha256']:raise ValueError('CAPSULE_HASH')",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 41,
+        "text": "    def visit(v):",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 47,
+        "text": "    visit(json.loads(raw))",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 48,
+        "text": "    return dict(status='PASS',executables=checked,decoded_input_map='k/l.json',scope='Executable shell, arguments, environment names/values, staged names and decoded operational input paths; sealed source code and provenance records retain their original identities.')",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 10,
+        "text": "        if isinstance(v,dict):return {k:visit(x) for k,x in v.items()}",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 11,
+        "text": "        if isinstance(v,list):return [visit(x) for x in v]",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 12,
+        "text": "        if isinstance(v,str):",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 15,
+        "text": "        return v",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 21,
+        "text": "    for old,new in ENV.items():shell=shell.replace(old,new)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 31,
+        "text": "        raw=p.read_bytes()",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 32,
+        "text": "        if p.suffix=='.json':",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 35,
+        "text": "        for n,line in enumerate(raw.decode().splitlines(),1):",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 38,
+        "text": "        checked.append(str(p.relative_to(kit)))",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 40,
+        "text": "    if hashlib.sha256(raw).hexdigest()!=value['sha256']:raise ValueError('CAPSULE_HASH')",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 42,
+        "text": "        if isinstance(v,dict):",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 10,
+        "text": "        if isinstance(v,dict):return {k:visit(x) for k,x in v.items()}",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 11,
+        "text": "        if isinstance(v,list):return [visit(x) for x in v]",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 13,
+        "text": "            for old,new in ALIASES.items():",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 33,
+        "text": "            value=json.loads(raw);raw=base64.b64decode(value['payload'],validate=True)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 33,
+        "text": "            value=json.loads(raw);raw=base64.b64decode(value['payload'],validate=True)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 34,
+        "text": "            if hashlib.sha256(raw).hexdigest()!=value['sha256']:raise ValueError('CAPSULE_HASH')",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 36,
+        "text": "            if line.lstrip().startswith('#') and not line.startswith('#SBATCH'):continue",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 37,
+        "text": "            if bad_string(line,wh):raise ValueError('EXECUTABLE_NAME:'+p.name+':'+str(n))",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 43,
+        "text": "            for x in v.values():visit(x)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 44,
+        "text": "        elif isinstance(v,list):",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 14,
+        "text": "                if v==old or v.startswith(old+'/'):return new+v[len(old):]",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 34,
+        "text": "            if hashlib.sha256(raw).hexdigest()!=value['sha256']:raise ValueError('CAPSULE_HASH')",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 36,
+        "text": "            if line.lstrip().startswith('#') and not line.startswith('#SBATCH'):continue",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 37,
+        "text": "            if bad_string(line,wh):raise ValueError('EXECUTABLE_NAME:'+p.name+':'+str(n))",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 43,
+        "text": "            for x in v.values():visit(x)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 45,
+        "text": "            for x in v:visit(x)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 46,
+        "text": "        elif isinstance(v,str) and v.startswith('/') and bad_string(v,wh):raise ValueError('INPUT_NAME')",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 14,
+        "text": "                if v==old or v.startswith(old+'/'):return new+v[len(old):]",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 45,
+        "text": "            for x in v:visit(x)",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      },
+      {
+        "file": "work/build21/naming21.py",
+        "line": 46,
+        "text": "        elif isinstance(v,str) and v.startswith('/') and bad_string(v,wh):raise ValueError('INPUT_NAME')",
+        "sha256": "e6e29ea53b6a47ac407ddfafb71810703285bf91ff299d80c3b8bad2a2527e3c",
+        "observed": true
+      }
+    ]
+  },
+  "proofs": [
+    "work/build21/proofs/edges/hits.json",
+    "work/build21/proofs/fresh_layout/hits.json",
+    "work/build21/proofs/review/hits.json",
+    "work/build21/proofs/census/hits.json",
+    "work/build21/proofs/final_focused/hits.json",
+    "work/build21/proofs/review_edges/hits.json",
+    "work/build21/proofs/receipt_auth/hits.json",
+    "work/build21/proofs/coverage_tests/hits.json",
+    "work/build21/proofs/review_controls/hits.json",
+    "work/build21/proofs/capacity/hits.json",
+    "work/build21/proofs/real/hits.json",
+    "work/build21/proofs/opener_after/hits.json",
+    "work/build21/proofs/review_final/hits.json",
+    "work/build21/proofs/resume_item1/hits.json",
+    "work/build21/proofs/receipts/hits.json",
+    "work/build21/proofs/producer_edges/hits.json",
+    "work/build21/proofs/fresh_builder/hits.json",
+    "work/build21/proofs/model/hits.json",
+    "work/build21/proofs/kit_builder/hits.json",
+    "work/build21/proofs/new_controls/hits.json",
+    "work/build21/proofs/v2h/hits.json",
+    "work/build21/proofs/v2h/parent/hits.json",
+    "work/build21/proofs/v2h/binding/hits.json"
+  ]
+}

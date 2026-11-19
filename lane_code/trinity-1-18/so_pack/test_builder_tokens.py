@@ -1,7 +1,9 @@
 """Verify default byte identity and optional explicit tokens; no remote calls."""
 import argparse
 import ast
+import base64
 import copy
+import gzip
 import json
 import os
 from pathlib import Path
@@ -57,6 +59,44 @@ def main():
     P.require(b['report']['token']==tok,'Explicit D token differs')
     P.structure(b['package'])
     print('D_EXPLICIT_TOKEN_PASS '+tok,flush=True)
+    # Native checker keeps comparing the original builder to its embedded copy.
+    # The token-enabled builder is an added sibling file, never an in-place edit.
+    native=root/'native';native.mkdir();(native/'items').mkdir()
+    db=original.parent
+    (native/'items/dist580.json').write_bytes((db/'evidence/items/dist580.json').read_bytes())
+    for step in (200,544):
+        out=native/('actual'+str(step));out.mkdir()
+        if step==200:report=ro
+        else:
+            c544=configured(base,root/'a544',original)
+            c544['builder']['args'][4]=str(db/'bind_D544.json')
+            _,report=default_delivery(c544)
+        P.write(out/'BUILD.json',{'D':report})
+        (out/'binding.json').write_bytes((db/('bind_D%d.json'%step)).read_bytes())
+    native_db=root/'native_db';native_db.mkdir();mismatches=[]
+    script=(db/'o_build_D.sh').read_text()
+    assets=ast.literal_eval(next(l for l in script.splitlines() if l.startswith('assets = ')).split('=',1)[1])
+    for name,spec in assets.items():
+        raw=gzip.decompress(base64.b64decode(spec['data']))
+        P.require(P.sha(raw)==spec['sha256'],'Native embedded asset SHA differs')
+        name='build_d.py' if name=='b.py' else name
+        p=native_db/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(raw)
+        source=db/('evidence/'+name if name.startswith('items/') else name)
+        if not source.exists() or source.read_bytes()!=raw:mismatches.append(name)
+    for name in ('check_release_d.py','o_build_D.sh'):
+        (native_db/name).write_bytes((db/name).read_bytes())
+    # Added builders coexist with every original asset in the native fixture.
+    optional=native_db/'so_pack_builders';optional.mkdir()
+    for name in ('build_d.py','build_support.py','make_items_d.py'):
+        (optional/name).write_bytes((patched.parent/name).read_bytes())
+    P.write(native/'MIRROR_ASSET_MISMATCHES.json',mismatches)
+    code=('import sys,runpy;from pathlib import Path;sys.path.insert(0,'+repr(str(native_db))+');'
+          'ns=runpy.run_path('+repr(str(native_db/'check_release_d.py'))+');'
+          'fn=ns["main"];fn.__globals__["W"]=Path('+repr(str(native))+');fn()')
+    P.run(['/usr/bin/python3','-I','-s','-B','-c',code],native,native/'native_check.log')
+    P.require(P.read(native/'RELEASE_RESULTS.json')['passed'],'Native D release check failed')
+    print('F07_NATIVE_CHECK_RELEASE_D_PASS under Python 3.6.8 (fixture W under workspace)',flush=True)
+    print('NATIVE_MIRROR_PREEXISTING_ASSET_MISMATCHES '+json.dumps(mismatches),flush=True)
     # r10's authenticated source archives are absent. Check the exact default
     # mint loop's AST and execute only the opt-in mint branch, without imports
     # or top-level builder I/O. This is not a full r10 build claim.

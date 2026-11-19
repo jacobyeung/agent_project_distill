@@ -1,0 +1,3 @@
+set -euo pipefail
+cat > /scratch/jjyeung/orch_n30/so_pack/work/review1_small_regressions/a249960bf5202/0.received
+echo LOCAL_STUB_OK

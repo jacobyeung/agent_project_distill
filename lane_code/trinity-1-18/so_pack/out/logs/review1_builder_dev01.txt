@@ -1,0 +1,14 @@
+D_DEFAULT_BYTES_IDENTICAL_PASS sha256=71af4fa4a4c329266b5879c0ca6dc58c86fb3556eb11bd62e44144ff3bc08f6d bytes=5272526
+{"delivery": "/scratch/jjyeung/orch_n30/so_pack/work/review1_builder_dev01/a2/k/a15_cot_ap448780a6749244a6/1.tgz", "delivery_sha256": "e6b00f3dd6a843916868449596008bbab75a55a86768403927b736bff34d3d11", "package": "/scratch/jjyeung/orch_n30/so_pack/work/review1_builder_dev01/a2/a15_cot_apa0123456789ab", "token": "a0123456789ab"}
+D_EXPLICIT_TOKEN_PASS a0123456789ab
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/so_pack/test_builder_tokens.py", line 115, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/scratch/jjyeung/orch_n30/so_pack/test_builder_tokens.py", line 77, in main
+    P.run(['/usr/bin/python3','-I','-s','-B','-c',code],native,native/'native_check.log')
+  File "/scratch/jjyeung/orch_n30/so_pack/pack.py", line 320, in run
+    require(result.returncode == 0, 'Command failed (%d); see %s' % (result.returncode,log))
+  File "/scratch/jjyeung/orch_n30/so_pack/pack.py", line 45, in require
+    raise GateError(message)
+pack.GateError: Command failed (1); see /scratch/jjyeung/orch_n30/so_pack/work/review1_builder_dev01/native/native_check.log

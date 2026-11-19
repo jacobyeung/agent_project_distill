@@ -1,0 +1,45 @@
+{
+  "command": "bash run_cpu.sh pilot_gate_matrix.py",
+  "scope": "Explicit synthetic controls from the retained real encode fixtures; no production admission or GPU execution.",
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/pilot_gate_matrix.py": "6054126cf7814f1ddef2f0eb8749c666d494efe2d014d162599e5afef9fa3d07",
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/run_cpu.sh": "7424b7e16b9f4124ddb70af8c4ea9c4cc206f66249318fbeaf061870c9226675",
+    "/scratch/jjyeung/orch_n30/sb_f64fix/kit/configs/r1_config_f64.json": "cc811f9ad166cba19f8a3540ef9577a7379c8fc7c7cd972735a152434d884072",
+    "/scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/token_audit.py": "08666df18288ac91b2b11a1d6566537d34c5301be717a32d4dc0f45507aa4359",
+    "/scratch/jjyeung/orch_n30/sb_f64fix/kit/scripts/mem_pilot.py": "651ffafb2f611588d93f4ce8819a1e41dcbce3c05f3f0a63e45e25cd4824314f",
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/tmp/dryrun/token_audit_8m70opiy/complete_0.jsonl": "046f7985477bd6f808d3268aa8b31905b7b59af2baa2789b8fe21c548d38d4b5",
+    "/scratch/jjyeung/orch_n30/sb_f64rev2/tmp/dryrun/token_audit_8m70opiy/complete_1.jsonl": "d596db36a37ca06f341bf34af8899840a428acc7c4c6d7aea376db92636f1e59"
+  },
+  "cases": {
+    "passing": {
+      "pilot_accepted": true,
+      "launch_ready": true,
+      "errors": [],
+      "failed_rows": 0,
+      "tripwire_rows": 0,
+      "longest_row_count": 16,
+      "required_behavior": "accept",
+      "error": null
+    },
+    "tripwire_only": {
+      "pilot_accepted": true,
+      "launch_ready": false,
+      "errors": [],
+      "failed_rows": 0,
+      "tripwire_rows": 8,
+      "longest_row_count": 16,
+      "required_behavior": "accept",
+      "error": null
+    },
+    "failed_check": {
+      "pilot_accepted": true,
+      "launch_ready": false,
+      "errors": [],
+      "failed_rows": 1,
+      "tripwire_rows": 0,
+      "longest_row_count": 15,
+      "required_behavior": "refuse",
+      "error": null
+    }
+  }
+}

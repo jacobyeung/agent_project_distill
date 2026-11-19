@@ -1,0 +1,112 @@
+== sb_kobj4 cap=0
+Delivered [report](out/REPORT.md), [tables](out/K1_TRAIN_TABLES.md), [GPU plan](out/GPU_NEED.json), and [archive](out/sb_kobj4.tar) with [verified SHA256](out/sb_kobj4.tar.sha256).
+
+Priced 33 merged variants and 272 paired contrasts; 13 tests pass. Retain-A0 count: **0 rows**.
+
+Selected-arm work remains blocked by failed box eligibility, missing native exports/P1 evidence/package-D returns, and CUDA tracking. No GPU, R0-dev, or held-out reads occurred.
+== sb_cntrev cap=0
+[REVIEW_VERDICT.md](out/REVIEW_VERDICT.md): **NO-GO**.
+
+K1 headline numbers reproduce, and the full CPU stub passes. Blockers: scoring mismatches, dev-based selection, no one-look latch, unsafe resume, and no hard time limit. The report specifies required fixes and links supporting evidence.
+== sb_guard cap=0
+The reader is right to accept these orientations: GT confirms an upside-down bathroom frame and a nearly sideways living-room frame. The gravity-head errors are 32.73° and 10.08°, but neither explains away the real camera roll.
+
+The distances remain poor: 24.17% MRA across the 12 rows, versus 57.15% on other K1 training rows. All 12 replayed responses match.
+
+Delivered [report](/scratch/jjyeung/orch_n30/sb_guard/out/GUARD_VS_READER.md) and [exact arrays, checks, and input hashes](/scratch/jjyeung/orch_n30/sb_guard/out/GUARD.json).
+=====RKREV3
+# GO AFTER FIXES
+
+The kit closes all four of my edits, and S1k, the reader receipt and the one-look latch all hold up under my own code. One blocker remains: the documented approval step breaks the launch gate, and a docs-only fix clears it. The reviewed tar has sha256 `6c5e9b46…b582`, and all 329 ledger members match my extracted copy and the working tree. I used CPU only and wrote only in this workspace.
+
+## Edits 1–4: all CLOSED
+1. `gpu_run.run` refuses any GO path except `configs/GO_<run_id>.json`, including a shared `GO.json` and a symlink to another run's note, before it writes anything. Under the kit's stubs, `--stage s1c` in run 1 and then r0dev in run 2 on a second host complete with 110 + 98 forwards, and GO_run-1 stays unchanged. The docs carry the never-edit sentence, and both requested stub tests exist and pass.
+2. After an interrupted `--stage all`, the next run refuses until COST.json is closed by hand. After closure, run 3 resumes, COST `history` keeps the closure, the recomputed STARTED.json embeds `previous_started`, and `pred.npz.part` counts as interrupted. A `pred.npz` without DONE still stops for good, but only a kill between `os.replace` and the DONE write leaves one, and OPERATOR documents it.
+3. price.py checks completeness before its exclusive registration, so an incomplete set consumes no look (kit test; my probe left no registration).
+4. `load_selection` rejects a forged SELECTION.json that lacks S1c evidence ("selection missing S1c input evidence"), and it recomputes the deltas and the bootstrap (kit test).
+Of the 44 tests, 43 pass in my copy. `test_s0_binds_own_script` errors only because my copy sits at another path, and the hash S0 records (`d0d20d…`) equals `s0.py`.
+
+## S1k: clean and reproduced
+- **Scope.** S1k used 110 distinct captures, all `k1_split=train`. Its 248 input hashes cover only the K1 manifest, K1_RULE_VARIANTS, code, and 110 stored dense-64 predictions with their DONE files. No R0-dev, rl or official-item path appears in those inputs or in the code.
+- **Preregistration.** `S1K_REGISTRATION.json` (`548d07fa…`) was written at 03:15:03.8, 0.8 s after `s1k.py` was saved and 189 s before the results (03:18:12.7). The results and KERNEL_FROZEN.json bind its hash, `s1k.py` refuses a second registration, and the workspace holds no earlier S1k output. Files alone cannot rule out a run outside the workspace.
+- **Rule.** My own recompute (`rk_s1k.py`) uses the original `k1_convert`, the deployed `room_v314` with the four constants substituted in its source, and labels from the K1 harness. It matches all 1,760 areas and all 16 means to within 1e-14. The legacy tuple reproduces 110 of 110 stored R0 areas. Index 7 (0.05 m, 0.10 m, 2 votes, 0.20 m) is the unique maximum at 77.636 against 76.909. Its paired room-bootstrap gain over legacy is +0.73 [−1.40, +2.69], so it is a training choice rather than an improvement, and the kit says so.
+- **Provenance.** `benchmark_selected: false` is accurate for this selection. The record also discloses that the K1 labels and the grid's rule family come from the legacy rule, which was chosen on official items. Whether to accept that inheritance is the orchestrator's decision, recorded in `authorized_by`.
+
+## Reader receipt: every field backed by a file and sha256
+All 17 input hashes match. Each cited field equals its source: export digest `f957fe02…` (environment.json `binding`), step 200 (binding and EXPORT_PIN), read 0, journal 4/0, the items and journal hashes, and baseline `c9b5994c…`. All 98 frame lists equal room134.json, the item mapping and the kit manifest, and all 98 journal rows are complete. All 134 direct answers and scores replay. The checkpoint field is the reader's recorded export digest rather than a local rehash. That is correct: the reader ran on orchard-community-1, and the same-named local path holds a different, step-544 artifact.
+
+## GO path: the latch holds, but approval deadlocks (BLOCKER)
+Every bypass of the latch is refused: a second price.py, gpu_run r0dev or all after the look, the scorer with `--pred` or without `--self-test`, and a second `select`. R0-dev pricing covers one arm under R0, dev-S1 stays empty, and the delivery holds no `out/room_pricing`.
+**The blocker.** TESTS.json binds the current hash of `configs/KERNEL_PROVENANCE.json`, and `prerequisites()` rehashes it. On a second copy, I set `authorized_by` in place, as OPERATOR implies. The gate then fails with "stale input configs/KERNEL_PROVENANCE.json", and a test rerun fails `test_pending_kernel_authorization_blocks_launch`, so TESTS.json cannot pass again without a code change. An approved copy at a new path passes the full gate, with all 19,210 inputs verified.
+**Edit (docs only; no code hash changes).** Add to OPERATOR.md, GPU_NEED.json and ROOMKIT_REPORT.md: "Approve by writing `configs/KERNEL_PROVENANCE_APPROVED.json`, a copy of KERNEL_PROVENANCE.json that differs only in `authorized_by`. Launch with `--provenance configs/KERNEL_PROVENANCE_APPROVED.json`, and put that file's sha256 in the GO note. Never edit KERNEL_PROVENANCE.json or KERNEL_FROZEN.json." Then rerun package.py. An alternative is to make the pending test use a temporary copy and drop the record from the TESTS inputs, then rerun the tests, make_go_template.py and package.py.
+
+## GPU need
+The estimate checks out. An f32 capture takes 9.13 s × 0.5^1.563 = 3.09 s, so S1c costs 0.094 GPU-h and f32 R0-dev 0.084 GPU-h. If S1c selects u94, R0-dev costs 0.45 GPU-h, for at most 0.55 GPU-h plus model loads, well inside the 1.5 GPU-h cap on one 48 GB card. trinity-1-18 has eight 48 GB RTX 6000 Ada cards, and cards 2–4 were idle during this review. The gate rehashes 19,170 files in 20 s. S1k tuned the constants on dense-64 input from the same 110 rows, which tilts S1c slightly toward u94, and the ruling allows that. The 11.9 h CPU-fallback estimate assumes linear scaling from 6 to 8 threads; without that assumption it is 15.9 h. The fallback was not run.
+Commands (`nice -n 10`, at most 8 threads, outputs in `out/`): `bash kit/scripts/cpu.sh tests/test_roomkit.py` (kit_tests.log); `rk_check.py` and `rk_s1k.py` with the planner Python (RK_CHECK.json: S1b 134/134 and 24/24, S1 14.69 and 39.79 m², S0 98 items and 9,212 PNGs, direct MRA 62.755 and 68.889; RK_S1K.json); `python3 rk_reader.py` (RK_READER.json); `bash kit/scripts/cpu.sh` with `$PWD/rk_probe3.py`, `rk_s1c_real.py`, `rk_hashtime.py` and `rk_probe.py` (RK_PROBE3.json and the rest); `bash kit_appr/scripts/cpu.sh $PWD/rk_approve.py` (RK_APPROVE.json).
+=====GUARD
+**Verdict:** The reader is right to admit these orientations; the guard detects real camera roll but wrongly treats it as invalid geometry, and the reader’s distances remain inaccurate.
+**Fix:** Share one converter/reader contract that permits arbitrary roll and retains finite/rotation/intrinsic checks; diagnose gravity error separately and score distances against corrected labels.
+**Commands:** `bash run.sh audit.py > out/audit.log 2>&1` produces every number below and `out/GUARD.json`; `bash run.sh report.py` renders this report.
+OpenCV image-up is `[0,-1,0]`; the head predicts gravity-UP, not downward acceleration; dataset world-up is `[0,0,1]` (physical gravity direction `[0,0,-1]`).
+| Capture | Head gravity-up in reference camera | GT gravity-up in reference camera | Image-up angle to head / GT | Head–GT error |
+|---|---|---|---|---|
+| 0f69aefe3d | `[-0.46408269, 0.88578218, 0.00414653]` | `[-0.02412002, 0.93868786, -0.34392342]` | 152.3479° / 159.8324° | 32.7286° |
+| 2c7c10379b | `[-0.99103892, 0.01633985, -0.13257061]` | `[-0.95237035, 0.03370884, -0.30307495]` | 90.9362° / 91.9317° | 10.0796° |
+Their image-up vectors in served world coordinates are `[0.46408668, 0.00367295, -0.88578218]` and `[0.99986411, -0.00218547, -0.01633985]`, respectively.
+GUARD.json preserves full-precision reference matrices and all GT/served poses; GT up is normalized `R_GT[0].T @ [0,0,1]`; a separate measured gravity/IMU field is MISSING from both manifest GT NPZs.
+`0f69aefe3d`, frame 0: the bathroom is upside down (floor mat and toilet base at image top); GT confirms inversion, despite the head’s 32.73° error.
+`2c7c10379b`, frame 0: the living room is nearly sideways (rug/floor at image right); GT places image-up 1.93° past horizontal, agreeing with the head’s sign.
+Convert’s sealed/reviewed checks both refuse: `-R[0,2,1]` is -0.88578218 / -0.01633985; even GT fails (-0.93868721 / -0.03370883); reviewed plane norms 0.99999140 / 0.99117356 exceed 0.3.
+Convert retains REFUSED_GEOMETRY.npz and emits no geometry.npz; A4 drops that terminal check and serves G3T pose/depth rotated by checkpoint gravity, scaled once by own-depth median ratios (1.7496919632 / 3.9223759174 after float32 exp).
+A4 reconstructs the identical unscaled camera arrays, selects candidates with `candidates_argmax`, lifts best-frame spread-filtered boxes, and computes `box_grid_5cm` gaps; CPU replay matches all 12 responses (stored step-544 tensors, no fresh prefill).
+| Capture | Operand pairs (same order) | Served / corrected GT distance, metres |
+|---|---|---|
+| 0f69aefe3d | door / heater; door / toilet | not seen / 1.566237; 1.37 / 1.811913 |
+| 2c7c10379b | monitor / sofa; clock / bed | 2.23 / 8.305454; 1.92 / 1.490835 |
+| 2c7c10379b | bed / tv; monitor / tv | 5.41 / 8.075134; 0.00 / 6.204585 |
+| 2c7c10379b | clock / sofa; clock / tv | 6.04 / 8.843500; 4.21 / 6.750837 |
+| 2c7c10379b | bed / sofa; clock / monitor | 7.81 / 10.251605; 4.21 / 1.748595 |
+| 2c7c10379b | tv / sofa; monitor / bed | 2.23 / 1.491923; 5.41 / 1.527296 |
+The two captures score **24.17% MRA** (30.00% bathroom; 23.00% living room), versus **57.15%** for 1,025 rows in 207 other K1 training captures and **54.06%** for 609 rows in 58 other ScanNet++ captures; only 2/11 answers have <25% relative error.
+MRA averages strict relative-error passes at 50%,45%,…,5%, with refusals scoring zero; answered-only MRA is 26.36% versus 59.17% on other K1 rows (57.35% on other ScanNet++ rows); these comparisons do not isolate gravity’s contribution to distance error.
+=====CNTREV
+# NO-GO
+The supplied kit must not consume the R0-dev comparison in its current form.
+Reviewed archive SHA256: `f1dfce8d0f9e2c56aec9e1ebf05f5d1daa8a88ce5a836e370dbc86e4c29d9be1`.
+Commands for every reproduced number: [COMMANDS.md](COMMANDS.md); input digests: [PROVENANCE.json](PROVENANCE.json).
+
+1. **K1 numbers reproduce with the local mirror, not from the kit alone.**
+`score_count_pricing.py --k1` reproduces 42.3/39.4/39.7/46.1/42.5 for truths 1/2/3/4/5+, with 254 large pairs.
+`audit_cpu.py` reproduces constant 55.2362, identity oracle 80.5512, and ground-truth frame maximum 48.2353 (306 large pairs).
+MISSING from `kit/work/`: `K1_PAIRS.json.gz`, `K1_LIFT.npz`, `K1_NMS.npz`, `K1_LMERGE.json`, `K1_LEARN_EST.json`; the full pilot table cannot be rerun.
+
+2. **Selection and one-look requirements fail.**
+The scorer chooses `best_const` from 5/6/7 on the 64 R0-dev large items, 29 dev-S1 large items, and pooled groups, then uses it in INFORMATIVE.
+Spec §4 admits K1 held-out visibility during rule choice; the NMS-only candidate restriction has no training-only selection receipt.
+Spec §2 uses R0-dev composite results to decide floor rows; §9 lets dev-S1 change the primary verdict. Neither executable enforces one look.
+[SELECTION_AUDIT.md](SELECTION_AUDIT.md) lists every selection point, item set, and required change.
+
+3. **CPU execution passes; official-MRA equivalence fails the available evidence.**
+The self-test passes. The real manifest verifies 3,136 frame hashes, 98 captures, and 464 prompts; the full CPU stub completes with coverage 385/385.
+The packaged two-capture fixture's 64 frames are MISSING; their exact first path and the full-stub replacement command are in COMMANDS.md.
+`audit_cpu.py` finds 3 mismatches among 1,605 stored direct scores: prediction 11/truth 10 scores 0.8 instead of stored 0.9 in both R0-dev comparator arms; prediction 23/truth 20 scores 0.7 instead of 0.8 in R1_100.
+MISSING: a pinned official scorer implementation and its source location. The self-test's agreement with its own formula does not establish correctness.
+
+4. **Local inputs exist; runtime safeguards fail.**
+Frames exist at `/scratch/jjyeung/orch_n30/b10_reserve/frames/scannetpp`; the builder verifies their supplied manifests.
+Weights at `/scratch/jjyeung/orch_cd/ttower/work/sam3_weights/sam3.pt` hash to `9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e`; all six source-receipt hashes match.
+The documented b05 code, SAM environment, source tree, and K1 mirror exist on trinity-1-18; no dev-S1 frame root is supplied.
+K1 completion receipts give 9,276.03 seconds/4,546 prompts: 2.0405 seconds/prompt, projecting 0.263 GPU-hours for 464 prompts. A 0.5-hour allowance is plausible, not a measured R0-dev runtime.
+The launch text uses vnice and scratch data paths, but the vnice executable and GPU availability were not checked; this review used no GPU or network.
+`--hours` checks only between captures and resets on resume. `audit_controls.py` proves exit 0/`shard_complete` with 98 invalid DONE markers and zero teacher files.
+
+5. **Required edits before another review.**
+- In `score_count_pricing.py`, use a pinned official metric; test all stored scores plus threshold boundaries, recompute affected references, and decide from unrounded values.
+- In spec §§2/4/8/9 and the design gates, freeze all tunable rules, constants, thresholds, response/row choices, and the decision on K1 TRAINING; make dev-S1 diagnostic only.
+- Add an atomic shared one-look ledger keyed by evaluation category, binding authorized item IDs and item/config/code/manifest hashes before exposing scores; reject repeated or changed reads across output directories.
+- In builder/runner, enforce the pinned dev allowlist and resolved scratch paths; schema/set strings plus a caller-supplied hash do not exclude official items. Keep stub runs separate.
+- In runner/scorer, validate DONE contents, teacher checksum, manifest/contract/settings hashes, full frame/category coverage, and non-stub provenance; reject stale or incomplete completion markers.
+- Add an absolute launch deadline and cumulative budget accounting across resumes; retain vnice, set scratch caches and eight-thread CPU limits, and prohibit automatic relaunch after a kill.
+- Package the missing pilot/fixture inputs and pinned scorer; record input hashes in score outputs and emit the category-error report that spec §7 requests but the scorer omits.
+The claims that dev is “untouched,” all rules came from training alone, and the runner provides a hard stop lack adequate supporting files or code.
+No official item file was read. All writes stayed inside this workspace.

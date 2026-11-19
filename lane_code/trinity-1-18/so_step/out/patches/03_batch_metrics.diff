@@ -1,12 +1,10 @@
 --- a/student_pilot/carrier_c1_run.py
 +++ b/student_pilot/carrier_c1_run.py
-@@ -1513,6 +1513,13 @@
+@@ -1530,6 +1530,11 @@
  def optimize_step(model, optimizer, rows, plan, rank, device, step, distributed=False, gates=None):
      """Rank-aligned microsteps (four in mixed/pose-only); FSDP reduces each (no large no_sync grads)."""
      started, waiting = time.perf_counter(), 0.
-+    batch_metrics = os.environ.get('C1_BATCH_METRICS', '0')
-+    if batch_metrics not in ('0', '1'):
-+        raise ValueError('C1_BATCH_METRICS must be 0 or 1')
++    batch_metrics = performance_switch('C1_BATCH_METRICS')
 +    deferred_components = None
 +    if batch_metrics == '1':
 +        from .c1_batch_metrics import Components
@@ -14,7 +12,7 @@
      unwrapped = model.module if distributed else model
      recipe = unwrapped.recipe
      if 'stream_rows_per_step' in recipe:
-@@ -1562,7 +1569,7 @@
+@@ -1579,7 +1584,7 @@
              batch, audit = own_values(model, rows, batch, audit, (audit or {}).get('index', indices[rank]),
                                        tuple(bool(x) for x in decisions[microstep].tolist()), device)
          batch, targets = move(batch, device), move(targets, device)
@@ -23,7 +21,7 @@
              torch.cuda.synchronize(device)
          if gf1_enabled and step == 1 and screen is None and stream == 'vqa':
              from .gf1 import screen_loss, harm_guard
-@@ -1590,10 +1597,13 @@
+@@ -1607,10 +1612,13 @@
          reserved_peaks.append(torch.cuda.max_memory_reserved(device) if device.type == 'cuda' else 0)
          phase_memory.append(dict(microbatch=len(phase_memory), stream=stream, **phases,
                                   peak_allocated_bytes=peaks[-1], peak_reserved_bytes=reserved_peaks[-1]))
@@ -41,7 +39,7 @@
          stream_counts[stream] = stream_counts.get(stream, 0) + 1
          for key in routing.Gates.METRICS:
              value = result.get('metrics', {}).get(key)
-@@ -1617,6 +1627,8 @@
+@@ -1634,6 +1642,8 @@
          if stream == 'pose':
              pose_batch = (batch,targets)
          del result
