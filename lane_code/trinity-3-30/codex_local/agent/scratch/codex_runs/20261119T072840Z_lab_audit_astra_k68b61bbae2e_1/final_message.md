@@ -1,0 +1,1 @@
+{"v001":"yes","v002":"yes","f003":5,"f004":6,"f005":3,"f006":6,"f007":6,"check":"Frame 5 shows a bed with black-and-white striped bedding, red accents and a gray pillow; frame 30 shows a glowing yellow pendant lamp against a pale gray ceiling."}

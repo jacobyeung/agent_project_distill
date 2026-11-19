@@ -1,0 +1,2084 @@
+[
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B5.sh",
+    "line": 5,
+    "kind": "shell",
+    "predicate": "test \"$(cat \"$P/a/1.txt\")\" = 0"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B5.sh",
+    "line": 7,
+    "kind": "shell",
+    "predicate": "CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 02:30:00"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B5.sh",
+    "line": 8,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/4.txt\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B5.sh",
+    "line": 9,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/c\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B5.sh",
+    "line": 10,
+    "kind": "shell",
+    "predicate": "CPU_REPLY=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=\"$HOME\" USER=\"$USER\" CUDA_VISIBLE_DEVICES=  sbatch --parsable --account=mt01 --partition=preempt --nodes=1 --ntasks=1  --job-name=a15_cot_apb635a315de01e --cpus-per-task=8 --mem=200G --time=04:00:00  --exclude='orchard-flame-[0-31]' --export=ALL --no-requeue --chdir=/tmp  --output=\"$P/a/4.log\" --error=\"$P/a/4.err\"  --wrap=\"exec /usr/bin/python3 -I -s -B $P/a/5.py --package $P --sequence $P/a/6.py --results $P/a/c\")"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B5.sh",
+    "line": 12,
+    "kind": "shell",
+    "predicate": "[[ \"$CPU_JOB\" =~ ^[0-9]+$ ]]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B5.sh",
+    "line": 18,
+    "kind": "shell",
+    "predicate": "test \"$(cat $P/a/1.txt)\" = 0"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B5.sh",
+    "line": 24,
+    "kind": "shell",
+    "predicate": "J=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=\"$HOME\" USER=\"$USER\" sbatch --parsable --account=mt01 --partition=preempt --nodes=1 --ntasks=1 --cpus-per-task=1 --mem=1G --time=00:05:00 --job-name=a15_cot_ap1ed4e44538f0 --export=NONE --no-requeue --chdir=/tmp --output=/dev/null --error=/dev/null $S/trap_test.sh); echo \"$J\" > $S/traptest.txt; echo trap test job $J"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A3.sh",
+    "line": 6,
+    "kind": "shell",
+    "predicate": "assert d['passed'] and d['archives'][4]['sha256']=='05dc8f79' and d['archives'][5]['parts']==['a/6']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A3.sh",
+    "line": 12,
+    "kind": "shell",
+    "predicate": "test \"$(cat \"$P/a/1.txt\")\" = 0"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A3.sh",
+    "line": 14,
+    "kind": "shell",
+    "predicate": "CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 05:00:00"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A3.sh",
+    "line": 15,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/4.txt\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A3.sh",
+    "line": 16,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/c\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A3.sh",
+    "line": 17,
+    "kind": "shell",
+    "predicate": "CPU_REPLY=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=\"$HOME\" USER=\"$USER\" CUDA_VISIBLE_DEVICES=  sbatch --parsable --account=mt01 --partition=preempt --nodes=1 --ntasks=1  --job-name=a15_cot_apc0fdd959a6eb5 --cpus-per-task=8 --mem=200G --time=04:00:00  --exclude='orchard-flame-[0-31]' --export=ALL --no-requeue --chdir=/tmp  --output=\"$P/a/4.log\" --error=\"$P/a/4.err\"  --wrap=\"exec /usr/bin/python3 -I -s -B $P/a/5.py --package $P --sequence $P/a/6.py --results $P/a/c\")"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A3.sh",
+    "line": 19,
+    "kind": "shell",
+    "predicate": "[[ \"$CPU_JOB\" =~ ^[0-9]+$ ]]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A4.sh",
+    "line": 5,
+    "kind": "shell",
+    "predicate": "test \"$(cat \"$P/a/1.txt\")\" = 0"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A4.sh",
+    "line": 7,
+    "kind": "shell",
+    "predicate": "CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 05:00:00"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A4.sh",
+    "line": 8,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/4.txt\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A4.sh",
+    "line": 9,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/c\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A4.sh",
+    "line": 10,
+    "kind": "shell",
+    "predicate": "CPU_REPLY=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=\"$HOME\" USER=\"$USER\" CUDA_VISIBLE_DEVICES=  sbatch --parsable --account=mt01 --partition=preempt --nodes=1 --ntasks=1  --job-name=a15_cot_apd60a20ec01296 --cpus-per-task=8 --mem=200G --time=04:00:00  --exclude='orchard-flame-[0-31]' --export=ALL --no-requeue --chdir=/tmp  --output=\"$P/a/4.log\" --error=\"$P/a/4.err\"  --wrap=\"exec /usr/bin/python3 -I -s -B $P/a/5.py --package $P --sequence $P/a/6.py --results $P/a/c\")"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_A4.sh",
+    "line": 12,
+    "kind": "shell",
+    "predicate": "[[ \"$CPU_JOB\" =~ ^[0-9]+$ ]]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B4.sh",
+    "line": 5,
+    "kind": "shell",
+    "predicate": "test \"$(cat \"$P/a/1.txt\")\" = 0"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B4.sh",
+    "line": 7,
+    "kind": "shell",
+    "predicate": "CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 02:30:00"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B4.sh",
+    "line": 8,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/4.txt\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B4.sh",
+    "line": 9,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/c\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B4.sh",
+    "line": 10,
+    "kind": "shell",
+    "predicate": "CPU_REPLY=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=\"$HOME\" USER=\"$USER\" CUDA_VISIBLE_DEVICES=  sbatch --parsable --account=mt01 --partition=preempt --nodes=1 --ntasks=1  --job-name=a15_cot_apd50ba921ef1f4 --cpus-per-task=8 --mem=200G --time=04:00:00  --exclude='orchard-flame-[0-31]' --export=ALL --no-requeue --chdir=/tmp  --output=\"$P/a/4.log\" --error=\"$P/a/4.err\"  --wrap=\"exec /usr/bin/python3 -I -s -B $P/a/5.py --package $P --sequence $P/a/6.py --results $P/a/c\")"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops17/work/o_cpu_B4.sh",
+    "line": 12,
+    "kind": "shell",
+    "predicate": "[[ \"$CPU_JOB\" =~ ^[0-9]+$ ]]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu_D.sh",
+    "line": 7,
+    "kind": "shell",
+    "predicate": "[[ \"$P\" =~ ^/project/community/jjyeung/okh7/a15_cot_ap[0-9a-f]+$ ]]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu_D.sh",
+    "line": 8,
+    "kind": "shell",
+    "predicate": "[[ \"$T\" =~ ^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$ ]]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu_D.sh",
+    "line": 9,
+    "kind": "shell",
+    "predicate": "test \"$(cat \"$P/a/1.txt\")\" = 0"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu_D.sh",
+    "line": 11,
+    "kind": "shell",
+    "predicate": "CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time \"$T\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu_D.sh",
+    "line": 12,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/4.txt\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu_D.sh",
+    "line": 13,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/c\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu_D.sh",
+    "line": 14,
+    "kind": "shell",
+    "predicate": "CPU_REPLY=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=\"$HOME\" USER=\"$USER\" CUDA_VISIBLE_DEVICES=  sbatch --parsable --account=mt01 --partition=preempt --nodes=1 --ntasks=1  --job-name=\"${P##*/}\" --cpus-per-task=8 --mem=200G --time=\"$T\"  --exclude='orchard-flame-[0-31]' --export=ALL --no-requeue --chdir=/tmp  --output=\"$P/a/4.log\" --error=\"$P/a/4.err\"  --wrap=\"exec /usr/bin/python3 -I -s -B $P/a/5.py --package $P --sequence $P/a/6.py --results $P/a/c\")"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu_D.sh",
+    "line": 16,
+    "kind": "shell",
+    "predicate": "[[ \"$CPU_JOB\" =~ ^[0-9]+$ ]]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu200.sh",
+    "line": 7,
+    "kind": "shell",
+    "predicate": "[[ \"$P\" =~ ^/project/community/jjyeung/okh7/a15_cot_ap[0-9a-f]+$ ]]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu200.sh",
+    "line": 8,
+    "kind": "shell",
+    "predicate": "[[ \"$T\" =~ ^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$ ]]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu200.sh",
+    "line": 9,
+    "kind": "shell",
+    "predicate": "test \"$(cat \"$P/a/1.txt\")\" = 0"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu200.sh",
+    "line": 11,
+    "kind": "shell",
+    "predicate": "CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time \"$T\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu200.sh",
+    "line": 12,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/4.txt\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu200.sh",
+    "line": 13,
+    "kind": "shell",
+    "predicate": "test ! -e \"$P/a/c\""
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu200.sh",
+    "line": 14,
+    "kind": "shell",
+    "predicate": "CPU_REPLY=$(env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=\"$HOME\" USER=\"$USER\" CUDA_VISIBLE_DEVICES=  sbatch --parsable --account=mt01 --partition=preempt --nodes=1 --ntasks=1  --job-name=\"${P##*/}\" --cpus-per-task=8 --mem=200G --time=\"$T\"  --exclude='orchard-flame-[0-31]' --export=ALL --no-requeue --chdir=/tmp  --output=\"$P/a/4.log\" --error=\"$P/a/4.err\"  --wrap=\"exec /usr/bin/python3 -I -s -B $P/a/5.py --package $P --sequence $P/a/6.py --results $P/a/c\")"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/o_cpu200.sh",
+    "line": 16,
+    "kind": "shell",
+    "predicate": "[[ \"$CPU_JOB\" =~ ^[0-9]+$ ]]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/check_release_d.py",
+    "line": 66,
+    "kind": "Assert",
+    "predicate": "    assert read(dry/'result.json')['passed']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/check_release_d.py",
+    "line": 26,
+    "kind": "Assert",
+    "predicate": "        data=gzip.decompress(base64.b64decode(spec['data']));assert sha(data)==spec['sha256']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/check_release_d.py",
+    "line": 33,
+    "kind": "Assert",
+    "predicate": "        raw=(Path(report['delivery_dir'])/'1.tgz').read_bytes();assert sha(raw)==report['delivery_sha256']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/check_release_d.py",
+    "line": 41,
+    "kind": "Assert",
+    "predicate": "        assert b'orchard-community-2' in (root/'BATCH.sh').read_bytes()"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/check_release_d.py",
+    "line": 42,
+    "kind": "Assert",
+    "predicate": "        assert (root/'BATCH.sh').read_text().count('trap fin EXIT')==1"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/check_release_d.py",
+    "line": 45,
+    "kind": "Assert",
+    "predicate": "        assert r.returncode!=0 and b'D requires --time 04:00:00' in r.stderr"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/check_release_d.py",
+    "line": 71,
+    "kind": "Raise",
+    "predicate": "    else:raise AssertionError('Accepted wrong reused part hash')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/check_release_d.py",
+    "line": 28,
+    "kind": "Assert",
+    "predicate": "        if name!='items/dist580.json':assert data==source.read_bytes(),name"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/check_release_d.py",
+    "line": 29,
+    "kind": "Assert",
+    "predicate": "        else:assert data==(W/'items/dist580.json').read_bytes()"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 31,
+    "kind": "Assert",
+    "predicate": "    assert package.name=='a15_cot_ap'+pub['token']== 'a15_cot_ap'+report['token']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 35,
+    "kind": "Assert",
+    "predicate": "    assert hashlib.sha256(json.dumps(plan,sort_keys=True,separators=(',',':')).encode()).hexdigest()==pub['plan_sha256']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 36,
+    "kind": "Assert",
+    "predicate": "    assert sha(package/'0.tgz')==pub['payload_sha256']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 37,
+    "kind": "Assert",
+    "predicate": "    assert plan['export_binding']==report['export_binding']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 38,
+    "kind": "Assert",
+    "predicate": "    assert all(binding[k]==v for k,v in plan['export_binding'].items())"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 42,
+    "kind": "Assert",
+    "predicate": "    assert bundle['0.json']==(package/'0.json').read_bytes() and bundle['7.py']==(package/'a/6.py').read_bytes()"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 43,
+    "kind": "Assert",
+    "predicate": "    assert read(package/'a/0.json')['types']==['object_abs_distance']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 44,
+    "kind": "Assert",
+    "predicate": "    assert read(package/'a/1.json')=={'pending':True}"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 47,
+    "kind": "Assert",
+    "predicate": "    assert hashlib.sha256(pf['items/dist580.json']).hexdigest()==report['items_sha256']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 115,
+    "kind": "Assert",
+    "predicate": "    assert len(filled['archives'])==len(base['archives'])+1"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 116,
+    "kind": "Assert",
+    "predicate": "    assert filled['archives'][1:-1]==base['archives'][1:]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 117,
+    "kind": "Assert",
+    "predicate": "    assert filled['types']==['object_abs_distance']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 26,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Part differs: '+str(path))"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 32,
+    "kind": "Assert",
+    "predicate": "    for n,h in pk['files'].items():assert sha(package/n)==h,n"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 40,
+    "kind": "Assert",
+    "predicate": "        assert pin==dict(bytes=len(pf[n]),sha256=hashlib.sha256(pf[n]).hexdigest()),n"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 53,
+    "kind": "Raise",
+    "predicate": "    if sha(stage/'binding.json')!=report['binding_sha256']:raise ValueError('Binding changed after build')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 56,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Placement requires the Orchard project namespace')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 57,
+    "kind": "Raise",
+    "predicate": "    if sha(delivery)!=report['delivery_sha256']:raise ValueError('Delivery differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 77,
+    "kind": "Assert",
+    "predicate": "        assert hashlib.sha256(raw).hexdigest()==binding['preparation_sha256'][key],key"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 90,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Claim member differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 119,
+    "kind": "Assert",
+    "predicate": "        assert export[key]==binding[key],key"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 60,
+    "kind": "Raise",
+    "predicate": "        if Path(m.name).is_absolute() or '..' in Path(m.name).parts:raise ValueError('Unsafe delivery')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 82,
+    "kind": "Raise",
+    "predicate": "        if Path(done).read_text().split()!=fields:raise ValueError('External receipt differs from sealed binding')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 75,
+    "kind": "Raise",
+    "predicate": "            if not candidates:raise ValueError('Set PREP_FROM to a directory containing pinned preparation files 7,8,9')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 84,
+    "kind": "Raise",
+    "predicate": "        if (Path(prep)/'5').read_text().split()!=fields:raise ValueError('Reuse receipt differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops18/dbuild/place_fill_d.py",
+    "line": 99,
+    "kind": "Raise",
+    "predicate": "            if dest.stat().st_size!=pin['bytes']:raise ValueError('Linked/copied size differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 21,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Bundle encoding differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 25,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Bundle encoding differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 37,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Bundle descriptor differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 40,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Bundled operator differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 50,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Write-test receipt differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 53,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Process guard did not exercise its write target')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 55,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Process guard changed bundled operator')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 69,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Operator collides with guard target')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 71,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Write test must precede operator dispatch')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 77,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Entry write-test evidence differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 89,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Dispatched operator changed')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 103,
+    "kind": "Raise",
+    "predicate": "    if not job.isdigit():raise ValueError('Run on an allocated compute node')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 108,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Package hash differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 113,
+    "kind": "Raise",
+    "predicate": "    if sequence.read_bytes()!=(package/'a/6.py').read_bytes():raise ValueError('Operator differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 147,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Prepared default settings differ')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 30,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Bundle inventory differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 82,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Bootstrap did not dispatch bundled operator')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 111,
+    "kind": "Raise",
+    "predicate": "        if hashlib.sha256((package/name).read_bytes()).hexdigest()!=h:raise ValueError('Package descriptor differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 33,
+    "kind": "Raise",
+    "predicate": "                raise ValueError('Unsafe bundle member')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/5.py",
+    "line": 119,
+    "kind": "Raise",
+    "predicate": "            if not entry.isfile() or '..' in Path(entry.name).parts:raise ValueError('Unsafe code')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 58,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Invalid whole-tar .done receipt')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 84,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Parts differ from whole-tar .done bytes or sha256')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 86,
+    "kind": "Raise",
+    "predicate": "    if len(artifacts) != 1:raise ValueError('Require exactly one export artifact')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 88,
+    "kind": "Raise",
+    "predicate": "    if member == '.':raise ValueError('Export needs a member directory')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 96,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Unsupported full-weights export')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 114,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Data receipt status/schema/flags differ')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 118,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Data receipt config/preparation binding differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 124,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Export architecture or identity differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 137,
+    "kind": "Raise",
+    "predicate": "    if pin(raw)['sha256'] != public['payload_sha256']:raise ValueError('Reviewed payload differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 141,
+    "kind": "Raise",
+    "predicate": "    if digest != public['plan_sha256']:raise ValueError('Reviewed plan differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 149,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Reviewed whole-tar receipt differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 156,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Reviewed whole-tar identity differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 164,
+    "kind": "Raise",
+    "predicate": "    if artifact.get('step') != binding['step']:raise ValueError('Artifact step differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 189,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Reviewed run/step/object differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 190,
+    "kind": "Raise",
+    "predicate": "    if len(a.parts) != 4:raise ValueError('Require four ordered parts')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 191,
+    "kind": "Raise",
+    "predicate": "    if a.step < 0:raise ValueError('Step must be nonnegative')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 197,
+    "kind": "Raise",
+    "predicate": "    if label and int(label.group(1)) != a.step:raise ValueError('Step label differs from export member directory')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 34,
+    "kind": "Raise",
+    "predicate": "        if size < 0:raise ValueError('Bounded reads required')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 93,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Artifact member hash differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 98,
+    "kind": "Raise",
+    "predicate": "        if PurePosixPath(item['name']).name != item['name']:raise ValueError('Invalid weight name')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 101,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Weight pin differs: '+item['name'])"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 160,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Reviewed export binding differs: '+key)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 163,
+    "kind": "Raise",
+    "predicate": "        if actual != binding[key]:raise ValueError('Reviewed export binding differs: '+key)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 166,
+    "kind": "Raise",
+    "predicate": "        if artifact.get(key) != binding[key]:raise ValueError('Artifact identity differs: '+key)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 170,
+    "kind": "Raise",
+    "predicate": "        if path.parts[-len(tail.parts):] != tail.parts:raise ValueError('Artifact run/member path differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 172,
+    "kind": "Raise",
+    "predicate": "        if prep[name]['sha256'] != digest:raise ValueError('Reviewed preparation differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 194,
+    "kind": "Raise",
+    "predicate": "        if not Path(path).is_file():raise ValueError('Missing preparation file: '+path)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 65,
+    "kind": "Raise",
+    "predicate": "                    raise ValueError('Unsafe or duplicate export member')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 68,
+    "kind": "Raise",
+    "predicate": "                if not entry.isfile():raise ValueError('Export must contain regular files')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 71,
+    "kind": "Raise",
+    "predicate": "                if wanted and entry.size > 4*1024**2:raise ValueError('Oversized metadata')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/4.py",
+    "line": 77,
+    "kind": "Raise",
+    "predicate": "                if size != entry.size:raise ValueError('Truncated member')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 21,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return plan differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 23,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return token differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 25,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Synthetic return refused')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 28,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return byte count differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 30,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return archive digest differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 32,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return completion status differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 37,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return receipt provenance differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 39,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return receipt job/status differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 42,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return pool is unverified')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 57,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Payload differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 62,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Package plan/token differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 64,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Requested return token differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 74,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return job differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 46,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Return receipt file differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/7.py",
+    "line": 55,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Delivery member differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 140,
+    "kind": "Raise",
+    "predicate": " raise SystemExit(1 if result['failure'] else 0)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 16,
+    "kind": "Raise",
+    "predicate": " if path.exists() and json.loads(path.read_text())!=value:raise ValueError('Read identity differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 22,
+    "kind": "Raise",
+    "predicate": " if config.get('optional'):raise ValueError('Unexpected optional input')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 25,
+    "kind": "Raise",
+    "predicate": " if settings['stage1_select_rule'] not in RULES:raise ValueError('unknown_stage1_select_rule')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 53,
+    "kind": "Assert",
+    "predicate": "  assert args[args.index('--arms')+1]=='tower'"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 54,
+    "kind": "Assert",
+    "predicate": "  assert args[args.index('--modes')+1]=='none'"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 55,
+    "kind": "Assert",
+    "predicate": "  assert args[args.index('--types')+1]==','.join(cfg['types'])"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 56,
+    "kind": "Assert",
+    "predicate": "  assert args[args.index('--stop-file')+1]==str(Path(config['output'])/'metadata/STOP')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 57,
+    "kind": "Assert",
+    "predicate": "  assert json.loads(Path(args[args.index('--settings')+1]).read_text())['stage1_select_rule']==RULES[i]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 59,
+    "kind": "Assert",
+    "predicate": "  assert chosen['perception_memo']=='on'"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 60,
+    "kind": "Assert",
+    "predicate": "  assert chosen['perception_memo_verify_ids']==descriptors(config['package'])[i]['perception_memo_verify_ids']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 75,
+    "kind": "Assert",
+    "predicate": "  assert made[0].rule==rule"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 76,
+    "kind": "Assert",
+    "predicate": "  assert made[0].select(dict(x=torch.zeros(2,58),name='x'))==1"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 82,
+    "kind": "Raise",
+    "predicate": " if len(cards)!=1 or not cards[0]:raise ValueError('Require exactly one assigned card')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 121,
+    "kind": "Raise",
+    "predicate": " if settings['perception_memo_modules']!=['g3t']:raise ValueError('Unsupported operator memo modules')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/package/a/6.py",
+    "line": 124,
+    "kind": "Raise",
+    "predicate": " if not result['fits']:raise ValueError('Perception memo exceeds host memory plan')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 15,
+    "kind": "Raise",
+    "predicate": "    if len(rehearsal)!=1:raise ValueError('CPU read count differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 17,
+    "kind": "Raise",
+    "predicate": "    if full.get('passed') is not True or full.get('device')!='cpu':raise ValueError('Full reader failed')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 19,
+    "kind": "Raise",
+    "predicate": "    if [r['set'] for r in records]!=['dev-S1','R0-dev']:raise ValueError('Full reader sets differ')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 37,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Bundle encoding differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 41,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Bundle encoding differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 53,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Bundle descriptor differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 56,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Bundled operator differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 66,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Write-test receipt differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 69,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Process guard did not exercise its write target')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 71,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Process guard changed bundled operator')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 85,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Operator collides with guard target')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 87,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Write test must precede operator dispatch')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 93,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Entry write-test evidence differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 105,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Dispatched operator changed')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 119,
+    "kind": "Raise",
+    "predicate": "    if not job.isdigit():raise ValueError('Run on an allocated compute node')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 124,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Package hash differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 129,
+    "kind": "Raise",
+    "predicate": "    if sequence.read_bytes()!=(package/'a/6.py').read_bytes():raise ValueError('Operator differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 163,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Prepared default settings differ')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 26,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Full reader record failed')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 46,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Bundle inventory differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 98,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Bootstrap did not dispatch bundled operator')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 127,
+    "kind": "Raise",
+    "predicate": "        if hashlib.sha256((package/name).read_bytes()).hexdigest()!=h:raise ValueError('Package descriptor differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 49,
+    "kind": "Raise",
+    "predicate": "                raise ValueError('Unsafe bundle member')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/5.py",
+    "line": 135,
+    "kind": "Raise",
+    "predicate": "            if not entry.isfile() or '..' in Path(entry.name).parts:raise ValueError('Unsafe code')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 58,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Invalid whole-tar .done receipt')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 84,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Parts differ from whole-tar .done bytes or sha256')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 86,
+    "kind": "Raise",
+    "predicate": "    if len(artifacts) != 1:raise ValueError('Require exactly one export artifact')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 88,
+    "kind": "Raise",
+    "predicate": "    if member == '.':raise ValueError('Export needs a member directory')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 96,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Unsupported full-weights export')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 114,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Data receipt status/schema/flags differ')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 118,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Data receipt config/preparation binding differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 124,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Export architecture or identity differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 137,
+    "kind": "Raise",
+    "predicate": "    if pin(raw)['sha256'] != public['payload_sha256']:raise ValueError('Reviewed payload differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 141,
+    "kind": "Raise",
+    "predicate": "    if digest != public['plan_sha256']:raise ValueError('Reviewed plan differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 149,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Reviewed whole-tar receipt differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 156,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Reviewed whole-tar identity differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 164,
+    "kind": "Raise",
+    "predicate": "    if artifact.get('step') != binding['step']:raise ValueError('Artifact step differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 189,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Reviewed run/step/object differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 190,
+    "kind": "Raise",
+    "predicate": "    if len(a.parts) != 4:raise ValueError('Require four ordered parts')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 191,
+    "kind": "Raise",
+    "predicate": "    if a.step < 0:raise ValueError('Step must be nonnegative')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 197,
+    "kind": "Raise",
+    "predicate": "    if label and int(label.group(1)) != a.step:raise ValueError('Step label differs from export member directory')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 34,
+    "kind": "Raise",
+    "predicate": "        if size < 0:raise ValueError('Bounded reads required')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 93,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Artifact member hash differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 98,
+    "kind": "Raise",
+    "predicate": "        if PurePosixPath(item['name']).name != item['name']:raise ValueError('Invalid weight name')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 101,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Weight pin differs: '+item['name'])"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 160,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Reviewed export binding differs: '+key)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 163,
+    "kind": "Raise",
+    "predicate": "        if actual != binding[key]:raise ValueError('Reviewed export binding differs: '+key)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 166,
+    "kind": "Raise",
+    "predicate": "        if artifact.get(key) != binding[key]:raise ValueError('Artifact identity differs: '+key)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 170,
+    "kind": "Raise",
+    "predicate": "        if path.parts[-len(tail.parts):] != tail.parts:raise ValueError('Artifact run/member path differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 172,
+    "kind": "Raise",
+    "predicate": "        if prep[name]['sha256'] != digest:raise ValueError('Reviewed preparation differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 194,
+    "kind": "Raise",
+    "predicate": "        if not Path(path).is_file():raise ValueError('Missing preparation file: '+path)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 65,
+    "kind": "Raise",
+    "predicate": "                    raise ValueError('Unsafe or duplicate export member')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 68,
+    "kind": "Raise",
+    "predicate": "                if not entry.isfile():raise ValueError('Export must contain regular files')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 71,
+    "kind": "Raise",
+    "predicate": "                if wanted and entry.size > 4*1024**2:raise ValueError('Oversized metadata')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/4.py",
+    "line": 77,
+    "kind": "Raise",
+    "predicate": "                if size != entry.size:raise ValueError('Truncated member')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 21,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return plan differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 23,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return token differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 25,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Synthetic return refused')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 28,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return byte count differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 30,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return archive digest differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 32,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return completion status differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 37,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return receipt provenance differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 39,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return receipt job/status differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 42,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return pool is unverified')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 57,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Payload differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 62,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Package plan/token differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 64,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Requested return token differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 74,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Return job differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 46,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Return receipt file differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/7.py",
+    "line": 55,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Delivery member differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 251,
+    "kind": "Raise",
+    "predicate": " raise SystemExit(1 if result['failure'] else 0)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 16,
+    "kind": "Raise",
+    "predicate": " if path.exists() and json.loads(path.read_text())!=value:raise ValueError('Read identity differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 22,
+    "kind": "Raise",
+    "predicate": " if config.get('optional'):raise ValueError('Unexpected optional input')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 25,
+    "kind": "Raise",
+    "predicate": " if settings['stage1_select_rule'] not in RULES:raise ValueError('unknown_stage1_select_rule')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 53,
+    "kind": "Assert",
+    "predicate": "  assert args[args.index('--arms')+1]=='tower'"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 54,
+    "kind": "Assert",
+    "predicate": "  assert args[args.index('--modes')+1]=='none'"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 55,
+    "kind": "Assert",
+    "predicate": "  assert args[args.index('--types')+1]==','.join(cfg['types'])"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 56,
+    "kind": "Assert",
+    "predicate": "  assert args[args.index('--stop-file')+1]==str(Path(config['output'])/'metadata/STOP')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 57,
+    "kind": "Assert",
+    "predicate": "  assert json.loads(Path(args[args.index('--settings')+1]).read_text())['stage1_select_rule']==RULES[i]"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 59,
+    "kind": "Assert",
+    "predicate": "  assert chosen['perception_memo']=='on'"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 60,
+    "kind": "Assert",
+    "predicate": "  assert chosen['perception_memo_verify_ids']==descriptors(config['package'])[i]['perception_memo_verify_ids']"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 75,
+    "kind": "Assert",
+    "predicate": "  assert made[0].rule==rule"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 76,
+    "kind": "Assert",
+    "predicate": "  assert made[0].select(dict(x=torch.zeros(2,58),name='x'))==1"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 96,
+    "kind": "Raise",
+    "predicate": " if config.get('device')!='cpu':raise ValueError('CPU rehearsal requires CPU')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 103,
+    "kind": "Raise",
+    "predicate": " if any(settings.get(k)!=v for k,v in expected.items()):raise ValueError('Rehearsal settings differ')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 105,
+    "kind": "Raise",
+    "predicate": " if not (Path(config['export'])/'RESTORE.json').is_file():raise ValueError('Restore is absent')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 193,
+    "kind": "Raise",
+    "predicate": " if len(cards)!=1 or not cards[0]:raise ValueError('Require exactly one assigned card')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 232,
+    "kind": "Raise",
+    "predicate": " if settings['perception_memo_modules']!=['g3t']:raise ValueError('Unsupported operator memo modules')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 235,
+    "kind": "Raise",
+    "predicate": " if not result['fits']:raise ValueError('Perception memo exceeds host memory plan')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 168,
+    "kind": "Raise",
+    "predicate": "   raise ValueError('Full reader did not complete exactly one item')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 173,
+    "kind": "Raise",
+    "predicate": "   raise ValueError('Full reader finished record differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 177,
+    "kind": "Raise",
+    "predicate": "   raise ValueError('Official score differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 180,
+    "kind": "Raise",
+    "predicate": "   raise ValueError('Full reader type or settings binding differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 137,
+    "kind": "Raise",
+    "predicate": "   if k.get('device')!='cpu':raise ValueError('Model stub requires CPU')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 148,
+    "kind": "Raise",
+    "predicate": "    raise ValueError('Prompt item binding differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/B5/package/a/6.py",
+    "line": 151,
+    "kind": "Raise",
+    "predicate": "    if digest!=f['sha256']:raise ValueError('Prompt frame SHA256 differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/entry.py",
+    "line": 19,
+    "kind": "Raise",
+    "predicate": "    raise SystemExit(1 if result['failure'] else 0)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/entry.py",
+    "line": 23,
+    "kind": "Raise",
+    "predicate": "    raise SystemExit(main(worker_args(cfg)))"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/entry.py",
+    "line": 24,
+    "kind": "Raise",
+    "predicate": "else:raise ValueError('Invalid dispatch')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/operator.py",
+    "line": 21,
+    "kind": "Raise",
+    "predicate": "    if digest(package/'0.tgz')!=public['payload_sha256']:raise ValueError('Code archive differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/operator.py",
+    "line": 43,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Stage the package under /project/community/jjyeung/'+cfg['token'])"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/operator.py",
+    "line": 45,
+    "kind": "Raise",
+    "predicate": "    if private.stat().st_mode & 0o077:raise ValueError('Private input directory must be 0700')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/operator.py",
+    "line": 68,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Run the CPU check for these exact inputs, card count and time first')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/operator.py",
+    "line": 80,
+    "kind": "Raise",
+    "predicate": "    if any(digest(package/n)!=h for n,h in pins.items()):raise ValueError('Package changed after check')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/operator.py",
+    "line": 94,
+    "kind": "Raise",
+    "predicate": "    if not re.fullmatch(re.escape(cfg['token'])+'[0-9a-f]{8}',token):raise ValueError('Return token differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/operator.py",
+    "line": 105,
+    "kind": "Raise",
+    "predicate": "    if digest(result)!=exit_value['archive_sha256']:raise ValueError('Returned archive differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/operator.py",
+    "line": 41,
+    "kind": "Raise",
+    "predicate": "        if digest(package/name)!=h:raise ValueError('Package changed: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/operator.py",
+    "line": 122,
+    "kind": "Raise",
+    "predicate": "    elif a.action=='submit':raise SystemExit(submit(root,a.gpus,a.time,a.test_only))"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/operator.py",
+    "line": 27,
+    "kind": "Raise",
+    "predicate": "            if hashlib.sha256(raw).hexdigest()!=cfg['payload_pins'][path]['sha256']:raise ValueError('Helper differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/operator.py",
+    "line": 51,
+    "kind": "Raise",
+    "predicate": "            if Path(part['path']).stat().st_size!=part['bytes']:raise ValueError('Staged input size differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/common.py",
+    "line": 52,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Require 11\u201316 hex characters, starting a\u2013f for template compatibility')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/common.py",
+    "line": 65,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Time must be HH:MM:SS')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/common.py",
+    "line": 67,
+    "kind": "Raise",
+    "predicate": "    if m >= 60 or s >= 60:raise ValueError('Invalid time')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/common.py",
+    "line": 75,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Require 1\u20134 GPUs, at least 40 minutes, and at most 5 allocated GPU-hours')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/common.py",
+    "line": 90,
+    "kind": "Raise",
+    "predicate": "    if sha(package/'0.tgz')!=public['payload_sha256']:raise ValueError('Code archive differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/common.py",
+    "line": 93,
+    "kind": "Raise",
+    "predicate": "    if canonical(cfg)!=public['plan_sha256']:raise ValueError('Plan digest differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/common.py",
+    "line": 47,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Non-opaque Slurm surface: '+str(value))"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 18,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Plan digest differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 33,
+    "kind": "Raise",
+    "predicate": "    if inputs.get('schema')!=1 or not inputs.get('archives'):raise ValueError('Unresolved input archives')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 46,
+    "kind": "Raise",
+    "predicate": "    if not needed<=inputs.get('files',{}).keys():raise ValueError('Unresolved dependency files')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 64,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Python or vnice/terminator contract unresolved')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 68,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Require pinned environment and policy receipts in files')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 84,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Resume archive differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 133,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Policy receipt does not authorize these scripts')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 150,
+    "kind": "Raise",
+    "predicate": "    if not job.isdigit() or not 0<int(job)<2**32:raise ValueError('Invalid allocation ID')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 221,
+    "kind": "Raise",
+    "predicate": "    if failed:raise SystemExit(1)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 32,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Invalid type selection')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 36,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Unresolved archive pin or size')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 43,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Additional archives must unpack under the stable data root')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 48,
+    "kind": "Raise",
+    "predicate": "        if not valid(f.get('sha256')) or f.get('bytes',0)<=0:raise ValueError('Unresolved file pin: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 51,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Input file must live under the stable data root')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 56,
+    "kind": "Raise",
+    "predicate": "        if inputs['files'][name]['sha256']!=h:raise ValueError('Registered dependency differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 59,
+    "kind": "Raise",
+    "predicate": "        if not inputs['files'][name]['sha256'].startswith(prefix):raise ValueError('Registered pin prefix differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 62,
+    "kind": "Raise",
+    "predicate": "        if '..' in path.parts or not path.is_relative_to(Path(cfg['logical'])/'d'):raise ValueError('Missing logical '+key)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 70,
+    "kind": "Raise",
+    "predicate": "        if inputs[key] not in inputs['files']:raise ValueError('Unpinned '+key)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 73,
+    "kind": "Raise",
+    "predicate": "        if type(idx) is not int or not 0<=idx<len(inputs['archives']):raise ValueError('Optional archive index differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 74,
+    "kind": "Raise",
+    "predicate": "        if optional['sha256']!=inputs['archives'][idx]['sha256']:raise ValueError('Optional archive pin differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 76,
+    "kind": "Raise",
+    "predicate": "        if not path.is_relative_to(Path(cfg['logical'])/'d') or '..' in path.parts:raise ValueError('Optional root differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 88,
+    "kind": "Raise",
+    "predicate": "        if identity['plan']!=cfg['plan_sha256']:raise ValueError('Resume plan differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 108,
+    "kind": "Raise",
+    "predicate": "        if sha(J.physical(root,cfg['logical']+'/p/'+rel))!=pin['sha256']:raise ValueError('Code payload differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 126,
+    "kind": "Raise",
+    "predicate": "        if path.stat().st_size!=f['bytes'] or S.sha(path)!=f['sha256']:raise ValueError('Input differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 129,
+    "kind": "Raise",
+    "predicate": "        if S.sha(path)!=assets[name+'_sha256']:raise ValueError('Policy script differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 162,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Submitted input or CPU receipt changed')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 166,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('CPU receipt does not bind this submission')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 173,
+    "kind": "Raise",
+    "predicate": "        if time.time()>=end-cfg['stop_margin'] or (out/'metadata/STOP').exists():raise ValueError('No read budget after staging')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 201,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Allocation differs from GPU/hour contract')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 209,
+    "kind": "Raise",
+    "predicate": "        if result.returncode:raise RuntimeError('Allocation runner failed; no retry')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 38,
+    "kind": "Raise",
+    "predicate": "            if not valid(part.get('sha256')) or part.get('bytes',0)<=0:raise ValueError('Unresolved archive part')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 40,
+    "kind": "Raise",
+    "predicate": "                raise ValueError('Stage additional inputs to the registered community namespace')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/job.py",
+    "line": 92,
+    "kind": "Raise",
+    "predicate": "            if not entry.isfile() or entry.name in seen or total>512*1024**2:raise ValueError('Unsafe resume')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/prepare.py",
+    "line": 12,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('transformers >= 5.12 is required')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/prepare.py",
+    "line": 21,
+    "kind": "Raise",
+    "predicate": "    if receipt.get('versions')!=versions:raise ValueError('Environment versions differ from staged receipt')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/prepare.py",
+    "line": 34,
+    "kind": "Raise",
+    "predicate": "                raise ValueError('Stage the pinned preparation file: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/prepare.py",
+    "line": 71,
+    "kind": "Raise",
+    "predicate": "                if sha(Path(spec['root'])/frame['path'])!=frame['sha256']:raise ValueError('Optional RGB differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/build.py",
+    "line": 82,
+    "kind": "Raise",
+    "predicate": "    if len(text)>3*1024**2:raise ValueError('Batch exceeds limit')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/build.py",
+    "line": 91,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Reader inventory differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/build.py",
+    "line": 92,
+    "kind": "Raise",
+    "predicate": "    if any(sha(p)!=expected[n] for n,p in paths.items()):raise ValueError('Reader hash differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/build.py",
+    "line": 93,
+    "kind": "Raise",
+    "predicate": "    if set(expected)!=set(old):raise ValueError('Reader inventory must match the pinned package')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/build.py",
+    "line": 102,
+    "kind": "Raise",
+    "predicate": "    if not destination.is_relative_to(K):raise ValueError('Build output must stay in K')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/build.py",
+    "line": 135,
+    "kind": "Raise",
+    "predicate": "    if len(raw)>8*1024**2:raise ValueError('Code archive exceeds local allowance')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/build.py",
+    "line": 28,
+    "kind": "Raise",
+    "predicate": "        if path.is_symlink():raise ValueError('Code package must contain regular source: '+str(path))"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/build.py",
+    "line": 29,
+    "kind": "Raise",
+    "predicate": "        if path.stat().st_size>4*1024**2:raise ValueError('Large source file: '+str(path))"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/build.py",
+    "line": 104,
+    "kind": "Raise",
+    "predicate": "        if (destination/'LEDGER.jsonl').exists():raise ValueError('Cannot refresh a submitted package')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/build.py",
+    "line": 107,
+    "kind": "Raise",
+    "predicate": "        if token!=previous['token']:raise ValueError('Refresh cannot change a package token')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/build.py",
+    "line": 108,
+    "kind": "Raise",
+    "predicate": "    elif destination.exists() and any(destination.iterdir()):raise ValueError('Require a fresh package directory')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/runner.py",
+    "line": 194,
+    "kind": "Raise",
+    "predicate": "    raise SystemExit(1 if result['failure'] else 0)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/runner.py",
+    "line": 77,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Optional archive verification differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/runner.py",
+    "line": 125,
+    "kind": "Raise",
+    "predicate": "    if not 1 <= len(cards) <= 4 or len(set(cards))!=len(cards):raise ValueError('Require 1\u20134 distinct assigned cards')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/runner.py",
+    "line": 137,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Resume requires the same plan and GPU shard count')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/runner.py",
+    "line": 49,
+    "kind": "Raise",
+    "predicate": "            if dest.read_bytes()!=raw:raise ValueError('Item input changed')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/runner.py",
+    "line": 110,
+    "kind": "Raise",
+    "predicate": "            if not actual<=expected:raise ValueError('Journal contains unplanned reads')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/runner.py",
+    "line": 118,
+    "kind": "Raise",
+    "predicate": "            if not actual<=expected:raise ValueError('Unplanned optional read')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 16,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Export path must be canonical and relative')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 24,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Invalid export pin')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 29,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Export pin schema differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 33,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Export requires SFT/RL and nonnegative integer step')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 37,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Preparation keys differ')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 46,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Preparation paths must be distinct')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 54,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Require a/export.json')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 58,
+    "kind": "Raise",
+    "predicate": "        raise ValueError('Export pin file differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 44,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Preparation source path differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 72,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Reviewed config identity differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 74,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Reviewed archive differs')"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 80,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Export pin differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 82,
+    "kind": "Raise",
+    "predicate": "            raise ValueError('Export member path differs: '+name)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 67,
+    "kind": "Raise",
+    "predicate": "            if export.get(key) != binding[key]:raise ValueError('Reviewed export binding differs: '+key)"
+  },
+  {
+    "file": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src/orchard_h10/export_pins.py",
+    "line": 70,
+    "kind": "Raise",
+    "predicate": "                raise ValueError('Reviewed preparation differs: '+name)"
+  }
+]

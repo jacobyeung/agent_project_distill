@@ -1,5 +1,5 @@
 # tree_rebuild STATUS (successor resumes from this file alone)
-Updated: 2026-11-19T05:50Z by tree_rebuild11 (Devin Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild11, work trinity-1-18; started 03:48Z; rotate by 09:15Z). Predecessor tree_rebuild10.
+Updated: 2026-11-19T07:23Z by tree_rebuild11 (Devin Opus high; session trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild11, work trinity-1-18; started 03:48Z; rotate by 09:15Z). Predecessor tree_rebuild10.
 W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (9.2 GB of 14 cap; removal candidates W/w16 and W/w17 = stopped attempts, W/w9f,w12,w13,w14 = untars of mirror packages). Symlink on trinity-1-18: /scratch/jjyeung/orch_n30/tree_rebuild_w -> W (old absolute paths in evidence resolve). Session scripts trinity-3-30:/scratch/jjyeung/orch_n30/tree_rebuild10/work (bundle*/prompts, *.sh). trinity-3-30 /scratch ~101 GB: write only STATUS/events/<5 MB files there. trinity-1-18 /scratch 194 GB and falling (others): stop writing below 85 GiB.
 
 ## Deliverable state (16:00Z 2026-11-19: reviewed N kit admitting C's step-600 export + one production proof)
@@ -9,7 +9,9 @@ W = trinity-1-18:/scratch/jjyeung/orch_n30/tree_rebuild10_w (9.2 GB of 14 cap; r
 
 ## Running
 - Codex build 21 (gpt-6-astra high, implement), tmux tr11_b21 on trinity-1-18, dispatched 05:46Z, workspace W/w21 (cp -a of W/w20), prompt W/prompts/build21.md sha256 2cfa34f2 (copy tree_rebuild11/work/build21.md), log W/work/build21_dispatch.log, report W/w21/out/BUILD21_REPORT.md, due 08:15Z. Scope: review 20 findings (ANON_OK staging; export layout for full_ft.read_export; job-visible words via operator-made opaque links); all real P receipts through mode q readers (W/ext/preceipts/rc3); capacity fixture to ADMIT 400/600 (budget 3 GB in w21; W cap 18 GB per QUESTION 0539Z default); V2H slice (W/ext/v2h + n30_mirror/dist_diag/coverage_v2h) + held-out-wording census assertion; u2.json union if sb_k1list/out/u2.json exists.
+- 07:00Z b21: item 2 done (10 stream receipts, 24 prepared entries, both pose children authenticate; C' prepared pose passes with W/ext/preceipts/cprime_prepare_da5580b7/prepared); item 3: capacity-sized native prep + handover pass at 400, an opener defect found and fixed, every rank forwards with finite losses in a preview; 600 running; items 4-5 pending.
 - 172660: m400 ~09:40Z; r1_ops7 watcher tmux r7m400 (trinity-3-30). m600 ~17:30Z.
+- Proof QUESTION draft: tree_rebuild11/work/proof_q_draft.md (fill from b21's report).
 
 ## Build 20 (05:27Z; RESULT 20261119T0547Z_RESULT_build20_review20_build21.md)
 - W/w20/out/tree_rebuild_b20_780ca7b4.tar 14,881,572 B sha256 3d58bd34ebbd44472cb7bc85adecfe79df53ccaa4c395bb866d111ac8741c442; seal 780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278. Review 19 findings 1-3 fixed (verified by review 20). Orchard kit W/w20/work/build20/kits/q, uploads 32.5 MB. Not confirmed by me (superseded by b21).
@@ -35,9 +37,11 @@ ORCH rulings binding: 0033Z (receipt in allocation, guards), 0034Z (b15 accepted
 
 - CPU manners on trinity-1-18 (ORCH ORDER 0611Z): every CPU job nice -n 10, explicit thread limits, <=8 cores per job, <=40 cores for distillation in all; prefix Codex dispatches with nice -n 10. b21 reniced 06:18Z.
 
+- trinity-1-18 IO governor node agent restarted once 06:35:58Z per ORCH 0034Z item 3 (old pid 4114313 log silent since 2026-11-17T02:39Z, no stream on the node); new pid 2833402 in tmux iogov_agent, status file fresh. STATE.md keeps showing 1-18 "silent" until a stream registers there: the governor reads agent status only for hosts with records (serial_governor.py:653).
+
 ## Next (in order)
 1. Build 21 ends (~08:15Z): confirm (seal on W/w21/work/tree_r1 + fresh untar W/work/conf21/pkg, sha256, focused tests, report, stage table with every rank's loss); core tgz to ops_mirror; RESULT build21.
 2. Changed-files review of b21 (review preset, gpt-6-astra high; prompt like W/prompts/review20.md retargeted w20->w21, base w20). Both by 10:30Z (ORCH 0507Z item 2); else proof on b20+fixes is not possible (b20 kit NO-GO), so say so in a QUESTION.
 3. Proof QUESTION with b21's kits/q packet after m400 lands (~09:40Z): options with cost (preempt GPU, REQUEUE = staging lost; CPU on preempt; general after the step-400 direct read), who submits/watches (me via ossh), kill rules; operator links (ln -s), resolver on login node, uploads (32.5 MB: governed stream needs trinity-1-18's node agent restarted once per ORCH 0034Z item 3; its log stopped 2026-11-17T02:39Z, process 4114313 alive), then written GO.
-4. Build 22 for swarm_build slices posted by 12:00Z (direction skeleton, camera wording, VSTI frame-k) + NOT_PRESENT delta (RULING 0451Z item 1) + u2 union if late; CPU census + fixture before step 600.
+4. Build 22 for swarm_build slices posted reviewed by 12:00Z (direction skeleton, camera wording; VSTI frame-k rows DROPPED per ORCH 0719Z item 1) + NOT_PRESENT delta (RULING 0451Z item 1, amended 0607Z item 5: any component slot the kit provably does not build, incl. heads_frame_embeddings and GF-1 connector; never lineage or data slots) + data_rows_r2 record text incl. N's pose family from swarm_build (0607Z item 6) + u2 union if late; CPU census + fixture before step 600.
 5. Step 600 (~17:30Z): 400-vs-600 difference list in events/r1_ops before step 500.

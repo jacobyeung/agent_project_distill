@@ -1,0 +1,28 @@
+# Lane corpus (Devin Opus high, trinity-3-30): one durable corpus of every trace and output of the student models
+
+First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it. B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Events: B/events/corpus. Lane folder: /scratch/jjyeung/orch_n30/corpus on trinity-3-30 (staging under 20 GB; /scratch there has about 130 GB free and a 100 GB floor: check `df -BG --output=avail /scratch` before each write above 200 MB and stop under 110 GB).
+
+## Why (USER 2026-11-19: "we should collect all the traces and outputs of the models")
+Every read of a student export produces, per item, the question, the truth, the answer and the full trace with its tool calls and responses. Today these sit in lane folders on node-local disks that are cleared after 7 days and have been lost twice with dead nodes. They are the evidence for the paper, the input of every trace analysis, and the raw material for later stages (error mining for new rows, reinforcement learning, a verifier). The goal of the project: a ~9B spatial VLM whose chain of thought calls heads inside its own checkpoint and answers from what they print.
+
+## Deliverable
+A corpus under /data2/jjyeung/agent_project_data/distill_trace_corpus/ made of FEW LARGE ARCHIVES, never folders of small files:
+- one archive per read: `reads/<read_id>.jsonl.gz`, one JSON line per item with a fixed schema: read_id, export (run, step, artifact id), vehicle, set (dev-S1, R0-dev, VSTI dev, facing twins, K1, official sets where a registered official read exists), item id, question type, question, options, truth fields as scored and as released, answer per scored arm (B2048, B4096, full generation), the full trace text, every tool call with its arguments and the response, finish reason, token counts, scores, serving pins (arm, selector, tower versions), reader build, job id, date. Keep the reader's own field names in a `raw` object beside the normalised fields; lose nothing.
+- `INDEX.jsonl` (one line per read: ids, counts, sha256, bytes, source path, what it was read for, the record or RESULT that reports it) and `SCHEMA.md`.
+- `training/`: per run the metrics files, runtime config, prepared receipts, type mix, card and first-steps reports, as one tar per run.
+- `analysis/`: the trace-analysis reports (lane swarm_an's Codex and Devin reports on trinity-3-30 under /scratch/jjyeung/orch_n30/codex_local/agent/scratch/codex_runs/*san_*/final_message.md and its kit), as one tar per wave, plus pointers to the design records.
+- an ingest tool `ingest_read.py` (CPU, idempotent, refuses a partial return, records sha256) that lane cont_ops18 runs after each new read, and a one-page HOWTO.
+- a second copy on Mind (/lab_data/tarrlab/jacoby/agent_project/distill_trace_corpus/) by the approved route, sha256 checked, noted in /data2/jjyeung/agent_project_data/DATA_MAP.md.
+
+## Sources, in this order
+1. trinity-3-30: /scratch/jjyeung/orch_n30/cont_ops16/work/c15 (h1read, h1face, h1vsti kit/build/*/fetched; r1route/out3/*/ret and bases; cpubase, d0, h1*), cont_ops17, cont_ops18, k1_ops6, b07_offread, b04_e2ehook (lane cont_ops18 owns the live folders: read in place, change nothing; ask it one QUESTION in B/events/cont_ops for a map of build tokens to reads).
+2. trinity-1-18: /scratch/jjyeung/n30_mirror/cont_ops and the old_lanes_3_30 archives (b01, b05, b07, b04, h1_headsft, tree_rebuild), k1_ops3; through `bash B/tools/tssh.sh trinity-1-18 'bash -s' < script`, one call per minute, batched; build the archives there with nice -n 10 and at most 4 cores, then bring them to trinity-3-30 over InfiniBand.
+3. Orchard: the pools keep fetched returns (okh7/*_fetched and the kits' return folders). List by exact folders through B/tools/ossh.sh (read-only, depth 3), and name what exists only there. Bring nothing through a Trinity node yet: post sizes in a QUESTION; the default route for Orchard-only returns is Orchard to GCS staging, then to Mind.
+4. Records that name reads whose files are gone (trinity-2-18, trinity-2-28, trinity-1-3): list them in INDEX as lost with the numbers their records report, so nobody searches twice.
+Official benchmark reads exist for some exports. Include them, marked `official: true`; nothing in this lane selects on them or reports new numbers from them.
+
+## Rules
+- Writes to /data2 above 20 MB go through the IO governor as one stream each (LANE_RULES.md: copy_archive.py --job; 4 MB/s). Estimate the total first and post it; above 30 GB in all, ask before writing.
+- No recursive search on /home or /data*. Local-disk finds stay inside the named folders. No Git, no deletion, no GPU, no Orchard job. Codex Astra for the tools: `bash B/tools/codex_local.sh implement <workspace> <prompt> --model gpt-6-astra --effort high --label corpus_<task> --skip-git-check` on this node for light code only (no test suites above 2 GB RAM), one at a time; one cross-family or second-Codex review of the ingest tool and schema.
+- Verify: for three reads, recompute the reported headline score from the corpus lines alone and match the read's own summary.
+- First RESULT within 90 minutes: inventory (how many reads, items, bytes, where), schema, and the first ten reads ingested. Then finish, with a RESULT per stage. Events 20 lines at most. STATUS.md in your lane folder, copied to B/events/corpus/STATUS.md. Rotate at 5.5 hours or 60% of context by the usual rule (briefs/corpus<N+1>.md, `bash B/tools/devin_bg.sh corpus<N+1> <brief> claude-opus-5-5-high 21600`, LANES.txt, one successor by pgrep).

@@ -1,0 +1,16 @@
+# Task sb_rlfix2: bind the RL kit's rollouts to the deployed claimed-arm reader (sb_rlrev2 GO AFTER FIXES, edits A-F); CPU only
+Workspace: /scratch/jjyeung/orch_n30/sb_rlfix2 (write here only; copy /scratch/jjyeung/orch_n30/sb_rlfix here first). Review (read-only): /scratch/jjyeung/orch_n30/sb_rlrev2 (REVIEW_VERDICT.md, runs/v2/CLAIMED_ARM_BINDING.md with full hashes, new_probes.out).
+Apply edits A-F exactly: (A) decode rollouts through the claimed arm's reader (out3 read A4 at /scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/A4: package/0.tgz reader real.generate_real, real_perception(stage1_select_rule='candidates_argmax', perception_memo='on', perception_memo_modules=['g3t'], sam3, selector_head) as in parity.py:210-235; settings table A4/ret/metadata/reads/0/metadata/0.json), with the adapter-installed model, sampling as a logits processor after ThinkingBudget, budget-forced ids marked; remove pose_source/tower_state/attach_tower/prepare_tower; serving.py pins those files (do not bind /scratch/jjyeung/b01ec87a6f29b/p). Own gravity and own depth for scale are part of the claimed arm: say so in README/REPORT. (B) deployed caps (distance 6, room 2) and the deployed budget (2,048 thinking tokens then 64 answer tokens). (C) a GPU greedy replay script with A4's m200 export (EXPORT_PIN.json) that must reproduce A4's journal tokens for 4 items per type (script only, not run). (D) short*=c; route*=c. (E) prompt-equality assertion at pool build. (F) a CPU step-loop test with a stub model and one refusing rank.
+Run all tests and the CPU proof. Deliver out/REPORT.md (at most 50 lines), out/sb_rlfix2.tar with sha256.
+
+## Standing rules and answers (read first; you will get no replies, so do not wait for any)
+- You run on trinity-1-18 (CMU Trinity cluster), CPU only, no GPU, no network. Never ssh, never kill a process, never touch tmux sessions, no Git, no deletion outside your workspace.
+- /home and /data* are an overloaded NFS server: never search, list recursively or bulk-read there. Read only files this prompt names, each once. /scratch is local disk: bounded `rg --files`/`find` under the directories named here is fine.
+- Write only inside your workspace. Every path outside it that this prompt names is read-only to you (other lanes own it).
+- Local-disk IO needs no approval. Ordinary failures: debug and rerun. The sandbox has no loopback sockets. Stay under 40 GB RAM per process. CPU manners (orchestrator order): at most 8 cores per job; start every heavy process with `nice -n 10` and OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 (torch.set_num_threads(8)); never run parallel worker pools above 8 processes.
+- Legality: never invent a mapping, a manifest, a scene list or a proof. A missing input is reported by its exact name and expected location; the affected output says MISSING, never a guess.
+- Every output JSON records sha256 of each input it rests on, and your report states the command that produced each number. Write a STATUS.md in the workspace after each stage (one paragraph) and a final report named in the task.
+
+
+## Resume note
+A previous attempt of this task in this same workspace was stopped early by the coordinator to free a slot. Read the workspace first and continue from what is there.

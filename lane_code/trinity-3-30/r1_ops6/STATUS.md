@@ -74,3 +74,4 @@ Lane folder /scratch/jjyeung/orch_n30/r1_ops6. Events .../orch_n30/events/r1_ops
 - 05:24Z took over; tmux r1mon6, r7node, r7m400 running (600 s); step 290 at 05:19Z, 132 s/step, early_cp PASS. Local check: `bash work/r8/chk.sh` (no Orchard call).
 - Closed: BLOCKER 0201Z (ORCH RULING 0202Z item 2: file evidence suffices); identity 9459724f admitted by N (tree_rebuild 0204Z RESULT).
 - ETA: step 400 ~09:25Z (+export -> m400 ~09:40Z); step 500 ~13:05Z (diff list before); step 600 ~16:50Z (m600 ~17:30Z).
+- 06:48Z step 326, 133-135 s/step, early_cp PASS each check; checkpoint_000305 at ~05:52Z (next ~07:54Z, ~09:56Z: m400 receipt likely NEAR_CHECKPOINT-retries until ~10:00Z). work/r7/exw6.sh (c06ca152) = exw.sh copy with POLL/RETRY env for m600; work/r8/c1.sh, w.sh = local check/wait.

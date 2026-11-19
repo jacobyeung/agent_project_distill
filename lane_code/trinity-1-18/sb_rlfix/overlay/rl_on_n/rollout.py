@@ -8,8 +8,16 @@ def sample(model,processor,batch,*,seed=17,max_tokens=1024,temperature=.7,prefix
                           temperature=temperature,top_p=1.,max_sampled_tokens=max_tokens,
                           eos_id=processor.tokenizer.eos_token_id)
     model.eval()
-    with sampling_hooks():
-        record=generate(model,processor,batch,reference_trace=choice,**(decode or {}))
+    from student_pilot.carrier_c1_batch_decode import RowRefusal
+    from student_pilot.tower_errors import TowerError
+    try:
+        with sampling_hooks():
+            record=generate(model,processor,batch,reference_trace=choice,**(decode or {}))
+    except (RowRefusal, TowerError) as exc:
+        return refused(exc)
+    if record.get('tower_error'):
+        return dict(record, refusal='TowerError: '+str(record['tower_error']),
+                    kinds=[], logp_tempered=[], logp_raw=[])
     kinds,tempered,raw=align(record,choice)
     record.update(kinds=kinds,logp_tempered=tempered,logp_raw=raw,temperature=temperature,
                   top_p=1.,budget_hit=choice.budget_hit,seed=seed)
@@ -17,14 +25,19 @@ def sample(model,processor,batch,*,seed=17,max_tokens=1024,temperature=.7,prefix
 
 
 def native_kwargs(model,prompt,batch,artifact_pin,audit_dir,settings=None):
-    from student_pilot.s1_grounding import build_backend
+    from .serving import build_backend,POSE_SOURCE
     # N's LiveSession serves every 3.14 draw, including a camera/direct draw.
-    backend=build_backend(prompt['row'],batch,artifact_pin,audit_dir,settings)
-    return dict(pose_source='tower',ground_backend=backend,mask_source='mdg',
-                trace_program_version=model.trace_program_version,max_calls=40)
+    backend=build_backend(model,prompt['row'],batch,artifact_pin,audit_dir,settings)
+    return dict(pose_source=POSE_SOURCE,ground_backend=backend,mask_source=backend.mask_source,
+                max_calls=200)
 
 
 def tower_batch(row,batch):
+    from student_pilot.tower_errors import tower_guard
+    return tower_guard(_tower_batch)(row,batch)
+
+
+def _tower_batch(row,batch):
     """Use only explicitly pinned native RGB frames and exact native-index matches."""
     from PIL import Image
     from student_pilot.r2_frames import verify_frame
@@ -42,3 +55,17 @@ def tower_batch(row,batch):
             images.append(im.copy())
     return dict(batch,tower_native_frames=images,tower_frame_indices=list(indices),
                 tower_anchor_slots=[indices.index(i) for i in anchors])
+
+
+def refused(exc):
+    return dict(text='', tokens=[], calls=[], kinds=[], logp_tempered=[], logp_raw=[],
+                finish='refused', refusal=type(exc).__name__+': '+str(exc))
+
+
+def diagnostic_own(model, processor, batch, **kwargs):
+    """Print a separate own-head diagnostic; score() rejects this arm."""
+    from student_pilot.carrier_c1_decode import generate
+    record=generate(model, processor, batch, pose_source='own', **kwargs)
+    record['diagnostic_arm']='own_heads'
+    print({'diagnostic_arm':'own_heads', 'heads':record.get('heads')}, flush=True)
+    return record

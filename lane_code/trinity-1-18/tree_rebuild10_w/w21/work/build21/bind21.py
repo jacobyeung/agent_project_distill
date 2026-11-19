@@ -7,11 +7,18 @@ L=Path(__file__).resolve().parents[2];B=L/'work/build21';I=B/'inputs';O=B/'proof
 sys.path[:0]=[str(L/'work/tree_r1'),str(L/'work/n1fix2')]
 from monitor9 import Monitor
 m=Monitor(L/'work/tree_r1')
-from student_pilot.p3_provenance import load,pinned,file_pin,digest,write
-from student_pilot import r1_coverage as C
+from student_pilot.p3_provenance import load,pinned,file_pin,digest
+def write(path,value):
+ path=Path(path);assert path.is_relative_to(B)
+ path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(value,sort_keys=True,indent=2)+'\n')
+if '--check-only' in sys.argv:
+ import importlib.util
+ spec=importlib.util.spec_from_file_location('student_pilot.candidate_coverage',B/'candidate/r1_coverage.py');C=importlib.util.module_from_spec(spec);spec.loader.exec_module(C)
+else:
+ from student_pilot import r1_coverage as C
 from student_pilot.r2_adapters import normalize
 from student_pilot.extent_receipt import Extents,content
-cfg=load(I/'config.json');value=cfg['r1_training'];sources=load(pinned(value['row_sources']))
+cfg=load(L/'work/build20/inputs/config.json');value=cfg['r1_training'];sources=load(pinned(value['row_sources']))
 validation=load(O/'VALIDATION.json');files=validation['files'];guard=C.WordingExclusion(validation['split'])
 def normalized(raw):
  p=raw.get('provenance',{});si=raw.get('student_input',{})
@@ -49,6 +56,9 @@ for kind,pin in files.items():
    if len(examples[kind])<20:examples[kind].append(dict(qid=qid,parent_qid=parent_id,target=row['target']))
  sources[kind]=dict(source=pin,variant='wording_only',status='Pinned wording slice; real host frame/scene envelopes remain required')
  catalog['sources'][kind]=dict(source=pin,qids=qids)
+if '--check-only' in sys.argv:
+ (O/'PARENT_CHECK.json').write_text(json.dumps(dict(status='PASS',parents=len(parents),rows=len(derivations),parent_receipt=original_extent),indent=2))
+ (O/'parent').mkdir(exist_ok=True);m.save(O/'parent');print('PASS',len(derivations),'exact rewordings and native parent extent checks');raise SystemExit(0)
 write(O/'DERIVATIONS.json',dict(parent_receipt=original_extent,sources=files,rows=derivations,
  rule='Exact equality with pinned source except question and identity fields; native parent extent check passes.',
  stand_in='Frame metadata /u; GUESS 24 FPS only when source FPS absent. Extent content excludes RGB joins.'))
@@ -68,7 +78,7 @@ position=next(i for i,p in enumerate(cfg['remove_files']) if p['sha256']==base['
 cfg['remove_files'].insert(position+1,up)
 value.update(v7_k1_removal=up,v7_k1_union=dict(base=base,extra=extra,union=up))
 C.verify_union(value,cfg['remove_files'],base['sha256'],'02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411')
-card=load(I/'mix.json');programs=('camera_displacement','camera_movement_direction','camera_rotation','absolute_distance')
+card=load(L/'work/build20/inputs/mix.json');programs=('camera_displacement','camera_movement_direction','camera_rotation','absolute_distance')
 prior={c['type']:int(Fraction(str(c['rows_per_step']))*1000) for c in card['cells'] if c['type'] in programs}
 total=sum(prior.values());ideal={k:Fraction(3000*v,total) for k,v in prior.items()};cuts={k:int(v) for k,v in ideal.items()}
 for k in sorted(prior,key=lambda k:(ideal[k]-cuts[k],k),reverse=True)[:3000-sum(cuts.values())]:cuts[k]+=1
@@ -82,4 +92,4 @@ write(O/'BINDING.json',dict(files=files,split=validation['split'],extent=cfg['ex
  pro_rata=dict(requested_rows_per_step=3.0,program_draws=prior,total_program_draws=total,
   ideal_cuts={k:str(v) for k,v in ideal.items()},integer_cuts=cuts,rounding='largest remainder at one draw per 1000-step plan'),
  examples=examples,host_routing_inputs=cfg['r1_training'].get('routing_inputs')))
-m.save(O/'binding');print('PASS exact parent geometry, extent inheritance, source pins and real K1 union')
+(O/'binding').mkdir(exist_ok=True);m.save(O/'binding');print('PASS exact parent geometry, extent inheritance, source pins and real K1 union')

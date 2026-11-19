@@ -22,6 +22,7 @@ class Coverage21(unittest.TestCase):
     if field:row={field:row}
     with self.assertRaisesRegex(ValueError,'R1_HELD_OUT_WORDING:'):guard.check(row)
   self.assertEqual(guard.check({'question':None}),{'question':None})
+  self.assertEqual(guard.check({'ground_record':None}),{'ground_record':None})
   self.assertEqual(guard.check({'question':'How far apart are these two things?'}),{'question':'How far apart are these two things?'})
   from student_pilot.carrier_c1_run import Rows
   reader=Rows(dict(streams={},r1_training={'wording_exclusion':self.split}),None)
@@ -37,11 +38,24 @@ class Coverage21(unittest.TestCase):
   with patch.object(C,'SPLIT',p['sha256']):
    with self.assertRaisesRegex(ValueError,'COUNT'):C.WordingExclusion(p)
   with self.assertRaises(ValueError):C.WordingExclusion(dict(self.split,path=str(O/'short.json')))
+ def test_census_planted_wording_refuses_by_name(self):
+  from student_pilot import r1_rooms
+  cfg=load(B/'inputs/config.json');sources=load(cfg['r1_training']['row_sources']['path'])
+  empty=O/'empty.jsonl';empty.write_text('')
+  for kind in ('recovery','absolute_distance'):sources[kind]['source']=file_pin(empty)
+  template=load(self.split['path'])['held_out'][0]
+  planted=O/'planted.jsonl';planted.write_text(json.dumps(dict(qid='planted',question=template.format(a='chair',b='table',u='feet'),canonical='scannet/scene9997_00'))+'\n')
+  sources['units']['source']=file_pin(planted);cfg['r1_training']['row_sources']=self.put('census_sources.json',sources)
+  with patch.object(sqlite3,'connect',side_effect=AssertionError('Store opened before planted wording refusal')):
+   with self.assertRaisesRegex(ValueError,'R1_HELD_OUT_WORDING:'+__import__('re').escape(template)):r1_rooms.census(cfg)
  def test_source_binding(self):
   self.assertEqual(C.source_names({}),('recovery','absolute_distance','units'))
   with self.assertRaisesRegex(ValueError,'INCOMPLETE'):C.source_names({'coverage_units':{}})
   self.assertIsNone(C.validate_binding({}))
+  self.assertIsNone(C.validate_binding({'r1_training':None}))
   cfg=load(B/'inputs/config.json');self.assertIsInstance(C.validate_binding(cfg),C.WordingExclusion)
+  from student_pilot.r1_training import validate
+  validate(cfg)
   bad=deepcopy(cfg);bad['r1_training'].pop('wording_exclusion')
   with self.assertRaisesRegex(ValueError,'REQUIRED'):C.validate_binding(bad)
   sources=load(cfg['r1_training']['row_sources']['path']);sources['coverage_units']['source']['sha256']='a'*64

@@ -1,0 +1,1 @@
+{"Q1":3,"Q2":4,"Q3":4,"Q4":"C","Q5":"A","Q6":"B","Q7":"B","Q8":"B","Q9":"B","check":"Frame 5 shows a golden-brown wooden table, brown chairs with olive-green seats, and copper-coloured lamps; frame 30 shows a golden-brown table, brown wooden study desks, and brown chairs with olive-green seats."}

@@ -1,0 +1,25 @@
+{
+  "grammar_only_python36": true,
+  "native_load_helpers": true,
+  "native_verify_config": true,
+  "passed": true,
+  "submit_argv": [
+    "sbatch",
+    "--parsable",
+    "--account=mt01",
+    "--partition=general",
+    "--nodes=1",
+    "--ntasks=1",
+    "--gres=gpu:1",
+    "--cpus-per-task=16",
+    "--mem=200G",
+    "--time=04:00:00",
+    "--signal=B:USR1@1800",
+    "--no-requeue",
+    "--export=NONE",
+    "--output=/dev/null",
+    "--error=/dev/null",
+    "--chdir=/tmp",
+    "--job-name=a15_cot_apdc01c6a1bee84"
+  ]
+}

@@ -1,0 +1,1 @@
+{"Q1":1,"Q2":4,"Q3":"A","Q4":"A","Q5":0.4,"Q6":0.85,"Q7":0.9,"Q8":"A","Q9":"B","Q10":"A","Q11":"A","Q12":"B","check":"Frame 5 shows a light-grey upholstered sofa section on a beige tiled floor, and frame 30 shows a green Christmas tree, blue and red presents, grey nesting tables with wooden tops, and a brown wooden door."}

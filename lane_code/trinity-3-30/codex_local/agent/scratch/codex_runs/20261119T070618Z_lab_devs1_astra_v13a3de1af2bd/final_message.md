@@ -1,0 +1,1 @@
+{"Q1":"C","Q2":"A","Q3":"B","check":"Frame 5 shows a green drawer cabinet beside a white and gray metal lathe; frame 30 shows a turquoise machine, a dark blue bin, a red fire extinguisher, and a red first-aid box."}

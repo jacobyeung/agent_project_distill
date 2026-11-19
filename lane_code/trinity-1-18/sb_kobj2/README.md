@@ -1,0 +1,21 @@
+Run `bash scripts/cpu.sh` from this workspace. It uses `/scratch/jjyeung/envs/p1cpu/bin/python`, eight CPU threads, nice 10, no CUDA, and writes `out/DRYRUN.json`. `code/checks.py` checks the leakage boundaries and resume receipts. No socket is required.
+
+The R0 scorer accepts one `--category`, requires a frozen `out/object_route/PRIMARY_ARMS.json` with its digest, and creates `LOOK_<category>.json` exclusively before reading head predictions. A reservation survives an exception. There is no retry command that clears a look. Repeated qids remain distinct through their 1-based `source_line`.
+
+K1 training selects every rule and source. `config/KBOX_RULES_HOOK.json` is the one sibling binding for box rules, object instances, replay, and tracker pricing. Its current MISSING status prevents object pricing. The sibling module must expose `gather`, `fusion_box`, `object_source(cache, geometry)`, and `price_k1_tracks(capture, registered_rows, tracks, frozen_rule)`. The latter returns paired rows under `today` and `frozen`, first-seen registered GT pair outcomes, and counts. It must use the sibling's deployed geometry and frozen A4. Nothing in this kit supplies fabricated substitutes.
+
+After the K1 tracker GPU pass, run `PYTHONPATH=code /scratch/jjyeung/envs/p1cpu/bin/python code/k1_track.py` under the same CPU limits. It refuses an unbound sibling and otherwise computes `K1_TRACK_CHOICE.json` from all 1,037 pinned rows. Tracker instances require peak score >=0.3 and at least one raster area >=0.002. The first GPU minute is the predictor check; a model failure records a tracker BLOCKER and retains the linker. `out/TRACK_SELECTION.json` fixes the selection policy before tracker inference.
+
+Freeze requires three real K1 decisions, all with `status=COMPLETE` and `selection_split=K1-train`. The normalized box decision supplies `replace_box`, `size_screen`, `winning_fusion`, and `first_seen_pair_rates`. The tower decision supplies `replace_box_32`, `views_pay`, and `s4_size_treatment_ci95`. The tracker decision supplies `box_source` and `first_seen_pair_rates`. Their hashes and the specification hash are sealed by:
+
+```bash
+PYTHONPATH=code /scratch/jjyeung/envs/p1cpu/bin/python code/registration.py --box inputs/KBOX_DECISION.json --tower inputs/TOWER_DECISION.json --track out/object_route/K1_TRACK_CHOICE.json
+```
+
+These normalized files are absent; the code does not infer decisions from unfinished sibling outputs. Failed K1 gates leave the corresponding R0 read unspent. A missed R0 bar cannot trigger another comparison. S4 is a separate treatment from the reader's own-depth/own-gravity treatment; no upper or lower bound is claimed. Missing S4 refuses metric-size/distance calls and retains the present answer; nonmetric programs use S1.
+
+`out/GPU_NEED.json` lists one 48 GiB card, exact commands, estimates, cumulative hard stops and cut order. GPU scripts require `GPU`, a staged `PYTHON`, `GO_FILE`, and `inputs/GPU_LEDGER.json`. The ledger must have `status=AUTHORIZED`, `kit=sb_kobj2`, `exclusive_lease=true`, `excludes_this_workspace_usage=true`, `other_kits_seconds`, `lease_seconds`, and `expires_unix`. Its lease serializes this workspace against other kits; the code admits a part only when its remaining stop fits within 16 GPU-hours total. The local launch lock covers admission and execution. Interrupted budget reservations require orchestrator review. Valid DONE output hashes and bindings skip completed units.
+
+`code/diagnostics.py` handles dev-S1 only and selects no arm. It requires the plan whose SHA256 appears in `inputs/local/DEVS1_REQUEST.json`; the expected local binding is `inputs/DEVS1_STAGING_PLAN.json`. Without it, all 450 relevant rows are explicitly skipped. No map is invented and no frame is decoded.
+
+The review archive excludes v1 output history, model weights, image caches, and GPU outputs. `out/EDITED_LINES.json` and its patch record copied-tree changes against the pinned R1 reader and named base tree. `out/IMPLEMENTATION_DIFF.json` records changes relative to v1. `out/READINESS.json` lists exact pending paths. The orchestrator owns external mirroring and appending each completed look's `R0DEV_LOOKS_line` to its NFS ledger.

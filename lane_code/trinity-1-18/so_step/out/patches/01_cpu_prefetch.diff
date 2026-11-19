@@ -1,0 +1,559 @@
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -1055,6 +1055,8 @@
+ 
+ class Rows:
+     def __init__(self, receipt, processor):
++        if os.environ.get('C1_CPU_PREFETCH', '0') == '1':
++            self._cpu_prefetch_receipt = receipt
+         from .r2_contract import Admission
+         self.r2_admission = Admission(receipt['r2_membership']) if receipt.get('r2_membership') else None
+         self.connections = {k: connect(v['database']) for k, v in receipt['streams'].items() if v.get('kind') not in ('mix', 'mdg')}
+@@ -1164,7 +1166,15 @@
+             batch['aux_token_weights'] = torch.cat((torch.zeros_like(shifted[:, :1]), shifted), dim=1)
+         return batch, targets, audit
+ 
++    def cpu_prefetch_factory(self):
++        from .c1_cpu_prefetch import rows_factory
++        return rows_factory(self)
++
+     def close(self):
++        producer = getattr(self, '_c1_cpu_producer', None)
++        if producer is not None:
++            producer.close()
++            self._c1_cpu_producer = None
+         if self.validation is not None:
+             self.validation.close()
+         for conn in self.connections.values():
+@@ -1485,6 +1495,13 @@
+     else:
+         factor = nominal_slices(model.recipe, plan) if getattr(model, 'training_mode', None) == 'final' else 1
+         groups = [plan[start:start + factor] for start in range(0, len(plan), factor)]
++    prefetch = os.environ.get('C1_CPU_PREFETCH', '0')
++    if prefetch not in ('0', '1'):
++        raise ValueError('C1_CPU_PREFETCH must be 0 or 1')
++    if prefetch == '1':
++        from .c1_cpu_prefetch import fetch_groups
++        yield from fetch_groups(rows, model, groups, rank, device, distributed)
++        return
+     for group in groups:
+         factor = len(group)
+         stream, indices = group[0]
+--- /dev/null
++++ b/student_pilot/c1_cpu_prefetch.py
+@@ -0,0 +1,137 @@
++"""One CPU producer; admission and every distributed call stay on the training thread."""
++from concurrent.futures import ThreadPoolExecutor
++import copy
++import threading
++
++import torch
++
++
++def _cpu_only(value):
++    if isinstance(value, torch.Tensor):
++        if value.device.type != 'cpu':
++            raise ValueError('C1 CPU prefetch received a non-CPU tensor')
++    elif isinstance(value, dict):
++        for item in value.values():
++            _cpu_only(item)
++    elif isinstance(value, (tuple, list)):
++        for item in value:
++            _cpu_only(item)
++
++
++class Producer:
++    def __init__(self, factory):
++        self.factory = factory
++        self.rows = None
++        self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='c1-row-cpu')
++        self.owner = threading.get_ident()
++
++    def prepare(self, stream, indices, check, model):
++        # Connections are opened, queried and closed on this single worker. Keep
++        # sqlite's check_same_thread=True; never pass a live main-thread connection.
++        if self.rows is None:
++            try:
++                self.rows = self.factory()
++            except Exception as exc:
++                return [(False, exc) for _ in indices]
++        result = []
++        for index in indices:
++            try:
++                item = self.rows.get(stream, index)
++                _cpu_only(item)
++                check(item[0], item[1], stream, model)
++                result.append((True, item))
++            except Exception as exc:
++                result.append((False, exc))
++        return result
++
++    def close(self):
++        if threading.get_ident() != self.owner:
++            raise RuntimeError('Close the CPU producer on its owning training thread')
++        try:
++            if self.rows is not None:
++                self.pool.submit(self.rows.close).result()
++        finally:
++            self.pool.shutdown(wait=True)
++
++
++def for_rows(rows):
++    producer = getattr(rows, '_c1_cpu_producer', None)
++    if producer is None:
++        # Each producer owns its tokenizer, image/video processor and SQLite
++        # connections. The main thread retains its processor for own-value routing.
++        # No call changes PyTorch's process-wide thread count or global RNG state.
++        try:
++            factory = rows.cpu_prefetch_factory()
++        except Exception as exc:
++            # A processor-copy/setup failure is also a local preparation failure.
++            # Carry it to the original group admission instead of stranding peers.
++            def factory(error=exc):
++                raise error
++        producer = rows._c1_cpu_producer = Producer(factory)
++    return producer
++
++
++class Replay:
++    """Feed prepared values/errors through the unchanged fetch admission code."""
++    def __init__(self, rows, stream, indices, values):
++        self.rows, self.stream = rows, stream
++        self.values = iter(zip(indices, values))
++
++    def count(self, stream):
++        return self.rows.count(stream)
++
++    def get(self, stream, candidate):
++        index, (ok, value) = next(self.values)
++        if stream != self.stream or candidate != index:
++            raise RuntimeError('C1 prefetch candidate order changed')
++        if not ok:
++            raise value
++        return value
++
++
++def fetch_groups(rows, model, groups, rank, device, distributed):
++    from .carrier_c1_run import check_row, fetch, fetch_nominal
++    if getattr(model, 'training_mode', None) != 'final':
++        raise ValueError('C1 CPU prefetch requires final-mode fail-without-substitution admission')
++    if any(stream == 'mdg' for group in groups for stream, _ in group):
++        raise ValueError('C1 CPU prefetch has not audited the MDG processor path')
++    producer = for_rows(rows)
++
++    def submit(group):
++        stream = group[0][0]
++        indices = [part[rank] % rows.count(stream) for _, part in group]
++        return producer.pool.submit(producer.prepare, stream, indices, check_row, model)
++
++    future = submit(groups[0]) if groups else None
++    try:
++        for group_id, group in enumerate(groups):
++            stream = group[0][0]
++            indices = [part[rank] for _, part in group]
++            candidates = [index % rows.count(stream) for index in indices]
++            replay = Replay(rows, stream, candidates, future.result())
++            # Original fetch functions retain the MIN all_reduce, its position,
++            # error text, and the repeated cheap CPU validation on the main thread.
++            if len(group) == 1:
++                admitted = [fetch(replay, stream, indices[0], model, device=device, distributed=distributed)]
++            else:
++                admitted = fetch_nominal(replay, stream, indices, model, device=device, distributed=distributed)
++            # Do not speculate past an unadmitted group. A row failure therefore
++            # makes precisely the same get calls as the synchronous path, even on
++            # the healthy rank, and raises at the same nominal microstep boundary.
++            future = submit(groups[group_id + 1]) if group_id + 1 < len(groups) else None
++            for slot in range(len(admitted)):
++                item = admitted[slot]
++                admitted[slot] = None
++                yield item
++    finally:
++        # Drain in-flight CPU work on early consumer exit; its exception is data,
++        # not an exception raised on the worker or at an earlier microstep.
++        if future is not None:
++            future.result()
++
++
++def rows_factory(rows):
++    from .carrier_c1_run import Rows
++    receipt = copy.deepcopy(rows._cpu_prefetch_receipt)
++    processor = copy.deepcopy(rows.processor)
++    return lambda: Rows(receipt, processor)
+--- /dev/null
++++ b/tests/so_helpers.py
+@@ -0,0 +1,105 @@
++"""Retained synthetic RGB/SQLite inputs and the tree's native tiny Qwen fixture."""
++import copy
++import json
++import os
++from pathlib import Path
++import random
++import sqlite3
++import tempfile
++from types import SimpleNamespace
++
++import numpy as np
++from PIL import Image
++import torch
++
++from student_pilot import carrier_c1_run as run
++from student_pilot.p3_provenance import file_pin
++from tests.so_processor import TinyProcessor
++from tests.test_carrier_c1_final import final_fixture
++
++
++def root():
++    return Path(tempfile.mkdtemp(prefix='so_', dir=os.environ['LANE_TEST_OUTPUT']))
++
++
++def inputs(directory):
++    image = directory/'rgb.png'
++    Image.new('RGB', (32,32), (30,70,110)).save(image)
++    frame = file_pin(image)
++    target = dict(camera=[[0.,0.,0.,0.,0.,0.,1.,1.,1.]]*32, camera_mask=[True]*32,
++        trajectory_scale=1., gravity=[0.,-1.,0.], gravity_mask=True,
++        point_depth=dict(uv=[[[500.,500.]]]*32, depth=[[2.]]*32, mask=[[True]]*32))
++    source = dict(question='Where is the chair?', options=[], frames=[frame]*32,
++                  frame_indices=list(range(32)), timestamps=[i/30 for i in range(32)], fps=30,
++                  total_num_frames=32, recording_id='synthetic-so', width=32, height=32)
++    # Native duplicate layout uses these frame indices/timestamps unchanged.
++    streams = {}
++    for stream in ('pose','vqa','routing','pointing'):
++        db = directory/(stream+'.sqlite')
++        conn = sqlite3.connect(db)
++        conn.execute('CREATE TABLE rows (i INTEGER PRIMARY KEY, row TEXT, target TEXT)')
++        for index in range(32):
++            row = dict(qid=f'{stream}-{index}', dataset='synthetic', scene='test',
++                       target='<think>\n\n</think>\n\nA', student_input=source)
++            if stream == 'routing':
++                row['routing'] = dict(qid=row['qid'], events=[dict(kind='canonical_text', text='The chair is visible.')],
++                                      answer='<answer>A</answer>')
++            conn.execute('INSERT INTO rows VALUES (?,?,?)', (index,json.dumps(row),json.dumps(target)))
++        conn.commit()
++        conn.close()
++        streams[stream] = dict(database=file_pin(db), count=32)
++    return dict(streams=streams, training_mode='final', frame_layout='duplicate')
++
++
++def native(world=1, factor=2):
++    model, _, _ = final_fixture()
++    # The existing lossless CPU processor uses character IDs. Enlarge only the
++    # synthetic fixture's vocabulary; both arms use these exact initial weights.
++    model.model.language_model.embed_tokens = torch.nn.Embedding(512,32)
++    model.lm_head = torch.nn.Linear(32,512,bias=False)
++    model.config.text_config.vocab_size = 512
++    model.frame_layout = 'duplicate'
++    model.auxiliary_heads.depth.config.p3['frame_layout'] = 'duplicate'
++    model.recipe = {**model.recipe, 'world_size':world, 'reference_world_size':world*factor,
++                    'global_batch':world*factor*4}
++    model.r1_training = True
++    model.train()
++    return model
++
++
++def compact_processor():
++    """Lossless timestamp tokens keep native CPU backward tests small."""
++    processor = TinyProcessor()
++    processor.tokenizer.special = {**processor.tokenizer.special,
++        **{f'<{i/10:.1f} seconds>':300+i for i in range(21)}}
++    return processor
++
++
++def plan(world=1, factor=2):
++    return [(stream, [i*world+r for r in range(world)])
++            for stream in ('pose','vqa','routing','pointing') for i in range(factor)]
++
++
++def rng_state():
++    return random.getstate(), copy.deepcopy(np.random.get_state()), torch.get_rng_state().clone()
++
++
++def same_rng(a, b):
++    return (a[0] == b[0] and a[1][0] == b[1][0] and np.array_equal(a[1][1],b[1][1])
++            and a[1][2:] == b[1][2:] and torch.equal(a[2],b[2]))
++
++
++def assert_nested(test, a, b):
++    if isinstance(a, torch.Tensor):
++        test.assertEqual(a.dtype,b.dtype)
++        test.assertTrue(torch.equal(a,b))
++    elif isinstance(a, dict):
++        test.assertEqual(a.keys(),b.keys())
++        for k in a:
++            assert_nested(test,a[k],b[k])
++    elif isinstance(a,(tuple,list)):
++        test.assertEqual(len(a),len(b))
++        for x,y in zip(a,b):
++            assert_nested(test,x,y)
++    else:
++        test.assertEqual(a,b)
+--- /dev/null
++++ b/tests/so_processor.py
+@@ -0,0 +1,51 @@
++"""Portable copies of the existing test_r2_data_path processor fixtures; no external fixture imports."""
++from types import SimpleNamespace
++import torch
++
++class TinyTokenizer:
++    """Lossless stand-in for the unavailable pretrained tokenizer."""
++    pad_token_id, eos_token_id, eos_token = 0, 1, '<eos>'
++    special = {'<eos>': 1, '<|fim_middle|>': 5, '<|video_pad|>': 61}
++
++    def encode(self, text, **kwargs):
++        return self(text)['input_ids']
++
++    def __call__(self, text, **kwargs):
++        ids, offsets, i = [], [], 0
++        while i < len(text):
++            token = next((t for t in self.special if text.startswith(t, i)), text[i])
++            ids.append(self.special.get(token, ord(token[0])+100))
++            offsets.append((i, i+len(token)))
++            i += len(token)
++        return dict(input_ids=ids, offset_mapping=offsets)
++
++    def decode(self, ids, **kwargs):
++        reverse = {v: k for k, v in self.special.items()}
++        return ''.join(reverse.get(int(i), chr(int(i)-100) if int(i) >= 100 else '<visual>') for i in ids)
++
++    def convert_tokens_to_ids(self, token):
++        return self.special.get(token, self.eos_token_id)
++
++class TinyProcessor:
++    """Only the pretrained processor boundary stands in; actual RGB loaders run."""
++    video_token_id = 61
++
++    def __init__(self):
++        self.tokenizer = TinyTokenizer()
++        self.video_processor = SimpleNamespace(merge_size=2, temporal_patch_size=2)
++
++    def apply_chat_template(self, messages, **kwargs):
++        prefix = 'Question: '+messages[0]['content'][1]['text']+'\n<think>\n'
++        return prefix if len(messages) == 1 else prefix+messages[-1]['content'].removeprefix('<think>\n')+'<eos>\n'
++
++    def __call__(self, text, videos, video_metadata, **kwargs):
++        metadata, arrays = video_metadata[0], videos[0]
++        ids = self.tokenizer.encode(text[0])
++        for i in range(0, len(arrays), 2):
++            timestamp = sum(metadata.frames_indices[i:i+2])/(2*metadata.fps)
++            ids += self.tokenizer.encode(f'<{timestamp:.1f} seconds>') + [62, 61, 63]
++        pixels = arrays[:, ::8, ::8].reshape(len(arrays)//2, 2, 2, 2, 2, 2, 3)
++        pixels = pixels.transpose(0, 2, 4, 6, 1, 3, 5).reshape(-1, 24)
++        token_ids = torch.tensor([ids])
++        return dict(input_ids=token_ids, mm_token_type_ids=torch.where(token_ids == 61, 2, 0), video_grid_thw=torch.tensor([[len(arrays)//2, 2, 2]]),
++                    pixel_values_videos=torch.tensor(pixels, dtype=torch.float32)/255)
+--- /dev/null
++++ b/tests/test_so_prefetch.py
+@@ -0,0 +1,213 @@
++import copy
++import datetime
++import json
++import os
++import random
++import sqlite3
++import threading
++import unittest
++from unittest.mock import patch
++
++import numpy as np
++import torch
++import torch.distributed as dist
++import torch.multiprocessing as mp
++
++from student_pilot import carrier_c1_run as run
++from student_pilot.c1_cpu_prefetch import Producer
++from tests.so_helpers import root, inputs, native, plan, TinyProcessor, rng_state, same_rng, assert_nested
++
++
++def admission_worker(rank, directory):
++    from pathlib import Path
++    from types import SimpleNamespace
++    torch.set_num_threads(8)
++    directory=Path(directory)
++    receipt=json.loads((directory/'receipt.json').read_text())
++    dist.init_process_group('gloo',init_method='file://'+str(directory/'admission'),rank=rank,world_size=2,
++                            timeout=datetime.timedelta(seconds=60))
++    try:
++        proof=[]
++        for factor in (1,2):
++            model=SimpleNamespace(recipe={'world_size':2,'reference_world_size':2*factor},
++                                  training_mode='final',r1_training=True,frame_count=32)
++            compared=[]
++            for enabled in ('0','1'):
++                draws,collectives=[],[]
++                original_get,original_reduce=run.Rows.get,dist.all_reduce
++                def get(rows,stream,index):
++                    draws.append((stream,index,index))
++                    if rank==1 and stream=='vqa' and index==2*(factor-1)+rank:
++                        raise ValueError('planted admission failure')
++                    return original_get(rows,stream,index)
++                def reduce(flag,*a,**kw):
++                    assert threading.current_thread() is threading.main_thread()
++                    collectives.append((str(kw.get('op')),flag.tolist()))
++                    return original_reduce(flag,*a,**kw)
++                with patch.dict(os.environ,C1_CPU_PREFETCH=enabled),patch.object(run.Rows,'get',get),patch.object(dist,'all_reduce',reduce):
++                    rows=run.Rows(receipt,TinyProcessor())
++                    iterator=run.fetch_plan(rows,model,plan(2,factor),rank,distributed=True)
++                    yielded=0
++                    try:
++                        for _ in iterator:
++                            yielded+=1
++                        raise AssertionError('Missing shared row failure')
++                    except ValueError as exc:
++                        error=str(exc)
++                    finally:
++                        iterator.close()
++                        rows.close()
++                assert yielded==factor,(rank,factor,yielded)
++                compared.append((draws,collectives,error,yielded))
++            assert compared[0]==compared[1],compared
++            proof.append(dict(factor=factor,failure_microstep=factor,draws=compared[0][0],collectives=len(compared[0][1])))
++        (directory/f'admission_rank{rank}.json').write_text(json.dumps(proof,indent=2)+'\n')
++    finally:
++        dist.destroy_process_group()
++
++
++class PrefetchTests(unittest.TestCase):
++    def test_two_rank_admission_failure_for_single_and_nominal_groups(self):
++        directory=root()
++        (directory/'receipt.json').write_text(json.dumps(inputs(directory)))
++        mp.spawn(admission_worker,args=(str(directory),),nprocs=2,join=True)
++        print('SO_ADMISSION_PROOF '+str(directory)+' factors=1,2; both ranks raise at microsteps=1,2',flush=True)
++
++    def test_processor_copy_failure_reaches_original_admission(self):
++        receipt=inputs(root())
++        model=native()
++        with patch.dict(os.environ,C1_CPU_PREFETCH='1'),patch.object(run.Rows,'cpu_prefetch_factory',side_effect=ValueError('copy failed')):
++            rows=run.Rows(receipt,TinyProcessor())
++            try:
++                with self.assertRaisesRegex(ValueError,'copy failed'):
++                    next(run.fetch_plan(rows,model,plan(),0))
++            finally:
++                rows.close()
++
++    def test_composite_pose_connections_are_created_on_the_worker(self):
++        from student_pilot.p3_provenance import file_pin
++        directory=root()
++        receipt=inputs(directory)
++        order=directory/'order.json'
++        order.write_text(json.dumps([[0,i] for i in range(32)]))
++        receipt['streams']['pose']={'kind':'mix','count':32,'order':file_pin(order),
++            'sources':[{'kind':'rows','database':receipt['streams']['pose']['database']}]}
++        receipt['depth']={'num_points_per_frame':1}
++        model=native()
++        results=[]
++        for enabled in ('0','1'):
++            with patch.dict(os.environ,C1_CPU_PREFETCH=enabled):
++                rows=run.Rows(receipt,TinyProcessor())
++                try:
++                    results.append(list(run.fetch_plan(rows,model,plan(),0)))
++                    if enabled=='1':
++                        with self.assertRaises(sqlite3.ProgrammingError):
++                            rows._c1_cpu_producer.rows.mixes['pose'].sources[0].conn.execute('SELECT 1')
++                finally:
++                    rows.close()
++        assert_nested(self,*results)
++
++    def test_real_rows_cpu_rng_sqlite_processor_ownership_and_exact_bytes(self):
++        torch.set_num_threads(8)
++        directory = root()
++        receipt = inputs(directory)
++        model = native()
++        sequences, owners, calls, closes = [], {}, [], []
++        original_get, original_close = run.Rows.get, run.Rows.close
++
++        def get(rows, stream, index):
++            tid = threading.get_ident()
++            owners.setdefault(tid,set()).add(id(rows.processor))
++            calls.append((stream,index,index))
++            before = rng_state()
++            value = original_get(rows,stream,index)
++            self.assertTrue(same_rng(before,rng_state()), 'Rows.get consumed a global RNG')
++            self.assertEqual(torch.get_num_threads(),8)
++            return value
++
++        def close(rows):
++            closes.append(threading.get_ident())
++            return original_close(rows)
++
++        for enabled in ('0','1'):
++            calls.clear()
++            with patch.dict(os.environ,C1_CPU_PREFETCH=enabled), patch.object(run.Rows,'get',get), patch.object(run.Rows,'close',close):
++                rows = run.Rows(receipt,TinyProcessor())
++                main_processor = id(rows.processor)
++                try:
++                    before = rng_state()
++                    values = list(run.fetch_plan(rows,model,plan(),0))
++                    self.assertTrue(same_rng(before,rng_state()))
++                    sequences.append((copy.deepcopy(calls),values))
++                    if enabled == '1':
++                        producer = rows._c1_cpu_producer
++                        self.assertNotEqual(id(producer.rows.processor),main_processor)
++                        with self.assertRaises(sqlite3.ProgrammingError):
++                            producer.rows.connections['vqa'].execute('SELECT 1')
++                finally:
++                    rows.close()
++        self.assertEqual(sequences[0][0],sequences[1][0])
++        assert_nested(self,sequences[0][1],sequences[1][1])
++        self.assertGreaterEqual(len(owners),2)
++        self.assertTrue(any(tid != threading.get_ident() for tid in closes))
++
++    def test_one_group_lookahead_and_exception_deferred_to_its_boundary(self):
++        torch.set_num_threads(8)
++        receipt = inputs(root())
++        model = native()
++        original = run.Rows.get
++        future_failed = threading.Event()
++        calls = []
++        def get(rows,stream,index):
++            calls.append((stream,index))
++            if stream == 'vqa' and index == 0:
++                future_failed.set()
++                raise ValueError('planted future row error')
++            return original(rows,stream,index)
++        with patch.dict(os.environ,C1_CPU_PREFETCH='1'), patch.object(run.Rows,'get',get):
++            rows = run.Rows(receipt,TinyProcessor())
++            iterator = run.fetch_plan(rows,model,plan(),0)
++            try:
++                next(iterator)
++                self.assertTrue(future_failed.wait(10))
++                next(iterator)  # Remaining admitted pose slice is still valid.
++                with self.assertRaisesRegex(ValueError,'Final-mode row failure'):
++                    next(iterator)
++                self.assertEqual(calls,[('pose',0),('pose',1),('vqa',0),('vqa',1)])
++            finally:
++                iterator.close()
++                rows.close()
++
++    def test_native_tokenizer_and_video_processor_are_private_and_deterministic(self):
++        torch.set_num_threads(8)
++        from tokenizers import Tokenizer, models, pre_tokenizers
++        from transformers import PreTrainedTokenizerFast
++        from transformers.models.qwen3_vl.video_processing_qwen3_vl import Qwen3VLVideoProcessor
++        raw = Tokenizer(models.WordLevel({'[UNK]':0,'hello':1,'world':2},unk_token='[UNK]'))
++        raw.pre_tokenizer = pre_tokenizers.Whitespace()
++        processor = dict(tokenizer=PreTrainedTokenizerFast(tokenizer_object=raw,unk_token='[UNK]'),
++                         video=Qwen3VLVideoProcessor(patch_size=16,temporal_patch_size=2,merge_size=2))
++        private = copy.deepcopy(processor)
++        self.assertIsNot(processor['tokenizer']._tokenizer,private['tokenizer']._tokenizer)
++        pixels = np.full((4,32,32,3),100,dtype=np.uint8)
++        def encode(p):
++            # Match the repository's CPU video fixture: torchvision is absent,
++            # so exercise native rescaling/patch packing, not RGB conversion/resize.
++            return (p['tokenizer']('hello world'),p['video'](videos=[pixels],do_sample_frames=False,
++                      do_resize=False,do_convert_rgb=False,do_normalize=False,return_tensors='pt'))
++        before = rng_state()
++        expected = encode(processor)
++        from concurrent.futures import ThreadPoolExecutor
++        with ThreadPoolExecutor(max_workers=1) as pool:
++            future = pool.submit(encode,private)
++            main = encode(processor)
++            actual = future.result()
++        self.assertEqual(expected[0]['input_ids'],actual[0]['input_ids'])
++        for key in expected[1]:
++            self.assertTrue(torch.equal(expected[1][key],actual[1][key]))
++            self.assertTrue(torch.equal(expected[1][key],main[1][key]))
++        self.assertTrue(same_rng(before,rng_state()))
++
++
++if __name__ == '__main__':
++    unittest.main()

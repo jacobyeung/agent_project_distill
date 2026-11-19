@@ -27,6 +27,7 @@ class WordingExclusion:
 
     def check(self,row):
         for value in (row,row.get('student_input',{}),row.get('routing',{}),row.get('ground_record',{})):
+            if not isinstance(value,dict):continue
             question=value.get('question')
             if isinstance(question,str):
                 for name,pattern in self.patterns:
@@ -35,7 +36,7 @@ class WordingExclusion:
         return row
 
 def validate_binding(cfg):
-    value=cfg.get('r1_training',{});pin=value.get('wording_exclusion')
+    value=cfg.get('r1_training') or {};pin=value.get('wording_exclusion')
     sources=load(pinned(value['row_sources'])) if value.get('row_sources') else {}
     extra=set(PINS)&set(sources)
     if extra:

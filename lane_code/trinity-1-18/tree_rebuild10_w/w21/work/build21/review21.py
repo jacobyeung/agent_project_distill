@@ -14,6 +14,13 @@ class Review21(unittest.TestCase):
             safe=J.screen(line,WORDS,hashes)
             self.assertFalse(bad_string(safe,hashes));self.assertIn('400',safe)
         self.assertEqual(J.screen('ok 400\n',WORDS,hashes),'ok 400\n')
+    def test_log_process(self):
+        import subprocess
+        from launch_r2.build import bad_string
+        kit=B/'kits/q';hashes=J.load(kit/'b/wh.json')
+        result=subprocess.run([sys.executable,'-I','-s','-B',str(kit/'b/l.py'),str(kit)],
+            input='event /project/community/jjyeung/distill/okit Qwen STUDENT_MODEL_ROOT 400 0.25\n',text=True,capture_output=True,check=True)
+        self.assertFalse(bad_string(result.stdout,hashes));self.assertIn('400 0.25',result.stdout)
     def test_bootstrap_map_checks(self):
         from copy import deepcopy
         from jobtest import reseal,rawcap

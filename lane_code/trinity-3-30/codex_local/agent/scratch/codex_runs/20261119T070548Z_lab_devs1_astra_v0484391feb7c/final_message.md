@@ -1,0 +1,1 @@
+{"Q1":3,"Q2":"B","Q3":"A","Q4":"C","Q5":"A","check":"Frame 5 shows a light wooden dining table with brown woven mats, wooden and black chairs, and white kitchen cabinets; frame 30 shows a brown brick fireplace, a wood-framed mirror, shelves of multicoloured books, and glowing cream wall lights."}

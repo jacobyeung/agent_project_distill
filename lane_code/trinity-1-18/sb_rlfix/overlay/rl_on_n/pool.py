@@ -4,6 +4,41 @@ import copy
 import hashlib
 from . import provenance as P
 
+# Model-visible fields are explicit. Scoring labels live only in prompt.gt_answer.
+ROW_FIELDS=('qid','dataset','scene','canonical','question_type','category',
+            'mask_source','uses_mask_cache')
+INPUT_FIELDS=('question','options','frame_indices','timestamps','fps','total_num_frames',
+              'anchor_slots','recording_id','video_sha256')
+FRAME_FIELDS=('path','sha256','frame_index','timestamp','recording_id','timestamp_seconds')
+
+
+def clean_inputs(inputs):
+    clean={k:copy.deepcopy(inputs[k]) for k in INPUT_FIELDS if k in inputs}
+    for key in ('frames','partner_frames'):
+        if key in inputs:
+            clean[key]=[{k:copy.deepcopy(f[k]) for k in FRAME_FIELDS if k in f} for f in inputs[key]]
+    if 'video_identity' in inputs:
+        clean['video_identity']={k:copy.deepcopy(inputs['video_identity'][k])
+                                 for k in ('video_sha256',) if k in inputs['video_identity']}
+    if 'geometry_dense' in inputs:clean['geometry_dense']=clean_inputs(inputs['geometry_dense'])
+    return clean
+
+
+def clean_row(row):
+    clean={k:copy.deepcopy(row[k]) for k in ROW_FIELDS if k in row}
+    clean['student_input']=clean_inputs(row['student_input'])
+    if isinstance(row.get('routing'),dict):
+        clean['routing']={k:copy.deepcopy(row['routing'][k])
+                          for k in ('question_type','category') if k in row['routing']}
+    # Preserve only phrase strings, never arbitrary cache/manifest dictionaries.
+    for key in ('batch_cache_phrases','candidate_phrases','cache_phrases'):
+        if key in row:
+            value=row[key].get('phrases') if isinstance(row[key],dict) else row[key]
+            if not isinstance(value,(list,tuple)) or not all(isinstance(x,str) for x in value):
+                raise ValueError('Invalid phrase input: '+key)
+            clean[key]=list(value)
+    return clean
+
 class RoomGate:
     def __init__(self,cfg):
         from student_pilot.r1_rooms import Rooms
@@ -36,11 +71,7 @@ def build(rows,gate,route_table,seed=17,limit=None):
         answer=row.get('answer',row.get('routing',{}).get('answer'))
         if answer is None: raise ValueError('MISSING ground truth answer for '+qid)
         # Copy only model inputs and metadata needed by native prompt_batch/backend.
-        clean=copy.deepcopy(row)
-        for key in ('target','suffix','answer','ground_record','events','response','response_source'):
-            clean.pop(key,None)
-        if isinstance(clean.get('routing'),dict):
-            clean['routing']={k:v for k,v in clean['routing'].items() if k in ('question_type','category')}
+        clean=clean_row(row)
         value=dict(prompt_id=qid,type=typ,gt_answer=str(answer),options=si.get('options') or [],
                    row=clean,source_stream=stream,source_offset=index,
                    source_row_sha256=hashlib.sha256(P.canonical(row).encode()).hexdigest())

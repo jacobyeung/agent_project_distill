@@ -1,44 +1,33 @@
 # RL stage kit for N
 
-This overlay adds GRPO to N's native routed decoder. It imports the sealed N tree without changing it. The production pool and export bindings are MISSING: the supplied N report stops at missing `init_m544` evidence. The kit does not authorize or launch a GPU job.
-
-Run the CPU checks from this workspace:
+This overlay adds GRPO to N's native routed decoder. The CPU tests and synthetic proof are runnable. Production remains blocked on an admitted pool, qualified export, frozen assets, and the claimed-arm serving bindings. See `out/REPORT.md` for measured evidence and missing inputs.
 
 ```bash
 bash scripts/run_tests.sh
 bash scripts/run_cpu.sh
-PYTHONPATH="$PWD/overlay" /scratch/jjyeung/envs/p1cpu/bin/python -B scripts/make_configs.py
+OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 PYTHONPATH=overlay nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -B scripts/make_configs.py
 ```
 
-`out/RL_ON_N_SURVEY.md` describes the interfaces. `out/RL_ON_N_REPORT.md` states measured results and remaining limits. The tar contains code, configs, tests, and documentation, with no data or weights.
+Correctness calls N's `evalpath.run.score_item`, including its question-type inference and final-answer extraction. Reward is correctness plus 0.1 × short plus 0.1 × route. Zero correctness gives zero auxiliary reward. Auxiliary credit requires exactly one `</think>`; malformed or duplicate close tags get no auxiliary credit. Length credit decreases linearly between 128 and 1,024 thought tokens, excluding injected responses.
 
-## Reward and optimization
+Routing requires exactly the question type's call kinds and matching decoder responses inside the thought. Distance requires ground and gap, with two grounds before the gap. Direct types require no calls. This checks call placement, not whether the answer causally uses a response.
 
-The reward is `1.0 * correctness + 0.1 * short + 0.1 * routing`. Correctness imports N's official MRA or exact-choice scorer. A complete thought gets length credit that falls linearly from one at 128 own thought tokens to zero at 1,024. Printed responses are free. Incomplete/budget-cut thoughts get no length credit. These bounds keep an exact answer above a zero-correctness answer; partial MRA scores can trade against auxiliary terms.
+Advantages are reward minus group mean, with standard-deviation scaling disabled. Four draws share each prompt. The objective accepts only `grpo.norm=seq`, clips at 0.2, and uses k3 KL with beta 0.04. Sampling uses temperature 0.7 and top-p 1. Only sampled tokens receive gradients; responses, forced fixture tokens, and budget EOS do not. Each scheduled sequence has equal weight, including refused slots in the denominator.
 
-Routing earns one only for the question type's required native call sequence inside the thought, with matching decoder-injected responses. Direct types earn it for making no call. Object absolute distance needs two grounds and a gap; camera displacement/direction needs move; rotation needs turn. The route table comes from the authenticated N config. Room size stays direct.
+The default training arm explicitly uses `pose_source='tower'`: frozen G3T for camera and lifting, SAM 3 with the deployed selector for grounding, and fixed math for scale and gap. Own heads may be printed only through `rollout.diagnostic_own`; `reward.score` rejects that diagnostic arm. The native tower path remains active.
 
-Four draws share a prompt; advantages use the group's population standard deviation. Ties produce zero policy signal. GRPO clips at 0.2 and uses k3 KL with beta 0.04. Temperature is 0.7 and top-p is 1.0, so rollout and loss use the same distribution. Only sampled tokens receive gradients; injected responses, test-forced prefixes, and budget EOS do not. Each sequence has equal weight.
+The supplied generic `evalpath/run.py` uses own pose and MDG. Its defaults do not verify the claimed arm. `grounding.serving_table` and `grounding.evaluator_adapter` are therefore MISSING pins, and `serving.load_binding` refuses production until they are supplied. The adapter must come from the deployed evaluator, validate the actual table, and expose `validate_claimed_arm(table_pin, **requirements)` and `build_backend(model=..., row=..., batch=..., artifact_pin=..., audit_dir=..., settings=...)`. The batch includes the prepared TowerState. A backend whose mask source differs from `svp_sam3` is refused. No deployed adapter or serving table is fabricated in this kit; this interface remains unverified against the missing source.
 
-The production memory plan trains rank-16, alpha-32 adapters on each LM MLP's gate/up/down projections. Base weights, heads, and towers stay frozen. Disabling adapters supplies the immutable starting reference on the same response-conditioned trajectory; no second 9B model is resident. `LowRank` uses FP32 adapter parameters and BF16 base compute. The CPU proof trains this same adapter family.
+The runner freezes base weights, heads, and towers and trains rank-16, alpha-32 adapters on the LM MLP projections. Disabling adapters supplies the immutable reference. Each rank initializes gradients to zero and participates in every parameter's all-reduce, even when local draws fail. There is no DDP `no_sync` path.
 
-## Production bindings
+`RowRefusal` and tower failures receive reward zero and skip backward. Progress files record each rank's refusal count, reasons, timing, and peak CUDA allocation. If every rank has no usable draw, the optimizer does not step. Rank zero saves adapters and optimizer state every 25 steps and at the final step. `RL_EXPORT.json` pins the final checkpoint; `rl_on_n.restore.load` restores its adapters.
 
-`configs/h100_4.json` and `configs/h100_8.json` keep the same batch: eight prompts × four draws = 32 sequences. Each rank rolls out one sequence at a time and accumulates eight/four sequence losses, respectively. The runner is `python -m rl_on_n.train --config CONFIG` inside an externally assigned distributed environment. No launch script is included.
+`pool.RoomGate` checks native room authorities, withheld rooms, reserve rooms, scene exclusions, and REMOVE lists before rows enter the pool. The kit deliberately excludes the entire pinned R0 reserve, including R0-rl. This conservative restriction stays in force; it is broader than heldout-only exclusion. The row and nested model inputs use explicit allow-lists. Ground truth remains only in the scoring envelope, outside the row passed to the model.
 
-Before that runner can proceed, the operator must supply exact path/SHA256 pins for the native configuration, admitted-pool configuration, starting C1 artifact, prompt pool, and frozen G3T weights/config. Native frame paths must already resolve locally. The runner verifies these inputs and revalidates the pool against N's native admitted population.
+Production configurations preserve eight prompts × four draws across four or eight ranks. Bind source_config, pool_config, artifact, pool, frozen_tower weights/config, and the deployed serving inputs. N's component gate and native admission checks remain active. No pool or export qualification is invented.
 
-- `start_mode=n_export` reloads an export matching its own authenticated preparation and config.
-- `start_mode=p_handover` uses N's admitted continuation config and its exact P export pin. N's persisted handover and native initialization checks must pass; no P metadata is fabricated.
-- `pool_config` always names N's prepared training population. `python -m rl_on_n.pool --tree N_TREE --config PREPARED_N_CONFIG --out POOL.json` builds the pool. It refuses unknown rooms, R0, K1, the separate 80-room withheld set, dev-S1, benchmark scenes, removal-list hits, and unadmitted rows. No source slice can be relabeled as admitted.
-- The native decoder handles camera carriers, call parsing, in-call head execution, forced responses, and v3.14 sessions. Native RGB frames feed frozen G3T; the checkpoint supplies depth and grounding. A fresh grounding backend belongs to each draw; a prompt's immutable tower result is shared across its draws.
+The CPU proof uses random weights, four real-width text layers, three vision layers, synthetic RGB, and synthetic frozen TowerState inputs. Its wrong outputs earn zero reward and zero production advantages. A separately labeled synthetic reward pair tests nonzero backward propagation on the sampled tokens. This is not evidence of learned routing, answer quality, production grounding, or GPU memory fit.
 
-The native training component gate remains active. Its program-choice evidence belongs to the separate native-evaluation phase; this kit does not bypass or enable a benchmark reader.
+`scripts/run_gpu_dry_run.sh --config BOUND_CONFIG --out OUTPUT` runs two timed steps on exactly one assigned GPU, preserving the 32-sequence batch. It records per-step time, refusals, peak memory, and total time. It requires a suitable GPU environment through `RL_PYTHON`. This script is supplied but not executed in the CPU-only task.
 
-The runner saves `RL_EXPORT.json` plus `rl_adapters.pt`, bound to the starting export. `rl_on_n.restore.load` restores them. This is an RL adapter artifact, not a native N/P SFT export. Export loading, distributed collectives, real grounding, and GPU memory fit require validation on qualified inputs; CPU proof does not establish those properties.
-
-## Memory and time estimates
-
-The per-rank planning envelope is approximately 16.8 GiB of BF16 base weights, 1 GiB for adapters/optimizer, 14 GiB for heads/towers, 24 GiB for activations/cache, and 8 GiB for workspaces. These are budgets, not measured allocations. Native model loading temporarily uses FP32 masters, and visual-prefix length can exceed the activation budget. No memory-fit claim is made.
-
-`out/GPU_ESTIMATE.json` exposes every token/rate assumption and the formula. It uses 200 steps, 6,400 rollouts, 4,096 prompt tokens, 512 sampled tokens, and 128 response tokens per rollout. No measured b09 H100 step time exists in the supplied deliverables. Production timing must replace these estimates before reserving compute.
+`out/GPU_ESTIMATE.json` contains arithmetic scenarios, not measured throughput. It assumes 4,800 prompt tokens; decode is serial within each rank, and policy replay rates include backward only as an unmeasured effective-rate assumption. Obtain the timed dry run before reserving GPUs. Multi-GPU collective behavior, deployed grounding, and export reload remain untested.

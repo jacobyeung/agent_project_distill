@@ -8,7 +8,10 @@ O.mkdir(parents=True,exist_ok=True);sys.path[:0]=[str(L/'work/tree_r1'),str(L/'w
 os.environ.update(R2_FIXTURES=str(L/'fixtures'),R2_PROOFS=str(O))
 from monitor9 import Monitor
 m=Monitor(L/'work/tree_r1')
-from student_pilot.p3_provenance import file_pin,pinned,load,digest,write
+from student_pilot.p3_provenance import file_pin,pinned,load,digest
+def write(path,value):
+ path=Path(path);assert path.is_relative_to(B)
+ path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(value,sort_keys=True,indent=2)+'\n')
 from student_pilot import r1_rooms as R,r1_coverage as C,r1_mix
 from student_pilot.r1_routing import Filters
 from student_pilot.r1_population import family

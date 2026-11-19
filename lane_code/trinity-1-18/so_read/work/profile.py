@@ -42,9 +42,13 @@ for package in ('A4', 'B5'):
             tokens_including_forced=stats([len(o['tokens']) for o in outs]),
             forced_tokens=stats([sum(c.get('forced_tokens',0) for c in cs) for cs in calls]),
             chosen_tokens=stats([len(o['tokens'])-sum(c.get('forced_tokens',0) for c in cs) for o,cs in zip(outs,calls)]),
+            ordinary_sampled_tokens=stats([o['decode_budget']['ordinary_sampled_tokens'] for o in outs]),
+            budget_forced_tokens=stats([o['decode_budget']['forced_budget_tokens'] for o in outs]),
             prompt_tokens=stats([o['prompt_tokens'] for o in outs]),
             calls=stats([len(cs) for cs in calls]),
             call_families=dict(collections.Counter(c['family'] for cs in calls for c in cs)),
+            served_call_families=dict(collections.Counter(c['family'] for cs in calls for c in cs if c.get('served'))),
+            calls_with_errors=sum(c.get('kind')=='error' for cs in calls for c in cs),
             timings={f:stats([o['timings'].get(f,0) for o in outs]) for f in fields},
             timed_g3t_accesses=sum('g3t_s' in o['timings'] for o in outs),
             factory_load_s=sum(x['load_s'] for tr in timing for x in tr['loads']),
@@ -57,7 +61,15 @@ for package in ('A4', 'B5'):
                          held_bytes=end.get('held_bytes'), requested=end.get('requested'),
                          events=sum(len(m.get('events',[])) for m in memos))
         last_hits, last_misses = end.get('hits',0), end.get('misses',0)
+        d['by_has_calls']={str(flag):dict(items=sum(bool(cs)==flag for cs in calls),
+            seconds=stats([r['seconds'] for r,cs in zip(rows,calls) if bool(cs)==flag]),
+            tokens=stats([len(o['tokens']) for o,cs in zip(outs,calls) if bool(cs)==flag])) for flag in (False,True)}
         d['journal_unattributed_s'] = d['journal_wall_s']-d['seconds']['total']-d['factory_load_s']
+        worst=max(rows,key=lambda r:r['seconds'])
+        d['slowest']=dict(id=worst['id'],seconds=worst['seconds'],tokens=len(worst['output']['tokens']),
+                          timings=worst['output']['timings'])
+        d['long_reads']=dict(items=sum(len(o['tokens'])>=2000 for o in outs),
+                             seconds=sum(r['seconds'] for r in rows if len(r['output']['tokens'])>=2000))
         summary['types'][rows[0]['type']] = d
         summary['journals'].append(str(p));summary['rows'] += len(rows)
         flat.append(dict(package=package, type=rows[0]['type'], items=len(rows),

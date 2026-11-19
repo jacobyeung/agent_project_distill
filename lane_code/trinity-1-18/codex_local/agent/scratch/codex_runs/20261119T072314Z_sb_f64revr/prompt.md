@@ -1,0 +1,17 @@
+# Task sb_f64rev: independent read-only review of the 64-frame kit for vehicle N (sb_f64, built by Cursor Opus)
+Workspace: /scratch/jjyeung/orch_n30/sb_f64rev (write here only).
+Under review: /scratch/jjyeung/orch_n30/sb_f64 (STATUS.md, out/kit/ (configs incl. r1_config_f64.json, patches), out/evidence/ (mem_n32_8.json, mem_f64_8.json, ANALYSIS.json), work/ (scripts, f64_dryrun.py, logs), its task prompt PROMPT.md or prompts/). Package it builds on: /scratch/jjyeung/orch_n30/sb_f64/pkg (N's sealed b18 tar caa09d0c); Qwen3.5-9B meta (no weights) in sb_f64/in/qwen35_9b_meta. Question it answers: can N's language model take 64 frames (nested layout: 32 anchors + 32 bisection frames) for training and reading, with what memory and step time, and with the read layout unchanged for the 32 anchors?
+Check with your own scripts: (1) every patch to N's code (list edited lines; any change to admission, legality, scoring, room rule or the anchor frame numbering printed in traces is a BLOCKER unless justified); (2) memory evidence: is the dry-run's model the real architecture at random init, are sequence lengths, batch, activation checkpointing and optimizer state those of the planned run, and does the extrapolation to a 48/80 GB card hold; (3) the 109-test baseline with one error (missing POOL.jsonl): is that error pre-existing and harmless; (4) the CPU first-batch forward of every rank-equivalent batch runs (USER rule: before any GPU, every rank's first batch through the full forward on CPU); (5) claims not backed by files; (6) GPU need and what would change the decision.
+Deliver out/REVIEW_VERDICT.md (at most 50 lines): GO, GO AFTER FIXES (exact edits) or NO-GO, numbered findings each BLOCKER or minor.
+
+## Standing rules and answers (read first; you will get no replies, so do not wait for any)
+- You run on trinity-1-18 (CMU Trinity cluster), CPU only, no GPU, no network. Never ssh, never kill a process, never touch tmux sessions, no Git, no deletion outside your workspace.
+- /home and /data* are an overloaded NFS server: never search, list recursively or bulk-read there. Read only files this prompt names, each once. /scratch is local disk: bounded `rg --files`/`find` under the directories named here is fine.
+- Write only inside your workspace. Every path outside it that this prompt names is read-only to you (other lanes own it).
+- Local-disk IO needs no approval. Ordinary failures: debug and rerun. The sandbox has no loopback sockets. Stay under 40 GB RAM per process. CPU manners (orchestrator order): at most 8 cores per job; start every heavy process with `nice -n 10` and OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 (torch.set_num_threads(8)); never run parallel worker pools above 8 processes.
+- Legality: never invent a mapping, a manifest, a scene list or a proof. A missing input is reported by its exact name and expected location; the affected output says MISSING, never a guess.
+- Every output JSON records sha256 of each input it rests on, and your report states the command that produced each number. Write a STATUS.md in the workspace after each stage (one paragraph) and a final report named in the task.
+
+
+## Resume note
+A previous attempt of this task in this same workspace was cut off by a model-capacity error. Read the workspace (STATUS.md, out/, scripts) first and continue from what is there; redo only what is incomplete or unverified.

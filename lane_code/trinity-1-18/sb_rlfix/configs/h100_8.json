@@ -2,6 +2,7 @@
   "adapter_alpha": 32,
   "adapter_rank": 16,
   "artifact": null,
+  "checkpoint_every": 25,
   "clip_norm": 1.0,
   "cpu_threads": 8,
   "draws_per_prompt": 4,
@@ -12,7 +13,8 @@
   },
   "gradient_accumulation": 4,
   "grounding": {
-    "allow_own_fallback": true
+    "evaluator_adapter": null,
+    "serving_table": null
   },
   "grpo": {
     "clip_high": 0.2,
@@ -26,10 +28,10 @@
     "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/build18/inputs/config.json": "a278b553bb672091fe87740772663d46ff9d3ee1278c8afaf3b35c0286687dd0",
     "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/r1_rooms.py": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
     "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/r1_training.py": "ceb2b01ee005b54b55907f76f42660b01c9c47ddab9245fd498e2520fce184e5",
-    "/scratch/jjyeung/orch_n30/sb_rlkit/in/b09_out/CARD_DRAFT_RL_DRYRUN.md": "c5f3acba8e7a0056cae9292ab1b1eef530556e43ad489e51df9197004bd0124f",
-    "/scratch/jjyeung/orch_n30/sb_rlkit/overlay/rl_on_n/__init__.py": "eb528e68caf2165f6f86ce106d3f46a36f1cb95e77f02fd9f3d99ddc8ca4e3c6",
-    "/scratch/jjyeung/orch_n30/sb_rlkit/overlay/rl_on_n/provenance.py": "cf98f6c4e3591b865492917051280a0bb1dfc6f11f43e539e7b2a52dc32e74e7",
-    "/scratch/jjyeung/orch_n30/sb_rlkit/scripts/make_configs.py": "6e78805cc9adafae0d05d44ac4d3d192ba38c299954f4a2ee4ec95511ada5101"
+    "/scratch/jjyeung/orch_n30/sb_rlfix/in/b09_out/CARD_DRAFT_RL_DRYRUN.md": "c5f3acba8e7a0056cae9292ab1b1eef530556e43ad489e51df9197004bd0124f",
+    "/scratch/jjyeung/orch_n30/sb_rlfix/overlay/rl_on_n/__init__.py": "eb528e68caf2165f6f86ce106d3f46a36f1cb95e77f02fd9f3d99ddc8ca4e3c6",
+    "/scratch/jjyeung/orch_n30/sb_rlfix/overlay/rl_on_n/provenance.py": "bd09f43cdeb811d666d15e45f30161868eeb8555934ba8df440929623268da74",
+    "/scratch/jjyeung/orch_n30/sb_rlfix/scripts/make_configs.py": "4ee103b5e46a63ac9866045faabed138081e9c7d9b40854274d0af5c37154fbb"
   },
   "learning_rate": 1e-05,
   "max_sampled_tokens": 1024,
@@ -45,12 +47,13 @@
   },
   "microbatch_sequences": 1,
   "notes": "No launch authorization. Preserve the native source/pool configurations; bind hashes before use. One process per assigned H100; no GPU keeper or scheduler code.",
-  "output": "/scratch/jjyeung/orch_n30/sb_rlkit/out/production_8h100",
+  "output": "/scratch/jjyeung/orch_n30/sb_rlfix/out/production_8h100",
   "pool": null,
   "pool_config": null,
+  "pose_source": "tower",
   "prompts_per_step": 8,
   "reference": "same immutable export with adapters disabled",
-  "required_grounding_binding": "Bind frozen_tower weights/config pins. Grounding uses native same-checkpoint geometry, whose pose comes from the frozen G3T TowerState and metric scale/depth from the checkpoint.",
+  "required_grounding_binding": "MISSING deployed claimed-arm serving table and evaluator adapter pins; frozen G3T camera/lifting, SAM 3 plus deployed selector, fixed scale/gap math. Own heads are diagnostic only.",
   "reward": {
     "correct": 1.0,
     "long_tokens": 1024,
@@ -58,6 +61,7 @@
     "short": 0.1,
     "short_tokens": 128
   },
+  "scale_std": false,
   "schema": "rl-on-n-v1",
   "seed": 17,
   "sequences_per_rank": 4,

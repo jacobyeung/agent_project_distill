@@ -1,0 +1,2 @@
+cd /scratch/jjyeung/n30_mirror/corpus_work
+for f in *.list; do echo "== $f"; grep -E "(FETCH\.json|/result\.tar\.gz|items_a0\.jsonl|/journals/.*/items\.jsonl(\.gz)?|decode\.jsonl|budget_[0-9]+\.jsonl|ITEMS\.jsonl)$" $f | grep -v -i -E "evidence/|test|pytest|chain_|fix1c_|rehears|/store/|/returned/|/fixture|/synthetic|/fake|/dry|/mock|syn_" | awk '$3>50000 || $6 ~ /FETCH/ {printf "%.1fM %s\n",$3/1e6,$6}' | sed -E 's#/(main|a7|away|forward|r6)/a0/results/.*#/<fam>/a0/results/...#; s#/journals/.*#/journals/...#' | sort -k2 | uniq -c | head -120; done

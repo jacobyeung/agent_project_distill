@@ -1,0 +1,347 @@
+"""CPU fixtures; set TEST_TMP_ROOT to keep all retained test files in scratch."""
+import copy
+from concurrent.futures import ThreadPoolExecutor
+import importlib.util
+import json
+import os
+from pathlib import Path
+import sqlite3
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+import torch
+torch.set_num_threads(8)
+
+TREE = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(TREE))
+spec = importlib.util.spec_from_file_location("prepared_cache", TREE / "launch_s1/b/pc.py")
+pc = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(pc)
+
+
+class Fixture:
+    def __init__(self):
+        self.root = Path(tempfile.mkdtemp(prefix="pc-test-", dir=os.environ["TEST_TMP_ROOT"]))
+        self.kit, self.node, self.cache = (self.root / name for name in ("kit", "node", "cache"))
+        self.source, self.target = self.root / "old-run/inputs", self.root / "new-run/inputs"
+        self.logical = self.target
+        for directory in (self.kit / "k", self.kit / "b", self.source, self.node):
+            directory.mkdir(parents=True)
+        (self.kit / "b/s.py").write_text("# fixture staging implementation\n")
+        (self.kit / "b/pc.py").write_bytes((TREE / "launch_s1/b/pc.py").read_bytes())
+        frame = b"a tiny pinned RGB fixture"
+        h = pc.hashlib.sha256(frame).hexdigest()
+        self.relative = "k3f8/" + h[:2] + "/" + h + ".png"
+        self.frame = self.node / "c7d31ddd/data2root" / self.relative
+        self.frame.parent.mkdir(parents=True)
+        self.frame.write_bytes(frame)
+        manifest = self.root / "frames.json"
+        pc.atomic(manifest, [dict(path="/data2/" + self.relative, sha256=h)])
+        self.cfg = dict(output=str(self.target.parent), preparation_output=str(self.root / "logical-prep"),
+                        streams={k: dict(path="/sources/" + k, sha256=pc.digest(k))
+                                 for k in ("pose", "vqa", "pointing", "routing")},
+                        code=dict(path="/logical/k/code.json", sha256="a"*64),
+                        init_artifact=dict(artifact=dict(path="/parent/artifact.json", sha256="b"*64)),
+                        world_size=4, remove_files=[], training_mode="final")
+        config = self.kit / "k/config.json"
+        pc.atomic(config, self.cfg)
+        self.current = dict(commit="sha256:" + "c"*64,
+                            trainer=dict(file="trainer.tar", sha256="d"*64),
+                            venv=dict(file="runtime.tar", sha256="e"*64),
+                            stores=dict(f3="k3f8"), f3=dict(file="frames.tar", sha256="f"*64),
+                            f3_manifest=dict(file=str(manifest), sha256=pc.sha(manifest)))
+        pc.atomic(self.kit / "k/0.json", self.current)
+        self.launch = dict(config=dict(file="k/config.json", sha256=pc.sha(config)),
+                           run_directory=str(self.source.parent), in_job_admission=dict(
+                               schema="s1-in-job-admission-v1", directory=str(self.logical),
+                               frame_roots=[str(self.node / "c7d31ddd/data2root")]))
+        pc.atomic(self.kit / "k/launch.json", self.launch)
+        request = dict(config=dict(path="/logical/k/config.json", sha256=pc.sha(config)),
+                       frame_roots=self.launch["in_job_admission"]["frame_roots"],
+                       source_revision=self.current["commit"])
+        pc.atomic(self.source / "request.json", request)
+        prep, frames = "prepare_" + "1"*32, "frames_" + "2"*32
+        self.prep = prep
+        database = self.source / prep / "pointing/rows.sqlite"
+        database.parent.mkdir(parents=True)
+        with sqlite3.connect(database) as conn:
+            conn.execute("CREATE TABLE rows (i INTEGER PRIMARY KEY, row TEXT)")
+            conn.execute("INSERT INTO rows VALUES (0, '{}')")
+        pc.atomic(self.source / prep / "config.json", self.cfg)
+        pc.atomic(self.source / prep / "receipt.json", dict(database=self.pin(database)))
+        inventory = self.source / frames / "frame_inventory.sqlite"
+        inventory.parent.mkdir(parents=True)
+        with sqlite3.connect(inventory) as conn:
+            conn.execute("CREATE TABLE frames (path TEXT PRIMARY KEY, logical TEXT, sha256 TEXT)")
+            conn.execute("INSERT INTO frames VALUES (?,?,?)", (str(self.frame), "/data2/"+self.relative, h))
+        report = self.source / frames / "frames.json"
+        pc.atomic(report, dict(inventory=self.pin(inventory), all_retained_frames_exist=True,
+                               sources=dict(pose=dict(hash_sample=[dict(path="/data2/"+self.relative, sha256=h)]))))
+        for name, directory, outputs in (("prepare", prep, [database, self.source / prep / "receipt.json",
+                                                           self.source / prep / "config.json"]),
+                                         ("frames", frames, [inventory, report])):
+            result = self.source / directory / "result.json"
+            pc.atomic(result, dict(outputs=[self.pin(p) for p in outputs], resources=dict(seconds=1)))
+            pc.atomic(self.source / ("phase_"+name+".complete.json"),
+                      dict(schema="s1-admission-phase-v1", binding=request, payload=self.pin(result)))
+        pc.atomic(self.source / "data_receipt.json", dict(
+            schema="s1-in-job-data-v1", status="PREPARED", real_frames_verified=True,
+            rehearsal=False, gpu_first_step_pending=True, input_config=request["config"],
+            input_streams=self.cfg["streams"], source_revision=self.current["commit"],
+            config=self.pin(self.source / prep / "config.json"), frames=self.pin(report)))
+
+    def pin(self, path):
+        return dict(path=str(self.logical / path.relative_to(self.source)), sha256=pc.sha(path))
+
+    def context(self, job="old"):
+        return pc.Context(self.kit, self.node, self.cache, job)
+
+    def publish(self):
+        ctx = self.context()
+        pc.seal(ctx)
+        self.key = ctx.key
+        return ctx
+
+    def consumer(self, job="new"):
+        self.launch["run_directory"] = str(self.target.parent)
+        pc.atomic(self.kit / "k/launch.json", self.launch)
+        return self.context(job)
+
+
+class PreparedCacheTests(unittest.TestCase):
+    def setUp(self):
+        self.f = Fixture()
+
+    def test_hit_verifies_and_preserves_native_journal(self):
+        f = self.f
+        source = f.publish()
+        ctx = f.consumer()
+        self.assertEqual(source.key, ctx.key)
+        self.assertTrue(pc.restore(ctx))
+        from student_pilot.first_batch_progress import PhaseJournal
+        journal = PhaseJournal(f.target, pc.read(f.target / "request.json"))
+        for phase in ("prepare", "frames"):
+            _, reused = journal.run(phase, lambda _: self.fail("cache rebuilt a complete phase"))
+            self.assertTrue(reused)
+        from student_pilot.s1_admission import verify_frames
+        report_pin = pc.read(f.target / "data_receipt.json")["frames"]
+        with patch("student_pilot.orchard_paths.resolve_read", lambda _: f.frame):
+            verify_frames(pc.read(report_pin["path"]))
+        record = pc.read(ctx.report)
+        self.assertEqual(record["source_job"], "old")
+        self.assertEqual(record["source_inputs"], str(f.source))
+        self.assertEqual(record["target_inputs"], str(f.target))
+        self.assertGreater(record["verified_files"], 5)
+        self.assertEqual(record["verified_frames"], 1)
+        self.assertEqual(pc.sha(record["receipt"]["path"]), record["receipt"]["sha256"])
+        inventory = pc.read(record["receipt"]["path"])
+        for name, pin in inventory["files"].items():
+            self.assertEqual(pc.sha(f.target / name), pin["sha256"])
+        self.assertEqual(inventory["frames"][f.relative]["sha256"], pc.sha(f.frame))
+
+    def test_each_key_component_changed_alone_misses(self):
+        f = self.f
+        base = f.publish().components
+        mutations = {
+            "store_receipts": lambda v: v["pose"].update(sha256="1"*64),
+            "preparation_config": lambda v: v.update(ground_target_filter=False),
+            "frame_manifests": lambda v: v["f3_manifest"].update(sha256="2"*64),
+            "preparation_code_identity": lambda v: v.update(commit="sha256:"+"3"*64),
+            "staging": lambda v: v["venv"].update(sha256="4"*64),
+            "admission_contract": lambda v: v.update(frame_roots=["/different"]),
+            "environment": lambda v: v.update(STUDENT_R2_FRAME_HOST="changed"),
+        }
+        for component, change in mutations.items():
+            with self.subTest(component=component):
+                ctx = f.consumer(component)
+                value = copy.deepcopy(base)
+                change(value[component])
+                self.assertEqual([k for k in value if value[k] != base[k]], [component])
+                ctx.components, ctx.key = value, pc.digest(value)
+                self.assertNotEqual(ctx.key, f.key)
+                self.assertFalse(pc.restore(ctx))
+                self.assertEqual(pc.read(ctx.report)["status"], "MISS")
+
+    def test_real_config_init_and_code_changes_miss(self):
+        f = self.f
+        original = f.publish().key
+        for field, value in (("seed", 99), ("init_artifact", {"artifact": {"sha256": "1"*64}})):
+            cfg = {**f.cfg, field: value}
+            pc.atomic(f.kit / "k/config.json", cfg)
+            f.launch["config"]["sha256"] = pc.sha(f.kit / "k/config.json")
+            ctx = f.consumer(field)
+            self.assertNotEqual(ctx.key, original)
+            self.assertFalse(pc.restore(ctx))
+        pc.atomic(f.kit / "k/config.json", f.cfg)
+        f.launch["config"]["sha256"] = pc.sha(f.kit / "k/config.json")
+        (f.kit / "b/s.py").write_text("# different preparation code\n")
+        ctx = f.consumer("code")
+        self.assertNotEqual(ctx.key, original)
+        self.assertFalse(pc.restore(ctx))
+
+    def test_same_key_different_code_in_receipt_is_refused(self):
+        f = self.f
+        f.publish()
+        index_path = f.cache / (f.key + ".json")
+        index = pc.read(index_path)
+        path = f.cache / index["receipt"]
+        value = pc.read(path)
+        value["key_components"]["preparation_code_identity"]["commit"] = "foreign"
+        pc.atomic(path, value)
+        pc.atomic(index_path, {**index, "sha256": pc.sha(path)})
+        ctx = f.consumer()
+        self.assertFalse(pc.restore(ctx))
+        self.assertIn("code identity", pc.read(ctx.report)["reason"])
+
+    def test_unpinned_remove_path_cannot_form_a_cache_key(self):
+        f = self.f
+        cfg = {**f.cfg, "remove_files": ["/mutable/remove.jsonl"]}
+        with self.assertRaisesRegex(ValueError, "content-pinned REMOVE"):
+            pc.key_components(cfg, f.current, f.launch["in_job_admission"], {}, {})
+
+    def test_another_complete_generation_does_not_replace_native_journal(self):
+        f = self.f
+        f.publish()
+        consumer = f.consumer()
+        self.assertTrue(pc.restore(consumer))
+        before = pc.sha(f.target / "data_receipt.json")
+        # A later complete producer may have a different artifact inventory.
+        # The destination's valid native journal still belongs to its checkpoint.
+        pc.atomic(f.source / f.prep / "additional.json", {"another_generation": True})
+        f.launch["run_directory"] = str(f.source.parent)
+        pc.atomic(f.kit / "k/launch.json", f.launch)
+        self.assertTrue(pc.seal(f.context("later")))
+        consumer = f.consumer("later-consumer")
+        self.assertFalse(pc.restore(consumer))
+        self.assertEqual(pc.read(consumer.report)["status"], "NATIVE_JOURNAL")
+        self.assertEqual(pc.sha(f.target / "data_receipt.json"), before)
+        self.assertFalse((f.target / f.prep / "additional.json").exists())
+        self.assertFalse(pc.seal(consumer))
+
+    def test_corrupt_prepared_file_misses_and_quarantines_target(self):
+        f = self.f
+        f.publish()
+        (f.source / f.prep / "pointing/rows.sqlite").write_bytes(b"corrupt")
+        f.target.mkdir(parents=True)
+        (f.target / "partial").write_text("must not resume")
+        ctx = f.consumer()
+        self.assertFalse(pc.restore(ctx))
+        self.assertFalse(f.target.exists())
+        self.assertEqual(len(list(f.target.parent.glob("inputs.cache-refused.*"))), 1)
+
+    def test_purged_pool_source_misses(self):
+        f = self.f
+        f.publish()
+        f.source.rename(f.source.with_name("purged-fixture"))
+        self.assertFalse(pc.restore(f.consumer()))
+
+    def test_partial_prepared_directory_is_never_published(self):
+        f = self.f
+        (f.source / f.prep / "pointing/rows.sqlite").rename(f.root / "missing.sqlite")
+        with self.assertRaisesRegex(ValueError, "partial or corrupt"):
+            pc.seal(f.context())
+        self.assertFalse(f.cache.exists())
+
+    def test_partial_published_directory_misses(self):
+        f = self.f
+        f.publish()
+        (f.source / f.prep / "result.json").rename(f.root / "missing-result.json")
+        self.assertFalse(pc.restore(f.consumer()))
+
+    def test_corrupt_or_missing_frames_force_ordinary_restaging(self):
+        f = self.f
+        f.publish()
+        stamp = f.node / ".stamp" / ("f3." + f.current["f3"]["sha256"] + "." + f.current["f3_manifest"]["sha256"])
+        stamp.parent.mkdir()
+        stamp.write_text("")
+        f.frame.write_bytes(b"wrong bytes")
+        self.assertFalse(pc.restore(f.consumer()))
+        self.assertFalse(f.frame.exists())
+        self.assertFalse(stamp.exists())
+        self.assertEqual(len(list(f.frame.parent.glob("*.cache-refused.*"))), 1)
+
+    def test_uncovered_retained_frame_refuses_publication(self):
+        f = self.f
+        with patch.object(pc, "frame_files", return_value={}):
+            with self.assertRaisesRegex(ValueError, "outside the cached manifests"):
+                pc.seal(f.context())
+
+    def test_symlink_and_path_traversal_refused(self):
+        f = self.f
+        f.publish()
+        origin = f.source / f.prep / "config.json"
+        moved = origin.with_name("config-original")
+        origin.rename(moved)
+        origin.symlink_to(moved)
+        self.assertFalse(pc.restore(f.consumer()))
+        for name in ("../escape", "/absolute"):
+            with self.assertRaises(ValueError):
+                pc.inside(f.root, name)
+
+    def test_two_concurrent_publishers_commit_complete_receipts(self):
+        f = self.f
+        a, b = f.context("publisher_a"), f.context("publisher_b")
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = [executor.submit(pc.seal, ctx) for ctx in (a, b)]
+            for future in futures:
+                future.result()
+        self.assertTrue(pc.restore(f.consumer()))
+        report = pc.read(f.kit / "o/new.prepared-cache.json")
+        self.assertIn(report["source_job"], {"publisher_a", "publisher_b"})
+        self.assertEqual(len(list(f.cache.glob("*.receipt.json"))), 2)
+
+    def test_concurrent_consumers_keep_complete_target_and_training_evidence(self):
+        f = self.f
+        f.publish()
+        a, b = f.consumer("consumer_a"), f.consumer("consumer_b")
+        self.assertTrue(pc.restore(a))
+        evidence = f.target / "first_step_prior.json"
+        evidence.write_text('{"training_evidence":"preserve"}')
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = [executor.submit(pc.restore, ctx) for ctx in (a, b)]
+            self.assertEqual([future.result() for future in futures], [True, True])
+        self.assertEqual(evidence.read_text(), '{"training_evidence":"preserve"}')
+
+    def test_partial_index_is_a_miss(self):
+        f = self.f
+        f.publish()
+        (f.cache / (f.key + ".json")).write_text('{"receipt":')
+        self.assertFalse(pc.restore(f.consumer()))
+
+    def test_cold_rebuild_after_miss_can_publish_and_hit(self):
+        f = self.f
+        f.publish()
+        ctx = f.consumer()
+        f.source.rename(f.root / "purged-source-fixture")
+        self.assertFalse(pc.restore(ctx))
+        # Fixture stands in for the unchanged native builder, with the same logical paths.
+        files = pc.admission_files(ctx, f.root / "purged-source-fixture")
+        pc.copy_verified(f.root / "purged-source-fixture", f.target, files)
+        pc.seal(ctx)
+        self.assertTrue(pc.restore(ctx))
+        self.assertEqual(pc.read(ctx.report)["source_job"], "new")
+
+    def test_an_existing_complete_journal_survives_a_cache_miss(self):
+        f = self.f
+        ctx = f.context()
+        # No global cache receipt exists. The native journal already names exact files.
+        before = pc.sha(f.source / "data_receipt.json")
+        self.assertFalse(pc.restore(ctx))
+        self.assertEqual(pc.read(ctx.report)["status"], "NATIVE_JOURNAL")
+        self.assertEqual(pc.sha(f.source / "data_receipt.json"), before)
+        pc.seal(ctx)
+        self.assertFalse((f.cache / (ctx.key + ".json")).exists())
+
+    def test_default_off_cli_has_no_side_effects(self):
+        f = self.f
+        with patch.dict(os.environ, {"TK_PREPARED_INPUT_CACHE": "0"}), patch.object(sys, "argv", [
+                "pc.py", "restore", str(f.kit), str(f.node), str(f.cache), "off"]):
+            self.assertEqual(pc.main(), 1)
+        self.assertFalse(f.cache.exists())
+        self.assertFalse((f.kit / "o/off.prepared-cache.json").exists())
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

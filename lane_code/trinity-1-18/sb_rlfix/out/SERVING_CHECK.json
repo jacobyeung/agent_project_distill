@@ -1,0 +1,45 @@
+{
+  "claimed_arm_parity": "MISSING; no source table or evaluator adapter was supplied",
+  "command": "PYTHONPATH=overlay python -B scripts/serving_check.py",
+  "generic_evaluator_default_pose": "own",
+  "generic_evaluator_grounding": "s1_grounding.build_backend with mask_source=mdg (evalpath/run.py:350-357)",
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/evalpath/__init__.py": "320ff8e49d53c5528f439ae83544dcd0e4063933eb2168774b70ca6d9d1cdd38",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/evalpath/run.py": "869797877344fca5b4f903638dd2e67e2cd4298ae7fa9236fbc028faaf148d82",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/evalpath/runtime.py": "320fc5271a2eb7fc3a932c4ea4f8648e74d0ce94fd4022bd086fde503aaa5d82",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/scripts/gpu_native_selector.py": "5df858a7f37051ecad9599e45cad381717c7b48deedacf431e0f6defe5433e20",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/carrier_c1_decode.py": "a2563e1138f1c907856ef75d3fb8e954138f7edeeedf2858e3b1b4b5cb611f94",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/ground_profiles.py": "91a1b42fd784554b65795dfcbcf335e00f813037e3aa4c24d460812b39d4f2d0",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/s1_grounding.py": "bf9e791134d428931e9ee1fde7876b4db8444bece6c4918638c4cf66a95b3fdc",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/tower_read.py": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634",
+    "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/tower_scale.py": "7a2035804c227996ea179e60b31248bb28e210bf241f6c35d5ee34e56c122d74",
+    "/scratch/jjyeung/orch_n30/sb_rlfix/configs/h100_4.json": "acd6201e53abc8a865ea4b0840a59774ea98805ad4d09fa797040730f1b858b7",
+    "/scratch/jjyeung/orch_n30/sb_rlfix/overlay/rl_on_n/__init__.py": "eb528e68caf2165f6f86ce106d3f46a36f1cb95e77f02fd9f3d99ddc8ca4e3c6",
+    "/scratch/jjyeung/orch_n30/sb_rlfix/overlay/rl_on_n/provenance.py": "bd09f43cdeb811d666d15e45f30161868eeb8555934ba8df440929623268da74",
+    "/scratch/jjyeung/orch_n30/sb_rlfix/overlay/rl_on_n/serving.py": "e3d675dcb7ea61e1b091900766249eaf0d4fac4d4953584626853adf1a69f69e",
+    "/scratch/jjyeung/orch_n30/sb_rlfix/scripts/serving_check.py": "40393c8539f7d6ca9f22762ababcda44f1f51a28b3d7b4f4d1940d345e7b5f30"
+  },
+  "missing": [
+    {
+      "expected_location": "configs/h100_{4,8}.json:grounding.serving_table.path",
+      "name": "claimed-arm serving table",
+      "path_supplied": false
+    },
+    {
+      "expected_location": "configs/h100_{4,8}.json:grounding.evaluator_adapter.path",
+      "name": "deployed evaluator adapter",
+      "path_supplied": false
+    }
+  ],
+  "native_selector_evidence": "ground_profiles.build_profile supports svp_sam3 and native_selector; this alone does not identify the deployed claimed arm",
+  "refusal": "MISSING grounding.serving_table {path,sha256} binding for the claimed serving arm",
+  "requirements": {
+    "camera": "frozen_g3t",
+    "gap": "fixed_math",
+    "grounding": "sam3_selector",
+    "lifting": "frozen_g3t",
+    "pose_source": "tower",
+    "scale": "fixed_math"
+  },
+  "status": "MISSING"
+}

@@ -1,0 +1,1 @@
+{"f001":3,"f002":3,"f003":6,"check":"Frame 5 shows a white window, radiator and towel, a brown floor mat and pale grey bathroom walls; frame 30 shows a white-bordered orange and black Charlie Chaplin print on beige carpet, pale floor tiles and a blue shoe cover."}

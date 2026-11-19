@@ -1,0 +1,1 @@
+{"v001":"yes","v002":"yes","v003":"yes","f004":2,"f005":4,"f006":4,"f007":2,"check":"Frame 5 shows a white metal safe beside a reddish-brown armchair on red carpet; frame 30 shows a brown wooden door and wall panelling, red carpet, and a stack of dark and silver equipment."}

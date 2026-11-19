@@ -13,7 +13,7 @@ def _read_audit(event, args):
         path = args[0]
         flags = args[2] if len(args) > 2 else 0
         local_input = ('/sb_f64/pkg/' in path or '/qwen35_9b_meta/' in path
-                       or any('/sb_rlkit/'+part+'/' in path for part in ('overlay','scripts','configs','in')))
+                       or any('/'+lane+'/'+part+'/' in path for lane in ('sb_rlkit','sb_rlfix') for part in ('overlay','scripts','configs','in','tests')))
         if local_input and not (isinstance(flags,int) and flags & (os.O_WRONLY | os.O_RDWR)):
             READS.add(str(Path(path).resolve()))
     elif event == 'sqlite3.connect' and args and isinstance(args[0],str):

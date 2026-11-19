@@ -8,17 +8,17 @@
     "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/build18/inputs/config.json": "a278b553bb672091fe87740772663d46ff9d3ee1278c8afaf3b35c0286687dd0",
     "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/r1_rooms.py": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
     "/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1/student_pilot/r1_training.py": "ceb2b01ee005b54b55907f76f42660b01c9c47ddab9245fd498e2520fce184e5",
-    "/scratch/jjyeung/orch_n30/sb_rlkit/in/b09_out/CARD_DRAFT_RL_DRYRUN.md": "c5f3acba8e7a0056cae9292ab1b1eef530556e43ad489e51df9197004bd0124f",
-    "/scratch/jjyeung/orch_n30/sb_rlkit/overlay/rl_on_n/__init__.py": "eb528e68caf2165f6f86ce106d3f46a36f1cb95e77f02fd9f3d99ddc8ca4e3c6",
-    "/scratch/jjyeung/orch_n30/sb_rlkit/overlay/rl_on_n/provenance.py": "cf98f6c4e3591b865492917051280a0bb1dfc6f11f43e539e7b2a52dc32e74e7",
-    "/scratch/jjyeung/orch_n30/sb_rlkit/scripts/make_configs.py": "6e78805cc9adafae0d05d44ac4d3d192ba38c299954f4a2ee4ec95511ada5101"
+    "/scratch/jjyeung/orch_n30/sb_rlfix/in/b09_out/CARD_DRAFT_RL_DRYRUN.md": "c5f3acba8e7a0056cae9292ab1b1eef530556e43ad489e51df9197004bd0124f",
+    "/scratch/jjyeung/orch_n30/sb_rlfix/overlay/rl_on_n/__init__.py": "eb528e68caf2165f6f86ce106d3f46a36f1cb95e77f02fd9f3d99ddc8ca4e3c6",
+    "/scratch/jjyeung/orch_n30/sb_rlfix/overlay/rl_on_n/provenance.py": "bd09f43cdeb811d666d15e45f30161868eeb8555934ba8df440929623268da74",
+    "/scratch/jjyeung/orch_n30/sb_rlfix/scripts/make_configs.py": "4ee103b5e46a63ac9866045faabed138081e9c7d9b40854274d0af5c37154fbb"
   },
   "limitations": "Rates and token lengths are assumptions; long visual prefixes, context-sized responses, head latency, recomputation and memory pressure can exceed the conservative case. This is not a reservation or measured speedup.",
   "method": "token model, no measured H100 step time",
-  "prefill_tokens": 26214400,
-  "prompt_tokens": 4096,
+  "prefill_tokens": 30720000,
+  "prompt_tokens": 4800,
   "prompts_per_step": 8,
-  "replay_tokens_each": 30310400,
+  "replay_tokens_each": 34816000,
   "rollout_tokens": 3276800,
   "sampled_token_cap": 1024,
   "scenarios": {
@@ -26,64 +26,64 @@
       {
         "decode_tokens_per_gpu_second": 40.0,
         "effective_replay_tokens_per_gpu_second": 800.0,
-        "gpu_hours": 58.651022222222224,
+        "gpu_hours": 62.968888888888884,
         "head_seconds_per_rollout": 2.0,
         "overhead": 1.15,
         "prefill_tokens_per_gpu_second": 2000.0,
         "scenario": "optimistic",
-        "wall_hours": 14.662755555555556
+        "wall_hours": 15.742222222222221
       },
       {
         "decode_tokens_per_gpu_second": 25.0,
         "effective_replay_tokens_per_gpu_second": 450.0,
-        "gpu_hours": 102.1040987654321,
+        "gpu_hours": 109.70034567901233,
         "head_seconds_per_rollout": 5.0,
         "overhead": 1.15,
         "prefill_tokens_per_gpu_second": 1200.0,
         "scenario": "planning",
-        "wall_hours": 25.526024691358025
+        "wall_hours": 27.425086419753082
       },
       {
         "decode_tokens_per_gpu_second": 12.0,
         "effective_replay_tokens_per_gpu_second": 200.0,
-        "gpu_hours": 218.4557037037037,
+        "gpu_hours": 235.24740740740742,
         "head_seconds_per_rollout": 10.0,
         "overhead": 1.15,
         "prefill_tokens_per_gpu_second": 600.0,
         "scenario": "conservative",
-        "wall_hours": 54.613925925925926
+        "wall_hours": 58.811851851851856
       }
     ],
     "8": [
       {
         "decode_tokens_per_gpu_second": 40.0,
         "effective_replay_tokens_per_gpu_second": 800.0,
-        "gpu_hours": 63.751111111111115,
+        "gpu_hours": 68.44444444444444,
         "head_seconds_per_rollout": 2.0,
         "overhead": 1.25,
         "prefill_tokens_per_gpu_second": 2000.0,
         "scenario": "optimistic",
-        "wall_hours": 7.968888888888889
+        "wall_hours": 8.555555555555555
       },
       {
         "decode_tokens_per_gpu_second": 25.0,
         "effective_replay_tokens_per_gpu_second": 450.0,
-        "gpu_hours": 110.98271604938273,
+        "gpu_hours": 119.2395061728395,
         "head_seconds_per_rollout": 5.0,
         "overhead": 1.25,
         "prefill_tokens_per_gpu_second": 1200.0,
         "scenario": "planning",
-        "wall_hours": 13.872839506172841
+        "wall_hours": 14.904938271604937
       },
       {
         "decode_tokens_per_gpu_second": 12.0,
         "effective_replay_tokens_per_gpu_second": 200.0,
-        "gpu_hours": 237.45185185185187,
+        "gpu_hours": 255.70370370370372,
         "head_seconds_per_rollout": 10.0,
         "overhead": 1.25,
         "prefill_tokens_per_gpu_second": 600.0,
         "scenario": "conservative",
-        "wall_hours": 29.681481481481484
+        "wall_hours": 31.962962962962965
       }
     ]
   },

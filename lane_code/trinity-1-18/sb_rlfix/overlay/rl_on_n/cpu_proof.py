@@ -79,8 +79,13 @@ def main():
         batches.append(attach(batch,record,reserved))
     assert records[0]['calls'] and not records[1]['calls'], records
     assert records[0]['errors']==0, records[0]
-    advantages=group_advantages([s['total'] for s in scores]).float()
-    assert advantages.abs().sum()>0, scores
+    reward_advantages=group_advantages([s['total'] for s in scores],scale_std=False).float()
+    assert all(s['total']==0 for s in scores), scores
+    assert reward_advantages.abs().sum()==0
+    # A separate, declared math fixture exercises nonzero policy backward on real sampled tokens.
+    # These are synthetic test advantages, never claimed as rewards from the decoder.
+    fixture_rewards=[1.,0.]
+    advantages=group_advantages(fixture_rewards,scale_std=False).float()
     objective=Objective(model);losses=[];metrics=[];ref_lp=[]
     with reference(model):
         for b in batches: ref_lp.append(logprobs(model,b).detach())
@@ -108,7 +113,8 @@ def main():
         substitutions=['Frozen G3T tower output replaced by synthetic native TowerState'],
         unexercised=['SAM3/MDG grounding and object-distance path','production export reload','production prompt pool'],
         synthetic_inputs='32 frame duplicate layout; 2x2 patch grid per frame; random RGB patches; two forced test prefixes',
-        scores=scores,advantages=advantages.tolist(),losses=losses,metrics=metrics,gradient_l1=grad_l1,adapter_update_l1=update,
+        scores=scores,reward_advantages=reward_advantages.tolist(),backward_fixture_rewards=fixture_rewards,
+        backward_fixture_scope='Synthetic scalar test inputs; not scored model answers or production rewards',advantages=advantages.tolist(),losses=losses,metrics=metrics,gradient_l1=grad_l1,adapter_update_l1=update,
         ratio_error=ratio_error,seconds=time.monotonic()-start,peak_rss_gib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024**2,
         records=[dict(tokens=r['tokens'],kinds=r['kinds'],text=r['text'],calls=r['calls'],finish=r['finish'],
                       sampled_tokens=r['kinds'].count('s'),response_tokens=r['kinds'].count('r')) for r in records]))

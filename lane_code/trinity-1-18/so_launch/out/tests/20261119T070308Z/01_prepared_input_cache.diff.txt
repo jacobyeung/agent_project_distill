@@ -1,0 +1,51 @@
+$ date -u
+Thu Nov 19 07:03:08 UTC 2026
+EXIT: 0
+$ patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_launch/out/patches/01_prepared_input_cache.diff
+patching file launch_s1/b/c.sh
+patching file launch_s1/b/r.sh
+patching file launch_s1/b/pc.py
+patching file tests/test_prepared_input_cache.py
+patching file tests/test_prepared_cache_wrapper.py
+EXIT: 0
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T070308Z/01_prepared_input_cache/tests/test_prepared_input_cache.py -v
+test_an_existing_complete_journal_survives_a_cache_miss (__main__.PreparedCacheTests.test_an_existing_complete_journal_survives_a_cache_miss) ... ok
+test_another_complete_generation_does_not_replace_native_journal (__main__.PreparedCacheTests.test_another_complete_generation_does_not_replace_native_journal) ... ok
+test_cold_rebuild_after_miss_can_publish_and_hit (__main__.PreparedCacheTests.test_cold_rebuild_after_miss_can_publish_and_hit) ... ok
+test_concurrent_consumers_keep_complete_target_and_training_evidence (__main__.PreparedCacheTests.test_concurrent_consumers_keep_complete_target_and_training_evidence) ... ok
+test_corrupt_or_missing_frames_force_ordinary_restaging (__main__.PreparedCacheTests.test_corrupt_or_missing_frames_force_ordinary_restaging) ... ok
+test_corrupt_prepared_file_misses_and_quarantines_target (__main__.PreparedCacheTests.test_corrupt_prepared_file_misses_and_quarantines_target) ... ok
+test_default_off_cli_has_no_side_effects (__main__.PreparedCacheTests.test_default_off_cli_has_no_side_effects) ... ok
+test_each_key_component_changed_alone_misses (__main__.PreparedCacheTests.test_each_key_component_changed_alone_misses) ... ok
+test_hit_verifies_and_preserves_native_journal (__main__.PreparedCacheTests.test_hit_verifies_and_preserves_native_journal) ... ok
+test_partial_index_is_a_miss (__main__.PreparedCacheTests.test_partial_index_is_a_miss) ... ok
+test_partial_prepared_directory_is_never_published (__main__.PreparedCacheTests.test_partial_prepared_directory_is_never_published) ... ok
+test_partial_published_directory_misses (__main__.PreparedCacheTests.test_partial_published_directory_misses) ... ok
+test_purged_pool_source_misses (__main__.PreparedCacheTests.test_purged_pool_source_misses) ... ok
+test_real_config_init_and_code_changes_miss (__main__.PreparedCacheTests.test_real_config_init_and_code_changes_miss) ... ok
+test_same_key_different_code_in_receipt_is_refused (__main__.PreparedCacheTests.test_same_key_different_code_in_receipt_is_refused) ... ok
+test_symlink_and_path_traversal_refused (__main__.PreparedCacheTests.test_symlink_and_path_traversal_refused) ... ok
+test_two_concurrent_publishers_commit_complete_receipts (__main__.PreparedCacheTests.test_two_concurrent_publishers_commit_complete_receipts) ... ok
+test_uncovered_retained_frame_refuses_publication (__main__.PreparedCacheTests.test_uncovered_retained_frame_refuses_publication) ... ok
+test_unpinned_remove_path_cannot_form_a_cache_key (__main__.PreparedCacheTests.test_unpinned_remove_path_cannot_form_a_cache_key) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.544s
+
+OK
+EXIT: 0
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T070308Z/01_prepared_input_cache/tests/test_prepared_cache_wrapper.py -v
+test_default_off_uses_native_path_and_writes_no_cache (__main__.PreparedWrapperTests.test_default_off_uses_native_path_and_writes_no_cache) ... ok
+test_failed_native_preparation_is_not_published (__main__.PreparedWrapperTests.test_failed_native_preparation_is_not_published) ... ok
+test_hit_reuses_verified_phases_without_launching_native_builder (__main__.PreparedWrapperTests.test_hit_reuses_verified_phases_without_launching_native_builder) ... ok
+test_miss_runs_native_builder_then_publishes (__main__.PreparedWrapperTests.test_miss_runs_native_builder_then_publishes) ... ok
+test_recursive_resume_inherits_lock_and_still_launches_training (__main__.PreparedWrapperTests.test_recursive_resume_inherits_lock_and_still_launches_training) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.928s
+
+OK
+EXIT: 0
+$ date -u
+Thu Nov 19 07:03:12 UTC 2026
+EXIT: 0

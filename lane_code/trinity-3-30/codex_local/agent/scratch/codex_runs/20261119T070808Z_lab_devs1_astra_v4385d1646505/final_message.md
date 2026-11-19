@@ -1,0 +1,1 @@
+{"Q1":"B","Q2":0.33,"Q3":200,"Q4":0.3,"Q5":"A","Q6":"A","Q7":"B","Q8":"D","Q9":"A","Q10":"A","check":"Frame 5 shows a white-framed window with pale blinds, white tiles, a round mirror and a tan-and-black bowl; frame 30 shows a white sink above a dark gray cabinet, a black cup, a pale gray soap dispenser, a trailing green plant, round mirrors and a blue tissue box."}

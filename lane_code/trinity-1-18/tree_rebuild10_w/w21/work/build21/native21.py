@@ -333,6 +333,9 @@ def main():
         summary.update(refusal=type(error).__name__+':'+str(error),traceback=traceback.format_exc())
         print(summary['traceback'],flush=True)
     summary['complete_native_fixture']=len(summary['milestones'])==2 and all(v['status']=='ADMIT' for v in summary['milestones'].values())
+    summary['twins_all_refuse']=all(v.get('status')=='REFUSE' for rows in summary.get('twins',{}).values() for v in rows.values())
+    summary['status']='ADMIT' if summary['complete_native_fixture'] and summary['twins_all_refuse'] else 'REFUSE'
     write(O/'RESULT.json',summary);m.save(O)
+    raise SystemExit(0 if summary['status']=='ADMIT' else 1)
 
 if __name__=='__main__':main()

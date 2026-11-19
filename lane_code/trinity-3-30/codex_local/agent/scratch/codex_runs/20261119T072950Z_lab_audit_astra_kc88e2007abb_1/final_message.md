@@ -1,0 +1,1 @@
+{"v001":"yes","v002":"yes","v003":"yes","v004":"yes","v005":"no","f006":1,"f007":6,"f008":6,"f009":1,"f010":6,"f011":0,"check":"Frame 5 shows a silver and black kettle and coffee machine on a brown wooden countertop above white cabinets; frame 30 shows a black oven with light striped towels, white drawers, a silver refrigerator, and gray floor tiles."}

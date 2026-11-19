@@ -1,0 +1,260 @@
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -1513,6 +1513,13 @@
+ def optimize_step(model, optimizer, rows, plan, rank, device, step, distributed=False, gates=None):
+     """Rank-aligned microsteps (four in mixed/pose-only); FSDP reduces each (no large no_sync grads)."""
+     started, waiting = time.perf_counter(), 0.
++    batch_metrics = os.environ.get('C1_BATCH_METRICS', '0')
++    if batch_metrics not in ('0', '1'):
++        raise ValueError('C1_BATCH_METRICS must be 0 or 1')
++    deferred_components = None
++    if batch_metrics == '1':
++        from .c1_batch_metrics import Components
++        deferred_components = Components(len(plan))
+     unwrapped = model.module if distributed else model
+     recipe = unwrapped.recipe
+     if 'stream_rows_per_step' in recipe:
+@@ -1562,7 +1569,7 @@
+             batch, audit = own_values(model, rows, batch, audit, (audit or {}).get('index', indices[rank]),
+                                       tuple(bool(x) for x in decisions[microstep].tolist()), device)
+         batch, targets = move(batch, device), move(targets, device)
+-        if device.type == 'cuda':
++        if device.type == 'cuda' and batch_metrics == '0':
+             torch.cuda.synchronize(device)
+         if gf1_enabled and step == 1 and screen is None and stream == 'vqa':
+             from .gf1 import screen_loss, harm_guard
+@@ -1590,10 +1597,13 @@
+         reserved_peaks.append(torch.cuda.max_memory_reserved(device) if device.type == 'cuda' else 0)
+         phase_memory.append(dict(microbatch=len(phase_memory), stream=stream, **phases,
+                                  peak_allocated_bytes=peaks[-1], peak_reserved_bytes=reserved_peaks[-1]))
+-        for key, value in result['components'].items():
+-            components[key] = components.get(key,0.) + float(value)/len(plan)
+-        # Per-row mean of the microstep's own stream component (no /len(plan) dilution).
+-        stream_sums[stream] = stream_sums.get(stream, 0.) + float(result['components'][stream])
++        if deferred_components is None:
++            for key, value in result['components'].items():
++                components[key] = components.get(key,0.) + float(value)/len(plan)
++            # Per-row mean of the microstep's own stream component (no /len(plan) dilution).
++            stream_sums[stream] = stream_sums.get(stream, 0.) + float(result['components'][stream])
++        else:
++            deferred_components.add(stream, result['components'])
+         stream_counts[stream] = stream_counts.get(stream, 0) + 1
+         for key in routing.Gates.METRICS:
+             value = result.get('metrics', {}).get(key)
+@@ -1617,6 +1627,8 @@
+         if stream == 'pose':
+             pose_batch = (batch,targets)
+         del result
++    if deferred_components is not None:
++        components, stream_sums = deferred_components.finish()
+     if accumulated is not None:
+         accumulated.restore()
+     reduced = torch.tensor([v for k in routing.Gates.METRICS for v in (head_sums[k], head_counts[k])],
+--- /dev/null
++++ b/student_pilot/c1_batch_metrics.py
+@@ -0,0 +1,32 @@
++"""Transfer detached scalar metrics together; retain the exact Python sum order."""
++import torch
++
++
++class Components:
++    def __init__(self, denominator):
++        self.denominator = denominator
++        self.rows = []
++
++    def add(self, stream, components):
++        self.rows.append((stream, {key: value.detach() if isinstance(value, torch.Tensor) else value
++                                   for key, value in components.items()}))
++
++    def finish(self):
++        groups, values = {}, {}
++        for row, (_, components) in enumerate(self.rows):
++            for key, value in components.items():
++                if isinstance(value, torch.Tensor):
++                    groups.setdefault((value.device, value.dtype), []).append(((row, key), value.reshape(())))
++                else:
++                    values[row, key] = float(value)
++        for entries in groups.values():
++            numbers = torch.stack([value for _, value in entries]).cpu().tolist()
++            values.update((index, float(value)) for (index, _), value in zip(entries, numbers))
++        components, streams = {}, {}
++        # GPU summation or summing after division in FP32 would change the logs.
++        # These are the same Python double operations in the same row/key order.
++        for row, (stream, items) in enumerate(self.rows):
++            for key in items:
++                components[key] = components.get(key, 0.) + values[row, key] / self.denominator
++            streams[stream] = streams.get(stream, 0.) + values[row, stream]
++        return components, streams
+--- /dev/null
++++ b/tests/test_so_metrics.py
+@@ -0,0 +1,23 @@
++import unittest
++import torch
++from student_pilot.c1_batch_metrics import Components
++
++
++class MetricsTests(unittest.TestCase):
++    def test_python_float_accumulation_order_and_mixed_dtypes(self):
++        torch.set_num_threads(8)
++        recorder = Components(72)
++        expected, streams = {}, {}
++        for i in range(72):
++            stream = 'pose' if i%3 else 'vqa'
++            row = {'pose':torch.tensor((-1.)**i * (i+.125),dtype=torch.float32),
++                   'vqa':torch.tensor(i*.01,dtype=torch.bfloat16), 'extra':1e-20}
++            recorder.add(stream,row)
++            for key,value in row.items():
++                expected[key] = expected.get(key,0.) + float(value)/72
++            streams[stream] = streams.get(stream,0.) + float(row[stream])
++        self.assertEqual(recorder.finish(),(expected,streams))
++
++
++if __name__ == '__main__':
++    unittest.main()
+--- /dev/null
++++ b/tests/test_so_joint.py
+@@ -0,0 +1,144 @@
++"""Two real FSDP1/gloo ranks: exact losses, all gradients, updates, draws and collectives."""
++import copy
++import datetime
++import hashlib
++import json
++import os
++from pathlib import Path
++import threading
++import unittest
++from unittest.mock import patch
++
++import torch
++import torch.distributed as dist
++import torch.multiprocessing as mp
++
++from student_pilot import carrier_c1_run as run
++from student_pilot.carrier_c1 import parameter_groups
++from tests.so_helpers import root, inputs, native, plan, compact_processor
++
++
++ARMS = {
++    'off': ('0','0','0'),
++    'prefetch': ('1','0','0'),
++    'cache': ('0','1','0'),
++    'metrics': ('0','0','1'),
++    'all': ('1','1','1'),
++}
++
++
++def exact(a,b, label):
++    if isinstance(a,torch.Tensor):
++        assert a.dtype == b.dtype and a.shape == b.shape,label
++        assert torch.equal(a.detach().reshape(-1).contiguous().view(torch.uint8),
++                           b.detach().reshape(-1).contiguous().view(torch.uint8)),label
++    elif isinstance(a,dict):
++        assert a.keys() == b.keys(),label
++        for key in a:
++            exact(a[key],b[key],label+'/'+str(key))
++    elif isinstance(a,(tuple,list)):
++        assert len(a) == len(b),label
++        for i,(x,y) in enumerate(zip(a,b)):
++            exact(x,y,label+'/'+str(i))
++    else:
++        assert a == b,(label,a,b)
++
++
++def worker(rank, directory):
++    torch.set_num_threads(8)
++    directory = Path(directory)
++    dist.init_process_group('gloo',init_method='file://'+str(directory/'rendezvous'),rank=rank,world_size=2,
++                            timeout=datetime.timedelta(seconds=180))
++    receipt = json.loads((directory/'receipt.json').read_text())
++    reference = {}
++    summaries = []
++    try:
++        for failure in (False,True):
++            for arm,switches in ARMS.items():
++                env = dict(zip(('C1_CPU_PREFETCH','C1_DECODED_CACHE_MIB','C1_BATCH_METRICS'),switches))
++                with patch.dict(os.environ,**env):
++                    model = native(world=2)
++                    wrapped = run.wrap_model(model,torch.device('cpu'),mixed_precision=False)
++                    optimizer = torch.optim.AdamW(parameter_groups(wrapped),weight_decay=.01)
++                    rows = run.Rows(receipt,compact_processor())
++                    draws, collectives, losses, grads = [], [], [], {}
++                    main_thread = threading.get_ident()
++                    original_get = run.Rows.get
++                    def get(source,stream,index):
++                        draws.append((stream,index,index))
++                        if failure and rank == 1 and stream == 'vqa' and index == 3:
++                            raise ValueError('planted rank-1 row failure')
++                        return original_get(source,stream,index)
++                    hook = model.register_forward_hook(lambda m,a,o: losses.append(o['loss'].detach().clone()))
++                    clip = run.full_ft.clip_sharded
++                    def capture(*a,**kw):
++                        grads.update({n:None if p.grad is None else p.grad.detach().clone()
++                                      for n,p in run.full_ft.named_trainable(wrapped)})
++                        return clip(*a,**kw)
++                    def traced(name, original):
++                        def call(*a,**kw):
++                            assert threading.get_ident() == main_thread, 'collective on CPU worker'
++                            tensors = [x for x in a if isinstance(x,torch.Tensor)]
++                            source = a[1] if name in ('all_gather','all_gather_into_tensor','reduce_scatter_tensor') else a[0]
++                            digest = hashlib.sha256(source.detach().contiguous().view(torch.uint8).numpy().tobytes()).hexdigest()
++                            collectives.append((name,[(tuple(t.shape),str(t.dtype)) for t in tensors],
++                                                str(kw.get('op','default')),digest))
++                            return original(*a,**kw)
++                        return call
++                    from contextlib import ExitStack
++                    info = error = None
++                    with ExitStack() as stack:
++                        stack.enter_context(patch.object(run.Rows,'get',get))
++                        stack.enter_context(patch.object(run.full_ft,'clip_sharded',capture))
++                        for name in ('all_reduce','all_gather','all_gather_into_tensor','reduce_scatter_tensor','broadcast'):
++                            stack.enter_context(patch.object(dist,name,traced(name,getattr(dist,name))))
++                        try:
++                            info,_ = run.optimize_step(wrapped,optimizer,rows,plan(2),rank,torch.device('cpu'),1,True)
++                        except ValueError as exc:
++                            error = str(exc)
++                        finally:
++                            rows.close()
++                    hook.remove()
++                    names = [(n,p.numel()) for n,p in run.full_ft.named_trainable(wrapped)]
++                    after = {n:p.detach().clone() for n,p in run.full_ft.named_trainable(wrapped)}
++                    state = dict(losses=losses,grads=grads,after=after,names=names,draws=draws,collectives=collectives,
++                                 error=error,components=None if info is None else info['components'],
++                                 stream_means=None if info is None else info['stream_means'])
++                    if failure:
++                        assert error and 'Final-mode row failure' in error,error
++                        assert len(losses) == 2,('wrong failure microstep',len(losses))
++                        assert draws == [('pose',rank,rank),('pose',2+rank,2+rank),
++                                         ('vqa',rank,rank),('vqa',2+rank,2+rank)],draws
++                    else:
++                        assert error is None,error
++                        assert grads and len(losses) == 8
++                    if arm == 'off':
++                        reference[failure] = state
++                    else:
++                        exact(reference[failure],state,f'rank{rank}/{arm}/failure={failure}')
++                    summaries.append(dict(arm=arm,failure=failure,rank=rank,losses=len(losses),
++                        gradients=len(grads),trainable_tensors=len(names),local_trainable_elements=sum(n for _,n in names),
++                        draws=draws,collective_count=len(collectives),status='BITWISE_EQUAL',
++                        failure_microstep=2 if failure else None))
++                    (directory/f'rank{rank}_progress.json').write_text(json.dumps(summaries,indent=2)+'\n')
++                    del optimizer,wrapped,model,rows
++        (directory/f'rank{rank}.json').write_text(json.dumps(summaries,indent=2)+'\n')
++    finally:
++        dist.destroy_process_group()
++
++
++class JointTests(unittest.TestCase):
++    def test_two_rank_native_fsdp_loss_all_gradients_draws_and_failure_collectives(self):
++        torch.set_num_threads(8)
++        directory = root()
++        (directory/'receipt.json').write_text(json.dumps(inputs(directory)))
++        mp.spawn(worker,args=(str(directory),),nprocs=2,join=True)
++        reports = [json.loads((directory/f'rank{rank}.json').read_text()) for rank in range(2)]
++        self.assertEqual(sum(len(r) for r in reports),20)
++        print('SO_GLOO_PROOF '+json.dumps(dict(directory=str(directory),ranks=2,comparisons=16,
++              losses_and_every_gradient='bitwise',trainables='identical',row_draws='identical',
++              collectives='identical; main thread only',failure_microstep=2)),flush=True)
++
++
++if __name__ == '__main__':
++    unittest.main()

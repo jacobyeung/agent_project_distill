@@ -1,0 +1,151 @@
+=================== sb_kbox3/out/DEBUG.md
+BLOCKER: the spec’s A0 is not the R1 serving reader.
+The reviewed convert guard rejects two captures covering 12 registered training rows; R1 accepts both and answers 11 rows.
+The labelled table is also the wrong reference for GD: it uses S4 scale and G1 tower-pose gravity.
+
+Expanded replay: 149 operand choices in 45 training captures, with 15 captures per dataset.
+Against the original isolated table: GD 132/149 (88.59%); table geometry 149/149 (100.00%).
+GD on available exports only: 132/142. Missing exports count as failed replays.
+Requiring the same ID and member frames: GD 127/149; table 149/149.
+Table geometry gives exact candidate sets and feature vectors for 149/149 objects.
+The unmodified table geometry producer reproduces 45/45 recorded geometry SHA256 values byte for byte.
+Command: bash run.sh debug_geometry.py > out/box_ladder/replay_expanded.log 2>&1
+
+ARKitScenes 41048124: table scale 2.7102517570; convert scale 2.2971098979.
+Table choice tv:002 has 4 frames; GD choice tv:000 has 5 frames.
+Table geometry SHA256: 6eee40bb764f956ba2a5fae5d98f30f171f5b3693a3a36526f6af5420bb4fd43.
+The failing capture’s run_convert_1 and run_convert_2 exports are byte-identical: True.
+Table origin: PACK/r1_src/b/heads/selector/sl118/sl_tables.py:71–87,129–166; isolation: isolate_tables.py:25–35.
+The table uses no own-depth scale: SCALES_S4.json supplies exp(b0 + b1 log(h_raw) + b2 log(span)).
+Coefficients: [0.5137804954677572, -0.8576678588049728, -0.0673900524654034].
+run_iso/selector_head.json records caps_iso as the training input and weights 6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1.
+
+Convert and serving median scales agree on 240/240 available training exports; the range-gate difference has no effect here.
+Command: bash run.sh audit_serving_scale.py > out/box_ladder/serving_scale_audit.log 2>&1
+Convert uses own_170235/native/probe/<digest>/own.npz and tower_scale_rule.estimate; OwnDepthScale uses stage1.median_ratio.
+Serving also rounds exp(log(scale)) through float32; replay records this separately.
+
+Missing exports: /scratch/jjyeung/k1/run_convert_2/{45511ef70c22b11e,9baa923934276385}/geometry.npz.
+Their CACHE_COMPLETE.json files record reference_camera_up_opposes_gravity and retain REFUSED_GEOMETRY.npz.
+Captures: scannetpp/0f69aefe3d and scannetpp/2c7c10379b.
+R1 geometry.py:22–39 removes the terminal up-axis check; both from_npz and from_tower accept these arrays.
+Command: bash run.sh audit_guard.py > out/box_ladder/serving_guard_audit.log 2>&1
+The serving replay uses stored checkpoint own outputs; it does not claim to rerun the current language-model prefill.
+
+Required orchestrator action: reconcile the registered A0 gravity contract with R1 serving; the reference rebuild must use the same contract.
+Rebuild candidate labels and isolated features through the table producer on that geometry; candidate IDs cannot carry labels across geometries.
+The 95% replay bar is unchanged. No training pricing, rule fitting, or held-out evaluation ran.
+All evidence JSON files record input SHA256 values; commands above produced every numerical comparison.
+=================== sb_rkrev/REVIEW_VERDICT.md
+# GO AFTER FIXES
+
+The kit's CPU claims reproduce with my own code, and all ten spec-review edits are present. Five blockers remain: three break the 0607Z ruling, and two would stop or strand the GPU run. Separately, the GPU gate correctly stays shut until the MISSING kernel-provenance and reader receipts arrive; no edit below clears that. After the fixes, the kit can answer the question for DA3 alone; under the ruling, the own towers get no R0-dev look. Reviewed tar sha256 `2c43c96e…8945`; all 262 ledger members match the extracted tar and the working tree. CPU only; writes only in this workspace.
+
+## Ruling 0607Z: every selection point and its item set
+- **Tower** (DA3 over Pi3X, MoGe-2, G3T+DA3 scale, own towers): K1 train, 110 room rows (76.9 against at most 74.0). The design record also shows held-out values, but train alone picks DA3. OK.
+- **Scale** (native 1.0 over fitted S1–S4): K1 train (`harness.fit_scales`). OK.
+- **Rule** (R0 over T05/T10/T20/C4–C8): K1 train, 110 rows; I reproduce all 24 table entries. OK.
+- **Kernel constants** (cut 0.10 m below the 1st percentile, 5 cm cells, 2 votes, 0.20 m closing): the item set is unknown, and the design record cites a room rule chosen on official VSI-Bench items. `gates.prerequisites` demands VERIFIED train-only provenance. OK as gated.
+- **Frame budget** (f32, the item's 32 frames as tower input): not chosen on K1. K1's table used a 64-frame tower input, and f32 rests on two K1-train captures (32/64 ratios 1.02 and 0.99). FAILS (finding 2).
+- **R0-dev comparisons**: f32+R0, f32+T10, u94+R0 and u94+T10, each against direct, plus u94 minus f32. That is five comparisons, not one. FAILS (finding 1).
+- **Bar 67.75510204081633 and decision**: fixed in scorer and `price.py` code, which the GO binds by code digest, so both are written before the read. One look is not enforced. FAILS (finding 3).
+- **Part B g3t_own**: K1 train already ranks DA3 above the own towers (+6.4 [+1.1, +11.8]), so any R0-dev run would be a second look. The kit leaves it unbuilt but does not forbid it (finding 1).
+- **dev-S1**: direct block only; guard skipped. OK. **Official items**: no kit code reads them. OK.
+
+## Findings
+1. **BLOCKER: R0-dev gets five comparisons.** `gpu_run.py` runs da3_f32 and da3_u94, and `price.py` scores R0 and T10 for both and adds `secondary_minus_primary`. My probe of `score()` on these arms returns four paired-minus-direct rows (`out/RK_PROBE.json`). **Edit:** in `gpu_run.py`, loop over the single arm from finding 2. In `price.py`, use rules `['R0']` and delete `secondary_minus_primary`. Set `SETTINGS['secondary']=None`. In KIT_SPEC §§2/8/10 and OPERATOR, state that T10, u94 and Part B are never priced on R0-dev under this ruling.
+2. **BLOCKER: the frame budget is not chosen on K1.** **Edit:** add stage S1c before any R0-dev capture. It runs DA3 on the 32 anchors alone for the 110 K1-train room captures (about 0.09 GPU-h inside the same GO, or about 8 CPU-h with two 6-thread workers) and prices them through `reproduce.py`'s conversion and kernel. Preregister: "the R0-dev arm is da3_f32 unless the K1 dense-64 input beats it on K1 train with a paired 95% lower bound above 0; then it is da3_u94." Write `SELECTION.json` (rows, hashes, choice), and make `gpu_run.py` refuse R0-dev without it.
+3. **BLOCKER: no one-look latch.** `price.py` and `score_room_pricing.py` rerun freely and overwrite `PRICING_TABLE`. **Edit:** `price.py` first writes `DECISION_REGISTRATION.json` (bar, arm, rule, code digest), refuses to run if `ROOM_PRED.jsonl` or `PRICING_TABLE.json` exists, and is the only R0-dev scoring path; the scorer's `main()` refuses `--pred` outside it.
+4. **BLOCKER: the card check rejects every real card.** torch 2.10 prints `props.uuid` as bare 8-4-4-4-12 hex (the format string is in `libtorch_python.so`), and `authorize` compares that string with the note's `GPU-…`; my probe raises PermissionError. **Edit:** in `gpu_run.py` line 25, use `uuid='GPU-'+str(props.uuid)`, and give the test fixture a bare-hex UUID.
+5. **BLOCKER: resume cannot resume.** The skip binding includes `run_id`, `host` and `card_uuid`, and every GO needs a unique run_id. After any partial run, a valid receipt therefore reads "corrupt/stale" (probe). A folder holding only `STARTED.json`, which a deadline, a vnice SIGTERM or a primary OOM leaves behind, stops every later run, and nothing may be deleted. **Edit:** record host, card and run in DONE.json but drop them from the skip binding. Treat a STARTED-only folder as interrupted, and recompute it only after the orchestrator's manual accounting has closed COST.json. Write that procedure into OPERATOR.md.
+6. **minor: the label audit is unbacked.** The label disclosure itself is accurate (OPERATOR, KIT_SPEC 2, the PRICING_TABLE `interpretation` line), and nothing calibrates (scale 1.0, no multiplier anywhere). But "a sensor-depth label audit is preregistered" has no procedure, command or file. **Edit:** ship design-record test 4 as a fixed command, or say "proposed, unbuilt". Expect DA3 to read low: it is −6.9% at the median on K1-train ScanNet++, and R0 labels count floor the 32 frames may not show.
+7. **minor: four of the 22 tests are weak.** All 22 pass in my extracted copy, and 18 test real behaviour (`test_ft2` only trivially). `test_no_go_rejected_before_cuda` checks source-text order. `test_go_binds…` uses a `GPU-` props UUID, which masks finding 4. In `test_refusal_preserved` the refusal fires inside `sample()`, so T10's trim never runs (0 calls). `test_kernel_equality…` compares two paths into the same `from_points`; only its stored 14.73/39.35 targets are informative. No test runs `gpu_run.py` or `price.py` end to end. **Edit:** add one with a stub backend covering arm selection, OOM drop, cross-run resume and the latch.
+8. **minor: the u94 memory probe is vacuous.** The backend caps the process at 46 GiB, so `reserved` never reaches `total_memory` and the probe always passes. Finding 1 makes it moot.
+9. **minor: pre-launch hashing can stale the GO.** `prerequisites()` rehashes 37,762 listed files (49.6 GiB with repeats) before `preauthorize` checks the 600 s GO freshness. **Edit:** deduplicate the list and call `preauthorize` first.
+10. **minor: env.sh and S0 receipt gaps.** Sourcing `scripts/env.sh` turns on `set -euo pipefail` in the operator's interactive shell, and `S0.json` omits the hash of `s0.py` itself.
+
+## Checks
+(1) **Edits 1–10 are present.** The frozen baseline hash is asserted in the scorer, `price.py` and the runner; the label disclosure is in place; the provenance and reader-receipt gate holds; full digests and pinned manifests are in place. The lane-local adapter imports no harness module, unpacks the R0 tuple, maps the legacy keys and keeps caches in the lane. Receipts have three states; the scorer CLI accepts only DA3 R0 with fatal errors; the power probabilities are gone; a 5,400 s ledger enforces the budget. Edit 7 is over-bound (finding 5), and edit 2's audit has no file (finding 6).
+(2) **S0, S1 and S1b reproduce.** `rk_check.py` uses only the deployed tree and the original `k1_convert.py`, no kit code. It matches 134/134 stored R0 rows and 24/24 train entries, with held-out variants null. The kit's 64-frame CPU areas are 14.69 and 39.79 m² against 14.73 and 39.35 (0.27%, 1.12%); they are separate forwards, not byte copies (median depth difference from GPU 0.05% and 0.58%). My own fresh 64-frame forward (`rk_forward.py`, 1,092 s at 8 threads) gives 14.69 m², with depth equal to the kit's CPU run to 4e-7. The S0 sample also matches: 98 items in 98 scenes, every 94-frame layout, 9,212 PNG hashes, 300 ledger lines, and direct MRA 62.755102 and 68.888889.
+(3) **Labels:** see finding 6.
+(4) **Launch path.** vnice wraps the command; a pre-emption sends SIGTERM and leaves a RUNNING ledger that blocks automatic reruns, as intended. Reads stay on /scratch (PYTHONNOUSERSITE set, caches in the lane, one read of `vnice.sh` on /data3). Hard stops hold: a cumulative 5,400 s budget, SIGALRM, a 120 s reserve and flock. **GPU-hours:** the K1 receipts give 9.1 s and 17.0 GiB at 64 frames, and the CPU 64-to-32 timing gives a scaling exponent of 1.56. That puts f32 at about 3.1 s and u94 at about 16.7 s per capture, so the shipped run costs 0.54 h plus loads, about 0.6 h. After findings 1 and 2: about 0.09 h on R0-dev plus 0.09 h for the K1-train selection.
+(5) **Tests:** see finding 7. (6) **Unbacked claims:** the audit preregistration, "GO binding before CUDA access" (only a text-order check), and the probe's "passed". Every other report number, the tar, the ledger, the stage receipts and the GO identity (code digest `3f790a9d…`) match current files.
+Commands (`P=/scratch/jjyeung/envs/planner_local_v1/bin/python`, `nice -n 10`, at most 8 cores): `$P -B rk_check.py`; `./run_forward.sh scannetpp/067e2e4e61`, then `$P -B rk_area.py`; `$P -B rk_probe.py`; `bash kit/scripts/cpu.sh tests/test_roomkit.py`. Outputs are in `out/RK_*.json` and `out/kit_tests.log`.
+=================== sb_rlrev2/REVIEW_VERDICT.md
+# sb_rlfix re-review verdict: GO AFTER FIXES (finding 4 still blocks; 3 new minor findings)
+
+Ten of my 12 findings are closed and reproduce on the fixed code; finding 12 is partly open and finding 4 is open. The kit still rolls out through N's `carrier_c1_decode.generate`. The deployed claimed arm uses a different reader, whose scale, lifting, grounding, budget and call caps all differ. Launch also still waits on N's MISSING pool, `init_m544` evidence and export pins. Evidence is in `runs/v2/` (scripts, outputs, `CLAIMED_ARM_BINDING.md`) and in `runs/kit/`, an extract of `sb_rlfix.tar` (sha256 `feb43f05…` checks) that matches the workspace byte for byte.
+
+## My 12 findings
+1. CLOSED. `native_kwargs` drops `trace_program_version`, and all 12 native calls bind (`v2/signatures.out`).
+2. CLOSED. Correctness is `score_item`'s score: 0/74 mismatches in my `v2/parity.out` and 0/110 in the kit's test (`kit/out/PARITY.json`).
+3. CLOSED. A fake early `</think>` now scores 1.0 against 1.1 for the honest trace (`v2/double_think.out`).
+4. OPEN, blocker; see the next section.
+5. CLOSED for refusals, gradient all-reduce, 25-step checkpoints and refusal logs (`train.py:150-198`). I correct one point from my first review: the deployed arm does not allow 200 calls. It stops distance at the 6th call and room at the 2nd (`parity_adapter.py:11,28-33`), so `max_calls=200` (`rollout.py:32`) is wrong.
+6. CLOSED. Wrong answers earn 0 auxiliary reward, and both call sites pass `scale_std=False` (`v2/gaming.out`).
+7. CLOSED. A spurious `<pose>` call now gets route 0 (`v2/gaming.out`).
+8. CLOSED. The production `RoomGate` admits none of the excluded lists (53 / 100 / 274 / 372 / 720 / 2,084 / 2,424), admits all 233 controls with 0 physical overlaps, and the tests now use it (`v2/gate_check.out`).
+9. CLOSED. `pool.clean_row` is now an allow-list; edit E below adds a prompt-equality check.
+10. CLOSED. The CPU proof reruns PASS bit-identically (gradient L1 4186.33, update L1 1.966, ratio error 0.0228; 114 s, 14.63 GiB), and 34/34 tests pass (`kit/out/`).
+11. CLOSED as supplied but not run: `dry_run.py` times 2 steps of 32 sequences on 1 GPU and refuses until bindings exist.
+12. PARTLY OPEN. The old claims are fixed, but `README.md:17` now states as fact that the default arm is "frozen G3T for camera and lifting, SAM 3 with the deployed selector, fixed math for scale and gap", and `REPORT.md:10` says own heads are diagnostic only. Finding 4 shows that lifting, scale and selector all differ, and that the claimed arm reads two own heads.
+
+## Finding 4: is "claimed-arm serving table MISSING" honest?
+It is honest about the inputs supplied, and production refuses (`serving.py:14-18`). It is wrong that the table does not exist: it sits on this node, and the fix lane searched only N's tree. Worse, the kit demands `validate_claimed_arm` and `build_backend` (`serving.py:24-28`), which the deployed reader does not define (the only `build_backend` is N's MDG builder in `s1_grounding.py`), so no real file could ever bind. The claimed arm is the `tower` arm of out3 read A4 (`h1eval/h10/launch.py:276` calls `b/e2e_reader/parity.py:make_real`). Its root on this node is `/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3/`; `cont_ops16/work/c15/r1route/out3` is absent here. Bind these files (full hashes in `v2/CLAIMED_ARM_BINDING.md`):
+- Settings table: `A4/ret/metadata/reads/0/metadata/0.json` (`2c3cc6b4…`), with arm=own_depth, stage1_select_rule=candidates_argmax, sam3, selector_head and the G3T memo, plus the arm descriptor at `A4/tower_sequence.py:9-12` (`97c8e6df…`).
+- Reader: `A4/package/0.tgz` (`4498fca7…`), containing `h1eval/h10/parity_adapter.py`, `b/e2e_reader/{parity,real,stage1,servers,geometry,callhook,grounding}.py` and `b/work/c8r/.../native/out2/reader_policy.py`. Do not bind `/scratch/jjyeung/b01ec87a6f29b/p`: 6 of its 8 reader files differ from A4.
+
+The kit's path diverges from this reader in five ways. The claimed arm also reads two own heads, gravity (`real.py:64-67`) and depth for scale (`stage1.py:41-60`), so "own heads are diagnostic only" must exclude them.
+- Scale: N gates own depth to 0.1–10 m (`tower_scale_rule.py:12`), while the deployed `median_ratio` accepts any positive depth (`stage1.py:70`).
+- Lifting: N's tower path replaces pose only (`tower_read.py:323`) and answers `depth_at` from the own depth head (`carrier_c1_decode.py:203-210`). The deployed reader reads G3T depth (`geometry.py:111-113`).
+- Grounding: the deployed reader uses a learned selector head with `candidates_argmax` and K1 retention (joint ≥ 0.05, at most 30 per frame; `stage1.py:117-160`). The kit checks only `mask_source=='svp_sam3'` (`serving.py:36`), which N's `ofs` backend also passes (`ground_profiles.py:31`).
+- Budget: the deployed reader forces `</think>` after 2,048 thinking tokens and then allows 64 answer tokens (`reader_policy.py:7-10`). The kit emits EOS after 1,024 tokens (`choice.py:97-99`), which scores 0 where deployment would answer.
+- Call caps: the limits from finding 5 apply. A 7-call distance trace scores 1.2 in the kit (`v2/new_probes.out`), but deployment stops it with no answer.
+
+## Exact edits
+A. Decode rollouts through `real.generate_real` with the kit's adapter-installed model, the capped hook, and `real_perception(stage1_select_rule='candidates_argmax', perception_memo='on', perception_memo_modules=['g3t'], sam3_tower=Sam3Tower(settings['sam3']), selector_head=...)`, built as in `parity.py:210-235`. Pass `logits_processor` as a sampler applied after `ThinkingBudget(DECODE_BUDGET)`, and give budget-forced ids kind 'b'. Then remove `pose_source`, `tower_state`, `attach_tower` and `prepare_tower` from `train.py` and `rollout.py`, and replace the interface in `serving.py` with pins of the files above.
+B. Adopt the deployed caps (distance 6, room 2) and the deployed budget, or record an orchestrator ruling that RL trains under a different budget than the one it is scored with.
+C. Before training, replay greedily on GPU with A4's m200 export (`A4/ret/metadata/EXPORT_PIN.json`). The replay must reproduce A4's journal tokens for 4 items per type.
+D. Minor (new): a far numeric answer (7 against 12.19, MRA 0.2) still earns the full 0.2 auxiliary reward (`v2/new_probes.out`). Fix: add `short*=c; route*=c` after `reward.py:77`.
+E. Minor (new): at pool build, assert that `prompt_batch(clean_row(row))` gives the same ids as the raw row, as N's `assert_prompt_equal` does. `carrier_c1_data.py:167,365` branch on `pose_sample` and `pointing`, which the allow-list drops.
+F. Minor (new): no test executes `train.run`'s step loop. Add one CPU step with a stub model and one refusing rank.
+
+## Tests (34)
+The tests exercise real code for the reward, the production room gate, REMOVE lists, the allow-list, masks, KL, clipping and checkpoints. Parity is near-tautological: `score` passes the same dict to `score_item`, so the test checks only the field mapping. Serving, refusals and collectives are tested only through mocks, and no test touches the deployed reader.
+=================== ktow2 blockers
+{
+  "blockers": [
+    {
+      "capture": "arkitscenes/41069076",
+      "expected_path": "/scratch/jjyeung/orch_n30/sb_kbox2/out/box_ladder/PER_ITEM.jsonl",
+      "missing_A0_rows": [
+        "ground-664c1b68004d2106ed47dc8e5ae20aea084c50fd4c6f579fba7e050e28da98b3"
+      ],
+      "reason": "Box kit has not emitted A0 for this capture",
+      "scope": "CPU section 8b"
+    },
+    {
+      "capture": "arkitscenes/41098061",
+      "expected_path": "/scratch/jjyeung/orch_n30/sb_kbox2/out/box_ladder/PER_ITEM.jsonl",
+      "missing_A0_rows": [
+        "ground-bca9f368654b294e352530173f2af20c7aec117e2c1db75443c8a7a899802979"
+      ],
+      "reason": "Box kit has not emitted A0 for this capture",
+      "scope": "CPU section 8b"
+    },
+    {
+      "capture": "arkitscenes/41098085",
+      "expected_path": "/scratch/jjyeung/orch_n30/sb_kbox2/out/box_ladder/PER_ITEM.jsonl",
+      "missing_A0_rows": [
+        "ground-cc0ca7c3c892972b15336cab1f8876a730036453ecb829665259c788e554fbd6",
+        "ground-d5ae4bdf85cf6ea354e1f6dd6f45c5d6db9206a3b0a19e44f9b027762848dd42",
+        "ground-e7faf5fc23cdab8d9ed0d4d072e4fa48bc9f19f713caf69e8aaf8d1f926e796d",
+        "ground-668b8e35f7015a0559a0b634c73cfb025c95183349fe1c75ace4a950ad14a47d",
+        "ground-b24d0f8d8ade00ec65420c3f1e2a330e13c7e3dfd91eecbea2accaf0b388c0e2"
+      ],
+      "reason": "Box kit has not emitted A0 for this capture",
+      "scope": "CPU section 8b"
+    },
+    {
+      "capture": "arkitscenes/41098191",
+      "expected_path": "/scra

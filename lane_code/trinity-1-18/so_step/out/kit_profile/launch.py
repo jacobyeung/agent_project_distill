@@ -28,6 +28,7 @@ def main():
     torch.set_num_threads(8)
     from student_pilot import carrier_c1_run as run
     from instrument import Phases, hooks, instrument_step, profiler_table
+    from disposable import measurement_train
     switches = {'C1_CPU_PREFETCH': '0', 'C1_DECODED_CACHE_MIB': '0', 'C1_BATCH_METRICS': '0'}
     if args.arm in ('prefetch', 'all'):
         switches['C1_CPU_PREFETCH'] = '1'
@@ -40,6 +41,7 @@ def main():
         parser.error('An ON timing arm requires the baseline --plan')
     output = Path(args.out).resolve()
     output.mkdir(parents=True, exist_ok=False)
+    resume_pin = run.load(args.resume) if args.resume else None
     # torchrun processes share --out: callers pass a rank suffix via the wrapper below.
 
     def measured_loop(model, wrapped, optimizer, rows, counts, trainer_output, cfg, bound, device,
@@ -62,8 +64,20 @@ def main():
         (output/'plan.json').write_text(json.dumps(dict(start_step=start_step, world_size=dist.get_world_size(), plans=plans))+'\n')
         names = [(name, p.numel(), str(p.dtype)) for name,p in run.full_ft.named_trainable(wrapped)]
         manifest = dict(arm=args.arm, switches=switches, config_sha256=run.identity(cfg), binding=bound,
-                        start_step=start_step, resume=args.resume, torch=torch.__version__, trainables=names,
+                        start_step=start_step, resume=resume_pin, torch=torch.__version__, trainables=names,
                         profiler_ran=False, disposable=True)
+        manifest['device_memory'] = dict(total_bytes=torch.cuda.get_device_properties(device).total_memory,
+                                         free_bytes_at_loop_entry=torch.cuda.mem_get_info(device)[0])
+        manifest['delta_bindings'] = []
+        for name, module in model.named_modules():
+            if type(module).__name__ in ('Qwen3_5GatedDeltaNet','Qwen3NextGatedDeltaNet'):
+                manifest['delta_bindings'].append(dict(name=name,
+                    dimensions={k:getattr(module,k,None) for k in ('hidden_size','num_v_heads','num_k_heads',
+                                'head_k_dim','head_v_dim','conv_dim','conv_kernel_size')},
+                    functions={k:None if (v:=getattr(module,k,None)) is None else
+                        getattr(v,'__module__','')+'.'+getattr(v,'__name__',type(v).__name__)
+                        for k in ('causal_conv1d_fn','causal_conv1d_update','chunk_gated_delta_rule','recurrent_gated_delta_rule')},
+                    norm=type(module.norm).__module__+'.'+type(module.norm).__name__))
         (output/'manifest.json').write_text(json.dumps(manifest, indent=2)+'\n')
         gates = None
         if recipe.get('scheduled_sampling'):
@@ -108,6 +122,8 @@ def main():
                     phases.table(output/'phase_table.json')
                     profiler_table(prof, output/'profiler_table.json')
                     prof.export_chrome_trace(str(output/'trace.json'))
+                    manifest['profiler_ran'] = True
+                    (output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
             else:
                 info, _ = run.optimize_step(wrapped, optimizer, rows, plan, rank, device, step, True, gates)
             elapsed = time.perf_counter() - tick
@@ -127,8 +143,11 @@ def main():
 
     run.run_steps = measured_loop
     cfg = run.load(args.config)
-    run.train(cfg, smoke_steps=10 if args.mode == 'timing' else 2,
-              resume_pin=run.load(args.resume) if args.resume else None)
+    # Each arm uses its own disposable smoke directory. The configuration remains
+    # unchanged for native authorization, checkpoint identity and gate replay.
+    train = measurement_train(run, output.parent / 'trainer')
+    train(cfg, smoke_steps=10 if args.mode == 'timing' else 2,
+          resume_pin=resume_pin)
 
 
 if __name__ == '__main__':

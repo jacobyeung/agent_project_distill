@@ -1,0 +1,3 @@
+cd /scratch/jjyeung/orch_n30 && tar cf - so_read/out/NOTE_FOR_CONT_OPS.md so_read/out/REPORT.md so_read/out/patches/MANIFEST.json so_step/out/REPORT.md so_step/out/patches/manifest.json so_launch/out/patches/manifest.json so_launch/work/STATUS.md 2>/dev/null | base64 -w0
+echo
+for t in so_pack so_step_c so_launch_c; do R=$(ls -d /scratch/jjyeung/orch_n30/codex_local/agent/scratch/codex_runs/*_$t | tail -1); tmux has-session -t "=$t" 2>/dev/null && st=RUNNING || st=ENDED; echo "== $t $st capacity=$(grep -c 'at capacity' $R/transcript.log) lines=$(wc -l < $R/transcript.log)"; grep 'at capacity' $R/transcript.log | head -2; done

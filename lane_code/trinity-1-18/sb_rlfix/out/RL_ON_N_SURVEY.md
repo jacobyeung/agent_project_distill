@@ -6,7 +6,7 @@ Paths below are relative to **B** = `in/b09_code` and **N** = `/scratch/jjyeung/
 | Topic | b09 implementation and assumption | N contract and port consequence |
 |---|---|---|
 | Algorithm | Rejection/selection plus GRPO; centered, population-standardized group advantages; tied groups dropped. B/rlkit/grpo.py:35; B/rlkit/round.py:21. | N's R1 SFT rejects own-valued targets and fixes a 1,000-step, four-rank recipe. N/student_pilot/r1_training.py:11,61. RL needs its own trainer/objective; sampled rows must not impersonate admitted SFT targets. |
-| Reward | MRA/exact times validity, minus capped excess length; defaults lambda=.2, cap=.5. B/rlkit/reward.py:1,28,67. | Reuse N's benchmark functions, including its zero-target MRA behavior. N/evalpath/official.py:257,269. Add an explicit route-placement term and configurable weights. |
+| Reward | MRA/exact times validity, minus capped excess length; defaults lambda=.2, cap=.5. B/rlkit/reward.py:1,28,67. | Use N/evalpath/run.py:score_item for exact benchmark parity. Wrong answers receive no auxiliary reward; group advantages are centered without standard-deviation scaling. |
 | Rollout | Native decoder with a process-local SamplingChoice hook; half of eight draws forced, temperature .7, top-p .95. B/rlkit/forcing.py:1,78,174; B/rlkit/sampler.py:170,251. | Native Row owns call detection, response injection, limits, and per-row state. N/student_pilot/carrier_c1_batch_decode.py:86,113,146. Import it; never synthesize response text in production. |
 | Sampling probability | Choice samples nucleus probabilities but records untruncated tempered log probabilities. B/rlkit/forcing.py:106,126. | Use top-p=1 so rollout and training probabilities agree exactly. Reserved response/carrier IDs remain masked in both paths. |
 | Reference and KL | Frozen SFT reference fills per-token reference log probabilities; k3 = exp(ref-new)-(ref-new)-1; beta=.04, clip=.2. B/grpo_tree/student_pilot/grpo_loss.py:78,95,145. | Keep the starting export immutable; adapter-disabled evaluation supplies the reference without a second 9B copy. |
@@ -26,5 +26,7 @@ Paths below are relative to **B** = `in/b09_code` and **N** = `/scratch/jjyeung/
 
 N's sealed `pkg/out/BUILD18_REPORT.md:1` reports `Missing component evidence: init_m544`; its native fixture does not reach an admitted population or model loss.
 P18/row_sources.json lists source slices, but explicitly says full scene admission remains required. Source slices and synthetic package fixtures are not an admitted RL pool.
-`in/b09_out/RUN.md`, `in/b09_out/STATUS.md`, and `in/b09_out/HASHES.txt` are MISSING at the supplied locations; `in/b09_code/RUN.md` is present.
+`in/b09_out/RUN.md` and `in/b09_out/STATUS.md` are MISSING; `in/b09_out/HASHES.txt` and `in/b09_code/RUN.md` are present.
 The CPU proof must use explicitly synthetic prompts/pixels and random weights; it cannot certify export reload, production pool admission, GPU memory fit, or throughput.
+
+The required rollout arm uses frozen G3T camera/lifting, SAM 3 with the deployed selector, and fixed scale/gap math. Its authenticated serving table and evaluator adapter are MISSING. The generic N evaluator uses own pose and MDG and cannot establish parity with this arm. The overlay refuses production without those bindings.

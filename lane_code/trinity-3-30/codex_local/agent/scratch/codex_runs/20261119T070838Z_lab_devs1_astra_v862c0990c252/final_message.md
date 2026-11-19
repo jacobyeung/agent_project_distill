@@ -1,0 +1,1 @@
+{"Q1":"C","Q2":"B","check":"Frame 5 shows a golden-brown wooden table, brown chairs with olive seats, a copper lamp and a black bin; frame 30 shows brown wooden study carrels and chairs with olive seats on gray-green carpet."}

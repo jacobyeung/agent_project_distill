@@ -7,7 +7,7 @@ from rl_on_n import provenance as P
 ROOT=Path(os.environ.get('N_TREE','/scratch/jjyeung/orch_n30/sb_f64/pkg/work/tree_r1'))
 P.tree(ROOT)
 from rl_on_n.reward import score,Weights
-from rl_on_n.pool import build
+from rl_on_n.pool import build,RoomGate
 from rl_on_n.loss import attach,group_advantages
 from rl_on_n.grpo_math import token_terms,settings
 from rl_on_n.adapters import install,reference,LowRank
@@ -31,7 +31,8 @@ class Rewards(unittest.TestCase):
         self.prompt['gt_answer']='0'
         self.assertEqual(score(self.prompt,self.rec('</think>0'),self.tok,self.routes)['correct'],1)
     def test_choice_exact(self):
-        self.prompt.update(gt_answer='A',options=['A. left','B. right'])
+        self.prompt.update(type='object_rel_direction_easy',gt_answer='A',options=['A. left','B. right'])
+        self.routes['object_rel_direction_easy']='direct'
         for answer,c in [('A',1),('B',0)]:
             self.assertEqual(score(self.prompt,self.rec('Locate: room.\n</think>'+answer),self.tok,self.routes)['correct'],c)
     def test_short_long_and_response_free(self):
@@ -84,20 +85,10 @@ class Rewards(unittest.TestCase):
         self.assertEqual(r['total'],2)
         with self.assertRaises(ValueError):Weights(short=-1)
 
-class RealRoomGate:
-    def __init__(self):
-        base=ROOT.parents[1]/'work/build18/inputs'
-        self.rooms=Rooms({k:P.pin(base/(v+'.json')) for k,v in AUTHORITY.items()})
-        self.withheld=Withheld();self.reserve=reserve()
-    def admit(self,row):
-        self.rooms.admit(row);self.reserve.check(row,'test')
-        canonical,_=self.rooms.canonical(row)
-        if self.withheld.touches(row,{'names':[canonical]}):raise ValueError('RL_WITHHELD_ROOM_REFUSED')
-
 class PoolTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.gate=RealRoomGate()
+        cls.gate=RoomGate(P.load(ROOT.parents[1]/'work/build18/inputs/config.json'))
         data=P.load(ROOT.parents[1]/'work/build18/inputs'/ (AUTHORITY['split']+'.json'))
         cls.captures=data['teacher_k1']['captures']
     def row(self,canonical,qid='fixture'):

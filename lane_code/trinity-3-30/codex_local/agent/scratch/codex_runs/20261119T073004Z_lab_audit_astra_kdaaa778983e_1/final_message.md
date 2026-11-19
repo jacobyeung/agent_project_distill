@@ -1,0 +1,1 @@
+{"f001":4,"f002":9,"f003":4,"check":"Frame 5 shows a black TV on a silver mirrored dresser with gold ornaments beside dark striped curtains; frame 30 shows a brown open door, beige carpet, and a white-bordered orange poster on a brown wooden floor."}

@@ -19,7 +19,7 @@ class Preflight21(unittest.TestCase):
   from student_pilot import carrier_c1_run as C
   original=Path.open
   def retained(path,mode='r',*a,**kw):return original(path,mode.replace('x','w') if path.is_relative_to(O) else mode,*a,**kw)
-  with patch.object(Path,'open',retained),patch.object(os,'uname',return_value=host),patch.object(C,'processor_for',processor),patch('student_pilot.s1_admission.admit',side_effect=AssertionError('store producer reached')) as producer:
+  with patch.dict(os.environ,{'S1_CPU_REHEARSAL':'1'}),patch.object(Path,'open',retained),patch.object(os,'uname',return_value=host),patch.object(C,'processor_for',processor),patch('student_pilot.s1_admission.admit',side_effect=AssertionError('store producer reached')) as producer:
    result=Q.run(request,O/'q')
   producer.assert_not_called();self.assertEqual(result['status'],'REFUSE');self.assertIn('component evidence',result['refusal'])
   (O/'RESULT.json').write_text(json.dumps(result,indent=2))

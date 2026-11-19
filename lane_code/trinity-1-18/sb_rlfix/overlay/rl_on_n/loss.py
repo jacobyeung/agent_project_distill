@@ -24,7 +24,9 @@ def logprobs(model,batch,temperature=0.7):
 
 class Objective(torch.nn.Module):
     def __init__(self,model,grpo=None):
-        super().__init__(); self.policy=model; self.settings=settings({'grpo':grpo or {}})
+        super().__init__(); self.policy=model; self.settings=settings({'grpo':{'norm':'seq', **(grpo or {})}})
+        if self.settings['norm'] != 'seq':
+            raise ValueError('Objective requires grpo.norm=seq; token weighting is unsupported')
     def forward(self,batch,advantage,reference):
         lp=logprobs(self.policy,batch,self.settings['temperature'])
         terms,ratio,kl=token_terms(lp,batch['old_logp'].detach(),reference.detach(),advantage,self.settings)

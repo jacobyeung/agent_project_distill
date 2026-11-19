@@ -1,4 +1,17 @@
-Task 1: startup trace complete; evidence and phase table are being packaged in out/REPORT.md.
-Decision: use a conservative full config identity, including logical output paths. Byte-identical receipts retain their source/configuration seals; changing a run path must miss, rather than rewrite provenance.
-Decision: cache prepared phase closures and frame receipts. All reuse requires SHA256; size/mtime alone never authorizes a hit.
-Task 2: implementing an opt-in wrapper cache and CPU-only tests.
+2026-11-19T07:26:09Z — Continuation; deadline 08:45Z. Host trinity-1-18. UTC checked at each task boundary.
+
+Verification: the final four patches applied independently to fresh input copies and together with `patch --batch --fuzz=0 -p1`; no fuzz or offset was needed. All 49 new tests and 51 selected native regressions passed. Exact commands and outputs: out/tests/20261119T072417Z/. This snapshot contains 24 cache, six wrapper, seven frame, nine checkpoint and three timing tests. The manifest records patch hashes, base-file hashes and application method.
+
+Task 1: DONE. The measured S1 mode-p envelope is 140.57 minutes in 172660 and 145.27 minutes in 171377. The report body contains the complete phase table, input audit, purity qualifications and R2 path analysis. out/phase_timing.json contains interval arithmetic; out/evidence/startup_log_excerpts.txt contains numbered raw evidence. R2 has a different host receipt and no supplied timing measurement.
+
+Decision: retain the conservative full config identity, including logical output paths. Byte-identical receipts retain their source/configuration seals; changing a logical run path must miss. Only physical pool relocation is supported.
+Decision: retain prepared phase closures and frame receipts. Every reused payload requires SHA256; size/mtime alone never authorizes a prepared-input hit.
+Decision: retain S1-only integration. R2 needs a distinct adapter for its checklist, absolute output paths, frame-host admission and metadata index; this delivery does not claim R2 cache coverage.
+
+Task 2: S1 cache packaged and verified within the retained scope. Three failing regressions justified implementation corrections: tk_env's fixed R1_MOUNT/R1_STUDENT_HEX values must not change restore/publication keys (07_environment_key_*); native MDG path-only inputs must decline caching rather than form a stale key (08_mdg_key_*); exact config-file pins must be keyed even when parsed JSON agrees (16_raw_config_pin_*). All before/after outputs are under out/tests/. All 24 final cache tests pass, including a restored receipt through the real native training gate. The full-config/provenance decisions remain intact. Reuse across logical runs and R2 integration remain unimplemented by the retained decisions.
+
+Task 3: DONE within the requested small-change scope. Opt-in parallel frame hashing, same-allocation checkpoint verification memo and launch/lock timing pass seven, nine and three tests. The report labels every expected saving as estimated and distinguishes the frame/extraction envelope from SHA time. It records why second-stage bypass, first-step warmup and end-of-job destination-verify changes are not built. No GPU or production-sized timing ran.
+
+Native baseline: expanded 57-test checks expose the same four failures and one error in the stale test_s1_in_job_gate fixture on input and patched trees. Their direct comparison is being recorded under the final log directory. The selected 51-test suite excludes that six-test module; its success fixture lacks the MDG stream and VQA expected by the current gate. No native gate or unrelated fixture was changed.
+
+Task 4: the one-page NOTE_FOR_TREE_REBUILD.md is written. Assembling REPORT.md with exact final commands/outputs, then checking artifacts and checksums. Final verdict will be PARTIAL for the explicit unsupported scope and production timing limit. All production switches default OFF. Inputs remain read-only. No Git, SSH, GPU, network download or heavy I/O ran; network use was limited to official torch documentation.

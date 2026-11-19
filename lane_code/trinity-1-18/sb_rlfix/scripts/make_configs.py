@@ -18,15 +18,16 @@ for world in (4,8):
         reference='same immutable export with adapters disabled',learning_rate=1e-5,weight_decay=.01,clip_norm=1.,
         grpo=dict(clip_low=.2,clip_high=.2,kl_beta=.04,temperature=.7,norm='seq'),
         reward=dict(correct=1.,short=.1,route=.1,short_tokens=128,long_tokens=1024),
-        grounding=dict(allow_own_fallback=True),frozen_tower=dict(weights=None,config=None,dense_frames=32),
-        required_grounding_binding='Bind frozen_tower weights/config pins. Grounding uses native same-checkpoint geometry, whose pose comes from the frozen G3T TowerState and metric scale/depth from the checkpoint.',
+        grounding=dict(serving_table=None,evaluator_adapter=None),frozen_tower=dict(weights=None,config=None,dense_frames=32),
+        pose_source='tower',scale_std=False,checkpoint_every=25,
+        required_grounding_binding='MISSING deployed claimed-arm serving table and evaluator adapter pins; frozen G3T camera/lifting, SAM 3 plus deployed selector, fixed scale/gap math. Own heads are diagnostic only.',
         memory_plan=dict(base_bf16_gib=18e9/2**30,adapters_and_optimizer_gib=1.0,frozen_heads_and_towers_gib=14.,
                          activation_and_cache_budget_gib=24.,workspace_budget_gib=8.,assumed_h100_gib=80.,
                          measured=False,reference_extra_model_copies=0),
         notes='No launch authorization. Preserve the native source/pool configurations; bind hashes before use. One process per assigned H100; no GPU keeper or scheduler code.')
     P.write(ROOT/f'configs/h100_{world}.json',cfg)
 # Same global batch for an honest 4-versus-8 comparison. Rates are assumptions, not measurements.
-steps=200;seq=32;prompt=4096;generated=512;responses=128
+steps=200;seq=32;prompt=4800;generated=512;responses=128
 rollout=steps*seq*generated
 prefill=steps*seq*prompt
 replay=steps*seq*(prompt+generated+responses)

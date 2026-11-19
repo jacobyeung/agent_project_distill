@@ -6,8 +6,11 @@ import unittest
 from rl_on_n import provenance as P
 root=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(root/'tests'))
-P.sha(__file__);P.sha(root/'tests/test_kit.py')
-suite=unittest.defaultTestLoader.loadTestsFromName('test_kit')
+P.sha(__file__)
+for path in sorted((root/'tests').glob('*.py')):P.sha(path)
+import torch
+torch.set_num_threads(8)
+suite=unittest.defaultTestLoader.discover(str(root/'tests'),pattern='test_*.py')
 with (root/'out/TEST_RESULTS.log').open('w') as stream:
     result=unittest.TextTestRunner(stream=stream,verbosity=2).run(suite)
 P.write(root/'out/TEST_RESULTS.json',dict(schema='rl-on-n-tests-v1',status='PASS' if result.wasSuccessful() else 'FAIL',

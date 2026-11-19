@@ -1,0 +1,1 @@
+{"f001":1,"f002":2,"f003":1,"f004":7,"check":"Frame 5 shows a pale wooden table, red chairs and a gray glass door; frame 30 shows a pale wooden table, a red chair with a black seat and part of a whiteboard."}

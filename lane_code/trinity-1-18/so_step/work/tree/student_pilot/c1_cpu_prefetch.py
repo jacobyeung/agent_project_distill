@@ -60,7 +60,13 @@ def for_rows(rows):
         # Each producer owns its tokenizer, image/video processor and SQLite
         # connections. The main thread retains its processor for own-value routing.
         # No call changes PyTorch's process-wide thread count or global RNG state.
-        factory = rows.cpu_prefetch_factory()
+        try:
+            factory = rows.cpu_prefetch_factory()
+        except Exception as exc:
+            # A processor-copy/setup failure is also a local preparation failure.
+            # Carry it to the original group admission instead of stranding peers.
+            def factory(error=exc):
+                raise error
         producer = rows._c1_cpu_producer = Producer(factory)
     return producer
 

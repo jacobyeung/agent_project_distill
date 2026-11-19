@@ -1,0 +1,1 @@
+Stage 4: The v2 kit and review archive are complete. The CPU dry run is BLOCKER solely because four selected train captures lack box-kit A0 reference rows. The other section-8 checks and 16 regression tests pass. Part C additionally needs explicit item/frame hash joins before real GPU parity. No GPU, network, SSH, Git, tmux or process-control work ran.

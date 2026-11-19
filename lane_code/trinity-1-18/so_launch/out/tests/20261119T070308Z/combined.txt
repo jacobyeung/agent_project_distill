@@ -1,0 +1,135 @@
+$ date -u
+Thu Nov 19 07:03:16 UTC 2026
+EXIT: 0
+$ patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_launch/out/patches/01_prepared_input_cache.diff
+patching file launch_s1/b/c.sh
+patching file launch_s1/b/r.sh
+patching file launch_s1/b/pc.py
+patching file tests/test_prepared_input_cache.py
+patching file tests/test_prepared_cache_wrapper.py
+EXIT: 0
+$ patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_launch/out/patches/02_parallel_frame_sha.diff
+patching file launch_s1/b/f2.py
+patching file tests/test_parallel_frame_sha.py
+EXIT: 0
+$ patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_launch/out/patches/03_checkpoint_verify_memo.diff
+patching file launch_s1/b/r8.py
+patching file tests/test_checkpoint_verify_memo.py
+EXIT: 0
+$ patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_launch/out/patches/04_launch_phase_timing.diff
+patching file launch_s1/job.sh
+patching file launch_s1/b/c.sh
+patching file tests/test_launch_phase_timing.py
+EXIT: 0
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T070308Z/combined/tests/test_prepared_input_cache.py -v
+test_an_existing_complete_journal_survives_a_cache_miss (__main__.PreparedCacheTests.test_an_existing_complete_journal_survives_a_cache_miss) ... ok
+test_another_complete_generation_does_not_replace_native_journal (__main__.PreparedCacheTests.test_another_complete_generation_does_not_replace_native_journal) ... ok
+test_cold_rebuild_after_miss_can_publish_and_hit (__main__.PreparedCacheTests.test_cold_rebuild_after_miss_can_publish_and_hit) ... ok
+test_concurrent_consumers_keep_complete_target_and_training_evidence (__main__.PreparedCacheTests.test_concurrent_consumers_keep_complete_target_and_training_evidence) ... ok
+test_corrupt_or_missing_frames_force_ordinary_restaging (__main__.PreparedCacheTests.test_corrupt_or_missing_frames_force_ordinary_restaging) ... ok
+test_corrupt_prepared_file_misses_and_quarantines_target (__main__.PreparedCacheTests.test_corrupt_prepared_file_misses_and_quarantines_target) ... ok
+test_default_off_cli_has_no_side_effects (__main__.PreparedCacheTests.test_default_off_cli_has_no_side_effects) ... ok
+test_each_key_component_changed_alone_misses (__main__.PreparedCacheTests.test_each_key_component_changed_alone_misses) ... ok
+test_hit_verifies_and_preserves_native_journal (__main__.PreparedCacheTests.test_hit_verifies_and_preserves_native_journal) ... ok
+test_partial_index_is_a_miss (__main__.PreparedCacheTests.test_partial_index_is_a_miss) ... ok
+test_partial_prepared_directory_is_never_published (__main__.PreparedCacheTests.test_partial_prepared_directory_is_never_published) ... ok
+test_partial_published_directory_misses (__main__.PreparedCacheTests.test_partial_published_directory_misses) ... ok
+test_purged_pool_source_misses (__main__.PreparedCacheTests.test_purged_pool_source_misses) ... ok
+test_real_config_init_and_code_changes_miss (__main__.PreparedCacheTests.test_real_config_init_and_code_changes_miss) ... ok
+test_same_key_different_code_in_receipt_is_refused (__main__.PreparedCacheTests.test_same_key_different_code_in_receipt_is_refused) ... ok
+test_symlink_and_path_traversal_refused (__main__.PreparedCacheTests.test_symlink_and_path_traversal_refused) ... ok
+test_two_concurrent_publishers_commit_complete_receipts (__main__.PreparedCacheTests.test_two_concurrent_publishers_commit_complete_receipts) ... ok
+test_uncovered_retained_frame_refuses_publication (__main__.PreparedCacheTests.test_uncovered_retained_frame_refuses_publication) ... ok
+test_unpinned_remove_path_cannot_form_a_cache_key (__main__.PreparedCacheTests.test_unpinned_remove_path_cannot_form_a_cache_key) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.540s
+
+OK
+EXIT: 0
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T070308Z/combined/tests/test_prepared_cache_wrapper.py -v
+test_default_off_uses_native_path_and_writes_no_cache (__main__.PreparedWrapperTests.test_default_off_uses_native_path_and_writes_no_cache) ... ok
+test_failed_native_preparation_is_not_published (__main__.PreparedWrapperTests.test_failed_native_preparation_is_not_published) ... ok
+test_hit_reuses_verified_phases_without_launching_native_builder (__main__.PreparedWrapperTests.test_hit_reuses_verified_phases_without_launching_native_builder) ... ok
+test_miss_runs_native_builder_then_publishes (__main__.PreparedWrapperTests.test_miss_runs_native_builder_then_publishes) ... ok
+test_recursive_resume_inherits_lock_and_still_launches_training (__main__.PreparedWrapperTests.test_recursive_resume_inherits_lock_and_still_launches_training) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.922s
+
+OK
+EXIT: 0
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T070308Z/combined/tests/test_parallel_frame_sha.py -v
+test_default_does_not_construct_a_thread_pool (__main__.FrameHashTests.test_default_does_not_construct_a_thread_pool) ... ok
+test_duplicate_and_wrong_path_refuse_both_modes (__main__.FrameHashTests.test_duplicate_and_wrong_path_refuse_both_modes) ... ok
+test_late_corrupt_file_refuses_both_modes (__main__.FrameHashTests.test_late_corrupt_file_refuses_both_modes) ... ok
+test_manifest_digest_refuses (__main__.FrameHashTests.test_manifest_digest_refuses) ... ok
+test_missing_and_symlinked_files_refuse (__main__.FrameHashTests.test_missing_and_symlinked_files_refuse) ... ok
+test_parallel_and_default_counts_match (__main__.FrameHashTests.test_parallel_and_default_counts_match) ... ok
+test_worker_cap (__main__.FrameHashTests.test_worker_cap) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.041s
+
+OK
+EXIT: 0
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T070308Z/combined/tests/test_checkpoint_verify_memo.py -v
+test_another_job_or_allocation_clock_rehashes (__main__.CheckpointMemoTests.test_another_job_or_allocation_clock_rehashes) ... ok
+test_corrupt_memo_falls_back_to_full_hash (__main__.CheckpointMemoTests.test_corrupt_memo_falls_back_to_full_hash) ... ok
+test_default_off_rehashes_and_writes_no_memo (__main__.CheckpointMemoTests.test_default_off_rehashes_and_writes_no_memo) ... ok
+test_inode_replacement_even_with_same_size_and_mtime_refuses (__main__.CheckpointMemoTests.test_inode_replacement_even_with_same_size_and_mtime_refuses) ... ok
+test_marker_or_binding_change_cannot_hit (__main__.CheckpointMemoTests.test_marker_or_binding_change_cannot_hit) ... ok
+test_missing_allocation_identity_disables_memo (__main__.CheckpointMemoTests.test_missing_allocation_identity_disables_memo) ... ok
+test_only_first_same_job_check_reads_payloads (__main__.CheckpointMemoTests.test_only_first_same_job_check_reads_payloads) ... ok
+test_purged_payload_refuses_resume (__main__.CheckpointMemoTests.test_purged_payload_refuses_resume) ... ok
+test_same_size_corruption_with_restored_mtime_refuses (__main__.CheckpointMemoTests.test_same_size_corruption_with_restored_mtime_refuses) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.043s
+
+OK
+EXIT: 0
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T070308Z/combined/tests/test_launch_phase_timing.py -v
+test_default_path_runs_same_commands_and_produces_no_timing (__main__.LaunchTimingTests.test_default_path_runs_same_commands_and_produces_no_timing) ... ok
+test_enabled_logs_boundaries_without_polluting_mode_stdout (__main__.LaunchTimingTests.test_enabled_logs_boundaries_without_polluting_mode_stdout) ... ok
+test_failed_guard_preserves_exit_status_and_stops_dispatch (__main__.LaunchTimingTests.test_failed_guard_preserves_exit_status_and_stops_dispatch) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.259s
+
+OK
+EXIT: 0
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/run_native_regression.py /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T070308Z/combined
+test_all_retained_frames_exist_and_fixed_sample_is_authenticated (tests.test_s1_admission.OrchardAdmissionTests.test_all_retained_frames_exist_and_fixed_sample_is_authenticated) ... ok
+test_changed_sample_and_conflicting_frame_hashes_fail_closed (tests.test_s1_admission.OrchardAdmissionTests.test_changed_sample_and_conflicting_frame_hashes_fail_closed) ... ok
+test_legacy_dataset_aliases_use_the_label_list_identity (tests.test_s1_admission.OrchardAdmissionTests.test_legacy_dataset_aliases_use_the_label_list_identity) ... ok
+test_missing_retained_frame_fails_closed (tests.test_s1_admission.OrchardAdmissionTests.test_missing_retained_frame_fails_closed) ... ok
+test_native_sql_stream_rebuild_iterator_is_read_only (tests.test_s1_admission.OrchardAdmissionTests.test_native_sql_stream_rebuild_iterator_is_read_only) ... ok
+test_removed_rows_do_not_enter_the_rgb_denominator (tests.test_s1_admission.OrchardAdmissionTests.test_removed_rows_do_not_enter_the_rgb_denominator) ... ok
+test_changed_rank_payload_is_rejected (tests.test_s1_first_batch_progress.FirstBatchProgressTests.test_changed_rank_payload_is_rejected) ... ok
+test_completed_preparation_phase_is_not_rebuilt (tests.test_s1_first_batch_progress.FirstBatchProgressTests.test_completed_preparation_phase_is_not_rebuilt) ... ok
+test_completed_rank_is_authenticated_and_reused (tests.test_s1_first_batch_progress.FirstBatchProgressTests.test_completed_rank_is_authenticated_and_reused) ... ok
+test_failed_phase_never_publishes_completion (tests.test_s1_first_batch_progress.FirstBatchProgressTests.test_failed_phase_never_publishes_completion) ... ok
+test_foreign_binding_cannot_reuse_a_rank (tests.test_s1_first_batch_progress.FirstBatchProgressTests.test_foreign_binding_cannot_reuse_a_rank) ... ok
+test_partial_duplicate_nonfinite_and_wrong_row_do_not_complete (tests.test_s1_first_batch_progress.FirstBatchProgressTests.test_partial_duplicate_nonfinite_and_wrong_row_do_not_complete) ... ok
+test_destination_traversal_and_symlinks_are_rejected (tests.test_s1_staging.PinnedStagingTests.test_destination_traversal_and_symlinks_are_rejected) ... ok
+test_files_and_each_raster_are_bound_without_deleting_sources (tests.test_s1_staging.PinnedStagingTests.test_files_and_each_raster_are_bound_without_deleting_sources) ... ok
+test_member_hash_is_checked_during_streaming (tests.test_s1_staging.PinnedStagingTests.test_member_hash_is_checked_during_streaming) ... ok
+test_parent_traversal_and_links_are_rejected (tests.test_s1_staging.PinnedStagingTests.test_parent_traversal_and_links_are_rejected) ... ok
+test_payload_package_verifies_members_and_retains_duplicate_role_pins (tests.test_s1_staging.PinnedStagingTests.test_payload_package_verifies_members_and_retains_duplicate_role_pins) ... ok
+test_streamed_archive_and_cached_sample_are_verified (tests.test_s1_staging.PinnedStagingTests.test_streamed_archive_and_cached_sample_are_verified) ... ok
+test_symbolic_link_member_is_rejected (tests.test_s1_staging.PinnedStagingTests.test_symbolic_link_member_is_rejected) ... ok
+test_wrong_full_archive_digest_never_creates_completion_marker (tests.test_s1_staging.PinnedStagingTests.test_wrong_full_archive_digest_never_creates_completion_marker) ... ok
+test_new_run_chooses_training (tests.test_s1_launch_kit.LaunchKitTests.test_new_run_chooses_training) ... ok
+test_job_entry_preserves_wrapper_allocation_clock (tests.test_s1_launch_kit.LaunchKitTests.test_job_entry_preserves_wrapper_allocation_clock) ... ok
+test_parseable_but_incomplete_checkpoint_never_restarts_cold (tests.test_s1_launch_kit.LaunchKitTests.test_parseable_but_incomplete_checkpoint_never_restarts_cold) ... ok
+test_resume_requires_matching_binding_and_complete_payload_inventory (tests.test_s1_launch_kit.LaunchKitTests.test_resume_requires_matching_binding_and_complete_payload_inventory) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.367s
+
+OK
+EXIT: 0
+$ date -u
+Thu Nov 19 07:03:26 UTC 2026
+EXIT: 0

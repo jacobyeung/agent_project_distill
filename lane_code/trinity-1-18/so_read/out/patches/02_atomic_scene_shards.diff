@@ -1,0 +1,583 @@
+--- /dev/null
++++ b/h1eval/h10/atomic_journal.py
+@@ -0,0 +1,108 @@
++"""Durable per-item commits; the JSONL file is a recoverable projection.
++
++The caller holds writer.lock throughout recovery and commit. Immutable settings,
++export, source, shard count and membership remain bound by environment.json.
++"""
++import hashlib
++import json
++import os
++from pathlib import Path
++import uuid
++
++
++def encoded(value):
++    return (json.dumps(value, allow_nan=False)+'\n').encode()
++
++
++def key(row):
++    return (row['id'], row['arm'], row['mode'])
++
++
++def file_key(row):
++    return hashlib.sha256(encoded(key(row))).hexdigest()
++
++
++def atomic_write(path, data):
++    path = Path(path)
++    temp = path.with_name('.'+path.name+'.pending.'+uuid.uuid4().hex)
++    with temp.open('xb') as stream:
++        stream.write(data);stream.flush();os.fsync(stream.fileno())
++    os.replace(temp, path)
++    fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
++    try: os.fsync(fd)
++    finally: os.close(fd)
++
++
++class AtomicJournal:
++    def __init__(self, root):
++        self.root = Path(root)
++        self.directory = self.root/'committed'
++        self.directory.mkdir(exist_ok=True)
++        # Persist the directory entry before any per-item commit can be acknowledged.
++        fd = os.open(self.root, os.O_RDONLY | os.O_DIRECTORY)
++        try: os.fsync(fd)
++        finally: os.close(fd)
++        self.rows = []
++        self.done = {}
++
++    def read(self):
++        entries = []
++        for path in self.directory.glob('*.json'):
++            value = json.loads(path.read_bytes())
++            row = value['row']
++            if (value.get('schema') != 1 or row.get('complete') is not True
++                    or type(value['sequence']) is not int
++                    or path.stem != file_key(row)
++                    or value['sha256'] != hashlib.sha256(encoded(row)).hexdigest()):
++                raise ValueError('Corrupt committed item: '+str(path))
++            entries.append(value)
++        entries.sort(key=lambda r:r['sequence'])
++        if [e['sequence'] for e in entries] != list(range(len(entries))):
++            raise ValueError('Committed item sequences have gaps or duplicates')
++        self.rows = [e['row'] for e in entries]
++        self.done = {key(row):row for row in self.rows}
++        if len(self.done) != len(self.rows):raise ValueError('Duplicate committed keys')
++        return list(self.rows)
++
++    def recover(self):
++        rows = self.read()
++        path = self.root/'items.jsonl'
++        expected = b''.join(map(encoded,rows))
++        if path.exists():
++            old = path.read_bytes()
++            if old == expected:return rows
++            # Preserve all divergent bytes, including an incomplete UTF-8/JSON tail.
++            preserved = self.root/('items.jsonl.recovery.'+hashlib.sha256(old).hexdigest())
++            if not preserved.exists():atomic_write(preserved,old)
++            # A complete line absent from the commit store is not a torn projection.
++            for line in old.splitlines(keepends=True):
++                if not line.endswith(b'\n'):break
++                row = json.loads(line)
++                if key(row) not in self.done or encoded(self.done[key(row)]) != encoded(row):
++                    raise ValueError('JSONL has an item absent from its commit store')
++        atomic_write(path,expected)
++        return rows
++
++    def commit(self, row):
++        if row.get('complete') is not True:raise ValueError('Cannot commit incomplete read')
++        k = key(row)
++        if k in self.done:
++            if encoded(self.done[k]) != encoded(row):raise ValueError('Conflicting duplicate commit')
++            return
++        value = dict(schema=1, sequence=len(self.rows), row=row,
++                     sha256=hashlib.sha256(encoded(row)).hexdigest())
++        atomic_write(self.directory/(file_key(row)+'.json'),encoded(value))
++        self.rows.append(row);self.done[k] = row
++
++
++def scene_selected(items, index, count):
++    """Assign whole scenes to shards, balancing item counts without changing row order."""
++    groups = {}
++    for item in items:
++        if not item.get('room_key'):raise ValueError('Scene sharding requires room_key')
++        groups.setdefault(item['room_key'],[]).append(item)
++    totals = [0]*count;owners = {}
++    for scene, rows in sorted(groups.items(), key=lambda p:(-len(p[1]),p[0])):
++        owner = min(range(count),key=lambda i:(totals[i],i))
++        owners[scene] = owner;totals[owner] += len(rows)
++    return [r for r in items if owners[r['room_key']] == index]
+--- a/h1eval/h10/launch.py
++++ b/h1eval/h10/launch.py
+@@ -61,18 +61,21 @@
+     return i, n
+ 
+ 
+-def selected(items, value):
++def selected(items, value, scene_shards=False):
+     i,n=shard(value)
++    if scene_shards:
++        from .atomic_journal import scene_selected
++        return scene_selected(items,i,n)
+     return items[i::n]
+ 
+ 
+-def select_types(all_items, items, types):
++def select_types(all_items, items, types, allow_empty=False):
+     """ORCH 1739Z: decode type by type (baseline + its modes together), so usage lands per type."""
+     wanted=[t for t in types.split(',') if t]
+     known={r.get('question_type',r.get('type')) for r in all_items}
+     if not wanted or set(wanted)-known:raise ValueError('--types names an unknown item type')
+     chosen=[r for r in items if r.get('question_type',r.get('type')) in wanted]
+-    if not chosen:raise ValueError('--types selects no item of this shard')
++    if not chosen and not allow_empty:raise ValueError('--types selects no item of this shard')
+     return chosen
+ 
+ 
+@@ -144,8 +147,8 @@
+         return (_REQUEST_STOP or (stop_at is not None and time.time() >= stop_at) or
+                 (stop_file and Path(stop_file).exists()))
+     manifest=load_manifest(args.items)
+-    selected_items=selected(manifest['items'], args.shard)
+-    if getattr(args,'types',None):selected_items=select_types(manifest['items'],selected_items,args.types)
++    selected_items=selected(manifest['items'], args.shard, getattr(args,'scene_shards',False))
++    if getattr(args,'types',None):selected_items=select_types(manifest['items'],selected_items,args.types,getattr(args,'atomic_journal',False))
+     arms=args.arms.split(',')
+     if not arms or len(set(arms))!=len(arms) or any(a not in ('own','tower') for a in arms):
+         raise ValueError('Arms must be unique own,tower values')
+@@ -201,6 +204,8 @@
+     if reviewed:
+         binding.update(settings_sha256=digest(settings), mapping_sha256=mapping['sha256'],
+                        parity_code_sha256=reader_code_hash(args.reader_root))
++    if getattr(args,'atomic_journal',False):binding['journal_mode']='atomic-items-v1'
++    if getattr(args,'scene_shards',False):binding['shard_strategy']='scene-count-v1'
+     reused=[]
+     tower_from=getattr(args,'tower_from',None)
+     if tower_from:
+@@ -227,17 +232,28 @@
+             if old['binding']!=binding:raise ValueError('Resume binding differs; use a fresh output directory')
+         else:
+             if (out/'items.jsonl').exists():raise ValueError('Records lack environment binding')
+-            write_json(env,dict(binding=binding,settings=settings,items=str(Path(args.items).resolve()),
++            environment=dict(binding=binding,settings=settings,items=str(Path(args.items).resolve()),
+                 export=str(export),artifact_manifest=str(artifact),reader_root=str(Path(args.reader_root).resolve()),
+                 utc=datetime.now(timezone.utc).isoformat(),host=platform.node(),python=sys.version,
+                 cuda_visible_devices=os.environ.get('CUDA_VISIBLE_DEVICES'),
+-                threads={k:os.environ.get(k) for k in ('OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS_NUM_THREADS')}))
++                threads={k:os.environ.get(k) for k in ('OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS_NUM_THREADS')})
++            if getattr(args,'atomic_journal',False):
++                from .atomic_journal import atomic_write
++                atomic_write(env,(json.dumps(environment,indent=2,sort_keys=True,allow_nan=False)+'\n').encode())
++            else:write_json(env,environment)
+         if mapping is not None:
+             mapping_path=out/'item_mapping.json'
+             if mapping_path.exists() and json.loads(mapping_path.read_text())!=mapping:
+                 raise ValueError('Resume mapping differs')
+-            write_json(mapping_path,mapping)
+-        rows=read_records(out/'items.jsonl')
++            if getattr(args,'atomic_journal',False):
++                from .atomic_journal import atomic_write
++                atomic_write(mapping_path,(json.dumps(mapping,indent=2,sort_keys=True,allow_nan=False)+'\n').encode())
++            else:write_json(mapping_path,mapping)
++        durable=None
++        if getattr(args,'atomic_journal',False):
++            from .atomic_journal import AtomicJournal
++            durable=AtomicJournal(out)
++        rows=durable.recover() if durable is not None else read_records(out/'items.jsonl')
+         allowed=plan(selected_items,arms,interventions)
+         done={(r['id'],r['arm'],r['mode']):r for r in rows}
+         if not set(done)<=allowed:raise ValueError('Completed records are outside shard plan')
+@@ -258,6 +274,7 @@
+             for row in reused:
+                 key=(row['id'],'tower','none')
+                 if key in done:continue
++                if durable is not None:durable.commit(row)
+                 commit_record(stream, row)
+                 done[key]=row;added+=1
+             for arm in arms:
+@@ -278,7 +295,7 @@
+                     if reviewed:
+                         if cached_generator is None:
+                             cached_generator=maker(export,artifact_spec(artifact),
+-                                [mapped[r['id']] for r in (selected_items if generators is None else select_types(manifest['items'],selected(manifest['items'],args.shard),args.all_types))],perception_factory=factory,
++                                [mapped[r['id']] for r in (selected_items if generators is None else select_types(manifest['items'],selected(manifest['items'],args.shard,getattr(args,'scene_shards',False)),args.all_types))],perception_factory=factory,
+                                 device=args.device,settings=settings)
+                         if generators is not None:generators[arm]=cached_generator
+                         generator=cached_generator
+@@ -303,6 +320,7 @@
+                             row=dict(id=item['id'],room_key=item['room_key'],type=item['question_type'],
+                                      arm=arm,mode=key,intervention=mode,applied=arm=='own',
+                                      output=output,seconds=seconds,complete=True)
++                            if durable is not None:durable.commit(row)
+                             commit_record(stream, row)
+                             done[(item['id'],arm,key)]=row;added+=1
+                             if len(sample)<10:
+@@ -352,10 +370,13 @@
+                     with redirect_stdout(log), redirect_stderr(log):
+                         result=run(part,make_real=make_real,factory_options=factory_options,generators=generators)
+                 except ReadDeadline:
+-                    rows=read_records(root/'items.jsonl')
++                    if getattr(part,'atomic_journal',False):
++                        from .atomic_journal import AtomicJournal
++                        rows=AtomicJournal(root).recover()
++                    else:rows=read_records(root/'items.jsonl')
+                     from h1eval.items import load_manifest
+                     manifest=load_manifest(part.items)
+-                    expected=len(select_types(manifest['items'],selected(manifest['items'],part.shard),kind))
++                    expected=len(select_types(manifest['items'],selected(manifest['items'],part.shard,getattr(part,'scene_shards',False)),kind,getattr(part,'atomic_journal',False)))
+                     result=dict(completed=len(rows),expected=expected,stopped=True)
+                     write_json(root/'SUMMARY.json',result)
+                     write_json(root/'progress.json',result)
+@@ -384,6 +405,8 @@
+     p.add_argument('--finish-by',type=float,help='UTC epoch: abandon an unfinished read to allow result return')
+     p.add_argument('--stop-file',help='Cooperative stop marker shared by this allocation')
+     p.add_argument('--type-journals',action='store_true')
++    p.add_argument('--atomic-journal',action='store_true',help='Opt in to durable per-item commits and torn-JSONL recovery')
++    p.add_argument('--scene-shards',action='store_true',help='Opt in to disjoint whole-scene assignment; keep shard count fixed')
+     p.add_argument('--export-cache');p.add_argument('--allocation')
+     return p
+ 
+--- /dev/null
++++ b/h1eval/h10/merge_read.py
+@@ -0,0 +1,108 @@
++"""Merge complete unperturbed tower shards into a deterministic answer/trace return.
++
++Run metadata and measured timings stay in PROVENANCE.json. The tar contains the
++exact semantic record values in canonical JSON, never runtime telemetry.
++"""
++import argparse
++import gzip
++import hashlib
++import io
++import json
++from pathlib import Path
++import tarfile
++
++from .atomic_journal import AtomicJournal, atomic_write, scene_selected
++
++TELEMETRY = ('seconds', 'timings', 'audit', 'perception_memo', 'read_cache', 'read_profile')
++
++
++def canonical(value):
++    return (json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False)+'\n').encode()
++
++
++def semantic(row):
++    out = dict(row['output'])
++    audit = out.get('audit')
++    if audit and audit.get('violations'):raise ValueError('Cannot accept an audit violation')
++    for field in TELEMETRY:out.pop(field,None)
++    result = {k:v for k,v in row.items() if k != 'seconds'}
++    result['output'] = out
++    return result
++
++
++def merge(manifest, roots, output, *, types=None):
++    items = manifest['items']
++    expected_items = [r for r in items if types is None or r['question_type'] in types]
++    expected = {(r['id'],'tower','none') for r in expected_items}
++    if len(expected) != len(expected_items):raise ValueError('Duplicate expected IDs')
++    by_id={r['id']:r for r in expected_items}
++    common=None;found={};evidence=[];shard_count=None
++    seen_bindings=set()
++    for root in map(Path,roots):
++        env=json.loads((root/'environment.json').read_text());binding=env['binding']
++        if binding.get('journal_mode') != 'atomic-items-v1':raise ValueError('Merge requires atomic journals')
++        if binding['item_set_sha256'] != manifest['item_set_sha256']:raise ValueError('Item-set binding differs')
++        if binding['arms'] != ['tower'] or binding['modes'] != [{'name':'none'}]:
++            raise ValueError('Merge supports only unperturbed tower reads')
++        index,count=map(int,binding['shard'].split('/'))
++        if count<1 or not 0<=index<count:raise ValueError('Invalid shard')
++        if shard_count is None:shard_count=count
++        if count!=shard_count:raise ValueError('Shard counts differ')
++        identity={k:v for k,v in binding.items() if k not in ('shard','ids','types')}
++        if common is None:common=identity
++        if identity!=common:raise ValueError('Shard export/settings/source bindings differ')
++        assigned=(scene_selected(items,index,count) if binding.get('shard_strategy')=='scene-count-v1'
++                  else items[index::count])
++        assigned_ids={r['id'] for r in assigned}
++        ids=binding['ids']
++        if len(set(ids))!=len(ids) or not set(ids)<=assigned_ids:raise ValueError('Wrong shard membership')
++        if binding.get('types') is not None:
++            typed={r['id'] for r in assigned if r['question_type'] in binding['types']}
++            if set(ids)!=typed:raise ValueError('Wrong type membership')
++        bkey=str(root.resolve())
++        if bkey in seen_bindings:raise ValueError('Repeated journal directory')
++        seen_bindings.add(bkey)
++        # Read only immutable committed files; never repair another worker's projection.
++        journal=object.__new__(AtomicJournal);journal.root=root;journal.directory=root/'committed'
++        rows=journal.read()
++        if {r['id'] for r in rows} != set(ids):raise ValueError('Shard is incomplete')
++        for row in rows:
++            key=(row['id'],row['arm'],row['mode'])
++            if key not in expected:raise ValueError('Unexpected item in return')
++            if key in found:raise ValueError('Duplicate item across shards')
++            item=by_id[row['id']]
++            if row['type']!=item['question_type'] or row['room_key']!=item['room_key']:
++                raise ValueError('Row type/room differs from manifest')
++            found[key]=semantic(row)
++        evidence.append(dict(root=str(root),environment=env,
++                             seconds=[dict(id=r['id'],seconds=r['seconds']) for r in rows]))
++    if set(found)!=expected:raise ValueError('Merged return is missing items')
++    ordered=[found[(r['id'],'tower','none')] for r in expected_items]
++    raw=b''.join(map(canonical,ordered))
++    header=canonical(dict(schema='read-answer-trace-return-v1',items=len(ordered),
++                          item_set_sha256=manifest['item_set_sha256'],
++                          items_sha256=hashlib.sha256(raw).hexdigest()))
++    out=Path(output);out.mkdir(parents=True,exist_ok=True)
++    atomic_write(out/'items.jsonl',raw)
++    atomic_write(out/'MANIFEST.json',header)
++    atomic_write(out/'PROVENANCE.json',canonical(dict(binding=common,journals=evidence)))
++    buf=io.BytesIO()
++    with gzip.GzipFile(fileobj=buf,mode='wb',mtime=0,filename='') as gz:
++        with tarfile.open(fileobj=gz,mode='w',format=tarfile.USTAR_FORMAT) as archive:
++            for name,data in (('MANIFEST.json',header),('items.jsonl',raw)):
++                entry=tarfile.TarInfo(name);entry.size=len(data);entry.mode=0o600;entry.mtime=0
++                archive.addfile(entry,io.BytesIO(data))
++    atomic_write(out/'answer_trace_return.tgz',buf.getvalue())
++    return dict(items=len(ordered),sha256=hashlib.sha256(buf.getvalue()).hexdigest())
++
++
++def main():
++    p=argparse.ArgumentParser();p.add_argument('--items',required=True)
++    p.add_argument('--out',required=True);p.add_argument('--types')
++    p.add_argument('journals',nargs='+');a=p.parse_args()
++    from h1eval.items import load_manifest
++    print(json.dumps(merge(load_manifest(a.items),a.journals,a.out,
++                           types=a.types.split(',') if a.types else None),sort_keys=True))
++
++
++if __name__=='__main__':main()
+--- /dev/null
++++ b/h1eval/h10/array_worker.py
+@@ -0,0 +1,59 @@
++"""Entry point for an explicitly enabled preempt array; never submits jobs."""
++import argparse
++import fcntl
++import json
++import os
++from pathlib import Path
++import time
++
++
++def main():
++    p=argparse.ArgumentParser();p.add_argument('config');p.add_argument('--enable-array',action='store_true')
++    a=p.parse_args()
++    if not a.enable_array:p.error('Array execution is OFF; pass --enable-array explicitly')
++    cfg=json.loads(Path(a.config).read_text())
++    count=cfg['shards'];index=int(os.environ['SLURM_ARRAY_TASK_ID'])
++    if type(count) is not int or not 1<=count<=16 or not 0<=index<count:
++        raise ValueError('Array index differs from the fixed shard plan')
++    if 'SLURM_ARRAY_TASK_COUNT' in os.environ and int(os.environ['SLURM_ARRAY_TASK_COUNT'])!=count:
++        raise ValueError('Scheduler array count differs from the fixed shard plan')
++    if not os.environ.get('CUDA_VISIBLE_DEVICES'):
++        raise ValueError('Array reads require an assigned GPU')
++    duration=cfg['attempt_seconds']
++    if type(duration) is not int or not 1800<=duration<=172800:
++        raise ValueError('attempt_seconds must fit the declared two-day partition limit')
++    root=Path(cfg['journal_root']);root.mkdir(parents=True,exist_ok=True)
++    from . import launch
++    from h1eval.items import load_manifest
++    from orchard_h10.common import ORDER
++    types=cfg['types']
++    if not types or len(set(types))!=len(types) or any(t not in ORDER for t in types):
++        raise ValueError('Invalid type list')
++    now=time.time()
++    args=['--items',cfg['items'],'--export',cfg['export'],'--export-pin',cfg['export_pin'],
++          '--artifact-manifest',cfg['artifact_manifest'],'--reader-root',cfg['reader_root'],
++          '--settings',cfg['settings'],'--out',str(root),'--shard',f'{index}/{count}',
++          '--device','cuda:0','--arms','tower','--modes','none','--types',','.join(types),
++          '--type-journals','--atomic-journal','--scene-shards',
++          '--stop-at',str(now+duration-900),'--finish-by',str(now+duration-300)]
++    with (root/f'array-{index}.lock').open('a') as lock:
++        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
++        rc=launch.main(args)
++        if rc:return rc
++        # A normal exit with an unfinished set must not masquerade as success.
++        manifest=load_manifest(cfg['items'])
++        chosen=launch.selected(manifest['items'],f'{index}/{count}',True)
++        from .atomic_journal import AtomicJournal
++        for kind in types:
++            expected={r['id'] for r in chosen if r['question_type']==kind}
++            folder=root/str(ORDER.index(kind))/str(index)
++            if not folder.exists():
++                if expected:return 75
++                continue
++            journal=object.__new__(AtomicJournal);journal.root=folder;journal.directory=folder/'committed'
++            rows=journal.read()
++            if {r['id'] for r in rows}!=expected:return 75
++    return 0
++
++
++if __name__=='__main__':raise SystemExit(main())
+--- /dev/null
++++ b/h1eval/tests/test_read_journal.py
+@@ -0,0 +1,166 @@
++"""CPU crash fixtures. READ_INPUT_SRC points to the read-only A4/src tree."""
++import hashlib
++from contextlib import redirect_stdout
++import io
++import json
++import os
++from pathlib import Path
++import sys
++import types
++import unittest
++import uuid
++from unittest.mock import patch
++
++import torch
++torch.set_num_threads(8)
++SRC=Path(__file__).resolve().parents[2]
++INPUT=Path(os.environ['READ_INPUT_SRC'])
++sys.path[:0]=[str(SRC),str(INPUT/'tree'),str(INPUT)]
++from h1eval.h10 import atomic_journal as J
++from h1eval.h10.merge_read import merge,semantic,canonical
++from h1eval.h10 import launch
++from h1eval import items as item_module
++
++ROOT=Path(os.environ.get('READ_TEST_TMP',str(Path.cwd()/'work/test-artifacts')))
++
++
++def directory():
++    p=ROOT/uuid.uuid4().hex;p.mkdir(parents=True);return p
++
++
++def row(identifier):
++    return dict(id=identifier,arm='tower',mode='none',type='camera_rotation',room_key='room-'+identifier,
++                complete=True,seconds=2.,output=dict(text='</think>\n1',tokens=[1,2],finish='eos',
++                    calls={'records':[]},heads={'pose9':[-0.,1.]},seconds=1.,timings={'total_s':1.},
++                    audit={'violations':[]},perception_memo={'hits':1},scores={'answer':1.}))
++
++
++class JournalTests(unittest.TestCase):
++    def test_torn_utf8_projection_and_commit_before_projection(self):
++        root=directory();journal=J.AtomicJournal(root)
++        journal.recover();journal.commit(row('a'));journal.commit(row('b'))
++        (root/'items.jsonl').write_bytes(J.encoded(row('a'))+b'{"id":"\xe2')
++        again=J.AtomicJournal(root);self.assertEqual([r['id'] for r in again.recover()],['a','b'])
++        self.assertEqual((root/'items.jsonl').read_bytes(),J.encoded(row('a'))+J.encoded(row('b')))
++        self.assertEqual(len(list(root.glob('items.jsonl.recovery.*'))),1)
++
++    def test_interrupted_pending_file_is_not_committed(self):
++        root=directory();journal=J.AtomicJournal(root);journal.recover()
++        with patch.object(J.os,'replace',side_effect=RuntimeError('simulated interruption before rename')):
++            with self.assertRaises(RuntimeError):journal.commit(row('a'))
++        self.assertEqual(J.AtomicJournal(root).recover(),[])
++        self.assertEqual(len(list((root/'committed').glob('.*pending.*'))),1)
++        journal.commit(row('a'));self.assertEqual(len(J.AtomicJournal(root).recover()),1)
++
++    def test_duplicate_corruption_and_unowned_jsonl_fail(self):
++        root=directory();journal=J.AtomicJournal(root);journal.recover();journal.commit(row('a'))
++        journal.commit(row('a'));self.assertEqual(len(journal.rows),1)
++        altered=row('a');altered['output']['text']='changed'
++        with self.assertRaisesRegex(ValueError,'Conflicting'):journal.commit(altered)
++        (root/'items.jsonl').write_bytes(J.encoded(row('x')))
++        with self.assertRaisesRegex(ValueError,'absent'):J.AtomicJournal(root).recover()
++        path=root/'committed'/(J.file_key(row('a'))+'.json')
++        value=json.loads(path.read_bytes());value['row']['output']['text']='corrupt'
++        path.write_bytes(J.encoded(value))
++        with self.assertRaisesRegex(ValueError,'Corrupt'):J.AtomicJournal(root).read()
++
++    def test_scene_sets_disjoint_complete_stable_and_colocated(self):
++        items=[dict(id=str(i),room_key=str(i//3)) for i in range(13)]
++        shards=[J.scene_selected(items,i,4) for i in range(4)]
++        self.assertEqual(sorted(r['id'] for s in shards for r in s),sorted(r['id'] for r in items))
++        self.assertEqual(sum(len(s) for s in shards),len(items))
++        for room in {r['room_key'] for r in items}:
++            self.assertEqual(sum(any(r['room_key']==room for r in s) for s in shards),1)
++        self.assertEqual(shards,[J.scene_selected(items,i,4) for i in range(4)])
++
++
++class RunnerTests(unittest.TestCase):
++    def setUp(self):
++        self.root=directory();self.generated=[]
++        self.manifest={'name':'fixture','count':5,'items':[
++            dict(id=str(i),question_type='camera_rotation',room_key='room-'+str(i//2)) for i in range(5)],
++            'item_set_sha256':'fixture-item-set','r0_check':{'pin':{'path':'fixture','sha256':'0'*64}}}
++        self.pin=self.root/'pin.json';self.pin.write_text(json.dumps({'lineage':'SFT','step':600}))
++        self.patches=[patch.object(launch,'load_manifest',return_value=self.manifest),
++                      patch.object(item_module,'read_contract'),patch.object(launch,'sha',return_value='0'*64),
++                      patch.object(launch,'code_hash',return_value='1'*64),
++                      patch.object(launch,'export_hash',return_value='2'*64)]
++        for p in self.patches:p.start()
++        self.addCleanup(lambda:[p.stop() for p in reversed(self.patches)])
++        self.capture=redirect_stdout(io.StringIO());self.capture.__enter__()
++        self.addCleanup(lambda:self.capture.__exit__(None,None,None))
++
++    def args(self,name,shard='0/1',atomic=True,scene=False):
++        return types.SimpleNamespace(items=str(self.root/'manifest.json'),shard=shard,types=None,
++            arms='tower',modes='none',reader_root=str(INPUT/'b'),reader_entry='fixture:make_real',
++            export=str(self.root/'export'),artifact_manifest=str(self.root/'artifact.json'),
++            export_pin=str(self.pin),out=str(self.root/name),device='cpu',stop_at=None,finish_by=None,
++            stop_file=None,atomic_journal=atomic,scene_shards=scene)
++
++    def make_real(self,export,artifact,items,**kwargs):
++        def generate(item):
++            self.generated.append(item['id'])
++            return row(item['id'])['output']
++        return generate
++
++    def test_reader_resume_committed_item_without_regeneration(self):
++        args=self.args('resume');original=launch.commit_record
++        def interrupted(stream,value):
++            if value.get('id')=='1':
++                stream.write('{"torn"');stream.flush()
++                raise launch.ReadDeadline()
++            original(stream,value)
++        with patch.object(launch,'commit_record',side_effect=interrupted):
++            with self.assertRaises(launch.ReadDeadline):launch.run(args,make_real=self.make_real)
++        self.assertEqual(self.generated,['0','1'])
++        result=launch.run(args,make_real=self.make_real)
++        self.assertEqual(result,dict(added=3,skipped=2,completed=5,expected=5))
++        self.assertEqual(self.generated,['0','1','2','3','4'])
++        result=launch.run(args,make_real=self.make_real)
++        self.assertEqual(result['added'],0);self.assertEqual(len(self.generated),5)
++        changed=self.args('resume',shard='0/2')
++        with self.assertRaisesRegex(ValueError,'binding differs'):launch.run(changed,make_real=self.make_real)
++
++    def test_default_path_rejects_torn_tail_and_has_no_commit_store(self):
++        args=self.args('default',atomic=False);launch.run(args,make_real=self.make_real)
++        root=Path(args.out);self.assertFalse((root/'committed').exists())
++        with (root/'items.jsonl').open('ab') as f:f.write(b'{')
++        with self.assertRaisesRegex(ValueError,'Incomplete JSONL tail'):launch.run(args,make_real=self.make_real)
++
++    def test_shards_merge_byte_identical_to_single_and_reject_missing_duplicate(self):
++        one=self.args('one',scene=True);launch.run(one,make_real=self.make_real)
++        shards=[self.args('part'+str(i),shard=f'{i}/3',scene=True) for i in range(3)]
++        for args in shards:launch.run(args,make_real=self.make_real)
++        first=merge(self.manifest,[one.out],self.root/'merged-one')
++        second=merge(self.manifest,[a.out for a in reversed(shards)],self.root/'merged-many')
++        self.assertEqual(first,second)
++        self.assertEqual((self.root/'merged-one/answer_trace_return.tgz').read_bytes(),
++                         (self.root/'merged-many/answer_trace_return.tgz').read_bytes())
++        with self.assertRaisesRegex(ValueError,'missing'):merge(self.manifest,[shards[0].out],self.root/'missing')
++        with self.assertRaisesRegex(ValueError,'Repeated'):merge(self.manifest,[shards[0].out]*2,self.root/'duplicate')
++        bad=Path(shards[0].out)/'environment.json';value=json.loads(bad.read_text())
++        value['binding']['export_sha256']='bad';bad.write_text(json.dumps(value))
++        with self.assertRaisesRegex(ValueError,'bindings differ'):
++            merge(self.manifest,[a.out for a in shards],self.root/'bad')
++
++    def test_semantic_comparison_preserves_calls_tokens_scores_and_signed_zero(self):
++        a=row('a');b=row('a');b['seconds']=99;b['output']['timings']={'total_s':88}
++        self.assertEqual(canonical(semantic(a)),canonical(semantic(b)))
++        b['output']['tokens'].append(3)
++        self.assertNotEqual(canonical(semantic(a)),canonical(semantic(b)))
++        b=row('a');b['output']['heads']['pose9'][0]=0.
++        self.assertNotEqual(canonical(semantic(a)),canonical(semantic(b)))
++
++    def test_type_journals_support_empty_scene_shards(self):
++        self.manifest['items'][0]['question_type']='camera_displacement'
++        roots=[]
++        for i in range(3):
++            args=self.args('types'+str(i),shard=f'{i}/3',scene=True)
++            args.types='camera_displacement,camera_rotation'
++            result=launch.run_types(args,make_real=self.make_real)
++            roots.extend(sorted(Path(args.out).glob('*/*')))
++        result=merge(self.manifest,roots,self.root/'types-merged')
++        self.assertEqual(result['items'],5)
++
++
++if __name__=='__main__':unittest.main(verbosity=2)

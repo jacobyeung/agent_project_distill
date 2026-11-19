@@ -1,0 +1,42 @@
+{
+  "01_cpu_prefetch.diff": {
+    "bytes": 25100,
+    "sha256": "302aa43ba3123131127279e8b540a5f329dd890a378f6920e6b41c1a12419c4e",
+    "paths": [
+      "student_pilot/carrier_c1_run.py",
+      "student_pilot/c1_cpu_prefetch.py",
+      "tests/so_helpers.py",
+      "tests/so_processor.py",
+      "tests/test_so_prefetch.py"
+    ]
+  },
+  "02_decoded_rgb_cache.diff": {
+    "bytes": 6383,
+    "sha256": "0cf3b000e48321a60685cec0ff235a701a39ecbe479dcd63db4744e2041f4501",
+    "paths": [
+      "student_pilot/c1_decoded_cache.py",
+      "student_pilot/pose_samples.py",
+      "student_pilot/batches.py",
+      "tests/test_so_cache.py"
+    ]
+  },
+  "03_batch_metrics.diff": {
+    "bytes": 13258,
+    "sha256": "d896bb52b6d165be60ebe3acdc867a7d4161172ea573e8e96ca6b51eec1c6e51",
+    "paths": [
+      "student_pilot/carrier_c1_run.py",
+      "student_pilot/c1_batch_metrics.py",
+      "tests/test_so_metrics.py",
+      "tests/test_so_joint.py"
+    ]
+  },
+  "_application": {
+    "method": "Each diff applies independently to the untouched input with patch --batch --fuzz=0 -p1. For the complete tested build, apply 01, 02, 03 in order to one fresh input copy; offsets are permitted, fuzz is not.",
+    "test_method": "Run tests.test_so_prefetch, tests.test_so_cache, tests.test_so_metrics and tests.test_so_joint on the complete series. Shared test helpers ship in 01; the joint regression in 03 requires all three patches.",
+    "defaults": {
+      "C1_CPU_PREFETCH": "0",
+      "C1_DECODED_CACHE_MIB": "0",
+      "C1_BATCH_METRICS": "0"
+    }
+  }
+}

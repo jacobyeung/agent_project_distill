@@ -18,7 +18,7 @@ class Phases:
         self.local = threading.local()
 
     @contextlib.contextmanager
-    def scope(self, name):
+    def scope(self, name, stream=None):
         old = getattr(self.local, 'phase', '')
         self.local.phase = name
         tick = time.perf_counter()
@@ -26,13 +26,13 @@ class Phases:
         # Only main-thread ranges use CUDA events. CPU prefetch must stay CPU-only.
         if self.device.type == 'cuda' and threading.current_thread() is threading.main_thread():
             begin, end = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
-            begin.record()
+            begin.record(stream)
         try:
             with torch.profiler.record_function('so/' + name):
                 yield
         finally:
             if end is not None:
-                end.record()
+                end.record(stream)
             self.records.append((name, time.perf_counter() - tick, begin, end))
             self.local.phase = old
 
@@ -78,12 +78,13 @@ def instrument_step(run, phases):
             label = 'backward_including_recompute_and_fsdp'
         elif 'torch.cuda.synchronize(device)' in text:
             label = 'explicit_preforward_sync'
-        if text.startswith('for key, value in result['):
+        if text.startswith('for key, value in result[') or text.startswith('if deferred_components is None:'):
             metric_start = len(body)
         body.append(_with(label, [node]) if label else node)
     if metric_start is not None:
         body[metric_start:] = [_with('metrics_and_shapes', body[metric_start:])]
     micro.body = body
+    ast.fix_missing_locations(tree)
     post_start = next(i for i,n in enumerate(function.body) if ast.unparse(n).startswith('reduced = torch.tensor('))
     opt = next(i for i,n in enumerate(function.body) if ast.unparse(n) == 'optimizer.step()')
     function.body[post_start:opt + 1] = [
@@ -108,7 +109,8 @@ def hooks(run, model, phases):
             if label == 'lm_layer':
                 name_now += ('_recompute' if getattr(phases.local, 'phase', '') ==
                              'backward_including_recompute_and_fsdp' else '_forward')
-            with phases.scope(name_now):
+            stream = args[2] if label == 'fsdp/_unshard' and phases.device.type == 'cuda' else None
+            with phases.scope(name_now, stream=stream):
                 return original(*args, **kwargs)
         changes.append((owner, name, original))
         setattr(owner, name, call)
@@ -122,6 +124,17 @@ def hooks(run, model, phases):
             wrap(module, 'forward', 'private_vision' if 'auxiliary_heads' in name else 'base_vision')
         elif kind in ('CameraSupervision', 'PrivateDepth'):
             wrap(module, 'forward', 'head/' + kind)
+            if kind == 'CameraSupervision':
+                for method in ('loss', 'predict_all'):
+                    if hasattr(module, method):
+                        wrap(module, method, 'head/pose_' + method)
+        elif kind in ('Qwen3_5GatedDeltaNet', 'Qwen3NextGatedDeltaNet'):
+            for method in ('causal_conv1d_fn', 'causal_conv1d_update', 'chunk_gated_delta_rule',
+                           'recurrent_gated_delta_rule'):
+                if getattr(module, method, None) is not None:
+                    wrap(module, method, 'deltanet/' + method)
+            wrap(module.norm, 'forward', 'deltanet/gated_norm')
+            wrap(module.conv1d, 'forward', 'deltanet/torch_depthwise_conv')
     for name in ('check_row', 'move', 'memory_stats', 'own_values'):
         wrap(run, name, name)
     from torch.distributed.fsdp import _runtime_utils as runtime

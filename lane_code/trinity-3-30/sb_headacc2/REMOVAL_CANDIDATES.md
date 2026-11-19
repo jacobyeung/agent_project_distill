@@ -1,1 +1,2 @@
 - work/pack/DIRECT_D0_200_R0dev_absdist.jsonl.gz (54 bytes, empty export: san_kit.direct('D0',200,'R0-dev') returns no rows on trinity-3-30); not in the staged pack.
+- out/sb_headacc2_pack_0618Z.tar (5,969,920 bytes: over the brief's 5 MB per-file limit by 0.97 MB). Its sha256 73951ed8...012a equals the copy on trinity-1-18 /scratch/jjyeung/n30_mirror/sb_headacc2/, and its contents are unpacked in work/pack; the local tar can go.

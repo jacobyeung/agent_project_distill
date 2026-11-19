@@ -1,0 +1,71 @@
+{
+  "application_checks": {
+    "A4": "exact output bytes, zero fuzz",
+    "B5": "zero fuzz; original types binding retained"
+  },
+  "apply_from": "A4/src (or a fresh copy)",
+  "base": "/scratch/jjyeung/orch_n30/so_in/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out3/A4/src",
+  "patches": {
+    "01_bounded_read_caches.diff": {
+      "files": {
+        "b/e2e_reader/parity.py": {
+          "after_sha256": "fd2a26a848d5d4f5123e13d5226ea6e9bf21d242a03a795352c19d3b26c2c18d",
+          "before_sha256": "d948af4264381ca523dfe1c311e537f9bdd2aebc27c43d2412dbfe3755161dd1",
+          "bytes": 15063
+        },
+        "b/e2e_reader/read_cache.py": {
+          "after_sha256": "0cef12cab69d7f4767f82849a193d036f3532f2ae5d165ac97076c50a2147cce",
+          "before_sha256": null,
+          "bytes": 8135
+        },
+        "b/e2e_reader/real.py": {
+          "after_sha256": "c0b9b8d51deb37ebfaa2a11c80d6486dc2432a99129e1776b64cbeaec4c75fe8",
+          "before_sha256": "d69be37f4787e268ca11ff22ff334aa3b41752f6bb6f2bf7bf3dc52e1d4e2e6e",
+          "bytes": 7791
+        },
+        "b/e2e_reader/stage1.py": {
+          "after_sha256": "d61ee2be9e14dac43aec6bea6f0738bbdc12653f64c9c895fc1d3040c4085c0c",
+          "before_sha256": "b1a77424a2a014b12890805d8c72f1a83dd5e378cd54a2ff221887ccde1cafe1",
+          "bytes": 11998
+        },
+        "b/tests/test_read_cache.py": {
+          "after_sha256": "53348ead4136cd01a07c022d2123b8e675e86308e2e6619d99826ca7c9e03ed9",
+          "before_sha256": null,
+          "bytes": 15119
+        }
+      },
+      "sha256": "706da49b44f94c7522a11615e8344519c6383129cdbf9c99c6c705f3c0f346bb"
+    },
+    "02_atomic_scene_shards.diff": {
+      "files": {
+        "h1eval/h10/array_worker.py": {
+          "after_sha256": "9a359135ed525fe13a611affb347af55aa3bd238285991a5352686d3b56d2c76",
+          "before_sha256": null,
+          "bytes": 2957
+        },
+        "h1eval/h10/atomic_journal.py": {
+          "after_sha256": "ec6621ccf9bfe6b5bf9c8af88288602b20ce73970169da692e65b680879aed97",
+          "before_sha256": null,
+          "bytes": 4419
+        },
+        "h1eval/h10/launch.py": {
+          "after_sha256": "6cfe8f2c954876eb3cf0e53966572c34403998e8c7af303bff8505756619a94a",
+          "before_sha256": "eeeaae976a5bda8445a9b50975de96a6fbdcdefc0a25fd29a34b74cd89bd5f9c",
+          "bytes": 25338
+        },
+        "h1eval/h10/merge_read.py": {
+          "after_sha256": "d23bd4fa113a5f8997b901eedc54b0b489b70b30465de41212c5ee8c380b1a57",
+          "before_sha256": null,
+          "bytes": 5663
+        },
+        "h1eval/tests/test_read_journal.py": {
+          "after_sha256": "a943de9aadb04b68d1770db264e1e419153aa4a7d573c1ff9bd72db974737ec9",
+          "before_sha256": null,
+          "bytes": 9377
+        }
+      },
+      "sha256": "e2c9cd0505a5ab82fe263465a364705dbc274527617fda2808d3bd301869b326"
+    }
+  },
+  "strip": 1
+}

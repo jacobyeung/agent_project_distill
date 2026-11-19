@@ -1,0 +1,21 @@
+$ date -u
+Thu Nov 19 07:12:20 UTC 2026
+EXIT: 0
+$ patch --batch --fuzz=0 -p1 -i /scratch/jjyeung/orch_n30/so_launch/out/patches/04_launch_phase_timing.diff
+patching file launch_s1/job.sh
+patching file launch_s1/b/c.sh
+patching file tests/test_launch_phase_timing.py
+EXIT: 0
+$ /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/so_launch/work/verify_20261119T071213Z/04_launch_phase_timing/tests/test_launch_phase_timing.py -v
+test_default_path_runs_same_commands_and_produces_no_timing (__main__.LaunchTimingTests.test_default_path_runs_same_commands_and_produces_no_timing) ... ok
+test_enabled_logs_boundaries_without_polluting_mode_stdout (__main__.LaunchTimingTests.test_enabled_logs_boundaries_without_polluting_mode_stdout) ... ok
+test_failed_guard_preserves_exit_status_and_stops_dispatch (__main__.LaunchTimingTests.test_failed_guard_preserves_exit_status_and_stops_dispatch) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.238s
+
+OK
+EXIT: 0
+$ date -u
+Thu Nov 19 07:12:22 UTC 2026
+EXIT: 0

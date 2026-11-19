@@ -1,0 +1,10 @@
+--- A4
++++ B5
+@@ -189,6 +189,7 @@
+                  evaluator_code_sha256=code_hash(),
+                  expected_calls_sha256=sha(K/'rows/expected_calls.py'),
+                  r0_code_sha256=sha(K/'tree/student_pilot/h1_r0.py'),
++                 types=args.types.split(',') if args.types else None,
+                  shard=args.shard,ids=[r['id'] for r in selected_items],
+                  count=manifest['count'],arms=arms,modes=interventions,device=args.device,
+                  lineage=identity['lineage'],step=identity['step'],fixture=make_real is not None,

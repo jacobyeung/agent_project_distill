@@ -1,0 +1,1157 @@
+--- a/launch_s1/b/c.sh
++++ b/launch_s1/b/c.sh
+@@ -317,12 +317,25 @@
+     tk_stage_tars
+     tk_stage_fla
+     if tk_has np; then tk_kitx np "$S/np226"; fi
++    TK_PC_HIT=0
++    if [[ "${TK_PREPARED_INPUT_CACHE:-0}" == 1 && "${TK_PC_PREPARE:-0}" == 1 ]]; then
++        if /usr/bin/python3 -I "$HX/b/pc.py" restore "$HX" "$S" "${TK_PREPARED_CACHE_ROOT:?}" "${SLURM_JOB_ID:?}"; then
++            TK_PC_HIT=1
++            tk_step "prepared input cache HIT; receipt $HM/o/$SLURM_JOB_ID.prepared-cache.json"
++        else
++            local cache_rc=$?
++            [[ "$cache_rc" == 1 ]] || return "$cache_rc"
++            tk_step "prepared input cache MISS; ordinary preparation required"
++        fi
++    fi
+     local import_mode=metadata
+     if [[ "$mode" != reuse && -z "${TK_LIGHT:-}" ]]; then import_mode=full; fi
+     /usr/bin/python3 -I "$HX/b/s.py" "$CUR" "$HX" "$S" "$import_mode"
+     if [[ "$mode" != reuse && -z "${TK_LIGHT:-}" ]]; then
+         local key
+-        for key in f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14; do tk_stage_bundle "$key"; done
++        if [[ "$TK_PC_HIT" != 1 ]]; then
++            for key in f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14; do tk_stage_bundle "$key"; done
++        fi
+         tk_stage_init
+     fi
+     mkdir -p "$U/ap/$K"
+--- a/launch_s1/b/r.sh
++++ b/launch_s1/b/r.sh
+@@ -25,6 +25,17 @@
+ trap on_stop USR1
+ /usr/bin/python3 -B "$HX/b/a.py" "$HX"
+ [[ ! -e "$stop_file" ]] || exit 75
++if [[ "${TK_PREPARED_INPUT_CACHE:-0}" == 1 && "${1:-}" =~ ^[ptu]$ ]]; then
++    pc_run=$(/usr/bin/python3 -I -c 'import json,pathlib,sys; print(pathlib.Path(json.load(open(sys.argv[1]))["run_directory"]))' "$HX/k/launch.json")
++    pc_lock="$(dirname "$pc_run")/.prepare-locks/$(basename "$pc_run").lock"
++    mkdir -p "$(dirname "$pc_lock")"
++    # Hold this through training as well as preparation. The recursive p leg
++    # inherits the same open file description, so it must not reopen the lock.
++    if [[ "$(readlink /proc/$$/fd/7 2>/dev/null || true)" != "$pc_lock" ]]; then
++        exec 7>"$pc_lock"
++    fi
++    flock 7
++fi
+ if [[ "${1:-}" == t || "${1:-}" == u ]] && /usr/bin/python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("in_job_admission") else 1)' "$HX/k/launch.json"; then
+     /bin/bash "$HX/b/r.sh" p "${2:?}" &
+     admission_child=$!
+@@ -47,11 +58,21 @@
+ else
+     unset TK_LIGHT
+ fi
++TK_PC_PREPARE=0
++if [[ "${TK_PREPARED_INPUT_CACHE:-0}" == 1 && "${1:-}" == p && -z "${TK_LIGHT:-}" ]]; then
++    : "${TK_PREPARED_CACHE_ROOT:?set an absolute pool cache directory}"
++    [[ "$TK_PREPARED_CACHE_ROOT" == /* ]] || exit 2
++    TK_PC_PREPARE=1
++fi
+ case "${1:-}" in
+     p|c|t|u|x) tk_stage prep ;;
+     *) exit 2 ;;
+ esac
+ [[ ! -e "$stop_file" ]] || exit 75
++if [[ "$TK_PC_PREPARE" == 1 && "${TK_PC_HIT:-0}" == 1 ]]; then
++    tk_step "prepared input cache verified; CPU admission phases reused"
++    exit 0
++fi
+ tk_bwrap
+ tk_env
+ # Use a path visible through the shared kit bind, not the host-only kit path.
+@@ -86,6 +107,13 @@
+     break
+ done
+ kill "$persister" 2>/dev/null || true
++if [[ "$rc" == 0 && "$TK_PC_PREPARE" == 1 && "${TK_PC_HIT:-0}" != 1 ]]; then
++    if /usr/bin/python3 -I "$HX/b/pc.py" seal "$HX" "$S" "$TK_PREPARED_CACHE_ROOT" "$SLURM_JOB_ID"; then
++        tk_step "prepared input cache published; receipt $HM/o/$SLURM_JOB_ID.prepared-cache.json"
++    else
++        tk_step "prepared input cache publication refused; preparation remains usable"
++    fi
++fi
+ tk_persist_small; tk_persist_exports; tk_persist_small
+ tk_step "exit rc=$rc"
+ exit "$rc"
+--- /dev/null
++++ b/launch_s1/b/pc.py
+@@ -0,0 +1,470 @@
++"""Opt-in, byte-preserving admission cache. No training or authorization shortcuts.
++
++The complete configuration (including logical paths) is deliberately in the key.
++Only the physical pool may move. Never rewrite a preparation or checkpoint seal.
++"""
++import argparse
++from contextlib import contextmanager
++import fcntl
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import sqlite3
++import stat
++import time
++import uuid
++
++
++SCHEMA = "s1-prepared-input-cache-v1"
++AS = "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung"
++AL = "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung"
++X = AS + "/ap/8865619b"
++ENVIRONMENT = ("S1_CPU_REHEARSAL", "STUDENT_R2_FRAME_HOST", "STUDENT_R2_LOCAL_NODE",
++               "SLURM_CPUS_PER_TASK", "QWEN36_27B_SNAPSHOT",
++               "PYTHONHASHSEED")
++# tk_env overwrites R1_MOUNT, R1_STUDENT_HEX, frame mappings and CPU settings.
++# Their effective values belong to the hashed wrapper implementation. Ambient
++# values before tk_env must not distinguish restore from publication after it.
++
++
++def encoded(value):
++    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
++
++
++def digest(value):
++    return hashlib.sha256(encoded(value)).hexdigest()
++
++
++def read(path):
++    return json.loads(Path(path).read_text())
++
++
++def regular(path):
++    path = Path(path)
++    if any(p.is_symlink() for p in (path, *path.parents)):
++        raise ValueError("cache path contains a symlink: " + str(path))
++    value = path.stat()
++    if not stat.S_ISREG(value.st_mode):
++        raise ValueError("cache payload is not a regular file: " + str(path))
++    return value
++
++
++def signature(value):
++    return (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_ctime_ns)
++
++
++def sha(path):
++    before = regular(path)
++    result = hashlib.sha256()
++    with Path(path).open("rb") as source:
++        if signature(os.fstat(source.fileno())) != signature(before):
++            raise ValueError("cache file changed before hashing")
++        for block in iter(lambda: source.read(8 << 20), b""):
++            result.update(block)
++        if signature(os.fstat(source.fileno())) != signature(before):
++            raise ValueError("cache file changed while hashing")
++    if signature(regular(path)) != signature(before):
++        raise ValueError("cache file changed after hashing")
++    return result.hexdigest()
++
++
++def inside(root, relative):
++    root, relative = Path(root), Path(relative)
++    if relative.is_absolute() or not relative.parts or ".." in relative.parts:
++        raise ValueError("unsafe cache relative path")
++    target = root / relative
++    if any(p.is_symlink() for p in (target, *target.parents)):
++        raise ValueError("cache path contains a symlink")
++    return target
++
++
++def atomic(path, value):
++    path = Path(path)
++    path.parent.mkdir(parents=True, exist_ok=True)
++    temporary = path.with_name(path.name + "." + uuid.uuid4().hex)
++    with temporary.open("xb") as stream:
++        stream.write(encoded(value) + b"\n")
++        stream.flush()
++        os.fsync(stream.fileno())
++    os.replace(temporary, path)
++    descriptor = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
++    try:
++        os.fsync(descriptor)
++    finally:
++        os.close(descriptor)
++
++
++@contextmanager
++def locked(root, key):
++    root = Path(root)
++    root.mkdir(parents=True, exist_ok=True)
++    lock = inside(root, key + ".lock")
++    with lock.open("a+b") as stream:
++        fcntl.flock(stream, fcntl.LOCK_EX)
++        yield
++
++
++def key_components(cfg, current, contract, implementation, environment, input_config=None):
++    frames = {k: v for k, v in current.items() if re.fullmatch(r"f[0-9]+_manifest", k)}
++    if not frames or not cfg.get("streams"):
++        raise ValueError("cache requires store receipts and frame manifests")
++    if any(not isinstance(pin, dict) or not isinstance(pin.get("path"), str)
++           or not re.fullmatch("[0-9a-f]{64}", pin.get("sha256", ""))
++           for pin in cfg.get("remove_files", [])):
++        raise ValueError("cache requires content-pinned REMOVE lists")
++    # Native MDG also accepts path-only inputs and computes fresh pins while
++    # preparing. Those variants cannot safely reuse a key formed from config.
++    # Decline caching and let the unchanged native path compute their contents.
++    def content_pin(value):
++        return (isinstance(value, dict) and set(value) == {"path", "sha256"}
++                and isinstance(value.get("path"), str) and Path(value["path"]).is_absolute()
++                and ".." not in Path(value["path"]).parts
++                and isinstance(value.get("sha256"), str)
++                and re.fullmatch("[0-9a-f]{64}", value["sha256"]) is not None)
++    if "mdg" in cfg:
++        mdg = cfg["mdg"]
++        if not isinstance(mdg, dict):
++            raise ValueError("cache requires content-pinned MDG inputs")
++        for name in ("clips_jsonl", "confusers", "vocab", "stem_weights"):
++            if not content_pin(mdg.get(name)):
++                raise ValueError("cache requires content-pinned MDG " + name)
++        for name in ("frame_root", "rasters"):
++            value = mdg.get(name)
++            if (not isinstance(value, dict) or set(value) != {"root", "manifest"}
++                    or not isinstance(value["root"], str) or not Path(value["root"]).is_absolute()
++                    or ".." in Path(value["root"]).parts or not content_pin(value["manifest"])):
++                raise ValueError("cache requires content-pinned MDG " + name)
++        excluded = mdg.get("exclude_scenes")
++        if not (isinstance(excluded, list) and all(isinstance(name, str) for name in excluded)
++                or content_pin(excluded)):
++            raise ValueError("cache requires content-pinned MDG exclude_scenes")
++        if "init_artifact" in mdg:
++            value = mdg["init_artifact"]
++            if (not isinstance(value, dict) or not {"mdg.json", "mdg.pt"} <= set(value)
++                    or set(value) - {"mdg.json", "mdg.pt", "lora.pt"}
++                    or not all(content_pin(pin) for pin in value.values())):
++                raise ValueError("cache requires content-pinned MDG init_artifact")
++    components = dict(schema=SCHEMA, input_config=input_config,
++                store_receipts=cfg["streams"], preparation_config=cfg,
++                frame_manifests=frames, preparation_code_identity=dict(
++                    commit=current["commit"], trainer=current["trainer"], code=cfg["code"],
++                    wrapper=implementation), staging=current, admission_contract=contract,
++                environment={name: environment.get(name) for name in ENVIRONMENT})
++    # Keep the components independent, including when callers mutate one in a test.
++    return json.loads(encoded(components))
++
++
++class Context:
++    def __init__(self, kit, node, cache, job):
++        self.kit, self.node, self.cache = map(lambda p: Path(p).absolute(), (kit, node, cache))
++        if any(p.is_symlink() for root in (self.kit, self.node, self.cache) for p in (root, *root.parents)):
++            raise ValueError("cache roots must not contain symlinks")
++        if not re.fullmatch(r"[A-Za-z0-9_-]+", str(job)):
++            raise ValueError("invalid cache job identity")
++        self.job = str(job)
++        self.current, self.launch = read(self.kit / "k/0.json"), read(self.kit / "k/launch.json")
++        pin = self.launch["config"]
++        config = inside(self.kit, pin["file"])
++        if sha(config) != pin["sha256"]:
++            raise ValueError("cache configuration pin differs")
++        self.cfg = read(config)
++        self.contract = self.launch["in_job_admission"]
++        self.logical = Path(self.contract["directory"])
++        if (self.contract.get("schema") != "s1-in-job-admission-v1"
++                or self.logical != Path(self.cfg["output"]) / "inputs"
++                or not self.logical.is_absolute() or ".." in self.logical.parts):
++            raise ValueError("cache admission directory differs")
++        self.destination = Path(self.launch["run_directory"]).absolute() / "inputs"
++        if any(p.is_symlink() for p in self.destination.parents):
++            raise ValueError("cache destination contains a symlink")
++        if self.cache == self.destination or self.cache.is_relative_to(self.destination):
++            raise ValueError("cache index must be outside the admission directory")
++        self.frame_root = self.node / "c7d31ddd/data2root"
++        implementation = {str(p.relative_to(self.kit / "b")): sha(p)
++                          for p in sorted((self.kit / "b").rglob("*")) if p.is_file()}
++        self.components = key_components(self.cfg, self.current, self.contract, implementation, os.environ,
++                                         input_config=self.launch["config"])
++        self.key = digest(self.components)
++        self.report = self.kit / "o" / (self.job + ".prepared-cache.json")
++
++    def host(self, path):
++        # Small frame manifests are already staged when c.sh calls restore/seal.
++        for prefix, root in ((X + "/", self.node.parent / ("x_" + self.job)), (AS + "/", self.node / "aws/u"),
++                             (AL + "/", self.node / "aws/u")):
++            if path.startswith(prefix):
++                return inside(root, path[len(prefix):])
++        return Path(path)
++
++    def result(self, status, **fields):
++        value = dict(schema=SCHEMA, job=self.job, status=status, key=self.key,
++                     key_components=self.components, target_inputs=str(self.destination),
++                     target_frames=str(self.frame_root), recorded_unix=time.time(),
++                     production_authorized=False, gpu_first_step_pending=True, **fields)
++        atomic(self.report, value)
++        return value
++
++
++def local_name(logical, path):
++    path = Path(path)
++    if not path.is_absolute() or ".." in path.parts:
++        raise ValueError("invalid admission pin path")
++    return str(path.relative_to(logical))
++
++
++def pins(value):
++    if isinstance(value, dict):
++        if "path" in value and "sha256" in value:
++            yield value
++        for part in value.values():
++            yield from pins(part)
++    elif isinstance(value, list):
++        for part in value:
++            yield from pins(part)
++
++
++def admission_files(ctx, root):
++    """Require both complete phases and every local reference, not just surviving files."""
++    names = {"request.json", "data_receipt.json"}
++    request, data = read(inside(root, "request.json")), read(inside(root, "data_receipt.json"))
++    if (data.get("schema") != "s1-in-job-data-v1" or data.get("status") != "PREPARED"
++            or data.get("real_frames_verified") is not True or data.get("rehearsal") is not False
++            or data.get("gpu_first_step_pending") is not True
++            or data.get("input_config", {}).get("sha256") != ctx.launch["config"]["sha256"]
++            or data.get("input_streams") != ctx.cfg["streams"]
++            or data.get("source_revision") != ctx.current["commit"]
++            or request.get("config") != data.get("input_config")
++            or request.get("frame_roots") != ctx.contract["frame_roots"]):
++        raise ValueError("incomplete or foreign admission data")
++    for phase in ("prepare", "frames"):
++        name = "phase_" + phase + ".complete.json"
++        marker = read(inside(root, name))
++        if marker.get("schema") != "s1-admission-phase-v1" or marker.get("binding") != request:
++            raise ValueError("incomplete or foreign admission phase")
++        payload = marker["payload"]
++        relative = local_name(ctx.logical, payload["path"])
++        directory = Path(relative).parent
++        if len(directory.parts) != 1 or not re.fullmatch(phase + r"_[0-9a-f]{32}", directory.name):
++            raise ValueError("admission phase directory differs")
++        source = inside(root, relative)
++        if sha(source) != payload["sha256"] or not read(source).get("outputs"):
++            raise ValueError("admission phase payload differs")
++        names.add(name)
++        for path in inside(root, str(directory)).rglob("*"):
++            if path.is_symlink():
++                raise ValueError("admission payload contains a symlink")
++            if path.is_file():
++                names.add(str(path.relative_to(root)))
++    files = {name: dict(sha256=sha(inside(root, name)), bytes=regular(inside(root, name)).st_size)
++             for name in sorted(names)}
++    for name in names:
++        if Path(name).suffix != ".json":
++            continue
++        for pin in pins(read(inside(root, name))):
++            path = Path(pin["path"])
++            if path.is_relative_to(ctx.logical):
++                relative = local_name(ctx.logical, str(path))
++                if relative not in files or files[relative]["sha256"] != pin["sha256"]:
++                    raise ValueError("admission closure is partial or corrupt: " + relative)
++    return files
++
++
++def frame_files(ctx):
++    files = {}
++    for key, pin in sorted(ctx.components["frame_manifests"].items()):
++        path = ctx.host(pin["file"])
++        if sha(path) != pin["sha256"]:
++            raise ValueError("frame manifest differs")
++        frames = read(path)
++        if not isinstance(frames, list) or not frames:
++            raise ValueError("empty frame manifest")
++        store = ctx.current.get("stores", {}).get(key[:-9], "k3f8") or "k3f8"
++        for frame in frames:
++            expected = frame["sha256"]
++            if not re.fullmatch("[0-9a-f]{64}", expected):
++                raise ValueError("invalid frame hash")
++            name = store + "/" + expected[:2] + "/" + expected + ".png"
++            if frame["path"] != "/data2/" + name:
++                raise ValueError("frame manifest path differs")
++            target = inside(ctx.frame_root, name)
++            if name not in files:
++                if sha(target) != expected:
++                    raise ValueError("staged frame differs: " + name)
++                files[name] = dict(sha256=expected, bytes=regular(target).st_size)
++    return files
++
++
++def covered_frames(ctx, files):
++    data = read(ctx.destination / "data_receipt.json")
++    report = read(inside(ctx.destination, local_name(ctx.logical, data["frames"]["path"])))
++    inventory = inside(ctx.destination, local_name(ctx.logical, report["inventory"]["path"]))
++    with sqlite3.connect(inventory.as_uri() + "?mode=ro", uri=True) as connection:
++        count = 0
++        for logical, expected in connection.execute("SELECT logical,sha256 FROM frames"):
++            relative = str(Path(logical).relative_to("/data2"))
++            if files.get(relative, {}).get("sha256") != expected:
++                raise ValueError("a retained frame is outside the cached manifests")
++            count += 1
++        if not count:
++            raise ValueError("empty retained frame inventory")
++
++
++def verify_files(root, files):
++    if not files:
++        raise ValueError("empty cache inventory")
++    for name, pin in files.items():
++        path = inside(root, name)
++        if (not re.fullmatch("[0-9a-f]{64}", pin["sha256"])
++                or regular(path).st_size != pin["bytes"] or sha(path) != pin["sha256"]):
++            raise ValueError("cache payload differs: " + str(path))
++
++
++def quarantine(path):
++    path = Path(path)
++    if path.exists() or path.is_symlink():
++        # Preserve failures for inspection; cache cleanup belongs to the operator.
++        destination = path.with_name(path.name + ".cache-refused." + uuid.uuid4().hex)
++        path.rename(destination)
++        return str(destination)
++    return None
++
++
++def copy_verified(source, destination, files):
++    destination.mkdir(parents=True)
++    for name, pin in files.items():
++        origin, target = inside(source, name), inside(destination, name)
++        before = regular(origin)
++        target.parent.mkdir(parents=True, exist_ok=True)
++        value = hashlib.sha256()
++        with origin.open("rb") as inp, target.open("xb") as out:
++            for block in iter(lambda: inp.read(8 << 20), b""):
++                value.update(block)
++                out.write(block)
++            out.flush()
++            os.fsync(out.fileno())
++        if (signature(regular(origin)) != signature(before) or value.hexdigest() != pin["sha256"]
++                or regular(target).st_size != pin["bytes"] or sha(target) != pin["sha256"]):
++            raise ValueError("cache copy did not verify")
++
++
++def check_frames(ctx, files):
++    """Repair refused members through the ordinary archive stage, never trust stamps."""
++    if not files:
++        raise ValueError("empty cached frame inventory")
++    bad = []
++    for name, pin in files.items():
++        path = inside(ctx.frame_root, name)
++        try:
++            verify_files(ctx.frame_root, {name: pin})
++        except (OSError, ValueError):
++            bad.append(path)
++    if not bad:
++        return
++    for path in bad:
++        quarantine(path)
++    for key in ctx.components["frame_manifests"]:
++        bundle = key[:-9]
++        pin = ctx.current[bundle]
++        quarantine(inside(ctx.node / ".stamp", bundle + "." + pin["sha256"] + "." + ctx.current[key]["sha256"]))
++    code = sha(ctx.kit / "b/s.py")
++    for entry in ctx.current.get("staged_inputs", {}).get("archives", []):
++        identity = digest(dict(entry=entry, implementation=code))
++        quarantine(inside(ctx.node / ".imports", identity + ".json"))
++    raise ValueError("cached frames absent or corrupt; ordinary archive staging required")
++
++
++def restore(ctx):
++    started = time.monotonic()
++    try:
++        with locked(ctx.cache, ctx.key):
++            index = read(inside(ctx.cache, ctx.key + ".json"))
++            receipt_path = inside(ctx.cache, index["receipt"])
++            if sha(receipt_path) != index["sha256"]:
++                raise ValueError("cache receipt hash differs")
++            receipt = read(receipt_path)
++            if (receipt.get("schema") != SCHEMA or receipt.get("key") != ctx.key
++                    or receipt.get("key_components") != ctx.components):
++                raise ValueError("cache key or preparation code identity differs")
++            source = Path(receipt["source_inputs"])
++            verify_files(source, receipt["files"])
++            # Reuse only frames available on this node. A cold node takes ordinary staging.
++            check_frames(ctx, receipt["frames"])
++            target_verified = source == ctx.destination
++            if not target_verified and ctx.destination.is_dir():
++                try:
++                    verify_files(ctx.destination, receipt["files"])
++                    target_verified = True
++                except (OSError, ValueError):
++                    # Equal inputs can produce different UUID paths. Never replace a
++                    # complete native journal: retained checkpoints pin those paths.
++                    try:
++                        admission_files(ctx, ctx.destination)
++                    except (OSError, ValueError, KeyError, TypeError, AttributeError):
++                        pass
++                    else:
++                        raise ValueError("complete native journal has another preparation generation")
++            if not target_verified:
++                temporary = ctx.destination.with_name("inputs.cache-copy." + uuid.uuid4().hex)
++                copy_verified(source, temporary, receipt["files"])
++                quarantine(ctx.destination)
++                temporary.rename(ctx.destination)
++            ctx.result("HIT", source_job=receipt["source_job"], source_inputs=str(source),
++                       source_frames=receipt["source_frames"], receipt=dict(path=str(receipt_path), sha256=index["sha256"]),
++                       verified_files=len(receipt["files"]), verified_frames=len(receipt["frames"]),
++                       seconds=time.monotonic() - started)
++            return True
++    except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
++        try:
++            admission_files(ctx, ctx.destination)
++            native = True
++        except (OSError, ValueError, KeyError, TypeError, AttributeError):
++            native = False
++        refused = None if native else quarantine(ctx.destination)
++        ctx.result("NATIVE_JOURNAL" if native else "MISS", reason=type(error).__name__ + ": " + str(error),
++                   refused_inputs=refused,
++                   seconds=time.monotonic() - started)
++        return False
++
++
++def seal(ctx):
++    if ctx.report.is_file() and read(ctx.report).get("status") == "NATIVE_JOURNAL":
++        # Its producer job is unknown to this cache; keep the native provenance intact.
++        return False
++    started = time.monotonic()
++    files = admission_files(ctx, ctx.destination)
++    frames = frame_files(ctx)
++    covered_frames(ctx, frames)
++    receipt = dict(schema=SCHEMA, key=ctx.key, key_components=ctx.components,
++                   source_job=ctx.job, source_inputs=str(ctx.destination), source_frames=str(ctx.frame_root),
++                   files=files, frames=frames)
++    with locked(ctx.cache, ctx.key):
++        name = ctx.key + "." + uuid.uuid4().hex + ".receipt.json"
++        path = inside(ctx.cache, name)
++        atomic(path, receipt)
++        pin = dict(receipt=name, sha256=sha(path))
++        atomic(inside(ctx.cache, ctx.key + ".json"), pin)
++    ctx.result("BUILT", source_job=ctx.job, source_inputs=str(ctx.destination),
++               receipt=dict(path=str(path), sha256=pin["sha256"]),
++               files=len(files), frames=len(frames), seconds=time.monotonic() - started)
++    return True
++
++
++def main():
++    parser = argparse.ArgumentParser()
++    parser.add_argument("operation", choices=("restore", "seal"))
++    parser.add_argument("kit")
++    parser.add_argument("node")
++    parser.add_argument("cache")
++    parser.add_argument("job")
++    args = parser.parse_args()
++    if os.environ.get("TK_PREPARED_INPUT_CACHE", "0") != "1":
++        return 1
++    ctx = Context(args.kit, args.node, args.cache, args.job)
++    if args.operation == "restore":
++        return 0 if restore(ctx) else 1
++    return 0 if seal(ctx) else 1
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+--- /dev/null
++++ b/tests/test_prepared_input_cache.py
+@@ -0,0 +1,477 @@
++"""CPU fixtures; set TEST_TMP_ROOT to keep all retained test files in scratch."""
++import copy
++from concurrent.futures import ThreadPoolExecutor
++import importlib.util
++import json
++import os
++from pathlib import Path
++import sqlite3
++import subprocess
++import sys
++import tempfile
++import unittest
++from unittest.mock import patch
++
++import torch
++torch.set_num_threads(8)
++
++TREE = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(TREE))
++spec = importlib.util.spec_from_file_location("prepared_cache", TREE / "launch_s1/b/pc.py")
++pc = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(pc)
++
++
++class Fixture:
++    def __init__(self):
++        self.root = Path(tempfile.mkdtemp(prefix="pc-test-", dir=os.environ["TEST_TMP_ROOT"]))
++        self.kit, self.node, self.cache = (self.root / name for name in ("kit", "node", "cache"))
++        self.source, self.target = self.root / "old-run/inputs", self.root / "new-run/inputs"
++        self.logical = self.target
++        for directory in (self.kit / "k", self.kit / "b", self.source, self.node):
++            directory.mkdir(parents=True)
++        (self.kit / "b/s.py").write_text("# fixture staging implementation\n")
++        (self.kit / "b/pc.py").write_bytes((TREE / "launch_s1/b/pc.py").read_bytes())
++        frame = b"a tiny pinned RGB fixture"
++        h = pc.hashlib.sha256(frame).hexdigest()
++        self.relative = "k3f8/" + h[:2] + "/" + h + ".png"
++        self.frame = self.node / "c7d31ddd/data2root" / self.relative
++        self.frame.parent.mkdir(parents=True)
++        self.frame.write_bytes(frame)
++        manifest = self.root / "frames.json"
++        pc.atomic(manifest, [dict(path="/data2/" + self.relative, sha256=h)])
++        self.cfg = dict(output=str(self.target.parent), preparation_output=str(self.root / "logical-prep"),
++                        streams={k: dict(path="/sources/" + k, sha256=pc.digest(k))
++                                 for k in ("pose", "vqa", "pointing", "routing")},
++                        code=dict(path="/logical/k/code.json", sha256="a"*64),
++                        init_artifact=dict(artifact=dict(path="/parent/artifact.json", sha256="b"*64)),
++                        world_size=4, remove_files=[], training_mode="final")
++        config = self.kit / "k/config.json"
++        pc.atomic(config, self.cfg)
++        self.current = dict(commit="sha256:" + "c"*64,
++                            trainer=dict(file="trainer.tar", sha256="d"*64),
++                            venv=dict(file="runtime.tar", sha256="e"*64),
++                            stores=dict(f3="k3f8"), f3=dict(file="frames.tar", sha256="f"*64),
++                            f3_manifest=dict(file=str(manifest), sha256=pc.sha(manifest)))
++        pc.atomic(self.kit / "k/0.json", self.current)
++        self.launch = dict(config=dict(file="k/config.json", sha256=pc.sha(config)),
++                           run_directory=str(self.source.parent), in_job_admission=dict(
++                               schema="s1-in-job-admission-v1", directory=str(self.logical),
++                               frame_roots=[str(self.node / "c7d31ddd/data2root")]))
++        pc.atomic(self.kit / "k/launch.json", self.launch)
++        request = dict(config=dict(path="/logical/k/config.json", sha256=pc.sha(config)),
++                       frame_roots=self.launch["in_job_admission"]["frame_roots"],
++                       source_revision=self.current["commit"])
++        pc.atomic(self.source / "request.json", request)
++        prep, frames = "prepare_" + "1"*32, "frames_" + "2"*32
++        self.prep = prep
++        database = self.source / prep / "pointing/rows.sqlite"
++        database.parent.mkdir(parents=True)
++        with sqlite3.connect(database) as conn:
++            conn.execute("CREATE TABLE rows (i INTEGER PRIMARY KEY, row TEXT)")
++            conn.execute("INSERT INTO rows VALUES (0, '{}')")
++        pc.atomic(self.source / prep / "config.json", self.cfg)
++        pc.atomic(self.source / prep / "receipt.json", dict(database=self.pin(database)))
++        inventory = self.source / frames / "frame_inventory.sqlite"
++        inventory.parent.mkdir(parents=True)
++        with sqlite3.connect(inventory) as conn:
++            conn.execute("CREATE TABLE frames (path TEXT PRIMARY KEY, logical TEXT, sha256 TEXT)")
++            conn.execute("INSERT INTO frames VALUES (?,?,?)", (str(self.frame), "/data2/"+self.relative, h))
++        report = self.source / frames / "frames.json"
++        pc.atomic(report, dict(inventory=self.pin(inventory), all_retained_frames_exist=True,
++                               sources=dict(pose=dict(hash_sample=[dict(path="/data2/"+self.relative, sha256=h)]))))
++        for name, directory, outputs in (("prepare", prep, [database, self.source / prep / "receipt.json",
++                                                           self.source / prep / "config.json"]),
++                                         ("frames", frames, [inventory, report])):
++            result = self.source / directory / "result.json"
++            pc.atomic(result, dict(outputs=[self.pin(p) for p in outputs], resources=dict(seconds=1)))
++            pc.atomic(self.source / ("phase_"+name+".complete.json"),
++                      dict(schema="s1-admission-phase-v1", binding=request, payload=self.pin(result)))
++        pc.atomic(self.source / "data_receipt.json", dict(
++            schema="s1-in-job-data-v1", status="PREPARED", real_frames_verified=True,
++            rehearsal=False, gpu_first_step_pending=True, input_config=request["config"],
++            input_streams=self.cfg["streams"], source_revision=self.current["commit"],
++            config=self.pin(self.source / prep / "config.json"), frames=self.pin(report)))
++
++    def pin(self, path):
++        return dict(path=str(self.logical / path.relative_to(self.source)), sha256=pc.sha(path))
++
++    def context(self, job="old"):
++        return pc.Context(self.kit, self.node, self.cache, job)
++
++    def publish(self):
++        ctx = self.context()
++        pc.seal(ctx)
++        self.key = ctx.key
++        return ctx
++
++    def consumer(self, job="new"):
++        self.launch["run_directory"] = str(self.target.parent)
++        pc.atomic(self.kit / "k/launch.json", self.launch)
++        return self.context(job)
++
++
++class PreparedCacheTests(unittest.TestCase):
++    def setUp(self):
++        self.f = Fixture()
++
++    def test_real_wrapper_environment_has_same_restore_and_seal_key(self):
++        f = self.f
++        source = (TREE / 'launch_s1/b/c.sh').read_text()
++        function = 'tk_env() {' + source.split('tk_env() {', 1)[1].split('\n}', 1)[0] + '\n}'
++        environment = dict(os.environ)
++        for name in ('R1_MOUNT', 'R1_STUDENT_HEX'):
++            environment.pop(name, None)
++        environment.update(X=pc.X, EPOCHS='/home/jjyeung/6d00e578', COMMIT=f.current['commit'],
++                           P='/project/community/jjyeung/c7d31ddd', CLOSURE_DIR='fixture',
++                           R1_RUNTIME_RECORD='/pinned/runtime.json', S=str(f.node),
++                           TK_JOBDIR=str(f.root / 'job-environment'))
++        code = 'import json,os; print(json.dumps({name:os.environ.get(name) for name in ' + repr(pc.ENVIRONMENT) + '}))'
++        result = subprocess.run(['bash', '-c', function + '\ntk_env\n/usr/bin/python3 -I -c "$1"',
++                                 'fixture', code], env=environment, capture_output=True, text=True, timeout=10)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        before = pc.key_components(f.cfg, f.current, f.launch['in_job_admission'], {}, environment)
++        after = pc.key_components(f.cfg, f.current, f.launch['in_job_admission'], {}, json.loads(result.stdout))
++        self.assertEqual(before, after, 'tk_env must not change the cache key between restore and seal')
++
++    def test_hit_verifies_and_preserves_native_journal(self):
++        f = self.f
++        source = f.publish()
++        ctx = f.consumer()
++        self.assertEqual(source.key, ctx.key)
++        self.assertTrue(pc.restore(ctx))
++        from student_pilot.first_batch_progress import PhaseJournal
++        journal = PhaseJournal(f.target, pc.read(f.target / "request.json"))
++        for phase in ("prepare", "frames"):
++            _, reused = journal.run(phase, lambda _: self.fail("cache rebuilt a complete phase"))
++            self.assertTrue(reused)
++        from student_pilot.s1_admission import verify_frames
++        report_pin = pc.read(f.target / "data_receipt.json")["frames"]
++        with patch("student_pilot.orchard_paths.resolve_read", lambda _: f.frame):
++            verify_frames(pc.read(report_pin["path"]))
++        record = pc.read(ctx.report)
++        self.assertEqual(record["source_job"], "old")
++        self.assertEqual(record["source_inputs"], str(f.source))
++        self.assertEqual(record["target_inputs"], str(f.target))
++        self.assertGreater(record["verified_files"], 5)
++        self.assertEqual(record["verified_frames"], 1)
++        self.assertEqual(pc.sha(record["receipt"]["path"]), record["receipt"]["sha256"])
++        inventory = pc.read(record["receipt"]["path"])
++        for name, pin in inventory["files"].items():
++            self.assertEqual(pc.sha(f.target / name), pin["sha256"])
++        self.assertEqual(inventory["frames"][f.relative]["sha256"], pc.sha(f.frame))
++
++    def test_restored_receipts_pass_the_native_training_gate_without_rebinding(self):
++        f = self.f
++        sys.path.insert(0, str(TREE / 'launch_s1/b'))
++        spec = importlib.util.spec_from_file_location('cache_native_gate', TREE / 'launch_s1/b/d.py')
++        gate = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(gate)
++        f.cfg.update(base_identity='fixture-base', first_step_admission='all_rank_native_v1',
++                     s1_routing=dict(schema='s1-routing-inputs-v1'),
++                     scene_coverage=dict(schema='s1-scene-coverage-v1',
++                         reference=dict(path='/inputs/scenes.json', sha256='1'*64),
++                         source_map=dict(pose=[dict(source='fixture')])))
++        pc.atomic(f.kit / 'k/config.json', f.cfg)
++        f.launch['config']['sha256'] = pc.sha(f.kit / 'k/config.json')
++        f.launch.update(source_revision=f.current['commit'],
++                        source_seal=dict(tree_sha256='c'*64,
++                            archive=dict(path='/inputs/source.tar', sha256='d'*64)))
++        f.launch['in_job_admission'].update(parent_grounding_required=True, gpu_first_step_required=True)
++        pc.atomic(f.kit / 'k/launch.json', f.launch)
++        request = pc.read(f.source / 'request.json')
++        request['config']['sha256'] = f.launch['config']['sha256']
++        pc.atomic(f.source / 'request.json', request)
++
++        def put(relative, value):
++            path = f.source / relative
++            pc.atomic(path, value)
++            return f.pin(path)
++
++        prepared = copy.deepcopy(f.cfg)
++        prepared['streams']['pointing'] = f.pin(f.source / f.prep / 'receipt.json')
++        prepared['streams']['vqa'] = put(f.prep + '/vqa.json', dict(schema='c1-stream-v1', stream='vqa',
++            source=f.cfg['streams']['vqa'], source_receipt=f.cfg['streams']['vqa']))
++        materialization = put(f.prep + '/materialization.json', dict(schema='s1-routing-materialization-v1',
++            status='PASS', inputs=f.cfg['s1_routing'], legacy=f.cfg['streams']['routing']))
++        prepared['streams']['routing'] = put(f.prep + '/routing.json', dict(materialization=materialization))
++        prepared['preparation_output'] = str(f.logical / f.prep / 'prepared')
++        seal = dict(schema='s1-run-seal-v1', tree_sha256='c'*64,
++                    archive=f.launch['source_seal']['archive'], config_sha256=gate.config_identity(prepared))
++        seal['sha256'] = gate.digest(seal)
++        coverage = dict(coverage=dict(schema='s1-scene-coverage-result-v1', status='PASS',
++                                     policy=f.cfg['scene_coverage'], sources=dict(pose=dict(rows=1))))
++        prepared['preparation'] = put(f.prep + '/prepared/receipt.json', dict(
++            config_sha256=gate.config_identity(prepared), source_seal=seal, scene_filter_report=coverage,
++            stream_status=dict(mdg='absent'), streams={name:dict(count=1) for name in f.cfg['streams']}))
++        config = put(f.prep + '/config.json', prepared)
++        parent = put(f.prep + '/parent_grounding.json', dict(schema='s1-parent-grounding-v1', status='PASS',
++            mdg='absent', method='verify-parent-metadata-without-mdg', parent_base_identity=f.cfg['base_identity'],
++            parent_weight_payloads_verified=False, full_parent_model_loaded=False,
++            parent_artifact=f.cfg['init_artifact']['artifact']))
++        data = pc.read(f.source / 'data_receipt.json')
++        data.update(production_authorized=False, world_size=4, input_config=request['config'], config=config,
++                    source_seal=seal, source_counts={name:1 for name in f.cfg['streams']},
++                    preparation=prepared['preparation'], parent_grounding=parent, mdg='absent',
++                    scene_exclusions=coverage, routing_materialization=materialization)
++        pc.atomic(f.source / 'data_receipt.json', data)
++        for phase in ('prepare', 'frames'):
++            path = f.source / ('phase_' + phase + '.complete.json')
++            marker = pc.read(path)
++            marker['binding'] = request
++            result_path = f.source / Path(marker['payload']['path']).relative_to(f.logical)
++            result = pc.read(result_path)
++            for output in result['outputs']:
++                output['sha256'] = pc.sha(f.source / Path(output['path']).relative_to(f.logical))
++            pc.atomic(result_path, result)
++            marker['payload']['sha256'] = pc.sha(result_path)
++            pc.atomic(path, marker)
++        self.assertEqual(gate.effective(f.kit, f.cfg, f.launch), prepared)
++        f.publish()
++        ctx = f.consumer()
++        self.assertTrue(pc.restore(ctx))
++        self.assertEqual(gate.effective(f.kit, f.cfg, f.launch), prepared)
++        self.assertEqual(pc.read(f.target / 'data_receipt.json')['source_seal'], seal)
++        self.assertEqual((f.source / 'data_receipt.json').read_bytes(), (f.target / 'data_receipt.json').read_bytes())
++
++    def test_each_key_component_changed_alone_misses(self):
++        f = self.f
++        base = f.publish().components
++        mutations = {
++            "input_config": lambda v: v.update(sha256="6"*64),
++            "store_receipts": lambda v: v["pose"].update(sha256="1"*64),
++            "preparation_config": lambda v: v.update(ground_target_filter=False),
++            "frame_manifests": lambda v: v["f3_manifest"].update(sha256="2"*64),
++            "preparation_code_identity": lambda v: v.update(commit="sha256:"+"3"*64),
++            "staging": lambda v: v["venv"].update(sha256="4"*64),
++            "admission_contract": lambda v: v.update(frame_roots=["/different"]),
++            "environment": lambda v: v.update(STUDENT_R2_FRAME_HOST="changed"),
++        }
++        for component, change in mutations.items():
++            with self.subTest(component=component):
++                ctx = f.consumer(component)
++                value = copy.deepcopy(base)
++                change(value[component])
++                self.assertEqual([k for k in value if value[k] != base[k]], [component])
++                ctx.components, ctx.key = value, pc.digest(value)
++                self.assertNotEqual(ctx.key, f.key)
++                self.assertFalse(pc.restore(ctx))
++                self.assertEqual(pc.read(ctx.report)["status"], "MISS")
++
++    def test_real_config_init_and_code_changes_miss(self):
++        f = self.f
++        original = f.publish().key
++        for field, value in (("seed", 99), ("init_artifact", {"artifact": {"sha256": "1"*64}})):
++            cfg = {**f.cfg, field: value}
++            pc.atomic(f.kit / "k/config.json", cfg)
++            f.launch["config"]["sha256"] = pc.sha(f.kit / "k/config.json")
++            ctx = f.consumer(field)
++            self.assertNotEqual(ctx.key, original)
++            self.assertFalse(pc.restore(ctx))
++        pc.atomic(f.kit / "k/config.json", f.cfg)
++        f.launch["config"]["sha256"] = pc.sha(f.kit / "k/config.json")
++        (f.kit / "b/s.py").write_text("# different preparation code\n")
++        ctx = f.consumer("code")
++        self.assertNotEqual(ctx.key, original)
++        self.assertFalse(pc.restore(ctx))
++
++    def test_new_logical_run_cannot_reuse_a_native_configuration_seal(self):
++        f = self.f
++        original = pc.key_components(f.cfg, f.current, f.launch['in_job_admission'], {}, {})
++        changed = {**f.cfg, 'output':'/another/logical/run'}
++        other = pc.key_components(changed, f.current, f.launch['in_job_admission'], {}, {})
++        self.assertNotEqual(pc.digest(original), pc.digest(other))
++
++    def test_same_parsed_config_with_different_file_pin_misses(self):
++        f = self.f
++        original = f.publish().key
++        path = f.kit / 'k/config.json'
++        path.write_text(json.dumps(f.cfg, indent=2) + '\n')
++        f.launch['config']['sha256'] = pc.sha(path)
++        ctx = f.consumer()
++        self.assertEqual(ctx.cfg, f.cfg)
++        self.assertNotEqual(ctx.key, original, 'native admission binds the exact config file SHA256')
++        self.assertFalse(pc.restore(ctx))
++
++    def test_same_key_different_code_in_receipt_is_refused(self):
++        f = self.f
++        f.publish()
++        index_path = f.cache / (f.key + ".json")
++        index = pc.read(index_path)
++        path = f.cache / index["receipt"]
++        value = pc.read(path)
++        value["key_components"]["preparation_code_identity"]["commit"] = "foreign"
++        pc.atomic(path, value)
++        pc.atomic(index_path, {**index, "sha256": pc.sha(path)})
++        ctx = f.consumer()
++        self.assertFalse(pc.restore(ctx))
++        self.assertIn("code identity", pc.read(ctx.report)["reason"])
++
++    def test_unpinned_remove_path_cannot_form_a_cache_key(self):
++        f = self.f
++        cfg = {**f.cfg, "remove_files": ["/mutable/remove.jsonl"]}
++        with self.assertRaisesRegex(ValueError, "content-pinned REMOVE"):
++            pc.key_components(cfg, f.current, f.launch["in_job_admission"], {}, {})
++
++    def test_unpinned_mdg_paths_cannot_form_a_cache_key(self):
++        f = self.f
++        pin = dict(path='/inputs/pinned.json', sha256='a'*64)
++        mdg = {name: pin for name in ('clips_jsonl', 'confusers', 'vocab', 'stem_weights')}
++        mdg.update(frame_root=dict(root='/frames', manifest=pin),
++                   rasters=dict(root='/rasters', manifest=pin), exclude_scenes=['d1/scene0001_00'],
++                   init_artifact={name:pin for name in ('mdg.json', 'mdg.pt')})
++        # Native MDG accepts these path-only variants and hashes their contents
++        # during preparation. The cache must refuse them because a path alone
++        # cannot bind those contents in its key.
++        for name in mdg:
++            with self.subTest(field=name):
++                cfg = {**f.cfg, 'mdg':{**mdg, name:'/mutable/' + name}}
++                with self.assertRaisesRegex(ValueError, 'content-pinned MDG'):
++                    pc.key_components(cfg, f.current, f.launch['in_job_admission'], {}, {})
++        cfg = {**f.cfg, 'mdg':mdg}
++        self.assertIn('mdg', pc.key_components(cfg, f.current, f.launch['in_job_admission'], {}, {})['preparation_config'])
++
++    def test_another_complete_generation_does_not_replace_native_journal(self):
++        f = self.f
++        f.publish()
++        consumer = f.consumer()
++        self.assertTrue(pc.restore(consumer))
++        before = pc.sha(f.target / "data_receipt.json")
++        # A later complete producer may have a different artifact inventory.
++        # The destination's valid native journal still belongs to its checkpoint.
++        pc.atomic(f.source / f.prep / "additional.json", {"another_generation": True})
++        f.launch["run_directory"] = str(f.source.parent)
++        pc.atomic(f.kit / "k/launch.json", f.launch)
++        self.assertTrue(pc.seal(f.context("later")))
++        consumer = f.consumer("later-consumer")
++        self.assertFalse(pc.restore(consumer))
++        self.assertEqual(pc.read(consumer.report)["status"], "NATIVE_JOURNAL")
++        self.assertEqual(pc.sha(f.target / "data_receipt.json"), before)
++        self.assertFalse((f.target / f.prep / "additional.json").exists())
++        self.assertFalse(pc.seal(consumer))
++
++    def test_corrupt_prepared_file_misses_and_quarantines_target(self):
++        f = self.f
++        f.publish()
++        (f.source / f.prep / "pointing/rows.sqlite").write_bytes(b"corrupt")
++        f.target.mkdir(parents=True)
++        (f.target / "partial").write_text("must not resume")
++        ctx = f.consumer()
++        self.assertFalse(pc.restore(ctx))
++        self.assertFalse(f.target.exists())
++        self.assertEqual(len(list(f.target.parent.glob("inputs.cache-refused.*"))), 1)
++
++    def test_purged_pool_source_misses(self):
++        f = self.f
++        f.publish()
++        f.source.rename(f.source.with_name("purged-fixture"))
++        self.assertFalse(pc.restore(f.consumer()))
++
++    def test_partial_prepared_directory_is_never_published(self):
++        f = self.f
++        (f.source / f.prep / "pointing/rows.sqlite").rename(f.root / "missing.sqlite")
++        with self.assertRaisesRegex(ValueError, "partial or corrupt"):
++            pc.seal(f.context())
++        self.assertFalse(f.cache.exists())
++
++    def test_partial_published_directory_misses(self):
++        f = self.f
++        f.publish()
++        (f.source / f.prep / "result.json").rename(f.root / "missing-result.json")
++        self.assertFalse(pc.restore(f.consumer()))
++
++    def test_corrupt_or_missing_frames_force_ordinary_restaging(self):
++        f = self.f
++        f.publish()
++        stamp = f.node / ".stamp" / ("f3." + f.current["f3"]["sha256"] + "." + f.current["f3_manifest"]["sha256"])
++        stamp.parent.mkdir()
++        stamp.write_text("")
++        f.frame.write_bytes(b"wrong bytes")
++        self.assertFalse(pc.restore(f.consumer()))
++        self.assertFalse(f.frame.exists())
++        self.assertFalse(stamp.exists())
++        self.assertEqual(len(list(f.frame.parent.glob("*.cache-refused.*"))), 1)
++
++    def test_uncovered_retained_frame_refuses_publication(self):
++        f = self.f
++        with patch.object(pc, "frame_files", return_value={}):
++            with self.assertRaisesRegex(ValueError, "outside the cached manifests"):
++                pc.seal(f.context())
++
++    def test_symlink_and_path_traversal_refused(self):
++        f = self.f
++        f.publish()
++        origin = f.source / f.prep / "config.json"
++        moved = origin.with_name("config-original")
++        origin.rename(moved)
++        origin.symlink_to(moved)
++        self.assertFalse(pc.restore(f.consumer()))
++        for name in ("../escape", "/absolute"):
++            with self.assertRaises(ValueError):
++                pc.inside(f.root, name)
++
++    def test_two_concurrent_publishers_commit_complete_receipts(self):
++        f = self.f
++        a, b = f.context("publisher_a"), f.context("publisher_b")
++        with ThreadPoolExecutor(max_workers=2) as executor:
++            futures = [executor.submit(pc.seal, ctx) for ctx in (a, b)]
++            for future in futures:
++                future.result()
++        self.assertTrue(pc.restore(f.consumer()))
++        report = pc.read(f.kit / "o/new.prepared-cache.json")
++        self.assertIn(report["source_job"], {"publisher_a", "publisher_b"})
++        self.assertEqual(len(list(f.cache.glob("*.receipt.json"))), 2)
++
++    def test_concurrent_consumers_keep_complete_target_and_training_evidence(self):
++        f = self.f
++        f.publish()
++        a, b = f.consumer("consumer_a"), f.consumer("consumer_b")
++        self.assertTrue(pc.restore(a))
++        evidence = f.target / "first_step_prior.json"
++        evidence.write_text('{"training_evidence":"preserve"}')
++        with ThreadPoolExecutor(max_workers=2) as executor:
++            futures = [executor.submit(pc.restore, ctx) for ctx in (a, b)]
++            self.assertEqual([future.result() for future in futures], [True, True])
++        self.assertEqual(evidence.read_text(), '{"training_evidence":"preserve"}')
++
++    def test_partial_index_is_a_miss(self):
++        f = self.f
++        f.publish()
++        (f.cache / (f.key + ".json")).write_text('{"receipt":')
++        self.assertFalse(pc.restore(f.consumer()))
++
++    def test_cold_rebuild_after_miss_can_publish_and_hit(self):
++        f = self.f
++        f.publish()
++        ctx = f.consumer()
++        f.source.rename(f.root / "purged-source-fixture")
++        self.assertFalse(pc.restore(ctx))
++        # Fixture stands in for the unchanged native builder, with the same logical paths.
++        files = pc.admission_files(ctx, f.root / "purged-source-fixture")
++        pc.copy_verified(f.root / "purged-source-fixture", f.target, files)
++        pc.seal(ctx)
++        self.assertTrue(pc.restore(ctx))
++        self.assertEqual(pc.read(ctx.report)["source_job"], "new")
++
++    def test_an_existing_complete_journal_survives_a_cache_miss(self):
++        f = self.f
++        ctx = f.context()
++        # No global cache receipt exists. The native journal already names exact files.
++        before = pc.sha(f.source / "data_receipt.json")
++        self.assertFalse(pc.restore(ctx))
++        self.assertEqual(pc.read(ctx.report)["status"], "NATIVE_JOURNAL")
++        self.assertEqual(pc.sha(f.source / "data_receipt.json"), before)
++        pc.seal(ctx)
++        self.assertFalse((f.cache / (ctx.key + ".json")).exists())
++
++    def test_default_off_cli_has_no_side_effects(self):
++        f = self.f
++        with patch.dict(os.environ, {"TK_PREPARED_INPUT_CACHE": "0"}), patch.object(sys, "argv", [
++                "pc.py", "restore", str(f.kit), str(f.node), str(f.cache), "off"]):
++            self.assertEqual(pc.main(), 1)
++        self.assertFalse(f.cache.exists())
++        self.assertFalse((f.kit / "o/off.prepared-cache.json").exists())
++
++
++if __name__ == "__main__":
++    unittest.main(verbosity=2)
+--- /dev/null
++++ b/tests/test_prepared_cache_wrapper.py
+@@ -0,0 +1,116 @@
++"""Exercise r.sh's real control flow with CPU stubs; no cluster or GPU commands."""
++import json
++import os
++from pathlib import Path
++import subprocess
++import sys
++import tempfile
++import unittest
++
++import torch
++torch.set_num_threads(8)
++
++
++class PreparedWrapperTests(unittest.TestCase):
++    def setUp(self):
++        self.root = Path(tempfile.mkdtemp(prefix='pc-wrapper-', dir=os.environ['TEST_TMP_ROOT']))
++        for name in ('b', 'k', 'o', 'runtime/bin'):
++            (self.root / name).mkdir(parents=True, exist_ok=True)
++        source = Path(__file__).resolve().parents[1] / 'launch_s1/b/r.sh'
++        # Redirect only the wrapper's hard-coded scratch prefix into this fixture.
++        (self.root / 'b/r.sh').write_text(source.read_text().replace('/tmp/jjyeung', str(self.root / 'tmp')))
++        (self.root / 'runtime/bin/python').symlink_to(sys.executable)
++        for name in ('a', 'g', 'i', 'pc'):
++            (self.root / 'b' / (name + '.py')).write_text(
++                'import os,sys\nfrom pathlib import Path\n'
++                'name=Path(__file__).stem\n'
++                'with open(os.environ["TRACE"], "a") as f: f.write(name+" "+" ".join(sys.argv[1:2])+"\\n")\n'
++                'if name == "i": sys.exit(int(os.environ.get("CHILD_RC", "0")))\n')
++        (self.root / 'b/c.sh').write_text('''
++K=fixture
++HM="$HX"
++NX="$HX"
++X="$HX"
++S="$HX/node"
++NR="$TK_RUNS_DIR"
++mkdir -p "$S"
++tk_stage() { TK_PC_HIT="${TEST_HIT:-0}"; printf 'stage %s\n' "$1" >> "$TRACE"; }
++tk_bwrap() { BW=(); }
++tk_env() { PILOT_VENV="$HX/runtime"; }
++tk_pythonpath() { :; }
++tk_step() { printf '%s\n' "$*" >> "$TRACE"; }
++tk_persist_small() { :; }
++tk_persist_exports() { :; }
++sleep() { return 1; }
++''')
++        (self.root / 'k/launch.json').write_text(json.dumps(dict(run_directory=str(self.root / 'runs/run'), in_job_admission={'schema':'fixture'})))
++
++    def run_wrapper(self, enabled, hit, child_rc=0, mode='p'):
++        trace = self.root / 'trace'
++        env = {**os.environ, 'CUDA_VISIBLE_DEVICES':'', 'SLURM_JOB_ID':'23456', 'TRACE':str(trace),
++               'TK_PREPARED_INPUT_CACHE':str(int(enabled)), 'TK_PREPARED_CACHE_ROOT':str(self.root / 'cache'),
++               'TEST_HIT':str(int(hit)), 'CHILD_RC':str(child_rc)}
++        result = subprocess.run(['bash', str(self.root / 'b/r.sh'), mode, '0'], env=env,
++                                capture_output=True, text=True, timeout=20)
++        return result, trace.read_text()
++
++    def test_hit_reuses_verified_phases_without_launching_native_builder(self):
++        result, trace = self.run_wrapper(True, True)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertIn('stage prep', trace)
++        self.assertIn('CPU admission phases reused', trace)
++        self.assertNotIn('\ni ', trace)
++        self.assertNotIn('\npc ', trace)
++
++    def test_miss_runs_native_builder_then_publishes(self):
++        result, trace = self.run_wrapper(True, False)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertIn('\ni ', trace)
++        self.assertIn('\npc seal', trace)
++
++    def test_default_off_uses_native_path_and_writes_no_cache(self):
++        result, trace = self.run_wrapper(False, False)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertIn('\ni ', trace)
++        self.assertNotIn('\npc ', trace)
++        self.assertFalse((self.root / 'runs/.prepare-locks').exists())
++
++    def test_failed_native_preparation_is_not_published(self):
++        result, trace = self.run_wrapper(True, False, 9)
++        self.assertEqual(result.returncode, 9, result.stderr)
++        self.assertIn('\ni ', trace)
++        self.assertNotIn('\npc ', trace)
++
++    def test_recursive_resume_inherits_lock_and_still_launches_training(self):
++        result, trace = self.run_wrapper(True, True, mode='u')
++        self.assertEqual(result.returncode, 0, result.stderr)
++        self.assertEqual(sum(line.startswith('i ') for line in trace.splitlines()), 1)
++        self.assertIn('CPU admission phases reused', trace)
++        self.assertIn('launch u 0', trace)
++
++    def test_two_jobs_for_one_run_serialize_native_preparation(self):
++        (self.root / 'b/i.py').write_text(
++            'import os,time\n'
++            'def event(name):\n'
++            '    with open(os.environ["TRACE"], "a") as f: f.write(name+" "+os.environ["SLURM_JOB_ID"]+"\\n")\n'
++            'event("i-start")\ntime.sleep(.15)\nevent("i-end")\n')
++        trace = self.root / 'concurrent-trace'
++        environment = {**os.environ, 'CUDA_VISIBLE_DEVICES':'', 'TRACE':str(trace),
++                       'TK_PREPARED_INPUT_CACHE':'1', 'TK_PREPARED_CACHE_ROOT':str(self.root / 'cache'),
++                       'TEST_HIT':'0'}
++        processes = [subprocess.Popen(['bash', str(self.root / 'b/r.sh'), 'p', '0'],
++                                      env={**environment, 'SLURM_JOB_ID':job},
++                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
++                     for job in ('23457', '23458')]
++        for process in processes:
++            stdout, stderr = process.communicate(timeout=20)
++            self.assertEqual(process.returncode, 0, stdout + stderr)
++        events = [line.split() for line in trace.read_text().splitlines() if line.startswith('i-')]
++        self.assertEqual([row[0] for row in events], ['i-start', 'i-end', 'i-start', 'i-end'])
++        self.assertEqual(events[0][1], events[1][1])
++        self.assertEqual(events[2][1], events[3][1])
++        self.assertNotEqual(events[0][1], events[2][1])
++
++
++if __name__ == '__main__':
++    unittest.main(verbosity=2)

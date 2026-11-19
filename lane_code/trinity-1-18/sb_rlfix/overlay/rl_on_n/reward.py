@@ -21,11 +21,15 @@ class Weights:
 CALL = re.compile(r'<(?:depth_at|pose|move|turn|ground|gap|surface_pair|extent_ends|box_3d|dist|angle|closest)\b[^<>\n]*>')
 RESPONSE = re.compile(r'<tool_response>\s*(.*?)\s*</tool_response>', re.S)
 HEADS = {'camera_displacement': {'move'}, 'camera_movement_direction': {'move'},
-         'camera_rotation': {'turn'}, 'object_abs_distance': {'ground'},
-         'absolute_distance_object': {'ground'}}
+         'camera_rotation': {'turn'}, 'object_abs_distance': {'ground', 'gap'},
+         'absolute_distance_object': {'ground', 'gap'}}
 
 def score(prompt, record, tokenizer, route_table, weights=None):
-    from evalpath.official import parse_answer_v1, official_mra, official_exact_match, official_to_float
+    from evalpath.run import score_item
+    if record.get('diagnostic_arm'):
+        raise ValueError('Diagnostic own heads cannot enter the reward path')
+    if record.get('refusal') or record.get('tower_error'):
+        return dict(correct=0., short=0., route=0., thought_tokens=0, answer=None, total=0.)
     w = weights or Weights()
     kind = prompt['type']
     if kind not in route_table or route_table[kind] not in ('route', 'direct'):
@@ -34,10 +38,10 @@ def score(prompt, record, tokenizer, route_table, weights=None):
     body = text.split('</think>', 1)[0].removeprefix('<think>')
     prose = RESPONSE.sub('', body)
     n = len(tokenizer.encode(prose, add_special_tokens=False))
-    parsed = parse_answer_v1(text if text.lstrip().startswith('<think>') else '<think>'+text, 'multiple_choice' if prompt.get('options') else 'numeric', prompt.get('options') or [])
-    answer = parsed['parsed_answer']
-    c = (official_exact_match(str(answer), str(prompt['gt_answer'])) if prompt.get('options')
-         else official_mra(official_to_float(answer), official_to_float(str(prompt['gt_answer'])))) if answer is not None else 0.0
+    official = score_item(dict(question_type=kind, ground_truth=str(prompt['gt_answer']),
+                               options=prompt.get('options') or []),
+                          dict(text=text, finish=record.get('finish')))
+    c, answer = official['score'], official['official_fuzzy_pred'] or None
     closed = '</think>' in text and record.get('finish') == 'eos' and not record.get('budget_hit', False)
     short = max(0.0, 1.0-max(0,n-w.short_tokens)/(w.long_tokens-w.short_tokens)) if closed and prose.strip() else 0.0
     calls = record.get('calls', [])
@@ -62,10 +66,14 @@ def score(prompt, record, tokenizer, route_table, weights=None):
         if needed is None:
             raise ValueError('No native head requirement for routed type: '+kind)
         route = float(bool(good) and len(good)==len(calls) and forced_ok and placed and len(attempted)==len(calls)
-                      and needed <= kinds)
+                      and needed == kinds)
         if kind in ('object_abs_distance','absolute_distance_object'):
             ground_positions=[i for i,c in enumerate(good) if c['call'].startswith('<ground')]
             gap_positions=[i for i,c in enumerate(good) if c['call'].startswith('<gap')]
             route *= float(len(ground_positions)>=2 and bool(gap_positions) and ground_positions[1]<gap_positions[0])
+    # Match the official final-answer boundary; no reward for hidden second thoughts.
+    closes = re.findall(r'</think\s*>', text, re.IGNORECASE)
+    if c == 0 or text.count('</think>') != 1 or len(closes) != 1:
+        short = route = 0.0
     return dict(correct=c, short=short, route=route, thought_tokens=n, answer=answer,
                 total=w.correct*c+w.short*short+w.route*route)

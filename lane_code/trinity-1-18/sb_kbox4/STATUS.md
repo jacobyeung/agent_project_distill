@@ -1,0 +1,1 @@
+Stage 2: Pinned 1037 training distance rows in 192 physical rooms to PRIMARY_296, with 883 rows covered by raw-name selector tables. Corrected labels and training-only box audit entries are separate from stored-label parity. The CPU StageOne replay check is running; no held-out evaluation has run.

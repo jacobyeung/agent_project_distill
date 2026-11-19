@@ -41,12 +41,20 @@ X = {
 }
 XFACE = {('R1', 200): C + '/h1face/kit/build/a2e46c0504e/fetched/x'}
 XVSTI = {('R1', 200): C + '/h1vsti/kit/build/a35f73e87f0/fetched/x', ('S1', 544): C + '/h1vsti/kit/build/acb2faedd41/fetched/x'}
+# Optional extra roots (step 400 and later): kit/roots.json = {"direct": {"R1,400": "<.../fetched/x>"}, "facing": {...}, "vsti": {...}}
+_RJ = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'roots.json')
+if os.path.isfile(_RJ):
+    _r = json.load(open(_RJ))
+    for _d, _k in ((X, 'direct'), (XFACE, 'facing'), (XVSTI, 'vsti')):
+        for _key, _v in _r.get(_k, {}).items():
+            _d[(_key.split(',')[0], int(_key.split(',')[1]))] = _v
 S1_544 = {  # step-544 files that exist only as the B2048 arm
     'dev-S1': EV + '/main/results/budget_2048/0/items_leg_m544_main.jsonl',
     'away': EV + '/away/results/budget_2048/0/items_leg_m544_away.jsonl',
     'forward': EV + '/forward/results/budget_2048/0/items_leg_m544_forward.jsonl',
 }
 SOURCES = []
+_ROUTED = (json.load(open(_RJ)).get('routed') or {}) if os.path.isfile(_RJ) else {}
 KEEP = ('room', 'subtype', 'unit', 'level', 'pair_id', 'count_kind', 'stratum')
 
 def _jl(p):
@@ -164,7 +172,11 @@ def routed(step, types=None, part='A'):
     (null_argmax) and distance from read 1 (candidates_argmax), as in the accepted scorer. part 'B': the 134 room items
     (step 200: out3/B5/ret; step 544: bases/b2). Needs numpy: run with /scratch/jjyeung/envs/planner_local_v1/bin/python."""
     S = _scorer(); sc = S.scorers; O = S.O
-    if part == 'A':
+    ex = (_ROUTED.get(str(step)) or {}).get(part)   # kit/roots.json: "routed": {"400": {"A": {"ret": dir, "pkg": dir, "read": 0, "rule": "candidates_argmax"}, "B": {...}}}
+    if ex:                                          # pkg for part B must be a folder named B or b2 (score_r5 picks the room item file by that name)
+        from pathlib import Path
+        rows, items, _, src = S.load(Path(ex['ret']), Path(ex['pkg']), ex.get('read', 0), ex.get('check_step', step), ex.get('rule', 'candidates_argmax'))
+    elif part == 'A':
         if step == 200:
             rows, items, _, src = S.load(O.parent / 'out3/A4/ret', O / 'A', 0, 200, 'candidates_argmax')
         else:

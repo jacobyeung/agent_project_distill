@@ -1,0 +1,1 @@
+{"v001":"no","v002":"yes","v003":"yes","v004":"yes","v005":"yes","v006":"yes","v007":"yes","v008":"yes","f009":14,"f010":25,"f011":1,"f012":1,"f013":1,"f014":1,"f015":1,"check":"Frame 5 shows black chairs, a golden-brown table and a whiteboard; frame 30 shows a brown wooden cabinet and part of a whiteboard above gray carpet."}
