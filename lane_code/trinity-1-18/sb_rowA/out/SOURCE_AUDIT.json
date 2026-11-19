@@ -1,132 +1,208 @@
 {
-  "status": "MISSING",
+  "status": "PASS",
+  "command": "python -B audit_camera_training.py",
   "tree": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1",
   "tree_sha256": "8ea1fe6bd032c9cc49f5974279a18e211b0d55e3f615fc083fb1acc678689caa",
-  "store_v7": {
-    "database": {
-      "path": "/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite",
-      "sha256": "210b25349b23af5b38a5b5d90caa97be2bb296dbabd8773d54e658e0aad22443"
-    },
-    "rows": 204413,
-    "camera_counts": {
-      "camera_displacement": 0,
-      "camera_rotation": 0,
-      "camera_movement_direction": 0
-    },
-    "family_index_agrees": true
+  "rows": 35423,
+  "total": {
+    "camera_displacement": 14020,
+    "camera_movement_direction": 12260,
+    "camera_rotation": 9143
   },
-  "rows_r2": {
-    "/scratch/jjyeung/n30_mirror/rows_r2/work/a/pool_full_slice.jsonl": {
-      "rows": 10945,
-      "camera_counts": {
-        "camera_displacement": 0,
-        "camera_rotation": 0,
-        "camera_movement_direction": 0
-      }
+  "kept": {
+    "camera_displacement": 12218,
+    "camera_movement_direction": 10713,
+    "camera_rotation": 8002
+  },
+  "dropped": {
+    "camera_displacement": 1802,
+    "camera_rotation": 1141,
+    "camera_movement_direction": 1547
+  },
+  "drop_reasons_marginal": {
+    "camera_displacement": {
+      "room:withheld-80": 1592,
+      "N_scene:dev": 1592,
+      "room:K1": 210
     },
-    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/ROW_AUDIT_pool_full.jsonl": {
-      "rows": 10945,
-      "camera_counts": {
-        "camera_displacement": 0,
-        "camera_rotation": 0,
-        "camera_movement_direction": 0
-      }
+    "camera_rotation": {
+      "room:withheld-80": 1016,
+      "N_scene:dev": 1016,
+      "room:K1": 125
     },
-    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/repaired/rows.jsonl": {
-      "rows": 8315,
-      "camera_counts": {
-        "camera_displacement": 0,
-        "camera_rotation": 0,
-        "camera_movement_direction": 0
-      }
-    },
-    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/filtered/rows.jsonl": {
-      "rows": 6485,
-      "camera_counts": {
-        "camera_displacement": 0,
-        "camera_rotation": 0,
-        "camera_movement_direction": 0
-      }
-    },
-    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/prek1/filtered/rows.jsonl": {
-      "rows": 6685,
-      "camera_counts": {
-        "camera_displacement": 0,
-        "camera_rotation": 0,
-        "camera_movement_direction": 0
-      }
-    },
-    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/prek1/repaired/rows.jsonl": {
-      "rows": 8577,
-      "camera_counts": {
-        "camera_displacement": 0,
-        "camera_rotation": 0,
-        "camera_movement_direction": 0
-      }
+    "camera_movement_direction": {
+      "room:withheld-80": 1377,
+      "N_scene:dev": 1377,
+      "room:K1": 170
     }
   },
-  "metadata_only_routing_counts": {
-    "camera_displacement": 14020,
-    "camera_rotation": 9143,
-    "camera_movement_direction": 12260
+  "drop_reasons_joint": {
+    "camera_displacement": {
+      "kept": 12218,
+      "room:withheld-80|N_scene:dev": 1592,
+      "room:K1": 210
+    },
+    "camera_rotation": {
+      "kept": 8002,
+      "room:withheld-80|N_scene:dev": 1016,
+      "room:K1": 125
+    },
+    "camera_movement_direction": {
+      "kept": 10713,
+      "room:withheld-80|N_scene:dev": 1377,
+      "room:K1": 170
+    }
   },
-  "metadata_only_legacy_counts": {
-    "camera_displacement": 14949,
-    "camera_rotation": 9760,
-    "camera_movement_direction": 13068
+  "canonical_proofs": {
+    "tier_A": 30827,
+    "tier_B": 4490,
+    "tier_C": 106
   },
-  "routing_receipt": {
-    "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/routing/receipt.json",
-    "sha256": "263eac88889cf1b312b3c15859a4625c543ca78d0d7af4df15623145cab137c4"
+  "unresolved": 0,
+  "room_set_sizes": {
+    "R0": 372,
+    "K1": 50,
+    "BENCH v2": 511,
+    "dev-S1": 100,
+    "withheld-80": 80
   },
-  "missing": [
+  "removal_files": [
     {
-      "name": "admitted_routing_database",
-      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/routing/rows.sqlite",
-      "sha256": "c48d5b6201c935e2de8e985d2d8a163d9bb46603e693e790733e3c86fe59db53",
-      "status": "MISSING"
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_0.jsonl",
+      "sha256": "62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3"
     },
     {
-      "name": "legacy_r16_receipt",
-      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json",
-      "sha256": "9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851",
-      "status": "MISSING"
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_1.jsonl",
+      "sha256": "4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_2.jsonl",
+      "sha256": "6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc"
+    },
+    {
+      "defects": [
+        "identity",
+        "absent",
+        "merged"
+      ],
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_3.jsonl",
+      "sha256": "8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_4.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_5.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/build17/inputs/s.json",
+      "sha256": "6add0ad53515e14e6adb1e192ed002ec0ddd22b6c6bd112ccb756d1f8be48d8c"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json",
+      "sha256": "43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/n.json",
+      "sha256": "02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/z.json",
+      "sha256": "caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_k1list/out/u_union.json",
+      "sha256": "1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2"
     }
   ],
-  "caveat": "Receipt counts describe its existing routed population; post-N room-filter counts and row contents cannot be verified without the bound database.",
+  "source_manifest": {
+    "at": "2026-11-19T05:11:01Z",
+    "columns": "i, row (raw TEXT), target (raw TEXT)",
+    "counts": {
+      "camera_displacement": 14020,
+      "camera_movement_direction": 12260,
+      "camera_rotation": 9143
+    },
+    "host": "mind-0-16",
+    "other_types": {
+      "object_abs_distance": 11728,
+      "room_size_estimation": 581,
+      "route_planning": 9404
+    },
+    "out": {
+      "bytes": 15859219,
+      "path": "/lab_data/tarrlab/jacoby/agent_project/aws_evac/d/w19/evid/camera_rows/routing_camera_rows.jsonl.gz",
+      "sha256": "9e6aa2bd618588a4054a71dc183bc31821fcb5a2bc7bb1952bbebe15559e7c6b"
+    },
+    "receipt_counts": {
+      "camera_displacement": 14020,
+      "camera_movement_direction": 12260,
+      "camera_rotation": 9143
+    },
+    "schema": "camera-rows-extract-v1",
+    "selection": "rows whose row.routing.question_type (else row.question_type) is one of camera_displacement,camera_rotation,camera_movement_direction",
+    "source": {
+      "path": "/lab_data/tarrlab/jacoby/agent_project/aws_evac/d/w19/evid/8865619b_469ddece_inputs/routing_rows.sqlite",
+      "pin_ok": true,
+      "pinned_path": "ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/routing/rows.sqlite",
+      "rows": 57136,
+      "sha256": "c48d5b6201c935e2de8e985d2d8a163d9bb46603e693e790733e3c86fe59db53"
+    }
+  },
   "input_sha256": {
-    "/scratch/jjyeung/orch_n30/sb_rowA/source_audit.py": "b872ac4fd3899bb105613e73d487602a5ad8983f5bf1755f255ebb568e33b986",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/out/TREE_SEAL.json": "2f6755331b3bed6245828fcdb82cf81519648bbce38aa0af41ae68d5e5bab4af",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/ground_rows.py": "6c525f744aa20fa1b50d990233e120285e741b2b65c682316fe183d699db1c6e",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/r1_rooms.py": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/r1_routing.py": "6895955c7444edef4def063f289376ba370c921c10cf83545a66bb84b28c4438",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/s1_routing.py": "122353169d335771b97cb08ff31f0b1f12d904e2b42b1afb75c5fc31be35f3e3",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/generator/derivgen_v7/derivgen/camera_rows.py": "d628ddd52213e0f88ee8e8eb01d6fad62c079d4d48b91a0f98f07ab3d445f1c9",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/generator/derivgen_v7/derivgen/ground_v312_quality.py": "a74c799c83fcfb7153da18d37667a62556a65c382b0e4553bd3e0e038d6a0078",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/HELDOUT_FREEZE.json": "d67b68f34c4a52614220805a9fbd56908bcc6808eb1d550f01ff462b3e5d2576",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/HELDOUT_CAMERA_ITEMS.json": "2b90676111c229965d91132ad65b0f019703556c5934123fa0734bc6bffb3bdf",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/HELDOUT_CAMERA_TWINS.json": "5ec7e2a62e54f56a3bdc8f1de51f0a96d98dd14da8dd5326bc92618654f7b104",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/HELDOUT_NATIVE_TASKS.jsonl": "92a441ce08376e33ce1b66875d62fbd84315fc72d3c39c377aa045608a71cf8d",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/WORDINGS.json": "0b6f8eb3fe99a1ccb011195778e0ecec89dce90ff13f0b6d90321c85955d6b86",
+    "/scratch/jjyeung/orch_n30/sb_rowA/audit_camera_training.py": "311edbbe33386cf64511854d23839a02b5acf6af96e36981d8e62483a0ddc221",
+    "/scratch/jjyeung/orch_n30/sb_rowA/camera_contract.py": "93f6c10e0bc2c39e74f8fce13c938d93cedaa2b299b57a473e72f6836f030063",
     "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/build19/inputs/config.json": "b2e23841aa3634bf581dd775b4b44d6d73b26832bfd497e769976ed47a5b91aa",
     "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b.json": "c47c5fcd242edc12396cfc47c300da24d3dd2e68aa6ee24abed965f78c84a11b",
     "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1.json": "0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1",
     "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3.json": "bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3",
     "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390.json": "27126674a57111585615308cb3e779e169b5693b1c87afafe691ce8e56c2b390",
     "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca.json": "657020f2d1119220b5068176ffc7298a8585076468407b60d8f5e3e6223442ca",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/build19/inputs/component_rows.json": "f7eaf7a7d8e4bd15ef8eae5a3c8478901ed7eb6a92e85723d201aaf5728ab22b",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/shared/WITHHELD_ROOMS_80.json": "634820b44927b1a50c18db9b90246b4b99f8954b0d7f5f2893e547f1c92879ed",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/build18/proofs/rooms/RESULT.json": "5189aece71ceb897307f9cfb23064b479432d65d22be933f8488070d0930bb36",
+    "/scratch/jjyeung/orch_n30/sb_k1list/out/u_union.json": "1c7c930d1a533a3b18b08486bc2c2a9b49086b0809492963498b369ac8be45a2",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_0.jsonl": "62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_1.jsonl": "4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_2.jsonl": "6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_3.jsonl": "8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_4.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/remove_5.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/build17/inputs/s.json": "6add0ad53515e14e6adb1e192ed002ec0ddd22b6c6bd112ccb756d1f8be48d8c",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w18/work/build18/inputs/u.json": "43853165f921d077eab92baaf83f29a69cd4f3efef789249bb8db99893853cf6",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/n.json": "02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/inputs/records/z.json": "caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad",
+    "/scratch/jjyeung/orch_n30/sb_alias2/out/TIERED_ALIAS_MAP.json": "7f50287bae46792d1de25b33344d62d6a6484688887c5294bdd1d1f67f76623b",
+    "/scratch/jjyeung/orch_n30/sb_alias2/out/ROOM_AUDIT_TIERED.json": "a97c7b255b148b3f44d1ab626878a73774412934083338148969ecf44494ca48",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w16/fixtures/work/kit07ca49df_meta/m/k/benchmark_scene_exclusions.json": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970",
+    "/scratch/jjyeung/orch_n30/sb_alias2/work/TEACHER_K1.raw": "4d4736cf64e496a184d36d74d710e76d1673429e28790613794867ac077048a9",
+    "/scratch/jjyeung/n30_mirror/rows_r1/work/codeB/authority_cache/R0_ROOMS.txt": "bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w16/fixtures/work/kit07ca49df_meta/m/k/dev_scene_exclusions.json": "969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w16/fixtures/work/shared/WITHHELD_ROOMS_80.json": "634820b44927b1a50c18db9b90246b4b99f8954b0d7f5f2893e547f1c92879ed",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w17b/work/tree_r1/student_pilot/r2_dev_merged.json": "a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5",
     "/scratch/jjyeung/orch_n30/tree_rebuild10_w/ext/pk/benchmark_scene_exclusions.json": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970",
-    "/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/FAMILY_INDEX_RANGES.json": "dcfbf5440b896098a30f0afc59dab69980af502aa1f1963a6337dc63226da2f1",
-    "/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/BUILD_MANIFEST.json": "c43379d754fb94a036795cb5c11432fcd4a6b1adfc02ee0992eeeba87aaba9e3",
-    "/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/COUNTS_V7.json": "535fed6c3d59d6a0aa50c0fcc4e79c4456abf410879d9f74aad6aaf3218d2779",
-    "/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/EXCLUSIONS.json": "0cbbf99778a189b0751808506b029414d1916b482cd650c3c0af160f505fded1",
-    "/scratch/jjyeung/n30_mirror/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite": "210b25349b23af5b38a5b5d90caa97be2bb296dbabd8773d54e658e0aad22443",
-    "/scratch/jjyeung/n30_mirror/rows_r2/work/a/pool_full_slice.jsonl": "18ebb2b43cff6743e674807d618dacc7e02c8c4c48bb8459021494de4ec517c9",
-    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/ROW_AUDIT_pool_full.jsonl": "1cdf0b9641e4f7d8df12e8ceb12f20bc1c11a589d616f06ce32c9f5cef996562",
-    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/repaired/rows.jsonl": "aedd3b54b913fd416b8daa53f022c86d1b3d98259f3c5e1a479e8bde528449d9",
-    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/filtered/rows.jsonl": "06d8688daf987094a7f3e87e757c5c337126c72d468ef7617f9a3cc0dceec660",
-    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/prek1/filtered/rows.jsonl": "ae456c7c6555a43c078b81408ee7ea20a98f7de7b13b0ac62ed30743e4a14b85",
-    "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/prek1/repaired/rows.jsonl": "6e64cf7fab0a581d075695e808519dc9599520c03fef6f64223cbae5c73a17d1",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/routing/receipt.json": "263eac88889cf1b312b3c15859a4625c543ca78d0d7af4df15623145cab137c4",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/routing/materialization.json": "8601a962aa97105fa5caee712836c8cb3294051c3a6c821f08bd9bf1de898ed2",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/pool_selection.json": "d1e6715a19b5d9a15f647e3495815c63329afbc9b69cd81bbef8fcd086025c64",
-    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/fixtures/work/kit07ca49df_meta/m/k/dev_scene_exclusions.json": "969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986"
+    "/scratch/jjyeung/orch_n30/sb_evidence/aws_sources/ap__8865619b__runs__469ddece__inputs__prepare_dd26bb95f37a43789206c6e4d4cd94bd__routing__rows.camera_rows.MANIFEST.json": "9322d9f065ed2db92afcacbbe5ec1ac9bd5bb207fe7816c5ca49a903068027db",
+    "/scratch/jjyeung/orch_n30/sb_evidence/aws_sources/ap__8865619b__runs__469ddece__inputs__prepare_dd26bb95f37a43789206c6e4d4cd94bd__routing__rows.camera_rows.jsonl.gz": "9e6aa2bd618588a4054a71dc183bc31821fcb5a2bc7bb1952bbebe15559e7c6b",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/SOURCE_ADMISSION.jsonl": "dfde9aa70a140ddd5e41349d8658a08ab5f224d4ee79b261350a97d6c5269181",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/SOURCE_WORDING_CORPUS.txt": "f565f3b015019a1db064388a8628befae4a9d0aa07c06f9ecef0a6722a95cd26",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/out/TREE_SEAL.json": "2f6755331b3bed6245828fcdb82cf81519648bbce38aa0af41ae68d5e5bab4af",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/p3_provenance.py": "afb446e5b898bcb33eb5c3ef09d7ce13c059b2d145d157f88445bd6219c75590",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/r1_rooms.py": "1adfcdc5a8fbbc628bdd8628dc4fcb73a4d9c011819bfb30484ec4f3007b2f83",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/row_removals.py": "45c326e7fa0ec7ea6b832b121f48241545d57200c5fd16bae2fb850112b6aecb",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/trace_format/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/trace_format/calculator.py": "23e5804145d6f5b81ed266ea36b15e4d6a25a6e7453ff8d369fee305f9a15b52",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/p3_printed_calculator_v2.py": "9d63fc8af00beab117cd06ff51f4e2ccb87c6238af2dfb8ce71f48ea3985820d",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/camera_config.py": "c143d4514363d3f27d2a081147266f020114372183a4256a6c8bb56c767f3019",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/camera_targets.py": "59a9475e87c6eb49fc103e8077ec224746f06fcdbde9b0a1a38088cb1aed18a4",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/ground_rows.py": "6c525f744aa20fa1b50d990233e120285e741b2b65c682316fe183d699db1c6e",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/carrier_c1_routing.py": "9ad354d548a80473de4399407f27054101c8e4707657ee7c349181f7e638d3e2",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/s1_scene_census.py": "34d30e3fccd6444b804d82132e8c4b38d336fdaaa75682b678d9b4b3348ff3ea",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/s1_exclusions.py": "974d32a9a3c99fdfe3f74ab3a79d2d62c13623bfca9e190f8f47a54ca2e16c31",
+    "/scratch/jjyeung/orch_n30/tree_rebuild10_w/w19/work/tree_r1/student_pilot/r1_persisted.py": "4ca7e887680e54f3c9d95e64ac07de0da6bf4a47ca9e65c2f697fefbad7f9a06"
   }
 }

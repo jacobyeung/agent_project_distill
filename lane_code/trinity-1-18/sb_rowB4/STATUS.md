@@ -1,0 +1,1 @@
+The kit delivers 8,050 rows from 6,710 sources. All required checks pass, including zero false raster citations and zero N scene-division refusals. The compact replacement, wording, and MISSING_GT lists are separate; the report flags camera v1/v3 source coverage. The tar and SHA256SUMS are in out/.

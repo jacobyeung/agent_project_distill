@@ -8,3 +8,4 @@
 - 05:09Z RESULT further pins (all found; SAM3 9999e234 hashed on Mind). 05:12Z RESULT camera rows: 35,423 rows (14,020/9,143/12,260) gz 9e6aa2bd on 1-18 aws_sources. Design record distill_design/COMPONENT_EVIDENCE_SOURCES_OFF_AWS_20261119.md + INDEX line.
 - Open: Mind copy of GCS q10/ae3b362c (5 objects, 5.14 GB) not made (mover's job unless ORCH asks). Three false-positive guard entries from this lane sit in PENDING_USER_COMMANDS.md (no file needs removing).
 - State: all owed work delivered; lane idle, waiting for ORCH/swarm_build events.
+- 20261119T0529Z: RESULT gt_packs_not_found (11 packs + 307 rasters: no copy on AWS, Orchard, Mind archives, GCS lists, 1-3).

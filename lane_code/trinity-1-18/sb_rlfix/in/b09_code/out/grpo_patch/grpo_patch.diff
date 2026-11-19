@@ -1,0 +1,399 @@
+--- work/tree_b5/x/work/tree_r1/student_pilot/carrier_c1.py	2026-11-15 14:21:02.000000000 -0500
++++ grpo_tree/student_pilot/carrier_c1.py	2026-11-16 08:11:32.304601408 -0500
+@@ -16,6 +16,7 @@
+ from .decoupled_v import features
+ from .point_depth_head import PointDepthHead
+ from . import full_ft
++from . import grpo_loss
+ from .carrier_c1_data import C1_A, C1_B, C1_C, PLACEMENTS, frame_position_ids, standard_attention_mask
+ 
+ 
+@@ -511,7 +512,13 @@
+                 raise ValueError('Routing rows require assistant labels')
+             logits = self.lm_head(hidden[:, :-1][valid]).float()
+             losses = F.cross_entropy(logits, labels[valid], reduction='none')
+-            components['routing'] = losses.mean()
++            if grpo_loss.is_pg_batch(batch):
++                # RL mode (b): the policy-gradient loss replaces the CE on GRPO rows.
++                grpo_loss.check_reserved(batch, self.carrier_id)
++                components['routing'], metrics['grpo'] = grpo_loss.loss_from_logits(
++                    logits, labels, valid, batch, self.recipe)
++            else:
++                components['routing'] = losses.mean()
+             if 'aux_segments' in batch:
+                 from .carrier_c1_routing import SEGMENTS
+                 tags = batch['aux_segments'][:, 1:][valid]
+@@ -526,7 +533,14 @@
+             # Only assistant positions need vocabulary logits (large memory saving).
+             logits = self.lm_head(hidden[:, :-1][valid]).float()
+             losses = F.cross_entropy(logits, labels[valid], reduction='none')
+-            if stream == 'pointing' and 'aux_token_weights' in batch:
++            if grpo_loss.is_pg_batch(batch):
++                if stream != 'vqa':
++                    raise ValueError('GRPO rows train only the vqa and routing streams')
++                grpo_loss.check_reserved(batch, self.carrier_id)
++                # RL mode (b): the policy-gradient loss replaces the CE on GRPO rows.
++                components[stream], metrics['grpo'] = grpo_loss.loss_from_logits(
++                    logits, labels, valid, batch, self.recipe)
++            elif stream == 'pointing' and 'aux_token_weights' in batch:
+                 # Config pointing_weights: the null-or-point decision token weighs more (mean row weight fixed).
+                 components[stream] = (losses * batch['aux_token_weights'][:, 1:][valid].to(losses.dtype)).mean()
+             else:
+--- work/tree_b5/x/work/tree_r1/student_pilot/carrier_c1_run.py	2026-11-16 00:56:36.743451000 -0500
++++ grpo_tree/student_pilot/carrier_c1_run.py	2026-11-16 08:21:04.097258161 -0500
+@@ -24,7 +24,7 @@
+ import torch
+ import torch.distributed as dist
+ 
+-from . import full_ft, carrier_c1_data as data
++from . import full_ft, carrier_c1_data as data, grpo_rows
+ from .carrier_c1 import CarrierC1, RECIPE, parameter_groups
+ from .carrier_c1_sweep import capped_steps, recipe_for, dense_pose_row
+ from .decoupled_v import learning_rate
+@@ -1058,6 +1058,14 @@
+         if stream in self.mixes:
+             return self.mixes[stream].get(index)
+         row, target = self.row(stream, index)
++        if grpo_rows.is_grpo(row) or grpo_rows.is_own(row):
++            # RL rows (grpo_rows.py): mode (b) policy-gradient rows, or mode (a) exact-token rows
++            # of selected rollouts (cross-entropy on own tokens; artifact-head responses masked).
++            if row['stream'] != stream:
++                raise ValueError('RL row planned on another stream')
++            batch, audit = grpo_rows.encode(self.processor, row, self.placement, self.layout, self.gap,
++                                            self.geometry_online)
++            return batch, None, audit
+         if stream == 'routing':
+             batch, audit = routing.encode(self.processor, row, self.placement, self.mode, self.layout, self.gap,
+                                            geometry_online=self.geometry_online)
+--- /dev/null	2026-10-25 00:59:43.375289147 -0400
++++ grpo_tree/student_pilot/grpo_loss.py	2026-11-16 08:54:33.237984086 -0500
+@@ -0,0 +1,141 @@
++"""GRPO loss for mode (b) of the RL kit: group-normalised advantages, a clipped policy-gradient
++surrogate on the model's own sampled tokens, and a k3 KL term to the SFT export.
++
++Batch fields (aligned with `input_ids`, read through the same `[:, 1:]` shift as `labels`):
++  aux_pg_advantage [B]      float  group-normalised advantage of the row's rollout
++  aux_pg_mask      [B, T]   bool   positions whose token carries the policy-gradient term:
++                                    sampled tokens only; forced first-span tokens, the budget EOS,
++                                    printed tool responses and the prompt carry none
++  aux_old_logp     [B, T]   float  log prob of the token under the sampling policy (export r)
++  aux_ref_logp     [B, T]   float  log prob of the token under the reference (SFT) export
++  aux_pg_reserved  [K]      long   token ids the decoder sets to -inf before choosing
++                                    (`carrier_c1_batch_decode.Row.reserved`: the response
++                                    delimiters and the carrier id); the loss applies the same
++                                    mask, so its policy is the distribution the sampler drew from
++Every aux_pg_mask position must be a supervised label position (labels != -100); response
++spans are already -100 in routing rows, so they never enter the loss.
++
++Settings come from the model recipe's `grpo` block (inside the run configuration hash):
++  clip_low 0.2, clip_high 0.2, kl_beta 0.04, temperature 0.7 (the sampler default), norm 'token'
++  aux_pg_temperature [B] float must equal the setting: the rows' sampling temperature
++  norm 'token': sum over the microbatch's PG tokens / their count;
++  norm 'seq'  : mean over rows of each row's token mean (rows with no PG token weigh zero).
++The temperature must equal the sampler's, and aux_old_logp must be the tempered log prob the
++sampler recorded (logp_tempered), so the ratio starts at 1 on the export that sampled.
++"""
++import torch
++
++SETTINGS = dict(clip_low=0.2, clip_high=0.2, kl_beta=0.04, temperature=0.7, norm='token')  # temperature = the sampler's
++FIELDS = ('aux_pg_advantage', 'aux_pg_mask', 'aux_old_logp', 'aux_ref_logp', 'aux_pg_reserved', 'aux_pg_temperature')
++
++
++def settings(recipe):
++    raw = dict((recipe or {}).get('grpo') or {})
++    unknown = set(raw) - set(SETTINGS)
++    if unknown:
++        raise ValueError(f'unknown grpo settings {sorted(unknown)}')
++    out = {**SETTINGS, **raw}
++    if out['norm'] not in ('token', 'seq'):
++        raise ValueError('grpo norm must be token or seq')
++    if not out['temperature'] > 0:
++        raise ValueError('grpo temperature must be positive')
++    return out
++
++
++def is_pg_batch(batch):
++    present = [k in batch for k in FIELDS]
++    if any(present) and not all(present):
++        raise ValueError(f'a GRPO batch needs every field {FIELDS}')
++    return all(present)
++
++
++def check_reserved(batch, carrier_id):
++    if int(carrier_id) not in batch['aux_pg_reserved'].tolist():
++        raise ValueError('aux_pg_reserved omits the carrier id the decoder masks')
++
++
++def group_advantages(rewards, eps=1e-6, scale_std=True):
++    """(r - mean) / (std + eps) within one prompt's group (population std); a tied group gives zeros."""
++    r = torch.as_tensor(rewards, dtype=torch.float64)
++    if r.numel() == 0:
++        return r
++    centred = r - r.mean()
++    if not scale_std:
++        return centred
++    std = r.std(unbiased=False)
++    return torch.zeros_like(r) if float(std) <= eps else centred / (std + eps)
++
++
++def k3(new_logp, ref_logp):
++    """Unbiased, non-negative KL(pi || ref) estimate per token: exp(d) - d - 1, d = ref - new."""
++    d = ref_logp - new_logp
++    return torch.exp(d) - d - 1.0
++
++
++def policy_logprobs(logits, labels, reserved, temperature):
++    """Log prob of each label under the decoder's sampling policy: reserved ids masked, then tempered."""
++    logits = logits.float().clone()
++    logits[:, reserved.to(logits.device).long()] = -float('inf')
++    logp = torch.log_softmax(logits / temperature, -1)
++    return logp.gather(-1, labels[:, None])[:, 0]
++
++
++def token_terms(new_logp, old_logp, ref_logp, advantage, s):
++    ratio = torch.exp(new_logp - old_logp)
++    clipped = torch.clamp(ratio, 1.0 - s['clip_low'], 1.0 + s['clip_high'])
++    surrogate = torch.minimum(ratio * advantage, clipped * advantage)
++    kl = k3(new_logp, ref_logp)
++    return -surrogate + s['kl_beta'] * kl, ratio, kl
++
++
++def loss_from_logits(logits, labels, valid, batch, recipe):
++    """Loss over the forward's supervised positions. `logits` are the lm_head outputs at
++    `valid` positions (the forward's own memory-saving gather); labels/valid are already shifted."""
++    s = settings(recipe)
++    if (batch['aux_pg_temperature'].float() - s['temperature']).abs().max() > 1e-6:
++        raise ValueError('GRPO rows were sampled at another temperature than the loss uses')
++    mask = batch['aux_pg_mask'][:, 1:].bool()
++    if (mask & ~valid).any():
++        raise ValueError('aux_pg_mask marks a position without a label (prompt or tool response)')
++    pg = mask[valid]
++    rows = torch.arange(labels.shape[0], device=labels.device)[:, None].expand_as(labels)[valid]
++    new = policy_logprobs(logits, labels[valid], batch['aux_pg_reserved'], s['temperature'])
++    if not pg.any():
++        zero = logits.sum() * 0.
++        return zero, dict(pg_tokens=0)
++    old = batch['aux_old_logp'][:, 1:][valid].to(new.dtype)
++    ref = batch['aux_ref_logp'][:, 1:][valid].to(new.dtype)
++    adv = batch['aux_pg_advantage'].to(new.device, new.dtype)[rows]
++    tok, ratio, kl = token_terms(new[pg], old[pg], ref[pg], adv[pg], s)
++    if s['norm'] == 'token':
++        loss = tok.sum() / pg.sum()
++    else:
++        r = rows[pg]
++        per_row_sum = torch.zeros(labels.shape[0], dtype=tok.dtype, device=tok.device).index_add(0, r, tok)
++        per_row_n = torch.zeros(labels.shape[0], dtype=tok.dtype, device=tok.device).index_add(
++            0, r, torch.ones_like(tok))
++        has = per_row_n > 0
++        loss = (per_row_sum[has] / per_row_n[has]).mean()
++    with torch.no_grad():
++        clip = ((ratio < 1 - s['clip_low']) | (ratio > 1 + s['clip_high'])).float().mean()
++        metrics = dict(pg_tokens=int(pg.sum()), kl=float(kl.mean()), ratio=float(ratio.mean()),
++                       clip_fraction=float(clip), advantage=float(adv[pg].mean()))
++    return loss, metrics
++
++
++def sequence_logprobs(model, batch, stream, temperature=1.0, reserved=None):
++    """No-grad per-position log prob of each label under `model` ([B, T], aligned with input_ids;
++    0 where labels are -100). Used for aux_ref_logp (reference export) and to recompute
++    aux_old_logp when the sampler's numbers are not trusted."""
++    with torch.no_grad():
++        image = 'image_grid_thw' in batch and 'video_grid_thw' not in batch
++        hidden = model.hidden(batch, carriers=not image)
++        labels = batch['labels'][:, 1:]
++        valid = labels != -100
++        reserved = batch['aux_pg_reserved'] if reserved is None else torch.as_tensor(reserved)
++        lp = policy_logprobs(model.lm_head(hidden[:, :-1][valid]), labels[valid], reserved, temperature)
++        out = torch.zeros(batch['labels'].shape, dtype=torch.float32)
++        shifted = out[:, 1:].clone()
++        shifted[valid.cpu()] = lp.cpu()
++        out[:, 1:] = shifted
++    return out
+--- /dev/null	2026-10-25 00:59:43.375289147 -0400
++++ grpo_tree/student_pilot/grpo_rows.py	2026-11-16 09:32:31.219018825 -0500
+@@ -0,0 +1,185 @@
++"""GRPO rows (rlkit-grpo-row-v1) in the trainer's stream databases.
++
++A row holds what the sampler decoded and what the loss needs:
++  prompt_row        the native VQA row the sampler decoded from (no target)
++  stream            'vqa' (no tool response in the rollout) or 'routing'
++  tokens, kinds     the rollout's generated ids and per-position source: f forced first span,
++                    s sampled, b budget EOS, r printed tool response
++  old_logp          sampler log prob (tempered, reserved ids masked) at s positions, None elsewhere
++  ref_logp          reference-export log prob at s positions, computed offline, None elsewhere
++  advantage         group-normalised advantage
++  reserved          the ids the decoder masked before choosing
++  prompt_ids_sha256 sha256 of the prompt input ids the sampler decoded from
++The encoder rebuilds the prompt with the same encoder the sampler's reader used
++(carrier_c1_canary.prompt_batch: data.encode on the vqa stream with READOUT_TARGET, sliced at the
++first label) and refuses a row whose prompt ids differ, so training sees the sampled sequence.
++"""
++import hashlib
++import json
++
++import torch
++
++from . import carrier_c1_data as data
++
++SCHEMA = 'rlkit-grpo-row-v1'
++OWN_SCHEMA = 'rlkit-own-row-v1'
++KINDS = set('fsbr')
++
++
++def is_grpo(row):
++    return isinstance(row, dict) and row.get('schema') == SCHEMA
++
++
++def is_own(row):
++    """Mode (a) exact-token row: a selected rollout trained by cross-entropy on its own tokens
++    (f, s, b), with its printed responses (r) masked, exactly as decoded. Responses must come from
++    heads inside the artifact; rlkit.select admits only such rows."""
++    return isinstance(row, dict) and row.get('schema') == OWN_SCHEMA
++
++
++def ids_sha256(ids):
++    return hashlib.sha256(json.dumps([int(i) for i in ids]).encode()).hexdigest()
++
++
++def prompt_batch(processor, row, placement, layout, gap, geometry_online=None):
++    batch, _, _ = data.encode(processor, {**row, 'target': data.READOUT_TARGET}, {}, 'vqa', placement, 'final',
++                              layout, gap, **(dict(geometry_online=geometry_online) if geometry_online else {}))
++    start = int(torch.where(batch['labels'][0] != -100)[0][0])
++    return {k: (v[:, :start] if k in ('input_ids', 'attention_mask', 'mm_token_type_ids') else v)
++            for k, v in batch.items() if k != 'labels'}
++
++
++# Same rules as rlkit.select.ARTIFACT_POLICY / artifact_policy (kept in step by rltests.test_grpo_rows).
++POLICY = dict(pose_sources=('own', 'tower'), mask_sources=(None, 'mdg'), ground_backends=('ground_v3', 'mdg'),
++              ground_backend_types=(None, 'GroundV3'), call_kinds=('head', 'calculator', 'error', 'ground', 'gap'),
++              geometry_sources=(None, 'same_checkpoint_own'), geometry_prefixes=('same_checkpoint_own:',),
++              source_prefixes=('native_mdg:',), query_provenance=('unspecified', 'None'), presence_sources=('None',),
++              source_provenances=('unspecified',), presence_identities=(None,))
++
++
++def source_reason(src):
++    p = POLICY
++    if not isinstance(src, dict):
++        return 'no response sources'
++    if src.get('donor') or src.get('verify') or src.get('reread') or src.get('tower_state'):
++        return 'donor, verify, reread or tower-state responses'
++    if src.get('pose_source') not in p['pose_sources'] or src.get('mask_source') not in p['mask_sources']:
++        return 'pose or mask source outside the artifact'
++    gb = src.get('ground_backend')
++    if gb not in p['ground_backend_types']:
++        return 'ground backend outside the artifact'
++    allowed = p['ground_backends'] + (('None',) if gb is None else ())
++    if any(b not in allowed for b in src.get('ground_query_backends', ['missing'])):
++        return 'ground query backend outside the artifact'
++    if any(q not in p['query_provenance'] for q in src.get('query_provenance', ['missing'])):
++        return 'query provenance outside the artifact'
++    if any(q not in p['presence_sources'] for q in src.get('presence_sources', ['missing'])):
++        return 'query presence outside the artifact'
++    if any(k not in p['call_kinds'] for k in src.get('call_kinds', ['missing'])):
++        return 'call kind outside the policy'
++    if gb is not None:
++        gid, sid = str(src.get('geometry_identity')), str(src.get('source_identity'))
++        if (src.get('geometry_source') not in p['geometry_sources'] or not gid.startswith(p['geometry_prefixes'])
++                or not sid.startswith(p['source_prefixes']) or gid.split(':', 1)[1] != sid.split(':', 1)[1]):
++            return 'grounding geometry or mask source outside the artifact'
++        if (src.get('source_provenance', 'missing') not in p['source_provenances']
++                or src.get('presence_identity', 'missing') not in p['presence_identities']
++                or src.get('rescue', True) or not src.get('verify_stubbed')):
++            return 'grounding stages outside the artifact'
++    return None
++
++
++def check_sources(row):
++    """Trainer-side re-check of the selector's artifact policy on the row's recorded sources."""
++    if row.get('response_policy') != 'artifact':
++        raise ValueError('RL rows need responses from heads inside the artifact')
++    reason = source_reason(row.get('response_sources'))
++    if reason is not None:
++        raise ValueError('RL row responses come from outside the artifact: ' + reason)
++
++
++def check(row):
++    check_sources(row)
++    if not isinstance(row.get('temperature'), (int, float)) or not row['temperature'] > 0:
++        raise ValueError('GRPO row needs its sampling temperature')
++    n = len(row['tokens'])
++    if row['stream'] not in ('vqa', 'routing'):
++        raise ValueError('GRPO rows train only vqa or routing')
++    if len(row['kinds']) != n or set(row['kinds']) - KINDS:
++        raise ValueError('GRPO row kinds differ from its tokens')
++    if (row['stream'] == 'routing') != ('r' in row['kinds']):
++        raise ValueError('GRPO routing rows hold tool responses and vqa rows none')
++    for name in ('old_logp', 'ref_logp'):
++        values = row[name]
++        if len(values) != n or any((v is None) != (k != 's') for v, k in zip(values, row['kinds'])):
++            raise ValueError(f'GRPO row {name} must be set exactly at sampled positions')
++    if 's' not in row['kinds']:
++        raise ValueError('GRPO row has no sampled token')
++    if not isinstance(row['advantage'], (int, float)) or row['advantage'] != row['advantage']:
++        raise ValueError('GRPO row needs a finite advantage')
++
++
++def attach(prompt, row):
++    ids = prompt['input_ids']
++    gen = torch.tensor([row['tokens']], dtype=ids.dtype)
++    P, n = ids.shape[1], gen.shape[1]
++    out = {k: v for k, v in prompt.items() if k not in ('input_ids', 'attention_mask', 'mm_token_type_ids')}
++    out['input_ids'] = torch.cat([ids, gen], 1)
++    out['attention_mask'] = torch.cat([prompt['attention_mask'], torch.ones_like(gen)], 1)
++    if 'mm_token_type_ids' in prompt:
++        out['mm_token_type_ids'] = torch.cat([prompt['mm_token_type_ids'], torch.zeros_like(gen)], 1)
++    labels = torch.full((1, P + n), -100, dtype=ids.dtype)
++    mask = torch.zeros((1, P + n), dtype=torch.bool)
++    old = torch.zeros((1, P + n), dtype=torch.float32)
++    ref = torch.zeros((1, P + n), dtype=torch.float32)
++    for i, k in enumerate(row['kinds']):
++        if k != 'r':
++            labels[0, P + i] = gen[0, i]
++        if k == 's':
++            mask[0, P + i] = True
++            old[0, P + i] = float(row['old_logp'][i])
++            ref[0, P + i] = float(row['ref_logp'][i])
++    out.update(labels=labels, aux_pg_mask=mask, aux_old_logp=old, aux_ref_logp=ref,
++               aux_pg_advantage=torch.tensor([float(row['advantage'])]),
++               aux_pg_reserved=torch.tensor([int(i) for i in row['reserved']], dtype=torch.long),
++               aux_pg_temperature=torch.tensor([float(row.get('temperature', 1.0))]),
++               aux_suffix_start=torch.tensor(P))
++    return out
++
++
++def check_own(row):
++    n = len(row['tokens'])
++    if row['stream'] not in ('vqa', 'routing'):
++        raise ValueError('Own rows train only vqa or routing')
++    if len(row['kinds']) != n or set(row['kinds']) - KINDS or not n:
++        raise ValueError('Own row kinds differ from its tokens')
++    if (row['stream'] == 'routing') != ('r' in row['kinds']):
++        raise ValueError('Own routing rows hold tool responses and vqa rows none')
++    check_sources(row)
++
++
++def encode_own(processor, row, placement, layout, gap, geometry_online=None):
++    check_own(row)
++    prompt = prompt_batch(processor, row['prompt_row'], placement, layout, gap, geometry_online)
++    if ids_sha256(prompt['input_ids'][0].tolist()) != row['prompt_ids_sha256']:
++        raise ValueError('Own row prompt differs from the prompt the sampler decoded')
++    row = dict(row, old_logp=[0.] * len(row['tokens']), ref_logp=[0.] * len(row['tokens']), advantage=0., reserved=[])
++    batch = attach(prompt, row)
++    for key in ('aux_pg_mask', 'aux_old_logp', 'aux_ref_logp', 'aux_pg_advantage', 'aux_pg_reserved', 'aux_pg_temperature'):
++        batch.pop(key)
++    return batch, dict(qid=row['prompt_row'].get('qid'), own=dict(draw=row.get('draw')))
++
++
++def encode(processor, row, placement, layout, gap, geometry_online=None):
++    if is_own(row):
++        return encode_own(processor, row, placement, layout, gap, geometry_online)
++    check(row)
++    tokenizer = processor.tokenizer
++    for token in ('<tool_response>', '</tool_response>'):
++        if tokenizer.convert_tokens_to_ids(token) not in row['reserved']:
++            raise ValueError('GRPO row reserved ids omit the response delimiters the decoder masks')
++    prompt = prompt_batch(processor, row['prompt_row'], placement, layout, gap, geometry_online)
++    if ids_sha256(prompt['input_ids'][0].tolist()) != row['prompt_ids_sha256']:
++        raise ValueError('GRPO row prompt differs from the prompt the sampler decoded')
++    batch = attach(prompt, row)
++    return batch, dict(qid=row['prompt_row'].get('qid'), grpo=dict(draw=row.get('draw'), advantage=row['advantage']))

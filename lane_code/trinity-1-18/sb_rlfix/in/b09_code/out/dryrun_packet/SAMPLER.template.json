@@ -1,0 +1,19 @@
+{
+ "export": "<EXPORT_LABEL e.g. step544 or the D0 export chosen by the init rule>",
+ "tree": "/scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449",
+ "sampling": {"draws": 8, "forced_share": 0.5, "temperature": 0.7, "top_p": 0.95, "seed": 17,
+              "max_sampled_tokens": 4096, "batch_draws": true},
+ "decode": {"pose_source": "own", "max_calls": 40},
+ "forcing": "@FORCING.json (inlined by run_dryrun.sh)",
+ "backend": {
+  "tree_root": "/scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449",
+  "kit_config": "<KIT_CONFIG.json of the export: frame_layout, frames 32 or 64>",
+  "config_overrides": [],
+  "artifact_pin": {"path": "<EXPORT .safetensors/.pt on this node's /scratch>", "sha256": "<sha256>"},
+  "device": "cuda:0",
+  "cache_items": 8,
+  "factory": "rlkit.towerfactory:s1_grounding",
+  "factory_config": {"audit_root": "<RUN_DIR>/grounding_audit", "reuse": "draw", "settings": {}}
+ },
+ "exclusions": {"banned_sources": ["revsi", "vsibench", "vsti", "dev_s1"], "scene_keys": []}
+}

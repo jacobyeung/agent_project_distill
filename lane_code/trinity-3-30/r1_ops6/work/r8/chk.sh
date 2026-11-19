@@ -6,7 +6,7 @@ grep '^STEP' $M/node_last.txt | tail -1 | cut -c1-60
 python3 -c "import json;d=json.load(open('$M/node_early.json'));print('early',d['verdict'],'problems',d['problems'][-3:],'warn',d.get('warnings',[])[-3:])"
 grep -E 'srun rc|early rc' $M/node_last.txt | tr '\n' ' '; echo
 grep -E '^172660' $M/last.txt | head -2
-echo "err_last: $(grep '^\[2026' $M/last.txt | tail -1 | cut -c1-40)"
+echo "err_last: $(grep '^\[2026' $M/last.txt | tail -1 | cut -c1-30) other_err_lines: $(awk '/^172660.err/{f=1;next} /^172660.steps/{f=0} f' $M/last.txt | grep -v -c -E '_cgroup_procs_check|unable to read .*cgroup.procs|^th /sys')"
 grep -v '"step": 201' $M/node_last.txt | grep -o '"wall": [0-9]*' | awk '{if($2>300)print "SLOW",$0}' | tail -3
 ls $R 2>/dev/null | tr '\n' ' '; echo; [ -e $R/alarm ] && tail -2 $R/alarm
 df -BG --output=avail /scratch | tail -1

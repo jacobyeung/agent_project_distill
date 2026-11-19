@@ -1,0 +1,58 @@
+COUNT R0-dev single 287 nonloop 225 MRA nonloop 200 72.0 544 same items 65.5 100 65.0
+   truth 2 n 145 under 1 right 126 over 18 MRA200 87.9 MRA544 82.4
+   truth 3 n 47 under 33 right 10 over 4 MRA200 51.9 MRA544 42.6
+   truth 4 n 16 under 11 right 5 over 0 MRA200 41.2 MRA544 19.4
+   truth 5+ n 17 under 12 right 2 over 3 MRA200 20.6 MRA544 28.2
+   lost points on the single set: overcount 7.84 undercount 14.15 loops 20.59 (of 287 items)
+   wrong nonloop: (same as 544, same as 100) -> {(True, True): 35, (True, False): 15, (False, False): 26, (False, True): 6} | answers 2: 177 of 225 | always-2 MRA 73.5
+COUNT dev-S1 single 150 nonloop 122 MRA nonloop 200 68.3 544 same items 71.5 100 63.3
+   truth 2 n 76 under 1 right 61 over 14 MRA200 81.8 MRA544 83.9
+   truth 3 n 25 under 16 right 5 over 4 MRA200 50.4 MRA544 60.0
+   truth 4 n 10 under 5 right 3 over 2 MRA200 45.0 MRA544 41.0
+   truth 5+ n 11 under 5 right 0 over 6 MRA200 36.4 MRA544 39.1
+   lost points on the single set: overcount 14.20 undercount 11.60 loops 17.87 (of 150 items)
+   wrong nonloop: (same as 544, same as 100) -> {(False, False): 23, (False, True): 9, (True, True): 17, (True, False): 4} | answers 2: 82 of 122 | always-2 MRA 71.3
+RELDIST R0-dev 279 unparsed 0
+   all                      n 279 right200 188 (67.4) right544 181 (64.9)
+   any cand multi           n   2 right200   2 (100.0) right544   2 (100.0)
+   any of 5 multi           n   2 right200   2 (100.0) right544   2 (100.0)
+   no cand multi            n 274 right200 183 (66.8) right544 176 (64.2)
+   none of 5 multi          n 274 right200 183 (66.8) right544 176 (64.2)
+   ref not multi            n 276 right200 185 (67.0) right544 178 (64.5)
+   ref parsed               n 279 right200 188 (67.4) right544 181 (64.9)
+   room has counting items  n 276 right200 185 (67.0) right544 178 (64.5)
+   room has none            n   3 right200   3 (100.0) right544   3 (100.0)
+   truth cand not multi     n 276 right200 185 (67.0) right544 178 (64.5)
+   wrong200 91 wrong at all three 66 same pick at all three 37 | majority vote 68.5 any of three right 76.3
+RELDIST dev-S1 150 unparsed 0
+   all                      n 150 right200 110 (73.3) right544 106 (70.7)
+   any cand multi           n  47 right200  35 (74.5) right544  33 (70.2)
+   any of 5 multi           n  47 right200  35 (74.5) right544  33 (70.2)
+   no cand multi            n  89 right200  68 (76.4) right544  64 (71.9)
+   none of 5 multi          n  89 right200  68 (76.4) right544  64 (71.9)
+   ref not multi            n 136 right200 103 (75.7) right544  97 (71.3)
+   ref parsed               n  83 right200  64 (77.1) right544  63 (75.9)
+   ref unparsed             n  67 right200  46 (68.7) right544  43 (64.2)
+   room has counting items  n 136 right200 103 (75.7) right544  97 (71.3)
+   room has none            n  14 right200   7 (50.0) right544   9 (64.3)
+   truth cand multi         n  21 right200  15 (71.4) right544  14 (66.7)
+   truth cand not multi     n 115 right200  88 (76.5) right544  83 (72.2)
+   wrong200 40 wrong at all three 27 same pick at all three 21 | majority vote 72.7 any of three right 82.0
+SIZE R0-dev items 293 parsed 293 class unparsed 0 | classes>=3: 25 items 105 | (a) model 62.8 (b) oracle class factor 72.1 (c) dev-truth class median LOO 59.2 (d) model class median 61.0 | all items model 58.5
+   sign of log error across 544/100/200: {'same sign x3': 237, 'zero or mixed': 56} | geo-mean of three MRA 60.5 vs 200 alone 58.5, 544 alone 59.2 (n 293)
+   truth<30 in the asked unit: n 88 MRA 48.0 pred>=30: 23 median abs err 5.5
+SIZE dev-S1 items 150 parsed 150 class unparsed 4 | classes>=3: 9 items 53 | (a) model 72.6 (b) oracle class factor 80.2 (c) dev-truth class median LOO 10.8 (d) model class median 28.7 | all items model 69.3
+   sign of log error across 544/100/200: {'same sign x3': 109, 'zero or mixed': 41} | geo-mean of three MRA 70.2 vs 200 alone 69.3, 544 alone 68.8 (n 150)
+   truth<30 in the asked unit: n 82 MRA 70.0 pred>=30: 3 median abs err 0.2
+DIR R0-dev n_easy toward 126 wrong 28 truth x answer [(('left', 'left'), 56), (('left', 'right'), 16), (('right', 'left'), 12), (('right', 'right'), 42)]
+DIR R0-dev medium toward 129 wrong 41 truth x answer [(('back', 'back'), 6), (('back', 'left'), 5), (('back', 'right'), 6), (('left', 'back'), 4), (('left', 'left'), 40), (('left', 'right'), 18), (('right', 'left'), 8), (('right', 'right'), 42)]
+DIR R0-dev hard toward 121 wrong 46 {'FB wrong, LR ok': 16, 'FB ok, LR wrong': 25, 'FB wrong, LR wrong': 5} | truth back 23 answers back 14
+DIR dev-S1 n_easy toward 150 wrong 10 truth x answer [(('left', 'left'), 75), (('left', 'right'), 6), (('right', 'left'), 4), (('right', 'right'), 65)]
+DIR dev-S1 medium toward 150 wrong 18 truth x answer [(('back', 'back'), 2), (('back', 'left'), 4), (('back', 'right'), 3), (('left', 'back'), 1), (('left', 'left'), 71), (('left', 'right'), 6), (('right', 'left'), 4), (('right', 'right'), 59)]
+DIR dev-S1 hard toward 150 wrong 26 {'FB wrong, LR ok': 14, 'FB ok, LR wrong': 11, 'FB wrong, LR wrong': 1} | truth back 40 answers back 29
+XROOM R0-dev ('R1', 200) rooms with >=5 items 98 | mean squared standardised room effect: observed 1.66, shuffled mean 1.00, shuffled max 1.43, p 0.000
+      rooms 98 | rooms holding half the lost points 35 | worst fifth by mean loss: 19 rooms, 341 items, 29.3% of lost points, 19.1% of items
+XROOM R0-dev ('S1', 544) rooms with >=5 items 98 | mean squared standardised room effect: observed 1.66, shuffled mean 1.00, shuffled max 1.51, p 0.000
+XROOM dev-S1 ('R1', 200) rooms with >=5 items 57 | mean squared standardised room effect: observed 1.67, shuffled mean 0.96, shuffled max 1.44, p 0.000
+      rooms 73 | rooms holding half the lost points 14 | worst fifth by mean loss: 14 rooms, 230 items, 33.6% of lost points, 17.2% of items
+XROOM dev-S1 ('S1', 544) rooms with >=5 items 59 | mean squared standardised room effect: observed 1.47, shuffled mean 0.97, shuffled max 1.49, p 0.003

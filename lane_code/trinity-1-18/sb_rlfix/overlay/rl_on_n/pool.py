@@ -1,0 +1,79 @@
+"""Deterministic pool from N's prepared native reader, never from unadmitted slices."""
+import argparse
+import copy
+import hashlib
+from . import provenance as P
+
+class RoomGate:
+    def __init__(self,cfg):
+        from student_pilot.r1_rooms import Rooms
+        from student_pilot.r2_withheld import Withheld
+        from student_pilot.r0_exclusion import reserve
+        from student_pilot.row_removals import Removals
+        from student_pilot.s1_exclusions import Exclusions
+        for p in cfg['r1_training']['room_authority'].values(): P.checked(p)
+        for p in cfg['remove_files']: P.checked(p)
+        P.checked(cfg['dev_scene_exclusions']); P.checked(cfg['benchmark_scene_exclusions'])
+        self.rooms=Rooms(cfg['r1_training']['room_authority'])
+        self.withheld=Withheld(); self.reserve=reserve(); self.removals=Removals(cfg['remove_files'])
+        self.exclusions=Exclusions(cfg['dev_scene_exclusions'],cfg['benchmark_scene_exclusions'])
+    def admit(self,row):
+        self.rooms.admit(row); self.reserve.check(row,'rl')
+        self.removals.assert_clean(row)
+        canonical,_=self.rooms.canonical(row)
+        if self.withheld.touches(row,{'names':[canonical]}): raise ValueError('RL_WITHHELD_ROOM_REFUSED')
+        if self.exclusions.excluded(row): raise ValueError('RL_DEV_OR_BENCHMARK_REFUSED')
+
+
+def build(rows,gate,route_table,seed=17,limit=None):
+    result={}
+    for stream,index,row in rows:
+        gate.admit(row)
+        qid=str(row['qid']); typ=row.get('question_type') or row.get('routing',{}).get('question_type')
+        if typ not in route_table: raise ValueError('Unknown question type: '+str(typ))
+        si=row['student_input']
+        if len(si['frame_indices']) not in (32,64): raise ValueError('Invalid native frame count')
+        answer=row.get('answer',row.get('routing',{}).get('answer'))
+        if answer is None: raise ValueError('MISSING ground truth answer for '+qid)
+        # Copy only model inputs and metadata needed by native prompt_batch/backend.
+        clean=copy.deepcopy(row)
+        for key in ('target','suffix','answer','ground_record','events','response','response_source'):
+            clean.pop(key,None)
+        if isinstance(clean.get('routing'),dict):
+            clean['routing']={k:v for k,v in clean['routing'].items() if k in ('question_type','category')}
+        value=dict(prompt_id=qid,type=typ,gt_answer=str(answer),options=si.get('options') or [],
+                   row=clean,source_stream=stream,source_offset=index,
+                   source_row_sha256=hashlib.sha256(P.canonical(row).encode()).hexdigest())
+        if qid in result:
+            # An item represented in two streams is not silently counted twice.
+            raise ValueError('Duplicate prompt ID: '+qid)
+        result[qid]=value
+    ordered=sorted(result.values(),key=lambda p:(hashlib.sha256(f'{seed}|{p["prompt_id"]}'.encode()).hexdigest(),p['prompt_id']))
+    return ordered if limit is None else ordered[:limit]
+
+
+def from_prepared(cfg,seed=17,limit=None):
+    from student_pilot.carrier_c1_run import prepared,Rows
+    from student_pilot.r1_training import training_components
+    from student_pilot.r1_rooms import verify_audit
+    from student_pilot.s1_route_policy import validate
+    validate(cfg); training_components(cfg['r1_training']['registry'],cfg)
+    verify_audit(cfg,cfg['r1_training']['room_audit'])
+    receipt,_=prepared(cfg,admission=True)
+    if not receipt.get('r2_membership'): raise ValueError('MISSING native admitted row membership')
+    reader=Rows(receipt,None); gate=RoomGate(cfg)
+    def rows():
+        for stream in ('vqa','routing'):
+            for i in range(reader.count(stream)):
+                row,_=reader.row(stream,i)
+                yield stream,i,row
+    try: return build(rows(),gate,cfg['route_table'],seed,limit)
+    finally: reader.close()
+
+def main():
+    p=argparse.ArgumentParser(); p.add_argument('--tree',required=True); p.add_argument('--config',required=True)
+    p.add_argument('--out',required=True); p.add_argument('--limit',type=int); a=p.parse_args()
+    P.tree(a.tree); cfg=P.load(a.config)
+    prompts=from_prepared(cfg,limit=a.limit)
+    P.write(a.out,dict(schema='rl-on-n-pool-v1',status='ADMITTED',prompts=prompts,seed=17,source_config=P.pin(a.config)))
+if __name__=='__main__': main()

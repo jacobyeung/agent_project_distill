@@ -4,6 +4,9 @@ Differences are percentage points, paired by item, with score_r5.bootstrap
 (physical-room resampling, random.Random(17), 10,000 draws). The registered
 step-544 intervals came from h1eval.statistics.bootstrap (seed 20261115), which
 is printed beside them as "544-RNG" so that comparison is like for like.
+Any refusal, including a paired set short of 450 own and 450 tower rows, exits 2 with
+a one-line reason and writes nothing; --allow-partial scores an incomplete set as a
+diagnostic that marks every line PARTIAL and withholds the decision.
 """
 import argparse,hashlib,json,sys
 from pathlib import Path
@@ -49,7 +52,7 @@ def load(root,package,refs,fixture=False,allow_partial=False):
  """Authenticate a fork return against its package and A4's tower settings, then index rows by arm.
 
  Each journal must declare exactly its planned type-and-card members as binding ids and hold rows only for
- them. Unless allow_partial, each journal holds every declared id in both arms and every planned item is paired.
+ them. Unless allow_partial, every planned item must have a row in both arms.
  """
  root=Path(root);package=Path(package);src=package/'src'
  manifest=read(src/'items/devs1_routed.json');items={i['id']:i for i in manifest['items']}
@@ -66,7 +69,7 @@ def load(root,package,refs,fixture=False,allow_partial=False):
   if pin['preparation'][k]['sha256']!=v:raise ValueError('Preparation differs: '+k)
  inputs=read(root/'metadata/INPUTS.json')
  if identity['inputs']!=canonical({k:v for k,v in inputs.items() if k!='resume'}):raise ValueError('Return inputs differ from its identity')
- if [a['sha256'] for a in inputs['archives']]!=[binding['archive_sha256']]:raise ValueError('Input archive differs from the plan')
+ if inputs['archives'][0]['sha256']!=binding['archive_sha256']:raise ValueError('Input export archive differs from the plan')
  order=read(src/'9.json')['order'];planned_types={order[t] for t in expected['types']}
  planned={k for k,i in items.items() if i['question_type'] in planned_types}
  a4=refs['tower200']
@@ -89,11 +92,12 @@ def load(root,package,refs,fixture=False,allow_partial=False):
   if shared is not None and current!=shared:raise ValueError('Mixed journals')
   shared=current;sources.append(dict(path=str(p),sha256=digest(p)))
   name=str(p.parent.relative_to(journals));t,card=p.parent.parent.name,p.parent.name
-  if not (t.isdigit() and card.isdigit() and int(t)<len(order) and order[int(t)] in planned_types):raise ValueError('Unplanned journal: '+name)
+  if not (t.isdigit() and int(t)<len(order) and order[int(t)] in planned_types and card.isdigit() and int(card)<identity['cards']):
+   raise ValueError('Unplanned journal: '+name)
   if b.get('shard')!=f"{card}/{identity['cards']}":raise ValueError('Journal shard differs from its directory: '+name)
   members=[i['id'] for i in manifest['items'][int(card)::identity['cards']] if i['question_type']==order[int(t)]]
   if b.get('ids')!=members:raise ValueError('Journal ids differ from its planned members: '+name)
-  declared=set(members);held={a:set() for a in rows}
+  declared=set(members)
   text=p.read_text()
   if text and not text.endswith('\n'):raise ValueError('Uncommitted tail')
   for line in text.splitlines():
@@ -102,18 +106,19 @@ def load(root,package,refs,fixture=False,allow_partial=False):
    if k not in declared:raise ValueError('Row outside its journal ids: '+name)
    if r.get('complete') is not True or r.get('mode')!='none':raise ValueError('Uncommitted or wrong-mode row')
    if r['type']!=items[k]['question_type'] or r['room_key']!=items[k]['room_key']:raise ValueError('Pair metadata differs')
-   rows[arm][k]=r;held[arm].add(k)
-  if not allow_partial and any(held[a]!=declared for a in rows):raise ValueError('Journal rows do not cover its ids in both arms: '+name)
- gaps=[f"{kind} "+', '.join(f"{a} {sum(k in rows[a] for k in keys)}/{len(keys)}" for a in rows)
-       for kind in sorted(planned_types) for keys in [[k for k in planned if items[k]['question_type']==kind]]
-       if any(k not in rows[a] for a in rows for k in keys)]
+   rows[arm][k]=r
+ gaps=[]
+ for kind in sorted(planned_types):
+  keys=[k for k in planned if items[k]['question_type']==kind]
+  if any(k not in rows[a] for a in rows for k in keys):
+   gaps.append(kind+' '+', '.join(f'{a} {sum(k in rows[a] for k in keys)}/{len(keys)}' for a in rows))
  if gaps and not allow_partial:raise ValueError('Incomplete paired set ('+'; '.join(gaps)+'); --allow-partial scores it as a diagnostic only')
  return rows,items,sources,dict(step=binding['step'],token=public['token'],plan=public['plan_sha256'],shared=shared)
 
-def score(root,package,fixture=False):
+def score(root,package,fixture=False,allow_partial=False):
  score_r5,scorers,registered_bootstrap=scoring(package)
  refs,ref=references()
- rows,items,sources,info=load(root,package,refs,fixture)
+ rows,items,sources,info=load(root,package,refs,fixture,allow_partial)
  def scores(table):return {k:float(scorers.accuracy(r['output'],items[k])['task_accuracy']) for k,r in table.items()}
  own,tower=scores(rows['own']),scores(rows['tower'])
  base={name:scores(table) for name,table in ref.items()}
@@ -122,7 +127,7 @@ def score(root,package,fixture=False):
   pairs=[(items[k]['room_key'],100*(a[k]-b[k])) for k in common]
   d=score_r5.bootstrap(pairs);d['ci95_544rng']=registered_bootstrap(pairs)['ci95'];d['paired_items']=len(common)
   return d
- result=dict(return_root=str(Path(root).resolve()),package=str(Path(package).resolve()),fixture=fixture,**info,
+ result=dict(return_root=str(Path(root).resolve()),package=str(Path(package).resolve()),fixture=fixture,partial=allow_partial,**info,
              bootstrap=dict(primary='score_r5.bootstrap: physical room, random.Random(17), 10000 draws, ratio estimator',
                             ci95_544rng='h1eval.statistics.bootstrap: numpy default_rng(20261115), 10000 draws'),
              units='percentage points',bar=dict(points=BAR,point='own minus tower >= -5',interval='95% lower bound > -5'),
@@ -151,8 +156,9 @@ def score(root,package,fixture=False):
   result['types'][kind]=t
  done=[t for t in result['types'].values() if t['complete']]
  result['all_complete']=len(done)==len(CAMERA)
- result['all_within_bar_point']=all(t['within_bar_point'] for t in done) if result['all_complete'] else None
- result['all_within_bar_interval']=all(t['within_bar_interval'] for t in done) if result['all_complete'] else None
+ decide=result['all_complete'] and not allow_partial
+ result['all_within_bar_point']=all(t['within_bar_point'] for t in done) if decide else None
+ result['all_within_bar_interval']=all(t['within_bar_interval'] for t in done) if decide else None
  return result
 
 def find_package(root):
@@ -191,6 +197,9 @@ def text(r):
  for kind,t in r['types'].items():
   v=t['vs_200_tower'];lines.append(f"{kind} | {fmt(v['tower_minus_tower200'])} | {fmt(v['own_minus_tower200'])}")
  lines+=['',f"All three complete: {r['all_complete']}; own within 5 pp of tower on all three: point {r['all_within_bar_point']}, 95% lower bound {r['all_within_bar_interval']}"]
+ if r['partial']:
+  lines+=['--allow-partial: diagnostic only, no decision; score a complete return without it']
+  lines=['PARTIAL | '+l if l else 'PARTIAL' for l in lines]
  return '\n'.join(lines)+'\n'
 
 def main(argv=None):
@@ -199,8 +208,11 @@ def main(argv=None):
  p.add_argument('--out',required=True,type=Path)
  p.add_argument('--package',type=Path,help='build directory whose 1.tgz the job ran; default: the sibling build whose plan the return names')
  p.add_argument('--fixture',action='store_true',help='accept a CPU fixture return (fixture binding, replay maker)')
+ p.add_argument('--allow-partial',action='store_true',help='diagnostic only: score an incomplete paired set, mark every line PARTIAL, withhold the decision')
  a=p.parse_args(argv)
- result=score(a.root,a.package or find_package(a.root),a.fixture)
+ try:result=score(a.root,a.package or find_package(a.root),a.fixture,a.allow_partial)
+ except (ValueError,OSError,KeyError) as e:
+  p.exit(2,'ownread refused: '+' '.join((str(e) if isinstance(e,ValueError) else f'{type(e).__name__} {e}').split())+'\n')
  a.out.mkdir(parents=True,exist_ok=True)
  (a.out/'ownread.json').write_text(json.dumps(result,indent=2,allow_nan=False)+'\n')
  body=text(result);(a.out/'ownread.txt').write_text(body);print(body,end='')

@@ -15,12 +15,11 @@ def identify(r):
  return None
 def framehashes(r):
  if isinstance(r,dict):
-  for k,v in r.items():
-   if k in ['frames','student_input','video','frame_paths','images']:yield from framehashes(v)
-   elif k in ['sha256','path','image','url','file'] and isinstance(v,str):yield from re.findall(r'[0-9a-f]{64}',v)
+  for v in r.values():yield from framehashes(v)
  elif isinstance(r,list):
   for v in r:yield from framehashes(v)
  elif isinstance(r,str):yield from re.findall(r'[0-9a-f]{64}',r)
+
 sets=[]
 for s in meta:
  if not any(any(x in p.lower() for x in ['items','cohort','tasks.json','questions']) for p in s['locations']):continue

@@ -1,0 +1,1875 @@
+{
+  "timestamp": "2026-11-19T05:24:25.872187+00:00",
+  "GO": false,
+  "tree_seal": "780ca7b446a578c83a1b1a398a8d54c0503a7cca26309bae6a1b60f85ef2a278",
+  "packet_outcomes": {
+    "passed": 200,
+    "failed": 2
+  },
+  "packet_failures": {
+    "contracts_r6/packet_root/work/tests_r6/test_generator_r4.py::test_production_generator_on_off": {
+      "outcome": "failed",
+      "when": "call",
+      "detail": "../contracts_r6/packet_root/work/tests_r6/test_generator_r4.py:15: in test_production_generator_on_off\n    assert json.dumps(off,sort_keys=True)==json.dumps(baseline[kind],sort_keys=True)\nE   assert '{\"count\": \"<...response>\"}]}' == '{\"count\": \"<...response>\"}]}'\nE     \nE     Skipping 1763 identical leading characters in diff, use -v to show\nE     Skipping 1776 identical trailing characters in diff, use -v to show\nE     - 82278905894, -0.0678\nE     ?           ^\nE     + 82278905895, -0.0678\nE     ?           ^"
+    },
+    "contracts_r6/packet_root/work/tests_r6/test_review_r4.py::test_decode_attacks_and_move_source_distance": {
+      "outcome": "failed",
+      "when": "call",
+      "detail": "../contracts_r6/packet_root/work/tests_r6/test_review_r4.py:122: in test_decode_attacks_and_move_source_distance\n    cam,geometry=attack_helpers();records={}\n                 ^^^^^^^^^^^^^^^^\n../contracts_r6/packet_root/work/tests_r6/test_review_r4.py:110: in attack_helpers\n    module=ast.parse(path.read_text())\n                     ^^^^^^^^^^^^^^^^\n../../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py:1027: in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n../../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py:1013: in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/review_contracts/work/mytests/attack_decode.py'"
+    }
+  },
+  "tests": {
+    "before": {
+      "tests": 3,
+      "failures": [
+        [
+          "test_selection_binds_returned_identity (tests.test_r1_build20.Review20.test_selection_binds_returned_identity)",
+          "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w20/work/tree_r1/tests/test_r1_build20.py\", line 57, in test_selection_binds_returned_identity\n    with self.assertRaisesRegex(ValueError,'IDENTITY_MISMATCH'):selected_init(write(self.root/'selection.json',value),official=True)\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised\n"
+        ],
+        [
+          "test_guard_status_tampering (tests.test_r1_build20.Review20.test_guard_status_tampering)",
+          "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w20/work/tree_r1/tests/test_r1_build20.py\", line 73, in test_guard_status_tampering\n    with self.assertRaises(ValueError):C.guard(artifact,['VSI-Bench'],'test')\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised\n"
+        ]
+      ],
+      "errors": [
+        [
+          "test_real_pose_target (tests.test_r1_build20.Review20.test_real_pose_target)",
+          "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w20/work/tree_r1/tests/test_r1_build20.py\", line 20, in test_real_pose_target\n    value=T.target_identity(cfg)\n          ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild10_w/w20/work/build20/base/r1_training.py\", line 109, in target_identity\n    raise ValueError('P_EXPORT_TARGET_STORE_INVALID:'+name)\nValueError: P_EXPORT_TARGET_STORE_INVALID:pose\n"
+        ]
+      ],
+      "successful": false,
+      "storage": [
+        {
+          "test": "test_real_pose_target (tests.test_r1_build20.Review20.test_real_pose_target)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_real_pose_target (tests.test_r1_build20.Review20.test_real_pose_target)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_selection_binds_returned_identity (tests.test_r1_build20.Review20.test_selection_binds_returned_identity)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_selection_binds_returned_identity (tests.test_r1_build20.Review20.test_selection_binds_returned_identity)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_guard_status_tampering (tests.test_r1_build20.Review20.test_guard_status_tampering)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_guard_status_tampering (tests.test_r1_build20.Review20.test_guard_status_tampering)",
+          "phase": "after",
+          "bytes": 2412042
+        }
+      ]
+    },
+    "review": {
+      "tests": 6,
+      "failures": [],
+      "errors": [],
+      "successful": true,
+      "storage": [
+        {
+          "test": "test_export_binding (tests.test_r1_build20.Review20.test_export_binding)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_export_binding (tests.test_r1_build20.Review20.test_export_binding)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_guard_preparation_and_records (tests.test_r1_build20.Review20.test_guard_preparation_and_records)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_guard_preparation_and_records (tests.test_r1_build20.Review20.test_guard_preparation_and_records)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_guard_status_tampering (tests.test_r1_build20.Review20.test_guard_status_tampering)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_guard_status_tampering (tests.test_r1_build20.Review20.test_guard_status_tampering)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_prepared_mix (tests.test_r1_build20.Review20.test_prepared_mix)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_prepared_mix (tests.test_r1_build20.Review20.test_prepared_mix)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_real_pose_target (tests.test_r1_build20.Review20.test_real_pose_target)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_real_pose_target (tests.test_r1_build20.Review20.test_real_pose_target)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_selection_binds_returned_identity (tests.test_r1_build20.Review20.test_selection_binds_returned_identity)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_selection_binds_returned_identity (tests.test_r1_build20.Review20.test_selection_binds_returned_identity)",
+          "phase": "after",
+          "bytes": 2412042
+        }
+      ]
+    },
+    "retained19": {
+      "tests": 11,
+      "failures": [],
+      "errors": [],
+      "successful": true,
+      "storage": [
+        {
+          "test": "test_complete_records_preserve_gate (tests.test_r1_build19.Components19.test_complete_records_preserve_gate)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_complete_records_preserve_gate (tests.test_r1_build19.Components19.test_complete_records_preserve_gate)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_handover_carries_deferred_artifact (tests.test_r1_build19.Components19.test_handover_carries_deferred_artifact)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_handover_carries_deferred_artifact (tests.test_r1_build19.Components19.test_handover_carries_deferred_artifact)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_export_contains_slots (tests.test_r1_build19.Components19.test_native_export_contains_slots)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_export_contains_slots (tests.test_r1_build19.Components19.test_native_export_contains_slots)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_official_and_dev_actual_gateway (tests.test_r1_build19.Components19.test_official_and_dev_actual_gateway)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_official_and_dev_actual_gateway (tests.test_r1_build19.Components19.test_official_and_dev_actual_gateway)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_other_cards_and_parent_refuse (tests.test_r1_build19.Components19.test_other_cards_and_parent_refuse)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_other_cards_and_parent_refuse (tests.test_r1_build19.Components19.test_other_cards_and_parent_refuse)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_receipt_and_lineage_refuse (tests.test_r1_build19.Components19.test_receipt_and_lineage_refuse)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_receipt_and_lineage_refuse (tests.test_r1_build19.Components19.test_receipt_and_lineage_refuse)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_registry_classification_still_refuses (tests.test_r1_build19.Components19.test_registry_classification_still_refuses)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_registry_classification_still_refuses (tests.test_r1_build19.Components19.test_registry_classification_still_refuses)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_rows_record_is_required_and_pinned (tests.test_r1_build19.Components19.test_rows_record_is_required_and_pinned)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_rows_record_is_required_and_pinned (tests.test_r1_build19.Components19.test_rows_record_is_required_and_pinned)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_selection_and_inherited_export_status (tests.test_r1_build19.Components19.test_selection_and_inherited_export_status)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_selection_and_inherited_export_status (tests.test_r1_build19.Components19.test_selection_and_inherited_export_status)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_verified_export_and_successor (tests.test_r1_build19.Components19.test_verified_export_and_successor)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_verified_export_and_successor (tests.test_r1_build19.Components19.test_verified_export_and_successor)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_wrong_parent_refuses (tests.test_r1_build19.Components19.test_wrong_parent_refuses)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_wrong_parent_refuses (tests.test_r1_build19.Components19.test_wrong_parent_refuses)",
+          "phase": "after",
+          "bytes": 2412042
+        }
+      ]
+    },
+    "final_focused": {
+      "tests": 112,
+      "failures": [],
+      "errors": [],
+      "successful": true,
+      "storage": [
+        {
+          "test": "test_export_binding (tests.test_r1_build20.Review20.test_export_binding)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_export_binding (tests.test_r1_build20.Review20.test_export_binding)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_guard_preparation_and_records (tests.test_r1_build20.Review20.test_guard_preparation_and_records)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_guard_preparation_and_records (tests.test_r1_build20.Review20.test_guard_preparation_and_records)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_guard_status_tampering (tests.test_r1_build20.Review20.test_guard_status_tampering)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_guard_status_tampering (tests.test_r1_build20.Review20.test_guard_status_tampering)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_prepared_mix (tests.test_r1_build20.Review20.test_prepared_mix)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_prepared_mix (tests.test_r1_build20.Review20.test_prepared_mix)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_real_pose_target (tests.test_r1_build20.Review20.test_real_pose_target)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_real_pose_target (tests.test_r1_build20.Review20.test_real_pose_target)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_selection_binds_returned_identity (tests.test_r1_build20.Review20.test_selection_binds_returned_identity)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_selection_binds_returned_identity (tests.test_r1_build20.Review20.test_selection_binds_returned_identity)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_complete_records_preserve_gate (tests.test_r1_build19.Components19.test_complete_records_preserve_gate)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_complete_records_preserve_gate (tests.test_r1_build19.Components19.test_complete_records_preserve_gate)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_handover_carries_deferred_artifact (tests.test_r1_build19.Components19.test_handover_carries_deferred_artifact)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_handover_carries_deferred_artifact (tests.test_r1_build19.Components19.test_handover_carries_deferred_artifact)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_export_contains_slots (tests.test_r1_build19.Components19.test_native_export_contains_slots)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_export_contains_slots (tests.test_r1_build19.Components19.test_native_export_contains_slots)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_official_and_dev_actual_gateway (tests.test_r1_build19.Components19.test_official_and_dev_actual_gateway)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_official_and_dev_actual_gateway (tests.test_r1_build19.Components19.test_official_and_dev_actual_gateway)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_other_cards_and_parent_refuse (tests.test_r1_build19.Components19.test_other_cards_and_parent_refuse)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_other_cards_and_parent_refuse (tests.test_r1_build19.Components19.test_other_cards_and_parent_refuse)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_receipt_and_lineage_refuse (tests.test_r1_build19.Components19.test_receipt_and_lineage_refuse)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_receipt_and_lineage_refuse (tests.test_r1_build19.Components19.test_receipt_and_lineage_refuse)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_registry_classification_still_refuses (tests.test_r1_build19.Components19.test_registry_classification_still_refuses)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_registry_classification_still_refuses (tests.test_r1_build19.Components19.test_registry_classification_still_refuses)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_rows_record_is_required_and_pinned (tests.test_r1_build19.Components19.test_rows_record_is_required_and_pinned)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_rows_record_is_required_and_pinned (tests.test_r1_build19.Components19.test_rows_record_is_required_and_pinned)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_selection_and_inherited_export_status (tests.test_r1_build19.Components19.test_selection_and_inherited_export_status)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_selection_and_inherited_export_status (tests.test_r1_build19.Components19.test_selection_and_inherited_export_status)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_verified_export_and_successor (tests.test_r1_build19.Components19.test_verified_export_and_successor)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_verified_export_and_successor (tests.test_r1_build19.Components19.test_verified_export_and_successor)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_wrong_parent_refuses (tests.test_r1_build19.Components19.test_wrong_parent_refuses)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_wrong_parent_refuses (tests.test_r1_build19.Components19.test_wrong_parent_refuses)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_repeated_admission_thread_setup (tests.test_r1_build18.Admission18.test_repeated_admission_thread_setup)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_repeated_admission_thread_setup (tests.test_r1_build18.Admission18.test_repeated_admission_thread_setup)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_census_collects_keys_and_retains_unresolved (tests.test_r1_build18.Rooms18.test_census_collects_keys_and_retains_unresolved)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_census_collects_keys_and_retains_unresolved (tests.test_r1_build18.Rooms18.test_census_collects_keys_and_retains_unresolved)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_exact_bound_list_and_unknown_scope (tests.test_r1_build18.Rooms18.test_exact_bound_list_and_unknown_scope)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_exact_bound_list_and_unknown_scope (tests.test_r1_build18.Rooms18.test_exact_bound_list_and_unknown_scope)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_missing_v7_list_refuses (tests.test_r1_build18.Rooms18.test_missing_v7_list_refuses)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_missing_v7_list_refuses (tests.test_r1_build18.Rooms18.test_missing_v7_list_refuses)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_order_and_duplicate_refuse (tests.test_r1_build18.Rooms18.test_order_and_duplicate_refuse)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_order_and_duplicate_refuse (tests.test_r1_build18.Rooms18.test_order_and_duplicate_refuse)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_repin_or_omitted_audit_binding_refuses (tests.test_r1_build18.Rooms18.test_repin_or_omitted_audit_binding_refuses)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_repin_or_omitted_audit_binding_refuses (tests.test_r1_build18.Rooms18.test_repin_or_omitted_audit_binding_refuses)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_unremoved_v7_refuses (tests.test_r1_build18.Rooms18.test_unremoved_v7_refuses)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_unremoved_v7_refuses (tests.test_r1_build18.Rooms18.test_unremoved_v7_refuses)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_handover_rebind (tests.test_r1_build17.Boundary.test_handover_rebind)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_handover_rebind (tests.test_r1_build17.Boundary.test_handover_rebind)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_job_resources (tests.test_r1_build17.Boundary.test_job_resources)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_job_resources (tests.test_r1_build17.Boundary.test_job_resources)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_missing_manifest (tests.test_r1_build17.Boundary.test_missing_manifest)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_missing_manifest (tests.test_r1_build17.Boundary.test_missing_manifest)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_nested_metadata_scope (tests.test_r1_build17.Boundary.test_nested_metadata_scope)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_nested_metadata_scope (tests.test_r1_build17.Boundary.test_nested_metadata_scope)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_proof_wrong_receipt_and_milestone (tests.test_r1_build17.Boundary.test_proof_wrong_receipt_and_milestone)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_proof_wrong_receipt_and_milestone (tests.test_r1_build17.Boundary.test_proof_wrong_receipt_and_milestone)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_new_heldout_row_refuses (tests.test_r1_build17.Composition.test_new_heldout_row_refuses)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_new_heldout_row_refuses (tests.test_r1_build17.Composition.test_new_heldout_row_refuses)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_complete_audit_and_new_slice_pin (tests.test_r1_build17.Rooms.test_complete_audit_and_new_slice_pin)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_complete_audit_and_new_slice_pin (tests.test_r1_build17.Rooms.test_complete_audit_and_new_slice_pin)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_pinned_rule_and_alias_precedence (tests.test_r1_build17.Rooms.test_pinned_rule_and_alias_precedence)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_pinned_rule_and_alias_precedence (tests.test_r1_build17.Rooms.test_pinned_rule_and_alias_precedence)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_regenerated_list_and_card (tests.test_r1_build17.Rooms.test_regenerated_list_and_card)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_regenerated_list_and_card (tests.test_r1_build17.Rooms.test_regenerated_list_and_card)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_altered_shard_refuses (tests.test_r1_export17.Export17.test_altered_shard_refuses)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_altered_shard_refuses (tests.test_r1_export17.Export17.test_altered_shard_refuses)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_checkpoint_600_unchanged (tests.test_r1_export17.Export17.test_checkpoint_600_unchanged)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_checkpoint_600_unchanged (tests.test_r1_export17.Export17.test_checkpoint_600_unchanged)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_export_only_admits_only_in_proof_scope (tests.test_r1_export17.Export17.test_export_only_admits_only_in_proof_scope)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_export_only_admits_only_in_proof_scope (tests.test_r1_export17.Export17.test_export_only_admits_only_in_proof_scope)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_producer_binding_and_job_refuse (tests.test_r1_export17.Export17.test_producer_binding_and_job_refuse)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_producer_binding_and_job_refuse (tests.test_r1_export17.Export17.test_producer_binding_and_job_refuse)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_reader_status_and_closure_refuse (tests.test_r1_export17.Export17.test_reader_status_and_closure_refuse)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_reader_status_and_closure_refuse (tests.test_r1_export17.Export17.test_reader_status_and_closure_refuse)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_stop_producer_and_reader_refuse (tests.test_r1_export17.Export17.test_stop_producer_and_reader_refuse)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_stop_producer_and_reader_refuse (tests.test_r1_export17.Export17.test_stop_producer_and_reader_refuse)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_training_config_refuses (tests.test_r1_export17.Export17.test_training_config_refuses)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_training_config_refuses (tests.test_r1_export17.Export17.test_training_config_refuses)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_classifier_and_named_refusals (tests.test_r1_build16.Build16.test_classifier_and_named_refusals)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_classifier_and_named_refusals (tests.test_r1_build16.Build16.test_classifier_and_named_refusals)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_final_preparation_handover_binding (tests.test_r1_build16.Build16.test_final_preparation_handover_binding)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_final_preparation_handover_binding (tests.test_r1_build16.Build16.test_final_preparation_handover_binding)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_first_resumed_batch (tests.test_r1_build16.Build16.test_native_first_resumed_batch)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_first_resumed_batch (tests.test_r1_build16.Build16.test_native_first_resumed_batch)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_persisted_400_600_native_reader_and_init (tests.test_r1_build16.Build16.test_persisted_400_600_native_reader_and_init)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_persisted_400_600_native_reader_and_init (tests.test_r1_build16.Build16.test_persisted_400_600_native_reader_and_init)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_persisted_forgery_and_mismatch (tests.test_r1_build16.Build16.test_persisted_forgery_and_mismatch)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_persisted_forgery_and_mismatch (tests.test_r1_build16.Build16.test_persisted_forgery_and_mismatch)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_persisted_metadata_only_and_closure_refusals (tests.test_r1_build16.Build16.test_persisted_metadata_only_and_closure_refusals)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_persisted_metadata_only_and_closure_refusals (tests.test_r1_build16.Build16.test_persisted_metadata_only_and_closure_refusals)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_producer_refuses_without_z (tests.test_r1_build16.Build16.test_producer_refuses_without_z)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_producer_refuses_without_z (tests.test_r1_build16.Build16.test_producer_refuses_without_z)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_proof_default_deny (tests.test_r1_build16.Build16.test_proof_default_deny)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_proof_default_deny (tests.test_r1_build16.Build16.test_proof_default_deny)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_proof_input_refusals (tests.test_r1_build16.Build16.test_proof_input_refusals)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_proof_input_refusals (tests.test_r1_build16.Build16.test_proof_input_refusals)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_boundary_policy (tests.test_r1_build15.Build15.test_boundary_policy)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_boundary_policy (tests.test_r1_build15.Build15.test_boundary_policy)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_export_witness_and_native_keep (tests.test_r1_build15.Build15.test_export_witness_and_native_keep)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_export_witness_and_native_keep (tests.test_r1_build15.Build15.test_export_witness_and_native_keep)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_tokenizer_metadata_refusals (tests.test_r1_build15.Build15.test_tokenizer_metadata_refusals)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_tokenizer_metadata_refusals (tests.test_r1_build15.Build15.test_tokenizer_metadata_refusals)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_defaults_pins_unknowns_and_boundary_keys (tests.test_r1_build14.Build14.test_defaults_pins_unknowns_and_boundary_keys)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_defaults_pins_unknowns_and_boundary_keys (tests.test_r1_build14.Build14.test_defaults_pins_unknowns_and_boundary_keys)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_effective_camera_and_metadata_refusal (tests.test_r1_build14.Build14.test_effective_camera_and_metadata_refusal)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_effective_camera_and_metadata_refusal (tests.test_r1_build14.Build14.test_effective_camera_and_metadata_refusal)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_milestone_producer_reader (tests.test_r1_build14.Build14.test_milestone_producer_reader)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_milestone_producer_reader (tests.test_r1_build14.Build14.test_milestone_producer_reader)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_scale_card_config_and_override (tests.test_r1_build14.Build14.test_scale_card_config_and_override)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_scale_card_config_and_override (tests.test_r1_build14.Build14.test_scale_card_config_and_override)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_export_load_and_continuation (tests.test_r2_build_n1.R1.test_export_load_and_continuation)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_export_load_and_continuation (tests.test_r2_build_n1.R1.test_export_load_and_continuation)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_full_schedule_repeat_cap_and_resume (tests.test_r2_build_n1.R1.test_full_schedule_repeat_cap_and_resume)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_full_schedule_repeat_cap_and_resume (tests.test_r2_build_n1.R1.test_full_schedule_repeat_cap_and_resume)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_host_empty_root_and_missing_inputs (tests.test_r2_build_n1.R1.test_host_empty_root_and_missing_inputs)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_host_empty_root_and_missing_inputs (tests.test_r2_build_n1.R1.test_host_empty_root_and_missing_inputs)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_loader_dimensions_from_question_and_printed_response (tests.test_r2_build_n1.R1.test_loader_dimensions_from_question_and_printed_response)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_loader_dimensions_from_question_and_printed_response (tests.test_r2_build_n1.R1.test_loader_dimensions_from_question_and_printed_response)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_absent_scale_load (tests.test_r2_build_n1.R1.test_native_absent_scale_load)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_absent_scale_load (tests.test_r2_build_n1.R1.test_native_absent_scale_load)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_reader_room_and_own_refusals (tests.test_r2_build_n1.R1.test_native_reader_room_and_own_refusals)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_reader_room_and_own_refusals (tests.test_r2_build_n1.R1.test_native_reader_room_and_own_refusals)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_real_parent_starts_new_schedule (tests.test_r2_build_n1.R1.test_real_parent_starts_new_schedule)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_real_parent_starts_new_schedule (tests.test_r2_build_n1.R1.test_real_parent_starts_new_schedule)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_scale_missing_and_partial (tests.test_r2_build_n1.R1.test_scale_missing_and_partial)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_scale_missing_and_partial (tests.test_r2_build_n1.R1.test_scale_missing_and_partial)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_size_cell_is_one_parameter (tests.test_r2_build_n1.R1.test_size_cell_is_one_parameter)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_size_cell_is_one_parameter (tests.test_r2_build_n1.R1.test_size_cell_is_one_parameter)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_store_switch_uses_one_receipt_parameter (tests.test_r2_build_n1.R1.test_store_switch_uses_one_receipt_parameter)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_store_switch_uses_one_receipt_parameter (tests.test_r2_build_n1.R1.test_store_switch_uses_one_receipt_parameter)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_switches_and_identity (tests.test_r2_build_n1.R1.test_switches_and_identity)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_switches_and_identity (tests.test_r2_build_n1.R1.test_switches_and_identity)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_M07_room_frames (tests.test_r2_n1fix.N1Fix.test_M07_room_frames)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_M07_room_frames (tests.test_r2_n1fix.N1Fix.test_M07_room_frames)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_M09_absent_scene (tests.test_r2_n1fix.N1Fix.test_M09_absent_scene)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_M09_absent_scene (tests.test_r2_n1fix.N1Fix.test_M09_absent_scene)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_M12_own_probability (tests.test_r2_n1fix.N1Fix.test_M12_own_probability)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_M12_own_probability (tests.test_r2_n1fix.N1Fix.test_M12_own_probability)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_donor_evidence_edges (tests.test_r2_n1fix.N1Fix.test_donor_evidence_edges)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_donor_evidence_edges (tests.test_r2_n1fix.N1Fix.test_donor_evidence_edges)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_forged_receipt_and_mismatches (tests.test_r2_n1fix.N1Fix.test_forged_receipt_and_mismatches)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_forged_receipt_and_mismatches (tests.test_r2_n1fix.N1Fix.test_forged_receipt_and_mismatches)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_format_status_and_reader (tests.test_r2_n1fix.N1Fix.test_format_status_and_reader)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_format_status_and_reader (tests.test_r2_n1fix.N1Fix.test_format_status_and_reader)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_frame_host_local_namespace (tests.test_r2_n1fix.N1Fix.test_frame_host_local_namespace)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_frame_host_local_namespace (tests.test_r2_n1fix.N1Fix.test_frame_host_local_namespace)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_fresh_job_tmp_and_path_closure (tests.test_r2_n1fix.N1Fix.test_fresh_job_tmp_and_path_closure)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_fresh_job_tmp_and_path_closure (tests.test_r2_n1fix.N1Fix.test_fresh_job_tmp_and_path_closure)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_prestaged_tmp_token_is_single_use (tests.test_r2_n1fix.N1Fix.test_prestaged_tmp_token_is_single_use)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_prestaged_tmp_token_is_single_use (tests.test_r2_n1fix.N1Fix.test_prestaged_tmp_token_is_single_use)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_r1_reader_reserves_r0 (tests.test_r2_n1fix.N1Fix.test_r1_reader_reserves_r0)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_r1_reader_reserves_r0 (tests.test_r2_n1fix.N1Fix.test_r1_reader_reserves_r0)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_sealed_export_continuation (tests.test_r2_n1fix.N1Fix.test_sealed_export_continuation)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_sealed_export_continuation (tests.test_r2_n1fix.N1Fix.test_sealed_export_continuation)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_checkpoint_step (tests.test_r2_n1fix3.Confirmation3.test_checkpoint_step)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_checkpoint_step (tests.test_r2_n1fix3.Confirmation3.test_checkpoint_step)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_depth_and_head_init (tests.test_r2_n1fix3.Confirmation3.test_depth_and_head_init)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_depth_and_head_init (tests.test_r2_n1fix3.Confirmation3.test_depth_and_head_init)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_extension_contract (tests.test_r2_n1fix3.Confirmation3.test_extension_contract)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_extension_contract (tests.test_r2_n1fix3.Confirmation3.test_extension_contract)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_extra_unicode_and_cf (tests.test_r2_n1fix3.Confirmation3.test_extra_unicode_and_cf)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_extra_unicode_and_cf (tests.test_r2_n1fix3.Confirmation3.test_extra_unicode_and_cf)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_host_python_minimum (tests.test_r2_n1fix3.Confirmation3.test_host_python_minimum)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_host_python_minimum (tests.test_r2_n1fix3.Confirmation3.test_host_python_minimum)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_initialization_group_tables (tests.test_r2_n1fix3.Confirmation3.test_native_initialization_group_tables)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_initialization_group_tables (tests.test_r2_n1fix3.Confirmation3.test_native_initialization_group_tables)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_batch_integrity_errors_raise (tests.test_r2_build12.Build12.test_batch_integrity_errors_raise)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_batch_integrity_errors_raise (tests.test_r2_build12.Build12.test_batch_integrity_errors_raise)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_confusable_class_independent_reader (tests.test_r2_build12.Build12.test_confusable_class_independent_reader)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_confusable_class_independent_reader (tests.test_r2_build12.Build12.test_confusable_class_independent_reader)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_default_deny_and_native_meta (tests.test_r2_build12.Build12.test_default_deny_and_native_meta)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_default_deny_and_native_meta (tests.test_r2_build12.Build12.test_default_deny_and_native_meta)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_fixed_constants_repin_and_tamper (tests.test_r2_build12.Build12.test_fixed_constants_repin_and_tamper)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_fixed_constants_repin_and_tamper (tests.test_r2_build12.Build12.test_fixed_constants_repin_and_tamper)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_meta_topology_refusal_and_initializer (tests.test_r2_build12.Build12.test_meta_topology_refusal_and_initializer)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_meta_topology_refusal_and_initializer (tests.test_r2_build12.Build12.test_meta_topology_refusal_and_initializer)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_cli_and_parity_loader (tests.test_r2_build12.Build12.test_native_cli_and_parity_loader)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_native_cli_and_parity_loader (tests.test_r2_build12.Build12.test_native_cli_and_parity_loader)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_parent_544_and_P_initialized_from_parent (tests.test_r2_build12.Build12.test_parent_544_and_P_initialized_from_parent)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_parent_544_and_P_initialized_from_parent (tests.test_r2_build12.Build12.test_parent_544_and_P_initialized_from_parent)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_preserved_legacy_entry_refusals (tests.test_r2_build12.Build12.test_preserved_legacy_entry_refusals)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_preserved_legacy_entry_refusals (tests.test_r2_build12.Build12.test_preserved_legacy_entry_refusals)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_receipt_and_forged_preparation_complete (tests.test_r2_build12.Build12.test_receipt_and_forged_preparation_complete)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_receipt_and_forged_preparation_complete (tests.test_r2_build12.Build12.test_receipt_and_forged_preparation_complete)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_receipt_complete_closure_errors (tests.test_r2_build12.Build12.test_receipt_complete_closure_errors)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_receipt_complete_closure_errors (tests.test_r2_build12.Build12.test_receipt_complete_closure_errors)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_receipt_refusal_edges (tests.test_r2_build12.Build12.test_receipt_refusal_edges)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_receipt_refusal_edges (tests.test_r2_build12.Build12.test_receipt_refusal_edges)",
+          "phase": "after",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_trainer_hook_y5 (tests.test_r2_build12.Build12.test_trainer_hook_y5)",
+          "phase": "before",
+          "bytes": 2412042
+        },
+        {
+          "test": "test_trainer_hook_y5 (tests.test_r2_build12.Build12.test_trainer_hook_y5)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_absent_card_cell (tests.test_r1_build13.PopulationTests.test_absent_card_cell)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_absent_card_cell (tests.test_r1_build13.PopulationTests.test_absent_card_cell)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_base_cells_refused (tests.test_r1_build13.PopulationTests.test_base_cells_refused)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_base_cells_refused (tests.test_r1_build13.PopulationTests.test_base_cells_refused)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_binding_changed (tests.test_r1_build13.PopulationTests.test_binding_changed)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_binding_changed (tests.test_r1_build13.PopulationTests.test_binding_changed)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_composition_refusals (tests.test_r1_build13.PopulationTests.test_composition_refusals)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_composition_refusals (tests.test_r1_build13.PopulationTests.test_composition_refusals)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_composition_replaces_base (tests.test_r1_build13.PopulationTests.test_composition_replaces_base)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_composition_replaces_base (tests.test_r1_build13.PopulationTests.test_composition_replaces_base)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_membership_refusals (tests.test_r1_build13.PopulationTests.test_membership_refusals)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_membership_refusals (tests.test_r1_build13.PopulationTests.test_membership_refusals)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_native_composition_envelopes (tests.test_r1_build13.PopulationTests.test_native_composition_envelopes)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_native_composition_envelopes (tests.test_r1_build13.PopulationTests.test_native_composition_envelopes)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_native_mixture_and_bound_producer (tests.test_r1_build13.PopulationTests.test_native_mixture_and_bound_producer)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_native_mixture_and_bound_producer (tests.test_r1_build13.PopulationTests.test_native_mixture_and_bound_producer)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_overlap (tests.test_r1_build13.PopulationTests.test_overlap)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_overlap (tests.test_r1_build13.PopulationTests.test_overlap)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_scene_subset (tests.test_r1_build13.PopulationTests.test_scene_subset)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_scene_subset (tests.test_r1_build13.PopulationTests.test_scene_subset)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_slice_identity (tests.test_r1_build13.PopulationTests.test_slice_identity)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_slice_identity (tests.test_r1_build13.PopulationTests.test_slice_identity)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_trinity_full_audit_refusal (tests.test_r1_build13.PopulationTests.test_trinity_full_audit_refusal)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_trinity_full_audit_refusal (tests.test_r1_build13.PopulationTests.test_trinity_full_audit_refusal)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_type_table_and_single_facing (tests.test_r1_build13.PopulationTests.test_type_table_and_single_facing)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_type_table_and_single_facing (tests.test_r1_build13.PopulationTests.test_type_table_and_single_facing)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_unassigned_type (tests.test_r1_build13.PopulationTests.test_unassigned_type)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_unassigned_type (tests.test_r1_build13.PopulationTests.test_unassigned_type)",
+          "phase": "after",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_opener_export_keep_and_reset (tests.test_r2_build3.Build3.test_opener_export_keep_and_reset)",
+          "phase": "before",
+          "bytes": 2412414
+        },
+        {
+          "test": "test_opener_export_keep_and_reset (tests.test_r2_build3.Build3.test_opener_export_keep_and_reset)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_same_size_shard_refuses (export_mutation17.HashTwin.test_same_size_shard_refuses)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_same_size_shard_refuses (export_mutation17.HashTwin.test_same_size_shard_refuses)",
+          "phase": "after",
+          "bytes": 2414345
+        }
+      ]
+    },
+    "edges": {
+      "tests": 4,
+      "failures": [],
+      "errors": [],
+      "successful": true,
+      "storage": [
+        {
+          "test": "test_checkpoint_and_stream_closure (edge_test16.Edges.test_checkpoint_and_stream_closure)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_checkpoint_and_stream_closure (edge_test16.Edges.test_checkpoint_and_stream_closure)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_export_manifest_and_artifact (edge_test16.Edges.test_export_manifest_and_artifact)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_export_manifest_and_artifact (edge_test16.Edges.test_export_manifest_and_artifact)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_invalid_resume_position (edge_test16.Edges.test_invalid_resume_position)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_invalid_resume_position (edge_test16.Edges.test_invalid_resume_position)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_all_pins (stage_test16.Staging.test_all_pins)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_all_pins (stage_test16.Staging.test_all_pins)",
+          "phase": "after",
+          "bytes": 2414345
+        }
+      ]
+    },
+    "producer_edges": {
+      "tests": 11,
+      "failures": [],
+      "errors": [],
+      "successful": true,
+      "storage": [
+        {
+          "test": "test_altered_shard_refuses (export_edges17.ProducerEdges.test_altered_shard_refuses)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_altered_shard_refuses (export_edges17.ProducerEdges.test_altered_shard_refuses)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_checkpoint_600_unchanged (export_edges17.ProducerEdges.test_checkpoint_600_unchanged)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_checkpoint_600_unchanged (export_edges17.ProducerEdges.test_checkpoint_600_unchanged)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_cli (export_edges17.ProducerEdges.test_cli)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_cli (export_edges17.ProducerEdges.test_cli)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_export_only_admits_only_in_proof_scope (export_edges17.ProducerEdges.test_export_only_admits_only_in_proof_scope)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_export_only_admits_only_in_proof_scope (export_edges17.ProducerEdges.test_export_only_admits_only_in_proof_scope)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_manifest_refusals (export_edges17.ProducerEdges.test_manifest_refusals)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_manifest_refusals (export_edges17.ProducerEdges.test_manifest_refusals)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_producer_binding_and_job_refuse (export_edges17.ProducerEdges.test_producer_binding_and_job_refuse)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_producer_binding_and_job_refuse (export_edges17.ProducerEdges.test_producer_binding_and_job_refuse)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_reader_status_and_closure_refuse (export_edges17.ProducerEdges.test_reader_status_and_closure_refuse)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_reader_status_and_closure_refuse (export_edges17.ProducerEdges.test_reader_status_and_closure_refuse)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_step_and_stop_refusals (export_edges17.ProducerEdges.test_step_and_stop_refusals)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_step_and_stop_refusals (export_edges17.ProducerEdges.test_step_and_stop_refusals)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_stop_producer_and_reader_refuse (export_edges17.ProducerEdges.test_stop_producer_and_reader_refuse)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_stop_producer_and_reader_refuse (export_edges17.ProducerEdges.test_stop_producer_and_reader_refuse)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_stream_refusal_and_index_closure (export_edges17.ProducerEdges.test_stream_refusal_and_index_closure)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_stream_refusal_and_index_closure (export_edges17.ProducerEdges.test_stream_refusal_and_index_closure)",
+          "phase": "after",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_training_config_refuses (export_edges17.ProducerEdges.test_training_config_refuses)",
+          "phase": "before",
+          "bytes": 2414345
+        },
+        {
+          "test": "test_training_config_refuses (export_edges17.ProducerEdges.test_training_config_refuses)",
+          "phase": "after",
+          "bytes": 2414345
+        }
+      ]
+    },
+    "edge20": {
+      "tests": 11,
+      "failures": [],
+      "errors": [],
+      "successful": true,
+      "storage": [
+        {
+          "test": "test_clip_and_plain (edges20.Edges20.test_clip_and_plain)",
+          "phase": "before",
+          "bytes": 46146318
+        },
+        {
+          "test": "test_clip_and_plain (edges20.Edges20.test_clip_and_plain)",
+          "phase": "after",
+          "bytes": 46146314
+        },
+        {
+          "test": "test_composite_donor_producer (edges20.Edges20.test_composite_donor_producer)",
+          "phase": "before",
+          "bytes": 46146332
+        },
+        {
+          "test": "test_composite_donor_producer (edges20.Edges20.test_composite_donor_producer)",
+          "phase": "after",
+          "bytes": 46146334
+        },
+        {
+          "test": "test_descendant_empty_map (edges20.Edges20.test_descendant_empty_map)",
+          "phase": "before",
+          "bytes": 46146317
+        },
+        {
+          "test": "test_descendant_empty_map (edges20.Edges20.test_descendant_empty_map)",
+          "phase": "after",
+          "bytes": 46146317
+        },
+        {
+          "test": "test_export_binding (edges20.Edges20.test_export_binding)",
+          "phase": "before",
+          "bytes": 46146312
+        },
+        {
+          "test": "test_export_binding (edges20.Edges20.test_export_binding)",
+          "phase": "after",
+          "bytes": 46146312
+        },
+        {
+          "test": "test_guard_preparation_and_records (edges20.Edges20.test_guard_preparation_and_records)",
+          "phase": "before",
+          "bytes": 46146312
+        },
+        {
+          "test": "test_guard_preparation_and_records (edges20.Edges20.test_guard_preparation_and_records)",
+          "phase": "after",
+          "bytes": 46146311
+        },
+        {
+          "test": "test_guard_status_tampering (edges20.Edges20.test_guard_status_tampering)",
+          "phase": "before",
+          "bytes": 46146311
+        },
+        {
+          "test": "test_guard_status_tampering (edges20.Edges20.test_guard_status_tampering)",
+          "phase": "after",
+          "bytes": 46146308
+        },
+        {
+          "test": "test_official_export_deferred (edges20.Edges20.test_official_export_deferred)",
+          "phase": "before",
+          "bytes": 46146308
+        },
+        {
+          "test": "test_official_export_deferred (edges20.Edges20.test_official_export_deferred)",
+          "phase": "after",
+          "bytes": 46146308
+        },
+        {
+          "test": "test_prepared_mix (edges20.Edges20.test_prepared_mix)",
+          "phase": "before",
+          "bytes": 46146317
+        },
+        {
+          "test": "test_prepared_mix (edges20.Edges20.test_prepared_mix)",
+          "phase": "after",
+          "bytes": 46146317
+        },
+        {
+          "test": "test_real_pose_target (edges20.Edges20.test_real_pose_target)",
+          "phase": "before",
+          "bytes": 46146317
+        },
+        {
+          "test": "test_real_pose_target (edges20.Edges20.test_real_pose_target)",
+          "phase": "after",
+          "bytes": 46146311
+        },
+        {
+          "test": "test_selection_binds_returned_identity (edges20.Edges20.test_selection_binds_returned_identity)",
+          "phase": "before",
+          "bytes": 46146311
+        },
+        {
+          "test": "test_selection_binds_returned_identity (edges20.Edges20.test_selection_binds_returned_identity)",
+          "phase": "after",
+          "bytes": 46146311
+        },
+        {
+          "test": "test_verified_record_conflict (edges20.Edges20.test_verified_record_conflict)",
+          "phase": "before",
+          "bytes": 46146311
+        },
+        {
+          "test": "test_verified_record_conflict (edges20.Edges20.test_verified_record_conflict)",
+          "phase": "after",
+          "bytes": 46146309
+        }
+      ]
+    },
+    "job": {
+      "tests": 3,
+      "failures": [],
+      "errors": [],
+      "successful": true,
+      "storage": [
+        {
+          "test": "test_resolver_and_payload (jobtest.Job20.test_resolver_and_payload)",
+          "phase": "before",
+          "bytes": 46161675
+        },
+        {
+          "test": "test_resolver_and_payload (jobtest.Job20.test_resolver_and_payload)",
+          "phase": "after",
+          "bytes": 46162398
+        },
+        {
+          "test": "test_room_report (jobtest.Job20.test_room_report)",
+          "phase": "before",
+          "bytes": 46162398
+        },
+        {
+          "test": "test_room_report (jobtest.Job20.test_room_report)",
+          "phase": "after",
+          "bytes": 46162398
+        },
+        {
+          "test": "test_shell_stage_and_namespace (jobtest.Job20.test_shell_stage_and_namespace)",
+          "phase": "before",
+          "bytes": 46162398
+        },
+        {
+          "test": "test_shell_stage_and_namespace (jobtest.Job20.test_shell_stage_and_namespace)",
+          "phase": "after",
+          "bytes": 46163490
+        }
+      ]
+    }
+  },
+  "tree_mutations": [
+    {
+      "name": "pose_schema",
+      "module": "r1_handover.py",
+      "test": "tests.test_r1_build20.Review20.test_real_pose_target",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "pose_pin",
+      "module": "r1_handover.py",
+      "test": "tests.test_r1_build20.Review20.test_real_pose_target",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "pose_stream",
+      "module": "r1_handover.py",
+      "test": "tests.test_r1_build20.Review20.test_real_pose_target",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "mix_source",
+      "module": "r1_handover.py",
+      "test": "tests.test_r1_build20.Review20.test_prepared_mix",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "mix_database",
+      "module": "r1_handover.py",
+      "test": "tests.test_r1_build20.Review20.test_prepared_mix",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "mix_order",
+      "module": "r1_handover.py",
+      "test": "tests.test_r1_build20.Review20.test_prepared_mix",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "mix_subset",
+      "module": "r1_handover.py",
+      "test": "tests.test_r1_build20.Review20.test_prepared_mix",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "identity",
+      "module": "r2_contract.py",
+      "test": "tests.test_r1_build20.Review20.test_selection_binds_returned_identity",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "slots",
+      "module": "r1_components.py",
+      "test": "tests.test_r1_build20.Review20.test_guard_status_tampering",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "records",
+      "module": "r1_components.py",
+      "test": "tests.test_r1_build20.Review20.test_guard_status_tampering",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "guard",
+      "module": "r1_components.py",
+      "test": "tests.test_r1_build20.Review20.test_guard_status_tampering",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "preparation_hash",
+      "module": "r1_components.py",
+      "test": "tests.test_r1_build20.Review20.test_guard_preparation_and_records",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "preparation_map",
+      "module": "r1_components.py",
+      "test": "tests.test_r1_build20.Review20.test_guard_preparation_and_records",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "binding",
+      "module": "r1_components.py",
+      "test": "tests.test_r1_build20.Review20.test_export_binding",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    }
+  ],
+  "job_mutations": [
+    {
+      "name": "kit_seal",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "done",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "receipt_schema",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "part_size",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "part_hash",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "artifact_identity",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    },
+    {
+      "name": "resolved_seal",
+      "control": 0,
+      "mutant": 1,
+      "caught": true
+    }
+  ],
+  "coverage": {
+    "tree_observed": 94,
+    "tree_total": 94,
+    "job_observed": 273,
+    "job_total": 319
+  }
+}

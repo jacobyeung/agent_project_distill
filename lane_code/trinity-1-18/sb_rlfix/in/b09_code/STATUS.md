@@ -1,0 +1,38 @@
+# b09_rlkit STATUS (a successor resumes from this file alone)
+Updated 2026-11-16 14:38Z by the Devin lane on trinity-3-30 (rotating). About 97% done: the kit is built and has been reviewed twice, with every fix landed. Only the dry run remains, and it waits for its inputs.
+L = /scratch/jjyeung/orch_n30/b09_rlkit (lane folder, node-local). E = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/b09_rlkit/.
+Brief: orch_n30/briefs/b09_rlkit.md -> orch_n30/briefs/qs/09_rl_kit.md. Rules: ~/.claude/CLAUDE.md "Key Trinity Cluster Rules", then orch_n30/tools/LANE_RULES.md. Finish or rotate by 22:30Z.
+
+## Goal
+Build the RL kit; do not run it (USER: RL kits are built, not run). Its parts: a sampler on the native decode path with path forcing; reward c x g minus a floored length term; a mode (a) selector and row writer; the mode (b) GRPO loss as a patch to a copy of the next-leg tree; head-use tracking; tests; RUN.md; a draft card; and a dry-run packet (200 prompts, one card, one hour) that runs only as a kit test.
+
+## State (all in L, CPU only)
+- Summary of the whole kit: L/out/RL_KIT_READY.md. How to run it: L/RUN.md. Hashes: L/out/HASHES.txt. Draft card: L/out/CARD_DRAFT_RL_DRYRUN.md. Dry-run packet: L/out/dryrun_packet/ (README, SAMPLER.template.json, FORCING.json, REWARD.json, run_dryrun.sh, measure.py; rehearsed on CPU in L/work/rehearse/). Design record: /data2/jjyeung/agent_project_data/distill_design/RL_KIT_B09_20261116.md, with one INDEX.md line.
+- Code: L/rlkit (common, store, forcing, sampler, towercache, towerfactory, score, gate, reward, floor, select, baselines, grpo, round, prompts, headuse, vendor/). Tree patch on the copy L/grpo_tree of tree build 5 (the original L/work/tree_b5/x/work/tree_r1 stays read-only): student_pilot/grpo_loss.py, student_pilot/grpo_rows.py, and hooks in carrier_c1.py (forward) and carrier_c1_run.py (Rows.get). Diff and hashes: L/out/grpo_patch/.
+- Tests: `bash L/rltests/run_grpo.sh rltests.test_sampler rltests.test_reward rltests.test_floor rltests.test_grpo rltests.test_select rltests.test_baselines rltests.test_e2e rltests.test_prompts rltests.test_grpo_rows rltests.test_headuse rltests.test_review_refute rltests.test_review2` runs 80, all OK, 1 skipped (the second reviewer's own vacuous case). Tree suites (cwd L/grpo_tree, LANE_TEST_OUTPUT=L/work/tmp/lto, CUDA hidden): tests.test_carrier_c1_final, test_carrier_c1, test_carrier_c1_routing, test_batched_routed_decode, test_e2e_routing_rows and test_carrier_c1_run give 59 OK and 8 skipped. Base tree: `bash L/rltests/run.sh rltests.test_sampler rltests.test_reward rltests.test_floor rltests.test_baselines rltests.test_prompts` gives 27 OK.
+- Reviews (both done): events/review_rl/REVIEW_VERDICT_RL.md (GO AFTER FIXES, 9 fixes) and events/review_rl2/REVIEW_VERDICT_RL2.md (GO AFTER FIXES, 5 follow-ups). Every fix landed. The reviewers' tests are L/rltests/test_review_refute.py (sha 5a03c1cc) and test_review2.py (sha 6d3a4186), and both pass. ORCH 1428Z: the dry run may proceed as a kit test.
+- Mirror: trinity-1-18:/scratch/jjyeung/n30_mirror/b09_rlkit/b09_rlkit_kit_20261116T1436Z.tar, sha256 f05a32abd8b231f10a73d31eb3848e6c061c7d1881484874fe29fd9c07de6e12 (equal at both ends; excludes work/ and traces). The local copy is in L/work/mirror/.
+
+## How the kit decides (current rules)
+- Reward: r = c x g - min(0.2 x max(0, n - n_min) / n_ref, 0.5 x c x g), and r = 0 when c x g = 0. The gate g requires a clean termination, validator a41ba191, provenance and x1.37 replay, and every <tool_response> span byte-equal to a decoder-forced response. A trace whose every call failed takes path 'recovery' and is charged against the direct floor.
+- Floor (rlkit/floor.py, user ruling): per type and path on held-out R0-dev rollouts. Budget accuracy acc(L) = sum(c*g*[n<=L])/N. n_min = max(the shortest L within 0.02 of full accuracy, the required head calls or one Locate line, 12). --pool is required. FLOOR.md shows how each n_min was set.
+- Mode (a) (rlkit/select.py): per prompt, the best right (c >= 1) and valid rollout. Direct winners become VQA rows. Head or recovery winners become exact-token own rows (rlkit-own-row-v1, CE on own tokens, responses masked) when select.artifact_policy passes. That policy requires the own pose head or the shipped tower scale, own MDG masks through GroundV3 with same-checkpoint geometry and matching identities, no presence prior, rescue or unstubbed verifier, and no donor. Anything else goes to barred.jsonl. The trainer re-checks with grpo_rows.source_reason.
+- Mode (b): rlkit-grpo-row-v1 rows (rlkit.grpo.to_row, write_stream_db) go through the patched trainer. The loss masks the decoder's reserved ids (sampler parity 2e-4). The sampling temperature (default 0.7) is recorded and enforced.
+- Head use (rlkit/headuse.py, USER ~05:00 PT): per type and checkpoint, the call rate (successful head calls only), heads, placement against the expected sequence, estimate-before-call, greedy counterfactual usage (printed values x1.37), the reward split by called and not called, and a curve across checkpoints.
+- Benchmark refusal: source and dataset fields are normalised (NFKC, [^a-z0-9] stripped) and checked against revsi, vsibench, vstibench, vsti, devs1, dsibench and official999 on the pool, the floor's DEV set and the baselines' fit set. Pool scenes come from an allowlist.
+
+## In flight
+Nothing. There are no review lanes, tmux sessions, Codex dispatches, governor streams or Orchard jobs.
+
+## Next steps (in order)
+1. Dry run (a kit test only; no learning claim, no RL run). It waits for three inputs: (a) b10_reserve's R0-rl question rows (events/b10_reserve/STATUS.md; streams and decoding were pending at 14:36Z), (b) an export pin and its kit config, with ORCH's default the init rule's export and step 544 meanwhile, and (c) an idle card handed by gpu_fill2. Then build the pool (`python -m rlkit.prompts --rows ROWS --allow-scenes R0_RL_SCENES --frames 32 --limit 200 --seed 17 --out /scratch/.../POOL.jsonl`), fill SAMPLER.template.json, take two nvidia-smi readings 5+ minutes apart, and run `bash L/out/dryrun_packet/run_dryrun.sh SAMPLER.json POOL.jsonl RUN_DIR GPU` (vnice off trinity-0-13). Poll every minute, then every 10. Report DRYRUN_MEASURE.json in a RESULT event; response_not_forced must be 0. Do the reuse check (README step 3) before using factory reuse 'clip'.
+2. Still open for mode (b): a membership manifest for GRPO stream databases (r2_contract.Admission) and a real-processor check that grpo_rows.prompt_batch equals carrier_c1_canary.prompt_batch.
+
+## Rulings and defaults in force
+- USER 2026-11-16 ~12:00Z: ReVSI first. Frame count is a parameter (rlkit.prompts --frames 32|64; it must match the training layout). SFT first; RL kits are built, not run. No post-processor converts answers. Add a method that sets the length floor (done).
+- USER ~05:00 PT (ORCH 1257Z): show whether RL keeps using the heads where expected (headuse), and report reward split by called and not called, because the length term charges call tokens (the per-path floor includes the required call tokens).
+- ORCH 1312Z: head rollouts with artifact-head responses train like any other rollout, and outside responses are barred. ORCH 1428Z: the dry run is allowed as a kit test after the review2 fixes, on an idle card from gpu_fill2.
+- Defaults: the length term is capped at 0.5 x c x g (a deviation from the brief, recorded in reward.py). allow_stated_option=false. Selection keeps c >= 1.0, never falls back from head to direct, and leaves quarantine off.
+
+## Notes
+- The rm_guard hook queued two false-positive lines in /home/jjyeung/agent_project/agent/PENDING_USER_COMMANDS.md (no deletion; no action needed).

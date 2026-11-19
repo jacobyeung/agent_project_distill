@@ -1,4 +1,4 @@
-"""Independently check evaluation payloads, lineage, assignment and required failures."""
+"""Independently check frozen evaluation payloads, lineage and assignment."""
 import copy,hashlib,json,re,sys,importlib.util,random
 from collections import Counter
 from pathlib import Path
@@ -67,20 +67,17 @@ def main():
  assert sha(reserve)==m['r0_check']['pin']['sha256']
  rooms=set(reserve.read_text().splitlines());assert not any(x['room_key'] in rooms for x in items.values())
  assert m['r0_check']['found']==0 and m['r0_check']['checked']==900
- assert (OUT/'CAMERA_ROWS.jsonl').stat().st_size==0
- assert not c['all_required_checks_pass'] and c['training']['rows']==0
- assert len(c['training']['cells'])==120 and all(v['actual']==0 and v['expected']==50 for v in c['training']['cells'].values())
- # The generator must be current; every output JSON carries source hashes.
- for file in OUT.glob('*.json'):
-  value=json.load(open(file));assert isinstance(value.get('input_sha256'),dict),str(file)
- for file in ['WORDINGS.json','HELDOUT_CAMERA_ITEMS.json','CHECKS.json']:
-  value=json.load(open(OUT/file));assert value['input_sha256'][str(ROOT/'build_camera.py')]==sha(ROOT/'build_camera.py')
- result=dict(status='PASS',scope='Independent CPU metadata verification; no model read or training-row validation',
+ freeze=json.load(open(OUT/'HELDOUT_FREEZE.json'))
+ for file,h in freeze['input_sha256'].items():assert sha(file)==h
+ assert c['training']['rows']==6000
+ patch=json.load(open(OUT/'SCORER_PATCH/CHECKS.json'))
+ assert patch['status']=='PASS' and patch['native_manifest_items']==patch['native_mapped_unique_keys']==900
+ result=dict(status='PASS',scope='Independent CPU evaluation verification; training checks are in INDEPENDENT_TRAINING_CHECK.json',
   items=900,twins=450,native_tasks=900,all_24_wording_cells_nonempty=True,levenshtein_independent_dp_pairs=100,
   checks=['exact item keys and recursive value types','original twins unchanged','id/question only edits',
           'ground truth preserved','quantity and convention completeness','seed assignment','native task binding',
-          'manifest hash and counts','R0 exclusion','training short cells fail closed'],
-  native_loader={'status':'NOT_RUN','reason':'MISSING Python package torch in available interpreter'},
+          'manifest hash and counts','R0 exclusion','held-out bytes frozen'],
+  native_loader={'status':'PASS','items':900,'unique_reader_keys':900,'evidence':'SCORER_PATCH/CHECKS.json'},
   input_sha256={str(ROOT/'verify_camera.py'):sha(ROOT/'verify_camera.py'),
    **{str(OUT/f):sha(OUT/f) for f in ['HELDOUT_CAMERA_ITEMS.json','HELDOUT_CAMERA_TWINS.json','HELDOUT_NATIVE_TASKS.jsonl','WORDINGS.json','CHECKS.json']}})
  (OUT/'INDEPENDENT_CHECK.json').write_text(json.dumps(result,indent=2)+'\n')

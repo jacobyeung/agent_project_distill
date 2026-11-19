@@ -1,0 +1,24 @@
+{
+  "schema": "sb-posefam-validation-v1",
+  "status": "PASS_WITH_EXACT_N_ORDER_MISSING",
+  "command": "OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 /scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3 -B work/finish.py",
+  "inputs": {
+    "out/POSEFAM.json": "b5f60065fcd7c23cf0a0cfa8451b3a09870dc8aec552606b5007e8b5793238ec",
+    "out/REPORT.md": "7ec4241a2da7f57b656e52b7b2699aba4884a9367b3b46e2ce9eca0f62cf854a",
+    "out/RECORD_TEXT_data_rows_r2.md": "51dede47c4481d51e1454b83f72772e59a43e1ffc675784765a8bc28b1d6f483",
+    "work/finish.py": "47515cda0585ce36d2e0a3cc356213d41080d7dfd5a51b05691e46749eabd214",
+    "work/prove.py": "0ce1c65f27394293e4fd7d3ac8983cf4806c2c9f2554c572809cc39753b67ade",
+    "work/stage.py": "c561ceb60309404139d80a52ed5142b9e493d276927a2bee904b464807445729",
+    "work/SNAPSHOT.json": "0e60665af10d4966365d82adac3421da1bc58451874f7c2c82ed3571b914cd71"
+  },
+  "report_lines": 48,
+  "record_lines": 10,
+  "checks": [
+    "23 distinct qids; BENCH true and dev false for each",
+    "No target survives either explicitly scoped derived order",
+    "Copied evidence hashes match proof inputs",
+    "Exact N order remains MISSING",
+    "Foreign fixture join is empty"
+  ],
+  "scope": "Validation of the mandatory exclusion proof; not validation of a recovered N production order."
+}

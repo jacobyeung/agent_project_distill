@@ -1,0 +1,1 @@
+PASS: 8,000 reviewed easy/hard twins are complete, split equally between Step 1/away and Seen/toward. The 5,846-pair gate, native pack/validation, independent truth, exact quotas, source reuse, identifiers, field preservation, room/removal/scene gates, wording-distance filter and 60-row semantic review pass. The archive and its SHA256 are ready in out/.

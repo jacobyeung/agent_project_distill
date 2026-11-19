@@ -1,0 +1,1 @@
+bash /scratch/jjyeung/orch_n30/r1_ops6/work/r7/waitev.sh ${1:-9} >/dev/null; bash /scratch/jjyeung/orch_n30/r1_ops6/work/r8/c1.sh; ls /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/r1_ops | grep _ORCH_ | tail -1; ls /scratch/jjyeung/orch_n30/r1_ops6/inbox 2>/dev/null | tail -1

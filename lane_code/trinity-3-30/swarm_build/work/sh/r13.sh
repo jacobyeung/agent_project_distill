@@ -1,0 +1,2 @@
+R=/scratch/jjyeung/orch_n30
+for t in sb_rowD3 sb_rowC3 sb_rowF sb_rowC2; do d=$(ls -d $R/codex_local/agent/scratch/codex_runs/*_$t | tail -1); echo "== $t"; grep $t $R/codex_local/agent/scratch/codex_runs/CODEX_SPEND.log | tail -1; head -c 800 $d/final_message.md; echo; done; echo == ownfix; tail -c 900 $R/sb_ownread/cursor_fix.log; grep -h -o "gap.*a60f3a9f[^\"]*" $R/sb_records/out/gaps/depth_init_vc.json | head -3

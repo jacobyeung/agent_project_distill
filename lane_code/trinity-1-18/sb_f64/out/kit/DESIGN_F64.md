@@ -38,7 +38,13 @@ anchors; bisection groups carry pixels only. Config key `frame_input =
   the 76 GiB tripwire at world 4. The routing build admits suffixes up to 9,600 tokens, so a long
   routing row can also pass the 16,384 ceiling, and the R1 trainer aborts on that row instead of
   substituting it. `scripts/token_audit.py` encodes every distinct planned row on CPU before launch and
-  lists rows over either bound; a nonempty list means deferring those rows (an admission change) or world 8.
+  lists rows over either bound. At world 4 a 64-viewpoint routing row stays under the tripwire only with a
+  suffix of at most ~2.4k tokens (4:3) or ~1.4k (16:9); v3.12 capped suffixes at 5k for the 32-frame run.
+  Fallbacks, in order: `C1_FSDP_CPU_OFFLOAD=1` (the tree's own path; moves the ~33.8 GiB sharded state per
+  rank to host RAM; no row-plan or admission change; speed cost unmeasured); deferring the listed rows
+  (admission change, one review); world 8 (fits every row under the ceiling at ≤74.7 GiB on the record's
+  world-8 line, but R1 pins world 4 at `r1_training.py:69`, `r1_mix.py:70` and `r1_handover.py:300`, so
+  it needs a new pinned row plan and a review). Not built here: each changes more than 64 viewpoints requires.
 - Pose jitter: anchors keep the 32-row augmentation draws and bisection frames draw afterwards;
   `test_f64_layout` pins this.
 - Frame hosts must hold the bisection frames (decode cache). `nest_row` fails with

@@ -1,0 +1,15 @@
+**GO AFTER FIXES.** No files changed.
+
+- **Fix before GPU — missing rehearsal guards.** [o_sub_E.sh:42](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/o_sub_E.sh:42) replaces D’s full-reader checks with schedule constants. [a/5.py:160](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/evidence/E/delivery/a/5.py:160) records no full-reader evidence. Restore D-equivalent validation for E’s distance rehearsal rows, including receipt/file agreement. Otherwise submission can pass without exercising the full reader.
+
+- **Fix before GPU — scorer does not authenticate E’s identity.** [score_e.py:121](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/score_e.py:121) checks serving hashes only between segments; [score_e.py:181](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/score_e.py:181) requires only step 200. In-memory checks accepted A4 as current E and accepted zeroed reader/export hashes. Bind returns to D0 run 359fcc3c and verify serving pins against the reviewed package and baselines.
+
+- **Fix before GPU — insufficient sealed walltime.** [BUILD.json:4](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/evidence/E/BUILD.json:4) reports `budget_fits=false`: 6,402 seconds plus 1,800 seconds margin requires **02:16:42**. [3.py:15](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/evidence/E/delivery/3.py:15) seals 02:00:00. Rebuild with at least 02:20:00 to cover that estimate and reduce incomplete-pair risk.
+
+- **Note — diff and pairing pass.** [DIFF.txt:141](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/evidence/E/DIFF.txt:141): independent comparison confirmed only allowed changes, unchanged serving pins, and all 150 distance items in baseline order. The batch wrapper matches exactly one application, including EXIT, exclusion, and USR1 handling.
+
+- **Note — binding and transfer checks pass.** [a/4.py:152](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/evidence/E/delivery/a/4.py:152) rejects incorrect identities and preparation hashes; all requested constants match. [place_fill_e.py:96](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/place_fill_e.py:96) pulls four parts serially without retries and authenticates the whole archive before producing usable inputs. Actual D0 preparation/export bytes remain untested locally.
+
+- **Note — metric calculations pass.** [score_e.py:47](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/score_e.py:47) counts at least one recorded call and averages stored MRA scores by unit. Paired room bootstrap and self-comparison checks pass. [score_e.py:117](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/score_e.py:117) correctly exposes the step-544 baseline’s first-30-item `memo=verify` difference.
+
+- **Note — compatibility passes.** [review_e.py:16](/scratch/jjyeung/orch_n30/cont_ops18/ebuild/review_e.py:16) passed evidence reconstruction. All workspace Python helpers and delivery Python files compiled in memory under Python 3.6.8; all five shell scripts passed syntax checks.

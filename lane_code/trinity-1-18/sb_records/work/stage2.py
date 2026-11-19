@@ -21,7 +21,7 @@ def main():
  used={}
  def use(p):p=Path(p);used[str(p)]=pin(p);return p
  def rd(p):return read(use(p))
- cr=rd(get('d3d3')) if False else rd(snapshot(W/'w19/work/build19/inputs/component_rows.json'))
+ cr=rd(snapshot(W/'w19/work/build19/inputs/component_rows.json'))
  auth={k:dict(path=str(get(v['sha256'])),sha256=v['sha256']) for k,v in cr['proven']['authority'].items()}
  for v in auth.values():use(v['path'])
  R=Rooms(auth)
@@ -67,6 +67,10 @@ def main():
   owners=[b for b,v in bench['by_benchmark'].items() if corpus in v]
   if len(owners)==1 and owners[0] in banks:
    banks[owners[0]]['captures'].update(corpus+'/'+s for s in scenes);banks[owners[0]]['rooms'].update(corpus+'/'+s for s in scenes)
+ # Native ScanNet++ candidates from the authenticated evaluation-room authority.
+ ev=use(get('267efeb1'))
+ for c in set(re.findall(r'scannetpp(?:v2)?/[0-9a-f]{10}',ev.read_text())):
+  candidate(mint(c),c,'EVAL_ROOMS_native_candidate_remint')
  # Exhaustive ScanNet labels and eight-digit ARKit IDs for recovered non-v7 targets.
  extra=targets-set(mapping);d1={t for t in extra if t.startswith('d1/')};d3={t for t in extra if t.startswith('d3/')}
  for i in range(10000):

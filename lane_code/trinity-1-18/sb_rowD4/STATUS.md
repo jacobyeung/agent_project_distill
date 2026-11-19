@@ -1,0 +1,1 @@
+The audit runs on trinity-1-18 and uses the sealed W/w19 tree. The v7 paired-clause exactness gate is pending; no new rows or replacements have been generated. Medium answers use a 135-degree back band, so the gate must test whether their stored labels retain enough information for a half turn.

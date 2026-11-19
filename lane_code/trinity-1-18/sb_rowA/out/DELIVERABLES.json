@@ -1,13 +1,53 @@
 {
-  "status": "PARTIAL_MISSING_TRAINING_SOURCES",
+  "status": "PASS_ROW_BUILD",
+  "training_rows": 6000,
   "evaluation_items": 900,
   "evaluation_pairs": 450,
-  "training_rows": 0,
-  "native_loader": "NOT_RUN: torch unavailable",
+  "scorer_patch": "CPU_CHECKS_PASS; INDEPENDENT_REVIEW_AND_APPLICATION_PENDING_CONT_OPS18",
   "files": {
-    "source_audit.py": {
-      "sha256": "b872ac4fd3899bb105613e73d487602a5ad8983f5bf1755f255ebb568e33b986",
-      "bytes": 4762
+    "camera_contract.py": {
+      "sha256": "93f6c10e0bc2c39e74f8fce13c938d93cedaa2b299b57a473e72f6836f030063",
+      "bytes": 8845
+    },
+    "audit_source_rejections.py": {
+      "sha256": "d44cd9d69c260adfabc4c86ee8af8217da5d272b9b7f3cf9f201a43381d7545d",
+      "bytes": 1561
+    },
+    "check_wording_distance.py": {
+      "sha256": "9985ebc6b008a85bb688a303db47cbd9747452ca80e009345eb8a25d3876fe33",
+      "bytes": 780
+    },
+    "audit_camera_training.py": {
+      "sha256": "311edbbe33386cf64511854d23839a02b5acf6af96e36981d8e62483a0ddc221",
+      "bytes": 2104
+    },
+    "build_camera_training.py": {
+      "sha256": "e826b00a777541bfdfd2078e5df64b752bc5bab0fb3f16d45f9ee939ef463fa9",
+      "bytes": 7555
+    },
+    "verify_camera_training.py": {
+      "sha256": "a7e18b08766f5c8cb23562649445bc452d354e815da126972133521fbc59e47f",
+      "bytes": 4105
+    },
+    "build_scorer_patch.py": {
+      "sha256": "780cd988ed3461343278aa2dbd594d923a5777af9f0de0268892e6f38b41eeab",
+      "bytes": 5240
+    },
+    "fast_wording.py": {
+      "sha256": "40651c0f93c79e81e7ad38ed482636e9a3d61e44494ce86f82ceed202c6c7438",
+      "bytes": 987
+    },
+    "wording_distance.cpp": {
+      "sha256": "0452816f41a863676ab1fd2104931890b07d5c74992241f32c69e2455dc3a778",
+      "bytes": 758
+    },
+    "read_training_sample.py": {
+      "sha256": "c73aec22da53404fcc0ae1d12c3acf571d1e8d07249275340f2dc5c0089b1d16",
+      "bytes": 1217
+    },
+    "finalize_delivery.py": {
+      "sha256": "1c84a3746a439e80c0ff4f4ff646648c7d1779e13f3f763505e26e8a543f33e6",
+      "bytes": 11893
     },
     "wordings.py": {
       "sha256": "dbfa3869d27b42ca472784b4a5ef3888456b606104c45d95ddcb85b16cb58aad",
@@ -18,24 +58,36 @@
       "bytes": 12910
     },
     "verify_camera.py": {
-      "sha256": "a452cdf7ced58163cd16d29533b22767cc9d40dd88421ea9fe00b4d62f232c7d",
-      "bytes": 5490
-    },
-    "finalize_review.py": {
-      "sha256": "6479cd7d5aa1a715eb26ef6e55f4cb13759ed86b79c39ddfd248330f3d5d2a10",
-      "bytes": 2544
+      "sha256": "2b705386176a7ae246da4b0f9a8eaa28ba1043ef0b8b1a096a3bb048476aded1",
+      "bytes": 5162
     },
     "package_delivery.py": {
-      "sha256": "3845d02c2779368028e440e527bccdb1a387bc235794c9528b963ebb04510f5b",
-      "bytes": 2653
+      "sha256": "3982f87649b6fc6e1f8dcccae206aa257a6dbd1bedb8a6d8956243234e09c42e",
+      "bytes": 4076
     },
     "STATUS.md": {
-      "sha256": "6b641a89dd835c51519b234172bc35928c8bf930b6b538400278dee54f96cee6",
-      "bytes": 490
+      "sha256": "9c3e24ebc65cf8f68f95a39a11776ef74f83ad4415903c8679168e4c14cea1b1",
+      "bytes": 412
+    },
+    "out/SOURCE_REJECTIONS.json": {
+      "sha256": "d3ce04a3972c70dae9532e76fec5a675e5fcb5b67de336f0a96d53a79814dc3f",
+      "bytes": 7957
+    },
+    "out/WORDING_DISTANCE_CHECK.json": {
+      "sha256": "0f75bef1f44218c2dc3388ca58fa379856d1c1721d43f24ba2b42919799db3b0",
+      "bytes": 786
     },
     "out/SOURCE_AUDIT.json": {
-      "sha256": "8a20d7c67e538aef7c8cd36e178bf420e5e82e7e20daf19b88492bd2404b1926",
-      "bytes": 9227
+      "sha256": "152204f66ffad0dc1ee5411f55570b7576b48d85d4cb325db74dbcf023a07d05",
+      "bytes": 13418
+    },
+    "out/SOURCE_ADMISSION.jsonl": {
+      "sha256": "dfde9aa70a140ddd5e41349d8658a08ab5f224d4ee79b261350a97d6c5269181",
+      "bytes": 13015584
+    },
+    "out/SOURCE_WORDING_CORPUS.txt": {
+      "sha256": "f565f3b015019a1db064388a8628befae4a9d0aa07c06f9ecef0a6722a95cd26",
+      "bytes": 1899749
     },
     "out/WORDINGS.json": {
       "sha256": "0b6f8eb3fe99a1ccb011195778e0ecec89dce90ff13f0b6d90321c85955d6b86",
@@ -57,37 +109,65 @@
       "sha256": "92a441ce08376e33ce1b66875d62fbd84315fc72d3c39c377aa045608a71cf8d",
       "bytes": 1525662
     },
-    "out/CAMERA_ROWS.jsonl": {
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0
+    "out/HELDOUT_FREEZE.json": {
+      "sha256": "d67b68f34c4a52614220805a9fbd56908bcc6808eb1d550f01ff462b3e5d2576",
+      "bytes": 594
     },
-    "out/CAMERA_ROWS.MISSING.json": {
-      "sha256": "9a3d68fda0147dd1b701f0d0a5cbfc5c3536e136c170652578211eed28bd8464",
-      "bytes": 31338
+    "out/CAMERA_ROWS.jsonl": {
+      "sha256": "e3c72962e3fd774c7e15fa1e4aeae1b6642264bf4f3cf54b9e350b8d7bfb9707",
+      "bytes": 88497398
+    },
+    "out/CAMERA_SOURCES.jsonl.gz": {
+      "sha256": "6d9abc4257735f41d34eb1a22499b584027815f1d2a8fe379c00c343fbde952c",
+      "bytes": 28063961
+    },
+    "out/CAMERA_LINEAGE.jsonl": {
+      "sha256": "afc9606aad6dea7bba5b1efd61a69272b09e7685c9862cb3d34f5c78de81c16f",
+      "bytes": 3765517
+    },
+    "out/TRAINING_CHECKS.json": {
+      "sha256": "ac9cb854c942afd6f9ad57ed8a98f4c0ece67bc6771f28651e9c9f54a6f73ce6",
+      "bytes": 37355
+    },
+    "out/INDEPENDENT_TRAINING_CHECK.json": {
+      "sha256": "01dc6a3de29aec0ad63776d94fe5712e50409ec91735e17f7c1e938379338e79",
+      "bytes": 23970
     },
     "out/CHECKS.json": {
-      "sha256": "264e07dc76d96e8a3b407456c677eae595c62180f2ad67e3704dbab5270d6474",
-      "bytes": 36372
+      "sha256": "3b177c17544ae272eedc56fe991914ca7efbd0d862a8bdea174cbd343ba19b12",
+      "bytes": 43487
     },
     "out/INDEPENDENT_CHECK.json": {
-      "sha256": "0ca5edd6e12f2b8c9fbb71cb3869f2143ec0081b3bb3cf3d660552f10113e550",
-      "bytes": 1542
+      "sha256": "befaebf0849462364a3f9429d12013e0ad1d194104d1871511240937edb1f107",
+      "bytes": 1566
     },
     "out/MANUAL_REVIEW.json": {
-      "sha256": "8439abc5e8fc8eea123f4b0b65bd676467c0810a84474bcc086a13c5cafaecbd",
-      "bytes": 2860
+      "sha256": "58c6e1106ae0ba068b3233f0659da83fd93591ee30d9d4e6702316609f6a0817",
+      "bytes": 2444
     },
     "out/READ30.md": {
-      "sha256": "5d74330da1cf9096341805bbe214342845073593b51f14e9c5feed156d521e8e",
-      "bytes": 58305
+      "sha256": "83d0fcfe47e965ab3366ad148a3cfc6870ea14e2e63f529d081aa0cc43dd1746",
+      "bytes": 445292
+    },
+    "out/READ30_SHARED.md": {
+      "sha256": "587da1150f3ee8d628c941ea32e5b8082e00858dd524baa58f004d4ad19ab54a",
+      "bytes": 35815
+    },
+    "out/READ30_UNIQUE.md": {
+      "sha256": "953fc2c7803c338963544d9357854f847d7878c8d5ac48a457973ce27d74cebc",
+      "bytes": 96464
     },
     "out/REPORT.md": {
-      "sha256": "9bd44e54ae2b93a0158075e949990bca9e1642ad339e490211f92340c10da44f",
-      "bytes": 5177
+      "sha256": "8e26b8316f9d2ed6b8147222ed8c530e06ad0b67ac92deccd2451d47fcb476c9",
+      "bytes": 5930
     },
     "out/HANDOFF_cont_ops18.md": {
-      "sha256": "de7a3d182566e6b4eb75aa38bb961346dd583cb5bf76a30b2c65d0fcc44e1ebf",
-      "bytes": 3093
+      "sha256": "85c3b0b0836d0b6f0adc04912a261d449d13a3cb18670b23bf1dd985bed45c74",
+      "bytes": 3167
+    },
+    "out/wording_distance.so": {
+      "sha256": "56fe241429d50c8a00e451a042d688c212d81470e48776008a3f5998cc577da4",
+      "bytes": 8784
     },
     "out/item_file_inventory.txt": {
       "sha256": "3396614daca8b8031c169e45127068e0e3d42a8c60ee9bc498a0043225a443a5",
@@ -97,52 +177,80 @@
       "sha256": "4fa197c744969db0b464f86c78f9efae71c7ecc3bd21dd5f8c20de1b00ba5bfb",
       "bytes": 3036
     },
-    "out/routing_database_inventory.txt": {
-      "sha256": "98f7b21eb7730c4b5c6c9d47ab64db050f5e209101923c1085a616488b822b55",
-      "bytes": 744
+    "out/admission.log": {
+      "sha256": "c4c8f8bd0933074573b1126265c013a8cb1500805105f174e117e834352f8953",
+      "bytes": 721
     },
-    "out/source_audit.log": {
-      "sha256": "fe0a29da9a8b877e1cdf3f0d61fe3a5645f64b640ae6665ae08c416a344b46b2",
-      "bytes": 712
+    "out/training.log": {
+      "sha256": "24c709079e839ba356fa3b7e9d1ad67e91170504d11f0732a78cc3c5fe377e32",
+      "bytes": 1295
     },
-    "out/build.log": {
-      "sha256": "8016e2105252c7b671dab3ec7a27f4c59d1d63b12788fbd49f5f1bda9d2c3481",
-      "bytes": 269
+    "out/scorer_patch.log": {
+      "sha256": "e2502049df39c34df66965bd4c3352a009fc0996bfc66fc18be0d603e097ae9c",
+      "bytes": 76
+    },
+    "out/SCORER_PATCH/placement.patch": {
+      "sha256": "dcaffaaf48dc17672c62d0a3c9dceefb450e64a1f40225634b5627644bebf4cf",
+      "bytes": 1086
+    },
+    "out/SCORER_PATCH/h1eval/scorers.py": {
+      "sha256": "d032f96986ad7ee6fa8ba3de6ec00beb98f4c18336a0648771c487451c283302",
+      "bytes": 10786
+    },
+    "out/SCORER_PATCH/CHECKS.json": {
+      "sha256": "300bec4416691e5a67ffed17e1ab0c826134dbf49608260ac0614c72e1bb9e98",
+      "bytes": 2911
     }
   },
-  "commands": [
-    "python -B source_audit.py",
-    "python -B build_camera.py # expected exit 2: training cell shortfall",
-    "python -B finalize_review.py # requires the exact manually reviewed READ30 digest",
-    "python -B verify_camera.py",
-    "python -B package_delivery.py"
-  ],
   "input_sha256": {
-    "/scratch/jjyeung/orch_n30/sb_rowA/source_audit.py": "b872ac4fd3899bb105613e73d487602a5ad8983f5bf1755f255ebb568e33b986",
+    "/scratch/jjyeung/orch_n30/sb_rowA/camera_contract.py": "93f6c10e0bc2c39e74f8fce13c938d93cedaa2b299b57a473e72f6836f030063",
+    "/scratch/jjyeung/orch_n30/sb_rowA/audit_source_rejections.py": "d44cd9d69c260adfabc4c86ee8af8217da5d272b9b7f3cf9f201a43381d7545d",
+    "/scratch/jjyeung/orch_n30/sb_rowA/check_wording_distance.py": "9985ebc6b008a85bb688a303db47cbd9747452ca80e009345eb8a25d3876fe33",
+    "/scratch/jjyeung/orch_n30/sb_rowA/audit_camera_training.py": "311edbbe33386cf64511854d23839a02b5acf6af96e36981d8e62483a0ddc221",
+    "/scratch/jjyeung/orch_n30/sb_rowA/build_camera_training.py": "e826b00a777541bfdfd2078e5df64b752bc5bab0fb3f16d45f9ee939ef463fa9",
+    "/scratch/jjyeung/orch_n30/sb_rowA/verify_camera_training.py": "a7e18b08766f5c8cb23562649445bc452d354e815da126972133521fbc59e47f",
+    "/scratch/jjyeung/orch_n30/sb_rowA/build_scorer_patch.py": "780cd988ed3461343278aa2dbd594d923a5777af9f0de0268892e6f38b41eeab",
+    "/scratch/jjyeung/orch_n30/sb_rowA/fast_wording.py": "40651c0f93c79e81e7ad38ed482636e9a3d61e44494ce86f82ceed202c6c7438",
+    "/scratch/jjyeung/orch_n30/sb_rowA/wording_distance.cpp": "0452816f41a863676ab1fd2104931890b07d5c74992241f32c69e2455dc3a778",
+    "/scratch/jjyeung/orch_n30/sb_rowA/read_training_sample.py": "c73aec22da53404fcc0ae1d12c3acf571d1e8d07249275340f2dc5c0089b1d16",
+    "/scratch/jjyeung/orch_n30/sb_rowA/finalize_delivery.py": "1c84a3746a439e80c0ff4f4ff646648c7d1779e13f3f763505e26e8a543f33e6",
     "/scratch/jjyeung/orch_n30/sb_rowA/wordings.py": "dbfa3869d27b42ca472784b4a5ef3888456b606104c45d95ddcb85b16cb58aad",
     "/scratch/jjyeung/orch_n30/sb_rowA/build_camera.py": "4d3fe482f03c5b250a2ad9471851562e09a992c652f510e2665589b7a8b4be85",
-    "/scratch/jjyeung/orch_n30/sb_rowA/verify_camera.py": "a452cdf7ced58163cd16d29533b22767cc9d40dd88421ea9fe00b4d62f232c7d",
-    "/scratch/jjyeung/orch_n30/sb_rowA/finalize_review.py": "6479cd7d5aa1a715eb26ef6e55f4cb13759ed86b79c39ddfd248330f3d5d2a10",
-    "/scratch/jjyeung/orch_n30/sb_rowA/package_delivery.py": "3845d02c2779368028e440e527bccdb1a387bc235794c9528b963ebb04510f5b",
-    "/scratch/jjyeung/orch_n30/sb_rowA/STATUS.md": "6b641a89dd835c51519b234172bc35928c8bf930b6b538400278dee54f96cee6",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/SOURCE_AUDIT.json": "8a20d7c67e538aef7c8cd36e178bf420e5e82e7e20daf19b88492bd2404b1926",
+    "/scratch/jjyeung/orch_n30/sb_rowA/verify_camera.py": "2b705386176a7ae246da4b0f9a8eaa28ba1043ef0b8b1a096a3bb048476aded1",
+    "/scratch/jjyeung/orch_n30/sb_rowA/package_delivery.py": "3982f87649b6fc6e1f8dcccae206aa257a6dbd1bedb8a6d8956243234e09c42e",
+    "/scratch/jjyeung/orch_n30/sb_rowA/STATUS.md": "9c3e24ebc65cf8f68f95a39a11776ef74f83ad4415903c8679168e4c14cea1b1",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/SOURCE_REJECTIONS.json": "d3ce04a3972c70dae9532e76fec5a675e5fcb5b67de336f0a96d53a79814dc3f",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/WORDING_DISTANCE_CHECK.json": "0f75bef1f44218c2dc3388ca58fa379856d1c1721d43f24ba2b42919799db3b0",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/SOURCE_AUDIT.json": "152204f66ffad0dc1ee5411f55570b7576b48d85d4cb325db74dbcf023a07d05",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/SOURCE_ADMISSION.jsonl": "dfde9aa70a140ddd5e41349d8658a08ab5f224d4ee79b261350a97d6c5269181",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/SOURCE_WORDING_CORPUS.txt": "f565f3b015019a1db064388a8628befae4a9d0aa07c06f9ecef0a6722a95cd26",
     "/scratch/jjyeung/orch_n30/sb_rowA/out/WORDINGS.json": "0b6f8eb3fe99a1ccb011195778e0ecec89dce90ff13f0b6d90321c85955d6b86",
     "/scratch/jjyeung/orch_n30/sb_rowA/out/WORDING_CORPUS.txt": "b863ad638449627d53f4f92cac1b437f3811d6dceb64d8e4ab0e5f53e2f87bc8",
     "/scratch/jjyeung/orch_n30/sb_rowA/out/HELDOUT_CAMERA_ITEMS.json": "2b90676111c229965d91132ad65b0f019703556c5934123fa0734bc6bffb3bdf",
     "/scratch/jjyeung/orch_n30/sb_rowA/out/HELDOUT_CAMERA_TWINS.json": "5ec7e2a62e54f56a3bdc8f1de51f0a96d98dd14da8dd5326bc92618654f7b104",
     "/scratch/jjyeung/orch_n30/sb_rowA/out/HELDOUT_NATIVE_TASKS.jsonl": "92a441ce08376e33ce1b66875d62fbd84315fc72d3c39c377aa045608a71cf8d",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/CAMERA_ROWS.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/CAMERA_ROWS.MISSING.json": "9a3d68fda0147dd1b701f0d0a5cbfc5c3536e136c170652578211eed28bd8464",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/CHECKS.json": "264e07dc76d96e8a3b407456c677eae595c62180f2ad67e3704dbab5270d6474",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/INDEPENDENT_CHECK.json": "0ca5edd6e12f2b8c9fbb71cb3869f2143ec0081b3bb3cf3d660552f10113e550",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/MANUAL_REVIEW.json": "8439abc5e8fc8eea123f4b0b65bd676467c0810a84474bcc086a13c5cafaecbd",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/READ30.md": "5d74330da1cf9096341805bbe214342845073593b51f14e9c5feed156d521e8e",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/REPORT.md": "9bd44e54ae2b93a0158075e949990bca9e1642ad339e490211f92340c10da44f",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/HANDOFF_cont_ops18.md": "de7a3d182566e6b4eb75aa38bb961346dd583cb5bf76a30b2c65d0fcc44e1ebf",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/HELDOUT_FREEZE.json": "d67b68f34c4a52614220805a9fbd56908bcc6808eb1d550f01ff462b3e5d2576",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/CAMERA_ROWS.jsonl": "e3c72962e3fd774c7e15fa1e4aeae1b6642264bf4f3cf54b9e350b8d7bfb9707",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/CAMERA_SOURCES.jsonl.gz": "6d9abc4257735f41d34eb1a22499b584027815f1d2a8fe379c00c343fbde952c",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/CAMERA_LINEAGE.jsonl": "afc9606aad6dea7bba5b1efd61a69272b09e7685c9862cb3d34f5c78de81c16f",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/TRAINING_CHECKS.json": "ac9cb854c942afd6f9ad57ed8a98f4c0ece67bc6771f28651e9c9f54a6f73ce6",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/INDEPENDENT_TRAINING_CHECK.json": "01dc6a3de29aec0ad63776d94fe5712e50409ec91735e17f7c1e938379338e79",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/CHECKS.json": "3b177c17544ae272eedc56fe991914ca7efbd0d862a8bdea174cbd343ba19b12",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/INDEPENDENT_CHECK.json": "befaebf0849462364a3f9429d12013e0ad1d194104d1871511240937edb1f107",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/MANUAL_REVIEW.json": "58c6e1106ae0ba068b3233f0659da83fd93591ee30d9d4e6702316609f6a0817",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/READ30.md": "83d0fcfe47e965ab3366ad148a3cfc6870ea14e2e63f529d081aa0cc43dd1746",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/READ30_SHARED.md": "587da1150f3ee8d628c941ea32e5b8082e00858dd524baa58f004d4ad19ab54a",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/READ30_UNIQUE.md": "953fc2c7803c338963544d9357854f847d7878c8d5ac48a457973ce27d74cebc",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/REPORT.md": "8e26b8316f9d2ed6b8147222ed8c530e06ad0b67ac92deccd2451d47fcb476c9",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/HANDOFF_cont_ops18.md": "85c3b0b0836d0b6f0adc04912a261d449d13a3cb18670b23bf1dd985bed45c74",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/wording_distance.so": "56fe241429d50c8a00e451a042d688c212d81470e48776008a3f5998cc577da4",
     "/scratch/jjyeung/orch_n30/sb_rowA/out/item_file_inventory.txt": "3396614daca8b8031c169e45127068e0e3d42a8c60ee9bc498a0043225a443a5",
     "/scratch/jjyeung/orch_n30/sb_rowA/out/kit_json_inventory.txt": "4fa197c744969db0b464f86c78f9efae71c7ecc3bd21dd5f8c20de1b00ba5bfb",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/routing_database_inventory.txt": "98f7b21eb7730c4b5c6c9d47ab64db050f5e209101923c1085a616488b822b55",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/source_audit.log": "fe0a29da9a8b877e1cdf3f0d61fe3a5645f64b640ae6665ae08c416a344b46b2",
-    "/scratch/jjyeung/orch_n30/sb_rowA/out/build.log": "8016e2105252c7b671dab3ec7a27f4c59d1d63b12788fbd49f5f1bda9d2c3481"
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/admission.log": "c4c8f8bd0933074573b1126265c013a8cb1500805105f174e117e834352f8953",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/training.log": "24c709079e839ba356fa3b7e9d1ad67e91170504d11f0732a78cc3c5fe377e32",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/scorer_patch.log": "e2502049df39c34df66965bd4c3352a009fc0996bfc66fc18be0d603e097ae9c",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/SCORER_PATCH/placement.patch": "dcaffaaf48dc17672c62d0a3c9dceefb450e64a1f40225634b5627644bebf4cf",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/SCORER_PATCH/h1eval/scorers.py": "d032f96986ad7ee6fa8ba3de6ec00beb98f4c18336a0648771c487451c283302",
+    "/scratch/jjyeung/orch_n30/sb_rowA/out/SCORER_PATCH/CHECKS.json": "300bec4416691e5a67ffed17e1ab0c826134dbf49608260ac0614c72e1bb9e98"
   }
 }

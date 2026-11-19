@@ -1,0 +1,3 @@
+Delivered [REPORT.md](/scratch/jjyeung/orch_n30/sb_ktow/out/REPORT.md), [DRYRUN.json](/scratch/jjyeung/orch_n30/sb_ktow/out/DRYRUN.json), and the [verified tar](/scratch/jjyeung/orch_n30/sb_ktow/out/sb_ktow.tar).
+
+Ten CPU tests pass; five-capture self-comparisons have zero differences. Overall readiness remains blocked by missing kbox A0 references, real camera parity inputs, and K1 peak-memory evidence. No GPU ran.

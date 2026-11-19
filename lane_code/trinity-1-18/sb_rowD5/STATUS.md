@@ -1,0 +1,1 @@
+The exactness gate failed: 5,846/8,511 pairs reproduce a unique answer; 2,665 medium pairs remain ambiguous. All 8,511 pass the original set-valued consistency check. The independent verifier confirms the failure evidence. Zero rows were generated; out/REPORT.md and out/sb_rowD5.tar deliver the audit, not a training patch.

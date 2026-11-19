@@ -1,0 +1,71 @@
+{
+  "admitted_unique_sources": 6827,
+  "all_admitted_sources_retained": true,
+  "all_out_of_view_sources_retained": true,
+  "candidate_ids_independently_recomputed": true,
+  "exact_joint_cells": true,
+  "families": {
+    "camera_obj_rel_dist_v1": 1200,
+    "camera_obj_rel_dist_v2": 1494,
+    "camera_obj_rel_dist_v3": 836,
+    "obj_obj_relative_pos_lr": 1428,
+    "obj_obj_relative_pos_nf": 1636,
+    "obj_obj_relative_pos_ud": 1592
+  },
+  "field_diff_allowed": true,
+  "ground_truth_independently_recomputed": 8186,
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_rowB3/build_rows.py": "4910f8e4ac1ce5e2c19b72e64953769f4c134b416cf43dc5fe863fbc66e3b981",
+    "/scratch/jjyeung/orch_n30/sb_rowB3/out/INDEPENDENT_CHECK.json": "88d853776748f6fbca557a2a86f357298f282e8158c4cb9ae5e34017a83ef313",
+    "/scratch/jjyeung/orch_n30/sb_rowB3/out/INPUTS.json": "f96da73df9baac35d681833f3de7558daeb2415a82ef29c7b6516440d405a129",
+    "/scratch/jjyeung/orch_n30/sb_rowB3/out/KIT_CHECK.json": "0733de01085abc0f0afba94d8e6e66f07512b7a33f2788b974b7cfb617428a30",
+    "/scratch/jjyeung/orch_n30/sb_rowB3/out/READ30_REVIEW.json": "7c9e914ac95c0459dd5bf28c9af1d4d9b8d4dbec691bc52ded211bed5a345c36",
+    "/scratch/jjyeung/orch_n30/sb_rowB3/out/WORDING_FILTER_CHECK.json": "e9aac11d19b07a21572f5c61d6225f3d51635549ab2edc6a313fcac4b4865557"
+  },
+  "max_source_uses": 3,
+  "missing_gt_rasters": 307,
+  "missing_gt_rows": 4420,
+  "next_read_gate": {
+    "baseline_changes": 18,
+    "criterion": "On dev camera-item pairs from the same room with different k and changing true winner, the model top shared object should change on more than 18 of 59 fixed pairs; also report correctness and denominator. No next read performed.",
+    "pairs": 59
+  },
+  "output_sha256": {
+    "HISTOGRAMS.json": "a6b2d69b09ed63038650753e27217cd65011994c98a88bf81067760f2cab5d07",
+    "PLAN.json": "dcd6462ae1b35880c8f1f55738bc539d8a7bd2f8a7b4cfb76f6363ecd9b11557",
+    "QID_MAP.jsonl": "c85d42a237ebdad7441ae145b5654c736bef86acc0186a7cad57826e7833b4ae",
+    "REMOVE.json": "4ae0e2177ad2dd10b48ec53c7e85fc8e361c3bc58e9a8b67292d623ade87a5b5",
+    "rows.jsonl": "329d17a32271f9c4938b3e66bf49f07a53cd46612577bf5564962163f1f0df82"
+  },
+  "read30": "PASS: all thirty complete question/options/trace/answer renderings and visibility/geometry evidence reviewed",
+  "refusal_counts": {
+    "MISSING_GT": 4420,
+    "heldout_wording_distance_le_0.05": 679
+  },
+  "replacement_native_pack_validate": 8186,
+  "required_checks_passed": true,
+  "room_rule_pass": true,
+  "sighting_references_independently_checked": true,
+  "sighting_rule": "Latest recorded instance frame strictly before k; if none, nearest recorded frame to k, with earlier frame winning a tie. Only records meeting visibility_floor qualify. This is a recorded-sighting reference, not a claim of the actual last visible frame in the video.",
+  "source_native_pack_validate": 11926,
+  "source_rows": 11926,
+  "source_use_ceiling": 3,
+  "source_use_histogram": {
+    "1": 5474,
+    "2": 1347,
+    "3": 6
+  },
+  "status": "PASS",
+  "unique_candidate_ids": true,
+  "unique_qids": true,
+  "visibility_independently_checked": true,
+  "wording_distance_tests": 3844,
+  "wording_filter": {
+    "all_permutations_prefiltered": true,
+    "input_files": 1219,
+    "metric": "Levenshtein / max codepoint length; NFKC casefold collapsed whitespace",
+    "refused_sources": 679,
+    "threshold": 0.05,
+    "unique_heldout_wordings": 4849
+  }
+}

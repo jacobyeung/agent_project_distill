@@ -9,7 +9,10 @@ STEP = int(sys.argv[1]) if len(sys.argv) > 1 else 200; RUN = 'R1'
 D = {('dev-S1', s): K.direct(r, s, 'dev-S1') for r, s in ((RUN, STEP), ('S1', 544))}
 D.update({('R0-dev', s): K.direct(r, s, 'R0-dev') for r, s in ((RUN, STEP), ('S1', 544))})
 V = {s: K.vsti(r, s) for r, s in ((RUN, STEP), ('S1', 544))}
-RA = {s: K.routed(s, part='A') for s in (STEP, 544)}; RB = {s: K.routed(s, part='B') for s in (STEP, 544)}
+RA = {}; RB = {}
+for _s in (STEP, 544):
+    try: RA[_s] = K.routed(_s, part='A'); RB[_s] = K.routed(_s, part='B')
+    except Exception as e: RA[_s] = []; RB[_s] = []; print('no routed read at step', _s, repr(e)[:80])
 def num(x):
     try: return float(str(x).strip())
     except Exception: return None
@@ -85,6 +88,7 @@ print('%-9s | %-52s | %5s | %6s | %6s | %6s | %s' % ('bench', 'category (leaves)
 for b, (ncat, cats) in BENCH.items():
     out[b] = {}
     for c, leaves in cats.items():
+        if not all(leaves): print('%-9s | %-52s | no items at this step' % (b, c)); continue
         n = sum(len(l) for l in leaves); w = 1.0 / len(leaves)
         s = sum(w * sc(l) for l in leaves); olds = [old_sc(l) for l in leaves]
         so = sum(w * x for x in olds) if all(x is not None for x in olds) else None

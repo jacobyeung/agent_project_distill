@@ -1,0 +1,251 @@
+=================== sb_harev/out/REVIEW_VERDICT.md
+REJECT
+
+Evidence aliases: H = inputs/HEAD_ACCURACY_DESIGN_20261119.md; B/T/O = inputs/KIT_SPEC_{box_ladder_k1,tower_frames,object_route_r0dev}.md. Other record names below resolve under inputs/. Line numbers refer to these immutable snapshots. R = /scratch/jjyeung/orch_n30; M = /scratch/jjyeung/n30_mirror.
+Reproduce every computed number with `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 /usr/bin/python3 out/recompute.py`. RECOMPUTE.json records input SHA256s, formulas, verification levels, missing paths, and all 20 selection locations. Source-summary checks are distinguished from per-item recomputation.
+VERIFIED from predictions: K1 held-out GD 75.0463, GT 91.9907, Pi3X 73.3796, DA3 71.0185, on 216 items/48 rooms; GT−GD = 16.9444. VERIFIED from per-item scores: presence 47/143 = 32.8671 versus 102/143 = 71.3287; GT-presence counting 24.8077. VERIFIED R0: 2,169 items/98 scenes, including size 293, relative distance 279, appearance 246, distance 290, counting 385.
+UNVERIFIABLE from raw evidence: selector margin 50.0/70.4, frame medians 3/9, short gaps 39.5 and 17/21, box ratio 0.79, camera noise-floor/error-halving figures, appearance ceiling 92.6, and the 37→98 counting oracle. Missing exact paths and corroborating records are listed in RECOMPUTE.json. Rounded-bucket arithmetic reproduces 55.4043/73.8714 and camera loss shares 55.31%/52.19%; it does not verify the underlying observations.
+
+1. **BLOCKING — Protected sets select rules and routes.** B:48,51,54-55 uses held-out replay, adoption signs, and a size screen; T:19,24 uses held-out signs; O:33-36,38 selects routes and withdraws a PASS on R0-dev. ROOM_HEAD_DESIGN_20261119.md:60,66,73 repeats R0-dev gating. Train-only fusion, gather, first-seen and tower choices are enumerated in the ledger; O:37 is explicitly report-only.
+Exact fix: “Choose rules, screens, selector variants, and routes using K1 train or an independently registered training-only set. Freeze all choices before K1 held-out or R0-dev evaluation. Those evaluations report results only and cannot trigger adoption, withdrawal, parser changes, or another selection round.”
+
+2. **BLOCKING — The evidence includes official-test-derived choices.** H:3 says every number is a dev proxy. GT_CEILING_DECOMPOSITION_20261111.md:93-96,129-156 describes benchmark-scene policy comparisons and official VSI/VSTI ceilings; DEVS1_PREDICTED_MASKS_ROUTE_TABLE_KIT_20261112.md:41 discloses benchmark-first fusion selection. None of the three new kits explicitly requests official items, but their inherited policy is not free of that provenance. No new ReVSI-official selection is specified.
+Exact fix: “Historical official-item ceilings and fusion-policy results are sensitivity evidence only. They do not select this implementation or establish its expected gain. Select the new rule on training data and disclose the historical official-test provenance.”
+
+3. **BLOCKING — Distance gains can be counted twice.** H:15-16,31 adds box and tower gains. T:23-24 tests F64_fused against F32=A0, so that gain already includes the box change. H:16,22 repeats the same camera upside. Size, relative distance and appearance affect different categories and are not duplicates merely because they share a module.
+Exact fix: “Count box gain as F32_fused−F32, then incremental frame gain as F64_fused−F32_fused on identical items. Report their joint gain once. Count the camera gain once across ranks 3 and 9. Until this comparison exists, the +0.7–1.6/+1.4–3.9 totals are non-additive scenarios.”
+
+4. **BLOCKING — The named manifest does not define the promised denominator.** T:9,17 calls it 296 captures; its actual contents are 300: train 242 captures/1,070 distance rows, held-out 58/224. The corrected pricing table uses 1,037/216 rows. B:18 further limits predicted masks to 266 captures without freezing a shared row set.
+Exact fix: “Filter the named manifest through the existing PRIMARY_296 registry, pin its SHA256 and exact row IDs, and publish every exclusion. Use identical registered rows for primary arm contrasts, with refusals scored zero; report shared-answer and 266-capture diagnostics separately.”
+
+5. **minor — Two lifting numbers are wrong.** H:36 and E2E_READER_B04_20261116.md:14 quote 28.6/39.1. R/b04host3/lift_price/harness/out_lift_train/*.json:1 and AGG_TRAIN.txt:5-6 give plain 28.001998 and hull 38.781219 on 1,001 rows; best 61.448551, bestspread 69.650350 and deployed-cut/vote 69.780220 agree.
+Exact fix: “On 1,001 stored-label training rows, S4+G1 plain fusion scores 28.0, best frame 61.4, majority hull 38.8, bestspread 69.7, and the deployed cut-and-vote rule 69.8. These are not GD comparisons.”
+
+6. **BLOCKING — Geometry and instance-choice losses are not isolated.** H:25 assigns the 16.9444 geometry contrast to a single view; both geometry arms use the existing box protocol. H:26's 60.3738/67.9630 comparison uses 214 answered predicted-mask rows versus 216 GT-mask rows and is explicitly unpaired. Margin/frame correlations do not measure recoverable causal gains.
+Exact fix: “GT geometry improves GT-mask distance by 16.94 points; this does not isolate fusion. The stored-label predicted/GT-mask means differ by 7.59 points on different denominators. Only paired ladder contrasts can attribute instance, mask, fusion, and geometry losses.”
+
+7. **BLOCKING — Size screening compares different tasks and instances.** B:55 compares K1 held-out boxes to R0-dev direct 58.3. H:17's 50.7/73.6 and 0.79 come from only 58 name-within-room joins that may match different instances (R1_M200_TRACE_ANALYSIS_20261119.md:149).
+Exact fix: “Select size routing on training items with exact capture, frame-set and instance joins to both predictions. Treat the 58 name-within-room joins as exploratory. Do not use held-out K1 ≥63.3 or the 0.79 ratio as a validated routing or object-extent criterion.”
+
+8. **BLOCKING — Camera scaling and metric pricing change the deployed treatment.** T:28 uses median products: own=[1,1,1], D32=[1,2,4], D64=[1,1,4] gives proxy scale 0.5 but actual median(own/D64)=1. O:13 substitutes S4 and assumes a K1 advantage proves a lower bound on R0-dev; it does not.
+Exact fix: “Recompute the own-depth scale on aligned valid grids for each tower using the deployed rule. If own depth is unavailable, label the proxy a sensitivity arm and forbid adoption from it. Report S4 as a different treatment, without claiming it lower-bounds deployed R0-dev accuracy.”
+
+9. **BLOCKING — The frame gate cannot test the proposed coverage mechanism.** T:19 stops extra SAM frames when G3T geometry gains fail, although proposal coverage can improve with unchanged geometry. T:6 suppresses non-anchor frame IDs while O:27 compares first-seen to first_pos_f32; the T64 time/anchor mapping is unspecified.
+Exact fix: “Gate G3T context and SAM coverage independently on training data. Pin dense-frame timestamps, anchor mappings, output frame numbering and first-seen labels for each arm. Test coverage gains even when the geometry-context comparison fails.”
+
+10. **BLOCKING — The object algorithm is incomplete and misdescribed.** H:45/B:34 divides overlap by proposal voxels; R/b04host3/tree_rebuild/work/base/tree_b01ce449/student_pilot/routed_candidates.py:141-149 divides by the smaller set and also permits a centre-distance edge. A single best seed per name does not define the instance count promised by H:9 and O:28.
+Exact fix: “Gather is a new training-selected rule, not the linker's existing rule. Specify its overlap denominator and deterministic same-frame conflict handling. Define how all instances are seeded, merged, deduplicated and counted before pricing counting; until then, counting is unimplemented.”
+
+11. **BLOCKING — Missing evidence and inconsistent preflight requirements prevent a reproducible run.** Missing: R/sb_headacc/work/{gapdiag,camdiag}.py, R/swarm_an/kit/san_kit.py, R/swarm_an/work/verify/SIZE_BOXHEAD_JOIN.json, R/cont_ops16/work/c15/r1route/out3/A4/src, and M/gt_audit/K1_LABELS_CORRECTED.jsonl. Corrected labels exist at M/gt_audit/gt_audit/work/k1audit/K1_LABELS_CORRECTED.jsonl. B:15 requires corrected labels while B:48 demands exact equality to stored-label rows.
+Exact fix: “Pin the available corrected-label path and the exact deployed reader source. Stage hashed per-item gap, camera, route and direct evidence before GPU work. Replay old predictions on stored labels for historical parity; separately recompute corrected scores. Never require corrected-label rows to equal stored-label rows.”
+
+12. **BLOCKING — Object upside exceeds the available predicted-mask evidence.** H:18 cites −28.0, but its named route-kit record says the predicted run is pending (lines 5,39) and contains no such ROUTE result. H:19's 80%-first-seen premise does not establish item-level order accuracy. The presence result is numerically right, but its direct baseline is explicitly UNCLAIMED on vLLM 0.23 (R/b11_presence/out/PRESENCE_PROBE.md:5); GT-presence 24.8 concerns counting, not appearance.
+Exact fix: “No measured positive upside exists for the proposed object module. Supply the exact predicted-mask ROUTE artifact for −28.0; otherwise mark it unverified. Treat the GT ceilings and first-seen rates as diagnostics, not attainable gains. Label the presence baseline unclaimed and assign 24.8 only to counting.”
+
+13. **minor — The budget, bars and causal language need correction.** H:31 promises no training although B:39 retrains a selector; O:15 adds about 3 GPU-h omitted from ranks 4–6. H:71 says +5 for every route, but O:34 sets +3 for relative distance. T:35 assigns 94-frame pricing to O, which specifies only 32/64. No adoption bar is literally unable to fail; self-comparison and GT-constructed smoke checks cannot establish efficacy. H:29's noise-floor attribution lacks a controlled test.
+Exact fix: “Price selector training separately. Include the object kit's 3 GPU-h estimate and 6-hour cap. Use the kit's +3 relative-distance and +5 size/appearance bars. No 94-frame object arm is specified. Call the camera pattern consistent with a noise floor, pending controlled evidence; identity smoke checks establish implementation parity only.”
+=================== sb_brev3/REVIEW_VERDICT.md
+# REVIEW_VERDICT sb_rowB3 (reviewer sb_brev3, trinity-1-18, 2026-11-19)
+
+**Verdict: REJECT.** Two blockers, both small to fix; every other check passes.
+
+Evidence comes from my own scripts in this folder (`rv_main.py`, `rv_gt.py`, `rv_gate.py`, `rv_tiebias.py`, `rv_wording.py`; outputs `out/RV_*.json`). They import only N's sealed W19 tree (tree 8ea1fe6b…; every loaded module matches TREE_SEAL.json), never the builder's code. Inputs: store v7 210b2534…, rows.jsonl 329d17a3…; the tar's sha256 matches SHA256SUMS.
+
+## Findings
+1. **BLOCKER: "it was last seen in frame f" is false on 87% of rows.** Against the rasters, only 2,161 of 15,320 out-of-view citations name the object's last visible frame before k. 9,062 cite the first sighting although the object stays visible on average 9.1 frames longer, and 4,097 cite a frame after k ("last seen in frame 4 (…later in the clip)" at k=1). 7,153 of 8,186 rows hold at least one false citation (173 of the 200 sampled). Example: the first row (sb_rowB3_15cff71f…, k=18) says the sink was last seen in frame 3, but the raster shows it in frames 3, 7 and 13. Cause: `provenance.instances` holds only first sightings (the REPORT says so), yet the trace says "last seen". The spec prescribed this wording, assuming instances listed every sighting. Fix: take f from the raster (latest frame before k with share ≥0.002; every eligible row has its raster). For an object first seen after k, write "it first appears in frame f, after frame k". READ30_REVIEW's PASS covers such rows, so that claim is unbacked.
+2. **BLOCKER: 150 rows fail N's scene-division gate.** 117 replaced sources (10 scenes) are on N's n.json as `outside_native_training_division`. Their 150 new rows carry new qids, so N's remove lists miss them, and N's `scene_division_gate.check_rows` (with N's remove lists and dev/benchmark filter) refuses the kit with `SCENE_DIVISION_REFUSED` (outside=150). The other 8,036 rows pass (out/RV_GATE.json). Fix: drop those sources and rebalance; a plain drop leaves positions within 1% of uniform (v1 A290/B293/C290/D295).
+3. minor: REMOVE.json lists all 11,926 sources: 6,827 replaced, 4,420 MISSING_GT and 679 wording-refused, separated by `reason`. Its schema matches n.json, but its set is not exactly the replaced sources, and its bytes use ", " and ": " separators where n.json is compact (they parse the same). I wrote `REMOVE_PROPOSED.json`: exactly the 6,827 replaced sources in compact n.json format, sha256 ee3697014c679b29e08e3b640215688cf1b148835d9ad5a84165bf2e759f7f34. Remove the 117 n.json sources from it if finding 2 drops their rows. Separately, the 679 wording-refused old rows (616 in camera v3) lie within 0.05 normalized edit distance of held-out wordings and stay in store v7 unless removed. I recommend removing them (REMOVE.json reason `heldout_wording_distance_le_0.05`).
+4. minor: the claim that the 307 rasters are "lost" is unproven. All 307 come from /scratch/jjyeung/orch_n30/rows_a2/work/rasters, which is absent on trinity-1-18. n30_mirror/rows_a2 has no work/ directory, and none of the 97 mirror archives holds them. The rows_a2 lane's host may still have them; recovering them would restore 4,420 sources (37%).
+5. minor: two families fall under 1,000 rows (see the table). After dropping MISSING, camera v1 keeps 815 old rows, and its 1,200 delivered rows come from only 814 sources. Camera v3 delivers 836 rows (822 after finding 2).
+6. minor: tied camera v2 rows keep a small first-seen cue. Picking among the earliest-seen objects scores 0.369 on tied v2 rows against chance 0.333 (0.346 over all v2 rows). v1 scores 0.252 (chance 0.25) and v3 0.50 (chance 0.50) (out/RV_TIEBIAS.json).
+7. minor: source rows carry no candidate_id, so the kit formula (trace_revision 3.14) cannot be cross-checked against sources. It recomputes correctly on 8,186 of 8,186 new rows.
+
+## Checks that pass
+- (1) Ground truth on 200 seeded rows (seed `sb_brev3|20261119|gt200`), with my own geometry (closest OBB point, camera-frame bearing, height on `up`). In/out of view is right for 495 of 495 objects; answers, every relation clause and geometry_values match on 200 of 200 rows. Frame k is valid, frame indices match, and `up` opposes image-down. Visibility at k is also right on all 20,266 objects in all rows. Only the citations fail (finding 1).
+- (2) N's validators (validate_row, direct_row, validate_direct, row_check vqa, r2_contract.validate vqa) report 0 failures on 8,186 rows and 11,926 sources. qids and candidate_ids are unique (8,186 each) and absent from store v7 and sb_rowB2. Fields that differ from the source: only qid, candidate_id, answer, target, student_input.question/options and provenance.sb_rowB3. Option sets, camera templates and pair questions are unchanged.
+- (3) Room rule: 0 hits on new rows and on sources. Checked against N's Rooms (R0 bdb5d402, 372 rooms; K1 held-out 4d4736cf, 50 rooms), N's Withheld (634820b4), dev-S1 969cdb56, BENCH v2 3119aa4a, N's dev-merged list a1869ae2 and N's s1 Exclusions. N's remove lists (including the V7 K1 list u.json) match no new qid.
+- (4) After the rebuild, each family is exactly uniform: answer position, last option at 1/n, semantic answers and position × semantic. The earliest-seen object wins 1/4, 1/3 and 1/2 of untied camera rows. Before, the last-option share was already 0.250/0.334/0.500/0.500/0.500/0.500, and the earliest-seen object won 0.333/0.424/0.550 of untied rows (out/RV_MAIN.json `bias`).
+- (7) Backed by files: tar and member hashes; CHECKS input/output hashes still current; QID_MAP complete with valid B2 qids; all 3,602 eligible all-out-of-view sources retained; source uses 1:5474/2:1347/3:6, with no source repeated at the same position; wording corpus 4,849 wordings from 1,219 files. My banded Levenshtein finds 0 of 6,874 delivered questions within 0.05, and 100 of 100 sampled refusals are true hits. The next-read gate is written but not measured, as the report states.
+
+## (6) MISSING-raster sources: 4,420 (ScanNet d1 1,077; ScanNet++ d2 3,343; no ARKit)
+| Family | Census | MISSING d1/d2 | MISSING all-out/mixed/all-in | Old rows left after drop | Replaced sources | Delivered | Delivered without finding 2 | Under 1,000 |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| camera_obj_rel_dist_v1 | 1951 | 262/874 | 485/648/3 | **815** | 814 | 1200 | 1168 | FLAG |
+| camera_obj_rel_dist_v2 | 1983 | 199/608 | 416/383/8 | 1176 | 1142 | 1494 | 1458 | |
+| camera_obj_rel_dist_v3 | 1998 | 141/478 | 382/205/32 | 1379 | 763 | **836** | **822** | FLAG |
+| obj_obj_relative_pos_lr | 1998 | 153/446 | 282/263/54 | 1399 | 1388 | 1428 | 1406 | |
+| obj_obj_relative_pos_nf | 2000 | 131/458 | 386/183/20 | 1411 | 1397 | 1636 | 1617 | |
+| obj_obj_relative_pos_ud | 1996 | 191/479 | 439/202/29 | 1326 | 1323 | 1592 | 1565 | |
+
+"Old rows left" means census minus MISSING; it still includes the 679 wording-refused rows, which should also go (finding 3). I rebuilt the MISSING set from each source's raster pin, and it equals the builder's list. No replaced source is MISSING, and every source is either replaced, MISSING or wording-refused.
+=================== sb_afrev/REVIEW_VERDICT.md
+# Review of sb_auditfix store room-audit CLI: ACCEPT WITH FINDINGS
+
+The fix does what sb_alrev required: it maps list rooms through `Rooms.room`, loads `Rooms` from `--tree`, persists every row's scene and room, and refuses unresolved rows. Store v7 reproduces exactly. My own plants found two fail-open gaps (findings 3 and 4). Neither touches v7, but both should be closed before the CLI audits a store from another producer.
+
+Evidence lives in this folder. All runs used `/scratch/jjyeung/envs/p1cpu/bin/python -s -B` with the w18 tree and `sb_auditfix/inputs/lists`. `plant_review.py` (294cfcdc) writes `plant_out.json` and `plant_run.log`; it computes expected rooms with its own minting and list code and calls the CLI once per store. `v7_compare.py` writes `v7_compare_out.json`. The rerun itself is in `v7_rerun/` and `v7_rerun.log`.
+
+1. **My plants are caught: 11 hits and 7 refusals.** Eleven rows sit in one store, run once as JSONL and once as SQLite, and each hits its own list in both runs (exit 0). The alias forms are three hashed `d1`/`d2` tokens whose own witness field (`provenance`, `gt_authority`, `ground_record`) names a `scannetppv2/`, `scannetpp/` or rescan `_02` spelling. These tokens are absent from the alias map, so they resolve only through the row. The other alias form is a literal map key, `d1/scannet/scene0000_00`, which lands in BENCH v2 as tier B. The rows cover R0 (`d1` rescan `_05`, `scannetppv2` native), withheld-80, dev-S1 and K1 (ScanNet++ native, ScanNet rescan `_07`). The venue-id variants also hit: an unlisted sibling video, 41069178, in K1 venue381810; a hashed `d3` video in BENCH venue484545; and a native video in dev-S1 venue472640. Seven single-row stores each exit 2 with REFUSED:
+   - a row whose scene is resolvable only through a frame path, with an unmapped `d2` token and a `scannetpp/<bench id>` path;
+   - a frame-path-only row with no dataset or scene;
+   - `scene=venue484545`;
+   - `dataset=ScanNet`;
+   - a `d1` prefix on a ScanNet++ token;
+   - R0's nonstandard label `scannetpp/511061232`;
+   - an unmapped `d3` token.
+
+   With `--allow-unresolved`, the frame-path row exits 0 and is marked INCOMPLETE.
+2. **The v7 rerun matches sb_alias2 on every list and every row.** The rerun takes 13 s and finds R0 0, withheld-80 0, BENCH v2 0, dev-S1 0 and K1 4,959, with 0 unresolved of 204,413. K1 splits into tiers A 110, B 4,770 and C 79. Against `sb_alias2/out/ROOM_AUDIT_TIERED.json`, the hits match per list, by tier, stream and family, and in all 40 joint counts. Coverage (A 189,498, B 11,842, C 3,073) and the 1,659 rooms also match. Per row, all 204,413 rows have non-null scene and room. Each row matches the independent `sb_alrev/token_rooms.json` on scene, room and tier, and my own recount of list membership from the persisted rooms agrees for every row. The rows also equal the builder's `out/v7/rows.sqlite` in content.
+3. **Gap: non-canonical native ids resolve to phantom rooms and pass.** `normalize_scene` accepts `scene\d+_\d+` and any `\d+`, and `Rooms.room` then derives a room that no list holds. Three single-row stores show this, each exiting 0 with PASS and no hit:
+   - `scannet/scene806_00` becomes `scannet/scene806`, although `scannet/scene0806` is in R0.
+   - `scene00806_00` behaves the same way.
+   - `arkitscenes/048458732` becomes `capture048458732`, although video 48458732 belongs to BENCH venue484545.
+
+   Fix: require `scene\d{4}_\d{2}`, and require every ARKit id to appear in the pinned visits table. This costs nothing on v7: all 54,020 ARKit rows are in the visits table, and no ScanNet id breaks the 4/2-digit form.
+4. **Gap: a second, conflicting witness is ignored.** `resolve` checks only the first non-empty `canonical` in the order `Rooms.canonical` reads them (row, provenance, ground_record, gt_authority). A row with `provenance.canonical=scannet/scene0150_00` and `ground_record.canonical=scannet/scene0806_00` (R0) passes with no hit, whether its token is native or hashed. The README's claim that "conflicting row witnesses remain unresolved" holds only for a conflict between the witness and the token or the map. Fix: gather all four fields and refuse on disagreement. v7 is unaffected, because its only witness field is `provenance` (43,779 rows) and no row carries two.
+5. **No row escapes as unresolved without failing the audit.** Every row is counted once, as either resolved or unresolved. `complete` is true only when the unresolved count is 0, and every unresolved plant exited 2. The escapes I found are false resolutions (findings 3 and 4), plus frame paths that contradict a row's resolvable scene. That last case is out of scope by the README: `scannet/scene0150_00` with a frame path naming `scene0704_00` passes. Exit 2 also covers CLI misuse, so callers should read `audit.json` `status`, not just the exit code.
+6. **Every report claim is backed by a file.**
+   - Tests: `out/regression-7kq_r7r_/TEST_RESULTS.json` reports 8 run, 0 failures, 0 errors. It pins the current tool (0a3af5d8) and test file (ccb9ad3a). My copy in `fixcopy/` also passes 8/8.
+   - Archive: `sb_auditfix.tar` matches its sha256 sidecar (1d6badbe…), and all 57 entries in `PACKAGE_MANIFEST.json` match the tar members. The tar's 58 files equal the workspace files byte for byte.
+   - Store: `out/v7/audit.json` pins the v7 store at 210b2534.
+
+   Three minor points remain. An earlier failing run, `out/regression-t0kpto4o` (1 error, old test file be075c88, same tool bytes), is left unmentioned and is not in the tar. `check_v7.py` recomputes rooms with the tool's own `prepare`, so it is not an independent check; finding 2 is. The `rows.sqlite` file hash depends on the run (builder 7f26fd01, mine ed373bed, identical rows), because its metadata embeds the command and paths. A rerun therefore has to compare rows, not the file hash.
+=================== sb_recrev/REVIEW_VERDICT.md
+# Review of sb_records (component-evidence records build): verdict
+
+**ACCEPT WITH FINDINGS.** All nine slots rightly stay MISSING, and every count I recomputed matches. Two gaps name the wrong blocker (`depth_init_vc`, `heads_frame_embeddings`). The step-200 and depth-parent "sha256" values are config-identity digests, so a hash-matching fetch cannot find those files. `data_rows_r2` omits N's pose family.
+
+Paths: R = `/scratch/jjyeung/orch_n30/sb_records`; T = N's `tree_r1`; S = the step-544 source seal `R/out/kit/inputs/845b1789…_t_b01ce449beffe35b.tar` (the trainer that produced artifact 1d6eeb28); C544 = `tree_rebuild10_w/w12/fixtures/work/kit07ca49df_meta/m/runs/469ddece/inputs/prepare_dd26…/config.json` (file 78341acb). My code and outputs are in `notes/` (`recrev.py` → `recrev_out.json`, `config_identity.py` → `config_identity.out`); none imports sb_records code.
+
+## Findings
+1. **The intersections reproduce exactly (Q1).** `recrev.py` re-mints all 1,212 BENCH v2 (3119aa4a) scenes, then inverts all 6,258 tokens: 1,160 ScanNet tokens by enumerating scene0000_00–scene9999_99, 4,413 ARKit tokens by enumerating every padded 8-digit ID and every unpadded ID below 10^7, and 685 ScanNet++ tokens from the BENCH, frame-plan, alias-map and EVAL_ROOMS lists. None is unresolved or ambiguous, and the capture and room tests agree.
+   - Admitted step-544 streams, VSI-Bench / VSTI / ReVSI rows: pointing 20,239 rows (327 captures / 289 rooms) 0/0/0; vqa 114,904 (2,276 / 1,484) 0/0/0; routing 57,136 0/0/0; pose 194,987 (21,627 a2v3 + 173,360 a3v2) 0/0/0. The pre-filter pose order (229,924 rows) is also 0/0/0.
+   - Raw a2v3 has 12 rows on `d3/41159526` and 11 on `d3/41159521` (venue 381879, VSI-Bench and ReVSI); example qids `p7eced979894217fedefe2f63` and `p539342c170337712e1872304`. The frame universe holds 32 frames of each capture, and the readout list names both. The venue's other captures, 41159519 and 41159525, appear in no population.
+2. **No slot can be written honestly; this includes `heads_pose` (Q2).** `record()` (`r2_policy.py:45-51`) checks only list types, `checked_banks` ⊇ SCOPE and the venue rule, so the code would accept a `heads_pose` record built from step-544 membership alone. Such a record would be false. S's `identity(C544)` equals 84ea03af, the `config_sha256` of artifact 1d6eeb28 and of receipt 0664bb17, so C544 is the run's own config. C544 sets `init_artifact = {c1a42588, heads [pose, depth], lm full}`. The pose head and the LM therefore start from step-200, whose membership is unknown. The kit bar (`n1fix2/inputs/EVIDENCE_heads_pose.json`) demands complete parent manifests and disclosed inherited exposure. The same holds for `init_m544` and `heads_depth`.
+3. **The `depth_init_vc` gap omits its direct blocker (Q2/Q3).** In S, and in T (`carrier_c1_run.py:826-842`), final-mode init loads three things in order: the step-200 LM; then `depth_init` fd60ac2f, which loads and freezes the VC (`carrier_c1.py:698-720`); then the step-200 heads, selected by prefix with strict key equality (S `carrier_c1_run.py:907-930`).
+   - `PrivateDepth.model` is a registered module (S `carrier_c1.py:46-47`), and every export writes all `auxiliary_heads.*` tensors to heads.pt (S `:1981`). The step-200 `depth.model.visual.*` therefore overwrites the fd60ac2f VC, and N repeats this load from m544. fd60ac2f contributes only point-depth settings (S `:602`).
+   - `gaps/depth_init_vc.json` instead calls a60f3a9f "the directly pinned membership blocker" and omits step-200. The gap should add the step-200 item. For every slot, a60f3a9f matters only if step-200 descends from fd60ac2f.
+4. **The `heads_frame_embeddings` gap names the wrong blocker (Q2).** N (`n1fix2/inputs/config.json` 8063ef04), step-544 and step-200 all use placement C1_A (`append_after_temporal_group_video_tokens_v1`). T `carrier_c1.py:175-176` builds `auxiliary_heads.frame_embeddings` only under C1_B. Step-544 `trained_groups` hold only depth (94) and pose (81) tensors, and `sb_inventory/out/inventories/optimizer.json` has no frame_embeddings parameter. The component is absent, like the GF-1 connector, so no fetch closes this slot. It belongs on the NOT_PRESENT path, not behind the step-200 chain.
+5. **The config hashes are not file hashes (Q3).** Each gap lists 3ef158ce (step-200) and 45d21dd2 (depth parent) under `sha256` with `path: null`. They are `identity(cfg)` digests: S `carrier_c1_run.py:38-45` (canonical JSON without preparation, admission, authorization, milestone_gate or readout.contiguous_clips) and T `decoupled_v_run.py:45-46`. C544's file hash is 78341acb, yet its identity is 84ea03af, so a `sha256sum` match can never find the step-200 config. a60f3a9f itself records 45d21dd2 (`decoupled_v_run.py:126`), so the depth config needs no separate fetch.
+6. **The `data_rows_r2` gap omits N's pose family (Q3).** N's `streams.pose` is `ap/8865619b/k/8957d119.json` (8957d119), a bare mix over raw a2v3 and a3v2 with no filter. Raw a2v3 holds the 23 in-scope venue rows, and the `new_training` class has no venue exception (`r2_policy.py:52-54`). Neither the gap nor the report names this binding or the post-filter pose order N must supply. The gap's other data claims hold: pointing binds 93b21a3a (25,020 rows, store c09bb5ca); routing has only `required_parameter`; `host_receipt` and `r2_scene_rebuild` are null; `remove_files` are the six kit lists plus n; absolute_distance binds 1b6bc0ce, not the audited aedd3b54.
+7. **The external gaps are not fetch targets (Q3).** The `geometry_tower` and `segmenter` gaps name no file, hash or owner ("no inventory filename is specified"). Whoever runs N's tower and mask-cache paths must produce the run-bound frozen inventory, and the gaps should say so. MISSING is right: the kit bar requires the "actual optimizer frozen inventory".
+8. **The remaining claims are backed by files (Q4).**
+   - The tar hash 51e8d3b6 matches its sidecar, and all 1,417 kit inputs match their hash prefixes.
+   - The pins in the gaps and in REGISTRY_PROVENANCE match the current bytes. The kit registry equals N's 169b2c23, with every record null.
+   - `policy_tests.log` shows "Ran 5 tests … OK". SELF_CHECK refuses every slot, both phases and all three gateway probes.
+   - The removal counts u/n/z are 2,637 / 601 / 17,857 rows (z matches 17,879). The frame-pool figures (1,193 rows, 125 captures) come from `sb_framepool/out/FRAMEPOOL_REPORT.md:3`.
+   - Minor: the build never authenticated C544 (finding 2 does). Its report table omits `m544_admitted_pose_before_scene_filter`. Its "eight-digit" ARKit sweep enumerates unpadded `str(i)`, which changes nothing because every ID exceeds 4×10^7.
+
+## Files a fetch lane must find
+`init_m544`, `heads_pose`, `heads_depth` and `depth_init_vc` share one chain:
+- **The step-200 run config.** The artifact `ap/f2ad01ad/runs/49becb79/m200/artifact.json` (c1a42588, field `/config_sha256`) pins it, and C544's `/init_artifact/artifact` pins that artifact. By analogy with step-544's directory layout, expect it at `/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f2ad01ad/runs/49becb79/inputs/prepare_<32-hex>/config.json`. Accept the file whose S `identity()` equals 3ef158ce572c7e3b76525508dc42298758c715d24deff9eaa9e037a92a510838.
+- **Every membership file that config pins:** `/preparation` (`prepared/s1_receipt.json`), `prepared/receipt.json`, each `/streams/*` receipt, the `prepared/*_scene_indices.json` files and pose orders, and the row stores or their scene projections. Then follow its own `init_artifact` and `depth_init` parents recursively.
+- **Only if that config descends from fd60ac2f:** `/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/97a6a3eb/arm/frozen/b19a1200/receipt.json`, sha256 a60f3a9f72beeb49e1cc7ee0497903bb000458a7faf99b76d9e0bc16a8c1537b. heads.json fd60ac2f pins it at `/provenance/preparation`; the path really reads `b19a1200`, not `b19c1200`. Also fetch the `database`, `inputs.rows` and any `reused_from` receipt or config it pins.
+- **`heads_frame_embeddings`:** nothing to fetch (finding 4).
+- **Step-544's own membership is already complete:** 0664bb17, indices 93c4fed5 / 613a9f9e / f9dc4a2d, pose orders 3cb1ccf5 / d8d33340, and the six scene projections.
+=================== sb_rowD5/out/REPORT.md
+The required 8,511-of-8,511 exactness gate FAILED. No new rows were generated; this archive is failure evidence and must not be bound as a row patch.
+Only 5,846 pairs have an exact, unique answer mapping. All 2,665 medium pairs have two allowed answers and fail the one-to-one option requirement.
+The supplied generator build_away.py rewords admitted v6 away rows and preserves their answers. It does not generate away answers from toward labels.
+The supplied check_away.py tests medium answers against sets: left permits right/back, right permits left/back, and back permits left/right. This is consistency, not exact reproduction.
+All 8,511 pairs pass that original consistency rule. A literal label flip disagrees with 1,274 stored answers; it is reported only as a diagnostic, not substituted for the original rule.
+GATE.json names every pair, all ambiguous failures, and every literal-flip disagreement. EXAMPLES.json contains full source/twin records. Both checks compare option content and then option letters.
+Example: toward label left maps to stored back for vsi590k_116616 but to stored right for vsi590k_243209. EXAMPLES_REVIEW.md records the text review of 12 source/twin pairs; no new mapping was inferred from their traces.
+Commands: `PYTHONDONTWRITEBYTECODE=1 python build_rows.py` produces every gate, census and exclusion number (expected exit 2); `PYTHONDONTWRITEBYTECODE=1 python verify_outputs.py` independently checks all 8,511 pairs; `PYTHONDONTWRITEBYTECODE=1 python finalize.py` writes this report and archive.
+Store v7: `210b25349b23af5b38a5b5d90caa97be2bb296dbabd8773d54e658e0aad22443`; 204,413 rows, including 93,370 direction rows.
+N uses the newer sealed W/w19 tree: `8ea1fe6bd032c9cc49f5974279a18e211b0d55e3f615fc083fb1acc678689caa`. Imported validator and room modules match that seal.
+
+| Family | Exact unique reproduction | Ambiguous |
+|---|---:|---:|
+| easy | 3664 | 0 |
+| medium | 0 | 2665 |
+| hard | 2182 | 0 |
+
+Medium transitions below show why a toward answer alone cannot select the away answer.
+| Toward label | Stored away label | Rows |
+|---|---|---:|
+| back | left | 42 |
+| back | right | 50 |
+| left | back | 597 |
+| left | right | 749 |
+| right | back | 585 |
+| right | left | 642 |
+
+Counts per opening × literal clause × answer label follow. Each entry is `v7 / admitted by N`; before and after are identical because the gate stopped generation.
+Easy labels do not identify quadrants; medium back/left/right use the source’s 135-degree rule. The hard labels are quadrants.
+| Opening | Clause | left | right | back | front-left | front-right | back-left | back-right |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Step 1 | toward | 14393 / 13797 | 13389 / 12842 | 734 / 696 | 9021 / 8621 | 8537 / 8205 | 1808 / 1739 | 2019 / 1937 |
+| Step 1 | away | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 |
+| Step 1 | opposite | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 |
+| Seen | toward | 6617 / 6454 | 6158 / 5997 | 193 / 187 | 1935 / 1877 | 1903 / 1832 | 311 / 298 | 362 / 353 |
+| Seen | away | 5101 / 4962 | 5468 / 5328 | 2399 / 2348 | 362 / 353 | 311 / 298 | 1903 / 1832 | 1935 / 1877 |
+| Seen | opposite | 2476 / 2476 | 2671 / 2671 | 1182 / 1182 | 181 / 181 | 158 / 158 | 910 / 910 | 933 / 933 |
+
+Per-clause v7 answer histogram, unchanged after:
+toward: left=21010, right=19547, back=927, front-left=10956, front-right=10440, back-left=2119, back-right=2381.
+away: left=5101, right=5468, back=2399, front-left=362, front-right=311, back-left=1903, back-right=1935.
+opposite: left=2476, right=2671, back=1182, front-left=181, front-right=158, back-left=910, back-right=933.
+
+The split is 0 away and 0 toward additions. The mandatory gate prohibits proceeding with a partial easy/hard build; the 8,000-row allocation and object-name balancing are not attempted.
+N’s direct schema and trace validators each pass all 93,370 direction sources. All 8,511 pair identities preserve scene, ordered objects, frame metadata and source provenance; all stored away answers/options equal their admitted v6 away sources.
+N’s K1, R0, withheld-80, dev-S1 and BENCH v2 room authorities and n/z/u removal lists were applied to every direction row. Input hashes are in CHECKS.json. Exclusion hits: {"removal:u_union.json": 3026, "room:K1": 3026}.
+The admitted direction census contains 90,344 rows. The K1 and u-union hits overlap; their union excludes 3,026 rows.
+New-row checks are NOT RUN: exact quotas, source reuse, pack/validate, candidate IDs, field differences, independent truth, removal inheritance, wording-distance clearance and READ60. READ60.md explicitly records the gate stop; no source examples are passed off as generated rows.
+No new wording was emitted: wording comparisons and wording removals are 0. No geometry was recovered or inferred. Direct v7 rows lack routed ground_record/events; source validation does not claim routed packing.
+VERIFY.json passes failure-evidence integrity only. NEW_ROWS.jsonl and SOURCE_MAP.jsonl are empty. Every output JSON includes input hashes; the tar checksum is in sb_rowD5.tar.sha256.
+No GPU, network, SSH, Git, process termination, deletion, training or writes outside this workspace were used. Borderline prose retained: none.
+=================== sb_regenscope/out/REGEN_SCOPE.md
+Regeneration needs missing pinned generators and complete input manifests; raw datasets alone do not establish either byte identity or equivalent GT.
+Command for every count, list, hash and proxy below: `PYTHONDONTWRITEBYTECODE=1 python scope.py`; methods, exact scenes, paths and full hashes are in `REGEN_SCOPE.json`. GB means decimal GB.
+
+**(a) Missing GT rasters**
+
+| Item | Exact scene list / output pins | Generator | Raw inputs and local state | Raw GB; compute |
+|---|---|---|---|---|
+| ScanNet: 80 | JSON `rasters.groups.scannet`; all NPZ SHA256 known | Original entrypoint/commit MISSING; candidate below | Instance mesh, segments/aggregation, boxes/alignment, poses/K and frame pins; loader contract/raw root MISSING | GB/scene, total and CPU/GPU-hours MISSING |
+| ScanNet++ v2: 227 | JSON `rasters.groups.scannetppv2`; all NPZ SHA256 known | Candidate `build_t1_cr.py`, SHA `eef52cfe…`; related adapter `66772ccb…` | Mesh + segment/OBB JSON + aligned poses/per-frame K + COLMAP + exact pins; training inputs MISSING | Proxy 2.79–111.53 GB total (median-scenario 17.74); 0.55–33.46 worker-h (median 2.31); related adapter uses 0 GPU-h |
+
+These 307 files affect 4,420 sources; no ARKit raster occurs in this missing list. Full 307-file GB and measured CPU-hours remain MISSING.
+Candidate files expected at `/scratch/jjyeung/orch_n30/rows_a2/work/builder_cr/builder_cr/{build_t1_cr.py,raycast_cr.py}` are MISSING. Their recorded SHA256s are `eef52cfe0f1dcdb4e428a172bf3d0cd2cb59c8dc73c5cbce1f21b25fde5b09f8` and `80b2a1521c8215bf8a65ecea51eaec340a5d9887ae7f96fd3fb6a91cfbc4688b`. Neither is proven to be the original 307-file entrypoint.
+Available adapter: `n30_mirror/rows_r1/work/codeB/build_rasters.py`, SHA256 `66772ccb5ee0721ce528ea4d02df398647f06ad5f6f96ba9859d4cfd87482910`; it builds R0-dev, not these training scenes. Commit MISSING. Its `r0lib.py` dependency is also MISSING locally.
+The adapter specifies 32 × 240 × 320 samples, pixel centres +0.5, camera-z depth, majority face-instance assignment, first-vertex tie breaking, COLMAP convention checks and verified OBB extents. Recover the training version before adopting these choices.
+Proxy basis: 71 R0 receipts (68 pass), 0.012–0.491 GB/scene, median 0.078; 8.8–530.7 elapsed seconds/scene, median 36.7. Multiply by 227; these are worker elapsed hours, not measured CPU-hours or a training forecast.
+The proxy includes `scans/{mesh_aligned_0.05.ply,segments.json,segments_anno.json}`, sliced `iphone/pose_intrinsic_pins.json`, and `iphone/colmap/{images.txt,cameras.txt}`. It excludes RGB, full pose extraction, downloads and proof work. Its R0 scene inputs cannot replace training inputs.
+Available raster consumer: `n30_mirror/rows_a2/v4/vsti/code/generate.py`, SHA `fceb45e6bee7aff7d8c4b388cdf0caf269c1141b42d06c24c6833d23afabcb88`; it uses fixed/hash-derived seeds. Row replay also needs the original alias/frame manifests and exclusions. All 307 target raster pins match `RASTERS_v3.json`; full hashes for consumer dependencies are in JSON.
+
+**(b) Missing direction packs**
+
+Each row lists retained direction rows, exact affected-scene counts by dataset (S=ScanNet, P=ScanNet++, A=ARKitScenes), and the full pack scene count reported upstream. Exact affected lists are in JSON; complete pack scene manifests are MISSING.
+
+| Pack / SHA256 prefix | Retained rows | Affected scenes S/P/A | Full-pack scenes | Generator | Raw GB / CPU / GPU |
+|---|---:|---|---:|---|---|
+| weak_data easy / pin MISSING | 12,969 | 240/551/974 | MISSING | commit 73934511…; script MISSING | MISSING / MISSING / MISSING |
+| weak_data hard / pin MISSING | 21,385 | 247/599/1027 | MISSING | commit 73934511…; script MISSING | MISSING / MISSING / MISSING |
+| weak_data medium / pin MISSING | 15,547 | 245/546/981 | MISSING | commit 73934511…; script MISSING | MISSING / MISSING / MISSING |
+| ARKIT_gaps / 6053fd47c70c0b25 | 3,508 | 0/0/399 | 1045 | r3 | MISSING / MISSING / MISSING |
+| T0_gaps / 7a1c59097139f59d | 8,020 | 103/145/0 | 343 | r3 | MISSING / MISSING / MISSING |
+| T0_gen_r2 / 7e4e92918e312afd | 9,831 | 107/149/0 | 340 | r2 | MISSING / MISSING / MISSING |
+| T1H2_gaps / 9bf0518db09a07d8 | 3,428 | 0/140/0 | 222 | r3 | MISSING / MISSING / MISSING |
+| ARKIT_gen_r2 / 9eecedf23da3bd91 | 5,421 | 0/0/427 | 1217 | r2 | MISSING / MISSING / MISSING |
+| T1H1_gaps / b6ac18d55d697a23 | 3,732 | 48/120/0 | 492 | r3 | MISSING / MISSING / MISSING |
+| T1H1_gen_r2 / ba96a4182147a384 | 5,009 | 50/134/0 | 414 | r2 | MISSING / MISSING / MISSING |
+| T1H2_gen_r2 / c16c5db36e04c1ef | 4,520 | 0/149/0 | 212 | r2 | MISSING / MISSING / MISSING |
+
+The packs affect 93,370 rows across 1,979 distinct recorded canonical captures. Do not sum overlapping per-pack scenes or treat retained scene lists as complete pack inputs.
+r2: `/scratch/jjyeung/orch_cd/dose_pool/work/v314r2/dose_t0.py` SHA `58d03b0488bfad58e270ded1f0e594d9bca70de9ca87d3a912c34c58cb69fce8`; renderer `ground_rows_out/render_full.py` SHA `584d6e031f1970a522a8f9c476c07ed3cd2d1c1107fe10cf10cac6b5e39d102d`.
+r3: corresponding `work/v314r3/dose_t0.py` SHA `dd73f017703417e11b022e5b2def31c3c0c41d73bd477c0bf961f4387edca1d0`; renderer SHA `63a7cbc068de174730b9e0030082ed5107e22a17ee19a39a34b4800f5a315344`. These are manifest pins; executable copies and commit IDs are MISSING in the inspected mirror.
+The three weak-data packs record commit `73934511aff5dac8af4b3b12490a88762105dc24` and frame-map SHA `17aa3e9eb8f5757b6121b60e753e42b0b80e73b18c03ca678859349e25d51ec3`; their generator filename, frame-map filename and pack SHA256 are MISSING. Their exact expected pack paths remain in JSON; no remote path was probed.
+ScanNet/ScanNet++ packs require the native geometry/annotation/camera inputs above plus original qid→instance roles, scene release, sampled-frame evidence, selection seeds, exclusions, templates and packing rules. T0 records `scannetppv2`; T1 records `scannetpp`. Do not infer release equality from canonical aliases.
+ARKit packs additionally need stable annotated OBB IDs, the original mesh/depth visibility source, trajectory, per-frame intrinsics, timestamp/frame mapping and Training metadata. Native candidate filenames are listed separately in JSON; the exact loader and raw root are MISSING, so no fetch list is asserted.
+All direction GB/scene, total GB and CPU/GPU-hours are MISSING: the full raw manifests, loaders and matching timing logs were not recovered. The R0 raster proxy does not price pack selection, role reconstruction or validation. Retained-row reconstruction may cost less than full-pack byte replay but cannot inherit its file hash.
+
+**Local availability and verification**
+
+`evidence/local_paths.txt` records the exact `ls -ld` command: training staging roots `orch_n30/{rows_a2,b12_cntapp}/work`, their checked mirrors, R0 raw roots, and explicit conventional dataset-root probes are absent. Only the checked R0 receipt directory exists; it does not establish raw-data availability. No raw directory was available to size with `du -s`.
+This is a bounded path check, not proof that the entire node has no datasets. Fetch or restore is required for these expected paths unless an owner supplies another pinned local root; the training raw roots and exact raw-file hashes remain MISSING. No NFS or unreachable `orch_cd` path was searched.
+Rasters: all target hashes permit exact checking, but deterministic byte replay is unproven. Pin raycaster/mesh versions, poses, float dtypes, ordering, NumPy and NPZ/ZIP/zlib behavior. A container mismatch cannot be dismissed without original member hashes/arrays or an independently accepted per-source GT proof.
+Packs: eight full SHA256 targets are recovered; three are MISSING. Exact replay also needs JSON/float ordering, gzip headers/mtime and compression versions. Source-row hashes, a commit or a frame-map hash are not pack hashes.
+Equivalent GT requires exhaustive source-bound checks of instance roles, frame visibility, signed-up/frame conventions, facing transforms, boundary margins, numeric operands and answers. Old labels or statistical agreement cannot certify equivalence. Available `build_away.py` is a downstream text/selection transform, not a raw-GT generator.
+Before execution: recover the missing code/input closure; size only the named raw files; validate one pinned scene per dataset and one pack against hashes or an explicit equivalence contract; then estimate CPU time from that pilot. No pilot, regeneration or fetch ran for this scope.
+Recommendation: **PARTIAL** — recover pinned builders and raw/frame/instance manifests first; do not bulk-fetch datasets or claim bit-for-bit/equivalent regeneration yet.

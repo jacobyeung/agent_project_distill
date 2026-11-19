@@ -1,0 +1,723 @@
+{
+ "constants": {
+  "T_JOINT": 0.35,
+  "NMS_IOU": 0.5,
+  "NMS_CONTAIN": 0.8,
+  "LARGE": 4,
+  "SEED": 20261119,
+  "DRAWS": 10000
+ },
+ "only_set": "R0-dev",
+ "coverage": {
+  "items": 3,
+  "with_teacher": 2,
+  "missing_scenes": [
+   "fixture/missing_scene"
+  ]
+ },
+ "every_item_counted_refusals_as_zero": {
+  "large_all": {
+   "n": 3,
+   "rooms": 3,
+   "N_tool": 20.0,
+   "direct_S1_544": 0.0,
+   "R1_replace_if_large_S1_544": 20.0,
+   "R2_floor_S1_544": 20.0,
+   "direct_R1_200": 0.0,
+   "R1_replace_if_large_R1_200": 20.0,
+   "R2_floor_R1_200": 0.0,
+   "N_tool_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "N_tool_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_R1_200_minus_direct_S1_544": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "R2_floor_R1_200_minus_direct_R1_200": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tool_ge_large": 1,
+   "tool_zero": 1,
+   "const_5": 73.33,
+   "const_6": 80.0,
+   "const_7": 66.67,
+   "best_const": 80.0,
+   "spearman_tool_truth": -1.0,
+   "tool_under": 3,
+   "tool_over": 0
+  },
+  "large_R0-dev": {
+   "n": 3,
+   "rooms": 3,
+   "N_tool": 20.0,
+   "direct_S1_544": 0.0,
+   "R1_replace_if_large_S1_544": 20.0,
+   "R2_floor_S1_544": 20.0,
+   "direct_R1_200": 0.0,
+   "R1_replace_if_large_R1_200": 20.0,
+   "R2_floor_R1_200": 0.0,
+   "N_tool_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "N_tool_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_R1_200_minus_direct_S1_544": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "R2_floor_R1_200_minus_direct_R1_200": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tool_ge_large": 1,
+   "tool_zero": 1,
+   "const_5": 73.33,
+   "const_6": 80.0,
+   "const_7": 66.67,
+   "best_const": 80.0,
+   "spearman_tool_truth": -1.0,
+   "tool_under": 3,
+   "tool_over": 0
+  },
+  "every_item": {
+   "n": 3,
+   "rooms": 3,
+   "N_tool": 20.0,
+   "direct_S1_544": 0.0,
+   "R1_replace_if_large_S1_544": 20.0,
+   "R2_floor_S1_544": 20.0,
+   "direct_R1_200": 0.0,
+   "R1_replace_if_large_R1_200": 20.0,
+   "R2_floor_R1_200": 0.0,
+   "N_tool_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "N_tool_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_R1_200_minus_direct_S1_544": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "R2_floor_R1_200_minus_direct_R1_200": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tool_ge_large": 1,
+   "tool_zero": 1,
+   "const_5": 73.33,
+   "const_6": 80.0,
+   "const_7": 66.67,
+   "best_const": 80.0,
+   "spearman_tool_truth": -1.0,
+   "tool_under": 3,
+   "tool_over": 0
+  },
+  "every_R0-dev": {
+   "n": 3,
+   "rooms": 3,
+   "N_tool": 20.0,
+   "direct_S1_544": 0.0,
+   "R1_replace_if_large_S1_544": 20.0,
+   "R2_floor_S1_544": 20.0,
+   "direct_R1_200": 0.0,
+   "R1_replace_if_large_R1_200": 20.0,
+   "R2_floor_R1_200": 0.0,
+   "N_tool_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "N_tool_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_S1_544": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_R1_200": [
+    20.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_R1_200_minus_direct_S1_544": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "R2_floor_R1_200_minus_direct_R1_200": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tool_ge_large": 1,
+   "tool_zero": 1,
+   "const_5": 73.33,
+   "const_6": 80.0,
+   "const_7": 66.67,
+   "best_const": 80.0,
+   "spearman_tool_truth": -1.0,
+   "tool_under": 3,
+   "tool_over": 0
+  }
+ },
+ "only_items_with_teacher_output": {
+  "large_all": {
+   "n": 2,
+   "rooms": 2,
+   "N_tool": 30.0,
+   "direct_S1_544": 0.0,
+   "R1_replace_if_large_S1_544": 30.0,
+   "R2_floor_S1_544": 30.0,
+   "direct_R1_200": 0.0,
+   "R1_replace_if_large_R1_200": 30.0,
+   "R2_floor_R1_200": 0.0,
+   "N_tool_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "N_tool_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_R1_200_minus_direct_S1_544": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "R2_floor_R1_200_minus_direct_R1_200": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tool_ge_large": 1,
+   "tool_zero": 0,
+   "const_5": 85.0,
+   "const_6": 80.0,
+   "const_7": 50.0,
+   "best_const": 85.0,
+   "spearman_tool_truth": null,
+   "tool_under": 2,
+   "tool_over": 0
+  },
+  "large_R0-dev": {
+   "n": 2,
+   "rooms": 2,
+   "N_tool": 30.0,
+   "direct_S1_544": 0.0,
+   "R1_replace_if_large_S1_544": 30.0,
+   "R2_floor_S1_544": 30.0,
+   "direct_R1_200": 0.0,
+   "R1_replace_if_large_R1_200": 30.0,
+   "R2_floor_R1_200": 0.0,
+   "N_tool_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "N_tool_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_R1_200_minus_direct_S1_544": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "R2_floor_R1_200_minus_direct_R1_200": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tool_ge_large": 1,
+   "tool_zero": 0,
+   "const_5": 85.0,
+   "const_6": 80.0,
+   "const_7": 50.0,
+   "best_const": 85.0,
+   "spearman_tool_truth": null,
+   "tool_under": 2,
+   "tool_over": 0
+  },
+  "every_item": {
+   "n": 2,
+   "rooms": 2,
+   "N_tool": 30.0,
+   "direct_S1_544": 0.0,
+   "R1_replace_if_large_S1_544": 30.0,
+   "R2_floor_S1_544": 30.0,
+   "direct_R1_200": 0.0,
+   "R1_replace_if_large_R1_200": 30.0,
+   "R2_floor_R1_200": 0.0,
+   "N_tool_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "N_tool_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_R1_200_minus_direct_S1_544": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "R2_floor_R1_200_minus_direct_R1_200": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tool_ge_large": 1,
+   "tool_zero": 0,
+   "const_5": 85.0,
+   "const_6": 80.0,
+   "const_7": 50.0,
+   "best_const": 85.0,
+   "spearman_tool_truth": null,
+   "tool_under": 2,
+   "tool_over": 0
+  },
+  "every_R0-dev": {
+   "n": 2,
+   "rooms": 2,
+   "N_tool": 30.0,
+   "direct_S1_544": 0.0,
+   "R1_replace_if_large_S1_544": 30.0,
+   "R2_floor_S1_544": 30.0,
+   "direct_R1_200": 0.0,
+   "R1_replace_if_large_R1_200": 30.0,
+   "R2_floor_R1_200": 0.0,
+   "N_tool_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "N_tool_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_S1_544_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R1_replace_if_large_R1_200_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_S1_544": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_S1_544_minus_direct_R1_200": [
+    30.0,
+    0.0,
+    60.0
+   ],
+   "R2_floor_R1_200_minus_direct_S1_544": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "R2_floor_R1_200_minus_direct_R1_200": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "tool_ge_large": 1,
+   "tool_zero": 0,
+   "const_5": 85.0,
+   "const_6": 80.0,
+   "const_7": 50.0,
+   "best_const": 85.0,
+   "spearman_tool_truth": null,
+   "tool_under": 2,
+   "tool_over": 0
+  }
+ },
+ "verdict_primary": "FAIL",
+ "per_item": {
+  "fx0": {
+   "tool": 2,
+   "parts": [
+    {
+     "category": "chair",
+     "count": 2,
+     "best_slot": 0,
+     "per_slot": [
+      2,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      2,
+      1,
+      0,
+      2,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      2,
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "fx1": {
+   "tool": 4,
+   "parts": [
+    {
+     "category": "chair",
+     "count": 2,
+     "best_slot": 3,
+     "per_slot": [
+      0,
+      1,
+      0,
+      2,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      1
+     ]
+    },
+    {
+     "category": "table",
+     "count": 2,
+     "best_slot": 2,
+     "per_slot": [
+      0,
+      0,
+      2,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      1,
+      0,
+      1,
+      0
+     ]
+    }
+   ]
+  },
+  "fx2": {
+   "tool": 0,
+   "parts": [
+    {
+     "category": "chair",
+     "count": null,
+     "best_slot": null,
+     "per_slot": null
+    }
+   ]
+  }
+ }
+}

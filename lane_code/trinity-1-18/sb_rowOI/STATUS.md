@@ -1,0 +1,1 @@
+Complete: 1,008 validated rows, 504 matched pairs, independent GT and room checks, 30 reviewed full-row samples, reproducible code, and the sb_rowOI archive are delivered. The kit remains outside N’s launch admission; the operator’s model gate is not run.

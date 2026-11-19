@@ -1,0 +1,10 @@
+N's pose binding is `ap/8865619b/k/8957d119.json`, SHA256 `8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f`.
+Its source-index order is a2v3 (`b32359ce256a567912d6436fac95dcab78bcef3bb2e1154cabdca57bacdc5320`), then a3v2 (`0b95850a2dec57ec6702ca72cd198eb5afdcdcdd5f711a76a878104e30ec3571`); source receipt hashes are recorded in POSEFAM.json.
+Sealed build 20 (`780ca7b4`) applies BENCH v2 (`3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970`) and dev (`a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5`) through `carrier_c1_run.prepare` and `s1_exclusions.apply`.
+N's unchanged scene-filter code rejects all 23 raw a2v3 qids on venue 381879: 12 on d3/41159526 and 11 on d3/41159521; every row matches BENCH v2, with zero survivors.
+The proof uses the complete source scene projections and independently verifies each capture's BENCH token and venue membership; POSEFAM.json lists every qid and drop reason.
+N's exact admitted-order SHA256 is **MISSING**: the full raw SQLite frame/target payloads and an N-bound production order were not recovered, so the complete preparation cannot be replayed.
+The source-wide scene-filter order is an upper bound, and the available build-21 capacity order binds different stores; neither supplies the missing hash.
+The BENCH room aliases and reserve checks cover pose, but the separate K1/R0 room-authority audit does not certify all raw pose rows.
+P's receipt already omits these 23 before its final scene filter; P's order is not N's order. This paragraph proves their exclusion under N's mandatory filter and leaves the complete `data_rows_r2` record MISSING.
+Reproduce the proof from this workspace with `OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 /scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3 -B work/prove.py`; render, validate and package with `OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 nice -n 10 /scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3 -B work/finish.py`.

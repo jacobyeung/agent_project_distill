@@ -1,0 +1,24 @@
+--- a/h1eval/scorers.py
++++ b/h1eval/scorers.py
+@@ -26,7 +26,20 @@
+ 
+ 
+ def placement(output,item):
+-    meta=metadata(item);expected=expected_calls(meta['question'],meta['question_type']);got=records(output)
++    meta=metadata(item)
++    kind=meta['question_type']
++    if kind in ('camera_displacement','camera_rotation','camera_movement_direction'):
++        pair=meta.get('display_frame_pair')
++        if (not isinstance(pair,(list,tuple)) or len(pair)!=2
++                or any(type(v) is not int for v in pair)):
++            raise ValueError('camera_item_missing_display_frame_pair')
++        i,j=pair
++        if not 1<=i<j<=32:
++            raise ValueError('camera_item_invalid_display_frame_pair')
++        expected=[f'<{"turn" if kind=="camera_rotation" else "move"} from={i} to={j}>']
++    else:
++        expected=expected_calls(meta['question'],kind)
++    got=records(output)
+     calls=[r['call'] for r in got];e=[signature(c) for c in expected];g=[signature(c) for c in calls]
+     exact=g==e
+     text=output.get('text','');start=text.find(calls[0]) if calls else -1

@@ -70,3 +70,7 @@ Lane folder /scratch/jjyeung/orch_n30/r1_ops6. Events .../orch_n30/events/r1_ops
 ## NOW (r1_ops7 rotation, ~05:25Z 11-19) for successor r1_ops8 (brief briefs/r1_ops8.md)
 - 172660 RUNNING (step 290 at 05:19Z, ~133 s/step, early_cp PASS each check). tmux r1mon6, r7node, r7m400 (armed from 08:30Z) running; r7rv/r7rv2 were Codex reviews (done).
 - Owed: m400 checks + RESULT (here and tree_rebuild), difference list before step 500, arm m600 watcher, end slot and job exit; open BLOCKER 0201Z and identity confirmation (9459724f) from tree_rebuild10.
+## r1_ops8 (Devin Opus high, trinity-3-30, started 05:23Z 11-19; rotate by 10:50Z)
+- 05:24Z took over; tmux r1mon6, r7node, r7m400 running (600 s); step 290 at 05:19Z, 132 s/step, early_cp PASS. Local check: `bash work/r8/chk.sh` (no Orchard call).
+- Closed: BLOCKER 0201Z (ORCH RULING 0202Z item 2: file evidence suffices); identity 9459724f admitted by N (tree_rebuild 0204Z RESULT).
+- ETA: step 400 ~09:25Z (+export -> m400 ~09:40Z); step 500 ~13:05Z (diff list before); step 600 ~16:50Z (m600 ~17:30Z).

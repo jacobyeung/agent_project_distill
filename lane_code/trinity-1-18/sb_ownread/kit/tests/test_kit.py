@@ -13,7 +13,7 @@ import check_build
 O3=Path('/scratch/jjyeung/orch_n30/sb_callrate/in/cont_ops/work/r1route/out3')
 A4,A=O3/'A4',O3/'A'
 BUILD=Path(os.environ.get('BUILD',KIT.parent/'out/pkg/b200'))
-PROOF=Path(os.environ.get('PROOF',KIT.parent/'work/proofb'))
+PROOF=Path(os.environ.get('PROOF',KIT.parent/'work/proofc'))
 PY36='/usr/bin/python3'
 PIN400=dict(step=400,member_directory='m400',object='q8/8865619b/673bc60f_m400.tar',archive_bytes=21583040512,
             archive_sha256='a'*64,done='/project/community/jjyeung/okh7/x_69d2930d/o/gcs_673bc60f_m400.done')
@@ -160,11 +160,100 @@ def test_scorer_accepts_strict(tmp_path):
  r=ownread.score(strict(tmp_path),BUILD,False)
  assert r['all_complete'] and r['types']['camera_movement_direction']['own_minus_tower']['value']==pytest.approx(-19.333333,abs=1e-4)
 
-def test_scorer_partial_return(tmp_path):
- root=strict(tmp_path);p=journal(root,1);rows=p.read_text().splitlines()
- p.write_text('\n'.join(l for l in rows if json.loads(l)['arm']=='tower')+'\n')
- r=ownread.score(root,BUILD,False);t=r['types']['camera_rotation']
- assert t['own_n']==0 and t['complete'] is False and t['within_bar_point'] is None and r['all_complete'] is False
+def drop_own(root,t):
+ p=journal(root,t);p.write_text(''.join(l+'\n' for l in p.read_text().splitlines() if json.loads(l)['arm']!='own'))
+
+def cli(root,out,*extra):
+ return subprocess.run([sys.executable,'-B',str(KIT/'ownread.py'),'--root',str(root),'--package',str(BUILD),'--out',str(out),*extra],
+                       capture_output=True,text=True)
+
+def test_scorer_refuses_partial_return(tmp_path):
+ root=strict(tmp_path);drop_own(root,0)
+ refs,_=ownread.references()
+ with pytest.raises(ValueError,match=r'Incomplete paired set \(camera_displacement tower 150/150, own 0/150\)'):ownread.load(root,BUILD,refs,False)
+ with pytest.raises(ValueError,match='Incomplete paired set'):ownread.score(root,BUILD,False)
+ r=cli(root,tmp_path/'score')
+ assert r.returncode==2 and r.stdout=='' and r.stderr.startswith('ownread refused: Incomplete paired set') and r.stderr.count('\n')==1
+ assert not (tmp_path/'score').exists()
+
+def test_scorer_refuses_missing_journal_rows(tmp_path):
+ root=strict(tmp_path);journal(root,2).write_text('')
+ with pytest.raises(ValueError,match=r'camera_movement_direction tower 0/150, own 0/150'):ownread.score(root,BUILD,False)
+
+def test_allow_partial_is_diagnostic(tmp_path):
+ root=strict(tmp_path);drop_own(root,0)
+ r=cli(root,tmp_path/'score','--allow-partial');assert r.returncode==0,r.stderr
+ lines=r.stdout.splitlines();assert len(lines)>20 and all(l.startswith('PARTIAL') for l in lines)
+ assert (tmp_path/'score/ownread.txt').read_text()==r.stdout
+ v=json.loads((tmp_path/'score/ownread.json').read_text())
+ assert v['partial'] is True and v['all_complete'] is False and v['all_within_bar_point'] is None and v['all_within_bar_interval'] is None
+ t=v['types']['camera_displacement'];assert t['own_n']==0 and t['tower_n']==150 and t['within_bar_interval'] is None
+ assert v['types']['camera_rotation']['complete'] is True
+
+def test_allow_partial_withholds_decision_on_complete_return(tmp_path):
+ r=ownread.score(strict(tmp_path),BUILD,False,allow_partial=True)
+ assert r['all_complete'] and r['partial'] and r['all_within_bar_point'] is None and r['all_within_bar_interval'] is None
+ assert all(l.startswith('PARTIAL') for l in ownread.text(r).splitlines())
+
+def test_strict_return_is_not_partial(tmp_path):
+ r=cli(strict(tmp_path),tmp_path/'score');assert r.returncode==0,r.stderr
+ assert 'PARTIAL' not in r.stdout and json.loads((tmp_path/'score/ownread.json').read_text())['partial'] is False
+
+def edit_json(p,change):
+ v=json.loads(p.read_text());change(v);p.write_text(json.dumps(v))
+
+def move_row(root):
+ """Move one planned type-1 row into type 0's journal."""
+ src,dst=journal(root,1),journal(root,0);rows=src.read_text().splitlines()
+ src.write_text(''.join(l+'\n' for l in rows[1:]));dst.write_text(dst.read_text()+rows[0]+'\n')
+
+def env_of(root,t):return journal(root,t).parent/'environment.json'
+
+def reorder(b):b['ids']=b['ids'][::-1]
+
+def add_unplanned_journal(root):
+ d=journal(root,3).parent;d.mkdir(parents=True)
+ for n in ('environment.json','items.jsonl'):(d/n).write_bytes((journal(root,0).parent/n).read_bytes())
+
+def change_inputs(root,rebind):
+ p=root/'metadata/INPUTS.json';edit_json(p,lambda v:v['archives'][0].update(sha256='0'*64))
+ if rebind:
+  v=json.loads(p.read_text());edit_json(root/'metadata/IDENTITY.json',lambda i:i.update(inputs=ownread.canonical({k:x for k,x in v.items() if k!='resume'})))
+
+@pytest.mark.parametrize('case,message',[
+ ('archive_pin','Export binding differs: archive_sha256'),
+ ('room','Pair metadata differs'),
+ ('mixed_export','Mixed journals'),
+ ('journal_ids','Journal ids differ from its planned members: 0/0'),
+ ('ids_other_type','Journal ids differ from its planned members: 0/0'),
+ ('ids_reordered','Journal ids differ from its planned members: 0/0'),
+ ('ids_extra','Journal ids differ from its planned members: 0/0'),
+ ('row_outside_ids','Row outside its journal ids: 0/0'),
+ ('shard','Journal shard differs from its directory: 0/0'),
+ ('unplanned_journal','Unplanned journal: 3/0'),
+ ('inputs_identity','Return inputs differ from its identity'),
+ ('inputs_archive','Input export archive differs from the plan')])
+@pytest.mark.parametrize('allow_partial',[False,True])
+def test_scorer_refuses_mismatched_metadata(tmp_path,case,message,allow_partial):
+ root=strict(tmp_path);p=journal(root,0)
+ if case=='archive_pin':edit_json(root/'metadata/EXPORT_PIN.json',lambda v:v.update(archive_sha256='0'*64))
+ if case=='room':
+  rows=p.read_text().splitlines();v=json.loads(rows[0]);v['room_key']='deliberate-mismatch';rows[0]=json.dumps(v);p.write_text('\n'.join(rows)+'\n')
+ if case=='mixed_export':edit_json(env_of(root,0),lambda v:v['binding'].update(export_sha256='0'*64))
+ if case=='journal_ids':edit_json(env_of(root,0),lambda v:v['binding'].update(ids=[]))
+ if case=='ids_other_type':
+  other=json.loads(env_of(root,1).read_text())['binding']['ids'];edit_json(env_of(root,0),lambda v:v['binding'].update(ids=other))
+ if case=='ids_reordered':edit_json(env_of(root,0),lambda v:reorder(v['binding']))
+ if case=='ids_extra':
+  other=json.loads(env_of(root,1).read_text())['binding']['ids'];edit_json(env_of(root,0),lambda v:v['binding'].update(ids=v['binding']['ids']+other[:1]))
+ if case=='row_outside_ids':move_row(root)
+ if case=='shard':edit_json(env_of(root,0),lambda v:v['binding'].update(shard='0/2'))
+ if case=='unplanned_journal':add_unplanned_journal(root)
+ if case in ('inputs_identity','inputs_archive'):change_inputs(root,case=='inputs_archive')
+ refs,_=ownread.references()
+ with pytest.raises(ValueError,match=re.escape(message)):ownread.load(root,BUILD,refs,False,**({'allow_partial':True} if allow_partial else {}))
+ if not allow_partial:
+  r=cli(root,tmp_path/'score');assert r.returncode==2 and r.stderr=='ownread refused: '+message+'\n' and not (tmp_path/'score').exists()
 
 @pytest.mark.parametrize('edit,message',[
  ('duplicate','Duplicate'),('arm','wrong-arm'),('tail','Uncommitted tail'),('settings','Journal binding differs: settings_sha256'),('arms','Journal binding differs: arms')])

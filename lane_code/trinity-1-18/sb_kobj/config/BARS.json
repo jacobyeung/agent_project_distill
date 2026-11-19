@@ -1,0 +1,74 @@
+{
+  "input_sha256": {
+    "spec": "9cd345ca85877a7ceaa3d2fb463af2c5db984631b813ca8913ccbc05d94b63c9"
+  },
+  "bootstrap": {
+    "unit": "room",
+    "draws": 10000,
+    "seed": 20261119,
+    "confidence": 0.95,
+    "mean": "item-weighted"
+  },
+  "size": {
+    "min_points": 5,
+    "lower_gt": 0,
+    "gate": "size_screen OR object_exists",
+    "today_alone": "report_only"
+  },
+  "relative_distance": {
+    "min_points": 3,
+    "lower_gt": 0
+  },
+  "appearance_order": {
+    "min_points": 5,
+    "lower_gt": 0,
+    "gate": "first_seen_screen"
+  },
+  "absolute_distance": {
+    "object_vs_today_lower_gt": 0,
+    "withdraw_if_upper_lt": 0,
+    "D0_and_constant_29.5": "context_only"
+  },
+  "T94": {
+    "lower_gt": 0,
+    "compare": "same box rule f32"
+  },
+  "track": {
+    "lower_gt": 0,
+    "compare": "present source same items"
+  },
+  "counting": "diagnostic_only",
+  "da3_f32": "no_decision",
+  "cut_order": [
+    "dev-S1",
+    "track:size,relative_distance",
+    "T94"
+  ],
+  "hours": {
+    "R0_f32": 3,
+    "T94": 2.8,
+    "track": 4,
+    "dev-S1": 2
+  },
+  "no_fit_on": [
+    "R0-dev",
+    "K1-heldout"
+  ],
+  "look_unit": "one category, all registered arms together",
+  "counting_truth_bands": [
+    "2",
+    "3",
+    "4",
+    "5+"
+  ],
+  "track_order": [
+    "appearance",
+    "counting",
+    "absolute_distance",
+    "size",
+    "relative_distance"
+  ],
+  "gpu_memory_gb": 48,
+  "actual_peak_gpu_memory": "MISSING",
+  "track_selection": "candidates_argmax; peak-score fallback only if track features cannot be formed"
+}

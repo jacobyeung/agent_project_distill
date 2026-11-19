@@ -8,6 +8,9 @@
    step-544 own rows), then the real unpack_return.py and ownread.py --fixture.
 4. Strict return: journals with A4's real binding and both arms pass the strict
    scorer; the fixture return is refused by it.
+5. Partial return: the strict return without displacement's own rows passes the real
+   unpack_return.py, ownread.py refuses it (exit 2, one line), and --allow-partial
+   scores it with PARTIAL on every line and no decision.
 usage: cpu_proof.py BUILD_DIR FRESH_WORK_DIR
 """
 import copy,hashlib,importlib.util,io,json,os,shutil,subprocess,sys,tarfile,time
@@ -51,10 +54,10 @@ def pack(root,files,out):
   for n,raw in sorted(files.items()):
    m=tarfile.TarInfo(n);m.size=len(raw);t.addfile(m,io.BytesIO(raw))
 
-def unpack(B,archive,dest,token):
+def unpack(B,archive,dest,token,complete=True):
  receipt=archive.with_suffix('.json')
  receipt.write_text(json.dumps(dict(token=token+'00000001',job='1',synthetic=False,plan_sha256=read(B/'package/0.json')['plan_sha256'],
-   archive_sha256=sha(archive),archive_bytes=archive.stat().st_size,complete=True,status='COMPLETE')))
+   archive_sha256=sha(archive),archive_bytes=archive.stat().st_size,complete=complete,status='COMPLETE' if complete else 'FAILED')))
  r=subprocess.run([PY,'-B',str(B/'unpack_return.py'),'--archive',str(archive),'--exit',str(receipt),'--out',str(dest)],capture_output=True,text=True)
  return r
 
@@ -150,6 +153,23 @@ def main():
  assert all(v['complete'] for v in strict['types'].values()) and not strict['fixture']
  report['steps']['strict_return']=dict(passed=True,scores=str(work/'score_strict/ownread.txt'),
    own_minus_tower={k:round(v['own_minus_tower']['value'],2) for k,v in strict['types'].items()})
+
+ # 5. Partial return: no displacement own rows (300 own / 450 tower). unpack_return.py keeps it; ownread refuses it by default.
+ partial=dict(files);name='metadata/reads/0/metadata/journals/0/0/items.jsonl'
+ partial[name]=''.join(l+'\n' for l in partial[name].decode().splitlines() if json.loads(l)['arm']!='own').encode()
+ pack(S,partial,work/'partial.tgz');u=unpack(B,work/'partial.tgz',work/'ret_partial',token,complete=False)
+ assert u.returncode==0,u.stderr[-3000:]
+ cmd=[PY,'-B',str(KIT/'ownread.py'),'--root',str(work/'ret_partial'),'--out']
+ refused=subprocess.run(cmd+[str(work/'score_partial')],env=env,capture_output=True,text=True)
+ assert (refused.returncode==2 and refused.stdout=='' and refused.stderr.count('\n')==1
+         and refused.stderr.startswith('ownread refused: Incomplete paired set') and not (work/'score_partial').exists()),refused
+ diag=subprocess.run(cmd+[str(work/'score_partial_diag'),'--allow-partial'],env=env,capture_output=True,text=True)
+ lines=diag.stdout.splitlines();v=read(work/'score_partial_diag/ownread.json')
+ assert diag.returncode==0 and lines and all(l.startswith('PARTIAL') for l in lines),diag
+ assert v['partial'] and v['types']['camera_displacement']['own_n']==0 and v['all_within_bar_interval'] is None
+ report['steps']['partial_return']=dict(passed=True,unpack=json.loads(u.stdout.strip().splitlines()[-1]),default_exit=refused.returncode,
+   default_reason=refused.stderr.strip(),allow_partial_lines=len(lines),allow_partial_lines_marked=sum(l.startswith('PARTIAL') for l in lines),
+   scores=str(work/'score_partial_diag/ownread.txt'))
  report['passed']=all(s['passed'] for s in report['steps'].values())
  (work/'CPU_PROOF.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(passed=report['passed'],report=str(work/'CPU_PROOF.json'))))
 

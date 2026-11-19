@@ -1,1 +1,2 @@
 - trinity-3-30 /scratch/jjyeung/orch_n30/tree_rebuild11/work/pwrap/sess.json (GCS resumable upload session URLs copied with P's kit listing; not needed)
+- trinity-1-18 /tmp/tr11_v2h.tgz (11 KB transfer copy)

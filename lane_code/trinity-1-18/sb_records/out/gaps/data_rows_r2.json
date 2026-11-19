@@ -1,0 +1,394 @@
+{
+  "active_families": [
+    {
+      "rows_per_step": 32.89,
+      "stream": "vqa",
+      "type": "direction"
+    },
+    {
+      "rows_per_step": 18.17,
+      "stream": "vqa",
+      "type": "facing_pairs"
+    },
+    {
+      "rows_per_step": 22.74,
+      "stream": "vqa",
+      "type": "relative_distance"
+    },
+    {
+      "rows_per_step": 10.87,
+      "stream": "vqa",
+      "type": "counting"
+    },
+    {
+      "rows_per_step": 3.39,
+      "stream": "vqa",
+      "type": "totals"
+    },
+    {
+      "rows_per_step": 14.42,
+      "stream": "vqa",
+      "type": "appearance_order"
+    },
+    {
+      "rows_per_step": 2,
+      "stream": "vqa",
+      "type": "first_seen_frame"
+    },
+    {
+      "rows_per_step": 1.82,
+      "stream": "vqa",
+      "type": "box_3d"
+    },
+    {
+      "rows_per_step": 9.7,
+      "stream": "vqa",
+      "type": "route_planning"
+    },
+    {
+      "rows_per_step": 2,
+      "stream": "vqa",
+      "type": "camera_object_rel_distance_v1"
+    },
+    {
+      "rows_per_step": 2,
+      "stream": "vqa",
+      "type": "camera_object_rel_distance_v2"
+    },
+    {
+      "rows_per_step": 2,
+      "stream": "vqa",
+      "type": "camera_object_rel_distance_v3"
+    },
+    {
+      "rows_per_step": 2,
+      "stream": "vqa",
+      "type": "object_object_left_right"
+    },
+    {
+      "rows_per_step": 2,
+      "stream": "vqa",
+      "type": "object_object_near_far"
+    },
+    {
+      "rows_per_step": 2,
+      "stream": "vqa",
+      "type": "object_object_up_down"
+    },
+    {
+      "rows_per_step": 17.42,
+      "stream": "routing",
+      "type": "camera_displacement"
+    },
+    {
+      "rows_per_step": 15.15,
+      "stream": "routing",
+      "type": "camera_movement_direction"
+    },
+    {
+      "rows_per_step": 11.96,
+      "stream": "routing",
+      "type": "camera_rotation"
+    },
+    {
+      "rows_per_step": 15.6,
+      "stream": "routing",
+      "type": "absolute_distance"
+    },
+    {
+      "rows_per_step": 1,
+      "stream": "routing",
+      "type": "recovery"
+    },
+    {
+      "rows_per_step": 2.87,
+      "stream": "routing",
+      "type": "units"
+    },
+    {
+      "rows_per_step": 64,
+      "stream": "pose",
+      "type": "pose"
+    },
+    {
+      "rows_per_step": 32,
+      "stream": "pointing",
+      "type": "pointing"
+    }
+  ],
+  "component": "data_rows_r2",
+  "exclusions_complete": false,
+  "family_bindings": {
+    "absolute_distance": {
+      "audit_binding": {
+        "path": "/scratch/jjyeung/n30_mirror/rows_r2/out/vehN_pool_abs_distance_full/repaired/rows.jsonl",
+        "sha256": "aedd3b54b913fd416b8daa53f022c86d1b3d98259f3c5e1a479e8bde528449d9"
+      },
+      "binding": {
+        "filtered_source": {
+          "path": "/scratch/jjyeung/orch_n30/rows_r1/out/vehN_pool_abs_distance/filtered/rows.jsonl",
+          "sha256": "3292509080b90f34b83e146e44007d556a5b48416b15ce34304199537b6837cb"
+        },
+        "remote_source": null,
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/rows_r1/out/vehN_pool_abs_distance/repaired/rows.jsonl",
+          "sha256": "1b6bc0cee9831da378234f5cfb9e35352d5b30cf7cb5325f9fb7d6a135b53220"
+        },
+        "status": "Extent-certified source; complete scene admission and remote staging remain required",
+        "variant": "repaired"
+      },
+      "exact_n1fix2_source_match": false,
+      "population_audited": "N_routing_absolute_distance"
+    },
+    "recovery": {
+      "audit_binding": {
+        "path": "/scratch/jjyeung/n30_mirror/rows_r1/out/recovery_v3/rows.jsonl",
+        "sha256": "58389a67f9a5b51abbc06e5953937b35541ef5effc4e70e6a35092d14f288473"
+      },
+      "binding": {
+        "filtered_source": {
+          "path": "/scratch/jjyeung/orch_n30/rows_r1/out/recovery_v2x/rows.jsonl",
+          "sha256": "cc99a776c4b02c711e50ab1e9993b8b2aa001fbbea167f0b3130e20ae90ccd07"
+        },
+        "remote_source": null,
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/rows_r1/out/recovery_v3/rows.jsonl",
+          "sha256": "58389a67f9a5b51abbc06e5953937b35541ef5effc4e70e6a35092d14f288473"
+        },
+        "status": "Extent-certified source; complete scene admission and remote staging remain required",
+        "variant": "repaired"
+      },
+      "exact_n1fix2_source_match": true,
+      "population_audited": "N_routing_recovery"
+    },
+    "room": {
+      "binding": {
+        "remote_source": null,
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/rows_r1/out/room_v2/rows.jsonl",
+          "sha256": "5bbe10968c892010e31e02c1480be63c64e7af8ac3f9489060202e5849e296df"
+        },
+        "status": "Requires admitted manifest and verified remote delivery"
+      },
+      "population_audited": null
+    },
+    "room_programs_excluded": {
+      "binding": {
+        "remote_source": null,
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/tree_rebuild_w/w12/work/rows_slices/slices_final/a0_room.jsonl",
+          "sha256": "866274d45d435bba7e1a34cbb30a855a58b3ced563bd3c4d2bf36c4af3462830"
+        },
+        "status": "Excluded from routing and the launch room cell; retained square-foot source binding only"
+      },
+      "population_audited": null
+    },
+    "units": {
+      "audit_binding": {
+        "path": "/scratch/jjyeung/n30_mirror/rows_r1/out/vehN_units/repaired/rows_slice.jsonl",
+        "sha256": "aa1432cde2aa3612e0d0e287c94aaa0aeb37dc175485a3ad044bca71f3e5ce9c"
+      },
+      "binding": {
+        "filtered_source": {
+          "path": "/scratch/jjyeung/orch_n30/rows_r1/out/vehN_units/filtered/rows_slice.jsonl",
+          "sha256": "933805269162582aefda3e75aaf84374dc1858bd40ad7eecf9df5da5a886ca75"
+        },
+        "remote_source": null,
+        "source": {
+          "path": "/scratch/jjyeung/orch_n30/rows_r1/out/vehN_units/repaired/rows_slice.jsonl",
+          "sha256": "aa1432cde2aa3612e0d0e287c94aaa0aeb37dc175485a3ad044bca71f3e5ce9c"
+        },
+        "status": "Extent-certified source; complete scene admission and remote staging remain required",
+        "variant": "repaired"
+      },
+      "exact_n1fix2_source_match": true,
+      "population_audited": "N_routing_units"
+    }
+  },
+  "inputs": [
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_records/work/build_records.py",
+      "sha256": "13494fecaaa3c6dabb1ba4fb30ae30e8a36101310a9896d4cfb0db2489f6e8fe"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_records/out/RECEIPT_GRAPH.json",
+      "sha256": "8721bab410a4081fab83793635e8b0506c36ffa89b42695bff4ba37ed5e6704b"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_records/out/POPULATIONS.json",
+      "sha256": "1b6b0c2174214a2ad45d64bf3d595a04cb89162314e4c938d179b1df3977c1c3"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_records/out/TOKEN_INVERSION.json",
+      "sha256": "f5a56d995a10dcb47b8cfcbe86dd51a6232c835e660c99e132a9d8a93a72492b"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_records/out/FRAMEPOOL_CONTEXT.json",
+      "sha256": "7997622c25e829dee269df27977162e4a0404c637d7c6dc862c189e21540f6a8"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_records/out/kit/inputs/8063ef04f6b6e2efaad933388efe1961e0b903d7449ac75f8fc761eb9a117011_config.json",
+      "sha256": "8063ef04f6b6e2efaad933388efe1961e0b903d7449ac75f8fc761eb9a117011"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_records/out/kit/inputs/1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef_init_artifact.json",
+      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_records/work/policy_tree/student_pilot/r2_policy.py",
+      "sha256": "fd62d4bf07aa12172fdbe8cb8658c40f31e375717637b4c3a3ad331d084092d1"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_records/out/kit/inputs/58fde9dd8c07ad95d275fd7a10e425506a5a1d56dfec3bca22f2a938889df7f3_row_sources.json",
+      "sha256": "58fde9dd8c07ad95d275fd7a10e425506a5a1d56dfec3bca22f2a938889df7f3"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_records/out/kit/inputs/9738fa6ca088330fe6e1af5a2b1107b38d23494af27c8a7376bdba92af23ad23_mix.json",
+      "sha256": "9738fa6ca088330fe6e1af5a2b1107b38d23494af27c8a7376bdba92af23ad23"
+    },
+    {
+      "path": "/scratch/jjyeung/orch_n30/sb_records/out/kit/inputs/f7eaf7a7d8e4bd15ef8eae5a3c8478901ed7eb6a92e85723d201aaf5728ab22b_component_rows.json",
+      "sha256": "f7eaf7a7d8e4bd15ef8eae5a3c8478901ed7eb6a92e85723d201aaf5728ab22b"
+    }
+  ],
+  "missing_inputs": [
+    {
+      "missing": {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/rows.sqlite",
+        "sha256": "c09bb5ca44158df467449f3c5fed865d81eb5520fb704785b19e73abc5536938"
+      },
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/receipt.json",
+      "reason": "The N pointing stream binds the 25,020-row upstream store; the 20,239-row prepared pointing projection is a different store.",
+      "sha256": "93b21a3aeeda01efab90d9f818eff78a6ca182c18c964534279008e4af91733a",
+      "status": "RECOVERED_RECEIPT_ONLY"
+    },
+    {
+      "expected_binding": "config.json:/streams/routing/required_parameter",
+      "parameter": "admitted_routing_receipt",
+      "path": null,
+      "reason": "The required admitted routing receipt has no runtime binding.",
+      "status": "MISSING"
+    },
+    {
+      "expected_binding": "config.json:/r1_training/host_receipt",
+      "path": null,
+      "reason": "The N frame-host receipt is null; the inherited frame pool is not a complete post-filter N host membership proof.",
+      "status": "MISSING"
+    },
+    {
+      "expected_binding": "config.json:/r2_scene_rebuild",
+      "path": null,
+      "reason": "No complete post-filter family manifests and independent scene/frame coverage are bound for every family in mix.json.",
+      "status": "MISSING"
+    }
+  ],
+  "proven": {
+    "N_routing_absolute_distance": {
+      "counts": {
+        "ReVSI": 0,
+        "VSI-Bench": 0,
+        "VSTI": 0,
+        "resolved": 8315,
+        "rows": 8315,
+        "unresolved": 0
+      },
+      "overlaps": {
+        "ReVSI": [],
+        "VSI-Bench": [],
+        "VSTI": []
+      },
+      "room_count": 1125,
+      "scene_count": 1690
+    },
+    "N_routing_recovery": {
+      "counts": {
+        "ReVSI": 0,
+        "VSI-Bench": 0,
+        "VSTI": 0,
+        "resolved": 994,
+        "rows": 994,
+        "unresolved": 0
+      },
+      "overlaps": {
+        "ReVSI": [],
+        "VSI-Bench": [],
+        "VSTI": []
+      },
+      "room_count": 384,
+      "scene_count": 440
+    },
+    "N_routing_units": {
+      "counts": {
+        "ReVSI": 0,
+        "VSI-Bench": 0,
+        "VSTI": 0,
+        "resolved": 8577,
+        "rows": 8577,
+        "unresolved": 0
+      },
+      "overlaps": {
+        "ReVSI": [],
+        "VSI-Bench": [],
+        "VSTI": []
+      },
+      "room_count": 1171,
+      "scene_count": 1770
+    },
+    "v7_minus_component_rows_bound_lists": {
+      "counts": {
+        "ReVSI": 0,
+        "VSI-Bench": 0,
+        "VSTI": 0,
+        "resolved": 183318,
+        "rows": 183318,
+        "unresolved": 0
+      },
+      "overlaps": {
+        "ReVSI": [],
+        "VSI-Bench": [],
+        "VSTI": []
+      },
+      "room_count": 1608,
+      "scene_count": 2816
+    },
+    "v7_minus_nzu": {
+      "counts": {
+        "ReVSI": 0,
+        "VSI-Bench": 0,
+        "VSTI": 0,
+        "resolved": 183318,
+        "rows": 183318,
+        "unresolved": 0
+      },
+      "overlaps": {
+        "ReVSI": [],
+        "VSI-Bench": [],
+        "VSTI": []
+      },
+      "room_count": 1608,
+      "scene_count": 2816
+    },
+    "v7_raw": {
+      "counts": {
+        "ReVSI": 0,
+        "VSI-Bench": 0,
+        "VSTI": 0,
+        "resolved": 204413,
+        "rows": 204413,
+        "unresolved": 0
+      },
+      "overlaps": {
+        "ReVSI": [],
+        "VSI-Bench": [],
+        "VSTI": []
+      },
+      "room_count": 1659,
+      "scene_count": 2966
+    }
+  },
+  "reason": "Clean scene audits exist for named populations; complete exclusions and host membership are not proven for every family N binds.",
+  "record": null,
+  "removal_scope": "v7_minus_nzu applies n=02315a74, z=caba6a56, u=43853165 using full-row key semantics. The w19 component_rows list includes these plus six kit lists and s. n1fix2/config.json binds only the six kit lists and n; this audit does not claim z/u are bound there.",
+  "schema": "sb-records-gap-v1",
+  "status": "MISSING"
+}

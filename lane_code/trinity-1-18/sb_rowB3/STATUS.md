@@ -1,0 +1,1 @@
+The kit delivers 8,186 rows from all 6,827 eligible sources. All required native, independent GT/visibility, balancing, identity, field, room, wording, and thirty-row review checks pass. The report documents 4,420 sources with missing GT and the next-read gate. The archive and checksum are in out/.

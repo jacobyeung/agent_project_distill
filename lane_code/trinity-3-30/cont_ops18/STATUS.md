@@ -22,3 +22,15 @@ Workspace: /scratch/jjyeung/orch_n30/cont_ops/work (= cont_ops16/work/c15, symli
 - 04:38Z RESULT truth answer-vs-released posted. ORCH 0433Z: D N=580, run D@544 then D@200 on general before 09:00Z if each fits; one Astra review of fork diff before first GPU submit; unfinished D yields to step-400 direct.
 - 04:41Z Codex Astra build of package D running: tmux c18_buildD, brief cont_ops18/dbuild/BRIEF_D.md, receipt /scratch/jjyeung/orch_n30/codex_local/agent/scratch/codex_runs/20261119T044117Z_c18_buildD, test trees /dev/shm/c18d. Item file from dist_diag (make_r0_heldout.py; events/dist_diag) due 05:15Z.
 - NOTE: if a D job is still on general when the m400 .done lands, chain400's autosub waits (BUSY); scancel D then (ORCH 0433Z item 3).
+## 05:36Z
+- D@544: package a15_cot_apd00c03dcc685e (stage 813f42db/d544b, walltime 03:30, CPU check 172956 PASS, review c18_revD2 GO). GPU job 172957 general PENDING (Resources) since 05:31Z. Monitor tmux monD_172957 (cont_ops18/monD.sh, log monD_172957.log): 1-min; yields (scancel if pending / USR1 graceful if running) when a jjy_* pends or the m400 .done lands; writes RESULT on exit. Scripts: dbuild/o_sub_D.sh, o_cpu_D.sh, o_build_D.sh (WALLTIME), o_place_fill_D.sh. Score: dbuild/score_d.py.
+- D@200: not built yet; same o_build_D.sh STEP=200 (reuse parts from old A a15_cot_apd72cdcff1e22a/a/e per place_fill default). Runs after the step-400 chain.
+- E (D0 m200, dev-S1 distance 150, ORDER 0445Z item 2): Codex build tmux c18_buildE, workspace cont_ops18/ebuild (BRIEF_E.md, bind_E200_partial.json). Lowest priority, after D@200.
+- INBOX_TO_DISTILL_ORCH_*.md: no such file found in orch_n30/ or the data root; squeue checked before submit.
+## 06:20Z
+- D@200 a15_cot_apd296bd1ef61cd READY (CPU 172962 PASS; submit: P=<pkg> T=04:00:00 + dbuild/o_sub_D.sh via ossh, then tmux monD_<job> with monD.sh). E a15_cot_apdd92e95963089 READY (CPU 172973 PASS; submit with ebuild/o_sub_E.sh T=02:20:00). Scorers: dbuild/score_d.py (--package for identity), ebuild/score_e.py. RESULT 0620Z.
+- Own-arm kit (ORCH GO 0540Z, lowest priority, after E): trinity-1-18:/scratch/jjyeung/orch_n30/sb_ownread/out/sb_ownread_kit.tar. swarm_build call-rate reader: events/swarm_build/ops_mirror/sb_callrate_v3.tar (use beside routed reads at 400/600; --strata for dist_diag split).
+- Remainder of D@544 after the partial read: resume input (orchard_h10/job.py restore_resume, inputs['resume']) or a remainder package; not built.
+## 06:35Z
+- D remainder path (same-package resume NOT supported: operator journals sit under metadata/reads/0, restore_resume restores only metadata/journals): cont_ops18/dresume (RESUME_D.md: make_items_remainder.py -> build_remainder.py -> fresh package; score_d.py --spec merges). Partial return of 172957 will be at /project/community/jjyeung/okh7/ae71c903/d00c03dcc685e0002a39d/result.tar.gz.
+- Camera held-out read H (ORCH 0620Z: package 900 items, scorer patch, one review, baselines 544 and 200 after E, before own-arm): inputs pulled from trinity-1-18 sb_rowA/out into cont_ops18/hcam/in (4 MB); Codex build tmux c18_buildH (BRIEF_H.md).

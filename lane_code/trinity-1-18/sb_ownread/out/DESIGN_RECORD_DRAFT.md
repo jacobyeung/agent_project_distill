@@ -12,6 +12,7 @@ Fork A4's delivery and change only the operator (`a/6.py`, bundled as `7.py`) an
 - The payload's per-type `run()` path accepts several arms. Only the single-worker `run_types` refuses an arm other than tower.
 - `cpu_proof.py`: A4's operator and the fork write byte-identical tower settings, equal to A4's returned ones. A fixture read gives 900/900 through the real operator, runner and `launch.run`.
 - `ownread.py` reproduces the registered step-544 gaps and their 544-RNG intervals from the step-544 rows.
+- `ownread.py` refuses returns whose export archive sha256, input archive or journal binding ids disagree with the plan or the rows, and partial paired sets. The independent review (GO AFTER FIXES) asked for these checks, and they are covered by tests.
 
 ## Options rejected
 - Patch the single-worker path to allow own: it changes payload code hashes, breaks the tower identity with A4, and needs a payload review.
@@ -21,7 +22,7 @@ Fork A4's delivery and change only the operator (`a/6.py`, bundled as `7.py`) an
 
 ## What might not work, and how we would notice
 - The per-type path with two arms has not yet run on a GPU. The Orchard CPU check's rehearsal, an incomplete `SUMMARY.json`, or a scorer refusal would show it.
-- Wall time: the estimate is 2.12 h and the upper bound 3.05 h, against a 4.5 h admission stop. A partial return scores as incomplete with verdict None.
+- Wall time: the estimate is 2.12 h and the upper bound 3.05 h, against a 4.5 h admission stop. `ownread.py` refuses a partial return (exit 2); `--allow-partial` scores it as a diagnostic marked `PARTIAL`, with no decision.
 - The receipt path or object prefix at 400/600 may differ from step 200's; `build_ownread.py` pin validation or `o_pullfill.sh` fails closed.
 
 ## Tests that settle it

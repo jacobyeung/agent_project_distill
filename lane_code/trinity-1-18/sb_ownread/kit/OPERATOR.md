@@ -40,7 +40,7 @@ $PY $K/build_ownread.py --out <builds>/r400 --export-pin pin400.json
 $PY $K/tests/check_build.py <builds>/r400
 ```
 
-The builder refuses to run unless resealing A4 reproduces A4's `1.tgz` byte for byte. It appends the fresh token to `<builds>/TOKEN_LEDGER.jsonl`; copy that line into the Orchard job ledger. `check_build.py` checks the seals and the diff against A4, runs `bash -n` on the scripts and compiles every Orchard helper under `/usr/bin/python3` 3.6.
+The builder refuses to run unless resealing A4 reproduces A4's `1.tgz` byte for byte. It imports the payload's build module from a private copy under `work/` beside the kit, or under `$TMPDIR` when no `work/` exists, so point `TMPDIR` at scratch space. It appends the fresh token to `<builds>/TOKEN_LEDGER.jsonl`; copy that line into the Orchard job ledger. `check_build.py` checks the seals and the diff against A4, runs `bash -n` on the scripts and compiles every Orchard helper under `/usr/bin/python3` 3.6.
 
 ## Orchard sequence (unchanged from A4)
 
@@ -58,7 +58,15 @@ $PY <build>/unpack_return.py --archive f/0.tgz --exit f/EXIT.json --out <builds>
 $PY $K/ownread.py --root <builds>/ret400 --out <builds>/score400
 ```
 
-`ownread.txt` lists own, tower and own minus tower for each camera type, with 95% and 99.29% room-bootstrap intervals (`score_r5.bootstrap`). It flags two bars: point at least −5 pp, and 95% lower bound above −5 pp. Use the interval bar to drop G3T and treat the point bar as the weaker signal. The file also prints deltas against the registered step-544 figures (marked "unpaired reference"), deltas paired by item against the step-544 rows, and deltas paired by item against A4's step-200 tower return. The scorer refuses a return whose tower settings, reader, evaluator, maker or parity hashes differ from A4's.
+`ownread.txt` lists own, tower and own minus tower for each camera type, with 95% and 99.29% room-bootstrap intervals (`score_r5.bootstrap`). It flags two bars: point at least −5 pp, and 95% lower bound above −5 pp. Use the interval bar to drop G3T and treat the point bar as the weaker signal. The file also prints deltas against the registered step-544 figures (marked "unpaired reference"), deltas paired by item against the step-544 rows, and deltas paired by item against A4's step-200 tower return. The scorer refuses a return whose tower settings, reader, evaluator, maker or parity hashes differ from A4's. It also refuses a return in four other cases:
+- its export pin or input export archive differs from `READ_PLAN.json` `export_binding.archive_sha256`;
+- a journal declares binding ids other than its type's planned members;
+- a journal holds a row outside its declared ids;
+- the paired set is incomplete, meaning some camera type has fewer than 150 own or 150 tower rows, as in the return of a job that stopped early.
+
+Every refusal exits 2, prints one line `ownread refused: <reason>`, and writes nothing.
+
+To inspect a partial return, rerun with `--allow-partial` and a fresh `--out`. Every output line then starts with `PARTIAL`, `ownread.json` carries `"partial": true`, and the decision fields stay null. Decide G3T only from a run without that flag.
 
 ## GO this needs
 

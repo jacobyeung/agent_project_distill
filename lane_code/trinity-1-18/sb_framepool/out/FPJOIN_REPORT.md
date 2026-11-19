@@ -1,0 +1,60 @@
+Admitted rows: (a) VSI-Bench/ReVSI sibling captures 0; (b) 126 STI/ReSTI captures relevant to the VSTI check 0; (c) STI-Bench/ReSTI/MindCube captures 0. Step-544 is row-verified; R1 routing/VQA zeros are receipt-supported.
+
+Admission is the question answered here. These results cover the named legs and receipts; they do not reconstruct optimizer draws or parent-model pretraining.
+All 146 captures belong to BENCH v2 (`3119aa4a`). The 1,193 distinct source qids have **zero matches in any admitted step-544 stream**; capture joins independently give the same zero.
+`FPJOIN.json` records every source qid, per-stream row identity/type, all 146 capture results, input SHA256 values, receipt pins, and exact missing production/recovery paths.
+
+| Step-544 population | Rows examined → admitted total | Target rows in source → admitted | Target rows excluded |
+|---|---:|---:|---|
+| Pointing `faa0cfc4` | 20,239 → 20,239 | 0 → 0 | 0 at final selection; upstream target count MISSING |
+| Routing `c48d5b62` | 57,136 → 57,136 | 0 → 0 | 0 at final selection; upstream r16 details below |
+| VQA `5deb54bc` | 140,963 → 114,904 | 0 → 0 | 0 at final selection; upstream target count MISSING |
+| Pose a2v3 `b32359ce` | 66,934 → 21,627 | 5,039 → 0 | 159 absent from mix; 4,880 removed by final BENCH filter |
+| Pose a3v2 `0b95850a` | 203,520 → 173,360 | 10,240 → 0 | All 10,240 removed by final BENCH filter |
+| Upstream r16 `3d1d2d05` | 76,277 source rows | 776 → 0 in production routing | 326 BENCH drops; 450 fail type admission |
+
+Pointing/routing/VQA indices and the two pose orders match their receipt SHA256 pins. Pose admits 194,987 rows in total. All target admitted-id lists and question-type maps are empty.
+Pose extracts omit `question_type`; their source receipts identify all-32-frame pose supervision, gravity, scale, field of view, and depth. JSON preserves every excluded pose qid and index without inventing a question type.
+For r16, the 326 target BENCH drops comprise camera displacement 125, movement direction 97, rotation 79, and camera-object absolute distance 25.
+The other 450 target r16 rows comprise object-relative distance 172, hard direction 116, medium direction 112, and absolute distance 50; compatibility defers the first three types, and the pool supplies the last type.
+Six of the 1,193 source qids occur in r16; none occurs in admitted routing. P’s exclusion-id list `66c427e2` contains 795 of the source qids under VQA; an exclusion list is not a consumption record.
+Full camera-row verification covers 35,423 routing rows: displacement 14,020, movement direction 12,260, rotation 9,143. It finds zero target rows and agrees with the scene projection.
+
+**Receipt agreement.** Final pointing/routing/VQA `benchmark_rows_dropped=0` agrees with zero BENCH rows remaining at that stage.
+Pose removes 15,120 target rows at the final scene filter. Across all BENCH v2 scenes, its drops are 4,880 + 22,160 = 27,040, exactly matching `scene_filter_report.sources.pose/0` and `pose/1`.
+Those counts do **not** equal pose `benchmark_rows_dropped=1,200`. That counter belongs to the earlier exclusion pass; the recovered `prepare_exclusions` code defers BENCH/dev scene matches to the final scene filter. The 1,200 a3v2 rows absent from the mix contain zero BENCH-v2 matches.
+The final selection also removes 1,097 + 6,800 dev rows. The resulting 229,924 − 27,040 − 7,897 = 194,987 agrees with the admitted order.
+Upstream r16 has 43,072 compatible rows and 326 BENCH matches, exactly matching its receipt census. Its final routing counter is zero because this filtering precedes materialization.
+Upstream receipts report 2,944 pointing, 6,509 routing (6,183 pool + 326 r16), and 6,813 VQA BENCH matches. Their scopes cover all BENCH scenes; they do not count just these 146 captures.
+
+| R1 receipt/run | Pointing / pose / routing / VQA admitted totals | Target admission evidence |
+|---|---|---|
+| `6ed2c7aa` | 20,239 / 194,987 / 47,898 / 185,933 | 0; pointing/pose exact pins, routing/VQA receipt-supported |
+| `673bc60f` | 20,239 / 194,987 / 47,898 / 203,812 | 0; pointing/pose exact pins, routing/VQA receipt-supported |
+
+Both R1 receipts pin BENCH v2 and reuse the verified pointing database/index and pose databases/order. Thus their target pose drops are also 15,120; their all-BENCH final pose drops are 27,040.
+For `673bc60f`, the retained per-stream receipts report `heldout_overlap=0` and bind the BENCH scene filters. Its VQA source census is 204,413 rows with zero BENCH matches, consistent with the v7 audit.
+For `6ed2c7aa`, the prepared receipt retains the upstream/final filter census, but its individual pointing/routing/VQA receipt bytes are MISSING. JSON gives their exact pinned paths and hashes.
+R1 routing/VQA production databases and admitted index files are MISSING locally. Their per-id joins and total target drops before materialization remain MISSING; receipt-supported zero is not a recovered row-level zero.
+
+**(a) VSI-Bench and ReVSI.** Nothing from `d3/41159526` or `d3/41159521` was admitted as pointing, pose, routing, VQA, or camera training in the checked legs (with the R1 receipt limit above).
+a2v3 contains 12 source pose rows on 41159526 and 11 on 41159521. All 23 are absent from both the mixed and admitted pose orders; no other recovered source store hits either capture. JSON lists their exact qids.
+Both captures are siblings of 41159525 in venue 381879. Source pose presence therefore establishes no training on either sibling.
+
+**(b) VSTI.** No: BENCH v2 lists 312 VSTI captures, and their intersection with the 126 STI-Bench/ReSTI captures is **0**. No row on the 126 captures was admitted in the covered streams.
+The retained VSTI-style R0/dev item bank has 900 items across 68 captures; all 900 resolve and none uses the 126 captures. Two kit result lists independently resolve the same 900-item/68-capture populations with zero overlap.
+The additional dev-S1 kit list resolves 1,825 items across 142 captures with zero overlap. These development lists are distinct from the official VSTI scene list; JSON labels and preserves each item list separately.
+The original official VSTI item bank `/scratch/jjyeung/orch_cd/heads_up/work/h3/b14b/vsti.json` (`5e3da447…`) is MISSING in the local registry. BENCH v2 preserves its scene membership, which suffices for the zero scene-overlap result; an official per-item-id join is MISSING.
+
+**(c) STI-Bench, ReSTI, MindCube.** Training exposure in the checked legs: **no** (0 admitted rows; R1 receipt qualification above). Archived-source exposure: **yes**, 1,193 rows across 125 captures. These are different claims.
+The groups contain 126 STI/ReSTI and 20 MindCube captures, with two shared captures; adding the two venue siblings gives 146 unique captures. BENCH membership applies even though these benchmarks are not claimed for this student.
+
+**Coverage.** Exhaustive inversion checks 1,000,000 ScanNet names and 100,000,000 ARKit numeric ids, finds no token collisions, and resolves all 146 targets. Direct token and independent canonical joins agree for every recovered row.
+ScanNet++ has no target among these 146; its 2^40 native-id space is not exhaustively inverted. This limit cannot hide a target whose ScanNet/ARKit token was exhaustively checked.
+MISSING raw pointing/VQA source payloads and pool payloads prevent assigning a removal reason/count to every one of the 1,193 sample ids. Their absence from the complete admitted step-544 populations is verified independently.
+
+**Commands producing the numbers** (run from this workspace):
+`/usr/bin/python3 work/fpjoin_invert.py` produces the exhaustive token/preimage census.
+`/usr/bin/python3 work/fpjoin.py` produces every admission, drop, receipt, source-id, capture, camera, and VSTI number above; it asserts the pinned orders and receipt census agreements.
+`/usr/bin/python3 work/fpjoin_report.py` renders this report; `/usr/bin/python3 work/fpjoin_package.py` rebuilds and verifies `out/sb_framepool.tar` and writes its new SHA256 sidecar.
+`FPJOIN_REPORT.md` and `FPJOIN.json` carry the consumption verdict. `FRAMEPOOL_REPORT.md` and its original evidence describe source overlap.

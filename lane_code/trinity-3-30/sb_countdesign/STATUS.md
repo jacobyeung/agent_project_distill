@@ -1,6 +1,10 @@
-# STATUS sb_countdesign (Devin Fable xhigh, trinity-3-30)
-- Started 2026-11-19T05:10Z; time box ends 08:10Z.
-- Task: design record COUNT_LARGE_SETS_DESIGN_20261119.md (+ INDEX line), optional KIT_SPEC_count_pricing.md, one RESULT event.
-- Step 1 (done): read LANE_RULES, R1_M200_TRACE_ANALYSIS (first half), swarm_an notes 0449Z/0452Z/0503Z.
-- Step 2 (in progress): read rest of trace analysis, san_dd_count report, head/tower inventory, dev item files.
-- Nothing written outside the lane folder yet.
+# STATUS sb_countdesign (Devin Fable xhigh, trinity-3-30): DONE 2026-11-19T06:12Z, lane stopped
+- Delivered: /data2/jjyeung/agent_project_data/distill_design/COUNT_LARGE_SETS_DESIGN_20261119.md (sha256 c7e12ad6...) + one INDEX.md line; B/events/sb_countdesign/KIT_SPEC_count_pricing.md (1c32a853...); B/events/sb_countdesign/sb_countdesign_files.tar (gzip, f1dfce8d...); RESULT event 20261119T0611Z_RESULT_count_large_sets_design_and_kit_spec.md.
+- Answer in one line: no head or trace form counts sets of 5+ yet (constant 6 scores 58.2 on the 93 items; step 544 28.8; step 200 15.1); build E for N is count-first rows on large sets plus a gate; the SAM 3 instance head waits for an identity test on K1; kit prices the per-frame maximum on R0-dev (0.5 GPU-h, not run).
+- Evidence and scripts: this folder, files/ (kit: score_count_pricing.py, build_count_manifest.py, run_count_teacher.py, COUNT_ITEMS_535.jsonl, ITEMS93.json, KIT_SHA256SUMS) and work/ (K1 pilot k1_*.py and K1_*.json/npz; dev-side items93.py, prog_devs1.py, gate_cue.py, gated_devs1.py, prior_gate.py, form_evidence.py, store_counts.py). Every number in the record is printed by one of these scripts.
+- K1 pilot inputs (read-only): /scratch/jjyeung/orch_n30/b05_owngrd/work/{labels_k1,teacher_k1_full/teacher_k1,k1map}; /scratch/jjyeung/n30_mirror/k1_ops3/run_convert_2; interpreter /scratch/jjyeung/envs/planner_local_v1/bin/python (k1_*.py), /usr/bin/python3 (the rest).
+- Mirror: trinity-1-18:/scratch/jjyeung/n30_mirror/sb_countdesign/sb_countdesign_lane.tar, sha256 482833141d3a1b4105ef54338830b7e8db5132a91a5e14f80e097e3243cc7dca (equal on both ends; taken before the last one-sentence edits of the two records, whose final copies are on /data2).
+- Open asks (defaults in force): review of record and kit spec; GO or no for the kit (default not run); large-set gate on N's read card (default yes, swarm_build decides).
+- Not removed (guard blocks deletion): see REMOVAL_CANDIDATES.md; lane folder 24 MB (brief: 20 MB).
+- In flight: nothing. No tmux, no background process, no governor stream, no Orchard job. ssh: six calls through tools/tssh.sh (trinity-1-3 twice, trinity-1-18 four times). No GPU, no Git.
+- A successor needs only the record and the kit spec; to rerun the pilot: cd work && python k1_labels_scan.py, k1_lift.py, k1_nms.py, k1_price.py, k1_floor.py, k1_learn.py, k1_lmerge.py, k1_reproj.py, k1_final.py in that order.

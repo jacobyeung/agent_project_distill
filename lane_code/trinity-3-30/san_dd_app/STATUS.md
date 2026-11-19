@@ -1,3 +1,3 @@
-step: 1 of 6, loading R0-dev appearance-order traces (R1-200, R1-100, S1-544) and reading the first-wave report (started 05:15Z, budget to 06:30Z)
-findings so far: first-wave app_order report read (93 wrong at step 200: 49/31/13); trace form "Step 1: find the first frame showing each object ... Step 2: order them by first appearance"
-next: parse all traces at three steps, read the 93 wrong items, then predictors, frame-number origin, ties, training rows
+step: 6 of 6, done (05:35Z): REPORT.md (137 lines) and work/reproduce.py written; reproduce.py prints 92/93, 231/246 (decoder 150 vs 153), 36/41, 200/246, 85/193
+findings: the answer follows the stated frames (nearest option, prefix first) on 231/246; 92/93 errors start at the frames, mainly the truly-first object; the "sorting contradictions" are snaps to an option; no allowed form change beats the frames; values >32 keep the order and are not seconds
+next: none; the coordinator reads REPORT.md

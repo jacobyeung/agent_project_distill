@@ -1,0 +1,191 @@
+{
+  "command": "PYTHONDONTWRITEBYTECODE=1 python record_review.py",
+  "full_record_file_sha256": "e3532ab629a7b4db9545f622e41e1f17c5b023672e1c338d427348fb74762d12",
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/sb_rowD6/out/NEW_ROWS.jsonl": {
+      "bytes": 66795680,
+      "sha256": "8135c8d988391f6e375442c8993301c2ce3da206e2d0677891f10a8166870010"
+    },
+    "/scratch/jjyeung/orch_n30/sb_rowD6/out/READ60.md": {
+      "bytes": 622208,
+      "sha256": "e3532ab629a7b4db9545f622e41e1f17c5b023672e1c338d427348fb74762d12"
+    },
+    "/scratch/jjyeung/orch_n30/sb_rowD6/out/REVIEW_TEXT60.md": {
+      "bytes": 43548,
+      "sha256": "e62b4f2f206ce137a231bb24b86daaa55f347b10edb0eafedef357483bd1efe6"
+    },
+    "/scratch/jjyeung/orch_n30/sb_rowD6/out/VERIFY.json": {
+      "bytes": 14133,
+      "sha256": "ef31e740d12095f3a37c264394bd0d09744d76478ac92bd50ba39ae5314678f2"
+    },
+    "/scratch/jjyeung/orch_n30/sb_rowD6/record_review.py": {
+      "bytes": 3397,
+      "sha256": "ab058c858539b3e418933208cae78533eb1f452bcacb61259a0d9edfe4b2a09e"
+    }
+  },
+  "limitation": "Frame-image contents were not reopened; full metadata is exactly source-preserved and verified.",
+  "method": "All sixty complete JSON records were parsed and matched by the verifier. The agent read every question, option list and full reasoning/answer text from READ60.md in three batches of twenty.",
+  "observations": [
+    {
+      "first": 1,
+      "last": 5,
+      "note": "Away easy: each reference right becomes left, with the resulting letter taken from the unchanged options.",
+      "qids": [
+        "q430459707dbd627ba1322abb_sb_rowD6_a",
+        "q9501aa73b0af001a6b1e8dc9_sb_rowD6_a",
+        "qf42bc71d77c17aafe26361c7-p1_sb_rowD6_a",
+        "qfac7c0bea48d904e00c52e8a-p1_sb_rowD6_a",
+        "q77e193212de163bb7855968f_sb_rowD6_a"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "first": 6,
+      "last": 10,
+      "note": "Away easy: each reference left becomes right. Standing point, heading object and queried object agree across question and trace.",
+      "qids": [
+        "q17ababcb217c269ba16aca04_sb_rowD6_a",
+        "q5e3e8de8c51bfc2c1dc39fa2-p1_sb_rowD6_a",
+        "qe52a98d97e821b01c274040f-p1_sb_rowD6_a",
+        "q6865ab48d0be7ce0ed033fad-p1_sb_rowD6_a",
+        "q066018f3c9313a9f0734f036-p1_sb_rowD6_a"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "first": 11,
+      "last": 15,
+      "note": "Away hard: reference front-right becomes back-left. Plural object names preserve grammatical agreement.",
+      "qids": [
+        "q7b93c14d293f0fb945094877-p1_sb_rowD6_a",
+        "qe6a91d0928c4ea076c87bf40_sb_rowD6_a",
+        "qb3944c706f4090799d4ca34b-p1_sb_rowD6_a",
+        "qf7d2761d277cc9f1712452e0-p1_sb_rowD6_a",
+        "q35f863322476b18a4adebc42_sb_rowD6_a"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "first": 16,
+      "last": 20,
+      "note": "Away hard: reference front-left becomes back-right. The half turn is stated in its own Step 3.",
+      "qids": [
+        "q0ed6ac555ec7bff14c6bc415_sb_rowD6_a",
+        "qcc69b1d513ded73264178570_sb_rowD6_a",
+        "qe33d1a89ecf457432ef3df98_sb_rowD6_a",
+        "q66711990d8b1134157bfd1f4-p1_sb_rowD6_a",
+        "q724b23e92071e2a72d452f09-p1_sb_rowD6_a"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "first": 21,
+      "last": 25,
+      "note": "Away hard: reference back-right becomes front-left. Unusual names remain exactly the source names.",
+      "qids": [
+        "q7afba8420d77c0c49f2ae306_sb_rowD6_a",
+        "qc7947b16781df8d403827cae-p1_sb_rowD6_a",
+        "qaef78bf246482f83872211e2-p1_sb_rowD6_a",
+        "qa88e4e190bee304cf1f5ab04-p1_sb_rowD6_a",
+        "q0737771aa94a93d985b7bce4-p1_sb_rowD6_a"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "first": 26,
+      "last": 30,
+      "note": "Away hard: reference back-left becomes front-right. Source sentences with the queried object first retain the correct spatial roles.",
+      "qids": [
+        "qada6e46c92e335d1c17afc39-p1_sb_rowD6_a",
+        "q9ab08d11d20166a697325933_sb_rowD6_a",
+        "q4da65e0a5954f243ca9cdb33_sb_rowD6_a",
+        "q733e87ec86fd6ada6d883621_sb_rowD6_a",
+        "q60e3de6b255c471266ba95c9-p1_sb_rowD6_a"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "first": 31,
+      "last": 35,
+      "note": "Toward easy: the source away answer right maps to left. Seen frame citations remain unchanged and the heading is explicitly kept.",
+      "qids": [
+        "vsi590k_152324_away_sb_rowD6_b",
+        "vsi590k_143418_away_sb_rowD6_b",
+        "vsi590k_031237_away_sb_rowD6_b",
+        "vsi590k_135997_away_sb_rowD6_b",
+        "vsi590k_033501_away_sb_rowD6_b"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "first": 36,
+      "last": 40,
+      "note": "Toward easy: the source away answer left maps to right. No turn appears in the new trace.",
+      "qids": [
+        "vsi590k_037305_away_sb_rowD6_b",
+        "vsi590k_031296_away_sb_rowD6_b",
+        "vsi590k_152701_away_sb_rowD6_b",
+        "vsi590k_153613_away_sb_rowD6_b",
+        "vsi590k_150468_away_sb_rowD6_b"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "first": 41,
+      "last": 45,
+      "note": "Toward hard: source front-right maps to back-left, consistent with each printed reference-heading relation.",
+      "qids": [
+        "vsi590k_015682_away_sb_rowD6_b",
+        "vsi590k_110903_away_sb_rowD6_b",
+        "vsi590k_095751_away_sb_rowD6_b",
+        "vsi590k_016420_away_sb_rowD6_b",
+        "vsi590k_094706_away_sb_rowD6_b"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "first": 46,
+      "last": 50,
+      "note": "Toward hard: source front-left maps to back-right, with correct option letters and kept headings.",
+      "qids": [
+        "vsi590k_101900_away_sb_rowD6_b",
+        "vsi590k_103997_away_sb_rowD6_b",
+        "vsi590k_114380_away_sb_rowD6_b",
+        "vsi590k_107952_away_sb_rowD6_b",
+        "vsi590k_093484_away_sb_rowD6_b"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "first": 51,
+      "last": 55,
+      "note": "Toward hard: source back-right maps to front-left. All frame slots are in range and retain the source citations.",
+      "qids": [
+        "vsi590k_095972_away_sb_rowD6_b",
+        "vsi590k_011698_away_sb_rowD6_b",
+        "vsi590k_008211_away_sb_rowD6_b",
+        "vsi590k_109620_away_sb_rowD6_b",
+        "vsi590k_006817_away_sb_rowD6_b"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "first": 56,
+      "last": 60,
+      "note": "Toward hard: source back-left maps to front-right. Row 59 legitimately cites two distinct objects in frame 12; the source citation is preserved.",
+      "qids": [
+        "vsi590k_013101_away_sb_rowD6_b",
+        "vsi590k_111465_away_sb_rowD6_b",
+        "vsi590k_100168_away_sb_rowD6_b",
+        "vsi590k_093682_away_sb_rowD6_b",
+        "vsi590k_102297_away_sb_rowD6_b"
+      ],
+      "verdict": "PASS"
+    }
+  ],
+  "review_text_sha256": "e62b4f2f206ce137a231bb24b86daaa55f347b10edb0eafedef357483bd1efe6",
+  "reviewer": "Codex /root sb_rowD6",
+  "rows": 60,
+  "status": "PASS",
+  "unresolved_issues": []
+}

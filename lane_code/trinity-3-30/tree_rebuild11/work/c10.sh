@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; L=$W/w20; date -u +%TZ; cat $L/work/build20/DELIVERY.json; wc -c $L/out/BUILD20_REPORT.md; cat $L/out/BUILD20_REPORT.md; echo ===; cat $L/work/build20/STATUS.md | tail -30; ls $L/work/build20/kits/q 2>&1 | head; cat $L/work/build20/shrink_fixture.py; tail -5 $L/work/build20/suite.log $L/work/build20/receipts.log

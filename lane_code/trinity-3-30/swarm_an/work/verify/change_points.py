@@ -53,7 +53,10 @@ fac = {'m': 1.0, 'cm': 100.0, 'ft': 1 / .3048, 'in': 1 / .0254}
 def gap(r):
     g = [re.search(r'distance ([\d.]+) m', c['response'] or '') for c in r['calls'] if c['family'] == 'gap']; g = [float(x.group(1)) for x in g if x]
     return g[-1] if g else None
-nw = {r['id']: r for r in K.routed(STEP, types=['object_abs_distance'])}; od = {r['id']: r for r in K.routed(544, types=['object_abs_distance'])}
+try:
+    nw = {r['id']: r for r in K.routed(STEP, types=['object_abs_distance'])}; od = {r['id']: r for r in K.routed(544, types=['object_abs_distance'])}
+except Exception as e:
+    print('no routed read at step', STEP, repr(e)[:80]); json.dump(out, open('/scratch/jjyeung/orch_n30/swarm_an/work/verify/CHANGE_POINTS_m%d.json' % STEP, 'w'), indent=1); sys.exit(0)
 print('== routed distance by unit: items, calls, score at 544, score now, only no-call fixed, all call and convert, perfect gap')
 dd = {}
 for u in ('m', 'cm', 'ft', 'in', 'all'):

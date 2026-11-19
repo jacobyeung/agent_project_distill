@@ -1,0 +1,1 @@
+The kit is copied into this workspace. The review and production interfaces confirm the five blockers. Fixes will use N's official score_item and own-pose reader, refuse failed draws without backward, synchronize explicit gradients, save periodic checkpoints, and test the production room gate. No GPU or network work has run.

@@ -16,6 +16,103 @@ def read(path): return json.loads(Path(path).read_text())
 def digest(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def canonical(v): return hashlib.sha256(json.dumps(v, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
+PACKAGE_KIND = 'D'
+EXPECTED_COUNT = 580
+SERVING_KEYS = ('reader_sha256', 'parity_code_sha256', 'evaluator_code_sha256', 'maker_sha256')
+EXPORTS = {200: {'run': '673bc60f', 'step': 200, 'member_directory': 'm200', 'object': 'q8/8865619b/673bc60f_m200.tar', 'lineage': 'SFT', 'archive_sha256': '795ef9ef7e59bf37443c14a4d3a7e734eabcb2fd5fcb289ad3d77ae7096e283b'}, 544: {'run': '469ddece', 'step': 544, 'member_directory': 'm544', 'object': 'q8/8865619b/469ddece_mstop.tar', 'lineage': 'SFT', 'archive_sha256': '3ed73aead82cb0bb6468321256ea25e8fdaa5a2963da31062fdf8874bda2d4c7'}}
+
+
+def checked_sha(value, name):
+    if (not isinstance(value, str) or len(value) != 64 or value == '0'*64
+            or any(ch not in '0123456789abcdef' for ch in value)):
+        raise ValueError('Invalid SHA256: '+name)
+    return value
+
+
+def package_identity(path):
+    """Read trusted build evidence supplied separately from the return."""
+    path = Path(path)
+    if path.is_dir():
+        public = read(path/'0.json')
+        import tarfile
+        with tarfile.open(str(path/'0.tgz')) as archive:
+            plan = json.loads(archive.extractfile('9.json').read().decode())
+        # Plans use the builder's ASCII canonical serialization.
+        plan_sha = hashlib.sha256(json.dumps(plan, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+        if plan_sha != public['plan_sha256'] or plan['token'] != public['token']:
+            raise ValueError('Package plan differs')
+        if digest(path/'0.tgz') != public['payload_sha256']:
+            raise ValueError('Package payload differs')
+        result = dict(plan=plan_sha, operator_sha256=digest(path/'a/6.py'),
+                      export_binding=plan['export_binding'])
+    else:
+        value = read(path)
+        build = value.get(PACKAGE_KIND, value)
+        result = dict(plan=build['plan_sha256'],
+                      operator_sha256=build['changed_members']['a/6.py']['after'],
+                      export_binding=build['export_binding'])
+    for key in ('plan', 'operator_sha256'):
+        checked_sha(result[key], key)
+    binding = result['export_binding']
+    step = binding.get('step')
+    if step not in EXPORTS:
+        raise ValueError('Unreviewed '+PACKAGE_KIND+' step')
+    for key, want in EXPORTS[step].items():
+        if key != 'archive_sha256' and binding.get(key) != want:
+            raise ValueError('Package export binding differs: '+key)
+    return result
+
+
+def authenticate_return(root, package, read_index=0):
+    expected = package_identity(package)
+    root = Path(root)
+    identity = read(root/'metadata/IDENTITY.json')
+    for key in ('plan', 'operator_sha256'):
+        if identity.get(key) != expected[key]:
+            raise ValueError('Return plan/operator differs: '+key)
+    descriptor = dict(arm='tower', modes=['none'], types=[3], expected=EXPECTED_COUNT,
+                      stage1_select_rule='candidates_argmax', save_own_depth=False,
+                      perception_memo='on', perception_memo_modules=['g3t'], perception_memo_verify_ids=[])
+    if (read_index != 0 or identity.get('cards') != 1 or identity.get('reads') != [descriptor]
+            or identity.get('schedule') != [[0, 3]]):
+        raise ValueError('Return read plan differs')
+    directory = root/'metadata/reads/0/metadata'
+    read_identity = read(directory/'READ_IDENTITY.json')
+    if {k:v for k,v in read_identity.items() if k not in ('read','settings_sha256')} != identity:
+        raise ValueError('Read identity differs')
+    if read_identity.get('read') != 0:
+        raise ValueError('Read index differs')
+    reader_identity = read(directory/'IDENTITY.json')
+    for key in ('plan', 'inputs'):
+        if reader_identity.get(key) != identity.get(key):
+            raise ValueError('Reader identity differs: '+key)
+    pin = read(root/'metadata/EXPORT_PIN.json')
+    step = expected['export_binding']['step']
+    for key, want in EXPORTS[step].items():
+        if pin.get(key) != want:
+            raise ValueError('Export pin differs: '+key)
+    if pin.get('schema') != 'h1-export-pins-v1':
+        raise ValueError('Export pin schema differs')
+    binding = expected['export_binding']
+    if pin.get('config_sha256') != binding['config_sha256']:
+        raise ValueError('Export config differs')
+    for key, want in binding['preparation_sha256'].items():
+        if pin['preparation'][key]['sha256'] != want:
+            raise ValueError('Export preparation differs: '+key)
+    return dict(package=str(package), plan=expected['plan'], operator_sha256=expected['operator_sha256'],
+                export_pin=pin, read_identity=read_identity, reader_identity=reader_identity)
+
+
+def authenticate_journals(meta, identity):
+    binding = meta['binding']
+    if binding['step'] != identity['export_pin']['step']:
+        raise ValueError('Journal export step differs')
+    for key in ('export_sha256', 'artifact_manifest_sha256') + SERVING_KEYS:
+        checked_sha(binding[key], key)
+    for key in ('read_identity', 'reader_identity'):
+        if identity[key]['settings_sha256'] != binding['settings_sha256']:
+            raise ValueError('Read settings differ')
+
 
 def bootstrap(pairs):
     groups = defaultdict(list)
@@ -125,6 +222,20 @@ def evaluate(root,manifest,items_path,records):
     return rows,result
 
 
+def load_return(root, manifest, items_path, package):
+    identity = authenticate_return(root, package)
+    rows, report = load(root, manifest, items_path)
+    authenticate_journals(report, identity)
+    report['identity'] = identity
+    return rows, report
+
+
+def evaluate_return(root, manifest, items_path, records, package):
+    rows, meta = load_return(root, manifest, items_path, package)
+    return rows, dict(meta, groups={n:metrics(rows, ks, records) for n,ks in groups(manifest).items()},
+                     reworded_minus_twin=paired(rows, manifest))
+
+
 def comparison(current,baseline,manifest):
     items={r['id']:r for r in manifest['items']}; result={}
     for name,keys in groups(manifest).items():
@@ -187,6 +298,8 @@ def self_test(directory,manifest,items_path,records):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('items');p.add_argument('--return',dest='root');p.add_argument('--compare',help='Baseline return; differences are current minus baseline')
+    p.add_argument('--package',help='Trusted D package directory or BUILD.json for --return')
+    p.add_argument('--compare-package',help='Trusted D package directory or BUILD.json for --compare')
     p.add_argument('--src',required=True,help='Unpacked D payload (h1eval, b, tree)')
     p.add_argument('--out',required=True,help='Output JSON file');p.add_argument('--self-test',metavar='NEW_DIRECTORY')
     a=p.parse_args();src=Path(a.src).resolve()
@@ -196,12 +309,15 @@ def main():
     from h1eval.items import load_manifest
     manifest=load_manifest(a.items)
     if manifest['name']!='dist580':raise ValueError('Expected D manifest')
-    if a.self_test: result=self_test(a.self_test,manifest,a.items,records)
+    if a.self_test:
+        if a.root or a.compare or a.package or a.compare_package:p.error('--self-test cannot score a return')
+        result=self_test(a.self_test,manifest,a.items,records)
     else:
-        if not a.root:p.error('--return is required')
-        rows,current=evaluate(a.root,manifest,a.items,records);result=dict(current=current)
+        if not a.root or not a.package:p.error('--return and --package are required')
+        if a.compare and not a.compare_package:p.error('--compare requires --compare-package')
+        rows,current=evaluate_return(a.root,manifest,a.items,records,a.package);result=dict(current=current)
         if a.compare:
-            base,baseline=evaluate(a.compare,manifest,a.items,records)
+            base,baseline=evaluate_return(a.compare,manifest,a.items,records,a.compare_package)
             result.update(baseline=baseline,step_difference=comparison(rows,base,manifest))
     result.update(bootstrap=dict(draws=10000,seed=17,unit='room_key',interval=.95),
                   score_source='output.scores.answer uses item answer; released_answer is reported only when present',

@@ -1,35 +1,30 @@
 # swarm_build STATUS (successor resumes from this file alone)
-Updated: 2026-11-19T05:25Z by swarm_build (Devin Opus high, trinity-3-30; started 04:02Z; rotate by 09:30Z or 60% context). Brief: B/briefs/swarm_build.md; orders since: ORCH NOTE 0404Z (room rerank), ORDER 0433Z (rows A-E, up to 6 Codex), ANSWER 0426Z (aws_fetch), RULING 0451Z (NOT_PRESENT; frame pool; K1 union), ANSWER 0459Z (camera rows from Mind extract; camera gate text owed after held-out review).
-R = trinity-1-18:/scratch/jjyeung/orch_n30. My scripts/prompts: trinity-3-30 $L/work/{sh,prompts}. ssh only via B/tools/tssh.sh (one call/min). Codex queue: tmux sb_codexq on 1-18 runs R/sb_queue/codexq.sh (launches names in R/sb_queue/queue.txt when <6 Codex and >100 GB available; log codexq.log; prompt at R/<t>/prompts/<t>.md). Cursor: `agent -p -f --sandbox disabled --trust --model claude-opus-5-5-xhigh` in tmux from a workspace holding AGENTS.md (copy R/sb_cursor_probe/AGENTS.md) and PROMPT.md. rm_guard blocks some complex shell lines as "unparsable": build launch scripts with python/write tool, run them with tssh. Two blocked (non-deleting) commands of mine are queued in /home/jjyeung/agent_project/agent/PENDING_USER_COMMANDS.md: obsolete, must not be run.
-Codex "model at capacity" errors happen: a job ending exit 1 with that in its transcript is rerun (resume note in prompt).
+Updated: 2026-11-19T06:28Z by swarm_build2 (Devin Opus high, trinity-3-30, started 05:40Z; rotate by 11:10Z or 60% context to swarm_build3).
+Brief: B/briefs/swarm_build2.md. Orders in force (B/events/swarm_build/*ORCH*): 0404Z, 0433Z (row builds, up to 6 Codex on 1-18), 0426Z/0459Z (aws_fetch fetches; never ssh code-aws/Mind), 0451Z (NOT_PRESENT; frame pool; K1 union), 0457Z (head accuracy first), 0515Z (rank by benchmark points; OI/LR/direction rows; VSTI spec; audit fix), 0528Z (frame-pool join first), 0536Z (direction = rows_r1 half-turn twins <=8,000, reviewed by 11:00Z for build 22; VSTI 6,827 rebuilt + REMOVE after review, 4,420 lost-raster rows: drop unless a type <1,000; regen not ordered, record gap), 0546Z GO (head-accuracy: Codex review of record, 3 kits built + Cursor cross-review + CPU dry run; GPU pricing authorised on trinity-1-18 under conditions: record review no BLOCKING, kit reviewed + dry run, 2 nvidia-smi idle readings 1 min apart, <=2 cards, <=16 GPU-h total, vnice + tmux, INBOX_TO_NONTRAINING_ORCHESTRATOR note first, main preempts).
+R = trinity-1-18:/scratch/jjyeung/orch_n30. Scripts/prompts: trinity-3-30 /scratch/jjyeung/orch_n30/swarm_build/work/{sh,prompts}; build launch scripts with python + base64 prompts (see sh/w5.sh, w6.sh). Codex queue: tmux sb_codexq runs R/sb_queue/codexq2.sh: append "label" or "label:ws" to R/sb_queue/queue.txt, prompt at R/<ws>/prompts/<label>.md (task + COMMON.md [+ ROWCOMMON.md]); launches while <6 swarm_build Codex and >100 GB avail. Cursor: tmux session per review from R/<ws> with AGENTS.md (copy R/sb_cursor_probe/AGENTS.md) + PROMPT.md; cursor.log only fills at the end (check workspace files for liveness). ssh only via B/tools/tssh.sh trinity-1-18 'bash -s' < script.
 
-## Running
-| item | builder | tmux / host | deliverable |
+## Running at 06:28Z (queue cap 4 Codex, nice 10, 8 threads; GPUs on 1-18 taken: post a QUESTION with GPU need when a kit is ready)
+| item | builder | tmux | next |
 |---|---|---|---|
-| lineage component records from aws_fetch sources | Codex | sb_records | R/sb_records/out/RECORDS_REPORT.md -> Cursor review -> tree_rebuild11 |
-| frame pool 146 captures (rerun) | Codex | sb_framepool | out/FRAMEPOOL_REPORT.md; training row = BLOCKER; add to STORE_V7_ROOM_AUDIT record + init_m544 disclosure |
-| room kit spec review | Codex | sb_rspecrev | then build room pricing kit (Part A) |
-| counting form B (candidate) | Codex | sb_rowF | out/ |
-| relative count C3 (form B) / C2 (tally, superseded) | Codex | sb_rowC3, sb_rowC2 | out/ |
-| own-arm kit fixes | Cursor | sb_ownfix (in R/sb_ownread) | then hand OPERATOR to cont_ops18 |
-| 64-frame N | Cursor | sb_f64 | out/F64_REPORT.md |
-| head accuracy all categories | Fable trinity-3-30 pid 3462774 (4 h) | - | HEAD_ACCURACY_DESIGN_20261119.md + 3 kit specs -> build pricing kits (top rank) |
-| counting >4 | Fable trinity-3-30 pid 3439690 (3 h) | - | COUNT_LARGE_SETS_DESIGN_20261119.md |
-| queue order | Codex | sb_codexq (codexq2.sh, entries label[:workspace]) | sb_rowD3, sb_rowA2:sb_rowA (rows + scorer patch for parser blocker), sb_rowB3, sb_rowOI, sb_rowLR, sb_auditfix |
-| waiting | - | - | NOT_PRESENT delta on build 20 (tr11_b20 ~07:45Z) + Cursor review; aws_fetch GT packs for D3/B3 (RESULT 0520Z); camera gate text after rowA2 |
+| Cursor reviews | sb_drev6 (direction twins D6, tar 265b03ac), sb_brev4 (VSTI B4, tar ff3ee17e; also REMOVE_FINAL per ruling 0607Z item 4), sb_pfrev (pose family proof), sb_rkrev (room kit) | same | D6/B4 -> tree_rebuild11 build 22 (by 11:00Z); posefam record text -> tree_rebuild11; roomkit GO -> GPU QUESTION |
+| sb_kbox2 (torch env; v2 spec exists: KIT_SPEC_box_ladder_k1_v2.md) | Codex | sb_kbox2 | Cursor review |
+| sb_rlfix (tower path kept per ORCH ANSWER 0620Z item 3; score_item parity) | Codex | sb_rlfix | Cursor re-review |
+| sb_ktow (tar 7438d6f5), sb_kobj (dry run BLOCKER: no torch, missing direct/scorer exports, 2 ambiguous qids; track BLOCKER file) | done v1 | - | v2 patch pass when sb_headacc2 posts tower/object v2 specs (fix env too) |
+| head-accuracy fix lane sb_headacc2 | Devin Fable xhigh trinity-3-30 pid 3528233 | - | box v2 posted; tower/object v2 + REVIEW_RESPONSE -> Codex re-review sb_harev2 |
+| 64-frame N sb_f64 | Cursor | sb_f64 | dry run evidence mem_n32_8/mem_f64_8; Codex review when done |
+| Fable sb_countdesign pid 3439690 (to ~08:09Z) | - | - | - |
 
-## Done
-- Reader v3 final review ACCEPT WITH FINDINGS (LOW); tar ba53f025 mirrored to B/events/swarm_build/ops_mirror/sb_callrate_v3.tar; handed to cont_ops18 (events/cont_ops 0522Z).
-- Own-arm kit review GO AFTER FIXES (sb_owrev). Held-out camera review REJECT (parser blocker; fix in sb_rowA2). Tally kit sb_rowT 17,564 rows (53dac75a). B2 6,827 VSTI rows (4,420 refused missing GT; superseded by B3). D2: 0 rows (GT packs missing), 3,026 K1 removals; superseded by D3. RESULT 0520Z.
-- Evidence: nine MISSING (R/sb_evidence tar 18d4d04c), review ACCEPT WITH FINDINGS; inventories R/sb_inventory (all GAP); GF-1 -> NOT_PRESENT ruling 0451Z.
-- v7 audit (R/sb_alias2 tar c7743a8b): 0 R0 / withheld / BENCH v2 / dev-S1, K1 4,959; review ACCEPT WITH FINDINGS (audit code's scannetppv2 naming bug, harmless here). Record distill_design/STORE_V7_ROOM_AUDIT_20261119.md + INDEX line. K1 union (R/sb_k1list: u2 d2fd6208, union 1c7c930d) handed to tree_rebuild11 0509Z.
-- Reader v3 (R/sb_callrate, tar in out/): 56 unit tests, 190 reproduction checks, 31 probe checks; room36 vs b1/read 0 55.28; distance usage 100% at both steps with conversion failures split out; --strata ready.
-- rows A part (ii): 900 held-out camera items (R/sb_rowA/out). rows D audit: away rows already state the half turn.
-- own-arm kit (R/sb_ownread/out): 1 H100 ~2.1 h per milestone; review running. RL kit (R/sb_rlkit/out): CPU proof, 20 tests; not GPU-near.
-- Room head design (Fable, done 04:44Z): YES it could: room call on DA3 geometry 84-85 on K1 ScanNet++ vs direct 62.76 on R0-dev; kit spec events/sb_roomdesign/KIT_SPEC_room_pricing.md (Part A ~0.6 GPU-h); spec review queued.
-
+## Done this session
+- sb_fpjoin: 0/0/0 admitted on (a)/(b)/(c); R1 routing/VQA receipt-supported only (FPJOIN_REPORT.md, tar 2eb541e1). On sb_fprev ACCEPT: close BLOCKER 0526Z, add section to distill_design/STORE_V7_ROOM_AUDIT_20261119.md, init_m544 disclosure.
+- Camera gate text B/events/swarm_build/GATE_CAMERA_CALL_RATE_V1.md (6f0da488): per type >=143/150 held-out calls, <=2 misses per wording. Registrable after sb_arev2.
+- sb_rowA2 camera rows 6,000 (tar 6e0fb408), held-out 900 + scorer patch; sb_rowB3 VSTI 8,186 rows (tar 8ef3308f; v3 family 836 <1,000 so drop default needs a proposal); sb_rowLR 72 rows (576 short; tar 7d26bc3d); sb_auditfix (tar 1d6badbe).
+- Verdicts: sb_harev REJECT (13 findings); sb_brev3 REJECT (2 blockers); sb_afrev v7 row-for-row + 2 gaps; sb_recrev ACCEPT WITH FINDINGS (fetch list to events/aws_fetch 0601Z). sb_rowD5 gate: easy 3,664 + hard 2,182 exact, medium 2,665 ambiguous. sb_rowOI 1,008 rows (504 singleton totals + 504 controls; tar R/sb_rowOI/out). sb_regenscope PARTIAL. Verdict texts: work/verdicts1.txt.
+- sb_fprev ACCEPT WITH FINDINGS -> BLOCKER 0526Z closed; record section + INDEX written. sb_arev2 ACCEPT WITH FINDINGS -> rows to tree_rebuild (0614Z), held-out+patch to cont_ops (0614Z), gate text ready. sb_rlrev GO AFTER FIXES. sb_auditfix2 done (16 tests). sb_kbox stopped (no torch). aws_fetch: ancestry list 0601Z, R1 row-level list 0614Z. R0DEV_LOOKS.md created. Verdicts: work/verdicts1.txt, verdicts2.txt.
+- 06:26Z: sb_rowD6 8,000 twins PASS (gate 5,846/5,846; medium refused: 2,665 pairs, 29,124 rows); sb_rowB4 8,050 rows, 0 false citations, 0 scene-gate refusals; sb_posefam: N's BENCH filter drops all 23 (admitted-order hash MISSING); sb_roomkit S0/S1/S1b + 22 tests pass. Camera gate registered (events/r1_ops/REGISTERED_GATE_CAMERA_CALL_RATE_V1.md); ANSWER 0620Z copied to cont_ops. Record CAMERA_WORDING_ROWS_GATE_20261119.md + INDEX.
+- RESULTs 0548Z, 0602Z, 0615Z posted. u2.json exists at R/sb_k1list/out (build 21 binds it).
+## Done earlier (predecessor; events 0445Z-0540Z)
+Evidence survey + review; v7 audit 0/0/0/0 + K1 union; reader v3 handed to cont_ops18; own-arm kit (awaits GO); counting candidates (rowT, rowF, rowC2, rowC3: need grammar amendment); RL kit sb_rlkit; room design; held-out camera items.
+## Waiting
+NOT_PRESENT delta (tree_rebuild11 build 22); aws_fetch ancestry files (a60f3a9f, step-200 membership config).
 ## Spend
-CODEX_SPEND.log (1-18): about 15 finished jobs (~9,000 s wall; no dollar field).
-
-## Events sent (this session)
-tree_rebuild 0403Z, 0441Z, 0445Z, 0509Z; cont_ops 0408Z; sb_roomdesign 0410Z; aws_fetch 0454Z, 0503Z; swarm_build 0424Z Q, 0445Z, 0447Z, 0503Z Q, 0509Z.
+CODEX_SPEND.log on 1-18: 27 lines at 05:41Z, about 16,000 s wall (no dollar field). Cursor ~16 sessions. Devin Fable 3.
