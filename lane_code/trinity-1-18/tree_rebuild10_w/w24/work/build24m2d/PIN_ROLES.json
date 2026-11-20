@@ -1,0 +1,65 @@
+{
+  "mode_q": {
+    "armed_source": "SHA256-indexed staged upload/member inventory; a missing selected input refuses by name.",
+    "database": "The selected base receipt database must match selection.inputs_pinned.routing_database when present.",
+    "mapping": "selection.inputs_pinned.routing_base -> request.routing_base -> native stage_host routing substitution",
+    "qd_source": "Private job root/dr/p/q/base/rows.sqlite, authenticated against the selected receipt database SHA256",
+    "recording": "The config retains its original routing pin. Native stage_host writes routing_substitution and routing_substituted to host.json."
+  },
+  "mode_r": {
+    "new_outputs": [
+      "q/base/rows.sqlite",
+      "q/selection/rows.sqlite",
+      "q/selection/receipt.json",
+      "q/selection/materialization.json",
+      "routing_selection.json"
+    ],
+    "other_required_inputs": "All recipe inputs/catalog, config s1_routing catalog, non-routing stream closure, removals, exclusions, code, model and handover staging remain authenticated inputs.",
+    "output_authentication": "Full SHA256 must match the database pin in the unchanged P receipt before existing readers or the unchanged row comparison run.",
+    "reconstructed_output": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/rows.sqlite",
+      "sha256": "4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84"
+    },
+    "required_legacy_database": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/rows.sqlite",
+      "sha256": "3d1d2d05bc8d3fed3048618da0c25b330f693e6394c6e2564c3007d64c050001"
+    },
+    "required_legacy_receipt": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json",
+      "sha256": "9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"
+    },
+    "required_materialization": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/materialization.json",
+      "sha256": "0c38bc96bb4566c2dc5aa17e1543995954b51401032fad02f0ce67e15f5d898a"
+    },
+    "required_p_config": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/config.json",
+      "sha256": "b08fe50cdc374c82a36ddb01d6492fed1361b1b2e3308a8e0d9b32af675b4fad"
+    },
+    "required_receipt": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/inputs/prepare_da5580b7d92f490bb3cfe8df447e7820/routing/receipt.json",
+      "sha256": "ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984"
+    },
+    "required_recipe_pins": {
+      "base_model": {
+        "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/arm/frozen/6f27ae81/model.json",
+        "sha256": "cc724d5ee1b0bd62ba759be3eb0831afd009cd7635ea5966ddc0fd26c4599fb7"
+      },
+      "division": {
+        "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a3v2/division.json",
+        "sha256": "f41d15aadd7e0bde758a14806073424af2c3c70997efb8a0ce88226ace151ea5"
+      }
+    }
+  },
+  "scene_rebuild": {
+    "conditionally_buildable": true,
+    "conditions": [
+      "The selected camera/routing population authenticates in-job and equals its source receipt database pin",
+      "Every other required input authenticates, including the runtime catalog",
+      "The future implementation calls native r2_scene_bindings.rebuild and binds its returned pins; unchanged verifiers still decide acceptance"
+    ],
+    "installed": false
+  },
+  "schema": "routing-pin-roles-v1",
+  "tree_changes": false
+}

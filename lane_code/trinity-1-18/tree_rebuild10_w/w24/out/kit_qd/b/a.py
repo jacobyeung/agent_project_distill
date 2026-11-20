@@ -47,7 +47,7 @@ if sys.argv[1] in ('q','r'):
     r.update(discovery=True,claims='nothing')
     write(root/'q/RESULT.json',r)
     if r['status']=='ADMIT':
-     from sv import publish
+     from cs import publish
      from student_pilot.p3_provenance import pinned
      publish(kit,root.parent,load(pinned(r['config'])),os.environ['SLURM_JOB_ID'])
    else:

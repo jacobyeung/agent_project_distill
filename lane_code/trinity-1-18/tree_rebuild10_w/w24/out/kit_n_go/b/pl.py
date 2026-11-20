@@ -73,6 +73,23 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
     from px import resolver
     need=resolver(kit,root,sources)
     cfg=deepcopy(resolved['config'])
+    base=deepcopy(resolved['request'].get('routing_base') or load(kit/'k/r.json')['routing_base'])
+    if selected:
+        value=load(selected[1])
+        chosen=value.get('inputs_pinned',{}).get('routing_base')
+        if chosen is not None:
+            if (not isinstance(chosen,dict) or set(chosen)!={'path','sha256'} or not isinstance(chosen['sha256'],str) or len(chosen['sha256'])!=64 or any(c not in '0123456789abcdef' for c in chosen['sha256'])):
+                raise ValueError('R1_ROUTING_SELECTION_BASE_INVALID')
+            base=deepcopy(chosen)
+    # Only P's authenticated database is reconstructed. All producer inputs,
+    # including the legacy routing database, remain required staged inputs.
+    output=None
+    if regeneration and base['sha256']=='ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984':
+        if base['sha256'] not in sources:need(base['sha256'],'request.routing_base')
+        output=load(sources[base['sha256']])['database']['sha256']
+        if output!='4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84':
+            raise ValueError('P_TRAINED_ROUTING_DATABASE_DIFFERS')
+
     # Native stream readers follow pinned child receipts and databases. Preserve
     # their bytes while adding their authenticated closure to the copy plan.
     seen=set()
@@ -93,7 +110,10 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
                         # provenance that the readers deliberately leave unopened.
                         if isinstance(child,dict):
                             for key in ('database','model','division','dense_indices'):
-                                if key in child:closure(child[key],field+'.'+key)
+                                if key in child:
+                                    if key=='database' and output and h==base['sha256']:
+                                        continue
+                                    closure(child[key],field+'.'+key)
                             for i,source in enumerate(child.get('sources',[])):
                                 if not isinstance(source,dict):continue
                                 for key in ('receipt','model','dense_plan','teacher','clips_plan'):
@@ -102,10 +122,25 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
             for key,v in value.items():closure(v,field+'.'+str(key))
         elif isinstance(value,list):
             for i,v in enumerate(value):closure(v,field+'.'+str(i))
-    closure(cfg.get('streams',{}))
+    # Plan the same effective stream that stage_host substitutes, but retain the
+    # original config pin so host.json records both sides of the substitution.
+    streams=deepcopy(cfg.get('streams',{}));streams['routing']=base
+    if selected:
+        value=load(selected[1]);database=value.get('inputs_pinned',{}).get('routing_database')
+        if database is not None:
+            if base['sha256'] not in sources:need(base['sha256'],'request.routing_base')
+            expected=load(sources[base['sha256']])['database']
+            if not isinstance(database,dict) or set(database)!={'path','sha256'} or database.get('sha256')!=expected['sha256']:
+                raise ValueError('R1_ROUTING_SELECTION_DATABASE_DIFFERS')
+            if load(kit/'k/a.json').get('discovery') and expected['sha256'] not in sources:
+                local=root.parent/'dr/p/q/base/rows.sqlite'
+                if local.is_symlink() or not local.resolve().is_relative_to(root.parent.resolve()):raise ValueError('R1_STAGED_PIN_SYMLINK')
+                if local.is_file():remember(local,expected['sha256'])
+    closure(streams)
+
     # P's regeneration recipe additionally consumes its materialization receipt.
     # Authenticate that recipe and its inputs before the native hook copies bytes.
-    if regeneration and cfg.get('streams',{}).get('routing',{}).get('sha256')=='ca0616dbc67cf9a257774b43a9d5b134957b3f3ce0451e6bf5378f3d7d0c1984':
+    if output:
         closure(cfg['r1_training']['p_run']['config'],'config.r1_training.p_run.config')
         with scope(sources):
             p_config=load(pinned(cfg['r1_training']['p_run']['config']))
@@ -166,14 +201,43 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
         return value
     # Output locations are future destinations, never inputs to be copied.
     cfg['output']=str(q/'r'); cfg['preparation_output']=str(q/'p0')
+    # Catalog values name authenticated sources, not extra host-path inputs.
+    cfg.get('s1_routing',{}).update(catalog={h:paths.get(h,str(q/'u'/h)) for h in cfg.get('s1_routing',{}).get('catalog',{})})
     cfg=localize(cfg)
     cfg['code']=dict(path=str(q/'source_code.json'),sha256=spec['code_sha256'])
     cfg['output']=str(q/'r'); cfg['preparation_output']=str(q/'p0')
     cfg.get('s1_routing',{}).update(catalog={h:paths.get(h,str(q/'u'/h)) for h in cfg.get('s1_routing',{}).get('catalog',{})})
+    scene=None;source_record=None
+    if not regeneration and cfg.get('r2_all_stream_exclusions'):
+        from student_pilot.r1_rooms import census,verify_audit
+        from cs import sources as census_sources,preflight
+        from sc import bind
+        effective=deepcopy(cfg);effective['streams']['routing']=localize(base)
+        with scope(sources):
+            audit,_=census(effective)
+            audit_pin=write(scratch/'ra.json',audit)
+            remember(audit_pin['path'],audit_pin['sha256'])
+            staged_audit=dict(path=str(q/'u'/audit_pin['sha256']),sha256=audit_pin['sha256'])
+            cfg['r1_training']['room_audit']=staged_audit
+            effective['r1_training']['room_audit']=staged_audit
+            request['room_audit']=staged_audit
+        with scope(sources):
+            verify_audit(effective,staged_audit)
+        scene=bind(cfg,sources,scratch,q,kit,routing_base=localize(base))
+        for p in scene.rglob('*'):
+            if p.is_file():remember(p)
+        from rv import location,put
+        live,_=location(kit,root.parent,os.environ['SLURM_JOB_ID'])
+        put(live/'s0.json',(scene/'2.json').read_bytes())
+        put(live/'s1.json',(scene/'0.json').read_bytes())
+        effective.update(r2_scene_rebuild=cfg['r2_scene_rebuild'],scene_coverage=cfg['scene_coverage'])
+        with scope(sources):
+            source_record=census_sources(effective)
+            preflight(kit,root.parent,effective,source_record,os.environ['SLURM_JOB_ID'])
     cfgraw=raw_json(cfg); cfgpath=metadata/'n.json';cfgpath.write_bytes(cfgraw);cfgh=remember(cfgpath)
     request=localize(request)
     request.update(config=dict(path=str(q/'n.json'),sha256=cfgh),job_tmp=str(q),binaries=load(kit/'k/h.json')['binaries'])
-    request['routing_base']=localize(load(kit/'k/r.json')['routing_base'])
+    request['routing_base']=localize(base)
     request['staged_pins']=[dict(path=str(q/'u'/h),sha256=h) for h in sources]+[request['config']]
     if selected:
         pin,source=selected;remember(source,pin['sha256']);request['routing_selection']=dict(path=str(q/pin['path']),sha256=pin['sha256'])
@@ -186,6 +250,12 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
         copies[name]=str(p)
     for h,p in sources.items():copy_entry('u/'+h,p,h)
     copy_entry('source_code.json',codepath,spec['code_sha256']);copy_entry('n.json',cfgpath,cfgh)
+    if scene is not None:
+        for p in scene.rglob('*'):
+            if p.is_file():copy_entry('sc/'+str(p.relative_to(scene)),p)
+    if source_record is not None:
+        source_path=scratch/'ss.json';write(source_path,source_record)
+        copy_entry('ss.json',source_path)
     entries['e']=dict(archive=dict(sha256=resolved['tar_sha256'],bytes=resolved['tar_bytes'],
         parts=[dict(sha256=p['sha256'],bytes=p['bytes']) for p in resolved['parts']]),
         inventory={label:pin['sha256'] for label,pin in handover['pins'].items()})
@@ -222,8 +292,13 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
         final_paths[cfgh]=str(q/'n.json')
         final_paths[spec['code_sha256']]=str(q/'source_code.json')
         # Keep native reads on the authenticated staged bytes after preflight.
+        if output:final_paths[output]=str(q/'base/rows.sqlite')
         stage.context=scope(final_paths)
         stage.context.__enter__()
+        if output:
+            from rb import reconstruct
+            generated=reconstruct(cfg,q)
+            if str(generated)!=final_paths[output]:raise ValueError('R1_ROUTING_OUTPUT_PATH_DIFFERS')
     def close():
         if stage.context is not None:
             stage.context.__exit__(None,None,None)
@@ -232,5 +307,5 @@ def plan_payload(kit, resolved, root, *, regeneration=False):
     stage.close=close
     # The map only resolves authenticated bootstrap metadata before q exists.
     sources[cfgh]=str(cfgpath)
-    write(root/'plan.json',dict(request=request,config=cfg,entries=entries))
+    write(root/'plan.json',dict(request=request,config=cfg,entries=entries,generated={output:str(q/'base/rows.sqlite')} if output else {}))
     return request,sources,stage

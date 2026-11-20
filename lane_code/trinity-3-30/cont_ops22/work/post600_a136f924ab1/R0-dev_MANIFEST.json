@@ -1,0 +1,174 @@
+{
+ "config": {
+  "arm": "direct",
+  "decoding": {
+   "budget": 2048,
+   "decoding": "greedy",
+   "engine_version": "0.32.0",
+   "frames": 32,
+   "layout": "duplicate",
+   "max_model_len": 49152,
+   "max_tokens": 16384,
+   "temperature": 0,
+   "thinking": true
+  },
+  "item_file_sha256": "1d8b29a7f7bb5c4e486f430b1128b9fa249de24ae7a3905b9bb0ccdd778c892b",
+  "reader_package": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa",
+  "rule_population": {
+   "obj_appearance_order": 246,
+   "object_counting": 385,
+   "object_rel_direction_easy": 192,
+   "object_rel_direction_hard": 192,
+   "object_rel_direction_medium": 194,
+   "object_rel_distance": 279,
+   "object_size_estimation": 293
+  },
+  "scale_rule": "none (direct arm)",
+  "selector_rule": "none (direct arm: no call is served)",
+  "tower_weights": "none (direct arm)"
+ },
+ "family": "a7",
+ "read_file": {
+  "archive": {
+   "decode": "a7 and r0dev ids through ID_MAP.json (sha256 in ROOM_CROSSWALK.json sources.id_map)",
+   "member": "ITEMS.jsonl",
+   "path": "/dev/shm/c22/build/a136f924ab1/fetched/result.tar.gz",
+   "sha256": "d2ce7988a674c0fe723e81359ccfc2f57a4482f2de502a5119339205f5a27310"
+  },
+  "fetch_status": "COMPLETE",
+  "path": "/dev/shm/c22/build/a136f924ab1/fetched/x/ITEMS.jsonl",
+  "sha256": "574f48463b0cbaa7b101ec5a128f343d79a1e36fbba36ba46650113ab4d8a0db"
+ },
+ "receipts": [
+  {
+   "binds": [
+    [
+     "job",
+     "run.orchard_job"
+    ],
+    [
+     "token",
+     "run.read_token"
+    ],
+    [
+     "status",
+     "read_file.fetch_status"
+    ],
+    [
+     "archive.sha256",
+     "read_file.archive.sha256"
+    ]
+   ],
+   "path": "/dev/shm/c22/build/a136f924ab1/fetched/FETCH.json",
+   "sha256": "d75c4d11435f6b11c4832d7ca6913811255f0c36a26eb6cb65cf2eacf1a06b86"
+  },
+  {
+   "binds": [
+    [
+     "job",
+     "run.orchard_job"
+    ],
+    [
+     "token",
+     "run.read_token"
+    ],
+    [
+     "plan_sha256",
+     "run.plan_sha256"
+    ]
+   ],
+   "path": "/dev/shm/c22/build/a136f924ab1/SUBMISSION.json",
+   "sha256": "2f25c377e149956377caf1183a78c23487ce052fe05dc6acf488d145c4ea6988"
+  },
+  {
+   "binds": [
+    [
+     "artifact.sha256",
+     "run.artifact_sha256"
+    ],
+    [
+     "artifact.path",
+     "run.artifact_path"
+    ],
+    [
+     "step",
+     "run.step"
+    ],
+    [
+     "scope",
+     "config.arm"
+    ],
+    [
+     "export_binding.run",
+     "run.run_id"
+    ]
+   ],
+   "path": "/dev/shm/c22/build/a136f924ab1/fetched/x/SPEC.json",
+   "sha256": "38193cc63ef208d336335bf8ab6535196c30fde60962eb5a0888ce4abbaa17db"
+  },
+  {
+   "binds": [
+    [
+     "plan_sha256",
+     "run.plan_sha256"
+    ],
+    [
+     "step",
+     "run.step"
+    ]
+   ],
+   "path": "/dev/shm/c22/build/a136f924ab1/fetched/x/COMPLETE.json",
+   "sha256": "ed7df2b70d4ed3e8a85335bfdf186645171626a50e91296f0ec53c70bd002c3a"
+  },
+  {
+   "binds": [
+    [
+     "source_sha256",
+     "config.reader_package"
+    ],
+    [
+     "items_sha256",
+     "config.item_file_sha256"
+    ],
+    [
+     "max_tokens",
+     "config.decoding.max_tokens"
+    ],
+    [
+     "thinking",
+     "config.decoding.thinking"
+    ],
+    [
+     "temperature",
+     "config.decoding.temperature"
+    ],
+    [
+     "engine_version",
+     "config.decoding.engine_version"
+    ],
+    [
+     "cells.0.layout",
+     "config.decoding.layout"
+    ],
+    [
+     "cells.0.frames",
+     "config.decoding.frames"
+    ]
+   ],
+   "path": "/dev/shm/c22/build/a136f924ab1/fetched/x/a7/a0/request.json",
+   "sha256": "4bae00e23bbad77d9c7ac331fb10ab239bda3f83345d9b771dda89316c92fbe7"
+  }
+ ],
+ "run": {
+  "artifact_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6ed2c7aa/m600/artifact.json",
+  "artifact_sha256": "0db794d9826e14544d68a1e968278ce58bebb0e4bc905f231db1102fbf0b074e",
+  "orchard_job": 173409,
+  "plan_sha256": "2883cba436e942ef34eceeaec181b4b3629bfa88631259fe460c457a11e03088",
+  "read_token": "a136f924ab1",
+  "run_id": "6ed2c7aa",
+  "step": 600
+ },
+ "schema": "pooled-rule-read-manifest-v1",
+ "set": "R0-dev",
+ "type_filter": "direct"
+}

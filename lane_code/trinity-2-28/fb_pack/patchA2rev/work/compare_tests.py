@@ -39,15 +39,16 @@ def causes(name):
 
 
 out = dict(inputs_sha256={str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(T.glob('*.json'))})
-for name in ('full_base', 'full_a2', 'full_live_base', 'full_live_a2', 'focused_base.v1', 'focused_a2.v1',
+for name in ('full_base', 'full_a2', 'full2_base', 'full2_a2', 'full_live_base', 'full_live_a2', 'focused_base.v1', 'focused_a2.v1',
              'focused_live_base.v1', 'focused_live_a2.v1'):
     d = load(name)
     out.setdefault('counts', {})[name] = d['counts']
     out.setdefault('denied', {})[name] = dict(Counter(e[0] for e in d['denied']))
-for x, y in (('full_base', 'full_a2'), ('full_live_base', 'full_live_a2'), ('full_base', 'full_live_base'),
+for x, y in (('full_base', 'full_a2'), ('full2_base', 'full2_a2'), ('full_live_base', 'full_live_a2'), ('full_base', 'full_live_base'),
              ('full_a2', 'full_live_a2'), ('focused_base.v1', 'focused_a2.v1'), ('focused_live_base.v1', 'focused_live_a2.v1')):
     out[x+'_vs_'+y] = compare(x, y)
 out['preexisting_causes_full_base'] = causes('full_base')
+out['preexisting_causes_full2_base'] = causes('full2_base')
 (W/'TESTS_COMPARE.json').write_text(json.dumps(out, indent=1)+'\n')
 for k, v in out.items():
     if '_vs_' in k:
@@ -57,5 +58,7 @@ for k, v in out.items():
             print('   ', json.dumps(c)[:400])
 print(json.dumps(out['counts']))
 print(json.dumps(out['denied']))
-for c in out['preexisting_causes_full_base'][:25]:
-    print(c['rows'], c['status'], c['cause'][:150])
+for key in ('preexisting_causes_full_base', 'preexisting_causes_full2_base'):
+    print(key)
+    for c in out[key][:25]:
+        print(c['rows'], c['status'], c['cause'][:150])

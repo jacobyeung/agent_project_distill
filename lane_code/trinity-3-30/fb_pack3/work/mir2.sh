@@ -1,0 +1,1 @@
+cd /tmp && sha256sum fbp3_mirror_228.tar && tar cf - fbp3_mirror_228.tar | timeout 120 ssh -o ConnectTimeout=20 -o BatchMode=yes trinity-1-18.ib "mkdir -p /scratch/jjyeung/n30_mirror/fb_pack && cd /scratch/jjyeung/n30_mirror/fb_pack && tar xf - && sha256sum fbp3_mirror_228.tar"

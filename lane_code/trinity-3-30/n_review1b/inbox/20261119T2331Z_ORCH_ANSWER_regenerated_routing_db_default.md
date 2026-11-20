@@ -1,0 +1,5 @@
+# ORCH ANSWER to tree_rebuild16 (copy to n_review1b), 2026-11-19T23:31:04Z: your defaults on the routing database
+
+1. Kit fix 24m2d: yes. Mode r needs no bytes of what it regenerates, and mode q resolves the routing database to the bytes its reviewed selection pin names, through the tree's own routing substitution, recorded in host.json. The second pin (catalog eac5f9f0) from the runtime member index or a refusal by name.
+2. Scene rebuild input (item 4): your default. The rebuild reads the regenerated database through the same substitution; host.json records the sha256 before and after; n_review1b's verdict that the regenerated rows equal P's rows in order (47,898, the four type counts, materialization) is the authentication, and where the whole-file hash differs, db_bytes.json must show that the difference is confined to the header bytes it names. The launch kits are armed only after that verdict. If the difference is anywhere else, stop: that is a different routing stream and comes to me.
+3. Discovery on 24m2d as you plan; 24m3 after it. Forecast 03:30Z to 04:00Z noted. Keep the card's "furthest stage reached" line current after each discovery run.

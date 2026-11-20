@@ -1,0 +1,18 @@
+# Independent delta re-review (read-only, once) of TREE build 24l4r of lane tree_rebuild: removal lists by role `protected_rooms` with a native post-condition (vehicle N; ORCH RULINGS 2216Z, 2254Z)
+
+You review; you do not fix or design fixes. You are a different model family from the builder; this change is legality code (which removal lists a launch may bind, and the check that they drop only protected rows). You run once, read-only, on trinity-2-28. Report only verified problems, each with file:line and the command or reading that shows it. Your final message is the verdict.
+
+## What changed
+- Base: FINAL TREE 96ff9a03ae3be43972e060050ab411967e99dc312dc1380fe1c73435bbecebbf at `/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1_24l3` (you reviewed it: `/scratch/jjyeung/orch_n30/tr15_rev24l3/VERDICT.md`). Changed: `/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/work/tree_r1`, seal 92fe11f83f9e79234f00ed56521e8ad0b1dd48c80ffc593e9c0f6814610186b9. In `/scratch/jjyeung/orch_n30/tree_rebuild15_w24l/out/`: `HOST24L4R.patch`, `BUILD24L4R_REPORT.md`, `PROTECTED_ROOMS_API.md`, `TREE24L4R_SEAL.json`, `UNCHANGED24L4R.json`, `PATCH_CHECK24L4R.json`. Prompt `../prompts/build24l4r.md` (the ruling text is there). `work/tree_r1_24l4_stopped` is a superseded single-constant variant: ignore it.
+- Intent: `student_pilot/r1_launch22.validate_removals` accepted exactly the 12 pins of REMOVAL_ORDER (naming list d1454a44 last). Now it also accepts entries with `role: protected_rooms` and a `stream`, pinned by sha256, after the first 11 lists and before naming; anything else refuses as before. A tree function (the kit's census step will call it with the store in hand) refuses unless, after removals, (a) no admitted row of the stream lies in a protected room (K1 held-out of split 27126674, R0, the withheld 80; pointing via provenance.canonical_scene) and (b) every key of a protected_rooms list is a row of that stream in a protected room. Production use: the pointing list d21e374f (320 keys, two K1 held-out rooms), and later lists for pose or routing.
+
+## Verify
+1. Only the files the report names differ from 96ff9a03 (recompute every sha256); the 12-list case is byte-for-byte as before; role entries accepted only as described; every other extra list, role, position, duplicate, missing stream or spec mismatch refuses; naming stays last and pinned; config identity covers role and stream.
+2. The post-condition: (a) and (b) as stated, with the tree's own room function and authority; pointing cannot count 0 vacuously; a list cannot drop a row outside a protected room or outside its stream; refusal names.
+3. Every other consumer of remove_files / removal_order works with role entries present; a role list removes only its keys.
+4. Tests cover each case and fail on the base tree where they should.
+5. Nothing else in admission, exclusions, routing, sampling, scoring or the host receipt changed. Native admission does not call the post-condition (the report says so): say whether that leaves a gap a kit could exploit (e.g. a kit that binds a role list but skips the call).
+6. Say what you did not check.
+
+## Rules
+Read-only. No ssh, network, GPU, Git, tmux, scheduler or another agent. Never list, search or grep on /home or /data*. Any process runs under nice -n 10, at most 8 threads, under 20 GB RAM; use `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B` to run the tree's tests if you need to. Write your verdict to `VERDICT.md` in this folder and nowhere else. First line: `GO`, `GO AFTER FIXES` (each fix MUST or SHOULD, with evidence) or `NO-GO`. Then at most 25 lines.

@@ -1,0 +1,10 @@
+tk_db_loop() {
+    local node="$1" output="$2" helper="$3" attempt
+    for ((attempt=1; attempt<=180; attempt++)); do
+        if [[ -f "$output/routing_selection.json" ]]; then
+            if python3 -B -I -s "$helper" "$node" "$output"; then return 0; fi
+        fi
+        if (( attempt < 180 )); then sleep 60; fi
+    done
+    return 1
+}

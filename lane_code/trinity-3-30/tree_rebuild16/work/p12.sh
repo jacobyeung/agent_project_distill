@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; K=$W/w24/out/kit_qd; date -u +%TZ; cat $K/job.sh; echo ====X; head -c 3500 $K/b/x.py; echo; echo ====; cat $W/ext/pwrap/j.sh 2>/dev/null | head -40; ls $W/ext/pwrap | head

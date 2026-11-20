@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/orch_n30/sb_own400 && tar cf - kit/core.py kit/fov_variants.py kit/inputs/G3T_FOV.json kit/test_400b.py kit/build_b.py out/BARS_FROZEN_B.json out/KIT_REPORT_B.json kit/worker.py | gzip -c

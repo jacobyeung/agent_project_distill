@@ -134,7 +134,9 @@ def prepare(manifest, output, remove_files=(), tokenizer=None, room_sets=ROOM_SE
         counts, types, original_types = Counter(), Counter(), Counter()
         reason = pool.deferred(name)
         record = dict(status="DEFERRED" if reason else "ELIGIBLE", reason=reason)
-        removals = Removals(remove_files, stream='vqa')
+        # Shared intake feeds VQA and routing; apply role lists in the final stream.
+        removals = Removals([p for p in remove_files
+                             if not isinstance(p, dict) or p.get('role') != 'protected_rooms'])
         try:
             kind = "packed" if "packed" in source["files"] else "rows"
             metadata = source["files"][kind]
@@ -211,7 +213,7 @@ def prepare(manifest, output, remove_files=(), tokenizer=None, room_sets=ROOM_SE
                   exclusions=pool.files, scene_exclusions=pool.scenes.files,
                   source_scene_exclusions=pool.scenes.report(validate=False),
                   blockers=[name for name, entry in sources.items() if entry.get("scene_integrity_failure")],
-                  remove_files=Removals(remove_files, stream='vqa').files, tokenizer=tokenizer, sources=sources,
+                  remove_files=Removals(remove_files).files, tokenizer=tokenizer, sources=sources,
                   implementation=implementation(), training_admission=False, rgb_verified=False,
                   mask_shape_verified=False, scope="source-syntax-and-exclusions",
                   declared_rows=sum(value.get("declared_rows", 0) for value in sources.values()),
@@ -241,7 +243,8 @@ def selected_rows(receipt_pin, name):
             or any(type(index) is not int or index < 0 for index in indices)):
         raise ValueError("Pool selection indices differ")
     wanted = set(indices)
-    removals = Removals(receipt["remove_files"], stream="vqa")
+    removals = Removals([p for p in receipt["remove_files"]
+                         if not isinstance(p, dict) or p.get('role') != 'protected_rooms'])
     tok = source_tokenizer(receipt["tokenizer"])
     count = 0
     with gzip.open(pinned(source["source"]), "rt") as stream:

@@ -1,0 +1,8 @@
+# ORCH ORDER to tree_rebuild16 (copy to n_ops2, k1fwd2, cont_ops23), 2026-11-20T00:05:08Z: the discovery job was preempted in staging; resubmit it on two queues and run whichever starts first
+
+Job 173496 lost its node to another user's advanced job after three minutes (n_ops2's BLOCKER 0003Z), as did our CPU receipt job. Preemption on Orchard's preempt partition is ordinary; resubmitting is not a retry of killed work.
+
+1. First, five minutes at most: the log's FileNotFoundError for /tmp/q_22c714e1_173496/h/k/0.json came two seconds before the kill. Decide from the wrapper whether any step reads h/k/0.json before staging has written it (a kit or wrapper defect that will recur) or whether the kill removed it. If it is a defect, fix it in the wrapper or a kit-only delta before resubmitting.
+2. Then submit the same discovery job twice: on preempt now, and on advanced (orchard-community-1 by name, the 4-GPU request it needs), where it will pend until k1fwd2's one-card forward 173486 ends at about 00:55Z. Whichever starts first runs; cancel the other the minute one is past staging. Do not cut k1fwd2's job for it: fifty minutes on a first run that is expected to stop before the preparation is not worth a second eighty-minute forward.
+3. From now on the discovery runs and the launch use advanced whenever it can hold them; preempt is the second choice. cont_ops23 puts nothing more on advanced tonight; its queue goes to general.
+4. n_ops2 watches both submissions and reports the stage and any refusal with the log lines; the routing selection, db_bytes.json and the census row keys go to n_review1b and fb_pack3 the minute they exist.

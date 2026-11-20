@@ -1,0 +1,14 @@
+# k1fwd2 STATUS (Devin Opus high, trinity-3-30; started 23:15Z 11-19; hard end 04:15Z 11-20)
+Brief: B/briefs/k1fwd2.md (ORCH RULING fb_pack 2315Z). Events B/events/k1fwd (+fb_pack, tree_rebuild for RESULT). Session /scratch/jjyeung/orch_n30/k1fwd2 (kb/build2.py, work/ scripts+outputs, src/ = tree168872 sources, PATCH_DONOR3.patch, sb_own400 kit files; test/ CPU test; review/rv = review packet).
+## Design
+- Package okh7/a15_cot_ap39d650beda00a (build2.py c427b758; reuses k1fwd1 build.py 12bc0738). Variant P544F token 985f082abb9ff856, batch d11d0ba8, plan 98574475, manifest b87008007397 (199f4df4), overlay 02b4fa8b. Export = k1fwd1's m544 links a15_cot_ap90eaf12c47ba5/f/0-3 (no new links). Tree 168872, env unchanged. allocation 7140 s, capture_reserve 600 s (budget only).
+- Only change: boundaries.py 7e2bcd76 -> 454e9b27 (declared binding_change). GPU.own wraps point_depth.encode to observe served pose FoV; after served grid, fov_variants() writes <probe>/<dir>/fov.npz {depth_V1,depth_V2,fov_B,fov_V1,fov_V2} + FOV_RECEIPT.json. V1/V2 per PATCH_DONOR3 scale_donor.forward (separate private feature pass; V1 sigmoid depth.fov(states); V2 G3T raw_pose9[anchor_slots,7:9] from G3T file 76e2c177ec2a.json c616ef0c = captures-only copy of sb_own400 kit/inputs/G3T_FOV.json 4c9d4e9b; 242/242 authenticated at build). Control: served FoV through 2nd pass vs served grid.
+- CPU test test/t_fov.py PASS (real tree-168872 PointDepthHead, stub features): served unchanged, V1/V2 recomputed equal, pose-FoV change leaves V1/V2 fixed, refusals.
+## Jobs / reviews
+- CPU check 173484 PASS (23:35:50Z). Astra review GO (review/astra/REVIEW.md; static, no torch on 1-18 python3).
+- GPU 173486 RUNNING community-1 since 23:38:39Z (--time 2:00). Canary return cd89024cbaaac4b50 23:45Z: fov_check 3/3 served bit-identical, receipts ok. Posted RESULTs 2338Z (submitted) and canary (k1fwd, fb_pack).
+- fb_pack3 accepted layout (ANSWER 2328Z); my reply 23xx: no depth key in fov.npz; delivery omits own.npz (200 MB cap); served = own_170235 on 1-18, proven by parity JSON.
+## Return plan (after COMPLETED)
+1. Orchard (o_fin): fov_check.py (762093b8) OLD NEW g_76e2c177ec2a.json FOV_CHECK.json o_985f082abb9ff856.tar sj/b87008007397.json in PKG; require passed (300 served identical, 242 scored). Then `sel.py NEW g_76e2c177ec2a.json 0 FOV_CHECK.json | tee >(sha256sum) | wc -c` for expected sha/bytes.
+2. trinity-3-30: tmux k1fwd2_pull: python3 kb/pull2.py "cd PKG && /usr/bin/python3 -I -s -B sel.py NEW g_76e2c177ec2a.json 0 FOV_CHECK.json" BYTES /scratch/jjyeung/orch_n30/sb_own400/in/own_544_fov 3 (lane k1fwd2_fov544, stream-extracts; sha to sb_own400/in/own_544_fov.stream.sha256). Rename governor record .done.<epoch> after.
+3. Verify on 1-18: stream sha == Orchard sha; 242 dirs; fov.npz sha == receipts. RESULT in k1fwd, fb_pack, tree_rebuild.

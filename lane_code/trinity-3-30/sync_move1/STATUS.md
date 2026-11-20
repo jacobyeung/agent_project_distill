@@ -12,9 +12,9 @@ Session /scratch/jjyeung/orch_n30/sync_move1 (3-30, files <5 MB). Events B/event
 - Dry run old -> new filter, files / bytes staged: trinity-1-18 76,849 / 888,532,674 -> 58,903 / 666,148,479 (work/dry118.log, dry118b.log); trinity-2-28 61,543 / 466,857,790 -> 5,431 / 47,199,894 (sm_filter measurements); trinity-3-30 28,123 / 227,580,310 -> 21,905 / 190,384,552 (work/before_3_30.txt, after2_3_30.txt).
 - Hourly commit replay on the last 8 commits: 45-232 MB raw before, 22-53 MB after (work/res/f2/out/measurements/totals.tsv).
 
-## Next
-1. ~23:06Z: check HEARTBEAT.log for the second verified push (first under the new filter); compare the commit's added bytes. ls-remote to verify.
-2. Then write B/events/sync_move/REMOVAL_CANDIDATES.md (old 3-30 working copy: repo, stage, stage-robust; plus the items below) and a final RESULT; end without successor.
+## Done (lane ended 23:12Z, no successor)
+- Second verified push from 2-28: bcd2342f 23:08:26Z (73.0 MB raw, mostly one-off churn after the rule change; work/m2.log, m3.log). REMOVAL_CANDIDATES.md and the final RESULT are in B/events/sync_move.
+- Nothing owed. A successor needs only: check HEARTBEAT.log hourly; if a commit exceeds ~50 MB, tighten the filter from that commit's top kept directories (Codex build + one review + the package's install.sh, as done here; packages in work/res/{f2,sm_move}/out).
 
 ## Removal candidates (for the list)
 - trinity-3-30: /scratch/jjyeung/distill_sync/{repo,stage,stage-robust} after the second push; /tmp/sm_*.txt (25 MB) and /tmp/sm_move_out.tar (my temp files; the guard refuses agent deletions).

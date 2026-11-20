@@ -53,7 +53,7 @@ if sys.argv[1] in ('q','r'):
     from launch_r1.production_proof import run
     r=run(request,root/'q',stage=stage)
     if r['status']=='ADMIT':
-     from sv import publish
+     from cs import publish
      from student_pilot.p3_provenance import pinned
      publish(kit,root.parent,load(pinned(r['config'])),os.environ['SLURM_JOB_ID'])
    else:

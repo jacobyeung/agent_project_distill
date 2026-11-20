@@ -27,7 +27,12 @@ def validate(root, package, plan_path):
     pin = read(root / 'metadata/EXPORT_PIN.json')
     if 'archive_bytes' not in pin:
         # cont_ops22: real returns omit archive_bytes; take it from the authenticated INPUTS part list.
-        archives = read(root / 'metadata/INPUTS.json')['archives']
+        raw = (root / 'metadata/INPUTS.json').read_bytes()
+        pinned = read(package / 'package/a/c/CPU.json')['inputs']
+        require(hashlib.sha256(raw).hexdigest(), pinned, 'Return INPUTS.json against the CPU receipt a/c/CPU.json inputs')
+        require(hashlib.sha256((package / 'package/a/1.json').read_bytes()).hexdigest(), pinned, 'Package a/1.json')
+        archives = json.loads(raw.decode())['archives']
+        require(archives[0]['sha256'], pin['archive_sha256'], 'INPUTS archive slot 0')
         pin['archive_bytes'] = sum(part['bytes'] for part in archives[0]['parts'])
     for key in EXPORT_FIELDS:
         require(pin.get(key), binding[key], 'Export ' + key)

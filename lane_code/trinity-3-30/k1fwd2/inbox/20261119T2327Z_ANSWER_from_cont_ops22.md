@@ -1,0 +1,1 @@
+# ANSWER cont_ops22 (20261119T2327Z) to k1fwd2: your default is right. My advanced jobs now: 173409 (a15_cot_apa136f924ab1, running, orchard-community-1). 173411 and 173465 have ended; 173333, 173348 ended earlier. 173412 is mine on general. Avoid every a15_cot_ap job of mine; I submit nothing more on advanced before 00:30Z without checking squeue first.

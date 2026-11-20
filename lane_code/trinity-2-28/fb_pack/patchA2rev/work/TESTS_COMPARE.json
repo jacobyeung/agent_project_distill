@@ -4,6 +4,8 @@
   "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tests_out/focused_base.v1.json": "90405d7452f6b0626569fb4fc16d38b6a81997b115c065605bcfbe10619dec33",
   "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tests_out/focused_live_a2.v1.json": "9106d5e72b5e6eaedb2a0ed8a2106b5f2c2ab11235e8cbc7e2641ff3b96203e4",
   "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tests_out/focused_live_base.v1.json": "202894372d82f82f508b4df2b0c620df13d4806e56a8b1b7a576a379df40dc12",
+  "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tests_out/full2_a2.json": "843fe5486a2b34a5894facf33a240a3df671b5ea31f179cd457c9cf26ea21a46",
+  "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tests_out/full2_base.json": "4d6c9facec141f823d7bc7c78e1f24a3a7f0dacf25b2d5ff38a915e1c2136d22",
   "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tests_out/full_a2.json": "0ed70a7bf6a4de0cb2f38a16b2937531c5b9705696702045eea7a3360ce2b506",
   "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tests_out/full_base.json": "660334dfe158ddb3cb4eca8259b9688feefe4443e4c56d54f09270f5c7bc40e6",
   "/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tests_out/full_live_a2.json": "ba69b3799da38d31cf9bc13e90b52d01981260e0be49a79090c540243642c19c",
@@ -32,6 +34,22 @@
    "rows": 2983,
    "skip": 138,
    "tests": 1821
+  },
+  "full2_base": {
+   "error": 470,
+   "fail": 18,
+   "pass": 3067,
+   "rows": 3640,
+   "skip": 142,
+   "tests": 1850
+  },
+  "full2_a2": {
+   "error": 470,
+   "fail": 18,
+   "pass": 3163,
+   "rows": 3736,
+   "skip": 142,
+   "tests": 1864
   },
   "full_live_base": {
    "error": 955,
@@ -92,6 +110,22 @@
    "write": 1,
    "process": 50,
    "read": 13
+  },
+  "full2_base": {
+   "socket": 8,
+   "write": 4,
+   "process": 117,
+   "read": 15,
+   "os.symlink": 1,
+   "os.mkdir": 6
+  },
+  "full2_a2": {
+   "socket": 8,
+   "write": 4,
+   "process": 117,
+   "read": 15,
+   "os.symlink": 1,
+   "os.mkdir": 6
   },
   "full_live_base": {
    "socket": 3,
@@ -365,6 +399,212 @@
    },
    "full_base": {
     "pass": 3
+   }
+  }
+ },
+ "full2_base_vs_full2_a2": {
+  "common": 3618,
+  "changed": [
+   {
+    "test": "setUpClass (tests.test_headcall_fullft.EndToEndTests)",
+    "full2_base": [
+     [
+      "error",
+      "PermissionError: sandbox: os.mkdir outside TMP denied: /tmp/headcall_test_cache/hcfull_frames_9p8onn_z"
+     ]
+    ],
+    "full2_a2": [
+     [
+      "error",
+      "PermissionError: sandbox: os.mkdir outside TMP denied: /tmp/headcall_test_cache/hcfull_frames_gczxeh0n"
+     ]
+    ]
+   },
+   {
+    "test": "tests.test_headcall_fullft.IndexTests.test_rewritten_index_admits_and_joins",
+    "full2_base": [
+     [
+      "error",
+      "PermissionError: sandbox: os.mkdir outside TMP denied: /tmp/headcall_test_cache/hcfull_frames_w_60q5_m"
+     ]
+    ],
+    "full2_a2": [
+     [
+      "error",
+      "PermissionError: sandbox: os.mkdir outside TMP denied: /tmp/headcall_test_cache/hcfull_frames_1_x93n81"
+     ]
+    ]
+   },
+   {
+    "test": "tests.test_tracecold_audit.ReplayAuditTests.test_answer_overlap_is_report_only_and_preserves_targets",
+    "full2_base": [
+     [
+      "error",
+      "PermissionError: sandbox: os.mkdir outside TMP denied: /scratch/jjyeung/orch_n30/fb_pack/patchA2rev/out/tracecold_audit_8ht2i34m"
+     ]
+    ],
+    "full2_a2": [
+     [
+      "error",
+      "PermissionError: sandbox: os.mkdir outside TMP denied: /scratch/jjyeung/orch_n30/fb_pack/patchA2rev/out/tracecold_audit_79m1mwl0"
+     ]
+    ]
+   }
+  ],
+  "only_in": {
+   "full2_base": [
+    "tests.test_a1_decoder.DecoderTests.test_dense_and_sparse_ordinals_pixels_and_fail_closed (changes={'video': {'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/b2_test_output/decoder_8co93nd7/017af04b.mp4', 'sha256': '0000000000000000000000000000000000000000000000000000000000000000'}})",
+    "tests.test_c1_validation_slice.ValidationPreparation.test_validation_config_is_optional_and_requires_exact_pins (bad={'rows': {'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/cp1_validation_7_8zh3hc/rows.json', 'sha256': '57d0f495eb992db7dbb1680569e2a3f06521d06671827a1df9ff9f09abd1c35a'}, 'slice': {'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/cp1_validation_7_8zh3hc/slice.json', 'sha256': 'a0cc0f27fb9abd01acd1d91601caa68bc382b9cc948bb9b862827951b2476f69'}, 'other': {}})",
+    "tests.test_c1_validation_slice.ValidationPreparation.test_validation_config_is_optional_and_requires_exact_pins (bad={'rows': {'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/cp1_validation_7_8zh3hc/rows.json', 'sha256': '57d0f495eb992db7dbb1680569e2a3f06521d06671827a1df9ff9f09abd1c35a'}})",
+    "tests.test_c1_validation_slice.ValidationPreparation.test_validation_config_is_optional_and_requires_exact_pins (bad={'rows': {'path': 'relative', 'sha256': 'x'}, 'slice': {'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/cp1_validation_7_8zh3hc/slice.json', 'sha256': 'a0cc0f27fb9abd01acd1d91601caa68bc382b9cc948bb9b862827951b2476f69'}})",
+    "tests.test_ddp_revision.InputBoundaryTests.test_resolved_symlink_targets_are_guarded_before_open (target=PosixPath('/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/input_guard_rdd9wa5q/answer_bank/never-created.json'))",
+    "tests.test_ddp_revision.InputBoundaryTests.test_resolved_symlink_targets_are_guarded_before_open (target=PosixPath('/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/input_guard_rdd9wa5q/offline_labels/never-created.json'))",
+    "tests.test_geometry_training.GeometryConfigTests.test_unknown_or_malformed_blocks_refuse (block={'schema': 'geometry-input-v1', 'injection': 'add_to_merged_video_tokens', 'layer': 23, 'feature_dim': 0, 'frames_per_token': 2, 'projector': {'type': 'layernorm_linear_gelu_linear', 'hidden': 1024, 'output_init': 'zeros'}, 'encoder': {'name': 'g3t', 'repository': 'fixture', 'revision': 'fixture', 'source_sha256': '0000000000000000000000000000000000000000000000000000000000000000', 'input': 'square_pad_518', 'pooling': 'roi_align_valid_region'}, 'store': {'manifest': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/geometry_config_e1ifyi5j/store/manifest.jsonl', 'manifest_sha256': 'fe25f8501f690412274d850de512452bb5ecd60dbf0b09633d9d3781a6b17d57'}})",
+    "tests.test_geometry_training.GeometryConfigTests.test_unknown_or_malformed_blocks_refuse (block={'schema': 'geometry-input-v1', 'injection': 'add_to_merged_video_tokens', 'layer': 23, 'feature_dim': 8, 'frames_per_token': 2, 'projector': {'type': 'layernorm_linear_gelu_linear', 'hidden': 1024, 'output_init': 'zeros'}, 'encoder': {'name': 'g3t', 'repository': 'fixture', 'revision': 'fixture', 'source_sha256': '0000000000000000000000000000000000000000000000000000000000000000', 'input': 'square_pad_518', 'pooling': 'roi_align_valid_region'}, 'store': {'manifest': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/geometry_config_e1ifyi5j/store/manifest.jsonl', 'manifest_sha256': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'}})",
+    "tests.test_geometry_training.GeometryConfigTests.test_unknown_or_malformed_blocks_refuse (block={'schema': 'geometry-input-v1', 'injection': 'add_to_merged_video_tokens', 'layer': 23, 'feature_dim': 8, 'frames_per_token': 2, 'projector': {'type': 'layernorm_linear_gelu_linear', 'hidden': 1024, 'output_init': 'zeros'}, 'encoder': {'name': 'g3t', 'repository': 'fixture', 'revision': 'fixture', 'source_sha256': '0000000000000000000000000000000000000000000000000000000000000000', 'input': 'square_pad_518', 'pooling': 'roi_align_valid_region'}, 'store': {'manifest': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/geometry_config_e1ifyi5j/store/manifest.jsonl', 'manifest_sha256': 'fe25f8501f690412274d850de512452bb5ecd60dbf0b09633d9d3781a6b17d57'}, 'extra': 1})",
+    "tests.test_geometry_training.GeometryConfigTests.test_unknown_or_malformed_blocks_refuse (block={'schema': 'geometry-input-v1', 'injection': 'add_to_merged_video_tokens', 'layer': 23, 'feature_dim': 8, 'frames_per_token': 2, 'projector': {'type': 'layernorm_linear_gelu_linear', 'hidden': 512, 'output_init': 'zeros'}, 'encoder': {'name': 'g3t', 'repository': 'fixture', 'revision': 'fixture', 'source_sha256': '0000000000000000000000000000000000000000000000000000000000000000', 'input': 'square_pad_518', 'pooling': 'roi_align_valid_region'}, 'store': {'manifest': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/geometry_config_e1ifyi5j/store/manifest.jsonl', 'manifest_sha256': 'fe25f8501f690412274d850de512452bb5ecd60dbf0b09633d9d3781a6b17d57'}})",
+    "tests.test_geometry_training.GeometryConfigTests.test_unknown_or_malformed_blocks_refuse (block={'schema': 'geometry-input-v1', 'injection': 'add_to_merged_video_tokens', 'layer': 24, 'feature_dim': 8, 'frames_per_token': 2, 'projector': {'type': 'layernorm_linear_gelu_linear', 'hidden': 1024, 'output_init': 'zeros'}, 'encoder': {'name': 'g3t', 'repository': 'fixture', 'revision': 'fixture', 'source_sha256': '0000000000000000000000000000000000000000000000000000000000000000', 'input': 'square_pad_518', 'pooling': 'roi_align_valid_region'}, 'store': {'manifest': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/geometry_config_e1ifyi5j/store/manifest.jsonl', 'manifest_sha256': 'fe25f8501f690412274d850de512452bb5ecd60dbf0b09633d9d3781a6b17d57'}})",
+    "tests.test_orchard_eval_qwen36_27b.ShardedLeaseTests.test_bad_bound_identity_fails_closed_and_restores_visibility (change={'coordination_root': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/orchard_sharded_n_z_hmux'})",
+    "tests.test_orchard_eval_qwen36_27b.ShardedLeaseTests.test_bad_bound_identity_fails_closed_and_restores_visibility (change={'ownership_checked_at': '2026-11-19T23:06:41.185576+00:00'})",
+    "tests.test_orchard_eval_qwen36_27b.ShardedLeaseTests.test_bundle_schema_hashes_and_explicit_label_are_required (changes={'leases': [{'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/orchard_sharded_9hab6s3_/8b2d83342ced47db8b54015e645a07a1/bound_2.json', 'sha256': 'daf7f8fa4bd2a8ba5bf45eccd71e09110098f96696bcaa65d21e943a4de5450b', 'size_bytes': 2056}]})",
+    "tests.test_orchard_eval_qwen36_27b.ShardedLeaseTests.test_orchard_opt_in_and_project_coord_root_cannot_be_bypassed (env={'AGENT_COORD_DIR': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/orchard_sharded_6kd4dvwb/outside'})",
+    "tests.test_provisional.AdmissionTests.test_failed_or_malformed_compute_probe_refuses (result=<Mock id='140492598753184'>)",
+    "tests.test_provisional.AdmissionTests.test_stale_supervisor_timestamp_admits_with_live_probe (stdout='3007774, 12 MiB\\n')",
+    "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/production_import_5ml7o15l/empty')",
+    "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/production_import_5ml7o15l/kit')",
+    "tests.test_s1_scene_exclusions.SceneExclusionTests.test_native_mdg_clip_reference_is_not_a_source_receipt (reference='/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/tmpuflhpsw_/clips.jsonl')",
+    "tests.test_s1_scene_exclusions.SceneExclusionTests.test_native_mdg_clip_reference_is_not_a_source_receipt (reference={'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/tmpuflhpsw_/clips.jsonl', 'sha256': 'c84cbf15495a37c6d67eee90f7620dcddc18302a6cdc98c470f23789b8eb5d60'})",
+    "tests.test_startup_cache.StartupCacheTests.test_rejects_unowned_relative_and_traversal_roots (root='/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_base/lane_test_output/startup_cache__5ks4q7y/sub/../shared')"
+   ],
+   "full2_a2": [
+    "tests.test_a1_decoder.DecoderTests.test_dense_and_sparse_ordinals_pixels_and_fail_closed (changes={'video': {'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/b2_test_output/decoder_mzipirhi/017af04b.mp4', 'sha256': '0000000000000000000000000000000000000000000000000000000000000000'}})",
+    "tests.test_c1_validation_slice.ValidationPreparation.test_validation_config_is_optional_and_requires_exact_pins (bad={'rows': {'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/cp1_validation_8vxavbhs/rows.json', 'sha256': 'f962300a0d638d7ef7b1c46f2320ebd466bb74961494098d3b0b10102575e372'}, 'slice': {'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/cp1_validation_8vxavbhs/slice.json', 'sha256': 'a0cc0f27fb9abd01acd1d91601caa68bc382b9cc948bb9b862827951b2476f69'}, 'other': {}})",
+    "tests.test_c1_validation_slice.ValidationPreparation.test_validation_config_is_optional_and_requires_exact_pins (bad={'rows': {'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/cp1_validation_8vxavbhs/rows.json', 'sha256': 'f962300a0d638d7ef7b1c46f2320ebd466bb74961494098d3b0b10102575e372'}})",
+    "tests.test_c1_validation_slice.ValidationPreparation.test_validation_config_is_optional_and_requires_exact_pins (bad={'rows': {'path': 'relative', 'sha256': 'x'}, 'slice': {'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/cp1_validation_8vxavbhs/slice.json', 'sha256': 'a0cc0f27fb9abd01acd1d91601caa68bc382b9cc948bb9b862827951b2476f69'}})",
+    "tests.test_ddp_revision.InputBoundaryTests.test_resolved_symlink_targets_are_guarded_before_open (target=PosixPath('/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/input_guard_pyld4iov/answer_bank/never-created.json'))",
+    "tests.test_ddp_revision.InputBoundaryTests.test_resolved_symlink_targets_are_guarded_before_open (target=PosixPath('/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/input_guard_pyld4iov/offline_labels/never-created.json'))",
+    "tests.test_geometry_training.GeometryConfigTests.test_unknown_or_malformed_blocks_refuse (block={'schema': 'geometry-input-v1', 'injection': 'add_to_merged_video_tokens', 'layer': 23, 'feature_dim': 0, 'frames_per_token': 2, 'projector': {'type': 'layernorm_linear_gelu_linear', 'hidden': 1024, 'output_init': 'zeros'}, 'encoder': {'name': 'g3t', 'repository': 'fixture', 'revision': 'fixture', 'source_sha256': '0000000000000000000000000000000000000000000000000000000000000000', 'input': 'square_pad_518', 'pooling': 'roi_align_valid_region'}, 'store': {'manifest': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/geometry_config_qcj930nq/store/manifest.jsonl', 'manifest_sha256': 'fe25f8501f690412274d850de512452bb5ecd60dbf0b09633d9d3781a6b17d57'}})",
+    "tests.test_geometry_training.GeometryConfigTests.test_unknown_or_malformed_blocks_refuse (block={'schema': 'geometry-input-v1', 'injection': 'add_to_merged_video_tokens', 'layer': 23, 'feature_dim': 8, 'frames_per_token': 2, 'projector': {'type': 'layernorm_linear_gelu_linear', 'hidden': 1024, 'output_init': 'zeros'}, 'encoder': {'name': 'g3t', 'repository': 'fixture', 'revision': 'fixture', 'source_sha256': '0000000000000000000000000000000000000000000000000000000000000000', 'input': 'square_pad_518', 'pooling': 'roi_align_valid_region'}, 'store': {'manifest': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/geometry_config_qcj930nq/store/manifest.jsonl', 'manifest_sha256': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'}})",
+    "tests.test_geometry_training.GeometryConfigTests.test_unknown_or_malformed_blocks_refuse (block={'schema': 'geometry-input-v1', 'injection': 'add_to_merged_video_tokens', 'layer': 23, 'feature_dim': 8, 'frames_per_token': 2, 'projector': {'type': 'layernorm_linear_gelu_linear', 'hidden': 1024, 'output_init': 'zeros'}, 'encoder': {'name': 'g3t', 'repository': 'fixture', 'revision': 'fixture', 'source_sha256': '0000000000000000000000000000000000000000000000000000000000000000', 'input': 'square_pad_518', 'pooling': 'roi_align_valid_region'}, 'store': {'manifest': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/geometry_config_qcj930nq/store/manifest.jsonl', 'manifest_sha256': 'fe25f8501f690412274d850de512452bb5ecd60dbf0b09633d9d3781a6b17d57'}, 'extra': 1})",
+    "tests.test_geometry_training.GeometryConfigTests.test_unknown_or_malformed_blocks_refuse (block={'schema': 'geometry-input-v1', 'injection': 'add_to_merged_video_tokens', 'layer': 23, 'feature_dim': 8, 'frames_per_token': 2, 'projector': {'type': 'layernorm_linear_gelu_linear', 'hidden': 512, 'output_init': 'zeros'}, 'encoder': {'name': 'g3t', 'repository': 'fixture', 'revision': 'fixture', 'source_sha256': '0000000000000000000000000000000000000000000000000000000000000000', 'input': 'square_pad_518', 'pooling': 'roi_align_valid_region'}, 'store': {'manifest': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/geometry_config_qcj930nq/store/manifest.jsonl', 'manifest_sha256': 'fe25f8501f690412274d850de512452bb5ecd60dbf0b09633d9d3781a6b17d57'}})",
+    "tests.test_geometry_training.GeometryConfigTests.test_unknown_or_malformed_blocks_refuse (block={'schema': 'geometry-input-v1', 'injection': 'add_to_merged_video_tokens', 'layer': 24, 'feature_dim': 8, 'frames_per_token': 2, 'projector': {'type': 'layernorm_linear_gelu_linear', 'hidden': 1024, 'output_init': 'zeros'}, 'encoder': {'name': 'g3t', 'repository': 'fixture', 'revision': 'fixture', 'source_sha256': '0000000000000000000000000000000000000000000000000000000000000000', 'input': 'square_pad_518', 'pooling': 'roi_align_valid_region'}, 'store': {'manifest': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/geometry_config_qcj930nq/store/manifest.jsonl', 'manifest_sha256': 'fe25f8501f690412274d850de512452bb5ecd60dbf0b09633d9d3781a6b17d57'}})",
+    "tests.test_orchard_eval_qwen36_27b.ShardedLeaseTests.test_bad_bound_identity_fails_closed_and_restores_visibility (change={'coordination_root': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/orchard_sharded_5p70a049'})",
+    "tests.test_orchard_eval_qwen36_27b.ShardedLeaseTests.test_bad_bound_identity_fails_closed_and_restores_visibility (change={'ownership_checked_at': '2026-11-19T23:06:33.068128+00:00'})",
+    "tests.test_orchard_eval_qwen36_27b.ShardedLeaseTests.test_bundle_schema_hashes_and_explicit_label_are_required (changes={'leases': [{'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/orchard_sharded_29rau48x/d533f5f9d5f645068ad3a7d4ec74db85/bound_2.json', 'sha256': '4101f609e720cdf1413e7d98c3d17ddf574d646dc139d3779adbde03dfc9fd3a', 'size_bytes': 2048}]})",
+    "tests.test_orchard_eval_qwen36_27b.ShardedLeaseTests.test_orchard_opt_in_and_project_coord_root_cannot_be_bypassed (env={'AGENT_COORD_DIR': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/orchard_sharded_wx2lv4gx/outside'})",
+    "tests.test_provisional.AdmissionTests.test_failed_or_malformed_compute_probe_refuses (result=<Mock id='139922687675472'>)",
+    "tests.test_provisional.AdmissionTests.test_stale_supervisor_timestamp_admits_with_live_probe (stdout='3007806, 12 MiB\\n')",
+    "tests.test_r1_patch_a2.LegacyNative.test_deferred_refuses_recovery_before_catalog_or_output",
+    "tests.test_r1_patch_a2.LegacyNative.test_final_camera_pin_is_fixed",
+    "tests.test_r1_patch_a2.LegacyNative.test_legacy_missing_routing_inputs_refuses_before_catalog_or_output",
+    "tests.test_r1_subset.Subsets.test_alias_registered_and_guard_obligations",
+    "tests.test_r1_subset.Subsets.test_camera_pin_is_tree_constant",
+    "tests.test_r1_subset.Subsets.test_composition_records_deferred_reasons_and_membership",
+    "tests.test_r1_subset.Subsets.test_composition_records_deferred_reasons_and_membership (names=('absolute_distance', 'units', 'coverage_distance', 'coverage_units'))",
+    "tests.test_r1_subset.Subsets.test_composition_records_deferred_reasons_and_membership (names=('absolute_distance', 'units', 'coverage_distance', 'coverage_units', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_composition_records_deferred_reasons_and_membership (names=('coverage_units',))",
+    "tests.test_r1_subset.Subsets.test_composition_records_deferred_reasons_and_membership (names=())",
+    "tests.test_r1_subset.Subsets.test_declaration_requires_all_reasons_and_valid_pin",
+    "tests.test_r1_subset.Subsets.test_declaration_requires_all_reasons_and_valid_pin (change='changed_pin')",
+    "tests.test_r1_subset.Subsets.test_declaration_requires_all_reasons_and_valid_pin (change='duplicate')",
+    "tests.test_r1_subset.Subsets.test_declaration_requires_all_reasons_and_valid_pin (change='empty')",
+    "tests.test_r1_subset.Subsets.test_declaration_requires_all_reasons_and_valid_pin (change='missing')",
+    "tests.test_r1_subset.Subsets.test_declaration_requires_all_reasons_and_valid_pin (change='overlap')",
+    "tests.test_r1_subset.Subsets.test_declaration_requires_all_reasons_and_valid_pin (change='unknown')",
+    "tests.test_r1_subset.Subsets.test_deferred_and_subset_declarations_cannot_mix",
+    "tests.test_r1_subset.Subsets.test_every_subset",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_distance'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_distance', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_distance', 'coverage_units'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_distance', 'coverage_units', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_distance', 'coverage_units', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_distance', 'coverage_units', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_distance', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_distance', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_units'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_units', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_units', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'coverage_units', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_distance'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_distance', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_distance', 'coverage_units'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_distance', 'coverage_units', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_distance', 'coverage_units', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_distance', 'coverage_units', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_distance', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_distance', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_units'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_units', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_units', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'coverage_units', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance', 'units', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('absolute_distance',))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('camera_wording',))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_distance', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_distance', 'coverage_units'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_distance', 'coverage_units', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_distance', 'coverage_units', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_distance', 'coverage_units', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_distance', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_distance', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_distance',))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_units', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_units', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_units', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('coverage_units',))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('recovery',))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_distance'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_distance', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_distance', 'coverage_units'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_distance', 'coverage_units', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_distance', 'coverage_units', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_distance', 'coverage_units', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_distance', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_distance', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_units'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_units', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_units', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'coverage_units', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'recovery'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units', 'recovery', 'camera_wording'))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=('units',))",
+    "tests.test_r1_subset.Subsets.test_every_subset (names=())",
+    "tests.test_r1_subset.Subsets.test_legacy_deferred_unchanged",
+    "tests.test_r1_subset.Subsets.test_legacy_deferred_unchanged (name='absolute_distance')",
+    "tests.test_r1_subset.Subsets.test_legacy_deferred_unchanged (name='camera_wording')",
+    "tests.test_r1_subset.Subsets.test_legacy_deferred_unchanged (name='coverage_distance')",
+    "tests.test_r1_subset.Subsets.test_legacy_deferred_unchanged (name='coverage_units')",
+    "tests.test_r1_subset.Subsets.test_legacy_deferred_unchanged (name='recovery')",
+    "tests.test_r1_subset.Subsets.test_legacy_deferred_unchanged (name='units')",
+    "tests.test_r1_subset.Subsets.test_membership_declaration_must_be_configured",
+    "tests.test_r1_subset.Subsets.test_missing_source_refuses_by_name",
+    "tests.test_r1_subset.Subsets.test_native_missing_and_undeclared_envelopes",
+    "tests.test_r1_subset.Subsets.test_undeclared_source_refuses_by_name",
+    "tests.test_r1_subset.Subsets.test_undeclared_source_refuses_by_name (name='foreign')",
+    "tests.test_r1_subset.Subsets.test_undeclared_source_refuses_by_name (name='recovery')",
+    "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/production_import_tiunihxv/empty')",
+    "tests.test_s1_production_imports.ProductionImportTests.test_worker_reaches_tree_boundary_from_neutral_and_kit_directories (cwd='/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/production_import_tiunihxv/kit')",
+    "tests.test_s1_scene_exclusions.SceneExclusionTests.test_native_mdg_clip_reference_is_not_a_source_receipt (reference='/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/tmpfcox5t_k/clips.jsonl')",
+    "tests.test_s1_scene_exclusions.SceneExclusionTests.test_native_mdg_clip_reference_is_not_a_source_receipt (reference={'path': '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/tmpfcox5t_k/clips.jsonl', 'sha256': 'c84cbf15495a37c6d67eee90f7620dcddc18302a6cdc98c470f23789b8eb5d60'})",
+    "tests.test_startup_cache.StartupCacheTests.test_rejects_unowned_relative_and_traversal_roots (root='/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests_full2_a2/lane_test_output/startup_cache_o7wkerqj/sub/../shared')"
+   ]
+  },
+  "only_status": {
+   "full2_a2": {
+    "pass": 116,
+    "error": 2
+   },
+   "full2_base": {
+    "pass": 20,
+    "error": 2
    }
   }
  },
@@ -1364,6 +1604,488 @@
   {
    "status": "error",
    "cause": "PermissionError: sandbox: os.mkdir outside TMP denied: /scratch/jjyeung/orch_n30/fb_pack/patchA2rev/out/tracecold_audit__ez7f8fq",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named 'tracecold_reference_eval.orchard_eval'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named 'test_conversion_v2'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named 'derivgen'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named 'test_v312_ground'",
+   "rows": 1
+  }
+ ],
+ "preexisting_causes_full2_base": [
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: process launch denied: subprocess.Popen",
+   "rows": 111
+  },
+  {
+   "status": "error",
+   "cause": "importlib.metadata.PackageNotFoundError: No package metadata was found for torchvision",
+   "rows": 56
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/fixtures/work/build6/INIT_INPUT.json'",
+   "rows": 53
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named 'torchvision'",
+   "rows": 46
+  },
+  {
+   "status": "error",
+   "cause": "ValueError: Provisional artifacts require /data2 or an explicit node-local scratch root",
+   "rows": 20
+  },
+  {
+   "status": "error",
+   "cause": "trace_format.program_errors.ProgramRefusal: trace_program_version_missing",
+   "rows": 13
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/tp/tplib.py'",
+   "rows": 12
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named 'p3_consumer.p3_smoke'",
+   "rows": 11
+  },
+  {
+   "status": "error",
+   "cause": "ValueError: Probe cache requires an owned absolute path without symlinks",
+   "rows": 11
+  },
+  {
+   "status": "error",
+   "cause": "ValueError: Legacy reader has no authenticated R2 bank adapter: rk/programs.py:import",
+   "rows": 10
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: NFS path denied: /data2/jjyeung/cache/huggingface/hub/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a/conf",
+   "rows": 7
+  },
+  {
+   "status": "error",
+   "cause": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/orchard_eval/contracts.py:load_generation",
+   "rows": 7
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: network denied",
+   "rows": 6
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: process launch denied: os.fork",
+   "rows": 6
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named '_grounding_evalpath_c518c8501c4755a6.pointing_markers'",
+   "rows": 6
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named 'student_pilot.detailed_audit'",
+   "rows": 5
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: NFS path denied: /data2/jjyeung/cache/huggingface/hub/models--OneThink--OneThinker-8B/snapshots/2b7032f4179d8c032d2eac67b3692263f85be0",
+   "rows": 4
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: write outside TMP denied: <TMP>",
+   "rows": 4
+  },
+  {
+   "status": "error",
+   "cause": "KeyError: 'CLEAN_VSI590K_TEST_ROOT'",
+   "rows": 4
+  },
+  {
+   "status": "error",
+   "cause": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export",
+   "rows": 4
+  },
+  {
+   "status": "error",
+   "cause": "ValueError: Default process group has not been initialized, please make sure to call init_process_group.",
+   "rows": 3
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/h2/b10/rscan.py'",
+   "rows": 3
+  },
+  {
+   "status": "error",
+   "cause": "NameError: name 'tvF' is not defined",
+   "rows": 3
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named 'clean_r1313_fixture'",
+   "rows": 3
+  },
+  {
+   "status": "error",
+   "cause": "OSError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/scratch/jjyeung/phase2_opus/in33/scratch/jjyeung/cursor_lanes/distill_pd_phase2_opu",
+   "rows": 2
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: NFS path denied: /data2/jjyeung/cache/huggingface/hub/models--Qwen--Qwen3.6-27B/snapshots/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/con",
+   "rows": 2
+  },
+  {
+   "status": "error",
+   "cause": "concurrent.futures.process.BrokenProcessPool: A process in the process pool was terminated abruptly while the future was running or pending.",
+   "rows": 2
+  },
+  {
+   "status": "fail",
+   "cause": "AssertionError: False is not true",
+   "rows": 2
+  },
+  {
+   "status": "error",
+   "cause": "OSError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/scratch/jjyeung/orch_cd/p3_build/fixtures/qwen35_processor'. Use `repo_type` argume",
+   "rows": 2
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/ttower/work/sam3_a1/common.py'",
+   "rows": 2
+  },
+  {
+   "status": "error",
+   "cause": "TypeError: HeadApiTests.training_inputs.<locals>.spy_depth() got an unexpected keyword argument 'fov_override'",
+   "rows": 2
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named 'prog_v2'",
+   "rows": 2
+  },
+  {
+   "status": "error",
+   "cause": "KeyError: 'B11_TEST_OUTPUT'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/benchmark_eval/prepare.py:prepare",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '<TREE>/artifacts/data/detailed_audit_v1/audit_report.json'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: os.mkdir outside TMP denied: /tmp/headcall_test_cache/hcfull_frames_9p8onn_z",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/leg_s1_tree/inputs/pool_s1_samples.json'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/h3/b14c/heldout32.npz'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/h3/b14c/bank_validation.json'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/inputs/gv_fix/live_parity_adapter.py'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "TypeError: BlockerTests.test_allocation_resume_across_m200_keeps_model_optimizer_rng_and_schedule.<locals>.publish() got an unexpected keyword argument 'optimiz",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "TypeError: BlockerTests.test_allocations_reach_all_gates_without_repeating_dense_rows.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "TypeError: Offset.test_steps_read_the_donor_order_after_its_last_step_and_resume_exactly.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "TypeError: ValidationRead.test_native_loop_reads_after_export_and_smoke_never_reads.<locals>.<lambda>() got an unexpected keyword argument 'optimizer'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/derivgen/review_pool/POOL.jsonl'",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "AssertionError: 37.84130096435547 not less than 30.0",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "AssertionError: \"export leg\" does not match \"trace_program_version_missing\"",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "  Actual: export(PosixPath('<TMP>/...'), 'wrapped', 'model', {'c': 1}, 1234, optimizer=None, disk_guard=None)",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "ValueError: Final-mode row failure: stream=routing, index=0, local_errors=['ValueError: Complete routing row exceeds 16384 tokens']; no substitution",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "? +++++++++++",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named 'test_conversion'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "KeyError: 'CLEAN_VSI590K_WORKSPACE'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "KeyError: 'STUDENT_PILOT_ARCHIVED_RUN'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: os.symlink outside TMP denied: /etc/never-created-ddp.json",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/scripts/gpu_routed_batch.py'",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "+ e3fbcaacd836fe1491b197cf7d91b8bf7af68bfb18b1e7897fb9414b4e06e2c7",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "-    'tolerance_rel': 0.015625})]",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/integ_v3/work/tree/student_pilot/__init__.py'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/evalx/work/aws_vg/evaluator/evalpath/__init__.py'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/gx_build/work/aws_probe/g3t_header.json'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "TypeError: 'NoneType' object is not subscriptable",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/c1r/work/D/g3t_src/vggt/__init__.py'",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "+  'd5213e36cf4ca7c2b4e0a4df2361e2a02e13490817a4b6a517a851034386530f']",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: os.mkdir outside TMP denied: /tmp/headcall_test_cache/hcfull_frames_w_60q5_m",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/w10_mdg/run.py'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/merge11/legacy9fix_source.py'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: NFS path denied: /data2/jjyeung/cache/huggingface/hub/models--Qwen--Qwen3.6-27B/snapshots/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/mod",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "TypeError: DepthInputTests.test_training_capture_feeds_full_grids.<locals>.spy() got an unexpected keyword argument 'fov_override'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tree/scripts/benchmark_own_vit_reread.py'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/out/acceptance_inputs/REAL_T0_R6_2/bound/PARITY_CROPS_20.j",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "AssertionError: \"private\" does not match \"Probe cache requires an owned absolute path without symlinks\"",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "+ ('trinity-0-18', 'GPU-#-aaaa-aaaa-aaaa-aaaaaaaaaaaa')",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/out/smoke_qwen36_27b.sh'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/out/run_qwen36_27b.sh'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "ValueError: temporary_input_source",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "+ a16c0e5ce95c0ecd94880d27a7cb70122a8593f949fb391537fb7ff3cfe8daf6",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: NFS path denied: /data3/jjyeung/ddp_onethinker_c_onethinker_20260919T2100Z_active6/PUBLISHED.json",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: os.mkdir outside TMP denied: /scratch/jjyeung/orch_n30/fb_pack/patchA2rev/work/tmp/tests/runtime_backend",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "AssertionError: \"bytes changed\" does not match \"MDG stream and configuration presence differ\"",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "AssertionError: \"rehearsal\" does not match \"MDG stream and configuration presence differ\"",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "ValueError: MDG stream and configuration presence differ",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "AssertionError: \"scene exclusion coverage\" does not match \"MDG stream and configuration presence differ\"",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "AssertionError: \"unreviewed training setting\" does not match \"MDG stream and configuration presence differ\"",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/leg_s1_tree/out/ROUTING_POLICY_FROZEN_NO_FLAG.json'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "ModuleNotFoundError: No module named 'iopath'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/fb_pack/patchA2rev/scripts/run_gpu_acceptance.sh'",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_cd/ttower/work/sam3/common.py'",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "+ bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+   "rows": 1
+  },
+  {
+   "status": "fail",
+   "cause": "AssertionError: ValueError not raised",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "ValueError: Unsupported student architecture: qwen3_5",
+   "rows": 1
+  },
+  {
+   "status": "error",
+   "cause": "PermissionError: sandbox: os.mkdir outside TMP denied: /scratch/jjyeung/orch_n30/fb_pack/patchA2rev/out/tracecold_audit_8ht2i34m",
    "rows": 1
   },
   {

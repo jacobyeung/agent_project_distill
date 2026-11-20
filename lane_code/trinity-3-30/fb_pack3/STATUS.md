@@ -1,5 +1,5 @@
 # fb_pack STATUS (successor resumes from this file alone)
-Updated 2026-11-19T22:43Z by fb_pack3 (Devin Opus high, session trinity-3-30 /scratch/jjyeung/orch_n30/fb_pack3, from 22:41Z; brief B/briefs/fb_pack3.md; fb_pack2 ran 21:08-22:41Z, fb_pack1 18:38-21:10Z). fb_pack3 scripts in fb_pack3/work. Predecessor scripts: fb_pack1/work, fb_pack2/work (reuse by absolute path).
+Updated 2026-11-19T23:47Z by fb_pack3 (Devin Opus high, session trinity-3-30 /scratch/jjyeung/orch_n30/fb_pack3, from 22:41Z; brief B/briefs/fb_pack3.md; fb_pack2 ran 21:08-22:41Z, fb_pack1 18:38-21:10Z). fb_pack3 scripts in fb_pack3/work. Predecessor scripts: fb_pack1/work, fb_pack2/work (reuse by absolute path).
 B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Events: B/events/fb_pack. Read every `*_ORCH_*` there (newest last) before acting.
 
 ## Hosts, paths, mechanics
@@ -23,6 +23,8 @@ B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n3
 - ANSWER 2133Z (patch C exposure): nothing added to the routing job being submitted; GO in advance for ONE CPU-only Orchard job after launch (same form as routing-selection job) composing the routing base with patch C's field on the merged boundary tree, printing per-type/per-rule rewrite counts; tree_rebuild15 (or successor) submits when the boundary tree is merged. I then state N's per-step exposure per prose form. Counts not in by 06:00Z 11-20 -> camera binds WITHOUT patch C, gate read tags prose forms. Relcnt v2 parked for the second boundary with pointing.
 
 - ORDER 2202Z (pointing K1): done. BLOCKER 2215Z + RESULT 2219Z in events/tree_rebuild and fb_pack: admission admits the 320 K1-heldout pointing rows (no room audit on pointing; 12 remove lists match 0); fix list F1+F2 /scratch/jjyeung/orch_n30/fb_pack/k1point/REMOVE_POINTING_K1_HELDOUT.jsonl d21e374f (320 rows), AUDIT_POINTING_K1.json 8d5c1a9a, audit_point.py 6035517f (= fb_pack2/work/audit_point.py); with list: 0 K1-heldout kept, 18,116 before shape filter. Pose + routing base: CANNOT CHECK (no Trinity copy). Disclosure line added to STORE_V7_ROOM_AUDIT and POINTING_TRACE_FORM records. Prior -> second boundary unless discovery-run offsets.
+- RULING 2254Z (to tree_rebuild16): protected-room lists bind by role protected_rooms (tree 24l4) + native post-condition; pointing list d21e374f by config; pose/routing lists from the discovery census by kit+config delta.
+- RULING 2315Z: donor FoV measured before binding (k1fwd2 forward, grids 02:45Z on 1-18); bars frozen first with sha posted + one cross-family read; manifest lists donor as "weights 544; FoV pending, due ~03:15Z"; one Astra read-only review of the score_400n change.
 
 ## Delivered (all reviewed unless noted)
 | item | where | key pins | review |
@@ -38,22 +40,32 @@ B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n3
 | Relcnt v2 | F1/relcnt2/out (3,600 rows, cap 0.60, tar fbp_relcnt2.tar) | LOO mean 57.6%, pair 49.7% | fbp_relrev2 GO 21:25Z (rows 69e85b7c; next boundary; split validation by room) |
 | Relcnt v1 | F1/relcnt/out (4,000 rows 1ad9e3a5) | | fbp_relrev GO AFTER FIXES (2 MUST) |
 
-## Running at 22:42Z (all on 2-28; fb_pack3 poll script fb_pack3/work/q1.sh)
-- Cursor fbp_patchA2rev (F2/patchA2rev, 22:22Z; PROMPT 1405eeb0): confirm review of PATCH_A2 3ecd924f.
-- Cursor fbp_donor3rev (F2/donor3rev, 22:37Z; PROMPT ebbc8134): confirm review of PATCH_DONOR3 4253fbd1 (tar 495cadce).
-- Cursor fbp_camform2rev (F2/camform2rev, 22:38Z; PROMPT 780dd9ff): confirm review of PATCH_CAMFORM2 7e7ae484 (tar 8be168b5; same bytes apply on A and A2). GO by 03:00Z.
-- Codex fbp_prior2c (F2/prior2c, 22:34Z, ~1.5 h; fbp_prior2c_full.md b7fd3f06): prior checker fixes (preparation; prior -> second boundary unless discovery-run offsets).
-- Done, parked for the second boundary: patch D F2/pointD/out (PATCH_POINT 13b8a54b, tar fdf380c6; overlaps donor runner file).
+## Done by fb_pack3 (22:41Z-)
+- 22:45Z camera admitted-qid list F1/cam/out/ADMITTED_QIDS.json e84b7208 (camrev S2).
+- 23:01Z reviews: donor3rev GO (905a8b44, no MUST/SHOULD); camform2rev GO (12e1ebaf; SHOULD S3 late pin auth in composing mode, NIT N1); patchA2rev GO (d954d9ef; SHOULD S1 r1_routing.py:75 ungated, unreachable). prior2c built (F2/prior2c/out tar 4a682c58; real proof MISSING). RESULT 2310Z.
+- 23:10Z donor scored: 544 (B-A upper bounds -0.244/-0.266/-0.335). Scorer copy F1/score400n/score_400n.py 425cf0f5 (native npz layout; diff DIFF_vs_score_400.txt 8b67f94b; asks review). Outputs 1-18 sb_own400/out/real400_score_n (SCORE_RESULT b404c88c). RESULT 2312Z (fb_pack, tree_rebuild, swarm_build); record TOWER_ARM_SCALE_DRIFT updated.
+- 23:14Z QUESTION donor fov_source V1/V2 unmeasured (pose-head FoV not allowed, READER_REQUEST.md:9); default V2 from 23:30Z; asks who launches a V1/V2 Orchard forward of 544 (kit/fov_variants.py, score_400b.py).
+- 23:15Z manifest v1: 3-30 fb_pack3/out/MANIFEST_N_BOUNDARY1.json 14967757 (= 1-18 F1/MANIFEST_N_BOUNDARY1.json; extra fb_pack3/work/manifest_extra.json -> F1/mf/extra.json 5c8ac88a); copied to events/tree_rebuild + events/fb_pack; RESULT 2315Z.
+
+- 23:28Z ANSWER to k1fwd2 (events/fb_pack + events/k1fwd): layout own.npz + fov.npz {depth, depth_V1, depth_V2, fov_B, fov_V1, fov_V2} + FOV_RECEIPT.json under 1-18 sb_own400/in/own_544_fov/native/probe/<key>; grids due 02:45Z.
+- 23:30Z FoV bars frozen: 1-18 F1/fov/BARS_FOV_544.json c1905484 (margin 0.25; D1-D3, H; V2 > V1 > NONE). RESULT 2330Z. Manifest v2 180532a9 (donor "weights 544; FoV pending, due ~03:15Z") at events/tree_rebuild/20261119T2331Z_fb_pack3_MANIFEST_N_BOUNDARY1_v2.json; source fb_pack3/work/manifest_extra.json.
+
+- 23:42Z fbp_fovrev GO AFTER FIXES: A1 answered with evidence (anchor/grid contract 242/242; boundaries.py differs, parity covers it); B1 -> BARS_FOV_544_AMEND1.json e23ffd29 (P1-P5) frozen 23:45Z; addendum to k1fwd2 (events/fb_pack + k1fwd 2345Z); RESULT 2345Z.
+
+## Running (1-18)
+- Codex Astra fbp_fovscore (tmux, F1/fov/build, prompt fb_pack3/work/prompts/fbp_fovscore.md 8b072193; 23:31Z): score_fov.py + synthetic/refusal tests; REPORT.md.
+- fbp_fovrev DONE (receipt 1-18 codex_local/.../20261119T233110Z_fbp_fovrev/final_message.md).
+- Ready: prompt fb_pack3/work/prompts/fbp_fovscore2.md (delta build F1/fov/build2: P1-P5) -> launch when fovscore ends, then Cursor review of build2.
 
 ## Next (in order)
-1. Poll every 10 min, one tssh per node (2-28 poll: write a q-script like fb_pack2/work/q10.sh naming the live folders). On each review verdict: short RESULT; MUST items -> fix build (Codex Astra, F2/<name>, COMMON228 header + prompt, pattern fb_pack2/work/l8.sh) + confirm review (Cursor, pattern fb_pack2/work/l9.sh / l10.sh). Pending verdicts: patchA2rev, donor3rev, camform2rev (GO by 03:00Z), then prior2c's build (preparation; review it only if a slot is idle).
-2. Score k1fwd1's grids at ~00:30Z (Orders: ANSWER 1902Z item 5; check events/k1fwd* or 1-18 sb_own400/in/own_400/ first) -> donor checkpoint 400/544 and FoV V1/V2 into the manifest; RESULT to events/swarm_build AND events/tree_rebuild.
-3. Manifest to tree_rebuild15 by 02:00Z: fill the PENDING fields of fb_pack3/work/manifest_extra.json (camera qids filled) (reviews, donor choice, camera admitted qids from 1-18 F1/cam/out INTAKE/intake (camrev S2), uploads), copy it to 1-18 F1/mf/, run `cd /scratch/jjyeung/orch_n30/fb_pack && /scratch/jjyeung/envs/p1cpu/bin/python -B mf/mk_manifest.py mf/extra.json` (writes F1/MANIFEST_N_BOUNDARY1.json), copy the manifest (<100 KB) to events/tree_rebuild/ with a RESULT; per item say whether it changes preparation or only the model side (ANSWER 2126Z item 5). Then with tree_rebuild15: every rank's first batch of the boundary config through the full forward on CPU (real Qwen3.5 processor; include pointing counts check from the pointing record).
-4. When tree_rebuild15 merges the boundary tree: it submits the patch-C exposure Orchard job (ANSWER 2133Z); from its per-type/per-rule counts state N's per-step exposure per prose form (64 routing rows/step x shares + slice share). Not in by 06:00Z -> camera binds without patch C.
-5. Discovery census (RULING 2216Z item 3): if pose or routing show protected-room rows, build their removal lists at once with k1point/mk_room_removal.py 39f449bd (1-18/2-28 F/k1point/) and hand them to tree_rebuild15.
-6. Uploads to Orchard: governed pushes via 3-30 (fb_pack1/work/gov_pull_point.py), priority 10, after tree_rebuild15 names the files.
-7. Mirror rule when the manifest is final: tar small outputs (patches, reports, lists; no rows) and IB-copy to a second node /scratch/jjyeung/n30_mirror/fb_pack/; record sha here.
-8. Design record FIRST_BOUNDARY_PACKAGE_20261119.md: Status update at the end (admission rebuilds pointing; extent hashes call text; base camera prose forms; live seal moved; pointing K1 rows; donor forces re-preparation; prior checker MUSTs).
+0. On fovscore done: Cursor Opus review of score_fov.py on 1-18 (pattern fb_pack2/work/l9.sh; AGENTS.md from 1-18 /scratch/jjyeung/orch_n30/sb_cursor_probe/AGENTS.md). Grids ~02:45Z: run the REPORT.md command (out/fov544_score), RESULT with choice to fb_pack + tree_rebuild by ~03:15Z; update manifest (fov_source) and repost.
+1. Poll every 10 min: events/fb_pack ORCH, fb_pack3/inbox, events/tree_rebuild (tree_rebuild16 merge, upload names, first-batch request).
+2. FoV answer: if ORCH orders a V1/V2 forward, score with sb_own400 kit/score_400b.py into a fresh out dir (may need the same native-layout 2-assert change as score_400n); update manifest fov_variant.
+3. When tree_rebuild16 merges the boundary tree: build + run every rank's first batch of the boundary config through the full forward on CPU on 2-28 (real Qwen3.5 processor; pointing counts check from the pointing record); patch C exposure job is tree_rebuild16's (ANSWER 2133Z): from its per-type/per-rule counts state N's per-step exposure per prose form (64 routing rows/step x shares + slice share). Not in by 06:00Z -> camera binds without patch C.
+4. Discovery census (RULING 2216Z item 3, 2254Z): pose/routing protected-room lists with k1point/mk_room_removal.py 39f449bd -> tree_rebuild16 (bind by config under 24l4 role).
+5. Uploads to Orchard: governed pushes via 3-30 (fb_pack1/work/gov_pull_point.py), priority 10, after tree_rebuild16 names files.
+6. Mirror v1 DONE 23:18Z: 2-28 patches/reviews/reports/K1 list -> 1-18 /scratch/jjyeung/n30_mirror/fb_pack/fbp3_mirror_228.tar 658f11cf (source 2-28 /tmp/fbp3_mirror_228.tar); 1-18 manifest/extra/qids/scorer/score outputs -> 2-28 /scratch/jjyeung/n30_mirror/fb_pack/fbp3_mirror_118.tar c2d29b80 (source 1-18 F1/fbp3_mirror_118.tar). Redo when the manifest changes.
+7. DONE 23:18Z design record FIRST_BOUNDARY_PACKAGE_20261119.md: findings + status updated; update again at the end. (was: Status update (admission rebuilds pointing; extent hashes call text; base camera prose forms; live seal moved; pointing K1 rows; donor forces re-preparation, donor 544, fov V2 default; prior checker MUSTs; all patches GO).
 
 ## Open questions (defaults applied, events/fb_pack)
 - QUESTION 2107Z: answered by RULING 2109Z (pointing out of the first boundary; prior default stands).
@@ -61,4 +73,5 @@ B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n3
 - RESULT 2116Z default: prior binds only if prove_on_prepared.py passes on N's real prepared receipts before the boundary.
 
 ## Spend
+- fb_pack3: Codex Astra fbp_fovscore, fbp_fovrev (1-18). GPU none. Streams none.
 - Codex Astra high (codex_local receipts on each node): fbp_route, fbp_prior, fbp_relcnt, fbp_cam (1-18); fbp_patchA, fbp_donor, fbp_prior2, fbp_point, fbp_camform, fbp_pointD (2-28); fbp_relcnt2 (1-18); fbp_patchA2, fbp_prior2b (2-28, fb_pack2). Cursor: fbp_relrev2 (1-18, fb_pack2). Cursor Opus xhigh: fbp_relrev, fbp_camrev, fbp_patchArev (1-18), fbp_donorrev, fbp_pointrev (2-28). GPU: none. Governed streams: 1 (218 MB pointing store, 20:12-20:13Z).

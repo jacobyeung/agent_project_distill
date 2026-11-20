@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack/fov; date -u +%TZ; df -h /scratch|tail -1; tmux ls 2>&1 | grep fbp | cut -d: -f1 | tr '\n' ' '; echo; ls $F/build; tail -c 400 $F/build/STATUS.md 2>/dev/null; echo; tail -c 300 $F/rev1/dispatch.log; ls -t /scratch/jjyeung/orch_n30/codex_local/agent/scratch/codex_runs | grep fbp_fov | head

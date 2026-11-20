@@ -1,0 +1,1 @@
+F=/scratch/jjyeung/orch_n30/fb_pack/fov/build; sha256sum $F/score_fov.py | cut -c1-16; grep -n -i -A12 "ambigu" $F/REPORT.md | cut -c1-400 | head -30; grep -n "chose\|choice" $F/REPORT.md | head -8 | cut -c1-250

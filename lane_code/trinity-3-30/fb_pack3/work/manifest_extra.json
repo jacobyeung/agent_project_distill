@@ -1,9 +1,9 @@
 {
- "manifest_status": "DRAFT by fb_pack3 22:46Z (from fb_pack2 draft); fill PENDING fields, then run on 1-18: python mk_manifest.py <this file>",
+ "manifest_status": "v1 by fb_pack3 2026-11-19T23:20Z: all three first-boundary patches reviewed GO; open: donor field-of-view source (pending measurement, due about 03:15Z; ORCH RULING 2315Z), patch C exposure counts (Orchard job after the boundary tree merges; by 06:00Z), Orchard uploads (tree_rebuild15 names files)",
  "base_seal_note": "Every patch is a unified diff against seal 57a1f14d (PATCH_CAMFORM2 against base+PATCH_A2, PATCH_DONOR3 against base); each applies with fuzz 0 on live seal 189df6ac. tree_rebuild15 rebases onto its newest merged tree (24l/24m, e17fc130) and reseals.",
  "binding_order": [
   "1 four distance slices + routing_slice_declaration (PATCH_A2)",
-  "2 scale donor (PATCH_DONOR3)",
+  "2 scale donor (PATCH_DONOR3): weights 544; binds only when BARS_FOV_544 picks V1 or V2 (due about 03:15Z)",
   "3 camera wording rows (+ PATCH_CAMFORM2 only if camform2rev GO by 03:00Z AND Orchard exposure counts by 06:00Z, ANSWER 2133Z)",
   "4 recovery 760",
   "pointing K1-heldout removal list (RULING 2216Z, kit 24m2)",
@@ -16,7 +16,7 @@
    "sha256": "3ecd924f91594dc018b46bfcdc631b867e3164c67eb0b9e9dd58706ccd8eacbd",
    "delta_vs_PATCH_A": "a848718c19df003df13e3cd76fdefa9cf26611e2e9cd9a7ad25bd3b155049ba2",
    "tar": "b76709467ed6b434c000bba2c43ec822b3442b49ffa26059d4c4adb2874dfa20",
-   "reviews": "fbp_patchArev GO AFTER FIXES (fixed here); fbp_patchA2rev PENDING",
+   "reviews": "fbp_patchArev GO AFTER FIXES (fixed in A2); fbp_patchA2rev GO (2-28 F2/patchA2rev/REVIEW_VERDICT.md d954d9ef; SHOULD S1 r1_routing.py:75 ungated source_names on direct compose() of a deferred config, unreachable from shipped paths; not rebuilt)",
    "changes": "preparation (routing composition, config identity)"
   },
   "PATCH_DONOR3": {
@@ -27,10 +27,20 @@
    "tar": "495cadce2b747abd1cf937f77b1867f86d5136e8e86d6f725950be86f105e132",
    "reader_request": "70c9613ff4973714f25a95a5dec37232a8574fd61840eb8af18279c60e7c5e70",
    "real_weight_command": "244dfa28469a3e8e8a43dfa6fa71c035549f5cd72b3d2fdd8807964c1adea8d3",
-   "reviews": "donorrev, donor2rev GO AFTER FIXES (fixed); fbp_donor3rev PENDING",
+   "reviews": "donorrev, donor2rev GO AFTER FIXES (fixed); fbp_donor3rev GO, no MUST/SHOULD (2-28 F2/donor3rev/REVIEW_VERDICT.md 905a8b44)",
    "changes": "model side, but scale_donor is in identity(cfg) and the preparation receipt: the boundary prepares afresh with the donor (it re-prepares anyway for the routing rows); a leg with the donor resumes under it",
-   "checkpoint_pin": "PENDING 400 or 544 from k1fwd1 grids (ANSWER 1902Z item 5)",
-   "fov_variant": "PENDING V1/V2 from the same forward"
+   "checkpoint_pin": {
+    "step": 544,
+    "where": "code-aws ap/93ccadab/m544 (artifact path+sha256 to be pinned by the kit from the export)",
+    "decision": "frozen rule bars bc080aa9: B-A displacement upper bound < 0 in fold1 (-0.244), fold2 (-0.266), combined (-0.335); 1-18 /scratch/jjyeung/orch_n30/sb_own400/out/real400_score_n/SCORE_RESULT.json b404c88c; scorer copy fb_pack/score400n/score_400n.py 425cf0f5 (native npz layout, 2 asserts)",
+    "event": "events/fb_pack/20261119T2312Z_RESULT_donor_544_*"
+   },
+   "fov_variant": {
+    "status": "NOT BOUND: weights 544; field-of-view source pending measurement, due about 03:15Z (ORCH RULING 2315Z)",
+    "rule": "BARS_FOV_544.json c1905484873704ae9b8af5cb653cf2cb1b911d789d181811767fa5f8707fa878 (1-18 /scratch/jjyeung/orch_n30/fb_pack/fov/); V2 if acceptable, else V1, else the donor does not bind",
+    "grids": "k1fwd2, due on 1-18 sb_own400/in/own_544_fov by 02:45Z",
+    "note": "pose-head FoV is not allowed (READER_REQUEST.md:9)"
+   }
   },
   "PATCH_CAMFORM2": {
    "host": "trinity-2-28",
@@ -39,15 +49,16 @@
    "applies_on": "base+PATCH_A and base+PATCH_A2",
    "tar": "8be168b5d3f0ff9898503a7e20dff67df9c8efde2dad8819cda1f2c68a5ea46f",
    "policy": "configs/r1_camera_trace_form_v1.json 169c439a1ac1bf11d66ee7b725277ef8ee07a706807324bed2696b9d99efaace",
-   "reviews": "camformrev GO AFTER FIXES (fixed); fbp_camform2rev PENDING",
+   "reviews": "camformrev GO AFTER FIXES (fixed); fbp_camform2rev GO (2-28 F2/camform2rev/REVIEW_VERDICT.md 12e1ebaf; SHOULD S3: in composing mode the pin is first authenticated in compose r1_routing.py:63-65, after pointing/VQA/routing streams build; fails closed, late; NIT N1)",
    "exposure": "PENDING Orchard CPU job after launch (ANSWER 2133Z)",
-   "changes": "preparation (composed routing rows)"
+   "changes": "preparation (composed routing rows)",
+   "binds_if": "Orchard exposure counts (per type/rule) in by 06:00Z 2026-11-20 (ANSWER 2133Z); else camera rows bind without patch C and the gate read tags prose forms"
   },
   "PATCH_PRIOR": {
    "status": "second boundary",
    "path": "/scratch/jjyeung/orch_n30/fb_pack/prior2/out/PATCH_PRIOR.patch",
    "sha256": "b5cece7d3dc0103043e9174887b6096497eafec9e9017b3767387fa420fc0210",
-   "checker": "prior2c PENDING"
+   "checker": "prior2c built (2-28 F2/prior2c/out, tar 4a682c58; prove_on_prepared.py c4dcf830, run_on_host.py 67611513, HOST_INPUTS.json b57d1ca8; 58 checks pass); real proof MISSING (N prepared receipts + native stores); not reviewed"
   },
   "PATCH_POINT": {
    "status": "second boundary",
@@ -61,7 +72,8 @@
   "sha256": "d21e374f39048c0e142680e0d3b26e5b2b774138747610c1fc4a00da0ec580e1",
   "rows": 320,
   "expected": "pointing source 25,020; listed 320; scene-excluded 6,584; 18,116 reach the shape filter; 0 K1-heldout",
-  "changes": "preparation"
+  "changes": "preparation",
+  "binding": "by config under tree_rebuild16 24l4 protected_rooms role (ORCH RULING 2254Z item 3)"
  },
  "config_delta": {
   "from_CONFIG_HANDOFF": "route/out/CONFIG_HANDOFF.json fields (note its blocked_by items: r2_contract.py:248 recovery two-operand guard; r2_grammar.py:183 camera grammar; r1_coverage EXTRA_PINS)",
@@ -79,5 +91,13 @@
   "note": "refused set == REBIND.json excluded (eval rooms); rows e8cbda99 keep the 836 rows, every consumer must go through r2 intake (camrev S2)"
  },
  "launch_gates_tripped": "any config change re-binds identity(cfg): preparation config_sha256, population evidence pins and row plan, host receipt config_identity and loader_audit, review bound to identity(cfg) (entry.py:85-104)",
- "orchard_uploads": "PENDING: tree_rebuild15 names the files; rows/envelopes/receipts as u/<sha> by governed push from trinity-3-30 (fb_pack1/work/gov_pull_point.py pattern, priority 10)"
+ "orchard_uploads": "PENDING: tree_rebuild15 names the files; rows/envelopes/receipts as u/<sha> by governed push from trinity-3-30 (fb_pack1/work/gov_pull_point.py pattern, priority 10)",
+ "changes_preparation_or_model": {
+  "four distance slices + recovery": "preparation (routing rows, envelopes, upstream receipts)",
+  "PATCH_A2": "preparation (routing composition declaration, camera pin) and config identity",
+  "PATCH_DONOR3": "model side plus identity(cfg) and preparation receipt (scale_donor block): boundary re-prepares",
+  "camera wording rows": "preparation",
+  "PATCH_CAMFORM2": "preparation (composed camera prose)",
+  "pointing K1 removal list": "preparation (remove_files / protected_rooms role per ORCH RULING 2254Z, tree 24l4)"
+ }
 }

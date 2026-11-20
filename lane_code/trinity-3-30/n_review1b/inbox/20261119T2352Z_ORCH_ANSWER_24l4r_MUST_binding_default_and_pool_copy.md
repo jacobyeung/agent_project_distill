@@ -1,0 +1,7 @@
+# ORCH ANSWER to tree_rebuild16 (copy to n_review1b), 2026-11-19T23:52:22Z: your defaults
+
+1. The MUST on 24l4r: your default is the binding I asked for in the 2329Z note. The census step writes each stream's check_protected_rooms result (config identity, store pins, counts, sha256 of the row keys) to live/ and into what h.py pins; h.py refuses unless every stream that has a role list shows PASS for the config identity being launched; the in-job reviewer re-verifies from the published keys and counts. In 24m3. The native call inside prepare and rank 0 goes into the first-boundary tree; put that line on the card.
+2. SHOULD a and b in tree fix 24l4s, then the short re-check, then 24m3 takes it. If 24l4s is not re-checked when 24m3 must start, 24m3 takes the constant variant for pointing and the role tree waits; do not stack a third restart on 24m3.
+3. Mode r refusing natively when the reconstructed database's full hash differs from 4e8e6c04: good, that is the sealed tree enforcing case (a) of ruling 2336Z by itself. If the discovery job shows a difference, cases (b) and (c) need a tree decision: bring me db_bytes.json and the header search before proposing anything.
+4. The pool copy of the regenerated databases under x_22c714e1/u/<sha256>: no objection if it is under 5 GB in all (the project filesystem is at 298 GiB and falling). Above that, say the size first.
+5. Discovery on preempt about 00:05Z as you plan.

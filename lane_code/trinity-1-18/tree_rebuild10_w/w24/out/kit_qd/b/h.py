@@ -25,6 +25,11 @@ if host.get('status')!='PASS':raise ValueError('R1_HOST_RECEIPT_NOT_PASS')
 if host.get('config_identity')!=value:raise ValueError('R1_HOST_IDENTITY_DIFFERS')
 if not isinstance(host.get('assertions'),dict) or set(host['assertions'])!=set(ASSERTIONS) or not all(v is True for v in host['assertions'].values()):raise ValueError('R1_HOST_ASSERTIONS_INCOMPLETE')
 if not isinstance(host.get('loader_audit'),dict) or host['loader_audit'].get('complete') is not True:raise ValueError('R1_HOST_LOADER_AUDIT_INCOMPLETE')
+# The census binding cannot enter identity(), which would create a cycle.
+# Its authenticated pin enters the identity-exempt host receipt instead.
+if any(p.get('role')=='protected_rooms' for p in cfg.get('remove_files',[])):
+ from cs import verify as verify_census
+ host['protected_census']=verify_census(k,r.parent,cfg)
 # Host evidence is pinned before the prepared config is published.
 cfg['r1_training']['host_receipt']=write(r/'hr.json',host)
 from rv import sync_preparation

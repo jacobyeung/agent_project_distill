@@ -1,0 +1,90 @@
+{
+  "input_sha256": {
+    "/scratch/jjyeung/orch_n30/fb_pack/fov/build/score_fov.py": "3fed65b261ccb3c04941bd85433a51a8eebc0391fba2b66c5ea1f30c72a3b4df",
+    "/scratch/jjyeung/orch_n30/fb_pack/fov/build/tests/test_output_guards.py": "73a38c9151f1325537264d079aba0112508ec10c2b13ca7ced2874d7022f2391",
+    "/scratch/jjyeung/orch_n30/sb_own400/kit/core.py": "df1a2695b70b2f4517a07cdfb93195339e96819c6522768df03047389817b4df"
+  },
+  "test_fixture": true,
+  "decision_usable": false,
+  "tests": [
+    {
+      "name": "existing synthetic directory",
+      "pass": true,
+      "command": [
+        "env",
+        "OMP_NUM_THREADS=8",
+        "MKL_NUM_THREADS=8",
+        "OPENBLAS_NUM_THREADS=8",
+        "CUDA_VISIBLE_DEVICES=",
+        "nice",
+        "-n",
+        "10",
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-B",
+        "/scratch/jjyeung/orch_n30/fb_pack/fov/build/score_fov.py",
+        "--synthetic",
+        "1",
+        "1",
+        "--out",
+        "/scratch/jjyeung/orch_n30/fb_pack/fov/build/tests"
+      ],
+      "stderr": "Bars/scoring refusal: output directory already exists: /scratch/jjyeung/orch_n30/fb_pack/fov/build/tests\n"
+    },
+    {
+      "name": "real output outside sb_own400/out",
+      "pass": true,
+      "command": [
+        "env",
+        "OMP_NUM_THREADS=8",
+        "MKL_NUM_THREADS=8",
+        "OPENBLAS_NUM_THREADS=8",
+        "CUDA_VISIBLE_DEVICES=",
+        "nice",
+        "-n",
+        "10",
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-B",
+        "/scratch/jjyeung/orch_n30/fb_pack/fov/build/score_fov.py",
+        "--own-root",
+        "/scratch/jjyeung/orch_n30/fb_pack/fov/build/tests",
+        "--out",
+        "/scratch/jjyeung/orch_n30/fb_pack/fov/build/forbidden_real"
+      ],
+      "stderr": "OUTPUT_LOCATION: real output must be a fresh child of /scratch/jjyeung/orch_n30/sb_own400/out\n"
+    },
+    {
+      "name": "invalid synthetic factor",
+      "pass": true,
+      "command": [
+        "env",
+        "OMP_NUM_THREADS=8",
+        "MKL_NUM_THREADS=8",
+        "OPENBLAS_NUM_THREADS=8",
+        "CUDA_VISIBLE_DEVICES=",
+        "nice",
+        "-n",
+        "10",
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-B",
+        "/scratch/jjyeung/orch_n30/fb_pack/fov/build/score_fov.py",
+        "--synthetic",
+        "nan",
+        "1",
+        "--out",
+        "/scratch/jjyeung/orch_n30/fb_pack/fov/build/forbidden_nan"
+      ],
+      "stderr": "usage: score_fov.py [-h] [--own-root OWN_ROOT] --out OUT [--synthetic F1 F2]\nscore_fov.py: error: synthetic factors must be finite and positive\n"
+    },
+    {
+      "name": "write_guard rejects outside selected output",
+      "pass": true,
+      "stdout": "Write outside run output: /scratch/jjyeung/orch_n30/fb_pack/fov/build/forbidden_guard\n"
+    }
+  ],
+  "command": [
+    "/scratch/jjyeung/envs/p1cpu/bin/python",
+    "-B",
+    "/scratch/jjyeung/orch_n30/fb_pack/fov/build/tests/test_output_guards.py"
+  ],
+  "seconds": 0.32890045922249556
+}

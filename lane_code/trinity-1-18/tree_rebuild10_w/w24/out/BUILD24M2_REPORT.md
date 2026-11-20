@@ -1,0 +1,20 @@
+Item 0 fixed: SHA256-only staged resolution; absent P database 4e8e6c04e697d8f12ecd9d705e197e94f73f4a9dc508b7a9e9b4f36487336f84 has no staged source; catalog eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9 remains unverified. Sizes are unknown, not invented.
+Expected first discovery refusal: R1_STAGED_PIN_MISSING:4e8e6c04...:config.streams.routing.database in mode r, BEFORE preparation.
+Items 2b and 2c STOPPED: 2b lacks the authenticated camera/routing population; 2c needs a tree change because validate_removals rejects the thirteenth list. No verifier or gate was changed.
+The final tree seal is 96ff9a03ae3be43972e060050ab411967e99dc312dc1380fe1c73435bbecebbf; all 943 files and UNCHANGED24L3 match. The retained fuzz-0 patch evidence passes.
+q, n, n_go and qd contain the final source archive, inventory, code capsule and dependent seals. Template source pins and their u/ upload entries agree with the runtime capsule.
+The 54 scene-rebuild inputs are listed in out/SCENE_REBUILD_INPUTS.md. out/MISSING_STAGED_PINS.md lists full hashes, config fields, unknown sizes and source evidence.
+The native Removals fixture removes the 320 candidate pointing keys; the existing twelve lists remove zero. verify_union accepts thirteen, but validate_removals refuses R1_NAMING_REMOVAL_ORDER in every kit.
+The six-status census covers every native admitted stream, publishes counts and protected row keys under opaque live/ names, and refuses before review. Its 25 fixtures include a positive pointing/K1-held-out case.
+EXIT/TERM publication works outside bwrap in all kits; filtered diagnostic copies stay under 5 MB. The 600-second loop, concurrent publication and failed exits pass fixture tests.
+Mode r publishes the regenerated receipt and materialization beside routing_selection.json, enforces their 5 MB combined cap and logs SHA256 values.
+out/kit_qd has GO=false, discovery=true and claims=nothing. out/jd.sh requests preempt, GPU:1, 48 CPUs, 800G, 04:00:00 and no requeue; it uses the kit resolver.
+qd runs r then fresh-root q with its own selection, followed by d.py/h.py/rv.py, and stops at WAITING_REVIEW. Its config, stores, removals and admission match q exactly.
+The decoded discovery shell fixture reaches WAITING_REVIEW; native routing regeneration/self-selection and native handover checks pass separately. Fixture preparation/capacity boundaries are recorded; no production preparation is claimed.
+Native host tests pass 44 cases. Final decoded scans and kit/naming/resolver/guard/live/routing/review-wait/security tests pass; source-pin resolver checks pass for all four final kits.
+The hidden-path look-ahead executes plan_payload q and r on real receipt bytes: 24m1 fails on its literal host path, and all final kits refuse the missing hash without opening a host path. Missing production payloads are not fabricated.
+Resolver identities, config semantics, admission, legality, removals, opener rows, step-544 lineage and DEFERRED remain unchanged. h.py accepts the added host fields unchanged.
+Kit seals: q=b598fac7ab3bfb705313cf2b18d037db1fedb13194e093008696f9278feddecc; n=9539819c42d40ede657d7ed413b3d393850459d7e1718aafca80d9ae0219546d; n_go=2eabd73bc84a4d0784139e200903af92923f374555ac7433d63da93541f1f62b; qd=5e36f73cb4933eadc24644d51c51ad623d4deb426ba4985aabf02eb5320d724d.
+out/UPLOADS_24M2.json/.list contain 82 entries (12,828,437 bytes), stream root /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24/work/build24m2c/upload; qd is only under qd/. The separate GO delta is not uploaded.
+The package, SHA256, member seal and storage accounting are in out/DELIVERY_24M2.json. Final new allocation is below 200 MB; a temporary overrun occurred because the initial check omitted directories. The size fixture is retained losslessly compressed in attic/. All twelve prior package hashes are unchanged.
+No Orchard, network, SSH, GPU, scheduler, Git, tmux or other agent was used. This is a packaged, production-blocked delivery, with no launch or admission claim.

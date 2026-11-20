@@ -33,8 +33,8 @@ def classifier(cfg):
     def classify(row,stream):
         canonical,how=authority.canonical(row)
         # The pointing producer records its canonical scene in this native field.
-        if stream=="pointing" and how=="unresolved":
-            canonical=(row.get("provenance") or {}).get("canonical_scene")
+        if stream=="pointing":
+            canonical=(row.get("provenance") or {}).get("canonical_scene") or canonical
         physical=None
         if canonical:
             try:physical=authority.room(canonical)

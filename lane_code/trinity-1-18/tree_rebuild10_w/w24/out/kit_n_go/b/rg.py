@@ -22,7 +22,8 @@ def regenerate(cfg, root, *, compare=True):
             row_ids.update((json.dumps([i,value.get('qid',value.get('id'))],separators=(',',':'))+'\n').encode())
             full.update((json.dumps([i,row,target],separators=(',',':'))+'\n').encode());rows+=1
     inputs=dict(config_sha256=digest(cfg),routing_base=cfg['streams']['routing'],
-        s1_routing=cfg['s1_routing'],division=point['division'],base_model=model_pin(cfg))
+        s1_routing=cfg['s1_routing'],division=point['division'],base_model=model_pin(cfg),
+        routing_database=load(pinned(cfg['streams']['routing']))['database'])
     comparison=None
     if compare:
         from copy import deepcopy

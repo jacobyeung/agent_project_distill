@@ -1,0 +1,2 @@
+- cont_ops22/work/c600/ret2: failed partial unpack of the dose-point return (7.6 MB); /dev/shm/c22 (payload copies, RAM)
+- /dev/shm/c22/build/{a136f924ab1,a0359570077,a4dab97810e} (fetched returns, unpacked x; corpus ingested; RAM)

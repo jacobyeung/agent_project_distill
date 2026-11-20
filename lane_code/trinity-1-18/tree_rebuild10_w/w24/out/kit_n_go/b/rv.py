@@ -251,7 +251,18 @@ def run(kit, root, config, job, *, interval=30):
             raise ValueError("R1_REVIEW_CONFIG_TOO_LARGE")
         put(live / "v.json", raw)
         put(live / "identity.txt", (value + "\n").encode())
-        evidence(cfg, root / "rooms.json", live)
+        try:
+            evidence(cfg, root / "rooms.json", live)
+        except ValueError as error:
+            from cs import discovery
+            if not discovery(kit) or not str(error).startswith(('R1_PROTECTED_ROOM','R1_SCENE_PROTECTED')):
+                raise
+            put(live/'d5.json',encoded(dict(status='WOULD_REFUSE',refusal=str(error),config_identity=value)))
+        if any(p.get('role')=='protected_rooms' for p in cfg.get('remove_files',[])):
+            from cs import verify as verify_census
+            pin=verify_census(kit,root,cfg)
+            if load(cfg['r1_training']['host_receipt']['path']).get('protected_census')!=pin:
+                raise ValueError('R1_CENSUS_RECEIPT_PIN_DIFFERS')
         bound = load(kit / "k/a.json")["review_wait_seconds"]
         if type(bound) is not int or not 0 < bound <= 7200:
             raise ValueError("R1_REVIEW_FILE_UNUSABLE")

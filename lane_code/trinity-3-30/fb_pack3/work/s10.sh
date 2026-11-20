@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/orch_n30/sb_own400 && cat out/MISSING_B.json | head -c 1500; echo; grep -n -i "V1\|V2" out/KIT_REPORT_B.md | cut -c1-300 | head -20; ls kit/inputs | head; cat kit/cpu_check_228.sh | head -30

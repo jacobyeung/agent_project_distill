@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; cd $W/w24/out; date -u +%TZ; cat BUILD24M2D_REPORT.md; echo ====; cat MISSING_STAGED_PINS.md; echo ===; cat UPLOADS_24M2D.list; grep -o '"kits"[^}]*}' DELIVERY_24M2D.json; ls -la jd.sh

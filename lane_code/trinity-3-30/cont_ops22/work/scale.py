@@ -18,3 +18,16 @@ for t in ('camera_displacement','camera_rotation'):
         v=[r[i][1] for i in ids]; line.append('%s median ratio %.3f mean log %.3f'%(k,math.exp(statistics.median(v)),statistics.mean(v)))
     d=[runs['s600'][i][1]-runs['s400'][i][1] for i in ids]; line.append('600-400 paired median ratio %.3f'%math.exp(statistics.median(d)))
     print(' | '.join(map(str,line)))
+import os
+if os.environ.get('DUMP'):
+    rows=[]
+    for t in ('camera_displacement','camera_rotation'):
+        ids=sorted(set.intersection(*[set(i for i,(q,_) in r.items() if q==t) for r in runs.values()]))
+        for i in ids: rows.append(dict(item_id=i,question_type=t,**{k+'_pred_over_true':round(math.exp(r[i][1]),4) for k,r in runs.items()}))
+    summ={}
+    for t in ('camera_displacement','camera_rotation'):
+        v=[x for x in rows if x['question_type']==t]
+        summ[t]=dict(n=len(v),**{k:round(statistics.median(x[k+'_pred_over_true'] for x in v),3) for k in ('s400','s544','s600')})
+    json.dump(dict(what='median predicted/true ratio, tower arm, items paired across reads; positive numeric answers only',
+        reads=dict(s400='6ed2c7aa_s400_devS1_routed_A10b',s544='469ddece_s544_devS1_routed_b1.r0 (171253 read 0)',s600='6ed2c7aa_s600_devS1cam_c600_173348'),
+        source='corpus stage2/reads; script cont_ops22/work/scale.py',summary=summ,items=rows),open(os.environ['DUMP'],'w'),indent=1)

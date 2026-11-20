@@ -83,6 +83,57 @@ class Rooms:
             raise ValueError('R1_ROOM_ROW_REFUSED:'+status)
 
 
+def check_protected_rooms(cfg, stream, source_rows, admitted_rows):
+    """Check complete source/admitted row iterables; return counts, never filter rows."""
+    from .r1_launch22 import STREAMS, validate_removals
+    from .row_removals import Removals, row_keys
+    from .r2_withheld import Withheld
+    if stream not in STREAMS:
+        raise ValueError('R1_PROTECTED_REMOVAL_STREAM_REQUIRED')
+    validate_removals(cfg)
+    rooms = Rooms(cfg['r1_training']['room_authority'])
+    withheld = Withheld()
+    protected = rooms.k1 | rooms.r0
+    files = [p for p in cfg.get('remove_files', [])
+             if p.get('role') == 'protected_rooms' and p['stream'] == stream]
+    removals = Removals(files, stream=stream)
+    listed = set().union(*removals.keys)
+    seen = set()
+    source_count = admitted_count = 0
+
+    def protected_row(row):
+        canonical = ((row.get('provenance') or {}).get('canonical_scene')
+                     if stream == 'pointing' else None)
+        if canonical is None:
+            canonical, _ = rooms.canonical(row)
+        try:
+            # Withheld carries opaque aliases that Rooms.room cannot canonicalize.
+            candidate = dict(row, dataset=row.get('dataset', 'unknown'), scene=row.get('scene', 'unknown'))
+            if withheld.touches(candidate, dict(names=[canonical] if canonical else [])):
+                return True
+            room = rooms.room(canonical)
+        except (AttributeError, ValueError, TypeError):
+            raise ValueError('R1_PROTECTED_ROOM_UNRESOLVED:'+stream) from None
+        return room in protected
+
+    for row in source_rows:
+        source_count += 1
+        matched = row_keys(row) & listed
+        if matched:
+            if not protected_row(row):
+                raise ValueError('R1_PROTECTED_LIST_KEY_NOT_PROTECTED:'+stream)
+            seen.update(matched)
+    if seen != listed:
+        raise ValueError('R1_PROTECTED_LIST_KEY_NOT_PROTECTED:'+stream)
+    for row in admitted_rows:
+        admitted_count += 1
+        if protected_row(row):
+            raise ValueError('R1_PROTECTED_ROOM_ROWS:'+stream)
+    return dict(stream=stream, source_rows=source_count, admitted_rows=admitted_count,
+                protected_lists=len(files), listed_keys=len(listed), checked_keys=len(seen),
+                protected_rows=0)
+
+
 def verify_audit(cfg, pin):
     """Certify slice exclusion and bind a separate, explicitly scoped store record."""
     from .r1_coverage import deferred
@@ -165,7 +216,7 @@ def census(cfg, *, store_hits=None):
                 if status in ('k1_heldout','r0'):
                     hits.append(dict(row_key=row['qid'],reason='k1_heldout_known' if status=='k1_heldout' else status,
                                      scene=row.get('dataset','')+'/'+row.get('scene',''),canonical=canonical))
-                    counts['unremoved_hits'] += int(removals.keep(row))
+                    counts['unremoved_hits'] += int(removals.keep(row, 'routing'))
         reports[kind] = dict(source=sources[kind]['source'],canonical_from=dict(hows),
                             **{k:counts[k] for k in ('rows','ok','k1_heldout','r0','unresolved','unremoved_hits')})
     database = load(pinned(cfg['streams']['vqa']))['database']
@@ -186,7 +237,7 @@ def census(cfg, *, store_hits=None):
                 how='pinned_tiered_room' if how=='unresolved' else how
             counts['rows'] += 1; counts[status] += 1; hows[how] += 1
             if status in ('k1_heldout','r0'):
-                counts['unremoved_hits'] += int(removals.keep(row))
+                counts['unremoved_hits'] += int(removals.keep(row, 'vqa'))
                 if store_hits is not None and status == 'k1_heldout':
                     store_hits.append(dict(row_key=row['qid'],canonical=canonical,reason='k1_heldout_v7'))
             if status=='unresolved' and len(examples)<200:

@@ -1,0 +1,68 @@
+4a5
+> import hashlib
+74c75,85
+<   own=closed_adapters(torch.no_grad()(_prepare_decode))(self.model,self.processor,batch,max_new_tokens=16384).heads
+---
+>   seen=[];head=self.model.auxiliary_heads.depth.auxiliary_heads.camera.point_depth if s.get('fov_variants') else None
+>   if head is not None:
+>    if 'encode' in head.__dict__:raise ValueError('Point-depth encode is already wrapped')
+>    served_encode=head.encode
+>    def encode(grid,vit,fov):
+>     # Observe the served pose-head FoV; the served latent is the unchanged call's result.
+>     seen.append(fov.detach().clone());return served_encode(grid,vit,fov)
+>    head.encode=encode
+>   try:own=closed_adapters(torch.no_grad()(_prepare_decode))(self.model,self.processor,batch,max_new_tokens=16384).heads
+>   finally:
+>    if head is not None:head.__dict__.pop('encode')
+77a89,91
+>   if head is not None:
+>    if own.depth_head is not head:raise ValueError('Served depth head differs')
+>    self.fov_variants(c,batch,seen,uv,depth)
+80a95,141
+>  def fov_variants(self,c,batch,seen,uv,served):
+>   # PATCH_DONOR3 scale_donor.forward at the donor checkpoint (this export): a separate private feature
+>   # pass, V1 = private depth.fov on its states, V2 = frozen G3T raw_pose9[anchor_slots,7:9]; one
+>   # point-depth encode/query per source. Nothing here feeds the served own.npz.
+>   import math,time,torch
+>   from student_pilot.decoupled_v import features
+>   s=self.settings['fov_variants']
+>   if s.get('schema')!='k1-fov-variants-v1':raise ValueError('FoV variant settings differ')
+>   if getattr(self,'g3t',None) is None:self.g3t=B.load(B.checked(s['g3t']))['captures']
+>   dest=Path(s['root'])/B.digest(c['canonical'])[:16]
+>   if not dest.is_dir() or (dest/'fov.npz').exists() or (dest/'own.npz').exists():raise ValueError('FoV variant destination differs')
+>   if len(seen)!=1 or tuple(seen[0].shape)!=(32,2):raise ValueError('Expected one served point-depth encode with [32,2] FoV')
+>   depth=self.model.auxiliary_heads.depth;head=depth.auxiliary_heads.camera.point_depth
+>   def valid(f):
+>    return tuple(f.shape)==(32,2) and bool(torch.isfinite(f).all()) and bool(((f>0)&(f<math.pi)).all())
+>   def grid(cap,f):
+>    return head.query(head.encode(cap.grids[0],cap.vits[0],f.float()),uv).double().cpu().numpy().reshape(32,51,51)
+>   arrays=dict(fov_B=seen[0].float().cpu().numpy());missing={};checks={};seconds={}
+>   start=time.monotonic()
+>   with torch.no_grad():
+>    cap=features(depth,batch,allow_short=True)
+>    if tuple(cap.states.shape[:2])!=(1,32):raise ValueError('Donor feature pass requires one clip with 32 anchor frames')
+>    seconds['features']=time.monotonic()-start
+>    control=grid(cap,seen[0])
+>    checks['second_pass_pose_fov_bit_identical']=bool(np.array_equal(control,served))
+>    checks['second_pass_pose_fov_max_abs']=float(np.max(np.abs(control-served)))
+>    fovs={}
+>    if hasattr(depth,'fov'):fovs['V1']=(1e-4+(math.pi-2e-4)*depth.fov(cap.states.float()).sigmoid())[0]
+>    else:missing['V1']='MISSING: model.auxiliary_heads.depth.fov'
+>    r=self.g3t.get(c['canonical'])
+>    if r is None:missing['V2']='MISSING: no cached G3T FoV for this capture (outside the scored set)'
+>    else:
+>     if r['anchor_indices']!=c['anchor_indices'] or r['capture_sha256']!=B.digest(c):raise ValueError('G3T FoV capture/anchor identity differs')
+>     fovs['V2']=torch.as_tensor(np.asarray(r['fov_hw_rad'],dtype=np.float64),device=cap.states.device,dtype=torch.float32)
+>    for name,f in fovs.items():
+>     if not valid(f):raise ValueError('FoV '+name+' requires finite vertical/horizontal radians')
+>     t=time.monotonic();g=grid(cap,f)
+>     if g.shape!=(32,51,51) or not np.isfinite(g).all() or np.any(g<=0):raise ValueError('Variant depth must be finite positive 32x51x51: '+name)
+>     arrays['depth_'+name]=g;arrays['fov_'+name]=f.float().cpu().numpy();seconds[name]=time.monotonic()-t
+>   np.savez_compressed(dest/'fov.npz',**arrays)
+>   B.write(dest/'FOV_RECEIPT.json',dict(schema='k1-fov-variants-v1',capture_sha256=B.digest(c),canonical=c['canonical'],
+>    checkpoint=self.checkpoint,served_depth_sha256=hashlib.sha256(np.ascontiguousarray(served).tobytes()).hexdigest(),
+>    sources=dict(B='live pose-head FoV, stages[-1][...,7:9] as passed to the served encode',
+>                 V1='1e-4+(pi-2e-4)*sigmoid(depth.fov(states)) on a separate private feature pass (scale_donor V1)',
+>                 V2='frozen G3T raw_pose9[anchor_slots,7:9] from the K1 tower phase cache (scale_donor V2)'),
+>    g3t=s['g3t'],missing=missing,checks=checks,seconds=seconds,keys=sorted(arrays),
+>    files={'fov.npz':B.sha(dest/'fov.npz')},boundaries_sha256=B.sha(__file__)))

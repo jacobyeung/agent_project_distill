@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; cd $W/w24/out; date -u +%TZ; cat BUILD24M2_REPORT.md; echo ====; cat MISSING_STAGED_PINS.md; echo ====; head -c 2500 SCENE_REBUILD_INPUTS.md; echo; echo ====; cat DELIVERY_24M2.json | head -c 3700; echo; cat UPLOADS_24M2.list; ls -la jd.sh; head -30 jd.sh
