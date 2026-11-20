@@ -1,0 +1,39 @@
+--- P/student_pilot/s1_pool.py
++++ C/student_pilot/s1_pool.py
+@@ -7,7 +7,7 @@
+ import re
+ 
+ from . import ground_rows
+-from .p3_provenance import file_pin, load, pinned, sha256, source_files, write
++from .p3_provenance import file_pin, load, pinned, sha256, source_files, write, digest
+ from .row_removals import Removals
+ from .s1_exclusions import Exclusions
+ from .s1_scene_census import SceneCoverageError, compare
+@@ -122,7 +122,7 @@
+                             overlap_matches=len(memberships["dev"] & memberships["benchmark"])))
+ 
+ 
+-def prepare(manifest, output, remove_files=(), tokenizer=None, room_sets=ROOM_SETS):
++def prepare(manifest, output, remove_files=(), tokenizer=None, room_sets=ROOM_SETS, *, opaque=False):
+     pool = Pool(manifest, room_sets)
+     output = Path(output)
+     output.mkdir()
+@@ -194,7 +194,7 @@
+             compare(pool.scenes.expected[name], observed, pool.scenes.files, name)
+             record["scene_coverage"]["status"] = "PASS"
+             if not reason:
+-                selection = output / (name+".json")
++                selection = output / ((digest(name) if opaque else name)+".json")
+                 write(selection, kept)
+                 record.update(selection=file_pin(selection), retained=len(kept), per_type=dict(types))
+                 if not kept:
+@@ -205,7 +205,8 @@
+                 record["scene_integrity_failure"] = True
+         record.update(counts=dict(counts), original_per_type=dict(original_types), removals=removals.report())
+         sources[name] = record
+-        print(json.dumps(dict(pool_source=name, **record)), flush=True)
++        print(json.dumps(dict(source=digest(name), retained=record.get("retained", 0), status=record["status"])
++                         if opaque else dict(pool_source=name, **record)), flush=True)
+     report = dict(schema="s1-pool-selection-v1", manifest=manifest, room_sets=list(room_sets),
+                   exclusions=pool.files, scene_exclusions=pool.scenes.files,
+                   source_scene_exclusions=pool.scenes.report(validate=False),

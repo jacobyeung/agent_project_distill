@@ -47,14 +47,19 @@ def main():
                         assert raw[:8]==b'\x89PNG\r\n\x1a\n'
                         while pos<len(raw):
                             n=struct.unpack('>I',raw[pos:pos+4])[0];kind=raw[pos+4:pos+8].decode('ascii')
-                            assert kind in ('IHDR','IDAT','IEND','sRGB','gAMA','cHRM','pHYs','sBIT','bKGD'),kind
+                            assert kind in ('IHDR','IDAT','IEND','sRGB','gAMA','cHRM','pHYs','sBIT','bKGD','eXIf'),kind
                             if kind in ('sRGB','gAMA','cHRM','pHYs','sBIT','bKGD'):
                                 assert n=={'sRGB':1,'gAMA':4,'cHRM':32,'pHYs':9,'sBIT':3,'bKGD':6}[kind]
+                            if kind=='eXIf':assert not scan(raw[pos+8:pos+8+n].decode('latin1'))
                             chunks.append(kind);pos+=12+n
                         assert pos==len(raw) and chunks[0]=='IHDR' and chunks[-1]=='IEND'
                         with Image.open(io.BytesIO(raw)) as im:
                             im.load();assert im.size==(256,192)
-                            assert set(im.info)<=set(('srgb','gamma','chromaticity','dpi','aspect'))
+                            assert set(im.info)<=set(('srgb','gamma','chromaticity','dpi','aspect','exif'))
+                            if 'exif' in im.info:
+                                exif=im.getexif();assert set(exif)<=set((34665,))
+                                assert set(exif.get_ifd(34665))<=set((40961,40962,40963))
+                                assert all(isinstance(v,int) for v in exif.get_ifd(34665).values())
                         item['chunks']=sorted(set(chunks))
                         item['text_chunks']=False
                 continue

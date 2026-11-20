@@ -1,3 +1,4 @@
 - trinity-3-30 /scratch/jjyeung/orch_n30/corpus/stage2/meta/t1g544_173662_1.json (meta from refused add_read try, 08:50Z)
 - trinity-3-30 /dev/shm/c25 (~1.5 MB: round 6 files, t1ret copy)
 - trinity-3-30 /scratch/jjyeung/orch_n30/corpus/stage2/reads/need.json and reads.sha: stray copies I created by mistake at 09:12Z (my lane copies are in /dev/shm/c25/cam); remove when convenient
+- Orchard /project/community/jjyeung/ac794e028b16f (44.7 MB; K3c placement; its 8.tgz is hard-linked by the K3d token, so remove both dirs together after the coverage job is fetched): includes my diagnostic files d.py, d2.py, c.log, c2.log, 6.txt, 6b.txt, 6c.txt, 6d.txt

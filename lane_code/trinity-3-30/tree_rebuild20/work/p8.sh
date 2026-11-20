@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; tmux ls 2>/dev/null | grep -E 'tr20'; ls $W/w24o2/out/*.tar* 2>/dev/null; wc -c $W/w24o2/out/DIAG_173680.md $W/w24o2/out/ROUTES_24M4O.md; cat $W/w24o2/out/DIAG_173680.md | head -c 9000

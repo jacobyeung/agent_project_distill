@@ -1,0 +1,30 @@
+--- P/student_pilot/s1_exclusions.py
++++ C/student_pilot/s1_exclusions.py
+@@ -86,7 +86,7 @@
+         for source in (row, row.get("routing") or {}, row.get("provenance") or {}):
+             if not isinstance(source, dict):
+                 continue
+-            for field in ("canonical", "physical_group", "room"):
++            for field in ("canonical", "physical_group", "room", "alias"):
+                 value = source.get(field)
+                 if isinstance(value, str) and "/" in value:
+                     keys.append(value)
+@@ -316,6 +316,8 @@
+         observed_dev = current["dev_matches"]+earlier["dev_matches"]
+         observed_benchmark = current["benchmark_matches"]+earlier["benchmark_matches"]
+         benchmark_reference = sum(benchmark) if all(value is not None for value in benchmark) else None
++        if reference.get('exact_rebuilt_population') and (observed_dev != dev or observed_benchmark != benchmark_reference):
++            raise ValueError('Filter differs from independent scene census: '+name)
+         records[name] = dict(parts=sources, native=current, upstream=earlier, references=refs,
+                              reference_dev_rows=dev, reference_benchmark_rows=benchmark_reference,
+                              reference_comparison="NOT_COMPARED",
+@@ -345,6 +347,9 @@
+ 
+ 
+ def verify(receipt, cfg):
++    if any('reader_source' in v for v in receipt['streams'].values()):
++        from .r1_population import scene_receipt
++        receipt = scene_receipt(receipt)
+     pin = cfg.get("dev_scene_exclusions")
+     benchmark_pin = cfg.get("benchmark_scene_exclusions")
+     if (receipt.get("dev_scene_exclusions") != pin or

@@ -1,0 +1,1 @@
+export TZ=UTC; date -u +%TZ; X=/project/community/jjyeung/okh7/x_22c714e1; grep -E '^#SBATCH --(output|error)' $X/rcj/rcj.sh; ls -lt $X/j | head -5; F=$(ls -t $X/j/*173680* 2>/dev/null | head -2); for f in $F; do echo "== $f"; tail -15 $f | cut -c1-300; done

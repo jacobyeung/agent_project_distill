@@ -30,3 +30,9 @@
 ## 10:30Z
 - ORCH ANSWER 0948Z: route approved. K3: served PNGs not in /scratch/jjyeung/devs1_frames; found in /scratch/jjyeung/orch_n30/nvkey1/work/c0stage/devs1_frames. K3b: no pixel-exact recipe; near-exact = Up/Down unrotated, Left rotated CW, 2.5x upscale (mean abs err 1.08/255, max 124); Down=180 is wrong. A+A'+B forecast 29.3 min > 25.
 - K3c RUNNING (tmux c25_k3c on 2-28; gbuild/BRIEF_K3C.md): arms A' (recipe anchors) + B (63 frames); control A' vs T1 served cameras (<=1.0 deg on >=8/10); verdict B vs A'; one place.tar via a governed byte stream (io-weight 1) through tools/ossh.sh from 3-30 (/dev/shm staging, file >5 MB only in /dev/shm).
+## 11:05Z
+- K3c built (Astra): recipe OpenCV bicubic, Up/Down unrotated, Left CW, mean err 1.08/255; forecast 24.4 min; placement 44,677,021 B. Placed on Orchard /project/community/jjyeung/ac794e028b16f via governed stream cont_ops25_oplace (done). Lane copies of kit scripts: /dev/shm/c25/k3 (o_cpu2.sh, o_check_sub2.sh = mem 200G; o_dbg.sh).
+- CPU check 173681 FAILED 5:09 (20G cap reached), rerun 173683 (200G) FAILED 5:17 (MaxRSS 103 GB): same failure, cause unknown (0.py swallows tracebacks, logs to /dev/null). Diagnostic run 173686 with traceback to $P/c.log RUNNING. Next if unclear: Codex Astra review of the defect.
+## 11:17Z
+- Diagnostics 173686/173697: cause = 2.py images() E10: recipe-decoded raw RGB hash on Orchard (its OpenCV) != hash computed on 2-28 (memory was not the cause). Ledger work/ORCHARD_LEDGER.jsonl.
+- K3d RUNNING (tmux c25_k3d on 2-28; gbuild/BRIEF_K3D.md -> new kit gbuild/orchard_tower2x_c): record instead of E10, mem 200G, error logs in the token dir, new token reusing ac794e028b16f/8.tgz by hard link (< 1 MB new bytes).

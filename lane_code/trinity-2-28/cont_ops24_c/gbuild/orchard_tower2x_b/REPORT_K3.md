@@ -96,3 +96,46 @@ sha256sum --check --quiet orchard_tower2x_b/SHA256SUMS_K3b
 ```
 
 `SHA256SUMS_K3b` covers current kit/scorer sources, preserved K3 evidence, and K3b evidence; the original `SHA256SUMS_K3` remains a historical snapshot. No SSH, Git, GPU, network, deletion, placement or submission ran. The requested appended section preserves the K3 record; its blocked state and commands do not describe a runnable K3b package.
+
+## K3c — A′/B package ready for the lane
+
+**Recipe:** OpenCV 4.10.0 `INTER_CUBIC` (bicubic), with Up/Down unrotated and Left rotated clockwise, followed by a 2.5× resize. This minimizes mean absolute RGB error among all ten Pillow/OpenCV filters over all 320 authenticated served anchors. Mean error is **1.076080/255**, maximum channel error **124/255**; 0/320 anchors are pixel-exact and 0/320 PNG byte streams match. The nonexact decode is accepted. `recipe_k3c.py` and [RECIPE_K3c.json](/scratch/jjyeung/orch_n30/cont_ops25_c/arkit_lowres/out/RECIPE_K3c.json) retain every candidate and per-anchor measurement.
+
+| Capture | Mean absolute RGB error | Maximum channel error |
+| --- | ---: | ---: |
+| 41069054 | 0.939960 | 73 |
+| 41291643 | 0.797639 | 56 |
+| 42899535 | 1.008791 | 65 |
+| 45663051 | 1.013597 | 124 |
+| 47332598 | 0.988216 | 107 |
+| 41159782 | 1.055139 | 113 |
+| 45261332 | 0.940969 | 65 |
+| 43828368 | 1.146134 | 69 |
+| 43649603 | 1.447299 | 96 |
+| 44358634 | 1.423052 | 97 |
+
+**Arms:** A′ uses 32 recipe-decoded anchors; B uses 63 recipe-decoded frames: anchors plus `round(a + 3*(b-a)/6)` in every gap, sorted by source index. All ten A′ tasks precede all ten B tasks. Only the 32 bound anchors enter scoring. A and C do not run. The 630 unique lowres PNGs total **44,270,777 bytes**. T1's served c2w cameras remain in the local scoring reference; the builder verifies `cap/t1.gz` SHA256 `fe9f10b875283b02e3c376b69c3601a4086312ac56ba77fbebedce4eb21e51b7`, the cached T1 receipt, camera arrays, scales and source indices.
+**Control and verdict:** each capture reports A′–T1 relative-rotation RMS over all 496 anchor pairs. Decode is adequate when at least 8/10 are ≤1.0°. Otherwise the verdict is void and states that the decode, not coverage, moved the cameras. Missing A′/B comparisons remain incomplete. B confirms coverage if ≥4/5 failing captures leave gross, their median relative-rotation RMS falls ≥50% versus A′, and no reference rises >2°. B refutes coverage if ≤1/5 leaves gross and the median falls <20%; other complete results are partial. Similarity-fit rotation max >60° defines gross. The scorer reports both rigid and similarity classes, fitted scale B/A′, and T1-gravity transport mean/max errors. REPORT9's native pose/RGB-binding caveat remains. No production control or coverage verdict exists yet.
+**Forecast:** `600 + 78.209813467 + 1.5 × 10 × (17.931165216 + 22.277813484) + 20 × 3 + 120 = 1461.344494 s = 24.355742 min`. The 63-frame estimate uses K2's measured 64-frame time. All 20 tasks fit, with **38.655506 s** below the 25 min admission limit. The runtime reuses K2's pinned parent, environment, weights, FrozenG3TTower path and authenticated in-memory count adaptations; it enforces the forecast and a 30 min allocation, one H100, eight CPUs and 20 GB RAM. Cold staging and real GPU runtime/memory remain unmeasured.
+**Bytes:** placement installs **44,677,021 bytes** at `/project/community/jjyeung/ac794e028b16f`. With the 4,500,000-byte return reserve, the budget is **49,177,021 < 50,000,000 bytes**. `place.tar` is **44,687,360 bytes**, SHA256 **`68ad7e8f901e0409ca52a92421b5598dd81fdcd753e1ad6c4443a6834e115855`**. The 1,091-byte `o_place_head.sh` plus archive makes exactly **44,688,451 bytes** before SSH framing. The installer consumes stdin, authenticates length/SHA256 and all members before creating the directory, and prints `44677021` on success. It retains only the six installed members, not an extra copy of `place.tar`. The CPU/submit/fetch scripts are 628/601/625 bytes.
+**Tests:** all **21 scorer/scheduling tests pass**, preserving K3b's 14 tests and adding seven A′ control/baseline tests. They cover 8/10 acceptance, 7/10 rejection, the 1° rule, missing-arm handling, A′ scale ratios, synthetic rejection and verdict boundaries. `TEST_SCORER_K3c.log` records the suite.
+The real-capture CPU package dry run passes on **41069054 at 32/63 frames** through actual 1024→518 preprocessing and pose decoding with a stub backbone/heads. Packaged anchors reproduce mean error **0.939960**, maximum **73**, exactly; all **320** packaged anchor raw hashes match the recipe. Every B source-index list, anchor binding, input hashes, c2w/timing/memory return field and scoring receipt passes. The byte-stream test installs byte-identical files and rejects truncated, corrupt and extra-byte streams before writing. It took **17.17 s**, with peak RSS **1,771,328 KiB**. `CPU_K3c.json`, `DRY_K3c.json` and `cap/score_tower2x_b/dry_k3c/` explicitly mark this evidence synthetic.
+`SCAN_K3c.json` scans every transport byte, all outer/nested archive members and all 630 original PNGs; shell syntax and shipped Python compilation pass. There are no unapproved text hits. Recorded exceptions are inherited API/path/data values in opaque-key `1.json`, the required excluded-node literal, and incidental binary/compression matches. PNG metadata is restricted to numeric color/dimension fields; text-bearing chunks are rejected.
+
+Run these commands **on the authorized lane**, in order, from `gbuild`. The first pipeline is the single governed placement stream, limited to 8,000,000 bytes/s. Wait for the CPU job to finish before submit, and for the GPU job to finish before fetch; check status at most once a minute. Both submission scripts require an empty general queue and exclude `orchard-community-4`. They refuse existing run markers and do not retry.
+
+```bash
+cd /scratch/jjyeung/orch_n30/cont_ops24_c/gbuild
+set -euo pipefail
+sha256sum --check --quiet orchard_tower2x_b/SHA256SUMS_K3c
+cat orchard_tower2x_b/o_place_head.sh orchard_tower2x_b/place.tar | pv -q -L 8000000 | ssh orchard 'bash -s'
+ssh orchard 'bash -s' < orchard_tower2x_b/o_cpu.sh
+# Wait for the CPU job to finish.
+ssh orchard 'bash -s' < orchard_tower2x_b/o_check_sub.sh
+# Wait for the GPU job to finish.
+ssh orchard 'bash -s' < orchard_tower2x_b/o_fetch.sh | pv -q -L 8000000 > ../cap/score_tower2x_b/return.tgz
+tar -xzf ../cap/score_tower2x_b/return.tgz -C ../cap/score_tower2x_b 5.json 5.1.json
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' /scratch/jjyeung/envs/p1cpu/bin/python -B ../cap/score_tower2x_b/score.py --return ../cap/score_tower2x_b/5.json --receipt ../cap/score_tower2x_b/5.1.json
+```
+
+`build_k3c.py`, `dry_run_k3c.py` and `scan_k3c.py` are the K3c build/verification entrypoints. `SHA256SUMS_K3c` covers the runnable package, lane scripts, scorer/reference, recipe, report and test evidence. K3/K3b sections remain as requested. This build ran no SSH, Git, GPU, network, deletion, placement on Orchard or submission; all generated files stayed within the authorized output directories.

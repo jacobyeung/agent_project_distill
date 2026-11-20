@@ -1,0 +1,10 @@
+qd aaa03e5831a79c752b7dd06c47cff5c4bf29fc2aa7ee9ebc9c0ed9ca1b611860; unchanged C″ de202f58b31793608f886360a9fdfb5f58c24932e35976efcf74acead62e3cfe, q de53310b0c072f4b95daafbaace6a8e0d25901a8cdc7a099bc4c2821ef97c132, n 3cf38b0b9ee4bbed1c66e26b6ef5638f214b9a848015105c0f95d7a0c1195c1f, n_go 1bb191b967c09cd8d351e41f28325bc3aa1db61d400a816f3c7ba5fbd396ebe4.
+DIAG_173680.md attributes all 4,768 unlisted absences to N’s merged dev predicate; the 3,985 null-source rows are legacy camera rows. Exactly 29 U_Faithful absences are listed.
+All 73 present requested N samples are hash-proven; 27 are absent. Added fields, provenance paths/FPS-source labels and ordinals explain their differences; existing targets, prompts, frames and units match.
+rcj/nd.py publishes n_sample.json, nd.json and na.json.gz after rdiff on success or refusal when N exists; it scans every matched row and keeps total new publication below 5 MB. Build/refusal status and mode b remain unchanged.
+qd records NaN/Infinity as strings with nonfinite_values paths; the native strict provenance loader accepts the output and native numerical refusal persists.
+Twelve publication fixtures, four native-recorder fixtures, decoded/name/environment scans and exact delta replay pass; VALIDATION.json and FAILURES.json record scope and outputs.
+UPLOADS_24M4O.json/.list contain 6 files / 63497 bytes against Orchard qd 7d358ff5 plus stated rcj pins, including 24m4n a.py and f0.py.
+ROUTES_24M4O.md prices direct admission and compatible regeneration; both need tree changes and an ORCH policy decision. No route fix, arming, upload, CPU rerun or discovery was performed; GO=false.
+Exact T0_gaps observed count, underlying E95 child exception and full-population path counts are unavailable from supplied artifacts; no equality or processor success is claimed.
+DELIVERY_24M4O.json identifies the package; PACKAGE_CHECK.json verifies members and checksum. Superseded bytes remain in attic; TREE_FILES.sha256 discrepancy is recorded without edits.
