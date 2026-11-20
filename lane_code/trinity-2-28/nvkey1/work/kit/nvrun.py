@@ -10,8 +10,13 @@ BUDGET (dollars at list price over all jobs this runner ever ran, default 600), 
 Stops before the next call: K/ctl/STOP, B/events/nvkey/STOP, an ALLOC.md line 'STOP nvkey1', any BLOCK line or Think3D r3243-r3245 line in
 ALLOC.md written after the runner started, the budget reached, or a WAF 429 (then it appends BLOCK to ALLOC.md and exits).
 A 429 without WAF header or a 503 backs off and halves RATE and INFLIGHT. A reply whose served model differs from the request is a fault.
-Keys come from the environment (NV_INFERENCE_API_KEY, _KEY2.._KEY4) or the export lines of ~/.bashrc; they are never printed or written."""
+Keys come from the environment (NV_INFERENCE_API_KEY, _KEY2.._KEY4) or the export lines of ~/.bashrc; they are never printed or written.
+Tags (nvkey2): every task of a job with work left carries meta.tag in train | dev-analysis | eval and meta.scenes (canonical names). A train job
+whose scenes hit kit/excl.py (six hashed exclusion lists) is refused whole; dev-analysis results go to K/analysis_only/out/<job>.jsonl; eval jobs
+run only while K/ctl/EVAL_OK exists. BUDGET_PROXY (proxy-reported dollars, the working figure) stops the runner like BUDGET (list dollars)."""
 import base64, glob, io, json, os, re, sys, threading, time, traceback, urllib.request, urllib.error
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import excl
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image, ImageDraw
 
@@ -70,26 +75,28 @@ def encode_image(path, max_side=640, mark=None, quality=90):
 
 class Runner:
     def __init__(self):
-        for d in ('queue', 'out', 'meter', 'ctl', 'faults'): os.makedirs(os.path.join(K, d), exist_ok=True)
+        for d in ('queue', 'out', 'meter', 'ctl', 'faults', 'analysis_only/out'): os.makedirs(os.path.join(K, d), exist_ok=True)
+        self.refused = set(); self.proxy = 0.0
         self.keys = load_keys(); self.kidx = 0; self.lock = threading.Lock(); self.starts = []; self.inflight = 0
         self.t0 = time.time(); self.bytes_tokens = 0.0; self.bytes_t = time.time(); self.stop_reason = None
         self.spent = 0.0; self.calls = 0; self.backoff_until = 0.0; self.alloc_seen = self._alloc_len(); self.last_check = 0.0
-        self.spent = self._meter_spend(); self.mlock = threading.Lock(); self.model_faults = {}; self.bad_models = set()
+        self.spent, self.proxy = self._meter_spend(); self.mlock = threading.Lock(); self.model_faults = {}; self.bad_models = set()
         self.meter = open(os.path.join(K, 'meter', 'CALLS.jsonl'), 'a')
-        self.log('start spent %.4f keys %d' % (self.spent, len(self.keys)))
+        self.log('start spent list %.4f proxy %.4f keys %d' % (self.spent, self.proxy, len(self.keys)))
 
     def mwrite(self, rec):
         with self.mlock:
             self.meter.write(json.dumps(rec) + '\n'); self.meter.flush()
 
     def _meter_spend(self):
-        s = 0.0
+        s = p = 0.0
         try:
             for l in open(os.path.join(K, 'meter', 'CALLS.jsonl')):
-                try: s += json.loads(l).get('dollars', 0.0) or 0.0
+                try:
+                    d = json.loads(l); s += d.get('dollars', 0.0) or 0.0; p += float(d.get('header_cost') or 0.0)
                 except Exception: pass
         except OSError: pass
-        return s
+        return s, p
 
     def _alloc_len(self):
         try: return len(open(ALLOC).read().splitlines())
@@ -113,6 +120,7 @@ class Runner:
                 if re.search(r'r324[345]|think3d', l, re.I) and re.search(r'HOLD|START|LAUNCH|GATE', l): self.stop_reason = 'ALLOC Think3D: ' + l[:120]
         except OSError: pass
         if self.spent >= rint('BUDGET', 600.0): self.stop_reason = 'budget %.2f reached' % self.spent
+        if self.proxy >= rint('BUDGET_PROXY', 1e9): self.stop_reason = 'proxy budget %.2f reached' % self.proxy
         return self.stop_reason
 
     def admit(self, nbytes):
@@ -208,7 +216,10 @@ class Runner:
             if dollars is None and hcost:
                 try: rec['dollars'] = dollars = float(hcost)
                 except ValueError: pass
-            with self.lock: self.spent += dollars or 0.0; self.calls += 1
+            with self.lock:
+                self.spent += dollars or 0.0; self.calls += 1
+                try: self.proxy += float(hcost or 0.0)
+                except ValueError: pass
             fault = None if same_model(task['model'], served) else 'served model %r for %r' % (served, task['model'])
             if dollars is None: fault = (fault or '') + ' no price'
             rec['fault'] = fault
@@ -249,18 +260,29 @@ class Runner:
     def write_meter(self):
         now = time.time()
         with self.lock: r5 = len([t for t in self.starts if now - t < 300]) / 5.0; infl = self.inflight
-        m = {'utc': utc(), 'lane': 'nvkey1', 'host': os.uname()[1], 'req_min5': round(r5, 2), 'inflight': infl, 'rate_target': rint('RATE', 4.0),
-             'dollars_list_total': round(self.spent, 4), 'calls_this_run': self.calls, 'stop_reason': self.stop_reason}
+        m = {'utc': utc(), 'lane': 'nvkey2', 'host': os.uname()[1], 'req_min5': round(r5, 2), 'inflight': infl, 'rate_target': rint('RATE', 4.0),
+             'dollars_list_total': round(self.spent, 4), 'dollars_proxy_total': round(self.proxy, 4), 'calls_this_run': self.calls, 'stop_reason': self.stop_reason}
         try:
             tmp = os.path.join(EV, '.METER.json.tmp'); open(tmp, 'w').write(json.dumps(m) + '\n'); os.replace(tmp, os.path.join(EV, 'METER.json'))
         except OSError: pass
         open(os.path.join(K, 'meter', 'METER.json'), 'w').write(json.dumps(m) + '\n')
 
+    def gate(self, job, tasks, tags):
+        if len(tags) != 1 or not tags <= {'train', 'dev-analysis', 'eval'}: return 'tags %r: one of train, dev-analysis, eval per job' % sorted(map(str, tags))
+        tag = next(iter(tags))
+        if tag == 'eval' and not os.path.exists(os.path.join(K, 'ctl', 'EVAL_OK')): return 'eval job without ctl/EVAL_OK'
+        scenes = [s for t in tasks for s in ((t.get('meta') or {}).get('scenes') or [])]
+        if tag == 'train':
+            if not all((t.get('meta') or {}).get('scenes') for t in tasks): return 'train task without meta.scenes'
+            try: excl.assert_train(sorted(set(scenes)))
+            except Exception as e: return 'exclusion assert: %s' % str(e)[:300]
+        return None
+
     def jobs(self):
         return sorted(glob.glob(os.path.join(K, 'queue', '*.jsonl')))
 
     def main(self, idle_exit=1800):
-        ex = ThreadPoolExecutor(max_workers=16); pending = {}; idle_since = time.time(); last_meter = 0
+        ex = ThreadPoolExecutor(max_workers=48); pending = {}; idle_since = time.time(); last_meter = 0
         while True:
             if time.time() - last_meter > 60: self.write_meter(); last_meter = time.time()
             if self.check_stops():
@@ -268,17 +290,23 @@ class Runner:
             submitted = False
             for qf in self.jobs():
                 job = os.path.basename(qf)[:-6]
-                if job in pending and pending[job]: continue
-                op = os.path.join(K, 'out', job + '.jsonl')
+                if job in self.refused or (job in pending and pending[job]): continue
+                tasks = [json.loads(l) for l in open(qf) if l.strip()]
+                tags = set((t.get('meta') or {}).get('tag') for t in tasks)
+                op = os.path.join(K, 'analysis_only/out' if tags == {'dev-analysis'} else 'out', job + '.jsonl')
                 done = set()
                 for fp in (op, os.path.join(K, 'faults', job + '.gaveup.jsonl')):
                     if os.path.exists(fp):
                         for l in open(fp):
                             try: done.add(json.loads(l)['id'])
                             except Exception: pass
-                tasks = [json.loads(l) for l in open(qf) if l.strip()]
                 todo = [t for t in tasks if t['id'] not in done]
                 if not todo: continue
+                why = self.gate(job, tasks, tags)
+                if why:
+                    self.refused.add(job); self.log('REFUSED %s: %s' % (job, why))
+                    with open(os.path.join(K, 'faults', job + '.refused'), 'a') as f: f.write('%s %s\n' % (utc(), why))
+                    continue
                 outf = open(op, 'a'); olock = threading.Lock()
                 pending[job] = [ex.submit(self.run_task, job, t, outf, olock) for t in todo]
                 self.log('JOB %s: %d of %d tasks submitted' % (job, len(todo), len(tasks))); submitted = True

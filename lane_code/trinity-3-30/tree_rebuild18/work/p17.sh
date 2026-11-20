@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24g; date -u +%TZ; wc -c $W/out/TREE_CHANGE_NEEDED_24M4G.md $W/work/build24m4g/EVIDENCE.json; echo @@@; cat $W/out/TREE_CHANGE_NEEDED_24M4G.md | sed -n '/^| T1H2_gen_r2/,$p'; tmux ls 2>&1 | grep tr18

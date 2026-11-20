@@ -13,6 +13,7 @@ PROMPT = ('These are {n} frames sampled in time order from one video of an indoo
           'Reply with one JSON object and nothing else, with one entry for every frame from 1 to {n} and every object kind: '
           '{{"1": {{"{k0}": [x, y] or null, ...}}, "2": {{...}}, ..., "{n}": {{...}}}}')
 def main():
+    if len(sys.argv) < 5: return
     out, model, effort, n = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
     extra = json.loads(os.environ.get('C1_EXTRA', '{}')); effort = None if effort == 'none' else effort
     sel = sys.argv[5] if len(sys.argv) > 5 else 'all'; side = int(sys.argv[6]) if len(sys.argv) > 6 else 640
@@ -31,4 +32,4 @@ def main():
             f.write(json.dumps({'id': '%s_%s_f%d_s%d' % (a, tag, n, side), 'model': model, 'effort': effort, 'max_tokens': 32768, 'extra': extra, 'content': content,
                                 'meta': {'alias': a, 'n': n, 'side': side, 'kinds': kinds, 'slots': m['anchor_slots'] if n == 64 else list(range(32))}}) + '\n')
     print('wrote', len(aliases), 'tasks to', out)
-main()
+if __name__ == '__main__': main()

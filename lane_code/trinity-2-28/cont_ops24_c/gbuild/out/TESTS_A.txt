@@ -1,0 +1,31 @@
+test_batch_and_compile (test_package.PackageTests.test_batch_and_compile) ... ok
+test_deterministic_and_no_overlay (test_package.PackageTests.test_deterministic_and_no_overlay) ... ok
+test_operator_rehearsal_and_dispatch (test_package.PackageTests.test_operator_rehearsal_and_dispatch) ... /scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/work/tests/a1b0avwu3/pay/b/e2e_reader/real.py:80: ImportWarning: can't resolve package from __spec__ or __package__, falling back on __name__ and __path__
+  from .stage1 import OwnDepthScale, ScaleHeadCall, stage1_factory
+/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/work/tests/a1b0avwu3/pay/b/e2e_reader/real.py:81: ImportWarning: can't resolve package from __spec__ or __package__, falling back on __name__ and __path__
+  from .perception_memo import process_memo
+/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/work/tests/a1b0avwu3/pay/b/e2e_reader/stage1.py:188: ImportWarning: can't resolve package from __spec__ or __package__, falling back on __name__ and __path__
+  from .grounding import StageOneSocket
+/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/work/tests/a1b0avwu3/pay/b/e2e_reader/stage1.py:202: ImportWarning: can't resolve package from __spec__ or __package__, falling back on __name__ and __path__
+  from .geometry import frame_count
+ok
+test_parity_rules (test_package.PackageTests.test_parity_rules) ... ok
+test_seals_and_parent_helpers (test_package.PackageTests.test_seals_and_parent_helpers) ... ERROR
+test_upload_and_finally (test_package.PackageTests.test_upload_and_finally) ... ok
+test_writer_cap_flush_location_and_points (test_package.PackageTests.test_writer_cap_flush_location_and_points) ... ok
+
+======================================================================
+ERROR: test_seals_and_parent_helpers (test_package.PackageTests.test_seals_and_parent_helpers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/gpkg/test_package.py", line 80, in test_seals_and_parent_helpers
+    argv=submit_argv(pub['token'],1,'05:00:00')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "orchard_h10/common.py", line 72, in submit_argv
+  File "orchard_h10/common.py", line 38, in opaque
+ValueError: Non-opaque Slurm surface: --gres=gpu:h100:1
+
+----------------------------------------------------------------------
+Ran 7 tests in 5.553s
+
+FAILED (errors=1)

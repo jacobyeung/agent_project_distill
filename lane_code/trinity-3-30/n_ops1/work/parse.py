@@ -133,6 +133,7 @@ if J!='0':
           if e2+1800>eff:flags.append('TIME: step %d needs ~%d min, %d min before self-stop'%(t2,e2/60,eff/60))
   # stall: progress signature
   cg=re.findall(r'^@@CG (\S+) max=(\S+) cur=(\d+) (.*?)cpu_usec=(\d+)',raw,re.M)
+  cg=[c for c in cg if '/step_' not in c[0]] or cg[-1:]
   cpu=int(cg[0][4]) if cg else None
   if cg:
     st_=dict(re.findall(r'(anon|file|shmem) (\d+)',cg[0][3])); mx=cg[0][1]; used=int(st_.get('anon',0))+int(st_.get('shmem',0))
@@ -148,7 +149,7 @@ if J!='0':
   sig=json.loads(json.dumps([jsz,sorted(logs.items()),pc,len(seen)]))
   if state=='RUNNING':
     prev=S.get('sig');pcpu=S.get('cpu');pt=S.get('t')
-    busy=(cpu is not None and pcpu is not None and pt and now>pt and (cpu-pcpu)/1e6/(now-pt)>=1.0)
+    busy=(cpu is not None and pcpu is not None and pt and now>pt and (cpu-pcpu)/1e6/(now-pt)>=0.5)
     if prev==sig and not busy and not S.get('still'):S['still']=now
     elif prev!=sig:S['still']=None
     if prev==sig and not busy and S.get('still') and now-S['still']>=600:flags.append('STALL %d min'%((now-S['still'])/60))

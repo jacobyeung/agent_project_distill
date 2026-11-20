@@ -1,0 +1,2 @@
+export TZ=UTC; date -u +%TZ; squeue -u $USER -o "%.10i %.10P %.8T %.10M"; sacct -j 173567 -X -o JobID,State,End,ExitCode -n
+if squeue -h -j 173567 -o %T | grep -q RUNNING; then timeout 60 srun --overlap --jobid 173567 -n1 bash -c 'cd /tmp/q_22c714e1_173567 2>/dev/null || cd /tmp/q_22c714e1; ls; find . -name materialization.json -size -5M | head; f=$(find . -name materialization.json | head -1); python3 -c "import json,sys;d=json.load(open(sys.argv[1]));print(json.dumps(d.get(\"direct_rule_audit\"))[:4000]);print(d.get(\"blockers\"))" $f'; fi

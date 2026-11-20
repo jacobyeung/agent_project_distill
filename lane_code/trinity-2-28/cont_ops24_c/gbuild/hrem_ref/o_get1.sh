@@ -1,0 +1,1 @@
+cd /project/community/jjyeung/b9ef552934627 && tar czf - 0.json 2.json 3.py BATCH.sh CONFIG.json INPUTS.example.json LEDGER.jsonl PACKAGE.json SUBMIT.cmd a/1.json a/4.log a/4.txt a/5.py a/6.py a/7.txt a/8.txt a/9.txt a/export.json a/c a/f 2>/dev/null | base64 -w0

@@ -1,0 +1,52 @@
+{
+  "assertions": [
+    {
+      "assertion": "return status and refusal",
+      "expected": null,
+      "observed": null,
+      "pass_": true
+    },
+    {
+      "assertion": "r1 status records producer returncode",
+      "pass_": true
+    },
+    {
+      "assertion": "manifest file set",
+      "pass_": true
+    },
+    {
+      "assertion": "published hash and byte count: q.log",
+      "pass_": true
+    },
+    {
+      "assertion": "published hash and byte count: r0.json",
+      "pass_": true
+    },
+    {
+      "assertion": "published hash and byte count: routing_selection.json",
+      "pass_": true
+    }
+  ],
+  "case": "rd_success",
+  "published": {
+    "q.log": {
+      "bytes": 21,
+      "sha256": "0dd2475ecc61ec4fa4c4a24a8f47f9ec2d805a8715d8915f04bc20b2f7834c37"
+    },
+    "r0.json": {
+      "bytes": 24,
+      "sha256": "169963cc8a04e15b261d538e4e719ef6ecaf725f672286c1b8d22a86a41bb6dd"
+    },
+    "routing_selection.json": {
+      "bytes": 72,
+      "sha256": "90e3349bd04f9366f16971890e3256d25a063e7bcfba5a116dd52e363feb6936"
+    }
+  },
+  "receipt_schema_note": "Final rd.py r1.json records returncode and byte counts; this test independently verifies published SHA256 values.",
+  "refusal": null,
+  "target_exit_code": 0,
+  "target_files": [
+    "b/rd.py"
+  ],
+  "verdict": "PASS"
+}

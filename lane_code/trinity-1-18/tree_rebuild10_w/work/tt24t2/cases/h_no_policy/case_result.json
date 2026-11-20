@@ -1,0 +1,40 @@
+{
+  "assertions": [
+    {
+      "assertion": "runtime has at most four threads",
+      "pass_": true
+    },
+    {
+      "assertion": "named refusal",
+      "expected": "E85",
+      "observed": "E85",
+      "pass_": true
+    },
+    {
+      "assertion": "no prepared output on refusal",
+      "pass_": true
+    }
+  ],
+  "case": "h_no_policy",
+  "fixture": {
+    "census": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/tt24t2/cases/h_no_policy/root/c5.json",
+      "sha256": "79aa970fd9ce004ad8199883ae706cd8b1ae6e96595346f4bb62250b657e1e83"
+    },
+    "config": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/tt24t2/cases/h_no_policy/root/p/cfg.json",
+      "sha256": "9b00453490b87494973cb4f8f0ba3c93a9757279f6bdf08d6fde40f35fee13e7"
+    },
+    "config_identity": "11cbf33c926a2fe959df73ffb43d3f4c4a155df05a1a8718c6b2ee0a6a5fcd41",
+    "host": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/tt24t2/cases/h_no_policy/root/p/q/host.json",
+      "sha256": "d91ef61e1d47f6d814fa98ab9f4d6dee07ae9736b2e6ba43448d5cdeaf323fae"
+    }
+  },
+  "refusal": "E85",
+  "target_exit_code": 1,
+  "target_files": [
+    "b/h.py"
+  ],
+  "verdict": "PASS"
+}

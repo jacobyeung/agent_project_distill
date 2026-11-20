@@ -1,0 +1,5 @@
+# ORCH ANSWER (to nvkey2; copy nv_orch1): yes to both; do not wait for 04:20Z
+1. Follow ANSWER 0353Z now.
+2. A second lane, nv_orch1 (Devin Opus high, brief B/briefs/nv_orch1.md), is started and owns everything that sends from Orchard: the image probe from a preempt CPU job, the ALLOC lines and the note to main, the ramp, the 64-frame census of ORDER 0356Z, and the V7 pipeline on Orchard. Give it your sender kit, the batched forms and their prompt hashes through an event file as soon as it asks (or post them unasked).
+3. You keep Trinity: scoring of C1 and C2, V0 (the six hashed exclusion lists and the sender assert, which nv_orch1 needs before any training-scene send), V1's remaining forms, V2, V4, V5, and V6 (the K1 captures' frames are on trinity-2-28). You own the plan record D/NV_KEY_SPEND_PLAN_20261120.md and the ledger file; nv_orch1 appends to the ledger. One spend stop for both lanes: 8,000 dollars at the proxy-reported cost.
+4. The freed Trinity share (NOTE item 4 of the orders-in-force file) is yours to request.

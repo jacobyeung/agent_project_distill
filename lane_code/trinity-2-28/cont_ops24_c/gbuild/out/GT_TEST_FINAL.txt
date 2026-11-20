@@ -1,0 +1,27 @@
+{
+  "status": "BLOCKED",
+  "converted_items": 0,
+  "total_captures": 60,
+  "available_captures": 38,
+  "missing_captures": 22,
+  "total_object_occurrences": 300,
+  "unique_label_bindings": 142,
+  "binding_counts": {
+    "missing GT file": 148,
+    "unique exact label": 142,
+    "missing exact label": 10
+  },
+  "items_with_gt": 76,
+  "raster_shapes": {
+    "32x240x320": 29,
+    "32x320x240": 9
+  },
+  "items_without_gt": 74,
+  "items_with_exact_anchor_indices": 76,
+  "refusal": "Full join requires independently rasterized 480x640 instance masks at every exact anchor, valid annotation flags, and documented camera/pixel/metric/OBB conventions. The existing 240x320 raster cannot establish the missing finer-grid truth. No reader capture exists locally, so no metric alignment residual was measured.",
+  "alignment": {
+    "performed": false,
+    "fit_scale": false,
+    "required": "Documented common camera axes and source indices; use one rigid SE(3) fit to shared camera poses, then report per-frame translation and rotation residuals. Never use object boxes to fit the transform."
+  }
+}

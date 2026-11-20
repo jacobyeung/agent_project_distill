@@ -1,0 +1,75 @@
+{
+  "assertions": [
+    {
+      "assertion": "runtime has at most four threads",
+      "pass_": true
+    },
+    {
+      "assertion": "final kit seal",
+      "pass_": true
+    },
+    {
+      "assertion": "WAITING_REVIEW reached",
+      "pass_": true
+    },
+    {
+      "assertion": "waiting identity matches config",
+      "pass_": true
+    },
+    {
+      "assertion": "accepted exit zero",
+      "pass_": true
+    },
+    {
+      "assertion": "acceptance binds identity and receipt",
+      "pass_": true
+    },
+    {
+      "assertion": "identity unchanged after acceptance",
+      "pass_": true
+    },
+    {
+      "assertion": "review pinned locally",
+      "pass_": true
+    },
+    {
+      "assertion": "preparation binds review",
+      "pass_": true
+    },
+    {
+      "assertion": "no refusal",
+      "pass_": true
+    }
+  ],
+  "case": "rv_pass",
+  "evidence_stub_called": true,
+  "fixture": {
+    "census": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/tt24t2/cases/rv_pass/root/c5.json",
+      "sha256": "e51d73b7e5f3c308793cdf7730b4c3e7ddc4d06feed754ac6fdc8f0a59ea3d24"
+    },
+    "config": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/tt24t2/cases/rv_pass/root/p/cfg.json",
+      "sha256": "2d02ae409042198e8967955cc4129e7276df37b12e1b8bf44304a6d9a8f318de"
+    },
+    "config_identity": "45e9e415de4063ee6a8e982433771ab826f49f92f44b4900c75084f06bbb6178",
+    "host": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/tt24t2/cases/rv_pass/root/p/q/host.json",
+      "sha256": "4be74af594dff376e4253de0a8ded4782722821de6c34382e08502c71d584dd5"
+    }
+  },
+  "limitations": [
+    "Only rv.evidence is stubbed; the wait and receipt branches execute unchanged final source."
+  ],
+  "target_exit_code": 0,
+  "target_files": [
+    "b/rv.py"
+  ],
+  "verdict": "PASS",
+  "wait": {
+    "fake_clock_advance_seconds": 7201,
+    "interval_seconds": 0.01,
+    "sealed_bound_seconds": 7200,
+    "sleeps": []
+  }
+}

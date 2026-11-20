@@ -1,0 +1,30 @@
+{
+  "status": "BLOCKED_NOT_GPU_READY",
+  "missing": [
+    {
+      "role": "dev-S1 instance visibility, boxes and cameras at the exact sampled frames",
+      "source": "trinity-1-18:/scratch/jjyeung/orch_cd/dose_pool/out/{t1_gt,arkit_gt}/gt/*.npz (93 captures in the recovery record)",
+      "bytes": null,
+      "reason": "No local copy or small authoritative size manifest; NFS inventory is 25016605 bytes and was not read. Coverage and frame binding still need verification."
+    },
+    {
+      "role": "routed-read raw and linked candidate masks, selected masks and geometry transform",
+      "source": null,
+      "bytes": null,
+      "reason": "The logged proposal_diagnostics producer does not serialize these arrays; no surviving archive containing this evidence is identified. An instrumented rerun is required unless a producer can supply another journal."
+    },
+    {
+      "role": "RGB and visibility for additional 64/96 ground frames",
+      "source": "Capture source videos and dense GT must be staged and bound by source frame index; existing answer inputs remain the recorded 32 anchors.",
+      "bytes": null,
+      "reason": "Only 32-frame manifests were inspected. No full-resolution video or dense GT is staged in this lane."
+    },
+    {
+      "role": "reviewed variable-frame ground-call adapter and runtime",
+      "source": "A10b/src/b/e2e_reader and A10b/src/tree/student_pilot in /scratch/jjyeung/orch_n30/reads228/kit",
+      "bytes": 5252970,
+      "reason": "5252970 is the local source archive size, not the missing runtime size. Production geometry, frame-map and candidate code require 32 frames; no safe 64/96 adapter is implemented in this kit."
+    }
+  ],
+  "go_required": "Orchestrator-assigned GPU and explicit GO after independent adapter review and baseline parity. This kit cannot launch even with a GPU index."
+}

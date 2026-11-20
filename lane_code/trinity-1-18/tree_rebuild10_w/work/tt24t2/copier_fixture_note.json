@@ -1,0 +1,6 @@
+{
+  "endpoints": "All four session URLs are synthetic https://127.0.0.1:1/refused; seccomp denies every socket. No network upload succeeded or is claimed.",
+  "expected_archive_bytes": 10240,
+  "prior_part_bytes": 2560,
+  "reason": "The no-deletion sandbox prevents process-pool semaphore setup. A synthetic prior receipt for part03 leaves three pending parts, so the unchanged ThreadPoolExecutor fallback uses at most three worker threads plus the main thread."
+}

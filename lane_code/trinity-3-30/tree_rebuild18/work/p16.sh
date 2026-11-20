@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; free -g | sed -n 2p; df -h /scratch | tail -1; tmux ls 2>&1 | grep tr18; ls $W/w24g/out 2>/dev/null | tail -12; du -sh $W/w24g 2>/dev/null; cat $W/w24g/out/BUILD24M4G_REPORT.md $W/w24g/out/TREE_CHANGE_NEEDED_24M4G.md 2>/dev/null | head -30; tail -c 300 $W/b24m4g_dispatch.log

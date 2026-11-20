@@ -1,0 +1,78 @@
+[
+  {
+    "cmd": "nice -n 10 hostname -s",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 sed -n '1,200p' cov24c1/COVERAGE.md",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 ls -ld tt24t2 /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go; nice -n 10 ls cps24t1",
+    "exit_code": 0,
+    "component_exit_codes": [
+      2,
+      0
+    ]
+  },
+  {
+    "cmd": "nice -n 10 sed -n '1,160p' /home/jjyeung/.agents/skills/no-archaeology/SKILL.md",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 sed -n '1,225p' /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/pc.py",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 sed -n '225,460p' /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/pc.py",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 sed -n '155,235p' /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/cs.py",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 sed -n '1,65p' /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/z.py",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 sed -n '45,85p' /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/cs.py",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 sed -n '1,118p' /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/gc.py",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 sed -n '38,70p' /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24c/work/tree_r1/student_pilot/carrier_c1_run.py",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 sed -n '126,147p' /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/cs.py",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 rg -n 'def final_sources|def ' /scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go/b/cs.py",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 sed -n '1,35p' cps24t1/run_final.py",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'\nfrom pathlib import Path\nbase=Path('/scratch/jjyeung/orch_n30/tree_rebuild10_w')\nfor f in ['work/cps24t1/REPORT.md','work/cps24t1/trap_driver.sh','w24e/out/kit_n_go/b/h.py','w24e/out/kit_n_go/b/rd.py','w24e/out/kit_n_go/b/pc.sh']:\n print('\\nFILE',f); print((base/f).read_text())\nfor row in (base/'work/cov24c1/COVERAGE.md').read_text().splitlines():\n if any(row.startswith('| `'+x+'`') for x in ['b/h.py','b/rd.py','b/rv.py','b/pc.py']):print(row)\nkit=base/'w24e/out/kit_n_go'; fs=[p for p in kit.rglob('*') if p.is_file()];print('KIT',len(fs),sum(p.stat().st_size for p in fs));print('TOP', [p.name for p in kit.iterdir()])\nPY",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'\nfrom pathlib import Path\nb=Path('/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go')\nfor name in ['b/rv.py','b/cs.py','b/pc.py','k/p.json','b/z.py']:\n p=b/name; lines=p.read_text().splitlines(); print('\\nFILE',name)\n for i,line in enumerate(lines,1):\n  if name!='b/z.py' or i<=65:print(f'{i}: {line}')\nfor name in ['run_final.py','run_isolated.py','execute_once.py']:\n p=Path('cps24t1')/name; print('\\nFILE',p);print(p.read_text())\nPY",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'\nfrom pathlib import Path\nimport json,base64\nk=Path('/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24e/out/kit_n_go')\nfor n in ('p','a','y'):\n v=json.loads((k/f'k/{n}.json').read_text());v=json.loads(base64.b64decode(v['payload'])) if 'payload' in v else v\n print(n,{key:val for key,val in v.items() if key in ('n_root','review_wait_seconds','objects')})\nfor name in ['b/gc.py','b/ep.py']:\n lines=(k/name).read_text().splitlines(); print('FILE',name,len(lines))\n for i,l in enumerate(lines,1):\n  if name=='b/ep.py' or any(w in l for w in ['timeout','Thread','retry','sleep','sys.argv','def ','curl','subprocess']):print(i,l)\ntree=Path('/scratch/jjyeung/orch_n30/tree_rebuild10_w/w24c/work/tree_r1')\nfor name in ['student_pilot/carrier_c1_run.py','launch_r1/entry.py','student_pilot/p3_provenance.py','student_pilot/r1_persisted.py']:\n lines=(tree/name).read_text().splitlines();print('FILE',name,len(lines))\n for i,l in enumerate(lines,1):\n  if i<50 or l.startswith('def identity') or l.startswith('def scope') or l.startswith('def pinned'):print(i,l)\nPY",
+    "exit_code": 0
+  },
+  {
+    "cmd": "nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'\nimport os,json,resource,hashlib,shutil,tarfile\nfrom pathlib import Path\nos.sched_setaffinity(0,sorted(os.sched_getaffinity(0))[:4]);resource.setrlimit(resource.RLIMIT_AS,(7*1024**3,7*1024**3))\nT=Path('tt24t2').resolve();T.mkdir(mode=0o700)\nsrc=T.parents[1]/'w24e/out/kit_n_go'\ndef sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()\ndef verify(k):\n expected=dict(line.split('  ',1)[::-1] for line in (k/'SHA256SUMS.txt').read_text().splitlines())\n actual={str(p.relative_to(k)):sha(p) for p in k.rglob('*') if p.is_file() and p.name not in ('SHA256SUMS.txt','BUILD.json')}\n return dict(path=str(k),seal=sha(k/'SHA256SUMS.txt'),expected=expected,actual=actual,ok=actual==expected)\na=verify(src);assert a['ok'] and a['seal'].startswith('c992c930')\nshutil.copytree(src,T/'kit');b=verify(T/'kit');assert b['ok']\narchives=list((T/'kit/k').glob('t_*.tar'));print('ARCHIVES',[(p.name,p.stat().st_size) for p in archives])\nwith tarfile.open(archives[0]) as tar:\n members=tar.getmembers();print('TREE',len(members),sum(m.size for m in members),[m.name for m in members[:10]])\n assert sum(m.size for m in members)<100*1024**2\n for m in members:\n  p=T/'tree'/m.name\n  assert not Path(m.name).is_absolute() and '..' not in Path(m.name).parts and (m.isdir() or m.isfile())\n  if m.isdir():p.mkdir(parents=True,exist_ok=True)\n  else:p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(tar.extractfile(m).read());p.chmod(m.mode)\n(T/'checksums_before.json').write_text(json.dumps([a,b],indent=2)+'\\n')\nprint('TOOLS', {x:shutil.which(x) for x in ['bwrap','strace','nice','bash','timeout','setsid','sleep']});print('SPACE',shutil.disk_usage(T).free)\nPY",
+    "exit_code": 0
+  }
+]

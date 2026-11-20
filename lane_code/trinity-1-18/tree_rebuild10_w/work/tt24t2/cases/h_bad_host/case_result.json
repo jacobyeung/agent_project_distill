@@ -1,0 +1,40 @@
+{
+  "assertions": [
+    {
+      "assertion": "runtime has at most four threads",
+      "pass_": true
+    },
+    {
+      "assertion": "named refusal",
+      "expected": "R1_HOST_RECEIPT_INVALID",
+      "observed": "R1_HOST_RECEIPT_INVALID",
+      "pass_": true
+    },
+    {
+      "assertion": "no prepared output on refusal",
+      "pass_": true
+    }
+  ],
+  "case": "h_bad_host",
+  "fixture": {
+    "census": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/tt24t2/cases/h_bad_host/root/c5.json",
+      "sha256": "ed764cc7d54c7e13bc1068daba21963cdc5c7c8972db82760c0f846501d4af4b"
+    },
+    "config": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/tt24t2/cases/h_bad_host/root/p/cfg.json",
+      "sha256": "0ec7ef3485acdfa5b85566001356a83240bb6201d01822e8744c9b67adc22f42"
+    },
+    "config_identity": "70b32351d56923751b71dd5042b6e80ad00db21c1bb538860b837ff09beca4f1",
+    "host": {
+      "path": "/scratch/jjyeung/orch_n30/tree_rebuild10_w/work/tt24t2/cases/h_bad_host/root/p/q/host.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "refusal": "R1_HOST_RECEIPT_INVALID",
+  "target_exit_code": 1,
+  "target_files": [
+    "b/h.py"
+  ],
+  "verdict": "PASS"
+}

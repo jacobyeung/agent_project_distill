@@ -1,0 +1,31 @@
+test_all_staged_headers_and_labels (test_gt.GTTests.test_all_staged_headers_and_labels) ... FAIL
+test_ambiguous_and_missing_stay_unknown (test_gt.GTTests.test_ambiguous_and_missing_stay_unknown) ... ok
+test_batch_and_compile (test_package.PackageTests.test_batch_and_compile) ... ok
+test_deterministic_and_no_overlay (test_package.PackageTests.test_deterministic_and_no_overlay) ... ok
+test_operator_rehearsal_and_dispatch (test_package.PackageTests.test_operator_rehearsal_and_dispatch) ... ok
+test_parity_rules (test_package.PackageTests.test_parity_rules) ... ok
+test_seals_and_parent_helpers (test_package.PackageTests.test_seals_and_parent_helpers) ... ok
+test_upload_and_finally (test_package.PackageTests.test_upload_and_finally) ... ok
+test_writer_cap_flush_location_and_points (test_package.PackageTests.test_writer_cap_flush_location_and_points) ... ok
+test_complete_and_partial_worker_with_doubles (test_runtime.RuntimeTests.test_complete_and_partial_worker_with_doubles) ... ok
+test_stopped_worker_does_not_load_weights (test_runtime.RuntimeTests.test_stopped_worker_does_not_load_weights) ... ok
+
+======================================================================
+FAIL: test_all_staged_headers_and_labels (test_gt.GTTests.test_all_staged_headers_and_labels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild/gpkg/test_gt.py", line 19, in test_all_staged_headers_and_labels
+    self.assertEqual(r['headers']['inst']['shape'],[32,240,320])
+AssertionError: Lists differ: [32, 320, 240] != [32, 240, 320]
+
+First differing element 1:
+320
+240
+
+- [32, 320, 240]
++ [32, 240, 320]
+
+----------------------------------------------------------------------
+Ran 11 tests in 5.730s
+
+FAILED (failures=1)

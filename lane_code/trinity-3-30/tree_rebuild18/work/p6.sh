@@ -1,0 +1,1 @@
+W=/scratch/jjyeung/orch_n30/tree_rebuild10_w; date -u +%TZ; free -g | sed -n 2p; tmux ls 2>&1 | grep tr18; ls $W/work/tt24t2 2>&1 | head; cat $W/work/tt24t2/REPORT.md 2>/dev/null; tail -c 400 $W/tt24t2_dispatch.log

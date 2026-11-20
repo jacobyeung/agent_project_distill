@@ -1,0 +1,1 @@
+X=/project/community/jjyeung/okh7/x_22c714e1; date -u +%TZ; cat $X/o/173567/r1.json; echo; grep -v "^\s*$" $X/o/173567/r.log | tail -12 | cut -c1-500; echo; grep -c . $X/o/173567/r.log; grep -n -i "refus\|error\|R1_" $X/o/173567/r.log | tail -5 | cut -c1-400

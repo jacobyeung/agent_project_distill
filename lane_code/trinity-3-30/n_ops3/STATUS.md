@@ -1,17 +1,21 @@
 # n_ops3 STATUS (successor resumes from this file alone)
-Updated: 2026-11-20T02:52Z. Started 00:29Z; 6 h limit 06:29Z; rotate (n_ops4) between launch+30 min and 05:55Z, never near an export/first step.
-Brief: B/briefs/n_ops3.md. B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Predecessor state (exact): /scratch/jjyeung/orch_n30/n_ops2/STATUS.md, /scratch/jjyeung/orch_n30/n_ops1/STATUS.md.
-## State
-- Watcher tmux nops_mon (monloop2.sh) alive. mon: job=173567 (discovery 3, kit qd e7f32394 = 24m4e tree C, advanced, orchard-community-1, RUNNING since 02:42:06Z, 48 CPU/800G/1 GPU), sleep 60, noadv kept (remove at launch). mon2: job=173568 (preempt copy, PENDING; tree_rebuild17 cancels it), sleep 60.
-- Earlier: 173555 (24m3 qd) FAILED 01:58Z at mode r planner R1_STAGED_PIN_MISSING eac5f9f0 after ~33 min staging (BLOCKER 0207Z). 24m4e binds the catalog.
-- Governor ORDER 0240Z done: RESULT 0243Z (2-28 "silent" = idle display; registration makes it live; nothing changed).
-- Condition C (ORCH 0210Z): from launch submission check every minute until first checkpoint + first export; after the first real step run `python work/realbar.py <mon/raw file with @@STEP>` (bars on the measured batch; tested on synthetic: ALL PASS) and report.
-- RESULT 0128Z: 173555 running; ckstop sessions part00-03 HTTP 308 (no declared size; fine for 4 x 28.25 GB).
-- Owner of kit/discovery/launch now tree_rebuild17 (events/tree_rebuild). It cancels the loser discovery copy once one passes staging ("stage full done"/mode r start).
-- Launch not submitted (QUESTION forecast 03:30-04:00Z). At submission: mv mon/noadv mon/noadv.used; launch id -> mon/job; sleep 60.
-- /project free 245 GiB at 01:27Z (~30 GiB/h, other tenants; ORCH 0121Z: stop checkpoint to GCS first) (WARN<250, FLAG<150).
-- Sessions sess.json sha256 15c543a1...f800 (exp ~11-26 18:59Z). Step-600 receipt duty closed (pb_e7a50bab/h.json 1d8ea587...).
-- Rotation plan: n_review1b hands over by 03:30Z; launch QUESTION ~05:00Z (tree_rebuild17). I rotate before the launch (~03:50-04:10Z, not near discovery planner outcome), else after launch+30 min and before 05:55Z.
-## Next
-- Every <=10 min: mon/last.line, mon2/last.line, ALERTS, new events in n_ops + tree_rebuild, inbox.
-- Discovery outputs (x_22c714e1/o/<job>/routing_selection.json, db_bytes.json, census keys) -> RESULT to n_review1b (events/n_review) + fb_pack3 (events/tree_rebuild) at once.
+Updated: 2026-11-20T03:45Z at rotation (successor n_ops4, brief B/briefs/n_ops4.md). n_ops3 started 00:29Z.
+B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30. Older state: /scratch/jjyeung/orch_n30/n_ops2/STATUS.md, /scratch/jjyeung/orch_n30/n_ops1/STATUS.md (watcher, sessions, pointers).
+## Now
+- Launch NOT submitted. tree_rebuild18 owns kit, wrapper, launch QUESTION (forecast ~05:00Z). Wrapper draft events/tree_rebuild/N_LAUNCH_WRAPPER_jn.sh c3ce7d89 (job name a15_cot_apb2edfac4, log x_22c714e1/j/a15_cot_apb2edfac4_<id>.log); ORCH 0323Z item 5 orders two changes (resolve piped through n/b/l.py with pipefail; v.py before resolve) -> final bytes get a new sha; n_review1c names it.
+- Discovery 173567 (a15_cot_ap24d9b8e2, kit qd e7f32394 = 24m4e tree C, jd2.sh 3b80b6c0) RUNNING on advanced orchard-community-1, 48 CPU/800G/1 GPU, start 02:42:06Z, limit 4 h (ends by 06:42Z). Staging done 03:16:05Z (34:00). Since then qd/b/a.py r (rwtrain venv, single-threaded ~1 core) runs; at 03:41Z 25 min, no refusal, r.log 134,650 B unchanged since 03:22, no routing_selection.json yet, live/ empty. 173568 (preempt copy) cancelled 03:12Z.
+- ORCH RULING 0323Z (binding): advanced = adv_4gpu_qos (MaxTRESPerUser gres/gpu=4,node=1, MaxJobsPU 6). (1) 173567 runs to the END OF ITS PREPARATION; the minute its log shows preparation complete AND outputs exist (o/173567/routing_selection.json, db_bytes.json, live/c0..c4 with protected keys, witness lines: {"ok": true} from a.py:71 in r.log (mode r) and q.log (mode q), ep.py "receipt.json sha256=" / "materialization.json sha256=" lines in the outer log, q0.json ADMIT), n_ops cancels it (`scancel 173567` via mon/extra.sh) and posts the cancel time + witness lines. It must not sit in WAITING_REVIEW. tree_rebuild18 may ask for an earlier cancel. (2) The 4-GPU launch may be submitted before; PENDING QOSMaxGRESPerUser is normal while 173567 lives; BLOCKER if still on that reason 5 min after the cancel. (3) If 173567 refuses/fails in preparation: cancel the pending launch on tree_rebuild18's word, BLOCKER. (4) Before submission list every job of user jjyeung on advanced (both projects share the user).
+- ORCH ANSWER 0327Z: 30-minute notice to the main project when the launch QUESTION is posted: one file /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/INBOX_TO_NONTRAINING_ORCHESTRATOR_<UTC with seconds>_<subject>.md (what: 4 H100 advanced 24 h; when; main project has priority; to make us yield write INBOX_TO_DISTILL_ORCH_<UTC>_<subject>.md in that folder). Before the submission `ls` that exact folder and tell ORCH of any new INBOX_TO_DISTILL_ORCH_* / INBOX_FROM_NONTRAINING_ORCHESTRATOR_* file. Never lanemsg. NOT YET SENT (launch QUESTION not posted).
+- Advanced at 03:25Z: ours only 173567; community-3 full; community-0 looked free; many other-tenant jobs pending on their own limits.
+- Condition C (ORCH 0210Z): from launch submission check every minute until the first checkpoint and first export; after the first real step run `/scratch/jjyeung/envs/p1cpu/bin/python /scratch/jjyeung/orch_n30/n_ops3/work/realbar.py <mon/raw file with @@STEP rows>` and report (tested on synthetic: ALL PASS).
+## Watcher
+- tmux nops_mon runs n_ops2/work/monloop2.sh. mon (n_ops1/work/mon): job=173567, sleep 60, noadv touched (mv to noadv.used at launch submission, then launch id -> mon/job). mon2 (n_ops2/work/mon2): job=none, sleep 60.
+- parse.py fix 03:35Z: uses the job-level @@CG line (memory bar was blind before), busy >=0.5 core. Backup n_ops3/work/parse.py.bak_0335. Tests 32/32, replay 91/0. BARS.md updated.
+- My helper: n_ops3/work/chk.sh (prints both last.lines, new alerts, new events since last run; edit L= for your lane).
+## Done this session
+- RESULT 0128Z 173555 start + ckstop sessions (4 parts HTTP 308, no declared size). BLOCKER 0207Z 173555 refused R1_STAGED_PIN_MISSING eac5f9f0 (fixed in 24m4e). RESULT 0243Z governor 2-28 "silent" = idle display (no change). RESULT 0317Z wrapper check. RESULT 0321Z 173567 past catalog pin. QUESTION 0327Z (answered). RESULT 0334Z watcher fix.
+- Ledger n_ops1/work/ORCHARD_LEDGER.jsonl: lines for 173555/173556/173567/173568.
+## Facts
+- Sessions okh7/x_22c714e1/n_s/sess.json sha256 15c543a1...f800 (exp ~11-26 18:59Z). Step-600 receipt okh7/pb_e7a50bab/h.json 1d8ea587... (closed).
+- /project/community free 238 GiB at 03:41Z (~30 GiB/h drop earlier, slower now). Stop checkpoint to GCS first (ORCH 0121Z).
+- Staging timing at 48 CPUs: ~34-36 min (173555, 173567).
