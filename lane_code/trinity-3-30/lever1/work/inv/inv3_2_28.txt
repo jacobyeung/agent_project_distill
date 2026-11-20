@@ -1,0 +1,50 @@
+cd /home/jjyeung/agent_project_distill || exit 1
+G=/scratch/jjyeung/orch_n30/cont_ops24_c/gbuild
+CR=/home/jjyeung/agent_project_distill/agent/scratch/codex_runs
+agent/scripts/codex_dispatch.sh implement $G $G/BRIEF_R7.md --model gpt-6-astra --effort high --label c25_r7 --skip-git-check --writable-root /scratch/jjyeung/orch_n30/cont_ops24_c/cap
+d=$(ls -d $CR/*_c25_r7 | tail -1)
+if [ ! -s "$d/final_message.md" ] && tail -c 20000 "$d/transcript.log" | grep -q 'at capacity'; then
+  echo "ASTRA_CAPACITY $(date -u +%FT%TZ) -> default implement model"
+  agent/scripts/codex_dispatch.sh implement $G $G/BRIEF_R7.md --label c25_r7b --skip-git-check --writable-root /scratch/jjyeung/orch_n30/cont_ops24_c/cap
+fi
+echo "R7_DONE $(date -u +%FT%TZ)"
+##
+dense.gz
+dret
+score_bind
+score_cam
+score_conf
+score_dense
+score_t1
+score_t2
+score_tower2x
+score_tower2x_b
+t1.gz
+t1ret
+t2.gz
+t2ret
+CAMERA_SPLIT.json
+CAMERA_SPLIT.log
+CAMERA_SPLIT.md
+FUNNEL_T1.json
+FUNNEL_T1.log
+FUNNEL_T1.md
+INPUTS_R7.json
+JOIN_T1.jsonl
+JOIN_T1.jsonl.receipt.json
+JOIN_T1.log
+##gbuild
+parent project_round6.py render_round10.py render_round4.py render_round5.py render_round6.py render_round8.py render_round9.py report_round7.py round7_common.py s2_round7.py sam3_ref setup.sh test_round5.py test_round6.py test_round7.py test_round8.py test_round9.py trinity work ##gt
+scannet__scene0166_00.npz
+scannet__scene0166_02.npz
+scannet__scene0250_01.npz
+41069053.npz
+41069054.npz
+41098140.npz
+23
+##codex
+20261120T025626Z_grd_funnel2
+20261120T055119Z_anchor_kill1
+20261120T062552Z_anchor_kill1b
+CODEX_SPEND.log
+RUNNING.registry

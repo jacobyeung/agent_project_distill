@@ -1,0 +1,4 @@
+# Round 3 of K1-X (rank 2): approval and continue
+
+Approved: the CPU-only raster pass over the 3.68 GB of inputs on this node's local /scratch disk. Node-local /scratch reads are not heavy IO under the cluster rules (those cover /home and /data*, which you must still not touch). Keep nice 10 and at most 16 processes.
+Continue in `/scratch/jjyeung/orch_n30/lever1_c/r2/` under `/scratch/jjyeung/orch_n30/lever1_c/BRIEF_R2.md` and `BRIEF_R2B.md` (read both again): run the fresh replay parity (train 56.77 / 73.97 within 0.2), then the full factorial, rows, readouts and every registered verdict, and update `out/REPORT_R2.md`, `out/K1X.json`, `out/SHA256SUMS`. Do not stop to ask again for node-local reads; stop only at the registered parity rule or a real blocker, and state it. Final message: parity lines, verdict lines, the main table, file paths, deviations.

@@ -1,0 +1,317 @@
+[
+  {
+    "id": "069026e87af9608283f51cb247e54cf50d598d006a9cf8c38c3d2f053f472c35",
+    "type": "room_size_estimation",
+    "calls": [
+      {
+        "call": "<ground mode=\"room\">",
+        "response": "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.52 m\nfloor cells 11483; supported cells 7058; cell size 0.05 m; min frames 2\narea 28.71 m^2",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "room": {
+            "frames": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32
+            ],
+            "floor_height_m": -1.520549518529912,
+            "area_m2": 28.7075,
+            "floor_cells": 11483,
+            "supported_cells": 7058,
+            "min_frames": 2,
+            "geometry_mode": "predicted",
+            "gravity_source": "geometry_z_up",
+            "cell_m": 0.05,
+            "closing_radius_m": 0.2,
+            "height_percentile": 1,
+            "height_margin_m": 0.1,
+            "min_points": 100,
+            "head_raster_hw": [
+              240,
+              320
+            ],
+            "pixel_stride": 4,
+            "max_grid_cells": 4000000
+          }
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": true,
+      "applicable": false,
+      "operands": []
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 28.71
+    }
+  },
+  {
+    "id": "ground-04d3e4680293f58b8645b4381a5d4a6ebb3df836292ecc09808eb337278b5d51",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"lamp\" mode=\"box\">",
+        "response": "lamp: frames 2,3,28,29,30,31,32 (best 2)\nB1: f1 centre (1.12, -0.44, 1.85) m\nsize 0.31 x 0.31 x 0.51 m\nyaw -82 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "2": 0.038203125,
+                "3": 0.009231770833333333,
+                "28": 0.008046875,
+                "29": 0.008033854166666667,
+                "30": 0.0105078125,
+                "31": 0.015546875,
+                "32": 0.015989583333333335
+              },
+              "instance_id": "lamp:001"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              1.1190810376878113,
+              -0.4406048773335955,
+              1.8544376855533162
+            ],
+            "lengths": [
+              0.3063052473891519,
+              0.30557984588568543,
+              0.5128643752421457
+            ],
+            "axes": [
+              [
+                0.13527006301624225,
+                0.0,
+                0.9908087656311796
+              ],
+              [
+                -0.9908087656311796,
+                0.0,
+                0.13527006301624225
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              1.126287225118518,
+              -0.4388593283755961,
+              1.8544258754160394
+            ],
+            "lengths": [
+              0.29482106061066427,
+              0.30112609395616063,
+              0.5093732773261469
+            ],
+            "axes": [
+              [
+                0.18038555259453123,
+                0.0,
+                0.9835959802760306
+              ],
+              [
+                -0.9835959802760306,
+                0.0,
+                0.18038555259453123
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"chair\" mode=\"box\">",
+        "response": "chair: frames 1,4,5,6,7,8,9,29,30,31,32 (best 30)\nB2: f1 centre (-1.38, -0.87, 1.94) m\nsize 0.83 x 0.71 x 0.69 m\nyaw 29 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "1": 0.016276041666666668,
+                "4": 0.06208333333333333,
+                "5": 0.07622395833333333,
+                "6": 0.06420572916666667,
+                "7": 0.05416666666666667,
+                "8": 0.052447916666666664,
+                "9": 0.025221354166666668,
+                "29": 0.034140625,
+                "30": 0.08130208333333333,
+                "31": 0.06212239583333334,
+                "32": 0.06229166666666667
+              },
+              "instance_id": "chair:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -1.3845486956065218,
+              -0.8745012054984121,
+              1.9391085170459883
+            ],
+            "lengths": [
+              0.8321243225037251,
+              0.7119424053531939,
+              0.6860455932200169
+            ],
+            "axes": [
+              [
+                0.8738400620082968,
+                0.0,
+                -0.4862134778359565
+              ],
+              [
+                0.4862134778359565,
+                0.0,
+                0.8738400620082968
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -1.2502731634434963,
+              -0.8946526417330696,
+              1.9988539493465558
+            ],
+            "lengths": [
+              0.40004814773369635,
+              0.32014456763273946,
+              0.08151839551766626
+            ],
+            "axes": [
+              [
+                0.5014309841902277,
+                0.0,
+                0.865197646838004
+              ],
+              [
+                -0.865197646838004,
+                0.0,
+                0.5014309841902277
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"lamp\" b=\"chair\" rule=\"box_grid_5cm\">",
+        "response": "distance 2.00 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": false,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "lamp",
+          "gt_instance": 9,
+          "support": 7,
+          "match_fraction": 0.2857142857142857,
+          "ok": false
+        },
+        {
+          "name": "chair",
+          "gt_instance": 7,
+          "support": 11,
+          "match_fraction": 0.9090909090909091,
+          "ok": true
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 2.0
+    }
+  }
+]

@@ -1,0 +1,2 @@
+R=/scratch/jjyeung/orch_n30/n_review/r1f; PY=/scratch/jjyeung/envs/p1cpu/bin/python; date -u +%TZ; ls $R; tail -3 $R/tests_tcpt.log $R/tests_tcpp2.log 2>/dev/null
+for j in tests_tcpt.json tests_tcpp2.json; do [ -f $R/$j ] && { sha256sum $R/$j; $PY -c "import json;d=json.load(open('$R/$j'));[print(k,v['ok'],v.get('run'),[f[0] for f in v.get('failures',[])+v.get('errors',[])][:6],v.get('import_error','')[:200]) for k,v in d.items()]"; }; done

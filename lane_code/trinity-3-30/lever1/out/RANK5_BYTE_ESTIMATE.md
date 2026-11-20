@@ -1,0 +1,9 @@
+# Rank 5 (NOGT) byte estimate: the 22 dev-S1 distance captures without GT (lever1, 2026-11-20)
+Source: stat of the named files only (no reads); list from cont_ops24 STATUS (gt_all60 minus the 38 staged).
+- None of the 14 ScanNet/ScanNet++ captures has an r1313 SCENE.json (stagec_gen_20261012 generation_v1/center_retry/supplemental): dev-S1 rooms were withheld from the pool, so the NPZ must be built from raw scans.
+- ScanNet (7: scene0261_02 0320_01 0380_01 0515_00 0515_01 0642_01 0666_01; /data3/shared/datasets/scannet/scans): vh_clean_2.ply + 0.010000.segs.json + aggregation = 72 MB; poses at the 32 read anchors live only in the .sens streams, 7.05 GB in all (0.50-1.51 GB each). A header-seeking pose reader would read far less, but NFS read-ahead makes the full stream the safe bound.
+- ScanNet++ (7: 246fe09e98 37c9538a2b 38fcf02d0b 3ce6d36ab5 ca3b651c23 d6bb698875 e35232b92f; /data2/jjyeung/raw_datasets/scannetpp/data): mesh_aligned_0.05.ply + segments.json + segments_anno.json + iphone/pose_intrinsic_imu.json = 727 MB (75-192 MB each). Frames are already served PNGs; no rgb.mkv read is needed.
+- ARKit (7: 41126645 41159771 41159772 41254810 42446097 42899829 47331002; /data3 3dod Training, all present with annotation and traj): ~1.1 MB each as in the K1 rebuild = ~8 MB.
+- Total governed reads: 0.81 GB without .sens, 7.86 GB with full .sens streams (~17 min at 8 MB/s). Both are under the registered 30 GB bar.
+- The second half of the bar (15 or more of 22 captures pass self-consistency and same-frame binding) needs the build; it waits for the ORCH ANSWER.
+- Builder basis: the clean-room K1 raster builder (events/gt_rasters/GT_RASTER_BUILDER_CR.tar.gz, sha256 381944a5...) covers ScanNet mesh raycast, ScanNet++ CSR meshes and ARKit; the dev NPZ adds read-anchor poses and bindings in the t1_gt schema of the 38 existing files.

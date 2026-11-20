@@ -1,0 +1,32 @@
+# Build and run: K1-X, masks x depth x pose x scale on K1 with corrected labels (rank 2 of the routed-reader plan)
+
+You are a Codex builder on trinity-2-28. Work only inside `/scratch/jjyeung/orch_n30/lever1_c/r2/` (code, tests, outputs, logs; under 3 GB). Everything else is read-only, including the harness folders below: if a harness asserts its own ROOT or writes beside itself, copy the code you need into r2/ and change only ROOT/OUT, with a parity test proving the copy reproduces the original's numbers. CPU only (no GPU, ssh, git, kill, network, deletion outside r2/, writes to /home or /data*). Search only inside the folders named here. Python `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B`; run under `nice -n 10`, at most 16 threads/processes (the node is shared).
+
+## Question
+On K1 with corrected labels: what does geometry hold at deployed masks; how does the +16.9 (GT masks: served 75.05 -> GT geometry 91.99, held-out) split into depth at object pixels, relative pose, scale and box rule; what does the own depth head cost; does another tower's depth shape under the own scale beat G3T's?
+
+## Inputs (restored on this node at their original paths; all read-only)
+- K1 geometry and SAM: `/scratch/jjyeung/k1/{run_convert_2,run_tower_sam_2,own_170235,g3t}`; frames `/scratch/jjyeung/k1_frames`.
+- Manifest `/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json`; GT sets `orch_n30/k1_ops3/work/gt_sets/`; GT rasters `/scratch/jjyeung/orch_cd/dose_pool/out/{t1_gt,arkit_gt}` (manifest gt paths) and `orch_n30/gt_build/out/K1_GT_RASTERS_259.tar` (+RASTERS_SHA256SUMS).
+- Corrected labels: `/scratch/jjyeung/n30_mirror/gt_audit/gt_audit/work/k1audit/K1_LABELS_CORRECTED.jsonl` (sha256 must start d781ac7b); K1_BOX_AUDIT.json beside it.
+- Row sets: `/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/` (held-out 216 rows / 48 rooms; train 1,037) and `/scratch/jjyeung/orch_n30/sb_k1012/out/` (K1_TRAIN_1012, the 1,012 rows outside the 80 withheld rooms).
+- Harnesses: E3 `/scratch/jjyeung/orch_n30/e3_geom/work/harness` (README, harness.py: GT/oracle scale and GT geometry arms); reviewed-guard GD harness `/scratch/jjyeung/orch_n30/k1_ops3/work/e3gd` (arm GD_reviewed = deployed geometry G3T x own scale; PER_ITEM.jsonl, FITS.json); held-out recompute `/scratch/jjyeung/orch_n30/sb_harev/out/RECOMPUTE.json` (GT geometry 91.99, deployed 75.05, Pi3X 73.38, DA3 71.02, S4+G1 66.94 held-out; train 93.07 / 74.30); box ladder (deployed masks through the deployed selector run_iso, served geometry) `/scratch/jjyeung/orch_n30/sb_kbox4` (REPORT.md, box_ladder/, LADDER_TRAIN.txt, SCALE_PROVENANCE.md; A0 56.8 and GT masks 74.0 on 1,037 train rows); towers `/scratch/jjyeung/orch_n30/geo_k1/{geom,pred_gpu,harness}` (Pi3X, DA3, MoGe-2 native per capture); reprice code `/scratch/jjyeung/n30_mirror/tower_redecide/work/`; lifting variants and reader `/scratch/jjyeung/orch_n30/b04host3/{lift_price,b04_e2ehook,tree_rebuild}`; tree `/scratch/jjyeung/orch_cd/leg_s1_tree`; converter `/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05`.
+- Design context (read the named lines only): `/data2/jjyeung/agent_project_data/distill_design/ROUTED_READER_LEVER_PLAN_20261120.md` lines 53-59 (this rank), `E3_BACKEND_GEOMETRY_PRICING_20261116.md`, `BOX_LADDER_K1_TRAIN_20261119.md`, `HEAD_ACCURACY_DESIGN_20261119.md` lines 30-45.
+
+## Cells (fixed program, anchors, reviewed gravity guard, corrected labels)
+masks {GT, deployed} x depth {G3T, GT} x relative pose {G3T, GT} x scale {own rule, GT}, scale-matched (when GT pose meets G3T depth, put both in one metric frame by the cell's scale rule; document how). Deployed masks = the deployed selector run_iso's chosen candidates on the served geometry, exactly as sb_kbox4's A0; deployed-mask cells are valid on held-out only (run_iso was fitted on K1 train), so on train they are reported as in-sample. Rows: own depth head in place of G3T depth (own_170235 / own_544_fov, whichever the records name); Pi3X and DA3 depth shape under the own-depth scale (if their exports are complete; else report coverage); oracle extent and oracle centre; voted box at GT geometry.
+Readouts: AbsRel at GT-mask pixels, metric and scale-fitted, for G3T and own depth, held-out and train; relative rotation and translation error between the two operands' frames (G3T vs GT); share of items whose operands share a frame.
+
+## Sets and statistics
+Held-out (216 rows / 48 rooms) decides; train (1,012 decision rows, 1,037 beside) cross-checks. Paired room bootstrap, 10,000 draws, seed 20261120, 95% intervals; report ARKit vs ScanNet/ScanNet++ for every cell.
+
+## Registered reading (compute every verdict mechanically, before interpretation)
+0. Parity stop: GT-mask served-geometry and GT-geometry cells within 0.2 of 75.05 / 91.99 (held-out) and the train deployed/GT-mask cells within 0.2 of 56.8 / 74.0 (sb_kbox4's 1,037-row population). If parity fails, stop, report the gap and its cause; read no contrast.
+1. C1 = GT geometry minus served geometry at deployed masks (held-out): >= 4 with lower bound > 0 -> geometry pays now; < 2 -> geometry waits for masks; else undecided.
+2. C3 at GT masks: GT pose alone >= 10 with GT depth alone <= 4 -> pose binds and no depth trains; GT depth alone >= 5 with lower bound > 0 -> opens arm B (also report arm B's full gate: GT depth alone >= 5, C1 >= 2, no tower row recovers half, own-depth gap >= 3); neither alone above a third of the gap -> they interact and the fusion row decides.
+3. C5 = own depth minus G3T depth: >= -1 with lower bound >= -3 -> serve own depth; <= -5 -> own depth cannot carry distance; else undecided.
+4. C6 = oracle extent at deployed masks: >= 5 with lower bound > 0 -> opens arm C.
+5. Tower row: +3 or more with lower bound > 0 over G3T x own scale -> proposes a new pin; otherwise G3T stays.
+
+## Deliverables in r2/
+`k1x.py` (one CLI; paths as arguments with the defaults above), tests (parity of copied harness code; synthetic cell swaps: GT everything reproduces the GT-geometry arm, served everything reproduces GD_reviewed per item), `out/K1X.json` (per-row cells, all contrasts with intervals, input sha256s), `out/REPORT_R2.md` (max 100 lines: parity table, the full cell table held-out and train, by dataset, contrasts C1/C3/C5/C6/tower with verdicts, AbsRel and pose-error tables, what might not work), `out/SHA256SUMS`. Run the tests and the full run. Final message: parity lines, verdict lines, the main table, file paths, deviations from this brief.

@@ -1,0 +1,33 @@
+{
+  "schema": "b6-k1-rules-v1",
+  "seed": 17,
+  "trust_relative_tolerance": 0.15,
+  "min_trust_fallback_share": 0.4,
+  "min_mra_gain": 0.1,
+  "max_auc_drop": 0.02,
+  "max_top1_drop": 0.02,
+  "cue_auc_bar": 0.65,
+  "mra_thresholds": [
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7,
+    0.75,
+    0.8,
+    0.85,
+    0.9,
+    0.95
+  ],
+  "constant_fit": "maximize training absolute-distance MRA over all interval endpoints; choose smaller value on ties",
+  "cue_directions": {
+    "status": 1,
+    "low_frames": -1,
+    "spread": 1,
+    "missing_size": 1,
+    "disagreement": 1
+  },
+  "thresholds_source": "b6_design section 4.6; trace_ruling cue study; frozen scorer",
+  "thresholds_fit_population": "none; constants preregistered before K1 outputs",
+  "train_statistics_population": "K1 train physical rooms only"
+}

@@ -1,0 +1,255 @@
+{
+  "status": "AWAITING_HEAVY_IO_APPROVAL",
+  "contract": {
+    "program": "sb_kbox4 served reader: lift_bestspread, reader guard, box_grid_5cm, run_iso candidates_argmax",
+    "masks": "Selector runs once on served geometry. Each chosen raw mask and frame stays fixed across swaps.",
+    "scale": "s=served own scale or E3 specified oracle SO. q=s/SO. G3T depth and translations multiply s; GT depth and translations multiply q.",
+    "depth": "GT dose_pool optical-axis depth sampled by floor(endpoint_canvas*size/1000) onto the served 51x51 grid; reader bilinear interpolation and 5x5 spread stencil remain unchanged.",
+    "pose": "GT c2w at anchors in GT world coordinates. No GT gravity is applied to cells with G3T pose.",
+    "intrinsics": "Served K and canvas_to_source retained in every cell; GT intrinsics are not a fifth factor.",
+    "own": "Stored own_170235 depth is already metric; served G3T poses and intrinsics remain fixed.",
+    "towers": "Pi3X/DA3 depth only, scaled by median(own/tower depth) on finite positive points above median G3T confidence. G3T poses/intrinsics retained.",
+    "oracle_boxes": "Corrected full GT annotation extents or centres, registered by anchor 1 into served world. Extents project onto retained served axes; centres preserve served lengths and axes.",
+    "voted": "Ladder frozen vote_10_3_best on GT depth/pose/oracle scale; same spread cut and program.",
+    "readouts": "Depth AbsRel at all GT-mask pixels, per-operand median scale fit, pixel-weighted within each row then item mean. Pose errors use the GT-mask best frames; same-frame share also reported for deployed masks.",
+    "train": "1037 is parity; 1012 is decision cross-check. Deployed-mask train cells are in-sample.",
+    "cross_program": "E3/GD_reviewed GT masks are saved comparisons only; neither endpoint sets a stop for this served program."
+  },
+  "saved_ladder_references": [
+    {
+      "arm": "A0_deployed",
+      "n": 1037,
+      "saved_score": 56.769527483124406,
+      "target": 56.77,
+      "replay_status": "NOT_RUN"
+    },
+    {
+      "arm": "A2_gt_masks",
+      "n": 1037,
+      "saved_score": 73.97299903567985,
+      "target": 73.97,
+      "replay_status": "NOT_RUN"
+    }
+  ],
+  "registered_cells": [
+    {
+      "cell": "GT/G3T/G3T/own",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/G3T/G3T/GT",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/G3T/GT/own",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/G3T/GT/GT",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/GT/G3T/own",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/GT/G3T/GT",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/GT/GT/own",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/GT/GT/GT",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/G3T/G3T/own",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/G3T/G3T/GT",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/G3T/GT/own",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/G3T/GT/GT",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/GT/G3T/own",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/GT/G3T/GT",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/GT/GT/own",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/GT/GT/GT",
+      "status": "NOT_RUN"
+    }
+  ],
+  "extra_cells": [
+    {
+      "cell": "GT/own_depth",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/Pi3X",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/DA3",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/oracle_extent",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/oracle_centre",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "GT/voted_GT",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/own_depth",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/Pi3X",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/DA3",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/oracle_extent",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/oracle_centre",
+      "status": "NOT_RUN"
+    },
+    {
+      "cell": "deployed/voted_GT",
+      "status": "NOT_RUN"
+    }
+  ],
+  "contrasts": {
+    "C1": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "C3_depth": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "C3_pose": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "C3_joint": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "C3_full_gap": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "C3_scale": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "C5": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "C5_deployed": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "C6": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "centre": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "Pi3X": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "DA3": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "Pi3X_deployed": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "DA3_deployed": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "fusion": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    },
+    "fusion_deployed": {
+      "status": "NOT_RUN",
+      "verdict": "UNAVAILABLE"
+    }
+  },
+  "input_sha256": {
+    "/scratch/jjyeung/n30_mirror/gt_audit/gt_audit/work/k1audit/K1_LABELS_CORRECTED.jsonl": {
+      "sha256": "d781ac7bf2313a3942020c17f3c0858eab4fbe4a349627e553d2c328da74f8c4",
+      "bytes": 420253
+    },
+    "/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/K1_HELDOUT_216.txt": {
+      "sha256": "a50519b3e7814cd671d7482d4fccb0cc7580360fd51260a14dffe93bf1b48f1c",
+      "bytes": 15551
+    },
+    "/scratch/jjyeung/n30_mirror/sb_headacc2/K1_ROWSETS/K1_TRAIN_1037.txt": {
+      "sha256": "e7646798c8a1e12ca6291723c5f686473b9954a78d068dcfa65c314be35a98ac",
+      "bytes": 74663
+    },
+    "/scratch/jjyeung/orch_n30/sb_k1012/out/K1_TRAIN_1012.txt": {
+      "sha256": "48c13fac3205b7c53c79d4efda1e661eb7dae88021dc261639ce4b5581a646d7",
+      "bytes": 72864
+    },
+    "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json": {
+      "sha256": "91a2dbf9a0bdad1a45af44a5a3a2607d40f9f7a630f742fc4531544c00cade7c",
+      "bytes": 10776167
+    },
+    "/scratch/jjyeung/orch_n30/sb_kbox4/out/box_ladder/PER_ITEM.jsonl": {
+      "sha256": "3bc7f87f8fcd764f74df79852367d501140d0d5870a997347d7db84d82f48b3b",
+      "bytes": 112381825
+    },
+    "/scratch/jjyeung/orch_n30/k1_ops3/work/e3gd/out/PER_ITEM.jsonl": {
+      "sha256": "a4b693307a3d80693a743a01d06e5d6f1dde85f321c21e18e826c36bd377a4a6",
+      "bytes": 6820146
+    },
+    "/scratch/jjyeung/n30_mirror/gt_audit/gt_audit/work/k1audit/K1_BOX_AUDIT.json": {
+      "sha256": "f02a8dc82dc5b0af8fa63b0c041c28b9306f0f3024f2300681abff10e46d757e",
+      "bytes": 1879445
+    },
+    "/scratch/jjyeung/orch_n30/sb_kbox4/out/box_ladder/FREEZE.json": {
+      "sha256": "e8d47e1069c82987304be5ce2c4ab6c47aaaead18bd926c71b2edabe4267d390",
+      "bytes": 323512
+    }
+  },
+  "approval_requirement": "Trinity Agents rule: Ask before any heavy IO command; wait for the user answer."
+}

@@ -1,0 +1,72 @@
+{
+ "config": {
+  "hidden": 0,
+  "ridge": 30.0
+ },
+ "feature_names": [
+  "log_floor_dist_q01",
+  "log_floor_dist_q02",
+  "log_floor_dist_q05",
+  "log_floor_dist_q10",
+  "log_floor_dist_q25",
+  "log_height_above_q01_q50",
+  "log_height_above_q01_q75",
+  "log_height_above_q01_q90",
+  "log_height_above_q01_q95",
+  "log_span_q01_q99",
+  "log_depth_conf_q10",
+  "log_depth_conf_q25",
+  "log_depth_conf_q50",
+  "log_depth_conf_q75",
+  "log_depth_conf_q90",
+  "log_depth_all_q10",
+  "log_depth_all_q50",
+  "log_depth_all_q90",
+  "log_horiz_radius_q50",
+  "log_horiz_radius_q90",
+  "log_horiz_radius_q99",
+  "log_cam_step_mean",
+  "log_cam_extent_max",
+  "log_tan_half_fov_h",
+  "log_tan_half_fov_w",
+  "mean_log_conf",
+  "log_median_conf",
+  "log_pointmap_to_depth_ratio",
+  "log_pointmap_floor_dist_q01"
+ ],
+ "seed": 20261116,
+ "target": "log SO (E3 oracle: median GT/g3t depth on conf>clip-median grid points)",
+ "train_population": {
+  "n_captures": 239,
+  "n_rooms": 219,
+  "sha256": "73b6ef4dd08534654079bdbb2bea96d739829748aeb3621af826a64b136d7d03",
+  "source": "/scratch/jjyeung/orch_n30/b04_e2ehook/work/e3/work/harness/out_tr",
+  "towers": "/scratch/jjyeung/n30_mirror/k1_ops3/run_tower_sam_2"
+ },
+ "selection": {
+  "rule": "min room-grouped CV mean |log s/SO| over candidates",
+  "folds": 5,
+  "repeats": 4,
+  "chosen": "{\"hidden\": 0, \"ridge\": 30.0}",
+  "cv": {
+   "mean_abs_log": 0.07770411650127629,
+   "within20": 0.9581589958158996,
+   "per_repeat_mean_abs_log": [
+    0.07703638876437334,
+    0.07891017131627436,
+    0.07840829378121256,
+    0.07646161214324493
+   ]
+  }
+ },
+ "n_parameters": 31,
+ "train_fit": {
+  "mean_abs_log": 0.07190006059275492,
+  "within20": 0.9790794979079498
+ },
+ "weights_sha256": "094df94ce36f060b1964013c3f2a44af82455758e5d8897901d5e175c0f38322",
+ "code_sha256": {
+  "scale_head.py": "0d4f83ca53b12ae0d80f26b571b9d73604840ddc195482ff7b8bd26174342b45",
+  "train_scale.py": "673afde03cd9189f8ee90877b89ac1ffbf54cd5a8d8f05c9065823b2b5fc8370"
+ }
+}

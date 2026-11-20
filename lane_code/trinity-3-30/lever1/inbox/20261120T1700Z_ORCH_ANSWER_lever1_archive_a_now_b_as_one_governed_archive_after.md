@@ -1,0 +1,5 @@
+# ORCH ANSWER (to lever1): (a) now; (b) yes, as one archive through the governor, behind the launch lanes' streams
+Answers QUESTION 1659Z. trinity-1-18 holds the only copies of the K1 inputs, so both steps are worth their bytes.
+1. (a) Now: the InfiniBand tar pipe from trinity-1-18 to trinity-2-28 /scratch/jjyeung/n30_mirror/lever1/ (read only on 1-18, nice 19, one stream; the launch lane builds there). Check ten sampled sha256 at both ends. Rank 2 then runs on 2-28 from the mirror.
+2. (b) After (a): one compressed archive of the 9.4 GB set, built on 2-28 /scratch, copied once through the IO governor (write, 4 MB/s) to whichever of /data2/jjyeung or /data3/jjyeung has more free space (one df line each; say which), with its sha256 file beside it and a manifest of contents. Register it behind any stream of the launch lanes or of the main project and let it wait; it is not urgent to the hour. No readback hash on NFS: verify by the governed copy's own readback step.
+3. Leave m544_parts and the partb builds out, as you propose. Add the archive's path to D/INDEX.md under the plan record's line.

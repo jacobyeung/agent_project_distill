@@ -1,0 +1,200 @@
+{
+  "capture": "scannetpp/3caf4324fd",
+  "phase": "parity",
+  "rows": [
+    {
+      "row_id": "ground-23a87713fa735ae764e7214ffe0543ea011150d2d5281f9f0729efa773595695",
+      "capture": "scannetpp/3caf4324fd",
+      "room": "scannetpp/3caf4324fd",
+      "dataset": "scannetpp",
+      "split": "train",
+      "label": 6.046450632069935,
+      "cells": {
+        "GT/G3T/G3T/own": {
+          "prediction": 0.2,
+          "refusal": null,
+          "printed": {
+            "coat hanger": {
+              "centre": [
+                -4.993487199284445,
+                -0.6852348745907595,
+                4.473153783900813
+              ],
+              "lengths": [
+                0.44613014177269905,
+                0.9285623082813128,
+                1.8176836802313372
+              ],
+              "axes": [
+                [
+                  -0.25945570863603845,
+                  0.0,
+                  -0.965755007885629
+                ],
+                [
+                  0.965755007885629,
+                  0.0,
+                  -0.25945570863603845
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0
+                ]
+              ]
+            },
+            "table lamp": {
+              "centre": [
+                -4.871406488431054,
+                -0.8411189291362454,
+                3.9275911122227414
+              ],
+              "lengths": [
+                0.1387776798801429,
+                0.054895581825691764,
+                0.17377432799516845
+              ],
+              "axes": [
+                [
+                  -0.6916244137533197,
+                  0.0,
+                  -0.7222573435420208
+                ],
+                [
+                  0.7222573435420208,
+                  0.0,
+                  -0.6916244137533197
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0
+                ]
+              ]
+            }
+          }
+        },
+        "deployed/G3T/G3T/own": {
+          "prediction": null,
+          "refusal": "not seen",
+          "printed": {
+            "table lamp": {
+              "centre": [
+                -9.51517762508531,
+                -1.2094668213498023,
+                1.8224382235380552
+              ],
+              "lengths": [
+                0.3666260725278079,
+                0.25255610134217266,
+                1.0685731688079727
+              ],
+              "axes": [
+                [
+                  0.8835802022564396,
+                  0.0,
+                  -0.46827985882426043
+                ],
+                [
+                  0.46827985882426043,
+                  0.0,
+                  0.8835802022564396
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0
+                ]
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "parity": [
+    {
+      "row_id": "ground-23a87713fa735ae764e7214ffe0543ea011150d2d5281f9f0729efa773595695",
+      "arm": "A2_gt_masks",
+      "passed": true,
+      "prediction_equal": true,
+      "got": 0.2,
+      "expected": 0.2,
+      "boxes_equal": true
+    },
+    {
+      "row_id": "ground-23a87713fa735ae764e7214ffe0543ea011150d2d5281f9f0729efa773595695",
+      "arm": "A0_deployed",
+      "passed": true,
+      "prediction_equal": true,
+      "got": null,
+      "expected": null,
+      "boxes_equal": true
+    }
+  ],
+  "geometry": {
+    "served_scale": 6.64892578125,
+    "unrounded_own_scale": 6.64892560071757,
+    "oracle_scale": 6.578638029961101,
+    "gt_to_own_metric": 1.010684240562984,
+    "oracle_diagnostic": {
+      "so_selected_points": 41257,
+      "frozen_selected_points": 41257,
+      "frozen_mask_equal": true,
+      "frozen_mask_different_points": 0,
+      "frozen_scale": 6.578638029961101,
+      "confidence_threshold": 9.115289688110352,
+      "absrel_so_selected": 0.04737312088581997,
+      "absrel_so_all_valid_grid": 0.04771194407990641,
+      "frozen_rule_check_pass": true
+    },
+    "convert_missing": false,
+    "source_tower": "/scratch/jjyeung/k1/run_tower_sam_2/dc647f425244bdc4/tower.npz",
+    "source_own": "/scratch/jjyeung/k1/own_170235/native/probe/dc647f425244bdc4/own.npz",
+    "own_receipt_available": false,
+    "source_candidates": "/scratch/jjyeung/k1/run_convert_2/dc647f425244bdc4/candidates.json"
+  },
+  "choices": {
+    "coat hanger": {
+      "candidate_id": null,
+      "members": []
+    },
+    "table lamp": {
+      "candidate_id": "table lamp:000",
+      "members": [
+        [
+          22,
+          0
+        ]
+      ]
+    }
+  },
+  "seconds": 0.7330195889953757,
+  "input_sha256": {
+    "/scratch/jjyeung/k1/run_tower_sam_2/dc647f425244bdc4/tower.npz": {
+      "sha256": "422bc8307fe77a01855643f30abb5bcd2212ce8224677063649bc0071ffa9f7c",
+      "bytes": 1672018
+    },
+    "/scratch/jjyeung/k1/run_tower_sam_2/dc647f425244bdc4/PHASE_COMPLETE.json": {
+      "sha256": "7dfca8fea3b0c8ee80bb0a942f13e9bc803a46331e345928580361e1c69ba4b8",
+      "bytes": 4022
+    },
+    "/scratch/jjyeung/k1/own_170235/native/probe/dc647f425244bdc4/own.npz": {
+      "sha256": "adbf97ed1221c76addfb352afd4e8c3160ccd735fdbf6424ada90261d20ac8a2",
+      "bytes": 666390
+    },
+    "/scratch/jjyeung/k1/run_convert_2/dc647f425244bdc4/geometry.npz": {
+      "sha256": "1ab057cf7ff8f616b9aff3f09473c5195a181f7736d13697a8d209ac0029fe47",
+      "bytes": 345600
+    },
+    "/scratch/jjyeung/orch_cd/dose_pool/out/t1_gt/gt/scannetppv2__3caf4324fd.npz": {
+      "sha256": "90fee210d3545b991ce39ea6c5190c64166bd9d1f4bf08753101fa6d3dbd09c7",
+      "bytes": 7975810
+    },
+    "/scratch/jjyeung/k1/run_convert_2/dc647f425244bdc4/candidates.json": {
+      "sha256": "bf7b98767934815635a5606eb763a30c6502c87d10fd3b8ce6b673a1e3a2aea7",
+      "bytes": 1054108
+    }
+  },
+  "fingerprint": "fcbe76eb5461e2d9089d2bdb91f2e3e7ca38d9a5bfb3400b96d5a27f77214ef8"
+}

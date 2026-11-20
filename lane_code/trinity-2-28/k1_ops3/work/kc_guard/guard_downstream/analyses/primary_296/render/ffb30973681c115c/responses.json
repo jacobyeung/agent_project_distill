@@ -1,0 +1,224 @@
+[
+  {
+    "id": "ground-839e39096b601ebd6b3209cb64407fc41c438fa71237fdb5163587b82e99e7bf",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"refrigerator\" mode=\"box\">",
+        "response": "refrigerator: frames 15 (best 15)\nB1: f1 centre (3.53, 0.05, 3.08) m\nsize 2.60 x 0.13 x 0.55 m\nyaw 87 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "15": 0.020442708333333334
+              },
+              "instance_id": "refrigerator:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              3.5342559152640276,
+              0.048721495201062254,
+              3.0752500916279315
+            ],
+            "lengths": [
+              2.6044025218255964,
+              0.13162463706083605,
+              0.5463529041967237
+            ],
+            "axes": [
+              [
+                0.05225774385978737,
+                0.0,
+                -0.9986336306207021
+              ],
+              [
+                0.9986336306207021,
+                0.0,
+                0.05225774385978737
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              3.5342559152640276,
+              0.048721495201062254,
+              3.0752500916279315
+            ],
+            "lengths": [
+              2.6044025218255964,
+              0.13162463706083605,
+              0.5463529041967237
+            ],
+            "axes": [
+              [
+                0.05225774385978737,
+                0.0,
+                -0.9986336306207021
+              ],
+              [
+                0.9986336306207021,
+                0.0,
+                0.05225774385978737
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"tv\" mode=\"box\">",
+        "response": "tv: frames 1,2,3,5 (best 3)\nB2: f1 centre (-0.48, -0.07, 1.20) m\nsize 1.31 x 0.09 x 0.46 m\nyaw -134 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "1": 0.02,
+                "2": 0.0551171875,
+                "3": 0.11135416666666667,
+                "5": 0.03578125
+              },
+              "instance_id": "tv:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -0.4779711197783687,
+              -0.06942965961790536,
+              1.203083582525484
+            ],
+            "lengths": [
+              1.3132731195639797,
+              0.09155462341511011,
+              0.45524842346343786
+            ],
+            "axes": [
+              [
+                -0.699801507324487,
+                0.0,
+                0.71433735051891
+              ],
+              [
+                -0.71433735051891,
+                0.0,
+                -0.699801507324487
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -0.5000426183168426,
+              -0.07252710995780852,
+              1.1969647669906311
+            ],
+            "lengths": [
+              1.3159260722804917,
+              0.05641522943848887,
+              0.4614433241432442
+            ],
+            "axes": [
+              [
+                -0.701676815024271,
+                0.0,
+                0.7124953664813513
+              ],
+              [
+                -0.7124953664813513,
+                0.0,
+                -0.701676815024271
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"refrigerator\" b=\"tv\" rule=\"box_grid_5cm\">",
+        "response": "distance 3.70 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": false,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "refrigerator",
+          "gt_instance": 18,
+          "support": 1,
+          "match_fraction": 0.0,
+          "ok": false
+        },
+        {
+          "name": "tv",
+          "gt_instance": 0,
+          "support": 4,
+          "match_fraction": 0.5,
+          "ok": true
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 3.7
+    }
+  }
+]

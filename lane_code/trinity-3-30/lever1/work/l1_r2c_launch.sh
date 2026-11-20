@@ -1,0 +1,28 @@
+set -e; C=/scratch/jjyeung/orch_n30/lever1_c
+base64 -d > $C/BRIEF_R2C.md <<'B64'
+IyBSb3VuZCAzIG9mIEsxLVggKHJhbmsgMik6IGFwcHJvdmFsIGFuZCBjb250aW51ZQoKQXBwcm92
+ZWQ6IHRoZSBDUFUtb25seSByYXN0ZXIgcGFzcyBvdmVyIHRoZSAzLjY4IEdCIG9mIGlucHV0cyBv
+biB0aGlzIG5vZGUncyBsb2NhbCAvc2NyYXRjaCBkaXNrLiBOb2RlLWxvY2FsIC9zY3JhdGNoIHJl
+YWRzIGFyZSBub3QgaGVhdnkgSU8gdW5kZXIgdGhlIGNsdXN0ZXIgcnVsZXMgKHRob3NlIGNvdmVy
+IC9ob21lIGFuZCAvZGF0YSosIHdoaWNoIHlvdSBtdXN0IHN0aWxsIG5vdCB0b3VjaCkuIEtlZXAg
+bmljZSAxMCBhbmQgYXQgbW9zdCAxNiBwcm9jZXNzZXMuCkNvbnRpbnVlIGluIGAvc2NyYXRjaC9q
+anlldW5nL29yY2hfbjMwL2xldmVyMV9jL3IyL2AgdW5kZXIgYC9zY3JhdGNoL2pqeWV1bmcvb3Jj
+aF9uMzAvbGV2ZXIxX2MvQlJJRUZfUjIubWRgIGFuZCBgQlJJRUZfUjJCLm1kYCAocmVhZCBib3Ro
+IGFnYWluKTogcnVuIHRoZSBmcmVzaCByZXBsYXkgcGFyaXR5ICh0cmFpbiA1Ni43NyAvIDczLjk3
+IHdpdGhpbiAwLjIpLCB0aGVuIHRoZSBmdWxsIGZhY3RvcmlhbCwgcm93cywgcmVhZG91dHMgYW5k
+IGV2ZXJ5IHJlZ2lzdGVyZWQgdmVyZGljdCwgYW5kIHVwZGF0ZSBgb3V0L1JFUE9SVF9SMi5tZGAs
+IGBvdXQvSzFYLmpzb25gLCBgb3V0L1NIQTI1NlNVTVNgLiBEbyBub3Qgc3RvcCB0byBhc2sgYWdh
+aW4gZm9yIG5vZGUtbG9jYWwgcmVhZHM7IHN0b3Agb25seSBhdCB0aGUgcmVnaXN0ZXJlZCBwYXJp
+dHkgcnVsZSBvciBhIHJlYWwgYmxvY2tlciwgYW5kIHN0YXRlIGl0LiBGaW5hbCBtZXNzYWdlOiBw
+YXJpdHkgbGluZXMsIHZlcmRpY3QgbGluZXMsIHRoZSBtYWluIHRhYmxlLCBmaWxlIHBhdGhzLCBk
+ZXZpYXRpb25zLgo=
+B64
+cat > $C/r2c_run.sh <<'RUN'
+B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30
+C=/scratch/jjyeung/orch_n30/lever1_c
+echo "START $(date -u +%FT%TZ)"
+bash $B/tools/codex_local.sh implement $C/r2 $C/BRIEF_R2C.md --model gpt-6-astra --effort high --label lever1_r2c --skip-git-check --writable-root $C/r2
+echo "R2C_DONE rc=$? $(date -u +%FT%TZ)"
+RUN
+tmux new-session -d -s l1_r2c "bash $C/r2c_run.sh > $C/r2c_run.log 2>&1"
+sleep 2; tmux ls | grep l1_

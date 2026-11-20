@@ -1,0 +1,59 @@
+K1 TRAINING base arms. Individual arm means are in-sample; rule gains below are cross-fitted.
+Command: bash run.sh publish_base.py
+Arm | Rows | MRA | Refusals
+A0_deployed | 1037 | 56.7695 | 36
+A1_oracle_select | 883 | 61.6535 | 36
+A2_gt_masks | 1037 | 73.9730 | 0
+A3_gt_fused_allspread | 1037 | 54.5612 | 0
+A3_gt_fused_trim | 1037 | 75.1205 | 0
+A3_gt_fused_vote_10_2 | 1037 | 69.5082 | 119
+A3_gt_fused_vote_10_2_best | 1037 | 75.6702 | 0
+A3_gt_fused_vote_10_3 | 1037 | 58.3992 | 268
+A3_gt_fused_vote_10_3_best | 1037 | 78.6210 | 0
+A3_gt_fused_vote_5_2 | 1037 | 67.2420 | 167
+A3_gt_fused_vote_5_2_best | 1037 | 77.4156 | 0
+A3_gt_fused_vote_5_3 | 1037 | 46.9142 | 385
+A3_gt_fused_vote_5_3_best | 1037 | 77.9074 | 0
+A4_obj_0.15_allspread | 1037 | 56.7599 | 36
+A4_obj_0.15_best1 | 1037 | 56.9527 | 36
+A4_obj_0.15_trim | 1037 | 60.5979 | 36
+A4_obj_0.15_vote_10_2 | 1037 | 59.1225 | 70
+A4_obj_0.15_vote_10_2_best | 1037 | 61.3500 | 36
+A4_obj_0.15_vote_10_3 | 1037 | 52.6615 | 146
+A4_obj_0.15_vote_10_3_best | 1037 | 61.0511 | 36
+A4_obj_0.15_vote_5_2 | 1037 | 56.8660 | 94
+A4_obj_0.15_vote_5_2_best | 1037 | 60.9643 | 36
+A4_obj_0.15_vote_5_3 | 1037 | 44.5034 | 237
+A4_obj_0.15_vote_5_3_best | 1037 | 60.5304 | 36
+A4_obj_0.25_allspread | 1037 | 56.7213 | 36
+A4_obj_0.25_best1 | 1037 | 57.2999 | 36
+A4_obj_0.25_trim | 1037 | 60.6268 | 36
+A4_obj_0.25_vote_10_2 | 1037 | 59.1128 | 71
+A4_obj_0.25_vote_10_2_best | 1037 | 61.4561 | 36
+A4_obj_0.25_vote_10_3 | 1037 | 53.2498 | 141
+A4_obj_0.25_vote_10_3_best | 1037 | 61.1765 | 36
+A4_obj_0.25_vote_5_2 | 1037 | 56.5863 | 98
+A4_obj_0.25_vote_5_2_best | 1037 | 61.0993 | 36
+A4_obj_0.25_vote_5_3 | 1037 | 45.3423 | 226
+A4_obj_0.25_vote_5_3_best | 1037 | 60.7618 | 36
+A4_obj_0.40_allspread | 1037 | 56.9817 | 36
+A4_obj_0.40_best1 | 1037 | 57.3674 | 36
+A4_obj_0.40_trim | 1037 | 60.7232 | 36
+A4_obj_0.40_vote_10_2 | 1037 | 58.8910 | 75
+A4_obj_0.40_vote_10_2_best | 1037 | 61.4851 | 36
+A4_obj_0.40_vote_10_3 | 1037 | 53.1823 | 142
+A4_obj_0.40_vote_10_3_best | 1037 | 61.2150 | 36
+A4_obj_0.40_vote_5_2 | 1037 | 56.3549 | 102
+A4_obj_0.40_vote_5_2_best | 1037 | 61.1186 | 36
+A4_obj_0.40_vote_5_3 | 1037 | 45.2363 | 227
+A4_obj_0.40_vote_5_3_best | 1037 | 60.8197 | 36
+A9_s4_today | 1037 | 52.9894 | 72
+
+Paired contrast | Delta [95% CI]
+oracle_minus_A0 | +4.0997 [+2.0609, +6.2245]
+GT_masks_minus_A0 | +17.2035 [+13.5395, +20.8920]
+S4_today_minus_A0 | -3.7801 [-5.9930, -1.7203]
+object_cf_minus_A0 | +0.0000 [+0.0000, +0.0000]
+fused_cf_minus_A2 | +4.6480 [+3.0372, +6.4376]
+
+Selector pricing remains pending. Held-out and A6 remain deferred.
